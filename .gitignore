@@ -1,0 +1,6 @@
+*.coverprofile
+coverage*.out
+
+### GoLand ###
+.idea
+report.json

@@ -1,0 +1,2 @@
+groupName: "tsm.tanzu.vmware.com"
+crdModulePath: "gitlab.eng.vmware.com/nexus/compiler/example/output/crd/"

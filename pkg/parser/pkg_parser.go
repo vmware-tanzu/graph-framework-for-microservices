@@ -1,0 +1,56 @@
+package parser
+
+import (
+	"fmt"
+	"go/ast"
+	"go/parser"
+	"go/token"
+	"io/fs"
+	"path/filepath"
+	"strings"
+
+	log "github.com/sirupsen/logrus"
+)
+
+// ParseDSLPkg walks recursively through given path and looks for structs types definitions to add them to a Package map
+func ParseDSLPkg(startPath string) Packages {
+	modulePath := GetModulePath(startPath)
+
+	//rootNodes := make([]string, 0)
+	packages := make(Packages)
+	err := filepath.Walk(startPath, func(path string, info fs.FileInfo, err error) error {
+		if info.IsDir() {
+			fileset := token.NewFileSet()
+			pkgs, err := parser.ParseDir(fileset, path, nil, parser.ParseComments)
+			if err != nil {
+				log.Fatalf("failed to parse directory %s: %v", path, err)
+			}
+			for _, v := range pkgs {
+				pkgImport := strings.TrimSuffix(strings.ReplaceAll(path, startPath, fmt.Sprintf("%s/", modulePath)), "/")
+
+				pkg := Package{
+					Name:     v.Name,
+					FullName: pkgImport,
+					FileSet:  fileset,
+					Pkg:      *v,
+				}
+
+				for _, file := range v.Files {
+					for _, decl := range file.Decls {
+						if genDecl, ok := decl.(*ast.GenDecl); ok {
+							pkg.GenDecls = append(pkg.GenDecls, *genDecl)
+						}
+					}
+				}
+
+				packages[pkgImport] = pkg
+			}
+		}
+		return nil
+	})
+	if err != nil {
+		log.Fatalf("Failed to parse DSL: %v", err)
+	}
+
+	return packages
+}

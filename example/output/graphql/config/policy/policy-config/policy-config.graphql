@@ -1,0 +1,26 @@
+type ACPConfig {
+    id: ID
+    displayName: String
+    gns: String
+    description: String
+    tags: [String]
+    projectId: String
+    destGroups: String @jsonencoded(file:"./root/config/policy/policy-config/policy-config.ts", gofile:"policy-config.go", name: "ResourceGroupIDs")
+    sourceGroups: String @jsonencoded(file:"./root/config/policy/policy-config/policy-config.ts", gofile:"policy-config.go", name: "ResourceGroupIDs")
+    destSvcGroups(name: String): [SvcGroup!]
+    @relation(softlink: "true", parameters: ACPSvcGroupLinkInfo, uuidkey: "true")
+    sourceSvcGroups(name: String): [SvcGroup!]
+    @relation(softlink: "true", parameters: ACPSvcGroupLinkInfo, uuidkey: "true")
+    conditions: [String]
+    actions: String @jsonencoded(file:"./root/config/policy/policy-config/policy-config.ts", gofile:"policy-config.go", name: "PolicyCfgActions")
+}
+
+type ResourceGroupRef {
+    name: String
+    type: String
+}
+
+type ACPSvcGroupLinkInfo {
+    serviceName: String
+    serviceType: String
+}
