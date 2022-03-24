@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"go/format"
 	"os"
+	"sort"
 	"strings"
 	"text/template"
 
@@ -31,10 +32,12 @@ var typesTemplateFile []byte
 var crdBaseTemplateFile []byte
 
 func RenderCRDTemplate(baseGroupName, crdModulePath string, pkgs parser.Packages, outputDir string) error {
-	pkgNames := "API_NAMES=\""
+	pkgNames := make([]string, len(pkgs))
+	i := 0
 	for _, pkg := range pkgs {
 		groupName := pkg.Name + "." + baseGroupName
-		pkgNames += groupName + ":v1 "
+		pkgNames[i] = groupName + ":v1"
+		i++
 		groupFolder := outputDir + "/" + groupName + "/"
 		apiFolder := groupFolder + "v1"
 		var err error
@@ -90,14 +93,8 @@ func RenderCRDTemplate(baseGroupName, crdModulePath string, pkgs parser.Packages
 			}
 		}
 	}
-	pkgNames += "\""
-	var b bytes.Buffer
-	b.WriteString(pkgNames)
-	err := createFile(outputDir, "api_names.sh", &b, false)
-	if err != nil {
-		return err
-	}
-	return nil
+
+	return createApiNamesFile(pkgNames, outputDir)
 }
 
 func createCRDFolder(name string) error {
@@ -321,4 +318,16 @@ func RenderCRDBaseTemplate(baseGroupName string, pkg parser.Package) ([]CrdBaseF
 		crds = append(crds, crd)
 	}
 	return crds, nil
+}
+
+func createApiNamesFile(apiList []string, outputDir string) error {
+	sort.Strings(apiList)
+	apiNames := "API_NAMES=\""
+	for _, name := range apiList {
+		apiNames += name + " "
+	}
+	apiNames += "\""
+	var b bytes.Buffer
+	b.WriteString(apiNames)
+	return createFile(outputDir, "api_names.sh", &b, false)
 }
