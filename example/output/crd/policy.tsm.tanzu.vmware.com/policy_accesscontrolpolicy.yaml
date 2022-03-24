@@ -16,7 +16,7 @@ spec:
     shortNames:
       - accesscontrolpolicy
     singular: accesscontrolpolicy
-  scope: Cluster
+  scope: Namespaced
   versions:
     - name: v1
       served: true

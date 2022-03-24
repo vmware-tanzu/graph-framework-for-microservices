@@ -16,7 +16,7 @@ spec:
     shortNames:
       - acpconfig
     singular: acpconfig
-  scope: Cluster
+  scope: Namespaced
   versions:
     - name: v1
       served: true

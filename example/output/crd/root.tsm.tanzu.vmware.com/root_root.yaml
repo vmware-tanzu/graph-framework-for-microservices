@@ -16,7 +16,7 @@ spec:
     shortNames:
       - root
     singular: root
-  scope: Cluster
+  scope: Namespaced
   versions:
     - name: v1
       served: true
