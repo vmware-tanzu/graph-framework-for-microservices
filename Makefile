@@ -2,7 +2,7 @@ DEBUG ?= FALSE
 
 GO_PROJECT_NAME ?= compiler
 
-ECR_DOCKER_REGISTRY ?= 284299419820.dkr.ecr.us-west-2.amazonaws.com/
+ECR_DOCKER_REGISTRY ?= 284299419820.dkr.ecr.us-west-2.amazonaws.com
 
 IMAGE_NAME ?= nexus-compiler
 TAG ?= $(shell git rev-parse --verify --short=8 HEAD)
@@ -10,10 +10,11 @@ TAG ?= $(shell git rev-parse --verify --short=8 HEAD)
 BUILDER_NAME ?= ${IMAGE_NAME}-builder
 BUILDER_TAG := $(shell md5sum builder/Dockerfile | awk '{ print $1 }' | head -c 8)
 
-BASE_NAME ?= ${IMAGE_NAME}-base
-BASE_TAG := $(shell md5sum base/Dockerfile | awk '{ print $1 }' | head -c 8)
-
 PKG_NAME?=/go/src/gitlab.eng.vmware.com/nexus/${GO_PROJECT_NAME}
+
+DATAMODEL_PATH ?= datamodel
+CONFIG_FILE ?= ""
+GENERATED_OUTPUT_DIRECTORY ?= generated
 
 ifeq ($(CONTAINER_ID),)
 define run_in_container
@@ -28,7 +29,6 @@ define run_in_container
  --volumes-from ${CONTAINER_ID} \
  --volume ~/.ssh:/root/.ssh \
  --workdir ${PKG_NAME} \
- --user $(id -u ${USER}):$(id -g ${USER}) \
  "${BUILDER_NAME}:${BUILDER_TAG}" ${1}
 endef
 endif
@@ -40,6 +40,14 @@ endif
 .PHONY: docker.builder
 docker.builder:
 	docker build --no-cache -t ${BUILDER_NAME}:${BUILDER_TAG} builder/
+
+.PHONY: docker
+docker:
+	git archive -o compiler.tar --format=tar HEAD
+	tar -rf compiler.tar .git
+	docker build \
+		--build-arg BUILDER_TAG=${BUILDER_TAG} \
+		-t ${IMAGE_NAME}:${TAG} .
 
 .PHONY: build
 build:
@@ -86,66 +94,44 @@ test_in_container: ${BUILDER_NAME}\:${BUILDER_TAG}.image.exists
 
 .PHONY: generate_code
 generate_code:
-	./scripts/update-codegen.sh
+	go run cmd/nexus-sdk/main.go -config-file ${CONFIG_FILE} -dsl ${DATAMODEL_PATH} -crd-output _generated
+	mv _generated/api_names.sh ./scripts/
+	./scripts/generate_k8s_api.sh
 	./scripts/generate_openapi_schema.sh
 	$(MAKE) -C pkg/openapi_generator generate_test_schemas
 	goimports -w pkg
+	cp -r _generated/{client,apis,crds} ${GENERATED_OUTPUT_DIRECTORY}
 
-.PHONY: generate_code_in_container
-generate_code_in_container: ${BUILDER_NAME}\:${BUILDER_TAG}.image.exists init_submodules
-	$(call run_in_container,make generate_code)
+.PHONY: test_generate_code_in_container
+test_generate_code_in_container: ${BUILDER_NAME}\:${BUILDER_TAG}.image.exists init_submodules
+	$(call run_in_container, make generate_code DATAMODEL_PATH=example/datamodel \
+	CONFIG_FILE=example/nexus-sdk.yaml \
+	GENERATED_OUTPUT_DIRECTORY=example/output/_crd_generated)
+	@if [ -n "$$(git ls-files --modified --exclude-standard)" ]; then\
+		echo "The following changes should be committed:";\
+		git status;\
+		git diff;\
+		return 1;\
+	fi
 
 .PHONY: show-image-name
 show-image-name:
-	@echo ${DOCKER_REGISTRY}/${IMAGE_NAME}:${TAG}
-
-.PHONY: docker.base
-docker.base:
-	docker build --no-cache\
-		--build-arg DEBUG=${DEBUG} \
-		--tag ${BASE_NAME}:${BASE_TAG} base/
-
-.PHONY: docker
-docker: ${BASE_NAME}\:${BASE_TAG}.image.exists
-	docker build \
-		--build-arg BASE_TAG=${BASE_TAG} \
-		--build-arg ASM_SUPERVISOR_TAG=${ASM_SUPERVISOR_TAG} \
-		--tag ${IMAGE_NAME}:${TAG} .
+	@echo ${ECR_DOCKER_REGISTRY}/${IMAGE_NAME}:${TAG}
 
 .PHONY: publish
 publish:
-	if gcloud container images describe ${DOCKER_REGISTRY}/${IMAGE_NAME}:${TAG} >/dev/null 2>/dev/null; \
-	then \
-		echo "Image with the commit tag ${TAG} already exists in the repository!"; \
-	else \
-		docker tag ${IMAGE_NAME}:${TAG} ${DOCKER_REGISTRY}/${IMAGE_NAME}:${TAG}; \
-		docker push ${DOCKER_REGISTRY}/${IMAGE_NAME}:${TAG}; \
-	fi
-
-.PHONY: publish.ecr.registry
-publish.ecr.registry:
-	docker tag ${IMAGE_NAME}:${TAG} ${ECR_DOCKER_REGISTRY}/${IMAGE_NAME}:${TAG}; \
+	docker tag ${IMAGE_NAME}:${TAG} ${ECR_DOCKER_REGISTRY}/${IMAGE_NAME}:${TAG}
 	docker push ${ECR_DOCKER_REGISTRY}/${IMAGE_NAME}:${TAG};
 
 .PHONY: download_builder_image
 download_builder_image:
-	docker pull ${DOCKER_REGISTRY}/${BUILDER_NAME}:${BUILDER_TAG}
-	docker tag ${DOCKER_REGISTRY}/${BUILDER_NAME}:${BUILDER_TAG} ${BUILDER_NAME}:${BUILDER_TAG}
-
-.PHONY: download_base_image
-download_base_image:
-	docker pull ${DOCKER_REGISTRY}/${BASE_NAME}:${BASE_TAG}
-	docker tag ${DOCKER_REGISTRY}/${BASE_NAME}:${BASE_TAG} ${BASE_NAME}:${BASE_TAG}
-
-.PHONY: publish_base_image
-publish_base_image:
-	docker tag ${BASE_NAME}:${BASE_TAG} ${DOCKER_REGISTRY}/${BASE_NAME}:${BASE_TAG}
-	docker push ${DOCKER_REGISTRY}/${BASE_NAME}:${BASE_TAG}
+	docker pull ${ECR_DOCKER_REGISTRY}/${BUILDER_NAME}:${BUILDER_TAG}
+	docker tag ${ECR_DOCKER_REGISTRY}/${BUILDER_NAME}:${BUILDER_TAG} ${BUILDER_NAME}:${BUILDER_TAG}
 
 .PHONY: publish_builder_image
 publish_builder_image:
-	docker tag ${BUILDER_NAME}:${BUILDER_TAG} ${DOCKER_REGISTRY}/${BUILDER_NAME}:${BUILDER_TAG}
-	docker push ${DOCKER_REGISTRY}/${BUILDER_NAME}:${BUILDER_TAG}
+	docker tag ${BUILDER_NAME}:${BUILDER_TAG} ${ECR_DOCKER_REGISTRY}/${BUILDER_NAME}:${BUILDER_TAG}
+	docker push ${ECR_DOCKER_REGISTRY}/${BUILDER_NAME}:${BUILDER_TAG}
 
 .PHONY: init_submodules
 init_submodules:

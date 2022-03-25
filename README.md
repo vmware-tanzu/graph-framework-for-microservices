@@ -1,10 +1,51 @@
-# nexus-sdk
+# nexus compiler
 
-This README and whole nexus-sdk is still in very early point, work in progress...
+This README and whole nexus-compiler is still in very early point, work in progress...
 
- nexus-sdk main responsibilities are:
-- ...
-- ...
+Nexus compiler main responsibility is to generate code based on provided datamodel. Currently, generated are:
+- crd yamls
+- crd go client
+- crd go apis
+
+# Run compiler in container
+1. Create basic application structure, your application should be in GOPATH
+2. Add datamodel to your application, example structure:
+```
+.
+├── go.mod
+├── main.go
+└── nexus
+    └── datamodel
+        ├── go.mod
+        ├── config
+        │   └── config.go
+        ├── inventory
+        │   └── inventory.go
+        ├── nexus
+        │   └── nexus.go
+        ├── root.go
+        └── runtime
+            └── runtime.go
+```
+3. Download compiler image or build in compiler repo using `make docker.builder && make docker` command
+4. Run compiler from your application nexus directory. Specify GROUP_NAME env variable with your CRD group name:
+Your datamodel should be mounter to /go/src/gitlab.eng.vmware.com/nexus/compiler/datamodel directory, and directory to
+which you would like to generate your files should be mounted to /go/src/gitlab.eng.vmware.com/nexus/compiler/generated
+directory. CRD_MODULE_PATH env var will determine import paths for genereted files.
+If you follow structure from example above you just need to specify GROUP_NAME and copy rest of following example
+command
+```
+$ cd nexus
+$ GROUP_NAME=helloworld.com && \
+docker run  \
+ --volume $(realpath .)/datamodel:/go/src/gitlab.eng.vmware.com/nexus/compiler/datamodel  \
+ --volume $(realpath .)/generated:/go/src/gitlab.eng.vmware.com/nexus/compiler/generated \
+ -e CRD_MODULE_PATH=$(go list -m)/nexus/generated/ \
+ -e GROUP_NAME=$GROUP_NAME  \
+ --workdir /go/src/gitlab.eng.vmware.com/nexus/compiler/ \
+  nexus-compiler:1ce29d44
+```
+
 
 # Development
 ## Guidelines
@@ -26,11 +67,11 @@ To run build in a fixed/sandboxed environment:
 
 1. Download the build sandbox: `make docker.builder`
 
-2. Build nexus-sdk: `make build_in_container`
+2. Build nexus compiler: `make build_in_container`
 
 ### Build in custom/local environment
 
-To build nexus-sdk on custom/local environment: `make build`
+To build nexus compiler on custom/local environment: `make build`
 
 ## Test
 ### Run tests in containerized sandbox (Recommended)
@@ -39,11 +80,11 @@ To run tests in a fixed/sandboxed environment:
 
 1. Download the test sandbox: `make docker.builder`
 
-2. Test nexus-sdk: `make test_in_container`
+2. Test nexus compiler: `make test_in_container`
 
 ### Run tests in custom/local environment
 
-To test nexus-sdk on custom/local environment:
+To test nexus compiler on custom/local environment:
 
 1. Download the required tools: `make tools`
 
@@ -51,20 +92,18 @@ To test nexus-sdk on custom/local environment:
 
 # Packaging
 
-nexus-sdk is packaged and published a Docker container images.
+nexus compiler is packaged and published a Docker container images.
 
 Packaging is achieved by the following two steps:
 ## Creating a base image
 
-Create base image: `make docker.base`
+Create base image: `make docker`
 
-The base image contains all the requirements needed for the nexus-sdk to
-run. Also, it can be extended with some handy debug tools like `tcpdump`. To
-activate this just set `DEBUG=TRUE` in your environment.
-## nexus-sdk image
 
-To build nexus-sdk docker image: `make docker`
+## nexus compiler image
+
+To build nexus compiler docker image: `make docker`
 
 # Publishing
 
-nexus-sdk docker image can be published by invoking: `make publish`
+nexus compiler docker image can be published by invoking: `make publish`
