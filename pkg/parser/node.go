@@ -16,11 +16,11 @@ type Node struct {
 	MultipleLink     map[string]Node
 }
 
-func (n *Node) Walk(fn func(node *Node)) {
-	fn(n)
+func (node *Node) Walk(fn func(node *Node)) {
+	fn(node)
 
-	children := n.SingleChildren
-	for k, v := range n.MultipleChildren {
+	children := node.SingleChildren
+	for k, v := range node.MultipleChildren {
 		children[k] = v
 	}
 
