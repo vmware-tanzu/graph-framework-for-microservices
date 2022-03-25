@@ -2,6 +2,7 @@
 # App Info
 #
 APP_NAME ?= sampleapp
+NAMESPACE ?= default
 
 #
 # Image Info
@@ -92,12 +93,12 @@ docker-push: ## Push docker image with the manager.
 ##@ Deployment
 .PHONY: deploy
 deploy:
-	sed -e 's/__APP_NAME__/'"${APP_NAME}"'/g' -e 's|__IMAGE__|'"${IMAGE_REGISTRY}:${IMAGE_TAG}"'|g' config/deployment/deployment.yaml | kubectl apply -f - ;
+	sed -e 's/__APP_NAME__/'"${APP_NAME}"'/g' -e 's|__IMAGE__|'"${IMAGE_REGISTRY}:${IMAGE_TAG}"'|g' config/deployment/deployment.yaml | kubectl apply -f - -n ${NAMESPACE};
 	
 
 .PHONY: undeploy
 undeploy: ## Undeploy controller from the K8s cluster specified in ~/.kube/config. Call with ignore-not-found=true to ignore resource not found errors during deletion.
-	sed -e 's/__APP_NAME__/'"${APP_NAME}"'/g' -e 's|__IMAGE__|'"${IMAGE_REGISTRY}:${IMAGE_TAG}"'|g' config/deployment/deployment.yaml | kubectl delete --ignore-not-found=true -f -
+	sed -e 's/__APP_NAME__/'"${APP_NAME}"'/g' -e 's|__IMAGE__|'"${IMAGE_REGISTRY}:${IMAGE_TAG}"'|g' config/deployment/deployment.yaml | kubectl delete --ignore-not-found=true -f - -n ${NAMESPACE};
 
 #check how to use kustomize for now using sed to replace deployment..
 #KUSTOMIZE = $(shell pwd)/bin/kustomize
