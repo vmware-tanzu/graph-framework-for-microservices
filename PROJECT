@@ -3,3 +3,4 @@ layout:
 - go.kubebuilder.io/v3
 projectName: kubebuild
 repo: kubebuild
+version: "3"
