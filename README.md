@@ -1,4 +1,4 @@
-<h1>Tanzu TSM CLI</h1>
+<h1>Nexus and Tanzu TSM CLI</h1>
 
 
 <h2>1. Install </h2>
