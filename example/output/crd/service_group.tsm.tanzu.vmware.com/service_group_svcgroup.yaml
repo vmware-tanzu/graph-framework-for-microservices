@@ -16,7 +16,7 @@ spec:
     shortNames:
       - svcgroup
     singular: svcgroup
-  scope: Cluster
+  scope: Namespaced
   versions:
     - name: v1
       served: true
