@@ -19,7 +19,7 @@ type Node struct {
 func (n *Node) Walk(fn func(node *Node)) {
 	fn(n)
 
-	childs := n.SingleChildren
+	children := n.SingleChildren
 	for k, v := range n.MultipleChildren {
 		childs[k] = v
 	}
