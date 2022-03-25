@@ -21,10 +21,10 @@ func (n *Node) Walk(fn func(node *Node)) {
 
 	children := n.SingleChildren
 	for k, v := range n.MultipleChildren {
-		childs[k] = v
+		children[k] = v
 	}
 
-	for _, n := range childs {
+	for _, n := range children {
 		n.Walk(fn)
 	}
 }
