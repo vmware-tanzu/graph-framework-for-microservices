@@ -21,25 +21,25 @@ data:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: ${APP_NAME}
+  name: __APP_NAME__
   labels:
-    control-plane: ${APP_NAME}
+    control-plane: __APP_NAME__
 spec:
   selector:
     matchLabels:
-      control-plane: ${APP_NAME}
+      control-plane: __APP_NAME__
   replicas: 1
   template:
     metadata:
       annotations:
         kubectl.kubernetes.io/default-container: manager
       labels:
-        control-plane: ${APP_NAME}
+        control-plane: __APP_NAME__
     spec:
       containers:
         -   
-          image: ${IMAGE}
-          name: ${APP_NAME}
+          image: __IMAGE__
+          name: __APP_NAME__
           env:
             - name: KUBECONFIG
               value: /config/kubeconfig
