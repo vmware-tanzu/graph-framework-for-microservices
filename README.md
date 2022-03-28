@@ -96,7 +96,8 @@ Available Commands:
   help        Help about any command
   login       Login to csp
   runtime     Runtime installer and uninstaller
-
+  version     Provides Nexus CLI and Nexus Runtime versions
+  
 Flags:
   -h, --help   help for nexus
 
