@@ -5,12 +5,20 @@ import (
 	"gitlab.eng.vmware.com/nexus/compiler/pkg/parser"
 )
 
+var root parser.Node
+
 func main() {
-	nodes := parser.ParseDSLNodes("../../example/datamodel/")
-	root := nodes["gitlab.eng.vmware.com/nexus/compiler/example/datamodel/Root"]
+	baseGroupName := "tsm.tanzu.vmware.com"
+	nodes := parser.ParseDSLNodes("../../example/datamodel/", baseGroupName)
+
+	root = nodes["gitlab.eng.vmware.com/nexus/compiler/example/datamodel/Root"]
+
 	root.Walk(func(node *parser.Node) {
-		log.Println(node.Name)
-		log.Println(node.Parents)
+		log.Printf("CRD name: %s\n", node.CrdName)
+		log.Printf("Parents: %v\n", node.Parents)
 		log.Println("---")
 	})
+
+	parents := parser.CreateParentsMap(root)
+	log.Println(parents["acpconfigs.tsm.tanzu.vmware.com"])
 }

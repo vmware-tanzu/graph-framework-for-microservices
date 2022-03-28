@@ -10,6 +10,8 @@ import (
 	"strings"
 	"text/template"
 
+	"gitlab.eng.vmware.com/nexus/compiler/pkg/util"
+
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/tools/imports"
 
@@ -276,14 +278,7 @@ func RenderCRDBaseTemplate(baseGroupName string, pkg parser.Package) ([]CrdBaseF
 		groupName := pkg.Name + "." + baseGroupName
 		singular := strings.ToLower(typeName)
 		kind := strings.Title(singular)
-		var plural string
-		if singular[len(singular)-1:] == "s" {
-			plural = fmt.Sprintf("%ses", singular)
-		} else if singular[len(singular)-1:] == "y" {
-			plural = fmt.Sprintf("%sies", singular[:len(singular)-1])
-		} else {
-			plural = fmt.Sprintf("%ss", singular)
-		}
+		plural := util.ToPlural(singular)
 
 		vars := crdBaseVars{
 			GroupName: groupName,

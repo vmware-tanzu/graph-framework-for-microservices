@@ -10,11 +10,13 @@ import (
 	"strconv"
 	"strings"
 
+	"gitlab.eng.vmware.com/nexus/compiler/pkg/util"
+
 	log "github.com/sirupsen/logrus"
 )
 
 // ParseDSLNodes walks recursively through given path and looks for structs types definitions to add them to graph
-func ParseDSLNodes(startPath string) map[string]Node {
+func ParseDSLNodes(startPath string, baseGroupName string) map[string]Node {
 	modulePath := GetModulePath(startPath)
 
 	rootNodes := make([]string, 0)
@@ -40,10 +42,14 @@ func ParseDSLNodes(startPath string) map[string]Node {
 											rootNodes = append(rootNodes, fmt.Sprintf("%s/%s", pkgImport, typeSpec.Name.Name))
 										}
 
+										plural := util.ToPlural(strings.ToLower(typeSpec.Name.Name))
+										crdName := fmt.Sprintf("%s.%s", plural, baseGroupName)
+
 										if IsNexusNode(typeSpec) {
 											node := Node{
 												Name:             typeSpec.Name.Name,
 												FullName:         pkgImport,
+												CrdName:          crdName,
 												Imports:          file.Imports,
 												TypeSpec:         typeSpec,
 												Parents:          make([]string, 0),
@@ -72,14 +78,22 @@ func ParseDSLNodes(startPath string) map[string]Node {
 	graph := make(map[string]Node)
 	for _, root := range rootNodes {
 		r := nodes[root]
-		ProcessNode(&r, nodes)
+		processNode(&r, nodes)
 		graph[root] = r
 	}
 
 	return graph
 }
 
-func ProcessNode(node *Node, nodes map[string]Node) {
+func CreateParentsMap(root Node) map[string][]string {
+	parents := make(map[string][]string)
+	root.Walk(func(node *Node) {
+		parents[node.CrdName] = node.Parents
+	})
+	return parents
+}
+
+func processNode(node *Node, nodes map[string]Node) {
 	childFields := GetChildFields(node.TypeSpec)
 	linkFields := GetLinkFields(node.TypeSpec)
 
@@ -109,8 +123,8 @@ func ProcessNode(node *Node, nodes map[string]Node) {
 		if isChild {
 			n := nodes[key]
 			n.Parents = node.Parents
-			n.Parents = append(n.Parents, node.Name)
-			ProcessNode(&n, nodes)
+			n.Parents = append(n.Parents, node.CrdName)
+			processNode(&n, nodes)
 
 			if isMap {
 				node.MultipleChildren[fieldTypeStr] = n
