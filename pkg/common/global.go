@@ -17,3 +17,9 @@ var OS string
 
 // BUILT ...Architecture set at compile time.
 var BUILT string
+
+// GIT_BRANCH ...Git branch set at compile time.
+var GIT_BRANCH string
+
+// GIT_COMMIT ...Git commit SHA set at compile time.
+var GIT_COMMIT string

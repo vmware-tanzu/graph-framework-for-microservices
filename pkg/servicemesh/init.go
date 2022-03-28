@@ -2,7 +2,6 @@ package servicemesh
 
 import (
 	"github.com/spf13/cobra"
-	"gitlab.eng.vmware.com/nsx-allspark_users/lib-go/logging"
 	"gitlab.eng.vmware.com/nexus/cli/pkg/servicemesh/app"
 	"gitlab.eng.vmware.com/nexus/cli/pkg/servicemesh/apply"
 	"gitlab.eng.vmware.com/nexus/cli/pkg/servicemesh/cluster"
@@ -11,6 +10,8 @@ import (
 	"gitlab.eng.vmware.com/nexus/cli/pkg/servicemesh/gns"
 	"gitlab.eng.vmware.com/nexus/cli/pkg/servicemesh/login"
 	"gitlab.eng.vmware.com/nexus/cli/pkg/servicemesh/runtime"
+	"gitlab.eng.vmware.com/nexus/cli/pkg/servicemesh/version"
+	"gitlab.eng.vmware.com/nsx-allspark_users/lib-go/logging"
 )
 
 // ClusterCmd ... Cluster command
@@ -63,6 +64,12 @@ var DataModelCmd = &cobra.Command{
 var AppCmd = &cobra.Command{
 	Use:   "app",
 	Short: "Sample application installer",
+}
+
+var VersionCmd = &cobra.Command{
+	Use:   "version",
+	Short: "Provides Nexus CLI and Nexus Runtime versions",
+	RunE:  version.Version,
 }
 
 func initCommands() {

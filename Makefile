@@ -1,22 +1,24 @@
-NAME ?= tsm-cli
+NAME ?= cli
 PACKAGE_NAME=$(NAME)
 BUILD_DATE := $(shell date -u +%Y-%m-%dT%H:%M:%S%z)
 GIT_VERSION ?= $(shell git describe --always --abbrev=0 --tags)
 GIT_REVISION := $(shell git rev-parse --short=8 HEAD || echo unknown)
-GIT_BRANCH := $(shell git show-ref | grep "$(REVISION)" | \
+GIT_BRANCH := $(shell git show-ref | grep "$(GIT_REVISION)" | \
 	   grep -v HEAD | awk '{print $$2}' | \
 	   sed 's|refs/remotes/origin/||' | \
 	   sed 's|refs/heads/||' | sort | head -n 1)
 
 BUILD_VERSION ?= $$(cat BUILD_VERSION)
 
-PKG = gitlab.eng.vmware.com/nsx-allspark_users/$(PACKAGE_NAME)
-COMMON_PACKAGE= $(PKG)/common
+PKG = gitlab.eng.vmware.com/nexus/$(PACKAGE_NAME)
+COMMON_PACKAGE = $(PKG)/pkg/common
 
 
 GO_LDFLAGS ?= -X $(COMMON_PACKAGE).VERSION=$(BUILD_VERSION) \
               -X $(COMMON_PACKAGE).BUILT=$(BUILD_DATE) \
               -X $(COMMON_PACKAGE).OS=$(OS) \
+			  -X $(COMMON_PACKAGE).GIT_BRANCH=$(GIT_BRANCH) \
+              -X $(COMMON_PACKAGE).GIT_COMMIT=$(GIT_VERSION) \
               -s -w
 ARTIFACTS_PATH ?= ./artifacts/nexus
 build_bin_path := $(shell mkdir -p $(ARTIFACTS_PATH))
@@ -36,7 +38,7 @@ build:
 	
 	GOOS=darwin GOARCH=amd64 go build --ldflags "$(GO_LDFLAGS)" ./cmd/plugin/nexus
 	mv nexus $(ARTIFACTS_PATH)/nexus-darwin_amd64
-	GOOS=linux GOARCH=amd64 go build --ldflags "$(GO_LDFLAGS)" ./cmd/plugin/nexus 
+	GOOS=linux GOARCH=amd64 go build --ldflags "$(GO_LDFLAGS)" ./cmd/plugin/nexus
 	mv nexus $(ARTIFACTS_PATH)/nexus-linux_amd64
 
 .PHONY: install

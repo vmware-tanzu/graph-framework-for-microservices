@@ -39,5 +39,6 @@ func init() {
 		servicemesh.RuntimeCmd,
 		servicemesh.DataModelCmd,
 		servicemesh.AppCmd,
+		servicemesh.VersionCmd,
 	)
 }
