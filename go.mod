@@ -2,13 +2,6 @@ module gitlab.eng.vmware.com/nexus/cli
 
 go 1.17
 
-replace (
-	github.com/vmware-tanzu-private/core => gitlab.eng.vmware.com/core-build/mirrors_github_vmware-tanzu-private_core v1.3.1
-	github.com/vmware-tanzu-private/tkg-cli => gitlab.eng.vmware.com/core-build/mirrors_github_vmware-tanzu-private_tkg-cli v1.3.1
-	github.com/vmware-tanzu-private/tkg-providers => gitlab.eng.vmware.com/TKG/tkg-cli-providers v1.3.1
-	google.golang.org/grpc => google.golang.org/grpc v1.27.1
-)
-
 require (
 	github.com/aunum/log v0.0.0-20200821225356-38d2e2c8b489
 	github.com/ghodss/yaml v1.0.0
