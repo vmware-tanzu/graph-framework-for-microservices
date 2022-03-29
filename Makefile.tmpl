@@ -4,6 +4,7 @@
 APP_NAME ?= {{.AppName}}
 NAMESPACE ?= default
 DATAMODEL_DIR ?= "./nexus"
+CLUSTER ?= ""
 #
 # Image Info
 #
@@ -139,7 +140,10 @@ image_scan:
 ##@ Deployment
 .PHONY: deploy
 deploy:
-	sed -e 's/__APP_NAME__/'"${APP_NAME}"'/g' -e 's|__IMAGE__|'"${IMAGE_REGISTRY}:${IMAGE_TAG}"'|g' config/deployment/deployment.yaml | kubectl apply -f - -n ${NAMESPACE};
+	if [[ $(CLUSTER) == "kind" ]]; then \
+		kind load docker-image ${IMAGE_REGISTRY}:${IMAGE_TAG} ;\
+	fi
+	sed -e 's/__APP_NAME__/'"${APP_NAME}"'/g' -e 's|__IMAGE__|'"${IMAGE_REGISTRY}:${IMAGE_TAG}"'|g' config/deployment/deployment.yaml | kubectl apply -f - -n ${NAMESPACE} ;
 
 
 .PHONY: undeploy
