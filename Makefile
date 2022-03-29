@@ -8,8 +8,8 @@ NAMESPACE ?= default
 # Image Info
 #
 ### adding this to test app init..
-GIT_TAG ?= $(shell git rev-parse --verify --short=8 HEAD 2> /dev/null || echo "00000000")
-IMAGE_TAG ?= ${APP_NAME}-${GIT_TAG}
+CI_COMMIT ?= $(shell git rev-parse --verify --short=8 HEAD 2> /dev/null || echo "00000000")
+IMAGE_TAG ?= ${APP_NAME}-${CI_COMMIT}
 IMAGE_REGISTRY ?= 284299419820.dkr.ecr.us-west-2.amazonaws.com/nexus/playground
 
 #
@@ -76,6 +76,18 @@ fmt: ## Run go fmt against code.
 vet: ## Run go vet against code.
 	go vet ./...
 
+##@lint checks using the 
+.PHONY: lint
+lint:
+	$(MAKE) fmt
+	$(MAKE) vet
+
+##@ Coverage checks using sonar-scanner
+.PHONY: coverage
+coverage:
+    go test -json -coverprofile=coverage.out ./... | tee report.json
+	sonar-scanner
+
 ##@ Build
 .PHONY: build
 build: fmt vet ## Build manager binary.
@@ -86,9 +98,13 @@ build: fmt vet ## Build manager binary.
 docker-build: ## Build docker image with the manager.
 	docker build --build-arg APP_NAME=${APP_NAME} -t ${IMAGE_REGISTRY}:${IMAGE_TAG} .
 
-.PHONY: docker-push
-docker-push: ## Push docker image with the manager.
+.PHONY: publish
+publish: build ## Push docker image with the manager.
 	docker push ${IMAGE_REGISTRY}:${IMAGE_TAG}
+
+.PHONY: image_scan
+image_scan:
+	flash docker scan image ${IMAGE_REGISTRY}:${IMAGE_TAG}
 
 ##@ Deployment
 .PHONY: deploy
