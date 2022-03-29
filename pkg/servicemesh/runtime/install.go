@@ -29,9 +29,15 @@ func Install(cmd *cobra.Command, args []string) error {
 		envList = append(envList, fmt.Sprintf("NAMESPACE=%s", Namespace))
 	}
 
+	fmt.Print("run this command outside of nexus home directory\n")
+	if err := utils.GoToNexusDirectory(); err != nil {
+		return err
+	}
+
 	err := utils.SystemCommand(envList, "make", "runtime_install")
 	if err != nil {
-		return err
+		return fmt.Errorf("runtime install failed with error %v", err)
+
 	}
 	return nil
 }

@@ -19,11 +19,20 @@ func Build(cmd *cobra.Command, args []string) error {
 
 	if DatatmodelName != "" {
 		envList = append(envList, fmt.Sprintf("DATAMODEL=%s", DatatmodelName))
+		if err := utils.CheckDatamodelDirExists(DatatmodelName); err != nil {
+			return err
+		}
+	}
+
+	fmt.Print("run this command outside of nexus home directory\n")
+	if err := utils.GoToNexusDirectory(); err != nil {
+		return err
 	}
 
 	err := utils.SystemCommand(envList, "make", "datamodel_build")
 	if err != nil {
-		return err
+		return fmt.Errorf("datamodel %s build failed with error %v", DatatmodelName, err)
+
 	}
 	return nil
 }

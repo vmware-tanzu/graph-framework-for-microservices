@@ -23,3 +23,5 @@ var GIT_BRANCH string
 
 // GIT_COMMIT ...Git commit SHA set at compile time.
 var GIT_COMMIT string
+
+const NEXUS_DIR = "nexus"

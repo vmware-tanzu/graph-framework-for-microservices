@@ -7,10 +7,9 @@ import (
 	"strings"
 
 	"github.com/spf13/cobra"
+	. "gitlab.eng.vmware.com/nexus/cli/pkg/common"
 	"gitlab.eng.vmware.com/nexus/cli/pkg/utils"
 )
-
-const NEXUS_DIR = "nexus"
 
 type TemplateValues struct {
 	ImportPath string
