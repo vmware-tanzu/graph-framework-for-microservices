@@ -7,6 +7,7 @@ DATAMODEL_DIR ?= "./nexus"
 CLUSTER ?= ""
 DATAMODEL ?= ""
 DATAMODEL_GROUP ?= ""
+
 #
 # Image Info
 #
@@ -68,7 +69,7 @@ init:
 
 .SILENT:
 .PHONY: datamodel_init
-datamodel_init: ## Invoke datamodel operations. Run with 'help' for options.
+datamodel_init: ## Initialize datamodel
 	if [[ -n ${DATAMODEL} ]]; then \
 		if [[ -n ${DATAMODEL_GROUP} ]]; then \
 			nexus datamodel init --name ${DATAMODEL} --group ${DATAMODEL_GROUP};\
@@ -79,7 +80,7 @@ datamodel_init: ## Invoke datamodel operations. Run with 'help' for options.
 		nexus datamodel init ;\
 	fi
 
-##@ Development
+##@ Dev
 
 .PHONY: fmt
 fmt: ## Run go fmt against code.
@@ -89,17 +90,25 @@ fmt: ## Run go fmt against code.
 vet: ## Run go vet against code.
 	go vet ./...
 
-##@lint checks using the make targets.
 .PHONY: lint
-lint:
+lint: ## lint checks using the make targets
 	$(MAKE) fmt
 	$(MAKE) vet
+
+.PHONY: build
+build: lint ## Build manager binary.
+	docker build --build-arg APP_NAME=${APP_NAME} \
+				--build-arg GIT_HEAD=${GIT_HEAD} \
+				--build-arg GIT_TAG=${CI_COMMIT} \
+				--build-arg CICD_TOKEN=${CICD_TOKEN} \
+				-t ${IMAGE_REGISTRY}:${IMAGE_TAG} .
+
+##@ Test
 
 .PHONY: test
 test:
 	go test ./...
 
-##@ Space for adding integration test and related cleanup functions...
 .PHONY: integration_test
 integration_test:
 	echo "Add your integration_tests for your app here!!!!..." ;
@@ -120,30 +129,26 @@ teardown_environment:
 	echo "Add cluster cleanup step after integration_tests pass/fail here..";
 	echo "Clear clusters created";
 
-##@ Coverage checks using sonar-scanner
+##@ Coverage
 .PHONY: coverage
 coverage:
     go test -json -coverprofile=coverage.out ./... | tee report.json ;\
 	sonar-scanner ;
 
-##@ Build
-.PHONY: build
-build: lint ## Build manager binary.
-	docker build --build-arg APP_NAME=${APP_NAME} \
-		 		--build-arg GIT_HEAD=${GIT_HEAD} \
-				--build-arg GIT_TAG=${CI_COMMIT} \
-				--build-arg CICD_TOKEN=${CICD_TOKEN} \
-				-t ${IMAGE_REGISTRY}:${IMAGE_TAG} .
+##@ Publish
 
 .PHONY: publish
 publish: build ## Push docker image with the manager.
 	docker push ${IMAGE_REGISTRY}:${IMAGE_TAG}
 
+##@ Security Scan
+
 .PHONY: image_scan
 image_scan:
 	flash docker scan image ${IMAGE_REGISTRY}:${IMAGE_TAG}
 
-##@ Deployment
+##@ Deploy
+
 .PHONY: deploy
 deploy: kustomize
 	if [[ $(CLUSTER) == "kind" ]]; then \
