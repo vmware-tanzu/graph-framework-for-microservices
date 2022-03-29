@@ -35,17 +35,17 @@ endif
 
 %.image.exists:
 	@docker inspect $* >/dev/null 2>&1 || \
-		(echo "Image $* does not exist. Use 'make docker.builder' or 'make docker.base'." && false)
+		(echo "Image $* does not exist. Use 'make docker.builder'." && false)
 
 .PHONY: docker.builder
 docker.builder:
 	docker build --no-cache -t ${BUILDER_NAME}:${BUILDER_TAG} builder/
 
 .PHONY: docker
-docker:
+docker: init_submodules ${BUILDER_NAME}\:${BUILDER_TAG}.image.exists
 	git archive -o compiler.tar --format=tar HEAD
 	tar -rf compiler.tar .git
-	docker build \
+	docker build --no-cache \
 		--build-arg BUILDER_TAG=${BUILDER_TAG} \
 		-t ${IMAGE_NAME}:${TAG} .
 
