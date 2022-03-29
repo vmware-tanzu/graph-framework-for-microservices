@@ -5,6 +5,8 @@ APP_NAME ?= {{.AppName}}
 NAMESPACE ?= default
 DATAMODEL_DIR ?= "./nexus"
 CLUSTER ?= ""
+DATAMODEL ?= ""
+DATAMODEL_GROUP ?= ""
 #
 # Image Info
 #
@@ -54,24 +56,28 @@ nexus-cli: ## Install Nexus CLI
 	chmod 755 nexus
 	mv nexus /usr/local/bin/nexus
 
+## to silence all not needed.
+%:
+	@true
+
 init:
-	if [ -n ${DATAMODEL} ]; then\
+	if [[ -n ${DATAMODEL} ]]; then\
 			go mod edit -replace gitlab.eng.vmware.com/nsx-allspark_users/m7/policymodel.git=${DATAMODEL_DIR}/build/${DATAMODEL}/policymodel && \
 			go mod edit -replace gitlab.eng.vmware.com/nsx-allspark_users/m7/policymodel.git/pkg/k8sclients/1.22=${DATAMODEL_DIR}/build/${DATAMODEL}/policymodel/pkg/k8sclients/1.22 ; \
 	fi
 
-.PHONY: datamodel
-datamodel: ## Invoke datamodel operations. Run with 'help' for options.
-	nexus datamodel $(filter-out $@,$(MAKECMDGOALS))
-
-.PHONY: runtime
-runtime: ## Invoke runtime operations. Run with 'help' for options.
-	nexus runtime $(filter-out $@,$(MAKECMDGOALS))
-
-.PHONY: app
-app: ## Invoke app operations. Run with 'help' for options.
-	nexus app $(filter-out $@,$(MAKECMDGOALS))
-
+.SILENT:
+.PHONY: datamodel_init
+datamodel_init: ## Invoke datamodel operations. Run with 'help' for options.
+	if [[ -n ${DATAMODEL} ]]; then \
+		if [[ -n ${DATAMODEL_GROUP} ]]; then \
+			nexus datamodel init --name ${DATAMODEL} --group ${DATAMODEL_GROUP};\
+		else \
+			nexus datamodel init --name ${DATAMODEL} ;\
+		fi \
+	else \
+		nexus datamodel init ;\
+	fi
 
 ##@ Development
 
