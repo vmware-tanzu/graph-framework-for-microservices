@@ -12,6 +12,7 @@ RUN echo "https://gitlab-ci-token:${CICD_TOKEN}@gitlab.eng.vmware.com" >> ~/.git
 # Copy the Go Modules manifests
 COPY go.mod go.mod
 COPY go.sum go.sum
+COPY docs docs
 # Copy the go source
 COPY main.go main.go
 COPY controllers/ controllers/
