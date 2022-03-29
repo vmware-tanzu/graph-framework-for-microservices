@@ -21,7 +21,3 @@ package v1
 // RootListerExpansion allows custom methods to be added to
 // RootLister.
 type RootListerExpansion interface{}
-
-// RootNamespaceListerExpansion allows custom methods to be added to
-// RootNamespaceLister.
-type RootNamespaceListerExpansion interface{}

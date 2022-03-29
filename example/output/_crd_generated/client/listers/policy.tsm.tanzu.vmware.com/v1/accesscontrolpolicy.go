@@ -31,8 +31,9 @@ type AccessControlPolicyLister interface {
 	// List lists all AccessControlPolicies in the indexer.
 	// Objects returned here must be treated as read-only.
 	List(selector labels.Selector) (ret []*v1.AccessControlPolicy, err error)
-	// AccessControlPolicies returns an object that can list and get AccessControlPolicies.
-	AccessControlPolicies(namespace string) AccessControlPolicyNamespaceLister
+	// Get retrieves the AccessControlPolicy from the index for a given name.
+	// Objects returned here must be treated as read-only.
+	Get(name string) (*v1.AccessControlPolicy, error)
 	AccessControlPolicyListerExpansion
 }
 
@@ -54,41 +55,9 @@ func (s *accessControlPolicyLister) List(selector labels.Selector) (ret []*v1.Ac
 	return ret, err
 }
 
-// AccessControlPolicies returns an object that can list and get AccessControlPolicies.
-func (s *accessControlPolicyLister) AccessControlPolicies(namespace string) AccessControlPolicyNamespaceLister {
-	return accessControlPolicyNamespaceLister{indexer: s.indexer, namespace: namespace}
-}
-
-// AccessControlPolicyNamespaceLister helps list and get AccessControlPolicies.
-// All objects returned here must be treated as read-only.
-type AccessControlPolicyNamespaceLister interface {
-	// List lists all AccessControlPolicies in the indexer for a given namespace.
-	// Objects returned here must be treated as read-only.
-	List(selector labels.Selector) (ret []*v1.AccessControlPolicy, err error)
-	// Get retrieves the AccessControlPolicy from the indexer for a given namespace and name.
-	// Objects returned here must be treated as read-only.
-	Get(name string) (*v1.AccessControlPolicy, error)
-	AccessControlPolicyNamespaceListerExpansion
-}
-
-// accessControlPolicyNamespaceLister implements the AccessControlPolicyNamespaceLister
-// interface.
-type accessControlPolicyNamespaceLister struct {
-	indexer   cache.Indexer
-	namespace string
-}
-
-// List lists all AccessControlPolicies in the indexer for a given namespace.
-func (s accessControlPolicyNamespaceLister) List(selector labels.Selector) (ret []*v1.AccessControlPolicy, err error) {
-	err = cache.ListAllByNamespace(s.indexer, s.namespace, selector, func(m interface{}) {
-		ret = append(ret, m.(*v1.AccessControlPolicy))
-	})
-	return ret, err
-}
-
-// Get retrieves the AccessControlPolicy from the indexer for a given namespace and name.
-func (s accessControlPolicyNamespaceLister) Get(name string) (*v1.AccessControlPolicy, error) {
-	obj, exists, err := s.indexer.GetByKey(s.namespace + "/" + name)
+// Get retrieves the AccessControlPolicy from the index for a given name.
+func (s *accessControlPolicyLister) Get(name string) (*v1.AccessControlPolicy, error) {
+	obj, exists, err := s.indexer.GetByKey(name)
 	if err != nil {
 		return nil, err
 	}

@@ -31,8 +31,9 @@ type SvcGroupLister interface {
 	// List lists all SvcGroups in the indexer.
 	// Objects returned here must be treated as read-only.
 	List(selector labels.Selector) (ret []*v1.SvcGroup, err error)
-	// SvcGroups returns an object that can list and get SvcGroups.
-	SvcGroups(namespace string) SvcGroupNamespaceLister
+	// Get retrieves the SvcGroup from the index for a given name.
+	// Objects returned here must be treated as read-only.
+	Get(name string) (*v1.SvcGroup, error)
 	SvcGroupListerExpansion
 }
 
@@ -54,41 +55,9 @@ func (s *svcGroupLister) List(selector labels.Selector) (ret []*v1.SvcGroup, err
 	return ret, err
 }
 
-// SvcGroups returns an object that can list and get SvcGroups.
-func (s *svcGroupLister) SvcGroups(namespace string) SvcGroupNamespaceLister {
-	return svcGroupNamespaceLister{indexer: s.indexer, namespace: namespace}
-}
-
-// SvcGroupNamespaceLister helps list and get SvcGroups.
-// All objects returned here must be treated as read-only.
-type SvcGroupNamespaceLister interface {
-	// List lists all SvcGroups in the indexer for a given namespace.
-	// Objects returned here must be treated as read-only.
-	List(selector labels.Selector) (ret []*v1.SvcGroup, err error)
-	// Get retrieves the SvcGroup from the indexer for a given namespace and name.
-	// Objects returned here must be treated as read-only.
-	Get(name string) (*v1.SvcGroup, error)
-	SvcGroupNamespaceListerExpansion
-}
-
-// svcGroupNamespaceLister implements the SvcGroupNamespaceLister
-// interface.
-type svcGroupNamespaceLister struct {
-	indexer   cache.Indexer
-	namespace string
-}
-
-// List lists all SvcGroups in the indexer for a given namespace.
-func (s svcGroupNamespaceLister) List(selector labels.Selector) (ret []*v1.SvcGroup, err error) {
-	err = cache.ListAllByNamespace(s.indexer, s.namespace, selector, func(m interface{}) {
-		ret = append(ret, m.(*v1.SvcGroup))
-	})
-	return ret, err
-}
-
-// Get retrieves the SvcGroup from the indexer for a given namespace and name.
-func (s svcGroupNamespaceLister) Get(name string) (*v1.SvcGroup, error) {
-	obj, exists, err := s.indexer.GetByKey(s.namespace + "/" + name)
+// Get retrieves the SvcGroup from the index for a given name.
+func (s *svcGroupLister) Get(name string) (*v1.SvcGroup, error) {
+	obj, exists, err := s.indexer.GetByKey(name)
 	if err != nil {
 		return nil, err
 	}

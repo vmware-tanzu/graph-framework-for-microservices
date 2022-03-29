@@ -43,10 +43,10 @@ func New(f internalinterfaces.SharedInformerFactory, namespace string, tweakList
 
 // ACPConfigs returns a ACPConfigInformer.
 func (v *version) ACPConfigs() ACPConfigInformer {
-	return &aCPConfigInformer{factory: v.factory, namespace: v.namespace, tweakListOptions: v.tweakListOptions}
+	return &aCPConfigInformer{factory: v.factory, tweakListOptions: v.tweakListOptions}
 }
 
 // AccessControlPolicies returns a AccessControlPolicyInformer.
 func (v *version) AccessControlPolicies() AccessControlPolicyInformer {
-	return &accessControlPolicyInformer{factory: v.factory, namespace: v.namespace, tweakListOptions: v.tweakListOptions}
+	return &accessControlPolicyInformer{factory: v.factory, tweakListOptions: v.tweakListOptions}
 }

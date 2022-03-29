@@ -22,14 +22,6 @@ package v1
 // ACPConfigLister.
 type ACPConfigListerExpansion interface{}
 
-// ACPConfigNamespaceListerExpansion allows custom methods to be added to
-// ACPConfigNamespaceLister.
-type ACPConfigNamespaceListerExpansion interface{}
-
 // AccessControlPolicyListerExpansion allows custom methods to be added to
 // AccessControlPolicyLister.
 type AccessControlPolicyListerExpansion interface{}
-
-// AccessControlPolicyNamespaceListerExpansion allows custom methods to be added to
-// AccessControlPolicyNamespaceLister.
-type AccessControlPolicyNamespaceListerExpansion interface{}

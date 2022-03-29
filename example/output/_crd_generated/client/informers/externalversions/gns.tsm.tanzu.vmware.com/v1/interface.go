@@ -43,10 +43,10 @@ func New(f internalinterfaces.SharedInformerFactory, namespace string, tweakList
 
 // Dnses returns a DnsInformer.
 func (v *version) Dnses() DnsInformer {
-	return &dnsInformer{factory: v.factory, namespace: v.namespace, tweakListOptions: v.tweakListOptions}
+	return &dnsInformer{factory: v.factory, tweakListOptions: v.tweakListOptions}
 }
 
 // Gnses returns a GnsInformer.
 func (v *version) Gnses() GnsInformer {
-	return &gnsInformer{factory: v.factory, namespace: v.namespace, tweakListOptions: v.tweakListOptions}
+	return &gnsInformer{factory: v.factory, tweakListOptions: v.tweakListOptions}
 }

@@ -41,5 +41,5 @@ func New(f internalinterfaces.SharedInformerFactory, namespace string, tweakList
 
 // Roots returns a RootInformer.
 func (v *version) Roots() RootInformer {
-	return &rootInformer{factory: v.factory, namespace: v.namespace, tweakListOptions: v.tweakListOptions}
+	return &rootInformer{factory: v.factory, tweakListOptions: v.tweakListOptions}
 }

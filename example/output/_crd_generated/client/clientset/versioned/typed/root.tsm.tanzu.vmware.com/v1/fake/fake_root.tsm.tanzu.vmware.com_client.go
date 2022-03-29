@@ -28,8 +28,8 @@ type FakeRootTsmV1 struct {
 	*testing.Fake
 }
 
-func (c *FakeRootTsmV1) Roots(namespace string) v1.RootInterface {
-	return &FakeRoots{c, namespace}
+func (c *FakeRootTsmV1) Roots() v1.RootInterface {
+	return &FakeRoots{c}
 }
 
 // RESTClient returns a RESTClient that is used to communicate

@@ -33,7 +33,7 @@ import (
 // GnsesGetter has a method to return a GnsInterface.
 // A group's client should implement this interface.
 type GnsesGetter interface {
-	Gnses(namespace string) GnsInterface
+	Gnses() GnsInterface
 }
 
 // GnsInterface has methods to work with Gns resources.
@@ -52,14 +52,12 @@ type GnsInterface interface {
 // gnses implements GnsInterface
 type gnses struct {
 	client rest.Interface
-	ns     string
 }
 
 // newGnses returns a Gnses
-func newGnses(c *GnsTsmV1Client, namespace string) *gnses {
+func newGnses(c *GnsTsmV1Client) *gnses {
 	return &gnses{
 		client: c.RESTClient(),
-		ns:     namespace,
 	}
 }
 
@@ -67,7 +65,6 @@ func newGnses(c *GnsTsmV1Client, namespace string) *gnses {
 func (c *gnses) Get(ctx context.Context, name string, options metav1.GetOptions) (result *v1.Gns, err error) {
 	result = &v1.Gns{}
 	err = c.client.Get().
-		Namespace(c.ns).
 		Resource("gnses").
 		Name(name).
 		VersionedParams(&options, scheme.ParameterCodec).
@@ -84,7 +81,6 @@ func (c *gnses) List(ctx context.Context, opts metav1.ListOptions) (result *v1.G
 	}
 	result = &v1.GnsList{}
 	err = c.client.Get().
-		Namespace(c.ns).
 		Resource("gnses").
 		VersionedParams(&opts, scheme.ParameterCodec).
 		Timeout(timeout).
@@ -101,7 +97,6 @@ func (c *gnses) Watch(ctx context.Context, opts metav1.ListOptions) (watch.Inter
 	}
 	opts.Watch = true
 	return c.client.Get().
-		Namespace(c.ns).
 		Resource("gnses").
 		VersionedParams(&opts, scheme.ParameterCodec).
 		Timeout(timeout).
@@ -112,7 +107,6 @@ func (c *gnses) Watch(ctx context.Context, opts metav1.ListOptions) (watch.Inter
 func (c *gnses) Create(ctx context.Context, gns *v1.Gns, opts metav1.CreateOptions) (result *v1.Gns, err error) {
 	result = &v1.Gns{}
 	err = c.client.Post().
-		Namespace(c.ns).
 		Resource("gnses").
 		VersionedParams(&opts, scheme.ParameterCodec).
 		Body(gns).
@@ -125,7 +119,6 @@ func (c *gnses) Create(ctx context.Context, gns *v1.Gns, opts metav1.CreateOptio
 func (c *gnses) Update(ctx context.Context, gns *v1.Gns, opts metav1.UpdateOptions) (result *v1.Gns, err error) {
 	result = &v1.Gns{}
 	err = c.client.Put().
-		Namespace(c.ns).
 		Resource("gnses").
 		Name(gns.Name).
 		VersionedParams(&opts, scheme.ParameterCodec).
@@ -138,7 +131,6 @@ func (c *gnses) Update(ctx context.Context, gns *v1.Gns, opts metav1.UpdateOptio
 // Delete takes name of the gns and deletes it. Returns an error if one occurs.
 func (c *gnses) Delete(ctx context.Context, name string, opts metav1.DeleteOptions) error {
 	return c.client.Delete().
-		Namespace(c.ns).
 		Resource("gnses").
 		Name(name).
 		Body(&opts).
@@ -153,7 +145,6 @@ func (c *gnses) DeleteCollection(ctx context.Context, opts metav1.DeleteOptions,
 		timeout = time.Duration(*listOpts.TimeoutSeconds) * time.Second
 	}
 	return c.client.Delete().
-		Namespace(c.ns).
 		Resource("gnses").
 		VersionedParams(&listOpts, scheme.ParameterCodec).
 		Timeout(timeout).
@@ -166,7 +157,6 @@ func (c *gnses) DeleteCollection(ctx context.Context, opts metav1.DeleteOptions,
 func (c *gnses) Patch(ctx context.Context, name string, pt types.PatchType, data []byte, opts metav1.PatchOptions, subresources ...string) (result *v1.Gns, err error) {
 	result = &v1.Gns{}
 	err = c.client.Patch(pt).
-		Namespace(c.ns).
 		Resource("gnses").
 		Name(name).
 		SubResource(subresources...).

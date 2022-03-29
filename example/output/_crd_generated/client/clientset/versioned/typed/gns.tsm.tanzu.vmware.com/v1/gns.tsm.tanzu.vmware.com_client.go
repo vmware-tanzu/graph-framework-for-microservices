@@ -35,12 +35,12 @@ type GnsTsmV1Client struct {
 	restClient rest.Interface
 }
 
-func (c *GnsTsmV1Client) Dnses(namespace string) DnsInterface {
-	return newDnses(c, namespace)
+func (c *GnsTsmV1Client) Dnses() DnsInterface {
+	return newDnses(c)
 }
 
-func (c *GnsTsmV1Client) Gnses(namespace string) GnsInterface {
-	return newGnses(c, namespace)
+func (c *GnsTsmV1Client) Gnses() GnsInterface {
+	return newGnses(c)
 }
 
 // NewForConfig creates a new GnsTsmV1Client for the given config.

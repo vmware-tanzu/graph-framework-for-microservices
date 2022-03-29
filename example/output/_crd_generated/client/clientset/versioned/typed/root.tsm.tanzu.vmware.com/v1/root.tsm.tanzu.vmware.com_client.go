@@ -34,8 +34,8 @@ type RootTsmV1Client struct {
 	restClient rest.Interface
 }
 
-func (c *RootTsmV1Client) Roots(namespace string) RootInterface {
-	return newRoots(c, namespace)
+func (c *RootTsmV1Client) Roots() RootInterface {
+	return newRoots(c)
 }
 
 // NewForConfig creates a new RootTsmV1Client for the given config.

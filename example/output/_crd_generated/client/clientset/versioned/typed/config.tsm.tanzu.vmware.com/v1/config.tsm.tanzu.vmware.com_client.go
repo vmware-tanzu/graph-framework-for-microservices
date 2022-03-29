@@ -34,8 +34,8 @@ type ConfigTsmV1Client struct {
 	restClient rest.Interface
 }
 
-func (c *ConfigTsmV1Client) Configs(namespace string) ConfigInterface {
-	return newConfigs(c, namespace)
+func (c *ConfigTsmV1Client) Configs() ConfigInterface {
+	return newConfigs(c)
 }
 
 // NewForConfig creates a new ConfigTsmV1Client for the given config.

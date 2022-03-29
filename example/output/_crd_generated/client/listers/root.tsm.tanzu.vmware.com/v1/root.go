@@ -31,8 +31,9 @@ type RootLister interface {
 	// List lists all Roots in the indexer.
 	// Objects returned here must be treated as read-only.
 	List(selector labels.Selector) (ret []*v1.Root, err error)
-	// Roots returns an object that can list and get Roots.
-	Roots(namespace string) RootNamespaceLister
+	// Get retrieves the Root from the index for a given name.
+	// Objects returned here must be treated as read-only.
+	Get(name string) (*v1.Root, error)
 	RootListerExpansion
 }
 
@@ -54,41 +55,9 @@ func (s *rootLister) List(selector labels.Selector) (ret []*v1.Root, err error) 
 	return ret, err
 }
 
-// Roots returns an object that can list and get Roots.
-func (s *rootLister) Roots(namespace string) RootNamespaceLister {
-	return rootNamespaceLister{indexer: s.indexer, namespace: namespace}
-}
-
-// RootNamespaceLister helps list and get Roots.
-// All objects returned here must be treated as read-only.
-type RootNamespaceLister interface {
-	// List lists all Roots in the indexer for a given namespace.
-	// Objects returned here must be treated as read-only.
-	List(selector labels.Selector) (ret []*v1.Root, err error)
-	// Get retrieves the Root from the indexer for a given namespace and name.
-	// Objects returned here must be treated as read-only.
-	Get(name string) (*v1.Root, error)
-	RootNamespaceListerExpansion
-}
-
-// rootNamespaceLister implements the RootNamespaceLister
-// interface.
-type rootNamespaceLister struct {
-	indexer   cache.Indexer
-	namespace string
-}
-
-// List lists all Roots in the indexer for a given namespace.
-func (s rootNamespaceLister) List(selector labels.Selector) (ret []*v1.Root, err error) {
-	err = cache.ListAllByNamespace(s.indexer, s.namespace, selector, func(m interface{}) {
-		ret = append(ret, m.(*v1.Root))
-	})
-	return ret, err
-}
-
-// Get retrieves the Root from the indexer for a given namespace and name.
-func (s rootNamespaceLister) Get(name string) (*v1.Root, error) {
-	obj, exists, err := s.indexer.GetByKey(s.namespace + "/" + name)
+// Get retrieves the Root from the index for a given name.
+func (s *rootLister) Get(name string) (*v1.Root, error) {
+	obj, exists, err := s.indexer.GetByKey(name)
 	if err != nil {
 		return nil, err
 	}

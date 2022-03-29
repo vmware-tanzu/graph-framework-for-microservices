@@ -33,7 +33,6 @@ import (
 // FakeSvcGroups implements SvcGroupInterface
 type FakeSvcGroups struct {
 	Fake *FakeService_groupTsmV1
-	ns   string
 }
 
 var svcgroupsResource = schema.GroupVersionResource{Group: "service_group.tsm.tanzu.vmware.com", Version: "v1", Resource: "svcgroups"}
@@ -43,8 +42,7 @@ var svcgroupsKind = schema.GroupVersionKind{Group: "service_group.tsm.tanzu.vmwa
 // Get takes name of the svcGroup, and returns the corresponding svcGroup object, and an error if there is any.
 func (c *FakeSvcGroups) Get(ctx context.Context, name string, options v1.GetOptions) (result *servicegrouptsmtanzuvmwarecomv1.SvcGroup, err error) {
 	obj, err := c.Fake.
-		Invokes(testing.NewGetAction(svcgroupsResource, c.ns, name), &servicegrouptsmtanzuvmwarecomv1.SvcGroup{})
-
+		Invokes(testing.NewRootGetAction(svcgroupsResource, name), &servicegrouptsmtanzuvmwarecomv1.SvcGroup{})
 	if obj == nil {
 		return nil, err
 	}
@@ -54,8 +52,7 @@ func (c *FakeSvcGroups) Get(ctx context.Context, name string, options v1.GetOpti
 // List takes label and field selectors, and returns the list of SvcGroups that match those selectors.
 func (c *FakeSvcGroups) List(ctx context.Context, opts v1.ListOptions) (result *servicegrouptsmtanzuvmwarecomv1.SvcGroupList, err error) {
 	obj, err := c.Fake.
-		Invokes(testing.NewListAction(svcgroupsResource, svcgroupsKind, c.ns, opts), &servicegrouptsmtanzuvmwarecomv1.SvcGroupList{})
-
+		Invokes(testing.NewRootListAction(svcgroupsResource, svcgroupsKind, opts), &servicegrouptsmtanzuvmwarecomv1.SvcGroupList{})
 	if obj == nil {
 		return nil, err
 	}
@@ -76,15 +73,13 @@ func (c *FakeSvcGroups) List(ctx context.Context, opts v1.ListOptions) (result *
 // Watch returns a watch.Interface that watches the requested svcGroups.
 func (c *FakeSvcGroups) Watch(ctx context.Context, opts v1.ListOptions) (watch.Interface, error) {
 	return c.Fake.
-		InvokesWatch(testing.NewWatchAction(svcgroupsResource, c.ns, opts))
-
+		InvokesWatch(testing.NewRootWatchAction(svcgroupsResource, opts))
 }
 
 // Create takes the representation of a svcGroup and creates it.  Returns the server's representation of the svcGroup, and an error, if there is any.
 func (c *FakeSvcGroups) Create(ctx context.Context, svcGroup *servicegrouptsmtanzuvmwarecomv1.SvcGroup, opts v1.CreateOptions) (result *servicegrouptsmtanzuvmwarecomv1.SvcGroup, err error) {
 	obj, err := c.Fake.
-		Invokes(testing.NewCreateAction(svcgroupsResource, c.ns, svcGroup), &servicegrouptsmtanzuvmwarecomv1.SvcGroup{})
-
+		Invokes(testing.NewRootCreateAction(svcgroupsResource, svcGroup), &servicegrouptsmtanzuvmwarecomv1.SvcGroup{})
 	if obj == nil {
 		return nil, err
 	}
@@ -94,8 +89,7 @@ func (c *FakeSvcGroups) Create(ctx context.Context, svcGroup *servicegrouptsmtan
 // Update takes the representation of a svcGroup and updates it. Returns the server's representation of the svcGroup, and an error, if there is any.
 func (c *FakeSvcGroups) Update(ctx context.Context, svcGroup *servicegrouptsmtanzuvmwarecomv1.SvcGroup, opts v1.UpdateOptions) (result *servicegrouptsmtanzuvmwarecomv1.SvcGroup, err error) {
 	obj, err := c.Fake.
-		Invokes(testing.NewUpdateAction(svcgroupsResource, c.ns, svcGroup), &servicegrouptsmtanzuvmwarecomv1.SvcGroup{})
-
+		Invokes(testing.NewRootUpdateAction(svcgroupsResource, svcGroup), &servicegrouptsmtanzuvmwarecomv1.SvcGroup{})
 	if obj == nil {
 		return nil, err
 	}
@@ -105,14 +99,13 @@ func (c *FakeSvcGroups) Update(ctx context.Context, svcGroup *servicegrouptsmtan
 // Delete takes name of the svcGroup and deletes it. Returns an error if one occurs.
 func (c *FakeSvcGroups) Delete(ctx context.Context, name string, opts v1.DeleteOptions) error {
 	_, err := c.Fake.
-		Invokes(testing.NewDeleteAction(svcgroupsResource, c.ns, name), &servicegrouptsmtanzuvmwarecomv1.SvcGroup{})
-
+		Invokes(testing.NewRootDeleteAction(svcgroupsResource, name), &servicegrouptsmtanzuvmwarecomv1.SvcGroup{})
 	return err
 }
 
 // DeleteCollection deletes a collection of objects.
 func (c *FakeSvcGroups) DeleteCollection(ctx context.Context, opts v1.DeleteOptions, listOpts v1.ListOptions) error {
-	action := testing.NewDeleteCollectionAction(svcgroupsResource, c.ns, listOpts)
+	action := testing.NewRootDeleteCollectionAction(svcgroupsResource, listOpts)
 
 	_, err := c.Fake.Invokes(action, &servicegrouptsmtanzuvmwarecomv1.SvcGroupList{})
 	return err
@@ -121,8 +114,7 @@ func (c *FakeSvcGroups) DeleteCollection(ctx context.Context, opts v1.DeleteOpti
 // Patch applies the patch and returns the patched svcGroup.
 func (c *FakeSvcGroups) Patch(ctx context.Context, name string, pt types.PatchType, data []byte, opts v1.PatchOptions, subresources ...string) (result *servicegrouptsmtanzuvmwarecomv1.SvcGroup, err error) {
 	obj, err := c.Fake.
-		Invokes(testing.NewPatchSubresourceAction(svcgroupsResource, c.ns, name, pt, data, subresources...), &servicegrouptsmtanzuvmwarecomv1.SvcGroup{})
-
+		Invokes(testing.NewRootPatchSubresourceAction(svcgroupsResource, name, pt, data, subresources...), &servicegrouptsmtanzuvmwarecomv1.SvcGroup{})
 	if obj == nil {
 		return nil, err
 	}

@@ -33,7 +33,6 @@ import (
 // FakeACPConfigs implements ACPConfigInterface
 type FakeACPConfigs struct {
 	Fake *FakePolicyTsmV1
-	ns   string
 }
 
 var acpconfigsResource = schema.GroupVersionResource{Group: "policy.tsm.tanzu.vmware.com", Version: "v1", Resource: "acpconfigs"}
@@ -43,8 +42,7 @@ var acpconfigsKind = schema.GroupVersionKind{Group: "policy.tsm.tanzu.vmware.com
 // Get takes name of the aCPConfig, and returns the corresponding aCPConfig object, and an error if there is any.
 func (c *FakeACPConfigs) Get(ctx context.Context, name string, options v1.GetOptions) (result *policytsmtanzuvmwarecomv1.ACPConfig, err error) {
 	obj, err := c.Fake.
-		Invokes(testing.NewGetAction(acpconfigsResource, c.ns, name), &policytsmtanzuvmwarecomv1.ACPConfig{})
-
+		Invokes(testing.NewRootGetAction(acpconfigsResource, name), &policytsmtanzuvmwarecomv1.ACPConfig{})
 	if obj == nil {
 		return nil, err
 	}
@@ -54,8 +52,7 @@ func (c *FakeACPConfigs) Get(ctx context.Context, name string, options v1.GetOpt
 // List takes label and field selectors, and returns the list of ACPConfigs that match those selectors.
 func (c *FakeACPConfigs) List(ctx context.Context, opts v1.ListOptions) (result *policytsmtanzuvmwarecomv1.ACPConfigList, err error) {
 	obj, err := c.Fake.
-		Invokes(testing.NewListAction(acpconfigsResource, acpconfigsKind, c.ns, opts), &policytsmtanzuvmwarecomv1.ACPConfigList{})
-
+		Invokes(testing.NewRootListAction(acpconfigsResource, acpconfigsKind, opts), &policytsmtanzuvmwarecomv1.ACPConfigList{})
 	if obj == nil {
 		return nil, err
 	}
@@ -76,15 +73,13 @@ func (c *FakeACPConfigs) List(ctx context.Context, opts v1.ListOptions) (result 
 // Watch returns a watch.Interface that watches the requested aCPConfigs.
 func (c *FakeACPConfigs) Watch(ctx context.Context, opts v1.ListOptions) (watch.Interface, error) {
 	return c.Fake.
-		InvokesWatch(testing.NewWatchAction(acpconfigsResource, c.ns, opts))
-
+		InvokesWatch(testing.NewRootWatchAction(acpconfigsResource, opts))
 }
 
 // Create takes the representation of a aCPConfig and creates it.  Returns the server's representation of the aCPConfig, and an error, if there is any.
 func (c *FakeACPConfigs) Create(ctx context.Context, aCPConfig *policytsmtanzuvmwarecomv1.ACPConfig, opts v1.CreateOptions) (result *policytsmtanzuvmwarecomv1.ACPConfig, err error) {
 	obj, err := c.Fake.
-		Invokes(testing.NewCreateAction(acpconfigsResource, c.ns, aCPConfig), &policytsmtanzuvmwarecomv1.ACPConfig{})
-
+		Invokes(testing.NewRootCreateAction(acpconfigsResource, aCPConfig), &policytsmtanzuvmwarecomv1.ACPConfig{})
 	if obj == nil {
 		return nil, err
 	}
@@ -94,8 +89,7 @@ func (c *FakeACPConfigs) Create(ctx context.Context, aCPConfig *policytsmtanzuvm
 // Update takes the representation of a aCPConfig and updates it. Returns the server's representation of the aCPConfig, and an error, if there is any.
 func (c *FakeACPConfigs) Update(ctx context.Context, aCPConfig *policytsmtanzuvmwarecomv1.ACPConfig, opts v1.UpdateOptions) (result *policytsmtanzuvmwarecomv1.ACPConfig, err error) {
 	obj, err := c.Fake.
-		Invokes(testing.NewUpdateAction(acpconfigsResource, c.ns, aCPConfig), &policytsmtanzuvmwarecomv1.ACPConfig{})
-
+		Invokes(testing.NewRootUpdateAction(acpconfigsResource, aCPConfig), &policytsmtanzuvmwarecomv1.ACPConfig{})
 	if obj == nil {
 		return nil, err
 	}
@@ -105,14 +99,13 @@ func (c *FakeACPConfigs) Update(ctx context.Context, aCPConfig *policytsmtanzuvm
 // Delete takes name of the aCPConfig and deletes it. Returns an error if one occurs.
 func (c *FakeACPConfigs) Delete(ctx context.Context, name string, opts v1.DeleteOptions) error {
 	_, err := c.Fake.
-		Invokes(testing.NewDeleteAction(acpconfigsResource, c.ns, name), &policytsmtanzuvmwarecomv1.ACPConfig{})
-
+		Invokes(testing.NewRootDeleteAction(acpconfigsResource, name), &policytsmtanzuvmwarecomv1.ACPConfig{})
 	return err
 }
 
 // DeleteCollection deletes a collection of objects.
 func (c *FakeACPConfigs) DeleteCollection(ctx context.Context, opts v1.DeleteOptions, listOpts v1.ListOptions) error {
-	action := testing.NewDeleteCollectionAction(acpconfigsResource, c.ns, listOpts)
+	action := testing.NewRootDeleteCollectionAction(acpconfigsResource, listOpts)
 
 	_, err := c.Fake.Invokes(action, &policytsmtanzuvmwarecomv1.ACPConfigList{})
 	return err
@@ -121,8 +114,7 @@ func (c *FakeACPConfigs) DeleteCollection(ctx context.Context, opts v1.DeleteOpt
 // Patch applies the patch and returns the patched aCPConfig.
 func (c *FakeACPConfigs) Patch(ctx context.Context, name string, pt types.PatchType, data []byte, opts v1.PatchOptions, subresources ...string) (result *policytsmtanzuvmwarecomv1.ACPConfig, err error) {
 	obj, err := c.Fake.
-		Invokes(testing.NewPatchSubresourceAction(acpconfigsResource, c.ns, name, pt, data, subresources...), &policytsmtanzuvmwarecomv1.ACPConfig{})
-
+		Invokes(testing.NewRootPatchSubresourceAction(acpconfigsResource, name, pt, data, subresources...), &policytsmtanzuvmwarecomv1.ACPConfig{})
 	if obj == nil {
 		return nil, err
 	}

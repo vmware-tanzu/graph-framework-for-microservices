@@ -15,7 +15,7 @@ import (
 const (
 	openapigen  string = "// +k8s:openapi-gen=true"
 	deepcopygen string = "// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object"
-	clientgen   string = "// +genclient\n// +genclient:noStatus"
+	clientgen   string = "// +genclient\n// +genclient:noStatus\n// +genclient:nonNamespaced"
 )
 
 func parsePackageCRDs(pkg parser.Package) string {

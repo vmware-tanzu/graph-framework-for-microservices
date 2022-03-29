@@ -42,33 +42,32 @@ type GnsInformer interface {
 type gnsInformer struct {
 	factory          internalinterfaces.SharedInformerFactory
 	tweakListOptions internalinterfaces.TweakListOptionsFunc
-	namespace        string
 }
 
 // NewGnsInformer constructs a new informer for Gns type.
 // Always prefer using an informer factory to get a shared informer instead of getting an independent
 // one. This reduces memory footprint and number of connections to the server.
-func NewGnsInformer(client versioned.Interface, namespace string, resyncPeriod time.Duration, indexers cache.Indexers) cache.SharedIndexInformer {
-	return NewFilteredGnsInformer(client, namespace, resyncPeriod, indexers, nil)
+func NewGnsInformer(client versioned.Interface, resyncPeriod time.Duration, indexers cache.Indexers) cache.SharedIndexInformer {
+	return NewFilteredGnsInformer(client, resyncPeriod, indexers, nil)
 }
 
 // NewFilteredGnsInformer constructs a new informer for Gns type.
 // Always prefer using an informer factory to get a shared informer instead of getting an independent
 // one. This reduces memory footprint and number of connections to the server.
-func NewFilteredGnsInformer(client versioned.Interface, namespace string, resyncPeriod time.Duration, indexers cache.Indexers, tweakListOptions internalinterfaces.TweakListOptionsFunc) cache.SharedIndexInformer {
+func NewFilteredGnsInformer(client versioned.Interface, resyncPeriod time.Duration, indexers cache.Indexers, tweakListOptions internalinterfaces.TweakListOptionsFunc) cache.SharedIndexInformer {
 	return cache.NewSharedIndexInformer(
 		&cache.ListWatch{
 			ListFunc: func(options metav1.ListOptions) (runtime.Object, error) {
 				if tweakListOptions != nil {
 					tweakListOptions(&options)
 				}
-				return client.GnsTsmV1().Gnses(namespace).List(context.TODO(), options)
+				return client.GnsTsmV1().Gnses().List(context.TODO(), options)
 			},
 			WatchFunc: func(options metav1.ListOptions) (watch.Interface, error) {
 				if tweakListOptions != nil {
 					tweakListOptions(&options)
 				}
-				return client.GnsTsmV1().Gnses(namespace).Watch(context.TODO(), options)
+				return client.GnsTsmV1().Gnses().Watch(context.TODO(), options)
 			},
 		},
 		&gnstsmtanzuvmwarecomv1.Gns{},
@@ -78,7 +77,7 @@ func NewFilteredGnsInformer(client versioned.Interface, namespace string, resync
 }
 
 func (f *gnsInformer) defaultInformer(client versioned.Interface, resyncPeriod time.Duration) cache.SharedIndexInformer {
-	return NewFilteredGnsInformer(client, f.namespace, resyncPeriod, cache.Indexers{cache.NamespaceIndex: cache.MetaNamespaceIndexFunc}, f.tweakListOptions)
+	return NewFilteredGnsInformer(client, resyncPeriod, cache.Indexers{cache.NamespaceIndex: cache.MetaNamespaceIndexFunc}, f.tweakListOptions)
 }
 
 func (f *gnsInformer) Informer() cache.SharedIndexInformer {

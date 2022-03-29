@@ -31,8 +31,9 @@ type GnsLister interface {
 	// List lists all Gnses in the indexer.
 	// Objects returned here must be treated as read-only.
 	List(selector labels.Selector) (ret []*v1.Gns, err error)
-	// Gnses returns an object that can list and get Gnses.
-	Gnses(namespace string) GnsNamespaceLister
+	// Get retrieves the Gns from the index for a given name.
+	// Objects returned here must be treated as read-only.
+	Get(name string) (*v1.Gns, error)
 	GnsListerExpansion
 }
 
@@ -54,41 +55,9 @@ func (s *gnsLister) List(selector labels.Selector) (ret []*v1.Gns, err error) {
 	return ret, err
 }
 
-// Gnses returns an object that can list and get Gnses.
-func (s *gnsLister) Gnses(namespace string) GnsNamespaceLister {
-	return gnsNamespaceLister{indexer: s.indexer, namespace: namespace}
-}
-
-// GnsNamespaceLister helps list and get Gnses.
-// All objects returned here must be treated as read-only.
-type GnsNamespaceLister interface {
-	// List lists all Gnses in the indexer for a given namespace.
-	// Objects returned here must be treated as read-only.
-	List(selector labels.Selector) (ret []*v1.Gns, err error)
-	// Get retrieves the Gns from the indexer for a given namespace and name.
-	// Objects returned here must be treated as read-only.
-	Get(name string) (*v1.Gns, error)
-	GnsNamespaceListerExpansion
-}
-
-// gnsNamespaceLister implements the GnsNamespaceLister
-// interface.
-type gnsNamespaceLister struct {
-	indexer   cache.Indexer
-	namespace string
-}
-
-// List lists all Gnses in the indexer for a given namespace.
-func (s gnsNamespaceLister) List(selector labels.Selector) (ret []*v1.Gns, err error) {
-	err = cache.ListAllByNamespace(s.indexer, s.namespace, selector, func(m interface{}) {
-		ret = append(ret, m.(*v1.Gns))
-	})
-	return ret, err
-}
-
-// Get retrieves the Gns from the indexer for a given namespace and name.
-func (s gnsNamespaceLister) Get(name string) (*v1.Gns, error) {
-	obj, exists, err := s.indexer.GetByKey(s.namespace + "/" + name)
+// Get retrieves the Gns from the index for a given name.
+func (s *gnsLister) Get(name string) (*v1.Gns, error) {
+	obj, exists, err := s.indexer.GetByKey(name)
 	if err != nil {
 		return nil, err
 	}

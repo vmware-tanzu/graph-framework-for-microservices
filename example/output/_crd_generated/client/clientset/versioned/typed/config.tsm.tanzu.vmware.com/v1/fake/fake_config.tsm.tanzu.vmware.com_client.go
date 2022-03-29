@@ -28,8 +28,8 @@ type FakeConfigTsmV1 struct {
 	*testing.Fake
 }
 
-func (c *FakeConfigTsmV1) Configs(namespace string) v1.ConfigInterface {
-	return &FakeConfigs{c, namespace}
+func (c *FakeConfigTsmV1) Configs() v1.ConfigInterface {
+	return &FakeConfigs{c}
 }
 
 // RESTClient returns a RESTClient that is used to communicate

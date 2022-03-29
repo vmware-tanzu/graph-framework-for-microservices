@@ -42,33 +42,32 @@ type ConfigInformer interface {
 type configInformer struct {
 	factory          internalinterfaces.SharedInformerFactory
 	tweakListOptions internalinterfaces.TweakListOptionsFunc
-	namespace        string
 }
 
 // NewConfigInformer constructs a new informer for Config type.
 // Always prefer using an informer factory to get a shared informer instead of getting an independent
 // one. This reduces memory footprint and number of connections to the server.
-func NewConfigInformer(client versioned.Interface, namespace string, resyncPeriod time.Duration, indexers cache.Indexers) cache.SharedIndexInformer {
-	return NewFilteredConfigInformer(client, namespace, resyncPeriod, indexers, nil)
+func NewConfigInformer(client versioned.Interface, resyncPeriod time.Duration, indexers cache.Indexers) cache.SharedIndexInformer {
+	return NewFilteredConfigInformer(client, resyncPeriod, indexers, nil)
 }
 
 // NewFilteredConfigInformer constructs a new informer for Config type.
 // Always prefer using an informer factory to get a shared informer instead of getting an independent
 // one. This reduces memory footprint and number of connections to the server.
-func NewFilteredConfigInformer(client versioned.Interface, namespace string, resyncPeriod time.Duration, indexers cache.Indexers, tweakListOptions internalinterfaces.TweakListOptionsFunc) cache.SharedIndexInformer {
+func NewFilteredConfigInformer(client versioned.Interface, resyncPeriod time.Duration, indexers cache.Indexers, tweakListOptions internalinterfaces.TweakListOptionsFunc) cache.SharedIndexInformer {
 	return cache.NewSharedIndexInformer(
 		&cache.ListWatch{
 			ListFunc: func(options metav1.ListOptions) (runtime.Object, error) {
 				if tweakListOptions != nil {
 					tweakListOptions(&options)
 				}
-				return client.ConfigTsmV1().Configs(namespace).List(context.TODO(), options)
+				return client.ConfigTsmV1().Configs().List(context.TODO(), options)
 			},
 			WatchFunc: func(options metav1.ListOptions) (watch.Interface, error) {
 				if tweakListOptions != nil {
 					tweakListOptions(&options)
 				}
-				return client.ConfigTsmV1().Configs(namespace).Watch(context.TODO(), options)
+				return client.ConfigTsmV1().Configs().Watch(context.TODO(), options)
 			},
 		},
 		&configtsmtanzuvmwarecomv1.Config{},
@@ -78,7 +77,7 @@ func NewFilteredConfigInformer(client versioned.Interface, namespace string, res
 }
 
 func (f *configInformer) defaultInformer(client versioned.Interface, resyncPeriod time.Duration) cache.SharedIndexInformer {
-	return NewFilteredConfigInformer(client, f.namespace, resyncPeriod, cache.Indexers{cache.NamespaceIndex: cache.MetaNamespaceIndexFunc}, f.tweakListOptions)
+	return NewFilteredConfigInformer(client, resyncPeriod, cache.Indexers{cache.NamespaceIndex: cache.MetaNamespaceIndexFunc}, f.tweakListOptions)
 }
 
 func (f *configInformer) Informer() cache.SharedIndexInformer {

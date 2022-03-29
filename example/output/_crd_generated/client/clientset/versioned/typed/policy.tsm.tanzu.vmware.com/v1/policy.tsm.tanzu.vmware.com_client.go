@@ -35,12 +35,12 @@ type PolicyTsmV1Client struct {
 	restClient rest.Interface
 }
 
-func (c *PolicyTsmV1Client) ACPConfigs(namespace string) ACPConfigInterface {
-	return newACPConfigs(c, namespace)
+func (c *PolicyTsmV1Client) ACPConfigs() ACPConfigInterface {
+	return newACPConfigs(c)
 }
 
-func (c *PolicyTsmV1Client) AccessControlPolicies(namespace string) AccessControlPolicyInterface {
-	return newAccessControlPolicies(c, namespace)
+func (c *PolicyTsmV1Client) AccessControlPolicies() AccessControlPolicyInterface {
+	return newAccessControlPolicies(c)
 }
 
 // NewForConfig creates a new PolicyTsmV1Client for the given config.

@@ -22,14 +22,6 @@ package v1
 // DnsLister.
 type DnsListerExpansion interface{}
 
-// DnsNamespaceListerExpansion allows custom methods to be added to
-// DnsNamespaceLister.
-type DnsNamespaceListerExpansion interface{}
-
 // GnsListerExpansion allows custom methods to be added to
 // GnsLister.
 type GnsListerExpansion interface{}
-
-// GnsNamespaceListerExpansion allows custom methods to be added to
-// GnsNamespaceLister.
-type GnsNamespaceListerExpansion interface{}

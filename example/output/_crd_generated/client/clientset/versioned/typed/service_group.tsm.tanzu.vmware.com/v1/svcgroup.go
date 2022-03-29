@@ -33,7 +33,7 @@ import (
 // SvcGroupsGetter has a method to return a SvcGroupInterface.
 // A group's client should implement this interface.
 type SvcGroupsGetter interface {
-	SvcGroups(namespace string) SvcGroupInterface
+	SvcGroups() SvcGroupInterface
 }
 
 // SvcGroupInterface has methods to work with SvcGroup resources.
@@ -52,14 +52,12 @@ type SvcGroupInterface interface {
 // svcGroups implements SvcGroupInterface
 type svcGroups struct {
 	client rest.Interface
-	ns     string
 }
 
 // newSvcGroups returns a SvcGroups
-func newSvcGroups(c *Service_groupTsmV1Client, namespace string) *svcGroups {
+func newSvcGroups(c *Service_groupTsmV1Client) *svcGroups {
 	return &svcGroups{
 		client: c.RESTClient(),
-		ns:     namespace,
 	}
 }
 
@@ -67,7 +65,6 @@ func newSvcGroups(c *Service_groupTsmV1Client, namespace string) *svcGroups {
 func (c *svcGroups) Get(ctx context.Context, name string, options metav1.GetOptions) (result *v1.SvcGroup, err error) {
 	result = &v1.SvcGroup{}
 	err = c.client.Get().
-		Namespace(c.ns).
 		Resource("svcgroups").
 		Name(name).
 		VersionedParams(&options, scheme.ParameterCodec).
@@ -84,7 +81,6 @@ func (c *svcGroups) List(ctx context.Context, opts metav1.ListOptions) (result *
 	}
 	result = &v1.SvcGroupList{}
 	err = c.client.Get().
-		Namespace(c.ns).
 		Resource("svcgroups").
 		VersionedParams(&opts, scheme.ParameterCodec).
 		Timeout(timeout).
@@ -101,7 +97,6 @@ func (c *svcGroups) Watch(ctx context.Context, opts metav1.ListOptions) (watch.I
 	}
 	opts.Watch = true
 	return c.client.Get().
-		Namespace(c.ns).
 		Resource("svcgroups").
 		VersionedParams(&opts, scheme.ParameterCodec).
 		Timeout(timeout).
@@ -112,7 +107,6 @@ func (c *svcGroups) Watch(ctx context.Context, opts metav1.ListOptions) (watch.I
 func (c *svcGroups) Create(ctx context.Context, svcGroup *v1.SvcGroup, opts metav1.CreateOptions) (result *v1.SvcGroup, err error) {
 	result = &v1.SvcGroup{}
 	err = c.client.Post().
-		Namespace(c.ns).
 		Resource("svcgroups").
 		VersionedParams(&opts, scheme.ParameterCodec).
 		Body(svcGroup).
@@ -125,7 +119,6 @@ func (c *svcGroups) Create(ctx context.Context, svcGroup *v1.SvcGroup, opts meta
 func (c *svcGroups) Update(ctx context.Context, svcGroup *v1.SvcGroup, opts metav1.UpdateOptions) (result *v1.SvcGroup, err error) {
 	result = &v1.SvcGroup{}
 	err = c.client.Put().
-		Namespace(c.ns).
 		Resource("svcgroups").
 		Name(svcGroup.Name).
 		VersionedParams(&opts, scheme.ParameterCodec).
@@ -138,7 +131,6 @@ func (c *svcGroups) Update(ctx context.Context, svcGroup *v1.SvcGroup, opts meta
 // Delete takes name of the svcGroup and deletes it. Returns an error if one occurs.
 func (c *svcGroups) Delete(ctx context.Context, name string, opts metav1.DeleteOptions) error {
 	return c.client.Delete().
-		Namespace(c.ns).
 		Resource("svcgroups").
 		Name(name).
 		Body(&opts).
@@ -153,7 +145,6 @@ func (c *svcGroups) DeleteCollection(ctx context.Context, opts metav1.DeleteOpti
 		timeout = time.Duration(*listOpts.TimeoutSeconds) * time.Second
 	}
 	return c.client.Delete().
-		Namespace(c.ns).
 		Resource("svcgroups").
 		VersionedParams(&listOpts, scheme.ParameterCodec).
 		Timeout(timeout).
@@ -166,7 +157,6 @@ func (c *svcGroups) DeleteCollection(ctx context.Context, opts metav1.DeleteOpti
 func (c *svcGroups) Patch(ctx context.Context, name string, pt types.PatchType, data []byte, opts metav1.PatchOptions, subresources ...string) (result *v1.SvcGroup, err error) {
 	result = &v1.SvcGroup{}
 	err = c.client.Patch(pt).
-		Namespace(c.ns).
 		Resource("svcgroups").
 		Name(name).
 		SubResource(subresources...).
