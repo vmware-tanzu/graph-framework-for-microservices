@@ -139,33 +139,26 @@ image_scan:
 
 ##@ Deployment
 .PHONY: deploy
-deploy:
+deploy: kustomize
 	if [[ $(CLUSTER) == "kind" ]]; then \
 		kind load docker-image ${IMAGE_REGISTRY}:${IMAGE_TAG} ;\
 	fi
-	sed -e 's/__APP_NAME__/'"${APP_NAME}"'/g' -e 's|__IMAGE__|'"${IMAGE_REGISTRY}:${IMAGE_TAG}"'|g' config/deployment/deployment.yaml | kubectl apply -f - -n ${NAMESPACE} ;
+	cd config/deployment/ && $(KUSTOMIZE) edit set image ${APP_NAME}=${IMAGE_REGISTRY}:${IMAGE_TAG} && $(KUSTOMIZE) build . | kubectl apply -f - -n ${NAMESPACE};
 
 
 .PHONY: undeploy
-undeploy: ## Undeploy controller from the K8s cluster specified in ~/.kube/config. Call with ignore-not-found=true to ignore resource not found errors during deletion.
-	sed -e 's/__APP_NAME__/'"${APP_NAME}"'/g' -e 's|__IMAGE__|'"${IMAGE_REGISTRY}:${IMAGE_TAG}"'|g' config/deployment/deployment.yaml | kubectl delete --ignore-not-found=true -f - -n ${NAMESPACE};
+undeploy: kustomize
+	cd config/deployment/ && $(KUSTOMIZE) build . | kubectl delete -f - -n ${NAMESPACE};
+
 
 #check how to use kustomize for now using sed to replace deployment..
-#KUSTOMIZE = $(shell pwd)/bin/kustomize
-#.PHONY: kustomize
-#kustomize: ## Download kustomize locally if necessary.
-#$(call go-get-tool,$(KUSTOMIZE),sigs.k8s.io/kustomize/kustomize/v3@v3.8.7)
+KUSTOMIZE = $(shell pwd)/bin/kustomize
+.PHONY: kustomize
+kustomize: ## Download kustomize locally if necessary.
+	$(MAKE) install-kustomize
 
 # go-get-tool will 'go get' any package $2 and install it to $1.
 PROJECT_DIR := $(shell dirname $(abspath $(lastword $(MAKEFILE_LIST))))
-define go-get-tool
-@[ -f $(1) ] || { \
-set -e ;\
-TMP_DIR=$$(mktemp -d) ;\
-cd $$TMP_DIR ;\
-go mod init tmp ;\
-echo "Downloading $(2)" ;\
-GOBIN=$(PROJECT_DIR)/bin go get $(2) ;\
-rm -rf $$TMP_DIR ;\
-}
-endef
+install-kustomize:
+	test -s $(PROJECT_DIR)/bin/kustomize || { cd $(PROJECT_DIR)/bin; curl -s "https://raw.githubusercontent.com/kubernetes-sigs/kustomize/master/hack/install_kustomize.sh" | bash ; };
+
