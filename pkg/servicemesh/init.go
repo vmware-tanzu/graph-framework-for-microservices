@@ -87,6 +87,8 @@ func initCommands() {
 	// Config commands
 	ConfigCmd.AddCommand(config.ViewCmd)
 
+	ConfigCmd.AddCommand(config.ViewCmd)
+
 	ApplyCmd.Flags().StringVarP(&apply.CreateResourceFile, "file",
 		"f", "", "Resource file from which cluster is created.")
 

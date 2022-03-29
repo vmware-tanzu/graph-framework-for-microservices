@@ -5,8 +5,8 @@ import (
 
 	"github.com/vmware-tanzu-private/core/pkg/v1/cli"
 	"github.com/vmware-tanzu-private/core/pkg/v1/cli/command/plugin"
-	"gitlab.eng.vmware.com/nexus/cli/pkg/servicemesh"
 	"gitlab.eng.vmware.com/nsx-allspark_users/lib-go/logging"
+	"gitlab.eng.vmware.com/nexus/cli/pkg/servicemesh"
 )
 
 var descriptor = cli.PluginDescriptor{
@@ -27,7 +27,7 @@ func main() {
 	p.AddCommands(
 		servicemesh.ClusterCmd,
 		servicemesh.GnsCmd,
-		//servicemesh.ConfigCmd,
+		servicemesh.ConfigCmd,
 		servicemesh.ApplyCmd,
 		servicemesh.DeleteCmd,
 		servicemesh.LoginCmd,
