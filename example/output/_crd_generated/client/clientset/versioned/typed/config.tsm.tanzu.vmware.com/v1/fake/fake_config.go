@@ -33,7 +33,6 @@ import (
 // FakeConfigs implements ConfigInterface
 type FakeConfigs struct {
 	Fake *FakeConfigTsmV1
-	ns   string
 }
 
 var configsResource = schema.GroupVersionResource{Group: "config.tsm.tanzu.vmware.com", Version: "v1", Resource: "configs"}
@@ -43,8 +42,7 @@ var configsKind = schema.GroupVersionKind{Group: "config.tsm.tanzu.vmware.com", 
 // Get takes name of the config, and returns the corresponding config object, and an error if there is any.
 func (c *FakeConfigs) Get(ctx context.Context, name string, options v1.GetOptions) (result *configtsmtanzuvmwarecomv1.Config, err error) {
 	obj, err := c.Fake.
-		Invokes(testing.NewGetAction(configsResource, c.ns, name), &configtsmtanzuvmwarecomv1.Config{})
-
+		Invokes(testing.NewRootGetAction(configsResource, name), &configtsmtanzuvmwarecomv1.Config{})
 	if obj == nil {
 		return nil, err
 	}
@@ -54,8 +52,7 @@ func (c *FakeConfigs) Get(ctx context.Context, name string, options v1.GetOption
 // List takes label and field selectors, and returns the list of Configs that match those selectors.
 func (c *FakeConfigs) List(ctx context.Context, opts v1.ListOptions) (result *configtsmtanzuvmwarecomv1.ConfigList, err error) {
 	obj, err := c.Fake.
-		Invokes(testing.NewListAction(configsResource, configsKind, c.ns, opts), &configtsmtanzuvmwarecomv1.ConfigList{})
-
+		Invokes(testing.NewRootListAction(configsResource, configsKind, opts), &configtsmtanzuvmwarecomv1.ConfigList{})
 	if obj == nil {
 		return nil, err
 	}
@@ -76,15 +73,13 @@ func (c *FakeConfigs) List(ctx context.Context, opts v1.ListOptions) (result *co
 // Watch returns a watch.Interface that watches the requested configs.
 func (c *FakeConfigs) Watch(ctx context.Context, opts v1.ListOptions) (watch.Interface, error) {
 	return c.Fake.
-		InvokesWatch(testing.NewWatchAction(configsResource, c.ns, opts))
-
+		InvokesWatch(testing.NewRootWatchAction(configsResource, opts))
 }
 
 // Create takes the representation of a config and creates it.  Returns the server's representation of the config, and an error, if there is any.
 func (c *FakeConfigs) Create(ctx context.Context, config *configtsmtanzuvmwarecomv1.Config, opts v1.CreateOptions) (result *configtsmtanzuvmwarecomv1.Config, err error) {
 	obj, err := c.Fake.
-		Invokes(testing.NewCreateAction(configsResource, c.ns, config), &configtsmtanzuvmwarecomv1.Config{})
-
+		Invokes(testing.NewRootCreateAction(configsResource, config), &configtsmtanzuvmwarecomv1.Config{})
 	if obj == nil {
 		return nil, err
 	}
@@ -94,8 +89,7 @@ func (c *FakeConfigs) Create(ctx context.Context, config *configtsmtanzuvmwareco
 // Update takes the representation of a config and updates it. Returns the server's representation of the config, and an error, if there is any.
 func (c *FakeConfigs) Update(ctx context.Context, config *configtsmtanzuvmwarecomv1.Config, opts v1.UpdateOptions) (result *configtsmtanzuvmwarecomv1.Config, err error) {
 	obj, err := c.Fake.
-		Invokes(testing.NewUpdateAction(configsResource, c.ns, config), &configtsmtanzuvmwarecomv1.Config{})
-
+		Invokes(testing.NewRootUpdateAction(configsResource, config), &configtsmtanzuvmwarecomv1.Config{})
 	if obj == nil {
 		return nil, err
 	}
@@ -105,14 +99,13 @@ func (c *FakeConfigs) Update(ctx context.Context, config *configtsmtanzuvmwareco
 // Delete takes name of the config and deletes it. Returns an error if one occurs.
 func (c *FakeConfigs) Delete(ctx context.Context, name string, opts v1.DeleteOptions) error {
 	_, err := c.Fake.
-		Invokes(testing.NewDeleteAction(configsResource, c.ns, name), &configtsmtanzuvmwarecomv1.Config{})
-
+		Invokes(testing.NewRootDeleteAction(configsResource, name), &configtsmtanzuvmwarecomv1.Config{})
 	return err
 }
 
 // DeleteCollection deletes a collection of objects.
 func (c *FakeConfigs) DeleteCollection(ctx context.Context, opts v1.DeleteOptions, listOpts v1.ListOptions) error {
-	action := testing.NewDeleteCollectionAction(configsResource, c.ns, listOpts)
+	action := testing.NewRootDeleteCollectionAction(configsResource, listOpts)
 
 	_, err := c.Fake.Invokes(action, &configtsmtanzuvmwarecomv1.ConfigList{})
 	return err
@@ -121,8 +114,7 @@ func (c *FakeConfigs) DeleteCollection(ctx context.Context, opts v1.DeleteOption
 // Patch applies the patch and returns the patched config.
 func (c *FakeConfigs) Patch(ctx context.Context, name string, pt types.PatchType, data []byte, opts v1.PatchOptions, subresources ...string) (result *configtsmtanzuvmwarecomv1.Config, err error) {
 	obj, err := c.Fake.
-		Invokes(testing.NewPatchSubresourceAction(configsResource, c.ns, name, pt, data, subresources...), &configtsmtanzuvmwarecomv1.Config{})
-
+		Invokes(testing.NewRootPatchSubresourceAction(configsResource, name, pt, data, subresources...), &configtsmtanzuvmwarecomv1.Config{})
 	if obj == nil {
 		return nil, err
 	}

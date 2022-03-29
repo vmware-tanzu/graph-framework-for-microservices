@@ -33,7 +33,7 @@ import (
 // RootsGetter has a method to return a RootInterface.
 // A group's client should implement this interface.
 type RootsGetter interface {
-	Roots(namespace string) RootInterface
+	Roots() RootInterface
 }
 
 // RootInterface has methods to work with Root resources.
@@ -52,14 +52,12 @@ type RootInterface interface {
 // roots implements RootInterface
 type roots struct {
 	client rest.Interface
-	ns     string
 }
 
 // newRoots returns a Roots
-func newRoots(c *RootTsmV1Client, namespace string) *roots {
+func newRoots(c *RootTsmV1Client) *roots {
 	return &roots{
 		client: c.RESTClient(),
-		ns:     namespace,
 	}
 }
 
@@ -67,7 +65,6 @@ func newRoots(c *RootTsmV1Client, namespace string) *roots {
 func (c *roots) Get(ctx context.Context, name string, options metav1.GetOptions) (result *v1.Root, err error) {
 	result = &v1.Root{}
 	err = c.client.Get().
-		Namespace(c.ns).
 		Resource("roots").
 		Name(name).
 		VersionedParams(&options, scheme.ParameterCodec).
@@ -84,7 +81,6 @@ func (c *roots) List(ctx context.Context, opts metav1.ListOptions) (result *v1.R
 	}
 	result = &v1.RootList{}
 	err = c.client.Get().
-		Namespace(c.ns).
 		Resource("roots").
 		VersionedParams(&opts, scheme.ParameterCodec).
 		Timeout(timeout).
@@ -101,7 +97,6 @@ func (c *roots) Watch(ctx context.Context, opts metav1.ListOptions) (watch.Inter
 	}
 	opts.Watch = true
 	return c.client.Get().
-		Namespace(c.ns).
 		Resource("roots").
 		VersionedParams(&opts, scheme.ParameterCodec).
 		Timeout(timeout).
@@ -112,7 +107,6 @@ func (c *roots) Watch(ctx context.Context, opts metav1.ListOptions) (watch.Inter
 func (c *roots) Create(ctx context.Context, root *v1.Root, opts metav1.CreateOptions) (result *v1.Root, err error) {
 	result = &v1.Root{}
 	err = c.client.Post().
-		Namespace(c.ns).
 		Resource("roots").
 		VersionedParams(&opts, scheme.ParameterCodec).
 		Body(root).
@@ -125,7 +119,6 @@ func (c *roots) Create(ctx context.Context, root *v1.Root, opts metav1.CreateOpt
 func (c *roots) Update(ctx context.Context, root *v1.Root, opts metav1.UpdateOptions) (result *v1.Root, err error) {
 	result = &v1.Root{}
 	err = c.client.Put().
-		Namespace(c.ns).
 		Resource("roots").
 		Name(root.Name).
 		VersionedParams(&opts, scheme.ParameterCodec).
@@ -138,7 +131,6 @@ func (c *roots) Update(ctx context.Context, root *v1.Root, opts metav1.UpdateOpt
 // Delete takes name of the root and deletes it. Returns an error if one occurs.
 func (c *roots) Delete(ctx context.Context, name string, opts metav1.DeleteOptions) error {
 	return c.client.Delete().
-		Namespace(c.ns).
 		Resource("roots").
 		Name(name).
 		Body(&opts).
@@ -153,7 +145,6 @@ func (c *roots) DeleteCollection(ctx context.Context, opts metav1.DeleteOptions,
 		timeout = time.Duration(*listOpts.TimeoutSeconds) * time.Second
 	}
 	return c.client.Delete().
-		Namespace(c.ns).
 		Resource("roots").
 		VersionedParams(&listOpts, scheme.ParameterCodec).
 		Timeout(timeout).
@@ -166,7 +157,6 @@ func (c *roots) DeleteCollection(ctx context.Context, opts metav1.DeleteOptions,
 func (c *roots) Patch(ctx context.Context, name string, pt types.PatchType, data []byte, opts metav1.PatchOptions, subresources ...string) (result *v1.Root, err error) {
 	result = &v1.Root{}
 	err = c.client.Patch(pt).
-		Namespace(c.ns).
 		Resource("roots").
 		Name(name).
 		SubResource(subresources...).

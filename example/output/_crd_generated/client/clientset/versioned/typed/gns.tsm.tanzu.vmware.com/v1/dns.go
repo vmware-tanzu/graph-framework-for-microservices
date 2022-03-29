@@ -33,7 +33,7 @@ import (
 // DnsesGetter has a method to return a DnsInterface.
 // A group's client should implement this interface.
 type DnsesGetter interface {
-	Dnses(namespace string) DnsInterface
+	Dnses() DnsInterface
 }
 
 // DnsInterface has methods to work with Dns resources.
@@ -52,14 +52,12 @@ type DnsInterface interface {
 // dnses implements DnsInterface
 type dnses struct {
 	client rest.Interface
-	ns     string
 }
 
 // newDnses returns a Dnses
-func newDnses(c *GnsTsmV1Client, namespace string) *dnses {
+func newDnses(c *GnsTsmV1Client) *dnses {
 	return &dnses{
 		client: c.RESTClient(),
-		ns:     namespace,
 	}
 }
 
@@ -67,7 +65,6 @@ func newDnses(c *GnsTsmV1Client, namespace string) *dnses {
 func (c *dnses) Get(ctx context.Context, name string, options metav1.GetOptions) (result *v1.Dns, err error) {
 	result = &v1.Dns{}
 	err = c.client.Get().
-		Namespace(c.ns).
 		Resource("dnses").
 		Name(name).
 		VersionedParams(&options, scheme.ParameterCodec).
@@ -84,7 +81,6 @@ func (c *dnses) List(ctx context.Context, opts metav1.ListOptions) (result *v1.D
 	}
 	result = &v1.DnsList{}
 	err = c.client.Get().
-		Namespace(c.ns).
 		Resource("dnses").
 		VersionedParams(&opts, scheme.ParameterCodec).
 		Timeout(timeout).
@@ -101,7 +97,6 @@ func (c *dnses) Watch(ctx context.Context, opts metav1.ListOptions) (watch.Inter
 	}
 	opts.Watch = true
 	return c.client.Get().
-		Namespace(c.ns).
 		Resource("dnses").
 		VersionedParams(&opts, scheme.ParameterCodec).
 		Timeout(timeout).
@@ -112,7 +107,6 @@ func (c *dnses) Watch(ctx context.Context, opts metav1.ListOptions) (watch.Inter
 func (c *dnses) Create(ctx context.Context, dns *v1.Dns, opts metav1.CreateOptions) (result *v1.Dns, err error) {
 	result = &v1.Dns{}
 	err = c.client.Post().
-		Namespace(c.ns).
 		Resource("dnses").
 		VersionedParams(&opts, scheme.ParameterCodec).
 		Body(dns).
@@ -125,7 +119,6 @@ func (c *dnses) Create(ctx context.Context, dns *v1.Dns, opts metav1.CreateOptio
 func (c *dnses) Update(ctx context.Context, dns *v1.Dns, opts metav1.UpdateOptions) (result *v1.Dns, err error) {
 	result = &v1.Dns{}
 	err = c.client.Put().
-		Namespace(c.ns).
 		Resource("dnses").
 		Name(dns.Name).
 		VersionedParams(&opts, scheme.ParameterCodec).
@@ -138,7 +131,6 @@ func (c *dnses) Update(ctx context.Context, dns *v1.Dns, opts metav1.UpdateOptio
 // Delete takes name of the dns and deletes it. Returns an error if one occurs.
 func (c *dnses) Delete(ctx context.Context, name string, opts metav1.DeleteOptions) error {
 	return c.client.Delete().
-		Namespace(c.ns).
 		Resource("dnses").
 		Name(name).
 		Body(&opts).
@@ -153,7 +145,6 @@ func (c *dnses) DeleteCollection(ctx context.Context, opts metav1.DeleteOptions,
 		timeout = time.Duration(*listOpts.TimeoutSeconds) * time.Second
 	}
 	return c.client.Delete().
-		Namespace(c.ns).
 		Resource("dnses").
 		VersionedParams(&listOpts, scheme.ParameterCodec).
 		Timeout(timeout).
@@ -166,7 +157,6 @@ func (c *dnses) DeleteCollection(ctx context.Context, opts metav1.DeleteOptions,
 func (c *dnses) Patch(ctx context.Context, name string, pt types.PatchType, data []byte, opts metav1.PatchOptions, subresources ...string) (result *v1.Dns, err error) {
 	result = &v1.Dns{}
 	err = c.client.Patch(pt).
-		Namespace(c.ns).
 		Resource("dnses").
 		Name(name).
 		SubResource(subresources...).

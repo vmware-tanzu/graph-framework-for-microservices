@@ -33,7 +33,7 @@ import (
 // ACPConfigsGetter has a method to return a ACPConfigInterface.
 // A group's client should implement this interface.
 type ACPConfigsGetter interface {
-	ACPConfigs(namespace string) ACPConfigInterface
+	ACPConfigs() ACPConfigInterface
 }
 
 // ACPConfigInterface has methods to work with ACPConfig resources.
@@ -52,14 +52,12 @@ type ACPConfigInterface interface {
 // aCPConfigs implements ACPConfigInterface
 type aCPConfigs struct {
 	client rest.Interface
-	ns     string
 }
 
 // newACPConfigs returns a ACPConfigs
-func newACPConfigs(c *PolicyTsmV1Client, namespace string) *aCPConfigs {
+func newACPConfigs(c *PolicyTsmV1Client) *aCPConfigs {
 	return &aCPConfigs{
 		client: c.RESTClient(),
-		ns:     namespace,
 	}
 }
 
@@ -67,7 +65,6 @@ func newACPConfigs(c *PolicyTsmV1Client, namespace string) *aCPConfigs {
 func (c *aCPConfigs) Get(ctx context.Context, name string, options metav1.GetOptions) (result *v1.ACPConfig, err error) {
 	result = &v1.ACPConfig{}
 	err = c.client.Get().
-		Namespace(c.ns).
 		Resource("acpconfigs").
 		Name(name).
 		VersionedParams(&options, scheme.ParameterCodec).
@@ -84,7 +81,6 @@ func (c *aCPConfigs) List(ctx context.Context, opts metav1.ListOptions) (result 
 	}
 	result = &v1.ACPConfigList{}
 	err = c.client.Get().
-		Namespace(c.ns).
 		Resource("acpconfigs").
 		VersionedParams(&opts, scheme.ParameterCodec).
 		Timeout(timeout).
@@ -101,7 +97,6 @@ func (c *aCPConfigs) Watch(ctx context.Context, opts metav1.ListOptions) (watch.
 	}
 	opts.Watch = true
 	return c.client.Get().
-		Namespace(c.ns).
 		Resource("acpconfigs").
 		VersionedParams(&opts, scheme.ParameterCodec).
 		Timeout(timeout).
@@ -112,7 +107,6 @@ func (c *aCPConfigs) Watch(ctx context.Context, opts metav1.ListOptions) (watch.
 func (c *aCPConfigs) Create(ctx context.Context, aCPConfig *v1.ACPConfig, opts metav1.CreateOptions) (result *v1.ACPConfig, err error) {
 	result = &v1.ACPConfig{}
 	err = c.client.Post().
-		Namespace(c.ns).
 		Resource("acpconfigs").
 		VersionedParams(&opts, scheme.ParameterCodec).
 		Body(aCPConfig).
@@ -125,7 +119,6 @@ func (c *aCPConfigs) Create(ctx context.Context, aCPConfig *v1.ACPConfig, opts m
 func (c *aCPConfigs) Update(ctx context.Context, aCPConfig *v1.ACPConfig, opts metav1.UpdateOptions) (result *v1.ACPConfig, err error) {
 	result = &v1.ACPConfig{}
 	err = c.client.Put().
-		Namespace(c.ns).
 		Resource("acpconfigs").
 		Name(aCPConfig.Name).
 		VersionedParams(&opts, scheme.ParameterCodec).
@@ -138,7 +131,6 @@ func (c *aCPConfigs) Update(ctx context.Context, aCPConfig *v1.ACPConfig, opts m
 // Delete takes name of the aCPConfig and deletes it. Returns an error if one occurs.
 func (c *aCPConfigs) Delete(ctx context.Context, name string, opts metav1.DeleteOptions) error {
 	return c.client.Delete().
-		Namespace(c.ns).
 		Resource("acpconfigs").
 		Name(name).
 		Body(&opts).
@@ -153,7 +145,6 @@ func (c *aCPConfigs) DeleteCollection(ctx context.Context, opts metav1.DeleteOpt
 		timeout = time.Duration(*listOpts.TimeoutSeconds) * time.Second
 	}
 	return c.client.Delete().
-		Namespace(c.ns).
 		Resource("acpconfigs").
 		VersionedParams(&listOpts, scheme.ParameterCodec).
 		Timeout(timeout).
@@ -166,7 +157,6 @@ func (c *aCPConfigs) DeleteCollection(ctx context.Context, opts metav1.DeleteOpt
 func (c *aCPConfigs) Patch(ctx context.Context, name string, pt types.PatchType, data []byte, opts metav1.PatchOptions, subresources ...string) (result *v1.ACPConfig, err error) {
 	result = &v1.ACPConfig{}
 	err = c.client.Patch(pt).
-		Namespace(c.ns).
 		Resource("acpconfigs").
 		Name(name).
 		SubResource(subresources...).

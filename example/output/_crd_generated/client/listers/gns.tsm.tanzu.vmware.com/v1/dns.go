@@ -31,8 +31,9 @@ type DnsLister interface {
 	// List lists all Dnses in the indexer.
 	// Objects returned here must be treated as read-only.
 	List(selector labels.Selector) (ret []*v1.Dns, err error)
-	// Dnses returns an object that can list and get Dnses.
-	Dnses(namespace string) DnsNamespaceLister
+	// Get retrieves the Dns from the index for a given name.
+	// Objects returned here must be treated as read-only.
+	Get(name string) (*v1.Dns, error)
 	DnsListerExpansion
 }
 
@@ -54,41 +55,9 @@ func (s *dnsLister) List(selector labels.Selector) (ret []*v1.Dns, err error) {
 	return ret, err
 }
 
-// Dnses returns an object that can list and get Dnses.
-func (s *dnsLister) Dnses(namespace string) DnsNamespaceLister {
-	return dnsNamespaceLister{indexer: s.indexer, namespace: namespace}
-}
-
-// DnsNamespaceLister helps list and get Dnses.
-// All objects returned here must be treated as read-only.
-type DnsNamespaceLister interface {
-	// List lists all Dnses in the indexer for a given namespace.
-	// Objects returned here must be treated as read-only.
-	List(selector labels.Selector) (ret []*v1.Dns, err error)
-	// Get retrieves the Dns from the indexer for a given namespace and name.
-	// Objects returned here must be treated as read-only.
-	Get(name string) (*v1.Dns, error)
-	DnsNamespaceListerExpansion
-}
-
-// dnsNamespaceLister implements the DnsNamespaceLister
-// interface.
-type dnsNamespaceLister struct {
-	indexer   cache.Indexer
-	namespace string
-}
-
-// List lists all Dnses in the indexer for a given namespace.
-func (s dnsNamespaceLister) List(selector labels.Selector) (ret []*v1.Dns, err error) {
-	err = cache.ListAllByNamespace(s.indexer, s.namespace, selector, func(m interface{}) {
-		ret = append(ret, m.(*v1.Dns))
-	})
-	return ret, err
-}
-
-// Get retrieves the Dns from the indexer for a given namespace and name.
-func (s dnsNamespaceLister) Get(name string) (*v1.Dns, error) {
-	obj, exists, err := s.indexer.GetByKey(s.namespace + "/" + name)
+// Get retrieves the Dns from the index for a given name.
+func (s *dnsLister) Get(name string) (*v1.Dns, error) {
+	obj, exists, err := s.indexer.GetByKey(name)
 	if err != nil {
 		return nil, err
 	}

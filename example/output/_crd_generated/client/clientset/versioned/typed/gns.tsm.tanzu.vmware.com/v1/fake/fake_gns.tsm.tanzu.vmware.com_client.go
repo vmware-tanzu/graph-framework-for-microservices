@@ -28,12 +28,12 @@ type FakeGnsTsmV1 struct {
 	*testing.Fake
 }
 
-func (c *FakeGnsTsmV1) Dnses(namespace string) v1.DnsInterface {
-	return &FakeDnses{c, namespace}
+func (c *FakeGnsTsmV1) Dnses() v1.DnsInterface {
+	return &FakeDnses{c}
 }
 
-func (c *FakeGnsTsmV1) Gnses(namespace string) v1.GnsInterface {
-	return &FakeGnses{c, namespace}
+func (c *FakeGnsTsmV1) Gnses() v1.GnsInterface {
+	return &FakeGnses{c}
 }
 
 // RESTClient returns a RESTClient that is used to communicate

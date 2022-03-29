@@ -28,12 +28,12 @@ type FakePolicyTsmV1 struct {
 	*testing.Fake
 }
 
-func (c *FakePolicyTsmV1) ACPConfigs(namespace string) v1.ACPConfigInterface {
-	return &FakeACPConfigs{c, namespace}
+func (c *FakePolicyTsmV1) ACPConfigs() v1.ACPConfigInterface {
+	return &FakeACPConfigs{c}
 }
 
-func (c *FakePolicyTsmV1) AccessControlPolicies(namespace string) v1.AccessControlPolicyInterface {
-	return &FakeAccessControlPolicies{c, namespace}
+func (c *FakePolicyTsmV1) AccessControlPolicies() v1.AccessControlPolicyInterface {
+	return &FakeAccessControlPolicies{c}
 }
 
 // RESTClient returns a RESTClient that is used to communicate

@@ -34,8 +34,8 @@ type Service_groupTsmV1Client struct {
 	restClient rest.Interface
 }
 
-func (c *Service_groupTsmV1Client) SvcGroups(namespace string) SvcGroupInterface {
-	return newSvcGroups(c, namespace)
+func (c *Service_groupTsmV1Client) SvcGroups() SvcGroupInterface {
+	return newSvcGroups(c)
 }
 
 // NewForConfig creates a new Service_groupTsmV1Client for the given config.

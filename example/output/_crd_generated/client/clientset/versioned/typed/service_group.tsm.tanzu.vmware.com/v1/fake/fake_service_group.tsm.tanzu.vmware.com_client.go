@@ -28,8 +28,8 @@ type FakeService_groupTsmV1 struct {
 	*testing.Fake
 }
 
-func (c *FakeService_groupTsmV1) SvcGroups(namespace string) v1.SvcGroupInterface {
-	return &FakeSvcGroups{c, namespace}
+func (c *FakeService_groupTsmV1) SvcGroups() v1.SvcGroupInterface {
+	return &FakeSvcGroups{c}
 }
 
 // RESTClient returns a RESTClient that is used to communicate

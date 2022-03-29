@@ -33,7 +33,7 @@ import (
 // ConfigsGetter has a method to return a ConfigInterface.
 // A group's client should implement this interface.
 type ConfigsGetter interface {
-	Configs(namespace string) ConfigInterface
+	Configs() ConfigInterface
 }
 
 // ConfigInterface has methods to work with Config resources.
@@ -52,14 +52,12 @@ type ConfigInterface interface {
 // configs implements ConfigInterface
 type configs struct {
 	client rest.Interface
-	ns     string
 }
 
 // newConfigs returns a Configs
-func newConfigs(c *ConfigTsmV1Client, namespace string) *configs {
+func newConfigs(c *ConfigTsmV1Client) *configs {
 	return &configs{
 		client: c.RESTClient(),
-		ns:     namespace,
 	}
 }
 
@@ -67,7 +65,6 @@ func newConfigs(c *ConfigTsmV1Client, namespace string) *configs {
 func (c *configs) Get(ctx context.Context, name string, options metav1.GetOptions) (result *v1.Config, err error) {
 	result = &v1.Config{}
 	err = c.client.Get().
-		Namespace(c.ns).
 		Resource("configs").
 		Name(name).
 		VersionedParams(&options, scheme.ParameterCodec).
@@ -84,7 +81,6 @@ func (c *configs) List(ctx context.Context, opts metav1.ListOptions) (result *v1
 	}
 	result = &v1.ConfigList{}
 	err = c.client.Get().
-		Namespace(c.ns).
 		Resource("configs").
 		VersionedParams(&opts, scheme.ParameterCodec).
 		Timeout(timeout).
@@ -101,7 +97,6 @@ func (c *configs) Watch(ctx context.Context, opts metav1.ListOptions) (watch.Int
 	}
 	opts.Watch = true
 	return c.client.Get().
-		Namespace(c.ns).
 		Resource("configs").
 		VersionedParams(&opts, scheme.ParameterCodec).
 		Timeout(timeout).
@@ -112,7 +107,6 @@ func (c *configs) Watch(ctx context.Context, opts metav1.ListOptions) (watch.Int
 func (c *configs) Create(ctx context.Context, config *v1.Config, opts metav1.CreateOptions) (result *v1.Config, err error) {
 	result = &v1.Config{}
 	err = c.client.Post().
-		Namespace(c.ns).
 		Resource("configs").
 		VersionedParams(&opts, scheme.ParameterCodec).
 		Body(config).
@@ -125,7 +119,6 @@ func (c *configs) Create(ctx context.Context, config *v1.Config, opts metav1.Cre
 func (c *configs) Update(ctx context.Context, config *v1.Config, opts metav1.UpdateOptions) (result *v1.Config, err error) {
 	result = &v1.Config{}
 	err = c.client.Put().
-		Namespace(c.ns).
 		Resource("configs").
 		Name(config.Name).
 		VersionedParams(&opts, scheme.ParameterCodec).
@@ -138,7 +131,6 @@ func (c *configs) Update(ctx context.Context, config *v1.Config, opts metav1.Upd
 // Delete takes name of the config and deletes it. Returns an error if one occurs.
 func (c *configs) Delete(ctx context.Context, name string, opts metav1.DeleteOptions) error {
 	return c.client.Delete().
-		Namespace(c.ns).
 		Resource("configs").
 		Name(name).
 		Body(&opts).
@@ -153,7 +145,6 @@ func (c *configs) DeleteCollection(ctx context.Context, opts metav1.DeleteOption
 		timeout = time.Duration(*listOpts.TimeoutSeconds) * time.Second
 	}
 	return c.client.Delete().
-		Namespace(c.ns).
 		Resource("configs").
 		VersionedParams(&listOpts, scheme.ParameterCodec).
 		Timeout(timeout).
@@ -166,7 +157,6 @@ func (c *configs) DeleteCollection(ctx context.Context, opts metav1.DeleteOption
 func (c *configs) Patch(ctx context.Context, name string, pt types.PatchType, data []byte, opts metav1.PatchOptions, subresources ...string) (result *v1.Config, err error) {
 	result = &v1.Config{}
 	err = c.client.Patch(pt).
-		Namespace(c.ns).
 		Resource("configs").
 		Name(name).
 		SubResource(subresources...).

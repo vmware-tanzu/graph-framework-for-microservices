@@ -31,8 +31,9 @@ type ConfigLister interface {
 	// List lists all Configs in the indexer.
 	// Objects returned here must be treated as read-only.
 	List(selector labels.Selector) (ret []*v1.Config, err error)
-	// Configs returns an object that can list and get Configs.
-	Configs(namespace string) ConfigNamespaceLister
+	// Get retrieves the Config from the index for a given name.
+	// Objects returned here must be treated as read-only.
+	Get(name string) (*v1.Config, error)
 	ConfigListerExpansion
 }
 
@@ -54,41 +55,9 @@ func (s *configLister) List(selector labels.Selector) (ret []*v1.Config, err err
 	return ret, err
 }
 
-// Configs returns an object that can list and get Configs.
-func (s *configLister) Configs(namespace string) ConfigNamespaceLister {
-	return configNamespaceLister{indexer: s.indexer, namespace: namespace}
-}
-
-// ConfigNamespaceLister helps list and get Configs.
-// All objects returned here must be treated as read-only.
-type ConfigNamespaceLister interface {
-	// List lists all Configs in the indexer for a given namespace.
-	// Objects returned here must be treated as read-only.
-	List(selector labels.Selector) (ret []*v1.Config, err error)
-	// Get retrieves the Config from the indexer for a given namespace and name.
-	// Objects returned here must be treated as read-only.
-	Get(name string) (*v1.Config, error)
-	ConfigNamespaceListerExpansion
-}
-
-// configNamespaceLister implements the ConfigNamespaceLister
-// interface.
-type configNamespaceLister struct {
-	indexer   cache.Indexer
-	namespace string
-}
-
-// List lists all Configs in the indexer for a given namespace.
-func (s configNamespaceLister) List(selector labels.Selector) (ret []*v1.Config, err error) {
-	err = cache.ListAllByNamespace(s.indexer, s.namespace, selector, func(m interface{}) {
-		ret = append(ret, m.(*v1.Config))
-	})
-	return ret, err
-}
-
-// Get retrieves the Config from the indexer for a given namespace and name.
-func (s configNamespaceLister) Get(name string) (*v1.Config, error) {
-	obj, exists, err := s.indexer.GetByKey(s.namespace + "/" + name)
+// Get retrieves the Config from the index for a given name.
+func (s *configLister) Get(name string) (*v1.Config, error) {
+	obj, exists, err := s.indexer.GetByKey(name)
 	if err != nil {
 		return nil, err
 	}

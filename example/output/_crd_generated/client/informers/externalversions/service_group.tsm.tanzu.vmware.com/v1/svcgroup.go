@@ -42,33 +42,32 @@ type SvcGroupInformer interface {
 type svcGroupInformer struct {
 	factory          internalinterfaces.SharedInformerFactory
 	tweakListOptions internalinterfaces.TweakListOptionsFunc
-	namespace        string
 }
 
 // NewSvcGroupInformer constructs a new informer for SvcGroup type.
 // Always prefer using an informer factory to get a shared informer instead of getting an independent
 // one. This reduces memory footprint and number of connections to the server.
-func NewSvcGroupInformer(client versioned.Interface, namespace string, resyncPeriod time.Duration, indexers cache.Indexers) cache.SharedIndexInformer {
-	return NewFilteredSvcGroupInformer(client, namespace, resyncPeriod, indexers, nil)
+func NewSvcGroupInformer(client versioned.Interface, resyncPeriod time.Duration, indexers cache.Indexers) cache.SharedIndexInformer {
+	return NewFilteredSvcGroupInformer(client, resyncPeriod, indexers, nil)
 }
 
 // NewFilteredSvcGroupInformer constructs a new informer for SvcGroup type.
 // Always prefer using an informer factory to get a shared informer instead of getting an independent
 // one. This reduces memory footprint and number of connections to the server.
-func NewFilteredSvcGroupInformer(client versioned.Interface, namespace string, resyncPeriod time.Duration, indexers cache.Indexers, tweakListOptions internalinterfaces.TweakListOptionsFunc) cache.SharedIndexInformer {
+func NewFilteredSvcGroupInformer(client versioned.Interface, resyncPeriod time.Duration, indexers cache.Indexers, tweakListOptions internalinterfaces.TweakListOptionsFunc) cache.SharedIndexInformer {
 	return cache.NewSharedIndexInformer(
 		&cache.ListWatch{
 			ListFunc: func(options metav1.ListOptions) (runtime.Object, error) {
 				if tweakListOptions != nil {
 					tweakListOptions(&options)
 				}
-				return client.Service_groupTsmV1().SvcGroups(namespace).List(context.TODO(), options)
+				return client.Service_groupTsmV1().SvcGroups().List(context.TODO(), options)
 			},
 			WatchFunc: func(options metav1.ListOptions) (watch.Interface, error) {
 				if tweakListOptions != nil {
 					tweakListOptions(&options)
 				}
-				return client.Service_groupTsmV1().SvcGroups(namespace).Watch(context.TODO(), options)
+				return client.Service_groupTsmV1().SvcGroups().Watch(context.TODO(), options)
 			},
 		},
 		&servicegrouptsmtanzuvmwarecomv1.SvcGroup{},
@@ -78,7 +77,7 @@ func NewFilteredSvcGroupInformer(client versioned.Interface, namespace string, r
 }
 
 func (f *svcGroupInformer) defaultInformer(client versioned.Interface, resyncPeriod time.Duration) cache.SharedIndexInformer {
-	return NewFilteredSvcGroupInformer(client, f.namespace, resyncPeriod, cache.Indexers{cache.NamespaceIndex: cache.MetaNamespaceIndexFunc}, f.tweakListOptions)
+	return NewFilteredSvcGroupInformer(client, resyncPeriod, cache.Indexers{cache.NamespaceIndex: cache.MetaNamespaceIndexFunc}, f.tweakListOptions)
 }
 
 func (f *svcGroupInformer) Informer() cache.SharedIndexInformer {

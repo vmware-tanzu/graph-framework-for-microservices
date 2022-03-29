@@ -41,5 +41,5 @@ func New(f internalinterfaces.SharedInformerFactory, namespace string, tweakList
 
 // SvcGroups returns a SvcGroupInformer.
 func (v *version) SvcGroups() SvcGroupInformer {
-	return &svcGroupInformer{factory: v.factory, namespace: v.namespace, tweakListOptions: v.tweakListOptions}
+	return &svcGroupInformer{factory: v.factory, tweakListOptions: v.tweakListOptions}
 }

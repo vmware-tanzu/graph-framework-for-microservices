@@ -31,8 +31,9 @@ type ACPConfigLister interface {
 	// List lists all ACPConfigs in the indexer.
 	// Objects returned here must be treated as read-only.
 	List(selector labels.Selector) (ret []*v1.ACPConfig, err error)
-	// ACPConfigs returns an object that can list and get ACPConfigs.
-	ACPConfigs(namespace string) ACPConfigNamespaceLister
+	// Get retrieves the ACPConfig from the index for a given name.
+	// Objects returned here must be treated as read-only.
+	Get(name string) (*v1.ACPConfig, error)
 	ACPConfigListerExpansion
 }
 
@@ -54,41 +55,9 @@ func (s *aCPConfigLister) List(selector labels.Selector) (ret []*v1.ACPConfig, e
 	return ret, err
 }
 
-// ACPConfigs returns an object that can list and get ACPConfigs.
-func (s *aCPConfigLister) ACPConfigs(namespace string) ACPConfigNamespaceLister {
-	return aCPConfigNamespaceLister{indexer: s.indexer, namespace: namespace}
-}
-
-// ACPConfigNamespaceLister helps list and get ACPConfigs.
-// All objects returned here must be treated as read-only.
-type ACPConfigNamespaceLister interface {
-	// List lists all ACPConfigs in the indexer for a given namespace.
-	// Objects returned here must be treated as read-only.
-	List(selector labels.Selector) (ret []*v1.ACPConfig, err error)
-	// Get retrieves the ACPConfig from the indexer for a given namespace and name.
-	// Objects returned here must be treated as read-only.
-	Get(name string) (*v1.ACPConfig, error)
-	ACPConfigNamespaceListerExpansion
-}
-
-// aCPConfigNamespaceLister implements the ACPConfigNamespaceLister
-// interface.
-type aCPConfigNamespaceLister struct {
-	indexer   cache.Indexer
-	namespace string
-}
-
-// List lists all ACPConfigs in the indexer for a given namespace.
-func (s aCPConfigNamespaceLister) List(selector labels.Selector) (ret []*v1.ACPConfig, err error) {
-	err = cache.ListAllByNamespace(s.indexer, s.namespace, selector, func(m interface{}) {
-		ret = append(ret, m.(*v1.ACPConfig))
-	})
-	return ret, err
-}
-
-// Get retrieves the ACPConfig from the indexer for a given namespace and name.
-func (s aCPConfigNamespaceLister) Get(name string) (*v1.ACPConfig, error) {
-	obj, exists, err := s.indexer.GetByKey(s.namespace + "/" + name)
+// Get retrieves the ACPConfig from the index for a given name.
+func (s *aCPConfigLister) Get(name string) (*v1.ACPConfig, error) {
+	obj, exists, err := s.indexer.GetByKey(name)
 	if err != nil {
 		return nil, err
 	}

@@ -15,7 +15,7 @@ spec:
     shortNames:
     - dns
     singular: dns
-  scope: Namespaced
+  scope: Cluster
   versions:
   - name: v1
     schema:
