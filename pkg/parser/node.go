@@ -7,6 +7,7 @@ import (
 type Node struct {
 	Name             string
 	FullName         string
+	CrdName          string
 	Imports          []*ast.ImportSpec
 	TypeSpec         *ast.TypeSpec
 	Parents          []string
