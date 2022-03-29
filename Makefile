@@ -10,6 +10,7 @@ NAMESPACE ?= default
 ### adding this to test app init..
 CI_COMMIT ?= $(shell git rev-parse --verify --short=8 HEAD 2> /dev/null || echo "00000000")
 IMAGE_TAG ?= ${APP_NAME}-${CI_COMMIT}
+GIT_HEAD  ?= $(shell git rev-parse --verify HEAD 2> /dev/null || echo "0000000000000000")
 IMAGE_REGISTRY ?= 284299419820.dkr.ecr.us-west-2.amazonaws.com/nexus/playground
 
 #
@@ -110,18 +111,17 @@ teardown_environment:
 ##@ Coverage checks using sonar-scanner
 .PHONY: coverage
 coverage:
-    go test -json -coverprofile=coverage.out ./... | tee report.json
-	APP_NAME=${APP_NAME} sonar-scanner
+    go test -json -coverprofile=coverage.out ./... | tee report.json ;\
+	sonar-scanner ;
 
 ##@ Build
 .PHONY: build
-build: fmt vet ## Build manager binary.
-	go mod download ;
-	env GOOS=linux GOARCH=amd64 go build -o bin/${APP_NAME} main.go ;
-
-.PHONY: docker-build
-docker-build: ## Build docker image with the manager.
-	docker build --build-arg APP_NAME=${APP_NAME} -t ${IMAGE_REGISTRY}:${IMAGE_TAG} .
+build: lint ## Build manager binary.
+	docker build --build-arg APP_NAME=${APP_NAME} \
+		 		--build-arg GIT_HEAD=${GIT_HEAD} \
+				--build-arg GIT_TAG=${CI_COMMIT} \
+				--build-arg CICD_TOKEN=${CICD_TOKEN} \
+				-t ${IMAGE_REGISTRY}:${IMAGE_TAG} .
 
 .PHONY: publish
 publish: build ## Push docker image with the manager.
