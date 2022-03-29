@@ -27,8 +27,5 @@ func LoadConfig(configFile string) (*Config, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse config file: %s", err)
 	}
-	if config.CrdModulePath == "" {
-		config.CrdModulePath = "gitlab.eng.vmware.com/nsx-allspark_users/m7/policymodel.git/pkg/apis/"
-	}
 	return config, nil
 }

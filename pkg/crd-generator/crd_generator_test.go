@@ -12,17 +12,18 @@ import (
 )
 
 const (
-	baseGroupName        = "tsm.tanzu.vmware.com"
-	crdModulePath        = "gitlab.eng.vmware.com/nexus/compiler/example/output/crd/"
-	examplePath          = "../../example/"
-	exampleDSLPath       = examplePath + "datamodel"
-	exampleCRDOutputPath = examplePath + "output/crd"
-	gnsExamplePath       = exampleCRDOutputPath + "/gns.tsm.tanzu.vmware.com/"
-	gnsDocPath           = gnsExamplePath + "v1/doc.go"
-	gnsRegisterGroupPath = gnsExamplePath + "register.go"
-	gnsRegisterCRDPath   = gnsExamplePath + "v1/register.go"
-	gnsTypesPath         = gnsExamplePath + "v1/types.go"
-	gnsCrdBasePath       = gnsExamplePath + "gns_gns.yaml"
+	baseGroupName            = "tsm.tanzu.vmware.com"
+	crdModulePath            = "gitlab.eng.vmware.com/nexus/compiler/example/output/_crd_generated/"
+	examplePath              = "../../example/"
+	exampleDSLPath           = examplePath + "datamodel"
+	exampleCRDOutputPath     = examplePath + "output/crd_base/"
+	exampleCRDApisOutputPath = exampleCRDOutputPath + "apis"
+	gnsExamplePath           = exampleCRDApisOutputPath + "/gns.tsm.tanzu.vmware.com/"
+	gnsDocPath               = gnsExamplePath + "v1/doc.go"
+	gnsRegisterGroupPath     = gnsExamplePath + "register.go"
+	gnsRegisterCRDPath       = gnsExamplePath + "v1/register.go"
+	gnsTypesPath             = gnsExamplePath + "v1/types.go"
+	gnsCrdBasePath           = exampleCRDOutputPath + "crds/gns_gns.yaml"
 )
 
 var _ = Describe("Template renderers tests", func() {

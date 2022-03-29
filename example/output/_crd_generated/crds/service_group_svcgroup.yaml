@@ -1,0 +1,79 @@
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  creationTimestamp: null
+  name: svcgroups.service_group.tsm.tanzu.vmware.com
+spec:
+  conversion:
+    strategy: None
+  group: service_group.tsm.tanzu.vmware.com
+  names:
+    kind: Svcgroup
+    listKind: SvcgroupList
+    plural: svcgroups
+    shortNames:
+    - svcgroup
+    singular: svcgroup
+  scope: Namespaced
+  versions:
+  - name: v1
+    schema:
+      openAPIV3Schema:
+        properties:
+          apiVersion:
+            description: 'APIVersion defines the versioned schema of this representation
+              of an object. Servers should convert recognized schemas to the latest
+              internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+            type: string
+          kind:
+            description: 'Kind is a string value representing the REST resource this
+              object represents. Servers may infer this from the endpoint the client
+              submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+            type: string
+          metadata:
+            type: object
+          spec:
+            properties:
+              color:
+                default: ""
+                type: string
+              description:
+                default: ""
+                type: string
+              displayName:
+                default: ""
+                type: string
+              services:
+                additionalProperties:
+                  properties:
+                    group:
+                      default: ""
+                      type: string
+                    kind:
+                      default: ""
+                      type: string
+                    name:
+                      default: ""
+                      type: string
+                  required:
+                  - group
+                  - kind
+                  - name
+                  type: object
+                type: object
+            required:
+            - displayName
+            - description
+            - color
+            type: object
+        type: object
+    served: true
+    storage: true
+status:
+  acceptedNames:
+    kind: ""
+    plural: ""
+  conditions: null
+  storedVersions:
+  - v1

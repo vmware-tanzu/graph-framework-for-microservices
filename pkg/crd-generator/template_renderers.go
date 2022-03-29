@@ -38,7 +38,8 @@ func RenderCRDTemplate(baseGroupName, crdModulePath string, pkgs parser.Packages
 		groupName := pkg.Name + "." + baseGroupName
 		pkgNames[i] = groupName + ":v1"
 		i++
-		groupFolder := outputDir + "/" + groupName + "/"
+		groupFolder := outputDir + "/apis/" + groupName + "/"
+		crdFolder := outputDir + "/crds"
 		apiFolder := groupFolder + "v1"
 		var err error
 		err = createCRDFolder(apiFolder)
@@ -87,7 +88,7 @@ func RenderCRDTemplate(baseGroupName, crdModulePath string, pkgs parser.Packages
 		}
 		for _, f := range crdFiles {
 			log.Debugf("Rendered crd base template for package %s: %s", pkg.Name, f.File)
-			err = createFile(groupFolder, f.Name, f.File, false)
+			err = createFile(crdFolder, f.Name, f.File, false)
 			if err != nil {
 				return err
 			}
@@ -204,7 +205,7 @@ func RenderRegisterCRDTemplate(crdModulePath, baseGroupName string, pkg parser.P
 	groupName := pkg.Name + "." + baseGroupName
 	vars := registerCRDVars{
 		GroupPackageName:   strings.Replace(groupName, ".", "_", -1),
-		GroupPackageImport: crdModulePath + groupName,
+		GroupPackageImport: crdModulePath + "apis/" + groupName,
 		// TODO make configurable by some variable in package
 		ResourceVersion: "v1",
 		KnownTypes:      knownTypes,

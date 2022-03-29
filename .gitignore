@@ -1,6 +1,9 @@
 *.coverprofile
 coverage*.out
 
+cmd/nexus-sdk/nexus-sdk
+compiler.tar
+
 ### GoLand ###
 .idea
 report.json

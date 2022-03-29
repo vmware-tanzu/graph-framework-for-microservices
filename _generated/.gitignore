@@ -1,3 +1,2 @@
-*.yaml
-client
-k8sclients
+*
+!apis/apis.go
