@@ -32,7 +32,7 @@ func init() {
 	rootCmd.AddCommand(
 		servicemesh.ClusterCmd,
 		servicemesh.GnsCmd,
-		servicemesh.ConfigCmd,
+		//servicemesh.ConfigCmd,
 		servicemesh.ApplyCmd,
 		servicemesh.DeleteCmd,
 		servicemesh.LoginCmd,

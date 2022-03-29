@@ -34,7 +34,7 @@ version:
 .PHONY: build
 build:
 	tanzu builder cli compile --version $(BUILD_VERSION) \
-		--ldflags "$(GO_LDFLAGS)" --match servicemesh --path ./cmd/plugin/
+		--ldflags "$(GO_LDFLAGS)" --match servicemesh --path ./cmd/plugin/servicemesh
 	
 	GOOS=darwin GOARCH=amd64 go build --ldflags "$(GO_LDFLAGS)" ./cmd/plugin/nexus
 	mv nexus $(ARTIFACTS_PATH)/nexus-darwin_amd64
@@ -44,7 +44,7 @@ build:
 .PHONY: install
 install:
 	tanzu builder cli compile --version $(BUILD_VERSION) \
-		--ldflags "$(GO_LDFLAGS)" --match servicemesh --path ./cmd/plugin/
+		--ldflags "$(GO_LDFLAGS)" --match servicemesh --path ./cmd/plugin/servicemesh
 
 	@if [ "$(UNAME)" = "Darwin" ]; then\
 	    cp $(ARTIFACTS_PATH)/nexus-darwin_amd64 /usr/local/bin/nexus;\
