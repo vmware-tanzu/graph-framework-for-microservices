@@ -57,7 +57,7 @@ cover:
   stage: test
   only:
     - merge_requests
-    - master
+    - main
     - develop
   script:
     - make coverage
@@ -74,9 +74,9 @@ integration-tests:
   only:
     - merge_requests
   script:
-    - make integration-test
+    - make integration_test
   after_script:
-    - make integration-test-cleanup
+    - make integration_test_cleanup
 
 teardown-environment:
   stage: teardown
@@ -85,6 +85,6 @@ teardown-environment:
   when: always
   allow_failure: true
   script:
-    - make teardown-environment
+    - make teardown_environment
   dependencies:
     - integration-tests

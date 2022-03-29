@@ -76,17 +76,42 @@ fmt: ## Run go fmt against code.
 vet: ## Run go vet against code.
 	go vet ./...
 
-##@lint checks using the 
+##@lint checks using the make targets.
 .PHONY: lint
 lint:
 	$(MAKE) fmt
 	$(MAKE) vet
 
+.PHONY: test
+test:
+	go test ./...
+
+##@ Space for adding integration test and related cleanup functions...
+.PHONY: integration_test
+integration_test:
+	echo "Add your integration_tests for your app here!!!!..." ;
+	echo "Sample Workflow can be.";
+	echo "1. Create Environment";
+	echo "2. Start built application in the Environment";
+	echo "3. Start integration_tests with go test / gingko framework";
+
+.PHONY: integration_test_cleanup
+integration_test_cleanup:
+	echo "Add your cleanup steps here!!!!....";
+	echo "Possible steps you can do.";
+	echo "1. Get logs of integration test as artifacts"
+	echo "2. Get logs of components in clusters as artifacts for debugging"
+
+.PHONY: teardown_environment
+teardown_environment:
+	echo "Add cluster cleanup step after integration_tests pass/fail here..";
+	echo "Clear clusters created";
+
 ##@ Coverage checks using sonar-scanner
 .PHONY: coverage
 coverage:
     go test -json -coverprofile=coverage.out ./... | tee report.json
-	sonar-scanner
+	APP_NAME=${APP_NAME} sonar-scanner
 
 ##@ Build
 .PHONY: build
@@ -110,7 +135,7 @@ image_scan:
 .PHONY: deploy
 deploy:
 	sed -e 's/__APP_NAME__/'"${APP_NAME}"'/g' -e 's|__IMAGE__|'"${IMAGE_REGISTRY}:${IMAGE_TAG}"'|g' config/deployment/deployment.yaml | kubectl apply -f - -n ${NAMESPACE};
-	
+
 
 .PHONY: undeploy
 undeploy: ## Undeploy controller from the K8s cluster specified in ~/.kube/config. Call with ignore-not-found=true to ignore resource not found errors during deletion.
