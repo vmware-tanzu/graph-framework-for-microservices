@@ -69,11 +69,7 @@ func Init(cmd *cobra.Command, args []string) error {
 		_ = os.RemoveAll(filename)
 	}
 	if DatatmodelName != "" {
-		err := utils.SystemCommand(envList, "make", "init")
-		if err != nil {
-			return fmt.Errorf("error in patching go.mod with datamodel")
-		}
-		err = utils.SystemCommand(envList, "make", "datamodel_init")
+		err := utils.SystemCommand(envList, "make", "datamodel_init")
 		if err != nil {
 			return fmt.Errorf("error in creating new datamodel due to %s", err)
 		}
