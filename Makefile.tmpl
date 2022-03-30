@@ -61,9 +61,11 @@ nexus-cli: ## Install Nexus CLI
 %:
 	@true
 
-init:
+replace:
 	if [[ -n ${DATAMODEL} ]]; then\
-			go mod edit -replace gitlab.eng.vmware.com/nexus/compiler/_generated/=${DATAMODEL_DIR}/${DATAMODEL}/build/output && \
+			test -s ${DATAMODEL_DIR}/${DATAMODEL} || { echo "Please create datamodel ${DATAMODEL} for go mod replace"; exit 1; } ;\
+                    cd ${DATAMODEL_DIR}/${DATAMODEL} && \
+                    go mod edit -replace $(shell go list -m)=${DATAMODEL_DIR}/${DATAMODEL} ;\
 	fi
 
 .SILENT:
@@ -78,7 +80,7 @@ datamodel_init: ## Initialize datamodel
 	else \
 		nexus datamodel init ;\
 	fi
-	$(MAKE) init
+	$(MAKE) replace
 
 ##@ Dev
 
@@ -171,5 +173,5 @@ kustomize: ## Download kustomize locally if necessary.
 # go-get-tool will 'go get' any package $2 and install it to $1.
 PROJECT_DIR := $(shell dirname $(abspath $(lastword $(MAKEFILE_LIST))))
 install-kustomize:
-	test -s $(PROJECT_DIR)/bin/kustomize || { cd $(PROJECT_DIR)/bin; curl -s "https://raw.githubusercontent.com/kubernetes-sigs/kustomize/master/hack/install_kustomize.sh" | bash ; };
+	test -s $(PROJECT_DIR)/bin/kustomize || { mkdir -p $(PROJECT_DIR)/bin; cd $(PROJECT_DIR)/bin; curl -s "https://raw.githubusercontent.com/kubernetes-sigs/kustomize/master/hack/install_kustomize.sh" | bash ; };
 
