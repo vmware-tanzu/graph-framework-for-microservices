@@ -64,8 +64,7 @@ nexus-cli: ## Install Nexus CLI
 replace:
 	if [[ -n ${DATAMODEL} ]]; then\
 			test -s ${DATAMODEL_DIR}/${DATAMODEL} || { echo "Please create datamodel ${DATAMODEL} for go mod replace"; exit 1; } ;\
-                    cd ${DATAMODEL_DIR}/${DATAMODEL} && \
-                    go mod edit -replace $(shell go list -m)=${DATAMODEL_DIR}/${DATAMODEL} ;\
+			go mod edit -replace $(DATAMODEL)=${DATAMODEL_DIR}/${DATAMODEL} ;\
 	fi
 
 .SILENT:
