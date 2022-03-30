@@ -77,7 +77,7 @@ func GitClone() (string, error) {
 }
 
 func GoModInit(path string) error {
-	fmt.Printf("Intializing gomodule")
+	fmt.Printf("Intializing gomodule\n")
 	os.Chdir(path)
 	cmd := exec.Command("go", "mod", "init", path)
 	_, err := cmd.Output()
@@ -266,19 +266,22 @@ func Untar(dst string, r io.Reader) error {
 
 		// if it's a file create it
 		case tar.TypeReg:
-			f, err := os.OpenFile(target, os.O_CREATE|os.O_RDWR, os.FileMode(header.Mode))
-			if err != nil {
-				return err
-			}
+			if _, err = os.Stat(target); os.IsNotExist(err) {
+				f, err := os.OpenFile(target, os.O_CREATE|os.O_RDWR, os.FileMode(header.Mode))
 
-			// copy over contents
-			if _, err := io.Copy(f, tr); err != nil {
-				return err
-			}
+				if err != nil {
+					return err
+				}
 
-			// manually close here after each file operation; defering would cause each file close
-			// to wait until all operations have completed.
-			f.Close()
+				// copy over contents
+				if _, err := io.Copy(f, tr); err != nil {
+					return err
+				}
+
+				// manually close here after each file operation; defering would cause each file close
+				// to wait until all operations have completed.
+				f.Close()
+			}
 		}
 	}
 }

@@ -19,6 +19,7 @@ var (
 	DMDir            string
 	AppDir           string
 	DatatmodelName   string
+	DatatmodelGroup  string
 	AppName          string
 	RegistryURL      string
 	DatatmodelImport string
@@ -95,7 +96,10 @@ func init() {
 		"n", "", "name of the application")
 	InitCmd.Flags().StringVarP(&RegistryURL, "registry",
 		"r", "284299419820.dkr.ecr.us-west-2.amazonaws.com/nexus/playground", "registry url to publish docker image")
+	InitCmd.Flags().StringVarP(&DatatmodelGroup, "datamodel-group",
+		"g", "", "group in datamodel")
 	err := cobra.MarkFlagRequired(InitCmd.Flags(), "name")
+
 	if err != nil {
 		fmt.Printf("init error: %v\n", err)
 	}
