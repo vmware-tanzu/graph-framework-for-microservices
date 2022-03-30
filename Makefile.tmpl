@@ -63,8 +63,7 @@ nexus-cli: ## Install Nexus CLI
 
 init:
 	if [[ -n ${DATAMODEL} ]]; then\
-			go mod edit -replace gitlab.eng.vmware.com/nsx-allspark_users/m7/policymodel.git=${DATAMODEL_DIR}/${DATAMODEL}/build/policymodel && \
-			go mod edit -replace gitlab.eng.vmware.com/nsx-allspark_users/m7/policymodel.git/pkg/k8sclients/1.22=${DATAMODEL_DIR}/${DATAMODEL}/build/policymodel/pkg/k8sclients/1.22 ; \
+			go mod edit -replace gitlab.eng.vmware.com/nexus/compiler/_generated/=${DATAMODEL_DIR}/${DATAMODEL}/build/output && \
 	fi
 
 .SILENT:
