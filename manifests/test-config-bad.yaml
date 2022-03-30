@@ -1,0 +1,5 @@
+apiVersion: config.helloworld.com/v1
+kind: Config
+metadata:
+  generateName: conf1
+  namespace: default

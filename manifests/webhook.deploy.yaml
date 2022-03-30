@@ -1,0 +1,29 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: nexus-validation
+  name: nexus-validation
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nexus-validation
+  template:
+    metadata:
+      labels:
+        app: nexus-validation
+    spec:
+      containers:
+        - image: nexus-validation:latest
+          imagePullPolicy: Never
+          name: nexus-validation
+          volumeMounts:
+            - name: tls
+              mountPath: "/etc/nexus-validation/tls"
+              readOnly: true
+      volumes:
+        - name: tls
+          secret:
+            secretName: nexus-validation-tls

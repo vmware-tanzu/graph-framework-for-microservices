@@ -1,0 +1,12 @@
+### GoLand ###
+.idea
+*.iws
+*.iml
+*.ipr
+.vscode
+
+### Coverage data ###
+*.coverprofile
+
+### Binaries ###
+cmd/nexus-validation/nexus-validation
