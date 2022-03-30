@@ -66,6 +66,7 @@ func Init(cmd *cobra.Command, args []string) error {
 		if err != nil {
 			return fmt.Errorf("error in rendering template files due to %s", err)
 		}
+		_ = os.RemoveAll(filename)
 	}
 	if DatatmodelName != "" {
 		err := utils.SystemCommand(envList, "make", "init")
@@ -94,11 +95,11 @@ func init() {
 		"d", "", "name of the datamodel")
 	InitCmd.Flags().StringVarP(&DatatmodelImport, "datamodel-import",
 		"i", "", "name of the datamodel")
-	InitCmd.Flags().StringVarP(&AppName, "app",
-		"a", "", "name of the application")
+	InitCmd.Flags().StringVarP(&AppName, "name",
+		"n", "", "name of the application")
 	InitCmd.Flags().StringVarP(&RegistryURL, "registry",
 		"r", "284299419820.dkr.ecr.us-west-2.amazonaws.com/nexus/playground", "registry url to publish docker image")
-	err := cobra.MarkFlagRequired(InitCmd.Flags(), "app")
+	err := cobra.MarkFlagRequired(InitCmd.Flags(), "name")
 	if err != nil {
 		fmt.Printf("init error: %v\n", err)
 	}
