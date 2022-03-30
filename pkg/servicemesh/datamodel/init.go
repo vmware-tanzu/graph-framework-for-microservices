@@ -18,7 +18,6 @@ const (
 )
 
 type TemplateValues struct {
-	ImportPath string
 	ModuleName string
 	GroupName  string
 }
@@ -116,9 +115,7 @@ func createDatamodel() error {
 		return err
 	}
 
-	importPath := "gitlab.eng.vmware.com/nsx-allspark_users/m7"
 	values := TemplateValues{
-		ImportPath: strings.TrimSuffix(string(importPath), "\n"),
 		ModuleName: strings.TrimSuffix(DatatmodelName, "\n"),
 		GroupName:  strings.TrimSuffix(GroupName, "\n"),
 	}
