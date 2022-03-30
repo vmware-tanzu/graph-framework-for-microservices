@@ -122,7 +122,7 @@ func createDatamodel() error {
 		ModuleName: strings.TrimSuffix(DatatmodelName, "\n"),
 		GroupName:  strings.TrimSuffix(GroupName, "\n"),
 	}
-	err = utils.RenderTemplateFiles(values, DatatmodelName)
+	err = utils.RenderTemplateFiles(values, DatatmodelName, "")
 	if err != nil {
 		return fmt.Errorf("could not create datamodel due to %s\n", err)
 

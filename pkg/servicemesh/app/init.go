@@ -63,7 +63,7 @@ func Init(cmd *cobra.Command, args []string) error {
 			AppName:       AppName,
 			ImageRegistry: RegistryURL,
 		}
-		err = utils.RenderTemplateFiles(data, ".")
+		err = utils.RenderTemplateFiles(data, ".", "nexus")
 		if err != nil {
 			return fmt.Errorf("error in rendering template files due to %s", err)
 		}
@@ -74,6 +74,10 @@ func Init(cmd *cobra.Command, args []string) error {
 		if err != nil {
 			return fmt.Errorf("error in creating new datamodel due to %s", err)
 		}
+	}
+	_, err := os.Stat("nexus")
+	if os.IsNotExist(err) {
+		os.Mkdir("nexus", 0755)
 	}
 	return nil
 }

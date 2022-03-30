@@ -130,28 +130,30 @@ func RenderFile(filename string, params interface{}) error {
 	return nil
 }
 
-func RenderTemplateFiles(data interface{}, directory string) error {
+func RenderTemplateFiles(data interface{}, directory string, skipdirectory string) error {
 	fmt.Printf("running render template for %s\n", directory)
 	fi, err := os.Stat(directory)
 	if err != nil {
 		return err
 	}
 	if fi.IsDir() {
-		files, err := ioutil.ReadDir(directory)
-		if err != nil {
-			return err
-		}
-		for _, file := range files {
-			filename := filepath.Join(directory, file.Name())
-			if !file.IsDir() {
-				err = RenderFile(filename, data)
-				if err != nil {
-					return err
-				}
-			} else {
-				err = RenderTemplateFiles(data, filename)
-				if err != nil {
-					return err
+		if directory != skipdirectory {
+			files, err := ioutil.ReadDir(directory)
+			if err != nil {
+				return err
+			}
+			for _, file := range files {
+				filename := filepath.Join(directory, file.Name())
+				if !file.IsDir() {
+					err = RenderFile(filename, data)
+					if err != nil {
+						return err
+					}
+				} else {
+					err = RenderTemplateFiles(data, filename, skipdirectory)
+					if err != nil {
+						return err
+					}
 				}
 			}
 		}
