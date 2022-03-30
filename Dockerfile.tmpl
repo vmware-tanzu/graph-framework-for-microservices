@@ -5,7 +5,7 @@ ARG GIT_TAG
 ARG GIT_HEAD
 ARG CICD_TOKEN
 ARG APP_NAME
-WORKDIR /${APP_NAME}
+WORKDIR /{{.AppName}}
 ENV GOPRIVATE gitlab.eng.vmware.com
 # Required for access to GO artifactory
 RUN git config --global credential.helper store
@@ -24,13 +24,12 @@ COPY nexus/ nexus/
 # Initialize go deps
 RUN go mod tidy && go mod download
 # Build
-RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -a -ldflags "-s -w -X gitlab.eng.vmware.com/nsx-allspark_users/lib-go/allspark/health.Sha=$GIT_HEAD -X gitlab.eng.vmware.com/nsx-allspark_users/lib-go/allspark/health.Tag=$GIT_TAG" -o bin/${APP_NAME} main.go
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -a -ldflags "-s -w -X gitlab.eng.vmware.com/nsx-allspark_users/lib-go/allspark/health.Sha=$GIT_HEAD -X gitlab.eng.vmware.com/nsx-allspark_users/lib-go/allspark/health.Tag=$GIT_TAG" -o bin/{{.AppName}} main.go
 
 FROM gcr.io/nsx-sm/photon:3.0
 WORKDIR /bin
 ARG APP_NAME
-ENV ENV_APP_NAME=${APP_NAME}
-COPY --from=builder /${APP_NAME}/bin/${APP_NAME} .
+COPY --from=builder /{{.AppName}}/bin/{{.AppName}} .
 USER 65532:65532
-ENTRYPOINT "/bin/$ENV_APP_NAME"
+ENTRYPOINT "/bin/{{.AppName}}"
 
