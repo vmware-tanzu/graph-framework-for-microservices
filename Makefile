@@ -4,7 +4,7 @@ GO_PROJECT_NAME ?= compiler
 
 ECR_DOCKER_REGISTRY ?= 284299419820.dkr.ecr.us-west-2.amazonaws.com
 
-IMAGE_NAME ?= nexus-compiler
+IMAGE_NAME ?= nexus/compiler
 TAG ?= $(shell git rev-parse --verify --short=8 HEAD)
 
 BUILDER_NAME ?= ${IMAGE_NAME}-builder
