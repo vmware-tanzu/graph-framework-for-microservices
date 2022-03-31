@@ -4,32 +4,17 @@ import (
 	"github.com/spf13/cobra"
 	"gitlab.eng.vmware.com/nexus/cli/pkg/servicemesh/app"
 	"gitlab.eng.vmware.com/nexus/cli/pkg/servicemesh/apply"
-	"gitlab.eng.vmware.com/nexus/cli/pkg/servicemesh/cluster"
-	"gitlab.eng.vmware.com/nexus/cli/pkg/servicemesh/config"
 	servicemesh_datamodel "gitlab.eng.vmware.com/nexus/cli/pkg/servicemesh/datamodel"
-	"gitlab.eng.vmware.com/nexus/cli/pkg/servicemesh/gns"
 	"gitlab.eng.vmware.com/nexus/cli/pkg/servicemesh/login"
 	"gitlab.eng.vmware.com/nexus/cli/pkg/servicemesh/runtime"
 	"gitlab.eng.vmware.com/nexus/cli/pkg/servicemesh/version"
 	"gitlab.eng.vmware.com/nsx-allspark_users/lib-go/logging"
 )
 
-// ClusterCmd ... Cluster command
-var ClusterCmd = &cobra.Command{
-	Use:   "cluster",
-	Short: "Servicemesh cluster features",
-}
-
 // GnsCmd ... GNS command
 var GnsCmd = &cobra.Command{
 	Use:   "gns",
 	Short: "Servicemesh global namespace features",
-}
-
-// ConfigCmd ... Config command
-var ConfigCmd = &cobra.Command{
-	Use:   "config",
-	Short: "Servicemesh configuration features",
 }
 
 // ApplyCmd ... Apply command
@@ -73,20 +58,6 @@ var VersionCmd = &cobra.Command{
 }
 
 func initCommands() {
-	// Cluster commands
-	ClusterCmd.AddCommand(cluster.GetCmd)
-	ClusterCmd.AddCommand(cluster.ListCmd)
-	ClusterCmd.AddCommand(cluster.CreateCmd)
-	ClusterCmd.AddCommand(cluster.DeleteCmd)
-
-	// GNS commands
-	GnsCmd.AddCommand(gns.GetCmd)
-	GnsCmd.AddCommand(gns.ListCmd)
-	GnsCmd.AddCommand(gns.CreateCmd)
-	GnsCmd.AddCommand(gns.DeleteCmd)
-	// Config commands
-	ConfigCmd.AddCommand(config.ViewCmd)
-
 	ApplyCmd.Flags().StringVarP(&apply.CreateResourceFile, "file",
 		"f", "", "Resource file from which cluster is created.")
 
