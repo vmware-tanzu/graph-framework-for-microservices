@@ -21,11 +21,11 @@ package versioned
 import (
 	"fmt"
 
-	confighelloworldv1 "gitlab.eng.vmware.com/nexus/validation/pkg/nexus/generated/client/clientset/versioned/typed/config.helloworld.com/v1"
-	inventoryhelloworldv1 "gitlab.eng.vmware.com/nexus/validation/pkg/nexus/generated/client/clientset/versioned/typed/inventory.helloworld.com/v1"
-	nexushelloworldv1 "gitlab.eng.vmware.com/nexus/validation/pkg/nexus/generated/client/clientset/versioned/typed/nexus.helloworld.com/v1"
-	roothelloworldv1 "gitlab.eng.vmware.com/nexus/validation/pkg/nexus/generated/client/clientset/versioned/typed/root.helloworld.com/v1"
-	runtimehelloworldv1 "gitlab.eng.vmware.com/nexus/validation/pkg/nexus/generated/client/clientset/versioned/typed/runtime.helloworld.com/v1"
+	confighelloworldv1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/validation.git/pkg/nexus/generated/client/clientset/versioned/typed/config.helloworld.com/v1"
+	inventoryhelloworldv1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/validation.git/pkg/nexus/generated/client/clientset/versioned/typed/inventory.helloworld.com/v1"
+	nexushelloworldv1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/validation.git/pkg/nexus/generated/client/clientset/versioned/typed/nexus.helloworld.com/v1"
+	roothelloworldv1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/validation.git/pkg/nexus/generated/client/clientset/versioned/typed/root.helloworld.com/v1"
+	runtimehelloworldv1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/validation.git/pkg/nexus/generated/client/clientset/versioned/typed/runtime.helloworld.com/v1"
 	discovery "k8s.io/client-go/discovery"
 	rest "k8s.io/client-go/rest"
 	flowcontrol "k8s.io/client-go/util/flowcontrol"

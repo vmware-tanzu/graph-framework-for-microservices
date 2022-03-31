@@ -21,7 +21,7 @@ package fake
 import (
 	"context"
 
-	roothelloworldcomv1 "gitlab.eng.vmware.com/nexus/validation/pkg/nexus/generated/apis/root.helloworld.com/v1"
+	roothelloworldcomv1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/validation.git/pkg/nexus/generated/apis/root.helloworld.com/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	labels "k8s.io/apimachinery/pkg/labels"
 	schema "k8s.io/apimachinery/pkg/runtime/schema"

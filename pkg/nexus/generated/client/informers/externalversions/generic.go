@@ -21,10 +21,10 @@ package externalversions
 import (
 	"fmt"
 
-	v1 "gitlab.eng.vmware.com/nexus/validation/pkg/nexus/generated/apis/config.helloworld.com/v1"
-	inventoryhelloworldcomv1 "gitlab.eng.vmware.com/nexus/validation/pkg/nexus/generated/apis/inventory.helloworld.com/v1"
-	roothelloworldcomv1 "gitlab.eng.vmware.com/nexus/validation/pkg/nexus/generated/apis/root.helloworld.com/v1"
-	runtimehelloworldcomv1 "gitlab.eng.vmware.com/nexus/validation/pkg/nexus/generated/apis/runtime.helloworld.com/v1"
+	v1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/validation.git/pkg/nexus/generated/apis/config.helloworld.com/v1"
+	inventoryhelloworldcomv1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/validation.git/pkg/nexus/generated/apis/inventory.helloworld.com/v1"
+	roothelloworldcomv1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/validation.git/pkg/nexus/generated/apis/root.helloworld.com/v1"
+	runtimehelloworldcomv1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/validation.git/pkg/nexus/generated/apis/runtime.helloworld.com/v1"
 	schema "k8s.io/apimachinery/pkg/runtime/schema"
 	cache "k8s.io/client-go/tools/cache"
 )

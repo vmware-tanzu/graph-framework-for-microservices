@@ -16,7 +16,7 @@ PKG_NAME?=/go/src/gitlab.eng.vmware.com/nexus/${GO_PROJECT_NAME}
 ifeq ($(CONTAINER_ID),)
 define run_in_container
   docker run \
-  --volume $(realpath .):/go/src/gitlab.eng.vmware.com/nexus/validation/ \
+  --volume $(realpath .):/go/src/gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/validation.git/ \
   --workdir ${PKG_NAME} \
   "${BUILDER_NAME}:${BUILDER_TAG}" ${1}
 endef

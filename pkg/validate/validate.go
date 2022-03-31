@@ -3,7 +3,7 @@ package validate
 import (
 	"fmt"
 	log "github.com/sirupsen/logrus"
-	"gitlab.eng.vmware.com/nexus/validation/pkg/nexus/generated/helper"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/validation.git/pkg/nexus/generated/helper"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 

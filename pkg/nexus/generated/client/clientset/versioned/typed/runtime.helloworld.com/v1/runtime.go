@@ -22,8 +22,8 @@ import (
 	"context"
 	"time"
 
-	v1 "gitlab.eng.vmware.com/nexus/validation/pkg/nexus/generated/apis/runtime.helloworld.com/v1"
-	scheme "gitlab.eng.vmware.com/nexus/validation/pkg/nexus/generated/client/clientset/versioned/scheme"
+	v1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/validation.git/pkg/nexus/generated/apis/runtime.helloworld.com/v1"
+	scheme "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/validation.git/pkg/nexus/generated/client/clientset/versioned/scheme"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	types "k8s.io/apimachinery/pkg/types"
 	watch "k8s.io/apimachinery/pkg/watch"

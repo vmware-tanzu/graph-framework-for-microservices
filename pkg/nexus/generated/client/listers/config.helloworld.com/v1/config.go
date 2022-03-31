@@ -19,7 +19,7 @@ limitations under the License.
 package v1
 
 import (
-	v1 "gitlab.eng.vmware.com/nexus/validation/pkg/nexus/generated/apis/config.helloworld.com/v1"
+	v1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/validation.git/pkg/nexus/generated/apis/config.helloworld.com/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/client-go/tools/cache"

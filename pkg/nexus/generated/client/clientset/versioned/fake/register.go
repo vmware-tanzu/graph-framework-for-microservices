@@ -19,11 +19,11 @@ limitations under the License.
 package fake
 
 import (
-	confighelloworldv1 "gitlab.eng.vmware.com/nexus/validation/pkg/nexus/generated/apis/config.helloworld.com/v1"
-	inventoryhelloworldv1 "gitlab.eng.vmware.com/nexus/validation/pkg/nexus/generated/apis/inventory.helloworld.com/v1"
-	nexushelloworldv1 "gitlab.eng.vmware.com/nexus/validation/pkg/nexus/generated/apis/nexus.helloworld.com/v1"
-	roothelloworldv1 "gitlab.eng.vmware.com/nexus/validation/pkg/nexus/generated/apis/root.helloworld.com/v1"
-	runtimehelloworldv1 "gitlab.eng.vmware.com/nexus/validation/pkg/nexus/generated/apis/runtime.helloworld.com/v1"
+	confighelloworldv1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/validation.git/pkg/nexus/generated/apis/config.helloworld.com/v1"
+	inventoryhelloworldv1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/validation.git/pkg/nexus/generated/apis/inventory.helloworld.com/v1"
+	nexushelloworldv1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/validation.git/pkg/nexus/generated/apis/nexus.helloworld.com/v1"
+	roothelloworldv1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/validation.git/pkg/nexus/generated/apis/root.helloworld.com/v1"
+	runtimehelloworldv1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/validation.git/pkg/nexus/generated/apis/runtime.helloworld.com/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	runtime "k8s.io/apimachinery/pkg/runtime"
 	schema "k8s.io/apimachinery/pkg/runtime/schema"

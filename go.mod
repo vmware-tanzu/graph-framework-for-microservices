@@ -1,4 +1,4 @@
-module gitlab.eng.vmware.com/nexus/validation
+module gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/validation.git
 
 go 1.17
 

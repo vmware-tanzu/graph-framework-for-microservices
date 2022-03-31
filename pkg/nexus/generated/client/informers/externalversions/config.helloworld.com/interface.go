@@ -19,8 +19,8 @@ limitations under the License.
 package config
 
 import (
-	v1 "gitlab.eng.vmware.com/nexus/validation/pkg/nexus/generated/client/informers/externalversions/config.helloworld.com/v1"
-	internalinterfaces "gitlab.eng.vmware.com/nexus/validation/pkg/nexus/generated/client/informers/externalversions/internalinterfaces"
+	v1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/validation.git/pkg/nexus/generated/client/informers/externalversions/config.helloworld.com/v1"
+	internalinterfaces "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/validation.git/pkg/nexus/generated/client/informers/externalversions/internalinterfaces"
 )
 
 // Interface provides access to each of this group's versions.
