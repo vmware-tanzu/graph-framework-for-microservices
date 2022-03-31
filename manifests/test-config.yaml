@@ -4,4 +4,4 @@ metadata:
   generateName: conf1
   namespace: default
   labels:
-    root.helloworld.com: root1
+    roots.root.helloworld.com: root1

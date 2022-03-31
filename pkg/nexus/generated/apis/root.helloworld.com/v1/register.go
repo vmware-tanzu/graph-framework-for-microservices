@@ -3,7 +3,7 @@
 package v1
 
 import (
-	root_helloworld_com "helloworld/pkg/nexus/generated/apis/root.helloworld.com"
+	root_helloworld_com "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/validation.git/pkg/nexus/generated/apis/root.helloworld.com"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"

@@ -3,13 +3,29 @@ package main
 import (
 	"fmt"
 	log "github.com/sirupsen/logrus"
+	datamodel "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/validation.git/pkg/nexus/generated/client/clientset/versioned"
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/validation.git/pkg/validate"
 	"io/ioutil"
 	admissionv1 "k8s.io/api/admission/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/json"
+	"k8s.io/client-go/rest"
 	"net/http"
 )
+
+var dmClient *datamodel.Clientset
+
+func init() {
+	config, err := rest.InClusterConfig()
+	if err != nil {
+		panic(err)
+	}
+
+	dmClient, err = datamodel.NewForConfig(config)
+	if err != nil {
+		panic(err)
+	}
+}
 
 func main() {
 	http.HandleFunc("/validate", ValidateHandler)
@@ -51,7 +67,9 @@ func ValidateHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	result, msg, err := validate.Validate(obj.ObjectMeta, admReq.Request.Resource.Group, obj.ObjectMeta.GetLabels())
+	resourceName := fmt.Sprintf("%s.%s", admReq.Request.Resource.Resource, admReq.Request.Resource.Group)
+
+	result, msg, err := validate.Validate(dmClient, resourceName, obj.ObjectMeta.GetLabels())
 	if err != nil {
 		log.Warnln("could not validate object")
 		http.Error(w, "could not validate object", http.StatusInternalServerError)

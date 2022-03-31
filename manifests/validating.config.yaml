@@ -7,7 +7,7 @@ webhooks:
     rules:
       - apiGroups: ["root.helloworld.com", "config.helloworld.com", "inventory.helloworld.com", "nexus.helloworld.com", "runtime.helloworld.com"]
         apiVersions: ["v1"]
-        operations: ["CREATE"]
+        operations: ["CREATE", "UPDATE"]
         resources: ["*"]
         scope: "*"
     clientConfig:

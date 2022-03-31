@@ -1,6 +1,6 @@
 DEBUG ?= FALSE
 
-GO_PROJECT_NAME ?= validation
+GO_PROJECT_NAME ?= validation.git
 
 ECR_DOCKER_REGISTRY ?= 284299419820.dkr.ecr.us-west-2.amazonaws.com
 
@@ -11,7 +11,7 @@ TAG = latest
 BUILDER_NAME ?= ${IMAGE_NAME}-builder
 BUILDER_TAG := $(shell md5sum builder/Dockerfile | awk '{ print $1 }' | head -c 8)
 
-PKG_NAME?=/go/src/gitlab.eng.vmware.com/nexus/${GO_PROJECT_NAME}
+PKG_NAME?=/go/src/gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/${GO_PROJECT_NAME}
 
 ifeq ($(CONTAINER_ID),)
 define run_in_container
@@ -127,12 +127,14 @@ kind_delete_deploy:
 	kubectl delete -f manifests/webhook.deploy.yaml || true
 	kubectl delete -f manifests/webhook.svc.yaml || true
 	kubectl delete -f manifests/webhook.tls.yaml || true
+	kubectl delete -f manifests/rbac.yaml || true
 
 .PHONY: kind_deploy
 kind_deploy: kind_load_image kind_delete_deploy kind_deploy_config
 	kubectl apply -f manifests/webhook.svc.yaml
 	kubectl apply -f manifests/webhook.tls.yaml
 	kubectl apply -f manifests/webhook.deploy.yaml
+	kubectl apply -f manifests/rbac.yaml
 
 
 .PHONY: kind_logs
