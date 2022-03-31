@@ -104,7 +104,6 @@ func createDatamodel() error {
 		return fmt.Errorf("could not unarchive template files due to %s", err)
 	}
 	os.Remove("datamodel.tar")
-	os.Chdir("..")
 	err = utils.GoModInit(DatatmodelName)
 	if err != nil {
 		return err
@@ -119,6 +118,7 @@ func createDatamodel() error {
 		return fmt.Errorf("could not create datamodel due to %s\n", err)
 
 	}
+	os.Chdir("..")
 	return nil
 }
 
