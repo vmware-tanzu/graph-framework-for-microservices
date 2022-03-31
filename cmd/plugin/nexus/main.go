@@ -7,15 +7,6 @@ import (
 	"gitlab.eng.vmware.com/nexus/cli/pkg/servicemesh"
 )
 
-// var descriptor = cli.PluginDescriptor{
-// 	Name:        "nexus",
-// 	Description: "nexus features",
-// 	Version:     "v0.0.1",
-// 	BuildSHA:    "",
-// 	Group:       cli.ManageCmdGroup,
-// 	DocURL:      "",
-// }
-
 var rootCmd = &cobra.Command{
 	Use:   "nexus",
 	Short: "nexus cli",
@@ -30,9 +21,6 @@ func main() {
 
 func init() {
 	rootCmd.AddCommand(
-		servicemesh.ClusterCmd,
-		servicemesh.GnsCmd,
-		//servicemesh.ConfigCmd,
 		servicemesh.ApplyCmd,
 		servicemesh.DeleteCmd,
 		servicemesh.LoginCmd,

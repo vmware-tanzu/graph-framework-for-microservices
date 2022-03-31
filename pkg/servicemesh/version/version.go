@@ -1,16 +1,42 @@
 package version
 
 import (
+	"embed"
 	"fmt"
+
 	"github.com/spf13/cobra"
-	"gitlab.eng.vmware.com/nexus/cli/pkg/common"
+	"gopkg.in/yaml.v2"
 )
 
-func Version(cmd *cobra.Command, args []string) error {
-	fmt.Printf("CLI: %s\n", common.VERSION)
-	fmt.Printf("BUILT: %s\n", common.BUILT)
-	fmt.Printf("GIT_BRANCH: %s\n", common.GIT_BRANCH)
-	fmt.Printf("GIT_COMMIT: %s\n", common.GIT_COMMIT)
+//go:embed values.yaml
+var f embed.FS
 
+type NexusValues struct {
+	NexusCli          versionFields `yaml:"nexusCli"`
+	NexusCompiler     versionFields `yaml:"nexusCompiler"`
+	NexusAppTemplates versionFields `yaml:"nexusAppTemplates"`
+}
+
+type versionFields struct {
+	Version string `yaml:"version"`
+}
+
+func Version(cmd *cobra.Command, args []string) error {
+	var values NexusValues
+
+	yamlFile, err := f.ReadFile("values.yaml")
+	if err != nil {
+		return fmt.Errorf("error while reading version yamlFile %v", err)
+
+	}
+
+	err = yaml.Unmarshal(yamlFile, &values)
+	if err != nil {
+		return fmt.Errorf("error while unmarshal version yaml data %v", err)
+	}
+
+	fmt.Printf("Nexus_Cli: %s\n", values.NexusCli.Version)
+	fmt.Printf("Nexus_Compiler: %s\n", values.NexusCompiler.Version)
+	fmt.Printf("Nexus_App_Templates: %s\n", values.NexusAppTemplates.Version)
 	return nil
 }
