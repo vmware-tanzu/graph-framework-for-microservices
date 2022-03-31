@@ -1,0 +1,6 @@
+domain: api-gw.com
+layout:
+- go.kubebuilder.io/v3
+projectName: api-gw
+repo: api-gw
+version: "3"
