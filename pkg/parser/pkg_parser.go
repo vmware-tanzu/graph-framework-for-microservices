@@ -16,10 +16,13 @@ import (
 func ParseDSLPkg(startPath string) Packages {
 	modulePath := GetModulePath(startPath)
 
-	//rootNodes := make([]string, 0)
 	packages := make(Packages)
 	err := filepath.Walk(startPath, func(path string, info fs.FileInfo, err error) error {
 		if info.IsDir() {
+			if info.Name() == "build" {
+				log.Infof("Ignoring build directory...")
+				return nil
+			}
 			fileset := token.NewFileSet()
 			pkgs, err := parser.ParseDir(fileset, path, nil, parser.ParseComments)
 			if err != nil {
