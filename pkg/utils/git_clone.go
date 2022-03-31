@@ -206,7 +206,7 @@ func SystemCommand(envList []string, name string, args ...string) error {
 	return nil
 }
 
-func DownloadPackage(url string, filename string) error {
+func DownloadFile(url string, filename string) error {
 	url = fmt.Sprintf("%s", url)
 	resp, err := net_http.Get(url)
 	if err != nil {

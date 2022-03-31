@@ -43,7 +43,7 @@ func Init(cmd *cobra.Command, args []string) error {
 		}
 	}
 	if DOWNLOAD_APP != "false" {
-		err := utils.DownloadPackage(TEMPLATE_URL, filename)
+		err := utils.DownloadFile(TEMPLATE_URL, filename)
 		if err != nil {
 			return fmt.Errorf("could not download template files due to %s", err)
 		}

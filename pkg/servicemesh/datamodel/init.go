@@ -92,7 +92,7 @@ func createDatamodel() error {
 		return err
 	}
 	os.Chdir(DatatmodelName)
-	err = utils.DownloadPackage(DATAMODEL_TEMPLATE_URL, "datamodel.tar")
+	err = utils.DownloadFile(DATAMODEL_TEMPLATE_URL, "datamodel.tar")
 	if err != nil {
 		return fmt.Errorf("could not download template files due to %s\n", err)
 	}
@@ -139,7 +139,7 @@ func InitOperation(cmd *cobra.Command, args []string) error {
 		os.Mkdir(NEXUS_DIR, 0755)
 	}
 	os.Chdir(NEXUS_DIR)
-	err := utils.DownloadPackage(NEXUS_TEMPLATE_URL, "nexus.tar")
+	err := utils.DownloadFile(NEXUS_TEMPLATE_URL, "nexus.tar")
 	if err != nil {
 		return fmt.Errorf("could not download template files due to %s\n", err)
 	}
@@ -162,7 +162,7 @@ func InitOperation(cmd *cobra.Command, args []string) error {
 			return err
 		}
 		os.Chdir("helloworld")
-		err := utils.DownloadPackage(HELLOWORLD_URL, "helloworld.tar")
+		err := utils.DownloadFile(HELLOWORLD_URL, "helloworld.tar")
 		if err != nil {
 			return fmt.Errorf("could not download template files due to %s\n", err)
 		}
