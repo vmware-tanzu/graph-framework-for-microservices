@@ -1,6 +1,6 @@
 ARG BUILDER_TAG
 
-FROM nexus-compiler-builder:$BUILDER_TAG
+FROM nexus/compiler-builder:$BUILDER_TAG
 ADD compiler.tar /go/src/gitlab.eng.vmware.com/nexus/compiler
 
 WORKDIR /go/src/gitlab.eng.vmware.com/nexus/compiler
