@@ -2,6 +2,7 @@ package datamodel
 
 import (
 	"fmt"
+	"os"
 
 	"github.com/spf13/cobra"
 
@@ -28,8 +29,11 @@ func Build(cmd *cobra.Command, args []string) error {
 	if err := utils.GoToNexusDirectory(); err != nil {
 		return err
 	}
-
-	err := utils.SystemCommand(envList, "make", "datamodel_build")
+	err := os.Chdir(DatatmodelName)
+	if err != nil {
+		return err
+	}
+	err = utils.SystemCommand(envList, "make", "datamodel_build")
 	if err != nil {
 		return fmt.Errorf("datamodel %s build failed with error %v", DatatmodelName, err)
 
