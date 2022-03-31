@@ -5,9 +5,9 @@ import (
 	"os"
 
 	log "github.com/sirupsen/logrus"
-	"gitlab.eng.vmware.com/nexus/compiler/pkg/config"
-	crd_generator "gitlab.eng.vmware.com/nexus/compiler/pkg/crd-generator"
-	"gitlab.eng.vmware.com/nexus/compiler/pkg/parser"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/pkg/config"
+	crd_generator "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/pkg/crd-generator"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/pkg/parser"
 )
 
 func main() {

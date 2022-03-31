@@ -3,7 +3,7 @@ package parser_test
 import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"gitlab.eng.vmware.com/nexus/compiler/pkg/parser"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/pkg/parser"
 )
 
 const (
@@ -13,7 +13,7 @@ const (
 var _ = Describe("Node parser tests", func() {
 	It("should parse dsl", func() {
 		nodes := parser.ParseDSLNodes(exampleDSLPath, baseGroupName)
-		_, ok := nodes["gitlab.eng.vmware.com/nexus/compiler/example/datamodel/Root"]
+		_, ok := nodes["gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/datamodel/Root"]
 		Expect(ok).To(BeTrue())
 	})
 })

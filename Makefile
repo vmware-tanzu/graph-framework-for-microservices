@@ -19,7 +19,7 @@ GENERATED_OUTPUT_DIRECTORY ?= generated
 ifeq ($(CONTAINER_ID),)
 define run_in_container
   docker run \
-  --volume $(realpath .):/go/src/gitlab.eng.vmware.com/nexus/compiler/ \
+  --volume $(realpath .):/go/src/gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/ \
   --workdir ${PKG_NAME} \
   "${BUILDER_NAME}:${BUILDER_TAG}" ${1}
 endef

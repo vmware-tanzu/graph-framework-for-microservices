@@ -1,4 +1,4 @@
-module gitlab.eng.vmware.com/nexus/compiler
+module gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git
 
 go 1.17
 
@@ -10,7 +10,6 @@ require (
 require k8s.io/apimachinery v0.19.0-alpha.3
 
 require (
-	github.com/davecgh/go-spew v1.1.1
 	github.com/fatih/structtag v1.2.0
 	github.com/ghodss/yaml v1.0.0
 	github.com/go-openapi/spec v0.20.4

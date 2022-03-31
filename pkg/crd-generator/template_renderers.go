@@ -10,12 +10,12 @@ import (
 	"strings"
 	"text/template"
 
-	"gitlab.eng.vmware.com/nexus/compiler/pkg/util"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/pkg/util"
 
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/tools/imports"
 
-	"gitlab.eng.vmware.com/nexus/compiler/pkg/parser"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/pkg/parser"
 )
 
 //go:embed template/doc.go.tmpl

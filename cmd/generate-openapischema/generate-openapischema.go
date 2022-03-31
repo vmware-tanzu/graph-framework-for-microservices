@@ -7,8 +7,8 @@ import (
 
 	"github.com/go-openapi/spec"
 
-	"gitlab.eng.vmware.com/nexus/compiler/pkg/openapi"
-	generator "gitlab.eng.vmware.com/nexus/compiler/pkg/openapi_generator"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/pkg/openapi"
+	generator "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/pkg/openapi_generator"
 )
 
 func main() {
@@ -38,7 +38,7 @@ func main() {
 		for pkg := range g.MissingDefinitions() {
 			fmt.Printf("\n***\nMissing schema for %q\n***\n", pkg)
 		}
-		readmePath := "https://gitlab.eng.vmware.com/nexus/compiler/blob/master/" +
+		readmePath := "https://gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/blob/master/" +
 			"cmd/generate-openapischema/README.md" +
 			"#possible-missing-schema-error-messages-and-how-to-solve-them"
 		fmt.Printf("\"openapi-gen\" did not generate all the needed schemas.\n"+

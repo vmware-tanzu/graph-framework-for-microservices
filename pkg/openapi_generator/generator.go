@@ -13,7 +13,7 @@ import (
 	"k8s.io/kube-openapi/pkg/common"
 )
 
-const defaultNamePrefix = "gitlab.eng.vmware.com/nexus/compiler/_generated/apis"
+const defaultNamePrefix = "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/_generated/apis"
 
 type definition struct {
 	schema       *extensionsv1.JSONSchemaProps

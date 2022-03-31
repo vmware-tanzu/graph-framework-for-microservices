@@ -7,13 +7,13 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	crdgenerator "gitlab.eng.vmware.com/nexus/compiler/pkg/crd-generator"
-	"gitlab.eng.vmware.com/nexus/compiler/pkg/parser"
+	crdgenerator "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/pkg/crd-generator"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/pkg/parser"
 )
 
 const (
 	baseGroupName            = "tsm.tanzu.vmware.com"
-	crdModulePath            = "gitlab.eng.vmware.com/nexus/compiler/example/output/_crd_generated/"
+	crdModulePath            = "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/_crd_generated/"
 	examplePath              = "../../example/"
 	exampleDSLPath           = examplePath + "datamodel"
 	exampleCRDOutputPath     = examplePath + "output/crd_base/"
@@ -35,7 +35,7 @@ var _ = Describe("Template renderers tests", func() {
 
 	BeforeEach(func() {
 		pkgs := parser.ParseDSLPkg(exampleDSLPath)
-		pkg, ok = pkgs["gitlab.eng.vmware.com/nexus/compiler/example/datamodel//config/gns"]
+		pkg, ok = pkgs["gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/datamodel//config/gns"]
 		Expect(ok).To(BeTrue())
 	})
 

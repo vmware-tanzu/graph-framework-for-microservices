@@ -10,7 +10,7 @@ import (
 	"strconv"
 	"strings"
 
-	"gitlab.eng.vmware.com/nexus/compiler/pkg/util"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/pkg/util"
 
 	log "github.com/sirupsen/logrus"
 )

@@ -1,4 +1,4 @@
-module gitlab.eng.vmware.com/nexus/compiler/example/datamodel
+module gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/datamodel
 
 go 1.16
 
