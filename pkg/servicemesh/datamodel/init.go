@@ -11,12 +11,6 @@ import (
 	"gitlab.eng.vmware.com/nexus/cli/pkg/utils"
 )
 
-const (
-	HELLOWORLD_URL         = "https://storage.googleapis.com/nexus-template-downloads/helloworld-example.tar"
-	DATAMODEL_TEMPLATE_URL = "https://storage.googleapis.com/nexus-template-downloads/datamodel-templatedir.tar"
-	NEXUS_TEMPLATE_URL     = "https://storage.googleapis.com/nexus-template-downloads/nexus-template.tar"
-)
-
 type TemplateValues struct {
 	ModuleName string
 	GroupName  string
@@ -81,6 +75,7 @@ func CopyDir(src string, dest string) error {
 }
 
 func createDatamodel() error {
+	os.Chdir(NEXUS_DIR)
 	if _, err := os.Stat(DatatmodelName); err == nil {
 		fmt.Printf("Datamodel %s already exists\n", DatatmodelName)
 		return nil
@@ -132,29 +127,11 @@ func InitOperation(cmd *cobra.Command, args []string) error {
 		fmt.Printf("Assuming group name as %s.com\n", DatatmodelName)
 		GroupName = strings.TrimSuffix(fmt.Sprintf("%s.com", DatatmodelName), "\n")
 	}
-
-	fmt.Print("run this command outside of nexus home directory\n")
-	if _, err := os.Stat(NEXUS_DIR); os.IsNotExist(err) {
-		fmt.Printf("creating nexus home directory\n")
-		os.Mkdir(NEXUS_DIR, 0755)
+	err := utils.CreateNexusDirectory(NEXUS_DIR, NEXUS_TEMPLATE_URL)
+	if err != nil {
+		return fmt.Errorf("could not create nexus directory..")
 	}
 	os.Chdir(NEXUS_DIR)
-	err := utils.DownloadFile(NEXUS_TEMPLATE_URL, "nexus.tar")
-	if err != nil {
-		return fmt.Errorf("could not download template files due to %s\n", err)
-	}
-	file, err := os.Open("nexus.tar")
-	if err != nil {
-		fmt.Println(err)
-		os.Exit(1)
-	}
-
-	defer file.Close()
-	err = utils.Untar(".", file)
-	if err != nil {
-		return fmt.Errorf("could not unarchive template files due to %s", err)
-	}
-	os.Remove("nexus.tar")
 	if _, err := os.Stat("helloworld"); os.IsNotExist(err) {
 		fmt.Printf("creating helloworld example datamodel as part of initialization\n")
 		err = os.Mkdir("helloworld", 0755)

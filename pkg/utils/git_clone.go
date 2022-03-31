@@ -287,3 +287,30 @@ func Untar(dst string, r io.Reader) error {
 		}
 	}
 }
+
+func CreateNexusDirectory(NEXUS_DIR string, NEXUS_TEMPLATE_URL string) error {
+	fmt.Print("run this command outside of nexus home directory\n")
+	if _, err := os.Stat(NEXUS_DIR); os.IsNotExist(err) {
+		fmt.Printf("creating nexus home directory\n")
+		os.Mkdir(NEXUS_DIR, 0755)
+	}
+	os.Chdir(NEXUS_DIR)
+	err := DownloadFile(NEXUS_TEMPLATE_URL, "nexus.tar")
+	if err != nil {
+		return fmt.Errorf("could not download template files due to %s\n", err)
+	}
+	file, err := os.Open("nexus.tar")
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
+
+	defer file.Close()
+	err = Untar(".", file)
+	if err != nil {
+		return fmt.Errorf("could not unarchive template files due to %s", err)
+	}
+	os.Remove("nexus.tar")
+	os.Chdir("..")
+	return nil
+}

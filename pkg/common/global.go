@@ -25,3 +25,12 @@ var GIT_BRANCH string
 var GIT_COMMIT string
 
 const NEXUS_DIR = "nexus"
+
+const (
+	HELLOWORLD_URL         = "https://storage.googleapis.com/nexus-template-downloads/helloworld-example.tar"
+	DATAMODEL_TEMPLATE_URL = "https://storage.googleapis.com/nexus-template-downloads/datamodel-templatedir.tar"
+	NEXUS_TEMPLATE_URL     = "https://storage.googleapis.com/nexus-template-downloads/nexus-template.tar"
+)
+
+const TEMPLATE_URL = "https://storage.googleapis.com/nexus-template-downloads/app-template.tar"
+const Filename = "app-template.tar"

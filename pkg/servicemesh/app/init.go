@@ -7,6 +7,7 @@ import (
 
 	"github.com/spf13/cobra"
 
+	. "gitlab.eng.vmware.com/nexus/cli/pkg/common"
 	"gitlab.eng.vmware.com/nexus/cli/pkg/utils"
 )
 
@@ -25,9 +26,6 @@ var (
 	DatatmodelImport string
 )
 
-var TEMPLATE_URL = "https://storage.googleapis.com/nexus-template-downloads/app-template.tar"
-var filename = "app-template.tar"
-
 func Init(cmd *cobra.Command, args []string) error {
 	envList := []string{}
 	fmt.Println("XXXX:", args)
@@ -38,17 +36,17 @@ func Init(cmd *cobra.Command, args []string) error {
 	files, _ := ioutil.ReadDir(".")
 	for _, file := range files {
 		if file.Name() == "PROJECT" {
-			fmt.Printf("Skipping template download and rendering the app directory..")
+			fmt.Printf("Skipping template download and rendering the app directory..\n")
 			DOWNLOAD_APP = "false"
 		}
 	}
 	if DOWNLOAD_APP != "false" {
-		err := utils.DownloadFile(TEMPLATE_URL, filename)
+		err := utils.DownloadFile(TEMPLATE_URL, Filename)
 		if err != nil {
 			return fmt.Errorf("could not download template files due to %s", err)
 		}
 
-		file, err := os.Open(filename)
+		file, err := os.Open(Filename)
 		if err != nil {
 			fmt.Println(err)
 			os.Exit(1)
@@ -67,17 +65,22 @@ func Init(cmd *cobra.Command, args []string) error {
 		if err != nil {
 			return fmt.Errorf("error in rendering template files due to %s", err)
 		}
-		_ = os.RemoveAll(filename)
+		_ = os.RemoveAll(Filename)
 	}
+	err := utils.CreateNexusDirectory(NEXUS_DIR, NEXUS_TEMPLATE_URL)
+	if err != nil {
+		return fmt.Errorf("could not create nexus directory %s..", err)
+	}
+
 	if DatatmodelName != "" {
+		if DatatmodelGroup == "" {
+			DatatmodelGroup = fmt.Sprintf("%s.com", DatatmodelName)
+		}
+		envList = append(envList, fmt.Sprintf("DATAMODEL_GROUP=%s", DatatmodelGroup))
 		err := utils.SystemCommand(envList, "make", "datamodel_init")
 		if err != nil {
 			return fmt.Errorf("error in creating new datamodel due to %s", err)
 		}
-	}
-	_, err := os.Stat("nexus")
-	if os.IsNotExist(err) {
-		os.Mkdir("nexus", 0755)
 	}
 	return nil
 }
