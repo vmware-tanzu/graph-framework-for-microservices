@@ -35,8 +35,8 @@ func Version(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("error while unmarshal version yaml data %v", err)
 	}
 
-	fmt.Printf("Nexus_Cli: %s\n", values.NexusCli.Version)
-	fmt.Printf("Nexus_Compiler: %s\n", values.NexusCompiler.Version)
-	fmt.Printf("Nexus_App_Templates: %s\n", values.NexusAppTemplates.Version)
+	fmt.Printf("NexusCli: %s\n", values.NexusCli.Version)
+	fmt.Printf("NexusCompiler: %s\n", values.NexusCompiler.Version)
+	fmt.Printf("NexusAppTemplates: %s\n", values.NexusAppTemplates.Version)
 	return nil
 }
