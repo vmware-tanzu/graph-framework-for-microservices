@@ -7,6 +7,7 @@ DATAMODEL_DIR ?= "./nexus"
 CLUSTER ?= ""
 DATAMODEL ?= ""
 DATAMODEL_GROUP ?= ""
+NEXUS_BIN ?= $(shell which nexus)
 
 #
 # Image Info
@@ -57,10 +58,6 @@ nexus-cli: ## Install Nexus CLI
 	chmod 755 nexus
 	mv nexus /usr/local/bin/nexus
 
-## to silence all not needed.
-%:
-	@true
-
 replace:
 	if [[ -n ${DATAMODEL} ]]; then\
 			test -s ${DATAMODEL_DIR}/${DATAMODEL} || { echo "Please create datamodel ${DATAMODEL} for go mod replace"; exit 1; } ;\
@@ -70,14 +67,18 @@ replace:
 .SILENT:
 .PHONY: datamodel_init
 datamodel_init: ## Initialize datamodel
+	if [ -z $(NEXUS_BIN) ]; then \
+		echo "Please install nexus binary"; \
+		exit 1; \
+	fi
 	if [[ -n ${DATAMODEL} ]]; then \
 		if [[ -n ${DATAMODEL_GROUP} ]]; then \
-			nexus datamodel init --name ${DATAMODEL} --group ${DATAMODEL_GROUP};\
+			$(NEXUS_BIN) datamodel init --name ${DATAMODEL} --group ${DATAMODEL_GROUP};\
 		else \
-			nexus datamodel init --name ${DATAMODEL} ;\
+			$(NEXUS_BIN) datamodel init --name ${DATAMODEL} ;\
 		fi \
 	else \
-		nexus datamodel init ;\
+		$(NEXUS_BIN) datamodel init ;\
 	fi
 	$(MAKE) replace
 
@@ -151,7 +152,7 @@ image_scan:
 ##@ Deploy
 
 .PHONY: deploy
-deploy: kustomize
+deploy: kustomize undeploy
 	if [[ $(CLUSTER) == "kind" ]]; then \
 		kind load docker-image ${IMAGE_REGISTRY}:${IMAGE_TAG} ;\
 	fi
