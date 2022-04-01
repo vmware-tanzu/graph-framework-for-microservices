@@ -28,7 +28,6 @@ var (
 
 func Init(cmd *cobra.Command, args []string) error {
 	envList := []string{}
-	fmt.Println("XXXX:", args)
 	if DatatmodelName != "" {
 		envList = append(envList, fmt.Sprintf("DATAMODEL=%s", DatatmodelName))
 	}

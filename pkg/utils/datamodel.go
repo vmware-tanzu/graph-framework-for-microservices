@@ -8,7 +8,6 @@ import (
 )
 
 func GoToNexusDirectory() error {
-	fmt.Print("run this command outside of nexus home directory\n")
 	if _, err := os.Stat(common.NEXUS_DIR); os.IsNotExist(err) {
 		return fmt.Errorf("%s directory not found", common.NEXUS_DIR)
 	} else if err != nil {

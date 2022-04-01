@@ -25,7 +25,6 @@ func Build(cmd *cobra.Command, args []string) error {
 		}
 	}
 
-	fmt.Print("run this command outside of nexus home directory\n")
 	if err := utils.GoToNexusDirectory(); err != nil {
 		return err
 	}

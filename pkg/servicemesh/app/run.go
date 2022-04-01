@@ -15,8 +15,6 @@ var (
 func Run(cmd *cobra.Command, args []string) error {
 	envList := []string{}
 
-	fmt.Println("XXXX:", args)
-
 	if Namespace != "" {
 		envList = append(envList, fmt.Sprintf("NAMESPACE=%s", Namespace))
 	}

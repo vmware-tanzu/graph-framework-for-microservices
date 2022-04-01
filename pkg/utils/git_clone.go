@@ -289,7 +289,6 @@ func Untar(dst string, r io.Reader) error {
 }
 
 func CreateNexusDirectory(NEXUS_DIR string, NEXUS_TEMPLATE_URL string) error {
-	fmt.Print("run this command outside of nexus home directory\n")
 	if _, err := os.Stat(NEXUS_DIR); os.IsNotExist(err) {
 		fmt.Printf("creating nexus home directory\n")
 		os.Mkdir(NEXUS_DIR, 0755)
