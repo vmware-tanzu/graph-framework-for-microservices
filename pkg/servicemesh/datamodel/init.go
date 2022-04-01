@@ -21,14 +21,18 @@ var GroupName string
 func createDatamodel(DatatmodelName string, URL string, Render bool, standalone bool) error {
 	var Directory string
 	if standalone == false {
-		os.Chdir(NEXUS_DIR)
+		err := utils.GoToNexusDirectory()
+		if err != nil {
+			fmt.Printf("Could not locate nexusDirectory\n")
+			return err
+		}
 		if _, err := os.Stat(DatatmodelName); err == nil {
 			fmt.Printf("Datamodel %s already exists\n", DatatmodelName)
 			return nil
 		}
 
 		fmt.Printf("creating %s datamodel as part of initialization\n", DatatmodelName)
-		err := os.Mkdir(DatatmodelName, 0755)
+		err = os.Mkdir(DatatmodelName, 0755)
 		if err != nil {
 			return err
 		}
@@ -97,12 +101,21 @@ func InitOperation(cmd *cobra.Command, args []string) error {
 	var standalone bool = false
 	if DatatmodelName == "" {
 		if GroupName == "" {
-
 			fmt.Println("You need to provide a groupname if datamodelname is not provided : ")
 			fmt.Scanln(&GroupName)
 			if GroupName == "" {
 				fmt.Println("Please provide a non-empty groupname")
 				return nil
+			}
+			empty, _ := utils.IsDirEmpty(".")
+			if empty == false {
+				var input string
+				fmt.Println("Current Directory is not empty do you want to continue to initialize datamodel [y/n]: ")
+				fmt.Scanln(&input)
+				if input == "n" {
+					fmt.Println("Aborting datamodel initialization operation.")
+					return nil
+				}
 			}
 			standalone = true
 		}
@@ -116,7 +129,6 @@ func InitOperation(cmd *cobra.Command, args []string) error {
 		if err != nil {
 			return fmt.Errorf("could not create nexus directory..")
 		}
-		os.Chdir(NEXUS_DIR)
 	}
 	if DatatmodelName == "helloworld" {
 		err := createDatamodel(DatatmodelName, HELLOWORLD_URL, false, standalone)
