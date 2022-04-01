@@ -22,11 +22,27 @@ func GoToNexusDirectory() error {
 }
 
 func CheckDatamodelDirExists(datamodelName string) error {
-	dmDir := common.NEXUS_DIR + "/" + datamodelName
+	dmDir := datamodelName
 	if _, err := os.Stat(dmDir); os.IsNotExist(err) {
 		return fmt.Errorf("datamodel directory %s not found", dmDir)
 	} else if err != nil {
 		return fmt.Errorf("error %v trying to find datamodel directory %s", err, dmDir)
+	}
+	return nil
+}
+
+func StoreCurrentDatamodel(datamodelName string) error {
+	f, err := os.OpenFile("NEXUSDATAMODEL", os.O_RDWR, os.ModeAppend)
+	if err != nil {
+		f, err = os.Create("NEXUSDATAMODEL")
+		if err != nil {
+			return err
+		}
+	}
+	_, err = f.WriteString(datamodelName)
+	if err != nil {
+		fmt.Println("Could not store current datamodel name")
+		return err
 	}
 	return nil
 }

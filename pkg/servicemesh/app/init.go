@@ -27,6 +27,16 @@ var (
 )
 
 func Init(cmd *cobra.Command, args []string) error {
+	empty, _ := utils.IsDirEmpty(".")
+	if empty == false {
+		var input string
+		fmt.Println("Current Directory is not empty do you want to continue[y/n]: ")
+		fmt.Scanln(&input)
+		if input == "n" {
+			fmt.Println("Aborting nexus app init operation.")
+			return nil
+		}
+	}
 	envList := []string{}
 	if DatatmodelName != "" {
 		envList = append(envList, fmt.Sprintf("DATAMODEL=%s", DatatmodelName))
@@ -76,11 +86,15 @@ func Init(cmd *cobra.Command, args []string) error {
 			DatatmodelGroup = fmt.Sprintf("%s.com", DatatmodelName)
 		}
 		envList = append(envList, fmt.Sprintf("DATAMODEL_GROUP=%s", DatatmodelGroup))
-		err := utils.SystemCommand(envList, "make", "datamodel_init")
+		err := utils.SystemCommand(envList, false, "make", "datamodel_init")
 		if err != nil {
 			return fmt.Errorf("error in creating new datamodel due to %s", err)
 		}
+		fmt.Println("\u2713 Application initialized successfully , Please continue to edit the datamodel and app controllers.")
+	} else {
+		fmt.Println("\u2713 Application initialized successfully, Create Datamodel for consuming applications")
 	}
+
 	return nil
 }
 

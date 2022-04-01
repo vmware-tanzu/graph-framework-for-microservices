@@ -8,8 +8,7 @@ import (
 
 func Publish(cmd *cobra.Command, args []string) error {
 	envList := []string{}
-
-	err := utils.SystemCommand(envList, "make", "app_publish")
+	err := utils.SystemCommand(envList, false, "make", "app_publish")
 	if err != nil {
 		return err
 	}

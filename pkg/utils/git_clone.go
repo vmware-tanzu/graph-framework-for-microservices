@@ -77,26 +77,39 @@ func GitClone() (string, error) {
 }
 
 func GoModInit(path string) error {
-	fmt.Printf("Intializing gomodule\n")
-	os.Chdir(path)
-	cmd := exec.Command("go", "mod", "init", path)
-	_, err := cmd.Output()
-	if err != nil {
-		return err
+	if path != "" {
+		fmt.Printf("Intializing gomodule\n")
+		os.Chdir(path)
+		cmd := exec.Command("go", "mod", "init", path)
+		_, err := cmd.Output()
+		if err != nil {
+			return err
+		}
+		os.Chdir("..")
+	} else {
+		fmt.Printf("Intializing gomodule\n")
+		cmd := exec.Command("go", "mod", "init")
+		_, err := cmd.Output()
+		if err != nil {
+			return err
+		}
 	}
-	os.Chdir("..")
 	return nil
 }
 
 func GetModuleName(path string) (string, error) {
 	fmt.Printf("getting the current modulename")
-	os.Chdir(path)
+	if path != "" {
+		os.Chdir(path)
+	}
 	cmd := exec.Command("go", "list", "-m")
 	stdout, err := cmd.Output()
 	if err != nil {
 		return "", err
 	}
-	os.Chdir("..")
+	if path != "" {
+		os.Chdir("..")
+	}
 	return string(stdout), nil
 }
 
@@ -167,11 +180,14 @@ func RenderTemplateFiles(data interface{}, directory string, skipdirectory strin
 
 }
 
-func SystemCommand(envList []string, name string, args ...string) error {
-	fmt.Printf("envList: %v\n", envList)
-	fmt.Printf("command: %v\n", name)
-	fmt.Printf("args: %v\n", args)
-
+func SystemCommand(envList []string, silent bool, name string, args ...string) error {
+	if !silent {
+		if len(envList) != 0 {
+			fmt.Printf("envList: %v\n", envList)
+		}
+		fmt.Printf("command: %v\n", name)
+		fmt.Printf("args: %v\n", args)
+	}
 	command := exec.Command(name, args...)
 	command.Env = os.Environ()
 
@@ -187,7 +203,9 @@ func SystemCommand(envList []string, name string, args ...string) error {
 	scanner := bufio.NewScanner(stdout)
 	go func() {
 		for scanner.Scan() {
-			fmt.Printf("\t > %s\n", scanner.Text())
+			if !silent {
+				fmt.Printf("\t > %s\n", scanner.Text())
+			}
 		}
 	}()
 
@@ -199,7 +217,9 @@ func SystemCommand(envList []string, name string, args ...string) error {
 
 	err = command.Wait()
 	if err != nil {
-		fmt.Fprintln(os.Stderr, "Error waiting for Cmd", err)
+		if !silent {
+			fmt.Fprintln(os.Stderr, "Error waiting for Cmd", err)
+		}
 		return err
 	}
 
@@ -312,4 +332,18 @@ func CreateNexusDirectory(NEXUS_DIR string, NEXUS_TEMPLATE_URL string) error {
 		os.Chdir("..")
 	}
 	return nil
+}
+
+func IsDirEmpty(name string) (bool, error) {
+	f, err := os.Open(name)
+	if err != nil {
+		return false, err
+	}
+	defer f.Close()
+
+	_, err = f.Readdirnames(1) // Or f.Readdir(1)
+	if err == io.EOF {
+		return true, nil
+	}
+	return false, err // Either not empty or error, suits both cases
 }
