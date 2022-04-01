@@ -1,6 +1,6 @@
 DEBUG ?= FALSE
 
-GO_PROJECT_NAME ?= compiler
+GO_PROJECT_NAME ?= compiler.git
 
 ECR_DOCKER_REGISTRY ?= 284299419820.dkr.ecr.us-west-2.amazonaws.com
 
@@ -10,7 +10,7 @@ TAG ?= $(shell git rev-parse --verify --short=8 HEAD)
 BUILDER_NAME ?= ${IMAGE_NAME}-builder
 BUILDER_TAG := $(shell md5sum builder/Dockerfile | awk '{ print $1 }' | head -c 8)
 
-PKG_NAME?=/go/src/gitlab.eng.vmware.com/nexus/${GO_PROJECT_NAME}
+PKG_NAME?=/go/src/gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/${GO_PROJECT_NAME}
 
 DATAMODEL_PATH ?= datamodel
 CONFIG_FILE ?= ""
