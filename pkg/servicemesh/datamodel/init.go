@@ -52,9 +52,13 @@ func createDatamodel(DatatmodelName string, URL string, Render bool, standalone 
 	}
 	os.Remove("datamodel.tar")
 	if DatatmodelName != "" {
-		err := utils.GoModInit(DatatmodelName)
-		if err != nil {
-			return err
+		if DatatmodelName != "helloworld" {
+			err := utils.GoModInit(DatatmodelName)
+			if err != nil {
+				return err
+			}
+		} else {
+			os.Chdir("..")
 		}
 		Directory = DatatmodelName
 	} else {
@@ -80,7 +84,7 @@ func createDatamodel(DatatmodelName string, URL string, Render bool, standalone 
 		}
 	}
 	if standalone != true {
-		os.Chdir("..")
+		fmt.Printf("Storing current datamodel as default datamodel")
 		err = utils.StoreCurrentDatamodel(DatatmodelName)
 		if err != nil {
 			return err

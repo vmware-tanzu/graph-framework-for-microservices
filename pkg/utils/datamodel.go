@@ -33,7 +33,7 @@ func CheckDatamodelDirExists(datamodelName string) error {
 }
 
 func StoreCurrentDatamodel(datamodelName string) error {
-	f, err := os.Open("NEXUSDATAMODEL")
+	f, err := os.OpenFile("NEXUSDATAMODEL", os.O_RDWR, os.ModeAppend)
 	if err != nil {
 		f, err = os.Create("NEXUSDATAMODEL")
 		if err != nil {
