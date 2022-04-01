@@ -84,7 +84,7 @@ func createDatamodel(DatatmodelName string, URL string, Render bool, standalone 
 		}
 	}
 	if standalone != true {
-		fmt.Printf("Storing current datamodel as default datamodel")
+		fmt.Printf("Storing current datamodel as default datamodel\n")
 		err = utils.StoreCurrentDatamodel(DatatmodelName)
 		if err != nil {
 			return err

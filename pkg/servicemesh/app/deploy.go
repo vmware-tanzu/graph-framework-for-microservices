@@ -8,7 +8,7 @@ import (
 
 func Deploy(cmd *cobra.Command, args []string) error {
 	envList := []string{}
-	err := utils.SystemCommand(envList, "make", "app_deploy")
+	err := utils.SystemCommand(envList, false, "make", "app_deploy")
 	if err != nil {
 		return err
 	}

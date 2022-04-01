@@ -28,7 +28,7 @@ func Install(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	err := utils.SystemCommand(envList, "make", "datamodel_install")
+	err := utils.SystemCommand(envList, false, "make", "datamodel_install")
 	if err != nil {
 		return err
 	}

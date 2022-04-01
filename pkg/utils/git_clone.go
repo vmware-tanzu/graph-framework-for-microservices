@@ -180,11 +180,14 @@ func RenderTemplateFiles(data interface{}, directory string, skipdirectory strin
 
 }
 
-func SystemCommand(envList []string, name string, args ...string) error {
-	fmt.Printf("envList: %v\n", envList)
-	fmt.Printf("command: %v\n", name)
-	fmt.Printf("args: %v\n", args)
-
+func SystemCommand(envList []string, silent bool, name string, args ...string) error {
+	if !silent {
+		if len(envList) != 0 {
+			fmt.Printf("envList: %v\n", envList)
+		}
+		fmt.Printf("command: %v\n", name)
+		fmt.Printf("args: %v\n", args)
+	}
 	command := exec.Command(name, args...)
 	command.Env = os.Environ()
 
@@ -200,7 +203,9 @@ func SystemCommand(envList []string, name string, args ...string) error {
 	scanner := bufio.NewScanner(stdout)
 	go func() {
 		for scanner.Scan() {
-			fmt.Printf("\t > %s\n", scanner.Text())
+			if !silent {
+				fmt.Printf("\t > %s\n", scanner.Text())
+			}
 		}
 	}()
 
