@@ -77,26 +77,39 @@ func GitClone() (string, error) {
 }
 
 func GoModInit(path string) error {
-	fmt.Printf("Intializing gomodule\n")
-	os.Chdir(path)
-	cmd := exec.Command("go", "mod", "init", path)
-	_, err := cmd.Output()
-	if err != nil {
-		return err
+	if path != "" {
+		fmt.Printf("Intializing gomodule\n")
+		os.Chdir(path)
+		cmd := exec.Command("go", "mod", "init", path)
+		_, err := cmd.Output()
+		if err != nil {
+			return err
+		}
+		os.Chdir("..")
+	} else {
+		fmt.Printf("Intializing gomodule\n")
+		cmd := exec.Command("go", "mod", "init")
+		_, err := cmd.Output()
+		if err != nil {
+			return err
+		}
 	}
-	os.Chdir("..")
 	return nil
 }
 
 func GetModuleName(path string) (string, error) {
 	fmt.Printf("getting the current modulename")
-	os.Chdir(path)
+	if path != "" {
+		os.Chdir(path)
+	}
 	cmd := exec.Command("go", "list", "-m")
 	stdout, err := cmd.Output()
 	if err != nil {
 		return "", err
 	}
-	os.Chdir("..")
+	if path != "" {
+		os.Chdir("..")
+	}
 	return string(stdout), nil
 }
 
@@ -313,4 +326,18 @@ func CreateNexusDirectory(NEXUS_DIR string, NEXUS_TEMPLATE_URL string) error {
 		os.Chdir("..")
 	}
 	return nil
+}
+
+func IsDirEmpty(name string) (bool, error) {
+	f, err := os.Open(name)
+	if err != nil {
+		return false, err
+	}
+	defer f.Close()
+
+	_, err = f.Readdirnames(1) // Or f.Readdir(1)
+	if err == io.EOF {
+		return true, nil
+	}
+	return false, err // Either not empty or error, suits both cases
 }

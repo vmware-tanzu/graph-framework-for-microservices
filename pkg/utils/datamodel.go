@@ -31,3 +31,19 @@ func CheckDatamodelDirExists(datamodelName string) error {
 	}
 	return nil
 }
+
+func StoreCurrentDatamodel(datamodelName string) error {
+	f, err := os.Open("NEXUSDATAMODEL")
+	if err != nil {
+		f, err = os.Create("NEXUSDATAMODEL")
+		if err != nil {
+			return err
+		}
+	}
+	_, err = f.WriteString(datamodelName)
+	if err != nil {
+		fmt.Println("Could not store current datamodel name")
+		return err
+	}
+	return nil
+}

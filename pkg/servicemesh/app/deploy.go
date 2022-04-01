@@ -1,8 +1,6 @@
 package app
 
 import (
-	"fmt"
-
 	"github.com/spf13/cobra"
 
 	"gitlab.eng.vmware.com/nexus/cli/pkg/utils"
@@ -10,9 +8,6 @@ import (
 
 func Deploy(cmd *cobra.Command, args []string) error {
 	envList := []string{}
-
-	fmt.Println("XXXX:", args)
-	// cd nexus/
 	err := utils.SystemCommand(envList, "make", "app_deploy")
 	if err != nil {
 		return err
