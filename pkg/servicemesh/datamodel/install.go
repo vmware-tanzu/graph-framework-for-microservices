@@ -2,6 +2,7 @@ package datamodel
 
 import (
 	"fmt"
+	"os"
 
 	"github.com/spf13/cobra"
 	"gitlab.eng.vmware.com/nexus/cli/pkg/utils"
@@ -22,6 +23,15 @@ func Install(cmd *cobra.Command, args []string) error {
 		if err := utils.CheckDatamodelDirExists(DatatmodelName); err != nil {
 			return err
 		}
+	} else {
+		_, err := os.Stat("NEXUSDATAMODEL")
+		if err != nil {
+			fmt.Printf("Please provdide --name of your datamodel to install")
+			return nil
+		}
+		DatamodelNamebytes, _ := os.ReadFile("NEXUSDATAMODEL")
+		DatatmodelName = string(DatamodelNamebytes)
+		fmt.Printf("Installing datamodel %s\n", DatatmodelName)
 	}
 
 	if Namespace != "" {
@@ -47,8 +57,8 @@ var InstallCmd = &cobra.Command{
 
 func init() {
 	InstallCmd.Flags().StringVarP(&Namespace, "namespace",
-		"n", "", "name of the namespace to be created")
-	InstallCmd.Flags().StringVarP(&DatatmodelName, "datamodel",
-		"d", "", "name of the datamodel to be build")
+		"r", "", "name of the namespace to be created")
+	InstallCmd.Flags().StringVarP(&DatatmodelName, "name",
+		"n", "", "name of the datamodel to be build")
 
 }
