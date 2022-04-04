@@ -37,13 +37,10 @@ func Build(cmd *cobra.Command, args []string) error {
 			return err
 		}
 	} else {
-		_, err := os.Stat("NEXUSDATAMODEL")
+		DatatmodelName, err = utils.GetCurrentDatamodel()
 		if err != nil {
-			fmt.Printf("Please provdide --name of your datamodel to build")
-			return nil
+			return err
 		}
-		DatamodelNamebytes, _ := os.ReadFile("NEXUSDATAMODEL")
-		DatatmodelName = string(DatamodelNamebytes)
 		fmt.Printf("Running build for datamodel %s\n", DatatmodelName)
 	}
 

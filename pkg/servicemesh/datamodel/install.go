@@ -2,7 +2,6 @@ package datamodel
 
 import (
 	"fmt"
-	"os"
 
 	"github.com/spf13/cobra"
 	"gitlab.eng.vmware.com/nexus/cli/pkg/utils"
@@ -24,13 +23,10 @@ func Install(cmd *cobra.Command, args []string) error {
 			return err
 		}
 	} else {
-		_, err := os.Stat("NEXUSDATAMODEL")
+		DatatmodelName, err := utils.GetCurrentDatamodel()
 		if err != nil {
-			fmt.Printf("Please provdide --name of your datamodel to install")
-			return nil
+			return err
 		}
-		DatamodelNamebytes, _ := os.ReadFile("NEXUSDATAMODEL")
-		DatatmodelName = string(DatamodelNamebytes)
 		fmt.Printf("Installing datamodel %s\n", DatatmodelName)
 		envList = append(envList, fmt.Sprintf("DATAMODEL=%s", DatatmodelName))
 	}

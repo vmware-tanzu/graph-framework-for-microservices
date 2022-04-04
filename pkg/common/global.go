@@ -34,3 +34,9 @@ const (
 
 const TEMPLATE_URL = "https://storage.googleapis.com/nexus-template-downloads/app-template.tar"
 const Filename = "app-template.tar"
+
+type NexusConfig struct {
+	Name string
+}
+
+var NexusConfFile = "NEXUSDATAMODEL"

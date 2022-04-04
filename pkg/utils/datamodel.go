@@ -2,9 +2,11 @@ package utils
 
 import (
 	"fmt"
+	"io/ioutil"
 	"os"
 
 	common "gitlab.eng.vmware.com/nexus/cli/pkg/common"
+	"gopkg.in/yaml.v2"
 )
 
 func GoToNexusDirectory() error {
@@ -32,17 +34,42 @@ func CheckDatamodelDirExists(datamodelName string) error {
 }
 
 func StoreCurrentDatamodel(datamodelName string) error {
-	f, err := os.OpenFile("NEXUSDATAMODEL", os.O_RDWR, os.ModeAppend)
+	_, err := os.Stat(common.NexusConfFile)
 	if err != nil {
-		f, err = os.Create("NEXUSDATAMODEL")
+		_, err = os.Create(common.NexusConfFile)
 		if err != nil {
 			return err
 		}
 	}
-	_, err = f.WriteString(datamodelName)
+
+	conf := common.NexusConfig{
+		Name: datamodelName,
+	}
+	yamlData, err := yaml.Marshal(&conf)
+	if err != nil {
+		fmt.Printf("Error while Marshaling. %v", err)
+	}
+	err = ioutil.WriteFile(common.NexusConfFile, yamlData, 0644)
 	if err != nil {
 		fmt.Println("Could not store current datamodel name")
 		return err
 	}
 	return nil
+}
+
+func GetCurrentDatamodel() (string, error) {
+	_, err := os.Stat(common.NexusConfFile)
+	if err != nil {
+		return "", fmt.Errorf("Could not get datamodelname : %s does not exists\n", common.NexusConfFile)
+	}
+	data, err := ioutil.ReadFile(common.NexusConfFile)
+	if err != nil {
+		return "", fmt.Errorf("Could not read yamlfile ")
+	}
+	var yamlConfig common.NexusConfig
+	err = yaml.Unmarshal(data, &yamlConfig)
+	if err != nil {
+		return "", fmt.Errorf("Could not unmarshal yamlfile")
+	}
+	return yamlConfig.Name, nil
 }

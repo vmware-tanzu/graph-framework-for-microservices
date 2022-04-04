@@ -107,18 +107,18 @@ func InitOperation(cmd *cobra.Command, args []string) error {
 				fmt.Println("Please provide a non-empty groupname")
 				return nil
 			}
-			empty, _ := utils.IsDirEmpty(".")
-			if empty == false {
-				var input string
-				fmt.Println("Current Directory is not empty do you want to continue to initialize datamodel [y/n]: ")
-				fmt.Scanln(&input)
-				if input == "n" {
-					fmt.Println("Aborting datamodel initialization operation.")
-					return nil
-				}
-			}
-			standalone = true
 		}
+		empty, _ := utils.IsDirEmpty(".")
+		if empty == false {
+			var input string
+			fmt.Println("Current Directory is not empty do you want to continue to initialize datamodel [y/n]: ")
+			fmt.Scanln(&input)
+			if input == "n" {
+				fmt.Println("Aborting datamodel initialization operation.")
+				return nil
+			}
+		}
+		standalone = true
 	}
 	if standalone == false {
 		if GroupName == "" {
