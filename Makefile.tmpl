@@ -97,9 +97,11 @@ lint: ## lint checks using the make targets
 	$(MAKE) fmt
 	$(MAKE) vet
 
+go_get:
+	go get . ;
+
 .PHONY: build
-build: lint ## Build manager binary.
-	go get . ;\
+build: go_get lint ## Build manager binary.
 	docker build --build-arg APP_NAME=${APP_NAME} \
 				--build-arg GIT_HEAD=${GIT_HEAD} \
 				--build-arg GIT_TAG=${CI_COMMIT} \
