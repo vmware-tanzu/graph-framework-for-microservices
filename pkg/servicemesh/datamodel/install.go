@@ -13,6 +13,10 @@ func Install(cmd *cobra.Command, args []string) error {
 	envList := []string{}
 	fmt.Print("Checking if the tenant-apiserver is reachable for installing datamodel crds\n")
 
+	if err := utils.GoToNexusDirectory(); err != nil {
+		return err
+	}
+
 	if DatatmodelName != "" {
 		envList = append(envList, fmt.Sprintf("DATAMODEL=%s", DatatmodelName))
 		if err := utils.CheckDatamodelDirExists(DatatmodelName); err != nil {
@@ -22,10 +26,6 @@ func Install(cmd *cobra.Command, args []string) error {
 
 	if Namespace != "" {
 		envList = append(envList, fmt.Sprintf("NAMESPACE=%s", Namespace))
-	}
-
-	if err := utils.GoToNexusDirectory(); err != nil {
-		return err
 	}
 
 	err := utils.SystemCommand(envList, false, "make", "datamodel_install")
