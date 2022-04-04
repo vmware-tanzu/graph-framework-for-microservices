@@ -32,6 +32,7 @@ func Install(cmd *cobra.Command, args []string) error {
 		DatamodelNamebytes, _ := os.ReadFile("NEXUSDATAMODEL")
 		DatatmodelName = string(DatamodelNamebytes)
 		fmt.Printf("Installing datamodel %s\n", DatatmodelName)
+		envList = append(envList, fmt.Sprintf("DATAMODEL=%s", DatatmodelName))
 	}
 
 	if Namespace != "" {
