@@ -39,6 +39,8 @@ func Install(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
+
+	fmt.Printf("\u2713 Datamodel %s install successful\n", DatatmodelName)
 	return nil
 }
 

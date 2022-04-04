@@ -38,6 +38,8 @@ func Install(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("runtime install failed with error %v", err)
 
 	}
+	fmt.Printf("\u2713 Runtime %s install successful\n", Namespace)
+
 	return nil
 }
 

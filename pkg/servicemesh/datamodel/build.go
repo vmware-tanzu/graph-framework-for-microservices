@@ -53,6 +53,7 @@ func Build(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("datamodel %s build failed with error %v", DatatmodelName, err)
 
 	}
+	fmt.Printf("\u2713 Datamodel %s build successful\n", DatatmodelName)
 	return nil
 }
 
