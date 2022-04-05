@@ -24,7 +24,7 @@ func GetObjectByCRDName(dmClient *datamodel.Clientset, crdName string, name stri
 }
 
 func ParseCRDLabels(crdName string, labels map[string]string) *orderedmap.OrderedMap {
-    parents := GetCrdParentsMap()[crdName]
+    parents := GetCRDParentsMap()[crdName]
 
     m := orderedmap.NewOrderedMap()
     for _, parent := range parents {
