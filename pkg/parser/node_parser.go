@@ -79,7 +79,6 @@ func ParseDSLNodes(startPath string, baseGroupName string) map[string]Node {
 	if err != nil {
 		log.Fatalf("Failed to ParseDSLNodes %v", err)
 	}
-
 	graph := make(map[string]Node)
 	for _, root := range rootNodes {
 		r := nodes[root]
@@ -90,14 +89,16 @@ func ParseDSLNodes(startPath string, baseGroupName string) map[string]Node {
 	return graph
 }
 
-func CreateParentsMap(root Node) map[string]NodeHelper {
+func CreateParentsMap(graph map[string]Node) map[string]NodeHelper {
 	parents := make(map[string]NodeHelper)
-	root.Walk(func(node *Node) {
-		parents[node.CrdName] = NodeHelper{
-			Name:    node.Name,
-			Parents: node.Parents,
-		}
-	})
+	for _, root := range graph {
+		root.Walk(func(node *Node) {
+			parents[node.CrdName] = NodeHelper{
+				Name:    node.Name,
+				Parents: node.Parents,
+			}
+		})
+	}
 	return parents
 }
 

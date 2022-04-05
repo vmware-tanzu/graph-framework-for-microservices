@@ -3,6 +3,7 @@ package crd_generator
 import (
 	"bytes"
 	_ "embed"
+	"encoding/json"
 	"fmt"
 	"go/format"
 	"os"
@@ -37,6 +38,8 @@ var crdBaseTemplateFile []byte
 var helperTemplateFile []byte
 
 func RenderCRDTemplate(baseGroupName, crdModulePath string, pkgs parser.Packages, graph map[string]parser.Node, outputDir string) error {
+	parentsMap := parser.CreateParentsMap(graph)
+
 	pkgNames := make([]string, len(pkgs))
 	i := 0
 	for _, pkg := range pkgs {
@@ -87,7 +90,7 @@ func RenderCRDTemplate(baseGroupName, crdModulePath string, pkgs parser.Packages
 		if err != nil {
 			return err
 		}
-		crdFiles, err := RenderCRDBaseTemplate(baseGroupName, pkg)
+		crdFiles, err := RenderCRDBaseTemplate(baseGroupName, pkg, parentsMap)
 		if err != nil {
 			return err
 		}
@@ -100,7 +103,7 @@ func RenderCRDTemplate(baseGroupName, crdModulePath string, pkgs parser.Packages
 		}
 	}
 
-	err := RenderHelper(graph, outputDir, crdModulePath)
+	err := RenderHelper(parentsMap, outputDir, crdModulePath)
 	if err != nil {
 		return err
 	}
@@ -108,14 +111,7 @@ func RenderCRDTemplate(baseGroupName, crdModulePath string, pkgs parser.Packages
 	return createApiNamesFile(pkgNames, outputDir)
 }
 
-func RenderHelper(graph map[string]parser.Node, outputDir string, crdModulePath string) error {
-	parentsMap := make(map[string]parser.NodeHelper)
-	for _, root := range graph {
-		for k, v := range parser.CreateParentsMap(root) {
-			parentsMap[k] = v
-		}
-	}
-
+func RenderHelper(parentsMap map[string]parser.NodeHelper, outputDir string, crdModulePath string) error {
 	helperFolder := outputDir + "/helper"
 	var err error
 	err = createCRDFolder(helperFolder)
@@ -295,12 +291,18 @@ func RenderTypesTemplate(pkg parser.Package) (*bytes.Buffer, error) {
 }
 
 type crdBaseVars struct {
+	CrdName         string
 	GroupName       string
 	Singular        string
 	Plural          string
 	Kind            string
 	KindList        string
 	ResourceVersion string
+	NexusAnnotation string
+}
+
+type NexusAnnotation struct {
+	Hierarchy []string `json:"hierarchy"`
 }
 
 type CrdBaseFile struct {
@@ -308,7 +310,7 @@ type CrdBaseFile struct {
 	File *bytes.Buffer
 }
 
-func RenderCRDBaseTemplate(baseGroupName string, pkg parser.Package) ([]CrdBaseFile, error) {
+func RenderCRDBaseTemplate(baseGroupName string, pkg parser.Package, parentsMap map[string]parser.NodeHelper) ([]CrdBaseFile, error) {
 	var crds []CrdBaseFile
 	for _, node := range pkg.GetNexusNodes() {
 		typeName := parser.GetTypeName(node)
@@ -316,13 +318,28 @@ func RenderCRDBaseTemplate(baseGroupName string, pkg parser.Package) ([]CrdBaseF
 		singular := strings.ToLower(typeName)
 		kind := strings.Title(singular)
 		plural := util.ToPlural(singular)
+		crdName := fmt.Sprintf("%s.%s", plural, groupName)
+
+		nexusAnnotationStr := []byte("{}")
+		parents, ok := parentsMap[crdName]
+		if ok {
+			nexusAnnotation := &NexusAnnotation{Hierarchy: parents.Parents}
+
+			var err error
+			nexusAnnotationStr, err = json.Marshal(nexusAnnotation)
+			if err != nil {
+				return nil, err
+			}
+		}
 
 		vars := crdBaseVars{
-			GroupName: groupName,
-			Singular:  singular,
-			Plural:    plural,
-			Kind:      kind,
-			KindList:  fmt.Sprintf("%sList", kind),
+			CrdName:         crdName,
+			GroupName:       groupName,
+			Singular:        singular,
+			Plural:          plural,
+			Kind:            kind,
+			KindList:        fmt.Sprintf("%sList", kind),
+			NexusAnnotation: fmt.Sprintf("\"%s\"", string(nexusAnnotationStr)),
 			// TODO make configurable by some variable in package
 			ResourceVersion: "v1",
 		}
