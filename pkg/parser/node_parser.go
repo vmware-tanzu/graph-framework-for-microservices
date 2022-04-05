@@ -23,13 +23,17 @@ func ParseDSLNodes(startPath string, baseGroupName string) map[string]Node {
 	nodes := make(map[string]Node)
 	err := filepath.Walk(startPath, func(path string, info fs.FileInfo, err error) error {
 		if info.IsDir() {
+			if info.Name() == "build" {
+				log.Infof("Ignoring build directory...")
+				return nil
+			}
 			fileset := token.NewFileSet()
 			pkgs, err := parser.ParseDir(fileset, path, nil, parser.ParseComments)
 			if err != nil {
 				log.Fatalf("Failed to parse directory %s: %v", path, err)
 			}
 			for _, v := range pkgs {
-				pkgImport := strings.TrimSuffix(strings.ReplaceAll(path, startPath, fmt.Sprintf("%s/", modulePath)), "/")
+				pkgImport := strings.TrimSuffix(strings.ReplaceAll(path, startPath, modulePath), "/")
 				for _, file := range v.Files {
 					for _, decl := range file.Decls {
 						genDecl, ok := decl.(*ast.GenDecl)
@@ -42,8 +46,9 @@ func ParseDSLNodes(startPath string, baseGroupName string) map[string]Node {
 											rootNodes = append(rootNodes, fmt.Sprintf("%s/%s", pkgImport, typeSpec.Name.Name))
 										}
 
-										plural := util.ToPlural(strings.ToLower(typeSpec.Name.Name))
-										crdName := fmt.Sprintf("%s.%s", plural, baseGroupName)
+										singular := strings.ToLower(typeSpec.Name.Name)
+										plural := util.ToPlural(singular)
+										crdName := fmt.Sprintf("%s.%s.%s", plural, v.Name, baseGroupName)
 
 										if IsNexusNode(typeSpec) {
 											node := Node{
@@ -85,10 +90,13 @@ func ParseDSLNodes(startPath string, baseGroupName string) map[string]Node {
 	return graph
 }
 
-func CreateParentsMap(root Node) map[string][]string {
-	parents := make(map[string][]string)
+func CreateParentsMap(root Node) map[string]NodeHelper {
+	parents := make(map[string]NodeHelper)
 	root.Walk(func(node *Node) {
-		parents[node.CrdName] = node.Parents
+		parents[node.CrdName] = NodeHelper{
+			Name:    node.Name,
+			Parents: node.Parents,
+		}
 	})
 	return parents
 }

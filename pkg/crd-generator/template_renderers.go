@@ -33,7 +33,10 @@ var typesTemplateFile []byte
 //go:embed template/crd_base.yaml.tmpl
 var crdBaseTemplateFile []byte
 
-func RenderCRDTemplate(baseGroupName, crdModulePath string, pkgs parser.Packages, outputDir string) error {
+//go:embed template/helper.go.tmpl
+var helperTemplateFile []byte
+
+func RenderCRDTemplate(baseGroupName, crdModulePath string, pkgs parser.Packages, graph map[string]parser.Node, outputDir string) error {
 	pkgNames := make([]string, len(pkgs))
 	i := 0
 	for _, pkg := range pkgs {
@@ -97,7 +100,40 @@ func RenderCRDTemplate(baseGroupName, crdModulePath string, pkgs parser.Packages
 		}
 	}
 
+	err := RenderHelper(graph, outputDir, crdModulePath)
+	if err != nil {
+		return err
+	}
+
 	return createApiNamesFile(pkgNames, outputDir)
+}
+
+func RenderHelper(graph map[string]parser.Node, outputDir string, crdModulePath string) error {
+	parentsMap := make(map[string]parser.NodeHelper)
+	for _, root := range graph {
+		for k, v := range parser.CreateParentsMap(root) {
+			parentsMap[k] = v
+		}
+	}
+
+	helperFolder := outputDir + "/helper"
+	var err error
+	err = createCRDFolder(helperFolder)
+	if err != nil {
+		return err
+	}
+
+	file, err := RenderHelperTemplate(parentsMap, crdModulePath)
+	if err != nil {
+		return err
+	}
+	log.Debugf("Rendered helper: %s", file)
+	err = createFile(helperFolder, "helper.go", file, true)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func createCRDFolder(name string) error {
@@ -326,4 +362,34 @@ func createApiNamesFile(apiList []string, outputDir string) error {
 	var b bytes.Buffer
 	b.WriteString(apiNames)
 	return createFile(outputDir, "api_names.sh", &b, false)
+}
+
+type helperVars struct {
+	CrdModulePath      string
+	GetCrdParentsMap   string
+	GetObjectByCRDName string
+}
+
+func RenderHelperTemplate(parentsMap map[string]parser.NodeHelper, crdModulePath string) (*bytes.Buffer, error) {
+	var vars helperVars
+	vars.CrdModulePath = strings.TrimSuffix(crdModulePath, "/")
+	vars.GetCrdParentsMap = generateGetCrdParentsMap(parentsMap)
+	vars.GetObjectByCRDName = generateGetObjectByCRDName(parentsMap)
+
+	helperTemplate, err := readTemplateFile(helperTemplateFile)
+	if err != nil {
+		return nil, err
+	}
+
+	tmpl, err := renderTemplate(helperTemplate, vars)
+	if err != nil {
+		return nil, err
+	}
+
+	out, err := imports.Process("render.go", tmpl.Bytes(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return bytes.NewBuffer(out), nil
 }

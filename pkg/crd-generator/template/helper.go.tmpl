@@ -1,0 +1,57 @@
+package helper
+
+import (
+    "context"
+    "crypto/sha1"
+    "encoding/hex"
+    "fmt"
+    "github.com/elliotchance/orderedmap"
+
+    datamodel "{{.CrdModulePath}}/client/clientset/versioned"
+    metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+)
+
+const DEFAULT_KEY = "default"
+
+func GetCRDParentsMap() map[string][]string {
+    return {{.GetCrdParentsMap}}
+}
+
+func GetObjectByCRDName(dmClient *datamodel.Clientset, crdName string, name string) interface{} {
+	{{.GetObjectByCRDName}}
+
+    return nil
+}
+
+func ParseCRDLabels(crdName string, labels map[string]string) *orderedmap.OrderedMap {
+    parents := GetCrdParentsMap()[crdName]
+
+    m := orderedmap.NewOrderedMap()
+    for _, parent := range parents {
+        if label, ok := labels[parent]; ok {
+            m.Set(parent, label)
+        } else {
+            m.Set(parent, DEFAULT_KEY)
+        }
+    }
+
+    return m
+}
+
+func GenerateCRDName(crdName string, meta metav1.ObjectMeta) string {
+    labels := ParseCRDLabels(crdName, meta.Labels)
+
+    var name string
+    for i, key := range labels.Keys() {
+        value, _ := labels.Get(key)
+
+        name += fmt.Sprintf("%s:%s", key, value)
+        if i < labels.Len()-1 {
+            name += "/"
+        }
+    }
+
+    h := sha1.New()
+    h.Write([]byte(name))
+    return hex.EncodeToString(h.Sum(nil))
+}

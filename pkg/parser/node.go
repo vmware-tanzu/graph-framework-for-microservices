@@ -17,6 +17,11 @@ type Node struct {
 	MultipleLink     map[string]Node
 }
 
+type NodeHelper struct {
+	Name    string
+	Parents []string
+}
+
 func (node *Node) Walk(fn func(node *Node)) {
 	fn(node)
 
