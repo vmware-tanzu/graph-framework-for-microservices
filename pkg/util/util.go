@@ -1,6 +1,9 @@
 package util
 
-import "fmt"
+import (
+	"fmt"
+	"regexp"
+)
 
 func ToPlural(singular string) string {
 	var plural string
@@ -14,4 +17,12 @@ func ToPlural(singular string) string {
 	}
 
 	return plural
+}
+
+func RemoveSpecialChars(value string) string {
+	re, err := regexp.Compile(`[\_\.]`)
+	if err != nil {
+		fmt.Println(err)
+	}
+	return re.ReplaceAllString(value, "")
 }

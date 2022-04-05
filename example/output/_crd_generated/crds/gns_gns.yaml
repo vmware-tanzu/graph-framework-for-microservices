@@ -51,7 +51,7 @@ spec:
                 - Version
                 - ProjectId
                 type: object
-              dns:
+              dnsGvk:
                 properties:
                   group:
                     default: ""
@@ -70,7 +70,7 @@ spec:
               domain:
                 default: ""
                 type: string
-              gnsAccessControlPolicy:
+              gnsAccessControlPolicyGvk:
                 properties:
                   group:
                     default: ""
@@ -86,7 +86,7 @@ spec:
                 - kind
                 - name
                 type: object
-              gnsServiceGroups:
+              gnsServiceGroupsGvk:
                 additionalProperties:
                   properties:
                     group:

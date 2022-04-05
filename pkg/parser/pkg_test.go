@@ -4,6 +4,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	log "github.com/sirupsen/logrus"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/pkg/config"
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/pkg/parser"
 )
 
@@ -16,6 +17,9 @@ var _ = Describe("Pkg tests", func() {
 	)
 
 	BeforeEach(func() {
+		_, err := config.LoadConfig("../../example/nexus-sdk.yaml")
+		Expect(err).To(Not(HaveOccurred()))
+
 		pkgs = parser.ParseDSLPkg(exampleDSLPath)
 		pkg, ok = pkgs["gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/datamodel"]
 		Expect(ok).To(BeTrue())

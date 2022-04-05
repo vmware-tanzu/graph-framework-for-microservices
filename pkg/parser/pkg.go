@@ -28,6 +28,7 @@ type Package struct {
 	FullName string
 
 	//new fields
+	ModPath  string
 	Pkg      ast.Package
 	GenDecls []ast.GenDecl
 	FileSet  *token.FileSet
@@ -69,13 +70,27 @@ func (p *Package) GetImports() []*ast.ImportSpec {
 }
 
 func (p *Package) GetImportStrings() []string {
-	var importList []string
+	var (
+		importList            []string
+		aliasName, importPath string
+	)
 	imports := p.GetImports()
 	for _, val := range imports {
 		i := val.Path.Value
-		if val.Name != nil {
-			i = fmt.Sprintf("%s %s", val.Name.String(), i)
+		if strings.Contains(i, p.ModPath) {
+			if val.Name != nil {
+				aliasName, importPath = ConstructImports(val.Name.String(), i)
+			} else {
+				last := i[strings.LastIndex(i, "/")+1 : len(i)-1]
+				aliasName, importPath = ConstructImports(last, i)
+			}
+		} else {
+			if val.Name != nil {
+				importPath = i
+				aliasName, _ = ConstructImports(val.Name.String(), i)
+			}
 		}
+		i = fmt.Sprintf("%s %s", aliasName, importPath)
 		importList = append(importList, i)
 	}
 	return importList

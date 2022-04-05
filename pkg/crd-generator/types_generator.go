@@ -4,18 +4,22 @@ import (
 	"fmt"
 	"go/ast"
 	"go/types"
+	"strings"
 	"text/template"
 	"unicode"
 
 	log "github.com/sirupsen/logrus"
 
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/pkg/config"
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/pkg/parser"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/pkg/util"
 )
 
 const (
 	openapigen  string = "// +k8s:openapi-gen=true"
 	deepcopygen string = "// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object"
 	clientgen   string = "// +genclient\n// +genclient:noStatus\n// +genclient:nonNamespaced"
+	emptyTag    string = "`json:\"" + "-" + "\" yaml:\"" + "-" + "\"`"
 )
 
 func parsePackageCRDs(pkg parser.Package) string {
@@ -134,6 +138,9 @@ type {{.Name}}Spec struct {
 		if err != nil {
 			continue
 		}
+		typeString := generateTypeString(child)
+		specDef.Fields += "\t" + name + " " + typeString + " " + emptyTag + "\n"
+		name += "Gvk"
 		if parser.IsMapField(child) {
 			specDef.Fields += "\t" + name + " map[string]Child"
 		} else {
@@ -147,6 +154,9 @@ type {{.Name}}Spec struct {
 		if err != nil {
 			log.Fatalf("failed to GetFieldName: %v", err)
 		}
+		typeString := generateTypeString(link)
+		specDef.Fields += "\t" + name + " " + typeString + " " + emptyTag + "\n"
+		name += "Gvk"
 		if parser.IsMapField(link) {
 			specDef.Fields += "\t" + name + " map[string]Link"
 		} else {
@@ -192,6 +202,16 @@ type {{.Name}}List struct {
 		log.Fatalf("failed to render template: %v", err)
 	}
 	return b.String()
+}
+
+func generateTypeString(field *ast.Field) string {
+	typeString := strings.Split(types.ExprString(field.Type), ".")
+	newTypeString := typeString[0]
+	if len(typeString) > 1 {
+		importType := fmt.Sprintf("%s%sv1", typeString[0], config.ConfigInstance.GroupName)
+		newTypeString = strings.ToLower(util.RemoveSpecialChars(importType)) + "." + typeString[1]
+	}
+	return newTypeString
 }
 
 func parsePackageStructs(pkg parser.Package) string {

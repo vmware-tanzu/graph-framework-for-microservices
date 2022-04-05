@@ -22,6 +22,7 @@ limitations under the License.
 package v1
 
 import (
+	servicegrouptsmtanzuvmwarecomv1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/_crd_generated/apis/service_group.tsm.tanzu.vmware.com/v1"
 	runtime "k8s.io/apimachinery/pkg/runtime"
 )
 
@@ -183,13 +184,22 @@ func (in *GnsSpec) DeepCopyInto(out *GnsSpec) {
 	out.Description = in.Description
 	if in.GnsServiceGroups != nil {
 		in, out := &in.GnsServiceGroups, &out.GnsServiceGroups
+		*out = make(map[string]servicegrouptsmtanzuvmwarecomv1.SvcGroup, len(*in))
+		for key, val := range *in {
+			(*out)[key] = *val.DeepCopy()
+		}
+	}
+	if in.GnsServiceGroupsGvk != nil {
+		in, out := &in.GnsServiceGroupsGvk, &out.GnsServiceGroupsGvk
 		*out = make(map[string]Child, len(*in))
 		for key, val := range *in {
 			(*out)[key] = val
 		}
 	}
-	out.GnsAccessControlPolicy = in.GnsAccessControlPolicy
-	out.Dns = in.Dns
+	in.GnsAccessControlPolicy.DeepCopyInto(&out.GnsAccessControlPolicy)
+	out.GnsAccessControlPolicyGvk = in.GnsAccessControlPolicyGvk
+	in.Dns.DeepCopyInto(&out.Dns)
+	out.DnsGvk = in.DnsGvk
 	return
 }
 
