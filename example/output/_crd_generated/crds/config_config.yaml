@@ -35,7 +35,7 @@ spec:
             type: object
           spec:
             properties:
-              gNS:
+              gNSGvk:
                 properties:
                   group:
                     default: ""
@@ -51,7 +51,7 @@ spec:
                 - kind
                 - name
                 type: object
-              policy:
+              policyGvk:
                 additionalProperties:
                   properties:
                     group:

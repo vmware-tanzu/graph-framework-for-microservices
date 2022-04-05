@@ -19,8 +19,8 @@ limitations under the License.
 package root
 
 import (
-	internalinterfaces "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/_generated/client/informers/externalversions/internalinterfaces"
-	v1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/_generated/client/informers/externalversions/root.tsm.tanzu.vmware.com/v1"
+	internalinterfaces "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/_crd_generated/client/informers/externalversions/internalinterfaces"
+	v1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/_crd_generated/client/informers/externalversions/root.tsm.tanzu.vmware.com/v1"
 )
 
 // Interface provides access to each of this group's versions.

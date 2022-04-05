@@ -43,7 +43,7 @@ spec:
               description:
                 default: ""
                 type: string
-              destSvcGroups:
+              destSvcGroupsGvk:
                 additionalProperties:
                   properties:
                     group:
@@ -70,7 +70,7 @@ spec:
               projectId:
                 default: ""
                 type: string
-              sourceSvcGroups:
+              sourceSvcGroupsGvk:
                 additionalProperties:
                   properties:
                     group:

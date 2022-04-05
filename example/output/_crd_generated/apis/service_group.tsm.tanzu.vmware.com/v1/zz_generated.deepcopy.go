@@ -22,6 +22,7 @@ limitations under the License.
 package v1
 
 import (
+	corev1 "k8s.io/api/core/v1"
 	runtime "k8s.io/apimachinery/pkg/runtime"
 )
 
@@ -122,6 +123,13 @@ func (in *SvcGroupSpec) DeepCopyInto(out *SvcGroupSpec) {
 	*out = *in
 	if in.Services != nil {
 		in, out := &in.Services, &out.Services
+		*out = make(map[string]corev1.Service, len(*in))
+		for key, val := range *in {
+			(*out)[key] = *val.DeepCopy()
+		}
+	}
+	if in.ServicesGvk != nil {
+		in, out := &in.ServicesGvk, &out.ServicesGvk
 		*out = make(map[string]Link, len(*in))
 		for key, val := range *in {
 			(*out)[key] = val

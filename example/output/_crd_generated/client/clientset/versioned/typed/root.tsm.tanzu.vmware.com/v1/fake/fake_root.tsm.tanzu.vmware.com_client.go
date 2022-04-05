@@ -19,7 +19,7 @@ limitations under the License.
 package fake
 
 import (
-	v1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/_generated/client/clientset/versioned/typed/root.tsm.tanzu.vmware.com/v1"
+	v1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/_crd_generated/client/clientset/versioned/typed/root.tsm.tanzu.vmware.com/v1"
 	rest "k8s.io/client-go/rest"
 	testing "k8s.io/client-go/testing"
 )

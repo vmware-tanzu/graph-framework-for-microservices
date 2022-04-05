@@ -44,7 +44,7 @@ spec:
               displayName:
                 default: ""
                 type: string
-              services:
+              servicesGvk:
                 additionalProperties:
                   properties:
                     group:

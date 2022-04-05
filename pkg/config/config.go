@@ -8,6 +8,8 @@ import (
 	"github.com/ghodss/yaml"
 )
 
+var ConfigInstance *Config
+
 type Config struct {
 	GroupName     string `yaml:"groupName"`
 	CrdModulePath string `yaml:"crdModulePath"`
