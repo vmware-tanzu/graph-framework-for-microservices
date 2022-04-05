@@ -22,10 +22,10 @@ import (
 	"context"
 	time "time"
 
-	servicegrouptsmtanzuvmwarecomv1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/_crd_generated/apis/service_group.tsm.tanzu.vmware.com/v1"
+	servicegrouptsmtanzuvmwarecomv1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/_crd_generated/apis/servicegroup.tsm.tanzu.vmware.com/v1"
 	versioned "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/_crd_generated/client/clientset/versioned"
 	internalinterfaces "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/_crd_generated/client/informers/externalversions/internalinterfaces"
-	v1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/_crd_generated/client/listers/service_group.tsm.tanzu.vmware.com/v1"
+	v1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/_crd_generated/client/listers/servicegroup.tsm.tanzu.vmware.com/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	runtime "k8s.io/apimachinery/pkg/runtime"
 	watch "k8s.io/apimachinery/pkg/watch"
@@ -61,13 +61,13 @@ func NewFilteredSvcGroupInformer(client versioned.Interface, resyncPeriod time.D
 				if tweakListOptions != nil {
 					tweakListOptions(&options)
 				}
-				return client.Service_groupTsmV1().SvcGroups().List(context.TODO(), options)
+				return client.ServicegroupTsmV1().SvcGroups().List(context.TODO(), options)
 			},
 			WatchFunc: func(options metav1.ListOptions) (watch.Interface, error) {
 				if tweakListOptions != nil {
 					tweakListOptions(&options)
 				}
-				return client.Service_groupTsmV1().SvcGroups().Watch(context.TODO(), options)
+				return client.ServicegroupTsmV1().SvcGroups().Watch(context.TODO(), options)
 			},
 		},
 		&servicegrouptsmtanzuvmwarecomv1.SvcGroup{},

@@ -26,7 +26,7 @@ import (
 	nexustsmv1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/_crd_generated/client/clientset/versioned/typed/nexus.tsm.tanzu.vmware.com/v1"
 	policytsmv1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/_crd_generated/client/clientset/versioned/typed/policy.tsm.tanzu.vmware.com/v1"
 	roottsmv1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/_crd_generated/client/clientset/versioned/typed/root.tsm.tanzu.vmware.com/v1"
-	service_grouptsmv1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/_crd_generated/client/clientset/versioned/typed/service_group.tsm.tanzu.vmware.com/v1"
+	servicegrouptsmv1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/_crd_generated/client/clientset/versioned/typed/servicegroup.tsm.tanzu.vmware.com/v1"
 	discovery "k8s.io/client-go/discovery"
 	rest "k8s.io/client-go/rest"
 	flowcontrol "k8s.io/client-go/util/flowcontrol"
@@ -39,19 +39,19 @@ type Interface interface {
 	NexusTsmV1() nexustsmv1.NexusTsmV1Interface
 	PolicyTsmV1() policytsmv1.PolicyTsmV1Interface
 	RootTsmV1() roottsmv1.RootTsmV1Interface
-	Service_groupTsmV1() service_grouptsmv1.Service_groupTsmV1Interface
+	ServicegroupTsmV1() servicegrouptsmv1.ServicegroupTsmV1Interface
 }
 
 // Clientset contains the clients for groups. Each group has exactly one
 // version included in a Clientset.
 type Clientset struct {
 	*discovery.DiscoveryClient
-	configTsmV1        *configtsmv1.ConfigTsmV1Client
-	gnsTsmV1           *gnstsmv1.GnsTsmV1Client
-	nexusTsmV1         *nexustsmv1.NexusTsmV1Client
-	policyTsmV1        *policytsmv1.PolicyTsmV1Client
-	rootTsmV1          *roottsmv1.RootTsmV1Client
-	service_groupTsmV1 *service_grouptsmv1.Service_groupTsmV1Client
+	configTsmV1       *configtsmv1.ConfigTsmV1Client
+	gnsTsmV1          *gnstsmv1.GnsTsmV1Client
+	nexusTsmV1        *nexustsmv1.NexusTsmV1Client
+	policyTsmV1       *policytsmv1.PolicyTsmV1Client
+	rootTsmV1         *roottsmv1.RootTsmV1Client
+	servicegroupTsmV1 *servicegrouptsmv1.ServicegroupTsmV1Client
 }
 
 // ConfigTsmV1 retrieves the ConfigTsmV1Client
@@ -79,9 +79,9 @@ func (c *Clientset) RootTsmV1() roottsmv1.RootTsmV1Interface {
 	return c.rootTsmV1
 }
 
-// Service_groupTsmV1 retrieves the Service_groupTsmV1Client
-func (c *Clientset) Service_groupTsmV1() service_grouptsmv1.Service_groupTsmV1Interface {
-	return c.service_groupTsmV1
+// ServicegroupTsmV1 retrieves the ServicegroupTsmV1Client
+func (c *Clientset) ServicegroupTsmV1() servicegrouptsmv1.ServicegroupTsmV1Interface {
+	return c.servicegroupTsmV1
 }
 
 // Discovery retrieves the DiscoveryClient
@@ -125,7 +125,7 @@ func NewForConfig(c *rest.Config) (*Clientset, error) {
 	if err != nil {
 		return nil, err
 	}
-	cs.service_groupTsmV1, err = service_grouptsmv1.NewForConfig(&configShallowCopy)
+	cs.servicegroupTsmV1, err = servicegrouptsmv1.NewForConfig(&configShallowCopy)
 	if err != nil {
 		return nil, err
 	}
@@ -146,7 +146,7 @@ func NewForConfigOrDie(c *rest.Config) *Clientset {
 	cs.nexusTsmV1 = nexustsmv1.NewForConfigOrDie(c)
 	cs.policyTsmV1 = policytsmv1.NewForConfigOrDie(c)
 	cs.rootTsmV1 = roottsmv1.NewForConfigOrDie(c)
-	cs.service_groupTsmV1 = service_grouptsmv1.NewForConfigOrDie(c)
+	cs.servicegroupTsmV1 = servicegrouptsmv1.NewForConfigOrDie(c)
 
 	cs.DiscoveryClient = discovery.NewDiscoveryClientForConfigOrDie(c)
 	return &cs
@@ -160,7 +160,7 @@ func New(c rest.Interface) *Clientset {
 	cs.nexusTsmV1 = nexustsmv1.New(c)
 	cs.policyTsmV1 = policytsmv1.New(c)
 	cs.rootTsmV1 = roottsmv1.New(c)
-	cs.service_groupTsmV1 = service_grouptsmv1.New(c)
+	cs.servicegroupTsmV1 = servicegrouptsmv1.New(c)
 
 	cs.DiscoveryClient = discovery.NewDiscoveryClient(c)
 	return &cs

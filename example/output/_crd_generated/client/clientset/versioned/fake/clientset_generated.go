@@ -30,8 +30,8 @@ import (
 	fakepolicytsmv1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/_crd_generated/client/clientset/versioned/typed/policy.tsm.tanzu.vmware.com/v1/fake"
 	roottsmv1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/_crd_generated/client/clientset/versioned/typed/root.tsm.tanzu.vmware.com/v1"
 	fakeroottsmv1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/_crd_generated/client/clientset/versioned/typed/root.tsm.tanzu.vmware.com/v1/fake"
-	service_grouptsmv1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/_crd_generated/client/clientset/versioned/typed/service_group.tsm.tanzu.vmware.com/v1"
-	fakeservice_grouptsmv1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/_crd_generated/client/clientset/versioned/typed/service_group.tsm.tanzu.vmware.com/v1/fake"
+	servicegrouptsmv1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/_crd_generated/client/clientset/versioned/typed/servicegroup.tsm.tanzu.vmware.com/v1"
+	fakeservicegrouptsmv1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/_crd_generated/client/clientset/versioned/typed/servicegroup.tsm.tanzu.vmware.com/v1/fake"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/watch"
 	"k8s.io/client-go/discovery"
@@ -114,7 +114,7 @@ func (c *Clientset) RootTsmV1() roottsmv1.RootTsmV1Interface {
 	return &fakeroottsmv1.FakeRootTsmV1{Fake: &c.Fake}
 }
 
-// Service_groupTsmV1 retrieves the Service_groupTsmV1Client
-func (c *Clientset) Service_groupTsmV1() service_grouptsmv1.Service_groupTsmV1Interface {
-	return &fakeservice_grouptsmv1.FakeService_groupTsmV1{Fake: &c.Fake}
+// ServicegroupTsmV1 retrieves the ServicegroupTsmV1Client
+func (c *Clientset) ServicegroupTsmV1() servicegrouptsmv1.ServicegroupTsmV1Interface {
+	return &fakeservicegrouptsmv1.FakeServicegroupTsmV1{Fake: &c.Fake}
 }
