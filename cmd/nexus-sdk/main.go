@@ -50,7 +50,8 @@ func main() {
 	}
 
 	pkgs := parser.ParseDSLPkg(*dslDir)
-	if err = crd_generator.RenderCRDTemplate(conf.GroupName, conf.CrdModulePath, pkgs, *crdDir); err != nil {
+	graph := parser.ParseDSLNodes(*dslDir, conf.GroupName)
+	if err = crd_generator.RenderCRDTemplate(conf.GroupName, conf.CrdModulePath, pkgs, graph, *crdDir); err != nil {
 		log.Fatalf("Error rendering crd template: %v", err)
 	}
 }
