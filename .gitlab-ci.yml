@@ -1,0 +1,44 @@
+image:
+  name: runner.servicemesh.biz:5000/allspark/runner:latest
+
+variables:
+  REPOSITORY: nsx-allspark_users/nexus-sdk/compiler
+
+before_script:
+  - git config --global url."https://github.com/".insteadOf "git@github.com:"
+  - git config --global url."https://gitlab.eng.vmware.com/".insteadOf "git@gitlab.eng.vmware.com:"
+  - git config --global gc.auto 0
+  - git config --global credential.helper store
+
+.create_builder: &create_builder
+  - export CONTAINER_ID=$(docker ps -q -f "label=com.gitlab.gitlab-runner.job.id=$CI_JOB_ID" -f "label=com.gitlab.gitlab-runner.type=build")
+  - USE_SSH=false make docker.builder
+
+.setup_aws: &setup_aws
+  - apt clean && apt update -y && apt install unzip -y
+  - curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64-2.0.30.zip" -o "awscliv2.zip"
+  - unzip -qq awscliv2.zip
+  - ./aws/install -i /usr/local/aws-cli -b /usr/local/bin
+  - aws configure set aws_secret_access_key $AWS_SECRET_ACCESS_KEY
+  - aws configure set aws_access_key_id $AWS_ACCESS_KEY_ID
+  -  docker login --username AWS -p $(aws ecr get-login-password --region us-west-2) 284299419820.dkr.ecr.us-west-2.amazonaws.com
+
+test:
+  image: runner.servicemesh.biz:5000/allspark/runner:latest
+  stage: test
+  script:
+    - *setup_aws
+    - *create_builder
+    - CONTAINER_ID=$CONTAINER_ID PKG_NAME=/builds/${REPOSITORY} make test_in_container
+
+generate_code:
+  image: runner.servicemesh.biz:5000/allspark/runner:latest
+  stage: generate_code
+  script:
+    - *setup_aws
+    - *create_builder
+    - CONTAINER_ID=$CONTAINER_ID PKG_NAME=/builds/${REPOSITORY} make test_generate_code_in_container
+
+stages:
+  - test
+  - generate_code
