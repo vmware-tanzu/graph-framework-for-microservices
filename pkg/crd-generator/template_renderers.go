@@ -339,7 +339,7 @@ func RenderCRDBaseTemplate(baseGroupName string, pkg parser.Package, parentsMap 
 			Plural:          plural,
 			Kind:            kind,
 			KindList:        fmt.Sprintf("%sList", kind),
-			NexusAnnotation: fmt.Sprintf("\"%s\"", string(nexusAnnotationStr)),
+			NexusAnnotation: string(nexusAnnotationStr),
 			// TODO make configurable by some variable in package
 			ResourceVersion: "v1",
 		}
