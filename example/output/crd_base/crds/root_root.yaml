@@ -5,6 +5,9 @@ kind: CustomResourceDefinition
 metadata:
   creationTimestamp: null
   name: roots.root.tsm.tanzu.vmware.com
+  annotations:
+    nexus: |
+      "{"hierarchy":[]}"
 spec:
   conversion:
     strategy: None
