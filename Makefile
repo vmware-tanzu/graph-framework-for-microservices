@@ -10,7 +10,7 @@ GIT_BRANCH := $(shell git show-ref | grep "$(GIT_REVISION)" | \
 
 BUILD_VERSION ?= $$(cat BUILD_VERSION)
 
-PKG = gitlab.eng.vmware.com/nexus/$(PACKAGE_NAME)
+PKG = gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/$(PACKAGE_NAME)
 COMMON_PACKAGE = $(PKG)/pkg/common
 
 
