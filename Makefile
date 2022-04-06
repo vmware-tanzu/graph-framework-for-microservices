@@ -100,7 +100,10 @@ generate_code:
 	./scripts/generate_openapi_schema.sh
 	$(MAKE) -C pkg/openapi_generator generate_test_schemas
 	goimports -w pkg
-	cp -r _generated/{client,apis,crds} ${GENERATED_OUTPUT_DIRECTORY}
+
+	@if [ -z "$CONTAINER_ID" ]; then \
+		cp -r _generated/{client,apis,crds} ${GENERATED_OUTPUT_DIRECTORY} \
+	fi
 
 .PHONY: test_generate_code_in_container
 test_generate_code_in_container: ${BUILDER_NAME}\:${BUILDER_TAG}.image.exists init_submodules
@@ -108,7 +111,6 @@ test_generate_code_in_container: ${BUILDER_NAME}\:${BUILDER_TAG}.image.exists in
 	CONFIG_FILE=example/nexus-sdk.yaml \
 	CRD_MODULE_PATH="gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/_crd_generated/" \
 	GENERATED_OUTPUT_DIRECTORY=example/output/_crd_generated)
-	tree
 	@if [ -n "$$(git ls-files --modified --exclude-standard)" ]; then\
 		echo "The following changes should be committed:";\
 		git status;\
