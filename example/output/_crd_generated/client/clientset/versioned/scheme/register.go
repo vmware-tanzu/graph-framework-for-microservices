@@ -24,7 +24,7 @@ import (
 	nexustsmv1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/_crd_generated/apis/nexus.tsm.tanzu.vmware.com/v1"
 	policytsmv1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/_crd_generated/apis/policy.tsm.tanzu.vmware.com/v1"
 	roottsmv1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/_crd_generated/apis/root.tsm.tanzu.vmware.com/v1"
-	servicegrouptsmv1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/_crd_generated/apis/servicegroup.tsm.tanzu.vmware.com/v1"
+	service_grouptsmv1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/_crd_generated/apis/service_group.tsm.tanzu.vmware.com/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	runtime "k8s.io/apimachinery/pkg/runtime"
 	schema "k8s.io/apimachinery/pkg/runtime/schema"
@@ -41,7 +41,7 @@ var localSchemeBuilder = runtime.SchemeBuilder{
 	nexustsmv1.AddToScheme,
 	policytsmv1.AddToScheme,
 	roottsmv1.AddToScheme,
-	servicegrouptsmv1.AddToScheme,
+	service_grouptsmv1.AddToScheme,
 }
 
 // AddToScheme adds all types of this clientset into the given scheme. This allows composition

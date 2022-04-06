@@ -8,7 +8,6 @@ import (
 
 	log "github.com/sirupsen/logrus"
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/pkg/config"
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/pkg/util"
 	"golang.org/x/mod/modfile"
 )
 
@@ -28,6 +27,6 @@ func ConstructImports(inputAlias, inputImportPath string) (string, string) {
 	aliasName := fmt.Sprintf("%s%sv1", inputAlias, config.ConfigInstance.GroupName)
 	aliasName = re.ReplaceAllString(aliasName, "")
 
-	importPath := fmt.Sprintf("\"%sapis/%s.%s/v1\"", config.ConfigInstance.CrdModulePath, util.RemoveSpecialChars(inputAlias), config.ConfigInstance.GroupName)
+	importPath := fmt.Sprintf("\"%sapis/%s.%s/v1\"", config.ConfigInstance.CrdModulePath, inputAlias, config.ConfigInstance.GroupName)
 	return aliasName, importPath
 }

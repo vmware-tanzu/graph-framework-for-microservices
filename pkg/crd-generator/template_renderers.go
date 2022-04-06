@@ -40,7 +40,7 @@ func RenderCRDTemplate(baseGroupName, crdModulePath string, pkgs parser.Packages
 	pkgNames := make([]string, len(pkgs))
 	i := 0
 	for _, pkg := range pkgs {
-		groupName := util.RemoveSpecialChars(pkg.Name) + "." + baseGroupName
+		groupName := pkg.Name + "." + baseGroupName
 		pkgNames[i] = groupName + ":v1"
 		i++
 		groupFolder := outputDir + "/apis/" + groupName + "/"
@@ -188,8 +188,8 @@ func RenderDocTemplate(baseGroupName string, pkg parser.Package) (*bytes.Buffer,
 	vars := docVars{
 		// TODO make it configurable
 		Version:     "v1",
-		GroupName:   util.RemoveSpecialChars(pkg.Name) + "." + baseGroupName,
-		GroupGoName: strings.Title(strings.ToLower(util.RemoveSpecialChars(pkg.Name))) + strings.Title(strings.Split(baseGroupName, ".")[0]),
+		GroupName:   pkg.Name + "." + baseGroupName,
+		GroupGoName: strings.Title(strings.ToLower(pkg.Name)) + strings.Title(strings.Split(baseGroupName, ".")[0]),
 	}
 	if vars.GroupGoName == "" || vars.GroupName == "" {
 		return nil, fmt.Errorf("failed to determine group name of package")
@@ -209,7 +209,7 @@ type registerGroupVars struct {
 }
 
 func RenderRegisterGroupTemplate(baseGroupName string, pkg parser.Package) (*bytes.Buffer, error) {
-	groupName := util.RemoveSpecialChars(pkg.Name) + "." + baseGroupName
+	groupName := pkg.Name + "." + baseGroupName
 	vars := registerGroupVars{
 		GroupName:   groupName,
 		PackageName: strings.Replace(groupName, ".", "_", -1),
@@ -240,7 +240,7 @@ func RenderRegisterCRDTemplate(crdModulePath, baseGroupName string, pkg parser.P
 		knownTypes += "\t\t&" + parser.GetTypeName(node) + "{},\n\t\t&" + parser.GetTypeName(node) + "List{},\n"
 	}
 
-	groupName := util.RemoveSpecialChars(pkg.Name) + "." + baseGroupName
+	groupName := pkg.Name + "." + baseGroupName
 	vars := registerCRDVars{
 		GroupPackageName:   strings.Replace(groupName, ".", "_", -1),
 		GroupPackageImport: crdModulePath + "apis/" + groupName,
@@ -312,7 +312,7 @@ func RenderCRDBaseTemplate(baseGroupName string, pkg parser.Package) ([]CrdBaseF
 	var crds []CrdBaseFile
 	for _, node := range pkg.GetNexusNodes() {
 		typeName := parser.GetTypeName(node)
-		groupName := util.RemoveSpecialChars(pkg.Name) + "." + baseGroupName
+		groupName := pkg.Name + "." + baseGroupName
 		singular := strings.ToLower(typeName)
 		kind := strings.Title(singular)
 		plural := util.ToPlural(singular)
@@ -344,7 +344,7 @@ func RenderCRDBaseTemplate(baseGroupName string, pkg parser.Package) ([]CrdBaseF
 			return nil, err
 		}
 		crd := CrdBaseFile{
-			Name: util.RemoveSpecialChars(pkg.Name) + "_" + singular + ".yaml",
+			Name: pkg.Name + "_" + singular + ".yaml",
 			File: file,
 		}
 		crds = append(crds, crd)

@@ -29,7 +29,7 @@ import (
 	internalinterfaces "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/_crd_generated/client/informers/externalversions/internalinterfaces"
 	policytsmtanzuvmwarecom "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/_crd_generated/client/informers/externalversions/policy.tsm.tanzu.vmware.com"
 	roottsmtanzuvmwarecom "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/_crd_generated/client/informers/externalversions/root.tsm.tanzu.vmware.com"
-	servicegrouptsmtanzuvmwarecom "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/_crd_generated/client/informers/externalversions/servicegroup.tsm.tanzu.vmware.com"
+	servicegrouptsmtanzuvmwarecom "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/_crd_generated/client/informers/externalversions/service_group.tsm.tanzu.vmware.com"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	runtime "k8s.io/apimachinery/pkg/runtime"
 	schema "k8s.io/apimachinery/pkg/runtime/schema"
@@ -180,7 +180,7 @@ type SharedInformerFactory interface {
 	GnsTsm() gnstsmtanzuvmwarecom.Interface
 	PolicyTsm() policytsmtanzuvmwarecom.Interface
 	RootTsm() roottsmtanzuvmwarecom.Interface
-	ServicegroupTsm() servicegrouptsmtanzuvmwarecom.Interface
+	Service_groupTsm() servicegrouptsmtanzuvmwarecom.Interface
 }
 
 func (f *sharedInformerFactory) ConfigTsm() configtsmtanzuvmwarecom.Interface {
@@ -199,6 +199,6 @@ func (f *sharedInformerFactory) RootTsm() roottsmtanzuvmwarecom.Interface {
 	return roottsmtanzuvmwarecom.New(f, f.namespace, f.tweakListOptions)
 }
 
-func (f *sharedInformerFactory) ServicegroupTsm() servicegrouptsmtanzuvmwarecom.Interface {
+func (f *sharedInformerFactory) Service_groupTsm() servicegrouptsmtanzuvmwarecom.Interface {
 	return servicegrouptsmtanzuvmwarecom.New(f, f.namespace, f.tweakListOptions)
 }
