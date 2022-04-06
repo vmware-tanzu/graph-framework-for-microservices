@@ -5,7 +5,7 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/utils"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli/pkg/utils"
 )
 
 var (
