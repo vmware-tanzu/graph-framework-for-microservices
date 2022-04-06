@@ -100,7 +100,7 @@ generate_code:
 	./scripts/generate_openapi_schema.sh
 	$(MAKE) -C pkg/openapi_generator generate_test_schemas
 	goimports -w pkg
-	cp -r _generated/{client,apis,crds} ${GENERATED_OUTPUT_DIRECTORY}; \
+	cp -r _generated/{client,apis,crds} ${GENERATED_OUTPUT_DIRECTORY}
 
 .PHONY: test_generate_code_in_container
 test_generate_code_in_container: ${BUILDER_NAME}\:${BUILDER_TAG}.image.exists init_submodules
