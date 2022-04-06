@@ -108,6 +108,7 @@ test_generate_code_in_container: ${BUILDER_NAME}\:${BUILDER_TAG}.image.exists in
 	CONFIG_FILE=example/nexus-sdk.yaml \
 	CRD_MODULE_PATH="gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/_crd_generated/" \
 	GENERATED_OUTPUT_DIRECTORY=example/output/_crd_generated)
+	tree
 	@if [ -n "$$(git ls-files --modified --exclude-standard)" ]; then\
 		echo "The following changes should be committed:";\
 		git status;\

@@ -10,6 +10,7 @@ RUN tdnf -y --refresh install \
   build-essential=0.1-3.ph4 \
   openssh-clients=8.8p1-2.ph4 \
   jq=1.6-2.ph4 \
+  tree \
   && go install github.com/onsi/ginkgo/ginkgo@v1.16.0 \
   && go get github.com/onsi/gomega/...@v1.17.0 \
   && go install golang.org/x/tools/cmd/goimports@latest \
