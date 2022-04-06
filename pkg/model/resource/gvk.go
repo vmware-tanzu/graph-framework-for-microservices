@@ -39,10 +39,13 @@ var (
 // GVK stores the Group - Version - Kind triplet that uniquely identifies a resource.
 // In kubebuilder, the k8s fully qualified group is stored as Group and Domain to improve UX.
 type GVK struct {
-	Group   string `json:"group,omitempty"`
-	Domain  string `json:"domain,omitempty"`
-	Version string `json:"version"`
-	Kind    string `json:"kind"`
+	Group               string `json:"group,omitempty"`
+	Domain              string `json:"domain,omitempty"`
+	Version             string `json:"version"`
+	Kind                string `json:"kind"`
+	DatamodelImport     string `json:"datamodelImport,omitempty"`
+	DatamodelAlias      string `json:"datamodelAlias,omitempty"`
+	DatamodelFullImport string `json:"datamodelFqdnImport,omitempty"`
 }
 
 // Validate checks that the GVK is valid.

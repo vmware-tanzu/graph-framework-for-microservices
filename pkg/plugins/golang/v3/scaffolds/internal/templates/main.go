@@ -19,6 +19,7 @@ package templates
 import (
 	"fmt"
 	"path/filepath"
+	"strings"
 
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kubebuilder.git/pkg/machinery"
 )
@@ -95,7 +96,11 @@ const (
 `
 	multiGroupControllerImportCodeFragment = `%scontrollers "%s/controllers/%s"
 `
+	datamodelImportCodeFragment = `%s "%s"
+`
 	addschemeCodeFragment = `utilruntime.Must(%s.AddToScheme(scheme))
+`
+	datamodelSchemeCodeFragment = `%s.AddToScheme(scheme)
 `
 	reconcilerSetupCodeFragment = `if err = (&controllers.%sReconciler{
 		Client: mgr.GetClient(),
@@ -120,10 +125,13 @@ const (
 `
 )
 
+func GetNodeName(data string) string {
+	return strings.ReplaceAll(data, ".", "")
+}
+
 // GetCodeFragments implements file.Inserter
 func (f *MainUpdater) GetCodeFragments() machinery.CodeFragmentsMap {
 	fragments := make(machinery.CodeFragmentsMap, 3)
-
 	// If resource is not being provided we are creating the file, not updating it
 	if f.Resource == nil {
 		return fragments
@@ -143,9 +151,17 @@ func (f *MainUpdater) GetCodeFragments() machinery.CodeFragmentsMap {
 				f.Resource.PackageName(), f.Repo, f.Resource.Group))
 		}
 	}
+	if f.Resource.DatamodelFullImport != "" {
+		imports = append(imports, fmt.Sprintf(datamodelImportCodeFragment,
+			f.Resource.DatamodelAlias, f.Resource.DatamodelFullImport))
+	}
 
 	// Generate add scheme code fragments
 	addScheme := make([]string, 0)
+	if f.Resource.DatamodelAlias != "" {
+		addScheme = append(addScheme, fmt.Sprintf(datamodelSchemeCodeFragment,
+			f.Resource.DatamodelAlias))
+	}
 	if f.WireResource {
 		addScheme = append(addScheme, fmt.Sprintf(addschemeCodeFragment, f.Resource.ImportAlias()))
 	}

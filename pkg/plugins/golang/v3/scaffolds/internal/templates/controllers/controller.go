@@ -19,6 +19,7 @@ package controllers
 import (
 	"fmt"
 	"path/filepath"
+	"strings"
 
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kubebuilder.git/pkg/machinery"
 )
@@ -57,7 +58,12 @@ func (f *Controller) SetTemplateDefaults() error {
 	} else {
 		f.IfExistsAction = machinery.Error
 	}
-
+	if f.Resource.DatamodelAlias == "" {
+		f.Resource.DatamodelAlias = fmt.Sprintf("%s%s", strings.ReplaceAll(f.Resource.Group, ".", ""), f.Resource.Version)
+	}
+	if f.Resource.DatamodelImport != "" {
+		f.Resource.DatamodelFullImport = fmt.Sprintf("%s/build/apis/%s/%s", f.Resource.DatamodelImport, f.Resource.Group, f.Resource.Version)
+	}
 	return nil
 }
 
@@ -74,6 +80,9 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/log"
 	{{ if not (isEmptyStr .Resource.Path) -}}
 	{{ .Resource.ImportAlias }} "{{ .Resource.Path }}"
+	{{- end }}
+	{{ if not (isEmptyStr .Resource.DatamodelImport ) -}}
+	{{ .Resource.DatamodelAlias }} "{{ .Resource.DatamodelFullImport }}"
 	{{- end }}
 )
 
@@ -109,9 +118,12 @@ func (r *{{ .Resource.Kind }}Reconciler) SetupWithManager(mgr ctrl.Manager) erro
 	return ctrl.NewControllerManagedBy(mgr).
 		{{ if not (isEmptyStr .Resource.Path) -}}
 		For(&{{ .Resource.ImportAlias }}.{{ .Resource.Kind }}{}).
-		{{- else -}}
 		// Uncomment the following line adding a pointer to an instance of the controlled resource as an argument
 		// For().
+		{{- else -}}
+		{{ if not (isEmptyStr .Resource.DatamodelAlias) -}}
+		For(&{{ .Resource.DatamodelAlias }}.{{ .Resource.Kind }}{}).
+		{{- end }}
 		{{- end }}
 		Complete(r)
 }
