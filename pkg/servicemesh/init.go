@@ -2,13 +2,13 @@ package servicemesh
 
 import (
 	"github.com/spf13/cobra"
-	"gitlab.eng.vmware.co/nsx-allspark_users/nexus-sdk/cli.git/pkg/servicemesh/app"
-	"gitlab.eng.vmware.co/nsx-allspark_users/nexus-sdk/cli.git/pkg/servicemesh/apply"
-	servicemesh_datamodel "gitlab.eng.vmware.co/nsx-allspark_users/nexus-sdk/cli.git/pkg/servicemesh/datamodel"
-	"gitlab.eng.vmware.co/nsx-allspark_users/nexus-sdk/cli.git/pkg/servicemesh/login"
-	"gitlab.eng.vmware.co/nsx-allspark_users/nexus-sdk/cli.git/pkg/servicemesh/runtime"
-	"gitlab.eng.vmware.co/nsx-allspark_users/nexus-sdk/cli.git/pkg/servicemesh/version"
 	"gitlab.eng.vmware.com/nsx-allspark_users/lib-go/logging"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/servicemesh/app"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/servicemesh/apply"
+	servicemesh_datamodel "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/servicemesh/datamodel"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/servicemesh/login"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/servicemesh/runtime"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/servicemesh/version"
 )
 
 // GnsCmd ... GNS command

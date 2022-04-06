@@ -5,7 +5,7 @@ import (
 	"io/ioutil"
 	"os"
 
-	common "gitlab.eng.vmware.co/nsx-allspark_users/nexus-sdk/cli.git/pkg/common"
+	common "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/common"
 	"gopkg.in/yaml.v2"
 )
 

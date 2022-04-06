@@ -7,7 +7,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"github.com/spf13/cobra"
-	"gitlab.eng.vmware.co/nsx-allspark_users/nexus-sdk/cli.git/pkg/utils"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/utils"
 )
 
 func Uninstall(cmd *cobra.Command, args []string) error {
