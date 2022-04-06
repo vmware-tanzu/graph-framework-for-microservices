@@ -8,6 +8,7 @@ import (
 
 const (
 	baseGroupName = "tsm.tanzu.vmware.com"
+	crdModulePath = "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/_crd_generated/"
 )
 
 var _ = Describe("Node parser tests", func() {
