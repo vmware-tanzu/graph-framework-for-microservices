@@ -30,15 +30,7 @@ test:
     - *setup_aws
     - *create_builder
     - CONTAINER_ID=$CONTAINER_ID PKG_NAME=/builds/${REPOSITORY} make test_in_container
-
-generate_code:
-  image: runner.servicemesh.biz:5000/allspark/runner:latest
-  stage: generate_code
-  script:
-    - *setup_aws
-    - *create_builder
     - CONTAINER_ID=$CONTAINER_ID PKG_NAME=/builds/${REPOSITORY} make test_generate_code_in_container
 
 stages:
   - test
-  - generate_code
