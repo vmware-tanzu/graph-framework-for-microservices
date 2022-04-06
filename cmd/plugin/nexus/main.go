@@ -4,7 +4,7 @@ import (
 	"os"
 
 	"github.com/spf13/cobra"
-	"gitlab.eng.vmware.com/nexus/cli/pkg/servicemesh"
+	"gitlab.eng.vmware.co/nsx-allspark_users/nexus-sdk/cli.git/pkg/servicemesh"
 )
 
 var rootCmd = &cobra.Command{

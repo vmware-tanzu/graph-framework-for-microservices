@@ -8,9 +8,9 @@ import (
 	"strings"
 
 	"github.com/spf13/cobra"
-	"gitlab.eng.vmware.com/nexus/cli/pkg/servicemesh/auth"
-	"gitlab.eng.vmware.com/nexus/cli/pkg/servicemesh/generated"
-	"gitlab.eng.vmware.com/nexus/cli/pkg/utils"
+	"gitlab.eng.vmware.co/nsx-allspark_users/nexus-sdk/cli.git/pkg/servicemesh/auth"
+	"gitlab.eng.vmware.co/nsx-allspark_users/nexus-sdk/cli.git/pkg/servicemesh/generated"
+	"gitlab.eng.vmware.co/nsx-allspark_users/nexus-sdk/cli.git/pkg/utils"
 	"gopkg.in/resty.v1"
 	yaml "gopkg.in/yaml.v2"
 )
