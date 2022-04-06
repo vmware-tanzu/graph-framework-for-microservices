@@ -1,7 +1,6 @@
-apiVersion: root.helloworld.com/v1
+apiVersion: root.tsm.tanzu.vmware.com/v1
 kind: Root
 metadata:
   name: root1
   namespace: default
 spec:
-  myInt: 100
