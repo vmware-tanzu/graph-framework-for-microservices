@@ -25,7 +25,7 @@ import (
 	"strings"
 	"time"
 
-	"sigs.k8s.io/kubebuilder/v3/pkg/plugin/util"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kubebuilder.git/pkg/plugin/util"
 
 	//nolint:golint
 	//nolint:revive
@@ -34,7 +34,7 @@ import (
 	//nolint:revive
 	. "github.com/onsi/gomega"
 
-	"sigs.k8s.io/kubebuilder/v3/test/e2e/utils"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kubebuilder.git/test/e2e/utils"
 )
 
 var _ = Describe("kubebuilder", func() {

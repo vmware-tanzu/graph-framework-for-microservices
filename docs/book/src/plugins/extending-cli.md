@@ -18,13 +18,13 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 
-	"sigs.k8s.io/kubebuilder/v3/pkg/cli"
-	cfgv3 "sigs.k8s.io/kubebuilder/v3/pkg/config/v3"
-	"sigs.k8s.io/kubebuilder/v3/pkg/plugin"
-	kustomizecommonv1 "sigs.k8s.io/kubebuilder/v3/pkg/plugins/common/kustomize/v1"
-	"sigs.k8s.io/kubebuilder/v3/pkg/plugins/golang"
-	declarativev1 "sigs.k8s.io/kubebuilder/v3/pkg/plugins/golang/declarative/v1"
-	golangv3 "sigs.k8s.io/kubebuilder/v3/pkg/plugins/golang/v3"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kubebuilder.git/pkg/cli"
+	cfgv3 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kubebuilder.git/pkg/config/v3"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kubebuilder.git/pkg/plugin"
+	kustomizecommonv1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kubebuilder.git/pkg/plugins/common/kustomize/v1"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kubebuilder.git/pkg/plugins/golang"
+	declarativev1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kubebuilder.git/pkg/plugins/golang/declarative/v1"
+	golangv3 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kubebuilder.git/pkg/plugins/golang/v3"
 
 )
 
@@ -199,15 +199,15 @@ kubebuider init --plugins=myplugin.example/v1
 - And then, runs init sub-command of the plugin C 
 
 [project-file-config]: ../reference/project-config.md
-[plugin-interface]: https://pkg.go.dev/sigs.k8s.io/kubebuilder/v3/pkg/plugin#Plugin
-[go-dev-doc]: https://pkg.go.dev/sigs.k8s.io/kubebuilder/v3
-[plugin-sub-command]: https://pkg.go.dev/sigs.k8s.io/kubebuilder/v3/pkg/plugin#Subcommand
+[plugin-interface]: https://pkg.go.dev/gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kubebuilder.git/pkg/plugin#Plugin
+[go-dev-doc]: https://pkg.go.dev/gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kubebuilder.git
+[plugin-sub-command]: https://pkg.go.dev/gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kubebuilder.git/pkg/plugin#Subcommand
 [project-file]: ../reference/project-config.md
-[plugin-subc]: https://pkg.go.dev/sigs.k8s.io/kubebuilder/v3/pkg/plugin#Subcommand
+[plugin-subc]: https://pkg.go.dev/gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kubebuilder.git/pkg/plugin#Subcommand
 [cobra]:https://pkg.go.dev/github.com/spf13/cobra
-[kb-go-plugin]: https://pkg.go.dev/sigs.k8s.io/kubebuilder/v3/pkg/plugins/golang/v3
-[bundle-plugin-doc]: https://pkg.go.dev/sigs.k8s.io/kubebuilder/v3/pkg/plugin#Bundle
-[deprecate-plugin-doc]: https://pkg.go.dev/sigs.k8s.io/kubebuilder/v3/pkg/plugin#Deprecated
-[plugin-update-meta]: https://pkg.go.dev/sigs.k8s.io/kubebuilder/v3/pkg/plugin#UpdatesMetadata
-[cli]: https://pkg.go.dev/sigs.k8s.io/kubebuilder/v3/pkg/cli
-[plugin-version-type]: https://pkg.go.dev/sigs.k8s.io/kubebuilder/v3/pkg/plugin#Version
+[kb-go-plugin]: https://pkg.go.dev/gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kubebuilder.git/pkg/plugins/golang/v3
+[bundle-plugin-doc]: https://pkg.go.dev/gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kubebuilder.git/pkg/plugin#Bundle
+[deprecate-plugin-doc]: https://pkg.go.dev/gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kubebuilder.git/pkg/plugin#Deprecated
+[plugin-update-meta]: https://pkg.go.dev/gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kubebuilder.git/pkg/plugin#UpdatesMetadata
+[cli]: https://pkg.go.dev/gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kubebuilder.git/pkg/cli
+[plugin-version-type]: https://pkg.go.dev/gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kubebuilder.git/pkg/plugin#Version

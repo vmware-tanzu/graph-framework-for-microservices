@@ -1,4 +1,4 @@
-module sigs.k8s.io/kubebuilder/v3
+module gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kubebuilder.git
 
 go 1.17
 

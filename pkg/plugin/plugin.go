@@ -17,7 +17,7 @@ limitations under the License.
 package plugin
 
 import (
-	"sigs.k8s.io/kubebuilder/v3/pkg/config"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kubebuilder.git/pkg/config"
 )
 
 // Plugin is an interface that defines the common base for all plugins.

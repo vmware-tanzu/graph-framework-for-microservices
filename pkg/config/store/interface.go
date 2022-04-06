@@ -17,7 +17,7 @@ limitations under the License.
 package store
 
 import (
-	"sigs.k8s.io/kubebuilder/v3/pkg/config"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kubebuilder.git/pkg/config"
 )
 
 // Store represents a persistence backend for config.Config

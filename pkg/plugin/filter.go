@@ -19,7 +19,7 @@ package plugin
 import (
 	"strings"
 
-	"sigs.k8s.io/kubebuilder/v3/pkg/config"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kubebuilder.git/pkg/config"
 )
 
 // FilterPluginsByKey returns the set of plugins that match the provided key (may be not-fully qualified)

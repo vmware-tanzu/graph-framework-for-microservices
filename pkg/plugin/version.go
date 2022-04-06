@@ -22,7 +22,7 @@ import (
 	"strconv"
 	"strings"
 
-	"sigs.k8s.io/kubebuilder/v3/pkg/model/stage"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kubebuilder.git/pkg/model/stage"
 )
 
 var (

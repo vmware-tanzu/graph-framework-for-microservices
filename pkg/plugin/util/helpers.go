@@ -17,7 +17,7 @@ limitations under the License.
 package util
 
 import (
-	"sigs.k8s.io/kubebuilder/v3/pkg/config"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kubebuilder.git/pkg/config"
 )
 
 // HasDifferentCRDVersion returns true if any other CRD version is tracked in the project configuration.

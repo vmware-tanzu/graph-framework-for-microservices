@@ -21,7 +21,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"sigs.k8s.io/kubebuilder/v3/pkg/machinery"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kubebuilder.git/pkg/machinery"
 )
 
 var _ machinery.Template = &Kustomization{}

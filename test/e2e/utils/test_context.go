@@ -25,7 +25,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"sigs.k8s.io/kubebuilder/v3/pkg/plugin/util"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kubebuilder.git/pkg/plugin/util"
 
 	. "github.com/onsi/ginkgo" //nolint:golint,revive
 )

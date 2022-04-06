@@ -19,7 +19,7 @@ package machinery
 import (
 	"text/template"
 
-	"sigs.k8s.io/kubebuilder/v3/pkg/model/resource"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kubebuilder.git/pkg/model/resource"
 )
 
 // Builder defines the basic methods that any file builder must implement

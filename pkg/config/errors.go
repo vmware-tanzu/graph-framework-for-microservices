@@ -19,7 +19,7 @@ package config
 import (
 	"fmt"
 
-	"sigs.k8s.io/kubebuilder/v3/pkg/model/resource"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kubebuilder.git/pkg/model/resource"
 )
 
 // UnsupportedVersionError is returned by New when a project configuration version is not supported.

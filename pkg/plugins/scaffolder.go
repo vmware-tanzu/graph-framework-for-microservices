@@ -17,7 +17,7 @@ limitations under the License.
 package plugins
 
 import (
-	"sigs.k8s.io/kubebuilder/v3/pkg/machinery"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kubebuilder.git/pkg/machinery"
 )
 
 // Scaffolder interface creates files to set up a controller manager

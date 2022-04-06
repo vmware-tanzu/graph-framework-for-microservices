@@ -19,7 +19,7 @@ package configgen_test
 import (
 	"testing"
 
-	configgen "sigs.k8s.io/kubebuilder/v3/pkg/cli/alpha/config-gen"
+	configgen "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kubebuilder.git/pkg/cli/alpha/config-gen"
 	"sigs.k8s.io/kustomize/kyaml/fn/framework/frameworktestutil"
 )
 

@@ -19,7 +19,7 @@ package plugin
 import (
 	"fmt"
 
-	"sigs.k8s.io/kubebuilder/v3/pkg/config"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kubebuilder.git/pkg/config"
 )
 
 type bundle struct {

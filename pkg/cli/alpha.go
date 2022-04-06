@@ -21,7 +21,7 @@ import (
 	"strings"
 
 	"github.com/spf13/cobra"
-	configgen "sigs.k8s.io/kubebuilder/v3/pkg/cli/alpha/config-gen"
+	configgen "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kubebuilder.git/pkg/cli/alpha/config-gen"
 )
 
 const (
