@@ -30,7 +30,6 @@ test:
     - *setup_aws
     - *create_builder
     - CONTAINER_ID=$CONTAINER_ID PKG_NAME=/builds/${REPOSITORY} make test_in_container
-    - CONTAINER_ID=$CONTAINER_ID PKG_NAME=/builds/${REPOSITORY} make test_generate_code_in_container
 
 stages:
   - test
