@@ -100,7 +100,7 @@ generate_code:
 	./scripts/generate_openapi_schema.sh
 	$(MAKE) -C pkg/openapi_generator generate_test_schemas
 	goimports -w pkg
-	cp -r _generated/{client,apis,crds} ${GENERATED_OUTPUT_DIRECTORY}
+	cp -r _generated/{client,apis,crds,nexus-client} ${GENERATED_OUTPUT_DIRECTORY}
 
 .PHONY: test_generate_code_in_container
 test_generate_code_in_container: ${BUILDER_NAME}\:${BUILDER_TAG}.image.exists init_submodules
@@ -137,3 +137,16 @@ publish_builder_image:
 .PHONY: init_submodules
 init_submodules:
 	CONTAINER_ID=${CONTAINER_ID} git submodule update --init --recursive
+
+.PHONY: render_templates
+render_templates:
+	go run cmd/nexus-sdk/main.go -config-file example/nexus-sdk.yaml -dsl example/datamodel -crd-output example/output/_crd_base
+
+.PHONY: test_render_templates
+test_render_templates: render_templates
+	@if [ -n "$$(git ls-files --modified --exclude-standard)" ]; then\
+    	echo "The following changes should be committed:";\
+    	git status;\
+    	git diff;\
+    	return 1;\
+    fi

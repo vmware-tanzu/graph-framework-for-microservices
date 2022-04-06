@@ -37,6 +37,9 @@ var crdBaseTemplateFile []byte
 //go:embed template/helper.go.tmpl
 var helperTemplateFile []byte
 
+//go:embed template/client.go.tmpl
+var clientTemplateFile []byte
+
 func RenderCRDTemplate(baseGroupName, crdModulePath string, pkgs parser.Packages, graph map[string]parser.Node, outputDir string) error {
 	parentsMap := parser.CreateParentsMap(graph)
 
@@ -50,7 +53,7 @@ func RenderCRDTemplate(baseGroupName, crdModulePath string, pkgs parser.Packages
 		crdFolder := outputDir + "/crds"
 		apiFolder := groupFolder + "v1"
 		var err error
-		err = createCRDFolder(apiFolder)
+		err = createFolder(apiFolder)
 		if err != nil {
 			return err
 		}
@@ -108,13 +111,22 @@ func RenderCRDTemplate(baseGroupName, crdModulePath string, pkgs parser.Packages
 		return err
 	}
 
-	return createApiNamesFile(pkgNames, outputDir)
+	err = RenderClient(baseGroupName, outputDir, crdModulePath, pkgs)
+	if err != nil {
+		return err
+	}
+	err = createApiNamesFile(pkgNames, outputDir)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func RenderHelper(parentsMap map[string]parser.NodeHelper, outputDir string, crdModulePath string) error {
 	helperFolder := outputDir + "/helper"
 	var err error
-	err = createCRDFolder(helperFolder)
+	err = createFolder(helperFolder)
 	if err != nil {
 		return err
 	}
@@ -132,10 +144,10 @@ func RenderHelper(parentsMap map[string]parser.NodeHelper, outputDir string, crd
 	return nil
 }
 
-func createCRDFolder(name string) error {
+func createFolder(name string) error {
 	err := os.MkdirAll(name, os.ModeDir|os.ModePerm)
 	if err != nil {
-		return fmt.Errorf("creating base-group dir %v failed with an error: %v", name, err)
+		return fmt.Errorf("creating dir %v failed with an error: %v", name, err)
 	}
 	return nil
 }
@@ -404,6 +416,59 @@ func RenderHelperTemplate(parentsMap map[string]parser.NodeHelper, crdModulePath
 	}
 
 	out, err := imports.Process("render.go", tmpl.Bytes(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return bytes.NewBuffer(out), nil
+}
+
+func RenderClient(baseGroupName, outputDir, crdModulePath string, pkgs parser.Packages) error {
+	clientFolder := outputDir + "/nexus-client"
+	err := createFolder(clientFolder)
+	if err != nil {
+		return err
+	}
+	file, err := RenderClientTemplate(baseGroupName, crdModulePath, pkgs)
+	if err != nil {
+		return err
+	}
+	log.Debugf("Rendered client template: %s", file)
+	err = createFile(clientFolder, "client.go", file, true)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+type clientVars struct {
+	BaseClientsetImport       string
+	BaseImports               string
+	ClientsetsApiGroups       string
+	InitApiGroups             string
+	ClientsetsApiGroupMethods string
+	ApiGroups                 string
+	ApiGroupsClient           string
+}
+
+func RenderClientTemplate(baseGroupName, crdModulePath string, pkgs parser.Packages) (*bytes.Buffer, error) {
+	vars, err := generateNexusClientVars(baseGroupName, crdModulePath, pkgs)
+	if err != nil {
+		return nil, err
+	}
+
+	clientTemplate, err := readTemplateFile(clientTemplateFile)
+	if err != nil {
+		return nil, err
+	}
+
+	tmpl, err := renderTemplate(clientTemplate, vars)
+	if err != nil {
+		return nil, err
+	}
+
+	out, err := imports.Process("client.go", tmpl.Bytes(), nil)
 	if err != nil {
 		return nil, err
 	}
