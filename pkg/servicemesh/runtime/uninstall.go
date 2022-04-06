@@ -1,28 +1,30 @@
 package runtime
 
 import (
-	"context"
 	"fmt"
-
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"github.com/spf13/cobra"
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/utils"
 )
 
 func Uninstall(cmd *cobra.Command, args []string) error {
-	if Namespace == "" {
-		Namespace = "default"
+	envList := []string{}
+
+	if Namespace != "" {
+		envList = append(envList, fmt.Sprintf("NAMESPACE=%s", Namespace))
 	}
-	clientset, _, _, _, _, err := utils.GenerateContext("")
-	if err != nil {
+
+	if err := utils.GoToNexusDirectory(); err != nil {
 		return err
 	}
-	fmt.Printf("deleting tenant %s from current cluster", Namespace)
-	err = clientset.CoreV1().Namespaces().Delete(context.Background(), Namespace, metav1.DeleteOptions{})
+
+	err := utils.SystemCommand(envList, false, "make", "runtime_uninstall")
 	if err != nil {
-		return err
+		return fmt.Errorf("runtime install failed with error %v", err)
+
 	}
+	fmt.Printf("\u2713 Runtime %s install successful\n", Namespace)
+
 	return nil
 }
 
