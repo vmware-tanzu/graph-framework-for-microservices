@@ -1,4 +1,4 @@
-package service_group
+package servicegroup
 
 import (
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/datamodel/nexus"

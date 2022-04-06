@@ -19,7 +19,7 @@ func GetModulePath(startPath string) string {
 	return modfile.ModulePath(file)
 }
 
-func ConstructImports(inputAlias, inputImportPath string) (string, string) {
+func ConstructImports(inputAlias, inputImportPath, pkgName string) (string, string) {
 	re, err := regexp.Compile(`[\_\.]`)
 	if err != nil {
 		log.Fatalf("failed to construct output import path for import path %v : %v", inputImportPath, err)
@@ -27,6 +27,14 @@ func ConstructImports(inputAlias, inputImportPath string) (string, string) {
 	aliasName := fmt.Sprintf("%s%sv1", inputAlias, config.ConfigInstance.GroupName)
 	aliasName = re.ReplaceAllString(aliasName, "")
 
-	importPath := fmt.Sprintf("\"%sapis/%s.%s/v1\"", config.ConfigInstance.CrdModulePath, inputAlias, config.ConfigInstance.GroupName)
+	importPath := fmt.Sprintf("\"%sapis/%s.%s/v1\"", config.ConfigInstance.CrdModulePath, pkgName, config.ConfigInstance.GroupName)
 	return aliasName, importPath
+}
+
+func SpecialCharsPresent(name string) bool {
+	re, err := regexp.Compile(`[^a-z0-9]`)
+	if err != nil {
+		log.Fatalf("failed to check for special characters in the package name %v : %v", name, err)
+	}
+	return re.MatchString(name)
 }

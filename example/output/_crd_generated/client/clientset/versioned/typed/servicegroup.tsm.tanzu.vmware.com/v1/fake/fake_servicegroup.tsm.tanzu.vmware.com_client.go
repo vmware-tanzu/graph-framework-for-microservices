@@ -19,22 +19,22 @@ limitations under the License.
 package fake
 
 import (
-	v1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/_crd_generated/client/clientset/versioned/typed/service_group.tsm.tanzu.vmware.com/v1"
+	v1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/_crd_generated/client/clientset/versioned/typed/servicegroup.tsm.tanzu.vmware.com/v1"
 	rest "k8s.io/client-go/rest"
 	testing "k8s.io/client-go/testing"
 )
 
-type FakeService_groupTsmV1 struct {
+type FakeServicegroupTsmV1 struct {
 	*testing.Fake
 }
 
-func (c *FakeService_groupTsmV1) SvcGroups() v1.SvcGroupInterface {
+func (c *FakeServicegroupTsmV1) SvcGroups() v1.SvcGroupInterface {
 	return &FakeSvcGroups{c}
 }
 
 // RESTClient returns a RESTClient that is used to communicate
 // with API server by this client implementation.
-func (c *FakeService_groupTsmV1) RESTClient() rest.Interface {
+func (c *FakeServicegroupTsmV1) RESTClient() rest.Interface {
 	var ret *rest.RESTClient
 	return ret
 }

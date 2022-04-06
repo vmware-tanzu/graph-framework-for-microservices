@@ -29,6 +29,9 @@ func ParseDSLPkg(startPath string) Packages {
 				log.Fatalf("failed to parse directory %s: %v", path, err)
 			}
 			for _, v := range pkgs {
+				if SpecialCharsPresent(v.Name) {
+					log.Fatalf("invalid package-name <%v>, special characters are not allowed", v.Name)
+				}
 				pkgImport := strings.TrimSuffix(strings.ReplaceAll(path, startPath, fmt.Sprintf("%s/", modulePath)), "/")
 				pkg := Package{
 					Name:     v.Name,

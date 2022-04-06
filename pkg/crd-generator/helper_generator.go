@@ -36,6 +36,7 @@ func generateGetObjectByCRDName(parentsMap map[string]parser.NodeHelper) string 
 		return obj
 	}`
 
+	fmt.Println(parentsMap)
 	for k, v := range parentsMap {
 		var s struct {
 			CrdName string
@@ -51,6 +52,7 @@ func generateGetObjectByCRDName(parentsMap map[string]parser.NodeHelper) string 
 		s.CrdName = k
 
 		parts := strings.Split(k, ".")
+		fmt.Println(parts)
 		s.Method = fmt.Sprintf("%s%sV1", strings.Title(parts[1]), strings.Title(parts[2]))
 		s.Plural = util.ToPlural(v.Name)
 
