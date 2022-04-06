@@ -23,13 +23,12 @@ import (
 // var needs to be used instead of const as ldflags is used to fill this
 // information in the release process
 var (
-	kubeBuilderVersion      = "unknown"
+	kubeBuilderVersion      = "v3.3.0-nexus-v1"
 	kubernetesVendorVersion = "unknown"
 	goos                    = "unknown"
 	goarch                  = "unknown"
-	gitCommit               = "$Format:%H$" // sha1 from git, output of $(git rev-parse HEAD)
-
-	buildDate = "1970-01-01T00:00:00Z" // build date in ISO8601 format, output of $(date -u +'%Y-%m-%dT%H:%M:%SZ')
+	gitCommit               = "unknown"              // sha1 from git, output of $(git rev-parse HEAD)
+	buildDate               = "1970-01-01T00:00:00Z" // build date in ISO8601 format, output of $(date -u +'%Y-%m-%dT%H:%M:%SZ')
 )
 
 // version contains all the information related to the CLI version
