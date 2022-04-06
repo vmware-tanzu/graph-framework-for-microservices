@@ -58,10 +58,10 @@ func (f *Controller) SetTemplateDefaults() error {
 	} else {
 		f.IfExistsAction = machinery.Error
 	}
-	if f.Resource.DatamodelAlias == "" {
-		f.Resource.DatamodelAlias = fmt.Sprintf("%s%s", strings.ReplaceAll(f.Resource.Group, ".", ""), f.Resource.Version)
-	}
 	if f.Resource.DatamodelImport != "" {
+		if f.Resource.DatamodelAlias == "" {
+			f.Resource.DatamodelAlias = fmt.Sprintf("%s%s", strings.ReplaceAll(f.Resource.Group, ".", ""), f.Resource.Version)
+		}
 		f.Resource.DatamodelFullImport = fmt.Sprintf("%s/build/apis/%s/%s", f.Resource.DatamodelImport, f.Resource.Group, f.Resource.Version)
 	}
 	return nil
