@@ -1,4 +1,4 @@
-module gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli
+module gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git
 
 go 1.17
 

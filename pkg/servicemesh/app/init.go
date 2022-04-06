@@ -7,8 +7,8 @@ import (
 
 	"github.com/spf13/cobra"
 
-	. "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli/pkg/common"
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli/pkg/utils"
+	. "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/common"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/utils"
 )
 
 type TemplateValues struct {
