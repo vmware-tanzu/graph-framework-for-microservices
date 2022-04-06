@@ -3,6 +3,7 @@
 package v1
 
 import (
+	corev1tsmtanzuvmwarecomv1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -35,10 +36,11 @@ type SvcGroup struct {
 
 // +k8s:openapi-gen=true
 type SvcGroupSpec struct {
-	DisplayName string          `json:"displayName" yaml:"displayName"`
-	Description string          `json:"description" yaml:"description"`
-	Color       string          `json:"color" yaml:"color"`
-	Services    map[string]Link `json:"services,omitempty" yaml:"services,omitempty" nexus:"link"`
+	DisplayName string                                       `json:"displayName" yaml:"displayName"`
+	Description string                                       `json:"description" yaml:"description"`
+	Color       string                                       `json:"color" yaml:"color"`
+	Services    map[string]corev1tsmtanzuvmwarecomv1.Service `json:"-" yaml:"-"`
+	ServicesGvk map[string]Link                              `json:"servicesGvk,omitempty" yaml:"servicesGvk,omitempty" nexus:"link"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
