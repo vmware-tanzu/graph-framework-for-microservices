@@ -59,7 +59,7 @@ nexus-cli: ## Install Nexus CLI
 	mv nexus /usr/local/bin/nexus
 
 replace:
-	if [[ -n ${DATAMODEL} ]]; then\
+	if [ -n ${DATAMODEL} ]; then\
 			test -s ${DATAMODEL_DIR}/${DATAMODEL} || { echo "Please create datamodel ${DATAMODEL} for go mod replace"; exit 1; } ;\
 			go mod edit -replace $(DATAMODEL)=${DATAMODEL_DIR}/${DATAMODEL} ;\
 	fi
@@ -71,8 +71,8 @@ datamodel_init: ## Initialize datamodel
 		echo "Please install nexus binary"; \
 		exit 1; \
 	fi
-	if [[ -n ${DATAMODEL} ]]; then \
-		if [[ -n ${DATAMODEL_GROUP} ]]; then \
+	if [ -n ${DATAMODEL} ]; then \
+		if [ -n ${DATAMODEL_GROUP} ]; then \
 			$(NEXUS_BIN) datamodel init --name ${DATAMODEL} --group ${DATAMODEL_GROUP};\
 		else \
 			$(NEXUS_BIN) datamodel init --name ${DATAMODEL} ;\
@@ -156,7 +156,7 @@ image_scan:
 
 .PHONY: deploy
 deploy: kustomize undeploy
-	if [[ $(CLUSTER) == "kind" ]]; then \
+	if [ $(CLUSTER) == "kind" ]; then \
 		kind load docker-image ${IMAGE_REGISTRY}:${IMAGE_TAG} ;\
 	fi
 	cd config/deployment/ && $(KUSTOMIZE) edit set image ${APP_NAME}=${IMAGE_REGISTRY}:${IMAGE_TAG} && $(KUSTOMIZE) build . | kubectl apply -f - -n ${NAMESPACE};
