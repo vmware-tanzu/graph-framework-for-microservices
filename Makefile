@@ -41,7 +41,7 @@ docker.builder:
 .PHONY: build
 build:
 	cd cmd/nexus-validation && \
-		CGO_ENABLED=0 GOOS=linux go build -ldflags="-w -s" .
+		CGO_ENABLED=0 GOOS=linux go build .
 
 .PHONY: build_in_container
 build_in_container: ${BUILDER_NAME}\:${BUILDER_TAG}.image.exists

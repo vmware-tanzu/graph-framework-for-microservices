@@ -13,10 +13,11 @@ import (
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/runtime/serializer"
 	"k8s.io/client-go/dynamic"
+	"k8s.io/client-go/kubernetes"
 	"strings"
 )
 
-func CrdType(r admissionv1.AdmissionReview) *admissionv1.AdmissionReview {
+func CrdType(client *kubernetes.Clientset, r admissionv1.AdmissionReview) *admissionv1.AdmissionReview {
 	admRes := &admissionv1.AdmissionReview{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "AdmissionReview",
@@ -50,6 +51,7 @@ func CrdType(r admissionv1.AdmissionReview) *admissionv1.AdmissionReview {
 			admRes.Response.Result.Message = err.Error()
 			return admRes
 		}
+		UpdateValidationWebhook(client)
 	}
 
 	if r.Request.Operation == admissionv1.Update {
@@ -163,4 +165,32 @@ func getCrdObject(client dynamic.Interface, gvr schema.GroupVersionResource, nam
 		return nil
 	}
 	return obj
+}
+
+func ProcessCRDs(client dynamic.Interface) {
+	gvr := schema.GroupVersionResource{
+		Group:    "apiextensions.k8s.io",
+		Version:  "v1",
+		Resource: "customresourcedefinitions",
+	}
+
+	list, err := client.Resource(gvr).List(context.TODO(), metav1.ListOptions{})
+	if err != nil {
+		panic(err)
+	}
+
+	for _, unstructuredCrd := range list.Items {
+		var crd v1.CustomResourceDefinition
+		err = runtime.DefaultUnstructuredConverter.FromUnstructured(unstructuredCrd.UnstructuredContent(), &crd)
+		if err != nil {
+			panic(err)
+		}
+
+		err = ProcessCRDType(crd)
+		if err != nil {
+			panic(err)
+		}
+	}
+
+	log.Infof("parents map: %v", CrdParentsMap)
 }
