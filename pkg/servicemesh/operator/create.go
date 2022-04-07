@@ -2,6 +2,7 @@ package operator
 
 import (
 	"fmt"
+
 	"github.com/spf13/cobra"
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/utils"
 )
@@ -14,6 +15,10 @@ var (
 )
 
 func Create(cmd *cobra.Command, args []string) error {
+	if CrdDatamodel == "" {
+		fmt.Print("Please provide name of datamodel with --import option\n")
+		return nil
+	}
 	envList := append([]string{}, fmt.Sprintf("CRD_GROUP=%s", CrdGroup))
 	envList = append(envList, fmt.Sprintf("CRD_VERSION=%s", CrdVersion))
 	envList = append(envList, fmt.Sprintf("CRD_KIND=%s", CrdKind))
