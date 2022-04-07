@@ -11,10 +11,11 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-func generateGetCrdParentsMap(parentsMap map[string]parser.NodeHelper) string {
+func generateGetCrdParentsMap(keys []string, parentsMap map[string]parser.NodeHelper) string {
 	var output string
 	output += "map[string][]string{\n"
-	for k, v := range parentsMap {
+	for _, k := range keys {
+		v := parentsMap[k]
 		kv := fmt.Sprintf(`	"%s": {`, k)
 		for _, p := range v.Parents {
 			kv += fmt.Sprintf(`"%s",`, p)
@@ -26,7 +27,7 @@ func generateGetCrdParentsMap(parentsMap map[string]parser.NodeHelper) string {
 	return output
 }
 
-func generateGetObjectByCRDName(parentsMap map[string]parser.NodeHelper) string {
+func generateGetObjectByCRDName(keys []string, parentsMap map[string]parser.NodeHelper) string {
 	var output string
 	var ifTemplate = `if crdName == "{{.CrdName}}" {
 		obj, err := dmClient.{{.Method}}().{{.Plural}}().Get(context.TODO(), name, metav1.GetOptions{})
@@ -36,7 +37,8 @@ func generateGetObjectByCRDName(parentsMap map[string]parser.NodeHelper) string 
 		return obj
 	}`
 
-	for k, v := range parentsMap {
+	for _, k := range keys {
+		v := parentsMap[k]
 		var s struct {
 			CrdName string
 			Method  string

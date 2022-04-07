@@ -15,16 +15,23 @@ func GetCRDParentsMap() map[string][]string {
 	return map[string][]string{
 		"accesscontrolpolicies.policy.tsm.tanzu.vmware.com": {"roots.root.tsm.tanzu.vmware.com", "configs.config.tsm.tanzu.vmware.com"},
 		"acpconfigs.policy.tsm.tanzu.vmware.com":            {"roots.root.tsm.tanzu.vmware.com", "configs.config.tsm.tanzu.vmware.com", "accesscontrolpolicies.policy.tsm.tanzu.vmware.com"},
-		"svcgroups.service_group.tsm.tanzu.vmware.com":      {"roots.root.tsm.tanzu.vmware.com", "configs.config.tsm.tanzu.vmware.com", "gnses.gns.tsm.tanzu.vmware.com"},
-		"roots.root.tsm.tanzu.vmware.com":                   {},
 		"configs.config.tsm.tanzu.vmware.com":               {"roots.root.tsm.tanzu.vmware.com"},
 		"gnses.gns.tsm.tanzu.vmware.com":                    {"roots.root.tsm.tanzu.vmware.com", "configs.config.tsm.tanzu.vmware.com"},
+		"roots.root.tsm.tanzu.vmware.com":                   {},
+		"svcgroups.service_group.tsm.tanzu.vmware.com":      {"roots.root.tsm.tanzu.vmware.com", "configs.config.tsm.tanzu.vmware.com", "gnses.gns.tsm.tanzu.vmware.com"},
 	}
 }
 
 func GetObjectByCRDName(dmClient *datamodel.Clientset, crdName string, name string) interface{} {
-	if crdName == "roots.root.tsm.tanzu.vmware.com" {
-		obj, err := dmClient.RootTsmV1().Roots().Get(context.TODO(), name, metav1.GetOptions{})
+	if crdName == "accesscontrolpolicies.policy.tsm.tanzu.vmware.com" {
+		obj, err := dmClient.PolicyTsmV1().AccessControlPolicies().Get(context.TODO(), name, metav1.GetOptions{})
+		if err != nil {
+			return nil
+		}
+		return obj
+	}
+	if crdName == "acpconfigs.policy.tsm.tanzu.vmware.com" {
+		obj, err := dmClient.PolicyTsmV1().ACPConfigs().Get(context.TODO(), name, metav1.GetOptions{})
 		if err != nil {
 			return nil
 		}
@@ -44,15 +51,8 @@ func GetObjectByCRDName(dmClient *datamodel.Clientset, crdName string, name stri
 		}
 		return obj
 	}
-	if crdName == "accesscontrolpolicies.policy.tsm.tanzu.vmware.com" {
-		obj, err := dmClient.PolicyTsmV1().AccessControlPolicies().Get(context.TODO(), name, metav1.GetOptions{})
-		if err != nil {
-			return nil
-		}
-		return obj
-	}
-	if crdName == "acpconfigs.policy.tsm.tanzu.vmware.com" {
-		obj, err := dmClient.PolicyTsmV1().ACPConfigs().Get(context.TODO(), name, metav1.GetOptions{})
+	if crdName == "roots.root.tsm.tanzu.vmware.com" {
+		obj, err := dmClient.RootTsmV1().Roots().Get(context.TODO(), name, metav1.GetOptions{})
 		if err != nil {
 			return nil
 		}
