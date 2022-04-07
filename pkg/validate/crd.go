@@ -53,11 +53,22 @@ func CrdType(r admissionv1.AdmissionReview) *admissionv1.AdmissionReview {
 	}
 
 	if r.Request.Operation == admissionv1.Update {
-		_, ok := crd.Annotations["nexus"]
-		if ok {
+		oldCrd := v1.CustomResourceDefinition{}
+		_, _, err := deserializer.Decode(r.Request.OldObject.Raw, nil, &oldCrd)
+		if err != nil {
 			admRes.Response.Allowed = false
-			admRes.Response.Result.Message = "You are not allowed to modify this CRD"
+			admRes.Response.Result.Message = "could not unmarshal old crd type"
 			return admRes
+		}
+
+		if newNexus, ok := crd.Annotations["nexus"]; ok {
+			if oldNexus, oldOk := oldCrd.Annotations["nexus"]; oldOk {
+				if strings.Compare(newNexus, oldNexus) != 0 {
+					admRes.Response.Allowed = false
+					admRes.Response.Result.Message = "You are not allowed to change nexus annotation for this CRD"
+					return admRes
+				}
+			}
 		}
 	}
 
