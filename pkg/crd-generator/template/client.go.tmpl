@@ -1,0 +1,36 @@
+package nexus_client
+
+import (
+	"context"
+
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/client-go/rest"
+
+baseClientset {{.BaseClientsetImport}}
+
+{{.BaseImports}}
+)
+
+type Clientset struct {
+	baseClient         *baseClientset.Clientset
+	{{.ClientsetsApiGroups}}
+
+}
+
+func NewForConfig(config *rest.Config) (*Clientset, error) {
+	baseClient, err := baseClientset.NewForConfig(config)
+	if err != nil {
+		return nil, err
+	}
+	client := &Clientset{}
+	client.baseClient = baseClient
+	{{.InitApiGroups}}
+
+	return client, nil
+}
+
+{{.ClientsetsApiGroupMethods}}
+
+{{.ApiGroups}}
+
+{{.ApiGroupsClient}}
