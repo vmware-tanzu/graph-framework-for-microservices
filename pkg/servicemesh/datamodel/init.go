@@ -148,7 +148,7 @@ func InitOperation(cmd *cobra.Command, args []string) error {
 
 var InitCmd = &cobra.Command{
 	Use:   "init",
-	Short: "initialize the tenant-manifests directory",
+	Short: "Initialize a Nexus Datamodel",
 	//Args:  cobra.ExactArgs(1),
 	PreRunE: func(cmd *cobra.Command, args []string) (err error) {
 		return nil

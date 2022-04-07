@@ -17,7 +17,7 @@ func Package(cmd *cobra.Command, args []string) error {
 
 var PackageCmd = &cobra.Command{
 	Use:   "package",
-	Short: "installs application package",
+	Short: "(TBD) Package the Nexus application ready for deployment",
 	PreRunE: func(cmd *cobra.Command, args []string) (err error) {
 		return nil
 	},

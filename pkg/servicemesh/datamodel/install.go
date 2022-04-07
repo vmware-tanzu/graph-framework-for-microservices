@@ -46,7 +46,7 @@ func Install(cmd *cobra.Command, args []string) error {
 
 var InstallCmd = &cobra.Command{
 	Use:   "install",
-	Short: "install namespace from directory",
+	Short: "Install specified datamodel's generated CRDs to the specified namespace",
 	//Args:  cobra.ExactArgs(1),
 	PreRunE: func(cmd *cobra.Command, args []string) (err error) {
 		return nil
@@ -56,8 +56,8 @@ var InstallCmd = &cobra.Command{
 
 func init() {
 	InstallCmd.Flags().StringVarP(&Namespace, "namespace",
-		"r", "", "name of the namespace to be created")
+		"r", "", "name of the namespace to install to")
 	InstallCmd.Flags().StringVarP(&DatatmodelName, "name",
-		"n", "", "name of the datamodel to be build")
+		"n", "", "name of the datamodel to install")
 
 }
