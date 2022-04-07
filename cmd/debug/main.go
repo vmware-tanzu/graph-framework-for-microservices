@@ -18,7 +18,4 @@ func main() {
 		log.Printf("Parents: %v\n", node.Parents)
 		log.Println("---")
 	})
-
-	parents := parser.CreateParentsMap(root)
-	log.Println(parents["acpconfigs.tsm.tanzu.vmware.com"])
 }

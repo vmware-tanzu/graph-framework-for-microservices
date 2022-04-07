@@ -3,6 +3,7 @@
 package v1
 
 import (
+	servicegrouptsmtanzuvmwarecomv1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/_crd_generated/apis/service_group.tsm.tanzu.vmware.com/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -35,7 +36,8 @@ type AccessControlPolicy struct {
 
 // +k8s:openapi-gen=true
 type AccessControlPolicySpec struct {
-	policyConfigs map[string]Child `json:"policyConfigs,omitempty" yaml:"policyConfigs,omitempty" nexus:"child"`
+	policyConfigs    map[string]ACPConfig `json:"-" yaml:"-"`
+	policyConfigsGvk map[string]Child     `json:"policyConfigsGvk,omitempty" yaml:"policyConfigsGvk,omitempty" nexus:"child"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
@@ -58,14 +60,16 @@ type ACPConfig struct {
 
 // +k8s:openapi-gen=true
 type ACPConfigSpec struct {
-	DisplayName     string          `json:"displayName" yaml:"displayName"`
-	Gns             string          `json:"gns" yaml:"gns"`
-	Description     string          `json:"description" yaml:"description"`
-	Tags            []string        `json:"tags" yaml:"tags"`
-	ProjectId       string          `json:"projectId" yaml:"projectId"`
-	Conditions      []string        `json:"conditions" yaml:"conditions"`
-	DestSvcGroups   map[string]Link `json:"destSvcGroups,omitempty" yaml:"destSvcGroups,omitempty" nexus:"link"`
-	SourceSvcGroups map[string]Link `json:"sourceSvcGroups,omitempty" yaml:"sourceSvcGroups,omitempty" nexus:"link"`
+	DisplayName        string                                              `json:"displayName" yaml:"displayName"`
+	Gns                string                                              `json:"gns" yaml:"gns"`
+	Description        string                                              `json:"description" yaml:"description"`
+	Tags               []string                                            `json:"tags" yaml:"tags"`
+	ProjectId          string                                              `json:"projectId" yaml:"projectId"`
+	Conditions         []string                                            `json:"conditions" yaml:"conditions"`
+	DestSvcGroups      map[string]servicegrouptsmtanzuvmwarecomv1.SvcGroup `json:"-" yaml:"-"`
+	DestSvcGroupsGvk   map[string]Link                                     `json:"destSvcGroupsGvk,omitempty" yaml:"destSvcGroupsGvk,omitempty" nexus:"link"`
+	SourceSvcGroups    map[string]servicegrouptsmtanzuvmwarecomv1.SvcGroup `json:"-" yaml:"-"`
+	SourceSvcGroupsGvk map[string]Link                                     `json:"sourceSvcGroupsGvk,omitempty" yaml:"sourceSvcGroupsGvk,omitempty" nexus:"link"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object

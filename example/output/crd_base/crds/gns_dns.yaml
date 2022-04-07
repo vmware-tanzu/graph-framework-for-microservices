@@ -5,6 +5,9 @@ kind: CustomResourceDefinition
 metadata:
   creationTimestamp: null
   name: dnses.gns.tsm.tanzu.vmware.com
+  annotations:
+    nexus: |
+      {}
 spec:
   conversion:
     strategy: None

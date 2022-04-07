@@ -5,6 +5,9 @@ kind: CustomResourceDefinition
 metadata:
   creationTimestamp: null
   name: svcgroups.service_group.tsm.tanzu.vmware.com
+  annotations:
+    nexus: |
+      {"hierarchy":["roots.root.tsm.tanzu.vmware.com","configs.config.tsm.tanzu.vmware.com","gnses.gns.tsm.tanzu.vmware.com"]}
 spec:
   conversion:
     strategy: None
