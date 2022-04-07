@@ -8,6 +8,7 @@ CLUSTER ?= ""
 DATAMODEL ?= ""
 DATAMODEL_GROUP ?= ""
 NEXUS_BIN ?= $(shell which nexus)
+CICD_TOKEN ?= ""
 
 #
 # Image Info
@@ -102,11 +103,22 @@ go_get:
 
 .PHONY: build
 build: go_get lint ## Build manager binary.
-	docker build --build-arg APP_NAME=${APP_NAME} \
-				--build-arg GIT_HEAD=${GIT_HEAD} \
-				--build-arg GIT_TAG=${CI_COMMIT} \
-				--build-arg CICD_TOKEN=${CICD_TOKEN} \
-				-t ${IMAGE_REGISTRY}:${IMAGE_TAG} .
+	mkdir -p .ssh ;\
+	if [ -n $(CICD_TOKEN) ]; then \
+		docker build --build-arg APP_NAME=${APP_NAME} \
+					--build-arg GIT_HEAD=${GIT_HEAD} \
+					--build-arg GIT_TAG=${CI_COMMIT} \
+					--build-arg CICD_TOKEN=${CICD_TOKEN} \
+					-t ${IMAGE_REGISTRY}:${IMAGE_TAG} . ;\
+	else \
+		test -s ~/.ssh || { echo "Please provide CICD_TOKEN if ssh not available."; exit 1; }; \
+		cp -rf ~/.ssh/* .ssh ;\
+		docker build --build-arg APP_NAME=${APP_NAME} \
+					--build-arg GIT_HEAD=${GIT_HEAD} \
+					--build-arg GIT_TAG=${CI_COMMIT} \
+					--build-arg USE_SSH="true" \
+					-t ${IMAGE_REGISTRY}:${IMAGE_TAG} . ;\
+	fi
 
 ##@ Test
 
