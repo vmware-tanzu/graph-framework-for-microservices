@@ -76,7 +76,7 @@ func Init(cmd *cobra.Command, args []string) error {
 	}
 	err := utils.CreateNexusDirectory(NEXUS_DIR, NEXUS_TEMPLATE_URL)
 	if err != nil {
-		return fmt.Errorf("could not create nexus directory %s..", err)
+		return fmt.Errorf("could not create nexus directory: %s", err)
 	}
 
 	if DatatmodelName != "" {

@@ -7,6 +7,7 @@ import (
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/servicemesh/apply"
 	servicemesh_datamodel "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/servicemesh/datamodel"
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/servicemesh/login"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/servicemesh/operator"
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/servicemesh/runtime"
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/servicemesh/version"
 )
@@ -49,6 +50,11 @@ var DataModelCmd = &cobra.Command{
 var AppCmd = &cobra.Command{
 	Use:   "app",
 	Short: "Perform Nexus Application operations",
+}
+
+var OperatorCmd = &cobra.Command{
+	Use:   "operator",
+	Short: "Create, update or delete operators within Nexus apps",
 }
 
 var VersionCmd = &cobra.Command{
@@ -101,6 +107,8 @@ func initCommands() {
 	AppCmd.AddCommand(app.PublishCmd)
 	AppCmd.AddCommand(app.DeployCmd)
 	AppCmd.AddCommand(app.RunCmd)
+
+	OperatorCmd.AddCommand(operator.CreateCmd)
 }
 
 func init() {

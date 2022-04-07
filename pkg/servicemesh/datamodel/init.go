@@ -101,7 +101,7 @@ func InitOperation(cmd *cobra.Command, args []string) error {
 	var standalone bool = false
 	if DatatmodelName == "" {
 		if GroupName == "" {
-			fmt.Println("You need to provide a groupname if datamodelname is not provided : ")
+			fmt.Println("You need to provide a groupname if datamodel name is not provided")
 			fmt.Scanln(&GroupName)
 			if GroupName == "" {
 				fmt.Println("Please provide a non-empty groupname")
