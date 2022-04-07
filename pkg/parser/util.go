@@ -19,7 +19,7 @@ func GetModulePath(startPath string) string {
 	return modfile.ModulePath(file)
 }
 
-func ConstructImports(inputAlias, inputImportPath, pkgName string) (string, string) {
+func ConstructImports(inputAlias, inputImportPath string) (string, string) {
 	re, err := regexp.Compile(`[\_\.]`)
 	if err != nil {
 		log.Fatalf("failed to construct output import path for import path %v : %v", inputImportPath, err)
@@ -27,7 +27,7 @@ func ConstructImports(inputAlias, inputImportPath, pkgName string) (string, stri
 	aliasName := fmt.Sprintf("%s%sv1", inputAlias, config.ConfigInstance.GroupName)
 	aliasName = re.ReplaceAllString(aliasName, "")
 
-	importPath := fmt.Sprintf("\"%sapis/%s.%s/v1\"", config.ConfigInstance.CrdModulePath, pkgName, config.ConfigInstance.GroupName)
+	importPath := fmt.Sprintf("\"%sapis/%s.%s/v1\"", config.ConfigInstance.CrdModulePath, re.ReplaceAllString(inputAlias, ""), config.ConfigInstance.GroupName)
 	return aliasName, importPath
 }
 

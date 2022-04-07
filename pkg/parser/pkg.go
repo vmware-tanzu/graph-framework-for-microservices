@@ -77,18 +77,17 @@ func (p *Package) GetImportStrings() []string {
 	imports := p.GetImports()
 	for _, val := range imports {
 		i := val.Path.Value
-		pkgName := i[strings.LastIndex(i, "/")+1 : len(i)-1]
 		if strings.Contains(i, p.ModPath) {
 			if val.Name != nil {
-				aliasName, importPath = ConstructImports(val.Name.String(), i, pkgName)
+				aliasName, importPath = ConstructImports(val.Name.String(), i)
 			} else {
-				imputAlias := pkgName
-				aliasName, importPath = ConstructImports(imputAlias, i, pkgName)
+				last := i[strings.LastIndex(i, "/")+1 : len(i)-1]
+				aliasName, importPath = ConstructImports(last, i)
 			}
 		} else {
 			if val.Name != nil {
 				importPath = i
-				aliasName, _ = ConstructImports(val.Name.String(), i, pkgName)
+				aliasName, _ = ConstructImports(val.Name.String(), i)
 			}
 		}
 		i = fmt.Sprintf("%s %s", aliasName, importPath)
