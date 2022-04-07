@@ -400,10 +400,16 @@ type helperVars struct {
 }
 
 func RenderHelperTemplate(parentsMap map[string]parser.NodeHelper, crdModulePath string) (*bytes.Buffer, error) {
+	keys := make([]string, 0, len(parentsMap))
+	for k := range parentsMap {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+
 	var vars helperVars
 	vars.CrdModulePath = strings.TrimSuffix(crdModulePath, "/")
-	vars.GetCrdParentsMap = generateGetCrdParentsMap(parentsMap)
-	vars.GetObjectByCRDName = generateGetObjectByCRDName(parentsMap)
+	vars.GetCrdParentsMap = generateGetCrdParentsMap(keys, parentsMap)
+	vars.GetObjectByCRDName = generateGetObjectByCRDName(keys, parentsMap)
 
 	helperTemplate, err := readTemplateFile(helperTemplateFile)
 	if err != nil {
