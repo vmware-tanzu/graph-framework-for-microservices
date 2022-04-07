@@ -3,4 +3,4 @@ nexusCli:
 nexusCompiler:
   version: v0.0.1
 nexusAppTemplates:
-  version: v0.0.1
+  version: v0.0.2
