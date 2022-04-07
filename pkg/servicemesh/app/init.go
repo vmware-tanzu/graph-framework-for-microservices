@@ -17,8 +17,6 @@ type TemplateValues struct {
 }
 
 var (
-	DMDir            string
-	AppDir           string
 	DatatmodelName   string
 	DatatmodelGroup  string
 	AppName          string
@@ -100,7 +98,7 @@ func Init(cmd *cobra.Command, args []string) error {
 
 var InitCmd = &cobra.Command{
 	Use:   "init",
-	Short: "intalls a sample application",
+	Short: "Creates a bare-bones Nexus application ready for operators to be added",
 	PreRunE: func(cmd *cobra.Command, args []string) (err error) {
 		return nil
 	},
@@ -109,15 +107,15 @@ var InitCmd = &cobra.Command{
 
 func init() {
 	InitCmd.Flags().StringVarP(&DatatmodelName, "datamodel-init",
-		"d", "", "name of the datamodel")
+		"d", "", "name of the datamodel to initialize")
 	InitCmd.Flags().StringVarP(&DatatmodelImport, "datamodel-import",
-		"i", "", "name of the datamodel")
+		"i", "", "name of the datamodel to import")
 	InitCmd.Flags().StringVarP(&AppName, "name",
 		"n", "", "name of the application")
 	InitCmd.Flags().StringVarP(&RegistryURL, "registry",
-		"r", "284299419820.dkr.ecr.us-west-2.amazonaws.com/nexus/playground", "registry url to publish docker image")
+		"r", "284299419820.dkr.ecr.us-west-2.amazonaws.com/nexus/playground", "container registry url to publish docker images to")
 	InitCmd.Flags().StringVarP(&DatatmodelGroup, "datamodel-group",
-		"g", "", "group in datamodel")
+		"g", "", "group of the datamodel being initialized. only to be used in conjunction with --datamodel-init")
 	err := cobra.MarkFlagRequired(InitCmd.Flags(), "name")
 
 	if err != nil {

@@ -27,7 +27,7 @@ func Run(cmd *cobra.Command, args []string) error {
 
 var RunCmd = &cobra.Command{
 	Use:   "run",
-	Short: "run the application",
+	Short: "Run the Nexus application after deploying to the specified namespace",
 	PreRunE: func(cmd *cobra.Command, args []string) (err error) {
 		return nil
 	},

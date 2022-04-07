@@ -30,7 +30,7 @@ func Uninstall(cmd *cobra.Command, args []string) error {
 
 var UninstallCmd = &cobra.Command{
 	Use:   "uninstall",
-	Short: "uninstall a tenant from current cluster",
+	Short: "Uninstalls the Nexus runtime from the specified namespace",
 	//Args:  cobra.ExactArgs(1),
 	PreRunE: func(cmd *cobra.Command, args []string) (err error) {
 		return nil
@@ -40,5 +40,5 @@ var UninstallCmd = &cobra.Command{
 
 func init() {
 	UninstallCmd.Flags().StringVarP(&Namespace, "namespace",
-		"t", "", "name of the namespace to be created")
+		"n", "", "name of the namespace to be created")
 }

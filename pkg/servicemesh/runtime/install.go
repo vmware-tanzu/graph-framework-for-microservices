@@ -7,14 +7,11 @@ import (
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/utils"
 )
 
-const TENANT_INSTALLATION_MANIFEST = "runtime-manifests/deployment/"
-const CRD_FOLDER = "runtime-manifests/crds/"
-
 var Namespace string
 
 var InstallCmd = &cobra.Command{
 	Use:   "install",
-	Short: "install tenant from directory",
+	Short: "Installs the Nexus runtime on the specified namespace",
 	//Args:  cobra.ExactArgs(1),
 	PreRunE: func(cmd *cobra.Command, args []string) (err error) {
 		return nil

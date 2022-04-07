@@ -38,22 +38,22 @@ var LoginCmd = &cobra.Command{
 
 var RuntimeCmd = &cobra.Command{
 	Use:   "runtime",
-	Short: "Runtime installer and uninstaller",
+	Short: "Perform Nexus Runtime operations",
 }
 
 var DataModelCmd = &cobra.Command{
 	Use:   "datamodel",
-	Short: "Datamodel installer and uninstaller",
+	Short: "Perform Nexus Datamodel operations",
 }
 
 var AppCmd = &cobra.Command{
 	Use:   "app",
-	Short: "Sample application installer",
+	Short: "Perform Nexus Application operations",
 }
 
 var VersionCmd = &cobra.Command{
 	Use:   "version",
-	Short: "Provides Nexus CLI and Nexus Runtime versions",
+	Short: "Provides Nexus CLI, compiler, app-template and runtime versions",
 	RunE:  version.Version,
 }
 

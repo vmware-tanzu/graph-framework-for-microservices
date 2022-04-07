@@ -17,7 +17,7 @@ func Publish(cmd *cobra.Command, args []string) error {
 
 var PublishCmd = &cobra.Command{
 	Use:   "publish",
-	Short: "publish the application",
+	Short: "(TBD) Publish the Nexus application as a docker image",
 	PreRunE: func(cmd *cobra.Command, args []string) (err error) {
 		return nil
 	},

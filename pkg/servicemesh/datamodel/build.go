@@ -11,7 +11,7 @@ import (
 
 var BuildCmd = &cobra.Command{
 	Use:   "build",
-	Short: "clones policymodel and creates crds",
+	Short: "Compiles the Nexus DSLs into consumable APIs, CRDs, etc.",
 	RunE:  Build,
 }
 

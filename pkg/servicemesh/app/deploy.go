@@ -17,7 +17,7 @@ func Deploy(cmd *cobra.Command, args []string) error {
 
 var DeployCmd = &cobra.Command{
 	Use:   "deploy",
-	Short: "deploys the application",
+	Short: "(TBD) Deploy the application",
 	PreRunE: func(cmd *cobra.Command, args []string) (err error) {
 		return nil
 	},
