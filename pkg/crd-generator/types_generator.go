@@ -4,42 +4,47 @@ import (
 	"fmt"
 	"go/ast"
 	"go/types"
+	"strings"
 	"text/template"
 	"unicode"
 
 	log "github.com/sirupsen/logrus"
 
-	"gitlab.eng.vmware.com/nexus/compiler/pkg/parser"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/pkg/config"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/pkg/parser"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/pkg/util"
 )
 
 const (
 	openapigen  string = "// +k8s:openapi-gen=true"
 	deepcopygen string = "// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object"
 	clientgen   string = "// +genclient\n// +genclient:noStatus\n// +genclient:nonNamespaced"
+	emptyTag    string = "`json:\"" + "-" + "\" yaml:\"" + "-" + "\"`"
 )
 
 func parsePackageCRDs(pkg parser.Package) string {
 	var output string
 	for _, node := range pkg.GetNexusNodes() {
-		output += generateType(node)
+		output += generateType(pkg, node)
 	}
 
 	return output
 }
 
-func generateType(node *ast.TypeSpec) string {
+func generateType(pkg parser.Package, node *ast.TypeSpec) string {
 	var output string
-	output += generateCRDStructType(node)
+	output += generateCRDStructType(pkg, node)
 	output += generateNodeSpec(node)
 	output += generateListDef(node)
 
 	return output
 }
 
-func generateCRDStructType(node *ast.TypeSpec) string {
+func generateCRDStructType(pkg parser.Package, node *ast.TypeSpec) string {
 	var s struct {
 		Name       string
 		StatusType string
+		CrdName    string
 	}
 	spec := ""
 	if len(parser.GetSpecFields(node)) > 0 ||
@@ -60,6 +65,8 @@ func generateCRDStructType(node *ast.TypeSpec) string {
 		log.Fatalf("name of type can't be empty")
 	}
 
+	s.CrdName = fmt.Sprintf("%s.%s.%s", util.ToPlural(strings.ToLower(s.Name)), strings.ToLower(pkg.Name), config.ConfigInstance.GroupName)
+
 	var crdTemplate = clientgen + "\n" + deepcopygen + "\n" + openapigen + `
 type {{.Name}} struct {
 	metav1.TypeMeta    ` + "`" + `json:",inline" yaml:",inline"` + "`" + `
@@ -68,6 +75,9 @@ type {{.Name}} struct {
 	` + status + `
 }
 
+func (c *{{.Name}}) CRDName() string {
+	return "{{.CrdName}}"
+}
 `
 
 	tmpl, err := template.New("tmpl").Parse(crdTemplate)
@@ -134,6 +144,9 @@ type {{.Name}}Spec struct {
 		if err != nil {
 			continue
 		}
+		typeString := generateTypeString(child)
+		specDef.Fields += "\t" + name + " " + typeString + " " + emptyTag + "\n"
+		name += "Gvk"
 		if parser.IsMapField(child) {
 			specDef.Fields += "\t" + name + " map[string]Child"
 		} else {
@@ -147,6 +160,9 @@ type {{.Name}}Spec struct {
 		if err != nil {
 			log.Fatalf("failed to GetFieldName: %v", err)
 		}
+		typeString := generateTypeString(link)
+		specDef.Fields += "\t" + name + " " + typeString + " " + emptyTag + "\n"
+		name += "Gvk"
 		if parser.IsMapField(link) {
 			specDef.Fields += "\t" + name + " map[string]Link"
 		} else {
@@ -192,6 +208,16 @@ type {{.Name}}List struct {
 		log.Fatalf("failed to render template: %v", err)
 	}
 	return b.String()
+}
+
+func generateTypeString(field *ast.Field) string {
+	typeString := strings.Split(types.ExprString(field.Type), ".")
+	newTypeString := typeString[0]
+	if len(typeString) > 1 {
+		importType := fmt.Sprintf("%s%sv1", typeString[0], config.ConfigInstance.GroupName)
+		newTypeString = strings.ToLower(util.RemoveSpecialChars(importType)) + "." + typeString[1]
+	}
+	return newTypeString
 }
 
 func parsePackageStructs(pkg parser.Package) string {

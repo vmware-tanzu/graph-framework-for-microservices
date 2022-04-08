@@ -1,9 +1,9 @@
 package gns
 
 import (
-	service_group "gitlab.eng.vmware.com/nexus/compiler/example/datamodel/config/gns/service-group"
-	"gitlab.eng.vmware.com/nexus/compiler/example/datamodel/config/policy"
-	"gitlab.eng.vmware.com/nexus/compiler/example/datamodel/nexus"
+	service_group "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/datamodel/config/gns/service-group"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/datamodel/config/policy"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/datamodel/nexus"
 )
 
 type Gns struct {

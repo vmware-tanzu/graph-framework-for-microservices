@@ -3,6 +3,7 @@ package crd_generator
 import (
 	"bytes"
 	_ "embed"
+	"encoding/json"
 	"fmt"
 	"go/format"
 	"os"
@@ -10,12 +11,12 @@ import (
 	"strings"
 	"text/template"
 
-	"gitlab.eng.vmware.com/nexus/compiler/pkg/util"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/pkg/util"
 
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/tools/imports"
 
-	"gitlab.eng.vmware.com/nexus/compiler/pkg/parser"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/pkg/parser"
 )
 
 //go:embed template/doc.go.tmpl
@@ -33,7 +34,15 @@ var typesTemplateFile []byte
 //go:embed template/crd_base.yaml.tmpl
 var crdBaseTemplateFile []byte
 
-func RenderCRDTemplate(baseGroupName, crdModulePath string, pkgs parser.Packages, outputDir string) error {
+//go:embed template/helper.go.tmpl
+var helperTemplateFile []byte
+
+//go:embed template/client.go.tmpl
+var clientTemplateFile []byte
+
+func RenderCRDTemplate(baseGroupName, crdModulePath string, pkgs parser.Packages, graph map[string]parser.Node, outputDir string) error {
+	parentsMap := parser.CreateParentsMap(graph)
+
 	pkgNames := make([]string, len(pkgs))
 	i := 0
 	for _, pkg := range pkgs {
@@ -44,7 +53,7 @@ func RenderCRDTemplate(baseGroupName, crdModulePath string, pkgs parser.Packages
 		crdFolder := outputDir + "/crds"
 		apiFolder := groupFolder + "v1"
 		var err error
-		err = createCRDFolder(apiFolder)
+		err = createFolder(apiFolder)
 		if err != nil {
 			return err
 		}
@@ -84,7 +93,7 @@ func RenderCRDTemplate(baseGroupName, crdModulePath string, pkgs parser.Packages
 		if err != nil {
 			return err
 		}
-		crdFiles, err := RenderCRDBaseTemplate(baseGroupName, pkg)
+		crdFiles, err := RenderCRDBaseTemplate(baseGroupName, pkg, parentsMap)
 		if err != nil {
 			return err
 		}
@@ -97,13 +106,48 @@ func RenderCRDTemplate(baseGroupName, crdModulePath string, pkgs parser.Packages
 		}
 	}
 
-	return createApiNamesFile(pkgNames, outputDir)
+	err := RenderHelper(parentsMap, outputDir, crdModulePath)
+	if err != nil {
+		return err
+	}
+
+	err = RenderClient(baseGroupName, outputDir, crdModulePath, pkgs)
+	if err != nil {
+		return err
+	}
+	err = createApiNamesFile(pkgNames, outputDir)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
-func createCRDFolder(name string) error {
+func RenderHelper(parentsMap map[string]parser.NodeHelper, outputDir string, crdModulePath string) error {
+	helperFolder := outputDir + "/helper"
+	var err error
+	err = createFolder(helperFolder)
+	if err != nil {
+		return err
+	}
+
+	file, err := RenderHelperTemplate(parentsMap, crdModulePath)
+	if err != nil {
+		return err
+	}
+	log.Debugf("Rendered helper: %s", file)
+	err = createFile(helperFolder, "helper.go", file, true)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func createFolder(name string) error {
 	err := os.MkdirAll(name, os.ModeDir|os.ModePerm)
 	if err != nil {
-		return fmt.Errorf("creating base-group dir %v failed with an error: %v", name, err)
+		return fmt.Errorf("creating dir %v failed with an error: %v", name, err)
 	}
 	return nil
 }
@@ -259,12 +303,18 @@ func RenderTypesTemplate(pkg parser.Package) (*bytes.Buffer, error) {
 }
 
 type crdBaseVars struct {
+	CrdName         string
 	GroupName       string
 	Singular        string
 	Plural          string
 	Kind            string
 	KindList        string
 	ResourceVersion string
+	NexusAnnotation string
+}
+
+type NexusAnnotation struct {
+	Hierarchy []string `json:"hierarchy"`
 }
 
 type CrdBaseFile struct {
@@ -272,7 +322,7 @@ type CrdBaseFile struct {
 	File *bytes.Buffer
 }
 
-func RenderCRDBaseTemplate(baseGroupName string, pkg parser.Package) ([]CrdBaseFile, error) {
+func RenderCRDBaseTemplate(baseGroupName string, pkg parser.Package, parentsMap map[string]parser.NodeHelper) ([]CrdBaseFile, error) {
 	var crds []CrdBaseFile
 	for _, node := range pkg.GetNexusNodes() {
 		typeName := parser.GetTypeName(node)
@@ -280,13 +330,28 @@ func RenderCRDBaseTemplate(baseGroupName string, pkg parser.Package) ([]CrdBaseF
 		singular := strings.ToLower(typeName)
 		kind := strings.Title(singular)
 		plural := util.ToPlural(singular)
+		crdName := fmt.Sprintf("%s.%s", plural, groupName)
+
+		nexusAnnotationStr := []byte("{}")
+		parents, ok := parentsMap[crdName]
+		if ok {
+			nexusAnnotation := &NexusAnnotation{Hierarchy: parents.Parents}
+
+			var err error
+			nexusAnnotationStr, err = json.Marshal(nexusAnnotation)
+			if err != nil {
+				return nil, err
+			}
+		}
 
 		vars := crdBaseVars{
-			GroupName: groupName,
-			Singular:  singular,
-			Plural:    plural,
-			Kind:      kind,
-			KindList:  fmt.Sprintf("%sList", kind),
+			CrdName:         crdName,
+			GroupName:       groupName,
+			Singular:        singular,
+			Plural:          plural,
+			Kind:            kind,
+			KindList:        fmt.Sprintf("%sList", kind),
+			NexusAnnotation: string(nexusAnnotationStr),
 			// TODO make configurable by some variable in package
 			ResourceVersion: "v1",
 		}
@@ -326,4 +391,93 @@ func createApiNamesFile(apiList []string, outputDir string) error {
 	var b bytes.Buffer
 	b.WriteString(apiNames)
 	return createFile(outputDir, "api_names.sh", &b, false)
+}
+
+type helperVars struct {
+	CrdModulePath      string
+	GetCrdParentsMap   string
+	GetObjectByCRDName string
+}
+
+func RenderHelperTemplate(parentsMap map[string]parser.NodeHelper, crdModulePath string) (*bytes.Buffer, error) {
+	keys := make([]string, 0, len(parentsMap))
+	for k := range parentsMap {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+
+	var vars helperVars
+	vars.CrdModulePath = strings.TrimSuffix(crdModulePath, "/")
+	vars.GetCrdParentsMap = generateGetCrdParentsMap(keys, parentsMap)
+	vars.GetObjectByCRDName = generateGetObjectByCRDName(keys, parentsMap)
+
+	helperTemplate, err := readTemplateFile(helperTemplateFile)
+	if err != nil {
+		return nil, err
+	}
+
+	tmpl, err := renderTemplate(helperTemplate, vars)
+	if err != nil {
+		return nil, err
+	}
+
+	out, err := imports.Process("render.go", tmpl.Bytes(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return bytes.NewBuffer(out), nil
+}
+
+func RenderClient(baseGroupName, outputDir, crdModulePath string, pkgs parser.Packages) error {
+	clientFolder := outputDir + "/nexus-client"
+	err := createFolder(clientFolder)
+	if err != nil {
+		return err
+	}
+	file, err := RenderClientTemplate(baseGroupName, crdModulePath, pkgs)
+	if err != nil {
+		return err
+	}
+	log.Debugf("Rendered client template: %s", file)
+	err = createFile(clientFolder, "client.go", file, true)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+type clientVars struct {
+	BaseClientsetImport       string
+	BaseImports               string
+	ClientsetsApiGroups       string
+	InitApiGroups             string
+	ClientsetsApiGroupMethods string
+	ApiGroups                 string
+	ApiGroupsClient           string
+}
+
+func RenderClientTemplate(baseGroupName, crdModulePath string, pkgs parser.Packages) (*bytes.Buffer, error) {
+	vars, err := generateNexusClientVars(baseGroupName, crdModulePath, pkgs)
+	if err != nil {
+		return nil, err
+	}
+
+	clientTemplate, err := readTemplateFile(clientTemplateFile)
+	if err != nil {
+		return nil, err
+	}
+
+	tmpl, err := renderTemplate(clientTemplate, vars)
+	if err != nil {
+		return nil, err
+	}
+
+	out, err := imports.Process("client.go", tmpl.Bytes(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return bytes.NewBuffer(out), nil
 }

@@ -5,9 +5,9 @@ import (
 	"os"
 
 	log "github.com/sirupsen/logrus"
-	"gitlab.eng.vmware.com/nexus/compiler/pkg/config"
-	crd_generator "gitlab.eng.vmware.com/nexus/compiler/pkg/crd-generator"
-	"gitlab.eng.vmware.com/nexus/compiler/pkg/parser"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/pkg/config"
+	crd_generator "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/pkg/crd-generator"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/pkg/parser"
 )
 
 func main() {
@@ -31,15 +31,10 @@ func main() {
 		}
 	}
 
-	// env overwrites config
-	envPath := os.Getenv("CRD_MODULE_PATH")
-	if envPath != "" {
-		conf.CrdModulePath = envPath
-	}
 	if conf.CrdModulePath == "" {
-		log.Fatalf("failed to determine Crd module path, please add to config file as" +
-			" crdModulePath or as CRD_MODULE_PATH enviroment variable")
+		conf.CrdModulePath = "gitlab.eng.vmware.com/nexus/compiler/_generated/"
 	}
+	// env overwrites config
 	envGroup := os.Getenv("GROUP_NAME")
 	if envGroup != "" {
 		conf.GroupName = envGroup
@@ -49,8 +44,10 @@ func main() {
 			" groupName or as GROUP_NAME enviroment variable")
 	}
 
+	config.ConfigInstance = conf
 	pkgs := parser.ParseDSLPkg(*dslDir)
-	if err = crd_generator.RenderCRDTemplate(conf.GroupName, conf.CrdModulePath, pkgs, *crdDir); err != nil {
+	graph := parser.ParseDSLNodes(*dslDir, conf.GroupName)
+	if err = crd_generator.RenderCRDTemplate(conf.GroupName, conf.CrdModulePath, pkgs, graph, *crdDir); err != nil {
 		log.Fatalf("Error rendering crd template: %v", err)
 	}
 }

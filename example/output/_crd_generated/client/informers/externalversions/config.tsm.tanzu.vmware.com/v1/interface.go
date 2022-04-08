@@ -19,7 +19,7 @@ limitations under the License.
 package v1
 
 import (
-	internalinterfaces "gitlab.eng.vmware.com/nexus/compiler/_generated/client/informers/externalversions/internalinterfaces"
+	internalinterfaces "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/_crd_generated/client/informers/externalversions/internalinterfaces"
 )
 
 // Interface provides access to all the informers in this group version.

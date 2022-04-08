@@ -10,8 +10,8 @@ import (
 	. "github.com/onsi/gomega"
 	"k8s.io/kube-openapi/pkg/common"
 
-	generator "gitlab.eng.vmware.com/nexus/compiler/pkg/openapi_generator"
-	"gitlab.eng.vmware.com/nexus/compiler/pkg/openapi_generator/test_data/openapi"
+	generator "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/pkg/openapi_generator"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/pkg/openapi_generator/test_data/openapi"
 )
 
 var _ = Describe("Generator", func() {
@@ -41,7 +41,7 @@ var _ = Describe("Generator", func() {
 		gen, err := generator.NewGenerator(openapi.GetOpenAPIDefinitions(ref))
 		Expect(err).NotTo(HaveOccurred())
 
-		namePrefix := "gitlab.eng.vmware.com/nexus/compiler/pkg/openapi_generator/test_data"
+		namePrefix := "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/pkg/openapi_generator/test_data"
 		gen.SetNamePrefix(namePrefix)
 
 		oneOfDefinition := common.OpenAPIDefinition{

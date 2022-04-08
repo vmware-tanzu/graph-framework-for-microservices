@@ -22,6 +22,7 @@ limitations under the License.
 package v1
 
 import (
+	servicegrouptsmtanzuvmwarecomv1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/_crd_generated/apis/service_group.tsm.tanzu.vmware.com/v1"
 	runtime "k8s.io/apimachinery/pkg/runtime"
 )
 
@@ -100,6 +101,13 @@ func (in *ACPConfigSpec) DeepCopyInto(out *ACPConfigSpec) {
 	}
 	if in.DestSvcGroups != nil {
 		in, out := &in.DestSvcGroups, &out.DestSvcGroups
+		*out = make(map[string]servicegrouptsmtanzuvmwarecomv1.SvcGroup, len(*in))
+		for key, val := range *in {
+			(*out)[key] = *val.DeepCopy()
+		}
+	}
+	if in.DestSvcGroupsGvk != nil {
+		in, out := &in.DestSvcGroupsGvk, &out.DestSvcGroupsGvk
 		*out = make(map[string]Link, len(*in))
 		for key, val := range *in {
 			(*out)[key] = val
@@ -107,6 +115,13 @@ func (in *ACPConfigSpec) DeepCopyInto(out *ACPConfigSpec) {
 	}
 	if in.SourceSvcGroups != nil {
 		in, out := &in.SourceSvcGroups, &out.SourceSvcGroups
+		*out = make(map[string]servicegrouptsmtanzuvmwarecomv1.SvcGroup, len(*in))
+		for key, val := range *in {
+			(*out)[key] = *val.DeepCopy()
+		}
+	}
+	if in.SourceSvcGroupsGvk != nil {
+		in, out := &in.SourceSvcGroupsGvk, &out.SourceSvcGroupsGvk
 		*out = make(map[string]Link, len(*in))
 		for key, val := range *in {
 			(*out)[key] = val
@@ -206,6 +221,13 @@ func (in *AccessControlPolicySpec) DeepCopyInto(out *AccessControlPolicySpec) {
 	*out = *in
 	if in.policyConfigs != nil {
 		in, out := &in.policyConfigs, &out.policyConfigs
+		*out = make(map[string]ACPConfig, len(*in))
+		for key, val := range *in {
+			(*out)[key] = *val.DeepCopy()
+		}
+	}
+	if in.policyConfigsGvk != nil {
+		in, out := &in.policyConfigsGvk, &out.policyConfigsGvk
 		*out = make(map[string]Child, len(*in))
 		for key, val := range *in {
 			(*out)[key] = val

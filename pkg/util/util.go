@@ -1,6 +1,11 @@
 package util
 
-import "fmt"
+import (
+	"fmt"
+	"regexp"
+
+	log "github.com/sirupsen/logrus"
+)
 
 func ToPlural(singular string) string {
 	var plural string
@@ -14,4 +19,12 @@ func ToPlural(singular string) string {
 	}
 
 	return plural
+}
+
+func RemoveSpecialChars(value string) string {
+	re, err := regexp.Compile(`[\_\.\/]`)
+	if err != nil {
+		log.Fatalf("failed to remove special chars from string %v: %v", value, err)
+	}
+	return re.ReplaceAllString(value, "")
 }

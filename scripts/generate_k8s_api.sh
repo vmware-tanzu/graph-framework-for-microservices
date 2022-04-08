@@ -2,7 +2,7 @@
 
 set -e
 
-ROOT_PACKAGE="gitlab.eng.vmware.com/nexus/compiler"
+ROOT_PACKAGE="gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git"
 GENERATED_PACKAGE="${ROOT_PACKAGE}/_generated"
 
 . $(dirname "$0")/api_names.sh

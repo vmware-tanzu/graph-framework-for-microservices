@@ -4,7 +4,8 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	log "github.com/sirupsen/logrus"
-	"gitlab.eng.vmware.com/nexus/compiler/pkg/parser"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/pkg/config"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/pkg/parser"
 )
 
 var _ = Describe("Pkg tests", func() {
@@ -16,10 +17,13 @@ var _ = Describe("Pkg tests", func() {
 	)
 
 	BeforeEach(func() {
+		_, err := config.LoadConfig("../../example/nexus-sdk.yaml")
+		Expect(err).To(Not(HaveOccurred()))
+
 		pkgs = parser.ParseDSLPkg(exampleDSLPath)
-		pkg, ok = pkgs["gitlab.eng.vmware.com/nexus/compiler/example/datamodel"]
+		pkg, ok = pkgs["gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/datamodel"]
 		Expect(ok).To(BeTrue())
-		gnsPkg, ok = pkgs["gitlab.eng.vmware.com/nexus/compiler/example/datamodel//config/gns"]
+		gnsPkg, ok = pkgs["gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/datamodel//config/gns"]
 		Expect(ok).To(BeTrue())
 	})
 
@@ -27,8 +31,8 @@ var _ = Describe("Pkg tests", func() {
 		imports := pkg.GetImportStrings()
 
 		expectedImports := []string{
-			"\"gitlab.eng.vmware.com/nexus/compiler/example/datamodel/config\"",
-			"\"gitlab.eng.vmware.com/nexus/compiler/example/datamodel/nexus\""}
+			"configtsmtanzuvmwarecomv1 \"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/_crd_generated/apis/config.tsm.tanzu.vmware.com/v1\"",
+			"nexustsmtanzuvmwarecomv1 \"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/_crd_generated/apis/nexus.tsm.tanzu.vmware.com/v1\""}
 
 		Expect(imports).To(Equal(expectedImports))
 	})
