@@ -17,6 +17,7 @@ type TemplateValues struct {
 
 var DatatmodelName string
 var GroupName string
+var RepoName string
 
 func createDatamodel(DatatmodelName string, URL string, Render bool, standalone bool) error {
 	var Directory string
@@ -55,9 +56,9 @@ func createDatamodel(DatatmodelName string, URL string, Render bool, standalone 
 		return fmt.Errorf("could not unarchive template files due to %s", err)
 	}
 	os.Remove("datamodel.tar")
-	if DatatmodelName != "" {
+	if standalone == false {
 		if DatatmodelName != "helloworld" {
-			err := utils.GoModInit(DatatmodelName)
+			err := utils.GoModInit(DatatmodelName, false)
 			if err != nil {
 				return err
 			}
@@ -66,7 +67,7 @@ func createDatamodel(DatatmodelName string, URL string, Render bool, standalone 
 		}
 		Directory = DatatmodelName
 	} else {
-		err := utils.GoModInit(DatatmodelName)
+		err := utils.GoModInit(DatatmodelName, true)
 		if err != nil {
 			return err
 		}
@@ -99,6 +100,10 @@ func createDatamodel(DatatmodelName string, URL string, Render bool, standalone 
 
 func InitOperation(cmd *cobra.Command, args []string) error {
 	var standalone bool = false
+	if RepoName != "" {
+		standalone = true
+		DatatmodelName = RepoName
+	}
 	if DatatmodelName == "" {
 		if GroupName == "" {
 			fmt.Println("You need to provide a groupname if datamodel name is not provided")
@@ -159,4 +164,5 @@ var InitCmd = &cobra.Command{
 func init() {
 	InitCmd.Flags().StringVarP(&DatatmodelName, "name", "n", "", "name of the datamodel to be created")
 	InitCmd.Flags().StringVarP(&GroupName, "group", "g", "", "group for the datamodel to be created")
+	InitCmd.Flags().StringVarP(&RepoName, "repo", "r", "", "repository url of the datamodel to be intialized.")
 }

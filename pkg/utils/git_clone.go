@@ -76,16 +76,20 @@ func GitClone() (string, error) {
 	return manifestDir, nil
 }
 
-func GoModInit(path string) error {
+func GoModInit(path string, current bool) error {
 	if path != "" {
 		fmt.Printf("Intializing gomodule\n")
-		os.Chdir(path)
+		if !current {
+			os.Chdir(path)
+		}
 		cmd := exec.Command("go", "mod", "init", path)
 		_, err := cmd.Output()
 		if err != nil {
 			return err
 		}
-		os.Chdir("..")
+		if !current {
+			os.Chdir("..")
+		}
 	} else {
 		fmt.Printf("Intializing gomodule\n")
 		cmd := exec.Command("go", "mod", "init")
