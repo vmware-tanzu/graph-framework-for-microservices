@@ -36,6 +36,10 @@ type Gns struct {
 	Status            GnsState `json:"status,omitempty" yaml:"status,omitempty"`
 }
 
+func (c *Gns) CRDName() string {
+	return "gnses.gns.tsm.tanzu.vmware.com"
+}
+
 // +k8s:openapi-gen=true
 type GnsSpec struct {
 	Domain                    string                                              `json:"domain" yaml:"domain"`
@@ -64,6 +68,10 @@ type GnsList struct {
 type Dns struct {
 	metav1.TypeMeta   `json:",inline" yaml:",inline"`
 	metav1.ObjectMeta `json:"metadata" yaml:"metadata"`
+}
+
+func (c *Dns) CRDName() string {
+	return "dnses.gns.tsm.tanzu.vmware.com"
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object

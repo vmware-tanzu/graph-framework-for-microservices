@@ -34,6 +34,10 @@ type AccessControlPolicy struct {
 	Spec              AccessControlPolicySpec `json:"spec,omitempty" yaml:"spec,omitempty"`
 }
 
+func (c *AccessControlPolicy) CRDName() string {
+	return "accesscontrolpolicies.policy.tsm.tanzu.vmware.com"
+}
+
 // +k8s:openapi-gen=true
 type AccessControlPolicySpec struct {
 	policyConfigs    map[string]ACPConfig `json:"-" yaml:"-"`
@@ -56,6 +60,10 @@ type ACPConfig struct {
 	metav1.TypeMeta   `json:",inline" yaml:",inline"`
 	metav1.ObjectMeta `json:"metadata" yaml:"metadata"`
 	Spec              ACPConfigSpec `json:"spec,omitempty" yaml:"spec,omitempty"`
+}
+
+func (c *ACPConfig) CRDName() string {
+	return "acpconfigs.policy.tsm.tanzu.vmware.com"
 }
 
 // +k8s:openapi-gen=true

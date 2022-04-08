@@ -34,6 +34,10 @@ type Root struct {
 	Spec              RootSpec `json:"spec,omitempty" yaml:"spec,omitempty"`
 }
 
+func (c *Root) CRDName() string {
+	return "roots.root.tsm.tanzu.vmware.com"
+}
+
 // +k8s:openapi-gen=true
 type RootSpec struct {
 	Config    configtsmtanzuvmwarecomv1.Config `json:"-" yaml:"-"`
