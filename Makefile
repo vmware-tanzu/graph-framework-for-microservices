@@ -1,6 +1,6 @@
 DEBUG ?= FALSE
 
-GO_PROJECT_NAME ?= compiler
+GO_PROJECT_NAME ?= compiler.git
 
 ECR_DOCKER_REGISTRY ?= 284299419820.dkr.ecr.us-west-2.amazonaws.com
 
@@ -10,7 +10,7 @@ TAG ?= $(shell git rev-parse --verify --short=8 HEAD)
 BUILDER_NAME ?= ${IMAGE_NAME}-builder
 BUILDER_TAG := $(shell md5sum builder/Dockerfile | awk '{ print $1 }' | head -c 8)
 
-PKG_NAME?=/go/src/gitlab.eng.vmware.com/nexus/${GO_PROJECT_NAME}
+PKG_NAME?=/go/src/gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/${GO_PROJECT_NAME}
 
 DATAMODEL_PATH ?= datamodel
 CONFIG_FILE ?= ""
@@ -20,7 +20,7 @@ DATAMODEL_LOCAL_PATH ?= ""
 ifeq ($(CONTAINER_ID),)
 define run_in_container
   docker run \
-  --volume $(realpath .):/go/src/gitlab.eng.vmware.com/nexus/compiler/ \
+  --volume $(realpath .):/go/src/gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/ \
   --workdir ${PKG_NAME} \
   "${BUILDER_NAME}:${BUILDER_TAG}" ${1}
 endef
@@ -99,8 +99,8 @@ generate_code:
 		cp -rf $(DATAMODEL_LOCAL_PATH) /go/src/gitlab.eng.vmware.com/nexus/compiler/datamodel && \
 		rm -rf /go/src/gitlab.eng.vmware.com/nexus/compiler/datamodel/build  ;\
 	fi
-	go run cmd/nexus-sdk/main.go -config-file ${CONFIG_FILE} -dsl ${DATAMODEL_PATH} -crd-output _generated | tee test
-	cat test
+	CRD_MODULE_PATH=${CRD_MODULE_PATH} go run cmd/nexus-sdk/main.go -config-file ${CONFIG_FILE} -dsl ${DATAMODEL_PATH} -crd-output _generated | tee test
+ 	cat test
 	mv _generated/api_names.sh ./scripts/
 	./scripts/generate_k8s_api.sh
 	./scripts/generate_openapi_schema.sh
@@ -116,6 +116,7 @@ generate_code:
 test_generate_code_in_container: ${BUILDER_NAME}\:${BUILDER_TAG}.image.exists init_submodules
 	$(call run_in_container, make generate_code DATAMODEL_PATH=example/datamodel \
 	CONFIG_FILE=example/nexus-sdk.yaml \
+	CRD_MODULE_PATH="gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/_crd_generated/" \
 	GENERATED_OUTPUT_DIRECTORY=example/output/_crd_generated)
 	@if [ -n "$$(git ls-files --modified --exclude-standard)" ]; then\
 		echo "The following changes should be committed:";\
@@ -146,3 +147,16 @@ publish_builder_image:
 .PHONY: init_submodules
 init_submodules:
 	CONTAINER_ID=${CONTAINER_ID} git submodule update --init --recursive
+
+.PHONY: render_templates
+render_templates:
+	go run cmd/nexus-sdk/main.go -config-file example/nexus-sdk.yaml -dsl example/datamodel -crd-output example/output/_crd_base
+
+.PHONY: test_render_templates
+test_render_templates: render_templates
+	@if [ -n "$$(git ls-files --modified --exclude-standard)" ]; then\
+    	echo "The following changes should be committed:";\
+    	git status;\
+    	git diff;\
+    	return 1;\
+    fi

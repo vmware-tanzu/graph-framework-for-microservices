@@ -2,6 +2,9 @@
 apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
+  annotations:
+    nexus: |
+      {"hierarchy":["roots.root.tsm.tanzu.vmware.com","configs.config.tsm.tanzu.vmware.com","gnses.gns.tsm.tanzu.vmware.com"]}
   creationTimestamp: null
   name: svcgroups.service_group.tsm.tanzu.vmware.com
 spec:
@@ -44,7 +47,7 @@ spec:
               displayName:
                 default: ""
                 type: string
-              services:
+              servicesGvk:
                 additionalProperties:
                   properties:
                     group:

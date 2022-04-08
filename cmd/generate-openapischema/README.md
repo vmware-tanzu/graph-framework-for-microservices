@@ -50,8 +50,8 @@ Output Go schemas:
 ```go
 func GetOpenAPIDefinitions(ref common.ReferenceCallback) map[string]common.OpenAPIDefinition {
    return map[string]common.OpenAPIDefinition{
-      "gitlab.eng.vmware.com/nexus/compiler/pkg/example.Bar": schema_KavachSec_policymodel_pkg_example_Bar(ref),
-      "gitlab.eng.vmware.com/nexus/compiler/pkg/example.Foo": schema_KavachSec_policymodel_pkg_example_Foo(ref),
+      "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/pkg/example.Bar": schema_KavachSec_policymodel_pkg_example_Bar(ref),
+      "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/pkg/example.Foo": schema_KavachSec_policymodel_pkg_example_Foo(ref),
    }
 }
 
@@ -91,7 +91,7 @@ func schema_KavachSec_policymodel_pkg_example_Foo(ref common.ReferenceCallback) 
                "bar": {
                   SchemaProps: spec.SchemaProps{
                      Default: map[string]interface{}{},
-                     Ref:     ref("gitlab.eng.vmware.com/nexus/compiler/pkg/example.Bar"),
+                     Ref:     ref("gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/pkg/example.Bar"),
                   },
                },
             },
@@ -99,7 +99,7 @@ func schema_KavachSec_policymodel_pkg_example_Foo(ref common.ReferenceCallback) 
          },
       },
       Dependencies: []string{
-         "gitlab.eng.vmware.com/nexus/compiler/pkg/example.Bar"},
+         "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/pkg/example.Bar"},
    }
 }
 
@@ -137,7 +137,7 @@ Output Go schemas:
 ```go
 func GetOpenAPIDefinitions(ref common.ReferenceCallback) map[string]common.OpenAPIDefinition {
    return map[string]common.OpenAPIDefinition{
-      "gitlab.eng.vmware.com/nexus/compiler/pkg/example.Foo": schema_KavachSec_policymodel_pkg_example_Foo(ref),
+      "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/pkg/example.Foo": schema_KavachSec_policymodel_pkg_example_Foo(ref),
    }
 }
 
@@ -330,7 +330,7 @@ func (*Bar_String) isBar_Bar() {}
 ```
 as `openapi-gen` cannot generate schemas for interfaces, we need to create it by hand:
 ```go
-"gitlab.eng.vmware.com/nexus/compiler/pkg/features/example.bar": common.OpenAPIDefinition{
+"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/pkg/features/example.bar": common.OpenAPIDefinition{
     Schema: spec.Schema{
         SchemaProps: spec.SchemaProps{
             Type: []string{"object"},
@@ -370,7 +370,7 @@ Additional property would be removed before updating YAMLs.
 
 The final schema for interface will look like:
 ```go
-"gitlab.eng.vmware.com/nexus/compiler/pkg/features/example.bar": common.OpenAPIDefinition{
+"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/pkg/features/example.bar": common.OpenAPIDefinition{
     Schema: spec.Schema{
         SchemaProps: spec.SchemaProps{
             Type: []string{"object"},
@@ -416,7 +416,7 @@ All the missing schema error messages look similar, but have small detail which
 allow us to identify what is the underlying issue. This detail is the path of the
 schema. Refer to the examples below for instructions how to solve any of them.
 
-1. `Missing schema for "gitlab.eng.vmware.com/nexus/compiler/pkg/apis/policy.mesh7.io/v1.tenantconfigspec"`
+1. `Missing schema for "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/pkg/apis/policy.mesh7.io/v1.tenantconfigspec"`
 
     The missing schema is from `pkg/apis` path, so the most probable cause is that
     you forgot to annotate the mentioned Go struct (in this case `TenantConfigSpec`)
@@ -478,7 +478,7 @@ schema. Refer to the examples below for instructions how to solve any of them.
     k8sAPIMachineryTypeName("api/resource.Quantity"):   schemaForTypeAndFormat("string", noFormat),
     ```
 
-1. `Missing schema for "gitlab.eng.vmware.com/nexus/compiler/pkg/features/plugins/hyper_dlp.ispiiaction_piivariant"`
+1. `Missing schema for "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/pkg/features/plugins/hyper_dlp.ispiiaction_piivariant"`
 
     The missing schema is in `pkg/features` path. It means that this is a schema
     for a struct generated from `oneof` in proto file and needs a manually created

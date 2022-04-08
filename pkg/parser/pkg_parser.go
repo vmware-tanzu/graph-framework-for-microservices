@@ -30,10 +30,10 @@ func ParseDSLPkg(startPath string) Packages {
 			}
 			for _, v := range pkgs {
 				pkgImport := strings.TrimSuffix(strings.ReplaceAll(path, startPath, fmt.Sprintf("%s/", modulePath)), "/")
-
 				pkg := Package{
 					Name:     v.Name,
 					FullName: pkgImport,
+					ModPath:  modulePath,
 					FileSet:  fileset,
 					Pkg:      *v,
 				}

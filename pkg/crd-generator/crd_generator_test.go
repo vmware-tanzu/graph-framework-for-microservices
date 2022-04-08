@@ -7,16 +7,16 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	crdgenerator "gitlab.eng.vmware.com/nexus/compiler/pkg/crd-generator"
-	"gitlab.eng.vmware.com/nexus/compiler/pkg/parser"
+	crdgenerator "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/pkg/crd-generator"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/pkg/parser"
 )
 
 const (
 	baseGroupName            = "tsm.tanzu.vmware.com"
-	crdModulePath            = "gitlab.eng.vmware.com/nexus/compiler/example/output/_crd_generated/"
+	crdModulePath            = "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/_crd_generated/"
 	examplePath              = "../../example/"
 	exampleDSLPath           = examplePath + "datamodel"
-	exampleCRDOutputPath     = examplePath + "output/crd_base/"
+	exampleCRDOutputPath     = examplePath + "output/_crd_base/"
 	exampleCRDApisOutputPath = exampleCRDOutputPath + "apis"
 	gnsExamplePath           = exampleCRDApisOutputPath + "/gns.tsm.tanzu.vmware.com/"
 	gnsDocPath               = gnsExamplePath + "v1/doc.go"
@@ -29,14 +29,20 @@ const (
 var _ = Describe("Template renderers tests", func() {
 	var (
 		//err error
-		pkg parser.Package
-		ok  bool
+		pkg        parser.Package
+		parentsMap map[string]parser.NodeHelper
+		ok         bool
 	)
 
 	BeforeEach(func() {
 		pkgs := parser.ParseDSLPkg(exampleDSLPath)
-		pkg, ok = pkgs["gitlab.eng.vmware.com/nexus/compiler/example/datamodel//config/gns"]
+		pkg, ok = pkgs["gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/datamodel//config/gns"]
 		Expect(ok).To(BeTrue())
+
+		graph := parser.ParseDSLNodes(exampleDSLPath, baseGroupName)
+		parentsMap = parser.CreateParentsMap(graph)
+		Expect(parentsMap).To(HaveLen(6))
+
 	})
 
 	It("should parse doc template", func() {
@@ -76,7 +82,7 @@ var _ = Describe("Template renderers tests", func() {
 	})
 
 	It("should parse base crd template", func() {
-		files, err := crdgenerator.RenderCRDBaseTemplate(baseGroupName, pkg)
+		files, err := crdgenerator.RenderCRDBaseTemplate(baseGroupName, pkg, parentsMap)
 		Expect(err).NotTo(HaveOccurred())
 		Expect(files).To(HaveLen(2))
 

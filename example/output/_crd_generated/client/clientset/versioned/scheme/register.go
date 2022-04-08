@@ -19,12 +19,12 @@ limitations under the License.
 package scheme
 
 import (
-	configtsmv1 "gitlab.eng.vmware.com/nexus/compiler/_generated/apis/config.tsm.tanzu.vmware.com/v1"
-	gnstsmv1 "gitlab.eng.vmware.com/nexus/compiler/_generated/apis/gns.tsm.tanzu.vmware.com/v1"
-	nexustsmv1 "gitlab.eng.vmware.com/nexus/compiler/_generated/apis/nexus.tsm.tanzu.vmware.com/v1"
-	policytsmv1 "gitlab.eng.vmware.com/nexus/compiler/_generated/apis/policy.tsm.tanzu.vmware.com/v1"
-	roottsmv1 "gitlab.eng.vmware.com/nexus/compiler/_generated/apis/root.tsm.tanzu.vmware.com/v1"
-	service_grouptsmv1 "gitlab.eng.vmware.com/nexus/compiler/_generated/apis/service_group.tsm.tanzu.vmware.com/v1"
+	configtsmv1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/_crd_generated/apis/config.tsm.tanzu.vmware.com/v1"
+	gnstsmv1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/_crd_generated/apis/gns.tsm.tanzu.vmware.com/v1"
+	nexustsmv1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/_crd_generated/apis/nexus.tsm.tanzu.vmware.com/v1"
+	policytsmv1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/_crd_generated/apis/policy.tsm.tanzu.vmware.com/v1"
+	roottsmv1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/_crd_generated/apis/root.tsm.tanzu.vmware.com/v1"
+	service_grouptsmv1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/_crd_generated/apis/service_group.tsm.tanzu.vmware.com/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	runtime "k8s.io/apimachinery/pkg/runtime"
 	schema "k8s.io/apimachinery/pkg/runtime/schema"

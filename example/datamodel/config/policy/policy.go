@@ -1,8 +1,8 @@
 package policy
 
 import (
-	service_group "gitlab.eng.vmware.com/nexus/compiler/example/datamodel/config/gns/service-group"
-	"gitlab.eng.vmware.com/nexus/compiler/example/datamodel/nexus"
+	service_group "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/datamodel/config/gns/service-group"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/datamodel/nexus"
 )
 
 type AccessControlPolicy struct {

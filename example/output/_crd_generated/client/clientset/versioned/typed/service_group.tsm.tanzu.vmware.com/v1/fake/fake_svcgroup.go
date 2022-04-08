@@ -21,7 +21,7 @@ package fake
 import (
 	"context"
 
-	servicegrouptsmtanzuvmwarecomv1 "gitlab.eng.vmware.com/nexus/compiler/_generated/apis/service_group.tsm.tanzu.vmware.com/v1"
+	servicegrouptsmtanzuvmwarecomv1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/_crd_generated/apis/service_group.tsm.tanzu.vmware.com/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	labels "k8s.io/apimachinery/pkg/labels"
 	schema "k8s.io/apimachinery/pkg/runtime/schema"
