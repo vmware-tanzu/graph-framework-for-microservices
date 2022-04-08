@@ -100,10 +100,6 @@ func createDatamodel(DatatmodelName string, URL string, Render bool, standalone 
 
 func InitOperation(cmd *cobra.Command, args []string) error {
 	var standalone bool = false
-	if RepoName != "" {
-		standalone = true
-		DatatmodelName = RepoName
-	}
 	if DatatmodelName == "" {
 		if GroupName == "" {
 			fmt.Println("You need to provide a groupname if datamodel name is not provided")
@@ -124,6 +120,9 @@ func InitOperation(cmd *cobra.Command, args []string) error {
 			}
 		}
 		standalone = true
+	}
+	if RepoName != "" {
+		DatatmodelName = RepoName
 	}
 	if standalone == false {
 		if GroupName == "" {
