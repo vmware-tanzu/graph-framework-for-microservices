@@ -35,6 +35,10 @@ type Config struct {
 	Spec              ConfigSpec `json:"spec,omitempty" yaml:"spec,omitempty"`
 }
 
+func (c *Config) CRDName() string {
+	return "configs.config.tsm.tanzu.vmware.com"
+}
+
 // +k8s:openapi-gen=true
 type ConfigSpec struct {
 	GNS       gnstsmtanzuvmwarecomv1.Gns                               `json:"-" yaml:"-"`

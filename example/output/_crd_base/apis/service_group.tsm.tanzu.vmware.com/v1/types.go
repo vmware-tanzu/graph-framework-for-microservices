@@ -34,6 +34,10 @@ type SvcGroup struct {
 	Spec              SvcGroupSpec `json:"spec,omitempty" yaml:"spec,omitempty"`
 }
 
+func (c *SvcGroup) CRDName() string {
+	return "svcgroups.service_group.tsm.tanzu.vmware.com"
+}
+
 // +k8s:openapi-gen=true
 type SvcGroupSpec struct {
 	DisplayName string                                       `json:"displayName" yaml:"displayName"`
