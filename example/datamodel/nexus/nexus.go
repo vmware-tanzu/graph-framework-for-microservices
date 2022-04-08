@@ -12,3 +12,12 @@ type ID struct {
 type Node struct {
 	ID
 }
+
+type RestUris struct {
+	Uri     string   `json:"uri"`
+	Methods []string `json:"methods"`
+}
+
+type RestAPISpec struct {
+	Uris []RestUris `json:"uris"`
+}

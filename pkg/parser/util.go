@@ -11,6 +11,15 @@ import (
 	"golang.org/x/mod/modfile"
 )
 
+type RestUris struct {
+	Uri     string   `json:"uri"`
+	Methods []string `json:"methods"`
+}
+
+type RestAPISpec struct {
+	Uris []RestUris `json:"uris"`
+}
+
 func GetModulePath(startPath string) string {
 	file, err := ioutil.ReadFile(path.Join(startPath, "go.mod"))
 	if err != nil {

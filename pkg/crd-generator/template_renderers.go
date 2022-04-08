@@ -42,6 +42,7 @@ var clientTemplateFile []byte
 
 func RenderCRDTemplate(baseGroupName, crdModulePath string, pkgs parser.Packages, graph map[string]parser.Node, outputDir string) error {
 	parentsMap := parser.CreateParentsMap(graph)
+	restAPISpecMap := make(map[string]parser.RestAPISpec)
 
 	pkgNames := make([]string, len(pkgs))
 	i := 0
@@ -93,7 +94,7 @@ func RenderCRDTemplate(baseGroupName, crdModulePath string, pkgs parser.Packages
 		if err != nil {
 			return err
 		}
-		crdFiles, err := RenderCRDBaseTemplate(baseGroupName, pkg, parentsMap)
+		crdFiles, err := RenderCRDBaseTemplate(baseGroupName, pkg, parentsMap, restAPISpecMap)
 		if err != nil {
 			return err
 		}
@@ -314,16 +315,23 @@ type crdBaseVars struct {
 }
 
 type NexusAnnotation struct {
-	Hierarchy []string `json:"hierarchy"`
+	Hierarchy       []string           `json:"hierarchy"`
+	NexusRestAPIGen parser.RestAPISpec `json:"nexus-rest-api-gen"`
 }
 
+// type NexusRestAPIGen struct {
+// 	Uri     string   `json:"uri"`
+// 	Methods []string `json:"methods"`
+// }
 type CrdBaseFile struct {
 	Name string
 	File *bytes.Buffer
 }
 
-func RenderCRDBaseTemplate(baseGroupName string, pkg parser.Package, parentsMap map[string]parser.NodeHelper) ([]CrdBaseFile, error) {
+func RenderCRDBaseTemplate(baseGroupName string, pkg parser.Package, parentsMap map[string]parser.NodeHelper, restAPISpecMap map[string]parser.RestAPISpec) ([]CrdBaseFile, error) {
 	var crds []CrdBaseFile
+
+	pkg.GetRestApiSpecVars(restAPISpecMap)
 	for _, node := range pkg.GetNexusNodes() {
 		typeName := parser.GetTypeName(node)
 		groupName := pkg.Name + "." + baseGroupName
@@ -332,16 +340,27 @@ func RenderCRDBaseTemplate(baseGroupName string, pkg parser.Package, parentsMap 
 		plural := util.ToPlural(singular)
 		crdName := fmt.Sprintf("%s.%s", plural, groupName)
 
-		nexusAnnotationStr := []byte("{}")
+		nexusAnnotation := &NexusAnnotation{}
+		var err error
 		parents, ok := parentsMap[crdName]
 		if ok {
-			nexusAnnotation := &NexusAnnotation{Hierarchy: parents.Parents}
+			nexusAnnotation.Hierarchy = parents.Parents
+		}
 
-			var err error
-			nexusAnnotationStr, err = json.Marshal(nexusAnnotation)
-			if err != nil {
-				return nil, err
-			}
+		annotation, ok := parser.GetNexusRestAPIGenAnnotation(pkg, typeName)
+		if ok {
+			fmt.Println(annotation)
+			a := strings.Split(annotation, ":")
+			name := a[1]
+			value := restAPISpecMap[name]
+			fmt.Println(value)
+
+			nexusAnnotation.NexusRestAPIGen = value
+		}
+
+		nexusAnnotationStr, err := json.MarshalIndent(nexusAnnotation, "", "\t")
+		if err != nil {
+			return nil, err
 		}
 
 		vars := crdBaseVars{
