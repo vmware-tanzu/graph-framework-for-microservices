@@ -106,9 +106,9 @@ generate_code:
 	$(MAKE) -C pkg/openapi_generator generate_test_schemas
 	goimports -w pkg
 	if [ -n $(DATAMODEL_LOCAL_PATH) ]; then \
-		cp -r _generated/{client,apis,crds} $(DATAMODEL_LOCAL_PATH)/build ;\
+		cp -r _generated/* $(DATAMODEL_LOCAL_PATH)/build ;\
 	else \
-		cp -r _generated/{client,apis,crds} ${GENERATED_OUTPUT_DIRECTORY} ;\
+		cp -r _generated/* ${GENERATED_OUTPUT_DIRECTORY} ;\
 	fi
 
 .PHONY: test_generate_code_in_container
