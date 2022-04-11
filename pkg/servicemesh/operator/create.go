@@ -2,6 +2,7 @@ package operator
 
 import (
 	"fmt"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/servicemesh/app"
 
 	"github.com/spf13/cobra"
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/utils"
@@ -16,8 +17,14 @@ var (
 
 func Create(cmd *cobra.Command, args []string) error {
 	if CrdDatamodel == "" {
-		fmt.Print("Please provide name of datamodel with --import option\n")
-		return nil
+		// check if we have a default datamodel configured in nexus-dms.yaml
+		defaultDM, err := app.GetDefaultDm()
+		if err != nil {
+			fmt.Print("Please provide name of datamodel with --datamodel option or set a default DM using `nexus app add-datamodel`\n")
+			return err
+		}
+		CrdDatamodel = defaultDM.Location
+		fmt.Printf("Using default DM %v\n", defaultDM)
 	}
 	envList := append([]string{}, fmt.Sprintf("CRD_GROUP=%s", CrdGroup))
 	envList = append(envList, fmt.Sprintf("CRD_VERSION=%s", CrdVersion))
@@ -31,7 +38,7 @@ func Create(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	fmt.Printf("Successfully created operator for type %s/%s/%s", CrdGroup, CrdVersion, CrdKind)
+	fmt.Printf("Successfully created operator for type %s/%s/%s\n", CrdGroup, CrdVersion, CrdKind)
 	return nil
 }
 
@@ -58,8 +65,8 @@ func init() {
 		"k", "", "'kind' of the CRD")
 	err = cobra.MarkFlagRequired(CreateCmd.Flags(), "kind")
 
-	CreateCmd.Flags().StringVarP(&CrdDatamodel, "import",
-		"r", "", "Location of the CRD (DM git repo URL)")
+	CreateCmd.Flags().StringVarP(&CrdDatamodel, "datamodel",
+		"d", "", "Datamodel that contains the specified resource")
 
 	if err != nil {
 		fmt.Printf("init error: %v\n", err)

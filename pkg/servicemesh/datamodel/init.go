@@ -15,11 +15,11 @@ type TemplateValues struct {
 	GroupName  string
 }
 
-var DatatmodelName string
+var DatamodelName string
 var GroupName string
 var RepoName string
 
-func createDatamodel(DatatmodelName string, URL string, Render bool, standalone bool) error {
+func createDatamodel(DatatmodelName string, DatamodelTarballUrl string, Render bool, standalone bool) error {
 	var Directory string
 	if standalone == false {
 		err := utils.GoToNexusDirectory()
@@ -39,7 +39,7 @@ func createDatamodel(DatatmodelName string, URL string, Render bool, standalone 
 		}
 		os.Chdir(DatatmodelName)
 	}
-	err := utils.DownloadFile(URL, "datamodel.tar")
+	err := utils.DownloadFile(DatamodelTarballUrl, "datamodel.tar")
 	if err != nil {
 		return fmt.Errorf("could not download template files due to %s\n", err)
 	}
@@ -99,10 +99,13 @@ func createDatamodel(DatatmodelName string, URL string, Render bool, standalone 
 }
 
 func InitOperation(cmd *cobra.Command, args []string) error {
-	var standalone bool = false
-	if DatatmodelName == "" {
+	if (DatamodelName != "" && RepoName != "") || (DatamodelName == "" && RepoName == "") {
+		return fmt.Errorf("please provide only one of --name or --repo")
+	}
+	var standalone = false
+	if DatamodelName == "" {
 		if GroupName == "" {
-			fmt.Println("You need to provide a groupname if datamodel name is not provided")
+			fmt.Println("You need to provide a group name if datamodel name is not provided")
 			fmt.Scanln(&GroupName)
 			if GroupName == "" {
 				fmt.Println("Please provide a non-empty groupname")
@@ -126,33 +129,32 @@ func InitOperation(cmd *cobra.Command, args []string) error {
 		standalone = true
 	}
 	if RepoName != "" {
-		DatatmodelName = RepoName
+		DatamodelName = RepoName
 	}
-	fmt.Printf("Datamodel name: %s\n", DatatmodelName)
+	fmt.Printf("Datamodel name: %s\n", DatamodelName)
 	if standalone == false {
 		if GroupName == "" {
-			fmt.Printf("Assuming group name as %s.com\n", DatatmodelName)
-			GroupName = strings.TrimSuffix(fmt.Sprintf("%s.com", DatatmodelName), "\n")
+			fmt.Printf("Assuming group name as %s.com\n", DatamodelName)
+			GroupName = strings.TrimSuffix(fmt.Sprintf("%s.com", DatamodelName), "\n")
 		}
 		err := utils.CreateNexusDirectory(NEXUS_DIR, NEXUS_TEMPLATE_URL)
 		if err != nil {
-			return fmt.Errorf("could not create nexus directory..")
+			return fmt.Errorf("could not create nexus directory")
 		}
 	}
-	if DatatmodelName == "helloworld" {
-		err := createDatamodel(DatatmodelName, HELLOWORLD_URL, false, standalone)
+	if DatamodelName == "helloworld" {
+		err := createDatamodel(DatamodelName, HELLOWORLD_URL, false, standalone)
 		if err != nil {
 			return err
 		}
 	} else {
-		err := createDatamodel(DatatmodelName, DATAMODEL_TEMPLATE_URL, true, standalone)
+		err := createDatamodel(DatamodelName, DATAMODEL_TEMPLATE_URL, true, standalone)
 		if err != nil {
 			return err
 		}
 	}
-	fmt.Printf("\u2713 Datamodel %s initialized successfully\n", DatatmodelName)
+	fmt.Printf("\u2713 Datamodel %s initialized successfully\n", DatamodelName)
 	return nil
-
 }
 
 var InitCmd = &cobra.Command{
@@ -166,7 +168,7 @@ var InitCmd = &cobra.Command{
 }
 
 func init() {
-	InitCmd.Flags().StringVarP(&DatatmodelName, "name", "n", "", "name of the datamodel to be created")
+	InitCmd.Flags().StringVarP(&DatamodelName, "name", "n", "", "name of the datamodel to be created")
 	InitCmd.Flags().StringVarP(&GroupName, "group", "g", "", "group for the datamodel to be created")
 	InitCmd.Flags().StringVarP(&RepoName, "repo", "r", "", "repository url of the datamodel to be intialized.")
 }

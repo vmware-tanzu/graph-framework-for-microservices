@@ -104,7 +104,7 @@ func GoModInit(path string, current bool) error {
 }
 
 func GetModuleName(path string) (string, error) {
-	fmt.Printf("getting the current modulename")
+	fmt.Println("getting the current modulename")
 	if path != "" {
 		os.Chdir(path)
 	}

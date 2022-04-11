@@ -32,31 +32,31 @@ func Build(cmd *cobra.Command, args []string) error {
 	if err := utils.GoToNexusDirectory(); err != nil {
 		return err
 	}
-	if DatatmodelName != "" {
-		if err := utils.CheckDatamodelDirExists(DatatmodelName); err != nil {
+	if DatamodelName != "" {
+		if err := utils.CheckDatamodelDirExists(DatamodelName); err != nil {
 			return err
 		}
 	} else {
-		DatatmodelName, err = utils.GetCurrentDatamodel()
+		DatamodelName, err = utils.GetCurrentDatamodel()
 		if err != nil {
 			return err
 		}
-		fmt.Printf("Running build for datamodel %s\n", DatatmodelName)
+		fmt.Printf("Running build for datamodel %s\n", DatamodelName)
 	}
 
-	err = os.Chdir(DatatmodelName)
+	err = os.Chdir(DatamodelName)
 	if err != nil {
 		return err
 	}
 	err = utils.SystemCommand(envList, false, "make", "datamodel_build")
 	if err != nil {
-		return fmt.Errorf("datamodel %s build failed with error %v", DatatmodelName, err)
+		return fmt.Errorf("datamodel %s build failed with error %v", DatamodelName, err)
 
 	}
-	fmt.Printf("\u2713 Datamodel %s build successful\n", DatatmodelName)
+	fmt.Printf("\u2713 Datamodel %s build successful\n", DatamodelName)
 	return nil
 }
 
 func init() {
-	BuildCmd.Flags().StringVarP(&DatatmodelName, "name", "n", "", "name of the datamodel to be build")
+	BuildCmd.Flags().StringVarP(&DatamodelName, "name", "n", "", "name of the datamodel to be build")
 }

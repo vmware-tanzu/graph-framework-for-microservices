@@ -107,6 +107,8 @@ func initCommands() {
 	AppCmd.AddCommand(app.PublishCmd)
 	AppCmd.AddCommand(app.DeployCmd)
 	AppCmd.AddCommand(app.RunCmd)
+	AppCmd.AddCommand(app.AddDatamodelCmd)
+	AppCmd.AddCommand(app.SetDefaultDatamodelCmd)
 
 	OperatorCmd.AddCommand(operator.CreateCmd)
 }

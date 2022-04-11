@@ -89,10 +89,14 @@ func Init(cmd *cobra.Command, args []string) error {
 			return fmt.Errorf("error in creating new datamodel due to %s", err)
 		}
 		fmt.Println("\u2713 Application initialized successfully , Please continue to edit the datamodel and app controllers.")
+
+		err = WriteToNexusDms(DatatmodelName, NexusDmProps{DatatmodelName, true})
+		if err != nil {
+			return fmt.Errorf("failed to write to nexus-dms.yaml")
+		}
 	} else {
 		fmt.Println("\u2713 Application initialized successfully, Create Datamodel for consuming applications")
 	}
-
 	return nil
 }
 

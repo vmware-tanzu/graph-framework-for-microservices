@@ -17,18 +17,18 @@ func Install(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	if DatatmodelName != "" {
-		envList = append(envList, fmt.Sprintf("DATAMODEL=%s", DatatmodelName))
-		if err := utils.CheckDatamodelDirExists(DatatmodelName); err != nil {
+	if DatamodelName != "" {
+		envList = append(envList, fmt.Sprintf("DATAMODEL=%s", DatamodelName))
+		if err := utils.CheckDatamodelDirExists(DatamodelName); err != nil {
 			return err
 		}
 	} else {
-		DatatmodelName, err := utils.GetCurrentDatamodel()
+		DatamodelName, err := utils.GetCurrentDatamodel()
 		if err != nil {
 			return err
 		}
-		fmt.Printf("Installing datamodel %s\n", DatatmodelName)
-		envList = append(envList, fmt.Sprintf("DATAMODEL=%s", DatatmodelName))
+		fmt.Printf("Installing datamodel %s\n", DatamodelName)
+		envList = append(envList, fmt.Sprintf("DATAMODEL=%s", DatamodelName))
 	}
 
 	if Namespace != "" {
@@ -40,7 +40,7 @@ func Install(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	fmt.Printf("\u2713 Datamodel %s install successful\n", DatatmodelName)
+	fmt.Printf("\u2713 Datamodel %s install successful\n", DatamodelName)
 	return nil
 }
 
@@ -57,7 +57,7 @@ var InstallCmd = &cobra.Command{
 func init() {
 	InstallCmd.Flags().StringVarP(&Namespace, "namespace",
 		"r", "", "name of the namespace to install to")
-	InstallCmd.Flags().StringVarP(&DatatmodelName, "name",
+	InstallCmd.Flags().StringVarP(&DatamodelName, "name",
 		"n", "", "name of the datamodel to install")
 
 }
