@@ -30,7 +30,7 @@ func ParseDSLPkg(startPath string) Packages {
 			}
 			for _, v := range pkgs {
 				if SpecialCharsPresent(v.Name) {
-					log.Fatalf("invalid package-name <%v>, special characters are not allowed", v.Name)
+					log.Fatalf("invalid package-name <%v>, special characters are not allowed. please use only lowercase alphanumeric characters.", v.Name)
 				}
 				pkgImport := strings.TrimSuffix(strings.ReplaceAll(path, startPath, fmt.Sprintf("%s/", modulePath)), "/")
 				pkg := Package{

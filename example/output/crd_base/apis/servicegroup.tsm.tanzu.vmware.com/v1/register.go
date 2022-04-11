@@ -3,7 +3,7 @@
 package v1
 
 import (
-	service_group_tsm_tanzu_vmware_com "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/_crd_generated/apis/service_group.tsm.tanzu.vmware.com"
+	servicegroup_tsm_tanzu_vmware_com "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/_generated/apis/servicegroup.tsm.tanzu.vmware.com"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
@@ -14,7 +14,7 @@ const ResourceVersion = "v1"
 // GroupVersion is the identifier for the API which includes
 // the name of the group and the version of the API
 var SchemeGroupVersion = schema.GroupVersion{
-	Group:   service_group_tsm_tanzu_vmware_com.GroupName,
+	Group:   servicegroup_tsm_tanzu_vmware_com.GroupName,
 	Version: ResourceVersion,
 }
 
