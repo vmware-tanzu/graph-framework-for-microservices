@@ -79,15 +79,21 @@ func GitClone() (string, error) {
 func GoModInit(path string, current bool) error {
 	if path != "" {
 		fmt.Printf("Intializing gomodule\n")
-		if !current {
+		if current == false {
 			os.Chdir(path)
 		}
+		_, err := os.Stat("go.mod")
+		if err == nil {
+			return fmt.Errorf("Datamodel seems to be already initialzed with go.mod file, Please delete go.mod file or create a empty folder")
+		}
+		fmt.Printf("Go mod init name: %s\n", path)
 		cmd := exec.Command("go", "mod", "init", path)
-		_, err := cmd.Output()
+		out, err := cmd.Output()
+		fmt.Printf("output: %s", out)
 		if err != nil {
 			return err
 		}
-		if !current {
+		if current == false {
 			os.Chdir("..")
 		}
 	} else {

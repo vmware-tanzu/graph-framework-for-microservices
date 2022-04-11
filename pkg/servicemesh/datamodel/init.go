@@ -83,7 +83,7 @@ func createDatamodel(DatatmodelName string, URL string, Render bool, standalone 
 			ModuleName: strings.TrimSuffix(DatatmodelName, "\n"),
 			GroupName:  strings.TrimSuffix(GroupName, "\n"),
 		}
-		err = utils.RenderTemplateFiles(values, Directory, "")
+		err = utils.RenderTemplateFiles(values, Directory, ".git")
 		if err != nil {
 			return fmt.Errorf("could not create datamodel due to %s\n", err)
 		}
@@ -124,6 +124,7 @@ func InitOperation(cmd *cobra.Command, args []string) error {
 	if RepoName != "" {
 		DatatmodelName = RepoName
 	}
+	fmt.Printf("Datamodel name: %s\n", DatatmodelName)
 	if standalone == false {
 		if GroupName == "" {
 			fmt.Printf("Assuming group name as %s.com\n", DatatmodelName)
