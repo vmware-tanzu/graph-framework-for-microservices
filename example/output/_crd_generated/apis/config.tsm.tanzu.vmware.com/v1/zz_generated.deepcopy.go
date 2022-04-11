@@ -107,15 +107,15 @@ func (in *ConfigSpec) DeepCopyInto(out *ConfigSpec) {
 	*out = *in
 	in.GNS.DeepCopyInto(&out.GNS)
 	out.GNSGvk = in.GNSGvk
-	if in.policy != nil {
-		in, out := &in.policy, &out.policy
+	if in.Policy != nil {
+		in, out := &in.Policy, &out.Policy
 		*out = make(map[string]policytsmtanzuvmwarecomv1.AccessControlPolicy, len(*in))
 		for key, val := range *in {
 			(*out)[key] = *val.DeepCopy()
 		}
 	}
-	if in.policyGvk != nil {
-		in, out := &in.policyGvk, &out.policyGvk
+	if in.PolicyGvk != nil {
+		in, out := &in.PolicyGvk, &out.PolicyGvk
 		*out = make(map[string]Child, len(*in))
 		for key, val := range *in {
 			(*out)[key] = val
