@@ -353,3 +353,7 @@ func IsDirEmpty(name string) (bool, error) {
 	}
 	return false, err // Either not empty or error, suits both cases
 }
+
+func IsDockerRunning() error {
+	return SystemCommand([]string{}, true, "docker", "ps")
+}
