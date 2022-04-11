@@ -6,18 +6,18 @@ metadata:
     nexus: |
       {"hierarchy":["roots.root.tsm.tanzu.vmware.com","configs.config.tsm.tanzu.vmware.com","gnses.gns.tsm.tanzu.vmware.com"]}
   creationTimestamp: null
-  name: accesscontrolpolicies.policy.tsm.tanzu.vmware.com
+  name: svcgroups.service_group.tsm.tanzu.vmware.com
 spec:
   conversion:
     strategy: None
-  group: policy.tsm.tanzu.vmware.com
+  group: service_group.tsm.tanzu.vmware.com
   names:
-    kind: Accesscontrolpolicy
-    listKind: AccesscontrolpolicyList
-    plural: accesscontrolpolicies
+    kind: Svcgroup
+    listKind: SvcgroupList
+    plural: svcgroups
     shortNames:
-    - accesscontrolpolicy
-    singular: accesscontrolpolicy
+    - svcgroup
+    singular: svcgroup
   scope: Cluster
   versions:
   - name: v1
@@ -38,24 +38,19 @@ spec:
             type: object
           spec:
             properties:
-              policyConfigsGvk:
-                additionalProperties:
-                  properties:
-                    group:
-                      default: ""
-                      type: string
-                    kind:
-                      default: ""
-                      type: string
-                    name:
-                      default: ""
-                      type: string
-                  required:
-                  - group
-                  - kind
-                  - name
-                  type: object
-                type: object
+              color:
+                default: ""
+                type: string
+              description:
+                default: ""
+                type: string
+              displayName:
+                default: ""
+                type: string
+            required:
+            - displayName
+            - description
+            - color
             type: object
         type: object
     served: true

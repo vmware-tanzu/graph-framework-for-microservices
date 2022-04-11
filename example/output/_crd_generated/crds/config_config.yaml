@@ -54,24 +54,6 @@ spec:
                 - kind
                 - name
                 type: object
-              policyGvk:
-                additionalProperties:
-                  properties:
-                    group:
-                      default: ""
-                      type: string
-                    kind:
-                      default: ""
-                      type: string
-                    name:
-                      default: ""
-                      type: string
-                  required:
-                  - group
-                  - kind
-                  - name
-                  type: object
-                type: object
             type: object
         type: object
     served: true
