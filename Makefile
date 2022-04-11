@@ -99,8 +99,7 @@ generate_code:
 		cp -rf $(DATAMODEL_LOCAL_PATH) /go/src/gitlab.eng.vmware.com/nexus/compiler/datamodel && \
 		rm -rf /go/src/gitlab.eng.vmware.com/nexus/compiler/datamodel/build  ;\
 	fi
-	CRD_MODULE_PATH=${CRD_MODULE_PATH} go run cmd/nexus-sdk/main.go -config-file ${CONFIG_FILE} -dsl ${DATAMODEL_PATH} -crd-output _generated | tee test
- 	cat test
+	CRD_MODULE_PATH=${CRD_MODULE_PATH} go run cmd/nexus-sdk/main.go -config-file ${CONFIG_FILE} -dsl ${DATAMODEL_PATH} -crd-output _generated
 	mv _generated/api_names.sh ./scripts/
 	./scripts/generate_k8s_api.sh
 	./scripts/generate_openapi_schema.sh
