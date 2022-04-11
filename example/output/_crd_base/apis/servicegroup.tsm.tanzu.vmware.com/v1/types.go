@@ -3,7 +3,7 @@
 package v1
 
 import (
-	configtsmtanzuvmwarecomv1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/_generated/apis/config.tsm.tanzu.vmware.com/v1"
+	corev1tsmtanzuvmwarecomv1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -28,21 +28,28 @@ type Link struct {
 // +genclient:nonNamespaced
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 // +k8s:openapi-gen=true
-type Root struct {
+type SvcGroup struct {
 	metav1.TypeMeta   `json:",inline" yaml:",inline"`
 	metav1.ObjectMeta `json:"metadata" yaml:"metadata"`
-	Spec              RootSpec `json:"spec,omitempty" yaml:"spec,omitempty"`
+	Spec              SvcGroupSpec `json:"spec,omitempty" yaml:"spec,omitempty"`
+}
+
+func (c *SvcGroup) CRDName() string {
+	return "svcgroups.servicegroup.tsm.tanzu.vmware.com"
 }
 
 // +k8s:openapi-gen=true
-type RootSpec struct {
-	Config    configtsmtanzuvmwarecomv1.Config `json:"-" yaml:"-"`
-	ConfigGvk Child                            `json:"configGvk,omitempty" yaml:"configGvk,omitempty" nexus:"child"`
+type SvcGroupSpec struct {
+	DisplayName string                                       `json:"displayName" yaml:"displayName"`
+	Description string                                       `json:"description" yaml:"description"`
+	Color       string                                       `json:"color" yaml:"color"`
+	Services    map[string]corev1tsmtanzuvmwarecomv1.Service `json:"-" yaml:"-"`
+	ServicesGvk map[string]Link                              `json:"servicesGvk,omitempty" yaml:"servicesGvk,omitempty" nexus:"link"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
-type RootList struct {
+type SvcGroupList struct {
 	metav1.TypeMeta `json:",inline" yaml:",inline"`
 	metav1.ListMeta `json:"metadata" yaml:"metadata"`
-	Items           []Root `json:"items" yaml:"items"`
+	Items           []SvcGroup `json:"items" yaml:"items"`
 }

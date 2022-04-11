@@ -3,7 +3,7 @@
 package v1
 
 import (
-	configtsmtanzuvmwarecomv1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/_generated/apis/config.tsm.tanzu.vmware.com/v1"
+	configtsmtanzuvmwarecomv1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/_crd_generated/apis/config.tsm.tanzu.vmware.com/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -32,6 +32,10 @@ type Root struct {
 	metav1.TypeMeta   `json:",inline" yaml:",inline"`
 	metav1.ObjectMeta `json:"metadata" yaml:"metadata"`
 	Spec              RootSpec `json:"spec,omitempty" yaml:"spec,omitempty"`
+}
+
+func (c *Root) CRDName() string {
+	return "roots.root.tsm.tanzu.vmware.com"
 }
 
 // +k8s:openapi-gen=true

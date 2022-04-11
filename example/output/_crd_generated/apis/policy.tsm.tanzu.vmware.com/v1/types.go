@@ -3,7 +3,7 @@
 package v1
 
 import (
-	servicegrouptsmtanzuvmwarecomv1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/_generated/apis/servicegroup.tsm.tanzu.vmware.com/v1"
+	servicegrouptsmtanzuvmwarecomv1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/_crd_generated/apis/servicegroup.tsm.tanzu.vmware.com/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -34,6 +34,10 @@ type AccessControlPolicy struct {
 	Spec              AccessControlPolicySpec `json:"spec,omitempty" yaml:"spec,omitempty"`
 }
 
+func (c *AccessControlPolicy) CRDName() string {
+	return "accesscontrolpolicies.policy.tsm.tanzu.vmware.com"
+}
+
 // +k8s:openapi-gen=true
 type AccessControlPolicySpec struct {
 	policyConfigs    map[string]ACPConfig `json:"-" yaml:"-"`
@@ -56,6 +60,10 @@ type ACPConfig struct {
 	metav1.TypeMeta   `json:",inline" yaml:",inline"`
 	metav1.ObjectMeta `json:"metadata" yaml:"metadata"`
 	Spec              ACPConfigSpec `json:"spec,omitempty" yaml:"spec,omitempty"`
+}
+
+func (c *ACPConfig) CRDName() string {
+	return "acpconfigs.policy.tsm.tanzu.vmware.com"
 }
 
 // +k8s:openapi-gen=true

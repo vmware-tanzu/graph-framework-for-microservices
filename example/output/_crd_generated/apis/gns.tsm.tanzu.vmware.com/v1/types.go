@@ -3,8 +3,8 @@
 package v1
 
 import (
-	policytsmtanzuvmwarecomv1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/_generated/apis/policy.tsm.tanzu.vmware.com/v1"
-	servicegrouptsmtanzuvmwarecomv1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/_generated/apis/servicegroup.tsm.tanzu.vmware.com/v1"
+	policytsmtanzuvmwarecomv1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/_crd_generated/apis/policy.tsm.tanzu.vmware.com/v1"
+	servicegrouptsmtanzuvmwarecomv1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/_crd_generated/apis/servicegroup.tsm.tanzu.vmware.com/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -36,6 +36,10 @@ type Gns struct {
 	Status            GnsState `json:"status,omitempty" yaml:"status,omitempty"`
 }
 
+func (c *Gns) CRDName() string {
+	return "gnses.gns.tsm.tanzu.vmware.com"
+}
+
 // +k8s:openapi-gen=true
 type GnsSpec struct {
 	Domain                    string                                              `json:"domain" yaml:"domain"`
@@ -64,6 +68,10 @@ type GnsList struct {
 type Dns struct {
 	metav1.TypeMeta   `json:",inline" yaml:",inline"`
 	metav1.ObjectMeta `json:"metadata" yaml:"metadata"`
+}
+
+func (c *Dns) CRDName() string {
+	return "dnses.gns.tsm.tanzu.vmware.com"
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object

@@ -3,6 +3,8 @@ package util
 import (
 	"fmt"
 	"regexp"
+
+	log "github.com/sirupsen/logrus"
 )
 
 func ToPlural(singular string) string {
@@ -20,9 +22,9 @@ func ToPlural(singular string) string {
 }
 
 func RemoveSpecialChars(value string) string {
-	re, err := regexp.Compile(`[\_\.]`)
+	re, err := regexp.Compile(`[\_\.\/]`)
 	if err != nil {
-		fmt.Println(err)
+		log.Fatalf("failed to remove special chars from string %v: %v", value, err)
 	}
 	return re.ReplaceAllString(value, "")
 }

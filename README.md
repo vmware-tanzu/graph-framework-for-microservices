@@ -82,13 +82,14 @@ To run tests in a fixed/sandboxed environment:
 
 2. Test nexus compiler: `make test_in_container`
 
-### Run tests in custom/local environment
+4. Test generation with `make test_generate_code_in_container`
 
-To test nexus compiler on custom/local environment:
+### Test CRD templates rendering:
 
-1. Download the required tools: `make tools`
+To render crd templates you can run:
+`make render_templates`
 
-2. Run tests: `make test`
+This will generate rendered templates to `example/output/_crd_base` directory. This directory can be used for unit tests.
 
 # Packaging
 

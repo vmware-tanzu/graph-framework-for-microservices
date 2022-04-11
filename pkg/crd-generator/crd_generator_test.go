@@ -16,7 +16,7 @@ const (
 	crdModulePath            = "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/_crd_generated/"
 	examplePath              = "../../example/"
 	exampleDSLPath           = examplePath + "datamodel"
-	exampleCRDOutputPath     = examplePath + "output/crd_base/"
+	exampleCRDOutputPath     = examplePath + "output/_crd_base/"
 	exampleCRDApisOutputPath = exampleCRDOutputPath + "apis"
 	gnsExamplePath           = exampleCRDApisOutputPath + "/gns.tsm.tanzu.vmware.com/"
 	gnsDocPath               = gnsExamplePath + "v1/doc.go"
