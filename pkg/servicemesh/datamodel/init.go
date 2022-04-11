@@ -111,6 +111,10 @@ func InitOperation(cmd *cobra.Command, args []string) error {
 		}
 		empty, _ := utils.IsDirEmpty(".")
 		if empty == false {
+			_, err := os.Stat("go.mod")
+			if err == nil {
+				return fmt.Errorf("Datamodel seems to be already initialzed with go.mod file, Please delete go.mod file or create a empty folder")
+			}
 			var input string
 			fmt.Println("Current Directory is not empty do you want to continue to initialize datamodel [y/n]: ")
 			fmt.Scanln(&input)
