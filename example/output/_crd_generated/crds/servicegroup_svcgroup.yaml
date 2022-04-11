@@ -6,11 +6,11 @@ metadata:
     nexus: |
       {"hierarchy":["roots.root.tsm.tanzu.vmware.com","configs.config.tsm.tanzu.vmware.com","gnses.gns.tsm.tanzu.vmware.com"]}
   creationTimestamp: null
-  name: svcgroups.service_group.tsm.tanzu.vmware.com
+  name: svcgroups.servicegroup.tsm.tanzu.vmware.com
 spec:
   conversion:
     strategy: None
-  group: service_group.tsm.tanzu.vmware.com
+  group: servicegroup.tsm.tanzu.vmware.com
   names:
     kind: Svcgroup
     listKind: SvcgroupList

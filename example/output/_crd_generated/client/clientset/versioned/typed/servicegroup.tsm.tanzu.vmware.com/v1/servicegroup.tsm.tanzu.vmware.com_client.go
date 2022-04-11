@@ -19,27 +19,27 @@ limitations under the License.
 package v1
 
 import (
-	v1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/_crd_generated/apis/service_group.tsm.tanzu.vmware.com/v1"
+	v1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/_crd_generated/apis/servicegroup.tsm.tanzu.vmware.com/v1"
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/_crd_generated/client/clientset/versioned/scheme"
 	rest "k8s.io/client-go/rest"
 )
 
-type Service_groupTsmV1Interface interface {
+type ServicegroupTsmV1Interface interface {
 	RESTClient() rest.Interface
 	SvcGroupsGetter
 }
 
-// Service_groupTsmV1Client is used to interact with features provided by the service_group.tsm.tanzu.vmware.com group.
-type Service_groupTsmV1Client struct {
+// ServicegroupTsmV1Client is used to interact with features provided by the servicegroup.tsm.tanzu.vmware.com group.
+type ServicegroupTsmV1Client struct {
 	restClient rest.Interface
 }
 
-func (c *Service_groupTsmV1Client) SvcGroups() SvcGroupInterface {
+func (c *ServicegroupTsmV1Client) SvcGroups() SvcGroupInterface {
 	return newSvcGroups(c)
 }
 
-// NewForConfig creates a new Service_groupTsmV1Client for the given config.
-func NewForConfig(c *rest.Config) (*Service_groupTsmV1Client, error) {
+// NewForConfig creates a new ServicegroupTsmV1Client for the given config.
+func NewForConfig(c *rest.Config) (*ServicegroupTsmV1Client, error) {
 	config := *c
 	if err := setConfigDefaults(&config); err != nil {
 		return nil, err
@@ -48,12 +48,12 @@ func NewForConfig(c *rest.Config) (*Service_groupTsmV1Client, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &Service_groupTsmV1Client{client}, nil
+	return &ServicegroupTsmV1Client{client}, nil
 }
 
-// NewForConfigOrDie creates a new Service_groupTsmV1Client for the given config and
+// NewForConfigOrDie creates a new ServicegroupTsmV1Client for the given config and
 // panics if there is an error in the config.
-func NewForConfigOrDie(c *rest.Config) *Service_groupTsmV1Client {
+func NewForConfigOrDie(c *rest.Config) *ServicegroupTsmV1Client {
 	client, err := NewForConfig(c)
 	if err != nil {
 		panic(err)
@@ -61,9 +61,9 @@ func NewForConfigOrDie(c *rest.Config) *Service_groupTsmV1Client {
 	return client
 }
 
-// New creates a new Service_groupTsmV1Client for the given RESTClient.
-func New(c rest.Interface) *Service_groupTsmV1Client {
-	return &Service_groupTsmV1Client{c}
+// New creates a new ServicegroupTsmV1Client for the given RESTClient.
+func New(c rest.Interface) *ServicegroupTsmV1Client {
+	return &ServicegroupTsmV1Client{c}
 }
 
 func setConfigDefaults(config *rest.Config) error {
@@ -81,7 +81,7 @@ func setConfigDefaults(config *rest.Config) error {
 
 // RESTClient returns a RESTClient that is used to communicate
 // with API server by this client implementation.
-func (c *Service_groupTsmV1Client) RESTClient() rest.Interface {
+func (c *ServicegroupTsmV1Client) RESTClient() rest.Interface {
 	if c == nil {
 		return nil
 	}

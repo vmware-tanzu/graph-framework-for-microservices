@@ -12,16 +12,16 @@ import (
 	basegnstsmtanzuvmwarecomv1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/_crd_generated/apis/gns.tsm.tanzu.vmware.com/v1"
 	basepolicytsmtanzuvmwarecomv1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/_crd_generated/apis/policy.tsm.tanzu.vmware.com/v1"
 	baseroottsmtanzuvmwarecomv1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/_crd_generated/apis/root.tsm.tanzu.vmware.com/v1"
-	baseservicegrouptsmtanzuvmwarecomv1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/_crd_generated/apis/service_group.tsm.tanzu.vmware.com/v1"
+	baseservicegrouptsmtanzuvmwarecomv1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/_crd_generated/apis/servicegroup.tsm.tanzu.vmware.com/v1"
 )
 
 type Clientset struct {
-	baseClient         *baseClientset.Clientset
-	rootTsmV1          *RootTsmV1
-	configTsmV1        *ConfigTsmV1
-	gnsTsmV1           *GnsTsmV1
-	service_groupTsmV1 *Service_groupTsmV1
-	policyTsmV1        *PolicyTsmV1
+	baseClient        *baseClientset.Clientset
+	rootTsmV1         *RootTsmV1
+	configTsmV1       *ConfigTsmV1
+	gnsTsmV1          *GnsTsmV1
+	servicegroupTsmV1 *ServicegroupTsmV1
+	policyTsmV1       *PolicyTsmV1
 }
 
 func NewForConfig(config *rest.Config) (*Clientset, error) {
@@ -34,7 +34,7 @@ func NewForConfig(config *rest.Config) (*Clientset, error) {
 	client.rootTsmV1 = newRootTsmV1(client)
 	client.configTsmV1 = newConfigTsmV1(client)
 	client.gnsTsmV1 = newGnsTsmV1(client)
-	client.service_groupTsmV1 = newService_groupTsmV1(client)
+	client.servicegroupTsmV1 = newServicegroupTsmV1(client)
 	client.policyTsmV1 = newPolicyTsmV1(client)
 
 	return client, nil
@@ -49,8 +49,8 @@ func (c *Clientset) ConfigTsmV1() *ConfigTsmV1 {
 func (c *Clientset) GnsTsmV1() *GnsTsmV1 {
 	return c.gnsTsmV1
 }
-func (c *Clientset) Service_groupTsmV1() *Service_groupTsmV1 {
-	return c.service_groupTsmV1
+func (c *Clientset) ServicegroupTsmV1() *ServicegroupTsmV1 {
+	return c.servicegroupTsmV1
 }
 func (c *Clientset) PolicyTsmV1() *PolicyTsmV1 {
 	return c.policyTsmV1
@@ -128,23 +128,23 @@ func (obj *GnsTsmV1) Dnses() *dnsGnsTsmV1 {
 	return obj.dnses
 }
 
-type Service_groupTsmV1 struct {
-	svcgroups *svcgroupService_groupTsmV1
+type ServicegroupTsmV1 struct {
+	svcgroups *svcgroupServicegroupTsmV1
 }
 
-func newService_groupTsmV1(client *Clientset) *Service_groupTsmV1 {
-	return &Service_groupTsmV1{
-		svcgroups: &svcgroupService_groupTsmV1{
+func newServicegroupTsmV1(client *Clientset) *ServicegroupTsmV1 {
+	return &ServicegroupTsmV1{
+		svcgroups: &svcgroupServicegroupTsmV1{
 			client: client,
 		},
 	}
 }
 
-type svcgroupService_groupTsmV1 struct {
+type svcgroupServicegroupTsmV1 struct {
 	client *Clientset
 }
 
-func (obj *Service_groupTsmV1) SvcGroups() *svcgroupService_groupTsmV1 {
+func (obj *ServicegroupTsmV1) SvcGroups() *svcgroupServicegroupTsmV1 {
 	return obj.svcgroups
 }
 
@@ -264,8 +264,8 @@ func (obj *dnsGnsTsmV1) Get(ctx context.Context, name string, options metav1.Get
 	return
 }
 
-func (obj *svcgroupService_groupTsmV1) Get(ctx context.Context, name string, options metav1.GetOptions) (result *baseservicegrouptsmtanzuvmwarecomv1.SvcGroup, err error) {
-	result, err = obj.client.baseClient.Service_groupTsmV1().SvcGroups().Get(ctx, name, options)
+func (obj *svcgroupServicegroupTsmV1) Get(ctx context.Context, name string, options metav1.GetOptions) (result *baseservicegrouptsmtanzuvmwarecomv1.SvcGroup, err error) {
+	result, err = obj.client.baseClient.ServicegroupTsmV1().SvcGroups().Get(ctx, name, options)
 	if err != nil {
 		return nil, err
 	}

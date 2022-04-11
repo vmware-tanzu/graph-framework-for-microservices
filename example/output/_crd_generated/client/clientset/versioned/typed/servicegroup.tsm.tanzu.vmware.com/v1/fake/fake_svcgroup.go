@@ -21,7 +21,7 @@ package fake
 import (
 	"context"
 
-	servicegrouptsmtanzuvmwarecomv1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/_crd_generated/apis/service_group.tsm.tanzu.vmware.com/v1"
+	servicegrouptsmtanzuvmwarecomv1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/_crd_generated/apis/servicegroup.tsm.tanzu.vmware.com/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	labels "k8s.io/apimachinery/pkg/labels"
 	schema "k8s.io/apimachinery/pkg/runtime/schema"
@@ -32,12 +32,12 @@ import (
 
 // FakeSvcGroups implements SvcGroupInterface
 type FakeSvcGroups struct {
-	Fake *FakeService_groupTsmV1
+	Fake *FakeServicegroupTsmV1
 }
 
-var svcgroupsResource = schema.GroupVersionResource{Group: "service_group.tsm.tanzu.vmware.com", Version: "v1", Resource: "svcgroups"}
+var svcgroupsResource = schema.GroupVersionResource{Group: "servicegroup.tsm.tanzu.vmware.com", Version: "v1", Resource: "svcgroups"}
 
-var svcgroupsKind = schema.GroupVersionKind{Group: "service_group.tsm.tanzu.vmware.com", Version: "v1", Kind: "SvcGroup"}
+var svcgroupsKind = schema.GroupVersionKind{Group: "servicegroup.tsm.tanzu.vmware.com", Version: "v1", Kind: "SvcGroup"}
 
 // Get takes name of the svcGroup, and returns the corresponding svcGroup object, and an error if there is any.
 func (c *FakeSvcGroups) Get(ctx context.Context, name string, options v1.GetOptions) (result *servicegrouptsmtanzuvmwarecomv1.SvcGroup, err error) {

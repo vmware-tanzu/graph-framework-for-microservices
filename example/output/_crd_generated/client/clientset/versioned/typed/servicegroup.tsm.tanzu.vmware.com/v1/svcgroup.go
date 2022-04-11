@@ -22,7 +22,7 @@ import (
 	"context"
 	"time"
 
-	v1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/_crd_generated/apis/service_group.tsm.tanzu.vmware.com/v1"
+	v1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/_crd_generated/apis/servicegroup.tsm.tanzu.vmware.com/v1"
 	scheme "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/_crd_generated/client/clientset/versioned/scheme"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	types "k8s.io/apimachinery/pkg/types"
@@ -55,7 +55,7 @@ type svcGroups struct {
 }
 
 // newSvcGroups returns a SvcGroups
-func newSvcGroups(c *Service_groupTsmV1Client) *svcGroups {
+func newSvcGroups(c *ServicegroupTsmV1Client) *svcGroups {
 	return &svcGroups{
 		client: c.RESTClient(),
 	}
