@@ -9,5 +9,5 @@ import (
 type Config struct {
 	nexus.Node
 	GNS    gns.Gns                               `nexus:"child"`
-	policy map[string]policy.AccessControlPolicy `nexus:"child"`
+	Policy map[string]policy.AccessControlPolicy `nexus:"child"`
 }

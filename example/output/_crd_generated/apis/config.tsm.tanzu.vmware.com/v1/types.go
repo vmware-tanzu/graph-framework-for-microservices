@@ -43,8 +43,8 @@ func (c *Config) CRDName() string {
 type ConfigSpec struct {
 	GNS       gnstsmtanzuvmwarecomv1.Gns                               `json:"-" yaml:"-"`
 	GNSGvk    Child                                                    `json:"gNSGvk,omitempty" yaml:"gNSGvk,omitempty" nexus:"child"`
-	policy    map[string]policytsmtanzuvmwarecomv1.AccessControlPolicy `json:"-" yaml:"-"`
-	policyGvk map[string]Child                                         `json:"policyGvk,omitempty" yaml:"policyGvk,omitempty" nexus:"child"`
+	Policy    map[string]policytsmtanzuvmwarecomv1.AccessControlPolicy `json:"-" yaml:"-"`
+	PolicyGvk map[string]Child                                         `json:"policyGvk,omitempty" yaml:"policyGvk,omitempty" nexus:"child"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object

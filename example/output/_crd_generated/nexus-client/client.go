@@ -186,10 +186,14 @@ func (obj *rootRootTsmV1) Get(ctx context.Context, name string, options metav1.G
 		return nil, err
 	}
 
-	// resolve children
-	// TODO
-	// resolve links
-	// TODO
+	if result.Spec.ConfigGvk.Name != "" {
+		field, err := obj.client.ConfigTsmV1().Configs().Get(ctx, result.Spec.ConfigGvk.Name, options)
+		if err != nil {
+			return nil, err
+		}
+		result.Spec.Config = *field
+	}
+
 	return
 }
 
@@ -199,10 +203,55 @@ func (obj *configConfigTsmV1) Get(ctx context.Context, name string, options meta
 		return nil, err
 	}
 
-	// resolve children
-	// TODO
-	// resolve links
-	// TODO
+	if result.Spec.GNSGvk.Name != "" {
+		field, err := obj.client.GnsTsmV1().Gnses().Get(ctx, result.Spec.GNSGvk.Name, options)
+		if err != nil {
+			return nil, err
+		}
+		result.Spec.GNS = *field
+	}
+
+	for k, v := range result.Spec.PolicyGvk {
+		obj, err := obj.client.PolicyTsmV1().AccessControlPolicies().Get(ctx, v.Name, options)
+		if err != nil {
+			return nil, err
+		}
+		result.Spec.Policy[k] = *obj
+	}
+
+	return
+}
+
+func (obj *gnsGnsTsmV1) Get(ctx context.Context, name string, options metav1.GetOptions) (result *basegnstsmtanzuvmwarecomv1.Gns, err error) {
+	result, err = obj.client.baseClient.GnsTsmV1().Gnses().Get(ctx, name, options)
+	if err != nil {
+		return nil, err
+	}
+
+	for k, v := range result.Spec.GnsServiceGroupsGvk {
+		obj, err := obj.client.Service_groupTsmV1().SvcGroups().Get(ctx, v.Name, options)
+		if err != nil {
+			return nil, err
+		}
+		result.Spec.GnsServiceGroups[k] = *obj
+	}
+
+	if result.Spec.GnsAccessControlPolicyGvk.Name != "" {
+		field, err := obj.client.PolicyTsmV1().AccessControlPolicies().Get(ctx, result.Spec.GnsAccessControlPolicyGvk.Name, options)
+		if err != nil {
+			return nil, err
+		}
+		result.Spec.GnsAccessControlPolicy = *field
+	}
+
+	if result.Spec.DnsGvk.Name != "" {
+		field, err := obj.client.GnsTsmV1().Dnses().Get(ctx, result.Spec.DnsGvk.Name, options)
+		if err != nil {
+			return nil, err
+		}
+		result.Spec.Dns = *field
+	}
+
 	return
 }
 
@@ -212,10 +261,6 @@ func (obj *dnsGnsTsmV1) Get(ctx context.Context, name string, options metav1.Get
 		return nil, err
 	}
 
-	// resolve children
-	// TODO
-	// resolve links
-	// TODO
 	return
 }
 
@@ -225,10 +270,31 @@ func (obj *svcgroupService_groupTsmV1) Get(ctx context.Context, name string, opt
 		return nil, err
 	}
 
-	// resolve children
-	// TODO
-	// resolve links
-	// TODO
+	for k, v := range result.Spec.ServicesGvk {
+		obj, err := obj.client.Core_v1TsmV1().Services().Get(ctx, v.Name, options)
+		if err != nil {
+			return nil, err
+		}
+		result.Spec.Services[k] = *obj
+	}
+
+	return
+}
+
+func (obj *accesscontrolpolicyPolicyTsmV1) Get(ctx context.Context, name string, options metav1.GetOptions) (result *basepolicytsmtanzuvmwarecomv1.AccessControlPolicy, err error) {
+	result, err = obj.client.baseClient.PolicyTsmV1().AccessControlPolicies().Get(ctx, name, options)
+	if err != nil {
+		return nil, err
+	}
+
+	for k, v := range result.Spec.PolicyConfigsGvk {
+		obj, err := obj.client.PolicyTsmV1().ACPConfigs().Get(ctx, v.Name, options)
+		if err != nil {
+			return nil, err
+		}
+		result.Spec.PolicyConfigs[k] = *obj
+	}
+
 	return
 }
 
@@ -238,9 +304,21 @@ func (obj *acpconfigPolicyTsmV1) Get(ctx context.Context, name string, options m
 		return nil, err
 	}
 
-	// resolve children
-	// TODO
-	// resolve links
-	// TODO
+	for k, v := range result.Spec.DestSvcGroupsGvk {
+		obj, err := obj.client.Service_groupTsmV1().SvcGroups().Get(ctx, v.Name, options)
+		if err != nil {
+			return nil, err
+		}
+		result.Spec.DestSvcGroups[k] = *obj
+	}
+
+	for k, v := range result.Spec.SourceSvcGroupsGvk {
+		obj, err := obj.client.Service_groupTsmV1().SvcGroups().Get(ctx, v.Name, options)
+		if err != nil {
+			return nil, err
+		}
+		result.Spec.SourceSvcGroups[k] = *obj
+	}
+
 	return
 }

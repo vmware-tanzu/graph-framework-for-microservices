@@ -40,8 +40,8 @@ func (c *AccessControlPolicy) CRDName() string {
 
 // +k8s:openapi-gen=true
 type AccessControlPolicySpec struct {
-	policyConfigs    map[string]ACPConfig `json:"-" yaml:"-"`
-	policyConfigsGvk map[string]Child     `json:"policyConfigsGvk,omitempty" yaml:"policyConfigsGvk,omitempty" nexus:"child"`
+	PolicyConfigs    map[string]ACPConfig `json:"-" yaml:"-"`
+	PolicyConfigsGvk map[string]Child     `json:"policyConfigsGvk,omitempty" yaml:"policyConfigsGvk,omitempty" nexus:"child"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
