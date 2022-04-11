@@ -7,6 +7,8 @@ import (
 	"strings"
 	"text/template"
 
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/pkg/util"
+
 	log "github.com/sirupsen/logrus"
 
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/pkg/parser"
@@ -32,14 +34,14 @@ func generateNexusClientVars(baseGroupName, crdModulePath string, pkgs parser.Pa
 			// TODO make version configurable
 			version := "v1"
 
-			importPath := getImportPath(pkg.Name, baseGroupName, version)
-			baseImportName := getBaseImportName(pkg.Name, baseGroupName, version)
+			importPath := util.GetImportPath(pkg.Name, baseGroupName, version)
+			baseImportName := util.GetBaseImportName(pkg.Name, baseGroupName, version)
 
 			vars.BaseImports += baseImportName + ` "` + crdModulePath + "apis/" + importPath + `"` +
 				"\n" // eg baseroothelloworldv1 "helloworld/nexus/generated/apis/root.helloworld.com/v1"
 
-			groupVarName := getGroupVarName(pkg.Name, baseGroupName, version)
-			groupTypeName := getGroupTypeName(pkg.Name, baseGroupName, version)
+			groupVarName := util.GetGroupVarName(pkg.Name, baseGroupName, version)
+			groupTypeName := util.GetGroupTypeName(pkg.Name, baseGroupName, version)
 			vars.ClientsetsApiGroups += groupVarName + " *" + groupTypeName + "\n" // eg rootHelloworldV1 *RootHelloworldV1
 
 			initClient := "client." + groupVarName + " = new" + groupTypeName +
@@ -86,9 +88,9 @@ func resolveNode(baseImportName, pkgName, baseGroupName, version string,
 	groupVars *apiGroupsVars, clientGroupVars *apiGroupsClientVars, node *ast.TypeSpec) error {
 
 	baseNodeName := node.Name.Name // eg Root
-	groupResourceName := getGroupResourceName(baseNodeName)
-	groupResourceNameTitle := getGroupResourceNameTitle(baseNodeName)
-	groupResourceType := getGroupResourceType(baseNodeName, pkgName, baseGroupName, version)
+	groupResourceName := util.GetGroupResourceName(baseNodeName)
+	groupResourceNameTitle := util.GetGroupResourceNameTitle(baseNodeName)
+	groupResourceType := util.GetGroupResourceType(baseNodeName, pkgName, baseGroupName, version)
 	groupVars.GroupResources += groupResourceName + " *" +
 		groupResourceType + "\n" // eg roots *rootRootHelloWorld
 	groupVars.GroupResourcesInit += groupResourceName + ": &" + groupResourceType +
@@ -100,7 +102,7 @@ func resolveNode(baseImportName, pkgName, baseGroupName, version string,
 	// type rootRootHelloWorld struct {
 	//	client *Clientset
 	// }
-	groupVars.GroupResourcesDefs += "func (obj *" + getGroupTypeName(pkgName, baseGroupName, version) + ") " +
+	groupVars.GroupResourcesDefs += "func (obj *" + util.GetGroupTypeName(pkgName, baseGroupName, version) + ") " +
 		groupResourceNameTitle + "() *" +
 		groupResourceType + " {\n" + "return obj." + groupResourceName + "\n}\n" // eg
 	// func (r *RootHelloworldV1) Roots() *rootRootHelloWorld {
@@ -119,8 +121,8 @@ func resolveNode(baseImportName, pkgName, baseGroupName, version string,
 		linkInfo := getFieldInfo(pkgName, link)
 		var vars resolveLinkVars
 		vars.LinkFieldName = linkInfo.fieldName
-		vars.LinkGroupTypeName = getGroupTypeName(linkInfo.pkgName, baseGroupName, version)
-		vars.LinkGroupResourceNameTitle = getGroupResourceNameTitle(linkInfo.fieldType)
+		vars.LinkGroupTypeName = util.GetGroupTypeName(linkInfo.pkgName, baseGroupName, version)
+		vars.LinkGroupResourceNameTitle = util.GetGroupResourceNameTitle(linkInfo.fieldType)
 
 		var resolvedLinks string
 		var err error

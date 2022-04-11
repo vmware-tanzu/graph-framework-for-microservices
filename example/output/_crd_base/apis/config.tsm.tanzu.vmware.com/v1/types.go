@@ -4,7 +4,6 @@ package v1
 
 import (
 	gnstsmtanzuvmwarecomv1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/_crd_generated/apis/gns.tsm.tanzu.vmware.com/v1"
-	policytsmtanzuvmwarecomv1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/_crd_generated/apis/policy.tsm.tanzu.vmware.com/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -41,10 +40,8 @@ func (c *Config) CRDName() string {
 
 // +k8s:openapi-gen=true
 type ConfigSpec struct {
-	GNS       gnstsmtanzuvmwarecomv1.Gns                               `json:"-" yaml:"-"`
-	GNSGvk    Child                                                    `json:"gNSGvk,omitempty" yaml:"gNSGvk,omitempty" nexus:"child"`
-	Policy    map[string]policytsmtanzuvmwarecomv1.AccessControlPolicy `json:"-" yaml:"-"`
-	PolicyGvk map[string]Child                                         `json:"policyGvk,omitempty" yaml:"policyGvk,omitempty" nexus:"child"`
+	GNS    gnstsmtanzuvmwarecomv1.Gns `json:"-" yaml:"-"`
+	GNSGvk Child                      `json:"gNSGvk,omitempty" yaml:"gNSGvk,omitempty" nexus:"child"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object

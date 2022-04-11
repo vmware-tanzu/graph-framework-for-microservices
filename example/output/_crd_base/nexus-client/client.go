@@ -211,14 +211,6 @@ func (obj *configConfigTsmV1) Get(ctx context.Context, name string, options meta
 		result.Spec.GNS = *field
 	}
 
-	for k, v := range result.Spec.PolicyGvk {
-		obj, err := obj.client.PolicyTsmV1().AccessControlPolicies().Get(ctx, v.Name, options)
-		if err != nil {
-			return nil, err
-		}
-		result.Spec.Policy[k] = *obj
-	}
-
 	return
 }
 
