@@ -27,6 +27,11 @@ pushd ./_deps/github.com/kubernetes/code-generator
 popd
 ./_deps/github.com/kubernetes/code-generator/generate-groups.sh all "${GENERATED_PACKAGE}/client" "${GENERATED_PACKAGE}/apis" "${API_NAMES}" --go-header-file "./_deps/github.com/kubernetes/code-generator/hack/boilerplate.go.txt"
 
+case $PWD/ in
+  $GOPATH/src/${ROOT_PACKAGE}/) echo "we're in GOPATH, no need to copy";;
+  *) echo "we're NOT in GOPATH, need to copy generated code to repository path"; \
+    cp -r $GOPATH/src/${GENERATED_PACKAGE}/* _generated/;;
+esac
 
 if [[ -v CRD_MODULE_PATH ]]; then
   echo "Update import paths with user's CRD module path..."
