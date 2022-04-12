@@ -12,16 +12,16 @@ import (
 	basegnstsmtanzuvmwarecomv1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/_crd_generated/apis/gns.tsm.tanzu.vmware.com/v1"
 	basepolicytsmtanzuvmwarecomv1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/_crd_generated/apis/policy.tsm.tanzu.vmware.com/v1"
 	baseroottsmtanzuvmwarecomv1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/_crd_generated/apis/root.tsm.tanzu.vmware.com/v1"
-	baseservicegrouptsmtanzuvmwarecomv1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/_crd_generated/apis/service_group.tsm.tanzu.vmware.com/v1"
+	baseservicegrouptsmtanzuvmwarecomv1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/_crd_generated/apis/servicegroup.tsm.tanzu.vmware.com/v1"
 )
 
 type Clientset struct {
-	baseClient         *baseClientset.Clientset
-	rootTsmV1          *RootTsmV1
-	configTsmV1        *ConfigTsmV1
-	gnsTsmV1           *GnsTsmV1
-	service_groupTsmV1 *Service_groupTsmV1
-	policyTsmV1        *PolicyTsmV1
+	baseClient        *baseClientset.Clientset
+	rootTsmV1         *RootTsmV1
+	configTsmV1       *ConfigTsmV1
+	gnsTsmV1          *GnsTsmV1
+	servicegroupTsmV1 *ServicegroupTsmV1
+	policyTsmV1       *PolicyTsmV1
 }
 
 func NewForConfig(config *rest.Config) (*Clientset, error) {
@@ -34,7 +34,7 @@ func NewForConfig(config *rest.Config) (*Clientset, error) {
 	client.rootTsmV1 = newRootTsmV1(client)
 	client.configTsmV1 = newConfigTsmV1(client)
 	client.gnsTsmV1 = newGnsTsmV1(client)
-	client.service_groupTsmV1 = newService_groupTsmV1(client)
+	client.servicegroupTsmV1 = newServicegroupTsmV1(client)
 	client.policyTsmV1 = newPolicyTsmV1(client)
 
 	return client, nil
@@ -49,8 +49,8 @@ func (c *Clientset) ConfigTsmV1() *ConfigTsmV1 {
 func (c *Clientset) GnsTsmV1() *GnsTsmV1 {
 	return c.gnsTsmV1
 }
-func (c *Clientset) Service_groupTsmV1() *Service_groupTsmV1 {
-	return c.service_groupTsmV1
+func (c *Clientset) ServicegroupTsmV1() *ServicegroupTsmV1 {
+	return c.servicegroupTsmV1
 }
 func (c *Clientset) PolicyTsmV1() *PolicyTsmV1 {
 	return c.policyTsmV1
@@ -128,23 +128,23 @@ func (obj *GnsTsmV1) Dnses() *dnsGnsTsmV1 {
 	return obj.dnses
 }
 
-type Service_groupTsmV1 struct {
-	svcgroups *svcgroupService_groupTsmV1
+type ServicegroupTsmV1 struct {
+	svcgroups *svcgroupServicegroupTsmV1
 }
 
-func newService_groupTsmV1(client *Clientset) *Service_groupTsmV1 {
-	return &Service_groupTsmV1{
-		svcgroups: &svcgroupService_groupTsmV1{
+func newServicegroupTsmV1(client *Clientset) *ServicegroupTsmV1 {
+	return &ServicegroupTsmV1{
+		svcgroups: &svcgroupServicegroupTsmV1{
 			client: client,
 		},
 	}
 }
 
-type svcgroupService_groupTsmV1 struct {
+type svcgroupServicegroupTsmV1 struct {
 	client *Clientset
 }
 
-func (obj *Service_groupTsmV1) SvcGroups() *svcgroupService_groupTsmV1 {
+func (obj *ServicegroupTsmV1) SvcGroups() *svcgroupServicegroupTsmV1 {
 	return obj.svcgroups
 }
 
@@ -186,10 +186,14 @@ func (obj *rootRootTsmV1) Get(ctx context.Context, name string, options metav1.G
 		return nil, err
 	}
 
-	// resolve children
-	// TODO
-	// resolve links
-	// TODO
+	if result.Spec.ConfigGvk.Name != "" {
+		field, err := obj.client.ConfigTsmV1().Configs().Get(ctx, result.Spec.ConfigGvk.Name, options)
+		if err != nil {
+			return nil, err
+		}
+		result.Spec.Config = *field
+	}
+
 	return
 }
 
@@ -199,10 +203,47 @@ func (obj *configConfigTsmV1) Get(ctx context.Context, name string, options meta
 		return nil, err
 	}
 
-	// resolve children
-	// TODO
-	// resolve links
-	// TODO
+	if result.Spec.GNSGvk.Name != "" {
+		field, err := obj.client.GnsTsmV1().Gnses().Get(ctx, result.Spec.GNSGvk.Name, options)
+		if err != nil {
+			return nil, err
+		}
+		result.Spec.GNS = *field
+	}
+
+	return
+}
+
+func (obj *gnsGnsTsmV1) Get(ctx context.Context, name string, options metav1.GetOptions) (result *basegnstsmtanzuvmwarecomv1.Gns, err error) {
+	result, err = obj.client.baseClient.GnsTsmV1().Gnses().Get(ctx, name, options)
+	if err != nil {
+		return nil, err
+	}
+
+	for k, v := range result.Spec.GnsServiceGroupsGvk {
+		obj, err := obj.client.Service_groupTsmV1().SvcGroups().Get(ctx, v.Name, options)
+		if err != nil {
+			return nil, err
+		}
+		result.Spec.GnsServiceGroups[k] = *obj
+	}
+
+	if result.Spec.GnsAccessControlPolicyGvk.Name != "" {
+		field, err := obj.client.PolicyTsmV1().AccessControlPolicies().Get(ctx, result.Spec.GnsAccessControlPolicyGvk.Name, options)
+		if err != nil {
+			return nil, err
+		}
+		result.Spec.GnsAccessControlPolicy = *field
+	}
+
+	if result.Spec.DnsGvk.Name != "" {
+		field, err := obj.client.GnsTsmV1().Dnses().Get(ctx, result.Spec.DnsGvk.Name, options)
+		if err != nil {
+			return nil, err
+		}
+		result.Spec.Dns = *field
+	}
+
 	return
 }
 
@@ -212,23 +253,40 @@ func (obj *dnsGnsTsmV1) Get(ctx context.Context, name string, options metav1.Get
 		return nil, err
 	}
 
-	// resolve children
-	// TODO
-	// resolve links
-	// TODO
 	return
 }
 
-func (obj *svcgroupService_groupTsmV1) Get(ctx context.Context, name string, options metav1.GetOptions) (result *baseservicegrouptsmtanzuvmwarecomv1.SvcGroup, err error) {
-	result, err = obj.client.baseClient.Service_groupTsmV1().SvcGroups().Get(ctx, name, options)
+func (obj *svcgroupServicegroupTsmV1) Get(ctx context.Context, name string, options metav1.GetOptions) (result *baseservicegrouptsmtanzuvmwarecomv1.SvcGroup, err error) {
+	result, err = obj.client.baseClient.ServicegroupTsmV1().SvcGroups().Get(ctx, name, options)
 	if err != nil {
 		return nil, err
 	}
 
-	// resolve children
-	// TODO
-	// resolve links
-	// TODO
+	for k, v := range result.Spec.ServicesGvk {
+		obj, err := obj.client.Core_v1TsmV1().Services().Get(ctx, v.Name, options)
+		if err != nil {
+			return nil, err
+		}
+		result.Spec.Services[k] = *obj
+	}
+
+	return
+}
+
+func (obj *accesscontrolpolicyPolicyTsmV1) Get(ctx context.Context, name string, options metav1.GetOptions) (result *basepolicytsmtanzuvmwarecomv1.AccessControlPolicy, err error) {
+	result, err = obj.client.baseClient.PolicyTsmV1().AccessControlPolicies().Get(ctx, name, options)
+	if err != nil {
+		return nil, err
+	}
+
+	for k, v := range result.Spec.PolicyConfigsGvk {
+		obj, err := obj.client.PolicyTsmV1().ACPConfigs().Get(ctx, v.Name, options)
+		if err != nil {
+			return nil, err
+		}
+		result.Spec.PolicyConfigs[k] = *obj
+	}
+
 	return
 }
 
@@ -238,9 +296,21 @@ func (obj *acpconfigPolicyTsmV1) Get(ctx context.Context, name string, options m
 		return nil, err
 	}
 
-	// resolve children
-	// TODO
-	// resolve links
-	// TODO
+	for k, v := range result.Spec.DestSvcGroupsGvk {
+		obj, err := obj.client.Service_groupTsmV1().SvcGroups().Get(ctx, v.Name, options)
+		if err != nil {
+			return nil, err
+		}
+		result.Spec.DestSvcGroups[k] = *obj
+	}
+
+	for k, v := range result.Spec.SourceSvcGroupsGvk {
+		obj, err := obj.client.Service_groupTsmV1().SvcGroups().Get(ctx, v.Name, options)
+		if err != nil {
+			return nil, err
+		}
+		result.Spec.SourceSvcGroups[k] = *obj
+	}
+
 	return
 }

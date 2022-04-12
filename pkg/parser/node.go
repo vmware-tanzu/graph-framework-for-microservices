@@ -6,6 +6,7 @@ import (
 
 type Node struct {
 	Name             string
+	PkgName          string
 	FullName         string
 	CrdName          string
 	Imports          []*ast.ImportSpec

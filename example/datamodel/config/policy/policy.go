@@ -7,7 +7,7 @@ import (
 
 type AccessControlPolicy struct {
 	nexus.Node
-	policyConfigs map[string]ACPConfig `nexus:"child"`
+	PolicyConfigs map[string]ACPConfig `nexus:"child"`
 }
 
 // ACPConfig is a configuration of AccessControl Policy

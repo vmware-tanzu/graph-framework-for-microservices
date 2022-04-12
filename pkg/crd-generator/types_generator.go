@@ -25,25 +25,26 @@ const (
 func parsePackageCRDs(pkg parser.Package) string {
 	var output string
 	for _, node := range pkg.GetNexusNodes() {
-		output += generateType(node)
+		output += generateType(pkg, node)
 	}
 
 	return output
 }
 
-func generateType(node *ast.TypeSpec) string {
+func generateType(pkg parser.Package, node *ast.TypeSpec) string {
 	var output string
-	output += generateCRDStructType(node)
+	output += generateCRDStructType(pkg, node)
 	output += generateNodeSpec(node)
 	output += generateListDef(node)
 
 	return output
 }
 
-func generateCRDStructType(node *ast.TypeSpec) string {
+func generateCRDStructType(pkg parser.Package, node *ast.TypeSpec) string {
 	var s struct {
 		Name       string
 		StatusType string
+		CrdName    string
 	}
 	spec := ""
 	if len(parser.GetSpecFields(node)) > 0 ||
@@ -64,6 +65,8 @@ func generateCRDStructType(node *ast.TypeSpec) string {
 		log.Fatalf("name of type can't be empty")
 	}
 
+	s.CrdName = fmt.Sprintf("%s.%s.%s", util.ToPlural(strings.ToLower(s.Name)), strings.ToLower(pkg.Name), config.ConfigInstance.GroupName)
+
 	var crdTemplate = clientgen + "\n" + deepcopygen + "\n" + openapigen + `
 type {{.Name}} struct {
 	metav1.TypeMeta    ` + "`" + `json:",inline" yaml:",inline"` + "`" + `
@@ -72,6 +75,9 @@ type {{.Name}} struct {
 	` + status + `
 }
 
+func (c *{{.Name}}) CRDName() string {
+	return "{{.CrdName}}"
+}
 `
 
 	tmpl, err := template.New("tmpl").Parse(crdTemplate)

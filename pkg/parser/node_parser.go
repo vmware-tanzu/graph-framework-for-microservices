@@ -1,7 +1,6 @@
 package parser
 
 import (
-	"fmt"
 	"go/ast"
 	"go/parser"
 	"go/token"
@@ -41,18 +40,17 @@ func ParseDSLNodes(startPath string, baseGroupName string) map[string]Node {
 							for _, spec := range genDecl.Specs {
 								if typeSpec, ok := spec.(*ast.TypeSpec); ok {
 									if _, ok := typeSpec.Type.(*ast.StructType); ok {
+										crdName := util.GetCrdName(typeSpec.Name.Name, v.Name, baseGroupName)
+
 										// Detect root nodes
 										if path == startPath {
-											rootNodes = append(rootNodes, fmt.Sprintf("%s/%s", pkgImport, typeSpec.Name.Name))
+											rootNodes = append(rootNodes, crdName)
 										}
-
-										singular := strings.ToLower(typeSpec.Name.Name)
-										plural := util.ToPlural(singular)
-										crdName := fmt.Sprintf("%s.%s.%s", plural, v.Name, baseGroupName)
 
 										if IsNexusNode(typeSpec) {
 											node := Node{
 												Name:             typeSpec.Name.Name,
+												PkgName:          v.Name,
 												FullName:         pkgImport,
 												CrdName:          crdName,
 												Imports:          file.Imports,
@@ -63,8 +61,7 @@ func ParseDSLNodes(startPath string, baseGroupName string) map[string]Node {
 												SingleLink:       make(map[string]Node),
 												MultipleLink:     make(map[string]Node),
 											}
-
-											nodes[fmt.Sprintf("%s/%s", pkgImport, node.Name)] = node
+											nodes[crdName] = node
 										}
 									}
 								}
@@ -79,10 +76,11 @@ func ParseDSLNodes(startPath string, baseGroupName string) map[string]Node {
 	if err != nil {
 		log.Fatalf("Failed to ParseDSLNodes %v", err)
 	}
+
 	graph := make(map[string]Node)
 	for _, root := range rootNodes {
 		r := nodes[root]
-		processNode(&r, nodes)
+		processNode(&r, nodes, baseGroupName)
 		graph[root] = r
 	}
 
@@ -102,7 +100,7 @@ func CreateParentsMap(graph map[string]Node) map[string]NodeHelper {
 	return parents
 }
 
-func processNode(node *Node, nodes map[string]Node) {
+func processNode(node *Node, nodes map[string]Node, baseGroupName string) {
 	childFields := GetChildFields(node.TypeSpec)
 	linkFields := GetLinkFields(node.TypeSpec)
 
@@ -113,7 +111,7 @@ func processNode(node *Node, nodes map[string]Node) {
 		var key string
 		fieldType := strings.Split(fieldTypeStr, ".")
 		if len(fieldType) == 1 {
-			key = fmt.Sprintf("%s/%s", node.FullName, fieldType[0])
+			key = util.GetCrdName(fieldType[0], util.RemoveSpecialChars(node.PkgName), baseGroupName)
 		}
 
 		if len(fieldType) == 2 {
@@ -124,7 +122,7 @@ func processNode(node *Node, nodes map[string]Node) {
 				}
 
 				if strings.HasSuffix(importPath, fieldType[0]) || importSpec.Name.String() == fieldType[0] {
-					key = fmt.Sprintf("%s/%s", importPath, fieldType[1])
+					key = util.GetCrdName(fieldType[1], util.RemoveSpecialChars(fieldType[0]), baseGroupName)
 				}
 			}
 		}
@@ -133,7 +131,7 @@ func processNode(node *Node, nodes map[string]Node) {
 			n := nodes[key]
 			n.Parents = node.Parents
 			n.Parents = append(n.Parents, node.CrdName)
-			processNode(&n, nodes)
+			processNode(&n, nodes, baseGroupName)
 
 			if isMap {
 				node.MultipleChildren[fieldTypeStr] = n

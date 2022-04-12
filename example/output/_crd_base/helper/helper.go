@@ -16,12 +16,12 @@ const DEFAULT_KEY = "default"
 
 func GetCRDParentsMap() map[string][]string {
 	return map[string][]string{
-		"accesscontrolpolicies.policy.tsm.tanzu.vmware.com": {"roots.root.tsm.tanzu.vmware.com", "configs.config.tsm.tanzu.vmware.com"},
-		"acpconfigs.policy.tsm.tanzu.vmware.com":            {"roots.root.tsm.tanzu.vmware.com", "configs.config.tsm.tanzu.vmware.com", "accesscontrolpolicies.policy.tsm.tanzu.vmware.com"},
+		"accesscontrolpolicies.policy.tsm.tanzu.vmware.com": {"roots.root.tsm.tanzu.vmware.com", "configs.config.tsm.tanzu.vmware.com", "gnses.gns.tsm.tanzu.vmware.com"},
+		"acpconfigs.policy.tsm.tanzu.vmware.com":            {"roots.root.tsm.tanzu.vmware.com", "configs.config.tsm.tanzu.vmware.com", "gnses.gns.tsm.tanzu.vmware.com", "accesscontrolpolicies.policy.tsm.tanzu.vmware.com"},
 		"configs.config.tsm.tanzu.vmware.com":               {"roots.root.tsm.tanzu.vmware.com"},
 		"gnses.gns.tsm.tanzu.vmware.com":                    {"roots.root.tsm.tanzu.vmware.com", "configs.config.tsm.tanzu.vmware.com"},
 		"roots.root.tsm.tanzu.vmware.com":                   {},
-		"svcgroups.service_group.tsm.tanzu.vmware.com":      {"roots.root.tsm.tanzu.vmware.com", "configs.config.tsm.tanzu.vmware.com", "gnses.gns.tsm.tanzu.vmware.com"},
+		"svcgroups.servicegroup.tsm.tanzu.vmware.com":       {"roots.root.tsm.tanzu.vmware.com", "configs.config.tsm.tanzu.vmware.com", "gnses.gns.tsm.tanzu.vmware.com"},
 	}
 }
 
@@ -61,8 +61,8 @@ func GetObjectByCRDName(dmClient *datamodel.Clientset, crdName string, name stri
 		}
 		return obj
 	}
-	if crdName == "svcgroups.service_group.tsm.tanzu.vmware.com" {
-		obj, err := dmClient.Service_groupTsmV1().SvcGroups().Get(context.TODO(), name, metav1.GetOptions{})
+	if crdName == "svcgroups.servicegroup.tsm.tanzu.vmware.com" {
+		obj, err := dmClient.ServicegroupTsmV1().SvcGroups().Get(context.TODO(), name, metav1.GetOptions{})
 		if err != nil {
 			return nil
 		}
@@ -87,15 +87,15 @@ func ParseCRDLabels(crdName string, labels map[string]string) *orderedmap.Ordere
 	return m
 }
 
-func GenerateCRDName(crdName string, meta metav1.ObjectMeta) string {
-	labels := ParseCRDLabels(crdName, meta.Labels)
+func GetHashedName(crdName string, labels map[string]string) string {
+	orderedLabels := ParseCRDLabels(crdName, labels)
 
 	var name string
-	for i, key := range labels.Keys() {
-		value, _ := labels.Get(key)
+	for i, key := range orderedLabels.Keys() {
+		value, _ := orderedLabels.Get(key)
 
 		name += fmt.Sprintf("%s:%s", key, value)
-		if i < labels.Len()-1 {
+		if i < orderedLabels.Len()-1 {
 			name += "/"
 		}
 	}
