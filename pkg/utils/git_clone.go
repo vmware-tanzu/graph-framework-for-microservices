@@ -5,7 +5,6 @@ import (
 	"bufio"
 	"bytes"
 	"compress/gzip"
-	"context"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -16,8 +15,6 @@ import (
 	"strings"
 	"text/template"
 
-	dockerClient "github.com/docker/docker/client"
-
 	"gopkg.in/src-d/go-git.v4/plumbing/transport"
 	ssh2 "gopkg.in/src-d/go-git.v4/plumbing/transport/ssh"
 
@@ -26,18 +23,6 @@ import (
 	"gopkg.in/src-d/go-git.v4/plumbing"
 	"gopkg.in/src-d/go-git.v4/plumbing/transport/http"
 )
-
-func CheckIfDocker() error {
-	clientObj, err := dockerClient.NewEnvClient()
-	if err != nil {
-		return fmt.Errorf("Docker not running, please start docker..")
-	}
-	_, err = clientObj.Info(context.Background())
-	if err != nil {
-		return fmt.Errorf("Docker not running, please start docker..")
-	}
-	return nil
-}
 
 func GitClone() (string, error) {
 	fmt.Println("git clone https://gitlab.eng.vmware.com/nsx-allspark_users/m7/policymodel.git")
@@ -377,4 +362,8 @@ func IsDirEmpty(name string) (bool, error) {
 		return true, nil
 	}
 	return false, err // Either not empty or error, suits both cases
+}
+
+func IsDockerRunning() error {
+	return SystemCommand([]string{}, true, "docker", "ps")
 }

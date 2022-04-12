@@ -17,10 +17,12 @@ var BuildCmd = &cobra.Command{
 
 func Build(cmd *cobra.Command, args []string) error {
 	envList := []string{}
-	err := utils.CheckIfDocker()
+
+	err := utils.IsDockerRunning()
 	if err != nil {
-		return err
+		return fmt.Errorf("docker daemon doesn't seem to be running. Please retry after starting Docker\n")
 	}
+
 	// check if build can be run from current directory, if not proceed to next steps..
 	err = utils.SystemCommand(envList, true, "make", "datamodel_build", "-n")
 	if err == nil {
