@@ -13,8 +13,8 @@ spec:
     strategy: None
   group: policy.tsm.tanzu.vmware.com
   names:
-    kind: Accesscontrolpolicy
-    listKind: AccesscontrolpolicyList
+    kind: AccessControlPolicy
+    listKind: AccessControlPolicyList
     plural: accesscontrolpolicies
     shortNames:
       - accesscontrolpolicy
