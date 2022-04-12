@@ -1,15 +1,12 @@
 package version
 
 import (
-	"embed"
 	"fmt"
 
 	"github.com/spf13/cobra"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/common"
 	"gopkg.in/yaml.v2"
 )
-
-//go:embed values.yaml
-var f embed.FS
 
 type NexusValues struct {
 	NexusCli          versionFields `yaml:"nexusCli"`
@@ -24,7 +21,7 @@ type versionFields struct {
 func Version(cmd *cobra.Command, args []string) error {
 	var values NexusValues
 
-	yamlFile, err := f.ReadFile("values.yaml")
+	yamlFile, err := common.TemplateFs.ReadFile("values.yaml")
 	if err != nil {
 		return fmt.Errorf("error while reading version yamlFile %v", err)
 

@@ -5,7 +5,10 @@ import (
 	"os"
 
 	"github.com/spf13/cobra"
+	"gopkg.in/yaml.v2"
 
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/common"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/servicemesh/version"
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/utils"
 )
 
@@ -18,11 +21,23 @@ var BuildCmd = &cobra.Command{
 func Build(cmd *cobra.Command, args []string) error {
 	envList := []string{}
 
+	var values version.NexusValues
 	err := utils.IsDockerRunning()
 	if err != nil {
 		return fmt.Errorf("docker daemon doesn't seem to be running. Please retry after starting Docker\n")
 	}
 
+	yamlFile, err := common.TemplateFs.ReadFile("values.yaml")
+	if err != nil {
+		return fmt.Errorf("error while reading version yamlFile %v", err)
+
+	}
+
+	err = yaml.Unmarshal(yamlFile, &values)
+	if err != nil {
+		return fmt.Errorf("error while unmarshal version yaml data %v", err)
+	}
+	envList = append(envList, fmt.Sprintf("TAG=%s", values.NexusCompiler.Version))
 	// check if build can be run from current directory, if not proceed to next steps..
 	err = utils.SystemCommand(envList, !utils.IsDebug(cmd), "make", "datamodel_build", "-n")
 	if err == nil {
