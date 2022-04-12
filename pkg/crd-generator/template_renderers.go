@@ -328,7 +328,7 @@ func RenderCRDBaseTemplate(baseGroupName string, pkg parser.Package, parentsMap 
 		typeName := parser.GetTypeName(node)
 		groupName := pkg.Name + "." + baseGroupName
 		singular := strings.ToLower(typeName)
-		kind := strings.Title(singular)
+		kind := strings.Title(typeName)
 		plural := util.ToPlural(singular)
 		crdName := fmt.Sprintf("%s.%s", plural, groupName)
 
@@ -449,6 +449,7 @@ func RenderClient(baseGroupName, outputDir, crdModulePath string, pkgs parser.Pa
 }
 
 type clientVars struct {
+	HelperImport              string
 	BaseClientsetImport       string
 	BaseImports               string
 	ClientsetsApiGroups       string
