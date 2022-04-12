@@ -7,11 +7,11 @@
                   Config
                  /     \
                 /       \
-               /         \
-            Gns         AccessControlPolicy
+    softlink  /         \
+ Dns------->Gns         AccessControlPolicy
              |                  |
              |                  |
-         SvcGroup <----------> ACPConfig
+         SvcGroup ----------> ACPConfig
                    softlink
 
 ```

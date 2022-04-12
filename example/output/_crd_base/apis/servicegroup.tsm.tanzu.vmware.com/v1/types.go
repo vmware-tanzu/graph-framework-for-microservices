@@ -35,7 +35,7 @@ type SvcGroup struct {
 }
 
 func (c *SvcGroup) CRDName() string {
-	return "svcgroups.service_group.tsm.tanzu.vmware.com"
+	return "svcgroups.servicegroup.tsm.tanzu.vmware.com"
 }
 
 // +k8s:openapi-gen=true

@@ -16,12 +16,12 @@ const DEFAULT_KEY = "default"
 
 func GetCRDParentsMap() map[string][]string {
 	return map[string][]string{
-		"accesscontrolpolicies.policy.tsm.tanzu.vmware.com": {"roots.root.tsm.tanzu.vmware.com", "configs.config.tsm.tanzu.vmware.com"},
-		"acpconfigs.policy.tsm.tanzu.vmware.com":            {"roots.root.tsm.tanzu.vmware.com", "configs.config.tsm.tanzu.vmware.com", "accesscontrolpolicies.policy.tsm.tanzu.vmware.com"},
+		"accesscontrolpolicies.policy.tsm.tanzu.vmware.com": {"roots.root.tsm.tanzu.vmware.com", "configs.config.tsm.tanzu.vmware.com", "gnses.gns.tsm.tanzu.vmware.com"},
+		"acpconfigs.policy.tsm.tanzu.vmware.com":            {"roots.root.tsm.tanzu.vmware.com", "configs.config.tsm.tanzu.vmware.com", "gnses.gns.tsm.tanzu.vmware.com", "accesscontrolpolicies.policy.tsm.tanzu.vmware.com"},
 		"configs.config.tsm.tanzu.vmware.com":               {"roots.root.tsm.tanzu.vmware.com"},
 		"gnses.gns.tsm.tanzu.vmware.com":                    {"roots.root.tsm.tanzu.vmware.com", "configs.config.tsm.tanzu.vmware.com"},
 		"roots.root.tsm.tanzu.vmware.com":                   {},
-		"svcgroups.service_group.tsm.tanzu.vmware.com":      {"roots.root.tsm.tanzu.vmware.com", "configs.config.tsm.tanzu.vmware.com", "gnses.gns.tsm.tanzu.vmware.com"},
+		"svcgroups.servicegroup.tsm.tanzu.vmware.com":       {"roots.root.tsm.tanzu.vmware.com", "configs.config.tsm.tanzu.vmware.com", "gnses.gns.tsm.tanzu.vmware.com"},
 	}
 }
 
@@ -61,8 +61,8 @@ func GetObjectByCRDName(dmClient *datamodel.Clientset, crdName string, name stri
 		}
 		return obj
 	}
-	if crdName == "svcgroups.service_group.tsm.tanzu.vmware.com" {
-		obj, err := dmClient.Service_groupTsmV1().SvcGroups().Get(context.TODO(), name, metav1.GetOptions{})
+	if crdName == "svcgroups.servicegroup.tsm.tanzu.vmware.com" {
+		obj, err := dmClient.ServicegroupTsmV1().SvcGroups().Get(context.TODO(), name, metav1.GetOptions{})
 		if err != nil {
 			return nil
 		}

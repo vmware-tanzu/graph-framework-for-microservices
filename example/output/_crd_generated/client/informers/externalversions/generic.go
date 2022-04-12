@@ -25,7 +25,7 @@ import (
 	gnstsmtanzuvmwarecomv1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/_crd_generated/apis/gns.tsm.tanzu.vmware.com/v1"
 	policytsmtanzuvmwarecomv1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/_crd_generated/apis/policy.tsm.tanzu.vmware.com/v1"
 	roottsmtanzuvmwarecomv1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/_crd_generated/apis/root.tsm.tanzu.vmware.com/v1"
-	servicegrouptsmtanzuvmwarecomv1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/_crd_generated/apis/service_group.tsm.tanzu.vmware.com/v1"
+	servicegrouptsmtanzuvmwarecomv1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/_crd_generated/apis/servicegroup.tsm.tanzu.vmware.com/v1"
 	schema "k8s.io/apimachinery/pkg/runtime/schema"
 	cache "k8s.io/client-go/tools/cache"
 )
@@ -76,9 +76,9 @@ func (f *sharedInformerFactory) ForResource(resource schema.GroupVersionResource
 	case roottsmtanzuvmwarecomv1.SchemeGroupVersion.WithResource("roots"):
 		return &genericInformer{resource: resource.GroupResource(), informer: f.RootTsm().V1().Roots().Informer()}, nil
 
-		// Group=service_group.tsm.tanzu.vmware.com, Version=v1
+		// Group=servicegroup.tsm.tanzu.vmware.com, Version=v1
 	case servicegrouptsmtanzuvmwarecomv1.SchemeGroupVersion.WithResource("svcgroups"):
-		return &genericInformer{resource: resource.GroupResource(), informer: f.Service_groupTsm().V1().SvcGroups().Informer()}, nil
+		return &genericInformer{resource: resource.GroupResource(), informer: f.ServicegroupTsm().V1().SvcGroups().Informer()}, nil
 
 	}
 

@@ -22,7 +22,6 @@ limitations under the License.
 package v1
 
 import (
-	policytsmtanzuvmwarecomv1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/_crd_generated/apis/policy.tsm.tanzu.vmware.com/v1"
 	runtime "k8s.io/apimachinery/pkg/runtime"
 )
 
@@ -107,20 +106,6 @@ func (in *ConfigSpec) DeepCopyInto(out *ConfigSpec) {
 	*out = *in
 	in.GNS.DeepCopyInto(&out.GNS)
 	out.GNSGvk = in.GNSGvk
-	if in.policy != nil {
-		in, out := &in.policy, &out.policy
-		*out = make(map[string]policytsmtanzuvmwarecomv1.AccessControlPolicy, len(*in))
-		for key, val := range *in {
-			(*out)[key] = *val.DeepCopy()
-		}
-	}
-	if in.policyGvk != nil {
-		in, out := &in.policyGvk, &out.policyGvk
-		*out = make(map[string]Child, len(*in))
-		for key, val := range *in {
-			(*out)[key] = val
-		}
-	}
 	return
 }
 
