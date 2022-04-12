@@ -5,6 +5,7 @@ import (
 	"bufio"
 	"bytes"
 	"compress/gzip"
+	"context"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -15,6 +16,8 @@ import (
 	"strings"
 	"text/template"
 
+	dockerClient "github.com/docker/docker/client"
+
 	"gopkg.in/src-d/go-git.v4/plumbing/transport"
 	ssh2 "gopkg.in/src-d/go-git.v4/plumbing/transport/ssh"
 
@@ -23,6 +26,18 @@ import (
 	"gopkg.in/src-d/go-git.v4/plumbing"
 	"gopkg.in/src-d/go-git.v4/plumbing/transport/http"
 )
+
+func CheckIfDocker() error {
+	clientObj, err := dockerClient.NewEnvClient()
+	if err != nil {
+		return fmt.Errorf("Docker not running, please start docker..")
+	}
+	_, err = clientObj.Info(context.Background())
+	if err != nil {
+		return fmt.Errorf("Docker not running, please start docker..")
+	}
+	return nil
+}
 
 func GitClone() (string, error) {
 	fmt.Println("git clone https://gitlab.eng.vmware.com/nsx-allspark_users/m7/policymodel.git")
@@ -206,6 +221,10 @@ func SystemCommand(envList []string, silent bool, name string, args ...string) e
 		return fmt.Errorf(err.Error())
 
 	}
+	stderr, err := command.StderrPipe()
+	if err != nil {
+		return fmt.Errorf(err.Error())
+	}
 	scanner := bufio.NewScanner(stdout)
 	go func() {
 		for scanner.Scan() {
@@ -215,6 +234,12 @@ func SystemCommand(envList []string, silent bool, name string, args ...string) e
 		}
 	}()
 
+	errScanner := bufio.NewScanner(stderr)
+	go func() {
+		for errScanner.Scan() {
+			fmt.Printf("\t > %s\n", errScanner.Text())
+		}
+	}()
 	err = command.Start()
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "Error starting Cmd", err)
