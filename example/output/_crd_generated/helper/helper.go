@@ -8,7 +8,7 @@ import (
 
 	"github.com/elliotchance/orderedmap"
 
-	datamodel "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/_generated/client/clientset/versioned"
+	datamodel "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/_crd_generated/client/clientset/versioned"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -16,8 +16,8 @@ const DEFAULT_KEY = "default"
 
 func GetCRDParentsMap() map[string][]string {
 	return map[string][]string{
-		"accesscontrolpolicies.policy.tsm.tanzu.vmware.com": {"roots.root.tsm.tanzu.vmware.com", "configs.config.tsm.tanzu.vmware.com"},
-		"acpconfigs.policy.tsm.tanzu.vmware.com":            {"roots.root.tsm.tanzu.vmware.com", "configs.config.tsm.tanzu.vmware.com", "accesscontrolpolicies.policy.tsm.tanzu.vmware.com"},
+		"accesscontrolpolicies.policy.tsm.tanzu.vmware.com": {"roots.root.tsm.tanzu.vmware.com", "configs.config.tsm.tanzu.vmware.com", "gnses.gns.tsm.tanzu.vmware.com"},
+		"acpconfigs.policy.tsm.tanzu.vmware.com":            {"roots.root.tsm.tanzu.vmware.com", "configs.config.tsm.tanzu.vmware.com", "gnses.gns.tsm.tanzu.vmware.com", "accesscontrolpolicies.policy.tsm.tanzu.vmware.com"},
 		"configs.config.tsm.tanzu.vmware.com":               {"roots.root.tsm.tanzu.vmware.com"},
 		"gnses.gns.tsm.tanzu.vmware.com":                    {"roots.root.tsm.tanzu.vmware.com", "configs.config.tsm.tanzu.vmware.com"},
 		"roots.root.tsm.tanzu.vmware.com":                   {},
@@ -87,15 +87,15 @@ func ParseCRDLabels(crdName string, labels map[string]string) *orderedmap.Ordere
 	return m
 }
 
-func GenerateCRDName(crdName string, meta metav1.ObjectMeta) string {
-	labels := ParseCRDLabels(crdName, meta.Labels)
+func GetHashedName(crdName string, labels map[string]string) string {
+	orderedLabels := ParseCRDLabels(crdName, labels)
 
 	var name string
-	for i, key := range labels.Keys() {
-		value, _ := labels.Get(key)
+	for i, key := range orderedLabels.Keys() {
+		value, _ := orderedLabels.Get(key)
 
 		name += fmt.Sprintf("%s:%s", key, value)
-		if i < labels.Len()-1 {
+		if i < orderedLabels.Len()-1 {
 			name += "/"
 		}
 	}

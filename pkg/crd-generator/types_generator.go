@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"go/ast"
 	"go/types"
+	"regexp"
 	"strings"
 	"text/template"
 	"unicode"
@@ -248,8 +249,47 @@ func parsePackageTypes(pkg parser.Package) string {
 
 func parsePackageImports(pkg parser.Package) string {
 	var output string
-	for _, imp := range pkg.GetImportStrings() {
+	for _, imp := range GenerateImports(&pkg) {
 		output += imp + "\n"
 	}
 	return output
+}
+
+func GenerateImports(p *parser.Package) []string {
+	var (
+		importList            []string
+		aliasName, importPath string
+	)
+	imports := p.GetImports()
+	for _, val := range imports {
+		i := val.Path.Value
+		if strings.Contains(i, p.ModPath) {
+			if val.Name != nil {
+				aliasName, importPath = constructImports(val.Name.String(), i)
+			} else {
+				last := i[strings.LastIndex(i, "/")+1 : len(i)-1]
+				aliasName, importPath = constructImports(last, i)
+			}
+		} else {
+			if val.Name != nil {
+				importPath = i
+				aliasName, _ = constructImports(val.Name.String(), i)
+			}
+		}
+		i = fmt.Sprintf("%s %s", aliasName, importPath)
+		importList = append(importList, i)
+	}
+	return importList
+}
+
+func constructImports(inputAlias, inputImportPath string) (string, string) {
+	re, err := regexp.Compile(`[\_\.]`)
+	if err != nil {
+		log.Fatalf("failed to construct output import path for import path %v : %v", inputImportPath, err)
+	}
+	aliasName := fmt.Sprintf("%s%sv1", inputAlias, config.ConfigInstance.GroupName)
+	aliasName = re.ReplaceAllString(aliasName, "")
+
+	importPath := fmt.Sprintf("\"%sapis/%s.%s/v1\"", config.ConfigInstance.CrdModulePath, re.ReplaceAllString(inputAlias, ""), config.ConfigInstance.GroupName)
+	return aliasName, importPath
 }
