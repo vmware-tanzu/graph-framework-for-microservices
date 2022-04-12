@@ -97,7 +97,7 @@ test_in_container: ${BUILDER_NAME}\:${BUILDER_TAG}.image.exists
 generate_code:
 	if [ -n $(DATAMODEL_LOCAL_PATH) ]; then \
 		cp -rf $(DATAMODEL_LOCAL_PATH) /go/src/gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git && \
-		rm -rf /go/src/gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/build  ;\
+		rm -rf /go/src/gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/datamodel/build  ;\
 	fi
 	CRD_MODULE_PATH=${CRD_MODULE_PATH} go run cmd/nexus-sdk/main.go -config-file ${CONFIG_FILE} -dsl ${DATAMODEL_PATH} -crd-output _generated
 	mv _generated/api_names.sh ./scripts/
