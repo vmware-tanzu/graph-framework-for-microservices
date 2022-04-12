@@ -12,8 +12,8 @@ spec:
     strategy: None
   group: servicegroup.tsm.tanzu.vmware.com
   names:
-    kind: Svcgroup
-    listKind: SvcgroupList
+    kind: SvcGroup
+    listKind: SvcGroupList
     plural: svcgroups
     shortNames:
     - svcgroup
