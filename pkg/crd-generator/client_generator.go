@@ -18,6 +18,7 @@ func generateNexusClientVars(baseGroupName, crdModulePath string, pkgs parser.Pa
 	var vars clientVars
 
 	vars.BaseClientsetImport = `"` + crdModulePath + `client/clientset/versioned"`
+	vars.HelperImport = `"` + crdModulePath + `helper"`
 
 	sortedKeys := make([]string, 0, len(pkgs))
 	for k := range pkgs {
@@ -62,7 +63,7 @@ func generateNexusClientVars(baseGroupName, crdModulePath string, pkgs parser.Pa
 			clientGroupVars.GroupTypeName = groupTypeName
 
 			for _, node := range pkg.GetNexusNodes() {
-				err := resolveNode(baseImportName, pkg.Name, baseGroupName, version, &groupVars, &clientGroupVars, node)
+				err := resolveNode(baseImportName, pkg, baseGroupName, version, &groupVars, &clientGroupVars, node)
 				if err != nil {
 					return clientVars{}, err
 				}
@@ -84,9 +85,10 @@ func generateNexusClientVars(baseGroupName, crdModulePath string, pkgs parser.Pa
 	return vars, nil
 }
 
-func resolveNode(baseImportName, pkgName, baseGroupName, version string,
+func resolveNode(baseImportName string, pkg parser.Package, baseGroupName, version string,
 	groupVars *apiGroupsVars, clientGroupVars *apiGroupsClientVars, node *ast.TypeSpec) error {
 
+	pkgName := pkg.Name
 	baseNodeName := node.Name.Name // eg Root
 	groupResourceName := util.GetGroupResourceName(baseNodeName)
 	groupResourceNameTitle := util.GetGroupResourceNameTitle(baseNodeName)
@@ -114,11 +116,12 @@ func resolveNode(baseImportName, pkgName, baseGroupName, version string,
 	clientGroupVars.GroupResourceNameTitle = groupResourceNameTitle
 	clientGroupVars.ResolveLinks = ""
 
+	// TODO support resolution of links which are not nexus nodes https://jira.eng.vmware.com/browse/NPT-112
 	childrenAndLinks := parser.GetChildFields(node)
 	childrenAndLinks = append(childrenAndLinks, parser.GetLinkFields(node)...)
 
 	for _, link := range childrenAndLinks {
-		linkInfo := getFieldInfo(pkgName, link)
+		linkInfo := getFieldInfo(pkg, link)
 		var vars resolveLinkVars
 		vars.LinkFieldName = linkInfo.fieldName
 		vars.LinkGroupTypeName = util.GetGroupTypeName(linkInfo.pkgName, baseGroupName, version)
@@ -132,7 +135,8 @@ func resolveNode(baseImportName, pkgName, baseGroupName, version string,
 			resolvedLinks, err = renderLinkResolveTemplate(vars, false)
 		}
 		if err != nil {
-			return fmt.Errorf("failed to resolve links or children client template for link %v: %v", linkInfo.fieldName, err)
+			return fmt.Errorf("failed to resolve links or children client template for link %v: %v",
+				linkInfo.fieldName, err)
 		}
 		clientGroupVars.ResolveLinks += resolvedLinks
 
@@ -146,27 +150,35 @@ type fieldInfo struct {
 	fieldType string
 }
 
-func getFieldInfo(currentPkgName string, f *ast.Field) fieldInfo {
+func getFieldInfo(pkg parser.Package, f *ast.Field) fieldInfo {
 	var info fieldInfo
 	var err error
 	info.fieldName, err = parser.GetFieldName(f)
 	if err != nil {
 		log.Fatalf("Failed to get name of field: %v", err)
 	}
+	currentPkgName := pkg.Name
 
 	chType := parser.GetFieldType(f)
 	s := strings.Split(chType, ".")
 	info.fieldType = s[len(s)-1]
 
 	split := strings.Split(chType, ".")
+	// overwrite pkg name of links or children from different packages
 	if len(split) > 1 {
 		info.pkgName = split[0]
+		// overwrite pkg name for node which uses named import like 'sg "helloworld.com/service-groups"'
+		for _, imp := range pkg.GetImports() {
+			if imp.Name.String() == info.pkgName {
+				s := strings.Split(imp.Path.Value, "/")
+				info.pkgName = strings.TrimSuffix(s[len(s)-1], "\"")
+			}
+		}
 	} else {
 		info.pkgName = currentPkgName
 	}
 
 	return info
-
 }
 
 type resolveLinkVars struct {
@@ -177,7 +189,7 @@ type resolveLinkVars struct {
 
 var resolveLinkTmpl = `
 	if result.Spec.{{.LinkFieldName}}Gvk.Name != "" {
-		field, err := obj.client.{{.LinkGroupTypeName}}().{{.LinkGroupResourceNameTitle}}().Get(ctx, result.Spec.{{.LinkFieldName}}Gvk.Name, options)
+		field, err := obj.client.{{.LinkGroupTypeName}}().{{.LinkGroupResourceNameTitle}}().GetByName(ctx, result.Spec.{{.LinkFieldName}}Gvk.Name)
 		if err != nil {
 			return nil, err
 		}
@@ -187,7 +199,7 @@ var resolveLinkTmpl = `
 
 var resolveNamedLinkTmpl = `
 	for k, v := range result.Spec.{{.LinkFieldName}}Gvk {
-		obj, err := obj.client.{{.LinkGroupTypeName}}().{{.LinkGroupResourceNameTitle}}().Get(ctx, v.Name, options)
+		obj, err := obj.client.{{.LinkGroupTypeName}}().{{.LinkGroupResourceNameTitle}}().GetByName(ctx, v.Name)
 		if err != nil {
 			return nil, err
 		}
@@ -248,8 +260,19 @@ func renderApiGroup(vars apiGroupsVars) (string, error) {
 }
 
 var apiGroupClientTmpl = `
-func (obj *{{.GroupResourceType}}) Get(ctx context.Context, name string, options metav1.GetOptions) (result *{{.GroupBaseImport}}, err error) {
-	result, err = obj.client.baseClient.{{.GroupTypeName}}().{{.GroupResourceNameTitle}}().Get(ctx, name, options)
+func (obj *{{.GroupResourceType}}) Get(ctx context.Context, name string, labels map[string]string) (result *{{.GroupBaseImport}}, err error) {
+	hashedName := helper.GetHashedName(name, labels)
+	result, err = obj.client.baseClient.{{.GroupTypeName}}().{{.GroupResourceNameTitle}}().Get(ctx, hashedName, metav1.GetOptions{})
+	if err != nil {
+		return nil, err
+	}
+
+	{{.ResolveLinks}}
+	return
+}
+
+func (obj *{{.GroupResourceType}}) GetByName(ctx context.Context, name string) (result *{{.GroupBaseImport}}, err error) { 
+	result, err = obj.client.baseClient.{{.GroupTypeName}}().{{.GroupResourceNameTitle}}().Get(ctx, name, metav1.GetOptions{})
 	if err != nil {
 		return nil, err
 	}

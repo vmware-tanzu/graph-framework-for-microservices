@@ -5,6 +5,7 @@ import (
 	. "github.com/onsi/gomega"
 	log "github.com/sirupsen/logrus"
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/pkg/config"
+	crd_generator "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/pkg/crd-generator"
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/pkg/parser"
 )
 
@@ -27,8 +28,8 @@ var _ = Describe("Pkg tests", func() {
 		Expect(ok).To(BeTrue())
 	})
 
-	It("should return import strings", func() {
-		imports := pkg.GetImportStrings()
+	It("should return generated import strings", func() {
+		imports := crd_generator.GenerateImports(&pkg)
 
 		expectedImports := []string{
 			"configtsmtanzuvmwarecomv1 \"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/_crd_generated/apis/config.tsm.tanzu.vmware.com/v1\"",

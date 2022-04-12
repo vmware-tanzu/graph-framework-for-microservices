@@ -17,7 +17,7 @@ import (
 //}
 
 func RemoveSpecialChars(value string) string {
-	re, err := regexp.Compile(`[\_\.\/]`)
+	re, err := regexp.Compile(`[\_\.\/\-]`)
 	if err != nil {
 		log.Fatalf("failed to remove special chars from string %v: %v", value, err)
 	}

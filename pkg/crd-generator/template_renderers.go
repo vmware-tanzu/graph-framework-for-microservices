@@ -449,6 +449,7 @@ func RenderClient(baseGroupName, outputDir, crdModulePath string, pkgs parser.Pa
 }
 
 type clientVars struct {
+	HelperImport              string
 	BaseClientsetImport       string
 	BaseImports               string
 	ClientsetsApiGroups       string

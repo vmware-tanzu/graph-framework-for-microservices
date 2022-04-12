@@ -7,6 +7,7 @@ import (
 	"k8s.io/client-go/rest"
 
 	baseClientset "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/_crd_generated/client/clientset/versioned"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/_crd_generated/helper"
 
 	baseconfigtsmtanzuvmwarecomv1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/_crd_generated/apis/config.tsm.tanzu.vmware.com/v1"
 	basegnstsmtanzuvmwarecomv1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/_crd_generated/apis/gns.tsm.tanzu.vmware.com/v1"
@@ -180,14 +181,15 @@ func (obj *PolicyTsmV1) ACPConfigs() *acpconfigPolicyTsmV1 {
 	return obj.acpconfigs
 }
 
-func (obj *rootRootTsmV1) Get(ctx context.Context, name string, options metav1.GetOptions) (result *baseroottsmtanzuvmwarecomv1.Root, err error) {
-	result, err = obj.client.baseClient.RootTsmV1().Roots().Get(ctx, name, options)
+func (obj *rootRootTsmV1) Get(ctx context.Context, name string, labels map[string]string) (result *baseroottsmtanzuvmwarecomv1.Root, err error) {
+	hashedName := helper.GetHashedName(name, labels)
+	result, err = obj.client.baseClient.RootTsmV1().Roots().Get(ctx, hashedName, metav1.GetOptions{})
 	if err != nil {
 		return nil, err
 	}
 
 	if result.Spec.ConfigGvk.Name != "" {
-		field, err := obj.client.ConfigTsmV1().Configs().Get(ctx, result.Spec.ConfigGvk.Name, options)
+		field, err := obj.client.ConfigTsmV1().Configs().GetByName(ctx, result.Spec.ConfigGvk.Name)
 		if err != nil {
 			return nil, err
 		}
@@ -197,14 +199,32 @@ func (obj *rootRootTsmV1) Get(ctx context.Context, name string, options metav1.G
 	return
 }
 
-func (obj *configConfigTsmV1) Get(ctx context.Context, name string, options metav1.GetOptions) (result *baseconfigtsmtanzuvmwarecomv1.Config, err error) {
-	result, err = obj.client.baseClient.ConfigTsmV1().Configs().Get(ctx, name, options)
+func (obj *rootRootTsmV1) GetByName(ctx context.Context, name string) (result *baseroottsmtanzuvmwarecomv1.Root, err error) {
+	result, err = obj.client.baseClient.RootTsmV1().Roots().Get(ctx, name, metav1.GetOptions{})
+	if err != nil {
+		return nil, err
+	}
+
+	if result.Spec.ConfigGvk.Name != "" {
+		field, err := obj.client.ConfigTsmV1().Configs().GetByName(ctx, result.Spec.ConfigGvk.Name)
+		if err != nil {
+			return nil, err
+		}
+		result.Spec.Config = *field
+	}
+
+	return
+}
+
+func (obj *configConfigTsmV1) Get(ctx context.Context, name string, labels map[string]string) (result *baseconfigtsmtanzuvmwarecomv1.Config, err error) {
+	hashedName := helper.GetHashedName(name, labels)
+	result, err = obj.client.baseClient.ConfigTsmV1().Configs().Get(ctx, hashedName, metav1.GetOptions{})
 	if err != nil {
 		return nil, err
 	}
 
 	if result.Spec.GNSGvk.Name != "" {
-		field, err := obj.client.GnsTsmV1().Gnses().Get(ctx, result.Spec.GNSGvk.Name, options)
+		field, err := obj.client.GnsTsmV1().Gnses().GetByName(ctx, result.Spec.GNSGvk.Name)
 		if err != nil {
 			return nil, err
 		}
@@ -214,14 +234,32 @@ func (obj *configConfigTsmV1) Get(ctx context.Context, name string, options meta
 	return
 }
 
-func (obj *gnsGnsTsmV1) Get(ctx context.Context, name string, options metav1.GetOptions) (result *basegnstsmtanzuvmwarecomv1.Gns, err error) {
-	result, err = obj.client.baseClient.GnsTsmV1().Gnses().Get(ctx, name, options)
+func (obj *configConfigTsmV1) GetByName(ctx context.Context, name string) (result *baseconfigtsmtanzuvmwarecomv1.Config, err error) {
+	result, err = obj.client.baseClient.ConfigTsmV1().Configs().Get(ctx, name, metav1.GetOptions{})
+	if err != nil {
+		return nil, err
+	}
+
+	if result.Spec.GNSGvk.Name != "" {
+		field, err := obj.client.GnsTsmV1().Gnses().GetByName(ctx, result.Spec.GNSGvk.Name)
+		if err != nil {
+			return nil, err
+		}
+		result.Spec.GNS = *field
+	}
+
+	return
+}
+
+func (obj *gnsGnsTsmV1) Get(ctx context.Context, name string, labels map[string]string) (result *basegnstsmtanzuvmwarecomv1.Gns, err error) {
+	hashedName := helper.GetHashedName(name, labels)
+	result, err = obj.client.baseClient.GnsTsmV1().Gnses().Get(ctx, hashedName, metav1.GetOptions{})
 	if err != nil {
 		return nil, err
 	}
 
 	for k, v := range result.Spec.GnsServiceGroupsGvk {
-		obj, err := obj.client.Service_groupTsmV1().SvcGroups().Get(ctx, v.Name, options)
+		obj, err := obj.client.ServicegroupTsmV1().SvcGroups().GetByName(ctx, v.Name)
 		if err != nil {
 			return nil, err
 		}
@@ -229,7 +267,7 @@ func (obj *gnsGnsTsmV1) Get(ctx context.Context, name string, options metav1.Get
 	}
 
 	if result.Spec.GnsAccessControlPolicyGvk.Name != "" {
-		field, err := obj.client.PolicyTsmV1().AccessControlPolicies().Get(ctx, result.Spec.GnsAccessControlPolicyGvk.Name, options)
+		field, err := obj.client.PolicyTsmV1().AccessControlPolicies().GetByName(ctx, result.Spec.GnsAccessControlPolicyGvk.Name)
 		if err != nil {
 			return nil, err
 		}
@@ -237,7 +275,7 @@ func (obj *gnsGnsTsmV1) Get(ctx context.Context, name string, options metav1.Get
 	}
 
 	if result.Spec.DnsGvk.Name != "" {
-		field, err := obj.client.GnsTsmV1().Dnses().Get(ctx, result.Spec.DnsGvk.Name, options)
+		field, err := obj.client.GnsTsmV1().Dnses().GetByName(ctx, result.Spec.DnsGvk.Name)
 		if err != nil {
 			return nil, err
 		}
@@ -247,8 +285,42 @@ func (obj *gnsGnsTsmV1) Get(ctx context.Context, name string, options metav1.Get
 	return
 }
 
-func (obj *dnsGnsTsmV1) Get(ctx context.Context, name string, options metav1.GetOptions) (result *basegnstsmtanzuvmwarecomv1.Dns, err error) {
-	result, err = obj.client.baseClient.GnsTsmV1().Dnses().Get(ctx, name, options)
+func (obj *gnsGnsTsmV1) GetByName(ctx context.Context, name string) (result *basegnstsmtanzuvmwarecomv1.Gns, err error) {
+	result, err = obj.client.baseClient.GnsTsmV1().Gnses().Get(ctx, name, metav1.GetOptions{})
+	if err != nil {
+		return nil, err
+	}
+
+	for k, v := range result.Spec.GnsServiceGroupsGvk {
+		obj, err := obj.client.ServicegroupTsmV1().SvcGroups().GetByName(ctx, v.Name)
+		if err != nil {
+			return nil, err
+		}
+		result.Spec.GnsServiceGroups[k] = *obj
+	}
+
+	if result.Spec.GnsAccessControlPolicyGvk.Name != "" {
+		field, err := obj.client.PolicyTsmV1().AccessControlPolicies().GetByName(ctx, result.Spec.GnsAccessControlPolicyGvk.Name)
+		if err != nil {
+			return nil, err
+		}
+		result.Spec.GnsAccessControlPolicy = *field
+	}
+
+	if result.Spec.DnsGvk.Name != "" {
+		field, err := obj.client.GnsTsmV1().Dnses().GetByName(ctx, result.Spec.DnsGvk.Name)
+		if err != nil {
+			return nil, err
+		}
+		result.Spec.Dns = *field
+	}
+
+	return
+}
+
+func (obj *dnsGnsTsmV1) Get(ctx context.Context, name string, labels map[string]string) (result *basegnstsmtanzuvmwarecomv1.Dns, err error) {
+	hashedName := helper.GetHashedName(name, labels)
+	result, err = obj.client.baseClient.GnsTsmV1().Dnses().Get(ctx, hashedName, metav1.GetOptions{})
 	if err != nil {
 		return nil, err
 	}
@@ -256,14 +328,24 @@ func (obj *dnsGnsTsmV1) Get(ctx context.Context, name string, options metav1.Get
 	return
 }
 
-func (obj *svcgroupServicegroupTsmV1) Get(ctx context.Context, name string, options metav1.GetOptions) (result *baseservicegrouptsmtanzuvmwarecomv1.SvcGroup, err error) {
-	result, err = obj.client.baseClient.ServicegroupTsmV1().SvcGroups().Get(ctx, name, options)
+func (obj *dnsGnsTsmV1) GetByName(ctx context.Context, name string) (result *basegnstsmtanzuvmwarecomv1.Dns, err error) {
+	result, err = obj.client.baseClient.GnsTsmV1().Dnses().Get(ctx, name, metav1.GetOptions{})
+	if err != nil {
+		return nil, err
+	}
+
+	return
+}
+
+func (obj *svcgroupServicegroupTsmV1) Get(ctx context.Context, name string, labels map[string]string) (result *baseservicegrouptsmtanzuvmwarecomv1.SvcGroup, err error) {
+	hashedName := helper.GetHashedName(name, labels)
+	result, err = obj.client.baseClient.ServicegroupTsmV1().SvcGroups().Get(ctx, hashedName, metav1.GetOptions{})
 	if err != nil {
 		return nil, err
 	}
 
 	for k, v := range result.Spec.ServicesGvk {
-		obj, err := obj.client.Core_v1TsmV1().Services().Get(ctx, v.Name, options)
+		obj, err := obj.client.V1TsmV1().Services().GetByName(ctx, v.Name)
 		if err != nil {
 			return nil, err
 		}
@@ -273,14 +355,32 @@ func (obj *svcgroupServicegroupTsmV1) Get(ctx context.Context, name string, opti
 	return
 }
 
-func (obj *accesscontrolpolicyPolicyTsmV1) Get(ctx context.Context, name string, options metav1.GetOptions) (result *basepolicytsmtanzuvmwarecomv1.AccessControlPolicy, err error) {
-	result, err = obj.client.baseClient.PolicyTsmV1().AccessControlPolicies().Get(ctx, name, options)
+func (obj *svcgroupServicegroupTsmV1) GetByName(ctx context.Context, name string) (result *baseservicegrouptsmtanzuvmwarecomv1.SvcGroup, err error) {
+	result, err = obj.client.baseClient.ServicegroupTsmV1().SvcGroups().Get(ctx, name, metav1.GetOptions{})
+	if err != nil {
+		return nil, err
+	}
+
+	for k, v := range result.Spec.ServicesGvk {
+		obj, err := obj.client.V1TsmV1().Services().GetByName(ctx, v.Name)
+		if err != nil {
+			return nil, err
+		}
+		result.Spec.Services[k] = *obj
+	}
+
+	return
+}
+
+func (obj *accesscontrolpolicyPolicyTsmV1) Get(ctx context.Context, name string, labels map[string]string) (result *basepolicytsmtanzuvmwarecomv1.AccessControlPolicy, err error) {
+	hashedName := helper.GetHashedName(name, labels)
+	result, err = obj.client.baseClient.PolicyTsmV1().AccessControlPolicies().Get(ctx, hashedName, metav1.GetOptions{})
 	if err != nil {
 		return nil, err
 	}
 
 	for k, v := range result.Spec.PolicyConfigsGvk {
-		obj, err := obj.client.PolicyTsmV1().ACPConfigs().Get(ctx, v.Name, options)
+		obj, err := obj.client.PolicyTsmV1().ACPConfigs().GetByName(ctx, v.Name)
 		if err != nil {
 			return nil, err
 		}
@@ -290,14 +390,32 @@ func (obj *accesscontrolpolicyPolicyTsmV1) Get(ctx context.Context, name string,
 	return
 }
 
-func (obj *acpconfigPolicyTsmV1) Get(ctx context.Context, name string, options metav1.GetOptions) (result *basepolicytsmtanzuvmwarecomv1.ACPConfig, err error) {
-	result, err = obj.client.baseClient.PolicyTsmV1().ACPConfigs().Get(ctx, name, options)
+func (obj *accesscontrolpolicyPolicyTsmV1) GetByName(ctx context.Context, name string) (result *basepolicytsmtanzuvmwarecomv1.AccessControlPolicy, err error) {
+	result, err = obj.client.baseClient.PolicyTsmV1().AccessControlPolicies().Get(ctx, name, metav1.GetOptions{})
+	if err != nil {
+		return nil, err
+	}
+
+	for k, v := range result.Spec.PolicyConfigsGvk {
+		obj, err := obj.client.PolicyTsmV1().ACPConfigs().GetByName(ctx, v.Name)
+		if err != nil {
+			return nil, err
+		}
+		result.Spec.PolicyConfigs[k] = *obj
+	}
+
+	return
+}
+
+func (obj *acpconfigPolicyTsmV1) Get(ctx context.Context, name string, labels map[string]string) (result *basepolicytsmtanzuvmwarecomv1.ACPConfig, err error) {
+	hashedName := helper.GetHashedName(name, labels)
+	result, err = obj.client.baseClient.PolicyTsmV1().ACPConfigs().Get(ctx, hashedName, metav1.GetOptions{})
 	if err != nil {
 		return nil, err
 	}
 
 	for k, v := range result.Spec.DestSvcGroupsGvk {
-		obj, err := obj.client.Service_groupTsmV1().SvcGroups().Get(ctx, v.Name, options)
+		obj, err := obj.client.ServicegroupTsmV1().SvcGroups().GetByName(ctx, v.Name)
 		if err != nil {
 			return nil, err
 		}
@@ -305,7 +423,32 @@ func (obj *acpconfigPolicyTsmV1) Get(ctx context.Context, name string, options m
 	}
 
 	for k, v := range result.Spec.SourceSvcGroupsGvk {
-		obj, err := obj.client.Service_groupTsmV1().SvcGroups().Get(ctx, v.Name, options)
+		obj, err := obj.client.ServicegroupTsmV1().SvcGroups().GetByName(ctx, v.Name)
+		if err != nil {
+			return nil, err
+		}
+		result.Spec.SourceSvcGroups[k] = *obj
+	}
+
+	return
+}
+
+func (obj *acpconfigPolicyTsmV1) GetByName(ctx context.Context, name string) (result *basepolicytsmtanzuvmwarecomv1.ACPConfig, err error) {
+	result, err = obj.client.baseClient.PolicyTsmV1().ACPConfigs().Get(ctx, name, metav1.GetOptions{})
+	if err != nil {
+		return nil, err
+	}
+
+	for k, v := range result.Spec.DestSvcGroupsGvk {
+		obj, err := obj.client.ServicegroupTsmV1().SvcGroups().GetByName(ctx, v.Name)
+		if err != nil {
+			return nil, err
+		}
+		result.Spec.DestSvcGroups[k] = *obj
+	}
+
+	for k, v := range result.Spec.SourceSvcGroupsGvk {
+		obj, err := obj.client.ServicegroupTsmV1().SvcGroups().GetByName(ctx, v.Name)
 		if err != nil {
 			return nil, err
 		}

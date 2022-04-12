@@ -35,7 +35,7 @@ func GetGroupVarName(pkgName, baseGroupName, version string) string {
 }
 
 func GetGroupTypeName(pkgName, baseGroupName, version string) string {
-	return strings.Title(pkgName) + GetGroupGoName(baseGroupName) + strings.Title(version) // eg RootHelloworldV1
+	return strings.Title(RemoveSpecialChars(pkgName)) + GetGroupGoName(baseGroupName) + strings.Title(version) // eg RootHelloworldV1
 }
 
 func GetGroupResourceNameTitle(nodeName string) string {
