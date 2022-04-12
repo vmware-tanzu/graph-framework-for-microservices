@@ -21,7 +21,6 @@ before_script:
 
 build:
   stage: build
+  image: runner.servicemesh.biz:5000/golang:1.17
   script:
-    - *setup_aws
     - make build
-    
