@@ -7,6 +7,8 @@ import (
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/servicemesh"
 )
 
+var enableDebug = false
+
 var rootCmd = &cobra.Command{
 	Use:   "nexus",
 	Short: "nexus cli",
@@ -30,4 +32,5 @@ func init() {
 		servicemesh.OperatorCmd,
 		servicemesh.VersionCmd,
 	)
+	rootCmd.PersistentFlags().BoolVarP(&enableDebug, "debug", "", false, "Enables extra logging")
 }

@@ -24,10 +24,10 @@ func Build(cmd *cobra.Command, args []string) error {
 	}
 
 	// check if build can be run from current directory, if not proceed to next steps..
-	err = utils.SystemCommand(envList, true, "make", "datamodel_build", "-n")
+	err = utils.SystemCommand(envList, !utils.IsDebug(cmd), "make", "datamodel_build", "-n")
 	if err == nil {
 		fmt.Printf("Running build from current directory.\n")
-		err = utils.SystemCommand(envList, false, "make", "datamodel_build")
+		err = utils.SystemCommand(envList, !utils.IsDebug(cmd), "make", "datamodel_build")
 		if err != nil {
 			fmt.Printf("Error in building datamodel\n")
 			return err
@@ -53,7 +53,7 @@ func Build(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	err = utils.SystemCommand(envList, false, "make", "datamodel_build")
+	err = utils.SystemCommand(envList, !utils.IsDebug(cmd), "make", "datamodel_build")
 	if err != nil {
 		return fmt.Errorf("datamodel %s build failed with error %v", DatamodelName, err)
 

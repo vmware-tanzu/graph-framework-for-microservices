@@ -3,6 +3,8 @@ package utils
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
+	"github.com/spf13/cobra"
 	"strings"
 
 	"sigs.k8s.io/yaml"
@@ -50,4 +52,16 @@ func RenderOutput(in []byte, renderType string) []byte {
 	// default
 	json, _ := PrettyJSON(in)
 	return json
+}
+
+func IsDebug(cmd *cobra.Command) bool {
+	for cmd.HasParent() {
+		cmd = cmd.Parent()
+	}
+	debug, err := cmd.PersistentFlags().GetBool("debug")
+	if err != nil {
+		fmt.Println("Failed to fetch value of the --debug flag")
+		debug = false
+	}
+	return debug
 }

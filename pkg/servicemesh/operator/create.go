@@ -34,7 +34,7 @@ func Create(cmd *cobra.Command, args []string) error {
 	// check if we are in the correct directory
 	// TBD. for now, we run from PWD
 	fmt.Println("Running add_operator from current directory")
-	err := utils.SystemCommand(envList, true, "make", "add_operator")
+	err := utils.SystemCommand(envList, !utils.IsDebug(cmd), "make", "add_operator")
 	if err != nil {
 		return err
 	}

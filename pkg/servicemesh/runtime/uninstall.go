@@ -18,7 +18,7 @@ func Uninstall(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	err := utils.SystemCommand(envList, false, "make", "runtime_uninstall")
+	err := utils.SystemCommand(envList, !utils.IsDebug(cmd), "make", "runtime_uninstall")
 	if err != nil {
 		return fmt.Errorf("runtime install failed with error %v", err)
 
