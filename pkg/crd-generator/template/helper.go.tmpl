@@ -38,15 +38,15 @@ func ParseCRDLabels(crdName string, labels map[string]string) *orderedmap.Ordere
     return m
 }
 
-func GenerateCRDName(crdName string, meta metav1.ObjectMeta) string {
-    labels := ParseCRDLabels(crdName, meta.Labels)
+func GetHashedName(crdName string, labels map[string]string) string {
+    orderedLabels := ParseCRDLabels(crdName, labels)
 
     var name string
-    for i, key := range labels.Keys() {
-        value, _ := labels.Get(key)
+    for i, key := range orderedLabels.Keys() {
+        value, _ := orderedLabels.Get(key)
 
         name += fmt.Sprintf("%s:%s", key, value)
-        if i < labels.Len()-1 {
+        if i < orderedLabels.Len()-1 {
             name += "/"
         }
     }
