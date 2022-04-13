@@ -1,0 +1,82 @@
+package datamodel
+
+import (
+	"fmt"
+	"os"
+
+	"github.com/spf13/cobra"
+	"gopkg.in/yaml.v2"
+
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/common"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/servicemesh/version"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/utils"
+)
+
+var BuildCmd = &cobra.Command{
+	Use:   "build",
+	Short: "Compiles the Nexus DSLs into consumable APIs, CRDs, etc.",
+	RunE:  Build,
+}
+
+func Build(cmd *cobra.Command, args []string) error {
+	envList := []string{}
+
+	var values version.NexusValues
+	err := utils.IsDockerRunning()
+	if err != nil {
+		return fmt.Errorf("docker daemon doesn't seem to be running. Please retry after starting Docker\n")
+	}
+
+	yamlFile, err := common.TemplateFs.ReadFile("values.yaml")
+	if err != nil {
+		return fmt.Errorf("error while reading version yamlFile %v", err)
+
+	}
+
+	err = yaml.Unmarshal(yamlFile, &values)
+	if err != nil {
+		return fmt.Errorf("error while unmarshal version yaml data %v", err)
+	}
+	envList = append(envList, fmt.Sprintf("TAG=%s", values.NexusCompiler.Version))
+	// check if build can be run from current directory, if not proceed to next steps..
+	err = utils.SystemCommand(envList, !utils.IsDebug(cmd), "make", "datamodel_build", "-n")
+	if err == nil {
+		fmt.Printf("Running build from current directory.\n")
+		err = utils.SystemCommand(envList, !utils.IsDebug(cmd), "make", "datamodel_build")
+		if err != nil {
+			fmt.Printf("Error in building datamodel\n")
+			return err
+		}
+		return nil
+	}
+	if err := utils.GoToNexusDirectory(); err != nil {
+		return err
+	}
+	if DatamodelName != "" {
+		if err := utils.CheckDatamodelDirExists(DatamodelName); err != nil {
+			return err
+		}
+	} else {
+		DatamodelName, err = utils.GetCurrentDatamodel()
+		if err != nil {
+			return err
+		}
+		fmt.Printf("Running build for datamodel %s\n", DatamodelName)
+	}
+
+	err = os.Chdir(DatamodelName)
+	if err != nil {
+		return err
+	}
+	err = utils.SystemCommand(envList, !utils.IsDebug(cmd), "make", "datamodel_build")
+	if err != nil {
+		return fmt.Errorf("datamodel %s build failed with error %v", DatamodelName, err)
+
+	}
+	fmt.Printf("\u2713 Datamodel %s build successful\n", DatamodelName)
+	return nil
+}
+
+func init() {
+	BuildCmd.Flags().StringVarP(&DatamodelName, "name", "n", "", "name of the datamodel to be build")
+}
