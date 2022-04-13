@@ -1,10 +1,13 @@
-package parser
+package rest
 
 import (
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/pkg/parser"
 	"go/ast"
 )
 
-func (p *Package) GetRestApiSpecVars(restAPIMap map[string]RestAPISpec) {
+func GetRestApiSpecs(p parser.Package) map[string]RestAPISpec {
+	apiSpecs := make(map[string]RestAPISpec)
+
 	for _, genDecl := range p.GenDecls {
 		for _, spec := range genDecl.Specs {
 			if valueSpec, ok := spec.(*ast.ValueSpec); ok {
@@ -13,8 +16,8 @@ func (p *Package) GetRestApiSpecVars(restAPIMap map[string]RestAPISpec) {
 					var restUris []RestURIs
 					for _, val := range value.Elts {
 						uris := val.(*ast.KeyValueExpr)
-						for _, x := range uris.Value.(*ast.CompositeLit).Elts {
 
+						for _, x := range uris.Value.(*ast.CompositeLit).Elts {
 							var restSpec RestURIs
 							for _, y := range x.(*ast.CompositeLit).Elts {
 								field := y.(*ast.KeyValueExpr)
@@ -32,7 +35,7 @@ func (p *Package) GetRestApiSpecVars(restAPIMap map[string]RestAPISpec) {
 								restUris = append(restUris, restSpec)
 							}
 						}
-						restAPIMap[name] = RestAPISpec{
+						apiSpecs[name] = RestAPISpec{
 							Uris: restUris,
 						}
 					}
@@ -40,9 +43,10 @@ func (p *Package) GetRestApiSpecVars(restAPIMap map[string]RestAPISpec) {
 			}
 		}
 	}
+
+	return apiSpecs
 }
 
-//
 //func GetMethods(method string) string {
 //	if method == "MethodGet" {
 //		return "GET"
