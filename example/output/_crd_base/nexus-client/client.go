@@ -223,7 +223,6 @@ func (obj *rootRootTsmV1) Delete(ctx context.Context, name string, labels map[st
 	if err != nil {
 		return err
 	}
-	_ = result // hack to ignore unused result in empty spec case
 
 	if result.Spec.ConfigGvk.Name != "" {
 		err := obj.client.ConfigTsmV1().Configs().DeleteByName(ctx, result.Spec.ConfigGvk.Name)
@@ -240,11 +239,11 @@ func (obj *rootRootTsmV1) Delete(ctx context.Context, name string, labels map[st
 }
 
 func (obj *rootRootTsmV1) DeleteByName(ctx context.Context, name string) (err error) {
+
 	result, err := obj.client.baseClient.RootTsmV1().Roots().Get(ctx, name, metav1.GetOptions{})
 	if err != nil {
 		return err
 	}
-	_ = result // hack to ignore unused result in empty spec case
 
 	if result.Spec.ConfigGvk.Name != "" {
 		err := obj.client.ConfigTsmV1().Configs().DeleteByName(ctx, result.Spec.ConfigGvk.Name)
@@ -302,7 +301,6 @@ func (obj *configConfigTsmV1) Delete(ctx context.Context, name string, labels ma
 	if err != nil {
 		return err
 	}
-	_ = result // hack to ignore unused result in empty spec case
 
 	if result.Spec.GNSGvk.Name != "" {
 		err := obj.client.GnsTsmV1().Gnses().DeleteByName(ctx, result.Spec.GNSGvk.Name)
@@ -319,11 +317,11 @@ func (obj *configConfigTsmV1) Delete(ctx context.Context, name string, labels ma
 }
 
 func (obj *configConfigTsmV1) DeleteByName(ctx context.Context, name string) (err error) {
+
 	result, err := obj.client.baseClient.ConfigTsmV1().Configs().Get(ctx, name, metav1.GetOptions{})
 	if err != nil {
 		return err
 	}
-	_ = result // hack to ignore unused result in empty spec case
 
 	if result.Spec.GNSGvk.Name != "" {
 		err := obj.client.GnsTsmV1().Gnses().DeleteByName(ctx, result.Spec.GNSGvk.Name)
@@ -413,7 +411,6 @@ func (obj *gnsGnsTsmV1) Delete(ctx context.Context, name string, labels map[stri
 	if err != nil {
 		return err
 	}
-	_ = result // hack to ignore unused result in empty spec case
 
 	for _, v := range result.Spec.GnsServiceGroupsGvk {
 		err := obj.client.ServicegroupTsmV1().SvcGroups().DeleteByName(ctx, v.Name)
@@ -444,11 +441,11 @@ func (obj *gnsGnsTsmV1) Delete(ctx context.Context, name string, labels map[stri
 }
 
 func (obj *gnsGnsTsmV1) DeleteByName(ctx context.Context, name string) (err error) {
+
 	result, err := obj.client.baseClient.GnsTsmV1().Gnses().Get(ctx, name, metav1.GetOptions{})
 	if err != nil {
 		return err
 	}
-	_ = result // hack to ignore unused result in empty spec case
 
 	for _, v := range result.Spec.GnsServiceGroupsGvk {
 		err := obj.client.ServicegroupTsmV1().SvcGroups().DeleteByName(ctx, v.Name)
@@ -500,12 +497,6 @@ func (obj *dnsGnsTsmV1) GetByName(ctx context.Context, name string) (result *bas
 func (obj *dnsGnsTsmV1) Delete(ctx context.Context, name string, labels map[string]string) (err error) {
 	hashedName := helper.GetHashedName(name, labels)
 
-	result, err := obj.client.baseClient.GnsTsmV1().Dnses().Get(ctx, hashedName, metav1.GetOptions{})
-	if err != nil {
-		return err
-	}
-	_ = result // hack to ignore unused result in empty spec case
-
 	err = obj.client.baseClient.GnsTsmV1().Dnses().Delete(ctx, hashedName, metav1.DeleteOptions{})
 	if err != nil {
 		return err
@@ -514,11 +505,6 @@ func (obj *dnsGnsTsmV1) Delete(ctx context.Context, name string, labels map[stri
 }
 
 func (obj *dnsGnsTsmV1) DeleteByName(ctx context.Context, name string) (err error) {
-	result, err := obj.client.baseClient.GnsTsmV1().Dnses().Get(ctx, name, metav1.GetOptions{})
-	if err != nil {
-		return err
-	}
-	_ = result // hack to ignore unused result in empty spec case
 
 	err = obj.client.baseClient.GnsTsmV1().Dnses().Delete(ctx, name, metav1.DeleteOptions{})
 	if err != nil {
@@ -569,7 +555,6 @@ func (obj *svcgroupServicegroupTsmV1) Delete(ctx context.Context, name string, l
 	if err != nil {
 		return err
 	}
-	_ = result // hack to ignore unused result in empty spec case
 
 	for _, v := range result.Spec.ServicesGvk {
 		err := obj.client.V1TsmV1().Services().DeleteByName(ctx, v.Name)
@@ -586,11 +571,11 @@ func (obj *svcgroupServicegroupTsmV1) Delete(ctx context.Context, name string, l
 }
 
 func (obj *svcgroupServicegroupTsmV1) DeleteByName(ctx context.Context, name string) (err error) {
+
 	result, err := obj.client.baseClient.ServicegroupTsmV1().SvcGroups().Get(ctx, name, metav1.GetOptions{})
 	if err != nil {
 		return err
 	}
-	_ = result // hack to ignore unused result in empty spec case
 
 	for _, v := range result.Spec.ServicesGvk {
 		err := obj.client.V1TsmV1().Services().DeleteByName(ctx, v.Name)
@@ -648,7 +633,6 @@ func (obj *accesscontrolpolicyPolicyTsmV1) Delete(ctx context.Context, name stri
 	if err != nil {
 		return err
 	}
-	_ = result // hack to ignore unused result in empty spec case
 
 	for _, v := range result.Spec.PolicyConfigsGvk {
 		err := obj.client.PolicyTsmV1().ACPConfigs().DeleteByName(ctx, v.Name)
@@ -665,11 +649,11 @@ func (obj *accesscontrolpolicyPolicyTsmV1) Delete(ctx context.Context, name stri
 }
 
 func (obj *accesscontrolpolicyPolicyTsmV1) DeleteByName(ctx context.Context, name string) (err error) {
+
 	result, err := obj.client.baseClient.PolicyTsmV1().AccessControlPolicies().Get(ctx, name, metav1.GetOptions{})
 	if err != nil {
 		return err
 	}
-	_ = result // hack to ignore unused result in empty spec case
 
 	for _, v := range result.Spec.PolicyConfigsGvk {
 		err := obj.client.PolicyTsmV1().ACPConfigs().DeleteByName(ctx, v.Name)
@@ -743,7 +727,6 @@ func (obj *acpconfigPolicyTsmV1) Delete(ctx context.Context, name string, labels
 	if err != nil {
 		return err
 	}
-	_ = result // hack to ignore unused result in empty spec case
 
 	for _, v := range result.Spec.DestSvcGroupsGvk {
 		err := obj.client.ServicegroupTsmV1().SvcGroups().DeleteByName(ctx, v.Name)
@@ -767,11 +750,11 @@ func (obj *acpconfigPolicyTsmV1) Delete(ctx context.Context, name string, labels
 }
 
 func (obj *acpconfigPolicyTsmV1) DeleteByName(ctx context.Context, name string) (err error) {
+
 	result, err := obj.client.baseClient.PolicyTsmV1().ACPConfigs().Get(ctx, name, metav1.GetOptions{})
 	if err != nil {
 		return err
 	}
-	_ = result // hack to ignore unused result in empty spec case
 
 	for _, v := range result.Spec.DestSvcGroupsGvk {
 		err := obj.client.ServicegroupTsmV1().SvcGroups().DeleteByName(ctx, v.Name)
