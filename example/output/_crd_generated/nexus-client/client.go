@@ -216,6 +216,49 @@ func (obj *rootRootTsmV1) GetByName(ctx context.Context, name string) (result *b
 	return
 }
 
+func (obj *rootRootTsmV1) Delete(ctx context.Context, name string, labels map[string]string) (err error) {
+	hashedName := helper.GetHashedName(name, labels)
+
+	result, err := obj.client.baseClient.RootTsmV1().Roots().Get(ctx, hashedName, metav1.GetOptions{})
+	if err != nil {
+		return err
+	}
+
+	if result.Spec.ConfigGvk.Name != "" {
+		err := obj.client.ConfigTsmV1().Configs().DeleteByName(ctx, result.Spec.ConfigGvk.Name)
+		if err != nil {
+			return err
+		}
+	}
+
+	err = obj.client.baseClient.RootTsmV1().Roots().Delete(ctx, hashedName, metav1.DeleteOptions{})
+	if err != nil {
+		return err
+	}
+	return
+}
+
+func (obj *rootRootTsmV1) DeleteByName(ctx context.Context, name string) (err error) {
+
+	result, err := obj.client.baseClient.RootTsmV1().Roots().Get(ctx, name, metav1.GetOptions{})
+	if err != nil {
+		return err
+	}
+
+	if result.Spec.ConfigGvk.Name != "" {
+		err := obj.client.ConfigTsmV1().Configs().DeleteByName(ctx, result.Spec.ConfigGvk.Name)
+		if err != nil {
+			return err
+		}
+	}
+
+	err = obj.client.baseClient.RootTsmV1().Roots().Delete(ctx, name, metav1.DeleteOptions{})
+	if err != nil {
+		return err
+	}
+	return
+}
+
 func (obj *configConfigTsmV1) Get(ctx context.Context, name string, labels map[string]string) (result *baseconfigtsmtanzuvmwarecomv1.Config, err error) {
 	hashedName := helper.GetHashedName(name, labels)
 	result, err = obj.client.baseClient.ConfigTsmV1().Configs().Get(ctx, hashedName, metav1.GetOptions{})
@@ -248,6 +291,49 @@ func (obj *configConfigTsmV1) GetByName(ctx context.Context, name string) (resul
 		result.Spec.GNS = *field
 	}
 
+	return
+}
+
+func (obj *configConfigTsmV1) Delete(ctx context.Context, name string, labels map[string]string) (err error) {
+	hashedName := helper.GetHashedName(name, labels)
+
+	result, err := obj.client.baseClient.ConfigTsmV1().Configs().Get(ctx, hashedName, metav1.GetOptions{})
+	if err != nil {
+		return err
+	}
+
+	if result.Spec.GNSGvk.Name != "" {
+		err := obj.client.GnsTsmV1().Gnses().DeleteByName(ctx, result.Spec.GNSGvk.Name)
+		if err != nil {
+			return err
+		}
+	}
+
+	err = obj.client.baseClient.ConfigTsmV1().Configs().Delete(ctx, hashedName, metav1.DeleteOptions{})
+	if err != nil {
+		return err
+	}
+	return
+}
+
+func (obj *configConfigTsmV1) DeleteByName(ctx context.Context, name string) (err error) {
+
+	result, err := obj.client.baseClient.ConfigTsmV1().Configs().Get(ctx, name, metav1.GetOptions{})
+	if err != nil {
+		return err
+	}
+
+	if result.Spec.GNSGvk.Name != "" {
+		err := obj.client.GnsTsmV1().Gnses().DeleteByName(ctx, result.Spec.GNSGvk.Name)
+		if err != nil {
+			return err
+		}
+	}
+
+	err = obj.client.baseClient.ConfigTsmV1().Configs().Delete(ctx, name, metav1.DeleteOptions{})
+	if err != nil {
+		return err
+	}
 	return
 }
 
@@ -318,6 +404,77 @@ func (obj *gnsGnsTsmV1) GetByName(ctx context.Context, name string) (result *bas
 	return
 }
 
+func (obj *gnsGnsTsmV1) Delete(ctx context.Context, name string, labels map[string]string) (err error) {
+	hashedName := helper.GetHashedName(name, labels)
+
+	result, err := obj.client.baseClient.GnsTsmV1().Gnses().Get(ctx, hashedName, metav1.GetOptions{})
+	if err != nil {
+		return err
+	}
+
+	for _, v := range result.Spec.GnsServiceGroupsGvk {
+		err := obj.client.ServicegroupTsmV1().SvcGroups().DeleteByName(ctx, v.Name)
+		if err != nil {
+			return err
+		}
+	}
+
+	if result.Spec.GnsAccessControlPolicyGvk.Name != "" {
+		err := obj.client.PolicyTsmV1().AccessControlPolicies().DeleteByName(ctx, result.Spec.GnsAccessControlPolicyGvk.Name)
+		if err != nil {
+			return err
+		}
+	}
+
+	if result.Spec.DnsGvk.Name != "" {
+		err := obj.client.GnsTsmV1().Dnses().DeleteByName(ctx, result.Spec.DnsGvk.Name)
+		if err != nil {
+			return err
+		}
+	}
+
+	err = obj.client.baseClient.GnsTsmV1().Gnses().Delete(ctx, hashedName, metav1.DeleteOptions{})
+	if err != nil {
+		return err
+	}
+	return
+}
+
+func (obj *gnsGnsTsmV1) DeleteByName(ctx context.Context, name string) (err error) {
+
+	result, err := obj.client.baseClient.GnsTsmV1().Gnses().Get(ctx, name, metav1.GetOptions{})
+	if err != nil {
+		return err
+	}
+
+	for _, v := range result.Spec.GnsServiceGroupsGvk {
+		err := obj.client.ServicegroupTsmV1().SvcGroups().DeleteByName(ctx, v.Name)
+		if err != nil {
+			return err
+		}
+	}
+
+	if result.Spec.GnsAccessControlPolicyGvk.Name != "" {
+		err := obj.client.PolicyTsmV1().AccessControlPolicies().DeleteByName(ctx, result.Spec.GnsAccessControlPolicyGvk.Name)
+		if err != nil {
+			return err
+		}
+	}
+
+	if result.Spec.DnsGvk.Name != "" {
+		err := obj.client.GnsTsmV1().Dnses().DeleteByName(ctx, result.Spec.DnsGvk.Name)
+		if err != nil {
+			return err
+		}
+	}
+
+	err = obj.client.baseClient.GnsTsmV1().Gnses().Delete(ctx, name, metav1.DeleteOptions{})
+	if err != nil {
+		return err
+	}
+	return
+}
+
 func (obj *dnsGnsTsmV1) Get(ctx context.Context, name string, labels map[string]string) (result *basegnstsmtanzuvmwarecomv1.Dns, err error) {
 	hashedName := helper.GetHashedName(name, labels)
 	result, err = obj.client.baseClient.GnsTsmV1().Dnses().Get(ctx, hashedName, metav1.GetOptions{})
@@ -334,6 +491,25 @@ func (obj *dnsGnsTsmV1) GetByName(ctx context.Context, name string) (result *bas
 		return nil, err
 	}
 
+	return
+}
+
+func (obj *dnsGnsTsmV1) Delete(ctx context.Context, name string, labels map[string]string) (err error) {
+	hashedName := helper.GetHashedName(name, labels)
+
+	err = obj.client.baseClient.GnsTsmV1().Dnses().Delete(ctx, hashedName, metav1.DeleteOptions{})
+	if err != nil {
+		return err
+	}
+	return
+}
+
+func (obj *dnsGnsTsmV1) DeleteByName(ctx context.Context, name string) (err error) {
+
+	err = obj.client.baseClient.GnsTsmV1().Dnses().Delete(ctx, name, metav1.DeleteOptions{})
+	if err != nil {
+		return err
+	}
 	return
 }
 
@@ -372,6 +548,49 @@ func (obj *svcgroupServicegroupTsmV1) GetByName(ctx context.Context, name string
 	return
 }
 
+func (obj *svcgroupServicegroupTsmV1) Delete(ctx context.Context, name string, labels map[string]string) (err error) {
+	hashedName := helper.GetHashedName(name, labels)
+
+	result, err := obj.client.baseClient.ServicegroupTsmV1().SvcGroups().Get(ctx, hashedName, metav1.GetOptions{})
+	if err != nil {
+		return err
+	}
+
+	for _, v := range result.Spec.ServicesGvk {
+		err := obj.client.V1TsmV1().Services().DeleteByName(ctx, v.Name)
+		if err != nil {
+			return err
+		}
+	}
+
+	err = obj.client.baseClient.ServicegroupTsmV1().SvcGroups().Delete(ctx, hashedName, metav1.DeleteOptions{})
+	if err != nil {
+		return err
+	}
+	return
+}
+
+func (obj *svcgroupServicegroupTsmV1) DeleteByName(ctx context.Context, name string) (err error) {
+
+	result, err := obj.client.baseClient.ServicegroupTsmV1().SvcGroups().Get(ctx, name, metav1.GetOptions{})
+	if err != nil {
+		return err
+	}
+
+	for _, v := range result.Spec.ServicesGvk {
+		err := obj.client.V1TsmV1().Services().DeleteByName(ctx, v.Name)
+		if err != nil {
+			return err
+		}
+	}
+
+	err = obj.client.baseClient.ServicegroupTsmV1().SvcGroups().Delete(ctx, name, metav1.DeleteOptions{})
+	if err != nil {
+		return err
+	}
+	return
+}
+
 func (obj *accesscontrolpolicyPolicyTsmV1) Get(ctx context.Context, name string, labels map[string]string) (result *basepolicytsmtanzuvmwarecomv1.AccessControlPolicy, err error) {
 	hashedName := helper.GetHashedName(name, labels)
 	result, err = obj.client.baseClient.PolicyTsmV1().AccessControlPolicies().Get(ctx, hashedName, metav1.GetOptions{})
@@ -404,6 +623,49 @@ func (obj *accesscontrolpolicyPolicyTsmV1) GetByName(ctx context.Context, name s
 		result.Spec.PolicyConfigs[k] = *obj
 	}
 
+	return
+}
+
+func (obj *accesscontrolpolicyPolicyTsmV1) Delete(ctx context.Context, name string, labels map[string]string) (err error) {
+	hashedName := helper.GetHashedName(name, labels)
+
+	result, err := obj.client.baseClient.PolicyTsmV1().AccessControlPolicies().Get(ctx, hashedName, metav1.GetOptions{})
+	if err != nil {
+		return err
+	}
+
+	for _, v := range result.Spec.PolicyConfigsGvk {
+		err := obj.client.PolicyTsmV1().ACPConfigs().DeleteByName(ctx, v.Name)
+		if err != nil {
+			return err
+		}
+	}
+
+	err = obj.client.baseClient.PolicyTsmV1().AccessControlPolicies().Delete(ctx, hashedName, metav1.DeleteOptions{})
+	if err != nil {
+		return err
+	}
+	return
+}
+
+func (obj *accesscontrolpolicyPolicyTsmV1) DeleteByName(ctx context.Context, name string) (err error) {
+
+	result, err := obj.client.baseClient.PolicyTsmV1().AccessControlPolicies().Get(ctx, name, metav1.GetOptions{})
+	if err != nil {
+		return err
+	}
+
+	for _, v := range result.Spec.PolicyConfigsGvk {
+		err := obj.client.PolicyTsmV1().ACPConfigs().DeleteByName(ctx, v.Name)
+		if err != nil {
+			return err
+		}
+	}
+
+	err = obj.client.baseClient.PolicyTsmV1().AccessControlPolicies().Delete(ctx, name, metav1.DeleteOptions{})
+	if err != nil {
+		return err
+	}
 	return
 }
 
@@ -455,5 +717,62 @@ func (obj *acpconfigPolicyTsmV1) GetByName(ctx context.Context, name string) (re
 		result.Spec.SourceSvcGroups[k] = *obj
 	}
 
+	return
+}
+
+func (obj *acpconfigPolicyTsmV1) Delete(ctx context.Context, name string, labels map[string]string) (err error) {
+	hashedName := helper.GetHashedName(name, labels)
+
+	result, err := obj.client.baseClient.PolicyTsmV1().ACPConfigs().Get(ctx, hashedName, metav1.GetOptions{})
+	if err != nil {
+		return err
+	}
+
+	for _, v := range result.Spec.DestSvcGroupsGvk {
+		err := obj.client.ServicegroupTsmV1().SvcGroups().DeleteByName(ctx, v.Name)
+		if err != nil {
+			return err
+		}
+	}
+
+	for _, v := range result.Spec.SourceSvcGroupsGvk {
+		err := obj.client.ServicegroupTsmV1().SvcGroups().DeleteByName(ctx, v.Name)
+		if err != nil {
+			return err
+		}
+	}
+
+	err = obj.client.baseClient.PolicyTsmV1().ACPConfigs().Delete(ctx, hashedName, metav1.DeleteOptions{})
+	if err != nil {
+		return err
+	}
+	return
+}
+
+func (obj *acpconfigPolicyTsmV1) DeleteByName(ctx context.Context, name string) (err error) {
+
+	result, err := obj.client.baseClient.PolicyTsmV1().ACPConfigs().Get(ctx, name, metav1.GetOptions{})
+	if err != nil {
+		return err
+	}
+
+	for _, v := range result.Spec.DestSvcGroupsGvk {
+		err := obj.client.ServicegroupTsmV1().SvcGroups().DeleteByName(ctx, v.Name)
+		if err != nil {
+			return err
+		}
+	}
+
+	for _, v := range result.Spec.SourceSvcGroupsGvk {
+		err := obj.client.ServicegroupTsmV1().SvcGroups().DeleteByName(ctx, v.Name)
+		if err != nil {
+			return err
+		}
+	}
+
+	err = obj.client.baseClient.PolicyTsmV1().ACPConfigs().Delete(ctx, name, metav1.DeleteOptions{})
+	if err != nil {
+		return err
+	}
 	return
 }
