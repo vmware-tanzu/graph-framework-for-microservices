@@ -1,9 +1,6 @@
 package main
 
 import (
-	"log"
-	"strings"
-
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/pkg/parser"
 )
 
@@ -22,26 +19,28 @@ func main() {
 	// })
 
 	pkgs := parser.ParseDSLPkg("../../example/datamodel/")
-	gns := pkgs["gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/datamodel/config/gns"]
+	nexus := pkgs["gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/datamodel/nexus"]
+	nexus.GetHttpCodesResponses()
+	//gns := pkgs["gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/datamodel/config/gns"]
 
-	mp := make(map[string]parser.RestAPISpec)
-	gns.GetRestApiSpecVars(mp)
-
-	annotation, ok := parser.GetNexusRestAPIGenAnnotation(gns, "Gns")
-	if ok {
-		log.Println(annotation)
-		a := strings.Split(annotation, ":")
-		name := a[1]
-		value := mp[name]
-		log.Println(value)
-	}
-
-	annotation, ok = parser.GetNexusRestAPIGenAnnotation(gns, "Dns")
-	if ok {
-		log.Println(annotation)
-		a := strings.Split(annotation, ":")
-		name := a[1]
-		value := mp[name]
-		log.Println(value)
-	}
+	//mp := make(map[string]parser.RestAPISpec)
+	//gns.GetRestApiSpecVars(mp)
+	//
+	//annotation, ok := parser.GetNexusRestAPIGenAnnotation(gns, "Gns")
+	//if ok {
+	//	log.Println(annotation)
+	//	a := strings.Split(annotation, ":")
+	//	name := a[1]
+	//	value := mp[name]
+	//	log.Println(value)
+	//}
+	//
+	//annotation, ok = parser.GetNexusRestAPIGenAnnotation(gns, "Dns")
+	//if ok {
+	//	log.Println(annotation)
+	//	a := strings.Split(annotation, ":")
+	//	name := a[1]
+	//	value := mp[name]
+	//	log.Println(value)
+	//}
 }

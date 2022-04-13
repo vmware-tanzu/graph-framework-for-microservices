@@ -3,6 +3,7 @@ package parser
 import (
 	"fmt"
 	"io/ioutil"
+	"net/http"
 	"path"
 	"regexp"
 
@@ -10,15 +11,6 @@ import (
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/pkg/config"
 	"golang.org/x/mod/modfile"
 )
-
-type RestUris struct {
-	Uri     string   `json:"uri"`
-	Methods []string `json:"methods"`
-}
-
-type RestAPISpec struct {
-	Uris []RestUris `json:"uris"`
-}
 
 func GetModulePath(startPath string) string {
 	file, err := ioutil.ReadFile(path.Join(startPath, "go.mod"))
@@ -47,3 +39,36 @@ func SpecialCharsPresent(name string) bool {
 	}
 	return re.MatchString(name)
 }
+
+//TODO: Move this to COMMON nexus repo
+
+// HTTPMethod type.
+type HTTPMethod string
+
+// ResponseCode type.
+type ResponseCode int
+
+// HTTPResponse type.
+type HTTPResponse struct {
+	Description string `json:"description"`
+}
+
+// HTTPCodesResponse code to response type.
+type HTTPCodesResponse map[ResponseCode]HTTPResponse
+
+// HTTPMethodsResponses to response mapping.
+type HTTPMethodsResponses map[HTTPMethod]HTTPCodesResponse
+
+// RestURIs and associated data.
+type RestURIs struct {
+	Uri     string               `json:"uri"`
+	Methods HTTPMethodsResponses `json:"methods"`
+}
+
+type RestAPISpec struct {
+	Uris []RestURIs `json:"uris"`
+}
+
+const DefaultHTTPErrorCode ResponseCode = http.StatusNotImplemented
+
+var DefaultHTTPError = HTTPResponse{Description: http.StatusText(http.StatusNotImplemented)}

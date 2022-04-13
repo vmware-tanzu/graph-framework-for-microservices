@@ -9,27 +9,31 @@ import (
 )
 
 var GNSRestAPISpec = nexus.RestAPISpec{
-	Uris: []nexus.RestUris{
+	Uris: []nexus.RestURIs{
 		{
 			Uri:     "/v1alpha2/projects/{project}/global-namespace/{gnses.gns.tsm.tanzu.vmware.com}",
-			Methods: []string{http.MethodGet, http.MethodPut, http.MethodDelete},
+			Methods: nexus.DefaultHTTPMethodsResponses,
 		},
 		{
-			Uri:     "/v1alpha2/projects/{project}/global-namespaces",
-			Methods: []string{http.MethodGet},
+			Uri: "/v1alpha2/projects/{project}/global-namespaces",
+			Methods: nexus.HTTPMethodsResponses{
+				http.MethodGet: nexus.DefaultHTTPGETResponses,
+			},
 		},
 	},
 }
 
 var DNSRestAPISpec = nexus.RestAPISpec{
-	Uris: []nexus.RestUris{
+	Uris: []nexus.RestURIs{
 		{
 			Uri:     "/v1alpha2/projects/{project}/dns/{dnses.gns.tsm.tanzu.vmware.com}",
-			Methods: []string{http.MethodGet, http.MethodPut, http.MethodDelete},
+			Methods: nexus.DefaultHTTPMethodsResponses,
 		},
 		{
-			Uri:     "/v1alpha2/projects/{project}/dnses",
-			Methods: []string{http.MethodGet},
+			Uri: "/v1alpha2/projects/{project}/dnses",
+			Methods: nexus.HTTPMethodsResponses{
+				http.MethodGet: nexus.DefaultHTTPGETResponses,
+			},
 		},
 	},
 }
