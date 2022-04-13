@@ -6,12 +6,8 @@ metadata:
   name: nexus-etcd-headless
   namespace: "default"
   labels:
-    app.kubernetes.io/name: etcd
-    helm.sh/chart: etcd-7.0.2
-    app.kubernetes.io/instance: nexus-etcd
-    app.kubernetes.io/managed-by: Helm
-  annotations:
-    service.alpha.kubernetes.io/tolerate-unready-endpoints: "true"
+    app: etcd
+    nexus: etcd
 spec:
   type: ClusterIP
   clusterIP: None
@@ -24,8 +20,8 @@ spec:
       port: 2380
       targetPort: peer
   selector:
-    app.kubernetes.io/name: etcd
-    app.kubernetes.io/instance: nexus-etcd
+    app: etcd
+    nexus: etcd
 ---
 # Source: etcd/templates/svc.yaml
 apiVersion: v1
@@ -34,10 +30,8 @@ metadata:
   name: nexus-etcd
   namespace: "default"
   labels:
-    app.kubernetes.io/name: etcd
-    helm.sh/chart: etcd-7.0.2
-    app.kubernetes.io/instance: nexus-etcd
-    app.kubernetes.io/managed-by: Helm
+    app: etcd
+    nexus: etcd
   annotations:
 spec:
   type: ClusterIP
@@ -52,8 +46,8 @@ spec:
       targetPort: peer
       nodePort: null
   selector:
-    app.kubernetes.io/name: etcd
-    app.kubernetes.io/instance: nexus-etcd
+    app: etcd
+    nexus: etcd
 ---
 # Source: etcd/templates/statefulset.yaml
 apiVersion: apps/v1
@@ -62,16 +56,14 @@ metadata:
   name: nexus-etcd
   namespace: "default"
   labels:
-    app.kubernetes.io/name: etcd
-    helm.sh/chart: etcd-7.0.2
-    app.kubernetes.io/instance: nexus-etcd
-    app.kubernetes.io/managed-by: Helm
+    app: etcd
+    nexus: etcd
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app.kubernetes.io/name: etcd
-      app.kubernetes.io/instance: nexus-etcd
+      app: etcd
+      nexus: nexus-etcd
   serviceName: nexus-etcd-headless
   podManagementPolicy: Parallel
   updateStrategy:
@@ -79,10 +71,8 @@ spec:
   template:
     metadata:
       labels:
-        app.kubernetes.io/name: etcd
-        helm.sh/chart: etcd-7.0.2
-        app.kubernetes.io/instance: nexus-etcd
-        app.kubernetes.io/managed-by: Helm
+        app: etcd
+        nexus: etcd
       annotations:
     spec:
       affinity:          
@@ -91,8 +81,8 @@ spec:
             - podAffinityTerm:
                 labelSelector:
                   matchLabels:
-                    app.kubernetes.io/name: etcd
-                    app.kubernetes.io/instance: nexus-etcd
+                    app: etcd
+                    nexus: etcd
                 namespaces:
                   - "default"
                 topologyKey: kubernetes.io/hostname
