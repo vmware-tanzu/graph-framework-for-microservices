@@ -24,7 +24,9 @@ func main() {
 	nexus := pkgs["gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/datamodel/nexus"]
 
 	responseCodes := rest.GetHttpCodesResponses(nexus)
-	log.Println(responseCodes)
+
+	methods := rest.GetHttpMethodsResponses(nexus, responseCodes)
+	log.Println(methods)
 	//gns := pkgs["gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/datamodel/config/gns"]
 
 	//mp := make(map[string]parser.RestAPISpec)

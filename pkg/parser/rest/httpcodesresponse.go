@@ -90,8 +90,8 @@ func GetHttpCodesResponses(p parser.Package) map[string]HTTPCodesResponse {
 					response := HTTPCodesResponse{}
 					for _, elt := range value.Elts {
 						kv := elt.(*ast.KeyValueExpr)
-						responseKey := extractKey(kv.Key)
-						responseValue := extractValue(kv.Value)
+						responseKey := extractHttpCodesKey(kv.Key)
+						responseValue := extractHttpCodesValue(kv.Value)
 						response[responseKey] = responseValue
 					}
 
@@ -104,7 +104,7 @@ func GetHttpCodesResponses(p parser.Package) map[string]HTTPCodesResponse {
 	return responses
 }
 
-func extractKey(key ast.Expr) ResponseCode {
+func extractHttpCodesKey(key ast.Expr) ResponseCode {
 	switch k := key.(type) {
 	case *ast.SelectorExpr:
 		return ResponseCode(httpStatusCodes[k.Sel.String()])
@@ -117,7 +117,7 @@ func extractKey(key ast.Expr) ResponseCode {
 	return 0
 }
 
-func extractValue(value ast.Expr) HTTPResponse {
+func extractHttpCodesValue(value ast.Expr) HTTPResponse {
 	res := HTTPResponse{}
 
 	switch val := value.(type) {

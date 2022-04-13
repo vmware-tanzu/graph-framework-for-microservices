@@ -16,6 +16,9 @@ type HTTPResponse struct {
 // HTTPCodesResponse code to response type.
 type HTTPCodesResponse map[ResponseCode]HTTPResponse
 
+// HTTPMethodsResponses to response mapping.
+type HTTPMethodsResponses map[HTTPMethod]HTTPCodesResponse
+
 const DefaultHTTPErrorCode ResponseCode = http.StatusNotImplemented
 
 var DefaultHTTPError = HTTPResponse{Description: http.StatusText(http.StatusNotImplemented)}
