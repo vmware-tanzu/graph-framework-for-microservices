@@ -120,6 +120,9 @@ func resolveNode(baseImportName string, pkg parser.Package, baseGroupName, versi
 	childrenAndLinks := parser.GetChildFields(node)
 	childrenAndLinks = append(childrenAndLinks, parser.GetLinkFields(node)...)
 
+	if len(childrenAndLinks) > 0 {
+		clientGroupVars.HasChildren = true
+	}
 	for _, link := range childrenAndLinks {
 		linkInfo := getFieldInfo(pkg, link)
 		var vars resolveLinkVars
@@ -130,23 +133,23 @@ func resolveNode(baseImportName string, pkg parser.Package, baseGroupName, versi
 		var resolvedLinksGet, resolvedLinksDelete string
 		var err error
 		if parser.IsMapField(link) {
-			resolvedLinksGet, err = renderLinkResolveTemplate(vars, resolveNamedLinkGetTmpl, true)
+			resolvedLinksGet, err = renderLinkResolveTemplate(vars, resolveNamedLinkGetTmpl)
 			if err != nil {
 				return fmt.Errorf("failed to resolve links or children get client template for link %v: %v",
 					linkInfo.fieldName, err)
 			}
-			resolvedLinksDelete, err = renderLinkResolveTemplate(vars, resolveNamedLinkDeleteTmpl, true)
+			resolvedLinksDelete, err = renderLinkResolveTemplate(vars, resolveNamedLinkDeleteTmpl)
 			if err != nil {
 				return fmt.Errorf("failed to resolve links or children delete client template for link %v: %v",
 					linkInfo.fieldName, err)
 			}
 		} else {
-			resolvedLinksGet, err = renderLinkResolveTemplate(vars, resolveLinkGetTmpl, false)
+			resolvedLinksGet, err = renderLinkResolveTemplate(vars, resolveLinkGetTmpl)
 			if err != nil {
 				return fmt.Errorf("failed to resolve links or children get client template for link %v: %v",
 					linkInfo.fieldName, err)
 			}
-			resolvedLinksDelete, err = renderLinkResolveTemplate(vars, resolveLinkDeleteTmpl, false)
+			resolvedLinksDelete, err = renderLinkResolveTemplate(vars, resolveLinkDeleteTmpl)
 			if err != nil {
 				return fmt.Errorf("failed to resolve links or children delete client template for link %v: %v",
 					linkInfo.fieldName, err)
@@ -240,7 +243,7 @@ var resolveNamedLinkDeleteTmpl = `
 	}
 `
 
-func renderLinkResolveTemplate(vars resolveLinkVars, templateToUse string, named bool) (string, error) {
+func renderLinkResolveTemplate(vars resolveLinkVars, templateToUse string) (string, error) {
 	tmpl, err := template.New("tmpl").Parse(templateToUse)
 	if err != nil {
 		return "", err
@@ -302,19 +305,14 @@ func (obj *{{.GroupResourceType}}) GetByName(ctx context.Context, name string) (
 	if err != nil {
 		return nil, err
 	}
-
 	{{.ResolveLinksGet}}
 	return
 }
 
 func (obj *{{.GroupResourceType}}) Delete(ctx context.Context, name string, labels map[string]string) (err error) {
 	hashedName := helper.GetHashedName(name, labels)
-
-	result, err := obj.client.baseClient.{{.GroupTypeName}}().{{.GroupResourceNameTitle}}().Get(ctx, hashedName, metav1.GetOptions{})
-	if err != nil {
-		return err
-	}
-	_ = result // hack to ignore unused result in empty spec case
+	{{if .HasChildren}}{{.GetForDelete}}
+	{{ end }}
 
 	{{.ResolveLinksDelete}}
 
@@ -325,12 +323,10 @@ func (obj *{{.GroupResourceType}}) Delete(ctx context.Context, name string, labe
 	return
 }
 
-func (obj *{{.GroupResourceType}}) DeleteByName(ctx context.Context, name string) (err error) {
-	result, err := obj.client.baseClient.{{.GroupTypeName}}().{{.GroupResourceNameTitle}}().Get(ctx, name, metav1.GetOptions{})
-	if err != nil {
-		return err
-	}
-	_ = result // hack to ignore unused result in empty spec case
+func (obj *{{.GroupResourceType}}) DeleteByName(ctx context.Context, name string) (err error) { 
+	{{if .HasChildren}}
+{{.GetForDeleteByName}}
+	{{ end }}
 
 	{{.ResolveLinksDelete}}
 
@@ -342,17 +338,53 @@ func (obj *{{.GroupResourceType}}) DeleteByName(ctx context.Context, name string
 }
 `
 
+var getForDeleteTmpl = `
+	result, err := obj.client.baseClient.{{.GroupTypeName}}().{{.GroupResourceNameTitle}}().Get(ctx, hashedName, metav1.GetOptions{})
+	if err != nil {
+		return err
+	}
+`
+
+var getByNameForDeleteTmpl = `
+	result, err := obj.client.baseClient.{{.GroupTypeName}}().{{.GroupResourceNameTitle}}().Get(ctx, name, metav1.GetOptions{})
+	if err != nil {
+		return err
+	}
+`
+
 type apiGroupsClientVars struct {
 	apiGroupsVars
 	ResolveLinksGet        string
 	ResolveLinksDelete     string
+	GetForDeleteByName     string
+	GetForDelete           string
+	HasChildren            bool
 	GroupResourceType      string
 	GroupResourceNameTitle string
 	GroupBaseImport        string
 }
 
 func renderClientApiGroup(vars apiGroupsClientVars) (string, error) {
-	tmpl, err := template.New("tmpl").Parse(apiGroupClientTmpl)
+	tmpl, err := template.New("tmpl").Parse(getForDeleteTmpl)
+	if err != nil {
+		return "", err
+	}
+	getBase, err := renderTemplate(tmpl, vars)
+	if err != nil {
+		return "", err
+	}
+	vars.GetForDelete = getBase.String()
+	tmpl, err = template.New("tmpl").Parse(getByNameForDeleteTmpl)
+	if err != nil {
+		return "", err
+	}
+	getByNameBase, err := renderTemplate(tmpl, vars)
+	if err != nil {
+		return "", err
+	}
+	vars.GetForDeleteByName = getByNameBase.String()
+
+	tmpl, err = template.New("tmpl").Parse(apiGroupClientTmpl)
 	if err != nil {
 		return "", err
 	}
