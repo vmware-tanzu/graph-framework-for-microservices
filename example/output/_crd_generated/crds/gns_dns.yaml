@@ -4,7 +4,7 @@ kind: CustomResourceDefinition
 metadata:
   annotations:
     nexus: |
-      {}
+      {"hierarchy":null,"nexus-rest-api-gen":{"uris":[{"uri":"\"/v1alpha2/projects/{project}/dns/{dnses.gns.tsm.tanzu.vmware.com}\"","methods":["GET","PUT","DELETE"]},{"uri":"\"/v1alpha2/projects/{project}/dnses\"","methods":["GET"]}]}}
   creationTimestamp: null
   name: dnses.gns.tsm.tanzu.vmware.com
 spec:

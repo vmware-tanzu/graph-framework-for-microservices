@@ -1,6 +1,7 @@
 package parser
 
 import (
+	"fmt"
 	"go/ast"
 	"go/parser"
 	"go/token"
@@ -91,6 +92,7 @@ func CreateParentsMap(graph map[string]Node) map[string]NodeHelper {
 	parents := make(map[string]NodeHelper)
 	for _, root := range graph {
 		root.Walk(func(node *Node) {
+			fmt.Println(node.Name)
 			parents[node.CrdName] = NodeHelper{
 				Name:    node.Name,
 				Parents: node.Parents,

@@ -358,7 +358,7 @@ func RenderCRDBaseTemplate(baseGroupName string, pkg parser.Package, parentsMap 
 			nexusAnnotation.NexusRestAPIGen = value
 		}
 
-		nexusAnnotationStr, err := json.MarshalIndent(nexusAnnotation, "", "\t")
+		nexusAnnotationStr, err := json.Marshal(nexusAnnotation)
 		if err != nil {
 			return nil, err
 		}

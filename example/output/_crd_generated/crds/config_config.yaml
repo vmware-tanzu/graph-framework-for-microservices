@@ -4,7 +4,7 @@ kind: CustomResourceDefinition
 metadata:
   annotations:
     nexus: |
-      {"hierarchy":["roots.root.tsm.tanzu.vmware.com"]}
+      {"hierarchy":["roots.root.tsm.tanzu.vmware.com"],"nexus-rest-api-gen":{"uris":null}}
   creationTimestamp: null
   name: configs.config.tsm.tanzu.vmware.com
 spec:
