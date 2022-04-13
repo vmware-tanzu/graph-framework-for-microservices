@@ -38,16 +38,16 @@ check_pod:
 		fi \
 	done ;
 post-install-checks:
-	$(MAKE) check_pod POD="-lapp=etcd -lnexus=etcd" ;\
-	kubectl wait pods -lapp=nexus-etcd -lapp=etcd -lnexus=etcd -n ${NAMESPACE} --for=condition=ready --timeout=300s || { echo "etcd pod could not be started"; exit 1; } ;\
-	$(MAKE) check_pod POD="-lapp=nexus-kube-apiserver" ;\
-	kubectl wait pods -lapp=nexus-kube-apiserver -n ${NAMESPACE} --for=condition=ready --timeout=120s || { echo "k8sapiserver pod could not be started"; exit 1; } ;\
-	$(MAKE) check_pod POD="-lname=nexus-kube-controllermanager" ;\
-	kubectl wait pods -lname=nexus-kube-controllermanager -n ${NAMESPACE} --for=condition=ready --timeout=120s || { echo "k8scontrollermanager pod could not be started"; exit 1; } ;
+	$(MAKE) check_pod POD="-lapp=etcd" ;\
+	kubectl wait pods -lapp=etcd -n ${NAMESPACE} --for=condition=ready --timeout=300s || { echo "etcd pod could not be started"; exit 1; } ;\
+	$(MAKE) check_pod POD="-lapp=kube-apiserver" ;\
+	kubectl wait pods -lapp=kube-apiserver -n ${NAMESPACE} --for=condition=ready --timeout=120s || { echo "k8sapiserver pod could not be started"; exit 1; } ;\
+	$(MAKE) check_pod POD="-lname=kube-controllermanager" ;\
+	kubectl wait pods -lname=kube-controllermanager -n ${NAMESPACE} --for=condition=ready --timeout=120s || { echo "k8scontrollermanager pod could not be started"; exit 1; } ;
 
 .SILENT:
 start-portforward: check-portforward
-	( kubectl port-forward svc/nexus-proxy-container -n ${NAMESPACE} 45192:80 & echo $$! > /tmp/portforward.pid )
+	( kubectl port-forward svc/proxy-container -n ${NAMESPACE} 45192:80 & echo $$! > /tmp/portforward.pid )
 	CURRENT=0
 	while [ `curl -s -o /dev/null -w "%{http_code}" http://localhost:45192/api/v1/namespaces 2>/dev/null` -ne 200  ] ; do \
 		CURRENT=$$(( CURRENT + 1 )) ;\

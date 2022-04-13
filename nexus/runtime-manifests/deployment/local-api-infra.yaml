@@ -1,7 +1,7 @@
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-  name: nexus-etcd-operator
+  name: etcd-operator
 rules:
 - apiGroups:
   - etcd.database.coreos.com
@@ -43,11 +43,11 @@ rules:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
-  name: nexus-etcd-operator
+  name: etcd-operator
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
-  name: nexus-etcd-operator
+  name: etcd-operator
 subjects:
 - kind: Group
   name: system:serviceaccounts
@@ -56,19 +56,27 @@ subjects:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: nexus-etcd-operator
+  name: etcd-operator
+  
 spec:
   replicas: 1
   selector:
     matchLabels:
-      name: nexus-etcd-operator
+      name: etcd-operator
   template:
     metadata:
       labels:
-        name: nexus-etcd-operator
+        name: etcd-operator
       annotations:
         sidecar.istio.io/inject: "false"
     spec:
+      # tolerations:
+      #   - key: nsxsm.vmware.com/tenant
+      #     operator: Equal
+      #     value: 'test'
+      # affinity:
+      #   nodeAffinity:
+      #     {{.AS.cloud.affinity-policy}}
       containers:
       - name: etcd-operator
         image: gcr.io/nsx-sm/etcd-operator:v0.9.4  
@@ -91,14 +99,16 @@ spec:
 apiVersion: "etcd.database.coreos.com/v1beta2"
 kind: EtcdCluster
 metadata:
-  name: "nexus-etcd"  
+  name: "etcd"  
 spec:
   repository: gcr.io/nsx-sm/etcd
   size: 1
   version: '3.4.9'
   pod:
-    labels:
-      nexus: etcd
+    # tolerations:
+    #   - key: nsxsm.vmware.com/tenant
+    #     operator: Equal
+    #     value: 'test'
     affinity:
       podAntiAffinity:
         requiredDuringSchedulingIgnoredDuringExecution:
@@ -107,8 +117,10 @@ spec:
               - key: etcd_cluster
                 operator: In
                 values:
-                - nexus-etcd
+                - etcd
             topologyKey: kubernetes.io/hostname
+      # nodeAffinity:
+      #   {{.AS.cloud.affinity-policy}}
     annotations:
       sidecar.istio.io/inject: "false"
     busyboxImage: gcr.io/nsx-sm/busybox:1.28.0-glibc
@@ -136,7 +148,7 @@ spec:
 apiVersion: batch/v1beta1
 kind: CronJob
 metadata:
-  name: nexus-etcd-defrag 
+  name: etcd-defrag 
 spec:
   successfulJobsHistoryLimit: 1
   failedJobsHistoryLimit: 1
@@ -159,15 +171,15 @@ spec:
             - "-c"
             - |
               set -euxo pipefail
-              ETCDCTL_API=3 etcdctl --endpoints=nexus-etcd-client:2379 endpoint status --write-out=table
-              ETCDCTL_API=3 etcdctl --endpoints=nexus-etcd-client:2379 defrag --cluster
-              ETCDCTL_API=3 etcdctl --endpoints=nexus-etcd-client:2379 endpoint status --write-out=table
+              ETCDCTL_API=3 etcdctl --endpoints=etcd-client:2379 endpoint status --write-out=table
+              ETCDCTL_API=3 etcdctl --endpoints=etcd-client:2379 defrag --cluster
+              ETCDCTL_API=3 etcdctl --endpoints=etcd-client:2379 endpoint status --write-out=table
               echo "etcd defragmented successfully!"
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
-  name: nexus-k8scert-secret-permission  
+  name: k8scert-secret-permission  
 rules:
 - apiGroups:
   - ""
@@ -184,31 +196,34 @@ rules:
 apiVersion: v1
 kind: ServiceAccount
 metadata:
-  name: nexus-k8scerts-service-account
+  name: k8scerts-service-account
+  
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
-  name: nexus-k8scert-create-secret-rbac
+  name: k8scert-create-secret-rbac
+  
 subjects:
 - kind: ServiceAccount
-  name: nexus-k8scerts-service-account
+  name: k8scerts-service-account
+  
 roleRef:
   kind: Role
-  name: nexus-k8scert-secret-permission
+  name: k8scert-secret-permission
   apiGroup: rbac.authorization.k8s.io
 ---
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: nexus-k8scert-creation-job  
+  name: k8scert-creation-job  
 spec:
   template:
     metadata:
       annotations:
         "sidecar.istio.io/inject": "false"
     spec:
-      serviceAccountName: nexus-k8scerts-service-account
+      serviceAccountName: k8scerts-service-account
       containers:
       - name: k8scert-creation
         image: "gcr.io/mesh7-public-images/tools:latest"
@@ -219,8 +234,8 @@ spec:
           set -e
           openssl rand -out /root/.rnd -hex 256
           openssl genrsa -out /tmp/ca.key 2048
-          openssl req -x509 -new -nodes -key /tmp/ca.key -subj "/CN=nexus-apiserver" -days 10000 -out /tmp/ca.crt
-          kubectl create secret generic nexus-customapi-ca --from-file=/tmp/ca.key --from-file=/tmp/ca.crt -n $KUBERNETES_POD_NAMESPACE --dry-run -o yaml | kubectl apply -f -
+          openssl req -x509 -new -nodes -key /tmp/ca.key -subj "/CN=apiserver" -days 10000 -out /tmp/ca.crt
+          kubectl create secret generic customapi-ca --from-file=/tmp/ca.key --from-file=/tmp/ca.crt -n $KUBERNETES_POD_NAMESPACE --dry-run -o yaml | kubectl apply -f -
         env:
           - name: KUBERNETES_POD_NAMESPACE
             valueFrom:
@@ -233,20 +248,20 @@ spec:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: nexus-kube-apiserver
+  name: kube-apiserver
   labels:
-    app: nexus-kube-apiserver
+    app: kube-apiserver
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: nexus-kube-apiserver
+      app: kube-apiserver
   template:
     metadata:
       annotations:
         "sidecar.istio.io/inject": "false"
       labels:
-        app: nexus-kube-apiserver
+        app: kube-apiserver
     spec:
       initContainers:
       - name: check-etcd-server
@@ -256,7 +271,7 @@ spec:
             - -c
             - |
               #!/bin/bash
-              URL="http://nexus-etcd:2379"
+              URL="http://etcd:2379"
               curl -k --retry 30 --retry-delay 20 --connect-timeout 30 --max-time 30 $URL
               if [[ $? -ne 0 ]];then
                 echo "$URL not reachable....."
@@ -266,7 +281,7 @@ spec:
       - command:
         - kube-apiserver
         - --insecure-bind-address=0.0.0.0
-        - --etcd-servers=http://nexus-etcd:2379
+        - --etcd-servers=http://etcd:2379
         - --service-account-key-file=/custom/k8s/certs/ca.crt
         - --service-cluster-ip-range=10.24.0.0/16
         - --cert-dir=/etc/kubernetes/certs
@@ -299,20 +314,21 @@ spec:
           successThreshold: 1
           timeoutSeconds: 15    
         volumeMounts:
-            - name: nexus-customapi-ca
+            - name: customapi-ca
               mountPath: "/custom/k8s/certs"
               readOnly: true
       restartPolicy: Always
       securityContext: {}
       volumes:
-      - name: nexus-customapi-ca
+      - name: customapi-ca
         secret:
-            secretName: nexus-customapi-ca
+            secretName: customapi-ca
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: nexus-apiserver 
+  name: apiserver
+  
 spec:
   type: ClusterIP
   ports:
@@ -325,23 +341,23 @@ spec:
       name: https
       targetPort: 6443
   selector:
-      app: nexus-kube-apiserver
+      app: kube-apiserver
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: nexus-kube-controllermanager
+  name: kube-controllermanager
 spec:
   replicas: 1
   selector:
     matchLabels:
-      name: nexus-kube-controllermanager
+      name: kube-controllermanager
   template:
     metadata:
       annotations:
         "sidecar.istio.io/inject": "false"
       labels:
-        name: nexus-kube-controllermanager
+        name: kube-controllermanager
     spec:
       initContainers:
       - name: check-etcd-server
@@ -351,7 +367,7 @@ spec:
             - -c
             - |
               #!/bin/bash
-              URL="http://nexus-etcd:2379"
+              URL="http://etcd:2379"
               curl -k --retry 30 --retry-delay 20 --connect-timeout 30 --max-time 30 $URL
               if [[ $? -ne 0 ]];then
                 echo "$URL not reachable....."
@@ -362,7 +378,7 @@ spec:
         - kube-controller-manager
         - --service-account-private-key-file=/custom/k8s/certs/ca.key
         - --leader-elect=false
-        - --master=nexus-apiserver:8080
+        - --master=apiserver:8080
         - --use-service-account-credentials=true
         - --authentication-skip-lookup=true
         image: gcr.io/nsx-sm/k8s.gcr.io/kube-controller-manager:v1.18.0
@@ -385,38 +401,38 @@ spec:
         terminationMessagePath: /dev/termination-log
         terminationMessagePolicy: File
         volumeMounts:
-            - name: nexus-customapi-ca
+            - name: customapi-ca
               mountPath: "/custom/k8s/certs"
               readOnly: true
       restartPolicy: Always
       securityContext: {}
       volumes:
-      - name: nexus-customapi-ca
+      - name: customapi-ca
         secret:
-            secretName: nexus-customapi-ca
+            secretName: customapi-ca
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: nexus-proxy-container 
+  name: proxy-container 
   labels:
-    app: nexus-proxy-container
+    app: proxy-container
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: nexus-proxy-container
+      app: proxy-container
   template:
     metadata:
       annotations:
         "sidecar.istio.io/inject": "false"
       labels:
-        app: nexus-proxy-container
+        app: proxy-container
     spec:
       containers:
       - name: proxy-container
         image: "gcr.io/nsx-sm/m7/debug-container:latest"
-        command: [ "kubectl","--server=http://nexus-apiserver:8080","proxy","--address=0.0.0.0","--disable-filter=true","--v=1" ]
+        command: [ "kubectl","--server=http://apiserver:8080","proxy","--address=0.0.0.0","--disable-filter=true","--v=1" ]
         ports:
           - containerPort: 8001
         resources:
@@ -431,7 +447,7 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: nexus-proxy-container
+  name: proxy-container
 spec:
   ports:
     - protocol: TCP
@@ -439,4 +455,4 @@ spec:
       port: 80
       targetPort: 8001
   selector:
-      app: nexus-proxy-container
+      app: proxy-container
