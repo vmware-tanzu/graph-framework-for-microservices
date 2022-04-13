@@ -3,7 +3,6 @@ package parser
 import (
 	"fmt"
 	"io/ioutil"
-	"net/http"
 	"path"
 	"regexp"
 
@@ -68,7 +67,3 @@ type RestURIs struct {
 type RestAPISpec struct {
 	Uris []RestURIs `json:"uris"`
 }
-
-const DefaultHTTPErrorCode ResponseCode = http.StatusNotImplemented
-
-var DefaultHTTPError = HTTPResponse{Description: http.StatusText(http.StatusNotImplemented)}

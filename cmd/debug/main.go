@@ -1,7 +1,9 @@
 package main
 
 import (
+	log "github.com/sirupsen/logrus"
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/pkg/parser"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/pkg/parser/rest"
 )
 
 var root parser.Node
@@ -20,7 +22,9 @@ func main() {
 
 	pkgs := parser.ParseDSLPkg("../../example/datamodel/")
 	nexus := pkgs["gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/datamodel/nexus"]
-	nexus.GetHttpCodesResponses()
+
+	responseCodes := rest.GetHttpCodesResponses(nexus)
+	log.Println(responseCodes)
 	//gns := pkgs["gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/datamodel/config/gns"]
 
 	//mp := make(map[string]parser.RestAPISpec)
