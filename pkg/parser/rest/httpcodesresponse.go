@@ -2,6 +2,7 @@ package rest
 
 import (
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/pkg/parser"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/nexus.git/nexus"
 	"go/ast"
 	"go/types"
 	"net/http"
@@ -75,8 +76,8 @@ var httpStatusCodes = map[string]int{
 }
 
 // GetHttpCodesResponses will extract all variables which type is HTTPCodesResponse
-func GetHttpCodesResponses(p parser.Package) map[string]HTTPCodesResponse {
-	responses := make(map[string]HTTPCodesResponse)
+func GetHttpCodesResponses(p parser.Package) map[string]nexus.HTTPCodesResponse {
+	responses := make(map[string]nexus.HTTPCodesResponse)
 
 	for _, genDecl := range p.GenDecls {
 		for _, spec := range genDecl.Specs {
@@ -87,7 +88,7 @@ func GetHttpCodesResponses(p parser.Package) map[string]HTTPCodesResponse {
 						continue
 					}
 
-					response := HTTPCodesResponse{}
+					response := nexus.HTTPCodesResponse{}
 					for _, elt := range value.Elts {
 						kv := elt.(*ast.KeyValueExpr)
 						responseKey := extractHttpCodesKey(kv.Key)
@@ -104,21 +105,21 @@ func GetHttpCodesResponses(p parser.Package) map[string]HTTPCodesResponse {
 	return responses
 }
 
-func extractHttpCodesKey(key ast.Expr) ResponseCode {
+func extractHttpCodesKey(key ast.Expr) nexus.ResponseCode {
 	switch k := key.(type) {
 	case *ast.SelectorExpr:
-		return ResponseCode(httpStatusCodes[k.Sel.String()])
+		return nexus.ResponseCode(httpStatusCodes[k.Sel.String()])
 	case *ast.Ident:
 		if k.Name == "DefaultHTTPErrorCode" {
-			return DefaultHTTPErrorCode
+			return nexus.DefaultHTTPErrorCode
 		}
 	}
 
 	return 0
 }
 
-func extractHttpCodesValue(value ast.Expr) HTTPResponse {
-	res := HTTPResponse{}
+func extractHttpCodesValue(value ast.Expr) nexus.HTTPResponse {
+	res := nexus.HTTPResponse{}
 
 	switch val := value.(type) {
 	case *ast.CompositeLit:
@@ -141,7 +142,7 @@ func extractHttpCodesValue(value ast.Expr) HTTPResponse {
 		}
 	case *ast.Ident:
 		if val.Name == "DefaultHTTPError" {
-			res = DefaultHTTPError
+			res = nexus.DefaultHTTPError
 		}
 	}
 

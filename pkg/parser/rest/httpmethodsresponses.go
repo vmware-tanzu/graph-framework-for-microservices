@@ -2,6 +2,7 @@ package rest
 
 import (
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/pkg/parser"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/nexus.git/nexus"
 	"go/ast"
 	"go/types"
 )
@@ -18,8 +19,8 @@ var httpMethods = map[string]string{
 	"MethodTrace":   "TRACE",
 }
 
-func GetHttpMethodsResponses(p parser.Package, codes map[string]HTTPCodesResponse) map[string]HTTPMethodsResponses {
-	responses := make(map[string]HTTPMethodsResponses)
+func GetHttpMethodsResponses(p parser.Package, codes map[string]nexus.HTTPCodesResponse) map[string]nexus.HTTPMethodsResponses {
+	responses := make(map[string]nexus.HTTPMethodsResponses)
 
 	for _, genDecl := range p.GenDecls {
 		for _, spec := range genDecl.Specs {
@@ -30,7 +31,7 @@ func GetHttpMethodsResponses(p parser.Package, codes map[string]HTTPCodesRespons
 						continue
 					}
 
-					response := HTTPMethodsResponses{}
+					response := nexus.HTTPMethodsResponses{}
 					for _, elt := range value.Elts {
 						kv := elt.(*ast.KeyValueExpr)
 						responseKey := extractHttpMethodsKey(kv.Key)
@@ -46,16 +47,16 @@ func GetHttpMethodsResponses(p parser.Package, codes map[string]HTTPCodesRespons
 	return responses
 }
 
-func extractHttpMethodsKey(key ast.Expr) HTTPMethod {
+func extractHttpMethodsKey(key ast.Expr) nexus.HTTPMethod {
 	switch k := key.(type) {
 	case *ast.SelectorExpr:
-		return HTTPMethod(httpMethods[k.Sel.String()])
+		return nexus.HTTPMethod(httpMethods[k.Sel.String()])
 	}
 
 	return ""
 }
 
-func extractHttpMethodsValue(value ast.Expr, codes map[string]HTTPCodesResponse) HTTPCodesResponse {
+func extractHttpMethodsValue(value ast.Expr, codes map[string]nexus.HTTPCodesResponse) nexus.HTTPCodesResponse {
 	switch val := value.(type) {
 	case *ast.Ident:
 		return codes[val.String()]

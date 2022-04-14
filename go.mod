@@ -3,7 +3,6 @@ module gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git
 go 1.17
 
 require (
-	github.com/davecgh/go-spew v1.1.1
 	github.com/fatih/structtag v1.2.0
 	github.com/ghodss/yaml v1.0.0
 	github.com/go-openapi/spec v0.20.4
@@ -11,6 +10,7 @@ require (
 	github.com/onsi/ginkgo v1.14.0
 	github.com/onsi/gomega v1.10.1
 	github.com/sirupsen/logrus v1.8.1
+	gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/nexus.git v0.0.0-20220414105500-cd0c290cf811
 	golang.org/x/mod v0.5.1
 	golang.org/x/tools v0.1.6-0.20210820212750-d4cc65f0b2ff
 	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b

@@ -5,6 +5,8 @@ import (
 	_ "embed"
 	"encoding/json"
 	"fmt"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/pkg/parser/rest"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/nexus.git/nexus"
 	"go/format"
 	"os"
 	"sort"
@@ -42,7 +44,6 @@ var clientTemplateFile []byte
 
 func RenderCRDTemplate(baseGroupName, crdModulePath string, pkgs parser.Packages, graph map[string]parser.Node, outputDir string) error {
 	parentsMap := parser.CreateParentsMap(graph)
-	restAPISpecMap := make(map[string]parser.RestAPISpec)
 
 	pkgNames := make([]string, len(pkgs))
 	i := 0
@@ -94,7 +95,7 @@ func RenderCRDTemplate(baseGroupName, crdModulePath string, pkgs parser.Packages
 		if err != nil {
 			return err
 		}
-		crdFiles, err := RenderCRDBaseTemplate(baseGroupName, pkg, parentsMap, restAPISpecMap)
+		crdFiles, err := RenderCRDBaseTemplate(baseGroupName, pkg, parentsMap)
 		if err != nil {
 			return err
 		}
@@ -315,8 +316,8 @@ type crdBaseVars struct {
 }
 
 type NexusAnnotation struct {
-	Hierarchy       []string           `json:"hierarchy"`
-	NexusRestAPIGen parser.RestAPISpec `json:"nexus-rest-api-gen"`
+	Hierarchy       []string          `json:"hierarchy"`
+	NexusRestAPIGen nexus.RestAPISpec `json:"nexus-rest-api-gen"`
 }
 
 // type NexusRestAPIGen struct {
@@ -328,10 +329,10 @@ type CrdBaseFile struct {
 	File *bytes.Buffer
 }
 
-func RenderCRDBaseTemplate(baseGroupName string, pkg parser.Package, parentsMap map[string]parser.NodeHelper, restAPISpecMap map[string]parser.RestAPISpec) ([]CrdBaseFile, error) {
+func RenderCRDBaseTemplate(baseGroupName string, pkg parser.Package, parentsMap map[string]parser.NodeHelper) ([]CrdBaseFile, error) {
 	var crds []CrdBaseFile
 
-	pkg.GetRestApiSpecVars(restAPISpecMap)
+	restAPISpecMap := rest.GetRestApiSpecs(pkg)
 	for _, node := range pkg.GetNexusNodes() {
 		typeName := parser.GetTypeName(node)
 		groupName := pkg.Name + "." + baseGroupName
