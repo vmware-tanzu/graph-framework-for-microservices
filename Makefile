@@ -94,7 +94,8 @@ test_in_container: ${BUILDER_NAME}\:${BUILDER_TAG}.image.exists
 
 .PHONY: generate_code
 generate_code:
-	cp -r generated_base_structure _generated
+	rm -rf _generated
+	cp -R generated_base_structure _generated
 	CRD_MODULE_PATH=${CRD_MODULE_PATH} go run cmd/nexus-sdk/main.go -config-file ${CONFIG_FILE} -dsl ${DATAMODEL_PATH} -crd-output _generated
 	mv _generated/api_names.sh ./scripts/
 	./scripts/generate_k8s_api.sh

@@ -4,6 +4,7 @@ import (
 	service_group "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/datamodel/config/gns/service-group"
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/datamodel/config/policy"
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/datamodel/nexus"
+	"golang.org/x/exp/shiny/text"
 )
 
 type Gns struct {
@@ -15,7 +16,7 @@ type Gns struct {
 	GnsAccessControlPolicy policy.AccessControlPolicy        `nexus:"child"`
 	Dns                    Dns                               `nexus:"link"`
 	State                  GnsState                          `nexus:"status"`
-	//Box                    text.Box
+	Box                    text.Box
 }
 
 type Description struct {
