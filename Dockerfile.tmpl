@@ -1,6 +1,6 @@
 
 # Build the <app-name> binary
-FROM 284299419820.dkr.ecr.us-west-2.amazonaws.com/golang:1.17 AS builder
+FROM harbor-repo.vmware.com/nexus/golang:1.17 AS builder
 ARG GIT_TAG
 ARG GIT_HEAD
 ARG CICD_TOKEN
