@@ -15,6 +15,7 @@ type Gns struct {
 	GnsAccessControlPolicy policy.AccessControlPolicy        `nexus:"child"`
 	Dns                    Dns                               `nexus:"link"`
 	State                  GnsState                          `nexus:"status"`
+	//Box                    text.Box
 }
 
 type Description struct {

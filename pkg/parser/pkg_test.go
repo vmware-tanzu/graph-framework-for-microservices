@@ -32,8 +32,8 @@ var _ = Describe("Pkg tests", func() {
 		imports := crd_generator.GenerateImports(&pkg)
 
 		expectedImports := []string{
-			"configtsmtanzuvmwarecomv1 \"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/_crd_generated/apis/config.tsm.tanzu.vmware.com/v1\"",
-			"nexustsmtanzuvmwarecomv1 \"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/_crd_generated/apis/nexus.tsm.tanzu.vmware.com/v1\""}
+			"configtsmtanzuvmwarecomv1 \"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/crd_generated/apis/config.tsm.tanzu.vmware.com/v1\"",
+			"nexustsmtanzuvmwarecomv1 \"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/crd_generated/apis/nexus.tsm.tanzu.vmware.com/v1\""}
 
 		Expect(imports).To(Equal(expectedImports))
 	})
