@@ -9,7 +9,7 @@ import (
 )
 
 var httpStatusCodes = map[string]int{
-	"StatusContinue ":                     100, // RFC 7231, 6.2.1
+	"StatusContinue":                      100, // RFC 7231, 6.2.1
 	"StatusSwitchingProtocols":            101, // RFC 7231, 6.2.2
 	"StatusProcessing":                    102, // RFC 2518, 10.1
 	"StatusEarlyHints":                    103, // RFC 8297
