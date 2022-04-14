@@ -1,12 +1,21 @@
 package gns
 
 import (
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/datamodel/config"
 	"net/http"
 
 	service_group "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/datamodel/config/gns/service-group"
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/datamodel/config/policy"
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/nexus.git/nexus"
 )
+
+var FooCustomMethodsResponses = nexus.HTTPMethodsResponses{
+	http.MethodDelete: nexus.HTTPCodesResponse{
+		http.StatusOK:              nexus.HTTPResponse{Description: "ok"},
+		http.StatusNotFound:        nexus.HTTPResponse{Description: http.StatusText(http.StatusNotFound)},
+		nexus.DefaultHTTPErrorCode: nexus.DefaultHTTPError,
+	},
+}
 
 var GNSRestAPISpec = nexus.RestAPISpec{
 	Uris: []nexus.RestURIs{
@@ -19,6 +28,14 @@ var GNSRestAPISpec = nexus.RestAPISpec{
 			Methods: nexus.HTTPMethodsResponses{
 				http.MethodGet: nexus.DefaultHTTPGETResponses,
 			},
+		},
+		{
+			Uri:     "/test-foo",
+			Methods: FooCustomMethodsResponses,
+		},
+		{
+			Uri:     "/test-bar",
+			Methods: config.BarCustomMethodsResponses,
 		},
 	},
 }

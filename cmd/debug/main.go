@@ -1,6 +1,8 @@
 package main
 
 import (
+	"encoding/json"
+	"fmt"
 	log "github.com/sirupsen/logrus"
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/pkg/parser"
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/pkg/parser/rest"
@@ -21,12 +23,18 @@ func main() {
 	// })
 
 	pkgs := parser.ParseDSLPkg("../../example/datamodel/")
-	nexus := pkgs["gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/datamodel/nexus"]
-
-	responseCodes := rest.GetHttpCodesResponses(nexus)
-
-	methods := rest.GetHttpMethodsResponses(nexus, responseCodes)
+	methods, codes := rest.ParseResponses(pkgs)
 	log.Println(methods)
+
+	gns := pkgs["gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/datamodel/config/gns"]
+
+	apiSpecs := rest.GetRestApiSpecs(gns, methods, codes)
+
+	b, err := json.MarshalIndent(apiSpecs, "", "\t")
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println(string(b))
 	//gns := pkgs["gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/datamodel/config/gns"]
 
 	//mp := make(map[string]parser.RestAPISpec)

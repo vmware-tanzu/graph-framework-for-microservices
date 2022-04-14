@@ -19,15 +19,13 @@ var httpMethods = map[string]string{
 	"MethodTrace":   "TRACE",
 }
 
-func GetHttpMethodsResponses(p parser.Package, codes map[string]nexus.HTTPCodesResponse) map[string]nexus.HTTPMethodsResponses {
-	responses := make(map[string]nexus.HTTPMethodsResponses)
-
+func GetHttpMethodsResponses(p parser.Package, responsesMap map[string]nexus.HTTPMethodsResponses, httpCodes map[string]nexus.HTTPCodesResponse) map[string]nexus.HTTPMethodsResponses {
 	for _, genDecl := range p.GenDecls {
 		for _, spec := range genDecl.Specs {
 			if valueSpec, ok := spec.(*ast.ValueSpec); ok {
 				name := valueSpec.Names[0].Name
 				if value, ok := valueSpec.Values[0].(*ast.CompositeLit); ok {
-					if types.ExprString(value.Type) != "HTTPMethodsResponses" {
+					if types.ExprString(value.Type) != "nexus.HTTPMethodsResponses" {
 						continue
 					}
 
@@ -35,16 +33,16 @@ func GetHttpMethodsResponses(p parser.Package, codes map[string]nexus.HTTPCodesR
 					for _, elt := range value.Elts {
 						kv := elt.(*ast.KeyValueExpr)
 						responseKey := extractHttpMethodsKey(kv.Key)
-						responseValue := extractHttpMethodsValue(kv.Value, codes)
+						responseValue := extractHttpMethodsValue(kv.Value, httpCodes)
 						response[responseKey] = responseValue
 					}
-					responses[name] = response
+					responsesMap[name] = response
 				}
 			}
 		}
 	}
 
-	return responses
+	return responsesMap
 }
 
 func extractHttpMethodsKey(key ast.Expr) nexus.HTTPMethod {
@@ -56,10 +54,14 @@ func extractHttpMethodsKey(key ast.Expr) nexus.HTTPMethod {
 	return ""
 }
 
-func extractHttpMethodsValue(value ast.Expr, codes map[string]nexus.HTTPCodesResponse) nexus.HTTPCodesResponse {
+func extractHttpMethodsValue(value ast.Expr, httpCodes map[string]nexus.HTTPCodesResponse) nexus.HTTPCodesResponse {
 	switch val := value.(type) {
 	case *ast.Ident:
-		return codes[val.String()]
+		return httpCodes[val.String()]
+	case *ast.SelectorExpr:
+		return httpCodes[val.Sel.String()]
+	case *ast.CompositeLit:
+		return extractHttpCodesResponse(val)
 	}
 
 	return nil

@@ -76,43 +76,45 @@ var httpStatusCodes = map[string]int{
 }
 
 // GetHttpCodesResponses will extract all variables which type is HTTPCodesResponse
-func GetHttpCodesResponses(p parser.Package) map[string]nexus.HTTPCodesResponse {
-	responses := make(map[string]nexus.HTTPCodesResponse)
-
+func GetHttpCodesResponses(p parser.Package, responsesMap map[string]nexus.HTTPCodesResponse) map[string]nexus.HTTPCodesResponse {
 	for _, genDecl := range p.GenDecls {
 		for _, spec := range genDecl.Specs {
 			if valueSpec, ok := spec.(*ast.ValueSpec); ok {
 				name := valueSpec.Names[0].Name
 				if value, ok := valueSpec.Values[0].(*ast.CompositeLit); ok {
-					if types.ExprString(value.Type) != "HTTPCodesResponse" {
+					if types.ExprString(value.Type) != "nexus.HTTPCodesResponse" {
 						continue
 					}
 
-					response := nexus.HTTPCodesResponse{}
-					for _, elt := range value.Elts {
-						kv := elt.(*ast.KeyValueExpr)
-						responseKey := extractHttpCodesKey(kv.Key)
-						responseValue := extractHttpCodesValue(kv.Value)
-						response[responseKey] = responseValue
-					}
-
-					responses[name] = response
+					responsesMap[name] = extractHttpCodesResponse(value)
 				}
 			}
 		}
 	}
 
-	return responses
+	return responsesMap
+}
+
+func extractHttpCodesResponse(val *ast.CompositeLit) nexus.HTTPCodesResponse {
+	response := nexus.HTTPCodesResponse{}
+	for _, elt := range val.Elts {
+		kv := elt.(*ast.KeyValueExpr)
+		responseKey := extractHttpCodesKey(kv.Key)
+		responseValue := extractHttpCodesValue(kv.Value)
+		response[responseKey] = responseValue
+	}
+
+	return response
 }
 
 func extractHttpCodesKey(key ast.Expr) nexus.ResponseCode {
 	switch k := key.(type) {
 	case *ast.SelectorExpr:
-		return nexus.ResponseCode(httpStatusCodes[k.Sel.String()])
-	case *ast.Ident:
-		if k.Name == "DefaultHTTPErrorCode" {
+		if k.Sel.String() == "DefaultHTTPErrorCode" {
 			return nexus.DefaultHTTPErrorCode
 		}
+
+		return nexus.ResponseCode(httpStatusCodes[k.Sel.String()])
 	}
 
 	return 0
@@ -120,7 +122,6 @@ func extractHttpCodesKey(key ast.Expr) nexus.ResponseCode {
 
 func extractHttpCodesValue(value ast.Expr) nexus.HTTPResponse {
 	res := nexus.HTTPResponse{}
-
 	switch val := value.(type) {
 	case *ast.CompositeLit:
 		if desc, ok := val.Elts[0].(*ast.KeyValueExpr); ok {
@@ -140,8 +141,8 @@ func extractHttpCodesValue(value ast.Expr) nexus.HTTPResponse {
 				break
 			}
 		}
-	case *ast.Ident:
-		if val.Name == "DefaultHTTPError" {
+	case *ast.SelectorExpr:
+		if val.Sel.String() == "DefaultHTTPError" {
 			res = nexus.DefaultHTTPError
 		}
 	}
