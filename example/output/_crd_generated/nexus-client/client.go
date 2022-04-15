@@ -520,14 +520,6 @@ func (obj *svcgroupServicegroupTsmV1) Get(ctx context.Context, name string, labe
 		return nil, err
 	}
 
-	for k, v := range result.Spec.ServicesGvk {
-		obj, err := obj.client.V1TsmV1().Services().GetByName(ctx, v.Name)
-		if err != nil {
-			return nil, err
-		}
-		result.Spec.Services[k] = *obj
-	}
-
 	return
 }
 
@@ -537,31 +529,11 @@ func (obj *svcgroupServicegroupTsmV1) GetByName(ctx context.Context, name string
 		return nil, err
 	}
 
-	for k, v := range result.Spec.ServicesGvk {
-		obj, err := obj.client.V1TsmV1().Services().GetByName(ctx, v.Name)
-		if err != nil {
-			return nil, err
-		}
-		result.Spec.Services[k] = *obj
-	}
-
 	return
 }
 
 func (obj *svcgroupServicegroupTsmV1) Delete(ctx context.Context, name string, labels map[string]string) (err error) {
 	hashedName := helper.GetHashedName(name, labels)
-
-	result, err := obj.client.baseClient.ServicegroupTsmV1().SvcGroups().Get(ctx, hashedName, metav1.GetOptions{})
-	if err != nil {
-		return err
-	}
-
-	for _, v := range result.Spec.ServicesGvk {
-		err := obj.client.V1TsmV1().Services().DeleteByName(ctx, v.Name)
-		if err != nil {
-			return err
-		}
-	}
 
 	err = obj.client.baseClient.ServicegroupTsmV1().SvcGroups().Delete(ctx, hashedName, metav1.DeleteOptions{})
 	if err != nil {
@@ -571,18 +543,6 @@ func (obj *svcgroupServicegroupTsmV1) Delete(ctx context.Context, name string, l
 }
 
 func (obj *svcgroupServicegroupTsmV1) DeleteByName(ctx context.Context, name string) (err error) {
-
-	result, err := obj.client.baseClient.ServicegroupTsmV1().SvcGroups().Get(ctx, name, metav1.GetOptions{})
-	if err != nil {
-		return err
-	}
-
-	for _, v := range result.Spec.ServicesGvk {
-		err := obj.client.V1TsmV1().Services().DeleteByName(ctx, v.Name)
-		if err != nil {
-			return err
-		}
-	}
 
 	err = obj.client.baseClient.ServicegroupTsmV1().SvcGroups().Delete(ctx, name, metav1.DeleteOptions{})
 	if err != nil {
