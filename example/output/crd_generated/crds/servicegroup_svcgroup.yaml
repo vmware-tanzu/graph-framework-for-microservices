@@ -4,7 +4,7 @@ kind: CustomResourceDefinition
 metadata:
   annotations:
     nexus: |
-      {"hierarchy":["roots.root.tsm.tanzu.vmware.com","configs.config.tsm.tanzu.vmware.com","gnses.gns.tsm.tanzu.vmware.com"]}
+      {"hierarchy":["roots.root.tsm.tanzu.vmware.com","configs.config.tsm.tanzu.vmware.com","gnses.gns.tsm.tanzu.vmware.com"],"nexus-rest-api-gen":{"uris":null}}
   creationTimestamp: null
   name: svcgroups.servicegroup.tsm.tanzu.vmware.com
 spec:
@@ -47,24 +47,6 @@ spec:
               displayName:
                 default: ""
                 type: string
-              servicesGvk:
-                additionalProperties:
-                  properties:
-                    group:
-                      default: ""
-                      type: string
-                    kind:
-                      default: ""
-                      type: string
-                    name:
-                      default: ""
-                      type: string
-                  required:
-                  - group
-                  - kind
-                  - name
-                  type: object
-                type: object
             required:
             - displayName
             - description
