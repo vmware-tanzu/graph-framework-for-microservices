@@ -259,6 +259,41 @@ func (obj *rootRootTsmV1) DeleteByName(ctx context.Context, name string) (err er
 	return
 }
 
+func (obj *rootRootTsmV1) Create(ctx context.Context, objToCreate *baseroottsmtanzuvmwarecomv1.Root, labels map[string]string) (result *baseroottsmtanzuvmwarecomv1.Root, err error) {
+	hashedName := helper.GetHashedName(objToCreate.GetName(), labels)
+	objToCreate.Name = hashedName
+
+	// recursive creation of objects is not supported
+
+	objToCreate.Spec.Config = nil
+	objToCreate.Spec.ConfigGvk = nil
+
+	result, err = obj.client.baseClient.RootTsmV1().Roots().Create(ctx, objToCreate, metav1.CreateOptions{})
+	if err != nil {
+		return nil, err
+	}
+
+	// TODO Update parent object with this child info
+
+	return
+}
+
+func (obj *rootRootTsmV1) CreateByName(ctx context.Context, objToCreate *baseroottsmtanzuvmwarecomv1.Root, labels map[string]string) (result *baseroottsmtanzuvmwarecomv1.Root, err error) {
+	// recursive creation of objects is not supported
+
+	objToCreate.Spec.Config = nil
+	objToCreate.Spec.ConfigGvk = nil
+
+	result, err = obj.client.baseClient.RootTsmV1().Roots().Create(ctx, objToCreate, metav1.CreateOptions{})
+	if err != nil {
+		return nil, err
+	}
+
+	// TODO Update parent object with this child info
+
+	return
+}
+
 func (obj *configConfigTsmV1) Get(ctx context.Context, name string, labels map[string]string) (result *baseconfigtsmtanzuvmwarecomv1.Config, err error) {
 	hashedName := helper.GetHashedName(name, labels)
 	result, err = obj.client.baseClient.ConfigTsmV1().Configs().Get(ctx, hashedName, metav1.GetOptions{})
@@ -334,6 +369,41 @@ func (obj *configConfigTsmV1) DeleteByName(ctx context.Context, name string) (er
 	if err != nil {
 		return err
 	}
+	return
+}
+
+func (obj *configConfigTsmV1) Create(ctx context.Context, objToCreate *baseconfigtsmtanzuvmwarecomv1.Config, labels map[string]string) (result *baseconfigtsmtanzuvmwarecomv1.Config, err error) {
+	hashedName := helper.GetHashedName(objToCreate.GetName(), labels)
+	objToCreate.Name = hashedName
+
+	// recursive creation of objects is not supported
+
+	objToCreate.Spec.GNS = nil
+	objToCreate.Spec.GNSGvk = nil
+
+	result, err = obj.client.baseClient.ConfigTsmV1().Configs().Create(ctx, objToCreate, metav1.CreateOptions{})
+	if err != nil {
+		return nil, err
+	}
+
+	// TODO Update parent object with this child info
+
+	return
+}
+
+func (obj *configConfigTsmV1) CreateByName(ctx context.Context, objToCreate *baseconfigtsmtanzuvmwarecomv1.Config, labels map[string]string) (result *baseconfigtsmtanzuvmwarecomv1.Config, err error) {
+	// recursive creation of objects is not supported
+
+	objToCreate.Spec.GNS = nil
+	objToCreate.Spec.GNSGvk = nil
+
+	result, err = obj.client.baseClient.ConfigTsmV1().Configs().Create(ctx, objToCreate, metav1.CreateOptions{})
+	if err != nil {
+		return nil, err
+	}
+
+	// TODO Update parent object with this child info
+
 	return
 }
 
@@ -461,6 +531,47 @@ func (obj *gnsGnsTsmV1) DeleteByName(ctx context.Context, name string) (err erro
 	return
 }
 
+func (obj *gnsGnsTsmV1) Create(ctx context.Context, objToCreate *basegnstsmtanzuvmwarecomv1.Gns, labels map[string]string) (result *basegnstsmtanzuvmwarecomv1.Gns, err error) {
+	hashedName := helper.GetHashedName(objToCreate.GetName(), labels)
+	objToCreate.Name = hashedName
+
+	// recursive creation of objects is not supported
+
+	objToCreate.Spec.GnsServiceGroups = nil
+	objToCreate.Spec.GnsServiceGroupsGvk = nil
+
+	objToCreate.Spec.GnsAccessControlPolicy = nil
+	objToCreate.Spec.GnsAccessControlPolicyGvk = nil
+
+	result, err = obj.client.baseClient.GnsTsmV1().Gnses().Create(ctx, objToCreate, metav1.CreateOptions{})
+	if err != nil {
+		return nil, err
+	}
+
+	// TODO Update parent object with this child info
+
+	return
+}
+
+func (obj *gnsGnsTsmV1) CreateByName(ctx context.Context, objToCreate *basegnstsmtanzuvmwarecomv1.Gns, labels map[string]string) (result *basegnstsmtanzuvmwarecomv1.Gns, err error) {
+	// recursive creation of objects is not supported
+
+	objToCreate.Spec.GnsServiceGroups = nil
+	objToCreate.Spec.GnsServiceGroupsGvk = nil
+
+	objToCreate.Spec.GnsAccessControlPolicy = nil
+	objToCreate.Spec.GnsAccessControlPolicyGvk = nil
+
+	result, err = obj.client.baseClient.GnsTsmV1().Gnses().Create(ctx, objToCreate, metav1.CreateOptions{})
+	if err != nil {
+		return nil, err
+	}
+
+	// TODO Update parent object with this child info
+
+	return
+}
+
 func (obj *dnsGnsTsmV1) Get(ctx context.Context, name string, labels map[string]string) (result *basegnstsmtanzuvmwarecomv1.Dns, err error) {
 	hashedName := helper.GetHashedName(name, labels)
 	result, err = obj.client.baseClient.GnsTsmV1().Dnses().Get(ctx, hashedName, metav1.GetOptions{})
@@ -499,6 +610,35 @@ func (obj *dnsGnsTsmV1) DeleteByName(ctx context.Context, name string) (err erro
 	return
 }
 
+func (obj *dnsGnsTsmV1) Create(ctx context.Context, objToCreate *basegnstsmtanzuvmwarecomv1.Dns, labels map[string]string) (result *basegnstsmtanzuvmwarecomv1.Dns, err error) {
+	hashedName := helper.GetHashedName(objToCreate.GetName(), labels)
+	objToCreate.Name = hashedName
+
+	// recursive creation of objects is not supported
+
+	result, err = obj.client.baseClient.GnsTsmV1().Dnses().Create(ctx, objToCreate, metav1.CreateOptions{})
+	if err != nil {
+		return nil, err
+	}
+
+	// TODO Update parent object with this child info
+
+	return
+}
+
+func (obj *dnsGnsTsmV1) CreateByName(ctx context.Context, objToCreate *basegnstsmtanzuvmwarecomv1.Dns, labels map[string]string) (result *basegnstsmtanzuvmwarecomv1.Dns, err error) {
+	// recursive creation of objects is not supported
+
+	result, err = obj.client.baseClient.GnsTsmV1().Dnses().Create(ctx, objToCreate, metav1.CreateOptions{})
+	if err != nil {
+		return nil, err
+	}
+
+	// TODO Update parent object with this child info
+
+	return
+}
+
 func (obj *svcgroupServicegroupTsmV1) Get(ctx context.Context, name string, labels map[string]string) (result *baseservicegrouptsmtanzuvmwarecomv1.SvcGroup, err error) {
 	hashedName := helper.GetHashedName(name, labels)
 	result, err = obj.client.baseClient.ServicegroupTsmV1().SvcGroups().Get(ctx, hashedName, metav1.GetOptions{})
@@ -534,6 +674,35 @@ func (obj *svcgroupServicegroupTsmV1) DeleteByName(ctx context.Context, name str
 	if err != nil {
 		return err
 	}
+	return
+}
+
+func (obj *svcgroupServicegroupTsmV1) Create(ctx context.Context, objToCreate *baseservicegrouptsmtanzuvmwarecomv1.SvcGroup, labels map[string]string) (result *baseservicegrouptsmtanzuvmwarecomv1.SvcGroup, err error) {
+	hashedName := helper.GetHashedName(objToCreate.GetName(), labels)
+	objToCreate.Name = hashedName
+
+	// recursive creation of objects is not supported
+
+	result, err = obj.client.baseClient.ServicegroupTsmV1().SvcGroups().Create(ctx, objToCreate, metav1.CreateOptions{})
+	if err != nil {
+		return nil, err
+	}
+
+	// TODO Update parent object with this child info
+
+	return
+}
+
+func (obj *svcgroupServicegroupTsmV1) CreateByName(ctx context.Context, objToCreate *baseservicegrouptsmtanzuvmwarecomv1.SvcGroup, labels map[string]string) (result *baseservicegrouptsmtanzuvmwarecomv1.SvcGroup, err error) {
+	// recursive creation of objects is not supported
+
+	result, err = obj.client.baseClient.ServicegroupTsmV1().SvcGroups().Create(ctx, objToCreate, metav1.CreateOptions{})
+	if err != nil {
+		return nil, err
+	}
+
+	// TODO Update parent object with this child info
+
 	return
 }
 
@@ -615,6 +784,41 @@ func (obj *accesscontrolpolicyPolicyTsmV1) DeleteByName(ctx context.Context, nam
 	return
 }
 
+func (obj *accesscontrolpolicyPolicyTsmV1) Create(ctx context.Context, objToCreate *basepolicytsmtanzuvmwarecomv1.AccessControlPolicy, labels map[string]string) (result *basepolicytsmtanzuvmwarecomv1.AccessControlPolicy, err error) {
+	hashedName := helper.GetHashedName(objToCreate.GetName(), labels)
+	objToCreate.Name = hashedName
+
+	// recursive creation of objects is not supported
+
+	objToCreate.Spec.PolicyConfigs = nil
+	objToCreate.Spec.PolicyConfigsGvk = nil
+
+	result, err = obj.client.baseClient.PolicyTsmV1().AccessControlPolicies().Create(ctx, objToCreate, metav1.CreateOptions{})
+	if err != nil {
+		return nil, err
+	}
+
+	// TODO Update parent object with this child info
+
+	return
+}
+
+func (obj *accesscontrolpolicyPolicyTsmV1) CreateByName(ctx context.Context, objToCreate *basepolicytsmtanzuvmwarecomv1.AccessControlPolicy, labels map[string]string) (result *basepolicytsmtanzuvmwarecomv1.AccessControlPolicy, err error) {
+	// recursive creation of objects is not supported
+
+	objToCreate.Spec.PolicyConfigs = nil
+	objToCreate.Spec.PolicyConfigsGvk = nil
+
+	result, err = obj.client.baseClient.PolicyTsmV1().AccessControlPolicies().Create(ctx, objToCreate, metav1.CreateOptions{})
+	if err != nil {
+		return nil, err
+	}
+
+	// TODO Update parent object with this child info
+
+	return
+}
+
 func (obj *acpconfigPolicyTsmV1) Get(ctx context.Context, name string, labels map[string]string) (result *basepolicytsmtanzuvmwarecomv1.ACPConfig, err error) {
 	hashedName := helper.GetHashedName(name, labels)
 	result, err = obj.client.baseClient.PolicyTsmV1().ACPConfigs().Get(ctx, hashedName, metav1.GetOptions{})
@@ -682,5 +886,34 @@ func (obj *acpconfigPolicyTsmV1) DeleteByName(ctx context.Context, name string) 
 	if err != nil {
 		return err
 	}
+	return
+}
+
+func (obj *acpconfigPolicyTsmV1) Create(ctx context.Context, objToCreate *basepolicytsmtanzuvmwarecomv1.ACPConfig, labels map[string]string) (result *basepolicytsmtanzuvmwarecomv1.ACPConfig, err error) {
+	hashedName := helper.GetHashedName(objToCreate.GetName(), labels)
+	objToCreate.Name = hashedName
+
+	// recursive creation of objects is not supported
+
+	result, err = obj.client.baseClient.PolicyTsmV1().ACPConfigs().Create(ctx, objToCreate, metav1.CreateOptions{})
+	if err != nil {
+		return nil, err
+	}
+
+	// TODO Update parent object with this child info
+
+	return
+}
+
+func (obj *acpconfigPolicyTsmV1) CreateByName(ctx context.Context, objToCreate *basepolicytsmtanzuvmwarecomv1.ACPConfig, labels map[string]string) (result *basepolicytsmtanzuvmwarecomv1.ACPConfig, err error) {
+	// recursive creation of objects is not supported
+
+	result, err = obj.client.baseClient.PolicyTsmV1().ACPConfigs().Create(ctx, objToCreate, metav1.CreateOptions{})
+	if err != nil {
+		return nil, err
+	}
+
+	// TODO Update parent object with this child info
+
 	return
 }
