@@ -168,8 +168,3 @@ docker.gitlab_credentials:
         echo -e  "https://gitlab-ci-token:${CICD_TOKEN}@gitlab.eng.vmware.com/" >> ~/.git-credentials && \
         git config --global url."https://gitlab.eng.vmware.com/".insteadOf "git@gitlab.eng.vmware.com:"; \
 	fi
-
-
-.PHONY: test_generate_code_in_container
-test_hello: ${BUILDER_NAME}\:${BUILDER_TAG}.image.exists init_submodules
-	$(call run_in_container, go get -v)

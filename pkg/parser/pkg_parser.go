@@ -30,6 +30,7 @@ func ParseDSLPkg(startPath string) Packages {
 			}
 			for _, v := range pkgs {
 				if v.Name == "nexus" {
+					log.Infof("Ignoring nexus package...")
 					continue
 				}
 
