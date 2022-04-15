@@ -67,6 +67,8 @@ type Gns struct {
 	GnsAccessControlPolicy policy.AccessControlPolicy        `nexus:"child"`
 	Dns                    Dns                               `nexus:"link"`
 	State                  GnsState                          `nexus:"status"`
+	// TODO support external fields https://jira.eng.vmware.com/browse/NPT-124
+	//Box                    text.Box
 }
 
 // This is Description struct.

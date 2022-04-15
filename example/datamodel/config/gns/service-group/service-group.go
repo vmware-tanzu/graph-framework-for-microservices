@@ -2,7 +2,6 @@ package servicegroup
 
 import (
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/datamodel/nexus"
-	core_v1 "k8s.io/api/core/v1"
 )
 
 type SvcGroup struct {
@@ -10,5 +9,6 @@ type SvcGroup struct {
 	DisplayName string
 	Description string
 	Color       string
-	Services    map[string]core_v1.Service `nexus:"link"`
+	// TODO support links which are not nexus nodes https://jira.eng.vmware.com/browse/NPT-112
+	//Services    map[string]core_v1.Service `nexus:"link"`
 }
