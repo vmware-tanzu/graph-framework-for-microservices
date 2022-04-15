@@ -263,8 +263,6 @@ func (obj *rootRootTsmV1) Create(ctx context.Context, objToCreate *baseroottsmta
 	hashedName := helper.GetHashedName(objToCreate.GetName(), labels)
 	objToCreate.Name = hashedName
 
-	// recursive creation of objects is not supported
-
 	objToCreate.Spec.Config = nil
 	objToCreate.Spec.ConfigGvk = nil
 
@@ -279,7 +277,6 @@ func (obj *rootRootTsmV1) Create(ctx context.Context, objToCreate *baseroottsmta
 }
 
 func (obj *rootRootTsmV1) CreateByName(ctx context.Context, objToCreate *baseroottsmtanzuvmwarecomv1.Root, labels map[string]string) (result *baseroottsmtanzuvmwarecomv1.Root, err error) {
-	// recursive creation of objects is not supported
 
 	objToCreate.Spec.Config = nil
 	objToCreate.Spec.ConfigGvk = nil
@@ -376,8 +373,6 @@ func (obj *configConfigTsmV1) Create(ctx context.Context, objToCreate *baseconfi
 	hashedName := helper.GetHashedName(objToCreate.GetName(), labels)
 	objToCreate.Name = hashedName
 
-	// recursive creation of objects is not supported
-
 	objToCreate.Spec.GNS = nil
 	objToCreate.Spec.GNSGvk = nil
 
@@ -392,7 +387,6 @@ func (obj *configConfigTsmV1) Create(ctx context.Context, objToCreate *baseconfi
 }
 
 func (obj *configConfigTsmV1) CreateByName(ctx context.Context, objToCreate *baseconfigtsmtanzuvmwarecomv1.Config, labels map[string]string) (result *baseconfigtsmtanzuvmwarecomv1.Config, err error) {
-	// recursive creation of objects is not supported
 
 	objToCreate.Spec.GNS = nil
 	objToCreate.Spec.GNSGvk = nil
@@ -535,13 +529,15 @@ func (obj *gnsGnsTsmV1) Create(ctx context.Context, objToCreate *basegnstsmtanzu
 	hashedName := helper.GetHashedName(objToCreate.GetName(), labels)
 	objToCreate.Name = hashedName
 
-	// recursive creation of objects is not supported
-
 	objToCreate.Spec.GnsServiceGroups = nil
 	objToCreate.Spec.GnsServiceGroupsGvk = nil
 
 	objToCreate.Spec.GnsAccessControlPolicy = nil
 	objToCreate.Spec.GnsAccessControlPolicyGvk = nil
+
+	if objToCreate.Spec.Dns != nil {
+		objToCreate.Spec.DnsGvk.Name = objToCreate.Spec.Dns.GetName()
+	}
 
 	result, err = obj.client.baseClient.GnsTsmV1().Gnses().Create(ctx, objToCreate, metav1.CreateOptions{})
 	if err != nil {
@@ -554,13 +550,16 @@ func (obj *gnsGnsTsmV1) Create(ctx context.Context, objToCreate *basegnstsmtanzu
 }
 
 func (obj *gnsGnsTsmV1) CreateByName(ctx context.Context, objToCreate *basegnstsmtanzuvmwarecomv1.Gns, labels map[string]string) (result *basegnstsmtanzuvmwarecomv1.Gns, err error) {
-	// recursive creation of objects is not supported
 
 	objToCreate.Spec.GnsServiceGroups = nil
 	objToCreate.Spec.GnsServiceGroupsGvk = nil
 
 	objToCreate.Spec.GnsAccessControlPolicy = nil
 	objToCreate.Spec.GnsAccessControlPolicyGvk = nil
+
+	if objToCreate.Spec.Dns != nil {
+		objToCreate.Spec.DnsGvk.Name = objToCreate.Spec.Dns.GetName()
+	}
 
 	result, err = obj.client.baseClient.GnsTsmV1().Gnses().Create(ctx, objToCreate, metav1.CreateOptions{})
 	if err != nil {
@@ -614,8 +613,6 @@ func (obj *dnsGnsTsmV1) Create(ctx context.Context, objToCreate *basegnstsmtanzu
 	hashedName := helper.GetHashedName(objToCreate.GetName(), labels)
 	objToCreate.Name = hashedName
 
-	// recursive creation of objects is not supported
-
 	result, err = obj.client.baseClient.GnsTsmV1().Dnses().Create(ctx, objToCreate, metav1.CreateOptions{})
 	if err != nil {
 		return nil, err
@@ -627,7 +624,6 @@ func (obj *dnsGnsTsmV1) Create(ctx context.Context, objToCreate *basegnstsmtanzu
 }
 
 func (obj *dnsGnsTsmV1) CreateByName(ctx context.Context, objToCreate *basegnstsmtanzuvmwarecomv1.Dns, labels map[string]string) (result *basegnstsmtanzuvmwarecomv1.Dns, err error) {
-	// recursive creation of objects is not supported
 
 	result, err = obj.client.baseClient.GnsTsmV1().Dnses().Create(ctx, objToCreate, metav1.CreateOptions{})
 	if err != nil {
@@ -681,8 +677,6 @@ func (obj *svcgroupServicegroupTsmV1) Create(ctx context.Context, objToCreate *b
 	hashedName := helper.GetHashedName(objToCreate.GetName(), labels)
 	objToCreate.Name = hashedName
 
-	// recursive creation of objects is not supported
-
 	result, err = obj.client.baseClient.ServicegroupTsmV1().SvcGroups().Create(ctx, objToCreate, metav1.CreateOptions{})
 	if err != nil {
 		return nil, err
@@ -694,7 +688,6 @@ func (obj *svcgroupServicegroupTsmV1) Create(ctx context.Context, objToCreate *b
 }
 
 func (obj *svcgroupServicegroupTsmV1) CreateByName(ctx context.Context, objToCreate *baseservicegrouptsmtanzuvmwarecomv1.SvcGroup, labels map[string]string) (result *baseservicegrouptsmtanzuvmwarecomv1.SvcGroup, err error) {
-	// recursive creation of objects is not supported
 
 	result, err = obj.client.baseClient.ServicegroupTsmV1().SvcGroups().Create(ctx, objToCreate, metav1.CreateOptions{})
 	if err != nil {
@@ -788,8 +781,6 @@ func (obj *accesscontrolpolicyPolicyTsmV1) Create(ctx context.Context, objToCrea
 	hashedName := helper.GetHashedName(objToCreate.GetName(), labels)
 	objToCreate.Name = hashedName
 
-	// recursive creation of objects is not supported
-
 	objToCreate.Spec.PolicyConfigs = nil
 	objToCreate.Spec.PolicyConfigsGvk = nil
 
@@ -804,7 +795,6 @@ func (obj *accesscontrolpolicyPolicyTsmV1) Create(ctx context.Context, objToCrea
 }
 
 func (obj *accesscontrolpolicyPolicyTsmV1) CreateByName(ctx context.Context, objToCreate *basepolicytsmtanzuvmwarecomv1.AccessControlPolicy, labels map[string]string) (result *basepolicytsmtanzuvmwarecomv1.AccessControlPolicy, err error) {
-	// recursive creation of objects is not supported
 
 	objToCreate.Spec.PolicyConfigs = nil
 	objToCreate.Spec.PolicyConfigsGvk = nil
@@ -893,7 +883,17 @@ func (obj *acpconfigPolicyTsmV1) Create(ctx context.Context, objToCreate *basepo
 	hashedName := helper.GetHashedName(objToCreate.GetName(), labels)
 	objToCreate.Name = hashedName
 
-	// recursive creation of objects is not supported
+	for k, v := range objToCreate.Spec.DestSvcGroups {
+		objToCreate.Spec.DestSvcGroupsGvk[k] = basepolicytsmtanzuvmwarecomv1.Link{
+			Name: v.GetName(),
+		}
+	}
+
+	for k, v := range objToCreate.Spec.SourceSvcGroups {
+		objToCreate.Spec.SourceSvcGroupsGvk[k] = basepolicytsmtanzuvmwarecomv1.Link{
+			Name: v.GetName(),
+		}
+	}
 
 	result, err = obj.client.baseClient.PolicyTsmV1().ACPConfigs().Create(ctx, objToCreate, metav1.CreateOptions{})
 	if err != nil {
@@ -906,7 +906,18 @@ func (obj *acpconfigPolicyTsmV1) Create(ctx context.Context, objToCreate *basepo
 }
 
 func (obj *acpconfigPolicyTsmV1) CreateByName(ctx context.Context, objToCreate *basepolicytsmtanzuvmwarecomv1.ACPConfig, labels map[string]string) (result *basepolicytsmtanzuvmwarecomv1.ACPConfig, err error) {
-	// recursive creation of objects is not supported
+
+	for k, v := range objToCreate.Spec.DestSvcGroups {
+		objToCreate.Spec.DestSvcGroupsGvk[k] = basepolicytsmtanzuvmwarecomv1.Link{
+			Name: v.GetName(),
+		}
+	}
+
+	for k, v := range objToCreate.Spec.SourceSvcGroups {
+		objToCreate.Spec.SourceSvcGroupsGvk[k] = basepolicytsmtanzuvmwarecomv1.Link{
+			Name: v.GetName(),
+		}
+	}
 
 	result, err = obj.client.baseClient.PolicyTsmV1().ACPConfigs().Create(ctx, objToCreate, metav1.CreateOptions{})
 	if err != nil {

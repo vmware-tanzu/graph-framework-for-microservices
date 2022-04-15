@@ -126,10 +126,11 @@ func resolveNode(baseImportName string, pkg parser.Package, baseGroupName, versi
 		linkInfo := getFieldInfo(pkg, link)
 		var vars resolveLinkVars
 		vars.LinkFieldName = linkInfo.fieldName
+		vars.BaseImport = baseImportName
 		vars.LinkGroupTypeName = util.GetGroupTypeName(linkInfo.pkgName, baseGroupName, version)
 		vars.LinkGroupResourceNameTitle = util.GetGroupResourceNameTitle(linkInfo.fieldType)
 
-		var resolvedLinksGet, resolvedLinksDelete, resolvedLinksCreate string
+		var resolvedLinksGet, resolvedLinksDelete, resolvedChildCreate, resolvedLinkCreate string
 		var err error
 		if parser.IsMapField(link) {
 			resolvedLinksGet, err = renderLinkResolveTemplate(vars, resolveNamedLinkGetTmpl)
@@ -137,15 +138,21 @@ func resolveNode(baseImportName string, pkg parser.Package, baseGroupName, versi
 				return fmt.Errorf("failed to resolve links or children get client template for link %v: %v",
 					linkInfo.fieldName, err)
 			}
-			if !parser.IsLinkField(link) { // do not resolve softlinks for delete/create
+			if !parser.IsLinkField(link) { // do not resolve softlinks for delete
 				resolvedLinksDelete, err = renderLinkResolveTemplate(vars, resolveNamedLinkDeleteTmpl)
 				if err != nil {
 					return fmt.Errorf("failed to resolve links or children delete client template for link %v: %v",
 						linkInfo.fieldName, err)
 				}
-				resolvedLinksCreate, err = renderLinkResolveTemplate(vars, resolveLinkCreateTmpl)
+				resolvedChildCreate, err = renderLinkResolveTemplate(vars, resolveChildCreateTmpl)
 				if err != nil {
-					return fmt.Errorf("failed to resolve links or children create client template for link %v: %v",
+					return fmt.Errorf("failed to resolve children create client template for link %v: %v",
+						linkInfo.fieldName, err)
+				}
+			} else {
+				resolvedLinkCreate, err = renderLinkResolveTemplate(vars, resolveNamedLinkCreateTmpl)
+				if err != nil {
+					return fmt.Errorf("failed to resolve links create client template for link %v: %v",
 						linkInfo.fieldName, err)
 				}
 			}
@@ -155,15 +162,21 @@ func resolveNode(baseImportName string, pkg parser.Package, baseGroupName, versi
 				return fmt.Errorf("failed to resolve links or children get client template for link %v: %v",
 					linkInfo.fieldName, err)
 			}
-			if !parser.IsLinkField(link) { // do not resolve softlinks for delete/create
+			if !parser.IsLinkField(link) { // do not resolve softlinks for delete
 				resolvedLinksDelete, err = renderLinkResolveTemplate(vars, resolveLinkDeleteTmpl)
 				if err != nil {
 					return fmt.Errorf("failed to resolve links or children delete client template for link %v: %v",
 						linkInfo.fieldName, err)
 				}
-				resolvedLinksCreate, err = renderLinkResolveTemplate(vars, resolveLinkCreateTmpl)
+				resolvedChildCreate, err = renderLinkResolveTemplate(vars, resolveChildCreateTmpl)
 				if err != nil {
-					return fmt.Errorf("failed to resolve links or children create client template for link %v: %v",
+					return fmt.Errorf("failed to resolve children create client template for link %v: %v",
+						linkInfo.fieldName, err)
+				}
+			} else {
+				resolvedLinkCreate, err = renderLinkResolveTemplate(vars, resolveLinkCreateTmpl)
+				if err != nil {
+					return fmt.Errorf("failed to resolve links create client template for link %v: %v",
 						linkInfo.fieldName, err)
 				}
 			}
@@ -171,7 +184,8 @@ func resolveNode(baseImportName string, pkg parser.Package, baseGroupName, versi
 
 		clientGroupVars.ResolveLinksGet += resolvedLinksGet
 		clientGroupVars.ResolveLinksDelete += resolvedLinksDelete
-		clientGroupVars.ResolveLinksCreate += resolvedLinksCreate
+		clientGroupVars.ResolveChildCreate += resolvedChildCreate
+		clientGroupVars.ResolveLinksCreate += resolvedLinkCreate
 	}
 	return nil
 }
@@ -217,6 +231,7 @@ type resolveLinkVars struct {
 	LinkFieldName              string
 	LinkGroupTypeName          string
 	LinkGroupResourceNameTitle string
+	BaseImport                 string
 }
 
 var resolveLinkGetTmpl = `
@@ -257,9 +272,23 @@ var resolveNamedLinkDeleteTmpl = `
 	}
 `
 
-var resolveLinkCreateTmpl = `
+var resolveChildCreateTmpl = `
 	objToCreate.Spec.{{.LinkFieldName}} = nil
 	objToCreate.Spec.{{.LinkFieldName}}Gvk = nil
+`
+
+var resolveLinkCreateTmpl = `
+	if objToCreate.Spec.{{.LinkFieldName}} != nil {
+		objToCreate.Spec.{{.LinkFieldName}}Gvk.Name = objToCreate.Spec.{{.LinkFieldName}}.GetName()
+	}
+`
+
+var resolveNamedLinkCreateTmpl = `
+	for k, v := range objToCreate.Spec.{{.LinkFieldName}} {
+		objToCreate.Spec.{{.LinkFieldName}}Gvk[k] = {{.BaseImport}}.Link{
+			Name: v.GetName(),
+		}
+	}
 `
 
 func renderLinkResolveTemplate(vars resolveLinkVars, templateToUse string) (string, error) {
@@ -360,7 +389,8 @@ func (obj *{{.GroupResourceType}}) Create(ctx context.Context, objToCreate *{{.G
 	hashedName := helper.GetHashedName(objToCreate.GetName(), labels)
 	objToCreate.Name = hashedName
 
-	// recursive creation of objects is not supported
+	{{.ResolveChildCreate}}
+
 	{{.ResolveLinksCreate}}
 
 	result, err = obj.client.baseClient.{{.GroupTypeName}}().{{.GroupResourceNameTitle}}().Create(ctx, objToCreate, metav1.CreateOptions{})
@@ -374,7 +404,8 @@ func (obj *{{.GroupResourceType}}) Create(ctx context.Context, objToCreate *{{.G
 }
 
 func (obj *{{.GroupResourceType}}) CreateByName(ctx context.Context, objToCreate *{{.GroupBaseImport}}, labels map[string]string) (result *{{.GroupBaseImport}}, err error) {
-	// recursive creation of objects is not supported
+	{{.ResolveChildCreate}}
+
 	{{.ResolveLinksCreate}}
 
 	result, err = obj.client.baseClient.{{.GroupTypeName}}().{{.GroupResourceNameTitle}}().Create(ctx, objToCreate, metav1.CreateOptions{})
@@ -406,6 +437,7 @@ type apiGroupsClientVars struct {
 	apiGroupsVars
 	ResolveLinksGet        string
 	ResolveLinksDelete     string
+	ResolveChildCreate     string
 	ResolveLinksCreate     string
 	GetForDeleteByName     string
 	GetForDelete           string
