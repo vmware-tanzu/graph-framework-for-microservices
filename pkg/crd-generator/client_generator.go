@@ -117,10 +117,11 @@ func resolveNode(baseImportName string, pkg parser.Package, baseGroupName, versi
 	clientGroupVars.ResolveLinksDelete = ""
 
 	// TODO support resolution of links which are not nexus nodes https://jira.eng.vmware.com/browse/NPT-112
-	childrenAndLinks := parser.GetChildFields(node)
+	children := parser.GetChildFields(node)
+	childrenAndLinks := children
 	childrenAndLinks = append(childrenAndLinks, parser.GetLinkFields(node)...)
 
-	if len(childrenAndLinks) > 0 {
+	if len(children) > 0 {
 		clientGroupVars.HasChildren = true
 	}
 	for _, link := range childrenAndLinks {
@@ -138,10 +139,12 @@ func resolveNode(baseImportName string, pkg parser.Package, baseGroupName, versi
 				return fmt.Errorf("failed to resolve links or children get client template for link %v: %v",
 					linkInfo.fieldName, err)
 			}
-			resolvedLinksDelete, err = renderLinkResolveTemplate(vars, resolveNamedLinkDeleteTmpl)
-			if err != nil {
-				return fmt.Errorf("failed to resolve links or children delete client template for link %v: %v",
-					linkInfo.fieldName, err)
+			if !parser.IsLinkField(link) { // do not resolve softlinks for delete
+				resolvedLinksDelete, err = renderLinkResolveTemplate(vars, resolveNamedLinkDeleteTmpl)
+				if err != nil {
+					return fmt.Errorf("failed to resolve links or children delete client template for link %v: %v",
+						linkInfo.fieldName, err)
+				}
 			}
 		} else {
 			resolvedLinksGet, err = renderLinkResolveTemplate(vars, resolveLinkGetTmpl)
@@ -149,10 +152,12 @@ func resolveNode(baseImportName string, pkg parser.Package, baseGroupName, versi
 				return fmt.Errorf("failed to resolve links or children get client template for link %v: %v",
 					linkInfo.fieldName, err)
 			}
-			resolvedLinksDelete, err = renderLinkResolveTemplate(vars, resolveLinkDeleteTmpl)
-			if err != nil {
-				return fmt.Errorf("failed to resolve links or children delete client template for link %v: %v",
-					linkInfo.fieldName, err)
+			if !parser.IsLinkField(link) { // do not resolve softlinks for delete
+				resolvedLinksDelete, err = renderLinkResolveTemplate(vars, resolveLinkDeleteTmpl)
+				if err != nil {
+					return fmt.Errorf("failed to resolve links or children delete client template for link %v: %v",
+						linkInfo.fieldName, err)
+				}
 			}
 		}
 
