@@ -145,7 +145,7 @@ init_submodules:
 
 .PHONY: render_templates
 render_templates:
-	go run cmd/nexus-sdk/main.go -config-file example/nexus-sdk.yaml -dsl example/datamodel -crd-output example/output/_crd_base -log-level info
+	go run cmd/nexus-sdk/main.go -config-file example/nexus-sdk.yaml -dsl example/datamodel -crd-output example/output/_crd_base
 
 .PHONY: test_render_templates
 test_render_templates: render_templates
