@@ -6,11 +6,6 @@ import (
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/pkg/parser"
 )
 
-const (
-	baseGroupName = "tsm.tanzu.vmware.com"
-	crdModulePath = "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/crd_generated/"
-)
-
 var _ = Describe("Node parser tests", func() {
 	var (
 		//err error
