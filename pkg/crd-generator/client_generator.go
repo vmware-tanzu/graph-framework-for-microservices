@@ -113,8 +113,6 @@ func resolveNode(baseImportName string, pkg parser.Package, baseGroupName, versi
 	clientGroupVars.GroupBaseImport = baseImportName + "." + baseNodeName
 	clientGroupVars.GroupResourceType = groupResourceType
 	clientGroupVars.GroupResourceNameTitle = groupResourceNameTitle
-	clientGroupVars.ResolveLinksGet = ""
-	clientGroupVars.ResolveLinksDelete = ""
 
 	// TODO support resolution of links which are not nexus nodes https://jira.eng.vmware.com/browse/NPT-112
 	children := parser.GetChildFields(node)
@@ -128,10 +126,11 @@ func resolveNode(baseImportName string, pkg parser.Package, baseGroupName, versi
 		linkInfo := getFieldInfo(pkg, link)
 		var vars resolveLinkVars
 		vars.LinkFieldName = linkInfo.fieldName
+		vars.BaseImport = baseImportName
 		vars.LinkGroupTypeName = util.GetGroupTypeName(linkInfo.pkgName, baseGroupName, version)
 		vars.LinkGroupResourceNameTitle = util.GetGroupResourceNameTitle(linkInfo.fieldType)
 
-		var resolvedLinksGet, resolvedLinksDelete string
+		var resolvedLinksGet, resolvedLinksDelete, resolvedChildCreate, resolvedLinkCreate string
 		var err error
 		if parser.IsMapField(link) {
 			resolvedLinksGet, err = renderLinkResolveTemplate(vars, resolveNamedLinkGetTmpl)
@@ -143,6 +142,17 @@ func resolveNode(baseImportName string, pkg parser.Package, baseGroupName, versi
 				resolvedLinksDelete, err = renderLinkResolveTemplate(vars, resolveNamedLinkDeleteTmpl)
 				if err != nil {
 					return fmt.Errorf("failed to resolve links or children delete client template for link %v: %v",
+						linkInfo.fieldName, err)
+				}
+				resolvedChildCreate, err = renderLinkResolveTemplate(vars, resolveChildCreateTmpl)
+				if err != nil {
+					return fmt.Errorf("failed to resolve children create client template for link %v: %v",
+						linkInfo.fieldName, err)
+				}
+			} else {
+				resolvedLinkCreate, err = renderLinkResolveTemplate(vars, resolveNamedLinkCreateTmpl)
+				if err != nil {
+					return fmt.Errorf("failed to resolve links create client template for link %v: %v",
 						linkInfo.fieldName, err)
 				}
 			}
@@ -158,11 +168,24 @@ func resolveNode(baseImportName string, pkg parser.Package, baseGroupName, versi
 					return fmt.Errorf("failed to resolve links or children delete client template for link %v: %v",
 						linkInfo.fieldName, err)
 				}
+				resolvedChildCreate, err = renderLinkResolveTemplate(vars, resolveChildCreateTmpl)
+				if err != nil {
+					return fmt.Errorf("failed to resolve children create client template for link %v: %v",
+						linkInfo.fieldName, err)
+				}
+			} else {
+				resolvedLinkCreate, err = renderLinkResolveTemplate(vars, resolveLinkCreateTmpl)
+				if err != nil {
+					return fmt.Errorf("failed to resolve links create client template for link %v: %v",
+						linkInfo.fieldName, err)
+				}
 			}
 		}
 
 		clientGroupVars.ResolveLinksGet += resolvedLinksGet
 		clientGroupVars.ResolveLinksDelete += resolvedLinksDelete
+		clientGroupVars.ResolveChildCreate += resolvedChildCreate
+		clientGroupVars.ResolveLinksCreate += resolvedLinkCreate
 	}
 	return nil
 }
@@ -208,15 +231,16 @@ type resolveLinkVars struct {
 	LinkFieldName              string
 	LinkGroupTypeName          string
 	LinkGroupResourceNameTitle string
+	BaseImport                 string
 }
 
 var resolveLinkGetTmpl = `
-	if result.Spec.{{.LinkFieldName}}Gvk.Name != "" {
+	if result.Spec.{{.LinkFieldName}}Gvk != nil {
 		field, err := obj.client.{{.LinkGroupTypeName}}().{{.LinkGroupResourceNameTitle}}().GetByName(ctx, result.Spec.{{.LinkFieldName}}Gvk.Name)
 		if err != nil {
 			return nil, err
 		}
-		result.Spec.{{.LinkFieldName}} = *field
+		result.Spec.{{.LinkFieldName}} = field
 	}
 `
 
@@ -231,7 +255,7 @@ var resolveNamedLinkGetTmpl = `
 `
 
 var resolveLinkDeleteTmpl = `
-	if result.Spec.{{.LinkFieldName}}Gvk.Name != "" {
+	if result.Spec.{{.LinkFieldName}}Gvk != nil {
 		 err := obj.client.{{.LinkGroupTypeName}}().{{.LinkGroupResourceNameTitle}}().DeleteByName(ctx, result.Spec.{{.LinkFieldName}}Gvk.Name)
 		if err != nil {
 			return err
@@ -244,6 +268,25 @@ var resolveNamedLinkDeleteTmpl = `
 		err := obj.client.{{.LinkGroupTypeName}}().{{.LinkGroupResourceNameTitle}}().DeleteByName(ctx, v.Name)
 		if err != nil {
 			return err
+		}
+	}
+`
+
+var resolveChildCreateTmpl = `
+	objToCreate.Spec.{{.LinkFieldName}} = nil
+	objToCreate.Spec.{{.LinkFieldName}}Gvk = nil
+`
+
+var resolveLinkCreateTmpl = `
+	if objToCreate.Spec.{{.LinkFieldName}} != nil {
+		objToCreate.Spec.{{.LinkFieldName}}Gvk.Name = objToCreate.Spec.{{.LinkFieldName}}.GetName()
+	}
+`
+
+var resolveNamedLinkCreateTmpl = `
+	for k, v := range objToCreate.Spec.{{.LinkFieldName}} {
+		objToCreate.Spec.{{.LinkFieldName}}Gvk[k] = {{.BaseImport}}.Link{
+			Name: v.GetName(),
 		}
 	}
 `
@@ -341,6 +384,39 @@ func (obj *{{.GroupResourceType}}) DeleteByName(ctx context.Context, name string
 	}
 	return
 }
+
+func (obj *{{.GroupResourceType}}) Create(ctx context.Context, objToCreate *{{.GroupBaseImport}}, labels map[string]string) (result *{{.GroupBaseImport}}, err error) {
+	hashedName := helper.GetHashedName(objToCreate.GetName(), labels)
+	objToCreate.Name = hashedName
+
+	{{.ResolveChildCreate}}
+
+	{{.ResolveLinksCreate}}
+
+	result, err = obj.client.baseClient.{{.GroupTypeName}}().{{.GroupResourceNameTitle}}().Create(ctx, objToCreate, metav1.CreateOptions{})
+	if err != nil {
+		return nil, err
+	}
+
+	// TODO Update parent object with this child info
+
+	return
+}
+
+func (obj *{{.GroupResourceType}}) CreateByName(ctx context.Context, objToCreate *{{.GroupBaseImport}}, labels map[string]string) (result *{{.GroupBaseImport}}, err error) {
+	{{.ResolveChildCreate}}
+
+	{{.ResolveLinksCreate}}
+
+	result, err = obj.client.baseClient.{{.GroupTypeName}}().{{.GroupResourceNameTitle}}().Create(ctx, objToCreate, metav1.CreateOptions{})
+	if err != nil {
+		return nil, err
+	}
+
+	// TODO Update parent object with this child info
+
+	return
+}
 `
 
 var getForDeleteTmpl = `
@@ -361,6 +437,8 @@ type apiGroupsClientVars struct {
 	apiGroupsVars
 	ResolveLinksGet        string
 	ResolveLinksDelete     string
+	ResolveChildCreate     string
+	ResolveLinksCreate     string
 	GetForDeleteByName     string
 	GetForDelete           string
 	HasChildren            bool

@@ -188,12 +188,12 @@ func (obj *rootRootTsmV1) Get(ctx context.Context, name string, labels map[strin
 		return nil, err
 	}
 
-	if result.Spec.ConfigGvk.Name != "" {
+	if result.Spec.ConfigGvk != nil {
 		field, err := obj.client.ConfigTsmV1().Configs().GetByName(ctx, result.Spec.ConfigGvk.Name)
 		if err != nil {
 			return nil, err
 		}
-		result.Spec.Config = *field
+		result.Spec.Config = field
 	}
 
 	return
@@ -205,12 +205,12 @@ func (obj *rootRootTsmV1) GetByName(ctx context.Context, name string) (result *b
 		return nil, err
 	}
 
-	if result.Spec.ConfigGvk.Name != "" {
+	if result.Spec.ConfigGvk != nil {
 		field, err := obj.client.ConfigTsmV1().Configs().GetByName(ctx, result.Spec.ConfigGvk.Name)
 		if err != nil {
 			return nil, err
 		}
-		result.Spec.Config = *field
+		result.Spec.Config = field
 	}
 
 	return
@@ -224,7 +224,7 @@ func (obj *rootRootTsmV1) Delete(ctx context.Context, name string, labels map[st
 		return err
 	}
 
-	if result.Spec.ConfigGvk.Name != "" {
+	if result.Spec.ConfigGvk != nil {
 		err := obj.client.ConfigTsmV1().Configs().DeleteByName(ctx, result.Spec.ConfigGvk.Name)
 		if err != nil {
 			return err
@@ -245,7 +245,7 @@ func (obj *rootRootTsmV1) DeleteByName(ctx context.Context, name string) (err er
 		return err
 	}
 
-	if result.Spec.ConfigGvk.Name != "" {
+	if result.Spec.ConfigGvk != nil {
 		err := obj.client.ConfigTsmV1().Configs().DeleteByName(ctx, result.Spec.ConfigGvk.Name)
 		if err != nil {
 			return err
@@ -259,6 +259,38 @@ func (obj *rootRootTsmV1) DeleteByName(ctx context.Context, name string) (err er
 	return
 }
 
+func (obj *rootRootTsmV1) Create(ctx context.Context, objToCreate *baseroottsmtanzuvmwarecomv1.Root, labels map[string]string) (result *baseroottsmtanzuvmwarecomv1.Root, err error) {
+	hashedName := helper.GetHashedName(objToCreate.GetName(), labels)
+	objToCreate.Name = hashedName
+
+	objToCreate.Spec.Config = nil
+	objToCreate.Spec.ConfigGvk = nil
+
+	result, err = obj.client.baseClient.RootTsmV1().Roots().Create(ctx, objToCreate, metav1.CreateOptions{})
+	if err != nil {
+		return nil, err
+	}
+
+	// TODO Update parent object with this child info
+
+	return
+}
+
+func (obj *rootRootTsmV1) CreateByName(ctx context.Context, objToCreate *baseroottsmtanzuvmwarecomv1.Root, labels map[string]string) (result *baseroottsmtanzuvmwarecomv1.Root, err error) {
+
+	objToCreate.Spec.Config = nil
+	objToCreate.Spec.ConfigGvk = nil
+
+	result, err = obj.client.baseClient.RootTsmV1().Roots().Create(ctx, objToCreate, metav1.CreateOptions{})
+	if err != nil {
+		return nil, err
+	}
+
+	// TODO Update parent object with this child info
+
+	return
+}
+
 func (obj *configConfigTsmV1) Get(ctx context.Context, name string, labels map[string]string) (result *baseconfigtsmtanzuvmwarecomv1.Config, err error) {
 	hashedName := helper.GetHashedName(name, labels)
 	result, err = obj.client.baseClient.ConfigTsmV1().Configs().Get(ctx, hashedName, metav1.GetOptions{})
@@ -266,12 +298,12 @@ func (obj *configConfigTsmV1) Get(ctx context.Context, name string, labels map[s
 		return nil, err
 	}
 
-	if result.Spec.GNSGvk.Name != "" {
+	if result.Spec.GNSGvk != nil {
 		field, err := obj.client.GnsTsmV1().Gnses().GetByName(ctx, result.Spec.GNSGvk.Name)
 		if err != nil {
 			return nil, err
 		}
-		result.Spec.GNS = *field
+		result.Spec.GNS = field
 	}
 
 	return
@@ -283,12 +315,12 @@ func (obj *configConfigTsmV1) GetByName(ctx context.Context, name string) (resul
 		return nil, err
 	}
 
-	if result.Spec.GNSGvk.Name != "" {
+	if result.Spec.GNSGvk != nil {
 		field, err := obj.client.GnsTsmV1().Gnses().GetByName(ctx, result.Spec.GNSGvk.Name)
 		if err != nil {
 			return nil, err
 		}
-		result.Spec.GNS = *field
+		result.Spec.GNS = field
 	}
 
 	return
@@ -302,7 +334,7 @@ func (obj *configConfigTsmV1) Delete(ctx context.Context, name string, labels ma
 		return err
 	}
 
-	if result.Spec.GNSGvk.Name != "" {
+	if result.Spec.GNSGvk != nil {
 		err := obj.client.GnsTsmV1().Gnses().DeleteByName(ctx, result.Spec.GNSGvk.Name)
 		if err != nil {
 			return err
@@ -323,7 +355,7 @@ func (obj *configConfigTsmV1) DeleteByName(ctx context.Context, name string) (er
 		return err
 	}
 
-	if result.Spec.GNSGvk.Name != "" {
+	if result.Spec.GNSGvk != nil {
 		err := obj.client.GnsTsmV1().Gnses().DeleteByName(ctx, result.Spec.GNSGvk.Name)
 		if err != nil {
 			return err
@@ -334,6 +366,38 @@ func (obj *configConfigTsmV1) DeleteByName(ctx context.Context, name string) (er
 	if err != nil {
 		return err
 	}
+	return
+}
+
+func (obj *configConfigTsmV1) Create(ctx context.Context, objToCreate *baseconfigtsmtanzuvmwarecomv1.Config, labels map[string]string) (result *baseconfigtsmtanzuvmwarecomv1.Config, err error) {
+	hashedName := helper.GetHashedName(objToCreate.GetName(), labels)
+	objToCreate.Name = hashedName
+
+	objToCreate.Spec.GNS = nil
+	objToCreate.Spec.GNSGvk = nil
+
+	result, err = obj.client.baseClient.ConfigTsmV1().Configs().Create(ctx, objToCreate, metav1.CreateOptions{})
+	if err != nil {
+		return nil, err
+	}
+
+	// TODO Update parent object with this child info
+
+	return
+}
+
+func (obj *configConfigTsmV1) CreateByName(ctx context.Context, objToCreate *baseconfigtsmtanzuvmwarecomv1.Config, labels map[string]string) (result *baseconfigtsmtanzuvmwarecomv1.Config, err error) {
+
+	objToCreate.Spec.GNS = nil
+	objToCreate.Spec.GNSGvk = nil
+
+	result, err = obj.client.baseClient.ConfigTsmV1().Configs().Create(ctx, objToCreate, metav1.CreateOptions{})
+	if err != nil {
+		return nil, err
+	}
+
+	// TODO Update parent object with this child info
+
 	return
 }
 
@@ -352,20 +416,20 @@ func (obj *gnsGnsTsmV1) Get(ctx context.Context, name string, labels map[string]
 		result.Spec.GnsServiceGroups[k] = *obj
 	}
 
-	if result.Spec.GnsAccessControlPolicyGvk.Name != "" {
+	if result.Spec.GnsAccessControlPolicyGvk != nil {
 		field, err := obj.client.PolicyTsmV1().AccessControlPolicies().GetByName(ctx, result.Spec.GnsAccessControlPolicyGvk.Name)
 		if err != nil {
 			return nil, err
 		}
-		result.Spec.GnsAccessControlPolicy = *field
+		result.Spec.GnsAccessControlPolicy = field
 	}
 
-	if result.Spec.DnsGvk.Name != "" {
+	if result.Spec.DnsGvk != nil {
 		field, err := obj.client.GnsTsmV1().Dnses().GetByName(ctx, result.Spec.DnsGvk.Name)
 		if err != nil {
 			return nil, err
 		}
-		result.Spec.Dns = *field
+		result.Spec.Dns = field
 	}
 
 	return
@@ -385,20 +449,20 @@ func (obj *gnsGnsTsmV1) GetByName(ctx context.Context, name string) (result *bas
 		result.Spec.GnsServiceGroups[k] = *obj
 	}
 
-	if result.Spec.GnsAccessControlPolicyGvk.Name != "" {
+	if result.Spec.GnsAccessControlPolicyGvk != nil {
 		field, err := obj.client.PolicyTsmV1().AccessControlPolicies().GetByName(ctx, result.Spec.GnsAccessControlPolicyGvk.Name)
 		if err != nil {
 			return nil, err
 		}
-		result.Spec.GnsAccessControlPolicy = *field
+		result.Spec.GnsAccessControlPolicy = field
 	}
 
-	if result.Spec.DnsGvk.Name != "" {
+	if result.Spec.DnsGvk != nil {
 		field, err := obj.client.GnsTsmV1().Dnses().GetByName(ctx, result.Spec.DnsGvk.Name)
 		if err != nil {
 			return nil, err
 		}
-		result.Spec.Dns = *field
+		result.Spec.Dns = field
 	}
 
 	return
@@ -419,7 +483,7 @@ func (obj *gnsGnsTsmV1) Delete(ctx context.Context, name string, labels map[stri
 		}
 	}
 
-	if result.Spec.GnsAccessControlPolicyGvk.Name != "" {
+	if result.Spec.GnsAccessControlPolicyGvk != nil {
 		err := obj.client.PolicyTsmV1().AccessControlPolicies().DeleteByName(ctx, result.Spec.GnsAccessControlPolicyGvk.Name)
 		if err != nil {
 			return err
@@ -447,7 +511,7 @@ func (obj *gnsGnsTsmV1) DeleteByName(ctx context.Context, name string) (err erro
 		}
 	}
 
-	if result.Spec.GnsAccessControlPolicyGvk.Name != "" {
+	if result.Spec.GnsAccessControlPolicyGvk != nil {
 		err := obj.client.PolicyTsmV1().AccessControlPolicies().DeleteByName(ctx, result.Spec.GnsAccessControlPolicyGvk.Name)
 		if err != nil {
 			return err
@@ -458,6 +522,52 @@ func (obj *gnsGnsTsmV1) DeleteByName(ctx context.Context, name string) (err erro
 	if err != nil {
 		return err
 	}
+	return
+}
+
+func (obj *gnsGnsTsmV1) Create(ctx context.Context, objToCreate *basegnstsmtanzuvmwarecomv1.Gns, labels map[string]string) (result *basegnstsmtanzuvmwarecomv1.Gns, err error) {
+	hashedName := helper.GetHashedName(objToCreate.GetName(), labels)
+	objToCreate.Name = hashedName
+
+	objToCreate.Spec.GnsServiceGroups = nil
+	objToCreate.Spec.GnsServiceGroupsGvk = nil
+
+	objToCreate.Spec.GnsAccessControlPolicy = nil
+	objToCreate.Spec.GnsAccessControlPolicyGvk = nil
+
+	if objToCreate.Spec.Dns != nil {
+		objToCreate.Spec.DnsGvk.Name = objToCreate.Spec.Dns.GetName()
+	}
+
+	result, err = obj.client.baseClient.GnsTsmV1().Gnses().Create(ctx, objToCreate, metav1.CreateOptions{})
+	if err != nil {
+		return nil, err
+	}
+
+	// TODO Update parent object with this child info
+
+	return
+}
+
+func (obj *gnsGnsTsmV1) CreateByName(ctx context.Context, objToCreate *basegnstsmtanzuvmwarecomv1.Gns, labels map[string]string) (result *basegnstsmtanzuvmwarecomv1.Gns, err error) {
+
+	objToCreate.Spec.GnsServiceGroups = nil
+	objToCreate.Spec.GnsServiceGroupsGvk = nil
+
+	objToCreate.Spec.GnsAccessControlPolicy = nil
+	objToCreate.Spec.GnsAccessControlPolicyGvk = nil
+
+	if objToCreate.Spec.Dns != nil {
+		objToCreate.Spec.DnsGvk.Name = objToCreate.Spec.Dns.GetName()
+	}
+
+	result, err = obj.client.baseClient.GnsTsmV1().Gnses().Create(ctx, objToCreate, metav1.CreateOptions{})
+	if err != nil {
+		return nil, err
+	}
+
+	// TODO Update parent object with this child info
+
 	return
 }
 
@@ -499,6 +609,32 @@ func (obj *dnsGnsTsmV1) DeleteByName(ctx context.Context, name string) (err erro
 	return
 }
 
+func (obj *dnsGnsTsmV1) Create(ctx context.Context, objToCreate *basegnstsmtanzuvmwarecomv1.Dns, labels map[string]string) (result *basegnstsmtanzuvmwarecomv1.Dns, err error) {
+	hashedName := helper.GetHashedName(objToCreate.GetName(), labels)
+	objToCreate.Name = hashedName
+
+	result, err = obj.client.baseClient.GnsTsmV1().Dnses().Create(ctx, objToCreate, metav1.CreateOptions{})
+	if err != nil {
+		return nil, err
+	}
+
+	// TODO Update parent object with this child info
+
+	return
+}
+
+func (obj *dnsGnsTsmV1) CreateByName(ctx context.Context, objToCreate *basegnstsmtanzuvmwarecomv1.Dns, labels map[string]string) (result *basegnstsmtanzuvmwarecomv1.Dns, err error) {
+
+	result, err = obj.client.baseClient.GnsTsmV1().Dnses().Create(ctx, objToCreate, metav1.CreateOptions{})
+	if err != nil {
+		return nil, err
+	}
+
+	// TODO Update parent object with this child info
+
+	return
+}
+
 func (obj *svcgroupServicegroupTsmV1) Get(ctx context.Context, name string, labels map[string]string) (result *baseservicegrouptsmtanzuvmwarecomv1.SvcGroup, err error) {
 	hashedName := helper.GetHashedName(name, labels)
 	result, err = obj.client.baseClient.ServicegroupTsmV1().SvcGroups().Get(ctx, hashedName, metav1.GetOptions{})
@@ -534,6 +670,32 @@ func (obj *svcgroupServicegroupTsmV1) DeleteByName(ctx context.Context, name str
 	if err != nil {
 		return err
 	}
+	return
+}
+
+func (obj *svcgroupServicegroupTsmV1) Create(ctx context.Context, objToCreate *baseservicegrouptsmtanzuvmwarecomv1.SvcGroup, labels map[string]string) (result *baseservicegrouptsmtanzuvmwarecomv1.SvcGroup, err error) {
+	hashedName := helper.GetHashedName(objToCreate.GetName(), labels)
+	objToCreate.Name = hashedName
+
+	result, err = obj.client.baseClient.ServicegroupTsmV1().SvcGroups().Create(ctx, objToCreate, metav1.CreateOptions{})
+	if err != nil {
+		return nil, err
+	}
+
+	// TODO Update parent object with this child info
+
+	return
+}
+
+func (obj *svcgroupServicegroupTsmV1) CreateByName(ctx context.Context, objToCreate *baseservicegrouptsmtanzuvmwarecomv1.SvcGroup, labels map[string]string) (result *baseservicegrouptsmtanzuvmwarecomv1.SvcGroup, err error) {
+
+	result, err = obj.client.baseClient.ServicegroupTsmV1().SvcGroups().Create(ctx, objToCreate, metav1.CreateOptions{})
+	if err != nil {
+		return nil, err
+	}
+
+	// TODO Update parent object with this child info
+
 	return
 }
 
@@ -615,6 +777,38 @@ func (obj *accesscontrolpolicyPolicyTsmV1) DeleteByName(ctx context.Context, nam
 	return
 }
 
+func (obj *accesscontrolpolicyPolicyTsmV1) Create(ctx context.Context, objToCreate *basepolicytsmtanzuvmwarecomv1.AccessControlPolicy, labels map[string]string) (result *basepolicytsmtanzuvmwarecomv1.AccessControlPolicy, err error) {
+	hashedName := helper.GetHashedName(objToCreate.GetName(), labels)
+	objToCreate.Name = hashedName
+
+	objToCreate.Spec.PolicyConfigs = nil
+	objToCreate.Spec.PolicyConfigsGvk = nil
+
+	result, err = obj.client.baseClient.PolicyTsmV1().AccessControlPolicies().Create(ctx, objToCreate, metav1.CreateOptions{})
+	if err != nil {
+		return nil, err
+	}
+
+	// TODO Update parent object with this child info
+
+	return
+}
+
+func (obj *accesscontrolpolicyPolicyTsmV1) CreateByName(ctx context.Context, objToCreate *basepolicytsmtanzuvmwarecomv1.AccessControlPolicy, labels map[string]string) (result *basepolicytsmtanzuvmwarecomv1.AccessControlPolicy, err error) {
+
+	objToCreate.Spec.PolicyConfigs = nil
+	objToCreate.Spec.PolicyConfigsGvk = nil
+
+	result, err = obj.client.baseClient.PolicyTsmV1().AccessControlPolicies().Create(ctx, objToCreate, metav1.CreateOptions{})
+	if err != nil {
+		return nil, err
+	}
+
+	// TODO Update parent object with this child info
+
+	return
+}
+
 func (obj *acpconfigPolicyTsmV1) Get(ctx context.Context, name string, labels map[string]string) (result *basepolicytsmtanzuvmwarecomv1.ACPConfig, err error) {
 	hashedName := helper.GetHashedName(name, labels)
 	result, err = obj.client.baseClient.PolicyTsmV1().ACPConfigs().Get(ctx, hashedName, metav1.GetOptions{})
@@ -682,5 +876,55 @@ func (obj *acpconfigPolicyTsmV1) DeleteByName(ctx context.Context, name string) 
 	if err != nil {
 		return err
 	}
+	return
+}
+
+func (obj *acpconfigPolicyTsmV1) Create(ctx context.Context, objToCreate *basepolicytsmtanzuvmwarecomv1.ACPConfig, labels map[string]string) (result *basepolicytsmtanzuvmwarecomv1.ACPConfig, err error) {
+	hashedName := helper.GetHashedName(objToCreate.GetName(), labels)
+	objToCreate.Name = hashedName
+
+	for k, v := range objToCreate.Spec.DestSvcGroups {
+		objToCreate.Spec.DestSvcGroupsGvk[k] = basepolicytsmtanzuvmwarecomv1.Link{
+			Name: v.GetName(),
+		}
+	}
+
+	for k, v := range objToCreate.Spec.SourceSvcGroups {
+		objToCreate.Spec.SourceSvcGroupsGvk[k] = basepolicytsmtanzuvmwarecomv1.Link{
+			Name: v.GetName(),
+		}
+	}
+
+	result, err = obj.client.baseClient.PolicyTsmV1().ACPConfigs().Create(ctx, objToCreate, metav1.CreateOptions{})
+	if err != nil {
+		return nil, err
+	}
+
+	// TODO Update parent object with this child info
+
+	return
+}
+
+func (obj *acpconfigPolicyTsmV1) CreateByName(ctx context.Context, objToCreate *basepolicytsmtanzuvmwarecomv1.ACPConfig, labels map[string]string) (result *basepolicytsmtanzuvmwarecomv1.ACPConfig, err error) {
+
+	for k, v := range objToCreate.Spec.DestSvcGroups {
+		objToCreate.Spec.DestSvcGroupsGvk[k] = basepolicytsmtanzuvmwarecomv1.Link{
+			Name: v.GetName(),
+		}
+	}
+
+	for k, v := range objToCreate.Spec.SourceSvcGroups {
+		objToCreate.Spec.SourceSvcGroupsGvk[k] = basepolicytsmtanzuvmwarecomv1.Link{
+			Name: v.GetName(),
+		}
+	}
+
+	result, err = obj.client.baseClient.PolicyTsmV1().ACPConfigs().Create(ctx, objToCreate, metav1.CreateOptions{})
+	if err != nil {
+		return nil, err
+	}
+
+	// TODO Update parent object with this child info
+
 	return
 }

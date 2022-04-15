@@ -151,7 +151,7 @@ type {{.Name}}Spec struct {
 		if parser.IsMapField(child) {
 			specDef.Fields += "\t" + name + " map[string]Child"
 		} else {
-			specDef.Fields += "\t" + name + " Child"
+			specDef.Fields += "\t" + name + " *Child"
 		}
 		specDef.Fields += " " + getTag(child, name, true) + "\n"
 	}
@@ -167,7 +167,7 @@ type {{.Name}}Spec struct {
 		if parser.IsMapField(link) {
 			specDef.Fields += "\t" + name + " map[string]Link"
 		} else {
-			specDef.Fields += "\t" + name + " Link"
+			specDef.Fields += "\t" + name + " *Link"
 		}
 		specDef.Fields += " " + getTag(link, name, true) + "\n"
 	}
@@ -217,6 +217,9 @@ func generateTypeString(field *ast.Field) string {
 	if len(typeString) > 1 {
 		importType := fmt.Sprintf("%s%sv1", typeString[0], config.ConfigInstance.GroupName)
 		newTypeString = strings.ToLower(util.RemoveSpecialChars(importType)) + "." + typeString[1]
+	}
+	if !parser.IsMapField(field) && string(newTypeString[0]) != "*" {
+		newTypeString = "*" + newTypeString
 	}
 	return newTypeString
 }

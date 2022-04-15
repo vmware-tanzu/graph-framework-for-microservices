@@ -47,10 +47,10 @@ type GnsSpec struct {
 	Description               Description                                         `json:"description" yaml:"description"`
 	GnsServiceGroups          map[string]servicegrouptsmtanzuvmwarecomv1.SvcGroup `json:"-" yaml:"-"`
 	GnsServiceGroupsGvk       map[string]Child                                    `json:"gnsServiceGroupsGvk,omitempty" yaml:"gnsServiceGroupsGvk,omitempty" nexus:"child"`
-	GnsAccessControlPolicy    policytsmtanzuvmwarecomv1.AccessControlPolicy       `json:"-" yaml:"-"`
-	GnsAccessControlPolicyGvk Child                                               `json:"gnsAccessControlPolicyGvk,omitempty" yaml:"gnsAccessControlPolicyGvk,omitempty" nexus:"child"`
-	Dns                       Dns                                                 `json:"-" yaml:"-"`
-	DnsGvk                    Link                                                `json:"dnsGvk,omitempty" yaml:"dnsGvk,omitempty" nexus:"link"`
+	GnsAccessControlPolicy    *policytsmtanzuvmwarecomv1.AccessControlPolicy      `json:"-" yaml:"-"`
+	GnsAccessControlPolicyGvk *Child                                              `json:"gnsAccessControlPolicyGvk,omitempty" yaml:"gnsAccessControlPolicyGvk,omitempty" nexus:"child"`
+	Dns                       *Dns                                                `json:"-" yaml:"-"`
+	DnsGvk                    *Link                                               `json:"dnsGvk,omitempty" yaml:"dnsGvk,omitempty" nexus:"link"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
