@@ -21,7 +21,7 @@ define run_in_container
   docker run \
   --volume $(realpath .):/go/src/gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/ \
   --workdir ${PKG_NAME} \
-  "${BUILDER_NAME}:${BUILDER_TAG}" ${1}
+  "${BUILDER_NAME}:${BUILDER_TAG}" /bin/bash -c "${1}"
 endef
 else
 define run_in_container
@@ -29,7 +29,7 @@ define run_in_container
  --volumes-from ${CONTAINER_ID} \
  --volume ~/.ssh:/root/.ssh \
  --workdir ${PKG_NAME} \
- "${BUILDER_NAME}:${BUILDER_TAG}" ${1}
+ "${BUILDER_NAME}:${BUILDER_TAG}" /bin/bash -c "${1}"
 endef
 endif
 
@@ -94,6 +94,8 @@ test_in_container: ${BUILDER_NAME}\:${BUILDER_TAG}.image.exists
 
 .PHONY: generate_code
 generate_code:
+	rm -rf _generated
+	cp -R generated_base_structure _generated
 	CRD_MODULE_PATH=${CRD_MODULE_PATH} go run cmd/nexus-sdk/main.go -config-file ${CONFIG_FILE} -dsl ${DATAMODEL_PATH} -crd-output _generated
 	mv _generated/api_names.sh ./scripts/
 	./scripts/generate_k8s_api.sh
@@ -106,8 +108,9 @@ generate_code:
 test_generate_code_in_container: ${BUILDER_NAME}\:${BUILDER_TAG}.image.exists init_submodules
 	$(call run_in_container, make generate_code DATAMODEL_PATH=example/datamodel \
 	CONFIG_FILE=example/nexus-sdk.yaml \
-	CRD_MODULE_PATH="gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/_crd_generated/" \
-	GENERATED_OUTPUT_DIRECTORY=example/output/_crd_generated)
+	CRD_MODULE_PATH="gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/crd_generated/" \
+	GENERATED_OUTPUT_DIRECTORY=example/output/crd_generated && \
+	cd example/output/crd_generated && go mod tidy && go vet ./...)
 	@if [ -n "$$(git ls-files --modified --exclude-standard)" ]; then\
 		echo "The following changes should be committed:";\
 		git status;\

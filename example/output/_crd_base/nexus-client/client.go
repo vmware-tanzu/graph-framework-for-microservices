@@ -6,14 +6,14 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/rest"
 
-	baseClientset "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/_crd_generated/client/clientset/versioned"
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/_crd_generated/helper"
+	baseClientset "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/_generated/client/clientset/versioned"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/_generated/helper"
 
-	baseconfigtsmtanzuvmwarecomv1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/_crd_generated/apis/config.tsm.tanzu.vmware.com/v1"
-	basegnstsmtanzuvmwarecomv1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/_crd_generated/apis/gns.tsm.tanzu.vmware.com/v1"
-	basepolicytsmtanzuvmwarecomv1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/_crd_generated/apis/policy.tsm.tanzu.vmware.com/v1"
-	baseroottsmtanzuvmwarecomv1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/_crd_generated/apis/root.tsm.tanzu.vmware.com/v1"
-	baseservicegrouptsmtanzuvmwarecomv1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/_crd_generated/apis/servicegroup.tsm.tanzu.vmware.com/v1"
+	baseconfigtsmtanzuvmwarecomv1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/_generated/apis/config.tsm.tanzu.vmware.com/v1"
+	basegnstsmtanzuvmwarecomv1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/_generated/apis/gns.tsm.tanzu.vmware.com/v1"
+	basepolicytsmtanzuvmwarecomv1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/_generated/apis/policy.tsm.tanzu.vmware.com/v1"
+	baseroottsmtanzuvmwarecomv1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/_generated/apis/root.tsm.tanzu.vmware.com/v1"
+	baseservicegrouptsmtanzuvmwarecomv1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/_generated/apis/servicegroup.tsm.tanzu.vmware.com/v1"
 )
 
 type Clientset struct {
@@ -520,14 +520,6 @@ func (obj *svcgroupServicegroupTsmV1) Get(ctx context.Context, name string, labe
 		return nil, err
 	}
 
-	for k, v := range result.Spec.ServicesGvk {
-		obj, err := obj.client.V1TsmV1().Services().GetByName(ctx, v.Name)
-		if err != nil {
-			return nil, err
-		}
-		result.Spec.Services[k] = *obj
-	}
-
 	return
 }
 
@@ -537,31 +529,11 @@ func (obj *svcgroupServicegroupTsmV1) GetByName(ctx context.Context, name string
 		return nil, err
 	}
 
-	for k, v := range result.Spec.ServicesGvk {
-		obj, err := obj.client.V1TsmV1().Services().GetByName(ctx, v.Name)
-		if err != nil {
-			return nil, err
-		}
-		result.Spec.Services[k] = *obj
-	}
-
 	return
 }
 
 func (obj *svcgroupServicegroupTsmV1) Delete(ctx context.Context, name string, labels map[string]string) (err error) {
 	hashedName := helper.GetHashedName(name, labels)
-
-	result, err := obj.client.baseClient.ServicegroupTsmV1().SvcGroups().Get(ctx, hashedName, metav1.GetOptions{})
-	if err != nil {
-		return err
-	}
-
-	for _, v := range result.Spec.ServicesGvk {
-		err := obj.client.V1TsmV1().Services().DeleteByName(ctx, v.Name)
-		if err != nil {
-			return err
-		}
-	}
 
 	err = obj.client.baseClient.ServicegroupTsmV1().SvcGroups().Delete(ctx, hashedName, metav1.DeleteOptions{})
 	if err != nil {
@@ -571,18 +543,6 @@ func (obj *svcgroupServicegroupTsmV1) Delete(ctx context.Context, name string, l
 }
 
 func (obj *svcgroupServicegroupTsmV1) DeleteByName(ctx context.Context, name string) (err error) {
-
-	result, err := obj.client.baseClient.ServicegroupTsmV1().SvcGroups().Get(ctx, name, metav1.GetOptions{})
-	if err != nil {
-		return err
-	}
-
-	for _, v := range result.Spec.ServicesGvk {
-		err := obj.client.V1TsmV1().Services().DeleteByName(ctx, v.Name)
-		if err != nil {
-			return err
-		}
-	}
 
 	err = obj.client.baseClient.ServicegroupTsmV1().SvcGroups().Delete(ctx, name, metav1.DeleteOptions{})
 	if err != nil {
