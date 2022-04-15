@@ -40,8 +40,8 @@ func (c *Root) CRDName() string {
 
 // +k8s:openapi-gen=true
 type RootSpec struct {
-	Config    configtsmtanzuvmwarecomv1.Config `json:"-" yaml:"-"`
-	ConfigGvk Child                            `json:"configGvk,omitempty" yaml:"configGvk,omitempty" nexus:"child"`
+	Config    *configtsmtanzuvmwarecomv1.Config `json:"-" yaml:"-"`
+	ConfigGvk *Child                            `json:"configGvk,omitempty" yaml:"configGvk,omitempty" nexus:"child"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object

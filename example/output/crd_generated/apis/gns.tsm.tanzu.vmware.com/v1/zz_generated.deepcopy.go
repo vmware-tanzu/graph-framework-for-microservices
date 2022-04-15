@@ -22,6 +22,7 @@ limitations under the License.
 package v1
 
 import (
+	policytsmtanzuvmwarecomv1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/crd_generated/apis/policy.tsm.tanzu.vmware.com/v1"
 	servicegrouptsmtanzuvmwarecomv1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/crd_generated/apis/servicegroup.tsm.tanzu.vmware.com/v1"
 	runtime "k8s.io/apimachinery/pkg/runtime"
 )
@@ -196,10 +197,26 @@ func (in *GnsSpec) DeepCopyInto(out *GnsSpec) {
 			(*out)[key] = val
 		}
 	}
-	in.GnsAccessControlPolicy.DeepCopyInto(&out.GnsAccessControlPolicy)
-	out.GnsAccessControlPolicyGvk = in.GnsAccessControlPolicyGvk
-	in.Dns.DeepCopyInto(&out.Dns)
-	out.DnsGvk = in.DnsGvk
+	if in.GnsAccessControlPolicy != nil {
+		in, out := &in.GnsAccessControlPolicy, &out.GnsAccessControlPolicy
+		*out = new(policytsmtanzuvmwarecomv1.AccessControlPolicy)
+		(*in).DeepCopyInto(*out)
+	}
+	if in.GnsAccessControlPolicyGvk != nil {
+		in, out := &in.GnsAccessControlPolicyGvk, &out.GnsAccessControlPolicyGvk
+		*out = new(Child)
+		**out = **in
+	}
+	if in.Dns != nil {
+		in, out := &in.Dns, &out.Dns
+		*out = new(Dns)
+		(*in).DeepCopyInto(*out)
+	}
+	if in.DnsGvk != nil {
+		in, out := &in.DnsGvk, &out.DnsGvk
+		*out = new(Link)
+		**out = **in
+	}
 	return
 }
 

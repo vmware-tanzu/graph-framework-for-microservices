@@ -211,12 +211,12 @@ type resolveLinkVars struct {
 }
 
 var resolveLinkGetTmpl = `
-	if result.Spec.{{.LinkFieldName}}Gvk.Name != "" {
+	if result.Spec.{{.LinkFieldName}}Gvk != nil {
 		field, err := obj.client.{{.LinkGroupTypeName}}().{{.LinkGroupResourceNameTitle}}().GetByName(ctx, result.Spec.{{.LinkFieldName}}Gvk.Name)
 		if err != nil {
 			return nil, err
 		}
-		result.Spec.{{.LinkFieldName}} = *field
+		result.Spec.{{.LinkFieldName}} = field
 	}
 `
 
@@ -231,7 +231,7 @@ var resolveNamedLinkGetTmpl = `
 `
 
 var resolveLinkDeleteTmpl = `
-	if result.Spec.{{.LinkFieldName}}Gvk.Name != "" {
+	if result.Spec.{{.LinkFieldName}}Gvk != nil {
 		 err := obj.client.{{.LinkGroupTypeName}}().{{.LinkGroupResourceNameTitle}}().DeleteByName(ctx, result.Spec.{{.LinkFieldName}}Gvk.Name)
 		if err != nil {
 			return err

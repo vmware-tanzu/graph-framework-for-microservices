@@ -188,12 +188,12 @@ func (obj *rootRootTsmV1) Get(ctx context.Context, name string, labels map[strin
 		return nil, err
 	}
 
-	if result.Spec.ConfigGvk.Name != "" {
+	if result.Spec.ConfigGvk != nil {
 		field, err := obj.client.ConfigTsmV1().Configs().GetByName(ctx, result.Spec.ConfigGvk.Name)
 		if err != nil {
 			return nil, err
 		}
-		result.Spec.Config = *field
+		result.Spec.Config = field
 	}
 
 	return
@@ -205,12 +205,12 @@ func (obj *rootRootTsmV1) GetByName(ctx context.Context, name string) (result *b
 		return nil, err
 	}
 
-	if result.Spec.ConfigGvk.Name != "" {
+	if result.Spec.ConfigGvk != nil {
 		field, err := obj.client.ConfigTsmV1().Configs().GetByName(ctx, result.Spec.ConfigGvk.Name)
 		if err != nil {
 			return nil, err
 		}
-		result.Spec.Config = *field
+		result.Spec.Config = field
 	}
 
 	return
@@ -224,7 +224,7 @@ func (obj *rootRootTsmV1) Delete(ctx context.Context, name string, labels map[st
 		return err
 	}
 
-	if result.Spec.ConfigGvk.Name != "" {
+	if result.Spec.ConfigGvk != nil {
 		err := obj.client.ConfigTsmV1().Configs().DeleteByName(ctx, result.Spec.ConfigGvk.Name)
 		if err != nil {
 			return err
@@ -245,7 +245,7 @@ func (obj *rootRootTsmV1) DeleteByName(ctx context.Context, name string) (err er
 		return err
 	}
 
-	if result.Spec.ConfigGvk.Name != "" {
+	if result.Spec.ConfigGvk != nil {
 		err := obj.client.ConfigTsmV1().Configs().DeleteByName(ctx, result.Spec.ConfigGvk.Name)
 		if err != nil {
 			return err
@@ -266,12 +266,12 @@ func (obj *configConfigTsmV1) Get(ctx context.Context, name string, labels map[s
 		return nil, err
 	}
 
-	if result.Spec.GNSGvk.Name != "" {
+	if result.Spec.GNSGvk != nil {
 		field, err := obj.client.GnsTsmV1().Gnses().GetByName(ctx, result.Spec.GNSGvk.Name)
 		if err != nil {
 			return nil, err
 		}
-		result.Spec.GNS = *field
+		result.Spec.GNS = field
 	}
 
 	return
@@ -283,12 +283,12 @@ func (obj *configConfigTsmV1) GetByName(ctx context.Context, name string) (resul
 		return nil, err
 	}
 
-	if result.Spec.GNSGvk.Name != "" {
+	if result.Spec.GNSGvk != nil {
 		field, err := obj.client.GnsTsmV1().Gnses().GetByName(ctx, result.Spec.GNSGvk.Name)
 		if err != nil {
 			return nil, err
 		}
-		result.Spec.GNS = *field
+		result.Spec.GNS = field
 	}
 
 	return
@@ -302,7 +302,7 @@ func (obj *configConfigTsmV1) Delete(ctx context.Context, name string, labels ma
 		return err
 	}
 
-	if result.Spec.GNSGvk.Name != "" {
+	if result.Spec.GNSGvk != nil {
 		err := obj.client.GnsTsmV1().Gnses().DeleteByName(ctx, result.Spec.GNSGvk.Name)
 		if err != nil {
 			return err
@@ -323,7 +323,7 @@ func (obj *configConfigTsmV1) DeleteByName(ctx context.Context, name string) (er
 		return err
 	}
 
-	if result.Spec.GNSGvk.Name != "" {
+	if result.Spec.GNSGvk != nil {
 		err := obj.client.GnsTsmV1().Gnses().DeleteByName(ctx, result.Spec.GNSGvk.Name)
 		if err != nil {
 			return err
@@ -352,20 +352,20 @@ func (obj *gnsGnsTsmV1) Get(ctx context.Context, name string, labels map[string]
 		result.Spec.GnsServiceGroups[k] = *obj
 	}
 
-	if result.Spec.GnsAccessControlPolicyGvk.Name != "" {
+	if result.Spec.GnsAccessControlPolicyGvk != nil {
 		field, err := obj.client.PolicyTsmV1().AccessControlPolicies().GetByName(ctx, result.Spec.GnsAccessControlPolicyGvk.Name)
 		if err != nil {
 			return nil, err
 		}
-		result.Spec.GnsAccessControlPolicy = *field
+		result.Spec.GnsAccessControlPolicy = field
 	}
 
-	if result.Spec.DnsGvk.Name != "" {
+	if result.Spec.DnsGvk != nil {
 		field, err := obj.client.GnsTsmV1().Dnses().GetByName(ctx, result.Spec.DnsGvk.Name)
 		if err != nil {
 			return nil, err
 		}
-		result.Spec.Dns = *field
+		result.Spec.Dns = field
 	}
 
 	return
@@ -385,20 +385,20 @@ func (obj *gnsGnsTsmV1) GetByName(ctx context.Context, name string) (result *bas
 		result.Spec.GnsServiceGroups[k] = *obj
 	}
 
-	if result.Spec.GnsAccessControlPolicyGvk.Name != "" {
+	if result.Spec.GnsAccessControlPolicyGvk != nil {
 		field, err := obj.client.PolicyTsmV1().AccessControlPolicies().GetByName(ctx, result.Spec.GnsAccessControlPolicyGvk.Name)
 		if err != nil {
 			return nil, err
 		}
-		result.Spec.GnsAccessControlPolicy = *field
+		result.Spec.GnsAccessControlPolicy = field
 	}
 
-	if result.Spec.DnsGvk.Name != "" {
+	if result.Spec.DnsGvk != nil {
 		field, err := obj.client.GnsTsmV1().Dnses().GetByName(ctx, result.Spec.DnsGvk.Name)
 		if err != nil {
 			return nil, err
 		}
-		result.Spec.Dns = *field
+		result.Spec.Dns = field
 	}
 
 	return
@@ -419,7 +419,7 @@ func (obj *gnsGnsTsmV1) Delete(ctx context.Context, name string, labels map[stri
 		}
 	}
 
-	if result.Spec.GnsAccessControlPolicyGvk.Name != "" {
+	if result.Spec.GnsAccessControlPolicyGvk != nil {
 		err := obj.client.PolicyTsmV1().AccessControlPolicies().DeleteByName(ctx, result.Spec.GnsAccessControlPolicyGvk.Name)
 		if err != nil {
 			return err
@@ -447,7 +447,7 @@ func (obj *gnsGnsTsmV1) DeleteByName(ctx context.Context, name string) (err erro
 		}
 	}
 
-	if result.Spec.GnsAccessControlPolicyGvk.Name != "" {
+	if result.Spec.GnsAccessControlPolicyGvk != nil {
 		err := obj.client.PolicyTsmV1().AccessControlPolicies().DeleteByName(ctx, result.Spec.GnsAccessControlPolicyGvk.Name)
 		if err != nil {
 			return err
