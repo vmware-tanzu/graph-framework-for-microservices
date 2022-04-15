@@ -7,32 +7,21 @@ import (
 )
 
 var _ = Describe("Node config tests", func() {
-	//var (
-	//	//err error
-	//	pkg parser.Package
-	//	ok  bool
-	//)
+	var (
+		//err error
+		pkg parser.Package
+		ok  bool
+	)
 
 	BeforeEach(func() {
 		pkgs := parser.ParseDSLPkg(exampleDSLPath)
-		_, ok := pkgs["gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/datamodel"]
+		pkg, ok = pkgs["gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/datamodel//config/gns"]
 		Expect(ok).To(BeTrue())
 	})
 
-	//It("should parse root node config", func() {
-	//	cfg, err := parser.GetNexusNodeConfig(pkg, "Root")
-	//	Expect(err).NotTo(HaveOccurred())
-	//
-	//	cfgYaml, err := yaml.Marshal(*cfg)
-	//	Expect(err).NotTo(HaveOccurred())
-	//
-	//	expectedCfg := parser.NexusNodeConfig{
-	//		NexusRestAPIGen: "nexus-rest-api-gen: GnsRestAPISpec",
-	//	}
-	//
-	//	expectedCfgYaml, err := yaml.Marshal(expectedCfg)
-	//	Expect(err).NotTo(HaveOccurred())
-	//
-	//	Expect(string(cfgYaml)).To(Equal(string(expectedCfgYaml)))
-	//})
+	It("should parse gns node annotation", func() {
+		annotation, ok := parser.GetNexusRestAPIGenAnnotation(pkg, "Gns")
+		Expect(ok).To(BeTrue())
+		Expect(annotation).To(Equal("GNSRestAPISpec"))
+	})
 })
