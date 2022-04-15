@@ -24,8 +24,6 @@ import (
 	fakeconfigtsmv1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/crd_generated/client/clientset/versioned/typed/config.tsm.tanzu.vmware.com/v1/fake"
 	gnstsmv1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/crd_generated/client/clientset/versioned/typed/gns.tsm.tanzu.vmware.com/v1"
 	fakegnstsmv1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/crd_generated/client/clientset/versioned/typed/gns.tsm.tanzu.vmware.com/v1/fake"
-	nexustsmv1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/crd_generated/client/clientset/versioned/typed/nexus.tsm.tanzu.vmware.com/v1"
-	fakenexustsmv1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/crd_generated/client/clientset/versioned/typed/nexus.tsm.tanzu.vmware.com/v1/fake"
 	policytsmv1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/crd_generated/client/clientset/versioned/typed/policy.tsm.tanzu.vmware.com/v1"
 	fakepolicytsmv1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/crd_generated/client/clientset/versioned/typed/policy.tsm.tanzu.vmware.com/v1/fake"
 	roottsmv1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/crd_generated/client/clientset/versioned/typed/root.tsm.tanzu.vmware.com/v1"
@@ -97,11 +95,6 @@ func (c *Clientset) ConfigTsmV1() configtsmv1.ConfigTsmV1Interface {
 // GnsTsmV1 retrieves the GnsTsmV1Client
 func (c *Clientset) GnsTsmV1() gnstsmv1.GnsTsmV1Interface {
 	return &fakegnstsmv1.FakeGnsTsmV1{Fake: &c.Fake}
-}
-
-// NexusTsmV1 retrieves the NexusTsmV1Client
-func (c *Clientset) NexusTsmV1() nexustsmv1.NexusTsmV1Interface {
-	return &fakenexustsmv1.FakeNexusTsmV1{Fake: &c.Fake}
 }
 
 // PolicyTsmV1 retrieves the PolicyTsmV1Client

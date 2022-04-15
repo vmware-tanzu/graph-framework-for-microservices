@@ -4,6 +4,9 @@ import (
 	"go/format"
 	"io/ioutil"
 
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/pkg/parser/rest"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/nexus.git/nexus"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
@@ -32,6 +35,8 @@ var _ = Describe("Template renderers tests", func() {
 		pkg        parser.Package
 		parentsMap map[string]parser.NodeHelper
 		ok         bool
+		methods    map[string]nexus.HTTPMethodsResponses
+		codes      map[string]nexus.HTTPCodesResponse
 	)
 
 	BeforeEach(func() {
@@ -43,6 +48,7 @@ var _ = Describe("Template renderers tests", func() {
 		parentsMap = parser.CreateParentsMap(graph)
 		Expect(parentsMap).To(HaveLen(6))
 
+		methods, codes = rest.ParseResponses(pkgs)
 	})
 
 	It("should parse doc template", func() {
@@ -82,7 +88,7 @@ var _ = Describe("Template renderers tests", func() {
 	})
 
 	It("should parse base crd template", func() {
-		files, err := crdgenerator.RenderCRDBaseTemplate(baseGroupName, pkg, parentsMap)
+		files, err := crdgenerator.RenderCRDBaseTemplate(baseGroupName, pkg, parentsMap, methods, codes)
 		Expect(err).NotTo(HaveOccurred())
 		Expect(files).To(HaveLen(2))
 

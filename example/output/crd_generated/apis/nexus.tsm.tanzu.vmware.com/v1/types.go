@@ -27,3 +27,14 @@ type ID struct {
 type Node struct {
 	ID
 }
+
+// +k8s:openapi-gen=true
+type RestUris struct {
+	Uri     string   `json:"uri"`
+	Methods []string `json:"methods"`
+}
+
+// +k8s:openapi-gen=true
+type RestAPISpec struct {
+	Uris []RestUris `json:"uris"`
+}

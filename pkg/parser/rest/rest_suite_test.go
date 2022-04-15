@@ -1,4 +1,4 @@
-package parser_test
+package rest_test
 
 import (
 	"testing"
@@ -11,16 +11,16 @@ import (
 )
 
 const (
-	examplePath    = "../../example/"
+	examplePath    = "../../../example/"
 	exampleDSLPath = examplePath + "datamodel"
 	baseGroupName  = "tsm.tanzu.vmware.com"
 	crdModulePath  = "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/crd_generated/"
 )
 
-func TestParser(t *testing.T) {
+func TestParserRest(t *testing.T) {
 	log.StandardLogger().ExitFunc = nil
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "Parser Suite")
+	RunSpecs(t, "Parser Rest Suite")
 }
 
 func init() {
