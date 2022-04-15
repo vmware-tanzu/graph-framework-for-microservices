@@ -19,17 +19,19 @@ GENERATED_OUTPUT_DIRECTORY ?= generated
 ifeq ($(CONTAINER_ID),)
 define run_in_container
   docker run \
-  --volume $(realpath .):/go/src/gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/ \
+  --volume $(realpath .):${PKG_NAME} \
+  --volume ~/.ssh:/root/.ssh \
+  --network=host \
   --workdir ${PKG_NAME} \
-  "${BUILDER_NAME}:${BUILDER_TAG}" ${1}
+  "${BUILDER_NAME}:${BUILDER_TAG}" /bin/bash -c "make docker.gitlab_credentials && ${1}"
 endef
 else
 define run_in_container
  docker run \
  --volumes-from ${CONTAINER_ID} \
- --volume ~/.ssh:/root/.ssh \
  --workdir ${PKG_NAME} \
- "${BUILDER_NAME}:${BUILDER_TAG}" ${1}
+ --env CICD_TOKEN=${CICD_TOKEN} \
+ "${BUILDER_NAME}:${BUILDER_TAG}" /bin/bash -c "make docker.gitlab_credentials && ${1}"
 endef
 endif
 
@@ -140,7 +142,7 @@ init_submodules:
 
 .PHONY: render_templates
 render_templates:
-	go run cmd/nexus-sdk/main.go -config-file example/nexus-sdk.yaml -dsl example/datamodel -crd-output example/output/_crd_base
+	go run cmd/nexus-sdk/main.go -config-file example/nexus-sdk.yaml -dsl example/datamodel -crd-output example/output/_crd_base -log-level info
 
 .PHONY: test_render_templates
 test_render_templates: render_templates
@@ -150,3 +152,21 @@ test_render_templates: render_templates
     	git diff;\
     	return 1;\
     fi
+
+.PHONY: docker.gitlab_credentials
+docker.gitlab_credentials:
+	echo "Updating gitlab settings"
+	@if test -z $$CICD_TOKEN; then\
+		echo "Using ssh authentication" && \
+        git config --global --add url."git@gitlab.eng.vmware.com:".insteadOf "https://gitlab.eng.vmware.com/"; \
+	else \
+		echo "Using https authentication" && \
+        git config --global credential.helper store && \
+        echo -e  "https://gitlab-ci-token:${CICD_TOKEN}@gitlab.eng.vmware.com/" >> ~/.git-credentials && \
+        git config --global url."https://gitlab.eng.vmware.com/".insteadOf "git@gitlab.eng.vmware.com:"; \
+	fi
+
+
+.PHONY: test_generate_code_in_container
+test_hello: ${BUILDER_NAME}\:${BUILDER_TAG}.image.exists init_submodules
+	$(call run_in_container, go get -v)

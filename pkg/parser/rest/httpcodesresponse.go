@@ -1,12 +1,13 @@
 package rest
 
 import (
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/pkg/parser"
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/nexus.git/nexus"
 	"go/ast"
 	"go/types"
 	"net/http"
 	"strconv"
+
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/pkg/parser"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/nexus.git/nexus"
 )
 
 var httpStatusCodes = map[string]int{
@@ -132,13 +133,11 @@ func extractHttpCodesValue(value ast.Expr) nexus.HTTPResponse {
 					panic(err)
 				}
 				res.Description = descStrVal
-				break
 			case *ast.CallExpr:
 				if descVal.Fun.(*ast.SelectorExpr).Sel.String() == "StatusText" {
 					arg := descVal.Args[0].(*ast.SelectorExpr)
 					res.Description = http.StatusText(httpStatusCodes[arg.Sel.String()])
 				}
-				break
 			}
 		}
 	case *ast.SelectorExpr:

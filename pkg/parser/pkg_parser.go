@@ -29,6 +29,10 @@ func ParseDSLPkg(startPath string) Packages {
 				log.Fatalf("failed to parse directory %s: %v", path, err)
 			}
 			for _, v := range pkgs {
+				if v.Name == "nexus" {
+					continue
+				}
+
 				if SpecialCharsPresent(v.Name) {
 					log.Fatalf("Invalid package-name <%v>, special characters are not allowed. Please use only lowercase alphanumeric characters.", v.Name)
 				}

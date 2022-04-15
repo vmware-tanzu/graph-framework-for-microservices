@@ -5,13 +5,14 @@ import (
 	_ "embed"
 	"encoding/json"
 	"fmt"
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/pkg/parser/rest"
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/nexus.git/nexus"
 	"go/format"
 	"os"
 	"sort"
 	"strings"
 	"text/template"
+
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/pkg/parser/rest"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/nexus.git/nexus"
 
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/pkg/util"
 
@@ -42,7 +43,9 @@ var helperTemplateFile []byte
 //go:embed template/client.go.tmpl
 var clientTemplateFile []byte
 
-func RenderCRDTemplate(baseGroupName, crdModulePath string, pkgs parser.Packages, graph map[string]parser.Node, outputDir string) error {
+func RenderCRDTemplate(baseGroupName, crdModulePath string,
+	pkgs parser.Packages, graph map[string]parser.Node, outputDir string,
+	httpMethods map[string]nexus.HTTPMethodsResponses, httpCodes map[string]nexus.HTTPCodesResponse) error {
 	parentsMap := parser.CreateParentsMap(graph)
 
 	pkgNames := make([]string, len(pkgs))
@@ -95,7 +98,7 @@ func RenderCRDTemplate(baseGroupName, crdModulePath string, pkgs parser.Packages
 		if err != nil {
 			return err
 		}
-		crdFiles, err := RenderCRDBaseTemplate(baseGroupName, pkg, parentsMap)
+		crdFiles, err := RenderCRDBaseTemplate(baseGroupName, pkg, parentsMap, httpMethods, httpCodes)
 		if err != nil {
 			return err
 		}
@@ -320,19 +323,16 @@ type NexusAnnotation struct {
 	NexusRestAPIGen nexus.RestAPISpec `json:"nexus-rest-api-gen"`
 }
 
-// type NexusRestAPIGen struct {
-// 	Uri     string   `json:"uri"`
-// 	Methods []string `json:"methods"`
-// }
 type CrdBaseFile struct {
 	Name string
 	File *bytes.Buffer
 }
 
-func RenderCRDBaseTemplate(baseGroupName string, pkg parser.Package, parentsMap map[string]parser.NodeHelper) ([]CrdBaseFile, error) {
+func RenderCRDBaseTemplate(baseGroupName string, pkg parser.Package, parentsMap map[string]parser.NodeHelper,
+	httpMethods map[string]nexus.HTTPMethodsResponses, httpCodes map[string]nexus.HTTPCodesResponse) ([]CrdBaseFile, error) {
 	var crds []CrdBaseFile
 
-	restAPISpecMap := rest.GetRestApiSpecs(pkg)
+	restAPISpecMap := rest.GetRestApiSpecs(pkg, httpMethods, httpCodes)
 	for _, node := range pkg.GetNexusNodes() {
 		typeName := parser.GetTypeName(node)
 		groupName := pkg.Name + "." + baseGroupName
@@ -348,15 +348,8 @@ func RenderCRDBaseTemplate(baseGroupName string, pkg parser.Package, parentsMap 
 			nexusAnnotation.Hierarchy = parents.Parents
 		}
 
-		annotation, ok := parser.GetNexusRestAPIGenAnnotation(pkg, typeName)
-		if ok {
-			fmt.Println(annotation)
-			a := strings.Split(annotation, ":")
-			name := a[1]
-			value := restAPISpecMap[name]
-			fmt.Println(value)
-
-			nexusAnnotation.NexusRestAPIGen = value
+		if annotation, ok := parser.GetNexusRestAPIGenAnnotation(pkg, typeName); ok {
+			nexusAnnotation.NexusRestAPIGen = restAPISpecMap[annotation]
 		}
 
 		nexusAnnotationStr, err := json.Marshal(nexusAnnotation)

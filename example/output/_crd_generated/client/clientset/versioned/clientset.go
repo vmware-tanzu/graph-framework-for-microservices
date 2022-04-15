@@ -23,7 +23,6 @@ import (
 
 	configtsmv1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/_crd_generated/client/clientset/versioned/typed/config.tsm.tanzu.vmware.com/v1"
 	gnstsmv1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/_crd_generated/client/clientset/versioned/typed/gns.tsm.tanzu.vmware.com/v1"
-	nexustsmv1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/_crd_generated/client/clientset/versioned/typed/nexus.tsm.tanzu.vmware.com/v1"
 	policytsmv1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/_crd_generated/client/clientset/versioned/typed/policy.tsm.tanzu.vmware.com/v1"
 	roottsmv1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/_crd_generated/client/clientset/versioned/typed/root.tsm.tanzu.vmware.com/v1"
 	servicegrouptsmv1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/_crd_generated/client/clientset/versioned/typed/servicegroup.tsm.tanzu.vmware.com/v1"
@@ -36,7 +35,6 @@ type Interface interface {
 	Discovery() discovery.DiscoveryInterface
 	ConfigTsmV1() configtsmv1.ConfigTsmV1Interface
 	GnsTsmV1() gnstsmv1.GnsTsmV1Interface
-	NexusTsmV1() nexustsmv1.NexusTsmV1Interface
 	PolicyTsmV1() policytsmv1.PolicyTsmV1Interface
 	RootTsmV1() roottsmv1.RootTsmV1Interface
 	ServicegroupTsmV1() servicegrouptsmv1.ServicegroupTsmV1Interface
@@ -48,7 +46,6 @@ type Clientset struct {
 	*discovery.DiscoveryClient
 	configTsmV1       *configtsmv1.ConfigTsmV1Client
 	gnsTsmV1          *gnstsmv1.GnsTsmV1Client
-	nexusTsmV1        *nexustsmv1.NexusTsmV1Client
 	policyTsmV1       *policytsmv1.PolicyTsmV1Client
 	rootTsmV1         *roottsmv1.RootTsmV1Client
 	servicegroupTsmV1 *servicegrouptsmv1.ServicegroupTsmV1Client
@@ -62,11 +59,6 @@ func (c *Clientset) ConfigTsmV1() configtsmv1.ConfigTsmV1Interface {
 // GnsTsmV1 retrieves the GnsTsmV1Client
 func (c *Clientset) GnsTsmV1() gnstsmv1.GnsTsmV1Interface {
 	return c.gnsTsmV1
-}
-
-// NexusTsmV1 retrieves the NexusTsmV1Client
-func (c *Clientset) NexusTsmV1() nexustsmv1.NexusTsmV1Interface {
-	return c.nexusTsmV1
 }
 
 // PolicyTsmV1 retrieves the PolicyTsmV1Client
@@ -113,10 +105,6 @@ func NewForConfig(c *rest.Config) (*Clientset, error) {
 	if err != nil {
 		return nil, err
 	}
-	cs.nexusTsmV1, err = nexustsmv1.NewForConfig(&configShallowCopy)
-	if err != nil {
-		return nil, err
-	}
 	cs.policyTsmV1, err = policytsmv1.NewForConfig(&configShallowCopy)
 	if err != nil {
 		return nil, err
@@ -143,7 +131,6 @@ func NewForConfigOrDie(c *rest.Config) *Clientset {
 	var cs Clientset
 	cs.configTsmV1 = configtsmv1.NewForConfigOrDie(c)
 	cs.gnsTsmV1 = gnstsmv1.NewForConfigOrDie(c)
-	cs.nexusTsmV1 = nexustsmv1.NewForConfigOrDie(c)
 	cs.policyTsmV1 = policytsmv1.NewForConfigOrDie(c)
 	cs.rootTsmV1 = roottsmv1.NewForConfigOrDie(c)
 	cs.servicegroupTsmV1 = servicegrouptsmv1.NewForConfigOrDie(c)
@@ -157,7 +144,6 @@ func New(c rest.Interface) *Clientset {
 	var cs Clientset
 	cs.configTsmV1 = configtsmv1.New(c)
 	cs.gnsTsmV1 = gnstsmv1.New(c)
-	cs.nexusTsmV1 = nexustsmv1.New(c)
 	cs.policyTsmV1 = policytsmv1.New(c)
 	cs.rootTsmV1 = roottsmv1.New(c)
 	cs.servicegroupTsmV1 = servicegrouptsmv1.New(c)

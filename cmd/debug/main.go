@@ -3,12 +3,13 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+
 	log "github.com/sirupsen/logrus"
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/pkg/parser"
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/pkg/parser/rest"
 )
 
-var root parser.Node
+//var root parser.Node
 
 func main() {
 	// baseGroupName := "tsm.tanzu.vmware.com"

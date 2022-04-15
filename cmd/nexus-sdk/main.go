@@ -4,6 +4,8 @@ import (
 	"flag"
 	"os"
 
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/pkg/parser/rest"
+
 	log "github.com/sirupsen/logrus"
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/pkg/config"
 	crd_generator "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/pkg/crd-generator"
@@ -47,7 +49,9 @@ func main() {
 	config.ConfigInstance = conf
 	pkgs := parser.ParseDSLPkg(*dslDir)
 	graph := parser.ParseDSLNodes(*dslDir, conf.GroupName)
-	if err = crd_generator.RenderCRDTemplate(conf.GroupName, conf.CrdModulePath, pkgs, graph, *crdDir); err != nil {
+	methods, codes := rest.ParseResponses(pkgs)
+	if err = crd_generator.RenderCRDTemplate(conf.GroupName, conf.CrdModulePath, pkgs, graph,
+		*crdDir, methods, codes); err != nil {
 		log.Fatalf("Error rendering crd template: %v", err)
 	}
 }

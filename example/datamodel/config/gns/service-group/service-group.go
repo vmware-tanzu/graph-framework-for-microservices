@@ -1,7 +1,7 @@
 package servicegroup
 
 import (
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/nexus.git/nexus"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/datamodel/nexus"
 	core_v1 "k8s.io/api/core/v1"
 )
 
