@@ -2,6 +2,7 @@ package operator
 
 import (
 	"fmt"
+
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/servicemesh/app"
 
 	"github.com/spf13/cobra"
@@ -34,7 +35,7 @@ func Create(cmd *cobra.Command, args []string) error {
 	// check if we are in the correct directory
 	// TBD. for now, we run from PWD
 	fmt.Println("Running add_operator from current directory")
-	err := utils.SystemCommand(envList, !utils.IsDebug(cmd), "make", "add_operator")
+	err := utils.SystemCommand(cmd, utils.APPLICATION_OPERATOR_CREATE_FAILED, envList, "make", "add_operator")
 	if err != nil {
 		return err
 	}

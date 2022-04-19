@@ -84,7 +84,7 @@ func Init(cmd *cobra.Command, args []string) error {
 			DatatmodelGroup = fmt.Sprintf("%s.com", DatatmodelName)
 		}
 		envList = append(envList, fmt.Sprintf("DATAMODEL_GROUP=%s", DatatmodelGroup))
-		err := utils.SystemCommand(envList, !utils.IsDebug(cmd), "make", "datamodel_init")
+		err := utils.SystemCommand(cmd, utils.DATAMODEL_INIT_FAILED, envList, "make", "datamodel_init")
 		if err != nil {
 			return fmt.Errorf("error in creating new datamodel due to %s", err)
 		}

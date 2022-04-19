@@ -2,7 +2,6 @@ package utils
 
 import (
 	"archive/tar"
-	"bufio"
 	"bytes"
 	"compress/gzip"
 	"fmt"
@@ -15,6 +14,7 @@ import (
 	"strings"
 	"text/template"
 
+	"github.com/spf13/cobra"
 	"gopkg.in/src-d/go-git.v4/plumbing/transport"
 	ssh2 "gopkg.in/src-d/go-git.v4/plumbing/transport/ssh"
 
@@ -186,62 +186,6 @@ func RenderTemplateFiles(data interface{}, directory string, skipdirectory strin
 
 }
 
-func SystemCommand(envList []string, silent bool, name string, args ...string) error {
-	if !silent {
-		if len(envList) != 0 {
-			fmt.Printf("envList: %v\n", envList)
-		}
-		fmt.Printf("command: %v\n", name)
-		fmt.Printf("args: %v\n", args)
-	}
-	command := exec.Command(name, args...)
-	command.Env = os.Environ()
-
-	if len(envList) > 0 {
-		command.Env = append(command.Env, envList...)
-	}
-
-	stdout, err := command.StdoutPipe()
-	if err != nil {
-		return fmt.Errorf(err.Error())
-
-	}
-	stderr, err := command.StderrPipe()
-	if err != nil {
-		return fmt.Errorf(err.Error())
-	}
-	scanner := bufio.NewScanner(stdout)
-	go func() {
-		for scanner.Scan() {
-			if !silent {
-				fmt.Printf("\t > %s\n", scanner.Text())
-			}
-		}
-	}()
-
-	errScanner := bufio.NewScanner(stderr)
-	go func() {
-		for errScanner.Scan() {
-			fmt.Printf("\t > %s\n", errScanner.Text())
-		}
-	}()
-	err = command.Start()
-	if err != nil {
-		fmt.Fprintln(os.Stderr, "Error starting Cmd", err)
-		return err
-	}
-
-	err = command.Wait()
-	if err != nil {
-		if !silent {
-			fmt.Fprintln(os.Stderr, "Error waiting for Cmd", err)
-		}
-		return err
-	}
-
-	return nil
-}
-
 func DownloadFile(url string, filename string) error {
 	url = fmt.Sprintf("%s", url)
 	resp, err := net_http.Get(url)
@@ -364,6 +308,6 @@ func IsDirEmpty(name string) (bool, error) {
 	return false, err // Either not empty or error, suits both cases
 }
 
-func IsDockerRunning() error {
-	return SystemCommand([]string{}, true, "docker", "ps")
+func IsDockerRunning(cmd *cobra.Command) error {
+	return SystemCommand(cmd, DOCKER_NOT_RUNNING, []string{}, "docker", "ps")
 }

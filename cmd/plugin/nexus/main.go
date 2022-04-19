@@ -5,6 +5,8 @@ import (
 
 	"github.com/spf13/cobra"
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/servicemesh"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/servicemesh/prereq"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/servicemesh/upgrade"
 )
 
 var enableDebug = false
@@ -31,6 +33,9 @@ func init() {
 		servicemesh.AppCmd,
 		servicemesh.OperatorCmd,
 		servicemesh.VersionCmd,
+		upgrade.UpgradeCmd,
+		prereq.PreReqCmd,
 	)
+
 	rootCmd.PersistentFlags().BoolVarP(&enableDebug, "debug", "", false, "Enables extra logging")
 }

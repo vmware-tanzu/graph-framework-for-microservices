@@ -30,7 +30,7 @@ func Install(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	err := utils.SystemCommand(envList, !utils.IsDebug(cmd), "make", "runtime_install")
+	err := utils.SystemCommand(cmd, utils.RUNTIME_INSTALL_FAILED, envList, "make", "runtime_install")
 	if err != nil {
 		return fmt.Errorf("runtime install failed with error %v", err)
 
