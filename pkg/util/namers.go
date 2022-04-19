@@ -2,6 +2,7 @@ package util
 
 import (
 	"strings"
+	"unicode"
 
 	"k8s.io/gengo/namer"
 )
@@ -44,4 +45,8 @@ func GetGroupResourceNameTitle(nodeName string) string {
 
 func GetGroupResourceType(baseNodeName, pkgName, baseGroupName, version string) string {
 	return strings.ToLower(baseNodeName) + GetGroupTypeName(pkgName, baseGroupName, version) // eg rootRootHelloworld
+}
+
+func GetTag(name string) string {
+	return string(unicode.ToLower(rune(name[0]))) + name[1:] // eg serviceGroup
 }

@@ -7,7 +7,6 @@ import (
 	"regexp"
 	"strings"
 	"text/template"
-	"unicode"
 
 	log "github.com/sirupsen/logrus"
 
@@ -93,7 +92,7 @@ func (c *{{.Name}}) CRDName() string {
 }
 
 func getTag(f *ast.Field, name string, omitempty bool) string {
-	n := string(unicode.ToLower(rune(name[0]))) + name[1:]
+	n := util.GetTag(name)
 	tag := "json:\"" + n + "\" yaml:\"" + n + "\""
 	if omitempty {
 		tag = "json:\"" + n + ",omitempty\" yaml:\"" + n + ",omitempty\""

@@ -126,6 +126,7 @@ func resolveNode(baseImportName string, pkg parser.Package, baseGroupName, versi
 		linkInfo := getFieldInfo(pkg, link)
 		var vars resolveLinkVars
 		vars.LinkFieldName = linkInfo.fieldName
+		vars.LinkFieldNameTag = strings.ToLower(linkInfo.fieldName)
 		vars.LinkGroupTypeName = util.GetGroupTypeName(linkInfo.pkgName, baseGroupName, version)
 		vars.LinkGroupResourceNameTitle = util.GetGroupResourceNameTitle(linkInfo.fieldType)
 
@@ -173,6 +174,19 @@ func resolveNode(baseImportName string, pkg parser.Package, baseGroupName, versi
 		clientGroupVars.ResolveLinksDelete += resolvedLinksDelete
 		clientGroupVars.ResolveLinksCreate += resolvedLinksCreate
 	}
+
+	for _, f := range parser.GetSpecFields(node) {
+		fieldInfo := getFieldInfo(pkg, f)
+		var vars resolveLinkVars
+		vars.LinkFieldName = fieldInfo.fieldName
+		vars.LinkFieldNameTag = util.GetTag(fieldInfo.fieldName)
+		resolvedPatches, err := renderLinkResolveTemplate(vars, patchForUpdateTmpl)
+		if err != nil {
+			return fmt.Errorf("failed to parse ")
+		}
+		clientGroupVars.ForUpdatePatches += resolvedPatches
+	}
+
 	return nil
 }
 
@@ -215,6 +229,7 @@ func getFieldInfo(pkg parser.Package, f *ast.Field) fieldInfo {
 
 type resolveLinkVars struct {
 	LinkFieldName              string
+	LinkFieldNameTag           string
 	LinkGroupTypeName          string
 	LinkGroupResourceNameTitle string
 }
@@ -260,6 +275,16 @@ var resolveNamedLinkDeleteTmpl = `
 var resolveLinkCreateTmpl = `
 	objToCreate.Spec.{{.LinkFieldName}} = nil
 	objToCreate.Spec.{{.LinkFieldName}}Gvk = nil
+`
+
+var patchForUpdateTmpl = `
+	patchValue{{.LinkFieldName}} := objToUpdate.Spec.{{.LinkFieldName}}
+	patchOp{{.LinkFieldName}} := PatchOp{
+		Op:    "replace",
+		Path:  "/spec/{{.LinkFieldNameTag}}",
+		Value: patchValue{{.LinkFieldName}},
+	}
+	patch = append(patch, patchOp{{.LinkFieldName}})
 `
 
 func renderLinkResolveTemplate(vars resolveLinkVars, templateToUse string) (string, error) {
@@ -386,6 +411,33 @@ func (obj *{{.GroupResourceType}}) CreateByName(ctx context.Context, objToCreate
 
 	return
 }
+
+func (obj *{{.GroupResourceType}}) Update(ctx context.Context, objToUpdate *{{.GroupBaseImport}}, labels map[string]string) (result *{{.GroupBaseImport}}, err error) {
+	hashedName := helper.GetHashedName(objToUpdate.GetName(), labels)
+	objToUpdate.Name = hashedName
+	return obj.UpdateByName(ctx, objToUpdate)
+}
+
+func (obj *{{.GroupResourceType}}) UpdateByName(ctx context.Context, objToUpdate *{{.GroupBaseImport}}) (result *{{.GroupBaseImport}}, err error) {
+	var patch Patch
+	patchOpMeta := PatchOp{
+		Op:    "replace",
+		Path:  "/metadata",
+		Value: objToUpdate.ObjectMeta,
+	}
+	patch = append(patch, patchOpMeta)
+	{{.ForUpdatePatches}}
+	marshaled, err := patch.Marshal()
+	if err != nil {
+		return nil, err
+	}
+	result, err = obj.client.baseClient.{{.GroupTypeName}}().{{.GroupResourceNameTitle}}().Patch(ctx, objToUpdate.GetName(), types.JSONPatchType, marshaled, metav1.PatchOptions{}, "")
+	if err != nil {
+		return nil, err
+	}
+
+	return
+}
 `
 
 var getForDeleteTmpl = `
@@ -413,6 +465,7 @@ type apiGroupsClientVars struct {
 	GroupResourceType      string
 	GroupResourceNameTitle string
 	GroupBaseImport        string
+	ForUpdatePatches       string
 }
 
 func renderClientApiGroup(vars apiGroupsClientVars) (string, error) {
