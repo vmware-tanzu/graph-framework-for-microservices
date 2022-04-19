@@ -23,14 +23,14 @@ func GoToNexusDirectory() error {
 
 }
 
-func CheckDatamodelDirExists(datamodelName string) error {
+func CheckDatamodelDirExists(datamodelName string) (bool, error) {
 	dmDir := datamodelName
 	if _, err := os.Stat(dmDir); os.IsNotExist(err) {
-		return fmt.Errorf("datamodel directory %s not found", dmDir)
+		return false, fmt.Errorf("datamodel directory %s not found", dmDir)
 	} else if err != nil {
-		return fmt.Errorf("error %v trying to find datamodel directory %s", err, dmDir)
+		return false, fmt.Errorf("error %v trying to find datamodel directory %s", err, dmDir)
 	}
-	return nil
+	return true, nil
 }
 
 func StoreCurrentDatamodel(datamodelName string) error {

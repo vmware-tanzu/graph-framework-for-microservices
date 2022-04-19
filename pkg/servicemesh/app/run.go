@@ -18,7 +18,7 @@ func Run(cmd *cobra.Command, args []string) error {
 		envList = append(envList, fmt.Sprintf("NAMESPACE=%s", Namespace))
 	}
 	// cd nexus/
-	err := utils.SystemCommand(envList, !utils.IsDebug(cmd), "make", "app_run")
+	err := utils.SystemCommand(cmd, utils.APPLICATION_RUN_FAILED, envList, "make", "app_run")
 	if err != nil {
 		return err
 	}

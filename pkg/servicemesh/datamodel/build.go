@@ -22,7 +22,7 @@ func Build(cmd *cobra.Command, args []string) error {
 	envList := []string{}
 
 	var values version.NexusValues
-	err := utils.IsDockerRunning()
+	err := utils.IsDockerRunning(cmd)
 	if err != nil {
 		return fmt.Errorf("docker daemon doesn't seem to be running. Please retry after starting Docker\n")
 	}
@@ -38,23 +38,16 @@ func Build(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("error while unmarshal version yaml data %v", err)
 	}
 	envList = append(envList, fmt.Sprintf("TAG=%s", values.NexusCompiler.Version))
-	// check if build can be run from current directory, if not proceed to next steps..
-	err = utils.SystemCommand(envList, !utils.IsDebug(cmd), "make", "datamodel_build", "-n")
-	if err == nil {
-		fmt.Printf("Running build from current directory.\n")
-		err = utils.SystemCommand(envList, !utils.IsDebug(cmd), "make", "datamodel_build")
-		if err != nil {
-			fmt.Printf("Error in building datamodel\n")
-			return err
-		}
-		return nil
-	}
 	if err := utils.GoToNexusDirectory(); err != nil {
-		return err
+		if utils.IsDebug(cmd) {
+			pwd, _ := os.Getwd()
+			fmt.Printf("%s directory not found. Assuming %s to be datamodel directory\n", common.NEXUS_DIR, pwd)
+		}
 	}
+
 	if DatamodelName != "" {
-		if err := utils.CheckDatamodelDirExists(DatamodelName); err != nil {
-			return err
+		if exists, err := utils.CheckDatamodelDirExists(DatamodelName); !exists {
+			return utils.GetCustomError(utils.DATAMODEL_DIRECTORY_NOT_FOUND, err).Print().ExitIfFatalOrReturn()
 		}
 	} else {
 		DatamodelName, err = utils.GetCurrentDatamodel()
@@ -68,7 +61,7 @@ func Build(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	err = utils.SystemCommand(envList, !utils.IsDebug(cmd), "make", "datamodel_build")
+	err = utils.SystemCommand(cmd, utils.DATAMODEL_BUILD_FAILED, envList, "make", "datamodel_build")
 	if err != nil {
 		return fmt.Errorf("datamodel %s build failed with error %v", DatamodelName, err)
 
