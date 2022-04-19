@@ -38,13 +38,24 @@ func Build(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("error while unmarshal version yaml data %v", err)
 	}
 	envList = append(envList, fmt.Sprintf("TAG=%s", values.NexusCompiler.Version))
+	// hack for running datamodel build locally
+	err = utils.SystemCommand(cmd, utils.CHECK_CURRENT_DIRECTORY_IS_DATAMODEL, envList, "make", "datamodel_build", "--dry-run")
+	if err == nil {
+		fmt.Println("Runnig build from current directory as this is a common datamodel.")
+		err = utils.SystemCommand(cmd, utils.DATAMODEL_BUILD_FAILED, envList, "make", "datamodel_build")
+		if err != nil {
+			return fmt.Errorf("datamodel %s build failed with error %v", DatamodelName, err)
+		} else {
+			fmt.Println("\u2713 Datamodel build successful\n")
+			return nil
+		}
+	}
 	if err := utils.GoToNexusDirectory(); err != nil {
 		if utils.IsDebug(cmd) {
 			pwd, _ := os.Getwd()
 			fmt.Printf("%s directory not found. Assuming %s to be datamodel directory\n", common.NEXUS_DIR, pwd)
 		}
 	}
-
 	if DatamodelName != "" {
 		if exists, err := utils.CheckDatamodelDirExists(DatamodelName); !exists {
 			return utils.GetCustomError(utils.DATAMODEL_DIRECTORY_NOT_FOUND, err).Print().ExitIfFatalOrReturn()
