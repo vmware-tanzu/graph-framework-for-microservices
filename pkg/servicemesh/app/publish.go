@@ -3,12 +3,12 @@ package app
 import (
 	"github.com/spf13/cobra"
 
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/common"
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/utils"
 )
 
 func Publish(cmd *cobra.Command, args []string) error {
-	envList := []string{}
-	err := utils.SystemCommand(cmd, utils.APPLICATION_PUBLISH_FAILED, envList, "make", "app_publish")
+	err := utils.SystemCommand(cmd, utils.APPLICATION_PUBLISH_FAILED, common.EnvList, "make", "app_publish")
 	if err != nil {
 		return err
 	}
