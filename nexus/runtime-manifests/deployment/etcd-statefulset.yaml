@@ -6,8 +6,8 @@ metadata:
   name: nexus-etcd-headless
   namespace: "default"
   labels:
-    app: etcd
-    nexus: etcd
+    app: nexus-etcd
+    nexus: nexus-etcd
 spec:
   type: ClusterIP
   clusterIP: None
@@ -20,8 +20,8 @@ spec:
       port: 2380
       targetPort: peer
   selector:
-    app: etcd
-    nexus: etcd
+    app: nexus-etcd
+    nexus: nexus-etcd
 ---
 # Source: etcd/templates/svc.yaml
 apiVersion: v1
@@ -30,8 +30,8 @@ metadata:
   name: nexus-etcd
   namespace: "default"
   labels:
-    app: etcd
-    nexus: etcd
+    app: nexus-etcd
+    nexus: nexus-etcd
   annotations:
 spec:
   type: ClusterIP
@@ -46,8 +46,8 @@ spec:
       targetPort: peer
       nodePort: null
   selector:
-    app: etcd
-    nexus: etcd
+    app: nexus-etcd
+    nexus: nexus-etcd
 ---
 # Source: etcd/templates/statefulset.yaml
 apiVersion: apps/v1
@@ -56,13 +56,13 @@ metadata:
   name: nexus-etcd
   namespace: "default"
   labels:
-    app: etcd
-    nexus: etcd
+    app: nexus-etcd
+    nexus: nexus-etcd
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: etcd
+      app: nexus-etcd
       nexus: nexus-etcd
   serviceName: nexus-etcd-headless
   podManagementPolicy: Parallel
@@ -71,8 +71,8 @@ spec:
   template:
     metadata:
       labels:
-        app: etcd
-        nexus: etcd
+        app: nexus-etcd
+        nexus: nexus-etcd
       annotations:
     spec:
       affinity:          
@@ -81,8 +81,8 @@ spec:
             - podAffinityTerm:
                 labelSelector:
                   matchLabels:
-                    app: etcd
-                    nexus: etcd
+                    app: nexus-etcd
+                    nexus: nexus-etcd
                 namespaces:
                   - "default"
                 topologyKey: kubernetes.io/hostname
