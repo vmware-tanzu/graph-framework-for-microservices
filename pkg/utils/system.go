@@ -64,7 +64,6 @@ func SystemCommand(cmd *cobra.Command, customErr ClientErrorCode, envList []stri
 		return GetCustomError(customErr,
 			fmt.Errorf("waiting for cmd %s %v failed with error %v", name, args, err)).
 			Print().ExitIfFatalOrReturn()
-
 	}
 
 	return nil
