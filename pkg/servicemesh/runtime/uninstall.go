@@ -4,21 +4,21 @@ import (
 	"fmt"
 
 	"github.com/spf13/cobra"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/common"
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/utils"
 )
 
 func Uninstall(cmd *cobra.Command, args []string) error {
-	envList := []string{}
 
 	if Namespace != "" {
-		envList = append(envList, fmt.Sprintf("NAMESPACE=%s", Namespace))
+		common.EnvList = append(common.EnvList, fmt.Sprintf("NAMESPACE=%s", Namespace))
 	}
 
 	if err := utils.GoToNexusDirectory(); err != nil {
 		return err
 	}
 
-	err := utils.SystemCommand(cmd, utils.RUNTIME_UNINSTALL_FAILED, envList, "make", "runtime_uninstall")
+	err := utils.SystemCommand(cmd, utils.RUNTIME_UNINSTALL_FAILED, common.EnvList, "make", "runtime_uninstall")
 	if err != nil {
 		return fmt.Errorf("runtime install failed with error %v", err)
 

@@ -45,3 +45,7 @@ var NexusConfFile = "NEXUSDATAMODEL"
 
 //go:embed values.yaml
 var TemplateFs embed.FS
+
+var EnvList []string = []string{
+	"GOPRIVATE=gitlab.eng.vmware.com",
+}

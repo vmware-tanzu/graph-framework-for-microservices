@@ -3,12 +3,12 @@ package app
 import (
 	"github.com/spf13/cobra"
 
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/common"
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/utils"
 )
 
 func Deploy(cmd *cobra.Command, args []string) error {
-	envList := []string{}
-	err := utils.SystemCommand(cmd, utils.APPLICATION_DEPLOY_FAILED, envList, "make", "app_deploy")
+	err := utils.SystemCommand(cmd, utils.APPLICATION_DEPLOY_FAILED, common.EnvList, "make", "app_deploy")
 	if err != nil {
 		return err
 	}

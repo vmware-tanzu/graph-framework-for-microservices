@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/spf13/cobra"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/common"
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/utils"
 )
 
@@ -20,17 +21,16 @@ var InstallCmd = &cobra.Command{
 }
 
 func Install(cmd *cobra.Command, args []string) error {
-	envList := []string{}
 
 	if Namespace != "" {
-		envList = append(envList, fmt.Sprintf("NAMESPACE=%s", Namespace))
+		common.EnvList = append(common.EnvList, fmt.Sprintf("NAMESPACE=%s", Namespace))
 	}
 
 	if err := utils.GoToNexusDirectory(); err != nil {
 		return err
 	}
 
-	err := utils.SystemCommand(cmd, utils.RUNTIME_INSTALL_FAILED, envList, "make", "runtime_install")
+	err := utils.SystemCommand(cmd, utils.RUNTIME_INSTALL_FAILED, common.EnvList, "make", "runtime_install")
 	if err != nil {
 		return fmt.Errorf("runtime install failed with error %v", err)
 

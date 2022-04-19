@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/spf13/cobra"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/common"
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/utils"
 )
 
@@ -18,9 +19,7 @@ func UpgradeCli(cmd *cobra.Command, args []string) error {
 		upgradeToVersion = "latest"
 	}
 
-	envList := []string{"GOPRIVATE=gitlab.eng.vmware.com"}
-
-	err := utils.SystemCommand(cmd, utils.CLI_UPGRADE_FAILED, envList, "go", "install", fmt.Sprintf("%s@%s", nexusCliRepo, upgradeToVersion))
+	err := utils.SystemCommand(cmd, utils.CLI_UPGRADE_FAILED, common.EnvList, "go", "install", fmt.Sprintf("%s@%s", nexusCliRepo, upgradeToVersion))
 	if err == nil {
 		fmt.Printf("\u2713 CLI successfully upgraded to version %s\n", upgradeToVersion)
 	} else {

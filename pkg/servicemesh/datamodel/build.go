@@ -19,8 +19,6 @@ var BuildCmd = &cobra.Command{
 }
 
 func Build(cmd *cobra.Command, args []string) error {
-	envList := []string{}
-
 	var values version.NexusValues
 	err := utils.IsDockerRunning(cmd)
 	if err != nil {
@@ -37,12 +35,12 @@ func Build(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		return fmt.Errorf("error while unmarshal version yaml data %v", err)
 	}
-	envList = append(envList, fmt.Sprintf("TAG=%s", values.NexusCompiler.Version))
+	common.EnvList = append(common.EnvList, fmt.Sprintf("TAG=%s", values.NexusCompiler.Version))
 	// hack for running datamodel build locally
-	err = utils.SystemCommand(cmd, utils.CHECK_CURRENT_DIRECTORY_IS_DATAMODEL, envList, "make", "datamodel_build", "--dry-run")
+	err = utils.SystemCommand(cmd, utils.CHECK_CURRENT_DIRECTORY_IS_DATAMODEL, common.EnvList, "make", "datamodel_build", "--dry-run")
 	if err == nil {
 		fmt.Println("Runnig build from current directory as this is a common datamodel.")
-		err = utils.SystemCommand(cmd, utils.DATAMODEL_BUILD_FAILED, envList, "make", "datamodel_build")
+		err = utils.SystemCommand(cmd, utils.DATAMODEL_BUILD_FAILED, common.EnvList, "make", "datamodel_build")
 		if err != nil {
 			return fmt.Errorf("datamodel %s build failed with error %v", DatamodelName, err)
 		} else {
@@ -72,7 +70,7 @@ func Build(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	err = utils.SystemCommand(cmd, utils.DATAMODEL_BUILD_FAILED, envList, "make", "datamodel_build")
+	err = utils.SystemCommand(cmd, utils.DATAMODEL_BUILD_FAILED, common.EnvList, "make", "datamodel_build")
 	if err != nil {
 		return fmt.Errorf("datamodel %s build failed with error %v", DatamodelName, err)
 

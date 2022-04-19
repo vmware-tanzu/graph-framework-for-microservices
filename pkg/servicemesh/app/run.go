@@ -5,6 +5,7 @@ import (
 
 	"github.com/spf13/cobra"
 
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/common"
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/utils"
 )
 
@@ -13,12 +14,11 @@ var (
 )
 
 func Run(cmd *cobra.Command, args []string) error {
-	envList := []string{}
 	if Namespace != "" {
-		envList = append(envList, fmt.Sprintf("NAMESPACE=%s", Namespace))
+		common.EnvList = append(common.EnvList, fmt.Sprintf("NAMESPACE=%s", Namespace))
 	}
 	// cd nexus/
-	err := utils.SystemCommand(cmd, utils.APPLICATION_RUN_FAILED, envList, "make", "app_run")
+	err := utils.SystemCommand(cmd, utils.APPLICATION_RUN_FAILED, common.EnvList, "make", "app_run")
 	if err != nil {
 		return err
 	}
