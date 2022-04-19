@@ -76,6 +76,10 @@ check-portforward:
 	else \
 		echo "Proceeding to start portforwarding.." ;\
 	fi
+	@if [ `kubectl get svc $(NAMESPACE) nexus-proxy-container --no-headers 2>/dev/null | wc -l` -eq 0 ]; then \
+		echo "Please install runtime components.." ;\
+		exit 1;\
+	fi
 
 .SILENT:
 kill-portforward:
