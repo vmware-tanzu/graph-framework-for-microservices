@@ -105,6 +105,14 @@ func processNode(node *Node, nodes map[string]Node, baseGroupName string) {
 	linkFields := GetLinkFields(node.TypeSpec)
 
 	processField := func(f *ast.Field, isChild bool, isLink bool) {
+		if isChild || isLink {
+			if IsArrayField(f) {
+				log.Fatalf(`"Invalid Type for %v. Nexus Child or Link can't be an array. Please represent it in the form of a map.`+"\n"+
+					`For example: `+
+					`myStr []string should be represented in the form of myStr map[string]string`, f.Names)
+			}
+		}
+
 		isMap := IsMapField(f)
 		fieldTypeStr := GetFieldType(f)
 
@@ -147,7 +155,6 @@ func processNode(node *Node, nodes map[string]Node, baseGroupName string) {
 				node.SingleLink[fieldTypeStr] = nodes[key]
 			}
 		}
-
 	}
 
 	for _, child := range childFields {
