@@ -8,14 +8,22 @@ import (
 	"gopkg.in/yaml.v2"
 
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/common"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/servicemesh/prereq"
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/servicemesh/version"
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/utils"
 )
+
+var prerequisites []prereq.Prerequiste = []prereq.Prerequiste{
+	prereq.DOCKER,
+}
 
 var BuildCmd = &cobra.Command{
 	Use:   "build",
 	Short: "Compiles the Nexus DSLs into consumable APIs, CRDs, etc.",
 	RunE:  Build,
+	PreRunE: func(cmd *cobra.Command, args []string) (err error) {
+		return prereq.PreReqVerifyOnDemand(prerequisites)
+	},
 }
 
 func Build(cmd *cobra.Command, args []string) error {
@@ -35,12 +43,13 @@ func Build(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		return fmt.Errorf("error while unmarshal version yaml data %v", err)
 	}
-	common.EnvList = append(common.EnvList, fmt.Sprintf("TAG=%s", values.NexusCompiler.Version))
+	envList := common.EnvList
+	envList = append(envList, fmt.Sprintf("TAG=%s", values.NexusCompiler.Version))
 	// hack for running datamodel build locally
-	err = utils.SystemCommand(cmd, utils.CHECK_CURRENT_DIRECTORY_IS_DATAMODEL, common.EnvList, "make", "datamodel_build", "--dry-run")
+	err = utils.SystemCommand(cmd, utils.CHECK_CURRENT_DIRECTORY_IS_DATAMODEL, envList, "make", "datamodel_build", "--dry-run")
 	if err == nil {
 		fmt.Println("Runnig build from current directory as this is a common datamodel.")
-		err = utils.SystemCommand(cmd, utils.DATAMODEL_BUILD_FAILED, common.EnvList, "make", "datamodel_build")
+		err = utils.SystemCommand(cmd, utils.DATAMODEL_BUILD_FAILED, envList, "make", "datamodel_build")
 		if err != nil {
 			return fmt.Errorf("datamodel %s build failed with error %v", DatamodelName, err)
 		} else {
@@ -70,7 +79,7 @@ func Build(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	err = utils.SystemCommand(cmd, utils.DATAMODEL_BUILD_FAILED, common.EnvList, "make", "datamodel_build")
+	err = utils.SystemCommand(cmd, utils.DATAMODEL_BUILD_FAILED, envList, "make", "datamodel_build")
 	if err != nil {
 		return fmt.Errorf("datamodel %s build failed with error %v", DatamodelName, err)
 

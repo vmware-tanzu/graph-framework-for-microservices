@@ -231,7 +231,9 @@ func (e ClientError) Error() string {
 
 // Print prints an error string associated with a client error on the console.
 func (e ClientError) Print() ClientError {
-	fmt.Println(e.Error())
+	if e.fatal {
+		fmt.Println(e.Error())
+	}
 	return e
 }
 

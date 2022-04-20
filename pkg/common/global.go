@@ -9,7 +9,10 @@ is strictly prohibited.
 
 package common
 
-import "embed"
+import (
+	"embed"
+	"time"
+)
 
 // VERSION ...Version set at compile time.
 var VERSION string
@@ -32,6 +35,7 @@ const (
 	HELLOWORLD_URL         = "https://storage.googleapis.com/nexus-template-downloads/helloworld-example.tar"
 	DATAMODEL_TEMPLATE_URL = "https://storage.googleapis.com/nexus-template-downloads/datamodel-templatedir.tar"
 	NEXUS_TEMPLATE_URL     = "https://storage.googleapis.com/nexus-template-downloads/nexus-template.tar"
+	RUNTIME_MANIFESTS_URL  = "https://storage.googleapis.com/nexus-template-downloads/runtime-manifests.tar"
 )
 
 const TEMPLATE_URL = "https://storage.googleapis.com/nexus-template-downloads/app-template.tar"
@@ -45,6 +49,14 @@ var NexusConfFile = "NEXUSDATAMODEL"
 
 //go:embed values.yaml
 var TemplateFs embed.FS
+
+var WaitTimeout = 2 * time.Minute
+
+var PodLabels [3]string = [3]string{
+	"-lapp=etcd",
+	"-lapp=kube-apiserver",
+	"-lname=kube-controllermanager",
+}
 
 var EnvList []string = []string{
 	"GOPRIVATE=gitlab.eng.vmware.com",

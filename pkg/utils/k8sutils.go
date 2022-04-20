@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"bytes"
 	"context"
 	"errors"
 	"fmt"
@@ -10,11 +11,14 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strings"
 	"time"
 
 	"github.com/aunum/log"
+	"github.com/spf13/cobra"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/common"
 	apiErrs "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -344,27 +348,38 @@ func CreatePortForwarder(k8shostname, port, podName, TenantName string, stopChan
 
 }
 
-func GetPodRunning(clientset kubernetes.Interface, TenantName, podS string) (string, error) {
-	var podName string
-	var pollTimeout time.Duration = 10
+func CheckPodScheduled(labels string, namespace string, pollTimeout time.Duration) error {
 	waitTimer := time.NewTimer(pollTimeout * time.Minute)
 	for {
 		select {
 		case <-waitTimer.C:
-			err := fmt.Errorf("timeout in checking if pod is up %s.", podS)
-			return "", err
+			err := fmt.Errorf("timeout in checking if pod %s is up and running", labels)
+			return err
 		default:
-			pods, err := clientset.CoreV1().Pods(TenantName).List(context.Background(), metav1.ListOptions{LabelSelector: fmt.Sprintf("app=%s", podS), FieldSelector: "status.phase=Running"})
+			cmdToCheckpod := exec.Command("kubectl", "get", "pods", labels, "-n", namespace, "--no-headers")
+			var outb bytes.Buffer
+			cmdToCheckpod.Stdout = &outb
+			err := cmdToCheckpod.Run()
 			if err != nil {
-				break
+				return err
 			}
-			if len(pods.Items) == 0 {
-				break
+			if len(outb.String()) != 0 {
+				return nil
 			}
-			for _, pod := range pods.Items {
-				podName = pod.Name
-			}
-			return podName, nil
 		}
 	}
+}
+
+func CheckPodRunning(cmd *cobra.Command, customErr ClientErrorCode, labels, namespace string) error {
+	err := CheckPodScheduled(labels, namespace, common.WaitTimeout)
+	if err != nil {
+		return GetCustomError(customErr,
+			fmt.Errorf("%s pod is not created yet", labels)).Print().ExitIfFatalOrReturn()
+	}
+	err = SystemCommand(cmd, customErr, []string{}, "kubectl", "wait", "pods", labels, "-n", namespace, "--for=condition=ready", "--timeout=300s")
+	if err != nil {
+		return GetCustomError(customErr,
+			fmt.Errorf("%s pod is not running yet", labels)).Print().ExitIfFatalOrReturn()
+	}
+	return nil
 }
