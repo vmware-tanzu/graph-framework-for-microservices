@@ -6,7 +6,7 @@ import (
 
 	service_group "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/datamodel/config/gns/service-group"
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/datamodel/config/policy"
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/datamodel/nexus"
+        "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/common-library.git/pkg/nexus"
 )
 
 var FooCustomMethodsResponses = nexus.HTTPMethodsResponses{
@@ -20,7 +20,7 @@ var FooCustomMethodsResponses = nexus.HTTPMethodsResponses{
 var GNSRestAPISpec = nexus.RestAPISpec{
 	Uris: []nexus.RestURIs{
 		{
-			Uri:     "/v1alpha2/projects/{project}/global-namespace/{gnses.gns.tsm.tanzu.vmware.com}",
+			Uri:     "/v1alpha2/projects/{project}/global-namespace/{Gns.gns}",
 			Methods: nexus.DefaultHTTPMethodsResponses,
 		},
 		{
@@ -36,21 +36,6 @@ var GNSRestAPISpec = nexus.RestAPISpec{
 		{
 			Uri:     "/test-bar",
 			Methods: config.BarCustomMethodsResponses,
-		},
-	},
-}
-
-var DNSRestAPISpec = nexus.RestAPISpec{
-	Uris: []nexus.RestURIs{
-		{
-			Uri:     "/v1alpha2/projects/{project}/dns/{dnses.gns.tsm.tanzu.vmware.com}",
-			Methods: nexus.DefaultHTTPMethodsResponses,
-		},
-		{
-			Uri: "/v1alpha2/projects/{project}/dnses",
-			Methods: nexus.HTTPMethodsResponses{
-				http.MethodGet: nexus.DefaultHTTPGETResponses,
-			},
 		},
 	},
 }
@@ -76,6 +61,21 @@ type Description struct {
 	Color     string
 	Version   string
 	ProjectId string
+}
+
+var DNSRestAPISpec = nexus.RestAPISpec{
+	Uris: []nexus.RestURIs{
+		{
+			Uri:     "/v1alpha2/projects/{project}/dns/{Dns.gns}",
+			Methods: nexus.DefaultHTTPMethodsResponses,
+		},
+		{
+			Uri: "/v1alpha2/projects/{project}/dnses",
+			Methods: nexus.HTTPMethodsResponses{
+				http.MethodGet: nexus.DefaultHTTPGETResponses,
+			},
+		},
+	},
 }
 
 // nexus-rest-api-gen:DNSRestAPISpec
