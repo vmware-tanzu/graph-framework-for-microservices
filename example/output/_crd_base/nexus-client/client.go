@@ -2,8 +2,10 @@ package nexus_client
 
 import (
 	"context"
+	"encoding/json"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/rest"
 
 	baseClientset "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/_generated/client/clientset/versioned"
@@ -39,6 +41,18 @@ func NewForConfig(config *rest.Config) (*Clientset, error) {
 	client.policyTsmV1 = newPolicyTsmV1(client)
 
 	return client, nil
+}
+
+type PatchOp struct {
+	Op    string      `json:"op"`
+	Path  string      `json:"path"`
+	Value interface{} `json:"value,omitempty"`
+}
+
+type Patch []PatchOp
+
+func (p Patch) Marshal() ([]byte, error) {
+	return json.Marshal(p)
 }
 
 func (c *Clientset) RootTsmV1() *RootTsmV1 {
@@ -294,6 +308,33 @@ func (obj *rootRootTsmV1) CreateByName(ctx context.Context, objToCreate *baseroo
 	return
 }
 
+func (obj *rootRootTsmV1) Update(ctx context.Context, objToUpdate *baseroottsmtanzuvmwarecomv1.Root, labels map[string]string) (result *baseroottsmtanzuvmwarecomv1.Root, err error) {
+	hashedName := helper.GetHashedName(objToUpdate.GetName(), labels)
+	objToUpdate.Name = hashedName
+	return obj.UpdateByName(ctx, objToUpdate)
+}
+
+func (obj *rootRootTsmV1) UpdateByName(ctx context.Context, objToUpdate *baseroottsmtanzuvmwarecomv1.Root) (result *baseroottsmtanzuvmwarecomv1.Root, err error) {
+	var patch Patch
+	patchOpMeta := PatchOp{
+		Op:    "replace",
+		Path:  "/metadata",
+		Value: objToUpdate.ObjectMeta,
+	}
+	patch = append(patch, patchOpMeta)
+
+	marshaled, err := patch.Marshal()
+	if err != nil {
+		return nil, err
+	}
+	result, err = obj.client.baseClient.RootTsmV1().Roots().Patch(ctx, objToUpdate.GetName(), types.JSONPatchType, marshaled, metav1.PatchOptions{}, "")
+	if err != nil {
+		return nil, err
+	}
+
+	return
+}
+
 func (obj *configConfigTsmV1) Get(ctx context.Context, name string, labels map[string]string) (result *baseconfigtsmtanzuvmwarecomv1.Config, err error) {
 	hashedName := helper.GetHashedName(name, labels)
 	result, err = obj.client.baseClient.ConfigTsmV1().Configs().Get(ctx, hashedName, metav1.GetOptions{})
@@ -403,6 +444,33 @@ func (obj *configConfigTsmV1) CreateByName(ctx context.Context, objToCreate *bas
 	}
 
 	// TODO Update parent object with this child info
+
+	return
+}
+
+func (obj *configConfigTsmV1) Update(ctx context.Context, objToUpdate *baseconfigtsmtanzuvmwarecomv1.Config, labels map[string]string) (result *baseconfigtsmtanzuvmwarecomv1.Config, err error) {
+	hashedName := helper.GetHashedName(objToUpdate.GetName(), labels)
+	objToUpdate.Name = hashedName
+	return obj.UpdateByName(ctx, objToUpdate)
+}
+
+func (obj *configConfigTsmV1) UpdateByName(ctx context.Context, objToUpdate *baseconfigtsmtanzuvmwarecomv1.Config) (result *baseconfigtsmtanzuvmwarecomv1.Config, err error) {
+	var patch Patch
+	patchOpMeta := PatchOp{
+		Op:    "replace",
+		Path:  "/metadata",
+		Value: objToUpdate.ObjectMeta,
+	}
+	patch = append(patch, patchOpMeta)
+
+	marshaled, err := patch.Marshal()
+	if err != nil {
+		return nil, err
+	}
+	result, err = obj.client.baseClient.ConfigTsmV1().Configs().Patch(ctx, objToUpdate.GetName(), types.JSONPatchType, marshaled, metav1.PatchOptions{}, "")
+	if err != nil {
+		return nil, err
+	}
 
 	return
 }
@@ -572,6 +640,57 @@ func (obj *gnsGnsTsmV1) CreateByName(ctx context.Context, objToCreate *basegnsts
 	return
 }
 
+func (obj *gnsGnsTsmV1) Update(ctx context.Context, objToUpdate *basegnstsmtanzuvmwarecomv1.Gns, labels map[string]string) (result *basegnstsmtanzuvmwarecomv1.Gns, err error) {
+	hashedName := helper.GetHashedName(objToUpdate.GetName(), labels)
+	objToUpdate.Name = hashedName
+	return obj.UpdateByName(ctx, objToUpdate)
+}
+
+func (obj *gnsGnsTsmV1) UpdateByName(ctx context.Context, objToUpdate *basegnstsmtanzuvmwarecomv1.Gns) (result *basegnstsmtanzuvmwarecomv1.Gns, err error) {
+	var patch Patch
+	patchOpMeta := PatchOp{
+		Op:    "replace",
+		Path:  "/metadata",
+		Value: objToUpdate.ObjectMeta,
+	}
+	patch = append(patch, patchOpMeta)
+
+	patchValueDomain := objToUpdate.Spec.Domain
+	patchOpDomain := PatchOp{
+		Op:    "replace",
+		Path:  "/spec/domain",
+		Value: patchValueDomain,
+	}
+	patch = append(patch, patchOpDomain)
+
+	patchValueUseSharedGateway := objToUpdate.Spec.UseSharedGateway
+	patchOpUseSharedGateway := PatchOp{
+		Op:    "replace",
+		Path:  "/spec/useSharedGateway",
+		Value: patchValueUseSharedGateway,
+	}
+	patch = append(patch, patchOpUseSharedGateway)
+
+	patchValueDescription := objToUpdate.Spec.Description
+	patchOpDescription := PatchOp{
+		Op:    "replace",
+		Path:  "/spec/description",
+		Value: patchValueDescription,
+	}
+	patch = append(patch, patchOpDescription)
+
+	marshaled, err := patch.Marshal()
+	if err != nil {
+		return nil, err
+	}
+	result, err = obj.client.baseClient.GnsTsmV1().Gnses().Patch(ctx, objToUpdate.GetName(), types.JSONPatchType, marshaled, metav1.PatchOptions{}, "")
+	if err != nil {
+		return nil, err
+	}
+
+	return
+}
+
 func (obj *dnsGnsTsmV1) Get(ctx context.Context, name string, labels map[string]string) (result *basegnstsmtanzuvmwarecomv1.Dns, err error) {
 	hashedName := helper.GetHashedName(name, labels)
 	result, err = obj.client.baseClient.GnsTsmV1().Dnses().Get(ctx, hashedName, metav1.GetOptions{})
@@ -639,6 +758,33 @@ func (obj *dnsGnsTsmV1) CreateByName(ctx context.Context, objToCreate *basegnsts
 	return
 }
 
+func (obj *dnsGnsTsmV1) Update(ctx context.Context, objToUpdate *basegnstsmtanzuvmwarecomv1.Dns, labels map[string]string) (result *basegnstsmtanzuvmwarecomv1.Dns, err error) {
+	hashedName := helper.GetHashedName(objToUpdate.GetName(), labels)
+	objToUpdate.Name = hashedName
+	return obj.UpdateByName(ctx, objToUpdate)
+}
+
+func (obj *dnsGnsTsmV1) UpdateByName(ctx context.Context, objToUpdate *basegnstsmtanzuvmwarecomv1.Dns) (result *basegnstsmtanzuvmwarecomv1.Dns, err error) {
+	var patch Patch
+	patchOpMeta := PatchOp{
+		Op:    "replace",
+		Path:  "/metadata",
+		Value: objToUpdate.ObjectMeta,
+	}
+	patch = append(patch, patchOpMeta)
+
+	marshaled, err := patch.Marshal()
+	if err != nil {
+		return nil, err
+	}
+	result, err = obj.client.baseClient.GnsTsmV1().Dnses().Patch(ctx, objToUpdate.GetName(), types.JSONPatchType, marshaled, metav1.PatchOptions{}, "")
+	if err != nil {
+		return nil, err
+	}
+
+	return
+}
+
 func (obj *svcgroupServicegroupTsmV1) Get(ctx context.Context, name string, labels map[string]string) (result *baseservicegrouptsmtanzuvmwarecomv1.SvcGroup, err error) {
 	hashedName := helper.GetHashedName(name, labels)
 	result, err = obj.client.baseClient.ServicegroupTsmV1().SvcGroups().Get(ctx, hashedName, metav1.GetOptions{})
@@ -702,6 +848,57 @@ func (obj *svcgroupServicegroupTsmV1) CreateByName(ctx context.Context, objToCre
 	}
 
 	// TODO Update parent object with this child info
+
+	return
+}
+
+func (obj *svcgroupServicegroupTsmV1) Update(ctx context.Context, objToUpdate *baseservicegrouptsmtanzuvmwarecomv1.SvcGroup, labels map[string]string) (result *baseservicegrouptsmtanzuvmwarecomv1.SvcGroup, err error) {
+	hashedName := helper.GetHashedName(objToUpdate.GetName(), labels)
+	objToUpdate.Name = hashedName
+	return obj.UpdateByName(ctx, objToUpdate)
+}
+
+func (obj *svcgroupServicegroupTsmV1) UpdateByName(ctx context.Context, objToUpdate *baseservicegrouptsmtanzuvmwarecomv1.SvcGroup) (result *baseservicegrouptsmtanzuvmwarecomv1.SvcGroup, err error) {
+	var patch Patch
+	patchOpMeta := PatchOp{
+		Op:    "replace",
+		Path:  "/metadata",
+		Value: objToUpdate.ObjectMeta,
+	}
+	patch = append(patch, patchOpMeta)
+
+	patchValueDisplayName := objToUpdate.Spec.DisplayName
+	patchOpDisplayName := PatchOp{
+		Op:    "replace",
+		Path:  "/spec/displayName",
+		Value: patchValueDisplayName,
+	}
+	patch = append(patch, patchOpDisplayName)
+
+	patchValueDescription := objToUpdate.Spec.Description
+	patchOpDescription := PatchOp{
+		Op:    "replace",
+		Path:  "/spec/description",
+		Value: patchValueDescription,
+	}
+	patch = append(patch, patchOpDescription)
+
+	patchValueColor := objToUpdate.Spec.Color
+	patchOpColor := PatchOp{
+		Op:    "replace",
+		Path:  "/spec/color",
+		Value: patchValueColor,
+	}
+	patch = append(patch, patchOpColor)
+
+	marshaled, err := patch.Marshal()
+	if err != nil {
+		return nil, err
+	}
+	result, err = obj.client.baseClient.ServicegroupTsmV1().SvcGroups().Patch(ctx, objToUpdate.GetName(), types.JSONPatchType, marshaled, metav1.PatchOptions{}, "")
+	if err != nil {
+		return nil, err
+	}
 
 	return
 }
@@ -819,6 +1016,33 @@ func (obj *accesscontrolpolicyPolicyTsmV1) CreateByName(ctx context.Context, obj
 	return
 }
 
+func (obj *accesscontrolpolicyPolicyTsmV1) Update(ctx context.Context, objToUpdate *basepolicytsmtanzuvmwarecomv1.AccessControlPolicy, labels map[string]string) (result *basepolicytsmtanzuvmwarecomv1.AccessControlPolicy, err error) {
+	hashedName := helper.GetHashedName(objToUpdate.GetName(), labels)
+	objToUpdate.Name = hashedName
+	return obj.UpdateByName(ctx, objToUpdate)
+}
+
+func (obj *accesscontrolpolicyPolicyTsmV1) UpdateByName(ctx context.Context, objToUpdate *basepolicytsmtanzuvmwarecomv1.AccessControlPolicy) (result *basepolicytsmtanzuvmwarecomv1.AccessControlPolicy, err error) {
+	var patch Patch
+	patchOpMeta := PatchOp{
+		Op:    "replace",
+		Path:  "/metadata",
+		Value: objToUpdate.ObjectMeta,
+	}
+	patch = append(patch, patchOpMeta)
+
+	marshaled, err := patch.Marshal()
+	if err != nil {
+		return nil, err
+	}
+	result, err = obj.client.baseClient.PolicyTsmV1().AccessControlPolicies().Patch(ctx, objToUpdate.GetName(), types.JSONPatchType, marshaled, metav1.PatchOptions{}, "")
+	if err != nil {
+		return nil, err
+	}
+
+	return
+}
+
 func (obj *acpconfigPolicyTsmV1) Get(ctx context.Context, name string, labels map[string]string) (result *basepolicytsmtanzuvmwarecomv1.ACPConfig, err error) {
 	hashedName := helper.GetHashedName(name, labels)
 	result, err = obj.client.baseClient.PolicyTsmV1().ACPConfigs().Get(ctx, hashedName, metav1.GetOptions{})
@@ -914,6 +1138,81 @@ func (obj *acpconfigPolicyTsmV1) CreateByName(ctx context.Context, objToCreate *
 	}
 
 	// TODO Update parent object with this child info
+
+	return
+}
+
+func (obj *acpconfigPolicyTsmV1) Update(ctx context.Context, objToUpdate *basepolicytsmtanzuvmwarecomv1.ACPConfig, labels map[string]string) (result *basepolicytsmtanzuvmwarecomv1.ACPConfig, err error) {
+	hashedName := helper.GetHashedName(objToUpdate.GetName(), labels)
+	objToUpdate.Name = hashedName
+	return obj.UpdateByName(ctx, objToUpdate)
+}
+
+func (obj *acpconfigPolicyTsmV1) UpdateByName(ctx context.Context, objToUpdate *basepolicytsmtanzuvmwarecomv1.ACPConfig) (result *basepolicytsmtanzuvmwarecomv1.ACPConfig, err error) {
+	var patch Patch
+	patchOpMeta := PatchOp{
+		Op:    "replace",
+		Path:  "/metadata",
+		Value: objToUpdate.ObjectMeta,
+	}
+	patch = append(patch, patchOpMeta)
+
+	patchValueDisplayName := objToUpdate.Spec.DisplayName
+	patchOpDisplayName := PatchOp{
+		Op:    "replace",
+		Path:  "/spec/displayName",
+		Value: patchValueDisplayName,
+	}
+	patch = append(patch, patchOpDisplayName)
+
+	patchValueGns := objToUpdate.Spec.Gns
+	patchOpGns := PatchOp{
+		Op:    "replace",
+		Path:  "/spec/gns",
+		Value: patchValueGns,
+	}
+	patch = append(patch, patchOpGns)
+
+	patchValueDescription := objToUpdate.Spec.Description
+	patchOpDescription := PatchOp{
+		Op:    "replace",
+		Path:  "/spec/description",
+		Value: patchValueDescription,
+	}
+	patch = append(patch, patchOpDescription)
+
+	patchValueTags := objToUpdate.Spec.Tags
+	patchOpTags := PatchOp{
+		Op:    "replace",
+		Path:  "/spec/tags",
+		Value: patchValueTags,
+	}
+	patch = append(patch, patchOpTags)
+
+	patchValueProjectId := objToUpdate.Spec.ProjectId
+	patchOpProjectId := PatchOp{
+		Op:    "replace",
+		Path:  "/spec/projectId",
+		Value: patchValueProjectId,
+	}
+	patch = append(patch, patchOpProjectId)
+
+	patchValueConditions := objToUpdate.Spec.Conditions
+	patchOpConditions := PatchOp{
+		Op:    "replace",
+		Path:  "/spec/conditions",
+		Value: patchValueConditions,
+	}
+	patch = append(patch, patchOpConditions)
+
+	marshaled, err := patch.Marshal()
+	if err != nil {
+		return nil, err
+	}
+	result, err = obj.client.baseClient.PolicyTsmV1().ACPConfigs().Patch(ctx, objToUpdate.GetName(), types.JSONPatchType, marshaled, metav1.PatchOptions{}, "")
+	if err != nil {
+		return nil, err
+	}
 
 	return
 }
