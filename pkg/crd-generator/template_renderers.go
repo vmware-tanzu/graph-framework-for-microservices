@@ -116,7 +116,7 @@ func RenderCRDTemplate(baseGroupName, crdModulePath string,
 		return err
 	}
 
-	err = RenderClient(baseGroupName, outputDir, crdModulePath, pkgs)
+	err = RenderClient(baseGroupName, outputDir, crdModulePath, pkgs, parentsMap)
 	if err != nil {
 		return err
 	}
@@ -319,8 +319,9 @@ type crdBaseVars struct {
 }
 
 type NexusAnnotation struct {
-	Hierarchy       []string          `json:"hierarchy"`
-	NexusRestAPIGen nexus.RestAPISpec `json:"nexus-rest-api-gen"`
+	Hierarchy       []string                          `json:"hierarchy"`
+	Children        map[string]parser.NodeHelperChild `json:"children"`
+	NexusRestAPIGen nexus.RestAPISpec                 `json:"nexus-rest-api-gen"`
 }
 
 type CrdBaseFile struct {
@@ -346,6 +347,7 @@ func RenderCRDBaseTemplate(baseGroupName string, pkg parser.Package, parentsMap 
 		parents, ok := parentsMap[crdName]
 		if ok {
 			nexusAnnotation.Hierarchy = parents.Parents
+			nexusAnnotation.Children = parents.Children
 		}
 
 		if annotation, ok := parser.GetNexusRestAPIGenAnnotation(pkg, typeName); ok {
@@ -442,13 +444,13 @@ func RenderHelperTemplate(parentsMap map[string]parser.NodeHelper, crdModulePath
 	return bytes.NewBuffer(out), nil
 }
 
-func RenderClient(baseGroupName, outputDir, crdModulePath string, pkgs parser.Packages) error {
+func RenderClient(baseGroupName, outputDir, crdModulePath string, pkgs parser.Packages, parentsMap map[string]parser.NodeHelper) error {
 	clientFolder := outputDir + "/nexus-client"
 	err := createFolder(clientFolder)
 	if err != nil {
 		return err
 	}
-	file, err := RenderClientTemplate(baseGroupName, crdModulePath, pkgs)
+	file, err := RenderClientTemplate(baseGroupName, crdModulePath, pkgs, parentsMap)
 	if err != nil {
 		return err
 	}
@@ -472,8 +474,8 @@ type clientVars struct {
 	ApiGroupsClient           string
 }
 
-func RenderClientTemplate(baseGroupName, crdModulePath string, pkgs parser.Packages) (*bytes.Buffer, error) {
-	vars, err := generateNexusClientVars(baseGroupName, crdModulePath, pkgs)
+func RenderClientTemplate(baseGroupName, crdModulePath string, pkgs parser.Packages, parentsMap map[string]parser.NodeHelper) (*bytes.Buffer, error) {
+	vars, err := generateNexusClientVars(baseGroupName, crdModulePath, pkgs, parentsMap)
 	if err != nil {
 		return nil, err
 	}

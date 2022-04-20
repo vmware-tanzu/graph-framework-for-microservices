@@ -50,3 +50,11 @@ func GetGroupResourceType(baseNodeName, pkgName, baseGroupName, version string) 
 func GetTag(name string) string {
 	return string(unicode.ToLower(rune(name[0]))) + name[1:] // eg serviceGroup
 }
+
+func GetGvkFieldName(fieldName string) string {
+	return fieldName + "Gvk"
+}
+
+func GetGvkFieldTagName(fieldName string) string {
+	return strings.ToLower(fieldName) + "Gvk"
+}

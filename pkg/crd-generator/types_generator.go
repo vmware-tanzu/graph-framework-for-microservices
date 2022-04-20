@@ -146,13 +146,13 @@ type {{.Name}}Spec struct {
 		}
 		typeString := generateTypeString(child)
 		specDef.Fields += "\t" + name + " " + typeString + " " + emptyTag + "\n"
-		name += "Gvk"
+		gvkName := util.GetGvkFieldName(name)
 		if parser.IsMapField(child) {
-			specDef.Fields += "\t" + name + " map[string]Child"
+			specDef.Fields += "\t" + gvkName + " map[string]Child"
 		} else {
-			specDef.Fields += "\t" + name + " *Child"
+			specDef.Fields += "\t" + gvkName + " *Child"
 		}
-		specDef.Fields += " " + getTag(child, name, true) + "\n"
+		specDef.Fields += " " + getTag(child, util.GetGvkFieldTagName(name), true) + "\n"
 	}
 
 	for _, link := range parser.GetLinkFields(node) {
@@ -162,13 +162,13 @@ type {{.Name}}Spec struct {
 		}
 		typeString := generateTypeString(link)
 		specDef.Fields += "\t" + name + " " + typeString + " " + emptyTag + "\n"
-		name += "Gvk"
+		gvkName := util.GetGvkFieldName(name)
 		if parser.IsMapField(link) {
-			specDef.Fields += "\t" + name + " map[string]Link"
+			specDef.Fields += "\t" + gvkName + " map[string]Link"
 		} else {
-			specDef.Fields += "\t" + name + " *Link"
+			specDef.Fields += "\t" + gvkName + " *Link"
 		}
-		specDef.Fields += " " + getTag(link, name, true) + "\n"
+		specDef.Fields += " " + getTag(link, util.GetGvkFieldTagName(name), true) + "\n"
 	}
 
 	tmpl, err := template.New("tmpl").Parse(crdTemplate)

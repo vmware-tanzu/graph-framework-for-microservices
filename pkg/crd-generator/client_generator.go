@@ -14,7 +14,7 @@ import (
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/pkg/parser"
 )
 
-func generateNexusClientVars(baseGroupName, crdModulePath string, pkgs parser.Packages) (clientVars, error) {
+func generateNexusClientVars(baseGroupName, crdModulePath string, pkgs parser.Packages, parentsMap map[string]parser.NodeHelper) (clientVars, error) {
 	var vars clientVars
 
 	vars.BaseClientsetImport = `"` + crdModulePath + `client/clientset/versioned"`
@@ -62,7 +62,8 @@ func generateNexusClientVars(baseGroupName, crdModulePath string, pkgs parser.Pa
 			for _, node := range pkg.GetNexusNodes() {
 				var clientGroupVars apiGroupsClientVars
 				clientGroupVars.GroupTypeName = groupTypeName
-				err := resolveNode(baseImportName, pkg, baseGroupName, version, &groupVars, &clientGroupVars, node)
+				clientGroupVars.CrdName = util.GetCrdName(node.Name.String(), pkg.Name, baseGroupName)
+				err := resolveNode(baseImportName, pkg, baseGroupName, version, &groupVars, &clientGroupVars, node, parentsMap)
 				if err != nil {
 					return clientVars{}, err
 				}
@@ -84,8 +85,7 @@ func generateNexusClientVars(baseGroupName, crdModulePath string, pkgs parser.Pa
 	return vars, nil
 }
 
-func resolveNode(baseImportName string, pkg parser.Package, baseGroupName, version string,
-	groupVars *apiGroupsVars, clientGroupVars *apiGroupsClientVars, node *ast.TypeSpec) error {
+func resolveNode(baseImportName string, pkg parser.Package, baseGroupName, version string, groupVars *apiGroupsVars, clientGroupVars *apiGroupsClientVars, node *ast.TypeSpec, parentsMap map[string]parser.NodeHelper) error {
 
 	pkgName := pkg.Name
 	baseNodeName := node.Name.Name // eg Root
@@ -110,6 +110,7 @@ func resolveNode(baseImportName string, pkg parser.Package, baseGroupName, versi
 	//	return r.roots
 	// }
 
+	clientGroupVars.BaseImportName = baseImportName
 	clientGroupVars.GroupBaseImport = baseImportName + "." + baseNodeName
 	clientGroupVars.GroupResourceType = groupResourceType
 	clientGroupVars.GroupResourceNameTitle = groupResourceNameTitle
@@ -185,6 +186,21 @@ func resolveNode(baseImportName string, pkg parser.Package, baseGroupName, versi
 			return fmt.Errorf("failed to parse ")
 		}
 		clientGroupVars.ForUpdatePatches += resolvedPatches
+	}
+
+	nodeHelper := parentsMap[clientGroupVars.CrdName]
+	if len(nodeHelper.Parents) > 0 {
+		parentCrdName := nodeHelper.Parents[len(nodeHelper.Parents)-1]
+		parentHelper := parentsMap[parentCrdName]
+		parentCrdNameParts := strings.Split(parentCrdName, ".")
+
+		clientGroupVars.Parent.HasParent = true
+		clientGroupVars.Parent.CrdName = parentCrdName
+		clientGroupVars.Parent.Group = strings.Join(parentCrdNameParts[1:], ".")
+		clientGroupVars.Parent.Kind = parentHelper.Name
+		clientGroupVars.Parent.GroupTypeName = util.GetGroupTypeName(parentCrdNameParts[1], baseGroupName, version)
+		clientGroupVars.Parent.GroupResourceNameTitle = util.GetGroupResourceNameTitle(parentHelper.Name)
+		clientGroupVars.Parent.GvkFieldName = parentHelper.Children[clientGroupVars.CrdName].FieldNameGvk
 	}
 
 	return nil
@@ -334,7 +350,7 @@ func renderApiGroup(vars apiGroupsVars) (string, error) {
 
 var apiGroupClientTmpl = `
 func (obj *{{.GroupResourceType}}) Get(ctx context.Context, name string, labels map[string]string) (result *{{.GroupBaseImport}}, err error) {
-	hashedName := helper.GetHashedName(name, labels)
+	hashedName := helper.GetHashedName("{{.CrdName}}", labels, name)
 	result, err = obj.client.baseClient.{{.GroupTypeName}}().{{.GroupResourceNameTitle}}().Get(ctx, hashedName, metav1.GetOptions{})
 	if err != nil {
 		return nil, err
@@ -354,7 +370,7 @@ func (obj *{{.GroupResourceType}}) GetByName(ctx context.Context, name string) (
 }
 
 func (obj *{{.GroupResourceType}}) Delete(ctx context.Context, name string, labels map[string]string) (err error) {
-	hashedName := helper.GetHashedName(name, labels)
+	hashedName := helper.GetHashedName("{{.CrdName}}", labels, name)
 	{{if .HasChildren}}{{.GetForDelete}}
 	{{ end }}
 
@@ -382,7 +398,7 @@ func (obj *{{.GroupResourceType}}) DeleteByName(ctx context.Context, name string
 }
 
 func (obj *{{.GroupResourceType}}) Create(ctx context.Context, objToCreate *{{.GroupBaseImport}}, labels map[string]string) (result *{{.GroupBaseImport}}, err error) {
-	hashedName := helper.GetHashedName(objToCreate.GetName(), labels)
+	hashedName := helper.GetHashedName("{{.CrdName}}", labels, objToCreate.GetName())
 	objToCreate.Name = hashedName
 
 	// recursive creation of objects is not supported
@@ -393,7 +409,9 @@ func (obj *{{.GroupResourceType}}) Create(ctx context.Context, objToCreate *{{.G
 		return nil, err
 	}
 
-	// TODO Update parent object with this child info
+	{{if .Parent.HasParent}}
+{{.Parent.UpdateParentForCreate}}
+	{{ end }}
 
 	return
 }
@@ -407,13 +425,15 @@ func (obj *{{.GroupResourceType}}) CreateByName(ctx context.Context, objToCreate
 		return nil, err
 	}
 
-	// TODO Update parent object with this child info
+	{{if .Parent.HasParent}}
+{{.Parent.UpdateParentForCreate}}
+	{{ end }}
 
 	return
 }
 
 func (obj *{{.GroupResourceType}}) Update(ctx context.Context, objToUpdate *{{.GroupBaseImport}}, labels map[string]string) (result *{{.GroupBaseImport}}, err error) {
-	hashedName := helper.GetHashedName(objToUpdate.GetName(), labels)
+	hashedName := helper.GetHashedName("{{.CrdName}}", labels, objToUpdate.GetName())
 	objToUpdate.Name = hashedName
 	return obj.UpdateByName(ctx, objToUpdate)
 }
@@ -454,18 +474,57 @@ var getByNameForDeleteTmpl = `
 	}
 `
 
+var updateParentForCreate = `
+	var patch Patch
+	patchOp := PatchOp{
+		Op:    "replace",
+		Path:  "/spec/{{.Parent.GvkFieldName}}",
+		Value: {{.BaseImportName}}.Child{
+			Group: "{{.Parent.Group}}",
+			Kind:  "{{.Parent.Kind}}",
+			Name:  objToCreate.Name,
+		},
+	}
+	patch = append(patch, patchOp)
+	marshaled, err := patch.Marshal()
+	if err != nil {
+		return nil, err
+	}
+	parentName, ok := labels["{{.Parent.CrdName}}"]
+	if !ok {
+		parentName = helper.DEFAULT_KEY
+	}
+	_, err = obj.client.baseClient.{{.Parent.GroupTypeName}}().{{.Parent.GroupResourceNameTitle}}().Patch(ctx, parentName, types.JSONPatchType, marshaled, metav1.PatchOptions{})
+	if err != nil {
+		return nil, err
+	}
+`
+
 type apiGroupsClientVars struct {
 	apiGroupsVars
+	CrdName                string
 	ResolveLinksGet        string
 	ResolveLinksDelete     string
 	ResolveLinksCreate     string
 	GetForDeleteByName     string
 	GetForDelete           string
 	HasChildren            bool
+	BaseImportName         string
 	GroupResourceType      string
 	GroupResourceNameTitle string
 	GroupBaseImport        string
-	ForUpdatePatches       string
+
+	Parent struct {
+		HasParent              bool
+		CrdName                string
+		GvkFieldName           string
+		UpdateParentForCreate  string
+		GroupTypeName          string
+		GroupResourceNameTitle string
+		Group                  string
+		Kind                   string
+	}
+	ForUpdatePatches string
 }
 
 func renderClientApiGroup(vars apiGroupsClientVars) (string, error) {
@@ -487,6 +546,16 @@ func renderClientApiGroup(vars apiGroupsClientVars) (string, error) {
 		return "", err
 	}
 	vars.GetForDeleteByName = getByNameBase.String()
+	// Parent
+	tmpl, err = template.New("tmpl").Parse(updateParentForCreate)
+	if err != nil {
+		return "", err
+	}
+	updateParentBase, err := renderTemplate(tmpl, vars)
+	if err != nil {
+		return "", err
+	}
+	vars.Parent.UpdateParentForCreate = updateParentBase.String()
 
 	tmpl, err = template.New("tmpl").Parse(apiGroupClientTmpl)
 	if err != nil {

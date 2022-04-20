@@ -10,3 +10,4 @@ _generated
 .idea
 report.json
 
+cmd/debug
