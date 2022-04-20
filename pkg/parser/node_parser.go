@@ -20,6 +20,7 @@ func ParseDSLNodes(startPath string, baseGroupName string) map[string]Node {
 
 	rootNodes := make([]string, 0)
 	nodes := make(map[string]Node)
+	pkgsMap := make(map[string]string)
 	err := filepath.Walk(startPath, func(path string, info fs.FileInfo, err error) error {
 		if info.IsDir() {
 			if info.Name() == "build" {
@@ -32,6 +33,10 @@ func ParseDSLNodes(startPath string, baseGroupName string) map[string]Node {
 				log.Fatalf("Failed to parse directory %s: %v", path, err)
 			}
 			for _, v := range pkgs {
+				if _, ok := pkgsMap[v.Name]; ok {
+					log.Fatalf("Invalid Package name. Package name <%v> is already defined. Please make sure the package names are not duplicated.", v.Name)
+				}
+				pkgsMap[v.Name] = v.Name
 				pkgImport := strings.TrimSuffix(strings.ReplaceAll(path, startPath, modulePath), "/")
 				for _, file := range v.Files {
 					for _, decl := range file.Decls {
