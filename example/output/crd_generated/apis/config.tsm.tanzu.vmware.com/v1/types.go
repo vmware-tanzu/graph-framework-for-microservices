@@ -41,7 +41,7 @@ func (c *Config) CRDName() string {
 // +k8s:openapi-gen=true
 type ConfigSpec struct {
 	GNS    *gnstsmtanzuvmwarecomv1.Gns `json:"-" yaml:"-"`
-	GNSGvk *Child                      `json:"gNSGvk,omitempty" yaml:"gNSGvk,omitempty" nexus:"child"`
+	GNSGvk *Child                      `json:"gnsGvk,omitempty" yaml:"gnsGvk,omitempty" nexus:"child"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object

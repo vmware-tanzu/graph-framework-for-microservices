@@ -96,9 +96,27 @@ func CreateParentsMap(graph map[string]Node) map[string]NodeHelper {
 	parents := make(map[string]NodeHelper)
 	for _, root := range graph {
 		root.Walk(func(node *Node) {
+			children := make(map[string]NodeHelperChild)
+			for key, child := range node.SingleChildren {
+				children[child.CrdName] = NodeHelperChild{
+					IsMap:        false,
+					FieldName:    key,
+					FieldNameGvk: util.GetGvkFieldTagName(key),
+				}
+			}
+
+			for key, child := range node.MultipleChildren {
+				children[child.CrdName] = NodeHelperChild{
+					IsMap:        true,
+					FieldName:    key,
+					FieldNameGvk: util.GetGvkFieldTagName(key),
+				}
+			}
+
 			parents[node.CrdName] = NodeHelper{
-				Name:    node.Name,
-				Parents: node.Parents,
+				Name:     node.Name,
+				Parents:  node.Parents,
+				Children: children,
 			}
 		})
 	}
@@ -120,6 +138,7 @@ func processNode(node *Node, nodes map[string]Node, baseGroupName string) {
 
 		isMap := IsMapField(f)
 		fieldTypeStr := GetFieldType(f)
+		fieldName, _ := GetFieldName(f)
 
 		var key string
 		fieldType := strings.Split(fieldTypeStr, ".")
@@ -147,17 +166,17 @@ func processNode(node *Node, nodes map[string]Node, baseGroupName string) {
 			processNode(&n, nodes, baseGroupName)
 
 			if isMap {
-				node.MultipleChildren[fieldTypeStr] = n
+				node.MultipleChildren[fieldName] = n
 			} else {
-				node.SingleChildren[fieldTypeStr] = n
+				node.SingleChildren[fieldName] = n
 			}
 		}
 
 		if isLink {
 			if isMap {
-				node.MultipleLink[fieldTypeStr] = nodes[key]
+				node.MultipleLink[fieldName] = nodes[key]
 			} else {
-				node.SingleLink[fieldTypeStr] = nodes[key]
+				node.SingleLink[fieldName] = nodes[key]
 			}
 		}
 	}

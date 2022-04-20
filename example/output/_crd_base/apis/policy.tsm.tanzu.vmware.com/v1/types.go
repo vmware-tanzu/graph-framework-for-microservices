@@ -41,7 +41,7 @@ func (c *AccessControlPolicy) CRDName() string {
 // +k8s:openapi-gen=true
 type AccessControlPolicySpec struct {
 	PolicyConfigs    map[string]ACPConfig `json:"-" yaml:"-"`
-	PolicyConfigsGvk map[string]Child     `json:"policyConfigsGvk,omitempty" yaml:"policyConfigsGvk,omitempty" nexus:"child"`
+	PolicyConfigsGvk map[string]Child     `json:"policyconfigsGvk,omitempty" yaml:"policyconfigsGvk,omitempty" nexus:"child"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
@@ -75,9 +75,9 @@ type ACPConfigSpec struct {
 	ProjectId          string                                              `json:"projectId" yaml:"projectId"`
 	Conditions         []string                                            `json:"conditions" yaml:"conditions"`
 	DestSvcGroups      map[string]servicegrouptsmtanzuvmwarecomv1.SvcGroup `json:"-" yaml:"-"`
-	DestSvcGroupsGvk   map[string]Link                                     `json:"destSvcGroupsGvk,omitempty" yaml:"destSvcGroupsGvk,omitempty" nexus:"link"`
+	DestSvcGroupsGvk   map[string]Link                                     `json:"destsvcgroupsGvk,omitempty" yaml:"destsvcgroupsGvk,omitempty" nexus:"link"`
 	SourceSvcGroups    map[string]servicegrouptsmtanzuvmwarecomv1.SvcGroup `json:"-" yaml:"-"`
-	SourceSvcGroupsGvk map[string]Link                                     `json:"sourceSvcGroupsGvk,omitempty" yaml:"sourceSvcGroupsGvk,omitempty" nexus:"link"`
+	SourceSvcGroupsGvk map[string]Link                                     `json:"sourcesvcgroupsGvk,omitempty" yaml:"sourcesvcgroupsGvk,omitempty" nexus:"link"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object

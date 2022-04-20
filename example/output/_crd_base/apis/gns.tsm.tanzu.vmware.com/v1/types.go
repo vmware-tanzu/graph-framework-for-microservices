@@ -46,9 +46,9 @@ type GnsSpec struct {
 	UseSharedGateway          bool                                                `json:"useSharedGateway" yaml:"useSharedGateway"`
 	Description               Description                                         `json:"description" yaml:"description"`
 	GnsServiceGroups          map[string]servicegrouptsmtanzuvmwarecomv1.SvcGroup `json:"-" yaml:"-"`
-	GnsServiceGroupsGvk       map[string]Child                                    `json:"gnsServiceGroupsGvk,omitempty" yaml:"gnsServiceGroupsGvk,omitempty" nexus:"child"`
+	GnsServiceGroupsGvk       map[string]Child                                    `json:"gnsservicegroupsGvk,omitempty" yaml:"gnsservicegroupsGvk,omitempty" nexus:"child"`
 	GnsAccessControlPolicy    *policytsmtanzuvmwarecomv1.AccessControlPolicy      `json:"-" yaml:"-"`
-	GnsAccessControlPolicyGvk *Child                                              `json:"gnsAccessControlPolicyGvk,omitempty" yaml:"gnsAccessControlPolicyGvk,omitempty" nexus:"child"`
+	GnsAccessControlPolicyGvk *Child                                              `json:"gnsaccesscontrolpolicyGvk,omitempty" yaml:"gnsaccesscontrolpolicyGvk,omitempty" nexus:"child"`
 	Dns                       *Dns                                                `json:"-" yaml:"-"`
 	DnsGvk                    *Link                                               `json:"dnsGvk,omitempty" yaml:"dnsGvk,omitempty" nexus:"link"`
 }
