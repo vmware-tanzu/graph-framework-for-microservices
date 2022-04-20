@@ -2,29 +2,28 @@ package runtime
 
 import (
 	"fmt"
+	"os"
+	"path/filepath"
 
 	"github.com/spf13/cobra"
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/common"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/servicemesh/prereq"
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/utils"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus/golang/pkg/logging"
 )
 
 func Uninstall(cmd *cobra.Command, args []string) error {
-
-	if Namespace != "" {
-		common.EnvList = append(common.EnvList, fmt.Sprintf("NAMESPACE=%s", Namespace))
-	}
-
-	if err := utils.GoToNexusDirectory(); err != nil {
+	files, err := DownloadRuntimeFiles()
+	if err != nil {
 		return err
 	}
-
-	err := utils.SystemCommand(cmd, utils.RUNTIME_UNINSTALL_FAILED, common.EnvList, "make", "runtime_uninstall")
-	if err != nil {
-		return fmt.Errorf("runtime install failed with error %v", err)
-
+	for _, file := range files {
+		if file.IsDir() {
+			utils.SystemCommand(cmd, utils.RUNTIME_INSTALL_FAILED, []string{}, "kubectl", "delete", "-f", filepath.Join(ManifestsDir, "runtime-manifests", file.Name()), "-n", Namespace, "--ignore-not-found=true")
+		}
 	}
-	fmt.Printf("\u2713 Runtime %s install successful\n", Namespace)
-
+	fmt.Printf("\u2713 Runtime %s uninstallation successful\n", Namespace)
+	os.Remove(Filename)
+	os.RemoveAll(ManifestsDir)
 	return nil
 }
 
@@ -33,7 +32,7 @@ var UninstallCmd = &cobra.Command{
 	Short: "Uninstalls the Nexus runtime from the specified namespace",
 	//Args:  cobra.ExactArgs(1),
 	PreRunE: func(cmd *cobra.Command, args []string) (err error) {
-		return nil
+		return prereq.PreReqVerifyOnDemand(prerequisites)
 	},
 	RunE: Uninstall,
 }
@@ -41,4 +40,8 @@ var UninstallCmd = &cobra.Command{
 func init() {
 	UninstallCmd.Flags().StringVarP(&Namespace, "namespace",
 		"n", "", "name of the namespace to be created")
+	err := cobra.MarkFlagRequired(UninstallCmd.Flags(), "namespace")
+	if err != nil {
+		logging.Debugf("Runtime uninstall err: %v", err)
+	}
 }

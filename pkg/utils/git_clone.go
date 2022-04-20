@@ -15,66 +15,7 @@ import (
 	"text/template"
 
 	"github.com/spf13/cobra"
-	"gopkg.in/src-d/go-git.v4/plumbing/transport"
-	ssh2 "gopkg.in/src-d/go-git.v4/plumbing/transport/ssh"
-
-	"golang.org/x/crypto/ssh"
-	"gopkg.in/src-d/go-git.v4"
-	"gopkg.in/src-d/go-git.v4/plumbing"
-	"gopkg.in/src-d/go-git.v4/plumbing/transport/http"
 )
-
-func GitClone() (string, error) {
-	fmt.Println("git clone https://gitlab.eng.vmware.com/nsx-allspark_users/m7/policymodel.git")
-
-	manifestDir := "policymodel" // Should remove this directory after installation is complete.
-	_, err := os.Stat(manifestDir)
-	if err == nil {
-		os.RemoveAll(manifestDir)
-	}
-	err = os.Mkdir(manifestDir, os.ModePerm)
-	if err != nil {
-		fmt.Printf("tenant-manifest directory creation failed with an error: %v", err)
-		return "", err
-	}
-	var branch plumbing.ReferenceName = "refs/heads/nexus-sdk-dev"
-	var Auth transport.AuthMethod
-	var URL string = ""
-	if os.Getenv("GIT_USER") != "" && os.Getenv("GIT_PASS") != "" {
-		URL = "https://gitlab.eng.vmware.com/nsx-allspark_users/m7/policymodel"
-		Auth = &http.BasicAuth{Username: os.Getenv("GIT_USER"), Password: os.Getenv("GIT_PASS")}
-	} else {
-		var path string
-		URL = "git@gitlab.eng.vmware.com:nsx-allspark_users/m7/policymodel.git"
-		if os.Getenv("GIT_SSH_KEY") == "" {
-			homedir, _ := os.UserHomeDir()
-			path = filepath.Join(homedir, ".ssh/id_rsa")
-		} else {
-			path = os.Getenv("GIT_SSH_KEY")
-		}
-		pvk, _ := ioutil.ReadFile(path)
-		signer, _ := ssh.ParsePrivateKey(pvk)
-		Auth = &ssh2.PublicKeys{User: "git", Signer: signer}
-	}
-
-	r, err := git.PlainClone(manifestDir, false, &git.CloneOptions{
-		URL:           URL,
-		Progress:      os.Stdout,
-		Auth:          Auth,
-		Depth:         1,
-		ReferenceName: branch,
-		SingleBranch:  true,
-	})
-	if err != nil {
-		fmt.Printf("policymodel git-clone failed with an error: %v", err)
-		return "", err
-	}
-	_ = r.DeleteRemote("origin")
-
-	//remove remote origin...
-
-	return manifestDir, nil
-}
 
 func GoModInit(path string, current bool) error {
 	if path != "" {

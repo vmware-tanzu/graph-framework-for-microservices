@@ -7,6 +7,7 @@ import (
 
 	"github.com/spf13/cobra"
 
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/common"
 	. "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/common"
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/utils"
 )
@@ -35,9 +36,9 @@ func Init(cmd *cobra.Command, args []string) error {
 			return nil
 		}
 	}
-	envList := []string{}
+
 	if DatatmodelName != "" {
-		envList = append(envList, fmt.Sprintf("DATAMODEL=%s", DatatmodelName))
+		common.EnvList = append(common.EnvList, fmt.Sprintf("DATAMODEL=%s", DatatmodelName))
 	}
 	var DOWNLOAD_APP string = "true"
 	files, _ := ioutil.ReadDir(".")
@@ -83,8 +84,8 @@ func Init(cmd *cobra.Command, args []string) error {
 		if DatatmodelGroup == "" {
 			DatatmodelGroup = fmt.Sprintf("%s.com", DatatmodelName)
 		}
-		envList = append(envList, fmt.Sprintf("DATAMODEL_GROUP=%s", DatatmodelGroup))
-		err := utils.SystemCommand(cmd, utils.DATAMODEL_INIT_FAILED, envList, "make", "datamodel_init")
+		common.EnvList = append(common.EnvList, fmt.Sprintf("DATAMODEL_GROUP=%s", DatatmodelGroup))
+		err := utils.SystemCommand(cmd, utils.DATAMODEL_INIT_FAILED, common.EnvList, "make", "datamodel_init")
 		if err != nil {
 			return fmt.Errorf("error in creating new datamodel due to %s", err)
 		}

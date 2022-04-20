@@ -5,11 +5,15 @@ import (
 
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/common"
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/servicemesh/app"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/servicemesh/prereq"
 
 	"github.com/spf13/cobra"
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/utils"
 )
 
+var prerequisites []prereq.Prerequiste = []prereq.Prerequiste{
+	prereq.GOLANG_VERSION,
+}
 var (
 	CrdGroup     string
 	CrdVersion   string
@@ -48,7 +52,7 @@ var CreateCmd = &cobra.Command{
 	Use:   "create",
 	Short: "creates an operator that subscribes to changes to the specified resource",
 	PreRunE: func(cmd *cobra.Command, args []string) (err error) {
-		return nil
+		return prereq.PreReqVerifyOnDemand(prerequisites)
 	},
 	RunE: Create,
 }

@@ -5,10 +5,10 @@ variables:
   REPOSITORY: nsx-allspark_users/nexus-sdk/cli
 
 before_script:
-  - git config --global url."https://github.com/".insteadOf "git@github.com:"
   - git config --global url."https://gitlab.eng.vmware.com/".insteadOf "git@gitlab.eng.vmware.com:"
   - git config --global gc.auto 0
   - git config --global credential.helper store
+  - echo -e  "https://gitlab-ci-token:${CICD_TOKEN}@gitlab.eng.vmware.com/" >> ~/.git-credentials
 
 .setup_aws: &setup_aws
   - apt clean && apt update -y && apt install unzip -y
@@ -21,5 +21,8 @@ before_script:
 
 build:
   stage: build
+  image: harbor-repo.vmware.com/nexus/golang:1.17
   script:
+    - tdnf install --refresh make awk -y
+    - export GOPRIVATE=gitlab.eng.vmware.com
     - make build
