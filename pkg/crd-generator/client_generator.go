@@ -272,7 +272,7 @@ var resolveNamedLinkGetTmpl = `
 
 var resolveLinkDeleteTmpl = `
 	if result.Spec.{{.LinkFieldName}}Gvk != nil {
-		 err := obj.client.{{.LinkGroupTypeName}}().{{.LinkGroupResourceNameTitle}}().DeleteByName(ctx, result.Spec.{{.LinkFieldName}}Gvk.Name)
+		 err := obj.client.{{.LinkGroupTypeName}}().{{.LinkGroupResourceNameTitle}}().DeleteByName(ctx, result.Spec.{{.LinkFieldName}}Gvk.Name, labels)
 		if err != nil {
 			return err
 		}
@@ -281,7 +281,7 @@ var resolveLinkDeleteTmpl = `
 
 var resolveNamedLinkDeleteTmpl = `
 	for _, v := range result.Spec.{{.LinkFieldName}}Gvk {
-		err := obj.client.{{.LinkGroupTypeName}}().{{.LinkGroupResourceNameTitle}}().DeleteByName(ctx, v.Name)
+		err := obj.client.{{.LinkGroupTypeName}}().{{.LinkGroupResourceNameTitle}}().DeleteByName(ctx, v.Name, labels)
 		if err != nil {
 			return err
 		}
@@ -351,13 +351,7 @@ func renderApiGroup(vars apiGroupsVars) (string, error) {
 var apiGroupClientTmpl = `
 func (obj *{{.GroupResourceType}}) Get(ctx context.Context, name string, labels map[string]string) (result *{{.GroupBaseImport}}, err error) {
 	hashedName := helper.GetHashedName("{{.CrdName}}", labels, name)
-	result, err = obj.client.baseClient.{{.GroupTypeName}}().{{.GroupResourceNameTitle}}().Get(ctx, hashedName, metav1.GetOptions{})
-	if err != nil {
-		return nil, err
-	}
-
-	{{.ResolveLinksGet}}
-	return
+	return obj.GetByName(ctx, hashedName)
 }
 
 func (obj *{{.GroupResourceType}}) GetByName(ctx context.Context, name string) (result *{{.GroupBaseImport}}, err error) { 
@@ -371,19 +365,10 @@ func (obj *{{.GroupResourceType}}) GetByName(ctx context.Context, name string) (
 
 func (obj *{{.GroupResourceType}}) Delete(ctx context.Context, name string, labels map[string]string) (err error) {
 	hashedName := helper.GetHashedName("{{.CrdName}}", labels, name)
-	{{if .HasChildren}}{{.GetForDelete}}
-	{{ end }}
-
-	{{.ResolveLinksDelete}}
-
-	err = obj.client.baseClient.{{.GroupTypeName}}().{{.GroupResourceNameTitle}}().Delete(ctx, hashedName, metav1.DeleteOptions{})
-	if err != nil {
-		return err
-	}
-	return
+	return obj.DeleteByName(ctx, hashedName, labels)
 }
 
-func (obj *{{.GroupResourceType}}) DeleteByName(ctx context.Context, name string) (err error) { 
+func (obj *{{.GroupResourceType}}) DeleteByName(ctx context.Context, name string, labels map[string]string) (err error) { 
 	{{if .HasChildren}}
 {{.GetForDeleteByName}}
 	{{ end }}
@@ -400,20 +385,7 @@ func (obj *{{.GroupResourceType}}) DeleteByName(ctx context.Context, name string
 func (obj *{{.GroupResourceType}}) Create(ctx context.Context, objToCreate *{{.GroupBaseImport}}, labels map[string]string) (result *{{.GroupBaseImport}}, err error) {
 	hashedName := helper.GetHashedName("{{.CrdName}}", labels, objToCreate.GetName())
 	objToCreate.Name = hashedName
-
-	// recursive creation of objects is not supported
-	{{.ResolveLinksCreate}}
-
-	result, err = obj.client.baseClient.{{.GroupTypeName}}().{{.GroupResourceNameTitle}}().Create(ctx, objToCreate, metav1.CreateOptions{})
-	if err != nil {
-		return nil, err
-	}
-
-	{{if .Parent.HasParent}}
-{{.Parent.UpdateParentForCreate}}
-	{{ end }}
-
-	return
+	return obj.CreateByName(ctx, objToCreate, labels)
 }
 
 func (obj *{{.GroupResourceType}}) CreateByName(ctx context.Context, objToCreate *{{.GroupBaseImport}}, labels map[string]string) (result *{{.GroupBaseImport}}, err error) {
