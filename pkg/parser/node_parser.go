@@ -20,6 +20,7 @@ func ParseDSLNodes(startPath string, baseGroupName string) map[string]Node {
 
 	rootNodes := make([]string, 0)
 	nodes := make(map[string]Node)
+	pkgsMap := make(map[string]string)
 	err := filepath.Walk(startPath, func(path string, info fs.FileInfo, err error) error {
 		if info.IsDir() {
 			if info.Name() == "build" {
@@ -32,6 +33,10 @@ func ParseDSLNodes(startPath string, baseGroupName string) map[string]Node {
 				log.Fatalf("Failed to parse directory %s: %v", path, err)
 			}
 			for _, v := range pkgs {
+				if _, ok := pkgsMap[v.Name]; ok {
+					log.Fatalf("Invalid Package name. Package name <%v> is already defined. Please make sure the package names are not duplicated.", v.Name)
+				}
+				pkgsMap[v.Name] = v.Name
 				pkgImport := strings.TrimSuffix(strings.ReplaceAll(path, startPath, modulePath), "/")
 				for _, file := range v.Files {
 					for _, decl := range file.Decls {
@@ -105,6 +110,14 @@ func processNode(node *Node, nodes map[string]Node, baseGroupName string) {
 	linkFields := GetLinkFields(node.TypeSpec)
 
 	processField := func(f *ast.Field, isChild bool, isLink bool) {
+		if isChild || isLink {
+			if IsArrayField(f) {
+				log.Fatalf(`"Invalid Type for %v. Nexus Child or Link can't be an array. Please represent it in the form of a map.`+"\n"+
+					`For example: `+
+					`myStr []string should be represented in the form of myStr map[string]string`, f.Names)
+			}
+		}
+
 		isMap := IsMapField(f)
 		fieldTypeStr := GetFieldType(f)
 
@@ -147,7 +160,6 @@ func processNode(node *Node, nodes map[string]Node, baseGroupName string) {
 				node.SingleLink[fieldTypeStr] = nodes[key]
 			}
 		}
-
 	}
 
 	for _, child := range childFields {
