@@ -34,6 +34,7 @@ const (
 	CLI_UPGRADE_FAILED                   ClientErrorCode = 22
 	CHECK_CURRENT_DIRECTORY_IS_DATAMODEL ClientErrorCode = 23
 	APPLICATION_INIT_PREREQ_FAILED       ClientErrorCode = 24
+	APPLICATION_BUILD_FAILED             ClientErrorCode = 25
 )
 
 // ClientError defines error and information around it that are specific
@@ -90,7 +91,7 @@ var wellKnownErrors = map[ClientErrorCode]ClientError{
 		Description: "datamodel build failed",
 		WhatNext: []string{
 			"run with --debug option to get detailed logging on the build",
-			"verify dsl for code and syntax errors",
+			"check the DSL for code and syntax errors",
 		},
 		fatal: true,
 	},
@@ -98,80 +99,80 @@ var wellKnownErrors = map[ClientErrorCode]ClientError{
 		Description: "docker daemon not running",
 		WhatNext: []string{
 			"run with --debug option to get detailed logging on the build",
-			"docker daemon is running on the host",
-			"you have permissions to access docker process",
+			"verify that the docker daemon is running on the host",
+			"verify that you have permissions to access docker process",
 		},
 		fatal: true,
 	},
 	RUNTIME_INSTALL_FAILED: {
 		Description: "runtime installation failed",
 		WhatNext: []string{
-			"kubectl command line is installed and available",
-			"kubernetes cluster is reachable through kubectl command line",
+			"verify that the kubectl command line is installed and available",
+			"verify that the kubernetes cluster is reachable through kubectl command line",
 		},
 		fatal: true,
 	},
 	RUNTIME_UNINSTALL_FAILED: {
 		Description: "runtime installation failed",
 		WhatNext: []string{
-			"kubectl command line is installed and available",
-			"kubernetes cluster is reachable through kubectl command line",
+			"verify that the kubectl command line is installed and available",
+			"verify that the kubernetes cluster is reachable through kubectl command line",
 		},
 		fatal: true,
 	},
 	DATAMODEL_INSTALL_FAILED: {
 		Description: "datamodel installation failed",
 		WhatNext: []string{
-			"verify that kubectl command line is installed and available",
-			"verify that kubernetes cluster is reachable through kubectl command line",
-			"verify that runtime is successfully intalled on the kubernetes cluster",
+			"verify that the kubectl command line is installed and available",
+			"verify that the kubernetes cluster is reachable through kubectl command line",
+			"verify that the nexus runtime is successfully intalled on the kubernetes cluster",
 		},
 		fatal: true,
 	},
 	APPLICATION_DEPLOY_FAILED: {
 		Description: "application deploy failed",
 		WhatNext: []string{
-			"kubectl command line is installed and available",
-			"kubernetes cluster is reachable through kubectl command line",
-			"depolyment image is pushed and available in the image registry",
+			"verify that the kubectl command line is installed and available",
+			"verify that the kubernetes cluster is reachable through kubectl command line",
+			"verify that the depolyment image is pushed and available in the image registry",
 		},
 		fatal: true,
 	},
 	DATAMODEL_INIT_FAILED: {
 		Description: "datamodel init failed",
 		WhatNext: []string{
-			"user has write permissions on the disk to be able to create files and directories",
+			"verify that the user has write permissions on the disk to be able to create files and directories",
 		},
 		fatal: true,
 	},
 	APPLICATION_PACKAGE_FAILED: {
 		Description: "application package failed",
 		WhatNext: []string{
-			"the user has write permissions on the disk to be able to create files and directories",
+			"verify that the user has write permissions on the disk to be able to create files and directories",
 		},
 		fatal: true,
 	},
 	APPLICATION_PUBLISH_FAILED: {
 		Description: "application publish failed",
 		WhatNext: []string{
-			"user has write permissions on the disk to be able to create files and directories",
-			"the user has permissions to publish the image to image registry",
+			"verify that the user has write permissions on the disk to be able to create files and directories",
+			"verify that the user has permissions to publish the image to image registry",
 		},
 		fatal: true,
 	},
 	APPLICATION_RUN_FAILED: {
 		Description: "application publish failed",
 		WhatNext: []string{
-			"kubectl command line is installed and available",
-			"kubernetes cluster is reachable through kubectl command line",
-			"depolyment image is pushed and available in the image registry",
+			"verify that kubectl command line is installed and available",
+			"verify that the kubernetes cluster is reachable through kubectl command line",
+			"verify that the depolyment image is pushed and available in the image registry",
 		},
 		fatal: true,
 	},
 	APPLICATION_OPERATOR_CREATE_FAILED: {
 		Description: "application operator create failed",
 		WhatNext: []string{
-			"the user has write permissions on the disk to be able to create files and directories",
+			"verify that the user has write permissions on the disk to be able to create files and directories",
 		},
 		fatal: true,
 	},
@@ -195,6 +196,15 @@ var wellKnownErrors = map[ClientErrorCode]ClientError{
 		Description: "application init prereq failed",
 		WhatNext: []string{
 			"satisfy the missing prereq for app init",
+		},
+		fatal: true,
+	},
+	APPLICATION_BUILD_FAILED: {
+		Description: "app build failed",
+		WhatNext: []string{
+			"run with --debug option to get verbose logs",
+			"check for app compilation errors",
+			"verify you have permissions to access the Nexus CLI repo (gitlab.eng.vmware.com:nsx-allspark_users/nexus-sdk/cli.git)",
 		},
 		fatal: true,
 	},

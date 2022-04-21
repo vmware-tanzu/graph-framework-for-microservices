@@ -18,8 +18,8 @@ func UpgradeCli(cmd *cobra.Command, args []string) error {
 	if upgradeToVersion == "" {
 		upgradeToVersion = "latest"
 	}
-
-	err := utils.SystemCommand(cmd, utils.CLI_UPGRADE_FAILED, common.EnvList, "go", "install", fmt.Sprintf("%s@%s", nexusCliRepo, upgradeToVersion))
+	envList := common.GetEnvList()
+	err := utils.SystemCommand(cmd, utils.CLI_UPGRADE_FAILED, envList, "go", "install", fmt.Sprintf("%s@%s", nexusCliRepo, upgradeToVersion))
 	if err == nil {
 		fmt.Printf("\u2713 CLI successfully upgraded to version %s\n", upgradeToVersion)
 	} else {

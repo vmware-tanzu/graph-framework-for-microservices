@@ -8,7 +8,8 @@ import (
 )
 
 func Package(cmd *cobra.Command, args []string) error {
-	err := utils.SystemCommand(cmd, utils.APPLICATION_PACKAGE_FAILED, common.EnvList, "make", "app_package")
+	envList := common.GetEnvList()
+	err := utils.SystemCommand(cmd, utils.APPLICATION_PACKAGE_FAILED, envList, "make", "app_package")
 	if err != nil {
 		return err
 	}

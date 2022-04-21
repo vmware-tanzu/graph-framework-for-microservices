@@ -57,7 +57,7 @@ func Build(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		return fmt.Errorf("error while unmarshal version yaml data %v", err)
 	}
-	envList := common.EnvList
+	envList := common.GetEnvList()
 	envList = append(envList, fmt.Sprintf("TAG=%s", values.NexusCompiler.Version))
 	// hack for running datamodel build locally
 	err = utils.SystemCommand(cmd, utils.CHECK_CURRENT_DIRECTORY_IS_DATAMODEL, envList, "make", "datamodel_build", "--dry-run")

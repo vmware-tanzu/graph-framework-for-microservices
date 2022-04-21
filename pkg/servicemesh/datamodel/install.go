@@ -25,7 +25,7 @@ func Install(cmd *cobra.Command, args []string) error {
 	if err := utils.GoToNexusDirectory(); err != nil {
 		return err
 	}
-	envList := common.EnvList
+	envList := common.GetEnvList()
 	if DatamodelName != "" {
 		envList = append(envList, fmt.Sprintf("DATAMODEL=%s", DatamodelName))
 		if exists, err := utils.CheckDatamodelDirExists(DatamodelName); !exists {

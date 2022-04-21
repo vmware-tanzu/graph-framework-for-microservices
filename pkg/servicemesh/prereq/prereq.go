@@ -203,21 +203,21 @@ func PreReqList(cmd *cobra.Command, args []string) error {
 func PreReqVerifyOnDemand(reqs []Prerequiste) error {
 	for _, current := range reqs {
 		util := preReqs[current]
-		if ok, err := util.verify(); ok {
-			return nil
-		} else {
-			return utils.GetCustomError(utils.APPLICATION_INIT_PREREQ_FAILED, err).Print().ExitIfFatalOrReturn()
+		if ok, err := util.verify(); !ok {
+			return err
 		}
 	}
 	return nil
 }
 
+// PreReqListOnDemand lists the prerequisites and exits
 func PreReqListOnDemand(reqs []Prerequiste) {
 	for _, current := range reqs {
 		if util, found := preReqs[current]; found {
 			printPreReq(util)
 		}
 	}
+	os.Exit(0)
 }
 
 var PreReqVerifyCmd = &cobra.Command{
