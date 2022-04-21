@@ -136,6 +136,10 @@ func processNode(node *Node, nodes map[string]Node, baseGroupName string) {
 			}
 		}
 
+		if IsFieldPointer(f) {
+			log.Fatalf("Pointer type is not allowed. Field <%v> is a pointer. Please make sure nexus child/link types are not pointers.", f.Names)
+		}
+
 		isMap := IsMapField(f)
 		fieldTypeStr := GetFieldType(f)
 		fieldName, _ := GetFieldName(f)
