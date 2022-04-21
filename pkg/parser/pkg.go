@@ -411,6 +411,23 @@ func GetFieldType(f *ast.Field) string {
 	return fieldType
 }
 
+func IsFieldPointer(f *ast.Field) bool {
+	if f == nil {
+		return false
+	}
+
+	star := false
+	switch fieldType := f.Type.(type) {
+	case *ast.MapType:
+		if _, ok := fieldType.Value.(*ast.StarExpr); ok {
+			star = true
+		}
+	case *ast.StarExpr:
+		star = true
+	}
+	return star
+}
+
 func ParseFieldTags(tag string) *structtag.Tags {
 	tagsStr, err := strconv.Unquote(tag)
 	if err != nil {
