@@ -58,3 +58,13 @@ func GetGvkFieldName(fieldName string) string {
 func GetGvkFieldTagName(fieldName string) string {
 	return strings.ToLower(fieldName) + "Gvk"
 }
+
+func GetGroupFromCrdName(crdName string) string {
+	parts := strings.Split(crdName, ".")
+	return strings.Join(parts[1:], ".")
+}
+
+func GetPackageNameFromCrdName(crdName string) string {
+	parts := strings.Split(crdName, ".")
+	return parts[1]
+}

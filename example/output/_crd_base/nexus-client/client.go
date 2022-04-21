@@ -388,13 +388,18 @@ func (obj *configConfigTsmV1) CreateByName(ctx context.Context, objToCreate *bas
 		return nil, err
 	}
 
+	parentName, ok := labels["roots.root.tsm.tanzu.vmware.com"]
+	if !ok {
+		parentName = helper.DEFAULT_KEY
+	}
+
 	var patch Patch
 	patchOp := PatchOp{
 		Op:   "replace",
 		Path: "/spec/configGvk",
 		Value: baseconfigtsmtanzuvmwarecomv1.Child{
-			Group: "root.tsm.tanzu.vmware.com",
-			Kind:  "Root",
+			Group: "config.tsm.tanzu.vmware.com",
+			Kind:  "Config",
 			Name:  objToCreate.Name,
 		},
 	}
@@ -402,10 +407,6 @@ func (obj *configConfigTsmV1) CreateByName(ctx context.Context, objToCreate *bas
 	marshaled, err := patch.Marshal()
 	if err != nil {
 		return nil, err
-	}
-	parentName, ok := labels["roots.root.tsm.tanzu.vmware.com"]
-	if !ok {
-		parentName = helper.DEFAULT_KEY
 	}
 	_, err = obj.client.baseClient.RootTsmV1().Roots().Patch(ctx, parentName, types.JSONPatchType, marshaled, metav1.PatchOptions{})
 	if err != nil {
@@ -560,13 +561,18 @@ func (obj *gnsGnsTsmV1) CreateByName(ctx context.Context, objToCreate *basegnsts
 		return nil, err
 	}
 
+	parentName, ok := labels["configs.config.tsm.tanzu.vmware.com"]
+	if !ok {
+		parentName = helper.DEFAULT_KEY
+	}
+
 	var patch Patch
 	patchOp := PatchOp{
 		Op:   "replace",
 		Path: "/spec/gnsGvk",
 		Value: basegnstsmtanzuvmwarecomv1.Child{
-			Group: "config.tsm.tanzu.vmware.com",
-			Kind:  "Config",
+			Group: "gns.tsm.tanzu.vmware.com",
+			Kind:  "Gns",
 			Name:  objToCreate.Name,
 		},
 	}
@@ -574,10 +580,6 @@ func (obj *gnsGnsTsmV1) CreateByName(ctx context.Context, objToCreate *basegnsts
 	marshaled, err := patch.Marshal()
 	if err != nil {
 		return nil, err
-	}
-	parentName, ok := labels["configs.config.tsm.tanzu.vmware.com"]
-	if !ok {
-		parentName = helper.DEFAULT_KEY
 	}
 	_, err = obj.client.baseClient.ConfigTsmV1().Configs().Patch(ctx, parentName, types.JSONPatchType, marshaled, metav1.PatchOptions{})
 	if err != nil {
@@ -785,26 +787,13 @@ func (obj *svcgroupServicegroupTsmV1) CreateByName(ctx context.Context, objToCre
 		return nil, err
 	}
 
-	var patch Patch
-	patchOp := PatchOp{
-		Op:   "replace",
-		Path: "/spec/gnsservicegroupsGvk",
-		Value: baseservicegrouptsmtanzuvmwarecomv1.Child{
-			Group: "gns.tsm.tanzu.vmware.com",
-			Kind:  "Gns",
-			Name:  objToCreate.Name,
-		},
-	}
-	patch = append(patch, patchOp)
-	marshaled, err := patch.Marshal()
-	if err != nil {
-		return nil, err
-	}
 	parentName, ok := labels["gnses.gns.tsm.tanzu.vmware.com"]
 	if !ok {
 		parentName = helper.DEFAULT_KEY
 	}
-	_, err = obj.client.baseClient.GnsTsmV1().Gnses().Patch(ctx, parentName, types.JSONPatchType, marshaled, metav1.PatchOptions{})
+
+	payload := "{\"spec\": {\"gnsservicegroupsGvk\": {\"" + objToCreate.Name + "\": {\"name\": \"" + objToCreate.Name + "\",\"kind\": \"SvcGroup\", \"group\": \"servicegroup.tsm.tanzu.vmware.com\"}}}}"
+	_, err = obj.client.baseClient.GnsTsmV1().Gnses().Patch(ctx, parentName, types.MergePatchType, []byte(payload), metav1.PatchOptions{})
 	if err != nil {
 		return nil, err
 	}
@@ -955,13 +944,18 @@ func (obj *accesscontrolpolicyPolicyTsmV1) CreateByName(ctx context.Context, obj
 		return nil, err
 	}
 
+	parentName, ok := labels["gnses.gns.tsm.tanzu.vmware.com"]
+	if !ok {
+		parentName = helper.DEFAULT_KEY
+	}
+
 	var patch Patch
 	patchOp := PatchOp{
 		Op:   "replace",
 		Path: "/spec/gnsaccesscontrolpolicyGvk",
 		Value: basepolicytsmtanzuvmwarecomv1.Child{
-			Group: "gns.tsm.tanzu.vmware.com",
-			Kind:  "Gns",
+			Group: "policy.tsm.tanzu.vmware.com",
+			Kind:  "AccessControlPolicy",
 			Name:  objToCreate.Name,
 		},
 	}
@@ -969,10 +963,6 @@ func (obj *accesscontrolpolicyPolicyTsmV1) CreateByName(ctx context.Context, obj
 	marshaled, err := patch.Marshal()
 	if err != nil {
 		return nil, err
-	}
-	parentName, ok := labels["gnses.gns.tsm.tanzu.vmware.com"]
-	if !ok {
-		parentName = helper.DEFAULT_KEY
 	}
 	_, err = obj.client.baseClient.GnsTsmV1().Gnses().Patch(ctx, parentName, types.JSONPatchType, marshaled, metav1.PatchOptions{})
 	if err != nil {
@@ -1094,26 +1084,13 @@ func (obj *acpconfigPolicyTsmV1) CreateByName(ctx context.Context, objToCreate *
 		return nil, err
 	}
 
-	var patch Patch
-	patchOp := PatchOp{
-		Op:   "replace",
-		Path: "/spec/policyconfigsGvk",
-		Value: basepolicytsmtanzuvmwarecomv1.Child{
-			Group: "policy.tsm.tanzu.vmware.com",
-			Kind:  "AccessControlPolicy",
-			Name:  objToCreate.Name,
-		},
-	}
-	patch = append(patch, patchOp)
-	marshaled, err := patch.Marshal()
-	if err != nil {
-		return nil, err
-	}
 	parentName, ok := labels["accesscontrolpolicies.policy.tsm.tanzu.vmware.com"]
 	if !ok {
 		parentName = helper.DEFAULT_KEY
 	}
-	_, err = obj.client.baseClient.PolicyTsmV1().AccessControlPolicies().Patch(ctx, parentName, types.JSONPatchType, marshaled, metav1.PatchOptions{})
+
+	payload := "{\"spec\": {\"policyconfigsGvk\": {\"" + objToCreate.Name + "\": {\"name\": \"" + objToCreate.Name + "\",\"kind\": \"ACPConfig\", \"group\": \"policy.tsm.tanzu.vmware.com\"}}}}"
+	_, err = obj.client.baseClient.PolicyTsmV1().AccessControlPolicies().Patch(ctx, parentName, types.MergePatchType, []byte(payload), metav1.PatchOptions{})
 	if err != nil {
 		return nil, err
 	}
