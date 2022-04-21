@@ -1,0 +1,1 @@
+{"buildTargets":[".SILENT","check-datamodel","check-file","check-portforward","check_pod","datamodel_install","kill-portforward","make","post-install-checks","runtime_install","runtime_uninstall","start-portforward"],"launchTargets":[],"customConfigurationProvider":{"workspaceBrowse":{"browsePath":[],"compilerArgs":[]},"fileIndex":[]}}

@@ -1,0 +1,381 @@
+make all --print-data-base --no-builtin-variables --no-builtin-rules --question
+# GNU Make 3.81
+# Copyright (C) 2006  Free Software Foundation, Inc.
+# This is free software; see the source for copying conditions.
+# There is NO warranty; not even for MERCHANTABILITY or FITNESS FOR A
+# PARTICULAR PURPOSE.
+
+# This program built for i386-apple-darwin11.3.0
+
+# Make data base, printed on Wed Apr 20 09:15:31 2022
+
+# Variables
+
+# automatic
+<D = $(patsubst %/,%,$(dir $<))
+# automatic
+?F = $(notdir $?)
+# environment
+VSCODE_LOG_NATIVE = false
+# automatic
+?D = $(patsubst %/,%,$(dir $?))
+# automatic
+@D = $(patsubst %/,%,$(dir $@))
+# automatic
+@F = $(notdir $@)
+# makefile
+CURDIR := /Users/rjanakiraman/nexus-repos/datamodel-templates/nexus
+# makefile (from `Makefile', line 7)
+SHELL = bash
+# makefile (from `Makefile', line 2)
+NAMESPACE = default
+# environment
+VSCODE_NLS_CONFIG = {"locale":"en-gb","availableLanguages":{},"_languagePackSupport":true}
+# environment
+_ = /usr/bin/make
+# makefile (from `Makefile', line 1)
+MAKEFILE_LIST :=  Makefile
+# environment
+VSCODE_NODE_CACHED_DATA_DIR = /Users/rjanakiraman/Library/Application Support/Code/CachedData/c185983a683d14c396952dd432459097bc7f757f
+# environment
+VSCODE_AMD_ENTRYPOINT = vs/workbench/services/extensions/node/extensionHostProcess
+# environment
+VSCODE_VERBOSE_LOGGING = true
+# environment
+__CFBundleIdentifier = com.microsoft.VSCode
+# makefile (from `Makefile', line 5)
+PID = $(shell ps -ef | grep $$(cat /tmp/portforward.pid) | grep -v grep | wc -l| tr -d ' ')
+# environment
+VSCODE_IPC_HOOK_EXTHOST = /var/folders/cp/4lrjzmvs5ms0n3ty37dnkmww0000gp/T/vscode-ipc-26a83d8e-639b-4469-a179-b6d1ac5aa06e.sock
+# environment
+VSCODE_CWD = /
+# environment
+GOPROXY = https://proxy.golang.org,direct
+# environment
+PATH = /Users/rjanakiraman/.krew/bin:/Users/rjanakiraman/Downloads/google-cloud-sdk/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:/usr/local/go/bin:/Users/rjanakiraman/.cargo/bin:/Users/rjanakiraman/go/bin
+# environment
+GOPATH = /Users/rjanakiraman/go
+# environment
+VSCODE_LOG_STACK = false
+# environment
+ELECTRON_RUN_AS_NODE = 1
+# default
+.FEATURES := target-specific order-only second-expansion else-if archives jobserver check-symlink
+# environment
+SSH_AUTH_SOCK = /private/tmp/com.apple.launchd.W0myxAhafR/Listeners
+# automatic
+%F = $(notdir $%)
+# environment
+GOBIN = /Users/rjanakiraman/go/bin
+# environment
+VSCODE_PIPE_LOGGING = true
+# environment
+PWD = /Users/rjanakiraman/nexus-repos/datamodel-templates/nexus
+# makefile (from `Makefile', line 6)
+FILE = ""
+# environment
+ORIGINAL_XDG_CURRENT_DESKTOP = undefined
+# environment
+GOMODCACHE = /Users/rjanakiraman/go/pkg/mod
+# environment
+HOME = /Users/rjanakiraman
+# default
+MAKEFILEPATH = $(shell /usr/bin/xcode-select -print-path 2>/dev/null || echo /Developer)/Makefiles
+# environment
+LOGNAME = rjanakiraman
+# environment
+APPLICATION_INSIGHTS_NO_DIAGNOSTIC_CHANNEL = true
+# environment
+VSCODE_HANDLES_UNCAUGHT_ERRORS = true
+# automatic
+^D = $(patsubst %/,%,$(dir $^))
+# environment
+TEST = test
+# environment
+XPC_FLAGS = 0x0
+# default
+MAKE = $(MAKE_COMMAND)
+# default
+MAKECMDGOALS := all
+# environment
+SHLVL = 1
+# makefile (from `Makefile', line 3)
+BUILD_DIR = build
+# default
+MAKE_VERSION := 3.81
+# environment
+USER = rjanakiraman
+# makefile
+.DEFAULT_GOAL := runtime_install
+# makefile (from `Makefile', line 1)
+UNAME := Darwin
+# automatic
+%D = $(patsubst %/,%,$(dir $%))
+# default
+MAKE_COMMAND := /Library/Developer/CommandLineTools/usr/bin/make
+# default
+.VARIABLES := 
+# environment
+TMPDIR = /var/folders/cp/4lrjzmvs5ms0n3ty37dnkmww0000gp/T/
+# automatic
+*F = $(notdir $*)
+# environment
+VSCODE_IPC_HOOK = /Users/rjanakiraman/Library/Application Support/Code/1.55.0-main.sock
+# makefile
+MAKEFLAGS = sRrqp
+# environment
+MFLAGS = -sRrqp
+# automatic
+*D = $(patsubst %/,%,$(dir $*))
+# environment
+XPC_SERVICE_NAME = application.com.microsoft.VSCode.264995.265001
+# automatic
++D = $(patsubst %/,%,$(dir $+))
+# automatic
++F = $(notdir $+)
+# environment
+__CF_USER_TEXT_ENCODING = 0x1F6:0x0:0x0
+# environment
+COMMAND_MODE = unix2003
+# default
+MAKEFILES := 
+# automatic
+<F = $(notdir $<)
+# environment
+LC_ALL = C
+# automatic
+^F = $(notdir $^)
+# default
+SUFFIXES := 
+# default
+.INCLUDE_DIRS = /usr/local/include
+# environment
+MAKELEVEL := 0
+# environment
+LANG = C
+# environment
+VSCODE_PID = 1756
+# makefile (from `Makefile', line 4)
+APP_DIR = ".."
+# variable set hash-table stats:
+# Load=73/1024=7%, Rehash=0, Collisions=6/104=6%
+
+# Pattern-specific Variable Values
+
+# No pattern-specific variable values.
+
+# Directories
+
+# . (device 16777221, inode 38953821): 11 files, no impossibilities.
+
+# 11 files, no impossibilities in 1 directories.
+
+# Implicit Rules
+
+# No implicit rules.
+
+# Files
+
+check-file:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+#  commands to execute (from `Makefile', line 91):
+	@if [ "$(FILE)" = "" ]; then \
+	{ echo 'please call as FILE="<filename> make datamodel_apply'; exit 1; }  ;\
+	fi
+	
+
+# Not a target:
+all:
+#  Command-line target.
+#  Implicit rule search has been done.
+#  File does not exist.
+#  File has not been updated.
+# variable set hash-table stats:
+# Load=0/32=0%, Rehash=0, Collisions=0/0=0%
+
+.PHONY: runtime_install datamodel_install
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+post-install-checks:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+#  commands to execute (from `Makefile', line 41):
+	$(MAKE) check_pod POD="-lapp=nexus-etcd" ;\
+	kubectl wait pods -lapp=nexus-etcd -n ${NAMESPACE} --for=condition=ready --timeout=300s || { echo "etcd pod could not be started"; exit 1; } ;\
+	$(MAKE) check_pod POD="-lapp=nexus-kube-apiserver" ;\
+	kubectl wait pods -lapp=nexus-kube-apiserver -n ${NAMESPACE} --for=condition=ready --timeout=120s || { echo "k8sapiserver pod could not be started"; exit 1; } ;\
+	$(MAKE) check_pod POD="-lname=nexus-kube-controllermanager" ;\
+	kubectl wait pods -lname=nexus-kube-controllermanager -n ${NAMESPACE} --for=condition=ready --timeout=120s || { echo "k8scontrollermanager pod could not be started"; exit 1; } ;
+	
+
+runtime_install:
+#  Phony target (prerequisite of .PHONY).
+#  Implicit rule search has not been done.
+#  File does not exist.
+#  File has not been updated.
+#  commands to execute (from `Makefile', line 11):
+	kubectl create namespace ${NAMESPACE} --dry-run -o yaml | kubectl apply -f -
+	mkdir -p /tmp/ && \
+	cd /tmp  && \
+	curl https://storage.googleapis.com/nexus-template-downloads/runtime-manifests.tar -o manifests.tar && \
+	tar -xvf manifests.tar && \
+	kubectl apply -f runtime-manifests/crds/ -n ${NAMESPACE} &&\
+	kubectl apply -f runtime-manifests/deployment/ -n ${NAMESPACE};
+	$(MAKE) post-install-checks
+	
+
+kill-portforward:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+#  commands to execute (from `Makefile', line 86):
+	@if test -s /tmp/portforward.pid ; then \
+	{ kill $(shell cat /tmp/portforward.pid); rm /tmp/portforward.pid ;} ;\
+	fi
+	
+
+# Not a target:
+.SUFFIXES:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+# Not a target:
+Makefile:
+#  Implicit rule search has been done.
+#  Last modified 2022-04-19 17:03:42
+#  File has been updated.
+#  Successfully updated.
+# variable set hash-table stats:
+# Load=0/32=0%, Rehash=0, Collisions=0/0=0%
+
+datamodel_install: check-datamodel start-portforward
+#  Phony target (prerequisite of .PHONY).
+#  Implicit rule search has not been done.
+#  File does not exist.
+#  File has not been updated.
+#  commands to execute (from `Makefile', line 102):
+	kubectl -s localhost:45192 apply -f ${DATAMODEL}/build/crds/ || { echo "could not install datamodel"; kill $(shell cat /tmp/portforward.pid); rm /tmp/portforward.pid; exit 1; } && \
+	kill $(shell cat /tmp/portforward.pid); rm /tmp/portforward.pid;
+	
+
+check-datamodel:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+#  commands to execute (from `Makefile', line 96):
+	@if [ "${DATAMODEL}" == "" ]; then \
+	{ echo "please provide DATAMODEL name as DATAMODEL=<<>> "; exit 1; } ;\
+	fi
+	
+
+ 
+make: *** No rule to make target `all'.  Stop.
+
+check-portforward:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+#  commands to execute (from `Makefile', line 66):
+	@if [ -z `which telnet` ]; then \
+	echo "please install telnet for mac : brew install telnet" ;\
+	exit 1 ;\
+	fi
+	@if [ `kubectl get ns ${NAMESPACE} --no-headers 2>/dev/null | wc -l` -eq 0 ]; then \
+	echo "Please install runtime on namespace" ;\
+	exit 1 ;\
+	fi
+	@if echo -e '\x1dclose\x0d' | telnet localhost 45192 2>/dev/null; then\
+	echo "could not portforward to 45192 port - port already open"; exit 1; \
+	else \
+	echo "Proceeding to start portforwarding.." ;\
+	fi
+	@if [ `kubectl get svc $(NAMESPACE) nexus-proxy-container --no-headers 2>/dev/null | wc -l` -eq 0 ]; then \
+	echo "Please install runtime components.." ;\
+	exit 1;\
+	fi
+	
+
+.SILENT:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+# Not a target:
+.DEFAULT:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+runtime_uninstall:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+#  commands to execute (from `Makefile', line 21):
+	mkdir -p /tmp/ && \
+	cd /tmp  && \
+	curl https://storage.googleapis.com/nexus-template-downloads/runtime-manifests.tar -o manifests.tar && \
+	tar -xvf manifests.tar && \
+	kubectl delete --ignore-not-found=true -f runtime-manifests/crds/ -n ${NAMESPACE} &&\
+	kubectl delete --ignore-not-found=true -f runtime-manifests/deployment/ -n ${NAMESPACE};
+	
+
+check_pod:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+#  commands to execute (from `Makefile', line 29):
+	CURRENT=0
+	while [ `kubectl get pods -n ${NAMESPACE} ${POD} --no-headers 2>/dev/null | wc -l` -eq 0 ] ; do \
+	CURRENT=$$(( CURRENT + 1 )) ;\
+	TRIES_LEFT=$$(( 20 - CURRENT )) ;\
+	if [ $$TRIES_LEFT -ne 0 ] ; then \
+	sleep 6 ;\
+	else \
+	echo "${POD} pod not created"; \
+	exit 1 ; \
+	fi \
+	done ;
+	
+
+start-portforward: check-portforward
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+#  commands to execute (from `Makefile', line 50):
+	( kubectl port-forward svc/nexus-proxy-container -n ${NAMESPACE} 45192:80 & echo $$! > /tmp/portforward.pid )
+	CURRENT=0
+	while [ `curl -s -o /dev/null -w "%{http_code}" http://localhost:45192/api/v1/namespaces 2>/dev/null` -ne 200  ] ; do \
+	CURRENT=$$(( CURRENT + 1 )) ;\
+	TRIES_LEFT=$$(( 10 - CURRENT )) ;\
+	if [ $$TRIES_LEFT -ne 0 ] ; then \
+	sleep 5 ;\
+	else \
+	echo "portforwarding failed due to service not reachable"; \
+	$(MAKE) kill-portforward ;\
+	exit 1 ; \
+	fi \
+	done
+	
+
+# files hash-table stats:
+# Load=16/1024=2%, Rehash=0, Collisions=0/36=0%
+# VPATH Search Paths
+
+# No `vpath' search paths.
+
+# No general (`VPATH' variable) search path.
+
+# # of strings in strcache: 1
+# # of strcache buffers: 1
+# strcache size: total = 4096 / max = 4096 / min = 4096 / avg = 4096
+# strcache free: total = 4087 / max = 4087 / min = 4087 / avg = 4087
+
+# Finished Make data base on Wed Apr 20 09:15:31 2022
+
+ 

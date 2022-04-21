@@ -1,0 +1,38 @@
+make --dry-run --always-make --keep-going --print-directory
+make: Entering directory `/Users/rjanakiraman/nexus-repos/datamodel-templates/nexus'
+kubectl create namespace default --dry-run -o yaml | kubectl apply -f -
+mkdir -p /tmp/ && \
+	cd /tmp  && \
+	curl https://storage.googleapis.com/nexus-template-downloads/runtime-manifests.tar -o manifests.tar && \
+	tar -xvf manifests.tar && \
+	kubectl apply -f runtime-manifests/crds/ -n default &&\
+	kubectl apply -f runtime-manifests/deployment/ -n default;
+/Library/Developer/CommandLineTools/usr/bin/make post-install-checks
+make[1]: Entering directory `/Users/rjanakiraman/nexus-repos/datamodel-templates/nexus'
+/Library/Developer/CommandLineTools/usr/bin/make check_pod POD="-lapp=nexus-etcd" ;\
+	kubectl wait pods -lapp=nexus-etcd -n default --for=condition=ready --timeout=300s || { echo "etcd pod could not be started"; exit 1; } ;\
+	/Library/Developer/CommandLineTools/usr/bin/make check_pod POD="-lapp=nexus-kube-apiserver" ;\
+	kubectl wait pods -lapp=nexus-kube-apiserver -n default --for=condition=ready --timeout=120s || { echo "k8sapiserver pod could not be started"; exit 1; } ;\
+	/Library/Developer/CommandLineTools/usr/bin/make check_pod POD="-lname=nexus-kube-controllermanager" ;\
+	kubectl wait pods -lname=nexus-kube-controllermanager -n default --for=condition=ready --timeout=120s || { echo "k8scontrollermanager pod could not be started"; exit 1; } ;
+make[2]: Entering directory `/Users/rjanakiraman/nexus-repos/datamodel-templates/nexus'
+CURRENT=0
+while [ `kubectl get pods -n default -lapp=nexus-etcd --no-headers 2>/dev/null | wc -l` -eq 0 ] ; do \
+		CURRENT=$(( CURRENT + 1 )) ;\
+		TRIES_LEFT=$(( 20 - CURRENT )) ;\
+		if [ $TRIES_LEFT -ne 0 ] ; then \
+			sleep 6 ;\
+		else \
+			echo "-lapp=nexus-etcd pod not created"; \
+			exit 1 ; \
+		fi \
+	done ;
+make[2]: Leaving directory `/Users/rjanakiraman/nexus-repos/datamodel-templates/nexus'
+etcd pod could not be started
+make[1]: Leaving directory `/Users/rjanakiraman/nexus-repos/datamodel-templates/nexus'
+make: Leaving directory `/Users/rjanakiraman/nexus-repos/datamodel-templates/nexus'
+ 
+The connection to the server 127.0.0.1:56650 was refused - did you specify the right host or port?
+make[1]: *** [post-install-checks] Error 1
+make: *** [runtime_install] Error 2
+
