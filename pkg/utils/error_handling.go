@@ -33,6 +33,7 @@ const (
 	APPLICATION_OPERATOR_CREATE_FAILED   ClientErrorCode = 21
 	CLI_UPGRADE_FAILED                   ClientErrorCode = 22
 	CHECK_CURRENT_DIRECTORY_IS_DATAMODEL ClientErrorCode = 23
+	APPLICATION_INIT_PREREQ_FAILED       ClientErrorCode = 24
 )
 
 // ClientError defines error and information around it that are specific
@@ -189,6 +190,13 @@ var wellKnownErrors = map[ClientErrorCode]ClientError{
 			"run this from app directory / or datamodel directory.",
 		},
 		fatal: false,
+	},
+	APPLICATION_INIT_PREREQ_FAILED: {
+		Description: "application init prereq failed",
+		WhatNext: []string{
+			"satisfy the missing prereq for app init",
+		},
+		fatal: true,
 	},
 }
 

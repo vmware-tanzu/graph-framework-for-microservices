@@ -29,12 +29,25 @@ var InstallCmd = &cobra.Command{
 	Short: "Installs the Nexus runtime on the specified namespace",
 	//Args:  cobra.ExactArgs(1),
 	PreRunE: func(cmd *cobra.Command, args []string) (err error) {
+		if utils.ListPrereq(cmd) {
+			return nil
+		}
+
+		if utils.SkipPrereqCheck(cmd) {
+			return nil
+		}
 		return prereq.PreReqVerifyOnDemand(prerequisites)
 	},
 	RunE: Install,
 }
 
 func Install(cmd *cobra.Command, args []string) error {
+
+	if utils.ListPrereq(cmd) {
+		prereq.PreReqListOnDemand(prerequisites)
+		return nil
+	}
+
 	files, err := DownloadRuntimeFiles()
 	if err != nil {
 		return err
@@ -44,6 +57,7 @@ func Install(cmd *cobra.Command, args []string) error {
 			utils.SystemCommand(cmd, utils.RUNTIME_INSTALL_FAILED, []string{}, "kubectl", "apply", "-f", filepath.Join(ManifestsDir, "runtime-manifests", file.Name()), "-n", Namespace)
 		}
 	}
+	fmt.Println("Waiting for runtime microserivces to run ...")
 	for _, label := range common.PodLabels {
 		utils.CheckPodRunning(cmd, utils.RUNTIME_INSTALL_FAILED, label, Namespace)
 	}

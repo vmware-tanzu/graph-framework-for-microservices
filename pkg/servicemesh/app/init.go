@@ -9,6 +9,7 @@ import (
 
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/common"
 	. "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/common"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/servicemesh/prereq"
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/utils"
 )
 
@@ -25,7 +26,18 @@ var (
 	DatatmodelImport string
 )
 
+var prerequisites []prereq.Prerequiste = []prereq.Prerequiste{
+	prereq.GOLANG_VERSION,
+	prereq.GOPATH,
+}
+
 func Init(cmd *cobra.Command, args []string) error {
+
+	if utils.ListPrereq(cmd) {
+		prereq.PreReqListOnDemand(prerequisites)
+		return nil
+	}
+
 	empty, _ := utils.IsDirEmpty(".")
 	if empty == false {
 		var input string
@@ -105,7 +117,14 @@ var InitCmd = &cobra.Command{
 	Use:   "init",
 	Short: "Creates a bare-bones Nexus application ready for operators to be added",
 	PreRunE: func(cmd *cobra.Command, args []string) (err error) {
-		return nil
+		if utils.ListPrereq(cmd) {
+			return nil
+		}
+
+		if utils.SkipPrereqCheck(cmd) {
+			return nil
+		}
+		return prereq.PreReqVerifyOnDemand(prerequisites)
 	},
 	RunE: Init,
 }

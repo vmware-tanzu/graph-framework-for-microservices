@@ -7,9 +7,12 @@ import (
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/servicemesh"
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/servicemesh/prereq"
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/servicemesh/upgrade"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/utils"
 )
 
 var enableDebug = false
+var prereqShow = false
+var skipPrereqCheck = false
 
 var rootCmd = &cobra.Command{
 	Use:   "nexus",
@@ -37,5 +40,7 @@ func init() {
 		prereq.PreReqCmd,
 	)
 
-	rootCmd.PersistentFlags().BoolVarP(&enableDebug, "debug", "", false, "Enables extra logging")
+	rootCmd.PersistentFlags().BoolVarP(&enableDebug, utils.EnableDebugFlag, "", false, "Enables extra logging")
+	rootCmd.PersistentFlags().BoolVarP(&prereqShow, utils.ListPrereqFlag, "", false, "List prerequisites")
+	rootCmd.PersistentFlags().BoolVarP(&skipPrereqCheck, utils.SkipPrereqCheckFlag, "", false, "Skip prerequisites check")
 }

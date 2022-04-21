@@ -22,11 +22,25 @@ var BuildCmd = &cobra.Command{
 	Short: "Compiles the Nexus DSLs into consumable APIs, CRDs, etc.",
 	RunE:  Build,
 	PreRunE: func(cmd *cobra.Command, args []string) (err error) {
+		if utils.ListPrereq(cmd) {
+			return nil
+		}
+
+		if utils.SkipPrereqCheck(cmd) {
+			return nil
+		}
+
 		return prereq.PreReqVerifyOnDemand(prerequisites)
 	},
 }
 
 func Build(cmd *cobra.Command, args []string) error {
+
+	if utils.ListPrereq(cmd) {
+		prereq.PreReqListOnDemand(prerequisites)
+		return nil
+	}
+
 	var values version.NexusValues
 	err := utils.IsDockerRunning(cmd)
 	if err != nil {

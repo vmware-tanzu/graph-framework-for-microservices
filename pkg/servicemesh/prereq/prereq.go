@@ -3,7 +3,11 @@ package prereq
 import (
 	"bytes"
 	"fmt"
+	"go/build"
+	"log"
+	"os"
 	"os/exec"
+	"path/filepath"
 	"regexp"
 	"strings"
 
@@ -25,10 +29,11 @@ type Prerequiste int
 
 const (
 	// Adding validation enum here to add multiple Prerequistes.
-	DOCKER             Prerequiste = 1
-	KUBERNETES         Prerequiste = 2
-	KUBERNETES_VERSION Prerequiste = 3
-	GOLANG_VERSION     Prerequiste = 4
+	DOCKER Prerequiste = iota
+	KUBERNETES
+	KUBERNETES_VERSION
+	GOLANG_VERSION
+	GOPATH
 )
 
 type PrerequisteMeta struct {
@@ -134,6 +139,34 @@ var preReqs = map[Prerequiste]PrerequisteMeta{
 			return true, nil
 		},
 	},
+	GOPATH: {
+		what:                  "GOPATH",
+		AdditionalDescription: "app workspace should be in GOPATH",
+		verify: func() (bool, error) {
+
+			gopath := os.Getenv("GOPATH")
+			if gopath == "" {
+				gopath = build.Default.GOPATH
+			}
+
+			workspacePath, err := os.Getwd()
+			if err != nil {
+				log.Println(err)
+			}
+
+			up := ".." + string(os.PathSeparator)
+			// path-comparisons using filepath.Abs don't work reliably according to docs (no unique representation).
+			if rel, err := filepath.Rel(gopath, workspacePath); err == nil {
+				if !strings.HasPrefix(rel, up) && rel != ".." {
+					return true, nil
+				} else {
+					return false, fmt.Errorf("workspace %s is not in GOPATH %s", workspacePath, gopath)
+				}
+			}
+			fmt.Printf("Verifying if workspace is in GOPATH failed with error %s. Ignoring verification.", err)
+			return true, nil
+		},
+	},
 }
 
 func PreReqVerify(cmd *cobra.Command, args []string) error {
@@ -149,30 +182,42 @@ func PreReqVerify(cmd *cobra.Command, args []string) error {
 	return nil
 }
 
+func printPreReq(req PrerequisteMeta) {
+	fmt.Printf("\u2023 %s", req.what)
+	if len(req.Version) > 0 {
+		fmt.Printf(" (version: %s)", req.Version)
+	}
+	if len(req.AdditionalDescription) > 0 {
+		fmt.Printf(" [ %s ]", req.AdditionalDescription)
+	}
+	fmt.Println()
+}
+
 func PreReqList(cmd *cobra.Command, args []string) error {
 	for _, util := range preReqs {
-		fmt.Printf("\u2023 %s", util.what)
-		if len(util.Version) > 0 {
-			fmt.Printf(" (version: %s)", util.Version)
-		}
-		if len(util.AdditionalDescription) > 0 {
-			fmt.Printf(" [ %s ]", util.AdditionalDescription)
-		}
-		fmt.Println()
+		printPreReq(util)
 	}
 	return nil
 }
 
-func PreReqVerifyOnDemand(particular []Prerequiste) error {
-	for _, current := range particular {
+func PreReqVerifyOnDemand(reqs []Prerequiste) error {
+	for _, current := range reqs {
 		util := preReqs[current]
 		if ok, err := util.verify(); ok {
 			return nil
 		} else {
-			return fmt.Errorf("\u274C %s %s verify failed with err: %v\n", util.what, util.Version, err)
+			return utils.GetCustomError(utils.APPLICATION_INIT_PREREQ_FAILED, err).Print().ExitIfFatalOrReturn()
 		}
 	}
 	return nil
+}
+
+func PreReqListOnDemand(reqs []Prerequiste) {
+	for _, current := range reqs {
+		if util, found := preReqs[current]; found {
+			printPreReq(util)
+		}
+	}
 }
 
 var PreReqVerifyCmd = &cobra.Command{

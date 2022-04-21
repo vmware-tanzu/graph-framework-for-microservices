@@ -17,7 +17,10 @@ var installPrerequisites []prereq.Prerequiste = []prereq.Prerequiste{
 }
 
 func Install(cmd *cobra.Command, args []string) error {
-	fmt.Print("Checking if the tenant-apiserver is reachable for installing datamodel crds\n")
+	if utils.ListPrereq(cmd) {
+		prereq.PreReqListOnDemand(prerequisites)
+		return nil
+	}
 
 	if err := utils.GoToNexusDirectory(); err != nil {
 		return err
@@ -55,6 +58,13 @@ var InstallCmd = &cobra.Command{
 	Short: "Install specified datamodel's generated CRDs to the specified namespace",
 	//Args:  cobra.ExactArgs(1),
 	PreRunE: func(cmd *cobra.Command, args []string) (err error) {
+		if utils.ListPrereq(cmd) {
+			return nil
+		}
+
+		if utils.SkipPrereqCheck(cmd) {
+			return nil
+		}
 		return prereq.PreReqVerifyOnDemand(installPrerequisites)
 	},
 	RunE: Install,

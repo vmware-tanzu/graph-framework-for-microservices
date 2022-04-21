@@ -22,6 +22,11 @@ var (
 )
 
 func Create(cmd *cobra.Command, args []string) error {
+	if utils.ListPrereq(cmd) {
+		prereq.PreReqListOnDemand(prerequisites)
+		return nil
+	}
+
 	if CrdDatamodel == "" {
 		// check if we have a default datamodel configured in nexus-dms.yaml
 		defaultDM, err := app.GetDefaultDm()
@@ -52,6 +57,13 @@ var CreateCmd = &cobra.Command{
 	Use:   "create",
 	Short: "creates an operator that subscribes to changes to the specified resource",
 	PreRunE: func(cmd *cobra.Command, args []string) (err error) {
+		if utils.ListPrereq(cmd) {
+			return nil
+		}
+
+		if utils.SkipPrereqCheck(cmd) {
+			return nil
+		}
 		return prereq.PreReqVerifyOnDemand(prerequisites)
 	},
 	RunE: Create,
