@@ -263,11 +263,11 @@ var resolveLinkGetTmpl = `
 
 var resolveNamedLinkGetTmpl = `
 	for k, v := range result.Spec.{{.LinkFieldName}}Gvk {
-		obj, err := obj.client.{{.LinkGroupTypeName}}().{{.LinkGroupResourceNameTitle}}().GetByName(ctx, v.Name)
+		field, err := obj.client.{{.LinkGroupTypeName}}().{{.LinkGroupResourceNameTitle}}().GetByName(ctx, v.Name)
 		if err != nil {
 			return nil, err
 		}
-		result.Spec.{{.LinkFieldName}}[k] = *obj
+		result.Spec.{{.LinkFieldName}}[k] = *field
 	}
 `
 
@@ -360,9 +360,15 @@ func (obj *{{.GroupResourceType}}) GetByName(ctx context.Context, name string) (
 	if err != nil {
 		return nil, err
 	}
+	return obj.resolveLinks(ctx, result)
+}
+
+func (obj *{{.GroupResourceType}}) resolveLinks(ctx context.Context, raw *{{.GroupBaseImport}}) (result *{{.GroupBaseImport}}, err error) {
+	result = raw
 	{{.ResolveLinksGet}}
 	return
 }
+
 
 func (obj *{{.GroupResourceType}}) Delete(ctx context.Context, name string, labels map[string]string) (err error) {
 	hashedName := helper.GetHashedName("{{.CrdName}}", labels, name)
@@ -434,7 +440,7 @@ func (obj *{{.GroupResourceType}}) UpdateByName(ctx context.Context, objToUpdate
 		return nil, err
 	}
 
-	return
+	return obj.resolveLinks(ctx, result)
 }
 `
 
