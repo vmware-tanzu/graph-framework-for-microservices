@@ -27,7 +27,7 @@ type NodeHelper struct {
 type NodeHelperChild struct {
 	FieldName    string `json:"fieldName"`
 	FieldNameGvk string `json:"fieldNameGvk"`
-	IsMap        bool   `json:"isMap"`
+	IsNamed      bool   `json:"isNamed"`
 }
 
 func (node *Node) Walk(fn func(node *Node)) {

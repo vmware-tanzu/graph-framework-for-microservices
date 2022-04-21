@@ -99,7 +99,7 @@ func CreateParentsMap(graph map[string]Node) map[string]NodeHelper {
 			children := make(map[string]NodeHelperChild)
 			for key, child := range node.SingleChildren {
 				children[child.CrdName] = NodeHelperChild{
-					IsMap:        false,
+					IsNamed:      false,
 					FieldName:    key,
 					FieldNameGvk: util.GetGvkFieldTagName(key),
 				}
@@ -107,7 +107,7 @@ func CreateParentsMap(graph map[string]Node) map[string]NodeHelper {
 
 			for key, child := range node.MultipleChildren {
 				children[child.CrdName] = NodeHelperChild{
-					IsMap:        true,
+					IsNamed:      true,
 					FieldName:    key,
 					FieldNameGvk: util.GetGvkFieldTagName(key),
 				}

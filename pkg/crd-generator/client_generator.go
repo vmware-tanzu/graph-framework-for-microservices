@@ -189,17 +189,17 @@ func resolveNode(baseImportName string, pkg parser.Package, baseGroupName, versi
 	}
 
 	nodeHelper := parentsMap[clientGroupVars.CrdName]
+	clientGroupVars.Group = util.GetGroupFromCrdName(clientGroupVars.CrdName)
+	clientGroupVars.Kind = nodeHelper.Name
 	if len(nodeHelper.Parents) > 0 {
 		parentCrdName := nodeHelper.Parents[len(nodeHelper.Parents)-1]
 		parentHelper := parentsMap[parentCrdName]
-		parentCrdNameParts := strings.Split(parentCrdName, ".")
 
 		clientGroupVars.Parent.HasParent = true
-		clientGroupVars.Parent.IsNamed = parentHelper.Children[clientGroupVars.CrdName].IsMap
+		clientGroupVars.Parent.IsNamed = parentHelper.Children[clientGroupVars.CrdName].IsNamed
 		clientGroupVars.Parent.CrdName = parentCrdName
-		clientGroupVars.Parent.Group = strings.Join(parentCrdNameParts[1:], ".")
-		clientGroupVars.Parent.Kind = parentHelper.Name
-		clientGroupVars.Parent.GroupTypeName = util.GetGroupTypeName(parentCrdNameParts[1], baseGroupName, version)
+		clientGroupVars.Parent.GroupTypeName = util.GetGroupTypeName(
+			util.GetPackageNameFromCrdName(parentCrdName), baseGroupName, version)
 		clientGroupVars.Parent.GroupResourceNameTitle = util.GetGroupResourceNameTitle(parentHelper.Name)
 		clientGroupVars.Parent.GvkFieldName = parentHelper.Children[clientGroupVars.CrdName].FieldNameGvk
 	}
@@ -459,13 +459,24 @@ var getByNameForDeleteTmpl = `
 `
 
 var updateParentForCreate = `
+	parentName, ok := labels["{{.Parent.CrdName}}"]
+	if !ok {
+		parentName = helper.DEFAULT_KEY
+	}
+	{{if .Parent.IsNamed}}
+	payload := "{\"spec\": {\"{{.Parent.GvkFieldName}}\": {\"" + objToCreate.Name + "\": {\"name\": \"" + objToCreate.Name + "\",\"kind\": \"{{.Kind}}\", \"group\": \"{{.Group}}\"}}}}"
+	_, err = obj.client.baseClient.{{.Parent.GroupTypeName}}().{{.Parent.GroupResourceNameTitle}}().Patch(ctx, parentName, types.MergePatchType, []byte(payload), metav1.PatchOptions{})
+	if err != nil {
+		return nil, err
+	}
+	{{ else }}
 	var patch Patch
 	patchOp := PatchOp{
 		Op:    "replace",
 		Path:  "/spec/{{.Parent.GvkFieldName}}",
 		Value: {{.BaseImportName}}.Child{
-			Group: "{{.Parent.Group}}",
-			Kind:  "{{.Parent.Kind}}",
+			Group: "{{.Group}}",
+			Kind:  "{{.Kind}}",
 			Name:  objToCreate.Name,
 		},
 	}
@@ -474,14 +485,11 @@ var updateParentForCreate = `
 	if err != nil {
 		return nil, err
 	}
-	parentName, ok := labels["{{.Parent.CrdName}}"]
-	if !ok {
-		parentName = helper.DEFAULT_KEY
-	}
 	_, err = obj.client.baseClient.{{.Parent.GroupTypeName}}().{{.Parent.GroupResourceNameTitle}}().Patch(ctx, parentName, types.JSONPatchType, marshaled, metav1.PatchOptions{})
 	if err != nil {
 		return nil, err
 	}
+	{{ end }}
 `
 
 var updateParentForDelete = `
@@ -525,6 +533,8 @@ type apiGroupsClientVars struct {
 	GroupResourceType      string
 	GroupResourceNameTitle string
 	GroupBaseImport        string
+	Group                  string
+	Kind                   string
 
 	Parent struct {
 		IsNamed                bool
@@ -535,8 +545,6 @@ type apiGroupsClientVars struct {
 		UpdateParentForDelete  string
 		GroupTypeName          string
 		GroupResourceNameTitle string
-		Group                  string
-		Kind                   string
 	}
 	ForUpdatePatches string
 }
