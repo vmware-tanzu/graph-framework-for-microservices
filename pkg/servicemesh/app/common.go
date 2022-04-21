@@ -38,6 +38,8 @@ func WriteToNexusDms(DmName string, DmProps NexusDmProps) error {
 	}
 	if nexusDmMap == nil {
 		nexusDmMap = make(map[string]NexusDmProps)
+		// set default=true if there's only 1 DM
+		DmProps.IsDefault = true
 	}
 
 	if DmProps.IsDefault {
@@ -115,6 +117,16 @@ func SetDefaultDm(datamodelName string) error {
 			v.IsDefault = false
 		}
 		nexusDmMap[datamodelName] = v
+	}
+
+	data, err = yaml.Marshal(&nexusDmMap)
+	if err != nil {
+		return fmt.Errorf("Error while Marshaling nexus-dms. %v", err)
+	}
+
+	err = ioutil.WriteFile(nexusDmsFile, data, 0644)
+	if err != nil {
+		return fmt.Errorf("Could not write to %s: %v\n", nexusDmsFile, err)
 	}
 	return nil
 }

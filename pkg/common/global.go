@@ -58,6 +58,13 @@ var PodLabels [3]string = [3]string{
 	"-lname=kube-controllermanager",
 }
 
-var EnvList []string = []string{
+var EnvList = []string{
 	"GOPRIVATE=gitlab.eng.vmware.com",
+}
+
+func GetEnvList() []string {
+	envList := []string{}
+	envList = append(envList, EnvList...)
+	return envList
+
 }
