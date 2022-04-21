@@ -30,7 +30,7 @@ var _ = Describe("Node parser tests", func() {
 			nodes = append(nodes, node.Name)
 		})
 		Expect(nodes).To(HaveLen(6))
-		Expect(nodes).To(Equal(expectedNodes))
+		Expect(unorderedEqual(expectedNodes, nodes)).To(BeTrue())
 	})
 
 	It("should fail when package names are duplicated.", func() {
@@ -69,3 +69,19 @@ var _ = Describe("Node parser tests", func() {
 		Expect(fail).To(BeTrue())
 	})
 })
+
+func unorderedEqual(first, second []string) bool {
+	if len(first) != len(second) {
+		return false
+	}
+	exists := make(map[string]bool)
+	for _, value := range first {
+		exists[value] = true
+	}
+	for _, value := range second {
+		if !exists[value] {
+			return false
+		}
+	}
+	return true
+}
