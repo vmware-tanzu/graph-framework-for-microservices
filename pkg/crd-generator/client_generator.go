@@ -195,6 +195,7 @@ func resolveNode(baseImportName string, pkg parser.Package, baseGroupName, versi
 		parentCrdNameParts := strings.Split(parentCrdName, ".")
 
 		clientGroupVars.Parent.HasParent = true
+		clientGroupVars.Parent.IsNamed = parentHelper.Children[clientGroupVars.CrdName].IsMap
 		clientGroupVars.Parent.CrdName = parentCrdName
 		clientGroupVars.Parent.Group = strings.Join(parentCrdNameParts[1:], ".")
 		clientGroupVars.Parent.Kind = parentHelper.Name
@@ -379,6 +380,11 @@ func (obj *{{.GroupResourceType}}) DeleteByName(ctx context.Context, name string
 	if err != nil {
 		return err
 	}
+
+	{{if .Parent.HasParent}}
+{{.Parent.UpdateParentForDelete}}
+	{{ end }}
+
 	return
 }
 
@@ -472,6 +478,34 @@ var updateParentForCreate = `
 	}
 `
 
+var updateParentForDelete = `
+	var patch Patch
+	{{if .Parent.IsNamed}}
+	patchOp := PatchOp{
+		Op:    "remove",
+		Path:  "/spec/{{.Parent.GvkFieldName}}/" + name,
+	}
+	{{ else }}
+	patchOp := PatchOp{
+		Op:    "remove",
+		Path:  "/spec/{{.Parent.GvkFieldName}}",
+	}
+	{{ end }}
+	patch = append(patch, patchOp)
+	marshaled, err := patch.Marshal()
+	if err != nil {
+		return err
+	}
+	parentName, ok := labels["{{.Parent.CrdName}}"]
+	if !ok {
+		parentName = helper.DEFAULT_KEY
+	}
+	_, err = obj.client.baseClient.{{.Parent.GroupTypeName}}().{{.Parent.GroupResourceNameTitle}}().Patch(ctx, parentName, types.JSONPatchType, marshaled, metav1.PatchOptions{})
+	if err != nil {
+		return err
+	}
+`
+
 type apiGroupsClientVars struct {
 	apiGroupsVars
 	CrdName                string
@@ -487,10 +521,12 @@ type apiGroupsClientVars struct {
 	GroupBaseImport        string
 
 	Parent struct {
+		IsNamed                bool
 		HasParent              bool
 		CrdName                string
 		GvkFieldName           string
 		UpdateParentForCreate  string
+		UpdateParentForDelete  string
 		GroupTypeName          string
 		GroupResourceNameTitle string
 		Group                  string
@@ -528,6 +564,15 @@ func renderClientApiGroup(vars apiGroupsClientVars) (string, error) {
 		return "", err
 	}
 	vars.Parent.UpdateParentForCreate = updateParentBase.String()
+	tmpl, err = template.New("tmpl").Parse(updateParentForDelete)
+	if err != nil {
+		return "", err
+	}
+	updateParentBase, err = renderTemplate(tmpl, vars)
+	if err != nil {
+		return "", err
+	}
+	vars.Parent.UpdateParentForDelete = updateParentBase.String()
 
 	tmpl, err = template.New("tmpl").Parse(apiGroupClientTmpl)
 	if err != nil {
