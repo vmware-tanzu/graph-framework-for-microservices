@@ -205,6 +205,11 @@ func (obj *rootRootTsmV1) GetByName(ctx context.Context, name string) (result *b
 	if err != nil {
 		return nil, err
 	}
+	return obj.resolveLinks(ctx, result)
+}
+
+func (obj *rootRootTsmV1) resolveLinks(ctx context.Context, raw *baseroottsmtanzuvmwarecomv1.Root) (result *baseroottsmtanzuvmwarecomv1.Root, err error) {
+	result = raw
 
 	if result.Spec.ConfigGvk != nil {
 		field, err := obj.client.ConfigTsmV1().Configs().GetByName(ctx, result.Spec.ConfigGvk.Name)
@@ -288,7 +293,7 @@ func (obj *rootRootTsmV1) UpdateByName(ctx context.Context, objToUpdate *baseroo
 		return nil, err
 	}
 
-	return
+	return obj.resolveLinks(ctx, result)
 }
 
 func (obj *configConfigTsmV1) Get(ctx context.Context, name string, labels map[string]string) (result *baseconfigtsmtanzuvmwarecomv1.Config, err error) {
@@ -301,6 +306,11 @@ func (obj *configConfigTsmV1) GetByName(ctx context.Context, name string) (resul
 	if err != nil {
 		return nil, err
 	}
+	return obj.resolveLinks(ctx, result)
+}
+
+func (obj *configConfigTsmV1) resolveLinks(ctx context.Context, raw *baseconfigtsmtanzuvmwarecomv1.Config) (result *baseconfigtsmtanzuvmwarecomv1.Config, err error) {
+	result = raw
 
 	if result.Spec.GNSGvk != nil {
 		field, err := obj.client.GnsTsmV1().Gnses().GetByName(ctx, result.Spec.GNSGvk.Name)
@@ -429,7 +439,7 @@ func (obj *configConfigTsmV1) UpdateByName(ctx context.Context, objToUpdate *bas
 		return nil, err
 	}
 
-	return
+	return obj.resolveLinks(ctx, result)
 }
 
 func (obj *gnsGnsTsmV1) Get(ctx context.Context, name string, labels map[string]string) (result *basegnstsmtanzuvmwarecomv1.Gns, err error) {
@@ -442,13 +452,18 @@ func (obj *gnsGnsTsmV1) GetByName(ctx context.Context, name string) (result *bas
 	if err != nil {
 		return nil, err
 	}
+	return obj.resolveLinks(ctx, result)
+}
+
+func (obj *gnsGnsTsmV1) resolveLinks(ctx context.Context, raw *basegnstsmtanzuvmwarecomv1.Gns) (result *basegnstsmtanzuvmwarecomv1.Gns, err error) {
+	result = raw
 
 	for k, v := range result.Spec.GnsServiceGroupsGvk {
-		obj, err := obj.client.ServicegroupTsmV1().SvcGroups().GetByName(ctx, v.Name)
+		field, err := obj.client.ServicegroupTsmV1().SvcGroups().GetByName(ctx, v.Name)
 		if err != nil {
 			return nil, err
 		}
-		result.Spec.GnsServiceGroups[k] = *obj
+		result.Spec.GnsServiceGroups[k] = *field
 	}
 
 	if result.Spec.GnsAccessControlPolicyGvk != nil {
@@ -620,7 +635,7 @@ func (obj *gnsGnsTsmV1) UpdateByName(ctx context.Context, objToUpdate *basegnsts
 		return nil, err
 	}
 
-	return
+	return obj.resolveLinks(ctx, result)
 }
 
 func (obj *dnsGnsTsmV1) Get(ctx context.Context, name string, labels map[string]string) (result *basegnstsmtanzuvmwarecomv1.Dns, err error) {
@@ -633,6 +648,11 @@ func (obj *dnsGnsTsmV1) GetByName(ctx context.Context, name string) (result *bas
 	if err != nil {
 		return nil, err
 	}
+	return obj.resolveLinks(ctx, result)
+}
+
+func (obj *dnsGnsTsmV1) resolveLinks(ctx context.Context, raw *basegnstsmtanzuvmwarecomv1.Dns) (result *basegnstsmtanzuvmwarecomv1.Dns, err error) {
+	result = raw
 
 	return
 }
@@ -693,7 +713,7 @@ func (obj *dnsGnsTsmV1) UpdateByName(ctx context.Context, objToUpdate *basegnsts
 		return nil, err
 	}
 
-	return
+	return obj.resolveLinks(ctx, result)
 }
 
 func (obj *svcgroupServicegroupTsmV1) Get(ctx context.Context, name string, labels map[string]string) (result *baseservicegrouptsmtanzuvmwarecomv1.SvcGroup, err error) {
@@ -706,6 +726,11 @@ func (obj *svcgroupServicegroupTsmV1) GetByName(ctx context.Context, name string
 	if err != nil {
 		return nil, err
 	}
+	return obj.resolveLinks(ctx, result)
+}
+
+func (obj *svcgroupServicegroupTsmV1) resolveLinks(ctx context.Context, raw *baseservicegrouptsmtanzuvmwarecomv1.SvcGroup) (result *baseservicegrouptsmtanzuvmwarecomv1.SvcGroup, err error) {
+	result = raw
 
 	return
 }
@@ -835,7 +860,7 @@ func (obj *svcgroupServicegroupTsmV1) UpdateByName(ctx context.Context, objToUpd
 		return nil, err
 	}
 
-	return
+	return obj.resolveLinks(ctx, result)
 }
 
 func (obj *accesscontrolpolicyPolicyTsmV1) Get(ctx context.Context, name string, labels map[string]string) (result *basepolicytsmtanzuvmwarecomv1.AccessControlPolicy, err error) {
@@ -848,13 +873,18 @@ func (obj *accesscontrolpolicyPolicyTsmV1) GetByName(ctx context.Context, name s
 	if err != nil {
 		return nil, err
 	}
+	return obj.resolveLinks(ctx, result)
+}
+
+func (obj *accesscontrolpolicyPolicyTsmV1) resolveLinks(ctx context.Context, raw *basepolicytsmtanzuvmwarecomv1.AccessControlPolicy) (result *basepolicytsmtanzuvmwarecomv1.AccessControlPolicy, err error) {
+	result = raw
 
 	for k, v := range result.Spec.PolicyConfigsGvk {
-		obj, err := obj.client.PolicyTsmV1().ACPConfigs().GetByName(ctx, v.Name)
+		field, err := obj.client.PolicyTsmV1().ACPConfigs().GetByName(ctx, v.Name)
 		if err != nil {
 			return nil, err
 		}
-		result.Spec.PolicyConfigs[k] = *obj
+		result.Spec.PolicyConfigs[k] = *field
 	}
 
 	return
@@ -976,7 +1006,7 @@ func (obj *accesscontrolpolicyPolicyTsmV1) UpdateByName(ctx context.Context, obj
 		return nil, err
 	}
 
-	return
+	return obj.resolveLinks(ctx, result)
 }
 
 func (obj *acpconfigPolicyTsmV1) Get(ctx context.Context, name string, labels map[string]string) (result *basepolicytsmtanzuvmwarecomv1.ACPConfig, err error) {
@@ -989,21 +1019,26 @@ func (obj *acpconfigPolicyTsmV1) GetByName(ctx context.Context, name string) (re
 	if err != nil {
 		return nil, err
 	}
+	return obj.resolveLinks(ctx, result)
+}
+
+func (obj *acpconfigPolicyTsmV1) resolveLinks(ctx context.Context, raw *basepolicytsmtanzuvmwarecomv1.ACPConfig) (result *basepolicytsmtanzuvmwarecomv1.ACPConfig, err error) {
+	result = raw
 
 	for k, v := range result.Spec.DestSvcGroupsGvk {
-		obj, err := obj.client.ServicegroupTsmV1().SvcGroups().GetByName(ctx, v.Name)
+		field, err := obj.client.ServicegroupTsmV1().SvcGroups().GetByName(ctx, v.Name)
 		if err != nil {
 			return nil, err
 		}
-		result.Spec.DestSvcGroups[k] = *obj
+		result.Spec.DestSvcGroups[k] = *field
 	}
 
 	for k, v := range result.Spec.SourceSvcGroupsGvk {
-		obj, err := obj.client.ServicegroupTsmV1().SvcGroups().GetByName(ctx, v.Name)
+		field, err := obj.client.ServicegroupTsmV1().SvcGroups().GetByName(ctx, v.Name)
 		if err != nil {
 			return nil, err
 		}
-		result.Spec.SourceSvcGroups[k] = *obj
+		result.Spec.SourceSvcGroups[k] = *field
 	}
 
 	return
@@ -1158,5 +1193,5 @@ func (obj *acpconfigPolicyTsmV1) UpdateByName(ctx context.Context, objToUpdate *
 		return nil, err
 	}
 
-	return
+	return obj.resolveLinks(ctx, result)
 }
