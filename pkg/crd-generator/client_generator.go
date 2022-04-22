@@ -126,9 +126,11 @@ func resolveNode(baseImportName string, pkg parser.Package, baseGroupName, versi
 		linkInfo := getFieldInfo(pkg, link)
 		var vars resolveLinkVars
 		vars.LinkFieldName = linkInfo.fieldName
+		vars.LinkFieldType = linkInfo.fieldType
 		vars.LinkFieldNameTag = strings.ToLower(linkInfo.fieldName)
 		vars.LinkGroupTypeName = util.GetGroupTypeName(linkInfo.pkgName, baseGroupName, version)
 		vars.LinkGroupResourceNameTitle = util.GetGroupResourceNameTitle(linkInfo.fieldType)
+		vars.LinkBaseImport = util.GetBaseImportName(linkInfo.pkgName, baseGroupName, version)
 
 		var resolvedLinksGet, resolvedLinksDelete, resolvedLinksCreate string
 		var err error
@@ -267,9 +269,11 @@ func getFieldInfo(pkg parser.Package, f *ast.Field) fieldInfo {
 
 type resolveLinkVars struct {
 	LinkFieldName              string
+	LinkFieldType              string
 	LinkFieldNameTag           string
 	LinkGroupTypeName          string
 	LinkGroupResourceNameTitle string
+	LinkBaseImport             string
 }
 
 var resolveLinkGetTmpl = `
@@ -283,6 +287,7 @@ var resolveLinkGetTmpl = `
 `
 
 var resolveNamedLinkGetTmpl = `
+	result.Spec.{{.LinkFieldName}} = make(map[string]{{.LinkBaseImport}}.{{.LinkFieldType}}, len(result.Spec.{{.LinkFieldName}}Gvk))
 	for k, v := range result.Spec.{{.LinkFieldName}}Gvk {
 		field, err := obj.client.{{.LinkGroupTypeName}}().{{.LinkGroupResourceNameTitle}}().GetByName(ctx, v.Name)
 		if err != nil {
