@@ -498,12 +498,12 @@ func (obj *gnsGnsTsmV1) resolveLinks(ctx context.Context, raw *basegnstsmtanzuvm
 	result = raw
 
 	result.Spec.GnsServiceGroups = make(map[string]baseservicegrouptsmtanzuvmwarecomv1.SvcGroup, len(result.Spec.GnsServiceGroupsGvk))
-	for k, v := range result.Spec.GnsServiceGroupsGvk {
+	for _, v := range result.Spec.GnsServiceGroupsGvk {
 		field, err := obj.client.ServicegroupTsmV1().SvcGroups().GetByName(ctx, v.Name)
 		if err != nil {
 			return nil, err
 		}
-		result.Spec.GnsServiceGroups[k] = *field
+		result.Spec.GnsServiceGroups[field.GetLabels()["nexus/display_name"]] = *field
 	}
 
 	if result.Spec.GnsAccessControlPolicyGvk != nil {
@@ -1014,12 +1014,12 @@ func (obj *accesscontrolpolicyPolicyTsmV1) resolveLinks(ctx context.Context, raw
 	result = raw
 
 	result.Spec.PolicyConfigs = make(map[string]basepolicytsmtanzuvmwarecomv1.ACPConfig, len(result.Spec.PolicyConfigsGvk))
-	for k, v := range result.Spec.PolicyConfigsGvk {
+	for _, v := range result.Spec.PolicyConfigsGvk {
 		field, err := obj.client.PolicyTsmV1().ACPConfigs().GetByName(ctx, v.Name)
 		if err != nil {
 			return nil, err
 		}
-		result.Spec.PolicyConfigs[k] = *field
+		result.Spec.PolicyConfigs[field.GetLabels()["nexus/display_name"]] = *field
 	}
 
 	return
@@ -1184,21 +1184,21 @@ func (obj *acpconfigPolicyTsmV1) resolveLinks(ctx context.Context, raw *basepoli
 	result = raw
 
 	result.Spec.DestSvcGroups = make(map[string]baseservicegrouptsmtanzuvmwarecomv1.SvcGroup, len(result.Spec.DestSvcGroupsGvk))
-	for k, v := range result.Spec.DestSvcGroupsGvk {
+	for _, v := range result.Spec.DestSvcGroupsGvk {
 		field, err := obj.client.ServicegroupTsmV1().SvcGroups().GetByName(ctx, v.Name)
 		if err != nil {
 			return nil, err
 		}
-		result.Spec.DestSvcGroups[k] = *field
+		result.Spec.DestSvcGroups[field.GetLabels()["nexus/display_name"]] = *field
 	}
 
 	result.Spec.SourceSvcGroups = make(map[string]baseservicegrouptsmtanzuvmwarecomv1.SvcGroup, len(result.Spec.SourceSvcGroupsGvk))
-	for k, v := range result.Spec.SourceSvcGroupsGvk {
+	for _, v := range result.Spec.SourceSvcGroupsGvk {
 		field, err := obj.client.ServicegroupTsmV1().SvcGroups().GetByName(ctx, v.Name)
 		if err != nil {
 			return nil, err
 		}
-		result.Spec.SourceSvcGroups[k] = *field
+		result.Spec.SourceSvcGroups[field.GetLabels()["nexus/display_name"]] = *field
 	}
 
 	return

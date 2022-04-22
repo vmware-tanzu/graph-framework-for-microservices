@@ -288,12 +288,12 @@ var resolveLinkGetTmpl = `
 
 var resolveNamedLinkGetTmpl = `
 	result.Spec.{{.LinkFieldName}} = make(map[string]{{.LinkBaseImport}}.{{.LinkFieldType}}, len(result.Spec.{{.LinkFieldName}}Gvk))
-	for k, v := range result.Spec.{{.LinkFieldName}}Gvk {
+	for _, v := range result.Spec.{{.LinkFieldName}}Gvk {
 		field, err := obj.client.{{.LinkGroupTypeName}}().{{.LinkGroupResourceNameTitle}}().GetByName(ctx, v.Name)
 		if err != nil {
 			return nil, err
 		}
-		result.Spec.{{.LinkFieldName}}[k] = *field
+		result.Spec.{{.LinkFieldName}}[field.GetLabels()["nexus/display_name"]] = *field
 	}
 `
 
