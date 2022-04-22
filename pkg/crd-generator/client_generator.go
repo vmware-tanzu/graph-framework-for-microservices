@@ -392,6 +392,10 @@ func (obj *{{.GroupResourceType}}) resolveLinks(ctx context.Context, raw *{{.Gro
 
 
 func (obj *{{.GroupResourceType}}) Delete(ctx context.Context, name string, labels map[string]string) (err error) {
+	if labels == nil {
+		labels = map[string]string{}
+	}
+	labels["nexus/is_name_hashed"] = "true"
 	hashedName := helper.GetHashedName("{{.CrdName}}", labels, name)
 	return obj.DeleteByName(ctx, hashedName, labels)
 }
@@ -416,12 +420,24 @@ func (obj *{{.GroupResourceType}}) DeleteByName(ctx context.Context, name string
 }
 
 func (obj *{{.GroupResourceType}}) Create(ctx context.Context, objToCreate *{{.GroupBaseImport}}, labels map[string]string) (result *{{.GroupBaseImport}}, err error) {
+	if objToCreate.Labels == nil {
+		objToCreate.Labels = map[string]string{}
+	}
+	objToCreate.Labels["nexus/display_name"] = objToCreate.GetName()
+	objToCreate.Labels["nexus/is_name_hashed"] = "true"
 	hashedName := helper.GetHashedName("{{.CrdName}}", labels, objToCreate.GetName())
 	objToCreate.Name = hashedName
 	return obj.CreateByName(ctx, objToCreate, labels)
 }
 
 func (obj *{{.GroupResourceType}}) CreateByName(ctx context.Context, objToCreate *{{.GroupBaseImport}}, labels map[string]string) (result *{{.GroupBaseImport}}, err error) {
+	for k, v := range labels {
+		objToCreate.Labels[k] = v
+	}
+	if _, ok := objToCreate.Labels["nexus/display_name"]; !ok {
+		objToCreate.Labels["nexus/display_name"] = objToCreate.GetName()
+	}
+
 	// recursive creation of objects is not supported
 	{{.ResolveLinksCreate}}
 
@@ -544,6 +560,9 @@ var updateParentForCreate = `
 	if !ok {
 		parentName = helper.DEFAULT_KEY
 	}
+	if objToCreate.Labels["nexus/is_name_hashed"] == "true" {
+		parentName = helper.GetHashedName("{{.Parent.CrdName}}", labels, parentName)
+	}
 	{{if .Parent.IsNamed}}
 	payload := "{\"spec\": {\"{{.Parent.GvkFieldName}}\": {\"" + objToCreate.Name + "\": {\"name\": \"" + objToCreate.Name + "\",\"kind\": \"{{.Kind}}\", \"group\": \"{{.Group}}\"}}}}"
 	_, err = obj.client.baseClient.{{.Parent.GroupTypeName}}().{{.Parent.GroupResourceNameTitle}}().Patch(ctx, parentName, types.MergePatchType, []byte(payload), metav1.PatchOptions{})
@@ -594,6 +613,9 @@ var updateParentForDelete = `
 	parentName, ok := labels["{{.Parent.CrdName}}"]
 	if !ok {
 		parentName = helper.DEFAULT_KEY
+	}
+	if labels["nexus/is_name_hashed"] == "true" {
+		parentName = helper.GetHashedName("{{.Parent.CrdName}}", labels, parentName)
 	}
 	_, err = obj.client.baseClient.{{.Parent.GroupTypeName}}().{{.Parent.GroupResourceNameTitle}}().Patch(ctx, parentName, types.JSONPatchType, marshaled, metav1.PatchOptions{})
 	if err != nil {
