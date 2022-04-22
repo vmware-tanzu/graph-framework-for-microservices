@@ -184,8 +184,8 @@ func resolveNode(baseImportName string, pkg parser.Package, baseGroupName, versi
 				clientVarsLink := apiGroupsClientVarsLink{
 					FieldName:       linkInfo.fieldName,
 					FieldNameGvk:    util.GetGvkFieldTagName(linkInfo.fieldName),
-					Group:           "",
-					Kind:            "",
+					Group:           util.GetGroupName(linkInfo.pkgName, baseGroupName),
+					Kind:            linkInfo.fieldType,
 					GroupBaseImport: util.GetBaseImportName(linkInfo.pkgName, baseGroupName, version) + "." + linkInfo.fieldType,
 					IsNamed:         false,
 				}

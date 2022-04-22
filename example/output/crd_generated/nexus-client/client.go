@@ -708,8 +708,8 @@ func (obj *gnsGnsTsmV1) AddDns(ctx context.Context, srcObj *basegnstsmtanzuvmwar
 		Op:   "replace",
 		Path: "/spec/dnsGvk",
 		Value: basegnstsmtanzuvmwarecomv1.Child{
-			Group: "",
-			Kind:  "",
+			Group: "gns.tsm.tanzu.vmware.com",
+			Kind:  "Dns",
 			Name:  linkToAdd.Name,
 		},
 	}
