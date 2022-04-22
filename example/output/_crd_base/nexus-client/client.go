@@ -497,6 +497,7 @@ func (obj *gnsGnsTsmV1) GetByName(ctx context.Context, name string) (result *bas
 func (obj *gnsGnsTsmV1) resolveLinks(ctx context.Context, raw *basegnstsmtanzuvmwarecomv1.Gns) (result *basegnstsmtanzuvmwarecomv1.Gns, err error) {
 	result = raw
 
+	result.Spec.GnsServiceGroups = make(map[string]baseservicegrouptsmtanzuvmwarecomv1.SvcGroup, len(result.Spec.GnsServiceGroupsGvk))
 	for k, v := range result.Spec.GnsServiceGroupsGvk {
 		field, err := obj.client.ServicegroupTsmV1().SvcGroups().GetByName(ctx, v.Name)
 		if err != nil {
@@ -966,6 +967,7 @@ func (obj *accesscontrolpolicyPolicyTsmV1) GetByName(ctx context.Context, name s
 func (obj *accesscontrolpolicyPolicyTsmV1) resolveLinks(ctx context.Context, raw *basepolicytsmtanzuvmwarecomv1.AccessControlPolicy) (result *basepolicytsmtanzuvmwarecomv1.AccessControlPolicy, err error) {
 	result = raw
 
+	result.Spec.PolicyConfigs = make(map[string]basepolicytsmtanzuvmwarecomv1.ACPConfig, len(result.Spec.PolicyConfigsGvk))
 	for k, v := range result.Spec.PolicyConfigsGvk {
 		field, err := obj.client.PolicyTsmV1().ACPConfigs().GetByName(ctx, v.Name)
 		if err != nil {
@@ -1135,6 +1137,7 @@ func (obj *acpconfigPolicyTsmV1) GetByName(ctx context.Context, name string) (re
 func (obj *acpconfigPolicyTsmV1) resolveLinks(ctx context.Context, raw *basepolicytsmtanzuvmwarecomv1.ACPConfig) (result *basepolicytsmtanzuvmwarecomv1.ACPConfig, err error) {
 	result = raw
 
+	result.Spec.DestSvcGroups = make(map[string]baseservicegrouptsmtanzuvmwarecomv1.SvcGroup, len(result.Spec.DestSvcGroupsGvk))
 	for k, v := range result.Spec.DestSvcGroupsGvk {
 		field, err := obj.client.ServicegroupTsmV1().SvcGroups().GetByName(ctx, v.Name)
 		if err != nil {
@@ -1143,6 +1146,7 @@ func (obj *acpconfigPolicyTsmV1) resolveLinks(ctx context.Context, raw *basepoli
 		result.Spec.DestSvcGroups[k] = *field
 	}
 
+	result.Spec.SourceSvcGroups = make(map[string]baseservicegrouptsmtanzuvmwarecomv1.SvcGroup, len(result.Spec.SourceSvcGroupsGvk))
 	for k, v := range result.Spec.SourceSvcGroupsGvk {
 		field, err := obj.client.ServicegroupTsmV1().SvcGroups().GetByName(ctx, v.Name)
 		if err != nil {
