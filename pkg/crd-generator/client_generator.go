@@ -477,6 +477,12 @@ var getByNameForDeleteTmpl = `
 	if err != nil {
 		return err
 	}
+	if labels == nil {
+		labels = make(map[string]string, 1)
+	}
+	if _, ok := labels["{{.CrdName}}"]; !ok {
+		labels["{{.CrdName}}"] = result.GetLabels()["nexus/display_name"]
+	}
 `
 
 var updateParentForCreate = `

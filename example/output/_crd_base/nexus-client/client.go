@@ -237,6 +237,12 @@ func (obj *rootRootTsmV1) DeleteByName(ctx context.Context, name string, labels 
 	if err != nil {
 		return err
 	}
+	if labels == nil {
+		labels = make(map[string]string, 1)
+	}
+	if _, ok := labels["roots.root.tsm.tanzu.vmware.com"]; !ok {
+		labels["roots.root.tsm.tanzu.vmware.com"] = result.GetLabels()["nexus/display_name"]
+	}
 
 	if result.Spec.ConfigGvk != nil {
 		err := obj.client.ConfigTsmV1().Configs().DeleteByName(ctx, result.Spec.ConfigGvk.Name, labels)
@@ -353,6 +359,12 @@ func (obj *configConfigTsmV1) DeleteByName(ctx context.Context, name string, lab
 	result, err := obj.client.baseClient.ConfigTsmV1().Configs().Get(ctx, name, metav1.GetOptions{})
 	if err != nil {
 		return err
+	}
+	if labels == nil {
+		labels = make(map[string]string, 1)
+	}
+	if _, ok := labels["configs.config.tsm.tanzu.vmware.com"]; !ok {
+		labels["configs.config.tsm.tanzu.vmware.com"] = result.GetLabels()["nexus/display_name"]
 	}
 
 	if result.Spec.GNSGvk != nil {
@@ -539,6 +551,12 @@ func (obj *gnsGnsTsmV1) DeleteByName(ctx context.Context, name string, labels ma
 	result, err := obj.client.baseClient.GnsTsmV1().Gnses().Get(ctx, name, metav1.GetOptions{})
 	if err != nil {
 		return err
+	}
+	if labels == nil {
+		labels = make(map[string]string, 1)
+	}
+	if _, ok := labels["gnses.gns.tsm.tanzu.vmware.com"]; !ok {
+		labels["gnses.gns.tsm.tanzu.vmware.com"] = result.GetLabels()["nexus/display_name"]
 	}
 
 	for _, v := range result.Spec.GnsServiceGroupsGvk {
@@ -993,6 +1011,12 @@ func (obj *accesscontrolpolicyPolicyTsmV1) DeleteByName(ctx context.Context, nam
 	result, err := obj.client.baseClient.PolicyTsmV1().AccessControlPolicies().Get(ctx, name, metav1.GetOptions{})
 	if err != nil {
 		return err
+	}
+	if labels == nil {
+		labels = make(map[string]string, 1)
+	}
+	if _, ok := labels["accesscontrolpolicies.policy.tsm.tanzu.vmware.com"]; !ok {
+		labels["accesscontrolpolicies.policy.tsm.tanzu.vmware.com"] = result.GetLabels()["nexus/display_name"]
 	}
 
 	for _, v := range result.Spec.PolicyConfigsGvk {
