@@ -86,7 +86,6 @@ func generateNexusClientVars(baseGroupName, crdModulePath string, pkgs parser.Pa
 }
 
 func resolveNode(baseImportName string, pkg parser.Package, baseGroupName, version string, groupVars *apiGroupsVars, clientGroupVars *apiGroupsClientVars, node *ast.TypeSpec, parentsMap map[string]parser.NodeHelper) error {
-
 	pkgName := pkg.Name
 	baseNodeName := node.Name.Name // eg Root
 	groupResourceName := util.GetGroupResourceName(baseNodeName)
@@ -150,6 +149,16 @@ func resolveNode(baseImportName string, pkg parser.Package, baseGroupName, versi
 					return fmt.Errorf("failed to resolve links or children create client template for link %v: %v",
 						linkInfo.fieldName, err)
 				}
+			} else {
+				clientVarsLink := apiGroupsClientVarsLink{
+					FieldName:       linkInfo.fieldName,
+					FieldNameGvk:    util.GetGvkFieldTagName(linkInfo.fieldName),
+					Group:           util.GetGroupName(linkInfo.pkgName, baseGroupName),
+					Kind:            linkInfo.fieldType,
+					GroupBaseImport: util.GetBaseImportName(linkInfo.pkgName, baseGroupName, version) + "." + linkInfo.fieldType,
+					IsNamed:         true,
+				}
+				clientGroupVars.Links = append(clientGroupVars.Links, clientVarsLink)
 			}
 		} else {
 			resolvedLinksGet, err = renderLinkResolveTemplate(vars, resolveLinkGetTmpl)
@@ -157,6 +166,7 @@ func resolveNode(baseImportName string, pkg parser.Package, baseGroupName, versi
 				return fmt.Errorf("failed to resolve links or children get client template for link %v: %v",
 					linkInfo.fieldName, err)
 			}
+
 			if !parser.IsLinkField(link) { // do not resolve softlinks for delete/create
 				resolvedLinksDelete, err = renderLinkResolveTemplate(vars, resolveLinkDeleteTmpl)
 				if err != nil {
@@ -168,6 +178,16 @@ func resolveNode(baseImportName string, pkg parser.Package, baseGroupName, versi
 					return fmt.Errorf("failed to resolve links or children create client template for link %v: %v",
 						linkInfo.fieldName, err)
 				}
+			} else {
+				clientVarsLink := apiGroupsClientVarsLink{
+					FieldName:       linkInfo.fieldName,
+					FieldNameGvk:    util.GetGvkFieldTagName(linkInfo.fieldName),
+					Group:           "",
+					Kind:            "",
+					GroupBaseImport: util.GetBaseImportName(linkInfo.pkgName, baseGroupName, version) + "." + linkInfo.fieldType,
+					IsNamed:         false,
+				}
+				clientGroupVars.Links = append(clientGroupVars.Links, clientVarsLink)
 			}
 		}
 
@@ -237,6 +257,7 @@ func getFieldInfo(pkg parser.Package, f *ast.Field) fieldInfo {
 				info.pkgName = strings.TrimSuffix(s[len(s)-1], "\"")
 			}
 		}
+		info.pkgName = util.RemoveSpecialChars(info.pkgName)
 	} else {
 		info.pkgName = currentPkgName
 	}
@@ -442,6 +463,66 @@ func (obj *{{.GroupResourceType}}) UpdateByName(ctx context.Context, objToUpdate
 
 	return obj.resolveLinks(ctx, result)
 }
+
+{{ range $key, $link := .Links }}
+func (obj *{{$.GroupResourceType}}) Add{{$link.FieldName}}(ctx context.Context, srcObj *{{$.GroupBaseImport}}, linkToAdd *{{$link.GroupBaseImport}}) (result *{{$.GroupBaseImport}}, err error) {
+	{{ if $link.IsNamed }}
+	payload := "{\"spec\": {\"{{$link.FieldNameGvk}}\": {\"" + linkToAdd.Name + "\": {\"name\": \"" + linkToAdd.Name + "\",\"kind\": \"{{$link.Kind}}\", \"group\": \"{{$link.Group}}\"}}}}"
+	result, err = obj.client.baseClient.{{$.GroupTypeName}}().{{$.GroupResourceNameTitle}}().Patch(ctx, srcObj.Name, types.MergePatchType, []byte(payload), metav1.PatchOptions{})
+	if err != nil {
+		return nil, err
+	}
+	{{ else }}
+	var patch Patch
+	patchOp := PatchOp{
+		Op:   "replace",
+		Path: "/spec/{{$link.FieldNameGvk}}",
+		Value: {{$.BaseImportName}}.Child{
+			Group: "{{$link.Group}}",
+			Kind:  "{{$link.Kind}}",
+			Name:  linkToAdd.Name,
+		},
+	}
+	patch = append(patch, patchOp)
+	marshaled, err := patch.Marshal()
+	if err != nil {
+		return nil, err
+	}
+	result, err = obj.client.baseClient.{{$.GroupTypeName}}().{{$.GroupResourceNameTitle}}().Patch(ctx, srcObj.Name, types.JSONPatchType, marshaled, metav1.PatchOptions{})
+	if err != nil {
+		return nil, err
+	}
+	{{ end }}
+
+	return obj.resolveLinks(ctx, result)
+}
+
+func (obj *{{$.GroupResourceType}}) Remove{{$link.FieldName}}(ctx context.Context, srcObj *{{$.GroupBaseImport}}, linkToRemove *{{$link.GroupBaseImport}}) (result *{{$.GroupBaseImport}}, err error) {
+	var patch Patch
+	{{if $link.IsNamed}}
+	patchOp := PatchOp{
+		Op:    "remove",
+		Path:  "/spec/{{$link.FieldNameGvk}}/" + linkToRemove.Name,
+	}
+	{{ else }}
+	patchOp := PatchOp{
+		Op:    "remove",
+		Path:  "/spec/{{$link.FieldNameGvk}}",
+	}
+	{{ end }}
+	patch = append(patch, patchOp)
+	marshaled, err := patch.Marshal()
+	if err != nil {
+		return nil, err
+	}
+	result, err = obj.client.baseClient.{{$.GroupTypeName}}().{{$.GroupResourceNameTitle}}().Patch(ctx, srcObj.Name, types.JSONPatchType, marshaled, metav1.PatchOptions{})
+	if err != nil {
+		return nil, err
+	}
+
+	return obj.resolveLinks(ctx, result)
+}
+{{ end }}
 `
 
 var getForDeleteTmpl = `
@@ -547,6 +628,17 @@ type apiGroupsClientVars struct {
 		GroupResourceNameTitle string
 	}
 	ForUpdatePatches string
+
+	Links []apiGroupsClientVarsLink
+}
+
+type apiGroupsClientVarsLink struct {
+	FieldName       string
+	FieldNameGvk    string
+	Group           string
+	Kind            string
+	GroupBaseImport string
+	IsNamed         bool
 }
 
 func renderClientApiGroup(vars apiGroupsClientVars) (string, error) {
