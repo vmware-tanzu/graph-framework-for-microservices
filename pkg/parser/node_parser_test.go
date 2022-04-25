@@ -30,7 +30,7 @@ var _ = Describe("Node parser tests", func() {
 			nodes = append(nodes, node.Name)
 		})
 		Expect(nodes).To(HaveLen(6))
-		Expect(expectedNodes).To(Equal(nodes))
+		Expect(nodes).To(Equal(expectedNodes))
 	})
 
 	It("should fail when package names are duplicated.", func() {
