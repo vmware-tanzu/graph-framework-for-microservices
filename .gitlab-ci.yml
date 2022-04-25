@@ -41,6 +41,7 @@ publish:
   only:
     - tags
   script:
+    - *setup_aws
     - *create_builder
     - *harbor_login
     - CONTAINER_ID=$CONTAINER_ID PKG_NAME=/builds/${REPOSITORY} make build_in_container
