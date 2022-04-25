@@ -240,8 +240,11 @@ func (obj *rootRootTsmV1) DeleteByName(ctx context.Context, name string, labels 
 	if labels == nil {
 		labels = make(map[string]string, 1)
 	}
-	if _, ok := labels["roots.root.tsm.tanzu.vmware.com"]; !ok {
+
+	if _, ok := result.GetLabels()["nexus/display_name"]; ok {
 		labels["roots.root.tsm.tanzu.vmware.com"] = result.GetLabels()["nexus/display_name"]
+	} else {
+		labels["roots.root.tsm.tanzu.vmware.com"] = name
 	}
 
 	if result.Spec.ConfigGvk != nil {
@@ -363,8 +366,11 @@ func (obj *configConfigTsmV1) DeleteByName(ctx context.Context, name string, lab
 	if labels == nil {
 		labels = make(map[string]string, 1)
 	}
-	if _, ok := labels["configs.config.tsm.tanzu.vmware.com"]; !ok {
+
+	if _, ok := result.GetLabels()["nexus/display_name"]; ok {
 		labels["configs.config.tsm.tanzu.vmware.com"] = result.GetLabels()["nexus/display_name"]
+	} else {
+		labels["configs.config.tsm.tanzu.vmware.com"] = name
 	}
 
 	if result.Spec.GNSGvk != nil {
@@ -555,8 +561,11 @@ func (obj *gnsGnsTsmV1) DeleteByName(ctx context.Context, name string, labels ma
 	if labels == nil {
 		labels = make(map[string]string, 1)
 	}
-	if _, ok := labels["gnses.gns.tsm.tanzu.vmware.com"]; !ok {
+
+	if _, ok := result.GetLabels()["nexus/display_name"]; ok {
 		labels["gnses.gns.tsm.tanzu.vmware.com"] = result.GetLabels()["nexus/display_name"]
+	} else {
+		labels["gnses.gns.tsm.tanzu.vmware.com"] = name
 	}
 
 	for _, v := range result.Spec.GnsServiceGroupsGvk {
@@ -712,6 +721,52 @@ func (obj *gnsGnsTsmV1) UpdateByName(ctx context.Context, objToUpdate *basegnsts
 		return nil, err
 	}
 	result, err = obj.client.baseClient.GnsTsmV1().Gnses().Patch(ctx, objToUpdate.GetName(), types.JSONPatchType, marshaled, metav1.PatchOptions{}, "")
+	if err != nil {
+		return nil, err
+	}
+
+	return obj.resolveLinks(ctx, result)
+}
+
+func (obj *gnsGnsTsmV1) AddDns(ctx context.Context, srcObj *basegnstsmtanzuvmwarecomv1.Gns, linkToAdd *basegnstsmtanzuvmwarecomv1.Dns) (result *basegnstsmtanzuvmwarecomv1.Gns, err error) {
+
+	var patch Patch
+	patchOp := PatchOp{
+		Op:   "replace",
+		Path: "/spec/dnsGvk",
+		Value: basegnstsmtanzuvmwarecomv1.Child{
+			Group: "gns.tsm.tanzu.vmware.com",
+			Kind:  "Dns",
+			Name:  linkToAdd.Name,
+		},
+	}
+	patch = append(patch, patchOp)
+	marshaled, err := patch.Marshal()
+	if err != nil {
+		return nil, err
+	}
+	result, err = obj.client.baseClient.GnsTsmV1().Gnses().Patch(ctx, srcObj.Name, types.JSONPatchType, marshaled, metav1.PatchOptions{})
+	if err != nil {
+		return nil, err
+	}
+
+	return obj.resolveLinks(ctx, result)
+}
+
+func (obj *gnsGnsTsmV1) RemoveDns(ctx context.Context, srcObj *basegnstsmtanzuvmwarecomv1.Gns, linkToRemove *basegnstsmtanzuvmwarecomv1.Dns) (result *basegnstsmtanzuvmwarecomv1.Gns, err error) {
+	var patch Patch
+
+	patchOp := PatchOp{
+		Op:   "remove",
+		Path: "/spec/dnsGvk",
+	}
+
+	patch = append(patch, patchOp)
+	marshaled, err := patch.Marshal()
+	if err != nil {
+		return nil, err
+	}
+	result, err = obj.client.baseClient.GnsTsmV1().Gnses().Patch(ctx, srcObj.Name, types.JSONPatchType, marshaled, metav1.PatchOptions{})
 	if err != nil {
 		return nil, err
 	}
@@ -1015,8 +1070,11 @@ func (obj *accesscontrolpolicyPolicyTsmV1) DeleteByName(ctx context.Context, nam
 	if labels == nil {
 		labels = make(map[string]string, 1)
 	}
-	if _, ok := labels["accesscontrolpolicies.policy.tsm.tanzu.vmware.com"]; !ok {
+
+	if _, ok := result.GetLabels()["nexus/display_name"]; ok {
 		labels["accesscontrolpolicies.policy.tsm.tanzu.vmware.com"] = result.GetLabels()["nexus/display_name"]
+	} else {
+		labels["accesscontrolpolicies.policy.tsm.tanzu.vmware.com"] = name
 	}
 
 	for _, v := range result.Spec.PolicyConfigsGvk {
@@ -1336,6 +1394,70 @@ func (obj *acpconfigPolicyTsmV1) UpdateByName(ctx context.Context, objToUpdate *
 		return nil, err
 	}
 	result, err = obj.client.baseClient.PolicyTsmV1().ACPConfigs().Patch(ctx, objToUpdate.GetName(), types.JSONPatchType, marshaled, metav1.PatchOptions{}, "")
+	if err != nil {
+		return nil, err
+	}
+
+	return obj.resolveLinks(ctx, result)
+}
+
+func (obj *acpconfigPolicyTsmV1) AddDestSvcGroups(ctx context.Context, srcObj *basepolicytsmtanzuvmwarecomv1.ACPConfig, linkToAdd *baseservicegrouptsmtanzuvmwarecomv1.SvcGroup) (result *basepolicytsmtanzuvmwarecomv1.ACPConfig, err error) {
+
+	payload := "{\"spec\": {\"destsvcgroupsGvk\": {\"" + linkToAdd.Name + "\": {\"name\": \"" + linkToAdd.Name + "\",\"kind\": \"SvcGroup\", \"group\": \"servicegroup.tsm.tanzu.vmware.com\"}}}}"
+	result, err = obj.client.baseClient.PolicyTsmV1().ACPConfigs().Patch(ctx, srcObj.Name, types.MergePatchType, []byte(payload), metav1.PatchOptions{})
+	if err != nil {
+		return nil, err
+	}
+
+	return obj.resolveLinks(ctx, result)
+}
+
+func (obj *acpconfigPolicyTsmV1) RemoveDestSvcGroups(ctx context.Context, srcObj *basepolicytsmtanzuvmwarecomv1.ACPConfig, linkToRemove *baseservicegrouptsmtanzuvmwarecomv1.SvcGroup) (result *basepolicytsmtanzuvmwarecomv1.ACPConfig, err error) {
+	var patch Patch
+
+	patchOp := PatchOp{
+		Op:   "remove",
+		Path: "/spec/destsvcgroupsGvk/" + linkToRemove.Name,
+	}
+
+	patch = append(patch, patchOp)
+	marshaled, err := patch.Marshal()
+	if err != nil {
+		return nil, err
+	}
+	result, err = obj.client.baseClient.PolicyTsmV1().ACPConfigs().Patch(ctx, srcObj.Name, types.JSONPatchType, marshaled, metav1.PatchOptions{})
+	if err != nil {
+		return nil, err
+	}
+
+	return obj.resolveLinks(ctx, result)
+}
+
+func (obj *acpconfigPolicyTsmV1) AddSourceSvcGroups(ctx context.Context, srcObj *basepolicytsmtanzuvmwarecomv1.ACPConfig, linkToAdd *baseservicegrouptsmtanzuvmwarecomv1.SvcGroup) (result *basepolicytsmtanzuvmwarecomv1.ACPConfig, err error) {
+
+	payload := "{\"spec\": {\"sourcesvcgroupsGvk\": {\"" + linkToAdd.Name + "\": {\"name\": \"" + linkToAdd.Name + "\",\"kind\": \"SvcGroup\", \"group\": \"servicegroup.tsm.tanzu.vmware.com\"}}}}"
+	result, err = obj.client.baseClient.PolicyTsmV1().ACPConfigs().Patch(ctx, srcObj.Name, types.MergePatchType, []byte(payload), metav1.PatchOptions{})
+	if err != nil {
+		return nil, err
+	}
+
+	return obj.resolveLinks(ctx, result)
+}
+
+func (obj *acpconfigPolicyTsmV1) RemoveSourceSvcGroups(ctx context.Context, srcObj *basepolicytsmtanzuvmwarecomv1.ACPConfig, linkToRemove *baseservicegrouptsmtanzuvmwarecomv1.SvcGroup) (result *basepolicytsmtanzuvmwarecomv1.ACPConfig, err error) {
+	var patch Patch
+
+	patchOp := PatchOp{
+		Op:   "remove",
+		Path: "/spec/sourcesvcgroupsGvk/" + linkToRemove.Name,
+	}
+
+	patch = append(patch, patchOp)
+	marshaled, err := patch.Marshal()
+	if err != nil {
+		return nil, err
+	}
+	result, err = obj.client.baseClient.PolicyTsmV1().ACPConfigs().Patch(ctx, srcObj.Name, types.JSONPatchType, marshaled, metav1.PatchOptions{})
 	if err != nil {
 		return nil, err
 	}
