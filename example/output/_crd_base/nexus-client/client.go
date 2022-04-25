@@ -240,8 +240,11 @@ func (obj *rootRootTsmV1) DeleteByName(ctx context.Context, name string, labels 
 	if labels == nil {
 		labels = make(map[string]string, 1)
 	}
-	if _, ok := labels["roots.root.tsm.tanzu.vmware.com"]; !ok {
+
+	if _, ok := result.GetLabels()["nexus/display_name"]; ok {
 		labels["roots.root.tsm.tanzu.vmware.com"] = result.GetLabels()["nexus/display_name"]
+	} else {
+		labels["roots.root.tsm.tanzu.vmware.com"] = name
 	}
 
 	if result.Spec.ConfigGvk != nil {
@@ -363,8 +366,11 @@ func (obj *configConfigTsmV1) DeleteByName(ctx context.Context, name string, lab
 	if labels == nil {
 		labels = make(map[string]string, 1)
 	}
-	if _, ok := labels["configs.config.tsm.tanzu.vmware.com"]; !ok {
+
+	if _, ok := result.GetLabels()["nexus/display_name"]; ok {
 		labels["configs.config.tsm.tanzu.vmware.com"] = result.GetLabels()["nexus/display_name"]
+	} else {
+		labels["configs.config.tsm.tanzu.vmware.com"] = name
 	}
 
 	if result.Spec.GNSGvk != nil {
@@ -555,8 +561,11 @@ func (obj *gnsGnsTsmV1) DeleteByName(ctx context.Context, name string, labels ma
 	if labels == nil {
 		labels = make(map[string]string, 1)
 	}
-	if _, ok := labels["gnses.gns.tsm.tanzu.vmware.com"]; !ok {
+
+	if _, ok := result.GetLabels()["nexus/display_name"]; ok {
 		labels["gnses.gns.tsm.tanzu.vmware.com"] = result.GetLabels()["nexus/display_name"]
+	} else {
+		labels["gnses.gns.tsm.tanzu.vmware.com"] = name
 	}
 
 	for _, v := range result.Spec.GnsServiceGroupsGvk {
@@ -1061,8 +1070,11 @@ func (obj *accesscontrolpolicyPolicyTsmV1) DeleteByName(ctx context.Context, nam
 	if labels == nil {
 		labels = make(map[string]string, 1)
 	}
-	if _, ok := labels["accesscontrolpolicies.policy.tsm.tanzu.vmware.com"]; !ok {
+
+	if _, ok := result.GetLabels()["nexus/display_name"]; ok {
 		labels["accesscontrolpolicies.policy.tsm.tanzu.vmware.com"] = result.GetLabels()["nexus/display_name"]
+	} else {
+		labels["accesscontrolpolicies.policy.tsm.tanzu.vmware.com"] = name
 	}
 
 	for _, v := range result.Spec.PolicyConfigsGvk {
