@@ -33,5 +33,15 @@ test:
     - CONTAINER_ID=$CONTAINER_ID PKG_NAME=/builds/${REPOSITORY} make test_render_templates
     - CONTAINER_ID=$CONTAINER_ID PKG_NAME=/builds/${REPOSITORY} make test_generate_code_in_container
 
+publish:
+  stage: build
+  only:
+    - tags
+  script:
+    - make docker.builder
+    - make docker TAG=$CI_COMMIT_TAG
+    - make publish TAG=$CI_COMMIT_TAG
+
 stages:
   - test
+  - build
