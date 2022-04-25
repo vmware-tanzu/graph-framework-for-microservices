@@ -10,7 +10,7 @@ require (
 	github.com/onsi/ginkgo v1.14.0
 	github.com/onsi/gomega v1.10.1
 	github.com/sirupsen/logrus v1.8.1
-	gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/nexus.git v0.0.0-20220414105500-cd0c290cf811
+	gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/common-library.git v0.0.0-20220425104724-aada688df39f
 	golang.org/x/mod v0.5.1
 	golang.org/x/tools v0.1.6-0.20210820212750-d4cc65f0b2ff
 	k8s.io/apiextensions-apiserver v0.0.0-00010101000000-000000000000
@@ -34,6 +34,7 @@ require (
 	github.com/modern-go/reflect2 v1.0.2 // indirect
 	github.com/nxadm/tail v1.4.4 // indirect
 	github.com/stretchr/testify v1.7.0 // indirect
+	gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/nexus.git v0.0.0-20220414105500-cd0c290cf811 // indirect
 	golang.org/x/net v0.0.0-20211209124913-491a49abca63 // indirect
 	golang.org/x/sys v0.0.0-20210831042530-f4d43177bf5e // indirect
 	golang.org/x/text v0.3.7 // indirect

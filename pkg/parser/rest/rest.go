@@ -1,8 +1,8 @@
 package rest
 
 import (
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/common-library.git/pkg/nexus"
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/pkg/parser"
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/nexus.git/nexus"
 )
 
 var HttpCodesResponsesMap = map[string]nexus.HTTPCodesResponse{
