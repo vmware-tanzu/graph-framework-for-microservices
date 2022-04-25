@@ -15,9 +15,10 @@ var prereqShow = false
 var skipPrereqCheck = false
 
 var rootCmd = &cobra.Command{
-	Use:   "nexus",
-	Short: "nexus cli",
-	Long:  "nexus cli to execute tsm operations",
+	Use:               "nexus",
+	Short:             "Nexus CLI",
+	Long:              "The Nexus CLI to create and deploy Nexus datamodels and applications. Learn about the Nexus platform here - https://gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/docs",
+	PersistentPreRunE: RootPreRun,
 }
 
 func main() {
@@ -38,6 +39,7 @@ func init() {
 		servicemesh.VersionCmd,
 		upgrade.UpgradeCmd,
 		prereq.PreReqCmd,
+		servicemesh.ConfigCmd,
 	)
 
 	rootCmd.PersistentFlags().BoolVarP(&enableDebug, utils.EnableDebugFlag, "", false, "Enables extra logging")

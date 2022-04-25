@@ -13,29 +13,31 @@ var (
 	nexusCliRepo     string = "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/cmd/plugin/nexus"
 )
 
-func UpgradeCli(cmd *cobra.Command, args []string) error {
+func upgradeCli(cmd *cobra.Command, args []string) error {
+	return DoUpgradeCli(upgradeToVersion, cmd)
+}
 
-	if upgradeToVersion == "" {
-		upgradeToVersion = "latest"
+func DoUpgradeCli(version string, cmd *cobra.Command) error {
+	if version == "" {
+		version = "latest"
 	}
 	envList := common.GetEnvList()
-	err := utils.SystemCommand(cmd, utils.CLI_UPGRADE_FAILED, envList, "go", "install", fmt.Sprintf("%s@%s", nexusCliRepo, upgradeToVersion))
+	err := utils.SystemCommand(cmd, utils.CLI_UPGRADE_FAILED, envList, "go", "install", fmt.Sprintf("%s@%s", nexusCliRepo, version))
 	if err == nil {
-		fmt.Printf("\u2713 CLI successfully upgraded to version %s\n", upgradeToVersion)
+		fmt.Printf("\u2713 CLI successfully upgraded to version %s\n", version)
 	} else {
-		fmt.Printf("\u274C CLI upgrade to version %s failed with error %v\n", upgradeToVersion, err)
+		fmt.Printf("\u274C CLI upgrade to version %s failed with error %v\n", version, err)
 	}
-
 	return nil
 }
 
-var UpgraceCliCmd = &cobra.Command{
+var UpgradeCliCmd = &cobra.Command{
 	Use:   "cli",
 	Short: "upgrade cli",
-	RunE:  UpgradeCli,
+	RunE:  upgradeCli,
 }
 
 func init() {
-	UpgraceCliCmd.Flags().StringVarP(&upgradeToVersion, "version",
+	UpgradeCliCmd.Flags().StringVarP(&upgradeToVersion, "version",
 		"v", "", "version to upgrade to")
 }

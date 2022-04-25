@@ -5,18 +5,13 @@ import (
 	"gitlab.eng.vmware.com/nsx-allspark_users/lib-go/logging"
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/servicemesh/app"
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/servicemesh/apply"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/servicemesh/config"
 	servicemesh_datamodel "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/servicemesh/datamodel"
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/servicemesh/login"
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/servicemesh/operator"
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/servicemesh/runtime"
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/servicemesh/version"
 )
-
-// GnsCmd ... GNS command
-var GnsCmd = &cobra.Command{
-	Use:   "gns",
-	Short: "Servicemesh global namespace features",
-}
 
 // ApplyCmd ... Apply command
 var ApplyCmd = &cobra.Command{
@@ -61,6 +56,11 @@ var VersionCmd = &cobra.Command{
 	Use:   "version",
 	Short: "Provides Nexus CLI, compiler, app-template and runtime versions",
 	RunE:  version.Version,
+}
+
+var ConfigCmd = &cobra.Command{
+	Use:   "config",
+	Short: "set nexus CLI preferences",
 }
 
 func initCommands() {
@@ -112,6 +112,9 @@ func initCommands() {
 	AppCmd.AddCommand(app.BuildCmd)
 
 	OperatorCmd.AddCommand(operator.CreateCmd)
+
+	ConfigCmd.AddCommand(config.SetCmd)
+	ConfigCmd.AddCommand(config.ViewCmd)
 }
 
 func init() {
