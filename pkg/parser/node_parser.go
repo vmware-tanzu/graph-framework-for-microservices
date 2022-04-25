@@ -129,7 +129,7 @@ func CreateRestMappings(graph map[string]Node) map[string]string {
 	mappings := make(map[string]string)
 	for _, root := range graph {
 		root.Walk(func(node *Node) {
-			mappings[node.CrdName] = fmt.Sprintf("%s.%s", node.Name, node.PkgName)
+			mappings[fmt.Sprintf("%s.%s", node.Name, node.PkgName)] = node.CrdName
 		})
 	}
 	return mappings

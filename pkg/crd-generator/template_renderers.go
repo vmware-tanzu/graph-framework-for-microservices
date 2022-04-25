@@ -348,6 +348,10 @@ func RenderCRDBaseTemplate(baseGroupName string, pkg parser.Package, parentsMap 
 
 		nexusAnnotation := &NexusAnnotation{}
 
+		if node.Name.Name == "Root" {
+			nexusAnnotation.NexusRestAPIMappings = restMappings
+		}
+
 		var err error
 		parents, ok := parentsMap[crdName]
 		if ok {
