@@ -591,7 +591,7 @@ func (obj *gnsGnsTsmV1) DeleteByName(ctx context.Context, name string, labels ma
 
 	patchOp := PatchOp{
 		Op:   "remove",
-		Path: "/spec/gnsGvk",
+		Path: "/spec/gNSGvk",
 	}
 
 	patch = append(patch, patchOp)
@@ -657,7 +657,7 @@ func (obj *gnsGnsTsmV1) CreateByName(ctx context.Context, objToCreate *basegnsts
 	var patch Patch
 	patchOp := PatchOp{
 		Op:   "replace",
-		Path: "/spec/gnsGvk",
+		Path: "/spec/gNSGvk",
 		Value: basegnstsmtanzuvmwarecomv1.Child{
 			Group: "gns.tsm.tanzu.vmware.com",
 			Kind:  "Gns",
@@ -907,7 +907,7 @@ func (obj *svcgroupServicegroupTsmV1) DeleteByName(ctx context.Context, name str
 
 	patchOp := PatchOp{
 		Op:   "remove",
-		Path: "/spec/gnsservicegroupsGvk/" + name,
+		Path: "/spec/gnsServiceGroupsGvk/" + name,
 	}
 
 	patch = append(patch, patchOp)
@@ -964,7 +964,7 @@ func (obj *svcgroupServicegroupTsmV1) CreateByName(ctx context.Context, objToCre
 		parentName = helper.GetHashedName("gnses.gns.tsm.tanzu.vmware.com", labels, parentName)
 	}
 
-	payload := "{\"spec\": {\"gnsservicegroupsGvk\": {\"" + objToCreate.Name + "\": {\"name\": \"" + objToCreate.Name + "\",\"kind\": \"SvcGroup\", \"group\": \"servicegroup.tsm.tanzu.vmware.com\"}}}}"
+	payload := "{\"spec\": {\"gnsServiceGroupsGvk\": {\"" + objToCreate.Name + "\": {\"name\": \"" + objToCreate.Name + "\",\"kind\": \"SvcGroup\", \"group\": \"servicegroup.tsm.tanzu.vmware.com\"}}}}"
 	_, err = obj.client.baseClient.GnsTsmV1().Gnses().Patch(ctx, parentName, types.MergePatchType, []byte(payload), metav1.PatchOptions{})
 	if err != nil {
 		return nil, err
@@ -1093,7 +1093,7 @@ func (obj *accesscontrolpolicyPolicyTsmV1) DeleteByName(ctx context.Context, nam
 
 	patchOp := PatchOp{
 		Op:   "remove",
-		Path: "/spec/gnsaccesscontrolpolicyGvk",
+		Path: "/spec/gnsAccessControlPolicyGvk",
 	}
 
 	patch = append(patch, patchOp)
@@ -1156,7 +1156,7 @@ func (obj *accesscontrolpolicyPolicyTsmV1) CreateByName(ctx context.Context, obj
 	var patch Patch
 	patchOp := PatchOp{
 		Op:   "replace",
-		Path: "/spec/gnsaccesscontrolpolicyGvk",
+		Path: "/spec/gnsAccessControlPolicyGvk",
 		Value: basepolicytsmtanzuvmwarecomv1.Child{
 			Group: "policy.tsm.tanzu.vmware.com",
 			Kind:  "AccessControlPolicy",
@@ -1260,7 +1260,7 @@ func (obj *acpconfigPolicyTsmV1) DeleteByName(ctx context.Context, name string, 
 
 	patchOp := PatchOp{
 		Op:   "remove",
-		Path: "/spec/policyconfigsGvk/" + name,
+		Path: "/spec/policyConfigsGvk/" + name,
 	}
 
 	patch = append(patch, patchOp)
@@ -1317,7 +1317,7 @@ func (obj *acpconfigPolicyTsmV1) CreateByName(ctx context.Context, objToCreate *
 		parentName = helper.GetHashedName("accesscontrolpolicies.policy.tsm.tanzu.vmware.com", labels, parentName)
 	}
 
-	payload := "{\"spec\": {\"policyconfigsGvk\": {\"" + objToCreate.Name + "\": {\"name\": \"" + objToCreate.Name + "\",\"kind\": \"ACPConfig\", \"group\": \"policy.tsm.tanzu.vmware.com\"}}}}"
+	payload := "{\"spec\": {\"policyConfigsGvk\": {\"" + objToCreate.Name + "\": {\"name\": \"" + objToCreate.Name + "\",\"kind\": \"ACPConfig\", \"group\": \"policy.tsm.tanzu.vmware.com\"}}}}"
 	_, err = obj.client.baseClient.PolicyTsmV1().AccessControlPolicies().Patch(ctx, parentName, types.MergePatchType, []byte(payload), metav1.PatchOptions{})
 	if err != nil {
 		return nil, err
@@ -1403,7 +1403,7 @@ func (obj *acpconfigPolicyTsmV1) UpdateByName(ctx context.Context, objToUpdate *
 
 func (obj *acpconfigPolicyTsmV1) AddDestSvcGroups(ctx context.Context, srcObj *basepolicytsmtanzuvmwarecomv1.ACPConfig, linkToAdd *baseservicegrouptsmtanzuvmwarecomv1.SvcGroup) (result *basepolicytsmtanzuvmwarecomv1.ACPConfig, err error) {
 
-	payload := "{\"spec\": {\"destsvcgroupsGvk\": {\"" + linkToAdd.Name + "\": {\"name\": \"" + linkToAdd.Name + "\",\"kind\": \"SvcGroup\", \"group\": \"servicegroup.tsm.tanzu.vmware.com\"}}}}"
+	payload := "{\"spec\": {\"destSvcGroupsGvk\": {\"" + linkToAdd.Name + "\": {\"name\": \"" + linkToAdd.Name + "\",\"kind\": \"SvcGroup\", \"group\": \"servicegroup.tsm.tanzu.vmware.com\"}}}}"
 	result, err = obj.client.baseClient.PolicyTsmV1().ACPConfigs().Patch(ctx, srcObj.Name, types.MergePatchType, []byte(payload), metav1.PatchOptions{})
 	if err != nil {
 		return nil, err
@@ -1417,7 +1417,7 @@ func (obj *acpconfigPolicyTsmV1) RemoveDestSvcGroups(ctx context.Context, srcObj
 
 	patchOp := PatchOp{
 		Op:   "remove",
-		Path: "/spec/destsvcgroupsGvk/" + linkToRemove.Name,
+		Path: "/spec/destSvcGroupsGvk/" + linkToRemove.Name,
 	}
 
 	patch = append(patch, patchOp)
@@ -1435,7 +1435,7 @@ func (obj *acpconfigPolicyTsmV1) RemoveDestSvcGroups(ctx context.Context, srcObj
 
 func (obj *acpconfigPolicyTsmV1) AddSourceSvcGroups(ctx context.Context, srcObj *basepolicytsmtanzuvmwarecomv1.ACPConfig, linkToAdd *baseservicegrouptsmtanzuvmwarecomv1.SvcGroup) (result *basepolicytsmtanzuvmwarecomv1.ACPConfig, err error) {
 
-	payload := "{\"spec\": {\"sourcesvcgroupsGvk\": {\"" + linkToAdd.Name + "\": {\"name\": \"" + linkToAdd.Name + "\",\"kind\": \"SvcGroup\", \"group\": \"servicegroup.tsm.tanzu.vmware.com\"}}}}"
+	payload := "{\"spec\": {\"sourceSvcGroupsGvk\": {\"" + linkToAdd.Name + "\": {\"name\": \"" + linkToAdd.Name + "\",\"kind\": \"SvcGroup\", \"group\": \"servicegroup.tsm.tanzu.vmware.com\"}}}}"
 	result, err = obj.client.baseClient.PolicyTsmV1().ACPConfigs().Patch(ctx, srcObj.Name, types.MergePatchType, []byte(payload), metav1.PatchOptions{})
 	if err != nil {
 		return nil, err
@@ -1449,7 +1449,7 @@ func (obj *acpconfigPolicyTsmV1) RemoveSourceSvcGroups(ctx context.Context, srcO
 
 	patchOp := PatchOp{
 		Op:   "remove",
-		Path: "/spec/sourcesvcgroupsGvk/" + linkToRemove.Name,
+		Path: "/spec/sourceSvcGroupsGvk/" + linkToRemove.Name,
 	}
 
 	patch = append(patch, patchOp)
