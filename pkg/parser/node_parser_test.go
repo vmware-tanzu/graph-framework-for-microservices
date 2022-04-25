@@ -24,13 +24,13 @@ var _ = Describe("Node parser tests", func() {
 	})
 
 	It("should get all nodes", func() {
-		expectedNodes := []string{"Root", "Config", "Gns", "AccessControlPolicy", "ACPConfig", "SvcGroup"}
+		expectedNodes := []string{"Root", "Config", "Gns", "SvcGroup", "AccessControlPolicy", "ACPConfig"}
 		var nodes []string
 		root.Walk(func(node *parser.Node) {
 			nodes = append(nodes, node.Name)
 		})
 		Expect(nodes).To(HaveLen(6))
-		Expect(unorderedEqual(expectedNodes, nodes)).To(BeTrue())
+		Expect(expectedNodes).To(Equal(nodes))
 	})
 
 	It("should fail when package names are duplicated.", func() {
@@ -69,19 +69,3 @@ var _ = Describe("Node parser tests", func() {
 		Expect(fail).To(BeTrue())
 	})
 })
-
-func unorderedEqual(first, second []string) bool {
-	if len(first) != len(second) {
-		return false
-	}
-	exists := make(map[string]bool)
-	for _, value := range first {
-		exists[value] = true
-	}
-	for _, value := range second {
-		if !exists[value] {
-			return false
-		}
-	}
-	return true
-}
