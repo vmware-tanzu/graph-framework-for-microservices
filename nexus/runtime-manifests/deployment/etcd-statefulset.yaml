@@ -92,7 +92,7 @@ spec:
       serviceAccountName: "default"
       containers:
         - name: etcd
-          image: docker.io/bitnami/etcd:3.4.18-debian-10-r7
+          image: gcr.io/nsx-sm/etcd:3.4.18-debian-10-r7
           imagePullPolicy: "IfNotPresent"
           securityContext:
             runAsNonRoot: true
