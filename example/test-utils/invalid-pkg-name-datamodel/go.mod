@@ -2,4 +2,4 @@ module gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler/example/test-
 
 go 1.17
 
-require gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/nexus.git v0.0.0-20220414105500-cd0c290cf811
+require gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/common-library.git v0.0.0-20220425104724-aada688df39f
