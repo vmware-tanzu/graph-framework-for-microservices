@@ -261,7 +261,7 @@ func getFieldInfo(pkg parser.Package, f *ast.Field) fieldInfo {
 		}
 		info.pkgName = util.RemoveSpecialChars(info.pkgName)
 	} else {
-		info.pkgName = currentPkgName
+		info.pkgName = util.RemoveSpecialChars(currentPkgName)
 	}
 
 	return info
