@@ -19,8 +19,15 @@ type Node struct {
 }
 
 type NodeHelper struct {
-	Name    string
-	Parents []string
+	Name     string
+	Parents  []string
+	Children map[string]NodeHelperChild // CRD Name => NodeHelperChild
+}
+
+type NodeHelperChild struct {
+	FieldName    string `json:"fieldName"`
+	FieldNameGvk string `json:"fieldNameGvk"`
+	IsNamed      bool   `json:"isNamed"`
 }
 
 func (node *Node) Walk(fn func(node *Node)) {

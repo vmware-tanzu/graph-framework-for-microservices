@@ -20,17 +20,19 @@ DATAMODEL_LOCAL_PATH ?= ""
 ifeq ($(CONTAINER_ID),)
 define run_in_container
   docker run \
-  --volume $(realpath .):/go/src/gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/ \
+  --volume $(realpath .):${PKG_NAME} \
+  --volume ~/.ssh:/root/.ssh \
+  --network=host \
   --workdir ${PKG_NAME} \
-  "${BUILDER_NAME}:${BUILDER_TAG}" ${1}
+  "${BUILDER_NAME}:${BUILDER_TAG}" /bin/bash -c "make docker.gitlab_credentials && ${1}"
 endef
 else
 define run_in_container
  docker run \
  --volumes-from ${CONTAINER_ID} \
- --volume ~/.ssh:/root/.ssh \
  --workdir ${PKG_NAME} \
- "${BUILDER_NAME}:${BUILDER_TAG}" ${1}
+ --env CICD_TOKEN=${CICD_TOKEN} \
+ "${BUILDER_NAME}:${BUILDER_TAG}" /bin/bash -c "make docker.gitlab_credentials && ${1}"
 endef
 endif
 
@@ -99,6 +101,8 @@ generate_code:
 		cp -rf $(DATAMODEL_LOCAL_PATH) /go/src/gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git && \
 		rm -rf /go/src/gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/datamodel/build  ;\
 	fi
+	rm -rf _generated
+	cp -R generated_base_structure _generated
 	CRD_MODULE_PATH=${CRD_MODULE_PATH} go run cmd/nexus-sdk/main.go -config-file ${CONFIG_FILE} -dsl ${DATAMODEL_PATH} -crd-output _generated
 	mv _generated/api_names.sh ./scripts/
 	./scripts/generate_k8s_api.sh
@@ -115,8 +119,9 @@ generate_code:
 test_generate_code_in_container: ${BUILDER_NAME}\:${BUILDER_TAG}.image.exists init_submodules
 	$(call run_in_container, make generate_code DATAMODEL_PATH=example/datamodel \
 	CONFIG_FILE=example/nexus-sdk.yaml \
-	CRD_MODULE_PATH="gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/_crd_generated/" \
-	GENERATED_OUTPUT_DIRECTORY=example/output/_crd_generated)
+	CRD_MODULE_PATH="gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/crd_generated/" \
+	GENERATED_OUTPUT_DIRECTORY=example/output/crd_generated && \
+	cd example/output/crd_generated && go mod tidy && go vet ./...)
 	@if [ -n "$$(git ls-files --modified --exclude-standard)" ]; then\
 		echo "The following changes should be committed:";\
 		git status;\
@@ -159,3 +164,16 @@ test_render_templates: render_templates
     	git diff;\
     	return 1;\
     fi
+
+.PHONY: docker.gitlab_credentials
+docker.gitlab_credentials:
+	echo "Updating gitlab settings"
+	@if test -z $$CICD_TOKEN; then\
+		echo "Using ssh authentication" && \
+        git config --global --add url."git@gitlab.eng.vmware.com:".insteadOf "https://gitlab.eng.vmware.com/"; \
+	else \
+		echo "Using https authentication" && \
+        git config --global credential.helper store && \
+        echo -e  "https://gitlab-ci-token:${CICD_TOKEN}@gitlab.eng.vmware.com/" >> ~/.git-credentials && \
+        git config --global url."https://gitlab.eng.vmware.com/".insteadOf "git@gitlab.eng.vmware.com:"; \
+	fi

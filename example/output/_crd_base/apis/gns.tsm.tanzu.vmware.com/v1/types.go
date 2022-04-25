@@ -3,9 +3,10 @@
 package v1
 
 import (
-	policytsmtanzuvmwarecomv1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/_crd_generated/apis/policy.tsm.tanzu.vmware.com/v1"
-	servicegrouptsmtanzuvmwarecomv1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/_crd_generated/apis/servicegroup.tsm.tanzu.vmware.com/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+
+	policytsmtanzuvmwarecomv1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/_generated/apis/policy.tsm.tanzu.vmware.com/v1"
+	servicegrouptsmtanzuvmwarecomv1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/_generated/apis/servicegroup.tsm.tanzu.vmware.com/v1"
 )
 
 // +k8s:openapi-gen=true
@@ -46,11 +47,11 @@ type GnsSpec struct {
 	UseSharedGateway          bool                                                `json:"useSharedGateway" yaml:"useSharedGateway"`
 	Description               Description                                         `json:"description" yaml:"description"`
 	GnsServiceGroups          map[string]servicegrouptsmtanzuvmwarecomv1.SvcGroup `json:"-" yaml:"-"`
-	GnsServiceGroupsGvk       map[string]Child                                    `json:"gnsServiceGroupsGvk,omitempty" yaml:"gnsServiceGroupsGvk,omitempty" nexus:"child"`
-	GnsAccessControlPolicy    policytsmtanzuvmwarecomv1.AccessControlPolicy       `json:"-" yaml:"-"`
-	GnsAccessControlPolicyGvk Child                                               `json:"gnsAccessControlPolicyGvk,omitempty" yaml:"gnsAccessControlPolicyGvk,omitempty" nexus:"child"`
-	Dns                       Dns                                                 `json:"-" yaml:"-"`
-	DnsGvk                    Link                                                `json:"dnsGvk,omitempty" yaml:"dnsGvk,omitempty" nexus:"link"`
+	GnsServiceGroupsGvk       map[string]Child                                    `json:"gnsservicegroupsGvk,omitempty" yaml:"gnsservicegroupsGvk,omitempty" nexus:"child"`
+	GnsAccessControlPolicy    *policytsmtanzuvmwarecomv1.AccessControlPolicy      `json:"-" yaml:"-"`
+	GnsAccessControlPolicyGvk *Child                                              `json:"gnsaccesscontrolpolicyGvk,omitempty" yaml:"gnsaccesscontrolpolicyGvk,omitempty" nexus:"child"`
+	Dns                       *Dns                                                `json:"-" yaml:"-"`
+	DnsGvk                    *Link                                               `json:"dnsGvk,omitempty" yaml:"dnsGvk,omitempty" nexus:"link"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object

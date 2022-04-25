@@ -2,8 +2,10 @@ package nexus_client
 
 import (
 	"context"
+	"encoding/json"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	types "k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/rest"
 
 {{.HelperImport}}
@@ -28,6 +30,18 @@ func NewForConfig(config *rest.Config) (*Clientset, error) {
 	{{.InitApiGroups}}
 
 	return client, nil
+}
+
+type PatchOp struct {
+	Op    string      `json:"op"`
+	Path  string      `json:"path"`
+	Value interface{} `json:"value,omitempty"`
+}
+
+type Patch []PatchOp
+
+func (p Patch) Marshal() ([]byte, error) {
+	return json.Marshal(p)
 }
 
 {{.ClientsetsApiGroupMethods}}

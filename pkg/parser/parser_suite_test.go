@@ -13,6 +13,8 @@ import (
 const (
 	examplePath    = "../../example/"
 	exampleDSLPath = examplePath + "datamodel"
+	baseGroupName  = "tsm.tanzu.vmware.com"
+	crdModulePath  = "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/crd_generated/"
 )
 
 func TestParser(t *testing.T) {

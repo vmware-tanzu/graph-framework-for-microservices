@@ -4,8 +4,10 @@ coverage*.out
 
 cmd/nexus-sdk/nexus-sdk
 compiler.tar
+_generated
 
 ### GoLand ###
 .idea
 report.json
 
+cmd/debug

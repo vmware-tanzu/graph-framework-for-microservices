@@ -313,6 +313,17 @@ func IsMapField(f *ast.Field) bool {
 	return false
 }
 
+func IsArrayField(f *ast.Field) bool {
+	if f == nil {
+		return false
+	}
+
+	if _, ok := f.Type.(*ast.ArrayType); ok {
+		return true
+	}
+	return false
+}
+
 func GetFieldName(f *ast.Field) (string, error) {
 	if f == nil {
 		return "", errors.New("provided field does not exist")
@@ -398,6 +409,23 @@ func GetFieldType(f *ast.Field) string {
 	}
 
 	return fieldType
+}
+
+func IsFieldPointer(f *ast.Field) bool {
+	if f == nil {
+		return false
+	}
+
+	star := false
+	switch fieldType := f.Type.(type) {
+	case *ast.MapType:
+		if _, ok := fieldType.Value.(*ast.StarExpr); ok {
+			star = true
+		}
+	case *ast.StarExpr:
+		star = true
+	}
+	return star
 }
 
 func ParseFieldTags(tag string) *structtag.Tags {

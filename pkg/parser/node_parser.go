@@ -20,6 +20,7 @@ func ParseDSLNodes(startPath string, baseGroupName string) map[string]Node {
 
 	rootNodes := make([]string, 0)
 	nodes := make(map[string]Node)
+	pkgsMap := make(map[string]string)
 	err := filepath.Walk(startPath, func(path string, info fs.FileInfo, err error) error {
 		if info.IsDir() {
 			if info.Name() == "build" {
@@ -32,6 +33,10 @@ func ParseDSLNodes(startPath string, baseGroupName string) map[string]Node {
 				log.Fatalf("Failed to parse directory %s: %v", path, err)
 			}
 			for _, v := range pkgs {
+				if _, ok := pkgsMap[v.Name]; ok {
+					log.Fatalf("Invalid Package name. Package name <%v> is already defined. Please make sure the package names are not duplicated.", v.Name)
+				}
+				pkgsMap[v.Name] = v.Name
 				pkgImport := strings.TrimSuffix(strings.ReplaceAll(path, startPath, modulePath), "/")
 				for _, file := range v.Files {
 					for _, decl := range file.Decls {
@@ -91,9 +96,27 @@ func CreateParentsMap(graph map[string]Node) map[string]NodeHelper {
 	parents := make(map[string]NodeHelper)
 	for _, root := range graph {
 		root.Walk(func(node *Node) {
+			children := make(map[string]NodeHelperChild)
+			for key, child := range node.SingleChildren {
+				children[child.CrdName] = NodeHelperChild{
+					IsNamed:      false,
+					FieldName:    key,
+					FieldNameGvk: util.GetGvkFieldTagName(key),
+				}
+			}
+
+			for key, child := range node.MultipleChildren {
+				children[child.CrdName] = NodeHelperChild{
+					IsNamed:      true,
+					FieldName:    key,
+					FieldNameGvk: util.GetGvkFieldTagName(key),
+				}
+			}
+
 			parents[node.CrdName] = NodeHelper{
-				Name:    node.Name,
-				Parents: node.Parents,
+				Name:     node.Name,
+				Parents:  node.Parents,
+				Children: children,
 			}
 		})
 	}
@@ -105,8 +128,21 @@ func processNode(node *Node, nodes map[string]Node, baseGroupName string) {
 	linkFields := GetLinkFields(node.TypeSpec)
 
 	processField := func(f *ast.Field, isChild bool, isLink bool) {
+		if isChild || isLink {
+			if IsArrayField(f) {
+				log.Fatalf(`"Invalid Type for %v. Nexus Child or Link can't be an array. Please represent it in the form of a map.`+"\n"+
+					`For example: `+
+					`myStr []string should be represented in the form of myStr map[string]string`, f.Names)
+			}
+		}
+
+		if IsFieldPointer(f) {
+			log.Fatalf("Pointer type is not allowed. Field <%v> is a pointer. Please make sure nexus child/link types are not pointers.", f.Names)
+		}
+
 		isMap := IsMapField(f)
 		fieldTypeStr := GetFieldType(f)
+		fieldName, _ := GetFieldName(f)
 
 		var key string
 		fieldType := strings.Split(fieldTypeStr, ".")
@@ -134,20 +170,19 @@ func processNode(node *Node, nodes map[string]Node, baseGroupName string) {
 			processNode(&n, nodes, baseGroupName)
 
 			if isMap {
-				node.MultipleChildren[fieldTypeStr] = n
+				node.MultipleChildren[fieldName] = n
 			} else {
-				node.SingleChildren[fieldTypeStr] = n
+				node.SingleChildren[fieldName] = n
 			}
 		}
 
 		if isLink {
 			if isMap {
-				node.MultipleLink[fieldTypeStr] = nodes[key]
+				node.MultipleLink[fieldName] = nodes[key]
 			} else {
-				node.SingleLink[fieldTypeStr] = nodes[key]
+				node.SingleLink[fieldName] = nodes[key]
 			}
 		}
-
 	}
 
 	for _, child := range childFields {

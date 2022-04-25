@@ -11,6 +11,9 @@ import (
 	"strings"
 	"text/template"
 
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/pkg/parser/rest"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/nexus.git/nexus"
+
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/pkg/util"
 
 	log "github.com/sirupsen/logrus"
@@ -40,7 +43,9 @@ var helperTemplateFile []byte
 //go:embed template/client.go.tmpl
 var clientTemplateFile []byte
 
-func RenderCRDTemplate(baseGroupName, crdModulePath string, pkgs parser.Packages, graph map[string]parser.Node, outputDir string) error {
+func RenderCRDTemplate(baseGroupName, crdModulePath string,
+	pkgs parser.Packages, graph map[string]parser.Node, outputDir string,
+	httpMethods map[string]nexus.HTTPMethodsResponses, httpCodes map[string]nexus.HTTPCodesResponse) error {
 	parentsMap := parser.CreateParentsMap(graph)
 
 	pkgNames := make([]string, len(pkgs))
@@ -93,7 +98,7 @@ func RenderCRDTemplate(baseGroupName, crdModulePath string, pkgs parser.Packages
 		if err != nil {
 			return err
 		}
-		crdFiles, err := RenderCRDBaseTemplate(baseGroupName, pkg, parentsMap)
+		crdFiles, err := RenderCRDBaseTemplate(baseGroupName, pkg, parentsMap, httpMethods, httpCodes)
 		if err != nil {
 			return err
 		}
@@ -111,7 +116,7 @@ func RenderCRDTemplate(baseGroupName, crdModulePath string, pkgs parser.Packages
 		return err
 	}
 
-	err = RenderClient(baseGroupName, outputDir, crdModulePath, pkgs)
+	err = RenderClient(baseGroupName, outputDir, crdModulePath, pkgs, parentsMap)
 	if err != nil {
 		return err
 	}
@@ -314,7 +319,9 @@ type crdBaseVars struct {
 }
 
 type NexusAnnotation struct {
-	Hierarchy []string `json:"hierarchy"`
+	Hierarchy       []string                          `json:"hierarchy"`
+	Children        map[string]parser.NodeHelperChild `json:"children"`
+	NexusRestAPIGen nexus.RestAPISpec                 `json:"nexus-rest-api-gen"`
 }
 
 type CrdBaseFile struct {
@@ -322,8 +329,11 @@ type CrdBaseFile struct {
 	File *bytes.Buffer
 }
 
-func RenderCRDBaseTemplate(baseGroupName string, pkg parser.Package, parentsMap map[string]parser.NodeHelper) ([]CrdBaseFile, error) {
+func RenderCRDBaseTemplate(baseGroupName string, pkg parser.Package, parentsMap map[string]parser.NodeHelper,
+	httpMethods map[string]nexus.HTTPMethodsResponses, httpCodes map[string]nexus.HTTPCodesResponse) ([]CrdBaseFile, error) {
 	var crds []CrdBaseFile
+
+	restAPISpecMap := rest.GetRestApiSpecs(pkg, httpMethods, httpCodes)
 	for _, node := range pkg.GetNexusNodes() {
 		typeName := parser.GetTypeName(node)
 		groupName := pkg.Name + "." + baseGroupName
@@ -332,16 +342,21 @@ func RenderCRDBaseTemplate(baseGroupName string, pkg parser.Package, parentsMap 
 		plural := util.ToPlural(singular)
 		crdName := fmt.Sprintf("%s.%s", plural, groupName)
 
-		nexusAnnotationStr := []byte("{}")
+		nexusAnnotation := &NexusAnnotation{}
+		var err error
 		parents, ok := parentsMap[crdName]
 		if ok {
-			nexusAnnotation := &NexusAnnotation{Hierarchy: parents.Parents}
+			nexusAnnotation.Hierarchy = parents.Parents
+			nexusAnnotation.Children = parents.Children
+		}
 
-			var err error
-			nexusAnnotationStr, err = json.Marshal(nexusAnnotation)
-			if err != nil {
-				return nil, err
-			}
+		if annotation, ok := parser.GetNexusRestAPIGenAnnotation(pkg, typeName); ok {
+			nexusAnnotation.NexusRestAPIGen = restAPISpecMap[annotation]
+		}
+
+		nexusAnnotationStr, err := json.Marshal(nexusAnnotation)
+		if err != nil {
+			return nil, err
 		}
 
 		vars := crdBaseVars{
@@ -429,13 +444,13 @@ func RenderHelperTemplate(parentsMap map[string]parser.NodeHelper, crdModulePath
 	return bytes.NewBuffer(out), nil
 }
 
-func RenderClient(baseGroupName, outputDir, crdModulePath string, pkgs parser.Packages) error {
+func RenderClient(baseGroupName, outputDir, crdModulePath string, pkgs parser.Packages, parentsMap map[string]parser.NodeHelper) error {
 	clientFolder := outputDir + "/nexus-client"
 	err := createFolder(clientFolder)
 	if err != nil {
 		return err
 	}
-	file, err := RenderClientTemplate(baseGroupName, crdModulePath, pkgs)
+	file, err := RenderClientTemplate(baseGroupName, crdModulePath, pkgs, parentsMap)
 	if err != nil {
 		return err
 	}
@@ -459,8 +474,8 @@ type clientVars struct {
 	ApiGroupsClient           string
 }
 
-func RenderClientTemplate(baseGroupName, crdModulePath string, pkgs parser.Packages) (*bytes.Buffer, error) {
-	vars, err := generateNexusClientVars(baseGroupName, crdModulePath, pkgs)
+func RenderClientTemplate(baseGroupName, crdModulePath string, pkgs parser.Packages, parentsMap map[string]parser.NodeHelper) (*bytes.Buffer, error) {
+	vars, err := generateNexusClientVars(baseGroupName, crdModulePath, pkgs, parentsMap)
 	if err != nil {
 		return nil, err
 	}
