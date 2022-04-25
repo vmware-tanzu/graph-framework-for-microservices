@@ -561,8 +561,11 @@ var getByNameForDeleteTmpl = `
 	if labels == nil {
 		labels = make(map[string]string, 1)
 	}
-	if _, ok := labels["{{.CrdName}}"]; !ok {
+
+	if _, ok := result.GetLabels()["nexus/display_name"]; ok {
 		labels["{{.CrdName}}"] = result.GetLabels()["nexus/display_name"]
+	} else {
+		labels["{{.CrdName}}"] = name
 	}
 `
 
