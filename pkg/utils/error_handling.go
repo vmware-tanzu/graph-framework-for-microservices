@@ -35,6 +35,7 @@ const (
 	CHECK_CURRENT_DIRECTORY_IS_DATAMODEL ClientErrorCode = 23
 	APPLICATION_INIT_PREREQ_FAILED       ClientErrorCode = 24
 	APPLICATION_BUILD_FAILED             ClientErrorCode = 25
+	CONFIG_SET_FAILED                    ClientErrorCode = 26
 )
 
 // ClientError defines error and information around it that are specific
@@ -208,6 +209,14 @@ var wellKnownErrors = map[ClientErrorCode]ClientError{
 		},
 		fatal: true,
 	},
+	CONFIG_SET_FAILED: {
+		Description: "config set failed",
+		WhatNext: []string{
+			"run with --debug option to get verbose logs",
+			"check if the property being set is supported by doing a `nexus config set --help`",
+		},
+		fatal: true,
+	},
 }
 
 // GetError returns an client error object given a predefined and well known
@@ -223,7 +232,7 @@ func GetError(code ClientErrorCode) ClientError {
 	return GetError(UNHANDLED_ERROR)
 }
 
-// GetCustomError returns an client error object given a predefined and well known
+// GetCustomError returns a client error object given a predefined and well known
 // error code and a custom error that needs to be propagated into the client error.
 //
 // If the error code is unknown, then an error object of type UNHANDLED_ERROR

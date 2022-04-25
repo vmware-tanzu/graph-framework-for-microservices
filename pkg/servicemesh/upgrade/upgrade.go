@@ -10,5 +10,5 @@ var UpgradeCmd = &cobra.Command{
 }
 
 func init() {
-	UpgradeCmd.AddCommand(UpgraceCliCmd)
+	UpgradeCmd.AddCommand(UpgradeCliCmd)
 }
