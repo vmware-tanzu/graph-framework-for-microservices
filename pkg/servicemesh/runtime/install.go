@@ -1,11 +1,14 @@
 package runtime
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
+	"io"
 	"io/fs"
 	"io/ioutil"
 	"os"
+	"os/exec"
 	"path/filepath"
 
 	"github.com/spf13/cobra"
@@ -41,6 +44,37 @@ var InstallCmd = &cobra.Command{
 	RunE: Install,
 }
 
+func CreateNs(Namespace string) error {
+	createCmd := exec.Command("kubectl", "create", "namespace", Namespace, "--dry-run", "-oyaml")
+	applyCmd := exec.Command("kubectl", "apply", "-f", "-")
+
+	r, w := io.Pipe()
+	createCmd.Stdout = w
+	applyCmd.Stdin = r
+
+	var b2 bytes.Buffer
+	applyCmd.Stdout = &b2
+
+	err := createCmd.Start()
+	if err != nil {
+		return err
+	}
+	err = applyCmd.Start()
+	if err != nil {
+		return err
+	}
+	err = createCmd.Wait()
+	if err != nil {
+		return err
+	}
+	w.Close()
+	err = applyCmd.Wait()
+	if err != nil {
+		return err
+	}
+	io.Copy(os.Stdout, &b2)
+	return nil
+}
 func Install(cmd *cobra.Command, args []string) error {
 
 	if utils.ListPrereq(cmd) {
@@ -48,10 +82,20 @@ func Install(cmd *cobra.Command, args []string) error {
 		return nil
 	}
 
+	checkNs := exec.Command("kubectl", "get", "ns", Namespace)
+	err := checkNs.Run()
+	if err != nil {
+		err := CreateNs(Namespace)
+		if err != nil {
+			fmt.Printf("Namespace %s creation failure due to %s", Namespace, err)
+			return err
+		}
+	}
 	files, err := DownloadRuntimeFiles()
 	if err != nil {
 		return err
 	}
+
 	for _, file := range files {
 		if file.IsDir() {
 			utils.SystemCommand(cmd, utils.RUNTIME_INSTALL_FAILED, []string{}, "kubectl", "apply", "-f", filepath.Join(ManifestsDir, "runtime-manifests", file.Name()), "-n", Namespace)
