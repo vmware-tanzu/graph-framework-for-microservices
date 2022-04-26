@@ -24,7 +24,7 @@ var _ = Describe("Node parser tests", func() {
 	})
 
 	It("should get all nodes", func() {
-		expectedNodes := []string{"Root", "Config", "Gns", "AccessControlPolicy", "ACPConfig", "SvcGroup"}
+		expectedNodes := []string{"Root", "Config", "Gns", "SvcGroup", "AccessControlPolicy", "ACPConfig"}
 		var nodes []string
 		root.Walk(func(node *parser.Node) {
 			nodes = append(nodes, node.Name)
