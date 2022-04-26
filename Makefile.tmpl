@@ -2,8 +2,11 @@
 # App Info
 #
 APP_NAME ?= {{.AppName}}
+PKG_NAME ?= $(realpath .)
 NAMESPACE ?= default
 DATAMODEL_DIR ?= "./nexus"
+BUILDER_NAME ?= ${APP_NAME}-builder
+BUILDER_TAG := $(shell md5sum builder/Dockerfile | awk '{ print $1 }' | head -c 8)
 CLUSTER ?= ""
 DATAMODEL ?= ""
 DATAMODEL_GROUP ?= ""
@@ -33,6 +36,31 @@ ifeq (,$(shell go env GOBIN))
 GOBIN=$(shell go env GOPATH)/bin
 else
 GOBIN=$(shell go env GOBIN)
+endif
+
+ifeq ($(CONTAINER_ID),)
+define run_in_container
+docker run \
+--volume $(realpath .):${PKG_NAME} \
+--volume ~/.ssh:/root/.ssh \
+--network=host \
+--workdir ${PKG_NAME} \
+--env GIT_HEAD=${GIT_HEAD} \
+--env GIT_TAG=${GIT_TAG} \
+--env APP_NAME=${APP_NAME} \
+"${BUILDER_NAME}:${BUILDER_TAG}" /bin/bash -c "make cred_setup && ${1}"
+endef
+else
+define run_in_container
+docker run \
+--volumes-from ${CONTAINER_ID} \
+--workdir ${PKG_NAME} \
+--env CICD_TOKEN=${CICD_TOKEN} \
+--env GIT_HEAD=${GIT_HEAD} \
+--env GIT_TAG=${GIT_TAG} \
+--env APP_NAME=${APP_NAME} \
+"${BUILDER_NAME}:${BUILDER_TAG}" /bin/bash -c "make cred_setup && ${1}"
+endef
 endif
 
 .PHONY: all
@@ -69,7 +97,7 @@ replace:
 			go mod edit -replace $(DATAMODEL)=${DATAMODEL_DIR}/${DATAMODEL} ;\
 	fi
 
-.SILENT:
+
 .PHONY: datamodel_init
 datamodel_init: ## Initialize datamodel
 	if [ -z $(NEXUS_BIN) ]; then \
@@ -105,25 +133,33 @@ lint: ## lint checks using the make targets
 go_get:
 	go get . ;
 
-.PHONY: build
-build: go_get lint ## Build manager binary.
-	mkdir -p .ssh ;\
-	if [ -n $(CICD_TOKEN) ]; then \
-		docker build --build-arg APP_NAME=${APP_NAME} \
-					--build-arg GIT_HEAD=${GIT_HEAD} \
-					--build-arg GIT_TAG=${CI_COMMIT} \
-					--build-arg CICD_TOKEN=${CICD_TOKEN} \
-					-t ${IMAGE_REGISTRY}:${IMAGE_TAG} . ;\
-	else \
-		test -s ~/.ssh || { echo "Please provide CICD_TOKEN if ssh not available."; exit 1; }; \
-		cp -rf ~/.ssh/* .ssh ;\
-		docker build --build-arg APP_NAME=${APP_NAME} \
-					--build-arg GIT_HEAD=${GIT_HEAD} \
-					--build-arg GIT_TAG=${CI_COMMIT} \
-					--build-arg USE_SSH="true" \
-					-t ${IMAGE_REGISTRY}:${IMAGE_TAG} . ;\
+docker.builder:
+	if [ -z `docker images $(BUILDER_NAME):$(BUILDER_TAG) -q` ]; then \
+		docker build -t ${BUILDER_NAME}:${BUILDER_TAG} . -f builder/Dockerfile ;\
 	fi
 
+cred_setup:
+	if [ -z ${CICD_TOKEN} ]	;then \
+        git config --global --add url."git@gitlab.eng.vmware.com:".insteadOf "https://gitlab.eng.vmware.com/" &&\
+        go mod tidy && go mod download ;\
+    else \
+        echo "https://gitlab-ci-token:${CICD_TOKEN}@gitlab.eng.vmware.com" >> ~/.git-credentials && \
+        git config --global credential.helper store && \
+        go mod tidy && go mod download ;\
+    fi
+
+
+build_app: go_get lint ## Build manager binary.
+	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -a -ldflags "-s -w -X gitlab.eng.vmware.com/nsx-allspark_users/lib-go/allspark/health.Sha=$(GIT_HEAD) -X gitlab.eng.vmware.com/nsx-allspark_users/lib-go/allspark/health.Tag=$(GIT_TAG)" -o bin/$(APP_NAME) main.go
+
+docker:
+	docker build -t $(APP_NAME):$(IMAGE_TAG) . -f Dockerfile
+
+.SILENT:
+.PHONY: build
+build: docker.builder
+	$(call run_in_container,make build_app)
+	$(MAKE) docker
 ##@ Test
 
 .PHONY: test
