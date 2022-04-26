@@ -125,9 +125,9 @@ spec:
               value: "simple"
             - name: POD_NAMESPACE
               valueFrom:
-              fieldRef:
-                apiVersion: v1
-                fieldPath: metadata.namespace
+                fieldRef:
+                  apiVersion: v1
+                  fieldPath: metadata.namespace
             - name: ETCD_ADVERTISE_CLIENT_URLS
               value: "http://$(MY_POD_NAME).nexus-etcd-headless.$(POD_NAMESPACE).svc.cluster.local:2379,http://nexus-etcd.$(POD_NAMESPACE).svc.cluster.local:2379"
             - name: ETCD_LISTEN_CLIENT_URLS
