@@ -24,7 +24,7 @@ before_script:
   -  docker login --username AWS -p $(aws ecr get-login-password --region us-west-2) 284299419820.dkr.ecr.us-west-2.amazonaws.com
 
 .harbor_login: &harbor_login
-  - docker login --username $DOCKER_USERNAME --password $DOCKER_PASSWORD
+  - docker login harbor-repo.vmware.com --username $DOCKER_USERNAME --password $DOCKER_PASSWORD
 
 test:
   image: runner.servicemesh.biz:5000/allspark/runner:latest
