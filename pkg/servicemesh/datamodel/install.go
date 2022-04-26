@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/spf13/cobra"
+	"gitlab.eng.vmware.com/nsx-allspark_users/lib-go/logging"
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/common"
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/servicemesh/prereq"
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/utils"
@@ -40,9 +41,7 @@ func Install(cmd *cobra.Command, args []string) error {
 		envList = append(envList, fmt.Sprintf("DATAMODEL=%s", DatamodelName))
 	}
 
-	if Namespace != "" {
-		envList = append(envList, fmt.Sprintf("NAMESPACE=%s", Namespace))
-	}
+	envList = append(envList, fmt.Sprintf("NAMESPACE=%s", Namespace))
 
 	err := utils.SystemCommand(cmd, utils.DATAMODEL_INSTALL_FAILED, envList, "make", "datamodel_install")
 	if err != nil {
@@ -75,5 +74,9 @@ func init() {
 		"r", "", "name of the namespace to install to")
 	InstallCmd.Flags().StringVarP(&DatamodelName, "name",
 		"n", "", "name of the datamodel to install")
+	err := cobra.MarkFlagRequired(InstallCmd.Flags(), "namespace")
+	if err != nil {
+		logging.Debugf("Datamodel install err: %v", err)
+	}
 
 }
