@@ -80,8 +80,6 @@ spec:
                   matchLabels:
                     app: nexus-etcd
                     nexus: nexus-etcd
-                namespaces:
-                  - "default"
                 topologyKey: kubernetes.io/hostname
               weight: 1
       securityContext:
@@ -125,16 +123,21 @@ spec:
               value: "yes"
             - name: ETCD_AUTH_TOKEN
               value: "simple"
+            - name: POD_NAMESPACE
+              valueFrom:
+              fieldRef:
+                apiVersion: v1
+                fieldPath: metadata.namespace
             - name: ETCD_ADVERTISE_CLIENT_URLS
-              value: "http://$(MY_POD_NAME).nexus-etcd-headless.default.svc.cluster.local:2379,http://nexus-etcd.default.svc.cluster.local:2379"
+              value: "http://$(MY_POD_NAME).nexus-etcd-headless.$(POD_NAMESPACE).svc.cluster.local:2379,http://nexus-etcd.$(POD_NAMESPACE).svc.cluster.local:2379"
             - name: ETCD_LISTEN_CLIENT_URLS
               value: "http://0.0.0.0:2379"
             - name: ETCD_INITIAL_ADVERTISE_PEER_URLS
-              value: "http://$(MY_POD_NAME).nexus-etcd-headless.default.svc.cluster.local:2380"
+              value: "http://$(MY_POD_NAME).nexus-etcd-headless.$(POD_NAMESPACE).svc.cluster.local:2380"
             - name: ETCD_LISTEN_PEER_URLS
               value: "http://0.0.0.0:2380"
             - name: ETCD_CLUSTER_DOMAIN
-              value: "nexus-etcd-headless.default.svc.cluster.local"
+              value: "nexus-etcd-headless.$(POD_NAMESPACE).svc.cluster.local"
           envFrom:
           ports:
             - name: client
