@@ -2,7 +2,7 @@ DEBUG ?= FALSE
 
 GO_PROJECT_NAME ?= compiler.git
 
-DOCKER_REGISTRY ?= harbor-repo.vmware.com/nexus/compiler
+DOCKER_REGISTRY ?= harbor-repo.vmware.com
 
 IMAGE_NAME ?= nexus/compiler
 TAG ?= $(shell git rev-parse --verify --short=8 HEAD)
