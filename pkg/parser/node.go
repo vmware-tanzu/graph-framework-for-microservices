@@ -33,12 +33,11 @@ type NodeHelperChild struct {
 func (node *Node) Walk(fn func(node *Node)) {
 	fn(node)
 
-	children := node.SingleChildren
 	for _, n := range node.MultipleChildren {
 		n.Walk(fn)
 	}
 
-	for _, n := range children {
+	for _, n := range node.SingleChildren {
 		n.Walk(fn)
 	}
 }
