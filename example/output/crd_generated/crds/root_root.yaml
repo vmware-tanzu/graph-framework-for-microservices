@@ -4,7 +4,7 @@ kind: CustomResourceDefinition
 metadata:
   annotations:
     nexus: |
-      {"name":"Root.root","children":{"configs.config.tsm.tanzu.vmware.com":{"fieldName":"Config","fieldNameGvk":"configGvk","isNamed":false}},"nexus-rest-api-gen":{"uris":null},"nexus-rest-api-mappings":{"ACPConfig.policy":"acpconfigs.policy.tsm.tanzu.vmware.com","AccessControlPolicy.policy":"accesscontrolpolicies.policy.tsm.tanzu.vmware.com","Config.config":"configs.config.tsm.tanzu.vmware.com","Gns.gns":"gnses.gns.tsm.tanzu.vmware.com","Root.root":"roots.root.tsm.tanzu.vmware.com","SvcGroup.servicegroup":"svcgroups.servicegroup.tsm.tanzu.vmware.com"}}
+      {"name":"Root.root","children":{"configs.config.tsm.tanzu.vmware.com":{"fieldName":"Config","fieldNameGvk":"configGvk","isNamed":false}},"nexus-rest-api-gen":{"uris":null}}
   creationTimestamp: null
   name: roots.root.tsm.tanzu.vmware.com
 spec:
