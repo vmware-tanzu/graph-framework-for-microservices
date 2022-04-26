@@ -21,7 +21,7 @@ var FooCustomMethodsResponses = nexus.HTTPMethodsResponses{
 var GNSRestAPISpec = nexus.RestAPISpec{
 	Uris: []nexus.RestURIs{
 		{
-			Uri:     "/v1alpha2/projects/{project}/global-namespace/{gnses.gns.tsm.tanzu.vmware.com}",
+			Uri:     "/v1alpha2/projects/{project}/global-namespace/{Gns.gns}",
 			Methods: nexus.DefaultHTTPMethodsResponses,
 		},
 		{
@@ -44,7 +44,7 @@ var GNSRestAPISpec = nexus.RestAPISpec{
 var DNSRestAPISpec = nexus.RestAPISpec{
 	Uris: []nexus.RestURIs{
 		{
-			Uri:     "/v1alpha2/projects/{project}/dns/{dnses.gns.tsm.tanzu.vmware.com}",
+			Uri:     "/v1alpha2/projects/{project}/dns/{Dns.gns}",
 			Methods: nexus.DefaultHTTPMethodsResponses,
 		},
 		{

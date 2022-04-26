@@ -86,7 +86,6 @@ func generateNexusClientVars(baseGroupName, crdModulePath string, pkgs parser.Pa
 }
 
 func resolveNode(baseImportName string, pkg parser.Package, baseGroupName, version string, groupVars *apiGroupsVars, clientGroupVars *apiGroupsClientVars, node *ast.TypeSpec, parentsMap map[string]parser.NodeHelper) error {
-
 	pkgName := pkg.Name
 	baseNodeName := node.Name.Name // eg Root
 	groupResourceName := util.GetGroupResourceName(baseNodeName)
@@ -127,9 +126,11 @@ func resolveNode(baseImportName string, pkg parser.Package, baseGroupName, versi
 		linkInfo := getFieldInfo(pkg, link)
 		var vars resolveLinkVars
 		vars.LinkFieldName = linkInfo.fieldName
+		vars.LinkFieldType = linkInfo.fieldType
 		vars.LinkFieldNameTag = strings.ToLower(linkInfo.fieldName)
 		vars.LinkGroupTypeName = util.GetGroupTypeName(linkInfo.pkgName, baseGroupName, version)
 		vars.LinkGroupResourceNameTitle = util.GetGroupResourceNameTitle(linkInfo.fieldType)
+		vars.LinkBaseImport = util.GetBaseImportName(linkInfo.pkgName, baseGroupName, version)
 
 		var resolvedLinksGet, resolvedLinksDelete, resolvedLinksCreate string
 		var err error
@@ -150,6 +151,16 @@ func resolveNode(baseImportName string, pkg parser.Package, baseGroupName, versi
 					return fmt.Errorf("failed to resolve links or children create client template for link %v: %v",
 						linkInfo.fieldName, err)
 				}
+			} else {
+				clientVarsLink := apiGroupsClientVarsLink{
+					FieldName:       linkInfo.fieldName,
+					FieldNameGvk:    util.GetGvkFieldTagName(linkInfo.fieldName),
+					Group:           util.GetGroupName(linkInfo.pkgName, baseGroupName),
+					Kind:            linkInfo.fieldType,
+					GroupBaseImport: util.GetBaseImportName(linkInfo.pkgName, baseGroupName, version) + "." + linkInfo.fieldType,
+					IsNamed:         true,
+				}
+				clientGroupVars.Links = append(clientGroupVars.Links, clientVarsLink)
 			}
 		} else {
 			resolvedLinksGet, err = renderLinkResolveTemplate(vars, resolveLinkGetTmpl)
@@ -157,6 +168,7 @@ func resolveNode(baseImportName string, pkg parser.Package, baseGroupName, versi
 				return fmt.Errorf("failed to resolve links or children get client template for link %v: %v",
 					linkInfo.fieldName, err)
 			}
+
 			if !parser.IsLinkField(link) { // do not resolve softlinks for delete/create
 				resolvedLinksDelete, err = renderLinkResolveTemplate(vars, resolveLinkDeleteTmpl)
 				if err != nil {
@@ -168,6 +180,16 @@ func resolveNode(baseImportName string, pkg parser.Package, baseGroupName, versi
 					return fmt.Errorf("failed to resolve links or children create client template for link %v: %v",
 						linkInfo.fieldName, err)
 				}
+			} else {
+				clientVarsLink := apiGroupsClientVarsLink{
+					FieldName:       linkInfo.fieldName,
+					FieldNameGvk:    util.GetGvkFieldTagName(linkInfo.fieldName),
+					Group:           util.GetGroupName(linkInfo.pkgName, baseGroupName),
+					Kind:            linkInfo.fieldType,
+					GroupBaseImport: util.GetBaseImportName(linkInfo.pkgName, baseGroupName, version) + "." + linkInfo.fieldType,
+					IsNamed:         false,
+				}
+				clientGroupVars.Links = append(clientGroupVars.Links, clientVarsLink)
 			}
 		}
 
@@ -237,8 +259,9 @@ func getFieldInfo(pkg parser.Package, f *ast.Field) fieldInfo {
 				info.pkgName = strings.TrimSuffix(s[len(s)-1], "\"")
 			}
 		}
+		info.pkgName = util.RemoveSpecialChars(info.pkgName)
 	} else {
-		info.pkgName = currentPkgName
+		info.pkgName = util.RemoveSpecialChars(currentPkgName)
 	}
 
 	return info
@@ -246,9 +269,11 @@ func getFieldInfo(pkg parser.Package, f *ast.Field) fieldInfo {
 
 type resolveLinkVars struct {
 	LinkFieldName              string
+	LinkFieldType              string
 	LinkFieldNameTag           string
 	LinkGroupTypeName          string
 	LinkGroupResourceNameTitle string
+	LinkBaseImport             string
 }
 
 var resolveLinkGetTmpl = `
@@ -262,12 +287,13 @@ var resolveLinkGetTmpl = `
 `
 
 var resolveNamedLinkGetTmpl = `
-	for k, v := range result.Spec.{{.LinkFieldName}}Gvk {
+	result.Spec.{{.LinkFieldName}} = make(map[string]{{.LinkBaseImport}}.{{.LinkFieldType}}, len(result.Spec.{{.LinkFieldName}}Gvk))
+	for _, v := range result.Spec.{{.LinkFieldName}}Gvk {
 		field, err := obj.client.{{.LinkGroupTypeName}}().{{.LinkGroupResourceNameTitle}}().GetByName(ctx, v.Name)
 		if err != nil {
 			return nil, err
 		}
-		result.Spec.{{.LinkFieldName}}[k] = *field
+		result.Spec.{{.LinkFieldName}}[field.GetLabels()["nexus/display_name"]] = *field
 	}
 `
 
@@ -371,6 +397,10 @@ func (obj *{{.GroupResourceType}}) resolveLinks(ctx context.Context, raw *{{.Gro
 
 
 func (obj *{{.GroupResourceType}}) Delete(ctx context.Context, name string, labels map[string]string) (err error) {
+	if labels == nil {
+		labels = map[string]string{}
+	}
+	labels["nexus/is_name_hashed"] = "true"
 	hashedName := helper.GetHashedName("{{.CrdName}}", labels, name)
 	return obj.DeleteByName(ctx, hashedName, labels)
 }
@@ -395,12 +425,24 @@ func (obj *{{.GroupResourceType}}) DeleteByName(ctx context.Context, name string
 }
 
 func (obj *{{.GroupResourceType}}) Create(ctx context.Context, objToCreate *{{.GroupBaseImport}}, labels map[string]string) (result *{{.GroupBaseImport}}, err error) {
+	if objToCreate.Labels == nil {
+		objToCreate.Labels = map[string]string{}
+	}
+	objToCreate.Labels["nexus/display_name"] = objToCreate.GetName()
+	objToCreate.Labels["nexus/is_name_hashed"] = "true"
 	hashedName := helper.GetHashedName("{{.CrdName}}", labels, objToCreate.GetName())
 	objToCreate.Name = hashedName
 	return obj.CreateByName(ctx, objToCreate, labels)
 }
 
 func (obj *{{.GroupResourceType}}) CreateByName(ctx context.Context, objToCreate *{{.GroupBaseImport}}, labels map[string]string) (result *{{.GroupBaseImport}}, err error) {
+	for k, v := range labels {
+		objToCreate.Labels[k] = v
+	}
+	if _, ok := objToCreate.Labels["nexus/display_name"]; !ok {
+		objToCreate.Labels["nexus/display_name"] = objToCreate.GetName()
+	}
+
 	// recursive creation of objects is not supported
 	{{.ResolveLinksCreate}}
 
@@ -442,6 +484,66 @@ func (obj *{{.GroupResourceType}}) UpdateByName(ctx context.Context, objToUpdate
 
 	return obj.resolveLinks(ctx, result)
 }
+
+{{ range $key, $link := .Links }}
+func (obj *{{$.GroupResourceType}}) Add{{$link.FieldName}}(ctx context.Context, srcObj *{{$.GroupBaseImport}}, linkToAdd *{{$link.GroupBaseImport}}) (result *{{$.GroupBaseImport}}, err error) {
+	{{ if $link.IsNamed }}
+	payload := "{\"spec\": {\"{{$link.FieldNameGvk}}\": {\"" + linkToAdd.Name + "\": {\"name\": \"" + linkToAdd.Name + "\",\"kind\": \"{{$link.Kind}}\", \"group\": \"{{$link.Group}}\"}}}}"
+	result, err = obj.client.baseClient.{{$.GroupTypeName}}().{{$.GroupResourceNameTitle}}().Patch(ctx, srcObj.Name, types.MergePatchType, []byte(payload), metav1.PatchOptions{})
+	if err != nil {
+		return nil, err
+	}
+	{{ else }}
+	var patch Patch
+	patchOp := PatchOp{
+		Op:   "replace",
+		Path: "/spec/{{$link.FieldNameGvk}}",
+		Value: {{$.BaseImportName}}.Child{
+			Group: "{{$link.Group}}",
+			Kind:  "{{$link.Kind}}",
+			Name:  linkToAdd.Name,
+		},
+	}
+	patch = append(patch, patchOp)
+	marshaled, err := patch.Marshal()
+	if err != nil {
+		return nil, err
+	}
+	result, err = obj.client.baseClient.{{$.GroupTypeName}}().{{$.GroupResourceNameTitle}}().Patch(ctx, srcObj.Name, types.JSONPatchType, marshaled, metav1.PatchOptions{})
+	if err != nil {
+		return nil, err
+	}
+	{{ end }}
+
+	return obj.resolveLinks(ctx, result)
+}
+
+func (obj *{{$.GroupResourceType}}) Remove{{$link.FieldName}}(ctx context.Context, srcObj *{{$.GroupBaseImport}}, linkToRemove *{{$link.GroupBaseImport}}) (result *{{$.GroupBaseImport}}, err error) {
+	var patch Patch
+	{{if $link.IsNamed}}
+	patchOp := PatchOp{
+		Op:    "remove",
+		Path:  "/spec/{{$link.FieldNameGvk}}/" + linkToRemove.Name,
+	}
+	{{ else }}
+	patchOp := PatchOp{
+		Op:    "remove",
+		Path:  "/spec/{{$link.FieldNameGvk}}",
+	}
+	{{ end }}
+	patch = append(patch, patchOp)
+	marshaled, err := patch.Marshal()
+	if err != nil {
+		return nil, err
+	}
+	result, err = obj.client.baseClient.{{$.GroupTypeName}}().{{$.GroupResourceNameTitle}}().Patch(ctx, srcObj.Name, types.JSONPatchType, marshaled, metav1.PatchOptions{})
+	if err != nil {
+		return nil, err
+	}
+
+	return obj.resolveLinks(ctx, result)
+}
+{{ end }}
 `
 
 var getForDeleteTmpl = `
@@ -456,12 +558,24 @@ var getByNameForDeleteTmpl = `
 	if err != nil {
 		return err
 	}
+	if labels == nil {
+		labels = make(map[string]string, 1)
+	}
+
+	if _, ok := result.GetLabels()["nexus/display_name"]; ok {
+		labels["{{.CrdName}}"] = result.GetLabels()["nexus/display_name"]
+	} else {
+		labels["{{.CrdName}}"] = name
+	}
 `
 
 var updateParentForCreate = `
 	parentName, ok := labels["{{.Parent.CrdName}}"]
 	if !ok {
 		parentName = helper.DEFAULT_KEY
+	}
+	if objToCreate.Labels["nexus/is_name_hashed"] == "true" {
+		parentName = helper.GetHashedName("{{.Parent.CrdName}}", labels, parentName)
 	}
 	{{if .Parent.IsNamed}}
 	payload := "{\"spec\": {\"{{.Parent.GvkFieldName}}\": {\"" + objToCreate.Name + "\": {\"name\": \"" + objToCreate.Name + "\",\"kind\": \"{{.Kind}}\", \"group\": \"{{.Group}}\"}}}}"
@@ -514,6 +628,9 @@ var updateParentForDelete = `
 	if !ok {
 		parentName = helper.DEFAULT_KEY
 	}
+	if labels["nexus/is_name_hashed"] == "true" {
+		parentName = helper.GetHashedName("{{.Parent.CrdName}}", labels, parentName)
+	}
 	_, err = obj.client.baseClient.{{.Parent.GroupTypeName}}().{{.Parent.GroupResourceNameTitle}}().Patch(ctx, parentName, types.JSONPatchType, marshaled, metav1.PatchOptions{})
 	if err != nil {
 		return err
@@ -547,6 +664,17 @@ type apiGroupsClientVars struct {
 		GroupResourceNameTitle string
 	}
 	ForUpdatePatches string
+
+	Links []apiGroupsClientVarsLink
+}
+
+type apiGroupsClientVarsLink struct {
+	FieldName       string
+	FieldNameGvk    string
+	Group           string
+	Kind            string
+	GroupBaseImport string
+	IsNamed         bool
 }
 
 func renderClientApiGroup(vars apiGroupsClientVars) (string, error) {

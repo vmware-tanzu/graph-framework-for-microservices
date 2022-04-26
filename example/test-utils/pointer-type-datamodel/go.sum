@@ -1,2 +1,2 @@
-gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/nexus.git v0.0.0-20220414105500-cd0c290cf811 h1:pEbI4uKTi3EupZCfPUxChjvM8gChIf6iJSpPtAKpXCM=
-gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/nexus.git v0.0.0-20220414105500-cd0c290cf811/go.mod h1:XBbLNh7k3fmAOL/tggkHBUFY2vEa8t3QAJUg43oW9VY=
+gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/common-library.git v0.0.0-20220425104724-aada688df39f h1:+iWPOhj9Cqsp4S0o+/gZH0KztJZxY6IDzm4+Msul6kE=
+gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/common-library.git v0.0.0-20220425104724-aada688df39f/go.mod h1:8u5OYwe1x3d4MrykRdsvBMAA4kuKlgSFFDdgG1DXrWE=

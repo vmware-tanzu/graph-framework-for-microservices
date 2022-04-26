@@ -56,7 +56,7 @@ func GetGvkFieldName(fieldName string) string {
 }
 
 func GetGvkFieldTagName(fieldName string) string {
-	return strings.ToLower(fieldName) + "Gvk"
+	return GetTag(fieldName) + "Gvk"
 }
 
 func GetGroupFromCrdName(crdName string) string {

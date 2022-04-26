@@ -5,9 +5,9 @@ import (
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/common-library.git/pkg/nexus"
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/pkg/parser"
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/pkg/parser/rest"
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/nexus.git/nexus"
 )
 
 var _ = Describe("Rest tests", func() {
@@ -56,7 +56,7 @@ var _ = Describe("Rest tests", func() {
 		expectedDnsApiSpec := nexus.RestAPISpec{
 			Uris: []nexus.RestURIs{
 				{
-					Uri:     "/v1alpha2/projects/{project}/dns/{dnses.gns.tsm.tanzu.vmware.com}",
+					Uri:     "/v1alpha2/projects/{project}/dns/{Dns.gns}",
 					Methods: nexus.DefaultHTTPMethodsResponses,
 				},
 				{

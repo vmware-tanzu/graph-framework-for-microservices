@@ -19,9 +19,11 @@ type Node struct {
 }
 
 type NodeHelper struct {
-	Name     string
-	Parents  []string
-	Children map[string]NodeHelperChild // CRD Name => NodeHelperChild
+	Name         string
+	RestName     string
+	Parents      []string
+	Children     map[string]NodeHelperChild // CRD Name => NodeHelperChild
+	RestMappings map[string]string
 }
 
 type NodeHelperChild struct {

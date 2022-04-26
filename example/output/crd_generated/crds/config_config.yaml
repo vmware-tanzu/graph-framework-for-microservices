@@ -4,7 +4,7 @@ kind: CustomResourceDefinition
 metadata:
   annotations:
     nexus: |
-      {"hierarchy":["roots.root.tsm.tanzu.vmware.com"],"children":{"gnses.gns.tsm.tanzu.vmware.com":{"fieldName":"GNS","fieldNameGvk":"gnsGvk","isNamed":false}},"nexus-rest-api-gen":{"uris":null}}
+      {"name":"Config.config","hierarchy":["roots.root.tsm.tanzu.vmware.com"],"children":{"gnses.gns.tsm.tanzu.vmware.com":{"fieldName":"GNS","fieldNameGvk":"gNSGvk","isNamed":false}},"nexus-rest-api-gen":{"uris":null}}
   creationTimestamp: null
   name: configs.config.tsm.tanzu.vmware.com
 spec:
@@ -38,7 +38,7 @@ spec:
             type: object
           spec:
             properties:
-              gnsGvk:
+              gNSGvk:
                 properties:
                   group:
                     default: ""

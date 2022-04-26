@@ -4,7 +4,7 @@ kind: CustomResourceDefinition
 metadata:
   annotations:
     nexus: |
-      {"hierarchy":["roots.root.tsm.tanzu.vmware.com","configs.config.tsm.tanzu.vmware.com","gnses.gns.tsm.tanzu.vmware.com"],"children":{"acpconfigs.policy.tsm.tanzu.vmware.com":{"fieldName":"PolicyConfigs","fieldNameGvk":"policyconfigsGvk","isNamed":true}},"nexus-rest-api-gen":{"uris":null}}
+      {"name":"AccessControlPolicy.policy","hierarchy":["roots.root.tsm.tanzu.vmware.com","configs.config.tsm.tanzu.vmware.com","gnses.gns.tsm.tanzu.vmware.com"],"children":{"acpconfigs.policy.tsm.tanzu.vmware.com":{"fieldName":"PolicyConfigs","fieldNameGvk":"policyConfigsGvk","isNamed":true}},"nexus-rest-api-gen":{"uris":null}}
   creationTimestamp: null
   name: accesscontrolpolicies.policy.tsm.tanzu.vmware.com
 spec:
@@ -38,7 +38,7 @@ spec:
             type: object
           spec:
             properties:
-              policyconfigsGvk:
+              policyConfigsGvk:
                 additionalProperties:
                   properties:
                     group:

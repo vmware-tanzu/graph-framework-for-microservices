@@ -98,11 +98,13 @@ github.com/onsi/gomega/types
 # github.com/sirupsen/logrus v1.8.1
 ## explicit; go 1.13
 github.com/sirupsen/logrus
-# github.com/stretchr/testify v1.7.1
+# github.com/stretchr/testify v1.7.0
 ## explicit; go 1.13
+# gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/common-library.git v0.0.0-20220425104724-aada688df39f
+## explicit; go 1.17
+gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/common-library.git/pkg/nexus
 # gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/nexus.git v0.0.0-20220414105500-cd0c290cf811
 ## explicit; go 1.17
-gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/nexus.git/nexus
 # golang.org/x/mod v0.5.1
 ## explicit; go 1.17
 golang.org/x/mod/internal/lazyregexp

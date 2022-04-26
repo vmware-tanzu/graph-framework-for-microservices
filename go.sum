@@ -314,6 +314,8 @@ github.com/xordataexchange/crypt v0.0.3-0.20170626215501-b2862e3d0a77/go.mod h1:
 github.com/yuin/goldmark v1.1.27/go.mod h1:3hX8gzYuyVAZsxl0MRgGTJEmQBFcNTphYh9decYSb74=
 github.com/yuin/goldmark v1.2.1/go.mod h1:3hX8gzYuyVAZsxl0MRgGTJEmQBFcNTphYh9decYSb74=
 github.com/yuin/goldmark v1.4.0/go.mod h1:mwnBkeHKe2W/ZEtQ+71ViKU8L12m81fl3OWwC1Zlc8k=
+gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/common-library.git v0.0.0-20220425104724-aada688df39f h1:+iWPOhj9Cqsp4S0o+/gZH0KztJZxY6IDzm4+Msul6kE=
+gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/common-library.git v0.0.0-20220425104724-aada688df39f/go.mod h1:8u5OYwe1x3d4MrykRdsvBMAA4kuKlgSFFDdgG1DXrWE=
 gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/nexus.git v0.0.0-20220414105500-cd0c290cf811 h1:pEbI4uKTi3EupZCfPUxChjvM8gChIf6iJSpPtAKpXCM=
 gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/nexus.git v0.0.0-20220414105500-cd0c290cf811/go.mod h1:XBbLNh7k3fmAOL/tggkHBUFY2vEa8t3QAJUg43oW9VY=
 go.etcd.io/bbolt v1.3.3/go.mod h1:IbVyRI1SCnLcuJnV2u8VeU0CEYM7e686BmAb1XKL+uU=

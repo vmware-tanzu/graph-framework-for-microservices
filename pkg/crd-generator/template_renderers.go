@@ -11,8 +11,8 @@ import (
 	"strings"
 	"text/template"
 
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/common-library.git/pkg/nexus"
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/pkg/parser/rest"
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/nexus.git/nexus"
 
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/pkg/util"
 
@@ -319,9 +319,10 @@ type crdBaseVars struct {
 }
 
 type NexusAnnotation struct {
-	Hierarchy       []string                          `json:"hierarchy"`
-	Children        map[string]parser.NodeHelperChild `json:"children"`
-	NexusRestAPIGen nexus.RestAPISpec                 `json:"nexus-rest-api-gen"`
+	Name            string                            `json:"name,omitempty"`
+	Hierarchy       []string                          `json:"hierarchy,omitempty"`
+	Children        map[string]parser.NodeHelperChild `json:"children,omitempty"`
+	NexusRestAPIGen nexus.RestAPISpec                 `json:"nexus-rest-api-gen,omitempty"`
 }
 
 type CrdBaseFile struct {
@@ -343,11 +344,13 @@ func RenderCRDBaseTemplate(baseGroupName string, pkg parser.Package, parentsMap 
 		crdName := fmt.Sprintf("%s.%s", plural, groupName)
 
 		nexusAnnotation := &NexusAnnotation{}
+
 		var err error
 		parents, ok := parentsMap[crdName]
 		if ok {
 			nexusAnnotation.Hierarchy = parents.Parents
 			nexusAnnotation.Children = parents.Children
+			nexusAnnotation.Name = parents.RestName
 		}
 
 		if annotation, ok := parser.GetNexusRestAPIGenAnnotation(pkg, typeName); ok {

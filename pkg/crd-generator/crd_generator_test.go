@@ -4,8 +4,8 @@ import (
 	"go/format"
 	"io/ioutil"
 
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/common-library.git/pkg/nexus"
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/pkg/parser/rest"
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/nexus.git/nexus"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"

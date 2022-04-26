@@ -1,6 +1,7 @@
 package parser
 
 import (
+	"fmt"
 	"go/ast"
 	"go/parser"
 	"go/token"
@@ -115,12 +116,23 @@ func CreateParentsMap(graph map[string]Node) map[string]NodeHelper {
 
 			parents[node.CrdName] = NodeHelper{
 				Name:     node.Name,
+				RestName: fmt.Sprintf("%s.%s", node.Name, node.PkgName),
 				Parents:  node.Parents,
 				Children: children,
 			}
 		})
 	}
 	return parents
+}
+
+func CreateRestMappings(graph map[string]Node) map[string]string {
+	mappings := make(map[string]string)
+	for _, root := range graph {
+		root.Walk(func(node *Node) {
+			mappings[fmt.Sprintf("%s.%s", node.Name, node.PkgName)] = node.CrdName
+		})
+	}
+	return mappings
 }
 
 func processNode(node *Node, nodes map[string]Node, baseGroupName string) {
