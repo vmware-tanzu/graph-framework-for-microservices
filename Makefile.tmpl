@@ -142,7 +142,7 @@ cred_setup:
 	if [ -z ${CICD_TOKEN} ]	;then \
         git config --global --add url."git@gitlab.eng.vmware.com:".insteadOf "https://gitlab.eng.vmware.com/" &&\
         go mod tidy && go mod download ;\
-    else \
+	else \
         echo "https://gitlab-ci-token:${CICD_TOKEN}@gitlab.eng.vmware.com" >> ~/.git-credentials && \
         git config --global credential.helper store && \
         go mod tidy && go mod download ;\
