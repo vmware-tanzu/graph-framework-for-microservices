@@ -196,10 +196,10 @@ func (obj *PolicyTsmV1) ACPConfigs() *acpconfigPolicyTsmV1 {
 }
 
 // Get hashes object's name and returns stored kubernetes object with all children and softlinks.
-// To resolve a hashed name names of all consecutive parents must be provided in labels param in form of:
+// To resolve a hashed name names of all consecutive parents must be provided in parentsMap param in form of:
 // {'object_crd_definition_name': 'object_name'}
-func (obj *rootRootTsmV1) Get(ctx context.Context, name string, labels map[string]string) (result *baseroottsmtanzuvmwarecomv1.Root, err error) {
-	hashedName := helper.GetHashedName("roots.root.tsm.tanzu.vmware.com", labels, name)
+func (obj *rootRootTsmV1) Get(ctx context.Context, name string, parentsMap map[string]string) (result *baseroottsmtanzuvmwarecomv1.Root, err error) {
+	hashedName := helper.GetHashedName("roots.root.tsm.tanzu.vmware.com", parentsMap, name)
 	return obj.GetByName(ctx, hashedName)
 }
 
@@ -227,36 +227,36 @@ func (obj *rootRootTsmV1) resolveLinks(ctx context.Context, raw *baseroottsmtanz
 }
 
 // Delete hashes object's name and deletes the object and all it's children
-// To resolve a hash names of all consecutive parents must be provided in labels param in form of:
+// To resolve a hash names of all consecutive parents must be provided in parentsMap param in form of:
 // {'object_crd_definition_name': 'object_name'}
-func (obj *rootRootTsmV1) Delete(ctx context.Context, name string, labels map[string]string) (err error) {
-	if labels == nil {
-		labels = map[string]string{}
+func (obj *rootRootTsmV1) Delete(ctx context.Context, name string, parentsMap map[string]string) (err error) {
+	if parentsMap == nil {
+		parentsMap = map[string]string{}
 	}
-	labels["nexus/is_name_hashed"] = "true"
-	hashedName := helper.GetHashedName("roots.root.tsm.tanzu.vmware.com", labels, name)
-	return obj.DeleteByName(ctx, hashedName, labels)
+	parentsMap["nexus/is_name_hashed"] = "true"
+	hashedName := helper.GetHashedName("roots.root.tsm.tanzu.vmware.com", parentsMap, name)
+	return obj.DeleteByName(ctx, hashedName, parentsMap)
 }
 
 // DeleteByName works as Delete but without hashing a name
-func (obj *rootRootTsmV1) DeleteByName(ctx context.Context, name string, labels map[string]string) (err error) {
+func (obj *rootRootTsmV1) DeleteByName(ctx context.Context, name string, parentsMap map[string]string) (err error) {
 
 	result, err := obj.client.baseClient.RootTsmV1().Roots().Get(ctx, name, metav1.GetOptions{})
 	if err != nil {
 		return err
 	}
-	if labels == nil {
-		labels = make(map[string]string, 1)
+	if parentsMap == nil {
+		parentsMap = make(map[string]string, 1)
 	}
 
 	if _, ok := result.GetLabels()["nexus/display_name"]; ok {
-		labels["roots.root.tsm.tanzu.vmware.com"] = result.GetLabels()["nexus/display_name"]
+		parentsMap["roots.root.tsm.tanzu.vmware.com"] = result.GetLabels()["nexus/display_name"]
 	} else {
-		labels["roots.root.tsm.tanzu.vmware.com"] = name
+		parentsMap["roots.root.tsm.tanzu.vmware.com"] = name
 	}
 
 	if result.Spec.ConfigGvk != nil {
-		err := obj.client.ConfigTsmV1().Configs().DeleteByName(ctx, result.Spec.ConfigGvk.Name, labels)
+		err := obj.client.ConfigTsmV1().Configs().DeleteByName(ctx, result.Spec.ConfigGvk.Name, parentsMap)
 		if err != nil {
 			return err
 		}
@@ -272,24 +272,24 @@ func (obj *rootRootTsmV1) DeleteByName(ctx context.Context, name string, labels 
 
 // Create hashes object's name and creates an object in the apiserver. Only spec fields can be provided, links and
 // children can't be added using this function.
-// To hash object's name names of all consecutive parents must be provided in labels param in form of:
+// To hash object's name names of all consecutive parents must be provided in parentsMap param in form of:
 // {'object_crd_definition_name': 'object_name'}
-func (obj *rootRootTsmV1) Create(ctx context.Context, objToCreate *baseroottsmtanzuvmwarecomv1.Root, labels map[string]string) (result *baseroottsmtanzuvmwarecomv1.Root, err error) {
+func (obj *rootRootTsmV1) Create(ctx context.Context, objToCreate *baseroottsmtanzuvmwarecomv1.Root, parentsMap map[string]string) (result *baseroottsmtanzuvmwarecomv1.Root, err error) {
 	if objToCreate.Labels == nil {
 		objToCreate.Labels = map[string]string{}
 	}
 	if objToCreate.Labels["nexus/is_name_hashed"] != "true" {
 		objToCreate.Labels["nexus/display_name"] = objToCreate.GetName()
 		objToCreate.Labels["nexus/is_name_hashed"] = "true"
-		hashedName := helper.GetHashedName("roots.root.tsm.tanzu.vmware.com", labels, objToCreate.GetName())
+		hashedName := helper.GetHashedName("roots.root.tsm.tanzu.vmware.com", parentsMap, objToCreate.GetName())
 		objToCreate.Name = hashedName
 	}
-	return obj.CreateByName(ctx, objToCreate, labels)
+	return obj.CreateByName(ctx, objToCreate, parentsMap)
 }
 
 // CreateByName works as Create but without hashing the name
-func (obj *rootRootTsmV1) CreateByName(ctx context.Context, objToCreate *baseroottsmtanzuvmwarecomv1.Root, labels map[string]string) (result *baseroottsmtanzuvmwarecomv1.Root, err error) {
-	for k, v := range labels {
+func (obj *rootRootTsmV1) CreateByName(ctx context.Context, objToCreate *baseroottsmtanzuvmwarecomv1.Root, parentsMap map[string]string) (result *baseroottsmtanzuvmwarecomv1.Root, err error) {
+	for k, v := range parentsMap {
 		objToCreate.Labels[k] = v
 	}
 	if _, ok := objToCreate.Labels["nexus/display_name"]; !ok {
@@ -309,16 +309,16 @@ func (obj *rootRootTsmV1) CreateByName(ctx context.Context, objToCreate *baseroo
 
 // Update hashes object's name and updates an object in the apiserver. Only spec fields and metadata can be updated,
 // links and children can't be added or updated using this function.
-// To hash the name names of all consecutive parents must be provided in labels param in form of:
+// To hash the name names of all consecutive parents must be provided in parentsMap param in form of:
 // {'object_crd_definition_name': 'object_name'}
-func (obj *rootRootTsmV1) Update(ctx context.Context, objToUpdate *baseroottsmtanzuvmwarecomv1.Root, labels map[string]string) (result *baseroottsmtanzuvmwarecomv1.Root, err error) {
+func (obj *rootRootTsmV1) Update(ctx context.Context, objToUpdate *baseroottsmtanzuvmwarecomv1.Root, parentsMap map[string]string) (result *baseroottsmtanzuvmwarecomv1.Root, err error) {
 	if objToUpdate.Labels == nil {
 		objToUpdate.Labels = map[string]string{}
 	}
 	if objToUpdate.Labels["nexus/is_name_hashed"] != "true" {
 		objToUpdate.Labels["nexus/display_name"] = objToUpdate.GetName()
 		objToUpdate.Labels["nexus/is_name_hashed"] = "true"
-		hashedName := helper.GetHashedName("roots.root.tsm.tanzu.vmware.com", labels, objToUpdate.GetName())
+		hashedName := helper.GetHashedName("roots.root.tsm.tanzu.vmware.com", parentsMap, objToUpdate.GetName())
 		objToUpdate.Name = hashedName
 	}
 	return obj.UpdateByName(ctx, objToUpdate)
@@ -347,10 +347,10 @@ func (obj *rootRootTsmV1) UpdateByName(ctx context.Context, objToUpdate *baseroo
 }
 
 // Get hashes object's name and returns stored kubernetes object with all children and softlinks.
-// To resolve a hashed name names of all consecutive parents must be provided in labels param in form of:
+// To resolve a hashed name names of all consecutive parents must be provided in parentsMap param in form of:
 // {'object_crd_definition_name': 'object_name'}
-func (obj *configConfigTsmV1) Get(ctx context.Context, name string, labels map[string]string) (result *baseconfigtsmtanzuvmwarecomv1.Config, err error) {
-	hashedName := helper.GetHashedName("configs.config.tsm.tanzu.vmware.com", labels, name)
+func (obj *configConfigTsmV1) Get(ctx context.Context, name string, parentsMap map[string]string) (result *baseconfigtsmtanzuvmwarecomv1.Config, err error) {
+	hashedName := helper.GetHashedName("configs.config.tsm.tanzu.vmware.com", parentsMap, name)
 	return obj.GetByName(ctx, hashedName)
 }
 
@@ -378,36 +378,36 @@ func (obj *configConfigTsmV1) resolveLinks(ctx context.Context, raw *baseconfigt
 }
 
 // Delete hashes object's name and deletes the object and all it's children
-// To resolve a hash names of all consecutive parents must be provided in labels param in form of:
+// To resolve a hash names of all consecutive parents must be provided in parentsMap param in form of:
 // {'object_crd_definition_name': 'object_name'}
-func (obj *configConfigTsmV1) Delete(ctx context.Context, name string, labels map[string]string) (err error) {
-	if labels == nil {
-		labels = map[string]string{}
+func (obj *configConfigTsmV1) Delete(ctx context.Context, name string, parentsMap map[string]string) (err error) {
+	if parentsMap == nil {
+		parentsMap = map[string]string{}
 	}
-	labels["nexus/is_name_hashed"] = "true"
-	hashedName := helper.GetHashedName("configs.config.tsm.tanzu.vmware.com", labels, name)
-	return obj.DeleteByName(ctx, hashedName, labels)
+	parentsMap["nexus/is_name_hashed"] = "true"
+	hashedName := helper.GetHashedName("configs.config.tsm.tanzu.vmware.com", parentsMap, name)
+	return obj.DeleteByName(ctx, hashedName, parentsMap)
 }
 
 // DeleteByName works as Delete but without hashing a name
-func (obj *configConfigTsmV1) DeleteByName(ctx context.Context, name string, labels map[string]string) (err error) {
+func (obj *configConfigTsmV1) DeleteByName(ctx context.Context, name string, parentsMap map[string]string) (err error) {
 
 	result, err := obj.client.baseClient.ConfigTsmV1().Configs().Get(ctx, name, metav1.GetOptions{})
 	if err != nil {
 		return err
 	}
-	if labels == nil {
-		labels = make(map[string]string, 1)
+	if parentsMap == nil {
+		parentsMap = make(map[string]string, 1)
 	}
 
 	if _, ok := result.GetLabels()["nexus/display_name"]; ok {
-		labels["configs.config.tsm.tanzu.vmware.com"] = result.GetLabels()["nexus/display_name"]
+		parentsMap["configs.config.tsm.tanzu.vmware.com"] = result.GetLabels()["nexus/display_name"]
 	} else {
-		labels["configs.config.tsm.tanzu.vmware.com"] = name
+		parentsMap["configs.config.tsm.tanzu.vmware.com"] = name
 	}
 
 	if result.Spec.GNSGvk != nil {
-		err := obj.client.GnsTsmV1().Gnses().DeleteByName(ctx, result.Spec.GNSGvk.Name, labels)
+		err := obj.client.GnsTsmV1().Gnses().DeleteByName(ctx, result.Spec.GNSGvk.Name, parentsMap)
 		if err != nil {
 			return err
 		}
@@ -430,12 +430,12 @@ func (obj *configConfigTsmV1) DeleteByName(ctx context.Context, name string, lab
 	if err != nil {
 		return err
 	}
-	parentName, ok := labels["roots.root.tsm.tanzu.vmware.com"]
+	parentName, ok := parentsMap["roots.root.tsm.tanzu.vmware.com"]
 	if !ok {
 		parentName = helper.DEFAULT_KEY
 	}
-	if labels["nexus/is_name_hashed"] == "true" {
-		parentName = helper.GetHashedName("roots.root.tsm.tanzu.vmware.com", labels, parentName)
+	if parentsMap["nexus/is_name_hashed"] == "true" {
+		parentName = helper.GetHashedName("roots.root.tsm.tanzu.vmware.com", parentsMap, parentName)
 	}
 	_, err = obj.client.baseClient.RootTsmV1().Roots().Patch(ctx, parentName, types.JSONPatchType, marshaled, metav1.PatchOptions{})
 	if err != nil {
@@ -447,24 +447,24 @@ func (obj *configConfigTsmV1) DeleteByName(ctx context.Context, name string, lab
 
 // Create hashes object's name and creates an object in the apiserver. Only spec fields can be provided, links and
 // children can't be added using this function.
-// To hash object's name names of all consecutive parents must be provided in labels param in form of:
+// To hash object's name names of all consecutive parents must be provided in parentsMap param in form of:
 // {'object_crd_definition_name': 'object_name'}
-func (obj *configConfigTsmV1) Create(ctx context.Context, objToCreate *baseconfigtsmtanzuvmwarecomv1.Config, labels map[string]string) (result *baseconfigtsmtanzuvmwarecomv1.Config, err error) {
+func (obj *configConfigTsmV1) Create(ctx context.Context, objToCreate *baseconfigtsmtanzuvmwarecomv1.Config, parentsMap map[string]string) (result *baseconfigtsmtanzuvmwarecomv1.Config, err error) {
 	if objToCreate.Labels == nil {
 		objToCreate.Labels = map[string]string{}
 	}
 	if objToCreate.Labels["nexus/is_name_hashed"] != "true" {
 		objToCreate.Labels["nexus/display_name"] = objToCreate.GetName()
 		objToCreate.Labels["nexus/is_name_hashed"] = "true"
-		hashedName := helper.GetHashedName("configs.config.tsm.tanzu.vmware.com", labels, objToCreate.GetName())
+		hashedName := helper.GetHashedName("configs.config.tsm.tanzu.vmware.com", parentsMap, objToCreate.GetName())
 		objToCreate.Name = hashedName
 	}
-	return obj.CreateByName(ctx, objToCreate, labels)
+	return obj.CreateByName(ctx, objToCreate, parentsMap)
 }
 
 // CreateByName works as Create but without hashing the name
-func (obj *configConfigTsmV1) CreateByName(ctx context.Context, objToCreate *baseconfigtsmtanzuvmwarecomv1.Config, labels map[string]string) (result *baseconfigtsmtanzuvmwarecomv1.Config, err error) {
-	for k, v := range labels {
+func (obj *configConfigTsmV1) CreateByName(ctx context.Context, objToCreate *baseconfigtsmtanzuvmwarecomv1.Config, parentsMap map[string]string) (result *baseconfigtsmtanzuvmwarecomv1.Config, err error) {
+	for k, v := range parentsMap {
 		objToCreate.Labels[k] = v
 	}
 	if _, ok := objToCreate.Labels["nexus/display_name"]; !ok {
@@ -479,12 +479,12 @@ func (obj *configConfigTsmV1) CreateByName(ctx context.Context, objToCreate *bas
 		return nil, err
 	}
 
-	parentName, ok := labels["roots.root.tsm.tanzu.vmware.com"]
+	parentName, ok := parentsMap["roots.root.tsm.tanzu.vmware.com"]
 	if !ok {
 		parentName = helper.DEFAULT_KEY
 	}
 	if objToCreate.Labels["nexus/is_name_hashed"] == "true" {
-		parentName = helper.GetHashedName("roots.root.tsm.tanzu.vmware.com", labels, parentName)
+		parentName = helper.GetHashedName("roots.root.tsm.tanzu.vmware.com", parentsMap, parentName)
 	}
 
 	var patch Patch
@@ -512,16 +512,16 @@ func (obj *configConfigTsmV1) CreateByName(ctx context.Context, objToCreate *bas
 
 // Update hashes object's name and updates an object in the apiserver. Only spec fields and metadata can be updated,
 // links and children can't be added or updated using this function.
-// To hash the name names of all consecutive parents must be provided in labels param in form of:
+// To hash the name names of all consecutive parents must be provided in parentsMap param in form of:
 // {'object_crd_definition_name': 'object_name'}
-func (obj *configConfigTsmV1) Update(ctx context.Context, objToUpdate *baseconfigtsmtanzuvmwarecomv1.Config, labels map[string]string) (result *baseconfigtsmtanzuvmwarecomv1.Config, err error) {
+func (obj *configConfigTsmV1) Update(ctx context.Context, objToUpdate *baseconfigtsmtanzuvmwarecomv1.Config, parentsMap map[string]string) (result *baseconfigtsmtanzuvmwarecomv1.Config, err error) {
 	if objToUpdate.Labels == nil {
 		objToUpdate.Labels = map[string]string{}
 	}
 	if objToUpdate.Labels["nexus/is_name_hashed"] != "true" {
 		objToUpdate.Labels["nexus/display_name"] = objToUpdate.GetName()
 		objToUpdate.Labels["nexus/is_name_hashed"] = "true"
-		hashedName := helper.GetHashedName("configs.config.tsm.tanzu.vmware.com", labels, objToUpdate.GetName())
+		hashedName := helper.GetHashedName("configs.config.tsm.tanzu.vmware.com", parentsMap, objToUpdate.GetName())
 		objToUpdate.Name = hashedName
 	}
 	return obj.UpdateByName(ctx, objToUpdate)
@@ -550,10 +550,10 @@ func (obj *configConfigTsmV1) UpdateByName(ctx context.Context, objToUpdate *bas
 }
 
 // Get hashes object's name and returns stored kubernetes object with all children and softlinks.
-// To resolve a hashed name names of all consecutive parents must be provided in labels param in form of:
+// To resolve a hashed name names of all consecutive parents must be provided in parentsMap param in form of:
 // {'object_crd_definition_name': 'object_name'}
-func (obj *gnsGnsTsmV1) Get(ctx context.Context, name string, labels map[string]string) (result *basegnstsmtanzuvmwarecomv1.Gns, err error) {
-	hashedName := helper.GetHashedName("gnses.gns.tsm.tanzu.vmware.com", labels, name)
+func (obj *gnsGnsTsmV1) Get(ctx context.Context, name string, parentsMap map[string]string) (result *basegnstsmtanzuvmwarecomv1.Gns, err error) {
+	hashedName := helper.GetHashedName("gnses.gns.tsm.tanzu.vmware.com", parentsMap, name)
 	return obj.GetByName(ctx, hashedName)
 }
 
@@ -598,43 +598,43 @@ func (obj *gnsGnsTsmV1) resolveLinks(ctx context.Context, raw *basegnstsmtanzuvm
 }
 
 // Delete hashes object's name and deletes the object and all it's children
-// To resolve a hash names of all consecutive parents must be provided in labels param in form of:
+// To resolve a hash names of all consecutive parents must be provided in parentsMap param in form of:
 // {'object_crd_definition_name': 'object_name'}
-func (obj *gnsGnsTsmV1) Delete(ctx context.Context, name string, labels map[string]string) (err error) {
-	if labels == nil {
-		labels = map[string]string{}
+func (obj *gnsGnsTsmV1) Delete(ctx context.Context, name string, parentsMap map[string]string) (err error) {
+	if parentsMap == nil {
+		parentsMap = map[string]string{}
 	}
-	labels["nexus/is_name_hashed"] = "true"
-	hashedName := helper.GetHashedName("gnses.gns.tsm.tanzu.vmware.com", labels, name)
-	return obj.DeleteByName(ctx, hashedName, labels)
+	parentsMap["nexus/is_name_hashed"] = "true"
+	hashedName := helper.GetHashedName("gnses.gns.tsm.tanzu.vmware.com", parentsMap, name)
+	return obj.DeleteByName(ctx, hashedName, parentsMap)
 }
 
 // DeleteByName works as Delete but without hashing a name
-func (obj *gnsGnsTsmV1) DeleteByName(ctx context.Context, name string, labels map[string]string) (err error) {
+func (obj *gnsGnsTsmV1) DeleteByName(ctx context.Context, name string, parentsMap map[string]string) (err error) {
 
 	result, err := obj.client.baseClient.GnsTsmV1().Gnses().Get(ctx, name, metav1.GetOptions{})
 	if err != nil {
 		return err
 	}
-	if labels == nil {
-		labels = make(map[string]string, 1)
+	if parentsMap == nil {
+		parentsMap = make(map[string]string, 1)
 	}
 
 	if _, ok := result.GetLabels()["nexus/display_name"]; ok {
-		labels["gnses.gns.tsm.tanzu.vmware.com"] = result.GetLabels()["nexus/display_name"]
+		parentsMap["gnses.gns.tsm.tanzu.vmware.com"] = result.GetLabels()["nexus/display_name"]
 	} else {
-		labels["gnses.gns.tsm.tanzu.vmware.com"] = name
+		parentsMap["gnses.gns.tsm.tanzu.vmware.com"] = name
 	}
 
 	for _, v := range result.Spec.GnsServiceGroupsGvk {
-		err := obj.client.ServicegroupTsmV1().SvcGroups().DeleteByName(ctx, v.Name, labels)
+		err := obj.client.ServicegroupTsmV1().SvcGroups().DeleteByName(ctx, v.Name, parentsMap)
 		if err != nil {
 			return err
 		}
 	}
 
 	if result.Spec.GnsAccessControlPolicyGvk != nil {
-		err := obj.client.PolicyTsmV1().AccessControlPolicies().DeleteByName(ctx, result.Spec.GnsAccessControlPolicyGvk.Name, labels)
+		err := obj.client.PolicyTsmV1().AccessControlPolicies().DeleteByName(ctx, result.Spec.GnsAccessControlPolicyGvk.Name, parentsMap)
 		if err != nil {
 			return err
 		}
@@ -657,12 +657,12 @@ func (obj *gnsGnsTsmV1) DeleteByName(ctx context.Context, name string, labels ma
 	if err != nil {
 		return err
 	}
-	parentName, ok := labels["configs.config.tsm.tanzu.vmware.com"]
+	parentName, ok := parentsMap["configs.config.tsm.tanzu.vmware.com"]
 	if !ok {
 		parentName = helper.DEFAULT_KEY
 	}
-	if labels["nexus/is_name_hashed"] == "true" {
-		parentName = helper.GetHashedName("configs.config.tsm.tanzu.vmware.com", labels, parentName)
+	if parentsMap["nexus/is_name_hashed"] == "true" {
+		parentName = helper.GetHashedName("configs.config.tsm.tanzu.vmware.com", parentsMap, parentName)
 	}
 	_, err = obj.client.baseClient.ConfigTsmV1().Configs().Patch(ctx, parentName, types.JSONPatchType, marshaled, metav1.PatchOptions{})
 	if err != nil {
@@ -674,24 +674,24 @@ func (obj *gnsGnsTsmV1) DeleteByName(ctx context.Context, name string, labels ma
 
 // Create hashes object's name and creates an object in the apiserver. Only spec fields can be provided, links and
 // children can't be added using this function.
-// To hash object's name names of all consecutive parents must be provided in labels param in form of:
+// To hash object's name names of all consecutive parents must be provided in parentsMap param in form of:
 // {'object_crd_definition_name': 'object_name'}
-func (obj *gnsGnsTsmV1) Create(ctx context.Context, objToCreate *basegnstsmtanzuvmwarecomv1.Gns, labels map[string]string) (result *basegnstsmtanzuvmwarecomv1.Gns, err error) {
+func (obj *gnsGnsTsmV1) Create(ctx context.Context, objToCreate *basegnstsmtanzuvmwarecomv1.Gns, parentsMap map[string]string) (result *basegnstsmtanzuvmwarecomv1.Gns, err error) {
 	if objToCreate.Labels == nil {
 		objToCreate.Labels = map[string]string{}
 	}
 	if objToCreate.Labels["nexus/is_name_hashed"] != "true" {
 		objToCreate.Labels["nexus/display_name"] = objToCreate.GetName()
 		objToCreate.Labels["nexus/is_name_hashed"] = "true"
-		hashedName := helper.GetHashedName("gnses.gns.tsm.tanzu.vmware.com", labels, objToCreate.GetName())
+		hashedName := helper.GetHashedName("gnses.gns.tsm.tanzu.vmware.com", parentsMap, objToCreate.GetName())
 		objToCreate.Name = hashedName
 	}
-	return obj.CreateByName(ctx, objToCreate, labels)
+	return obj.CreateByName(ctx, objToCreate, parentsMap)
 }
 
 // CreateByName works as Create but without hashing the name
-func (obj *gnsGnsTsmV1) CreateByName(ctx context.Context, objToCreate *basegnstsmtanzuvmwarecomv1.Gns, labels map[string]string) (result *basegnstsmtanzuvmwarecomv1.Gns, err error) {
-	for k, v := range labels {
+func (obj *gnsGnsTsmV1) CreateByName(ctx context.Context, objToCreate *basegnstsmtanzuvmwarecomv1.Gns, parentsMap map[string]string) (result *basegnstsmtanzuvmwarecomv1.Gns, err error) {
+	for k, v := range parentsMap {
 		objToCreate.Labels[k] = v
 	}
 	if _, ok := objToCreate.Labels["nexus/display_name"]; !ok {
@@ -709,12 +709,12 @@ func (obj *gnsGnsTsmV1) CreateByName(ctx context.Context, objToCreate *basegnsts
 		return nil, err
 	}
 
-	parentName, ok := labels["configs.config.tsm.tanzu.vmware.com"]
+	parentName, ok := parentsMap["configs.config.tsm.tanzu.vmware.com"]
 	if !ok {
 		parentName = helper.DEFAULT_KEY
 	}
 	if objToCreate.Labels["nexus/is_name_hashed"] == "true" {
-		parentName = helper.GetHashedName("configs.config.tsm.tanzu.vmware.com", labels, parentName)
+		parentName = helper.GetHashedName("configs.config.tsm.tanzu.vmware.com", parentsMap, parentName)
 	}
 
 	var patch Patch
@@ -742,16 +742,16 @@ func (obj *gnsGnsTsmV1) CreateByName(ctx context.Context, objToCreate *basegnsts
 
 // Update hashes object's name and updates an object in the apiserver. Only spec fields and metadata can be updated,
 // links and children can't be added or updated using this function.
-// To hash the name names of all consecutive parents must be provided in labels param in form of:
+// To hash the name names of all consecutive parents must be provided in parentsMap param in form of:
 // {'object_crd_definition_name': 'object_name'}
-func (obj *gnsGnsTsmV1) Update(ctx context.Context, objToUpdate *basegnstsmtanzuvmwarecomv1.Gns, labels map[string]string) (result *basegnstsmtanzuvmwarecomv1.Gns, err error) {
+func (obj *gnsGnsTsmV1) Update(ctx context.Context, objToUpdate *basegnstsmtanzuvmwarecomv1.Gns, parentsMap map[string]string) (result *basegnstsmtanzuvmwarecomv1.Gns, err error) {
 	if objToUpdate.Labels == nil {
 		objToUpdate.Labels = map[string]string{}
 	}
 	if objToUpdate.Labels["nexus/is_name_hashed"] != "true" {
 		objToUpdate.Labels["nexus/display_name"] = objToUpdate.GetName()
 		objToUpdate.Labels["nexus/is_name_hashed"] = "true"
-		hashedName := helper.GetHashedName("gnses.gns.tsm.tanzu.vmware.com", labels, objToUpdate.GetName())
+		hashedName := helper.GetHashedName("gnses.gns.tsm.tanzu.vmware.com", parentsMap, objToUpdate.GetName())
 		objToUpdate.Name = hashedName
 	}
 	return obj.UpdateByName(ctx, objToUpdate)
@@ -852,10 +852,10 @@ func (obj *gnsGnsTsmV1) RemoveDns(ctx context.Context, srcObj *basegnstsmtanzuvm
 }
 
 // Get hashes object's name and returns stored kubernetes object with all children and softlinks.
-// To resolve a hashed name names of all consecutive parents must be provided in labels param in form of:
+// To resolve a hashed name names of all consecutive parents must be provided in parentsMap param in form of:
 // {'object_crd_definition_name': 'object_name'}
-func (obj *dnsGnsTsmV1) Get(ctx context.Context, name string, labels map[string]string) (result *basegnstsmtanzuvmwarecomv1.Dns, err error) {
-	hashedName := helper.GetHashedName("dnses.gns.tsm.tanzu.vmware.com", labels, name)
+func (obj *dnsGnsTsmV1) Get(ctx context.Context, name string, parentsMap map[string]string) (result *basegnstsmtanzuvmwarecomv1.Dns, err error) {
+	hashedName := helper.GetHashedName("dnses.gns.tsm.tanzu.vmware.com", parentsMap, name)
 	return obj.GetByName(ctx, hashedName)
 }
 
@@ -875,19 +875,19 @@ func (obj *dnsGnsTsmV1) resolveLinks(ctx context.Context, raw *basegnstsmtanzuvm
 }
 
 // Delete hashes object's name and deletes the object and all it's children
-// To resolve a hash names of all consecutive parents must be provided in labels param in form of:
+// To resolve a hash names of all consecutive parents must be provided in parentsMap param in form of:
 // {'object_crd_definition_name': 'object_name'}
-func (obj *dnsGnsTsmV1) Delete(ctx context.Context, name string, labels map[string]string) (err error) {
-	if labels == nil {
-		labels = map[string]string{}
+func (obj *dnsGnsTsmV1) Delete(ctx context.Context, name string, parentsMap map[string]string) (err error) {
+	if parentsMap == nil {
+		parentsMap = map[string]string{}
 	}
-	labels["nexus/is_name_hashed"] = "true"
-	hashedName := helper.GetHashedName("dnses.gns.tsm.tanzu.vmware.com", labels, name)
-	return obj.DeleteByName(ctx, hashedName, labels)
+	parentsMap["nexus/is_name_hashed"] = "true"
+	hashedName := helper.GetHashedName("dnses.gns.tsm.tanzu.vmware.com", parentsMap, name)
+	return obj.DeleteByName(ctx, hashedName, parentsMap)
 }
 
 // DeleteByName works as Delete but without hashing a name
-func (obj *dnsGnsTsmV1) DeleteByName(ctx context.Context, name string, labels map[string]string) (err error) {
+func (obj *dnsGnsTsmV1) DeleteByName(ctx context.Context, name string, parentsMap map[string]string) (err error) {
 
 	err = obj.client.baseClient.GnsTsmV1().Dnses().Delete(ctx, name, metav1.DeleteOptions{})
 	if err != nil {
@@ -899,24 +899,24 @@ func (obj *dnsGnsTsmV1) DeleteByName(ctx context.Context, name string, labels ma
 
 // Create hashes object's name and creates an object in the apiserver. Only spec fields can be provided, links and
 // children can't be added using this function.
-// To hash object's name names of all consecutive parents must be provided in labels param in form of:
+// To hash object's name names of all consecutive parents must be provided in parentsMap param in form of:
 // {'object_crd_definition_name': 'object_name'}
-func (obj *dnsGnsTsmV1) Create(ctx context.Context, objToCreate *basegnstsmtanzuvmwarecomv1.Dns, labels map[string]string) (result *basegnstsmtanzuvmwarecomv1.Dns, err error) {
+func (obj *dnsGnsTsmV1) Create(ctx context.Context, objToCreate *basegnstsmtanzuvmwarecomv1.Dns, parentsMap map[string]string) (result *basegnstsmtanzuvmwarecomv1.Dns, err error) {
 	if objToCreate.Labels == nil {
 		objToCreate.Labels = map[string]string{}
 	}
 	if objToCreate.Labels["nexus/is_name_hashed"] != "true" {
 		objToCreate.Labels["nexus/display_name"] = objToCreate.GetName()
 		objToCreate.Labels["nexus/is_name_hashed"] = "true"
-		hashedName := helper.GetHashedName("dnses.gns.tsm.tanzu.vmware.com", labels, objToCreate.GetName())
+		hashedName := helper.GetHashedName("dnses.gns.tsm.tanzu.vmware.com", parentsMap, objToCreate.GetName())
 		objToCreate.Name = hashedName
 	}
-	return obj.CreateByName(ctx, objToCreate, labels)
+	return obj.CreateByName(ctx, objToCreate, parentsMap)
 }
 
 // CreateByName works as Create but without hashing the name
-func (obj *dnsGnsTsmV1) CreateByName(ctx context.Context, objToCreate *basegnstsmtanzuvmwarecomv1.Dns, labels map[string]string) (result *basegnstsmtanzuvmwarecomv1.Dns, err error) {
-	for k, v := range labels {
+func (obj *dnsGnsTsmV1) CreateByName(ctx context.Context, objToCreate *basegnstsmtanzuvmwarecomv1.Dns, parentsMap map[string]string) (result *basegnstsmtanzuvmwarecomv1.Dns, err error) {
+	for k, v := range parentsMap {
 		objToCreate.Labels[k] = v
 	}
 	if _, ok := objToCreate.Labels["nexus/display_name"]; !ok {
@@ -933,16 +933,16 @@ func (obj *dnsGnsTsmV1) CreateByName(ctx context.Context, objToCreate *basegnsts
 
 // Update hashes object's name and updates an object in the apiserver. Only spec fields and metadata can be updated,
 // links and children can't be added or updated using this function.
-// To hash the name names of all consecutive parents must be provided in labels param in form of:
+// To hash the name names of all consecutive parents must be provided in parentsMap param in form of:
 // {'object_crd_definition_name': 'object_name'}
-func (obj *dnsGnsTsmV1) Update(ctx context.Context, objToUpdate *basegnstsmtanzuvmwarecomv1.Dns, labels map[string]string) (result *basegnstsmtanzuvmwarecomv1.Dns, err error) {
+func (obj *dnsGnsTsmV1) Update(ctx context.Context, objToUpdate *basegnstsmtanzuvmwarecomv1.Dns, parentsMap map[string]string) (result *basegnstsmtanzuvmwarecomv1.Dns, err error) {
 	if objToUpdate.Labels == nil {
 		objToUpdate.Labels = map[string]string{}
 	}
 	if objToUpdate.Labels["nexus/is_name_hashed"] != "true" {
 		objToUpdate.Labels["nexus/display_name"] = objToUpdate.GetName()
 		objToUpdate.Labels["nexus/is_name_hashed"] = "true"
-		hashedName := helper.GetHashedName("dnses.gns.tsm.tanzu.vmware.com", labels, objToUpdate.GetName())
+		hashedName := helper.GetHashedName("dnses.gns.tsm.tanzu.vmware.com", parentsMap, objToUpdate.GetName())
 		objToUpdate.Name = hashedName
 	}
 	return obj.UpdateByName(ctx, objToUpdate)
@@ -971,10 +971,10 @@ func (obj *dnsGnsTsmV1) UpdateByName(ctx context.Context, objToUpdate *basegnsts
 }
 
 // Get hashes object's name and returns stored kubernetes object with all children and softlinks.
-// To resolve a hashed name names of all consecutive parents must be provided in labels param in form of:
+// To resolve a hashed name names of all consecutive parents must be provided in parentsMap param in form of:
 // {'object_crd_definition_name': 'object_name'}
-func (obj *svcgroupServicegroupTsmV1) Get(ctx context.Context, name string, labels map[string]string) (result *baseservicegrouptsmtanzuvmwarecomv1.SvcGroup, err error) {
-	hashedName := helper.GetHashedName("svcgroups.servicegroup.tsm.tanzu.vmware.com", labels, name)
+func (obj *svcgroupServicegroupTsmV1) Get(ctx context.Context, name string, parentsMap map[string]string) (result *baseservicegrouptsmtanzuvmwarecomv1.SvcGroup, err error) {
+	hashedName := helper.GetHashedName("svcgroups.servicegroup.tsm.tanzu.vmware.com", parentsMap, name)
 	return obj.GetByName(ctx, hashedName)
 }
 
@@ -994,19 +994,19 @@ func (obj *svcgroupServicegroupTsmV1) resolveLinks(ctx context.Context, raw *bas
 }
 
 // Delete hashes object's name and deletes the object and all it's children
-// To resolve a hash names of all consecutive parents must be provided in labels param in form of:
+// To resolve a hash names of all consecutive parents must be provided in parentsMap param in form of:
 // {'object_crd_definition_name': 'object_name'}
-func (obj *svcgroupServicegroupTsmV1) Delete(ctx context.Context, name string, labels map[string]string) (err error) {
-	if labels == nil {
-		labels = map[string]string{}
+func (obj *svcgroupServicegroupTsmV1) Delete(ctx context.Context, name string, parentsMap map[string]string) (err error) {
+	if parentsMap == nil {
+		parentsMap = map[string]string{}
 	}
-	labels["nexus/is_name_hashed"] = "true"
-	hashedName := helper.GetHashedName("svcgroups.servicegroup.tsm.tanzu.vmware.com", labels, name)
-	return obj.DeleteByName(ctx, hashedName, labels)
+	parentsMap["nexus/is_name_hashed"] = "true"
+	hashedName := helper.GetHashedName("svcgroups.servicegroup.tsm.tanzu.vmware.com", parentsMap, name)
+	return obj.DeleteByName(ctx, hashedName, parentsMap)
 }
 
 // DeleteByName works as Delete but without hashing a name
-func (obj *svcgroupServicegroupTsmV1) DeleteByName(ctx context.Context, name string, labels map[string]string) (err error) {
+func (obj *svcgroupServicegroupTsmV1) DeleteByName(ctx context.Context, name string, parentsMap map[string]string) (err error) {
 
 	err = obj.client.baseClient.ServicegroupTsmV1().SvcGroups().Delete(ctx, name, metav1.DeleteOptions{})
 	if err != nil {
@@ -1025,12 +1025,12 @@ func (obj *svcgroupServicegroupTsmV1) DeleteByName(ctx context.Context, name str
 	if err != nil {
 		return err
 	}
-	parentName, ok := labels["gnses.gns.tsm.tanzu.vmware.com"]
+	parentName, ok := parentsMap["gnses.gns.tsm.tanzu.vmware.com"]
 	if !ok {
 		parentName = helper.DEFAULT_KEY
 	}
-	if labels["nexus/is_name_hashed"] == "true" {
-		parentName = helper.GetHashedName("gnses.gns.tsm.tanzu.vmware.com", labels, parentName)
+	if parentsMap["nexus/is_name_hashed"] == "true" {
+		parentName = helper.GetHashedName("gnses.gns.tsm.tanzu.vmware.com", parentsMap, parentName)
 	}
 	_, err = obj.client.baseClient.GnsTsmV1().Gnses().Patch(ctx, parentName, types.JSONPatchType, marshaled, metav1.PatchOptions{})
 	if err != nil {
@@ -1042,24 +1042,24 @@ func (obj *svcgroupServicegroupTsmV1) DeleteByName(ctx context.Context, name str
 
 // Create hashes object's name and creates an object in the apiserver. Only spec fields can be provided, links and
 // children can't be added using this function.
-// To hash object's name names of all consecutive parents must be provided in labels param in form of:
+// To hash object's name names of all consecutive parents must be provided in parentsMap param in form of:
 // {'object_crd_definition_name': 'object_name'}
-func (obj *svcgroupServicegroupTsmV1) Create(ctx context.Context, objToCreate *baseservicegrouptsmtanzuvmwarecomv1.SvcGroup, labels map[string]string) (result *baseservicegrouptsmtanzuvmwarecomv1.SvcGroup, err error) {
+func (obj *svcgroupServicegroupTsmV1) Create(ctx context.Context, objToCreate *baseservicegrouptsmtanzuvmwarecomv1.SvcGroup, parentsMap map[string]string) (result *baseservicegrouptsmtanzuvmwarecomv1.SvcGroup, err error) {
 	if objToCreate.Labels == nil {
 		objToCreate.Labels = map[string]string{}
 	}
 	if objToCreate.Labels["nexus/is_name_hashed"] != "true" {
 		objToCreate.Labels["nexus/display_name"] = objToCreate.GetName()
 		objToCreate.Labels["nexus/is_name_hashed"] = "true"
-		hashedName := helper.GetHashedName("svcgroups.servicegroup.tsm.tanzu.vmware.com", labels, objToCreate.GetName())
+		hashedName := helper.GetHashedName("svcgroups.servicegroup.tsm.tanzu.vmware.com", parentsMap, objToCreate.GetName())
 		objToCreate.Name = hashedName
 	}
-	return obj.CreateByName(ctx, objToCreate, labels)
+	return obj.CreateByName(ctx, objToCreate, parentsMap)
 }
 
 // CreateByName works as Create but without hashing the name
-func (obj *svcgroupServicegroupTsmV1) CreateByName(ctx context.Context, objToCreate *baseservicegrouptsmtanzuvmwarecomv1.SvcGroup, labels map[string]string) (result *baseservicegrouptsmtanzuvmwarecomv1.SvcGroup, err error) {
-	for k, v := range labels {
+func (obj *svcgroupServicegroupTsmV1) CreateByName(ctx context.Context, objToCreate *baseservicegrouptsmtanzuvmwarecomv1.SvcGroup, parentsMap map[string]string) (result *baseservicegrouptsmtanzuvmwarecomv1.SvcGroup, err error) {
+	for k, v := range parentsMap {
 		objToCreate.Labels[k] = v
 	}
 	if _, ok := objToCreate.Labels["nexus/display_name"]; !ok {
@@ -1071,12 +1071,12 @@ func (obj *svcgroupServicegroupTsmV1) CreateByName(ctx context.Context, objToCre
 		return nil, err
 	}
 
-	parentName, ok := labels["gnses.gns.tsm.tanzu.vmware.com"]
+	parentName, ok := parentsMap["gnses.gns.tsm.tanzu.vmware.com"]
 	if !ok {
 		parentName = helper.DEFAULT_KEY
 	}
 	if objToCreate.Labels["nexus/is_name_hashed"] == "true" {
-		parentName = helper.GetHashedName("gnses.gns.tsm.tanzu.vmware.com", labels, parentName)
+		parentName = helper.GetHashedName("gnses.gns.tsm.tanzu.vmware.com", parentsMap, parentName)
 	}
 
 	payload := "{\"spec\": {\"gnsServiceGroupsGvk\": {\"" + objToCreate.Name + "\": {\"name\": \"" + objToCreate.Name + "\",\"kind\": \"SvcGroup\", \"group\": \"servicegroup.tsm.tanzu.vmware.com\"}}}}"
@@ -1090,16 +1090,16 @@ func (obj *svcgroupServicegroupTsmV1) CreateByName(ctx context.Context, objToCre
 
 // Update hashes object's name and updates an object in the apiserver. Only spec fields and metadata can be updated,
 // links and children can't be added or updated using this function.
-// To hash the name names of all consecutive parents must be provided in labels param in form of:
+// To hash the name names of all consecutive parents must be provided in parentsMap param in form of:
 // {'object_crd_definition_name': 'object_name'}
-func (obj *svcgroupServicegroupTsmV1) Update(ctx context.Context, objToUpdate *baseservicegrouptsmtanzuvmwarecomv1.SvcGroup, labels map[string]string) (result *baseservicegrouptsmtanzuvmwarecomv1.SvcGroup, err error) {
+func (obj *svcgroupServicegroupTsmV1) Update(ctx context.Context, objToUpdate *baseservicegrouptsmtanzuvmwarecomv1.SvcGroup, parentsMap map[string]string) (result *baseservicegrouptsmtanzuvmwarecomv1.SvcGroup, err error) {
 	if objToUpdate.Labels == nil {
 		objToUpdate.Labels = map[string]string{}
 	}
 	if objToUpdate.Labels["nexus/is_name_hashed"] != "true" {
 		objToUpdate.Labels["nexus/display_name"] = objToUpdate.GetName()
 		objToUpdate.Labels["nexus/is_name_hashed"] = "true"
-		hashedName := helper.GetHashedName("svcgroups.servicegroup.tsm.tanzu.vmware.com", labels, objToUpdate.GetName())
+		hashedName := helper.GetHashedName("svcgroups.servicegroup.tsm.tanzu.vmware.com", parentsMap, objToUpdate.GetName())
 		objToUpdate.Name = hashedName
 	}
 	return obj.UpdateByName(ctx, objToUpdate)
@@ -1152,10 +1152,10 @@ func (obj *svcgroupServicegroupTsmV1) UpdateByName(ctx context.Context, objToUpd
 }
 
 // Get hashes object's name and returns stored kubernetes object with all children and softlinks.
-// To resolve a hashed name names of all consecutive parents must be provided in labels param in form of:
+// To resolve a hashed name names of all consecutive parents must be provided in parentsMap param in form of:
 // {'object_crd_definition_name': 'object_name'}
-func (obj *accesscontrolpolicyPolicyTsmV1) Get(ctx context.Context, name string, labels map[string]string) (result *basepolicytsmtanzuvmwarecomv1.AccessControlPolicy, err error) {
-	hashedName := helper.GetHashedName("accesscontrolpolicies.policy.tsm.tanzu.vmware.com", labels, name)
+func (obj *accesscontrolpolicyPolicyTsmV1) Get(ctx context.Context, name string, parentsMap map[string]string) (result *basepolicytsmtanzuvmwarecomv1.AccessControlPolicy, err error) {
+	hashedName := helper.GetHashedName("accesscontrolpolicies.policy.tsm.tanzu.vmware.com", parentsMap, name)
 	return obj.GetByName(ctx, hashedName)
 }
 
@@ -1184,36 +1184,36 @@ func (obj *accesscontrolpolicyPolicyTsmV1) resolveLinks(ctx context.Context, raw
 }
 
 // Delete hashes object's name and deletes the object and all it's children
-// To resolve a hash names of all consecutive parents must be provided in labels param in form of:
+// To resolve a hash names of all consecutive parents must be provided in parentsMap param in form of:
 // {'object_crd_definition_name': 'object_name'}
-func (obj *accesscontrolpolicyPolicyTsmV1) Delete(ctx context.Context, name string, labels map[string]string) (err error) {
-	if labels == nil {
-		labels = map[string]string{}
+func (obj *accesscontrolpolicyPolicyTsmV1) Delete(ctx context.Context, name string, parentsMap map[string]string) (err error) {
+	if parentsMap == nil {
+		parentsMap = map[string]string{}
 	}
-	labels["nexus/is_name_hashed"] = "true"
-	hashedName := helper.GetHashedName("accesscontrolpolicies.policy.tsm.tanzu.vmware.com", labels, name)
-	return obj.DeleteByName(ctx, hashedName, labels)
+	parentsMap["nexus/is_name_hashed"] = "true"
+	hashedName := helper.GetHashedName("accesscontrolpolicies.policy.tsm.tanzu.vmware.com", parentsMap, name)
+	return obj.DeleteByName(ctx, hashedName, parentsMap)
 }
 
 // DeleteByName works as Delete but without hashing a name
-func (obj *accesscontrolpolicyPolicyTsmV1) DeleteByName(ctx context.Context, name string, labels map[string]string) (err error) {
+func (obj *accesscontrolpolicyPolicyTsmV1) DeleteByName(ctx context.Context, name string, parentsMap map[string]string) (err error) {
 
 	result, err := obj.client.baseClient.PolicyTsmV1().AccessControlPolicies().Get(ctx, name, metav1.GetOptions{})
 	if err != nil {
 		return err
 	}
-	if labels == nil {
-		labels = make(map[string]string, 1)
+	if parentsMap == nil {
+		parentsMap = make(map[string]string, 1)
 	}
 
 	if _, ok := result.GetLabels()["nexus/display_name"]; ok {
-		labels["accesscontrolpolicies.policy.tsm.tanzu.vmware.com"] = result.GetLabels()["nexus/display_name"]
+		parentsMap["accesscontrolpolicies.policy.tsm.tanzu.vmware.com"] = result.GetLabels()["nexus/display_name"]
 	} else {
-		labels["accesscontrolpolicies.policy.tsm.tanzu.vmware.com"] = name
+		parentsMap["accesscontrolpolicies.policy.tsm.tanzu.vmware.com"] = name
 	}
 
 	for _, v := range result.Spec.PolicyConfigsGvk {
-		err := obj.client.PolicyTsmV1().ACPConfigs().DeleteByName(ctx, v.Name, labels)
+		err := obj.client.PolicyTsmV1().ACPConfigs().DeleteByName(ctx, v.Name, parentsMap)
 		if err != nil {
 			return err
 		}
@@ -1236,12 +1236,12 @@ func (obj *accesscontrolpolicyPolicyTsmV1) DeleteByName(ctx context.Context, nam
 	if err != nil {
 		return err
 	}
-	parentName, ok := labels["gnses.gns.tsm.tanzu.vmware.com"]
+	parentName, ok := parentsMap["gnses.gns.tsm.tanzu.vmware.com"]
 	if !ok {
 		parentName = helper.DEFAULT_KEY
 	}
-	if labels["nexus/is_name_hashed"] == "true" {
-		parentName = helper.GetHashedName("gnses.gns.tsm.tanzu.vmware.com", labels, parentName)
+	if parentsMap["nexus/is_name_hashed"] == "true" {
+		parentName = helper.GetHashedName("gnses.gns.tsm.tanzu.vmware.com", parentsMap, parentName)
 	}
 	_, err = obj.client.baseClient.GnsTsmV1().Gnses().Patch(ctx, parentName, types.JSONPatchType, marshaled, metav1.PatchOptions{})
 	if err != nil {
@@ -1253,24 +1253,24 @@ func (obj *accesscontrolpolicyPolicyTsmV1) DeleteByName(ctx context.Context, nam
 
 // Create hashes object's name and creates an object in the apiserver. Only spec fields can be provided, links and
 // children can't be added using this function.
-// To hash object's name names of all consecutive parents must be provided in labels param in form of:
+// To hash object's name names of all consecutive parents must be provided in parentsMap param in form of:
 // {'object_crd_definition_name': 'object_name'}
-func (obj *accesscontrolpolicyPolicyTsmV1) Create(ctx context.Context, objToCreate *basepolicytsmtanzuvmwarecomv1.AccessControlPolicy, labels map[string]string) (result *basepolicytsmtanzuvmwarecomv1.AccessControlPolicy, err error) {
+func (obj *accesscontrolpolicyPolicyTsmV1) Create(ctx context.Context, objToCreate *basepolicytsmtanzuvmwarecomv1.AccessControlPolicy, parentsMap map[string]string) (result *basepolicytsmtanzuvmwarecomv1.AccessControlPolicy, err error) {
 	if objToCreate.Labels == nil {
 		objToCreate.Labels = map[string]string{}
 	}
 	if objToCreate.Labels["nexus/is_name_hashed"] != "true" {
 		objToCreate.Labels["nexus/display_name"] = objToCreate.GetName()
 		objToCreate.Labels["nexus/is_name_hashed"] = "true"
-		hashedName := helper.GetHashedName("accesscontrolpolicies.policy.tsm.tanzu.vmware.com", labels, objToCreate.GetName())
+		hashedName := helper.GetHashedName("accesscontrolpolicies.policy.tsm.tanzu.vmware.com", parentsMap, objToCreate.GetName())
 		objToCreate.Name = hashedName
 	}
-	return obj.CreateByName(ctx, objToCreate, labels)
+	return obj.CreateByName(ctx, objToCreate, parentsMap)
 }
 
 // CreateByName works as Create but without hashing the name
-func (obj *accesscontrolpolicyPolicyTsmV1) CreateByName(ctx context.Context, objToCreate *basepolicytsmtanzuvmwarecomv1.AccessControlPolicy, labels map[string]string) (result *basepolicytsmtanzuvmwarecomv1.AccessControlPolicy, err error) {
-	for k, v := range labels {
+func (obj *accesscontrolpolicyPolicyTsmV1) CreateByName(ctx context.Context, objToCreate *basepolicytsmtanzuvmwarecomv1.AccessControlPolicy, parentsMap map[string]string) (result *basepolicytsmtanzuvmwarecomv1.AccessControlPolicy, err error) {
+	for k, v := range parentsMap {
 		objToCreate.Labels[k] = v
 	}
 	if _, ok := objToCreate.Labels["nexus/display_name"]; !ok {
@@ -1285,12 +1285,12 @@ func (obj *accesscontrolpolicyPolicyTsmV1) CreateByName(ctx context.Context, obj
 		return nil, err
 	}
 
-	parentName, ok := labels["gnses.gns.tsm.tanzu.vmware.com"]
+	parentName, ok := parentsMap["gnses.gns.tsm.tanzu.vmware.com"]
 	if !ok {
 		parentName = helper.DEFAULT_KEY
 	}
 	if objToCreate.Labels["nexus/is_name_hashed"] == "true" {
-		parentName = helper.GetHashedName("gnses.gns.tsm.tanzu.vmware.com", labels, parentName)
+		parentName = helper.GetHashedName("gnses.gns.tsm.tanzu.vmware.com", parentsMap, parentName)
 	}
 
 	var patch Patch
@@ -1318,16 +1318,16 @@ func (obj *accesscontrolpolicyPolicyTsmV1) CreateByName(ctx context.Context, obj
 
 // Update hashes object's name and updates an object in the apiserver. Only spec fields and metadata can be updated,
 // links and children can't be added or updated using this function.
-// To hash the name names of all consecutive parents must be provided in labels param in form of:
+// To hash the name names of all consecutive parents must be provided in parentsMap param in form of:
 // {'object_crd_definition_name': 'object_name'}
-func (obj *accesscontrolpolicyPolicyTsmV1) Update(ctx context.Context, objToUpdate *basepolicytsmtanzuvmwarecomv1.AccessControlPolicy, labels map[string]string) (result *basepolicytsmtanzuvmwarecomv1.AccessControlPolicy, err error) {
+func (obj *accesscontrolpolicyPolicyTsmV1) Update(ctx context.Context, objToUpdate *basepolicytsmtanzuvmwarecomv1.AccessControlPolicy, parentsMap map[string]string) (result *basepolicytsmtanzuvmwarecomv1.AccessControlPolicy, err error) {
 	if objToUpdate.Labels == nil {
 		objToUpdate.Labels = map[string]string{}
 	}
 	if objToUpdate.Labels["nexus/is_name_hashed"] != "true" {
 		objToUpdate.Labels["nexus/display_name"] = objToUpdate.GetName()
 		objToUpdate.Labels["nexus/is_name_hashed"] = "true"
-		hashedName := helper.GetHashedName("accesscontrolpolicies.policy.tsm.tanzu.vmware.com", labels, objToUpdate.GetName())
+		hashedName := helper.GetHashedName("accesscontrolpolicies.policy.tsm.tanzu.vmware.com", parentsMap, objToUpdate.GetName())
 		objToUpdate.Name = hashedName
 	}
 	return obj.UpdateByName(ctx, objToUpdate)
@@ -1356,10 +1356,10 @@ func (obj *accesscontrolpolicyPolicyTsmV1) UpdateByName(ctx context.Context, obj
 }
 
 // Get hashes object's name and returns stored kubernetes object with all children and softlinks.
-// To resolve a hashed name names of all consecutive parents must be provided in labels param in form of:
+// To resolve a hashed name names of all consecutive parents must be provided in parentsMap param in form of:
 // {'object_crd_definition_name': 'object_name'}
-func (obj *acpconfigPolicyTsmV1) Get(ctx context.Context, name string, labels map[string]string) (result *basepolicytsmtanzuvmwarecomv1.ACPConfig, err error) {
-	hashedName := helper.GetHashedName("acpconfigs.policy.tsm.tanzu.vmware.com", labels, name)
+func (obj *acpconfigPolicyTsmV1) Get(ctx context.Context, name string, parentsMap map[string]string) (result *basepolicytsmtanzuvmwarecomv1.ACPConfig, err error) {
+	hashedName := helper.GetHashedName("acpconfigs.policy.tsm.tanzu.vmware.com", parentsMap, name)
 	return obj.GetByName(ctx, hashedName)
 }
 
@@ -1397,19 +1397,19 @@ func (obj *acpconfigPolicyTsmV1) resolveLinks(ctx context.Context, raw *basepoli
 }
 
 // Delete hashes object's name and deletes the object and all it's children
-// To resolve a hash names of all consecutive parents must be provided in labels param in form of:
+// To resolve a hash names of all consecutive parents must be provided in parentsMap param in form of:
 // {'object_crd_definition_name': 'object_name'}
-func (obj *acpconfigPolicyTsmV1) Delete(ctx context.Context, name string, labels map[string]string) (err error) {
-	if labels == nil {
-		labels = map[string]string{}
+func (obj *acpconfigPolicyTsmV1) Delete(ctx context.Context, name string, parentsMap map[string]string) (err error) {
+	if parentsMap == nil {
+		parentsMap = map[string]string{}
 	}
-	labels["nexus/is_name_hashed"] = "true"
-	hashedName := helper.GetHashedName("acpconfigs.policy.tsm.tanzu.vmware.com", labels, name)
-	return obj.DeleteByName(ctx, hashedName, labels)
+	parentsMap["nexus/is_name_hashed"] = "true"
+	hashedName := helper.GetHashedName("acpconfigs.policy.tsm.tanzu.vmware.com", parentsMap, name)
+	return obj.DeleteByName(ctx, hashedName, parentsMap)
 }
 
 // DeleteByName works as Delete but without hashing a name
-func (obj *acpconfigPolicyTsmV1) DeleteByName(ctx context.Context, name string, labels map[string]string) (err error) {
+func (obj *acpconfigPolicyTsmV1) DeleteByName(ctx context.Context, name string, parentsMap map[string]string) (err error) {
 
 	err = obj.client.baseClient.PolicyTsmV1().ACPConfigs().Delete(ctx, name, metav1.DeleteOptions{})
 	if err != nil {
@@ -1428,12 +1428,12 @@ func (obj *acpconfigPolicyTsmV1) DeleteByName(ctx context.Context, name string, 
 	if err != nil {
 		return err
 	}
-	parentName, ok := labels["accesscontrolpolicies.policy.tsm.tanzu.vmware.com"]
+	parentName, ok := parentsMap["accesscontrolpolicies.policy.tsm.tanzu.vmware.com"]
 	if !ok {
 		parentName = helper.DEFAULT_KEY
 	}
-	if labels["nexus/is_name_hashed"] == "true" {
-		parentName = helper.GetHashedName("accesscontrolpolicies.policy.tsm.tanzu.vmware.com", labels, parentName)
+	if parentsMap["nexus/is_name_hashed"] == "true" {
+		parentName = helper.GetHashedName("accesscontrolpolicies.policy.tsm.tanzu.vmware.com", parentsMap, parentName)
 	}
 	_, err = obj.client.baseClient.PolicyTsmV1().AccessControlPolicies().Patch(ctx, parentName, types.JSONPatchType, marshaled, metav1.PatchOptions{})
 	if err != nil {
@@ -1445,24 +1445,24 @@ func (obj *acpconfigPolicyTsmV1) DeleteByName(ctx context.Context, name string, 
 
 // Create hashes object's name and creates an object in the apiserver. Only spec fields can be provided, links and
 // children can't be added using this function.
-// To hash object's name names of all consecutive parents must be provided in labels param in form of:
+// To hash object's name names of all consecutive parents must be provided in parentsMap param in form of:
 // {'object_crd_definition_name': 'object_name'}
-func (obj *acpconfigPolicyTsmV1) Create(ctx context.Context, objToCreate *basepolicytsmtanzuvmwarecomv1.ACPConfig, labels map[string]string) (result *basepolicytsmtanzuvmwarecomv1.ACPConfig, err error) {
+func (obj *acpconfigPolicyTsmV1) Create(ctx context.Context, objToCreate *basepolicytsmtanzuvmwarecomv1.ACPConfig, parentsMap map[string]string) (result *basepolicytsmtanzuvmwarecomv1.ACPConfig, err error) {
 	if objToCreate.Labels == nil {
 		objToCreate.Labels = map[string]string{}
 	}
 	if objToCreate.Labels["nexus/is_name_hashed"] != "true" {
 		objToCreate.Labels["nexus/display_name"] = objToCreate.GetName()
 		objToCreate.Labels["nexus/is_name_hashed"] = "true"
-		hashedName := helper.GetHashedName("acpconfigs.policy.tsm.tanzu.vmware.com", labels, objToCreate.GetName())
+		hashedName := helper.GetHashedName("acpconfigs.policy.tsm.tanzu.vmware.com", parentsMap, objToCreate.GetName())
 		objToCreate.Name = hashedName
 	}
-	return obj.CreateByName(ctx, objToCreate, labels)
+	return obj.CreateByName(ctx, objToCreate, parentsMap)
 }
 
 // CreateByName works as Create but without hashing the name
-func (obj *acpconfigPolicyTsmV1) CreateByName(ctx context.Context, objToCreate *basepolicytsmtanzuvmwarecomv1.ACPConfig, labels map[string]string) (result *basepolicytsmtanzuvmwarecomv1.ACPConfig, err error) {
-	for k, v := range labels {
+func (obj *acpconfigPolicyTsmV1) CreateByName(ctx context.Context, objToCreate *basepolicytsmtanzuvmwarecomv1.ACPConfig, parentsMap map[string]string) (result *basepolicytsmtanzuvmwarecomv1.ACPConfig, err error) {
+	for k, v := range parentsMap {
 		objToCreate.Labels[k] = v
 	}
 	if _, ok := objToCreate.Labels["nexus/display_name"]; !ok {
@@ -1474,12 +1474,12 @@ func (obj *acpconfigPolicyTsmV1) CreateByName(ctx context.Context, objToCreate *
 		return nil, err
 	}
 
-	parentName, ok := labels["accesscontrolpolicies.policy.tsm.tanzu.vmware.com"]
+	parentName, ok := parentsMap["accesscontrolpolicies.policy.tsm.tanzu.vmware.com"]
 	if !ok {
 		parentName = helper.DEFAULT_KEY
 	}
 	if objToCreate.Labels["nexus/is_name_hashed"] == "true" {
-		parentName = helper.GetHashedName("accesscontrolpolicies.policy.tsm.tanzu.vmware.com", labels, parentName)
+		parentName = helper.GetHashedName("accesscontrolpolicies.policy.tsm.tanzu.vmware.com", parentsMap, parentName)
 	}
 
 	payload := "{\"spec\": {\"policyConfigsGvk\": {\"" + objToCreate.Name + "\": {\"name\": \"" + objToCreate.Name + "\",\"kind\": \"ACPConfig\", \"group\": \"policy.tsm.tanzu.vmware.com\"}}}}"
@@ -1493,16 +1493,16 @@ func (obj *acpconfigPolicyTsmV1) CreateByName(ctx context.Context, objToCreate *
 
 // Update hashes object's name and updates an object in the apiserver. Only spec fields and metadata can be updated,
 // links and children can't be added or updated using this function.
-// To hash the name names of all consecutive parents must be provided in labels param in form of:
+// To hash the name names of all consecutive parents must be provided in parentsMap param in form of:
 // {'object_crd_definition_name': 'object_name'}
-func (obj *acpconfigPolicyTsmV1) Update(ctx context.Context, objToUpdate *basepolicytsmtanzuvmwarecomv1.ACPConfig, labels map[string]string) (result *basepolicytsmtanzuvmwarecomv1.ACPConfig, err error) {
+func (obj *acpconfigPolicyTsmV1) Update(ctx context.Context, objToUpdate *basepolicytsmtanzuvmwarecomv1.ACPConfig, parentsMap map[string]string) (result *basepolicytsmtanzuvmwarecomv1.ACPConfig, err error) {
 	if objToUpdate.Labels == nil {
 		objToUpdate.Labels = map[string]string{}
 	}
 	if objToUpdate.Labels["nexus/is_name_hashed"] != "true" {
 		objToUpdate.Labels["nexus/display_name"] = objToUpdate.GetName()
 		objToUpdate.Labels["nexus/is_name_hashed"] = "true"
-		hashedName := helper.GetHashedName("acpconfigs.policy.tsm.tanzu.vmware.com", labels, objToUpdate.GetName())
+		hashedName := helper.GetHashedName("acpconfigs.policy.tsm.tanzu.vmware.com", parentsMap, objToUpdate.GetName())
 		objToUpdate.Name = hashedName
 	}
 	return obj.UpdateByName(ctx, objToUpdate)
