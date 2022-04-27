@@ -1,3 +1,5 @@
+SHELL := /bin/bash
+
 DEBUG ?= FALSE
 
 GO_PROJECT_NAME ?= compiler.git
@@ -62,10 +64,11 @@ build_in_container: ${BUILDER_NAME}\:${BUILDER_TAG}.image.exists
 
 .PHONY: tools
 tools:
-	go get golang.org/x/tools/cmd/goimports
-	go get github.com/golangci/golangci-lint/cmd/golangci-lint
-	go get github.com/onsi/ginkgo/ginkgo
-	go get github.com/onsi/gomega/...
+	go install github.com/onsi/ginkgo/ginkgo@v1.16.0
+	go install github.com/onsi/gomega/...@v1.17.0
+	go install golang.org/x/tools/cmd/goimports@latest
+	go install github.com/mikefarah/yq/v4@latest
+	go install k8s.io/kube-openapi/cmd/openapi-gen@1a6458611d189dc17e98a0824dc92536365efedf
 
 .PHONY: unit-test
 unit-test:
@@ -119,6 +122,10 @@ test_generate_code_in_container: ${BUILDER_NAME}\:${BUILDER_TAG}.image.exists in
 		git diff;\
 		return 1;\
 	fi
+
+.PHONY: generate_example
+generate_example:
+	$(MAKE) generate_code DATAMODEL_PATH=example/datamodel CONFIG_FILE=example/nexus-sdk.yaml CRD_MODULE_PATH="gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/crd_generated/" GENERATED_OUTPUT_DIRECTORY=example/output/crd_generated
 
 .PHONY: show-image-name
 show-image-name:
