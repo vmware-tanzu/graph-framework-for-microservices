@@ -428,10 +428,12 @@ func (obj *{{.GroupResourceType}}) Create(ctx context.Context, objToCreate *{{.G
 	if objToCreate.Labels == nil {
 		objToCreate.Labels = map[string]string{}
 	}
-	objToCreate.Labels["nexus/display_name"] = objToCreate.GetName()
-	objToCreate.Labels["nexus/is_name_hashed"] = "true"
-	hashedName := helper.GetHashedName("{{.CrdName}}", labels, objToCreate.GetName())
-	objToCreate.Name = hashedName
+	if objToCreate.Labels["nexus/is_name_hashed"] != "true" {
+		objToCreate.Labels["nexus/display_name"] = objToCreate.GetName()
+		objToCreate.Labels["nexus/is_name_hashed"] = "true"
+		hashedName := helper.GetHashedName("{{.CrdName}}", labels, objToCreate.GetName())
+		objToCreate.Name = hashedName
+	}
 	return obj.CreateByName(ctx, objToCreate, labels)
 }
 
@@ -459,8 +461,15 @@ func (obj *{{.GroupResourceType}}) CreateByName(ctx context.Context, objToCreate
 }
 
 func (obj *{{.GroupResourceType}}) Update(ctx context.Context, objToUpdate *{{.GroupBaseImport}}, labels map[string]string) (result *{{.GroupBaseImport}}, err error) {
-	hashedName := helper.GetHashedName("{{.CrdName}}", labels, objToUpdate.GetName())
-	objToUpdate.Name = hashedName
+	if objToUpdate.Labels == nil {
+		objToUpdate.Labels = map[string]string{}
+	}
+	if objToUpdate.Labels["nexus/is_name_hashed"] != "true" {
+		objToUpdate.Labels["nexus/display_name"] = objToUpdate.GetName()
+		objToUpdate.Labels["nexus/is_name_hashed"] = "true"
+		hashedName := helper.GetHashedName("{{.CrdName}}", labels, objToUpdate.GetName())
+		objToUpdate.Name = hashedName
+	}
 	return obj.UpdateByName(ctx, objToUpdate)
 }
 
