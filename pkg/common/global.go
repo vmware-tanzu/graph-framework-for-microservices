@@ -32,13 +32,13 @@ var GIT_COMMIT string
 const NEXUS_DIR = "nexus"
 
 const (
-	HELLOWORLD_URL         = "https://storage.googleapis.com/nexus-template-downloads/helloworld-example.tar"
-	DATAMODEL_TEMPLATE_URL = "https://storage.googleapis.com/nexus-template-downloads/datamodel-templatedir.tar"
-	NEXUS_TEMPLATE_URL     = "https://storage.googleapis.com/nexus-template-downloads/nexus-template.tar"
-	RUNTIME_MANIFESTS_URL  = "https://storage.googleapis.com/nexus-template-downloads/runtime-manifests.tar"
+	HELLOWORLD_URL         = "https://storage.googleapis.com/nexus-template-downloads/%s/helloworld-example.tar"
+	DATAMODEL_TEMPLATE_URL = "https://storage.googleapis.com/nexus-template-downloads/%s/datamodel-templatedir.tar"
+	NEXUS_TEMPLATE_URL     = "https://storage.googleapis.com/nexus-template-downloads/%s/nexus-template.tar"
+	RUNTIME_MANIFESTS_URL  = "https://storage.googleapis.com/nexus-template-downloads/%s/runtime-manifests.tar"
 )
 
-const TEMPLATE_URL = "https://storage.googleapis.com/nexus-template-downloads/app-template.tar"
+const TEMPLATE_URL = "https://storage.googleapis.com/nexus-template-downloads/%s/app-template.tar"
 const Filename = "app-template.tar"
 
 type NexusConfig struct {
@@ -53,9 +53,9 @@ var TemplateFs embed.FS
 var WaitTimeout = 2 * time.Minute
 
 var PodLabels [3]string = [3]string{
-	"-lapp=etcd",
-	"-lapp=kube-apiserver",
-	"-lname=kube-controllermanager",
+	"-lapp=nexus-etcd",
+	"-lapp=nexus-kube-apiserver",
+	"-lname=nexus-kube-controllermanager",
 }
 
 var EnvList = []string{

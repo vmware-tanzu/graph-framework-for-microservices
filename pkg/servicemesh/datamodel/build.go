@@ -82,11 +82,8 @@ func Build(cmd *cobra.Command, args []string) error {
 			return utils.GetCustomError(utils.DATAMODEL_DIRECTORY_NOT_FOUND, err).Print().ExitIfFatalOrReturn()
 		}
 	} else {
-		DatamodelName, err = utils.GetCurrentDatamodel()
-		if err != nil {
-			return err
-		}
-		fmt.Printf("Running build for datamodel %s\n", DatamodelName)
+		return utils.GetCustomError(utils.DATAMODEL_DIRECTORY_MISMATCH,
+			fmt.Errorf("Please provide datamodel name using --name option when running from app directory")).Print().ExitIfFatalOrReturn()
 	}
 
 	err = os.Chdir(DatamodelName)

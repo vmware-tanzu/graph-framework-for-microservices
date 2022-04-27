@@ -18,9 +18,10 @@ func Uninstall(cmd *cobra.Command, args []string) error {
 	}
 	for _, file := range files {
 		if file.IsDir() {
-			utils.SystemCommand(cmd, utils.RUNTIME_INSTALL_FAILED, []string{}, "kubectl", "delete", "-f", filepath.Join(ManifestsDir, "runtime-manifests", file.Name()), "-n", Namespace, "--ignore-not-found=true")
+			utils.SystemCommand(cmd, utils.RUNTIME_UNINSTALL_FAILED, []string{}, "kubectl", "delete", "-f", filepath.Join(ManifestsDir, "runtime-manifests", file.Name()), "-n", Namespace, "--ignore-not-found=true")
 		}
 	}
+	utils.SystemCommand(cmd, utils.RUNTIME_UNINSTALL_FAILED, []string{}, "kubectl", "delete", "pvc", "-n", Namespace, "-lapp=nexus-etcd")
 	fmt.Printf("\u2713 Runtime %s uninstallation successful\n", Namespace)
 	os.Remove(Filename)
 	os.RemoveAll(ManifestsDir)

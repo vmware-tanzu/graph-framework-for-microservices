@@ -12,9 +12,10 @@ import (
 )
 
 type NexusValues struct {
-	NexusCli          versionFields `yaml:"nexusCli"`
-	NexusCompiler     versionFields `yaml:"nexusCompiler"`
-	NexusAppTemplates versionFields `yaml:"nexusAppTemplates"`
+	NexusCli                versionFields `yaml:"nexusCli"`
+	NexusCompiler           versionFields `yaml:"nexusCompiler"`
+	NexusAppTemplates       versionFields `yaml:"nexusAppTemplates"`
+	NexusDatamodelTemplates versionFields `yaml:"nexusDatamodelTemplates"`
 }
 
 type versionFields struct {
@@ -31,6 +32,7 @@ func Version(cmd *cobra.Command, args []string) error {
 	fmt.Printf("NexusCli: %s\n", values.NexusCli.Version)
 	fmt.Printf("NexusCompiler: %s\n", values.NexusCompiler.Version)
 	fmt.Printf("NexusAppTemplates: %s\n", values.NexusAppTemplates.Version)
+	fmt.Printf("NexusDatamodelTemplates: %s\n", values.NexusDatamodelTemplates.Version)
 	return nil
 }
 

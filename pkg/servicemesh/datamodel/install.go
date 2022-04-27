@@ -30,17 +30,12 @@ func Install(cmd *cobra.Command, args []string) error {
 	if DatamodelName != "" {
 		envList = append(envList, fmt.Sprintf("DATAMODEL=%s", DatamodelName))
 		if exists, err := utils.CheckDatamodelDirExists(DatamodelName); !exists {
-			return err
+			return utils.GetCustomError(utils.DATAMODEL_INSTALL_FAILED, err).Print().ExitIfFatalOrReturn()
 		}
 	} else {
-		DatamodelName, err := utils.GetCurrentDatamodel()
-		if err != nil {
-			return err
-		}
-		fmt.Printf("Installing datamodel %s\n", DatamodelName)
-		envList = append(envList, fmt.Sprintf("DATAMODEL=%s", DatamodelName))
+		return utils.GetCustomError(utils.DATAMODEL_DIRECTORY_MISMATCH,
+			fmt.Errorf("Please provide datamodel name using --name option when running from app directory")).Print().ExitIfFatalOrReturn()
 	}
-
 	envList = append(envList, fmt.Sprintf("NAMESPACE=%s", Namespace))
 
 	err := utils.SystemCommand(cmd, utils.DATAMODEL_INSTALL_FAILED, envList, "make", "datamodel_install")

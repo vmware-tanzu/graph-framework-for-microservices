@@ -20,7 +20,6 @@ const goMinVersion = "1.17"
 
 const (
 	k8sMinVersion = "1.16"
-	k8sMaxVersion = "1.21"
 )
 
 var All bool
@@ -104,7 +103,7 @@ var preReqs = map[Prerequiste]PrerequisteMeta{
 	KUBERNETES_VERSION: {
 		what:                  "kubernetes version",
 		Always:                false,
-		AdditionalDescription: "Kubernetes version should be above 1.16 and below 1.20",
+		AdditionalDescription: fmt.Sprintf("Kubernetes version should be atleast %s", k8sMinVersion),
 		verify: func() (bool, error) {
 			versionStringBytes, _ := exec.Command("kubectl", "version", "--short=true").Output()
 			cmd := exec.Command("tail", "-n", "1")
@@ -125,16 +124,12 @@ var preReqs = map[Prerequiste]PrerequisteMeta{
 			if errMinVersion != nil {
 				return false, fmt.Errorf("verify version of kubernetes cluster is running failed with error on minVersion formation %v", errMinVersion)
 			}
-			v1max, errMaxVersion := version.NewVersion(k8sMaxVersion)
-			if errMaxVersion != nil {
-				return false, fmt.Errorf("verify version of kubernetes cluster is running failed with error maxVersion formation %v", errMaxVersion)
-			}
 			v1, errVersion := version.NewVersion(strings.TrimPrefix(serverVersion[1], "v"))
 			if errVersion != nil {
 				return false, fmt.Errorf("verify version of kubernetes cluster is running failed with error current version formation %v", errVersion)
 			}
-			if v1.LessThan(v1min) || v1.GreaterThanOrEqual(v1max) {
-				return false, fmt.Errorf("K8s Version should be between 1.16 and 1.20, current Version is %s", v1)
+			if v1.LessThan(v1min) {
+				return false, fmt.Errorf("K8s Version should be atleast %s, current Version is %s", k8sMinVersion, v1)
 			}
 			return true, nil
 		},
