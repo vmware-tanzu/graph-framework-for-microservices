@@ -101,7 +101,7 @@ func Install(cmd *cobra.Command, args []string) error {
 			utils.SystemCommand(cmd, utils.RUNTIME_INSTALL_FAILED, []string{}, "kubectl", "apply", "-f", filepath.Join(ManifestsDir, "runtime-manifests", file.Name()), "-n", Namespace)
 		}
 	}
-	fmt.Println("Waiting for runtime microserivces to run ...")
+	fmt.Println("Waiting for the Nexus runtime to come up...")
 	for _, label := range common.PodLabels {
 		utils.CheckPodRunning(cmd, utils.RUNTIME_INSTALL_FAILED, label, Namespace)
 	}

@@ -7,14 +7,29 @@ import (
 )
 
 var disableUpgradePrompt bool
+var debugAlways bool
 
 const flagDisableUpgradePrompt = "disable-upgrade-prompt"
+const flagDebugAlways = "debug-always"
+
+func noFlagsSet(cmd *cobra.Command) bool {
+	return !cmd.Flags().Lookup(flagDisableUpgradePrompt).Changed && !cmd.Flags().Lookup(flagDebugAlways).Changed
+}
 
 func Set(cmd *cobra.Command, args []string) error {
+	if noFlagsSet(cmd) {
+		return utils.GetCustomError(utils.CONFIG_SET_FAILED,
+			fmt.Errorf("`nexus config set` expects at least one flag to be set")).
+			Print().ExitIfFatalOrReturn()
+	}
 	config := LoadNexusConfig()
 
 	if cmd.Flags().Lookup(flagDisableUpgradePrompt).Changed {
 		config.UpgradePromptDisable = disableUpgradePrompt
+	}
+
+	if cmd.Flags().Lookup(flagDebugAlways).Changed {
+		config.DebugAlways = debugAlways
 	}
 
 	err := writeNexusConfig(config)
@@ -39,4 +54,6 @@ func init() {
 	// each property gets a flag
 	SetCmd.Flags().BoolVarP(&disableUpgradePrompt, flagDisableUpgradePrompt,
 		"", false, "Enable/disable functionality in nexus CLI to check if a newer version is available")
+	SetCmd.Flags().BoolVarP(&debugAlways, flagDebugAlways,
+		"", false, "Print debug output even without specifying the --debug flag")
 }

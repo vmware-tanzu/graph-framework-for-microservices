@@ -213,6 +213,7 @@ var wellKnownErrors = map[ClientErrorCode]ClientError{
 		Description: "config set failed",
 		WhatNext: []string{
 			"run with --debug option to get verbose logs",
+			"ensure you have at least one property being set",
 			"check if the property being set is supported by doing a `nexus config set --help`",
 		},
 		fatal: true,
