@@ -13,6 +13,10 @@ import (
 func RootPreRun(cmd *cobra.Command, args []string) error {
 	nexusConfig := config.LoadNexusConfig()
 
+	if nexusConfig.DebugAlways {
+		cmd.Flags().Lookup("debug").Changed = true
+	}
+
 	if isNewerVersionAvailable, latestVersion := version.IsNexusCliUpdateAvailable(utils.IsDebug(cmd)); isNewerVersionAvailable {
 		fmt.Printf("A new version of Nexus CLI (%s) is available\n", latestVersion)
 		if !nexusConfig.UpgradePromptDisable {
