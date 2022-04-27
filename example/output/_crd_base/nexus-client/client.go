@@ -195,11 +195,15 @@ func (obj *PolicyTsmV1) ACPConfigs() *acpconfigPolicyTsmV1 {
 	return obj.acpconfigs
 }
 
+// Get hashes object's name and returns stored kubernetes object with all children and softlinks.
+// To resolve a hashed name names of all consecutive parents must be provided in labels param in form of:
+// {'object_crd_definition_name': 'object_name'}
 func (obj *rootRootTsmV1) Get(ctx context.Context, name string, labels map[string]string) (result *baseroottsmtanzuvmwarecomv1.Root, err error) {
 	hashedName := helper.GetHashedName("roots.root.tsm.tanzu.vmware.com", labels, name)
 	return obj.GetByName(ctx, hashedName)
 }
 
+// GetByName works as Get but without hashing a name
 func (obj *rootRootTsmV1) GetByName(ctx context.Context, name string) (result *baseroottsmtanzuvmwarecomv1.Root, err error) {
 	result, err = obj.client.baseClient.RootTsmV1().Roots().Get(ctx, name, metav1.GetOptions{})
 	if err != nil {
@@ -222,6 +226,9 @@ func (obj *rootRootTsmV1) resolveLinks(ctx context.Context, raw *baseroottsmtanz
 	return
 }
 
+// Delete hashes object's name and deletes the object and all it's children
+// To resolve a hash names of all consecutive parents must be provided in labels param in form of:
+// {'object_crd_definition_name': 'object_name'}
 func (obj *rootRootTsmV1) Delete(ctx context.Context, name string, labels map[string]string) (err error) {
 	if labels == nil {
 		labels = map[string]string{}
@@ -231,6 +238,7 @@ func (obj *rootRootTsmV1) Delete(ctx context.Context, name string, labels map[st
 	return obj.DeleteByName(ctx, hashedName, labels)
 }
 
+// DeleteByName works as Delete but without hashing a name
 func (obj *rootRootTsmV1) DeleteByName(ctx context.Context, name string, labels map[string]string) (err error) {
 
 	result, err := obj.client.baseClient.RootTsmV1().Roots().Get(ctx, name, metav1.GetOptions{})
@@ -262,6 +270,10 @@ func (obj *rootRootTsmV1) DeleteByName(ctx context.Context, name string, labels 
 	return
 }
 
+// Create hashes object's name and creates an object in the apiserver. Only spec fields can be provided, links and
+// children can't be added using this function.
+// To hash object's name names of all consecutive parents must be provided in labels param in form of:
+// {'object_crd_definition_name': 'object_name'}
 func (obj *rootRootTsmV1) Create(ctx context.Context, objToCreate *baseroottsmtanzuvmwarecomv1.Root, labels map[string]string) (result *baseroottsmtanzuvmwarecomv1.Root, err error) {
 	if objToCreate.Labels == nil {
 		objToCreate.Labels = map[string]string{}
@@ -275,6 +287,7 @@ func (obj *rootRootTsmV1) Create(ctx context.Context, objToCreate *baseroottsmta
 	return obj.CreateByName(ctx, objToCreate, labels)
 }
 
+// CreateByName works as Create but without hashing the name
 func (obj *rootRootTsmV1) CreateByName(ctx context.Context, objToCreate *baseroottsmtanzuvmwarecomv1.Root, labels map[string]string) (result *baseroottsmtanzuvmwarecomv1.Root, err error) {
 	for k, v := range labels {
 		objToCreate.Labels[k] = v
@@ -282,8 +295,6 @@ func (obj *rootRootTsmV1) CreateByName(ctx context.Context, objToCreate *baseroo
 	if _, ok := objToCreate.Labels["nexus/display_name"]; !ok {
 		objToCreate.Labels["nexus/display_name"] = objToCreate.GetName()
 	}
-
-	// recursive creation of objects is not supported
 
 	objToCreate.Spec.Config = nil
 	objToCreate.Spec.ConfigGvk = nil
@@ -296,6 +307,10 @@ func (obj *rootRootTsmV1) CreateByName(ctx context.Context, objToCreate *baseroo
 	return
 }
 
+// Update hashes object's name and updates an object in the apiserver. Only spec fields and metadata can be updated,
+// links and children can't be added or updated using this function.
+// To hash the name names of all consecutive parents must be provided in labels param in form of:
+// {'object_crd_definition_name': 'object_name'}
 func (obj *rootRootTsmV1) Update(ctx context.Context, objToUpdate *baseroottsmtanzuvmwarecomv1.Root, labels map[string]string) (result *baseroottsmtanzuvmwarecomv1.Root, err error) {
 	if objToUpdate.Labels == nil {
 		objToUpdate.Labels = map[string]string{}
@@ -309,6 +324,7 @@ func (obj *rootRootTsmV1) Update(ctx context.Context, objToUpdate *baseroottsmta
 	return obj.UpdateByName(ctx, objToUpdate)
 }
 
+// UpdateByName works as Update but without hashing the name
 func (obj *rootRootTsmV1) UpdateByName(ctx context.Context, objToUpdate *baseroottsmtanzuvmwarecomv1.Root) (result *baseroottsmtanzuvmwarecomv1.Root, err error) {
 	var patch Patch
 	patchOpMeta := PatchOp{
@@ -330,11 +346,15 @@ func (obj *rootRootTsmV1) UpdateByName(ctx context.Context, objToUpdate *baseroo
 	return obj.resolveLinks(ctx, result)
 }
 
+// Get hashes object's name and returns stored kubernetes object with all children and softlinks.
+// To resolve a hashed name names of all consecutive parents must be provided in labels param in form of:
+// {'object_crd_definition_name': 'object_name'}
 func (obj *configConfigTsmV1) Get(ctx context.Context, name string, labels map[string]string) (result *baseconfigtsmtanzuvmwarecomv1.Config, err error) {
 	hashedName := helper.GetHashedName("configs.config.tsm.tanzu.vmware.com", labels, name)
 	return obj.GetByName(ctx, hashedName)
 }
 
+// GetByName works as Get but without hashing a name
 func (obj *configConfigTsmV1) GetByName(ctx context.Context, name string) (result *baseconfigtsmtanzuvmwarecomv1.Config, err error) {
 	result, err = obj.client.baseClient.ConfigTsmV1().Configs().Get(ctx, name, metav1.GetOptions{})
 	if err != nil {
@@ -357,6 +377,9 @@ func (obj *configConfigTsmV1) resolveLinks(ctx context.Context, raw *baseconfigt
 	return
 }
 
+// Delete hashes object's name and deletes the object and all it's children
+// To resolve a hash names of all consecutive parents must be provided in labels param in form of:
+// {'object_crd_definition_name': 'object_name'}
 func (obj *configConfigTsmV1) Delete(ctx context.Context, name string, labels map[string]string) (err error) {
 	if labels == nil {
 		labels = map[string]string{}
@@ -366,6 +389,7 @@ func (obj *configConfigTsmV1) Delete(ctx context.Context, name string, labels ma
 	return obj.DeleteByName(ctx, hashedName, labels)
 }
 
+// DeleteByName works as Delete but without hashing a name
 func (obj *configConfigTsmV1) DeleteByName(ctx context.Context, name string, labels map[string]string) (err error) {
 
 	result, err := obj.client.baseClient.ConfigTsmV1().Configs().Get(ctx, name, metav1.GetOptions{})
@@ -421,6 +445,10 @@ func (obj *configConfigTsmV1) DeleteByName(ctx context.Context, name string, lab
 	return
 }
 
+// Create hashes object's name and creates an object in the apiserver. Only spec fields can be provided, links and
+// children can't be added using this function.
+// To hash object's name names of all consecutive parents must be provided in labels param in form of:
+// {'object_crd_definition_name': 'object_name'}
 func (obj *configConfigTsmV1) Create(ctx context.Context, objToCreate *baseconfigtsmtanzuvmwarecomv1.Config, labels map[string]string) (result *baseconfigtsmtanzuvmwarecomv1.Config, err error) {
 	if objToCreate.Labels == nil {
 		objToCreate.Labels = map[string]string{}
@@ -434,6 +462,7 @@ func (obj *configConfigTsmV1) Create(ctx context.Context, objToCreate *baseconfi
 	return obj.CreateByName(ctx, objToCreate, labels)
 }
 
+// CreateByName works as Create but without hashing the name
 func (obj *configConfigTsmV1) CreateByName(ctx context.Context, objToCreate *baseconfigtsmtanzuvmwarecomv1.Config, labels map[string]string) (result *baseconfigtsmtanzuvmwarecomv1.Config, err error) {
 	for k, v := range labels {
 		objToCreate.Labels[k] = v
@@ -441,8 +470,6 @@ func (obj *configConfigTsmV1) CreateByName(ctx context.Context, objToCreate *bas
 	if _, ok := objToCreate.Labels["nexus/display_name"]; !ok {
 		objToCreate.Labels["nexus/display_name"] = objToCreate.GetName()
 	}
-
-	// recursive creation of objects is not supported
 
 	objToCreate.Spec.GNS = nil
 	objToCreate.Spec.GNSGvk = nil
@@ -483,6 +510,10 @@ func (obj *configConfigTsmV1) CreateByName(ctx context.Context, objToCreate *bas
 	return
 }
 
+// Update hashes object's name and updates an object in the apiserver. Only spec fields and metadata can be updated,
+// links and children can't be added or updated using this function.
+// To hash the name names of all consecutive parents must be provided in labels param in form of:
+// {'object_crd_definition_name': 'object_name'}
 func (obj *configConfigTsmV1) Update(ctx context.Context, objToUpdate *baseconfigtsmtanzuvmwarecomv1.Config, labels map[string]string) (result *baseconfigtsmtanzuvmwarecomv1.Config, err error) {
 	if objToUpdate.Labels == nil {
 		objToUpdate.Labels = map[string]string{}
@@ -496,6 +527,7 @@ func (obj *configConfigTsmV1) Update(ctx context.Context, objToUpdate *baseconfi
 	return obj.UpdateByName(ctx, objToUpdate)
 }
 
+// UpdateByName works as Update but without hashing the name
 func (obj *configConfigTsmV1) UpdateByName(ctx context.Context, objToUpdate *baseconfigtsmtanzuvmwarecomv1.Config) (result *baseconfigtsmtanzuvmwarecomv1.Config, err error) {
 	var patch Patch
 	patchOpMeta := PatchOp{
@@ -517,11 +549,15 @@ func (obj *configConfigTsmV1) UpdateByName(ctx context.Context, objToUpdate *bas
 	return obj.resolveLinks(ctx, result)
 }
 
+// Get hashes object's name and returns stored kubernetes object with all children and softlinks.
+// To resolve a hashed name names of all consecutive parents must be provided in labels param in form of:
+// {'object_crd_definition_name': 'object_name'}
 func (obj *gnsGnsTsmV1) Get(ctx context.Context, name string, labels map[string]string) (result *basegnstsmtanzuvmwarecomv1.Gns, err error) {
 	hashedName := helper.GetHashedName("gnses.gns.tsm.tanzu.vmware.com", labels, name)
 	return obj.GetByName(ctx, hashedName)
 }
 
+// GetByName works as Get but without hashing a name
 func (obj *gnsGnsTsmV1) GetByName(ctx context.Context, name string) (result *basegnstsmtanzuvmwarecomv1.Gns, err error) {
 	result, err = obj.client.baseClient.GnsTsmV1().Gnses().Get(ctx, name, metav1.GetOptions{})
 	if err != nil {
@@ -561,6 +597,9 @@ func (obj *gnsGnsTsmV1) resolveLinks(ctx context.Context, raw *basegnstsmtanzuvm
 	return
 }
 
+// Delete hashes object's name and deletes the object and all it's children
+// To resolve a hash names of all consecutive parents must be provided in labels param in form of:
+// {'object_crd_definition_name': 'object_name'}
 func (obj *gnsGnsTsmV1) Delete(ctx context.Context, name string, labels map[string]string) (err error) {
 	if labels == nil {
 		labels = map[string]string{}
@@ -570,6 +609,7 @@ func (obj *gnsGnsTsmV1) Delete(ctx context.Context, name string, labels map[stri
 	return obj.DeleteByName(ctx, hashedName, labels)
 }
 
+// DeleteByName works as Delete but without hashing a name
 func (obj *gnsGnsTsmV1) DeleteByName(ctx context.Context, name string, labels map[string]string) (err error) {
 
 	result, err := obj.client.baseClient.GnsTsmV1().Gnses().Get(ctx, name, metav1.GetOptions{})
@@ -632,6 +672,10 @@ func (obj *gnsGnsTsmV1) DeleteByName(ctx context.Context, name string, labels ma
 	return
 }
 
+// Create hashes object's name and creates an object in the apiserver. Only spec fields can be provided, links and
+// children can't be added using this function.
+// To hash object's name names of all consecutive parents must be provided in labels param in form of:
+// {'object_crd_definition_name': 'object_name'}
 func (obj *gnsGnsTsmV1) Create(ctx context.Context, objToCreate *basegnstsmtanzuvmwarecomv1.Gns, labels map[string]string) (result *basegnstsmtanzuvmwarecomv1.Gns, err error) {
 	if objToCreate.Labels == nil {
 		objToCreate.Labels = map[string]string{}
@@ -645,6 +689,7 @@ func (obj *gnsGnsTsmV1) Create(ctx context.Context, objToCreate *basegnstsmtanzu
 	return obj.CreateByName(ctx, objToCreate, labels)
 }
 
+// CreateByName works as Create but without hashing the name
 func (obj *gnsGnsTsmV1) CreateByName(ctx context.Context, objToCreate *basegnstsmtanzuvmwarecomv1.Gns, labels map[string]string) (result *basegnstsmtanzuvmwarecomv1.Gns, err error) {
 	for k, v := range labels {
 		objToCreate.Labels[k] = v
@@ -652,8 +697,6 @@ func (obj *gnsGnsTsmV1) CreateByName(ctx context.Context, objToCreate *basegnsts
 	if _, ok := objToCreate.Labels["nexus/display_name"]; !ok {
 		objToCreate.Labels["nexus/display_name"] = objToCreate.GetName()
 	}
-
-	// recursive creation of objects is not supported
 
 	objToCreate.Spec.GnsServiceGroups = nil
 	objToCreate.Spec.GnsServiceGroupsGvk = nil
@@ -697,6 +740,10 @@ func (obj *gnsGnsTsmV1) CreateByName(ctx context.Context, objToCreate *basegnsts
 	return
 }
 
+// Update hashes object's name and updates an object in the apiserver. Only spec fields and metadata can be updated,
+// links and children can't be added or updated using this function.
+// To hash the name names of all consecutive parents must be provided in labels param in form of:
+// {'object_crd_definition_name': 'object_name'}
 func (obj *gnsGnsTsmV1) Update(ctx context.Context, objToUpdate *basegnstsmtanzuvmwarecomv1.Gns, labels map[string]string) (result *basegnstsmtanzuvmwarecomv1.Gns, err error) {
 	if objToUpdate.Labels == nil {
 		objToUpdate.Labels = map[string]string{}
@@ -710,6 +757,7 @@ func (obj *gnsGnsTsmV1) Update(ctx context.Context, objToUpdate *basegnstsmtanzu
 	return obj.UpdateByName(ctx, objToUpdate)
 }
 
+// UpdateByName works as Update but without hashing the name
 func (obj *gnsGnsTsmV1) UpdateByName(ctx context.Context, objToUpdate *basegnstsmtanzuvmwarecomv1.Gns) (result *basegnstsmtanzuvmwarecomv1.Gns, err error) {
 	var patch Patch
 	patchOpMeta := PatchOp{
@@ -755,6 +803,7 @@ func (obj *gnsGnsTsmV1) UpdateByName(ctx context.Context, objToUpdate *basegnsts
 	return obj.resolveLinks(ctx, result)
 }
 
+// AddDns updates srcObj with linkToAdd object
 func (obj *gnsGnsTsmV1) AddDns(ctx context.Context, srcObj *basegnstsmtanzuvmwarecomv1.Gns, linkToAdd *basegnstsmtanzuvmwarecomv1.Dns) (result *basegnstsmtanzuvmwarecomv1.Gns, err error) {
 
 	var patch Patch
@@ -780,6 +829,7 @@ func (obj *gnsGnsTsmV1) AddDns(ctx context.Context, srcObj *basegnstsmtanzuvmwar
 	return obj.resolveLinks(ctx, result)
 }
 
+// RemoveDns removes linkToRemove object from srcObj
 func (obj *gnsGnsTsmV1) RemoveDns(ctx context.Context, srcObj *basegnstsmtanzuvmwarecomv1.Gns, linkToRemove *basegnstsmtanzuvmwarecomv1.Dns) (result *basegnstsmtanzuvmwarecomv1.Gns, err error) {
 	var patch Patch
 
@@ -801,11 +851,15 @@ func (obj *gnsGnsTsmV1) RemoveDns(ctx context.Context, srcObj *basegnstsmtanzuvm
 	return obj.resolveLinks(ctx, result)
 }
 
+// Get hashes object's name and returns stored kubernetes object with all children and softlinks.
+// To resolve a hashed name names of all consecutive parents must be provided in labels param in form of:
+// {'object_crd_definition_name': 'object_name'}
 func (obj *dnsGnsTsmV1) Get(ctx context.Context, name string, labels map[string]string) (result *basegnstsmtanzuvmwarecomv1.Dns, err error) {
 	hashedName := helper.GetHashedName("dnses.gns.tsm.tanzu.vmware.com", labels, name)
 	return obj.GetByName(ctx, hashedName)
 }
 
+// GetByName works as Get but without hashing a name
 func (obj *dnsGnsTsmV1) GetByName(ctx context.Context, name string) (result *basegnstsmtanzuvmwarecomv1.Dns, err error) {
 	result, err = obj.client.baseClient.GnsTsmV1().Dnses().Get(ctx, name, metav1.GetOptions{})
 	if err != nil {
@@ -820,6 +874,9 @@ func (obj *dnsGnsTsmV1) resolveLinks(ctx context.Context, raw *basegnstsmtanzuvm
 	return
 }
 
+// Delete hashes object's name and deletes the object and all it's children
+// To resolve a hash names of all consecutive parents must be provided in labels param in form of:
+// {'object_crd_definition_name': 'object_name'}
 func (obj *dnsGnsTsmV1) Delete(ctx context.Context, name string, labels map[string]string) (err error) {
 	if labels == nil {
 		labels = map[string]string{}
@@ -829,6 +886,7 @@ func (obj *dnsGnsTsmV1) Delete(ctx context.Context, name string, labels map[stri
 	return obj.DeleteByName(ctx, hashedName, labels)
 }
 
+// DeleteByName works as Delete but without hashing a name
 func (obj *dnsGnsTsmV1) DeleteByName(ctx context.Context, name string, labels map[string]string) (err error) {
 
 	err = obj.client.baseClient.GnsTsmV1().Dnses().Delete(ctx, name, metav1.DeleteOptions{})
@@ -839,6 +897,10 @@ func (obj *dnsGnsTsmV1) DeleteByName(ctx context.Context, name string, labels ma
 	return
 }
 
+// Create hashes object's name and creates an object in the apiserver. Only spec fields can be provided, links and
+// children can't be added using this function.
+// To hash object's name names of all consecutive parents must be provided in labels param in form of:
+// {'object_crd_definition_name': 'object_name'}
 func (obj *dnsGnsTsmV1) Create(ctx context.Context, objToCreate *basegnstsmtanzuvmwarecomv1.Dns, labels map[string]string) (result *basegnstsmtanzuvmwarecomv1.Dns, err error) {
 	if objToCreate.Labels == nil {
 		objToCreate.Labels = map[string]string{}
@@ -852,6 +914,7 @@ func (obj *dnsGnsTsmV1) Create(ctx context.Context, objToCreate *basegnstsmtanzu
 	return obj.CreateByName(ctx, objToCreate, labels)
 }
 
+// CreateByName works as Create but without hashing the name
 func (obj *dnsGnsTsmV1) CreateByName(ctx context.Context, objToCreate *basegnstsmtanzuvmwarecomv1.Dns, labels map[string]string) (result *basegnstsmtanzuvmwarecomv1.Dns, err error) {
 	for k, v := range labels {
 		objToCreate.Labels[k] = v
@@ -859,8 +922,6 @@ func (obj *dnsGnsTsmV1) CreateByName(ctx context.Context, objToCreate *basegnsts
 	if _, ok := objToCreate.Labels["nexus/display_name"]; !ok {
 		objToCreate.Labels["nexus/display_name"] = objToCreate.GetName()
 	}
-
-	// recursive creation of objects is not supported
 
 	result, err = obj.client.baseClient.GnsTsmV1().Dnses().Create(ctx, objToCreate, metav1.CreateOptions{})
 	if err != nil {
@@ -870,6 +931,10 @@ func (obj *dnsGnsTsmV1) CreateByName(ctx context.Context, objToCreate *basegnsts
 	return
 }
 
+// Update hashes object's name and updates an object in the apiserver. Only spec fields and metadata can be updated,
+// links and children can't be added or updated using this function.
+// To hash the name names of all consecutive parents must be provided in labels param in form of:
+// {'object_crd_definition_name': 'object_name'}
 func (obj *dnsGnsTsmV1) Update(ctx context.Context, objToUpdate *basegnstsmtanzuvmwarecomv1.Dns, labels map[string]string) (result *basegnstsmtanzuvmwarecomv1.Dns, err error) {
 	if objToUpdate.Labels == nil {
 		objToUpdate.Labels = map[string]string{}
@@ -883,6 +948,7 @@ func (obj *dnsGnsTsmV1) Update(ctx context.Context, objToUpdate *basegnstsmtanzu
 	return obj.UpdateByName(ctx, objToUpdate)
 }
 
+// UpdateByName works as Update but without hashing the name
 func (obj *dnsGnsTsmV1) UpdateByName(ctx context.Context, objToUpdate *basegnstsmtanzuvmwarecomv1.Dns) (result *basegnstsmtanzuvmwarecomv1.Dns, err error) {
 	var patch Patch
 	patchOpMeta := PatchOp{
@@ -904,11 +970,15 @@ func (obj *dnsGnsTsmV1) UpdateByName(ctx context.Context, objToUpdate *basegnsts
 	return obj.resolveLinks(ctx, result)
 }
 
+// Get hashes object's name and returns stored kubernetes object with all children and softlinks.
+// To resolve a hashed name names of all consecutive parents must be provided in labels param in form of:
+// {'object_crd_definition_name': 'object_name'}
 func (obj *svcgroupServicegroupTsmV1) Get(ctx context.Context, name string, labels map[string]string) (result *baseservicegrouptsmtanzuvmwarecomv1.SvcGroup, err error) {
 	hashedName := helper.GetHashedName("svcgroups.servicegroup.tsm.tanzu.vmware.com", labels, name)
 	return obj.GetByName(ctx, hashedName)
 }
 
+// GetByName works as Get but without hashing a name
 func (obj *svcgroupServicegroupTsmV1) GetByName(ctx context.Context, name string) (result *baseservicegrouptsmtanzuvmwarecomv1.SvcGroup, err error) {
 	result, err = obj.client.baseClient.ServicegroupTsmV1().SvcGroups().Get(ctx, name, metav1.GetOptions{})
 	if err != nil {
@@ -923,6 +993,9 @@ func (obj *svcgroupServicegroupTsmV1) resolveLinks(ctx context.Context, raw *bas
 	return
 }
 
+// Delete hashes object's name and deletes the object and all it's children
+// To resolve a hash names of all consecutive parents must be provided in labels param in form of:
+// {'object_crd_definition_name': 'object_name'}
 func (obj *svcgroupServicegroupTsmV1) Delete(ctx context.Context, name string, labels map[string]string) (err error) {
 	if labels == nil {
 		labels = map[string]string{}
@@ -932,6 +1005,7 @@ func (obj *svcgroupServicegroupTsmV1) Delete(ctx context.Context, name string, l
 	return obj.DeleteByName(ctx, hashedName, labels)
 }
 
+// DeleteByName works as Delete but without hashing a name
 func (obj *svcgroupServicegroupTsmV1) DeleteByName(ctx context.Context, name string, labels map[string]string) (err error) {
 
 	err = obj.client.baseClient.ServicegroupTsmV1().SvcGroups().Delete(ctx, name, metav1.DeleteOptions{})
@@ -966,6 +1040,10 @@ func (obj *svcgroupServicegroupTsmV1) DeleteByName(ctx context.Context, name str
 	return
 }
 
+// Create hashes object's name and creates an object in the apiserver. Only spec fields can be provided, links and
+// children can't be added using this function.
+// To hash object's name names of all consecutive parents must be provided in labels param in form of:
+// {'object_crd_definition_name': 'object_name'}
 func (obj *svcgroupServicegroupTsmV1) Create(ctx context.Context, objToCreate *baseservicegrouptsmtanzuvmwarecomv1.SvcGroup, labels map[string]string) (result *baseservicegrouptsmtanzuvmwarecomv1.SvcGroup, err error) {
 	if objToCreate.Labels == nil {
 		objToCreate.Labels = map[string]string{}
@@ -979,6 +1057,7 @@ func (obj *svcgroupServicegroupTsmV1) Create(ctx context.Context, objToCreate *b
 	return obj.CreateByName(ctx, objToCreate, labels)
 }
 
+// CreateByName works as Create but without hashing the name
 func (obj *svcgroupServicegroupTsmV1) CreateByName(ctx context.Context, objToCreate *baseservicegrouptsmtanzuvmwarecomv1.SvcGroup, labels map[string]string) (result *baseservicegrouptsmtanzuvmwarecomv1.SvcGroup, err error) {
 	for k, v := range labels {
 		objToCreate.Labels[k] = v
@@ -986,8 +1065,6 @@ func (obj *svcgroupServicegroupTsmV1) CreateByName(ctx context.Context, objToCre
 	if _, ok := objToCreate.Labels["nexus/display_name"]; !ok {
 		objToCreate.Labels["nexus/display_name"] = objToCreate.GetName()
 	}
-
-	// recursive creation of objects is not supported
 
 	result, err = obj.client.baseClient.ServicegroupTsmV1().SvcGroups().Create(ctx, objToCreate, metav1.CreateOptions{})
 	if err != nil {
@@ -1011,6 +1088,10 @@ func (obj *svcgroupServicegroupTsmV1) CreateByName(ctx context.Context, objToCre
 	return
 }
 
+// Update hashes object's name and updates an object in the apiserver. Only spec fields and metadata can be updated,
+// links and children can't be added or updated using this function.
+// To hash the name names of all consecutive parents must be provided in labels param in form of:
+// {'object_crd_definition_name': 'object_name'}
 func (obj *svcgroupServicegroupTsmV1) Update(ctx context.Context, objToUpdate *baseservicegrouptsmtanzuvmwarecomv1.SvcGroup, labels map[string]string) (result *baseservicegrouptsmtanzuvmwarecomv1.SvcGroup, err error) {
 	if objToUpdate.Labels == nil {
 		objToUpdate.Labels = map[string]string{}
@@ -1024,6 +1105,7 @@ func (obj *svcgroupServicegroupTsmV1) Update(ctx context.Context, objToUpdate *b
 	return obj.UpdateByName(ctx, objToUpdate)
 }
 
+// UpdateByName works as Update but without hashing the name
 func (obj *svcgroupServicegroupTsmV1) UpdateByName(ctx context.Context, objToUpdate *baseservicegrouptsmtanzuvmwarecomv1.SvcGroup) (result *baseservicegrouptsmtanzuvmwarecomv1.SvcGroup, err error) {
 	var patch Patch
 	patchOpMeta := PatchOp{
@@ -1069,11 +1151,15 @@ func (obj *svcgroupServicegroupTsmV1) UpdateByName(ctx context.Context, objToUpd
 	return obj.resolveLinks(ctx, result)
 }
 
+// Get hashes object's name and returns stored kubernetes object with all children and softlinks.
+// To resolve a hashed name names of all consecutive parents must be provided in labels param in form of:
+// {'object_crd_definition_name': 'object_name'}
 func (obj *accesscontrolpolicyPolicyTsmV1) Get(ctx context.Context, name string, labels map[string]string) (result *basepolicytsmtanzuvmwarecomv1.AccessControlPolicy, err error) {
 	hashedName := helper.GetHashedName("accesscontrolpolicies.policy.tsm.tanzu.vmware.com", labels, name)
 	return obj.GetByName(ctx, hashedName)
 }
 
+// GetByName works as Get but without hashing a name
 func (obj *accesscontrolpolicyPolicyTsmV1) GetByName(ctx context.Context, name string) (result *basepolicytsmtanzuvmwarecomv1.AccessControlPolicy, err error) {
 	result, err = obj.client.baseClient.PolicyTsmV1().AccessControlPolicies().Get(ctx, name, metav1.GetOptions{})
 	if err != nil {
@@ -1097,6 +1183,9 @@ func (obj *accesscontrolpolicyPolicyTsmV1) resolveLinks(ctx context.Context, raw
 	return
 }
 
+// Delete hashes object's name and deletes the object and all it's children
+// To resolve a hash names of all consecutive parents must be provided in labels param in form of:
+// {'object_crd_definition_name': 'object_name'}
 func (obj *accesscontrolpolicyPolicyTsmV1) Delete(ctx context.Context, name string, labels map[string]string) (err error) {
 	if labels == nil {
 		labels = map[string]string{}
@@ -1106,6 +1195,7 @@ func (obj *accesscontrolpolicyPolicyTsmV1) Delete(ctx context.Context, name stri
 	return obj.DeleteByName(ctx, hashedName, labels)
 }
 
+// DeleteByName works as Delete but without hashing a name
 func (obj *accesscontrolpolicyPolicyTsmV1) DeleteByName(ctx context.Context, name string, labels map[string]string) (err error) {
 
 	result, err := obj.client.baseClient.PolicyTsmV1().AccessControlPolicies().Get(ctx, name, metav1.GetOptions{})
@@ -1161,6 +1251,10 @@ func (obj *accesscontrolpolicyPolicyTsmV1) DeleteByName(ctx context.Context, nam
 	return
 }
 
+// Create hashes object's name and creates an object in the apiserver. Only spec fields can be provided, links and
+// children can't be added using this function.
+// To hash object's name names of all consecutive parents must be provided in labels param in form of:
+// {'object_crd_definition_name': 'object_name'}
 func (obj *accesscontrolpolicyPolicyTsmV1) Create(ctx context.Context, objToCreate *basepolicytsmtanzuvmwarecomv1.AccessControlPolicy, labels map[string]string) (result *basepolicytsmtanzuvmwarecomv1.AccessControlPolicy, err error) {
 	if objToCreate.Labels == nil {
 		objToCreate.Labels = map[string]string{}
@@ -1174,6 +1268,7 @@ func (obj *accesscontrolpolicyPolicyTsmV1) Create(ctx context.Context, objToCrea
 	return obj.CreateByName(ctx, objToCreate, labels)
 }
 
+// CreateByName works as Create but without hashing the name
 func (obj *accesscontrolpolicyPolicyTsmV1) CreateByName(ctx context.Context, objToCreate *basepolicytsmtanzuvmwarecomv1.AccessControlPolicy, labels map[string]string) (result *basepolicytsmtanzuvmwarecomv1.AccessControlPolicy, err error) {
 	for k, v := range labels {
 		objToCreate.Labels[k] = v
@@ -1181,8 +1276,6 @@ func (obj *accesscontrolpolicyPolicyTsmV1) CreateByName(ctx context.Context, obj
 	if _, ok := objToCreate.Labels["nexus/display_name"]; !ok {
 		objToCreate.Labels["nexus/display_name"] = objToCreate.GetName()
 	}
-
-	// recursive creation of objects is not supported
 
 	objToCreate.Spec.PolicyConfigs = nil
 	objToCreate.Spec.PolicyConfigsGvk = nil
@@ -1223,6 +1316,10 @@ func (obj *accesscontrolpolicyPolicyTsmV1) CreateByName(ctx context.Context, obj
 	return
 }
 
+// Update hashes object's name and updates an object in the apiserver. Only spec fields and metadata can be updated,
+// links and children can't be added or updated using this function.
+// To hash the name names of all consecutive parents must be provided in labels param in form of:
+// {'object_crd_definition_name': 'object_name'}
 func (obj *accesscontrolpolicyPolicyTsmV1) Update(ctx context.Context, objToUpdate *basepolicytsmtanzuvmwarecomv1.AccessControlPolicy, labels map[string]string) (result *basepolicytsmtanzuvmwarecomv1.AccessControlPolicy, err error) {
 	if objToUpdate.Labels == nil {
 		objToUpdate.Labels = map[string]string{}
@@ -1236,6 +1333,7 @@ func (obj *accesscontrolpolicyPolicyTsmV1) Update(ctx context.Context, objToUpda
 	return obj.UpdateByName(ctx, objToUpdate)
 }
 
+// UpdateByName works as Update but without hashing the name
 func (obj *accesscontrolpolicyPolicyTsmV1) UpdateByName(ctx context.Context, objToUpdate *basepolicytsmtanzuvmwarecomv1.AccessControlPolicy) (result *basepolicytsmtanzuvmwarecomv1.AccessControlPolicy, err error) {
 	var patch Patch
 	patchOpMeta := PatchOp{
@@ -1257,11 +1355,15 @@ func (obj *accesscontrolpolicyPolicyTsmV1) UpdateByName(ctx context.Context, obj
 	return obj.resolveLinks(ctx, result)
 }
 
+// Get hashes object's name and returns stored kubernetes object with all children and softlinks.
+// To resolve a hashed name names of all consecutive parents must be provided in labels param in form of:
+// {'object_crd_definition_name': 'object_name'}
 func (obj *acpconfigPolicyTsmV1) Get(ctx context.Context, name string, labels map[string]string) (result *basepolicytsmtanzuvmwarecomv1.ACPConfig, err error) {
 	hashedName := helper.GetHashedName("acpconfigs.policy.tsm.tanzu.vmware.com", labels, name)
 	return obj.GetByName(ctx, hashedName)
 }
 
+// GetByName works as Get but without hashing a name
 func (obj *acpconfigPolicyTsmV1) GetByName(ctx context.Context, name string) (result *basepolicytsmtanzuvmwarecomv1.ACPConfig, err error) {
 	result, err = obj.client.baseClient.PolicyTsmV1().ACPConfigs().Get(ctx, name, metav1.GetOptions{})
 	if err != nil {
@@ -1294,6 +1396,9 @@ func (obj *acpconfigPolicyTsmV1) resolveLinks(ctx context.Context, raw *basepoli
 	return
 }
 
+// Delete hashes object's name and deletes the object and all it's children
+// To resolve a hash names of all consecutive parents must be provided in labels param in form of:
+// {'object_crd_definition_name': 'object_name'}
 func (obj *acpconfigPolicyTsmV1) Delete(ctx context.Context, name string, labels map[string]string) (err error) {
 	if labels == nil {
 		labels = map[string]string{}
@@ -1303,6 +1408,7 @@ func (obj *acpconfigPolicyTsmV1) Delete(ctx context.Context, name string, labels
 	return obj.DeleteByName(ctx, hashedName, labels)
 }
 
+// DeleteByName works as Delete but without hashing a name
 func (obj *acpconfigPolicyTsmV1) DeleteByName(ctx context.Context, name string, labels map[string]string) (err error) {
 
 	err = obj.client.baseClient.PolicyTsmV1().ACPConfigs().Delete(ctx, name, metav1.DeleteOptions{})
@@ -1337,6 +1443,10 @@ func (obj *acpconfigPolicyTsmV1) DeleteByName(ctx context.Context, name string, 
 	return
 }
 
+// Create hashes object's name and creates an object in the apiserver. Only spec fields can be provided, links and
+// children can't be added using this function.
+// To hash object's name names of all consecutive parents must be provided in labels param in form of:
+// {'object_crd_definition_name': 'object_name'}
 func (obj *acpconfigPolicyTsmV1) Create(ctx context.Context, objToCreate *basepolicytsmtanzuvmwarecomv1.ACPConfig, labels map[string]string) (result *basepolicytsmtanzuvmwarecomv1.ACPConfig, err error) {
 	if objToCreate.Labels == nil {
 		objToCreate.Labels = map[string]string{}
@@ -1350,6 +1460,7 @@ func (obj *acpconfigPolicyTsmV1) Create(ctx context.Context, objToCreate *basepo
 	return obj.CreateByName(ctx, objToCreate, labels)
 }
 
+// CreateByName works as Create but without hashing the name
 func (obj *acpconfigPolicyTsmV1) CreateByName(ctx context.Context, objToCreate *basepolicytsmtanzuvmwarecomv1.ACPConfig, labels map[string]string) (result *basepolicytsmtanzuvmwarecomv1.ACPConfig, err error) {
 	for k, v := range labels {
 		objToCreate.Labels[k] = v
@@ -1357,8 +1468,6 @@ func (obj *acpconfigPolicyTsmV1) CreateByName(ctx context.Context, objToCreate *
 	if _, ok := objToCreate.Labels["nexus/display_name"]; !ok {
 		objToCreate.Labels["nexus/display_name"] = objToCreate.GetName()
 	}
-
-	// recursive creation of objects is not supported
 
 	result, err = obj.client.baseClient.PolicyTsmV1().ACPConfigs().Create(ctx, objToCreate, metav1.CreateOptions{})
 	if err != nil {
@@ -1382,6 +1491,10 @@ func (obj *acpconfigPolicyTsmV1) CreateByName(ctx context.Context, objToCreate *
 	return
 }
 
+// Update hashes object's name and updates an object in the apiserver. Only spec fields and metadata can be updated,
+// links and children can't be added or updated using this function.
+// To hash the name names of all consecutive parents must be provided in labels param in form of:
+// {'object_crd_definition_name': 'object_name'}
 func (obj *acpconfigPolicyTsmV1) Update(ctx context.Context, objToUpdate *basepolicytsmtanzuvmwarecomv1.ACPConfig, labels map[string]string) (result *basepolicytsmtanzuvmwarecomv1.ACPConfig, err error) {
 	if objToUpdate.Labels == nil {
 		objToUpdate.Labels = map[string]string{}
@@ -1395,6 +1508,7 @@ func (obj *acpconfigPolicyTsmV1) Update(ctx context.Context, objToUpdate *basepo
 	return obj.UpdateByName(ctx, objToUpdate)
 }
 
+// UpdateByName works as Update but without hashing the name
 func (obj *acpconfigPolicyTsmV1) UpdateByName(ctx context.Context, objToUpdate *basepolicytsmtanzuvmwarecomv1.ACPConfig) (result *basepolicytsmtanzuvmwarecomv1.ACPConfig, err error) {
 	var patch Patch
 	patchOpMeta := PatchOp{
@@ -1464,6 +1578,7 @@ func (obj *acpconfigPolicyTsmV1) UpdateByName(ctx context.Context, objToUpdate *
 	return obj.resolveLinks(ctx, result)
 }
 
+// AddDestSvcGroups updates srcObj with linkToAdd object
 func (obj *acpconfigPolicyTsmV1) AddDestSvcGroups(ctx context.Context, srcObj *basepolicytsmtanzuvmwarecomv1.ACPConfig, linkToAdd *baseservicegrouptsmtanzuvmwarecomv1.SvcGroup) (result *basepolicytsmtanzuvmwarecomv1.ACPConfig, err error) {
 
 	payload := "{\"spec\": {\"destSvcGroupsGvk\": {\"" + linkToAdd.Name + "\": {\"name\": \"" + linkToAdd.Name + "\",\"kind\": \"SvcGroup\", \"group\": \"servicegroup.tsm.tanzu.vmware.com\"}}}}"
@@ -1475,6 +1590,7 @@ func (obj *acpconfigPolicyTsmV1) AddDestSvcGroups(ctx context.Context, srcObj *b
 	return obj.resolveLinks(ctx, result)
 }
 
+// RemoveDestSvcGroups removes linkToRemove object from srcObj
 func (obj *acpconfigPolicyTsmV1) RemoveDestSvcGroups(ctx context.Context, srcObj *basepolicytsmtanzuvmwarecomv1.ACPConfig, linkToRemove *baseservicegrouptsmtanzuvmwarecomv1.SvcGroup) (result *basepolicytsmtanzuvmwarecomv1.ACPConfig, err error) {
 	var patch Patch
 
@@ -1496,6 +1612,7 @@ func (obj *acpconfigPolicyTsmV1) RemoveDestSvcGroups(ctx context.Context, srcObj
 	return obj.resolveLinks(ctx, result)
 }
 
+// AddSourceSvcGroups updates srcObj with linkToAdd object
 func (obj *acpconfigPolicyTsmV1) AddSourceSvcGroups(ctx context.Context, srcObj *basepolicytsmtanzuvmwarecomv1.ACPConfig, linkToAdd *baseservicegrouptsmtanzuvmwarecomv1.SvcGroup) (result *basepolicytsmtanzuvmwarecomv1.ACPConfig, err error) {
 
 	payload := "{\"spec\": {\"sourceSvcGroupsGvk\": {\"" + linkToAdd.Name + "\": {\"name\": \"" + linkToAdd.Name + "\",\"kind\": \"SvcGroup\", \"group\": \"servicegroup.tsm.tanzu.vmware.com\"}}}}"
@@ -1507,6 +1624,7 @@ func (obj *acpconfigPolicyTsmV1) AddSourceSvcGroups(ctx context.Context, srcObj 
 	return obj.resolveLinks(ctx, result)
 }
 
+// RemoveSourceSvcGroups removes linkToRemove object from srcObj
 func (obj *acpconfigPolicyTsmV1) RemoveSourceSvcGroups(ctx context.Context, srcObj *basepolicytsmtanzuvmwarecomv1.ACPConfig, linkToRemove *baseservicegrouptsmtanzuvmwarecomv1.SvcGroup) (result *basepolicytsmtanzuvmwarecomv1.ACPConfig, err error) {
 	var patch Patch
 
