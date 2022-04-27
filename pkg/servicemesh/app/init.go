@@ -10,6 +10,7 @@ import (
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/common"
 	. "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/common"
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/servicemesh/prereq"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/servicemesh/version"
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/utils"
 )
 
@@ -60,8 +61,15 @@ func Init(cmd *cobra.Command, args []string) error {
 			DOWNLOAD_APP = "false"
 		}
 	}
+	var values version.NexusValues
+	if err := version.GetNexusValues(&values); err != nil {
+		return utils.GetCustomError(utils.APPLICATION_INIT_PREREQ_FAILED,
+			fmt.Errorf("could not download the app manifests due to %s", err)).Print().ExitIfFatalOrReturn()
+	}
+	appVersion := values.NexusAppTemplates.Version
 	if DOWNLOAD_APP != "false" {
-		err := utils.DownloadFile(TEMPLATE_URL, Filename)
+
+		err := utils.DownloadFile(fmt.Sprintf(TEMPLATE_URL, appVersion), Filename)
 		if err != nil {
 			return fmt.Errorf("could not download template files due to %s", err)
 		}
@@ -87,29 +95,12 @@ func Init(cmd *cobra.Command, args []string) error {
 		}
 		_ = os.RemoveAll(Filename)
 	}
-	err := utils.CreateNexusDirectory(NEXUS_DIR, NEXUS_TEMPLATE_URL)
+	nexusVersion := values.NexusDatamodelTemplates.Version
+	err := utils.CreateNexusDirectory(NEXUS_DIR, fmt.Sprintf(NEXUS_TEMPLATE_URL, nexusVersion))
 	if err != nil {
 		return fmt.Errorf("could not create nexus directory: %s", err)
 	}
-
-	if DatatmodelName != "" {
-		if DatatmodelGroup == "" {
-			DatatmodelGroup = fmt.Sprintf("%s.com", DatatmodelName)
-		}
-		envList = append(envList, fmt.Sprintf("DATAMODEL_GROUP=%s", DatatmodelGroup))
-		err := utils.SystemCommand(cmd, utils.DATAMODEL_INIT_FAILED, envList, "make", "datamodel_init")
-		if err != nil {
-			return fmt.Errorf("error in creating new datamodel due to %s", err)
-		}
-		fmt.Println("\u2713 Application initialized successfully , Please continue to edit the datamodel and app controllers.")
-
-		err = WriteToNexusDms(DatatmodelName, NexusDmProps{DatatmodelName, true})
-		if err != nil {
-			return fmt.Errorf("failed to write to nexus-dms.yaml")
-		}
-	} else {
-		fmt.Println("\u2713 Application initialized successfully, Create Datamodel for consuming applications")
-	}
+	fmt.Println("\u2713 Application initialized successfully")
 	return nil
 }
 
@@ -130,16 +121,10 @@ var InitCmd = &cobra.Command{
 }
 
 func init() {
-	InitCmd.Flags().StringVarP(&DatatmodelName, "datamodel-init",
-		"d", "", "name of the datamodel to initialize")
-	InitCmd.Flags().StringVarP(&DatatmodelImport, "datamodel-import",
-		"i", "", "name of the datamodel to import")
 	InitCmd.Flags().StringVarP(&AppName, "name",
 		"n", "", "name of the application")
 	InitCmd.Flags().StringVarP(&RegistryURL, "registry",
 		"r", "284299419820.dkr.ecr.us-west-2.amazonaws.com/nexus/playground", "container registry url to publish docker images to")
-	InitCmd.Flags().StringVarP(&DatatmodelGroup, "datamodel-group",
-		"g", "", "group of the datamodel being initialized. only to be used in conjunction with --datamodel-init")
 	err := cobra.MarkFlagRequired(InitCmd.Flags(), "name")
 
 	if err != nil {

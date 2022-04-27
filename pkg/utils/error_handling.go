@@ -36,6 +36,7 @@ const (
 	APPLICATION_INIT_PREREQ_FAILED       ClientErrorCode = 24
 	APPLICATION_BUILD_FAILED             ClientErrorCode = 25
 	CONFIG_SET_FAILED                    ClientErrorCode = 26
+	DATAMODEL_DIRECTORY_MISMATCH         ClientErrorCode = 27
 )
 
 // ClientError defines error and information around it that are specific
@@ -215,6 +216,13 @@ var wellKnownErrors = map[ClientErrorCode]ClientError{
 			"run with --debug option to get verbose logs",
 			"ensure you have at least one property being set",
 			"check if the property being set is supported by doing a `nexus config set --help`",
+		},
+		fatal: true,
+	},
+	DATAMODEL_DIRECTORY_MISMATCH: {
+		Description: "running from app directory without the datamodel name",
+		WhatNext: []string{
+			"run with --name datamodel to run build for particular datamodel",
 		},
 		fatal: true,
 	},

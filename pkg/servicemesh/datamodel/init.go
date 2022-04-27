@@ -7,6 +7,7 @@ import (
 
 	"github.com/spf13/cobra"
 	. "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/common"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/servicemesh/version"
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/utils"
 )
 
@@ -126,7 +127,13 @@ func checkIfDirectoryEmpty(standalone bool, DatamodelName string) {
 }
 
 func InitOperation(cmd *cobra.Command, args []string) error {
+	var values version.NexusValues
 
+	if err := version.GetNexusValues(&values); err != nil {
+		return utils.GetCustomError(utils.DATAMODEL_INIT_FAILED,
+			fmt.Errorf("could not download the datamodel manifests due to %s", err)).Print().ExitIfFatalOrReturn()
+	}
+	datamodelVersion := values.NexusDatamodelTemplates.Version
 	dmName := DatamodelName
 	fmt.Printf("Datamodel name: %s\n", dmName)
 	checkIfDirectoryEmpty(!localDatamodel, DatamodelName)
@@ -134,7 +141,7 @@ func InitOperation(cmd *cobra.Command, args []string) error {
 	fmt.Printf("Datamodel name: %s\n", dmName)
 
 	if localDatamodel {
-		err := utils.CreateNexusDirectory(NEXUS_DIR, NEXUS_TEMPLATE_URL)
+		err := utils.CreateNexusDirectory(NEXUS_DIR, fmt.Sprintf(NEXUS_TEMPLATE_URL, datamodelVersion))
 		if err != nil {
 			// TODO stadard logging library error
 			return fmt.Errorf("could not create nexus directory")
@@ -142,12 +149,12 @@ func InitOperation(cmd *cobra.Command, args []string) error {
 	}
 
 	if dmName == "helloworld" {
-		err := createDatamodel(dmName, HELLOWORLD_URL, false, !localDatamodel)
+		err := createDatamodel(dmName, fmt.Sprintf(HELLOWORLD_URL, datamodelVersion), false, !localDatamodel)
 		if err != nil {
 			return err
 		}
 	} else {
-		err := createDatamodel(dmName, DATAMODEL_TEMPLATE_URL, true, !localDatamodel)
+		err := createDatamodel(dmName, fmt.Sprintf(DATAMODEL_TEMPLATE_URL, datamodelVersion), true, !localDatamodel)
 		if err != nil {
 			return err
 		}

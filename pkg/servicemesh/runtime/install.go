@@ -14,6 +14,7 @@ import (
 	"github.com/spf13/cobra"
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/common"
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/servicemesh/prereq"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/servicemesh/version"
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/utils"
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus/golang/pkg/logging"
 )
@@ -121,7 +122,17 @@ func init() {
 }
 
 func DownloadRuntimeFiles() ([]fs.FileInfo, error) {
-	err := utils.DownloadFile(common.RUNTIME_MANIFESTS_URL, Filename)
+	var values version.NexusValues
+
+	if err := version.GetNexusValues(&values); err != nil {
+		return nil, utils.GetCustomError(utils.RUNTIME_INSTALL_FAILED,
+			fmt.Errorf("could not download the runtime manifests due to %s", err)).Print().ExitIfFatalOrReturn()
+	}
+	runtimeVersion := values.NexusDatamodelTemplates.Version
+	if runtimeVersion == "" {
+		runtimeVersion = "latest"
+	}
+	err := utils.DownloadFile(fmt.Sprintf(common.RUNTIME_MANIFESTS_URL, runtimeVersion), Filename)
 	if err != nil {
 		return nil, utils.GetCustomError(utils.RUNTIME_INSTALL_FAILED,
 			fmt.Errorf("could not download the runtime manifests due to %s", err)).Print().ExitIfFatalOrReturn()
@@ -132,13 +143,24 @@ func DownloadRuntimeFiles() ([]fs.FileInfo, error) {
 			fmt.Errorf("accessing downloaded runtime manifests directory failed dwith error: %s", err)).Print().ExitIfFatalOrReturn()
 	}
 	defer file.Close()
-	_, err = os.Stat(ManifestsDir)
-	if errors.Is(err, os.ErrNotExist) {
-		err = os.Mkdir(ManifestsDir, os.ModePerm)
+	fo, err := os.Stat(ManifestsDir)
+	if err != nil {
+		if !errors.Is(err, os.ErrNotExist) {
+			return nil, utils.GetCustomError(utils.RUNTIME_INSTALL_FAILED,
+				fmt.Errorf("issues in checking runtime manifests directory due to %s", err)).Print().ExitIfFatalOrReturn()
+		}
+	}
+	if fo != nil {
+		err = os.RemoveAll(ManifestsDir)
 		if err != nil {
 			return nil, utils.GetCustomError(utils.RUNTIME_INSTALL_FAILED,
-				fmt.Errorf("could not create the runtime manifests directory due to %s", err)).Print().ExitIfFatalOrReturn()
+				fmt.Errorf("could not remove %s directory due to %s", ManifestsDir, err)).Print().ExitIfFatalOrReturn()
 		}
+	}
+	err = os.Mkdir(ManifestsDir, os.ModePerm)
+	if err != nil {
+		return nil, utils.GetCustomError(utils.RUNTIME_INSTALL_FAILED,
+			fmt.Errorf("could not create the runtime manifests directory due to %s", err)).Print().ExitIfFatalOrReturn()
 	}
 	err = utils.Untar(ManifestsDir, file)
 	if err != nil {
