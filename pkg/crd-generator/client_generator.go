@@ -376,11 +376,15 @@ func renderApiGroup(vars apiGroupsVars) (string, error) {
 }
 
 var apiGroupClientTmpl = `
+// Get hashes object's name and returns stored kubernetes object with all children and softlinks.
+// To resolve a hashed name names of all consecutive parents must be provided in labels param in form of:
+// {'object_crd_definition_name': 'object_name'}
 func (obj *{{.GroupResourceType}}) Get(ctx context.Context, name string, labels map[string]string) (result *{{.GroupBaseImport}}, err error) {
 	hashedName := helper.GetHashedName("{{.CrdName}}", labels, name)
 	return obj.GetByName(ctx, hashedName)
 }
 
+// GetByName works as Get but without hashing a name 
 func (obj *{{.GroupResourceType}}) GetByName(ctx context.Context, name string) (result *{{.GroupBaseImport}}, err error) { 
 	result, err = obj.client.baseClient.{{.GroupTypeName}}().{{.GroupResourceNameTitle}}().Get(ctx, name, metav1.GetOptions{})
 	if err != nil {
@@ -395,7 +399,9 @@ func (obj *{{.GroupResourceType}}) resolveLinks(ctx context.Context, raw *{{.Gro
 	return
 }
 
-
+// Delete hashes object's name and deletes the object and all it's children
+// To resolve a hash names of all consecutive parents must be provided in labels param in form of:
+// {'object_crd_definition_name': 'object_name'}
 func (obj *{{.GroupResourceType}}) Delete(ctx context.Context, name string, labels map[string]string) (err error) {
 	if labels == nil {
 		labels = map[string]string{}
@@ -405,6 +411,7 @@ func (obj *{{.GroupResourceType}}) Delete(ctx context.Context, name string, labe
 	return obj.DeleteByName(ctx, hashedName, labels)
 }
 
+// DeleteByName works as Delete but without hashing a name
 func (obj *{{.GroupResourceType}}) DeleteByName(ctx context.Context, name string, labels map[string]string) (err error) { 
 	{{if .HasChildren}}
 {{.GetForDeleteByName}}
@@ -424,6 +431,10 @@ func (obj *{{.GroupResourceType}}) DeleteByName(ctx context.Context, name string
 	return
 }
 
+// Create hashes object's name and creates an object in the apiserver. Only spec fields can be provided, links and
+// children can't be added using this function.
+// To hash object's name names of all consecutive parents must be provided in labels param in form of:
+// {'object_crd_definition_name': 'object_name'}
 func (obj *{{.GroupResourceType}}) Create(ctx context.Context, objToCreate *{{.GroupBaseImport}}, labels map[string]string) (result *{{.GroupBaseImport}}, err error) {
 	if objToCreate.Labels == nil {
 		objToCreate.Labels = map[string]string{}
@@ -437,6 +448,7 @@ func (obj *{{.GroupResourceType}}) Create(ctx context.Context, objToCreate *{{.G
 	return obj.CreateByName(ctx, objToCreate, labels)
 }
 
+// CreateByName works as Create but without hashing the name
 func (obj *{{.GroupResourceType}}) CreateByName(ctx context.Context, objToCreate *{{.GroupBaseImport}}, labels map[string]string) (result *{{.GroupBaseImport}}, err error) {
 	for k, v := range labels {
 		objToCreate.Labels[k] = v
@@ -445,7 +457,6 @@ func (obj *{{.GroupResourceType}}) CreateByName(ctx context.Context, objToCreate
 		objToCreate.Labels["nexus/display_name"] = objToCreate.GetName()
 	}
 
-	// recursive creation of objects is not supported
 	{{.ResolveLinksCreate}}
 
 	result, err = obj.client.baseClient.{{.GroupTypeName}}().{{.GroupResourceNameTitle}}().Create(ctx, objToCreate, metav1.CreateOptions{})
@@ -460,6 +471,10 @@ func (obj *{{.GroupResourceType}}) CreateByName(ctx context.Context, objToCreate
 	return
 }
 
+// Update hashes object's name and updates an object in the apiserver. Only spec fields and metadata can be updated,
+// links and children can't be added or updated using this function.
+// To hash the name names of all consecutive parents must be provided in labels param in form of:
+// {'object_crd_definition_name': 'object_name'}
 func (obj *{{.GroupResourceType}}) Update(ctx context.Context, objToUpdate *{{.GroupBaseImport}}, labels map[string]string) (result *{{.GroupBaseImport}}, err error) {
 	if objToUpdate.Labels == nil {
 		objToUpdate.Labels = map[string]string{}
@@ -473,6 +488,7 @@ func (obj *{{.GroupResourceType}}) Update(ctx context.Context, objToUpdate *{{.G
 	return obj.UpdateByName(ctx, objToUpdate)
 }
 
+// UpdateByName works as Update but without hashing the name
 func (obj *{{.GroupResourceType}}) UpdateByName(ctx context.Context, objToUpdate *{{.GroupBaseImport}}) (result *{{.GroupBaseImport}}, err error) {
 	var patch Patch
 	patchOpMeta := PatchOp{
@@ -495,6 +511,7 @@ func (obj *{{.GroupResourceType}}) UpdateByName(ctx context.Context, objToUpdate
 }
 
 {{ range $key, $link := .Links }}
+// Add{{$link.FieldName}} updates srcObj with linkToAdd object
 func (obj *{{$.GroupResourceType}}) Add{{$link.FieldName}}(ctx context.Context, srcObj *{{$.GroupBaseImport}}, linkToAdd *{{$link.GroupBaseImport}}) (result *{{$.GroupBaseImport}}, err error) {
 	{{ if $link.IsNamed }}
 	payload := "{\"spec\": {\"{{$link.FieldNameGvk}}\": {\"" + linkToAdd.Name + "\": {\"name\": \"" + linkToAdd.Name + "\",\"kind\": \"{{$link.Kind}}\", \"group\": \"{{$link.Group}}\"}}}}"
@@ -527,6 +544,7 @@ func (obj *{{$.GroupResourceType}}) Add{{$link.FieldName}}(ctx context.Context, 
 	return obj.resolveLinks(ctx, result)
 }
 
+// Remove{{$link.FieldName}} removes linkToRemove object from srcObj
 func (obj *{{$.GroupResourceType}}) Remove{{$link.FieldName}}(ctx context.Context, srcObj *{{$.GroupBaseImport}}, linkToRemove *{{$link.GroupBaseImport}}) (result *{{$.GroupBaseImport}}, err error) {
 	var patch Patch
 	{{if $link.IsNamed}}
