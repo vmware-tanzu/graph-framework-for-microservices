@@ -10,6 +10,10 @@ import (
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/utils"
 )
 
+const (
+	localDatamodelFlag = "local"
+)
+
 type TemplateValues struct {
 	ModuleName string
 	GroupName  string
@@ -17,31 +21,33 @@ type TemplateValues struct {
 
 var DatamodelName string
 var GroupName string
-var RepoName string
+var localDatamodel bool
 
-func createDatamodel(DatatmodelName string, DatamodelTarballUrl string, Render bool, standalone bool) error {
+func createDatamodel(dmName string, DatamodelTarballUrl string, Render bool, standalone bool) error {
 	var Directory string
-	if standalone == false {
+
+	if !standalone {
 		err := utils.GoToNexusDirectory()
 		if err != nil {
 			fmt.Printf("Could not locate nexusDirectory\n")
 			return err
 		}
-		if _, err := os.Stat(DatatmodelName); err == nil {
-			fmt.Printf("Datamodel %s already exists\n", DatatmodelName)
+		if _, err := os.Stat(dmName); err == nil {
+			fmt.Printf("Datamodel %s already exists\n", dmName)
 			return nil
 		}
 
-		fmt.Printf("creating %s datamodel as part of initialization\n", DatatmodelName)
-		err = os.Mkdir(DatatmodelName, 0755)
+		fmt.Printf("creating %s datamodel as part of initialization\n", dmName)
+		err = os.Mkdir(dmName, 0755)
 		if err != nil {
 			return err
 		}
-		os.Chdir(DatatmodelName)
+		os.Chdir(dmName)
 	}
+
 	err := utils.DownloadFile(DatamodelTarballUrl, "datamodel.tar")
 	if err != nil {
-		return fmt.Errorf("could not download template files due to %s\n", err)
+		return fmt.Errorf("could not download template files due to %s", err)
 	}
 
 	file, err := os.Open("datamodel.tar")
@@ -56,41 +62,38 @@ func createDatamodel(DatatmodelName string, DatamodelTarballUrl string, Render b
 		return fmt.Errorf("could not unarchive template files due to %s", err)
 	}
 	os.Remove("datamodel.tar")
-	if standalone == false {
-		if DatatmodelName != "helloworld" {
-			err := utils.GoModInit(DatatmodelName, false)
+
+	if !standalone {
+		if dmName != "helloworld" {
+			err := utils.GoModInit(dmName, false)
 			if err != nil {
 				return err
 			}
 		} else {
 			os.Chdir("..")
 		}
-		Directory = DatatmodelName
+		Directory = dmName
 	} else {
-		err := utils.GoModInit(DatatmodelName, true)
+		err := utils.GoModInit(dmName, true)
 		if err != nil {
 			return err
 		}
-		DatatmodelName, err = utils.GetModuleName("")
-		if err != nil {
-			return err
-		}
-		fmt.Printf("Current Datamodel name: %s\n", DatatmodelName)
+		fmt.Printf("Current Datamodel name: %s\n", dmName)
 		Directory, _ = os.Getwd()
 	}
 	if Render {
 		values := TemplateValues{
-			ModuleName: strings.TrimSuffix(DatatmodelName, "\n"),
+			ModuleName: strings.TrimSuffix(dmName, "\n"),
 			GroupName:  strings.TrimSuffix(GroupName, "\n"),
 		}
 		err = utils.RenderTemplateFiles(values, Directory, ".git")
 		if err != nil {
-			return fmt.Errorf("could not create datamodel due to %s\n", err)
+			return fmt.Errorf("could not create datamodel due to %s", err)
 		}
 	}
-	if standalone != true {
+	if standalone {
 		fmt.Printf("Storing current datamodel as default datamodel\n")
-		err = utils.StoreCurrentDatamodel(DatatmodelName)
+		err = utils.StoreCurrentDatamodel(dmName)
 		if err != nil {
 			return err
 		}
@@ -98,62 +101,58 @@ func createDatamodel(DatatmodelName string, DatamodelTarballUrl string, Render b
 	return nil
 }
 
-func InitOperation(cmd *cobra.Command, args []string) error {
-	if (DatamodelName != "" && RepoName != "") || (DatamodelName == "" && RepoName == "") {
-		return fmt.Errorf("please provide only one of --name or --repo")
-	}
-	var standalone = false
-	if DatamodelName == "" {
-		if GroupName == "" {
-			fmt.Println("You need to provide a group name if datamodel name is not provided")
-			fmt.Scanln(&GroupName)
-			if GroupName == "" {
-				fmt.Println("Please provide a non-empty groupname")
-				return nil
-			}
-		}
+func checkIfDirectoryEmpty(standalone bool, DatamodelName string) {
+
+	// TODO: Check if directory with datamodelname under nexus directory already exists.
+	if standalone {
 		empty, _ := utils.IsDirEmpty(".")
-		if empty == false {
+		if !empty {
 			_, err := os.Stat("go.mod")
 			if err == nil {
-				return fmt.Errorf("Datamodel seems to be already initialzed with go.mod file, Please delete go.mod file or create a empty folder")
+				// TODO: standard error logs
+				fmt.Println("Datamodel already initialzed with go.mod file, Please delete go.mod file or create a empty folder")
+				os.Exit(1)
 			}
+
 			var input string
 			fmt.Println("Current Directory is not empty do you want to continue to initialize datamodel [y/n]: ")
 			fmt.Scanln(&input)
 			if input == "n" {
 				fmt.Println("Aborting datamodel initialization operation.")
-				return nil
+				os.Exit(0)
 			}
 		}
-		standalone = true
 	}
-	if RepoName != "" {
-		DatamodelName = RepoName
-	}
-	fmt.Printf("Datamodel name: %s\n", DatamodelName)
-	if standalone == false {
-		if GroupName == "" {
-			fmt.Printf("Assuming group name as %s.com\n", DatamodelName)
-			GroupName = strings.TrimSuffix(fmt.Sprintf("%s.com", DatamodelName), "\n")
-		}
+}
+
+func InitOperation(cmd *cobra.Command, args []string) error {
+
+	dmName := DatamodelName
+	fmt.Printf("Datamodel name: %s\n", dmName)
+	checkIfDirectoryEmpty(!localDatamodel, DatamodelName)
+
+	fmt.Printf("Datamodel name: %s\n", dmName)
+
+	if localDatamodel {
 		err := utils.CreateNexusDirectory(NEXUS_DIR, NEXUS_TEMPLATE_URL)
 		if err != nil {
+			// TODO stadard logging library error
 			return fmt.Errorf("could not create nexus directory")
 		}
 	}
-	if DatamodelName == "helloworld" {
-		err := createDatamodel(DatamodelName, HELLOWORLD_URL, false, standalone)
+
+	if dmName == "helloworld" {
+		err := createDatamodel(dmName, HELLOWORLD_URL, false, !localDatamodel)
 		if err != nil {
 			return err
 		}
 	} else {
-		err := createDatamodel(DatamodelName, DATAMODEL_TEMPLATE_URL, true, standalone)
+		err := createDatamodel(dmName, DATAMODEL_TEMPLATE_URL, true, !localDatamodel)
 		if err != nil {
 			return err
 		}
 	}
-	fmt.Printf("\u2713 Datamodel %s initialized successfully\n", DatamodelName)
+	fmt.Printf("\u2713 Datamodel %s initialized successfully\n", dmName)
 	return nil
 }
 
@@ -168,7 +167,10 @@ var InitCmd = &cobra.Command{
 }
 
 func init() {
-	InitCmd.Flags().StringVarP(&DatamodelName, "name", "n", "", "name of the datamodel to be created")
-	InitCmd.Flags().StringVarP(&GroupName, "group", "g", "", "group for the datamodel to be created")
-	InitCmd.Flags().StringVarP(&RepoName, "repo", "r", "", "repository url of the datamodel to be intialized.")
+	InitCmd.Flags().StringVarP(&DatamodelName, "name", "n", "", "name of the datamodel")
+	InitCmd.Flags().StringVarP(&GroupName, "group", "g", "", "subdomain for the datamodel resources")
+	InitCmd.Flags().BoolVarP(&localDatamodel, localDatamodelFlag, "", false, "initializes a app local datamodel")
+
+	InitCmd.MarkFlagRequired("name")
+	InitCmd.MarkFlagRequired("group")
 }
