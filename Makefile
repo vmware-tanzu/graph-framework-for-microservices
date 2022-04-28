@@ -15,7 +15,6 @@ PKG_NAME?=/go/src/gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/${GO_PROJEC
 DATAMODEL_PATH ?= datamodel
 CONFIG_FILE ?= ""
 GENERATED_OUTPUT_DIRECTORY ?= generated
-DATAMODEL_LOCAL_PATH ?= ""
 
 ifeq ($(CONTAINER_ID),)
 define run_in_container
@@ -105,7 +104,7 @@ generate_code:
 	./scripts/generate_openapi_schema.sh
 	$(MAKE) -C pkg/openapi_generator generate_test_schemas
 	goimports -w pkg
-	cp -r _generated/{client,apis,crds,nexus-client,helper} ${GENERATED_OUTPUT_DIRECTORY} ;
+	cp -r _generated/{client,apis,crds,nexus-client,helper} ${GENERATED_OUTPUT_DIRECTORY}
 
 .PHONY: test_generate_code_in_container
 test_generate_code_in_container: ${BUILDER_NAME}\:${BUILDER_TAG}.image.exists init_submodules

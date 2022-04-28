@@ -44,7 +44,6 @@ publish:
     - *setup_aws
     - *create_builder
     - *harbor_login
-    - CONTAINER_ID=$CONTAINER_ID PKG_NAME=/builds/${REPOSITORY} make build_in_container
     - make docker TAG=$CI_COMMIT_TAG
     - make publish TAG=$CI_COMMIT_TAG
 
