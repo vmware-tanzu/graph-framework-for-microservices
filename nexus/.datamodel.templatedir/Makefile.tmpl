@@ -12,13 +12,12 @@ datamodel_build:
 	rm -rf ${DATAMODEL_LOCAL_PATH}/build
 	mkdir -p ${BUILD_DIR}
 	if [ -z $(CONTAINER_ID) ]; then \
-		docker run\
+		docker run -pull=always\
 			--volume $(realpath .):/go/src/gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/datamodel/ \
 			-v /go/src/gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/datamodel/build/ \
 			--volume $(realpath .)/build:/go/src/gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/generated/ \
 			-e CRD_MODULE_PATH=${CRD_MODULE_PATH} \
 			-e CONFIG_FILE=datamodel/nexus.yaml \
-			--workdir /go/src/gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/ \
 			harbor-repo.vmware.com/nexus/compiler:$(TAG); \
 	else \
 		docker run --pull=always\
