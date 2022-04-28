@@ -24,7 +24,6 @@ lint:
   stage: lint
   script:
     - export CONTAINER_ID=$(docker ps -q -f "label=com.gitlab.gitlab-runner.job.id=$CI_JOB_ID" -f "label=com.gitlab.gitlab-runner.type=build")
-    - export DATAMODEL_LOCAL_PATH=$(realpath .)/nexus/
-    - CONTAINER_ID=${CONTAINER_ID} DATAMODEL_LOCAL_PATH=${DATAMODEL_LOCAL_PATH} make datamodel_build
+    - CONTAINER_ID=${CONTAINER_ID} make datamodel_build
     - |
       [[ -n $(git diff --name-only) ]] && { echo "There were files not commited with build" && exit 1}
