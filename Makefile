@@ -98,7 +98,7 @@ test_in_container: ${BUILDER_NAME}\:${BUILDER_TAG}.image.exists
 .PHONY: generate_code
 generate_code:
 	if [ -n $(DATAMODEL_LOCAL_PATH) ]; then \
-		cp -rf $(DATAMODEL_LOCAL_PATH) /go/src/gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git && \
+		cp -rf $(DATAMODEL_LOCAL_PATH) /go/src/gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/datamodel && \
 		rm -rf /go/src/gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/datamodel/build  ;\
 	fi
 	rm -rf _generated
