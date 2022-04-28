@@ -4,7 +4,7 @@ DEBUG ?= FALSE
 
 GO_PROJECT_NAME ?= compiler.git
 
-ECR_DOCKER_REGISTRY ?= 284299419820.dkr.ecr.us-west-2.amazonaws.com
+DOCKER_REGISTRY ?= harbor-repo.vmware.com
 
 IMAGE_NAME ?= nexus/compiler
 TAG ?= $(shell git rev-parse --verify --short=8 HEAD)
@@ -129,22 +129,22 @@ generate_example:
 
 .PHONY: show-image-name
 show-image-name:
-	@echo ${ECR_DOCKER_REGISTRY}/${IMAGE_NAME}:${TAG}
+	@echo ${DOCKER_REGISTRY}/${IMAGE_NAME}:${TAG}
 
 .PHONY: publish
 publish:
-	docker tag ${IMAGE_NAME}:${TAG} ${ECR_DOCKER_REGISTRY}/${IMAGE_NAME}:${TAG}
-	docker push ${ECR_DOCKER_REGISTRY}/${IMAGE_NAME}:${TAG};
+	docker tag ${IMAGE_NAME}:${TAG} ${DOCKER_REGISTRY}/${IMAGE_NAME}:${TAG}
+	docker push ${DOCKER_REGISTRY}/${IMAGE_NAME}:${TAG};
 
 .PHONY: download_builder_image
 download_builder_image:
-	docker pull ${ECR_DOCKER_REGISTRY}/${BUILDER_NAME}:${BUILDER_TAG}
-	docker tag ${ECR_DOCKER_REGISTRY}/${BUILDER_NAME}:${BUILDER_TAG} ${BUILDER_NAME}:${BUILDER_TAG}
+	docker pull ${DOCKER_REGISTRY}/${BUILDER_NAME}:${BUILDER_TAG}
+	docker tag ${DOCKER_REGISTRY}/${BUILDER_NAME}:${BUILDER_TAG} ${BUILDER_NAME}:${BUILDER_TAG}
 
 .PHONY: publish_builder_image
 publish_builder_image:
-	docker tag ${BUILDER_NAME}:${BUILDER_TAG} ${ECR_DOCKER_REGISTRY}/${BUILDER_NAME}:${BUILDER_TAG}
-	docker push ${ECR_DOCKER_REGISTRY}/${BUILDER_NAME}:${BUILDER_TAG}
+	docker tag ${BUILDER_NAME}:${BUILDER_TAG} ${DOCKER_REGISTRY}/${BUILDER_NAME}:${BUILDER_TAG}
+	docker push ${DOCKER_REGISTRY}/${BUILDER_NAME}:${BUILDER_TAG}
 
 .PHONY: init_submodules
 init_submodules:
