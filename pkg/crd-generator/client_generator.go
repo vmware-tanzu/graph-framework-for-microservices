@@ -132,52 +132,41 @@ func resolveNode(baseImportName string, pkg parser.Package, baseGroupName, versi
 		vars.LinkGroupResourceNameTitle = util.GetGroupResourceNameTitle(linkInfo.fieldType)
 		vars.LinkBaseImport = util.GetBaseImportName(linkInfo.pkgName, baseGroupName, version)
 
-		var resolvedLinksDelete string
-		var err error
 		if parser.IsMapField(link) {
 			clientVarsLink := apiGroupsClientVarsLink{
-				FieldName:       linkInfo.fieldName,
-				FieldNameGvk:    util.GetGvkFieldTagName(linkInfo.fieldName),
-				Group:           util.GetGroupName(linkInfo.pkgName, baseGroupName),
-				Kind:            linkInfo.fieldType,
-				GroupBaseImport: util.GetBaseImportName(linkInfo.pkgName, baseGroupName, version) + "." + linkInfo.fieldType,
-				IsNamed:         true,
+				FieldName:              linkInfo.fieldName,
+				FieldNameGvk:           util.GetGvkFieldTagName(linkInfo.fieldName),
+				Group:                  util.GetGroupName(linkInfo.pkgName, baseGroupName),
+				Kind:                   linkInfo.fieldType,
+				GroupBaseImport:        util.GetBaseImportName(linkInfo.pkgName, baseGroupName, version) + "." + linkInfo.fieldType,
+				IsNamed:                true,
+				GroupResourceNameTitle: util.GetGroupResourceNameTitle(linkInfo.fieldType),
+				GroupTypeName:          util.GetGroupTypeName(linkInfo.pkgName, baseGroupName, version),
 			}
-			if !parser.IsLinkField(link) { // do not resolve softlinks for delete/create
-				resolvedLinksDelete, err = renderLinkResolveTemplate(vars, resolveNamedLinkDeleteTmpl)
-				if err != nil {
-					return fmt.Errorf("failed to resolve links or children delete client template for link %v: %v",
-						linkInfo.fieldName, err)
-				}
+			if !parser.IsLinkField(link) {
 				clientGroupVars.Children = append(clientGroupVars.Children, clientVarsLink)
 			} else {
-
 				clientGroupVars.Links = append(clientGroupVars.Links, clientVarsLink)
 			}
 		} else {
 			clientVarsLink := apiGroupsClientVarsLink{
-				FieldName:       linkInfo.fieldName,
-				FieldNameGvk:    util.GetGvkFieldTagName(linkInfo.fieldName),
-				Group:           util.GetGroupName(linkInfo.pkgName, baseGroupName),
-				Kind:            linkInfo.fieldType,
-				GroupBaseImport: util.GetBaseImportName(linkInfo.pkgName, baseGroupName, version) + "." + linkInfo.fieldType,
-				IsNamed:         false,
+				FieldName:              linkInfo.fieldName,
+				FieldNameGvk:           util.GetGvkFieldTagName(linkInfo.fieldName),
+				Group:                  util.GetGroupName(linkInfo.pkgName, baseGroupName),
+				Kind:                   linkInfo.fieldType,
+				GroupBaseImport:        util.GetBaseImportName(linkInfo.pkgName, baseGroupName, version) + "." + linkInfo.fieldType,
+				IsNamed:                false,
+				GroupResourceNameTitle: util.GetGroupResourceNameTitle(linkInfo.fieldType),
+				GroupTypeName:          util.GetGroupTypeName(linkInfo.pkgName, baseGroupName, version),
 			}
 
 			if !parser.IsLinkField(link) { // do not resolve softlinks for delete/create
-				resolvedLinksDelete, err = renderLinkResolveTemplate(vars, resolveLinkDeleteTmpl)
-				if err != nil {
-					return fmt.Errorf("failed to resolve links or children delete client template for link %v: %v",
-						linkInfo.fieldName, err)
-				}
 				clientGroupVars.Children = append(clientGroupVars.Children, clientVarsLink)
 			} else {
 
 				clientGroupVars.Links = append(clientGroupVars.Links, clientVarsLink)
 			}
 		}
-
-		clientGroupVars.ResolveLinksDelete += resolvedLinksDelete
 	}
 
 	for _, f := range parser.GetSpecFields(node) {
@@ -279,24 +268,6 @@ type resolveLinkVars struct {
 //	}
 //`
 
-var resolveLinkDeleteTmpl = `
-	if result.Spec.{{.LinkFieldName}}Gvk != nil {
-		 err := obj.client.{{.LinkGroupTypeName}}().{{.LinkGroupResourceNameTitle}}().DeleteByName(ctx, result.Spec.{{.LinkFieldName}}Gvk.Name, parents)
-		if err != nil {
-			return err
-		}
-	}
-`
-
-var resolveNamedLinkDeleteTmpl = `
-	for _, v := range result.Spec.{{.LinkFieldName}}Gvk {
-		err := obj.client.{{.LinkGroupTypeName}}().{{.LinkGroupResourceNameTitle}}().DeleteByName(ctx, v.Name, parents)
-		if err != nil {
-			return err
-		}
-	}
-`
-
 var patchForUpdateTmpl = `
 	patchValue{{.LinkFieldName}} := objToUpdate.Spec.{{.LinkFieldName}}
 	patchOp{{.LinkFieldName}} := PatchOp{
@@ -385,10 +356,38 @@ func (obj *{{.GroupResourceType}}) Delete(ctx context.Context, name string, pare
 // DeleteByName works as Delete but without hashing a name
 func (obj *{{.GroupResourceType}}) DeleteByName(ctx context.Context, name string, parents map[string]string) (err error) { 
 	{{if .HasChildren}}
-{{.GetForDeleteByName}}
+	result, err := obj.client.baseClient.{{.GroupTypeName}}().{{.GroupResourceNameTitle}}().Get(ctx, name, metav1.GetOptions{})
+	if err != nil {
+		return err
+	}
+	if parents == nil {
+		parents = make(map[string]string, 1)
+	}
+
+	if _, ok := result.GetLabels()["nexus/display_name"]; ok {
+		parents["{{.CrdName}}"] = result.GetLabels()["nexus/display_name"]
+	} else {
+		parents["{{.CrdName}}"] = name
+	}
 	{{ end }}
 
-	{{.ResolveLinksDelete}}
+	{{ range $key, $link := .Children }}
+	{{ if $link.IsNamed }}
+	for _, v := range result.Spec.{{$link.FieldName}}Gvk {
+		err := obj.client.{{$link.GroupTypeName}}().{{$link.GroupResourceNameTitle}}().DeleteByName(ctx, v.Name, parents)
+		if err != nil {
+			return err
+		}
+	}
+	{{ else }}
+	if result.Spec.{{$link.FieldName}}Gvk != nil {
+		err := obj.client.{{$link.GroupTypeName}}().{{$link.GroupResourceNameTitle}}().DeleteByName(ctx, result.Spec.{{$link.FieldName}}Gvk.Name, parents)
+		if err != nil {
+			return err
+		}
+	}
+	{{ end }}
+	{{ end }}
 
 	err = obj.client.baseClient.{{.GroupTypeName}}().{{.GroupResourceNameTitle}}().Delete(ctx, name, metav1.DeleteOptions{})
 	if err != nil {
@@ -396,7 +395,34 @@ func (obj *{{.GroupResourceType}}) DeleteByName(ctx context.Context, name string
 	}
 
 	{{if .Parent.HasParent}}
-{{.Parent.UpdateParentForDelete}}
+	var patch Patch
+	{{if .Parent.IsNamed}}
+	patchOp := PatchOp{
+		Op:    "remove",
+		Path:  "/spec/{{.Parent.GvkFieldName}}/" + name,
+	}
+	{{ else }}
+	patchOp := PatchOp{
+		Op:    "remove",
+		Path:  "/spec/{{.Parent.GvkFieldName}}",
+	}
+	{{ end }}
+	patch = append(patch, patchOp)
+	marshaled, err := patch.Marshal()
+	if err != nil {
+		return err
+	}
+	parentName, ok := parents["{{.Parent.CrdName}}"]
+	if !ok {
+		parentName = helper.DEFAULT_KEY
+	}
+	if parents["nexus/is_name_hashed"] == "true" {
+		parentName = helper.GetHashedName("{{.Parent.CrdName}}", parents, parentName)
+	}
+	_, err = obj.client.baseClient.{{.Parent.GroupTypeName}}().{{.Parent.GroupResourceNameTitle}}().Patch(ctx, parentName, types.JSONPatchType, marshaled, metav1.PatchOptions{})
+	if err != nil {
+		return err
+	}
 	{{ end }}
 
 	return
@@ -579,66 +605,10 @@ func (obj *{{$.GroupResourceType}}) Remove{{$link.FieldName}}(ctx context.Contex
 {{ end }}
 `
 
-var getForDeleteTmpl = `
-	result, err := obj.client.baseClient.{{.GroupTypeName}}().{{.GroupResourceNameTitle}}().Get(ctx, hashedName, metav1.GetOptions{})
-	if err != nil {
-		return err
-	}
-`
-
-var getByNameForDeleteTmpl = `
-	result, err := obj.client.baseClient.{{.GroupTypeName}}().{{.GroupResourceNameTitle}}().Get(ctx, name, metav1.GetOptions{})
-	if err != nil {
-		return err
-	}
-	if parents == nil {
-		parents = make(map[string]string, 1)
-	}
-
-	if _, ok := result.GetLabels()["nexus/display_name"]; ok {
-		parents["{{.CrdName}}"] = result.GetLabels()["nexus/display_name"]
-	} else {
-		parents["{{.CrdName}}"] = name
-	}
-`
-
-var updateParentForDelete = `
-	var patch Patch
-	{{if .Parent.IsNamed}}
-	patchOp := PatchOp{
-		Op:    "remove",
-		Path:  "/spec/{{.Parent.GvkFieldName}}/" + name,
-	}
-	{{ else }}
-	patchOp := PatchOp{
-		Op:    "remove",
-		Path:  "/spec/{{.Parent.GvkFieldName}}",
-	}
-	{{ end }}
-	patch = append(patch, patchOp)
-	marshaled, err := patch.Marshal()
-	if err != nil {
-		return err
-	}
-	parentName, ok := parents["{{.Parent.CrdName}}"]
-	if !ok {
-		parentName = helper.DEFAULT_KEY
-	}
-	if parents["nexus/is_name_hashed"] == "true" {
-		parentName = helper.GetHashedName("{{.Parent.CrdName}}", parents, parentName)
-	}
-	_, err = obj.client.baseClient.{{.Parent.GroupTypeName}}().{{.Parent.GroupResourceNameTitle}}().Patch(ctx, parentName, types.JSONPatchType, marshaled, metav1.PatchOptions{})
-	if err != nil {
-		return err
-	}
-`
-
 type apiGroupsClientVars struct {
 	apiGroupsVars
 	CrdName                string
 	ResolveLinksDelete     string
-	GetForDeleteByName     string
-	GetForDelete           string
 	HasChildren            bool
 	BaseImportName         string
 	GroupResourceType      string
@@ -652,7 +622,6 @@ type apiGroupsClientVars struct {
 		HasParent              bool
 		CrdName                string
 		GvkFieldName           string
-		UpdateParentForDelete  string
 		GroupTypeName          string
 		GroupResourceNameTitle string
 	}
@@ -663,45 +632,18 @@ type apiGroupsClientVars struct {
 }
 
 type apiGroupsClientVarsLink struct {
-	FieldName       string
-	FieldNameGvk    string
-	Group           string
-	Kind            string
-	GroupBaseImport string
-	IsNamed         bool
+	FieldName              string
+	FieldNameGvk           string
+	Group                  string
+	Kind                   string
+	GroupBaseImport        string
+	IsNamed                bool
+	GroupTypeName          string
+	GroupResourceNameTitle string
 }
 
 func renderClientApiGroup(vars apiGroupsClientVars) (string, error) {
-	tmpl, err := template.New("tmpl").Parse(getForDeleteTmpl)
-	if err != nil {
-		return "", err
-	}
-	getBase, err := renderTemplate(tmpl, vars)
-	if err != nil {
-		return "", err
-	}
-	vars.GetForDelete = getBase.String()
-	tmpl, err = template.New("tmpl").Parse(getByNameForDeleteTmpl)
-	if err != nil {
-		return "", err
-	}
-	getByNameBase, err := renderTemplate(tmpl, vars)
-	if err != nil {
-		return "", err
-	}
-	vars.GetForDeleteByName = getByNameBase.String()
-	// Parent
-	tmpl, err = template.New("tmpl").Parse(updateParentForDelete)
-	if err != nil {
-		return "", err
-	}
-	updateParentBase, err := renderTemplate(tmpl, vars)
-	if err != nil {
-		return "", err
-	}
-	vars.Parent.UpdateParentForDelete = updateParentBase.String()
-
-	tmpl, err = template.New("tmpl").Parse(apiGroupClientTmpl)
+	tmpl, err := template.New("tmpl").Parse(apiGroupClientTmpl)
 	if err != nil {
 		return "", err
 	}
