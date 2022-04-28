@@ -22,8 +22,6 @@ limitations under the License.
 package v1
 
 import (
-	policytsmtanzuvmwarecomv1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/crd_generated/apis/policy.tsm.tanzu.vmware.com/v1"
-	servicegrouptsmtanzuvmwarecomv1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/crd_generated/apis/servicegroup.tsm.tanzu.vmware.com/v1"
 	runtime "k8s.io/apimachinery/pkg/runtime"
 )
 
@@ -183,13 +181,6 @@ func (in *GnsList) DeepCopyObject() runtime.Object {
 func (in *GnsSpec) DeepCopyInto(out *GnsSpec) {
 	*out = *in
 	out.Description = in.Description
-	if in.GnsServiceGroups != nil {
-		in, out := &in.GnsServiceGroups, &out.GnsServiceGroups
-		*out = make(map[string]servicegrouptsmtanzuvmwarecomv1.SvcGroup, len(*in))
-		for key, val := range *in {
-			(*out)[key] = *val.DeepCopy()
-		}
-	}
 	if in.GnsServiceGroupsGvk != nil {
 		in, out := &in.GnsServiceGroupsGvk, &out.GnsServiceGroupsGvk
 		*out = make(map[string]Child, len(*in))
@@ -197,20 +188,10 @@ func (in *GnsSpec) DeepCopyInto(out *GnsSpec) {
 			(*out)[key] = val
 		}
 	}
-	if in.GnsAccessControlPolicy != nil {
-		in, out := &in.GnsAccessControlPolicy, &out.GnsAccessControlPolicy
-		*out = new(policytsmtanzuvmwarecomv1.AccessControlPolicy)
-		(*in).DeepCopyInto(*out)
-	}
 	if in.GnsAccessControlPolicyGvk != nil {
 		in, out := &in.GnsAccessControlPolicyGvk, &out.GnsAccessControlPolicyGvk
 		*out = new(Child)
 		**out = **in
-	}
-	if in.Dns != nil {
-		in, out := &in.Dns, &out.Dns
-		*out = new(Dns)
-		(*in).DeepCopyInto(*out)
 	}
 	if in.DnsGvk != nil {
 		in, out := &in.DnsGvk, &out.DnsGvk

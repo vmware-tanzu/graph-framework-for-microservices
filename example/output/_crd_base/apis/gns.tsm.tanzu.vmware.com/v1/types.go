@@ -4,9 +4,6 @@ package v1
 
 import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-
-	policytsmtanzuvmwarecomv1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/_generated/apis/policy.tsm.tanzu.vmware.com/v1"
-	servicegrouptsmtanzuvmwarecomv1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/_generated/apis/servicegroup.tsm.tanzu.vmware.com/v1"
 )
 
 // +k8s:openapi-gen=true
@@ -43,15 +40,12 @@ func (c *Gns) CRDName() string {
 
 // +k8s:openapi-gen=true
 type GnsSpec struct {
-	Domain                    string                                              `json:"domain" yaml:"domain"`
-	UseSharedGateway          bool                                                `json:"useSharedGateway" yaml:"useSharedGateway"`
-	Description               Description                                         `json:"description" yaml:"description"`
-	GnsServiceGroups          map[string]servicegrouptsmtanzuvmwarecomv1.SvcGroup `json:"-" yaml:"-"`
-	GnsServiceGroupsGvk       map[string]Child                                    `json:"gnsServiceGroupsGvk,omitempty" yaml:"gnsServiceGroupsGvk,omitempty" nexus:"child"`
-	GnsAccessControlPolicy    *policytsmtanzuvmwarecomv1.AccessControlPolicy      `json:"-" yaml:"-"`
-	GnsAccessControlPolicyGvk *Child                                              `json:"gnsAccessControlPolicyGvk,omitempty" yaml:"gnsAccessControlPolicyGvk,omitempty" nexus:"child"`
-	Dns                       *Dns                                                `json:"-" yaml:"-"`
-	DnsGvk                    *Link                                               `json:"dnsGvk,omitempty" yaml:"dnsGvk,omitempty" nexus:"link"`
+	Domain                    string           `json:"domain" yaml:"domain"`
+	UseSharedGateway          bool             `json:"useSharedGateway" yaml:"useSharedGateway"`
+	Description               Description      `json:"description" yaml:"description"`
+	GnsServiceGroupsGvk       map[string]Child `json:"gnsServiceGroupsGvk,omitempty" yaml:"gnsServiceGroupsGvk,omitempty" nexus:"child"`
+	GnsAccessControlPolicyGvk *Child           `json:"gnsAccessControlPolicyGvk,omitempty" yaml:"gnsAccessControlPolicyGvk,omitempty" nexus:"child"`
+	DnsGvk                    *Link            `json:"dnsGvk,omitempty" yaml:"dnsGvk,omitempty" nexus:"link"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
