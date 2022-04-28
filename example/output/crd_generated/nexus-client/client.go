@@ -640,7 +640,6 @@ func (obj *gnsGnsTsmV1) CreateByName(ctx context.Context, objToCreate *basegnsts
 	objToCreate.Spec.DnsGvk = nil
 
 	objToCreate.Spec.GnsServiceGroupsGvk = nil
-
 	objToCreate.Spec.GnsAccessControlPolicyGvk = nil
 
 	result, err = obj.client.baseClient.GnsTsmV1().Gnses().Create(ctx, objToCreate, metav1.CreateOptions{})
@@ -1357,7 +1356,6 @@ func (obj *acpconfigPolicyTsmV1) CreateByName(ctx context.Context, objToCreate *
 	}
 
 	objToCreate.Spec.DestSvcGroupsGvk = nil
-
 	objToCreate.Spec.SourceSvcGroupsGvk = nil
 
 	result, err = obj.client.baseClient.PolicyTsmV1().ACPConfigs().Create(ctx, objToCreate, metav1.CreateOptions{})

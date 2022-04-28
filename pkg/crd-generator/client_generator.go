@@ -438,7 +438,40 @@ func (obj *{{.GroupResourceType}}) CreateByName(ctx context.Context, objToCreate
 	}
 
 	{{if .Parent.HasParent}}
-{{.Parent.UpdateParentForCreate}}
+	parentName, ok := parents["{{.Parent.CrdName}}"]
+	if !ok {
+		parentName = helper.DEFAULT_KEY
+	}
+	if objToCreate.Labels["nexus/is_name_hashed"] == "true" {
+		parentName = helper.GetHashedName("{{.Parent.CrdName}}", parents, parentName)
+	}
+	{{if .Parent.IsNamed}}
+	payload := "{\"spec\": {\"{{.Parent.GvkFieldName}}\": {\"" + objToCreate.Name + "\": {\"name\": \"" + objToCreate.Name + "\",\"kind\": \"{{.Kind}}\", \"group\": \"{{.Group}}\"}}}}"
+	_, err = obj.client.baseClient.{{.Parent.GroupTypeName}}().{{.Parent.GroupResourceNameTitle}}().Patch(ctx, parentName, types.MergePatchType, []byte(payload), metav1.PatchOptions{})
+	if err != nil {
+		return nil, err
+	}
+	{{ else }}
+	var patch Patch
+	patchOp := PatchOp{
+		Op:    "replace",
+		Path:  "/spec/{{.Parent.GvkFieldName}}",
+		Value: {{.BaseImportName}}.Child{
+			Group: "{{.Group}}",
+			Kind:  "{{.Kind}}",
+			Name:  objToCreate.Name,
+		},
+	}
+	patch = append(patch, patchOp)
+	marshaled, err := patch.Marshal()
+	if err != nil {
+		return nil, err
+	}
+	_, err = obj.client.baseClient.{{.Parent.GroupTypeName}}().{{.Parent.GroupResourceNameTitle}}().Patch(ctx, parentName, types.JSONPatchType, marshaled, metav1.PatchOptions{})
+	if err != nil {
+		return nil, err
+	}
+	{{ end }}
 	{{ end }}
 
 	return
@@ -569,43 +602,6 @@ var getByNameForDeleteTmpl = `
 	}
 `
 
-var updateParentForCreate = `
-	parentName, ok := parents["{{.Parent.CrdName}}"]
-	if !ok {
-		parentName = helper.DEFAULT_KEY
-	}
-	if objToCreate.Labels["nexus/is_name_hashed"] == "true" {
-		parentName = helper.GetHashedName("{{.Parent.CrdName}}", parents, parentName)
-	}
-	{{if .Parent.IsNamed}}
-	payload := "{\"spec\": {\"{{.Parent.GvkFieldName}}\": {\"" + objToCreate.Name + "\": {\"name\": \"" + objToCreate.Name + "\",\"kind\": \"{{.Kind}}\", \"group\": \"{{.Group}}\"}}}}"
-	_, err = obj.client.baseClient.{{.Parent.GroupTypeName}}().{{.Parent.GroupResourceNameTitle}}().Patch(ctx, parentName, types.MergePatchType, []byte(payload), metav1.PatchOptions{})
-	if err != nil {
-		return nil, err
-	}
-	{{ else }}
-	var patch Patch
-	patchOp := PatchOp{
-		Op:    "replace",
-		Path:  "/spec/{{.Parent.GvkFieldName}}",
-		Value: {{.BaseImportName}}.Child{
-			Group: "{{.Group}}",
-			Kind:  "{{.Kind}}",
-			Name:  objToCreate.Name,
-		},
-	}
-	patch = append(patch, patchOp)
-	marshaled, err := patch.Marshal()
-	if err != nil {
-		return nil, err
-	}
-	_, err = obj.client.baseClient.{{.Parent.GroupTypeName}}().{{.Parent.GroupResourceNameTitle}}().Patch(ctx, parentName, types.JSONPatchType, marshaled, metav1.PatchOptions{})
-	if err != nil {
-		return nil, err
-	}
-	{{ end }}
-`
-
 var updateParentForDelete = `
 	var patch Patch
 	{{if .Parent.IsNamed}}
@@ -656,7 +652,6 @@ type apiGroupsClientVars struct {
 		HasParent              bool
 		CrdName                string
 		GvkFieldName           string
-		UpdateParentForCreate  string
 		UpdateParentForDelete  string
 		GroupTypeName          string
 		GroupResourceNameTitle string
@@ -696,20 +691,11 @@ func renderClientApiGroup(vars apiGroupsClientVars) (string, error) {
 	}
 	vars.GetForDeleteByName = getByNameBase.String()
 	// Parent
-	tmpl, err = template.New("tmpl").Parse(updateParentForCreate)
-	if err != nil {
-		return "", err
-	}
-	updateParentBase, err := renderTemplate(tmpl, vars)
-	if err != nil {
-		return "", err
-	}
-	vars.Parent.UpdateParentForCreate = updateParentBase.String()
 	tmpl, err = template.New("tmpl").Parse(updateParentForDelete)
 	if err != nil {
 		return "", err
 	}
-	updateParentBase, err = renderTemplate(tmpl, vars)
+	updateParentBase, err := renderTemplate(tmpl, vars)
 	if err != nil {
 		return "", err
 	}
