@@ -172,9 +172,9 @@ image_scan:
 
 .PHONY: deploy
 deploy: kustomize undeploy
-	if [ $(CLUSTER) = "kind" ]; then \
-		echo "loding docker image to kind cluster if exists" ;\
-		kind load docker-image ${IMAGE_REGISTRY}:${IMAGE_TAG} ;\
+	if [ -n $(CLUSTER) ]; then \
+		echo "loding docker image to kind $(CLUSTER) cluster if exists" ;\
+		kind load docker-image ${IMAGE_REGISTRY}:${IMAGE_TAG} --name=$(CLUSTER);\
 	fi
 	cd config/deployment/ && $(KUSTOMIZE) edit set image ${APP_NAME}=${IMAGE_REGISTRY}:${IMAGE_TAG} && $(KUSTOMIZE) build . | kubectl apply -f - -n ${NAMESPACE};
 
