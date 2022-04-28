@@ -73,6 +73,13 @@ To run build in a fixed/sandboxed environment:
 
 To build nexus compiler on custom/local environment: `make build`
 
+### Generate code for example datamodel in custom/local environment
+
+Install required tools using `make tools`
+
+To render templates for example datamodel use `make render_templates`.
+To generate all code for example use `make generate_example`.
+
 ## Test
 ### Run tests in containerized sandbox (Recommended)
 
@@ -82,7 +89,7 @@ To run tests in a fixed/sandboxed environment:
 
 2. Test nexus compiler: `make test_in_container`
 
-4. Test generation with `make test_generate_code_in_container`
+3. Test generation with `make test_generate_code_in_container`
 
 ### Test CRD templates rendering:
 
