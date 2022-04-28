@@ -97,10 +97,6 @@ test_in_container: ${BUILDER_NAME}\:${BUILDER_TAG}.image.exists
 
 .PHONY: generate_code
 generate_code:
-	if [ -n $(DATAMODEL_LOCAL_PATH) ]; then \
-		cp -rf $(DATAMODEL_LOCAL_PATH) /go/src/gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/datamodel && \
-		rm -rf /go/src/gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/datamodel/build  ;\
-	fi
 	rm -rf _generated
 	cp -R generated_base_structure _generated
 	CRD_MODULE_PATH=${CRD_MODULE_PATH} go run cmd/nexus-sdk/main.go -config-file ${CONFIG_FILE} -dsl ${DATAMODEL_PATH} -crd-output _generated
@@ -109,11 +105,7 @@ generate_code:
 	./scripts/generate_openapi_schema.sh
 	$(MAKE) -C pkg/openapi_generator generate_test_schemas
 	goimports -w pkg
-	if [ -n $(DATAMODEL_LOCAL_PATH) ]; then \
-		cp -r _generated/{client,apis,crds,nexus-client,helper} $(DATAMODEL_LOCAL_PATH)/build ;\
-	else \
-		cp -r _generated/{client,apis,crds,nexus-client,helper} ${GENERATED_OUTPUT_DIRECTORY} ;\
-	fi
+	cp -r _generated/{client,apis,crds,nexus-client,helper} ${GENERATED_OUTPUT_DIRECTORY} ;
 
 .PHONY: test_generate_code_in_container
 test_generate_code_in_container: ${BUILDER_NAME}\:${BUILDER_TAG}.image.exists init_submodules
