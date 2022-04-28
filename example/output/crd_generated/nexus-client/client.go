@@ -209,20 +209,6 @@ func (obj *rootRootTsmV1) GetByName(ctx context.Context, name string) (result *b
 	if err != nil {
 		return nil, err
 	}
-	return obj.resolveLinks(ctx, result)
-}
-
-func (obj *rootRootTsmV1) resolveLinks(ctx context.Context, raw *baseroottsmtanzuvmwarecomv1.Root) (result *baseroottsmtanzuvmwarecomv1.Root, err error) {
-	result = raw
-
-	if result.Spec.ConfigGvk != nil {
-		field, err := obj.client.ConfigTsmV1().Configs().GetByName(ctx, result.Spec.ConfigGvk.Name)
-		if err != nil {
-			return nil, err
-		}
-		result.Spec.Config = field
-	}
-
 	return
 }
 
@@ -296,7 +282,6 @@ func (obj *rootRootTsmV1) CreateByName(ctx context.Context, objToCreate *baseroo
 		objToCreate.Labels["nexus/display_name"] = objToCreate.GetName()
 	}
 
-	objToCreate.Spec.Config = nil
 	objToCreate.Spec.ConfigGvk = nil
 
 	result, err = obj.client.baseClient.RootTsmV1().Roots().Create(ctx, objToCreate, metav1.CreateOptions{})
@@ -343,7 +328,7 @@ func (obj *rootRootTsmV1) UpdateByName(ctx context.Context, objToUpdate *baseroo
 		return nil, err
 	}
 
-	return obj.resolveLinks(ctx, result)
+	return
 }
 
 // Get hashes object's name and returns stored kubernetes object with all children and softlinks.
@@ -360,20 +345,6 @@ func (obj *configConfigTsmV1) GetByName(ctx context.Context, name string) (resul
 	if err != nil {
 		return nil, err
 	}
-	return obj.resolveLinks(ctx, result)
-}
-
-func (obj *configConfigTsmV1) resolveLinks(ctx context.Context, raw *baseconfigtsmtanzuvmwarecomv1.Config) (result *baseconfigtsmtanzuvmwarecomv1.Config, err error) {
-	result = raw
-
-	if result.Spec.GNSGvk != nil {
-		field, err := obj.client.GnsTsmV1().Gnses().GetByName(ctx, result.Spec.GNSGvk.Name)
-		if err != nil {
-			return nil, err
-		}
-		result.Spec.GNS = field
-	}
-
 	return
 }
 
@@ -471,7 +442,6 @@ func (obj *configConfigTsmV1) CreateByName(ctx context.Context, objToCreate *bas
 		objToCreate.Labels["nexus/display_name"] = objToCreate.GetName()
 	}
 
-	objToCreate.Spec.GNS = nil
 	objToCreate.Spec.GNSGvk = nil
 
 	result, err = obj.client.baseClient.ConfigTsmV1().Configs().Create(ctx, objToCreate, metav1.CreateOptions{})
@@ -546,7 +516,7 @@ func (obj *configConfigTsmV1) UpdateByName(ctx context.Context, objToUpdate *bas
 		return nil, err
 	}
 
-	return obj.resolveLinks(ctx, result)
+	return
 }
 
 // Get hashes object's name and returns stored kubernetes object with all children and softlinks.
@@ -563,37 +533,6 @@ func (obj *gnsGnsTsmV1) GetByName(ctx context.Context, name string) (result *bas
 	if err != nil {
 		return nil, err
 	}
-	return obj.resolveLinks(ctx, result)
-}
-
-func (obj *gnsGnsTsmV1) resolveLinks(ctx context.Context, raw *basegnstsmtanzuvmwarecomv1.Gns) (result *basegnstsmtanzuvmwarecomv1.Gns, err error) {
-	result = raw
-
-	result.Spec.GnsServiceGroups = make(map[string]baseservicegrouptsmtanzuvmwarecomv1.SvcGroup, len(result.Spec.GnsServiceGroupsGvk))
-	for _, v := range result.Spec.GnsServiceGroupsGvk {
-		field, err := obj.client.ServicegroupTsmV1().SvcGroups().GetByName(ctx, v.Name)
-		if err != nil {
-			return nil, err
-		}
-		result.Spec.GnsServiceGroups[field.GetLabels()["nexus/display_name"]] = *field
-	}
-
-	if result.Spec.GnsAccessControlPolicyGvk != nil {
-		field, err := obj.client.PolicyTsmV1().AccessControlPolicies().GetByName(ctx, result.Spec.GnsAccessControlPolicyGvk.Name)
-		if err != nil {
-			return nil, err
-		}
-		result.Spec.GnsAccessControlPolicy = field
-	}
-
-	if result.Spec.DnsGvk != nil {
-		field, err := obj.client.GnsTsmV1().Dnses().GetByName(ctx, result.Spec.DnsGvk.Name)
-		if err != nil {
-			return nil, err
-		}
-		result.Spec.Dns = field
-	}
-
 	return
 }
 
@@ -698,10 +637,10 @@ func (obj *gnsGnsTsmV1) CreateByName(ctx context.Context, objToCreate *basegnsts
 		objToCreate.Labels["nexus/display_name"] = objToCreate.GetName()
 	}
 
-	objToCreate.Spec.GnsServiceGroups = nil
+	objToCreate.Spec.DnsGvk = nil
+
 	objToCreate.Spec.GnsServiceGroupsGvk = nil
 
-	objToCreate.Spec.GnsAccessControlPolicy = nil
 	objToCreate.Spec.GnsAccessControlPolicyGvk = nil
 
 	result, err = obj.client.baseClient.GnsTsmV1().Gnses().Create(ctx, objToCreate, metav1.CreateOptions{})
@@ -800,7 +739,7 @@ func (obj *gnsGnsTsmV1) UpdateByName(ctx context.Context, objToUpdate *basegnsts
 		return nil, err
 	}
 
-	return obj.resolveLinks(ctx, result)
+	return
 }
 
 // AddDns updates srcObj with linkToAdd object
@@ -826,7 +765,7 @@ func (obj *gnsGnsTsmV1) AddDns(ctx context.Context, srcObj *basegnstsmtanzuvmwar
 		return nil, err
 	}
 
-	return obj.resolveLinks(ctx, result)
+	return
 }
 
 // RemoveDns removes linkToRemove object from srcObj
@@ -848,7 +787,7 @@ func (obj *gnsGnsTsmV1) RemoveDns(ctx context.Context, srcObj *basegnstsmtanzuvm
 		return nil, err
 	}
 
-	return obj.resolveLinks(ctx, result)
+	return
 }
 
 // Get hashes object's name and returns stored kubernetes object with all children and softlinks.
@@ -865,12 +804,6 @@ func (obj *dnsGnsTsmV1) GetByName(ctx context.Context, name string) (result *bas
 	if err != nil {
 		return nil, err
 	}
-	return obj.resolveLinks(ctx, result)
-}
-
-func (obj *dnsGnsTsmV1) resolveLinks(ctx context.Context, raw *basegnstsmtanzuvmwarecomv1.Dns) (result *basegnstsmtanzuvmwarecomv1.Dns, err error) {
-	result = raw
-
 	return
 }
 
@@ -967,7 +900,7 @@ func (obj *dnsGnsTsmV1) UpdateByName(ctx context.Context, objToUpdate *basegnsts
 		return nil, err
 	}
 
-	return obj.resolveLinks(ctx, result)
+	return
 }
 
 // Get hashes object's name and returns stored kubernetes object with all children and softlinks.
@@ -984,12 +917,6 @@ func (obj *svcgroupServicegroupTsmV1) GetByName(ctx context.Context, name string
 	if err != nil {
 		return nil, err
 	}
-	return obj.resolveLinks(ctx, result)
-}
-
-func (obj *svcgroupServicegroupTsmV1) resolveLinks(ctx context.Context, raw *baseservicegrouptsmtanzuvmwarecomv1.SvcGroup) (result *baseservicegrouptsmtanzuvmwarecomv1.SvcGroup, err error) {
-	result = raw
-
 	return
 }
 
@@ -1148,7 +1075,7 @@ func (obj *svcgroupServicegroupTsmV1) UpdateByName(ctx context.Context, objToUpd
 		return nil, err
 	}
 
-	return obj.resolveLinks(ctx, result)
+	return
 }
 
 // Get hashes object's name and returns stored kubernetes object with all children and softlinks.
@@ -1165,21 +1092,6 @@ func (obj *accesscontrolpolicyPolicyTsmV1) GetByName(ctx context.Context, name s
 	if err != nil {
 		return nil, err
 	}
-	return obj.resolveLinks(ctx, result)
-}
-
-func (obj *accesscontrolpolicyPolicyTsmV1) resolveLinks(ctx context.Context, raw *basepolicytsmtanzuvmwarecomv1.AccessControlPolicy) (result *basepolicytsmtanzuvmwarecomv1.AccessControlPolicy, err error) {
-	result = raw
-
-	result.Spec.PolicyConfigs = make(map[string]basepolicytsmtanzuvmwarecomv1.ACPConfig, len(result.Spec.PolicyConfigsGvk))
-	for _, v := range result.Spec.PolicyConfigsGvk {
-		field, err := obj.client.PolicyTsmV1().ACPConfigs().GetByName(ctx, v.Name)
-		if err != nil {
-			return nil, err
-		}
-		result.Spec.PolicyConfigs[field.GetLabels()["nexus/display_name"]] = *field
-	}
-
 	return
 }
 
@@ -1277,7 +1189,6 @@ func (obj *accesscontrolpolicyPolicyTsmV1) CreateByName(ctx context.Context, obj
 		objToCreate.Labels["nexus/display_name"] = objToCreate.GetName()
 	}
 
-	objToCreate.Spec.PolicyConfigs = nil
 	objToCreate.Spec.PolicyConfigsGvk = nil
 
 	result, err = obj.client.baseClient.PolicyTsmV1().AccessControlPolicies().Create(ctx, objToCreate, metav1.CreateOptions{})
@@ -1352,7 +1263,7 @@ func (obj *accesscontrolpolicyPolicyTsmV1) UpdateByName(ctx context.Context, obj
 		return nil, err
 	}
 
-	return obj.resolveLinks(ctx, result)
+	return
 }
 
 // Get hashes object's name and returns stored kubernetes object with all children and softlinks.
@@ -1369,30 +1280,6 @@ func (obj *acpconfigPolicyTsmV1) GetByName(ctx context.Context, name string) (re
 	if err != nil {
 		return nil, err
 	}
-	return obj.resolveLinks(ctx, result)
-}
-
-func (obj *acpconfigPolicyTsmV1) resolveLinks(ctx context.Context, raw *basepolicytsmtanzuvmwarecomv1.ACPConfig) (result *basepolicytsmtanzuvmwarecomv1.ACPConfig, err error) {
-	result = raw
-
-	result.Spec.DestSvcGroups = make(map[string]baseservicegrouptsmtanzuvmwarecomv1.SvcGroup, len(result.Spec.DestSvcGroupsGvk))
-	for _, v := range result.Spec.DestSvcGroupsGvk {
-		field, err := obj.client.ServicegroupTsmV1().SvcGroups().GetByName(ctx, v.Name)
-		if err != nil {
-			return nil, err
-		}
-		result.Spec.DestSvcGroups[field.GetLabels()["nexus/display_name"]] = *field
-	}
-
-	result.Spec.SourceSvcGroups = make(map[string]baseservicegrouptsmtanzuvmwarecomv1.SvcGroup, len(result.Spec.SourceSvcGroupsGvk))
-	for _, v := range result.Spec.SourceSvcGroupsGvk {
-		field, err := obj.client.ServicegroupTsmV1().SvcGroups().GetByName(ctx, v.Name)
-		if err != nil {
-			return nil, err
-		}
-		result.Spec.SourceSvcGroups[field.GetLabels()["nexus/display_name"]] = *field
-	}
-
 	return
 }
 
@@ -1468,6 +1355,10 @@ func (obj *acpconfigPolicyTsmV1) CreateByName(ctx context.Context, objToCreate *
 	if _, ok := objToCreate.Labels["nexus/display_name"]; !ok {
 		objToCreate.Labels["nexus/display_name"] = objToCreate.GetName()
 	}
+
+	objToCreate.Spec.DestSvcGroupsGvk = nil
+
+	objToCreate.Spec.SourceSvcGroupsGvk = nil
 
 	result, err = obj.client.baseClient.PolicyTsmV1().ACPConfigs().Create(ctx, objToCreate, metav1.CreateOptions{})
 	if err != nil {
@@ -1575,7 +1466,7 @@ func (obj *acpconfigPolicyTsmV1) UpdateByName(ctx context.Context, objToUpdate *
 		return nil, err
 	}
 
-	return obj.resolveLinks(ctx, result)
+	return
 }
 
 // AddDestSvcGroups updates srcObj with linkToAdd object
@@ -1587,7 +1478,7 @@ func (obj *acpconfigPolicyTsmV1) AddDestSvcGroups(ctx context.Context, srcObj *b
 		return nil, err
 	}
 
-	return obj.resolveLinks(ctx, result)
+	return
 }
 
 // RemoveDestSvcGroups removes linkToRemove object from srcObj
@@ -1609,7 +1500,7 @@ func (obj *acpconfigPolicyTsmV1) RemoveDestSvcGroups(ctx context.Context, srcObj
 		return nil, err
 	}
 
-	return obj.resolveLinks(ctx, result)
+	return
 }
 
 // AddSourceSvcGroups updates srcObj with linkToAdd object
@@ -1621,7 +1512,7 @@ func (obj *acpconfigPolicyTsmV1) AddSourceSvcGroups(ctx context.Context, srcObj 
 		return nil, err
 	}
 
-	return obj.resolveLinks(ctx, result)
+	return
 }
 
 // RemoveSourceSvcGroups removes linkToRemove object from srcObj
@@ -1643,5 +1534,5 @@ func (obj *acpconfigPolicyTsmV1) RemoveSourceSvcGroups(ctx context.Context, srcO
 		return nil, err
 	}
 
-	return obj.resolveLinks(ctx, result)
+	return
 }

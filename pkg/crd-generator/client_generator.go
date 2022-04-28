@@ -132,7 +132,7 @@ func resolveNode(baseImportName string, pkg parser.Package, baseGroupName, versi
 		vars.LinkGroupResourceNameTitle = util.GetGroupResourceNameTitle(linkInfo.fieldType)
 		vars.LinkBaseImport = util.GetBaseImportName(linkInfo.pkgName, baseGroupName, version)
 
-		var resolvedLinksGet, resolvedLinksDelete, resolvedLinksCreate string
+		var resolvedLinksGet, resolvedLinksDelete string
 		var err error
 		if parser.IsMapField(link) {
 			resolvedLinksGet, err = renderLinkResolveTemplate(vars, resolveNamedLinkGetTmpl)
@@ -140,26 +140,23 @@ func resolveNode(baseImportName string, pkg parser.Package, baseGroupName, versi
 				return fmt.Errorf("failed to resolve links or children get client template for link %v: %v",
 					linkInfo.fieldName, err)
 			}
+			clientVarsLink := apiGroupsClientVarsLink{
+				FieldName:       linkInfo.fieldName,
+				FieldNameGvk:    util.GetGvkFieldTagName(linkInfo.fieldName),
+				Group:           util.GetGroupName(linkInfo.pkgName, baseGroupName),
+				Kind:            linkInfo.fieldType,
+				GroupBaseImport: util.GetBaseImportName(linkInfo.pkgName, baseGroupName, version) + "." + linkInfo.fieldType,
+				IsNamed:         true,
+			}
 			if !parser.IsLinkField(link) { // do not resolve softlinks for delete/create
 				resolvedLinksDelete, err = renderLinkResolveTemplate(vars, resolveNamedLinkDeleteTmpl)
 				if err != nil {
 					return fmt.Errorf("failed to resolve links or children delete client template for link %v: %v",
 						linkInfo.fieldName, err)
 				}
-				resolvedLinksCreate, err = renderLinkResolveTemplate(vars, resolveLinkCreateTmpl)
-				if err != nil {
-					return fmt.Errorf("failed to resolve links or children create client template for link %v: %v",
-						linkInfo.fieldName, err)
-				}
+				clientGroupVars.Children = append(clientGroupVars.Children, clientVarsLink)
 			} else {
-				clientVarsLink := apiGroupsClientVarsLink{
-					FieldName:       linkInfo.fieldName,
-					FieldNameGvk:    util.GetGvkFieldTagName(linkInfo.fieldName),
-					Group:           util.GetGroupName(linkInfo.pkgName, baseGroupName),
-					Kind:            linkInfo.fieldType,
-					GroupBaseImport: util.GetBaseImportName(linkInfo.pkgName, baseGroupName, version) + "." + linkInfo.fieldType,
-					IsNamed:         true,
-				}
+
 				clientGroupVars.Links = append(clientGroupVars.Links, clientVarsLink)
 			}
 		} else {
@@ -169,33 +166,30 @@ func resolveNode(baseImportName string, pkg parser.Package, baseGroupName, versi
 					linkInfo.fieldName, err)
 			}
 
+			clientVarsLink := apiGroupsClientVarsLink{
+				FieldName:       linkInfo.fieldName,
+				FieldNameGvk:    util.GetGvkFieldTagName(linkInfo.fieldName),
+				Group:           util.GetGroupName(linkInfo.pkgName, baseGroupName),
+				Kind:            linkInfo.fieldType,
+				GroupBaseImport: util.GetBaseImportName(linkInfo.pkgName, baseGroupName, version) + "." + linkInfo.fieldType,
+				IsNamed:         false,
+			}
+
 			if !parser.IsLinkField(link) { // do not resolve softlinks for delete/create
 				resolvedLinksDelete, err = renderLinkResolveTemplate(vars, resolveLinkDeleteTmpl)
 				if err != nil {
 					return fmt.Errorf("failed to resolve links or children delete client template for link %v: %v",
 						linkInfo.fieldName, err)
 				}
-				resolvedLinksCreate, err = renderLinkResolveTemplate(vars, resolveLinkCreateTmpl)
-				if err != nil {
-					return fmt.Errorf("failed to resolve links or children create client template for link %v: %v",
-						linkInfo.fieldName, err)
-				}
+				clientGroupVars.Children = append(clientGroupVars.Children, clientVarsLink)
 			} else {
-				clientVarsLink := apiGroupsClientVarsLink{
-					FieldName:       linkInfo.fieldName,
-					FieldNameGvk:    util.GetGvkFieldTagName(linkInfo.fieldName),
-					Group:           util.GetGroupName(linkInfo.pkgName, baseGroupName),
-					Kind:            linkInfo.fieldType,
-					GroupBaseImport: util.GetBaseImportName(linkInfo.pkgName, baseGroupName, version) + "." + linkInfo.fieldType,
-					IsNamed:         false,
-				}
+
 				clientGroupVars.Links = append(clientGroupVars.Links, clientVarsLink)
 			}
 		}
 
 		clientGroupVars.ResolveLinksGet += resolvedLinksGet
 		clientGroupVars.ResolveLinksDelete += resolvedLinksDelete
-		clientGroupVars.ResolveLinksCreate += resolvedLinksCreate
 	}
 
 	for _, f := range parser.GetSpecFields(node) {
@@ -315,11 +309,6 @@ var resolveNamedLinkDeleteTmpl = `
 	}
 `
 
-var resolveLinkCreateTmpl = `
-	objToCreate.Spec.{{.LinkFieldName}} = nil
-	objToCreate.Spec.{{.LinkFieldName}}Gvk = nil
-`
-
 var patchForUpdateTmpl = `
 	patchValue{{.LinkFieldName}} := objToUpdate.Spec.{{.LinkFieldName}}
 	patchOp{{.LinkFieldName}} := PatchOp{
@@ -390,12 +379,6 @@ func (obj *{{.GroupResourceType}}) GetByName(ctx context.Context, name string) (
 	if err != nil {
 		return nil, err
 	}
-	return obj.resolveLinks(ctx, result)
-}
-
-func (obj *{{.GroupResourceType}}) resolveLinks(ctx context.Context, raw *{{.GroupBaseImport}}) (result *{{.GroupBaseImport}}, err error) {
-	result = raw
-	{{.ResolveLinksGet}}
 	return
 }
 
@@ -457,8 +440,10 @@ func (obj *{{.GroupResourceType}}) CreateByName(ctx context.Context, objToCreate
 		objToCreate.Labels["nexus/display_name"] = objToCreate.GetName()
 	}
 
-	{{.ResolveLinksCreate}}
-
+{{ range $key, $link := .Links }}objToCreate.Spec.{{$link.FieldName}}Gvk = nil
+{{ end }}
+{{ range $key, $link := .Children }}objToCreate.Spec.{{$link.FieldName}}Gvk = nil
+{{ end }}
 	result, err = obj.client.baseClient.{{.GroupTypeName}}().{{.GroupResourceNameTitle}}().Create(ctx, objToCreate, metav1.CreateOptions{})
 	if err != nil {
 		return nil, err
@@ -507,7 +492,7 @@ func (obj *{{.GroupResourceType}}) UpdateByName(ctx context.Context, objToUpdate
 		return nil, err
 	}
 
-	return obj.resolveLinks(ctx, result)
+	return
 }
 
 {{ range $key, $link := .Links }}
@@ -541,7 +526,7 @@ func (obj *{{$.GroupResourceType}}) Add{{$link.FieldName}}(ctx context.Context, 
 	}
 	{{ end }}
 
-	return obj.resolveLinks(ctx, result)
+	return
 }
 
 // Remove{{$link.FieldName}} removes linkToRemove object from srcObj
@@ -568,7 +553,7 @@ func (obj *{{$.GroupResourceType}}) Remove{{$link.FieldName}}(ctx context.Contex
 		return nil, err
 	}
 
-	return obj.resolveLinks(ctx, result)
+	return
 }
 {{ end }}
 `
@@ -669,7 +654,6 @@ type apiGroupsClientVars struct {
 	CrdName                string
 	ResolveLinksGet        string
 	ResolveLinksDelete     string
-	ResolveLinksCreate     string
 	GetForDeleteByName     string
 	GetForDelete           string
 	HasChildren            bool
@@ -692,7 +676,8 @@ type apiGroupsClientVars struct {
 	}
 	ForUpdatePatches string
 
-	Links []apiGroupsClientVarsLink
+	Links    []apiGroupsClientVarsLink
+	Children []apiGroupsClientVarsLink
 }
 
 type apiGroupsClientVarsLink struct {
