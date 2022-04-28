@@ -47,7 +47,6 @@ func RenderCRDTemplate(baseGroupName, crdModulePath string,
 	pkgs parser.Packages, graph map[string]parser.Node, outputDir string,
 	httpMethods map[string]nexus.HTTPMethodsResponses, httpCodes map[string]nexus.HTTPCodesResponse) error {
 	parentsMap := parser.CreateParentsMap(graph)
-	restMappings := parser.CreateRestMappings(graph)
 
 	pkgNames := make([]string, len(pkgs))
 	i := 0
@@ -99,7 +98,7 @@ func RenderCRDTemplate(baseGroupName, crdModulePath string,
 		if err != nil {
 			return err
 		}
-		crdFiles, err := RenderCRDBaseTemplate(baseGroupName, pkg, parentsMap, restMappings, httpMethods, httpCodes)
+		crdFiles, err := RenderCRDBaseTemplate(baseGroupName, pkg, parentsMap, httpMethods, httpCodes)
 		if err != nil {
 			return err
 		}
@@ -320,11 +319,10 @@ type crdBaseVars struct {
 }
 
 type NexusAnnotation struct {
-	Name                 string                            `json:"name,omitempty"`
-	Hierarchy            []string                          `json:"hierarchy,omitempty"`
-	Children             map[string]parser.NodeHelperChild `json:"children,omitempty"`
-	NexusRestAPIGen      nexus.RestAPISpec                 `json:"nexus-rest-api-gen,omitempty"`
-	NexusRestAPIMappings map[string]string                 `json:"nexus-rest-api-mappings,omitempty"`
+	Name            string                            `json:"name,omitempty"`
+	Hierarchy       []string                          `json:"hierarchy,omitempty"`
+	Children        map[string]parser.NodeHelperChild `json:"children,omitempty"`
+	NexusRestAPIGen nexus.RestAPISpec                 `json:"nexus-rest-api-gen,omitempty"`
 }
 
 type CrdBaseFile struct {
@@ -333,8 +331,7 @@ type CrdBaseFile struct {
 }
 
 func RenderCRDBaseTemplate(baseGroupName string, pkg parser.Package, parentsMap map[string]parser.NodeHelper,
-	restMappings map[string]string, httpMethods map[string]nexus.HTTPMethodsResponses,
-	httpCodes map[string]nexus.HTTPCodesResponse) ([]CrdBaseFile, error) {
+	httpMethods map[string]nexus.HTTPMethodsResponses, httpCodes map[string]nexus.HTTPCodesResponse) ([]CrdBaseFile, error) {
 	var crds []CrdBaseFile
 
 	restAPISpecMap := rest.GetRestApiSpecs(pkg, httpMethods, httpCodes)
@@ -347,10 +344,6 @@ func RenderCRDBaseTemplate(baseGroupName string, pkg parser.Package, parentsMap 
 		crdName := fmt.Sprintf("%s.%s", plural, groupName)
 
 		nexusAnnotation := &NexusAnnotation{}
-
-		if node.Name.Name == "Root" {
-			nexusAnnotation.NexusRestAPIMappings = restMappings
-		}
 
 		var err error
 		parents, ok := parentsMap[crdName]

@@ -32,12 +32,11 @@ const (
 var _ = Describe("Template renderers tests", func() {
 	var (
 		//err error
-		pkg          parser.Package
-		parentsMap   map[string]parser.NodeHelper
-		restMappings map[string]string
-		ok           bool
-		methods      map[string]nexus.HTTPMethodsResponses
-		codes        map[string]nexus.HTTPCodesResponse
+		pkg        parser.Package
+		parentsMap map[string]parser.NodeHelper
+		ok         bool
+		methods    map[string]nexus.HTTPMethodsResponses
+		codes      map[string]nexus.HTTPCodesResponse
 	)
 
 	BeforeEach(func() {
@@ -47,7 +46,6 @@ var _ = Describe("Template renderers tests", func() {
 
 		graph := parser.ParseDSLNodes(exampleDSLPath, baseGroupName)
 		parentsMap = parser.CreateParentsMap(graph)
-		restMappings = parser.CreateRestMappings(graph)
 		Expect(parentsMap).To(HaveLen(6))
 
 		methods, codes = rest.ParseResponses(pkgs)
@@ -90,7 +88,7 @@ var _ = Describe("Template renderers tests", func() {
 	})
 
 	It("should parse base crd template", func() {
-		files, err := crdgenerator.RenderCRDBaseTemplate(baseGroupName, pkg, parentsMap, restMappings, methods, codes)
+		files, err := crdgenerator.RenderCRDBaseTemplate(baseGroupName, pkg, parentsMap, methods, codes)
 		Expect(err).NotTo(HaveOccurred())
 		Expect(files).To(HaveLen(2))
 

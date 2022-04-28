@@ -299,7 +299,7 @@ var resolveNamedLinkGetTmpl = `
 
 var resolveLinkDeleteTmpl = `
 	if result.Spec.{{.LinkFieldName}}Gvk != nil {
-		 err := obj.client.{{.LinkGroupTypeName}}().{{.LinkGroupResourceNameTitle}}().DeleteByName(ctx, result.Spec.{{.LinkFieldName}}Gvk.Name, labels)
+		 err := obj.client.{{.LinkGroupTypeName}}().{{.LinkGroupResourceNameTitle}}().DeleteByName(ctx, result.Spec.{{.LinkFieldName}}Gvk.Name, parents)
 		if err != nil {
 			return err
 		}
@@ -308,7 +308,7 @@ var resolveLinkDeleteTmpl = `
 
 var resolveNamedLinkDeleteTmpl = `
 	for _, v := range result.Spec.{{.LinkFieldName}}Gvk {
-		err := obj.client.{{.LinkGroupTypeName}}().{{.LinkGroupResourceNameTitle}}().DeleteByName(ctx, v.Name, labels)
+		err := obj.client.{{.LinkGroupTypeName}}().{{.LinkGroupResourceNameTitle}}().DeleteByName(ctx, v.Name, parents)
 		if err != nil {
 			return err
 		}
@@ -376,11 +376,15 @@ func renderApiGroup(vars apiGroupsVars) (string, error) {
 }
 
 var apiGroupClientTmpl = `
-func (obj *{{.GroupResourceType}}) Get(ctx context.Context, name string, labels map[string]string) (result *{{.GroupBaseImport}}, err error) {
-	hashedName := helper.GetHashedName("{{.CrdName}}", labels, name)
+// Get hashes object's name and returns stored kubernetes object with all children and softlinks.
+// To resolve a hashed name names of all consecutive parents must be provided in parents param in form of:
+// {'object_crd_definition_name': 'object_name'}
+func (obj *{{.GroupResourceType}}) Get(ctx context.Context, name string, parents map[string]string) (result *{{.GroupBaseImport}}, err error) {
+	hashedName := helper.GetHashedName("{{.CrdName}}", parents, name)
 	return obj.GetByName(ctx, hashedName)
 }
 
+// GetByName works as Get but without hashing a name 
 func (obj *{{.GroupResourceType}}) GetByName(ctx context.Context, name string) (result *{{.GroupBaseImport}}, err error) { 
 	result, err = obj.client.baseClient.{{.GroupTypeName}}().{{.GroupResourceNameTitle}}().Get(ctx, name, metav1.GetOptions{})
 	if err != nil {
@@ -395,17 +399,20 @@ func (obj *{{.GroupResourceType}}) resolveLinks(ctx context.Context, raw *{{.Gro
 	return
 }
 
-
-func (obj *{{.GroupResourceType}}) Delete(ctx context.Context, name string, labels map[string]string) (err error) {
-	if labels == nil {
-		labels = map[string]string{}
+// Delete hashes object's name and deletes the object and all it's children
+// To resolve a hash names of all consecutive parents must be provided in parents param in form of:
+// {'object_crd_definition_name': 'object_name'}
+func (obj *{{.GroupResourceType}}) Delete(ctx context.Context, name string, parents map[string]string) (err error) {
+	if parents == nil {
+		parents = map[string]string{}
 	}
-	labels["nexus/is_name_hashed"] = "true"
-	hashedName := helper.GetHashedName("{{.CrdName}}", labels, name)
-	return obj.DeleteByName(ctx, hashedName, labels)
+	parents["nexus/is_name_hashed"] = "true"
+	hashedName := helper.GetHashedName("{{.CrdName}}", parents, name)
+	return obj.DeleteByName(ctx, hashedName, parents)
 }
 
-func (obj *{{.GroupResourceType}}) DeleteByName(ctx context.Context, name string, labels map[string]string) (err error) { 
+// DeleteByName works as Delete but without hashing a name
+func (obj *{{.GroupResourceType}}) DeleteByName(ctx context.Context, name string, parents map[string]string) (err error) { 
 	{{if .HasChildren}}
 {{.GetForDeleteByName}}
 	{{ end }}
@@ -424,26 +431,32 @@ func (obj *{{.GroupResourceType}}) DeleteByName(ctx context.Context, name string
 	return
 }
 
-func (obj *{{.GroupResourceType}}) Create(ctx context.Context, objToCreate *{{.GroupBaseImport}}, labels map[string]string) (result *{{.GroupBaseImport}}, err error) {
+// Create hashes object's name and creates an object in the apiserver. Only spec fields can be provided, links and
+// children can't be added using this function.
+// To hash object's name names of all consecutive parents must be provided in parents param in form of:
+// {'object_crd_definition_name': 'object_name'}
+func (obj *{{.GroupResourceType}}) Create(ctx context.Context, objToCreate *{{.GroupBaseImport}}, parents map[string]string) (result *{{.GroupBaseImport}}, err error) {
 	if objToCreate.Labels == nil {
 		objToCreate.Labels = map[string]string{}
 	}
-	objToCreate.Labels["nexus/display_name"] = objToCreate.GetName()
-	objToCreate.Labels["nexus/is_name_hashed"] = "true"
-	hashedName := helper.GetHashedName("{{.CrdName}}", labels, objToCreate.GetName())
-	objToCreate.Name = hashedName
-	return obj.CreateByName(ctx, objToCreate, labels)
+	if objToCreate.Labels["nexus/is_name_hashed"] != "true" {
+		objToCreate.Labels["nexus/display_name"] = objToCreate.GetName()
+		objToCreate.Labels["nexus/is_name_hashed"] = "true"
+		hashedName := helper.GetHashedName("{{.CrdName}}", parents, objToCreate.GetName())
+		objToCreate.Name = hashedName
+	}
+	return obj.CreateByName(ctx, objToCreate, parents)
 }
 
-func (obj *{{.GroupResourceType}}) CreateByName(ctx context.Context, objToCreate *{{.GroupBaseImport}}, labels map[string]string) (result *{{.GroupBaseImport}}, err error) {
-	for k, v := range labels {
+// CreateByName works as Create but without hashing the name
+func (obj *{{.GroupResourceType}}) CreateByName(ctx context.Context, objToCreate *{{.GroupBaseImport}}, parents map[string]string) (result *{{.GroupBaseImport}}, err error) {
+	for k, v := range parents {
 		objToCreate.Labels[k] = v
 	}
 	if _, ok := objToCreate.Labels["nexus/display_name"]; !ok {
 		objToCreate.Labels["nexus/display_name"] = objToCreate.GetName()
 	}
 
-	// recursive creation of objects is not supported
 	{{.ResolveLinksCreate}}
 
 	result, err = obj.client.baseClient.{{.GroupTypeName}}().{{.GroupResourceNameTitle}}().Create(ctx, objToCreate, metav1.CreateOptions{})
@@ -458,12 +471,24 @@ func (obj *{{.GroupResourceType}}) CreateByName(ctx context.Context, objToCreate
 	return
 }
 
-func (obj *{{.GroupResourceType}}) Update(ctx context.Context, objToUpdate *{{.GroupBaseImport}}, labels map[string]string) (result *{{.GroupBaseImport}}, err error) {
-	hashedName := helper.GetHashedName("{{.CrdName}}", labels, objToUpdate.GetName())
-	objToUpdate.Name = hashedName
+// Update hashes object's name and updates an object in the apiserver. Only spec fields and metadata can be updated,
+// links and children can't be added or updated using this function.
+// To hash the name names of all consecutive parents must be provided in parents param in form of:
+// {'object_crd_definition_name': 'object_name'}
+func (obj *{{.GroupResourceType}}) Update(ctx context.Context, objToUpdate *{{.GroupBaseImport}}, parents map[string]string) (result *{{.GroupBaseImport}}, err error) {
+	if objToUpdate.Labels == nil {
+		objToUpdate.Labels = map[string]string{}
+	}
+	if objToUpdate.Labels["nexus/is_name_hashed"] != "true" {
+		objToUpdate.Labels["nexus/display_name"] = objToUpdate.GetName()
+		objToUpdate.Labels["nexus/is_name_hashed"] = "true"
+		hashedName := helper.GetHashedName("{{.CrdName}}", parents, objToUpdate.GetName())
+		objToUpdate.Name = hashedName
+	}
 	return obj.UpdateByName(ctx, objToUpdate)
 }
 
+// UpdateByName works as Update but without hashing the name
 func (obj *{{.GroupResourceType}}) UpdateByName(ctx context.Context, objToUpdate *{{.GroupBaseImport}}) (result *{{.GroupBaseImport}}, err error) {
 	var patch Patch
 	patchOpMeta := PatchOp{
@@ -486,6 +511,7 @@ func (obj *{{.GroupResourceType}}) UpdateByName(ctx context.Context, objToUpdate
 }
 
 {{ range $key, $link := .Links }}
+// Add{{$link.FieldName}} updates srcObj with linkToAdd object
 func (obj *{{$.GroupResourceType}}) Add{{$link.FieldName}}(ctx context.Context, srcObj *{{$.GroupBaseImport}}, linkToAdd *{{$link.GroupBaseImport}}) (result *{{$.GroupBaseImport}}, err error) {
 	{{ if $link.IsNamed }}
 	payload := "{\"spec\": {\"{{$link.FieldNameGvk}}\": {\"" + linkToAdd.Name + "\": {\"name\": \"" + linkToAdd.Name + "\",\"kind\": \"{{$link.Kind}}\", \"group\": \"{{$link.Group}}\"}}}}"
@@ -518,6 +544,7 @@ func (obj *{{$.GroupResourceType}}) Add{{$link.FieldName}}(ctx context.Context, 
 	return obj.resolveLinks(ctx, result)
 }
 
+// Remove{{$link.FieldName}} removes linkToRemove object from srcObj
 func (obj *{{$.GroupResourceType}}) Remove{{$link.FieldName}}(ctx context.Context, srcObj *{{$.GroupBaseImport}}, linkToRemove *{{$link.GroupBaseImport}}) (result *{{$.GroupBaseImport}}, err error) {
 	var patch Patch
 	{{if $link.IsNamed}}
@@ -558,24 +585,24 @@ var getByNameForDeleteTmpl = `
 	if err != nil {
 		return err
 	}
-	if labels == nil {
-		labels = make(map[string]string, 1)
+	if parents == nil {
+		parents = make(map[string]string, 1)
 	}
 
 	if _, ok := result.GetLabels()["nexus/display_name"]; ok {
-		labels["{{.CrdName}}"] = result.GetLabels()["nexus/display_name"]
+		parents["{{.CrdName}}"] = result.GetLabels()["nexus/display_name"]
 	} else {
-		labels["{{.CrdName}}"] = name
+		parents["{{.CrdName}}"] = name
 	}
 `
 
 var updateParentForCreate = `
-	parentName, ok := labels["{{.Parent.CrdName}}"]
+	parentName, ok := parents["{{.Parent.CrdName}}"]
 	if !ok {
 		parentName = helper.DEFAULT_KEY
 	}
 	if objToCreate.Labels["nexus/is_name_hashed"] == "true" {
-		parentName = helper.GetHashedName("{{.Parent.CrdName}}", labels, parentName)
+		parentName = helper.GetHashedName("{{.Parent.CrdName}}", parents, parentName)
 	}
 	{{if .Parent.IsNamed}}
 	payload := "{\"spec\": {\"{{.Parent.GvkFieldName}}\": {\"" + objToCreate.Name + "\": {\"name\": \"" + objToCreate.Name + "\",\"kind\": \"{{.Kind}}\", \"group\": \"{{.Group}}\"}}}}"
@@ -624,12 +651,12 @@ var updateParentForDelete = `
 	if err != nil {
 		return err
 	}
-	parentName, ok := labels["{{.Parent.CrdName}}"]
+	parentName, ok := parents["{{.Parent.CrdName}}"]
 	if !ok {
 		parentName = helper.DEFAULT_KEY
 	}
-	if labels["nexus/is_name_hashed"] == "true" {
-		parentName = helper.GetHashedName("{{.Parent.CrdName}}", labels, parentName)
+	if parents["nexus/is_name_hashed"] == "true" {
+		parentName = helper.GetHashedName("{{.Parent.CrdName}}", parents, parentName)
 	}
 	_, err = obj.client.baseClient.{{.Parent.GroupTypeName}}().{{.Parent.GroupResourceNameTitle}}().Patch(ctx, parentName, types.JSONPatchType, marshaled, metav1.PatchOptions{})
 	if err != nil {
