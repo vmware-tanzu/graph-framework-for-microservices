@@ -637,10 +637,9 @@ func (obj *gnsGnsTsmV1) CreateByName(ctx context.Context, objToCreate *basegnsts
 		objToCreate.Labels["nexus/display_name"] = objToCreate.GetName()
 	}
 
-	objToCreate.Spec.DnsGvk = nil
-
 	objToCreate.Spec.GnsServiceGroupsGvk = nil
 	objToCreate.Spec.GnsAccessControlPolicyGvk = nil
+	objToCreate.Spec.DnsGvk = nil
 
 	result, err = obj.client.baseClient.GnsTsmV1().Gnses().Create(ctx, objToCreate, metav1.CreateOptions{})
 	if err != nil {

@@ -123,40 +123,26 @@ func resolveNode(baseImportName string, pkg parser.Package, baseGroupName, versi
 	}
 	for _, link := range childrenAndLinks {
 		linkInfo := getFieldInfo(pkg, link)
-		if parser.IsMapField(link) {
-			clientVarsLink := apiGroupsClientVarsLink{
-				FieldName:              linkInfo.fieldName,
-				FieldNameGvk:           util.GetGvkFieldTagName(linkInfo.fieldName),
-				Group:                  util.GetGroupName(linkInfo.pkgName, baseGroupName),
-				Kind:                   linkInfo.fieldType,
-				GroupBaseImport:        util.GetBaseImportName(linkInfo.pkgName, baseGroupName, version) + "." + linkInfo.fieldType,
-				IsNamed:                true,
-				GroupResourceNameTitle: util.GetGroupResourceNameTitle(linkInfo.fieldType),
-				GroupTypeName:          util.GetGroupTypeName(linkInfo.pkgName, baseGroupName, version),
-			}
-			if !parser.IsLinkField(link) {
-				clientGroupVars.Children = append(clientGroupVars.Children, clientVarsLink)
-			} else {
-				clientGroupVars.Links = append(clientGroupVars.Links, clientVarsLink)
-			}
-		} else {
-			clientVarsLink := apiGroupsClientVarsLink{
-				FieldName:              linkInfo.fieldName,
-				FieldNameGvk:           util.GetGvkFieldTagName(linkInfo.fieldName),
-				Group:                  util.GetGroupName(linkInfo.pkgName, baseGroupName),
-				Kind:                   linkInfo.fieldType,
-				GroupBaseImport:        util.GetBaseImportName(linkInfo.pkgName, baseGroupName, version) + "." + linkInfo.fieldType,
-				IsNamed:                false,
-				GroupResourceNameTitle: util.GetGroupResourceNameTitle(linkInfo.fieldType),
-				GroupTypeName:          util.GetGroupTypeName(linkInfo.pkgName, baseGroupName, version),
-			}
-
-			if !parser.IsLinkField(link) { // do not resolve softlinks for delete/create
-				clientGroupVars.Children = append(clientGroupVars.Children, clientVarsLink)
-			} else {
-				clientGroupVars.Links = append(clientGroupVars.Links, clientVarsLink)
-			}
+		clientVarsLink := apiGroupsClientVarsLink{
+			FieldName:              linkInfo.fieldName,
+			FieldNameGvk:           util.GetGvkFieldTagName(linkInfo.fieldName),
+			Group:                  util.GetGroupName(linkInfo.pkgName, baseGroupName),
+			Kind:                   linkInfo.fieldType,
+			GroupBaseImport:        util.GetBaseImportName(linkInfo.pkgName, baseGroupName, version) + "." + linkInfo.fieldType,
+			GroupResourceNameTitle: util.GetGroupResourceNameTitle(linkInfo.fieldType),
+			GroupTypeName:          util.GetGroupTypeName(linkInfo.pkgName, baseGroupName, version),
 		}
+		if parser.IsMapField(link) {
+			clientVarsLink.IsNamed = true
+		} else {
+			clientVarsLink.IsNamed = false
+		}
+		if parser.IsLinkField(link) {
+			clientGroupVars.Links = append(clientGroupVars.Links, clientVarsLink)
+		} else {
+			clientGroupVars.Children = append(clientGroupVars.Children, clientVarsLink)
+		}
+		clientGroupVars.LinksAndChildren = append(clientGroupVars.LinksAndChildren, clientVarsLink)
 	}
 
 	for _, f := range parser.GetSpecFields(node) {
@@ -410,9 +396,7 @@ func (obj *{{.GroupResourceType}}) CreateByName(ctx context.Context, objToCreate
 		objToCreate.Labels["nexus/display_name"] = objToCreate.GetName()
 	}
 
-{{ range $key, $link := .Links }}objToCreate.Spec.{{$link.FieldName}}Gvk = nil
-{{ end }}
-{{ range $key, $link := .Children }}objToCreate.Spec.{{$link.FieldName}}Gvk = nil
+{{ range $key, $link := .LinksAndChildren }}objToCreate.Spec.{{$link.FieldName}}Gvk = nil
 {{ end }}
 	result, err = obj.client.baseClient.{{.GroupTypeName}}().{{.GroupResourceNameTitle}}().Create(ctx, objToCreate, metav1.CreateOptions{})
 	if err != nil {
@@ -591,9 +575,10 @@ type apiGroupsClientVars struct {
 	}
 	ForUpdatePatches string
 
-	Links    []apiGroupsClientVarsLink
-	Children []apiGroupsClientVarsLink
-	Fields   []apiGroupsClientVarsLink
+	Links            []apiGroupsClientVarsLink
+	Children         []apiGroupsClientVarsLink
+	LinksAndChildren []apiGroupsClientVarsLink
+	Fields           []apiGroupsClientVarsLink
 }
 
 type apiGroupsClientVarsLink struct {
