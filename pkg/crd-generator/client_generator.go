@@ -1,7 +1,6 @@
 package crd_generator
 
 import (
-	"fmt"
 	"go/ast"
 	"sort"
 	"strings"
@@ -124,14 +123,6 @@ func resolveNode(baseImportName string, pkg parser.Package, baseGroupName, versi
 	}
 	for _, link := range childrenAndLinks {
 		linkInfo := getFieldInfo(pkg, link)
-		var vars resolveLinkVars
-		vars.LinkFieldName = linkInfo.fieldName
-		vars.LinkFieldType = linkInfo.fieldType
-		vars.LinkFieldNameTag = strings.ToLower(linkInfo.fieldName)
-		vars.LinkGroupTypeName = util.GetGroupTypeName(linkInfo.pkgName, baseGroupName, version)
-		vars.LinkGroupResourceNameTitle = util.GetGroupResourceNameTitle(linkInfo.fieldType)
-		vars.LinkBaseImport = util.GetBaseImportName(linkInfo.pkgName, baseGroupName, version)
-
 		if parser.IsMapField(link) {
 			clientVarsLink := apiGroupsClientVarsLink{
 				FieldName:              linkInfo.fieldName,
@@ -163,7 +154,6 @@ func resolveNode(baseImportName string, pkg parser.Package, baseGroupName, versi
 			if !parser.IsLinkField(link) { // do not resolve softlinks for delete/create
 				clientGroupVars.Children = append(clientGroupVars.Children, clientVarsLink)
 			} else {
-
 				clientGroupVars.Links = append(clientGroupVars.Links, clientVarsLink)
 			}
 		}
@@ -171,14 +161,11 @@ func resolveNode(baseImportName string, pkg parser.Package, baseGroupName, versi
 
 	for _, f := range parser.GetSpecFields(node) {
 		fieldInfo := getFieldInfo(pkg, f)
-		var vars resolveLinkVars
-		vars.LinkFieldName = fieldInfo.fieldName
-		vars.LinkFieldNameTag = util.GetTag(fieldInfo.fieldName)
-		resolvedPatches, err := renderLinkResolveTemplate(vars, patchForUpdateTmpl)
-		if err != nil {
-			return fmt.Errorf("failed to parse ")
-		}
-		clientGroupVars.ForUpdatePatches += resolvedPatches
+		var vars apiGroupsClientVarsLink
+		vars.FieldName = fieldInfo.fieldName
+		vars.FieldNameTag = util.GetTag(fieldInfo.fieldName)
+
+		clientGroupVars.Fields = append(clientGroupVars.Fields, vars)
 	}
 
 	nodeHelper := parentsMap[clientGroupVars.CrdName]
@@ -238,15 +225,6 @@ func getFieldInfo(pkg parser.Package, f *ast.Field) fieldInfo {
 	return info
 }
 
-type resolveLinkVars struct {
-	LinkFieldName              string
-	LinkFieldType              string
-	LinkFieldNameTag           string
-	LinkGroupTypeName          string
-	LinkGroupResourceNameTitle string
-	LinkBaseImport             string
-}
-
 //var resolveLinkGetTmpl = `
 //	if result.Spec.{{.LinkFieldName}}Gvk != nil {
 //		field, err := obj.client.{{.LinkGroupTypeName}}().{{.LinkGroupResourceNameTitle}}().GetByName(ctx, result.Spec.{{.LinkFieldName}}Gvk.Name)
@@ -267,28 +245,6 @@ type resolveLinkVars struct {
 //		result.Spec.{{.LinkFieldName}}[field.GetLabels()["nexus/display_name"]] = *field
 //	}
 //`
-
-var patchForUpdateTmpl = `
-	patchValue{{.LinkFieldName}} := objToUpdate.Spec.{{.LinkFieldName}}
-	patchOp{{.LinkFieldName}} := PatchOp{
-		Op:    "replace",
-		Path:  "/spec/{{.LinkFieldNameTag}}",
-		Value: patchValue{{.LinkFieldName}},
-	}
-	patch = append(patch, patchOp{{.LinkFieldName}})
-`
-
-func renderLinkResolveTemplate(vars resolveLinkVars, templateToUse string) (string, error) {
-	tmpl, err := template.New("tmpl").Parse(templateToUse)
-	if err != nil {
-		return "", err
-	}
-	ren, err := renderTemplate(tmpl, vars)
-	if err != nil {
-		return "", err
-	}
-	return ren.String(), nil
-}
 
 var apiGroupTmpl = `
 type {{.GroupTypeName}} struct {
@@ -529,7 +485,15 @@ func (obj *{{.GroupResourceType}}) UpdateByName(ctx context.Context, objToUpdate
 		Value: objToUpdate.ObjectMeta,
 	}
 	patch = append(patch, patchOpMeta)
-	{{.ForUpdatePatches}}
+	{{ range $key, $field := .Fields }}
+	patchValue{{$field.FieldName}} := objToUpdate.Spec.{{$field.FieldName}}
+	patchOp{{$field.FieldName}} := PatchOp{
+		Op:    "replace",
+		Path:  "/spec/{{$field.FieldNameTag}}",
+		Value: patchValue{{$field.FieldName}},
+	}
+	patch = append(patch, patchOp{{$field.FieldName}})
+	{{ end }}
 	marshaled, err := patch.Marshal()
 	if err != nil {
 		return nil, err
@@ -629,10 +593,12 @@ type apiGroupsClientVars struct {
 
 	Links    []apiGroupsClientVarsLink
 	Children []apiGroupsClientVarsLink
+	Fields   []apiGroupsClientVarsLink
 }
 
 type apiGroupsClientVarsLink struct {
 	FieldName              string
+	FieldNameTag           string
 	FieldNameGvk           string
 	Group                  string
 	Kind                   string
