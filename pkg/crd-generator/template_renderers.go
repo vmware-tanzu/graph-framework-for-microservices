@@ -475,6 +475,7 @@ type clientVars struct {
 	ClientsetsApiGroupMethods string
 	ApiGroups                 string
 	ApiGroupsClient           string
+	Nodes                     []apiGroupsClientVars
 }
 
 func RenderClientTemplate(baseGroupName, crdModulePath string, pkgs parser.Packages, parentsMap map[string]parser.NodeHelper) (*bytes.Buffer, error) {
