@@ -3,7 +3,6 @@
 package v1
 
 import (
-	configtsmtanzuvmwarecomv1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/crd_generated/apis/config.tsm.tanzu.vmware.com/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -40,8 +39,7 @@ func (c *Root) CRDName() string {
 
 // +k8s:openapi-gen=true
 type RootSpec struct {
-	Config    *configtsmtanzuvmwarecomv1.Config `json:"-" yaml:"-"`
-	ConfigGvk *Child                            `json:"configGvk,omitempty" yaml:"configGvk,omitempty" nexus:"child"`
+	ConfigGvk *Child `json:"configGvk,omitempty" yaml:"configGvk,omitempty" nexus:"child"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object

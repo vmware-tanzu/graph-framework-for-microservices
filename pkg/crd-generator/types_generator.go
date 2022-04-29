@@ -19,7 +19,6 @@ const (
 	openapigen  string = "// +k8s:openapi-gen=true"
 	deepcopygen string = "// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object"
 	clientgen   string = "// +genclient\n// +genclient:noStatus\n// +genclient:nonNamespaced"
-	emptyTag    string = "`json:\"" + "-" + "\" yaml:\"" + "-" + "\"`"
 )
 
 func parsePackageCRDs(pkg parser.Package) string {
@@ -144,8 +143,6 @@ type {{.Name}}Spec struct {
 		if err != nil {
 			continue
 		}
-		typeString := generateTypeString(child)
-		specDef.Fields += "\t" + name + " " + typeString + " " + emptyTag + "\n"
 		gvkName := util.GetGvkFieldName(name)
 		if parser.IsMapField(child) {
 			specDef.Fields += "\t" + gvkName + " map[string]Child"
@@ -160,8 +157,6 @@ type {{.Name}}Spec struct {
 		if err != nil {
 			log.Fatalf("failed to GetFieldName: %v", err)
 		}
-		typeString := generateTypeString(link)
-		specDef.Fields += "\t" + name + " " + typeString + " " + emptyTag + "\n"
 		gvkName := util.GetGvkFieldName(name)
 		if parser.IsMapField(link) {
 			specDef.Fields += "\t" + gvkName + " map[string]Link"
@@ -208,19 +203,6 @@ type {{.Name}}List struct {
 		log.Fatalf("failed to render template: %v", err)
 	}
 	return b.String()
-}
-
-func generateTypeString(field *ast.Field) string {
-	typeString := strings.Split(types.ExprString(field.Type), ".")
-	newTypeString := typeString[0]
-	if len(typeString) > 1 {
-		importType := fmt.Sprintf("%s%sv1", typeString[0], config.ConfigInstance.GroupName)
-		newTypeString = strings.ToLower(util.RemoveSpecialChars(importType)) + "." + typeString[1]
-	}
-	if !parser.IsMapField(field) && string(newTypeString[0]) != "*" {
-		newTypeString = "*" + newTypeString
-	}
-	return newTypeString
 }
 
 func parsePackageStructs(pkg parser.Package) string {
