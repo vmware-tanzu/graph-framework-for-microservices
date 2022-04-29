@@ -22,8 +22,8 @@ type DefaultResponse struct {
 // getHandler is used to process GET requests
 func getHandler(c echo.Context) error {
 	nc := c.(*NexusContext)
-	crdType := controllers.GlobalURIToCRDType[nc.NexusURI]
-	crd := controllers.GlobalCRDTypeToNode[crdType]
+	crdType := controllers.GlobalURIToCRDTypes[nc.NexusURI]
+	crd := controllers.GlobalCRDTypeToNodes[crdType]
 
 	// List operation
 	list := true
@@ -83,8 +83,8 @@ func getHandler(c echo.Context) error {
 // putHandler is used to process PUT requests
 func putHandler(c echo.Context) error {
 	nc := c.(*NexusContext)
-	crdType := controllers.GlobalURIToCRDType[nc.NexusURI]
-	crd := controllers.GlobalCRDTypeToNode[crdType]
+	crdType := controllers.GlobalURIToCRDTypes[nc.NexusURI]
+	crd := controllers.GlobalCRDTypeToNodes[crdType]
 
 	// Get name from the URI segment
 	var name string
@@ -110,7 +110,7 @@ func putHandler(c echo.Context) error {
 	// Parse labels
 	labels := make(map[string]string)
 	for _, parent := range crd.ParentHierarchy {
-		if c, ok := controllers.GlobalCRDTypeToNode[parent]; ok {
+		if c, ok := controllers.GlobalCRDTypeToNodes[parent]; ok {
 			if v := nc.Param(c.Name); v != "" {
 				labels[parent] = v
 			} else {
@@ -158,8 +158,8 @@ func putHandler(c echo.Context) error {
 // deleteHandler is used to process DELETE requests
 func deleteHandler(c echo.Context) error {
 	nc := c.(*NexusContext)
-	crdType := controllers.GlobalURIToCRDType[nc.NexusURI]
-	crd := controllers.GlobalCRDTypeToNode[crdType]
+	crdType := controllers.GlobalURIToCRDTypes[nc.NexusURI]
+	crd := controllers.GlobalCRDTypeToNodes[crdType]
 
 	// Get name from params
 	var name string
