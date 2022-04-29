@@ -5,4 +5,4 @@ kind: Kustomization
 images:
 - name: api-gw
   newName: 284299419820.dkr.ecr.us-west-2.amazonaws.com/nexus/api-gw
-  newTag: api-gw-5ba6f630
+  newTag: api-gw-3571decc
