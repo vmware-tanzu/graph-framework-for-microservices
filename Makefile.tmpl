@@ -153,7 +153,7 @@ build_app: go_get lint ## Build manager binary.
 	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -a -ldflags "-s -w -X gitlab.eng.vmware.com/nsx-allspark_users/lib-go/allspark/health.Sha=$(GIT_HEAD) -X gitlab.eng.vmware.com/nsx-allspark_users/lib-go/allspark/health.Tag=$(GIT_TAG)" -o bin/$(APP_NAME) main.go
 
 docker:
-	docker build -t $(APP_NAME):$(IMAGE_TAG) . -f Dockerfile
+	docker build -t ${IMAGE_REGISTRY}:${IMAGE_TAG} . -f Dockerfile
 
 .SILENT:
 .PHONY: build
