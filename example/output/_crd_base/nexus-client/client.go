@@ -832,12 +832,12 @@ func (obj *gnsGnsTsmV1) GetGnsServiceGroups(ctx context.Context, srcObj *basegns
 	if parents == nil {
 		parents = make(map[string]string, 1)
 	}
-	if _, ok := result.GetLabels()["nexus/display_name"]; ok {
+	if _, ok := srcObj.GetLabels()["nexus/display_name"]; ok {
 		parents["gnses.gns.tsm.tanzu.vmware.com"] = srcObj.GetLabels()["nexus/display_name"]
 	} else {
 		parents["gnses.gns.tsm.tanzu.vmware.com"] = srcObj.GetName()
 	}
-	hashedName := helper.GetHashedName("gnses.gns.tsm.tanzu.vmware.com", parents, GnsServiceGroupsObjectName)
+	hashedName := helper.GetHashedName(result.CRDName(), parents, GnsServiceGroupsObjectName)
 	return obj.GetGnsServiceGroupsByName(ctx, srcObj, hashedName)
 
 }
@@ -1396,12 +1396,12 @@ func (obj *accesscontrolpolicyPolicyTsmV1) GetPolicyConfigs(ctx context.Context,
 	if parents == nil {
 		parents = make(map[string]string, 1)
 	}
-	if _, ok := result.GetLabels()["nexus/display_name"]; ok {
+	if _, ok := srcObj.GetLabels()["nexus/display_name"]; ok {
 		parents["accesscontrolpolicies.policy.tsm.tanzu.vmware.com"] = srcObj.GetLabels()["nexus/display_name"]
 	} else {
 		parents["accesscontrolpolicies.policy.tsm.tanzu.vmware.com"] = srcObj.GetName()
 	}
-	hashedName := helper.GetHashedName("accesscontrolpolicies.policy.tsm.tanzu.vmware.com", parents, PolicyConfigsObjectName)
+	hashedName := helper.GetHashedName(result.CRDName(), parents, PolicyConfigsObjectName)
 	return obj.GetPolicyConfigsByName(ctx, srcObj, hashedName)
 
 }
@@ -1716,12 +1716,12 @@ func (obj *acpconfigPolicyTsmV1) GetDestSvcGroups(ctx context.Context, srcObj *b
 	if parents == nil {
 		parents = make(map[string]string, 1)
 	}
-	if _, ok := result.GetLabels()["nexus/display_name"]; ok {
+	if _, ok := srcObj.GetLabels()["nexus/display_name"]; ok {
 		parents["acpconfigs.policy.tsm.tanzu.vmware.com"] = srcObj.GetLabels()["nexus/display_name"]
 	} else {
 		parents["acpconfigs.policy.tsm.tanzu.vmware.com"] = srcObj.GetName()
 	}
-	hashedName := helper.GetHashedName("acpconfigs.policy.tsm.tanzu.vmware.com", parents, DestSvcGroupsObjectName)
+	hashedName := helper.GetHashedName(result.CRDName(), parents, DestSvcGroupsObjectName)
 	return obj.GetDestSvcGroupsByName(ctx, srcObj, hashedName)
 
 }
@@ -1766,12 +1766,12 @@ func (obj *acpconfigPolicyTsmV1) GetSourceSvcGroups(ctx context.Context, srcObj 
 	if parents == nil {
 		parents = make(map[string]string, 1)
 	}
-	if _, ok := result.GetLabels()["nexus/display_name"]; ok {
+	if _, ok := srcObj.GetLabels()["nexus/display_name"]; ok {
 		parents["acpconfigs.policy.tsm.tanzu.vmware.com"] = srcObj.GetLabels()["nexus/display_name"]
 	} else {
 		parents["acpconfigs.policy.tsm.tanzu.vmware.com"] = srcObj.GetName()
 	}
-	hashedName := helper.GetHashedName("acpconfigs.policy.tsm.tanzu.vmware.com", parents, SourceSvcGroupsObjectName)
+	hashedName := helper.GetHashedName(result.CRDName(), parents, SourceSvcGroupsObjectName)
 	return obj.GetSourceSvcGroupsByName(ctx, srcObj, hashedName)
 
 }

@@ -341,12 +341,12 @@ func (obj *{{$node.GroupResourceType}}) Get{{$link.FieldName}}(ctx context.Conte
 	if parents == nil {
 		parents = make(map[string]string, 1)
 	}
-	if _, ok := result.GetLabels()["nexus/display_name"]; ok {
+	if _, ok := srcObj.GetLabels()["nexus/display_name"]; ok {
 		parents["{{$node.CrdName}}"] = srcObj.GetLabels()["nexus/display_name"]
 	} else {
 		parents["{{$node.CrdName}}"] = srcObj.GetName()
 	}
-	hashedName := helper.GetHashedName("{{$node.CrdName}}", parents, {{$link.FieldName}}ObjectName)
+	hashedName := helper.GetHashedName(result.CRDName(), parents, {{$link.FieldName}}ObjectName)
 	return obj.Get{{$link.FieldName}}ByName(ctx, srcObj, hashedName)
 	{{ else }}return obj.Get{{$link.FieldName}}ByName(ctx, srcObj){{ end }}
 }
