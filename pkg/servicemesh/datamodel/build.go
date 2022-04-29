@@ -59,6 +59,10 @@ func Build(cmd *cobra.Command, args []string) error {
 	}
 	envList := common.GetEnvList()
 	envList = append(envList, fmt.Sprintf("TAG=%s", values.NexusCompiler.Version))
+	containerID := os.Getenv("CONTAINER_ID")
+	if containerID != "" {
+		envList = append(envList, fmt.Sprintf("CONTAINER_ID=%s", containerID))
+	}
 	// hack for running datamodel build locally
 	err = utils.SystemCommand(cmd, utils.CHECK_CURRENT_DIRECTORY_IS_DATAMODEL, envList, "make", "datamodel_build", "--dry-run")
 	if err == nil {
