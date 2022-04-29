@@ -50,6 +50,10 @@ func getHandler(c echo.Context) error {
 		name = nc.QueryParams().Get(crd.Name)
 	}
 
+	// Mangle name
+	labels := parseLabels(nc, crd.ParentHierarchy)
+	hashedName := nexus.GetHashedName(crdType, crd.ParentHierarchy, labels, name)
+
 	// Setup GroupVersionResource
 	parts := strings.Split(crdType, ".")
 	gvr := schema.GroupVersionResource{
@@ -66,11 +70,15 @@ func getHandler(c echo.Context) error {
 			return handleClientError(nc, err)
 		}
 		for _, item := range objs.Items {
-			specs[item.GetName()] = item.Object["spec"]
+			itemName := item.GetName()
+			if val, ok := item.GetLabels()["nexus/display_name"]; ok {
+				itemName = val
+			}
+			specs[itemName] = item.Object["spec"]
 		}
 		output = specs
 	} else {
-		obj, err := client.Client.Resource(gvr).Get(context.TODO(), name, metav1.GetOptions{})
+		obj, err := client.Client.Resource(gvr).Get(context.TODO(), hashedName, metav1.GetOptions{})
 		if err != nil {
 			return handleClientError(nc, err)
 		}
@@ -107,18 +115,6 @@ func putHandler(c echo.Context) error {
 		}
 	}
 
-	// Parse labels
-	labels := make(map[string]string)
-	for _, parent := range crd.ParentHierarchy {
-		if c, ok := controllers.GlobalCRDTypeToNodes[parent]; ok {
-			if v := nc.Param(c.Name); v != "" {
-				labels[parent] = v
-			} else {
-				labels[parent] = "default"
-			}
-		}
-	}
-
 	// Parse body
 	var body map[string]interface{}
 	if err := nc.Bind(&body); err != nil {
@@ -133,6 +129,9 @@ func putHandler(c echo.Context) error {
 		Resource: parts[0],
 	}
 	crdNameParts := strings.Split(crd.Name, ".")
+	labels := parseLabels(nc, crd.ParentHierarchy)
+	labels["nexus/is_name_hashed"] = "true"
+	labels["nexus/display_name"] = name
 
 	// Build object
 	obj := &unstructured.Unstructured{
@@ -181,6 +180,10 @@ func deleteHandler(c echo.Context) error {
 		name = nc.QueryParams().Get(crd.Name)
 	}
 
+	// Mangle name
+	labels := parseLabels(nc, crd.ParentHierarchy)
+	hashedName := nexus.GetHashedName(crdType, crd.ParentHierarchy, labels, name)
+
 	// Setup GroupVersionResource
 	parts := strings.Split(crdType, ".")
 	gvr := schema.GroupVersionResource{
@@ -190,7 +193,7 @@ func deleteHandler(c echo.Context) error {
 	}
 
 	// Get object from kubernetes
-	err := client.Client.Resource(gvr).Delete(context.TODO(), name, metav1.DeleteOptions{})
+	err := client.Client.Resource(gvr).Delete(context.TODO(), hashedName, metav1.DeleteOptions{})
 	if err != nil {
 		return handleClientError(nc, err)
 	}
@@ -210,4 +213,21 @@ func handleClientError(c echo.Context, err error) error {
 	}
 
 	return c.JSON(http.StatusInternalServerError, DefaultResponse{Message: err.Error()})
+}
+
+func parseLabels(c echo.Context, parents []string) map[string]string {
+	nc := c.(*NexusContext)
+	// Parse labels
+	labels := make(map[string]string)
+	for _, parent := range parents {
+		if c, ok := controllers.GlobalCRDTypeToNodes[parent]; ok {
+			if v := nc.Param(c.Name); v != "" {
+				labels[parent] = v
+			} else {
+				labels[parent] = "default"
+			}
+		}
+	}
+
+	return labels
 }
