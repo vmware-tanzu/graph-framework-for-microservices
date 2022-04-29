@@ -3,9 +3,12 @@ module api-gw
 go 1.17
 
 require (
-	github.com/labstack/echo/v4 v4.7.2
+	github.com/labstack/echo v3.3.10+incompatible
 	github.com/onsi/ginkgo v1.16.5
 	github.com/onsi/gomega v1.17.0
+	github.com/sirupsen/logrus v1.8.1
+	gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/common-library.git v0.0.0-20220428125452-2c6c391ae872
+	k8s.io/apiextensions-apiserver v0.23.0
 	k8s.io/apimachinery v0.23.0
 	k8s.io/client-go v0.23.0
 	sigs.k8s.io/controller-runtime v0.11.0
@@ -22,6 +25,7 @@ require (
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/cespare/xxhash/v2 v2.1.1 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
+	github.com/elliotchance/orderedmap v1.4.0 // indirect
 	github.com/evanphx/json-patch v4.12.0+incompatible // indirect
 	github.com/form3tech-oss/jwt-go v3.2.3+incompatible // indirect
 	github.com/fsnotify/fsnotify v1.5.1 // indirect
@@ -36,7 +40,6 @@ require (
 	github.com/googleapis/gnostic v0.5.5 // indirect
 	github.com/imdario/mergo v0.3.12 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
-	github.com/labstack/echo v3.3.10+incompatible // indirect
 	github.com/labstack/gommon v0.3.1 // indirect
 	github.com/mattn/go-colorable v0.1.11 // indirect
 	github.com/mattn/go-isatty v0.0.14 // indirect
@@ -52,7 +55,6 @@ require (
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
 	github.com/valyala/fasttemplate v1.2.1 // indirect
-	gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/common-library.git v0.0.0-20220425104724-aada688df39f // indirect
 	go.uber.org/atomic v1.7.0 // indirect
 	go.uber.org/multierr v1.6.0 // indirect
 	go.uber.org/zap v1.19.1 // indirect
@@ -71,7 +73,6 @@ require (
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b // indirect
 	k8s.io/api v0.23.0 // indirect
-	k8s.io/apiextensions-apiserver v0.23.0 // indirect
 	k8s.io/component-base v0.23.0 // indirect
 	k8s.io/klog/v2 v2.30.0 // indirect
 	k8s.io/kube-openapi v0.0.0-20211115234752-e816edb12b65 // indirect

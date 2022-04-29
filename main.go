@@ -17,6 +17,7 @@ limitations under the License.
 package main
 
 import (
+	"api-gw/pkg/client"
 	"flag"
 	"fmt"
 	"os"
@@ -98,6 +99,12 @@ func main() {
 	}
 	if err := mgr.AddReadyzCheck("readyz", healthz.Ping); err != nil {
 		setupLog.Error(err, "unable to set up ready check")
+		os.Exit(1)
+	}
+
+	// Create new dynamic client for kubernetes
+	if err = client.New(ctrl.GetConfigOrDie()); err != nil {
+		setupLog.Error(err, "unable to set up dynamic client")
 		os.Exit(1)
 	}
 

@@ -58,12 +58,8 @@ nexus-cli: ## Install Nexus CLI
 	chmod 755 nexus
 	mv nexus /usr/local/bin/nexus
 
-## to silence all not needed.
-%:
-	@true
-
 replace:
-	if [[ -n ${DATAMODEL} ]]; then\
+	if [ -n ${DATAMODEL} ]; then\
 			test -s ${DATAMODEL_DIR}/${DATAMODEL} || { echo "Please create datamodel ${DATAMODEL} for go mod replace"; exit 1; } ;\
 			go mod edit -replace $(DATAMODEL)=${DATAMODEL_DIR}/${DATAMODEL} ;\
 	fi
@@ -74,9 +70,9 @@ datamodel_init: ## Initialize datamodel
 	if [ -z $(NEXUS_BIN) ]; then \
 		echo "Please install nexus binary"; \
 		exit 1; \
-	fi 
-	if [[ -n ${DATAMODEL} ]]; then \
-		if [[ -n ${DATAMODEL_GROUP} ]]; then \
+	fi
+	if [ -n ${DATAMODEL} ]; then \
+		if [ -n ${DATAMODEL_GROUP} ]; then \
 			$(NEXUS_BIN) datamodel init --name ${DATAMODEL} --group ${DATAMODEL_GROUP};\
 		else \
 			$(NEXUS_BIN) datamodel init --name ${DATAMODEL} ;\
@@ -101,13 +97,27 @@ lint: ## lint checks using the make targets
 	$(MAKE) fmt
 	$(MAKE) vet
 
+go_get:
+	go get . ;
+
 .PHONY: build
-build: lint ## Build manager binary.
-	docker build --build-arg APP_NAME=${APP_NAME} \
-				--build-arg GIT_HEAD=${GIT_HEAD} \
-				--build-arg GIT_TAG=${CI_COMMIT} \
-				--build-arg CICD_TOKEN=${CICD_TOKEN} \
-				-t ${IMAGE_REGISTRY}:${IMAGE_TAG} .
+build: go_get lint ## Build manager binary.
+	mkdir -p .ssh ;\
+	if [ -n $(CICD_TOKEN) ]; then \
+		DOCKER_BUILDKIT=1 docker build --build-arg APP_NAME=${APP_NAME} \
+					--build-arg GIT_HEAD=${GIT_HEAD} \
+					--build-arg GIT_TAG=${CI_COMMIT} \
+					--build-arg CICD_TOKEN=${CICD_TOKEN} \
+					-t ${IMAGE_REGISTRY}:${IMAGE_TAG} . ;\
+	else \
+		test -s ~/.ssh || { echo "Please provide CICD_TOKEN if ssh not available."; exit 1; }; \
+		cp -rf ~/.ssh/* .ssh ;\
+		DOCKER_BUILDKIT=1 docker build --build-arg APP_NAME=${APP_NAME} \
+					--build-arg GIT_HEAD=${GIT_HEAD} \
+					--build-arg GIT_TAG=${CI_COMMIT} \
+					--build-arg USE_SSH="true" \
+					-t ${IMAGE_REGISTRY}:${IMAGE_TAG} . ;\
+	fi
 
 ##@ Test
 
@@ -138,7 +148,7 @@ teardown_environment:
 ##@ Coverage
 .PHONY: coverage
 coverage:
-    go test -json -coverprofile=coverage.out ./... | tee report.json ;\
+	go test -json -coverprofile=coverage.out ./... | tee report.json ;\
 	sonar-scanner ;
 
 ##@ Publish
@@ -156,8 +166,9 @@ image_scan:
 ##@ Deploy
 
 .PHONY: deploy
-deploy: kustomize
-	if [[ $(CLUSTER) == "kind" ]]; then \
+deploy: kustomize undeploy
+	if [ $(CLUSTER) = "kind" ]; then \
+		echo "loding docker image to kind cluster if exists" ;\
 		kind load docker-image ${IMAGE_REGISTRY}:${IMAGE_TAG} ;\
 	fi
 	cd config/deployment/ && $(KUSTOMIZE) edit set image ${APP_NAME}=${IMAGE_REGISTRY}:${IMAGE_TAG} && $(KUSTOMIZE) build . | kubectl apply -f - -n ${NAMESPACE};
@@ -165,17 +176,39 @@ deploy: kustomize
 
 .PHONY: undeploy
 undeploy: kustomize
-	cd config/deployment/ && $(KUSTOMIZE) build . | kubectl delete -f - -n ${NAMESPACE};
+	cd config/deployment/ && $(KUSTOMIZE) build . | kubectl delete -f - -n ${NAMESPACE} --ignore-not-found=true;
 
+
+add_operator: install-nexus-kubebuilder
+	if [ -n $(CRD_DATAMODEL_NAME) ]; then \
+		if [ -n $(CRD_GROUP) ]; then \
+			if [ -n $(CRD_VERSION) ]; then \
+				if [ -n $(CRD_KIND) ]; then \
+					$(NEXUS-KUBEBUILDER) create api --group $(CRD_GROUP) --kind $(CRD_KIND) --version $(CRD_VERSION) --controller --resource=false --import $(CRD_DATAMODEL_NAME) ;\
+				else \
+					echo "Please provide CRD_KIND"; exit 1;\
+				fi \
+			else \
+				echo "Please provide CRD_VERSION"; exit 1; \
+			fi \
+		else \
+			echo "Please provide CRD_GROUP"; exit 1; \
+		fi \
+	else \
+		echo "Please provide CRD_DATAMODEL_NAME"; exit 1; \
+	fi
 
 #check how to use kustomize for now using sed to replace deployment..
-KUSTOMIZE = $(shell pwd)/bin/kustomize
+PROJECT_DIR := $(shell dirname $(abspath $(lastword $(MAKEFILE_LIST))))
+KUSTOMIZE = $(PROJECT_DIR)/bin/kustomize
 .PHONY: kustomize
 kustomize: ## Download kustomize locally if necessary.
 	$(MAKE) install-kustomize
 
 # go-get-tool will 'go get' any package $2 and install it to $1.
-PROJECT_DIR := $(shell dirname $(abspath $(lastword $(MAKEFILE_LIST))))
 install-kustomize:
 	test -s $(PROJECT_DIR)/bin/kustomize || { mkdir -p $(PROJECT_DIR)/bin; cd $(PROJECT_DIR)/bin; curl -s "https://raw.githubusercontent.com/kubernetes-sigs/kustomize/master/hack/install_kustomize.sh" | bash ; };
 
+NEXUS-KUBEBUILDER = $(PROJECT_DIR)/bin/nexus-kubebuilder
+install-nexus-kubebuilder:
+	test -s ${PROJECT_DIR}/bin/nexus-kubebuilder || { mkdir - ${PROJECT_DIR}/bin; cd ${PROJECT_DIR}/bin; GOBIN=${PROJECT_DIR}/bin go install gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kubebuilder.git/cmd/nexus-kubebuilder@master ; }
