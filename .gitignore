@@ -1,4 +1,8 @@
 .ssh
+bin/*
+*nexus-kubebuilder*
+*.tar
+*.gz
 *.tar
 *bin/
 bin*/

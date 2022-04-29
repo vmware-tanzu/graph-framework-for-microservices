@@ -6,6 +6,7 @@ before_script:
   - echo -e  "https://gitlab-ci-token:${CICD_TOKEN}@gitlab.eng.vmware.com"  >> ~/.git-credentials
   - flash repo login .
   - source /usr/local/bin/source/flash_tool.sh
+  - export CONTAINER_ID=$(docker ps -q -f "label=com.gitlab.gitlab-runner.job.id=$CI_JOB_ID" -f "label=com.gitlab.gitlab-runner.type=build")
 
 after_script:
   - date
