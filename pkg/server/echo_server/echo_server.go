@@ -3,13 +3,12 @@ package echo_server
 import (
 	"context"
 	"fmt"
-	"log"
-	"net/http"
-
 	"github.com/labstack/echo"
+	"net/http"
 
 	"api-gw/controllers"
 	"api-gw/pkg/model"
+	log "github.com/sirupsen/logrus"
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/common-library.git/pkg/nexus"
 )
 
@@ -26,7 +25,7 @@ func InitEcho(stopCh chan struct{}) {
 func (s *EchoServer) Start(stopCh chan struct{}) {
 	// Start watching URI notification
 	go func() {
-		fmt.Println("RoutesNotification")
+		log.Info("RoutesNotification")
 		if err := s.RoutesNotification(stopCh); err != nil {
 			s.StopServer()
 			InitEcho(stopCh)
@@ -35,37 +34,56 @@ func (s *EchoServer) Start(stopCh chan struct{}) {
 
 	// Start Server
 	go func() {
-		fmt.Println("Start Echo Again")
+		log.Info("Start Echo Again")
 		if err := s.Echo.Start(":5000"); err != nil && err != http.ErrServerClosed {
 			log.Fatalf("Server error %v", err)
 		}
 	}()
 }
 
+type NexusContext struct {
+	echo.Context
+	NexusURI string
+	Codes    nexus.HTTPCodesResponse
+}
+
 func (s *EchoServer) RegisterRouter(restURI nexus.RestURIs) {
 	urlPattern := model.ConstructEchoPathParamURL(restURI.Uri)
-	for m := range restURI.Methods {
-		fmt.Printf("Registered Router Path %s Method %s\n", urlPattern, m)
-		switch m {
+	for method, codes := range restURI.Methods {
+		log.Infof("Registered Router Path %s Method %s\n", urlPattern, method)
+		switch method {
 		case http.MethodGet:
-			s.Echo.GET(urlPattern, func(c echo.Context) error {
-				return c.String(http.StatusOK, "Hello, World!\n")
-			})
-		case http.MethodPost:
-			s.Echo.POST(urlPattern, func(c echo.Context) error {
-				return c.String(http.StatusOK, "Hello, World!\n")
+			s.Echo.GET(urlPattern, getHandler, func(next echo.HandlerFunc) echo.HandlerFunc {
+				return func(c echo.Context) error {
+					nc := &NexusContext{
+						Context:  c,
+						NexusURI: restURI.Uri,
+						Codes:    codes,
+					}
+					return next(nc)
+				}
 			})
 		case http.MethodPut:
-			s.Echo.PUT(urlPattern, func(c echo.Context) error {
-				return c.String(http.StatusOK, "Hello, World!\n")
-			})
-		case http.MethodPatch:
-			s.Echo.PATCH(urlPattern, func(c echo.Context) error {
-				return c.String(http.StatusOK, "Hello, World!\n")
+			s.Echo.PUT(urlPattern, putHandler, func(next echo.HandlerFunc) echo.HandlerFunc {
+				return func(c echo.Context) error {
+					nc := &NexusContext{
+						Context:  c,
+						NexusURI: restURI.Uri,
+						Codes:    codes,
+					}
+					return next(nc)
+				}
 			})
 		case http.MethodDelete:
-			s.Echo.DELETE(urlPattern, func(c echo.Context) error {
-				return c.String(http.StatusOK, "Hello, World!\n")
+			s.Echo.DELETE(urlPattern, deleteHandler, func(next echo.HandlerFunc) echo.HandlerFunc {
+				return func(c echo.Context) error {
+					nc := &NexusContext{
+						Context:  c,
+						NexusURI: restURI.Uri,
+						Codes:    codes,
+					}
+					return next(nc)
+				}
 			})
 		}
 	}
@@ -77,7 +95,7 @@ func (s *EchoServer) RoutesNotification(stopCh chan struct{}) error {
 		case <-stopCh:
 			return fmt.Errorf("stop signal received")
 		case restURIs := <-controllers.GlobalRestURIChan:
-			fmt.Println("Route notification received...")
+			log.Println("Route notification received...")
 			for _, v := range restURIs {
 				s.RegisterRouter(v)
 			}
