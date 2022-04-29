@@ -551,6 +551,71 @@ func (obj *{{$.GroupResourceType}}) Remove{{$link.FieldName}}(ctx context.Contex
 	return
 }
 {{ end }}
+
+{{ range $key, $link := .LinksAndChildren }}
+func (obj *{{$.GroupResourceType}}) Get{{$link.FieldName}}(ctx context.Context, srcObj *{{$.GroupBaseImport}}{{ if $link.IsNamed }}, {{$link.FieldName}}ObjectName string{{end}}) (result *{{$link.GroupBaseImport}}, err error) {
+	{{ if $link.IsNamed }}parents := srcObj.GetLabels()
+	if parents == nil {
+		parents = make(map[string]string, 1)
+	}
+	if _, ok := result.GetLabels()["nexus/display_name"]; ok {
+		parents["{{$.CrdName}}"] = srcObj.GetLabels()["nexus/display_name"]
+	} else {
+		parents["{{$.CrdName}}"] = srcObj.GetName()
+	}
+	hashedName := helper.GetHashedName("{{$.CrdName}}", parents, {{$link.FieldName}}ObjectName)
+	return obj.Get{{$link.FieldName}}ByName(ctx, srcObj, hashedName)
+	{{ else }}return obj.Get{{$link.FieldName}}ByName(ctx, srcObj){{ end }}
+}
+
+func (obj *{{$.GroupResourceType}}) Get{{$link.FieldName}}ByName(ctx context.Context, srcObj *{{$.GroupBaseImport}}{{ if $link.IsNamed }}, {{$link.FieldName}}ObjectName string{{end}}) (result *{{$link.GroupBaseImport}}, err error) {
+	{{ if $link.IsNamed }}if srcObj.Spec.{{$link.FieldName}}Gvk != nil {
+		l, ok := srcObj.Spec.{{$link.FieldName}}Gvk[{{$link.FieldName}}ObjectName]
+		if ok {
+			return obj.client.baseClient.{{$link.GroupTypeName}}().{{$link.GroupResourceNameTitle}}().Get(ctx, l.Name, metav1.GetOptions{})
+		}
+	}
+	var parentName string
+	if srcObj.Labels != nil && srcObj.Labels["nexus/display_name"] != "" {
+		parentName = srcObj.Labels["nexus/display_name"]
+	} else {
+		parentName = srcObj.GetName()
+	}
+	return nil, fmt.Errorf("there's no child %s for parent %s", {{$link.FieldName}}ObjectName, parentName)
+	{{ else }}if srcObj.Spec.{{$link.FieldName}}Gvk != nil {
+		return obj.client.baseClient.{{$link.GroupTypeName}}().{{$link.GroupResourceNameTitle}}().Get(ctx, srcObj.Spec.{{$link.FieldName}}Gvk.Name, metav1.GetOptions{})
+	} else {
+		var parentName string
+		if srcObj.Labels != nil && srcObj.Labels["nexus/display_name"] != "" {
+			parentName = srcObj.Labels["nexus/display_name"]
+		} else {
+			parentName = srcObj.GetName()
+		}
+		return nil, fmt.Errorf("There's no child {{$link.FieldName}} for parent %s", parentName)
+	}
+    {{ end }}
+}
+
+{{ if $link.IsNamed }}
+func (obj *{{$.GroupResourceType}}) GetAll{{$link.FieldName}}(ctx context.Context, srcObj *{{$.GroupBaseImport}}) (result []*{{$link.GroupBaseImport}}, err error) {
+	result = make([]*{{$link.GroupBaseImport}}, 0, len(srcObj.Spec.{{$link.FieldName}}Gvk))
+	for _, v := range srcObj.Spec.{{$link.FieldName}}Gvk {
+		l, err := obj.client.baseClient.{{$link.GroupTypeName}}().{{$link.GroupResourceNameTitle}}().Get(ctx, v.Name, metav1.GetOptions{})
+		if err != nil {
+			var parentName string
+			if srcObj.Labels != nil && srcObj.Labels["nexus/display_name"] != "" {
+				parentName = srcObj.Labels["nexus/display_name"]
+			} else {
+				parentName = srcObj.GetName()
+			}
+			return nil, fmt.Errorf("couldn't get child %s for parent %s: %v", v.Name, parentName, err)
+		}
+		result = append(result, l)
+	}
+	return
+}
+{{ end }}
+{{ end }}
 `
 
 type apiGroupsClientVars struct {

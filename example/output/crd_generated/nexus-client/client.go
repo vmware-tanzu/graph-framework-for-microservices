@@ -3,6 +3,7 @@ package nexus_client
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	types "k8s.io/apimachinery/pkg/types"
@@ -331,6 +332,25 @@ func (obj *rootRootTsmV1) UpdateByName(ctx context.Context, objToUpdate *baseroo
 	return
 }
 
+func (obj *rootRootTsmV1) GetConfig(ctx context.Context, srcObj *baseroottsmtanzuvmwarecomv1.Root) (result *baseconfigtsmtanzuvmwarecomv1.Config, err error) {
+	return obj.GetConfigByName(ctx, srcObj)
+}
+
+func (obj *rootRootTsmV1) GetConfigByName(ctx context.Context, srcObj *baseroottsmtanzuvmwarecomv1.Root) (result *baseconfigtsmtanzuvmwarecomv1.Config, err error) {
+	if srcObj.Spec.ConfigGvk != nil {
+		return obj.client.baseClient.ConfigTsmV1().Configs().Get(ctx, srcObj.Spec.ConfigGvk.Name, metav1.GetOptions{})
+	} else {
+		var parentName string
+		if srcObj.Labels != nil && srcObj.Labels["nexus/display_name"] != "" {
+			parentName = srcObj.Labels["nexus/display_name"]
+		} else {
+			parentName = srcObj.GetName()
+		}
+		return nil, fmt.Errorf("There's no child Config for parent %s", parentName)
+	}
+
+}
+
 // Get hashes object's name and returns stored kubernetes object with all children and softlinks.
 // To resolve a hashed name names of all consecutive parents must be provided in parents param in form of:
 // {'object_crd_definition_name': 'object_name'}
@@ -517,6 +537,25 @@ func (obj *configConfigTsmV1) UpdateByName(ctx context.Context, objToUpdate *bas
 	}
 
 	return
+}
+
+func (obj *configConfigTsmV1) GetGNS(ctx context.Context, srcObj *baseconfigtsmtanzuvmwarecomv1.Config) (result *basegnstsmtanzuvmwarecomv1.Gns, err error) {
+	return obj.GetGNSByName(ctx, srcObj)
+}
+
+func (obj *configConfigTsmV1) GetGNSByName(ctx context.Context, srcObj *baseconfigtsmtanzuvmwarecomv1.Config) (result *basegnstsmtanzuvmwarecomv1.Gns, err error) {
+	if srcObj.Spec.GNSGvk != nil {
+		return obj.client.baseClient.GnsTsmV1().Gnses().Get(ctx, srcObj.Spec.GNSGvk.Name, metav1.GetOptions{})
+	} else {
+		var parentName string
+		if srcObj.Labels != nil && srcObj.Labels["nexus/display_name"] != "" {
+			parentName = srcObj.Labels["nexus/display_name"]
+		} else {
+			parentName = srcObj.GetName()
+		}
+		return nil, fmt.Errorf("There's no child GNS for parent %s", parentName)
+	}
+
 }
 
 // Get hashes object's name and returns stored kubernetes object with all children and softlinks.
@@ -786,6 +825,94 @@ func (obj *gnsGnsTsmV1) RemoveDns(ctx context.Context, srcObj *basegnstsmtanzuvm
 	}
 
 	return
+}
+
+func (obj *gnsGnsTsmV1) GetGnsServiceGroups(ctx context.Context, srcObj *basegnstsmtanzuvmwarecomv1.Gns, GnsServiceGroupsObjectName string) (result *baseservicegrouptsmtanzuvmwarecomv1.SvcGroup, err error) {
+	parents := srcObj.GetLabels()
+	if parents == nil {
+		parents = make(map[string]string, 1)
+	}
+	if _, ok := result.GetLabels()["nexus/display_name"]; ok {
+		parents["gnses.gns.tsm.tanzu.vmware.com"] = srcObj.GetLabels()["nexus/display_name"]
+	} else {
+		parents["gnses.gns.tsm.tanzu.vmware.com"] = srcObj.GetName()
+	}
+	hashedName := helper.GetHashedName("gnses.gns.tsm.tanzu.vmware.com", parents, GnsServiceGroupsObjectName)
+	return obj.GetGnsServiceGroupsByName(ctx, srcObj, hashedName)
+
+}
+
+func (obj *gnsGnsTsmV1) GetGnsServiceGroupsByName(ctx context.Context, srcObj *basegnstsmtanzuvmwarecomv1.Gns, GnsServiceGroupsObjectName string) (result *baseservicegrouptsmtanzuvmwarecomv1.SvcGroup, err error) {
+	if srcObj.Spec.GnsServiceGroupsGvk != nil {
+		l, ok := srcObj.Spec.GnsServiceGroupsGvk[GnsServiceGroupsObjectName]
+		if ok {
+			return obj.client.baseClient.ServicegroupTsmV1().SvcGroups().Get(ctx, l.Name, metav1.GetOptions{})
+		}
+	}
+	var parentName string
+	if srcObj.Labels != nil && srcObj.Labels["nexus/display_name"] != "" {
+		parentName = srcObj.Labels["nexus/display_name"]
+	} else {
+		parentName = srcObj.GetName()
+	}
+	return nil, fmt.Errorf("there's no child %s for parent %s", GnsServiceGroupsObjectName, parentName)
+
+}
+
+func (obj *gnsGnsTsmV1) GetAllGnsServiceGroups(ctx context.Context, srcObj *basegnstsmtanzuvmwarecomv1.Gns) (result []*baseservicegrouptsmtanzuvmwarecomv1.SvcGroup, err error) {
+	result = make([]*baseservicegrouptsmtanzuvmwarecomv1.SvcGroup, 0, len(srcObj.Spec.GnsServiceGroupsGvk))
+	for _, v := range srcObj.Spec.GnsServiceGroupsGvk {
+		l, err := obj.client.baseClient.ServicegroupTsmV1().SvcGroups().Get(ctx, v.Name, metav1.GetOptions{})
+		if err != nil {
+			var parentName string
+			if srcObj.Labels != nil && srcObj.Labels["nexus/display_name"] != "" {
+				parentName = srcObj.Labels["nexus/display_name"]
+			} else {
+				parentName = srcObj.GetName()
+			}
+			return nil, fmt.Errorf("couldn't get child %s for parent %s: %v", v.Name, parentName, err)
+		}
+		result = append(result, l)
+	}
+	return
+}
+
+func (obj *gnsGnsTsmV1) GetGnsAccessControlPolicy(ctx context.Context, srcObj *basegnstsmtanzuvmwarecomv1.Gns) (result *basepolicytsmtanzuvmwarecomv1.AccessControlPolicy, err error) {
+	return obj.GetGnsAccessControlPolicyByName(ctx, srcObj)
+}
+
+func (obj *gnsGnsTsmV1) GetGnsAccessControlPolicyByName(ctx context.Context, srcObj *basegnstsmtanzuvmwarecomv1.Gns) (result *basepolicytsmtanzuvmwarecomv1.AccessControlPolicy, err error) {
+	if srcObj.Spec.GnsAccessControlPolicyGvk != nil {
+		return obj.client.baseClient.PolicyTsmV1().AccessControlPolicies().Get(ctx, srcObj.Spec.GnsAccessControlPolicyGvk.Name, metav1.GetOptions{})
+	} else {
+		var parentName string
+		if srcObj.Labels != nil && srcObj.Labels["nexus/display_name"] != "" {
+			parentName = srcObj.Labels["nexus/display_name"]
+		} else {
+			parentName = srcObj.GetName()
+		}
+		return nil, fmt.Errorf("There's no child GnsAccessControlPolicy for parent %s", parentName)
+	}
+
+}
+
+func (obj *gnsGnsTsmV1) GetDns(ctx context.Context, srcObj *basegnstsmtanzuvmwarecomv1.Gns) (result *basegnstsmtanzuvmwarecomv1.Dns, err error) {
+	return obj.GetDnsByName(ctx, srcObj)
+}
+
+func (obj *gnsGnsTsmV1) GetDnsByName(ctx context.Context, srcObj *basegnstsmtanzuvmwarecomv1.Gns) (result *basegnstsmtanzuvmwarecomv1.Dns, err error) {
+	if srcObj.Spec.DnsGvk != nil {
+		return obj.client.baseClient.GnsTsmV1().Dnses().Get(ctx, srcObj.Spec.DnsGvk.Name, metav1.GetOptions{})
+	} else {
+		var parentName string
+		if srcObj.Labels != nil && srcObj.Labels["nexus/display_name"] != "" {
+			parentName = srcObj.Labels["nexus/display_name"]
+		} else {
+			parentName = srcObj.GetName()
+		}
+		return nil, fmt.Errorf("There's no child Dns for parent %s", parentName)
+	}
+
 }
 
 // Get hashes object's name and returns stored kubernetes object with all children and softlinks.
@@ -1264,6 +1391,56 @@ func (obj *accesscontrolpolicyPolicyTsmV1) UpdateByName(ctx context.Context, obj
 	return
 }
 
+func (obj *accesscontrolpolicyPolicyTsmV1) GetPolicyConfigs(ctx context.Context, srcObj *basepolicytsmtanzuvmwarecomv1.AccessControlPolicy, PolicyConfigsObjectName string) (result *basepolicytsmtanzuvmwarecomv1.ACPConfig, err error) {
+	parents := srcObj.GetLabels()
+	if parents == nil {
+		parents = make(map[string]string, 1)
+	}
+	if _, ok := result.GetLabels()["nexus/display_name"]; ok {
+		parents["accesscontrolpolicies.policy.tsm.tanzu.vmware.com"] = srcObj.GetLabels()["nexus/display_name"]
+	} else {
+		parents["accesscontrolpolicies.policy.tsm.tanzu.vmware.com"] = srcObj.GetName()
+	}
+	hashedName := helper.GetHashedName("accesscontrolpolicies.policy.tsm.tanzu.vmware.com", parents, PolicyConfigsObjectName)
+	return obj.GetPolicyConfigsByName(ctx, srcObj, hashedName)
+
+}
+
+func (obj *accesscontrolpolicyPolicyTsmV1) GetPolicyConfigsByName(ctx context.Context, srcObj *basepolicytsmtanzuvmwarecomv1.AccessControlPolicy, PolicyConfigsObjectName string) (result *basepolicytsmtanzuvmwarecomv1.ACPConfig, err error) {
+	if srcObj.Spec.PolicyConfigsGvk != nil {
+		l, ok := srcObj.Spec.PolicyConfigsGvk[PolicyConfigsObjectName]
+		if ok {
+			return obj.client.baseClient.PolicyTsmV1().ACPConfigs().Get(ctx, l.Name, metav1.GetOptions{})
+		}
+	}
+	var parentName string
+	if srcObj.Labels != nil && srcObj.Labels["nexus/display_name"] != "" {
+		parentName = srcObj.Labels["nexus/display_name"]
+	} else {
+		parentName = srcObj.GetName()
+	}
+	return nil, fmt.Errorf("there's no child %s for parent %s", PolicyConfigsObjectName, parentName)
+
+}
+
+func (obj *accesscontrolpolicyPolicyTsmV1) GetAllPolicyConfigs(ctx context.Context, srcObj *basepolicytsmtanzuvmwarecomv1.AccessControlPolicy) (result []*basepolicytsmtanzuvmwarecomv1.ACPConfig, err error) {
+	result = make([]*basepolicytsmtanzuvmwarecomv1.ACPConfig, 0, len(srcObj.Spec.PolicyConfigsGvk))
+	for _, v := range srcObj.Spec.PolicyConfigsGvk {
+		l, err := obj.client.baseClient.PolicyTsmV1().ACPConfigs().Get(ctx, v.Name, metav1.GetOptions{})
+		if err != nil {
+			var parentName string
+			if srcObj.Labels != nil && srcObj.Labels["nexus/display_name"] != "" {
+				parentName = srcObj.Labels["nexus/display_name"]
+			} else {
+				parentName = srcObj.GetName()
+			}
+			return nil, fmt.Errorf("couldn't get child %s for parent %s: %v", v.Name, parentName, err)
+		}
+		result = append(result, l)
+	}
+	return
+}
+
 // Get hashes object's name and returns stored kubernetes object with all children and softlinks.
 // To resolve a hashed name names of all consecutive parents must be provided in parents param in form of:
 // {'object_crd_definition_name': 'object_name'}
@@ -1531,5 +1708,105 @@ func (obj *acpconfigPolicyTsmV1) RemoveSourceSvcGroups(ctx context.Context, srcO
 		return nil, err
 	}
 
+	return
+}
+
+func (obj *acpconfigPolicyTsmV1) GetDestSvcGroups(ctx context.Context, srcObj *basepolicytsmtanzuvmwarecomv1.ACPConfig, DestSvcGroupsObjectName string) (result *baseservicegrouptsmtanzuvmwarecomv1.SvcGroup, err error) {
+	parents := srcObj.GetLabels()
+	if parents == nil {
+		parents = make(map[string]string, 1)
+	}
+	if _, ok := result.GetLabels()["nexus/display_name"]; ok {
+		parents["acpconfigs.policy.tsm.tanzu.vmware.com"] = srcObj.GetLabels()["nexus/display_name"]
+	} else {
+		parents["acpconfigs.policy.tsm.tanzu.vmware.com"] = srcObj.GetName()
+	}
+	hashedName := helper.GetHashedName("acpconfigs.policy.tsm.tanzu.vmware.com", parents, DestSvcGroupsObjectName)
+	return obj.GetDestSvcGroupsByName(ctx, srcObj, hashedName)
+
+}
+
+func (obj *acpconfigPolicyTsmV1) GetDestSvcGroupsByName(ctx context.Context, srcObj *basepolicytsmtanzuvmwarecomv1.ACPConfig, DestSvcGroupsObjectName string) (result *baseservicegrouptsmtanzuvmwarecomv1.SvcGroup, err error) {
+	if srcObj.Spec.DestSvcGroupsGvk != nil {
+		l, ok := srcObj.Spec.DestSvcGroupsGvk[DestSvcGroupsObjectName]
+		if ok {
+			return obj.client.baseClient.ServicegroupTsmV1().SvcGroups().Get(ctx, l.Name, metav1.GetOptions{})
+		}
+	}
+	var parentName string
+	if srcObj.Labels != nil && srcObj.Labels["nexus/display_name"] != "" {
+		parentName = srcObj.Labels["nexus/display_name"]
+	} else {
+		parentName = srcObj.GetName()
+	}
+	return nil, fmt.Errorf("there's no child %s for parent %s", DestSvcGroupsObjectName, parentName)
+
+}
+
+func (obj *acpconfigPolicyTsmV1) GetAllDestSvcGroups(ctx context.Context, srcObj *basepolicytsmtanzuvmwarecomv1.ACPConfig) (result []*baseservicegrouptsmtanzuvmwarecomv1.SvcGroup, err error) {
+	result = make([]*baseservicegrouptsmtanzuvmwarecomv1.SvcGroup, 0, len(srcObj.Spec.DestSvcGroupsGvk))
+	for _, v := range srcObj.Spec.DestSvcGroupsGvk {
+		l, err := obj.client.baseClient.ServicegroupTsmV1().SvcGroups().Get(ctx, v.Name, metav1.GetOptions{})
+		if err != nil {
+			var parentName string
+			if srcObj.Labels != nil && srcObj.Labels["nexus/display_name"] != "" {
+				parentName = srcObj.Labels["nexus/display_name"]
+			} else {
+				parentName = srcObj.GetName()
+			}
+			return nil, fmt.Errorf("couldn't get child %s for parent %s: %v", v.Name, parentName, err)
+		}
+		result = append(result, l)
+	}
+	return
+}
+
+func (obj *acpconfigPolicyTsmV1) GetSourceSvcGroups(ctx context.Context, srcObj *basepolicytsmtanzuvmwarecomv1.ACPConfig, SourceSvcGroupsObjectName string) (result *baseservicegrouptsmtanzuvmwarecomv1.SvcGroup, err error) {
+	parents := srcObj.GetLabels()
+	if parents == nil {
+		parents = make(map[string]string, 1)
+	}
+	if _, ok := result.GetLabels()["nexus/display_name"]; ok {
+		parents["acpconfigs.policy.tsm.tanzu.vmware.com"] = srcObj.GetLabels()["nexus/display_name"]
+	} else {
+		parents["acpconfigs.policy.tsm.tanzu.vmware.com"] = srcObj.GetName()
+	}
+	hashedName := helper.GetHashedName("acpconfigs.policy.tsm.tanzu.vmware.com", parents, SourceSvcGroupsObjectName)
+	return obj.GetSourceSvcGroupsByName(ctx, srcObj, hashedName)
+
+}
+
+func (obj *acpconfigPolicyTsmV1) GetSourceSvcGroupsByName(ctx context.Context, srcObj *basepolicytsmtanzuvmwarecomv1.ACPConfig, SourceSvcGroupsObjectName string) (result *baseservicegrouptsmtanzuvmwarecomv1.SvcGroup, err error) {
+	if srcObj.Spec.SourceSvcGroupsGvk != nil {
+		l, ok := srcObj.Spec.SourceSvcGroupsGvk[SourceSvcGroupsObjectName]
+		if ok {
+			return obj.client.baseClient.ServicegroupTsmV1().SvcGroups().Get(ctx, l.Name, metav1.GetOptions{})
+		}
+	}
+	var parentName string
+	if srcObj.Labels != nil && srcObj.Labels["nexus/display_name"] != "" {
+		parentName = srcObj.Labels["nexus/display_name"]
+	} else {
+		parentName = srcObj.GetName()
+	}
+	return nil, fmt.Errorf("there's no child %s for parent %s", SourceSvcGroupsObjectName, parentName)
+
+}
+
+func (obj *acpconfigPolicyTsmV1) GetAllSourceSvcGroups(ctx context.Context, srcObj *basepolicytsmtanzuvmwarecomv1.ACPConfig) (result []*baseservicegrouptsmtanzuvmwarecomv1.SvcGroup, err error) {
+	result = make([]*baseservicegrouptsmtanzuvmwarecomv1.SvcGroup, 0, len(srcObj.Spec.SourceSvcGroupsGvk))
+	for _, v := range srcObj.Spec.SourceSvcGroupsGvk {
+		l, err := obj.client.baseClient.ServicegroupTsmV1().SvcGroups().Get(ctx, v.Name, metav1.GetOptions{})
+		if err != nil {
+			var parentName string
+			if srcObj.Labels != nil && srcObj.Labels["nexus/display_name"] != "" {
+				parentName = srcObj.Labels["nexus/display_name"]
+			} else {
+				parentName = srcObj.GetName()
+			}
+			return nil, fmt.Errorf("couldn't get child %s for parent %s: %v", v.Name, parentName, err)
+		}
+		result = append(result, l)
+	}
 	return
 }
