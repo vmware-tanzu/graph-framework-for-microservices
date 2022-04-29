@@ -1,6 +1,5 @@
 BUILD_DIR ?= build
 CRD_MODULE_PATH ?= $(shell go list -m)/${BUILD_DIR}/
-DATAMODEL_LOCAL_PATH ?= ""
 TAG ?= "latest"
 CONTAINER_ID ?= ""
 DATAMODEL_LOCAL_PATH ?= $(realpath .)
@@ -12,7 +11,7 @@ datamodel_build:
 	rm -rf ${DATAMODEL_LOCAL_PATH}/build
 	mkdir -p ${BUILD_DIR}
 	if [ -z $(CONTAINER_ID) ]; then \
-		docker run -pull=always\
+		docker run --pull=always\
 			--volume $(realpath .):/go/src/gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/datamodel/ \
 			-v /go/src/gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/datamodel/build/ \
 			--volume $(realpath .)/build:/go/src/gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/generated/ \
