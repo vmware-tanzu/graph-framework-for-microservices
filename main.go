@@ -18,6 +18,7 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"os"
 
 	// Import all Kubernetes client auth plugins (e.g. Azure, GCP, OIDC, etc.)
@@ -35,6 +36,8 @@ import (
 
 	"api-gw/controllers"
 	//+kubebuilder:scaffold:imports
+
+	"api-gw/pkg/server/echo_server"
 )
 
 var (
@@ -78,9 +81,11 @@ func main() {
 		os.Exit(1)
 	}
 
+	stopCh := make(chan struct{})
 	if err = (&controllers.CustomResourceDefinitionReconciler{
 		Client: mgr.GetClient(),
 		Scheme: mgr.GetScheme(),
+		StopCh: stopCh,
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "CustomResourceDefinition")
 		os.Exit(1)
@@ -95,6 +100,10 @@ func main() {
 		setupLog.Error(err, "unable to set up ready check")
 		os.Exit(1)
 	}
+
+	fmt.Println("Init Echo Server")
+	// Start server
+	echo_server.InitEcho(stopCh)
 
 	setupLog.Info("starting manager")
 	if err := mgr.Start(ctrl.SetupSignalHandler()); err != nil {

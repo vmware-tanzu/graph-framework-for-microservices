@@ -19,18 +19,21 @@ package controllers
 import (
 	"context"
 	"fmt"
-
 	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
+	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
+
+	"api-gw/pkg/model"
 )
 
 // CustomResourceDefinitionReconciler reconciles a CustomResourceDefinition object
 type CustomResourceDefinitionReconciler struct {
 	client.Client
 	Scheme *runtime.Scheme
+	StopCh chan struct{}
 }
 
 //+kubebuilder:rbac:groups=apiextensions.k8s.io.api-gw.com,resources=customresourcedefinitions,verbs=get;list;watch;create;update;patch;delete
@@ -46,14 +49,23 @@ type CustomResourceDefinitionReconciler struct {
 //
 // For more details, check Reconcile and its Result here:
 // - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.11.0/pkg/reconcile
+
 func (r *CustomResourceDefinitionReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	_ = log.FromContext(ctx)
 
 	var crd apiextensionsv1.CustomResourceDefinition
+	eventType := model.Upsert
 	if err := r.Get(ctx, req.NamespacedName, &crd); err != nil {
-		return ctrl.Result{}, client.IgnoreNotFound(err)
+		if !errors.IsNotFound(err) {
+			return ctrl.Result{}, client.IgnoreNotFound(err)
+		}
+		eventType = model.Delete
 	}
 	fmt.Printf("Received root node: Name %s Spec %v\n", crd.Name, crd.Spec)
+
+	if err := r.ProcessAnnotation(req.NamespacedName.Name, crd.Annotations, eventType); err != nil {
+		fmt.Printf("Error Processing CRD Annotation %v", err)
+	}
 
 	return ctrl.Result{}, nil
 }
