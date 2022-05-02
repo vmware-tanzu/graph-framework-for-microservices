@@ -1,5 +1,5 @@
 BUCKET ?= nexus-template-downloads
-TAG ?= $(shell git rev-parse --verify --short=8 HEAD)
+TAG ?= $(shell git rev-parse --verify HEAD)
 build:
 	$(MAKE) archive_nexus
 	$(MAKE) archive_datamodel
