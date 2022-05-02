@@ -23,9 +23,24 @@ build:
     - make build
     - make publish
 
+build_tag:
+  stage: build
+  only:
+    - tags
+  script:
+    - make build
+    - make publish TAG=$CI_COMMI_TAG
+
 integration_test:
   stage: integration_test
+  only:
+    - merge_requests
+    - tags
   variables:
     CLI_BRANCH: NPT-195-fix
   extends: .run_integration_test
+
+stages:
+  - build
+  - integration_test
 
