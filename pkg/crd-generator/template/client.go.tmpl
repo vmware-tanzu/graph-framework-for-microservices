@@ -111,14 +111,14 @@ func (obj *{{$node.GroupResourceType}}) DeleteByName(ctx context.Context, name s
 	{{ range $key, $link := .Children }}
 	{{ if $link.IsNamed }}
 	for _, v := range result.Spec.{{$link.FieldName}}Gvk {
-		err := obj.client.{{$link.GroupTypeName}}().{{$link.GroupResourceNameTitle}}().DeleteByName(ctx, v.Name, parents)
+		err := obj.client.{{$link.SimpleGroupTypeName}}().{{$link.GroupResourceNameTitle}}().DeleteByName(ctx, v.Name, parents)
 		if err != nil {
 			return err
 		}
 	}
 	{{ else }}
 	if result.Spec.{{$link.FieldName}}Gvk != nil {
-		err := obj.client.{{$link.GroupTypeName}}().{{$link.GroupResourceNameTitle}}().DeleteByName(ctx, result.Spec.{{$link.FieldName}}Gvk.Name, parents)
+		err := obj.client.{{$link.SimpleGroupTypeName}}().{{$link.GroupResourceNameTitle}}().DeleteByName(ctx, result.Spec.{{$link.FieldName}}Gvk.Name, parents)
 		if err != nil {
 			return err
 		}

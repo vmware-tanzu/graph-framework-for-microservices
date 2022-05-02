@@ -41,6 +41,8 @@ func generateNexusClientVars(baseGroupName, crdModulePath string, pkgs parser.Pa
 
 			groupVarName := util.GetGroupVarName(pkg.Name, baseGroupName, version)
 			groupTypeName := util.GetGroupTypeName(pkg.Name, baseGroupName, version)
+			simpleGroupTypeName := util.GetSimpleGroupTypeName(pkg.Name)
+			groupVars.SimpleGroupTypeName = simpleGroupTypeName
 			//vars.ClientsetsApiGroups += groupVarName + " *" + groupTypeName + "\n" // eg rootHelloworldV1 *RootHelloworldV1
 			groupVars.ClientsetApiGroups = groupVarName + " *" + groupTypeName + "\n" // eg rootHelloworldV1 *RootHelloworldV1
 
@@ -49,7 +51,7 @@ func generateNexusClientVars(baseGroupName, crdModulePath string, pkgs parser.Pa
 			//vars.InitApiGroups += initClient
 			groupVars.InitApiGroups = initClient
 
-			clientsetMethod := "func (c *Clientset) " + groupTypeName + "() *" + groupTypeName + " {\n" + "return c." +
+			clientsetMethod := "func (c *Clientset) " + simpleGroupTypeName + "() *" + groupTypeName + " {\n" + "return c." +
 				groupVarName + "\n}\n" // eg
 			// func (c *Clientset) RootHelloworldV1() *RootHelloworldV1 {
 			//	return c.rootHelloworldV1
@@ -123,6 +125,7 @@ func resolveNode(baseImportName string, pkg parser.Package, baseGroupName, versi
 			GroupBaseImport:        util.GetBaseImportName(linkInfo.pkgName, baseGroupName, version) + "." + linkInfo.fieldType,
 			GroupResourceNameTitle: util.GetGroupResourceNameTitle(linkInfo.fieldType),
 			GroupTypeName:          util.GetGroupTypeName(linkInfo.pkgName, baseGroupName, version),
+			SimpleGroupTypeName:    util.GetSimpleGroupTypeName(linkInfo.pkgName),
 		}
 		if parser.IsMapField(link) {
 			clientVarsLink.IsNamed = true
@@ -158,6 +161,7 @@ func resolveNode(baseImportName string, pkg parser.Package, baseGroupName, versi
 		clientGroupVars.Parent.CrdName = parentCrdName
 		clientGroupVars.Parent.GroupTypeName = util.GetGroupTypeName(
 			util.GetPackageNameFromCrdName(parentCrdName), baseGroupName, version)
+		clientGroupVars.Parent.SimpleGroupTypeName = util.GetSimpleGroupTypeName(util.GetPackageNameFromCrdName(parentCrdName))
 		clientGroupVars.Parent.GroupResourceNameTitle = util.GetGroupResourceNameTitle(parentHelper.Name)
 		clientGroupVars.Parent.GvkFieldName = parentHelper.Children[clientGroupVars.CrdName].FieldNameGvk
 	}
@@ -207,6 +211,7 @@ type ApiGroupsVars struct {
 	InitApiGroups             string
 	ClientsetApiGroups        string
 	ClientsetsApiGroupMethods string
+	SimpleGroupTypeName       string
 	GroupTypeName             string
 	GroupResourcesInit        string
 	GroupResources            string
@@ -231,6 +236,7 @@ type apiGroupsClientVars struct {
 		CrdName                string
 		GvkFieldName           string
 		GroupTypeName          string
+		SimpleGroupTypeName    string
 		GroupResourceNameTitle string
 	}
 	ForUpdatePatches string
@@ -250,5 +256,6 @@ type apiGroupsClientVarsLink struct {
 	GroupBaseImport        string
 	IsNamed                bool
 	GroupTypeName          string
+	SimpleGroupTypeName    string
 	GroupResourceNameTitle string
 }
