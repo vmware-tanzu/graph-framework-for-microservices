@@ -19,6 +19,9 @@ before_script:
 
 build:
   stage: build
+  only:
+    - merge_requests
+    - master
   script:
     - make build
     - make publish
