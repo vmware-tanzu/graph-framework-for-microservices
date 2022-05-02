@@ -9,5 +9,5 @@ archive_app_templates:
 
 publish:
 	cd templates && \
-	gsutil cp app-template.tar gs://${BUCKET}/${TAG}/ && \
+	gsutil cp app-template.tar gs://${BUCKET}/${TAG}/;
 	
