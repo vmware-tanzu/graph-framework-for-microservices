@@ -38,11 +38,7 @@ integration_test:
     - tags
   variables:
     CLI_BRANCH: NPT-195-fix
-    NEXUS_DATAMODEL_TEMPLATE_VERSION: $CI_COMMI_TAG
-  rules:
-    - if $CI_COMMIT_TAG == """
-      variables:
-        NEXUS_DATAMODEL_TEMPLATE_VERSION: $CI_COMMIT_SHA
+    NEXUS_DATAMODEL_TEMPLATE_VERSION: ${CI_COMMI_TAG:CI_COMMI_SHA}
   extends: .run_integration_test
 
 stages:
