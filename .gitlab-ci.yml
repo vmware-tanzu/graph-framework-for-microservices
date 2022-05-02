@@ -40,7 +40,7 @@ integration_test:
     - tags
   variables:
     CLI_BRANCH: NPT-195-fix
-    NEXUS_DATAMODEL_TEMPLATE_VERSION: ${CI_COMMI_TAG:CI_COMMI_SHA}
+    NEXUS_DATAMODEL_TEMPLATE_VERSION: ${CI_COMMI_TAG:-CI_COMMI_SHA}
     INTEGRATION_TEST_BRANCH: NPT-171
   extends: .run_integration_test
 
