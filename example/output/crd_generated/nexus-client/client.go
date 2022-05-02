@@ -332,6 +332,10 @@ func (obj *rootRootTsmV1) UpdateByName(ctx context.Context, objToUpdate *baseroo
 	return
 }
 
+func (obj *rootRootTsmV1) List(ctx context.Context, opts metav1.ListOptions) (result *baseroottsmtanzuvmwarecomv1.RootList, err error) {
+	return obj.client.baseClient.RootTsmV1().Roots().List(ctx, opts)
+}
+
 func (obj *rootRootTsmV1) GetConfig(ctx context.Context, srcObj *baseroottsmtanzuvmwarecomv1.Root) (result *baseconfigtsmtanzuvmwarecomv1.Config, err error) {
 	return obj.GetConfigByName(ctx, srcObj)
 }
@@ -537,6 +541,10 @@ func (obj *configConfigTsmV1) UpdateByName(ctx context.Context, objToUpdate *bas
 	}
 
 	return
+}
+
+func (obj *configConfigTsmV1) List(ctx context.Context, opts metav1.ListOptions) (result *baseconfigtsmtanzuvmwarecomv1.ConfigList, err error) {
+	return obj.client.baseClient.ConfigTsmV1().Configs().List(ctx, opts)
 }
 
 func (obj *configConfigTsmV1) GetGNS(ctx context.Context, srcObj *baseconfigtsmtanzuvmwarecomv1.Config) (result *basegnstsmtanzuvmwarecomv1.Gns, err error) {
@@ -777,6 +785,10 @@ func (obj *gnsGnsTsmV1) UpdateByName(ctx context.Context, objToUpdate *basegnsts
 	}
 
 	return
+}
+
+func (obj *gnsGnsTsmV1) List(ctx context.Context, opts metav1.ListOptions) (result *basegnstsmtanzuvmwarecomv1.GnsList, err error) {
+	return obj.client.baseClient.GnsTsmV1().Gnses().List(ctx, opts)
 }
 
 // AddDns updates srcObj with linkToAdd object
@@ -1028,6 +1040,10 @@ func (obj *dnsGnsTsmV1) UpdateByName(ctx context.Context, objToUpdate *basegnsts
 	return
 }
 
+func (obj *dnsGnsTsmV1) List(ctx context.Context, opts metav1.ListOptions) (result *basegnstsmtanzuvmwarecomv1.DnsList, err error) {
+	return obj.client.baseClient.GnsTsmV1().Dnses().List(ctx, opts)
+}
+
 // Get hashes object's name and returns stored kubernetes object with all children and softlinks.
 // To resolve a hashed name names of all consecutive parents must be provided in parents param in form of:
 // {'object_crd_definition_name': 'object_name'}
@@ -1201,6 +1217,10 @@ func (obj *svcgroupServicegroupTsmV1) UpdateByName(ctx context.Context, objToUpd
 	}
 
 	return
+}
+
+func (obj *svcgroupServicegroupTsmV1) List(ctx context.Context, opts metav1.ListOptions) (result *baseservicegrouptsmtanzuvmwarecomv1.SvcGroupList, err error) {
+	return obj.client.baseClient.ServicegroupTsmV1().SvcGroups().List(ctx, opts)
 }
 
 // Get hashes object's name and returns stored kubernetes object with all children and softlinks.
@@ -1389,6 +1409,10 @@ func (obj *accesscontrolpolicyPolicyTsmV1) UpdateByName(ctx context.Context, obj
 	}
 
 	return
+}
+
+func (obj *accesscontrolpolicyPolicyTsmV1) List(ctx context.Context, opts metav1.ListOptions) (result *basepolicytsmtanzuvmwarecomv1.AccessControlPolicyList, err error) {
+	return obj.client.baseClient.PolicyTsmV1().AccessControlPolicies().List(ctx, opts)
 }
 
 func (obj *accesscontrolpolicyPolicyTsmV1) GetPolicyConfigs(ctx context.Context, srcObj *basepolicytsmtanzuvmwarecomv1.AccessControlPolicy, PolicyConfigsObjectName string) (result *basepolicytsmtanzuvmwarecomv1.ACPConfig, err error) {
@@ -1641,6 +1665,10 @@ func (obj *acpconfigPolicyTsmV1) UpdateByName(ctx context.Context, objToUpdate *
 	}
 
 	return
+}
+
+func (obj *acpconfigPolicyTsmV1) List(ctx context.Context, opts metav1.ListOptions) (result *basepolicytsmtanzuvmwarecomv1.ACPConfigList, err error) {
+	return obj.client.baseClient.PolicyTsmV1().ACPConfigs().List(ctx, opts)
 }
 
 // AddDestSvcGroups updates srcObj with linkToAdd object
