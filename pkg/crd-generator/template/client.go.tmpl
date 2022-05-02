@@ -257,6 +257,15 @@ func (obj *{{$node.GroupResourceType}}) Update(ctx context.Context, objToUpdate 
 
 // UpdateByName works as Update but without hashing the name
 func (obj *{{$node.GroupResourceType}}) UpdateByName(ctx context.Context, objToUpdate *{{$node.GroupBaseImport}}) (result *{{$node.GroupBaseImport}}, err error) {
+	// ResourceVersion must be set for update
+	if objToUpdate.ResourceVersion == "" {
+		current, err := obj.client.baseClient.{{$node.GroupTypeName}}().{{$node.GroupResourceNameTitle}}().Get(ctx, objToUpdate.GetName(), metav1.GetOptions{})
+		if err != nil {
+			return nil, err
+		}
+		objToUpdate.ResourceVersion = current.ResourceVersion
+	}
+
 	var patch Patch
 	patchOpMeta := PatchOp{
 		Op:    "replace",
