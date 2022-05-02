@@ -77,6 +77,14 @@ type {{.Name}} struct {
 func (c *{{.Name}}) CRDName() string {
 	return "{{.CrdName}}"
 }
+
+func (c *{{.Name}}) DisplayName() string {
+	if c.GetLabels() != nil {
+		return c.GetLabels()[helper.DISPLAY_NAME_LABEL]
+	}
+	return ""
+}
+
 `
 
 	tmpl, err := template.New("tmpl").Parse(crdTemplate)

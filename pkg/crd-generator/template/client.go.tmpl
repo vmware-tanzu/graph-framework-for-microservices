@@ -85,7 +85,7 @@ func (obj *{{$node.GroupResourceType}}) Delete(ctx context.Context, name string,
 	if parents == nil {
 		parents = map[string]string{}
 	}
-	parents["nexus/is_name_hashed"] = "true"
+	parents[helper.IS_NAME_HASHED_LABEL] = "true"
 	hashedName := helper.GetHashedName("{{$node.CrdName}}", parents, name)
 	return obj.DeleteByName(ctx, hashedName, parents)
 }
@@ -101,8 +101,8 @@ func (obj *{{$node.GroupResourceType}}) DeleteByName(ctx context.Context, name s
 		parents = make(map[string]string, 1)
 	}
 
-	if _, ok := result.GetLabels()["nexus/display_name"]; ok {
-		parents["{{$node.CrdName}}"] = result.GetLabels()["nexus/display_name"]
+	if _, ok := result.GetLabels()[helper.DISPLAY_NAME_LABEL]; ok {
+		parents["{{$node.CrdName}}"] = result.GetLabels()[helper.DISPLAY_NAME_LABEL]
 	} else {
 		parents["{{$node.CrdName}}"] = name
 	}
@@ -153,7 +153,7 @@ func (obj *{{$node.GroupResourceType}}) DeleteByName(ctx context.Context, name s
 	if !ok {
 		parentName = helper.DEFAULT_KEY
 	}
-	if parents["nexus/is_name_hashed"] == "true" {
+	if parents[helper.IS_NAME_HASHED_LABEL] == "true" {
 		parentName = helper.GetHashedName("{{$node.Parent.CrdName}}", parents, parentName)
 	}
 	_, err = obj.client.baseClient.{{$node.Parent.GroupTypeName}}().{{$node.Parent.GroupResourceNameTitle}}().Patch(ctx, parentName, types.JSONPatchType, marshaled, metav1.PatchOptions{})
@@ -173,9 +173,9 @@ func (obj *{{$node.GroupResourceType}}) Create(ctx context.Context, objToCreate 
 	if objToCreate.Labels == nil {
 		objToCreate.Labels = map[string]string{}
 	}
-	if objToCreate.Labels["nexus/is_name_hashed"] != "true" {
-		objToCreate.Labels["nexus/display_name"] = objToCreate.GetName()
-		objToCreate.Labels["nexus/is_name_hashed"] = "true"
+	if objToCreate.Labels[helper.IS_NAME_HASHED_LABEL] != "true" {
+		objToCreate.Labels[helper.DISPLAY_NAME_LABEL] = objToCreate.GetName()
+		objToCreate.Labels[helper.IS_NAME_HASHED_LABEL] = "true"
 		hashedName := helper.GetHashedName("{{$node.CrdName}}", parents, objToCreate.GetName())
 		objToCreate.Name = hashedName
 	}
@@ -187,8 +187,8 @@ func (obj *{{$node.GroupResourceType}}) CreateByName(ctx context.Context, objToC
 	for k, v := range parents {
 		objToCreate.Labels[k] = v
 	}
-	if _, ok := objToCreate.Labels["nexus/display_name"]; !ok {
-		objToCreate.Labels["nexus/display_name"] = objToCreate.GetName()
+	if _, ok := objToCreate.Labels[helper.DISPLAY_NAME_LABEL]; !ok {
+		objToCreate.Labels[helper.DISPLAY_NAME_LABEL] = objToCreate.GetName()
 	}
 
 	{{ range $key, $link := .LinksAndChildren }}objToCreate.Spec.{{$link.FieldName}}Gvk = nil
@@ -203,7 +203,7 @@ func (obj *{{$node.GroupResourceType}}) CreateByName(ctx context.Context, objToC
 	if !ok {
 		parentName = helper.DEFAULT_KEY
 	}
-	if objToCreate.Labels["nexus/is_name_hashed"] == "true" {
+	if objToCreate.Labels[helper.IS_NAME_HASHED_LABEL] == "true" {
 		parentName = helper.GetHashedName("{{$node.Parent.CrdName}}", parents, parentName)
 	}
 	{{if .Parent.IsNamed}}
@@ -246,9 +246,9 @@ func (obj *{{$node.GroupResourceType}}) Update(ctx context.Context, objToUpdate 
 	if objToUpdate.Labels == nil {
 		objToUpdate.Labels = map[string]string{}
 	}
-	if objToUpdate.Labels["nexus/is_name_hashed"] != "true" {
-		objToUpdate.Labels["nexus/display_name"] = objToUpdate.GetName()
-		objToUpdate.Labels["nexus/is_name_hashed"] = "true"
+	if objToUpdate.Labels[helper.IS_NAME_HASHED_LABEL] != "true" {
+		objToUpdate.Labels[helper.DISPLAY_NAME_LABEL] = objToUpdate.GetName()
+		objToUpdate.Labels[helper.IS_NAME_HASHED_LABEL] = "true"
 		hashedName := helper.GetHashedName("{{$node.CrdName}}", parents, objToUpdate.GetName())
 		objToUpdate.Name = hashedName
 	}
@@ -366,8 +366,8 @@ func (obj *{{$node.GroupResourceType}}) Get{{$link.FieldName}}(ctx context.Conte
 	if parents == nil {
 		parents = make(map[string]string, 1)
 	}
-	if _, ok := srcObj.GetLabels()["nexus/display_name"]; ok {
-		parents["{{$node.CrdName}}"] = srcObj.GetLabels()["nexus/display_name"]
+	if _, ok := srcObj.GetLabels()[helper.DISPLAY_NAME_LABEL]; ok {
+		parents["{{$node.CrdName}}"] = srcObj.GetLabels()[helper.DISPLAY_NAME_LABEL]
 	} else {
 		parents["{{$node.CrdName}}"] = srcObj.GetName()
 	}
@@ -384,8 +384,8 @@ func (obj *{{$node.GroupResourceType}}) Get{{$link.FieldName}}ByName(ctx context
 		}
 	}
 	var parentName string
-	if srcObj.Labels != nil && srcObj.Labels["nexus/display_name"] != "" {
-		parentName = srcObj.Labels["nexus/display_name"]
+	if srcObj.Labels != nil && srcObj.Labels[helper.DISPLAY_NAME_LABEL] != "" {
+		parentName = srcObj.Labels[helper.DISPLAY_NAME_LABEL]
 	} else {
 		parentName = srcObj.GetName()
 	}
@@ -394,8 +394,8 @@ func (obj *{{$node.GroupResourceType}}) Get{{$link.FieldName}}ByName(ctx context
 		return obj.client.baseClient.{{$link.GroupTypeName}}().{{$link.GroupResourceNameTitle}}().Get(ctx, srcObj.Spec.{{$link.FieldName}}Gvk.Name, metav1.GetOptions{})
 	} else {
 		var parentName string
-		if srcObj.Labels != nil && srcObj.Labels["nexus/display_name"] != "" {
-			parentName = srcObj.Labels["nexus/display_name"]
+		if srcObj.Labels != nil && srcObj.Labels[helper.DISPLAY_NAME_LABEL] != "" {
+			parentName = srcObj.Labels[helper.DISPLAY_NAME_LABEL]
 		} else {
 			parentName = srcObj.GetName()
 		}
@@ -411,8 +411,8 @@ func (obj *{{$node.GroupResourceType}}) GetAll{{$link.FieldName}}(ctx context.Co
 		l, err := obj.client.baseClient.{{$link.GroupTypeName}}().{{$link.GroupResourceNameTitle}}().Get(ctx, v.Name, metav1.GetOptions{})
 		if err != nil {
 			var parentName string
-			if srcObj.Labels != nil && srcObj.Labels["nexus/display_name"] != "" {
-				parentName = srcObj.Labels["nexus/display_name"]
+			if srcObj.Labels != nil && srcObj.Labels[helper.DISPLAY_NAME_LABEL] != "" {
+				parentName = srcObj.Labels[helper.DISPLAY_NAME_LABEL]
 			} else {
 				parentName = srcObj.GetName()
 			}

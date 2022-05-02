@@ -220,7 +220,7 @@ func (obj *rootRootTsmV1) Delete(ctx context.Context, name string, parents map[s
 	if parents == nil {
 		parents = map[string]string{}
 	}
-	parents["nexus/is_name_hashed"] = "true"
+	parents[helper.IS_NAME_HASHED_LABEL] = "true"
 	hashedName := helper.GetHashedName("roots.root.tsm.tanzu.vmware.com", parents, name)
 	return obj.DeleteByName(ctx, hashedName, parents)
 }
@@ -236,8 +236,8 @@ func (obj *rootRootTsmV1) DeleteByName(ctx context.Context, name string, parents
 		parents = make(map[string]string, 1)
 	}
 
-	if _, ok := result.GetLabels()["nexus/display_name"]; ok {
-		parents["roots.root.tsm.tanzu.vmware.com"] = result.GetLabels()["nexus/display_name"]
+	if _, ok := result.GetLabels()[helper.DISPLAY_NAME_LABEL]; ok {
+		parents["roots.root.tsm.tanzu.vmware.com"] = result.GetLabels()[helper.DISPLAY_NAME_LABEL]
 	} else {
 		parents["roots.root.tsm.tanzu.vmware.com"] = name
 	}
@@ -265,9 +265,9 @@ func (obj *rootRootTsmV1) Create(ctx context.Context, objToCreate *baseroottsmta
 	if objToCreate.Labels == nil {
 		objToCreate.Labels = map[string]string{}
 	}
-	if objToCreate.Labels["nexus/is_name_hashed"] != "true" {
-		objToCreate.Labels["nexus/display_name"] = objToCreate.GetName()
-		objToCreate.Labels["nexus/is_name_hashed"] = "true"
+	if objToCreate.Labels[helper.IS_NAME_HASHED_LABEL] != "true" {
+		objToCreate.Labels[helper.DISPLAY_NAME_LABEL] = objToCreate.GetName()
+		objToCreate.Labels[helper.IS_NAME_HASHED_LABEL] = "true"
 		hashedName := helper.GetHashedName("roots.root.tsm.tanzu.vmware.com", parents, objToCreate.GetName())
 		objToCreate.Name = hashedName
 	}
@@ -279,8 +279,8 @@ func (obj *rootRootTsmV1) CreateByName(ctx context.Context, objToCreate *baseroo
 	for k, v := range parents {
 		objToCreate.Labels[k] = v
 	}
-	if _, ok := objToCreate.Labels["nexus/display_name"]; !ok {
-		objToCreate.Labels["nexus/display_name"] = objToCreate.GetName()
+	if _, ok := objToCreate.Labels[helper.DISPLAY_NAME_LABEL]; !ok {
+		objToCreate.Labels[helper.DISPLAY_NAME_LABEL] = objToCreate.GetName()
 	}
 
 	objToCreate.Spec.ConfigGvk = nil
@@ -301,9 +301,9 @@ func (obj *rootRootTsmV1) Update(ctx context.Context, objToUpdate *baseroottsmta
 	if objToUpdate.Labels == nil {
 		objToUpdate.Labels = map[string]string{}
 	}
-	if objToUpdate.Labels["nexus/is_name_hashed"] != "true" {
-		objToUpdate.Labels["nexus/display_name"] = objToUpdate.GetName()
-		objToUpdate.Labels["nexus/is_name_hashed"] = "true"
+	if objToUpdate.Labels[helper.IS_NAME_HASHED_LABEL] != "true" {
+		objToUpdate.Labels[helper.DISPLAY_NAME_LABEL] = objToUpdate.GetName()
+		objToUpdate.Labels[helper.IS_NAME_HASHED_LABEL] = "true"
 		hashedName := helper.GetHashedName("roots.root.tsm.tanzu.vmware.com", parents, objToUpdate.GetName())
 		objToUpdate.Name = hashedName
 	}
@@ -354,8 +354,8 @@ func (obj *rootRootTsmV1) GetConfigByName(ctx context.Context, srcObj *baseroott
 		return obj.client.baseClient.ConfigTsmV1().Configs().Get(ctx, srcObj.Spec.ConfigGvk.Name, metav1.GetOptions{})
 	} else {
 		var parentName string
-		if srcObj.Labels != nil && srcObj.Labels["nexus/display_name"] != "" {
-			parentName = srcObj.Labels["nexus/display_name"]
+		if srcObj.Labels != nil && srcObj.Labels[helper.DISPLAY_NAME_LABEL] != "" {
+			parentName = srcObj.Labels[helper.DISPLAY_NAME_LABEL]
 		} else {
 			parentName = srcObj.GetName()
 		}
@@ -388,7 +388,7 @@ func (obj *configConfigTsmV1) Delete(ctx context.Context, name string, parents m
 	if parents == nil {
 		parents = map[string]string{}
 	}
-	parents["nexus/is_name_hashed"] = "true"
+	parents[helper.IS_NAME_HASHED_LABEL] = "true"
 	hashedName := helper.GetHashedName("configs.config.tsm.tanzu.vmware.com", parents, name)
 	return obj.DeleteByName(ctx, hashedName, parents)
 }
@@ -404,8 +404,8 @@ func (obj *configConfigTsmV1) DeleteByName(ctx context.Context, name string, par
 		parents = make(map[string]string, 1)
 	}
 
-	if _, ok := result.GetLabels()["nexus/display_name"]; ok {
-		parents["configs.config.tsm.tanzu.vmware.com"] = result.GetLabels()["nexus/display_name"]
+	if _, ok := result.GetLabels()[helper.DISPLAY_NAME_LABEL]; ok {
+		parents["configs.config.tsm.tanzu.vmware.com"] = result.GetLabels()[helper.DISPLAY_NAME_LABEL]
 	} else {
 		parents["configs.config.tsm.tanzu.vmware.com"] = name
 	}
@@ -438,7 +438,7 @@ func (obj *configConfigTsmV1) DeleteByName(ctx context.Context, name string, par
 	if !ok {
 		parentName = helper.DEFAULT_KEY
 	}
-	if parents["nexus/is_name_hashed"] == "true" {
+	if parents[helper.IS_NAME_HASHED_LABEL] == "true" {
 		parentName = helper.GetHashedName("roots.root.tsm.tanzu.vmware.com", parents, parentName)
 	}
 	_, err = obj.client.baseClient.RootTsmV1().Roots().Patch(ctx, parentName, types.JSONPatchType, marshaled, metav1.PatchOptions{})
@@ -457,9 +457,9 @@ func (obj *configConfigTsmV1) Create(ctx context.Context, objToCreate *baseconfi
 	if objToCreate.Labels == nil {
 		objToCreate.Labels = map[string]string{}
 	}
-	if objToCreate.Labels["nexus/is_name_hashed"] != "true" {
-		objToCreate.Labels["nexus/display_name"] = objToCreate.GetName()
-		objToCreate.Labels["nexus/is_name_hashed"] = "true"
+	if objToCreate.Labels[helper.IS_NAME_HASHED_LABEL] != "true" {
+		objToCreate.Labels[helper.DISPLAY_NAME_LABEL] = objToCreate.GetName()
+		objToCreate.Labels[helper.IS_NAME_HASHED_LABEL] = "true"
 		hashedName := helper.GetHashedName("configs.config.tsm.tanzu.vmware.com", parents, objToCreate.GetName())
 		objToCreate.Name = hashedName
 	}
@@ -471,8 +471,8 @@ func (obj *configConfigTsmV1) CreateByName(ctx context.Context, objToCreate *bas
 	for k, v := range parents {
 		objToCreate.Labels[k] = v
 	}
-	if _, ok := objToCreate.Labels["nexus/display_name"]; !ok {
-		objToCreate.Labels["nexus/display_name"] = objToCreate.GetName()
+	if _, ok := objToCreate.Labels[helper.DISPLAY_NAME_LABEL]; !ok {
+		objToCreate.Labels[helper.DISPLAY_NAME_LABEL] = objToCreate.GetName()
 	}
 
 	objToCreate.Spec.GNSGvk = nil
@@ -486,7 +486,7 @@ func (obj *configConfigTsmV1) CreateByName(ctx context.Context, objToCreate *bas
 	if !ok {
 		parentName = helper.DEFAULT_KEY
 	}
-	if objToCreate.Labels["nexus/is_name_hashed"] == "true" {
+	if objToCreate.Labels[helper.IS_NAME_HASHED_LABEL] == "true" {
 		parentName = helper.GetHashedName("roots.root.tsm.tanzu.vmware.com", parents, parentName)
 	}
 
@@ -521,9 +521,9 @@ func (obj *configConfigTsmV1) Update(ctx context.Context, objToUpdate *baseconfi
 	if objToUpdate.Labels == nil {
 		objToUpdate.Labels = map[string]string{}
 	}
-	if objToUpdate.Labels["nexus/is_name_hashed"] != "true" {
-		objToUpdate.Labels["nexus/display_name"] = objToUpdate.GetName()
-		objToUpdate.Labels["nexus/is_name_hashed"] = "true"
+	if objToUpdate.Labels[helper.IS_NAME_HASHED_LABEL] != "true" {
+		objToUpdate.Labels[helper.DISPLAY_NAME_LABEL] = objToUpdate.GetName()
+		objToUpdate.Labels[helper.IS_NAME_HASHED_LABEL] = "true"
 		hashedName := helper.GetHashedName("configs.config.tsm.tanzu.vmware.com", parents, objToUpdate.GetName())
 		objToUpdate.Name = hashedName
 	}
@@ -574,8 +574,8 @@ func (obj *configConfigTsmV1) GetGNSByName(ctx context.Context, srcObj *baseconf
 		return obj.client.baseClient.GnsTsmV1().Gnses().Get(ctx, srcObj.Spec.GNSGvk.Name, metav1.GetOptions{})
 	} else {
 		var parentName string
-		if srcObj.Labels != nil && srcObj.Labels["nexus/display_name"] != "" {
-			parentName = srcObj.Labels["nexus/display_name"]
+		if srcObj.Labels != nil && srcObj.Labels[helper.DISPLAY_NAME_LABEL] != "" {
+			parentName = srcObj.Labels[helper.DISPLAY_NAME_LABEL]
 		} else {
 			parentName = srcObj.GetName()
 		}
@@ -608,7 +608,7 @@ func (obj *gnsGnsTsmV1) Delete(ctx context.Context, name string, parents map[str
 	if parents == nil {
 		parents = map[string]string{}
 	}
-	parents["nexus/is_name_hashed"] = "true"
+	parents[helper.IS_NAME_HASHED_LABEL] = "true"
 	hashedName := helper.GetHashedName("gnses.gns.tsm.tanzu.vmware.com", parents, name)
 	return obj.DeleteByName(ctx, hashedName, parents)
 }
@@ -624,8 +624,8 @@ func (obj *gnsGnsTsmV1) DeleteByName(ctx context.Context, name string, parents m
 		parents = make(map[string]string, 1)
 	}
 
-	if _, ok := result.GetLabels()["nexus/display_name"]; ok {
-		parents["gnses.gns.tsm.tanzu.vmware.com"] = result.GetLabels()["nexus/display_name"]
+	if _, ok := result.GetLabels()[helper.DISPLAY_NAME_LABEL]; ok {
+		parents["gnses.gns.tsm.tanzu.vmware.com"] = result.GetLabels()[helper.DISPLAY_NAME_LABEL]
 	} else {
 		parents["gnses.gns.tsm.tanzu.vmware.com"] = name
 	}
@@ -665,7 +665,7 @@ func (obj *gnsGnsTsmV1) DeleteByName(ctx context.Context, name string, parents m
 	if !ok {
 		parentName = helper.DEFAULT_KEY
 	}
-	if parents["nexus/is_name_hashed"] == "true" {
+	if parents[helper.IS_NAME_HASHED_LABEL] == "true" {
 		parentName = helper.GetHashedName("configs.config.tsm.tanzu.vmware.com", parents, parentName)
 	}
 	_, err = obj.client.baseClient.ConfigTsmV1().Configs().Patch(ctx, parentName, types.JSONPatchType, marshaled, metav1.PatchOptions{})
@@ -684,9 +684,9 @@ func (obj *gnsGnsTsmV1) Create(ctx context.Context, objToCreate *basegnstsmtanzu
 	if objToCreate.Labels == nil {
 		objToCreate.Labels = map[string]string{}
 	}
-	if objToCreate.Labels["nexus/is_name_hashed"] != "true" {
-		objToCreate.Labels["nexus/display_name"] = objToCreate.GetName()
-		objToCreate.Labels["nexus/is_name_hashed"] = "true"
+	if objToCreate.Labels[helper.IS_NAME_HASHED_LABEL] != "true" {
+		objToCreate.Labels[helper.DISPLAY_NAME_LABEL] = objToCreate.GetName()
+		objToCreate.Labels[helper.IS_NAME_HASHED_LABEL] = "true"
 		hashedName := helper.GetHashedName("gnses.gns.tsm.tanzu.vmware.com", parents, objToCreate.GetName())
 		objToCreate.Name = hashedName
 	}
@@ -698,8 +698,8 @@ func (obj *gnsGnsTsmV1) CreateByName(ctx context.Context, objToCreate *basegnsts
 	for k, v := range parents {
 		objToCreate.Labels[k] = v
 	}
-	if _, ok := objToCreate.Labels["nexus/display_name"]; !ok {
-		objToCreate.Labels["nexus/display_name"] = objToCreate.GetName()
+	if _, ok := objToCreate.Labels[helper.DISPLAY_NAME_LABEL]; !ok {
+		objToCreate.Labels[helper.DISPLAY_NAME_LABEL] = objToCreate.GetName()
 	}
 
 	objToCreate.Spec.GnsServiceGroupsGvk = nil
@@ -715,7 +715,7 @@ func (obj *gnsGnsTsmV1) CreateByName(ctx context.Context, objToCreate *basegnsts
 	if !ok {
 		parentName = helper.DEFAULT_KEY
 	}
-	if objToCreate.Labels["nexus/is_name_hashed"] == "true" {
+	if objToCreate.Labels[helper.IS_NAME_HASHED_LABEL] == "true" {
 		parentName = helper.GetHashedName("configs.config.tsm.tanzu.vmware.com", parents, parentName)
 	}
 
@@ -750,9 +750,9 @@ func (obj *gnsGnsTsmV1) Update(ctx context.Context, objToUpdate *basegnstsmtanzu
 	if objToUpdate.Labels == nil {
 		objToUpdate.Labels = map[string]string{}
 	}
-	if objToUpdate.Labels["nexus/is_name_hashed"] != "true" {
-		objToUpdate.Labels["nexus/display_name"] = objToUpdate.GetName()
-		objToUpdate.Labels["nexus/is_name_hashed"] = "true"
+	if objToUpdate.Labels[helper.IS_NAME_HASHED_LABEL] != "true" {
+		objToUpdate.Labels[helper.DISPLAY_NAME_LABEL] = objToUpdate.GetName()
+		objToUpdate.Labels[helper.IS_NAME_HASHED_LABEL] = "true"
 		hashedName := helper.GetHashedName("gnses.gns.tsm.tanzu.vmware.com", parents, objToUpdate.GetName())
 		objToUpdate.Name = hashedName
 	}
@@ -871,8 +871,8 @@ func (obj *gnsGnsTsmV1) GetGnsServiceGroups(ctx context.Context, srcObj *basegns
 	if parents == nil {
 		parents = make(map[string]string, 1)
 	}
-	if _, ok := srcObj.GetLabels()["nexus/display_name"]; ok {
-		parents["gnses.gns.tsm.tanzu.vmware.com"] = srcObj.GetLabels()["nexus/display_name"]
+	if _, ok := srcObj.GetLabels()[helper.DISPLAY_NAME_LABEL]; ok {
+		parents["gnses.gns.tsm.tanzu.vmware.com"] = srcObj.GetLabels()[helper.DISPLAY_NAME_LABEL]
 	} else {
 		parents["gnses.gns.tsm.tanzu.vmware.com"] = srcObj.GetName()
 	}
@@ -889,8 +889,8 @@ func (obj *gnsGnsTsmV1) GetGnsServiceGroupsByName(ctx context.Context, srcObj *b
 		}
 	}
 	var parentName string
-	if srcObj.Labels != nil && srcObj.Labels["nexus/display_name"] != "" {
-		parentName = srcObj.Labels["nexus/display_name"]
+	if srcObj.Labels != nil && srcObj.Labels[helper.DISPLAY_NAME_LABEL] != "" {
+		parentName = srcObj.Labels[helper.DISPLAY_NAME_LABEL]
 	} else {
 		parentName = srcObj.GetName()
 	}
@@ -904,8 +904,8 @@ func (obj *gnsGnsTsmV1) GetAllGnsServiceGroups(ctx context.Context, srcObj *base
 		l, err := obj.client.baseClient.ServicegroupTsmV1().SvcGroups().Get(ctx, v.Name, metav1.GetOptions{})
 		if err != nil {
 			var parentName string
-			if srcObj.Labels != nil && srcObj.Labels["nexus/display_name"] != "" {
-				parentName = srcObj.Labels["nexus/display_name"]
+			if srcObj.Labels != nil && srcObj.Labels[helper.DISPLAY_NAME_LABEL] != "" {
+				parentName = srcObj.Labels[helper.DISPLAY_NAME_LABEL]
 			} else {
 				parentName = srcObj.GetName()
 			}
@@ -925,8 +925,8 @@ func (obj *gnsGnsTsmV1) GetGnsAccessControlPolicyByName(ctx context.Context, src
 		return obj.client.baseClient.PolicyTsmV1().AccessControlPolicies().Get(ctx, srcObj.Spec.GnsAccessControlPolicyGvk.Name, metav1.GetOptions{})
 	} else {
 		var parentName string
-		if srcObj.Labels != nil && srcObj.Labels["nexus/display_name"] != "" {
-			parentName = srcObj.Labels["nexus/display_name"]
+		if srcObj.Labels != nil && srcObj.Labels[helper.DISPLAY_NAME_LABEL] != "" {
+			parentName = srcObj.Labels[helper.DISPLAY_NAME_LABEL]
 		} else {
 			parentName = srcObj.GetName()
 		}
@@ -944,8 +944,8 @@ func (obj *gnsGnsTsmV1) GetDnsByName(ctx context.Context, srcObj *basegnstsmtanz
 		return obj.client.baseClient.GnsTsmV1().Dnses().Get(ctx, srcObj.Spec.DnsGvk.Name, metav1.GetOptions{})
 	} else {
 		var parentName string
-		if srcObj.Labels != nil && srcObj.Labels["nexus/display_name"] != "" {
-			parentName = srcObj.Labels["nexus/display_name"]
+		if srcObj.Labels != nil && srcObj.Labels[helper.DISPLAY_NAME_LABEL] != "" {
+			parentName = srcObj.Labels[helper.DISPLAY_NAME_LABEL]
 		} else {
 			parentName = srcObj.GetName()
 		}
@@ -978,7 +978,7 @@ func (obj *dnsGnsTsmV1) Delete(ctx context.Context, name string, parents map[str
 	if parents == nil {
 		parents = map[string]string{}
 	}
-	parents["nexus/is_name_hashed"] = "true"
+	parents[helper.IS_NAME_HASHED_LABEL] = "true"
 	hashedName := helper.GetHashedName("dnses.gns.tsm.tanzu.vmware.com", parents, name)
 	return obj.DeleteByName(ctx, hashedName, parents)
 }
@@ -1002,9 +1002,9 @@ func (obj *dnsGnsTsmV1) Create(ctx context.Context, objToCreate *basegnstsmtanzu
 	if objToCreate.Labels == nil {
 		objToCreate.Labels = map[string]string{}
 	}
-	if objToCreate.Labels["nexus/is_name_hashed"] != "true" {
-		objToCreate.Labels["nexus/display_name"] = objToCreate.GetName()
-		objToCreate.Labels["nexus/is_name_hashed"] = "true"
+	if objToCreate.Labels[helper.IS_NAME_HASHED_LABEL] != "true" {
+		objToCreate.Labels[helper.DISPLAY_NAME_LABEL] = objToCreate.GetName()
+		objToCreate.Labels[helper.IS_NAME_HASHED_LABEL] = "true"
 		hashedName := helper.GetHashedName("dnses.gns.tsm.tanzu.vmware.com", parents, objToCreate.GetName())
 		objToCreate.Name = hashedName
 	}
@@ -1016,8 +1016,8 @@ func (obj *dnsGnsTsmV1) CreateByName(ctx context.Context, objToCreate *basegnsts
 	for k, v := range parents {
 		objToCreate.Labels[k] = v
 	}
-	if _, ok := objToCreate.Labels["nexus/display_name"]; !ok {
-		objToCreate.Labels["nexus/display_name"] = objToCreate.GetName()
+	if _, ok := objToCreate.Labels[helper.DISPLAY_NAME_LABEL]; !ok {
+		objToCreate.Labels[helper.DISPLAY_NAME_LABEL] = objToCreate.GetName()
 	}
 
 	result, err = obj.client.baseClient.GnsTsmV1().Dnses().Create(ctx, objToCreate, metav1.CreateOptions{})
@@ -1036,9 +1036,9 @@ func (obj *dnsGnsTsmV1) Update(ctx context.Context, objToUpdate *basegnstsmtanzu
 	if objToUpdate.Labels == nil {
 		objToUpdate.Labels = map[string]string{}
 	}
-	if objToUpdate.Labels["nexus/is_name_hashed"] != "true" {
-		objToUpdate.Labels["nexus/display_name"] = objToUpdate.GetName()
-		objToUpdate.Labels["nexus/is_name_hashed"] = "true"
+	if objToUpdate.Labels[helper.IS_NAME_HASHED_LABEL] != "true" {
+		objToUpdate.Labels[helper.DISPLAY_NAME_LABEL] = objToUpdate.GetName()
+		objToUpdate.Labels[helper.IS_NAME_HASHED_LABEL] = "true"
 		hashedName := helper.GetHashedName("dnses.gns.tsm.tanzu.vmware.com", parents, objToUpdate.GetName())
 		objToUpdate.Name = hashedName
 	}
@@ -1104,7 +1104,7 @@ func (obj *svcgroupServicegroupTsmV1) Delete(ctx context.Context, name string, p
 	if parents == nil {
 		parents = map[string]string{}
 	}
-	parents["nexus/is_name_hashed"] = "true"
+	parents[helper.IS_NAME_HASHED_LABEL] = "true"
 	hashedName := helper.GetHashedName("svcgroups.servicegroup.tsm.tanzu.vmware.com", parents, name)
 	return obj.DeleteByName(ctx, hashedName, parents)
 }
@@ -1133,7 +1133,7 @@ func (obj *svcgroupServicegroupTsmV1) DeleteByName(ctx context.Context, name str
 	if !ok {
 		parentName = helper.DEFAULT_KEY
 	}
-	if parents["nexus/is_name_hashed"] == "true" {
+	if parents[helper.IS_NAME_HASHED_LABEL] == "true" {
 		parentName = helper.GetHashedName("gnses.gns.tsm.tanzu.vmware.com", parents, parentName)
 	}
 	_, err = obj.client.baseClient.GnsTsmV1().Gnses().Patch(ctx, parentName, types.JSONPatchType, marshaled, metav1.PatchOptions{})
@@ -1152,9 +1152,9 @@ func (obj *svcgroupServicegroupTsmV1) Create(ctx context.Context, objToCreate *b
 	if objToCreate.Labels == nil {
 		objToCreate.Labels = map[string]string{}
 	}
-	if objToCreate.Labels["nexus/is_name_hashed"] != "true" {
-		objToCreate.Labels["nexus/display_name"] = objToCreate.GetName()
-		objToCreate.Labels["nexus/is_name_hashed"] = "true"
+	if objToCreate.Labels[helper.IS_NAME_HASHED_LABEL] != "true" {
+		objToCreate.Labels[helper.DISPLAY_NAME_LABEL] = objToCreate.GetName()
+		objToCreate.Labels[helper.IS_NAME_HASHED_LABEL] = "true"
 		hashedName := helper.GetHashedName("svcgroups.servicegroup.tsm.tanzu.vmware.com", parents, objToCreate.GetName())
 		objToCreate.Name = hashedName
 	}
@@ -1166,8 +1166,8 @@ func (obj *svcgroupServicegroupTsmV1) CreateByName(ctx context.Context, objToCre
 	for k, v := range parents {
 		objToCreate.Labels[k] = v
 	}
-	if _, ok := objToCreate.Labels["nexus/display_name"]; !ok {
-		objToCreate.Labels["nexus/display_name"] = objToCreate.GetName()
+	if _, ok := objToCreate.Labels[helper.DISPLAY_NAME_LABEL]; !ok {
+		objToCreate.Labels[helper.DISPLAY_NAME_LABEL] = objToCreate.GetName()
 	}
 
 	result, err = obj.client.baseClient.ServicegroupTsmV1().SvcGroups().Create(ctx, objToCreate, metav1.CreateOptions{})
@@ -1179,7 +1179,7 @@ func (obj *svcgroupServicegroupTsmV1) CreateByName(ctx context.Context, objToCre
 	if !ok {
 		parentName = helper.DEFAULT_KEY
 	}
-	if objToCreate.Labels["nexus/is_name_hashed"] == "true" {
+	if objToCreate.Labels[helper.IS_NAME_HASHED_LABEL] == "true" {
 		parentName = helper.GetHashedName("gnses.gns.tsm.tanzu.vmware.com", parents, parentName)
 	}
 
@@ -1200,9 +1200,9 @@ func (obj *svcgroupServicegroupTsmV1) Update(ctx context.Context, objToUpdate *b
 	if objToUpdate.Labels == nil {
 		objToUpdate.Labels = map[string]string{}
 	}
-	if objToUpdate.Labels["nexus/is_name_hashed"] != "true" {
-		objToUpdate.Labels["nexus/display_name"] = objToUpdate.GetName()
-		objToUpdate.Labels["nexus/is_name_hashed"] = "true"
+	if objToUpdate.Labels[helper.IS_NAME_HASHED_LABEL] != "true" {
+		objToUpdate.Labels[helper.DISPLAY_NAME_LABEL] = objToUpdate.GetName()
+		objToUpdate.Labels[helper.IS_NAME_HASHED_LABEL] = "true"
 		hashedName := helper.GetHashedName("svcgroups.servicegroup.tsm.tanzu.vmware.com", parents, objToUpdate.GetName())
 		objToUpdate.Name = hashedName
 	}
@@ -1292,7 +1292,7 @@ func (obj *accesscontrolpolicyPolicyTsmV1) Delete(ctx context.Context, name stri
 	if parents == nil {
 		parents = map[string]string{}
 	}
-	parents["nexus/is_name_hashed"] = "true"
+	parents[helper.IS_NAME_HASHED_LABEL] = "true"
 	hashedName := helper.GetHashedName("accesscontrolpolicies.policy.tsm.tanzu.vmware.com", parents, name)
 	return obj.DeleteByName(ctx, hashedName, parents)
 }
@@ -1308,8 +1308,8 @@ func (obj *accesscontrolpolicyPolicyTsmV1) DeleteByName(ctx context.Context, nam
 		parents = make(map[string]string, 1)
 	}
 
-	if _, ok := result.GetLabels()["nexus/display_name"]; ok {
-		parents["accesscontrolpolicies.policy.tsm.tanzu.vmware.com"] = result.GetLabels()["nexus/display_name"]
+	if _, ok := result.GetLabels()[helper.DISPLAY_NAME_LABEL]; ok {
+		parents["accesscontrolpolicies.policy.tsm.tanzu.vmware.com"] = result.GetLabels()[helper.DISPLAY_NAME_LABEL]
 	} else {
 		parents["accesscontrolpolicies.policy.tsm.tanzu.vmware.com"] = name
 	}
@@ -1342,7 +1342,7 @@ func (obj *accesscontrolpolicyPolicyTsmV1) DeleteByName(ctx context.Context, nam
 	if !ok {
 		parentName = helper.DEFAULT_KEY
 	}
-	if parents["nexus/is_name_hashed"] == "true" {
+	if parents[helper.IS_NAME_HASHED_LABEL] == "true" {
 		parentName = helper.GetHashedName("gnses.gns.tsm.tanzu.vmware.com", parents, parentName)
 	}
 	_, err = obj.client.baseClient.GnsTsmV1().Gnses().Patch(ctx, parentName, types.JSONPatchType, marshaled, metav1.PatchOptions{})
@@ -1361,9 +1361,9 @@ func (obj *accesscontrolpolicyPolicyTsmV1) Create(ctx context.Context, objToCrea
 	if objToCreate.Labels == nil {
 		objToCreate.Labels = map[string]string{}
 	}
-	if objToCreate.Labels["nexus/is_name_hashed"] != "true" {
-		objToCreate.Labels["nexus/display_name"] = objToCreate.GetName()
-		objToCreate.Labels["nexus/is_name_hashed"] = "true"
+	if objToCreate.Labels[helper.IS_NAME_HASHED_LABEL] != "true" {
+		objToCreate.Labels[helper.DISPLAY_NAME_LABEL] = objToCreate.GetName()
+		objToCreate.Labels[helper.IS_NAME_HASHED_LABEL] = "true"
 		hashedName := helper.GetHashedName("accesscontrolpolicies.policy.tsm.tanzu.vmware.com", parents, objToCreate.GetName())
 		objToCreate.Name = hashedName
 	}
@@ -1375,8 +1375,8 @@ func (obj *accesscontrolpolicyPolicyTsmV1) CreateByName(ctx context.Context, obj
 	for k, v := range parents {
 		objToCreate.Labels[k] = v
 	}
-	if _, ok := objToCreate.Labels["nexus/display_name"]; !ok {
-		objToCreate.Labels["nexus/display_name"] = objToCreate.GetName()
+	if _, ok := objToCreate.Labels[helper.DISPLAY_NAME_LABEL]; !ok {
+		objToCreate.Labels[helper.DISPLAY_NAME_LABEL] = objToCreate.GetName()
 	}
 
 	objToCreate.Spec.PolicyConfigsGvk = nil
@@ -1390,7 +1390,7 @@ func (obj *accesscontrolpolicyPolicyTsmV1) CreateByName(ctx context.Context, obj
 	if !ok {
 		parentName = helper.DEFAULT_KEY
 	}
-	if objToCreate.Labels["nexus/is_name_hashed"] == "true" {
+	if objToCreate.Labels[helper.IS_NAME_HASHED_LABEL] == "true" {
 		parentName = helper.GetHashedName("gnses.gns.tsm.tanzu.vmware.com", parents, parentName)
 	}
 
@@ -1425,9 +1425,9 @@ func (obj *accesscontrolpolicyPolicyTsmV1) Update(ctx context.Context, objToUpda
 	if objToUpdate.Labels == nil {
 		objToUpdate.Labels = map[string]string{}
 	}
-	if objToUpdate.Labels["nexus/is_name_hashed"] != "true" {
-		objToUpdate.Labels["nexus/display_name"] = objToUpdate.GetName()
-		objToUpdate.Labels["nexus/is_name_hashed"] = "true"
+	if objToUpdate.Labels[helper.IS_NAME_HASHED_LABEL] != "true" {
+		objToUpdate.Labels[helper.DISPLAY_NAME_LABEL] = objToUpdate.GetName()
+		objToUpdate.Labels[helper.IS_NAME_HASHED_LABEL] = "true"
 		hashedName := helper.GetHashedName("accesscontrolpolicies.policy.tsm.tanzu.vmware.com", parents, objToUpdate.GetName())
 		objToUpdate.Name = hashedName
 	}
@@ -1474,8 +1474,8 @@ func (obj *accesscontrolpolicyPolicyTsmV1) GetPolicyConfigs(ctx context.Context,
 	if parents == nil {
 		parents = make(map[string]string, 1)
 	}
-	if _, ok := srcObj.GetLabels()["nexus/display_name"]; ok {
-		parents["accesscontrolpolicies.policy.tsm.tanzu.vmware.com"] = srcObj.GetLabels()["nexus/display_name"]
+	if _, ok := srcObj.GetLabels()[helper.DISPLAY_NAME_LABEL]; ok {
+		parents["accesscontrolpolicies.policy.tsm.tanzu.vmware.com"] = srcObj.GetLabels()[helper.DISPLAY_NAME_LABEL]
 	} else {
 		parents["accesscontrolpolicies.policy.tsm.tanzu.vmware.com"] = srcObj.GetName()
 	}
@@ -1492,8 +1492,8 @@ func (obj *accesscontrolpolicyPolicyTsmV1) GetPolicyConfigsByName(ctx context.Co
 		}
 	}
 	var parentName string
-	if srcObj.Labels != nil && srcObj.Labels["nexus/display_name"] != "" {
-		parentName = srcObj.Labels["nexus/display_name"]
+	if srcObj.Labels != nil && srcObj.Labels[helper.DISPLAY_NAME_LABEL] != "" {
+		parentName = srcObj.Labels[helper.DISPLAY_NAME_LABEL]
 	} else {
 		parentName = srcObj.GetName()
 	}
@@ -1507,8 +1507,8 @@ func (obj *accesscontrolpolicyPolicyTsmV1) GetAllPolicyConfigs(ctx context.Conte
 		l, err := obj.client.baseClient.PolicyTsmV1().ACPConfigs().Get(ctx, v.Name, metav1.GetOptions{})
 		if err != nil {
 			var parentName string
-			if srcObj.Labels != nil && srcObj.Labels["nexus/display_name"] != "" {
-				parentName = srcObj.Labels["nexus/display_name"]
+			if srcObj.Labels != nil && srcObj.Labels[helper.DISPLAY_NAME_LABEL] != "" {
+				parentName = srcObj.Labels[helper.DISPLAY_NAME_LABEL]
 			} else {
 				parentName = srcObj.GetName()
 			}
@@ -1543,7 +1543,7 @@ func (obj *acpconfigPolicyTsmV1) Delete(ctx context.Context, name string, parent
 	if parents == nil {
 		parents = map[string]string{}
 	}
-	parents["nexus/is_name_hashed"] = "true"
+	parents[helper.IS_NAME_HASHED_LABEL] = "true"
 	hashedName := helper.GetHashedName("acpconfigs.policy.tsm.tanzu.vmware.com", parents, name)
 	return obj.DeleteByName(ctx, hashedName, parents)
 }
@@ -1572,7 +1572,7 @@ func (obj *acpconfigPolicyTsmV1) DeleteByName(ctx context.Context, name string, 
 	if !ok {
 		parentName = helper.DEFAULT_KEY
 	}
-	if parents["nexus/is_name_hashed"] == "true" {
+	if parents[helper.IS_NAME_HASHED_LABEL] == "true" {
 		parentName = helper.GetHashedName("accesscontrolpolicies.policy.tsm.tanzu.vmware.com", parents, parentName)
 	}
 	_, err = obj.client.baseClient.PolicyTsmV1().AccessControlPolicies().Patch(ctx, parentName, types.JSONPatchType, marshaled, metav1.PatchOptions{})
@@ -1591,9 +1591,9 @@ func (obj *acpconfigPolicyTsmV1) Create(ctx context.Context, objToCreate *basepo
 	if objToCreate.Labels == nil {
 		objToCreate.Labels = map[string]string{}
 	}
-	if objToCreate.Labels["nexus/is_name_hashed"] != "true" {
-		objToCreate.Labels["nexus/display_name"] = objToCreate.GetName()
-		objToCreate.Labels["nexus/is_name_hashed"] = "true"
+	if objToCreate.Labels[helper.IS_NAME_HASHED_LABEL] != "true" {
+		objToCreate.Labels[helper.DISPLAY_NAME_LABEL] = objToCreate.GetName()
+		objToCreate.Labels[helper.IS_NAME_HASHED_LABEL] = "true"
 		hashedName := helper.GetHashedName("acpconfigs.policy.tsm.tanzu.vmware.com", parents, objToCreate.GetName())
 		objToCreate.Name = hashedName
 	}
@@ -1605,8 +1605,8 @@ func (obj *acpconfigPolicyTsmV1) CreateByName(ctx context.Context, objToCreate *
 	for k, v := range parents {
 		objToCreate.Labels[k] = v
 	}
-	if _, ok := objToCreate.Labels["nexus/display_name"]; !ok {
-		objToCreate.Labels["nexus/display_name"] = objToCreate.GetName()
+	if _, ok := objToCreate.Labels[helper.DISPLAY_NAME_LABEL]; !ok {
+		objToCreate.Labels[helper.DISPLAY_NAME_LABEL] = objToCreate.GetName()
 	}
 
 	objToCreate.Spec.DestSvcGroupsGvk = nil
@@ -1621,7 +1621,7 @@ func (obj *acpconfigPolicyTsmV1) CreateByName(ctx context.Context, objToCreate *
 	if !ok {
 		parentName = helper.DEFAULT_KEY
 	}
-	if objToCreate.Labels["nexus/is_name_hashed"] == "true" {
+	if objToCreate.Labels[helper.IS_NAME_HASHED_LABEL] == "true" {
 		parentName = helper.GetHashedName("accesscontrolpolicies.policy.tsm.tanzu.vmware.com", parents, parentName)
 	}
 
@@ -1642,9 +1642,9 @@ func (obj *acpconfigPolicyTsmV1) Update(ctx context.Context, objToUpdate *basepo
 	if objToUpdate.Labels == nil {
 		objToUpdate.Labels = map[string]string{}
 	}
-	if objToUpdate.Labels["nexus/is_name_hashed"] != "true" {
-		objToUpdate.Labels["nexus/display_name"] = objToUpdate.GetName()
-		objToUpdate.Labels["nexus/is_name_hashed"] = "true"
+	if objToUpdate.Labels[helper.IS_NAME_HASHED_LABEL] != "true" {
+		objToUpdate.Labels[helper.DISPLAY_NAME_LABEL] = objToUpdate.GetName()
+		objToUpdate.Labels[helper.IS_NAME_HASHED_LABEL] = "true"
 		hashedName := helper.GetHashedName("acpconfigs.policy.tsm.tanzu.vmware.com", parents, objToUpdate.GetName())
 		objToUpdate.Name = hashedName
 	}
@@ -1807,8 +1807,8 @@ func (obj *acpconfigPolicyTsmV1) GetDestSvcGroups(ctx context.Context, srcObj *b
 	if parents == nil {
 		parents = make(map[string]string, 1)
 	}
-	if _, ok := srcObj.GetLabels()["nexus/display_name"]; ok {
-		parents["acpconfigs.policy.tsm.tanzu.vmware.com"] = srcObj.GetLabels()["nexus/display_name"]
+	if _, ok := srcObj.GetLabels()[helper.DISPLAY_NAME_LABEL]; ok {
+		parents["acpconfigs.policy.tsm.tanzu.vmware.com"] = srcObj.GetLabels()[helper.DISPLAY_NAME_LABEL]
 	} else {
 		parents["acpconfigs.policy.tsm.tanzu.vmware.com"] = srcObj.GetName()
 	}
@@ -1825,8 +1825,8 @@ func (obj *acpconfigPolicyTsmV1) GetDestSvcGroupsByName(ctx context.Context, src
 		}
 	}
 	var parentName string
-	if srcObj.Labels != nil && srcObj.Labels["nexus/display_name"] != "" {
-		parentName = srcObj.Labels["nexus/display_name"]
+	if srcObj.Labels != nil && srcObj.Labels[helper.DISPLAY_NAME_LABEL] != "" {
+		parentName = srcObj.Labels[helper.DISPLAY_NAME_LABEL]
 	} else {
 		parentName = srcObj.GetName()
 	}
@@ -1840,8 +1840,8 @@ func (obj *acpconfigPolicyTsmV1) GetAllDestSvcGroups(ctx context.Context, srcObj
 		l, err := obj.client.baseClient.ServicegroupTsmV1().SvcGroups().Get(ctx, v.Name, metav1.GetOptions{})
 		if err != nil {
 			var parentName string
-			if srcObj.Labels != nil && srcObj.Labels["nexus/display_name"] != "" {
-				parentName = srcObj.Labels["nexus/display_name"]
+			if srcObj.Labels != nil && srcObj.Labels[helper.DISPLAY_NAME_LABEL] != "" {
+				parentName = srcObj.Labels[helper.DISPLAY_NAME_LABEL]
 			} else {
 				parentName = srcObj.GetName()
 			}
@@ -1857,8 +1857,8 @@ func (obj *acpconfigPolicyTsmV1) GetSourceSvcGroups(ctx context.Context, srcObj 
 	if parents == nil {
 		parents = make(map[string]string, 1)
 	}
-	if _, ok := srcObj.GetLabels()["nexus/display_name"]; ok {
-		parents["acpconfigs.policy.tsm.tanzu.vmware.com"] = srcObj.GetLabels()["nexus/display_name"]
+	if _, ok := srcObj.GetLabels()[helper.DISPLAY_NAME_LABEL]; ok {
+		parents["acpconfigs.policy.tsm.tanzu.vmware.com"] = srcObj.GetLabels()[helper.DISPLAY_NAME_LABEL]
 	} else {
 		parents["acpconfigs.policy.tsm.tanzu.vmware.com"] = srcObj.GetName()
 	}
@@ -1875,8 +1875,8 @@ func (obj *acpconfigPolicyTsmV1) GetSourceSvcGroupsByName(ctx context.Context, s
 		}
 	}
 	var parentName string
-	if srcObj.Labels != nil && srcObj.Labels["nexus/display_name"] != "" {
-		parentName = srcObj.Labels["nexus/display_name"]
+	if srcObj.Labels != nil && srcObj.Labels[helper.DISPLAY_NAME_LABEL] != "" {
+		parentName = srcObj.Labels[helper.DISPLAY_NAME_LABEL]
 	} else {
 		parentName = srcObj.GetName()
 	}
@@ -1890,8 +1890,8 @@ func (obj *acpconfigPolicyTsmV1) GetAllSourceSvcGroups(ctx context.Context, srcO
 		l, err := obj.client.baseClient.ServicegroupTsmV1().SvcGroups().Get(ctx, v.Name, metav1.GetOptions{})
 		if err != nil {
 			var parentName string
-			if srcObj.Labels != nil && srcObj.Labels["nexus/display_name"] != "" {
-				parentName = srcObj.Labels["nexus/display_name"]
+			if srcObj.Labels != nil && srcObj.Labels[helper.DISPLAY_NAME_LABEL] != "" {
+				parentName = srcObj.Labels[helper.DISPLAY_NAME_LABEL]
 			} else {
 				parentName = srcObj.GetName()
 			}

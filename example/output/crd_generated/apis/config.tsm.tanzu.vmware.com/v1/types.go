@@ -4,6 +4,8 @@ package v1
 
 import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/crd_generated/helper"
 )
 
 // +k8s:openapi-gen=true
@@ -35,6 +37,13 @@ type Config struct {
 
 func (c *Config) CRDName() string {
 	return "configs.config.tsm.tanzu.vmware.com"
+}
+
+func (c *Config) DisplayName() string {
+	if c.GetLabels() != nil {
+		return c.GetLabels()[helper.DISPLAY_NAME_LABEL]
+	}
+	return ""
 }
 
 // +k8s:openapi-gen=true

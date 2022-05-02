@@ -72,3 +72,7 @@ func GetPackageNameFromCrdName(crdName string) string {
 	parts := strings.Split(crdName, ".")
 	return parts[1]
 }
+
+func GetHelperImport(crdModulePath string) string {
+	return `"` + crdModulePath + `helper"`
+}

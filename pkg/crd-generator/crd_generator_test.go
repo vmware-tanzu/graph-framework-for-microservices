@@ -100,7 +100,7 @@ var _ = Describe("Template renderers tests", func() {
 	})
 
 	It("should parse types template", func() {
-		typesBytes, err := crdgenerator.RenderTypesTemplate(pkg)
+		typesBytes, err := crdgenerator.RenderTypesTemplate(crdModulePath, pkg)
 		Expect(err).NotTo(HaveOccurred())
 
 		formatted, err := format.Source(typesBytes.Bytes())

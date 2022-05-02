@@ -4,6 +4,8 @@ package v1
 
 import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/_generated/helper"
 )
 
 // +k8s:openapi-gen=true
@@ -37,6 +39,13 @@ func (c *AccessControlPolicy) CRDName() string {
 	return "accesscontrolpolicies.policy.tsm.tanzu.vmware.com"
 }
 
+func (c *AccessControlPolicy) DisplayName() string {
+	if c.GetLabels() != nil {
+		return c.GetLabels()[helper.DISPLAY_NAME_LABEL]
+	}
+	return ""
+}
+
 // +k8s:openapi-gen=true
 type AccessControlPolicySpec struct {
 	PolicyConfigsGvk map[string]Child `json:"policyConfigsGvk,omitempty" yaml:"policyConfigsGvk,omitempty" nexus:"child"`
@@ -62,6 +71,13 @@ type ACPConfig struct {
 
 func (c *ACPConfig) CRDName() string {
 	return "acpconfigs.policy.tsm.tanzu.vmware.com"
+}
+
+func (c *ACPConfig) DisplayName() string {
+	if c.GetLabels() != nil {
+		return c.GetLabels()[helper.DISPLAY_NAME_LABEL]
+	}
+	return ""
 }
 
 // +k8s:openapi-gen=true
