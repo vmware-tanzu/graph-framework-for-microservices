@@ -73,6 +73,6 @@ func GetPackageNameFromCrdName(crdName string) string {
 	return parts[1]
 }
 
-func GetHelperImport(crdModulePath string) string {
-	return `"` + crdModulePath + `helper"`
+func GetInternalImport(crdModulePath string, packageName string) string {
+	return `"` + crdModulePath + packageName + `"`
 }

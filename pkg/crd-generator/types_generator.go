@@ -80,7 +80,7 @@ func (c *{{.Name}}) CRDName() string {
 
 func (c *{{.Name}}) DisplayName() string {
 	if c.GetLabels() != nil {
-		return c.GetLabels()[helper.DISPLAY_NAME_LABEL]
+		return c.GetLabels()[common.DISPLAY_NAME_LABEL]
 	}
 	return ""
 }

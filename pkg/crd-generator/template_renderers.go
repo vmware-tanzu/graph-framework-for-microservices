@@ -277,7 +277,7 @@ func RenderRegisterCRDTemplate(crdModulePath, baseGroupName string, pkg parser.P
 
 type typesVars struct {
 	Imports      string
-	HelperImport string
+	CommonImport string
 	CRDTypes     string
 	Structs      string
 	Types        string
@@ -289,7 +289,7 @@ func RenderTypesTemplate(crdModulePath string, pkg parser.Package) (*bytes.Buffe
 	vars.Structs = parsePackageStructs(pkg)
 	vars.Types = parsePackageTypes(pkg)
 	vars.Imports = parsePackageImports(pkg)
-	vars.HelperImport = util.GetHelperImport(crdModulePath)
+	vars.CommonImport = util.GetInternalImport(crdModulePath, "common")
 
 	registerCrdTemplate, err := readTemplateFile(typesTemplateFile)
 	if err != nil {
@@ -470,6 +470,7 @@ func RenderClient(baseGroupName, outputDir, crdModulePath string, pkgs parser.Pa
 
 type clientVars struct {
 	ApiGroups           []ApiGroupsVars
+	CommonImport        string
 	HelperImport        string
 	BaseClientsetImport string
 	BaseImports         string

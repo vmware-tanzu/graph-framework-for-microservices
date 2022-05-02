@@ -5,7 +5,7 @@ package v1
 import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/crd_generated/helper"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/crd_generated/common"
 )
 
 // +k8s:openapi-gen=true
@@ -41,7 +41,7 @@ func (c *AccessControlPolicy) CRDName() string {
 
 func (c *AccessControlPolicy) DisplayName() string {
 	if c.GetLabels() != nil {
-		return c.GetLabels()[helper.DISPLAY_NAME_LABEL]
+		return c.GetLabels()[common.DISPLAY_NAME_LABEL]
 	}
 	return ""
 }
@@ -75,7 +75,7 @@ func (c *ACPConfig) CRDName() string {
 
 func (c *ACPConfig) DisplayName() string {
 	if c.GetLabels() != nil {
-		return c.GetLabels()[helper.DISPLAY_NAME_LABEL]
+		return c.GetLabels()[common.DISPLAY_NAME_LABEL]
 	}
 	return ""
 }

@@ -5,7 +5,7 @@ package v1
 import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/_generated/helper"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/_generated/common"
 )
 
 // +k8s:openapi-gen=true
@@ -42,7 +42,7 @@ func (c *Gns) CRDName() string {
 
 func (c *Gns) DisplayName() string {
 	if c.GetLabels() != nil {
-		return c.GetLabels()[helper.DISPLAY_NAME_LABEL]
+		return c.GetLabels()[common.DISPLAY_NAME_LABEL]
 	}
 	return ""
 }
@@ -80,7 +80,7 @@ func (c *Dns) CRDName() string {
 
 func (c *Dns) DisplayName() string {
 	if c.GetLabels() != nil {
-		return c.GetLabels()[helper.DISPLAY_NAME_LABEL]
+		return c.GetLabels()[common.DISPLAY_NAME_LABEL]
 	}
 	return ""
 }

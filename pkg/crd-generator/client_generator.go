@@ -15,7 +15,8 @@ func generateNexusClientVars(baseGroupName, crdModulePath string, pkgs parser.Pa
 	var vars clientVars
 
 	vars.BaseClientsetImport = `"` + crdModulePath + `client/clientset/versioned"`
-	vars.HelperImport = util.GetHelperImport(crdModulePath)
+	vars.CommonImport = util.GetInternalImport(crdModulePath, "common")
+	vars.HelperImport = util.GetInternalImport(crdModulePath, "helper")
 
 	sortedKeys := make([]string, 0, len(pkgs))
 	for k := range pkgs {
