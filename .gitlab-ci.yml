@@ -28,7 +28,7 @@ build_tag:
   only:
     - tags
   variables:
-    TAG: CI_COMMIT_TAG
+    TAG: $CI_COMMIT_TAG
   script:
     - make build
     - make publish
