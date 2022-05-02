@@ -4,13 +4,11 @@ import (
 	"go/ast"
 	"sort"
 	"strings"
-	"text/template"
-
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/pkg/util"
 
 	log "github.com/sirupsen/logrus"
 
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/pkg/parser"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/pkg/util"
 )
 
 func generateNexusClientVars(baseGroupName, crdModulePath string, pkgs parser.Packages, parentsMap map[string]parser.NodeHelper) (clientVars, error) {
@@ -31,6 +29,7 @@ func generateNexusClientVars(baseGroupName, crdModulePath string, pkgs parser.Pa
 
 	for _, pkg := range sortedPackages {
 		if len(pkg.GetNexusNodes()) > 0 {
+			var groupVars ApiGroupsVars
 			// TODO make version configurable
 			version := "v1"
 
@@ -42,20 +41,21 @@ func generateNexusClientVars(baseGroupName, crdModulePath string, pkgs parser.Pa
 
 			groupVarName := util.GetGroupVarName(pkg.Name, baseGroupName, version)
 			groupTypeName := util.GetGroupTypeName(pkg.Name, baseGroupName, version)
-			vars.ClientsetsApiGroups += groupVarName + " *" + groupTypeName + "\n" // eg rootHelloworldV1 *RootHelloworldV1
+			//vars.ClientsetsApiGroups += groupVarName + " *" + groupTypeName + "\n" // eg rootHelloworldV1 *RootHelloworldV1
+			groupVars.ClientsetApiGroups = groupVarName + " *" + groupTypeName + "\n" // eg rootHelloworldV1 *RootHelloworldV1
 
 			initClient := "client." + groupVarName + " = new" + groupTypeName +
 				"(client)\n" // eg client.rootHelloworldV1 = newRootHelloworldV1(client)
-			vars.InitApiGroups += initClient
+			//vars.InitApiGroups += initClient
+			groupVars.InitApiGroups = initClient
 
 			clientsetMethod := "func (c *Clientset) " + groupTypeName + "() *" + groupTypeName + " {\n" + "return c." +
 				groupVarName + "\n}\n" // eg
 			// func (c *Clientset) RootHelloworldV1() *RootHelloworldV1 {
 			//	return c.rootHelloworldV1
 			// }
-			vars.ClientsetsApiGroupMethods += clientsetMethod
 
-			var groupVars apiGroupsVars
+			groupVars.ClientsetsApiGroupMethods = clientsetMethod
 			groupVars.GroupTypeName = groupTypeName
 
 			for _, node := range pkg.GetNexusNodes() {
@@ -69,18 +69,14 @@ func generateNexusClientVars(baseGroupName, crdModulePath string, pkgs parser.Pa
 				vars.Nodes = append(vars.Nodes, clientGroupVars)
 			}
 
-			apiGroup, err := renderApiGroup(groupVars)
-			if err != nil {
-				return clientVars{}, err
-			}
-			vars.ApiGroups += apiGroup
+			vars.ApiGroups = append(vars.ApiGroups, groupVars)
 
 		}
 	}
 	return vars, nil
 }
 
-func resolveNode(baseImportName string, pkg parser.Package, baseGroupName, version string, groupVars *apiGroupsVars, clientGroupVars *apiGroupsClientVars, node *ast.TypeSpec, parentsMap map[string]parser.NodeHelper) error {
+func resolveNode(baseImportName string, pkg parser.Package, baseGroupName, version string, groupVars *ApiGroupsVars, clientGroupVars *apiGroupsClientVars, node *ast.TypeSpec, parentsMap map[string]parser.NodeHelper) error {
 	pkgName := pkg.Name
 	baseNodeName := node.Name.Name // eg Root
 	groupResourceName := util.GetGroupResourceName(baseNodeName)
@@ -207,41 +203,18 @@ func getFieldInfo(pkg parser.Package, f *ast.Field) fieldInfo {
 	return info
 }
 
-var apiGroupTmpl = `
-type {{.GroupTypeName}} struct {
-	{{.GroupResources}}
-}
-
-func new{{.GroupTypeName}}(client *Clientset) *{{.GroupTypeName}} {
-	return &{{.GroupTypeName}}{
-		{{.GroupResourcesInit}}
-	}
-}
-
-{{.GroupResourcesDefs}}
-`
-
-type apiGroupsVars struct {
-	GroupTypeName      string
-	GroupResourcesInit string
-	GroupResources     string
-	GroupResourcesDefs string
-}
-
-func renderApiGroup(vars apiGroupsVars) (string, error) {
-	tmpl, err := template.New("tmpl").Parse(apiGroupTmpl)
-	if err != nil {
-		return "", err
-	}
-	ren, err := renderTemplate(tmpl, vars)
-	if err != nil {
-		return "", err
-	}
-	return ren.String(), nil
+type ApiGroupsVars struct {
+	InitApiGroups             string
+	ClientsetApiGroups        string
+	ClientsetsApiGroupMethods string
+	GroupTypeName             string
+	GroupResourcesInit        string
+	GroupResources            string
+	GroupResourcesDefs        string
 }
 
 type apiGroupsClientVars struct {
-	apiGroupsVars
+	ApiGroupsVars
 	CrdName                string
 	ResolveLinksDelete     string
 	HasChildren            bool
