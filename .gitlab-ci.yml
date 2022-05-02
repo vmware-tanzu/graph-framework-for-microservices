@@ -27,9 +27,11 @@ build_tag:
   stage: build
   only:
     - tags
+  variables:
+    TAG: CI_COMMIT_TAG
   script:
     - make build
-    - make publish TAG=$CI_COMMI_TAG
+    - make publish
 
 integration_test:
   stage: integration_test
