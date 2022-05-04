@@ -206,9 +206,34 @@ func handleClientError(c echo.Context, err error) error {
 	nc := c.(*NexusContext)
 	log.Warn(err)
 
-	if errors.IsNotFound(err) {
+	switch {
+	case errors.IsNotFound(err):
 		if val, ok := nc.Codes[http.StatusNotFound]; ok {
 			return c.JSON(http.StatusNotFound, DefaultResponse{Message: val.Description})
+		}
+	case errors.IsAlreadyExists(err), errors.IsConflict(err):
+		if val, ok := nc.Codes[http.StatusConflict]; ok {
+			return c.JSON(http.StatusConflict, DefaultResponse{Message: val.Description})
+		}
+	case errors.IsInternalError(err):
+		if val, ok := nc.Codes[http.StatusInternalServerError]; ok {
+			return c.JSON(http.StatusInternalServerError, DefaultResponse{Message: val.Description})
+		}
+	case errors.IsBadRequest(err):
+		if val, ok := nc.Codes[http.StatusBadRequest]; ok {
+			return c.JSON(http.StatusBadRequest, DefaultResponse{Message: val.Description})
+		}
+	case errors.IsForbidden(err):
+		if val, ok := nc.Codes[http.StatusForbidden]; ok {
+			return c.JSON(http.StatusForbidden, DefaultResponse{Message: val.Description})
+		}
+	case errors.IsGone(err):
+		if val, ok := nc.Codes[http.StatusGone]; ok {
+			return c.JSON(http.StatusGone, DefaultResponse{Message: val.Description})
+		}
+	case errors.IsInvalid(err):
+		if val, ok := nc.Codes[http.StatusUnprocessableEntity]; ok {
+			return c.JSON(http.StatusUnprocessableEntity, DefaultResponse{Message: val.Description})
 		}
 	}
 
