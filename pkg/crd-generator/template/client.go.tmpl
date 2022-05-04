@@ -3,7 +3,6 @@ package nexus_client
 import (
 	"context"
 	"encoding/json"
-
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	types "k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/rest"
@@ -299,9 +298,59 @@ func (obj *{{$node.GroupResourceType}}) List(ctx context.Context, opts metav1.Li
 	return obj.client.baseClient.{{$node.GroupTypeName}}().{{$node.GroupResourceNameTitle}}().List(ctx, opts)
 }
 
+{{ range $key, $child := .Children }}
+// Add{{$child.FieldName}} creates childToCreate which is child of parentObj
+func (obj *{{$node.GroupResourceType}}) Add{{$child.FieldName}}(ctx context.Context, parentObj *{{$node.GroupBaseImport}}, childToCreate *{{$child.GroupBaseImport}}) (result *{{$child.GroupBaseImport}}, err error) {
+	parents := map[string]string{}
+	parentsKeys := helper.GetCRDParentsMap()[parentObj.CRDName()]
+	parentObjLabels := map[string]string{}
+	if parentObj.GetLabels() != nil {
+		parentObjLabels = parentObj.GetLabels()
+	}
+	for _, p := range parentsKeys {
+		v, ok := parentObjLabels[p]
+		if ok {
+			parents[p] = v
+		}
+	}
+	parentName, ok := parentObjLabels[common.DISPLAY_NAME_LABEL]
+	if ok {
+		parents[parentObj.CRDName()] = parentName
+	} else {
+		parents[parentObj.CRDName()] = parentObj.GetName()
+	}
+	return obj.client.{{$child.SimpleGroupTypeName}}().{{$child.GroupResourceNameTitle}}().Create(ctx, childToCreate, parents)
+}
+
+// Remove{{$child.FieldName}} deletes childToRemove which is child of parentObj
+func (obj *{{$node.GroupResourceType}}) Remove{{$child.FieldName}}(ctx context.Context, parentObj *{{$node.GroupBaseImport}}, childToRemove string) (err error) {
+	parents := map[string]string{}
+	parentsKeys := helper.GetCRDParentsMap()[parentObj.CRDName()]
+	parentObjLabels := map[string]string{}
+	if parentObj.GetLabels() != nil {
+		parentObjLabels = parentObj.GetLabels()
+	}
+	for _, p := range parentsKeys {
+		v, ok := parentObjLabels[p]
+		if ok {
+			parents[p] = v
+		}
+	}
+	parentName, ok := parentObjLabels[common.DISPLAY_NAME_LABEL]
+	if ok {
+		parents[parentObj.CRDName()] = parentName
+	} else {
+		parents[parentObj.CRDName()] = parentObj.GetName()
+	}
+	return obj.client.{{$child.SimpleGroupTypeName}}().{{$child.GroupResourceNameTitle}}().Delete(ctx, childToRemove, parents)
+}
+
+
+{{ end }}
+
 {{ range $key, $link := .Links }}
-// Add{{$link.FieldName}} updates srcObj with linkToAdd object
-func (obj *{{$node.GroupResourceType}}) Add{{$link.FieldName}}(ctx context.Context, srcObj *{{$node.GroupBaseImport}}, linkToAdd *{{$link.GroupBaseImport}}) (result *{{$node.GroupBaseImport}}, err error) {
+// Link{{$link.FieldName}} updates srcObj with linkToAdd object
+func (obj *{{$node.GroupResourceType}}) Link{{$link.FieldName}}(ctx context.Context, srcObj *{{$node.GroupBaseImport}}, linkToAdd *{{$link.GroupBaseImport}}) (result *{{$node.GroupBaseImport}}, err error) {
 	{{ if $link.IsNamed }}
 	payload := "{\"spec\": {\"{{$link.FieldNameGvk}}\": {\"" + linkToAdd.Name + "\": {\"name\": \"" + linkToAdd.Name + "\",\"kind\": \"{{$link.Kind}}\", \"group\": \"{{$link.Group}}\"}}}}"
 	result, err = obj.client.baseClient.{{$node.GroupTypeName}}().{{$node.GroupResourceNameTitle}}().Patch(ctx, srcObj.Name, types.MergePatchType, []byte(payload), metav1.PatchOptions{})
@@ -333,8 +382,8 @@ func (obj *{{$node.GroupResourceType}}) Add{{$link.FieldName}}(ctx context.Conte
 	return
 }
 
-// Remove{{$link.FieldName}} removes linkToRemove object from srcObj
-func (obj *{{$node.GroupResourceType}}) Remove{{$link.FieldName}}(ctx context.Context, srcObj *{{$node.GroupBaseImport}}, linkToRemove *{{$link.GroupBaseImport}}) (result *{{$node.GroupBaseImport}}, err error) {
+// Unlink{{$link.FieldName}} removes linkToRemove object from srcObj
+func (obj *{{$node.GroupResourceType}}) Unlink{{$link.FieldName}}(ctx context.Context, srcObj *{{$node.GroupBaseImport}}, linkToRemove *{{$link.GroupBaseImport}}) (result *{{$node.GroupBaseImport}}, err error) {
 	var patch Patch
 	{{if $link.IsNamed}}
 	patchOp := PatchOp{
