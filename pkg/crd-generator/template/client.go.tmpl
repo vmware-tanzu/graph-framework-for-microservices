@@ -300,8 +300,8 @@ func (obj *{{$node.GroupResourceType}}) List(ctx context.Context, opts metav1.Li
 }
 
 {{ range $key, $link := .Links }}
-// Add{{$link.FieldName}} updates srcObj with linkToAdd object
-func (obj *{{$node.GroupResourceType}}) Add{{$link.FieldName}}(ctx context.Context, srcObj *{{$node.GroupBaseImport}}, linkToAdd *{{$link.GroupBaseImport}}) (result *{{$node.GroupBaseImport}}, err error) {
+// Link{{$link.FieldName}} updates srcObj with linkToAdd object
+func (obj *{{$node.GroupResourceType}}) Link{{$link.FieldName}}(ctx context.Context, srcObj *{{$node.GroupBaseImport}}, linkToAdd *{{$link.GroupBaseImport}}) (result *{{$node.GroupBaseImport}}, err error) {
 	{{ if $link.IsNamed }}
 	payload := "{\"spec\": {\"{{$link.FieldNameGvk}}\": {\"" + linkToAdd.Name + "\": {\"name\": \"" + linkToAdd.Name + "\",\"kind\": \"{{$link.Kind}}\", \"group\": \"{{$link.Group}}\"}}}}"
 	result, err = obj.client.baseClient.{{$node.GroupTypeName}}().{{$node.GroupResourceNameTitle}}().Patch(ctx, srcObj.Name, types.MergePatchType, []byte(payload), metav1.PatchOptions{})
@@ -333,8 +333,8 @@ func (obj *{{$node.GroupResourceType}}) Add{{$link.FieldName}}(ctx context.Conte
 	return
 }
 
-// Remove{{$link.FieldName}} removes linkToRemove object from srcObj
-func (obj *{{$node.GroupResourceType}}) Remove{{$link.FieldName}}(ctx context.Context, srcObj *{{$node.GroupBaseImport}}, linkToRemove *{{$link.GroupBaseImport}}) (result *{{$node.GroupBaseImport}}, err error) {
+// Unlink{{$link.FieldName}} removes linkToRemove object from srcObj
+func (obj *{{$node.GroupResourceType}}) Unlink{{$link.FieldName}}(ctx context.Context, srcObj *{{$node.GroupBaseImport}}, linkToRemove *{{$link.GroupBaseImport}}) (result *{{$node.GroupBaseImport}}, err error) {
 	var patch Patch
 	{{if $link.IsNamed}}
 	patchOp := PatchOp{

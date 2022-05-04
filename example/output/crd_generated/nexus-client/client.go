@@ -819,8 +819,8 @@ func (obj *gnsGnsTsmV1) List(ctx context.Context, opts metav1.ListOptions) (resu
 	return obj.client.baseClient.GnsTsmV1().Gnses().List(ctx, opts)
 }
 
-// AddDns updates srcObj with linkToAdd object
-func (obj *gnsGnsTsmV1) AddDns(ctx context.Context, srcObj *basegnstsmtanzuvmwarecomv1.Gns, linkToAdd *basegnstsmtanzuvmwarecomv1.Dns) (result *basegnstsmtanzuvmwarecomv1.Gns, err error) {
+// LinkDns updates srcObj with linkToAdd object
+func (obj *gnsGnsTsmV1) LinkDns(ctx context.Context, srcObj *basegnstsmtanzuvmwarecomv1.Gns, linkToAdd *basegnstsmtanzuvmwarecomv1.Dns) (result *basegnstsmtanzuvmwarecomv1.Gns, err error) {
 
 	var patch Patch
 	patchOp := PatchOp{
@@ -845,8 +845,8 @@ func (obj *gnsGnsTsmV1) AddDns(ctx context.Context, srcObj *basegnstsmtanzuvmwar
 	return
 }
 
-// RemoveDns removes linkToRemove object from srcObj
-func (obj *gnsGnsTsmV1) RemoveDns(ctx context.Context, srcObj *basegnstsmtanzuvmwarecomv1.Gns, linkToRemove *basegnstsmtanzuvmwarecomv1.Dns) (result *basegnstsmtanzuvmwarecomv1.Gns, err error) {
+// UnlinkDns removes linkToRemove object from srcObj
+func (obj *gnsGnsTsmV1) UnlinkDns(ctx context.Context, srcObj *basegnstsmtanzuvmwarecomv1.Gns, linkToRemove *basegnstsmtanzuvmwarecomv1.Dns) (result *basegnstsmtanzuvmwarecomv1.Gns, err error) {
 	var patch Patch
 
 	patchOp := PatchOp{
@@ -1735,8 +1735,8 @@ func (obj *acpconfigPolicyTsmV1) List(ctx context.Context, opts metav1.ListOptio
 	return obj.client.baseClient.PolicyTsmV1().ACPConfigs().List(ctx, opts)
 }
 
-// AddDestSvcGroups updates srcObj with linkToAdd object
-func (obj *acpconfigPolicyTsmV1) AddDestSvcGroups(ctx context.Context, srcObj *basepolicytsmtanzuvmwarecomv1.ACPConfig, linkToAdd *baseservicegrouptsmtanzuvmwarecomv1.SvcGroup) (result *basepolicytsmtanzuvmwarecomv1.ACPConfig, err error) {
+// LinkDestSvcGroups updates srcObj with linkToAdd object
+func (obj *acpconfigPolicyTsmV1) LinkDestSvcGroups(ctx context.Context, srcObj *basepolicytsmtanzuvmwarecomv1.ACPConfig, linkToAdd *baseservicegrouptsmtanzuvmwarecomv1.SvcGroup) (result *basepolicytsmtanzuvmwarecomv1.ACPConfig, err error) {
 
 	payload := "{\"spec\": {\"destSvcGroupsGvk\": {\"" + linkToAdd.Name + "\": {\"name\": \"" + linkToAdd.Name + "\",\"kind\": \"SvcGroup\", \"group\": \"servicegroup.tsm.tanzu.vmware.com\"}}}}"
 	result, err = obj.client.baseClient.PolicyTsmV1().ACPConfigs().Patch(ctx, srcObj.Name, types.MergePatchType, []byte(payload), metav1.PatchOptions{})
@@ -1747,8 +1747,8 @@ func (obj *acpconfigPolicyTsmV1) AddDestSvcGroups(ctx context.Context, srcObj *b
 	return
 }
 
-// RemoveDestSvcGroups removes linkToRemove object from srcObj
-func (obj *acpconfigPolicyTsmV1) RemoveDestSvcGroups(ctx context.Context, srcObj *basepolicytsmtanzuvmwarecomv1.ACPConfig, linkToRemove *baseservicegrouptsmtanzuvmwarecomv1.SvcGroup) (result *basepolicytsmtanzuvmwarecomv1.ACPConfig, err error) {
+// UnlinkDestSvcGroups removes linkToRemove object from srcObj
+func (obj *acpconfigPolicyTsmV1) UnlinkDestSvcGroups(ctx context.Context, srcObj *basepolicytsmtanzuvmwarecomv1.ACPConfig, linkToRemove *baseservicegrouptsmtanzuvmwarecomv1.SvcGroup) (result *basepolicytsmtanzuvmwarecomv1.ACPConfig, err error) {
 	var patch Patch
 
 	patchOp := PatchOp{
@@ -1769,8 +1769,8 @@ func (obj *acpconfigPolicyTsmV1) RemoveDestSvcGroups(ctx context.Context, srcObj
 	return
 }
 
-// AddSourceSvcGroups updates srcObj with linkToAdd object
-func (obj *acpconfigPolicyTsmV1) AddSourceSvcGroups(ctx context.Context, srcObj *basepolicytsmtanzuvmwarecomv1.ACPConfig, linkToAdd *baseservicegrouptsmtanzuvmwarecomv1.SvcGroup) (result *basepolicytsmtanzuvmwarecomv1.ACPConfig, err error) {
+// LinkSourceSvcGroups updates srcObj with linkToAdd object
+func (obj *acpconfigPolicyTsmV1) LinkSourceSvcGroups(ctx context.Context, srcObj *basepolicytsmtanzuvmwarecomv1.ACPConfig, linkToAdd *baseservicegrouptsmtanzuvmwarecomv1.SvcGroup) (result *basepolicytsmtanzuvmwarecomv1.ACPConfig, err error) {
 
 	payload := "{\"spec\": {\"sourceSvcGroupsGvk\": {\"" + linkToAdd.Name + "\": {\"name\": \"" + linkToAdd.Name + "\",\"kind\": \"SvcGroup\", \"group\": \"servicegroup.tsm.tanzu.vmware.com\"}}}}"
 	result, err = obj.client.baseClient.PolicyTsmV1().ACPConfigs().Patch(ctx, srcObj.Name, types.MergePatchType, []byte(payload), metav1.PatchOptions{})
@@ -1781,8 +1781,8 @@ func (obj *acpconfigPolicyTsmV1) AddSourceSvcGroups(ctx context.Context, srcObj 
 	return
 }
 
-// RemoveSourceSvcGroups removes linkToRemove object from srcObj
-func (obj *acpconfigPolicyTsmV1) RemoveSourceSvcGroups(ctx context.Context, srcObj *basepolicytsmtanzuvmwarecomv1.ACPConfig, linkToRemove *baseservicegrouptsmtanzuvmwarecomv1.SvcGroup) (result *basepolicytsmtanzuvmwarecomv1.ACPConfig, err error) {
+// UnlinkSourceSvcGroups removes linkToRemove object from srcObj
+func (obj *acpconfigPolicyTsmV1) UnlinkSourceSvcGroups(ctx context.Context, srcObj *basepolicytsmtanzuvmwarecomv1.ACPConfig, linkToRemove *baseservicegrouptsmtanzuvmwarecomv1.SvcGroup) (result *basepolicytsmtanzuvmwarecomv1.ACPConfig, err error) {
 	var patch Patch
 
 	patchOp := PatchOp{
