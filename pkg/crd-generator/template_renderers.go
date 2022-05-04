@@ -467,15 +467,16 @@ func RenderClient(baseGroupName, outputDir, crdModulePath string, pkgs parser.Pa
 }
 
 type clientVars struct {
-	HelperImport              string
-	BaseClientsetImport       string
-	BaseImports               string
-	ClientsetsApiGroups       string
-	InitApiGroups             string
-	ClientsetsApiGroupMethods string
-	ApiGroups                 string
-	ApiGroupsClient           string
-	Nodes                     []apiGroupsClientVars
+	ApiGroups           []ApiGroupsVars
+	HelperImport        string
+	BaseClientsetImport string
+	BaseImports         string
+	//ClientsetsApiGroups       string
+	//InitApiGroups             string
+	//ClientsetsApiGroupMethods string
+	//ApiGroups                 string
+	ApiGroupsClient string
+	Nodes           []apiGroupsClientVars
 }
 
 func RenderClientTemplate(baseGroupName, crdModulePath string, pkgs parser.Packages, parentsMap map[string]parser.NodeHelper) (*bytes.Buffer, error) {

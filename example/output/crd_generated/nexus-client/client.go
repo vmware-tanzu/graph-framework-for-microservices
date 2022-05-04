@@ -56,19 +56,19 @@ func (p Patch) Marshal() ([]byte, error) {
 	return json.Marshal(p)
 }
 
-func (c *Clientset) RootTsmV1() *RootTsmV1 {
+func (c *Clientset) Root() *RootTsmV1 {
 	return c.rootTsmV1
 }
-func (c *Clientset) ConfigTsmV1() *ConfigTsmV1 {
+func (c *Clientset) Config() *ConfigTsmV1 {
 	return c.configTsmV1
 }
-func (c *Clientset) GnsTsmV1() *GnsTsmV1 {
+func (c *Clientset) Gns() *GnsTsmV1 {
 	return c.gnsTsmV1
 }
-func (c *Clientset) ServicegroupTsmV1() *ServicegroupTsmV1 {
+func (c *Clientset) Servicegroup() *ServicegroupTsmV1 {
 	return c.servicegroupTsmV1
 }
-func (c *Clientset) PolicyTsmV1() *PolicyTsmV1 {
+func (c *Clientset) Policy() *PolicyTsmV1 {
 	return c.policyTsmV1
 }
 
@@ -243,7 +243,7 @@ func (obj *rootRootTsmV1) DeleteByName(ctx context.Context, name string, parents
 	}
 
 	if result.Spec.ConfigGvk != nil {
-		err := obj.client.ConfigTsmV1().Configs().DeleteByName(ctx, result.Spec.ConfigGvk.Name, parents)
+		err := obj.client.Config().Configs().DeleteByName(ctx, result.Spec.ConfigGvk.Name, parents)
 		if err != nil {
 			return err
 		}
@@ -398,7 +398,7 @@ func (obj *configConfigTsmV1) DeleteByName(ctx context.Context, name string, par
 	}
 
 	if result.Spec.GNSGvk != nil {
-		err := obj.client.GnsTsmV1().Gnses().DeleteByName(ctx, result.Spec.GNSGvk.Name, parents)
+		err := obj.client.Gns().Gnses().DeleteByName(ctx, result.Spec.GNSGvk.Name, parents)
 		if err != nil {
 			return err
 		}
@@ -605,14 +605,14 @@ func (obj *gnsGnsTsmV1) DeleteByName(ctx context.Context, name string, parents m
 	}
 
 	for _, v := range result.Spec.GnsServiceGroupsGvk {
-		err := obj.client.ServicegroupTsmV1().SvcGroups().DeleteByName(ctx, v.Name, parents)
+		err := obj.client.Servicegroup().SvcGroups().DeleteByName(ctx, v.Name, parents)
 		if err != nil {
 			return err
 		}
 	}
 
 	if result.Spec.GnsAccessControlPolicyGvk != nil {
-		err := obj.client.PolicyTsmV1().AccessControlPolicies().DeleteByName(ctx, result.Spec.GnsAccessControlPolicyGvk.Name, parents)
+		err := obj.client.Policy().AccessControlPolicies().DeleteByName(ctx, result.Spec.GnsAccessControlPolicyGvk.Name, parents)
 		if err != nil {
 			return err
 		}
@@ -1250,7 +1250,7 @@ func (obj *accesscontrolpolicyPolicyTsmV1) DeleteByName(ctx context.Context, nam
 	}
 
 	for _, v := range result.Spec.PolicyConfigsGvk {
-		err := obj.client.PolicyTsmV1().ACPConfigs().DeleteByName(ctx, v.Name, parents)
+		err := obj.client.Policy().ACPConfigs().DeleteByName(ctx, v.Name, parents)
 		if err != nil {
 			return err
 		}
