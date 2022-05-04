@@ -1,0 +1,36 @@
+image:
+  name: harbor-repo.vmware.com/nexus/runner:latest
+
+variables:
+  REPOSITORY: nsx-allspark_users/nexus-sdk/cli
+
+before_script:
+  - git config --global url."https://gitlab.eng.vmware.com/".insteadOf "git@gitlab.eng.vmware.com:"
+  - git config --global gc.auto 0
+  - git config --global credential.helper store
+  - echo -e  "https://gitlab-ci-token:${CICD_TOKEN}@gitlab.eng.vmware.com/" >> ~/.git-credentials
+  - docker login harbor-repo.vmware.com --username $DOCKER_USERNAME --password $DOCKER_PASSWORD
+
+build:
+  stage: build
+  only:
+    - master
+    - merge_requests
+  script:
+    - make build
+    - make publish
+
+
+build_latest:
+  only:
+    - master
+  script:
+    - make build IMAGE_TAG=latest
+    - make publish IMAGE_TAG=latest
+
+build_tag:
+  only:
+    - tag
+  script:
+    - make build IMAGE_TAG=$CI_COMMI_TAG
+    - make publish IMAGE_TAG=$CI_COMMI_TAG
