@@ -14,9 +14,9 @@ NEXUS_BIN ?= $(shell which nexus)
 #
 ### adding this to test app init..
 CI_COMMIT ?= $(shell git rev-parse --verify --short=8 HEAD 2> /dev/null || echo "00000000")
-IMAGE_TAG ?= ${APP_NAME}-${CI_COMMIT}
+IMAGE_TAG ?= ${CI_COMMIT}
 GIT_HEAD  ?= $(shell git rev-parse --verify HEAD 2> /dev/null || echo "0000000000000000")
-IMAGE_REGISTRY ?= 284299419820.dkr.ecr.us-west-2.amazonaws.com/nexus/api-gw
+IMAGE_REGISTRY ?= harbor-repo.vmware.com/nexus/api-gateway
 
 #
 # Platform
