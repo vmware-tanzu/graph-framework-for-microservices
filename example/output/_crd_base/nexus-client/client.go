@@ -312,6 +312,15 @@ func (obj *rootRootTsmV1) Update(ctx context.Context, objToUpdate *baseroottsmta
 
 // UpdateByName works as Update but without hashing the name
 func (obj *rootRootTsmV1) UpdateByName(ctx context.Context, objToUpdate *baseroottsmtanzuvmwarecomv1.Root) (result *baseroottsmtanzuvmwarecomv1.Root, err error) {
+	// ResourceVersion must be set for update
+	if objToUpdate.ResourceVersion == "" {
+		current, err := obj.client.baseClient.RootTsmV1().Roots().Get(ctx, objToUpdate.GetName(), metav1.GetOptions{})
+		if err != nil {
+			return nil, err
+		}
+		objToUpdate.ResourceVersion = current.ResourceVersion
+	}
+
 	var patch Patch
 	patchOpMeta := PatchOp{
 		Op:    "replace",
@@ -523,6 +532,15 @@ func (obj *configConfigTsmV1) Update(ctx context.Context, objToUpdate *baseconfi
 
 // UpdateByName works as Update but without hashing the name
 func (obj *configConfigTsmV1) UpdateByName(ctx context.Context, objToUpdate *baseconfigtsmtanzuvmwarecomv1.Config) (result *baseconfigtsmtanzuvmwarecomv1.Config, err error) {
+	// ResourceVersion must be set for update
+	if objToUpdate.ResourceVersion == "" {
+		current, err := obj.client.baseClient.ConfigTsmV1().Configs().Get(ctx, objToUpdate.GetName(), metav1.GetOptions{})
+		if err != nil {
+			return nil, err
+		}
+		objToUpdate.ResourceVersion = current.ResourceVersion
+	}
+
 	var patch Patch
 	patchOpMeta := PatchOp{
 		Op:    "replace",
@@ -743,6 +761,15 @@ func (obj *gnsGnsTsmV1) Update(ctx context.Context, objToUpdate *basegnstsmtanzu
 
 // UpdateByName works as Update but without hashing the name
 func (obj *gnsGnsTsmV1) UpdateByName(ctx context.Context, objToUpdate *basegnstsmtanzuvmwarecomv1.Gns) (result *basegnstsmtanzuvmwarecomv1.Gns, err error) {
+	// ResourceVersion must be set for update
+	if objToUpdate.ResourceVersion == "" {
+		current, err := obj.client.baseClient.GnsTsmV1().Gnses().Get(ctx, objToUpdate.GetName(), metav1.GetOptions{})
+		if err != nil {
+			return nil, err
+		}
+		objToUpdate.ResourceVersion = current.ResourceVersion
+	}
+
 	var patch Patch
 	patchOpMeta := PatchOp{
 		Op:    "replace",
@@ -1020,6 +1047,15 @@ func (obj *dnsGnsTsmV1) Update(ctx context.Context, objToUpdate *basegnstsmtanzu
 
 // UpdateByName works as Update but without hashing the name
 func (obj *dnsGnsTsmV1) UpdateByName(ctx context.Context, objToUpdate *basegnstsmtanzuvmwarecomv1.Dns) (result *basegnstsmtanzuvmwarecomv1.Dns, err error) {
+	// ResourceVersion must be set for update
+	if objToUpdate.ResourceVersion == "" {
+		current, err := obj.client.baseClient.GnsTsmV1().Dnses().Get(ctx, objToUpdate.GetName(), metav1.GetOptions{})
+		if err != nil {
+			return nil, err
+		}
+		objToUpdate.ResourceVersion = current.ResourceVersion
+	}
+
 	var patch Patch
 	patchOpMeta := PatchOp{
 		Op:    "replace",
@@ -1175,6 +1211,15 @@ func (obj *svcgroupServicegroupTsmV1) Update(ctx context.Context, objToUpdate *b
 
 // UpdateByName works as Update but without hashing the name
 func (obj *svcgroupServicegroupTsmV1) UpdateByName(ctx context.Context, objToUpdate *baseservicegrouptsmtanzuvmwarecomv1.SvcGroup) (result *baseservicegrouptsmtanzuvmwarecomv1.SvcGroup, err error) {
+	// ResourceVersion must be set for update
+	if objToUpdate.ResourceVersion == "" {
+		current, err := obj.client.baseClient.ServicegroupTsmV1().SvcGroups().Get(ctx, objToUpdate.GetName(), metav1.GetOptions{})
+		if err != nil {
+			return nil, err
+		}
+		objToUpdate.ResourceVersion = current.ResourceVersion
+	}
+
 	var patch Patch
 	patchOpMeta := PatchOp{
 		Op:    "replace",
@@ -1391,6 +1436,15 @@ func (obj *accesscontrolpolicyPolicyTsmV1) Update(ctx context.Context, objToUpda
 
 // UpdateByName works as Update but without hashing the name
 func (obj *accesscontrolpolicyPolicyTsmV1) UpdateByName(ctx context.Context, objToUpdate *basepolicytsmtanzuvmwarecomv1.AccessControlPolicy) (result *basepolicytsmtanzuvmwarecomv1.AccessControlPolicy, err error) {
+	// ResourceVersion must be set for update
+	if objToUpdate.ResourceVersion == "" {
+		current, err := obj.client.baseClient.PolicyTsmV1().AccessControlPolicies().Get(ctx, objToUpdate.GetName(), metav1.GetOptions{})
+		if err != nil {
+			return nil, err
+		}
+		objToUpdate.ResourceVersion = current.ResourceVersion
+	}
+
 	var patch Patch
 	patchOpMeta := PatchOp{
 		Op:    "replace",
@@ -1599,6 +1653,15 @@ func (obj *acpconfigPolicyTsmV1) Update(ctx context.Context, objToUpdate *basepo
 
 // UpdateByName works as Update but without hashing the name
 func (obj *acpconfigPolicyTsmV1) UpdateByName(ctx context.Context, objToUpdate *basepolicytsmtanzuvmwarecomv1.ACPConfig) (result *basepolicytsmtanzuvmwarecomv1.ACPConfig, err error) {
+	// ResourceVersion must be set for update
+	if objToUpdate.ResourceVersion == "" {
+		current, err := obj.client.baseClient.PolicyTsmV1().ACPConfigs().Get(ctx, objToUpdate.GetName(), metav1.GetOptions{})
+		if err != nil {
+			return nil, err
+		}
+		objToUpdate.ResourceVersion = current.ResourceVersion
+	}
+
 	var patch Patch
 	patchOpMeta := PatchOp{
 		Op:    "replace",
