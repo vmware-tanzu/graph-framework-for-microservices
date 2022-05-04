@@ -3,7 +3,6 @@ package nexus_client
 import (
 	"context"
 	"encoding/json"
-
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	types "k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/rest"
@@ -298,6 +297,56 @@ func (obj *{{$node.GroupResourceType}}) UpdateByName(ctx context.Context, objToU
 func (obj *{{$node.GroupResourceType}}) List(ctx context.Context, opts metav1.ListOptions) (result *{{$node.GroupBaseImport}}List, err error) {
 	return obj.client.baseClient.{{$node.GroupTypeName}}().{{$node.GroupResourceNameTitle}}().List(ctx, opts)
 }
+
+{{ range $key, $child := .Children }}
+// Add{{$child.FieldName}} creates childToCreate which is child of parentObj
+func (obj *{{$node.GroupResourceType}}) Add{{$child.FieldName}}(ctx context.Context, parentObj *{{$node.GroupBaseImport}}, childToCreate *{{$child.GroupBaseImport}}) (result *{{$child.GroupBaseImport}}, err error) {
+	parents := map[string]string{}
+	parentsKeys := helper.GetCRDParentsMap()[parentObj.CRDName()]
+	parentObjLabels := map[string]string{}
+	if parentObj.GetLabels() != nil {
+		parentObjLabels = parentObj.GetLabels()
+	}
+	for _, p := range parentsKeys {
+		v, ok := parentObjLabels[p]
+		if ok {
+			parents[p] = v
+		}
+	}
+	parentName, ok := parentObjLabels[common.DISPLAY_NAME_LABEL]
+	if ok {
+		parents[parentObj.CRDName()] = parentName
+	} else {
+		parents[parentObj.CRDName()] = parentObj.GetName()
+	}
+	return obj.client.{{$child.SimpleGroupTypeName}}().{{$child.GroupResourceNameTitle}}().Create(ctx, childToCreate, parents)
+}
+
+// Remove{{$child.FieldName}} deletes childToRemove which is child of parentObj
+func (obj *{{$node.GroupResourceType}}) Remove{{$child.FieldName}}(ctx context.Context, parentObj *{{$node.GroupBaseImport}}, childToRemove string) (err error) {
+	parents := map[string]string{}
+	parentsKeys := helper.GetCRDParentsMap()[parentObj.CRDName()]
+	parentObjLabels := map[string]string{}
+	if parentObj.GetLabels() != nil {
+		parentObjLabels = parentObj.GetLabels()
+	}
+	for _, p := range parentsKeys {
+		v, ok := parentObjLabels[p]
+		if ok {
+			parents[p] = v
+		}
+	}
+	parentName, ok := parentObjLabels[common.DISPLAY_NAME_LABEL]
+	if ok {
+		parents[parentObj.CRDName()] = parentName
+	} else {
+		parents[parentObj.CRDName()] = parentObj.GetName()
+	}
+	return obj.client.{{$child.SimpleGroupTypeName}}().{{$child.GroupResourceNameTitle}}().Delete(ctx, childToRemove, parents)
+}
+
+
+{{ end }}
 
 {{ range $key, $link := .Links }}
 // Link{{$link.FieldName}} updates srcObj with linkToAdd object

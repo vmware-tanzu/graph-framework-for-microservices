@@ -346,6 +346,52 @@ func (obj *rootRootTsmV1) List(ctx context.Context, opts metav1.ListOptions) (re
 	return obj.client.baseClient.RootTsmV1().Roots().List(ctx, opts)
 }
 
+// AddConfig creates childToCreate which is child of parentObj
+func (obj *rootRootTsmV1) AddConfig(ctx context.Context, parentObj *baseroottsmtanzuvmwarecomv1.Root, childToCreate *baseconfigtsmtanzuvmwarecomv1.Config) (result *baseconfigtsmtanzuvmwarecomv1.Config, err error) {
+	parents := map[string]string{}
+	parentsKeys := helper.GetCRDParentsMap()[parentObj.CRDName()]
+	parentObjLabels := map[string]string{}
+	if parentObj.GetLabels() != nil {
+		parentObjLabels = parentObj.GetLabels()
+	}
+	for _, p := range parentsKeys {
+		v, ok := parentObjLabels[p]
+		if ok {
+			parents[p] = v
+		}
+	}
+	parentName, ok := parentObjLabels[common.DISPLAY_NAME_LABEL]
+	if ok {
+		parents[parentObj.CRDName()] = parentName
+	} else {
+		parents[parentObj.CRDName()] = parentObj.GetName()
+	}
+	return obj.client.Config().Configs().Create(ctx, childToCreate, parents)
+}
+
+// RemoveConfig deletes childToRemove which is child of parentObj
+func (obj *rootRootTsmV1) RemoveConfig(ctx context.Context, parentObj *baseroottsmtanzuvmwarecomv1.Root, childToRemove string) (err error) {
+	parents := map[string]string{}
+	parentsKeys := helper.GetCRDParentsMap()[parentObj.CRDName()]
+	parentObjLabels := map[string]string{}
+	if parentObj.GetLabels() != nil {
+		parentObjLabels = parentObj.GetLabels()
+	}
+	for _, p := range parentsKeys {
+		v, ok := parentObjLabels[p]
+		if ok {
+			parents[p] = v
+		}
+	}
+	parentName, ok := parentObjLabels[common.DISPLAY_NAME_LABEL]
+	if ok {
+		parents[parentObj.CRDName()] = parentName
+	} else {
+		parents[parentObj.CRDName()] = parentObj.GetName()
+	}
+	return obj.client.Config().Configs().Delete(ctx, childToRemove, parents)
+}
+
 func (obj *rootRootTsmV1) GetConfig(ctx context.Context, srcObj *baseroottsmtanzuvmwarecomv1.Root) (result *baseconfigtsmtanzuvmwarecomv1.Config, err error) {
 	return obj.GetConfigByName(ctx, srcObj)
 }
@@ -564,6 +610,52 @@ func (obj *configConfigTsmV1) UpdateByName(ctx context.Context, objToUpdate *bas
 
 func (obj *configConfigTsmV1) List(ctx context.Context, opts metav1.ListOptions) (result *baseconfigtsmtanzuvmwarecomv1.ConfigList, err error) {
 	return obj.client.baseClient.ConfigTsmV1().Configs().List(ctx, opts)
+}
+
+// AddGNS creates childToCreate which is child of parentObj
+func (obj *configConfigTsmV1) AddGNS(ctx context.Context, parentObj *baseconfigtsmtanzuvmwarecomv1.Config, childToCreate *basegnstsmtanzuvmwarecomv1.Gns) (result *basegnstsmtanzuvmwarecomv1.Gns, err error) {
+	parents := map[string]string{}
+	parentsKeys := helper.GetCRDParentsMap()[parentObj.CRDName()]
+	parentObjLabels := map[string]string{}
+	if parentObj.GetLabels() != nil {
+		parentObjLabels = parentObj.GetLabels()
+	}
+	for _, p := range parentsKeys {
+		v, ok := parentObjLabels[p]
+		if ok {
+			parents[p] = v
+		}
+	}
+	parentName, ok := parentObjLabels[common.DISPLAY_NAME_LABEL]
+	if ok {
+		parents[parentObj.CRDName()] = parentName
+	} else {
+		parents[parentObj.CRDName()] = parentObj.GetName()
+	}
+	return obj.client.Gns().Gnses().Create(ctx, childToCreate, parents)
+}
+
+// RemoveGNS deletes childToRemove which is child of parentObj
+func (obj *configConfigTsmV1) RemoveGNS(ctx context.Context, parentObj *baseconfigtsmtanzuvmwarecomv1.Config, childToRemove string) (err error) {
+	parents := map[string]string{}
+	parentsKeys := helper.GetCRDParentsMap()[parentObj.CRDName()]
+	parentObjLabels := map[string]string{}
+	if parentObj.GetLabels() != nil {
+		parentObjLabels = parentObj.GetLabels()
+	}
+	for _, p := range parentsKeys {
+		v, ok := parentObjLabels[p]
+		if ok {
+			parents[p] = v
+		}
+	}
+	parentName, ok := parentObjLabels[common.DISPLAY_NAME_LABEL]
+	if ok {
+		parents[parentObj.CRDName()] = parentName
+	} else {
+		parents[parentObj.CRDName()] = parentObj.GetName()
+	}
+	return obj.client.Gns().Gnses().Delete(ctx, childToRemove, parents)
 }
 
 func (obj *configConfigTsmV1) GetGNS(ctx context.Context, srcObj *baseconfigtsmtanzuvmwarecomv1.Config) (result *basegnstsmtanzuvmwarecomv1.Gns, err error) {
@@ -817,6 +909,98 @@ func (obj *gnsGnsTsmV1) UpdateByName(ctx context.Context, objToUpdate *basegnsts
 
 func (obj *gnsGnsTsmV1) List(ctx context.Context, opts metav1.ListOptions) (result *basegnstsmtanzuvmwarecomv1.GnsList, err error) {
 	return obj.client.baseClient.GnsTsmV1().Gnses().List(ctx, opts)
+}
+
+// AddGnsServiceGroups creates childToCreate which is child of parentObj
+func (obj *gnsGnsTsmV1) AddGnsServiceGroups(ctx context.Context, parentObj *basegnstsmtanzuvmwarecomv1.Gns, childToCreate *baseservicegrouptsmtanzuvmwarecomv1.SvcGroup) (result *baseservicegrouptsmtanzuvmwarecomv1.SvcGroup, err error) {
+	parents := map[string]string{}
+	parentsKeys := helper.GetCRDParentsMap()[parentObj.CRDName()]
+	parentObjLabels := map[string]string{}
+	if parentObj.GetLabels() != nil {
+		parentObjLabels = parentObj.GetLabels()
+	}
+	for _, p := range parentsKeys {
+		v, ok := parentObjLabels[p]
+		if ok {
+			parents[p] = v
+		}
+	}
+	parentName, ok := parentObjLabels[common.DISPLAY_NAME_LABEL]
+	if ok {
+		parents[parentObj.CRDName()] = parentName
+	} else {
+		parents[parentObj.CRDName()] = parentObj.GetName()
+	}
+	return obj.client.Servicegroup().SvcGroups().Create(ctx, childToCreate, parents)
+}
+
+// RemoveGnsServiceGroups deletes childToRemove which is child of parentObj
+func (obj *gnsGnsTsmV1) RemoveGnsServiceGroups(ctx context.Context, parentObj *basegnstsmtanzuvmwarecomv1.Gns, childToRemove string) (err error) {
+	parents := map[string]string{}
+	parentsKeys := helper.GetCRDParentsMap()[parentObj.CRDName()]
+	parentObjLabels := map[string]string{}
+	if parentObj.GetLabels() != nil {
+		parentObjLabels = parentObj.GetLabels()
+	}
+	for _, p := range parentsKeys {
+		v, ok := parentObjLabels[p]
+		if ok {
+			parents[p] = v
+		}
+	}
+	parentName, ok := parentObjLabels[common.DISPLAY_NAME_LABEL]
+	if ok {
+		parents[parentObj.CRDName()] = parentName
+	} else {
+		parents[parentObj.CRDName()] = parentObj.GetName()
+	}
+	return obj.client.Servicegroup().SvcGroups().Delete(ctx, childToRemove, parents)
+}
+
+// AddGnsAccessControlPolicy creates childToCreate which is child of parentObj
+func (obj *gnsGnsTsmV1) AddGnsAccessControlPolicy(ctx context.Context, parentObj *basegnstsmtanzuvmwarecomv1.Gns, childToCreate *basepolicytsmtanzuvmwarecomv1.AccessControlPolicy) (result *basepolicytsmtanzuvmwarecomv1.AccessControlPolicy, err error) {
+	parents := map[string]string{}
+	parentsKeys := helper.GetCRDParentsMap()[parentObj.CRDName()]
+	parentObjLabels := map[string]string{}
+	if parentObj.GetLabels() != nil {
+		parentObjLabels = parentObj.GetLabels()
+	}
+	for _, p := range parentsKeys {
+		v, ok := parentObjLabels[p]
+		if ok {
+			parents[p] = v
+		}
+	}
+	parentName, ok := parentObjLabels[common.DISPLAY_NAME_LABEL]
+	if ok {
+		parents[parentObj.CRDName()] = parentName
+	} else {
+		parents[parentObj.CRDName()] = parentObj.GetName()
+	}
+	return obj.client.Policy().AccessControlPolicies().Create(ctx, childToCreate, parents)
+}
+
+// RemoveGnsAccessControlPolicy deletes childToRemove which is child of parentObj
+func (obj *gnsGnsTsmV1) RemoveGnsAccessControlPolicy(ctx context.Context, parentObj *basegnstsmtanzuvmwarecomv1.Gns, childToRemove string) (err error) {
+	parents := map[string]string{}
+	parentsKeys := helper.GetCRDParentsMap()[parentObj.CRDName()]
+	parentObjLabels := map[string]string{}
+	if parentObj.GetLabels() != nil {
+		parentObjLabels = parentObj.GetLabels()
+	}
+	for _, p := range parentsKeys {
+		v, ok := parentObjLabels[p]
+		if ok {
+			parents[p] = v
+		}
+	}
+	parentName, ok := parentObjLabels[common.DISPLAY_NAME_LABEL]
+	if ok {
+		parents[parentObj.CRDName()] = parentName
+	} else {
+		parents[parentObj.CRDName()] = parentObj.GetName()
+	}
+	return obj.client.Policy().AccessControlPolicies().Delete(ctx, childToRemove, parents)
 }
 
 // LinkDns updates srcObj with linkToAdd object
@@ -1468,6 +1652,52 @@ func (obj *accesscontrolpolicyPolicyTsmV1) UpdateByName(ctx context.Context, obj
 
 func (obj *accesscontrolpolicyPolicyTsmV1) List(ctx context.Context, opts metav1.ListOptions) (result *basepolicytsmtanzuvmwarecomv1.AccessControlPolicyList, err error) {
 	return obj.client.baseClient.PolicyTsmV1().AccessControlPolicies().List(ctx, opts)
+}
+
+// AddPolicyConfigs creates childToCreate which is child of parentObj
+func (obj *accesscontrolpolicyPolicyTsmV1) AddPolicyConfigs(ctx context.Context, parentObj *basepolicytsmtanzuvmwarecomv1.AccessControlPolicy, childToCreate *basepolicytsmtanzuvmwarecomv1.ACPConfig) (result *basepolicytsmtanzuvmwarecomv1.ACPConfig, err error) {
+	parents := map[string]string{}
+	parentsKeys := helper.GetCRDParentsMap()[parentObj.CRDName()]
+	parentObjLabels := map[string]string{}
+	if parentObj.GetLabels() != nil {
+		parentObjLabels = parentObj.GetLabels()
+	}
+	for _, p := range parentsKeys {
+		v, ok := parentObjLabels[p]
+		if ok {
+			parents[p] = v
+		}
+	}
+	parentName, ok := parentObjLabels[common.DISPLAY_NAME_LABEL]
+	if ok {
+		parents[parentObj.CRDName()] = parentName
+	} else {
+		parents[parentObj.CRDName()] = parentObj.GetName()
+	}
+	return obj.client.Policy().ACPConfigs().Create(ctx, childToCreate, parents)
+}
+
+// RemovePolicyConfigs deletes childToRemove which is child of parentObj
+func (obj *accesscontrolpolicyPolicyTsmV1) RemovePolicyConfigs(ctx context.Context, parentObj *basepolicytsmtanzuvmwarecomv1.AccessControlPolicy, childToRemove string) (err error) {
+	parents := map[string]string{}
+	parentsKeys := helper.GetCRDParentsMap()[parentObj.CRDName()]
+	parentObjLabels := map[string]string{}
+	if parentObj.GetLabels() != nil {
+		parentObjLabels = parentObj.GetLabels()
+	}
+	for _, p := range parentsKeys {
+		v, ok := parentObjLabels[p]
+		if ok {
+			parents[p] = v
+		}
+	}
+	parentName, ok := parentObjLabels[common.DISPLAY_NAME_LABEL]
+	if ok {
+		parents[parentObj.CRDName()] = parentName
+	} else {
+		parents[parentObj.CRDName()] = parentObj.GetName()
+	}
+	return obj.client.Policy().ACPConfigs().Delete(ctx, childToRemove, parents)
 }
 
 func (obj *accesscontrolpolicyPolicyTsmV1) GetPolicyConfigs(ctx context.Context, srcObj *basepolicytsmtanzuvmwarecomv1.AccessControlPolicy, PolicyConfigsObjectName string) (result *basepolicytsmtanzuvmwarecomv1.ACPConfig, err error) {
