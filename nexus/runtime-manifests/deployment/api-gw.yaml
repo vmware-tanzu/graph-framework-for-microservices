@@ -38,7 +38,7 @@ spec:
     spec:
       containers:
         -
-          image: gcr.io/nsx-sm/nexus/api-gateway:latest
+          image: harbor-repo.vmware.com/nexus/api-gateway:latest
           name: api-gw
           env:
             - name: KUBECONFIG
