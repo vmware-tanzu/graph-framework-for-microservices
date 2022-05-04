@@ -285,6 +285,10 @@ func (obj *{{$node.GroupResourceType}}) UpdateByName(ctx context.Context, objToU
 	return
 }
 
+func (obj *{{$node.GroupResourceType}}) List(ctx context.Context, opts metav1.ListOptions) (result *{{$node.GroupBaseImport}}List, err error) {
+	return obj.client.baseClient.{{$node.GroupTypeName}}().{{$node.GroupResourceNameTitle}}().List(ctx, opts)
+}
+
 {{ range $key, $link := .Links }}
 // Add{{$link.FieldName}} updates srcObj with linkToAdd object
 func (obj *{{$node.GroupResourceType}}) Add{{$link.FieldName}}(ctx context.Context, srcObj *{{$node.GroupBaseImport}}, linkToAdd *{{$link.GroupBaseImport}}) (result *{{$node.GroupBaseImport}}, err error) {
