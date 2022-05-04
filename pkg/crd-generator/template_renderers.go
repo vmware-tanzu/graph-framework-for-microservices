@@ -89,7 +89,7 @@ func RenderCRDTemplate(baseGroupName, crdModulePath string,
 		if err != nil {
 			return err
 		}
-		file, err = RenderTypesTemplate(pkg)
+		file, err = RenderTypesTemplate(crdModulePath, pkg)
 		if err != nil {
 			return err
 		}
@@ -276,18 +276,20 @@ func RenderRegisterCRDTemplate(crdModulePath, baseGroupName string, pkg parser.P
 }
 
 type typesVars struct {
-	Imports  string
-	CRDTypes string
-	Structs  string
-	Types    string
+	Imports      string
+	CommonImport string
+	CRDTypes     string
+	Structs      string
+	Types        string
 }
 
-func RenderTypesTemplate(pkg parser.Package) (*bytes.Buffer, error) {
+func RenderTypesTemplate(crdModulePath string, pkg parser.Package) (*bytes.Buffer, error) {
 	var vars typesVars
 	vars.CRDTypes = parsePackageCRDs(pkg)
 	vars.Structs = parsePackageStructs(pkg)
 	vars.Types = parsePackageTypes(pkg)
 	vars.Imports = parsePackageImports(pkg)
+	vars.CommonImport = util.GetInternalImport(crdModulePath, "common")
 
 	registerCrdTemplate, err := readTemplateFile(typesTemplateFile)
 	if err != nil {
@@ -468,15 +470,12 @@ func RenderClient(baseGroupName, outputDir, crdModulePath string, pkgs parser.Pa
 
 type clientVars struct {
 	ApiGroups           []ApiGroupsVars
+	CommonImport        string
 	HelperImport        string
 	BaseClientsetImport string
 	BaseImports         string
-	//ClientsetsApiGroups       string
-	//InitApiGroups             string
-	//ClientsetsApiGroupMethods string
-	//ApiGroups                 string
-	ApiGroupsClient string
-	Nodes           []apiGroupsClientVars
+	ApiGroupsClient     string
+	Nodes               []apiGroupsClientVars
 }
 
 func RenderClientTemplate(baseGroupName, crdModulePath string, pkgs parser.Packages, parentsMap map[string]parser.NodeHelper) (*bytes.Buffer, error) {

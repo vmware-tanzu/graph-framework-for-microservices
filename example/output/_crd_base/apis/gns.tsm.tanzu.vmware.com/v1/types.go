@@ -4,6 +4,8 @@ package v1
 
 import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/_generated/common"
 )
 
 // +k8s:openapi-gen=true
@@ -38,6 +40,13 @@ func (c *Gns) CRDName() string {
 	return "gnses.gns.tsm.tanzu.vmware.com"
 }
 
+func (c *Gns) DisplayName() string {
+	if c.GetLabels() != nil {
+		return c.GetLabels()[common.DISPLAY_NAME_LABEL]
+	}
+	return ""
+}
+
 // +k8s:openapi-gen=true
 type GnsSpec struct {
 	Domain                    string           `json:"domain" yaml:"domain"`
@@ -67,6 +76,13 @@ type Dns struct {
 
 func (c *Dns) CRDName() string {
 	return "dnses.gns.tsm.tanzu.vmware.com"
+}
+
+func (c *Dns) DisplayName() string {
+	if c.GetLabels() != nil {
+		return c.GetLabels()[common.DISPLAY_NAME_LABEL]
+	}
+	return ""
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
