@@ -147,11 +147,11 @@ func putHandler(c echo.Context) error {
 	}
 
 	// Create resource
-	res, err := client.Client.Resource(gvr).Create(context.TODO(), obj, metav1.CreateOptions{})
+	_, err := client.Client.Resource(gvr).Create(context.TODO(), obj, metav1.CreateOptions{})
 	if err != nil {
 		return handleClientError(nc, err)
 	}
-	return c.JSON(http.StatusOK, DefaultResponse{Message: res.GetName()})
+	return c.JSON(http.StatusOK, DefaultResponse{Message: name})
 }
 
 // deleteHandler is used to process DELETE requests
@@ -223,6 +223,8 @@ func parseLabels(c echo.Context, parents []string) map[string]string {
 		if c, ok := controllers.GlobalCRDTypeToNodes[parent]; ok {
 			if v := nc.Param(c.Name); v != "" {
 				labels[parent] = v
+			} else if nc.QueryParams().Has(c.Name) {
+				labels[parent] = nc.QueryParams().Get(c.Name)
 			} else {
 				labels[parent] = "default"
 			}
