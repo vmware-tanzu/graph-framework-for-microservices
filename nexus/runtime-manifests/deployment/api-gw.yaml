@@ -41,6 +41,20 @@ spec:
       labels:
         control-plane: api-gw
     spec:
+      initContainers:
+        - name: check-nexus-proxy-container
+          image: "gcr.io/mesh7-public-images/tools:latest"
+          command:
+            - /bin/bash
+            - -c
+            - |
+              #!/bin/bash
+              URL="http://nexus-proxy-container/api/v1/namespaces"
+              curl -k --retry 30 --retry-delay 20 --connect-timeout 30 --max-time 30 $URL
+              if [[ $? -ne 0 ]];then
+                echo "$URL not reachable....."
+                exit 1
+              fi
       containers:
         -
           image: harbor-repo.vmware.com/nexus/api-gateway:latest
