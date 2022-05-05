@@ -52,10 +52,11 @@ var TemplateFs embed.FS
 
 var WaitTimeout = 2 * time.Minute
 
-var PodLabels [3]string = [3]string{
+var PodLabels [4]string = [4]string{
 	"-lapp=nexus-etcd",
 	"-lapp=nexus-kube-apiserver",
 	"-lname=nexus-kube-controllermanager",
+	"-lcontrol-plane=api-gw",
 }
 
 var EnvList = []string{
