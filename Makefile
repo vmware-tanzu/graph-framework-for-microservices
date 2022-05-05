@@ -163,22 +163,6 @@ publish: build ## Push docker image with the manager.
 image_scan:
 	flash docker scan image ${IMAGE_REGISTRY}:${IMAGE_TAG}
 
-##@ Deploy
-
-.PHONY: deploy
-deploy: kustomize undeploy
-	if [ $(CLUSTER) = "kind" ]; then \
-		echo "loding docker image to kind cluster if exists" ;\
-		kind load docker-image ${IMAGE_REGISTRY}:${IMAGE_TAG} ;\
-	fi
-	cd config/deployment/ && $(KUSTOMIZE) edit set image ${APP_NAME}=${IMAGE_REGISTRY}:${IMAGE_TAG} && $(KUSTOMIZE) build . | kubectl apply -f - -n ${NAMESPACE};
-
-
-.PHONY: undeploy
-undeploy: kustomize
-	cd config/deployment/ && $(KUSTOMIZE) build . | kubectl delete -f - -n ${NAMESPACE} --ignore-not-found=true;
-
-
 add_operator: install-nexus-kubebuilder
 	if [ -n $(CRD_DATAMODEL_NAME) ]; then \
 		if [ -n $(CRD_GROUP) ]; then \
@@ -197,17 +181,6 @@ add_operator: install-nexus-kubebuilder
 	else \
 		echo "Please provide CRD_DATAMODEL_NAME"; exit 1; \
 	fi
-
-#check how to use kustomize for now using sed to replace deployment..
-PROJECT_DIR := $(shell dirname $(abspath $(lastword $(MAKEFILE_LIST))))
-KUSTOMIZE = $(PROJECT_DIR)/bin/kustomize
-.PHONY: kustomize
-kustomize: ## Download kustomize locally if necessary.
-	$(MAKE) install-kustomize
-
-# go-get-tool will 'go get' any package $2 and install it to $1.
-install-kustomize:
-	test -s $(PROJECT_DIR)/bin/kustomize || { mkdir -p $(PROJECT_DIR)/bin; cd $(PROJECT_DIR)/bin; curl -s "https://raw.githubusercontent.com/kubernetes-sigs/kustomize/master/hack/install_kustomize.sh" | bash ; };
 
 NEXUS-KUBEBUILDER = $(PROJECT_DIR)/bin/nexus-kubebuilder
 install-nexus-kubebuilder:
