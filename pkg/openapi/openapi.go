@@ -2,11 +2,15 @@ package openapi
 
 import (
 	"api-gw/controllers"
+	"crypto/sha1"
+	"encoding/hex"
+	"fmt"
 	"github.com/getkin/kin-openapi/openapi3"
 	log "github.com/sirupsen/logrus"
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/common-library.git/pkg/nexus"
 	v1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	"net/http"
+	"regexp"
 	"strings"
 )
 
@@ -28,6 +32,10 @@ func New() {
 				Description: "Local",
 				URL:         "http://localhost:5000",
 			},
+			&openapi3.Server{
+				Description: "Local SSL",
+				URL:         "https://localhost:5443",
+			},
 		},
 		Paths: openapi3.Paths{},
 		Components: openapi3.Components{
@@ -42,31 +50,41 @@ func AddPath(uri nexus.RestURIs) {
 	crd := controllers.GlobalCRDTypeToNodes[crdType]
 	parseSpec(crdType)
 
+	h := sha1.New()
+
+	params := parseUriParams(uri.Uri, crd.ParentHierarchy)
 	pathItem := &openapi3.PathItem{}
 	for method, _ := range uri.Methods {
+		h.Write([]byte(fmt.Sprintf("%s%s", method, uri.Uri)))
+		opId := hex.EncodeToString(h.Sum(nil))
+		nameParts := strings.Split(crd.Name, ".")
+
 		switch method {
 		case http.MethodGet:
 			operation := &openapi3.Operation{
-				OperationID: "Get" + crd.Name,
-				Tags:        []string{crd.Name},
+				OperationID: opId,
+				Tags:        []string{nameParts[0]},
 				Responses:   openapi3.Responses{},
+				Parameters:  params,
 			}
 			pathItem.Get = operation
 		case http.MethodPut:
 			operation := &openapi3.Operation{
-				OperationID: "Put" + crd.Name,
-				Tags:        []string{crd.Name},
+				OperationID: opId,
+				Tags:        []string{nameParts[0]},
 				RequestBody: &openapi3.RequestBodyRef{
 					Ref: "#/components/requestBodies/Create" + crd.Name,
 				},
-				Responses: openapi3.Responses{},
+				Responses:  openapi3.Responses{},
+				Parameters: params,
 			}
 			pathItem.Put = operation
 		case http.MethodDelete:
 			operation := &openapi3.Operation{
-				OperationID: "Delete" + crd.Name,
-				Tags:        []string{crd.Name},
+				OperationID: opId,
+				Tags:        []string{nameParts[0]},
 				Responses:   openapi3.Responses{},
+				Parameters:  params,
 			}
 			pathItem.Delete = operation
 		}
@@ -135,4 +153,38 @@ func parseFields(jsonSchema *openapi3.Schema, specProps map[string]v1.JSONSchema
 			log.Infof("Unknown type %s", prop.Type)
 		}
 	}
+}
+
+func parseUriParams(uri string, hierarchy []string) (parameters []*openapi3.ParameterRef) {
+	r := regexp.MustCompile(`{([^{}]+)}`)
+	params := r.FindAllStringSubmatch(uri, -1)
+	for _, param := range params {
+		parameters = append(parameters, &openapi3.ParameterRef{
+			Value: openapi3.NewPathParameter(param[1]).
+				WithSchema(openapi3.NewStringSchema()).
+				WithDescription("Name of the " + param[1] + " node"),
+		})
+	}
+
+	for _, parent := range hierarchy {
+		crd := controllers.GlobalCRDTypeToNodes[parent]
+
+		if !paramExist(crd.Name, params) {
+			parameters = append(parameters, &openapi3.ParameterRef{
+				Value: openapi3.NewQueryParameter(crd.Name).
+					WithSchema(openapi3.NewStringSchema()).
+					WithDescription("Name of the " + crd.Name + " node"),
+			})
+		}
+	}
+	return
+}
+
+func paramExist(param string, params [][]string) bool {
+	for _, p := range params {
+		if p[1] == param {
+			return true
+		}
+	}
+	return false
 }
