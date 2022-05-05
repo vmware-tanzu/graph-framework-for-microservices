@@ -17,6 +17,11 @@ data:
     - context:
         cluster: localapiserver
       name: localapiserver
+  api-gw-config: |
+    server:
+      address: ":443"
+      certPath: "/etc/cert/cert.pem"
+      keyPath: "/etc/cert/key.pem"
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -70,11 +75,21 @@ spec:
           volumeMounts:
             - mountPath: /config
               name: config
+            - mountPath: /etc/cert
+              name: cert-volume
+              readOnly: false
       volumes:
         - name: config
           configMap:
             name: kubeconfig-local
+        - name: cert-volume
+          secret:
+            secretName: api-gw-server-cert
+            optional: true
       terminationGracePeriodSeconds: 10
+      securityContext:
+        runAsUser: 0
+        runAsGroup: 0
 ---
 apiVersion: v1
 kind: ConfigMap
@@ -183,9 +198,9 @@ spec:
         - command:
             - /opt/create_webhook_signed_cert/create_certificate_as_secret.sh
             - --service
-            - nexus-api-gw
+            - api-gw
             - --secret
-            - nexus-api-gw-certs
+            - api-gw-server-cert
             - --namespace
             - $POD_NAMESPACE
           env:
@@ -207,3 +222,4 @@ spec:
             name: create-signed-cert
             defaultMode: 0555
           name: create-signed-cert
+      
