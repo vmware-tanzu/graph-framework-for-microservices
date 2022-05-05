@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: kubeconfig-local
+  name: nexus-api-gw-kubeconfig-local
 data:
   kubeconfig: |
     current-context: localapiserver
@@ -95,7 +95,7 @@ spec:
       volumes:
         - name: config
           configMap:
-            name: kubeconfig-local
+            name: nexus-api-gw-kubeconfig-local
         - name: cert-volume
           secret:
             secretName: api-gw-server-cert
