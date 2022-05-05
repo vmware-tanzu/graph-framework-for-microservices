@@ -18,12 +18,14 @@ package main
 
 import (
 	"api-gw/pkg/client"
+	"api-gw/pkg/config"
 	"flag"
 	"fmt"
 	"os"
 
 	// Import all Kubernetes client auth plugins (e.g. Azure, GCP, OIDC, etc.)
 	// to ensure that exec-entrypoint and run can make use of them.
+
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
 
 	"k8s.io/apimachinery/pkg/runtime"
@@ -69,6 +71,11 @@ func main() {
 
 	ctrl.SetLogger(zap.New(zap.UseFlagOptions(&opts)))
 
+	conf, err := config.LoadConfig("/config/api-gw-config")
+	if err != nil {
+		fmt.Printf("Error loading config: %v", err)
+	}
+
 	mgr, err := ctrl.NewManager(ctrl.GetConfigOrDie(), ctrl.Options{
 		Scheme:                 scheme,
 		MetricsBindAddress:     metricsAddr,
@@ -110,7 +117,7 @@ func main() {
 
 	fmt.Println("Init Echo Server")
 	// Start server
-	echo_server.InitEcho(stopCh)
+	echo_server.InitEcho(stopCh, conf)
 
 	setupLog.Info("starting manager")
 	if err := mgr.Start(ctrl.SetupSignalHandler()); err != nil {
