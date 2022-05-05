@@ -6,13 +6,13 @@ import (
 	"net/http"
 
 	"github.com/labstack/echo"
+	log "github.com/sirupsen/logrus"
 
 	"api-gw/controllers"
 	"api-gw/pkg/config"
 	"api-gw/pkg/model"
 	"api-gw/pkg/utils"
 
-	log "github.com/sirupsen/logrus"
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/common-library.git/pkg/nexus"
 )
 
@@ -45,7 +45,7 @@ func (s *EchoServer) Start(stopCh chan struct{}) {
 
 	// Start Server
 	go func() {
-		log.Info("Start Echo Again")
+		log.Info("Start Echo Server")
 		if utils.IsServerConfigValid(s.Config) && utils.IsFileExists(s.Config.Server.CertPath) && utils.IsFileExists(s.Config.Server.KeyPath) {
 			log.Infof("Server Config %v", s.Config.Server)
 			log.Info("Start TLS Server")
