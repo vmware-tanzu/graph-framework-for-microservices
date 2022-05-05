@@ -1,9 +1,11 @@
 package echo_server
 
 import (
+	"api-gw/pkg/openapi"
 	"context"
 	"fmt"
-	"github.com/labstack/echo"
+	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v4/middleware"
 	"net/http"
 
 	"api-gw/controllers"
@@ -18,7 +20,9 @@ type EchoServer struct {
 
 func InitEcho(stopCh chan struct{}) {
 	fmt.Println("Init Echo")
+	openapi.New()
 	e := NewEchoServer()
+	e.RegisterRoutes()
 	e.Start(stopCh)
 }
 
@@ -45,6 +49,13 @@ type NexusContext struct {
 	echo.Context
 	NexusURI string
 	Codes    nexus.HTTPCodesResponse
+}
+
+func (s *EchoServer) RegisterRoutes() {
+	// OpenAPI route
+	s.Echo.GET("/openapi.json", func(c echo.Context) error {
+		return c.JSON(http.StatusOK, openapi.Schema)
+	})
 }
 
 func (s *EchoServer) RegisterRouter(restURI nexus.RestURIs) {
@@ -98,6 +109,7 @@ func (s *EchoServer) RoutesNotification(stopCh chan struct{}) error {
 			log.Println("Route notification received...")
 			for _, v := range restURIs {
 				s.RegisterRouter(v)
+				openapi.AddPath(v)
 			}
 		}
 	}
@@ -112,8 +124,11 @@ func (s *EchoServer) StopServer() {
 }
 
 func NewEchoServer() *EchoServer {
+	e := echo.New()
+	e.Use(middleware.CORS())
+
 	return &EchoServer{
 		// create a new echo_server instance
-		Echo: echo.New(),
+		Echo: e,
 	}
 }

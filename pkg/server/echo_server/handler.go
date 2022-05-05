@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/labstack/echo"
+	"github.com/labstack/echo/v4"
 	log "github.com/sirupsen/logrus"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -137,7 +137,7 @@ func putHandler(c echo.Context) error {
 	}
 
 	// Parse body
-	var body map[string]interface{}
+	body := make(map[string]interface{})
 	if err := nc.Bind(&body); err != nil {
 		return err
 	}
