@@ -3,23 +3,34 @@ package echo_server
 import (
 	"context"
 	"fmt"
-	"github.com/labstack/echo"
 	"net/http"
 
+	"github.com/labstack/echo"
+
 	"api-gw/controllers"
+	"api-gw/pkg/config"
 	"api-gw/pkg/model"
+	"api-gw/pkg/utils"
+
 	log "github.com/sirupsen/logrus"
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/common-library.git/pkg/nexus"
 )
 
 type EchoServer struct {
-	Echo *echo.Echo
+	Echo   *echo.Echo
+	Config *config.Config
 }
 
-func InitEcho(stopCh chan struct{}) {
+func InitEcho(stopCh chan struct{}, conf *config.Config) {
 	fmt.Println("Init Echo")
-	e := NewEchoServer()
+	e := NewEchoServer(conf)
 	e.Start(stopCh)
+}
+
+func (s *EchoServer) StartHTTPServer() {
+	if err := s.Echo.Start(":5000"); err != nil && err != http.ErrServerClosed {
+		log.Fatalf("Server error %v", err)
+	}
 }
 
 func (s *EchoServer) Start(stopCh chan struct{}) {
@@ -28,15 +39,22 @@ func (s *EchoServer) Start(stopCh chan struct{}) {
 		log.Info("RoutesNotification")
 		if err := s.RoutesNotification(stopCh); err != nil {
 			s.StopServer()
-			InitEcho(stopCh)
+			InitEcho(stopCh, s.Config)
 		}
 	}()
 
 	// Start Server
 	go func() {
 		log.Info("Start Echo Again")
-		if err := s.Echo.Start(":5000"); err != nil && err != http.ErrServerClosed {
-			log.Fatalf("Server error %v", err)
+		if utils.IsServerConfigValid(s.Config) && utils.IsFileExists(s.Config.Server.CertPath) && utils.IsFileExists(s.Config.Server.KeyPath) {
+			log.Infof("Server Config %v", s.Config.Server)
+			log.Info("Start TLS Server")
+			if err := s.Echo.StartTLS(s.Config.Server.Address, s.Config.Server.CertPath, s.Config.Server.KeyPath); err != nil && err != http.ErrServerClosed {
+				log.Fatalf("TLS Server error %v", err)
+			}
+		} else {
+			log.Info("Certificates or TLS port not configured correctly, hence starting the HTTP Server")
+			s.StartHTTPServer()
 		}
 	}()
 }
@@ -111,9 +129,10 @@ func (s *EchoServer) StopServer() {
 	}
 }
 
-func NewEchoServer() *EchoServer {
+func NewEchoServer(conf *config.Config) *EchoServer {
 	return &EchoServer{
 		// create a new echo_server instance
-		Echo: echo.New(),
+		Echo:   echo.New(),
+		Config: conf,
 	}
 }
