@@ -98,8 +98,8 @@ metadata:
 data:
   create_certificate_as_secret.sh: |
         #!/usr/bin/env bash
-        set -e
-
+        set -ex
+        namespace=$POD_NAMESPACE
         usage() {
             cat <<EOF
         Generate certificate suitable for use with an webhook service.
@@ -133,10 +133,6 @@ data:
                     secret="$2"
                     shift
                     ;;
-                --namespace)
-                    namespace="$2"
-                    shift
-                    ;;
                 *)
                     usage
                     ;;
@@ -160,7 +156,7 @@ data:
         [req_distinguished_name]
         [ v3_req ]
         basicConstraints = CA:FALSE
-        keyUsage = nonRepudiation, digitalSignature, keyEncipherment
+        keyUsage = digitalSignature, keyEncipherment
         extendedKeyUsage = serverAuth
         subjectAltName = @alt_names
         [alt_names]
@@ -201,15 +197,13 @@ spec:
             - api-gw
             - --secret
             - api-gw-server-cert
-            - --namespace
-            - $POD_NAMESPACE
           env:
             - name: POD_NAMESPACE
               valueFrom:
                 fieldRef:
                   apiVersion: v1
                   fieldPath: metadata.namespace
-          image: "gcr.io/nsx-sm/m7/debug-container:latest"
+          image: "gcr.io/nsx-sm/bitnami/kubectl:1.16"
           name: create-signed-cert
           volumeMounts:
             - mountPath: /opt/create_webhook_signed_cert/
