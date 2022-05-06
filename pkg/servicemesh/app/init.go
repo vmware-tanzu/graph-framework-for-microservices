@@ -66,7 +66,13 @@ func Init(cmd *cobra.Command, args []string) error {
 		return utils.GetCustomError(utils.APPLICATION_INIT_PREREQ_FAILED,
 			fmt.Errorf("could not download the app manifests due to %s", err)).Print().ExitIfFatalOrReturn()
 	}
-	appVersion := values.NexusAppTemplates.Version
+	appVersion := os.Getenv("NEXUS_APP_TEMPLATE_VERSION")
+	if appVersion == "" {
+		appVersion = values.NexusAppTemplates.Version
+	}
+	if utils.IsDebug(cmd) {
+		fmt.Printf("Using App template Version: %s\n", appVersion)
+	}
 	if DOWNLOAD_APP != "false" {
 
 		err := utils.DownloadFile(fmt.Sprintf(TEMPLATE_URL, appVersion), Filename)
@@ -95,7 +101,14 @@ func Init(cmd *cobra.Command, args []string) error {
 		}
 		_ = os.RemoveAll(Filename)
 	}
-	nexusVersion := values.NexusDatamodelTemplates.Version
+	nexusVersion := os.Getenv("NEXUS_DATAMODEL_TEMPLATE_VERSION")
+	if nexusVersion == "" {
+		nexusVersion = values.NexusDatamodelTemplates.Version
+	}
+	if utils.IsDebug(cmd) {
+		fmt.Printf("Using Nexus template Version: %s\n", nexusVersion)
+	}
+	fmt.Printf("Using Nexus template version: %s\n", nexusVersion)
 	err := utils.CreateNexusDirectory(NEXUS_DIR, fmt.Sprintf(NEXUS_TEMPLATE_URL, nexusVersion))
 	if err != nil {
 		return fmt.Errorf("could not create nexus directory: %s", err)

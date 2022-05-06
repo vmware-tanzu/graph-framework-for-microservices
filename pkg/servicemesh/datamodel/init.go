@@ -133,7 +133,13 @@ func InitOperation(cmd *cobra.Command, args []string) error {
 		return utils.GetCustomError(utils.DATAMODEL_INIT_FAILED,
 			fmt.Errorf("could not download the datamodel manifests due to %s", err)).Print().ExitIfFatalOrReturn()
 	}
-	datamodelVersion := values.NexusDatamodelTemplates.Version
+	datamodelVersion := os.Getenv("NEXUS_DATAMODEL_TEMPLATE_VERSION")
+	if datamodelVersion == "" {
+		datamodelVersion = values.NexusDatamodelTemplates.Version
+	}
+	if utils.IsDebug(cmd) {
+		fmt.Printf("Using datamodel template Version: %s\n", datamodelVersion)
+	}
 	dmName := DatamodelName
 	fmt.Printf("Datamodel name: %s\n", dmName)
 	checkIfDirectoryEmpty(!localDatamodel, DatamodelName)

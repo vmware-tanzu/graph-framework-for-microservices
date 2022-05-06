@@ -92,7 +92,7 @@ func Install(cmd *cobra.Command, args []string) error {
 			return err
 		}
 	}
-	files, err := DownloadRuntimeFiles()
+	files, err := DownloadRuntimeFiles(cmd)
 	if err != nil {
 		return err
 	}
@@ -121,16 +121,19 @@ func init() {
 	}
 }
 
-func DownloadRuntimeFiles() ([]fs.FileInfo, error) {
+func DownloadRuntimeFiles(cmd *cobra.Command) ([]fs.FileInfo, error) {
 	var values version.NexusValues
 
 	if err := version.GetNexusValues(&values); err != nil {
 		return nil, utils.GetCustomError(utils.RUNTIME_INSTALL_FAILED,
 			fmt.Errorf("could not download the runtime manifests due to %s", err)).Print().ExitIfFatalOrReturn()
 	}
-	runtimeVersion := values.NexusDatamodelTemplates.Version
+	runtimeVersion := os.Getenv("NEXUS_RUNTIME_TEMPLATE_VERSION")
 	if runtimeVersion == "" {
-		runtimeVersion = "latest"
+		runtimeVersion = values.NexusDatamodelTemplates.Version
+	}
+	if utils.IsDebug(cmd) {
+		fmt.Printf("Using runtime manifests Version: %s\n", runtimeVersion)
 	}
 	err := utils.DownloadFile(fmt.Sprintf(common.RUNTIME_MANIFESTS_URL, runtimeVersion), Filename)
 	if err != nil {

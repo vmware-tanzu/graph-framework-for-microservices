@@ -12,7 +12,7 @@ import (
 )
 
 func Uninstall(cmd *cobra.Command, args []string) error {
-	files, err := DownloadRuntimeFiles()
+	files, err := DownloadRuntimeFiles(cmd)
 	if err != nil {
 		return err
 	}
