@@ -36,7 +36,6 @@ build_tag:
 integration_test:
   stage: integration_test
   variables:
-    CLI_BRANCH: NPT-195-fix
     INTEGRATION_TEST_BRANCH: NPT-171
     NEXUS_APP_TEMPLATE_VERSION: $CI_COMMIT_SHA
   only:
