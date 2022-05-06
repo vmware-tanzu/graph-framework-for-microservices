@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"strings"
+
 	log "github.com/sirupsen/logrus"
 	admissionv1 "k8s.io/api/admission/v1"
 	v1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
@@ -14,7 +16,6 @@ import (
 	"k8s.io/apimachinery/pkg/runtime/serializer"
 	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/kubernetes"
-	"strings"
 )
 
 func CrdType(client *kubernetes.Clientset, r admissionv1.AdmissionReview) *admissionv1.AdmissionReview {
@@ -118,7 +119,7 @@ func Crd(client dynamic.Interface, r admissionv1.AdmissionReview) (*admissionv1.
 	err := json.Unmarshal(raw, &obj)
 	if err != nil {
 		log.Warnf("could not unmarshal object meta: %v", err)
-		return nil, errors.New(fmt.Sprintf("could not unmarshal object meta: %v", err))
+		return nil, fmt.Errorf("could not unmarshal object meta: %v", err)
 	}
 
 	crdName := fmt.Sprintf("%s.%s", r.Request.Resource.Resource, r.Request.Resource.Group)

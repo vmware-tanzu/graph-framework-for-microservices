@@ -2,10 +2,11 @@ package validate
 
 import (
 	"context"
+	"strings"
+
 	log "github.com/sirupsen/logrus"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
-	"strings"
 )
 
 var CrdParentsMap = map[string][]string{}
@@ -31,15 +32,18 @@ func UpdateValidationWebhook(client *kubernetes.Clientset) {
 		if webhook.Name == "nexus-validation-crd.webhook.svc" {
 			for n := 0; i < len(webhook.Rules); i++ {
 				rule := &webhook.Rules[n]
-				rule.APIGroups = apiGroups
+				if len(apiGroups) > 0 {
+					rule.APIGroups = apiGroups
+				}
 			}
 		}
 	}
-
-	_, err = client.AdmissionregistrationV1().ValidatingWebhookConfigurations().Update(context.TODO(), webhookConf, metav1.UpdateOptions{})
-	if err != nil {
-		panic(err)
+	if len(apiGroups) > 0 {
+		_, err = client.AdmissionregistrationV1().ValidatingWebhookConfigurations().Update(context.TODO(), webhookConf, metav1.UpdateOptions{})
+		if err != nil {
+			panic(err)
+		}
 	}
 
-	log.Info("Updated validating webhook configuration with new APIGroups: %v", apiGroups)
+	log.Infof("Updated validating webhook configuration with new APIGroups: %v", apiGroups)
 }

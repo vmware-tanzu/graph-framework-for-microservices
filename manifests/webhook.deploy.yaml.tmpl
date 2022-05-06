@@ -1,0 +1,48 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: nexus-validation
+  name: nexus-validation
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nexus-validation
+  template:
+    metadata:
+      labels:
+        app: nexus-validation
+    spec:
+      initContainers:
+        - name: check-nexus-proxy-container
+          image: "gcr.io/mesh7-public-images/tools:latest"
+          command:
+            - /bin/bash
+            - -c
+            - |
+              #!/bin/bash
+              URL="http://nexus-proxy-container/api/v1/namespaces"
+              curl -k --retry 30 --retry-delay 20 --connect-timeout 30 --max-time 30 $URL
+              if [[ $? -ne 0 ]];then
+                echo "$URL not reachable....."
+                exit 1
+              fi
+      containers:
+        - image: harbor-repo.vmware.com/nexus/nexus-validation:__TAG__
+          imagePullPolicy: IfNotPresent
+          name: nexus-validation
+          volumeMounts:
+            - name: tls
+              mountPath: "/etc/nexus-validation/tls"
+              readOnly: true
+            - name: config
+              mountPath: "/etc/kubeconfig"
+              readOnly: true
+      volumes:
+        - name: tls
+          secret:
+            secretName: nexus-validation-tls
+        - name: config
+          configMap:
+            name: validation-webhook-kubeconfig-local

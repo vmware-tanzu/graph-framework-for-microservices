@@ -10,3 +10,6 @@
 
 ### Binaries ###
 cmd/nexus-validation/nexus-validation
+
+manifests/webhook.deploy.yaml
+*.tar.gz
