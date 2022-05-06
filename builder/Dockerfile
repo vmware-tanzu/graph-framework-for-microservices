@@ -1,4 +1,4 @@
-FROM 284299419820.dkr.ecr.us-west-2.amazonaws.com/golang:1.17
+FROM harbor-repo.vmware.com/nexus/golang:1.17
 
 ENV GOPATH /go
 ENV PATH $PATH:/usr/local/go/bin:/go/bin
@@ -8,7 +8,7 @@ RUN tdnf -y --refresh install \
   make=4.3-2.ph4 \
   coreutils=8.32-3.ph4 \
   build-essential=0.1-3.ph4 \
-  openssh-clients=8.8p1-2.ph4 \
+  openssh-clients \
   jq=1.6-2.ph4 \
   && go install github.com/onsi/ginkgo/ginkgo@v1.16.0 \
   && go get github.com/onsi/gomega/...@v1.17.0 \

@@ -1,7 +1,0 @@
-apiVersion: config.tsm.tanzu.vmware.com/v1
-kind: Config
-metadata:
-  generateName: conf1
-  namespace: default
-  labels:
-    roots.root.tsm.tanzu.vmware.com: root1
