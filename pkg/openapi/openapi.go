@@ -39,7 +39,17 @@ func New() {
 		},
 		Paths: openapi3.Paths{},
 		Components: openapi3.Components{
+			Schemas:       openapi3.Schemas{},
 			RequestBodies: openapi3.RequestBodies{},
+			Responses: openapi3.Responses{
+				"DefaultResponse": &openapi3.ResponseRef{
+					Value: openapi3.NewResponse().
+						WithDescription("Default response").
+						WithContent(openapi3.NewContentWithJSONSchema(
+							openapi3.NewSchema().WithProperty("message", openapi3.NewStringSchema())),
+						),
+				},
+			},
 		},
 	}
 	Schema = schema
@@ -64,8 +74,25 @@ func AddPath(uri nexus.RestURIs) {
 			operation := &openapi3.Operation{
 				OperationID: opId,
 				Tags:        []string{nameParts[0]},
-				Responses:   openapi3.Responses{},
 				Parameters:  params,
+				Responses: openapi3.Responses{
+					"200": &openapi3.ResponseRef{
+						Ref: "#/components/responses/Get" + crd.Name,
+					},
+				},
+			}
+
+			if len(params) == 0 {
+				operation = &openapi3.Operation{
+					OperationID: opId,
+					Tags:        []string{nameParts[0]},
+					Parameters:  params,
+					Responses: openapi3.Responses{
+						"200": &openapi3.ResponseRef{
+							Ref: "#/components/responses/List" + crd.Name,
+						},
+					},
+				}
 			}
 			pathItem.Get = operation
 		case http.MethodPut:
@@ -75,7 +102,11 @@ func AddPath(uri nexus.RestURIs) {
 				RequestBody: &openapi3.RequestBodyRef{
 					Ref: "#/components/requestBodies/Create" + crd.Name,
 				},
-				Responses:  openapi3.Responses{},
+				Responses: openapi3.Responses{
+					"200": &openapi3.ResponseRef{
+						Ref: "#/components/responses/DefaultResponse",
+					},
+				},
 				Parameters: params,
 			}
 			pathItem.Put = operation
@@ -83,8 +114,12 @@ func AddPath(uri nexus.RestURIs) {
 			operation := &openapi3.Operation{
 				OperationID: opId,
 				Tags:        []string{nameParts[0]},
-				Responses:   openapi3.Responses{},
-				Parameters:  params,
+				Responses: openapi3.Responses{
+					"200": &openapi3.ResponseRef{
+						Value: openapi3.NewResponse().WithDescription("No content"),
+					},
+				},
+				Parameters: params,
 			}
 			pathItem.Delete = operation
 		}
@@ -99,14 +134,32 @@ func parseSpec(crdType string) {
 
 	openapiSchema := crdSpec.Versions[0].Schema.OpenAPIV3Schema
 	specProps := openapiSchema.Properties["spec"].Properties
-	jsonSchema := openapi3.NewSchema()
+	jsonSchema := openapi3.NewObjectSchema()
 	parseFields(jsonSchema, specProps)
+
+	Schema.Components.Schemas[crd.Name] = openapi3.NewSchemaRef("", jsonSchema)
 
 	Schema.Components.RequestBodies["Create"+crd.Name] = &openapi3.RequestBodyRef{
 		Value: openapi3.NewRequestBody().
 			WithDescription("Request used to create " + crd.Name).
 			WithRequired(true).
-			WithJSONSchema(jsonSchema),
+			WithJSONSchemaRef(&openapi3.SchemaRef{Ref: "#/components/schemas/" + crd.Name}),
+	}
+
+	Schema.Components.Responses["Get"+crd.Name] = &openapi3.ResponseRef{
+		Value: openapi3.NewResponse().
+			WithDescription("Response returned back after getting " + crd.Name + " object").
+			WithContent(
+				openapi3.NewContentWithJSONSchemaRef(&openapi3.SchemaRef{Ref: "#/components/schemas/" + crd.Name}),
+			),
+	}
+
+	Schema.Components.Responses["List"+crd.Name] = &openapi3.ResponseRef{
+		Value: openapi3.NewResponse().
+			WithDescription("Response returned back after getting " + crd.Name + " objects").
+			WithContent(
+				openapi3.NewContentWithJSONSchema(openapi3.NewSchema()),
+			),
 	}
 }
 
@@ -158,6 +211,11 @@ func parseFields(jsonSchema *openapi3.Schema, specProps map[string]v1.JSONSchema
 func parseUriParams(uri string, hierarchy []string) (parameters []*openapi3.ParameterRef) {
 	r := regexp.MustCompile(`{([^{}]+)}`)
 	params := r.FindAllStringSubmatch(uri, -1)
+	// If there are no params in URI then it's a list
+	if len(params) == 0 {
+		return
+	}
+
 	for _, param := range params {
 		parameters = append(parameters, &openapi3.ParameterRef{
 			Value: openapi3.NewPathParameter(param[1]).
@@ -168,7 +226,6 @@ func parseUriParams(uri string, hierarchy []string) (parameters []*openapi3.Para
 
 	for _, parent := range hierarchy {
 		crd := controllers.GlobalCRDTypeToNodes[parent]
-
 		if !paramExist(crd.Name, params) {
 			parameters = append(parameters, &openapi3.ParameterRef{
 				Value: openapi3.NewQueryParameter(crd.Name).
