@@ -57,8 +57,15 @@ func Build(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		return fmt.Errorf("error while unmarshal version yaml data %v", err)
 	}
+	compilerVersion := os.Getenv("NEXUS_DATAMODEL_COMPILER_VERSION")
+	if compilerVersion == "" {
+		compilerVersion = values.NexusCompiler.Version
+	}
+	if utils.IsDebug(cmd) {
+		fmt.Printf("Using compiler Version: %s\n", compilerVersion)
+	}
 	envList := common.GetEnvList()
-	envList = append(envList, fmt.Sprintf("TAG=%s", values.NexusCompiler.Version))
+	envList = append(envList, fmt.Sprintf("TAG=%s", compilerVersion))
 	containerID := os.Getenv("CONTAINER_ID")
 	if containerID != "" {
 		envList = append(envList, fmt.Sprintf("CONTAINER_ID=%s", containerID))
