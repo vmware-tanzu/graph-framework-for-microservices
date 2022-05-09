@@ -8,12 +8,16 @@ import (
 
 var disableUpgradePrompt bool
 var debugAlways bool
+var skipUpgradeCheck bool
 
 const flagDisableUpgradePrompt = "disable-upgrade-prompt"
 const flagDebugAlways = "debug-always"
+const flagSkipUpgradeCheck = "skip-upgrade-check"
 
 func noFlagsSet(cmd *cobra.Command) bool {
-	return !cmd.Flags().Lookup(flagDisableUpgradePrompt).Changed && !cmd.Flags().Lookup(flagDebugAlways).Changed
+	return !cmd.Flags().Lookup(flagDisableUpgradePrompt).Changed &&
+		!cmd.Flags().Lookup(flagDebugAlways).Changed &&
+		!cmd.Flags().Lookup(flagSkipUpgradeCheck).Changed
 }
 
 func Set(cmd *cobra.Command, args []string) error {
@@ -30,6 +34,10 @@ func Set(cmd *cobra.Command, args []string) error {
 
 	if cmd.Flags().Lookup(flagDebugAlways).Changed {
 		config.DebugAlways = debugAlways
+	}
+
+	if cmd.Flags().Lookup(flagSkipUpgradeCheck).Changed {
+		config.SkipUpgradeCheck = skipUpgradeCheck
 	}
 
 	err := writeNexusConfig(config)
@@ -56,4 +64,7 @@ func init() {
 		"", false, "Enable/disable functionality in nexus CLI to check if a newer version is available")
 	SetCmd.Flags().BoolVarP(&debugAlways, flagDebugAlways,
 		"", false, "Print debug output even without specifying the --debug flag")
+	SetCmd.Flags().BoolVarP(&skipUpgradeCheck, flagSkipUpgradeCheck,
+		"", false, "Skip checking for the latest available CLI version")
+	SetCmd.Flags().MarkHidden(flagSkipUpgradeCheck)
 }
