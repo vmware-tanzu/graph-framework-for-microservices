@@ -8,22 +8,32 @@ import (
 	"github.com/labstack/echo/v4/middleware"
 	"net/http"
 
-	"api-gw/controllers"
-	"api-gw/pkg/model"
 	log "github.com/sirupsen/logrus"
+
+	"api-gw/controllers"
+	"api-gw/pkg/config"
+	"api-gw/pkg/model"
+	"api-gw/pkg/utils"
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/common-library.git/pkg/nexus"
 )
 
 type EchoServer struct {
-	Echo *echo.Echo
+	Echo   *echo.Echo
+	Config *config.Config
 }
 
-func InitEcho(stopCh chan struct{}) {
+func InitEcho(stopCh chan struct{}, conf *config.Config) {
 	fmt.Println("Init Echo")
 	openapi.New()
-	e := NewEchoServer()
+	e := NewEchoServer(conf)
 	e.RegisterRoutes()
 	e.Start(stopCh)
+}
+
+func (s *EchoServer) StartHTTPServer() {
+	if err := s.Echo.Start(":80"); err != nil && err != http.ErrServerClosed {
+		log.Fatalf("Server error %v", err)
+	}
 }
 
 func (s *EchoServer) Start(stopCh chan struct{}) {
@@ -32,15 +42,22 @@ func (s *EchoServer) Start(stopCh chan struct{}) {
 		log.Info("RoutesNotification")
 		if err := s.RoutesNotification(stopCh); err != nil {
 			s.StopServer()
-			InitEcho(stopCh)
+			InitEcho(stopCh, s.Config)
 		}
 	}()
 
 	// Start Server
 	go func() {
-		log.Info("Start Echo Again")
-		if err := s.Echo.Start(":5000"); err != nil && err != http.ErrServerClosed {
-			log.Fatalf("Server error %v", err)
+		log.Info("Start Echo Server")
+		if utils.IsServerConfigValid(s.Config) && utils.IsFileExists(s.Config.Server.CertPath) && utils.IsFileExists(s.Config.Server.KeyPath) {
+			log.Infof("Server Config %v", s.Config.Server)
+			log.Info("Start TLS Server")
+			if err := s.Echo.StartTLS(s.Config.Server.Address, s.Config.Server.CertPath, s.Config.Server.KeyPath); err != nil && err != http.ErrServerClosed {
+				log.Fatalf("TLS Server error %v", err)
+			}
+		} else {
+			log.Info("Certificates or TLS port not configured correctly, hence starting the HTTP Server")
+			s.StartHTTPServer()
 		}
 	}()
 }
@@ -123,12 +140,13 @@ func (s *EchoServer) StopServer() {
 	}
 }
 
-func NewEchoServer() *EchoServer {
+func NewEchoServer(conf *config.Config) *EchoServer {
 	e := echo.New()
 	e.Use(middleware.CORS())
 
 	return &EchoServer{
 		// create a new echo_server instance
 		Echo: e,
+		Config: conf,
 	}
 }

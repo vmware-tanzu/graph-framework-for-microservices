@@ -39,7 +39,7 @@ post-install-checks:
 
 .SILENT:
 start-portforward: check-portforward
-	( kubectl port-forward svc/proxy-container -n ${NAMESPACE} 45192:80 & echo $$! > /tmp/portforward.pid )
+	( kubectl port-forward svc/nexus-proxy-container -n ${NAMESPACE} 45192:80 & echo $$! > /tmp/portforward.pid )
 	CURRENT=0
 	while [[ `curl -s -o /dev/null -w "%{http_code}" http://localhost:45192/api/v1/namespaces 2>/dev/null` -ne 200  ]] ; do \
 		CURRENT=$$(( CURRENT + 1 )) ;\
