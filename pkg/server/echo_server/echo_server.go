@@ -28,7 +28,7 @@ func InitEcho(stopCh chan struct{}, conf *config.Config) {
 }
 
 func (s *EchoServer) StartHTTPServer() {
-	if err := s.Echo.Start(":5000"); err != nil && err != http.ErrServerClosed {
+	if err := s.Echo.Start(":80"); err != nil && err != http.ErrServerClosed {
 		log.Fatalf("Server error %v", err)
 	}
 }
