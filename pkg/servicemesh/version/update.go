@@ -15,9 +15,6 @@ func IsNexusCliUpdateAvailable(enableDebugLogs bool) (bool, string) {
 		}
 		return false, ""
 	}
-	if enableDebugLogs {
-		fmt.Printf("Latest available Nexus CLI version: %s\n", latestNexusVersion)
-	}
 
 	var currentValues NexusValues
 	if err = GetNexusValues(&currentValues); err != nil {
@@ -26,7 +23,9 @@ func IsNexusCliUpdateAvailable(enableDebugLogs bool) (bool, string) {
 		}
 		return false, ""
 	}
-	if enableDebugLogs {
+
+	if enableDebugLogs && latestNexusVersion != currentValues.NexusCli.Version {
+		fmt.Printf("Latest available Nexus CLI version: %s\n", latestNexusVersion)
 		fmt.Printf("Current Nexus CLI version: %s\n", currentValues.NexusCli.Version)
 	}
 

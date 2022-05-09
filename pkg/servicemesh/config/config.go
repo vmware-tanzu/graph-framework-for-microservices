@@ -10,12 +10,14 @@ import (
 type NexusConfig struct {
 	UpgradePromptDisable bool `yaml:"upgradePromptDisable"`
 	DebugAlways          bool `yaml:"debugAlways"`
+	SkipUpgradeCheck     bool `yaml:"skipUpgradeCheck"`
 }
 
 func getDefaultNexusConfig() NexusConfig {
 	return NexusConfig{
 		UpgradePromptDisable: false,
 		DebugAlways:          false,
+		SkipUpgradeCheck:     false,
 	}
 }
 
