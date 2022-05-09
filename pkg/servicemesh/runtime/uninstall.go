@@ -3,7 +3,6 @@ package runtime
 import (
 	"fmt"
 	"os"
-	"path/filepath"
 
 	"github.com/spf13/cobra"
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/servicemesh/prereq"
@@ -12,19 +11,29 @@ import (
 )
 
 func Uninstall(cmd *cobra.Command, args []string) error {
-	files, err := DownloadRuntimeFiles(cmd)
+	runtimeDir, validationDir, err := DownloadRuntimeFiles(cmd)
+	if err != nil {
+		return err
+	}
+	var files []string
+	files, err = GetFiles(files, runtimeDir)
+	if err != nil {
+		return err
+	}
+	files, err = GetFiles(files, validationDir)
 	if err != nil {
 		return err
 	}
 	for _, file := range files {
-		if file.IsDir() {
-			utils.SystemCommand(cmd, utils.RUNTIME_UNINSTALL_FAILED, []string{}, "kubectl", "delete", "-f", filepath.Join(ManifestsDir, "runtime-manifests", file.Name()), "-n", Namespace, "--ignore-not-found=true")
-		}
+		fmt.Printf("Deleting objects from file: %s\n", file)
+		utils.SystemCommand(cmd, utils.RUNTIME_UNINSTALL_FAILED, []string{}, "kubectl", "delete", "-f", file, "-n", Namespace, "--ignore-not-found=true")
 	}
 	utils.SystemCommand(cmd, utils.RUNTIME_UNINSTALL_FAILED, []string{}, "kubectl", "delete", "pvc", "-n", Namespace, "-lapp=nexus-etcd")
 	fmt.Printf("\u2713 Runtime %s uninstallation successful\n", Namespace)
-	os.Remove(Filename)
-	os.RemoveAll(ManifestsDir)
+	os.Remove(runtimeFilename)
+	os.Remove(validationFilename)
+	os.RemoveAll(RuntimeManifestsDir)
+	os.RemoveAll(ValidationManifestDir)
 	return nil
 }
 
