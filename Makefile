@@ -101,7 +101,7 @@ go_get:
 	go get . ;
 
 .PHONY: build
-build: lint ## Build manager binary.
+build: go_get lint ## Build manager binary.
 	mkdir -p .ssh ;\
 	if [ -n $(CICD_TOKEN) ]; then \
 		DOCKER_BUILDKIT=1 docker build --build-arg APP_NAME=${APP_NAME} \
