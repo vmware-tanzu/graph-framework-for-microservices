@@ -19,6 +19,7 @@ package main
 import (
 	"api-gw/pkg/client"
 	"api-gw/pkg/config"
+	"api-gw/pkg/openapi"
 	"flag"
 	"fmt"
 	"os"
@@ -114,6 +115,9 @@ func main() {
 		setupLog.Error(err, "unable to set up dynamic client")
 		os.Exit(1)
 	}
+
+	// Create new openapi3 schema
+	openapi.New()
 
 	fmt.Println("Init Echo Server")
 	// Start server

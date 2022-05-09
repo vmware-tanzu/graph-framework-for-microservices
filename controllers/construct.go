@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"fmt"
+	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	"sync"
 
 	"k8s.io/apimachinery/pkg/util/json"
@@ -20,6 +21,9 @@ var (
 
 	GlobalCRDTypeToNodes     = make(map[string]model.NodeInfo)
 	globalCRDTypeToNodeMutex = &sync.Mutex{}
+
+	GlobalCRDTypeToSpec      = make(map[string]apiextensionsv1.CustomResourceDefinitionSpec)
+	globalCRDTypeToSpecMutex = &sync.Mutex{}
 )
 
 func constructMapURIToCRDType(eventType model.EventType, crdType string, apiURIs []nexus.RestURIs) {
@@ -51,6 +55,17 @@ func constructMapCRDTypeToNode(eventType model.EventType, crdType, name string, 
 		Name:            name,
 		ParentHierarchy: parentHierarchy,
 	}
+}
+
+func constructMapCRDTypeToSpec(eventType model.EventType, crdType string, spec apiextensionsv1.CustomResourceDefinitionSpec) {
+	globalCRDTypeToSpecMutex.Lock()
+	defer globalCRDTypeToSpecMutex.Unlock()
+
+	if eventType == model.Delete {
+		delete(GlobalCRDTypeToNodes, crdType)
+	}
+
+	GlobalCRDTypeToSpec[crdType] = spec
 }
 
 func (r *CustomResourceDefinitionReconciler) ProcessAnnotation(crdType string,
@@ -91,6 +106,13 @@ func (r *CustomResourceDefinitionReconciler) ProcessAnnotation(crdType string,
 	if len(added) > 0 {
 		GlobalRestURIChan <- added
 	}
+	return nil
+}
+
+func (r *CustomResourceDefinitionReconciler) ProcessCrdSpec(crdType string,
+	spec apiextensionsv1.CustomResourceDefinitionSpec, eventType model.EventType) error {
+	// It has stored the CRD type with the CRD spec
+	constructMapCRDTypeToSpec(eventType, crdType, spec)
 	return nil
 }
 

@@ -1,18 +1,19 @@
 package echo_server
 
 import (
+	"api-gw/pkg/openapi"
 	"context"
 	"fmt"
+	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v4/middleware"
 	"net/http"
 
-	"github.com/labstack/echo"
 	log "github.com/sirupsen/logrus"
 
 	"api-gw/controllers"
 	"api-gw/pkg/config"
 	"api-gw/pkg/model"
 	"api-gw/pkg/utils"
-
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/common-library.git/pkg/nexus"
 )
 
@@ -23,7 +24,9 @@ type EchoServer struct {
 
 func InitEcho(stopCh chan struct{}, conf *config.Config) {
 	fmt.Println("Init Echo")
+	openapi.New()
 	e := NewEchoServer(conf)
+	e.RegisterRoutes()
 	e.Start(stopCh)
 }
 
@@ -63,6 +66,13 @@ type NexusContext struct {
 	echo.Context
 	NexusURI string
 	Codes    nexus.HTTPCodesResponse
+}
+
+func (s *EchoServer) RegisterRoutes() {
+	// OpenAPI route
+	s.Echo.GET("/openapi.json", func(c echo.Context) error {
+		return c.JSON(http.StatusOK, openapi.Schema)
+	})
 }
 
 func (s *EchoServer) RegisterRouter(restURI nexus.RestURIs) {
@@ -116,6 +126,7 @@ func (s *EchoServer) RoutesNotification(stopCh chan struct{}) error {
 			log.Println("Route notification received...")
 			for _, v := range restURIs {
 				s.RegisterRouter(v)
+				openapi.AddPath(v)
 			}
 		}
 	}
@@ -130,9 +141,12 @@ func (s *EchoServer) StopServer() {
 }
 
 func NewEchoServer(conf *config.Config) *EchoServer {
+	e := echo.New()
+	e.Use(middleware.CORS())
+
 	return &EchoServer{
 		// create a new echo_server instance
-		Echo:   echo.New(),
+		Echo:   e,
 		Config: conf,
 	}
 }

@@ -61,10 +61,15 @@ func (r *CustomResourceDefinitionReconciler) Reconcile(ctx context.Context, req 
 		}
 		eventType = model.Delete
 	}
-	fmt.Printf("Received root node: Name %s Spec %v\n", crd.Name, crd.Spec)
 
+	fmt.Printf("Received root node: Name %s\n", crd.Name)
 	if err := r.ProcessAnnotation(req.NamespacedName.Name, crd.Annotations, eventType); err != nil {
 		fmt.Printf("Error Processing CRD Annotation %v", err)
+	}
+
+	// Get correct version
+	if err := r.ProcessCrdSpec(req.NamespacedName.Name, crd.Spec, eventType); err != nil {
+		fmt.Printf("Error Processing CRD spec %v", err)
 	}
 
 	return ctrl.Result{}, nil
