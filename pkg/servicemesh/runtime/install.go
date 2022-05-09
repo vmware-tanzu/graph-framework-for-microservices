@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"io/fs"
 	"io/ioutil"
 	"os"
 	"os/exec"
@@ -20,8 +19,10 @@ import (
 )
 
 var Namespace string
-var Filename = "runtime-manifests.tar"
-var ManifestsDir = "manifets-nexus-runtime"
+var runtimeFilename = "runtime-manifests.tar"
+var validationFilename = "validation-manifets.tar"
+var RuntimeManifestsDir = "manifests-nexus-runtime"
+var ValidationManifestDir = "manifests-nexus-validation"
 
 var prerequisites []prereq.Prerequiste = []prereq.Prerequiste{
 	prereq.KUBERNETES,
@@ -76,6 +77,25 @@ func CreateNs(Namespace string) error {
 	io.Copy(os.Stdout, &b2)
 	return nil
 }
+
+func GetFiles(Files []string, directory string) ([]string, error) {
+	files, err := ioutil.ReadDir(directory)
+	if err != nil {
+		return nil, err
+	}
+	for _, file := range files {
+		if file.IsDir() {
+			Files, err = GetFiles(Files, filepath.Join(directory, file.Name()))
+			if err != nil {
+				return nil, err
+			}
+		} else {
+			Files = append(Files, filepath.Join(directory, file.Name()))
+		}
+	}
+	return Files, nil
+}
+
 func Install(cmd *cobra.Command, args []string) error {
 
 	if utils.ListPrereq(cmd) {
@@ -92,14 +112,25 @@ func Install(cmd *cobra.Command, args []string) error {
 			return err
 		}
 	}
-	files, err := DownloadRuntimeFiles(cmd)
+	var files []string
+	runtimeDir, validationDir, err := DownloadRuntimeFiles(cmd)
 	if err != nil {
 		return err
 	}
 
+	files, err = GetFiles(files, runtimeDir)
+	if err != nil {
+		return err
+	}
+	files, err = GetFiles(files, validationDir)
+	if err != nil {
+		return err
+	}
 	for _, file := range files {
-		if file.IsDir() {
-			utils.SystemCommand(cmd, utils.RUNTIME_INSTALL_FAILED, []string{}, "kubectl", "apply", "-f", filepath.Join(ManifestsDir, "runtime-manifests", file.Name()), "-n", Namespace)
+		fmt.Printf("Applying file: %s\n", file)
+		err = utils.SystemCommand(cmd, utils.RUNTIME_INSTALL_FAILED, []string{}, "kubectl", "apply", "-f", file, "-n", Namespace)
+		if err != nil {
+			return err
 		}
 	}
 	fmt.Println("Waiting for the Nexus runtime to come up...")
@@ -107,8 +138,10 @@ func Install(cmd *cobra.Command, args []string) error {
 		utils.CheckPodRunning(cmd, utils.RUNTIME_INSTALL_FAILED, label, Namespace)
 	}
 	fmt.Printf("\u2713 Runtime installation successful on namespace %s\n", Namespace)
-	os.Remove(Filename)
-	os.RemoveAll(ManifestsDir)
+	os.Remove(runtimeFilename)
+	os.Remove(validationFilename)
+	os.RemoveAll(RuntimeManifestsDir)
+	os.RemoveAll(ValidationManifestDir)
 	return nil
 }
 
@@ -121,60 +154,104 @@ func init() {
 	}
 }
 
-func DownloadRuntimeFiles(cmd *cobra.Command) ([]fs.FileInfo, error) {
+func DownloadRuntimeFiles(cmd *cobra.Command) (string, string, error) {
 	var values version.NexusValues
 
 	if err := version.GetNexusValues(&values); err != nil {
-		return nil, utils.GetCustomError(utils.RUNTIME_INSTALL_FAILED,
+		return "", "", utils.GetCustomError(utils.RUNTIME_INSTALL_FAILED,
 			fmt.Errorf("could not download the runtime manifests due to %s", err)).Print().ExitIfFatalOrReturn()
 	}
 	runtimeVersion := os.Getenv("NEXUS_RUNTIME_TEMPLATE_VERSION")
 	if runtimeVersion == "" {
 		runtimeVersion = values.NexusDatamodelTemplates.Version
 	}
+	validationManifetsVersion := os.Getenv("NEXUS_VALIDATION_TEMPLATE_VERSION")
+	if validationManifetsVersion == "" {
+		validationManifetsVersion = values.NexusValidationTemplates.Version
+	}
+	err := utils.DownloadFile(fmt.Sprintf(common.RUNTIME_MANIFESTS_URL, runtimeVersion), runtimeFilename)
+
 	if utils.IsDebug(cmd) {
 		fmt.Printf("Using runtime manifests Version: %s\n", runtimeVersion)
 	}
-	err := utils.DownloadFile(fmt.Sprintf(common.RUNTIME_MANIFESTS_URL, runtimeVersion), Filename)
+	if utils.IsDebug(cmd) {
+		fmt.Printf("Using validation manifests Version: %s\n", validationManifetsVersion)
+	}
 	if err != nil {
-		return nil, utils.GetCustomError(utils.RUNTIME_INSTALL_FAILED,
+		return "", "", utils.GetCustomError(utils.RUNTIME_INSTALL_FAILED,
 			fmt.Errorf("could not download the runtime manifests due to %s", err)).Print().ExitIfFatalOrReturn()
 	}
-	file, err := os.Open(Filename)
+	err = utils.DownloadFile(fmt.Sprintf(common.VALIDATION_MANIFESTS_URL, validationManifetsVersion), validationFilename)
 	if err != nil {
-		return nil, utils.GetCustomError(utils.RUNTIME_INSTALL_FAILED,
+		return "", "", utils.GetCustomError(utils.RUNTIME_INSTALL_FAILED,
+			fmt.Errorf("could not download the validation manifests due to %s", err)).Print().ExitIfFatalOrReturn()
+	}
+	runtimeFile, err := os.Open(runtimeFilename)
+	if err != nil {
+		return "", "", utils.GetCustomError(utils.RUNTIME_INSTALL_FAILED,
 			fmt.Errorf("accessing downloaded runtime manifests directory failed dwith error: %s", err)).Print().ExitIfFatalOrReturn()
 	}
-	defer file.Close()
-	fo, err := os.Stat(ManifestsDir)
+	defer runtimeFile.Close()
+	validationFile, err := os.Open(validationFilename)
+	if err != nil {
+		return "", "", utils.GetCustomError(utils.RUNTIME_INSTALL_FAILED,
+			fmt.Errorf("accessing downloaded validation manifests directory failed dwith error: %s", err)).Print().ExitIfFatalOrReturn()
+	}
+	defer validationFile.Close()
+	fo, err := os.Stat(RuntimeManifestsDir)
 	if err != nil {
 		if !errors.Is(err, os.ErrNotExist) {
-			return nil, utils.GetCustomError(utils.RUNTIME_INSTALL_FAILED,
+			return "", "", utils.GetCustomError(utils.RUNTIME_INSTALL_FAILED,
 				fmt.Errorf("issues in checking runtime manifests directory due to %s", err)).Print().ExitIfFatalOrReturn()
 		}
 	}
 	if fo != nil {
-		err = os.RemoveAll(ManifestsDir)
+		err = os.RemoveAll(RuntimeManifestsDir)
 		if err != nil {
-			return nil, utils.GetCustomError(utils.RUNTIME_INSTALL_FAILED,
-				fmt.Errorf("could not remove %s directory due to %s", ManifestsDir, err)).Print().ExitIfFatalOrReturn()
+			return "", "", utils.GetCustomError(utils.RUNTIME_INSTALL_FAILED,
+				fmt.Errorf("could not remove %s directory due to %s", RuntimeManifestsDir, err)).Print().ExitIfFatalOrReturn()
 		}
 	}
-	err = os.Mkdir(ManifestsDir, os.ModePerm)
+	// checking validation manifestDie
+	fo, err = os.Stat(ValidationManifestDir)
 	if err != nil {
-		return nil, utils.GetCustomError(utils.RUNTIME_INSTALL_FAILED,
+		if !errors.Is(err, os.ErrNotExist) {
+			return "", "", utils.GetCustomError(utils.RUNTIME_INSTALL_FAILED,
+				fmt.Errorf("issues in checking validation manifests directory due to %s", err)).Print().ExitIfFatalOrReturn()
+		}
+	}
+	if fo != nil {
+		err = os.RemoveAll(ValidationManifestDir)
+		if err != nil {
+			return "", "", utils.GetCustomError(utils.RUNTIME_INSTALL_FAILED,
+				fmt.Errorf("could not remove %s directory due to %s", ValidationManifestDir, err)).Print().ExitIfFatalOrReturn()
+		}
+	}
+	err = os.Mkdir(RuntimeManifestsDir, os.ModePerm)
+	if err != nil {
+		return "", "", utils.GetCustomError(utils.RUNTIME_INSTALL_FAILED,
 			fmt.Errorf("could not create the runtime manifests directory due to %s", err)).Print().ExitIfFatalOrReturn()
 	}
-	err = utils.Untar(ManifestsDir, file)
+	err = os.Mkdir(ValidationManifestDir, os.ModePerm)
 	if err != nil {
-		return nil, utils.GetCustomError(utils.RUNTIME_INSTALL_FAILED,
+		return "", "", utils.GetCustomError(utils.RUNTIME_INSTALL_FAILED,
+			fmt.Errorf("could not create the runtime manifests directory due to %s", err)).Print().ExitIfFatalOrReturn()
+	}
+	err = os.Mkdir(filepath.Join(ValidationManifestDir, "manifests"), 0755)
+	if err != nil {
+		return "", "", utils.GetCustomError(utils.RUNTIME_INSTALL_FAILED,
+			fmt.Errorf("could not create the runtime manifests directory due to %s", err)).Print().ExitIfFatalOrReturn()
+	}
+	err = utils.Untar(RuntimeManifestsDir, runtimeFile)
+	if err != nil {
+		return "", "", utils.GetCustomError(utils.RUNTIME_INSTALL_FAILED,
 			fmt.Errorf("unarchive of runtime manifests directory failed with error %s", err)).Print().ExitIfFatalOrReturn()
 	}
-
-	files, err := ioutil.ReadDir(filepath.Join(ManifestsDir, "runtime-manifests"))
+	err = utils.Untar(ValidationManifestDir, validationFile)
 	if err != nil {
-		return nil, utils.GetCustomError(utils.RUNTIME_INSTALL_FAILED,
-			fmt.Errorf("accessing runtime manifests directory failed with error to %s", err)).Print().ExitIfFatalOrReturn()
+		return "", "", utils.GetCustomError(utils.RUNTIME_INSTALL_FAILED,
+			fmt.Errorf("unarchive of validation manifests directory failed with error %s", err)).Print().ExitIfFatalOrReturn()
 	}
-	return files, nil
+
+	return RuntimeManifestsDir, ValidationManifestDir, nil
 }
