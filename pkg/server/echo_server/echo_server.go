@@ -146,7 +146,7 @@ func NewEchoServer(conf *config.Config) *EchoServer {
 
 	return &EchoServer{
 		// create a new echo_server instance
-		Echo: e,
+		Echo:   e,
 		Config: conf,
 	}
 }

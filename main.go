@@ -18,8 +18,8 @@ package main
 
 import (
 	"api-gw/pkg/client"
-	"api-gw/pkg/openapi"
 	"api-gw/pkg/config"
+	"api-gw/pkg/openapi"
 	"flag"
 	"fmt"
 	"os"
