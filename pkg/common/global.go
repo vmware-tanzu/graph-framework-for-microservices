@@ -11,6 +11,8 @@ package common
 
 import (
 	"embed"
+	"fmt"
+	"os"
 	"time"
 )
 
@@ -61,13 +63,12 @@ var PodLabels [5]string = [5]string{
 	"-lapp=nexus-validation",
 }
 
-var EnvList = []string{
-	"GOPRIVATE=gitlab.eng.vmware.com",
+func GetEnvList() []string {
+	return []string{
+		fmt.Sprintf("GOPRIVATE=%s", getGoPrivate()),
+	}
 }
 
-func GetEnvList() []string {
-	envList := []string{}
-	envList = append(envList, EnvList...)
-	return envList
-
+func getGoPrivate() string {
+	return "*.eng.vmware.com," + os.Getenv("GOPRIVATE")
 }
