@@ -148,6 +148,8 @@ func Crd(client dynamic.Interface, r admissionv1.AdmissionReview) (*admissionv1.
 			log.Infof("label %s found, val: %s", parent, label)
 			if isNameHashed {
 				name = nexus.GetHashedName(parent, parentParents, labels, label)
+			} else {
+				name = label
 			}
 			if getCrdObject(client, gvr, name) == nil {
 				message := fmt.Sprintf("required parent %s with name %s not found", parent, name)
@@ -160,6 +162,8 @@ func Crd(client dynamic.Interface, r admissionv1.AdmissionReview) (*admissionv1.
 		} else {
 			if isNameHashed {
 				name = nexus.GetHashedName(parent, parentParents, labels, "default")
+			} else {
+				name = "default"
 			}
 
 			log.Warnf("label %s not found", parent)
