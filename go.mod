@@ -4,6 +4,7 @@ go 1.17
 
 require (
 	github.com/sirupsen/logrus v1.8.1
+	gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/common-library.git v0.0.0-20220428125452-2c6c391ae872
 	k8s.io/api v0.23.5
 	k8s.io/apiextensions-apiserver v0.23.5
 	k8s.io/apimachinery v0.23.5
@@ -12,6 +13,7 @@ require (
 
 require (
 	github.com/davecgh/go-spew v1.1.1 // indirect
+	github.com/elliotchance/orderedmap v1.4.0 // indirect
 	github.com/go-logr/logr v1.2.0 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
