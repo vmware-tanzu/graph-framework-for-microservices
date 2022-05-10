@@ -219,6 +219,7 @@ func parseUriParams(uri string, hierarchy []string) (parameters []*openapi3.Para
 	for _, param := range params {
 		parameters = append(parameters, &openapi3.ParameterRef{
 			Value: openapi3.NewPathParameter(param[1]).
+				WithRequired(true).
 				WithSchema(openapi3.NewStringSchema()).
 				WithDescription("Name of the " + param[1] + " node"),
 		})
@@ -229,6 +230,7 @@ func parseUriParams(uri string, hierarchy []string) (parameters []*openapi3.Para
 		if !paramExist(crd.Name, params) {
 			parameters = append(parameters, &openapi3.ParameterRef{
 				Value: openapi3.NewQueryParameter(crd.Name).
+					WithRequired(true).
 					WithSchema(openapi3.NewStringSchema()).
 					WithDescription("Name of the " + crd.Name + " node"),
 			})
