@@ -3,7 +3,7 @@ image:
 
 include:
 - project: "nsx-allspark_users/nexus-sdk/integration-tests"
-  ref: NPT-171
+  ref: master
   file: ".gitlab-ci-template.yml"
 
 variables:
@@ -39,7 +39,6 @@ build_tag:
 integration_test:
   stage: integration_test
   variables:
-    INTEGRATION_TEST_BRANCH: NPT-171
     NEXUS_APP_TEMPLATE_VERSION: $CI_COMMIT_SHA
   only:
     - merge_requests
