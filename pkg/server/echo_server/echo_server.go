@@ -3,7 +3,6 @@ package echo_server
 import (
 	"api-gw/pkg/openapi"
 	"context"
-	"embed"
 	"fmt"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
@@ -15,11 +14,9 @@ import (
 	"api-gw/pkg/config"
 	"api-gw/pkg/model"
 	"api-gw/pkg/utils"
+	openMiddleware "github.com/go-openapi/runtime/middleware"
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/common-library.git/pkg/nexus"
 )
-
-//go:embed swagger-ui
-var swaggerFS embed.FS
 
 type EchoServer struct {
 	Echo   *echo.Echo
@@ -79,12 +76,11 @@ func (s *EchoServer) RegisterRoutes() {
 	})
 
 	// Swagger-UI
-	fs, err := utils.GetHttpFS(swaggerFS, "swagger-ui")
-	if err != nil {
-		log.Warnf("Could not init swagger-ui fs: %v", err)
+	opts := openMiddleware.SwaggerUIOpts{
+		SpecURL: "/openapi.json",
+		Title:   "API Gateway Documentation",
 	}
-	swaggerHandler := http.FileServer(fs)
-	s.Echo.GET("/docs/*", echo.WrapHandler(http.StripPrefix("/docs/", swaggerHandler)))
+	s.Echo.GET("/docs", echo.WrapHandler(openMiddleware.SwaggerUI(opts, nil)))
 }
 
 func (s *EchoServer) RegisterRouter(restURI nexus.RestURIs) {
