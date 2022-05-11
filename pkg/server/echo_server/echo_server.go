@@ -3,6 +3,7 @@ package echo_server
 import (
 	"api-gw/pkg/openapi"
 	"context"
+	"embed"
 	"fmt"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
@@ -16,6 +17,9 @@ import (
 	"api-gw/pkg/utils"
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/common-library.git/pkg/nexus"
 )
+
+//go:embed swagger-ui
+var swaggerFS embed.FS
 
 type EchoServer struct {
 	Echo   *echo.Echo
@@ -73,6 +77,14 @@ func (s *EchoServer) RegisterRoutes() {
 	s.Echo.GET("/openapi.json", func(c echo.Context) error {
 		return c.JSON(http.StatusOK, openapi.Schema)
 	})
+
+	// Swagger-UI
+	fs, err := utils.GetHttpFS(swaggerFS, "swagger-ui")
+	if err != nil {
+		log.Warnf("Could not init swagger-ui fs: %v", err)
+	}
+	swaggerHandler := http.FileServer(fs)
+	s.Echo.GET("/swagger/*", echo.WrapHandler(http.StripPrefix("/swagger/", swaggerHandler)))
 }
 
 func (s *EchoServer) RegisterRouter(restURI nexus.RestURIs) {
