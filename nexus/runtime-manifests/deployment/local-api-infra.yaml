@@ -224,7 +224,7 @@ spec:
             - -c
             - |
               #!/bin/bash
-              URL="http://nexus-etcd:2379/health"
+              URL="http://nexus-apiserver:8080/version"
               max_retries=20
               counter=0
               while [[ $counter -lt $max_retries ]]; do
