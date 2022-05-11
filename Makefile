@@ -185,3 +185,8 @@ add_operator: install-nexus-kubebuilder
 NEXUS-KUBEBUILDER = $(PROJECT_DIR)/bin/nexus-kubebuilder
 install-nexus-kubebuilder:
 	test -s ${PROJECT_DIR}/bin/nexus-kubebuilder || { mkdir - ${PROJECT_DIR}/bin; cd ${PROJECT_DIR}/bin; GOBIN=${PROJECT_DIR}/bin go install gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kubebuilder.git/cmd/nexus-kubebuilder@master ; }
+
+.PHONY: deploy_kind
+deploy_kind:
+	kind load docker-image --name ${KIND_NAME} ${IMAGE_REGISTRY}:${IMAGE_TAG}
+	kubectl -n ${NAMESPACE} set image deployment/${APP_NAME} ${APP_NAME}=${IMAGE_REGISTRY}:${IMAGE_TAG}

@@ -43,7 +43,7 @@ func constructMapURIToCRDType(eventType model.EventType, crdType string, apiURIs
 	}
 }
 
-func constructMapCRDTypeToNode(eventType model.EventType, crdType, name string, parentHierarchy []string) {
+func constructMapCRDTypeToNode(eventType model.EventType, crdType, name string, parentHierarchy []string, children map[string]model.NodeHelperChild) {
 	globalCRDTypeToNodeMutex.Lock()
 	defer globalCRDTypeToNodeMutex.Unlock()
 
@@ -54,6 +54,7 @@ func constructMapCRDTypeToNode(eventType model.EventType, crdType, name string, 
 	GlobalCRDTypeToNodes[crdType] = model.NodeInfo{
 		Name:            name,
 		ParentHierarchy: parentHierarchy,
+		Children:        children,
 	}
 }
 
@@ -86,9 +87,14 @@ func (r *CustomResourceDefinitionReconciler) ProcessAnnotation(crdType string,
 		}
 	}
 
+	children := make(map[string]model.NodeHelperChild)
+	if n.Children != nil {
+		children = n.Children
+	}
+
 	// It has stored the URI with the CRD type and CRD type with the Node Info.
 	constructMapURIToCRDType(eventType, crdType, n.NexusRestAPIGen.Uris)
-	constructMapCRDTypeToNode(eventType, crdType, n.Name, n.Hierarchy)
+	constructMapCRDTypeToNode(eventType, crdType, n.Name, n.Hierarchy, children)
 
 	/*
 	 populateEndpointCache populates the cache with CRD Type to restURIs attribute ( URL and method [GET, DELETE...]).

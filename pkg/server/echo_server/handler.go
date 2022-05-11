@@ -9,7 +9,6 @@ import (
 	log "github.com/sirupsen/logrus"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/common-library.git/pkg/nexus"
@@ -91,24 +90,6 @@ func getHandler(c echo.Context) error {
 	return nc.JSON(http.StatusOK, output)
 }
 
-func createObject(gvr schema.GroupVersionResource, kind, hashedName string, labels map[string]string, body map[string]interface{}) error {
-	obj := &unstructured.Unstructured{
-		Object: map[string]interface{}{
-			"apiVersion": gvr.GroupVersion().String(),
-			"kind":       kind,
-			"metadata": map[string]interface{}{
-				"name":   hashedName,
-				"labels": labels,
-			},
-			"spec": body,
-		},
-	}
-
-	// Create resource
-	_, err := client.Client.Resource(gvr).Create(context.TODO(), obj, metav1.CreateOptions{})
-	return err
-}
-
 // putHandler is used to process PUT requests
 func putHandler(c echo.Context) error {
 	nc := c.(*NexusContext)
@@ -160,8 +141,16 @@ func putHandler(c echo.Context) error {
 	if err != nil {
 		if errors.IsNotFound(err) {
 			// Build object
-			err = createObject(gvr,
+			err = client.CreateObject(gvr,
 				crdNameParts[0], hashedName, labels, body)
+			if err != nil {
+				return handleClientError(nc, err)
+			}
+
+			// Update parent
+			parentCrdName := crd.ParentHierarchy[len(crd.ParentHierarchy)-1]
+			parentCrd := controllers.GlobalCRDTypeToNodes[parentCrdName]
+			err = client.UpdateParentGvk(parentCrdName, parentCrd, labels, crdType, name)
 			if err == nil {
 				return c.JSON(http.StatusOK, DefaultResponse{Message: name})
 			}

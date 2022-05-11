@@ -30,6 +30,7 @@ type NodeHelperChild struct {
 type NodeInfo struct {
 	Name            string
 	ParentHierarchy []string
+	Children        map[string]NodeHelperChild
 }
 
 func ConstructEchoPathParamURL(uri string) string {
