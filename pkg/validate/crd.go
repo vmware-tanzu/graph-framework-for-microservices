@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	log "github.com/sirupsen/logrus"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/common-library.git/pkg/nexus"
 	admissionv1 "k8s.io/api/admission/v1"
 	v1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -133,11 +134,25 @@ func Crd(client dynamic.Interface, r admissionv1.AdmissionReview) (*admissionv1.
 			Version:  "v1",
 			Resource: parts[0],
 		}
+		parentParents := CrdParentsMap[parent]
 
+		isNameHashed := false
+		if val, ok := labels["nexus/is_name_hashed"]; ok {
+			if val == "true" {
+				isNameHashed = true
+			}
+		}
+
+		var name string
 		if label, ok := labels[parent]; ok {
 			log.Infof("label %s found, val: %s", parent, label)
-			if getCrdObject(client, gvr, label) == nil {
-				message := fmt.Sprintf("required parent %s with name %s not found", parent, label)
+			if isNameHashed {
+				name = nexus.GetHashedName(parent, parentParents, labels, label)
+			} else {
+				name = label
+			}
+			if getCrdObject(client, gvr, name) == nil {
+				message := fmt.Sprintf("required parent %s with name %s not found", parent, name)
 				log.Warn(message)
 
 				admRes.Response.Allowed = false
@@ -145,8 +160,14 @@ func Crd(client dynamic.Interface, r admissionv1.AdmissionReview) (*admissionv1.
 				return admRes, nil
 			}
 		} else {
+			if isNameHashed {
+				name = nexus.GetHashedName(parent, parentParents, labels, "default")
+			} else {
+				name = "default"
+			}
+
 			log.Warnf("label %s not found", parent)
-			if getCrdObject(client, gvr, "default") == nil {
+			if getCrdObject(client, gvr, name) == nil {
 				message := fmt.Sprintf("required parent %s with name default not found", parent)
 				log.Warn(message)
 
