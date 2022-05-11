@@ -22,12 +22,20 @@ spec:
             - -c
             - |
               #!/bin/bash
+              set -x
               URL="http://nexus-proxy-container/api/v1/namespaces"
-              curl -k --retry 30 --retry-delay 20 --connect-timeout 30 --max-time 30 $URL
-              if [[ $? -ne 0 ]];then
-                echo "$URL not reachable....."
-                exit 1
-              fi
+              max_retries=60
+              counter=0
+              while [[ $counter -lt $max_retries ]]; do
+                    status=$(curl -s -o /dev/null -I -w "%{http_code}" -XGET $URL)
+                    if [ $status == "200" ]; then
+                        echo "$URL is reachable"
+                        exit 0
+                    else
+                        counter=$((counter +1))
+                        sleep 5
+                    fi
+              done
       containers:
         - image: harbor-repo.vmware.com/nexus/nexus-validation:__TAG__
           imagePullPolicy: IfNotPresent
