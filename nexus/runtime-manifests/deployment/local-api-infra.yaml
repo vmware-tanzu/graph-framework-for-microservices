@@ -122,12 +122,19 @@ spec:
             - -c
             - |
               #!/bin/bash
-              URL="http://nexus-etcd:2379"
-              curl -k --retry 30 --retry-delay 20 --connect-timeout 30 --max-time 30 $URL
-              if [[ $? -ne 0 ]];then
-                echo "$URL not reachable....."
-                exit 1
-              fi
+              URL="http://nexus-etcd:2379/health"
+              max_retries=20
+              counter=0
+              while [[ $counter -lt $max_retries ]]; do
+                    status=$(curl -s -o /dev/null -I -w "%{http_code}" -XGET $URL)
+                    if [ $status == "200" ]; then
+                        echo "$URL is reachable"
+                        exit 0
+                    else
+                        counter=$((counter +1))
+                        sleep 5
+                    fi
+              done
       containers:
       - command:
         - kube-apiserver
@@ -217,12 +224,19 @@ spec:
             - -c
             - |
               #!/bin/bash
-              URL="http://nexus-etcd:2379"
-              curl -k --retry 30 --retry-delay 20 --connect-timeout 30 --max-time 30 $URL
-              if [[ $? -ne 0 ]];then
-                echo "$URL not reachable....."
-                exit 1
-              fi
+              URL="http://nexus-etcd:2379/health"
+              max_retries=20
+              counter=0
+              while [[ $counter -lt $max_retries ]]; do
+                    status=$(curl -s -o /dev/null -I -w "%{http_code}" -XGET $URL)
+                    if [ $status == "200" ]; then
+                        echo "$URL is reachable"
+                        exit 0
+                    else
+                        counter=$((counter +1))
+                        sleep 5
+                    fi
+              done
       containers:
       - command:
         - kube-controller-manager
