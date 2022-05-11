@@ -84,7 +84,7 @@ func (s *EchoServer) RegisterRoutes() {
 		log.Warnf("Could not init swagger-ui fs: %v", err)
 	}
 	swaggerHandler := http.FileServer(fs)
-	s.Echo.GET("/docs/*", echo.WrapHandler(http.StripPrefix("/swagger-ui/", swaggerHandler)))
+	s.Echo.GET("/docs/*", echo.WrapHandler(http.StripPrefix("/docs/", swaggerHandler)))
 }
 
 func (s *EchoServer) RegisterRouter(restURI nexus.RestURIs) {
