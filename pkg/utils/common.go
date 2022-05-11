@@ -2,9 +2,6 @@ package utils
 
 import (
 	"api-gw/pkg/config"
-	"embed"
-	"io/fs"
-	"net/http"
 	"os"
 )
 
@@ -23,13 +20,4 @@ func IsServerConfigValid(conf *config.Config) bool {
 		}
 	}
 	return false
-}
-
-func GetHttpFS(embedFs embed.FS, name string) (http.FileSystem, error) {
-	fsys, err := fs.Sub(embedFs, name)
-	if err != nil {
-		return nil, err
-	}
-
-	return http.FS(fsys), nil
 }
