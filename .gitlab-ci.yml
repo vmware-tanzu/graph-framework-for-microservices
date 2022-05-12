@@ -1,6 +1,9 @@
 image:
   name: harbor-repo.vmware.com/nexus/runner:latest
 
+include:
+- project: "nsx-allspark_users/nexus-sdk/integration-tests"
+  file: ".gitlab-ci-template.yml"
 
 before_script:
   - git config --global url."https://gitlab.eng.vmware.com/".insteadOf "git@gitlab.eng.vmware.com:"
@@ -28,6 +31,9 @@ before_script:
 
 build:
   stage: build
+  only:
+    - merge_requests
+    - master
   script:
    - *setup_aws
    - *create_builder
@@ -39,6 +45,9 @@ build:
 
 test:
   stage: test
+  only:
+    - merge_requests
+    - master
   script:
    - *setup_aws
    - *create_builder
@@ -53,8 +62,22 @@ build_tag:
    - *setup_aws
    - *create_builder
    - *harbor_login
-   - docker images
    - CONTAINER_ID=$CONTAINER_ID PKG_NAME=$(realpath .) make build_in_container
    - PKG_NAME=$(realpath .) make docker TAG=$CI_COMMIT_TAG
    - make publish TAG=$CI_COMMIT_TAG
    - make publish_template TAG=$CI_COMMIT_TAG
+
+integration_test:
+  stage: integration_test
+  variables:
+    NEXUS_VALIDATION_TEMPLATE_VERSION: $CI_COMMIT_SHA
+  only:
+    - merge_requests
+    - master
+  extends: .run_integration_test
+
+
+stages:
+  - build
+  - test
+  - integration_test
