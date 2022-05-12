@@ -5,6 +5,7 @@ import (
 
 	"github.com/spf13/cobra"
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/common"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/servicemesh/version"
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/utils"
 )
 
@@ -14,12 +15,23 @@ var (
 )
 
 func upgradeCli(cmd *cobra.Command, args []string) error {
-	return DoUpgradeCli(upgradeToVersion, cmd)
+	var needUpgrade bool = false
+	if upgradeToVersion == "" {
+		needUpgrade, upgradeToVersion = version.IsNexusCliUpdateAvailable(utils.IsDebug(cmd))
+	} else {
+		needUpgrade = true
+	}
+	if needUpgrade {
+		fmt.Printf("Upgrading to version: %s", upgradeToVersion)
+		return DoUpgradeCli(upgradeToVersion, cmd)
+	} else {
+		return nil
+	}
 }
 
 func DoUpgradeCli(version string, cmd *cobra.Command) error {
 	if version == "" {
-		version = "latest"
+		version = "master"
 	}
 	envList := common.GetEnvList()
 	err := utils.SystemCommand(cmd, utils.CLI_UPGRADE_FAILED, envList, "go", "install", fmt.Sprintf("%s@%s", nexusCliRepo, version))

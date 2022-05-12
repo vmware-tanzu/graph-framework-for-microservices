@@ -2,6 +2,8 @@ package version
 
 import (
 	"fmt"
+	"strings"
+
 	"github.com/coreos/go-semver/semver"
 )
 
@@ -9,6 +11,7 @@ import (
 // also returns the latest CLI version available
 func IsNexusCliUpdateAvailable(enableDebugLogs bool) (bool, string) {
 	latestNexusVersion, err := GetLatestNexusVersion()
+	latestNexusVersionStripped := strings.TrimPrefix(latestNexusVersion, "v")
 	if err != nil {
 		if enableDebugLogs {
 			fmt.Printf("Error while trying to fetch latest available nexus version: %s\n", err)
@@ -24,12 +27,12 @@ func IsNexusCliUpdateAvailable(enableDebugLogs bool) (bool, string) {
 		return false, ""
 	}
 
-	if enableDebugLogs && latestNexusVersion != currentValues.NexusCli.Version {
+	if enableDebugLogs && latestNexusVersionStripped != currentValues.NexusCli.Version {
 		fmt.Printf("Latest available Nexus CLI version: %s\n", latestNexusVersion)
 		fmt.Printf("Current Nexus CLI version: %s\n", currentValues.NexusCli.Version)
 	}
 
-	latestNexusVersionSemver, err := semver.NewVersion(latestNexusVersion)
+	latestNexusVersionSemver, err := semver.NewVersion(latestNexusVersionStripped)
 	if err != nil {
 		if enableDebugLogs {
 			fmt.Printf("Latest Nexus version is incorrectly formatted: %v\n", err)
@@ -45,5 +48,5 @@ func IsNexusCliUpdateAvailable(enableDebugLogs bool) (bool, string) {
 		return false, ""
 	}
 
-	return currentNexusVersionSemver.LessThan(*latestNexusVersionSemver), latestNexusVersionSemver.String()
+	return currentNexusVersionSemver.LessThan(*latestNexusVersionSemver), latestNexusVersion
 }
