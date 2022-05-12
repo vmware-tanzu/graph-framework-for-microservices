@@ -1,6 +1,7 @@
 package echo_server
 
 import (
+	"api-gw/pkg/model"
 	"context"
 	"net/http"
 	"strings"
@@ -13,7 +14,6 @@ import (
 
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/common-library.git/pkg/nexus"
 
-	"api-gw/controllers"
 	"api-gw/pkg/client"
 )
 
@@ -24,8 +24,8 @@ type DefaultResponse struct {
 // getHandler is used to process GET requests
 func getHandler(c echo.Context) error {
 	nc := c.(*NexusContext)
-	crdType := controllers.GlobalURIToCRDTypes[nc.NexusURI]
-	crd := controllers.GlobalCRDTypeToNodes[crdType]
+	crdType := model.GlobalURIToCRDTypes[nc.NexusURI]
+	crd := model.GlobalCRDTypeToNodes[crdType]
 
 	// List operation
 	list := true
@@ -93,8 +93,8 @@ func getHandler(c echo.Context) error {
 // putHandler is used to process PUT requests
 func putHandler(c echo.Context) error {
 	nc := c.(*NexusContext)
-	crdType := controllers.GlobalURIToCRDTypes[nc.NexusURI]
-	crd := controllers.GlobalCRDTypeToNodes[crdType]
+	crdType := model.GlobalURIToCRDTypes[nc.NexusURI]
+	crd := model.GlobalCRDTypeToNodes[crdType]
 
 	// Get name from the URI segment
 	var name string
@@ -149,7 +149,7 @@ func putHandler(c echo.Context) error {
 
 			// Update parent
 			parentCrdName := crd.ParentHierarchy[len(crd.ParentHierarchy)-1]
-			parentCrd := controllers.GlobalCRDTypeToNodes[parentCrdName]
+			parentCrd := model.GlobalCRDTypeToNodes[parentCrdName]
 			err = client.UpdateParentGvk(parentCrdName, parentCrd, labels, crdType, name)
 			if err == nil {
 				return c.JSON(http.StatusOK, DefaultResponse{Message: name})
@@ -172,8 +172,8 @@ func putHandler(c echo.Context) error {
 // deleteHandler is used to process DELETE requests
 func deleteHandler(c echo.Context) error {
 	nc := c.(*NexusContext)
-	crdType := controllers.GlobalURIToCRDTypes[nc.NexusURI]
-	crd := controllers.GlobalCRDTypeToNodes[crdType]
+	crdType := model.GlobalURIToCRDTypes[nc.NexusURI]
+	crd := model.GlobalCRDTypeToNodes[crdType]
 
 	// Get name from params
 	var name string
@@ -260,7 +260,7 @@ func parseLabels(c echo.Context, parents []string) map[string]string {
 	// Parse labels
 	labels := make(map[string]string)
 	for _, parent := range parents {
-		if c, ok := controllers.GlobalCRDTypeToNodes[parent]; ok {
+		if c, ok := model.GlobalCRDTypeToNodes[parent]; ok {
 			if v := nc.Param(c.Name); v != "" {
 				labels[parent] = v
 			} else if nc.QueryParams().Has(c.Name) {

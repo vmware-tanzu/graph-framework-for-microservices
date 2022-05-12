@@ -17,6 +17,7 @@ limitations under the License.
 package controllers
 
 import (
+	"api-gw/pkg/openapi"
 	"context"
 	"fmt"
 	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
@@ -71,6 +72,8 @@ func (r *CustomResourceDefinitionReconciler) Reconcile(ctx context.Context, req 
 	if err := r.ProcessCrdSpec(req.NamespacedName.Name, crd.Spec, eventType); err != nil {
 		fmt.Printf("Error Processing CRD spec %v", err)
 	}
+
+	openapi.Recreate()
 
 	return ctrl.Result{}, nil
 }
