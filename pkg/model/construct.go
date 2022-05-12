@@ -1,14 +1,9 @@
-package controllers
+package model
 
 import (
-	"fmt"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/common-library.git/pkg/nexus"
 	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	"sync"
-
-	"k8s.io/apimachinery/pkg/util/json"
-
-	"api-gw/pkg/model"
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/common-library.git/pkg/nexus"
 )
 
 var (
@@ -19,18 +14,18 @@ var (
 	GlobalURIToCRDTypes     = make(map[string]string)
 	globalURIToCRDTypeMutex = &sync.Mutex{}
 
-	GlobalCRDTypeToNodes     = make(map[string]model.NodeInfo)
+	GlobalCRDTypeToNodes     = make(map[string]NodeInfo)
 	globalCRDTypeToNodeMutex = &sync.Mutex{}
 
 	GlobalCRDTypeToSpec      = make(map[string]apiextensionsv1.CustomResourceDefinitionSpec)
 	globalCRDTypeToSpecMutex = &sync.Mutex{}
 )
 
-func constructMapURIToCRDType(eventType model.EventType, crdType string, apiURIs []nexus.RestURIs) {
+func ConstructMapURIToCRDType(eventType EventType, crdType string, apiURIs []nexus.RestURIs) {
 	globalURIToCRDTypeMutex.Lock()
 	defer globalURIToCRDTypeMutex.Unlock()
 
-	if eventType == model.Delete {
+	if eventType == Delete {
 		for uri, cType := range GlobalURIToCRDTypes {
 			if cType == crdType {
 				delete(GlobalURIToCRDTypes, uri)
@@ -43,83 +38,30 @@ func constructMapURIToCRDType(eventType model.EventType, crdType string, apiURIs
 	}
 }
 
-func constructMapCRDTypeToNode(eventType model.EventType, crdType, name string, parentHierarchy []string, children map[string]model.NodeHelperChild) {
+func ConstructMapCRDTypeToNode(eventType EventType, crdType, name string, parentHierarchy []string, children map[string]NodeHelperChild) {
 	globalCRDTypeToNodeMutex.Lock()
 	defer globalCRDTypeToNodeMutex.Unlock()
 
-	if eventType == model.Delete {
+	if eventType == Delete {
 		delete(GlobalCRDTypeToNodes, crdType)
 	}
 
-	GlobalCRDTypeToNodes[crdType] = model.NodeInfo{
+	GlobalCRDTypeToNodes[crdType] = NodeInfo{
 		Name:            name,
 		ParentHierarchy: parentHierarchy,
 		Children:        children,
 	}
 }
 
-func constructMapCRDTypeToSpec(eventType model.EventType, crdType string, spec apiextensionsv1.CustomResourceDefinitionSpec) {
+func ConstructMapCRDTypeToSpec(eventType EventType, crdType string, spec apiextensionsv1.CustomResourceDefinitionSpec) {
 	globalCRDTypeToSpecMutex.Lock()
 	defer globalCRDTypeToSpecMutex.Unlock()
 
-	if eventType == model.Delete {
+	if eventType == Delete {
 		delete(GlobalCRDTypeToNodes, crdType)
 	}
 
 	GlobalCRDTypeToSpec[crdType] = spec
-}
-
-func (r *CustomResourceDefinitionReconciler) ProcessAnnotation(crdType string,
-	annotations map[string]string, eventType model.EventType) error {
-	n := model.NexusAnnotation{}
-
-	if eventType != model.Delete {
-		apiInfo, ok := annotations["nexus"]
-		if !ok {
-			return nil
-		}
-
-		// unmarshall to nexus annotation struct
-		err := json.Unmarshal([]byte(apiInfo), &n)
-		if err != nil {
-			fmt.Printf("Error unmarshaling Nexus annotation %v\n", err)
-			return err
-		}
-	}
-
-	children := make(map[string]model.NodeHelperChild)
-	if n.Children != nil {
-		children = n.Children
-	}
-
-	// It has stored the URI with the CRD type and CRD type with the Node Info.
-	constructMapURIToCRDType(eventType, crdType, n.NexusRestAPIGen.Uris)
-	constructMapCRDTypeToNode(eventType, crdType, n.Name, n.Hierarchy, children)
-
-	/*
-	 populateEndpointCache populates the cache with CRD Type to restURIs attribute ( URL and method [GET, DELETE...]).
-	 if any of the attribute removed in the new event notification, that should be removed from the cache and
-	 triggers the server restart to remove the routes.
-	 If any of the attribute added newly, notify that to `GlobalRestURIChan`.
-	*/
-	removed, added := populateEndpointCache(eventType, crdType, n.NexusRestAPIGen.Uris)
-	if removed > 0 {
-		r.StopCh <- struct{}{}
-		GlobalRestURIChan <- getGlobalEndpointCache()
-		return nil
-	}
-
-	if len(added) > 0 {
-		GlobalRestURIChan <- added
-	}
-	return nil
-}
-
-func (r *CustomResourceDefinitionReconciler) ProcessCrdSpec(crdType string,
-	spec apiextensionsv1.CustomResourceDefinitionSpec, eventType model.EventType) error {
-	// It has stored the CRD type with the CRD spec
-	constructMapCRDTypeToSpec(eventType, crdType, spec)
-	return nil
 }
 
 // revisit for simplification
@@ -192,14 +134,14 @@ func findDifference(existingEndpoints, newURIs []nexus.RestURIs) []nexus.RestURI
 	return removedOrAddedURLs
 }
 
-func populateEndpointCache(evenType model.EventType, crdType string, restURIs []nexus.RestURIs) (int, []nexus.RestURIs) {
+func PopulateEndpointCache(evenType EventType, crdType string, restURIs []nexus.RestURIs) (int, []nexus.RestURIs) {
 	globalEndpointCacheMutex.Lock()
 	defer globalEndpointCacheMutex.Unlock()
 
 	removed := []nexus.RestURIs{}
 	cachedEndpoints, ok := GlobalEndpointCache[crdType]
 	if ok {
-		if evenType == model.Delete {
+		if evenType == Delete {
 			delete(GlobalEndpointCache, crdType)
 			return len(cachedEndpoints), nil
 		}
@@ -214,7 +156,7 @@ func populateEndpointCache(evenType model.EventType, crdType string, restURIs []
 	return len(removed), added
 }
 
-func getGlobalEndpointCache() (epCacheCopy []nexus.RestURIs) {
+func GetGlobalEndpointCache() (epCacheCopy []nexus.RestURIs) {
 	globalEndpointCacheMutex.Lock()
 	defer globalEndpointCacheMutex.Unlock()
 

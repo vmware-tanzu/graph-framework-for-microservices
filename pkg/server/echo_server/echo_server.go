@@ -10,7 +10,6 @@ import (
 
 	log "github.com/sirupsen/logrus"
 
-	"api-gw/controllers"
 	"api-gw/pkg/config"
 	"api-gw/pkg/model"
 	"api-gw/pkg/utils"
@@ -25,7 +24,6 @@ type EchoServer struct {
 
 func InitEcho(stopCh chan struct{}, conf *config.Config) {
 	fmt.Println("Init Echo")
-	openapi.New()
 	e := NewEchoServer(conf)
 	e.RegisterRoutes()
 	e.Start(stopCh)
@@ -130,11 +128,10 @@ func (s *EchoServer) RoutesNotification(stopCh chan struct{}) error {
 		select {
 		case <-stopCh:
 			return fmt.Errorf("stop signal received")
-		case restURIs := <-controllers.GlobalRestURIChan:
+		case restURIs := <-model.GlobalRestURIChan:
 			log.Println("Route notification received...")
 			for _, v := range restURIs {
 				s.RegisterRouter(v)
-				openapi.AddPath(v)
 			}
 		}
 	}

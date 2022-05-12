@@ -1,7 +1,7 @@
 package openapi
 
 import (
-	"api-gw/controllers"
+	"api-gw/pkg/model"
 	"crypto/sha1"
 	"encoding/hex"
 	"fmt"
@@ -60,8 +60,8 @@ func New() {
 }
 
 func AddPath(uri nexus.RestURIs) {
-	crdType := controllers.GlobalURIToCRDTypes[uri.Uri]
-	crd := controllers.GlobalCRDTypeToNodes[crdType]
+	crdType := model.GlobalURIToCRDTypes[uri.Uri]
+	crd := model.GlobalCRDTypeToNodes[crdType]
 	parseSpec(crdType)
 
 	h := sha1.New()
@@ -133,8 +133,8 @@ func AddPath(uri nexus.RestURIs) {
 }
 
 func parseSpec(crdType string) {
-	crd := controllers.GlobalCRDTypeToNodes[crdType]
-	crdSpec := controllers.GlobalCRDTypeToSpec[crdType]
+	crd := model.GlobalCRDTypeToNodes[crdType]
+	crdSpec := model.GlobalCRDTypeToSpec[crdType]
 
 	openapiSchema := crdSpec.Versions[0].Schema.OpenAPIV3Schema
 	specProps := openapiSchema.Properties["spec"].Properties
@@ -230,7 +230,7 @@ func parseUriParams(uri string, hierarchy []string) (parameters []*openapi3.Para
 	}
 
 	for _, parent := range hierarchy {
-		crd := controllers.GlobalCRDTypeToNodes[parent]
+		crd := model.GlobalCRDTypeToNodes[parent]
 		if !paramExist(crd.Name, params) {
 			parameters = append(parameters, &openapi3.ParameterRef{
 				Value: openapi3.NewQueryParameter(crd.Name).
@@ -250,4 +250,15 @@ func paramExist(param string, params [][]string) bool {
 		}
 	}
 	return false
+}
+
+func Recreate() {
+	log.Debug("Recreating openapi spec")
+	New()
+
+	for _, v := range model.GlobalEndpointCache {
+		for _, restUri := range v {
+			AddPath(restUri)
+		}
+	}
 }
