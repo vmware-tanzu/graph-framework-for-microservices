@@ -68,22 +68,26 @@ func GetLatestNexusVersion() (string, error) {
 	if len(strOutput) == 0 {
 		return "", fmt.Errorf("No tags found")
 	}
-	line := strOutput[0] // because of the sort order (descending), the first one would be the latest
+	for _, line := range strOutput {
+		lineParts := strings.Fields(line)
+		if len(lineParts) != 2 {
+			continue
+		}
+		// we're interested in just the second part of 'line'
+		tagString := lineParts[len(lineParts)-1]
+		tagsRegex := regexp.MustCompile(`refs/tags/(v?\d+.\d+.\d+$)`)
+		versionString := tagsRegex.FindStringSubmatch(tagString)
+		if len(versionString) != 2 {
+			continue
+		} else {
+			return versionString[1], nil
+		}
+	}
+
+	// because of the sort order (descending), the first one would be the latest
 	// an example of what 'line' looks like
 	// e2e3bf7de9fcda76d0d1f647fcb92a9d9451b11d	refs/tags/v7.3.7
-	lineParts := strings.Fields(line)
-	if len(lineParts) != 2 {
-		return "", fmt.Errorf("output format different from expected")
-	}
-	// we're interested in just the second part of 'line'
-	tagString := lineParts[len(lineParts)-1]
-	tagsRegex := regexp.MustCompile(`refs/tags/([a-z0-9][^\s]*)`)
-	versionString := tagsRegex.FindStringSubmatch(tagString)
-	if len(versionString) != 2 {
-		return "", fmt.Errorf("version string output format different from expected")
-	} else {
-		return versionString[1], nil
-	}
+	return "", fmt.Errorf("could not get latest version.")
 }
 
 func format(versionString string) string {
