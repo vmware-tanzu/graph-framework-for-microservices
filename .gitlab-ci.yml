@@ -1,6 +1,10 @@
 image:
   name: harbor-repo.vmware.com/nexus/runner:latest
 
+include:
+- project: "nsx-allspark_users/nexus-sdk/integration-tests"
+  file: ".gitlab-ci-template.yml"
+
 variables:
   REPOSITORY: nsx-allspark_users/nexus-sdk/cli
 
@@ -30,3 +34,17 @@ build_tag:
   script:
     - make build
     - make publish
+
+integration_test:
+  stage: integration_test
+  variables:
+    NEXUS_DATAMODEL_TEMPLATE_VERSION: $CI_COMMIT_SHA
+    NEXUS_RUNTIME_TEMPLATE_VERSION: $CI_COMMIT_SHA
+  only:
+    - merge_requests
+    - master
+  extends: .run_integration_test
+
+stages:
+  - build
+  - integration_test
