@@ -148,9 +148,13 @@ func putHandler(c echo.Context) error {
 			}
 
 			// Update parent
-			parentCrdName := crd.ParentHierarchy[len(crd.ParentHierarchy)-1]
-			parentCrd := model.GlobalCRDTypeToNodes[parentCrdName]
-			err = client.UpdateParentGvk(parentCrdName, parentCrd, labels, crdType, name)
+			var err error
+			if len(crd.ParentHierarchy) > 0 {
+				parentCrdName := crd.ParentHierarchy[len(crd.ParentHierarchy)-1]
+				parentCrd := model.GlobalCRDTypeToNodes[parentCrdName]
+				err = client.UpdateParentGvk(parentCrdName, parentCrd, labels, crdType, name)
+			}
+
 			if err == nil {
 				return c.JSON(http.StatusOK, DefaultResponse{Message: name})
 			}
