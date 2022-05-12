@@ -29,6 +29,10 @@ func New() {
 		},
 		Servers: openapi3.Servers{
 			&openapi3.Server{
+				Description: "API Gateway",
+				URL:         "/",
+			},
+			&openapi3.Server{
 				Description: "Local",
 				URL:         "http://localhost:5000",
 			},

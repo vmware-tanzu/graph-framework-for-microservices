@@ -14,6 +14,7 @@ import (
 	"api-gw/pkg/config"
 	"api-gw/pkg/model"
 	"api-gw/pkg/utils"
+	openMiddleware "github.com/go-openapi/runtime/middleware"
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/common-library.git/pkg/nexus"
 )
 
@@ -73,6 +74,13 @@ func (s *EchoServer) RegisterRoutes() {
 	s.Echo.GET("/openapi.json", func(c echo.Context) error {
 		return c.JSON(http.StatusOK, openapi.Schema)
 	})
+
+	// Swagger-UI
+	opts := openMiddleware.SwaggerUIOpts{
+		SpecURL: "/openapi.json",
+		Title:   "API Gateway Documentation",
+	}
+	s.Echo.GET("/docs", echo.WrapHandler(openMiddleware.SwaggerUI(opts, nil)))
 }
 
 func (s *EchoServer) RegisterRouter(restURI nexus.RestURIs) {
@@ -142,6 +150,7 @@ func (s *EchoServer) StopServer() {
 
 func NewEchoServer(conf *config.Config) *EchoServer {
 	e := echo.New()
+	e.Pre(middleware.RemoveTrailingSlash())
 	e.Use(middleware.CORS())
 
 	return &EchoServer{
