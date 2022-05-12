@@ -5,6 +5,6 @@ nexusCompiler:
 nexusAppTemplates:
   version: v0.0.4
 nexusDatamodelTemplates:
-  version: v0.0.7
+  version: v0.0.8
 nexusValidation:
-  version: v0.0.2
+  version: v0.0.4
