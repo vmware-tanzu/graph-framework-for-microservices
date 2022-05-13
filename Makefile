@@ -3,7 +3,7 @@ DEBUG ?= FALSE
 GO_PROJECT_NAME ?= validation.git
 BUCKET_NAME ?= nexus-template-downloads
 
-ECR_DOCKER_REGISTRY ?= 284299419820.dkr.ecr.us-west-2.amazonaws.com
+ECR_DOCKER_REGISTRY ?= 284299419820.dkr.ecr.us-west-2.amazonaws.com/nexus
 DOCKER_REGISTRY ?= harbor-repo.vmware.com/nexus
 IMAGE_NAME ?= nexus-validation
 TAG ?= $(shell git rev-parse --verify HEAD)
@@ -96,6 +96,11 @@ publish:
 	docker tag ${IMAGE_NAME}:${TAG} ${DOCKER_REGISTRY}/${IMAGE_NAME}:${TAG}
 	docker push ${DOCKER_REGISTRY}/${IMAGE_NAME}:${TAG};
 
+.PHONY: publish.ecr
+publish.ecr:
+	docker tag ${IMAGE_NAME}:${TAG} ${ECR_DOCKER_REGISTRY}/${IMAGE_NAME}:${TAG}
+	docker push ${ECR_DOCKER_REGISTRY}/${IMAGE_NAME}:${TAG};
+
 .PHONY: download_builder_image
 download_builder_image:
 	docker pull ${ECR_DOCKER_REGISTRY}/${BUILDER_NAME}:${BUILDER_TAG}
@@ -142,8 +147,7 @@ kind_logs:
 	kubectl logs -l app=nexus-validation -f
 
 build_template:
-	sed "s|__TAG__|${TAG}|g" manifests/webhook.deploy.yaml.tmpl > manifests/webhook.deploy.yaml
-	tar -czvf validation-manifests.tar manifests/*.yaml
+	tar -czvf validation-manifests.tar manifests/*
 
 publish_template: build_template
 	gsutil cp validation-manifests.tar gs://${BUCKET_NAME}/${TAG}/
