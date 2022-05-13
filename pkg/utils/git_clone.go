@@ -4,12 +4,15 @@ import (
 	"archive/tar"
 	"bytes"
 	"compress/gzip"
+	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
+	"log"
 	net_http "net/http"
 	"os"
 	"os/exec"
+	"path"
 	"path/filepath"
 	"strings"
 	"text/template"
@@ -142,71 +145,74 @@ func DownloadFile(url string, filename string) error {
 	}
 	return nil
 }
-func Untar(dst string, r io.Reader) error {
-	gzr, err := gzip.NewReader(r)
+func Untar(targetdir string, reader io.ReadCloser) error {
+	gzReader, err := gzip.NewReader(reader)
 	if err != nil {
 		return err
 	}
-	defer gzr.Close()
+	defer gzReader.Close()
 
-	tr := tar.NewReader(gzr)
-
+	tarReader := tar.NewReader(gzReader)
 	for {
-		header, err := tr.Next()
-
-		switch {
-
-		// if no more files are found return
-		case err == io.EOF:
-			return nil
-
-		// return any other error
-		case err != nil:
+		header, err := tarReader.Next()
+		if err == io.EOF {
+			break
+		} else if err != nil {
 			return err
-
-		// if the header is nil, just skip it (not sure how this happens)
-		case header == nil:
-			continue
 		}
 
-		// the target location where the dir/file should be created
-		target := filepath.Join(dst, header.Name)
+		target := path.Join(targetdir, header.Name)
+		directory, _ := path.Split(target)
+		if directory != "" {
+			_, err = os.Stat(directory)
+			if err != nil {
+				if !errors.Is(err, os.ErrNotExist) {
+					return err
+				} else {
+					err = os.MkdirAll(directory, os.ModePerm)
+					if err != nil {
+						return err
+					}
+				}
+			}
+		}
 
-		// the following switch could also be done using fi.Mode(), not sure if there
-		// a benefit of using one vs. the other.
-		// fi := header.FileInfo()
-
-		// check the file type
 		switch header.Typeflag {
-
-		// if its a dir and it doesn't exist create it
 		case tar.TypeDir:
-			if _, err := os.Stat(target); err != nil {
-				if err := os.MkdirAll(target, 0755); err != nil {
-					return err
-				}
+			err = os.MkdirAll(target, os.FileMode(header.Mode))
+			if err != nil {
+				return err
 			}
 
-		// if it's a file create it
+			setAttrs(target, header)
+			break
+
 		case tar.TypeReg:
-			if _, err = os.Stat(target); os.IsNotExist(err) {
-				f, err := os.OpenFile(target, os.O_CREATE|os.O_RDWR, os.FileMode(header.Mode))
-
-				if err != nil {
-					return err
-				}
-
-				// copy over contents
-				if _, err := io.Copy(f, tr); err != nil {
-					return err
-				}
-
-				// manually close here after each file operation; defering would cause each file close
-				// to wait until all operations have completed.
-				f.Close()
+			w, err := os.Create(target)
+			if err != nil {
+				return err
 			}
+			_, err = io.Copy(w, tarReader)
+			if err != nil {
+				return err
+			}
+			w.Close()
+
+			setAttrs(target, header)
+			break
+
+		default:
+			log.Printf("unsupported type: %v", header.Typeflag)
+			break
 		}
 	}
+
+	return nil
+}
+
+func setAttrs(target string, header *tar.Header) {
+	os.Chmod(target, os.FileMode(header.Mode))
+	os.Chtimes(target, header.AccessTime, header.ModTime)
 }
 
 func CreateNexusDirectory(NEXUS_DIR string, NEXUS_TEMPLATE_URL string) error {

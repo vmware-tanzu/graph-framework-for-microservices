@@ -8,11 +8,15 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"reflect"
 	"regexp"
 	"strings"
 
 	"github.com/hashicorp/go-version"
 	"github.com/spf13/cobra"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/common"
+	nexusCommon "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/common"
+	nexusVersion "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/servicemesh/version"
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/utils"
 )
 
@@ -23,6 +27,8 @@ const (
 )
 
 var All bool
+var push bool
+var registry string
 
 type Prerequiste int
 
@@ -215,6 +221,47 @@ func PreReqListOnDemand(reqs []Prerequiste) {
 	os.Exit(0)
 }
 
+func PreReqImages(cmd *cobra.Command, args []string) error {
+	var values nexusVersion.NexusValues
+	if err := nexusVersion.GetNexusValues(&values); err != nil {
+		return utils.GetCustomError(utils.RUNTIME_PREREQUISITE_IMAGE_PREP_FAILED,
+			fmt.Errorf("could not pull runtime deps images %s", err)).Print().ExitIfFatalOrReturn()
+	}
+	for _, manifest := range nexusCommon.RuntimeManifests {
+		if manifest.Templatized {
+			Image := fmt.Sprintf("%s/%s", common.HarborRepo, manifest.ImageName)
+			versionTo := reflect.ValueOf(values).FieldByName(manifest.VersionStrName).Field(0).String()
+			Image = fmt.Sprintf("%s:%s", Image, versionTo)
+			fmt.Printf("Pulling image: %s\n", Image)
+			err := utils.SystemCommand(cmd, utils.RUNTIME_PREREQUISITE_IMAGE_PREP_FAILED, []string{}, "docker", "pull", Image)
+			if err != nil {
+				fmt.Printf("could not pull image: %s\n", Image)
+				return err
+			}
+			if cmd.Flags().Lookup("push").Changed {
+				if registry == "" {
+					fmt.Println("provide registry with --registry/-r to push the images to.")
+				} else {
+					newImage := fmt.Sprintf("%s/%s:%s", registry, manifest.ImageName, versionTo)
+					fmt.Printf("Pushing Image: %s\n", newImage)
+					err := utils.SystemCommand(cmd, utils.RUNTIME_PREREQUISITE_IMAGE_PREP_FAILED, []string{}, "docker", "tag", Image, newImage)
+					if err != nil {
+						fmt.Printf("could not tag image: %s\n", newImage)
+						return err
+					}
+					err = utils.SystemCommand(cmd, utils.RUNTIME_PREREQUISITE_IMAGE_PREP_FAILED, []string{}, "docker", "push", newImage)
+					if err != nil {
+						fmt.Printf("could not push image: %s\n", newImage)
+						return err
+					}
+				}
+			}
+		}
+	}
+	return nil
+
+}
+
 var PreReqVerifyCmd = &cobra.Command{
 	Use:   "verify",
 	Short: "verify all pre-requisites",
@@ -226,6 +273,11 @@ var PreReqListCmd = &cobra.Command{
 	Short: "list all pre-requisites",
 	RunE:  PreReqList,
 }
+var PreReqImageCmd = &cobra.Command{
+	Use:   "images",
+	Short: "pull all images needed for runtime",
+	RunE:  PreReqImages,
+}
 
 var PreReqCmd = &cobra.Command{
 	Use:   "prereq",
@@ -235,5 +287,8 @@ var PreReqCmd = &cobra.Command{
 func init() {
 	PreReqCmd.AddCommand(PreReqListCmd)
 	PreReqCmd.AddCommand(PreReqVerifyCmd)
+	PreReqCmd.AddCommand(PreReqImageCmd)
 	PreReqCmd.PersistentFlags().BoolVarP(&All, "all", "", false, "For validation check")
+	PreReqImageCmd.PersistentFlags().BoolVarP(&push, "push", "p", false, "For publishing images")
+	PreReqImageCmd.PersistentFlags().StringVarP(&registry, "registry", "r", "", "registry to push images")
 }

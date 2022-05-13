@@ -5,24 +5,23 @@ import (
 	"os"
 
 	"github.com/spf13/cobra"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/common"
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/servicemesh/prereq"
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/utils"
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus/golang/pkg/logging"
 )
 
 func Uninstall(cmd *cobra.Command, args []string) error {
-	runtimeDir, validationDir, err := DownloadRuntimeFiles(cmd)
+	directories, err := DownloadRuntimeFiles(cmd)
 	if err != nil {
 		return err
 	}
 	var files []string
-	files, err = GetFiles(files, runtimeDir)
-	if err != nil {
-		return err
-	}
-	files, err = GetFiles(files, validationDir)
-	if err != nil {
-		return err
+	for _, dir := range directories {
+		files, err = GetFiles(files, dir)
+		if err != nil {
+			return err
+		}
 	}
 	for _, file := range files {
 		fmt.Printf("Deleting objects from file: %s\n", file)
@@ -30,11 +29,12 @@ func Uninstall(cmd *cobra.Command, args []string) error {
 	}
 	utils.SystemCommand(cmd, utils.RUNTIME_UNINSTALL_FAILED, []string{}, "kubectl", "delete", "pvc", "-n", Namespace, "-lapp=nexus-etcd")
 	fmt.Printf("\u2713 Runtime %s uninstallation successful\n", Namespace)
-	os.Remove(runtimeFilename)
-	os.Remove(validationFilename)
-	os.RemoveAll(RuntimeManifestsDir)
-	os.RemoveAll(ValidationManifestDir)
+	for _, manifest := range common.RuntimeManifests {
+		os.RemoveAll(manifest.Directory)
+		os.RemoveAll(manifest.FileName)
+	}
 	return nil
+
 }
 
 var UninstallCmd = &cobra.Command{
