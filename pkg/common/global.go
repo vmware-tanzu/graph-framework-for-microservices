@@ -33,12 +33,15 @@ var GIT_COMMIT string
 
 const NEXUS_DIR = "nexus"
 
+var HarborRepo = "harbor-repo.vmware.com/nexus"
+
 const (
-	HELLOWORLD_URL           = "https://storage.googleapis.com/nexus-template-downloads/%s/helloworld-example.tar"
-	DATAMODEL_TEMPLATE_URL   = "https://storage.googleapis.com/nexus-template-downloads/%s/datamodel-templatedir.tar"
-	NEXUS_TEMPLATE_URL       = "https://storage.googleapis.com/nexus-template-downloads/%s/nexus-template.tar"
-	RUNTIME_MANIFESTS_URL    = "https://storage.googleapis.com/nexus-template-downloads/%s/runtime-manifests.tar"
-	VALIDATION_MANIFESTS_URL = "https://storage.googleapis.com/nexus-template-downloads/%s/validation-manifests.tar"
+	HELLOWORLD_URL            = "https://storage.googleapis.com/nexus-template-downloads/%s/helloworld-example.tar"
+	DATAMODEL_TEMPLATE_URL    = "https://storage.googleapis.com/nexus-template-downloads/%s/datamodel-templatedir.tar"
+	NEXUS_TEMPLATE_URL        = "https://storage.googleapis.com/nexus-template-downloads/%s/nexus-template.tar"
+	RUNTIME_MANIFESTS_URL     = "https://storage.googleapis.com/nexus-template-downloads/%s/runtime-manifests.tar"
+	VALIDATION_MANIFESTS_URL  = "https://storage.googleapis.com/nexus-template-downloads/%s/validation-manifests.tar"
+	API_GATEWAY_MANIFESTS_URL = "https://storage.googleapis.com/nexus-template-downloads/%s/api-gw-manifests.tar"
 )
 
 const TEMPLATE_URL = "https://storage.googleapis.com/nexus-template-downloads/%s/app-template.tar"
@@ -71,4 +74,52 @@ func GetEnvList() []string {
 
 func getGoPrivate() string {
 	return "*.eng.vmware.com," + os.Getenv("GOPRIVATE")
+}
+
+type ImageTemplate struct {
+	Image             string
+	Tag               string
+	IsImagePullSecret bool
+	ImagePullSecret   string
+}
+
+type Manifests struct {
+	URL            string
+	Directory      string
+	VersionStrName string
+	FileName       string
+	Templatized    bool
+	VersionEnv     string
+	ImageName      string
+	Image          ImageTemplate
+}
+
+var RuntimeManifests map[string]Manifests = map[string]Manifests{
+	"runtime": {
+		URL:            RUNTIME_MANIFESTS_URL,
+		Directory:      "nexus-manifests-runtime",
+		VersionEnv:     "NEXUS_RUNTIME_TEMPLATE_VERSION",
+		VersionStrName: "NexusDatamodelTemplates",
+		FileName:       "runtime-manifests.tar",
+		Templatized:    false,
+		Image:          ImageTemplate{},
+	},
+	"validation": {
+		URL:            VALIDATION_MANIFESTS_URL,
+		Directory:      "nexus-manifests-validation",
+		VersionEnv:     "NEXUS_VALIDATION_TEMPLATE_VERSION",
+		VersionStrName: "NexusValidationTemplates",
+		FileName:       "validation-manifets.tar",
+		ImageName:      "nexus-validation",
+		Templatized:    true,
+	},
+	"api-gateway": {
+		URL:            API_GATEWAY_MANIFESTS_URL,
+		Directory:      "nexus-manifests-api-gateway",
+		VersionEnv:     "NEXUS_API_GATEWAY_TEMPLATE_VERSION",
+		VersionStrName: "NexusApiGatewayTemplates",
+		FileName:       "api-gw-manifests.tar",
+		ImageName:      "api-gateway",
+		Templatized:    true,
+	},
 }

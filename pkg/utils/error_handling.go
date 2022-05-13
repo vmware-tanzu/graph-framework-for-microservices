@@ -17,26 +17,27 @@ const (
 	// 243-255
 	// DO NOT skip the sequence unless there is a valid reason, which
 	// should be documented along with the const var.
-	UNHANDLED_ERROR                      ClientErrorCode = 8
-	INTERNAL_ERROR                       ClientErrorCode = 9
-	DATAMODEL_DIRECTORY_NOT_FOUND        ClientErrorCode = 10
-	DATAMODEL_BUILD_FAILED               ClientErrorCode = 11
-	DOCKER_NOT_RUNNING                   ClientErrorCode = 12
-	RUNTIME_INSTALL_FAILED               ClientErrorCode = 13
-	RUNTIME_UNINSTALL_FAILED             ClientErrorCode = 14
-	DATAMODEL_INSTALL_FAILED             ClientErrorCode = 15
-	APPLICATION_DEPLOY_FAILED            ClientErrorCode = 16
-	DATAMODEL_INIT_FAILED                ClientErrorCode = 17
-	APPLICATION_PACKAGE_FAILED           ClientErrorCode = 18
-	APPLICATION_PUBLISH_FAILED           ClientErrorCode = 19
-	APPLICATION_RUN_FAILED               ClientErrorCode = 20
-	APPLICATION_OPERATOR_CREATE_FAILED   ClientErrorCode = 21
-	CLI_UPGRADE_FAILED                   ClientErrorCode = 22
-	CHECK_CURRENT_DIRECTORY_IS_DATAMODEL ClientErrorCode = 23
-	APPLICATION_INIT_PREREQ_FAILED       ClientErrorCode = 24
-	APPLICATION_BUILD_FAILED             ClientErrorCode = 25
-	CONFIG_SET_FAILED                    ClientErrorCode = 26
-	DATAMODEL_DIRECTORY_MISMATCH         ClientErrorCode = 27
+	UNHANDLED_ERROR                        ClientErrorCode = 8
+	INTERNAL_ERROR                         ClientErrorCode = 9
+	DATAMODEL_DIRECTORY_NOT_FOUND          ClientErrorCode = 10
+	DATAMODEL_BUILD_FAILED                 ClientErrorCode = 11
+	DOCKER_NOT_RUNNING                     ClientErrorCode = 12
+	RUNTIME_INSTALL_FAILED                 ClientErrorCode = 13
+	RUNTIME_UNINSTALL_FAILED               ClientErrorCode = 14
+	DATAMODEL_INSTALL_FAILED               ClientErrorCode = 15
+	APPLICATION_DEPLOY_FAILED              ClientErrorCode = 16
+	DATAMODEL_INIT_FAILED                  ClientErrorCode = 17
+	APPLICATION_PACKAGE_FAILED             ClientErrorCode = 18
+	APPLICATION_PUBLISH_FAILED             ClientErrorCode = 19
+	APPLICATION_RUN_FAILED                 ClientErrorCode = 20
+	APPLICATION_OPERATOR_CREATE_FAILED     ClientErrorCode = 21
+	CLI_UPGRADE_FAILED                     ClientErrorCode = 22
+	CHECK_CURRENT_DIRECTORY_IS_DATAMODEL   ClientErrorCode = 23
+	APPLICATION_INIT_PREREQ_FAILED         ClientErrorCode = 24
+	APPLICATION_BUILD_FAILED               ClientErrorCode = 25
+	CONFIG_SET_FAILED                      ClientErrorCode = 26
+	DATAMODEL_DIRECTORY_MISMATCH           ClientErrorCode = 27
+	RUNTIME_PREREQUISITE_IMAGE_PREP_FAILED ClientErrorCode = 28
 )
 
 // ClientError defines error and information around it that are specific
@@ -223,6 +224,14 @@ var wellKnownErrors = map[ClientErrorCode]ClientError{
 		Description: "running from app directory without the datamodel name",
 		WhatNext: []string{
 			"run with --name datamodel to run build for particular datamodel",
+		},
+		fatal: true,
+	},
+	RUNTIME_PREREQUISITE_IMAGE_PREP_FAILED: {
+		Description: "pulling image from harbor-repo",
+		WhatNext: []string{
+			"run with --debug option",
+			"please run from vmware network",
 		},
 		fatal: true,
 	},
