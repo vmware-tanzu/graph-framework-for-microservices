@@ -1,5 +1,10 @@
 image:
-  name: runner.servicemesh.biz:5000/allspark/runner:latest
+  name: harbor-repo.vmware.com/nexus/runner:latest
+
+include:
+- project: "nsx-allspark_users/nexus-sdk/integration-tests"
+  ref: master
+  file: ".gitlab-ci-template.yml"
 
 variables:
   REPOSITORY: nsx-allspark_users/nexus-sdk/cli
@@ -9,6 +14,7 @@ before_script:
   - git config --global gc.auto 0
   - git config --global credential.helper store
   - echo -e  "https://gitlab-ci-token:${CICD_TOKEN}@gitlab.eng.vmware.com/" >> ~/.git-credentials
+  - export GOPRIVATE=gitlab.eng.vmware.com
 
 .setup_aws: &setup_aws
   - apt clean && apt update -y && apt install unzip -y
@@ -21,8 +27,41 @@ before_script:
 
 build:
   stage: build
-  image: harbor-repo.vmware.com/nexus/golang:1.17
+  only:
+    - merge_requests
+    - master
   script:
-    - tdnf install --refresh make awk -y
-    - export GOPRIVATE=gitlab.eng.vmware.com
     - make build
+
+test:
+  stage: test
+  only:
+    - merge_requests
+    - master
+  script:
+    - docker ps
+    - make build
+    - make test
+
+integration_test:
+  stage: integration_test
+  only:
+    - merge_requests
+    - master
+  variables:
+    CLI_BRANCH: $CI_COMMIT_SHA
+  extends: .run_integration_test
+        
+#tag_creation:
+#  stage: tag_create
+#  only:
+#    - master
+#  script:
+#    - ./scripts.sh create_tag_if_not_exists
+
+stages:
+  - build
+  - test
+  - tag_create
+  - tag_update_periodic
+  - integration_test
