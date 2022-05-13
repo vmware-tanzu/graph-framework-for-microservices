@@ -101,13 +101,17 @@ test_in_container: ${BUILDER_NAME}\:${BUILDER_TAG}.image.exists
 generate_code:
 	rm -rf _generated
 	cp -R generated_base_structure _generated
+	cp -r ${DATAMODEL_PATH}/go.mod _generated/go.mod 
+	sed -i "1s|.*|module gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/_generated|" _generated/go.mod
 	CRD_MODULE_PATH=${CRD_MODULE_PATH} go run cmd/nexus-sdk/main.go -config-file ${CONFIG_FILE} -dsl ${DATAMODEL_PATH} -crd-output _generated
-	mv _generated/api_names.sh ./scripts/
-	./scripts/generate_k8s_api.sh
-	./scripts/generate_openapi_schema.sh
-	$(MAKE) -C pkg/openapi_generator generate_test_schemas
-	goimports -w pkg
-	cp -r _generated/* ${GENERATED_OUTPUT_DIRECTORY}
+	mv _generated/api_names.sh _generated/scripts/
+	cd _generated/ && sed -i "s|generated_base_structure|_generated|g" openapi-generator/openapi_generator/generator_test.go \
+		openapi-generator/openapi_generator/test_data/test.it/v1/wrapper.go \
+        openapi-generator/cmd/generate-openapischema/generate-openapischema.go
+	cd _generated && go mod tidy -e && ./scripts/generate_k8s_api.sh
+	cd _generated/ && go mod tidy -e && ./scripts/generate_openapi_schema.sh
+	cd _generated/ && ./scripts/replace_mod_path.sh
+	cp -r _generated/{client,apis,crds,common,nexus-client,helper} ${GENERATED_OUTPUT_DIRECTORY}
 
 .PHONY: test_generate_code_in_container
 test_generate_code_in_container: ${BUILDER_NAME}\:${BUILDER_TAG}.image.exists init_submodules
@@ -115,7 +119,7 @@ test_generate_code_in_container: ${BUILDER_NAME}\:${BUILDER_TAG}.image.exists in
 	CONFIG_FILE=example/nexus-sdk.yaml \
 	CRD_MODULE_PATH="gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/crd_generated/" \
 	GENERATED_OUTPUT_DIRECTORY=example/output/crd_generated && \
-	cd example/output/crd_generated && go mod tidy && go vet ./...)
+	cd example/output/crd_generated && go mod tidy -e && go vet ./...)
 	@if [ -n "$$(git ls-files --modified --exclude-standard)" ]; then\
 		echo "The following changes should be committed:";\
 		git status;\

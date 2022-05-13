@@ -21,19 +21,19 @@ const (
 	clientgen   string = "// +genclient\n// +genclient:noStatus\n// +genclient:nonNamespaced"
 )
 
-func parsePackageCRDs(pkg parser.Package) string {
+func parsePackageCRDs(pkg parser.Package, aliasNameMap map[string]string) string {
 	var output string
 	for _, node := range pkg.GetNexusNodes() {
-		output += generateType(pkg, node)
+		output += generateType(pkg, node, aliasNameMap)
 	}
 
 	return output
 }
 
-func generateType(pkg parser.Package, node *ast.TypeSpec) string {
+func generateType(pkg parser.Package, node *ast.TypeSpec, aliasNameMap map[string]string) string {
 	var output string
 	output += generateCRDStructType(pkg, node)
-	output += generateNodeSpec(node)
+	output += generateNodeSpec(node, aliasNameMap)
 	output += generateListDef(node)
 
 	return output
@@ -118,7 +118,7 @@ func getTag(f *ast.Field, name string, omitempty bool) string {
 	return fmt.Sprintf("`%s`", tag)
 }
 
-func generateNodeSpec(node *ast.TypeSpec) string {
+func generateNodeSpec(node *ast.TypeSpec, aliasNameMap map[string]string) string {
 	var crdTemplate = openapigen + `
 type {{.Name}}Spec struct {
 {{.Fields}}}
@@ -142,6 +142,13 @@ type {{.Name}}Spec struct {
 		}
 		specDef.Fields += "\t" + name + " "
 		typeString := types.ExprString(field.Type)
+		parts := strings.Split(typeString, ".")
+		if len(parts) > 1 {
+			if val, ok := aliasNameMap[parts[0]]; ok {
+				parts[0] = val
+			}
+			typeString = parts[0] + "." + parts[1]
+		}
 		specDef.Fields += typeString
 		specDef.Fields += " " + getTag(field, name, false) + "\n"
 	}
@@ -239,15 +246,15 @@ func parsePackageTypes(pkg parser.Package) string {
 	return output
 }
 
-func parsePackageImports(pkg parser.Package) string {
+func parsePackageImports(pkg parser.Package, aliasNameMap map[string]string) string {
 	var output string
-	for _, imp := range GenerateImports(&pkg) {
+	for _, imp := range GenerateImports(&pkg, aliasNameMap) {
 		output += imp + "\n"
 	}
 	return output
 }
 
-func GenerateImports(p *parser.Package) []string {
+func GenerateImports(p *parser.Package, aliasNameMap map[string]string) []string {
 	var (
 		importList            []string
 		aliasName, importPath string
@@ -258,14 +265,16 @@ func GenerateImports(p *parser.Package) []string {
 		if strings.Contains(i, p.ModPath) {
 			if val.Name != nil {
 				aliasName, importPath = constructImports(val.Name.String(), i)
+				aliasNameMap[val.Name.String()] = aliasName
 			} else {
 				last := i[strings.LastIndex(i, "/")+1 : len(i)-1]
 				aliasName, importPath = constructImports(last, i)
+				aliasNameMap[last] = aliasName
 			}
 		} else {
 			if val.Name != nil {
 				importPath = i
-				aliasName, _ = constructImports(val.Name.String(), i)
+				aliasName = val.Name.String()
 			}
 		}
 		i = fmt.Sprintf("%s %s", aliasName, importPath)

@@ -11,4 +11,4 @@ RUN go mod download
 
 WORKDIR /go/src/gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git
 
-CMD make generate_code
+CMD make docker.gitlab_credentials && make generate_code
