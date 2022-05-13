@@ -284,11 +284,12 @@ type typesVars struct {
 }
 
 func RenderTypesTemplate(crdModulePath string, pkg parser.Package) (*bytes.Buffer, error) {
+	aliasNameMap := make(map[string]string)
 	var vars typesVars
-	vars.CRDTypes = parsePackageCRDs(pkg)
+	vars.Imports = parsePackageImports(pkg, aliasNameMap)
+	vars.CRDTypes = parsePackageCRDs(pkg, aliasNameMap)
 	vars.Structs = parsePackageStructs(pkg)
 	vars.Types = parsePackageTypes(pkg)
-	vars.Imports = parsePackageImports(pkg)
 	vars.CommonImport = util.GetInternalImport(crdModulePath, "common")
 
 	registerCrdTemplate, err := readTemplateFile(typesTemplateFile)

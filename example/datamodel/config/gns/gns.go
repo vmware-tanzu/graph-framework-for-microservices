@@ -3,7 +3,7 @@ package gns
 import (
 	"net/http"
 
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/datamodel/config"
+	cartv1 "github.com/vmware-tanzu/cartographer/pkg/apis/v1alpha1"
 
 	service_group "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/datamodel/config/gns/service-group"
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/datamodel/config/policy"
@@ -16,6 +16,14 @@ var FooCustomMethodsResponses = nexus.HTTPMethodsResponses{
 		http.StatusNotFound:        nexus.HTTPResponse{Description: http.StatusText(http.StatusNotFound)},
 		nexus.DefaultHTTPErrorCode: nexus.DefaultHTTPError,
 	},
+}
+
+var BarCustomCodesResponses = nexus.HTTPCodesResponse{
+	http.StatusBadRequest: nexus.HTTPResponse{Description: "Bad Request"},
+}
+
+var BarCustomMethodsResponses = nexus.HTTPMethodsResponses{
+	http.MethodPatch: BarCustomCodesResponses,
 }
 
 var GNSRestAPISpec = nexus.RestAPISpec{
@@ -36,7 +44,7 @@ var GNSRestAPISpec = nexus.RestAPISpec{
 		},
 		{
 			Uri:     "/test-bar",
-			Methods: config.BarCustomMethodsResponses,
+			Methods: BarCustomMethodsResponses,
 		},
 	},
 }
@@ -68,8 +76,8 @@ type Gns struct {
 	GnsAccessControlPolicy policy.AccessControlPolicy        `nexus:"child"`
 	Dns                    Dns                               `nexus:"link"`
 	State                  GnsState                          `nexus:"status"`
-	// TODO support external fields https://jira.eng.vmware.com/browse/NPT-124
-	//Box                    text.Box
+
+	WorkloadSpec cartv1.WorkloadSpec //external-field
 }
 
 // This is Description struct.
@@ -88,3 +96,5 @@ type GnsState struct {
 	Working     bool
 	Temperature int
 }
+
+type MyStr string

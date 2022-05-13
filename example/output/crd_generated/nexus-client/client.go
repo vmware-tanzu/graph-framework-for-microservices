@@ -611,6 +611,14 @@ func (obj *configConfigTsmV1) UpdateByName(ctx context.Context, objToUpdate *bas
 	}
 	patch = append(patch, patchOpMeta)
 
+	patchValueMyStr := objToUpdate.Spec.MyStr
+	patchOpMyStr := PatchOp{
+		Op:    "replace",
+		Path:  "/spec/myStr",
+		Value: patchValueMyStr,
+	}
+	patch = append(patch, patchOpMyStr)
+
 	marshaled, err := patch.Marshal()
 	if err != nil {
 		return nil, err
@@ -912,6 +920,14 @@ func (obj *gnsGnsTsmV1) UpdateByName(ctx context.Context, objToUpdate *basegnsts
 		Value: patchValueDescription,
 	}
 	patch = append(patch, patchOpDescription)
+
+	patchValueWorkloadSpec := objToUpdate.Spec.WorkloadSpec
+	patchOpWorkloadSpec := PatchOp{
+		Op:    "replace",
+		Path:  "/spec/workloadSpec",
+		Value: patchValueWorkloadSpec,
+	}
+	patch = append(patch, patchOpWorkloadSpec)
 
 	marshaled, err := patch.Marshal()
 	if err != nil {

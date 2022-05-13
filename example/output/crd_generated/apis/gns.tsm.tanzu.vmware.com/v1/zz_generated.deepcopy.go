@@ -181,6 +181,7 @@ func (in *GnsList) DeepCopyObject() runtime.Object {
 func (in *GnsSpec) DeepCopyInto(out *GnsSpec) {
 	*out = *in
 	out.Description = in.Description
+	in.WorkloadSpec.DeepCopyInto(&out.WorkloadSpec)
 	if in.GnsServiceGroupsGvk != nil {
 		in, out := &in.GnsServiceGroupsGvk, &out.GnsServiceGroupsGvk
 		*out = make(map[string]Child, len(*in))

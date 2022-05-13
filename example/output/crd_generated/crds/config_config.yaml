@@ -54,6 +54,11 @@ spec:
                 - kind
                 - name
                 type: object
+              myStr:
+                default: ""
+                type: string
+            required:
+            - myStr
             type: object
         type: object
     served: true

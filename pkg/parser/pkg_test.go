@@ -29,7 +29,8 @@ var _ = Describe("Pkg tests", func() {
 	})
 
 	It("should return generated import strings", func() {
-		imports := crd_generator.GenerateImports(&pkg)
+		aliasNameMap := make(map[string]string)
+		imports := crd_generator.GenerateImports(&pkg, aliasNameMap)
 
 		expectedImports := []string{
 			"configtsmtanzuvmwarecomv1 \"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/crd_generated/apis/config.tsm.tanzu.vmware.com/v1\"",
@@ -50,7 +51,7 @@ var _ = Describe("Pkg tests", func() {
 
 	It("should get all types for gns", func() {
 		types := gnsPkg.GetTypes()
-		Expect(types).To(HaveLen(0))
+		Expect(types).To(HaveLen(1))
 	})
 
 	It("should get child fields", func() {
@@ -68,7 +69,7 @@ var _ = Describe("Pkg tests", func() {
 	It("should get spec fields for gns", func() {
 		nodes := gnsPkg.GetNexusNodes()
 		specFields := parser.GetSpecFields(nodes[0])
-		Expect(specFields).To(HaveLen(3))
+		Expect(specFields).To(HaveLen(4))
 	})
 
 	It("should get field name", func() {

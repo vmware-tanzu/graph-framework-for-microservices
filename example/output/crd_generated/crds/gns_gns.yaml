@@ -110,10 +110,14 @@ spec:
               useSharedGateway:
                 default: false
                 type: boolean
+              workloadSpec:
+                type: object
+                x-kubernetes-preserve-unknown-fields: true
             required:
             - domain
             - useSharedGateway
             - description
+            - workloadSpec
             type: object
           status:
             properties:
