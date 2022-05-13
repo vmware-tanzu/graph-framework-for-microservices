@@ -34,7 +34,7 @@ build:
 
 build_tag:
   only:
-    - tag
+    - tags
   script:
     - make build IMAGE_TAG=$CI_COMMI_TAG
     - make publish IMAGE_TAG=$CI_COMMI_TAG
