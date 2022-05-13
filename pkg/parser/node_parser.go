@@ -170,11 +170,19 @@ func processNode(node *Node, nodes map[string]Node, baseGroupName string) {
 				}
 
 				if strings.HasSuffix(importPath, fieldType[0]) || importSpec.Name.String() == fieldType[0] {
-					key = util.GetCrdName(fieldType[1], util.RemoveSpecialChars(fieldType[0]), baseGroupName)
+					// If import is not named then we can build key without looping through nodes
+					if importSpec.Name == nil {
+						key = util.GetCrdName(fieldType[1], util.RemoveSpecialChars(fieldType[0]), baseGroupName)
+					} else {
+						for _, n := range nodes {
+							if n.FullName == importPath && n.Name == fieldType[1] {
+								key = n.CrdName
+							}
+						}
+					}
 				}
 			}
 		}
-
 		if isChild {
 			n := nodes[key]
 			n.Parents = node.Parents
