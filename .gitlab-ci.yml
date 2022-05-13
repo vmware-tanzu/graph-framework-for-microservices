@@ -21,7 +21,7 @@ build:
   stage: build
   only:
     - merge_requests
-    - master
+    - main
   script:
     - make build
     - make publish
