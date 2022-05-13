@@ -1,0 +1,204 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: kubeconfig-local
+data:
+  kubeconfig: |
+    current-context: localapiserver
+    apiVersion: v1
+    kind: Config
+    clusters:
+    - cluster:
+        api-version: v1
+        server: http://nexus-proxy-container:80
+        insecure-skip-tls-verify: true
+      name: localapiserver
+    contexts:
+    - context:
+        cluster: localapiserver
+      name: localapiserver
+  api-gw-config: |
+    server:
+      address: ":443"
+      certPath: "/etc/cert/cert.pem"
+      keyPath: "/etc/cert/key.pem"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api-gw
+  labels:
+    control-plane: api-gw
+spec:
+  selector:
+    matchLabels:
+      control-plane: api-gw
+  replicas: 1
+  template:
+    metadata:
+      annotations:
+        kubectl.kubernetes.io/default-container: manager
+      labels:
+        control-plane: api-gw
+    spec:
+      initContainers:
+        - name: check-nexus-proxy-container
+          image: "gcr.io/mesh7-public-images/tools:latest"
+          command:
+            - /bin/bash
+            - -c
+            - |
+              #!/bin/bash
+              set -x
+              URL="http://nexus-proxy-container/api/v1/namespaces"
+              max_retries=20
+              counter=0
+              while [[ $counter -lt $max_retries ]]; do
+                    status=$(curl -s -o /dev/null -I -w "%{http_code}" -XGET $URL)
+                    if [ $status == "200" ]; then
+                        echo "$URL is reachable"
+                        exit 0
+                    else
+                        counter=$((counter +1))
+                        sleep 5
+                    fi
+              done
+      containers:
+        -
+          image: "{{.Image}}:{{.Tag}}"
+          name: api-gw
+          env:
+            - name: KUBECONFIG
+              value: /config/kubeconfig
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            allowPrivilegeEscalation: false
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 8081
+            initialDelaySeconds: 15
+            periodSeconds: 20
+          readinessProbe:
+            httpGet:
+              path: /readyz
+              port: 8081
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          # TODO(user): Configure the resources accordingly based on the project requirements.
+          # More info: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/
+          resources:
+            limits:
+              cpu: 500m
+              memory: 128Mi
+            requests:
+              cpu: 10m
+              memory: 64Mi
+          volumeMounts:
+            - mountPath: /config
+              name: config
+            - mountPath: /etc/cert
+              name: cert-volume
+              readOnly: false
+      volumes:
+        - name: config
+          configMap:
+            name: kubeconfig-local
+        - name: cert-volume
+          secret:
+            secretName: api-gw-server-cert
+            optional: true
+      {{if .IsImagePullSecret }}
+      imagePullSecrets:
+      - name: {{ .ImagePullSecret }}
+      {{end}}
+      terminationGracePeriodSeconds: 10
+      securityContext:
+        runAsUser: 0
+        runAsGroup: 0
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: create-signed-cert
+data:
+  create_certificate_as_secret.sh: |
+        #!/usr/bin/env bash
+        set -ex
+        namespace=$POD_NAMESPACE
+        usage() {
+            cat <<EOF
+        Generate certificate suitable for use with an webhook service.
+
+        This script uses k8s' CertificateSigningRequest API to a generate a
+        certificate signed by k8s CA suitable for use with sidecar-injector webhook
+        services. This requires permissions to create and approve CSR. See
+        https://kubernetes.io/docs/tasks/tls/managing-tls-in-a-cluster for
+        detailed explantion and additional instructions.
+
+        The server key/cert k8s CA cert are stored in a k8s secret.
+
+        usage: ${0} [OPTIONS]
+
+        The following flags are required.
+
+                --service          Service name of webhook.
+                --namespace        Namespace where webhook service and secret reside.
+                --secret           Secret name for CA certificate and server certificate/key pair.
+        EOF
+            exit 1
+        }
+
+        while [[ $# -gt 0 ]]; do
+            case ${1} in
+                --service)
+                    service="$2"
+                    shift
+                    ;;
+                --secret)
+                    secret="$2"
+                    shift
+                    ;;
+                *)
+                    usage
+                    ;;
+            esac
+            shift
+        done
+
+        if [ ! -x "$(command -v openssl)" ]; then
+            echo "openssl not found"
+            exit 1
+        fi
+
+        csrName=${service}
+        tmpdir=$(mktemp -d)
+        echo "creating certs in tmpdir ${tmpdir} "
+
+        cat <<EOF >> ${tmpdir}/csr.conf
+        [req]
+        req_extensions = v3_req
+        distinguished_name = req_distinguished_name
+        [req_distinguished_name]
+        [ v3_req ]
+        basicConstraints = CA:FALSE
+        keyUsage = digitalSignature, keyEncipherment
+        extendedKeyUsage = serverAuth
+        subjectAltName = @alt_names
+        [alt_names]
+        DNS.1 = ${service}
+        DNS.2 = ${service}.${namespace}
+        DNS.3 = ${service}.${namespace}.svc
+        EOF
+
+        openssl genrsa -out ${tmpdir}/server-key.pem 2048
+        openssl req -new -key ${tmpdir}/server-key.pem -subj "/CN=${service}" -out ${tmpdir}/server.csr -config ${tmpdir}/csr.conf
+        openssl x509 -req -days 365 -in ${tmpdir}/server.csr -signkey ${tmpdir}/server-key.pem -sha256 -out ${tmpdir}/server.crt
+        openssl x509 -in ${tmpdir}/server.crt -out ${tmpdir}/server-cert.pem -outform PEM
+
+        # create the secret with CA cert and server cert/key
+        kubectl create secret generic ${secret} \
+                --from-file=key.pem=${tmpdir}/server-key.pem \
+                --from-file=cert.pem=${tmpdir}/server-cert.pem \
+                --dry-run -o yaml |
+            kubectl -n ${namespace} apply -f -

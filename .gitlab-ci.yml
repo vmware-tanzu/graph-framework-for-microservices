@@ -10,6 +10,13 @@ before_script:
   - git config --global credential.helper store
   - echo -e  "https://gitlab-ci-token:${CICD_TOKEN}@gitlab.eng.vmware.com/" >> ~/.git-credentials
   - docker login harbor-repo.vmware.com --username $DOCKER_USERNAME --password $DOCKER_PASSWORD
+  - echo $GCLOUD_SERVICE_KEY > key.json
+  - gcloud auth activate-service-account --key-file key.json
+  - aws configure set aws_secret_access_key $AWS_SECRET_ACCESS_KEY
+  - aws configure set aws_access_key_id $AWS_ACCESS_KEY_ID
+  - docker login --username AWS -p $(aws ecr get-login-password --region us-west-2) 284299419820.dkr.ecr.us-west-2.amazonaws.com
+
+
 
 build:
   stage: build
@@ -19,14 +26,11 @@ build:
   script:
     - make build
     - make publish
+    - make build IMAGE_REGISTRY="284299419820.dkr.ecr.us-west-2.amazonaws.com/nexus/api-gateway"
+    - make publish IMAGE_REGISTRY="284299419820.dkr.ecr.us-west-2.amazonaws.com/nexus/api-gateway"
+    - make build_manifests IMAGE_REGISTRY="284299419820.dkr.ecr.us-west-2.amazonaws.com/nexus/api-gateway"
+    - make publish_manifests
 
-
-build_latest:
-  only:
-    - master
-  script:
-    - make build IMAGE_TAG=latest
-    - make publish IMAGE_TAG=latest
 
 build_tag:
   only:
@@ -34,3 +38,7 @@ build_tag:
   script:
     - make build IMAGE_TAG=$CI_COMMI_TAG
     - make publish IMAGE_TAG=$CI_COMMI_TAG
+    - make build IMAGE_REGISTRY="284299419820.dkr.ecr.us-west-2.amazonaws.com/nexus/api-gateway" IMAGE_TAG=$CI_COMMI_TAG
+    - make publish IMAGE_REGISTRY="284299419820.dkr.ecr.us-west-2.amazonaws.com/nexus/api-gateway" IMAGE_TAG=$CI_COMMI_TAG
+    - make build_manifests IMAGE_TAG=$CI_COMMI_TAG
+    - make publish_manifests IMAGE_TAG=$CI_COMMI_TAG

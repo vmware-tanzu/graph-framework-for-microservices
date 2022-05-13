@@ -8,7 +8,7 @@ CLUSTER ?= ""
 DATAMODEL ?= ""
 DATAMODEL_GROUP ?= ""
 NEXUS_BIN ?= $(shell which nexus)
-
+BUCKET ?= nexus-template-downloads
 #
 # Image Info
 #
@@ -17,7 +17,6 @@ CI_COMMIT ?= $(shell git rev-parse --verify --short=8 HEAD 2> /dev/null || echo 
 IMAGE_TAG ?= ${CI_COMMIT}
 GIT_HEAD  ?= $(shell git rev-parse --verify HEAD 2> /dev/null || echo "0000000000000000")
 IMAGE_REGISTRY ?= harbor-repo.vmware.com/nexus/api-gateway
-
 #
 # Platform
 #
@@ -186,7 +185,17 @@ NEXUS-KUBEBUILDER = $(PROJECT_DIR)/bin/nexus-kubebuilder
 install-nexus-kubebuilder:
 	test -s ${PROJECT_DIR}/bin/nexus-kubebuilder || { mkdir - ${PROJECT_DIR}/bin; cd ${PROJECT_DIR}/bin; GOBIN=${PROJECT_DIR}/bin go install gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kubebuilder.git/cmd/nexus-kubebuilder@master ; }
 
+
+build_manifests:
+	cd manifests && \
+	rm -rf api-gw-manifests.tar && \
+	cd ..&& \
+	tar -czvf api-gw-manifests.tar manifests/*
+
+publish_manifests:
+	gsutil cp api-gw-manifests.tar gs://${BUCKET}/${IMAGE_TAG}/;
 .PHONY: deploy_kind
+
 deploy_kind:
 	kind load docker-image --name ${KIND_NAME} ${IMAGE_REGISTRY}:${IMAGE_TAG}
 	kubectl -n ${NAMESPACE} set image deployment/${APP_NAME} ${APP_NAME}=${IMAGE_REGISTRY}:${IMAGE_TAG}
