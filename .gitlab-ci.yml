@@ -42,7 +42,7 @@ integration_test:
     NEXUS_APP_TEMPLATE_VERSION: $CI_COMMIT_SHA
   only:
     - merge_requests
-    - master
+    - main
   extends: .run_integration_test
 
 stages:
