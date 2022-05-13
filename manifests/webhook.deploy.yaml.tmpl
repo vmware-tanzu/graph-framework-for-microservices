@@ -37,7 +37,7 @@ spec:
                     fi
               done
       containers:
-        - image: harbor-repo.vmware.com/nexus/nexus-validation:__TAG__
+        - image: {{.Image}}:{{.Tag}}
           imagePullPolicy: IfNotPresent
           name: nexus-validation
           volumeMounts:
@@ -54,3 +54,7 @@ spec:
         - name: config
           configMap:
             name: validation-webhook-kubeconfig-local
+      {{if .IsImagePullSecret }}
+      imagePullSecrets:
+      - name: {{ .ImagePullSecret }}
+      {{end}}

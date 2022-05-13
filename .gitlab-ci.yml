@@ -41,6 +41,7 @@ build:
    - CONTAINER_ID=$CONTAINER_ID PKG_NAME=$(realpath .) make build_in_container
    - PKG_NAME=$(realpath .) make docker
    - make publish
+   - make publish.ecr
    - make publish_template
 
 test:
@@ -65,6 +66,7 @@ build_tag:
    - CONTAINER_ID=$CONTAINER_ID PKG_NAME=$(realpath .) make build_in_container
    - PKG_NAME=$(realpath .) make docker TAG=$CI_COMMIT_TAG
    - make publish TAG=$CI_COMMIT_TAG
+   - make publish.ecr TAG=$CI_COMMIT_TAG
    - make publish_template TAG=$CI_COMMIT_TAG
 
 integration_test:
