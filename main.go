@@ -22,6 +22,7 @@ import (
 	"api-gw/pkg/openapi"
 	"flag"
 	"fmt"
+	log "github.com/sirupsen/logrus"
 	"os"
 
 	// Import all Kubernetes client auth plugins (e.g. Azure, GCP, OIDC, etc.)
@@ -71,6 +72,17 @@ func main() {
 	flag.Parse()
 
 	ctrl.SetLogger(zap.New(zap.UseFlagOptions(&opts)))
+
+	// Setup log level
+	logLevel := os.Getenv("LOG_LEVEL")
+	if logLevel == "" {
+		logLevel = "ERROR"
+	}
+	lvl, err := log.ParseLevel(logLevel)
+	if err != nil {
+		log.Fatalf("Failed to configure logging: %v\n", err)
+	}
+	log.SetLevel(lvl)
 
 	conf, err := config.LoadConfig("/config/api-gw-config")
 	if err != nil {
