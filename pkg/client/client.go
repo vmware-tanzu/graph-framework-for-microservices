@@ -15,8 +15,10 @@ import (
 )
 
 var Client dynamic.Interface
+var Host string
 
 func New(config *rest.Config) (err error) {
+	Host = config.Host
 	Client, err = dynamic.NewForConfig(config)
 	if err != nil {
 		return err
@@ -40,6 +42,14 @@ func CreateObject(gvr schema.GroupVersionResource, kind, hashedName string, labe
 	// Create resource
 	_, err := Client.Resource(gvr).Create(context.TODO(), obj, metav1.CreateOptions{})
 	return err
+}
+
+func GetObject(gvr schema.GroupVersionResource, hashedName string, opts metav1.GetOptions) (*unstructured.Unstructured, error) {
+	obj, err := Client.Resource(gvr).Get(context.TODO(), hashedName, metav1.GetOptions{})
+	if err != nil {
+		return nil, err
+	}
+	return obj, nil
 }
 
 type PatchOp struct {

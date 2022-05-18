@@ -16,6 +16,7 @@ var (
 
 	GlobalCRDTypeToNodes     = make(map[string]NodeInfo)
 	globalCRDTypeToNodeMutex = &sync.Mutex{}
+	GlobalCRDChan            = make(chan string, 100)
 
 	GlobalCRDTypeToSpec      = make(map[string]apiextensionsv1.CustomResourceDefinitionSpec)
 	globalCRDTypeToSpecMutex = &sync.Mutex{}
@@ -51,6 +52,8 @@ func ConstructMapCRDTypeToNode(eventType EventType, crdType, name string, parent
 		ParentHierarchy: parentHierarchy,
 		Children:        children,
 	}
+
+	GlobalCRDChan <- crdType
 }
 
 func ConstructMapCRDTypeToSpec(eventType EventType, crdType string, spec apiextensionsv1.CustomResourceDefinitionSpec) {

@@ -2,6 +2,10 @@ package utils
 
 import (
 	"api-gw/pkg/config"
+	"fmt"
+	log "github.com/sirupsen/logrus"
+	"net/http"
+	"net/http/httputil"
 	"os"
 )
 
@@ -20,4 +24,12 @@ func IsServerConfigValid(conf *config.Config) bool {
 		}
 	}
 	return false
+}
+
+func DumpReq(req *http.Request) {
+	requestDump, err := httputil.DumpRequest(req, true)
+	if err != nil {
+		log.Warn(err)
+	}
+	fmt.Println(string(requestDump))
 }

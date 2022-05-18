@@ -7,6 +7,7 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"net/http"
+	"strings"
 
 	log "github.com/sirupsen/logrus"
 
@@ -45,6 +46,9 @@ func (s *EchoServer) Start(stopCh chan struct{}) {
 		}
 	}()
 
+	// Start watching CRDs
+	go s.CrdNotification()
+
 	// Start Server
 	go func() {
 		log.Info("Start Echo Server")
@@ -65,6 +69,11 @@ type NexusContext struct {
 	echo.Context
 	NexusURI string
 	Codes    nexus.HTTPCodesResponse
+
+	// Kube
+	CrdName   string
+	GroupName string
+	Resource  string
 }
 
 func (s *EchoServer) RegisterRoutes() {
@@ -137,6 +146,52 @@ func (s *EchoServer) RoutesNotification(stopCh chan struct{}) error {
 	}
 }
 
+func (s *EchoServer) CrdNotification() {
+	for {
+		select {
+		case crd := <-model.GlobalCRDChan:
+			crdParts := strings.Split(crd, ".")
+			groupName := strings.Join(crdParts[1:], ".")
+			resourcePattern := fmt.Sprintf("/apis/%s/v1/%s", groupName, crdParts[0])
+			resourceNamePattern := resourcePattern + "/:name"
+
+			s.Echo.GET(resourceNamePattern, kubeGetByNameHandler, func(next echo.HandlerFunc) echo.HandlerFunc {
+				return func(c echo.Context) error {
+					nc := &NexusContext{
+						Context:   c,
+						CrdName:   crd,
+						GroupName: groupName,
+						Resource:  crdParts[0],
+					}
+					return next(nc)
+				}
+			})
+			s.Echo.GET(resourcePattern, kubeGetHandler, func(next echo.HandlerFunc) echo.HandlerFunc {
+				return func(c echo.Context) error {
+					nc := &NexusContext{
+						Context:   c,
+						CrdName:   crd,
+						GroupName: groupName,
+						Resource:  crdParts[0],
+					}
+					return next(nc)
+				}
+			})
+			s.Echo.POST(resourcePattern, kubePostHandler, func(next echo.HandlerFunc) echo.HandlerFunc {
+				return func(c echo.Context) error {
+					nc := &NexusContext{
+						Context:   c,
+						CrdName:   crd,
+						GroupName: groupName,
+						Resource:  crdParts[0],
+					}
+					return next(nc)
+				}
+			})
+		}
+	}
+}
+
 func (s *EchoServer) StopServer() {
 	if err := s.Echo.Shutdown(context.Background()); err != nil {
 		log.Fatalf("Shutdown signal received")
@@ -149,6 +204,13 @@ func NewEchoServer(conf *config.Config) *EchoServer {
 	e := echo.New()
 	e.Pre(middleware.RemoveTrailingSlash())
 	e.Use(middleware.CORS())
+
+	// Setup proxy to api server
+	kubeSetupProxy(e)
+
+	e.Use(middleware.LoggerWithConfig(middleware.LoggerConfig{
+		Format: "method=${method}, uri=${uri}, status=${status}\n",
+	}))
 
 	return &EchoServer{
 		// create a new echo_server instance

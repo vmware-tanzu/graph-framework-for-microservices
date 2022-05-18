@@ -34,7 +34,6 @@ func (r *CustomResourceDefinitionReconciler) ProcessAnnotation(crdType string,
 	// It has stored the URI with the CRD type and CRD type with the Node Info.
 	model.ConstructMapURIToCRDType(eventType, crdType, n.NexusRestAPIGen.Uris)
 	model.ConstructMapCRDTypeToNode(eventType, crdType, n.Name, n.Hierarchy, children)
-
 	/*
 	 populateEndpointCache populates the cache with CRD Type to restURIs attribute ( URL and method [GET, DELETE...]).
 	 if any of the attribute removed in the new event notification, that should be removed from the cache and
@@ -45,6 +44,10 @@ func (r *CustomResourceDefinitionReconciler) ProcessAnnotation(crdType string,
 	if removed > 0 {
 		r.StopCh <- struct{}{}
 		model.GlobalRestURIChan <- model.GetGlobalEndpointCache()
+
+		for k, _ := range model.GlobalCRDTypeToNodes {
+			model.GlobalCRDChan <- k
+		}
 		return nil
 	}
 
