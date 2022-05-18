@@ -31,6 +31,10 @@ func GetGroupResourceName(nodeName string) string {
 	return strings.ToLower(ToPlural(nodeName)) // eg roots
 }
 
+func GetNodeNameTitle(nodeName string) string {
+	return strings.Title(nodeName) // eg Root
+}
+
 func GetGroupVarName(pkgName, baseGroupName, version string) string {
 	return pkgName + GetGroupGoName(baseGroupName) + strings.Title(version) // eg rootHelloworldV1
 }
@@ -48,7 +52,7 @@ func GetGroupResourceNameTitle(nodeName string) string {
 }
 
 func GetGroupResourceType(baseNodeName, pkgName, baseGroupName, version string) string {
-	return strings.ToLower(baseNodeName) + GetGroupTypeName(pkgName, baseGroupName, version) // eg rootRootHelloworld
+	return strings.ToLower(baseNodeName) + GetGroupTypeName(pkgName, baseGroupName, version) // eg rootRootHelloworldV1
 }
 
 func GetTag(name string) string {

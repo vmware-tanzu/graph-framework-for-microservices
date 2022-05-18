@@ -56,6 +56,6 @@ func GetHashedName(crdName string, labels map[string]string, name string) string
 	output += fmt.Sprintf("%s:%s", crdName, name)
 
     h := sha1.New()
-    h.Write([]byte(output))
+    _, _ = h.Write([]byte(output))
     return hex.EncodeToString(h.Sum(nil))
 }

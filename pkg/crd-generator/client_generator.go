@@ -44,17 +44,15 @@ func generateNexusClientVars(baseGroupName, crdModulePath string, pkgs parser.Pa
 			groupTypeName := util.GetGroupTypeName(pkg.Name, baseGroupName, version)
 			simpleGroupTypeName := util.GetSimpleGroupTypeName(pkg.Name)
 			groupVars.SimpleGroupTypeName = simpleGroupTypeName
-			//vars.ClientsetsApiGroups += groupVarName + " *" + groupTypeName + "\n" // eg rootHelloworldV1 *RootHelloworldV1
 			groupVars.ClientsetApiGroups = groupVarName + " *" + groupTypeName + "\n" // eg rootHelloworldV1 *RootHelloworldV1
 
 			initClient := "client." + groupVarName + " = new" + groupTypeName +
 				"(client)\n" // eg client.rootHelloworldV1 = newRootHelloworldV1(client)
-			//vars.InitApiGroups += initClient
 			groupVars.InitApiGroups = initClient
 
 			clientsetMethod := "func (c *Clientset) " + simpleGroupTypeName + "() *" + groupTypeName + " {\n" + "return c." +
 				groupVarName + "\n}\n" // eg
-			// func (c *Clientset) RootHelloworldV1() *RootHelloworldV1 {
+			// func (c *Clientset) Root() *ootHelloworldV1 {
 			//	return c.rootHelloworldV1
 			// }
 
@@ -63,6 +61,7 @@ func generateNexusClientVars(baseGroupName, crdModulePath string, pkgs parser.Pa
 
 			for _, node := range pkg.GetNexusNodes() {
 				var clientGroupVars apiGroupsClientVars
+				clientGroupVars.ApiGroupsVars = groupVars
 				clientGroupVars.GroupTypeName = groupTypeName
 				clientGroupVars.CrdName = util.GetCrdName(node.Name.String(), pkg.Name, baseGroupName)
 				err := resolveNode(baseImportName, pkg, baseGroupName, version, &groupVars, &clientGroupVars, node, parentsMap)
@@ -82,27 +81,10 @@ func generateNexusClientVars(baseGroupName, crdModulePath string, pkgs parser.Pa
 func resolveNode(baseImportName string, pkg parser.Package, baseGroupName, version string, groupVars *ApiGroupsVars, clientGroupVars *apiGroupsClientVars, node *ast.TypeSpec, parentsMap map[string]parser.NodeHelper) error {
 	pkgName := pkg.Name
 	baseNodeName := node.Name.Name // eg Root
-	groupResourceName := util.GetGroupResourceName(baseNodeName)
 	groupResourceNameTitle := util.GetGroupResourceNameTitle(baseNodeName)
 	groupResourceType := util.GetGroupResourceType(baseNodeName, pkgName, baseGroupName, version)
-	groupVars.GroupResources += groupResourceName + " *" +
-		groupResourceType + "\n" // eg roots *rootRootHelloWorld
-	groupVars.GroupResourcesInit += groupResourceName + ": &" + groupResourceType +
-		"{\n client: client,\n},\n" // eg
-	// 		roots: &rootRootHelloWorld{
-	//			client: client,
-	//		},
-	groupVars.GroupResourcesDefs += "type " + groupResourceType + " struct {\n  client *Clientset\n}\n" // eg
-	// type rootRootHelloWorld struct {
-	//	client *Clientset
-	// }
-	groupVars.GroupResourcesDefs += "func (obj *" + util.GetGroupTypeName(pkgName, baseGroupName, version) + ") " +
-		groupResourceNameTitle + "() *" +
-		groupResourceType + " {\n" + "return obj." + groupResourceName + "\n}\n" // eg
-	// func (r *RootHelloworldV1) Roots() *rootRootHelloWorld {
-	//	return r.roots
-	// }
 
+	clientGroupVars.BaseNodeName = baseNodeName
 	clientGroupVars.BaseImportName = baseImportName
 	clientGroupVars.GroupBaseImport = baseImportName + "." + baseNodeName
 	clientGroupVars.GroupResourceType = groupResourceType
@@ -127,6 +109,9 @@ func resolveNode(baseImportName string, pkg parser.Package, baseGroupName, versi
 			GroupResourceNameTitle: util.GetGroupResourceNameTitle(linkInfo.fieldType),
 			GroupTypeName:          util.GetGroupTypeName(linkInfo.pkgName, baseGroupName, version),
 			SimpleGroupTypeName:    util.GetSimpleGroupTypeName(linkInfo.pkgName),
+			BaseNodeName:           linkInfo.fieldType,
+			GroupResourceType:      util.GetGroupResourceType(linkInfo.fieldType, linkInfo.pkgName, baseGroupName, version),
+			CrdName:                util.GetCrdName(linkInfo.fieldType, linkInfo.pkgName, baseGroupName),
 		}
 		if parser.IsMapField(link) {
 			clientVarsLink.IsNamed = true
@@ -221,8 +206,8 @@ type ApiGroupsVars struct {
 
 type apiGroupsClientVars struct {
 	ApiGroupsVars
+	BaseNodeName           string
 	CrdName                string
-	ResolveLinksDelete     string
 	HasChildren            bool
 	BaseImportName         string
 	GroupResourceType      string
@@ -240,7 +225,6 @@ type apiGroupsClientVars struct {
 		SimpleGroupTypeName    string
 		GroupResourceNameTitle string
 	}
-	ForUpdatePatches string
 
 	Links            []apiGroupsClientVarsLink
 	Children         []apiGroupsClientVarsLink
@@ -255,8 +239,11 @@ type apiGroupsClientVarsLink struct {
 	Group                  string
 	Kind                   string
 	GroupBaseImport        string
+	BaseNodeName           string
 	IsNamed                bool
 	GroupTypeName          string
 	SimpleGroupTypeName    string
 	GroupResourceNameTitle string
+	GroupResourceType      string
+	CrdName                string
 }
