@@ -47,12 +47,7 @@ func (s *EchoServer) Start(stopCh chan struct{}) {
 	}()
 
 	// Start watching CRDs
-	go func() {
-		if err := s.CrdNotification(); err != nil {
-			s.StopServer()
-			InitEcho(stopCh, s.Config)
-		}
-	}()
+	go s.CrdNotification()
 
 	// Start Server
 	go func() {
@@ -151,7 +146,7 @@ func (s *EchoServer) RoutesNotification(stopCh chan struct{}) error {
 	}
 }
 
-func (s *EchoServer) CrdNotification() error {
+func (s *EchoServer) CrdNotification() {
 	for {
 		select {
 		case crd := <-model.GlobalCRDChan:
