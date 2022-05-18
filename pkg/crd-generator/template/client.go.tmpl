@@ -171,7 +171,7 @@ func (group *{{$node.GroupTypeName}}) Delete{{$node.BaseNodeName}}ByName(ctx con
 	return
 }
 
-// Delete{{$node.BaseNodeName}}ByName creates object in the database without hashing the name.
+// Create{{$node.BaseNodeName}}ByName creates object in the database without hashing the name.
 // Use it directly ONLY when objToCreate.Name is hashed name of the object.
 func (group *{{$node.GroupTypeName}}) Create{{$node.BaseNodeName}}ByName(ctx context.Context,
 	objToCreate *{{$node.GroupBaseImport}}) (*{{$node.SimpleGroupTypeName}}{{$node.BaseNodeName}}, error) {
@@ -238,7 +238,7 @@ func (group *{{$node.GroupTypeName}}) Create{{$node.BaseNodeName}}ByName(ctx con
 	}, nil
 }
 
-// Delete{{$node.BaseNodeName}}ByName updates object stored in the database under the hashedName which is a hash of
+// Update{{$node.BaseNodeName}}ByName updates object stored in the database under the hashedName which is a hash of
 // display name and parents names.
 func (group *{{$node.GroupTypeName}}) Update{{$node.BaseNodeName}}ByName(ctx context.Context,
 	objToUpdate *{{$node.GroupBaseImport}}) (*{{$node.SimpleGroupTypeName}}{{$node.BaseNodeName}}, error) {
@@ -287,7 +287,7 @@ func (group *{{$node.GroupTypeName}}) Update{{$node.BaseNodeName}}ByName(ctx con
 	}, nil
 }
 
-// List returns slice of all existing objects of given type. Selectors can be provided in opts parameter.
+// List{{$node.GroupResourceNameTitle}} returns slice of all existing objects of this type. Selectors can be provided in opts parameter.
 func (group *{{$node.GroupTypeName}}) List{{$node.GroupResourceNameTitle}}(ctx context.Context,
 	opts metav1.ListOptions) (result []*{{$node.SimpleGroupTypeName}}{{$node.BaseNodeName}}, err error) {
 	list, err := group.client.baseClient.{{$node.GroupTypeName}}().
