@@ -52,7 +52,7 @@ func (c *Config) DisplayName() string {
 type ConfigSpec struct {
 	MyStr  gnstsmtanzuvmwarecomv1.MyStr `json:"myStr" yaml:"myStr"`
 	GNSGvk *Child                       `json:"gNSGvk,omitempty" yaml:"gNSGvk,omitempty" nexus:"child"`
-	DnsGvk *Child                       `json:"dnsGvk,omitempty" yaml:"dnsGvk,omitempty" nexus:"child"`
+	DNSGvk *Child                       `json:"dNSGvk,omitempty" yaml:"dNSGvk,omitempty" nexus:"child"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object

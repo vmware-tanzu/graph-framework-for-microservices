@@ -7,7 +7,7 @@ metadata:
   name: configs.config.tsm.tanzu.vmware.com
   annotations:
     nexus: |
-      {"name":"Config.config","hierarchy":["roots.root.tsm.tanzu.vmware.com"],"children":{"dnses.gns.tsm.tanzu.vmware.com":{"fieldName":"Dns","fieldNameGvk":"dnsGvk","isNamed":false},"gnses.gns.tsm.tanzu.vmware.com":{"fieldName":"GNS","fieldNameGvk":"gNSGvk","isNamed":false}},"nexus-rest-api-gen":{"uris":null}}
+      {"name":"Config.config","hierarchy":["roots.root.tsm.tanzu.vmware.com"],"children":{"dnses.gns.tsm.tanzu.vmware.com":{"fieldName":"DNS","fieldNameGvk":"dNSGvk","isNamed":false},"gnses.gns.tsm.tanzu.vmware.com":{"fieldName":"GNS","fieldNameGvk":"gNSGvk","isNamed":false}},"nexus-rest-api-gen":{"uris":null}}
 spec:
   conversion:
     strategy: None
