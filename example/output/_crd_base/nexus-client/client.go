@@ -22,6 +22,7 @@ import (
 	"k8s.io/client-go/rest"
 
 	baseClientset "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/_generated/client/clientset/versioned"
+	fakeBaseClienset "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/_generated/client/clientset/versioned/fake"
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/_generated/common"
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/_generated/helper"
 
@@ -33,7 +34,7 @@ import (
 )
 
 type Clientset struct {
-	baseClient        *baseClientset.Clientset
+	baseClient        baseClientset.Interface
 	rootTsmV1         *RootTsmV1
 	configTsmV1       *ConfigTsmV1
 	gnsTsmV1          *GnsTsmV1
@@ -56,6 +57,19 @@ func NewForConfig(config *rest.Config) (*Clientset, error) {
 	client.policyTsmV1 = newPolicyTsmV1(client)
 
 	return client, nil
+}
+
+// NewFakeClient creates simple client which can be used for unit tests
+func NewFakeClient() *Clientset {
+	client := &Clientset{}
+	client.baseClient = fakeBaseClienset.NewSimpleClientset()
+	client.rootTsmV1 = newRootTsmV1(client)
+	client.configTsmV1 = newConfigTsmV1(client)
+	client.gnsTsmV1 = newGnsTsmV1(client)
+	client.servicegroupTsmV1 = newServicegroupTsmV1(client)
+	client.policyTsmV1 = newPolicyTsmV1(client)
+
+	return client
 }
 
 type PatchOp struct {
@@ -182,7 +196,7 @@ func (group *RootTsmV1) DeleteRootByName(ctx context.Context, hashedName string)
 	return
 }
 
-// DeleteRootByName creates object in the database without hashing the name.
+// CreateRootByName creates object in the database without hashing the name.
 // Use it directly ONLY when objToCreate.Name is hashed name of the object.
 func (group *RootTsmV1) CreateRootByName(ctx context.Context,
 	objToCreate *baseroottsmtanzuvmwarecomv1.Root) (*RootRoot, error) {
@@ -208,7 +222,7 @@ func (group *RootTsmV1) CreateRootByName(ctx context.Context,
 	}, nil
 }
 
-// DeleteRootByName updates object stored in the database under the hashedName which is a hash of
+// UpdateRootByName updates object stored in the database under the hashedName which is a hash of
 // display name and parents names.
 func (group *RootTsmV1) UpdateRootByName(ctx context.Context,
 	objToUpdate *baseroottsmtanzuvmwarecomv1.Root) (*RootRoot, error) {
@@ -248,7 +262,7 @@ func (group *RootTsmV1) UpdateRootByName(ctx context.Context,
 	}, nil
 }
 
-// List returns slice of all existing objects of given type. Selectors can be provided in opts parameter.
+// ListRoots returns slice of all existing objects of this type. Selectors can be provided in opts parameter.
 func (group *RootTsmV1) ListRoots(ctx context.Context,
 	opts metav1.ListOptions) (result []*RootRoot, err error) {
 	list, err := group.client.baseClient.RootTsmV1().
@@ -372,18 +386,17 @@ func (obj *RootRoot) AddConfig(ctx context.Context,
 
 // DeleteConfig calculates hashed name of the child to delete based on displayName
 // and parents names and deletes it.
-func (obj *RootRoot) DeleteConfig(ctx context.Context, displayName string) (err error) {
-	parentLabels := make(map[string]string)
-	for k, v := range obj.GetLabels() {
-		parentLabels[k] = v
+
+func (obj *RootRoot) DeleteConfig(ctx context.Context) (err error) {
+	if obj.Spec.ConfigGvk != nil {
+		err = obj.client.
+			Config().DeleteConfigByName(ctx, obj.Spec.ConfigGvk.Name)
+		if err != nil {
+			return err
+		}
 	}
-	parentLabels[obj.CRDName()] = obj.DisplayName()
-	hashedName := helper.GetHashedName("configs.config.tsm.tanzu.vmware.com", parentLabels, displayName)
-	err = obj.client.Config().DeleteConfigByName(ctx, hashedName)
-	if err != nil {
-		return err
-	}
-	updatedObj, err := obj.client.Root().GetRootByName(ctx, obj.GetName())
+	updatedObj, err := obj.client.
+		Root().GetRootByName(ctx, obj.GetName())
 	if err == nil {
 		obj.Root = updatedObj.Root
 	}
@@ -528,7 +541,7 @@ func (group *ConfigTsmV1) DeleteConfigByName(ctx context.Context, hashedName str
 	return
 }
 
-// DeleteConfigByName creates object in the database without hashing the name.
+// CreateConfigByName creates object in the database without hashing the name.
 // Use it directly ONLY when objToCreate.Name is hashed name of the object.
 func (group *ConfigTsmV1) CreateConfigByName(ctx context.Context,
 	objToCreate *baseconfigtsmtanzuvmwarecomv1.Config) (*ConfigConfig, error) {
@@ -585,7 +598,7 @@ func (group *ConfigTsmV1) CreateConfigByName(ctx context.Context,
 	}, nil
 }
 
-// DeleteConfigByName updates object stored in the database under the hashedName which is a hash of
+// UpdateConfigByName updates object stored in the database under the hashedName which is a hash of
 // display name and parents names.
 func (group *ConfigTsmV1) UpdateConfigByName(ctx context.Context,
 	objToUpdate *baseconfigtsmtanzuvmwarecomv1.Config) (*ConfigConfig, error) {
@@ -634,7 +647,7 @@ func (group *ConfigTsmV1) UpdateConfigByName(ctx context.Context,
 	}, nil
 }
 
-// List returns slice of all existing objects of given type. Selectors can be provided in opts parameter.
+// ListConfigs returns slice of all existing objects of this type. Selectors can be provided in opts parameter.
 func (group *ConfigTsmV1) ListConfigs(ctx context.Context,
 	opts metav1.ListOptions) (result []*ConfigConfig, err error) {
 	list, err := group.client.baseClient.ConfigTsmV1().
@@ -726,18 +739,62 @@ func (obj *ConfigConfig) AddGNS(ctx context.Context,
 
 // DeleteGNS calculates hashed name of the child to delete based on displayName
 // and parents names and deletes it.
-func (obj *ConfigConfig) DeleteGNS(ctx context.Context, displayName string) (err error) {
-	parentLabels := make(map[string]string)
-	for k, v := range obj.GetLabels() {
-		parentLabels[k] = v
+
+func (obj *ConfigConfig) DeleteGNS(ctx context.Context) (err error) {
+	if obj.Spec.GNSGvk != nil {
+		err = obj.client.
+			Gns().DeleteGnsByName(ctx, obj.Spec.GNSGvk.Name)
+		if err != nil {
+			return err
+		}
 	}
-	parentLabels[obj.CRDName()] = obj.DisplayName()
-	hashedName := helper.GetHashedName("gnses.gns.tsm.tanzu.vmware.com", parentLabels, displayName)
-	err = obj.client.Gns().DeleteGnsByName(ctx, hashedName)
-	if err != nil {
-		return err
+	updatedObj, err := obj.client.
+		Config().GetConfigByName(ctx, obj.GetName())
+	if err == nil {
+		obj.Config = updatedObj.Config
 	}
-	updatedObj, err := obj.client.Config().GetConfigByName(ctx, obj.GetName())
+	return
+}
+
+// AddDNS calculates hashed name of the child to create based on objToCreate.Name
+// and parents names and creates it. objToCreate.Name is changed to the hashed name. Original name is preserved in
+// nexus/display_name label and can be obtained using DisplayName() method.
+func (obj *ConfigConfig) AddDNS(ctx context.Context,
+	objToCreate *basegnstsmtanzuvmwarecomv1.Dns) (result *GnsDns, err error) {
+	if objToCreate.Labels == nil {
+		objToCreate.Labels = map[string]string{}
+	}
+	for _, v := range helper.GetCRDParentsMap()["configs.config.tsm.tanzu.vmware.com"] {
+		objToCreate.Labels[v] = obj.Labels[v]
+	}
+	objToCreate.Labels["configs.config.tsm.tanzu.vmware.com"] = obj.DisplayName()
+	if objToCreate.Labels[common.IS_NAME_HASHED_LABEL] != "true" {
+		objToCreate.Labels[common.DISPLAY_NAME_LABEL] = objToCreate.GetName()
+		objToCreate.Labels[common.IS_NAME_HASHED_LABEL] = "true"
+		hashedName := helper.GetHashedName(objToCreate.CRDName(), objToCreate.Labels, objToCreate.GetName())
+		objToCreate.Name = hashedName
+	}
+	result, err = obj.client.Gns().CreateDnsByName(ctx, objToCreate)
+	updatedObj, getErr := obj.client.Config().GetConfigByName(ctx, obj.GetName())
+	if getErr == nil {
+		obj.Config = updatedObj.Config
+	}
+	return
+}
+
+// DeleteDNS calculates hashed name of the child to delete based on displayName
+// and parents names and deletes it.
+
+func (obj *ConfigConfig) DeleteDNS(ctx context.Context) (err error) {
+	if obj.Spec.DNSGvk != nil {
+		err = obj.client.
+			Gns().DeleteDnsByName(ctx, obj.Spec.DNSGvk.Name)
+		if err != nil {
+			return err
+		}
+	}
+	updatedObj, err := obj.client.
+		Config().GetConfigByName(ctx, obj.GetName())
 	if err == nil {
 		obj.Config = updatedObj.Config
 	}
@@ -974,7 +1031,7 @@ func (group *GnsTsmV1) DeleteGnsByName(ctx context.Context, hashedName string) (
 	return
 }
 
-// DeleteGnsByName creates object in the database without hashing the name.
+// CreateGnsByName creates object in the database without hashing the name.
 // Use it directly ONLY when objToCreate.Name is hashed name of the object.
 func (group *GnsTsmV1) CreateGnsByName(ctx context.Context,
 	objToCreate *basegnstsmtanzuvmwarecomv1.Gns) (*GnsGns, error) {
@@ -1032,7 +1089,7 @@ func (group *GnsTsmV1) CreateGnsByName(ctx context.Context,
 	}, nil
 }
 
-// DeleteGnsByName updates object stored in the database under the hashedName which is a hash of
+// UpdateGnsByName updates object stored in the database under the hashedName which is a hash of
 // display name and parents names.
 func (group *GnsTsmV1) UpdateGnsByName(ctx context.Context,
 	objToUpdate *basegnstsmtanzuvmwarecomv1.Gns) (*GnsGns, error) {
@@ -1108,7 +1165,7 @@ func (group *GnsTsmV1) UpdateGnsByName(ctx context.Context,
 	}, nil
 }
 
-// List returns slice of all existing objects of given type. Selectors can be provided in opts parameter.
+// ListGnses returns slice of all existing objects of this type. Selectors can be provided in opts parameter.
 func (group *GnsTsmV1) ListGnses(ctx context.Context,
 	opts metav1.ListOptions) (result []*GnsGns, err error) {
 	list, err := group.client.baseClient.GnsTsmV1().
@@ -1225,14 +1282,13 @@ func (obj *GnsGns) AddGnsServiceGroups(ctx context.Context,
 
 // DeleteGnsServiceGroups calculates hashed name of the child to delete based on displayName
 // and parents names and deletes it.
+
 func (obj *GnsGns) DeleteGnsServiceGroups(ctx context.Context, displayName string) (err error) {
-	parentLabels := make(map[string]string)
-	for k, v := range obj.GetLabels() {
-		parentLabels[k] = v
+	l, ok := obj.Spec.GnsServiceGroupsGvk[displayName]
+	if !ok {
+		return fmt.Errorf("object %s doesn't have child %s", obj.DisplayName(), displayName)
 	}
-	parentLabels[obj.CRDName()] = obj.DisplayName()
-	hashedName := helper.GetHashedName("svcgroups.servicegroup.tsm.tanzu.vmware.com", parentLabels, displayName)
-	err = obj.client.Servicegroup().DeleteSvcGroupByName(ctx, hashedName)
+	err = obj.client.Servicegroup().DeleteSvcGroupByName(ctx, l.Name)
 	if err != nil {
 		return err
 	}
@@ -1271,18 +1327,17 @@ func (obj *GnsGns) AddGnsAccessControlPolicy(ctx context.Context,
 
 // DeleteGnsAccessControlPolicy calculates hashed name of the child to delete based on displayName
 // and parents names and deletes it.
-func (obj *GnsGns) DeleteGnsAccessControlPolicy(ctx context.Context, displayName string) (err error) {
-	parentLabels := make(map[string]string)
-	for k, v := range obj.GetLabels() {
-		parentLabels[k] = v
+
+func (obj *GnsGns) DeleteGnsAccessControlPolicy(ctx context.Context) (err error) {
+	if obj.Spec.GnsAccessControlPolicyGvk != nil {
+		err = obj.client.
+			Policy().DeleteAccessControlPolicyByName(ctx, obj.Spec.GnsAccessControlPolicyGvk.Name)
+		if err != nil {
+			return err
+		}
 	}
-	parentLabels[obj.CRDName()] = obj.DisplayName()
-	hashedName := helper.GetHashedName("accesscontrolpolicies.policy.tsm.tanzu.vmware.com", parentLabels, displayName)
-	err = obj.client.Policy().DeleteAccessControlPolicyByName(ctx, hashedName)
-	if err != nil {
-		return err
-	}
-	updatedObj, err := obj.client.Gns().GetGnsByName(ctx, obj.GetName())
+	updatedObj, err := obj.client.
+		Gns().GetGnsByName(ctx, obj.GetName())
 	if err == nil {
 		obj.Gns = updatedObj.Gns
 	}
@@ -1508,7 +1563,7 @@ func (group *GnsTsmV1) DeleteDnsByName(ctx context.Context, hashedName string) (
 	return
 }
 
-// DeleteDnsByName creates object in the database without hashing the name.
+// CreateDnsByName creates object in the database without hashing the name.
 // Use it directly ONLY when objToCreate.Name is hashed name of the object.
 func (group *GnsTsmV1) CreateDnsByName(ctx context.Context,
 	objToCreate *basegnstsmtanzuvmwarecomv1.Dns) (*GnsDns, error) {
@@ -1562,7 +1617,7 @@ func (group *GnsTsmV1) CreateDnsByName(ctx context.Context,
 	}, nil
 }
 
-// DeleteDnsByName updates object stored in the database under the hashedName which is a hash of
+// UpdateDnsByName updates object stored in the database under the hashedName which is a hash of
 // display name and parents names.
 func (group *GnsTsmV1) UpdateDnsByName(ctx context.Context,
 	objToUpdate *basegnstsmtanzuvmwarecomv1.Dns) (*GnsDns, error) {
@@ -1602,7 +1657,7 @@ func (group *GnsTsmV1) UpdateDnsByName(ctx context.Context,
 	}, nil
 }
 
-// List returns slice of all existing objects of given type. Selectors can be provided in opts parameter.
+// ListDnses returns slice of all existing objects of this type. Selectors can be provided in opts parameter.
 func (group *GnsTsmV1) ListDnses(ctx context.Context,
 	opts metav1.ListOptions) (result []*GnsDns, err error) {
 	list, err := group.client.baseClient.GnsTsmV1().
@@ -1721,7 +1776,7 @@ func (group *ServicegroupTsmV1) DeleteSvcGroupByName(ctx context.Context, hashed
 	return
 }
 
-// DeleteSvcGroupByName creates object in the database without hashing the name.
+// CreateSvcGroupByName creates object in the database without hashing the name.
 // Use it directly ONLY when objToCreate.Name is hashed name of the object.
 func (group *ServicegroupTsmV1) CreateSvcGroupByName(ctx context.Context,
 	objToCreate *baseservicegrouptsmtanzuvmwarecomv1.SvcGroup) (*ServicegroupSvcGroup, error) {
@@ -1761,7 +1816,7 @@ func (group *ServicegroupTsmV1) CreateSvcGroupByName(ctx context.Context,
 	}, nil
 }
 
-// DeleteSvcGroupByName updates object stored in the database under the hashedName which is a hash of
+// UpdateSvcGroupByName updates object stored in the database under the hashedName which is a hash of
 // display name and parents names.
 func (group *ServicegroupTsmV1) UpdateSvcGroupByName(ctx context.Context,
 	objToUpdate *baseservicegrouptsmtanzuvmwarecomv1.SvcGroup) (*ServicegroupSvcGroup, error) {
@@ -1828,7 +1883,7 @@ func (group *ServicegroupTsmV1) UpdateSvcGroupByName(ctx context.Context,
 	}, nil
 }
 
-// List returns slice of all existing objects of given type. Selectors can be provided in opts parameter.
+// ListSvcGroups returns slice of all existing objects of this type. Selectors can be provided in opts parameter.
 func (group *ServicegroupTsmV1) ListSvcGroups(ctx context.Context,
 	opts metav1.ListOptions) (result []*ServicegroupSvcGroup, err error) {
 	list, err := group.client.baseClient.ServicegroupTsmV1().
@@ -1955,7 +2010,7 @@ func (group *PolicyTsmV1) DeleteAccessControlPolicyByName(ctx context.Context, h
 	return
 }
 
-// DeleteAccessControlPolicyByName creates object in the database without hashing the name.
+// CreateAccessControlPolicyByName creates object in the database without hashing the name.
 // Use it directly ONLY when objToCreate.Name is hashed name of the object.
 func (group *PolicyTsmV1) CreateAccessControlPolicyByName(ctx context.Context,
 	objToCreate *basepolicytsmtanzuvmwarecomv1.AccessControlPolicy) (*PolicyAccessControlPolicy, error) {
@@ -2011,7 +2066,7 @@ func (group *PolicyTsmV1) CreateAccessControlPolicyByName(ctx context.Context,
 	}, nil
 }
 
-// DeleteAccessControlPolicyByName updates object stored in the database under the hashedName which is a hash of
+// UpdateAccessControlPolicyByName updates object stored in the database under the hashedName which is a hash of
 // display name and parents names.
 func (group *PolicyTsmV1) UpdateAccessControlPolicyByName(ctx context.Context,
 	objToUpdate *basepolicytsmtanzuvmwarecomv1.AccessControlPolicy) (*PolicyAccessControlPolicy, error) {
@@ -2051,7 +2106,7 @@ func (group *PolicyTsmV1) UpdateAccessControlPolicyByName(ctx context.Context,
 	}, nil
 }
 
-// List returns slice of all existing objects of given type. Selectors can be provided in opts parameter.
+// ListAccessControlPolicies returns slice of all existing objects of this type. Selectors can be provided in opts parameter.
 func (group *PolicyTsmV1) ListAccessControlPolicies(ctx context.Context,
 	opts metav1.ListOptions) (result []*PolicyAccessControlPolicy, err error) {
 	list, err := group.client.baseClient.PolicyTsmV1().
@@ -2150,14 +2205,13 @@ func (obj *PolicyAccessControlPolicy) AddPolicyConfigs(ctx context.Context,
 
 // DeletePolicyConfigs calculates hashed name of the child to delete based on displayName
 // and parents names and deletes it.
+
 func (obj *PolicyAccessControlPolicy) DeletePolicyConfigs(ctx context.Context, displayName string) (err error) {
-	parentLabels := make(map[string]string)
-	for k, v := range obj.GetLabels() {
-		parentLabels[k] = v
+	l, ok := obj.Spec.PolicyConfigsGvk[displayName]
+	if !ok {
+		return fmt.Errorf("object %s doesn't have child %s", obj.DisplayName(), displayName)
 	}
-	parentLabels[obj.CRDName()] = obj.DisplayName()
-	hashedName := helper.GetHashedName("acpconfigs.policy.tsm.tanzu.vmware.com", parentLabels, displayName)
-	err = obj.client.Policy().DeleteACPConfigByName(ctx, hashedName)
+	err = obj.client.Policy().DeleteACPConfigByName(ctx, l.Name)
 	if err != nil {
 		return err
 	}
@@ -2288,7 +2342,7 @@ func (group *PolicyTsmV1) DeleteACPConfigByName(ctx context.Context, hashedName 
 	return
 }
 
-// DeleteACPConfigByName creates object in the database without hashing the name.
+// CreateACPConfigByName creates object in the database without hashing the name.
 // Use it directly ONLY when objToCreate.Name is hashed name of the object.
 func (group *PolicyTsmV1) CreateACPConfigByName(ctx context.Context,
 	objToCreate *basepolicytsmtanzuvmwarecomv1.ACPConfig) (*PolicyACPConfig, error) {
@@ -2331,7 +2385,7 @@ func (group *PolicyTsmV1) CreateACPConfigByName(ctx context.Context,
 	}, nil
 }
 
-// DeleteACPConfigByName updates object stored in the database under the hashedName which is a hash of
+// UpdateACPConfigByName updates object stored in the database under the hashedName which is a hash of
 // display name and parents names.
 func (group *PolicyTsmV1) UpdateACPConfigByName(ctx context.Context,
 	objToUpdate *basepolicytsmtanzuvmwarecomv1.ACPConfig) (*PolicyACPConfig, error) {
@@ -2425,7 +2479,7 @@ func (group *PolicyTsmV1) UpdateACPConfigByName(ctx context.Context,
 	}, nil
 }
 
-// List returns slice of all existing objects of given type. Selectors can be provided in opts parameter.
+// ListACPConfigs returns slice of all existing objects of this type. Selectors can be provided in opts parameter.
 func (group *PolicyTsmV1) ListACPConfigs(ctx context.Context,
 	opts metav1.ListOptions) (result []*PolicyACPConfig, err error) {
 	list, err := group.client.baseClient.PolicyTsmV1().

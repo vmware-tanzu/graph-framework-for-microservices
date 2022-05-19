@@ -15,6 +15,7 @@ func generateNexusClientVars(baseGroupName, crdModulePath string, pkgs parser.Pa
 	var vars clientVars
 
 	vars.BaseClientsetImport = `"` + crdModulePath + `client/clientset/versioned"`
+	vars.FakeBaseCliensetImport = `"` + crdModulePath + `client/clientset/versioned/fake"`
 	vars.CommonImport = util.GetInternalImport(crdModulePath, "common")
 	vars.HelperImport = util.GetInternalImport(crdModulePath, "helper")
 

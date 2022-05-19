@@ -24,11 +24,12 @@ import (
 {{.HelperImport}}
 {{.CommonImport}}
 baseClientset {{.BaseClientsetImport}}
+fakeBaseClienset {{.FakeBaseCliensetImport}}
 
 {{.BaseImports}}
 )
 type Clientset struct {
-	baseClient *baseClientset.Clientset
+	baseClient baseClientset.Interface
 	{{ range $key, $group := .ApiGroups }}{{$group.ClientsetApiGroups}}{{ end }}
 }
 
@@ -43,6 +44,14 @@ func NewForConfig(config *rest.Config) (*Clientset, error) {
 	{{ range $key, $group := .ApiGroups }}{{$group.InitApiGroups}}{{ end }}
 
 	return client, nil
+}
+
+// NewFakeClient creates simple client which can be used for unit tests
+func NewFakeClient() *Clientset {
+	client := &Clientset{}
+	client.baseClient = fakeBaseClienset.NewSimpleClientset()
+	{{ range $key, $group := .ApiGroups }}{{$group.InitApiGroups}}{{ end }}
+	return client
 }
 
 type PatchOp struct {
@@ -171,7 +180,7 @@ func (group *{{$node.GroupTypeName}}) Delete{{$node.BaseNodeName}}ByName(ctx con
 	return
 }
 
-// Delete{{$node.BaseNodeName}}ByName creates object in the database without hashing the name.
+// Create{{$node.BaseNodeName}}ByName creates object in the database without hashing the name.
 // Use it directly ONLY when objToCreate.Name is hashed name of the object.
 func (group *{{$node.GroupTypeName}}) Create{{$node.BaseNodeName}}ByName(ctx context.Context,
 	objToCreate *{{$node.GroupBaseImport}}) (*{{$node.SimpleGroupTypeName}}{{$node.BaseNodeName}}, error) {
@@ -238,7 +247,7 @@ func (group *{{$node.GroupTypeName}}) Create{{$node.BaseNodeName}}ByName(ctx con
 	}, nil
 }
 
-// Delete{{$node.BaseNodeName}}ByName updates object stored in the database under the hashedName which is a hash of
+// Update{{$node.BaseNodeName}}ByName updates object stored in the database under the hashedName which is a hash of
 // display name and parents names.
 func (group *{{$node.GroupTypeName}}) Update{{$node.BaseNodeName}}ByName(ctx context.Context,
 	objToUpdate *{{$node.GroupBaseImport}}) (*{{$node.SimpleGroupTypeName}}{{$node.BaseNodeName}}, error) {
@@ -287,7 +296,7 @@ func (group *{{$node.GroupTypeName}}) Update{{$node.BaseNodeName}}ByName(ctx con
 	}, nil
 }
 
-// List returns slice of all existing objects of given type. Selectors can be provided in opts parameter.
+// List{{$node.GroupResourceNameTitle}} returns slice of all existing objects of this type. Selectors can be provided in opts parameter.
 func (group *{{$node.GroupTypeName}}) List{{$node.GroupResourceNameTitle}}(ctx context.Context,
 	opts metav1.ListOptions) (result []*{{$node.SimpleGroupTypeName}}{{$node.BaseNodeName}}, err error) {
 	list, err := group.client.baseClient.{{$node.GroupTypeName}}().
@@ -445,14 +454,13 @@ func (obj *{{$node.SimpleGroupTypeName}}{{$node.BaseNodeName}}) Add{{$link.Field
 
 // Delete{{$link.FieldName}} calculates hashed name of the child to delete based on displayName
 // and parents names and deletes it.
+{{ if $link.IsNamed }}
 func (obj *{{$node.SimpleGroupTypeName}}{{$node.BaseNodeName}}) Delete{{$link.FieldName}}(ctx context.Context, displayName string) (err error) {
-	parentLabels := make(map[string]string)
-	for k, v := range obj.GetLabels() {
-		parentLabels[k] = v
+	l, ok := obj.Spec.{{$link.FieldName}}Gvk[displayName]
+	if !ok {
+		return fmt.Errorf("object %s doesn't have child %s", obj.DisplayName(), displayName)
 	}
-	parentLabels[obj.CRDName()] = obj.DisplayName()
-	hashedName := helper.GetHashedName("{{$link.CrdName}}", parentLabels, displayName)
-	err = obj.client.{{$link.SimpleGroupTypeName}}().Delete{{$link.BaseNodeName}}ByName(ctx, hashedName)
+	err = obj.client.{{$link.SimpleGroupTypeName}}().Delete{{$link.BaseNodeName}}ByName(ctx, l.Name)
 	if err != nil {
 		return err
 	}
@@ -462,6 +470,23 @@ func (obj *{{$node.SimpleGroupTypeName}}{{$node.BaseNodeName}}) Delete{{$link.Fi
 	}
 	return
 }
+{{ else}}
+func (obj *{{$node.SimpleGroupTypeName}}{{$node.BaseNodeName}}) Delete{{$link.FieldName}}(ctx context.Context) (err error) {
+	if obj.Spec.{{$link.FieldName}}Gvk != nil {
+		err = obj.client.
+		{{$link.SimpleGroupTypeName}}().Delete{{$link.BaseNodeName}}ByName(ctx, obj.Spec.{{$link.FieldName}}Gvk.Name)
+		if err != nil {
+			return err
+		}
+	}
+	updatedObj, err := obj.client.
+	{{$node.SimpleGroupTypeName}}().Get{{$node.BaseNodeName}}ByName(ctx, obj.GetName())
+	if err == nil {
+		obj.{{$node.BaseNodeName}} = updatedObj.{{$node.BaseNodeName}}
+	}
+	return
+}
+{{ end }}
 {{ end }}
 
 {{ range $key, $link := .Links }}
