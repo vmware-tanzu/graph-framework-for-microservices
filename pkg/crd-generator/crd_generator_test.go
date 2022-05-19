@@ -46,7 +46,7 @@ var _ = Describe("Template renderers tests", func() {
 
 		graph := parser.ParseDSLNodes(exampleDSLPath, baseGroupName)
 		parentsMap = parser.CreateParentsMap(graph)
-		Expect(parentsMap).To(HaveLen(6))
+		Expect(parentsMap).To(HaveLen(7))
 
 		methods, codes = rest.ParseResponses(pkgs)
 	})
