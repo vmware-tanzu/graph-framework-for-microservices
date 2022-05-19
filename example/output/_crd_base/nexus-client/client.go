@@ -479,6 +479,15 @@ func (group *ConfigTsmV1) DeleteConfigByName(ctx context.Context, hashedName str
 		}
 	}
 
+	if result.Spec.DnsGvk != nil {
+		err := group.client.
+			Gns().
+			DeleteDnsByName(ctx, result.Spec.DnsGvk.Name)
+		if err != nil {
+			return err
+		}
+	}
+
 	err = group.client.baseClient.
 		ConfigTsmV1().
 		Configs().Delete(ctx, hashedName, metav1.DeleteOptions{})
@@ -531,6 +540,7 @@ func (group *ConfigTsmV1) CreateConfigByName(ctx context.Context,
 	}
 
 	objToCreate.Spec.GNSGvk = nil
+	objToCreate.Spec.DnsGvk = nil
 
 	result, err := group.client.baseClient.
 		ConfigTsmV1().
@@ -679,6 +689,15 @@ func (obj *ConfigConfig) GetGNS(ctx context.Context) (
 	return
 }
 
+// GetDns returns child or link of given type
+func (obj *ConfigConfig) GetDns(ctx context.Context) (
+	result *GnsDns, err error) {
+	if obj.Spec.DnsGvk != nil {
+		return obj.client.Gns().GetDnsByName(ctx, obj.Spec.DnsGvk.Name)
+	}
+	return
+}
+
 // AddGNS calculates hashed name of the child to create based on objToCreate.Name
 // and parents names and creates it. objToCreate.Name is changed to the hashed name. Original name is preserved in
 // nexus/display_name label and can be obtained using DisplayName() method.
@@ -715,6 +734,52 @@ func (obj *ConfigConfig) DeleteGNS(ctx context.Context, displayName string) (err
 	parentLabels[obj.CRDName()] = obj.DisplayName()
 	hashedName := helper.GetHashedName("gnses.gns.tsm.tanzu.vmware.com", parentLabels, displayName)
 	err = obj.client.Gns().DeleteGnsByName(ctx, hashedName)
+	if err != nil {
+		return err
+	}
+	updatedObj, err := obj.client.Config().GetConfigByName(ctx, obj.GetName())
+	if err == nil {
+		obj.Config = updatedObj.Config
+	}
+	return
+}
+
+// AddDns calculates hashed name of the child to create based on objToCreate.Name
+// and parents names and creates it. objToCreate.Name is changed to the hashed name. Original name is preserved in
+// nexus/display_name label and can be obtained using DisplayName() method.
+func (obj *ConfigConfig) AddDns(ctx context.Context,
+	objToCreate *basegnstsmtanzuvmwarecomv1.Dns) (result *GnsDns, err error) {
+	if objToCreate.Labels == nil {
+		objToCreate.Labels = map[string]string{}
+	}
+	for _, v := range helper.GetCRDParentsMap()["configs.config.tsm.tanzu.vmware.com"] {
+		objToCreate.Labels[v] = obj.Labels[v]
+	}
+	objToCreate.Labels["configs.config.tsm.tanzu.vmware.com"] = obj.DisplayName()
+	if objToCreate.Labels[common.IS_NAME_HASHED_LABEL] != "true" {
+		objToCreate.Labels[common.DISPLAY_NAME_LABEL] = objToCreate.GetName()
+		objToCreate.Labels[common.IS_NAME_HASHED_LABEL] = "true"
+		hashedName := helper.GetHashedName(objToCreate.CRDName(), objToCreate.Labels, objToCreate.GetName())
+		objToCreate.Name = hashedName
+	}
+	result, err = obj.client.Gns().CreateDnsByName(ctx, objToCreate)
+	updatedObj, getErr := obj.client.Config().GetConfigByName(ctx, obj.GetName())
+	if getErr == nil {
+		obj.Config = updatedObj.Config
+	}
+	return
+}
+
+// DeleteDns calculates hashed name of the child to delete based on displayName
+// and parents names and deletes it.
+func (obj *ConfigConfig) DeleteDns(ctx context.Context, displayName string) (err error) {
+	parentLabels := make(map[string]string)
+	for k, v := range obj.GetLabels() {
+		parentLabels[k] = v
+	}
+	parentLabels[obj.CRDName()] = obj.DisplayName()
+	hashedName := helper.GetHashedName("dnses.gns.tsm.tanzu.vmware.com", parentLabels, displayName)
+	err = obj.client.Gns().DeleteDnsByName(ctx, hashedName)
 	if err != nil {
 		return err
 	}
@@ -776,6 +841,53 @@ func (c *configConfigTsmV1Chainer) DeleteGNS(ctx context.Context, name string) (
 	c.parentLabels[common.IS_NAME_HASHED_LABEL] = "true"
 	hashedName := helper.GetHashedName("gnses.gns.tsm.tanzu.vmware.com", c.parentLabels, name)
 	return c.client.Gns().DeleteGnsByName(ctx, hashedName)
+}
+
+func (c *configConfigTsmV1Chainer) Dns(name string) *dnsGnsTsmV1Chainer {
+	parentLabels := c.parentLabels
+	parentLabels["dnses.gns.tsm.tanzu.vmware.com"] = name
+	return &dnsGnsTsmV1Chainer{
+		client:       c.client,
+		name:         name,
+		parentLabels: parentLabels,
+	}
+}
+
+// GetDns calculates hashed name of the object based on displayName and it's parents and returns the object
+func (c *configConfigTsmV1Chainer) GetDns(ctx context.Context, displayName string) (result *GnsDns, err error) {
+	hashedName := helper.GetHashedName("dnses.gns.tsm.tanzu.vmware.com", c.parentLabels, displayName)
+	return c.client.Gns().GetDnsByName(ctx, hashedName)
+}
+
+// AddDns calculates hashed name of the child to create based on objToCreate.Name
+// and parents names and creates it. objToCreate.Name is changed to the hashed name. Original name is preserved in
+// nexus/display_name label and can be obtained using DisplayName() method.
+func (c *configConfigTsmV1Chainer) AddDns(ctx context.Context,
+	objToCreate *basegnstsmtanzuvmwarecomv1.Dns) (result *GnsDns, err error) {
+	if objToCreate.Labels == nil {
+		objToCreate.Labels = map[string]string{}
+	}
+	for k, v := range c.parentLabels {
+		objToCreate.Labels[k] = v
+	}
+	if objToCreate.Labels[common.IS_NAME_HASHED_LABEL] != "true" {
+		objToCreate.Labels[common.DISPLAY_NAME_LABEL] = objToCreate.GetName()
+		objToCreate.Labels[common.IS_NAME_HASHED_LABEL] = "true"
+		hashedName := helper.GetHashedName("dnses.gns.tsm.tanzu.vmware.com", c.parentLabels, objToCreate.GetName())
+		objToCreate.Name = hashedName
+	}
+	return c.client.Gns().CreateDnsByName(ctx, objToCreate)
+}
+
+// DeleteDns calculates hashed name of the child to delete based on displayName
+// and parents names and deletes it.
+func (c *configConfigTsmV1Chainer) DeleteDns(ctx context.Context, name string) (err error) {
+	if c.parentLabels == nil {
+		c.parentLabels = map[string]string{}
+	}
+	c.parentLabels[common.IS_NAME_HASHED_LABEL] = "true"
+	hashedName := helper.GetHashedName("dnses.gns.tsm.tanzu.vmware.com", c.parentLabels, name)
+	return c.client.Gns().DeleteDnsByName(ctx, hashedName)
 }
 
 // GetGnsByName returns object stored in the database under the hashedName which is a hash of display
@@ -1349,9 +1461,46 @@ func (group *GnsTsmV1) GetDnsByName(ctx context.Context, hashedName string) (*Gn
 // display name and parents names. Use it when you know hashed name of object.
 func (group *GnsTsmV1) DeleteDnsByName(ctx context.Context, hashedName string) (err error) {
 
+	result, err := group.client.baseClient.
+		GnsTsmV1().
+		Dnses().Get(ctx, hashedName, metav1.GetOptions{})
+	if err != nil {
+		return err
+	}
+
 	err = group.client.baseClient.
 		GnsTsmV1().
 		Dnses().Delete(ctx, hashedName, metav1.DeleteOptions{})
+	if err != nil {
+		return err
+	}
+
+	var patch Patch
+
+	patchOp := PatchOp{
+		Op:   "remove",
+		Path: "/spec/dnsGvk",
+	}
+
+	patch = append(patch, patchOp)
+	marshaled, err := patch.Marshal()
+	if err != nil {
+		return err
+	}
+	parents := result.GetLabels()
+	if parents == nil {
+		parents = make(map[string]string)
+	}
+	parentName, ok := parents["configs.config.tsm.tanzu.vmware.com"]
+	if !ok {
+		parentName = helper.DEFAULT_KEY
+	}
+	if parents[common.IS_NAME_HASHED_LABEL] == "true" {
+		parentName = helper.GetHashedName("configs.config.tsm.tanzu.vmware.com", parents, parentName)
+	}
+	_, err = group.client.baseClient.
+		ConfigTsmV1().
+		Configs().Patch(ctx, parentName, types.JSONPatchType, marshaled, metav1.PatchOptions{})
 	if err != nil {
 		return err
 	}
@@ -1373,6 +1522,36 @@ func (group *GnsTsmV1) CreateDnsByName(ctx context.Context,
 	result, err := group.client.baseClient.
 		GnsTsmV1().
 		Dnses().Create(ctx, objToCreate, metav1.CreateOptions{})
+	if err != nil {
+		return nil, err
+	}
+
+	parentName, ok := objToCreate.GetLabels()["configs.config.tsm.tanzu.vmware.com"]
+	if !ok {
+		parentName = helper.DEFAULT_KEY
+	}
+	if objToCreate.Labels[common.IS_NAME_HASHED_LABEL] == "true" {
+		parentName = helper.GetHashedName("configs.config.tsm.tanzu.vmware.com", objToCreate.GetLabels(), parentName)
+	}
+
+	var patch Patch
+	patchOp := PatchOp{
+		Op:   "replace",
+		Path: "/spec/dnsGvk",
+		Value: basegnstsmtanzuvmwarecomv1.Child{
+			Group: "gns.tsm.tanzu.vmware.com",
+			Kind:  "Dns",
+			Name:  objToCreate.Name,
+		},
+	}
+	patch = append(patch, patchOp)
+	marshaled, err := patch.Marshal()
+	if err != nil {
+		return nil, err
+	}
+	_, err = group.client.baseClient.
+		ConfigTsmV1().
+		Configs().Patch(ctx, parentName, types.JSONPatchType, marshaled, metav1.PatchOptions{})
 	if err != nil {
 		return nil, err
 	}
@@ -1467,47 +1646,6 @@ func (obj *GnsDns) Update(ctx context.Context) error {
 	}
 	obj.Dns = result
 	return nil
-}
-
-func (c *Clientset) GnsDns(displayName string) *dnsGnsTsmV1Chainer {
-	parentLabels := make(map[string]string)
-	parentLabels["dnses.gns.tsm.tanzu.vmware.com"] = displayName
-	return &dnsGnsTsmV1Chainer{
-		client:       c,
-		name:         displayName,
-		parentLabels: parentLabels,
-	}
-}
-
-// GetGnsDns calculates the hashed name based on parents and displayName and
-// returns given object
-func (c *Clientset) GetGnsDns(ctx context.Context, displayName string) (result *GnsDns, err error) {
-	hashedName := helper.GetHashedName("dnses.gns.tsm.tanzu.vmware.com", nil, displayName)
-	return c.Gns().GetDnsByName(ctx, hashedName)
-}
-
-// AddGnsDns calculates hashed name of the object based on objToCreate.Name
-// and parents names and creates it. objToCreate.Name is changed to the hashed name. Original name is preserved in
-// nexus/display_name label and can be obtained using DisplayName() method.
-func (c *Clientset) AddGnsDns(ctx context.Context,
-	objToCreate *basegnstsmtanzuvmwarecomv1.Dns) (result *GnsDns, err error) {
-	if objToCreate.Labels == nil {
-		objToCreate.Labels = map[string]string{}
-	}
-	if objToCreate.Labels[common.IS_NAME_HASHED_LABEL] != "true" {
-		objToCreate.Labels[common.DISPLAY_NAME_LABEL] = objToCreate.GetName()
-		objToCreate.Labels[common.IS_NAME_HASHED_LABEL] = "true"
-		hashedName := helper.GetHashedName(objToCreate.CRDName(), nil, objToCreate.GetName())
-		objToCreate.Name = hashedName
-	}
-	return c.Gns().CreateDnsByName(ctx, objToCreate)
-}
-
-// DeleteGnsDns calculates hashedName of object based on displayName and
-// parents and deletes given object
-func (c *Clientset) DeleteGnsDns(ctx context.Context, displayName string) (err error) {
-	hashedName := helper.GetHashedName("dnses.gns.tsm.tanzu.vmware.com", nil, displayName)
-	return c.Gns().DeleteDnsByName(ctx, hashedName)
 }
 
 type dnsGnsTsmV1Chainer struct {

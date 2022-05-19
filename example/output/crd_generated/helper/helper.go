@@ -21,6 +21,7 @@ func GetCRDParentsMap() map[string][]string {
 		"accesscontrolpolicies.policy.tsm.tanzu.vmware.com": {"roots.root.tsm.tanzu.vmware.com", "configs.config.tsm.tanzu.vmware.com", "gnses.gns.tsm.tanzu.vmware.com"},
 		"acpconfigs.policy.tsm.tanzu.vmware.com":            {"roots.root.tsm.tanzu.vmware.com", "configs.config.tsm.tanzu.vmware.com", "gnses.gns.tsm.tanzu.vmware.com", "accesscontrolpolicies.policy.tsm.tanzu.vmware.com"},
 		"configs.config.tsm.tanzu.vmware.com":               {"roots.root.tsm.tanzu.vmware.com"},
+		"dnses.gns.tsm.tanzu.vmware.com":                    {"roots.root.tsm.tanzu.vmware.com", "configs.config.tsm.tanzu.vmware.com"},
 		"gnses.gns.tsm.tanzu.vmware.com":                    {"roots.root.tsm.tanzu.vmware.com", "configs.config.tsm.tanzu.vmware.com"},
 		"roots.root.tsm.tanzu.vmware.com":                   {},
 		"svcgroups.servicegroup.tsm.tanzu.vmware.com":       {"roots.root.tsm.tanzu.vmware.com", "configs.config.tsm.tanzu.vmware.com", "gnses.gns.tsm.tanzu.vmware.com"},
@@ -44,6 +45,13 @@ func GetObjectByCRDName(dmClient *datamodel.Clientset, crdName string, name stri
 	}
 	if crdName == "configs.config.tsm.tanzu.vmware.com" {
 		obj, err := dmClient.ConfigTsmV1().Configs().Get(context.TODO(), name, metav1.GetOptions{})
+		if err != nil {
+			return nil
+		}
+		return obj
+	}
+	if crdName == "dnses.gns.tsm.tanzu.vmware.com" {
+		obj, err := dmClient.GnsTsmV1().Dnses().Get(context.TODO(), name, metav1.GetOptions{})
 		if err != nil {
 			return nil
 		}

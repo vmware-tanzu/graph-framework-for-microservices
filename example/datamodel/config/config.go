@@ -18,6 +18,7 @@ var BarCustomMethodsResponses = nexus.HTTPMethodsResponses{
 type Config struct {
 	nexus.Node
 	GNS gns.Gns `nexus:"child"`
+	Dns gns.Dns `nexus:"child"`
 
 	MyStr gns.MyStr
 }

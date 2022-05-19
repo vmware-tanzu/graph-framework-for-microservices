@@ -335,7 +335,7 @@ func RenderCRDBaseTemplate(baseGroupName string, pkg parser.Package, parentsMap 
 	httpMethods map[string]nexus.HTTPMethodsResponses, httpCodes map[string]nexus.HTTPCodesResponse) ([]CrdBaseFile, error) {
 	var crds []CrdBaseFile
 
-	restAPISpecMap := rest.GetRestApiSpecs(pkg, httpMethods, httpCodes)
+	restAPISpecMap := rest.GetRestApiSpecs(pkg, httpMethods, httpCodes, parentsMap)
 	for _, node := range pkg.GetNexusNodes() {
 		typeName := parser.GetTypeName(node)
 		groupName := pkg.Name + "." + baseGroupName

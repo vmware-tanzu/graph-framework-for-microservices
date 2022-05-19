@@ -13,16 +13,19 @@ import (
 var _ = Describe("Rest tests", func() {
 	var (
 		//err error
-		pkgs    map[string]parser.Package
-		pkg     parser.Package
-		ok      bool
-		methods map[string]nexus.HTTPMethodsResponses
-		codes   map[string]nexus.HTTPCodesResponse
+		pkgs       map[string]parser.Package
+		pkg        parser.Package
+		ok         bool
+		methods    map[string]nexus.HTTPMethodsResponses
+		codes      map[string]nexus.HTTPCodesResponse
+		parentsMap map[string]parser.NodeHelper
 	)
 
 	BeforeEach(func() {
 		pkgs = parser.ParseDSLPkg(exampleDSLPath)
 		pkg, ok = pkgs["gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/datamodel//config/gns"]
+		graph := parser.ParseDSLNodes(exampleDSLPath, baseGroupName)
+		parentsMap = parser.CreateParentsMap(graph)
 		Expect(ok).To(BeTrue())
 	})
 
@@ -51,16 +54,16 @@ var _ = Describe("Rest tests", func() {
 	})
 
 	It("should get rest api specs for gns package", func() {
-		apiSpecs := rest.GetRestApiSpecs(pkg, methods, codes)
+		apiSpecs := rest.GetRestApiSpecs(pkg, methods, codes, parentsMap)
 
 		expectedDnsApiSpec := nexus.RestAPISpec{
 			Uris: []nexus.RestURIs{
 				{
-					Uri:     "/v1alpha2/projects/{project}/dns/{Dns.gns}",
+					Uri:     "/v1alpha2/dns/{Dns.gns}",
 					Methods: nexus.DefaultHTTPMethodsResponses,
 				},
 				{
-					Uri: "/v1alpha2/projects/{project}/dnses",
+					Uri: "/v1alpha2/dnses",
 					Methods: nexus.HTTPMethodsResponses{
 						http.MethodGet: nexus.DefaultHTTPGETResponses,
 					},

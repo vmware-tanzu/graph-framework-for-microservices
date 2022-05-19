@@ -109,6 +109,11 @@ func (in *ConfigSpec) DeepCopyInto(out *ConfigSpec) {
 		*out = new(Child)
 		**out = **in
 	}
+	if in.DnsGvk != nil {
+		in, out := &in.DnsGvk, &out.DnsGvk
+		*out = new(Child)
+		**out = **in
+	}
 	return
 }
 

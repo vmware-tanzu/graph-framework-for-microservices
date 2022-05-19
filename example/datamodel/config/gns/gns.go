@@ -29,11 +29,11 @@ var BarCustomMethodsResponses = nexus.HTTPMethodsResponses{
 var GNSRestAPISpec = nexus.RestAPISpec{
 	Uris: []nexus.RestURIs{
 		{
-			Uri:     "/v1alpha2/projects/{project}/global-namespace/{Gns.gns}",
+			Uri:     "/v1alpha2/global-namespace/{Gns.gns}",
 			Methods: nexus.DefaultHTTPMethodsResponses,
 		},
 		{
-			Uri: "/v1alpha2/projects/{project}/global-namespaces",
+			Uri: "/v1alpha2/global-namespaces",
 			Methods: nexus.HTTPMethodsResponses{
 				http.MethodGet: nexus.DefaultHTTPGETResponses,
 			},
@@ -52,11 +52,11 @@ var GNSRestAPISpec = nexus.RestAPISpec{
 var DNSRestAPISpec = nexus.RestAPISpec{
 	Uris: []nexus.RestURIs{
 		{
-			Uri:     "/v1alpha2/projects/{project}/dns/{Dns.gns}",
+			Uri:     "/v1alpha2/dns/{Dns.gns}",
 			Methods: nexus.DefaultHTTPMethodsResponses,
 		},
 		{
-			Uri: "/v1alpha2/projects/{project}/dnses",
+			Uri: "/v1alpha2/dnses",
 			Methods: nexus.HTTPMethodsResponses{
 				http.MethodGet: nexus.DefaultHTTPGETResponses,
 			},

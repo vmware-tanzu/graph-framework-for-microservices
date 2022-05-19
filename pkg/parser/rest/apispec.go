@@ -3,6 +3,7 @@ package rest
 import (
 	"go/ast"
 	"go/types"
+	"regexp"
 	"strconv"
 
 	log "github.com/sirupsen/logrus"
@@ -10,7 +11,8 @@ import (
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/pkg/parser"
 )
 
-func GetRestApiSpecs(p parser.Package, httpMethods map[string]nexus.HTTPMethodsResponses, httpCodes map[string]nexus.HTTPCodesResponse) map[string]nexus.RestAPISpec {
+func GetRestApiSpecs(p parser.Package, httpMethods map[string]nexus.HTTPMethodsResponses,
+	httpCodes map[string]nexus.HTTPCodesResponse, parentsMap map[string]parser.NodeHelper) map[string]nexus.RestAPISpec {
 	apiSpecs := make(map[string]nexus.RestAPISpec)
 
 	for _, genDecl := range p.GenDecls {
@@ -28,6 +30,7 @@ func GetRestApiSpecs(p parser.Package, httpMethods map[string]nexus.HTTPMethodsR
 
 						for _, uri := range uris.Value.(*ast.CompositeLit).Elts {
 							restUri := extractApiSpecRestURI(uri.(*ast.CompositeLit), httpMethods, httpCodes)
+							validateUri(restUri, parentsMap)
 							apiSpec.Uris = append(apiSpec.Uris, restUri)
 						}
 					}
@@ -78,4 +81,24 @@ func extractApiSpecMethods(methods *ast.KeyValueExpr, httpMethods map[string]nex
 		return met
 	}
 	return nil
+}
+
+func validateUri(uri nexus.RestURIs, parentsMap map[string]parser.NodeHelper) {
+	r := regexp.MustCompile(`{([^{}]+)}`)
+	params := r.FindAllStringSubmatch(uri.Uri, -1)
+
+	for _, param := range params {
+		if !nodeExist(param[1], parentsMap) {
+			log.Fatalf("RestApiSpec: Provided node name (%s) not found for uri: %s", param[1], uri.Uri)
+		}
+	}
+}
+
+func nodeExist(name string, parentsMap map[string]parser.NodeHelper) bool {
+	for _, p := range parentsMap {
+		if p.RestName == name {
+			return true
+		}
+	}
+	return false
 }
