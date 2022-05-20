@@ -40,6 +40,19 @@ else
 GOBIN=$(shell go env GOBIN)
 endif
 
+ifeq ($(NEXUS_KUBEBUILDER),"")
+	NEXUS_KUBEBUILDER = $(PROJECT_DIR)/bin/nexus-kubebuilder
+endif
+
+ifeq ($(KUSTOMIZE),"")
+	KUSTOMIZE = $(PROJECT_DIR)/bin/kustomize
+endif
+
+install-nexus-kubebuilder:
+	if [ $(origin NEXUS_KUBEBUILDER) == "file" ]; then \
+		test -s ${PROJECT_DIR}/bin/nexus-kubebuilder || { mkdir -p ${PROJECT_DIR}/bin; cd ${PROJECT_DIR}/bin; GOBIN=${PROJECT_DIR}/bin go install gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kubebuilder.git/cmd/nexus-kubebuilder@master ; };\
+	fi
+
 ifeq ($(CONTAINER_ID),)
 define run_in_container
 docker run \
@@ -219,7 +232,6 @@ deploy: kustomize undeploy
 
 .PHONY: undeploy
 undeploy: kustomize
-	$(eval KUSTOMIZE=$(PROJECT_DIR)/bin/kustomize)
 	cd config/deployment/ && $(KUSTOMIZE) build . | kubectl delete -f - -n ${NAMESPACE} --ignore-not-found=true;
 
 
@@ -250,14 +262,6 @@ kustomize: ## Download kustomize locally if necessary.
 
 # go-get-tool will 'go get' any package $2 and install it to $1.
 install-kustomize:
-	if [ -z $(KUSTOMIZE) ]; then \
+	if [ $(origin KUSTOMIZE) == "file" ]; then \
 		test -s $(PROJECT_DIR)/bin/kustomize || { mkdir -p $(PROJECT_DIR)/bin; cd $(PROJECT_DIR)/bin; curl -s "https://raw.githubusercontent.com/kubernetes-sigs/kustomize/master/hack/install_kustomize.sh" | bash ; }; \
-		$(eval KUSTOMIZE=$(PROJECT_DIR)/bin/kustomize)\
-	fi
-
-
-install-nexus-kubebuilder:
-	if [ -z $(NEXUS_KUBEBUILDER) ]; then \
-		test -s ${PROJECT_DIR}/bin/nexus-kubebuilder || { mkdir -p ${PROJECT_DIR}/bin; cd ${PROJECT_DIR}/bin; GOBIN=${PROJECT_DIR}/bin go install gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kubebuilder.git/cmd/nexus-kubebuilder@master ; };\
-		$(eval NEXUS_KUBEBUILDER=$(PROJECT_DIR)/bin/nexus-kubebuilder)\
 	fi
