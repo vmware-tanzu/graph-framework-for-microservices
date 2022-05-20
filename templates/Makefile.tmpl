@@ -219,6 +219,7 @@ deploy: kustomize undeploy
 
 .PHONY: undeploy
 undeploy: kustomize
+	$(eval KUSTOMIZE=$(PROJECT_DIR)/bin/kustomize)
 	cd config/deployment/ && $(KUSTOMIZE) build . | kubectl delete -f - -n ${NAMESPACE} --ignore-not-found=true;
 
 
