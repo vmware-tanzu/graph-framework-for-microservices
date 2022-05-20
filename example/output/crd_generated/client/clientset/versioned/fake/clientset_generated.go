@@ -24,8 +24,8 @@ import (
 	fakeconfigtsmv1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/crd_generated/client/clientset/versioned/typed/config.tsm.tanzu.vmware.com/v1/fake"
 	gnstsmv1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/crd_generated/client/clientset/versioned/typed/gns.tsm.tanzu.vmware.com/v1"
 	fakegnstsmv1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/crd_generated/client/clientset/versioned/typed/gns.tsm.tanzu.vmware.com/v1/fake"
-	policytsmv1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/crd_generated/client/clientset/versioned/typed/policy.tsm.tanzu.vmware.com/v1"
-	fakepolicytsmv1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/crd_generated/client/clientset/versioned/typed/policy.tsm.tanzu.vmware.com/v1/fake"
+	policypkgtsmv1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/crd_generated/client/clientset/versioned/typed/policypkg.tsm.tanzu.vmware.com/v1"
+	fakepolicypkgtsmv1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/crd_generated/client/clientset/versioned/typed/policypkg.tsm.tanzu.vmware.com/v1/fake"
 	roottsmv1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/crd_generated/client/clientset/versioned/typed/root.tsm.tanzu.vmware.com/v1"
 	fakeroottsmv1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/crd_generated/client/clientset/versioned/typed/root.tsm.tanzu.vmware.com/v1/fake"
 	servicegrouptsmv1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/crd_generated/client/clientset/versioned/typed/servicegroup.tsm.tanzu.vmware.com/v1"
@@ -97,9 +97,9 @@ func (c *Clientset) GnsTsmV1() gnstsmv1.GnsTsmV1Interface {
 	return &fakegnstsmv1.FakeGnsTsmV1{Fake: &c.Fake}
 }
 
-// PolicyTsmV1 retrieves the PolicyTsmV1Client
-func (c *Clientset) PolicyTsmV1() policytsmv1.PolicyTsmV1Interface {
-	return &fakepolicytsmv1.FakePolicyTsmV1{Fake: &c.Fake}
+// PolicypkgTsmV1 retrieves the PolicypkgTsmV1Client
+func (c *Clientset) PolicypkgTsmV1() policypkgtsmv1.PolicypkgTsmV1Interface {
+	return &fakepolicypkgtsmv1.FakePolicypkgTsmV1{Fake: &c.Fake}
 }
 
 // RootTsmV1 retrieves the RootTsmV1Client
