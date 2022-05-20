@@ -3,6 +3,7 @@ package echo_server
 import (
 	"api-gw/pkg/model"
 	"context"
+	"fmt"
 	"net/http"
 	"strings"
 
@@ -40,7 +41,8 @@ func getHandler(c echo.Context) error {
 				if val, ok := nc.Codes[http.StatusBadRequest]; ok {
 					return nc.JSON(http.StatusBadRequest, DefaultResponse{Message: val.Description})
 				} else {
-					return nc.NoContent(http.StatusInternalServerError)
+					log.Debugf("Could not find required param %s for request %s", crd.Name, nc.Request().RequestURI)
+					return nc.JSON(http.StatusBadRequest, DefaultResponse{Message: fmt.Sprintf("Could not find required param: %s", crd.Name)})
 				}
 			}
 		}
@@ -113,7 +115,8 @@ func putHandler(c echo.Context) error {
 		if val, ok := nc.Codes[http.StatusBadRequest]; ok {
 			return nc.JSON(http.StatusBadRequest, DefaultResponse{Message: val.Description})
 		} else {
-			return nc.NoContent(http.StatusInternalServerError)
+			log.Debugf("Could not find required param %s for request %s", crd.Name, nc.Request().RequestURI)
+			return nc.JSON(http.StatusBadRequest, DefaultResponse{Message: fmt.Sprintf("Could not find required param: %s", crd.Name)})
 		}
 	}
 
@@ -134,6 +137,7 @@ func putHandler(c echo.Context) error {
 	labels := parseLabels(nc, crd.ParentHierarchy)
 	labels["nexus/is_name_hashed"] = "true"
 	labels["nexus/display_name"] = name
+	labels[crd.Name] = name
 
 	// Mangle name
 	hashedName := nexus.GetHashedName(crdType, crd.ParentHierarchy, labels, name)
@@ -152,7 +156,7 @@ func putHandler(c echo.Context) error {
 			if len(crd.ParentHierarchy) > 0 {
 				parentCrdName := crd.ParentHierarchy[len(crd.ParentHierarchy)-1]
 				parentCrd := model.GlobalCRDTypeToNodes[parentCrdName]
-				err = client.UpdateParentGvk(parentCrdName, parentCrd, labels, crdType, name)
+				err = client.UpdateParentGvk(parentCrdName, parentCrd, labels, crdType, name, hashedName)
 			}
 
 			if err == nil {
