@@ -64,7 +64,8 @@ func (p Patch) Marshal() ([]byte, error) {
 	return json.Marshal(p)
 }
 
-func UpdateParentGvk(parentCrdName string, parentCrd model.NodeInfo, labels map[string]string, childCrdName string, childName string) error {
+// TODO: build PatchOP in common-library
+func UpdateParentGvk(parentCrdName string, parentCrd model.NodeInfo, labels map[string]string, childCrdName string, childName string, childHashedName string) error {
 	var (
 		patchType types.PatchType
 		marshaled []byte
@@ -82,7 +83,7 @@ func UpdateParentGvk(parentCrdName string, parentCrd model.NodeInfo, labels map[
 	childGvk := parentCrd.Children[childCrdName]
 
 	if childGvk.IsNamed {
-		payload := "{\"spec\": {\"" + childGvk.FieldNameGvk + "\": {\"" + childName + "\": {\"name\": \"" + childName + "\"}}}}"
+		payload := "{\"spec\": {\"" + childGvk.FieldNameGvk + "\": {\"" + childName + "\": {\"name\": \"" + childHashedName + "\"}}}}"
 		patchType = types.MergePatchType
 		marshaled = []byte(payload)
 	} else {
@@ -91,7 +92,7 @@ func UpdateParentGvk(parentCrdName string, parentCrd model.NodeInfo, labels map[
 			Op:   "replace",
 			Path: "/spec/" + childGvk.FieldNameGvk,
 			Value: map[string]interface{}{
-				"name": childName,
+				"name": childHashedName,
 			},
 		}
 		patch = append(patch, patchOp)
