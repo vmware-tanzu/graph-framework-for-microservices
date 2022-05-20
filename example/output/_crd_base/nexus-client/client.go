@@ -801,52 +801,6 @@ func (obj *ConfigConfig) DeleteDNS(ctx context.Context) (err error) {
 	return
 }
 
-// AddDNS calculates hashed name of the child to create based on objToCreate.Name
-// and parents names and creates it. objToCreate.Name is changed to the hashed name. Original name is preserved in
-// nexus/display_name label and can be obtained using DisplayName() method.
-func (obj *ConfigConfig) AddDNS(ctx context.Context,
-	objToCreate *basegnstsmtanzuvmwarecomv1.Dns) (result *GnsDns, err error) {
-	if objToCreate.Labels == nil {
-		objToCreate.Labels = map[string]string{}
-	}
-	for _, v := range helper.GetCRDParentsMap()["configs.config.tsm.tanzu.vmware.com"] {
-		objToCreate.Labels[v] = obj.Labels[v]
-	}
-	objToCreate.Labels["configs.config.tsm.tanzu.vmware.com"] = obj.DisplayName()
-	if objToCreate.Labels[common.IS_NAME_HASHED_LABEL] != "true" {
-		objToCreate.Labels[common.DISPLAY_NAME_LABEL] = objToCreate.GetName()
-		objToCreate.Labels[common.IS_NAME_HASHED_LABEL] = "true"
-		hashedName := helper.GetHashedName(objToCreate.CRDName(), objToCreate.Labels, objToCreate.GetName())
-		objToCreate.Name = hashedName
-	}
-	result, err = obj.client.Gns().CreateDnsByName(ctx, objToCreate)
-	updatedObj, getErr := obj.client.Config().GetConfigByName(ctx, obj.GetName())
-	if getErr == nil {
-		obj.Config = updatedObj.Config
-	}
-	return
-}
-
-// DeleteDNS calculates hashed name of the child to delete based on displayName
-// and parents names and deletes it.
-func (obj *ConfigConfig) DeleteDNS(ctx context.Context, displayName string) (err error) {
-	parentLabels := make(map[string]string)
-	for k, v := range obj.GetLabels() {
-		parentLabels[k] = v
-	}
-	parentLabels[obj.CRDName()] = obj.DisplayName()
-	hashedName := helper.GetHashedName("dnses.gns.tsm.tanzu.vmware.com", parentLabels, displayName)
-	err = obj.client.Gns().DeleteDnsByName(ctx, hashedName)
-	if err != nil {
-		return err
-	}
-	updatedObj, err := obj.client.Config().GetConfigByName(ctx, obj.GetName())
-	if err == nil {
-		obj.Config = updatedObj.Config
-	}
-	return
-}
-
 type configConfigTsmV1Chainer struct {
 	client       *Clientset
 	name         string
