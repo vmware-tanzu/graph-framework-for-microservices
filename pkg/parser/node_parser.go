@@ -47,7 +47,6 @@ func ParseDSLNodes(startPath string, baseGroupName string) map[string]Node {
 								if typeSpec, ok := spec.(*ast.TypeSpec); ok {
 									if _, ok := typeSpec.Type.(*ast.StructType); ok {
 										crdName := util.GetCrdName(typeSpec.Name.Name, v.Name, baseGroupName)
-
 										// Detect root nodes
 										if path == startPath {
 											rootNodes = append(rootNodes, crdName)
@@ -169,15 +168,13 @@ func processNode(node *Node, nodes map[string]Node, baseGroupName string) {
 					log.Fatalf("Failed to parse imports: %v", err)
 				}
 
-				if strings.HasSuffix(importPath, fieldType[0]) || importSpec.Name.String() == fieldType[0] {
-					// If import is not named then we can build key without looping through nodes
-					if importSpec.Name == nil {
-						key = util.GetCrdName(fieldType[1], util.RemoveSpecialChars(fieldType[0]), baseGroupName)
-					} else {
-						for _, n := range nodes {
-							if n.FullName == importPath && n.Name == fieldType[1] {
-								key = n.CrdName
-							}
+				// If import is not named then we can build key without looping through nodes
+				if importSpec.Name == nil {
+					key = util.GetCrdName(fieldType[1], util.RemoveSpecialChars(fieldType[0]), baseGroupName)
+				} else {
+					for _, n := range nodes {
+						if n.FullName == importPath && n.Name == fieldType[1] {
+							key = n.CrdName
 						}
 					}
 				}

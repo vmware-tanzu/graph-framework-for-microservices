@@ -27,7 +27,7 @@ import (
 	configtsmtanzuvmwarecom "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/crd_generated/client/informers/externalversions/config.tsm.tanzu.vmware.com"
 	gnstsmtanzuvmwarecom "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/crd_generated/client/informers/externalversions/gns.tsm.tanzu.vmware.com"
 	internalinterfaces "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/crd_generated/client/informers/externalversions/internalinterfaces"
-	policytsmtanzuvmwarecom "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/crd_generated/client/informers/externalversions/policy.tsm.tanzu.vmware.com"
+	policypkgtsmtanzuvmwarecom "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/crd_generated/client/informers/externalversions/policypkg.tsm.tanzu.vmware.com"
 	roottsmtanzuvmwarecom "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/crd_generated/client/informers/externalversions/root.tsm.tanzu.vmware.com"
 	servicegrouptsmtanzuvmwarecom "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/crd_generated/client/informers/externalversions/servicegroup.tsm.tanzu.vmware.com"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -178,7 +178,7 @@ type SharedInformerFactory interface {
 
 	ConfigTsm() configtsmtanzuvmwarecom.Interface
 	GnsTsm() gnstsmtanzuvmwarecom.Interface
-	PolicyTsm() policytsmtanzuvmwarecom.Interface
+	PolicypkgTsm() policypkgtsmtanzuvmwarecom.Interface
 	RootTsm() roottsmtanzuvmwarecom.Interface
 	ServicegroupTsm() servicegrouptsmtanzuvmwarecom.Interface
 }
@@ -191,8 +191,8 @@ func (f *sharedInformerFactory) GnsTsm() gnstsmtanzuvmwarecom.Interface {
 	return gnstsmtanzuvmwarecom.New(f, f.namespace, f.tweakListOptions)
 }
 
-func (f *sharedInformerFactory) PolicyTsm() policytsmtanzuvmwarecom.Interface {
-	return policytsmtanzuvmwarecom.New(f, f.namespace, f.tweakListOptions)
+func (f *sharedInformerFactory) PolicypkgTsm() policypkgtsmtanzuvmwarecom.Interface {
+	return policypkgtsmtanzuvmwarecom.New(f, f.namespace, f.tweakListOptions)
 }
 
 func (f *sharedInformerFactory) RootTsm() roottsmtanzuvmwarecom.Interface {
