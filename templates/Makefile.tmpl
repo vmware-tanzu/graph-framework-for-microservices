@@ -251,12 +251,12 @@ kustomize: ## Download kustomize locally if necessary.
 install-kustomize:
 	if [ -z $(KUSTOMIZE) ]; then \
 		test -s $(PROJECT_DIR)/bin/kustomize || { mkdir -p $(PROJECT_DIR)/bin; cd $(PROJECT_DIR)/bin; curl -s "https://raw.githubusercontent.com/kubernetes-sigs/kustomize/master/hack/install_kustomize.sh" | bash ; }; \
-		KUSTOMIZE = $(PROJECT_DIR)/bin/kustomize ;\
+		$(eval KUSTOMIZE=$(PROJECT_DIR)/bin/kustomize)\
 	fi
 
 
 install-nexus-kubebuilder:
 	if [ -z $(NEXUS_KUBEBUILDER) ]; then \
 		test -s ${PROJECT_DIR}/bin/nexus-kubebuilder || { mkdir -p ${PROJECT_DIR}/bin; cd ${PROJECT_DIR}/bin; GOBIN=${PROJECT_DIR}/bin go install gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kubebuilder.git/cmd/nexus-kubebuilder@master ; };\
-		NEXUS_KUBEBUILDER = $(PROJECT_DIR)/bin/nexus-kubebuilder ;\
+		$(eval NEXUS_KUBEBUILDER=$(PROJECT_DIR)/bin/nexus-kubebuilder)\
 	fi
