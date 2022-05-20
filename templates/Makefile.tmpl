@@ -7,6 +7,8 @@ NAMESPACE ?= default
 DATAMODEL_DIR ?= "./nexus"
 BUILDER_NAME ?= ${APP_NAME}-builder
 BUILDER_TAG := $(shell md5sum builder/Dockerfile | awk '{ print $1 }' | head -c 8)
+KUSTOMIZE ?= ""
+NEXUS_KUBEBUILDER ?= ""
 CLUSTER ?= ""
 DATAMODEL ?= ""
 DATAMODEL_GROUP ?= ""
@@ -225,7 +227,7 @@ add_operator: install-nexus-kubebuilder
 		if [ -n $(CRD_GROUP) ]; then \
 			if [ -n $(CRD_VERSION) ]; then \
 				if [ -n $(CRD_KIND) ]; then \
-					$(NEXUS-KUBEBUILDER) create api --group $(CRD_GROUP) --kind $(CRD_KIND) --version $(CRD_VERSION) --controller --resource=false --import $(CRD_DATAMODEL_NAME) ;\
+					$(NEXUS_KUBEBUILDER) create api --group $(CRD_GROUP) --kind $(CRD_KIND) --version $(CRD_VERSION) --controller --resource=false --import $(CRD_DATAMODEL_NAME) ;\
 				else \
 					echo "Please provide CRD_KIND"; exit 1;\
 				fi \
@@ -241,15 +243,20 @@ add_operator: install-nexus-kubebuilder
 
 #check how to use kustomize for now using sed to replace deployment..
 PROJECT_DIR := $(shell dirname $(abspath $(lastword $(MAKEFILE_LIST))))
-KUSTOMIZE = $(PROJECT_DIR)/bin/kustomize
 .PHONY: kustomize
 kustomize: ## Download kustomize locally if necessary.
 	$(MAKE) install-kustomize
 
 # go-get-tool will 'go get' any package $2 and install it to $1.
 install-kustomize:
-	test -s $(PROJECT_DIR)/bin/kustomize || { mkdir -p $(PROJECT_DIR)/bin; cd $(PROJECT_DIR)/bin; curl -s "https://raw.githubusercontent.com/kubernetes-sigs/kustomize/master/hack/install_kustomize.sh" | bash ; };
+	if [ -z $(KUSTOMIZE) ]; then \
+		test -s $(PROJECT_DIR)/bin/kustomize || { mkdir -p $(PROJECT_DIR)/bin; cd $(PROJECT_DIR)/bin; curl -s "https://raw.githubusercontent.com/kubernetes-sigs/kustomize/master/hack/install_kustomize.sh" | bash ; }; \
+		KUSTOMIZE = $(PROJECT_DIR)/bin/kustomize ;\
+	fi
 
-NEXUS-KUBEBUILDER = $(PROJECT_DIR)/bin/nexus-kubebuilder
+
 install-nexus-kubebuilder:
-	test -s ${PROJECT_DIR}/bin/nexus-kubebuilder || { mkdir - ${PROJECT_DIR}/bin; cd ${PROJECT_DIR}/bin; GOBIN=${PROJECT_DIR}/bin go install gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kubebuilder.git/cmd/nexus-kubebuilder@master ; }
+	if [ -z $(NEXUS_KUBEBUILDER) ]; then \
+		test -s ${PROJECT_DIR}/bin/nexus-kubebuilder || { mkdir -p ${PROJECT_DIR}/bin; cd ${PROJECT_DIR}/bin; GOBIN=${PROJECT_DIR}/bin go install gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kubebuilder.git/cmd/nexus-kubebuilder@master ; };\
+		NEXUS_KUBEBUILDER = $(PROJECT_DIR)/bin/nexus-kubebuilder ;\
+	fi
