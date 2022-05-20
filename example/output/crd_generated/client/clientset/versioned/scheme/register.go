@@ -21,7 +21,7 @@ package scheme
 import (
 	configtsmv1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/crd_generated/apis/config.tsm.tanzu.vmware.com/v1"
 	gnstsmv1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/crd_generated/apis/gns.tsm.tanzu.vmware.com/v1"
-	policytsmv1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/crd_generated/apis/policy.tsm.tanzu.vmware.com/v1"
+	policypkgtsmv1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/crd_generated/apis/policypkg.tsm.tanzu.vmware.com/v1"
 	roottsmv1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/crd_generated/apis/root.tsm.tanzu.vmware.com/v1"
 	servicegrouptsmv1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/crd_generated/apis/servicegroup.tsm.tanzu.vmware.com/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -37,7 +37,7 @@ var ParameterCodec = runtime.NewParameterCodec(Scheme)
 var localSchemeBuilder = runtime.SchemeBuilder{
 	configtsmv1.AddToScheme,
 	gnstsmv1.AddToScheme,
-	policytsmv1.AddToScheme,
+	policypkgtsmv1.AddToScheme,
 	roottsmv1.AddToScheme,
 	servicegrouptsmv1.AddToScheme,
 }

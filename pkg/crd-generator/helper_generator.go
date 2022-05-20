@@ -51,7 +51,6 @@ func generateGetObjectByCRDName(keys []string, parentsMap map[string]parser.Node
 		}
 
 		s.CrdName = k
-
 		parts := strings.Split(k, ".")
 		s.Method = fmt.Sprintf("%s%sV1", strings.Title(parts[1]), strings.Title(parts[2]))
 		s.Plural = util.ToPlural(v.Name)

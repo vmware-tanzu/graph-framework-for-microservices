@@ -1,4 +1,4 @@
-package policy
+package policypkg
 
 import (
 	service_group "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/datamodel/config/gns/service-group"
