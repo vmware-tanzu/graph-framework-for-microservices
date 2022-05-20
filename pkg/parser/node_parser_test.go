@@ -27,6 +27,7 @@ var _ = Describe("Node parser tests", func() {
 		expectedNodes := []string{"Root", "Config", "Gns", "SvcGroup", "AccessControlPolicy", "ACPConfig", "Dns"}
 		var nodes []string
 		root.Walk(func(node *parser.Node) {
+			log.Println(node.Name)
 			nodes = append(nodes, node.Name)
 		})
 		Expect(nodes).To(HaveLen(7))
