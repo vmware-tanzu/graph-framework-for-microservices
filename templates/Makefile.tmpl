@@ -49,7 +49,7 @@ ifeq ($(KUSTOMIZE),"")
 endif
 
 install-nexus-kubebuilder:
-	if [ $(origin NEXUS_KUBEBUILDER) == "file" ]; then \
+	if [ "$(origin NEXUS_KUBEBUILDER)" = "file" ]; then \
 		test -s ${PROJECT_DIR}/bin/nexus-kubebuilder || { mkdir -p ${PROJECT_DIR}/bin; cd ${PROJECT_DIR}/bin; GOBIN=${PROJECT_DIR}/bin go install gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kubebuilder.git/cmd/nexus-kubebuilder@master ; };\
 	fi
 
@@ -262,6 +262,6 @@ kustomize: ## Download kustomize locally if necessary.
 
 # go-get-tool will 'go get' any package $2 and install it to $1.
 install-kustomize:
-	if [ $(origin KUSTOMIZE) == "file" ]; then \
+	if [ "$(origin KUSTOMIZE)" = "file" ]; then \
 		test -s $(PROJECT_DIR)/bin/kustomize || { mkdir -p $(PROJECT_DIR)/bin; cd $(PROJECT_DIR)/bin; curl -s "https://raw.githubusercontent.com/kubernetes-sigs/kustomize/master/hack/install_kustomize.sh" | bash ; }; \
 	fi
