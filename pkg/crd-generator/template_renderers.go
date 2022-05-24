@@ -286,7 +286,7 @@ func RenderTypesTemplate(crdModulePath string, pkg parser.Package) (*bytes.Buffe
 	var vars typesVars
 	vars.Imports = parsePackageImports(pkg, aliasNameMap)
 	vars.CRDTypes = parsePackageCRDs(pkg, aliasNameMap)
-	vars.Structs = parsePackageStructs(pkg)
+	vars.Structs = parsePackageStructs(pkg, aliasNameMap)
 	vars.Types = parsePackageTypes(pkg)
 	vars.CommonImport = util.GetInternalImport(crdModulePath, "common")
 

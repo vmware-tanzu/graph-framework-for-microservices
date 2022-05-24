@@ -18,6 +18,7 @@ var _ = Describe("Template renderers tests", func() {
 	var (
 		//err error
 		fakeClient *nexus_client.Clientset
+		str        gnsv1.MyStr = "test"
 	)
 	BeforeEach(func() {
 		fakeClient = nexus_client.NewFakeClient()
@@ -64,28 +65,28 @@ var _ = Describe("Template renderers tests", func() {
 					Name: cfgName,
 				},
 				Spec: configv1.ConfigSpec{
-					MyStr: "test",
+					MyStr: &str,
 				},
 			}
 			cfg, err := root.AddConfig(context.TODO(), cfgDef)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(cfg.DisplayName()).To(Equal("configObj"))
 			Expect(cfg.GetLabels()).To(BeEquivalentTo(expectedLabels))
-			Expect(cfg.Spec.MyStr).To(Equal(gnsv1.MyStr("test")))
+			Expect(cfg.Spec.MyStr).To(Equal(&str))
 
 			// GetConfig should return same object
 			cfg, err = root.GetConfig(context.TODO())
 			Expect(err).NotTo(HaveOccurred())
 			Expect(cfg.DisplayName()).To(Equal(cfgName))
 			Expect(cfg.GetLabels()).To(BeEquivalentTo(expectedLabels))
-			Expect(cfg.Spec.MyStr).To(Equal(gnsv1.MyStr("test")))
+			Expect(cfg.Spec.MyStr).To(Equal(&str))
 
 			// Also Get by using hashed name should return same thing
 			cfg, err = fakeClient.Config().GetConfigByName(context.TODO(), cfg.GetName())
 			Expect(err).NotTo(HaveOccurred())
 			Expect(cfg.DisplayName()).To(Equal(cfgName))
 			Expect(cfg.GetLabels()).To(BeEquivalentTo(expectedLabels))
-			Expect(cfg.Spec.MyStr).To(Equal(gnsv1.MyStr("test")))
+			Expect(cfg.Spec.MyStr).To(Equal(&str))
 
 			// Another create should fail
 			_, err = root.AddConfig(context.TODO(), cfgDef)
@@ -99,7 +100,7 @@ var _ = Describe("Template renderers tests", func() {
 					Name: cfgName,
 				},
 				Spec: configv1.ConfigSpec{
-					MyStr: "test",
+					MyStr: &str,
 				},
 			}
 			cfg, err := root.AddConfig(context.TODO(), cfgDef)
@@ -121,20 +122,21 @@ var _ = Describe("Template renderers tests", func() {
 					Name: cfgName,
 				},
 				Spec: configv1.ConfigSpec{
-					MyStr: "test",
+					MyStr: &str,
 				},
 			}
 			cfg, err := root.AddConfig(context.TODO(), cfgDef)
 			Expect(err).NotTo(HaveOccurred())
-			Expect(cfg.Spec.MyStr).To(Equal(gnsv1.MyStr("test")))
+			Expect(*cfg.Spec.MyStr).To(Equal(str))
 
-			cfg.Spec.MyStr = "updatedStr"
+			var updatedStr gnsv1.MyStr = "updatedStr"
+			cfg.Spec.MyStr = &updatedStr
 			err = cfg.Update(context.TODO())
 			Expect(err).NotTo(HaveOccurred())
-			Expect(cfg.Spec.MyStr).To(Equal(gnsv1.MyStr("updatedStr")))
+			Expect(cfg.Spec.MyStr).To(Equal(&updatedStr))
 			cfg, err = root.GetConfig(context.TODO())
 			Expect(err).NotTo(HaveOccurred())
-			Expect(cfg.Spec.MyStr).To(Equal(gnsv1.MyStr("updatedStr")))
+			Expect(cfg.Spec.MyStr).To(Equal(&updatedStr))
 		})
 
 		It("should create named child", func() {
@@ -144,7 +146,7 @@ var _ = Describe("Template renderers tests", func() {
 					Name: cfgName,
 				},
 				Spec: configv1.ConfigSpec{
-					MyStr: "test",
+					MyStr: &str,
 				},
 			}
 			cfg, err := root.AddConfig(context.TODO(), cfgDef)
@@ -196,7 +198,7 @@ var _ = Describe("Template renderers tests", func() {
 					Name: cfgName,
 				},
 				Spec: configv1.ConfigSpec{
-					MyStr: "test",
+					MyStr: &str,
 				},
 			}
 			cfg, err := root.AddConfig(context.TODO(), cfgDef)
@@ -244,7 +246,7 @@ var _ = Describe("Template renderers tests", func() {
 				Name: "cfg",
 			},
 			Spec: configv1.ConfigSpec{
-				MyStr: "test",
+				MyStr: &str,
 			},
 		}
 		cfg, err := root.AddConfig(context.TODO(), cfgDef)

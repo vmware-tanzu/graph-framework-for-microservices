@@ -50,9 +50,11 @@ func (c *Config) DisplayName() string {
 
 // +k8s:openapi-gen=true
 type ConfigSpec struct {
-	MyStr  gnstsmtanzuvmwarecomv1.MyStr `json:"myStr" yaml:"myStr"`
-	GNSGvk *Child                       `json:"gNSGvk,omitempty" yaml:"gNSGvk,omitempty" nexus:"child"`
-	DNSGvk *Child                       `json:"dNSGvk,omitempty" yaml:"dNSGvk,omitempty" nexus:"child"`
+	MyStr  *gnstsmtanzuvmwarecomv1.MyStr           `json:"myStr" yaml:"myStr"`
+	MyStr1 []gnstsmtanzuvmwarecomv1.MyStr          `json:"myStr1" yaml:"myStr1"`
+	MyStr2 map[string]gnstsmtanzuvmwarecomv1.MyStr `json:"myStr2" yaml:"myStr2"`
+	GNSGvk *Child                                  `json:"gNSGvk,omitempty" yaml:"gNSGvk,omitempty" nexus:"child"`
+	DNSGvk *Child                                  `json:"dNSGvk,omitempty" yaml:"dNSGvk,omitempty" nexus:"child"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
@@ -60,4 +62,13 @@ type ConfigList struct {
 	metav1.TypeMeta `json:",inline" yaml:",inline"`
 	metav1.ListMeta `json:"metadata" yaml:"metadata"`
 	Items           []Config `json:"items" yaml:"items"`
+}
+
+// +k8s:openapi-gen=true
+type CrossPackageTester struct {
+	Test gnstsmtanzuvmwarecomv1.MyStr
+}
+
+// +k8s:openapi-gen=true
+type EmptyStructTest struct {
 }

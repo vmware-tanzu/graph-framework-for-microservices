@@ -20,5 +20,14 @@ type Config struct {
 	GNS gns.Gns `nexus:"child"`
 	DNS gns.Dns `nexus:"child"`
 
-	MyStr gns.MyStr
+	// Examples for cross-package import.
+	MyStr  *gns.MyStr
+	MyStr1 []gns.MyStr
+	MyStr2 map[string]gns.MyStr
 }
+
+type CrossPackageTester struct {
+	Test gns.MyStr
+}
+
+type EmptyStructTest struct{}
