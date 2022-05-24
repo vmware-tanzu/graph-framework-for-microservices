@@ -71,10 +71,21 @@ spec:
                 - name
                 type: object
               myStr:
-                default: ""
                 type: string
+              myStr1:
+                items:
+                  default: ""
+                  type: string
+                type: array
+              myStr2:
+                additionalProperties:
+                  default: ""
+                  type: string
+                type: object
             required:
             - myStr
+            - myStr1
+            - myStr2
             type: object
         type: object
     served: true

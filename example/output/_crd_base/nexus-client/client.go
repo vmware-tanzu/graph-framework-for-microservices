@@ -630,6 +630,24 @@ func (group *ConfigTsmV1) UpdateConfigByName(ctx context.Context,
 	}
 	patch = append(patch, patchOpMyStr)
 
+	patchValueMyStr1 :=
+		objToUpdate.Spec.MyStr1
+	patchOpMyStr1 := PatchOp{
+		Op:    "replace",
+		Path:  "/spec/myStr1",
+		Value: patchValueMyStr1,
+	}
+	patch = append(patch, patchOpMyStr1)
+
+	patchValueMyStr2 :=
+		objToUpdate.Spec.MyStr2
+	patchOpMyStr2 := PatchOp{
+		Op:    "replace",
+		Path:  "/spec/myStr2",
+		Value: patchValueMyStr2,
+	}
+	patch = append(patch, patchOpMyStr2)
+
 	marshaled, err := patch.Marshal()
 	if err != nil {
 		return nil, err

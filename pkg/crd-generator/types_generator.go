@@ -141,14 +141,7 @@ type {{.Name}}Spec struct {
 			log.Fatalf("failed to GetFieldName: %v", err)
 		}
 		specDef.Fields += "\t" + name + " "
-		typeString := types.ExprString(field.Type)
-		parts := strings.Split(typeString, ".")
-		if len(parts) > 1 {
-			if val, ok := aliasNameMap[parts[0]]; ok {
-				parts[0] = val
-			}
-			typeString = parts[0] + "." + parts[1]
-		}
+		typeString := constructType(aliasNameMap, field)
 		specDef.Fields += typeString
 		specDef.Fields += " " + getTag(field, name, false) + "\n"
 	}
@@ -220,17 +213,52 @@ type {{.Name}}List struct {
 	return b.String()
 }
 
-func parsePackageStructs(pkg parser.Package) string {
+func parsePackageStructs(pkg parser.Package, aliasNameMap map[string]string) string {
 	var output string
 	for _, node := range pkg.GetNodes() {
-		t, err := pkg.TypeSpecToString(node)
+		output += generateNonNexusTypes(node, aliasNameMap)
+	}
+	return output
+}
+
+func generateNonNexusTypes(node *ast.TypeSpec, aliasNameMap map[string]string) string {
+	var crdTemplate = openapigen + `
+type {{.Name}} struct {
+{{.Fields}}}
+
+`
+
+	var specDef struct {
+		Name   string
+		Fields string
+	}
+	specDef.Name = parser.GetTypeName(node)
+	for _, field := range parser.GetSpecFields(node) {
+		name, err := parser.GetFieldName(field)
 		if err != nil {
-			log.Fatalf("failed to translate type spec to string: %v", err)
+			log.Fatalf("failed to GetFieldName: %v", err)
 		}
-		output += openapigen + "\n" + "type " + t + "\n\n"
+		specDef.Fields += "\t" + name + " "
+		typeString := constructType(aliasNameMap, field)
+
+		currentTags := parser.GetFieldTags(field)
+		if currentTags != nil && currentTags.Len() > 0 {
+			specDef.Fields += typeString
+			specDef.Fields += " " + fmt.Sprintf("`%s`", currentTags.String()) + "\n"
+		} else {
+			specDef.Fields += typeString + "\n"
+		}
 	}
 
-	return output
+	tmpl, err := template.New("tmpl").Parse(crdTemplate)
+	if err != nil {
+		log.Fatalf("failed to parse template: %v", err)
+	}
+	b, err := renderTemplate(tmpl, specDef)
+	if err != nil {
+		log.Fatalf("failed to render template: %v", err)
+	}
+	return b.String()
 }
 
 func parsePackageTypes(pkg parser.Package) string {
@@ -293,4 +321,65 @@ func constructImports(inputAlias, inputImportPath string) (string, string) {
 
 	importPath := fmt.Sprintf("\"%sapis/%s.%s/v1\"", config.ConfigInstance.CrdModulePath, re.ReplaceAllString(inputAlias, ""), config.ConfigInstance.GroupName)
 	return aliasName, importPath
+}
+
+// TODO: https://jira.eng.vmware.com/browse/NPT-296
+// Support cross-package imports for the following additional types:
+// 1. map[gns.MyStr][]gns.MyStr
+// 2. map[string]map[string]gns.MyStr
+// 3. []map[string]gns.MyStr
+// 4. **gns.MyStr
+func constructType(aliasNameMap map[string]string, field *ast.Field) string {
+	typeString := types.ExprString(field.Type)
+
+	// Check if the field is imported from a different package.
+	if !strings.Contains(typeString, ".") {
+		return typeString
+	}
+
+	switch {
+	case parser.IsMapField(field):
+		// TODO: Check if the function GetFieldType(field) can be reused for cases other than:
+		// map[string]gns.MyStr
+		// https://jira.eng.vmware.com/browse/NPT-296
+		mapParts := regexp.MustCompile(`^(map\[)`).ReplaceAllString(typeString, "")
+		mapStr := regexp.MustCompile(`\]`).Split(mapParts, -1)
+		var types []string
+		for _, val := range mapStr {
+			parts := strings.Split(val, ".")
+			if len(parts) > 1 {
+				parts = constructTypeParts(aliasNameMap, parts)
+				val = parts[0] + "." + parts[1]
+			}
+			types = append(types, val)
+		}
+		typeString = fmt.Sprintf("map[%s]%s", types[0], types[1])
+	case parser.IsArrayField(field):
+		arr := regexp.MustCompile(`^(\[])`).ReplaceAllString(typeString, "")
+		parts := strings.Split(arr, ".")
+		if len(parts) > 1 {
+			parts = constructTypeParts(aliasNameMap, parts)
+			typeString = fmt.Sprintf("[]%s.%s", parts[0], parts[1])
+		}
+	default:
+		parts := strings.Split(typeString, ".")
+		if len(parts) > 1 {
+			parts = constructTypeParts(aliasNameMap, parts)
+			typeString = fmt.Sprintf("%s.%s", parts[0], parts[1])
+		}
+	}
+	return typeString
+}
+
+func constructTypeParts(aliasNameMap map[string]string, parts []string) []string {
+	if strings.Contains(parts[0], "*") {
+		if val, ok := aliasNameMap[strings.TrimLeft(parts[0], "*")]; ok {
+			parts[0] = "*" + val
+		}
+	} else {
+		if val, ok := aliasNameMap[parts[0]]; ok {
+			parts[0] = val
+		}
+	}
+	return parts
 }
