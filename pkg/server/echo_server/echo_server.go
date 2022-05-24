@@ -150,6 +150,7 @@ func (s *EchoServer) CrdNotification() {
 	for {
 		select {
 		case crd := <-model.GlobalCRDChan:
+			log.Debug("Crd notification received...")
 			crdParts := strings.Split(crd, ".")
 			groupName := strings.Join(crdParts[1:], ".")
 			resourcePattern := fmt.Sprintf("/apis/%s/v1/%s", groupName, crdParts[0])

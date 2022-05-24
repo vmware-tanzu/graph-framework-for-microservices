@@ -25,8 +25,8 @@ type DefaultResponse struct {
 // getHandler is used to process GET requests
 func getHandler(c echo.Context) error {
 	nc := c.(*NexusContext)
-	crdType := model.GlobalURIToCRDTypes[nc.NexusURI]
-	crd := model.GlobalCRDTypeToNodes[crdType]
+	crdName := model.GlobalURIToCRDTypes[nc.NexusURI]
+	crdInfo := model.GlobalCRDTypeToNodes[crdName]
 
 	// List operation
 	list := true
@@ -34,32 +34,32 @@ func getHandler(c echo.Context) error {
 	// Get name from params
 	var name string
 	for _, param := range nc.ParamNames() {
-		if param == crd.Name {
+		if param == crdInfo.Name {
 			list = false
 			name = nc.Param(param)
 			if name == "" {
 				if val, ok := nc.Codes[http.StatusBadRequest]; ok {
 					return nc.JSON(http.StatusBadRequest, DefaultResponse{Message: val.Description})
 				} else {
-					log.Debugf("Could not find required param %s for request %s", crd.Name, nc.Request().RequestURI)
-					return nc.JSON(http.StatusBadRequest, DefaultResponse{Message: fmt.Sprintf("Could not find required param: %s", crd.Name)})
+					log.Debugf("Could not find required param %s for request %s", crdInfo.Name, nc.Request().RequestURI)
+					return nc.JSON(http.StatusBadRequest, DefaultResponse{Message: fmt.Sprintf("Could not find required param: %s", crdInfo.Name)})
 				}
 			}
 		}
 	}
 
 	// Get name from query params
-	if nc.QueryParams().Has(crd.Name) {
+	if nc.QueryParams().Has(crdInfo.Name) {
 		list = false
-		name = nc.QueryParams().Get(crd.Name)
+		name = nc.QueryParams().Get(crdInfo.Name)
 	}
 
 	// Mangle name
-	labels := parseLabels(nc, crd.ParentHierarchy)
-	hashedName := nexus.GetHashedName(crdType, crd.ParentHierarchy, labels, name)
+	labels := parseLabels(nc, crdInfo.ParentHierarchy)
+	hashedName := nexus.GetHashedName(crdName, crdInfo.ParentHierarchy, labels, name)
 
 	// Setup GroupVersionResource
-	parts := strings.Split(crdType, ".")
+	parts := strings.Split(crdName, ".")
 	gvr := schema.GroupVersionResource{
 		Group:    strings.Join(parts[1:], "."),
 		Version:  "v1",
@@ -95,19 +95,19 @@ func getHandler(c echo.Context) error {
 // putHandler is used to process PUT requests
 func putHandler(c echo.Context) error {
 	nc := c.(*NexusContext)
-	crdType := model.GlobalURIToCRDTypes[nc.NexusURI]
-	crd := model.GlobalCRDTypeToNodes[crdType]
+	crdName := model.GlobalURIToCRDTypes[nc.NexusURI]
+	crdInfo := model.GlobalCRDTypeToNodes[crdName]
 
 	// Get name from the URI segment
 	var name string
 	for _, param := range nc.ParamNames() {
-		if param == crd.Name {
+		if param == crdInfo.Name {
 			name = nc.Param(param)
 		}
 	}
 
 	// Get name from query params
-	if val := nc.QueryParam(crd.Name); val != "" {
+	if val := nc.QueryParam(crdInfo.Name); val != "" {
 		name = val
 	}
 
@@ -115,8 +115,8 @@ func putHandler(c echo.Context) error {
 		if val, ok := nc.Codes[http.StatusBadRequest]; ok {
 			return nc.JSON(http.StatusBadRequest, DefaultResponse{Message: val.Description})
 		} else {
-			log.Debugf("Could not find required param %s for request %s", crd.Name, nc.Request().RequestURI)
-			return nc.JSON(http.StatusBadRequest, DefaultResponse{Message: fmt.Sprintf("Could not find required param: %s", crd.Name)})
+			log.Debugf("Could not find required param %s for request %s", crdInfo.Name, nc.Request().RequestURI)
+			return nc.JSON(http.StatusBadRequest, DefaultResponse{Message: fmt.Sprintf("Could not find required param: %s", crdInfo.Name)})
 		}
 	}
 
@@ -127,20 +127,20 @@ func putHandler(c echo.Context) error {
 	}
 
 	// Setup GroupVersionResource
-	parts := strings.Split(crdType, ".")
+	parts := strings.Split(crdName, ".")
 	gvr := schema.GroupVersionResource{
 		Group:    strings.Join(parts[1:], "."),
 		Version:  "v1",
 		Resource: parts[0],
 	}
-	crdNameParts := strings.Split(crd.Name, ".")
-	labels := parseLabels(nc, crd.ParentHierarchy)
+	crdNameParts := strings.Split(crdInfo.Name, ".")
+	labels := parseLabels(nc, crdInfo.ParentHierarchy)
 	labels["nexus/is_name_hashed"] = "true"
 	labels["nexus/display_name"] = name
-	labels[crd.Name] = name
+	labels[crdInfo.Name] = name
 
 	// Mangle name
-	hashedName := nexus.GetHashedName(crdType, crd.ParentHierarchy, labels, name)
+	hashedName := nexus.GetHashedName(crdName, crdInfo.ParentHierarchy, labels, name)
 	obj, err := client.Client.Resource(gvr).Get(context.TODO(), hashedName, metav1.GetOptions{})
 	if err != nil {
 		if errors.IsNotFound(err) {
@@ -153,10 +153,10 @@ func putHandler(c echo.Context) error {
 
 			// Update parent
 			var err error
-			if len(crd.ParentHierarchy) > 0 {
-				parentCrdName := crd.ParentHierarchy[len(crd.ParentHierarchy)-1]
+			if len(crdInfo.ParentHierarchy) > 0 {
+				parentCrdName := crdInfo.ParentHierarchy[len(crdInfo.ParentHierarchy)-1]
 				parentCrd := model.GlobalCRDTypeToNodes[parentCrdName]
-				err = client.UpdateParentGvk(parentCrdName, parentCrd, labels, crdType, name, hashedName)
+				err = client.UpdateParentWithAddedChild(parentCrdName, parentCrd, labels, crdName, name, hashedName)
 			}
 
 			if err == nil {
@@ -180,13 +180,13 @@ func putHandler(c echo.Context) error {
 // deleteHandler is used to process DELETE requests
 func deleteHandler(c echo.Context) error {
 	nc := c.(*NexusContext)
-	crdType := model.GlobalURIToCRDTypes[nc.NexusURI]
-	crd := model.GlobalCRDTypeToNodes[crdType]
+	crdName := model.GlobalURIToCRDTypes[nc.NexusURI]
+	crdInfo := model.GlobalCRDTypeToNodes[crdName]
 
 	// Get name from params
 	var name string
 	for _, param := range nc.ParamNames() {
-		if param == crd.Name {
+		if param == crdInfo.Name {
 			name = nc.Param(param)
 			if name == "" {
 				if val, ok := nc.Codes[http.StatusBadRequest]; ok {
@@ -199,16 +199,16 @@ func deleteHandler(c echo.Context) error {
 	}
 
 	// Get name from query params
-	if nc.QueryParams().Has(crd.Name) {
-		name = nc.QueryParams().Get(crd.Name)
+	if nc.QueryParams().Has(crdInfo.Name) {
+		name = nc.QueryParams().Get(crdInfo.Name)
 	}
 
 	// Mangle name
-	labels := parseLabels(nc, crd.ParentHierarchy)
-	hashedName := nexus.GetHashedName(crdType, crd.ParentHierarchy, labels, name)
+	labels := parseLabels(nc, crdInfo.ParentHierarchy)
+	hashedName := nexus.GetHashedName(crdName, crdInfo.ParentHierarchy, labels, name)
 
 	// Setup GroupVersionResource
-	parts := strings.Split(crdType, ".")
+	parts := strings.Split(crdName, ".")
 	gvr := schema.GroupVersionResource{
 		Group:    strings.Join(parts[1:], "."),
 		Version:  "v1",
@@ -216,7 +216,7 @@ func deleteHandler(c echo.Context) error {
 	}
 
 	// Get object from kubernetes
-	err := client.Client.Resource(gvr).Delete(context.TODO(), hashedName, metav1.DeleteOptions{})
+	err := client.DeleteObject(gvr, crdName, crdInfo, hashedName, name)
 	if err != nil {
 		return handleClientError(nc, err)
 	}
