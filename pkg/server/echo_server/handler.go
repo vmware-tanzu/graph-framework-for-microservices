@@ -25,8 +25,8 @@ type DefaultResponse struct {
 // getHandler is used to process GET requests
 func getHandler(c echo.Context) error {
 	nc := c.(*NexusContext)
-	crdName := model.GlobalURIToCRDTypes[nc.NexusURI]
-	crdInfo := model.GlobalCRDTypeToNodes[crdName]
+	crdName := model.UriToCRDType[nc.NexusURI]
+	crdInfo := model.CrdTypeToNodeInfo[crdName]
 
 	// List operation
 	list := true
@@ -95,8 +95,8 @@ func getHandler(c echo.Context) error {
 // putHandler is used to process PUT requests
 func putHandler(c echo.Context) error {
 	nc := c.(*NexusContext)
-	crdName := model.GlobalURIToCRDTypes[nc.NexusURI]
-	crdInfo := model.GlobalCRDTypeToNodes[crdName]
+	crdName := model.UriToCRDType[nc.NexusURI]
+	crdInfo := model.CrdTypeToNodeInfo[crdName]
 
 	// Get name from the URI segment
 	var name string
@@ -155,7 +155,7 @@ func putHandler(c echo.Context) error {
 			var err error
 			if len(crdInfo.ParentHierarchy) > 0 {
 				parentCrdName := crdInfo.ParentHierarchy[len(crdInfo.ParentHierarchy)-1]
-				parentCrd := model.GlobalCRDTypeToNodes[parentCrdName]
+				parentCrd := model.CrdTypeToNodeInfo[parentCrdName]
 				err = client.UpdateParentWithAddedChild(parentCrdName, parentCrd, labels, crdName, name, hashedName)
 			}
 
@@ -180,8 +180,8 @@ func putHandler(c echo.Context) error {
 // deleteHandler is used to process DELETE requests
 func deleteHandler(c echo.Context) error {
 	nc := c.(*NexusContext)
-	crdName := model.GlobalURIToCRDTypes[nc.NexusURI]
-	crdInfo := model.GlobalCRDTypeToNodes[crdName]
+	crdName := model.UriToCRDType[nc.NexusURI]
+	crdInfo := model.CrdTypeToNodeInfo[crdName]
 
 	// Get name from params
 	var name string
@@ -268,7 +268,7 @@ func parseLabels(c echo.Context, parents []string) map[string]string {
 	// Parse labels
 	labels := make(map[string]string)
 	for _, parent := range parents {
-		if c, ok := model.GlobalCRDTypeToNodes[parent]; ok {
+		if c, ok := model.CrdTypeToNodeInfo[parent]; ok {
 			if v := nc.Param(c.Name); v != "" {
 				labels[parent] = v
 			} else if nc.QueryParams().Has(c.Name) {

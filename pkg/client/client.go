@@ -53,7 +53,7 @@ func GetObject(gvr schema.GroupVersionResource, hashedName string, opts metav1.G
 	return obj, nil
 }
 
-func DeleteObject(gvr schema.GroupVersionResource, crdName string, crdInfo model.NodeInfo, hashedName string, displayName string) error {
+func DeleteObject(gvr schema.GroupVersionResource, crdType string, crdInfo model.NodeInfo, hashedName string, displayName string) error {
 	// Get object
 	obj, err := Client.Resource(gvr).Get(context.TODO(), hashedName, metav1.GetOptions{})
 	if err != nil {
@@ -61,7 +61,7 @@ func DeleteObject(gvr schema.GroupVersionResource, crdName string, crdInfo model
 	}
 
 	// Delete all children
-	listOpts := metav1.ListOptions{LabelSelector: fmt.Sprintf("%s=%s", crdName, displayName)}
+	listOpts := metav1.ListOptions{LabelSelector: fmt.Sprintf("%s=%s", crdType, displayName)}
 	for k, _ := range crdInfo.Children {
 		err = DeleteChildren(k, listOpts)
 		if err != nil {
@@ -71,8 +71,8 @@ func DeleteObject(gvr schema.GroupVersionResource, crdName string, crdInfo model
 
 	if len(crdInfo.ParentHierarchy) > 0 {
 		parentCrdName := crdInfo.ParentHierarchy[len(crdInfo.ParentHierarchy)-1]
-		parentCrd := model.GlobalCRDTypeToNodes[parentCrdName]
-		err = UpdateParentWithRemovedChild(parentCrdName, parentCrd, obj.GetLabels(), crdName, displayName)
+		parentCrdInfo := model.CrdTypeToNodeInfo[parentCrdName]
+		err = UpdateParentWithRemovedChild(parentCrdName, parentCrdInfo, obj.GetLabels(), crdType, displayName)
 		if err != nil {
 			return err
 		}
@@ -87,8 +87,8 @@ func DeleteObject(gvr schema.GroupVersionResource, crdName string, crdInfo model
 	return nil
 }
 
-func DeleteChildren(crdName string, listOpts metav1.ListOptions) error {
-	crdInfo := model.GlobalCRDTypeToNodes[crdName]
+func DeleteChildren(crdType string, listOpts metav1.ListOptions) error {
+	crdInfo := model.CrdTypeToNodeInfo[crdType]
 	for k, _ := range crdInfo.Children {
 		err := DeleteChildren(k, listOpts)
 		if err != nil {
@@ -96,7 +96,7 @@ func DeleteChildren(crdName string, listOpts metav1.ListOptions) error {
 		}
 	}
 
-	parts := strings.Split(crdName, ".")
+	parts := strings.Split(crdType, ".")
 	gvr := schema.GroupVersionResource{
 		Group:    strings.Join(parts[1:], "."),
 		Version:  "v1",
@@ -123,22 +123,22 @@ func (p Patch) Marshal() ([]byte, error) {
 }
 
 // TODO: build PatchOP in common-library
-func UpdateParentWithAddedChild(parentCrdName string, parentCrd model.NodeInfo, labels map[string]string, childCrdName string, childName string, childHashedName string) error {
+func UpdateParentWithAddedChild(parentCrdType string, parentCrdInfo model.NodeInfo, labels map[string]string, childCrdType string, childName string, childHashedName string) error {
 	var (
 		patchType types.PatchType
 		marshaled []byte
 	)
 
-	parentParts := strings.Split(parentCrdName, ".")
+	parentParts := strings.Split(parentCrdType, ".")
 	gvr := schema.GroupVersionResource{
 		Group:    strings.Join(parentParts[1:], "."),
 		Version:  "v1",
 		Resource: parentParts[0],
 	}
 
-	parentName := labels[parentCrdName]
-	hashedParentName := nexus.GetHashedName(parentCrdName, parentCrd.ParentHierarchy, labels, parentName)
-	childGvk := parentCrd.Children[childCrdName]
+	parentName := labels[parentCrdType]
+	hashedParentName := nexus.GetHashedName(parentCrdType, parentCrdInfo.ParentHierarchy, labels, parentName)
+	childGvk := parentCrdInfo.Children[childCrdType]
 
 	if childGvk.IsNamed {
 		payload := "{\"spec\": {\"" + childGvk.FieldNameGvk + "\": {\"" + childName + "\": {\"name\": \"" + childHashedName + "\"}}}}"
@@ -170,17 +170,17 @@ func UpdateParentWithAddedChild(parentCrdName string, parentCrd model.NodeInfo, 
 	return nil
 }
 
-func UpdateParentWithRemovedChild(parentCrdName string, parentCrd model.NodeInfo, labels map[string]string, childCrdName string, childName string) error {
-	parentParts := strings.Split(parentCrdName, ".")
+func UpdateParentWithRemovedChild(parentCrdType string, parentCrdInfo model.NodeInfo, labels map[string]string, childCrdType string, childName string) error {
+	parentParts := strings.Split(parentCrdType, ".")
 	gvr := schema.GroupVersionResource{
 		Group:    strings.Join(parentParts[1:], "."),
 		Version:  "v1",
 		Resource: parentParts[0],
 	}
 
-	parentName := labels[parentCrdName]
-	hashedParentName := nexus.GetHashedName(parentCrdName, parentCrd.ParentHierarchy, labels, parentName)
-	childGvk := parentCrd.Children[childCrdName]
+	parentName := labels[parentCrdType]
+	hashedParentName := nexus.GetHashedName(parentCrdType, parentCrdInfo.ParentHierarchy, labels, parentName)
+	childGvk := parentCrdInfo.Children[childCrdType]
 
 	var patchOp PatchOp
 	if childGvk.IsNamed {

@@ -74,7 +74,7 @@ func kubeGetHandler(c echo.Context) error {
 // kubePostHandler is used to process `kubectl apply` requests
 func kubePostHandler(c echo.Context) error {
 	nc := c.(*NexusContext)
-	crdType := model.GlobalCRDTypeToNodes[nc.CrdName]
+	crdInfo := model.CrdTypeToNodeInfo[nc.CrdType]
 
 	body := &unstructured.Unstructured{}
 	if err := c.Bind(&body); err != nil {
@@ -86,7 +86,7 @@ func kubePostHandler(c echo.Context) error {
 	}
 	labels["nexus/is_name_hashed"] = "true"
 	labels["nexus/display_name"] = body.GetName()
-	hashedName := nexus.GetHashedName(nc.CrdName, crdType.ParentHierarchy, labels, body.GetName())
+	hashedName := nexus.GetHashedName(nc.CrdType, crdInfo.ParentHierarchy, labels, body.GetName())
 
 	body.SetLabels(labels)
 	body.SetName(hashedName)

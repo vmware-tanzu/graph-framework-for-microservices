@@ -7,164 +7,84 @@ import (
 )
 
 var (
-	GlobalRestURIChan        = make(chan []nexus.RestURIs, 100)
-	GlobalEndpointCache      = make(map[string][]nexus.RestURIs)
-	globalEndpointCacheMutex = &sync.Mutex{}
+	RestURIChan = make(chan []nexus.RestURIs, 100)
+	CrdTypeChan = make(chan string, 100)
 
-	GlobalURIToCRDTypes     = make(map[string]string)
-	globalURIToCRDTypeMutex = &sync.Mutex{}
+	CrdTypeToRestUris      = make(map[string][]nexus.RestURIs)
+	crdTypeToRestUrisMutex = &sync.Mutex{}
 
-	GlobalCRDTypeToNodes     = make(map[string]NodeInfo)
-	globalCRDTypeToNodeMutex = &sync.Mutex{}
-	GlobalCRDChan            = make(chan string, 100)
+	// CRD name to CRD type (Gns.gns => gns.vmware.org)
+	UriToCRDType      = make(map[string]string)
+	uriToCRDTypeMutex = &sync.Mutex{}
 
-	GlobalCRDTypeToSpec      = make(map[string]apiextensionsv1.CustomResourceDefinitionSpec)
-	globalCRDTypeToSpecMutex = &sync.Mutex{}
+	// CRD Type to NodeInfo (gns.vmware.org => NodeInfo{})
+	CrdTypeToNodeInfo      = make(map[string]NodeInfo)
+	crdTypeToNodeInfoMutex = &sync.Mutex{}
+
+	// CRD Type to k8s spec (gns.vmware.org => CustomResourceDefinitionSpec)
+	CrdTypeToSpec      = make(map[string]apiextensionsv1.CustomResourceDefinitionSpec)
+	crdTypeToSpecMutex = &sync.Mutex{}
 )
 
 func ConstructMapURIToCRDType(eventType EventType, crdType string, apiURIs []nexus.RestURIs) {
-	globalURIToCRDTypeMutex.Lock()
-	defer globalURIToCRDTypeMutex.Unlock()
+	uriToCRDTypeMutex.Lock()
+	defer uriToCRDTypeMutex.Unlock()
 
 	if eventType == Delete {
-		for uri, cType := range GlobalURIToCRDTypes {
+		for uri, cType := range UriToCRDType {
 			if cType == crdType {
-				delete(GlobalURIToCRDTypes, uri)
+				delete(UriToCRDType, uri)
 			}
 		}
 	}
 
 	for _, u := range apiURIs {
-		GlobalURIToCRDTypes[u.Uri] = crdType
+		UriToCRDType[u.Uri] = crdType
 	}
 }
 
 func ConstructMapCRDTypeToNode(eventType EventType, crdType, name string, parentHierarchy []string, children map[string]NodeHelperChild) {
-	globalCRDTypeToNodeMutex.Lock()
-	defer globalCRDTypeToNodeMutex.Unlock()
+	crdTypeToNodeInfoMutex.Lock()
+	defer crdTypeToNodeInfoMutex.Unlock()
 
 	if eventType == Delete {
-		delete(GlobalCRDTypeToNodes, crdType)
+		delete(CrdTypeToNodeInfo, crdType)
 	}
 
-	GlobalCRDTypeToNodes[crdType] = NodeInfo{
+	CrdTypeToNodeInfo[crdType] = NodeInfo{
 		Name:            name,
 		ParentHierarchy: parentHierarchy,
 		Children:        children,
 	}
 
-	GlobalCRDChan <- crdType
+	// Push new CRD Type to chan
+	CrdTypeChan <- crdType
 }
 
 func ConstructMapCRDTypeToSpec(eventType EventType, crdType string, spec apiextensionsv1.CustomResourceDefinitionSpec) {
-	globalCRDTypeToSpecMutex.Lock()
-	defer globalCRDTypeToSpecMutex.Unlock()
+	crdTypeToSpecMutex.Lock()
+	defer crdTypeToSpecMutex.Unlock()
 
 	if eventType == Delete {
-		delete(GlobalCRDTypeToNodes, crdType)
+		delete(CrdTypeToSpec, crdType)
 	}
-
-	GlobalCRDTypeToSpec[crdType] = spec
+	CrdTypeToSpec[crdType] = spec
 }
 
-// revisit for simplification
-func addOrRemoveEndpointCache(endpointCache, removed, added []nexus.RestURIs) []nexus.RestURIs {
-	for _, r := range removed {
-		idx := -1
-		for i, c := range endpointCache {
-			if r.Uri == c.Uri {
-				idx = i
-				for rm := range r.Methods {
-					pdx := -1
-					for nm := range c.Methods {
-						pdx = i
-						if rm == nm {
-							break
-						}
-					}
-					if pdx > -1 {
-						delete(c.Methods, rm)
-					}
-				}
-			}
-		}
-		if idx > -1 && len(endpointCache[idx].Methods) == 0 {
-			endpointCache = append(endpointCache[:idx], endpointCache[idx+1:]...)
-		}
+func ConstructMapCRDTypeToRestUris(eventType EventType, crdType string, restSpec nexus.RestAPISpec) {
+	crdTypeToRestUrisMutex.Lock()
+	defer crdTypeToRestUrisMutex.Unlock()
+
+	if eventType == Delete {
+		delete(CrdTypeToRestUris, crdType)
 	}
 
-	for _, a := range added {
-		endpointCache = append(endpointCache, a)
+	uris := CrdTypeToRestUris[crdType]
+	for _, uri := range restSpec.Uris {
+		uris = append(uris, uri)
 	}
+	CrdTypeToRestUris[crdType] = uris
 
-	return endpointCache
-}
-
-func findDifference(existingEndpoints, newURIs []nexus.RestURIs) []nexus.RestURIs {
-	removedOrAddedURLs := make([]nexus.RestURIs, 0)
-	removedOrAddedMethods := make([]nexus.RestURIs, 0)
-	for _, existingEp := range existingEndpoints {
-		urlNotEncountered := true
-		for _, newEndpoint := range newURIs {
-			if existingEp.Uri == newEndpoint.Uri {
-				urlNotEncountered = false
-				for m, r := range existingEp.Methods {
-					methodNotEncountered := true
-					for n := range newEndpoint.Methods {
-						if m == n {
-							methodNotEncountered = false
-							break
-						}
-					}
-					if methodNotEncountered {
-						removedOrAddedMethods = append(removedOrAddedMethods, nexus.RestURIs{
-							Uri:     existingEp.Uri,
-							Methods: nexus.HTTPMethodsResponses{m: r},
-						})
-					}
-				}
-			}
-		}
-		if urlNotEncountered {
-			removedOrAddedURLs = append(removedOrAddedURLs, existingEp)
-		}
-	}
-
-	if len(removedOrAddedMethods) > 0 {
-		removedOrAddedURLs = append(removedOrAddedURLs, removedOrAddedMethods...)
-	}
-
-	return removedOrAddedURLs
-}
-
-func PopulateEndpointCache(evenType EventType, crdType string, restURIs []nexus.RestURIs) (int, []nexus.RestURIs) {
-	globalEndpointCacheMutex.Lock()
-	defer globalEndpointCacheMutex.Unlock()
-
-	removed := []nexus.RestURIs{}
-	cachedEndpoints, ok := GlobalEndpointCache[crdType]
-	if ok {
-		if evenType == Delete {
-			delete(GlobalEndpointCache, crdType)
-			return len(cachedEndpoints), nil
-		}
-		removed = findDifference(cachedEndpoints, restURIs)
-	}
-	added := findDifference(restURIs, cachedEndpoints)
-
-	// update the cache with removed and added entries
-	finalEPCache := addOrRemoveEndpointCache(cachedEndpoints, removed, added)
-	GlobalEndpointCache[crdType] = finalEPCache
-
-	return len(removed), added
-}
-
-func GetGlobalEndpointCache() (epCacheCopy []nexus.RestURIs) {
-	globalEndpointCacheMutex.Lock()
-	defer globalEndpointCacheMutex.Unlock()
-
-	for _, ep := range GlobalEndpointCache {
-		epCacheCopy = append(epCacheCopy, ep...)
-	}
-	return epCacheCopy
+	// Push new uris to chan
+	RestURIChan <- uris
 }
