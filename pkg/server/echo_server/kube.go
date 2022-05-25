@@ -110,6 +110,21 @@ func kubePostHandler(c echo.Context) error {
 				}
 				c.Error(err)
 			}
+
+			var err error
+			if len(crdInfo.ParentHierarchy) > 0 {
+				parentCrdName := crdInfo.ParentHierarchy[len(crdInfo.ParentHierarchy)-1]
+				parentCrd := model.CrdTypeToNodeInfo[parentCrdName]
+				err = client.UpdateParentWithAddedChild(parentCrdName, parentCrd, labels, nc.CrdType, body.GetName(), hashedName)
+			}
+
+			if err != nil {
+				if status := kerrors.APIStatus(nil); errors.As(err, &status) {
+					return c.JSON(int(status.Status().Code), status.Status())
+				}
+				c.Error(err)
+			}
+
 			return c.JSON(201, obj)
 		}
 
@@ -133,4 +148,34 @@ func kubePostHandler(c echo.Context) error {
 	}
 
 	return c.JSON(200, obj)
+}
+
+func kubeDeleteHandler(c echo.Context) error {
+	nc := c.(*NexusContext)
+	crdInfo := model.CrdTypeToNodeInfo[nc.CrdType]
+	gvr := schema.GroupVersionResource{
+		Group:    nc.GroupName,
+		Version:  "v1",
+		Resource: nc.Resource,
+	}
+
+	err := client.DeleteObject(gvr, nc.CrdType, crdInfo, c.Param("name"))
+	if err != nil {
+		if status := kerrors.APIStatus(nil); errors.As(err, &status) {
+			return c.JSON(int(status.Status().Code), status.Status())
+		}
+		c.Error(err)
+	}
+
+	return c.JSON(200, map[string]interface{}{
+		"kind":       "Status",
+		"apiVersion": "v1",
+		"metadata":   map[string]interface{}{},
+		"status":     "Success",
+		"details": map[string]interface{}{
+			"name":  c.Param("name"),
+			"group": nc.GroupName,
+			"kind":  nc.Resource,
+		},
+	})
 }
