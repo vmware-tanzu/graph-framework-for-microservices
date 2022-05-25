@@ -168,6 +168,17 @@ func (s *EchoServer) RegisterCrdRouter(crdType string) {
 			return next(nc)
 		}
 	})
+	s.Echo.DELETE(resourceNamePattern, kubeDeleteHandler, func(next echo.HandlerFunc) echo.HandlerFunc {
+		return func(c echo.Context) error {
+			nc := &NexusContext{
+				Context:   c,
+				CrdType:   crdType,
+				GroupName: groupName,
+				Resource:  crdParts[0],
+			}
+			return next(nc)
+		}
+	})
 }
 
 func (s *EchoServer) RoutesNotification(stopCh chan struct{}) error {

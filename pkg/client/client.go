@@ -53,15 +53,17 @@ func GetObject(gvr schema.GroupVersionResource, hashedName string, opts metav1.G
 	return obj, nil
 }
 
-func DeleteObject(gvr schema.GroupVersionResource, crdType string, crdInfo model.NodeInfo, hashedName string, displayName string) error {
+func DeleteObject(gvr schema.GroupVersionResource, crdType string, crdInfo model.NodeInfo, hashedName string) error {
 	// Get object
 	obj, err := Client.Resource(gvr).Get(context.TODO(), hashedName, metav1.GetOptions{})
 	if err != nil {
 		return err
 	}
 
+	labels := obj.GetLabels()
+
 	// Delete all children
-	listOpts := metav1.ListOptions{LabelSelector: fmt.Sprintf("%s=%s", crdType, displayName)}
+	listOpts := metav1.ListOptions{LabelSelector: fmt.Sprintf("%s=%s", crdType, labels["nexus/display_name"])}
 	for k, _ := range crdInfo.Children {
 		err = DeleteChildren(k, listOpts)
 		if err != nil {
@@ -72,7 +74,7 @@ func DeleteObject(gvr schema.GroupVersionResource, crdType string, crdInfo model
 	if len(crdInfo.ParentHierarchy) > 0 {
 		parentCrdName := crdInfo.ParentHierarchy[len(crdInfo.ParentHierarchy)-1]
 		parentCrdInfo := model.CrdTypeToNodeInfo[parentCrdName]
-		err = UpdateParentWithRemovedChild(parentCrdName, parentCrdInfo, obj.GetLabels(), crdType, displayName)
+		err = UpdateParentWithRemovedChild(parentCrdName, parentCrdInfo, obj.GetLabels(), crdType, labels["nexus/display_name"])
 		if err != nil {
 			return err
 		}

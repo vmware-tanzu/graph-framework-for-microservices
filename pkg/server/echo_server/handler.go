@@ -216,7 +216,7 @@ func deleteHandler(c echo.Context) error {
 	}
 
 	// Get object from kubernetes
-	err := client.DeleteObject(gvr, crdName, crdInfo, hashedName, name)
+	err := client.DeleteObject(gvr, crdName, crdInfo, hashedName)
 	if err != nil {
 		return handleClientError(nc, err)
 	}
