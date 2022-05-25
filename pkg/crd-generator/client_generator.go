@@ -65,7 +65,7 @@ func generateNexusClientVars(baseGroupName, crdModulePath string, pkgs parser.Pa
 				clientGroupVars.ApiGroupsVars = groupVars
 				clientGroupVars.GroupTypeName = groupTypeName
 				clientGroupVars.CrdName = util.GetCrdName(node.Name.String(), pkg.Name, baseGroupName)
-				err := resolveNode(baseImportName, pkg, baseGroupName, version, &groupVars, &clientGroupVars, node, parentsMap)
+				err := resolveNode(baseImportName, pkg, baseGroupName, version, &clientGroupVars, node, parentsMap)
 				if err != nil {
 					return clientVars{}, err
 				}
@@ -79,7 +79,7 @@ func generateNexusClientVars(baseGroupName, crdModulePath string, pkgs parser.Pa
 	return vars, nil
 }
 
-func resolveNode(baseImportName string, pkg parser.Package, baseGroupName, version string, groupVars *ApiGroupsVars, clientGroupVars *apiGroupsClientVars, node *ast.TypeSpec, parentsMap map[string]parser.NodeHelper) error {
+func resolveNode(baseImportName string, pkg parser.Package, baseGroupName, version string, clientGroupVars *apiGroupsClientVars, node *ast.TypeSpec, parentsMap map[string]parser.NodeHelper) error {
 	pkgName := pkg.Name
 	baseNodeName := node.Name.Name // eg Root
 	groupResourceNameTitle := util.GetGroupResourceNameTitle(baseNodeName)
@@ -151,6 +151,7 @@ func resolveNode(baseImportName string, pkg parser.Package, baseGroupName, versi
 		clientGroupVars.Parent.SimpleGroupTypeName = util.GetSimpleGroupTypeName(util.GetPackageNameFromCrdName(parentCrdName))
 		clientGroupVars.Parent.GroupResourceNameTitle = util.GetGroupResourceNameTitle(parentHelper.Name)
 		clientGroupVars.Parent.GvkFieldName = parentHelper.Children[clientGroupVars.CrdName].FieldNameGvk
+		clientGroupVars.Parent.BaseNodeName = parentHelper.Name
 	}
 
 	return nil
@@ -225,6 +226,7 @@ type apiGroupsClientVars struct {
 		GroupTypeName          string
 		SimpleGroupTypeName    string
 		GroupResourceNameTitle string
+		BaseNodeName           string
 	}
 
 	Links            []apiGroupsClientVarsLink

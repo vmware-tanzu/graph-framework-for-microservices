@@ -342,6 +342,13 @@ func (obj *{{$node.SimpleGroupTypeName}}{{$node.BaseNodeName}}) Update(ctx conte
 	return nil
 }
 
+{{ if .Parent.HasParent }}
+func (obj *{{$node.SimpleGroupTypeName}}{{$node.BaseNodeName}}) GetParent(ctx context.Context) (result *{{$node.Parent.SimpleGroupTypeName}}{{$node.Parent.BaseNodeName}}, err error) {
+	hashedName := helper.GetHashedName("{{$node.Parent.CrdName}}", obj.Labels, obj.Labels["{{$node.Parent.CrdName}}"])
+	return obj.client.{{$node.Parent.SimpleGroupTypeName}}().Get{{$node.Parent.BaseNodeName}}ByName(ctx, hashedName)
+}
+{{ end }}
+
 {{ if not .Parent.HasParent }}
 func (c *Clientset) {{$node.SimpleGroupTypeName}}{{$node.BaseNodeName}}(displayName string) *{{$node.GroupResourceType}}Chainer {
 	parentLabels := make(map[string]string)

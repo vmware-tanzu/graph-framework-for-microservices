@@ -284,4 +284,40 @@ var _ = Describe("Template renderers tests", func() {
 		Expect(err).NotTo(HaveOccurred())
 		Expect(getLinkedDns).To(BeNil())
 	})
+
+	Context("Getting parent", func() {
+		fakeClient = nexus_client.NewFakeClient()
+		rootDef := &rootv1.Root{
+			ObjectMeta: metav1.ObjectMeta{
+				Name: "default",
+			},
+		}
+		root, err := fakeClient.AddRootRoot(context.TODO(), rootDef)
+		Expect(err).NotTo(HaveOccurred())
+		cfgDef := &configv1.Config{
+			ObjectMeta: metav1.ObjectMeta{
+				Name: "cfg",
+			},
+			Spec: configv1.ConfigSpec{
+				MyStr: "test",
+			},
+		}
+		cfg, err := root.AddConfig(context.TODO(), cfgDef)
+		Expect(err).NotTo(HaveOccurred())
+		gnsDef := &gnsv1.Gns{
+			ObjectMeta: metav1.ObjectMeta{
+				Name: "gnsName",
+			},
+		}
+		gns, err := cfg.AddGNS(context.TODO(), gnsDef)
+		Expect(err).NotTo(HaveOccurred())
+
+		gnsParent, err := gns.GetParent(context.TODO())
+		Expect(err).NotTo(HaveOccurred())
+
+		Expect(gnsParent.DisplayName()).To(Equal("cfg"))
+
+		configParent, err := gnsParent.GetParent(context.TODO())
+		Expect(configParent.DisplayName()).To(Equal("default"))
+	})
 })

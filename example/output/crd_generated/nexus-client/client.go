@@ -711,6 +711,11 @@ func (obj *ConfigConfig) Update(ctx context.Context) error {
 	return nil
 }
 
+func (obj *ConfigConfig) GetParent(ctx context.Context) (result *RootRoot, err error) {
+	hashedName := helper.GetHashedName("roots.root.tsm.tanzu.vmware.com", obj.Labels, obj.Labels["roots.root.tsm.tanzu.vmware.com"])
+	return obj.client.Root().GetRootByName(ctx, hashedName)
+}
+
 // GetGNS returns child or link of given type
 func (obj *ConfigConfig) GetGNS(ctx context.Context) (
 	result *GnsGns, err error) {
@@ -1181,6 +1186,11 @@ func (obj *GnsGns) Update(ctx context.Context) error {
 	}
 	obj.Gns = result
 	return nil
+}
+
+func (obj *GnsGns) GetParent(ctx context.Context) (result *ConfigConfig, err error) {
+	hashedName := helper.GetHashedName("configs.config.tsm.tanzu.vmware.com", obj.Labels, obj.Labels["configs.config.tsm.tanzu.vmware.com"])
+	return obj.client.Config().GetConfigByName(ctx, hashedName)
 }
 
 // GetAllGnsServiceGroups returns all links or children of given type
@@ -1675,6 +1685,11 @@ func (obj *GnsDns) Update(ctx context.Context) error {
 	return nil
 }
 
+func (obj *GnsDns) GetParent(ctx context.Context) (result *ConfigConfig, err error) {
+	hashedName := helper.GetHashedName("configs.config.tsm.tanzu.vmware.com", obj.Labels, obj.Labels["configs.config.tsm.tanzu.vmware.com"])
+	return obj.client.Config().GetConfigByName(ctx, hashedName)
+}
+
 type dnsGnsTsmV1Chainer struct {
 	client       *Clientset
 	name         string
@@ -1901,6 +1916,11 @@ func (obj *ServicegroupSvcGroup) Update(ctx context.Context) error {
 	return nil
 }
 
+func (obj *ServicegroupSvcGroup) GetParent(ctx context.Context) (result *GnsGns, err error) {
+	hashedName := helper.GetHashedName("gnses.gns.tsm.tanzu.vmware.com", obj.Labels, obj.Labels["gnses.gns.tsm.tanzu.vmware.com"])
+	return obj.client.Gns().GetGnsByName(ctx, hashedName)
+}
+
 type svcgroupServicegroupTsmV1Chainer struct {
 	client       *Clientset
 	name         string
@@ -2122,6 +2142,11 @@ func (obj *PolicypkgAccessControlPolicy) Update(ctx context.Context) error {
 	}
 	obj.AccessControlPolicy = result
 	return nil
+}
+
+func (obj *PolicypkgAccessControlPolicy) GetParent(ctx context.Context) (result *GnsGns, err error) {
+	hashedName := helper.GetHashedName("gnses.gns.tsm.tanzu.vmware.com", obj.Labels, obj.Labels["gnses.gns.tsm.tanzu.vmware.com"])
+	return obj.client.Gns().GetGnsByName(ctx, hashedName)
 }
 
 // GetAllPolicyConfigs returns all links or children of given type
@@ -2495,6 +2520,11 @@ func (obj *PolicypkgACPConfig) Update(ctx context.Context) error {
 	}
 	obj.ACPConfig = result
 	return nil
+}
+
+func (obj *PolicypkgACPConfig) GetParent(ctx context.Context) (result *PolicypkgAccessControlPolicy, err error) {
+	hashedName := helper.GetHashedName("accesscontrolpolicies.policypkg.tsm.tanzu.vmware.com", obj.Labels, obj.Labels["accesscontrolpolicies.policypkg.tsm.tanzu.vmware.com"])
+	return obj.client.Policypkg().GetAccessControlPolicyByName(ctx, hashedName)
 }
 
 // GetAllDestSvcGroups returns all links or children of given type
