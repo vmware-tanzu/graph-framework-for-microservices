@@ -39,15 +39,12 @@ func (s *EchoServer) StartHTTPServer() {
 func (s *EchoServer) Start(stopCh chan struct{}) {
 	// Start watching URI notification
 	go func() {
-		log.Info("RoutesNotification")
+		log.Debug("RoutesNotification")
 		if err := s.RoutesNotification(stopCh); err != nil {
 			s.StopServer()
 			InitEcho(stopCh, s.Config)
 		}
 	}()
-
-	// Start watching CRDs
-	go s.CrdNotification()
 
 	// Start Server
 	go func() {
@@ -71,7 +68,7 @@ type NexusContext struct {
 	Codes    nexus.HTTPCodesResponse
 
 	// Kube
-	CrdName   string
+	CrdType   string
 	GroupName string
 	Resource  string
 }
@@ -132,63 +129,60 @@ func (s *EchoServer) RegisterRouter(restURI nexus.RestURIs) {
 	}
 }
 
+func (s *EchoServer) RegisterCrdRouter(crdType string) {
+	crdParts := strings.Split(crdType, ".")
+	groupName := strings.Join(crdParts[1:], ".")
+	resourcePattern := fmt.Sprintf("/apis/%s/v1/%s", groupName, crdParts[0])
+	resourceNamePattern := resourcePattern + "/:name"
+
+	s.Echo.GET(resourceNamePattern, kubeGetByNameHandler, func(next echo.HandlerFunc) echo.HandlerFunc {
+		return func(c echo.Context) error {
+			nc := &NexusContext{
+				Context:   c,
+				CrdType:   crdType,
+				GroupName: groupName,
+				Resource:  crdParts[0],
+			}
+			return next(nc)
+		}
+	})
+	s.Echo.GET(resourcePattern, kubeGetHandler, func(next echo.HandlerFunc) echo.HandlerFunc {
+		return func(c echo.Context) error {
+			nc := &NexusContext{
+				Context:   c,
+				CrdType:   crdType,
+				GroupName: groupName,
+				Resource:  crdParts[0],
+			}
+			return next(nc)
+		}
+	})
+	s.Echo.POST(resourcePattern, kubePostHandler, func(next echo.HandlerFunc) echo.HandlerFunc {
+		return func(c echo.Context) error {
+			nc := &NexusContext{
+				Context:   c,
+				CrdType:   crdType,
+				GroupName: groupName,
+				Resource:  crdParts[0],
+			}
+			return next(nc)
+		}
+	})
+}
+
 func (s *EchoServer) RoutesNotification(stopCh chan struct{}) error {
 	for {
 		select {
 		case <-stopCh:
 			return fmt.Errorf("stop signal received")
-		case restURIs := <-model.GlobalRestURIChan:
-			log.Println("Route notification received...")
+		case restURIs := <-model.RestURIChan:
+			log.Debug("Rest route notification received")
 			for _, v := range restURIs {
 				s.RegisterRouter(v)
 			}
-		}
-	}
-}
-
-func (s *EchoServer) CrdNotification() {
-	for {
-		select {
-		case crd := <-model.GlobalCRDChan:
-			log.Debug("Crd notification received...")
-			crdParts := strings.Split(crd, ".")
-			groupName := strings.Join(crdParts[1:], ".")
-			resourcePattern := fmt.Sprintf("/apis/%s/v1/%s", groupName, crdParts[0])
-			resourceNamePattern := resourcePattern + "/:name"
-
-			s.Echo.GET(resourceNamePattern, kubeGetByNameHandler, func(next echo.HandlerFunc) echo.HandlerFunc {
-				return func(c echo.Context) error {
-					nc := &NexusContext{
-						Context:   c,
-						CrdName:   crd,
-						GroupName: groupName,
-						Resource:  crdParts[0],
-					}
-					return next(nc)
-				}
-			})
-			s.Echo.GET(resourcePattern, kubeGetHandler, func(next echo.HandlerFunc) echo.HandlerFunc {
-				return func(c echo.Context) error {
-					nc := &NexusContext{
-						Context:   c,
-						CrdName:   crd,
-						GroupName: groupName,
-						Resource:  crdParts[0],
-					}
-					return next(nc)
-				}
-			})
-			s.Echo.POST(resourcePattern, kubePostHandler, func(next echo.HandlerFunc) echo.HandlerFunc {
-				return func(c echo.Context) error {
-					nc := &NexusContext{
-						Context:   c,
-						CrdName:   crd,
-						GroupName: groupName,
-						Resource:  crdParts[0],
-					}
-					return next(nc)
-				}
-			})
+		case crdType := <-model.CrdTypeChan:
+			log.Debug("CRD route notification received")
+			s.RegisterCrdRouter(crdType)
 		}
 	}
 }

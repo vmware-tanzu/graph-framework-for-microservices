@@ -34,25 +34,14 @@ func (r *CustomResourceDefinitionReconciler) ProcessAnnotation(crdType string,
 	// It has stored the URI with the CRD type and CRD type with the Node Info.
 	model.ConstructMapURIToCRDType(eventType, crdType, n.NexusRestAPIGen.Uris)
 	model.ConstructMapCRDTypeToNode(eventType, crdType, n.Name, n.Hierarchy, children)
-	/*
-	 populateEndpointCache populates the cache with CRD Type to restURIs attribute ( URL and method [GET, DELETE...]).
-	 if any of the attribute removed in the new event notification, that should be removed from the cache and
-	 triggers the server restart to remove the routes.
-	 If any of the attribute added newly, notify that to `GlobalRestURIChan`.
-	*/
-	removed, added := model.PopulateEndpointCache(eventType, crdType, n.NexusRestAPIGen.Uris)
-	if removed > 0 {
-		r.StopCh <- struct{}{}
-		model.GlobalRestURIChan <- model.GetGlobalEndpointCache()
+	model.ConstructMapCRDTypeToRestUris(eventType, crdType, n.NexusRestAPIGen)
 
-		for k, _ := range model.GlobalCRDTypeToNodes {
-			model.GlobalCRDChan <- k
-		}
-		return nil
-	}
+	// Restart echo server
+	r.StopCh <- struct{}{}
 
-	if len(added) > 0 {
-		model.GlobalRestURIChan <- added
+	for cType, uris := range model.CrdTypeToRestUris {
+		model.RestURIChan <- uris
+		model.CrdTypeChan <- cType
 	}
 	return nil
 }
