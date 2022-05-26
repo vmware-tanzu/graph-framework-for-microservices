@@ -52,8 +52,9 @@ spec:
                     default: ""
                     type: string
                   Port:
-                    default: ""
-                    type: string
+                    default: 0
+                    format: int32
+                    type: integer
                   Type:
                     default: ""
                     type: string
