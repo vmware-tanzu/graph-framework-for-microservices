@@ -54,9 +54,13 @@ spec:
                   Port:
                     default: ""
                     type: string
+                  Type:
+                    default: ""
+                    type: string
                 required:
                 - Name
                 - Port
+                - Type
                 type: object
               uri:
                 default: ""

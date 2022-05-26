@@ -690,6 +690,11 @@ func (obj *ExtensionsExtension) Update(ctx context.Context) error {
 	return nil
 }
 
+func (obj *ExtensionsExtension) GetParent(ctx context.Context) (result *ConfigConfig, err error) {
+	hashedName := helper.GetHashedName("configs.config.nexus.org", obj.Labels, obj.Labels["configs.config.nexus.org"])
+	return obj.client.Config().GetConfigByName(ctx, hashedName)
+}
+
 type extensionExtensionsNexusV1Chainer struct {
 	client       *Clientset
 	name         string
@@ -896,6 +901,11 @@ func (obj *AuthenticationOIDC) Update(ctx context.Context) error {
 	}
 	obj.OIDC = result
 	return nil
+}
+
+func (obj *AuthenticationOIDC) GetParent(ctx context.Context) (result *ConfigConfig, err error) {
+	hashedName := helper.GetHashedName("configs.config.nexus.org", obj.Labels, obj.Labels["configs.config.nexus.org"])
+	return obj.client.Config().GetConfigByName(ctx, hashedName)
 }
 
 type oidcAuthenticationNexusV1Chainer struct {
@@ -1139,6 +1149,11 @@ func (obj *ConfigConfig) Update(ctx context.Context) error {
 	}
 	obj.Config = result
 	return nil
+}
+
+func (obj *ConfigConfig) GetParent(ctx context.Context) (result *ApisApi, err error) {
+	hashedName := helper.GetHashedName("apis.apis.nexus.org", obj.Labels, obj.Labels["apis.apis.nexus.org"])
+	return obj.client.Apis().GetApiByName(ctx, hashedName)
 }
 
 // GetGateway returns child or link of given type
@@ -1682,6 +1697,11 @@ func (obj *GatewayGateway) Update(ctx context.Context) error {
 	}
 	obj.Gateway = result
 	return nil
+}
+
+func (obj *GatewayGateway) GetParent(ctx context.Context) (result *ConfigConfig, err error) {
+	hashedName := helper.GetHashedName("configs.config.nexus.org", obj.Labels, obj.Labels["configs.config.nexus.org"])
+	return obj.client.Config().GetConfigByName(ctx, hashedName)
 }
 
 // GetAuthn returns child or link of given type

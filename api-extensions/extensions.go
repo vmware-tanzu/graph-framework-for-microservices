@@ -6,7 +6,8 @@ import (
 
 type Service struct {
 	Name string
-	Port string
+	Port string `yaml:"omitempty"`
+	Type string `yaml:"omitempty"`
 }
 
 type ResourceConfig struct {
