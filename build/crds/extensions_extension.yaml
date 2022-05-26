@@ -48,14 +48,14 @@ spec:
                 type: object
               service:
                 properties:
-                  Fqdn:
+                  Name:
                     default: ""
                     type: string
                   Port:
                     default: ""
                     type: string
                 required:
-                - Fqdn
+                - Name
                 - Port
                 type: object
               uri:

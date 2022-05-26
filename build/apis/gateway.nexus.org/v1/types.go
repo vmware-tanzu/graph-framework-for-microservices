@@ -60,5 +60,4 @@ type GatewayList struct {
 }
 
 // +k8s:openapi-gen=true
-type GatewayConfig struct {
-}
+type GatewayConfig struct{}

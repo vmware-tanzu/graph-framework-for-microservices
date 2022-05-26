@@ -5,7 +5,7 @@ import (
 )
 
 type Service struct {
-	Fqdn string
+	Name string
 	Port string
 }
 
