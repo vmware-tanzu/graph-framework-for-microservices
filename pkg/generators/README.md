@@ -19,7 +19,7 @@ OpenAPI definition by implementing a function named "OpenAPIDefinition" with
 the following signature:
 
 ```go
-	import openapi "k8s.io/kube-openapi/pkg/common"
+	import openapi "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git/pkg/common"
 
 	// ...
 

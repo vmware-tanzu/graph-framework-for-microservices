@@ -984,7 +984,7 @@ func TestCustomDef(t *testing.T) {
 	callErr, funcErr, assert, callBuffer, funcBuffer := testOpenAPITypeWriter(t, `
 package foo
 
-import openapi "k8s.io/kube-openapi/pkg/common"
+import openapi "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git/pkg/common"
 
 type Blah struct {
 }
@@ -1015,7 +1015,7 @@ func TestCustomDefV3(t *testing.T) {
 	callErr, funcErr, assert, callBuffer, funcBuffer := testOpenAPITypeWriter(t, `
 package foo
 
-import openapi "k8s.io/kube-openapi/pkg/common"
+import openapi "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git/pkg/common"
 
 type Blah struct {
 }
@@ -1046,7 +1046,7 @@ func TestCustomDefV2AndV3(t *testing.T) {
 	callErr, funcErr, assert, callBuffer, funcBuffer := testOpenAPITypeWriter(t, `
 package foo
 
-import openapi "k8s.io/kube-openapi/pkg/common"
+import openapi "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git/pkg/common"
 
 type Blah struct {
 }
@@ -1122,7 +1122,7 @@ func TestCustomDefsV3(t *testing.T) {
 	callErr, funcErr, assert, callBuffer, funcBuffer := testOpenAPITypeWriter(t, `
 package foo
 
-import openapi "k8s.io/kube-openapi/pkg/common"
+import openapi "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git/pkg/common"
 
 // Blah is a custom type
 type Blah struct {

@@ -30,9 +30,9 @@ import (
 	"github.com/google/go-cmp/cmp"
 	fuzz "github.com/google/gofuzz"
 	"github.com/stretchr/testify/require"
+	. "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git/pkg/validation/spec"
 	"google.golang.org/protobuf/proto"
 	"gopkg.in/yaml.v3"
-	. "k8s.io/kube-openapi/pkg/validation/spec"
 )
 
 var SpecV2DiffOptions = []cmp.Option{

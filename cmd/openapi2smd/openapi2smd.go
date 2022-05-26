@@ -24,8 +24,8 @@ import (
 	openapi_v2 "github.com/google/gnostic/openapiv2"
 	yaml "gopkg.in/yaml.v2"
 
-	"k8s.io/kube-openapi/pkg/schemaconv"
-	"k8s.io/kube-openapi/pkg/util/proto"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git/pkg/schemaconv"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git/pkg/util/proto"
 )
 
 func main() {

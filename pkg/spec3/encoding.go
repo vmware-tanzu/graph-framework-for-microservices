@@ -18,8 +18,9 @@ package spec3
 
 import (
 	"encoding/json"
+
 	"github.com/go-openapi/swag"
-	"k8s.io/kube-openapi/pkg/validation/spec"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git/pkg/validation/spec"
 )
 
 type Encoding struct {

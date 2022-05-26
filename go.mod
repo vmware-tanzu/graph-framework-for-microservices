@@ -1,4 +1,4 @@
-module k8s.io/kube-openapi
+module gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git
 
 go 1.16
 

@@ -20,7 +20,7 @@ package validate
 import (
 	"reflect"
 
-	"k8s.io/kube-openapi/pkg/validation/errors"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git/pkg/validation/errors"
 )
 
 const (

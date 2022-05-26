@@ -20,10 +20,10 @@ import (
 	"encoding/json"
 	"testing"
 
-	"k8s.io/kube-openapi/pkg/validation/spec"
 	"github.com/google/go-cmp/cmp"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git/pkg/validation/spec"
 
-	"k8s.io/kube-openapi/pkg/spec3"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git/pkg/spec3"
 )
 
 func TestSecuritySchemaJSONSerialization(t *testing.T) {

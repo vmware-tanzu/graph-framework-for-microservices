@@ -19,10 +19,10 @@ package openapiconv
 import (
 	"strings"
 
+	builderutil "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git/pkg/builder3/util"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git/pkg/spec3"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git/pkg/validation/spec"
 	klog "k8s.io/klog/v2"
-	builderutil "k8s.io/kube-openapi/pkg/builder3/util"
-	"k8s.io/kube-openapi/pkg/spec3"
-	"k8s.io/kube-openapi/pkg/validation/spec"
 )
 
 var OpenAPIV2DefPrefix = "#/definitions/"

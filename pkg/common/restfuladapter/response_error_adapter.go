@@ -2,7 +2,7 @@ package restfuladapter
 
 import (
 	"github.com/emicklei/go-restful"
-	"k8s.io/kube-openapi/pkg/common"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git/pkg/common"
 )
 
 var _ common.StatusCodeResponse = &ResponseErrorAdapter{}

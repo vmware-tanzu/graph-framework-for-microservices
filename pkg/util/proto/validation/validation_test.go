@@ -20,13 +20,13 @@ import (
 	"fmt"
 	"path/filepath"
 
-	"sigs.k8s.io/yaml"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	"sigs.k8s.io/yaml"
 
-	"k8s.io/kube-openapi/pkg/util/proto"
-	"k8s.io/kube-openapi/pkg/util/proto/testing"
-	"k8s.io/kube-openapi/pkg/util/proto/validation"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git/pkg/util/proto"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git/pkg/util/proto/testing"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git/pkg/util/proto/validation"
 )
 
 var fakeSchema = testing.Fake{Path: filepath.Join("..", "testdata", "swagger.json")}

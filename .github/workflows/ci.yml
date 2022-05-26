@@ -20,7 +20,7 @@ jobs:
     steps:
     - uses: actions/checkout@v2
       with:
-        path: src/k8s.io/kube-openapi/        
+        path: src/gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git/
 
     - name: Set up Go
       uses: actions/setup-go@v2
@@ -30,10 +30,10 @@ jobs:
 
     - name: Build
       run: |
-        cd ${GITHUB_WORKSPACE}/src/k8s.io/kube-openapi/
+        cd ${GITHUB_WORKSPACE}/src/gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git/
         go mod tidy && git diff --exit-code
         go build ./cmd/... ./pkg/...
     - name: Test
       run: |
-        cd ${GITHUB_WORKSPACE}/src/k8s.io/kube-openapi/
+        cd ${GITHUB_WORKSPACE}/src/gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git/
         GOPATH=${GITHUB_WORKSPACE} go test ./cmd/... ./pkg/... ./test/...

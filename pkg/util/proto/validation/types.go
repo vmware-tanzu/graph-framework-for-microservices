@@ -20,7 +20,7 @@ import (
 	"reflect"
 	"sort"
 
-	"k8s.io/kube-openapi/pkg/util/proto"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git/pkg/util/proto"
 )
 
 type validationItem interface {

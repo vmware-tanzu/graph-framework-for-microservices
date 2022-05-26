@@ -33,13 +33,13 @@ import (
 	"github.com/golang/protobuf/proto"
 	openapi_v2 "github.com/google/gnostic/openapiv2"
 	"github.com/munnerz/goautoneg"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git/pkg/builder"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git/pkg/common"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git/pkg/common/restfuladapter"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git/pkg/internal/handler"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git/pkg/validation/spec"
 	"gopkg.in/yaml.v2"
 	klog "k8s.io/klog/v2"
-	"k8s.io/kube-openapi/pkg/builder"
-	"k8s.io/kube-openapi/pkg/common"
-	"k8s.io/kube-openapi/pkg/common/restfuladapter"
-	"k8s.io/kube-openapi/pkg/internal/handler"
-	"k8s.io/kube-openapi/pkg/validation/spec"
 )
 
 const (

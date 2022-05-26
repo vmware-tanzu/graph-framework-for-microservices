@@ -19,8 +19,8 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"k8s.io/kube-openapi/pkg/validation/errors"
-	"k8s.io/kube-openapi/pkg/validation/strfmt"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git/pkg/validation/errors"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git/pkg/validation/strfmt"
 )
 
 func TestValues_ValidateIntEnum(t *testing.T) {

@@ -11,8 +11,8 @@ import (
 	"testing"
 
 	"github.com/davecgh/go-spew/spew"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git/pkg/validation/spec"
 	yaml "gopkg.in/yaml.v2"
-	"k8s.io/kube-openapi/pkg/validation/spec"
 )
 
 var returnedSwagger = []byte(`{

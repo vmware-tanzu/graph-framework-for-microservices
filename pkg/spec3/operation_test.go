@@ -21,8 +21,8 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
-	"k8s.io/kube-openapi/pkg/spec3"
-	"k8s.io/kube-openapi/pkg/validation/spec"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git/pkg/spec3"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git/pkg/validation/spec"
 )
 
 func TestOperationJSONSerialization(t *testing.T) {
@@ -90,7 +90,7 @@ func TestOperationJSONSerialization(t *testing.T) {
 										Description: "Pet updated.",
 										Content: map[string]*spec3.MediaType{
 											"application/json": &spec3.MediaType{},
-											"application/xml": &spec3.MediaType{},
+											"application/xml":  &spec3.MediaType{},
 										},
 									},
 								},

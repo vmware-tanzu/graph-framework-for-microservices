@@ -17,7 +17,7 @@ limitations under the License.
 package schemamutation
 
 import (
-	"k8s.io/kube-openapi/pkg/validation/spec"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git/pkg/validation/spec"
 )
 
 // Walker runs callback functions on all references of an OpenAPI spec,

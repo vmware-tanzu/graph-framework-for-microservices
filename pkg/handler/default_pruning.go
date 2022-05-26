@@ -16,7 +16,7 @@ limitations under the License.
 
 package handler
 
-import "k8s.io/kube-openapi/pkg/validation/spec"
+import "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git/pkg/validation/spec"
 
 // PruneDefaults remove all the defaults recursively from all the
 // schemas in the definitions, and does not modify the definitions in

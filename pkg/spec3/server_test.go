@@ -21,7 +21,7 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
-	"k8s.io/kube-openapi/pkg/spec3"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git/pkg/spec3"
 )
 
 func TestServerJSONSerialization(t *testing.T) {
@@ -35,7 +35,7 @@ func TestServerJSONSerialization(t *testing.T) {
 			name: "basic",
 			target: &spec3.Server{
 				ServerProps: spec3.ServerProps{
-					URL: "https://development.gigantic-server.com/v1",
+					URL:         "https://development.gigantic-server.com/v1",
 					Description: "Development server",
 				},
 			},

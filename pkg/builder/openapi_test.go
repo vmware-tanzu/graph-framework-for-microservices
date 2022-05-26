@@ -25,8 +25,8 @@ import (
 
 	"github.com/emicklei/go-restful"
 	"github.com/stretchr/testify/assert"
-	openapi "k8s.io/kube-openapi/pkg/common"
-	"k8s.io/kube-openapi/pkg/validation/spec"
+	openapi "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git/pkg/common"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git/pkg/validation/spec"
 )
 
 // setUp is a convenience function for setting up for (most) tests.
@@ -212,9 +212,9 @@ func getConfig(fullMethods bool) (*openapi.Config, *restful.Container) {
 		},
 		GetDefinitions: func(_ openapi.ReferenceCallback) map[string]openapi.OpenAPIDefinition {
 			return map[string]openapi.OpenAPIDefinition{
-				"k8s.io/kube-openapi/pkg/builder.TestInput":             *TestInput{}.OpenAPIDefinition(),
-				"k8s.io/kube-openapi/pkg/builder.TestOutput":            *TestOutput{}.OpenAPIDefinition(),
-				"k8s.io/kube-openapi/pkg/builder.TestExtensionV2Schema": *TestExtensionV2Schema{}.OpenAPIDefinition(),
+				"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git/pkg/builder.TestInput":             *TestInput{}.OpenAPIDefinition(),
+				"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git/pkg/builder.TestOutput":            *TestOutput{}.OpenAPIDefinition(),
+				"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git/pkg/builder.TestExtensionV2Schema": *TestExtensionV2Schema{}.OpenAPIDefinition(),
 			}
 		},
 		GetDefinitionName: func(name string) (string, spec.Extensions) {

@@ -20,7 +20,7 @@ import (
 	"errors"
 	"testing"
 
-	"k8s.io/kube-openapi/pkg/internal/handler"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git/pkg/internal/handler"
 )
 
 func TestCache(t *testing.T) {

@@ -22,10 +22,10 @@ import (
 	"sort"
 	"strings"
 
-	"k8s.io/kube-openapi/pkg/validation/spec"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git/pkg/validation/spec"
 
-	"k8s.io/kube-openapi/pkg/schemamutation"
-	"k8s.io/kube-openapi/pkg/util"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git/pkg/schemamutation"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git/pkg/util"
 )
 
 const gvkKey = "x-kubernetes-group-version-kind"

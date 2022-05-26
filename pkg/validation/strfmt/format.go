@@ -23,7 +23,7 @@ import (
 	"time"
 
 	"github.com/mitchellh/mapstructure"
-	"k8s.io/kube-openapi/pkg/validation/errors"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git/pkg/validation/errors"
 )
 
 // Default is the default formats registry

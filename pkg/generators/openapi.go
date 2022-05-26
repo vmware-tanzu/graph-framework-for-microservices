@@ -26,10 +26,10 @@ import (
 	"sort"
 	"strings"
 
+	openapi "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git/pkg/common"
 	"k8s.io/gengo/generator"
 	"k8s.io/gengo/namer"
 	"k8s.io/gengo/types"
-	openapi "k8s.io/kube-openapi/pkg/common"
 
 	"k8s.io/klog/v2"
 )
@@ -103,8 +103,8 @@ func apiTypeFilterFunc(c *generator.Context, t *types.Type) bool {
 }
 
 const (
-	specPackagePath          = "k8s.io/kube-openapi/pkg/validation/spec"
-	openAPICommonPackagePath = "k8s.io/kube-openapi/pkg/common"
+	specPackagePath          = "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git/pkg/validation/spec"
+	openAPICommonPackagePath = "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git/pkg/common"
 )
 
 // openApiGen produces a file with auto-generated OpenAPI functions.

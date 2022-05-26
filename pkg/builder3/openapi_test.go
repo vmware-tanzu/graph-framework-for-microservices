@@ -26,9 +26,9 @@ import (
 	"github.com/emicklei/go-restful"
 	"github.com/stretchr/testify/assert"
 
-	openapi "k8s.io/kube-openapi/pkg/common"
-	"k8s.io/kube-openapi/pkg/spec3"
-	"k8s.io/kube-openapi/pkg/validation/spec"
+	openapi "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git/pkg/common"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git/pkg/spec3"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git/pkg/validation/spec"
 )
 
 // setUp is a convenience function for setting up for (most) tests.
@@ -99,18 +99,16 @@ func (_ TestInput) OpenAPIDefinition() *openapi.OpenAPIDefinition {
 		},
 		"reference-nullable": {
 			SchemaProps: spec.SchemaProps{
-				Ref: spec.MustCreateRef("/components/schemas/builder3.TestOutput"),
+				Ref:      spec.MustCreateRef("/components/schemas/builder3.TestOutput"),
 				Nullable: true,
 			},
 		},
 		"reference-default": {
 			SchemaProps: spec.SchemaProps{
-				Ref: spec.MustCreateRef("/components/schemas/builder3.TestOutput"),
+				Ref:     spec.MustCreateRef("/components/schemas/builder3.TestOutput"),
 				Default: map[string]interface{}{},
 			},
 		},
-
-
 	}
 	schema.Extensions = spec.Extensions{"x-test": "test"}
 	def := openapi.EmbedOpenAPIDefinitionIntoV2Extension(openapi.OpenAPIDefinition{
@@ -205,8 +203,8 @@ func getConfig(fullMethods bool) (*openapi.Config, *restful.Container) {
 		},
 		GetDefinitions: func(_ openapi.ReferenceCallback) map[string]openapi.OpenAPIDefinition {
 			return map[string]openapi.OpenAPIDefinition{
-				"k8s.io/kube-openapi/pkg/builder3.TestInput":  *TestInput{}.OpenAPIDefinition(),
-				"k8s.io/kube-openapi/pkg/builder3.TestOutput": *TestOutput{}.OpenAPIDefinition(),
+				"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git/pkg/builder3.TestInput":  *TestInput{}.OpenAPIDefinition(),
+				"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git/pkg/builder3.TestOutput": *TestOutput{}.OpenAPIDefinition(),
 			}
 		},
 		GetDefinitionName: func(name string) (string, spec.Extensions) {

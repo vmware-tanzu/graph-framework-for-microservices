@@ -23,7 +23,7 @@ import (
 	"sort"
 	"strings"
 
-	"k8s.io/kube-openapi/pkg/util/proto"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git/pkg/util/proto"
 	"sigs.k8s.io/structured-merge-diff/v4/schema"
 )
 

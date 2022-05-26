@@ -15,7 +15,7 @@
 package validate
 
 import (
-	"k8s.io/kube-openapi/pkg/validation/errors"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git/pkg/validation/errors"
 )
 
 // Error messages related to schema validation and returned as results.

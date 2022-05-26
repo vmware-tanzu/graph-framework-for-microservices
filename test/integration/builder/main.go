@@ -22,10 +22,10 @@ import (
 	"log"
 	"os"
 
-	builderv2 "k8s.io/kube-openapi/pkg/builder"
-	"k8s.io/kube-openapi/pkg/validation/spec"
-	"k8s.io/kube-openapi/test/integration/pkg/generated"
-	"k8s.io/kube-openapi/test/integration/testutil"
+	builderv2 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git/pkg/builder"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git/pkg/validation/spec"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git/test/integration/pkg/generated"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git/test/integration/testutil"
 )
 
 // TODO: Change this to output the generated swagger to stdout.

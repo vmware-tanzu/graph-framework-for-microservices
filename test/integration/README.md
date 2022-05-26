@@ -19,7 +19,7 @@ on API rule violations.
 
 ```bash
 $ go run ../../cmd/openapi-gen/openapi-gen.go \
-  -i "k8s.io/kube-openapi/test/integration/testdata/custom,k8s.io/kube-openapi/test/integration/testdata/enumtype,k8s.io/kube-openapi/test/integration/testdata/listtype,k8s.io/kube-openapi/test/integration/testdata/maptype,k8s.io/kube-openapi/test/integration/testdata/structtype,k8s.io/kube-openapi/test/integration/testdata/dummytype,k8s.io/kube-openapi/test/integration/testdata/uniontype,k8s.io/kube-openapi/test/integration/testdata/defaults" \
+  -i "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git/test/integration/testdata/custom,gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git/test/integration/testdata/enumtype,gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git/test/integration/testdata/listtype,gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git/test/integration/testdata/maptype,gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git/test/integration/testdata/structtype,gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git/test/integration/testdata/dummytype,gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git/test/integration/testdata/uniontype,gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git/test/integration/testdata/defaults" \
   -o pkg \
   -p generated \
   -O openapi_generated \

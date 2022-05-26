@@ -24,7 +24,7 @@ import (
 	"os"
 	"sort"
 
-	"k8s.io/kube-openapi/pkg/generators/rules"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git/pkg/generators/rules"
 
 	"k8s.io/gengo/generator"
 	"k8s.io/gengo/types"

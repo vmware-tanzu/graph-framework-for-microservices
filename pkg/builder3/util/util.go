@@ -19,8 +19,8 @@ package util
 import (
 	"reflect"
 
-	"k8s.io/kube-openapi/pkg/schemamutation"
-	"k8s.io/kube-openapi/pkg/validation/spec"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git/pkg/schemamutation"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git/pkg/validation/spec"
 )
 
 // wrapRefs wraps OpenAPI V3 Schema refs that contain sibling elements.

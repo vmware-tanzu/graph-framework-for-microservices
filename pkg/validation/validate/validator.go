@@ -17,8 +17,8 @@ package validate
 import (
 	"reflect"
 
-	"k8s.io/kube-openapi/pkg/validation/errors"
-	"k8s.io/kube-openapi/pkg/validation/spec"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git/pkg/validation/errors"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git/pkg/validation/spec"
 )
 
 // valueValidator validates the values it applies to.

@@ -18,7 +18,7 @@ import (
 	"fmt"
 	"strings"
 
-	"k8s.io/kube-openapi/pkg/validation/errors"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git/pkg/validation/errors"
 )
 
 // Result represents a validation result set, composed of

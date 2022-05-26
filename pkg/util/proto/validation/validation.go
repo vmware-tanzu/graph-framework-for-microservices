@@ -17,7 +17,7 @@ limitations under the License.
 package validation
 
 import (
-	"k8s.io/kube-openapi/pkg/util/proto"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git/pkg/util/proto"
 )
 
 func ValidateModel(obj interface{}, schema proto.Schema, name string) []error {

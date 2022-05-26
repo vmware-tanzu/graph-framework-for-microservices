@@ -21,9 +21,9 @@ import (
 	"reflect"
 	"testing"
 
-	"k8s.io/kube-openapi/pkg/handler"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git/pkg/handler"
 
-	"k8s.io/kube-openapi/pkg/validation/spec"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git/pkg/validation/spec"
 )
 
 func TestDefaultPruning(t *testing.T) {

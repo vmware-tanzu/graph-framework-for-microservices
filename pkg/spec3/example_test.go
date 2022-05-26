@@ -21,7 +21,7 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
-	"k8s.io/kube-openapi/pkg/spec3"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git/pkg/spec3"
 )
 
 func TestExampleJSONSerialization(t *testing.T) {
@@ -35,7 +35,7 @@ func TestExampleJSONSerialization(t *testing.T) {
 			target: &spec3.Example{
 				ExampleProps: spec3.ExampleProps{
 					Summary: "An example",
-					Value: map[string]string{"foo": "bar"},
+					Value:   map[string]string{"foo": "bar"},
 				},
 			},
 			expectedOutput: `{"summary":"An example","value":{"foo":"bar"}}`,

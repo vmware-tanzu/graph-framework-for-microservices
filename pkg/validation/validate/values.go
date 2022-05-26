@@ -20,8 +20,8 @@ import (
 	"unicode/utf8"
 
 	"github.com/go-openapi/swag"
-	"k8s.io/kube-openapi/pkg/validation/errors"
-	"k8s.io/kube-openapi/pkg/validation/strfmt"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git/pkg/validation/errors"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git/pkg/validation/strfmt"
 )
 
 // Enum validates if the data is a member of the enum

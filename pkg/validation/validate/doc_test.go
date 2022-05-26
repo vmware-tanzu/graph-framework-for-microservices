@@ -21,9 +21,9 @@ import (
 
 	// Spec loading
 	"github.com/stretchr/testify/require"
-	"k8s.io/kube-openapi/pkg/validation/spec"
-	"k8s.io/kube-openapi/pkg/validation/strfmt"   // OpenAPI format extensions
-	"k8s.io/kube-openapi/pkg/validation/validate" // This package
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git/pkg/validation/spec"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git/pkg/validation/strfmt"   // OpenAPI format extensions
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git/pkg/validation/validate" // This package
 )
 
 func ExampleAgainstSchema() {

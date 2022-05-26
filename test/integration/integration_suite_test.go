@@ -31,7 +31,7 @@ import (
 const (
 	headerFilePath = "../../boilerplate/boilerplate.go.txt"
 	testdataDir    = "./testdata"
-	testPkgDir     = "k8s.io/kube-openapi/test/integration/testdata"
+	testPkgDir     = "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git/test/integration/testdata"
 	inputDir       = testPkgDir + "/listtype" +
 		"," + testPkgDir + "/maptype" +
 		"," + testPkgDir + "/structtype" +

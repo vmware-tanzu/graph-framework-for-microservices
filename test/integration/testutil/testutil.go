@@ -21,9 +21,9 @@ import (
 	"strings"
 
 	"github.com/emicklei/go-restful"
-	"k8s.io/kube-openapi/pkg/common"
-	"k8s.io/kube-openapi/pkg/util"
-	"k8s.io/kube-openapi/pkg/validation/spec"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git/pkg/common"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git/pkg/util"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git/pkg/validation/spec"
 )
 
 // CreateOpenAPIBuilderConfig hard-codes some values in the API builder
@@ -94,7 +94,7 @@ type typeNamer struct {
 }
 
 func (t *typeNamer) OpenAPICanonicalTypeName() string {
-	return fmt.Sprintf("k8s.io/kube-openapi/test/integration/testdata/%s.%s", t.pkg, t.name)
+	return fmt.Sprintf("gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git/test/integration/testdata/%s.%s", t.pkg, t.name)
 }
 
 func buildRouteForType(ws *restful.WebService, pkg, name string) []*restful.RouteBuilder {

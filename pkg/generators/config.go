@@ -26,7 +26,7 @@ import (
 	"k8s.io/gengo/types"
 	"k8s.io/klog/v2"
 
-	generatorargs "k8s.io/kube-openapi/cmd/openapi-gen/args"
+	generatorargs "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git/cmd/openapi-gen/args"
 )
 
 type identityNamer struct{}

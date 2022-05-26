@@ -47,8 +47,8 @@ func TestGetCanonicalTypeName(t *testing.T) {
 		input    interface{}
 		expected string
 	}{
-		{TestType{}, "k8s.io/kube-openapi/pkg/util.TestType"},
-		{&TestType{}, "k8s.io/kube-openapi/pkg/util.TestType"},
+		{TestType{}, "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git/pkg/util.TestType"},
+		{&TestType{}, "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git/pkg/util.TestType"},
 	}
 	for _, test := range tests {
 		if got := GetCanonicalTypeName(test.input); got != test.expected {
