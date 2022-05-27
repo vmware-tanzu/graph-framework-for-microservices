@@ -1,4 +1,4 @@
-package crd_generator_test
+package nexus_compiler_test
 
 import (
 	"context"
@@ -14,9 +14,8 @@ import (
 	nexus_client "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/crd_generated/nexus-client"
 )
 
-var _ = Describe("Template renderers tests", func() {
+var _ = Describe("Nexus clients tests", func() {
 	var (
-		//err error
 		fakeClient *nexus_client.Clientset
 		str        gnsv1.MyStr = "test"
 	)
@@ -299,7 +298,7 @@ var _ = Describe("Template renderers tests", func() {
 				Name: "cfg",
 			},
 			Spec: configv1.ConfigSpec{
-				MyStr: "test",
+				MyStr: &str,
 			},
 		}
 		cfg, err := root.AddConfig(context.TODO(), cfgDef)

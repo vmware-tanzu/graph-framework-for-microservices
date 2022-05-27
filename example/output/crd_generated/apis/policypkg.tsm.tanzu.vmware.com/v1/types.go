@@ -99,6 +99,34 @@ type ACPConfigList struct {
 	Items           []ACPConfig `json:"items" yaml:"items"`
 }
 
+// +genclient
+// +genclient:noStatus
+// +genclient:nonNamespaced
+// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
+// +k8s:openapi-gen=true
+type VMpolicy struct {
+	metav1.TypeMeta   `json:",inline" yaml:",inline"`
+	metav1.ObjectMeta `json:"metadata" yaml:"metadata"`
+}
+
+func (c *VMpolicy) CRDName() string {
+	return "vmpolicies.policypkg.tsm.tanzu.vmware.com"
+}
+
+func (c *VMpolicy) DisplayName() string {
+	if c.GetLabels() != nil {
+		return c.GetLabels()[common.DISPLAY_NAME_LABEL]
+	}
+	return ""
+}
+
+// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
+type VMpolicyList struct {
+	metav1.TypeMeta `json:",inline" yaml:",inline"`
+	metav1.ListMeta `json:"metadata" yaml:"metadata"`
+	Items           []VMpolicy `json:"items" yaml:"items"`
+}
+
 // +k8s:openapi-gen=true
 type ResourceGroupRef struct {
 	Name string

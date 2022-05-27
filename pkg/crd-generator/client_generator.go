@@ -3,6 +3,7 @@ package crd_generator
 import (
 	"go/ast"
 	"sort"
+	"strconv"
 	"strings"
 
 	log "github.com/sirupsen/logrus"
@@ -65,7 +66,7 @@ func generateNexusClientVars(baseGroupName, crdModulePath string, pkgs parser.Pa
 				clientGroupVars.ApiGroupsVars = groupVars
 				clientGroupVars.GroupTypeName = groupTypeName
 				clientGroupVars.CrdName = util.GetCrdName(node.Name.String(), pkg.Name, baseGroupName)
-				err := resolveNode(baseImportName, pkg, baseGroupName, version, &clientGroupVars, node, parentsMap)
+				err := resolveNode(baseImportName, pkg, pkgs, baseGroupName, version, &clientGroupVars, node, parentsMap)
 				if err != nil {
 					return clientVars{}, err
 				}
@@ -79,7 +80,8 @@ func generateNexusClientVars(baseGroupName, crdModulePath string, pkgs parser.Pa
 	return vars, nil
 }
 
-func resolveNode(baseImportName string, pkg parser.Package, baseGroupName, version string, clientGroupVars *apiGroupsClientVars, node *ast.TypeSpec, parentsMap map[string]parser.NodeHelper) error {
+func resolveNode(baseImportName string, pkg parser.Package, allPkgs parser.Packages, baseGroupName, version string,
+	clientGroupVars *apiGroupsClientVars, node *ast.TypeSpec, parentsMap map[string]parser.NodeHelper) error {
 	pkgName := pkg.Name
 	baseNodeName := node.Name.Name // eg Root
 	groupResourceNameTitle := util.GetGroupResourceNameTitle(baseNodeName)
@@ -100,7 +102,7 @@ func resolveNode(baseImportName string, pkg parser.Package, baseGroupName, versi
 		clientGroupVars.HasChildren = true
 	}
 	for _, link := range childrenAndLinks {
-		linkInfo := getFieldInfo(pkg, link)
+		linkInfo := getFieldInfo(pkg, allPkgs, link)
 		clientVarsLink := apiGroupsClientVarsLink{
 			FieldName:              linkInfo.fieldName,
 			FieldNameGvk:           util.GetGvkFieldTagName(linkInfo.fieldName),
@@ -128,7 +130,7 @@ func resolveNode(baseImportName string, pkg parser.Package, baseGroupName, versi
 	}
 
 	for _, f := range parser.GetSpecFields(node) {
-		fieldInfo := getFieldInfo(pkg, f)
+		fieldInfo := getFieldInfo(pkg, allPkgs, f)
 		var vars apiGroupsClientVarsLink
 		vars.FieldName = fieldInfo.fieldName
 		vars.FieldNameTag = util.GetTag(fieldInfo.fieldName)
@@ -163,7 +165,7 @@ type fieldInfo struct {
 	fieldType string
 }
 
-func getFieldInfo(pkg parser.Package, f *ast.Field) fieldInfo {
+func getFieldInfo(pkg parser.Package, allPkgs parser.Packages, f *ast.Field) fieldInfo {
 	var info fieldInfo
 	var err error
 	info.fieldName, err = parser.GetFieldName(f)
@@ -183,15 +185,23 @@ func getFieldInfo(pkg parser.Package, f *ast.Field) fieldInfo {
 		// overwrite pkg name for node which uses named import like 'sg "helloworld.com/service-groups"'
 		for _, imp := range pkg.GetImports() {
 			if imp.Name.String() == info.pkgName {
-				s := strings.Split(imp.Path.Value, "/")
-				info.pkgName = strings.TrimSuffix(s[len(s)-1], "\"")
+				// look for import matching package
+				for _, p := range allPkgs {
+					unquotedImport, err := strconv.Unquote(imp.Path.Value)
+					if err != nil {
+						continue
+					}
+					if unquotedImport == p.FullName {
+						info.pkgName = p.Name
+						break
+					}
+				}
 			}
 		}
 		info.pkgName = util.RemoveSpecialChars(info.pkgName)
 	} else {
 		info.pkgName = util.RemoveSpecialChars(currentPkgName)
 	}
-
 	return info
 }
 

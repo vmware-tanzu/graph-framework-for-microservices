@@ -132,6 +132,18 @@ func (in *ConfigSpec) DeepCopyInto(out *ConfigSpec) {
 		*out = new(Child)
 		**out = **in
 	}
+	if in.VMPPoliciesGvk != nil {
+		in, out := &in.VMPPoliciesGvk, &out.VMPPoliciesGvk
+		*out = new(Child)
+		**out = **in
+	}
+	if in.ACPPoliciesGvk != nil {
+		in, out := &in.ACPPoliciesGvk, &out.ACPPoliciesGvk
+		*out = make(map[string]Link, len(*in))
+		for key, val := range *in {
+			(*out)[key] = val
+		}
+	}
 	return
 }
 

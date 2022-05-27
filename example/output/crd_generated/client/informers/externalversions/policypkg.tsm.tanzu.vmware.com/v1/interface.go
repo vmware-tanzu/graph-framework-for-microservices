@@ -28,6 +28,8 @@ type Interface interface {
 	ACPConfigs() ACPConfigInformer
 	// AccessControlPolicies returns a AccessControlPolicyInformer.
 	AccessControlPolicies() AccessControlPolicyInformer
+	// VMpolicies returns a VMpolicyInformer.
+	VMpolicies() VMpolicyInformer
 }
 
 type version struct {
@@ -49,4 +51,9 @@ func (v *version) ACPConfigs() ACPConfigInformer {
 // AccessControlPolicies returns a AccessControlPolicyInformer.
 func (v *version) AccessControlPolicies() AccessControlPolicyInformer {
 	return &accessControlPolicyInformer{factory: v.factory, tweakListOptions: v.tweakListOptions}
+}
+
+// VMpolicies returns a VMpolicyInformer.
+func (v *version) VMpolicies() VMpolicyInformer {
+	return &vMpolicyInformer{factory: v.factory, tweakListOptions: v.tweakListOptions}
 }

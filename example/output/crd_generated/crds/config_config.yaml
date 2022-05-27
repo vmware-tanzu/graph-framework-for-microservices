@@ -4,7 +4,7 @@ kind: CustomResourceDefinition
 metadata:
   annotations:
     nexus: |
-      {"name":"Config.config","hierarchy":["roots.root.tsm.tanzu.vmware.com"],"children":{"dnses.gns.tsm.tanzu.vmware.com":{"fieldName":"DNS","fieldNameGvk":"dNSGvk","isNamed":false},"gnses.gns.tsm.tanzu.vmware.com":{"fieldName":"GNS","fieldNameGvk":"gNSGvk","isNamed":false}},"nexus-rest-api-gen":{"uris":null}}
+      {"name":"Config.config","hierarchy":["roots.root.tsm.tanzu.vmware.com"],"children":{"dnses.gns.tsm.tanzu.vmware.com":{"fieldName":"DNS","fieldNameGvk":"dNSGvk","isNamed":false},"gnses.gns.tsm.tanzu.vmware.com":{"fieldName":"GNS","fieldNameGvk":"gNSGvk","isNamed":false},"vmpolicies.policypkg.tsm.tanzu.vmware.com":{"fieldName":"VMPPolicies","fieldNameGvk":"vMPPoliciesGvk","isNamed":false}},"nexus-rest-api-gen":{"uris":null}}
   creationTimestamp: null
   name: configs.config.tsm.tanzu.vmware.com
 spec:
@@ -38,6 +38,24 @@ spec:
             type: object
           spec:
             properties:
+              aCPPoliciesGvk:
+                additionalProperties:
+                  properties:
+                    group:
+                      default: ""
+                      type: string
+                    kind:
+                      default: ""
+                      type: string
+                    name:
+                      default: ""
+                      type: string
+                  required:
+                  - group
+                  - kind
+                  - name
+                  type: object
+                type: object
               dNSGvk:
                 properties:
                   group:
@@ -81,6 +99,22 @@ spec:
                 additionalProperties:
                   default: ""
                   type: string
+                type: object
+              vMPPoliciesGvk:
+                properties:
+                  group:
+                    default: ""
+                    type: string
+                  kind:
+                    default: ""
+                    type: string
+                  name:
+                    default: ""
+                    type: string
+                required:
+                - group
+                - kind
+                - name
                 type: object
             required:
             - myStr

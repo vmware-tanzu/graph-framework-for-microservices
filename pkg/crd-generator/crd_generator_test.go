@@ -41,12 +41,12 @@ var _ = Describe("Template renderers tests", func() {
 
 	BeforeEach(func() {
 		pkgs := parser.ParseDSLPkg(exampleDSLPath)
-		pkg, ok = pkgs["gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/datamodel//config/gns"]
+		pkg, ok = pkgs["gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/datamodel/config/gns"]
 		Expect(ok).To(BeTrue())
 
 		graph := parser.ParseDSLNodes(exampleDSLPath, baseGroupName)
 		parentsMap = parser.CreateParentsMap(graph)
-		Expect(parentsMap).To(HaveLen(7))
+		Expect(parentsMap).To(HaveLen(8))
 
 		methods, codes = rest.ParseResponses(pkgs)
 	})

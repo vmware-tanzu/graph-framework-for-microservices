@@ -36,6 +36,10 @@ func (c *FakePolicypkgTsmV1) AccessControlPolicies() v1.AccessControlPolicyInter
 	return &FakeAccessControlPolicies{c}
 }
 
+func (c *FakePolicypkgTsmV1) VMpolicies() v1.VMpolicyInterface {
+	return &FakeVMpolicies{c}
+}
+
 // RESTClient returns a RESTClient that is used to communicate
 // with API server by this client implementation.
 func (c *FakePolicypkgTsmV1) RESTClient() rest.Interface {

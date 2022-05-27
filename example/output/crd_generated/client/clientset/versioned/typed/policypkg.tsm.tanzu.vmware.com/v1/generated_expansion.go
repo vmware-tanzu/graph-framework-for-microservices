@@ -21,3 +21,5 @@ package v1
 type ACPConfigExpansion interface{}
 
 type AccessControlPolicyExpansion interface{}
+
+type VMpolicyExpansion interface{}

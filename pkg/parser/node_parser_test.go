@@ -1,6 +1,8 @@
 package parser_test
 
 import (
+	"sort"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
@@ -24,13 +26,22 @@ var _ = Describe("Node parser tests", func() {
 	})
 
 	It("should get all nodes", func() {
-		expectedNodes := []string{"Root", "Config", "Gns", "SvcGroup", "AccessControlPolicy", "ACPConfig", "Dns"}
+		expectedNodes := []string{
+			"ACPConfig",
+			"AccessControlPolicy",
+			"Config",
+			"Dns",
+			"Gns",
+			"Root",
+			"SvcGroup",
+			"VMpolicy",
+		}
 		var nodes []string
 		root.Walk(func(node *parser.Node) {
-			log.Println(node.Name)
 			nodes = append(nodes, node.Name)
 		})
-		Expect(nodes).To(HaveLen(7))
+		sort.Strings(nodes)
+		Expect(nodes).To(HaveLen(8))
 		Expect(nodes).To(Equal(expectedNodes))
 	})
 
