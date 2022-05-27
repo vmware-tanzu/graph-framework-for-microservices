@@ -28,6 +28,7 @@ type PolicypkgTsmV1Interface interface {
 	RESTClient() rest.Interface
 	ACPConfigsGetter
 	AccessControlPoliciesGetter
+	VMpoliciesGetter
 }
 
 // PolicypkgTsmV1Client is used to interact with features provided by the policypkg.tsm.tanzu.vmware.com group.
@@ -41,6 +42,10 @@ func (c *PolicypkgTsmV1Client) ACPConfigs() ACPConfigInterface {
 
 func (c *PolicypkgTsmV1Client) AccessControlPolicies() AccessControlPolicyInterface {
 	return newAccessControlPolicies(c)
+}
+
+func (c *PolicypkgTsmV1Client) VMpolicies() VMpolicyInterface {
+	return newVMpolicies(c)
 }
 
 // NewForConfig creates a new PolicypkgTsmV1Client for the given config.

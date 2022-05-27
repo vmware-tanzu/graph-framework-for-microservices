@@ -25,6 +25,7 @@ func GetCRDParentsMap() map[string][]string {
 		"gnses.gns.tsm.tanzu.vmware.com":                       {"roots.root.tsm.tanzu.vmware.com", "configs.config.tsm.tanzu.vmware.com"},
 		"roots.root.tsm.tanzu.vmware.com":                      {},
 		"svcgroups.servicegroup.tsm.tanzu.vmware.com":          {"roots.root.tsm.tanzu.vmware.com", "configs.config.tsm.tanzu.vmware.com", "gnses.gns.tsm.tanzu.vmware.com"},
+		"vmpolicies.policypkg.tsm.tanzu.vmware.com":            {"roots.root.tsm.tanzu.vmware.com", "configs.config.tsm.tanzu.vmware.com"},
 	}
 }
 
@@ -73,6 +74,13 @@ func GetObjectByCRDName(dmClient *datamodel.Clientset, crdName string, name stri
 	}
 	if crdName == "svcgroups.servicegroup.tsm.tanzu.vmware.com" {
 		obj, err := dmClient.ServicegroupTsmV1().SvcGroups().Get(context.TODO(), name, metav1.GetOptions{})
+		if err != nil {
+			return nil
+		}
+		return obj
+	}
+	if crdName == "vmpolicies.policypkg.tsm.tanzu.vmware.com" {
+		obj, err := dmClient.PolicypkgTsmV1().VMpolicies().Get(context.TODO(), name, metav1.GetOptions{})
 		if err != nil {
 			return nil
 		}

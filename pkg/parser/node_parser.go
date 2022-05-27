@@ -34,9 +34,13 @@ func ParseDSLNodes(startPath string, baseGroupName string) map[string]Node {
 				log.Fatalf("Failed to parse directory %s: %v", path, err)
 			}
 			for _, v := range pkgs {
+				if v.Name == "" {
+					log.Fatalf("Failed to get package name for %#v", v)
+				}
 				if _, ok := pkgsMap[v.Name]; ok {
 					log.Fatalf("Invalid Package name. Package name <%v> is already defined. Please make sure the package names are not duplicated.", v.Name)
 				}
+
 				pkgsMap[v.Name] = v.Name
 				pkgImport := strings.TrimSuffix(strings.ReplaceAll(path, startPath, modulePath), "/")
 				for _, file := range v.Files {
@@ -51,7 +55,6 @@ func ParseDSLNodes(startPath string, baseGroupName string) map[string]Node {
 										if path == startPath {
 											rootNodes = append(rootNodes, crdName)
 										}
-
 										if IsNexusNode(typeSpec) {
 											node := Node{
 												Name:             typeSpec.Name.Name,
@@ -65,6 +68,9 @@ func ParseDSLNodes(startPath string, baseGroupName string) map[string]Node {
 												MultipleChildren: make(map[string]Node),
 												SingleLink:       make(map[string]Node),
 												MultipleLink:     make(map[string]Node),
+											}
+											if node.CrdName == "" {
+												log.Fatalf("Internal compiler failure: Failed to determine crd name of node %v", node.Name)
 											}
 											nodes[crdName] = node
 										}
@@ -98,6 +104,9 @@ func CreateParentsMap(graph map[string]Node) map[string]NodeHelper {
 		root.Walk(func(node *Node) {
 			children := make(map[string]NodeHelperChild)
 			for key, child := range node.SingleChildren {
+				if child.CrdName == "" {
+					log.Fatalf("Internal compiler failure: Failed to determine crd name of child %v", child)
+				}
 				children[child.CrdName] = NodeHelperChild{
 					IsNamed:      false,
 					FieldName:    key,
@@ -106,6 +115,9 @@ func CreateParentsMap(graph map[string]Node) map[string]NodeHelper {
 			}
 
 			for key, child := range node.MultipleChildren {
+				if child.CrdName == "" {
+					log.Fatalf("Internal compiler failure: Failed to determine crd name of child %v", child)
+				}
 				children[child.CrdName] = NodeHelperChild{
 					IsNamed:      true,
 					FieldName:    key,
@@ -113,6 +125,9 @@ func CreateParentsMap(graph map[string]Node) map[string]NodeHelper {
 				}
 			}
 
+			if node.CrdName == "" {
+				log.Fatalf("Internal compiler failure: Failed to determine crd name of node %v", node)
+			}
 			parents[node.CrdName] = NodeHelper{
 				Name:     node.Name,
 				RestName: fmt.Sprintf("%s.%s", node.Name, node.PkgName),
@@ -152,36 +167,19 @@ func processNode(node *Node, nodes map[string]Node, baseGroupName string) {
 		}
 
 		isMap := IsMapField(f)
-		fieldTypeStr := GetFieldType(f)
 		fieldName, _ := GetFieldName(f)
-
-		var key string
-		fieldType := strings.Split(fieldTypeStr, ".")
-		if len(fieldType) == 1 {
-			key = util.GetCrdName(fieldType[0], util.RemoveSpecialChars(node.PkgName), baseGroupName)
+		if fieldName == "" {
+			log.Fatalf("Internal compiler failure: failed to find field name for field: %v in node %v", f.Names, node.Name)
 		}
-
-		if len(fieldType) == 2 {
-			for _, importSpec := range node.Imports {
-				importPath, err := strconv.Unquote(importSpec.Path.Value)
-				if err != nil {
-					log.Fatalf("Failed to parse imports: %v", err)
-				}
-
-				// If import is not named then we can build key without looping through nodes
-				if importSpec.Name == nil {
-					key = util.GetCrdName(fieldType[1], util.RemoveSpecialChars(fieldType[0]), baseGroupName)
-				} else {
-					for _, n := range nodes {
-						if n.FullName == importPath && n.Name == fieldType[1] {
-							key = n.CrdName
-						}
-					}
-				}
-			}
+		key := findFieldKeyForNode(f, node, nodes, baseGroupName)
+		if key == "" {
+			log.Fatalf("Internal compiler failure: failed to find field key for field %v in node %v", f.Names, node.Name)
 		}
 		if isChild {
-			n := nodes[key]
+			n, ok := nodes[key]
+			if !ok {
+				log.Fatalf("Internal compiler failure: couldn't find node for key %v", key)
+			}
 			n.Parents = node.Parents
 			n.Parents = append(n.Parents, node.CrdName)
 			processNode(&n, nodes, baseGroupName)
@@ -209,4 +207,35 @@ func processNode(node *Node, nodes map[string]Node, baseGroupName string) {
 	for _, link := range linkFields {
 		processField(link, false, true)
 	}
+}
+
+func findFieldKeyForNode(f *ast.Field, node *Node, nodes map[string]Node, baseGroupName string) (key string) {
+	fieldTypeStr := GetFieldType(f)
+	fieldType := strings.Split(fieldTypeStr, ".")
+	if len(fieldType) == 1 {
+		key = util.GetCrdName(fieldType[0], util.RemoveSpecialChars(node.PkgName), baseGroupName)
+		return
+	} else if len(fieldType) == 2 {
+		for _, importSpec := range node.Imports {
+			importPath, err := strconv.Unquote(importSpec.Path.Value)
+			if err != nil {
+				log.Fatalf("Failed to parse imports: %v", err)
+			}
+			importPathSplit := strings.Split(importPath, ".")
+			packageDir := importPathSplit[len(importPathSplit)-1]
+			// If import is not named then we can build key without looping through nodes
+			if importSpec.Name == nil && packageDir == fieldType[1] {
+				key = util.GetCrdName(fieldType[1], util.RemoveSpecialChars(fieldType[0]), baseGroupName)
+				return
+			} else {
+				for _, n := range nodes {
+					if n.FullName == importPath && n.Name == fieldType[1] {
+						key = n.CrdName
+						return
+					}
+				}
+			}
+		}
+	}
+	return
 }

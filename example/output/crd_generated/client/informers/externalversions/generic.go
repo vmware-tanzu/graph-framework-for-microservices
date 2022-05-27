@@ -71,6 +71,8 @@ func (f *sharedInformerFactory) ForResource(resource schema.GroupVersionResource
 		return &genericInformer{resource: resource.GroupResource(), informer: f.PolicypkgTsm().V1().ACPConfigs().Informer()}, nil
 	case policypkgtsmtanzuvmwarecomv1.SchemeGroupVersion.WithResource("accesscontrolpolicies"):
 		return &genericInformer{resource: resource.GroupResource(), informer: f.PolicypkgTsm().V1().AccessControlPolicies().Informer()}, nil
+	case policypkgtsmtanzuvmwarecomv1.SchemeGroupVersion.WithResource("vmpolicies"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.PolicypkgTsm().V1().VMpolicies().Informer()}, nil
 
 		// Group=root.tsm.tanzu.vmware.com, Version=v1
 	case roottsmtanzuvmwarecomv1.SchemeGroupVersion.WithResource("roots"):

@@ -41,6 +41,8 @@ func addKnownTypes(scheme *runtime.Scheme) error {
 		&AccessControlPolicyList{},
 		&ACPConfig{},
 		&ACPConfigList{},
+		&VMpolicy{},
+		&VMpolicyList{},
 	)
 
 	// register the type in the scheme

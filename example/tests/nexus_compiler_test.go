@@ -1,4 +1,4 @@
-package crd_generator_test
+package nexus_compiler_test
 
 import (
 	"testing"
@@ -7,7 +7,7 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-func TestCRDGenerator(t *testing.T) {
+func TestNexusCompiler(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "CRD generator Suite")
+	RunSpecs(t, "Nexus tests")
 }

@@ -331,14 +331,11 @@ func (obj *{{$node.SimpleGroupTypeName}}{{$node.BaseNodeName}}) Delete(ctx conte
 
 // Update updates spec of object in database. Children and Link can not be updated using this function.
 func (obj *{{$node.SimpleGroupTypeName}}{{$node.BaseNodeName}}) Update(ctx context.Context) error {
-	result, err := obj.client.baseClient.
-	{{$node.GroupTypeName}}().
-	{{$node.GroupResourceNameTitle}}().
-		Update(ctx, obj.{{$node.BaseNodeName}}, metav1.UpdateOptions{})
+	result, err := obj.client.{{$node.SimpleGroupTypeName}}().Update{{$node.BaseNodeName}}ByName(ctx, obj.{{$node.BaseNodeName}})
 	if err != nil {
 		return err
 	}
-	obj.{{$node.BaseNodeName}} = result
+	obj.{{$node.BaseNodeName}} = result.{{$node.BaseNodeName}}
 	return nil
 }
 

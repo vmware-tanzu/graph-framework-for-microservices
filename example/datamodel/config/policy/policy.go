@@ -58,3 +58,7 @@ type ResourceGroupID struct {
 }
 
 type ResourceGroupIDs []ResourceGroupID
+
+type VMpolicy struct {
+	nexus.Node
+}
