@@ -3,6 +3,8 @@ CRD_MODULE_PATH ?= $(shell go list -m)/${BUILD_DIR}/
 TAG ?= "latest"
 CONTAINER_ID ?= ""
 DATAMODEL_LOCAL_PATH ?= $(realpath .)
+BUCKET ?= nexus-template-downloads
+TAG ?= $(shell git rev-parse --verify HEAD)
 
 .PHONY: datamodel_build
 datamodel_build:
@@ -32,3 +34,12 @@ datamodel_build:
 			--user root:root \
 			harbor-repo.vmware.com/nexus/compiler:$(TAG); \
 	fi
+
+archive_crds:
+	cd ${BUILD_DIR}/crds/ &&\
+		rm -f api-datamodel-crds.tar && \
+		tar -czvf api-datamodel-crds.tar *;
+
+publish: archive_crds
+	cd ${BUILD_DIR}/crds && \
+	gsutil cp api-datamodel-crds.tar gs://${BUCKET}/${TAG}/;
