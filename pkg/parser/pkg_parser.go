@@ -20,7 +20,11 @@ func ParseDSLPkg(startPath string) Packages {
 		if info.IsDir() {
 			if info.Name() == "build" {
 				log.Infof("Ignoring build directory...")
-				return nil
+				return filepath.SkipDir
+			}
+			if info.Name() == "vendor" {
+				log.Infof("Ignoring vendor directory...")
+				return filepath.SkipDir
 			}
 			fileset := token.NewFileSet()
 			pkgs, err := parser.ParseDir(fileset, path, nil, parser.ParseComments)

@@ -57,3 +57,8 @@ type RootList struct {
 	metav1.ListMeta `json:"metadata" yaml:"metadata"`
 	Items           []Root `json:"items" yaml:"items"`
 }
+
+// +k8s:openapi-gen=true
+type NonNexusType struct {
+	Test int
+}

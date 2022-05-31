@@ -8,6 +8,9 @@ import (
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/datamodel/nexus"
 )
 
+var nonNexusValue = 1
+var nonValue int
+
 var BarCustomCodesResponses = nexus.HTTPCodesResponse{
 	http.StatusBadRequest: nexus.HTTPResponse{Description: "Bad Request"},
 }

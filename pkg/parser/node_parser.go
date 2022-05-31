@@ -26,7 +26,11 @@ func ParseDSLNodes(startPath string, baseGroupName string) map[string]Node {
 		if info.IsDir() {
 			if info.Name() == "build" {
 				log.Infof("Ignoring build directory...")
-				return nil
+				return filepath.SkipDir
+			}
+			if info.Name() == "vendor" {
+				log.Infof("Ignoring vendor directory...")
+				return filepath.SkipDir
 			}
 			fileset := token.NewFileSet()
 			pkgs, err := parser.ParseDir(fileset, path, nil, parser.ParseComments)
@@ -51,11 +55,12 @@ func ParseDSLNodes(startPath string, baseGroupName string) map[string]Node {
 								if typeSpec, ok := spec.(*ast.TypeSpec); ok {
 									if _, ok := typeSpec.Type.(*ast.StructType); ok {
 										crdName := util.GetCrdName(typeSpec.Name.Name, v.Name, baseGroupName)
-										// Detect root nodes
-										if path == startPath {
-											rootNodes = append(rootNodes, crdName)
-										}
 										if IsNexusNode(typeSpec) {
+											// Detect root nodes
+											if path == startPath {
+												rootNodes = append(rootNodes, crdName)
+											}
+
 											node := Node{
 												Name:             typeSpec.Name.Name,
 												PkgName:          v.Name,
