@@ -55,13 +55,13 @@ spec:
                     default: 0
                     format: int32
                     type: integer
-                  Type:
+                  Scheme:
                     default: ""
                     type: string
                 required:
                 - Name
                 - Port
-                - Type
+                - Scheme
                 type: object
               uri:
                 default: ""

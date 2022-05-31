@@ -1,13 +1,13 @@
 package extensions
 
 import (
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/api.git/nexus"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/nexus.git/nexus"
 )
 
 type Service struct {
-	Name string
-	Port int32  `yaml:"omitempty"`
-	Type string `yaml:"omitempty"`
+	Name   string
+	Port   int32 `yaml:"omitempty"`
+	Scheme string
 }
 
 type ResourceConfig struct {

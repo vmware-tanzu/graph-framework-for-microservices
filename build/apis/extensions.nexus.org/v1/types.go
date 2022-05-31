@@ -62,9 +62,9 @@ type ExtensionList struct {
 
 // +k8s:openapi-gen=true
 type Service struct {
-	Name string
-	Port int32  `yaml:"omitempty"`
-	Type string `yaml:"omitempty"`
+	Name   string
+	Port   int32 `yaml:"omitempty"`
+	Scheme string
 }
 
 // +k8s:openapi-gen=true

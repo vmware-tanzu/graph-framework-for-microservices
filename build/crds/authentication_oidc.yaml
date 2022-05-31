@@ -4,7 +4,7 @@ kind: CustomResourceDefinition
 metadata:
   annotations:
     nexus: |
-      {"name":"OIDC.authentication","hierarchy":["apis.apis.nexus.org","configs.config.nexus.org"],"nexus-rest-api-gen":{"uris":null}}
+      {"name":"OIDC.authentication","hierarchy":["apis.apis.nexus.org","configs.config.nexus.org"],"nexus-rest-api-gen":{"uris":[{"uri":"/api/{Api.apis}/config/{Config.config}/oidc/{OIDC.authentication}","methods":{"DELETE":{"200":{"description":"OK"},"501":{"description":"Not Implemented"}},"GET":{"200":{"description":"OK"},"404":{"description":"Not Found"},"501":{"description":"Not Implemented"}},"PUT":{"200":{"description":"OK"},"201":{"description":"Created"},"501":{"description":"Not Implemented"}}}},{"uri":"/oidc","methods":{"GET":{"200":{"description":"OK"},"404":{"description":"Not Found"},"501":{"description":"Not Implemented"}}}}]}}
   creationTimestamp: null
   name: oidcs.authentication.nexus.org
 spec:
@@ -40,22 +40,53 @@ spec:
             properties:
               config:
                 properties:
-                  ClientId:
+                  clientId:
                     default: ""
                     type: string
-                  ClientSecret:
+                  clientSecret:
                     default: ""
                     type: string
-                  OAuthRedirectUrl:
+                  oAuthIssuerUrl:
                     default: ""
                     type: string
+                  oAuthRedirectUrl:
+                    default: ""
+                    type: string
+                  scopes:
+                    items:
+                      default: ""
+                      type: string
+                    type: array
                 required:
-                - ClientId
-                - ClientSecret
-                - OAuthRedirectUrl
+                - clientId
+                - clientSecret
+                - oAuthIssuerUrl
+                - oAuthRedirectUrl
+                - scopes
+                type: object
+              validationProps:
+                properties:
+                  insecureIssuerURLContext:
+                    default: false
+                    type: boolean
+                  skipClientAudValidation:
+                    default: false
+                    type: boolean
+                  skipClientIdValidation:
+                    default: false
+                    type: boolean
+                  skipIssuerValidation:
+                    default: false
+                    type: boolean
+                required:
+                - insecureIssuerURLContext
+                - skipIssuerValidation
+                - skipClientIdValidation
+                - skipClientAudValidation
                 type: object
             required:
             - config
+            - validationProps
             type: object
         type: object
     served: true
