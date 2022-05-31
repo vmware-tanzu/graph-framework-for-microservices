@@ -48,7 +48,8 @@ func (c *OIDC) DisplayName() string {
 
 // +k8s:openapi-gen=true
 type OIDCSpec struct {
-	Config IDPConfig `json:"config" yaml:"config"`
+	Config          IDPConfig            `json:"config" yaml:"config"`
+	ValidationProps ValidationProperties `json:"validationProps" yaml:"validationProps"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
@@ -60,7 +61,17 @@ type OIDCList struct {
 
 // +k8s:openapi-gen=true
 type IDPConfig struct {
-	ClientId         string
-	ClientSecret     string
-	OAuthRedirectUrl string
+	ClientId         string   `json:"clientId"`
+	ClientSecret     string   `json:"clientSecret"`
+	OAuthIssuerUrl   string   `json:"oAuthIssuerUrl"`
+	OAuthRedirectUrl string   `json:"oAuthRedirectUrl"`
+	Scopes           []string `json:"scopes"`
+}
+
+// +k8s:openapi-gen=true
+type ValidationProperties struct {
+	InsecureIssuerURLContext bool `json:"insecureIssuerURLContext"`
+	SkipIssuerValidation     bool `json:"skipIssuerValidation"`
+	SkipClientIdValidation   bool `json:"skipClientIdValidation"`
+	SkipClientAudValidation  bool `json:"skipClientAudValidation"`
 }

@@ -1,7 +1,7 @@
 package extensions
 
 import (
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/api.git/nexus"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/nexus.git/nexus"
 )
 
 type Service struct {

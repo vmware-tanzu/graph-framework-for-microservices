@@ -2,7 +2,7 @@ package gateway
 
 import (
 	authentication "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/api.git/authn"
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/api.git/nexus"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/nexus.git/nexus"
 )
 
 type GatewayConfig struct{}
