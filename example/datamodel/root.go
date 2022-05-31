@@ -9,3 +9,7 @@ type Root struct {
 	nexus.Node
 	Config config.Config `nexus:"child"`
 }
+
+type NonNexusType struct {
+	Test int
+}

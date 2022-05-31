@@ -5,6 +5,7 @@ import (
 	"go/ast"
 	"go/types"
 	"regexp"
+	"strconv"
 	"strings"
 	"text/template"
 
@@ -290,7 +291,8 @@ func GenerateImports(p *parser.Package, aliasNameMap map[string]string) []string
 	imports := p.GetImports()
 	for _, val := range imports {
 		i := val.Path.Value
-		if strings.Contains(i, p.ModPath) {
+		iUnquoted, _ := strconv.Unquote(i)
+		if strings.HasPrefix(iUnquoted, p.ModPath) {
 			if val.Name != nil {
 				aliasName, importPath = constructImports(val.Name.String(), i)
 				aliasNameMap[val.Name.String()] = aliasName
@@ -300,8 +302,9 @@ func GenerateImports(p *parser.Package, aliasNameMap map[string]string) []string
 				aliasNameMap[last] = aliasName
 			}
 		} else {
+			aliasName = ""
+			importPath = i
 			if val.Name != nil {
-				importPath = i
 				aliasName = val.Name.String()
 			}
 		}
