@@ -297,14 +297,11 @@ func (obj *ApisApi) Delete(ctx context.Context) error {
 
 // Update updates spec of object in database. Children and Link can not be updated using this function.
 func (obj *ApisApi) Update(ctx context.Context) error {
-	result, err := obj.client.baseClient.
-		ApisNexusV1().
-		Apis().
-		Update(ctx, obj.Api, metav1.UpdateOptions{})
+	result, err := obj.client.Apis().UpdateApiByName(ctx, obj.Api)
 	if err != nil {
 		return err
 	}
-	obj.Api = result
+	obj.Api = result.Api
 	return nil
 }
 
@@ -679,15 +676,17 @@ func (obj *ExtensionsExtension) Delete(ctx context.Context) error {
 
 // Update updates spec of object in database. Children and Link can not be updated using this function.
 func (obj *ExtensionsExtension) Update(ctx context.Context) error {
-	result, err := obj.client.baseClient.
-		ExtensionsNexusV1().
-		Extensions().
-		Update(ctx, obj.Extension, metav1.UpdateOptions{})
+	result, err := obj.client.Extensions().UpdateExtensionByName(ctx, obj.Extension)
 	if err != nil {
 		return err
 	}
-	obj.Extension = result
+	obj.Extension = result.Extension
 	return nil
+}
+
+func (obj *ExtensionsExtension) GetParent(ctx context.Context) (result *ConfigConfig, err error) {
+	hashedName := helper.GetHashedName("configs.config.nexus.org", obj.Labels, obj.Labels["configs.config.nexus.org"])
+	return obj.client.Config().GetConfigByName(ctx, hashedName)
 }
 
 type extensionExtensionsNexusV1Chainer struct {
@@ -835,6 +834,15 @@ func (group *AuthenticationNexusV1) UpdateOIDCByName(ctx context.Context,
 	}
 	patch = append(patch, patchOpConfig)
 
+	patchValueValidationProps :=
+		objToUpdate.Spec.ValidationProps
+	patchOpValidationProps := PatchOp{
+		Op:    "replace",
+		Path:  "/spec/validationProps",
+		Value: patchValueValidationProps,
+	}
+	patch = append(patch, patchOpValidationProps)
+
 	marshaled, err := patch.Marshal()
 	if err != nil {
 		return nil, err
@@ -887,15 +895,17 @@ func (obj *AuthenticationOIDC) Delete(ctx context.Context) error {
 
 // Update updates spec of object in database. Children and Link can not be updated using this function.
 func (obj *AuthenticationOIDC) Update(ctx context.Context) error {
-	result, err := obj.client.baseClient.
-		AuthenticationNexusV1().
-		OIDCs().
-		Update(ctx, obj.OIDC, metav1.UpdateOptions{})
+	result, err := obj.client.Authentication().UpdateOIDCByName(ctx, obj.OIDC)
 	if err != nil {
 		return err
 	}
-	obj.OIDC = result
+	obj.OIDC = result.OIDC
 	return nil
+}
+
+func (obj *AuthenticationOIDC) GetParent(ctx context.Context) (result *ConfigConfig, err error) {
+	hashedName := helper.GetHashedName("configs.config.nexus.org", obj.Labels, obj.Labels["configs.config.nexus.org"])
+	return obj.client.Config().GetConfigByName(ctx, hashedName)
 }
 
 type oidcAuthenticationNexusV1Chainer struct {
@@ -942,7 +952,7 @@ func (group *ConfigNexusV1) DeleteConfigByName(ctx context.Context, hashedName s
 
 	if result.Spec.ApiExtensionsGvk != nil {
 		err := group.client.
-			Apiextensions().
+			Extensions().
 			DeleteExtensionByName(ctx, result.Spec.ApiExtensionsGvk.Name)
 		if err != nil {
 			return err
@@ -951,7 +961,7 @@ func (group *ConfigNexusV1) DeleteConfigByName(ctx context.Context, hashedName s
 
 	for _, v := range result.Spec.AuthNGvk {
 		err := group.client.
-			Authn().DeleteOIDCByName(ctx, v.Name)
+			Authentication().DeleteOIDCByName(ctx, v.Name)
 		if err != nil {
 			return err
 		}
@@ -1130,15 +1140,17 @@ func (obj *ConfigConfig) Delete(ctx context.Context) error {
 
 // Update updates spec of object in database. Children and Link can not be updated using this function.
 func (obj *ConfigConfig) Update(ctx context.Context) error {
-	result, err := obj.client.baseClient.
-		ConfigNexusV1().
-		Configs().
-		Update(ctx, obj.Config, metav1.UpdateOptions{})
+	result, err := obj.client.Config().UpdateConfigByName(ctx, obj.Config)
 	if err != nil {
 		return err
 	}
-	obj.Config = result
+	obj.Config = result.Config
 	return nil
+}
+
+func (obj *ConfigConfig) GetParent(ctx context.Context) (result *ApisApi, err error) {
+	hashedName := helper.GetHashedName("apis.apis.nexus.org", obj.Labels, obj.Labels["apis.apis.nexus.org"])
+	return obj.client.Apis().GetApiByName(ctx, hashedName)
 }
 
 // GetGateway returns child or link of given type
@@ -1152,19 +1164,19 @@ func (obj *ConfigConfig) GetGateway(ctx context.Context) (
 
 // GetApiExtensions returns child or link of given type
 func (obj *ConfigConfig) GetApiExtensions(ctx context.Context) (
-	result *ApiextensionsExtension, err error) {
+	result *ExtensionsExtension, err error) {
 	if obj.Spec.ApiExtensionsGvk != nil {
-		return obj.client.Apiextensions().GetExtensionByName(ctx, obj.Spec.ApiExtensionsGvk.Name)
+		return obj.client.Extensions().GetExtensionByName(ctx, obj.Spec.ApiExtensionsGvk.Name)
 	}
 	return
 }
 
 // GetAllAuthN returns all links or children of given type
 func (obj *ConfigConfig) GetAllAuthN(ctx context.Context) (
-	result []*AuthnOIDC, err error) {
-	result = make([]*AuthnOIDC, 0, len(obj.Spec.AuthNGvk))
+	result []*AuthenticationOIDC, err error) {
+	result = make([]*AuthenticationOIDC, 0, len(obj.Spec.AuthNGvk))
 	for _, v := range obj.Spec.AuthNGvk {
-		l, err := obj.client.Authn().GetOIDCByName(ctx, v.Name)
+		l, err := obj.client.Authentication().GetOIDCByName(ctx, v.Name)
 		if err != nil {
 			return nil, err
 		}
@@ -1175,12 +1187,12 @@ func (obj *ConfigConfig) GetAllAuthN(ctx context.Context) (
 
 // GetAuthN returns link or child which has given displayName
 func (obj *ConfigConfig) GetAuthN(ctx context.Context,
-	displayName string) (result *AuthnOIDC, err error) {
+	displayName string) (result *AuthenticationOIDC, err error) {
 	l, ok := obj.Spec.AuthNGvk[displayName]
 	if !ok {
 		return nil, fmt.Errorf("object %s doesn't have child %s", obj.DisplayName(), displayName)
 	}
-	result, err = obj.client.Authn().GetOIDCByName(ctx, l.Name)
+	result, err = obj.client.Authentication().GetOIDCByName(ctx, l.Name)
 	return
 }
 
@@ -1233,7 +1245,7 @@ func (obj *ConfigConfig) DeleteGateway(ctx context.Context) (err error) {
 // and parents names and creates it. objToCreate.Name is changed to the hashed name. Original name is preserved in
 // nexus/display_name label and can be obtained using DisplayName() method.
 func (obj *ConfigConfig) AddApiExtensions(ctx context.Context,
-	objToCreate *baseapiextensionsnexusorgv1.Extension) (result *ApiextensionsExtension, err error) {
+	objToCreate *baseextensionsnexusorgv1.Extension) (result *ExtensionsExtension, err error) {
 	if objToCreate.Labels == nil {
 		objToCreate.Labels = map[string]string{}
 	}
@@ -1247,7 +1259,7 @@ func (obj *ConfigConfig) AddApiExtensions(ctx context.Context,
 		hashedName := helper.GetHashedName(objToCreate.CRDName(), objToCreate.Labels, objToCreate.GetName())
 		objToCreate.Name = hashedName
 	}
-	result, err = obj.client.Apiextensions().CreateExtensionByName(ctx, objToCreate)
+	result, err = obj.client.Extensions().CreateExtensionByName(ctx, objToCreate)
 	updatedObj, getErr := obj.client.Config().GetConfigByName(ctx, obj.GetName())
 	if getErr == nil {
 		obj.Config = updatedObj.Config
@@ -1261,7 +1273,7 @@ func (obj *ConfigConfig) AddApiExtensions(ctx context.Context,
 func (obj *ConfigConfig) DeleteApiExtensions(ctx context.Context) (err error) {
 	if obj.Spec.ApiExtensionsGvk != nil {
 		err = obj.client.
-			Apiextensions().DeleteExtensionByName(ctx, obj.Spec.ApiExtensionsGvk.Name)
+			Extensions().DeleteExtensionByName(ctx, obj.Spec.ApiExtensionsGvk.Name)
 		if err != nil {
 			return err
 		}
@@ -1278,7 +1290,7 @@ func (obj *ConfigConfig) DeleteApiExtensions(ctx context.Context) (err error) {
 // and parents names and creates it. objToCreate.Name is changed to the hashed name. Original name is preserved in
 // nexus/display_name label and can be obtained using DisplayName() method.
 func (obj *ConfigConfig) AddAuthN(ctx context.Context,
-	objToCreate *baseauthnnexusorgv1.OIDC) (result *AuthnOIDC, err error) {
+	objToCreate *baseauthenticationnexusorgv1.OIDC) (result *AuthenticationOIDC, err error) {
 	if objToCreate.Labels == nil {
 		objToCreate.Labels = map[string]string{}
 	}
@@ -1292,7 +1304,7 @@ func (obj *ConfigConfig) AddAuthN(ctx context.Context,
 		hashedName := helper.GetHashedName(objToCreate.CRDName(), objToCreate.Labels, objToCreate.GetName())
 		objToCreate.Name = hashedName
 	}
-	result, err = obj.client.Authn().CreateOIDCByName(ctx, objToCreate)
+	result, err = obj.client.Authentication().CreateOIDCByName(ctx, objToCreate)
 	updatedObj, getErr := obj.client.Config().GetConfigByName(ctx, obj.GetName())
 	if getErr == nil {
 		obj.Config = updatedObj.Config
@@ -1308,7 +1320,7 @@ func (obj *ConfigConfig) DeleteAuthN(ctx context.Context, displayName string) (e
 	if !ok {
 		return fmt.Errorf("object %s doesn't have child %s", obj.DisplayName(), displayName)
 	}
-	err = obj.client.Authn().DeleteOIDCByName(ctx, l.Name)
+	err = obj.client.Authentication().DeleteOIDCByName(ctx, l.Name)
 	if err != nil {
 		return err
 	}
@@ -1372,10 +1384,10 @@ func (c *configConfigNexusV1Chainer) DeleteGateway(ctx context.Context, name str
 	return c.client.Gateway().DeleteGatewayByName(ctx, hashedName)
 }
 
-func (c *configConfigNexusV1Chainer) ApiExtensions(name string) *extensionApiextensionsNexusV1Chainer {
+func (c *configConfigNexusV1Chainer) ApiExtensions(name string) *extensionExtensionsNexusV1Chainer {
 	parentLabels := c.parentLabels
-	parentLabels["extensions.apiextensions.nexus.org"] = name
-	return &extensionApiextensionsNexusV1Chainer{
+	parentLabels["extensions.extensions.nexus.org"] = name
+	return &extensionExtensionsNexusV1Chainer{
 		client:       c.client,
 		name:         name,
 		parentLabels: parentLabels,
@@ -1383,16 +1395,16 @@ func (c *configConfigNexusV1Chainer) ApiExtensions(name string) *extensionApiext
 }
 
 // GetApiExtensions calculates hashed name of the object based on displayName and it's parents and returns the object
-func (c *configConfigNexusV1Chainer) GetApiExtensions(ctx context.Context, displayName string) (result *ApiextensionsExtension, err error) {
-	hashedName := helper.GetHashedName("extensions.apiextensions.nexus.org", c.parentLabels, displayName)
-	return c.client.Apiextensions().GetExtensionByName(ctx, hashedName)
+func (c *configConfigNexusV1Chainer) GetApiExtensions(ctx context.Context, displayName string) (result *ExtensionsExtension, err error) {
+	hashedName := helper.GetHashedName("extensions.extensions.nexus.org", c.parentLabels, displayName)
+	return c.client.Extensions().GetExtensionByName(ctx, hashedName)
 }
 
 // AddApiExtensions calculates hashed name of the child to create based on objToCreate.Name
 // and parents names and creates it. objToCreate.Name is changed to the hashed name. Original name is preserved in
 // nexus/display_name label and can be obtained using DisplayName() method.
 func (c *configConfigNexusV1Chainer) AddApiExtensions(ctx context.Context,
-	objToCreate *baseapiextensionsnexusorgv1.Extension) (result *ApiextensionsExtension, err error) {
+	objToCreate *baseextensionsnexusorgv1.Extension) (result *ExtensionsExtension, err error) {
 	if objToCreate.Labels == nil {
 		objToCreate.Labels = map[string]string{}
 	}
@@ -1402,10 +1414,10 @@ func (c *configConfigNexusV1Chainer) AddApiExtensions(ctx context.Context,
 	if objToCreate.Labels[common.IS_NAME_HASHED_LABEL] != "true" {
 		objToCreate.Labels[common.DISPLAY_NAME_LABEL] = objToCreate.GetName()
 		objToCreate.Labels[common.IS_NAME_HASHED_LABEL] = "true"
-		hashedName := helper.GetHashedName("extensions.apiextensions.nexus.org", c.parentLabels, objToCreate.GetName())
+		hashedName := helper.GetHashedName("extensions.extensions.nexus.org", c.parentLabels, objToCreate.GetName())
 		objToCreate.Name = hashedName
 	}
-	return c.client.Apiextensions().CreateExtensionByName(ctx, objToCreate)
+	return c.client.Extensions().CreateExtensionByName(ctx, objToCreate)
 }
 
 // DeleteApiExtensions calculates hashed name of the child to delete based on displayName
@@ -1415,14 +1427,14 @@ func (c *configConfigNexusV1Chainer) DeleteApiExtensions(ctx context.Context, na
 		c.parentLabels = map[string]string{}
 	}
 	c.parentLabels[common.IS_NAME_HASHED_LABEL] = "true"
-	hashedName := helper.GetHashedName("extensions.apiextensions.nexus.org", c.parentLabels, name)
-	return c.client.Apiextensions().DeleteExtensionByName(ctx, hashedName)
+	hashedName := helper.GetHashedName("extensions.extensions.nexus.org", c.parentLabels, name)
+	return c.client.Extensions().DeleteExtensionByName(ctx, hashedName)
 }
 
-func (c *configConfigNexusV1Chainer) AuthN(name string) *oidcAuthnNexusV1Chainer {
+func (c *configConfigNexusV1Chainer) AuthN(name string) *oidcAuthenticationNexusV1Chainer {
 	parentLabels := c.parentLabels
-	parentLabels["oidcs.authn.nexus.org"] = name
-	return &oidcAuthnNexusV1Chainer{
+	parentLabels["oidcs.authentication.nexus.org"] = name
+	return &oidcAuthenticationNexusV1Chainer{
 		client:       c.client,
 		name:         name,
 		parentLabels: parentLabels,
@@ -1430,16 +1442,16 @@ func (c *configConfigNexusV1Chainer) AuthN(name string) *oidcAuthnNexusV1Chainer
 }
 
 // GetAuthN calculates hashed name of the object based on displayName and it's parents and returns the object
-func (c *configConfigNexusV1Chainer) GetAuthN(ctx context.Context, displayName string) (result *AuthnOIDC, err error) {
-	hashedName := helper.GetHashedName("oidcs.authn.nexus.org", c.parentLabels, displayName)
-	return c.client.Authn().GetOIDCByName(ctx, hashedName)
+func (c *configConfigNexusV1Chainer) GetAuthN(ctx context.Context, displayName string) (result *AuthenticationOIDC, err error) {
+	hashedName := helper.GetHashedName("oidcs.authentication.nexus.org", c.parentLabels, displayName)
+	return c.client.Authentication().GetOIDCByName(ctx, hashedName)
 }
 
 // AddAuthN calculates hashed name of the child to create based on objToCreate.Name
 // and parents names and creates it. objToCreate.Name is changed to the hashed name. Original name is preserved in
 // nexus/display_name label and can be obtained using DisplayName() method.
 func (c *configConfigNexusV1Chainer) AddAuthN(ctx context.Context,
-	objToCreate *baseauthnnexusorgv1.OIDC) (result *AuthnOIDC, err error) {
+	objToCreate *baseauthenticationnexusorgv1.OIDC) (result *AuthenticationOIDC, err error) {
 	if objToCreate.Labels == nil {
 		objToCreate.Labels = map[string]string{}
 	}
@@ -1449,10 +1461,10 @@ func (c *configConfigNexusV1Chainer) AddAuthN(ctx context.Context,
 	if objToCreate.Labels[common.IS_NAME_HASHED_LABEL] != "true" {
 		objToCreate.Labels[common.DISPLAY_NAME_LABEL] = objToCreate.GetName()
 		objToCreate.Labels[common.IS_NAME_HASHED_LABEL] = "true"
-		hashedName := helper.GetHashedName("oidcs.authn.nexus.org", c.parentLabels, objToCreate.GetName())
+		hashedName := helper.GetHashedName("oidcs.authentication.nexus.org", c.parentLabels, objToCreate.GetName())
 		objToCreate.Name = hashedName
 	}
-	return c.client.Authn().CreateOIDCByName(ctx, objToCreate)
+	return c.client.Authentication().CreateOIDCByName(ctx, objToCreate)
 }
 
 // DeleteAuthN calculates hashed name of the child to delete based on displayName
@@ -1462,8 +1474,8 @@ func (c *configConfigNexusV1Chainer) DeleteAuthN(ctx context.Context, name strin
 		c.parentLabels = map[string]string{}
 	}
 	c.parentLabels[common.IS_NAME_HASHED_LABEL] = "true"
-	hashedName := helper.GetHashedName("oidcs.authn.nexus.org", c.parentLabels, name)
-	return c.client.Authn().DeleteOIDCByName(ctx, hashedName)
+	hashedName := helper.GetHashedName("oidcs.authentication.nexus.org", c.parentLabels, name)
+	return c.client.Authentication().DeleteOIDCByName(ctx, hashedName)
 }
 
 // GetGatewayByName returns object stored in the database under the hashedName which is a hash of display
@@ -1673,22 +1685,24 @@ func (obj *GatewayGateway) Delete(ctx context.Context) error {
 
 // Update updates spec of object in database. Children and Link can not be updated using this function.
 func (obj *GatewayGateway) Update(ctx context.Context) error {
-	result, err := obj.client.baseClient.
-		GatewayNexusV1().
-		Gateways().
-		Update(ctx, obj.Gateway, metav1.UpdateOptions{})
+	result, err := obj.client.Gateway().UpdateGatewayByName(ctx, obj.Gateway)
 	if err != nil {
 		return err
 	}
-	obj.Gateway = result
+	obj.Gateway = result.Gateway
 	return nil
+}
+
+func (obj *GatewayGateway) GetParent(ctx context.Context) (result *ConfigConfig, err error) {
+	hashedName := helper.GetHashedName("configs.config.nexus.org", obj.Labels, obj.Labels["configs.config.nexus.org"])
+	return obj.client.Config().GetConfigByName(ctx, hashedName)
 }
 
 // GetAuthn returns child or link of given type
 func (obj *GatewayGateway) GetAuthn(ctx context.Context) (
-	result *AuthnOIDC, err error) {
+	result *AuthenticationOIDC, err error) {
 	if obj.Spec.AuthnGvk != nil {
-		return obj.client.Authn().GetOIDCByName(ctx, obj.Spec.AuthnGvk.Name)
+		return obj.client.Authentication().GetOIDCByName(ctx, obj.Spec.AuthnGvk.Name)
 	}
 	return
 }
@@ -1696,14 +1710,14 @@ func (obj *GatewayGateway) GetAuthn(ctx context.Context) (
 // LinkAuthn links obj with linkToAdd object. This function doesn't create linked object, it must be
 // already created.
 func (obj *GatewayGateway) LinkAuthn(ctx context.Context,
-	linkToAdd *AuthnOIDC) error {
+	linkToAdd *AuthenticationOIDC) error {
 
 	var patch Patch
 	patchOp := PatchOp{
 		Op:   "replace",
 		Path: "/spec/authnGvk",
 		Value: basegatewaynexusorgv1.Child{
-			Group: "authn.nexus.org",
+			Group: "authentication.nexus.org",
 			Kind:  "OIDC",
 			Name:  linkToAdd.Name,
 		},
