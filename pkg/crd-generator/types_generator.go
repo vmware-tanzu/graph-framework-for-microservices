@@ -309,6 +309,12 @@ func GenerateImports(p *parser.Package, aliasNameMap map[string]string) []string
 			}
 		}
 		i = fmt.Sprintf("%s %s", aliasName, importPath)
+
+		// Ignore metav1 external import because it's already present in types.go template
+		if strings.HasPrefix(i, "metav1") {
+			continue
+		}
+
 		importList = append(importList, i)
 	}
 	return importList
