@@ -18,6 +18,7 @@ type NexusValues struct {
 	NexusDatamodelTemplates  versionFields `yaml:"nexusDatamodelTemplates"`
 	NexusValidationTemplates versionFields `yaml:"nexusValidation"`
 	NexusApiGatewayTemplates versionFields `yaml:"nexusApiGateway"`
+	NexusApiDatamodelCrds    versionFields `yaml:"nexusApiDatamodelCrds"`
 }
 
 type versionFields struct {
@@ -37,6 +38,7 @@ func Version(cmd *cobra.Command, args []string) error {
 	fmt.Printf("NexusDatamodelTemplates: %s\n", values.NexusDatamodelTemplates.Version)
 	fmt.Printf("NexusValidationTemplates: %s\n", values.NexusValidationTemplates.Version)
 	fmt.Printf("NexusApiGatewayTemplates: %s\n", values.NexusApiGatewayTemplates.Version)
+	fmt.Printf("NexusApiDmCrds: %s\n", values.NexusApiDatamodelCrds.Version)
 	return nil
 }
 

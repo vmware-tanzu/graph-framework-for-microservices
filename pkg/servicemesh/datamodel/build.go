@@ -50,7 +50,6 @@ func Build(cmd *cobra.Command, args []string) error {
 	yamlFile, err := common.TemplateFs.ReadFile("values.yaml")
 	if err != nil {
 		return fmt.Errorf("error while reading version yamlFile %v", err)
-
 	}
 
 	err = yaml.Unmarshal(yamlFile, &values)

@@ -4,27 +4,32 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
-	"io"
-	"io/ioutil"
-	"os"
-	"os/exec"
-	"path/filepath"
-	"reflect"
-	"strings"
-
 	"github.com/spf13/cobra"
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/common"
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/servicemesh/prereq"
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/servicemesh/version"
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/utils"
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus/golang/pkg/logging"
+	"io"
+	"io/ioutil"
+	v1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/util/rand"
+	"os"
+	"os/exec"
+	"os/signal"
+	"path/filepath"
+	"reflect"
+	"strings"
+	"syscall"
+	"time"
 )
 
 var Namespace string
 var Registry string
 var ImagePullSecret string
+var IsNexusAdmin bool
 
-var prerequisites []prereq.Prerequiste = []prereq.Prerequiste{
+var prerequisites = []prereq.Prerequiste{
 	prereq.KUBERNETES,
 	prereq.KUBERNETES_VERSION,
 }
@@ -78,7 +83,7 @@ func CreateNs(Namespace string) error {
 	return nil
 }
 
-func DownloadManifestsFile(manifest common.Manifests, values version.NexusValues) (string, error) {
+func DownloadManifestsFile(manifest common.Manifest, values version.NexusValues) (string, error) {
 	versionTo := os.Getenv(manifest.VersionEnv)
 	if versionTo == "" {
 		versionTo = reflect.ValueOf(values).FieldByName(manifest.VersionStrName).Field(0).String()
@@ -186,7 +191,22 @@ func Install(cmd *cobra.Command, args []string) error {
 			return err
 		}
 	}
-	directories, err := DownloadRuntimeFiles(cmd)
+
+	// add a nexus label to differentiate this namespace from others
+	if IsNexusAdmin {
+		_, err = exec.Command("kubectl", "label", "ns", Namespace, "nexus=admin", "--overwrite").Output()
+		if err != nil {
+			return fmt.Errorf("failed to label namespace %s: %s", Namespace, err.Error())
+		}
+	}
+
+	var versions version.NexusValues
+	if err := version.GetNexusValues(&versions); err != nil {
+		return utils.GetCustomError(utils.RUNTIME_INSTALL_FAILED,
+			fmt.Errorf("could not download the runtime manifests due to %s", err)).Print().ExitIfFatalOrReturn()
+	}
+
+	directories, err := DownloadRuntimeFiles(cmd, versions)
 	if err != nil {
 		return err
 	}
@@ -208,11 +228,81 @@ func Install(cmd *cobra.Command, args []string) error {
 	for _, label := range common.PodLabels {
 		utils.CheckPodRunning(cmd, utils.RUNTIME_INSTALL_FAILED, label, Namespace)
 	}
-	fmt.Printf("\u2713 Runtime installation successful on namespace %s\n", Namespace)
 	for _, manifest := range common.RuntimeManifests {
 		os.RemoveAll(manifest.Directory)
 		os.RemoveAll(manifest.FileName)
 	}
+
+	fmt.Println("Installing API Datamodel CRDs...")
+	err = installApiDatamodel(cmd, versions)
+	if err != nil {
+		utils.GetCustomError(utils.RUNTIME_INSTALL_API_DATAMODEL_INSTALL_FAILED,
+			fmt.Errorf("installing API datamodel on nexus-apiserver failed: %s", err)).Print().ExitIfFatalOrReturn()
+	}
+	fmt.Printf("\u2713 Runtime installation successful on namespace %s\n", Namespace)
+	return nil
+}
+
+func installApiDatamodel(cmd *cobra.Command, values version.NexusValues) error {
+	dir, err := DownloadManifestsFile(common.NexusApiDatamodelManifest, values)
+	if err != nil {
+		fmt.Println("Error downloading API datamodel manifest")
+		return err
+	}
+
+	// get a nexus-proxy-container pod
+	labels := "app=nexus-proxy-container"
+	nexusProxyContainerPod := utils.GetPodByLabelAndState(Namespace, labels, v1.PodRunning)
+	if nexusProxyContainerPod == nil {
+		return fmt.Errorf("no running pod with label %s found", labels)
+	}
+
+	// channels to manage lifecycle of the port-forward session
+	var stopCh = make(chan struct{}, 1)
+	var readyCh = make(chan struct{})
+
+	// managing termination signal from the terminal
+	sigs := make(chan os.Signal, 1)
+	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
+	go func() {
+		select {
+		case <-stopCh:
+			fmt.Println("Received a stop signal, closing stopCh")
+			close(stopCh)
+		case <-sigs:
+			fmt.Println("Received a process termination signal, closing stopCh")
+			close(stopCh)
+		}
+	}()
+
+	// prepare for port-forward
+	localPort := rand.IntnRange(40000, 45000)
+	nexusProxyContainerPort := 8001
+	go func() {
+		err = utils.StartPortforward(nexusProxyContainerPod.Name, Namespace, localPort, nexusProxyContainerPort, stopCh, readyCh, os.Stdout, os.Stdout)
+		if err != nil {
+			fmt.Printf("error initiating port-forward to %s: %s\n", nexusProxyContainerPod.Name, err.Error())
+			os.Exit(1)
+		}
+	}()
+	fmt.Printf("Started port-forward to pod %s on port %d\n", nexusProxyContainerPod.Name, localPort)
+
+	// give the port-forward a few secs
+	time.Sleep(5 * time.Second)
+
+	// apply CRDs
+	err = utils.SystemCommand(cmd, utils.RUNTIME_INSTALL_FAILED, []string{}, "kubectl", "apply", "-f", dir, "--recursive", "-s", fmt.Sprintf("%s:%d", "localhost", localPort))
+	if err != nil {
+		return fmt.Errorf("applying API datamodel failed due to error: %s", err.Error())
+	}
+
+	// stop port-forward
+	stopCh <- struct{}{}
+
+	// cleanup
+	os.RemoveAll(dir)
+	os.RemoveAll(common.NexusApiDatamodelManifest.FileName)
+
 	return nil
 }
 
@@ -223,22 +313,20 @@ func init() {
 		"r", "", "Registry where validation webhook and api-gw is located")
 	InstallCmd.Flags().StringVarP(&ImagePullSecret, "secretname",
 		"s", "", "Registry where validation webhook and api-gw is located")
+	InstallCmd.Flags().BoolVarP(&IsNexusAdmin, "admin",
+		"", false, "Install the Nexus Admin runtime")
 
 	err := cobra.MarkFlagRequired(InstallCmd.Flags(), "namespace")
 	if err != nil {
 		logging.Debugf("Runtime install err: %v", err)
 	}
+
 }
 
-func DownloadRuntimeFiles(cmd *cobra.Command) ([]string, error) {
-	var values version.NexusValues
+func DownloadRuntimeFiles(cmd *cobra.Command, versions version.NexusValues) ([]string, error) {
 	var files []string
-	if err := version.GetNexusValues(&values); err != nil {
-		return files, utils.GetCustomError(utils.RUNTIME_INSTALL_FAILED,
-			fmt.Errorf("could not download the runtime manifests due to %s", err)).Print().ExitIfFatalOrReturn()
-	}
 	for _, manifest := range common.RuntimeManifests {
-		file, err := DownloadManifestsFile(manifest, values)
+		file, err := DownloadManifestsFile(manifest, versions)
 		if err != nil {
 			return files, err
 		}

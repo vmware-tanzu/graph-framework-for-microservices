@@ -22,7 +22,7 @@ func upgradeCli(cmd *cobra.Command, args []string) error {
 		needUpgrade = true
 	}
 	if needUpgrade {
-		fmt.Printf("Upgrading to version: %s", upgradeToVersion)
+		fmt.Printf("Upgrading to version: %s\n", upgradeToVersion)
 		return DoUpgradeCli(upgradeToVersion, cmd)
 	} else {
 		return nil

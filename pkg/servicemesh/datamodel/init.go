@@ -111,7 +111,7 @@ func checkIfDirectoryEmpty(standalone bool, DatamodelName string) {
 			_, err := os.Stat("go.mod")
 			if err == nil {
 				// TODO: standard error logs
-				fmt.Println("Datamodel already initialzed with go.mod file, Please delete go.mod file or create a empty folder")
+				fmt.Println("Datamodel already initialized with go.mod file, Please delete go.mod file or create a empty folder")
 				os.Exit(1)
 			}
 
@@ -149,7 +149,7 @@ func InitOperation(cmd *cobra.Command, args []string) error {
 	if localDatamodel {
 		err := utils.CreateNexusDirectory(NEXUS_DIR, fmt.Sprintf(NEXUS_TEMPLATE_URL, datamodelVersion))
 		if err != nil {
-			// TODO stadard logging library error
+			// TODO standard logging library error
 			return fmt.Errorf("could not create nexus directory")
 		}
 	}
