@@ -2,6 +2,7 @@ package runtime
 
 import (
 	"fmt"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/servicemesh/version"
 	"os"
 
 	"github.com/spf13/cobra"
@@ -12,7 +13,13 @@ import (
 )
 
 func Uninstall(cmd *cobra.Command, args []string) error {
-	directories, err := DownloadRuntimeFiles(cmd)
+	var versions version.NexusValues
+	if err := version.GetNexusValues(&versions); err != nil {
+		return utils.GetCustomError(utils.RUNTIME_INSTALL_FAILED,
+			fmt.Errorf("could not download the runtime manifests due to %s", err)).Print().ExitIfFatalOrReturn()
+	}
+
+	directories, err := DownloadRuntimeFiles(cmd, versions)
 	if err != nil {
 		return err
 	}

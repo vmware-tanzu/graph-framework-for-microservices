@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
-	"net"
+	v1 "k8s.io/api/core/v1"
 	"net/http"
 	"net/url"
 	"os"
@@ -318,34 +318,36 @@ func GetLoadBalancer(clientset kubernetes.Interface, pollTimeout time.Duration, 
 	}
 }
 
-func GetFreePort() (string, error) {
-	var localPort string
-	for i := 49152; i <= 65535; i++ {
-		timeout := time.Second
-		conn, _ := net.DialTimeout("tcp", net.JoinHostPort("localhost", fmt.Sprintf("%d", i)), timeout)
-		if conn != nil {
-			defer conn.Close()
-			break
-		}
-		localPort = fmt.Sprintf("%d", i)
-		return localPort, nil
+// StartPortforward blocks until the port-forward session has started or an error occurred
+func StartPortforward(podName, namespace string, localPort, podPort int, stopChan, readyChan chan struct{}, out, errOut io.Writer) error {
+	cfg := GetK8sConfig()
+	transport, upgrader, err := spdy.RoundTripperFor(cfg)
+	if err != nil {
+		return err
 	}
-	return "", errors.New("could not find free port for port-forwarding...")
-}
-
-func CreatePortForwarder(k8shostname, port, podName, TenantName string, stopChan, readyChan chan struct{}, out, errOut io.Writer, roundTripper http.RoundTripper, upgrader spdy.Upgrader) (*portforward.PortForwarder, error) {
-	path := fmt.Sprintf("/api/v1/namespaces/%s/pods/%s/portforward", TenantName, podName)
-	hostIP := strings.TrimLeft(k8shostname, "htps:/")
-	serverURL := url.URL{Scheme: "https", Path: path, Host: hostIP}
-	dialer := spdy.NewDialer(upgrader, &http.Client{Transport: roundTripper}, http.MethodPost, &serverURL)
-	ports := []string{fmt.Sprintf("%s:8001", port)}
+	path := fmt.Sprintf("/api/v1/namespaces/%s/pods/%s/portforward", namespace, podName)
+	hostIP := strings.TrimSuffix(strings.TrimLeft(cfg.Host, "htps:/"), "/")
+	serverURL := url.URL{Scheme: "https", Host: hostIP, Path: path}
+	dialer := spdy.NewDialer(upgrader, &http.Client{Transport: transport}, http.MethodPost, &serverURL)
+	ports := []string{fmt.Sprintf("%d:%d", localPort, podPort)}
 	forwarder, err := portforward.New(dialer, ports, stopChan, readyChan, out, errOut)
 	if err != nil {
 		err = fmt.Errorf("failure in setting up port-forwarding due to: %s", err)
-		return nil, err
+		return err
 	}
-	return forwarder, nil
 
+	err = forwarder.ForwardPorts()
+	if err != nil {
+		err = fmt.Errorf("failure in port-forwarding due to: %s", err)
+		return err
+	}
+
+	// block until port-forward ready
+	select {
+	case <-readyChan:
+		break
+	}
+	return nil
 }
 
 func CheckPodScheduled(labels string, namespace string, pollTimeout time.Duration) error {
@@ -382,4 +384,49 @@ func CheckPodRunning(cmd *cobra.Command, customErr ClientErrorCode, labels, name
 			fmt.Errorf("%s pod is not running yet", labels)).Print().ExitIfFatalOrReturn()
 	}
 	return nil
+}
+
+func GetPodByLabelAndState(namespace, labels string, state v1.PodPhase) *v1.Pod {
+	kubeClient := getK8sClient()
+
+	// use the app's label selector name
+	options := metav1.ListOptions{
+		LabelSelector: labels,
+	}
+
+	// get the pod list
+	podList, _ := kubeClient.CoreV1().Pods(namespace).List(context.Background(), options)
+
+	// List() returns a pointer to slice, dereference it, before iterating
+	for _, podInfo := range (*podList).Items {
+		if podInfo.Status.Phase == state {
+			return &podInfo
+		}
+	}
+	return nil
+}
+
+func getK8sClient() *kubernetes.Clientset {
+	// create new client with the given config
+	kubeClient, err := kubernetes.NewForConfig(GetK8sConfig())
+	if err != nil {
+		fmt.Printf("Error building kubernetes clientset: %v\n", err)
+		os.Exit(1)
+	}
+	return kubeClient
+}
+
+func GetK8sConfig() *rest.Config {
+	kubeconfig, isPresent := os.LookupEnv("KUBECONFIG")
+	if !isPresent {
+		kubeconfig = filepath.Join(
+			os.Getenv("HOME"), ".kube", "config",
+		)
+	}
+	cfg, err := clientcmd.BuildConfigFromFlags("", kubeconfig)
+	if err != nil {
+		fmt.Printf("Error building kubeconfig: %v\n", err)
+		os.Exit(1)
+	}
+	return cfg
 }

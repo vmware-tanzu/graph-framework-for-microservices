@@ -42,6 +42,7 @@ const (
 	RUNTIME_MANIFESTS_URL     = "https://storage.googleapis.com/nexus-template-downloads/%s/runtime-manifests.tar"
 	VALIDATION_MANIFESTS_URL  = "https://storage.googleapis.com/nexus-template-downloads/%s/validation-manifests.tar"
 	API_GATEWAY_MANIFESTS_URL = "https://storage.googleapis.com/nexus-template-downloads/%s/api-gw-manifests.tar"
+	API_DATAMODEL_CRD_URL     = "https://storage.googleapis.com/nexus-template-downloads/%s/api-datamodel-crds.tar"
 )
 
 const TEMPLATE_URL = "https://storage.googleapis.com/nexus-template-downloads/%s/app-template.tar"
@@ -83,7 +84,7 @@ type ImageTemplate struct {
 	ImagePullSecret   string
 }
 
-type Manifests struct {
+type Manifest struct {
 	URL            string
 	Directory      string
 	VersionStrName string
@@ -94,7 +95,7 @@ type Manifests struct {
 	Image          ImageTemplate
 }
 
-var RuntimeManifests map[string]Manifests = map[string]Manifests{
+var RuntimeManifests = map[string]Manifest{
 	"runtime": {
 		URL:            RUNTIME_MANIFESTS_URL,
 		Directory:      "nexus-manifests-runtime",
@@ -122,4 +123,14 @@ var RuntimeManifests map[string]Manifests = map[string]Manifests{
 		ImageName:      "api-gateway",
 		Templatized:    true,
 	},
+}
+
+var NexusApiDatamodelManifest = Manifest{
+	URL:            API_DATAMODEL_CRD_URL,
+	Directory:      "nexus-manifests-api-datamodel-crds",
+	VersionEnv:     "NEXUS_API_DATAMODEL_CRD",
+	VersionStrName: "NexusApiDatamodelCrds",
+	FileName:       "api-datamodel-crds.tar",
+	ImageName:      "",
+	Templatized:    false,
 }

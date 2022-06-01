@@ -17,27 +17,28 @@ const (
 	// 243-255
 	// DO NOT skip the sequence unless there is a valid reason, which
 	// should be documented along with the const var.
-	UNHANDLED_ERROR                        ClientErrorCode = 8
-	INTERNAL_ERROR                         ClientErrorCode = 9
-	DATAMODEL_DIRECTORY_NOT_FOUND          ClientErrorCode = 10
-	DATAMODEL_BUILD_FAILED                 ClientErrorCode = 11
-	DOCKER_NOT_RUNNING                     ClientErrorCode = 12
-	RUNTIME_INSTALL_FAILED                 ClientErrorCode = 13
-	RUNTIME_UNINSTALL_FAILED               ClientErrorCode = 14
-	DATAMODEL_INSTALL_FAILED               ClientErrorCode = 15
-	APPLICATION_DEPLOY_FAILED              ClientErrorCode = 16
-	DATAMODEL_INIT_FAILED                  ClientErrorCode = 17
-	APPLICATION_PACKAGE_FAILED             ClientErrorCode = 18
-	APPLICATION_PUBLISH_FAILED             ClientErrorCode = 19
-	APPLICATION_RUN_FAILED                 ClientErrorCode = 20
-	APPLICATION_OPERATOR_CREATE_FAILED     ClientErrorCode = 21
-	CLI_UPGRADE_FAILED                     ClientErrorCode = 22
-	CHECK_CURRENT_DIRECTORY_IS_DATAMODEL   ClientErrorCode = 23
-	APPLICATION_INIT_PREREQ_FAILED         ClientErrorCode = 24
-	APPLICATION_BUILD_FAILED               ClientErrorCode = 25
-	CONFIG_SET_FAILED                      ClientErrorCode = 26
-	DATAMODEL_DIRECTORY_MISMATCH           ClientErrorCode = 27
-	RUNTIME_PREREQUISITE_IMAGE_PREP_FAILED ClientErrorCode = 28
+	UNHANDLED_ERROR                              ClientErrorCode = 8
+	INTERNAL_ERROR                               ClientErrorCode = 9
+	DATAMODEL_DIRECTORY_NOT_FOUND                ClientErrorCode = 10
+	DATAMODEL_BUILD_FAILED                       ClientErrorCode = 11
+	DOCKER_NOT_RUNNING                           ClientErrorCode = 12
+	RUNTIME_INSTALL_FAILED                       ClientErrorCode = 13
+	RUNTIME_UNINSTALL_FAILED                     ClientErrorCode = 14
+	DATAMODEL_INSTALL_FAILED                     ClientErrorCode = 15
+	APPLICATION_DEPLOY_FAILED                    ClientErrorCode = 16
+	DATAMODEL_INIT_FAILED                        ClientErrorCode = 17
+	APPLICATION_PACKAGE_FAILED                   ClientErrorCode = 18
+	APPLICATION_PUBLISH_FAILED                   ClientErrorCode = 19
+	APPLICATION_RUN_FAILED                       ClientErrorCode = 20
+	APPLICATION_OPERATOR_CREATE_FAILED           ClientErrorCode = 21
+	CLI_UPGRADE_FAILED                           ClientErrorCode = 22
+	CHECK_CURRENT_DIRECTORY_IS_DATAMODEL         ClientErrorCode = 23
+	APPLICATION_INIT_PREREQ_FAILED               ClientErrorCode = 24
+	APPLICATION_BUILD_FAILED                     ClientErrorCode = 25
+	CONFIG_SET_FAILED                            ClientErrorCode = 26
+	DATAMODEL_DIRECTORY_MISMATCH                 ClientErrorCode = 27
+	RUNTIME_PREREQUISITE_IMAGE_PREP_FAILED       ClientErrorCode = 28
+	RUNTIME_INSTALL_API_DATAMODEL_INSTALL_FAILED ClientErrorCode = 29
 )
 
 // ClientError defines error and information around it that are specific
@@ -175,6 +176,9 @@ var wellKnownErrors = map[ClientErrorCode]ClientError{
 	APPLICATION_OPERATOR_CREATE_FAILED: {
 		Description: "application operator create failed",
 		WhatNext: []string{
+			"run with the --debug option",
+			"delete the xxx_controller.go file and retry",
+			"manually run a `go mod tidy` to see if it is a dependency resolution problem",
 			"verify that the user has write permissions on the disk to be able to create files and directories",
 		},
 		fatal: true,
@@ -232,6 +236,16 @@ var wellKnownErrors = map[ClientErrorCode]ClientError{
 		WhatNext: []string{
 			"run with --debug option",
 			"please run from vmware network",
+		},
+		fatal: true,
+	},
+	RUNTIME_INSTALL_API_DATAMODEL_INSTALL_FAILED: {
+		Description: "installing API datamodel to nexus-apiserver failed",
+		WhatNext: []string{
+			"run with --debug option",
+			"verify that you have internet connectivity",
+			"verify that the kube context is set correctly",
+			"ensure that you have free ports to port-forward to the nexus-proxy-container",
 		},
 		fatal: true,
 	},
