@@ -17,13 +17,14 @@ limitations under the License.
 package main
 
 import (
+	"flag"
+	"os"
+
+	log "github.com/sirupsen/logrus"
+
 	"api-gw/pkg/client"
 	"api-gw/pkg/config"
 	"api-gw/pkg/openapi"
-	"flag"
-	"fmt"
-	log "github.com/sirupsen/logrus"
-	"os"
 
 	// Import all Kubernetes client auth plugins (e.g. Azure, GCP, OIDC, etc.)
 	// to ensure that exec-entrypoint and run can make use of them.
@@ -39,7 +40,10 @@ import (
 
 	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 
+	authnexusv1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/api.git/build/apis/authentication.nexus.org/v1"
+
 	"api-gw/controllers"
+
 	//+kubebuilder:scaffold:imports
 
 	"api-gw/pkg/server/echo_server"
@@ -53,6 +57,7 @@ var (
 func init() {
 	utilruntime.Must(clientgoscheme.AddToScheme(scheme))
 	apiextensionsv1.AddToScheme(scheme)
+	authnexusv1.AddToScheme(scheme)
 	//+kubebuilder:scaffold:scheme
 }
 
@@ -84,9 +89,14 @@ func main() {
 	}
 	log.SetLevel(lvl)
 
+	customFormatter := new(log.TextFormatter)
+	customFormatter.TimestampFormat = "2006-01-02T15:04:05Z07:00"
+	customFormatter.FullTimestamp = true
+	log.SetFormatter(customFormatter)
+
 	conf, err := config.LoadConfig("/config/api-gw-config")
 	if err != nil {
-		fmt.Printf("Error loading config: %v", err)
+		log.Warnf("Error loading config: %v\n", err)
 	}
 
 	mgr, err := ctrl.NewManager(ctrl.GetConfigOrDie(), ctrl.Options{
@@ -111,6 +121,13 @@ func main() {
 		setupLog.Error(err, "unable to create controller", "controller", "CustomResourceDefinition")
 		os.Exit(1)
 	}
+	if err = (&controllers.OidcConfigReconciler{
+		Client: mgr.GetClient(),
+		Scheme: mgr.GetScheme(),
+	}).SetupWithManager(mgr); err != nil {
+		setupLog.Error(err, "unable to create controller", "controller", "OidcConfig")
+		os.Exit(1)
+	}
 	//+kubebuilder:scaffold:builder
 
 	if err := mgr.AddHealthzCheck("healthz", healthz.Ping); err != nil {
@@ -131,7 +148,7 @@ func main() {
 	// Create new openapi3 schema
 	openapi.New()
 
-	fmt.Println("Init Echo Server")
+	log.Infoln("Init Echo Server")
 	// Start server
 	echo_server.InitEcho(stopCh, conf)
 

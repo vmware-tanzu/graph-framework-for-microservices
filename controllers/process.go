@@ -1,7 +1,7 @@
 package controllers
 
 import (
-	"fmt"
+	log "github.com/sirupsen/logrus"
 	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	"k8s.io/apimachinery/pkg/util/json"
 
@@ -21,7 +21,7 @@ func (r *CustomResourceDefinitionReconciler) ProcessAnnotation(crdType string,
 		// unmarshall to nexus annotation struct
 		err := json.Unmarshal([]byte(apiInfo), &n)
 		if err != nil {
-			fmt.Printf("Error unmarshaling Nexus annotation %v\n", err)
+			log.Errorf("Error unmarshaling Nexus annotation %v\n", err)
 			return err
 		}
 	}
@@ -37,6 +37,7 @@ func (r *CustomResourceDefinitionReconciler) ProcessAnnotation(crdType string,
 	model.ConstructMapCRDTypeToRestUris(eventType, crdType, n.NexusRestAPIGen)
 
 	// Restart echo server
+	log.Debugln("Restarting echo server...")
 	r.StopCh <- struct{}{}
 
 	for cType, uris := range model.CrdTypeToRestUris {

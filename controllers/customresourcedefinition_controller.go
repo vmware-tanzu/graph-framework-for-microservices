@@ -19,9 +19,8 @@ package controllers
 import (
 	"api-gw/pkg/openapi"
 	"context"
-	"fmt"
+	logger "github.com/sirupsen/logrus"
 	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
-	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -57,20 +56,20 @@ func (r *CustomResourceDefinitionReconciler) Reconcile(ctx context.Context, req 
 	var crd apiextensionsv1.CustomResourceDefinition
 	eventType := model.Upsert
 	if err := r.Get(ctx, req.NamespacedName, &crd); err != nil {
-		if !errors.IsNotFound(err) {
-			return ctrl.Result{}, client.IgnoreNotFound(err)
+		if client.IgnoreNotFound(err) != nil {
+			return ctrl.Result{}, err
 		}
 		eventType = model.Delete
 	}
 
-	fmt.Printf("Received root node: Name %s\n", crd.Name)
+	logger.Infof("Received CRD notification for Name %s Type %s\n", crd.Name, eventType)
 	if err := r.ProcessAnnotation(req.NamespacedName.Name, crd.Annotations, eventType); err != nil {
-		fmt.Printf("Error Processing CRD Annotation %v", err)
+		logger.Errorf("Error Processing CRD Annotation %v\n", err)
 	}
 
 	// Get correct version
 	if err := r.ProcessCrdSpec(req.NamespacedName.Name, crd.Spec, eventType); err != nil {
-		fmt.Printf("Error Processing CRD spec %v", err)
+		logger.Errorf("Error Processing CRD spec %v\n", err)
 	}
 
 	openapi.Recreate()
