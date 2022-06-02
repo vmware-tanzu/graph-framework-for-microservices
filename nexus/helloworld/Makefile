@@ -15,6 +15,8 @@ datamodel_build:
 			--volume $(realpath .):/go/src/gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/datamodel/ \
 			-v /go/src/gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/datamodel/build/ \
 			--volume $(realpath .)/build:/go/src/gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/generated/ \
+			--volume ~/.ssh:/root/.ssh \
+			-e GOPRIVATE=gitlab.eng.vmware.com \
 			-e CRD_MODULE_PATH=${CRD_MODULE_PATH} \
 			-e CONFIG_FILE=datamodel/nexus.yaml \
 			harbor-repo.vmware.com/nexus/compiler:$(TAG); \
@@ -25,6 +27,8 @@ datamodel_build:
 			-e GENERATED_OUTPUT_DIRECTORY=$(DATAMODEL_LOCAL_PATH)/build \
 			-e CONFIG_FILE=${DATAMODEL_LOCAL_PATH}/nexus.yaml \
 			-e CRD_MODULE_PATH=${CRD_MODULE_PATH} \
+			-e GOPRIVATE=gitlab.eng.vmware.com \
+			-e CICD_TOKEN=${CICD_TOKEN} \
 			--user root:root \
 			harbor-repo.vmware.com/nexus/compiler:$(TAG); \
 	fi
