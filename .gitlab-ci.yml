@@ -1,0 +1,49 @@
+image:
+  name: harbor-repo.vmware.com/nexus/runner:latest
+
+include:
+- project: "nsx-allspark_users/nexus-sdk/integration-tests"
+  file: ".gitlab-ci-template.yml"
+
+variables:
+  REPOSITORY: nsx-allspark_users/nexus-sdk/cli
+
+before_script:
+  - git config --global url."https://gitlab.eng.vmware.com/".insteadOf "git@gitlab.eng.vmware.com:"
+  - git config --global gc.auto 0
+  - git config --global credential.helper store
+  - echo -e  "https://gitlab-ci-token:${CICD_TOKEN}@gitlab.eng.vmware.com/" >> ~/.git-credentials
+  - echo $GCLOUD_SERVICE_KEY > key.json
+  - gcloud auth activate-service-account --key-file key.json
+
+build:
+  stage: build
+  only:
+    - merge_requests
+    - master
+  script:
+    - make build
+    - make publish
+
+build_tag:
+  stage: build
+  only:
+    - tags
+  variables:
+    TAG: $CI_COMMIT_TAG
+  script:
+    - make build
+    - make publish
+
+integration_test:
+  stage: integration_test
+  variables:
+    NEXUS_RUNTIME_MANIFESTS_VERSION: $CI_COMMIT_SHA
+  only:
+    - merge_requests
+    - master
+  extends: .run_integration_test
+
+stages:
+  - build
+  - integration_test
