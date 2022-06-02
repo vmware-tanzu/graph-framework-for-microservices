@@ -9,4 +9,10 @@ resources:
   group: apiextensions.k8s.io
   kind: CustomResourceDefinition
   version: v1
+- controller: true
+  datamodelImport: gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/api.git
+  domain: api-gw.com
+  group: authentication.nexus.org
+  kind: OidcConfig
+  version: v1
 version: "3"

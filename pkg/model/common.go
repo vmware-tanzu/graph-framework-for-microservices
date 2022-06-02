@@ -1,6 +1,7 @@
 package model
 
 import (
+	authnexusv1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/api.git/build/apis/authentication.nexus.org/v1"
 	"strings"
 
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/common-library.git/pkg/nexus"
@@ -36,4 +37,9 @@ type NodeInfo struct {
 func ConstructEchoPathParamURL(uri string) string {
 	replacer := strings.NewReplacer("{", ":", "}", "")
 	return replacer.Replace(uri)
+}
+
+type OidcNodeEvent struct {
+	Oidc authnexusv1.OIDC
+	Type EventType
 }

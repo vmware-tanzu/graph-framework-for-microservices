@@ -10,6 +10,9 @@ var (
 	RestURIChan = make(chan []nexus.RestURIs, 100)
 	CrdTypeChan = make(chan string, 100)
 
+	// OidcChan is used to pass on OIDC node updates to the OIDC authenticator
+	OidcChan = make(chan OidcNodeEvent)
+
 	CrdTypeToRestUris      = make(map[string][]nexus.RestURIs)
 	crdTypeToRestUrisMutex = &sync.Mutex{}
 
