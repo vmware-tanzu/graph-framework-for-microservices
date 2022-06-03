@@ -21,6 +21,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"log"
 	"path/filepath"
 	"reflect"
 	"sort"
@@ -627,6 +628,7 @@ func (g openAPITypeWriter) generateDescription(CommentLines []string) {
 			delPrevChar()
 			buffer.WriteString("\n\n")
 		case strings.HasPrefix(leading, "TODO"): // Ignore one line TODOs
+		case strings.HasPrefix(leading, "nexus-validation"): // Ignore nexus-annotations
 		case strings.HasPrefix(leading, "+"): // Ignore instructions to go2idl
 		default:
 			if strings.HasPrefix(line, " ") || strings.HasPrefix(line, "\t") {
@@ -675,15 +677,20 @@ func (g openAPITypeWriter) generateProperty(m *types.Member, parent *types.Type)
 		g.Do("},\n},\n", nil)
 		return nil
 	}
-	omitEmpty := strings.Contains(reflect.StructTag(m.Tags).Get("json"), "omitempty")
-	if err := g.generateDefault(m.CommentLines, m.Type, omitEmpty); err != nil {
-		return fmt.Errorf("failed to generate default in %v: %v: %v", parent, m.Name, err)
-	}
+	// Uncomment if the property "default" need to be made mandatory.
+	// omitEmpty := strings.Contains(reflect.StructTag(m.Tags).Get("json"), "omitempty")
+	// if err := g.generateDefault(m.CommentLines, m.Type, omitEmpty); err != nil {
+	// 	return fmt.Errorf("failed to generate default in %v: %v: %v", parent, m.Name, err)
+	// }
 	t := resolveAliasAndPtrType(m.Type)
 	// If we can get a openAPI type and format for this type, we consider it to be simple property
 	typeString, format := openapi.OpenAPITypeFormat(t.String())
+	valParse := validationParser{generator: g, member: m, typeString: typeString}
 	if typeString != "" {
 		g.generateSimpleProperty(typeString, format)
+		if err := GenerateValidationProperty(valParse); err != nil {
+			log.Fatalf("failed to generate validation properties in %v: %v: %v", parent, m.Name, err)
+		}
 		if enumType, isEnum := g.enumContext.EnumType(m.Type); isEnum {
 			// original type is an enum, add "Enum: " and the values
 			g.Do("Enum: []interface{}{$.$}", strings.Join(enumType.ValueStrings(), ", "))
@@ -695,11 +702,11 @@ func (g openAPITypeWriter) generateProperty(m *types.Member, parent *types.Type)
 	case types.Builtin:
 		return fmt.Errorf("please add type %v to getOpenAPITypeFormat function", t)
 	case types.Map:
-		if err := g.generateMapProperty(t); err != nil {
+		if err := g.generateMapProperty(t, m, parent); err != nil {
 			return fmt.Errorf("failed to generate map property in %v: %v: %v", parent, m.Name, err)
 		}
 	case types.Slice, types.Array:
-		if err := g.generateSliceProperty(t); err != nil {
+		if err := g.generateSliceProperty(t, m, parent); err != nil {
 			return fmt.Errorf("failed to generate slice property in %v: %v: %v", parent, m.Name, err)
 		}
 	case types.Struct, types.Interface:
@@ -751,7 +758,7 @@ func resolveAliasAndPtrType(t *types.Type) *types.Type {
 	return t
 }
 
-func (g openAPITypeWriter) generateMapProperty(t *types.Type) error {
+func (g openAPITypeWriter) generateMapProperty(t *types.Type, m *types.Member, parent *types.Type) error {
 	keyType := resolveAliasAndPtrType(t.Key)
 	elemType := resolveAliasAndPtrType(t.Elem)
 
@@ -762,9 +769,10 @@ func (g openAPITypeWriter) generateMapProperty(t *types.Type) error {
 
 	g.Do("Type: []string{\"object\"},\n", nil)
 	g.Do("AdditionalProperties: &spec.SchemaOrBool{\nAllows: true,\nSchema: &spec.Schema{\nSchemaProps: spec.SchemaProps{\n", nil)
-	if err := g.generateDefault(t.Elem.CommentLines, t.Elem, false); err != nil {
-		return err
-	}
+	// Uncomment if the property "default" need to be made mandatory.
+	// if err := g.generateDefault(t.Elem.CommentLines, t.Elem, false); err != nil {
+	// 	return err
+	// }
 	typeString, format := openapi.OpenAPITypeFormat(elemType.String())
 	if typeString != "" {
 		g.generateSimpleProperty(typeString, format)
@@ -777,11 +785,11 @@ func (g openAPITypeWriter) generateMapProperty(t *types.Type) error {
 	case types.Struct:
 		g.generateReferenceProperty(elemType)
 	case types.Slice, types.Array:
-		if err := g.generateSliceProperty(elemType); err != nil {
+		if err := g.generateSliceProperty(elemType, m, parent); err != nil {
 			return err
 		}
 	case types.Map:
-		if err := g.generateMapProperty(elemType); err != nil {
+		if err := g.generateMapProperty(elemType, m, parent); err != nil {
 			return err
 		}
 	default:
@@ -791,13 +799,18 @@ func (g openAPITypeWriter) generateMapProperty(t *types.Type) error {
 	return nil
 }
 
-func (g openAPITypeWriter) generateSliceProperty(t *types.Type) error {
+func (g openAPITypeWriter) generateSliceProperty(t *types.Type, m *types.Member, parent *types.Type) error {
 	elemType := resolveAliasAndPtrType(t.Elem)
 	g.Do("Type: []string{\"array\"},\n", nil)
-	g.Do("Items: &spec.SchemaOrArray{\nSchema: &spec.Schema{\nSchemaProps: spec.SchemaProps{\n", nil)
-	if err := g.generateDefault(t.Elem.CommentLines, t.Elem, false); err != nil {
-		return err
+	valParse := validationParser{generator: g, member: m, typeString: "array"}
+	if err := GenerateValidationProperty(valParse); err != nil {
+		log.Fatalf("failed to generate validation properties in %v: %v: %v", parent, m.Name, err)
 	}
+	g.Do("Items: &spec.SchemaOrArray{\nSchema: &spec.Schema{\nSchemaProps: spec.SchemaProps{\n", nil)
+	// Uncomment if the property "default" need to be made mandatory.
+	// if err := g.generateDefault(t.Elem.CommentLines, t.Elem, false); err != nil {
+	// 	return err
+	// }
 	typeString, format := openapi.OpenAPITypeFormat(elemType.String())
 	if typeString != "" {
 		g.generateSimpleProperty(typeString, format)
@@ -810,11 +823,11 @@ func (g openAPITypeWriter) generateSliceProperty(t *types.Type) error {
 	case types.Struct:
 		g.generateReferenceProperty(elemType)
 	case types.Slice, types.Array:
-		if err := g.generateSliceProperty(elemType); err != nil {
+		if err := g.generateSliceProperty(elemType, m, parent); err != nil {
 			return err
 		}
 	case types.Map:
-		if err := g.generateMapProperty(elemType); err != nil {
+		if err := g.generateMapProperty(elemType, m, parent); err != nil {
 			return err
 		}
 	default:
