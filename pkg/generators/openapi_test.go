@@ -131,17 +131,13 @@ type Blah struct {
 	WithStructTagExtension string `+"`"+`patchStrategy:"merge" patchMergeKey:"pmk"`+"`"+`
 	// a member with a list type
 	// +listType=atomic
-	// +default=["foo", "bar"]
 	WithListType []string
 	// a member with a map type
 	// +listType=atomic
-	// +default={"foo": "bar", "fizz": "buzz"}
 	Map map[string]string
 	// a member with a string pointer
-	// +default="foo"
 	StringPointer *string
 	// an int member with a default
-	// +default=1
 	OmittedInt int `+"`"+`json:"omitted,omitempty"`+"`"+`
 }
 		`)
@@ -163,7 +159,6 @@ Properties: map[string]spec.Schema{
 "String": {
 SchemaProps: spec.SchemaProps{
 Description: "A simple string",
-Default: "",
 Type: []string{"string"},
 Format: "",
 },
@@ -171,7 +166,6 @@ Format: "",
 "Int64": {
 SchemaProps: spec.SchemaProps{
 Description: "A simple int64",
-Default: 0,
 Type: []string{"integer"},
 Format: "int64",
 },
@@ -179,7 +173,6 @@ Format: "int64",
 "Int32": {
 SchemaProps: spec.SchemaProps{
 Description: "A simple int32",
-Default: 0,
 Type: []string{"integer"},
 Format: "int32",
 },
@@ -187,7 +180,6 @@ Format: "int32",
 "Int16": {
 SchemaProps: spec.SchemaProps{
 Description: "A simple int16",
-Default: 0,
 Type: []string{"integer"},
 Format: "int32",
 },
@@ -195,7 +187,6 @@ Format: "int32",
 "Int8": {
 SchemaProps: spec.SchemaProps{
 Description: "A simple int8",
-Default: 0,
 Type: []string{"integer"},
 Format: "byte",
 },
@@ -203,7 +194,6 @@ Format: "byte",
 "Uint": {
 SchemaProps: spec.SchemaProps{
 Description: "A simple int",
-Default: 0,
 Type: []string{"integer"},
 Format: "int32",
 },
@@ -211,7 +201,6 @@ Format: "int32",
 "Uint64": {
 SchemaProps: spec.SchemaProps{
 Description: "A simple int64",
-Default: 0,
 Type: []string{"integer"},
 Format: "int64",
 },
@@ -219,7 +208,6 @@ Format: "int64",
 "Uint32": {
 SchemaProps: spec.SchemaProps{
 Description: "A simple int32",
-Default: 0,
 Type: []string{"integer"},
 Format: "int64",
 },
@@ -227,7 +215,6 @@ Format: "int64",
 "Uint16": {
 SchemaProps: spec.SchemaProps{
 Description: "A simple int16",
-Default: 0,
 Type: []string{"integer"},
 Format: "int32",
 },
@@ -235,7 +222,6 @@ Format: "int32",
 "Uint8": {
 SchemaProps: spec.SchemaProps{
 Description: "A simple int8",
-Default: 0,
 Type: []string{"integer"},
 Format: "byte",
 },
@@ -243,7 +229,6 @@ Format: "byte",
 "Byte": {
 SchemaProps: spec.SchemaProps{
 Description: "A simple byte",
-Default: 0,
 Type: []string{"integer"},
 Format: "byte",
 },
@@ -251,7 +236,6 @@ Format: "byte",
 "Bool": {
 SchemaProps: spec.SchemaProps{
 Description: "A simple boolean",
-Default: false,
 Type: []string{"boolean"},
 Format: "",
 },
@@ -259,7 +243,6 @@ Format: "",
 "Float64": {
 SchemaProps: spec.SchemaProps{
 Description: "A simple float64",
-Default: 0,
 Type: []string{"number"},
 Format: "double",
 },
@@ -267,7 +250,6 @@ Format: "double",
 "Float32": {
 SchemaProps: spec.SchemaProps{
 Description: "A simple float32",
-Default: 0,
 Type: []string{"number"},
 Format: "float",
 },
@@ -287,7 +269,6 @@ Extensions: spec.Extensions{
 },
 SchemaProps: spec.SchemaProps{
 Description: "a member with an extension",
-Default: "",
 Type: []string{"string"},
 Format: "",
 },
@@ -301,7 +282,6 @@ Extensions: spec.Extensions{
 },
 SchemaProps: spec.SchemaProps{
 Description: "a member with struct tag as extension",
-Default: "",
 Type: []string{"string"},
 Format: "",
 },
@@ -314,12 +294,10 @@ Extensions: spec.Extensions{
 },
 SchemaProps: spec.SchemaProps{
 Description: "a member with a list type",
-Default: []interface {}{"foo", "bar"},
 Type: []string{"array"},
 Items: &spec.SchemaOrArray{
 Schema: &spec.Schema{
 SchemaProps: spec.SchemaProps{
-Default: "",
 Type: []string{"string"},
 Format: "",
 },
@@ -335,13 +313,11 @@ Extensions: spec.Extensions{
 },
 SchemaProps: spec.SchemaProps{
 Description: "a member with a map type",
-Default: map[string]interface {}{"fizz":"buzz", "foo":"bar"},
 Type: []string{"object"},
 AdditionalProperties: &spec.SchemaOrBool{
 Allows: true,
 Schema: &spec.Schema{
 SchemaProps: spec.SchemaProps{
-Default: "",
 Type: []string{"string"},
 Format: "",
 },
@@ -352,7 +328,6 @@ Format: "",
 "StringPointer": {
 SchemaProps: spec.SchemaProps{
 Description: "a member with a string pointer",
-Default: "foo",
 Type: []string{"string"},
 Format: "",
 },
@@ -360,7 +335,6 @@ Format: "",
 "omitted": {
 SchemaProps: spec.SchemaProps{
 Description: "an int member with a default",
-Default: 1,
 Type: []string{"integer"},
 Format: "int32",
 },
@@ -444,7 +418,6 @@ Properties: map[string]spec.Schema{
 "Field": {
 SchemaProps: spec.SchemaProps{
 Description: "A struct field",
-Default: map[string]interface {}{},
 Ref: ref("base/foo.Nested"),
 },
 },
@@ -543,7 +516,6 @@ Properties: map[string]spec.Schema{
 "Nested": {
 SchemaProps: spec.SchemaProps{
 Description: "An embedded struct field",
-Default: map[string]interface {}{},
 Ref: ref("base/foo.Nested"),
 },
 },
@@ -574,7 +546,6 @@ type Nested struct {
 // Blah demonstrate a struct with embedded struct field.
 type Blah struct {
   // An embedded struct field
-  // +default="10ms"
   Nested `+"`"+`json:"nested,omitempty" protobuf:"bytes,5,opt,name=nested"`+"`"+`
 }
 	`)
@@ -596,7 +567,6 @@ Properties: map[string]spec.Schema{
 "nested": {
 SchemaProps: spec.SchemaProps{
 Description: "An embedded struct field",
-Default: "10ms",
 Ref: ref("base/foo.Nested"),
 },
 },
@@ -645,7 +615,6 @@ Properties: map[string]spec.Schema{
 "String": {
 SchemaProps: spec.SchemaProps{
 Description: "A simple string",
-Default: "",
 Type: []string{"string"},
 Format: "",
 },
@@ -694,7 +663,6 @@ Properties: map[string]spec.Schema{
 "String": {
 SchemaProps: spec.SchemaProps{
 Description: "A simple string",
-Default: "",
 Type: []string{"string"},
 Format: "",
 },
@@ -747,7 +715,6 @@ AdditionalProperties: &spec.SchemaOrBool{
 Allows: true,
 Schema: &spec.Schema{
 SchemaProps: spec.SchemaProps{
-Default: "",
 Type: []string{"string"},
 Format: "",
 },
@@ -806,7 +773,6 @@ AdditionalProperties: &spec.SchemaOrBool{
 Allows: true,
 Schema: &spec.Schema{
 SchemaProps: spec.SchemaProps{
-Default: 0,
 Type: []string{"integer"},
 Format: "int32",
 },
@@ -865,7 +831,6 @@ AdditionalProperties: &spec.SchemaOrBool{
 Allows: true,
 Schema: &spec.Schema{
 SchemaProps: spec.SchemaProps{
-Default: false,
 Type: []string{"boolean"},
 Format: "",
 },
@@ -915,70 +880,70 @@ type Blah struct {
 	}
 }
 
-func TestFailingDefaultEnforced(t *testing.T) {
-	tests := []struct {
-		definition    string
-		expectedError error
-	}{
-		{
-			definition: `
-package foo
+// func TestFailingDefaultEnforced(t *testing.T) {
+// 	tests := []struct {
+// 		definition    string
+// 		expectedError error
+// 	}{
+// 		{
+// 			definition: `
+// package foo
 
-type Blah struct {
-	// +default=5
-	Int int
-}	`,
-			expectedError: fmt.Errorf("failed to generate default in base/foo.Blah: Int: invalid default value (5) for non-pointer/non-omitempty. If specified, must be: 0"),
-		},
-		{
-			definition: `
-package foo
+// type Blah struct {
+// 	// +default=5
+// 	Int int
+// }	`,
+// 			expectedError: fmt.Errorf("failed to generate default in base/foo.Blah: Int: invalid default value (5) for non-pointer/non-omitempty. If specified, must be: 0"),
+// 		},
+// 		{
+// 			definition: `
+// package foo
 
-type Blah struct {
-	// +default={"foo": 5}
-	Struct struct{
-		foo int
-	}
-}	`,
-			expectedError: fmt.Errorf(`failed to generate default in base/foo.Blah: Struct: invalid default value (map[string]interface {}{"foo":5}) for non-pointer/non-omitempty. If specified, must be: {}`),
-		},
-		{
-			definition: `
-package foo
+// type Blah struct {
+// 	// +default={"foo": 5}
+// 	Struct struct{
+// 		foo int
+// 	}
+// }	`,
+// 			expectedError: fmt.Errorf(`failed to generate default in base/foo.Blah: Struct: invalid default value (map[string]interface {}{"foo":5}) for non-pointer/non-omitempty. If specified, must be: {}`),
+// 		},
+// 		{
+// 			definition: `
+// package foo
 
-type Blah struct {
-	List []Item
+// type Blah struct {
+// 	List []Item
 
-}
+// }
 
-// +default="foo"
-type Item string	`,
-			expectedError: fmt.Errorf(`failed to generate slice property in base/foo.Blah: List: invalid default value ("foo") for non-pointer/non-omitempty. If specified, must be: ""`),
-		},
-		{
-			definition: `
-package foo
+// // +default="foo"
+// type Item string	`,
+// 			expectedError: fmt.Errorf(`failed to generate slice property in base/foo.Blah: List: invalid default value ("foo") for non-pointer/non-omitempty. If specified, must be: ""`),
+// 		},
+// 		{
+// 			definition: `
+// package foo
 
-type Blah struct {
-	Map map[string]Item
+// type Blah struct {
+// 	Map map[string]Item
 
-}
+// }
 
-// +default="foo"
-type Item string	`,
-			expectedError: fmt.Errorf(`failed to generate map property in base/foo.Blah: Map: invalid default value ("foo") for non-pointer/non-omitempty. If specified, must be: ""`),
-		},
-	}
+// // +default="foo"
+// type Item string	`,
+// 			expectedError: fmt.Errorf(`failed to generate map property in base/foo.Blah: Map: invalid default value ("foo") for non-pointer/non-omitempty. If specified, must be: ""`),
+// 		},
+// 	}
 
-	for i, test := range tests {
-		t.Run(fmt.Sprintf("%d", i), func(t *testing.T) {
-			_, funcErr, assert, _, _ := testOpenAPITypeWriter(t, test.definition)
-			if assert.Error(funcErr, "An error was expected") {
-				assert.Equal(funcErr, test.expectedError)
-			}
-		})
-	}
-}
+// 	for i, test := range tests {
+// 		t.Run(fmt.Sprintf("%d", i), func(t *testing.T) {
+// 			_, funcErr, assert, _, _ := testOpenAPITypeWriter(t, test.definition)
+// 			if assert.Error(funcErr, "An error was expected") {
+// 				assert.Equal(funcErr, test.expectedError)
+// 			}
+// 		})
+// 	}
+// }
 
 func TestCustomDef(t *testing.T) {
 	callErr, funcErr, assert, callBuffer, funcBuffer := testOpenAPITypeWriter(t, `
@@ -1260,7 +1225,6 @@ Type: []string{"array"},
 Items: &spec.SchemaOrArray{
 Schema: &spec.Schema{
 SchemaProps: spec.SchemaProps{
-Default: "",
 Type: []string{"string"},
 Format: "",
 },
@@ -1276,7 +1240,6 @@ AdditionalProperties: &spec.SchemaOrBool{
 Allows: true,
 Schema: &spec.Schema{
 SchemaProps: spec.SchemaProps{
-Default: "",
 Type: []string{"string"},
 Format: "",
 },
@@ -1334,7 +1297,6 @@ Type: []string{"array"},
 Items: &spec.SchemaOrArray{
 Schema: &spec.Schema{
 SchemaProps: spec.SchemaProps{
-Default: 0,
 Type: []string{"integer"},
 Format: "int64",
 },
@@ -1403,7 +1365,6 @@ AdditionalProperties: &spec.SchemaOrBool{
 Allows: true,
 Schema: &spec.Schema{
 SchemaProps: spec.SchemaProps{
-Default: "",
 Type: []string{"string"},
 Format: "",
 },
@@ -1483,7 +1444,6 @@ Type: []string{"array"},
 Items: &spec.SchemaOrArray{
 Schema: &spec.Schema{
 SchemaProps: spec.SchemaProps{
-Default: "",
 Type: []string{"string"},
 Format: "",
 },
@@ -1506,7 +1466,6 @@ Type: []string{"array"},
 Items: &spec.SchemaOrArray{
 Schema: &spec.Schema{
 SchemaProps: spec.SchemaProps{
-Default: "",
 Type: []string{"string"},
 Format: "",
 },
@@ -1571,21 +1530,18 @@ Format: "",
 },
 "numeric": {
 SchemaProps: spec.SchemaProps{
-Default: 0,
 Type: []string{"integer"},
 Format: "int32",
 },
 },
 "string": {
 SchemaProps: spec.SchemaProps{
-Default: "",
 Type: []string{"string"},
 Format: "",
 },
 },
 "float": {
 SchemaProps: spec.SchemaProps{
-Default: 0,
 Type: []string{"number"},
 Format: "double",
 },
@@ -1653,7 +1609,6 @@ Properties: map[string]spec.Schema{
 "Value": {
 SchemaProps: spec.SchemaProps{`+"\n"+
 		"Description: \"Value is the value.\\n\\nPossible enum values:\\n - `\\\"a\\\"` is a.\\n - `\\\"b\\\"` is b.\","+`
-Default: "",
 Type: []string{"string"},
 Format: "",
 Enum: []interface{}{"a", "b"}},
@@ -1661,7 +1616,6 @@ Enum: []interface{}{"a", "b"}},
 "NoCommentEnum": {
 SchemaProps: spec.SchemaProps{`+"\n"+
 		"Description: \"Possible enum values:\\n - `\\\"a\\\"` is a.\\n - `\\\"b\\\"` is b.\","+`
-Default: "",
 Type: []string{"string"},
 Format: "",
 Enum: []interface{}{"a", "b"}},
