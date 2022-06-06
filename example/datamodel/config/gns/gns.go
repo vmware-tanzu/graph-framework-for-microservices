@@ -6,7 +6,7 @@ import (
 	cartv1 "github.com/vmware-tanzu/cartographer/pkg/apis/v1alpha1"
 
 	service_group "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/datamodel/config/gns/service-group"
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/datamodel/config/policy"
+	policypkg "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/datamodel/config/policy"
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/datamodel/nexus"
 )
 
@@ -69,6 +69,8 @@ var DNSRestAPISpec = nexus.RestAPISpec{
 // specification of GNS.
 type Gns struct {
 	nexus.Node
+	//nexus-validation: MaxLength=8, MinLength=2
+	//nexus-validation: Pattern=abc
 	Domain                 string
 	UseSharedGateway       bool
 	Description            Description

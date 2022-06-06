@@ -656,6 +656,15 @@ func (group *ConfigTsmV1) UpdateConfigByName(ctx context.Context,
 	}
 	patch = append(patch, patchOpMyStr2)
 
+	patchValueTestValMarkers :=
+		objToUpdate.Spec.TestValMarkers
+	patchOpTestValMarkers := PatchOp{
+		Op:    "replace",
+		Path:  "/spec/testValMarkers",
+		Value: patchValueTestValMarkers,
+	}
+	patch = append(patch, patchOpTestValMarkers)
+
 	marshaled, err := patch.Marshal()
 	if err != nil {
 		return nil, err

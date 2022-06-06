@@ -141,6 +141,11 @@ type {{.Name}}Spec struct {
 		if err != nil {
 			log.Fatalf("failed to GetFieldName: %v", err)
 		}
+		if comments := getNexusValidationComments(field); comments != nil {
+			for _, comment := range comments {
+				specDef.Fields += comment + "\n"
+			}
+		}
 		specDef.Fields += "\t" + name + " "
 		typeString := constructType(aliasNameMap, field)
 		specDef.Fields += typeString
@@ -238,6 +243,11 @@ type {{.Name}} struct {
 		name, err := parser.GetFieldName(field)
 		if err != nil {
 			log.Fatalf("failed to GetFieldName: %v", err)
+		}
+		if comments := getNexusValidationComments(field); comments != nil {
+			for _, comment := range comments {
+				specDef.Fields += comment + "\n"
+			}
 		}
 		specDef.Fields += "\t" + name + " "
 		typeString := constructType(aliasNameMap, field)
@@ -391,4 +401,17 @@ func constructTypeParts(aliasNameMap map[string]string, parts []string) []string
 		}
 	}
 	return parts
+}
+
+func getNexusValidationComments(field *ast.Field) []string {
+	var comments []string
+	if field.Doc != nil {
+		for _, val := range field.Doc.List {
+			if strings.Contains(val.Text, "nexus-validation:") {
+				comments = append(comments, val.Text)
+			}
+
+		}
+	}
+	return comments
 }

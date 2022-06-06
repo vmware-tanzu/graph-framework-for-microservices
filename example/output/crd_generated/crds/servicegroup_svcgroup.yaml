@@ -39,13 +39,10 @@ spec:
           spec:
             properties:
               color:
-                default: ""
                 type: string
               description:
-                default: ""
                 type: string
               displayName:
-                default: ""
                 type: string
             required:
             - displayName

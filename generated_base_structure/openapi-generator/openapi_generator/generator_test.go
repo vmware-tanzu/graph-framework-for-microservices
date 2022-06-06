@@ -7,8 +7,8 @@ import (
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"k8s.io/kube-openapi/pkg/common"
-	"k8s.io/kube-openapi/pkg/validation/spec"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git/pkg/common"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git/pkg/validation/spec"
 
 	generator "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/generated_base_structure/openapi-generator/openapi_generator"
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/generated_base_structure/openapi-generator/openapi_generator/test_data/openapi"
