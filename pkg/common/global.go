@@ -36,13 +36,14 @@ const NEXUS_DIR = "nexus"
 var HarborRepo = "harbor-repo.vmware.com/nexus"
 
 const (
-	HELLOWORLD_URL            = "https://storage.googleapis.com/nexus-template-downloads/%s/helloworld-example.tar"
-	DATAMODEL_TEMPLATE_URL    = "https://storage.googleapis.com/nexus-template-downloads/%s/datamodel-templatedir.tar"
-	NEXUS_TEMPLATE_URL        = "https://storage.googleapis.com/nexus-template-downloads/%s/nexus-template.tar"
-	RUNTIME_MANIFESTS_URL     = "https://storage.googleapis.com/nexus-template-downloads/%s/runtime-manifests.tar"
-	VALIDATION_MANIFESTS_URL  = "https://storage.googleapis.com/nexus-template-downloads/%s/validation-manifests.tar"
-	API_GATEWAY_MANIFESTS_URL = "https://storage.googleapis.com/nexus-template-downloads/%s/api-gw-manifests.tar"
-	API_DATAMODEL_CRD_URL     = "https://storage.googleapis.com/nexus-template-downloads/%s/api-datamodel-crds.tar"
+	HELLOWORLD_URL             = "https://storage.googleapis.com/nexus-template-downloads/%s/helloworld-example.tar"
+	DATAMODEL_TEMPLATE_URL     = "https://storage.googleapis.com/nexus-template-downloads/%s/datamodel-templatedir.tar"
+	NEXUS_TEMPLATE_URL         = "https://storage.googleapis.com/nexus-template-downloads/%s/nexus-template.tar"
+	RUNTIME_MANIFESTS_URL      = "https://storage.googleapis.com/nexus-template-downloads/%s/runtime-manifests.tar"
+	VALIDATION_MANIFESTS_URL   = "https://storage.googleapis.com/nexus-template-downloads/%s/validation-manifests.tar"
+	API_GATEWAY_MANIFESTS_URL  = "https://storage.googleapis.com/nexus-template-downloads/%s/api-gw-manifests.tar"
+	API_OPERATOR_MANIFESTS_URL = "https://storage.googleapis.com/nexus-template-downloads/%s/api-operator-manifests.tar"
+	API_DATAMODEL_CRD_URL      = "https://storage.googleapis.com/nexus-template-downloads/%s/api-datamodel-crds.tar"
 )
 
 const TEMPLATE_URL = "https://storage.googleapis.com/nexus-template-downloads/%s/app-template.tar"
@@ -59,12 +60,17 @@ var TemplateFs embed.FS
 
 var WaitTimeout = 2 * time.Minute
 
-var PodLabels [5]string = [5]string{
+var RuntimePodLabels [6]string = [6]string{
 	"-lapp=nexus-etcd",
 	"-lapp=nexus-kube-apiserver",
 	"-lname=nexus-kube-controllermanager",
 	"-lcontrol-plane=api-gw",
 	"-lapp=nexus-validation",
+	"-lapp.kubernetes.io/component=controller,app.kubernetes.io/name=ingress-nginx",
+}
+
+var OperatorPodLabels []string = []string{
+	"-lcontrol-plane=nexus-api-operator",
 }
 
 func GetEnvList() []string {
@@ -78,10 +84,12 @@ func getGoPrivate() string {
 }
 
 type ImageTemplate struct {
-	Image             string
-	Tag               string
-	IsImagePullSecret bool
-	ImagePullSecret   string
+	Image                string
+	Tag                  string
+	IsImagePullSecret    bool
+	ImagePullSecret      string
+	Namespace            string
+	NetworkingAPIVersion string
 }
 
 type Manifest struct {
@@ -99,11 +107,11 @@ var RuntimeManifests = map[string]Manifest{
 	"runtime": {
 		URL:            RUNTIME_MANIFESTS_URL,
 		Directory:      "nexus-manifests-runtime",
-		VersionEnv:     "NEXUS_RUNTIME_TEMPLATE_VERSION",
-		VersionStrName: "NexusDatamodelTemplates",
+		VersionEnv:     "NEXUS_RUNTIME_MANIFESTS_VERSION",
+		VersionStrName: "NexusRuntime",
 		FileName:       "runtime-manifests.tar",
-		Templatized:    false,
-		Image:          ImageTemplate{},
+		Templatized:    true,
+		ImageName:      "",
 	},
 	"validation": {
 		URL:            VALIDATION_MANIFESTS_URL,
@@ -121,6 +129,15 @@ var RuntimeManifests = map[string]Manifest{
 		VersionStrName: "NexusApiGatewayTemplates",
 		FileName:       "api-gw-manifests.tar",
 		ImageName:      "api-gateway",
+		Templatized:    true,
+	},
+	"api-operator": {
+		URL:            API_OPERATOR_MANIFESTS_URL,
+		Directory:      "nexus-manifests-api-operator",
+		VersionEnv:     "NEXUS_API_OPERATOR_TEMPLATE_VERSION",
+		VersionStrName: "NexusApiOperatorTemplates",
+		FileName:       "api-operator-manifests.tar",
+		ImageName:      "api-operator",
 		Templatized:    true,
 	},
 }

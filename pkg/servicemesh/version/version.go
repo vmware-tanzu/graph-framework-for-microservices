@@ -12,13 +12,15 @@ import (
 )
 
 type NexusValues struct {
-	NexusCli                 versionFields `yaml:"nexusCli"`
-	NexusCompiler            versionFields `yaml:"nexusCompiler"`
-	NexusAppTemplates        versionFields `yaml:"nexusAppTemplates"`
-	NexusDatamodelTemplates  versionFields `yaml:"nexusDatamodelTemplates"`
-	NexusValidationTemplates versionFields `yaml:"nexusValidation"`
-	NexusApiGatewayTemplates versionFields `yaml:"nexusApiGateway"`
-	NexusApiDatamodelCrds    versionFields `yaml:"nexusApiDatamodelCrds"`
+	NexusCli                  versionFields `yaml:"nexusCli"`
+	NexusCompiler             versionFields `yaml:"nexusCompiler"`
+	NexusAppTemplates         versionFields `yaml:"nexusAppTemplates"`
+	NexusDatamodelTemplates   versionFields `yaml:"nexusDatamodelTemplates"`
+	NexusValidationTemplates  versionFields `yaml:"nexusValidation"`
+	NexusApiGatewayTemplates  versionFields `yaml:"nexusApiGateway"`
+	NexusApiOperatorTemplates versionFields `yaml:"nexusApiOperator"`
+	NexusApiDatamodelCrds     versionFields `yaml:"nexusApiDatamodelCrds"`
+	NexusRuntime              versionFields `yaml:"nexusRuntime"`
 }
 
 type versionFields struct {
@@ -39,7 +41,10 @@ func Version(cmd *cobra.Command, args []string) error {
 	fmt.Printf("NexusValidationTemplates: %s\n", values.NexusValidationTemplates.Version)
 	fmt.Printf("NexusApiGatewayTemplates: %s\n", values.NexusApiGatewayTemplates.Version)
 	fmt.Printf("NexusApiDmCrds: %s\n", values.NexusApiDatamodelCrds.Version)
+	fmt.Printf("NexusApiOperatorTemplate: %s\n", values.NexusApiOperatorTemplates.Version)
+	fmt.Printf("NexusRuntimeManifets: %s\n", values.NexusRuntime.Version)
 	return nil
+
 }
 
 func GetNexusValues(values *NexusValues) error {

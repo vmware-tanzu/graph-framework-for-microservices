@@ -2,8 +2,9 @@ package runtime
 
 import (
 	"fmt"
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/servicemesh/version"
 	"os"
+
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/servicemesh/version"
 
 	"github.com/spf13/cobra"
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/common"
@@ -13,6 +14,18 @@ import (
 )
 
 func Uninstall(cmd *cobra.Command, args []string) error {
+	for index, manifest := range common.RuntimeManifests {
+		if manifest.Templatized {
+			manifest.Image = common.ImageTemplate{
+				Image:                fmt.Sprintf("%s/%s", Registry, manifest.ImageName),
+				IsImagePullSecret:    false,
+				ImagePullSecret:      ImagePullSecret,
+				Namespace:            Namespace,
+				NetworkingAPIVersion: NetworkingAPIVersion,
+			}
+		}
+		common.RuntimeManifests[index] = manifest
+	}
 	var versions version.NexusValues
 	if err := version.GetNexusValues(&versions); err != nil {
 		return utils.GetCustomError(utils.RUNTIME_INSTALL_FAILED,
@@ -49,7 +62,15 @@ var UninstallCmd = &cobra.Command{
 	Short: "Uninstalls the Nexus runtime from the specified namespace",
 	//Args:  cobra.ExactArgs(1),
 	PreRunE: func(cmd *cobra.Command, args []string) (err error) {
-		return prereq.PreReqVerifyOnDemand(prerequisites)
+		err = prereq.PreReqVerifyOnDemand(prerequisites)
+		if err != nil {
+			return err
+		}
+		NetworkingAPIVersion, err = utils.GetNetworkingIngressVersion()
+		if err != nil {
+			return err
+		}
+		return nil
 	},
 	RunE: Uninstall,
 }
