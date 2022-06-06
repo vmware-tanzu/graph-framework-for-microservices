@@ -4,16 +4,8 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
-	"github.com/spf13/cobra"
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/common"
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/servicemesh/prereq"
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/servicemesh/version"
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/utils"
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus/golang/pkg/logging"
 	"io"
 	"io/ioutil"
-	v1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/util/rand"
 	"os"
 	"os/exec"
 	"os/signal"
@@ -22,11 +14,21 @@ import (
 	"strings"
 	"syscall"
 	"time"
+
+	"github.com/spf13/cobra"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/common"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/servicemesh/prereq"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/servicemesh/version"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/utils"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus/golang/pkg/logging"
+	v1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/util/rand"
 )
 
 var Namespace string
 var Registry string
 var ImagePullSecret string
+var NetworkingAPIVersion string
 var IsNexusAdmin bool
 
 var prerequisites = []prereq.Prerequiste{
@@ -46,7 +48,15 @@ var InstallCmd = &cobra.Command{
 		if utils.SkipPrereqCheck(cmd) {
 			return nil
 		}
-		return prereq.PreReqVerifyOnDemand(prerequisites)
+
+		if err := prereq.PreReqVerifyOnDemand(prerequisites); err != nil {
+			return err
+		}
+		NetworkingAPIVersion, err = utils.GetNetworkingIngressVersion()
+		if err != nil {
+			return err
+		}
+		return nil
 	},
 	RunE: Install,
 }
@@ -153,6 +163,7 @@ func GetFiles(Files []string, directory string) ([]string, error) {
 }
 
 func Install(cmd *cobra.Command, args []string) error {
+
 	var IsImagePullSecret bool
 	if Registry == "" {
 		Registry = common.HarborRepo
@@ -170,9 +181,11 @@ func Install(cmd *cobra.Command, args []string) error {
 	for index, manifest := range common.RuntimeManifests {
 		if manifest.Templatized {
 			manifest.Image = common.ImageTemplate{
-				Image:             fmt.Sprintf("%s/%s", Registry, manifest.ImageName),
-				IsImagePullSecret: IsImagePullSecret,
-				ImagePullSecret:   ImagePullSecret,
+				Image:                fmt.Sprintf("%s/%s", Registry, manifest.ImageName),
+				IsImagePullSecret:    IsImagePullSecret,
+				ImagePullSecret:      ImagePullSecret,
+				Namespace:            Namespace,
+				NetworkingAPIVersion: NetworkingAPIVersion,
 			}
 		}
 		common.RuntimeManifests[index] = manifest
@@ -225,7 +238,7 @@ func Install(cmd *cobra.Command, args []string) error {
 		}
 	}
 	fmt.Println("Waiting for the Nexus runtime to come up...")
-	for _, label := range common.PodLabels {
+	for _, label := range common.RuntimePodLabels {
 		utils.CheckPodRunning(cmd, utils.RUNTIME_INSTALL_FAILED, label, Namespace)
 	}
 	for _, manifest := range common.RuntimeManifests {
@@ -239,6 +252,10 @@ func Install(cmd *cobra.Command, args []string) error {
 		utils.GetCustomError(utils.RUNTIME_INSTALL_API_DATAMODEL_INSTALL_FAILED,
 			fmt.Errorf("installing API datamodel on nexus-apiserver failed: %s", err)).Print().ExitIfFatalOrReturn()
 	}
+	for _, label := range common.OperatorPodLabels {
+		utils.CheckPodRunning(cmd, utils.RUNTIME_INSTALL_FAILED, label, Namespace)
+	}
+
 	fmt.Printf("\u2713 Runtime installation successful on namespace %s\n", Namespace)
 	return nil
 }
@@ -288,7 +305,10 @@ func installApiDatamodel(cmd *cobra.Command, values version.NexusValues) error {
 	fmt.Printf("Started port-forward to pod %s on port %d\n", nexusProxyContainerPod.Name, localPort)
 
 	// give the port-forward a few secs
-	time.Sleep(5 * time.Second)
+	err = utils.CheckLocalAPIServer(fmt.Sprintf("%s:%d", "localhost", localPort), 30, 2*time.Second)
+	if err != nil {
+		return fmt.Errorf("checking local apiserver started failed ")
+	}
 
 	// apply CRDs
 	err = utils.SystemCommand(cmd, utils.RUNTIME_INSTALL_FAILED, []string{}, "kubectl", "apply", "-f", dir, "--recursive", "-s", fmt.Sprintf("%s:%d", "localhost", localPort))

@@ -23,7 +23,7 @@ import (
 const goMinVersion = "1.17"
 
 const (
-	k8sMinVersion = "1.16"
+	k8sMinVersion = "1.19"
 )
 
 var All bool
@@ -229,30 +229,32 @@ func PreReqImages(cmd *cobra.Command, args []string) error {
 	}
 	for _, manifest := range nexusCommon.RuntimeManifests {
 		if manifest.Templatized {
-			Image := fmt.Sprintf("%s/%s", common.HarborRepo, manifest.ImageName)
-			versionTo := reflect.ValueOf(values).FieldByName(manifest.VersionStrName).Field(0).String()
-			Image = fmt.Sprintf("%s:%s", Image, versionTo)
-			fmt.Printf("Pulling image: %s\n", Image)
-			err := utils.SystemCommand(cmd, utils.RUNTIME_PREREQUISITE_IMAGE_PREP_FAILED, []string{}, "docker", "pull", Image)
-			if err != nil {
-				fmt.Printf("could not pull image: %s\n", Image)
-				return err
-			}
-			if cmd.Flags().Lookup("push").Changed {
-				if registry == "" {
-					fmt.Println("provide registry with --registry/-r to push the images to.")
-				} else {
-					newImage := fmt.Sprintf("%s/%s:%s", registry, manifest.ImageName, versionTo)
-					fmt.Printf("Pushing Image: %s\n", newImage)
-					err := utils.SystemCommand(cmd, utils.RUNTIME_PREREQUISITE_IMAGE_PREP_FAILED, []string{}, "docker", "tag", Image, newImage)
-					if err != nil {
-						fmt.Printf("could not tag image: %s\n", newImage)
-						return err
-					}
-					err = utils.SystemCommand(cmd, utils.RUNTIME_PREREQUISITE_IMAGE_PREP_FAILED, []string{}, "docker", "push", newImage)
-					if err != nil {
-						fmt.Printf("could not push image: %s\n", newImage)
-						return err
+			if manifest.ImageName != "" {
+				Image := fmt.Sprintf("%s/%s", common.HarborRepo, manifest.ImageName)
+				versionTo := reflect.ValueOf(values).FieldByName(manifest.VersionStrName).Field(0).String()
+				Image = fmt.Sprintf("%s:%s", Image, versionTo)
+				fmt.Printf("Pulling image: %s\n", Image)
+				err := utils.SystemCommand(cmd, utils.RUNTIME_PREREQUISITE_IMAGE_PREP_FAILED, []string{}, "docker", "pull", Image)
+				if err != nil {
+					fmt.Printf("could not pull image: %s\n", Image)
+					return err
+				}
+				if cmd.Flags().Lookup("push").Changed {
+					if registry == "" {
+						fmt.Println("provide registry with --registry/-r to push the images to.")
+					} else {
+						newImage := fmt.Sprintf("%s/%s:%s", registry, manifest.ImageName, versionTo)
+						fmt.Printf("Pushing Image: %s\n", newImage)
+						err := utils.SystemCommand(cmd, utils.RUNTIME_PREREQUISITE_IMAGE_PREP_FAILED, []string{}, "docker", "tag", Image, newImage)
+						if err != nil {
+							fmt.Printf("could not tag image: %s\n", newImage)
+							return err
+						}
+						err = utils.SystemCommand(cmd, utils.RUNTIME_PREREQUISITE_IMAGE_PREP_FAILED, []string{}, "docker", "push", newImage)
+						if err != nil {
+							fmt.Printf("could not push image: %s\n", newImage)
+							return err
+						}
 					}
 				}
 			}

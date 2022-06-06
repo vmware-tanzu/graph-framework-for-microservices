@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
-	v1 "k8s.io/api/core/v1"
 	"net/http"
 	"net/url"
 	"os"
@@ -15,6 +14,8 @@ import (
 	"path/filepath"
 	"strings"
 	"time"
+
+	v1 "k8s.io/api/core/v1"
 
 	"github.com/aunum/log"
 	"github.com/spf13/cobra"
@@ -429,4 +430,28 @@ func GetK8sConfig() *rest.Config {
 		os.Exit(1)
 	}
 	return cfg
+}
+
+func CheckLocalAPIServer(url string, totalRetries int, waitPeriod time.Duration) error {
+	var currentRetries = 0
+	var times int = 0
+	endpoint := "/api/v1/namespaces/"
+	for currentRetries < totalRetries {
+		resp, err := http.Get(fmt.Sprintf("http://%s/%s", url, endpoint))
+		if err != nil {
+			time.Sleep(waitPeriod)
+			continue
+		}
+		if resp.StatusCode == 200 {
+			times++
+		}
+		if times == 3 {
+			break
+		}
+		currentRetries++
+		if currentRetries == totalRetries {
+			return errors.New("LocalAPIServer not running...")
+		}
+	}
+	return nil
 }

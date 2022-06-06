@@ -2,13 +2,57 @@ package utils
 
 import (
 	"bufio"
+	"bytes"
+	"encoding/json"
 	"fmt"
 	"os"
 	"os/exec"
+	"strings"
 
+	"github.com/hashicorp/go-version"
 	"github.com/spf13/cobra"
 )
 
+type K8sVersionObject struct {
+	Version string `json:"gitVersion"`
+}
+
+type K8sVersionMap struct {
+	ClientVersion K8sVersionObject
+	ServerVersion K8sVersionObject
+}
+
+func GetNetworkingIngressVersion() (string, error) {
+	versionStringBytes := exec.Command("kubectl", "version", "-o", "json")
+	var out bytes.Buffer
+	versionStringBytes.Stdout = &out
+	err := versionStringBytes.Run()
+	if err != nil {
+		return "", fmt.Errorf("could not get version string")
+	}
+	versionObj := &K8sVersionMap{}
+	err = json.Unmarshal(out.Bytes(), versionObj)
+	if err != nil {
+		return "", fmt.Errorf("Json unmarshal error in get version due to %s", err)
+	}
+	serverVersion := versionObj.ServerVersion.Version
+
+	if len(serverVersion) == 0 {
+		return "", fmt.Errorf("unable to get k8s version from output: %v", out.String())
+	}
+
+	v1min, _ := version.NewVersion("1.22.0")
+	v1, errVersion := version.NewVersion(strings.TrimPrefix(serverVersion, "v"))
+	if errVersion != nil {
+		return "", fmt.Errorf("could not get network ingress version %s", errVersion)
+	}
+	if v1.LessThan(v1min) {
+		return "v1beta1", nil
+	} else {
+		return "v1", nil
+	}
+
+}
 func SystemCommand(cmd *cobra.Command, customErr ClientErrorCode, envList []string, name string, args ...string) error {
 	// Get silent flag status.
 	debugEnabled := IsDebug(cmd)
