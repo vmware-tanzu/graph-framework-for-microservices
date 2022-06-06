@@ -144,6 +144,7 @@ spec:
                   apiVersion: v1
                   fieldPath: metadata.namespace
           image: "gcr.io/nsx-sm/bitnami/kubectl:1.16"
+          imagePullPolicy: IfNotPresent
           name: nexus-create-signed-cert-validation-webhook
           volumeMounts:
             - mountPath: /opt/create_webhook_signed_cert/
@@ -208,7 +209,8 @@ spec:
     spec:
       initContainers:
         - name: check-nexus-proxy-container
-          image: "gcr.io/mesh7-public-images/tools:latest"
+          image: "gcr.io/nsx-sm/tools:latest"
+          imagePullPolicy: IfNotPresent
           command:
             - /bin/bash
             - -c
@@ -226,6 +228,9 @@ spec:
                     else
                         counter=$((counter +1))
                         sleep 5
+                        if [[ $counter -eq $max_retries ]]; then
+                            exit 1
+                        fi
                     fi
               done
       containers:
@@ -234,6 +239,7 @@ spec:
             - --server
             - nexus-proxy-container
           image: "gcr.io/nsx-sm/bitnami/kubectl:1.16"
+          imagePullPolicy: IfNotPresent
           name: nexus-create-signed-cert-validation-webhook
           volumeMounts:
             - mountPath: /opt/create_webhook_signed_cert/
