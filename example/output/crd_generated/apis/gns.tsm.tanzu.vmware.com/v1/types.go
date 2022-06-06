@@ -50,6 +50,8 @@ func (c *Gns) DisplayName() string {
 
 // +k8s:openapi-gen=true
 type GnsSpec struct {
+	//nexus-validation: MaxLength=8, MinLength=2
+	//nexus-validation: Pattern=abc
 	Domain                    string              `json:"domain" yaml:"domain"`
 	UseSharedGateway          bool                `json:"useSharedGateway" yaml:"useSharedGateway"`
 	Description               Description         `json:"description" yaml:"description"`

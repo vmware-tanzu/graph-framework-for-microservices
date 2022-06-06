@@ -52,6 +52,7 @@ type ConfigSpec struct {
 	MyStr          *gnstsmtanzuvmwarecomv1.MyStr           `json:"myStr" yaml:"myStr"`
 	MyStr1         []gnstsmtanzuvmwarecomv1.MyStr          `json:"myStr1" yaml:"myStr1"`
 	MyStr2         map[string]gnstsmtanzuvmwarecomv1.MyStr `json:"myStr2" yaml:"myStr2"`
+	TestValMarkers TestValMarkers                          `json:"testValMarkers" yaml:"testValMarkers"`
 	GNSGvk         *Child                                  `json:"gNSGvk,omitempty" yaml:"gNSGvk,omitempty" nexus:"child"`
 	DNSGvk         *Child                                  `json:"dNSGvk,omitempty" yaml:"dNSGvk,omitempty" nexus:"child"`
 	VMPPoliciesGvk *Child                                  `json:"vMPPoliciesGvk,omitempty" yaml:"vMPPoliciesGvk,omitempty" nexus:"child"`
@@ -72,4 +73,16 @@ type CrossPackageTester struct {
 
 // +k8s:openapi-gen=true
 type EmptyStructTest struct {
+}
+
+// +k8s:openapi-gen=true
+type TestValMarkers struct {
+	//nexus-validation: MaxLength=8, MinLength=2, Pattern=ab
+	MyStr string `json:"myStr" yaml:"myStr"`
+	//nexus-validation: Maximum=8, Minimum=2
+	//nexus-validation: ExclusiveMaximum=true
+	MyInt int `json:"myInt" yaml:"myInt"`
+	//nexus-validation: MaxItems=3, MinItems=2
+	//nexus-validation: UniqueItems=true
+	MySlice []string `json:"mySlice" yaml:"mySlice"`
 }

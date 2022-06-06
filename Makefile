@@ -68,7 +68,7 @@ tools:
 	go install github.com/onsi/gomega/...@v1.17.0
 	go install golang.org/x/tools/cmd/goimports@latest
 	go install github.com/mikefarah/yq/v4@latest
-	go install k8s.io/kube-openapi/cmd/openapi-gen@1a6458611d189dc17e98a0824dc92536365efedf
+	go install gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git/cmd/nexus-openapi-gen@latest
 
 .PHONY: unit-test
 unit-test:
@@ -111,6 +111,7 @@ generate_code:
 		openapi-generator/openapi_generator/test_data/test.it/v1/wrapper.go \
         openapi-generator/cmd/generate-openapischema/generate-openapischema.go
 	cd _generated && go mod tidy -e && ./scripts/generate_k8s_api.sh
+	GOPRIVATE="gitlab.eng.vmware.com" go install gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git/cmd/nexus-openapi-gen@latest
 	cd _generated/ && go mod tidy -e && ./scripts/generate_openapi_schema.sh
 	cd _generated/ && ./scripts/replace_mod_path.sh
 	cp -r _generated/{client,apis,crds,common,nexus-client,helper} ${GENERATED_OUTPUT_DIRECTORY}

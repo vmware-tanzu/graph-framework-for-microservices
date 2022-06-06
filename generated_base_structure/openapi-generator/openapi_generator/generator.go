@@ -9,8 +9,8 @@ import (
 	"strings"
 
 	"github.com/ghodss/yaml"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git/pkg/common"
 	extensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
-	"k8s.io/kube-openapi/pkg/common"
 )
 
 const defaultNamePrefix = "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/_generated/apis"

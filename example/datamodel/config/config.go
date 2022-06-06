@@ -1,8 +1,9 @@
 package config
 
 import (
-	py "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/datamodel/config/policy"
 	"net/http"
+
+	py "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/datamodel/config/policy"
 
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/datamodel/config/gns"
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/datamodel/nexus"
@@ -30,6 +31,8 @@ type Config struct {
 	MyStr  *gns.MyStr
 	MyStr1 []gns.MyStr
 	MyStr2 map[string]gns.MyStr
+
+	TestValMarkers TestValMarkers `json:"testValMarkers" yaml:"testValMarkers"`
 }
 
 type CrossPackageTester struct {
@@ -37,3 +40,16 @@ type CrossPackageTester struct {
 }
 
 type EmptyStructTest struct{}
+
+type TestValMarkers struct {
+	//nexus-validation: MaxLength=8, MinLength=2, Pattern=ab
+	MyStr string `json:"myStr" yaml:"myStr"`
+
+	//nexus-validation: Maximum=8, Minimum=2
+	//nexus-validation: ExclusiveMaximum=true
+	MyInt int `json:"myInt" yaml:"myInt"`
+
+	//nexus-validation: MaxItems=3, MinItems=2
+	//nexus-validation: UniqueItems=true
+	MySlice []string `json:"mySlice" yaml:"mySlice"`
+}

@@ -42,13 +42,10 @@ spec:
                 additionalProperties:
                   properties:
                     group:
-                      default: ""
                       type: string
                     kind:
-                      default: ""
                       type: string
                     name:
-                      default: ""
                       type: string
                   required:
                   - group
@@ -59,13 +56,10 @@ spec:
               dNSGvk:
                 properties:
                   group:
-                    default: ""
                     type: string
                   kind:
-                    default: ""
                     type: string
                   name:
-                    default: ""
                     type: string
                 required:
                 - group
@@ -75,13 +69,10 @@ spec:
               gNSGvk:
                 properties:
                   group:
-                    default: ""
                     type: string
                   kind:
-                    default: ""
                     type: string
                   name:
-                    default: ""
                     type: string
                 required:
                 - group
@@ -92,24 +83,44 @@ spec:
                 type: string
               myStr1:
                 items:
-                  default: ""
                   type: string
                 type: array
               myStr2:
                 additionalProperties:
-                  default: ""
                   type: string
+                type: object
+              testValMarkers:
+                properties:
+                  myInt:
+                    exclusiveMaximum: true
+                    format: int32
+                    maximum: 8
+                    minimum: 2
+                    type: integer
+                  mySlice:
+                    items:
+                      type: string
+                    maxItems: 3
+                    minItems: 2
+                    type: array
+                    uniqueItems: true
+                  myStr:
+                    maxLength: 8
+                    minLength: 2
+                    pattern: ab
+                    type: string
+                required:
+                - myStr
+                - myInt
+                - mySlice
                 type: object
               vMPPoliciesGvk:
                 properties:
                   group:
-                    default: ""
                     type: string
                   kind:
-                    default: ""
                     type: string
                   name:
-                    default: ""
                     type: string
                 required:
                 - group
@@ -120,6 +131,7 @@ spec:
             - myStr
             - myStr1
             - myStr2
+            - testValMarkers
             type: object
         type: object
     served: true

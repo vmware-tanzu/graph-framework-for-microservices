@@ -10,8 +10,8 @@
 package openapi
 
 import (
-	spec "k8s.io/kube-openapi/pkg/validation/spec"
-	common "k8s.io/kube-openapi/pkg/common"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git/pkg/common"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git/pkg/validation/spec"
 )
 
 func GetOpenAPIDefinitions(ref common.ReferenceCallback) map[string]common.OpenAPIDefinition {

@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"strings"
 
-	"k8s.io/kube-openapi/pkg/validation/spec"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git/pkg/validation/spec"
 
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/generated_base_structure/openapi-generator/openapi"
 	generator "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/generated_base_structure/openapi-generator/openapi_generator"
