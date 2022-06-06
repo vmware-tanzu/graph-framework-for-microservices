@@ -55,14 +55,13 @@ spec:
             successThreshold: 1
             timeoutSeconds: 15
           readinessProbe:
-            failureThreshold: 2
             httpGet:
               path: /healthz
               port: 443
               scheme: HTTPS
-            periodSeconds: 5
-            successThreshold: 1
-            timeoutSeconds: 5
+            periodSeconds: 10
+            successThreshold: 3
+            timeoutSeconds: 10
           volumeMounts:
             - name: tls
               mountPath: "/etc/nexus-validation/tls"
