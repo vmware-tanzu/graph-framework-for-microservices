@@ -5,9 +5,9 @@ import (
 )
 
 type Service struct {
-	Name string
-	Port int32  `yaml:"omitempty"`
-	Type string `yaml:"omitempty"`
+	Name   string
+	Port   int32 `yaml:"omitempty"`
+	Scheme string
 }
 
 type ResourceConfig struct {

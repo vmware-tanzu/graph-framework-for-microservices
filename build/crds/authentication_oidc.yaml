@@ -41,20 +41,15 @@ spec:
               config:
                 properties:
                   clientId:
-                    default: ""
                     type: string
                   clientSecret:
-                    default: ""
                     type: string
                   oAuthIssuerUrl:
-                    default: ""
                     type: string
                   oAuthRedirectUrl:
-                    default: ""
                     type: string
                   scopes:
                     items:
-                      default: ""
                       type: string
                     type: array
                 required:
@@ -67,16 +62,12 @@ spec:
               validationProps:
                 properties:
                   insecureIssuerURLContext:
-                    default: false
                     type: boolean
                   skipClientAudValidation:
-                    default: false
                     type: boolean
                   skipClientIdValidation:
-                    default: false
                     type: boolean
                   skipIssuerValidation:
-                    default: false
                     type: boolean
                 required:
                 - insecureIssuerURLContext

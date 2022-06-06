@@ -41,13 +41,10 @@ spec:
               authnGvk:
                 properties:
                   group:
-                    default: ""
                     type: string
                   kind:
-                    default: ""
                     type: string
                   name:
-                    default: ""
                     type: string
                 required:
                 - group
