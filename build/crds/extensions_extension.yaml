@@ -48,15 +48,20 @@ spec:
                 type: object
               service:
                 properties:
-                  Fqdn:
+                  Name:
                     default: ""
                     type: string
                   Port:
+                    default: 0
+                    format: int32
+                    type: integer
+                  Type:
                     default: ""
                     type: string
                 required:
-                - Fqdn
+                - Name
                 - Port
+                - Type
                 type: object
               uri:
                 default: ""
