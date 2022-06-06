@@ -213,5 +213,9 @@ spec:
     name: http
     port: 80
     targetPort: 80
+  - protocol: TCP
+    name: https
+    port: 443
+    targetPort: 443
   selector:
     control-plane: api-gw
