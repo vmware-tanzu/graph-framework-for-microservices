@@ -51,6 +51,7 @@ func main() {
 
 	http.HandleFunc("/validate", ValidateHandler)
 	http.HandleFunc("/validate-crd-type", ValidateCrdTypeHandler)
+	http.HandleFunc("/healthz", healthz)
 
 	cert := "/etc/nexus-validation/tls/tls.crt"
 	key := "/etc/nexus-validation/tls/tls.key"
@@ -58,6 +59,14 @@ func main() {
 	log.Fatal(http.ListenAndServeTLS(":443", cert, key, nil))
 }
 
+func healthz(w http.ResponseWriter, r *http.Request) {
+
+	_, err := w.Write([]byte("ok"))
+	if err != nil {
+		return
+	}
+
+}
 func ValidateHandler(w http.ResponseWriter, r *http.Request) {
 	var body []byte
 	if r.Body != nil {
