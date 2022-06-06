@@ -105,10 +105,10 @@ data:
 
         openssl genrsa -out ${tmpdir}/server-key.pem 2048
         openssl req -new -x509 -nodes -days 365000 -key  ${tmpdir}/server-key.pem -out ${tmpdir}/ca-cert.pem -subj "/C=US/ST=Denial/L=PaloAlto/O=Dis/CN=nexus"
-        openssl req -new -key ${tmpdir}/server-key.pem -subj "/CN=${service}" -out ${tmpdir}/server.csr -config ${tmpdir}/csr.conf 
+        openssl req -new -key ${tmpdir}/server-key.pem -subj "/CN=${service}" -out ${tmpdir}/server.csr -config ${tmpdir}/csr.conf
         openssl x509 -req -days 365 -in ${tmpdir}/server.csr -CAcreateserial -signkey ${tmpdir}/server-key.pem -sha256 -out ${tmpdir}/server.crt -CA ${tmpdir}/ca-cert.pem -CAkey ${tmpdir}/server-key.pem
         openssl x509 -in ${tmpdir}/server.crt -out ${tmpdir}/server-cert.pem -outform PEM
-        
+
         # create the secret with CA cert and server cert/key
         kubectl create secret generic ${secret} \
                 --from-file=tls.key=${tmpdir}/server-key.pem \
@@ -170,6 +170,7 @@ data:
         name: "nexus-validation.webhook.svc"
       webhooks:
         - name: "nexus-validation-crd.webhook.svc"
+          failurePolicy: Ignore
           rules:
             - apiGroups: [ "" ]
               apiVersions: [ "v1" ]
@@ -182,6 +183,7 @@ data:
           admissionReviewVersions: [ "v1", "v1beta1" ]
           sideEffects: None
         - name: "nexus-validation-crd-type.webhook.svc"
+          failurePolicy: Ignore
           rules:
             - apiGroups: [ "apiextensions.k8s.io" ]
               apiVersions: [ "v1" ]

@@ -16,6 +16,7 @@ type NexusAnnotation struct {
 }
 
 func UpdateValidationWebhook(client *kubernetes.Clientset) {
+
 	webhookConf, err := client.AdmissionregistrationV1().ValidatingWebhookConfigurations().Get(context.TODO(), "nexus-validation.webhook.svc", metav1.GetOptions{})
 	if err != nil {
 		panic(err)
