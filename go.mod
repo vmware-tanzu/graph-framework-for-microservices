@@ -1,3 +1,3 @@
-module gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/nexus.git
+module golang-appnet.eng.vmware.com/nexus-sdk/nexus/nexus
 
 go 1.17
