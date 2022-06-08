@@ -460,8 +460,8 @@ github.com/yuin/goldmark v1.3.5/go.mod h1:mwnBkeHKe2W/ZEtQ+71ViKU8L12m81fl3OWwC1
 github.com/yuin/goldmark v1.4.1/go.mod h1:mwnBkeHKe2W/ZEtQ+71ViKU8L12m81fl3OWwC1Zlc8k=
 gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/common-library.git v0.0.0-20220425104724-aada688df39f h1:+iWPOhj9Cqsp4S0o+/gZH0KztJZxY6IDzm4+Msul6kE=
 gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/common-library.git v0.0.0-20220425104724-aada688df39f/go.mod h1:8u5OYwe1x3d4MrykRdsvBMAA4kuKlgSFFDdgG1DXrWE=
-gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git v0.0.0-20220531135607-7b1a4b2dbd7f h1:UxB6B2NOFrwY7viFoFA+LwXlauvowEsjWBOHo0DlF/Y=
-gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git v0.0.0-20220531135607-7b1a4b2dbd7f/go.mod h1:FxYhrhp9MC4OY49R6Y9jEWE1pDbBMAb4n8b49O/TU/Q=
+gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git v0.0.0-20220603123335-7416bd4754d3 h1:CXbFpOvn19PBOnM0Qacpj2VJEDZoWHNYzKD3mu3QQOw=
+gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git v0.0.0-20220603123335-7416bd4754d3/go.mod h1:FxYhrhp9MC4OY49R6Y9jEWE1pDbBMAb4n8b49O/TU/Q=
 go.etcd.io/bbolt v1.3.2/go.mod h1:IbVyRI1SCnLcuJnV2u8VeU0CEYM7e686BmAb1XKL+uU=
 go.etcd.io/bbolt v1.3.6/go.mod h1:qXsaaIqmgQH0T+OPdb99Bf+PKfBBQVAdyD6TY9G8XM4=
 go.etcd.io/etcd/api/v3 v3.5.0/go.mod h1:cbVKeC6lCfl7j/8jBhAK6aIYO9XOjdptoxU/nLQcPvs=

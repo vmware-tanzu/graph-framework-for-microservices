@@ -93,13 +93,41 @@ func ParseDSLNodes(startPath string, baseGroupName string) map[string]Node {
 		log.Fatalf("Failed to ParseDSLNodes %v", err)
 	}
 
+	// TEMP FIX: Make more optimal way to auto discover root nodes.
+	// https://jira.eng.vmware.com/browse/NPT-340
+	graph := buildGraph(nodes, rootNodes, baseGroupName)
+	// Find if any node have root node set as child - if yes remove it from rootNodes
+	for _, v := range graph {
+		v.Walk(func(node *Node) {
+			// iterate from the end because length of the slice may change
+			for i := len(rootNodes) - 1; i >= 0; i-- {
+				rootNode := rootNodes[i]
+				for _, child := range node.SingleChildren {
+					// if rootNode is a child then remove it from the slice
+					if child.CrdName == rootNode {
+						rootNodes = append(rootNodes[:i], rootNodes[i+1:]...)
+					}
+				}
+				for _, child := range node.MultipleChildren {
+					// if rootNode is a named child then remove it from the slice
+					if child.CrdName == rootNode {
+						rootNodes = append(rootNodes[:i], rootNodes[i+1:]...)
+					}
+				}
+			}
+		})
+	}
+
+	return buildGraph(nodes, rootNodes, baseGroupName)
+}
+
+func buildGraph(nodes map[string]Node, rootNodes []string, baseGroupName string) map[string]Node {
 	graph := make(map[string]Node)
 	for _, root := range rootNodes {
 		r := nodes[root]
 		processNode(&r, nodes, baseGroupName)
 		graph[root] = r
 	}
-
 	return graph
 }
 
