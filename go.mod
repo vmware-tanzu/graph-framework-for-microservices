@@ -10,7 +10,7 @@ require (
 	github.com/onsi/gomega v1.19.0
 	github.com/sirupsen/logrus v1.8.1
 	gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/common-library.git v0.0.0-20220425104724-aada688df39f
-	gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git v0.0.0-20220531135607-7b1a4b2dbd7f
+	gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git v0.0.0-20220603123335-7416bd4754d3
 	golang.org/x/mod v0.6.0-dev.0.20220106191415-9b9b3d81d5e3
 	golang.org/x/tools v0.1.10-0.20220218145154-897bd77cd717
 	k8s.io/apiextensions-apiserver v0.24.0
