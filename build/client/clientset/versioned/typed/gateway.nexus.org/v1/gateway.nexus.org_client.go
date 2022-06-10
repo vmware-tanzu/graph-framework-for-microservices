@@ -19,8 +19,8 @@ limitations under the License.
 package v1
 
 import (
-	v1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/api.git/build/apis/gateway.nexus.org/v1"
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/api.git/build/client/clientset/versioned/scheme"
+	v1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/gateway.nexus.org/v1"
+	"golang-appnet.eng.vmware.com/nexus-sdk/api/build/client/clientset/versioned/scheme"
 	rest "k8s.io/client-go/rest"
 )
 

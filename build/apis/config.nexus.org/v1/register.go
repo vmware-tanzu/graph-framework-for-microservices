@@ -3,7 +3,7 @@
 package v1
 
 import (
-	config_nexus_org "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/api.git/build/apis/config.nexus.org"
+	config_nexus_org "golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/config.nexus.org"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"

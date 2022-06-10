@@ -19,8 +19,8 @@ limitations under the License.
 package config
 
 import (
-	v1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/api.git/build/client/informers/externalversions/config.nexus.org/v1"
-	internalinterfaces "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/api.git/build/client/informers/externalversions/internalinterfaces"
+	v1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/client/informers/externalversions/config.nexus.org/v1"
+	internalinterfaces "golang-appnet.eng.vmware.com/nexus-sdk/api/build/client/informers/externalversions/internalinterfaces"
 )
 
 // Interface provides access to each of this group's versions.

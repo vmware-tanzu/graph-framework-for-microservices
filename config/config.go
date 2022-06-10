@@ -1,10 +1,10 @@
 package config
 
 import (
-	extensions "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/api.git/api-extensions"
-	authentication "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/api.git/authn"
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/api.git/gateway"
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/nexus.git/nexus"
+	extensions "golang-appnet.eng.vmware.com/nexus-sdk/api/api-extensions"
+	authentication "golang-appnet.eng.vmware.com/nexus-sdk/api/authn"
+	"golang-appnet.eng.vmware.com/nexus-sdk/api/gateway"
+	"golang-appnet.eng.vmware.com/nexus-sdk/nexus/nexus"
 )
 
 // Config parent's configuration created by user/product.

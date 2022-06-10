@@ -4,7 +4,7 @@ kind: CustomResourceDefinition
 metadata:
   annotations:
     nexus: |
-      {"name":"OIDC.authentication","hierarchy":["apis.apis.nexus.org","configs.config.nexus.org"],"nexus-rest-api-gen":{"uris":[{"uri":"/api/{Api.apis}/config/{Config.config}/oidc/{OIDC.authentication}","methods":{"DELETE":{"200":{"description":"OK"},"501":{"description":"Not Implemented"}},"GET":{"200":{"description":"OK"},"404":{"description":"Not Found"},"501":{"description":"Not Implemented"}},"PUT":{"200":{"description":"OK"},"201":{"description":"Created"},"501":{"description":"Not Implemented"}}}},{"uri":"/oidc","methods":{"GET":{"200":{"description":"OK"},"404":{"description":"Not Found"},"501":{"description":"Not Implemented"}}}}]}}
+      {"hierarchy":["apis.apis.nexus.org","configs.config.nexus.org"]}
   creationTimestamp: null
   name: oidcs.authentication.nexus.org
 spec:
@@ -41,15 +41,20 @@ spec:
               config:
                 properties:
                   clientId:
+                    default: ""
                     type: string
                   clientSecret:
+                    default: ""
                     type: string
                   oAuthIssuerUrl:
+                    default: ""
                     type: string
                   oAuthRedirectUrl:
+                    default: ""
                     type: string
                   scopes:
                     items:
+                      default: ""
                       type: string
                     type: array
                 required:
@@ -62,12 +67,29 @@ spec:
               validationProps:
                 properties:
                   insecureIssuerURLContext:
+                    default: false
+                    description: InsecureIssuerURLContext allows discovery to work
+                      when the issuer_url reported by upstream is mismatched with
+                      the discovery URL. This is meant for integration with off-spec
+                      providers such as CSP, Azure.
                     type: boolean
                   skipClientAudValidation:
+                    default: false
+                    description: SkipClientAudValidation allows skipping verification
+                      of the "aud" (audience) claim when validating an ID/access token.
+                      It's useful for off-spec providers, e.g., CSP
                     type: boolean
                   skipClientIdValidation:
+                    default: false
+                    description: SkipClientIdValidation allows skipping verification
+                      of the client ID when validating an ID/access token. It's useful
+                      for off-spec providers, e.g., CSP
                     type: boolean
                   skipIssuerValidation:
+                    default: false
+                    description: SkipIssuerValidation allows skipping verification
+                      of the issuer URL when validating an ID/access token. It's useful
+                      for off-spec providers, e.g., CSP
                     type: boolean
                 required:
                 - insecureIssuerURLContext

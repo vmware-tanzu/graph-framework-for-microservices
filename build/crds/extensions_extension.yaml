@@ -4,7 +4,7 @@ kind: CustomResourceDefinition
 metadata:
   annotations:
     nexus: |
-      {"name":"Extension.extensions","hierarchy":["apis.apis.nexus.org","configs.config.nexus.org"],"nexus-rest-api-gen":{"uris":null}}
+      {"hierarchy":["apis.apis.nexus.org","configs.config.nexus.org"]}
   creationTimestamp: null
   name: extensions.extensions.nexus.org
 spec:
@@ -41,6 +41,7 @@ spec:
               resource:
                 properties:
                   Name:
+                    default: ""
                     type: string
                 required:
                 - Name
@@ -48,11 +49,14 @@ spec:
               service:
                 properties:
                   Name:
+                    default: ""
                     type: string
                   Port:
+                    default: 0
                     format: int32
                     type: integer
                   Scheme:
+                    default: ""
                     type: string
                 required:
                 - Name
@@ -60,6 +64,7 @@ spec:
                 - Scheme
                 type: object
               uri:
+                default: ""
                 type: string
             required:
             - uri

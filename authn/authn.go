@@ -1,8 +1,9 @@
 package authentication
 
 import (
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/nexus.git/nexus"
 	"net/http"
+
+	"golang-appnet.eng.vmware.com/nexus-sdk/nexus/nexus"
 )
 
 type IDPConfig struct {
