@@ -11,6 +11,7 @@ before_script:
   - git config --global url."https://gitlab.eng.vmware.com/".insteadOf "git@gitlab.eng.vmware.com:"
   - git config --global gc.auto 0
   - git config --global credential.helper store
+  - export GOPRIVATE=*.eng.vmware.com
   - echo -e  "https://gitlab-ci-token:${CICD_TOKEN}@gitlab.eng.vmware.com/" >> ~/.git-credentials
   - docker login harbor-repo.vmware.com --username $DOCKER_USERNAME --password $DOCKER_PASSWORD
   - echo $GCLOUD_SERVICE_KEY > key.json

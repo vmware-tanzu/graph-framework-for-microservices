@@ -97,7 +97,7 @@ lint: ## lint checks using the make targets
 	$(MAKE) vet
 
 go_get:
-	go get . ;
+	GOINSECURE=*.eng.vmware.com GOPRIVATE=*.eng.vmware.com go get . ;
 
 .PHONY: build
 build: go_get lint ## Build manager binary.

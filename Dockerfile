@@ -9,7 +9,8 @@ ARG USE_SSH
 #    chmod 0700 /root/.ssh
 #COPY .ssh/ /root/.ssh/
 WORKDIR /api-gw
-ENV GOPRIVATE gitlab.eng.vmware.com
+ENV GOPRIVATE *.eng.vmware.com
+ENV GOINSECURE *.eng.vmware.com
 ENV CGO_ENABLED=0
 COPY go.* .
 # Required for access to GO artifactory

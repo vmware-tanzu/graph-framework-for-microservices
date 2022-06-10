@@ -5,19 +5,20 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/MicahParks/keyfunc"
-	"github.com/coreos/go-oidc/v3/oidc"
-	"github.com/golang-jwt/jwt/v4"
-	"github.com/labstack/echo/v4"
-	log "github.com/sirupsen/logrus"
-	authnexusv1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/api.git/build/apis/authentication.nexus.org/v1"
-	"golang.org/x/oauth2"
 	"io"
 	"net/http"
 	"net/url"
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/MicahParks/keyfunc"
+	"github.com/coreos/go-oidc/v3/oidc"
+	"github.com/golang-jwt/jwt/v4"
+	"github.com/labstack/echo/v4"
+	log "github.com/sirupsen/logrus"
+	authnexusv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/authentication.nexus.org/v1"
+	"golang.org/x/oauth2"
 )
 
 // Authenticator is used to authenticate users using OIDC
