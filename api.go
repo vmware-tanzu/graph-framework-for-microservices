@@ -1,8 +1,8 @@
 package apis
 
 import (
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/api.git/config"
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/nexus.git/nexus"
+	"golang-appnet.eng.vmware.com/nexus-sdk/api/config"
+	"golang-appnet.eng.vmware.com/nexus-sdk/nexus/nexus"
 )
 
 // Api is the root node for Nexus infra/runtime datamodel.

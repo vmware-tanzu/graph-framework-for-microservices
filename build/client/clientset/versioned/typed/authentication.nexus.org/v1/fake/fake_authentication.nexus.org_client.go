@@ -19,7 +19,7 @@ limitations under the License.
 package fake
 
 import (
-	v1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/api.git/build/client/clientset/versioned/typed/authentication.nexus.org/v1"
+	v1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/client/clientset/versioned/typed/authentication.nexus.org/v1"
 	rest "k8s.io/client-go/rest"
 	testing "k8s.io/client-go/testing"
 )

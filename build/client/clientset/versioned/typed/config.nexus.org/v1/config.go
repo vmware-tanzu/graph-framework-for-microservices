@@ -22,8 +22,8 @@ import (
 	"context"
 	"time"
 
-	v1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/api.git/build/apis/config.nexus.org/v1"
-	scheme "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/api.git/build/client/clientset/versioned/scheme"
+	v1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/config.nexus.org/v1"
+	scheme "golang-appnet.eng.vmware.com/nexus-sdk/api/build/client/clientset/versioned/scheme"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	types "k8s.io/apimachinery/pkg/types"
 	watch "k8s.io/apimachinery/pkg/watch"

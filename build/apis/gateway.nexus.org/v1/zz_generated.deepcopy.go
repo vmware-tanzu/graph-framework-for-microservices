@@ -121,11 +121,8 @@ func (in *GatewayList) DeepCopyObject() runtime.Object {
 func (in *GatewaySpec) DeepCopyInto(out *GatewaySpec) {
 	*out = *in
 	out.Config = in.Config
-	if in.AuthnGvk != nil {
-		in, out := &in.AuthnGvk, &out.AuthnGvk
-		*out = new(Link)
-		**out = **in
-	}
+	in.Authn.DeepCopyInto(&out.Authn)
+	out.AuthnGvk = in.AuthnGvk
 	return
 }
 

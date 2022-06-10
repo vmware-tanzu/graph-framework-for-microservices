@@ -8,13 +8,11 @@ import (
 
 	"github.com/elliotchance/orderedmap"
 
-	datamodel "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/api.git/build/client/clientset/versioned"
+	datamodel "golang-appnet.eng.vmware.com/nexus-sdk/api/build/client/clientset/versioned"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 const DEFAULT_KEY = "default"
-const DISPLAY_NAME_LABEL = "nexus/display_name"
-const IS_NAME_HASHED_LABEL = "nexus/is_name_hashed"
 
 func GetCRDParentsMap() map[string][]string {
 	return map[string][]string{
@@ -81,22 +79,20 @@ func ParseCRDLabels(crdName string, labels map[string]string) *orderedmap.Ordere
 	return m
 }
 
-func GetHashedName(crdName string, labels map[string]string, name string) string {
+func GetHashedName(crdName string, labels map[string]string) string {
 	orderedLabels := ParseCRDLabels(crdName, labels)
 
-	var output string
+	var name string
 	for i, key := range orderedLabels.Keys() {
 		value, _ := orderedLabels.Get(key)
 
-		output += fmt.Sprintf("%s:%s", key, value)
+		name += fmt.Sprintf("%s:%s", key, value)
 		if i < orderedLabels.Len()-1 {
-			output += "/"
+			name += "/"
 		}
 	}
 
-	output += fmt.Sprintf("%s:%s", crdName, name)
-
 	h := sha1.New()
-	_, _ = h.Write([]byte(output))
+	h.Write([]byte(name))
 	return hex.EncodeToString(h.Sum(nil))
 }

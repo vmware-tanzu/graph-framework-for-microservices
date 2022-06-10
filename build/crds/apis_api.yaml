@@ -4,7 +4,7 @@ kind: CustomResourceDefinition
 metadata:
   annotations:
     nexus: |
-      {"name":"Api.apis","children":{"configs.config.nexus.org":{"fieldName":"Config","fieldNameGvk":"configGvk","isNamed":false}},"nexus-rest-api-gen":{"uris":null}}
+      {"hierarchy":[]}
   creationTimestamp: null
   name: apis.apis.nexus.org
 spec:
@@ -41,10 +41,13 @@ spec:
               configGvk:
                 properties:
                   group:
+                    default: ""
                     type: string
                   kind:
+                    default: ""
                     type: string
                   name:
+                    default: ""
                     type: string
                 required:
                 - group

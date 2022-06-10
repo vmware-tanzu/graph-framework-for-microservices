@@ -1,7 +1,7 @@
 package extensions
 
 import (
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/nexus.git/nexus"
+	"golang-appnet.eng.vmware.com/nexus-sdk/nexus/nexus"
 )
 
 type Service struct {

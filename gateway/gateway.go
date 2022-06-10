@@ -1,8 +1,9 @@
 package gateway
 
 import (
-	authentication "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/api.git/authn"
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/nexus.git/nexus"
+	authentication "golang-appnet.eng.vmware.com/nexus-sdk/api/authn"
+
+	"golang-appnet.eng.vmware.com/nexus-sdk/nexus/nexus"
 )
 
 type GatewayConfig struct{}
