@@ -24,6 +24,7 @@ import (
 	apisnexusv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/client/clientset/versioned/typed/apis.nexus.org/v1"
 	authenticationnexusv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/client/clientset/versioned/typed/authentication.nexus.org/v1"
 	confignexusv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/client/clientset/versioned/typed/config.nexus.org/v1"
+	connectnexusv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/client/clientset/versioned/typed/connect.nexus.org/v1"
 	extensionsnexusv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/client/clientset/versioned/typed/extensions.nexus.org/v1"
 	gatewaynexusv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/client/clientset/versioned/typed/gateway.nexus.org/v1"
 	discovery "k8s.io/client-go/discovery"
@@ -36,6 +37,7 @@ type Interface interface {
 	ApisNexusV1() apisnexusv1.ApisNexusV1Interface
 	AuthenticationNexusV1() authenticationnexusv1.AuthenticationNexusV1Interface
 	ConfigNexusV1() confignexusv1.ConfigNexusV1Interface
+	ConnectNexusV1() connectnexusv1.ConnectNexusV1Interface
 	ExtensionsNexusV1() extensionsnexusv1.ExtensionsNexusV1Interface
 	GatewayNexusV1() gatewaynexusv1.GatewayNexusV1Interface
 }
@@ -47,6 +49,7 @@ type Clientset struct {
 	apisNexusV1           *apisnexusv1.ApisNexusV1Client
 	authenticationNexusV1 *authenticationnexusv1.AuthenticationNexusV1Client
 	configNexusV1         *confignexusv1.ConfigNexusV1Client
+	connectNexusV1        *connectnexusv1.ConnectNexusV1Client
 	extensionsNexusV1     *extensionsnexusv1.ExtensionsNexusV1Client
 	gatewayNexusV1        *gatewaynexusv1.GatewayNexusV1Client
 }
@@ -64,6 +67,11 @@ func (c *Clientset) AuthenticationNexusV1() authenticationnexusv1.Authentication
 // ConfigNexusV1 retrieves the ConfigNexusV1Client
 func (c *Clientset) ConfigNexusV1() confignexusv1.ConfigNexusV1Interface {
 	return c.configNexusV1
+}
+
+// ConnectNexusV1 retrieves the ConnectNexusV1Client
+func (c *Clientset) ConnectNexusV1() connectnexusv1.ConnectNexusV1Interface {
+	return c.connectNexusV1
 }
 
 // ExtensionsNexusV1 retrieves the ExtensionsNexusV1Client
@@ -109,6 +117,10 @@ func NewForConfig(c *rest.Config) (*Clientset, error) {
 	if err != nil {
 		return nil, err
 	}
+	cs.connectNexusV1, err = connectnexusv1.NewForConfig(&configShallowCopy)
+	if err != nil {
+		return nil, err
+	}
 	cs.extensionsNexusV1, err = extensionsnexusv1.NewForConfig(&configShallowCopy)
 	if err != nil {
 		return nil, err
@@ -132,6 +144,7 @@ func NewForConfigOrDie(c *rest.Config) *Clientset {
 	cs.apisNexusV1 = apisnexusv1.NewForConfigOrDie(c)
 	cs.authenticationNexusV1 = authenticationnexusv1.NewForConfigOrDie(c)
 	cs.configNexusV1 = confignexusv1.NewForConfigOrDie(c)
+	cs.connectNexusV1 = connectnexusv1.NewForConfigOrDie(c)
 	cs.extensionsNexusV1 = extensionsnexusv1.NewForConfigOrDie(c)
 	cs.gatewayNexusV1 = gatewaynexusv1.NewForConfigOrDie(c)
 
@@ -145,6 +158,7 @@ func New(c rest.Interface) *Clientset {
 	cs.apisNexusV1 = apisnexusv1.New(c)
 	cs.authenticationNexusV1 = authenticationnexusv1.New(c)
 	cs.configNexusV1 = confignexusv1.New(c)
+	cs.connectNexusV1 = connectnexusv1.New(c)
 	cs.extensionsNexusV1 = extensionsnexusv1.New(c)
 	cs.gatewayNexusV1 = gatewaynexusv1.New(c)
 

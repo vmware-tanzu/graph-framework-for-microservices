@@ -4,6 +4,8 @@ package v1
 
 import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+
+	"golang-appnet.eng.vmware.com/nexus-sdk/api/build/common"
 )
 
 // +k8s:openapi-gen=true
@@ -35,6 +37,13 @@ type Extension struct {
 
 func (c *Extension) CRDName() string {
 	return "extensions.extensions.nexus.org"
+}
+
+func (c *Extension) DisplayName() string {
+	if c.GetLabels() != nil {
+		return c.GetLabels()[common.DISPLAY_NAME_LABEL]
+	}
+	return ""
 }
 
 // +k8s:openapi-gen=true

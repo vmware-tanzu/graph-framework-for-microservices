@@ -4,6 +4,8 @@ package v1
 
 import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+
+	"golang-appnet.eng.vmware.com/nexus-sdk/api/build/common"
 )
 
 // +k8s:openapi-gen=true
@@ -37,6 +39,13 @@ func (c *OIDC) CRDName() string {
 	return "oidcs.authentication.nexus.org"
 }
 
+func (c *OIDC) DisplayName() string {
+	if c.GetLabels() != nil {
+		return c.GetLabels()[common.DISPLAY_NAME_LABEL]
+	}
+	return ""
+}
+
 // +k8s:openapi-gen=true
 type OIDCSpec struct {
 	Config          IDPConfig            `json:"config" yaml:"config"`
@@ -61,20 +70,8 @@ type IDPConfig struct {
 
 // +k8s:openapi-gen=true
 type ValidationProperties struct {
-	// InsecureIssuerURLContext allows discovery to work when the issuer_url reported
-	// by upstream is mismatched with the discovery URL. This is meant for integration
-	// with off-spec providers such as CSP, Azure.
 	InsecureIssuerURLContext bool `json:"insecureIssuerURLContext"`
-
-	// SkipIssuerValidation allows skipping verification of the issuer URL when validating
-	// an ID/access token. It's useful for off-spec providers, e.g., CSP
-	SkipIssuerValidation bool `json:"skipIssuerValidation"`
-
-	// SkipClientIdValidation allows skipping verification of the client ID when validating
-	// an ID/access token. It's useful for off-spec providers, e.g., CSP
-	SkipClientIdValidation bool `json:"skipClientIdValidation"`
-
-	// SkipClientAudValidation allows skipping verification of the "aud" (audience) claim when validating
-	// an ID/access token. It's useful for off-spec providers, e.g., CSP
-	SkipClientAudValidation bool `json:"skipClientAudValidation"`
+	SkipIssuerValidation     bool `json:"skipIssuerValidation"`
+	SkipClientIdValidation   bool `json:"skipClientIdValidation"`
+	SkipClientAudValidation  bool `json:"skipClientAudValidation"`
 }

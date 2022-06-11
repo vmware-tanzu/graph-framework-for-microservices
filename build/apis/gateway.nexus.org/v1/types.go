@@ -3,8 +3,9 @@
 package v1
 
 import (
-	authenticationnexusorgv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/authentication.nexus.org/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+
+	"golang-appnet.eng.vmware.com/nexus-sdk/api/build/common"
 )
 
 // +k8s:openapi-gen=true
@@ -38,11 +39,17 @@ func (c *Gateway) CRDName() string {
 	return "gateways.gateway.nexus.org"
 }
 
+func (c *Gateway) DisplayName() string {
+	if c.GetLabels() != nil {
+		return c.GetLabels()[common.DISPLAY_NAME_LABEL]
+	}
+	return ""
+}
+
 // +k8s:openapi-gen=true
 type GatewaySpec struct {
-	Config   GatewayConfig                 `json:"config" yaml:"config"`
-	Authn    authenticationnexusorgv1.OIDC `json:"-" yaml:"-"`
-	AuthnGvk Link                          `json:"authnGvk,omitempty" yaml:"authnGvk,omitempty" nexus:"link"`
+	Config   GatewayConfig `json:"config" yaml:"config"`
+	AuthnGvk *Link         `json:"authnGvk,omitempty" yaml:"authnGvk,omitempty" nexus:"link"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
@@ -53,4 +60,5 @@ type GatewayList struct {
 }
 
 // +k8s:openapi-gen=true
-type GatewayConfig struct{}
+type GatewayConfig struct {
+}

@@ -4,7 +4,7 @@ kind: CustomResourceDefinition
 metadata:
   annotations:
     nexus: |
-      {"hierarchy":["apis.apis.nexus.org"]}
+      {"name":"Config.config","hierarchy":["apis.apis.nexus.org"],"children":{"connects.connect.nexus.org":{"fieldName":"Connect","fieldNameGvk":"connectGvk","isNamed":false},"extensions.extensions.nexus.org":{"fieldName":"ApiExtensions","fieldNameGvk":"apiExtensionsGvk","isNamed":false},"gateways.gateway.nexus.org":{"fieldName":"Gateway","fieldNameGvk":"gatewayGvk","isNamed":false},"oidcs.authentication.nexus.org":{"fieldName":"AuthN","fieldNameGvk":"authNGvk","isNamed":true}},"nexus-rest-api-gen":{"uris":null}}
   creationTimestamp: null
   name: configs.config.nexus.org
 spec:
@@ -41,13 +41,10 @@ spec:
               apiExtensionsGvk:
                 properties:
                   group:
-                    default: ""
                     type: string
                   kind:
-                    default: ""
                     type: string
                   name:
-                    default: ""
                     type: string
                 required:
                 - group
@@ -58,13 +55,10 @@ spec:
                 additionalProperties:
                   properties:
                     group:
-                      default: ""
                       type: string
                     kind:
-                      default: ""
                       type: string
                     name:
-                      default: ""
                       type: string
                   required:
                   - group
@@ -72,16 +66,26 @@ spec:
                   - name
                   type: object
                 type: object
+              connectGvk:
+                properties:
+                  group:
+                    type: string
+                  kind:
+                    type: string
+                  name:
+                    type: string
+                required:
+                - group
+                - kind
+                - name
+                type: object
               gatewayGvk:
                 properties:
                   group:
-                    default: ""
                     type: string
                   kind:
-                    default: ""
                     type: string
                   name:
-                    default: ""
                     type: string
                 required:
                 - group

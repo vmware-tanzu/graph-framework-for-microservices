@@ -4,7 +4,7 @@ kind: CustomResourceDefinition
 metadata:
   annotations:
     nexus: |
-      {"hierarchy":["apis.apis.nexus.org","configs.config.nexus.org"]}
+      {"name":"Gateway.gateway","hierarchy":["apis.apis.nexus.org","configs.config.nexus.org"],"nexus-rest-api-gen":{"uris":null}}
   creationTimestamp: null
   name: gateways.gateway.nexus.org
 spec:
@@ -41,13 +41,10 @@ spec:
               authnGvk:
                 properties:
                   group:
-                    default: ""
                     type: string
                   kind:
-                    default: ""
                     type: string
                   name:
-                    default: ""
                     type: string
                 required:
                 - group
