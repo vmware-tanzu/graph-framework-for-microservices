@@ -3,6 +3,7 @@ package config
 import (
 	extensions "golang-appnet.eng.vmware.com/nexus-sdk/api/api-extensions"
 	authentication "golang-appnet.eng.vmware.com/nexus-sdk/api/authn"
+	"golang-appnet.eng.vmware.com/nexus-sdk/api/connect"
 	"golang-appnet.eng.vmware.com/nexus-sdk/api/gateway"
 	"golang-appnet.eng.vmware.com/nexus-sdk/nexus/nexus"
 )
@@ -22,4 +23,7 @@ type Config struct {
 
 	// Authentication configuration.
 	AuthN map[string]authentication.OIDC `nexus:"child"`
+
+	// Nexus Connect configuration.
+	Connect connect.Connect `nexus:"child"`
 }

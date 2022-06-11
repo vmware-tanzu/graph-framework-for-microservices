@@ -24,6 +24,7 @@ import (
 	v1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/apis.nexus.org/v1"
 	authenticationnexusorgv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/authentication.nexus.org/v1"
 	confignexusorgv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/config.nexus.org/v1"
+	connectnexusorgv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/connect.nexus.org/v1"
 	extensionsnexusorgv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/extensions.nexus.org/v1"
 	gatewaynexusorgv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/gateway.nexus.org/v1"
 	schema "k8s.io/apimachinery/pkg/runtime/schema"
@@ -67,6 +68,16 @@ func (f *sharedInformerFactory) ForResource(resource schema.GroupVersionResource
 		// Group=config.nexus.org, Version=v1
 	case confignexusorgv1.SchemeGroupVersion.WithResource("configs"):
 		return &genericInformer{resource: resource.GroupResource(), informer: f.ConfigNexus().V1().Configs().Informer()}, nil
+
+		// Group=connect.nexus.org, Version=v1
+	case connectnexusorgv1.SchemeGroupVersion.WithResource("connects"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.ConnectNexus().V1().Connects().Informer()}, nil
+	case connectnexusorgv1.SchemeGroupVersion.WithResource("nexusendpoints"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.ConnectNexus().V1().NexusEndpoints().Informer()}, nil
+	case connectnexusorgv1.SchemeGroupVersion.WithResource("replicationconfigs"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.ConnectNexus().V1().ReplicationConfigs().Informer()}, nil
+	case connectnexusorgv1.SchemeGroupVersion.WithResource("replicationobjects"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.ConnectNexus().V1().ReplicationObjects().Informer()}, nil
 
 		// Group=extensions.nexus.org, Version=v1
 	case extensionsnexusorgv1.SchemeGroupVersion.WithResource("extensions"):

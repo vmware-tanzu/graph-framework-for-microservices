@@ -3,10 +3,9 @@
 package v1
 
 import (
-	authenticationnexusorgv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/authentication.nexus.org/v1"
-	extensionsnexusorgv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/extensions.nexus.org/v1"
-	gatewaynexusorgv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/gateway.nexus.org/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+
+	"golang-appnet.eng.vmware.com/nexus-sdk/api/build/common"
 )
 
 // +k8s:openapi-gen=true
@@ -40,14 +39,19 @@ func (c *Config) CRDName() string {
 	return "configs.config.nexus.org"
 }
 
+func (c *Config) DisplayName() string {
+	if c.GetLabels() != nil {
+		return c.GetLabels()[common.DISPLAY_NAME_LABEL]
+	}
+	return ""
+}
+
 // +k8s:openapi-gen=true
 type ConfigSpec struct {
-	Gateway          gatewaynexusorgv1.Gateway                `json:"-" yaml:"-"`
-	GatewayGvk       Child                                    `json:"gatewayGvk,omitempty" yaml:"gatewayGvk,omitempty" nexus:"child"`
-	ApiExtensions    extensionsnexusorgv1.Extension           `json:"-" yaml:"-"`
-	ApiExtensionsGvk Child                                    `json:"apiExtensionsGvk,omitempty" yaml:"apiExtensionsGvk,omitempty" nexus:"child"`
-	AuthN            map[string]authenticationnexusorgv1.OIDC `json:"-" yaml:"-"`
-	AuthNGvk         map[string]Child                         `json:"authNGvk,omitempty" yaml:"authNGvk,omitempty" nexus:"child"`
+	GatewayGvk       *Child           `json:"gatewayGvk,omitempty" yaml:"gatewayGvk,omitempty" nexus:"child"`
+	ApiExtensionsGvk *Child           `json:"apiExtensionsGvk,omitempty" yaml:"apiExtensionsGvk,omitempty" nexus:"child"`
+	AuthNGvk         map[string]Child `json:"authNGvk,omitempty" yaml:"authNGvk,omitempty" nexus:"child"`
+	ConnectGvk       *Child           `json:"connectGvk,omitempty" yaml:"connectGvk,omitempty" nexus:"child"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object

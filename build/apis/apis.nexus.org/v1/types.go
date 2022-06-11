@@ -3,8 +3,9 @@
 package v1
 
 import (
-	confignexusorgv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/config.nexus.org/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+
+	"golang-appnet.eng.vmware.com/nexus-sdk/api/build/common"
 )
 
 // +k8s:openapi-gen=true
@@ -38,10 +39,16 @@ func (c *Api) CRDName() string {
 	return "apis.apis.nexus.org"
 }
 
+func (c *Api) DisplayName() string {
+	if c.GetLabels() != nil {
+		return c.GetLabels()[common.DISPLAY_NAME_LABEL]
+	}
+	return ""
+}
+
 // +k8s:openapi-gen=true
 type ApiSpec struct {
-	Config    confignexusorgv1.Config `json:"-" yaml:"-"`
-	ConfigGvk Child                   `json:"configGvk,omitempty" yaml:"configGvk,omitempty" nexus:"child"`
+	ConfigGvk *Child `json:"configGvk,omitempty" yaml:"configGvk,omitempty" nexus:"child"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
