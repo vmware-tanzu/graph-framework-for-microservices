@@ -156,7 +156,7 @@ func putHandler(c echo.Context) error {
 			if len(crdInfo.ParentHierarchy) > 0 {
 				parentCrdName := crdInfo.ParentHierarchy[len(crdInfo.ParentHierarchy)-1]
 				parentCrd := model.CrdTypeToNodeInfo[parentCrdName]
-				err = client.UpdateParentWithAddedChild(parentCrdName, parentCrd, labels, crdName, name, hashedName)
+				err = client.UpdateParentWithAddedChild(parentCrdName, parentCrd, labels, crdInfo, crdName, name, hashedName)
 			}
 
 			if err == nil {

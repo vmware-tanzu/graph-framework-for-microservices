@@ -103,6 +103,11 @@ func kubePostHandler(c echo.Context) error {
 
 		// Create object if is not found
 		if kerrors.IsNotFound(err) {
+			if _, ok := body.UnstructuredContent()["spec"]; !ok {
+				content := body.UnstructuredContent()
+				content["spec"] = map[string]interface{}{}
+				body.SetUnstructuredContent(content)
+			}
 			obj, err = client.Client.Resource(gvr).Create(context.TODO(), body, metav1.CreateOptions{})
 			if err != nil {
 				if status := kerrors.APIStatus(nil); errors.As(err, &status) {
@@ -115,7 +120,7 @@ func kubePostHandler(c echo.Context) error {
 			if len(crdInfo.ParentHierarchy) > 0 {
 				parentCrdName := crdInfo.ParentHierarchy[len(crdInfo.ParentHierarchy)-1]
 				parentCrd := model.CrdTypeToNodeInfo[parentCrdName]
-				err = client.UpdateParentWithAddedChild(parentCrdName, parentCrd, labels, nc.CrdType, body.GetName(), hashedName)
+				err = client.UpdateParentWithAddedChild(parentCrdName, parentCrd, labels, crdInfo, nc.CrdType, body.GetName(), hashedName)
 			}
 
 			if err != nil {
