@@ -125,7 +125,7 @@ func (p Patch) Marshal() ([]byte, error) {
 }
 
 // TODO: build PatchOP in common-library
-func UpdateParentWithAddedChild(parentCrdType string, parentCrdInfo model.NodeInfo, labels map[string]string, childCrdType string, childName string, childHashedName string) error {
+func UpdateParentWithAddedChild(parentCrdType string, parentCrdInfo model.NodeInfo, labels map[string]string, childCrdInfo model.NodeInfo, childCrdType string, childName string, childHashedName string) error {
 	var (
 		patchType types.PatchType
 		marshaled []byte
@@ -142,8 +142,13 @@ func UpdateParentWithAddedChild(parentCrdType string, parentCrdInfo model.NodeIn
 	hashedParentName := nexus.GetHashedName(parentCrdType, parentCrdInfo.ParentHierarchy, labels, parentName)
 	childGvk := parentCrdInfo.Children[childCrdType]
 
+	childParts := strings.Split(childCrdType, ".")
+	group := strings.Join(childParts[1:], ".")
+	childNameParts := strings.Split(childCrdInfo.Name, ".")
+
 	if childGvk.IsNamed {
-		payload := "{\"spec\": {\"" + childGvk.FieldNameGvk + "\": {\"" + childName + "\": {\"name\": \"" + childHashedName + "\"}}}}"
+		payload := "{\"spec\": {\"" + childGvk.FieldNameGvk + "\": {\"" + childName + "\": {\"name\": \"" + childHashedName + "\",\"kind\": \"" + childNameParts[0] + "\", \"group\": \"" + group + "\"}}}}"
+
 		patchType = types.MergePatchType
 		marshaled = []byte(payload)
 	} else {
@@ -152,7 +157,9 @@ func UpdateParentWithAddedChild(parentCrdType string, parentCrdInfo model.NodeIn
 			Op:   "replace",
 			Path: "/spec/" + childGvk.FieldNameGvk,
 			Value: map[string]interface{}{
-				"name": childHashedName,
+				"name":  childHashedName,
+				"group": group,
+				"kind":  childNameParts[0],
 			},
 		}
 		patch = append(patch, patchOp)
