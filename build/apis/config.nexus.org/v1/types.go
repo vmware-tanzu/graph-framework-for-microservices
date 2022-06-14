@@ -48,10 +48,9 @@ func (c *Config) DisplayName() string {
 
 // +k8s:openapi-gen=true
 type ConfigSpec struct {
-	GatewayGvk       *Child           `json:"gatewayGvk,omitempty" yaml:"gatewayGvk,omitempty" nexus:"child"`
-	ApiExtensionsGvk *Child           `json:"apiExtensionsGvk,omitempty" yaml:"apiExtensionsGvk,omitempty" nexus:"child"`
-	AuthNGvk         map[string]Child `json:"authNGvk,omitempty" yaml:"authNGvk,omitempty" nexus:"child"`
-	ConnectGvk       *Child           `json:"connectGvk,omitempty" yaml:"connectGvk,omitempty" nexus:"child"`
+	ApiGatewayGvk *Child           `json:"apiGatewayGvk,omitempty" yaml:"apiGatewayGvk,omitempty" nexus:"child"`
+	RoutesGvk     map[string]Child `json:"routesGvk,omitempty" yaml:"routesGvk,omitempty" nexus:"child"`
+	ConnectGvk    *Child           `json:"connectGvk,omitempty" yaml:"connectGvk,omitempty" nexus:"child"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object

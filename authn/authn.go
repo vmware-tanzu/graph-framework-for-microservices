@@ -1,8 +1,6 @@
 package authentication
 
 import (
-	"net/http"
-
 	"golang-appnet.eng.vmware.com/nexus-sdk/nexus/nexus"
 )
 
@@ -36,14 +34,8 @@ type ValidationProperties struct {
 var OIDCRestAPISpec = nexus.RestAPISpec{
 	Uris: []nexus.RestURIs{
 		{
-			Uri:     "/api/{Api.apis}/config/{Config.config}/oidc/{OIDC.authentication}",
+			Uri:     "/nexus/{Nexus.api}/config/{Config.config}/apigateway/{ApiGateway.apigateway}/oidc/{OIDC.authentication}",
 			Methods: nexus.DefaultHTTPMethodsResponses,
-		},
-		{
-			Uri: "/oidc",
-			Methods: nexus.HTTPMethodsResponses{
-				http.MethodGet: nexus.DefaultHTTPGETResponses,
-			},
 		},
 	},
 }

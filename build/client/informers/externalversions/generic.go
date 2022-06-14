@@ -21,12 +21,12 @@ package externalversions
 import (
 	"fmt"
 
-	v1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/apis.nexus.org/v1"
+	v1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/api.nexus.org/v1"
+	apigatewaynexusorgv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/apigateway.nexus.org/v1"
 	authenticationnexusorgv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/authentication.nexus.org/v1"
 	confignexusorgv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/config.nexus.org/v1"
 	connectnexusorgv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/connect.nexus.org/v1"
-	extensionsnexusorgv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/extensions.nexus.org/v1"
-	gatewaynexusorgv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/gateway.nexus.org/v1"
+	routenexusorgv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/route.nexus.org/v1"
 	schema "k8s.io/apimachinery/pkg/runtime/schema"
 	cache "k8s.io/client-go/tools/cache"
 )
@@ -57,9 +57,13 @@ func (f *genericInformer) Lister() cache.GenericLister {
 // TODO extend this to unknown resources with a client pool
 func (f *sharedInformerFactory) ForResource(resource schema.GroupVersionResource) (GenericInformer, error) {
 	switch resource {
-	// Group=apis.nexus.org, Version=v1
-	case v1.SchemeGroupVersion.WithResource("apis"):
-		return &genericInformer{resource: resource.GroupResource(), informer: f.ApisNexus().V1().Apis().Informer()}, nil
+	// Group=api.nexus.org, Version=v1
+	case v1.SchemeGroupVersion.WithResource("nexuses"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.ApiNexus().V1().Nexuses().Informer()}, nil
+
+		// Group=apigateway.nexus.org, Version=v1
+	case apigatewaynexusorgv1.SchemeGroupVersion.WithResource("apigateways"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.ApigatewayNexus().V1().ApiGateways().Informer()}, nil
 
 		// Group=authentication.nexus.org, Version=v1
 	case authenticationnexusorgv1.SchemeGroupVersion.WithResource("oidcs"):
@@ -79,13 +83,9 @@ func (f *sharedInformerFactory) ForResource(resource schema.GroupVersionResource
 	case connectnexusorgv1.SchemeGroupVersion.WithResource("replicationobjects"):
 		return &genericInformer{resource: resource.GroupResource(), informer: f.ConnectNexus().V1().ReplicationObjects().Informer()}, nil
 
-		// Group=extensions.nexus.org, Version=v1
-	case extensionsnexusorgv1.SchemeGroupVersion.WithResource("extensions"):
-		return &genericInformer{resource: resource.GroupResource(), informer: f.ExtensionsNexus().V1().Extensions().Informer()}, nil
-
-		// Group=gateway.nexus.org, Version=v1
-	case gatewaynexusorgv1.SchemeGroupVersion.WithResource("gateways"):
-		return &genericInformer{resource: resource.GroupResource(), informer: f.GatewayNexus().V1().Gateways().Informer()}, nil
+		// Group=route.nexus.org, Version=v1
+	case routenexusorgv1.SchemeGroupVersion.WithResource("routes"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.RouteNexus().V1().Routes().Informer()}, nil
 
 	}
 

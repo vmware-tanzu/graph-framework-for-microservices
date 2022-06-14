@@ -20,18 +20,18 @@ package fake
 
 import (
 	clientset "golang-appnet.eng.vmware.com/nexus-sdk/api/build/client/clientset/versioned"
-	apisnexusv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/client/clientset/versioned/typed/apis.nexus.org/v1"
-	fakeapisnexusv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/client/clientset/versioned/typed/apis.nexus.org/v1/fake"
+	apinexusv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/client/clientset/versioned/typed/api.nexus.org/v1"
+	fakeapinexusv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/client/clientset/versioned/typed/api.nexus.org/v1/fake"
+	apigatewaynexusv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/client/clientset/versioned/typed/apigateway.nexus.org/v1"
+	fakeapigatewaynexusv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/client/clientset/versioned/typed/apigateway.nexus.org/v1/fake"
 	authenticationnexusv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/client/clientset/versioned/typed/authentication.nexus.org/v1"
 	fakeauthenticationnexusv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/client/clientset/versioned/typed/authentication.nexus.org/v1/fake"
 	confignexusv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/client/clientset/versioned/typed/config.nexus.org/v1"
 	fakeconfignexusv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/client/clientset/versioned/typed/config.nexus.org/v1/fake"
 	connectnexusv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/client/clientset/versioned/typed/connect.nexus.org/v1"
 	fakeconnectnexusv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/client/clientset/versioned/typed/connect.nexus.org/v1/fake"
-	extensionsnexusv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/client/clientset/versioned/typed/extensions.nexus.org/v1"
-	fakeextensionsnexusv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/client/clientset/versioned/typed/extensions.nexus.org/v1/fake"
-	gatewaynexusv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/client/clientset/versioned/typed/gateway.nexus.org/v1"
-	fakegatewaynexusv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/client/clientset/versioned/typed/gateway.nexus.org/v1/fake"
+	routenexusv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/client/clientset/versioned/typed/route.nexus.org/v1"
+	fakeroutenexusv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/client/clientset/versioned/typed/route.nexus.org/v1/fake"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/watch"
 	"k8s.io/client-go/discovery"
@@ -89,9 +89,14 @@ var (
 	_ testing.FakeClient  = &Clientset{}
 )
 
-// ApisNexusV1 retrieves the ApisNexusV1Client
-func (c *Clientset) ApisNexusV1() apisnexusv1.ApisNexusV1Interface {
-	return &fakeapisnexusv1.FakeApisNexusV1{Fake: &c.Fake}
+// ApiNexusV1 retrieves the ApiNexusV1Client
+func (c *Clientset) ApiNexusV1() apinexusv1.ApiNexusV1Interface {
+	return &fakeapinexusv1.FakeApiNexusV1{Fake: &c.Fake}
+}
+
+// ApigatewayNexusV1 retrieves the ApigatewayNexusV1Client
+func (c *Clientset) ApigatewayNexusV1() apigatewaynexusv1.ApigatewayNexusV1Interface {
+	return &fakeapigatewaynexusv1.FakeApigatewayNexusV1{Fake: &c.Fake}
 }
 
 // AuthenticationNexusV1 retrieves the AuthenticationNexusV1Client
@@ -109,12 +114,7 @@ func (c *Clientset) ConnectNexusV1() connectnexusv1.ConnectNexusV1Interface {
 	return &fakeconnectnexusv1.FakeConnectNexusV1{Fake: &c.Fake}
 }
 
-// ExtensionsNexusV1 retrieves the ExtensionsNexusV1Client
-func (c *Clientset) ExtensionsNexusV1() extensionsnexusv1.ExtensionsNexusV1Interface {
-	return &fakeextensionsnexusv1.FakeExtensionsNexusV1{Fake: &c.Fake}
-}
-
-// GatewayNexusV1 retrieves the GatewayNexusV1Client
-func (c *Clientset) GatewayNexusV1() gatewaynexusv1.GatewayNexusV1Interface {
-	return &fakegatewaynexusv1.FakeGatewayNexusV1{Fake: &c.Fake}
+// RouteNexusV1 retrieves the RouteNexusV1Client
+func (c *Clientset) RouteNexusV1() routenexusv1.RouteNexusV1Interface {
+	return &fakeroutenexusv1.FakeRouteNexusV1{Fake: &c.Fake}
 }

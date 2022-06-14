@@ -18,21 +18,21 @@ const IS_NAME_HASHED_LABEL = "nexus/is_name_hashed"
 
 func GetCRDParentsMap() map[string][]string {
 	return map[string][]string{
-		"apis.apis.nexus.org":                  {},
-		"configs.config.nexus.org":             {"apis.apis.nexus.org"},
-		"connects.connect.nexus.org":           {"apis.apis.nexus.org", "configs.config.nexus.org"},
-		"extensions.extensions.nexus.org":      {"apis.apis.nexus.org", "configs.config.nexus.org"},
-		"gateways.gateway.nexus.org":           {"apis.apis.nexus.org", "configs.config.nexus.org"},
-		"nexusendpoints.connect.nexus.org":     {"apis.apis.nexus.org", "configs.config.nexus.org", "connects.connect.nexus.org"},
-		"oidcs.authentication.nexus.org":       {"apis.apis.nexus.org", "configs.config.nexus.org"},
-		"replicationconfigs.connect.nexus.org": {"apis.apis.nexus.org", "configs.config.nexus.org", "connects.connect.nexus.org"},
-		"replicationobjects.connect.nexus.org": {"apis.apis.nexus.org", "configs.config.nexus.org", "connects.connect.nexus.org", "replicationconfigs.connect.nexus.org"},
+		"apigateways.apigateway.nexus.org":     {"nexuses.api.nexus.org", "configs.config.nexus.org"},
+		"configs.config.nexus.org":             {"nexuses.api.nexus.org"},
+		"connects.connect.nexus.org":           {"nexuses.api.nexus.org", "configs.config.nexus.org"},
+		"nexusendpoints.connect.nexus.org":     {"nexuses.api.nexus.org", "configs.config.nexus.org", "connects.connect.nexus.org"},
+		"nexuses.api.nexus.org":                {},
+		"oidcs.authentication.nexus.org":       {"nexuses.api.nexus.org", "configs.config.nexus.org", "apigateways.apigateway.nexus.org"},
+		"replicationconfigs.connect.nexus.org": {"nexuses.api.nexus.org", "configs.config.nexus.org", "connects.connect.nexus.org"},
+		"replicationobjects.connect.nexus.org": {"nexuses.api.nexus.org", "configs.config.nexus.org", "connects.connect.nexus.org", "replicationconfigs.connect.nexus.org"},
+		"routes.route.nexus.org":               {"nexuses.api.nexus.org", "configs.config.nexus.org"},
 	}
 }
 
 func GetObjectByCRDName(dmClient *datamodel.Clientset, crdName string, name string) interface{} {
-	if crdName == "apis.apis.nexus.org" {
-		obj, err := dmClient.ApisNexusV1().Apis().Get(context.TODO(), name, metav1.GetOptions{})
+	if crdName == "apigateways.apigateway.nexus.org" {
+		obj, err := dmClient.ApigatewayNexusV1().ApiGateways().Get(context.TODO(), name, metav1.GetOptions{})
 		if err != nil {
 			return nil
 		}
@@ -52,22 +52,15 @@ func GetObjectByCRDName(dmClient *datamodel.Clientset, crdName string, name stri
 		}
 		return obj
 	}
-	if crdName == "extensions.extensions.nexus.org" {
-		obj, err := dmClient.ExtensionsNexusV1().Extensions().Get(context.TODO(), name, metav1.GetOptions{})
-		if err != nil {
-			return nil
-		}
-		return obj
-	}
-	if crdName == "gateways.gateway.nexus.org" {
-		obj, err := dmClient.GatewayNexusV1().Gateways().Get(context.TODO(), name, metav1.GetOptions{})
-		if err != nil {
-			return nil
-		}
-		return obj
-	}
 	if crdName == "nexusendpoints.connect.nexus.org" {
 		obj, err := dmClient.ConnectNexusV1().NexusEndpoints().Get(context.TODO(), name, metav1.GetOptions{})
+		if err != nil {
+			return nil
+		}
+		return obj
+	}
+	if crdName == "nexuses.api.nexus.org" {
+		obj, err := dmClient.ApiNexusV1().Nexuses().Get(context.TODO(), name, metav1.GetOptions{})
 		if err != nil {
 			return nil
 		}
@@ -89,6 +82,13 @@ func GetObjectByCRDName(dmClient *datamodel.Clientset, crdName string, name stri
 	}
 	if crdName == "replicationobjects.connect.nexus.org" {
 		obj, err := dmClient.ConnectNexusV1().ReplicationObjects().Get(context.TODO(), name, metav1.GetOptions{})
+		if err != nil {
+			return nil
+		}
+		return obj
+	}
+	if crdName == "routes.route.nexus.org" {
+		obj, err := dmClient.RouteNexusV1().Routes().Get(context.TODO(), name, metav1.GetOptions{})
 		if err != nil {
 			return nil
 		}

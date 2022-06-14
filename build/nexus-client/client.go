@@ -26,22 +26,22 @@ import (
 	"golang-appnet.eng.vmware.com/nexus-sdk/api/build/common"
 	"golang-appnet.eng.vmware.com/nexus-sdk/api/build/helper"
 
-	baseapisnexusorgv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/apis.nexus.org/v1"
+	baseapinexusorgv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/api.nexus.org/v1"
+	baseapigatewaynexusorgv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/apigateway.nexus.org/v1"
 	baseauthenticationnexusorgv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/authentication.nexus.org/v1"
 	baseconfignexusorgv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/config.nexus.org/v1"
 	baseconnectnexusorgv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/connect.nexus.org/v1"
-	baseextensionsnexusorgv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/extensions.nexus.org/v1"
-	basegatewaynexusorgv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/gateway.nexus.org/v1"
+	baseroutenexusorgv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/route.nexus.org/v1"
 )
 
 type Clientset struct {
 	baseClient            baseClientset.Interface
-	apisNexusV1           *ApisNexusV1
-	extensionsNexusV1     *ExtensionsNexusV1
+	apiNexusV1            *ApiNexusV1
+	apigatewayNexusV1     *ApigatewayNexusV1
 	authenticationNexusV1 *AuthenticationNexusV1
 	configNexusV1         *ConfigNexusV1
 	connectNexusV1        *ConnectNexusV1
-	gatewayNexusV1        *GatewayNexusV1
+	routeNexusV1          *RouteNexusV1
 }
 
 // NewForConfig returns Client which can be which can be used to connect to database
@@ -52,12 +52,12 @@ func NewForConfig(config *rest.Config) (*Clientset, error) {
 	}
 	client := &Clientset{}
 	client.baseClient = baseClient
-	client.apisNexusV1 = newApisNexusV1(client)
-	client.extensionsNexusV1 = newExtensionsNexusV1(client)
+	client.apiNexusV1 = newApiNexusV1(client)
+	client.apigatewayNexusV1 = newApigatewayNexusV1(client)
 	client.authenticationNexusV1 = newAuthenticationNexusV1(client)
 	client.configNexusV1 = newConfigNexusV1(client)
 	client.connectNexusV1 = newConnectNexusV1(client)
-	client.gatewayNexusV1 = newGatewayNexusV1(client)
+	client.routeNexusV1 = newRouteNexusV1(client)
 
 	return client, nil
 }
@@ -66,12 +66,12 @@ func NewForConfig(config *rest.Config) (*Clientset, error) {
 func NewFakeClient() *Clientset {
 	client := &Clientset{}
 	client.baseClient = fakeBaseClienset.NewSimpleClientset()
-	client.apisNexusV1 = newApisNexusV1(client)
-	client.extensionsNexusV1 = newExtensionsNexusV1(client)
+	client.apiNexusV1 = newApiNexusV1(client)
+	client.apigatewayNexusV1 = newApigatewayNexusV1(client)
 	client.authenticationNexusV1 = newAuthenticationNexusV1(client)
 	client.configNexusV1 = newConfigNexusV1(client)
 	client.connectNexusV1 = newConnectNexusV1(client)
-	client.gatewayNexusV1 = newGatewayNexusV1(client)
+	client.routeNexusV1 = newRouteNexusV1(client)
 
 	return client
 }
@@ -88,11 +88,11 @@ func (p Patch) Marshal() ([]byte, error) {
 	return json.Marshal(p)
 }
 
-func (c *Clientset) Apis() *ApisNexusV1 {
-	return c.apisNexusV1
+func (c *Clientset) Api() *ApiNexusV1 {
+	return c.apiNexusV1
 }
-func (c *Clientset) Extensions() *ExtensionsNexusV1 {
-	return c.extensionsNexusV1
+func (c *Clientset) Apigateway() *ApigatewayNexusV1 {
+	return c.apigatewayNexusV1
 }
 func (c *Clientset) Authentication() *AuthenticationNexusV1 {
 	return c.authenticationNexusV1
@@ -103,26 +103,26 @@ func (c *Clientset) Config() *ConfigNexusV1 {
 func (c *Clientset) Connect() *ConnectNexusV1 {
 	return c.connectNexusV1
 }
-func (c *Clientset) Gateway() *GatewayNexusV1 {
-	return c.gatewayNexusV1
+func (c *Clientset) Route() *RouteNexusV1 {
+	return c.routeNexusV1
 }
 
-type ApisNexusV1 struct {
+type ApiNexusV1 struct {
 	client *Clientset
 }
 
-func newApisNexusV1(client *Clientset) *ApisNexusV1 {
-	return &ApisNexusV1{
+func newApiNexusV1(client *Clientset) *ApiNexusV1 {
+	return &ApiNexusV1{
 		client: client,
 	}
 }
 
-type ExtensionsNexusV1 struct {
+type ApigatewayNexusV1 struct {
 	client *Clientset
 }
 
-func newExtensionsNexusV1(client *Clientset) *ExtensionsNexusV1 {
-	return &ExtensionsNexusV1{
+func newApigatewayNexusV1(client *Clientset) *ApigatewayNexusV1 {
+	return &ApigatewayNexusV1{
 		client: client,
 	}
 }
@@ -157,39 +157,39 @@ func newConnectNexusV1(client *Clientset) *ConnectNexusV1 {
 	}
 }
 
-type GatewayNexusV1 struct {
+type RouteNexusV1 struct {
 	client *Clientset
 }
 
-func newGatewayNexusV1(client *Clientset) *GatewayNexusV1 {
-	return &GatewayNexusV1{
+func newRouteNexusV1(client *Clientset) *RouteNexusV1 {
+	return &RouteNexusV1{
 		client: client,
 	}
 }
 
-// GetApiByName returns object stored in the database under the hashedName which is a hash of display
+// GetNexusByName returns object stored in the database under the hashedName which is a hash of display
 // name and parents names. Use it when you know hashed name of object.
-func (group *ApisNexusV1) GetApiByName(ctx context.Context, hashedName string) (*ApisApi, error) {
+func (group *ApiNexusV1) GetNexusByName(ctx context.Context, hashedName string) (*ApiNexus, error) {
 	result, err := group.client.baseClient.
-		ApisNexusV1().
-		Apis().Get(ctx, hashedName, metav1.GetOptions{})
+		ApiNexusV1().
+		Nexuses().Get(ctx, hashedName, metav1.GetOptions{})
 	if err != nil {
 		return nil, err
 	}
 
-	return &ApisApi{
+	return &ApiNexus{
 		client: group.client,
-		Api:    result,
+		Nexus:  result,
 	}, nil
 }
 
-// DeleteApiByName deletes object stored in the database under the hashedName which is a hash of
+// DeleteNexusByName deletes object stored in the database under the hashedName which is a hash of
 // display name and parents names. Use it when you know hashed name of object.
-func (group *ApisNexusV1) DeleteApiByName(ctx context.Context, hashedName string) (err error) {
+func (group *ApiNexusV1) DeleteNexusByName(ctx context.Context, hashedName string) (err error) {
 
 	result, err := group.client.baseClient.
-		ApisNexusV1().
-		Apis().Get(ctx, hashedName, metav1.GetOptions{})
+		ApiNexusV1().
+		Nexuses().Get(ctx, hashedName, metav1.GetOptions{})
 	if err != nil {
 		return err
 	}
@@ -204,8 +204,8 @@ func (group *ApisNexusV1) DeleteApiByName(ctx context.Context, hashedName string
 	}
 
 	err = group.client.baseClient.
-		ApisNexusV1().
-		Apis().Delete(ctx, hashedName, metav1.DeleteOptions{})
+		ApiNexusV1().
+		Nexuses().Delete(ctx, hashedName, metav1.DeleteOptions{})
 	if err != nil {
 		return err
 	}
@@ -213,10 +213,10 @@ func (group *ApisNexusV1) DeleteApiByName(ctx context.Context, hashedName string
 	return
 }
 
-// CreateApiByName creates object in the database without hashing the name.
+// CreateNexusByName creates object in the database without hashing the name.
 // Use it directly ONLY when objToCreate.Name is hashed name of the object.
-func (group *ApisNexusV1) CreateApiByName(ctx context.Context,
-	objToCreate *baseapisnexusorgv1.Api) (*ApisApi, error) {
+func (group *ApiNexusV1) CreateNexusByName(ctx context.Context,
+	objToCreate *baseapinexusorgv1.Nexus) (*ApiNexus, error) {
 	if objToCreate.GetLabels() == nil {
 		objToCreate.Labels = make(map[string]string)
 	}
@@ -227,27 +227,27 @@ func (group *ApisNexusV1) CreateApiByName(ctx context.Context,
 	objToCreate.Spec.ConfigGvk = nil
 
 	result, err := group.client.baseClient.
-		ApisNexusV1().
-		Apis().Create(ctx, objToCreate, metav1.CreateOptions{})
+		ApiNexusV1().
+		Nexuses().Create(ctx, objToCreate, metav1.CreateOptions{})
 	if err != nil {
 		return nil, err
 	}
 
-	return &ApisApi{
+	return &ApiNexus{
 		client: group.client,
-		Api:    result,
+		Nexus:  result,
 	}, nil
 }
 
-// UpdateApiByName updates object stored in the database under the hashedName which is a hash of
+// UpdateNexusByName updates object stored in the database under the hashedName which is a hash of
 // display name and parents names.
-func (group *ApisNexusV1) UpdateApiByName(ctx context.Context,
-	objToUpdate *baseapisnexusorgv1.Api) (*ApisApi, error) {
+func (group *ApiNexusV1) UpdateNexusByName(ctx context.Context,
+	objToUpdate *baseapinexusorgv1.Nexus) (*ApiNexus, error) {
 	// ResourceVersion must be set for update
 	if objToUpdate.ResourceVersion == "" {
 		current, err := group.client.baseClient.
-			ApisNexusV1().
-			Apis().Get(ctx, objToUpdate.GetName(), metav1.GetOptions{})
+			ApiNexusV1().
+			Nexuses().Get(ctx, objToUpdate.GetName(), metav1.GetOptions{})
 		if err != nil {
 			return nil, err
 		}
@@ -267,83 +267,83 @@ func (group *ApisNexusV1) UpdateApiByName(ctx context.Context,
 		return nil, err
 	}
 	result, err := group.client.baseClient.
-		ApisNexusV1().
-		Apis().Patch(ctx, objToUpdate.GetName(), types.JSONPatchType, marshaled, metav1.PatchOptions{}, "")
+		ApiNexusV1().
+		Nexuses().Patch(ctx, objToUpdate.GetName(), types.JSONPatchType, marshaled, metav1.PatchOptions{}, "")
 	if err != nil {
 		return nil, err
 	}
 
-	return &ApisApi{
+	return &ApiNexus{
 		client: group.client,
-		Api:    result,
+		Nexus:  result,
 	}, nil
 }
 
-// ListApis returns slice of all existing objects of this type. Selectors can be provided in opts parameter.
-func (group *ApisNexusV1) ListApis(ctx context.Context,
-	opts metav1.ListOptions) (result []*ApisApi, err error) {
-	list, err := group.client.baseClient.ApisNexusV1().
-		Apis().List(ctx, opts)
+// ListNexuses returns slice of all existing objects of this type. Selectors can be provided in opts parameter.
+func (group *ApiNexusV1) ListNexuses(ctx context.Context,
+	opts metav1.ListOptions) (result []*ApiNexus, err error) {
+	list, err := group.client.baseClient.ApiNexusV1().
+		Nexuses().List(ctx, opts)
 	if err != nil {
 		return nil, err
 	}
-	result = make([]*ApisApi, len(list.Items))
+	result = make([]*ApiNexus, len(list.Items))
 	for k, v := range list.Items {
-		result[k] = &ApisApi{
+		result[k] = &ApiNexus{
 			client: group.client,
-			Api:    &v,
+			Nexus:  &v,
 		}
 	}
 	return
 }
 
-type ApisApi struct {
+type ApiNexus struct {
 	client *Clientset
-	*baseapisnexusorgv1.Api
+	*baseapinexusorgv1.Nexus
 }
 
 // Delete removes obj and all it's children from the database.
-func (obj *ApisApi) Delete(ctx context.Context) error {
-	err := obj.client.Apis().DeleteApiByName(ctx, obj.GetName())
+func (obj *ApiNexus) Delete(ctx context.Context) error {
+	err := obj.client.Api().DeleteNexusByName(ctx, obj.GetName())
 	if err != nil {
 		return err
 	}
-	obj.Api = nil
+	obj.Nexus = nil
 	return nil
 }
 
 // Update updates spec of object in database. Children and Link can not be updated using this function.
-func (obj *ApisApi) Update(ctx context.Context) error {
-	result, err := obj.client.Apis().UpdateApiByName(ctx, obj.Api)
+func (obj *ApiNexus) Update(ctx context.Context) error {
+	result, err := obj.client.Api().UpdateNexusByName(ctx, obj.Nexus)
 	if err != nil {
 		return err
 	}
-	obj.Api = result.Api
+	obj.Nexus = result.Nexus
 	return nil
 }
 
-func (c *Clientset) ApisApi(displayName string) *apiApisNexusV1Chainer {
+func (c *Clientset) ApiNexus(displayName string) *nexusApiNexusV1Chainer {
 	parentLabels := make(map[string]string)
-	parentLabels["apis.apis.nexus.org"] = displayName
-	return &apiApisNexusV1Chainer{
+	parentLabels["nexuses.api.nexus.org"] = displayName
+	return &nexusApiNexusV1Chainer{
 		client:       c,
 		name:         displayName,
 		parentLabels: parentLabels,
 	}
 }
 
-// GetApisApi calculates the hashed name based on parents and displayName and
+// GetApiNexus calculates the hashed name based on parents and displayName and
 // returns given object
-func (c *Clientset) GetApisApi(ctx context.Context, displayName string) (result *ApisApi, err error) {
-	hashedName := helper.GetHashedName("apis.apis.nexus.org", nil, displayName)
-	return c.Apis().GetApiByName(ctx, hashedName)
+func (c *Clientset) GetApiNexus(ctx context.Context, displayName string) (result *ApiNexus, err error) {
+	hashedName := helper.GetHashedName("nexuses.api.nexus.org", nil, displayName)
+	return c.Api().GetNexusByName(ctx, hashedName)
 }
 
-// AddApisApi calculates hashed name of the object based on objToCreate.Name
+// AddApiNexus calculates hashed name of the object based on objToCreate.Name
 // and parents names and creates it. objToCreate.Name is changed to the hashed name. Original name is preserved in
 // nexus/display_name label and can be obtained using DisplayName() method.
-func (c *Clientset) AddApisApi(ctx context.Context,
-	objToCreate *baseapisnexusorgv1.Api) (result *ApisApi, err error) {
+func (c *Clientset) AddApiNexus(ctx context.Context,
+	objToCreate *baseapinexusorgv1.Nexus) (result *ApiNexus, err error) {
 	if objToCreate.Labels == nil {
 		objToCreate.Labels = map[string]string{}
 	}
@@ -353,18 +353,18 @@ func (c *Clientset) AddApisApi(ctx context.Context,
 		hashedName := helper.GetHashedName(objToCreate.CRDName(), nil, objToCreate.GetName())
 		objToCreate.Name = hashedName
 	}
-	return c.Apis().CreateApiByName(ctx, objToCreate)
+	return c.Api().CreateNexusByName(ctx, objToCreate)
 }
 
-// DeleteApisApi calculates hashedName of object based on displayName and
+// DeleteApiNexus calculates hashedName of object based on displayName and
 // parents and deletes given object
-func (c *Clientset) DeleteApisApi(ctx context.Context, displayName string) (err error) {
-	hashedName := helper.GetHashedName("apis.apis.nexus.org", nil, displayName)
-	return c.Apis().DeleteApiByName(ctx, hashedName)
+func (c *Clientset) DeleteApiNexus(ctx context.Context, displayName string) (err error) {
+	hashedName := helper.GetHashedName("nexuses.api.nexus.org", nil, displayName)
+	return c.Api().DeleteNexusByName(ctx, hashedName)
 }
 
 // GetConfig returns child or link of given type
-func (obj *ApisApi) GetConfig(ctx context.Context) (
+func (obj *ApiNexus) GetConfig(ctx context.Context) (
 	result *ConfigConfig, err error) {
 	if obj.Spec.ConfigGvk != nil {
 		return obj.client.Config().GetConfigByName(ctx, obj.Spec.ConfigGvk.Name)
@@ -375,15 +375,15 @@ func (obj *ApisApi) GetConfig(ctx context.Context) (
 // AddConfig calculates hashed name of the child to create based on objToCreate.Name
 // and parents names and creates it. objToCreate.Name is changed to the hashed name. Original name is preserved in
 // nexus/display_name label and can be obtained using DisplayName() method.
-func (obj *ApisApi) AddConfig(ctx context.Context,
+func (obj *ApiNexus) AddConfig(ctx context.Context,
 	objToCreate *baseconfignexusorgv1.Config) (result *ConfigConfig, err error) {
 	if objToCreate.Labels == nil {
 		objToCreate.Labels = map[string]string{}
 	}
-	for _, v := range helper.GetCRDParentsMap()["apis.apis.nexus.org"] {
+	for _, v := range helper.GetCRDParentsMap()["nexuses.api.nexus.org"] {
 		objToCreate.Labels[v] = obj.Labels[v]
 	}
-	objToCreate.Labels["apis.apis.nexus.org"] = obj.DisplayName()
+	objToCreate.Labels["nexuses.api.nexus.org"] = obj.DisplayName()
 	if objToCreate.Labels[common.IS_NAME_HASHED_LABEL] != "true" {
 		objToCreate.Labels[common.DISPLAY_NAME_LABEL] = objToCreate.GetName()
 		objToCreate.Labels[common.IS_NAME_HASHED_LABEL] = "true"
@@ -391,9 +391,9 @@ func (obj *ApisApi) AddConfig(ctx context.Context,
 		objToCreate.Name = hashedName
 	}
 	result, err = obj.client.Config().CreateConfigByName(ctx, objToCreate)
-	updatedObj, getErr := obj.client.Apis().GetApiByName(ctx, obj.GetName())
+	updatedObj, getErr := obj.client.Api().GetNexusByName(ctx, obj.GetName())
 	if getErr == nil {
-		obj.Api = updatedObj.Api
+		obj.Nexus = updatedObj.Nexus
 	}
 	return
 }
@@ -401,7 +401,7 @@ func (obj *ApisApi) AddConfig(ctx context.Context,
 // DeleteConfig calculates hashed name of the child to delete based on displayName
 // and parents names and deletes it.
 
-func (obj *ApisApi) DeleteConfig(ctx context.Context) (err error) {
+func (obj *ApiNexus) DeleteConfig(ctx context.Context) (err error) {
 	if obj.Spec.ConfigGvk != nil {
 		err = obj.client.
 			Config().DeleteConfigByName(ctx, obj.Spec.ConfigGvk.Name)
@@ -410,20 +410,20 @@ func (obj *ApisApi) DeleteConfig(ctx context.Context) (err error) {
 		}
 	}
 	updatedObj, err := obj.client.
-		Apis().GetApiByName(ctx, obj.GetName())
+		Api().GetNexusByName(ctx, obj.GetName())
 	if err == nil {
-		obj.Api = updatedObj.Api
+		obj.Nexus = updatedObj.Nexus
 	}
 	return
 }
 
-type apiApisNexusV1Chainer struct {
+type nexusApiNexusV1Chainer struct {
 	client       *Clientset
 	name         string
 	parentLabels map[string]string
 }
 
-func (c *apiApisNexusV1Chainer) Config(name string) *configConfigNexusV1Chainer {
+func (c *nexusApiNexusV1Chainer) Config(name string) *configConfigNexusV1Chainer {
 	parentLabels := c.parentLabels
 	parentLabels["configs.config.nexus.org"] = name
 	return &configConfigNexusV1Chainer{
@@ -434,7 +434,7 @@ func (c *apiApisNexusV1Chainer) Config(name string) *configConfigNexusV1Chainer 
 }
 
 // GetConfig calculates hashed name of the object based on displayName and it's parents and returns the object
-func (c *apiApisNexusV1Chainer) GetConfig(ctx context.Context, displayName string) (result *ConfigConfig, err error) {
+func (c *nexusApiNexusV1Chainer) GetConfig(ctx context.Context, displayName string) (result *ConfigConfig, err error) {
 	hashedName := helper.GetHashedName("configs.config.nexus.org", c.parentLabels, displayName)
 	return c.client.Config().GetConfigByName(ctx, hashedName)
 }
@@ -442,7 +442,7 @@ func (c *apiApisNexusV1Chainer) GetConfig(ctx context.Context, displayName strin
 // AddConfig calculates hashed name of the child to create based on objToCreate.Name
 // and parents names and creates it. objToCreate.Name is changed to the hashed name. Original name is preserved in
 // nexus/display_name label and can be obtained using DisplayName() method.
-func (c *apiApisNexusV1Chainer) AddConfig(ctx context.Context,
+func (c *nexusApiNexusV1Chainer) AddConfig(ctx context.Context,
 	objToCreate *baseconfignexusorgv1.Config) (result *ConfigConfig, err error) {
 	if objToCreate.Labels == nil {
 		objToCreate.Labels = map[string]string{}
@@ -461,7 +461,7 @@ func (c *apiApisNexusV1Chainer) AddConfig(ctx context.Context,
 
 // DeleteConfig calculates hashed name of the child to delete based on displayName
 // and parents names and deletes it.
-func (c *apiApisNexusV1Chainer) DeleteConfig(ctx context.Context, name string) (err error) {
+func (c *nexusApiNexusV1Chainer) DeleteConfig(ctx context.Context, name string) (err error) {
 	if c.parentLabels == nil {
 		c.parentLabels = map[string]string{}
 	}
@@ -470,36 +470,45 @@ func (c *apiApisNexusV1Chainer) DeleteConfig(ctx context.Context, name string) (
 	return c.client.Config().DeleteConfigByName(ctx, hashedName)
 }
 
-// GetExtensionByName returns object stored in the database under the hashedName which is a hash of display
+// GetApiGatewayByName returns object stored in the database under the hashedName which is a hash of display
 // name and parents names. Use it when you know hashed name of object.
-func (group *ExtensionsNexusV1) GetExtensionByName(ctx context.Context, hashedName string) (*ExtensionsExtension, error) {
+func (group *ApigatewayNexusV1) GetApiGatewayByName(ctx context.Context, hashedName string) (*ApigatewayApiGateway, error) {
 	result, err := group.client.baseClient.
-		ExtensionsNexusV1().
-		Extensions().Get(ctx, hashedName, metav1.GetOptions{})
+		ApigatewayNexusV1().
+		ApiGateways().Get(ctx, hashedName, metav1.GetOptions{})
 	if err != nil {
 		return nil, err
 	}
 
-	return &ExtensionsExtension{
-		client:    group.client,
-		Extension: result,
+	return &ApigatewayApiGateway{
+		client:     group.client,
+		ApiGateway: result,
 	}, nil
 }
 
-// DeleteExtensionByName deletes object stored in the database under the hashedName which is a hash of
+// DeleteApiGatewayByName deletes object stored in the database under the hashedName which is a hash of
 // display name and parents names. Use it when you know hashed name of object.
-func (group *ExtensionsNexusV1) DeleteExtensionByName(ctx context.Context, hashedName string) (err error) {
+func (group *ApigatewayNexusV1) DeleteApiGatewayByName(ctx context.Context, hashedName string) (err error) {
 
 	result, err := group.client.baseClient.
-		ExtensionsNexusV1().
-		Extensions().Get(ctx, hashedName, metav1.GetOptions{})
+		ApigatewayNexusV1().
+		ApiGateways().Get(ctx, hashedName, metav1.GetOptions{})
 	if err != nil {
 		return err
 	}
 
+	if result.Spec.AuthnGvk != nil {
+		err := group.client.
+			Authentication().
+			DeleteOIDCByName(ctx, result.Spec.AuthnGvk.Name)
+		if err != nil {
+			return err
+		}
+	}
+
 	err = group.client.baseClient.
-		ExtensionsNexusV1().
-		Extensions().Delete(ctx, hashedName, metav1.DeleteOptions{})
+		ApigatewayNexusV1().
+		ApiGateways().Delete(ctx, hashedName, metav1.DeleteOptions{})
 	if err != nil {
 		return err
 	}
@@ -508,7 +517,7 @@ func (group *ExtensionsNexusV1) DeleteExtensionByName(ctx context.Context, hashe
 
 	patchOp := PatchOp{
 		Op:   "remove",
-		Path: "/spec/apiExtensionsGvk",
+		Path: "/spec/apiGatewayGvk",
 	}
 
 	patch = append(patch, patchOp)
@@ -537,10 +546,10 @@ func (group *ExtensionsNexusV1) DeleteExtensionByName(ctx context.Context, hashe
 	return
 }
 
-// CreateExtensionByName creates object in the database without hashing the name.
+// CreateApiGatewayByName creates object in the database without hashing the name.
 // Use it directly ONLY when objToCreate.Name is hashed name of the object.
-func (group *ExtensionsNexusV1) CreateExtensionByName(ctx context.Context,
-	objToCreate *baseextensionsnexusorgv1.Extension) (*ExtensionsExtension, error) {
+func (group *ApigatewayNexusV1) CreateApiGatewayByName(ctx context.Context,
+	objToCreate *baseapigatewaynexusorgv1.ApiGateway) (*ApigatewayApiGateway, error) {
 	if objToCreate.GetLabels() == nil {
 		objToCreate.Labels = make(map[string]string)
 	}
@@ -548,9 +557,11 @@ func (group *ExtensionsNexusV1) CreateExtensionByName(ctx context.Context,
 		objToCreate.Labels[common.DISPLAY_NAME_LABEL] = objToCreate.GetName()
 	}
 
+	objToCreate.Spec.AuthnGvk = nil
+
 	result, err := group.client.baseClient.
-		ExtensionsNexusV1().
-		Extensions().Create(ctx, objToCreate, metav1.CreateOptions{})
+		ApigatewayNexusV1().
+		ApiGateways().Create(ctx, objToCreate, metav1.CreateOptions{})
 	if err != nil {
 		return nil, err
 	}
@@ -566,10 +577,10 @@ func (group *ExtensionsNexusV1) CreateExtensionByName(ctx context.Context,
 	var patch Patch
 	patchOp := PatchOp{
 		Op:   "replace",
-		Path: "/spec/apiExtensionsGvk",
-		Value: baseextensionsnexusorgv1.Child{
-			Group: "extensions.nexus.org",
-			Kind:  "Extension",
+		Path: "/spec/apiGatewayGvk",
+		Value: baseapigatewaynexusorgv1.Child{
+			Group: "apigateway.nexus.org",
+			Kind:  "ApiGateway",
 			Name:  objToCreate.Name,
 		},
 	}
@@ -585,21 +596,21 @@ func (group *ExtensionsNexusV1) CreateExtensionByName(ctx context.Context,
 		return nil, err
 	}
 
-	return &ExtensionsExtension{
-		client:    group.client,
-		Extension: result,
+	return &ApigatewayApiGateway{
+		client:     group.client,
+		ApiGateway: result,
 	}, nil
 }
 
-// UpdateExtensionByName updates object stored in the database under the hashedName which is a hash of
+// UpdateApiGatewayByName updates object stored in the database under the hashedName which is a hash of
 // display name and parents names.
-func (group *ExtensionsNexusV1) UpdateExtensionByName(ctx context.Context,
-	objToUpdate *baseextensionsnexusorgv1.Extension) (*ExtensionsExtension, error) {
+func (group *ApigatewayNexusV1) UpdateApiGatewayByName(ctx context.Context,
+	objToUpdate *baseapigatewaynexusorgv1.ApiGateway) (*ApigatewayApiGateway, error) {
 	// ResourceVersion must be set for update
 	if objToUpdate.ResourceVersion == "" {
 		current, err := group.client.baseClient.
-			ExtensionsNexusV1().
-			Extensions().Get(ctx, objToUpdate.GetName(), metav1.GetOptions{})
+			ApigatewayNexusV1().
+			ApiGateways().Get(ctx, objToUpdate.GetName(), metav1.GetOptions{})
 		if err != nil {
 			return nil, err
 		}
@@ -614,102 +625,185 @@ func (group *ExtensionsNexusV1) UpdateExtensionByName(ctx context.Context,
 	}
 	patch = append(patch, patchOpMeta)
 
-	patchValueUri :=
-		objToUpdate.Spec.Uri
-	patchOpUri := PatchOp{
+	patchValueConfig :=
+		objToUpdate.Spec.Config
+	patchOpConfig := PatchOp{
 		Op:    "replace",
-		Path:  "/spec/uri",
-		Value: patchValueUri,
+		Path:  "/spec/config",
+		Value: patchValueConfig,
 	}
-	patch = append(patch, patchOpUri)
-
-	patchValueService :=
-		objToUpdate.Spec.Service
-	patchOpService := PatchOp{
-		Op:    "replace",
-		Path:  "/spec/service",
-		Value: patchValueService,
-	}
-	patch = append(patch, patchOpService)
-
-	patchValueResource :=
-		objToUpdate.Spec.Resource
-	patchOpResource := PatchOp{
-		Op:    "replace",
-		Path:  "/spec/resource",
-		Value: patchValueResource,
-	}
-	patch = append(patch, patchOpResource)
+	patch = append(patch, patchOpConfig)
 
 	marshaled, err := patch.Marshal()
 	if err != nil {
 		return nil, err
 	}
 	result, err := group.client.baseClient.
-		ExtensionsNexusV1().
-		Extensions().Patch(ctx, objToUpdate.GetName(), types.JSONPatchType, marshaled, metav1.PatchOptions{}, "")
+		ApigatewayNexusV1().
+		ApiGateways().Patch(ctx, objToUpdate.GetName(), types.JSONPatchType, marshaled, metav1.PatchOptions{}, "")
 	if err != nil {
 		return nil, err
 	}
 
-	return &ExtensionsExtension{
-		client:    group.client,
-		Extension: result,
+	return &ApigatewayApiGateway{
+		client:     group.client,
+		ApiGateway: result,
 	}, nil
 }
 
-// ListExtensions returns slice of all existing objects of this type. Selectors can be provided in opts parameter.
-func (group *ExtensionsNexusV1) ListExtensions(ctx context.Context,
-	opts metav1.ListOptions) (result []*ExtensionsExtension, err error) {
-	list, err := group.client.baseClient.ExtensionsNexusV1().
-		Extensions().List(ctx, opts)
+// ListApiGateways returns slice of all existing objects of this type. Selectors can be provided in opts parameter.
+func (group *ApigatewayNexusV1) ListApiGateways(ctx context.Context,
+	opts metav1.ListOptions) (result []*ApigatewayApiGateway, err error) {
+	list, err := group.client.baseClient.ApigatewayNexusV1().
+		ApiGateways().List(ctx, opts)
 	if err != nil {
 		return nil, err
 	}
-	result = make([]*ExtensionsExtension, len(list.Items))
+	result = make([]*ApigatewayApiGateway, len(list.Items))
 	for k, v := range list.Items {
-		result[k] = &ExtensionsExtension{
-			client:    group.client,
-			Extension: &v,
+		result[k] = &ApigatewayApiGateway{
+			client:     group.client,
+			ApiGateway: &v,
 		}
 	}
 	return
 }
 
-type ExtensionsExtension struct {
+type ApigatewayApiGateway struct {
 	client *Clientset
-	*baseextensionsnexusorgv1.Extension
+	*baseapigatewaynexusorgv1.ApiGateway
 }
 
 // Delete removes obj and all it's children from the database.
-func (obj *ExtensionsExtension) Delete(ctx context.Context) error {
-	err := obj.client.Extensions().DeleteExtensionByName(ctx, obj.GetName())
+func (obj *ApigatewayApiGateway) Delete(ctx context.Context) error {
+	err := obj.client.Apigateway().DeleteApiGatewayByName(ctx, obj.GetName())
 	if err != nil {
 		return err
 	}
-	obj.Extension = nil
+	obj.ApiGateway = nil
 	return nil
 }
 
 // Update updates spec of object in database. Children and Link can not be updated using this function.
-func (obj *ExtensionsExtension) Update(ctx context.Context) error {
-	result, err := obj.client.Extensions().UpdateExtensionByName(ctx, obj.Extension)
+func (obj *ApigatewayApiGateway) Update(ctx context.Context) error {
+	result, err := obj.client.Apigateway().UpdateApiGatewayByName(ctx, obj.ApiGateway)
 	if err != nil {
 		return err
 	}
-	obj.Extension = result.Extension
+	obj.ApiGateway = result.ApiGateway
 	return nil
 }
 
-func (obj *ExtensionsExtension) GetParent(ctx context.Context) (result *ConfigConfig, err error) {
+func (obj *ApigatewayApiGateway) GetParent(ctx context.Context) (result *ConfigConfig, err error) {
 	hashedName := helper.GetHashedName("configs.config.nexus.org", obj.Labels, obj.Labels["configs.config.nexus.org"])
 	return obj.client.Config().GetConfigByName(ctx, hashedName)
 }
 
-type extensionExtensionsNexusV1Chainer struct {
+// GetAuthn returns child or link of given type
+func (obj *ApigatewayApiGateway) GetAuthn(ctx context.Context) (
+	result *AuthenticationOIDC, err error) {
+	if obj.Spec.AuthnGvk != nil {
+		return obj.client.Authentication().GetOIDCByName(ctx, obj.Spec.AuthnGvk.Name)
+	}
+	return
+}
+
+// AddAuthn calculates hashed name of the child to create based on objToCreate.Name
+// and parents names and creates it. objToCreate.Name is changed to the hashed name. Original name is preserved in
+// nexus/display_name label and can be obtained using DisplayName() method.
+func (obj *ApigatewayApiGateway) AddAuthn(ctx context.Context,
+	objToCreate *baseauthenticationnexusorgv1.OIDC) (result *AuthenticationOIDC, err error) {
+	if objToCreate.Labels == nil {
+		objToCreate.Labels = map[string]string{}
+	}
+	for _, v := range helper.GetCRDParentsMap()["apigateways.apigateway.nexus.org"] {
+		objToCreate.Labels[v] = obj.Labels[v]
+	}
+	objToCreate.Labels["apigateways.apigateway.nexus.org"] = obj.DisplayName()
+	if objToCreate.Labels[common.IS_NAME_HASHED_LABEL] != "true" {
+		objToCreate.Labels[common.DISPLAY_NAME_LABEL] = objToCreate.GetName()
+		objToCreate.Labels[common.IS_NAME_HASHED_LABEL] = "true"
+		hashedName := helper.GetHashedName(objToCreate.CRDName(), objToCreate.Labels, objToCreate.GetName())
+		objToCreate.Name = hashedName
+	}
+	result, err = obj.client.Authentication().CreateOIDCByName(ctx, objToCreate)
+	updatedObj, getErr := obj.client.Apigateway().GetApiGatewayByName(ctx, obj.GetName())
+	if getErr == nil {
+		obj.ApiGateway = updatedObj.ApiGateway
+	}
+	return
+}
+
+// DeleteAuthn calculates hashed name of the child to delete based on displayName
+// and parents names and deletes it.
+
+func (obj *ApigatewayApiGateway) DeleteAuthn(ctx context.Context) (err error) {
+	if obj.Spec.AuthnGvk != nil {
+		err = obj.client.
+			Authentication().DeleteOIDCByName(ctx, obj.Spec.AuthnGvk.Name)
+		if err != nil {
+			return err
+		}
+	}
+	updatedObj, err := obj.client.
+		Apigateway().GetApiGatewayByName(ctx, obj.GetName())
+	if err == nil {
+		obj.ApiGateway = updatedObj.ApiGateway
+	}
+	return
+}
+
+type apigatewayApigatewayNexusV1Chainer struct {
 	client       *Clientset
 	name         string
 	parentLabels map[string]string
+}
+
+func (c *apigatewayApigatewayNexusV1Chainer) Authn(name string) *oidcAuthenticationNexusV1Chainer {
+	parentLabels := c.parentLabels
+	parentLabels["oidcs.authentication.nexus.org"] = name
+	return &oidcAuthenticationNexusV1Chainer{
+		client:       c.client,
+		name:         name,
+		parentLabels: parentLabels,
+	}
+}
+
+// GetAuthn calculates hashed name of the object based on displayName and it's parents and returns the object
+func (c *apigatewayApigatewayNexusV1Chainer) GetAuthn(ctx context.Context, displayName string) (result *AuthenticationOIDC, err error) {
+	hashedName := helper.GetHashedName("oidcs.authentication.nexus.org", c.parentLabels, displayName)
+	return c.client.Authentication().GetOIDCByName(ctx, hashedName)
+}
+
+// AddAuthn calculates hashed name of the child to create based on objToCreate.Name
+// and parents names and creates it. objToCreate.Name is changed to the hashed name. Original name is preserved in
+// nexus/display_name label and can be obtained using DisplayName() method.
+func (c *apigatewayApigatewayNexusV1Chainer) AddAuthn(ctx context.Context,
+	objToCreate *baseauthenticationnexusorgv1.OIDC) (result *AuthenticationOIDC, err error) {
+	if objToCreate.Labels == nil {
+		objToCreate.Labels = map[string]string{}
+	}
+	for k, v := range c.parentLabels {
+		objToCreate.Labels[k] = v
+	}
+	if objToCreate.Labels[common.IS_NAME_HASHED_LABEL] != "true" {
+		objToCreate.Labels[common.DISPLAY_NAME_LABEL] = objToCreate.GetName()
+		objToCreate.Labels[common.IS_NAME_HASHED_LABEL] = "true"
+		hashedName := helper.GetHashedName("oidcs.authentication.nexus.org", c.parentLabels, objToCreate.GetName())
+		objToCreate.Name = hashedName
+	}
+	return c.client.Authentication().CreateOIDCByName(ctx, objToCreate)
+}
+
+// DeleteAuthn calculates hashed name of the child to delete based on displayName
+// and parents names and deletes it.
+func (c *apigatewayApigatewayNexusV1Chainer) DeleteAuthn(ctx context.Context, name string) (err error) {
+	if c.parentLabels == nil {
+		c.parentLabels = map[string]string{}
+	}
+	c.parentLabels[common.IS_NAME_HASHED_LABEL] = "true"
+	hashedName := helper.GetHashedName("oidcs.authentication.nexus.org", c.parentLabels, name)
+	return c.client.Authentication().DeleteOIDCByName(ctx, hashedName)
 }
 
 // GetOIDCByName returns object stored in the database under the hashedName which is a hash of display
@@ -750,7 +844,7 @@ func (group *AuthenticationNexusV1) DeleteOIDCByName(ctx context.Context, hashed
 
 	patchOp := PatchOp{
 		Op:   "remove",
-		Path: "/spec/authNGvk/" + result.DisplayName(),
+		Path: "/spec/authnGvk",
 	}
 
 	patch = append(patch, patchOp)
@@ -762,16 +856,16 @@ func (group *AuthenticationNexusV1) DeleteOIDCByName(ctx context.Context, hashed
 	if parents == nil {
 		parents = make(map[string]string)
 	}
-	parentName, ok := parents["configs.config.nexus.org"]
+	parentName, ok := parents["apigateways.apigateway.nexus.org"]
 	if !ok {
 		parentName = helper.DEFAULT_KEY
 	}
 	if parents[common.IS_NAME_HASHED_LABEL] == "true" {
-		parentName = helper.GetHashedName("configs.config.nexus.org", parents, parentName)
+		parentName = helper.GetHashedName("apigateways.apigateway.nexus.org", parents, parentName)
 	}
 	_, err = group.client.baseClient.
-		ConfigNexusV1().
-		Configs().Patch(ctx, parentName, types.JSONPatchType, marshaled, metav1.PatchOptions{})
+		ApigatewayNexusV1().
+		ApiGateways().Patch(ctx, parentName, types.JSONPatchType, marshaled, metav1.PatchOptions{})
 	if err != nil {
 		return err
 	}
@@ -797,18 +891,32 @@ func (group *AuthenticationNexusV1) CreateOIDCByName(ctx context.Context,
 		return nil, err
 	}
 
-	parentName, ok := objToCreate.GetLabels()["configs.config.nexus.org"]
+	parentName, ok := objToCreate.GetLabels()["apigateways.apigateway.nexus.org"]
 	if !ok {
 		parentName = helper.DEFAULT_KEY
 	}
 	if objToCreate.Labels[common.IS_NAME_HASHED_LABEL] == "true" {
-		parentName = helper.GetHashedName("configs.config.nexus.org", objToCreate.GetLabels(), parentName)
+		parentName = helper.GetHashedName("apigateways.apigateway.nexus.org", objToCreate.GetLabels(), parentName)
 	}
 
-	payload := "{\"spec\": {\"authNGvk\": {\"" + objToCreate.DisplayName() + "\": {\"name\": \"" + objToCreate.Name + "\",\"kind\": \"OIDC\", \"group\": \"authentication.nexus.org\"}}}}"
+	var patch Patch
+	patchOp := PatchOp{
+		Op:   "replace",
+		Path: "/spec/authnGvk",
+		Value: baseauthenticationnexusorgv1.Child{
+			Group: "authentication.nexus.org",
+			Kind:  "OIDC",
+			Name:  objToCreate.Name,
+		},
+	}
+	patch = append(patch, patchOp)
+	marshaled, err := patch.Marshal()
+	if err != nil {
+		return nil, err
+	}
 	_, err = group.client.baseClient.
-		ConfigNexusV1().
-		Configs().Patch(ctx, parentName, types.MergePatchType, []byte(payload), metav1.PatchOptions{})
+		ApigatewayNexusV1().
+		ApiGateways().Patch(ctx, parentName, types.JSONPatchType, marshaled, metav1.PatchOptions{})
 	if err != nil {
 		return nil, err
 	}
@@ -920,9 +1028,9 @@ func (obj *AuthenticationOIDC) Update(ctx context.Context) error {
 	return nil
 }
 
-func (obj *AuthenticationOIDC) GetParent(ctx context.Context) (result *ConfigConfig, err error) {
-	hashedName := helper.GetHashedName("configs.config.nexus.org", obj.Labels, obj.Labels["configs.config.nexus.org"])
-	return obj.client.Config().GetConfigByName(ctx, hashedName)
+func (obj *AuthenticationOIDC) GetParent(ctx context.Context) (result *ApigatewayApiGateway, err error) {
+	hashedName := helper.GetHashedName("apigateways.apigateway.nexus.org", obj.Labels, obj.Labels["apigateways.apigateway.nexus.org"])
+	return obj.client.Apigateway().GetApiGatewayByName(ctx, hashedName)
 }
 
 type oidcAuthenticationNexusV1Chainer struct {
@@ -958,27 +1066,18 @@ func (group *ConfigNexusV1) DeleteConfigByName(ctx context.Context, hashedName s
 		return err
 	}
 
-	if result.Spec.GatewayGvk != nil {
+	if result.Spec.ApiGatewayGvk != nil {
 		err := group.client.
-			Gateway().
-			DeleteGatewayByName(ctx, result.Spec.GatewayGvk.Name)
+			Apigateway().
+			DeleteApiGatewayByName(ctx, result.Spec.ApiGatewayGvk.Name)
 		if err != nil {
 			return err
 		}
 	}
 
-	if result.Spec.ApiExtensionsGvk != nil {
+	for _, v := range result.Spec.RoutesGvk {
 		err := group.client.
-			Extensions().
-			DeleteExtensionByName(ctx, result.Spec.ApiExtensionsGvk.Name)
-		if err != nil {
-			return err
-		}
-	}
-
-	for _, v := range result.Spec.AuthNGvk {
-		err := group.client.
-			Authentication().DeleteOIDCByName(ctx, v.Name)
+			Route().DeleteRouteByName(ctx, v.Name)
 		if err != nil {
 			return err
 		}
@@ -1016,16 +1115,16 @@ func (group *ConfigNexusV1) DeleteConfigByName(ctx context.Context, hashedName s
 	if parents == nil {
 		parents = make(map[string]string)
 	}
-	parentName, ok := parents["apis.apis.nexus.org"]
+	parentName, ok := parents["nexuses.api.nexus.org"]
 	if !ok {
 		parentName = helper.DEFAULT_KEY
 	}
 	if parents[common.IS_NAME_HASHED_LABEL] == "true" {
-		parentName = helper.GetHashedName("apis.apis.nexus.org", parents, parentName)
+		parentName = helper.GetHashedName("nexuses.api.nexus.org", parents, parentName)
 	}
 	_, err = group.client.baseClient.
-		ApisNexusV1().
-		Apis().Patch(ctx, parentName, types.JSONPatchType, marshaled, metav1.PatchOptions{})
+		ApiNexusV1().
+		Nexuses().Patch(ctx, parentName, types.JSONPatchType, marshaled, metav1.PatchOptions{})
 	if err != nil {
 		return err
 	}
@@ -1044,9 +1143,8 @@ func (group *ConfigNexusV1) CreateConfigByName(ctx context.Context,
 		objToCreate.Labels[common.DISPLAY_NAME_LABEL] = objToCreate.GetName()
 	}
 
-	objToCreate.Spec.GatewayGvk = nil
-	objToCreate.Spec.ApiExtensionsGvk = nil
-	objToCreate.Spec.AuthNGvk = nil
+	objToCreate.Spec.ApiGatewayGvk = nil
+	objToCreate.Spec.RoutesGvk = nil
 	objToCreate.Spec.ConnectGvk = nil
 
 	result, err := group.client.baseClient.
@@ -1056,12 +1154,12 @@ func (group *ConfigNexusV1) CreateConfigByName(ctx context.Context,
 		return nil, err
 	}
 
-	parentName, ok := objToCreate.GetLabels()["apis.apis.nexus.org"]
+	parentName, ok := objToCreate.GetLabels()["nexuses.api.nexus.org"]
 	if !ok {
 		parentName = helper.DEFAULT_KEY
 	}
 	if objToCreate.Labels[common.IS_NAME_HASHED_LABEL] == "true" {
-		parentName = helper.GetHashedName("apis.apis.nexus.org", objToCreate.GetLabels(), parentName)
+		parentName = helper.GetHashedName("nexuses.api.nexus.org", objToCreate.GetLabels(), parentName)
 	}
 
 	var patch Patch
@@ -1080,8 +1178,8 @@ func (group *ConfigNexusV1) CreateConfigByName(ctx context.Context,
 		return nil, err
 	}
 	_, err = group.client.baseClient.
-		ApisNexusV1().
-		Apis().Patch(ctx, parentName, types.JSONPatchType, marshaled, metav1.PatchOptions{})
+		ApiNexusV1().
+		Nexuses().Patch(ctx, parentName, types.JSONPatchType, marshaled, metav1.PatchOptions{})
 	if err != nil {
 		return nil, err
 	}
@@ -1175,35 +1273,26 @@ func (obj *ConfigConfig) Update(ctx context.Context) error {
 	return nil
 }
 
-func (obj *ConfigConfig) GetParent(ctx context.Context) (result *ApisApi, err error) {
-	hashedName := helper.GetHashedName("apis.apis.nexus.org", obj.Labels, obj.Labels["apis.apis.nexus.org"])
-	return obj.client.Apis().GetApiByName(ctx, hashedName)
+func (obj *ConfigConfig) GetParent(ctx context.Context) (result *ApiNexus, err error) {
+	hashedName := helper.GetHashedName("nexuses.api.nexus.org", obj.Labels, obj.Labels["nexuses.api.nexus.org"])
+	return obj.client.Api().GetNexusByName(ctx, hashedName)
 }
 
-// GetGateway returns child or link of given type
-func (obj *ConfigConfig) GetGateway(ctx context.Context) (
-	result *GatewayGateway, err error) {
-	if obj.Spec.GatewayGvk != nil {
-		return obj.client.Gateway().GetGatewayByName(ctx, obj.Spec.GatewayGvk.Name)
+// GetApiGateway returns child or link of given type
+func (obj *ConfigConfig) GetApiGateway(ctx context.Context) (
+	result *ApigatewayApiGateway, err error) {
+	if obj.Spec.ApiGatewayGvk != nil {
+		return obj.client.Apigateway().GetApiGatewayByName(ctx, obj.Spec.ApiGatewayGvk.Name)
 	}
 	return
 }
 
-// GetApiExtensions returns child or link of given type
-func (obj *ConfigConfig) GetApiExtensions(ctx context.Context) (
-	result *ExtensionsExtension, err error) {
-	if obj.Spec.ApiExtensionsGvk != nil {
-		return obj.client.Extensions().GetExtensionByName(ctx, obj.Spec.ApiExtensionsGvk.Name)
-	}
-	return
-}
-
-// GetAllAuthN returns all links or children of given type
-func (obj *ConfigConfig) GetAllAuthN(ctx context.Context) (
-	result []*AuthenticationOIDC, err error) {
-	result = make([]*AuthenticationOIDC, 0, len(obj.Spec.AuthNGvk))
-	for _, v := range obj.Spec.AuthNGvk {
-		l, err := obj.client.Authentication().GetOIDCByName(ctx, v.Name)
+// GetAllRoutes returns all links or children of given type
+func (obj *ConfigConfig) GetAllRoutes(ctx context.Context) (
+	result []*RouteRoute, err error) {
+	result = make([]*RouteRoute, 0, len(obj.Spec.RoutesGvk))
+	for _, v := range obj.Spec.RoutesGvk {
+		l, err := obj.client.Route().GetRouteByName(ctx, v.Name)
 		if err != nil {
 			return nil, err
 		}
@@ -1212,14 +1301,14 @@ func (obj *ConfigConfig) GetAllAuthN(ctx context.Context) (
 	return
 }
 
-// GetAuthN returns link or child which has given displayName
-func (obj *ConfigConfig) GetAuthN(ctx context.Context,
-	displayName string) (result *AuthenticationOIDC, err error) {
-	l, ok := obj.Spec.AuthNGvk[displayName]
+// GetRoutes returns link or child which has given displayName
+func (obj *ConfigConfig) GetRoutes(ctx context.Context,
+	displayName string) (result *RouteRoute, err error) {
+	l, ok := obj.Spec.RoutesGvk[displayName]
 	if !ok {
 		return nil, fmt.Errorf("object %s doesn't have child %s", obj.DisplayName(), displayName)
 	}
-	result, err = obj.client.Authentication().GetOIDCByName(ctx, l.Name)
+	result, err = obj.client.Route().GetRouteByName(ctx, l.Name)
 	return
 }
 
@@ -1232,11 +1321,11 @@ func (obj *ConfigConfig) GetConnect(ctx context.Context) (
 	return
 }
 
-// AddGateway calculates hashed name of the child to create based on objToCreate.Name
+// AddApiGateway calculates hashed name of the child to create based on objToCreate.Name
 // and parents names and creates it. objToCreate.Name is changed to the hashed name. Original name is preserved in
 // nexus/display_name label and can be obtained using DisplayName() method.
-func (obj *ConfigConfig) AddGateway(ctx context.Context,
-	objToCreate *basegatewaynexusorgv1.Gateway) (result *GatewayGateway, err error) {
+func (obj *ConfigConfig) AddApiGateway(ctx context.Context,
+	objToCreate *baseapigatewaynexusorgv1.ApiGateway) (result *ApigatewayApiGateway, err error) {
 	if objToCreate.Labels == nil {
 		objToCreate.Labels = map[string]string{}
 	}
@@ -1250,7 +1339,7 @@ func (obj *ConfigConfig) AddGateway(ctx context.Context,
 		hashedName := helper.GetHashedName(objToCreate.CRDName(), objToCreate.Labels, objToCreate.GetName())
 		objToCreate.Name = hashedName
 	}
-	result, err = obj.client.Gateway().CreateGatewayByName(ctx, objToCreate)
+	result, err = obj.client.Apigateway().CreateApiGatewayByName(ctx, objToCreate)
 	updatedObj, getErr := obj.client.Config().GetConfigByName(ctx, obj.GetName())
 	if getErr == nil {
 		obj.Config = updatedObj.Config
@@ -1258,13 +1347,13 @@ func (obj *ConfigConfig) AddGateway(ctx context.Context,
 	return
 }
 
-// DeleteGateway calculates hashed name of the child to delete based on displayName
+// DeleteApiGateway calculates hashed name of the child to delete based on displayName
 // and parents names and deletes it.
 
-func (obj *ConfigConfig) DeleteGateway(ctx context.Context) (err error) {
-	if obj.Spec.GatewayGvk != nil {
+func (obj *ConfigConfig) DeleteApiGateway(ctx context.Context) (err error) {
+	if obj.Spec.ApiGatewayGvk != nil {
 		err = obj.client.
-			Gateway().DeleteGatewayByName(ctx, obj.Spec.GatewayGvk.Name)
+			Apigateway().DeleteApiGatewayByName(ctx, obj.Spec.ApiGatewayGvk.Name)
 		if err != nil {
 			return err
 		}
@@ -1277,11 +1366,11 @@ func (obj *ConfigConfig) DeleteGateway(ctx context.Context) (err error) {
 	return
 }
 
-// AddApiExtensions calculates hashed name of the child to create based on objToCreate.Name
+// AddRoutes calculates hashed name of the child to create based on objToCreate.Name
 // and parents names and creates it. objToCreate.Name is changed to the hashed name. Original name is preserved in
 // nexus/display_name label and can be obtained using DisplayName() method.
-func (obj *ConfigConfig) AddApiExtensions(ctx context.Context,
-	objToCreate *baseextensionsnexusorgv1.Extension) (result *ExtensionsExtension, err error) {
+func (obj *ConfigConfig) AddRoutes(ctx context.Context,
+	objToCreate *baseroutenexusorgv1.Route) (result *RouteRoute, err error) {
 	if objToCreate.Labels == nil {
 		objToCreate.Labels = map[string]string{}
 	}
@@ -1295,7 +1384,7 @@ func (obj *ConfigConfig) AddApiExtensions(ctx context.Context,
 		hashedName := helper.GetHashedName(objToCreate.CRDName(), objToCreate.Labels, objToCreate.GetName())
 		objToCreate.Name = hashedName
 	}
-	result, err = obj.client.Extensions().CreateExtensionByName(ctx, objToCreate)
+	result, err = obj.client.Route().CreateRouteByName(ctx, objToCreate)
 	updatedObj, getErr := obj.client.Config().GetConfigByName(ctx, obj.GetName())
 	if getErr == nil {
 		obj.Config = updatedObj.Config
@@ -1303,60 +1392,15 @@ func (obj *ConfigConfig) AddApiExtensions(ctx context.Context,
 	return
 }
 
-// DeleteApiExtensions calculates hashed name of the child to delete based on displayName
+// DeleteRoutes calculates hashed name of the child to delete based on displayName
 // and parents names and deletes it.
 
-func (obj *ConfigConfig) DeleteApiExtensions(ctx context.Context) (err error) {
-	if obj.Spec.ApiExtensionsGvk != nil {
-		err = obj.client.
-			Extensions().DeleteExtensionByName(ctx, obj.Spec.ApiExtensionsGvk.Name)
-		if err != nil {
-			return err
-		}
-	}
-	updatedObj, err := obj.client.
-		Config().GetConfigByName(ctx, obj.GetName())
-	if err == nil {
-		obj.Config = updatedObj.Config
-	}
-	return
-}
-
-// AddAuthN calculates hashed name of the child to create based on objToCreate.Name
-// and parents names and creates it. objToCreate.Name is changed to the hashed name. Original name is preserved in
-// nexus/display_name label and can be obtained using DisplayName() method.
-func (obj *ConfigConfig) AddAuthN(ctx context.Context,
-	objToCreate *baseauthenticationnexusorgv1.OIDC) (result *AuthenticationOIDC, err error) {
-	if objToCreate.Labels == nil {
-		objToCreate.Labels = map[string]string{}
-	}
-	for _, v := range helper.GetCRDParentsMap()["configs.config.nexus.org"] {
-		objToCreate.Labels[v] = obj.Labels[v]
-	}
-	objToCreate.Labels["configs.config.nexus.org"] = obj.DisplayName()
-	if objToCreate.Labels[common.IS_NAME_HASHED_LABEL] != "true" {
-		objToCreate.Labels[common.DISPLAY_NAME_LABEL] = objToCreate.GetName()
-		objToCreate.Labels[common.IS_NAME_HASHED_LABEL] = "true"
-		hashedName := helper.GetHashedName(objToCreate.CRDName(), objToCreate.Labels, objToCreate.GetName())
-		objToCreate.Name = hashedName
-	}
-	result, err = obj.client.Authentication().CreateOIDCByName(ctx, objToCreate)
-	updatedObj, getErr := obj.client.Config().GetConfigByName(ctx, obj.GetName())
-	if getErr == nil {
-		obj.Config = updatedObj.Config
-	}
-	return
-}
-
-// DeleteAuthN calculates hashed name of the child to delete based on displayName
-// and parents names and deletes it.
-
-func (obj *ConfigConfig) DeleteAuthN(ctx context.Context, displayName string) (err error) {
-	l, ok := obj.Spec.AuthNGvk[displayName]
+func (obj *ConfigConfig) DeleteRoutes(ctx context.Context, displayName string) (err error) {
+	l, ok := obj.Spec.RoutesGvk[displayName]
 	if !ok {
 		return fmt.Errorf("object %s doesn't have child %s", obj.DisplayName(), displayName)
 	}
-	err = obj.client.Authentication().DeleteOIDCByName(ctx, l.Name)
+	err = obj.client.Route().DeleteRouteByName(ctx, l.Name)
 	if err != nil {
 		return err
 	}
@@ -1418,27 +1462,27 @@ type configConfigNexusV1Chainer struct {
 	parentLabels map[string]string
 }
 
-func (c *configConfigNexusV1Chainer) Gateway(name string) *gatewayGatewayNexusV1Chainer {
+func (c *configConfigNexusV1Chainer) ApiGateway(name string) *apigatewayApigatewayNexusV1Chainer {
 	parentLabels := c.parentLabels
-	parentLabels["gateways.gateway.nexus.org"] = name
-	return &gatewayGatewayNexusV1Chainer{
+	parentLabels["apigateways.apigateway.nexus.org"] = name
+	return &apigatewayApigatewayNexusV1Chainer{
 		client:       c.client,
 		name:         name,
 		parentLabels: parentLabels,
 	}
 }
 
-// GetGateway calculates hashed name of the object based on displayName and it's parents and returns the object
-func (c *configConfigNexusV1Chainer) GetGateway(ctx context.Context, displayName string) (result *GatewayGateway, err error) {
-	hashedName := helper.GetHashedName("gateways.gateway.nexus.org", c.parentLabels, displayName)
-	return c.client.Gateway().GetGatewayByName(ctx, hashedName)
+// GetApiGateway calculates hashed name of the object based on displayName and it's parents and returns the object
+func (c *configConfigNexusV1Chainer) GetApiGateway(ctx context.Context, displayName string) (result *ApigatewayApiGateway, err error) {
+	hashedName := helper.GetHashedName("apigateways.apigateway.nexus.org", c.parentLabels, displayName)
+	return c.client.Apigateway().GetApiGatewayByName(ctx, hashedName)
 }
 
-// AddGateway calculates hashed name of the child to create based on objToCreate.Name
+// AddApiGateway calculates hashed name of the child to create based on objToCreate.Name
 // and parents names and creates it. objToCreate.Name is changed to the hashed name. Original name is preserved in
 // nexus/display_name label and can be obtained using DisplayName() method.
-func (c *configConfigNexusV1Chainer) AddGateway(ctx context.Context,
-	objToCreate *basegatewaynexusorgv1.Gateway) (result *GatewayGateway, err error) {
+func (c *configConfigNexusV1Chainer) AddApiGateway(ctx context.Context,
+	objToCreate *baseapigatewaynexusorgv1.ApiGateway) (result *ApigatewayApiGateway, err error) {
 	if objToCreate.Labels == nil {
 		objToCreate.Labels = map[string]string{}
 	}
@@ -1448,44 +1492,44 @@ func (c *configConfigNexusV1Chainer) AddGateway(ctx context.Context,
 	if objToCreate.Labels[common.IS_NAME_HASHED_LABEL] != "true" {
 		objToCreate.Labels[common.DISPLAY_NAME_LABEL] = objToCreate.GetName()
 		objToCreate.Labels[common.IS_NAME_HASHED_LABEL] = "true"
-		hashedName := helper.GetHashedName("gateways.gateway.nexus.org", c.parentLabels, objToCreate.GetName())
+		hashedName := helper.GetHashedName("apigateways.apigateway.nexus.org", c.parentLabels, objToCreate.GetName())
 		objToCreate.Name = hashedName
 	}
-	return c.client.Gateway().CreateGatewayByName(ctx, objToCreate)
+	return c.client.Apigateway().CreateApiGatewayByName(ctx, objToCreate)
 }
 
-// DeleteGateway calculates hashed name of the child to delete based on displayName
+// DeleteApiGateway calculates hashed name of the child to delete based on displayName
 // and parents names and deletes it.
-func (c *configConfigNexusV1Chainer) DeleteGateway(ctx context.Context, name string) (err error) {
+func (c *configConfigNexusV1Chainer) DeleteApiGateway(ctx context.Context, name string) (err error) {
 	if c.parentLabels == nil {
 		c.parentLabels = map[string]string{}
 	}
 	c.parentLabels[common.IS_NAME_HASHED_LABEL] = "true"
-	hashedName := helper.GetHashedName("gateways.gateway.nexus.org", c.parentLabels, name)
-	return c.client.Gateway().DeleteGatewayByName(ctx, hashedName)
+	hashedName := helper.GetHashedName("apigateways.apigateway.nexus.org", c.parentLabels, name)
+	return c.client.Apigateway().DeleteApiGatewayByName(ctx, hashedName)
 }
 
-func (c *configConfigNexusV1Chainer) ApiExtensions(name string) *extensionExtensionsNexusV1Chainer {
+func (c *configConfigNexusV1Chainer) Routes(name string) *routeRouteNexusV1Chainer {
 	parentLabels := c.parentLabels
-	parentLabels["extensions.extensions.nexus.org"] = name
-	return &extensionExtensionsNexusV1Chainer{
+	parentLabels["routes.route.nexus.org"] = name
+	return &routeRouteNexusV1Chainer{
 		client:       c.client,
 		name:         name,
 		parentLabels: parentLabels,
 	}
 }
 
-// GetApiExtensions calculates hashed name of the object based on displayName and it's parents and returns the object
-func (c *configConfigNexusV1Chainer) GetApiExtensions(ctx context.Context, displayName string) (result *ExtensionsExtension, err error) {
-	hashedName := helper.GetHashedName("extensions.extensions.nexus.org", c.parentLabels, displayName)
-	return c.client.Extensions().GetExtensionByName(ctx, hashedName)
+// GetRoutes calculates hashed name of the object based on displayName and it's parents and returns the object
+func (c *configConfigNexusV1Chainer) GetRoutes(ctx context.Context, displayName string) (result *RouteRoute, err error) {
+	hashedName := helper.GetHashedName("routes.route.nexus.org", c.parentLabels, displayName)
+	return c.client.Route().GetRouteByName(ctx, hashedName)
 }
 
-// AddApiExtensions calculates hashed name of the child to create based on objToCreate.Name
+// AddRoutes calculates hashed name of the child to create based on objToCreate.Name
 // and parents names and creates it. objToCreate.Name is changed to the hashed name. Original name is preserved in
 // nexus/display_name label and can be obtained using DisplayName() method.
-func (c *configConfigNexusV1Chainer) AddApiExtensions(ctx context.Context,
-	objToCreate *baseextensionsnexusorgv1.Extension) (result *ExtensionsExtension, err error) {
+func (c *configConfigNexusV1Chainer) AddRoutes(ctx context.Context,
+	objToCreate *baseroutenexusorgv1.Route) (result *RouteRoute, err error) {
 	if objToCreate.Labels == nil {
 		objToCreate.Labels = map[string]string{}
 	}
@@ -1495,68 +1539,21 @@ func (c *configConfigNexusV1Chainer) AddApiExtensions(ctx context.Context,
 	if objToCreate.Labels[common.IS_NAME_HASHED_LABEL] != "true" {
 		objToCreate.Labels[common.DISPLAY_NAME_LABEL] = objToCreate.GetName()
 		objToCreate.Labels[common.IS_NAME_HASHED_LABEL] = "true"
-		hashedName := helper.GetHashedName("extensions.extensions.nexus.org", c.parentLabels, objToCreate.GetName())
+		hashedName := helper.GetHashedName("routes.route.nexus.org", c.parentLabels, objToCreate.GetName())
 		objToCreate.Name = hashedName
 	}
-	return c.client.Extensions().CreateExtensionByName(ctx, objToCreate)
+	return c.client.Route().CreateRouteByName(ctx, objToCreate)
 }
 
-// DeleteApiExtensions calculates hashed name of the child to delete based on displayName
+// DeleteRoutes calculates hashed name of the child to delete based on displayName
 // and parents names and deletes it.
-func (c *configConfigNexusV1Chainer) DeleteApiExtensions(ctx context.Context, name string) (err error) {
+func (c *configConfigNexusV1Chainer) DeleteRoutes(ctx context.Context, name string) (err error) {
 	if c.parentLabels == nil {
 		c.parentLabels = map[string]string{}
 	}
 	c.parentLabels[common.IS_NAME_HASHED_LABEL] = "true"
-	hashedName := helper.GetHashedName("extensions.extensions.nexus.org", c.parentLabels, name)
-	return c.client.Extensions().DeleteExtensionByName(ctx, hashedName)
-}
-
-func (c *configConfigNexusV1Chainer) AuthN(name string) *oidcAuthenticationNexusV1Chainer {
-	parentLabels := c.parentLabels
-	parentLabels["oidcs.authentication.nexus.org"] = name
-	return &oidcAuthenticationNexusV1Chainer{
-		client:       c.client,
-		name:         name,
-		parentLabels: parentLabels,
-	}
-}
-
-// GetAuthN calculates hashed name of the object based on displayName and it's parents and returns the object
-func (c *configConfigNexusV1Chainer) GetAuthN(ctx context.Context, displayName string) (result *AuthenticationOIDC, err error) {
-	hashedName := helper.GetHashedName("oidcs.authentication.nexus.org", c.parentLabels, displayName)
-	return c.client.Authentication().GetOIDCByName(ctx, hashedName)
-}
-
-// AddAuthN calculates hashed name of the child to create based on objToCreate.Name
-// and parents names and creates it. objToCreate.Name is changed to the hashed name. Original name is preserved in
-// nexus/display_name label and can be obtained using DisplayName() method.
-func (c *configConfigNexusV1Chainer) AddAuthN(ctx context.Context,
-	objToCreate *baseauthenticationnexusorgv1.OIDC) (result *AuthenticationOIDC, err error) {
-	if objToCreate.Labels == nil {
-		objToCreate.Labels = map[string]string{}
-	}
-	for k, v := range c.parentLabels {
-		objToCreate.Labels[k] = v
-	}
-	if objToCreate.Labels[common.IS_NAME_HASHED_LABEL] != "true" {
-		objToCreate.Labels[common.DISPLAY_NAME_LABEL] = objToCreate.GetName()
-		objToCreate.Labels[common.IS_NAME_HASHED_LABEL] = "true"
-		hashedName := helper.GetHashedName("oidcs.authentication.nexus.org", c.parentLabels, objToCreate.GetName())
-		objToCreate.Name = hashedName
-	}
-	return c.client.Authentication().CreateOIDCByName(ctx, objToCreate)
-}
-
-// DeleteAuthN calculates hashed name of the child to delete based on displayName
-// and parents names and deletes it.
-func (c *configConfigNexusV1Chainer) DeleteAuthN(ctx context.Context, name string) (err error) {
-	if c.parentLabels == nil {
-		c.parentLabels = map[string]string{}
-	}
-	c.parentLabels[common.IS_NAME_HASHED_LABEL] = "true"
-	hashedName := helper.GetHashedName("oidcs.authentication.nexus.org", c.parentLabels, name)
-	return c.client.Authentication().DeleteOIDCByName(ctx, hashedName)
+	hashedName := helper.GetHashedName("routes.route.nexus.org", c.parentLabels, name)
+	return c.client.Route().DeleteRouteByName(ctx, hashedName)
 }
 
 func (c *configConfigNexusV1Chainer) Connect(name string) *connectConnectNexusV1Chainer {
@@ -3066,36 +3063,36 @@ type replicationobjectConnectNexusV1Chainer struct {
 	parentLabels map[string]string
 }
 
-// GetGatewayByName returns object stored in the database under the hashedName which is a hash of display
+// GetRouteByName returns object stored in the database under the hashedName which is a hash of display
 // name and parents names. Use it when you know hashed name of object.
-func (group *GatewayNexusV1) GetGatewayByName(ctx context.Context, hashedName string) (*GatewayGateway, error) {
+func (group *RouteNexusV1) GetRouteByName(ctx context.Context, hashedName string) (*RouteRoute, error) {
 	result, err := group.client.baseClient.
-		GatewayNexusV1().
-		Gateways().Get(ctx, hashedName, metav1.GetOptions{})
+		RouteNexusV1().
+		Routes().Get(ctx, hashedName, metav1.GetOptions{})
 	if err != nil {
 		return nil, err
 	}
 
-	return &GatewayGateway{
-		client:  group.client,
-		Gateway: result,
+	return &RouteRoute{
+		client: group.client,
+		Route:  result,
 	}, nil
 }
 
-// DeleteGatewayByName deletes object stored in the database under the hashedName which is a hash of
+// DeleteRouteByName deletes object stored in the database under the hashedName which is a hash of
 // display name and parents names. Use it when you know hashed name of object.
-func (group *GatewayNexusV1) DeleteGatewayByName(ctx context.Context, hashedName string) (err error) {
+func (group *RouteNexusV1) DeleteRouteByName(ctx context.Context, hashedName string) (err error) {
 
 	result, err := group.client.baseClient.
-		GatewayNexusV1().
-		Gateways().Get(ctx, hashedName, metav1.GetOptions{})
+		RouteNexusV1().
+		Routes().Get(ctx, hashedName, metav1.GetOptions{})
 	if err != nil {
 		return err
 	}
 
 	err = group.client.baseClient.
-		GatewayNexusV1().
-		Gateways().Delete(ctx, hashedName, metav1.DeleteOptions{})
+		RouteNexusV1().
+		Routes().Delete(ctx, hashedName, metav1.DeleteOptions{})
 	if err != nil {
 		return err
 	}
@@ -3104,7 +3101,7 @@ func (group *GatewayNexusV1) DeleteGatewayByName(ctx context.Context, hashedName
 
 	patchOp := PatchOp{
 		Op:   "remove",
-		Path: "/spec/gatewayGvk",
+		Path: "/spec/routesGvk/" + result.DisplayName(),
 	}
 
 	patch = append(patch, patchOp)
@@ -3133,10 +3130,10 @@ func (group *GatewayNexusV1) DeleteGatewayByName(ctx context.Context, hashedName
 	return
 }
 
-// CreateGatewayByName creates object in the database without hashing the name.
+// CreateRouteByName creates object in the database without hashing the name.
 // Use it directly ONLY when objToCreate.Name is hashed name of the object.
-func (group *GatewayNexusV1) CreateGatewayByName(ctx context.Context,
-	objToCreate *basegatewaynexusorgv1.Gateway) (*GatewayGateway, error) {
+func (group *RouteNexusV1) CreateRouteByName(ctx context.Context,
+	objToCreate *baseroutenexusorgv1.Route) (*RouteRoute, error) {
 	if objToCreate.GetLabels() == nil {
 		objToCreate.Labels = make(map[string]string)
 	}
@@ -3144,11 +3141,9 @@ func (group *GatewayNexusV1) CreateGatewayByName(ctx context.Context,
 		objToCreate.Labels[common.DISPLAY_NAME_LABEL] = objToCreate.GetName()
 	}
 
-	objToCreate.Spec.AuthnGvk = nil
-
 	result, err := group.client.baseClient.
-		GatewayNexusV1().
-		Gateways().Create(ctx, objToCreate, metav1.CreateOptions{})
+		RouteNexusV1().
+		Routes().Create(ctx, objToCreate, metav1.CreateOptions{})
 	if err != nil {
 		return nil, err
 	}
@@ -3161,43 +3156,29 @@ func (group *GatewayNexusV1) CreateGatewayByName(ctx context.Context,
 		parentName = helper.GetHashedName("configs.config.nexus.org", objToCreate.GetLabels(), parentName)
 	}
 
-	var patch Patch
-	patchOp := PatchOp{
-		Op:   "replace",
-		Path: "/spec/gatewayGvk",
-		Value: basegatewaynexusorgv1.Child{
-			Group: "gateway.nexus.org",
-			Kind:  "Gateway",
-			Name:  objToCreate.Name,
-		},
-	}
-	patch = append(patch, patchOp)
-	marshaled, err := patch.Marshal()
-	if err != nil {
-		return nil, err
-	}
+	payload := "{\"spec\": {\"routesGvk\": {\"" + objToCreate.DisplayName() + "\": {\"name\": \"" + objToCreate.Name + "\",\"kind\": \"Route\", \"group\": \"route.nexus.org\"}}}}"
 	_, err = group.client.baseClient.
 		ConfigNexusV1().
-		Configs().Patch(ctx, parentName, types.JSONPatchType, marshaled, metav1.PatchOptions{})
+		Configs().Patch(ctx, parentName, types.MergePatchType, []byte(payload), metav1.PatchOptions{})
 	if err != nil {
 		return nil, err
 	}
 
-	return &GatewayGateway{
-		client:  group.client,
-		Gateway: result,
+	return &RouteRoute{
+		client: group.client,
+		Route:  result,
 	}, nil
 }
 
-// UpdateGatewayByName updates object stored in the database under the hashedName which is a hash of
+// UpdateRouteByName updates object stored in the database under the hashedName which is a hash of
 // display name and parents names.
-func (group *GatewayNexusV1) UpdateGatewayByName(ctx context.Context,
-	objToUpdate *basegatewaynexusorgv1.Gateway) (*GatewayGateway, error) {
+func (group *RouteNexusV1) UpdateRouteByName(ctx context.Context,
+	objToUpdate *baseroutenexusorgv1.Route) (*RouteRoute, error) {
 	// ResourceVersion must be set for update
 	if objToUpdate.ResourceVersion == "" {
 		current, err := group.client.baseClient.
-			GatewayNexusV1().
-			Gateways().Get(ctx, objToUpdate.GetName(), metav1.GetOptions{})
+			RouteNexusV1().
+			Routes().Get(ctx, objToUpdate.GetName(), metav1.GetOptions{})
 		if err != nil {
 			return nil, err
 		}
@@ -3212,142 +3193,99 @@ func (group *GatewayNexusV1) UpdateGatewayByName(ctx context.Context,
 	}
 	patch = append(patch, patchOpMeta)
 
-	patchValueConfig :=
-		objToUpdate.Spec.Config
-	patchOpConfig := PatchOp{
+	patchValueUri :=
+		objToUpdate.Spec.Uri
+	patchOpUri := PatchOp{
 		Op:    "replace",
-		Path:  "/spec/config",
-		Value: patchValueConfig,
+		Path:  "/spec/uri",
+		Value: patchValueUri,
 	}
-	patch = append(patch, patchOpConfig)
+	patch = append(patch, patchOpUri)
+
+	patchValueService :=
+		objToUpdate.Spec.Service
+	patchOpService := PatchOp{
+		Op:    "replace",
+		Path:  "/spec/service",
+		Value: patchValueService,
+	}
+	patch = append(patch, patchOpService)
+
+	patchValueResource :=
+		objToUpdate.Spec.Resource
+	patchOpResource := PatchOp{
+		Op:    "replace",
+		Path:  "/spec/resource",
+		Value: patchValueResource,
+	}
+	patch = append(patch, patchOpResource)
 
 	marshaled, err := patch.Marshal()
 	if err != nil {
 		return nil, err
 	}
 	result, err := group.client.baseClient.
-		GatewayNexusV1().
-		Gateways().Patch(ctx, objToUpdate.GetName(), types.JSONPatchType, marshaled, metav1.PatchOptions{}, "")
+		RouteNexusV1().
+		Routes().Patch(ctx, objToUpdate.GetName(), types.JSONPatchType, marshaled, metav1.PatchOptions{}, "")
 	if err != nil {
 		return nil, err
 	}
 
-	return &GatewayGateway{
-		client:  group.client,
-		Gateway: result,
+	return &RouteRoute{
+		client: group.client,
+		Route:  result,
 	}, nil
 }
 
-// ListGateways returns slice of all existing objects of this type. Selectors can be provided in opts parameter.
-func (group *GatewayNexusV1) ListGateways(ctx context.Context,
-	opts metav1.ListOptions) (result []*GatewayGateway, err error) {
-	list, err := group.client.baseClient.GatewayNexusV1().
-		Gateways().List(ctx, opts)
+// ListRoutes returns slice of all existing objects of this type. Selectors can be provided in opts parameter.
+func (group *RouteNexusV1) ListRoutes(ctx context.Context,
+	opts metav1.ListOptions) (result []*RouteRoute, err error) {
+	list, err := group.client.baseClient.RouteNexusV1().
+		Routes().List(ctx, opts)
 	if err != nil {
 		return nil, err
 	}
-	result = make([]*GatewayGateway, len(list.Items))
+	result = make([]*RouteRoute, len(list.Items))
 	for k, v := range list.Items {
-		result[k] = &GatewayGateway{
-			client:  group.client,
-			Gateway: &v,
+		result[k] = &RouteRoute{
+			client: group.client,
+			Route:  &v,
 		}
 	}
 	return
 }
 
-type GatewayGateway struct {
+type RouteRoute struct {
 	client *Clientset
-	*basegatewaynexusorgv1.Gateway
+	*baseroutenexusorgv1.Route
 }
 
 // Delete removes obj and all it's children from the database.
-func (obj *GatewayGateway) Delete(ctx context.Context) error {
-	err := obj.client.Gateway().DeleteGatewayByName(ctx, obj.GetName())
+func (obj *RouteRoute) Delete(ctx context.Context) error {
+	err := obj.client.Route().DeleteRouteByName(ctx, obj.GetName())
 	if err != nil {
 		return err
 	}
-	obj.Gateway = nil
+	obj.Route = nil
 	return nil
 }
 
 // Update updates spec of object in database. Children and Link can not be updated using this function.
-func (obj *GatewayGateway) Update(ctx context.Context) error {
-	result, err := obj.client.Gateway().UpdateGatewayByName(ctx, obj.Gateway)
+func (obj *RouteRoute) Update(ctx context.Context) error {
+	result, err := obj.client.Route().UpdateRouteByName(ctx, obj.Route)
 	if err != nil {
 		return err
 	}
-	obj.Gateway = result.Gateway
+	obj.Route = result.Route
 	return nil
 }
 
-func (obj *GatewayGateway) GetParent(ctx context.Context) (result *ConfigConfig, err error) {
+func (obj *RouteRoute) GetParent(ctx context.Context) (result *ConfigConfig, err error) {
 	hashedName := helper.GetHashedName("configs.config.nexus.org", obj.Labels, obj.Labels["configs.config.nexus.org"])
 	return obj.client.Config().GetConfigByName(ctx, hashedName)
 }
 
-// GetAuthn returns child or link of given type
-func (obj *GatewayGateway) GetAuthn(ctx context.Context) (
-	result *AuthenticationOIDC, err error) {
-	if obj.Spec.AuthnGvk != nil {
-		return obj.client.Authentication().GetOIDCByName(ctx, obj.Spec.AuthnGvk.Name)
-	}
-	return
-}
-
-// LinkAuthn links obj with linkToAdd object. This function doesn't create linked object, it must be
-// already created.
-func (obj *GatewayGateway) LinkAuthn(ctx context.Context,
-	linkToAdd *AuthenticationOIDC) error {
-
-	var patch Patch
-	patchOp := PatchOp{
-		Op:   "replace",
-		Path: "/spec/authnGvk",
-		Value: basegatewaynexusorgv1.Child{
-			Group: "authentication.nexus.org",
-			Kind:  "OIDC",
-			Name:  linkToAdd.Name,
-		},
-	}
-	patch = append(patch, patchOp)
-	marshaled, err := patch.Marshal()
-	if err != nil {
-		return err
-	}
-	result, err := obj.client.baseClient.GatewayNexusV1().Gateways().Patch(ctx, obj.Name, types.JSONPatchType, marshaled, metav1.PatchOptions{})
-	if err != nil {
-		return err
-	}
-
-	obj.Gateway = result
-	return nil
-}
-
-// UnlinkAuthn unlinks linkToRemove object from obj. This function doesn't delete linked object.
-func (obj *GatewayGateway) UnlinkAuthn(ctx context.Context) (err error) {
-	var patch Patch
-
-	patchOp := PatchOp{
-		Op:   "remove",
-		Path: "/spec/authnGvk",
-	}
-
-	patch = append(patch, patchOp)
-	marshaled, err := patch.Marshal()
-	if err != nil {
-		return err
-	}
-	result, err := obj.client.baseClient.GatewayNexusV1().Gateways().Patch(ctx, obj.Name, types.JSONPatchType, marshaled, metav1.PatchOptions{})
-	if err != nil {
-		return err
-	}
-	obj.Gateway = result
-	return nil
-
-}
-
-type gatewayGatewayNexusV1Chainer struct {
+type routeRouteNexusV1Chainer struct {
 	client       *Clientset
 	name         string
 	parentLabels map[string]string

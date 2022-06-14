@@ -24,13 +24,13 @@ import (
 	time "time"
 
 	versioned "golang-appnet.eng.vmware.com/nexus-sdk/api/build/client/clientset/versioned"
-	apisnexusorg "golang-appnet.eng.vmware.com/nexus-sdk/api/build/client/informers/externalversions/apis.nexus.org"
+	apinexusorg "golang-appnet.eng.vmware.com/nexus-sdk/api/build/client/informers/externalversions/api.nexus.org"
+	apigatewaynexusorg "golang-appnet.eng.vmware.com/nexus-sdk/api/build/client/informers/externalversions/apigateway.nexus.org"
 	authenticationnexusorg "golang-appnet.eng.vmware.com/nexus-sdk/api/build/client/informers/externalversions/authentication.nexus.org"
 	confignexusorg "golang-appnet.eng.vmware.com/nexus-sdk/api/build/client/informers/externalversions/config.nexus.org"
 	connectnexusorg "golang-appnet.eng.vmware.com/nexus-sdk/api/build/client/informers/externalversions/connect.nexus.org"
-	extensionsnexusorg "golang-appnet.eng.vmware.com/nexus-sdk/api/build/client/informers/externalversions/extensions.nexus.org"
-	gatewaynexusorg "golang-appnet.eng.vmware.com/nexus-sdk/api/build/client/informers/externalversions/gateway.nexus.org"
 	internalinterfaces "golang-appnet.eng.vmware.com/nexus-sdk/api/build/client/informers/externalversions/internalinterfaces"
+	routenexusorg "golang-appnet.eng.vmware.com/nexus-sdk/api/build/client/informers/externalversions/route.nexus.org"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	runtime "k8s.io/apimachinery/pkg/runtime"
 	schema "k8s.io/apimachinery/pkg/runtime/schema"
@@ -177,16 +177,20 @@ type SharedInformerFactory interface {
 	ForResource(resource schema.GroupVersionResource) (GenericInformer, error)
 	WaitForCacheSync(stopCh <-chan struct{}) map[reflect.Type]bool
 
-	ApisNexus() apisnexusorg.Interface
+	ApiNexus() apinexusorg.Interface
+	ApigatewayNexus() apigatewaynexusorg.Interface
 	AuthenticationNexus() authenticationnexusorg.Interface
 	ConfigNexus() confignexusorg.Interface
 	ConnectNexus() connectnexusorg.Interface
-	ExtensionsNexus() extensionsnexusorg.Interface
-	GatewayNexus() gatewaynexusorg.Interface
+	RouteNexus() routenexusorg.Interface
 }
 
-func (f *sharedInformerFactory) ApisNexus() apisnexusorg.Interface {
-	return apisnexusorg.New(f, f.namespace, f.tweakListOptions)
+func (f *sharedInformerFactory) ApiNexus() apinexusorg.Interface {
+	return apinexusorg.New(f, f.namespace, f.tweakListOptions)
+}
+
+func (f *sharedInformerFactory) ApigatewayNexus() apigatewaynexusorg.Interface {
+	return apigatewaynexusorg.New(f, f.namespace, f.tweakListOptions)
 }
 
 func (f *sharedInformerFactory) AuthenticationNexus() authenticationnexusorg.Interface {
@@ -201,10 +205,6 @@ func (f *sharedInformerFactory) ConnectNexus() connectnexusorg.Interface {
 	return connectnexusorg.New(f, f.namespace, f.tweakListOptions)
 }
 
-func (f *sharedInformerFactory) ExtensionsNexus() extensionsnexusorg.Interface {
-	return extensionsnexusorg.New(f, f.namespace, f.tweakListOptions)
-}
-
-func (f *sharedInformerFactory) GatewayNexus() gatewaynexusorg.Interface {
-	return gatewaynexusorg.New(f, f.namespace, f.tweakListOptions)
+func (f *sharedInformerFactory) RouteNexus() routenexusorg.Interface {
+	return routenexusorg.New(f, f.namespace, f.tweakListOptions)
 }
