@@ -4,7 +4,7 @@ kind: CustomResourceDefinition
 metadata:
   annotations:
     nexus: |
-      {"name":"NexusEndpoint.connect","hierarchy":["apis.apis.nexus.org","configs.config.nexus.org","connects.connect.nexus.org"],"nexus-rest-api-gen":{"uris":null}}
+      {"name":"NexusEndpoint.connect","hierarchy":["nexuses.api.nexus.org","configs.config.nexus.org","connects.connect.nexus.org"],"nexus-rest-api-gen":{"uris":null}}
   creationTimestamp: null
   name: nexusendpoints.connect.nexus.org
 spec:

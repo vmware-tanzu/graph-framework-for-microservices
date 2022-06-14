@@ -4,7 +4,7 @@ kind: CustomResourceDefinition
 metadata:
   annotations:
     nexus: |
-      {"name":"Config.config","hierarchy":["apis.apis.nexus.org"],"children":{"connects.connect.nexus.org":{"fieldName":"Connect","fieldNameGvk":"connectGvk","isNamed":false},"extensions.extensions.nexus.org":{"fieldName":"ApiExtensions","fieldNameGvk":"apiExtensionsGvk","isNamed":false},"gateways.gateway.nexus.org":{"fieldName":"Gateway","fieldNameGvk":"gatewayGvk","isNamed":false},"oidcs.authentication.nexus.org":{"fieldName":"AuthN","fieldNameGvk":"authNGvk","isNamed":true}},"nexus-rest-api-gen":{"uris":null}}
+      {"name":"Config.config","hierarchy":["nexuses.api.nexus.org"],"children":{"apigateways.apigateway.nexus.org":{"fieldName":"ApiGateway","fieldNameGvk":"apiGatewayGvk","isNamed":false},"connects.connect.nexus.org":{"fieldName":"Connect","fieldNameGvk":"connectGvk","isNamed":false},"routes.route.nexus.org":{"fieldName":"Routes","fieldNameGvk":"routesGvk","isNamed":true}},"nexus-rest-api-gen":{"uris":null}}
   creationTimestamp: null
   name: configs.config.nexus.org
 spec:
@@ -38,7 +38,7 @@ spec:
             type: object
           spec:
             properties:
-              apiExtensionsGvk:
+              apiGatewayGvk:
                 properties:
                   group:
                     type: string
@@ -50,21 +50,6 @@ spec:
                 - group
                 - kind
                 - name
-                type: object
-              authNGvk:
-                additionalProperties:
-                  properties:
-                    group:
-                      type: string
-                    kind:
-                      type: string
-                    name:
-                      type: string
-                  required:
-                  - group
-                  - kind
-                  - name
-                  type: object
                 type: object
               connectGvk:
                 properties:
@@ -79,18 +64,20 @@ spec:
                 - kind
                 - name
                 type: object
-              gatewayGvk:
-                properties:
-                  group:
-                    type: string
-                  kind:
-                    type: string
-                  name:
-                    type: string
-                required:
-                - group
-                - kind
-                - name
+              routesGvk:
+                additionalProperties:
+                  properties:
+                    group:
+                      type: string
+                    kind:
+                      type: string
+                    name:
+                      type: string
+                  required:
+                  - group
+                  - kind
+                  - name
+                  type: object
                 type: object
             type: object
         type: object

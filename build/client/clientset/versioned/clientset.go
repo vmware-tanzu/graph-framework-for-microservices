@@ -21,12 +21,12 @@ package versioned
 import (
 	"fmt"
 
-	apisnexusv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/client/clientset/versioned/typed/apis.nexus.org/v1"
+	apinexusv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/client/clientset/versioned/typed/api.nexus.org/v1"
+	apigatewaynexusv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/client/clientset/versioned/typed/apigateway.nexus.org/v1"
 	authenticationnexusv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/client/clientset/versioned/typed/authentication.nexus.org/v1"
 	confignexusv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/client/clientset/versioned/typed/config.nexus.org/v1"
 	connectnexusv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/client/clientset/versioned/typed/connect.nexus.org/v1"
-	extensionsnexusv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/client/clientset/versioned/typed/extensions.nexus.org/v1"
-	gatewaynexusv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/client/clientset/versioned/typed/gateway.nexus.org/v1"
+	routenexusv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/client/clientset/versioned/typed/route.nexus.org/v1"
 	discovery "k8s.io/client-go/discovery"
 	rest "k8s.io/client-go/rest"
 	flowcontrol "k8s.io/client-go/util/flowcontrol"
@@ -34,29 +34,34 @@ import (
 
 type Interface interface {
 	Discovery() discovery.DiscoveryInterface
-	ApisNexusV1() apisnexusv1.ApisNexusV1Interface
+	ApiNexusV1() apinexusv1.ApiNexusV1Interface
+	ApigatewayNexusV1() apigatewaynexusv1.ApigatewayNexusV1Interface
 	AuthenticationNexusV1() authenticationnexusv1.AuthenticationNexusV1Interface
 	ConfigNexusV1() confignexusv1.ConfigNexusV1Interface
 	ConnectNexusV1() connectnexusv1.ConnectNexusV1Interface
-	ExtensionsNexusV1() extensionsnexusv1.ExtensionsNexusV1Interface
-	GatewayNexusV1() gatewaynexusv1.GatewayNexusV1Interface
+	RouteNexusV1() routenexusv1.RouteNexusV1Interface
 }
 
 // Clientset contains the clients for groups. Each group has exactly one
 // version included in a Clientset.
 type Clientset struct {
 	*discovery.DiscoveryClient
-	apisNexusV1           *apisnexusv1.ApisNexusV1Client
+	apiNexusV1            *apinexusv1.ApiNexusV1Client
+	apigatewayNexusV1     *apigatewaynexusv1.ApigatewayNexusV1Client
 	authenticationNexusV1 *authenticationnexusv1.AuthenticationNexusV1Client
 	configNexusV1         *confignexusv1.ConfigNexusV1Client
 	connectNexusV1        *connectnexusv1.ConnectNexusV1Client
-	extensionsNexusV1     *extensionsnexusv1.ExtensionsNexusV1Client
-	gatewayNexusV1        *gatewaynexusv1.GatewayNexusV1Client
+	routeNexusV1          *routenexusv1.RouteNexusV1Client
 }
 
-// ApisNexusV1 retrieves the ApisNexusV1Client
-func (c *Clientset) ApisNexusV1() apisnexusv1.ApisNexusV1Interface {
-	return c.apisNexusV1
+// ApiNexusV1 retrieves the ApiNexusV1Client
+func (c *Clientset) ApiNexusV1() apinexusv1.ApiNexusV1Interface {
+	return c.apiNexusV1
+}
+
+// ApigatewayNexusV1 retrieves the ApigatewayNexusV1Client
+func (c *Clientset) ApigatewayNexusV1() apigatewaynexusv1.ApigatewayNexusV1Interface {
+	return c.apigatewayNexusV1
 }
 
 // AuthenticationNexusV1 retrieves the AuthenticationNexusV1Client
@@ -74,14 +79,9 @@ func (c *Clientset) ConnectNexusV1() connectnexusv1.ConnectNexusV1Interface {
 	return c.connectNexusV1
 }
 
-// ExtensionsNexusV1 retrieves the ExtensionsNexusV1Client
-func (c *Clientset) ExtensionsNexusV1() extensionsnexusv1.ExtensionsNexusV1Interface {
-	return c.extensionsNexusV1
-}
-
-// GatewayNexusV1 retrieves the GatewayNexusV1Client
-func (c *Clientset) GatewayNexusV1() gatewaynexusv1.GatewayNexusV1Interface {
-	return c.gatewayNexusV1
+// RouteNexusV1 retrieves the RouteNexusV1Client
+func (c *Clientset) RouteNexusV1() routenexusv1.RouteNexusV1Interface {
+	return c.routeNexusV1
 }
 
 // Discovery retrieves the DiscoveryClient
@@ -105,7 +105,11 @@ func NewForConfig(c *rest.Config) (*Clientset, error) {
 	}
 	var cs Clientset
 	var err error
-	cs.apisNexusV1, err = apisnexusv1.NewForConfig(&configShallowCopy)
+	cs.apiNexusV1, err = apinexusv1.NewForConfig(&configShallowCopy)
+	if err != nil {
+		return nil, err
+	}
+	cs.apigatewayNexusV1, err = apigatewaynexusv1.NewForConfig(&configShallowCopy)
 	if err != nil {
 		return nil, err
 	}
@@ -121,11 +125,7 @@ func NewForConfig(c *rest.Config) (*Clientset, error) {
 	if err != nil {
 		return nil, err
 	}
-	cs.extensionsNexusV1, err = extensionsnexusv1.NewForConfig(&configShallowCopy)
-	if err != nil {
-		return nil, err
-	}
-	cs.gatewayNexusV1, err = gatewaynexusv1.NewForConfig(&configShallowCopy)
+	cs.routeNexusV1, err = routenexusv1.NewForConfig(&configShallowCopy)
 	if err != nil {
 		return nil, err
 	}
@@ -141,12 +141,12 @@ func NewForConfig(c *rest.Config) (*Clientset, error) {
 // panics if there is an error in the config.
 func NewForConfigOrDie(c *rest.Config) *Clientset {
 	var cs Clientset
-	cs.apisNexusV1 = apisnexusv1.NewForConfigOrDie(c)
+	cs.apiNexusV1 = apinexusv1.NewForConfigOrDie(c)
+	cs.apigatewayNexusV1 = apigatewaynexusv1.NewForConfigOrDie(c)
 	cs.authenticationNexusV1 = authenticationnexusv1.NewForConfigOrDie(c)
 	cs.configNexusV1 = confignexusv1.NewForConfigOrDie(c)
 	cs.connectNexusV1 = connectnexusv1.NewForConfigOrDie(c)
-	cs.extensionsNexusV1 = extensionsnexusv1.NewForConfigOrDie(c)
-	cs.gatewayNexusV1 = gatewaynexusv1.NewForConfigOrDie(c)
+	cs.routeNexusV1 = routenexusv1.NewForConfigOrDie(c)
 
 	cs.DiscoveryClient = discovery.NewDiscoveryClientForConfigOrDie(c)
 	return &cs
@@ -155,12 +155,12 @@ func NewForConfigOrDie(c *rest.Config) *Clientset {
 // New creates a new Clientset for the given RESTClient.
 func New(c rest.Interface) *Clientset {
 	var cs Clientset
-	cs.apisNexusV1 = apisnexusv1.New(c)
+	cs.apiNexusV1 = apinexusv1.New(c)
+	cs.apigatewayNexusV1 = apigatewaynexusv1.New(c)
 	cs.authenticationNexusV1 = authenticationnexusv1.New(c)
 	cs.configNexusV1 = confignexusv1.New(c)
 	cs.connectNexusV1 = connectnexusv1.New(c)
-	cs.extensionsNexusV1 = extensionsnexusv1.New(c)
-	cs.gatewayNexusV1 = gatewaynexusv1.New(c)
+	cs.routeNexusV1 = routenexusv1.New(c)
 
 	cs.DiscoveryClient = discovery.NewDiscoveryClient(c)
 	return &cs

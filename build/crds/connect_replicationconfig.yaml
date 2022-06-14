@@ -4,7 +4,7 @@ kind: CustomResourceDefinition
 metadata:
   annotations:
     nexus: |
-      {"name":"ReplicationConfig.connect","hierarchy":["apis.apis.nexus.org","configs.config.nexus.org","connects.connect.nexus.org"],"children":{"replicationobjects.connect.nexus.org":{"fieldName":"Destination","fieldNameGvk":"destinationGvk","isNamed":false}},"nexus-rest-api-gen":{"uris":null}}
+      {"name":"ReplicationConfig.connect","hierarchy":["nexuses.api.nexus.org","configs.config.nexus.org","connects.connect.nexus.org"],"children":{"replicationobjects.connect.nexus.org":{"fieldName":"Destination","fieldNameGvk":"destinationGvk","isNamed":false}},"nexus-rest-api-gen":{"uris":null}}
   creationTimestamp: null
   name: replicationconfigs.connect.nexus.org
 spec:

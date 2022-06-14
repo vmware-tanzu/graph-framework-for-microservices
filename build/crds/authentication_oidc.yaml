@@ -4,7 +4,7 @@ kind: CustomResourceDefinition
 metadata:
   annotations:
     nexus: |
-      {"name":"OIDC.authentication","hierarchy":["apis.apis.nexus.org","configs.config.nexus.org"],"nexus-rest-api-gen":{"uris":[{"uri":"/api/{Api.apis}/config/{Config.config}/oidc/{OIDC.authentication}","methods":{"DELETE":{"200":{"description":"OK"},"501":{"description":"Not Implemented"}},"GET":{"200":{"description":"OK"},"404":{"description":"Not Found"},"501":{"description":"Not Implemented"}},"PUT":{"200":{"description":"OK"},"201":{"description":"Created"},"501":{"description":"Not Implemented"}}}},{"uri":"/oidc","methods":{"GET":{"200":{"description":"OK"},"404":{"description":"Not Found"},"501":{"description":"Not Implemented"}}}}]}}
+      {"name":"OIDC.authentication","hierarchy":["nexuses.api.nexus.org","configs.config.nexus.org","apigateways.apigateway.nexus.org"],"nexus-rest-api-gen":{"uris":[{"uri":"/nexus/{Nexus.api}/config/{Config.config}/apigateway/{ApiGateway.apigateway}/oidc/{OIDC.authentication}","methods":{"DELETE":{"200":{"description":"OK"},"501":{"description":"Not Implemented"}},"GET":{"200":{"description":"OK"},"404":{"description":"Not Found"},"501":{"description":"Not Implemented"}},"PUT":{"200":{"description":"OK"},"201":{"description":"Created"},"501":{"description":"Not Implemented"}}}}]}}
   creationTimestamp: null
   name: oidcs.authentication.nexus.org
 spec:
