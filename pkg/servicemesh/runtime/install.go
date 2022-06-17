@@ -252,7 +252,7 @@ func Install(cmd *cobra.Command, args []string) error {
 		utils.GetCustomError(utils.RUNTIME_INSTALL_API_DATAMODEL_INSTALL_FAILED,
 			fmt.Errorf("installing API datamodel on nexus-apiserver failed: %s", err)).Print().ExitIfFatalOrReturn()
 	}
-	for _, label := range common.OperatorPodLabels {
+	for _, label := range common.ApiDmDependentPodLabels {
 		utils.CheckPodRunning(cmd, utils.RUNTIME_INSTALL_FAILED, label, Namespace)
 	}
 
