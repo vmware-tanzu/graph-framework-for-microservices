@@ -11,8 +11,8 @@ nexusValidation:
 nexusApiGateway:
   version: v0.0.10
 nexusApiOperator:
-  version: v0.0.5
+  version: v0.0.6
 nexusApiDatamodelCrds:
-  version: v0.0.5
+  version: v0.0.6
 nexusRuntime:
   version: v0.1.0
