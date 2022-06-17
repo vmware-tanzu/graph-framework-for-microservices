@@ -60,16 +60,16 @@ var TemplateFs embed.FS
 
 var WaitTimeout = 2 * time.Minute
 
-var RuntimePodLabels [6]string = [6]string{
+var RuntimePodLabels = []string{
 	"-lapp=nexus-etcd",
 	"-lapp=nexus-kube-apiserver",
 	"-lname=nexus-kube-controllermanager",
-	"-lcontrol-plane=api-gw",
 	"-lapp=nexus-validation",
 	"-lapp.kubernetes.io/component=controller,app.kubernetes.io/name=ingress-nginx",
 }
 
-var OperatorPodLabels []string = []string{
+var ApiDmDependentPodLabels = []string{
+	"-lcontrol-plane=api-gw",
 	"-lcontrol-plane=nexus-api-operator",
 }
 
