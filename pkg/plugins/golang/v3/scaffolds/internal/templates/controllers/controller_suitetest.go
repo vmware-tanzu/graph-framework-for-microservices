@@ -53,7 +53,6 @@ func (f *SuiteTest) SetTemplateDefaults() error {
 
 	f.TemplateBody = fmt.Sprintf(controllerSuiteTestTemplate,
 		machinery.NewMarkerFor(f.Path, importMarker),
-		machinery.NewMarkerFor(f.Path, addSchemeMarker),
 	)
 
 	// If is multigroup the path needs to be ../../ since it has
