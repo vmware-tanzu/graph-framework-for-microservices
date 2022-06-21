@@ -106,8 +106,23 @@ var _ = Describe("Nexus clients tests", func() {
 			Expect(err).NotTo(HaveOccurred())
 			Expect(cfg.DisplayName()).To(Equal(cfgName))
 
+			gnsDef := &gnsv1.Gns{
+				ObjectMeta: metav1.ObjectMeta{
+					Name: "gnsName",
+				},
+			}
+			gns, err := cfg.AddGNS(context.TODO(), gnsDef)
+			Expect(err).NotTo(HaveOccurred())
+
+			getGns, err := fakeClient.Gns().GetGnsByName(context.TODO(), gns.GetName())
+			Expect(err).NotTo(HaveOccurred())
+			Expect(getGns.GetName()).To(Equal(gns.GetName()))
+
 			err = root.DeleteConfig(context.TODO())
 			Expect(err).NotTo(HaveOccurred())
+
+			getGns, err = fakeClient.Gns().GetGnsByName(context.TODO(), gns.GetName())
+			Expect(err).To(HaveOccurred())
 
 			cfg, err = root.GetConfig(context.TODO())
 			Expect(err).NotTo(HaveOccurred())
@@ -190,6 +205,60 @@ var _ = Describe("Nexus clients tests", func() {
 			Expect(listSgs).To(HaveLen(2))
 		})
 
+		It("should delete named child", func() {
+			cfgName := "configObj"
+			cfgDef := &configv1.Config{
+				ObjectMeta: metav1.ObjectMeta{
+					Name: cfgName,
+				},
+				Spec: configv1.ConfigSpec{
+					MyStr: &str,
+				},
+			}
+			cfg, err := root.AddConfig(context.TODO(), cfgDef)
+			Expect(err).NotTo(HaveOccurred())
+			gnsDef := &gnsv1.Gns{
+				ObjectMeta: metav1.ObjectMeta{
+					Name: "gnsName",
+				},
+			}
+			gns, err := cfg.AddGNS(context.TODO(), gnsDef)
+			Expect(err).NotTo(HaveOccurred())
+			sg1def := &sgv1.SvcGroup{
+				ObjectMeta: metav1.ObjectMeta{
+					Name: "sg1",
+				},
+			}
+			sg1, err := gns.AddGnsServiceGroups(context.TODO(), sg1def)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(sg1.DisplayName()).To(Equal("sg1"))
+			sg2def := &sgv1.SvcGroup{
+				ObjectMeta: metav1.ObjectMeta{
+					Name: "sg2",
+				},
+			}
+			sg2, err := gns.AddGnsServiceGroups(context.TODO(), sg2def)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(sg2.DisplayName()).To(Equal("sg2"))
+
+			getSg1, err := gns.GetGnsServiceGroups(context.TODO(), "sg1")
+			Expect(err).NotTo(HaveOccurred())
+			Expect(getSg1.DisplayName()).To(Equal("sg1"))
+
+			getSg2, err := fakeClient.Servicegroup().GetSvcGroupByName(context.TODO(), sg2.GetName())
+			Expect(err).NotTo(HaveOccurred())
+			Expect(getSg2.DisplayName()).To(Equal("sg2"))
+
+			err = gns.DeleteGnsServiceGroups(context.TODO(), "sg2")
+			Expect(err).NotTo(HaveOccurred())
+			getSg1, err = gns.GetGnsServiceGroups(context.TODO(), "sg1")
+			Expect(err).NotTo(HaveOccurred())
+			Expect(getSg1.DisplayName()).To(Equal("sg1"))
+
+			_, err = fakeClient.Servicegroup().GetSvcGroupByName(context.TODO(), getSg2.GetName())
+			Expect(err).To(HaveOccurred())
+		})
+
 		It("should remove all children when parent is removed", func() {
 			cfgName := "configObj"
 			cfgDef := &configv1.Config{
@@ -222,11 +291,59 @@ var _ = Describe("Nexus clients tests", func() {
 			cfg, err = fakeClient.Config().GetConfigByName(context.TODO(), cfg.GetName())
 			Expect(err).To(HaveOccurred())
 			Expect(cfg).To(BeNil())
-			Expect(err).To(HaveOccurred())
 
 			gns, err = fakeClient.Gns().GetGnsByName(context.TODO(), gns.GetName())
 			Expect(err).To(HaveOccurred())
 			Expect(gns).To(BeNil())
+		})
+
+		It("should delete all named children when parent is removed", func() {
+			cfgName := "configObj"
+			cfgDef := &configv1.Config{
+				ObjectMeta: metav1.ObjectMeta{
+					Name: cfgName,
+				},
+				Spec: configv1.ConfigSpec{
+					MyStr: &str,
+				},
+			}
+			cfg, err := root.AddConfig(context.TODO(), cfgDef)
+			Expect(err).NotTo(HaveOccurred())
+			gnsDef := &gnsv1.Gns{
+				ObjectMeta: metav1.ObjectMeta{
+					Name: "gnsName",
+				},
+			}
+			gns, err := cfg.AddGNS(context.TODO(), gnsDef)
+			Expect(err).NotTo(HaveOccurred())
+			sg1def := &sgv1.SvcGroup{
+				ObjectMeta: metav1.ObjectMeta{
+					Name: "sg1",
+				},
+			}
+			sg1, err := gns.AddGnsServiceGroups(context.TODO(), sg1def)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(sg1.DisplayName()).To(Equal("sg1"))
+			sg2def := &sgv1.SvcGroup{
+				ObjectMeta: metav1.ObjectMeta{
+					Name: "sg2",
+				},
+			}
+			sg2, err := gns.AddGnsServiceGroups(context.TODO(), sg2def)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(sg2.DisplayName()).To(Equal("sg2"))
+
+			_, err = fakeClient.Servicegroup().GetSvcGroupByName(context.TODO(), sg1.GetName())
+			Expect(err).NotTo(HaveOccurred())
+			_, err = fakeClient.Servicegroup().GetSvcGroupByName(context.TODO(), sg2.GetName())
+			Expect(err).NotTo(HaveOccurred())
+
+			err = cfg.DeleteGNS(context.TODO())
+			Expect(err).NotTo(HaveOccurred())
+
+			_, err = fakeClient.Servicegroup().GetSvcGroupByName(context.TODO(), sg1.GetName())
+			Expect(err).To(HaveOccurred())
+			_, err = fakeClient.Servicegroup().GetSvcGroupByName(context.TODO(), sg2.GetName())
 			Expect(err).To(HaveOccurred())
 		})
 	})
