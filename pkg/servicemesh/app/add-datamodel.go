@@ -8,9 +8,10 @@ import (
 )
 
 var (
-	DatamodelName string
-	DatamodelUrl  string
-	IsDefault     bool
+	DatamodelName      string
+	DatamodelUrl       string
+	IsDefault          bool
+	DatamodelBuildPath string
 )
 
 func DatamodelAdd(cmd *cobra.Command, args []string) error {
@@ -31,7 +32,7 @@ func DatamodelAdd(cmd *cobra.Command, args []string) error {
 		fmt.Println("\u2713 Datamodel added to application successfully")
 	}
 
-	err := WriteToNexusDms(DatamodelName, NexusDmProps{DatamodelUrl, IsDefault})
+	err := WriteToNexusDms(DatamodelName, NexusDmProps{DatamodelUrl, IsDefault, DatamodelBuildPath})
 	if err != nil {
 		return fmt.Errorf("failed to write to nexus-dms.yaml")
 	}
@@ -54,4 +55,5 @@ func init() {
 
 	AddDatamodelCmd.Flags().StringVarP(&DatamodelUrl, "package-name", "p", "", "importable name for the datamodel package")
 	AddDatamodelCmd.Flags().BoolVarP(&IsDefault, "default", "", false, "determines if the DM must be used by default")
+	AddDatamodelCmd.Flags().StringVarP(&DatamodelBuildPath, "build-path", "b", "", "build directory where api clients are localted")
 }
