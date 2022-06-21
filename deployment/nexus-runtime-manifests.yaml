@@ -1,3 +1,4 @@
+---
 apiVersion: v1
 automountServiceAccountToken: true
 kind: ServiceAccount
@@ -10,6 +11,7 @@ metadata:
     app.kubernetes.io/version: 1.2.0
     component: nexus
   name: nexus-ingress-nginx
+  namespace: {{.Namespace}}
 ---
 apiVersion: v1
 kind: ServiceAccount
@@ -21,6 +23,7 @@ metadata:
     app.kubernetes.io/part-of: ingress-nginx
     app.kubernetes.io/version: 1.2.0
     component: nexus
+  namespace: {{.Namespace}}
   name: nexus-nginx-admsn-{{.Namespace}}
 ---
 apiVersion: rbac.authorization.k8s.io/v1
@@ -34,6 +37,7 @@ metadata:
     app.kubernetes.io/version: 1.2.0
     component: nexus
   name: nexus-ingress-nginx
+  namespace: {{.Namespace}}
 rules:
 - apiGroups:
   - ""
@@ -116,6 +120,7 @@ metadata:
     app.kubernetes.io/version: 1.2.0
     component: nexus
   name: nexus-nginx-admsn-{{.Namespace}}
+  namespace: {{.Namespace}}
 rules:
 - apiGroups:
   - ""
@@ -135,6 +140,7 @@ metadata:
     app.kubernetes.io/version: 1.2.0
     component: nexus
   name: nexus-nginx-{{.Namespace}}
+  namespace: {{.Namespace}}
 rules:
 - apiGroups:
   - ""
@@ -203,6 +209,7 @@ metadata:
     app.kubernetes.io/version: 1.2.0
     component: nexus
   name: nexus-nginx-admsn-{{.Namespace}}
+  namespace: {{.Namespace}}
 rules:
 - apiGroups:
   - admissionregistration.k8s.io
@@ -223,6 +230,7 @@ metadata:
     app.kubernetes.io/version: 1.2.0
     component: nexus
   name: nexus-ingress-nginx
+  namespace: {{.Namespace}}
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role
@@ -243,6 +251,7 @@ metadata:
     app.kubernetes.io/version: 1.2.0
     component: nexus
   name: nexus-nginx-admsn-{{.Namespace}}
+  namespace: {{.Namespace}}
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role
@@ -262,6 +271,7 @@ metadata:
     app.kubernetes.io/version: 1.2.0
     component: nexus
   name: nexus-nginx-{{.Namespace}}
+  namespace: {{.Namespace}}
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
@@ -282,6 +292,7 @@ metadata:
     app.kubernetes.io/version: 1.2.0
     component: nexus
   name: nginx-admsn-{{.Namespace}}
+  namespace: {{.Namespace}}
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
@@ -304,6 +315,7 @@ metadata:
     app.kubernetes.io/version: 1.2.0
     component: nexus
   name: nexus-ingress-nginx-controller
+  namespace: {{.Namespace}}
 ---
 apiVersion: v1
 kind: Service
@@ -316,6 +328,7 @@ metadata:
     app.kubernetes.io/version: 1.2.0
     component: nexus
   name: nexus-ingress-nginx-controller
+  namespace: {{.Namespace}}
 spec:
   ports:
   - name: http
@@ -344,6 +357,7 @@ metadata:
     app.kubernetes.io/version: 1.2.0
     component: nexus
   name: nexus-ingress-nginx-controller-admission
+  namespace: {{.Namespace}}
 spec:
   ports:
   - name: https-webhook
@@ -367,6 +381,7 @@ metadata:
     app.kubernetes.io/version: 1.2.0
     component: nexus
   name: nexus-ingress-nginx-controller
+  namespace: {{.Namespace}}
 spec:
   minReadySeconds: 0
   revisionHistoryLimit: 10
@@ -481,10 +496,13 @@ metadata:
     app.kubernetes.io/part-of: ingress-nginx
     app.kubernetes.io/version: 1.2.0
     component: nexus
-  name: nexus-nginx-admsn-{{.Namespace}}-create
+  name: nexus-nginxw-{{.Namespace}}-create
+  namespace: {{.Namespace}}
 spec:
   template:
     metadata:
+      annotations:
+        "sidecar.istio.io/inject": "false"
       labels:
         app.kubernetes.io/component: admission-webhook
         app.kubernetes.io/instance: ingress-nginx
@@ -529,10 +547,13 @@ metadata:
     app.kubernetes.io/part-of: ingress-nginx
     app.kubernetes.io/version: 1.2.0
     component: nexus
-  name: nexus-nginx-admsn-{{.Namespace}}-patch
+  name: nexus-nginxw-{{.Namespace}}-patch
+  namespace: {{.Namespace}}
 spec:
   template:
     metadata:
+      annotations:
+        "sidecar.istio.io/inject": "false"
       labels:
         app.kubernetes.io/component: admission-webhook
         app.kubernetes.io/instance: ingress-nginx
@@ -602,10 +623,321 @@ webhooks:
     - ingresses
   sideEffects: None
 ---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: nexus-k8scert-secret-permission
+  namespace: {{.Namespace}}
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - "secrets"
+  verbs:
+  - get
+  - watch
+  - list
+  - create
+  - delete
+  - patch
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: nexus-k8scerts-service-account
+  namespace: {{.Namespace}}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: nexus-k8scert-create-secret-rbac
+  namespace: {{.Namespace}}
+subjects:
+- kind: ServiceAccount
+  name: nexus-k8scerts-service-account
+roleRef:
+  kind: Role
+  name: nexus-k8scert-secret-permission
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: nexus-k8scert-creation-job
+  namespace: {{.Namespace}}
+spec:
+  template:
+    metadata:
+      annotations:
+        "sidecar.istio.io/inject": "false"
+    spec:
+      serviceAccountName: nexus-k8scerts-service-account
+      containers:
+      - name: k8scert-creation
+        image: "gcr.io/nsx-sm/tools:latest"
+        imagePullPolicy: IfNotPresent
+        command:
+        - "/bin/bash"
+        - "-c"
+        - |
+          set -e
+          openssl rand -out /root/.rnd -hex 256
+          openssl genrsa -out /tmp/ca.key 2048
+          openssl req -x509 -new -nodes -key /tmp/ca.key -subj "/CN=nexus-apiserver" -days 10000 -out /tmp/ca.crt
+          kubectl create secret generic nexus-customapi-ca --from-file=/tmp/ca.key --from-file=/tmp/ca.crt -n $KUBERNETES_POD_NAMESPACE --dry-run -o yaml | kubectl apply -f -
+        env:
+          - name: KUBERNETES_POD_NAMESPACE
+            valueFrom:
+              fieldRef:
+                apiVersion: v1
+                fieldPath: metadata.namespace
+      restartPolicy: Never
+  backoffLimit: 4
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nexus-kube-apiserver
+  namespace: {{.Namespace}}
+  labels:
+    app: nexus-kube-apiserver
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nexus-kube-apiserver
+  template:
+    metadata:
+      annotations:
+        "sidecar.istio.io/inject": "false"
+      labels:
+        app: nexus-kube-apiserver
+    spec:
+      initContainers:
+      - name: check-etcd-server
+        image: "gcr.io/nsx-sm/tools:latest"
+        imagePullPolicy: IfNotPresent
+        command:
+            - /bin/bash
+            - -c
+            - |
+              #!/bin/bash
+              URL="http://etcd:2379/health"
+              max_retries=20
+              counter=0
+              while [[ $counter -lt $max_retries ]]; do
+                    status=$(curl -s -o /dev/null -I -w "%{http_code}" -XGET $URL)
+                    if [ $status == "200" ]; then
+                        echo "$URL is reachable"
+                        exit 0
+                    else
+                        counter=$((counter +1))
+                        sleep 5
+                        if [[ $counter -eq $max_retries ]]; then
+                          exit 1
+                        fi
+                    fi
+              done
+      containers:
+      - command:
+        - kube-apiserver
+        - --insecure-bind-address=0.0.0.0
+        - --etcd-servers=http://etcd:2379
+        - --service-account-key-file=/custom/k8s/certs/ca.crt
+        - --service-cluster-ip-range=10.24.0.0/16
+        - --cert-dir=/etc/kubernetes/certs
+        - --endpoint-reconciler-type=none
+        - --port=8080
+        image: gcr.io/nsx-sm/k8s.gcr.io/kube-apiserver:v1.18.0
+        imagePullPolicy: IfNotPresent
+        ports:
+          - containerPort: 8080
+        env:
+        - name: KUBERNETES_POD_NAMESPACE
+          valueFrom:
+            fieldRef:
+              apiVersion: v1
+              fieldPath: metadata.namespace
+        name: kube-apiserver
+        resources:
+          requests:
+            cpu: 500m
+            memory: 500Mi
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+        livenessProbe:
+          failureThreshold: 8
+          httpGet:
+            path: /healthz
+            port: 8080
+            scheme: HTTP
+          initialDelaySeconds: 15
+          periodSeconds: 10
+          successThreshold: 1
+          timeoutSeconds: 15
+        volumeMounts:
+            - name: nexus-customapi-ca
+              mountPath: "/custom/k8s/certs"
+              readOnly: true
+      restartPolicy: Always
+      securityContext: {}
+      volumes:
+      - name: nexus-customapi-ca
+        secret:
+            secretName: nexus-customapi-ca
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nexus-apiserver
+  namespace: {{.Namespace}}
+spec:
+  type: ClusterIP
+  ports:
+    - protocol: TCP
+      name: http
+      port: 8080
+      targetPort: 8080
+    - protocol: TCP
+      port: 6443
+      name: https
+      targetPort: 6443
+  selector:
+      app: nexus-kube-apiserver
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nexus-kube-controllermanager
+  namespace: {{.Namespace}}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      name: nexus-kube-controllermanager
+  template:
+    metadata:
+      annotations:
+        "sidecar.istio.io/inject": "false"
+      labels:
+        name: nexus-kube-controllermanager
+    spec:
+      initContainers:
+      - name: check-etcd-server
+        image: "gcr.io/nsx-sm/tools:latest"
+        imagePullPolicy: IfNotPresent
+        command:
+            - /bin/bash
+            - -c
+            - |
+              #!/bin/bash
+              URL="http://nexus-apiserver:8080/version"
+              max_retries=20
+              counter=0
+              while [[ $counter -lt $max_retries ]]; do
+                    status=$(curl -s -o /dev/null -I -w "%{http_code}" -XGET $URL)
+                    if [ $status == "200" ]; then
+                        echo "$URL is reachable"
+                        exit 0
+                    else
+                        counter=$((counter +1))
+                        sleep 5
+                        if [[ $counter -eq $max_retries ]]; then
+                          exit 1
+                        fi
+                    fi
+              done
+      containers:
+      - command:
+        - kube-controller-manager
+        - --service-account-private-key-file=/custom/k8s/certs/ca.key
+        - --leader-elect=false
+        - --master=nexus-apiserver:8080
+        - --use-service-account-credentials=true
+        - --authentication-skip-lookup=true
+        image: gcr.io/nsx-sm/k8s.gcr.io/kube-controller-manager:v1.18.0
+        imagePullPolicy: IfNotPresent
+        livenessProbe:
+          failureThreshold: 8
+          httpGet:
+            path: /healthz
+            port: 10257
+            scheme: HTTPS
+          initialDelaySeconds: 15
+          periodSeconds: 10
+          successThreshold: 1
+          timeoutSeconds: 15
+        name: kube-controllermanager
+        resources:
+          requests:
+            cpu: 500m
+            memory: 500Mi
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+        volumeMounts:
+            - name: nexus-customapi-ca
+              mountPath: "/custom/k8s/certs"
+              readOnly: true
+      restartPolicy: Always
+      securityContext: {}
+      volumes:
+      - name: nexus-customapi-ca
+        secret:
+            secretName: nexus-customapi-ca
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nexus-proxy-container
+  namespace: {{.Namespace}}
+  labels:
+    app: nexus-proxy-container
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nexus-proxy-container
+  template:
+    metadata:
+      annotations:
+        "sidecar.istio.io/inject": "false"
+      labels:
+        app: nexus-proxy-container
+    spec:
+      containers:
+      - name: proxy-container
+        image: "gcr.io/nsx-sm/tools:latest"
+        command: [ "kubectl","--server=http://nexus-apiserver:8080","proxy","--address=0.0.0.0","--disable-filter=true","--v=1" ]
+        ports:
+          - containerPort: 8001
+        resources:
+          requests:
+            cpu: 100m
+            memory: 200Mi
+          limits:
+            cpu: 100m
+            memory: 200Mi
+        imagePullPolicy: IfNotPresent
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nexus-proxy-container
+  namespace: {{.Namespace}}
+spec:
+  ports:
+    - protocol: TCP
+      name: http
+      port: 80
+      targetPort: 8001
+  selector:
+      app: nexus-proxy-container
+---
 apiVersion: apps/v1 # for versions before 1.9.0 use apps/v1beta2
 kind: Deployment
 metadata:
   name: nexus-nginx
+  namespace: {{.Namespace}}
 spec:
   strategy:
     type: Recreate
@@ -630,6 +962,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: nexus-nginx
+  namespace: {{.Namespace}}
   labels:
     app: nexus-nginx
 spec:
