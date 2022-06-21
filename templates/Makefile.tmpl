@@ -17,6 +17,7 @@ CICD_TOKEN ?= ""
 CRD_GROUP ?= ""
 CRD_KIND ?= ""
 CRD_VERSION ?= ""
+CRD_DATAMODEL_BUILD_DIRECTORY ?= ""
 CRD_DATAMODEL_NAME ?= ""
 
 #
@@ -240,7 +241,11 @@ add_operator: install-nexus-kubebuilder
 		if [ -n $(CRD_GROUP) ]; then \
 			if [ -n $(CRD_VERSION) ]; then \
 				if [ -n $(CRD_KIND) ]; then \
-					$(NEXUS_KUBEBUILDER) create api --group $(CRD_GROUP) --kind $(CRD_KIND) --version $(CRD_VERSION) --controller --resource=false --import $(CRD_DATAMODEL_NAME) ;\
+					if [ -n $(CRD_DATAMODEL_BUILD_DIRECTORY) ]; then \
+						$(NEXUS_KUBEBUILDER) create api --group $(CRD_GROUP) --kind $(CRD_KIND) --version $(CRD_VERSION) --controller --resource=false --import $(CRD_DATAMODEL_NAME) --buildpath $(CRD_DATAMODEL_BUILD_DIRECTORY);\
+					else \
+						$(NEXUS_KUBEBUILDER) create api --group $(CRD_GROUP) --kind $(CRD_KIND) --version $(CRD_VERSION) --controller --resource=false --import $(CRD_DATAMODEL_NAME); \
+					fi \
 				else \
 					echo "Please provide CRD_KIND"; exit 1;\
 				fi \
