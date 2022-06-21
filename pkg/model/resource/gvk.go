@@ -46,6 +46,7 @@ type GVK struct {
 	DatamodelImport     string `json:"datamodelImport,omitempty"`
 	DatamodelAlias      string `json:"datamodelAlias,omitempty"`
 	DatamodelFullImport string `json:"datamodelFqdnImport,omitempty"`
+	DatamodelAPIPath    string `json:"datamodelAPIPath,omitempty"`
 }
 
 // Validate checks that the GVK is valid.
