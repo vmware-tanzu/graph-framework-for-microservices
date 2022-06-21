@@ -70,7 +70,11 @@ func (f *Controller) SetTemplateDefaults() error {
 		if !strings.HasSuffix(apiPath, "/") {
 			apiPath = fmt.Sprintf("%s/", apiPath)
 		}
-		f.Resource.DatamodelFullImport = fmt.Sprintf("%s/%sapis/%s/%s", datamodelImport, apiPath, f.Resource.Group, f.Resource.Version)
+		if apiPath != "/" {
+			f.Resource.DatamodelFullImport = fmt.Sprintf("%s/%sapis/%s/%s", datamodelImport, apiPath, f.Resource.Group, f.Resource.Version)
+		} else {
+			f.Resource.DatamodelFullImport = fmt.Sprintf("%s/apis/%s/%s", datamodelImport, f.Resource.Group, f.Resource.Version)
+		}
 	}
 	return nil
 }
