@@ -11,8 +11,9 @@ import (
 type DmType string
 
 type NexusDmProps struct {
-	Location  string `yaml:"location"`
-	IsDefault bool   `yaml:"isDefault"`
+	Location       string `yaml:"location"`
+	IsDefault      bool   `yaml:"isDefault"`
+	BuildDirectory string `yaml:"buildDirectory,omitempty"`
 }
 
 const nexusDmsFile = "nexus-dms.yaml"

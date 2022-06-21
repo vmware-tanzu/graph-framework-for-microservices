@@ -15,10 +15,11 @@ var prerequisites []prereq.Prerequiste = []prereq.Prerequiste{
 	prereq.GOLANG_VERSION,
 }
 var (
-	CrdGroup     string
-	CrdVersion   string
-	CrdKind      string
-	CrdDatamodel string
+	CrdGroup              string
+	CrdVersion            string
+	CrdKind               string
+	crdDatamodelBuildPath string
+	CrdDatamodel          string
 )
 
 func Create(cmd *cobra.Command, args []string) error {
@@ -35,6 +36,7 @@ func Create(cmd *cobra.Command, args []string) error {
 			return err
 		}
 		CrdDatamodel = defaultDM.Location
+		crdDatamodelBuildPath = defaultDM.BuildDirectory
 		fmt.Printf("Using default DM %v\n", defaultDM)
 	}
 	envList := common.GetEnvList()
@@ -42,6 +44,9 @@ func Create(cmd *cobra.Command, args []string) error {
 	envList = append(envList, fmt.Sprintf("CRD_VERSION=%s", CrdVersion))
 	envList = append(envList, fmt.Sprintf("CRD_KIND=%s", CrdKind))
 	envList = append(envList, fmt.Sprintf("CRD_DATAMODEL_NAME=%s", CrdDatamodel))
+	if crdDatamodelBuildPath != "" {
+		envList = append(envList, fmt.Sprintf("CRD_DATAMODEL_BUILD_DIRECTORY=%s", crdDatamodelBuildPath))
+	}
 
 	// check if we are in the correct directory
 	// TBD. for now, we run from PWD
@@ -87,6 +92,8 @@ func init() {
 	CreateCmd.Flags().StringVarP(&CrdDatamodel, "datamodel",
 		"d", "", "Datamodel that contains the specified resource")
 
+	CreateCmd.Flags().StringVarP(&crdDatamodelBuildPath, "build-path",
+		"b", "", "Build directory of CRDs and clients")
 	if err != nil {
 		fmt.Printf("init error: %v\n", err)
 	}
