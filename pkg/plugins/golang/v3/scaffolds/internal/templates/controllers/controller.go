@@ -62,7 +62,15 @@ func (f *Controller) SetTemplateDefaults() error {
 		if f.Resource.DatamodelAlias == "" {
 			f.Resource.DatamodelAlias = fmt.Sprintf("%s%s", strings.ReplaceAll(f.Resource.Group, ".", ""), f.Resource.Version)
 		}
-		f.Resource.DatamodelFullImport = fmt.Sprintf("%s/build/apis/%s/%s", f.Resource.DatamodelImport, f.Resource.Group, f.Resource.Version)
+		var datamodelImport string
+		var apiPath string
+		datamodelImport = strings.TrimSuffix(f.Resource.DatamodelImport, "/")
+		fmt.Printf("buildpath: %s\n", f.Resource.DatamodelAPIPath)
+		apiPath = strings.TrimLeft(f.Resource.DatamodelAPIPath, "/")
+		if !strings.HasSuffix(apiPath, "/") {
+			apiPath = fmt.Sprintf("%s/", apiPath)
+		}
+		f.Resource.DatamodelFullImport = fmt.Sprintf("%s/%sapis/%s/%s", datamodelImport, apiPath, f.Resource.Group, f.Resource.Version)
 	}
 	return nil
 }

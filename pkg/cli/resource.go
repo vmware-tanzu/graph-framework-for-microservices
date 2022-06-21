@@ -43,6 +43,7 @@ func bindResourceFlags(fs *pflag.FlagSet) *resourceOptions {
 	fs.StringVar(&options.Version, "version", "", "resource Version")
 	fs.StringVar(&options.Kind, "kind", "", "resource Kind")
 	fs.StringVar(&options.DatamodelImport, "import", "", "resource import path")
+	fs.StringVar(&options.DatamodelAPIPath, "buildpath", "/build", "build directory of resource import ")
 	fmt.Printf("%s recieved value for import", options.DatamodelImport)
 	return options
 }
@@ -74,11 +75,12 @@ func (opts resourceOptions) validate() error {
 func (opts resourceOptions) newResource() *resource.Resource {
 	return &resource.Resource{
 		GVK: resource.GVK{ // Remove whitespaces to prevent values like " " pass validation
-			Group:           strings.TrimSpace(opts.Group),
-			Domain:          strings.TrimSpace(opts.Domain),
-			Version:         strings.TrimSpace(opts.Version),
-			Kind:            strings.TrimSpace(opts.Kind),
-			DatamodelImport: strings.TrimSpace(opts.DatamodelImport),
+			Group:            strings.TrimSpace(opts.Group),
+			Domain:           strings.TrimSpace(opts.Domain),
+			Version:          strings.TrimSpace(opts.Version),
+			Kind:             strings.TrimSpace(opts.Kind),
+			DatamodelImport:  strings.TrimSpace(opts.DatamodelImport),
+			DatamodelAPIPath: strings.TrimSpace(opts.DatamodelAPIPath),
 		},
 		Plural:   resource.RegularPlural(opts.Kind),
 		API:      &resource.API{},
