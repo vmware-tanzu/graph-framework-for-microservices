@@ -15,7 +15,6 @@ package nexus_client
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	types "k8s.io/apimachinery/pkg/types"
@@ -346,13 +345,13 @@ func (c *Clientset) DeleteRootRoot(ctx context.Context, displayName string) (err
 	return c.Root().DeleteRootByName(ctx, hashedName)
 }
 
-// GetConfig returns child or link of given type
+// GetConfig returns child of given type
 func (obj *RootRoot) GetConfig(ctx context.Context) (
 	result *ConfigConfig, err error) {
-	if obj.Spec.ConfigGvk != nil {
-		return obj.client.Config().GetConfigByName(ctx, obj.Spec.ConfigGvk.Name)
+	if obj.Spec.ConfigGvk == nil {
+		return nil, NewChildNotFound(obj.DisplayName(), "Root.Root", "Config")
 	}
-	return
+	return obj.client.Config().GetConfigByName(ctx, obj.Spec.ConfigGvk.Name)
 }
 
 // AddConfig calculates hashed name of the child to create based on objToCreate.Name
@@ -730,56 +729,13 @@ func (obj *ConfigConfig) GetParent(ctx context.Context) (result *RootRoot, err e
 	return obj.client.Root().GetRootByName(ctx, hashedName)
 }
 
-// GetGNS returns child or link of given type
+// GetGNS returns child of given type
 func (obj *ConfigConfig) GetGNS(ctx context.Context) (
 	result *GnsGns, err error) {
-	if obj.Spec.GNSGvk != nil {
-		return obj.client.Gns().GetGnsByName(ctx, obj.Spec.GNSGvk.Name)
+	if obj.Spec.GNSGvk == nil {
+		return nil, NewChildNotFound(obj.DisplayName(), "Config.Config", "GNS")
 	}
-	return
-}
-
-// GetDNS returns child or link of given type
-func (obj *ConfigConfig) GetDNS(ctx context.Context) (
-	result *GnsDns, err error) {
-	if obj.Spec.DNSGvk != nil {
-		return obj.client.Gns().GetDnsByName(ctx, obj.Spec.DNSGvk.Name)
-	}
-	return
-}
-
-// GetVMPPolicies returns child or link of given type
-func (obj *ConfigConfig) GetVMPPolicies(ctx context.Context) (
-	result *PolicypkgVMpolicy, err error) {
-	if obj.Spec.VMPPoliciesGvk != nil {
-		return obj.client.Policypkg().GetVMpolicyByName(ctx, obj.Spec.VMPPoliciesGvk.Name)
-	}
-	return
-}
-
-// GetAllACPPolicies returns all links or children of given type
-func (obj *ConfigConfig) GetAllACPPolicies(ctx context.Context) (
-	result []*PolicypkgAccessControlPolicy, err error) {
-	result = make([]*PolicypkgAccessControlPolicy, 0, len(obj.Spec.ACPPoliciesGvk))
-	for _, v := range obj.Spec.ACPPoliciesGvk {
-		l, err := obj.client.Policypkg().GetAccessControlPolicyByName(ctx, v.Name)
-		if err != nil {
-			return nil, err
-		}
-		result = append(result, l)
-	}
-	return
-}
-
-// GetACPPolicies returns link or child which has given displayName
-func (obj *ConfigConfig) GetACPPolicies(ctx context.Context,
-	displayName string) (result *PolicypkgAccessControlPolicy, err error) {
-	l, ok := obj.Spec.ACPPoliciesGvk[displayName]
-	if !ok {
-		return nil, fmt.Errorf("object %s doesn't have child %s", obj.DisplayName(), displayName)
-	}
-	result, err = obj.client.Policypkg().GetAccessControlPolicyByName(ctx, l.Name)
-	return
+	return obj.client.Gns().GetGnsByName(ctx, obj.Spec.GNSGvk.Name)
 }
 
 // AddGNS calculates hashed name of the child to create based on objToCreate.Name
@@ -827,6 +783,15 @@ func (obj *ConfigConfig) DeleteGNS(ctx context.Context) (err error) {
 	return
 }
 
+// GetDNS returns child of given type
+func (obj *ConfigConfig) GetDNS(ctx context.Context) (
+	result *GnsDns, err error) {
+	if obj.Spec.DNSGvk == nil {
+		return nil, NewChildNotFound(obj.DisplayName(), "Config.Config", "DNS")
+	}
+	return obj.client.Gns().GetDnsByName(ctx, obj.Spec.DNSGvk.Name)
+}
+
 // AddDNS calculates hashed name of the child to create based on objToCreate.Name
 // and parents names and creates it. objToCreate.Name is changed to the hashed name. Original name is preserved in
 // nexus/display_name label and can be obtained using DisplayName() method.
@@ -872,6 +837,15 @@ func (obj *ConfigConfig) DeleteDNS(ctx context.Context) (err error) {
 	return
 }
 
+// GetVMPPolicies returns child of given type
+func (obj *ConfigConfig) GetVMPPolicies(ctx context.Context) (
+	result *PolicypkgVMpolicy, err error) {
+	if obj.Spec.VMPPoliciesGvk == nil {
+		return nil, NewChildNotFound(obj.DisplayName(), "Config.Config", "VMPPolicies")
+	}
+	return obj.client.Policypkg().GetVMpolicyByName(ctx, obj.Spec.VMPPoliciesGvk.Name)
+}
+
 // AddVMPPolicies calculates hashed name of the child to create based on objToCreate.Name
 // and parents names and creates it. objToCreate.Name is changed to the hashed name. Original name is preserved in
 // nexus/display_name label and can be obtained using DisplayName() method.
@@ -914,6 +888,31 @@ func (obj *ConfigConfig) DeleteVMPPolicies(ctx context.Context) (err error) {
 	if err == nil {
 		obj.Config = updatedObj.Config
 	}
+	return
+}
+
+// GetAllACPPolicies returns all links of given type
+func (obj *ConfigConfig) GetAllACPPolicies(ctx context.Context) (
+	result []*PolicypkgAccessControlPolicy, err error) {
+	result = make([]*PolicypkgAccessControlPolicy, 0, len(obj.Spec.ACPPoliciesGvk))
+	for _, v := range obj.Spec.ACPPoliciesGvk {
+		l, err := obj.client.Policypkg().GetAccessControlPolicyByName(ctx, v.Name)
+		if err != nil {
+			return nil, err
+		}
+		result = append(result, l)
+	}
+	return
+}
+
+// GetACPPolicies returns link which has given displayName
+func (obj *ConfigConfig) GetACPPolicies(ctx context.Context,
+	displayName string) (result *PolicypkgAccessControlPolicy, err error) {
+	l, ok := obj.Spec.ACPPoliciesGvk[displayName]
+	if !ok {
+		return nil, NewLinkNotFound(obj.DisplayName(), "Config.Config", "ACPPolicies", displayName)
+	}
+	result, err = obj.client.Policypkg().GetAccessControlPolicyByName(ctx, l.Name)
 	return
 }
 
@@ -1369,7 +1368,7 @@ func (obj *GnsGns) GetParent(ctx context.Context) (result *ConfigConfig, err err
 	return obj.client.Config().GetConfigByName(ctx, hashedName)
 }
 
-// GetAllGnsServiceGroups returns all links or children of given type
+// GetAllGnsServiceGroups returns all children of given type
 func (obj *GnsGns) GetAllGnsServiceGroups(ctx context.Context) (
 	result []*ServicegroupSvcGroup, err error) {
 	result = make([]*ServicegroupSvcGroup, 0, len(obj.Spec.GnsServiceGroupsGvk))
@@ -1383,32 +1382,14 @@ func (obj *GnsGns) GetAllGnsServiceGroups(ctx context.Context) (
 	return
 }
 
-// GetGnsServiceGroups returns link or child which has given displayName
+// GetGnsServiceGroups returns child which has given displayName
 func (obj *GnsGns) GetGnsServiceGroups(ctx context.Context,
 	displayName string) (result *ServicegroupSvcGroup, err error) {
 	l, ok := obj.Spec.GnsServiceGroupsGvk[displayName]
 	if !ok {
-		return nil, fmt.Errorf("object %s doesn't have child %s", obj.DisplayName(), displayName)
+		return nil, NewChildNotFound(obj.DisplayName(), "Gns.Gns", "GnsServiceGroups", displayName)
 	}
 	result, err = obj.client.Servicegroup().GetSvcGroupByName(ctx, l.Name)
-	return
-}
-
-// GetGnsAccessControlPolicy returns child or link of given type
-func (obj *GnsGns) GetGnsAccessControlPolicy(ctx context.Context) (
-	result *PolicypkgAccessControlPolicy, err error) {
-	if obj.Spec.GnsAccessControlPolicyGvk != nil {
-		return obj.client.Policypkg().GetAccessControlPolicyByName(ctx, obj.Spec.GnsAccessControlPolicyGvk.Name)
-	}
-	return
-}
-
-// GetDns returns child or link of given type
-func (obj *GnsGns) GetDns(ctx context.Context) (
-	result *GnsDns, err error) {
-	if obj.Spec.DnsGvk != nil {
-		return obj.client.Gns().GetDnsByName(ctx, obj.Spec.DnsGvk.Name)
-	}
 	return
 }
 
@@ -1444,7 +1425,7 @@ func (obj *GnsGns) AddGnsServiceGroups(ctx context.Context,
 func (obj *GnsGns) DeleteGnsServiceGroups(ctx context.Context, displayName string) (err error) {
 	l, ok := obj.Spec.GnsServiceGroupsGvk[displayName]
 	if !ok {
-		return fmt.Errorf("object %s doesn't have child %s", obj.DisplayName(), displayName)
+		return NewChildNotFound(obj.DisplayName(), "Gns.Gns", "GnsServiceGroups", displayName)
 	}
 	err = obj.client.Servicegroup().DeleteSvcGroupByName(ctx, l.Name)
 	if err != nil {
@@ -1455,6 +1436,15 @@ func (obj *GnsGns) DeleteGnsServiceGroups(ctx context.Context, displayName strin
 		obj.Gns = updatedObj.Gns
 	}
 	return
+}
+
+// GetGnsAccessControlPolicy returns child of given type
+func (obj *GnsGns) GetGnsAccessControlPolicy(ctx context.Context) (
+	result *PolicypkgAccessControlPolicy, err error) {
+	if obj.Spec.GnsAccessControlPolicyGvk == nil {
+		return nil, NewChildNotFound(obj.DisplayName(), "Gns.Gns", "GnsAccessControlPolicy")
+	}
+	return obj.client.Policypkg().GetAccessControlPolicyByName(ctx, obj.Spec.GnsAccessControlPolicyGvk.Name)
 }
 
 // AddGnsAccessControlPolicy calculates hashed name of the child to create based on objToCreate.Name
@@ -1500,6 +1490,15 @@ func (obj *GnsGns) DeleteGnsAccessControlPolicy(ctx context.Context) (err error)
 		obj.Gns = updatedObj.Gns
 	}
 	return
+}
+
+// GetDns returns link of given type
+func (obj *GnsGns) GetDns(ctx context.Context) (
+	result *GnsDns, err error) {
+	if obj.Spec.DnsGvk == nil {
+		return nil, NewLinkNotFound(obj.DisplayName(), "Gns.Gns", "Dns")
+	}
+	return obj.client.Gns().GetDnsByName(ctx, obj.Spec.DnsGvk.Name)
 }
 
 // LinkDns links obj with linkToAdd object. This function doesn't create linked object, it must be
@@ -2316,7 +2315,7 @@ func (obj *PolicypkgAccessControlPolicy) GetParent(ctx context.Context) (result 
 	return obj.client.Gns().GetGnsByName(ctx, hashedName)
 }
 
-// GetAllPolicyConfigs returns all links or children of given type
+// GetAllPolicyConfigs returns all children of given type
 func (obj *PolicypkgAccessControlPolicy) GetAllPolicyConfigs(ctx context.Context) (
 	result []*PolicypkgACPConfig, err error) {
 	result = make([]*PolicypkgACPConfig, 0, len(obj.Spec.PolicyConfigsGvk))
@@ -2330,12 +2329,12 @@ func (obj *PolicypkgAccessControlPolicy) GetAllPolicyConfigs(ctx context.Context
 	return
 }
 
-// GetPolicyConfigs returns link or child which has given displayName
+// GetPolicyConfigs returns child which has given displayName
 func (obj *PolicypkgAccessControlPolicy) GetPolicyConfigs(ctx context.Context,
 	displayName string) (result *PolicypkgACPConfig, err error) {
 	l, ok := obj.Spec.PolicyConfigsGvk[displayName]
 	if !ok {
-		return nil, fmt.Errorf("object %s doesn't have child %s", obj.DisplayName(), displayName)
+		return nil, NewChildNotFound(obj.DisplayName(), "Policypkg.AccessControlPolicy", "PolicyConfigs", displayName)
 	}
 	result, err = obj.client.Policypkg().GetACPConfigByName(ctx, l.Name)
 	return
@@ -2373,7 +2372,7 @@ func (obj *PolicypkgAccessControlPolicy) AddPolicyConfigs(ctx context.Context,
 func (obj *PolicypkgAccessControlPolicy) DeletePolicyConfigs(ctx context.Context, displayName string) (err error) {
 	l, ok := obj.Spec.PolicyConfigsGvk[displayName]
 	if !ok {
-		return fmt.Errorf("object %s doesn't have child %s", obj.DisplayName(), displayName)
+		return NewChildNotFound(obj.DisplayName(), "Policypkg.AccessControlPolicy", "PolicyConfigs", displayName)
 	}
 	err = obj.client.Policypkg().DeleteACPConfigByName(ctx, l.Name)
 	if err != nil {
@@ -2691,7 +2690,7 @@ func (obj *PolicypkgACPConfig) GetParent(ctx context.Context) (result *Policypkg
 	return obj.client.Policypkg().GetAccessControlPolicyByName(ctx, hashedName)
 }
 
-// GetAllDestSvcGroups returns all links or children of given type
+// GetAllDestSvcGroups returns all links of given type
 func (obj *PolicypkgACPConfig) GetAllDestSvcGroups(ctx context.Context) (
 	result []*ServicegroupSvcGroup, err error) {
 	result = make([]*ServicegroupSvcGroup, 0, len(obj.Spec.DestSvcGroupsGvk))
@@ -2705,37 +2704,12 @@ func (obj *PolicypkgACPConfig) GetAllDestSvcGroups(ctx context.Context) (
 	return
 }
 
-// GetDestSvcGroups returns link or child which has given displayName
+// GetDestSvcGroups returns link which has given displayName
 func (obj *PolicypkgACPConfig) GetDestSvcGroups(ctx context.Context,
 	displayName string) (result *ServicegroupSvcGroup, err error) {
 	l, ok := obj.Spec.DestSvcGroupsGvk[displayName]
 	if !ok {
-		return nil, fmt.Errorf("object %s doesn't have child %s", obj.DisplayName(), displayName)
-	}
-	result, err = obj.client.Servicegroup().GetSvcGroupByName(ctx, l.Name)
-	return
-}
-
-// GetAllSourceSvcGroups returns all links or children of given type
-func (obj *PolicypkgACPConfig) GetAllSourceSvcGroups(ctx context.Context) (
-	result []*ServicegroupSvcGroup, err error) {
-	result = make([]*ServicegroupSvcGroup, 0, len(obj.Spec.SourceSvcGroupsGvk))
-	for _, v := range obj.Spec.SourceSvcGroupsGvk {
-		l, err := obj.client.Servicegroup().GetSvcGroupByName(ctx, v.Name)
-		if err != nil {
-			return nil, err
-		}
-		result = append(result, l)
-	}
-	return
-}
-
-// GetSourceSvcGroups returns link or child which has given displayName
-func (obj *PolicypkgACPConfig) GetSourceSvcGroups(ctx context.Context,
-	displayName string) (result *ServicegroupSvcGroup, err error) {
-	l, ok := obj.Spec.SourceSvcGroupsGvk[displayName]
-	if !ok {
-		return nil, fmt.Errorf("object %s doesn't have child %s", obj.DisplayName(), displayName)
+		return nil, NewLinkNotFound(obj.DisplayName(), "Policypkg.ACPConfig", "DestSvcGroups", displayName)
 	}
 	result, err = obj.client.Servicegroup().GetSvcGroupByName(ctx, l.Name)
 	return
@@ -2778,6 +2752,31 @@ func (obj *PolicypkgACPConfig) UnlinkDestSvcGroups(ctx context.Context,
 	obj.ACPConfig = result
 	return nil
 
+}
+
+// GetAllSourceSvcGroups returns all links of given type
+func (obj *PolicypkgACPConfig) GetAllSourceSvcGroups(ctx context.Context) (
+	result []*ServicegroupSvcGroup, err error) {
+	result = make([]*ServicegroupSvcGroup, 0, len(obj.Spec.SourceSvcGroupsGvk))
+	for _, v := range obj.Spec.SourceSvcGroupsGvk {
+		l, err := obj.client.Servicegroup().GetSvcGroupByName(ctx, v.Name)
+		if err != nil {
+			return nil, err
+		}
+		result = append(result, l)
+	}
+	return
+}
+
+// GetSourceSvcGroups returns link which has given displayName
+func (obj *PolicypkgACPConfig) GetSourceSvcGroups(ctx context.Context,
+	displayName string) (result *ServicegroupSvcGroup, err error) {
+	l, ok := obj.Spec.SourceSvcGroupsGvk[displayName]
+	if !ok {
+		return nil, NewLinkNotFound(obj.DisplayName(), "Policypkg.ACPConfig", "SourceSvcGroups", displayName)
+	}
+	result, err = obj.client.Servicegroup().GetSvcGroupByName(ctx, l.Name)
+	return
 }
 
 // LinkSourceSvcGroups links obj with linkToAdd object. This function doesn't create linked object, it must be
