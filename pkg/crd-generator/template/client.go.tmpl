@@ -15,7 +15,6 @@ package nexus_client
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	types "k8s.io/apimachinery/pkg/types"
@@ -389,9 +388,9 @@ func (c *Clientset) Delete{{$node.SimpleGroupTypeName}}{{$node.BaseNodeName}}(ct
 }
 {{ end }}
 
-{{ range $key, $link := .LinksAndChildren }}
+{{ range $key, $link := .Children }}
 {{ if $link.IsNamed }}
-// GetAll{{$link.FieldName}} returns all links or children of given type
+// GetAll{{$link.FieldName}} returns all children of given type
 func (obj *{{$node.SimpleGroupTypeName}}{{$node.BaseNodeName}}) GetAll{{$link.FieldName}}(ctx context.Context) (
 		result []*{{$link.SimpleGroupTypeName}}{{$link.BaseNodeName}}, err error) {
 	result = make([]*{{$link.SimpleGroupTypeName}}{{$link.BaseNodeName}}, 0, len(obj.Spec.{{$link.FieldName}}Gvk))
@@ -405,31 +404,28 @@ func (obj *{{$node.SimpleGroupTypeName}}{{$node.BaseNodeName}}) GetAll{{$link.Fi
 	return
 }
 
-// Get{{$link.FieldName}} returns link or child which has given displayName
+// Get{{$link.FieldName}} returns child which has given displayName
 func (obj *{{$node.SimpleGroupTypeName}}{{$node.BaseNodeName}}) Get{{$link.FieldName}}(ctx context.Context,
 		displayName string) (result *{{$link.SimpleGroupTypeName}}{{$link.BaseNodeName}}, err error) {
 	l, ok := obj.Spec.{{$link.FieldName}}Gvk[displayName]
 	if !ok {
-		return nil, fmt.Errorf("object %s doesn't have child %s", obj.DisplayName(), displayName)
+		return nil, NewChildNotFound(obj.DisplayName(), "{{$node.SimpleGroupTypeName}}.{{$node.BaseNodeName}}", "{{$link.FieldName}}", displayName)
 	}
 	result, err = obj.client.{{$link.SimpleGroupTypeName}}().Get{{$link.BaseNodeName}}ByName(ctx, l.Name)
 	return
 }
 
 {{ else }}
-// Get{{$link.FieldName}} returns child or link of given type
+// Get{{$link.FieldName}} returns child of given type
 func (obj *{{$node.SimpleGroupTypeName}}{{$node.BaseNodeName}}) Get{{$link.FieldName}}(ctx context.Context) (
 		result *{{$link.SimpleGroupTypeName}}{{$link.BaseNodeName}}, err error) {
-	if obj.Spec.{{$link.FieldName}}Gvk != nil {
-		return obj.client.{{$link.SimpleGroupTypeName}}().Get{{$link.BaseNodeName}}ByName(ctx, obj.Spec.{{$link.FieldName}}Gvk.Name)
+	if obj.Spec.{{$link.FieldName}}Gvk == nil {
+		return nil, NewChildNotFound(obj.DisplayName(), "{{$node.SimpleGroupTypeName}}.{{$node.BaseNodeName}}", "{{$link.FieldName}}")
 	}
-	return
+	return obj.client.{{$link.SimpleGroupTypeName}}().Get{{$link.BaseNodeName}}ByName(ctx, obj.Spec.{{$link.FieldName}}Gvk.Name)
 }
-
-{{ end }}
 {{ end }}
 
-{{ range $key, $link := .Children }}
 // Add{{$link.FieldName}} calculates hashed name of the child to create based on objToCreate.Name
 // and parents names and creates it. objToCreate.Name is changed to the hashed name. Original name is preserved in
 // nexus/display_name label and can be obtained using DisplayName() method.
@@ -462,7 +458,7 @@ func (obj *{{$node.SimpleGroupTypeName}}{{$node.BaseNodeName}}) Add{{$link.Field
 func (obj *{{$node.SimpleGroupTypeName}}{{$node.BaseNodeName}}) Delete{{$link.FieldName}}(ctx context.Context, displayName string) (err error) {
 	l, ok := obj.Spec.{{$link.FieldName}}Gvk[displayName]
 	if !ok {
-		return fmt.Errorf("object %s doesn't have child %s", obj.DisplayName(), displayName)
+		return NewChildNotFound(obj.DisplayName(), "{{$node.SimpleGroupTypeName}}.{{$node.BaseNodeName}}", "{{$link.FieldName}}", displayName)
 	}
 	err = obj.client.{{$link.SimpleGroupTypeName}}().Delete{{$link.BaseNodeName}}ByName(ctx, l.Name)
 	if err != nil {
@@ -494,6 +490,42 @@ func (obj *{{$node.SimpleGroupTypeName}}{{$node.BaseNodeName}}) Delete{{$link.Fi
 {{ end }}
 
 {{ range $key, $link := .Links }}
+{{ if $link.IsNamed }}
+// GetAll{{$link.FieldName}} returns all links of given type
+func (obj *{{$node.SimpleGroupTypeName}}{{$node.BaseNodeName}}) GetAll{{$link.FieldName}}(ctx context.Context) (
+		result []*{{$link.SimpleGroupTypeName}}{{$link.BaseNodeName}}, err error) {
+	result = make([]*{{$link.SimpleGroupTypeName}}{{$link.BaseNodeName}}, 0, len(obj.Spec.{{$link.FieldName}}Gvk))
+	for _, v := range obj.Spec.{{$link.FieldName}}Gvk {
+		l, err := obj.client.{{$link.SimpleGroupTypeName}}().Get{{$link.BaseNodeName}}ByName(ctx, v.Name)
+		if err != nil {
+			return nil, err
+		}
+		result = append(result, l)
+	}
+	return
+}
+
+// Get{{$link.FieldName}} returns link which has given displayName
+func (obj *{{$node.SimpleGroupTypeName}}{{$node.BaseNodeName}}) Get{{$link.FieldName}}(ctx context.Context,
+		displayName string) (result *{{$link.SimpleGroupTypeName}}{{$link.BaseNodeName}}, err error) {
+	l, ok := obj.Spec.{{$link.FieldName}}Gvk[displayName]
+	if !ok {
+		return nil, NewLinkNotFound(obj.DisplayName(), "{{$node.SimpleGroupTypeName}}.{{$node.BaseNodeName}}", "{{$link.FieldName}}", displayName)
+	}
+	result, err = obj.client.{{$link.SimpleGroupTypeName}}().Get{{$link.BaseNodeName}}ByName(ctx, l.Name)
+	return
+}
+
+{{ else }}
+// Get{{$link.FieldName}} returns link of given type
+func (obj *{{$node.SimpleGroupTypeName}}{{$node.BaseNodeName}}) Get{{$link.FieldName}}(ctx context.Context) (
+		result *{{$link.SimpleGroupTypeName}}{{$link.BaseNodeName}}, err error) {
+	if obj.Spec.{{$link.FieldName}}Gvk == nil {
+		return nil, NewLinkNotFound(obj.DisplayName(), "{{$node.SimpleGroupTypeName}}.{{$node.BaseNodeName}}", "{{$link.FieldName}}")
+	}
+	return obj.client.{{$link.SimpleGroupTypeName}}().Get{{$link.BaseNodeName}}ByName(ctx, obj.Spec.{{$link.FieldName}}Gvk.Name)
+}
+{{ end }}
 // Link{{$link.FieldName}} links obj with linkToAdd object. This function doesn't create linked object, it must be
 // already created.
 func (obj *{{$node.SimpleGroupTypeName}}{{$node.BaseNodeName}}) Link{{$link.FieldName}}(ctx context.Context,

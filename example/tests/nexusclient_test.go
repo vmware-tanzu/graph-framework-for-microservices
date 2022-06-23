@@ -125,7 +125,8 @@ var _ = Describe("Nexus clients tests", func() {
 			Expect(err).To(HaveOccurred())
 
 			cfg, err = root.GetConfig(context.TODO())
-			Expect(err).NotTo(HaveOccurred())
+
+			//Expect(err).NotTo(HaveOccurred())
 			Expect(cfg).To(BeNil())
 		})
 
@@ -380,7 +381,7 @@ var _ = Describe("Nexus clients tests", func() {
 			},
 		}
 		dns, err := gns.GetDns(context.TODO())
-		Expect(err).NotTo(HaveOccurred())
+		Expect(err).To(HaveOccurred())
 		Expect(dns).To(BeNil())
 
 		dns, err = cfg.AddDNS(context.TODO(), dnsDef)
@@ -397,7 +398,7 @@ var _ = Describe("Nexus clients tests", func() {
 		Expect(err).NotTo(HaveOccurred())
 
 		getLinkedDns, err = gns.GetDns(context.TODO())
-		Expect(err).NotTo(HaveOccurred())
+		Expect(err).To(HaveOccurred())
 		Expect(getLinkedDns).To(BeNil())
 	})
 
@@ -435,5 +436,108 @@ var _ = Describe("Nexus clients tests", func() {
 
 		configParent, err := gnsParent.GetParent(context.TODO())
 		Expect(configParent.DisplayName()).To(Equal("default"))
+	})
+
+	Context("Custom Errors", func() {
+		It("should throw IsNotFound error when node's not present", func() {
+			root, err := fakeClient.GetRootRoot(context.TODO(), "default")
+			Expect(root).To(BeNil())
+			Expect(nexus_client.IsNotFound(err)).To(BeTrue())
+		})
+		It("should throw ChildNotFound error when child is not present", func() {
+			fakeClient = nexus_client.NewFakeClient()
+			rootDef := &rootv1.Root{
+				ObjectMeta: metav1.ObjectMeta{
+					Name: "default",
+				},
+			}
+			root, err := fakeClient.AddRootRoot(context.TODO(), rootDef)
+			Expect(err).NotTo(HaveOccurred())
+			cfg, err := root.GetConfig(context.TODO())
+			Expect(cfg).To(BeNil())
+			Expect(err.Error()).To(Equal("child Config not found for Root.Root: default"))
+
+			Expect(nexus_client.IsChildNotFound(err)).To(BeTrue())
+			Expect(nexus_client.IsNotFound(err)).To(BeFalse())
+		})
+
+		It("should throw ChildNotFound error when named child is not present", func() {
+			fakeClient = nexus_client.NewFakeClient()
+			rootDef := &rootv1.Root{
+				ObjectMeta: metav1.ObjectMeta{
+					Name: "default",
+				},
+			}
+			root, err := fakeClient.AddRootRoot(context.TODO(), rootDef)
+			Expect(err).NotTo(HaveOccurred())
+			cfgName := "configObj"
+			cfgDef := &configv1.Config{
+				ObjectMeta: metav1.ObjectMeta{
+					Name: cfgName,
+				},
+				Spec: configv1.ConfigSpec{
+					MyStr: &str,
+				},
+			}
+			cfg, err := root.AddConfig(context.TODO(), cfgDef)
+			Expect(err).NotTo(HaveOccurred())
+			gnsDef := &gnsv1.Gns{
+				ObjectMeta: metav1.ObjectMeta{
+					Name: "gnsName",
+				},
+			}
+			gns, err := cfg.AddGNS(context.TODO(), gnsDef)
+			Expect(err).NotTo(HaveOccurred())
+			sg1def := &sgv1.SvcGroup{
+				ObjectMeta: metav1.ObjectMeta{
+					Name: "sg1",
+				},
+			}
+			sg1, err := gns.AddGnsServiceGroups(context.TODO(), sg1def)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(sg1.DisplayName()).To(Equal("sg1"))
+
+			sgX, err := gns.GetGnsServiceGroups(context.TODO(), "sgX")
+			Expect(sgX).To(BeNil())
+			Expect(err.Error()).To(Equal("child GnsServiceGroups: sgX not found for Gns.Gns: gnsName"))
+
+			Expect(nexus_client.IsChildNotFound(err)).To(BeTrue())
+		})
+
+		It("should throw LinkNotFound error when link is not present", func() {
+			fakeClient = nexus_client.NewFakeClient()
+			rootDef := &rootv1.Root{
+				ObjectMeta: metav1.ObjectMeta{
+					Name: "default",
+				},
+			}
+			root, err := fakeClient.AddRootRoot(context.TODO(), rootDef)
+			Expect(err).NotTo(HaveOccurred())
+			cfgDef := &configv1.Config{
+				ObjectMeta: metav1.ObjectMeta{
+					Name: "cfg",
+				},
+				Spec: configv1.ConfigSpec{
+					MyStr: &str,
+				},
+			}
+			cfg, err := root.AddConfig(context.TODO(), cfgDef)
+			Expect(err).NotTo(HaveOccurred())
+			gnsDef := &gnsv1.Gns{
+				ObjectMeta: metav1.ObjectMeta{
+					Name: "gnsName",
+				},
+			}
+			gns, err := cfg.AddGNS(context.TODO(), gnsDef)
+			Expect(err).NotTo(HaveOccurred())
+
+			dns, err := gns.GetDns(context.TODO())
+			Expect(dns).To(BeNil())
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(Equal("link Dns not found for Gns.Gns: gnsName"))
+			Expect(nexus_client.IsLinkNotFound(err)).To(BeTrue())
+			Expect(nexus_client.IsNotFound(err)).To(BeFalse())
+
+		})
 	})
 })

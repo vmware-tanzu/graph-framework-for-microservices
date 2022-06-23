@@ -450,10 +450,6 @@ func RenderHelperTemplate(parentsMap map[string]parser.NodeHelper, crdModulePath
 
 func RenderClient(baseGroupName, outputDir, crdModulePath string, pkgs parser.Packages, parentsMap map[string]parser.NodeHelper) error {
 	clientFolder := outputDir + "/nexus-client"
-	err := createFolder(clientFolder)
-	if err != nil {
-		return err
-	}
 	file, err := RenderClientTemplate(baseGroupName, crdModulePath, pkgs, parentsMap)
 	if err != nil {
 		return err
