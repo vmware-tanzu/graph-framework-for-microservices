@@ -628,14 +628,14 @@ func (group *ConfigTsmV1) UpdateConfigByName(ctx context.Context,
 	}
 	patch = append(patch, patchOpMeta)
 
-	patchValueMyStr :=
-		objToUpdate.Spec.MyStr
-	patchOpMyStr := PatchOp{
+	patchValueMyStr0 :=
+		objToUpdate.Spec.MyStr0
+	patchOpMyStr0 := PatchOp{
 		Op:    "replace",
-		Path:  "/spec/myStr",
-		Value: patchValueMyStr,
+		Path:  "/spec/myStr0",
+		Value: patchValueMyStr0,
 	}
-	patch = append(patch, patchOpMyStr)
+	patch = append(patch, patchOpMyStr0)
 
 	patchValueMyStr1 :=
 		objToUpdate.Spec.MyStr1

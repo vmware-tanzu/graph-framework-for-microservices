@@ -200,7 +200,7 @@ func processNode(node *Node, nodes map[string]Node, baseGroupName string) {
 		}
 
 		isMap := IsMapField(f)
-		fieldName, _ := GetFieldName(f)
+		fieldName, _ := GetNodeFieldName(f)
 		if fieldName == "" {
 			log.Fatalf("Internal compiler failure: failed to find field name for field: %v in node %v", f.Names, node.Name)
 		}

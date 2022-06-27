@@ -168,7 +168,7 @@ type fieldInfo struct {
 func getFieldInfo(pkg parser.Package, allPkgs parser.Packages, f *ast.Field) fieldInfo {
 	var info fieldInfo
 	var err error
-	info.fieldName, err = parser.GetFieldName(f)
+	info.fieldName, err = parser.GetNodeFieldName(f)
 	if err != nil {
 		log.Fatalf("Failed to get name of field: %v", err)
 	}

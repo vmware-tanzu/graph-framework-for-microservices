@@ -79,7 +79,7 @@ spec:
                 - kind
                 - name
                 type: object
-              myStr:
+              myStr0:
                 type: string
               myStr1:
                 items:
@@ -128,7 +128,7 @@ spec:
                 - name
                 type: object
             required:
-            - myStr
+            - myStr0
             - myStr1
             - myStr2
             - testValMarkers

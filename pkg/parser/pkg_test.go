@@ -75,7 +75,7 @@ var _ = Describe("Pkg tests", func() {
 	It("should get field name", func() {
 		nodes := pkg.GetNexusNodes()
 		childFields := parser.GetChildFields(nodes[0])
-		fieldName, err := parser.GetFieldName(childFields[0])
+		fieldName, err := parser.GetNodeFieldName(childFields[0])
 		Expect(err).NotTo(HaveOccurred())
 		Expect(fieldName).To(Equal("Config"))
 	})

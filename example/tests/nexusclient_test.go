@@ -64,28 +64,28 @@ var _ = Describe("Nexus clients tests", func() {
 					Name: cfgName,
 				},
 				Spec: configv1.ConfigSpec{
-					MyStr: &str,
+					MyStr0: &str,
 				},
 			}
 			cfg, err := root.AddConfig(context.TODO(), cfgDef)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(cfg.DisplayName()).To(Equal("configObj"))
 			Expect(cfg.GetLabels()).To(BeEquivalentTo(expectedLabels))
-			Expect(cfg.Spec.MyStr).To(Equal(&str))
+			Expect(cfg.Spec.MyStr0).To(Equal(&str))
 
 			// GetConfig should return same object
 			cfg, err = root.GetConfig(context.TODO())
 			Expect(err).NotTo(HaveOccurred())
 			Expect(cfg.DisplayName()).To(Equal(cfgName))
 			Expect(cfg.GetLabels()).To(BeEquivalentTo(expectedLabels))
-			Expect(cfg.Spec.MyStr).To(Equal(&str))
+			Expect(cfg.Spec.MyStr0).To(Equal(&str))
 
 			// Also Get by using hashed name should return same thing
 			cfg, err = fakeClient.Config().GetConfigByName(context.TODO(), cfg.GetName())
 			Expect(err).NotTo(HaveOccurred())
 			Expect(cfg.DisplayName()).To(Equal(cfgName))
 			Expect(cfg.GetLabels()).To(BeEquivalentTo(expectedLabels))
-			Expect(cfg.Spec.MyStr).To(Equal(&str))
+			Expect(cfg.Spec.MyStr0).To(Equal(&str))
 
 			// Another create should fail
 			_, err = root.AddConfig(context.TODO(), cfgDef)
@@ -99,7 +99,7 @@ var _ = Describe("Nexus clients tests", func() {
 					Name: cfgName,
 				},
 				Spec: configv1.ConfigSpec{
-					MyStr: &str,
+					MyStr0: &str,
 				},
 			}
 			cfg, err := root.AddConfig(context.TODO(), cfgDef)
@@ -137,21 +137,21 @@ var _ = Describe("Nexus clients tests", func() {
 					Name: cfgName,
 				},
 				Spec: configv1.ConfigSpec{
-					MyStr: &str,
+					MyStr0: &str,
 				},
 			}
 			cfg, err := root.AddConfig(context.TODO(), cfgDef)
 			Expect(err).NotTo(HaveOccurred())
-			Expect(*cfg.Spec.MyStr).To(Equal(str))
+			Expect(*cfg.Spec.MyStr0).To(Equal(str))
 
 			var updatedStr gnsv1.MyStr = "updatedStr"
-			cfg.Spec.MyStr = &updatedStr
+			cfg.Spec.MyStr0 = &updatedStr
 			err = cfg.Update(context.TODO())
 			Expect(err).NotTo(HaveOccurred())
-			Expect(cfg.Spec.MyStr).To(Equal(&updatedStr))
+			Expect(cfg.Spec.MyStr0).To(Equal(&updatedStr))
 			cfg, err = root.GetConfig(context.TODO())
 			Expect(err).NotTo(HaveOccurred())
-			Expect(cfg.Spec.MyStr).To(Equal(&updatedStr))
+			Expect(cfg.Spec.MyStr0).To(Equal(&updatedStr))
 		})
 
 		It("should create named child", func() {
@@ -161,7 +161,7 @@ var _ = Describe("Nexus clients tests", func() {
 					Name: cfgName,
 				},
 				Spec: configv1.ConfigSpec{
-					MyStr: &str,
+					MyStr0: &str,
 				},
 			}
 			cfg, err := root.AddConfig(context.TODO(), cfgDef)
@@ -213,7 +213,7 @@ var _ = Describe("Nexus clients tests", func() {
 					Name: cfgName,
 				},
 				Spec: configv1.ConfigSpec{
-					MyStr: &str,
+					MyStr0: &str,
 				},
 			}
 			cfg, err := root.AddConfig(context.TODO(), cfgDef)
@@ -267,7 +267,7 @@ var _ = Describe("Nexus clients tests", func() {
 					Name: cfgName,
 				},
 				Spec: configv1.ConfigSpec{
-					MyStr: &str,
+					MyStr0: &str,
 				},
 			}
 			cfg, err := root.AddConfig(context.TODO(), cfgDef)
@@ -305,7 +305,7 @@ var _ = Describe("Nexus clients tests", func() {
 					Name: cfgName,
 				},
 				Spec: configv1.ConfigSpec{
-					MyStr: &str,
+					MyStr0: &str,
 				},
 			}
 			cfg, err := root.AddConfig(context.TODO(), cfgDef)
@@ -363,7 +363,7 @@ var _ = Describe("Nexus clients tests", func() {
 				Name: "cfg",
 			},
 			Spec: configv1.ConfigSpec{
-				MyStr: &str,
+				MyStr0: &str,
 			},
 		}
 		cfg, err := root.AddConfig(context.TODO(), cfgDef)
@@ -416,7 +416,7 @@ var _ = Describe("Nexus clients tests", func() {
 				Name: "cfg",
 			},
 			Spec: configv1.ConfigSpec{
-				MyStr: &str,
+				MyStr0: &str,
 			},
 		}
 		cfg, err := root.AddConfig(context.TODO(), cfgDef)
@@ -476,7 +476,7 @@ var _ = Describe("Nexus clients tests", func() {
 					Name: cfgName,
 				},
 				Spec: configv1.ConfigSpec{
-					MyStr: &str,
+					MyStr0: &str,
 				},
 			}
 			cfg, err := root.AddConfig(context.TODO(), cfgDef)
@@ -518,7 +518,7 @@ var _ = Describe("Nexus clients tests", func() {
 					Name: "cfg",
 				},
 				Spec: configv1.ConfigSpec{
-					MyStr: &str,
+					MyStr0: &str,
 				},
 			}
 			cfg, err := root.AddConfig(context.TODO(), cfgDef)
