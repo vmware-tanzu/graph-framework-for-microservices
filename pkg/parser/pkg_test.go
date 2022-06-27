@@ -87,11 +87,11 @@ var _ = Describe("Pkg tests", func() {
 		Expect(fieldType).To(Equal("config.Config"))
 	})
 
-	It("should check if field is map", func() {
+	It("should check if field is named child", func() {
 		nodes := gnsPkg.GetNexusNodes()
 		childFields := parser.GetChildFields(nodes[0])
-		isMap := parser.IsMapField(childFields[0])
-		Expect(isMap).To(BeTrue())
+		isNamed := parser.IsNamedChildOrLink(childFields[0])
+		Expect(isNamed).To(BeTrue())
 	})
 
 	It("should get field type for MapType", func() {

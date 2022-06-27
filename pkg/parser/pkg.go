@@ -237,7 +237,28 @@ func IsChildField(f *ast.Field) bool {
 	if f.Tag != nil {
 		tags := ParseFieldTags(f.Tag.Value)
 		if val, err := tags.Get("nexus"); err == nil {
-			if strings.ToLower(val.Name) == "child" {
+			if strings.ToLower(val.Name) == "child" || strings.ToLower(val.Name) == "children" {
+				return true
+			}
+		}
+	}
+
+	return false
+}
+
+func IsNamedChildOrLink(f *ast.Field) bool {
+	if f == nil {
+		return false
+	}
+
+	if IsMapField(f) {
+		return true
+	}
+
+	if f.Tag != nil {
+		tags := ParseFieldTags(f.Tag.Value)
+		if val, err := tags.Get("nexus"); err == nil {
+			if strings.ToLower(val.Name) == "children" || strings.ToLower(val.Name) == "links" {
 				return true
 			}
 		}
@@ -254,7 +275,7 @@ func IsLinkField(f *ast.Field) bool {
 	if f.Tag != nil {
 		tags := ParseFieldTags(f.Tag.Value)
 		if val, err := tags.Get("nexus"); err == nil {
-			if strings.ToLower(val.Name) == "link" {
+			if strings.ToLower(val.Name) == "link" || strings.ToLower(val.Name) == "links" {
 				return true
 			}
 		}

@@ -199,7 +199,7 @@ func processNode(node *Node, nodes map[string]Node, baseGroupName string) {
 			log.Fatalf("Pointer type is not allowed. Field <%v> is a pointer. Please make sure nexus child/link types are not pointers.", f.Names)
 		}
 
-		isMap := IsMapField(f)
+		isNamed := IsNamedChildOrLink(f)
 		fieldName, _ := GetNodeFieldName(f)
 		if fieldName == "" {
 			log.Fatalf("Internal compiler failure: failed to find field name for field: %v in node %v", f.Names, node.Name)
@@ -217,7 +217,7 @@ func processNode(node *Node, nodes map[string]Node, baseGroupName string) {
 			n.Parents = append(n.Parents, node.CrdName)
 			processNode(&n, nodes, baseGroupName)
 
-			if isMap {
+			if isNamed {
 				node.MultipleChildren[fieldName] = n
 			} else {
 				node.SingleChildren[fieldName] = n
@@ -225,7 +225,7 @@ func processNode(node *Node, nodes map[string]Node, baseGroupName string) {
 		}
 
 		if isLink {
-			if isMap {
+			if isNamed {
 				node.MultipleLink[fieldName] = nodes[key]
 			} else {
 				node.SingleLink[fieldName] = nodes[key]
