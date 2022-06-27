@@ -164,7 +164,7 @@ type {{.Name}}Spec struct {
 			continue
 		}
 		gvkName := util.GetGvkFieldName(name)
-		if parser.IsMapField(child) {
+		if parser.IsNamedChildOrLink(child) {
 			specDef.Fields += "\t" + gvkName + " map[string]Child"
 		} else {
 			specDef.Fields += "\t" + gvkName + " *Child"
@@ -178,7 +178,7 @@ type {{.Name}}Spec struct {
 			log.Fatalf("failed to GetFieldName: %v", err)
 		}
 		gvkName := util.GetGvkFieldName(name)
-		if parser.IsMapField(link) {
+		if parser.IsNamedChildOrLink(link) {
 			specDef.Fields += "\t" + gvkName + " map[string]Link"
 		} else {
 			specDef.Fields += "\t" + gvkName + " *Link"

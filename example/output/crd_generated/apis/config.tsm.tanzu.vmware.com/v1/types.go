@@ -56,7 +56,7 @@ type ConfigSpec struct {
 	GNSGvk         *Child                                  `json:"gNSGvk,omitempty" yaml:"gNSGvk,omitempty" nexus:"child"`
 	DNSGvk         *Child                                  `json:"dNSGvk,omitempty" yaml:"dNSGvk,omitempty" nexus:"child"`
 	VMPPoliciesGvk *Child                                  `json:"vMPPoliciesGvk,omitempty" yaml:"vMPPoliciesGvk,omitempty" nexus:"child"`
-	ACPPoliciesGvk map[string]Link                         `json:"aCPPoliciesGvk,omitempty" yaml:"aCPPoliciesGvk,omitempty" nexus:"link"`
+	ACPPoliciesGvk map[string]Link                         `json:"aCPPoliciesGvk,omitempty" yaml:"aCPPoliciesGvk,omitempty" nexus:"links"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object

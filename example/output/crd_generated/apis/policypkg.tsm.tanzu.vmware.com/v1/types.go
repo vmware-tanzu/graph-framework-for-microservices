@@ -89,7 +89,7 @@ type ACPConfigSpec struct {
 	ProjectId          string          `json:"projectId" yaml:"projectId"`
 	Conditions         []string        `json:"conditions" yaml:"conditions"`
 	DestSvcGroupsGvk   map[string]Link `json:"destSvcGroupsGvk,omitempty" yaml:"destSvcGroupsGvk,omitempty" nexus:"link"`
-	SourceSvcGroupsGvk map[string]Link `json:"sourceSvcGroupsGvk,omitempty" yaml:"sourceSvcGroupsGvk,omitempty" nexus:"link"`
+	SourceSvcGroupsGvk map[string]Link `json:"sourceSvcGroupsGvk,omitempty" yaml:"sourceSvcGroupsGvk,omitempty" nexus:"links"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object

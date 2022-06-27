@@ -74,10 +74,10 @@ type Gns struct {
 	Domain                 string
 	UseSharedGateway       bool
 	Description            Description
-	GnsServiceGroups       map[string]service_group.SvcGroup `nexus:"child"`
-	GnsAccessControlPolicy policypkg.AccessControlPolicy     `nexus:"child"`
-	Dns                    Dns                               `nexus:"link"`
-	State                  GnsState                          `nexus:"status"`
+	GnsServiceGroups       service_group.SvcGroup        `nexus:"children"`
+	GnsAccessControlPolicy policypkg.AccessControlPolicy `nexus:"child"`
+	Dns                    Dns                           `nexus:"link"`
+	State                  GnsState                      `nexus:"status"`
 
 	WorkloadSpec cartv1.WorkloadSpec //external-field
 }

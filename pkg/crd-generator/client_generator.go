@@ -116,7 +116,7 @@ func resolveNode(baseImportName string, pkg parser.Package, allPkgs parser.Packa
 			GroupResourceType:      util.GetGroupResourceType(linkInfo.fieldType, linkInfo.pkgName, baseGroupName, version),
 			CrdName:                util.GetCrdName(linkInfo.fieldType, linkInfo.pkgName, baseGroupName),
 		}
-		if parser.IsMapField(link) {
+		if parser.IsNamedChildOrLink(link) {
 			clientVarsLink.IsNamed = true
 		} else {
 			clientVarsLink.IsNamed = false
