@@ -28,7 +28,7 @@ type Config struct {
 	ACPPolicies map[string]py.AccessControlPolicy `nexus:"link"`
 
 	// Examples for cross-package import.
-	MyStr  *gns.MyStr
+	MyStr0 *gns.MyStr
 	MyStr1 []gns.MyStr
 	MyStr2 map[string]gns.MyStr
 
@@ -52,4 +52,11 @@ type TestValMarkers struct {
 	//nexus-validation: MaxItems=3, MinItems=2
 	//nexus-validation: UniqueItems=true
 	MySlice []string `json:"mySlice" yaml:"mySlice"`
+}
+
+type SomeStruct struct{}
+
+type StructWithEmbeddedField struct {
+	SomeStruct
+	gns.MyStr
 }

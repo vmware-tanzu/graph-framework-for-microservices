@@ -137,9 +137,15 @@ type {{.Name}}Spec struct {
 	specDef.Name = parser.GetTypeName(node)
 
 	for _, field := range parser.GetSpecFields(node) {
-		name, err := parser.GetFieldName(field)
+		var name string
+		var err error
+		if parser.IsChildField(field) || parser.IsLinkField(field) {
+			name, err = parser.GetNodeFieldName(field)
+		} else {
+			name, err = parser.GetFieldName(field)
+		}
 		if err != nil {
-			log.Fatalf("failed to GetFieldName: %v", err)
+			log.Fatalf("failed to determine field name: %v", err)
 		}
 		if comments := getNexusValidationComments(field); comments != nil {
 			for _, comment := range comments {
@@ -153,7 +159,7 @@ type {{.Name}}Spec struct {
 	}
 
 	for _, child := range parser.GetChildFields(node) {
-		name, err := parser.GetFieldName(child)
+		name, err := parser.GetNodeFieldName(child)
 		if err != nil {
 			continue
 		}
@@ -167,7 +173,7 @@ type {{.Name}}Spec struct {
 	}
 
 	for _, link := range parser.GetLinkFields(node) {
-		name, err := parser.GetFieldName(link)
+		name, err := parser.GetNodeFieldName(link)
 		if err != nil {
 			log.Fatalf("failed to GetFieldName: %v", err)
 		}

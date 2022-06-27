@@ -49,7 +49,7 @@ func (c *Config) DisplayName() string {
 
 // +k8s:openapi-gen=true
 type ConfigSpec struct {
-	MyStr          *gnstsmtanzuvmwarecomv1.MyStr           `json:"myStr" yaml:"myStr"`
+	MyStr0         *gnstsmtanzuvmwarecomv1.MyStr           `json:"myStr0" yaml:"myStr0"`
 	MyStr1         []gnstsmtanzuvmwarecomv1.MyStr          `json:"myStr1" yaml:"myStr1"`
 	MyStr2         map[string]gnstsmtanzuvmwarecomv1.MyStr `json:"myStr2" yaml:"myStr2"`
 	TestValMarkers TestValMarkers                          `json:"testValMarkers" yaml:"testValMarkers"`
@@ -85,4 +85,14 @@ type TestValMarkers struct {
 	//nexus-validation: MaxItems=3, MinItems=2
 	//nexus-validation: UniqueItems=true
 	MySlice []string `json:"mySlice" yaml:"mySlice"`
+}
+
+// +k8s:openapi-gen=true
+type SomeStruct struct {
+}
+
+// +k8s:openapi-gen=true
+type StructWithEmbeddedField struct {
+	SomeStruct
+	gnstsmtanzuvmwarecomv1.MyStr
 }

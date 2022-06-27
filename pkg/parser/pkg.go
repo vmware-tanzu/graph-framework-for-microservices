@@ -47,7 +47,7 @@ type Package struct {
 // IsLinkField(f *ast.Field) bool
 // IsMapField(f *ast.Field) bool
 
-// GetFieldName(f *ast.Field) string // Config or GNS
+// GetNodeFieldName(f *ast.Field) string // Config or GNS
 // GetFieldType(f *ast.Field) string // -> config.Config or Config
 
 // Go 1.18+
@@ -324,17 +324,27 @@ func IsArrayField(f *ast.Field) bool {
 	return false
 }
 
-func GetFieldName(f *ast.Field) (string, error) {
+func GetNodeFieldName(f *ast.Field) (string, error) {
 	if f == nil {
 		return "", errors.New("provided field does not exist")
 	}
 
 	if len(f.Names) == 0 {
-		return "", errors.New("sorry, child and link without a name is not supported")
+		return "", errors.New("sorry, children, links and node fields without a name are not supported")
 	} else if len(f.Names) > 1 {
 		return "", errors.New("sorry, only one name of field is supported")
 	}
 
+	return f.Names[0].Name, nil
+}
+
+func GetFieldName(f *ast.Field) (string, error) {
+	if f == nil {
+		return "", errors.New("provided field does not exist")
+	}
+	if len(f.Names) == 0 {
+		return "", nil
+	}
 	return f.Names[0].Name, nil
 }
 
