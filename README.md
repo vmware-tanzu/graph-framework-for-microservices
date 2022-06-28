@@ -6,6 +6,20 @@ Nexus compiler main responsibility is to generate code based on provided datamod
 - crd yamls
 - crd go client
 - crd go apis
+- nexus shim layer.
+
+#How compiler works
+
+1. Compiler operates on datamodel provided by user (example can be found in `example/datamodel`).
+2. Compiler parses datamodel to build graph (this happens in the `parser` package).
+3. Based on built graph base templates are rendered and created (this happens in the `pkg/crd-generator` package),
+example output of this operation is in the `example/output/_crd_base` directory.
+4. kubernetes code generator generates more additional Go code (this happens in the `generated_base_structure/scripts/generate_k8s_api.sh`),
+it generates kuberentes go-client and deepcopy functions, example output is in
+`example/crd-generated/client and example/crd-generated/apis/{api_name}/v1/zz_generated_deepcopy.go`.
+5. OpenAPI generator updates CRD yamls with OpenAPI specification (this happens in the `generated_base_structure/scripts`,
+uses k8s.io/kube-openapi/cmd/openapi-gen and code from some our custom logic in the `generated_base_structure/openapi_generator` package),
+example output is in the `example/output/crd_generated/crds`.
 
 # Run compiler in container
 1. Create basic application structure, your application should be in GOPATH
@@ -77,8 +91,10 @@ To build nexus compiler on custom/local environment: `make build`
 
 Install required tools using `make tools`
 
-To render templates for example datamodel use `make render_templates`.
-To generate all code for example use `make generate_example`.
+To render templates for example datamodel use `make render_templates` (this step executes steps 1-3 from
+[How compiler works](#How compiler works)). This will generate rendered templates to `example/output/_crd_base` directory.
+To generate all code for example use `make generate_example` (this step executes all steps from
+[How compiler works](#How compiler works)). This will generate code to `example/output/crd_generated` directory.
 
 ## Test
 ### Run tests in containerized sandbox (Recommended)
@@ -97,6 +113,13 @@ To render crd templates you can run:
 `make render_templates`
 
 This will generate rendered templates to `example/output/_crd_base` directory. This directory can be used for unit tests.
+
+### Test whole code generation:
+
+To test code generation for example datamodel run:
+`make generate_example`
+
+This will generate code to `example/output/crd_generated` directory.
 
 # Packaging
 
