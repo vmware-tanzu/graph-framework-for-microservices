@@ -622,6 +622,12 @@ webhooks:
     resources:
     - ingresses
   sideEffects: None
+  namespaceSelector:
+    matchExpressions:
+    - key: name
+      operator: In
+      values:
+      - {{.Namespace}}
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
