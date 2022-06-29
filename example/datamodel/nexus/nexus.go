@@ -15,6 +15,10 @@ type Node struct {
 	ID
 }
 
+type SingletonNode struct {
+	ID
+}
+
 // HTTPMethod type.
 type HTTPMethod string
 
