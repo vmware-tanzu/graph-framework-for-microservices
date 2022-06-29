@@ -36,14 +36,13 @@ const NEXUS_DIR = "nexus"
 var HarborRepo = "harbor-repo.vmware.com/nexus"
 
 const (
-	HELLOWORLD_URL             = "https://storage.googleapis.com/nexus-template-downloads/%s/helloworld-example.tar"
-	DATAMODEL_TEMPLATE_URL     = "https://storage.googleapis.com/nexus-template-downloads/%s/datamodel-templatedir.tar"
-	NEXUS_TEMPLATE_URL         = "https://storage.googleapis.com/nexus-template-downloads/%s/nexus-template.tar"
-	RUNTIME_MANIFESTS_URL      = "https://storage.googleapis.com/nexus-template-downloads/%s/runtime-manifests.tar"
-	VALIDATION_MANIFESTS_URL   = "https://storage.googleapis.com/nexus-template-downloads/%s/validation-manifests.tar"
-	API_GATEWAY_MANIFESTS_URL  = "https://storage.googleapis.com/nexus-template-downloads/%s/api-gw-manifests.tar"
-	API_OPERATOR_MANIFESTS_URL = "https://storage.googleapis.com/nexus-template-downloads/%s/api-operator-manifests.tar"
-	API_DATAMODEL_CRD_URL      = "https://storage.googleapis.com/nexus-template-downloads/%s/api-datamodel-crds.tar"
+	HELLOWORLD_URL            = "https://storage.googleapis.com/nexus-template-downloads/%s/helloworld-example.tar"
+	DATAMODEL_TEMPLATE_URL    = "https://storage.googleapis.com/nexus-template-downloads/%s/datamodel-templatedir.tar"
+	NEXUS_TEMPLATE_URL        = "https://storage.googleapis.com/nexus-template-downloads/%s/nexus-template.tar"
+	RUNTIME_MANIFESTS_URL     = "https://storage.googleapis.com/nexus-template-downloads/%s/runtime-manifests.tar"
+	VALIDATION_MANIFESTS_URL  = "https://storage.googleapis.com/nexus-template-downloads/%s/validation-manifests.tar"
+	API_GATEWAY_MANIFESTS_URL = "https://storage.googleapis.com/nexus-template-downloads/%s/api-gw-manifests.tar"
+	API_DATAMODEL_CRD_URL     = "https://storage.googleapis.com/nexus-template-downloads/%s/api-datamodel-crds.tar"
 )
 
 const TEMPLATE_URL = "https://storage.googleapis.com/nexus-template-downloads/%s/app-template.tar"
@@ -70,7 +69,6 @@ var RuntimePodLabels = []string{
 
 var ApiDmDependentPodLabels = []string{
 	"-lcontrol-plane=api-gw",
-	"-lcontrol-plane=nexus-api-operator",
 }
 
 func GetEnvList() []string {
@@ -129,15 +127,6 @@ var RuntimeManifests = map[string]Manifest{
 		VersionStrName: "NexusApiGatewayTemplates",
 		FileName:       "api-gw-manifests.tar",
 		ImageName:      "api-gateway",
-		Templatized:    true,
-	},
-	"api-operator": {
-		URL:            API_OPERATOR_MANIFESTS_URL,
-		Directory:      "nexus-manifests-api-operator",
-		VersionEnv:     "NEXUS_API_OPERATOR_TEMPLATE_VERSION",
-		VersionStrName: "NexusApiOperatorTemplates",
-		FileName:       "api-operator-manifests.tar",
-		ImageName:      "api-operator",
 		Templatized:    true,
 	},
 }
