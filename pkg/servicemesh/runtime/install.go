@@ -64,7 +64,7 @@ var InstallCmd = &cobra.Command{
 func CreateNs(Namespace string) error {
 	createCmd := exec.Command("kubectl", "create", "namespace", Namespace, "--dry-run", "-oyaml")
 	applyCmd := exec.Command("kubectl", "apply", "-f", "-")
-
+	labelCmd := exec.Command("kubectl", "label", "namespace", Namespace, fmt.Sprintf("name=%s", Namespace))
 	r, w := io.Pipe()
 	createCmd.Stdout = w
 	applyCmd.Stdin = r
@@ -86,6 +86,16 @@ func CreateNs(Namespace string) error {
 	}
 	w.Close()
 	err = applyCmd.Wait()
+	if err != nil {
+		return err
+	}
+
+	err = labelCmd.Start()
+	if err != nil {
+		return err
+	}
+
+	err = labelCmd.Wait()
 	if err != nil {
 		return err
 	}
