@@ -91,7 +91,7 @@ type Description struct {
 
 // nexus-rest-api-gen:DNSRestAPISpec
 type Dns struct {
-	nexus.Node
+	nexus.SingletonNode
 }
 
 type GnsState struct {

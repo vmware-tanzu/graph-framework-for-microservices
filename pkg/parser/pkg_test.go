@@ -39,9 +39,22 @@ var _ = Describe("Pkg tests", func() {
 		Expect(imports).To(Equal(expectedImports))
 	})
 
-	It("should check if node is nexus.Node", func() {
+	It("should check if node is nexus node", func() {
 		nodes := pkg.GetNexusNodes()
 		Expect(parser.IsNexusNode(nodes[0])).To(BeTrue())
+	})
+
+	It("should check if node is nexus singleton node or not", func() {
+		nodes := gnsPkg.GetNexusNodes()
+		for _, node := range nodes {
+			if node.Name.String() == "Gns" {
+				Expect(parser.IsNexusNode(node)).To(BeTrue())
+				Expect(parser.IsSingletonNode(node)).To(BeFalse())
+			} else if node.Name.String() == "Dns" {
+				Expect(parser.IsNexusNode(node)).To(BeTrue())
+				Expect(parser.IsSingletonNode(node)).To(BeTrue())
+			}
+		}
 	})
 
 	It("should get all structs for gns", func() {

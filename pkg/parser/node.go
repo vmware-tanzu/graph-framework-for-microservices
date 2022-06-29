@@ -9,6 +9,7 @@ type Node struct {
 	PkgName          string
 	FullName         string
 	CrdName          string
+	IsSingleton      bool
 	Imports          []*ast.ImportSpec
 	TypeSpec         *ast.TypeSpec
 	Parents          []string

@@ -66,6 +66,7 @@ func ParseDSLNodes(startPath string, baseGroupName string) map[string]Node {
 												PkgName:          v.Name,
 												FullName:         pkgImport,
 												CrdName:          crdName,
+												IsSingleton:      IsSingletonNode(typeSpec),
 												Imports:          file.Imports,
 												TypeSpec:         typeSpec,
 												Parents:          make([]string, 0),
