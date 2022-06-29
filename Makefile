@@ -9,6 +9,7 @@ DATAMODEL ?= ""
 DATAMODEL_GROUP ?= ""
 NEXUS_BIN ?= $(shell which nexus)
 BUCKET ?= nexus-template-downloads
+PROJECT_DIR ?= $(shell pwd)
 #
 # Image Info
 #

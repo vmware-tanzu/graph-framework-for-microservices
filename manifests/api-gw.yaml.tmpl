@@ -41,6 +41,7 @@ spec:
       labels:
         control-plane: api-gw
     spec:
+      serviceAccountName: nexus-api-gw-sa
       initContainers:
         - name: check-nexus-proxy-container
           image: "gcr.io/mesh7-public-images/tools:latest"
@@ -63,6 +64,38 @@ spec:
                         sleep 5
                     fi
               done
+        - name: create-ingressclass
+          image: "gcr.io/nsx-sm/tools:latest"
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: NAMESPACE
+              valueFrom:
+                fieldRef:
+                  apiVersion: v1
+                  fieldPath: metadata.namespace
+          command:
+            - /bin/bash
+            - -c
+            - |
+              #!/bin/bash
+              set -ex
+              minversion=22
+              version=$(kubectl version --short | grep 'Server' | awk -F':'  '{print $2}' | tr -d 'v' | awk -F'.' '{print $2}')
+              if [ $version -lt $minversion ]; then
+                  ingressclass="v1beta1"
+              else
+                  ingressclass="v1"
+              fi
+              echo '
+              apiVersion: networking.k8s.io/'"$ingressclass"'
+              kind: IngressClass
+              metadata:
+                labels:
+                  app.kubernetes.io/component: controller
+                  app.kubernetes.io/instance: ingress-nginx
+                name: nginx-'"$NAMESPACE"'
+              spec:
+                controller: k8s.io/ingress-nginx' | kubectl apply -f - -n $NAMESPACE      
       containers:
         -
           image: "{{.Image}}:{{.Tag}}"
@@ -70,6 +103,17 @@ spec:
           env:
             - name: KUBECONFIG
               value: /config/kubeconfig
+            - name: INGRESS_CONTROLLER_NAME
+              value: nexus-ingress-nginx-controller
+            - name: DEFAULT_BACKEND_SERVICE_NAME
+              value: nexus-nginx
+            - name: DEFAULT_BACKEND_SERVICE_PORT
+              value: "80"
+            - name: NAMESPACE
+              valueFrom:
+                fieldRef:
+                  apiVersion: v1
+                  fieldPath: metadata.namespace
           imagePullPolicy: IfNotPresent
           securityContext:
             allowPrivilegeEscalation: false
@@ -219,3 +263,43 @@ spec:
     targetPort: 443
   selector:
     control-plane: api-gw
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: nexus-agw-cr-{{.Namespace}}
+  namespace: {{.Namespace}}
+rules:
+- apiGroups:
+  - "networking.k8s.io"
+  resources:
+  - "ingressclasses"
+  - "ingresses"
+  verbs:
+  - get
+  - watch
+  - list
+  - create
+  - delete
+  - patch
+  - update
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: nexus-api-gw-sa
+  namespace: {{.Namespace}}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: nexus-agw-crb-{{.Namespace}}
+  namespace: {{.Namespace}}
+subjects:
+- kind: ServiceAccount
+  name: nexus-api-gw-sa
+  namespace: {{.Namespace}}
+roleRef:
+  kind: ClusterRole
+  name: nexus-agw-cr-{{.Namespace}}
+  apiGroup: rbac.authorization.k8s.io

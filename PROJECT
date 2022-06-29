@@ -15,4 +15,10 @@ resources:
   group: authentication.nexus.org
   kind: OidcConfig
   version: v1
+- controller: true
+  datamodelImport: golang-appnet.eng.vmware.com/nexus-sdk/api
+  domain: api-gw.com
+  group: route.nexus.org
+  kind: Route
+  version: v1
 version: "3"

@@ -19,8 +19,11 @@ package main
 import (
 	"flag"
 	"os"
+	"strconv"
 
 	log "github.com/sirupsen/logrus"
+
+	runtimeclient "sigs.k8s.io/controller-runtime/pkg/client"
 
 	"api-gw/pkg/client"
 	"api-gw/pkg/config"
@@ -30,6 +33,7 @@ import (
 	// to ensure that exec-entrypoint and run can make use of them.
 
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
+	"k8s.io/client-go/rest"
 
 	"k8s.io/apimachinery/pkg/runtime"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
@@ -41,9 +45,12 @@ import (
 	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 
 	authnexusv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/authentication.nexus.org/v1"
+	corev1 "k8s.io/api/core/v1"
+	apiregistrationv1 "k8s.io/kube-aggregator/pkg/apis/apiregistration/v1"
 
 	"api-gw/controllers"
 
+	routenexusorgv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/route.nexus.org/v1"
 	//+kubebuilder:scaffold:imports
 
 	"api-gw/pkg/server/echo_server"
@@ -58,6 +65,9 @@ func init() {
 	utilruntime.Must(clientgoscheme.AddToScheme(scheme))
 	apiextensionsv1.AddToScheme(scheme)
 	authnexusv1.AddToScheme(scheme)
+	apiregistrationv1.AddToScheme(scheme)
+	corev1.AddToScheme(scheme)
+	routenexusorgv1.AddToScheme(scheme)
 	//+kubebuilder:scaffold:scheme
 }
 
@@ -126,6 +136,36 @@ func main() {
 		Scheme: mgr.GetScheme(),
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "OidcConfig")
+		os.Exit(1)
+	}
+
+	baseConfig, err := rest.InClusterConfig()
+	if err != nil {
+		setupLog.Error(err, "unable to create manager for base k8s")
+		os.Exit(1)
+	}
+
+	baseClient, err := runtimeclient.New(baseConfig, runtimeclient.Options{})
+
+	baseNamespace := os.Getenv("NAMESPACE")
+	ingressControllerName := "ingress-nginx-controller"
+	if os.Getenv("INGRESS_CONTROLLER_NAME") != "" {
+		ingressControllerName = os.Getenv("INGRESS_CONTROLLER_NAME")
+	}
+
+	// Adding nginx base server , needed because of the / requirement.
+	defaultBackendservice := os.Getenv("DEFAULT_BACKEND_SERVICE_NAME")
+	defaultBackendPort, _ := strconv.Atoi(os.Getenv("DEFAULT_BACKEND_SERVICE_PORT"))
+	if err = (&controllers.RouteReconciler{
+		Client:                mgr.GetClient(),
+		BaseClient:            baseClient,
+		Scheme:                mgr.GetScheme(),
+		BaseNamespace:         baseNamespace,
+		IngressControllerName: ingressControllerName,
+		DefaultBackend:        defaultBackendservice,
+		DefaultBackendPort:    int32(defaultBackendPort),
+	}).SetupWithManager(mgr); err != nil {
+		setupLog.Error(err, "unable to create controller", "controller", "Route")
 		os.Exit(1)
 	}
 	//+kubebuilder:scaffold:builder
