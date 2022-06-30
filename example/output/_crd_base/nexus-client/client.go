@@ -271,9 +271,10 @@ func (group *RootTsmV1) ListRoots(ctx context.Context,
 	}
 	result = make([]*RootRoot, len(list.Items))
 	for k, v := range list.Items {
+		item := v
 		result[k] = &RootRoot{
 			client: group.client,
-			Root:   &v,
+			Root:   &item,
 		}
 	}
 	return
@@ -691,9 +692,10 @@ func (group *ConfigTsmV1) ListConfigs(ctx context.Context,
 	}
 	result = make([]*ConfigConfig, len(list.Items))
 	for k, v := range list.Items {
+		item := v
 		result[k] = &ConfigConfig{
 			client: group.client,
-			Config: &v,
+			Config: &item,
 		}
 	}
 	return
@@ -1330,9 +1332,10 @@ func (group *GnsTsmV1) ListGnses(ctx context.Context,
 	}
 	result = make([]*GnsGns, len(list.Items))
 	for k, v := range list.Items {
+		item := v
 		result[k] = &GnsGns{
 			client: group.client,
-			Gns:    &v,
+			Gns:    &item,
 		}
 	}
 	return
@@ -1824,9 +1827,10 @@ func (group *GnsTsmV1) ListDnses(ctx context.Context,
 	}
 	result = make([]*GnsDns, len(list.Items))
 	for k, v := range list.Items {
+		item := v
 		result[k] = &GnsDns{
 			client: group.client,
-			Dns:    &v,
+			Dns:    &item,
 		}
 	}
 	return
@@ -2052,9 +2056,10 @@ func (group *ServicegroupTsmV1) ListSvcGroups(ctx context.Context,
 	}
 	result = make([]*ServicegroupSvcGroup, len(list.Items))
 	for k, v := range list.Items {
+		item := v
 		result[k] = &ServicegroupSvcGroup{
 			client:   group.client,
-			SvcGroup: &v,
+			SvcGroup: &item,
 		}
 	}
 	return
@@ -2277,9 +2282,10 @@ func (group *PolicypkgTsmV1) ListAccessControlPolicies(ctx context.Context,
 	}
 	result = make([]*PolicypkgAccessControlPolicy, len(list.Items))
 	for k, v := range list.Items {
+		item := v
 		result[k] = &PolicypkgAccessControlPolicy{
 			client:              group.client,
-			AccessControlPolicy: &v,
+			AccessControlPolicy: &item,
 		}
 	}
 	return
@@ -2652,9 +2658,10 @@ func (group *PolicypkgTsmV1) ListACPConfigs(ctx context.Context,
 	}
 	result = make([]*PolicypkgACPConfig, len(list.Items))
 	for k, v := range list.Items {
+		item := v
 		result[k] = &PolicypkgACPConfig{
 			client:    group.client,
-			ACPConfig: &v,
+			ACPConfig: &item,
 		}
 	}
 	return
@@ -2995,9 +3002,10 @@ func (group *PolicypkgTsmV1) ListVMpolicies(ctx context.Context,
 	}
 	result = make([]*PolicypkgVMpolicy, len(list.Items))
 	for k, v := range list.Items {
+		item := v
 		result[k] = &PolicypkgVMpolicy{
 			client:   group.client,
-			VMpolicy: &v,
+			VMpolicy: &item,
 		}
 	}
 	return

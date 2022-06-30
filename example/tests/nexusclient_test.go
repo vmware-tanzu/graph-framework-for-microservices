@@ -202,8 +202,16 @@ var _ = Describe("Nexus clients tests", func() {
 			Expect(err).NotTo(HaveOccurred())
 			Expect(allSgs).To(HaveLen(2))
 
+			Expect(allSgs[0].DisplayName()).Should(Or(Equal("sg1"), Equal("sg2")))
+			Expect(allSgs[1].DisplayName()).Should(Or(Equal("sg1"), Equal("sg2")))
+			Expect(allSgs[0].DisplayName()).NotTo(Equal(allSgs[1].DisplayName()))
+
 			listSgs, err := fakeClient.Servicegroup().ListSvcGroups(context.TODO(), metav1.ListOptions{})
 			Expect(listSgs).To(HaveLen(2))
+
+			Expect(listSgs[0].DisplayName()).Should(Or(Equal("sg1"), Equal("sg2")))
+			Expect(listSgs[1].DisplayName()).Should(Or(Equal("sg1"), Equal("sg2")))
+			Expect(listSgs[0].DisplayName()).NotTo(Equal(listSgs[1].DisplayName()))
 		})
 
 		It("should delete named child", func() {

@@ -305,9 +305,10 @@ func (group *{{$node.GroupTypeName}}) List{{$node.GroupResourceNameTitle}}(ctx c
 	}
 	result = make([]*{{$node.SimpleGroupTypeName}}{{$node.BaseNodeName}}, len(list.Items))
 	for k, v := range list.Items {
+		item := v
 		result[k] = &{{$node.SimpleGroupTypeName}}{{$node.BaseNodeName}}{
 			client: group.client,
-			{{$node.BaseNodeName}}: &v,
+			{{$node.BaseNodeName}}: &item,
 		}
 	}
 	return
