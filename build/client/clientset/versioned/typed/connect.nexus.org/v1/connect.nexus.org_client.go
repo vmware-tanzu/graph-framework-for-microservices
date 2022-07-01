@@ -29,7 +29,6 @@ type ConnectNexusV1Interface interface {
 	ConnectsGetter
 	NexusEndpointsGetter
 	ReplicationConfigsGetter
-	ReplicationObjectsGetter
 }
 
 // ConnectNexusV1Client is used to interact with features provided by the connect.nexus.org group.
@@ -47,10 +46,6 @@ func (c *ConnectNexusV1Client) NexusEndpoints() NexusEndpointInterface {
 
 func (c *ConnectNexusV1Client) ReplicationConfigs() ReplicationConfigInterface {
 	return newReplicationConfigs(c)
-}
-
-func (c *ConnectNexusV1Client) ReplicationObjects() ReplicationObjectInterface {
-	return newReplicationObjects(c)
 }
 
 // NewForConfig creates a new ConnectNexusV1Client for the given config.

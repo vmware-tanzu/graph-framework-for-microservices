@@ -25,7 +25,6 @@ func GetCRDParentsMap() map[string][]string {
 		"nexuses.api.nexus.org":                {},
 		"oidcs.authentication.nexus.org":       {"nexuses.api.nexus.org", "configs.config.nexus.org", "apigateways.apigateway.nexus.org"},
 		"replicationconfigs.connect.nexus.org": {"nexuses.api.nexus.org", "configs.config.nexus.org", "connects.connect.nexus.org"},
-		"replicationobjects.connect.nexus.org": {"nexuses.api.nexus.org", "configs.config.nexus.org", "connects.connect.nexus.org", "replicationconfigs.connect.nexus.org"},
 		"routes.route.nexus.org":               {"nexuses.api.nexus.org", "configs.config.nexus.org"},
 	}
 }
@@ -75,13 +74,6 @@ func GetObjectByCRDName(dmClient *datamodel.Clientset, crdName string, name stri
 	}
 	if crdName == "replicationconfigs.connect.nexus.org" {
 		obj, err := dmClient.ConnectNexusV1().ReplicationConfigs().Get(context.TODO(), name, metav1.GetOptions{})
-		if err != nil {
-			return nil
-		}
-		return obj
-	}
-	if crdName == "replicationobjects.connect.nexus.org" {
-		obj, err := dmClient.ConnectNexusV1().ReplicationObjects().Get(context.TODO(), name, metav1.GetOptions{})
 		if err != nil {
 			return nil
 		}

@@ -43,8 +43,6 @@ func addKnownTypes(scheme *runtime.Scheme) error {
 		&NexusEndpointList{},
 		&ReplicationConfig{},
 		&ReplicationConfigList{},
-		&ReplicationObject{},
-		&ReplicationObjectList{},
 	)
 
 	// register the type in the scheme

@@ -23,5 +23,3 @@ type ConnectExpansion interface{}
 type NexusEndpointExpansion interface{}
 
 type ReplicationConfigExpansion interface{}
-
-type ReplicationObjectExpansion interface{}

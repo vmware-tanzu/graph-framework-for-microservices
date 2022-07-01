@@ -29,7 +29,3 @@ type NexusEndpointListerExpansion interface{}
 // ReplicationConfigListerExpansion allows custom methods to be added to
 // ReplicationConfigLister.
 type ReplicationConfigListerExpansion interface{}
-
-// ReplicationObjectListerExpansion allows custom methods to be added to
-// ReplicationObjectLister.
-type ReplicationObjectListerExpansion interface{}

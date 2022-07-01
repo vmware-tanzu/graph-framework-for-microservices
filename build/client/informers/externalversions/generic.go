@@ -80,8 +80,6 @@ func (f *sharedInformerFactory) ForResource(resource schema.GroupVersionResource
 		return &genericInformer{resource: resource.GroupResource(), informer: f.ConnectNexus().V1().NexusEndpoints().Informer()}, nil
 	case connectnexusorgv1.SchemeGroupVersion.WithResource("replicationconfigs"):
 		return &genericInformer{resource: resource.GroupResource(), informer: f.ConnectNexus().V1().ReplicationConfigs().Informer()}, nil
-	case connectnexusorgv1.SchemeGroupVersion.WithResource("replicationobjects"):
-		return &genericInformer{resource: resource.GroupResource(), informer: f.ConnectNexus().V1().ReplicationObjects().Informer()}, nil
 
 		// Group=route.nexus.org, Version=v1
 	case routenexusorgv1.SchemeGroupVersion.WithResource("routes"):

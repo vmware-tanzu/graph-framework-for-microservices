@@ -4,7 +4,7 @@ kind: CustomResourceDefinition
 metadata:
   annotations:
     nexus: |
-      {"name":"ReplicationConfig.connect","hierarchy":["nexuses.api.nexus.org","configs.config.nexus.org","connects.connect.nexus.org"],"children":{"replicationobjects.connect.nexus.org":{"fieldName":"Destination","fieldNameGvk":"destinationGvk","isNamed":false}},"nexus-rest-api-gen":{"uris":null}}
+      {"name":"ReplicationConfig.connect","hierarchy":["nexuses.api.nexus.org","configs.config.nexus.org","connects.connect.nexus.org"],"nexus-rest-api-gen":{"uris":null}}
   creationTimestamp: null
   name: replicationconfigs.connect.nexus.org
 spec:
@@ -40,12 +40,23 @@ spec:
             properties:
               accessToken:
                 type: string
-              destinationGvk:
+              destination:
                 properties:
                   group:
                     type: string
+                  hierarchical:
+                    type: boolean
+                  hierarchy:
+                    properties:
+                      Path:
+                        type: string
+                    required:
+                    - Path
+                    type: object
                   kind:
                     type: string
+                  localRuntime:
+                    type: boolean
                   name:
                     type: string
                 required:
@@ -66,12 +77,23 @@ spec:
                 - kind
                 - name
                 type: object
-              sourceGvk:
+              source:
                 properties:
                   group:
                     type: string
+                  hierarchical:
+                    type: boolean
+                  hierarchy:
+                    properties:
+                      Path:
+                        type: string
+                    required:
+                    - Path
+                    type: object
                   kind:
                     type: string
+                  localRuntime:
+                    type: boolean
                   name:
                     type: string
                 required:
@@ -81,6 +103,7 @@ spec:
                 type: object
             required:
             - accessToken
+            - source
             type: object
         type: object
     served: true
