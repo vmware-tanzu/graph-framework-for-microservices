@@ -40,10 +40,6 @@ func (c *FakeConnectNexusV1) ReplicationConfigs() v1.ReplicationConfigInterface 
 	return &FakeReplicationConfigs{c}
 }
 
-func (c *FakeConnectNexusV1) ReplicationObjects() v1.ReplicationObjectInterface {
-	return &FakeReplicationObjects{c}
-}
-
 // RESTClient returns a RESTClient that is used to communicate
 // with API server by this client implementation.
 func (c *FakeConnectNexusV1) RESTClient() rest.Interface {

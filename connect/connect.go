@@ -33,16 +33,14 @@ type ReplicationConfig struct {
 	AccessToken string
 
 	// Source of the replication.
-	Source ReplicationObject `nexus:"child"`
+	Source ReplicationObject
 
 	// Destination of the replication.
-	Destination ReplicationObject `nexus:"child"`
+	Destination ReplicationObject `json:"destination,omitempty" yaml:"destination,omitempty"`
 }
 
 // ReplicationObject identifies a resource in the Nexus Runtime.
 type ReplicationObject struct {
-	nexus.Node
-
 	// Object identity.
 	Group string `json:"group" yaml:"group"`
 	Kind  string `json:"kind" yaml:"kind"`
@@ -50,14 +48,14 @@ type ReplicationObject struct {
 
 	// Identifies if the object is available in local runtime.
 	// If false, the object is available in the remote runtime.
-	LocalRuntime bool
+	LocalRuntime bool `json:"localRuntime,omitempty" yaml:"localRuntime,omitempty"`
 
 	// If true, the hierarchy of the object is relevant for replication.
-	Hierarchical bool
+	Hierarchical bool `json:"hierarchical,omitempty" yaml:"hierarchical,omitempty"`
 
 	// Hierarchical path prefix of the object.
 	// This is relevant is the object has to be considered in the context of its hierarchy.
-	Hierarchy Hierarchy
+	Hierarchy Hierarchy `json:"hierarchy,omitempty" yaml:"hierarchy,omitempty"`
 }
 
 // Hierarchy identifies a hierarchy of an object in Nexus Runtime.

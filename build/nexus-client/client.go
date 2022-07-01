@@ -15,7 +15,6 @@ package nexus_client
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	types "k8s.io/apimachinery/pkg/types"
@@ -363,13 +362,13 @@ func (c *Clientset) DeleteApiNexus(ctx context.Context, displayName string) (err
 	return c.Api().DeleteNexusByName(ctx, hashedName)
 }
 
-// GetConfig returns child or link of given type
+// GetConfig returns child of given type
 func (obj *ApiNexus) GetConfig(ctx context.Context) (
 	result *ConfigConfig, err error) {
-	if obj.Spec.ConfigGvk != nil {
-		return obj.client.Config().GetConfigByName(ctx, obj.Spec.ConfigGvk.Name)
+	if obj.Spec.ConfigGvk == nil {
+		return nil, NewChildNotFound(obj.DisplayName(), "Api.Nexus", "Config")
 	}
-	return
+	return obj.client.Config().GetConfigByName(ctx, obj.Spec.ConfigGvk.Name)
 }
 
 // AddConfig calculates hashed name of the child to create based on objToCreate.Name
@@ -699,13 +698,13 @@ func (obj *ApigatewayApiGateway) GetParent(ctx context.Context) (result *ConfigC
 	return obj.client.Config().GetConfigByName(ctx, hashedName)
 }
 
-// GetAuthn returns child or link of given type
+// GetAuthn returns child of given type
 func (obj *ApigatewayApiGateway) GetAuthn(ctx context.Context) (
 	result *AuthenticationOIDC, err error) {
-	if obj.Spec.AuthnGvk != nil {
-		return obj.client.Authentication().GetOIDCByName(ctx, obj.Spec.AuthnGvk.Name)
+	if obj.Spec.AuthnGvk == nil {
+		return nil, NewChildNotFound(obj.DisplayName(), "Apigateway.ApiGateway", "Authn")
 	}
-	return
+	return obj.client.Authentication().GetOIDCByName(ctx, obj.Spec.AuthnGvk.Name)
 }
 
 // AddAuthn calculates hashed name of the child to create based on objToCreate.Name
@@ -1278,47 +1277,13 @@ func (obj *ConfigConfig) GetParent(ctx context.Context) (result *ApiNexus, err e
 	return obj.client.Api().GetNexusByName(ctx, hashedName)
 }
 
-// GetApiGateway returns child or link of given type
+// GetApiGateway returns child of given type
 func (obj *ConfigConfig) GetApiGateway(ctx context.Context) (
 	result *ApigatewayApiGateway, err error) {
-	if obj.Spec.ApiGatewayGvk != nil {
-		return obj.client.Apigateway().GetApiGatewayByName(ctx, obj.Spec.ApiGatewayGvk.Name)
+	if obj.Spec.ApiGatewayGvk == nil {
+		return nil, NewChildNotFound(obj.DisplayName(), "Config.Config", "ApiGateway")
 	}
-	return
-}
-
-// GetAllRoutes returns all links or children of given type
-func (obj *ConfigConfig) GetAllRoutes(ctx context.Context) (
-	result []*RouteRoute, err error) {
-	result = make([]*RouteRoute, 0, len(obj.Spec.RoutesGvk))
-	for _, v := range obj.Spec.RoutesGvk {
-		l, err := obj.client.Route().GetRouteByName(ctx, v.Name)
-		if err != nil {
-			return nil, err
-		}
-		result = append(result, l)
-	}
-	return
-}
-
-// GetRoutes returns link or child which has given displayName
-func (obj *ConfigConfig) GetRoutes(ctx context.Context,
-	displayName string) (result *RouteRoute, err error) {
-	l, ok := obj.Spec.RoutesGvk[displayName]
-	if !ok {
-		return nil, fmt.Errorf("object %s doesn't have child %s", obj.DisplayName(), displayName)
-	}
-	result, err = obj.client.Route().GetRouteByName(ctx, l.Name)
-	return
-}
-
-// GetConnect returns child or link of given type
-func (obj *ConfigConfig) GetConnect(ctx context.Context) (
-	result *ConnectConnect, err error) {
-	if obj.Spec.ConnectGvk != nil {
-		return obj.client.Connect().GetConnectByName(ctx, obj.Spec.ConnectGvk.Name)
-	}
-	return
+	return obj.client.Apigateway().GetApiGatewayByName(ctx, obj.Spec.ApiGatewayGvk.Name)
 }
 
 // AddApiGateway calculates hashed name of the child to create based on objToCreate.Name
@@ -1366,6 +1331,31 @@ func (obj *ConfigConfig) DeleteApiGateway(ctx context.Context) (err error) {
 	return
 }
 
+// GetAllRoutes returns all children of given type
+func (obj *ConfigConfig) GetAllRoutes(ctx context.Context) (
+	result []*RouteRoute, err error) {
+	result = make([]*RouteRoute, 0, len(obj.Spec.RoutesGvk))
+	for _, v := range obj.Spec.RoutesGvk {
+		l, err := obj.client.Route().GetRouteByName(ctx, v.Name)
+		if err != nil {
+			return nil, err
+		}
+		result = append(result, l)
+	}
+	return
+}
+
+// GetRoutes returns child which has given displayName
+func (obj *ConfigConfig) GetRoutes(ctx context.Context,
+	displayName string) (result *RouteRoute, err error) {
+	l, ok := obj.Spec.RoutesGvk[displayName]
+	if !ok {
+		return nil, NewChildNotFound(obj.DisplayName(), "Config.Config", "Routes", displayName)
+	}
+	result, err = obj.client.Route().GetRouteByName(ctx, l.Name)
+	return
+}
+
 // AddRoutes calculates hashed name of the child to create based on objToCreate.Name
 // and parents names and creates it. objToCreate.Name is changed to the hashed name. Original name is preserved in
 // nexus/display_name label and can be obtained using DisplayName() method.
@@ -1398,7 +1388,7 @@ func (obj *ConfigConfig) AddRoutes(ctx context.Context,
 func (obj *ConfigConfig) DeleteRoutes(ctx context.Context, displayName string) (err error) {
 	l, ok := obj.Spec.RoutesGvk[displayName]
 	if !ok {
-		return fmt.Errorf("object %s doesn't have child %s", obj.DisplayName(), displayName)
+		return NewChildNotFound(obj.DisplayName(), "Config.Config", "Routes", displayName)
 	}
 	err = obj.client.Route().DeleteRouteByName(ctx, l.Name)
 	if err != nil {
@@ -1409,6 +1399,15 @@ func (obj *ConfigConfig) DeleteRoutes(ctx context.Context, displayName string) (
 		obj.Config = updatedObj.Config
 	}
 	return
+}
+
+// GetConnect returns child of given type
+func (obj *ConfigConfig) GetConnect(ctx context.Context) (
+	result *ConnectConnect, err error) {
+	if obj.Spec.ConnectGvk == nil {
+		return nil, NewChildNotFound(obj.DisplayName(), "Config.Config", "Connect")
+	}
+	return obj.client.Connect().GetConnectByName(ctx, obj.Spec.ConnectGvk.Name)
 }
 
 // AddConnect calculates hashed name of the child to create based on objToCreate.Name
@@ -1831,7 +1830,7 @@ func (obj *ConnectConnect) GetParent(ctx context.Context) (result *ConfigConfig,
 	return obj.client.Config().GetConfigByName(ctx, hashedName)
 }
 
-// GetAllEndpoints returns all links or children of given type
+// GetAllEndpoints returns all children of given type
 func (obj *ConnectConnect) GetAllEndpoints(ctx context.Context) (
 	result []*ConnectNexusEndpoint, err error) {
 	result = make([]*ConnectNexusEndpoint, 0, len(obj.Spec.EndpointsGvk))
@@ -1845,39 +1844,14 @@ func (obj *ConnectConnect) GetAllEndpoints(ctx context.Context) (
 	return
 }
 
-// GetEndpoints returns link or child which has given displayName
+// GetEndpoints returns child which has given displayName
 func (obj *ConnectConnect) GetEndpoints(ctx context.Context,
 	displayName string) (result *ConnectNexusEndpoint, err error) {
 	l, ok := obj.Spec.EndpointsGvk[displayName]
 	if !ok {
-		return nil, fmt.Errorf("object %s doesn't have child %s", obj.DisplayName(), displayName)
+		return nil, NewChildNotFound(obj.DisplayName(), "Connect.Connect", "Endpoints", displayName)
 	}
 	result, err = obj.client.Connect().GetNexusEndpointByName(ctx, l.Name)
-	return
-}
-
-// GetAllReplicationConfig returns all links or children of given type
-func (obj *ConnectConnect) GetAllReplicationConfig(ctx context.Context) (
-	result []*ConnectReplicationConfig, err error) {
-	result = make([]*ConnectReplicationConfig, 0, len(obj.Spec.ReplicationConfigGvk))
-	for _, v := range obj.Spec.ReplicationConfigGvk {
-		l, err := obj.client.Connect().GetReplicationConfigByName(ctx, v.Name)
-		if err != nil {
-			return nil, err
-		}
-		result = append(result, l)
-	}
-	return
-}
-
-// GetReplicationConfig returns link or child which has given displayName
-func (obj *ConnectConnect) GetReplicationConfig(ctx context.Context,
-	displayName string) (result *ConnectReplicationConfig, err error) {
-	l, ok := obj.Spec.ReplicationConfigGvk[displayName]
-	if !ok {
-		return nil, fmt.Errorf("object %s doesn't have child %s", obj.DisplayName(), displayName)
-	}
-	result, err = obj.client.Connect().GetReplicationConfigByName(ctx, l.Name)
 	return
 }
 
@@ -1913,7 +1887,7 @@ func (obj *ConnectConnect) AddEndpoints(ctx context.Context,
 func (obj *ConnectConnect) DeleteEndpoints(ctx context.Context, displayName string) (err error) {
 	l, ok := obj.Spec.EndpointsGvk[displayName]
 	if !ok {
-		return fmt.Errorf("object %s doesn't have child %s", obj.DisplayName(), displayName)
+		return NewChildNotFound(obj.DisplayName(), "Connect.Connect", "Endpoints", displayName)
 	}
 	err = obj.client.Connect().DeleteNexusEndpointByName(ctx, l.Name)
 	if err != nil {
@@ -1923,6 +1897,31 @@ func (obj *ConnectConnect) DeleteEndpoints(ctx context.Context, displayName stri
 	if err == nil {
 		obj.Connect = updatedObj.Connect
 	}
+	return
+}
+
+// GetAllReplicationConfig returns all children of given type
+func (obj *ConnectConnect) GetAllReplicationConfig(ctx context.Context) (
+	result []*ConnectReplicationConfig, err error) {
+	result = make([]*ConnectReplicationConfig, 0, len(obj.Spec.ReplicationConfigGvk))
+	for _, v := range obj.Spec.ReplicationConfigGvk {
+		l, err := obj.client.Connect().GetReplicationConfigByName(ctx, v.Name)
+		if err != nil {
+			return nil, err
+		}
+		result = append(result, l)
+	}
+	return
+}
+
+// GetReplicationConfig returns child which has given displayName
+func (obj *ConnectConnect) GetReplicationConfig(ctx context.Context,
+	displayName string) (result *ConnectReplicationConfig, err error) {
+	l, ok := obj.Spec.ReplicationConfigGvk[displayName]
+	if !ok {
+		return nil, NewChildNotFound(obj.DisplayName(), "Connect.Connect", "ReplicationConfig", displayName)
+	}
+	result, err = obj.client.Connect().GetReplicationConfigByName(ctx, l.Name)
 	return
 }
 
@@ -1958,7 +1957,7 @@ func (obj *ConnectConnect) AddReplicationConfig(ctx context.Context,
 func (obj *ConnectConnect) DeleteReplicationConfig(ctx context.Context, displayName string) (err error) {
 	l, ok := obj.Spec.ReplicationConfigGvk[displayName]
 	if !ok {
-		return fmt.Errorf("object %s doesn't have child %s", obj.DisplayName(), displayName)
+		return NewChildNotFound(obj.DisplayName(), "Connect.Connect", "ReplicationConfig", displayName)
 	}
 	err = obj.client.Connect().DeleteReplicationConfigByName(ctx, l.Name)
 	if err != nil {
@@ -2326,24 +2325,6 @@ func (group *ConnectNexusV1) DeleteReplicationConfigByName(ctx context.Context, 
 		return err
 	}
 
-	if result.Spec.SourceGvk != nil {
-		err := group.client.
-			Connect().
-			DeleteReplicationObjectByName(ctx, result.Spec.SourceGvk.Name)
-		if err != nil {
-			return err
-		}
-	}
-
-	if result.Spec.DestinationGvk != nil {
-		err := group.client.
-			Connect().
-			DeleteReplicationObjectByName(ctx, result.Spec.DestinationGvk.Name)
-		if err != nil {
-			return err
-		}
-	}
-
 	err = group.client.baseClient.
 		ConnectNexusV1().
 		ReplicationConfigs().Delete(ctx, hashedName, metav1.DeleteOptions{})
@@ -2395,8 +2376,6 @@ func (group *ConnectNexusV1) CreateReplicationConfigByName(ctx context.Context,
 		objToCreate.Labels[common.DISPLAY_NAME_LABEL] = objToCreate.GetName()
 	}
 
-	objToCreate.Spec.SourceGvk = nil
-	objToCreate.Spec.DestinationGvk = nil
 	objToCreate.Spec.RemoteEndpointGvk = nil
 
 	result, err := group.client.baseClient.
@@ -2459,6 +2438,24 @@ func (group *ConnectNexusV1) UpdateReplicationConfigByName(ctx context.Context,
 		Value: patchValueAccessToken,
 	}
 	patch = append(patch, patchOpAccessToken)
+
+	patchValueSource :=
+		objToUpdate.Spec.Source
+	patchOpSource := PatchOp{
+		Op:    "replace",
+		Path:  "/spec/source",
+		Value: patchValueSource,
+	}
+	patch = append(patch, patchOpSource)
+
+	patchValueDestination :=
+		objToUpdate.Spec.Destination
+	patchOpDestination := PatchOp{
+		Op:    "replace",
+		Path:  "/spec/destination",
+		Value: patchValueDestination,
+	}
+	patch = append(patch, patchOpDestination)
 
 	marshaled, err := patch.Marshal()
 	if err != nil {
@@ -2525,121 +2522,13 @@ func (obj *ConnectReplicationConfig) GetParent(ctx context.Context) (result *Con
 	return obj.client.Connect().GetConnectByName(ctx, hashedName)
 }
 
-// GetSource returns child or link of given type
-func (obj *ConnectReplicationConfig) GetSource(ctx context.Context) (
-	result *ConnectReplicationObject, err error) {
-	if obj.Spec.SourceGvk != nil {
-		return obj.client.Connect().GetReplicationObjectByName(ctx, obj.Spec.SourceGvk.Name)
-	}
-	return
-}
-
-// GetDestination returns child or link of given type
-func (obj *ConnectReplicationConfig) GetDestination(ctx context.Context) (
-	result *ConnectReplicationObject, err error) {
-	if obj.Spec.DestinationGvk != nil {
-		return obj.client.Connect().GetReplicationObjectByName(ctx, obj.Spec.DestinationGvk.Name)
-	}
-	return
-}
-
-// GetRemoteEndpoint returns child or link of given type
+// GetRemoteEndpoint returns link of given type
 func (obj *ConnectReplicationConfig) GetRemoteEndpoint(ctx context.Context) (
 	result *ConnectNexusEndpoint, err error) {
-	if obj.Spec.RemoteEndpointGvk != nil {
-		return obj.client.Connect().GetNexusEndpointByName(ctx, obj.Spec.RemoteEndpointGvk.Name)
+	if obj.Spec.RemoteEndpointGvk == nil {
+		return nil, NewLinkNotFound(obj.DisplayName(), "Connect.ReplicationConfig", "RemoteEndpoint")
 	}
-	return
-}
-
-// AddSource calculates hashed name of the child to create based on objToCreate.Name
-// and parents names and creates it. objToCreate.Name is changed to the hashed name. Original name is preserved in
-// nexus/display_name label and can be obtained using DisplayName() method.
-func (obj *ConnectReplicationConfig) AddSource(ctx context.Context,
-	objToCreate *baseconnectnexusorgv1.ReplicationObject) (result *ConnectReplicationObject, err error) {
-	if objToCreate.Labels == nil {
-		objToCreate.Labels = map[string]string{}
-	}
-	for _, v := range helper.GetCRDParentsMap()["replicationconfigs.connect.nexus.org"] {
-		objToCreate.Labels[v] = obj.Labels[v]
-	}
-	objToCreate.Labels["replicationconfigs.connect.nexus.org"] = obj.DisplayName()
-	if objToCreate.Labels[common.IS_NAME_HASHED_LABEL] != "true" {
-		objToCreate.Labels[common.DISPLAY_NAME_LABEL] = objToCreate.GetName()
-		objToCreate.Labels[common.IS_NAME_HASHED_LABEL] = "true"
-		hashedName := helper.GetHashedName(objToCreate.CRDName(), objToCreate.Labels, objToCreate.GetName())
-		objToCreate.Name = hashedName
-	}
-	result, err = obj.client.Connect().CreateReplicationObjectByName(ctx, objToCreate)
-	updatedObj, getErr := obj.client.Connect().GetReplicationConfigByName(ctx, obj.GetName())
-	if getErr == nil {
-		obj.ReplicationConfig = updatedObj.ReplicationConfig
-	}
-	return
-}
-
-// DeleteSource calculates hashed name of the child to delete based on displayName
-// and parents names and deletes it.
-
-func (obj *ConnectReplicationConfig) DeleteSource(ctx context.Context) (err error) {
-	if obj.Spec.SourceGvk != nil {
-		err = obj.client.
-			Connect().DeleteReplicationObjectByName(ctx, obj.Spec.SourceGvk.Name)
-		if err != nil {
-			return err
-		}
-	}
-	updatedObj, err := obj.client.
-		Connect().GetReplicationConfigByName(ctx, obj.GetName())
-	if err == nil {
-		obj.ReplicationConfig = updatedObj.ReplicationConfig
-	}
-	return
-}
-
-// AddDestination calculates hashed name of the child to create based on objToCreate.Name
-// and parents names and creates it. objToCreate.Name is changed to the hashed name. Original name is preserved in
-// nexus/display_name label and can be obtained using DisplayName() method.
-func (obj *ConnectReplicationConfig) AddDestination(ctx context.Context,
-	objToCreate *baseconnectnexusorgv1.ReplicationObject) (result *ConnectReplicationObject, err error) {
-	if objToCreate.Labels == nil {
-		objToCreate.Labels = map[string]string{}
-	}
-	for _, v := range helper.GetCRDParentsMap()["replicationconfigs.connect.nexus.org"] {
-		objToCreate.Labels[v] = obj.Labels[v]
-	}
-	objToCreate.Labels["replicationconfigs.connect.nexus.org"] = obj.DisplayName()
-	if objToCreate.Labels[common.IS_NAME_HASHED_LABEL] != "true" {
-		objToCreate.Labels[common.DISPLAY_NAME_LABEL] = objToCreate.GetName()
-		objToCreate.Labels[common.IS_NAME_HASHED_LABEL] = "true"
-		hashedName := helper.GetHashedName(objToCreate.CRDName(), objToCreate.Labels, objToCreate.GetName())
-		objToCreate.Name = hashedName
-	}
-	result, err = obj.client.Connect().CreateReplicationObjectByName(ctx, objToCreate)
-	updatedObj, getErr := obj.client.Connect().GetReplicationConfigByName(ctx, obj.GetName())
-	if getErr == nil {
-		obj.ReplicationConfig = updatedObj.ReplicationConfig
-	}
-	return
-}
-
-// DeleteDestination calculates hashed name of the child to delete based on displayName
-// and parents names and deletes it.
-
-func (obj *ConnectReplicationConfig) DeleteDestination(ctx context.Context) (err error) {
-	if obj.Spec.DestinationGvk != nil {
-		err = obj.client.
-			Connect().DeleteReplicationObjectByName(ctx, obj.Spec.DestinationGvk.Name)
-		if err != nil {
-			return err
-		}
-	}
-	updatedObj, err := obj.client.
-		Connect().GetReplicationConfigByName(ctx, obj.GetName())
-	if err == nil {
-		obj.ReplicationConfig = updatedObj.ReplicationConfig
-	}
-	return
+	return obj.client.Connect().GetNexusEndpointByName(ctx, obj.Spec.RemoteEndpointGvk.Name)
 }
 
 // LinkRemoteEndpoint links obj with linkToAdd object. This function doesn't create linked object, it must be
@@ -2695,369 +2584,6 @@ func (obj *ConnectReplicationConfig) UnlinkRemoteEndpoint(ctx context.Context) (
 }
 
 type replicationconfigConnectNexusV1Chainer struct {
-	client       *Clientset
-	name         string
-	parentLabels map[string]string
-}
-
-func (c *replicationconfigConnectNexusV1Chainer) Source(name string) *replicationobjectConnectNexusV1Chainer {
-	parentLabels := c.parentLabels
-	parentLabels["replicationobjects.connect.nexus.org"] = name
-	return &replicationobjectConnectNexusV1Chainer{
-		client:       c.client,
-		name:         name,
-		parentLabels: parentLabels,
-	}
-}
-
-// GetSource calculates hashed name of the object based on displayName and it's parents and returns the object
-func (c *replicationconfigConnectNexusV1Chainer) GetSource(ctx context.Context, displayName string) (result *ConnectReplicationObject, err error) {
-	hashedName := helper.GetHashedName("replicationobjects.connect.nexus.org", c.parentLabels, displayName)
-	return c.client.Connect().GetReplicationObjectByName(ctx, hashedName)
-}
-
-// AddSource calculates hashed name of the child to create based on objToCreate.Name
-// and parents names and creates it. objToCreate.Name is changed to the hashed name. Original name is preserved in
-// nexus/display_name label and can be obtained using DisplayName() method.
-func (c *replicationconfigConnectNexusV1Chainer) AddSource(ctx context.Context,
-	objToCreate *baseconnectnexusorgv1.ReplicationObject) (result *ConnectReplicationObject, err error) {
-	if objToCreate.Labels == nil {
-		objToCreate.Labels = map[string]string{}
-	}
-	for k, v := range c.parentLabels {
-		objToCreate.Labels[k] = v
-	}
-	if objToCreate.Labels[common.IS_NAME_HASHED_LABEL] != "true" {
-		objToCreate.Labels[common.DISPLAY_NAME_LABEL] = objToCreate.GetName()
-		objToCreate.Labels[common.IS_NAME_HASHED_LABEL] = "true"
-		hashedName := helper.GetHashedName("replicationobjects.connect.nexus.org", c.parentLabels, objToCreate.GetName())
-		objToCreate.Name = hashedName
-	}
-	return c.client.Connect().CreateReplicationObjectByName(ctx, objToCreate)
-}
-
-// DeleteSource calculates hashed name of the child to delete based on displayName
-// and parents names and deletes it.
-func (c *replicationconfigConnectNexusV1Chainer) DeleteSource(ctx context.Context, name string) (err error) {
-	if c.parentLabels == nil {
-		c.parentLabels = map[string]string{}
-	}
-	c.parentLabels[common.IS_NAME_HASHED_LABEL] = "true"
-	hashedName := helper.GetHashedName("replicationobjects.connect.nexus.org", c.parentLabels, name)
-	return c.client.Connect().DeleteReplicationObjectByName(ctx, hashedName)
-}
-
-func (c *replicationconfigConnectNexusV1Chainer) Destination(name string) *replicationobjectConnectNexusV1Chainer {
-	parentLabels := c.parentLabels
-	parentLabels["replicationobjects.connect.nexus.org"] = name
-	return &replicationobjectConnectNexusV1Chainer{
-		client:       c.client,
-		name:         name,
-		parentLabels: parentLabels,
-	}
-}
-
-// GetDestination calculates hashed name of the object based on displayName and it's parents and returns the object
-func (c *replicationconfigConnectNexusV1Chainer) GetDestination(ctx context.Context, displayName string) (result *ConnectReplicationObject, err error) {
-	hashedName := helper.GetHashedName("replicationobjects.connect.nexus.org", c.parentLabels, displayName)
-	return c.client.Connect().GetReplicationObjectByName(ctx, hashedName)
-}
-
-// AddDestination calculates hashed name of the child to create based on objToCreate.Name
-// and parents names and creates it. objToCreate.Name is changed to the hashed name. Original name is preserved in
-// nexus/display_name label and can be obtained using DisplayName() method.
-func (c *replicationconfigConnectNexusV1Chainer) AddDestination(ctx context.Context,
-	objToCreate *baseconnectnexusorgv1.ReplicationObject) (result *ConnectReplicationObject, err error) {
-	if objToCreate.Labels == nil {
-		objToCreate.Labels = map[string]string{}
-	}
-	for k, v := range c.parentLabels {
-		objToCreate.Labels[k] = v
-	}
-	if objToCreate.Labels[common.IS_NAME_HASHED_LABEL] != "true" {
-		objToCreate.Labels[common.DISPLAY_NAME_LABEL] = objToCreate.GetName()
-		objToCreate.Labels[common.IS_NAME_HASHED_LABEL] = "true"
-		hashedName := helper.GetHashedName("replicationobjects.connect.nexus.org", c.parentLabels, objToCreate.GetName())
-		objToCreate.Name = hashedName
-	}
-	return c.client.Connect().CreateReplicationObjectByName(ctx, objToCreate)
-}
-
-// DeleteDestination calculates hashed name of the child to delete based on displayName
-// and parents names and deletes it.
-func (c *replicationconfigConnectNexusV1Chainer) DeleteDestination(ctx context.Context, name string) (err error) {
-	if c.parentLabels == nil {
-		c.parentLabels = map[string]string{}
-	}
-	c.parentLabels[common.IS_NAME_HASHED_LABEL] = "true"
-	hashedName := helper.GetHashedName("replicationobjects.connect.nexus.org", c.parentLabels, name)
-	return c.client.Connect().DeleteReplicationObjectByName(ctx, hashedName)
-}
-
-// GetReplicationObjectByName returns object stored in the database under the hashedName which is a hash of display
-// name and parents names. Use it when you know hashed name of object.
-func (group *ConnectNexusV1) GetReplicationObjectByName(ctx context.Context, hashedName string) (*ConnectReplicationObject, error) {
-	result, err := group.client.baseClient.
-		ConnectNexusV1().
-		ReplicationObjects().Get(ctx, hashedName, metav1.GetOptions{})
-	if err != nil {
-		return nil, err
-	}
-
-	return &ConnectReplicationObject{
-		client:            group.client,
-		ReplicationObject: result,
-	}, nil
-}
-
-// DeleteReplicationObjectByName deletes object stored in the database under the hashedName which is a hash of
-// display name and parents names. Use it when you know hashed name of object.
-func (group *ConnectNexusV1) DeleteReplicationObjectByName(ctx context.Context, hashedName string) (err error) {
-
-	result, err := group.client.baseClient.
-		ConnectNexusV1().
-		ReplicationObjects().Get(ctx, hashedName, metav1.GetOptions{})
-	if err != nil {
-		return err
-	}
-
-	err = group.client.baseClient.
-		ConnectNexusV1().
-		ReplicationObjects().Delete(ctx, hashedName, metav1.DeleteOptions{})
-	if err != nil {
-		return err
-	}
-
-	var patch Patch
-
-	patchOp := PatchOp{
-		Op:   "remove",
-		Path: "/spec/destinationGvk",
-	}
-
-	patch = append(patch, patchOp)
-	marshaled, err := patch.Marshal()
-	if err != nil {
-		return err
-	}
-	parents := result.GetLabels()
-	if parents == nil {
-		parents = make(map[string]string)
-	}
-	parentName, ok := parents["replicationconfigs.connect.nexus.org"]
-	if !ok {
-		parentName = helper.DEFAULT_KEY
-	}
-	if parents[common.IS_NAME_HASHED_LABEL] == "true" {
-		parentName = helper.GetHashedName("replicationconfigs.connect.nexus.org", parents, parentName)
-	}
-	_, err = group.client.baseClient.
-		ConnectNexusV1().
-		ReplicationConfigs().Patch(ctx, parentName, types.JSONPatchType, marshaled, metav1.PatchOptions{})
-	if err != nil {
-		return err
-	}
-
-	return
-}
-
-// CreateReplicationObjectByName creates object in the database without hashing the name.
-// Use it directly ONLY when objToCreate.Name is hashed name of the object.
-func (group *ConnectNexusV1) CreateReplicationObjectByName(ctx context.Context,
-	objToCreate *baseconnectnexusorgv1.ReplicationObject) (*ConnectReplicationObject, error) {
-	if objToCreate.GetLabels() == nil {
-		objToCreate.Labels = make(map[string]string)
-	}
-	if _, ok := objToCreate.Labels[common.DISPLAY_NAME_LABEL]; !ok {
-		objToCreate.Labels[common.DISPLAY_NAME_LABEL] = objToCreate.GetName()
-	}
-
-	result, err := group.client.baseClient.
-		ConnectNexusV1().
-		ReplicationObjects().Create(ctx, objToCreate, metav1.CreateOptions{})
-	if err != nil {
-		return nil, err
-	}
-
-	parentName, ok := objToCreate.GetLabels()["replicationconfigs.connect.nexus.org"]
-	if !ok {
-		parentName = helper.DEFAULT_KEY
-	}
-	if objToCreate.Labels[common.IS_NAME_HASHED_LABEL] == "true" {
-		parentName = helper.GetHashedName("replicationconfigs.connect.nexus.org", objToCreate.GetLabels(), parentName)
-	}
-
-	var patch Patch
-	patchOp := PatchOp{
-		Op:   "replace",
-		Path: "/spec/destinationGvk",
-		Value: baseconnectnexusorgv1.Child{
-			Group: "connect.nexus.org",
-			Kind:  "ReplicationObject",
-			Name:  objToCreate.Name,
-		},
-	}
-	patch = append(patch, patchOp)
-	marshaled, err := patch.Marshal()
-	if err != nil {
-		return nil, err
-	}
-	_, err = group.client.baseClient.
-		ConnectNexusV1().
-		ReplicationConfigs().Patch(ctx, parentName, types.JSONPatchType, marshaled, metav1.PatchOptions{})
-	if err != nil {
-		return nil, err
-	}
-
-	return &ConnectReplicationObject{
-		client:            group.client,
-		ReplicationObject: result,
-	}, nil
-}
-
-// UpdateReplicationObjectByName updates object stored in the database under the hashedName which is a hash of
-// display name and parents names.
-func (group *ConnectNexusV1) UpdateReplicationObjectByName(ctx context.Context,
-	objToUpdate *baseconnectnexusorgv1.ReplicationObject) (*ConnectReplicationObject, error) {
-	// ResourceVersion must be set for update
-	if objToUpdate.ResourceVersion == "" {
-		current, err := group.client.baseClient.
-			ConnectNexusV1().
-			ReplicationObjects().Get(ctx, objToUpdate.GetName(), metav1.GetOptions{})
-		if err != nil {
-			return nil, err
-		}
-		objToUpdate.ResourceVersion = current.ResourceVersion
-	}
-
-	var patch Patch
-	patchOpMeta := PatchOp{
-		Op:    "replace",
-		Path:  "/metadata",
-		Value: objToUpdate.ObjectMeta,
-	}
-	patch = append(patch, patchOpMeta)
-
-	patchValueGroup :=
-		objToUpdate.Spec.Group
-	patchOpGroup := PatchOp{
-		Op:    "replace",
-		Path:  "/spec/group",
-		Value: patchValueGroup,
-	}
-	patch = append(patch, patchOpGroup)
-
-	patchValueKind :=
-		objToUpdate.Spec.Kind
-	patchOpKind := PatchOp{
-		Op:    "replace",
-		Path:  "/spec/kind",
-		Value: patchValueKind,
-	}
-	patch = append(patch, patchOpKind)
-
-	patchValueName :=
-		objToUpdate.Spec.Name
-	patchOpName := PatchOp{
-		Op:    "replace",
-		Path:  "/spec/name",
-		Value: patchValueName,
-	}
-	patch = append(patch, patchOpName)
-
-	patchValueLocalRuntime :=
-		objToUpdate.Spec.LocalRuntime
-	patchOpLocalRuntime := PatchOp{
-		Op:    "replace",
-		Path:  "/spec/localRuntime",
-		Value: patchValueLocalRuntime,
-	}
-	patch = append(patch, patchOpLocalRuntime)
-
-	patchValueHierarchical :=
-		objToUpdate.Spec.Hierarchical
-	patchOpHierarchical := PatchOp{
-		Op:    "replace",
-		Path:  "/spec/hierarchical",
-		Value: patchValueHierarchical,
-	}
-	patch = append(patch, patchOpHierarchical)
-
-	patchValueHierarchy :=
-		objToUpdate.Spec.Hierarchy
-	patchOpHierarchy := PatchOp{
-		Op:    "replace",
-		Path:  "/spec/hierarchy",
-		Value: patchValueHierarchy,
-	}
-	patch = append(patch, patchOpHierarchy)
-
-	marshaled, err := patch.Marshal()
-	if err != nil {
-		return nil, err
-	}
-	result, err := group.client.baseClient.
-		ConnectNexusV1().
-		ReplicationObjects().Patch(ctx, objToUpdate.GetName(), types.JSONPatchType, marshaled, metav1.PatchOptions{}, "")
-	if err != nil {
-		return nil, err
-	}
-
-	return &ConnectReplicationObject{
-		client:            group.client,
-		ReplicationObject: result,
-	}, nil
-}
-
-// ListReplicationObjects returns slice of all existing objects of this type. Selectors can be provided in opts parameter.
-func (group *ConnectNexusV1) ListReplicationObjects(ctx context.Context,
-	opts metav1.ListOptions) (result []*ConnectReplicationObject, err error) {
-	list, err := group.client.baseClient.ConnectNexusV1().
-		ReplicationObjects().List(ctx, opts)
-	if err != nil {
-		return nil, err
-	}
-	result = make([]*ConnectReplicationObject, len(list.Items))
-	for k, v := range list.Items {
-		result[k] = &ConnectReplicationObject{
-			client:            group.client,
-			ReplicationObject: &v,
-		}
-	}
-	return
-}
-
-type ConnectReplicationObject struct {
-	client *Clientset
-	*baseconnectnexusorgv1.ReplicationObject
-}
-
-// Delete removes obj and all it's children from the database.
-func (obj *ConnectReplicationObject) Delete(ctx context.Context) error {
-	err := obj.client.Connect().DeleteReplicationObjectByName(ctx, obj.GetName())
-	if err != nil {
-		return err
-	}
-	obj.ReplicationObject = nil
-	return nil
-}
-
-// Update updates spec of object in database. Children and Link can not be updated using this function.
-func (obj *ConnectReplicationObject) Update(ctx context.Context) error {
-	result, err := obj.client.Connect().UpdateReplicationObjectByName(ctx, obj.ReplicationObject)
-	if err != nil {
-		return err
-	}
-	obj.ReplicationObject = result.ReplicationObject
-	return nil
-}
-
-func (obj *ConnectReplicationObject) GetParent(ctx context.Context) (result *ConnectReplicationConfig, err error) {
-	hashedName := helper.GetHashedName("replicationconfigs.connect.nexus.org", obj.Labels, obj.Labels["replicationconfigs.connect.nexus.org"])
-	return obj.client.Connect().GetReplicationConfigByName(ctx, hashedName)
-}
-
-type replicationobjectConnectNexusV1Chainer struct {
 	client       *Clientset
 	name         string
 	parentLabels map[string]string

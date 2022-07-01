@@ -119,10 +119,10 @@ func (c *ReplicationConfig) DisplayName() string {
 
 // +k8s:openapi-gen=true
 type ReplicationConfigSpec struct {
-	AccessToken       string `json:"accessToken" yaml:"accessToken"`
-	SourceGvk         *Child `json:"sourceGvk,omitempty" yaml:"sourceGvk,omitempty" nexus:"child"`
-	DestinationGvk    *Child `json:"destinationGvk,omitempty" yaml:"destinationGvk,omitempty" nexus:"child"`
-	RemoteEndpointGvk *Link  `json:"remoteEndpointGvk,omitempty" yaml:"remoteEndpointGvk,omitempty" nexus:"link"`
+	AccessToken       string            `json:"accessToken" yaml:"accessToken"`
+	Source            ReplicationObject `json:"source" yaml:"source"`
+	Destination       ReplicationObject `json:"destination,omitempty" yaml:"destination,omitempty"`
+	RemoteEndpointGvk *Link             `json:"remoteEndpointGvk,omitempty" yaml:"remoteEndpointGvk,omitempty" nexus:"link"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
@@ -132,43 +132,14 @@ type ReplicationConfigList struct {
 	Items           []ReplicationConfig `json:"items" yaml:"items"`
 }
 
-// +genclient
-// +genclient:noStatus
-// +genclient:nonNamespaced
-// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 // +k8s:openapi-gen=true
 type ReplicationObject struct {
-	metav1.TypeMeta   `json:",inline" yaml:",inline"`
-	metav1.ObjectMeta `json:"metadata" yaml:"metadata"`
-	Spec              ReplicationObjectSpec `json:"spec,omitempty" yaml:"spec,omitempty"`
-}
-
-func (c *ReplicationObject) CRDName() string {
-	return "replicationobjects.connect.nexus.org"
-}
-
-func (c *ReplicationObject) DisplayName() string {
-	if c.GetLabels() != nil {
-		return c.GetLabels()[common.DISPLAY_NAME_LABEL]
-	}
-	return ""
-}
-
-// +k8s:openapi-gen=true
-type ReplicationObjectSpec struct {
 	Group        string    `json:"group" yaml:"group"`
 	Kind         string    `json:"kind" yaml:"kind"`
 	Name         string    `json:"name" yaml:"name"`
-	LocalRuntime bool      `json:"localRuntime" yaml:"localRuntime"`
-	Hierarchical bool      `json:"hierarchical" yaml:"hierarchical"`
-	Hierarchy    Hierarchy `json:"hierarchy" yaml:"hierarchy"`
-}
-
-// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
-type ReplicationObjectList struct {
-	metav1.TypeMeta `json:",inline" yaml:",inline"`
-	metav1.ListMeta `json:"metadata" yaml:"metadata"`
-	Items           []ReplicationObject `json:"items" yaml:"items"`
+	LocalRuntime bool      `json:"localRuntime,omitempty" yaml:"localRuntime,omitempty"`
+	Hierarchical bool      `json:"hierarchical,omitempty" yaml:"hierarchical,omitempty"`
+	Hierarchy    Hierarchy `json:"hierarchy,omitempty" yaml:"hierarchy,omitempty"`
 }
 
 // +k8s:openapi-gen=true

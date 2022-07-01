@@ -30,8 +30,6 @@ type Interface interface {
 	NexusEndpoints() NexusEndpointInformer
 	// ReplicationConfigs returns a ReplicationConfigInformer.
 	ReplicationConfigs() ReplicationConfigInformer
-	// ReplicationObjects returns a ReplicationObjectInformer.
-	ReplicationObjects() ReplicationObjectInformer
 }
 
 type version struct {
@@ -58,9 +56,4 @@ func (v *version) NexusEndpoints() NexusEndpointInformer {
 // ReplicationConfigs returns a ReplicationConfigInformer.
 func (v *version) ReplicationConfigs() ReplicationConfigInformer {
 	return &replicationConfigInformer{factory: v.factory, tweakListOptions: v.tweakListOptions}
-}
-
-// ReplicationObjects returns a ReplicationObjectInformer.
-func (v *version) ReplicationObjects() ReplicationObjectInformer {
-	return &replicationObjectInformer{factory: v.factory, tweakListOptions: v.tweakListOptions}
 }
