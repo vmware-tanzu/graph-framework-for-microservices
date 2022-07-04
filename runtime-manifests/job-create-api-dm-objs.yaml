@@ -1,0 +1,99 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: kubeconfig-api-gw
+data:
+  config: |
+    current-context: api-gw
+    apiVersion: v1
+    kind: Config
+    clusters:
+    - cluster:
+        api-version: v1
+        server: http://nexus-api-gw:80
+        insecure-skip-tls-verify: true
+      name: api-gw
+    contexts:
+    - context:
+        cluster: api-gw
+      name: api-gw
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: nexus-api-dm-obj-installer
+spec:
+  template:
+    metadata:
+      annotations:
+        "sidecar.istio.io/inject": "false"
+    spec:
+      activeDeadlineSeconds: 300
+      containers:
+        - name: nexus-api-dm-obj-creator
+          image: "gcr.io/nsx-sm/tools:latest"
+          imagePullPolicy: IfNotPresent
+          command:
+            - "/bin/bash"
+            - "-c"
+            - |
+              set -e
+              
+              echo 'waiting for api-gw to be ready'
+              until $(curl --output /dev/null --silent --head --fail http://nexus-api-gw/readyz); do
+                echo '.'
+                sleep 5
+              done
+
+              echo 'waiting for Nexus API DM CRDs to be installed'
+              until $(kubectl get crd/nexuses.api.nexus.org > /dev/null 2>&1); do
+                echo '.'
+                sleep 5
+              done
+
+              if ! kubectl get nexuses.api.nexus.org -l nexus/display_name=default -o=jsonpath='{.items[0]}' > /dev/null 2>&1 ; then
+                echo 'creating Nexus node'
+                kubectl apply -f -<<EOF
+                apiVersion: api.nexus.org/v1
+                kind: Nexus
+                metadata:
+                  name: default
+              EOF
+              fi
+
+              if ! kubectl get configs.config.nexus.org -l nexus/display_name=default -o=jsonpath='{.items[0]}' > /dev/null 2>&1 ; then
+                echo 'creating Config node'
+                kubectl apply -f -<<EOF
+                apiVersion: config.nexus.org/v1
+                kind: Config
+                metadata:
+                  name: default
+                  labels:
+                    nexuses.api.nexus.org: default
+              EOF
+              fi
+
+              if ! kubectl get apigateways.apigateway.nexus.org -l nexus/display_name=default -o=jsonpath='{.items[0]}' > /dev/null 2>&1 ; then
+                echo 'creating ApiGateway node'
+                kubectl apply -f -<<EOF
+                apiVersion: apigateway.nexus.org/v1
+                kind: ApiGateway
+                metadata:
+                  name: default
+                  labels:
+                    nexuses.api.nexus.org: default
+                    configs.config.nexus.org: default
+              EOF
+              fi
+          env:
+            - name: KUBECONFIG
+              value: /kube/config
+          volumeMounts:
+            - mountPath: /kube
+              name: kubeconfig
+      volumes:
+        - name: kubeconfig
+          configMap:
+            name: kubeconfig-api-gw
+      restartPolicy: Never
+  backoffLimit: 2
