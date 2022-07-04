@@ -1,0 +1,117 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: envoy-config-map
+  namespace: {{.Namespace}}
+data:
+  envoy.yaml: |
+    # Base config for a split xDS management server on 18000, admin port on 19000
+    admin:
+      access_log_path: /dev/null
+      address:
+        socket_address:
+          address: 127.0.0.1
+          port_value: 19000
+    dynamic_resources:
+      cds_config:
+        resource_api_version: V3
+        api_config_source:
+          api_type: GRPC
+          transport_api_version: V3
+          grpc_services:
+          - envoy_grpc:
+              cluster_name: xds_cluster
+          set_node_on_first_message_only: true
+      lds_config:
+        resource_api_version: V3
+        api_config_source:
+          api_type: GRPC
+          transport_api_version: V3
+          grpc_services:
+          - envoy_grpc:
+              cluster_name: xds_cluster
+          set_node_on_first_message_only: true
+    node:
+      cluster: cluster_0
+      id: envoy-nexus-admin
+    static_resources:
+      clusters:
+      - connect_timeout: 1s
+        type: LOGICAL_DNS
+        load_assignment:
+          cluster_name: xds_cluster
+          endpoints:
+          - lb_endpoints:
+            - endpoint:
+                address:
+                  socket_address:
+                    # api-gw runs an xDS server that this envoy instance will connect to
+                    address: nexus-api-gw
+                    port_value: 18000
+        http2_protocol_options: {}
+        name: xds_cluster
+    layered_runtime:
+      layers:
+        - name: runtime-0
+          rtds_layer:
+            rtds_config:
+              resource_api_version: V3
+              api_config_source:
+                transport_api_version: V3
+                api_type: GRPC
+                grpc_services:
+                  envoy_grpc:
+                    cluster_name: xds_cluster
+            name: runtime-0
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nexus-proxy
+  namespace: {{.Namespace}}
+spec:
+  selector:
+    matchLabels:
+      app: nexus-proxy
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: nexus-proxy
+      annotations:
+        "sidecar.istio.io/inject": "false"
+    spec:
+      containers:
+        - name: envoy
+          image: "gcr.io/nsx-sm/envoyproxy/envoy:v1.22.2"
+          ports:
+            - containerPort: 10000
+            - containerPort: 19000
+          volumeMounts:
+            - mountPath: /etc/envoy
+              name: envoy-config
+      volumes:
+        - name: envoy-config
+          configMap:
+            name: envoy-config-map
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nexus-proxy
+  namespace: {{.Namespace}}
+  labels:
+    app: nexus-proxy
+spec:
+  ports:
+    - name: http
+      port: 10000
+      protocol: TCP
+      targetPort: 10000
+    - name: http-admin
+      port: 19000
+      protocol: TCP
+      targetPort: 19000
+  selector:
+    app: nexus-proxy
+  type: ClusterIP
