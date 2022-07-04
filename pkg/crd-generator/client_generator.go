@@ -89,6 +89,7 @@ func resolveNode(baseImportName string, pkg parser.Package, allPkgs parser.Packa
 
 	clientGroupVars.BaseNodeName = baseNodeName
 	clientGroupVars.BaseImportName = baseImportName
+	clientGroupVars.IsSingleton = parser.IsSingletonNode(node)
 	clientGroupVars.GroupBaseImport = baseImportName + "." + baseNodeName
 	clientGroupVars.GroupResourceType = groupResourceType
 	clientGroupVars.GroupResourceNameTitle = groupResourceNameTitle
@@ -115,6 +116,7 @@ func resolveNode(baseImportName string, pkg parser.Package, allPkgs parser.Packa
 			BaseNodeName:           linkInfo.fieldType,
 			GroupResourceType:      util.GetGroupResourceType(linkInfo.fieldType, linkInfo.pkgName, baseGroupName, version),
 			CrdName:                util.GetCrdName(linkInfo.fieldType, linkInfo.pkgName, baseGroupName),
+			IsSingleton:            isChildSingleton(pkg, allPkgs, link),
 		}
 		if parser.IsNamedChildOrLink(link) {
 			clientVarsLink.IsNamed = true
@@ -163,6 +165,49 @@ type fieldInfo struct {
 	pkgName   string
 	fieldName string
 	fieldType string
+}
+
+func isChildSingleton(pkg parser.Package, allPkgs parser.Packages, f *ast.Field) bool {
+	chType := parser.GetFieldType(f)
+	split := strings.Split(chType, ".")
+	if len(split) > 1 { // imported node
+		fieldPackageName := split[0]
+		for _, imp := range pkg.GetImports() { // go through imports to find matching package
+			var packageNameToCheck string
+			if imp.Name != nil { // named import
+				packageNameToCheck = imp.Name.String()
+			} else {
+				unquotedImport, err := strconv.Unquote(imp.Path.Value)
+				if err != nil {
+					continue
+				}
+				spl := strings.Split(unquotedImport, "/")
+				packageNameToCheck = spl[len(spl)-1]
+			}
+			if fieldPackageName == packageNameToCheck {
+				unquotedImport, err := strconv.Unquote(imp.Path.Value)
+				if err != nil {
+					continue
+				}
+				for _, p := range allPkgs {
+					if unquotedImport == p.FullName {
+						for _, node := range p.GetNexusNodes() {
+							if parser.GetTypeName(node) == split[1] {
+								return parser.IsSingletonNode(node) // we found node definition, check if it's singleton
+							}
+						}
+					}
+				}
+			}
+		}
+	} else { // node from same package
+		for _, node := range pkg.GetNexusNodes() {
+			if parser.GetTypeName(node) == chType {
+				return parser.IsSingletonNode(node)
+			}
+		}
+	}
+	return false
 }
 
 func getFieldInfo(pkg parser.Package, allPkgs parser.Packages, f *ast.Field) fieldInfo {
@@ -220,6 +265,7 @@ type apiGroupsClientVars struct {
 	ApiGroupsVars
 	BaseNodeName           string
 	CrdName                string
+	IsSingleton            bool
 	HasChildren            bool
 	BaseImportName         string
 	GroupResourceType      string
@@ -254,6 +300,7 @@ type apiGroupsClientVarsLink struct {
 	GroupBaseImport        string
 	BaseNodeName           string
 	IsNamed                bool
+	IsSingleton            bool
 	GroupTypeName          string
 	SimpleGroupTypeName    string
 	GroupResourceNameTitle string
