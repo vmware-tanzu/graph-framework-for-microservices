@@ -1,0 +1,7 @@
+domain: connector.com
+layout:
+- go.kubebuilder.io/v3
+projectName: connector
+repo: connector
+version: "3"
+multigroup: true
