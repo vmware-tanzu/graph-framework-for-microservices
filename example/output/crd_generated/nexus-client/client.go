@@ -205,6 +205,12 @@ func (group *RootTsmV1) CreateRootByName(ctx context.Context,
 	if _, ok := objToCreate.Labels[common.DISPLAY_NAME_LABEL]; !ok {
 		objToCreate.Labels[common.DISPLAY_NAME_LABEL] = objToCreate.GetName()
 	}
+	if objToCreate.Labels[common.DISPLAY_NAME_LABEL] == "" {
+		objToCreate.Labels[common.DISPLAY_NAME_LABEL] = helper.DEFAULT_KEY
+	}
+	if objToCreate.Labels[common.DISPLAY_NAME_LABEL] != helper.DEFAULT_KEY {
+		return nil, NewSingletonNameError(objToCreate.Labels[common.DISPLAY_NAME_LABEL])
+	}
 
 	objToCreate.Spec.ConfigGvk = nil
 
@@ -225,6 +231,9 @@ func (group *RootTsmV1) CreateRootByName(ctx context.Context,
 // display name and parents names.
 func (group *RootTsmV1) UpdateRootByName(ctx context.Context,
 	objToUpdate *baseroottsmtanzuvmwarecomv1.Root) (*RootRoot, error) {
+	if objToUpdate.Labels[common.DISPLAY_NAME_LABEL] != helper.DEFAULT_KEY {
+		return nil, NewSingletonNameError(objToUpdate.Labels[common.DISPLAY_NAME_LABEL])
+	}
 	// ResourceVersion must be set for update
 	if objToUpdate.ResourceVersion == "" {
 		current, err := group.client.baseClient.
@@ -305,28 +314,34 @@ func (obj *RootRoot) Update(ctx context.Context) error {
 	return nil
 }
 
-func (c *Clientset) RootRoot(displayName string) *rootRootTsmV1Chainer {
+// GetRootRoot calculates the hashed name based on parents and
+// returns given object
+func (c *Clientset) GetRootRoot(ctx context.Context) (result *RootRoot, err error) {
+	hashedName := helper.GetHashedName("roots.root.tsm.tanzu.vmware.com", nil, helper.DEFAULT_KEY)
+	return c.Root().GetRootByName(ctx, hashedName)
+}
+
+func (c *Clientset) RootRoot() *rootRootTsmV1Chainer {
 	parentLabels := make(map[string]string)
-	parentLabels["roots.root.tsm.tanzu.vmware.com"] = displayName
+	parentLabels["roots.root.tsm.tanzu.vmware.com"] = helper.DEFAULT_KEY
 	return &rootRootTsmV1Chainer{
 		client:       c,
-		name:         displayName,
+		name:         helper.DEFAULT_KEY,
 		parentLabels: parentLabels,
 	}
 }
 
-// GetRootRoot calculates the hashed name based on parents and displayName and
-// returns given object
-func (c *Clientset) GetRootRoot(ctx context.Context, displayName string) (result *RootRoot, err error) {
-	hashedName := helper.GetHashedName("roots.root.tsm.tanzu.vmware.com", nil, displayName)
-	return c.Root().GetRootByName(ctx, hashedName)
-}
-
-// AddRootRoot calculates hashed name of the object based on objToCreate.Name
-// and parents names and creates it. objToCreate.Name is changed to the hashed name. Original name is preserved in
+// AddRootRoot calculates hashed name of the object based on
+// parents names and creates it. objToCreate.Name is changed to the hashed name. Original name (helper.DEFAULT_KEY) is preserved in
 // nexus/display_name label and can be obtained using DisplayName() method.
 func (c *Clientset) AddRootRoot(ctx context.Context,
 	objToCreate *baseroottsmtanzuvmwarecomv1.Root) (result *RootRoot, err error) {
+	if objToCreate.GetName() == "" {
+		objToCreate.SetName(helper.DEFAULT_KEY)
+	}
+	if objToCreate.GetName() != helper.DEFAULT_KEY {
+		return nil, NewSingletonNameError(objToCreate.GetName())
+	}
 	if objToCreate.Labels == nil {
 		objToCreate.Labels = map[string]string{}
 	}
@@ -339,10 +354,10 @@ func (c *Clientset) AddRootRoot(ctx context.Context,
 	return c.Root().CreateRootByName(ctx, objToCreate)
 }
 
-// DeleteRootRoot calculates hashedName of object based on displayName and
+// DeleteRootRoot calculates hashedName of object based on
 // parents and deletes given object
-func (c *Clientset) DeleteRootRoot(ctx context.Context, displayName string) (err error) {
-	hashedName := helper.GetHashedName("roots.root.tsm.tanzu.vmware.com", nil, displayName)
+func (c *Clientset) DeleteRootRoot(ctx context.Context) (err error) {
+	hashedName := helper.GetHashedName("roots.root.tsm.tanzu.vmware.com", nil, helper.DEFAULT_KEY)
 	return c.Root().DeleteRootByName(ctx, hashedName)
 }
 
@@ -610,6 +625,7 @@ func (group *ConfigTsmV1) CreateConfigByName(ctx context.Context,
 // display name and parents names.
 func (group *ConfigTsmV1) UpdateConfigByName(ctx context.Context,
 	objToUpdate *baseconfigtsmtanzuvmwarecomv1.Config) (*ConfigConfig, error) {
+
 	// ResourceVersion must be set for update
 	if objToUpdate.ResourceVersion == "" {
 		current, err := group.client.baseClient.
@@ -1010,27 +1026,33 @@ func (c *configConfigTsmV1Chainer) DeleteGNS(ctx context.Context, name string) (
 	return c.client.Gns().DeleteGnsByName(ctx, hashedName)
 }
 
-func (c *configConfigTsmV1Chainer) DNS(name string) *dnsGnsTsmV1Chainer {
+func (c *configConfigTsmV1Chainer) DNS() *dnsGnsTsmV1Chainer {
 	parentLabels := c.parentLabels
-	parentLabels["dnses.gns.tsm.tanzu.vmware.com"] = name
+	parentLabels["dnses.gns.tsm.tanzu.vmware.com"] = helper.DEFAULT_KEY
 	return &dnsGnsTsmV1Chainer{
 		client:       c.client,
-		name:         name,
+		name:         helper.DEFAULT_KEY,
 		parentLabels: parentLabels,
 	}
 }
 
-// GetDNS calculates hashed name of the object based on displayName and it's parents and returns the object
-func (c *configConfigTsmV1Chainer) GetDNS(ctx context.Context, displayName string) (result *GnsDns, err error) {
-	hashedName := helper.GetHashedName("dnses.gns.tsm.tanzu.vmware.com", c.parentLabels, displayName)
+// GetDNS calculates hashed name of the object based on it's parents and returns the object
+func (c *configConfigTsmV1Chainer) GetDNS(ctx context.Context) (result *GnsDns, err error) {
+	hashedName := helper.GetHashedName("dnses.gns.tsm.tanzu.vmware.com", c.parentLabels, helper.DEFAULT_KEY)
 	return c.client.Gns().GetDnsByName(ctx, hashedName)
 }
 
-// AddDNS calculates hashed name of the child to create based on objToCreate.Name
-// and parents names and creates it. objToCreate.Name is changed to the hashed name. Original name is preserved in
+// AddDNS calculates hashed name of the child to create based on parents names and creates it.
+// objToCreate.Name is changed to the hashed name. Original name ('default') is preserved in
 // nexus/display_name label and can be obtained using DisplayName() method.
 func (c *configConfigTsmV1Chainer) AddDNS(ctx context.Context,
 	objToCreate *basegnstsmtanzuvmwarecomv1.Dns) (result *GnsDns, err error) {
+	if objToCreate.GetName() == "" {
+		objToCreate.SetName(helper.DEFAULT_KEY)
+	}
+	if objToCreate.GetName() != helper.DEFAULT_KEY {
+		return nil, NewSingletonNameError(objToCreate.GetName())
+	}
 	if objToCreate.Labels == nil {
 		objToCreate.Labels = map[string]string{}
 	}
@@ -1250,6 +1272,7 @@ func (group *GnsTsmV1) CreateGnsByName(ctx context.Context,
 // display name and parents names.
 func (group *GnsTsmV1) UpdateGnsByName(ctx context.Context,
 	objToUpdate *basegnstsmtanzuvmwarecomv1.Gns) (*GnsGns, error) {
+
 	// ResourceVersion must be set for update
 	if objToUpdate.ResourceVersion == "" {
 		current, err := group.client.baseClient.
@@ -1733,6 +1756,12 @@ func (group *GnsTsmV1) CreateDnsByName(ctx context.Context,
 	if _, ok := objToCreate.Labels[common.DISPLAY_NAME_LABEL]; !ok {
 		objToCreate.Labels[common.DISPLAY_NAME_LABEL] = objToCreate.GetName()
 	}
+	if objToCreate.Labels[common.DISPLAY_NAME_LABEL] == "" {
+		objToCreate.Labels[common.DISPLAY_NAME_LABEL] = helper.DEFAULT_KEY
+	}
+	if objToCreate.Labels[common.DISPLAY_NAME_LABEL] != helper.DEFAULT_KEY {
+		return nil, NewSingletonNameError(objToCreate.Labels[common.DISPLAY_NAME_LABEL])
+	}
 
 	result, err := group.client.baseClient.
 		GnsTsmV1().
@@ -1781,6 +1810,9 @@ func (group *GnsTsmV1) CreateDnsByName(ctx context.Context,
 // display name and parents names.
 func (group *GnsTsmV1) UpdateDnsByName(ctx context.Context,
 	objToUpdate *basegnstsmtanzuvmwarecomv1.Dns) (*GnsDns, error) {
+	if objToUpdate.Labels[common.DISPLAY_NAME_LABEL] != helper.DEFAULT_KEY {
+		return nil, NewSingletonNameError(objToUpdate.Labels[common.DISPLAY_NAME_LABEL])
+	}
 	// ResourceVersion must be set for update
 	if objToUpdate.ResourceVersion == "" {
 		current, err := group.client.baseClient.
@@ -1983,6 +2015,7 @@ func (group *ServicegroupTsmV1) CreateSvcGroupByName(ctx context.Context,
 // display name and parents names.
 func (group *ServicegroupTsmV1) UpdateSvcGroupByName(ctx context.Context,
 	objToUpdate *baseservicegrouptsmtanzuvmwarecomv1.SvcGroup) (*ServicegroupSvcGroup, error) {
+
 	// ResourceVersion must be set for update
 	if objToUpdate.ResourceVersion == "" {
 		current, err := group.client.baseClient.
@@ -2236,6 +2269,7 @@ func (group *PolicypkgTsmV1) CreateAccessControlPolicyByName(ctx context.Context
 // display name and parents names.
 func (group *PolicypkgTsmV1) UpdateAccessControlPolicyByName(ctx context.Context,
 	objToUpdate *basepolicypkgtsmtanzuvmwarecomv1.AccessControlPolicy) (*PolicypkgAccessControlPolicy, error) {
+
 	// ResourceVersion must be set for update
 	if objToUpdate.ResourceVersion == "" {
 		current, err := group.client.baseClient.
@@ -2558,6 +2592,7 @@ func (group *PolicypkgTsmV1) CreateACPConfigByName(ctx context.Context,
 // display name and parents names.
 func (group *PolicypkgTsmV1) UpdateACPConfigByName(ctx context.Context,
 	objToUpdate *basepolicypkgtsmtanzuvmwarecomv1.ACPConfig) (*PolicypkgACPConfig, error) {
+
 	// ResourceVersion must be set for update
 	if objToUpdate.ResourceVersion == "" {
 		current, err := group.client.baseClient.
@@ -2956,6 +2991,7 @@ func (group *PolicypkgTsmV1) CreateVMpolicyByName(ctx context.Context,
 // display name and parents names.
 func (group *PolicypkgTsmV1) UpdateVMpolicyByName(ctx context.Context,
 	objToUpdate *basepolicypkgtsmtanzuvmwarecomv1.VMpolicy) (*PolicypkgVMpolicy, error) {
+
 	// ResourceVersion must be set for update
 	if objToUpdate.ResourceVersion == "" {
 		current, err := group.client.baseClient.

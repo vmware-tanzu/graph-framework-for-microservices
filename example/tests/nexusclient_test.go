@@ -385,7 +385,7 @@ var _ = Describe("Nexus clients tests", func() {
 		Expect(err).NotTo(HaveOccurred())
 		dnsDef := &gnsv1.Dns{
 			ObjectMeta: metav1.ObjectMeta{
-				Name: "dnsName",
+				Name: "default",
 			},
 		}
 		dns, err := gns.GetDns(context.TODO())
@@ -400,7 +400,7 @@ var _ = Describe("Nexus clients tests", func() {
 
 		getLinkedDns, err := gns.GetDns(context.TODO())
 		Expect(err).NotTo(HaveOccurred())
-		Expect(getLinkedDns.DisplayName()).To(Equal("dnsName"))
+		Expect(getLinkedDns.DisplayName()).To(Equal("default"))
 
 		err = gns.UnlinkDns(context.TODO())
 		Expect(err).NotTo(HaveOccurred())
@@ -448,7 +448,7 @@ var _ = Describe("Nexus clients tests", func() {
 
 	Context("Custom Errors", func() {
 		It("should throw IsNotFound error when node's not present", func() {
-			root, err := fakeClient.GetRootRoot(context.TODO(), "default")
+			root, err := fakeClient.GetRootRoot(context.TODO())
 			Expect(root).To(BeNil())
 			Expect(nexus_client.IsNotFound(err)).To(BeTrue())
 		})
@@ -546,6 +546,112 @@ var _ = Describe("Nexus clients tests", func() {
 			Expect(nexus_client.IsLinkNotFound(err)).To(BeTrue())
 			Expect(nexus_client.IsNotFound(err)).To(BeFalse())
 
+		})
+	})
+
+	Context("Singleton nodes", func() {
+		It("should throw when user tries to create root singleton object which doesn't have default as a name", func() {
+			fakeClient = nexus_client.NewFakeClient()
+			rootDef := &rootv1.Root{
+				ObjectMeta: metav1.ObjectMeta{
+					Name: "notDefault",
+				},
+			}
+			root, err := fakeClient.AddRootRoot(context.TODO(), rootDef)
+			Expect(err).To(HaveOccurred())
+			Expect(root).To(BeNil())
+		})
+
+		It("should throw when user tries to create non-root singleton object which doesn't have default as a name", func() {
+			fakeClient = nexus_client.NewFakeClient()
+			rootDef := &rootv1.Root{}
+			root, err := fakeClient.AddRootRoot(context.TODO(), rootDef)
+			Expect(err).NotTo(HaveOccurred())
+			cfg, err := root.AddConfig(context.TODO(), &configv1.Config{
+				ObjectMeta: metav1.ObjectMeta{
+					Name: "foo",
+				},
+			})
+			Expect(err).NotTo(HaveOccurred())
+			dns, err := cfg.AddDNS(context.TODO(), &gnsv1.Dns{
+				ObjectMeta: metav1.ObjectMeta{
+					Name: "notDefault",
+				},
+			})
+			Expect(err).To(HaveOccurred())
+			Expect(nexus_client.IsSingletonNameError(err)).To(BeTrue())
+			Expect(dns).To(BeNil())
+		})
+
+		It("should accept singleton object without a name", func() {
+			fakeClient = nexus_client.NewFakeClient()
+			rootDef := &rootv1.Root{}
+			root, err := fakeClient.AddRootRoot(context.TODO(), rootDef)
+			Expect(root.DisplayName()).To(Equal("default"))
+			Expect(err).NotTo(HaveOccurred())
+			cfg, err := root.AddConfig(context.TODO(), &configv1.Config{
+				ObjectMeta: metav1.ObjectMeta{
+					Name: "foo",
+				},
+			})
+			Expect(err).NotTo(HaveOccurred())
+			dns, err := cfg.AddDNS(context.TODO(), &gnsv1.Dns{
+				ObjectMeta: metav1.ObjectMeta{
+					Name: "",
+				},
+			})
+			Expect(err).NotTo(HaveOccurred())
+			Expect(dns).NotTo(BeNil())
+			Expect(dns.DisplayName()).To(Equal("default"))
+		})
+
+		It("should accept singleton object without 'default' as a name", func() {
+			fakeClient = nexus_client.NewFakeClient()
+			rootDef := &rootv1.Root{
+				ObjectMeta: metav1.ObjectMeta{
+					Name: "default",
+				},
+			}
+			root, err := fakeClient.AddRootRoot(context.TODO(), rootDef)
+			Expect(root.DisplayName()).To(Equal("default"))
+			Expect(err).NotTo(HaveOccurred())
+			cfg, err := root.AddConfig(context.TODO(), &configv1.Config{
+				ObjectMeta: metav1.ObjectMeta{
+					Name: "foo",
+				},
+			})
+			Expect(err).NotTo(HaveOccurred())
+			dns, err := cfg.AddDNS(context.TODO(), &gnsv1.Dns{
+				ObjectMeta: metav1.ObjectMeta{
+					Name: "default",
+				},
+			})
+			Expect(err).NotTo(HaveOccurred())
+			Expect(dns).NotTo(BeNil())
+			Expect(dns.DisplayName()).To(Equal("default"))
+		})
+
+		It("shouldn't require singleton object name in chainer", func() {
+			fakeClient = nexus_client.NewFakeClient()
+			rootDef := &rootv1.Root{
+				ObjectMeta: metav1.ObjectMeta{
+					Name: "default",
+				},
+			}
+			_, err := fakeClient.AddRootRoot(context.TODO(), rootDef)
+			Expect(err).NotTo(HaveOccurred())
+			_, err = fakeClient.RootRoot().AddConfig(context.TODO(), &configv1.Config{
+				ObjectMeta: metav1.ObjectMeta{
+					Name: "foo",
+				},
+			})
+			Expect(err).NotTo(HaveOccurred())
+			_, err = fakeClient.RootRoot().Config("foo").AddDNS(context.TODO(), &gnsv1.Dns{
+				ObjectMeta: metav1.ObjectMeta{
+					Name: "default",
+				},
+			})
+			Expect(err).NotTo(HaveOccurred())
 		})
 	})
 })
