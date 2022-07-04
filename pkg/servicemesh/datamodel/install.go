@@ -3,8 +3,9 @@ package datamodel
 import (
 	"fmt"
 
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/log"
+
 	"github.com/spf13/cobra"
-	"gitlab.eng.vmware.com/nsx-allspark_users/lib-go/logging"
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/common"
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/servicemesh/prereq"
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/utils"
@@ -71,7 +72,7 @@ func init() {
 		"n", "", "name of the datamodel to install")
 	err := cobra.MarkFlagRequired(InstallCmd.Flags(), "namespace")
 	if err != nil {
-		logging.Debugf("Datamodel install err: %v", err)
+		log.Debugf("Datamodel install err: %v", err)
 	}
 
 }

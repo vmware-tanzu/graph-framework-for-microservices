@@ -2,7 +2,7 @@ package servicemesh
 
 import (
 	"github.com/spf13/cobra"
-	"gitlab.eng.vmware.com/nsx-allspark_users/lib-go/logging"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/log"
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/servicemesh/app"
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/servicemesh/apply"
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/servicemesh/config"
@@ -69,7 +69,7 @@ func initCommands() {
 
 	err := cobra.MarkFlagRequired(ApplyCmd.Flags(), "file")
 	if err != nil {
-		logging.Debugf("init error: %v", err)
+		log.Debugf("init error: %v", err)
 	}
 
 	DeleteCmd.Flags().StringVarP(&apply.DeleteResourceFile, "file",
@@ -77,7 +77,7 @@ func initCommands() {
 
 	err = cobra.MarkFlagRequired(DeleteCmd.Flags(), "file")
 	if err != nil {
-		logging.Debugf("init error: %v", err)
+		log.Debugf("init error: %v", err)
 	}
 
 	LoginCmd.Flags().StringVarP(&login.ApiToken, "token",
@@ -85,7 +85,7 @@ func initCommands() {
 
 	err = cobra.MarkFlagRequired(LoginCmd.Flags(), "token")
 	if err != nil {
-		logging.Debugf("api token is mandatory for login")
+		log.Debugf("api token is mandatory for login")
 	}
 
 	LoginCmd.Flags().StringVarP(&login.Server, "server",
@@ -93,7 +93,7 @@ func initCommands() {
 
 	err = cobra.MarkFlagRequired(LoginCmd.Flags(), "server")
 	if err != nil {
-		logging.Debugf("saas server fqdn name is mandatory for login")
+		log.Debugf("saas server fqdn name is mandatory for login")
 	}
 	RuntimeCmd.AddCommand(runtime.InstallCmd)
 	RuntimeCmd.AddCommand(runtime.UninstallCmd)

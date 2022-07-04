@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"github.com/spf13/cobra"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/log"
 	"gopkg.in/yaml.v2"
 
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/common"
@@ -60,9 +61,9 @@ func Build(cmd *cobra.Command, args []string) error {
 	if compilerVersion == "" {
 		compilerVersion = values.NexusCompiler.Version
 	}
-	if utils.IsDebug(cmd) {
-		fmt.Printf("Using compiler Version: %s\n", compilerVersion)
-	}
+
+	log.Debugf("Using compiler Version: %s\n", compilerVersion)
+
 	envList := common.GetEnvList()
 	envList = append(envList, fmt.Sprintf("TAG=%s", compilerVersion))
 	containerID := os.Getenv("CONTAINER_ID")
@@ -82,10 +83,8 @@ func Build(cmd *cobra.Command, args []string) error {
 		}
 	}
 	if err := utils.GoToNexusDirectory(); err != nil {
-		if utils.IsDebug(cmd) {
-			pwd, _ := os.Getwd()
-			fmt.Printf("%s directory not found. Assuming %s to be datamodel directory\n", common.NEXUS_DIR, pwd)
-		}
+		pwd, _ := os.Getwd()
+		log.Debugf("%s directory not found. Assuming %s to be datamodel directory\n", common.NEXUS_DIR, pwd)
 	}
 	if DatamodelName != "" {
 		if exists, err := utils.CheckDatamodelDirExists(DatamodelName); !exists {

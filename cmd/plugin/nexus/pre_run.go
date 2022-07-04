@@ -2,12 +2,14 @@ package main
 
 import (
 	"fmt"
+	"os"
+
 	"github.com/spf13/cobra"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/log"
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/servicemesh/config"
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/servicemesh/upgrade"
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/servicemesh/version"
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/utils"
-	"os"
 )
 
 func RootPreRun(cmd *cobra.Command, args []string) error {
@@ -17,8 +19,13 @@ func RootPreRun(cmd *cobra.Command, args []string) error {
 		cmd.Flags().Lookup("debug").Changed = true
 	}
 
+	// Set logging level to debug if debugging is enabled.
+	if utils.IsDebug(cmd) {
+		log.SetLevel(log.DebugLevel)
+	}
+
 	if !nexusConfig.SkipUpgradeCheck {
-		if isNewerVersionAvailable, latestVersion := version.IsNexusCliUpdateAvailable(utils.IsDebug(cmd)); isNewerVersionAvailable {
+		if isNewerVersionAvailable, latestVersion := version.IsNexusCliUpdateAvailable(); isNewerVersionAvailable {
 			fmt.Printf("A new version of Nexus CLI (%s) is available\n", latestVersion)
 			if !nexusConfig.UpgradePromptDisable {
 				var input string
