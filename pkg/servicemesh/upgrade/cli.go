@@ -17,7 +17,7 @@ var (
 func upgradeCli(cmd *cobra.Command, args []string) error {
 	var needUpgrade bool = false
 	if upgradeToVersion == "" {
-		needUpgrade, upgradeToVersion = version.IsNexusCliUpdateAvailable(utils.IsDebug(cmd))
+		needUpgrade, upgradeToVersion = version.IsNexusCliUpdateAvailable()
 	} else {
 		needUpgrade = true
 	}

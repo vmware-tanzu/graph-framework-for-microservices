@@ -5,6 +5,8 @@ import (
 	"os"
 	"strings"
 
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/log"
+
 	"github.com/spf13/cobra"
 	. "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/common"
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/servicemesh/version"
@@ -137,9 +139,9 @@ func InitOperation(cmd *cobra.Command, args []string) error {
 	if datamodelVersion == "" {
 		datamodelVersion = values.NexusDatamodelTemplates.Version
 	}
-	if utils.IsDebug(cmd) {
-		fmt.Printf("Using datamodel template Version: %s\n", datamodelVersion)
-	}
+
+	log.Debugf("Using datamodel template Version: %s\n", datamodelVersion)
+
 	dmName := DatamodelName
 	fmt.Printf("Datamodel name: %s\n", dmName)
 	checkIfDirectoryEmpty(!localDatamodel, DatamodelName)
@@ -149,7 +151,7 @@ func InitOperation(cmd *cobra.Command, args []string) error {
 	if localDatamodel {
 		err := utils.CreateNexusDirectory(NEXUS_DIR, fmt.Sprintf(NEXUS_TEMPLATE_URL, datamodelVersion))
 		if err != nil {
-			// TODO standard logging library error
+			// TODO standard log library error
 			return fmt.Errorf("could not create nexus directory")
 		}
 	}

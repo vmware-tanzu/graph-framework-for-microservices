@@ -17,10 +17,10 @@ import (
 
 	"github.com/spf13/cobra"
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/common"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/log"
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/servicemesh/prereq"
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/servicemesh/version"
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/utils"
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus/golang/pkg/logging"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/util/rand"
 )
@@ -185,9 +185,9 @@ func Install(cmd *cobra.Command, args []string) error {
 	} else {
 		IsImagePullSecret = true
 	}
-	if utils.IsDebug(cmd) {
-		fmt.Printf("Using Images from %s registry for api-gateway and nexus-validation\n", Registry)
-	}
+
+	log.Debugf("Using Images from %s registry for api-gateway and nexus-validation\n", Registry)
+
 	for index, manifest := range common.RuntimeManifests {
 		if manifest.Templatized {
 			manifest.Image = common.ImageTemplate{
@@ -348,7 +348,7 @@ func init() {
 
 	err := cobra.MarkFlagRequired(InstallCmd.Flags(), "namespace")
 	if err != nil {
-		logging.Debugf("Runtime install err: %v", err)
+		log.Debugf("Runtime install err: %v", err)
 	}
 
 }

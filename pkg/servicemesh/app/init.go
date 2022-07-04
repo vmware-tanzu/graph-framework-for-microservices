@@ -6,6 +6,7 @@ import (
 	"os"
 
 	"github.com/spf13/cobra"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/log"
 
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/common"
 	. "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/common"
@@ -70,9 +71,9 @@ func Init(cmd *cobra.Command, args []string) error {
 	if appVersion == "" {
 		appVersion = values.NexusAppTemplates.Version
 	}
-	if utils.IsDebug(cmd) {
-		fmt.Printf("Using App template Version: %s\n", appVersion)
-	}
+
+	log.Debugf("Using App template Version: %s\n", appVersion)
+
 	if DOWNLOAD_APP != "false" {
 
 		err := utils.DownloadFile(fmt.Sprintf(TEMPLATE_URL, appVersion), Filename)
@@ -105,9 +106,9 @@ func Init(cmd *cobra.Command, args []string) error {
 	if nexusVersion == "" {
 		nexusVersion = values.NexusDatamodelTemplates.Version
 	}
-	if utils.IsDebug(cmd) {
-		fmt.Printf("Using Nexus template Version: %s\n", nexusVersion)
-	}
+
+	log.Debugf("Using Nexus template Version: %s\n", nexusVersion)
+
 	fmt.Printf("Using Nexus template version: %s\n", nexusVersion)
 	err := utils.CreateNexusDirectory(NEXUS_DIR, fmt.Sprintf(NEXUS_TEMPLATE_URL, nexusVersion))
 	if err != nil {

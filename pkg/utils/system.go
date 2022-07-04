@@ -11,6 +11,7 @@ import (
 
 	"github.com/hashicorp/go-version"
 	"github.com/spf13/cobra"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/log"
 )
 
 type K8sVersionObject struct {
@@ -54,16 +55,12 @@ func GetNetworkingIngressVersion() (string, error) {
 
 }
 func SystemCommand(cmd *cobra.Command, customErr ClientErrorCode, envList []string, name string, args ...string) error {
-	// Get silent flag status.
-	debugEnabled := IsDebug(cmd)
-
-	if debugEnabled {
-		if len(envList) != 0 {
-			fmt.Printf("envList: %v\n", envList)
-		}
-		fmt.Printf("command: %v\n", name)
-		fmt.Printf("args: %v\n", args)
+	if len(envList) != 0 {
+		log.Debugf("envList: %v\n", envList)
 	}
+	log.Debugf("command: %v\n", name)
+	log.Debugf("args: %v\n", args)
+
 	command := exec.Command(name, args...)
 	command.Env = os.Environ()
 
@@ -82,18 +79,14 @@ func SystemCommand(cmd *cobra.Command, customErr ClientErrorCode, envList []stri
 	scanner := bufio.NewScanner(stdout)
 	go func() {
 		for scanner.Scan() {
-			if debugEnabled {
-				fmt.Printf("\t > %s\n", scanner.Text())
-			}
+			log.Debugf("\t > %s\n", scanner.Text())
 		}
 	}()
 
 	errScanner := bufio.NewScanner(stderr)
 	go func() {
 		for errScanner.Scan() {
-			if debugEnabled {
-				fmt.Printf("\t > %s\n", errScanner.Text())
-			}
+			log.Debugf("\t > %s\n", errScanner.Text())
 		}
 	}()
 	err = command.Start()
