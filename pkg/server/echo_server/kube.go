@@ -133,19 +133,15 @@ func kubePostHandler(c echo.Context) error {
 			return c.JSON(201, obj)
 		}
 
-		// Update object if is already exists
-		if kerrors.IsAlreadyExists(err) {
-			body.SetResourceVersion(obj.GetResourceVersion())
-			obj, err = client.Client.Resource(gvr).Update(context.TODO(), body, metav1.UpdateOptions{})
-			if err != nil {
-				if status := kerrors.APIStatus(nil); errors.As(err, &status) {
-					return c.JSON(int(status.Status().Code), status.Status())
-				}
-				c.Error(err)
-			}
-			return c.JSON(200, obj)
+		if status := kerrors.APIStatus(nil); errors.As(err, &status) {
+			return c.JSON(int(status.Status().Code), status.Status())
 		}
+		c.Error(err)
+	}
 
+	body.SetResourceVersion(obj.GetResourceVersion())
+	obj, err = client.Client.Resource(gvr).Update(context.TODO(), body, metav1.UpdateOptions{})
+	if err != nil {
 		if status := kerrors.APIStatus(nil); errors.As(err, &status) {
 			return c.JSON(int(status.Status().Code), status.Status())
 		}
