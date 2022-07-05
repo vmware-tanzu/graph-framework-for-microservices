@@ -201,6 +201,17 @@ func processNode(node *Node, nodes map[string]Node, baseGroupName string) {
 		}
 
 		isNamed := IsNamedChildOrLink(f)
+
+		if isNamed {
+			childNode := findNodeDefForField(f, node, nodes)
+			if childNode == nil {
+				log.Fatalf("Internal compiler failure: couldn't determine child node of field %s", f.Names)
+			}
+			if IsSingletonNode(childNode.TypeSpec) {
+				log.Fatalf("Singleton can't be used as a named child, wrong field name %s in node %s",
+					f.Names, node.Name)
+			}
+		}
 		fieldName, _ := GetNodeFieldName(f)
 		if fieldName == "" {
 			log.Fatalf("Internal compiler failure: failed to find field name for field: %v in node %v", f.Names, node.Name)
@@ -272,4 +283,45 @@ func findFieldKeyForNode(f *ast.Field, node *Node, nodes map[string]Node, baseGr
 		}
 	}
 	return
+}
+
+func findNodeDefForField(f *ast.Field, baseNode *Node, allNodes map[string]Node) *Node {
+	fieldTypeStr := GetFieldType(f)
+	fieldType := strings.Split(fieldTypeStr, ".")
+	var importPathOfNode string
+	var nodeName string
+	if len(fieldType) == 1 {
+		importPathOfNode = baseNode.FullName
+		nodeName = fieldTypeStr
+	} else if len(fieldType) == 2 {
+		nodeName = fieldType[1]
+		importPathOfNode = findMatchingImport(nodeName, baseNode.Imports, allNodes)
+	}
+	for _, n := range allNodes {
+		if n.FullName == importPathOfNode && n.Name == nodeName {
+			return &n
+		}
+	}
+	return nil
+}
+
+func findMatchingImport(nodeName string, imports []*ast.ImportSpec, allNodes map[string]Node) string {
+	for _, importSpec := range imports {
+		importPath, err := strconv.Unquote(importSpec.Path.Value)
+		if err != nil {
+			log.Fatalf("Failed to parse imports: %v", err)
+		}
+		importPathSplit := strings.Split(importPath, ".")
+		packageDir := importPathSplit[len(importPathSplit)-1]
+		if importSpec.Name == nil && packageDir == nodeName {
+			return importPath
+		} else {
+			for _, n := range allNodes {
+				if n.FullName == importPath && n.Name == nodeName {
+					return importPath
+				}
+			}
+		}
+	}
+	return ""
 }
