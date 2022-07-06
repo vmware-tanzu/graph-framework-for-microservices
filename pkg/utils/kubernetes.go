@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 
+	log "github.com/sirupsen/logrus"
 	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
@@ -59,4 +60,18 @@ func GetRestConfig() (*rest.Config, error) {
 		return nil, err
 	}
 	return config, nil
+}
+
+func SetUpAPIs() (kubernetes.Interface, dynamic.Interface, error) {
+	localAPI, err := SetUpLocalAPI()
+	if err != nil {
+		log.Errorf("Error creating local API: %v", err)
+		return nil, nil, err
+	}
+	localDynamicAPI, err := SetUpDynamicLocalAPI()
+	if err != nil {
+		log.Errorf("Error creating local Dynamic API: %v", err)
+		return nil, nil, err
+	}
+	return localAPI, localDynamicAPI, nil
 }

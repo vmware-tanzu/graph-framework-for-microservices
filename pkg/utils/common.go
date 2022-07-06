@@ -29,8 +29,11 @@ const (
 
 	DisplayNameKey = "nexus/display_name"
 
+	// Nexus-Connect DM CRDs.
+	NexusCRD             = "nexuses.api.nexus.org"
+	ConfigCRD            = "configs.config.nexus.org"
+	ConnectCRD           = "connects.connect.nexus.org"
 	ReplicationConfigCRD = "replicationconfigs.connect.nexus.org"
-	ReplicationObjectCRD = "replicationobjects.connect.nexus.org"
 	NexusEndpointCRD     = "nexusendpoints.connect.nexus.org"
 
 	Update = "UPDATE"
@@ -183,4 +186,15 @@ func DeleteChildGvkFields(fields map[string]interface{}, children map[string]Nod
 	for _, val := range children {
 		delete(fields, val.FieldNameGvk)
 	}
+}
+
+func NexusDatamodelCRDs(crdType string) bool {
+	if crdType == NexusCRD ||
+		crdType == ConfigCRD ||
+		crdType == ConnectCRD ||
+		crdType == ReplicationConfigCRD ||
+		crdType == NexusEndpointCRD {
+		return true
+	}
+	return false
 }

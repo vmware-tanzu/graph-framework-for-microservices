@@ -70,7 +70,7 @@ func (r *CustomResourceDefinitionReconciler) Reconcile(ctx context.Context, req 
 		eventType = utils.Delete
 	}
 
-	if nexusDatamodelCRDs(crd.Name) {
+	if utils.NexusDatamodelCRDs(crd.Name) {
 		return ctrl.Result{}, nil
 	}
 
@@ -93,16 +93,4 @@ func (r *CustomResourceDefinitionReconciler) SetupWithManager(mgr ctrl.Manager) 
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&apiextensionsv1.CustomResourceDefinition{}).
 		Complete(r)
-}
-
-func nexusDatamodelCRDs(crdType string) bool {
-	if crdType == "replicationconfigs.connect.nexus.org" ||
-		crdType == "nexusendpoints.connect.nexus.org" ||
-		crdType == "replicationobjects.connect.nexus.org" ||
-		crdType == "configs.config.nexus.org" ||
-		crdType == "connects.connect.nexus.org" ||
-		crdType == "apis.apis.nexus.org" {
-		return true
-	}
-	return false
 }

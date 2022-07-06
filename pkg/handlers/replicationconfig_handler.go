@@ -65,7 +65,7 @@ func (h *ReplicationConfigHandler) Update(obj interface{}, oldObj interface{}) e
 	return nil
 }
 
-// TODO
+// TODO: https://jira.eng.vmware.com/browse/NPT-378
 func (h *ReplicationConfigHandler) Delete(obj interface{}) error {
 	return nil
 }

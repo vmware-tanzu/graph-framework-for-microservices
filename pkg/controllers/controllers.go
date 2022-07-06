@@ -2,7 +2,6 @@ package controllers
 
 import (
 	"fmt"
-	"strings"
 
 	log "github.com/sirupsen/logrus"
 	v1 "k8s.io/api/core/v1"
@@ -37,14 +36,9 @@ func Start() {
 
 func StartControllers(conf *config.Config, stopCh chan struct{}) {
 	log.Infoln("Starting Controllers...")
-	localAPI, err := utils.SetUpLocalAPI()
+	localAPI, localDynamicAPI, err := utils.SetUpAPIs()
 	if err != nil {
-		log.Fatalf("Error creating local API: %v", err)
-	}
-
-	localDynamicAPI, err := utils.SetUpDynamicLocalAPI()
-	if err != nil {
-		log.Fatalf("Error creating local API: %v", err)
+		log.Fatalf("Error creating APIs: %v", err)
 		return
 	}
 
@@ -54,17 +48,12 @@ func StartControllers(conf *config.Config, stopCh chan struct{}) {
 			log.Errorln("StartController() terminated..")
 			return
 		case crd := <-controllers.CrdCh:
-			parts := strings.Split(crd.CrdType, ".")
-			gvr := schema.GroupVersionResource{
-				Group:    strings.Join(parts[1:], "."),
-				Version:  "v1",
-				Resource: parts[0],
-			}
 			// Skipping watcher creation for nexus datamodel CRDs.
-			if gvr.Group == "connect.nexus.org" || gvr.Group == "apis.nexus.org" ||
-				gvr.Group == "config.nexus.org" {
+			if utils.NexusDatamodelCRDs(crd.CrdType) {
 				continue
 			}
+
+			gvr := utils.GetGVRFromCrdType(crd.CrdType)
 			informer := GetInformer(gvr)
 			handler := handlers.NewRemoteHandler(gvr, crd.CrdType, localDynamicAPI)
 			c := newController(
