@@ -13,91 +13,6 @@ In the below-example, if user has enabled replication for the object "Cluster Ba
 
 ![ConnectDatamodel](.content/images/connect-dm.png)
 
-## Sample NexusEndpoint Object
-
-```
-apiVersion: connect.nexus.org/v1
-kind: NexusEndpoint
-metadata:
-  name: default
-  labels:
-     nexus/is_name_hashed: "false"
-     connects.connect.nexus.org: default
-spec:
-    host: https://8DBD4DFA95D3F56BD5A31D1090E6D244.gr7.us-east-2.eks.amazonaws.com
-    port: "443"
-    cert: xyz
-```
-
-where **host** indicates destination cluster URL. 
-
-## Sample ReplicationConfig Object
-
-```
-apiVersion: connect.nexus.org/v1
-kind: ReplicationConfig
-metadata:
-  name: defaultnew
-  labels:
-     nexus/is_name_hashed: "false"
-     connects.connect.nexus.org: default
-spec:
-  accessToken: "eyJhbGciOiJSUzI1NiIsImtpZCI6IlZaMVRDcHc0bEVMbjJ5eHNZbDRfV2o1VGxhNXdLQllNRnJCN09qQlB3T2sifQ.eyJpc3MiOiJrdWJlcm5ldGVzL3NlcnZpY2VhY2NvdW50Iiwia3ViZXJuZXRlcy5pby9zZXJ2aWNlYWNjb3VudC9uYW1lc3BhY2UiOiJkZWZhdWx0Iiwia3ViZXJuZXRlcy5pby9zZXJ2aWNlYWNjb3VudC9zZWNyZXQubmFtZSI6ImRlZmF1bHQtdG9rZW4tcmh4ZGQiLCJrdWJlcm5ldGVzLmlvL3NlcnZpY2VhY2NvdW50L3NlcnZpY2UtYWNjb3VudC5uYW1lIjoiZGVmYXVsdCIsImt1YmVybmV0ZXMuaW8vc2VydmljZWFjY291bnQvc2VydmljZS1hY2NvdW50LnVpZCI6IjIwZGFhZDRhLTJjMjItNDgwNy1hNDkzLWQzMWIyZjQ5ZGZkZCIsInN1YiI6InN5c3RlbTpzZXJ2aWNlYWNjb3VudDpkZWZhdWx0OmRlZmF1bHQifQ.GQzwvDJpIF7oxWL_5gkvJFK9n-WPfClZjjmA7KqrZBf7JEqRJI4AxjnGKsxtOQyngvAPj98S6GyYwk7ZVVWfthml5o6JtPwabsSSTFStL8xljoLbq_JbeBNIAxcw4XT-5wL7w2J-gi3-XfTkY_FZbUjIFu4ckeSQV-l_evpigW67wE2sUGUz0l1b48FzmxkfEiQx6Fki4SPHPo0qUJ3ttjNwqLh6AAQaeGonxxkO76utvIsvYoJsOCQNVhsI1pBfcEOuL-PfohLvzOCaGpWEMM-RqHe4j8AUCKslb8N0fiUMQVWhyrQCw5F5hnAGQyJWrCnOpS4g16ZbBfRUYl0i0g"
-  remoteEndpointGvk:
-    group: connect.nexus.org
-    kind: NexusEndpoint
-    name: default
-  source:
-    group: config.mazinger.com
-    kind: ApiDevSpace
-    name: c6d587ef6e09d12ef72b2caacf12885f97a28b6c
-```
-
-where,
-- **accessToken:** base64 decoded value of the service account access token present in the K8s secret on the destination cluster.
-- **source:** indicates the replication object's information that the user is interested in.
-- **remoteEndpointGvk:** indicates link to the desired destination object information.
-
-## How to fetch the access token
-
-**Step 1:** In the destination cluster, fetch the secret info from the service account.
-
-```
-% kubectl get sa default -oyaml
-apiVersion: v1
-kind: ServiceAccount
-metadata:
-  creationTimestamp: "2022-07-04T10:03:37Z"
-  name: default
-  namespace: default
-  resourceVersion: "416"
-  uid: 20daad4a-2c22-4807-a493-d31b2f49dfdd
-secrets:
-- name: default-token-rhxdd
-```
-
-**Step 2:** Fetch the token from the secret.
-
-```
-% kubectl get secret default-token-rhxdd -oyaml
-apiVersion: v1
-data:
-  ca.crt: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUM1ekNDQWMrZ0F3SUJBZ0lCQURBTkJna3Foa2lHOXcwQkFRc0ZBREFWTVJNd0VRWURWUVFERXdwcmRXSmwKY201bGRHVnpNQjRYRFRJeU1EY3dOREV3TURNd01Gb1hEVE15TURjd01URXdNRE13TUZvd0ZURVRNQkVHQTFVRQpBeE1LYTNWaVpYSnVaWFJsY3pDQ0FTSXdEUVlKS29aSWh2Y05BUUVCQlFBRGdnRVBBRENDQVFvQ2dnRUJBTXVyCmRlWUlqdlUvVmhUVnBlYVZsK1pya09pM3dPcHZCdDNBSUhPTVJPN2U5WHVaTmpNaU85T0d2T0ZQYUw4QjFWNmIKb1ZRMTEwYTlZWEdVYWNKbEFIZnVzenN0NU1DWXJkTER3NUdiNXhsK1FVazBpdS94cXk2SEVSMW93ZDVlN0xWUQplUGFTbGZVdURjeUNDeWZXbm9pMU9Ca3dkb3RUSlFUU1o5Si9zQ05sWmMwc2ZFblFzdmovM0dHaWhaeWdtQzBwCjFmSzliOVhQa3MvM29DSklaU2dkdkdwUytjTC9kcm1mYkxXakVwRFZJYitDY0JIRkg4dzZyTEtvWWxKalNYQkwKK0d1RXNlWTlaMGVOTWhFUXVFYWluOW1NMWxnNldFQU1ZRjhJNzFFUWV0NFFwWlJxYkJjMUkyK0NUYnMvVnFzMQpxWTZSRWo2WlNkM252YjdIVHJVQ0F3RUFBYU5DTUVBd0RnWURWUjBQQVFIL0JBUURBZ0trTUE4R0ExVWRFd0VCCi93UUZNQU1CQWY4d0hRWURWUjBPQkJZRUZQMTlzSFpNa0dWMUY1S3c5OUlRcDVxa0h2R0NNQTBHQ1NxR1NJYjMKRFFFQkN3VUFBNElCQVFERDBjbWJmZzczdFVlSlVoenNNeXF0dlQ0aStya0hSbTE0SHovVlA2NlNlR2Z4MytSdwpGemVIcmI1U2FONHVnT0daM3JNcGVCSTJPRnVZOGo1ZTM0RkZmRWJXQmVxVURGSjNNbGlTRWwyQ3NqODJVb20xCjB6ZG1aZlgxN1c2ckN1ZDc1akFrb1NYVk92eUdHSjZwK3JEVDBWT3ZEVXBaOE1nNm5TeDZTcDZkbG96NjFWNGQKcGl3RUI3dG9WZUg1QkFCVTBtV2M0ejU1aE1XeGhoWE9iZFJRWUJGbEFQUGcwS2V4OFZUNjdOZE4ya00yYlY5RgpXV0RhdlhFanhBK1cyUXdEWFlmWFdCbGJXbXp0VC92SU9qN3hjNFlyZlVUNmw0YVZMd2U1MWdZeEdLNVZCcVZpClFIY3Y4dVRkeEVUODRQWUx4UmVRbk5zTmhFWUdDdHVwVmRhRQotLS0tLUVORCBDRVJUSUZJQ0FURS0tLS0tCg==
-  namespace: ZGVmYXVsdA==
-  token: ZXlKaGJHY2lPaUpTVXpJMU5pSXNJbXRwWkNJNklsWmFNVlJEY0hjMGJFVk1iako1ZUhOWmJEUmZWMm8xVkd4aE5YZExRbGxOUm5KQ04wOXFRbEIzVDJzaWZRLmV5SnBjM01pT2lKcmRXSmxjbTVsZEdWekwzTmxjblpwWTJWaFkyTnZkVzUwSWl3aWEzVmlaWEp1WlhSbGN5NXBieTl6WlhKMmFXTmxZV05qYjNWdWRDOXVZVzFsYzNCaFkyVWlPaUprWldaaGRXeDBJaXdpYTNWaVpYSnVaWFJsY3k1cGJ5OXpaWEoyYVdObFlXTmpiM1Z1ZEM5elpXTnlaWFF1Ym1GdFpTSTZJbVJsWm1GMWJIUXRkRzlyWlc0dGNtaDRaR1FpTENKcmRXSmxjbTVsZEdWekxtbHZMM05sY25acFkyVmhZMk52ZFc1MEwzTmxjblpwWTJVdFlXTmpiM1Z1ZEM1dVlXMWxJam9pWkdWbVlYVnNkQ0lzSW10MVltVnlibVYwWlhNdWFXOHZjMlZ5ZG1salpXRmpZMjkxYm5RdmMyVnlkbWxqWlMxaFkyTnZkVzUwTG5WcFpDSTZJakl3WkdGaFpEUmhMVEpqTWpJdE5EZ3dOeTFoTkRrekxXUXpNV0l5WmpRNVpHWmtaQ0lzSW5OMVlpSTZJbk41YzNSbGJUcHpaWEoyYVdObFlXTmpiM1Z1ZERwa1pXWmhkV3gwT21SbFptRjFiSFFpZlEuR1F6d3ZESnBJRjdveFdMXzVna3ZKRks5bi1XUGZDbFpqam1BN0txclpCZjdKRXFSSkk0QXhqbkdLc3h0T1F5bmd2QVBqOThTNkd5WXdrN1pWVldmdGhtbDVvNkp0UHdhYnNTU1RGU3RMOHhsam9MYnFfSmJlQk5JQXhjdzRYVC01d0w3dzJKLWdpMy1YZlRrWV9GWmJVaklGdTRja2VTUVYtbF9ldnBpZ1c2N3dFMnNVR1V6MGwxYjQ4RnpteGtmRWlReDZGa2k0U1BIUG8wcVVKM3R0ak53cUxoNkFBUWFlR29ueHhrTzc2dXR2SXN2WW9Kc09DUU5WaHNJMXBCZmNFT3VMLVBmb2hMdnpPQ2FHcFdFTU0tUnFIZTRqOEFVQ0tzbGI4TjBmaVVNUVZXaHlyUUN3NUY1aG5BR1F5SldyQ25PcFM0ZzE2WmJCZlJVWWwwaTBn
-kind: Secret
-metadata:
-  annotations:
-    kubernetes.io/service-account.name: default
-    kubernetes.io/service-account.uid: 20daad4a-2c22-4807-a493-d31b2f49dfdd
-  creationTimestamp: "2022-07-04T10:03:37Z"
-  name: default-token-rhxdd
-  namespace: default
-  resourceVersion: "413"
-  uid: 03ab6040-2bcb-4293-9231-f8dc5c83c734
-type: kubernetes.io/service-account-token
-```
-
 ## Perform the following steps to deploy nexus-connector
 
 **Step 1:** Apply nexus-connector deployment and configuration yaml files.
@@ -244,10 +159,99 @@ data:
 
 **Note:** For kind cluster, use harbor image:
 ```
-harbor-repo.vmware.com/nexus/connector: 1cae9251381d4eb299daa05899a134fae6ffaa79
+harbor-repo.vmware.com/nexus/connector:1cae9251381d4eb299daa05899a134fae6ffaa79
 ```
 
-**Step 2:** Apply NexusEndpoint and ReplicationConfig manually.
+**Step 2:** Apply NexusEndpoint and ReplicationConfig manually in the local-apiserver.
+
+```
+kubectl port-forward svc/nexus-proxy-container 45192:80 -n mazinger
+```
+
+## Sample NexusEndpoint Object
+
+```
+apiVersion: connect.nexus.org/v1
+kind: NexusEndpoint
+metadata:
+  name: default
+  labels:
+     nexus/is_name_hashed: "false"
+     connects.connect.nexus.org: default
+spec:
+    host: https://8DBD4DFA95D3F56BD5A31D1090E6D244.gr7.us-east-2.eks.amazonaws.com
+    port: "443"
+    cert: xyz
+```
+
+where **host** indicates destination cluster URL. 
+
+## Sample ReplicationConfig Object
+
+```
+apiVersion: connect.nexus.org/v1
+kind: ReplicationConfig
+metadata:
+  name: defaultnew
+  labels:
+     nexus/is_name_hashed: "false"
+     connects.connect.nexus.org: default
+spec:
+  accessToken: "eyJhbGciOiJSUzI1NiIsImtpZCI6IlZaMVRDcHc0bEVMbjJ5eHNZbDRfV2o1VGxhNXdLQllNRnJCN09qQlB3T2sifQ.eyJpc3MiOiJrdWJlcm5ldGVzL3NlcnZpY2VhY2NvdW50Iiwia3ViZXJuZXRlcy5pby9zZXJ2aWNlYWNjb3VudC9uYW1lc3BhY2UiOiJkZWZhdWx0Iiwia3ViZXJuZXRlcy5pby9zZXJ2aWNlYWNjb3VudC9zZWNyZXQubmFtZSI6ImRlZmF1bHQtdG9rZW4tcmh4ZGQiLCJrdWJlcm5ldGVzLmlvL3NlcnZpY2VhY2NvdW50L3NlcnZpY2UtYWNjb3VudC5uYW1lIjoiZGVmYXVsdCIsImt1YmVybmV0ZXMuaW8vc2VydmljZWFjY291bnQvc2VydmljZS1hY2NvdW50LnVpZCI6IjIwZGFhZDRhLTJjMjItNDgwNy1hNDkzLWQzMWIyZjQ5ZGZkZCIsInN1YiI6InN5c3RlbTpzZXJ2aWNlYWNjb3VudDpkZWZhdWx0OmRlZmF1bHQifQ.GQzwvDJpIF7oxWL_5gkvJFK9n-WPfClZjjmA7KqrZBf7JEqRJI4AxjnGKsxtOQyngvAPj98S6GyYwk7ZVVWfthml5o6JtPwabsSSTFStL8xljoLbq_JbeBNIAxcw4XT-5wL7w2J-gi3-XfTkY_FZbUjIFu4ckeSQV-l_evpigW67wE2sUGUz0l1b48FzmxkfEiQx6Fki4SPHPo0qUJ3ttjNwqLh6AAQaeGonxxkO76utvIsvYoJsOCQNVhsI1pBfcEOuL-PfohLvzOCaGpWEMM-RqHe4j8AUCKslb8N0fiUMQVWhyrQCw5F5hnAGQyJWrCnOpS4g16ZbBfRUYl0i0g"
+  remoteEndpointGvk:
+    group: connect.nexus.org
+    kind: NexusEndpoint
+    name: default
+  source:
+    group: config.mazinger.com
+    kind: ApiDevSpace
+    name: c6d587ef6e09d12ef72b2caacf12885f97a28b6c
+```
+
+where,
+- **accessToken:** base64 decoded value of the service account access token present in the K8s secret on the destination cluster.
+- **source:** indicates the replication object's information that the user is interested in.
+- **remoteEndpointGvk:** indicates link to the desired destination object information.
+
+### Steps to fetch the access token
+
+   - In the destination cluster, fetch the secret info from the service account.
+
+```
+% kubectl get sa default -oyaml
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  creationTimestamp: "2022-07-04T10:03:37Z"
+  name: default
+  namespace: default
+  resourceVersion: "416"
+  uid: 20daad4a-2c22-4807-a493-d31b2f49dfdd
+secrets:
+- name: default-token-rhxdd
+```
+
+   - Fetch the token from the secret.
+
+```
+% kubectl get secret default-token-rhxdd -oyaml
+apiVersion: v1
+data:
+  ca.crt: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUM1ekNDQWMrZ0F3SUJBZ0lCQURBTkJna3Foa2lHOXcwQkFRc0ZBREFWTVJNd0VRWURWUVFERXdwcmRXSmwKY201bGRHVnpNQjRYRFRJeU1EY3dOREV3TURNd01Gb1hEVE15TURjd01URXdNRE13TUZvd0ZURVRNQkVHQTFVRQpBeE1LYTNWaVpYSnVaWFJsY3pDQ0FTSXdEUVlKS29aSWh2Y05BUUVCQlFBRGdnRVBBRENDQVFvQ2dnRUJBTXVyCmRlWUlqdlUvVmhUVnBlYVZsK1pya09pM3dPcHZCdDNBSUhPTVJPN2U5WHVaTmpNaU85T0d2T0ZQYUw4QjFWNmIKb1ZRMTEwYTlZWEdVYWNKbEFIZnVzenN0NU1DWXJkTER3NUdiNXhsK1FVazBpdS94cXk2SEVSMW93ZDVlN0xWUQplUGFTbGZVdURjeUNDeWZXbm9pMU9Ca3dkb3RUSlFUU1o5Si9zQ05sWmMwc2ZFblFzdmovM0dHaWhaeWdtQzBwCjFmSzliOVhQa3MvM29DSklaU2dkdkdwUytjTC9kcm1mYkxXakVwRFZJYitDY0JIRkg4dzZyTEtvWWxKalNYQkwKK0d1RXNlWTlaMGVOTWhFUXVFYWluOW1NMWxnNldFQU1ZRjhJNzFFUWV0NFFwWlJxYkJjMUkyK0NUYnMvVnFzMQpxWTZSRWo2WlNkM252YjdIVHJVQ0F3RUFBYU5DTUVBd0RnWURWUjBQQVFIL0JBUURBZ0trTUE4R0ExVWRFd0VCCi93UUZNQU1CQWY4d0hRWURWUjBPQkJZRUZQMTlzSFpNa0dWMUY1S3c5OUlRcDVxa0h2R0NNQTBHQ1NxR1NJYjMKRFFFQkN3VUFBNElCQVFERDBjbWJmZzczdFVlSlVoenNNeXF0dlQ0aStya0hSbTE0SHovVlA2NlNlR2Z4MytSdwpGemVIcmI1U2FONHVnT0daM3JNcGVCSTJPRnVZOGo1ZTM0RkZmRWJXQmVxVURGSjNNbGlTRWwyQ3NqODJVb20xCjB6ZG1aZlgxN1c2ckN1ZDc1akFrb1NYVk92eUdHSjZwK3JEVDBWT3ZEVXBaOE1nNm5TeDZTcDZkbG96NjFWNGQKcGl3RUI3dG9WZUg1QkFCVTBtV2M0ejU1aE1XeGhoWE9iZFJRWUJGbEFQUGcwS2V4OFZUNjdOZE4ya00yYlY5RgpXV0RhdlhFanhBK1cyUXdEWFlmWFdCbGJXbXp0VC92SU9qN3hjNFlyZlVUNmw0YVZMd2U1MWdZeEdLNVZCcVZpClFIY3Y4dVRkeEVUODRQWUx4UmVRbk5zTmhFWUdDdHVwVmRhRQotLS0tLUVORCBDRVJUSUZJQ0FURS0tLS0tCg==
+  namespace: ZGVmYXVsdA==
+  token: ZXlKaGJHY2lPaUpTVXpJMU5pSXNJbXRwWkNJNklsWmFNVlJEY0hjMGJFVk1iako1ZUhOWmJEUmZWMm8xVkd4aE5YZExRbGxOUm5KQ04wOXFRbEIzVDJzaWZRLmV5SnBjM01pT2lKcmRXSmxjbTVsZEdWekwzTmxjblpwWTJWaFkyTnZkVzUwSWl3aWEzVmlaWEp1WlhSbGN5NXBieTl6WlhKMmFXTmxZV05qYjNWdWRDOXVZVzFsYzNCaFkyVWlPaUprWldaaGRXeDBJaXdpYTNWaVpYSnVaWFJsY3k1cGJ5OXpaWEoyYVdObFlXTmpiM1Z1ZEM5elpXTnlaWFF1Ym1GdFpTSTZJbVJsWm1GMWJIUXRkRzlyWlc0dGNtaDRaR1FpTENKcmRXSmxjbTVsZEdWekxtbHZMM05sY25acFkyVmhZMk52ZFc1MEwzTmxjblpwWTJVdFlXTmpiM1Z1ZEM1dVlXMWxJam9pWkdWbVlYVnNkQ0lzSW10MVltVnlibVYwWlhNdWFXOHZjMlZ5ZG1salpXRmpZMjkxYm5RdmMyVnlkbWxqWlMxaFkyTnZkVzUwTG5WcFpDSTZJakl3WkdGaFpEUmhMVEpqTWpJdE5EZ3dOeTFoTkRrekxXUXpNV0l5WmpRNVpHWmtaQ0lzSW5OMVlpSTZJbk41YzNSbGJUcHpaWEoyYVdObFlXTmpiM1Z1ZERwa1pXWmhkV3gwT21SbFptRjFiSFFpZlEuR1F6d3ZESnBJRjdveFdMXzVna3ZKRks5bi1XUGZDbFpqam1BN0txclpCZjdKRXFSSkk0QXhqbkdLc3h0T1F5bmd2QVBqOThTNkd5WXdrN1pWVldmdGhtbDVvNkp0UHdhYnNTU1RGU3RMOHhsam9MYnFfSmJlQk5JQXhjdzRYVC01d0w3dzJKLWdpMy1YZlRrWV9GWmJVaklGdTRja2VTUVYtbF9ldnBpZ1c2N3dFMnNVR1V6MGwxYjQ4RnpteGtmRWlReDZGa2k0U1BIUG8wcVVKM3R0ak53cUxoNkFBUWFlR29ueHhrTzc2dXR2SXN2WW9Kc09DUU5WaHNJMXBCZmNFT3VMLVBmb2hMdnpPQ2FHcFdFTU0tUnFIZTRqOEFVQ0tzbGI4TjBmaVVNUVZXaHlyUUN3NUY1aG5BR1F5SldyQ25PcFM0ZzE2WmJCZlJVWWwwaTBn
+kind: Secret
+metadata:
+  annotations:
+    kubernetes.io/service-account.name: default
+    kubernetes.io/service-account.uid: 20daad4a-2c22-4807-a493-d31b2f49dfdd
+  creationTimestamp: "2022-07-04T10:03:37Z"
+  name: default-token-rhxdd
+  namespace: default
+  resourceVersion: "413"
+  uid: 03ab6040-2bcb-4293-9231-f8dc5c83c734
+type: kubernetes.io/service-account-token
+```
 
 **Step 3:** Start creating the objects and verify the connector logs if the replication was successful. 
 
