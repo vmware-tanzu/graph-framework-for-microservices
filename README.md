@@ -242,6 +242,11 @@ data:
             - "ibm-cert-store"
 ```
 
+**Note:** For kind cluster, use harbor image:
+```
+harbor-repo.vmware.com/nexus/connector: 1cae9251381d4eb299daa05899a134fae6ffaa79
+```
+
 **Step 2:** Apply NexusEndpoint and ReplicationConfig manually.
 
 **Step 3:** Start creating the objects and verify the connector logs if the replication was successful. 
