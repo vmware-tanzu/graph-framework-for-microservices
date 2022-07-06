@@ -1,4 +1,4 @@
-package openapi
+package api
 
 import (
 	"api-gw/pkg/model"

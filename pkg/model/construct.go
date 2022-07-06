@@ -83,9 +83,7 @@ func ConstructMapCRDTypeToRestUris(eventType EventType, crdType string, restSpec
 	}
 
 	uris := CrdTypeToRestUris[crdType]
-	for _, uri := range restSpec.Uris {
-		uris = append(uris, uri)
-	}
+	uris = append(uris, restSpec.Uris...)
 	CrdTypeToRestUris[crdType] = uris
 
 	// Push new uris to chan

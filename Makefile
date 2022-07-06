@@ -121,9 +121,20 @@ build: lint ## Build manager binary.
 
 ##@ Test
 
+.PHONY: unit-test
+unit-test:
+	ginkgo -cover ./pkg/...
+
+.PHONY: race-unit-test
+race-unit-test:
+	ginkgo -race -cover ./pkg/...
+
+.PHONY: test-fmt
+test-fmt:
+	test -z $$(goimports -w -l cmd pkg)
+
 .PHONY: test
-test:
-	go test ./...
+test: race-unit-test
 
 .PHONY: integration_test
 integration_test:
