@@ -1,2 +1,5 @@
 *.tar
 */*.tar
+coverage.out
+report.json
+*.coverprofile

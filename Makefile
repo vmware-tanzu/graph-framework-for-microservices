@@ -160,7 +160,6 @@ teardown_environment:
 .PHONY: coverage
 coverage:
 	go test -json -coverprofile=coverage.out ./... | tee report.json ;\
-	sonar-scanner ;
 
 ##@ Publish
 
