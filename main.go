@@ -17,6 +17,8 @@ limitations under the License.
 package main
 
 import (
+	"api-gw/pkg/openapi/api"
+	"api-gw/pkg/openapi/declarative"
 	"flag"
 	"os"
 	"strconv"
@@ -27,8 +29,6 @@ import (
 
 	"api-gw/pkg/client"
 	"api-gw/pkg/config"
-	"api-gw/pkg/openapi"
-
 	// Import all Kubernetes client auth plugins (e.g. Azure, GCP, OIDC, etc.)
 	// to ensure that exec-entrypoint and run can make use of them.
 
@@ -108,7 +108,30 @@ func main() {
 	if err != nil {
 		log.Warnf("Error loading config: %v\n", err)
 	}
+	config.Cfg = conf
 
+	stopCh := make(chan struct{})
+
+	if conf.BackendService != "" {
+		// Parse and process declarative openapi specification
+		if err := declarative.Setup(); err != nil {
+			setupLog.Error(err, "unable to parse declarative openapi specification")
+			os.Exit(1)
+		}
+	}
+
+	log.Infoln("Init Echo Server")
+	// Start server
+	echo_server.InitEcho(stopCh, conf)
+
+	if conf.EnableNexusRuntime {
+		InitManager(metricsAddr, probeAddr, enableLeaderElection, stopCh)
+	}
+
+	select {}
+}
+
+func InitManager(metricsAddr string, probeAddr string, enableLeaderElection bool, stopCh chan struct{}) {
 	mgr, err := ctrl.NewManager(ctrl.GetConfigOrDie(), ctrl.Options{
 		Scheme:                 scheme,
 		MetricsBindAddress:     metricsAddr,
@@ -122,7 +145,6 @@ func main() {
 		os.Exit(1)
 	}
 
-	stopCh := make(chan struct{})
 	if err = (&controllers.CustomResourceDefinitionReconciler{
 		Client: mgr.GetClient(),
 		Scheme: mgr.GetScheme(),
@@ -186,11 +208,7 @@ func main() {
 	}
 
 	// Create new openapi3 schema
-	openapi.New()
-
-	log.Infoln("Init Echo Server")
-	// Start server
-	echo_server.InitEcho(stopCh, conf)
+	api.New()
 
 	setupLog.Info("starting manager")
 	if err := mgr.Start(ctrl.SetupSignalHandler()); err != nil {

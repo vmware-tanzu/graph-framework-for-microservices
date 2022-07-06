@@ -10,7 +10,9 @@ import (
 )
 
 type Config struct {
-	Server ServerConfig `json:"server"`
+	Server             ServerConfig `json:"server" yaml:"server"`
+	EnableNexusRuntime bool         `json:"enable_nexus_runtime" yaml:"enable_nexus_runtime,omitempty"`
+	BackendService     string       `json:"backend_service" yaml:"backend_service,omitempty"`
 }
 
 type ServerConfig struct {
@@ -18,6 +20,8 @@ type ServerConfig struct {
 	CertPath string `json:"certPath" yaml:"certPath"`
 	KeyPath  string `json:"keyPath" yaml:"keyPath"`
 }
+
+var Cfg *Config
 
 func LoadConfig(configFile string) (*Config, error) {
 	var config *Config

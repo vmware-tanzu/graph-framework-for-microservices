@@ -17,7 +17,7 @@ limitations under the License.
 package controllers
 
 import (
-	"api-gw/pkg/openapi"
+	"api-gw/pkg/openapi/api"
 	"context"
 	logger "github.com/sirupsen/logrus"
 	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
@@ -72,7 +72,7 @@ func (r *CustomResourceDefinitionReconciler) Reconcile(ctx context.Context, req 
 		logger.Errorf("Error Processing CRD spec %v\n", err)
 	}
 
-	openapi.Recreate()
+	api.Recreate()
 
 	return ctrl.Result{}, nil
 }

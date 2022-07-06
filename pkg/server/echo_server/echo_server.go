@@ -2,7 +2,8 @@ package echo_server
 
 import (
 	"api-gw/pkg/authn"
-	"api-gw/pkg/openapi"
+	"api-gw/pkg/openapi/api"
+	"api-gw/pkg/openapi/declarative"
 	"context"
 	"fmt"
 	"github.com/labstack/echo/v4"
@@ -27,7 +28,16 @@ type EchoServer struct {
 func InitEcho(stopCh chan struct{}, conf *config.Config) {
 	log.Infoln("Init Echo")
 	e := NewEchoServer(conf)
-	e.RegisterRoutes()
+
+	if config.Cfg.EnableNexusRuntime {
+		e.RegisterNexusRoutes()
+	}
+
+	if config.Cfg.BackendService != "" {
+		e.RegisterDeclarativeRoutes()
+		e.RegisterDeclarativeRouter()
+	}
+
 	e.Start(stopCh)
 }
 
@@ -38,14 +48,16 @@ func (s *EchoServer) StartHTTPServer() {
 }
 
 func (s *EchoServer) Start(stopCh chan struct{}) {
-	// Start watching URI notification
-	go func() {
-		log.Debug("NodeUpdateNotifications")
-		if err := s.NodeUpdateNotifications(stopCh); err != nil {
-			s.StopServer()
-			InitEcho(stopCh, s.Config)
-		}
-	}()
+	if config.Cfg.EnableNexusRuntime {
+		// Start watching URI notification
+		go func() {
+			log.Debug("NodeUpdateNotifications")
+			if err := s.NodeUpdateNotifications(stopCh); err != nil {
+				s.StopServer()
+				InitEcho(stopCh, s.Config)
+			}
+		}()
+	}
 
 	// Start Server
 	go func() {
@@ -74,10 +86,10 @@ type NexusContext struct {
 	Resource  string
 }
 
-func (s *EchoServer) RegisterRoutes() {
+func (s *EchoServer) RegisterNexusRoutes() {
 	// OpenAPI route
 	s.Echo.GET("/openapi.json", func(c echo.Context) error {
-		return c.JSON(http.StatusOK, openapi.Schema)
+		return c.JSON(http.StatusOK, api.Schema)
 	})
 
 	// Swagger-UI
@@ -104,6 +116,12 @@ func (s *EchoServer) RegisterRoutes() {
 		log.Errorln("Error registering the logout path")
 		// should we panic?
 	}
+}
+
+func (s *EchoServer) RegisterDeclarativeRoutes() {
+	s.Echo.GET("/declarative/apis", func(c echo.Context) error {
+		return c.JSON(200, declarative.ApisList)
+	})
 }
 
 func (s *EchoServer) RegisterRouter(restURI nexus.RestURIs) {
@@ -201,6 +219,67 @@ func (s *EchoServer) RegisterCrdRouter(crdType string) {
 	})
 }
 
+func (s *EchoServer) RegisterDeclarativeRouter() {
+	for uri, path := range declarative.Paths {
+		if path.Get != nil {
+			endpointContext := declarative.SetupContext(uri, http.MethodGet, path.Get)
+
+			if endpointContext.Single {
+				s.Echo.GET(endpointContext.Uri, declarative.GetHandler, func(next echo.HandlerFunc) echo.HandlerFunc {
+					return func(c echo.Context) error {
+						endpointContext.Context = c
+						endpointContext.Single = true
+						return next(endpointContext)
+					}
+				})
+
+				declarative.AddApisEndpoint(endpointContext)
+				log.Debugf("Registered declarative get endpoint: %s for uri: %s", endpointContext.Uri, uri)
+			} else {
+				s.Echo.GET(endpointContext.Uri, declarative.ListHandler, func(next echo.HandlerFunc) echo.HandlerFunc {
+					return func(c echo.Context) error {
+						endpointContext.Context = c
+						endpointContext.Single = false
+						return next(endpointContext)
+					}
+				})
+
+				declarative.AddApisEndpoint(endpointContext)
+				log.Debugf("Registered declarative list endpoint: %s for uri: %s", endpointContext.Uri, uri)
+			}
+		}
+
+		if path.Put != nil {
+			endpointContext := declarative.SetupContext(uri, http.MethodPut, path.Put)
+
+			s.Echo.PUT(endpointContext.Uri, declarative.PutHandler, func(next echo.HandlerFunc) echo.HandlerFunc {
+				return func(c echo.Context) error {
+					endpointContext.Context = c
+					return next(endpointContext)
+				}
+			})
+
+			declarative.AddApisEndpoint(endpointContext)
+			log.Debugf("Registered declarative put endpoint: %s for uri: %s", endpointContext.Uri, uri)
+		}
+
+		if path.Delete != nil {
+			endpointContext := declarative.SetupContext(uri, http.MethodDelete, path.Delete)
+
+			s.Echo.DELETE(endpointContext.Uri, declarative.DeleteHandler, func(next echo.HandlerFunc) echo.HandlerFunc {
+				return func(c echo.Context) error {
+					endpointContext.Context = c
+					endpointContext.Single = true
+					return next(endpointContext)
+				}
+			})
+
+			declarative.AddApisEndpoint(endpointContext)
+			log.Debugf("Registered declarative delete endpoint: %s for uri: %s", endpointContext.Uri, uri)
+		}
+	}
+}
+
 func (s *EchoServer) NodeUpdateNotifications(stopCh chan struct{}) error {
 	for {
 		select {
@@ -237,8 +316,11 @@ func NewEchoServer(conf *config.Config) *EchoServer {
 	e.Pre(middleware.RemoveTrailingSlash())
 	e.Use(middleware.CORS())
 
-	// Setup proxy to api server
-	kubeSetupProxy(e)
+	if config.Cfg.EnableNexusRuntime {
+		// Setup proxy to api server
+		kubeSetupProxy(e)
+
+	}
 
 	e.Use(middleware.LoggerWithConfig(middleware.LoggerConfig{
 		Format: "ACCESS[${time_rfc3339}] method=${method}, uri=${uri}, status=${status}\n",
