@@ -101,7 +101,7 @@ go_get:
 	GOINSECURE=*.eng.vmware.com GOPRIVATE=*.eng.vmware.com go get . ;
 
 .PHONY: build
-build: go_get lint ## Build manager binary.
+build: lint ## Build manager binary.
 	mkdir -p .ssh ;\
 	if [ -n $(CICD_TOKEN) ]; then \
 		DOCKER_BUILDKIT=1 docker build --build-arg APP_NAME=${APP_NAME} \

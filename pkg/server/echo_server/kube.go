@@ -86,8 +86,14 @@ func kubePostHandler(c echo.Context) error {
 	}
 	labels["nexus/is_name_hashed"] = "true"
 	labels["nexus/display_name"] = body.GetName()
-	hashedName := nexus.GetHashedName(nc.CrdType, crdInfo.ParentHierarchy, labels, body.GetName())
 
+	orderedLabels := nexus.ParseCRDLabels(crdInfo.ParentHierarchy, labels)
+	for _, key := range orderedLabels.Keys() {
+		value, _ := orderedLabels.Get(key)
+		labels[key.(string)] = value.(string)
+	}
+
+	hashedName := nexus.GetHashedName(nc.CrdType, crdInfo.ParentHierarchy, labels, body.GetName())
 	body.SetLabels(labels)
 	body.SetName(hashedName)
 
