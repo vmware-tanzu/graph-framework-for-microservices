@@ -3,7 +3,6 @@ package validate
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"strings"
 
@@ -19,7 +18,7 @@ import (
 	"k8s.io/client-go/kubernetes"
 )
 
-func CrdType(client *kubernetes.Clientset, r admissionv1.AdmissionReview) *admissionv1.AdmissionReview {
+func CrdType(client kubernetes.Interface, r admissionv1.AdmissionReview) *admissionv1.AdmissionReview {
 	admRes := &admissionv1.AdmissionReview{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "AdmissionReview",
@@ -47,7 +46,7 @@ func CrdType(client *kubernetes.Clientset, r admissionv1.AdmissionReview) *admis
 	}
 
 	if r.Request.Operation == admissionv1.Create {
-		err = ProcessCRDType(crd)
+		err = CRDs.ProcessNewCRDType(crd)
 		if err != nil {
 			admRes.Response.Allowed = false
 			admRes.Response.Result.Message = err.Error()
@@ -79,25 +78,6 @@ func CrdType(client *kubernetes.Clientset, r admissionv1.AdmissionReview) *admis
 	return admRes
 }
 
-func ProcessCRDType(crd v1.CustomResourceDefinition) error {
-	nexusStr, ok := crd.Annotations["nexus"]
-	if !ok {
-		return nil
-	}
-
-	nexus := &NexusAnnotation{}
-	err := json.Unmarshal([]byte(nexusStr), &nexus)
-	if err != nil {
-		log.Errorf("could not unmarshal nexus annotation: %v", err)
-		return errors.New("could not unmarshal nexus annotation")
-	}
-
-	CrdParentsMap[crd.Name] = nexus.Hierarchy
-	log.Infof("Added %s to parents map (%v)", crd.Name, nexus.Hierarchy)
-
-	return nil
-}
-
 func Crd(client dynamic.Interface, r admissionv1.AdmissionReview) (*admissionv1.AdmissionReview, error) {
 	admRes := &admissionv1.AdmissionReview{
 		TypeMeta: metav1.TypeMeta{
@@ -124,9 +104,34 @@ func Crd(client dynamic.Interface, r admissionv1.AdmissionReview) (*admissionv1.
 	}
 
 	crdName := fmt.Sprintf("%s.%s", r.Request.Resource.Resource, r.Request.Resource.Group)
-	parents := CrdParentsMap[crdName]
 	labels := obj.ObjectMeta.GetLabels()
 
+	isCRDSingleton := CRDs.IsSingleton(crdName)
+	if isCRDSingleton {
+		valid := true
+		if val, ok := labels[IS_NAME_HASHED_LABEL]; ok {
+			if val == "true" {
+				if labels[DISPLAY_NAME_LABEL] != DEFAULT_KEY {
+					valid = false
+				}
+			}
+		} else {
+			if obj.GetName() != "default" {
+				valid = false
+			}
+		}
+
+		if !valid {
+			message := "singleton object display name can only be 'default'"
+			log.Warn(message)
+
+			admRes.Response.Allowed = false
+			admRes.Response.Result.Message = message
+			return admRes, nil
+		}
+	}
+
+	parents := CRDs.GetParents(crdName)
 	for _, parent := range parents {
 		parts := strings.Split(parent, ".")
 		gvr := schema.GroupVersionResource{
@@ -134,10 +139,10 @@ func Crd(client dynamic.Interface, r admissionv1.AdmissionReview) (*admissionv1.
 			Version:  "v1",
 			Resource: parts[0],
 		}
-		parentParents := CrdParentsMap[parent]
+		parentParents := CRDs.GetParents(parent)
 
 		isNameHashed := false
-		if val, ok := labels["nexus/is_name_hashed"]; ok {
+		if val, ok := labels[IS_NAME_HASHED_LABEL]; ok {
 			if val == "true" {
 				isNameHashed = true
 			}
@@ -161,9 +166,9 @@ func Crd(client dynamic.Interface, r admissionv1.AdmissionReview) (*admissionv1.
 			}
 		} else {
 			if isNameHashed {
-				name = nexus.GetHashedName(parent, parentParents, labels, "default")
+				name = nexus.GetHashedName(parent, parentParents, labels, DEFAULT_KEY)
 			} else {
-				name = "default"
+				name = DEFAULT_KEY
 			}
 
 			log.Warnf("label %s not found", parent)
@@ -208,11 +213,9 @@ func ProcessCRDs(client dynamic.Interface) {
 			panic(err)
 		}
 
-		err = ProcessCRDType(crd)
+		err = CRDs.ProcessNewCRDType(crd)
 		if err != nil {
 			panic(err)
 		}
 	}
-
-	log.Infof("parents map: %v", CrdParentsMap)
 }
