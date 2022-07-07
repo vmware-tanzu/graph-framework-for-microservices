@@ -17,7 +17,7 @@ import (
 	"k8s.io/client-go/tools/clientcmd"
 )
 
-var client *kubernetes.Clientset
+var client kubernetes.Interface
 var dynamicClient dynamic.Interface
 
 func init() {
