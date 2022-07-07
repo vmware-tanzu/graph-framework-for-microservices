@@ -323,6 +323,7 @@ type NexusAnnotation struct {
 	Name            string                            `json:"name,omitempty"`
 	Hierarchy       []string                          `json:"hierarchy,omitempty"`
 	Children        map[string]parser.NodeHelperChild `json:"children,omitempty"`
+	IsSingleton     bool                              `json:"is_singleton"`
 	NexusRestAPIGen nexus.RestAPISpec                 `json:"nexus-rest-api-gen,omitempty"`
 }
 
@@ -345,6 +346,7 @@ func RenderCRDBaseTemplate(baseGroupName string, pkg parser.Package, parentsMap 
 		crdName := fmt.Sprintf("%s.%s", plural, groupName)
 
 		nexusAnnotation := &NexusAnnotation{}
+		nexusAnnotation.IsSingleton = parser.IsSingletonNode(node)
 
 		var err error
 		parents, ok := parentsMap[crdName]
