@@ -152,3 +152,6 @@ build_template:
 publish_template: build_template
 	gsutil cp validation-manifests.tar gs://${BUCKET_NAME}/${TAG}/
 
+
+coverage:
+	go test -json -coverprofile=coverage.out ./... | tee report.json ;
