@@ -4,20 +4,20 @@ kind: CustomResourceDefinition
 metadata:
   annotations:
     nexus: |
-      {"name":"OIDC.authentication","hierarchy":["nexuses.api.nexus.org","configs.config.nexus.org","apigateways.apigateway.nexus.org"],"nexus-rest-api-gen":{"uris":null}}
+      {"name":"ProxyRule.admin","hierarchy":["nexuses.api.nexus.org","configs.config.nexus.org","apigateways.apigateway.nexus.org"],"nexus-rest-api-gen":{"uris":null}}
   creationTimestamp: null
-  name: oidcs.authentication.nexus.org
+  name: proxyrules.admin.nexus.org
 spec:
   conversion:
     strategy: None
-  group: authentication.nexus.org
+  group: admin.nexus.org
   names:
-    kind: OIDC
-    listKind: OIDCList
-    plural: oidcs
+    kind: ProxyRule
+    listKind: ProxyRuleList
+    plural: proxyrules
     shortNames:
-    - oidc
-    singular: oidc
+    - proxyrule
+    singular: proxyrule
   scope: Cluster
   versions:
   - name: v1
@@ -38,46 +38,36 @@ spec:
             type: object
           spec:
             properties:
-              config:
+              matchCondition:
                 properties:
-                  clientId:
+                  key:
                     type: string
-                  clientSecret:
+                  type:
                     type: string
-                  oAuthIssuerUrl:
+                  value:
                     type: string
-                  oAuthRedirectUrl:
-                    type: string
-                  scopes:
-                    items:
-                      type: string
-                    type: array
                 required:
-                - clientId
-                - clientSecret
-                - oAuthIssuerUrl
-                - scopes
-                - oAuthRedirectUrl
+                - type
+                - key
+                - value
                 type: object
-              validationProps:
+              upstream:
                 properties:
-                  insecureIssuerURLContext:
-                    type: boolean
-                  skipClientAudValidation:
-                    type: boolean
-                  skipClientIdValidation:
-                    type: boolean
-                  skipIssuerValidation:
-                    type: boolean
+                  host:
+                    type: string
+                  port:
+                    format: int64
+                    type: integer
+                  scheme:
+                    type: string
                 required:
-                - insecureIssuerURLContext
-                - skipIssuerValidation
-                - skipClientIdValidation
-                - skipClientAudValidation
+                - scheme
+                - host
+                - port
                 type: object
             required:
-            - config
-            - validationProps
+            - matchCondition
+            - upstream
             type: object
         type: object
     served: true

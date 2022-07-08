@@ -24,6 +24,7 @@ import (
 	time "time"
 
 	versioned "golang-appnet.eng.vmware.com/nexus-sdk/api/build/client/clientset/versioned"
+	adminnexusorg "golang-appnet.eng.vmware.com/nexus-sdk/api/build/client/informers/externalversions/admin.nexus.org"
 	apinexusorg "golang-appnet.eng.vmware.com/nexus-sdk/api/build/client/informers/externalversions/api.nexus.org"
 	apigatewaynexusorg "golang-appnet.eng.vmware.com/nexus-sdk/api/build/client/informers/externalversions/apigateway.nexus.org"
 	authenticationnexusorg "golang-appnet.eng.vmware.com/nexus-sdk/api/build/client/informers/externalversions/authentication.nexus.org"
@@ -177,12 +178,17 @@ type SharedInformerFactory interface {
 	ForResource(resource schema.GroupVersionResource) (GenericInformer, error)
 	WaitForCacheSync(stopCh <-chan struct{}) map[reflect.Type]bool
 
+	AdminNexus() adminnexusorg.Interface
 	ApiNexus() apinexusorg.Interface
 	ApigatewayNexus() apigatewaynexusorg.Interface
 	AuthenticationNexus() authenticationnexusorg.Interface
 	ConfigNexus() confignexusorg.Interface
 	ConnectNexus() connectnexusorg.Interface
 	RouteNexus() routenexusorg.Interface
+}
+
+func (f *sharedInformerFactory) AdminNexus() adminnexusorg.Interface {
+	return adminnexusorg.New(f, f.namespace, f.tweakListOptions)
 }
 
 func (f *sharedInformerFactory) ApiNexus() apinexusorg.Interface {

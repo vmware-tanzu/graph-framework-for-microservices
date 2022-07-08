@@ -20,6 +20,8 @@ package fake
 
 import (
 	clientset "golang-appnet.eng.vmware.com/nexus-sdk/api/build/client/clientset/versioned"
+	adminnexusv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/client/clientset/versioned/typed/admin.nexus.org/v1"
+	fakeadminnexusv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/client/clientset/versioned/typed/admin.nexus.org/v1/fake"
 	apinexusv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/client/clientset/versioned/typed/api.nexus.org/v1"
 	fakeapinexusv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/client/clientset/versioned/typed/api.nexus.org/v1/fake"
 	apigatewaynexusv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/client/clientset/versioned/typed/apigateway.nexus.org/v1"
@@ -88,6 +90,11 @@ var (
 	_ clientset.Interface = &Clientset{}
 	_ testing.FakeClient  = &Clientset{}
 )
+
+// AdminNexusV1 retrieves the AdminNexusV1Client
+func (c *Clientset) AdminNexusV1() adminnexusv1.AdminNexusV1Interface {
+	return &fakeadminnexusv1.FakeAdminNexusV1{Fake: &c.Fake}
+}
 
 // ApiNexusV1 retrieves the ApiNexusV1Client
 func (c *Clientset) ApiNexusV1() apinexusv1.ApiNexusV1Interface {

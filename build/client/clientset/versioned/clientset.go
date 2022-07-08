@@ -21,6 +21,7 @@ package versioned
 import (
 	"fmt"
 
+	adminnexusv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/client/clientset/versioned/typed/admin.nexus.org/v1"
 	apinexusv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/client/clientset/versioned/typed/api.nexus.org/v1"
 	apigatewaynexusv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/client/clientset/versioned/typed/apigateway.nexus.org/v1"
 	authenticationnexusv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/client/clientset/versioned/typed/authentication.nexus.org/v1"
@@ -34,6 +35,7 @@ import (
 
 type Interface interface {
 	Discovery() discovery.DiscoveryInterface
+	AdminNexusV1() adminnexusv1.AdminNexusV1Interface
 	ApiNexusV1() apinexusv1.ApiNexusV1Interface
 	ApigatewayNexusV1() apigatewaynexusv1.ApigatewayNexusV1Interface
 	AuthenticationNexusV1() authenticationnexusv1.AuthenticationNexusV1Interface
@@ -46,12 +48,18 @@ type Interface interface {
 // version included in a Clientset.
 type Clientset struct {
 	*discovery.DiscoveryClient
+	adminNexusV1          *adminnexusv1.AdminNexusV1Client
 	apiNexusV1            *apinexusv1.ApiNexusV1Client
 	apigatewayNexusV1     *apigatewaynexusv1.ApigatewayNexusV1Client
 	authenticationNexusV1 *authenticationnexusv1.AuthenticationNexusV1Client
 	configNexusV1         *confignexusv1.ConfigNexusV1Client
 	connectNexusV1        *connectnexusv1.ConnectNexusV1Client
 	routeNexusV1          *routenexusv1.RouteNexusV1Client
+}
+
+// AdminNexusV1 retrieves the AdminNexusV1Client
+func (c *Clientset) AdminNexusV1() adminnexusv1.AdminNexusV1Interface {
+	return c.adminNexusV1
 }
 
 // ApiNexusV1 retrieves the ApiNexusV1Client
@@ -105,6 +113,10 @@ func NewForConfig(c *rest.Config) (*Clientset, error) {
 	}
 	var cs Clientset
 	var err error
+	cs.adminNexusV1, err = adminnexusv1.NewForConfig(&configShallowCopy)
+	if err != nil {
+		return nil, err
+	}
 	cs.apiNexusV1, err = apinexusv1.NewForConfig(&configShallowCopy)
 	if err != nil {
 		return nil, err
@@ -141,6 +153,7 @@ func NewForConfig(c *rest.Config) (*Clientset, error) {
 // panics if there is an error in the config.
 func NewForConfigOrDie(c *rest.Config) *Clientset {
 	var cs Clientset
+	cs.adminNexusV1 = adminnexusv1.NewForConfigOrDie(c)
 	cs.apiNexusV1 = apinexusv1.NewForConfigOrDie(c)
 	cs.apigatewayNexusV1 = apigatewaynexusv1.NewForConfigOrDie(c)
 	cs.authenticationNexusV1 = authenticationnexusv1.NewForConfigOrDie(c)
@@ -155,6 +168,7 @@ func NewForConfigOrDie(c *rest.Config) *Clientset {
 // New creates a new Clientset for the given RESTClient.
 func New(c rest.Interface) *Clientset {
 	var cs Clientset
+	cs.adminNexusV1 = adminnexusv1.New(c)
 	cs.apiNexusV1 = apinexusv1.New(c)
 	cs.apigatewayNexusV1 = apigatewaynexusv1.New(c)
 	cs.authenticationNexusV1 = authenticationnexusv1.New(c)

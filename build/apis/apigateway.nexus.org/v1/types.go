@@ -48,8 +48,8 @@ func (c *ApiGateway) DisplayName() string {
 
 // +k8s:openapi-gen=true
 type ApiGatewaySpec struct {
-	Config   ApiGatewayConfig `json:"config" yaml:"config"`
-	AuthnGvk *Child           `json:"authnGvk,omitempty" yaml:"authnGvk,omitempty" nexus:"child"`
+	ProxyRulesGvk map[string]Child `json:"proxyRulesGvk,omitempty" yaml:"proxyRulesGvk,omitempty" nexus:"child"`
+	AuthnGvk      *Child           `json:"authnGvk,omitempty" yaml:"authnGvk,omitempty" nexus:"child"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
@@ -57,8 +57,4 @@ type ApiGatewayList struct {
 	metav1.TypeMeta `json:",inline" yaml:",inline"`
 	metav1.ListMeta `json:"metadata" yaml:"metadata"`
 	Items           []ApiGateway `json:"items" yaml:"items"`
-}
-
-// +k8s:openapi-gen=true
-type ApiGatewayConfig struct {
 }

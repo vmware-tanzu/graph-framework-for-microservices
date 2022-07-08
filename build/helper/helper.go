@@ -24,6 +24,7 @@ func GetCRDParentsMap() map[string][]string {
 		"nexusendpoints.connect.nexus.org":     {"nexuses.api.nexus.org", "configs.config.nexus.org", "connects.connect.nexus.org"},
 		"nexuses.api.nexus.org":                {},
 		"oidcs.authentication.nexus.org":       {"nexuses.api.nexus.org", "configs.config.nexus.org", "apigateways.apigateway.nexus.org"},
+		"proxyrules.admin.nexus.org":           {"nexuses.api.nexus.org", "configs.config.nexus.org", "apigateways.apigateway.nexus.org"},
 		"replicationconfigs.connect.nexus.org": {"nexuses.api.nexus.org", "configs.config.nexus.org", "connects.connect.nexus.org"},
 		"routes.route.nexus.org":               {"nexuses.api.nexus.org", "configs.config.nexus.org"},
 	}
@@ -67,6 +68,13 @@ func GetObjectByCRDName(dmClient *datamodel.Clientset, crdName string, name stri
 	}
 	if crdName == "oidcs.authentication.nexus.org" {
 		obj, err := dmClient.AuthenticationNexusV1().OIDCs().Get(context.TODO(), name, metav1.GetOptions{})
+		if err != nil {
+			return nil
+		}
+		return obj
+	}
+	if crdName == "proxyrules.admin.nexus.org" {
+		obj, err := dmClient.AdminNexusV1().ProxyRules().Get(context.TODO(), name, metav1.GetOptions{})
 		if err != nil {
 			return nil
 		}
