@@ -17,8 +17,10 @@ limitations under the License.
 package main
 
 import (
+	"api-gw/pkg/envoy"
 	"api-gw/pkg/openapi/api"
 	"api-gw/pkg/openapi/declarative"
+	"api-gw/pkg/utils"
 	"flag"
 	"os"
 	"strconv"
@@ -50,6 +52,9 @@ import (
 
 	"api-gw/controllers"
 
+	adminnexusorgv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/admin.nexus.org/v1"
+	apigatewaynexusorgv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/apigateway.nexus.org/v1"
+
 	routenexusorgv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/route.nexus.org/v1"
 	//+kubebuilder:scaffold:imports
 
@@ -68,6 +73,8 @@ func init() {
 	apiregistrationv1.AddToScheme(scheme)
 	corev1.AddToScheme(scheme)
 	routenexusorgv1.AddToScheme(scheme)
+	apigatewaynexusorgv1.AddToScheme(scheme)
+	adminnexusorgv1.AddToScheme(scheme)
 	//+kubebuilder:scaffold:scheme
 }
 
@@ -125,13 +132,13 @@ func main() {
 	echo_server.InitEcho(stopCh, conf)
 
 	if conf.EnableNexusRuntime {
-		InitManager(metricsAddr, probeAddr, enableLeaderElection, stopCh)
+		InitManager(metricsAddr, probeAddr, enableLeaderElection, stopCh, lvl)
 	}
 
 	select {}
 }
 
-func InitManager(metricsAddr string, probeAddr string, enableLeaderElection bool, stopCh chan struct{}) {
+func InitManager(metricsAddr string, probeAddr string, enableLeaderElection bool, stopCh chan struct{}, lvl log.Level) {
 	mgr, err := ctrl.NewManager(ctrl.GetConfigOrDie(), ctrl.Options{
 		Scheme:                 scheme,
 		MetricsBindAddress:     metricsAddr,
@@ -190,6 +197,14 @@ func InitManager(metricsAddr string, probeAddr string, enableLeaderElection bool
 		setupLog.Error(err, "unable to create controller", "controller", "Route")
 		os.Exit(1)
 	}
+
+	if err = (&controllers.ProxyRuleReconciler{
+		Client: mgr.GetClient(),
+		Scheme: mgr.GetScheme(),
+	}).SetupWithManager(mgr); err != nil {
+		setupLog.Error(err, "unable to create controller", "controller", "ProxyRule")
+		os.Exit(1)
+	}
 	//+kubebuilder:scaffold:builder
 
 	if err := mgr.AddHealthzCheck("healthz", healthz.Ping); err != nil {
@@ -207,8 +222,27 @@ func InitManager(metricsAddr string, probeAddr string, enableLeaderElection bool
 		os.Exit(1)
 	}
 
+	if err = client.NewNexusClient(ctrl.GetConfigOrDie()); err != nil {
+		setupLog.Error(err, "unable to set up nexus client")
+		os.Exit(1)
+	}
+
 	// Create new openapi3 schema
 	api.New()
+
+	log.Infoln("Init xDS server")
+	if jwt, upstreams, headerUpstreams, err := utils.GetEnvoyInitParams(); err != nil {
+		log.Errorf("error getting envoy init params: %s\n", err)
+		// start with a blank envoy config and let the controllers reconcile the envoy state
+		if err = envoy.Init(nil, nil, nil, lvl); err != nil {
+			log.Fatalf("error initializing envoy in main(): %s", err)
+		}
+	} else {
+		if err = envoy.Init(jwt, upstreams, headerUpstreams, lvl); err != nil {
+			panic(err)
+		}
+	}
+	log.Infoln("successfully initialized xDS server")
 
 	setupLog.Info("starting manager")
 	if err := mgr.Start(ctrl.SetupSignalHandler()); err != nil {

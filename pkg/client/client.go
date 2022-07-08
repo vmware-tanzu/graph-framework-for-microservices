@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/common-library.git/pkg/nexus"
+	nexus_client "golang-appnet.eng.vmware.com/nexus-sdk/api/build/nexus-client"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime/schema"
@@ -17,12 +18,23 @@ import (
 
 var Client dynamic.Interface
 var Host string
+var NexusClient *nexus_client.Clientset
 
 func New(config *rest.Config) (err error) {
 	Host = config.Host
 	Client, err = dynamic.NewForConfig(config)
 	if err != nil {
 		return err
+	}
+	return nil
+}
+
+func NewNexusClient(config *rest.Config) error {
+	// Create a datamodel client handle.
+	var err error
+	NexusClient, err = nexus_client.NewForConfig(config)
+	if err != nil {
+		return fmt.Errorf("failed to create nexus client: %s", err)
 	}
 	return nil
 }

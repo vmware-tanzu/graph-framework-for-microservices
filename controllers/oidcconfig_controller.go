@@ -39,10 +39,6 @@ type OidcConfigReconciler struct {
 
 // Reconcile is part of the main kubernetes reconciliation loop which aims to
 // move the current state of the cluster closer to the desired state.
-// TODO(user): Modify the Reconcile function to compare the state specified by
-// the OidcConfig object against the actual cluster state, and then
-// perform operations to make the cluster state reflect the state specified by
-// the user.
 //
 // For more details, check Reconcile and its Result here:
 // - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.11.2/pkg/reconcile
@@ -53,12 +49,12 @@ func (r *OidcConfigReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 	// TODO use the shim layer to fetch the object
 	if err := r.Get(ctx, req.NamespacedName, &oidcNode); err != nil {
 		if client.IgnoreNotFound(err) != nil {
-			log.Errorf("Error while trying to fetch OIDC node with name %s\n", req.Name)
+			log.Errorf("Error while trying to fetch OIDC node with name %s", req.Name)
 			return ctrl.Result{}, err
 		}
 		eventType = model.Delete
 	}
-	log.Debugf("Received event %s for oidcNode node: Name %s\n", eventType, oidcNode.Name)
+	log.Debugf("Received event %s for oidcNode node: Name %s", eventType, oidcNode.Name)
 
 	// Pass on the event to the authenticator so that it can reconfigure itself
 	model.OidcChan <- model.OidcNodeEvent{Oidc: oidcNode, Type: eventType}

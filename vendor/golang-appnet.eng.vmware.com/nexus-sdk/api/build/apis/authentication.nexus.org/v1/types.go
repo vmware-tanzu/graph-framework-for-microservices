@@ -64,8 +64,8 @@ type IDPConfig struct {
 	ClientId         string   `json:"clientId"`
 	ClientSecret     string   `json:"clientSecret"`
 	OAuthIssuerUrl   string   `json:"oAuthIssuerUrl"`
-	OAuthRedirectUrl string   `json:"oAuthRedirectUrl"`
 	Scopes           []string `json:"scopes"`
+	OAuthRedirectUrl string   `json:"oAuthRedirectUrl"`
 }
 
 // +k8s:openapi-gen=true
