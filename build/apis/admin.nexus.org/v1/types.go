@@ -29,17 +29,17 @@ type Link struct {
 // +genclient:nonNamespaced
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 // +k8s:openapi-gen=true
-type OIDC struct {
+type ProxyRule struct {
 	metav1.TypeMeta   `json:",inline" yaml:",inline"`
 	metav1.ObjectMeta `json:"metadata" yaml:"metadata"`
-	Spec              OIDCSpec `json:"spec,omitempty" yaml:"spec,omitempty"`
+	Spec              ProxyRuleSpec `json:"spec,omitempty" yaml:"spec,omitempty"`
 }
 
-func (c *OIDC) CRDName() string {
-	return "oidcs.authentication.nexus.org"
+func (c *ProxyRule) CRDName() string {
+	return "proxyrules.admin.nexus.org"
 }
 
-func (c *OIDC) DisplayName() string {
+func (c *ProxyRule) DisplayName() string {
 	if c.GetLabels() != nil {
 		return c.GetLabels()[common.DISPLAY_NAME_LABEL]
 	}
@@ -47,31 +47,31 @@ func (c *OIDC) DisplayName() string {
 }
 
 // +k8s:openapi-gen=true
-type OIDCSpec struct {
-	Config          IDPConfig            `json:"config" yaml:"config"`
-	ValidationProps ValidationProperties `json:"validationProps" yaml:"validationProps"`
+type ProxyRuleSpec struct {
+	MatchCondition MatchCondition `json:"matchCondition"`
+	Upstream       Upstream       `json:"upstream"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
-type OIDCList struct {
+type ProxyRuleList struct {
 	metav1.TypeMeta `json:",inline" yaml:",inline"`
 	metav1.ListMeta `json:"metadata" yaml:"metadata"`
-	Items           []OIDC `json:"items" yaml:"items"`
+	Items           []ProxyRule `json:"items" yaml:"items"`
 }
 
 // +k8s:openapi-gen=true
-type IDPConfig struct {
-	ClientId         string   `json:"clientId"`
-	ClientSecret     string   `json:"clientSecret"`
-	OAuthIssuerUrl   string   `json:"oAuthIssuerUrl"`
-	Scopes           []string `json:"scopes"`
-	OAuthRedirectUrl string   `json:"oAuthRedirectUrl"`
+type Upstream struct {
+	Scheme string `json:"scheme"`
+	Host   string `json:"host"`
+	Port   uint32 `json:"port"`
 }
 
 // +k8s:openapi-gen=true
-type ValidationProperties struct {
-	InsecureIssuerURLContext bool `json:"insecureIssuerURLContext"`
-	SkipIssuerValidation     bool `json:"skipIssuerValidation"`
-	SkipClientIdValidation   bool `json:"skipClientIdValidation"`
-	SkipClientAudValidation  bool `json:"skipClientAudValidation"`
+type MatchCondition struct {
+	Type  MatchType `json:"type"`
+	Key   string    `json:"key"`
+	Value string    `json:"value"`
 }
+
+// MatchType configuration that determines where the admin gateway has to look for a match condition
+type MatchType string

@@ -4,7 +4,7 @@ kind: CustomResourceDefinition
 metadata:
   annotations:
     nexus: |
-      {"name":"ApiGateway.apigateway","hierarchy":["nexuses.api.nexus.org","configs.config.nexus.org"],"children":{"oidcs.authentication.nexus.org":{"fieldName":"Authn","fieldNameGvk":"authnGvk","isNamed":false}},"nexus-rest-api-gen":{"uris":null}}
+      {"name":"ApiGateway.apigateway","hierarchy":["nexuses.api.nexus.org","configs.config.nexus.org"],"children":{"oidcs.authentication.nexus.org":{"fieldName":"Authn","fieldNameGvk":"authnGvk","isNamed":false},"proxyrules.admin.nexus.org":{"fieldName":"ProxyRules","fieldNameGvk":"proxyRulesGvk","isNamed":true}},"nexus-rest-api-gen":{"uris":null}}
   creationTimestamp: null
   name: apigateways.apigateway.nexus.org
 spec:
@@ -51,11 +51,21 @@ spec:
                 - kind
                 - name
                 type: object
-              config:
+              proxyRulesGvk:
+                additionalProperties:
+                  properties:
+                    group:
+                      type: string
+                    kind:
+                      type: string
+                    name:
+                      type: string
+                  required:
+                  - group
+                  - kind
+                  - name
+                  type: object
                 type: object
-                x-kubernetes-preserve-unknown-fields: true
-            required:
-            - config
             type: object
         type: object
     served: true

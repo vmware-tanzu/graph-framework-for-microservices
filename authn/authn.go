@@ -4,12 +4,18 @@ import (
 	"golang-appnet.eng.vmware.com/nexus-sdk/nexus/nexus"
 )
 
+// IDPConfig contains the properties of an OIDC app
 type IDPConfig struct {
-	ClientId         string   `json:"clientId"`
-	ClientSecret     string   `json:"clientSecret"`
-	OAuthIssuerUrl   string   `json:"oAuthIssuerUrl"`
-	OAuthRedirectUrl string   `json:"oAuthRedirectUrl"`
-	Scopes           []string `json:"scopes"`
+	// provided by the IDP on creation of an OIDC app
+	ClientId string `json:"clientId"`
+	// provided by the IDP on creation of an OIDC app
+	ClientSecret string `json:"clientSecret"`
+	// provided by the IDP on creation of an OIDC app
+	OAuthIssuerUrl string `json:"oAuthIssuerUrl"`
+	// OAuth 2.0 scopes - determines the scope of the issued access tokens
+	Scopes []string `json:"scopes"`
+	// the URL to which the auth server must redirect to post-authentication
+	OAuthRedirectUrl string `json:"oAuthRedirectUrl"`
 }
 
 type ValidationProperties struct {
@@ -31,25 +37,16 @@ type ValidationProperties struct {
 	SkipClientAudValidation bool `json:"skipClientAudValidation"`
 }
 
-var OIDCRestAPISpec = nexus.RestAPISpec{
-	Uris: []nexus.RestURIs{
-		{
-			Uri:     "/nexus/{Nexus.api}/config/{Config.config}/apigateway/{ApiGateway.apigateway}/oidc/{OIDC.authentication}",
-			Methods: nexus.DefaultHTTPMethodsResponses,
-		},
-	},
-}
-
 // OIDC holds state/config associated with authentication.
 //
 // Nexus Runtime supports authentication function and the state
 // associated with it is rooted on the OIDC node.
-// nexus-rest-api-gen:OIDCRestAPISpec
 type OIDC struct {
 	nexus.Node
 
 	// IDP configuration.
 	Config IDPConfig
 
+	// Properties to control the claim validation done by the gateway
 	ValidationProps ValidationProperties
 }

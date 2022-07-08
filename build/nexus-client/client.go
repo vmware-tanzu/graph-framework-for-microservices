@@ -25,6 +25,7 @@ import (
 	"golang-appnet.eng.vmware.com/nexus-sdk/api/build/common"
 	"golang-appnet.eng.vmware.com/nexus-sdk/api/build/helper"
 
+	baseadminnexusorgv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/admin.nexus.org/v1"
 	baseapinexusorgv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/api.nexus.org/v1"
 	baseapigatewaynexusorgv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/apigateway.nexus.org/v1"
 	baseauthenticationnexusorgv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/authentication.nexus.org/v1"
@@ -36,6 +37,7 @@ import (
 type Clientset struct {
 	baseClient            baseClientset.Interface
 	apiNexusV1            *ApiNexusV1
+	adminNexusV1          *AdminNexusV1
 	apigatewayNexusV1     *ApigatewayNexusV1
 	authenticationNexusV1 *AuthenticationNexusV1
 	configNexusV1         *ConfigNexusV1
@@ -52,6 +54,7 @@ func NewForConfig(config *rest.Config) (*Clientset, error) {
 	client := &Clientset{}
 	client.baseClient = baseClient
 	client.apiNexusV1 = newApiNexusV1(client)
+	client.adminNexusV1 = newAdminNexusV1(client)
 	client.apigatewayNexusV1 = newApigatewayNexusV1(client)
 	client.authenticationNexusV1 = newAuthenticationNexusV1(client)
 	client.configNexusV1 = newConfigNexusV1(client)
@@ -66,6 +69,7 @@ func NewFakeClient() *Clientset {
 	client := &Clientset{}
 	client.baseClient = fakeBaseClienset.NewSimpleClientset()
 	client.apiNexusV1 = newApiNexusV1(client)
+	client.adminNexusV1 = newAdminNexusV1(client)
 	client.apigatewayNexusV1 = newApigatewayNexusV1(client)
 	client.authenticationNexusV1 = newAuthenticationNexusV1(client)
 	client.configNexusV1 = newConfigNexusV1(client)
@@ -90,6 +94,9 @@ func (p Patch) Marshal() ([]byte, error) {
 func (c *Clientset) Api() *ApiNexusV1 {
 	return c.apiNexusV1
 }
+func (c *Clientset) Admin() *AdminNexusV1 {
+	return c.adminNexusV1
+}
 func (c *Clientset) Apigateway() *ApigatewayNexusV1 {
 	return c.apigatewayNexusV1
 }
@@ -112,6 +119,16 @@ type ApiNexusV1 struct {
 
 func newApiNexusV1(client *Clientset) *ApiNexusV1 {
 	return &ApiNexusV1{
+		client: client,
+	}
+}
+
+type AdminNexusV1 struct {
+	client *Clientset
+}
+
+func newAdminNexusV1(client *Clientset) *AdminNexusV1 {
+	return &AdminNexusV1{
 		client: client,
 	}
 }
@@ -288,9 +305,10 @@ func (group *ApiNexusV1) ListNexuses(ctx context.Context,
 	}
 	result = make([]*ApiNexus, len(list.Items))
 	for k, v := range list.Items {
+		item := v
 		result[k] = &ApiNexus{
 			client: group.client,
-			Nexus:  &v,
+			Nexus:  &item,
 		}
 	}
 	return
@@ -469,6 +487,226 @@ func (c *nexusApiNexusV1Chainer) DeleteConfig(ctx context.Context, name string) 
 	return c.client.Config().DeleteConfigByName(ctx, hashedName)
 }
 
+// GetProxyRuleByName returns object stored in the database under the hashedName which is a hash of display
+// name and parents names. Use it when you know hashed name of object.
+func (group *AdminNexusV1) GetProxyRuleByName(ctx context.Context, hashedName string) (*AdminProxyRule, error) {
+	result, err := group.client.baseClient.
+		AdminNexusV1().
+		ProxyRules().Get(ctx, hashedName, metav1.GetOptions{})
+	if err != nil {
+		return nil, err
+	}
+
+	return &AdminProxyRule{
+		client:    group.client,
+		ProxyRule: result,
+	}, nil
+}
+
+// DeleteProxyRuleByName deletes object stored in the database under the hashedName which is a hash of
+// display name and parents names. Use it when you know hashed name of object.
+func (group *AdminNexusV1) DeleteProxyRuleByName(ctx context.Context, hashedName string) (err error) {
+
+	result, err := group.client.baseClient.
+		AdminNexusV1().
+		ProxyRules().Get(ctx, hashedName, metav1.GetOptions{})
+	if err != nil {
+		return err
+	}
+
+	err = group.client.baseClient.
+		AdminNexusV1().
+		ProxyRules().Delete(ctx, hashedName, metav1.DeleteOptions{})
+	if err != nil {
+		return err
+	}
+
+	var patch Patch
+
+	patchOp := PatchOp{
+		Op:   "remove",
+		Path: "/spec/proxyRulesGvk/" + result.DisplayName(),
+	}
+
+	patch = append(patch, patchOp)
+	marshaled, err := patch.Marshal()
+	if err != nil {
+		return err
+	}
+	parents := result.GetLabels()
+	if parents == nil {
+		parents = make(map[string]string)
+	}
+	parentName, ok := parents["apigateways.apigateway.nexus.org"]
+	if !ok {
+		parentName = helper.DEFAULT_KEY
+	}
+	if parents[common.IS_NAME_HASHED_LABEL] == "true" {
+		parentName = helper.GetHashedName("apigateways.apigateway.nexus.org", parents, parentName)
+	}
+	_, err = group.client.baseClient.
+		ApigatewayNexusV1().
+		ApiGateways().Patch(ctx, parentName, types.JSONPatchType, marshaled, metav1.PatchOptions{})
+	if err != nil {
+		return err
+	}
+
+	return
+}
+
+// CreateProxyRuleByName creates object in the database without hashing the name.
+// Use it directly ONLY when objToCreate.Name is hashed name of the object.
+func (group *AdminNexusV1) CreateProxyRuleByName(ctx context.Context,
+	objToCreate *baseadminnexusorgv1.ProxyRule) (*AdminProxyRule, error) {
+	if objToCreate.GetLabels() == nil {
+		objToCreate.Labels = make(map[string]string)
+	}
+	if _, ok := objToCreate.Labels[common.DISPLAY_NAME_LABEL]; !ok {
+		objToCreate.Labels[common.DISPLAY_NAME_LABEL] = objToCreate.GetName()
+	}
+
+	result, err := group.client.baseClient.
+		AdminNexusV1().
+		ProxyRules().Create(ctx, objToCreate, metav1.CreateOptions{})
+	if err != nil {
+		return nil, err
+	}
+
+	parentName, ok := objToCreate.GetLabels()["apigateways.apigateway.nexus.org"]
+	if !ok {
+		parentName = helper.DEFAULT_KEY
+	}
+	if objToCreate.Labels[common.IS_NAME_HASHED_LABEL] == "true" {
+		parentName = helper.GetHashedName("apigateways.apigateway.nexus.org", objToCreate.GetLabels(), parentName)
+	}
+
+	payload := "{\"spec\": {\"proxyRulesGvk\": {\"" + objToCreate.DisplayName() + "\": {\"name\": \"" + objToCreate.Name + "\",\"kind\": \"ProxyRule\", \"group\": \"admin.nexus.org\"}}}}"
+	_, err = group.client.baseClient.
+		ApigatewayNexusV1().
+		ApiGateways().Patch(ctx, parentName, types.MergePatchType, []byte(payload), metav1.PatchOptions{})
+	if err != nil {
+		return nil, err
+	}
+
+	return &AdminProxyRule{
+		client:    group.client,
+		ProxyRule: result,
+	}, nil
+}
+
+// UpdateProxyRuleByName updates object stored in the database under the hashedName which is a hash of
+// display name and parents names.
+func (group *AdminNexusV1) UpdateProxyRuleByName(ctx context.Context,
+	objToUpdate *baseadminnexusorgv1.ProxyRule) (*AdminProxyRule, error) {
+	// ResourceVersion must be set for update
+	if objToUpdate.ResourceVersion == "" {
+		current, err := group.client.baseClient.
+			AdminNexusV1().
+			ProxyRules().Get(ctx, objToUpdate.GetName(), metav1.GetOptions{})
+		if err != nil {
+			return nil, err
+		}
+		objToUpdate.ResourceVersion = current.ResourceVersion
+	}
+
+	var patch Patch
+	patchOpMeta := PatchOp{
+		Op:    "replace",
+		Path:  "/metadata",
+		Value: objToUpdate.ObjectMeta,
+	}
+	patch = append(patch, patchOpMeta)
+
+	patchValueMatchCondition :=
+		objToUpdate.Spec.MatchCondition
+	patchOpMatchCondition := PatchOp{
+		Op:    "replace",
+		Path:  "/spec/matchCondition",
+		Value: patchValueMatchCondition,
+	}
+	patch = append(patch, patchOpMatchCondition)
+
+	patchValueUpstream :=
+		objToUpdate.Spec.Upstream
+	patchOpUpstream := PatchOp{
+		Op:    "replace",
+		Path:  "/spec/upstream",
+		Value: patchValueUpstream,
+	}
+	patch = append(patch, patchOpUpstream)
+
+	marshaled, err := patch.Marshal()
+	if err != nil {
+		return nil, err
+	}
+	result, err := group.client.baseClient.
+		AdminNexusV1().
+		ProxyRules().Patch(ctx, objToUpdate.GetName(), types.JSONPatchType, marshaled, metav1.PatchOptions{}, "")
+	if err != nil {
+		return nil, err
+	}
+
+	return &AdminProxyRule{
+		client:    group.client,
+		ProxyRule: result,
+	}, nil
+}
+
+// ListProxyRules returns slice of all existing objects of this type. Selectors can be provided in opts parameter.
+func (group *AdminNexusV1) ListProxyRules(ctx context.Context,
+	opts metav1.ListOptions) (result []*AdminProxyRule, err error) {
+	list, err := group.client.baseClient.AdminNexusV1().
+		ProxyRules().List(ctx, opts)
+	if err != nil {
+		return nil, err
+	}
+	result = make([]*AdminProxyRule, len(list.Items))
+	for k, v := range list.Items {
+		item := v
+		result[k] = &AdminProxyRule{
+			client:    group.client,
+			ProxyRule: &item,
+		}
+	}
+	return
+}
+
+type AdminProxyRule struct {
+	client *Clientset
+	*baseadminnexusorgv1.ProxyRule
+}
+
+// Delete removes obj and all it's children from the database.
+func (obj *AdminProxyRule) Delete(ctx context.Context) error {
+	err := obj.client.Admin().DeleteProxyRuleByName(ctx, obj.GetName())
+	if err != nil {
+		return err
+	}
+	obj.ProxyRule = nil
+	return nil
+}
+
+// Update updates spec of object in database. Children and Link can not be updated using this function.
+func (obj *AdminProxyRule) Update(ctx context.Context) error {
+	result, err := obj.client.Admin().UpdateProxyRuleByName(ctx, obj.ProxyRule)
+	if err != nil {
+		return err
+	}
+	obj.ProxyRule = result.ProxyRule
+	return nil
+}
+
+func (obj *AdminProxyRule) GetParent(ctx context.Context) (result *ApigatewayApiGateway, err error) {
+	hashedName := helper.GetHashedName("apigateways.apigateway.nexus.org", obj.Labels, obj.Labels["apigateways.apigateway.nexus.org"])
+	return obj.client.Apigateway().GetApiGatewayByName(ctx, hashedName)
+}
+
+type proxyruleAdminNexusV1Chainer struct {
+	client       *Clientset
+	name         string
+	parentLabels map[string]string
+}
+
 // GetApiGatewayByName returns object stored in the database under the hashedName which is a hash of display
 // name and parents names. Use it when you know hashed name of object.
 func (group *ApigatewayNexusV1) GetApiGatewayByName(ctx context.Context, hashedName string) (*ApigatewayApiGateway, error) {
@@ -494,6 +732,14 @@ func (group *ApigatewayNexusV1) DeleteApiGatewayByName(ctx context.Context, hash
 		ApiGateways().Get(ctx, hashedName, metav1.GetOptions{})
 	if err != nil {
 		return err
+	}
+
+	for _, v := range result.Spec.ProxyRulesGvk {
+		err := group.client.
+			Admin().DeleteProxyRuleByName(ctx, v.Name)
+		if err != nil {
+			return err
+		}
 	}
 
 	if result.Spec.AuthnGvk != nil {
@@ -556,6 +802,7 @@ func (group *ApigatewayNexusV1) CreateApiGatewayByName(ctx context.Context,
 		objToCreate.Labels[common.DISPLAY_NAME_LABEL] = objToCreate.GetName()
 	}
 
+	objToCreate.Spec.ProxyRulesGvk = nil
 	objToCreate.Spec.AuthnGvk = nil
 
 	result, err := group.client.baseClient.
@@ -624,15 +871,6 @@ func (group *ApigatewayNexusV1) UpdateApiGatewayByName(ctx context.Context,
 	}
 	patch = append(patch, patchOpMeta)
 
-	patchValueConfig :=
-		objToUpdate.Spec.Config
-	patchOpConfig := PatchOp{
-		Op:    "replace",
-		Path:  "/spec/config",
-		Value: patchValueConfig,
-	}
-	patch = append(patch, patchOpConfig)
-
 	marshaled, err := patch.Marshal()
 	if err != nil {
 		return nil, err
@@ -660,9 +898,10 @@ func (group *ApigatewayNexusV1) ListApiGateways(ctx context.Context,
 	}
 	result = make([]*ApigatewayApiGateway, len(list.Items))
 	for k, v := range list.Items {
+		item := v
 		result[k] = &ApigatewayApiGateway{
 			client:     group.client,
-			ApiGateway: &v,
+			ApiGateway: &item,
 		}
 	}
 	return
@@ -696,6 +935,76 @@ func (obj *ApigatewayApiGateway) Update(ctx context.Context) error {
 func (obj *ApigatewayApiGateway) GetParent(ctx context.Context) (result *ConfigConfig, err error) {
 	hashedName := helper.GetHashedName("configs.config.nexus.org", obj.Labels, obj.Labels["configs.config.nexus.org"])
 	return obj.client.Config().GetConfigByName(ctx, hashedName)
+}
+
+// GetAllProxyRules returns all children of given type
+func (obj *ApigatewayApiGateway) GetAllProxyRules(ctx context.Context) (
+	result []*AdminProxyRule, err error) {
+	result = make([]*AdminProxyRule, 0, len(obj.Spec.ProxyRulesGvk))
+	for _, v := range obj.Spec.ProxyRulesGvk {
+		l, err := obj.client.Admin().GetProxyRuleByName(ctx, v.Name)
+		if err != nil {
+			return nil, err
+		}
+		result = append(result, l)
+	}
+	return
+}
+
+// GetProxyRules returns child which has given displayName
+func (obj *ApigatewayApiGateway) GetProxyRules(ctx context.Context,
+	displayName string) (result *AdminProxyRule, err error) {
+	l, ok := obj.Spec.ProxyRulesGvk[displayName]
+	if !ok {
+		return nil, NewChildNotFound(obj.DisplayName(), "Apigateway.ApiGateway", "ProxyRules", displayName)
+	}
+	result, err = obj.client.Admin().GetProxyRuleByName(ctx, l.Name)
+	return
+}
+
+// AddProxyRules calculates hashed name of the child to create based on objToCreate.Name
+// and parents names and creates it. objToCreate.Name is changed to the hashed name. Original name is preserved in
+// nexus/display_name label and can be obtained using DisplayName() method.
+func (obj *ApigatewayApiGateway) AddProxyRules(ctx context.Context,
+	objToCreate *baseadminnexusorgv1.ProxyRule) (result *AdminProxyRule, err error) {
+	if objToCreate.Labels == nil {
+		objToCreate.Labels = map[string]string{}
+	}
+	for _, v := range helper.GetCRDParentsMap()["apigateways.apigateway.nexus.org"] {
+		objToCreate.Labels[v] = obj.Labels[v]
+	}
+	objToCreate.Labels["apigateways.apigateway.nexus.org"] = obj.DisplayName()
+	if objToCreate.Labels[common.IS_NAME_HASHED_LABEL] != "true" {
+		objToCreate.Labels[common.DISPLAY_NAME_LABEL] = objToCreate.GetName()
+		objToCreate.Labels[common.IS_NAME_HASHED_LABEL] = "true"
+		hashedName := helper.GetHashedName(objToCreate.CRDName(), objToCreate.Labels, objToCreate.GetName())
+		objToCreate.Name = hashedName
+	}
+	result, err = obj.client.Admin().CreateProxyRuleByName(ctx, objToCreate)
+	updatedObj, getErr := obj.client.Apigateway().GetApiGatewayByName(ctx, obj.GetName())
+	if getErr == nil {
+		obj.ApiGateway = updatedObj.ApiGateway
+	}
+	return
+}
+
+// DeleteProxyRules calculates hashed name of the child to delete based on displayName
+// and parents names and deletes it.
+
+func (obj *ApigatewayApiGateway) DeleteProxyRules(ctx context.Context, displayName string) (err error) {
+	l, ok := obj.Spec.ProxyRulesGvk[displayName]
+	if !ok {
+		return NewChildNotFound(obj.DisplayName(), "Apigateway.ApiGateway", "ProxyRules", displayName)
+	}
+	err = obj.client.Admin().DeleteProxyRuleByName(ctx, l.Name)
+	if err != nil {
+		return err
+	}
+	updatedObj, err := obj.client.Apigateway().GetApiGatewayByName(ctx, obj.GetName())
+	if err == nil {
+		obj.ApiGateway = updatedObj.ApiGateway
+	}
+	return
 }
 
 // GetAuthn returns child of given type
@@ -756,6 +1065,53 @@ type apigatewayApigatewayNexusV1Chainer struct {
 	client       *Clientset
 	name         string
 	parentLabels map[string]string
+}
+
+func (c *apigatewayApigatewayNexusV1Chainer) ProxyRules(name string) *proxyruleAdminNexusV1Chainer {
+	parentLabels := c.parentLabels
+	parentLabels["proxyrules.admin.nexus.org"] = name
+	return &proxyruleAdminNexusV1Chainer{
+		client:       c.client,
+		name:         name,
+		parentLabels: parentLabels,
+	}
+}
+
+// GetProxyRules calculates hashed name of the object based on displayName and it's parents and returns the object
+func (c *apigatewayApigatewayNexusV1Chainer) GetProxyRules(ctx context.Context, displayName string) (result *AdminProxyRule, err error) {
+	hashedName := helper.GetHashedName("proxyrules.admin.nexus.org", c.parentLabels, displayName)
+	return c.client.Admin().GetProxyRuleByName(ctx, hashedName)
+}
+
+// AddProxyRules calculates hashed name of the child to create based on objToCreate.Name
+// and parents names and creates it. objToCreate.Name is changed to the hashed name. Original name is preserved in
+// nexus/display_name label and can be obtained using DisplayName() method.
+func (c *apigatewayApigatewayNexusV1Chainer) AddProxyRules(ctx context.Context,
+	objToCreate *baseadminnexusorgv1.ProxyRule) (result *AdminProxyRule, err error) {
+	if objToCreate.Labels == nil {
+		objToCreate.Labels = map[string]string{}
+	}
+	for k, v := range c.parentLabels {
+		objToCreate.Labels[k] = v
+	}
+	if objToCreate.Labels[common.IS_NAME_HASHED_LABEL] != "true" {
+		objToCreate.Labels[common.DISPLAY_NAME_LABEL] = objToCreate.GetName()
+		objToCreate.Labels[common.IS_NAME_HASHED_LABEL] = "true"
+		hashedName := helper.GetHashedName("proxyrules.admin.nexus.org", c.parentLabels, objToCreate.GetName())
+		objToCreate.Name = hashedName
+	}
+	return c.client.Admin().CreateProxyRuleByName(ctx, objToCreate)
+}
+
+// DeleteProxyRules calculates hashed name of the child to delete based on displayName
+// and parents names and deletes it.
+func (c *apigatewayApigatewayNexusV1Chainer) DeleteProxyRules(ctx context.Context, name string) (err error) {
+	if c.parentLabels == nil {
+		c.parentLabels = map[string]string{}
+	}
+	c.parentLabels[common.IS_NAME_HASHED_LABEL] = "true"
+	hashedName := helper.GetHashedName("proxyrules.admin.nexus.org", c.parentLabels, name)
+	return c.client.Admin().DeleteProxyRuleByName(ctx, hashedName)
 }
 
 func (c *apigatewayApigatewayNexusV1Chainer) Authn(name string) *oidcAuthenticationNexusV1Chainer {
@@ -994,9 +1350,10 @@ func (group *AuthenticationNexusV1) ListOIDCs(ctx context.Context,
 	}
 	result = make([]*AuthenticationOIDC, len(list.Items))
 	for k, v := range list.Items {
+		item := v
 		result[k] = &AuthenticationOIDC{
 			client: group.client,
-			OIDC:   &v,
+			OIDC:   &item,
 		}
 	}
 	return
@@ -1239,9 +1596,10 @@ func (group *ConfigNexusV1) ListConfigs(ctx context.Context,
 	}
 	result = make([]*ConfigConfig, len(list.Items))
 	for k, v := range list.Items {
+		item := v
 		result[k] = &ConfigConfig{
 			client: group.client,
-			Config: &v,
+			Config: &item,
 		}
 	}
 	return
@@ -1792,9 +2150,10 @@ func (group *ConnectNexusV1) ListConnects(ctx context.Context,
 	}
 	result = make([]*ConnectConnect, len(list.Items))
 	for k, v := range list.Items {
+		item := v
 		result[k] = &ConnectConnect{
 			client:  group.client,
-			Connect: &v,
+			Connect: &item,
 		}
 	}
 	return
@@ -2254,9 +2613,10 @@ func (group *ConnectNexusV1) ListNexusEndpoints(ctx context.Context,
 	}
 	result = make([]*ConnectNexusEndpoint, len(list.Items))
 	for k, v := range list.Items {
+		item := v
 		result[k] = &ConnectNexusEndpoint{
 			client:        group.client,
-			NexusEndpoint: &v,
+			NexusEndpoint: &item,
 		}
 	}
 	return
@@ -2484,9 +2844,10 @@ func (group *ConnectNexusV1) ListReplicationConfigs(ctx context.Context,
 	}
 	result = make([]*ConnectReplicationConfig, len(list.Items))
 	for k, v := range list.Items {
+		item := v
 		result[k] = &ConnectReplicationConfig{
 			client:            group.client,
-			ReplicationConfig: &v,
+			ReplicationConfig: &item,
 		}
 	}
 	return
@@ -2773,9 +3134,10 @@ func (group *RouteNexusV1) ListRoutes(ctx context.Context,
 	}
 	result = make([]*RouteRoute, len(list.Items))
 	for k, v := range list.Items {
+		item := v
 		result[k] = &RouteRoute{
 			client: group.client,
-			Route:  &v,
+			Route:  &item,
 		}
 	}
 	return

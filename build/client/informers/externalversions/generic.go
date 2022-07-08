@@ -21,7 +21,8 @@ package externalversions
 import (
 	"fmt"
 
-	v1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/api.nexus.org/v1"
+	v1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/admin.nexus.org/v1"
+	apinexusorgv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/api.nexus.org/v1"
 	apigatewaynexusorgv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/apigateway.nexus.org/v1"
 	authenticationnexusorgv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/authentication.nexus.org/v1"
 	confignexusorgv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/config.nexus.org/v1"
@@ -57,8 +58,12 @@ func (f *genericInformer) Lister() cache.GenericLister {
 // TODO extend this to unknown resources with a client pool
 func (f *sharedInformerFactory) ForResource(resource schema.GroupVersionResource) (GenericInformer, error) {
 	switch resource {
-	// Group=api.nexus.org, Version=v1
-	case v1.SchemeGroupVersion.WithResource("nexuses"):
+	// Group=admin.nexus.org, Version=v1
+	case v1.SchemeGroupVersion.WithResource("proxyrules"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.AdminNexus().V1().ProxyRules().Informer()}, nil
+
+		// Group=api.nexus.org, Version=v1
+	case apinexusorgv1.SchemeGroupVersion.WithResource("nexuses"):
 		return &genericInformer{resource: resource.GroupResource(), informer: f.ApiNexus().V1().Nexuses().Informer()}, nil
 
 		// Group=apigateway.nexus.org, Version=v1
