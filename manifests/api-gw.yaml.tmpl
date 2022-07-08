@@ -110,6 +110,10 @@ spec:
               value: nexus-nginx
             - name: DEFAULT_BACKEND_SERVICE_PORT
               value: "80"
+            - name: LOG_LEVEL
+              value: DEBUG
+            - name: GATEWAY_MODE
+              value: {{.GatewayMode}}
             - name: NAMESPACE
               valueFrom:
                 fieldRef:
@@ -262,6 +266,10 @@ spec:
     name: https
     port: 443
     targetPort: 443
+  - protocol: TCP
+    name: http-xds
+    port: 18000
+    targetPort: 18000
   selector:
     control-plane: api-gw
 ---

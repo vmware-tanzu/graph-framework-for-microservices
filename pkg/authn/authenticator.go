@@ -1,6 +1,8 @@
 package authn
 
 import (
+	"api-gw/pkg/common"
+	"api-gw/pkg/envoy"
 	"api-gw/pkg/model"
 	"context"
 	"encoding/json"
@@ -18,6 +20,7 @@ import (
 	"github.com/labstack/echo/v4"
 	log "github.com/sirupsen/logrus"
 	authnexusv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/authentication.nexus.org/v1"
+	nexus_client "golang-appnet.eng.vmware.com/nexus-sdk/api/build/nexus-client"
 	"golang.org/x/oauth2"
 )
 
@@ -25,6 +28,8 @@ import (
 type Authenticator struct {
 	*oidc.Provider
 	oauth2.Config
+	WellKnownIssuer         string
+	WellKnownJwksUri        string
 	Jwks                    *keyfunc.JWKS
 	OAuthIssuerURL          string
 	SkipClientAudValidation bool
@@ -53,14 +58,19 @@ func HandleOidcNodeUpdate(event *model.OidcNodeEvent, e *echo.Echo) error {
 	// Currently, however, we support only 1 OIDC object being present
 	if event.Type == model.Delete {
 		if authenticator != nil {
-			authenticator.Jwks.EndBackground()
+			if authenticator.Jwks != nil {
+				authenticator.Jwks.EndBackground()
+			}
 			authenticator = nil
 			log.Infoln("Disabling OIDC...")
-			return nil
 		} else {
 			log.Debugln("no authenticator present, nothing to do")
-			return nil
 		}
+		err := envoy.DeleteJwtAuthnConfig()
+		if err != nil {
+			return fmt.Errorf("error deleting envoy jwt authn config: %s", err)
+		}
+		return nil
 	}
 
 	err := validateOidcSpec(event.Oidc.Spec)
@@ -74,13 +84,24 @@ func HandleOidcNodeUpdate(event *model.OidcNodeEvent, e *echo.Echo) error {
 		return ErrAuthenticatorInit
 	}
 
-	err = RegisterCallbackHandler(e)
+	var callbackPath string
+	callbackPath, err = RegisterCallbackHandler(e)
 	if err != nil {
 		log.Errorf("Could not create OIDC callback endpoint from %s: %v\n", authenticator.RedirectURL, err)
 		return ErrCallbackEndpointCreation
 	}
-
 	log.Infoln("Successfully initialized OIDC Authenticator")
+
+	// Update Envoy state
+	err = envoy.AddJwtAuthnConfig(&envoy.JwtAuthnConfig{
+		Issuer:           authenticator.WellKnownIssuer,
+		IdpName:          event.Oidc.Name,
+		JwksUri:          authenticator.WellKnownJwksUri,
+		CallbackEndpoint: callbackPath,
+	})
+	if err != nil {
+		return fmt.Errorf("error adding envoy jwt authn config: %s", err)
+	}
 	return nil
 }
 
@@ -117,19 +138,19 @@ func isValidUrl(input string) error {
 	return nil
 }
 
-// RegisterCallbackHandler register the OAuth callback URL
-func RegisterCallbackHandler(e *echo.Echo) error {
+// RegisterCallbackHandler register the OAuth callback URL, also returns the registered URI path
+func RegisterCallbackHandler(e *echo.Echo) (string, error) {
 	if authenticator == nil {
 		log.Debugln("authenticator is nil, nothing to do")
-		return nil
+		return "", nil
 	}
 	callbackUrl, err := url.ParseRequestURI(authenticator.RedirectURL)
 	if err != nil {
-		return fmt.Errorf("Could not create callback endpoint from %s: %v\n", authenticator.RedirectURL, err)
+		return "", fmt.Errorf("Could not create callback endpoint from %s: %v", authenticator.RedirectURL, err)
 	}
 	e.Any(callbackUrl.Path, CallbackHandler)
 	log.Debugf("successfully registered callback handler at %s", callbackUrl.Path)
-	return nil
+	return callbackUrl.Path, nil
 }
 
 // newAuthenticator instantiates the *Authenticator.
@@ -149,25 +170,39 @@ func newAuthenticator(oidcNode authnexusv1.OIDC) (*Authenticator, error) {
 		return nil, err
 	}
 
-	jwksUri, err := getJwksUri(oidcNode.Spec.Config.OAuthIssuerUrl)
+	wellknownJson, err := getWellKnownJson(oidcNode.Spec.Config.OAuthIssuerUrl)
 	if err != nil {
-		log.Errorf("Error getting JWKS URI for the issuer: %s\n", oidcNode.Spec.Config.OAuthIssuerUrl)
+		log.Errorf("Error getting wellknown json for the issuer: %s\n", oidcNode.Spec.Config.OAuthIssuerUrl)
 		return nil, err
 	}
 
-	// Create the JWKS from the resource at the given URL.
-	keyfuncOptions := keyfunc.Options{
-		RefreshInterval:  1 * time.Hour,
-		RefreshRateLimit: 1 * time.Hour,
-		RefreshErrorHandler: func(err error) {
-			log.Errorf("Error while refreshing JWKS: %s\n", err)
-		},
-		RefreshUnknownKID: true,
+	jwksUri, ok := wellknownJson["jwks_uri"].(string)
+	if !ok {
+		return nil, fmt.Errorf("failed to convert wellknown[jwks_uri] to string")
 	}
-	jwks, err := keyfunc.Get(jwksUri, keyfuncOptions)
-	if err != nil {
-		log.Errorf("Failed to get the JWKS from the given URL: %s\n", err)
-		return nil, err
+
+	var jwks *keyfunc.JWKS = nil
+	if !common.IsModeAdmin() {
+		// Create the JWKS from the resource at the given URL.
+		keyfuncOptions := keyfunc.Options{
+			RefreshInterval:  1 * time.Hour,
+			RefreshRateLimit: 1 * time.Hour,
+			RefreshErrorHandler: func(err error) {
+				log.Errorf("Error while refreshing JWKS: %s\n", err)
+			},
+			RefreshUnknownKID: true,
+		}
+		jwks, err = keyfunc.Get(jwksUri, keyfuncOptions)
+		if err != nil {
+			log.Errorf("Failed to get the JWKS from the given URL: %s\n", err)
+			return nil, err
+		}
+	}
+
+	var issuer string
+	issuer, ok = wellknownJson["issuer"].(string)
+	if !ok {
+		return nil, fmt.Errorf("failed to convert wellknown[issuer] to string")
 	}
 
 	// TODO NPT-312 add a validation webhook to validate the OIDC params
@@ -182,6 +217,8 @@ func newAuthenticator(oidcNode authnexusv1.OIDC) (*Authenticator, error) {
 	return &Authenticator{
 		Provider:                provider,
 		Config:                  conf,
+		WellKnownIssuer:         issuer,
+		WellKnownJwksUri:        jwksUri,
 		Jwks:                    jwks,
 		OAuthIssuerURL:          oidcNode.Spec.Config.OAuthIssuerUrl,
 		SkipIssuerValidation:    oidcNode.Spec.ValidationProps.SkipIssuerValidation,
@@ -192,7 +229,7 @@ func newAuthenticator(oidcNode authnexusv1.OIDC) (*Authenticator, error) {
 
 // VerifyAndGetIDToken verifies that an *oauth2.Token is a valid *oidc.IDToken.
 func (a *Authenticator) VerifyAndGetIDToken(ctx context.Context, token *oauth2.Token) (*oidc.IDToken, error) {
-	rawIDToken := token.Extra(idTokenStr)
+	rawIDToken := token.Extra(common.IdTokenStr)
 	if rawIDToken == nil {
 		return nil, fmt.Errorf("id_token not found")
 	}
@@ -209,7 +246,7 @@ func (a *Authenticator) VerifyAndGetIDToken(ctx context.Context, token *oauth2.T
 	}
 	verifier := a.Verifier(config)
 	if verifier == nil {
-		return nil, fmt.Errorf("Failed to create a verifier with config %v\n", config)
+		return nil, fmt.Errorf("Failed to create a verifier with config %v", config)
 	}
 	return verifier.Verify(ctx, idToken)
 }
@@ -239,10 +276,19 @@ func VerifyAuthenticationMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 }
 
 func isAuthenticated(c echo.Context) *AuthError {
-	accessToken, authErr := getTokenInRequest(c, accessTokenStr)
+	if !isOidcEnabled() {
+		return nil
+	}
+
+	accessToken, authErr := getTokenInRequest(c, common.AccessTokenStr)
 	if authErr != nil {
-		log.Warnf("Couldn't find %s in request\n", accessTokenStr)
+		log.Warnf("Couldn't find %s in request\n", common.AccessTokenStr)
 		return ErrTokenNotFound
+	}
+
+	if authenticator.Jwks == nil {
+		log.Errorln("jwks not initialized")
+		return ErrJwksNotInitialized
 	}
 
 	// Parse the JWT and validate the signature
@@ -277,17 +323,18 @@ func validateClaims(claims jwt.MapClaims) bool {
 	return validIss && validCid
 }
 
-// getJwksUri uses the OIDC provider's discovery endpoint to learn the JWKS URI (where the signing keys are published)
-func getJwksUri(issuerURL string) (string, error) {
+// getWellKnownJson uses the OIDC provider's discovery endpoint to learn fetch the IDP metadata and
+// return it as an unmarshalled json object
+func getWellKnownJson(issuerURL string) (map[string]interface{}, error) {
 	wellKnown := strings.TrimSuffix(issuerURL, "/") + "/.well-known/openid-configuration"
 	if err := isValidUrl(wellKnown); err != nil {
-		return "", fmt.Errorf("invalid well-known URL for given issuer URL %s; err=%s", issuerURL, err)
+		return nil, fmt.Errorf("invalid well-known URL for given issuer URL %s; err=%s", issuerURL, err)
 	}
 
 	resp, err := http.Get(wellKnown)
 	if err != nil {
 		log.Errorf("Failed to get JWKS URI from the discovery URL: %s\n", err)
-		return "", err
+		return nil, err
 	}
 	defer resp.Body.Close()
 
@@ -295,25 +342,14 @@ func getJwksUri(issuerURL string) (string, error) {
 	bodyBytes, err := io.ReadAll(resp.Body)
 	if err != nil {
 		log.Errorf("Error while reading body of JWKS URI response: %s\n", err)
-		return "", err
+		return nil, err
 	}
 	err = json.Unmarshal(bodyBytes, &jsonObject)
 	if err != nil {
 		log.Errorf("Failed to unmarshall body of JWKS URI response to JSON: %s\n", err)
-		return "", err
+		return nil, err
 	}
-	jwksUri := jsonObject["jwks_uri"]
-	if jwksUri != nil {
-		uri, ok := jsonObject["jwks_uri"].(string)
-		if !ok {
-			return "", fmt.Errorf("jwks_uri field not found")
-		}
-		if uri == "" {
-			return "", fmt.Errorf("jwks_uri empty. aborting")
-		}
-		return uri, nil
-	}
-	return "", fmt.Errorf("jwks_uri field not found")
+	return jsonObject, nil
 }
 
 ////////// util functions ///////////////
@@ -337,7 +373,7 @@ func getTokenInRequest(c echo.Context, name string) (string, *AuthError) {
 
 // getTokenInBearer retrieves the access token from the 'Authorization' header
 func getTokenInBearer(c echo.Context) (string, *AuthError) {
-	token := c.Request().Header.Get(authorizationHeader)
+	token := c.Request().Header.Get(common.AuthorizationHeader)
 	if token == "" {
 		return "", ErrTokenNotFound
 	}
@@ -347,8 +383,42 @@ func getTokenInBearer(c echo.Context) (string, *AuthError) {
 		return "", ErrTokenFormatInvalid
 	}
 
-	if items[0] != authorizationTypeBearer {
+	if items[0] != common.AuthorizationTypeBearer {
 		return "", ErrTokenNotFound
 	}
 	return items[1], nil
+}
+
+func GetIssuer(jwt *nexus_client.AuthenticationOIDC) (string, error) {
+	wellKnownJson, err := getWellKnownJson(jwt.Spec.Config.OAuthIssuerUrl)
+	if err != nil {
+		return "", err
+	}
+	var issuer string
+	issuer, ok := wellKnownJson["issuer"].(string)
+	if !ok {
+		return "", fmt.Errorf("GetIssuer: failed to convert wellknown[issuer] to string")
+	}
+	return issuer, nil
+}
+
+func GetJwksUri(jwt *nexus_client.AuthenticationOIDC) (string, error) {
+	wellKnownJson, err := getWellKnownJson(jwt.Spec.Config.OAuthIssuerUrl)
+	if err != nil {
+		return "", err
+	}
+	var jwksUri string
+	jwksUri, ok := wellKnownJson["jwks_uri"].(string)
+	if !ok {
+		return "", fmt.Errorf("GetJwksUri: failed to convert wellknown[jwksUri] to string")
+	}
+	return jwksUri, nil
+}
+
+func GetCallbackEndpoint(jwt *nexus_client.AuthenticationOIDC) (string, error) {
+	callbackUrl, err := url.ParseRequestURI(jwt.Spec.Config.OAuthRedirectUrl)
+	if err != nil {
+		return "", fmt.Errorf("GetCallbackEndpoint: could not create callback endpoint from %s: %v", authenticator.RedirectURL, err)
+	}
+	return callbackUrl.Path, nil
 }

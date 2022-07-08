@@ -26,6 +26,9 @@ var (
 
 	// ErrTokenClaimsInvalid indicates that at least one of the claims present in the token was invalid
 	ErrTokenClaimsInvalid = &AuthError{"one or more claims were invalid", false}
+
+	// ErrJwksNotInitialized indicates that the JWKS key fetcher was not initialized
+	ErrJwksNotInitialized = &AuthError{"jwks not initialized", false}
 )
 
 var (

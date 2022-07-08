@@ -1,11 +1,13 @@
 package authn
 
 import (
+	"api-gw/pkg/common"
 	"fmt"
+	"net/http"
+
 	"github.com/labstack/echo/v4"
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/oauth2"
-	"net/http"
 )
 
 // CallbackHandler is the handler for the OAuth callback. We expect to receive an authorization "code"
@@ -47,26 +49,47 @@ func CallbackHandler(c echo.Context) error {
 	// TODO NPT-307 consider creating an HTTP session and store the tokens within the session rather than
 	// setting the tokens themselves into the cookie
 	setCookieFromToken(c, token)
-	c.Redirect(http.StatusFound, c.QueryParam(stateQueryParam))
+	state := c.QueryParam(stateQueryParam)
+	if state == common.LoginEndpoint {
+		c.Response().Header().Set(common.AccessTokenStr, token.AccessToken)
+		c.Response().Header().Set(common.RefreshTokenStr, token.RefreshToken)
+		rawIDToken := token.Extra(common.IdTokenStr)
+		if rawIDToken == nil {
+			log.Errorln("id_token not found")
+			c.String(http.StatusUnauthorized, "failed to fetch id_token")
+			return fmt.Errorf("failed to fetch id_token")
+		} else {
+			idToken, ok := rawIDToken.(string)
+			if ok {
+				c.Response().Header().Set(common.IdTokenStr, idToken)
+			} else {
+				c.String(http.StatusUnauthorized, "invalid id_token")
+				return fmt.Errorf("invalid id_token")
+			}
+		}
+		c.String(http.StatusOK, "Login successful")
+		return nil
+	}
+	c.Redirect(http.StatusTemporaryRedirect, state)
 	return nil
 }
 
 func setCookieFromToken(c echo.Context, token *oauth2.Token) {
 	accessTokenCookie := new(http.Cookie)
-	accessTokenCookie.Name = accessTokenStr
+	accessTokenCookie.Name = common.AccessTokenStr
 	accessTokenCookie.Value = token.AccessToken
 	accessTokenCookie.Expires = token.Expiry
 	c.SetCookie(accessTokenCookie)
 
 	refreshTokenCookie := new(http.Cookie)
-	refreshTokenCookie.Name = refreshTokenStr
+	refreshTokenCookie.Name = common.RefreshTokenStr
 	refreshTokenCookie.Value = token.RefreshToken
 	refreshTokenCookie.Expires = token.Expiry
 	c.SetCookie(refreshTokenCookie)
 
 	idTokenCookie := new(http.Cookie)
-	idTokenCookie.Name = idTokenStr
-	rawIDToken := token.Extra(idTokenStr)
+	idTokenCookie.Name = common.IdTokenStr
+	rawIDToken := token.Extra(common.IdTokenStr)
 	if rawIDToken == nil {
 		log.Errorln("id_token not found")
 	} else {

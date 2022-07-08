@@ -2,20 +2,24 @@ package echo_server
 
 import (
 	"api-gw/pkg/authn"
+	"api-gw/pkg/common"
 	"api-gw/pkg/openapi/api"
 	"api-gw/pkg/openapi/declarative"
 	"context"
 	"fmt"
+	"net/http"
+	"os"
+	"strings"
+
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
-	"net/http"
-	"strings"
 
 	log "github.com/sirupsen/logrus"
 
 	"api-gw/pkg/config"
 	"api-gw/pkg/model"
 	"api-gw/pkg/utils"
+
 	openMiddleware "github.com/go-openapi/runtime/middleware"
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/common-library.git/pkg/nexus"
 )
@@ -37,6 +41,9 @@ func InitEcho(stopCh chan struct{}, conf *config.Config) {
 		e.RegisterDeclarativeRoutes()
 		e.RegisterDeclarativeRouter()
 	}
+
+	common.Mode = os.Getenv("GATEWAY_MODE")
+	log.Infof("Gateway Mode: %s", common.Mode)
 
 	e.Start(stopCh)
 }
@@ -99,23 +106,14 @@ func (s *EchoServer) RegisterNexusRoutes() {
 	}
 	s.Echo.GET("/docs", echo.WrapHandler(openMiddleware.SwaggerUI(opts, nil)))
 
-	err := authn.RegisterCallbackHandler(s.Echo)
+	_, err := authn.RegisterCallbackHandler(s.Echo)
 	if err != nil {
 		log.Errorln("Error registering the OIDC callback path")
 		// should we panic?
 	}
-
-	err = authn.RegisterRefreshAccessTokenEndpoint(s.Echo)
-	if err != nil {
-		log.Errorln("Error registering the OIDC refresh access token path")
-		// should we panic?
-	}
-
-	err = authn.RegisterLogoutEndpoint(s.Echo)
-	if err != nil {
-		log.Errorln("Error registering the logout path")
-		// should we panic?
-	}
+	authn.RegisterLoginEndpoint(s.Echo)
+	authn.RegisterRefreshAccessTokenEndpoint(s.Echo)
+	authn.RegisterLogoutEndpoint(s.Echo)
 }
 
 func (s *EchoServer) RegisterDeclarativeRoutes() {
@@ -129,39 +127,39 @@ func (s *EchoServer) RegisterRouter(restURI nexus.RestURIs) {
 	for method, codes := range restURI.Methods {
 		log.Infof("Registered Router Path %s Method %s\n", urlPattern, method)
 		switch method {
+		// in "admin" mode, the responsibility of authentication is offloaded to the nexus-proxy.
+		// so we don't need to add the authn.VerifyAuthenticationMiddleware middleware
 		case http.MethodGet:
-			s.Echo.GET(urlPattern, getHandler, authn.VerifyAuthenticationMiddleware, func(next echo.HandlerFunc) echo.HandlerFunc {
-				return func(c echo.Context) error {
-					nc := &NexusContext{
-						Context:  c,
-						NexusURI: restURI.Uri,
-						Codes:    codes,
-					}
-					return next(nc)
-				}
-			})
+			if common.IsModeAdmin() {
+				s.Echo.GET(urlPattern, getHandler, getNexusContext(restURI, codes))
+			} else {
+				s.Echo.GET(urlPattern, getHandler, authn.VerifyAuthenticationMiddleware, getNexusContext(restURI, codes))
+			}
 		case http.MethodPut:
-			s.Echo.PUT(urlPattern, putHandler, authn.VerifyAuthenticationMiddleware, func(next echo.HandlerFunc) echo.HandlerFunc {
-				return func(c echo.Context) error {
-					nc := &NexusContext{
-						Context:  c,
-						NexusURI: restURI.Uri,
-						Codes:    codes,
-					}
-					return next(nc)
-				}
-			})
+			if common.IsModeAdmin() {
+				s.Echo.PUT(urlPattern, putHandler, getNexusContext(restURI, codes))
+			} else {
+				s.Echo.PUT(urlPattern, putHandler, authn.VerifyAuthenticationMiddleware, getNexusContext(restURI, codes))
+			}
 		case http.MethodDelete:
-			s.Echo.DELETE(urlPattern, deleteHandler, authn.VerifyAuthenticationMiddleware, func(next echo.HandlerFunc) echo.HandlerFunc {
-				return func(c echo.Context) error {
-					nc := &NexusContext{
-						Context:  c,
-						NexusURI: restURI.Uri,
-						Codes:    codes,
-					}
-					return next(nc)
-				}
-			})
+			if common.IsModeAdmin() {
+				s.Echo.DELETE(urlPattern, deleteHandler, getNexusContext(restURI, codes))
+			} else {
+				s.Echo.DELETE(urlPattern, deleteHandler, authn.VerifyAuthenticationMiddleware, getNexusContext(restURI, codes))
+			}
+		}
+	}
+}
+
+func getNexusContext(restURI nexus.RestURIs, codes nexus.HTTPCodesResponse) func(next echo.HandlerFunc) echo.HandlerFunc {
+	return func(next echo.HandlerFunc) echo.HandlerFunc {
+		return func(c echo.Context) error {
+			nc := &NexusContext{
+				Context:  c,
+				NexusURI: restURI.Uri,
+				Codes:    codes,
+			}
+			return next(nc)
 		}
 	}
 }
