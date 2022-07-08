@@ -40,11 +40,15 @@ func SetupContext(uri string, method string, item *openapi3.Operation) *Endpoint
 	requiredParams := extractUriParams(uri)
 	idParam := extractIdParam(uri, requiredParams)
 	operationName := GetExtensionVal(item, "x-operation-name")
+	listEndpoint := GetExtensionVal(item, NexusListEndpoint)
 
 	path := fmt.Sprintf(resourceNamePattern, groupName, resourceName)
 
 	single := true
-	if strings.Contains(operationName, "List") || IsArrayResponse(item) || method == http.MethodPut {
+	if strings.Contains(operationName, "List") ||
+		IsArrayResponse(item) ||
+		listEndpoint == "true" ||
+		method == http.MethodPut {
 		single = false
 		path = fmt.Sprintf(resourcePattern, groupName, resourceName)
 	}

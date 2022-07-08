@@ -4,16 +4,16 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"os"
-	"strconv"
+	"strings"
 
 	"github.com/getkin/kin-openapi/openapi3"
-	log "github.com/sirupsen/logrus"
 )
 
 var supportedOperations = []string{"GET", "DELETE", "PUT"}
 
 const NexusKindName = "x-nexus-kind-name"
 const NexusGroupName = "x-nexus-group-name"
+const NexusListEndpoint = "x-nexus-list-endpoint"
 
 var (
 	Paths    = make(map[string]*openapi3.PathItem)
@@ -74,11 +74,11 @@ func GetExtensionVal(operation *openapi3.Operation, key string) string {
 
 	out, _ := val.(json.RawMessage).MarshalJSON()
 	outStr := string(out)
-	outStr, err := strconv.Unquote(outStr)
-	if err != nil {
-		log.Warn(err)
-		return ""
+
+	if strings.HasPrefix(outStr, `"`) && strings.HasSuffix(outStr, `"`) && len(outStr) > 2 {
+		return outStr[1 : len(outStr)-1]
 	}
+
 	return outStr
 }
 
