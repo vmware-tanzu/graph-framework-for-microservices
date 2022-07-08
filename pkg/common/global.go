@@ -65,9 +65,6 @@ var RuntimePodLabels = []string{
 	"-lname=nexus-kube-controllermanager",
 	"-lapp=nexus-validation",
 	"-lapp.kubernetes.io/component=controller,app.kubernetes.io/name=ingress-nginx",
-}
-
-var ApiDmDependentPodLabels = []string{
 	"-lcontrol-plane=api-gw",
 }
 
@@ -88,6 +85,7 @@ type ImageTemplate struct {
 	ImagePullSecret      string
 	Namespace            string
 	NetworkingAPIVersion string
+	GatewayMode          string
 }
 
 type Manifest struct {

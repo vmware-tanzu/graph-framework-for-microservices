@@ -387,6 +387,15 @@ func CheckPodRunning(cmd *cobra.Command, customErr ClientErrorCode, labels, name
 	return nil
 }
 
+func CheckJobComplete(cmd *cobra.Command, customErr ClientErrorCode, name, namespace string) error {
+	err := SystemCommand(cmd, customErr, []string{}, "kubectl", "wait", "--for=condition=complete", "job", name, "-n", namespace, "--timeout=300s")
+	if err != nil {
+		return GetCustomError(customErr,
+			fmt.Errorf("%s job is not complete yet", name)).Print().ExitIfFatalOrReturn()
+	}
+	return nil
+}
+
 func GetPodByLabelAndState(namespace, labels string, state v1.PodPhase) *v1.Pod {
 	kubeClient := getK8sClient()
 
@@ -432,12 +441,12 @@ func GetK8sConfig() *rest.Config {
 	return cfg
 }
 
-func CheckLocalAPIServer(url string, totalRetries int, waitPeriod time.Duration) error {
+// CheckPortForwardSessionActive does an HTTP GET to the url and returns nil if we get a 200
+func CheckPortForwardSessionActive(url string, totalRetries int, waitPeriod time.Duration) error {
 	var currentRetries = 0
 	var times int = 0
-	endpoint := "/api/v1/namespaces/"
 	for currentRetries < totalRetries {
-		resp, err := http.Get(fmt.Sprintf("http://%s/%s", url, endpoint))
+		resp, err := http.Get(fmt.Sprintf("http://%s", url))
 		if err != nil {
 			time.Sleep(waitPeriod)
 			continue
@@ -450,7 +459,7 @@ func CheckLocalAPIServer(url string, totalRetries int, waitPeriod time.Duration)
 		}
 		currentRetries++
 		if currentRetries == totalRetries {
-			return errors.New("LocalAPIServer not running...")
+			return errors.New("max retries reached, port-forward session couldn't be created")
 		}
 	}
 	return nil
