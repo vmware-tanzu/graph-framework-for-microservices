@@ -175,6 +175,32 @@ paths:
               schema:
                 $ref: '#/components/schemas/ApiHttpError'
       operationId: GlobalNamespaceControllerV1Alpha1.getGNSListV1
+  /v1alpha1/global-namespaces/test:
+    get:
+      x-controller-name: GlobalNamespaceControllerV1Alpha1
+      x-operation-name: getGNSListV1
+      tags:
+        - Global Namespaces (v1alpha1)
+      description: Get a list of GNS IDs that are defined
+      x-nexus-kind-name: GlobalNamespaceList
+      x-nexus-group-name: gns.vmware.org
+      x-nexus-list-endpoint: true
+      responses:
+        '200':
+          description: list of gns defined
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: string
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiHttpError'
+      operationId: GlobalNamespaceControllerV1Alpha1.getGNSListV1
 components:
   schemas:
     ApiHttpError:
