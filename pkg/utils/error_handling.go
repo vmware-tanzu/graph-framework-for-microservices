@@ -39,6 +39,7 @@ const (
 	DATAMODEL_DIRECTORY_MISMATCH                 ClientErrorCode = 27
 	RUNTIME_PREREQUISITE_IMAGE_PREP_FAILED       ClientErrorCode = 28
 	RUNTIME_INSTALL_API_DATAMODEL_INSTALL_FAILED ClientErrorCode = 29
+	RUNTIME_INSTALL_API_DATAMODEL_INIT_FAILED    ClientErrorCode = 30
 )
 
 // ClientError defines error and information around it that are specific
@@ -241,6 +242,16 @@ var wellKnownErrors = map[ClientErrorCode]ClientError{
 	},
 	RUNTIME_INSTALL_API_DATAMODEL_INSTALL_FAILED: {
 		Description: "installing API datamodel to nexus-apiserver failed",
+		WhatNext: []string{
+			"run with --debug option",
+			"verify that you have internet connectivity",
+			"verify that the kube context is set correctly",
+			"ensure that you have free ports to port-forward to the nexus-proxy-container",
+		},
+		fatal: true,
+	},
+	RUNTIME_INSTALL_API_DATAMODEL_INIT_FAILED: {
+		Description: "initializing API datamodel on nexus-apiserver failed",
 		WhatNext: []string{
 			"run with --debug option",
 			"verify that you have internet connectivity",

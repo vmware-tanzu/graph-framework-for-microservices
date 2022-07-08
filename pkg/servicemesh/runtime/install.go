@@ -36,6 +36,11 @@ var prerequisites = []prereq.Prerequiste{
 	prereq.KUBERNETES_VERSION,
 }
 
+type portForwardSession struct {
+	localPort int
+	stopCh    chan struct{}
+}
+
 var InstallCmd = &cobra.Command{
 	Use:   "install",
 	Short: "Installs the Nexus runtime on the specified namespace",
@@ -185,8 +190,12 @@ func Install(cmd *cobra.Command, args []string) error {
 	} else {
 		IsImagePullSecret = true
 	}
-
 	log.Debugf("Using Images from %s registry for api-gateway and nexus-validation\n", Registry)
+
+	var gatewayMode = "tenant"
+	if IsNexusAdmin {
+		gatewayMode = "admin"
+	}
 
 	for index, manifest := range common.RuntimeManifests {
 		if manifest.Templatized {
@@ -196,6 +205,7 @@ func Install(cmd *cobra.Command, args []string) error {
 				ImagePullSecret:      ImagePullSecret,
 				Namespace:            Namespace,
 				NetworkingAPIVersion: NetworkingAPIVersion,
+				GatewayMode:          gatewayMode,
 			}
 		}
 		common.RuntimeManifests[index] = manifest
@@ -257,31 +267,53 @@ func Install(cmd *cobra.Command, args []string) error {
 	}
 
 	fmt.Println("Installing API Datamodel CRDs...")
-	err = installApiDatamodel(cmd, versions)
+	err = installApiDatamodelCrds(cmd, versions)
 	if err != nil {
 		utils.GetCustomError(utils.RUNTIME_INSTALL_API_DATAMODEL_INSTALL_FAILED,
 			fmt.Errorf("installing API datamodel on nexus-apiserver failed: %s", err)).Print().ExitIfFatalOrReturn()
 	}
-	for _, label := range common.ApiDmDependentPodLabels {
-		utils.CheckPodRunning(cmd, utils.RUNTIME_INSTALL_FAILED, label, Namespace)
+
+	fmt.Println("checking for the nexus-api-dm-obj-installer to have completed...")
+	err = utils.CheckJobComplete(cmd, utils.RUNTIME_INSTALL_API_DATAMODEL_INIT_FAILED, "nexus-api-dm-obj-installer", Namespace)
+	if err != nil {
+		return utils.GetCustomError(utils.RUNTIME_INSTALL_API_DATAMODEL_INIT_FAILED,
+			fmt.Errorf("creating API datamodel nodes on nexus-apiserver failed: %s", err)).Print().ExitIfFatalOrReturn()
 	}
 
 	fmt.Printf("\u2713 Runtime installation successful on namespace %s\n", Namespace)
 	return nil
 }
 
-func installApiDatamodel(cmd *cobra.Command, values version.NexusValues) error {
+func installApiDatamodelCrds(cmd *cobra.Command, values version.NexusValues) error {
 	dir, err := DownloadManifestsFile(common.NexusApiDatamodelManifest, values)
 	if err != nil {
 		fmt.Println("Error downloading API datamodel manifest")
 		return err
 	}
+	defer os.RemoveAll(dir)
+	defer os.RemoveAll(common.NexusApiDatamodelManifest.FileName)
 
 	// get a nexus-proxy-container pod
 	labels := "app=nexus-proxy-container"
+	pfSession, pfErr := startPortForward(labels, 8001, "/api/v1/namespaces/")
+	if pfErr != nil {
+		return fmt.Errorf("portforward failed due to error: %s\n", pfErr)
+		return pfErr
+	}
+	defer pfSession.stopPortForward()
+
+	// apply CRDs
+	err = utils.SystemCommand(cmd, utils.RUNTIME_INSTALL_FAILED, []string{}, "kubectl", "apply", "-f", dir, "--recursive", "-s", fmt.Sprintf("%s:%d", "localhost", pfSession.localPort))
+	if err != nil {
+		return fmt.Errorf("applying API datamodel failed due to error: %s", err.Error())
+	}
+	return nil
+}
+
+func startPortForward(labels string, containerPort int, healthEndpoint string) (*portForwardSession, error) {
 	nexusProxyContainerPod := utils.GetPodByLabelAndState(Namespace, labels, v1.PodRunning)
 	if nexusProxyContainerPod == nil {
-		return fmt.Errorf("no running pod with label %s found", labels)
+		return nil, fmt.Errorf("no running pod with label %s found", labels)
 	}
 
 	// channels to manage lifecycle of the port-forward session
@@ -304,36 +336,26 @@ func installApiDatamodel(cmd *cobra.Command, values version.NexusValues) error {
 
 	// prepare for port-forward
 	localPort := rand.IntnRange(40000, 45000)
-	nexusProxyContainerPort := 8001
 	go func() {
-		err = utils.StartPortforward(nexusProxyContainerPod.Name, Namespace, localPort, nexusProxyContainerPort, stopCh, readyCh, os.Stdout, os.Stdout)
+		err := utils.StartPortforward(nexusProxyContainerPod.Name, Namespace, localPort, containerPort, stopCh, readyCh, os.Stdout, os.Stdout)
 		if err != nil {
 			fmt.Printf("error initiating port-forward to %s: %s\n", nexusProxyContainerPod.Name, err.Error())
-			os.Exit(1)
 		}
 	}()
 	fmt.Printf("Started port-forward to pod %s on port %d\n", nexusProxyContainerPod.Name, localPort)
 
-	// give the port-forward a few secs
-	err = utils.CheckLocalAPIServer(fmt.Sprintf("%s:%d", "localhost", localPort), 30, 2*time.Second)
+	err := utils.CheckPortForwardSessionActive(fmt.Sprintf("%s:%d/%s", "localhost", localPort, strings.TrimPrefix(healthEndpoint, "/")), 30, 2*time.Second)
 	if err != nil {
-		return fmt.Errorf("checking local apiserver started failed ")
+		return nil, fmt.Errorf("checking local apiserver started failed ")
 	}
 
-	// apply CRDs
-	err = utils.SystemCommand(cmd, utils.RUNTIME_INSTALL_FAILED, []string{}, "kubectl", "apply", "-f", dir, "--recursive", "-s", fmt.Sprintf("%s:%d", "localhost", localPort))
-	if err != nil {
-		return fmt.Errorf("applying API datamodel failed due to error: %s", err.Error())
+	return &portForwardSession{localPort: localPort, stopCh: stopCh}, nil
+}
+
+func (pfs *portForwardSession) stopPortForward() {
+	if pfs != nil && pfs.stopCh != nil {
+		pfs.stopCh <- struct{}{}
 	}
-
-	// stop port-forward
-	stopCh <- struct{}{}
-
-	// cleanup
-	os.RemoveAll(dir)
-	os.RemoveAll(common.NexusApiDatamodelManifest.FileName)
-
-	return nil
 }
 
 func init() {
