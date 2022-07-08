@@ -52,6 +52,7 @@ func updateObject(gvr schema.GroupVersionResource, res *unstructured.Unstructure
 			log.Errorf("Resource %v creation failed with an error: %v", res.GetName(), err)
 			return err
 		}
+		return nil
 	}
 
 	// Ignore relationships.
