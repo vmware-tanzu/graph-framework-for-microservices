@@ -49,9 +49,28 @@ spec:
             - description
             - color
             type: object
+          status:
+            properties:
+              nexus:
+                properties:
+                  remoteGeneration:
+                    format: int32
+                    type: integer
+                  sourceGeneration:
+                    format: int32
+                    type: integer
+                required:
+                - sourceGeneration
+                - remoteGeneration
+                type: object
+            required:
+            - nexus
+            type: object
         type: object
     served: true
     storage: true
+    subresources:
+      status: {}
 status:
   acceptedNames:
     kind: ""

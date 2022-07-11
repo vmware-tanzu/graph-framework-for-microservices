@@ -22,6 +22,12 @@ type Link struct {
 	Name     string `json:"name" yaml:"name"`
 }
 
+// +k8s:openapi-gen=true
+type Nexus struct {
+	SourceGeneration int `json:"sourceGeneration" yaml:"sourceGeneration"`
+	RemoteGeneration int `json:"remoteGeneration" yaml:"remoteGeneration"`
+}
+
 /* ------------------- CRDs definitions ------------------- */
 
 {{.CRDTypes}}
