@@ -24,9 +24,9 @@ type Link struct {
 }
 
 // +k8s:openapi-gen=true
-type Nexus struct {
-	SourceGeneration int `json:"sourceGeneration" yaml:"sourceGeneration"`
-	RemoteGeneration int `json:"remoteGeneration" yaml:"remoteGeneration"`
+type NexusStatus struct {
+	SourceGeneration int64 `json:"sourceGeneration" yaml:"sourceGeneration"`
+	RemoteGeneration int64 `json:"remoteGeneration" yaml:"remoteGeneration"`
 }
 
 /* ------------------- CRDs definitions ------------------- */
@@ -39,13 +39,13 @@ type Nexus struct {
 type Config struct {
 	metav1.TypeMeta   `json:",inline" yaml:",inline"`
 	metav1.ObjectMeta `json:"metadata" yaml:"metadata"`
-	Spec              ConfigSpec   `json:"spec,omitempty" yaml:"spec,omitempty"`
-	Status            ConfigStatus `json:"status" yaml:"status"`
+	Spec              ConfigSpec        `json:"spec,omitempty" yaml:"spec,omitempty"`
+	Status            ConfigNexusStatus `json:"status,omitempty" yaml:"status,omitempty"`
 }
 
 // +k8s:openapi-gen=true
-type ConfigStatus struct {
-	Nexus Nexus `json:"nexus" yaml:"nexus"`
+type ConfigNexusStatus struct {
+	Nexus NexusStatus `json:"nexus,omitempty" yaml:"nexus,omitempty"`
 }
 
 func (c *Config) CRDName() string {

@@ -42,9 +42,11 @@ func generateType(pkg parser.Package, node *ast.TypeSpec, aliasNameMap map[strin
 
 func generateCRDStructType(pkg parser.Package, node *ast.TypeSpec) string {
 	var s struct {
-		Name       string
-		StatusType string
-		CrdName    string
+		Name                 string
+		StatusType           string
+		StatusName           string
+		StatusNameFirstLower string
+		CrdName              string
 	}
 	spec := ""
 	if len(parser.GetSpecFields(node)) > 0 ||
@@ -52,13 +54,21 @@ func generateCRDStructType(pkg parser.Package, node *ast.TypeSpec) string {
 		len(parser.GetLinkFields(node)) > 0 {
 		spec = `Spec {{.Name}}Spec ` + "`" + `json:"spec,omitempty" yaml:"spec,omitempty"` + "`"
 	}
-
-	// status := ""
-	// statusField := parser.GetStatusField(node)
-	// if statusField != nil {
-	// 	status = `Status {{.StatusType}}` + "`" + `json:"{{.StatusType}},omitempty" yaml:"{{.StatusType}},omitempty"` + "`"
-	// 	s.StatusType = parser.GetFieldType(statusField)
-	// }
+	status := ""
+	statusField := parser.GetStatusField(node)
+	if statusField != nil {
+		status = `{{.StatusName}} {{.StatusType}}` + "`" + `json:"{{.StatusNameFirstLower}},omitempty" yaml:"{{.StatusNameFirstLower}},omitempty"` + "`"
+		s.StatusType = parser.GetFieldType(statusField)
+		statusName, err := parser.GetFieldName(statusField)
+		if err != nil {
+			log.Fatalf("failed to determine field name: %v", err)
+		}
+		if statusName == "" {
+			log.Fatalf("name of the user defined status field in nexus node can't be empty")
+		}
+		s.StatusName = statusName
+		s.StatusNameFirstLower = util.GetTag(statusName)
+	}
 
 	s.Name = parser.GetTypeName(node)
 	if s.Name == "" {
@@ -72,12 +82,13 @@ type {{.Name}} struct {
 	metav1.TypeMeta    ` + "`" + `json:",inline" yaml:",inline"` + "`" + `
 	metav1.ObjectMeta  ` + "`" + `json:"metadata" yaml:"metadata"` + "`" + `
 	` + spec + `
-	Status {{.Name}}Status` + "`" + `json:"status" yaml:"status"` + "`" + `
+	Status {{.Name}}NexusStatus` + "`" + `json:"status,omitempty" yaml:"status,omitempty"` + "`" + `
 }
 
 ` + openapigen + `
-type {{.Name}}Status struct{
-	Nexus Nexus` + "`" + `json:"nexus" yaml:"nexus"` + "`" + `
+type {{.Name}}NexusStatus struct{
+	` + status + `
+	Nexus NexusStatus` + "`" + `json:"nexus,omitempty" yaml:"nexus,omitempty"` + "`" + `
 }
 
 func (c *{{.Name}}) CRDName() string {

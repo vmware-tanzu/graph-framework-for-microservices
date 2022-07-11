@@ -138,17 +138,15 @@ spec:
               nexus:
                 properties:
                   remoteGeneration:
-                    format: int32
+                    format: int64
                     type: integer
                   sourceGeneration:
-                    format: int32
+                    format: int64
                     type: integer
                 required:
                 - sourceGeneration
                 - remoteGeneration
                 type: object
-            required:
-            - nexus
             type: object
         type: object
     served: true
