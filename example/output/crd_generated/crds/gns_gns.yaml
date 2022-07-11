@@ -110,18 +110,26 @@ spec:
             type: object
           status:
             properties:
-              Temperature:
-                format: int32
-                type: integer
-              Working:
-                type: boolean
+              nexus:
+                properties:
+                  remoteGeneration:
+                    format: int32
+                    type: integer
+                  sourceGeneration:
+                    format: int32
+                    type: integer
+                required:
+                - sourceGeneration
+                - remoteGeneration
+                type: object
             required:
-            - Working
-            - Temperature
+            - nexus
             type: object
         type: object
     served: true
     storage: true
+    subresources:
+      status: {}
 status:
   acceptedNames:
     kind: ""

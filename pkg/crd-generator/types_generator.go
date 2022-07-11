@@ -53,12 +53,12 @@ func generateCRDStructType(pkg parser.Package, node *ast.TypeSpec) string {
 		spec = `Spec {{.Name}}Spec ` + "`" + `json:"spec,omitempty" yaml:"spec,omitempty"` + "`"
 	}
 
-	status := ""
-	statusField := parser.GetStatusField(node)
-	if statusField != nil {
-		status = `Status {{.StatusType}}` + "`" + `json:"status,omitempty" yaml:"status,omitempty"` + "`"
-		s.StatusType = parser.GetFieldType(statusField)
-	}
+	// status := ""
+	// statusField := parser.GetStatusField(node)
+	// if statusField != nil {
+	// 	status = `Status {{.StatusType}}` + "`" + `json:"{{.StatusType}},omitempty" yaml:"{{.StatusType}},omitempty"` + "`"
+	// 	s.StatusType = parser.GetFieldType(statusField)
+	// }
 
 	s.Name = parser.GetTypeName(node)
 	if s.Name == "" {
@@ -72,7 +72,12 @@ type {{.Name}} struct {
 	metav1.TypeMeta    ` + "`" + `json:",inline" yaml:",inline"` + "`" + `
 	metav1.ObjectMeta  ` + "`" + `json:"metadata" yaml:"metadata"` + "`" + `
 	` + spec + `
-	` + status + `
+	Status {{.Name}}Status` + "`" + `json:"status" yaml:"status"` + "`" + `
+}
+
+` + openapigen + `
+type {{.Name}}Status struct{
+	Nexus Nexus` + "`" + `json:"nexus" yaml:"nexus"` + "`" + `
 }
 
 func (c *{{.Name}}) CRDName() string {
