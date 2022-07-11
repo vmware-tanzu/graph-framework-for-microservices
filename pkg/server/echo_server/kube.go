@@ -27,7 +27,7 @@ func kubeSetupProxy(e *echo.Echo) {
 }
 
 // kubeGetByNameHandler is used to process 'kubectl get <resource> <name>' requests
-func kubeGetByNameHandler(c echo.Context) error {
+func KubeGetByNameHandler(c echo.Context) error {
 	nc := c.(*NexusContext)
 
 	gvr := schema.GroupVersionResource{
@@ -47,7 +47,7 @@ func kubeGetByNameHandler(c echo.Context) error {
 }
 
 // kubeGetHandler is used to process `kubectl get <resource>' requests
-func kubeGetHandler(c echo.Context) error {
+func KubeGetHandler(c echo.Context) error {
 	nc := c.(*NexusContext)
 
 	opts := metav1.ListOptions{}
@@ -71,21 +71,14 @@ func kubeGetHandler(c echo.Context) error {
 	return c.JSON(200, obj)
 }
 
-// kubePostHandler is used to process `kubectl apply` requests
-func kubePostHandler(c echo.Context) error {
-	nc := c.(*NexusContext)
-	crdInfo := model.CrdTypeToNodeInfo[nc.CrdType]
-
-	body := &unstructured.Unstructured{}
-	if err := c.Bind(&body); err != nil {
-		return err
-	}
+func processBody(body *unstructured.Unstructured, nc *NexusContext, crdInfo model.NodeInfo) (*unstructured.Unstructured, map[string]string, string, string) {
+	displayName := body.GetName()
 	labels := body.GetLabels()
 	if labels == nil {
 		labels = make(map[string]string)
 	}
 	labels["nexus/is_name_hashed"] = "true"
-	labels["nexus/display_name"] = body.GetName()
+	labels["nexus/display_name"] = displayName
 
 	orderedLabels := nexus.ParseCRDLabels(crdInfo.ParentHierarchy, labels)
 	for _, key := range orderedLabels.Keys() {
@@ -93,9 +86,24 @@ func kubePostHandler(c echo.Context) error {
 		labels[key.(string)] = value.(string)
 	}
 
-	hashedName := nexus.GetHashedName(nc.CrdType, crdInfo.ParentHierarchy, labels, body.GetName())
+	hashedName := nexus.GetHashedName(nc.CrdType, crdInfo.ParentHierarchy, labels, displayName)
 	body.SetLabels(labels)
 	body.SetName(hashedName)
+
+	return body, labels, hashedName, displayName
+}
+
+// KubePostHandler is used to process `kubectl apply` requests
+func KubePostHandler(c echo.Context) error {
+	nc := c.(*NexusContext)
+	crdInfo := model.CrdTypeToNodeInfo[nc.CrdType]
+
+	body := &unstructured.Unstructured{}
+	if err := c.Bind(&body); err != nil {
+		return err
+	}
+
+	body, labels, hashedName, displayName := processBody(body, nc, crdInfo)
 
 	gvr := schema.GroupVersionResource{
 		Group:    nc.GroupName,
@@ -126,7 +134,7 @@ func kubePostHandler(c echo.Context) error {
 			if len(crdInfo.ParentHierarchy) > 0 {
 				parentCrdName := crdInfo.ParentHierarchy[len(crdInfo.ParentHierarchy)-1]
 				parentCrd := model.CrdTypeToNodeInfo[parentCrdName]
-				err = client.UpdateParentWithAddedChild(parentCrdName, parentCrd, labels, crdInfo, nc.CrdType, body.GetName(), hashedName)
+				err = client.UpdateParentWithAddedChild(parentCrdName, parentCrd, labels, crdInfo, nc.CrdType, displayName, hashedName)
 			}
 
 			if err != nil {
@@ -157,7 +165,7 @@ func kubePostHandler(c echo.Context) error {
 	return c.JSON(200, obj)
 }
 
-func kubeDeleteHandler(c echo.Context) error {
+func KubeDeleteHandler(c echo.Context) error {
 	nc := c.(*NexusContext)
 	crdInfo := model.CrdTypeToNodeInfo[nc.CrdType]
 	gvr := schema.GroupVersionResource{
