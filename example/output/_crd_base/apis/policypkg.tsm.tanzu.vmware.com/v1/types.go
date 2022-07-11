@@ -23,9 +23,9 @@ type Link struct {
 }
 
 // +k8s:openapi-gen=true
-type Nexus struct {
-	SourceGeneration int `json:"sourceGeneration" yaml:"sourceGeneration"`
-	RemoteGeneration int `json:"remoteGeneration" yaml:"remoteGeneration"`
+type NexusStatus struct {
+	SourceGeneration int64 `json:"sourceGeneration" yaml:"sourceGeneration"`
+	RemoteGeneration int64 `json:"remoteGeneration" yaml:"remoteGeneration"`
 }
 
 /* ------------------- CRDs definitions ------------------- */
@@ -38,13 +38,13 @@ type Nexus struct {
 type AccessControlPolicy struct {
 	metav1.TypeMeta   `json:",inline" yaml:",inline"`
 	metav1.ObjectMeta `json:"metadata" yaml:"metadata"`
-	Spec              AccessControlPolicySpec   `json:"spec,omitempty" yaml:"spec,omitempty"`
-	Status            AccessControlPolicyStatus `json:"status" yaml:"status"`
+	Spec              AccessControlPolicySpec        `json:"spec,omitempty" yaml:"spec,omitempty"`
+	Status            AccessControlPolicyNexusStatus `json:"status,omitempty" yaml:"status,omitempty"`
 }
 
 // +k8s:openapi-gen=true
-type AccessControlPolicyStatus struct {
-	Nexus Nexus `json:"nexus" yaml:"nexus"`
+type AccessControlPolicyNexusStatus struct {
+	Nexus NexusStatus `json:"nexus,omitempty" yaml:"nexus,omitempty"`
 }
 
 func (c *AccessControlPolicy) CRDName() string {
@@ -78,13 +78,13 @@ type AccessControlPolicyList struct {
 type ACPConfig struct {
 	metav1.TypeMeta   `json:",inline" yaml:",inline"`
 	metav1.ObjectMeta `json:"metadata" yaml:"metadata"`
-	Spec              ACPConfigSpec   `json:"spec,omitempty" yaml:"spec,omitempty"`
-	Status            ACPConfigStatus `json:"status" yaml:"status"`
+	Spec              ACPConfigSpec        `json:"spec,omitempty" yaml:"spec,omitempty"`
+	Status            ACPConfigNexusStatus `json:"status,omitempty" yaml:"status,omitempty"`
 }
 
 // +k8s:openapi-gen=true
-type ACPConfigStatus struct {
-	Nexus Nexus `json:"nexus" yaml:"nexus"`
+type ACPConfigNexusStatus struct {
+	Nexus NexusStatus `json:"nexus,omitempty" yaml:"nexus,omitempty"`
 }
 
 func (c *ACPConfig) CRDName() string {
@@ -126,12 +126,12 @@ type VMpolicy struct {
 	metav1.TypeMeta   `json:",inline" yaml:",inline"`
 	metav1.ObjectMeta `json:"metadata" yaml:"metadata"`
 
-	Status VMpolicyStatus `json:"status" yaml:"status"`
+	Status VMpolicyNexusStatus `json:"status,omitempty" yaml:"status,omitempty"`
 }
 
 // +k8s:openapi-gen=true
-type VMpolicyStatus struct {
-	Nexus Nexus `json:"nexus" yaml:"nexus"`
+type VMpolicyNexusStatus struct {
+	Nexus NexusStatus `json:"nexus,omitempty" yaml:"nexus,omitempty"`
 }
 
 func (c *VMpolicy) CRDName() string {

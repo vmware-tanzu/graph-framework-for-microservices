@@ -24,9 +24,9 @@ type Link struct {
 }
 
 // +k8s:openapi-gen=true
-type Nexus struct {
-	SourceGeneration int `json:"sourceGeneration" yaml:"sourceGeneration"`
-	RemoteGeneration int `json:"remoteGeneration" yaml:"remoteGeneration"`
+type NexusStatus struct {
+	SourceGeneration int64 `json:"sourceGeneration" yaml:"sourceGeneration"`
+	RemoteGeneration int64 `json:"remoteGeneration" yaml:"remoteGeneration"`
 }
 
 /* ------------------- CRDs definitions ------------------- */
@@ -39,13 +39,14 @@ type Nexus struct {
 type Gns struct {
 	metav1.TypeMeta   `json:",inline" yaml:",inline"`
 	metav1.ObjectMeta `json:"metadata" yaml:"metadata"`
-	Spec              GnsSpec   `json:"spec,omitempty" yaml:"spec,omitempty"`
-	Status            GnsStatus `json:"status" yaml:"status"`
+	Spec              GnsSpec        `json:"spec,omitempty" yaml:"spec,omitempty"`
+	Status            GnsNexusStatus `json:"status,omitempty" yaml:"status,omitempty"`
 }
 
 // +k8s:openapi-gen=true
-type GnsStatus struct {
-	Nexus Nexus `json:"nexus" yaml:"nexus"`
+type GnsNexusStatus struct {
+	State GnsState    `json:"state,omitempty" yaml:"state,omitempty"`
+	Nexus NexusStatus `json:"nexus,omitempty" yaml:"nexus,omitempty"`
 }
 
 func (c *Gns) CRDName() string {
@@ -88,12 +89,12 @@ type Dns struct {
 	metav1.TypeMeta   `json:",inline" yaml:",inline"`
 	metav1.ObjectMeta `json:"metadata" yaml:"metadata"`
 
-	Status DnsStatus `json:"status" yaml:"status"`
+	Status DnsNexusStatus `json:"status,omitempty" yaml:"status,omitempty"`
 }
 
 // +k8s:openapi-gen=true
-type DnsStatus struct {
-	Nexus Nexus `json:"nexus" yaml:"nexus"`
+type DnsNexusStatus struct {
+	Nexus NexusStatus `json:"nexus,omitempty" yaml:"nexus,omitempty"`
 }
 
 func (c *Dns) CRDName() string {

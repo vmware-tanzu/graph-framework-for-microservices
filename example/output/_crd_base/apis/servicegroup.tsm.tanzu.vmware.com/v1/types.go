@@ -23,9 +23,9 @@ type Link struct {
 }
 
 // +k8s:openapi-gen=true
-type Nexus struct {
-	SourceGeneration int `json:"sourceGeneration" yaml:"sourceGeneration"`
-	RemoteGeneration int `json:"remoteGeneration" yaml:"remoteGeneration"`
+type NexusStatus struct {
+	SourceGeneration int64 `json:"sourceGeneration" yaml:"sourceGeneration"`
+	RemoteGeneration int64 `json:"remoteGeneration" yaml:"remoteGeneration"`
 }
 
 /* ------------------- CRDs definitions ------------------- */
@@ -38,13 +38,13 @@ type Nexus struct {
 type SvcGroup struct {
 	metav1.TypeMeta   `json:",inline" yaml:",inline"`
 	metav1.ObjectMeta `json:"metadata" yaml:"metadata"`
-	Spec              SvcGroupSpec   `json:"spec,omitempty" yaml:"spec,omitempty"`
-	Status            SvcGroupStatus `json:"status" yaml:"status"`
+	Spec              SvcGroupSpec        `json:"spec,omitempty" yaml:"spec,omitempty"`
+	Status            SvcGroupNexusStatus `json:"status,omitempty" yaml:"status,omitempty"`
 }
 
 // +k8s:openapi-gen=true
-type SvcGroupStatus struct {
-	Nexus Nexus `json:"nexus" yaml:"nexus"`
+type SvcGroupNexusStatus struct {
+	Nexus NexusStatus `json:"nexus,omitempty" yaml:"nexus,omitempty"`
 }
 
 func (c *SvcGroup) CRDName() string {
