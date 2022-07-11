@@ -171,7 +171,7 @@ func (s *EchoServer) RegisterCrdRouter(crdType string) {
 	resourceNamePattern := resourcePattern + "/:name"
 
 	// TODO NPT-313 support authentication for kubectl proxy requests
-	s.Echo.GET(resourceNamePattern, kubeGetByNameHandler, func(next echo.HandlerFunc) echo.HandlerFunc {
+	s.Echo.GET(resourceNamePattern, KubeGetByNameHandler, func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
 			nc := &NexusContext{
 				Context:   c,
@@ -182,7 +182,7 @@ func (s *EchoServer) RegisterCrdRouter(crdType string) {
 			return next(nc)
 		}
 	})
-	s.Echo.GET(resourcePattern, kubeGetHandler, func(next echo.HandlerFunc) echo.HandlerFunc {
+	s.Echo.GET(resourcePattern, KubeGetHandler, func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
 			nc := &NexusContext{
 				Context:   c,
@@ -193,7 +193,7 @@ func (s *EchoServer) RegisterCrdRouter(crdType string) {
 			return next(nc)
 		}
 	})
-	s.Echo.POST(resourcePattern, kubePostHandler, func(next echo.HandlerFunc) echo.HandlerFunc {
+	s.Echo.POST(resourcePattern, KubePostHandler, func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
 			nc := &NexusContext{
 				Context:   c,
@@ -204,7 +204,7 @@ func (s *EchoServer) RegisterCrdRouter(crdType string) {
 			return next(nc)
 		}
 	})
-	s.Echo.DELETE(resourceNamePattern, kubeDeleteHandler, func(next echo.HandlerFunc) echo.HandlerFunc {
+	s.Echo.DELETE(resourceNamePattern, KubeDeleteHandler, func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
 			nc := &NexusContext{
 				Context:   c,
