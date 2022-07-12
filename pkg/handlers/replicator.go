@@ -9,13 +9,14 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime/schema"
+	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/dynamic"
 
 	"connector/pkg/utils"
 )
 
 func createObject(gvr schema.GroupVersionResource, res *unstructured.Unstructured,
-	children utils.Children, client dynamic.Interface) error {
+	children utils.Children, client, localClient dynamic.Interface) error {
 	objData := res.UnstructuredContent()
 	spec := objData["spec"]
 
@@ -35,32 +36,62 @@ func createObject(gvr schema.GroupVersionResource, res *unstructured.Unstructure
 		},
 	}
 
-	_, err := client.Resource(gvr).Create(context.TODO(), obj, metav1.CreateOptions{})
-	return err
+	// if the object was successfully replicated, we need to patch the source and remote generation ID.
+	destObj, err := client.Resource(gvr).Create(context.TODO(), obj, metav1.CreateOptions{})
+	if err == nil && destObj != nil {
+		if err = patchStatusObject(localClient, gvr, res.GetName(), res.GetGeneration(), destObj.GetGeneration()); err != nil {
+			log.Errorf("CR %q status patch failed with an error: %v", res.GetName(), err)
+			return err
+		}
+	}
+
+	return nil
 }
 
 func updateObject(gvr schema.GroupVersionResource, res *unstructured.Unstructured,
-	children utils.Children, client dynamic.Interface) error {
+	children utils.Children, client, localClient dynamic.Interface) error {
 	objData := res.UnstructuredContent()
 	spec := objData["spec"]
 
 	oldObject, err := client.Resource(gvr).Get(context.TODO(), res.GetName(), metav1.GetOptions{})
 	if err != nil && strings.Contains(err.Error(), "not found") {
 		log.Infof("Resource %s not found, creating instead", res.GetName())
-		err := createObject(gvr, res, children, client)
-		if err != nil {
-			log.Errorf("Resource %v creation failed with an error: %v", res.GetName(), err)
-			return err
-		}
-		return nil
+		return createObject(gvr, res, children, client, localClient)
 	}
 
 	// Ignore relationships.
 	utils.DeleteChildGvkFields(spec.(map[string]interface{}), children)
 	oldObject.UnstructuredContent()["spec"] = spec
 
-	_, err = client.Resource(gvr).Update(context.TODO(), oldObject, metav1.UpdateOptions{})
-	return err
+	// if the object was successfully replicated, we need to patch the source and remote generation ID.
+	destObj, err := client.Resource(gvr).Update(context.TODO(), oldObject, metav1.UpdateOptions{})
+	if err == nil && destObj != nil {
+		if err = patchStatusObject(localClient, gvr, res.GetName(), res.GetGeneration(), destObj.GetGeneration()); err != nil {
+			log.Errorf("CR %q status patch failed with an error: %v", res.GetName(), err)
+			return err
+		}
+	}
+
+	return nil
+}
+
+func patchStatusObject(localClient dynamic.Interface, gvr schema.GroupVersionResource,
+	repObjName string, srcGeneration, destGeneration int64) error {
+	patchBytes, err := utils.CreatePatch(srcGeneration, destGeneration)
+	if err != nil {
+		log.Errorf("Could not create patch for the CR(%q) %v", repObjName, err)
+		return err
+	}
+
+	log.Debugf("Patching status of CR %q: %v", repObjName, string(patchBytes))
+
+	_, err = localClient.Resource(gvr).Patch(context.TODO(), repObjName, types.MergePatchType, patchBytes, metav1.PatchOptions{}, "status")
+	if err != nil {
+		log.Errorf("Resource %s patching failed with an error: %v", repObjName, err)
+		return err
+	}
+
+	return nil
 }
 
 func processEvents(h *RemoteHandler, eventType, hierarchy string, res *unstructured.Unstructured,
@@ -69,7 +100,7 @@ func processEvents(h *RemoteHandler, eventType, hierarchy string, res *unstructu
 	switch eventType {
 	case utils.Create:
 		log.Infof("Replication is enabled for the resource: %v, creating...", hierarchy)
-		err := createObject(h.Gvr, res, children, client)
+		err := createObject(h.Gvr, res, children, client, h.LocalClient)
 		if err != nil && !errors.IsAlreadyExists(err) {
 			log.Errorf("Resource %v create failed with an error: %v", hierarchy, err)
 			return err
@@ -83,12 +114,13 @@ func processEvents(h *RemoteHandler, eventType, hierarchy string, res *unstructu
 		}
 	case utils.Update:
 		log.Infof("Replication is enabled for the resource: %v, updating...", hierarchy)
-		err := updateObject(h.Gvr, res, children, client)
+		err := updateObject(h.Gvr, res, children, client, h.LocalClient)
 		if err != nil {
 			log.Errorf("Resource %v update failed with an error: %v", hierarchy, err)
 			return err
 		}
 	}
+
 	return nil
 }
 
@@ -177,11 +209,12 @@ func ReplicateNode(repObj utils.ReplicationObject, localClient, remoteClient dyn
 	}
 
 	log.Infof("Replication is enabled for the resource: %v, creating...", repObj.Name)
-	err = createObject(gvr, repEnabledNode, children, remoteClient)
+	err = createObject(gvr, repEnabledNode, children, remoteClient, localClient)
 	if err != nil && !errors.IsAlreadyExists(err) {
 		log.Errorf("Resource %v creation failed with an error: %v", repEnabledNode, err)
 		return err
 	}
+
 	if err := ReplicateChildren(crdType, repEnabledNode, localClient, remoteClient); err != nil {
 		log.Errorf("Children replication failed for replication object %v: %v", repEnabledNode, err)
 		return err
@@ -210,10 +243,9 @@ func ReplicateChildren(crdType string, repEnabledNode *unstructured.Unstructured
 			hierarchy := utils.GetNodeHierarchy(parents, item.GetLabels(), child)
 			log.Infof("Replication is enabled for the resource: %v, creating...", hierarchy)
 
-			err := createObject(gvr, &item, children, remoteClient)
+			err := createObject(gvr, &item, children, remoteClient, localClient)
 			if err != nil && !errors.IsAlreadyExists(err) {
-				log.Errorf("error creating resource %v: %v", hierarchy, err)
-				return err
+				log.Errorf("error creating resource, skipping %v: %v", hierarchy, err)
 			}
 		}
 	}
