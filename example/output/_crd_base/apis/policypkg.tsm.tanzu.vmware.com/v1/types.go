@@ -178,3 +178,10 @@ type ResourceGroupID struct {
 type PolicyActionType string
 type PolicyCfgActions []PolicyCfgAction
 type ResourceGroupIDs []ResourceGroupID
+
+const (
+	PolicyActionType_Allow  PolicyActionType = "ALLOW"
+	PolicyActionType_Deny   PolicyActionType = "DENY"
+	PolicyActionType_Log    PolicyActionType = "LOG"
+	PolicyActionType_Mirror PolicyActionType = "MIRROR"
+)

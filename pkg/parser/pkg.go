@@ -38,6 +38,7 @@ type Package struct {
 // func (p *Package) GetNodes() []*ast.StructType
 // func (p *Package) GetNexusNodes []*ast.StructType
 // func (p *Package) GetTypes []*ast.GenDecl
+// func (p *Package) GetConsts() []*ast.ValueSpec
 
 // GetSpecFields(n *ast.StructType) []*ast.Field
 // GetChildFields(n *ast.StructType) []*ast.Field
@@ -130,6 +131,20 @@ func (p *Package) GetTypes() []ast.GenDecl {
 		}
 	}
 	return genDecls
+}
+
+func (p *Package) GetConsts() []*ast.ValueSpec {
+	var consts []*ast.ValueSpec
+	for _, genDecl := range p.GenDecls {
+		if genDecl.Tok == token.CONST {
+			for _, spec := range genDecl.Specs {
+				if valueSpec, ok := spec.(*ast.ValueSpec); ok {
+					consts = append(consts, valueSpec)
+				}
+			}
+		}
+	}
+	return consts
 }
 
 func IsNexusNode(n *ast.TypeSpec) bool {
@@ -505,6 +520,19 @@ func (p *Package) TypeSpecToString(t *ast.TypeSpec) (string, error) {
 func (p *Package) GenDeclToString(t *ast.GenDecl) (string, error) {
 	if t == nil {
 		return "", errors.New("provided gendecl does not exist")
+	}
+
+	buf := new(bytes.Buffer)
+	err := printer.Fprint(buf, p.FileSet, t)
+	if err != nil {
+		return "", err
+	}
+	return buf.String(), nil
+}
+
+func (p *Package) ValueSpecToString(t *ast.ValueSpec) (string, error) {
+	if t == nil {
+		return "", errors.New("provided valuespec does not exist")
 	}
 
 	buf := new(bytes.Buffer)

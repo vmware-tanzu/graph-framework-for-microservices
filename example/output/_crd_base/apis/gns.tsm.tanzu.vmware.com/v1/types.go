@@ -116,6 +116,11 @@ type DnsList struct {
 }
 
 // +k8s:openapi-gen=true
+type ReplicationSource struct {
+	Kind SourceKind
+}
+
+// +k8s:openapi-gen=true
 type Description struct {
 	Color     string
 	Version   string
@@ -128,4 +133,12 @@ type GnsState struct {
 	Temperature int
 }
 
+type MyConst string
+type SourceKind string
 type MyStr string
+
+const (
+	Object SourceKind = "Object"
+	Type   SourceKind = "Type"
+	XYZ    MyConst    = "xyz"
+)

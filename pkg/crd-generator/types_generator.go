@@ -307,6 +307,46 @@ func parsePackageTypes(pkg parser.Package) string {
 	return output
 }
 
+func parsePackageConsts(pkg parser.Package) string {
+	var c struct {
+		Consts string
+	}
+	var count int = 0
+	for _, varConst := range pkg.GetConsts() {
+		count++
+		if count > 1 {
+			c.Consts += "\n"
+		}
+		t, err := pkg.ValueSpecToString(varConst)
+		if err != nil {
+			log.Fatalf("failed to translate type gen decl to string: %v", err)
+		}
+		c.Consts += "\t" + t
+	}
+	var constTemplate string = ""
+	switch count {
+	case 0:
+		return constTemplate
+	case 1:
+		constTemplate = `const {{.Consts}}`
+	default:
+		constTemplate = `
+const (
+{{.Consts}}
+)`
+	}
+
+	tmpl, err := template.New("tmpl").Parse(constTemplate)
+	if err != nil {
+		log.Fatalf("failed to parse template: %v", err)
+	}
+	b, err := renderTemplate(tmpl, c)
+	if err != nil {
+		log.Fatalf("failed to render template: %v", err)
+	}
+	return b.String()
+}
+
 func parsePackageImports(pkg parser.Package, aliasNameMap map[string]string) string {
 	var output string
 	for _, imp := range GenerateImports(&pkg, aliasNameMap) {
