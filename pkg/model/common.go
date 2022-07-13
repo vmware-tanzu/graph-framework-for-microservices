@@ -21,6 +21,7 @@ type NexusAnnotation struct {
 	Children             map[string]NodeHelperChild `json:"children,omitempty"`
 	NexusRestAPIGen      nexus.RestAPISpec          `json:"nexus-rest-api-gen,omitempty"`
 	NexusRestAPIMappings map[string]string          `json:"nexus-rest-api-mappings,omitempty"`
+	IsSingleton          bool                       `json:"is_singleton,omitempty"`
 }
 
 type NodeHelperChild struct {
@@ -33,6 +34,7 @@ type NodeInfo struct {
 	Name            string
 	ParentHierarchy []string
 	Children        map[string]NodeHelperChild
+	IsSingleton     bool
 }
 
 func ConstructEchoPathParamURL(uri string) string {

@@ -105,6 +105,17 @@ func putHandler(c echo.Context) error {
 			name = nc.Param(param)
 		}
 	}
+	if crdInfo.IsSingleton {
+		if name == "" {
+			name = "default"
+		}
+		if name != "default" {
+			msg := fmt.Sprintf("Wrong singleton node name %s: %s for request %s, only 'default' is allowed as name",
+				crdInfo.Name, name, nc.Request().RequestURI)
+			log.Debugf(msg)
+			return nc.JSON(http.StatusBadRequest, DefaultResponse{Message: msg})
+		}
+	}
 
 	// Get name from query params
 	if val := nc.QueryParam(crdInfo.Name); val != "" {
@@ -152,7 +163,6 @@ func putHandler(c echo.Context) error {
 			}
 
 			// Update parent
-			var err error
 			if len(crdInfo.ParentHierarchy) > 0 {
 				parentCrdName := crdInfo.ParentHierarchy[len(crdInfo.ParentHierarchy)-1]
 				parentCrd := model.CrdTypeToNodeInfo[parentCrdName]
