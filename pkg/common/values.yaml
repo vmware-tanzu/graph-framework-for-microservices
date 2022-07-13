@@ -1,15 +1,15 @@
 nexusCli:
-  version: v0.0.62
+  version: v0.0.63
 nexusCompiler:
-  version: v0.0.18
+  version: v0.0.22
 nexusAppTemplates:
   version: v0.0.9
 nexusDatamodelTemplates:
   version: v0.0.15
 nexusValidation:
-  version: v0.0.7
+  version: v0.0.8
 nexusApiGateway:
-  version: v0.0.15
+  version: v0.0.16
 nexusApiDatamodelCrds:
   version: v0.0.8
 nexusRuntime:
