@@ -35,6 +35,7 @@ paths:
       description: Create the global namespace
       x-nexus-kind-name: GlobalNamespace
       x-nexus-group-name: gns.vmware.org
+      x-nexus-identifier: id
       responses:
         '200':
           description: 'global namespace updated '
@@ -71,6 +72,7 @@ paths:
     get:
       x-controller-name: GlobalNamespaceControllerV1Alpha1
       x-operation-name: getGlobalNamespaceV1
+      x-nexus-identifier: id
       tags:
         - Global Namespaces (v1alpha1)
       description: Return the config for a global namespace
@@ -104,6 +106,7 @@ paths:
       description: Delete the global namespace
       x-nexus-kind-name: GlobalNamespace
       x-nexus-group-name: gns.vmware.org
+      x-nexus-identifier: id
       responses:
         '200':
           description: 'global namespace delete '

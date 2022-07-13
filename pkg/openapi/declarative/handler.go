@@ -5,6 +5,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"github.com/labstack/echo/v4"
 	log "github.com/sirupsen/logrus"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -158,7 +159,7 @@ func buildUrlFromParams(ec *EndpointContext) (string, error) {
 	url := config.Cfg.BackendService + ec.SpecUri
 	labelSelector, _ := metav1.ParseToLabelSelector(ec.QueryParams().Get("labelSelector"))
 	for _, param := range ec.Params {
-		if param[0] == ec.IdParam {
+		if param[1] == ec.Identifier {
 			continue
 		}
 
@@ -169,7 +170,7 @@ func buildUrlFromParams(ec *EndpointContext) (string, error) {
 		}
 	}
 	if ec.Single {
-		url = strings.Replace(url, ec.IdParam, ec.Param("name"), -1)
+		url = strings.Replace(url, fmt.Sprintf("{%s}", ec.Identifier), ec.Param("name"), -1)
 	}
 
 	return url, nil
@@ -178,7 +179,7 @@ func buildUrlFromParams(ec *EndpointContext) (string, error) {
 func buildUrlFromBody(ec *EndpointContext, metadata map[string]interface{}) (string, error) {
 	url := config.Cfg.BackendService + ec.SpecUri
 	for _, param := range ec.Params {
-		if param[0] == ec.IdParam {
+		if param[1] == ec.Identifier {
 			continue
 		}
 
@@ -189,7 +190,7 @@ func buildUrlFromBody(ec *EndpointContext, metadata map[string]interface{}) (str
 		}
 	}
 
-	url = strings.Replace(url, ec.IdParam, metadata["name"].(string), -1)
+	url = strings.Replace(url, fmt.Sprintf("{%s}", ec.Identifier), metadata["name"].(string), -1)
 
 	return url, nil
 }
