@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"github.com/getkin/kin-openapi/openapi3"
 	"github.com/labstack/echo/v4"
-	"net/http"
 	"regexp"
 	"strings"
 )
@@ -20,7 +19,7 @@ type EndpointContext struct {
 	GroupName    string     // e.g. vmware.org
 	CrdName      string     // e.g. globalnamespaces.vmware.org
 	Params       [][]string // e.g. [id, projectId, gnsId]
-	IdParam      string     // e.g. id or fqdn
+	Identifier   string     // e.g. id or fqdn
 
 	Single bool // used to identify which k8s endpoint we should use (resource/:name or resource/)
 
@@ -38,19 +37,13 @@ func SetupContext(uri string, method string, item *openapi3.Operation) *Endpoint
 	resourceName := strings.ToLower(utils.ToPlural(kindName))
 	crdName := resourceName + "." + groupName
 	requiredParams := extractUriParams(uri)
-	idParam := extractIdParam(uri, requiredParams)
-	operationName := GetExtensionVal(item, "x-operation-name")
-	listEndpoint := GetExtensionVal(item, NexusListEndpoint)
+	identifier := GetExtensionVal(item, "x-nexus-identifier")
 
-	path := fmt.Sprintf(resourceNamePattern, groupName, resourceName)
-
-	single := true
-	if strings.Contains(operationName, "List") ||
-		IsArrayResponse(item) ||
-		listEndpoint == "true" ||
-		method == http.MethodPut {
-		single = false
-		path = fmt.Sprintf(resourcePattern, groupName, resourceName)
+	path := fmt.Sprintf(resourcePattern, groupName, resourceName)
+	single := false
+	if identifier != "" {
+		single = true
+		path = fmt.Sprintf(resourceNamePattern, groupName, resourceName)
 	}
 
 	return &EndpointContext{
@@ -60,7 +53,7 @@ func SetupContext(uri string, method string, item *openapi3.Operation) *Endpoint
 		GroupName:    groupName,
 		CrdName:      crdName,
 		Params:       requiredParams,
-		IdParam:      idParam,
+		Identifier:   identifier,
 		Single:       single,
 		Uri:          path,
 		Method:       method,
@@ -96,11 +89,4 @@ func extractUriParams(uri string) [][]string {
 		return [][]string{}
 	}
 	return params
-}
-
-func extractIdParam(uri string, params [][]string) string {
-	if !strings.HasSuffix(uri, "}") {
-		return ""
-	}
-	return params[len(params)-1][0]
 }

@@ -205,8 +205,14 @@ build_manifests:
 
 publish_manifests:
 	gsutil cp api-gw-manifests.tar gs://${BUCKET}/${IMAGE_TAG}/;
-.PHONY: deploy_kind
 
+.PHONY: deploy_kind
 deploy_kind:
 	kind load docker-image --name ${KIND_NAME} ${IMAGE_REGISTRY}:${IMAGE_TAG}
 	kubectl -n ${NAMESPACE} set image deployment/${APP_NAME} ${APP_NAME}=${IMAGE_REGISTRY}:${IMAGE_TAG}
+
+CURRENT_TIMESTAMP = $(shell date +%s)
+.PHONY: build_deploy_kind
+build_deploy_kind:
+	make build IMAGE_TAG=${CURRENT_TIMESTAMP} && make deploy_kind NAMESPACE=default KIND_NAME=kind IMAGE_TAG=${CURRENT_TIMESTAMP}
+

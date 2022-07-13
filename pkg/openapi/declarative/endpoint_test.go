@@ -46,7 +46,7 @@ var _ = Describe("OpenAPI tests", func() {
 			GroupName:    "gns.vmware.org",
 			CrdName:      "globalnamespaces.gns.vmware.org",
 			Params:       [][]string{},
-			IdParam:      "",
+			Identifier:   "",
 			Single:       false,
 			Uri:          "/apis/gns.vmware.org/v1/globalnamespaces",
 		}
@@ -66,7 +66,7 @@ var _ = Describe("OpenAPI tests", func() {
 			GroupName:    "gns.vmware.org",
 			CrdName:      "globalnamespaces.gns.vmware.org",
 			Params:       [][]string{{"{id}", "id"}},
-			IdParam:      "{id}",
+			Identifier:   "id",
 			Single:       true,
 			Uri:          "/apis/gns.vmware.org/v1/globalnamespaces/:name",
 		}
