@@ -50,6 +50,7 @@ var _ = Describe("Pkg tests", func() {
 			if node.Name.String() == "Gns" {
 				Expect(parser.IsNexusNode(node)).To(BeTrue())
 				Expect(parser.IsSingletonNode(node)).To(BeFalse())
+				Expect(parser.GetStatusField(node)).NotTo(BeNil())
 			} else if node.Name.String() == "Dns" {
 				Expect(parser.IsNexusNode(node)).To(BeTrue())
 				Expect(parser.IsSingletonNode(node)).To(BeTrue())
@@ -65,6 +66,21 @@ var _ = Describe("Pkg tests", func() {
 	It("should get all types for gns", func() {
 		types := gnsPkg.GetTypes()
 		Expect(types).To(HaveLen(3))
+	})
+
+	It("should get imports for gns", func() {
+		imports := gnsPkg.GetImportStrings()
+		Expect(imports).To(HaveLen(5))
+	})
+
+	It("should get all nodes for gns", func() {
+		nodes := gnsPkg.GetNodes()
+		Expect(nodes).To(HaveLen(3))
+	})
+
+	It("should get all consts for gns", func() {
+		consts := gnsPkg.GetConsts()
+		Expect(consts).To(HaveLen(3))
 	})
 
 	It("should get child fields", func() {
