@@ -1,7 +1,7 @@
 package config
 
 import (
-	"helloworld/nexus"
+	"golang-appnet.eng.vmware.com/nexus-sdk/nexus/nexus"
 )
 
 type Config struct {

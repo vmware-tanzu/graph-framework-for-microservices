@@ -3,8 +3,9 @@ package root
 import (
 	"helloworld/config"
 	"helloworld/inventory"
-	"helloworld/nexus"
 	"helloworld/runtime"
+
+	"golang-appnet.eng.vmware.com/nexus-sdk/nexus/nexus"
 )
 
 type Root struct {

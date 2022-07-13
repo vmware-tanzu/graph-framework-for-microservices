@@ -1,7 +1,7 @@
 package inventory
 
 import (
-	"helloworld/nexus"
+	"golang-appnet.eng.vmware.com/nexus-sdk/nexus/nexus"
 )
 
 type Inventory struct {
