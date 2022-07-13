@@ -12,3 +12,7 @@ type ID struct {
 type Node struct {
 	ID
 }
+
+type SingletonNode struct {
+	ID
+}
