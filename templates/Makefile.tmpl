@@ -64,6 +64,8 @@ docker run \
 --env GIT_HEAD=${GIT_HEAD} \
 --env GIT_TAG=${GIT_TAG} \
 --env APP_NAME=${APP_NAME} \
+--env GOINSECURE=*.eng.vmware.com \
+--env GOPRIVATE=*.eng.vmware.com \
 "${BUILDER_NAME}:${BUILDER_TAG}" /bin/bash -c "make cred_setup && ${1}"
 endef
 else
@@ -75,6 +77,8 @@ docker run \
 --env GIT_HEAD=${GIT_HEAD} \
 --env GIT_TAG=${GIT_TAG} \
 --env APP_NAME=${APP_NAME} \
+--env GOINSECURE=*.eng.vmware.com \
+--env GOPRIVATE=*.eng.vmware.com \
 "${BUILDER_NAME}:${BUILDER_TAG}" /bin/bash -c "make cred_setup && ${1}"
 endef
 endif
