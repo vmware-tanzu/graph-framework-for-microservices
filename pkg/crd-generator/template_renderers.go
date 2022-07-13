@@ -279,6 +279,7 @@ type typesVars struct {
 	CRDTypes     string
 	Structs      string
 	Types        string
+	Consts       string
 }
 
 func RenderTypesTemplate(crdModulePath string, pkg parser.Package) (*bytes.Buffer, error) {
@@ -288,6 +289,7 @@ func RenderTypesTemplate(crdModulePath string, pkg parser.Package) (*bytes.Buffe
 	vars.CRDTypes = parsePackageCRDs(pkg, aliasNameMap)
 	vars.Structs = parsePackageStructs(pkg, aliasNameMap)
 	vars.Types = parsePackageTypes(pkg)
+	vars.Consts = parsePackageConsts(pkg)
 	vars.CommonImport = util.GetInternalImport(crdModulePath, "common")
 
 	registerCrdTemplate, err := readTemplateFile(typesTemplateFile)

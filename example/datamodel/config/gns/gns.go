@@ -64,6 +64,19 @@ var DNSRestAPISpec = nexus.RestAPISpec{
 	},
 }
 
+type MyConst string
+type SourceKind string
+
+const (
+	Object SourceKind = "Object"
+	Type   SourceKind = "Type"
+	XYZ    MyConst    = "xyz"
+)
+
+type ReplicationSource struct {
+	Kind SourceKind
+}
+
 // Gns struct.
 // nexus-rest-api-gen:GNSRestAPISpec
 // specification of GNS.
