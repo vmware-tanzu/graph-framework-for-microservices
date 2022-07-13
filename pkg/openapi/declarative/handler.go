@@ -4,7 +4,6 @@ import (
 	"api-gw/pkg/config"
 	"bytes"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"github.com/labstack/echo/v4"
 	log "github.com/sirupsen/logrus"
@@ -26,7 +25,7 @@ func ListHandler(c echo.Context) error {
 	ec := c.(*EndpointContext)
 	log.Debugf("ListHandler: %s <-> %s", c.Request().RequestURI, ec.SpecUri)
 
-	url, err := buildUrlFromParams(ec)
+	url, err := BuildUrlFromParams(ec)
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, errorMessage{Message: err.Error()})
 	}
@@ -52,7 +51,7 @@ func GetHandler(c echo.Context) error {
 	ec := c.(*EndpointContext)
 	log.Debugf("GetHandler: %s <-> %s", c.Request().RequestURI, ec.SpecUri)
 
-	url, err := buildUrlFromParams(ec)
+	url, err := BuildUrlFromParams(ec)
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, errorMessage{Message: err.Error()})
 	}
@@ -92,7 +91,7 @@ func PutHandler(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, errorMessage{Message: "metadata.name field not present"})
 	}
 
-	url, err := buildUrlFromBody(ec, metadata)
+	url, err := BuildUrlFromBody(ec, metadata)
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, errorMessage{Message: err.Error()})
 	}
@@ -134,7 +133,7 @@ func DeleteHandler(c echo.Context) error {
 	ec := c.(*EndpointContext)
 	log.Debugf("DeleteHandler: %s <-> %s", c.Request().RequestURI, ec.SpecUri)
 
-	url, err := buildUrlFromParams(ec)
+	url, err := BuildUrlFromParams(ec)
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, errorMessage{Message: err.Error()})
 	}
@@ -155,7 +154,7 @@ func DeleteHandler(c echo.Context) error {
 	return c.NoContent(resp.StatusCode)
 }
 
-func buildUrlFromParams(ec *EndpointContext) (string, error) {
+func BuildUrlFromParams(ec *EndpointContext) (string, error) {
 	url := config.Cfg.BackendService + ec.SpecUri
 	labelSelector, _ := metav1.ParseToLabelSelector(ec.QueryParams().Get("labelSelector"))
 	for _, param := range ec.Params {
@@ -163,12 +162,14 @@ func buildUrlFromParams(ec *EndpointContext) (string, error) {
 			continue
 		}
 
+		labelVal := "default"
 		if val, ok := labelSelector.MatchLabels[param[1]]; ok {
-			url = strings.Replace(url, param[0], val, -1)
-		} else {
-			return "", errors.New(param[1] + " label not found")
+			labelVal = val
 		}
+
+		url = strings.Replace(url, param[0], labelVal, -1)
 	}
+
 	if ec.Single {
 		url = strings.Replace(url, fmt.Sprintf("{%s}", ec.Identifier), ec.Param("name"), -1)
 	}
@@ -176,20 +177,22 @@ func buildUrlFromParams(ec *EndpointContext) (string, error) {
 	return url, nil
 }
 
-func buildUrlFromBody(ec *EndpointContext, metadata map[string]interface{}) (string, error) {
+func BuildUrlFromBody(ec *EndpointContext, metadata map[string]interface{}) (string, error) {
 	url := config.Cfg.BackendService + ec.SpecUri
 	for _, param := range ec.Params {
 		if param[1] == ec.Identifier {
 			continue
 		}
 
-		if val, ok := metadata["labels"].(map[string]interface{})[param[1]]; ok {
-			url = strings.Replace(url, param[0], val.(string), -1)
-		} else {
-			return "", errors.New(param[1] + " label is not found")
-		}
-	}
+		labelVal := "default"
 
+		if metadata["labels"] != nil {
+			if val, ok := metadata["labels"].(map[string]interface{})[param[1]]; ok {
+				labelVal = val.(string)
+			}
+		}
+		url = strings.Replace(url, param[0], labelVal, -1)
+	}
 	url = strings.Replace(url, fmt.Sprintf("{%s}", ec.Identifier), metadata["name"].(string), -1)
 
 	return url, nil

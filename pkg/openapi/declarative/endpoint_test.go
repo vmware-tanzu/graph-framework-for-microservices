@@ -8,13 +8,6 @@ import (
 )
 
 var _ = Describe("OpenAPI tests", func() {
-
-	const (
-		Uri         = "/v1alpha1/global-namespaces"
-		ResourceUri = "/v1alpha1/global-namespaces/{id}"
-		ListUri     = "/v1alpha1/global-namespaces/test"
-	)
-
 	It("should setup and load openapi file", func() {
 		err := declarative.Load(spec)
 		Expect(err).To(BeNil())
@@ -45,7 +38,7 @@ var _ = Describe("OpenAPI tests", func() {
 			ResourceName: "globalnamespaces",
 			GroupName:    "gns.vmware.org",
 			CrdName:      "globalnamespaces.gns.vmware.org",
-			Params:       [][]string{},
+			Params:       [][]string{{"{projectId}", "projectId"}},
 			Identifier:   "",
 			Single:       false,
 			Uri:          "/apis/gns.vmware.org/v1/globalnamespaces",
@@ -65,7 +58,7 @@ var _ = Describe("OpenAPI tests", func() {
 			ResourceName: "globalnamespaces",
 			GroupName:    "gns.vmware.org",
 			CrdName:      "globalnamespaces.gns.vmware.org",
-			Params:       [][]string{{"{id}", "id"}},
+			Params:       [][]string{{"{projectId}", "projectId"}, {"{id}", "id"}},
 			Identifier:   "id",
 			Single:       true,
 			Uri:          "/apis/gns.vmware.org/v1/globalnamespaces/:name",

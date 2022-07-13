@@ -14,12 +14,6 @@ import (
 )
 
 var _ = Describe("Handler tests", func() {
-
-	const (
-		Uri         = "/v1alpha1/global-namespaces"
-		ResourceUri = "/v1alpha1/global-namespaces/{id}"
-	)
-
 	BeforeSuite(func() {
 		log.SetLevel(log.DebugLevel)
 		err := declarative.Load(spec)
@@ -49,7 +43,7 @@ var _ = Describe("Handler tests", func() {
 		err := declarative.ListHandler(ec)
 		Expect(err).To(BeNil())
 		Expect(rec.Body.String()).To(Equal("[]\n"))
-		Expect(requestUri).To(Equal("/v1alpha1/global-namespaces"))
+		Expect(requestUri).To(Equal("/v1alpha1/project/default/global-namespaces"))
 	})
 
 	It("should test GetHandler for given gns id", func() {
@@ -78,7 +72,7 @@ var _ = Describe("Handler tests", func() {
 		err := declarative.GetHandler(ec)
 		Expect(err).To(BeNil())
 		Expect(rec.Body.String()).To(Equal("{}\n"))
-		Expect(requestUri).To(Equal("/v1alpha1/global-namespaces/example-gns-id"))
+		Expect(requestUri).To(Equal("/v1alpha1/project/default/global-namespaces/example-gns-id"))
 	})
 
 	It("should test PutHandler for given gns id", func() {
@@ -118,7 +112,7 @@ var _ = Describe("Handler tests", func() {
 		Expect(err).To(BeNil())
 		Expect(rec.Body.String()).To(Equal("{}\n"))
 		Expect(requestBody).To(Equal("{\"foo\":\"bar\"}"))
-		Expect(requestUri).To(Equal("/v1alpha1/global-namespaces/test"))
+		Expect(requestUri).To(Equal("/v1alpha1/project/default/global-namespaces/test"))
 	})
 
 	It("should test PutHandler for given gns id with empty spec", func() {
@@ -155,7 +149,7 @@ var _ = Describe("Handler tests", func() {
 		Expect(err).To(BeNil())
 		Expect(rec.Body.String()).To(Equal("{}\n"))
 		Expect(requestBody).To(Equal(""))
-		Expect(requestUri).To(Equal("/v1alpha1/global-namespaces/test"))
+		Expect(requestUri).To(Equal("/v1alpha1/project/default/global-namespaces/test"))
 	})
 
 	It("should test DeleteHandler for given gns id", func() {
@@ -183,6 +177,71 @@ var _ = Describe("Handler tests", func() {
 		err := declarative.DeleteHandler(ec)
 		Expect(err).To(BeNil())
 		Expect(rec.Code).To(Equal(200))
-		Expect(requestUri).To(Equal("/v1alpha1/global-namespaces/example-gns-id"))
+		Expect(requestUri).To(Equal("/v1alpha1/project/default/global-namespaces/example-gns-id"))
+	})
+
+	It("should test buildUrlFromParams method with provided labels", func() {
+		config.Cfg.BackendService = ""
+		ec := declarative.SetupContext(ResourceUri, http.MethodGet, declarative.Paths[ResourceUri].Get)
+		e := echo.New()
+		req := httptest.NewRequest(http.MethodDelete, "/?labelSelector=projectId=example-id", nil)
+		rec := httptest.NewRecorder()
+		c := e.NewContext(req, rec)
+		c.SetPath("/:name")
+		c.SetParamNames("name")
+		c.SetParamValues("example-gns-id")
+		ec.Context = c
+		url, err := declarative.BuildUrlFromParams(ec)
+		Expect(err).To(BeNil())
+		Expect(url).To(Equal("/v1alpha1/project/example-id/global-namespaces/example-gns-id"))
+	})
+
+	It("should test buildUrlFromParams method without labels", func() {
+		config.Cfg.BackendService = ""
+		ec := declarative.SetupContext(ResourceUri, http.MethodGet, declarative.Paths[ResourceUri].Get)
+		e := echo.New()
+		req := httptest.NewRequest(http.MethodDelete, "/", nil)
+		rec := httptest.NewRecorder()
+		c := e.NewContext(req, rec)
+		c.SetPath("/:name")
+		c.SetParamNames("name")
+		c.SetParamValues("example-gns-id")
+		ec.Context = c
+		url, err := declarative.BuildUrlFromParams(ec)
+		Expect(err).To(BeNil())
+		Expect(url).To(Equal("/v1alpha1/project/default/global-namespaces/example-gns-id"))
+	})
+
+	It("should test buildUrlFromBody method with provided labels", func() {
+		config.Cfg.BackendService = ""
+		ec := declarative.SetupContext(ResourceUri, http.MethodPut, declarative.Paths[ResourceUri].Put)
+		e := echo.New()
+		req := httptest.NewRequest(http.MethodDelete, "/", nil)
+		rec := httptest.NewRecorder()
+		c := e.NewContext(req, rec)
+		ec.Context = c
+		url, err := declarative.BuildUrlFromBody(ec, map[string]interface{}{
+			"name": "test",
+			"labels": map[string]interface{}{
+				"projectId": "example-id",
+			},
+		})
+		Expect(err).To(BeNil())
+		Expect(url).To(Equal("/v1alpha1/project/example-id/global-namespaces/test"))
+	})
+
+	It("should test buildUrlFromBody method without labels", func() {
+		config.Cfg.BackendService = ""
+		ec := declarative.SetupContext(ResourceUri, http.MethodPut, declarative.Paths[ResourceUri].Put)
+		e := echo.New()
+		req := httptest.NewRequest(http.MethodDelete, "/", nil)
+		rec := httptest.NewRecorder()
+		c := e.NewContext(req, rec)
+		ec.Context = c
+		url, err := declarative.BuildUrlFromBody(ec, map[string]interface{}{
+			"name": "test",
+		})
+		Expect(err).To(BeNil())
+		Expect(url).To(Equal("/v1alpha1/project/default/global-namespaces/test"))
 	})
 })
