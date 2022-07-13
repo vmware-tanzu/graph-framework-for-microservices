@@ -231,6 +231,9 @@ func parseUriParams(uri string, hierarchy []string) (parameters []*openapi3.Para
 
 	for _, parent := range hierarchy {
 		crdInfo := model.CrdTypeToNodeInfo[parent]
+		if crdInfo.IsSingleton {
+			continue
+		}
 		if !paramExist(crdInfo.Name, params) {
 			parameters = append(parameters, &openapi3.ParameterRef{
 				Value: openapi3.NewQueryParameter(crdInfo.Name).

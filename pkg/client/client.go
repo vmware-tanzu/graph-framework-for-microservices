@@ -40,13 +40,18 @@ func NewNexusClient(config *rest.Config) error {
 }
 
 func CreateObject(gvr schema.GroupVersionResource, kind, hashedName string, labels map[string]string, body map[string]interface{}) error {
+	labelsUnstructured := map[string]interface{}{}
+	for k, v := range labels {
+		labelsUnstructured[k] = v
+	}
+
 	obj := &unstructured.Unstructured{
 		Object: map[string]interface{}{
 			"apiVersion": gvr.GroupVersion().String(),
 			"kind":       kind,
 			"metadata": map[string]interface{}{
 				"name":   hashedName,
-				"labels": labels,
+				"labels": labelsUnstructured,
 			},
 			"spec": body,
 		},
