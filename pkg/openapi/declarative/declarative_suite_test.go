@@ -8,6 +8,12 @@ import (
 	. "github.com/onsi/gomega"
 )
 
+const (
+	Uri         = "/v1alpha1/project/{projectId}/global-namespaces"
+	ResourceUri = "/v1alpha1/project/{projectId}/global-namespaces/{id}"
+	ListUri     = "/v1alpha1/global-namespaces/test"
+)
+
 var (
 	spec = []byte(`openapi: 3.0.0
 info:
@@ -26,7 +32,7 @@ servers:
   - url: 'http://127.0.0.1:3000'
 basePath: /v1
 paths:
-  '/v1alpha1/global-namespaces/{id}':
+  '/v1alpha1/project/{projectId}/global-namespaces/{id}':
     put:
       x-controller-name: GlobalNamespaceControllerV1Alpha1
       x-operation-name: putGlobalNamespaceV1
@@ -127,7 +133,7 @@ paths:
             type: string
           required: true
       operationId: GlobalNamespaceControllerV1Alpha1.deleteGlobalNamespaceV1
-  /v1alpha1/global-namespaces:
+  /v1alpha1/project/{projectId}/global-namespaces:
     post:
       x-controller-name: GlobalNamespaceControllerV1Alpha1
       x-operation-name: postGlobalNamespaceV1
