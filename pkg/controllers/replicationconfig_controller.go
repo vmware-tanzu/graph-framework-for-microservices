@@ -20,7 +20,7 @@ func StartReplicationConfigController(conf *config.Config, stopCh chan struct{})
 
 	gvr := utils.GetGVRFromCrdType(utils.ReplicationConfigCRD)
 	informer := GetInformer(gvr)
-	handler := handlers.NewReplicationConfigHandler(gvr, conf.RemoteEndpoint, localDynamicAPI)
+	handler := handlers.NewReplicationConfigHandler(gvr, conf, localDynamicAPI)
 	c := newController(
 		fmt.Sprintf("controller-%s", utils.ReplicationConfigCRD),
 		localAPI,
