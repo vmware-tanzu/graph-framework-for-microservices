@@ -1,0 +1,83 @@
+image:
+  name: harbor-repo.vmware.com/nexus/runner:latest
+
+include:
+- project: "nsx-allspark_users/nexus-sdk/integration-tests"
+  ref: master
+  file: ".gitlab-ci-template.yml"
+
+before_script:
+  - git config --global url."https://gitlab.eng.vmware.com/".insteadOf "git@gitlab.eng.vmware.com:"
+  - git config --global gc.auto 0
+  - git config --global credential.helper store
+  - echo -e  "https://gitlab-ci-token:${CICD_TOKEN}@gitlab.eng.vmware.com/" >> ~/.git-credentials
+  - docker login harbor-repo.vmware.com --username $DOCKER_USERNAME --password $DOCKER_PASSWORD
+  - echo $GCLOUD_SERVICE_KEY > key.json
+  - gcloud auth activate-service-account --key-file key.json
+  - aws configure set aws_secret_access_key $AWS_SECRET_ACCESS_KEY
+  - aws configure set aws_access_key_id $AWS_ACCESS_KEY_ID
+  - docker login --username AWS -p $(aws ecr get-login-password --region us-west-2) 284299419820.dkr.ecr.us-west-2.amazonaws.com
+
+.git_config: &git_config
+  - git config --global user.name gitlab-tsm
+  - git config --global user.email gitlab-tsm@vmware.com
+
+.setup_aws: &setup_aws
+  - aws configure set aws_secret_access_key $AWS_SECRET_ACCESS_KEY
+  - aws configure set aws_access_key_id $AWS_ACCESS_KEY_ID
+  - docker login --username AWS -p $(aws ecr get-login-password --region us-west-2) 284299419820.dkr.ecr.us-west-2.amazonaws.com
+
+.create_builder: &create_builder
+  - export CONTAINER_ID=$(docker ps -q -f "label=com.gitlab.gitlab-runner.job.id=$CI_JOB_ID" -f "label=com.gitlab.gitlab-runner.type=build")
+  - make docker.builder
+  - export PKG_NAME=$(realpath .)
+
+.harbor_login: &harbor_login
+  - docker login harbor-repo.vmware.com --username $DOCKER_USERNAME --password $DOCKER_PASSWORD
+
+
+build:
+  stage: build
+  only:
+    - master
+    - merge_requests
+  script:
+    - *git_config
+    - *setup_aws
+    - *create_builder
+    - *harbor_login
+    - make docker TAG=$CI_COMMIT_SHA
+    - make publish TAG=$CI_COMMIT_SHA
+    - make publish.ecr TAG=$CI_COMMIT_SHA
+    - make build_template
+    - make publish_template TAG=$CI_COMMIT_SHA
+
+
+build_tag:
+  stage: build
+  only:
+    - tags
+  script:
+    - *git_config
+    - *setup_aws
+    - *create_builder
+    - *harbor_login
+    - make docker.builder
+    - make docker TAG=$CI_COMMIT_TAG
+    - make publish TAG=$CI_COMMIT_TAG
+    - make publish.ecr TAG=$CI_COMMIT_TAG
+    - make build_template
+    - make publish_template TAG=$CI_COMMIT_TAG
+
+integration_test:
+  stage: integration_test
+  variables:
+    NEXUS_CONTROLLER_TEMPLATE_VERSION: $CI_COMMIT_SHA
+  only:
+    - merge_requests
+    - master
+  extends: .run_integration_test
+
+stages:
+  - build
+  - integration_test
