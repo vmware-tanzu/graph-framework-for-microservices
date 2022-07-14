@@ -21,6 +21,7 @@ type NexusValues struct {
 	NexusApiOperatorTemplates versionFields `yaml:"nexusApiOperator"`
 	NexusApiDatamodelCrds     versionFields `yaml:"nexusApiDatamodelCrds"`
 	NexusRuntime              versionFields `yaml:"nexusRuntime"`
+	NexusConnectController    versionFields `yaml:"nexusConnectController"`
 }
 
 type versionFields struct {
@@ -43,6 +44,7 @@ func Version(cmd *cobra.Command, args []string) error {
 	fmt.Printf("NexusApiDmCrds: %s\n", values.NexusApiDatamodelCrds.Version)
 	fmt.Printf("NexusApiOperatorTemplate: %s\n", values.NexusApiOperatorTemplates.Version)
 	fmt.Printf("NexusRuntimeManifets: %s\n", values.NexusRuntime.Version)
+	fmt.Printf("NexusConnectControllerManifests: %s\n", values.NexusConnectController.Version)
 	return nil
 
 }

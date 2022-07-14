@@ -36,13 +36,14 @@ const NEXUS_DIR = "nexus"
 var HarborRepo = "harbor-repo.vmware.com/nexus"
 
 const (
-	HELLOWORLD_URL            = "https://storage.googleapis.com/nexus-template-downloads/%s/helloworld-example.tar"
-	DATAMODEL_TEMPLATE_URL    = "https://storage.googleapis.com/nexus-template-downloads/%s/datamodel-templatedir.tar"
-	NEXUS_TEMPLATE_URL        = "https://storage.googleapis.com/nexus-template-downloads/%s/nexus-template.tar"
-	RUNTIME_MANIFESTS_URL     = "https://storage.googleapis.com/nexus-template-downloads/%s/runtime-manifests.tar"
-	VALIDATION_MANIFESTS_URL  = "https://storage.googleapis.com/nexus-template-downloads/%s/validation-manifests.tar"
-	API_GATEWAY_MANIFESTS_URL = "https://storage.googleapis.com/nexus-template-downloads/%s/api-gw-manifests.tar"
-	API_DATAMODEL_CRD_URL     = "https://storage.googleapis.com/nexus-template-downloads/%s/api-datamodel-crds.tar"
+	HELLOWORLD_URL                   = "https://storage.googleapis.com/nexus-template-downloads/%s/helloworld-example.tar"
+	DATAMODEL_TEMPLATE_URL           = "https://storage.googleapis.com/nexus-template-downloads/%s/datamodel-templatedir.tar"
+	NEXUS_TEMPLATE_URL               = "https://storage.googleapis.com/nexus-template-downloads/%s/nexus-template.tar"
+	RUNTIME_MANIFESTS_URL            = "https://storage.googleapis.com/nexus-template-downloads/%s/runtime-manifests.tar"
+	VALIDATION_MANIFESTS_URL         = "https://storage.googleapis.com/nexus-template-downloads/%s/validation-manifests.tar"
+	API_GATEWAY_MANIFESTS_URL        = "https://storage.googleapis.com/nexus-template-downloads/%s/api-gw-manifests.tar"
+	API_DATAMODEL_CRD_URL            = "https://storage.googleapis.com/nexus-template-downloads/%s/api-datamodel-crds.tar"
+	CONNECT_CONTROLLER_MANIFESTS_URL = "https://storage.googleapis.com/nexus-template-downloads/%s/controller-manifests.tar"
 )
 
 const TEMPLATE_URL = "https://storage.googleapis.com/nexus-template-downloads/%s/app-template.tar"
@@ -64,6 +65,7 @@ var RuntimePodLabels = []string{
 	"-lapp=nexus-kube-apiserver",
 	"-lname=nexus-kube-controllermanager",
 	"-lapp=nexus-validation",
+	"-lcontrol-plane=connect-controller",
 	"-lapp.kubernetes.io/component=controller,app.kubernetes.io/name=ingress-nginx",
 	"-lcontrol-plane=api-gw",
 }
@@ -100,6 +102,15 @@ type Manifest struct {
 }
 
 var RuntimeManifests = map[string]Manifest{
+	"controller": {
+		URL:            CONNECT_CONTROLLER_MANIFESTS_URL,
+		Directory:      "nexus-manifests-controller",
+		VersionEnv:     "NEXUS_CONTROLLER_TEMPLATE_VERSION",
+		VersionStrName: "NexusConnectController",
+		FileName:       "controller-manifests.tar",
+		Templatized:    true,
+		ImageName:      "controller",
+	},
 	"runtime": {
 		URL:            RUNTIME_MANIFESTS_URL,
 		Directory:      "nexus-manifests-runtime",
