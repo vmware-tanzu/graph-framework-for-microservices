@@ -47,7 +47,7 @@ func ConstructMapURIToCRDType(eventType EventType, crdType string, apiURIs []nex
 }
 
 func ConstructMapCRDTypeToNode(eventType EventType, crdType, name string, parentHierarchy []string,
-	children map[string]NodeHelperChild, isSingleton bool) {
+	children map[string]NodeHelperChild, isSingleton bool, description string) {
 	crdTypeToNodeInfoMutex.Lock()
 	defer crdTypeToNodeInfoMutex.Unlock()
 
@@ -60,6 +60,7 @@ func ConstructMapCRDTypeToNode(eventType EventType, crdType, name string, parent
 		ParentHierarchy: parentHierarchy,
 		Children:        children,
 		IsSingleton:     isSingleton,
+		Description:     description,
 	}
 
 	// Push new CRD Type to chan
