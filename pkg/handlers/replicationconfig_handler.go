@@ -12,22 +12,23 @@ import (
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/client-go/dynamic"
 
+	"connector/pkg/config"
 	"connector/pkg/utils"
 )
 
 type ReplicationConfigHandler struct {
-	Gvr            schema.GroupVersionResource
-	RemoteEndpoint utils.NexusEndpoint
-	LocalClient    dynamic.Interface
+	Gvr         schema.GroupVersionResource
+	Config      *config.Config
+	LocalClient dynamic.Interface
 }
 
 func NewReplicationConfigHandler(gvr schema.GroupVersionResource,
-	remoteEndpoint utils.NexusEndpoint,
+	conf *config.Config,
 	localClient dynamic.Interface) *ReplicationConfigHandler {
 	return &ReplicationConfigHandler{
-		Gvr:            gvr,
-		RemoteEndpoint: remoteEndpoint,
-		LocalClient:    localClient,
+		Gvr:         gvr,
+		Config:      conf,
+		LocalClient: localClient,
 	}
 }
 
@@ -49,7 +50,12 @@ func (h *ReplicationConfigHandler) Create(obj interface{}) error {
 	if err != nil {
 		return fmt.Errorf("failed to get endpoint object %v: %v", repConf.RemoteEndpoint.Name, err)
 	}
-	remoteClient, err := utils.SetUpDynamicRemoteAPI(endpoint.Host, repConf.AccessToken)
+
+	if endpoint.Host != h.Config.RemoteEndpointHost || endpoint.Port != h.Config.RemoteEndpointPort {
+		return nil
+	}
+	host := fmt.Sprintf("%s:%s", h.Config.RemoteEndpointHost, h.Config.RemoteEndpointPort)
+	remoteClient, err := utils.SetUpDynamicRemoteAPI(host, repConf.AccessToken)
 	if err != nil {
 		return fmt.Errorf("error creating dynamic remote API: %v", err)
 	}
