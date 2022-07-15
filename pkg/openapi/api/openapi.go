@@ -221,11 +221,20 @@ func parseUriParams(uri string, hierarchy []string) (parameters []*openapi3.Para
 	}
 
 	for _, param := range params {
+		description := "Name of the " + param[1] + " node"
+		for _, nodeInfo := range model.CrdTypeToNodeInfo {
+			if nodeInfo.Name == param[1] {
+				if nodeInfo.Description != "" {
+					description = nodeInfo.Description
+					break
+				}
+			}
+		}
 		parameters = append(parameters, &openapi3.ParameterRef{
 			Value: openapi3.NewPathParameter(param[1]).
 				WithRequired(true).
 				WithSchema(openapi3.NewStringSchema()).
-				WithDescription("Name of the " + param[1] + " node"),
+				WithDescription(description),
 		})
 	}
 
@@ -234,12 +243,18 @@ func parseUriParams(uri string, hierarchy []string) (parameters []*openapi3.Para
 		if crdInfo.IsSingleton {
 			continue
 		}
+		var description string
+		if crdInfo.Description != "" {
+			description = crdInfo.Description
+		} else {
+			description = "Name of the " + crdInfo.Name + " node"
+		}
 		if !paramExist(crdInfo.Name, params) {
 			parameters = append(parameters, &openapi3.ParameterRef{
 				Value: openapi3.NewQueryParameter(crdInfo.Name).
 					WithRequired(true).
 					WithSchema(openapi3.NewStringSchema()).
-					WithDescription("Name of the " + crdInfo.Name + " node"),
+					WithDescription(description),
 			})
 		}
 	}

@@ -44,7 +44,7 @@ var _ = Describe("Echo server tests", func() {
 		}
 		e.RegisterRouter(restUri)
 		model.ConstructMapCRDTypeToNode(model.Upsert, "leaders.orgchart.vmware.org", "leader",
-			[]string{}, nil, true)
+			[]string{}, nil, true, "some description")
 		model.ConstructMapURIToCRDType(model.Upsert, "leaders.orgchart.vmware.org", []nexus.RestURIs{restUri})
 
 		req := httptest.NewRequest(http.MethodPost, "/leader", strings.NewReader(leaderJson))
@@ -83,7 +83,7 @@ var _ = Describe("Echo server tests", func() {
 		}
 		e.RegisterRouter(restUri)
 		model.ConstructMapCRDTypeToNode(model.Upsert, "leaders.orgchart.vmware.org", "Leader.orgchart",
-			[]string{}, nil, true)
+			[]string{}, nil, true, "")
 		model.ConstructMapURIToCRDType(model.Upsert, "leaders.orgchart.vmware.org", []nexus.RestURIs{restUri})
 
 		req := httptest.NewRequest(http.MethodPost, "/", strings.NewReader(leaderJson))
