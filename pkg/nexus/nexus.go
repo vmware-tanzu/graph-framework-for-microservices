@@ -35,7 +35,7 @@ type HTTPMethodsResponses map[HTTPMethod]HTTPCodesResponse
 // RestURIs and associated data.
 type RestURIs struct {
 	Uri         string               `json:"uri"`
-	QueryParams []string             `json:"queryParams"`
+	QueryParams []string             `json:"queryParams,omitempty"`
 	Methods     HTTPMethodsResponses `json:"methods"`
 }
 
