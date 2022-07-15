@@ -93,7 +93,7 @@ lint:
 	golangci-lint run ./cmd/... ./pkg/...
 
 coverage:
-	go test -json -coverprofile=coverage.out ./... | tee report.json ;
+	go test -json -coverprofile=coverage.out -coverpkg=./... ./... | tee report.json ;
 
 .PHONY: test
 test: test-fmt vet lint race-unit-test
