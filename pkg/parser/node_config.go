@@ -6,29 +6,40 @@ import (
 	"strings"
 )
 
-const NexusRestApiGenAnnotation = "nexus-rest-api-gen"
+const (
+	NexusRestApiGenAnnotation  = "nexus-rest-api-gen"
+	NexusDescriptionAnnotation = "nexus-description"
+)
 
 func GetNexusRestAPIGenAnnotation(pkg Package, name string) (string, bool) {
-	var annotation string
+	return getNexusAnnotation(pkg, name, NexusRestApiGenAnnotation)
+}
+
+func GetNexusDescriptionAnnotation(pkg Package, name string) (string, bool) {
+	return getNexusAnnotation(pkg, name, NexusDescriptionAnnotation)
+}
+
+func getNexusAnnotation(pkg Package, name string, annotationName string) (string, bool) {
+	var annotationValue string
 
 	d := doc.New(&pkg.Pkg, pkg.Name, 4)
 	for _, t := range d.Types {
 		if t.Name == name {
-			if strings.Contains(t.Doc, NexusRestApiGenAnnotation) {
-				re := regexp.MustCompile(NexusRestApiGenAnnotation + ".*")
-				annotation = re.FindString(t.Doc)
+			if strings.Contains(t.Doc, annotationName) {
+				re := regexp.MustCompile(annotationName + ".*")
+				annotationValue = re.FindString(t.Doc)
 			}
 		}
 	}
 
-	if annotation != "" {
-		val := strings.Split(annotation, ":")
+	if annotationValue != "" {
+		val := strings.Split(annotationValue, ":")
 		if len(val) == 2 {
 			return strings.TrimSpace(val[1]), true
 		}
 
-		return annotation, false
+		return annotationValue, false
 	}
 
-	return annotation, false
+	return annotationValue, false
 }

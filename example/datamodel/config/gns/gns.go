@@ -79,6 +79,7 @@ type ReplicationSource struct {
 
 // Gns struct.
 // nexus-rest-api-gen:GNSRestAPISpec
+// nexus-description: this is my awesome node
 // specification of GNS.
 type Gns struct {
 	nexus.Node

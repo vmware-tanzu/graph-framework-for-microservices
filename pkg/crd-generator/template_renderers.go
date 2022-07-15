@@ -327,6 +327,7 @@ type NexusAnnotation struct {
 	Children        map[string]parser.NodeHelperChild `json:"children,omitempty"`
 	IsSingleton     bool                              `json:"is_singleton"`
 	NexusRestAPIGen nexus.RestAPISpec                 `json:"nexus-rest-api-gen,omitempty"`
+	Description     string                            `json:"description,omitempty"`
 }
 
 type CrdBaseFile struct {
@@ -360,6 +361,9 @@ func RenderCRDBaseTemplate(baseGroupName string, pkg parser.Package, parentsMap 
 
 		if annotation, ok := parser.GetNexusRestAPIGenAnnotation(pkg, typeName); ok {
 			nexusAnnotation.NexusRestAPIGen = restAPISpecMap[annotation]
+		}
+		if annotation, ok := parser.GetNexusDescriptionAnnotation(pkg, typeName); ok {
+			nexusAnnotation.Description = annotation
 		}
 
 		nexusAnnotationStr, err := json.Marshal(nexusAnnotation)
