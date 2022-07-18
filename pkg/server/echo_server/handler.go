@@ -144,6 +144,7 @@ func putHandler(c echo.Context) error {
 		Version:  "v1",
 		Resource: parts[0],
 	}
+	//package.Struct
 	crdNameParts := strings.Split(crdInfo.Name, ".")
 	labels := parseLabels(nc, crdInfo.ParentHierarchy)
 	labels["nexus/is_name_hashed"] = "true"
@@ -157,7 +158,7 @@ func putHandler(c echo.Context) error {
 		if errors.IsNotFound(err) {
 			// Build object
 			err = client.CreateObject(gvr,
-				crdNameParts[0], hashedName, labels, body)
+				crdNameParts[1], hashedName, labels, body)
 			if err != nil {
 				return handleClientError(nc, err)
 			}

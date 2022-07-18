@@ -16,7 +16,7 @@ import (
 var _ = Describe("OpenAPI tests", func() {
 	It("should add custom description to node", func() {
 		restUri := nexus.RestURIs{
-			Uri:     "/leader/{Leader.orgchart}",
+			Uri:     "/leader/{orgchart.Leader}",
 			Methods: nexus.DefaultHTTPMethodsResponses,
 		}
 
@@ -26,20 +26,20 @@ var _ = Describe("OpenAPI tests", func() {
 		err = json.Unmarshal(crdJson, &crd)
 		Expect(err).NotTo(HaveOccurred())
 
-		model.ConstructMapCRDTypeToNode(model.Upsert, "leaders.orgchart.vmware.org", "Leader.orgchart",
+		model.ConstructMapCRDTypeToNode(model.Upsert, "leaders.orgchart.vmware.org", "orgchart.Leader",
 			[]string{"roots.orgchart.vmware.org"}, nil, false, "my custom description")
 		model.ConstructMapURIToCRDType(model.Upsert, "leaders.orgchart.vmware.org", []nexus.RestURIs{restUri})
 
 		model.ConstructMapCRDTypeToSpec(model.Upsert, "leaders.orgchart.vmware.org", crd.Spec)
 		api.New()
 		api.AddPath(restUri)
-		Expect(api.Schema.Paths[restUri.Uri].Get.Parameters[0].Value.Name).To(Equal("Leader.orgchart"))
+		Expect(api.Schema.Paths[restUri.Uri].Get.Parameters[0].Value.Name).To(Equal("orgchart.Leader"))
 		Expect(api.Schema.Paths[restUri.Uri].Get.Parameters[0].Value.Description).To(Equal("my custom description"))
 	})
 
 	It("should add default description to node if custom is not present", func() {
 		restUri := nexus.RestURIs{
-			Uri:     "/leader/{Leader.orgchart}",
+			Uri:     "/leader/{orgchart.Leader}",
 			Methods: nexus.DefaultHTTPMethodsResponses,
 		}
 
@@ -49,15 +49,15 @@ var _ = Describe("OpenAPI tests", func() {
 		err = json.Unmarshal(crdJson, &crd)
 		Expect(err).NotTo(HaveOccurred())
 
-		model.ConstructMapCRDTypeToNode(model.Upsert, "leaders.orgchart.vmware.org", "Leader.orgchart",
+		model.ConstructMapCRDTypeToNode(model.Upsert, "leaders.orgchart.vmware.org", "orgchart.Leader",
 			[]string{}, nil, false, "")
 		model.ConstructMapURIToCRDType(model.Upsert, "leaders.orgchart.vmware.org", []nexus.RestURIs{restUri})
 
 		model.ConstructMapCRDTypeToSpec(model.Upsert, "leaders.orgchart.vmware.org", crd.Spec)
 		api.New()
 		api.AddPath(restUri)
-		Expect(api.Schema.Paths[restUri.Uri].Get.Parameters[0].Value.Name).To(Equal("Leader.orgchart"))
+		Expect(api.Schema.Paths[restUri.Uri].Get.Parameters[0].Value.Name).To(Equal("orgchart.Leader"))
 		Expect(api.Schema.Paths[restUri.Uri].Get.Parameters[0].Value.Description).
-			To(Equal("Name of the Leader.orgchart node"))
+			To(Equal("Name of the orgchart.Leader node"))
 	})
 })

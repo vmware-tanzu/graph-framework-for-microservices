@@ -77,7 +77,7 @@ func AddPath(uri nexus.RestURIs) {
 		case http.MethodGet:
 			operation := &openapi3.Operation{
 				OperationID: opId,
-				Tags:        []string{nameParts[0]},
+				Tags:        []string{nameParts[1]},
 				Parameters:  params,
 				Responses: openapi3.Responses{
 					"200": &openapi3.ResponseRef{
@@ -89,7 +89,7 @@ func AddPath(uri nexus.RestURIs) {
 			if len(params) == 0 {
 				operation = &openapi3.Operation{
 					OperationID: opId,
-					Tags:        []string{nameParts[0]},
+					Tags:        []string{nameParts[1]},
 					Parameters:  params,
 					Responses: openapi3.Responses{
 						"200": &openapi3.ResponseRef{
@@ -102,7 +102,7 @@ func AddPath(uri nexus.RestURIs) {
 		case http.MethodPut:
 			operation := &openapi3.Operation{
 				OperationID: opId,
-				Tags:        []string{nameParts[0]},
+				Tags:        []string{nameParts[1]},
 				RequestBody: &openapi3.RequestBodyRef{
 					Ref: "#/components/requestBodies/Create" + crdInfo.Name,
 				},
@@ -117,7 +117,7 @@ func AddPath(uri nexus.RestURIs) {
 		case http.MethodDelete:
 			operation := &openapi3.Operation{
 				OperationID: opId,
-				Tags:        []string{nameParts[0]},
+				Tags:        []string{nameParts[1]},
 				Responses: openapi3.Responses{
 					"200": &openapi3.ResponseRef{
 						Value: openapi3.NewResponse().WithDescription("No content"),
