@@ -43,7 +43,7 @@ var _ = Describe("Echo server tests", func() {
 			Methods: nexus.DefaultHTTPMethodsResponses,
 		}
 		e.RegisterRouter(restUri)
-		model.ConstructMapCRDTypeToNode(model.Upsert, "leaders.orgchart.vmware.org", "leader",
+		model.ConstructMapCRDTypeToNode(model.Upsert, "leaders.orgchart.vmware.org", "management.Leader",
 			[]string{}, nil, true, "some description")
 		model.ConstructMapURIToCRDType(model.Upsert, "leaders.orgchart.vmware.org", []nexus.RestURIs{restUri})
 
@@ -78,11 +78,11 @@ var _ = Describe("Echo server tests", func() {
 }`
 
 		restUri := nexus.RestURIs{
-			Uri:     "/leader/{Leader.orgchart}",
+			Uri:     "/leader/{orgchart.Leader}",
 			Methods: nexus.DefaultHTTPMethodsResponses,
 		}
 		e.RegisterRouter(restUri)
-		model.ConstructMapCRDTypeToNode(model.Upsert, "leaders.orgchart.vmware.org", "Leader.orgchart",
+		model.ConstructMapCRDTypeToNode(model.Upsert, "leaders.orgchart.vmware.org", "orgchart.Leader",
 			[]string{}, nil, true, "")
 		model.ConstructMapURIToCRDType(model.Upsert, "leaders.orgchart.vmware.org", []nexus.RestURIs{restUri})
 
@@ -90,11 +90,11 @@ var _ = Describe("Echo server tests", func() {
 		req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 		rec := httptest.NewRecorder()
 		c := e.Echo.NewContext(req, rec)
-		c.SetPath("/:Leader.orgchart")
-		c.SetParamNames("Leader.orgchart")
+		c.SetPath("/:orgchart.Leader")
+		c.SetParamNames("orgchart.Leader")
 		c.SetParamValues("notdefault")
 		nc := &NexusContext{
-			NexusURI:  "/leader/{Leader.orgchart}",
+			NexusURI:  "/leader/{orgchart.Leader}",
 			Context:   c,
 			CrdType:   "leaders.orgchart.vmware.org",
 			GroupName: "orgchart.vmware.org",

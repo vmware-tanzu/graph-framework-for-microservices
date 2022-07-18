@@ -176,7 +176,7 @@ func UpdateParentWithAddedChild(parentCrdType string, parentCrdInfo model.NodeIn
 			Value: map[string]interface{}{
 				"name":  childHashedName,
 				"group": group,
-				"kind":  childNameParts[0],
+				"kind":  childNameParts[1],
 			},
 		}
 		patch = append(patch, patchOp)
