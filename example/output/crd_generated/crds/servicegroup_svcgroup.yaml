@@ -4,7 +4,7 @@ kind: CustomResourceDefinition
 metadata:
   annotations:
     nexus: |
-      {"name":"SvcGroup.servicegroup","hierarchy":["roots.root.tsm.tanzu.vmware.com","configs.config.tsm.tanzu.vmware.com","gnses.gns.tsm.tanzu.vmware.com"],"is_singleton":false,"nexus-rest-api-gen":{"uris":null}}
+      {"name":"servicegroup.SvcGroup","hierarchy":["roots.root.tsm.tanzu.vmware.com","configs.config.tsm.tanzu.vmware.com","gnses.gns.tsm.tanzu.vmware.com"],"is_singleton":false,"nexus-rest-api-gen":{"uris":null}}
   creationTimestamp: null
   name: svcgroups.servicegroup.tsm.tanzu.vmware.com
 spec:

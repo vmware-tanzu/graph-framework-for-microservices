@@ -4,7 +4,7 @@ kind: CustomResourceDefinition
 metadata:
   annotations:
     nexus: |
-      {"name":"VMpolicy.policypkg","hierarchy":["roots.root.tsm.tanzu.vmware.com","configs.config.tsm.tanzu.vmware.com"],"is_singleton":false,"nexus-rest-api-gen":{"uris":null}}
+      {"name":"policypkg.VMpolicy","hierarchy":["roots.root.tsm.tanzu.vmware.com","configs.config.tsm.tanzu.vmware.com"],"is_singleton":false,"nexus-rest-api-gen":{"uris":null}}
   creationTimestamp: null
   name: vmpolicies.policypkg.tsm.tanzu.vmware.com
 spec:

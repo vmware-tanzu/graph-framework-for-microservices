@@ -92,4 +92,9 @@ var _ = Describe("Node parser tests", func() {
 		parser.ParseDSLNodes("../../example/test-utils/invalid-singleton-child", baseGroupName)
 		Expect(fail).To(BeTrue())
 	})
+
+	It("should create parents map", func() {
+		parentsMap := parser.CreateParentsMap(graph)
+		Expect(parentsMap["accesscontrolpolicies.policypkg.tsm.tanzu.vmware.com"].RestName).To(Equal("policypkg.AccessControlPolicy"))
+	})
 })

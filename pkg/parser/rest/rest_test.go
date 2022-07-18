@@ -59,7 +59,7 @@ var _ = Describe("Rest tests", func() {
 		expectedDnsApiSpec := nexus.RestAPISpec{
 			Uris: []nexus.RestURIs{
 				{
-					Uri:     "/v1alpha2/dns/{Dns.gns}",
+					Uri:     "/v1alpha2/dns/{gns.Dns}",
 					Methods: nexus.DefaultHTTPMethodsResponses,
 				},
 				{
