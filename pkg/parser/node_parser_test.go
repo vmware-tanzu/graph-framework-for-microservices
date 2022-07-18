@@ -93,8 +93,15 @@ var _ = Describe("Node parser tests", func() {
 		Expect(fail).To(BeTrue())
 	})
 
-	It("should create parents map", func() {
-		parentsMap := parser.CreateParentsMap(graph)
-		Expect(parentsMap["accesscontrolpolicies.policypkg.tsm.tanzu.vmware.com"].RestName).To(Equal("policypkg.AccessControlPolicy"))
+	It("should fail when used type name is reserved", func() {
+		defer func() { log.StandardLogger().ExitFunc = nil }()
+
+		fail := false
+		log.StandardLogger().ExitFunc = func(int) {
+			fail = true
+		}
+
+		parser.ParseDSLNodes("../../example/test-utils/invalid-type-name-datamodel", baseGroupName)
+		Expect(fail).To(BeTrue())
 	})
 })
