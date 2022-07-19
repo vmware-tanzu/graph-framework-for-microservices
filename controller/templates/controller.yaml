@@ -1,0 +1,149 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: controller-kubeconfig-local
+  namespace: {{.Values.global.namespace}}
+data:
+  kubeconfig: |
+    current-context: localapiserver
+    apiVersion: v1
+    kind: Config
+    clusters:
+    - cluster:
+        api-version: v1
+        server: http://nexus-proxy-container:80
+        insecure-skip-tls-verify: true
+      name: localapiserver
+    contexts:
+    - context:
+        cluster: localapiserver
+      name: localapiserver
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: connect-controller
+  namespace: {{.Values.global.namespace}}
+  labels:
+    control-plane: connect-controller
+spec:
+  selector:
+    matchLabels:
+      control-plane: connect-controller
+  replicas: 1
+  template:
+    metadata:
+      annotations:
+        kubectl.kubernetes.io/default-container: manager
+      labels:
+        control-plane: connect-controller
+    spec:
+      initContainers:
+        - name: check-nexus-proxy-container
+          image: "gcr.io/mesh7-public-images/tools:latest"
+          command:
+            - /bin/bash
+            - -c
+            - |
+              #!/bin/bash
+              set -x
+              URL="http://nexus-proxy-container/api/v1/namespaces"
+              max_retries=20
+              counter=0
+              while [[ $counter -lt $max_retries ]]; do
+                    status=$(curl -s -o /dev/null -I -w "%{http_code}" -XGET $URL)
+                    if [ $status == "200" ]; then
+                        echo "$URL is reachable"
+                        exit 0
+                    else
+                        counter=$((counter +1))
+                        sleep 5
+                    fi
+              done
+      containers:
+        -
+          image: {{.Values.global.registry}}/controller:{{.Values.global.controller.tag}}
+          name: nexus-controller
+          env:
+            - name: INNER_KUBECONFIG
+              value: /config/kubeconfig
+            - name: NEXUS_CONNECTOR_VERSION
+              value: {{.Values.global.registry}}/connector:{{.Values.global.connector.tag}}
+            - name: NAMESPACE
+              valueFrom:
+                fieldRef:
+                  apiVersion: v1
+                  fieldPath: metadata.namespace
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            allowPrivilegeEscalation: false
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 8081
+            initialDelaySeconds: 15
+            periodSeconds: 20
+          readinessProbe:
+            httpGet:
+              path: /readyz
+              port: 8081
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          # TODO(user): Configure the resources accordingly based on the project requirements.
+          # More info: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/
+          resources:
+            limits:
+              cpu: 500m
+              memory: 128Mi
+            requests:
+              cpu: 10m
+              memory: 64Mi
+          volumeMounts:
+            - mountPath: /config
+              name: config
+      volumes:
+        - name: config
+          configMap:
+            name: controller-kubeconfig-local
+      {{- if ne .Values.global.imagepullsecret "" }}
+      imagePullSecrets:
+      - name: {{ .Values.global.imagepullsecret }}
+      {{end}}
+      terminationGracePeriodSeconds: 10
+      securityContext:
+        runAsUser: 0
+        runAsGroup: 0
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: nexus-controller-role-{{.Values.global.namespace}}
+  namespace: {{.Values.global.namespace}}
+rules:
+- apiGroups:
+  - "apps"
+  resources:
+  - "deployments"
+  verbs: 
+  - "*"
+- apiGroups:
+  - ""
+  resources:
+  - "configmaps"
+  - "services"
+  verbs:
+  - "*"
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: nexus-controller-rb-{{.Values.global.namespace}}
+  namespace: {{.Values.global.namespace}}
+subjects:
+- kind: ServiceAccount
+  name: default 
+  namespace: {{.Values.global.namespace}}
+roleRef:
+  kind: Role
+  name: nexus-controller-role-{{.Values.global.namespace}}
+  apiGroup: rbac.authorization.k8s.io
