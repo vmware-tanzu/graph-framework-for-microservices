@@ -42,7 +42,6 @@ docker_build:
 	if [ -n "$(DOCKER_REPO)" ]; then \
 		if [ -n "$(VERSION)" ]; then \
 			docker build --build-arg IMAGE_NAME=$(DOCKER_REPO):$(VERSION) --build-arg NAME=$(NAME) -t $(DOCKER_REPO):$(VERSION) . -f Dockerfile ; \
-
 		else \
 			echo "Please provide VERSION when running docker_publish"; \
 			exit 1;\
