@@ -494,7 +494,13 @@ func (obj *{{$node.SimpleGroupTypeName}}{{$node.BaseNodeName}}) Add{{$link.Field
 		objToCreate.Labels[v] = obj.Labels[v]
 	}
 	objToCreate.Labels["{{$node.CrdName}}"] = obj.DisplayName()
-	if objToCreate.Labels[common.IS_NAME_HASHED_LABEL] != "true" {
+	if objToCreate.Labels[common.IS_NAME_HASHED_LABEL] != "true" { {{ if $link.IsSingleton}}
+	if objToCreate.GetName() == "" {
+			objToCreate.SetName(helper.DEFAULT_KEY)
+		}
+		if objToCreate.GetName() != helper.DEFAULT_KEY {
+			return nil, NewSingletonNameError(objToCreate.GetName())
+		}{{ end }}
 		objToCreate.Labels[common.DISPLAY_NAME_LABEL] = objToCreate.GetName()
 		objToCreate.Labels[common.IS_NAME_HASHED_LABEL] = "true"
 		hashedName := helper.GetHashedName(objToCreate.CRDName(), objToCreate.Labels, objToCreate.GetName())
