@@ -823,6 +823,12 @@ func (obj *ConfigConfig) AddDNS(ctx context.Context,
 	}
 	objToCreate.Labels["configs.config.tsm.tanzu.vmware.com"] = obj.DisplayName()
 	if objToCreate.Labels[common.IS_NAME_HASHED_LABEL] != "true" {
+		if objToCreate.GetName() == "" {
+			objToCreate.SetName(helper.DEFAULT_KEY)
+		}
+		if objToCreate.GetName() != helper.DEFAULT_KEY {
+			return nil, NewSingletonNameError(objToCreate.GetName())
+		}
 		objToCreate.Labels[common.DISPLAY_NAME_LABEL] = objToCreate.GetName()
 		objToCreate.Labels[common.IS_NAME_HASHED_LABEL] = "true"
 		hashedName := helper.GetHashedName(objToCreate.CRDName(), objToCreate.Labels, objToCreate.GetName())

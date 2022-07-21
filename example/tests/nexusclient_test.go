@@ -2,6 +2,8 @@ package nexus_compiler_test
 
 import (
 	"context"
+	"fmt"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/crd_generated/helper"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	. "github.com/onsi/ginkgo"
@@ -375,6 +377,7 @@ var _ = Describe("Nexus clients tests", func() {
 			},
 		}
 		cfg, err := root.AddConfig(context.TODO(), cfgDef)
+		fmt.Println(err)
 		Expect(err).NotTo(HaveOccurred())
 		gnsDef := &gnsv1.Gns{
 			ObjectMeta: metav1.ObjectMeta{
@@ -603,6 +606,12 @@ var _ = Describe("Nexus clients tests", func() {
 			Expect(err).NotTo(HaveOccurred())
 			Expect(dns).NotTo(BeNil())
 			Expect(dns.DisplayName()).To(Equal("default"))
+			//Expect(dns.GetName()).To(Equal(helper.GetHashedName("dnses.gns.tsm.tanzu.vmware.com", dns.GetLabels(), "default")))
+			dns, err = fakeClient.RootRoot().Config("foo").GetDNS(context.TODO())
+			Expect(err).NotTo(HaveOccurred())
+			Expect(dns).NotTo(BeNil())
+			Expect(dns.DisplayName()).To(Equal("default"))
+			Expect(dns.GetName()).To(Equal(helper.GetHashedName("dnses.gns.tsm.tanzu.vmware.com", dns.GetLabels(), "default")))
 		})
 
 		It("should accept singleton object without 'default' as a name", func() {
