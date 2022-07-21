@@ -3,6 +3,11 @@ CRD_MODULE_PATH ?= $(shell go list -m)/${BUILD_DIR}/
 TAG ?= "latest"
 CONTAINER_ID ?= ""
 DATAMODEL_LOCAL_PATH ?= $(realpath .)
+BUCKET ?= nexus-template-downloads
+DOCKER_REPO ?= $(shell cat nexus.yaml | grep dockerRepo | awk '{print $$2}' | tr -d '"')
+VERSION ?= $(shell git rev-parse --verify HEAD)
+NAME ?= $(shell cat nexus.yaml | grep groupName | awk '{print $$2}' | tr -d '"')
+NAMESPACE ?= ""
 
 .PHONY: datamodel_build
 datamodel_build:
@@ -32,3 +37,20 @@ datamodel_build:
 			--user root:root \
 			harbor-repo.vmware.com/nexus/compiler:$(TAG); \
 	fi
+
+docker_build:
+	if [ -n "$(DOCKER_REPO)" ]; then \
+		if [ -n "$(VERSION)" ]; then \
+			docker build --build-arg IMAGE_NAME=$(DOCKER_REPO):$(VERSION) --build-arg NAME=$(NAME) -t $(DOCKER_REPO):$(VERSION) . -f Dockerfile ; \
+
+		else \
+			echo "Please provide VERSION when running docker_publish"; \
+			exit 1;\
+		fi \
+	else \
+		echo "Please add dockerRepo in datamodel properties (or) call with DOCKER_REPO variable"; \
+		exit 1 ;\
+	fi
+
+docker_publish: docker_build
+	docker push $(DOCKER_REPO):$(VERSION) ;
