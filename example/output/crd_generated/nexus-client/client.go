@@ -1274,6 +1274,34 @@ func (group *GnsTsmV1) CreateGnsByName(ctx context.Context,
 	}, nil
 }
 
+// SetGnsStateByName sets user defined status
+func (group *GnsTsmV1) SetGnsStateByName(ctx context.Context,
+	objToUpdate *basegnstsmtanzuvmwarecomv1.Gns, status *basegnstsmtanzuvmwarecomv1.GnsState) (*GnsGns, error) {
+
+	patch := Patch{
+		PatchOp{
+			Op:    "replace",
+			Path:  "/status/state",
+			Value: status,
+		},
+	}
+
+	marshaled, err := patch.Marshal()
+	if err != nil {
+		return nil, err
+	}
+	result, err := group.client.baseClient.
+		GnsTsmV1().
+		Gnses().Patch(ctx, objToUpdate.GetName(), types.JSONPatchType, marshaled, metav1.PatchOptions{}, "status")
+	if err != nil {
+		return nil, err
+	}
+	return &GnsGns{
+		client: group.client,
+		Gns:    result,
+	}, nil
+}
+
 // UpdateGnsByName updates object stored in the database under the hashedName which is a hash of
 // display name and parents names.
 func (group *GnsTsmV1) UpdateGnsByName(ctx context.Context,
@@ -1388,6 +1416,35 @@ func (obj *GnsGns) Delete(ctx context.Context) error {
 // Update updates spec of object in database. Children and Link can not be updated using this function.
 func (obj *GnsGns) Update(ctx context.Context) error {
 	result, err := obj.client.Gns().UpdateGnsByName(ctx, obj.Gns)
+	if err != nil {
+		return err
+	}
+	obj.Gns = result.Gns
+	return nil
+}
+
+// SetState sets user defined status
+func (obj *GnsGns) SetState(ctx context.Context, status *basegnstsmtanzuvmwarecomv1.GnsState) error {
+	result, err := obj.client.Gns().SetGnsStateByName(ctx, obj.Gns, status)
+	if err != nil {
+		return err
+	}
+	obj.Gns = result.Gns
+	return nil
+}
+
+// GetState to get user defined status
+func (obj *GnsGns) GetState(ctx context.Context) (*basegnstsmtanzuvmwarecomv1.GnsState, error) {
+	getObj, err := obj.client.Gns().GetGnsByName(ctx, obj.GetName())
+	if err != nil {
+		return nil, err
+	}
+	return &getObj.Status.State, nil
+}
+
+// ClearState to clear user defined status
+func (obj *GnsGns) ClearState(ctx context.Context) error {
+	result, err := obj.client.Gns().SetGnsStateByName(ctx, obj.Gns, nil)
 	if err != nil {
 		return err
 	}
@@ -1589,6 +1646,38 @@ type gnsGnsTsmV1Chainer struct {
 	client       *Clientset
 	name         string
 	parentLabels map[string]string
+}
+
+// ClearState to clear user defined status
+func (c *gnsGnsTsmV1Chainer) ClearState(ctx context.Context) (err error) {
+	hashedName := helper.GetHashedName("gnses.gns.tsm.tanzu.vmware.com", c.parentLabels, c.name)
+	obj, err := c.client.Gns().GetGnsByName(ctx, hashedName)
+	if err != nil {
+		return err
+	}
+	_, err = c.client.Gns().SetGnsStateByName(ctx, obj.Gns, nil)
+	return err
+}
+
+// GetState to get user defined status
+func (c *gnsGnsTsmV1Chainer) GetState(ctx context.Context) (result *basegnstsmtanzuvmwarecomv1.GnsState, err error) {
+	hashedName := helper.GetHashedName("gnses.gns.tsm.tanzu.vmware.com", c.parentLabels, c.name)
+	obj, err := c.client.Gns().GetGnsByName(ctx, hashedName)
+	if err != nil {
+		return nil, err
+	}
+	return &obj.Status.State, nil
+}
+
+// SetState sets user defined status
+func (c *gnsGnsTsmV1Chainer) SetState(ctx context.Context, status *basegnstsmtanzuvmwarecomv1.GnsState) (err error) {
+	hashedName := helper.GetHashedName("gnses.gns.tsm.tanzu.vmware.com", c.parentLabels, c.name)
+	obj, err := c.client.Gns().GetGnsByName(ctx, hashedName)
+	if err != nil {
+		return err
+	}
+	_, err = c.client.Gns().SetGnsStateByName(ctx, obj.Gns, status)
+	return err
 }
 
 func (c *gnsGnsTsmV1Chainer) GnsServiceGroups(name string) *svcgroupServicegroupTsmV1Chainer {

@@ -15,23 +15,26 @@ import (
 )
 
 const (
-	baseGroupName            = "tsm.tanzu.vmware.com"
-	crdModulePath            = "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/_generated/"
-	examplePath              = "../../example/"
-	exampleDSLPath           = examplePath + "datamodel"
-	exampleCRDOutputPath     = examplePath + "output/_crd_base/"
-	exampleCRDApisOutputPath = exampleCRDOutputPath + "apis"
-	gnsExamplePath           = exampleCRDApisOutputPath + "/gns.tsm.tanzu.vmware.com/"
-	gnsDocPath               = gnsExamplePath + "v1/doc.go"
-	gnsRegisterGroupPath     = gnsExamplePath + "register.go"
-	gnsRegisterCRDPath       = gnsExamplePath + "v1/register.go"
-	gnsTypesPath             = gnsExamplePath + "v1/types.go"
-	gnsCrdBasePath           = exampleCRDOutputPath + "crds/gns_gns.yaml"
+	baseGroupName              = "tsm.tanzu.vmware.com"
+	crdModulePath              = "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/_generated/"
+	examplePath                = "../../example/"
+	exampleDSLPath             = examplePath + "datamodel"
+	exampleCRDOutputPath       = examplePath + "output/_crd_base/"
+	exampleCRDApisOutputPath   = exampleCRDOutputPath + "apis"
+	gnsExamplePath             = exampleCRDApisOutputPath + "/gns.tsm.tanzu.vmware.com/"
+	gnsDocPath                 = gnsExamplePath + "v1/doc.go"
+	gnsRegisterGroupPath       = gnsExamplePath + "register.go"
+	gnsRegisterCRDPath         = gnsExamplePath + "v1/register.go"
+	gnsTypesPath               = gnsExamplePath + "v1/types.go"
+	gnsCrdBasePath             = exampleCRDOutputPath + "crds/gns_gns.yaml"
+	exampleCRDClientOutputPath = exampleCRDOutputPath + "/nexus-client/client.go"
+	exampleCRDHelperOutputPath = exampleCRDOutputPath + "/helper/helper.go"
 )
 
 var _ = Describe("Template renderers tests", func() {
 	var (
 		//err error
+		pkgs       parser.Packages
 		pkg        parser.Package
 		parentsMap map[string]parser.NodeHelper
 		ok         bool
@@ -40,7 +43,7 @@ var _ = Describe("Template renderers tests", func() {
 	)
 
 	BeforeEach(func() {
-		pkgs := parser.ParseDSLPkg(exampleDSLPath)
+		pkgs = parser.ParseDSLPkg(exampleDSLPath)
 		pkg, ok = pkgs["gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/datamodel/config/gns"]
 		Expect(ok).To(BeTrue())
 
@@ -107,6 +110,32 @@ var _ = Describe("Template renderers tests", func() {
 		Expect(err).NotTo(HaveOccurred())
 
 		expectedTypes, err := ioutil.ReadFile(gnsTypesPath)
+		Expect(err).NotTo(HaveOccurred())
+
+		Expect(string(formatted)).To(Equal(string(expectedTypes)))
+	})
+
+	It("should parse client template", func() {
+		clientsBytes, err := crdgenerator.RenderClientTemplate(baseGroupName, crdModulePath, pkgs, parentsMap)
+		Expect(err).NotTo(HaveOccurred())
+
+		formatted, err := format.Source(clientsBytes.Bytes())
+		Expect(err).NotTo(HaveOccurred())
+
+		expectedTypes, err := ioutil.ReadFile(exampleCRDClientOutputPath)
+		Expect(err).NotTo(HaveOccurred())
+
+		Expect(string(formatted)).To(Equal(string(expectedTypes)))
+	})
+
+	It("should parse helper template", func() {
+		helperBytes, err := crdgenerator.RenderHelperTemplate(parentsMap, crdModulePath)
+		Expect(err).NotTo(HaveOccurred())
+
+		formatted, err := format.Source(helperBytes.Bytes())
+		Expect(err).NotTo(HaveOccurred())
+
+		expectedTypes, err := ioutil.ReadFile(exampleCRDHelperOutputPath)
 		Expect(err).NotTo(HaveOccurred())
 
 		Expect(string(formatted)).To(Equal(string(expectedTypes)))

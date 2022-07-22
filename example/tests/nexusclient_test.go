@@ -446,6 +446,7 @@ var _ = Describe("Nexus clients tests", func() {
 		Expect(gnsParent.DisplayName()).To(Equal("cfg"))
 
 		configParent, err := gnsParent.GetParent(context.TODO())
+		Expect(err).NotTo(HaveOccurred())
 		Expect(configParent.DisplayName()).To(Equal("default"))
 	})
 
@@ -661,6 +662,150 @@ var _ = Describe("Nexus clients tests", func() {
 				},
 			})
 			Expect(err).NotTo(HaveOccurred())
+		})
+	})
+	Context("status update", func() {
+		var cfg *nexus_client.ConfigConfig
+		BeforeEach(func() {
+			fakeClient = nexus_client.NewFakeClient()
+			rootDef := &rootv1.Root{}
+			root, err := fakeClient.AddRootRoot(context.TODO(), rootDef)
+			Expect(err).NotTo(HaveOccurred())
+			cfgDef := &configv1.Config{
+				ObjectMeta: metav1.ObjectMeta{
+					Name: "cfg",
+				},
+			}
+			cfg, err = root.AddConfig(context.TODO(), cfgDef)
+			Expect(err).NotTo(HaveOccurred())
+		})
+		It("should create object with a status and update status", func() {
+			gnsDef := &gnsv1.Gns{
+				ObjectMeta: metav1.ObjectMeta{
+					Name: "gnsName",
+				},
+				Status: gnsv1.GnsNexusStatus{
+					State: gnsv1.GnsState{
+						Temperature: 100,
+						Working:     true,
+					},
+				},
+			}
+			gns, err := cfg.AddGNS(context.TODO(), gnsDef)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(gns.Status.State.Working).To(BeTrue())
+			Expect(gns.Status.State.Temperature).To(Equal(100))
+			newState := &gnsv1.GnsState{
+				Temperature: 200,
+				Working:     false,
+			}
+			err = gns.SetState(context.TODO(), newState)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(gns.Status.State.Working).To(BeFalse())
+			Expect(gns.Status.State.Temperature).To(Equal(200))
+
+			updatedState, err := gns.GetState(context.TODO())
+			Expect(err).NotTo(HaveOccurred())
+			Expect(updatedState.Working).To(BeFalse())
+			Expect(updatedState.Temperature).To(Equal(200))
+		})
+
+		It("should create object without a status and update status", func() {
+			gnsDef := &gnsv1.Gns{
+				ObjectMeta: metav1.ObjectMeta{
+					Name: "gnsName",
+				},
+			}
+			gns, err := cfg.AddGNS(context.TODO(), gnsDef)
+			Expect(err).NotTo(HaveOccurred())
+
+			newState := &gnsv1.GnsState{
+				Temperature: 1000,
+				Working:     true,
+			}
+			err = gns.SetState(context.TODO(), newState)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(gns.Status.State.Working).To(BeTrue())
+			Expect(gns.Status.State.Temperature).To(Equal(1000))
+
+			updatedState, err := gns.GetState(context.TODO())
+			Expect(err).NotTo(HaveOccurred())
+			Expect(updatedState.Working).To(BeTrue())
+			Expect(updatedState.Temperature).To(Equal(1000))
+		})
+
+		It("should set and get object's status using chaining", func() {
+			gnsDef := &gnsv1.Gns{
+				ObjectMeta: metav1.ObjectMeta{
+					Name: "gnsName",
+				},
+			}
+			_, err := cfg.AddGNS(context.TODO(), gnsDef)
+			Expect(err).NotTo(HaveOccurred())
+
+			newState := &gnsv1.GnsState{
+				Temperature: 1111,
+				Working:     true,
+			}
+			err = fakeClient.RootRoot().Config("cfg").GNS("gnsName").SetState(context.TODO(), newState)
+			Expect(err).NotTo(HaveOccurred())
+
+			setState, err := fakeClient.RootRoot().Config("cfg").GNS("gnsName").GetState(context.TODO())
+			Expect(err).NotTo(HaveOccurred())
+			Expect(setState.Working).To(BeTrue())
+			Expect(setState.Temperature).To(Equal(1111))
+
+			newState = &gnsv1.GnsState{
+				Temperature: 2222,
+				Working:     false,
+			}
+			err = fakeClient.RootRoot().Config("cfg").GNS("gnsName").SetState(context.TODO(), newState)
+			Expect(err).NotTo(HaveOccurred())
+
+			setState, err = fakeClient.RootRoot().Config("cfg").GNS("gnsName").GetState(context.TODO())
+			Expect(err).NotTo(HaveOccurred())
+			Expect(setState.Working).To(BeFalse())
+			Expect(setState.Temperature).To(Equal(2222))
+		})
+
+		It("should clear object state", func() {
+			gnsDef := &gnsv1.Gns{
+				ObjectMeta: metav1.ObjectMeta{
+					Name: "gnsName",
+				},
+			}
+			gns, err := cfg.AddGNS(context.TODO(), gnsDef)
+			Expect(err).NotTo(HaveOccurred())
+
+			newState := &gnsv1.GnsState{
+				Temperature: 1111,
+				Working:     true,
+			}
+			err = fakeClient.RootRoot().Config("cfg").GNS("gnsName").SetState(context.TODO(), newState)
+			Expect(err).NotTo(HaveOccurred())
+
+			setState, err := fakeClient.RootRoot().Config("cfg").GNS("gnsName").GetState(context.TODO())
+			Expect(err).NotTo(HaveOccurred())
+			Expect(setState.Working).To(BeTrue())
+			Expect(setState.Temperature).To(Equal(1111))
+
+			err = fakeClient.RootRoot().Config("cfg").GNS("gnsName").ClearState(context.TODO())
+			Expect(err).NotTo(HaveOccurred())
+			getState, err := fakeClient.RootRoot().Config("cfg").GNS("gnsName").GetState(context.TODO())
+			Expect(err).NotTo(HaveOccurred())
+			Expect(getState.Working).To(BeFalse())
+			Expect(getState.Temperature).To(Equal(0))
+
+			newState = &gnsv1.GnsState{
+				Temperature: 2222,
+				Working:     false,
+			}
+			err = fakeClient.RootRoot().Config("cfg").GNS("gnsName").SetState(context.TODO(), newState)
+			Expect(err).NotTo(HaveOccurred())
+			err = gns.ClearState(context.TODO())
+			Expect(err).NotTo(HaveOccurred())
+			Expect(gns.Status.State.Working).To(BeFalse())
+			Expect(gns.Status.State.Temperature).To(Equal(0))
 		})
 	})
 })
