@@ -94,6 +94,24 @@ func resolveNode(baseImportName string, pkg parser.Package, allPkgs parser.Packa
 	clientGroupVars.GroupResourceType = groupResourceType
 	clientGroupVars.GroupResourceNameTitle = groupResourceNameTitle
 
+	//Get user defined status field if present
+	statusField := parser.GetStatusField(node)
+	if statusField != nil {
+		clientGroupVars.HasStatus = true
+		clientGroupVars.StatusType = parser.GetFieldType(statusField)
+		statusName, err := parser.GetFieldName(statusField)
+		if err != nil {
+			log.Fatalf("failed to determine field name: %v", err)
+		}
+		if statusName == "" {
+			log.Fatalf("name of the user defined status field in nexus node can't be empty")
+		}
+		clientGroupVars.StatusName = statusName
+		clientGroupVars.StatusNameFirstLower = util.GetTag(statusName)
+	} else {
+		clientGroupVars.HasStatus = false
+	}
+
 	// TODO support resolution of links which are not nexus nodes https://jira.eng.vmware.com/browse/NPT-112
 	children := parser.GetChildFields(node)
 	childrenAndLinks := children
@@ -267,6 +285,10 @@ type apiGroupsClientVars struct {
 	CrdName                string
 	IsSingleton            bool
 	HasChildren            bool
+	HasStatus              bool
+	StatusName             string
+	StatusNameFirstLower   string
+	StatusType             string
 	BaseImportName         string
 	GroupResourceType      string
 	GroupResourceNameTitle string

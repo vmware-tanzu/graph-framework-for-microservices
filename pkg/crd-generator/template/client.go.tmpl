@@ -251,6 +251,36 @@ func (group *{{$node.GroupTypeName}}) Create{{$node.BaseNodeName}}ByName(ctx con
 	}, nil
 }
 
+{{if .HasStatus}}
+// Set{{$node.BaseNodeName}}{{$node.StatusName}}ByName sets user defined status
+func (group *{{$node.GroupTypeName}}) Set{{$node.BaseNodeName}}{{$node.StatusName}}ByName(ctx context.Context,
+	objToUpdate *{{$node.GroupBaseImport}}, status *{{$node.BaseImportName}}.{{$node.StatusType}}) (*{{$node.SimpleGroupTypeName}}{{$node.BaseNodeName}}, error) {
+
+	patch := Patch{
+	PatchOp{
+		Op:    "replace",
+		Path:  "/status/{{$node.StatusNameFirstLower}}",
+		Value: status,
+		},
+	}
+
+	marshaled, err := patch.Marshal()
+	if err != nil {
+		return nil, err
+	}
+	result, err := group.client.baseClient.
+	{{$node.GroupTypeName}}().
+	{{$node.GroupResourceNameTitle}}().Patch(ctx, objToUpdate.GetName(), types.JSONPatchType, marshaled, metav1.PatchOptions{}, "status")
+	if err != nil {
+		return nil, err
+	}
+	return &{{$node.SimpleGroupTypeName}}{{$node.BaseNodeName}}{
+		client: group.client,
+		{{$node.BaseNodeName}}: result,
+	}, nil
+}
+{{ end }}
+
 // Update{{$node.BaseNodeName}}ByName updates object stored in the database under the hashedName which is a hash of
 // display name and parents names.
 func (group *{{$node.GroupTypeName}}) Update{{$node.BaseNodeName}}ByName(ctx context.Context,
@@ -346,6 +376,37 @@ func (obj *{{$node.SimpleGroupTypeName}}{{$node.BaseNodeName}}) Update(ctx conte
 	obj.{{$node.BaseNodeName}} = result.{{$node.BaseNodeName}}
 	return nil
 }
+
+{{if .HasStatus}}
+// Set{{.StatusName}} sets user defined status
+func (obj *{{$node.SimpleGroupTypeName}}{{$node.BaseNodeName}}) Set{{.StatusName}}(ctx context.Context, status *{{$node.BaseImportName}}.{{$node.StatusType}}) error {
+	result, err := obj.client.{{$node.SimpleGroupTypeName}}().Set{{$node.BaseNodeName}}{{$node.StatusName}}ByName(ctx, obj.{{$node.BaseNodeName}}, status)
+	if err != nil {
+		return err
+	}
+	obj.{{$node.BaseNodeName}} = result.{{$node.BaseNodeName}}
+	return nil
+}
+
+// Get{{$node.StatusName}} to get user defined status
+func (obj *{{$node.SimpleGroupTypeName}}{{$node.BaseNodeName}}) Get{{$node.StatusName}}(ctx context.Context) (*{{$node.BaseImportName}}.{{$node.StatusType}}, error) {
+	getObj, err := obj.client.{{$node.BaseNodeName}}().Get{{$node.BaseNodeName}}ByName(ctx, obj.GetName())
+	if err != nil {
+		return nil, err
+	}
+	return &getObj.Status.{{$node.StatusName}}, nil
+}
+
+// Clear{{$node.StatusName}} to clear user defined status
+func (obj *{{$node.SimpleGroupTypeName}}{{$node.BaseNodeName}}) Clear{{$node.StatusName}}(ctx context.Context) error {
+	result, err := obj.client.{{$node.BaseNodeName}}().Set{{$node.BaseNodeName}}{{$node.StatusName}}ByName(ctx, obj.{{$node.BaseNodeName}}, nil)
+	if err != nil {
+		return err
+	}
+	obj.{{$node.BaseNodeName}} = result.{{$node.BaseNodeName}}
+	return nil
+}
+{{ end }}
 
 {{ if .Parent.HasParent }}
 func (obj *{{$node.SimpleGroupTypeName}}{{$node.BaseNodeName}}) GetParent(ctx context.Context) (result *{{$node.Parent.SimpleGroupTypeName}}{{$node.Parent.BaseNodeName}}, err error) {
@@ -658,6 +719,40 @@ type {{$node.GroupResourceType}}Chainer struct {
 	name         string
 	parentLabels map[string]string
 }
+
+{{if .HasStatus}}
+// Clear{{$node.StatusName}} to clear user defined status
+func (c *{{$node.GroupResourceType}}Chainer) Clear{{$node.StatusName}}(ctx context.Context) (err error) {
+	hashedName := helper.GetHashedName("{{$node.CrdName}}", c.parentLabels, c.name)
+	obj, err := c.client.{{$node.BaseNodeName}}().Get{{$node.BaseNodeName}}ByName(ctx, hashedName)
+	if err != nil {
+		return err
+	}
+	_, err = c.client.{{$node.BaseNodeName}}().Set{{$node.BaseNodeName}}{{$node.StatusName}}ByName(ctx, obj.{{$node.BaseNodeName}}, nil)
+	return err
+}
+
+// Get{{$node.StatusName}} to get user defined status
+func (c *{{$node.GroupResourceType}}Chainer) Get{{$node.StatusName}}(ctx context.Context) (result *{{$node.BaseImportName}}.{{$node.StatusType}}, err error) {
+	hashedName := helper.GetHashedName("{{$node.CrdName}}", c.parentLabels, c.name)
+	obj, err := c.client.{{$node.BaseNodeName}}().Get{{$node.BaseNodeName}}ByName(ctx, hashedName)
+	if err != nil {
+		return nil, err
+	}
+	return &obj.Status.State, nil
+}
+
+// Set{{$node.StatusName}} sets user defined status
+func (c *gnsGnsTsmV1Chainer) Set{{$node.StatusName}}(ctx context.Context, status *{{$node.BaseImportName}}.{{$node.StatusType}}) (err error) {
+	hashedName := helper.GetHashedName("{{$node.CrdName}}", c.parentLabels, c.name)
+	obj, err := c.client.{{$node.BaseNodeName}}().Get{{$node.BaseNodeName}}ByName(ctx, hashedName)
+	if err != nil {
+		return err
+	}
+	_, err = c.client.{{$node.BaseNodeName}}().Set{{$node.BaseNodeName}}{{$node.StatusName}}ByName(ctx, obj.{{$node.BaseNodeName}}, status)
+	return err
+}
+{{ end }}
 
 {{ range $key, $link := .Children }}
 {{ if $link.IsSingleton }}
