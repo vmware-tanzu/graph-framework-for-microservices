@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/getkin/kin-openapi/openapi3"
 	"github.com/labstack/echo/v4"
+	"net/http"
 	"regexp"
 	"strings"
 )
@@ -41,7 +42,7 @@ func SetupContext(uri string, method string, item *openapi3.Operation) *Endpoint
 
 	path := fmt.Sprintf(resourcePattern, groupName, resourceName)
 	single := false
-	if identifier != "" {
+	if identifier != "" && method != http.MethodPut {
 		single = true
 		path = fmt.Sprintf(resourceNamePattern, groupName, resourceName)
 	}
