@@ -85,6 +85,50 @@ spec:
                     configs.config.nexus.org: default
               EOF
               fi
+
+              if ! kubectl get crds datamodels.nexus.org > /dev/null 2>&1 ; then
+                echo 'creating Datamodel CRD type'
+                kubectl apply -f - << EOF
+                  apiVersion: apiextensions.k8s.io/v1
+                  kind: CustomResourceDefinition
+                  metadata:
+                    creationTimestamp: null
+                    name: datamodels.nexus.org
+                  spec:
+                    conversion:
+                      strategy: None
+                    group: nexus.org
+                    names:
+                      kind: Datamodel
+                      listKind: DatamodelList
+                      plural: datamodels
+                      shortNames:
+                      - datamodel
+                      singular: datamodel
+                    scope: Cluster
+                    versions:
+                    - name: v1
+                      schema:
+                        openAPIV3Schema:
+                          type: object
+                          properties:
+                            apiVersion:
+                              type: string
+                            kind:
+                              type: string
+                            metadata:
+                              type: object
+                            spec:
+                              properties:
+                                name:
+                                  type: string
+                                url:
+                                  type: string
+                              type: object
+                      served: true
+                      storage: true
+              EOF
+              fi
           env:
             - name: KUBECONFIG
               value: /kube/config

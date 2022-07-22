@@ -2,7 +2,7 @@
 apiVersion: batch/v1beta1
 kind: CronJob
 metadata:
-  name: nexus-etcd-defrag 
+  name: nexus-etcd-defrag
 spec:
   successfulJobsHistoryLimit: 1
   failedJobsHistoryLimit: 1
@@ -33,7 +33,7 @@ spec:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
-  name: nexus-k8scert-secret-permission  
+  name: nexus-k8scert-secret-permission
 rules:
 - apiGroups:
   - ""
@@ -67,7 +67,7 @@ roleRef:
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: nexus-k8scert-creation-job  
+  name: nexus-k8scert-creation-job
 spec:
   template:
     metadata:
@@ -176,7 +176,7 @@ spec:
           initialDelaySeconds: 15
           periodSeconds: 10
           successThreshold: 1
-          timeoutSeconds: 15    
+          timeoutSeconds: 15
         volumeMounts:
             - name: nexus-customapi-ca
               mountPath: "/custom/k8s/certs"
@@ -191,7 +191,7 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: nexus-apiserver 
+  name: nexus-apiserver
 spec:
   type: ClusterIP
   ports:
@@ -288,7 +288,7 @@ spec:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: nexus-proxy-container 
+  name: nexus-proxy-container
   labels:
     app: nexus-proxy-container
 spec:
