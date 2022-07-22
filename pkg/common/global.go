@@ -53,6 +53,7 @@ type NexusConfig struct {
 	Name string
 }
 
+var NexusDMPropertiesFile string = "nexus.yaml"
 var NexusConfFile = "NEXUSDATAMODEL"
 
 //go:embed values.yaml
@@ -148,4 +149,15 @@ var NexusApiDatamodelManifest = Manifest{
 	FileName:       "api-datamodel-crds.tar",
 	ImageName:      "",
 	Templatized:    false,
+}
+
+type Datamodel struct {
+	DatamodelInstaller  DatamodelInstaller
+	IsImagePullSecret   bool
+	ImagePullSecret     string
+	SkipCRDInstallation string
+}
+type DatamodelInstaller struct {
+	Image string
+	Name  string
 }

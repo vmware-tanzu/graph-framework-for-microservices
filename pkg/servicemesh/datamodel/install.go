@@ -2,48 +2,73 @@ package datamodel
 
 import (
 	"fmt"
-
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/log"
+	"os/exec"
+	"strings"
 
 	"github.com/spf13/cobra"
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/common"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/log"
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/servicemesh/prereq"
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/utils"
 )
 
 var Namespace string
-
+var DatamodelImage string
 var installPrerequisites []prereq.Prerequiste = []prereq.Prerequiste{
 	prereq.KUBERNETES,
 	prereq.KUBERNETES_VERSION,
 }
+var ImagePullSecret string
 
-func Install(cmd *cobra.Command, args []string) error {
-	if utils.ListPrereq(cmd) {
-		prereq.PreReqListOnDemand(prerequisites)
-		return nil
-	}
+const (
+	DatamodelJobSpecConfig string = "datamodel-job-spec"
+	ToolsImage             string = "gcr.io/nsx-sm/tools:latest"
+	NamespaceFlag          string = "namespace"
+)
 
-	if err := utils.GoToNexusDirectory(); err != nil {
-		return err
-	}
-	envList := common.GetEnvList()
-	if DatamodelName != "" {
-		envList = append(envList, fmt.Sprintf("DATAMODEL=%s", DatamodelName))
-		if exists, err := utils.CheckDatamodelDirExists(DatamodelName); !exists {
-			return utils.GetCustomError(utils.DATAMODEL_INSTALL_FAILED, err).Print().ExitIfFatalOrReturn()
-		}
-	} else {
-		return utils.GetCustomError(utils.DATAMODEL_DIRECTORY_MISMATCH,
-			fmt.Errorf("Please provide datamodel name using --name option when running from app directory")).Print().ExitIfFatalOrReturn()
-	}
-	envList = append(envList, fmt.Sprintf("NAMESPACE=%s", Namespace))
-
-	err := utils.SystemCommand(cmd, utils.DATAMODEL_INSTALL_FAILED, envList, "make", "datamodel_install")
+func CheckSpecAvailable(JobSpecConfigmap, namespace string) error {
+	err := exec.Command("kubectl", "get", "cm", JobSpecConfigmap, "-n", namespace).Run()
 	if err != nil {
+		log.Errorf("Could not find the %s configmap due to %s - please install latest runtime", JobSpecConfigmap, err)
 		return err
 	}
+	return nil
+}
 
+func InstallJob(DatamodelImage, DatamodelName, ImagePullsecret, Namespace, skipCRDInstallation string) error {
+	if DatamodelName == "" {
+		ImageName := strings.Split(DatamodelImage, ":")[0]
+		Name := strings.Split(ImageName, "/")
+		DatamodelName = Name[len(Name)-1]
+		DatamodelName = strings.ToLower(DatamodelName)
+	}
+	var IsImagePullSecret = false
+	if ImagePullSecret != "" {
+		checkSecretCommand := exec.Command("kubectl", "get", "secret", ImagePullSecret, "-n", Namespace)
+		err := checkSecretCommand.Run()
+		if err != nil {
+			fmt.Printf("Please Create Secret %s before calling nexus datamodel install with --secret/-s option on namespace", ImagePullSecret)
+			return err
+		}
+		IsImagePullSecret = true
+	}
+	data := common.Datamodel{
+		DatamodelInstaller: common.DatamodelInstaller{
+			Image: DatamodelImage,
+			Name:  DatamodelName,
+		},
+		IsImagePullSecret:   IsImagePullSecret,
+		ImagePullSecret:     ImagePullSecret,
+		SkipCRDInstallation: skipCRDInstallation,
+	}
+	if err := CheckSpecAvailable(DatamodelJobSpecConfig, Namespace); err != nil {
+		return err
+	}
+	err := utils.RunDatamodelInstaller(DatamodelJobSpecConfig, Namespace, DatamodelName, data)
+	if err != nil {
+		log.Errorf("could not complete datamodel install due to: %s", err)
+		return err
+	}
 	fmt.Printf("\u2713 Datamodel %s install successful\n", DatamodelName)
 	return nil
 }
@@ -52,27 +77,15 @@ var InstallCmd = &cobra.Command{
 	Use:   "install",
 	Short: "Install specified datamodel's generated CRDs to the specified namespace",
 	//Args:  cobra.ExactArgs(1),
-	PreRunE: func(cmd *cobra.Command, args []string) (err error) {
-		if utils.ListPrereq(cmd) {
-			return nil
-		}
-
-		if utils.SkipPrereqCheck(cmd) {
-			return nil
-		}
-		return prereq.PreReqVerifyOnDemand(installPrerequisites)
-	},
-	RunE: Install,
 }
 
 func init() {
-	InstallCmd.Flags().StringVarP(&Namespace, "namespace",
+	InstallCmd.AddCommand(ImageCmd)
+	InstallCmd.AddCommand(NameCmd)
+	InstallCmd.PersistentFlags().StringVarP(&Namespace, "namespace",
 		"r", "", "name of the namespace to install to")
-	InstallCmd.Flags().StringVarP(&DatamodelName, "name",
-		"n", "", "name of the datamodel to install")
 	err := cobra.MarkFlagRequired(InstallCmd.Flags(), "namespace")
 	if err != nil {
-		log.Debugf("Datamodel install err: %v", err)
+		log.Debugf("please provide namespace: %v", err)
 	}
-
 }
