@@ -15,154 +15,25 @@ In the below-example, if user has enabled replication for the object "Cluster Ba
 
 ## Perform the following steps to deploy nexus-connector
 
-**Step 1:** Apply nexus-connector deployment and configuration yaml files.
+**Step 1:** Install nexus runtime which deploys connect-controller.
 
 ```
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: connector
-  namespace: mazinger
-  labels:
-    control-plane: connector
-spec:
-  selector:
-    matchLabels:
-      control-plane: connector
-  replicas: 1
-  template:
-    metadata:
-      annotations:
-        kubectl.kubernetes.io/default-container: manager
-      labels:
-        control-plane: connector
-    spec:
-      initContainers:
-        - name: check-nexus-proxy-container
-          image: "gcr.io/mesh7-public-images/tools:latest"
-          command:
-            - /bin/bash
-            - -c
-            - |
-              #!/bin/bash
-              set -x
-              URL="http://nexus-proxy-container/api/v1/namespaces"
-              max_retries=20
-              counter=0
-              while [[ $counter -lt $max_retries ]]; do
-                    status=$(curl -s -o /dev/null -I -w "%{http_code}" -XGET $URL)
-                    if [ $status == "200" ]; then
-                        echo "$URL is reachable"
-                        exit 0
-                    else
-                        counter=$((counter +1))
-                        sleep 5
-                    fi
-              done
-      containers:
-        -
-          image: 284299419820.dkr.ecr.us-west-2.amazonaws.com/nexus/connector:1cae9251381d4eb299daa05899a134fae6ffaa79
-          name: connector
-          env:
-            - name: KUBECONFIG
-              value: /config/kubeconfig
-          imagePullPolicy: IfNotPresent
-          securityContext:
-            allowPrivilegeEscalation: false
-          livenessProbe:
-            httpGet:
-              path: /healthz
-              port: 8081
-            initialDelaySeconds: 15
-            periodSeconds: 20
-          readinessProbe:
-            httpGet:
-              path: /readyz
-              port: 8081
-            initialDelaySeconds: 5
-            periodSeconds: 10
-          # TODO(user): Configure the resources accordingly based on the project requirements.
-          # More info: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/
-          resources:
-            limits:
-              cpu: 500m
-              memory: 128Mi
-            requests:
-              cpu: 10m
-              memory: 64Mi
-          volumeMounts:
-            - mountPath: /config
-              name: config
-      volumes:
-        - name: config
-          configMap:
-            name: connector-kubeconfig-local
-      terminationGracePeriodSeconds: 10
-      securityContext:
-        runAsUser: 0
-        runAsGroup: 0
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: nexus-connector
-  namespace: mazinger
-spec:
-  ports:
-  - protocol: TCP
-    name: http
-    port: 80
-    targetPort: 80
-  - protocol: TCP
-    name: https
-    port: 443
-    targetPort: 443
-  selector:
-    control-plane: connector
----
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: connector-kubeconfig-local
-  namespace: mazinger
-data:
-  kubeconfig: |
-    current-context: localapiserver
-    apiVersion: v1
-    kind: Config
-    clusters:
-    - cluster:
-        api-version: v1
-        server: http://nexus-proxy-container:80
-        insecure-skip-tls-verify: true
-      name: localapiserver
-    contexts:
-    - context:
-        cluster: localapiserver
-      name: localapiserver
-  connector-config: |
-    dispatcher:
-        workerTTL: "15s"
-        maxWorkerCount: 100
-        closeRequestsQueueSize: 15
-        eventProcessedQueueSize: 100
-    ignoredNamespaces:
-        matchNames:
-            - "kube-public"
-            - "kube-system"
-            - "kube-node-lease"
-            - "istio-system"
-            - "ibm-system"
-            - "ibm-operators"
-            - "ibm-cert-store"
+% kubectl get deploy -A
+NAMESPACE     NAME                             READY   UP-TO-DATE   AVAILABLE   AGE
+kube-system   coredns                          2/2     2            2           24h
+mazinger      api-gw                           1/1     1            1           22h
+mazinger      connect-controller               1/1     1            1           22h   <-------------
+mazinger      nexus-ingress-nginx-controller   1/1     1            1           22h
+mazinger      nexus-kube-apiserver             1/1     1            1           22h
+mazinger      nexus-kube-controllermanager     1/1     1            1           22h
+mazinger      nexus-nginx                      1/1     1            1           22h
+mazinger      nexus-proxy                      1/1     1            1           22h
+mazinger      nexus-proxy-container            1/1     1            1           22h
+mazinger      nexus-validation                 1/1     1            1           22h
 ```
 
-**Note:** For kind cluster, use harbor image:
-```
-harbor-repo.vmware.com/nexus/connector:1cae9251381d4eb299daa05899a134fae6ffaa79
-```
-
-**Step 2:** Apply NexusEndpoint and ReplicationConfig manually in the local-apiserver.
+**Step 2:** Create NexusEndpoint CR manually in the local-apiserver. 
+This deploys one instance of nexus-connector that syncs objects to that destination endpoint alone.
 
 ```
 kubectl port-forward svc/nexus-proxy-container 45192:80 -n mazinger
@@ -185,6 +56,24 @@ spec:
 ```
 
 where **host** indicates destination cluster URL. 
+
+```
+% kubectl get deploy -A
+NAMESPACE     NAME                             READY   UP-TO-DATE   AVAILABLE   AGE
+kube-system   coredns                          2/2     2            2           24h
+mazinger      api-gw                           1/1     1            1           22h
+mazinger      connect-controller               1/1     1            1           22h
+mazinger      nexus-connector-default          1/1     1            1           13s   <-------------
+mazinger      nexus-ingress-nginx-controller   1/1     1            1           22h
+mazinger      nexus-kube-apiserver             1/1     1            1           22h
+mazinger      nexus-kube-controllermanager     1/1     1            1           22h
+mazinger      nexus-nginx                      1/1     1            1           22h
+mazinger      nexus-proxy                      1/1     1            1           22h
+mazinger      nexus-proxy-container            1/1     1            1           22h
+mazinger      nexus-validation                 1/1     1            1           22h
+```
+
+**Step 3:** Create ReplicationConfig CR manually in the local-apiserver. 
 
 ## Sample ReplicationConfig Object
 
@@ -253,7 +142,7 @@ metadata:
 type: kubernetes.io/service-account-token
 ```
 
-**Step 3:** Start creating the objects and verify the connector logs if the replication was successful. 
+**Step 4:** Start creating the objects and verify the connector logs if the replication was successful. 
 
 ```
 % kubectl logs -n mazinger      connector-569998cf98-9n8zf -f
