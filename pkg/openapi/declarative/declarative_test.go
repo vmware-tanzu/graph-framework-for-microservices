@@ -1,7 +1,9 @@
 package declarative_test
 
 import (
+	"api-gw/pkg/config"
 	"api-gw/pkg/openapi/declarative"
+	"api-gw/pkg/server/echo_server"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"net/http"
@@ -29,5 +31,31 @@ var _ = Describe("OpenAPI tests", func() {
 			"params": []string{"projectId"},
 			"uri":    ec.SpecUri,
 		}))
+	})
+
+	It("should register declarative router", func() {
+		config.Cfg = &config.Config{
+			Server:             config.ServerConfig{},
+			EnableNexusRuntime: true,
+			BackendService:     "",
+		}
+		e := echo_server.NewEchoServer(config.Cfg)
+		e.RegisterDeclarativeRouter()
+
+		c := e.Echo.NewContext(nil, nil)
+		e.Echo.Router().Find(http.MethodGet, "/apis/gns.vmware.org/v1/globalnamespaces", c)
+		Expect(c.Path()).To(Equal("/apis/gns.vmware.org/v1/globalnamespaces"))
+
+		c = e.Echo.NewContext(nil, nil)
+		e.Echo.Router().Find(http.MethodGet, "/apis/gns.vmware.org/v1/globalnamespaces/:name", c)
+		Expect(c.Path()).To(Equal("/apis/gns.vmware.org/v1/globalnamespaces/:name"))
+
+		c = e.Echo.NewContext(nil, nil)
+		e.Echo.Router().Find(http.MethodPut, "/apis/gns.vmware.org/v1/globalnamespaces", c)
+		Expect(c.Path()).To(Equal("/apis/gns.vmware.org/v1/globalnamespaces"))
+
+		c = e.Echo.NewContext(nil, nil)
+		e.Echo.Router().Find(http.MethodDelete, "/apis/gns.vmware.org/v1/globalnamespaces/:name", c)
+		Expect(c.Path()).To(Equal("/apis/gns.vmware.org/v1/globalnamespaces/:name"))
 	})
 })
