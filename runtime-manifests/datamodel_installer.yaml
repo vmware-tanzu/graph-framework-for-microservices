@@ -1,0 +1,123 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: dmi-kubeconfig
+data:
+  kubeconfig: |
+    current-context: nexus-api-server
+    apiVersion: v1
+    kind: Config
+    clusters:
+    - cluster:
+        api-version: v1
+        server: http://nexus-proxy-container:80
+        insecure-skip-tls-verify: true
+      name: nexus-api-server
+    contexts:
+    - context:
+        cluster: nexus-api-server
+      name: nexus-api-server
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: dmi-script
+data:
+  create_datamodel_cm.sh: |
+      set -ex
+      NAME=${NAME:-}
+      IMAGE="file://${NAME}"
+      SKIP_CRD_INSTALLATION=${SKIP_CRD_INSTALLATION:-false}
+      if [[ $SKIP_CRD_INSTALLATION == "false" ]]; then
+          kubectl apply -f /crds --recursive
+          NAME=$(cat /NAME)
+          IMAGE=$(cat /IMAGE)
+      fi
+      if [[ -n $NAME ]] && [[ -n $IMAGE ]]; then
+        echo '
+        apiVersion: nexus.org/v1
+        kind: Datamodel
+        metadata:
+          name: '"$NAME"'
+        spec:
+          name: '"$NAME"'
+          url: '"$IMAGE"'' | kubectl apply -f -
+      fi
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: datamodel-job-spec
+data:
+    jobSpec.yaml: |
+        apiVersion: batch/v1
+        kind: Job
+        metadata:
+          name: {{.DatamodelInstaller.Name}}-dmi
+        spec:
+          backoffLimit: 6
+          template:
+            spec:
+              initContainers:
+                - name: check-nexus-proxy-container
+                  image: "gcr.io/nsx-sm/tools:latest"
+                  command:
+                    - /bin/bash
+                    - -c
+                    - |
+                      #!/bin/bash
+                      set -x
+                      URL="http://nexus-proxy-container/api/v1/namespaces"
+                      max_retries=60
+                      counter=0
+                      while [[ $counter -lt $max_retries ]]; do
+                            status=$(curl -s -o /dev/null -I -w "%{http_code}" -XGET $URL)
+                            if [ $status == "200" ]; then
+                                echo "$URL is reachable"
+                                exit 0
+                            else
+                                counter=$((counter +1))
+                                sleep 3
+                                if [[ $counter -eq $max_retries ]]; then
+                                  exit 1
+                                fi
+                            fi
+                      done
+              containers:
+                - command:
+                    - /bin/bash
+                    - -c
+                    - opt/datamodel-installer-job-cm/create_datamodel_cm.sh
+                  env:
+                    - name: KUBECONFIG
+                      value: /etc/config/kubeconfig
+                    - name: NAME
+                      value: {{.DatamodelInstaller.Name}}
+                    - name: IMAGE
+                      value: {{.DatamodelInstaller.Image}}
+                    - name: SKIP_CRD_INSTALLATION
+                      value: "{{.SkipCRDInstallation}}"
+                  image: {{.DatamodelInstaller.Image}}
+                  imagePullPolicy: IfNotPresent
+                  name: datamodel-installer-job
+                  volumeMounts:
+                    - mountPath: /opt/datamodel-installer-job-cm/
+                      name: dmi-script
+                      readOnly: false
+                    - mountPath: /etc/config
+                      name: dmi-kubeconfig
+                      readOnly: false
+              restartPolicy: Never
+              volumes:
+                - configMap:
+                    name: dmi-script
+                    defaultMode: 0555
+                  name: dmi-script
+                - configMap:
+                    name: dmi-kubeconfig
+                    defaultMode: 0555
+                  name: dmi-kubeconfig
+              {{- if .IsImagePullSecret }}
+              imagePullSecrets:
+                - name: {{.ImagePullSecret}}
+              {{- end }}
