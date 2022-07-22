@@ -25,6 +25,7 @@ type TemplateValues struct {
 var DatamodelName string
 var GroupName string
 var localDatamodel bool
+var dockerRepo string
 
 func createDatamodel(dmName string, DatamodelTarballUrl string, Render bool, standalone bool) error {
 	var Directory string
@@ -167,6 +168,15 @@ func InitOperation(cmd *cobra.Command, args []string) error {
 			return err
 		}
 	}
+	if dockerRepo != "" {
+		if localDatamodel {
+			os.Chdir(dmName)
+		}
+		err := utils.SetDatamodelDockerRepo(dockerRepo)
+		if err != nil {
+			return err
+		}
+	}
 	fmt.Printf("\u2713 Datamodel %s initialized successfully\n", dmName)
 	return nil
 }
@@ -185,6 +195,7 @@ func init() {
 	InitCmd.Flags().StringVarP(&DatamodelName, "name", "n", "", "name of the datamodel")
 	InitCmd.Flags().StringVarP(&GroupName, "group", "g", "", "subdomain for the datamodel resources")
 	InitCmd.Flags().BoolVarP(&localDatamodel, localDatamodelFlag, "", false, "initializes a app local datamodel")
+	InitCmd.Flags().StringVarP(&dockerRepo, "docker-repo", "d", "", "docker repo to publish image")
 
 	InitCmd.MarkFlagRequired("name")
 	InitCmd.MarkFlagRequired("group")

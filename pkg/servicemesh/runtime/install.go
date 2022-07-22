@@ -298,7 +298,6 @@ func installApiDatamodelCrds(cmd *cobra.Command, values version.NexusValues) err
 	pfSession, pfErr := startPortForward(labels, 8001, "/api/v1/namespaces/")
 	if pfErr != nil {
 		return fmt.Errorf("portforward failed due to error: %s\n", pfErr)
-		return pfErr
 	}
 	defer pfSession.stopPortForward()
 

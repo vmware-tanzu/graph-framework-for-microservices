@@ -101,6 +101,7 @@ func initCommands() {
 	DataModelCmd.AddCommand(servicemesh_datamodel.InitCmd)
 	DataModelCmd.AddCommand(servicemesh_datamodel.InstallCmd)
 	DataModelCmd.AddCommand(servicemesh_datamodel.BuildCmd)
+	DataModelCmd.AddCommand(servicemesh_datamodel.ConfigureCmd)
 
 	AppCmd.AddCommand(app.InitCmd)
 	AppCmd.AddCommand(app.PackageCmd)
@@ -114,6 +115,7 @@ func initCommands() {
 	OperatorCmd.AddCommand(operator.CreateCmd)
 
 	ConfigCmd.AddCommand(config.SetCmd)
+
 	ConfigCmd.AddCommand(config.ViewCmd)
 }
 
