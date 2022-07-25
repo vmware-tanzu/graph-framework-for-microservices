@@ -37,6 +37,7 @@ build_tag:
     - tags
   variables:
     TAG: $CI_COMMIT_TAG
+    VERSION: $CI_COMMIT_TAG
   script:
     - make docker_publish
     - make docker_publish DOCKER_REPO=harbor-repo.vmware.com/nexus/api
