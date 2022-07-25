@@ -1,0 +1,6 @@
+apiVersion: v2
+name: datamodel
+description: A Helm chart for nexus-sdk datamodel
+type: application
+version: 0.1.0
+appVersion: "1.16.0"
