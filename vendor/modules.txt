@@ -21,6 +21,9 @@ github.com/go-openapi/jsonpointer
 ## explicit; go 1.13
 github.com/go-openapi/jsonreference
 github.com/go-openapi/jsonreference/internal
+# github.com/go-openapi/spec v0.20.4
+## explicit; go 1.13
+github.com/go-openapi/spec
 # github.com/go-openapi/swag v0.21.1
 ## explicit; go 1.11
 github.com/go-openapi/swag
@@ -263,6 +266,14 @@ k8s.io/klog/v2/internal/buffer
 k8s.io/klog/v2/internal/clock
 k8s.io/klog/v2/internal/serialize
 k8s.io/klog/v2/internal/severity
+# k8s.io/kube-openapi v0.0.0-20220328201542-3ee0da9b0b42
+## explicit; go 1.16
+k8s.io/kube-openapi/pkg/builder3/util
+k8s.io/kube-openapi/pkg/common
+k8s.io/kube-openapi/pkg/openapiconv
+k8s.io/kube-openapi/pkg/schemamutation
+k8s.io/kube-openapi/pkg/spec3
+k8s.io/kube-openapi/pkg/validation/spec
 # k8s.io/utils v0.0.0-20220210201930-3a6ce19ff2f9
 ## explicit; go 1.12
 k8s.io/utils/internal/third_party/forked/golang/net

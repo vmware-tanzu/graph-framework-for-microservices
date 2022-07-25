@@ -16,4 +16,4 @@ esac
 sed -i "s|github.com/go-openapi/spec|gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git/pkg/validation/spec|" ./openapi-generator/openapi/openapi_generated.go
 sed -i "s|k8s.io/kube-openapi/pkg/common|gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git/pkg/common|" ./openapi-generator/openapi/openapi_generated.go
 
-go run openapi-generator/cmd/generate-openapischema/generate-openapischema.go -yamls-path crds
+#go run openapi-generator/cmd/generate-openapischema/generate-openapischema.go -yamls-path crds

@@ -5,6 +5,7 @@ go 1.17
 require (
 	github.com/fatih/structtag v1.2.0
 	github.com/ghodss/yaml v1.0.0
+	github.com/go-openapi/spec v0.20.4
 	github.com/gogo/protobuf v1.3.2
 	github.com/onsi/ginkgo v1.16.5
 	github.com/onsi/gomega v1.19.0
@@ -16,6 +17,7 @@ require (
 	k8s.io/apiextensions-apiserver v0.24.0
 	k8s.io/apimachinery v0.24.0
 	k8s.io/gengo v0.0.0-20220307231824-4627b89bbf1b
+	k8s.io/kube-openapi v0.0.0-20220328201542-3ee0da9b0b42
 )
 
 require (
