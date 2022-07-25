@@ -2,6 +2,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: dmi-kubeconfig
+  namespace: {{.Values.global.namespace}}
 data:
   kubeconfig: |
     current-context: nexus-api-server
@@ -22,6 +23,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: dmi-script
+  namespace: {{.Values.global.namespace}}
 data:
   create_datamodel_cm.sh: |
       set -ex
@@ -48,12 +50,13 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: datamodel-job-spec
+  namespace: {{.Values.global.namespace}}
 data:
     jobSpec.yaml: |
         apiVersion: batch/v1
         kind: Job
         metadata:
-          name: {{.DatamodelInstaller.Name}}-dmi
+          name: {{`{{.DatamodelInstaller.Name}}`}}-dmi
         spec:
           backoffLimit: 6
           template:
@@ -92,12 +95,12 @@ data:
                     - name: KUBECONFIG
                       value: /etc/config/kubeconfig
                     - name: NAME
-                      value: {{.DatamodelInstaller.Name}}
+                      value: {{`{{.DatamodelInstaller.Name}}`}}
                     - name: IMAGE
-                      value: {{.DatamodelInstaller.Image}}
+                      value: {{`{{.DatamodelInstaller.Image}}`}}
                     - name: SKIP_CRD_INSTALLATION
-                      value: "{{.SkipCRDInstallation}}"
-                  image: {{.DatamodelInstaller.Image}}
+                      value: {{`"{{.SkipCRDInstallation}}"`}}
+                  image: {{`{{.DatamodelInstaller.Image}}`}}
                   imagePullPolicy: IfNotPresent
                   name: datamodel-installer-job
                   volumeMounts:
@@ -117,7 +120,7 @@ data:
                     name: dmi-kubeconfig
                     defaultMode: 0555
                   name: dmi-kubeconfig
-              {{- if .IsImagePullSecret }}
+              {{`{{- if .IsImagePullSecret }}`}}
               imagePullSecrets:
-                - name: {{.ImagePullSecret}}
-              {{- end }}
+                - name: {{`{{.ImagePullSecret}}`}}
+              {{`{{- end }}`}}

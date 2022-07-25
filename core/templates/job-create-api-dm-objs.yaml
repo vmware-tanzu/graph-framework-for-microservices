@@ -1,7 +1,8 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: kubeconfig-api-gw
+  name: nexus-dmb-kubeconfig-api-gw
+  namespace: {{.Values.global.namespace}}
 data:
   config: |
     current-context: api-gw
@@ -22,6 +23,7 @@ apiVersion: batch/v1
 kind: Job
 metadata:
   name: nexus-api-dm-obj-installer
+  namespace: {{.Values.global.namespace}}
 spec:
   template:
     metadata:
@@ -138,6 +140,6 @@ spec:
       volumes:
         - name: kubeconfig
           configMap:
-            name: kubeconfig-api-gw
-      restartPolicy: Never
-  backoffLimit: 2
+            name: nexus-dmb-kubeconfig-api-gw
+      restartPolicy: OnFailure
+  backoffLimit: 10
