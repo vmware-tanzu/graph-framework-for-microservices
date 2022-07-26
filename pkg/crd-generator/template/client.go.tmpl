@@ -743,7 +743,7 @@ func (c *{{$node.GroupResourceType}}Chainer) Get{{$node.StatusName}}(ctx context
 }
 
 // Set{{$node.StatusName}} sets user defined status
-func (c *gnsGnsTsmV1Chainer) Set{{$node.StatusName}}(ctx context.Context, status *{{$node.BaseImportName}}.{{$node.StatusType}}) (err error) {
+func (c *{{$node.GroupResourceType}}Chainer) Set{{$node.StatusName}}(ctx context.Context, status *{{$node.BaseImportName}}.{{$node.StatusType}}) (err error) {
 	hashedName := helper.GetHashedName("{{$node.CrdName}}", c.parentLabels, c.name)
 	obj, err := c.client.{{$node.BaseNodeName}}().Get{{$node.BaseNodeName}}ByName(ctx, hashedName)
 	if err != nil {
