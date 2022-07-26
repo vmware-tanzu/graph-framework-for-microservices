@@ -1,60 +1,68 @@
 package runtime
 
 import (
+	"bytes"
 	"fmt"
-	"os"
-
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/servicemesh/version"
+	"os/exec"
+	"strings"
+	"text/template"
 
 	"github.com/spf13/cobra"
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/common"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/log"
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/servicemesh/prereq"
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/utils"
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus/golang/pkg/logging"
 )
 
 func Uninstall(cmd *cobra.Command, args []string) error {
-	for index, manifest := range common.RuntimeManifests {
-		if manifest.Templatized {
-			manifest.Image = common.ImageTemplate{
-				Image:                fmt.Sprintf("%s/%s", Registry, manifest.ImageName),
-				IsImagePullSecret:    false,
-				ImagePullSecret:      ImagePullSecret,
-				Namespace:            Namespace,
-				NetworkingAPIVersion: NetworkingAPIVersion,
-			}
-		}
-		common.RuntimeManifests[index] = manifest
+	cmdlineArgs := fmt.Sprintf("--set=global.namespace=%s", Namespace)
+	runtimeVersion, err := utils.GetTagVersion("NexusRuntime", "NEXUS_RUNTIME_MANIFESTS_VERSION")
+	if err != nil {
+		return fmt.Errorf("could not get runtime version: %s", err)
 	}
-	var versions version.NexusValues
-	if err := version.GetNexusValues(&versions); err != nil {
-		return utils.GetCustomError(utils.RUNTIME_INSTALL_FAILED,
-			fmt.Errorf("could not download the runtime manifests due to %s", err)).Print().ExitIfFatalOrReturn()
+	var IsImagePullSecret bool = false
+	if ImagePullSecret != "" {
+		IsImagePullSecret = true
+	}
+	checkNs := exec.Command("kubectl", "get", "ns", Namespace)
+	err = checkNs.Run()
+	if err != nil {
+		log.Infof("Namespace %s is not available", Namespace)
+		return nil
+	}
+	InstallerData := RuntimeInstallerData{
+		RuntimeInstaller: common.RuntimeInstaller{
+			Name:    fmt.Sprintf("%s-unins", Namespace),
+			Image:   fmt.Sprintf("%s/nexus-runtime-chart:%s", Registry, runtimeVersion),
+			Command: []string{"/bin/bash"},
+			Args:    []string{"-c", fmt.Sprintf("helm template /chart.tgz %s | kubectl delete  -f - --ignore-not-found=true", cmdlineArgs)},
+		},
+		Namespace:         Namespace,
+		IsImagePullSecret: IsImagePullSecret,
+		ImagePullSecret:   ImagePullSecret,
+	}
+	yamlFile, err := common.RuntimeTemplate.ReadFile("runtime_installer.yaml")
+	if err != nil {
+		return fmt.Errorf("error while reading version yamlFile %v", err)
+
 	}
 
-	directories, err := DownloadRuntimeFiles(cmd, versions)
+	tmpl, err := template.New("template").Parse(strings.TrimLeft(string(yamlFile), "'"))
 	if err != nil {
 		return err
 	}
-	var files []string
-	for _, dir := range directories {
-		files, err = GetFiles(files, dir)
-		if err != nil {
-			return err
-		}
+	var applyString bytes.Buffer
+	tmpl.Execute(&applyString, InstallerData)
+
+	err = RunJob(Namespace, InstallerData.RuntimeInstaller.Name, applyString)
+	if err != nil {
+		return err
 	}
-	for _, file := range files {
-		fmt.Printf("Deleting objects from file: %s\n", file)
-		utils.SystemCommand(cmd, utils.RUNTIME_UNINSTALL_FAILED, []string{}, "kubectl", "delete", "-f", file, "-n", Namespace, "--ignore-not-found=true")
-	}
+
 	utils.SystemCommand(cmd, utils.RUNTIME_UNINSTALL_FAILED, []string{}, "kubectl", "delete", "pvc", "-n", Namespace, "-lapp=nexus-etcd")
 	fmt.Printf("\u2713 Runtime %s uninstallation successful\n", Namespace)
-	for _, manifest := range common.RuntimeManifests {
-		os.RemoveAll(manifest.Directory)
-		os.RemoveAll(manifest.FileName)
-	}
 	return nil
-
 }
 
 var UninstallCmd = &cobra.Command{
@@ -62,11 +70,7 @@ var UninstallCmd = &cobra.Command{
 	Short: "Uninstalls the Nexus runtime from the specified namespace",
 	//Args:  cobra.ExactArgs(1),
 	PreRunE: func(cmd *cobra.Command, args []string) (err error) {
-		err = prereq.PreReqVerifyOnDemand(prerequisites)
-		if err != nil {
-			return err
-		}
-		NetworkingAPIVersion, err = utils.GetNetworkingIngressVersion()
+		err = prereq.PreReqVerifyOnDemand(installPrerequisites)
 		if err != nil {
 			return err
 		}

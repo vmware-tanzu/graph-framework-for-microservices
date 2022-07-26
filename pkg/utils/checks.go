@@ -1,6 +1,15 @@
 package utils
 
-import "github.com/spf13/cobra"
+import (
+	"fmt"
+	"os"
+	"reflect"
+
+	"github.com/spf13/cobra"
+	common "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/common"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/servicemesh/version"
+	"gopkg.in/yaml.v2"
+)
 
 const (
 	EnableDebugFlag     = "debug"
@@ -22,4 +31,22 @@ func ListPrereq(cmd *cobra.Command) bool {
 
 func SkipPrereqCheck(cmd *cobra.Command) bool {
 	return cmd.Flags().Lookup(SkipPrereqCheckFlag).Changed
+}
+
+func GetTagVersion(versionKey, EnvKey string) (string, error) {
+	var values version.NexusValues
+	resultVersion := os.Getenv("NEXUS_RUNTIME_VERSION")
+	if resultVersion == "" {
+		yamlFile, err := common.TemplateFs.ReadFile("values.yaml")
+		if err != nil {
+			return "", fmt.Errorf("error while reading version yamlFile %v", err)
+		}
+
+		err = yaml.Unmarshal(yamlFile, &values)
+		if err != nil {
+			return "", fmt.Errorf("error while unmarshal version yaml data %v", err)
+		}
+		resultVersion = reflect.ValueOf(values).FieldByName(versionKey).Field(0).String()
+	}
+	return resultVersion, nil
 }

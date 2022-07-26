@@ -2,48 +2,41 @@ package runtime
 
 import (
 	"bytes"
-	"errors"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"os"
 	"os/exec"
-	"os/signal"
-	"path/filepath"
-	"reflect"
 	"strings"
-	"syscall"
-	"time"
+	"text/template"
 
 	"github.com/spf13/cobra"
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/common"
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/log"
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/servicemesh/prereq"
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/servicemesh/version"
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/utils"
-	v1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/util/rand"
 )
 
 var Namespace string
 var Registry string
 var ImagePullSecret string
-var NetworkingAPIVersion string
 var IsNexusAdmin bool
+var DryRunOutputFile string
 
-var prerequisites = []prereq.Prerequiste{
+type RuntimeInstallerData struct {
+	RuntimeInstaller  common.RuntimeInstaller
+	Namespace         string
+	IsImagePullSecret bool
+	ImagePullSecret   string
+}
+
+var installPrerequisites = []prereq.Prerequiste{
 	prereq.KUBERNETES,
 	prereq.KUBERNETES_VERSION,
 }
 
-type portForwardSession struct {
-	localPort int
-	stopCh    chan struct{}
-}
-
 var InstallCmd = &cobra.Command{
 	Use:   "install",
-	Short: "Installs the Nexus runtime on the specified namespace",
+	Short: "Installs the Nexus runtime on the specified namespace using helm",
 	//Args:  cobra.ExactArgs(1),
 	PreRunE: func(cmd *cobra.Command, args []string) (err error) {
 		if utils.ListPrereq(cmd) {
@@ -54,16 +47,13 @@ var InstallCmd = &cobra.Command{
 			return nil
 		}
 
-		if err := prereq.PreReqVerifyOnDemand(prerequisites); err != nil {
+		if err := prereq.PreReqVerifyOnDemand(installPrerequisites); err != nil {
 			return err
 		}
-		NetworkingAPIVersion, err = utils.GetNetworkingIngressVersion()
-		if err != nil {
-			return err
-		}
+
 		return nil
 	},
-	RunE: Install,
+	RunE: HelmInstall,
 }
 
 func CreateNs(Namespace string) error {
@@ -108,115 +98,32 @@ func CreateNs(Namespace string) error {
 	return nil
 }
 
-func DownloadManifestsFile(manifest common.Manifest, values version.NexusValues) (string, error) {
-	versionTo := os.Getenv(manifest.VersionEnv)
-	if versionTo == "" {
-		versionTo = reflect.ValueOf(values).FieldByName(manifest.VersionStrName).Field(0).String()
-	}
-	fmt.Printf("Version of %s is %s\n", manifest.FileName, versionTo)
-	err := utils.DownloadFile(fmt.Sprintf(manifest.URL, versionTo), manifest.FileName)
-	if err != nil {
-		return "", err
-	}
-	fileObj, err := os.Open(manifest.FileName)
-	if err != nil {
-		return "", utils.GetCustomError(utils.RUNTIME_INSTALL_FAILED,
-			fmt.Errorf("accessing downloaded runtime manifests directory failed dwith error: %s", err)).Print().ExitIfFatalOrReturn()
-	}
-	defer fileObj.Close()
-
-	fo, err := os.Stat(manifest.Directory)
-	if err != nil {
-		if !errors.Is(err, os.ErrNotExist) {
-			return "", utils.GetCustomError(utils.RUNTIME_INSTALL_FAILED,
-				fmt.Errorf("issues in checking runtime manifests directory due to %s", err)).Print().ExitIfFatalOrReturn()
+func GetCustomTags(cmdlinArgs string) string {
+	for _, value := range common.TagsList {
+		if customTag := os.Getenv(value.VersionEnv); customTag != "" {
+			cmdlinArgs = fmt.Sprintf("%s,global.%s.tag=%s", cmdlinArgs, value.VersionEnv, customTag)
 		}
 	}
-	if fo != nil {
-		err = os.RemoveAll(manifest.Directory)
-		if err != nil {
-			return "", utils.GetCustomError(utils.RUNTIME_INSTALL_FAILED,
-				fmt.Errorf("could not remove %s directory due to %s", manifest.Directory, err)).Print().ExitIfFatalOrReturn()
-		}
-	}
-	err = os.Mkdir(manifest.Directory, os.ModePerm)
-	if err != nil {
-		return "", utils.GetCustomError(utils.RUNTIME_INSTALL_FAILED,
-			fmt.Errorf("could not create the runtime manifests directory due to %s", err)).Print().ExitIfFatalOrReturn()
-	}
-	err = utils.Untar(manifest.Directory, fileObj)
-	if err != nil {
-		return "", utils.GetCustomError(utils.RUNTIME_INSTALL_FAILED,
-			fmt.Errorf("unarchive of runtime manifests directory failed with error %s", err)).Print().ExitIfFatalOrReturn()
-	}
-	if manifest.Templatized {
-		manifest.Image.Tag = versionTo
-		err = utils.RenderTemplateFiles(manifest.Image, manifest.Directory, ".git")
-		if err != nil {
-			return "", err
-		}
-	}
-	return manifest.Directory, nil
+	return cmdlinArgs
 }
 
-func GetFiles(Files []string, directory string) ([]string, error) {
-	files, err := ioutil.ReadDir(directory)
-	if err != nil {
-		return nil, err
+func HelmInstall(cmd *cobra.Command, args []string) error {
+	Registry = strings.TrimSuffix(strings.TrimSpace(Registry), "/")
+	cmdlineArgs := fmt.Sprintf("--set=global.namespace=%s", Namespace)
+	cmdlineArgs = fmt.Sprintf("%s,global.registry=%s", cmdlineArgs, Registry)
+	if ImagePullSecret != "" {
+		cmdlineArgs = fmt.Sprintf("%s,global.imagepullsecret=%s", cmdlineArgs, ImagePullSecret)
 	}
-	for _, file := range files {
-		if file.IsDir() {
-			Files, err = GetFiles(Files, filepath.Join(directory, file.Name()))
-			if err != nil {
-				return nil, err
-			}
-		} else {
-			Files = append(Files, filepath.Join(directory, file.Name()))
-		}
-	}
-	return Files, nil
-}
-
-func Install(cmd *cobra.Command, args []string) error {
-
-	var IsImagePullSecret bool
-	if Registry == "" {
-		Registry = common.HarborRepo
-	}
-	Registry = strings.TrimSpace(Registry)
-	Registry = strings.TrimSuffix(Registry, "/")
-	if ImagePullSecret == "" {
-		IsImagePullSecret = false
-	} else {
-		IsImagePullSecret = true
-	}
-	log.Debugf("Using Images from %s registry for api-gateway and nexus-validation\n", Registry)
-
-	var gatewayMode = "tenant"
 	if IsNexusAdmin {
-		gatewayMode = "admin"
+		cmdlineArgs = fmt.Sprintf("%s,global.nexusAdmin=%t", cmdlineArgs, IsNexusAdmin)
 	}
-
-	for index, manifest := range common.RuntimeManifests {
-		if manifest.Templatized {
-			manifest.Image = common.ImageTemplate{
-				Image:                fmt.Sprintf("%s/%s", Registry, manifest.ImageName),
-				IsImagePullSecret:    IsImagePullSecret,
-				ImagePullSecret:      ImagePullSecret,
-				Namespace:            Namespace,
-				NetworkingAPIVersion: NetworkingAPIVersion,
-				GatewayMode:          gatewayMode,
-			}
-		}
-		common.RuntimeManifests[index] = manifest
+	cmdlineArgs = GetCustomTags(cmdlineArgs)
+	runtimeVersion, err := utils.GetTagVersion("NexusRuntime", "NEXUS_RUNTIME_MANIFESTS_VERSION")
+	if err != nil {
+		return fmt.Errorf("could not get runtime version: %s", err)
 	}
-	if utils.ListPrereq(cmd) {
-		prereq.PreReqListOnDemand(prerequisites)
-		return nil
-	}
-
 	checkNs := exec.Command("kubectl", "get", "ns", Namespace)
-	err := checkNs.Run()
+	err = checkNs.Run()
 	if err != nil {
 		err := CreateNs(Namespace)
 		if err != nil {
@@ -224,7 +131,6 @@ func Install(cmd *cobra.Command, args []string) error {
 			return err
 		}
 	}
-
 	// add a nexus label to differentiate this namespace from others
 	if IsNexusAdmin {
 		_, err = exec.Command("kubectl", "label", "ns", Namespace, "nexus=admin", "--overwrite").Output()
@@ -232,157 +138,100 @@ func Install(cmd *cobra.Command, args []string) error {
 			return fmt.Errorf("failed to label namespace %s: %s", Namespace, err.Error())
 		}
 	}
+	var Args []string
+	Args = []string{"upgrade", "--install", Namespace, "/chart.tgz", cmdlineArgs, "--wait", "--wait-for-jobs", "--timeout=10m"}
 
-	var versions version.NexusValues
-	if err := version.GetNexusValues(&versions); err != nil {
-		return utils.GetCustomError(utils.RUNTIME_INSTALL_FAILED,
-			fmt.Errorf("could not download the runtime manifests due to %s", err)).Print().ExitIfFatalOrReturn()
+	var IsImagePullSecret bool = false
+	if ImagePullSecret != "" {
+		IsImagePullSecret = true
+	}
+	InstallerData := RuntimeInstallerData{
+		RuntimeInstaller: common.RuntimeInstaller{
+			Name:    fmt.Sprintf("%s-ins", Namespace),
+			Image:   fmt.Sprintf("%s/nexus-runtime-chart:%s", Registry, runtimeVersion),
+			Command: []string{"helm"},
+			Args:    Args,
+		},
+		Namespace:         Namespace,
+		IsImagePullSecret: IsImagePullSecret,
+		ImagePullSecret:   ImagePullSecret,
 	}
 
-	directories, err := DownloadRuntimeFiles(cmd, versions)
+	yamlFile, err := common.RuntimeTemplate.ReadFile("runtime_installer.yaml")
+	if err != nil {
+		return fmt.Errorf("error while reading version yamlFile %v", err)
+
+	}
+
+	tmpl, err := template.New("template").Parse(strings.TrimLeft(string(yamlFile), "'"))
 	if err != nil {
 		return err
 	}
-	var files []string
-	for _, dir := range directories {
-		files, err = GetFiles(files, dir)
-		if err != nil {
-			return err
-		}
-	}
-	for _, file := range files {
-		fmt.Printf("Applying file: %s\n", file)
-		err = utils.SystemCommand(cmd, utils.RUNTIME_INSTALL_FAILED, []string{}, "kubectl", "apply", "-f", file, "-n", Namespace)
-		if err != nil {
-			return err
-		}
-	}
-	fmt.Println("Waiting for the Nexus runtime to come up...")
-	for _, label := range common.RuntimePodLabels {
-		utils.CheckPodRunning(cmd, utils.RUNTIME_INSTALL_FAILED, label, Namespace)
-	}
-	for _, manifest := range common.RuntimeManifests {
-		os.RemoveAll(manifest.Directory)
-		os.RemoveAll(manifest.FileName)
-	}
+	var applyString bytes.Buffer
+	tmpl.Execute(&applyString, InstallerData)
 
-	fmt.Println("Installing API Datamodel CRDs...")
-	err = installApiDatamodelCrds(cmd, versions)
+	err = RunJob(Namespace, InstallerData.RuntimeInstaller.Name, applyString)
 	if err != nil {
-		utils.GetCustomError(utils.RUNTIME_INSTALL_API_DATAMODEL_INSTALL_FAILED,
-			fmt.Errorf("installing API datamodel on nexus-apiserver failed: %s", err)).Print().ExitIfFatalOrReturn()
+		return err
 	}
-
-	fmt.Println("checking for the nexus-api-dm-obj-installer to have completed...")
-	err = utils.CheckJobComplete(cmd, utils.RUNTIME_INSTALL_API_DATAMODEL_INIT_FAILED, "nexus-api-dm-obj-installer", Namespace)
-	if err != nil {
-		return utils.GetCustomError(utils.RUNTIME_INSTALL_API_DATAMODEL_INIT_FAILED,
-			fmt.Errorf("creating API datamodel nodes on nexus-apiserver failed: %s", err)).Print().ExitIfFatalOrReturn()
-	}
-
 	fmt.Printf("\u2713 Runtime installation successful on namespace %s\n", Namespace)
+
 	return nil
 }
 
-func installApiDatamodelCrds(cmd *cobra.Command, values version.NexusValues) error {
-	dir, err := DownloadManifestsFile(common.NexusApiDatamodelManifest, values)
-	if err != nil {
-		fmt.Println("Error downloading API datamodel manifest")
-		return err
-	}
-	defer os.RemoveAll(dir)
-	defer os.RemoveAll(common.NexusApiDatamodelManifest.FileName)
+func RunJob(Namespace, jobName string, applyString bytes.Buffer) error {
+	var data []byte = applyString.Bytes()
 
-	// get a nexus-proxy-container pod
-	labels := "app=nexus-proxy-container"
-	pfSession, pfErr := startPortForward(labels, 8001, "/api/v1/namespaces/")
-	if pfErr != nil {
-		return fmt.Errorf("portforward failed due to error: %s\n", pfErr)
-	}
-	defer pfSession.stopPortForward()
+	// this cmd is for ensuring the previous incomplete jobs can be deleted and re-ran again
+	clearPreviouscmd := exec.Command("kubectl", "delete", "-f", "-", "-n", Namespace, "--ignore-not-found=true")
+	clearPreviouscmd.Stdin = bytes.NewBuffer(data)
+	clearPreviouscmd.Stdout = os.Stdout
+	clearPreviouscmd.Stderr = os.Stderr
 
-	// apply CRDs
-	err = utils.SystemCommand(cmd, utils.RUNTIME_INSTALL_FAILED, []string{}, "kubectl", "apply", "-f", dir, "--recursive", "-s", fmt.Sprintf("%s:%d", "localhost", pfSession.localPort))
-	if err != nil {
-		return fmt.Errorf("applying API datamodel failed due to error: %s", err.Error())
+	if err := clearPreviouscmd.Start(); err != nil {
+		return fmt.Errorf("Could not delete the existing installation job: %s on %s", jobName, Namespace)
 	}
+
+	if err := clearPreviouscmd.Wait(); err != nil {
+		return fmt.Errorf("Could not delete the existing installation job: %s on %s", jobName, Namespace)
+	}
+
+	applyCmd := exec.Command("kubectl", "apply", "-f", "-", "-n", Namespace)
+	applyCmd.Stdin = bytes.NewBuffer(data)
+	applyCmd.Stdout = os.Stdout
+	applyCmd.Stderr = os.Stderr
+
+	if err := applyCmd.Start(); err != nil {
+		return fmt.Errorf("Could not start the installation job: %s on %s", jobName, Namespace)
+	}
+
+	if err := applyCmd.Wait(); err != nil {
+		return fmt.Errorf("Could not apply the installation job: %s on %s", jobName, Namespace)
+	}
+
+	err := exec.Command("kubectl", "wait", "--for=condition=complete", fmt.Sprintf("job/%s", jobName), "--timeout=10m", "-n", Namespace).Run()
+	if err != nil {
+		return fmt.Errorf("could not complete the installation job: %s on %s", jobName, Namespace)
+	}
+
 	return nil
-}
-
-func startPortForward(labels string, containerPort int, healthEndpoint string) (*portForwardSession, error) {
-	nexusProxyContainerPod := utils.GetPodByLabelAndState(Namespace, labels, v1.PodRunning)
-	if nexusProxyContainerPod == nil {
-		return nil, fmt.Errorf("no running pod with label %s found", labels)
-	}
-
-	// channels to manage lifecycle of the port-forward session
-	var stopCh = make(chan struct{}, 1)
-	var readyCh = make(chan struct{})
-
-	// managing termination signal from the terminal
-	sigs := make(chan os.Signal, 1)
-	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
-	go func() {
-		select {
-		case <-stopCh:
-			fmt.Println("Received a stop signal, closing stopCh")
-			close(stopCh)
-		case <-sigs:
-			fmt.Println("Received a process termination signal, closing stopCh")
-			close(stopCh)
-		}
-	}()
-
-	// prepare for port-forward
-	localPort := rand.IntnRange(40000, 45000)
-	go func() {
-		err := utils.StartPortforward(nexusProxyContainerPod.Name, Namespace, localPort, containerPort, stopCh, readyCh, os.Stdout, os.Stdout)
-		if err != nil {
-			fmt.Printf("error initiating port-forward to %s: %s\n", nexusProxyContainerPod.Name, err.Error())
-		}
-	}()
-	fmt.Printf("Started port-forward to pod %s on port %d\n", nexusProxyContainerPod.Name, localPort)
-
-	err := utils.CheckPortForwardSessionActive(fmt.Sprintf("%s:%d/%s", "localhost", localPort, strings.TrimPrefix(healthEndpoint, "/")), 30, 2*time.Second)
-	if err != nil {
-		return nil, fmt.Errorf("checking local apiserver started failed ")
-	}
-
-	return &portForwardSession{localPort: localPort, stopCh: stopCh}, nil
-}
-
-func (pfs *portForwardSession) stopPortForward() {
-	if pfs != nil && pfs.stopCh != nil {
-		pfs.stopCh <- struct{}{}
-	}
 }
 
 func init() {
 	InstallCmd.Flags().StringVarP(&Namespace, "namespace",
 		"n", "", "name of the namespace to be created")
 	InstallCmd.Flags().StringVarP(&Registry, "registry",
-		"r", "", "Registry where validation webhook and api-gw is located")
+		"r", common.HarborRepo, "Registry where validation webhook and api-gw is located")
 	InstallCmd.Flags().StringVarP(&ImagePullSecret, "secretname",
 		"s", "", "Registry where validation webhook and api-gw is located")
 	InstallCmd.Flags().BoolVarP(&IsNexusAdmin, "admin",
 		"", false, "Install the Nexus Admin runtime")
+	InstallCmd.Flags().StringVarP(&DryRunOutputFile, "output",
+		"o", "", "Save genrated manifests to file")
 
 	err := cobra.MarkFlagRequired(InstallCmd.Flags(), "namespace")
 	if err != nil {
 		log.Debugf("Runtime install err: %v", err)
 	}
-
-}
-
-func DownloadRuntimeFiles(cmd *cobra.Command, versions version.NexusValues) ([]string, error) {
-	var files []string
-	for _, manifest := range common.RuntimeManifests {
-		file, err := DownloadManifestsFile(manifest, versions)
-		if err != nil {
-			return files, err
-		}
-		files = append(files, file)
-	}
-	return files, nil
 
 }

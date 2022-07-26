@@ -6,11 +6,9 @@ import (
 
 	"github.com/spf13/cobra"
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/log"
-	"gopkg.in/yaml.v2"
 
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/common"
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/servicemesh/prereq"
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/servicemesh/version"
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/utils"
 )
 
@@ -41,27 +39,10 @@ func Build(cmd *cobra.Command, args []string) error {
 		prereq.PreReqListOnDemand(prerequisites)
 		return nil
 	}
-
-	var values version.NexusValues
-	err := utils.IsDockerRunning(cmd)
+	compilerVersion, err := utils.GetTagVersion("NexusCompiler", "NEXUS_DATAMODEL_COMPILER_VERSION")
 	if err != nil {
-		return fmt.Errorf("docker daemon doesn't seem to be running. Please retry after starting Docker\n")
+		return utils.GetCustomError(utils.DATAMODEL_BUILD_FAILED, fmt.Errorf("could not get compiler Version information due to %s", err)).Print().ExitIfFatalOrReturn()
 	}
-
-	yamlFile, err := common.TemplateFs.ReadFile("values.yaml")
-	if err != nil {
-		return fmt.Errorf("error while reading version yamlFile %v", err)
-	}
-
-	err = yaml.Unmarshal(yamlFile, &values)
-	if err != nil {
-		return fmt.Errorf("error while unmarshal version yaml data %v", err)
-	}
-	compilerVersion := os.Getenv("NEXUS_DATAMODEL_COMPILER_VERSION")
-	if compilerVersion == "" {
-		compilerVersion = values.NexusCompiler.Version
-	}
-
 	log.Debugf("Using compiler Version: %s\n", compilerVersion)
 
 	envList := common.GetEnvList()

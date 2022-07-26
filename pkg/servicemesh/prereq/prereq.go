@@ -23,7 +23,8 @@ import (
 const goMinVersion = "1.17"
 
 const (
-	k8sMinVersion = "1.19"
+	k8sMinVersion  = "1.19"
+	helmMinVersion = "3.4"
 )
 
 var All bool
@@ -118,7 +119,7 @@ var preReqs = map[Prerequiste]PrerequisteMeta{
 			cmd.Stdout = &out
 			err := cmd.Run()
 			if err != nil {
-				return false, fmt.Errorf("could not get version string")
+				return false, fmt.Errorf("could not get k8s version string")
 			}
 
 			re := regexp.MustCompile(`Server Version: ([a-z0-9][^\s]*)`)
@@ -227,11 +228,12 @@ func PreReqImages(cmd *cobra.Command, args []string) error {
 		return utils.GetCustomError(utils.RUNTIME_PREREQUISITE_IMAGE_PREP_FAILED,
 			fmt.Errorf("could not pull runtime deps images %s", err)).Print().ExitIfFatalOrReturn()
 	}
-	for _, manifest := range nexusCommon.RuntimeManifests {
-		if manifest.Templatized {
-			if manifest.ImageName != "" {
-				Image := fmt.Sprintf("%s/%s", common.HarborRepo, manifest.ImageName)
-				versionTo := reflect.ValueOf(values).FieldByName(manifest.VersionStrName).Field(0).String()
+	for _, manifest := range nexusCommon.TagsList {
+		if manifest.ImageName != "" {
+			Image := fmt.Sprintf("%s/%s", common.HarborRepo, manifest.ImageName)
+			versionToStr := reflect.ValueOf(values).FieldByName(manifest.FieldName).Field(0).String()
+			if os.Getenv(versionToStr) != "" {
+				versionTo := os.Getenv(versionToStr)
 				Image = fmt.Sprintf("%s:%s", Image, versionTo)
 				fmt.Printf("Pulling image: %s\n", Image)
 				err := utils.SystemCommand(cmd, utils.RUNTIME_PREREQUISITE_IMAGE_PREP_FAILED, []string{}, "docker", "pull", Image)
