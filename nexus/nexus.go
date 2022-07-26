@@ -78,3 +78,8 @@ var DefaultHTTPMethodsResponses = HTTPMethodsResponses{
 	http.MethodPut:    DefaultHTTPPUTResponses,
 	http.MethodDelete: DefaultHTTPDELETEResponses,
 }
+
+// HTTP Response for List operation
+var HTTPListResponse = HTTPMethodsResponses{
+	"LIST": DefaultHTTPGETResponses,
+}
