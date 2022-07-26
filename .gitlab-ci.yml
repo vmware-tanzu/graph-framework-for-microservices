@@ -47,7 +47,7 @@ build_tag:
 integration_test:
   stage: integration_test
   variables:
-    NEXUS_RUNTIME_VERSION: "v0.0.0-$CI_COMMIT_SHA"
+    NEXUS_RUNTIME_MANIFESTS_VERSION: "v0.0.0-$CI_COMMIT_SHA"
   only:
     - merge_requests
     - master
