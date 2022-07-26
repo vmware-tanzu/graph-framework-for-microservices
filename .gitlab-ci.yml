@@ -33,7 +33,7 @@ build_tag:
   only:
     - tags
   variables:
-    VERSION: $CI_COMMI_TAG
+    VERSION: $CI_COMMIT_TAG
   script:
     - make publish.ecr
     - HARBOR_PASSWORD=$DOCKER_PASSWORD make publish.harbor
