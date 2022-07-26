@@ -1,0 +1,16 @@
+global:
+  nexusAdmin: false
+  registry: "284299419820.dkr.ecr.us-west-2.amazonaws.com/nexus"
+  certEnabled:  false
+  runtimeEnabled: true
+  imagepullsecret: ""
+  api_gateway:
+    tag: v0.0.19
+  validation:
+    tag: v0.0.9
+  connector:
+    tag: v0.0.2
+  controller:
+    tag: v0.0.2
+  api:
+    tag: v0.0.10
