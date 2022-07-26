@@ -95,8 +95,8 @@ func initCommands() {
 	if err != nil {
 		log.Debugf("saas server fqdn name is mandatory for login")
 	}
-	RuntimeCmd.AddCommand(runtime.InstallCmd)
 	RuntimeCmd.AddCommand(runtime.UninstallCmd)
+	RuntimeCmd.AddCommand(runtime.InstallCmd)
 
 	DataModelCmd.AddCommand(servicemesh_datamodel.InitCmd)
 	DataModelCmd.AddCommand(servicemesh_datamodel.InstallCmd)

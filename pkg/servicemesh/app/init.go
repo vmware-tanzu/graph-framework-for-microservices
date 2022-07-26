@@ -11,7 +11,6 @@ import (
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/common"
 	. "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/common"
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/servicemesh/prereq"
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/servicemesh/version"
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/utils"
 )
 
@@ -62,14 +61,10 @@ func Init(cmd *cobra.Command, args []string) error {
 			DOWNLOAD_APP = "false"
 		}
 	}
-	var values version.NexusValues
-	if err := version.GetNexusValues(&values); err != nil {
+	appVersion, err := utils.GetTagVersion("NexusAppTemplates", "NEXUS_APP_TEMPLATE_VERSION")
+	if err != nil {
 		return utils.GetCustomError(utils.APPLICATION_INIT_PREREQ_FAILED,
 			fmt.Errorf("could not download the app manifests due to %s", err)).Print().ExitIfFatalOrReturn()
-	}
-	appVersion := os.Getenv("NEXUS_APP_TEMPLATE_VERSION")
-	if appVersion == "" {
-		appVersion = values.NexusAppTemplates.Version
 	}
 
 	log.Debugf("Using App template Version: %s\n", appVersion)
@@ -102,15 +97,15 @@ func Init(cmd *cobra.Command, args []string) error {
 		}
 		_ = os.RemoveAll(Filename)
 	}
-	nexusVersion := os.Getenv("NEXUS_DATAMODEL_TEMPLATE_VERSION")
-	if nexusVersion == "" {
-		nexusVersion = values.NexusDatamodelTemplates.Version
+
+	nexusVersion, err := utils.GetTagVersion("NexusDatamodelTemplates", "NEXUS_DATAMODEL_TEMPLATE_VERSION")
+	if err != nil {
+		return utils.GetCustomError(utils.APPLICATION_INIT_PREREQ_FAILED,
+			fmt.Errorf("could not download the app manifests due to %s", err)).Print().ExitIfFatalOrReturn()
 	}
 
-	log.Debugf("Using Nexus template Version: %s\n", nexusVersion)
-
 	fmt.Printf("Using Nexus template version: %s\n", nexusVersion)
-	err := utils.CreateNexusDirectory(NEXUS_DIR, fmt.Sprintf(NEXUS_TEMPLATE_URL, nexusVersion))
+	err = utils.CreateNexusDirectory(NEXUS_DIR, fmt.Sprintf(NEXUS_TEMPLATE_URL, nexusVersion))
 	if err != nil {
 		return fmt.Errorf("could not create nexus directory: %s", err)
 	}

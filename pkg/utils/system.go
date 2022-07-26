@@ -105,3 +105,34 @@ func SystemCommand(cmd *cobra.Command, customErr ClientErrorCode, envList []stri
 
 	return nil
 }
+
+func WriteToFile(filename string, data []byte) error {
+	var OutputFileObject *os.File
+	_, err := os.Stat(filename)
+	if err != nil {
+		OutputFileObject, err = os.Create(filename)
+		if err != nil {
+			return fmt.Errorf("Could not create output file: %s due to %s", filename, err)
+		}
+		OutputFileObject.Close()
+	}
+	OutputFileObject, err = os.OpenFile(filename, os.O_WRONLY, os.ModePerm)
+	if err != nil {
+		return fmt.Errorf("Could not open output file: %s due to %s", filename, err)
+	}
+	defer OutputFileObject.Close()
+	_, err = OutputFileObject.Write(data)
+	if err != nil {
+		return fmt.Errorf("err: %s", err)
+	}
+	return nil
+}
+
+func AddHelmRepo(RepoName, RepoUrl string) error {
+	_ = exec.Command("helm", "repo", "remove", RepoName).Run()
+	CreateOutput, err := exec.Command("helm", "repo", "add", RepoName, RepoUrl).CombinedOutput()
+	if err != nil {
+		return fmt.Errorf("could not add %s to helm repos due to %s", RepoUrl, CreateOutput)
+	}
+	return nil
+}

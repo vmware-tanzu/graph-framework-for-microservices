@@ -9,7 +9,6 @@ import (
 
 	"github.com/spf13/cobra"
 	. "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/common"
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/servicemesh/version"
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/utils"
 )
 
@@ -130,15 +129,10 @@ func checkIfDirectoryEmpty(standalone bool, DatamodelName string) {
 }
 
 func InitOperation(cmd *cobra.Command, args []string) error {
-	var values version.NexusValues
-
-	if err := version.GetNexusValues(&values); err != nil {
+	datamodelVersion, err := utils.GetTagVersion("NexusDatamodelTemplates", "NEXUS_DATAMODEL_TEMPLATE_VERSION")
+	if err != nil {
 		return utils.GetCustomError(utils.DATAMODEL_INIT_FAILED,
 			fmt.Errorf("could not download the datamodel manifests due to %s", err)).Print().ExitIfFatalOrReturn()
-	}
-	datamodelVersion := os.Getenv("NEXUS_DATAMODEL_TEMPLATE_VERSION")
-	if datamodelVersion == "" {
-		datamodelVersion = values.NexusDatamodelTemplates.Version
 	}
 
 	log.Debugf("Using datamodel template Version: %s\n", datamodelVersion)
