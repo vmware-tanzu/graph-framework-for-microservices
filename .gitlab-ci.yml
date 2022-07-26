@@ -1,0 +1,53 @@
+image:
+  name: harbor-repo.vmware.com/nexus/runner:latest
+
+include:
+- project: "nsx-allspark_users/nexus-sdk/integration-tests"
+  ref: master
+  file: ".gitlab-ci-template.yml"
+
+
+before_script:
+  - git config --global url."https://gitlab.eng.vmware.com/".insteadOf "git@gitlab.eng.vmware.com:"
+  - git config --global gc.auto 0
+  - git config --global credential.helper store
+  - export GOPRIVATE=*.eng.vmware.com
+  - echo -e  "https://gitlab-ci-token:${CICD_TOKEN}@gitlab.eng.vmware.com/" >> ~/.git-credentials
+  - aws configure set aws_secret_access_key $AWS_SECRET_ACCESS_KEY
+  - aws configure set aws_access_key_id $AWS_ACCESS_KEY_ID
+  - helm registry login --username AWS -p $(aws ecr get-login-password --region us-west-2) 284299419820.dkr.ecr.us-west-2.amazonaws.com
+  - helm repo remove harbor-vmware || echo "harbor-vmware not present"; \
+  - helm repo add harbor-vmware "https://harbor-repo.vmware.com/chartrepo/nexus" --username $HARBOR_USERNAME --password $DOCKER_PASSWORD;
+
+build:
+  stage: build
+  only:
+    - master
+    - merge_requests
+  script:
+    - make publish.ecr
+    - HARBOR_PASSWORD=$DOCKER_PASSWORD make publish.harbor
+
+build_tag:
+  stage: build
+  only:
+    - tags
+  variables:
+    VERSION: $CI_COMMI_TAG
+  script:
+    - make publish.ecr
+    - HARBOR_PASSWORD=$DOCKER_PASSWORD make publish.harbor
+
+integration_test:
+  stage: integration_test
+  variables:
+    NEXUS_RUNTIME_VERSION: "v0.0.0-$CI_COMMIT_SHA"
+  only:
+    - merge_requests
+    - master
+  extends: .run_integration_test
+
+
+stages:
+  - build
+  - integration_test

@@ -1,0 +1,18 @@
+dependencies:
+- name: core
+  repository: file://./../subcharts/core/core
+  version: 0.1.0
+- name: api-gateway
+  repository: file://./../subcharts/api-gateway/api-gateway
+  version: 0.1.0
+- name: datamodel
+  repository: file://./../subcharts/api/datamodel
+  version: 0.1.0
+- name: validation
+  repository: file://./../subcharts/validation/validation
+  version: 0.1.0
+- name: controller
+  repository: file://./../subcharts/controller/controller
+  version: 0.1.0
+digest: sha256:acf83d93d1d79bbe348247fb7f15bc61e909d7168a8ed8dd35c1a883ee980f19
+generated: "2022-07-21T14:09:58.569716+05:30"

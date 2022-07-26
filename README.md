@@ -629,3 +629,104 @@ For installation related issues
 kubectl version; kubectl get pods -A
 ```
 
+
+### Update latest tags for each components
+
+To Update tags of each component
+```
+<edit> nexus-runtime/values.yaml
+<section>
+api_gateway:
+    tag: v0.0.17
+  validation:
+    tag: v0.0.8
+  connector:
+    tag: v0.0.1
+  controller:
+    tag: v0.0.1
+  api:
+    tag: 4113413572d0b3cde62d29a3775729d24fd5988c <--- replace tag for your component
+```
+To update chart changes
+```
+git submodule update --init --remote
+```
+
+To use dev branch for testing chart changes
+```
+<edit> .gitmodules
+<replace> branch = master with branch = <intended> of your repo
+```
+
+And run
+```
+git submodule update --init --remote
+```
+
+Please commit and push subcharts folder too along with other changes
+
+### Helm Publish to Harbor Repo
+
+To publish helm chart to nexus-runtime repository in ECR.
+```
+helm repo add "harbor-vmware" "https://harbor-repo.vmware.com/chartrepo/nexus" --username <vmware_username> --password <vmware_password>
+```
+
+Create Helm chart
+```
+rm -rf nexus-runtime/charts/*
+helm dependency update
+helm package nexus-runtime --version <version>
+```
+
+Publish helm chart to ECR
+```
+helm cm-push nexus-runtime-<version>.tgz harbor-vmware
+```
+
+### Install nexus-runtime from HELM using ECR image
+
+Login to ECR registry
+```
+ helm repo add "harbor-vmware" "https://harbor-repo.vmware.com/chartrepo/nexus"
+```
+
+For deploying tenant
+```
+helm install --wait nexus-runtime harbor-vmware/nexus-runtime --version <version> \
+            --set-string global.namespace=newtestv\
+            --set-string global.repository=harbor-repo.vmware.com/nexus
+```
+
+* Note: global.repository=284299419820.dkr.ecr.us-west-2.amazonaws.com/nexus if you are using EKS cluster
+
+
+For deploying admin namespace
+```
+helm install --wait nexus-runtime nexus-runtime harbor-vmware/nexus-runtime  --version <version> \
+            --set-string global.namespace=newtestv\
+            --set-string global.repository=harbor-repo.vmware.com/nexus\
+            --set global.nexusAdmin=true
+```
+
+#### HELM Variables defintion
+
+| Variable | Definition | Example  | Default |
+| :---:   | :-: | :-: | :---: |
+| global.namespace | Namespace where you want to deploy | --set global.namespace=default | default |
+global.nexusAdmin | To deploy admin namespace Currently tsm can deployed in 2 modes (Tenant, Admin) | --set global.nexusAdmin=true | false
+global.registry | To pull images from particular private registry | --set registry=harbor-repo.vmware.com | 284299419820.dkr.ecr.us-west-2.amazonaws.com/nexus |
+global.connector.tag | To override connector image tag | --set global.connector.tag=<> |
+global.api_gateway.tag | To override api_gateway image tag | --set global.api_gateway.tag=<> |
+global.validation.tag | To override validation image tag | --set global.validation.tag |
+global.controller.tag | To override connect-controller image tag | --set global.controller.tag |
+global.runtimeEnabled | To enable all components of nexus runtime | --set global.runtimeEnabled=true | true
+global.CertEnabled | To enable cert creation for api-gateway to use SSL Termination | --set global.certEnabled=true | false
+global.imagepullsecret | To pull images from private registry setup used with --set global.registry=<> | --set global.imagepullsecret="xx" | ""
+
+
+
+
+
+
+
