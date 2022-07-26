@@ -35,7 +35,7 @@ func SkipPrereqCheck(cmd *cobra.Command) bool {
 
 func GetTagVersion(versionKey, EnvKey string) (string, error) {
 	var values version.NexusValues
-	resultVersion := os.Getenv("NEXUS_RUNTIME_VERSION")
+	resultVersion := os.Getenv(EnvKey)
 	if resultVersion == "" {
 		yamlFile, err := common.TemplateFs.ReadFile("values.yaml")
 		if err != nil {
