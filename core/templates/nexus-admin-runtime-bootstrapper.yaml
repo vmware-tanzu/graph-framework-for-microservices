@@ -1,0 +1,86 @@
+{{- if and (eq .Values.global.nexusAdmin true) (eq .Values.global.skipAdminBootstrap false) }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: nexus-admin-runtime-bootstrapper
+spec:
+  template:
+    metadata:
+      annotations:
+        "sidecar.istio.io/inject": "false"
+    spec:
+      activeDeadlineSeconds: 30
+      containers:
+        - name: nexus-admin-runtime-bootstrapper
+          image: "gcr.io/nsx-sm/tools:latest"
+          imagePullPolicy: IfNotPresent
+          command:
+            - "/bin/bash"
+            - "-c"
+            - |
+              set -e
+
+              if ! kubectl get oidcs.authentication.nexus.org -l nexus/display_name=admin -o=jsonpath='{.items[0]}' > /dev/null 2>&1 ; then
+                  echo 'creating OIDC object...'
+                  kubectl apply -f -<<EOF
+                  apiVersion: authentication.nexus.org/v1
+                  kind: OIDC
+                  metadata:
+                    labels:
+                      nexuses.api.nexus.org: default
+                      configs.config.nexus.org: default
+                      apigateways.apigateway.nexus.org: default
+                    name: admin
+                  spec:
+                    config:
+                      clientId: {{.Values.global.clientId}}
+                      clientSecret: {{.Values.global.clientSecret}}
+                      oAuthIssuerUrl: {{.Values.global.oAuthIssuerUrl}}
+                      oAuthRedirectUrl: {{.Values.global.oAuthRedirectUrl}}
+                      scopes:
+                        - openid
+                        - profile
+                        - offline_access
+                    validationProps:
+                      insecureIssuerURLContext: true
+                      skipClientAudValidation: true
+                      skipClientIdValidation: true
+                      skipIssuerValidation: true
+              EOF
+              fi
+
+              if ! kubectl get proxyrules.admin.nexus.org -l nexus/display_name=admin -o=jsonpath='{.items[0]}' > /dev/null 2>&1 ; then
+                echo 'creating admin ProxyRule object...'
+                kubectl apply -f -<<EOF
+                apiVersion: admin.nexus.org/v1
+                kind: ProxyRule
+                metadata:
+                  name: admin
+                  labels:
+                    nexuses.api.nexus.org: default
+                    configs.config.nexus.org: default
+                    apigateways.apigateway.nexus.org: default
+                spec:
+                  matchCondition:
+                    type: jwt
+                    key: {{.Values.global.jwtClaim}}
+                    value: {{.Values.global.jwtClaimValue}}
+                  upstream:
+                    scheme: http
+                    host: nexus-api-gw.{{.Values.global.namespace}}
+                    port: 80
+              EOF
+              fi
+          env:
+            - name: KUBECONFIG
+              value: /kube/config
+          volumeMounts:
+            - mountPath: /kube
+              name: kubeconfig
+      volumes:
+        - name: kubeconfig
+          configMap:
+            name: nexus-dmb-kubeconfig-api-gw
+      restartPolicy: OnFailure
+  backoffLimit: 10
+{{ end }}
