@@ -645,7 +645,7 @@ api_gateway:
   controller:
     tag: v0.0.1
   api:
-    tag: 4113413572d0b3cde62d29a3775729d24fd5988c <--- replace tag for your component
+    tag: v0.0.2 <--- replace tag for your component
 ```
 To update chart changes
 ```
@@ -684,25 +684,29 @@ Publish helm chart to ECR
 helm cm-push nexus-runtime-<version>.tgz harbor-vmware
 ```
 
-### Install nexus-runtime from HELM using ECR image
+### Install nexus-runtime from HELM using harbor chart
 
-Login to ECR registry
+Login to Harbor registry
 ```
  helm repo add "harbor-vmware" "https://harbor-repo.vmware.com/chartrepo/nexus"
 ```
 
 For deploying tenant
 ```
+kubectl create ns <namespace> --label name=<namespace> --dry-run -o yaml | kubectl apply -f  -
 helm install --wait nexus-runtime harbor-vmware/nexus-runtime --version <version> \
-            --set-string global.namespace=newtestv\
-            --set-string global.repository=harbor-repo.vmware.com/nexus
+            --set-string global.namespace=<namespace>\
+            --set-string global.registry=harbor-repo.vmware.com/nexus
 ```
 
 * Note: global.repository=284299419820.dkr.ecr.us-west-2.amazonaws.com/nexus if you are using EKS cluster
 
+Please refer below section for available helm variables
+
 
 For deploying admin namespace
 ```
+kubectl create ns <namespace> --label name=<namespace> --nexus=admin --dry-run -o yaml | kubectl apply -f  -
 helm install --wait nexus-runtime nexus-runtime harbor-vmware/nexus-runtime  --version <version> \
             --set-string global.namespace=newtestv\
             --set-string global.repository=harbor-repo.vmware.com/nexus\

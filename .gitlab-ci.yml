@@ -18,6 +18,8 @@ before_script:
   - helm registry login --username AWS -p $(aws ecr get-login-password --region us-west-2) 284299419820.dkr.ecr.us-west-2.amazonaws.com
   - helm repo remove harbor-vmware || echo "harbor-vmware not present"; \
   - helm repo add harbor-vmware "https://harbor-repo.vmware.com/chartrepo/nexus" --username $HARBOR_USERNAME --password $DOCKER_PASSWORD;
+  - docker login --username AWS -p $(aws ecr get-login-password --region us-west-2) 284299419820.dkr.ecr.us-west-2.amazonaws.com
+  - docker login harbor-repo.vmware.com --username $DOCKER_USERNAME --password $DOCKER_PASSWORD
 
 build:
   stage: build
@@ -27,6 +29,8 @@ build:
   script:
     - make publish.ecr
     - HARBOR_PASSWORD=$DOCKER_PASSWORD make publish.harbor
+    - make docker.publish
+    - make docker.publish DOCKER_REPO="harbor-repo.vmware.com/nexus"
 
 build_tag:
   stage: build
@@ -37,6 +41,8 @@ build_tag:
   script:
     - make publish.ecr
     - HARBOR_PASSWORD=$DOCKER_PASSWORD make publish.harbor
+    - make docker.publish
+    - make docker.publish DOCKER_REPO="harbor-repo.vmware.com/nexus"
 
 integration_test:
   stage: integration_test

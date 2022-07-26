@@ -1,8 +1,10 @@
 HELM_REGISTRY ?= oci://284299419820.dkr.ecr.us-west-2.amazonaws.com/nexus
+DOCKER_REPO ?= "284299419820.dkr.ecr.us-west-2.amazonaws.com/nexus"
 CHART_NAME ?= nexus-runtime
 VERSION ?= "v0.0.0-$(shell git rev-parse --verify HEAD)"
 HARBOR_REPO_URL ?= "https://harbor-repo.vmware.com/chartrepo/nexus"
 HARBOR_REPO ?= "harbor-vmware"
+IMAGE_NAME ?= "nexus-runtime-chart"
 submodule:
 	git submodule update --init --remote
 
@@ -24,3 +26,11 @@ harbor.login:
 
 publish.harbor: build
 	helm cm-push $(CHART_NAME)-$(VERSION).tgz $(HARBOR_REPO)
+
+docker.build: build
+	mv $(CHART_NAME)-$(VERSION).tgz $(CHART_NAME).tgz ;\
+	docker build --pull --build-arg CHART_NAME=$(CHART_NAME) -t $(IMAGE_NAME):$(VERSION) . -f Dockerfile
+
+docker.publish: docker.build
+	docker tag $(IMAGE_NAME):$(VERSION) $(DOCKER_REPO)/$(IMAGE_NAME):$(VERSION)
+	docker push $(DOCKER_REPO)/$(IMAGE_NAME):$(VERSION)
