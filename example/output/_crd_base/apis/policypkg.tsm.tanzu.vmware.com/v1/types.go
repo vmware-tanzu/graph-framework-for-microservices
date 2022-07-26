@@ -84,7 +84,8 @@ type ACPConfig struct {
 
 // +k8s:openapi-gen=true
 type ACPConfigNexusStatus struct {
-	Nexus NexusStatus `json:"nexus,omitempty" yaml:"nexus,omitempty"`
+	Status ACPStatus   `json:"status,omitempty" yaml:"status,omitempty"`
+	Nexus  NexusStatus `json:"nexus,omitempty" yaml:"nexus,omitempty"`
 }
 
 func (c *ACPConfig) CRDName() string {
@@ -150,6 +151,12 @@ type VMpolicyList struct {
 	metav1.TypeMeta `json:",inline" yaml:",inline"`
 	metav1.ListMeta `json:"metadata" yaml:"metadata"`
 	Items           []VMpolicy `json:"items" yaml:"items"`
+}
+
+// +k8s:openapi-gen=true
+type ACPStatus struct {
+	StatusABC int
+	StatusXYZ int
 }
 
 // +k8s:openapi-gen=true

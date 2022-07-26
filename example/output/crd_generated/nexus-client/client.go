@@ -2683,6 +2683,34 @@ func (group *PolicypkgTsmV1) CreateACPConfigByName(ctx context.Context,
 	}, nil
 }
 
+// SetACPConfigStatusByName sets user defined status
+func (group *PolicypkgTsmV1) SetACPConfigStatusByName(ctx context.Context,
+	objToUpdate *basepolicypkgtsmtanzuvmwarecomv1.ACPConfig, status *basepolicypkgtsmtanzuvmwarecomv1.ACPStatus) (*PolicypkgACPConfig, error) {
+
+	patch := Patch{
+		PatchOp{
+			Op:    "replace",
+			Path:  "/status/status",
+			Value: status,
+		},
+	}
+
+	marshaled, err := patch.Marshal()
+	if err != nil {
+		return nil, err
+	}
+	result, err := group.client.baseClient.
+		PolicypkgTsmV1().
+		ACPConfigs().Patch(ctx, objToUpdate.GetName(), types.JSONPatchType, marshaled, metav1.PatchOptions{}, "status")
+	if err != nil {
+		return nil, err
+	}
+	return &PolicypkgACPConfig{
+		client:    group.client,
+		ACPConfig: result,
+	}, nil
+}
+
 // UpdateACPConfigByName updates object stored in the database under the hashedName which is a hash of
 // display name and parents names.
 func (group *PolicypkgTsmV1) UpdateACPConfigByName(ctx context.Context,
@@ -2815,6 +2843,35 @@ func (obj *PolicypkgACPConfig) Delete(ctx context.Context) error {
 // Update updates spec of object in database. Children and Link can not be updated using this function.
 func (obj *PolicypkgACPConfig) Update(ctx context.Context) error {
 	result, err := obj.client.Policypkg().UpdateACPConfigByName(ctx, obj.ACPConfig)
+	if err != nil {
+		return err
+	}
+	obj.ACPConfig = result.ACPConfig
+	return nil
+}
+
+// SetStatus sets user defined status
+func (obj *PolicypkgACPConfig) SetStatus(ctx context.Context, status *basepolicypkgtsmtanzuvmwarecomv1.ACPStatus) error {
+	result, err := obj.client.Policypkg().SetACPConfigStatusByName(ctx, obj.ACPConfig, status)
+	if err != nil {
+		return err
+	}
+	obj.ACPConfig = result.ACPConfig
+	return nil
+}
+
+// GetStatus to get user defined status
+func (obj *PolicypkgACPConfig) GetStatus(ctx context.Context) (*basepolicypkgtsmtanzuvmwarecomv1.ACPStatus, error) {
+	getObj, err := obj.client.Policypkg().GetACPConfigByName(ctx, obj.GetName())
+	if err != nil {
+		return nil, err
+	}
+	return &getObj.Status.Status, nil
+}
+
+// ClearStatus to clear user defined status
+func (obj *PolicypkgACPConfig) ClearStatus(ctx context.Context) error {
+	result, err := obj.client.Policypkg().SetACPConfigStatusByName(ctx, obj.ACPConfig, nil)
 	if err != nil {
 		return err
 	}
@@ -2959,6 +3016,38 @@ type acpconfigPolicypkgTsmV1Chainer struct {
 	client       *Clientset
 	name         string
 	parentLabels map[string]string
+}
+
+// ClearStatus to clear user defined status
+func (c *acpconfigPolicypkgTsmV1Chainer) ClearStatus(ctx context.Context) (err error) {
+	hashedName := helper.GetHashedName("acpconfigs.policypkg.tsm.tanzu.vmware.com", c.parentLabels, c.name)
+	obj, err := c.client.Policypkg().GetACPConfigByName(ctx, hashedName)
+	if err != nil {
+		return err
+	}
+	_, err = c.client.Policypkg().SetACPConfigStatusByName(ctx, obj.ACPConfig, nil)
+	return err
+}
+
+// GetStatus to get user defined status
+func (c *acpconfigPolicypkgTsmV1Chainer) GetStatus(ctx context.Context) (result *basepolicypkgtsmtanzuvmwarecomv1.ACPStatus, err error) {
+	hashedName := helper.GetHashedName("acpconfigs.policypkg.tsm.tanzu.vmware.com", c.parentLabels, c.name)
+	obj, err := c.client.Policypkg().GetACPConfigByName(ctx, hashedName)
+	if err != nil {
+		return nil, err
+	}
+	return &obj.Status.Status, nil
+}
+
+// SetStatus sets user defined status
+func (c *acpconfigPolicypkgTsmV1Chainer) SetStatus(ctx context.Context, status *basepolicypkgtsmtanzuvmwarecomv1.ACPStatus) (err error) {
+	hashedName := helper.GetHashedName("acpconfigs.policypkg.tsm.tanzu.vmware.com", c.parentLabels, c.name)
+	obj, err := c.client.Policypkg().GetACPConfigByName(ctx, hashedName)
+	if err != nil {
+		return err
+	}
+	_, err = c.client.Policypkg().SetACPConfigStatusByName(ctx, obj.ACPConfig, status)
+	return err
 }
 
 // GetVMpolicyByName returns object stored in the database under the hashedName which is a hash of display
