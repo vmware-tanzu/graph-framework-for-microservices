@@ -106,16 +106,16 @@ test_in_container: ${BUILDER_NAME}\:${BUILDER_TAG}.image.exists
 generate_code:
 	rm -rf _generated
 	cp -R generated_base_structure _generated
-	cp -r ${DATAMODEL_PATH}/go.mod _generated/go.mod 
+	cp ${DATAMODEL_PATH}/go.mod _generated/go.mod
 	sed -i "1s|.*|module gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/_generated|" _generated/go.mod
 	CRD_MODULE_PATH=${CRD_MODULE_PATH} go run cmd/nexus-sdk/main.go -config-file ${CONFIG_FILE} -dsl ${DATAMODEL_PATH} -crd-output _generated
 	mv _generated/api_names.sh _generated/scripts/
-	cd _generated/ && sed -i "s|generated_base_structure|_generated|g" openapi-generator/openapi_generator/generator_test.go \
-		openapi-generator/openapi_generator/test_data/test.it/v1/wrapper.go \
-        openapi-generator/cmd/generate-openapischema/generate-openapischema.go
 	cd _generated && go mod tidy -e && ./scripts/generate_k8s_api.sh
 	GOPRIVATE="gitlab.eng.vmware.com" go install gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git/cmd/nexus-openapi-gen@latest
 	cd _generated/ && go mod tidy -e && ./scripts/generate_openapi_schema.sh
+	cp -r _generated/openapi-generator/openapi pkg/openapi_generator
+	go run cmd/generate-openapischema/generate-openapischema.go -yamls-path _generated/crds
+	git checkout -- pkg/openapi_generator/openapi/openapi_generated.go
 	cd _generated/ && ./scripts/replace_mod_path.sh
 	cp -r _generated/{client,apis,crds,common,nexus-client,helper} ${GENERATED_OUTPUT_DIRECTORY}
 
