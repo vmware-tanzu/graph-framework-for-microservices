@@ -708,8 +708,8 @@ For deploying admin namespace
 ```
 kubectl create ns <namespace> --label name=<namespace> --nexus=admin --dry-run -o yaml | kubectl apply -f  -
 helm install --wait nexus-runtime nexus-runtime harbor-vmware/nexus-runtime  --version <version> \
-            --set-string global.namespace=newtestv\
-            --set-string global.repository=harbor-repo.vmware.com/nexus\
+            --set-string global.namespace=<namespace>\
+            --set-string global.registry=harbor-repo.vmware.com/nexus\
             --set global.nexusAdmin=true
 ```
 
