@@ -6,6 +6,10 @@ include:
   ref: master
   file: ".gitlab-ci-template.yml"
 
+.job_template: &job_def
+  tags:
+    - "allspark"
+
 before_script:
   - git config --global url."https://gitlab.eng.vmware.com/".insteadOf "git@gitlab.eng.vmware.com:"
   - git config --global gc.auto 0
@@ -70,7 +74,7 @@ build_tag:
     - make publish_template TAG=$CI_COMMIT_TAG
 
 integration_test:
-  stage: integration_test
+  stage: tests
   variables:
     NEXUS_CONTROLLER_TEMPLATE_VERSION: $CI_COMMIT_SHA
   only:
@@ -80,4 +84,11 @@ integration_test:
 
 stages:
   - build
-  - integration_test
+  - tests
+
+unit_test:
+  stage: tests
+  script:
+    - make unit-test
+  only:
+    - merge_requests

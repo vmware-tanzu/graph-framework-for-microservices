@@ -66,7 +66,7 @@ const (
 type NexusConnectorReconciler struct {
 	client.Client
 	Scheme    *runtime.Scheme
-	K8sClient *kubernetes.Clientset
+	K8sClient kubernetes.Interface
 }
 
 // +kubebuilder:rbac:groups=config.mazinger.com.design-controllers.com,resources=apicollaborationspaces,verbs=get;list;watch;create;update;patch;delete
@@ -84,7 +84,6 @@ type NexusConnectorReconciler struct {
 // - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.11.2/pkg/reconcile
 func (r *NexusConnectorReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	_ = log.FromContext(ctx)
-	logger.Infof("request received from endpoint: %q\n", req.Name)
 
 	var endpoint nxv1.NexusEndpoint
 	eventType := Upsert
@@ -106,7 +105,9 @@ func (r *NexusConnectorReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 		err := r.K8sClient.AppsV1().Deployments(namespace).Delete(ctx, name, deleteOptions)
 		if err != nil {
 			logger.Warnf(err.Error())
+			return ctrl.Result{}, err
 		}
+		logger.Infof("Nexus deploymemt: %q deleted\n", name)
 		return ctrl.Result{}, nil
 	}
 
@@ -427,7 +428,7 @@ func (r *NexusConnectorReconciler) createDeployment(ctx context.Context, name, n
 			logger.Errorf(err.Error())
 			return err
 		}
-		logger.Infof("Nexus deploymemt: %q created\n", name)
+		logger.Infof("Nexus deploymemt: %q created in ns %q\n", name, namespace)
 	} else {
 		dep.Spec = deploy.Spec
 		_, err = r.K8sClient.AppsV1().Deployments(namespace).Update(ctx, dep, metav1.UpdateOptions{})

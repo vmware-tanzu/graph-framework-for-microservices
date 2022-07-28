@@ -60,7 +60,7 @@ tools:
 
 .PHONY: unit-test
 unit-test:
-	CGO_ENABLED=0 GOOS=linux go test -cover ./...
+	set -o pipefail && CGO_ENABLED=0 GOOS=linux go test -v -tags=unit -p=1 -count=1 -vet=off ./...
 
 .PHONY: race-unit-test
 race-unit-test:
