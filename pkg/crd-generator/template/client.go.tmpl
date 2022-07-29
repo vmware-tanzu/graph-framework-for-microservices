@@ -256,6 +256,12 @@ func (group *{{$node.GroupTypeName}}) Create{{$node.BaseNodeName}}ByName(ctx con
 func (group *{{$node.GroupTypeName}}) Set{{$node.BaseNodeName}}{{$node.StatusName}}ByName(ctx context.Context,
 	objToUpdate *{{$node.GroupBaseImport}}, status *{{$node.BaseImportName}}.{{$node.StatusType}}) (*{{$node.SimpleGroupTypeName}}{{$node.BaseNodeName}}, error) {
 
+	// Make sure status field is present first
+	m := []byte("{\"status\":{}}")
+	result, err := group.client.baseClient.
+	{{$node.GroupTypeName}}().
+	{{$node.GroupResourceNameTitle}}().Patch(ctx, objToUpdate.GetName(), types.MergePatchType, m, metav1.PatchOptions{}, "status")
+
 	patch := Patch{
 	PatchOp{
 		Op:    "replace",
@@ -268,7 +274,7 @@ func (group *{{$node.GroupTypeName}}) Set{{$node.BaseNodeName}}{{$node.StatusNam
 	if err != nil {
 		return nil, err
 	}
-	result, err := group.client.baseClient.
+	result, err = group.client.baseClient.
 	{{$node.GroupTypeName}}().
 	{{$node.GroupResourceNameTitle}}().Patch(ctx, objToUpdate.GetName(), types.JSONPatchType, marshaled, metav1.PatchOptions{}, "status")
 	if err != nil {
@@ -399,7 +405,7 @@ func (obj *{{$node.SimpleGroupTypeName}}{{$node.BaseNodeName}}) Get{{$node.Statu
 
 // Clear{{$node.StatusName}} to clear user defined status
 func (obj *{{$node.SimpleGroupTypeName}}{{$node.BaseNodeName}}) Clear{{$node.StatusName}}(ctx context.Context) error {
-	result, err := obj.client.{{$node.SimpleGroupTypeName}}().Set{{$node.BaseNodeName}}{{$node.StatusName}}ByName(ctx, obj.{{$node.BaseNodeName}}, nil)
+	result, err := obj.client.{{$node.SimpleGroupTypeName}}().Set{{$node.BaseNodeName}}{{$node.StatusName}}ByName(ctx, obj.{{$node.BaseNodeName}}, &{{$node.BaseImportName}}.{{$node.StatusType}}{})
 	if err != nil {
 		return err
 	}
