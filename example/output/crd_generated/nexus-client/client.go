@@ -1278,6 +1278,12 @@ func (group *GnsTsmV1) CreateGnsByName(ctx context.Context,
 func (group *GnsTsmV1) SetGnsStateByName(ctx context.Context,
 	objToUpdate *basegnstsmtanzuvmwarecomv1.Gns, status *basegnstsmtanzuvmwarecomv1.GnsState) (*GnsGns, error) {
 
+	// Make sure status field is present first
+	m := []byte("{\"status\":{}}")
+	result, err := group.client.baseClient.
+		GnsTsmV1().
+		Gnses().Patch(ctx, objToUpdate.GetName(), types.MergePatchType, m, metav1.PatchOptions{}, "status")
+
 	patch := Patch{
 		PatchOp{
 			Op:    "replace",
@@ -1290,7 +1296,7 @@ func (group *GnsTsmV1) SetGnsStateByName(ctx context.Context,
 	if err != nil {
 		return nil, err
 	}
-	result, err := group.client.baseClient.
+	result, err = group.client.baseClient.
 		GnsTsmV1().
 		Gnses().Patch(ctx, objToUpdate.GetName(), types.JSONPatchType, marshaled, metav1.PatchOptions{}, "status")
 	if err != nil {
@@ -1444,7 +1450,7 @@ func (obj *GnsGns) GetState(ctx context.Context) (*basegnstsmtanzuvmwarecomv1.Gn
 
 // ClearState to clear user defined status
 func (obj *GnsGns) ClearState(ctx context.Context) error {
-	result, err := obj.client.Gns().SetGnsStateByName(ctx, obj.Gns, nil)
+	result, err := obj.client.Gns().SetGnsStateByName(ctx, obj.Gns, &basegnstsmtanzuvmwarecomv1.GnsState{})
 	if err != nil {
 		return err
 	}
@@ -2687,6 +2693,12 @@ func (group *PolicypkgTsmV1) CreateACPConfigByName(ctx context.Context,
 func (group *PolicypkgTsmV1) SetACPConfigStatusByName(ctx context.Context,
 	objToUpdate *basepolicypkgtsmtanzuvmwarecomv1.ACPConfig, status *basepolicypkgtsmtanzuvmwarecomv1.ACPStatus) (*PolicypkgACPConfig, error) {
 
+	// Make sure status field is present first
+	m := []byte("{\"status\":{}}")
+	result, err := group.client.baseClient.
+		PolicypkgTsmV1().
+		ACPConfigs().Patch(ctx, objToUpdate.GetName(), types.MergePatchType, m, metav1.PatchOptions{}, "status")
+
 	patch := Patch{
 		PatchOp{
 			Op:    "replace",
@@ -2699,7 +2711,7 @@ func (group *PolicypkgTsmV1) SetACPConfigStatusByName(ctx context.Context,
 	if err != nil {
 		return nil, err
 	}
-	result, err := group.client.baseClient.
+	result, err = group.client.baseClient.
 		PolicypkgTsmV1().
 		ACPConfigs().Patch(ctx, objToUpdate.GetName(), types.JSONPatchType, marshaled, metav1.PatchOptions{}, "status")
 	if err != nil {
@@ -2871,7 +2883,7 @@ func (obj *PolicypkgACPConfig) GetStatus(ctx context.Context) (*basepolicypkgtsm
 
 // ClearStatus to clear user defined status
 func (obj *PolicypkgACPConfig) ClearStatus(ctx context.Context) error {
-	result, err := obj.client.Policypkg().SetACPConfigStatusByName(ctx, obj.ACPConfig, nil)
+	result, err := obj.client.Policypkg().SetACPConfigStatusByName(ctx, obj.ACPConfig, &basepolicypkgtsmtanzuvmwarecomv1.ACPStatus{})
 	if err != nil {
 		return err
 	}
