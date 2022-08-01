@@ -2,19 +2,19 @@
 
 Playground - Early Edition :)
 
-Nexus SDK is an next-gen platform, framework and runtime. Its mission is to provide an extensible, distributed platform that will accelerate application development, simplify consumption, providing a highly functional, stable and feature rich platform, for all products in the AllSpark family.
+Nexus SDK is a next-gen platform, framework and runtime. Its mission is to provide an extensible, distributed platform that will accelerate application development, simplify consumption, providing a highly functional, stable and feature rich platform, for all products in the AllSpark family.
 
-This Dev/Tech preview implements Nexus Datamodel as K8s CRD's. Applications can consume Nexus datamodel using standard K8s libraries, just as they consume any K8s CRD.
+This Dev/Tech preview implements Nexus Datamodel as K8s CRDs. Applications can consume Nexus datamodel using standard K8s libraries, just as they consume any K8s CRD.
 
 We will demonstrate:
 
 - Simple / intuitive DSL to specify Nexus Datamodel
 - Nexus compiler that understands Nexus DSL and generates datamodel spec and libraries
-- Nexus Datamodel implemention using K8s CRD's
+- Nexus Datamodel implementation using K8s CRDs
 - Nexus runtime to host Nexus Datamodel
 - Ability to consume Nexus Datamodel using standard / opensource K8s libraries
 
-This wiki will setup you up with your own playgound, to explore Nexus SDK in action.
+This wiki will set you up with your own playground, to explore Nexus SDK in action.
 The playground also provides a Sample App to interact with the datamodel.
 
 **2 - ways to get started:**
@@ -95,7 +95,7 @@ or
 flash repo login .
 ```
 
-Note: if you are using any cloudgate based dev group , please run
+Note: if you are using any Cloudgate based dev group , please run
 ```
 clearaws
 ```
@@ -282,7 +282,7 @@ cd $WORKSPACE/myapp
 Pre-requisites:
  - [LatestCLI](https://gitlab.eng.vmware.com/nsx-allspark_users/nexus/-/blob/nexus-sdk-dev/Nexus-SDK-README.md#check-if-latest-nexus-cli-is-installed)
 
-This will prep the playgound with required components and structure.
+This will prep the playground with required components and structure.
 
 ```
 nexus app init --name myapp --datamodel-init customdatamodel
@@ -300,7 +300,7 @@ vi nexus/customdatamodel/root.go
 
 Defines Root with a child node called ClusterStatus.
 
-ClusterStatus has custom fields in the spece and also has a child node called ClusterStatusMetadata.
+ClusterStatus has custom fields in the spec and also has a child node called ClusterStatusMetadata.
 
 ClusterStatusMetadata is a leaf node with custom fields.
 
@@ -469,7 +469,7 @@ Cloning the repository to a folder in your workspace (under GOPATH)
   git clone git@gitlab.eng.vmware.com:nexus/customdatamodel.git
   ```
 
-would provide us with intialized git repository under customdatamodel folder
+would provide us with initialized git repository under customdatamodel folder
 
 **Step 1**: Create bare-datamodel for the user to edit and build to generate CRD and OpenAPISpecs:
 
@@ -533,7 +533,7 @@ nexus operator create --group root.customgroup.com --kind Root --version v1
 
 ```
 
-Note: The above command creates a folder controllers/root.customgroup.com/... , as each object created in the datamodel add a operator with your GroupVersionKind and --datamodel variable should point it to git repository name of the datamdoel to consume.
+Note: The above command creates a folder controllers/root.customgroup.com/... , as each object created in the datamodel add an operator with your GroupVersionKind and --datamodel variable should point it to git repository name of the datamdoel to consume.
 
  Step 4c:
  Edit controllers/root.customgroup.com/root_controller.go file to include reconcile section.
@@ -710,10 +710,26 @@ kubectl create ns <namespace> --label name=<namespace> --nexus=admin --dry-run -
 helm install --wait nexus-runtime nexus-runtime harbor-vmware/nexus-runtime  --version <version> \
             --set-string global.namespace=<namespace>\
             --set-string global.registry=harbor-repo.vmware.com/nexus\
-            --set global.nexusAdmin=true
+            --set global.nexusAdmin=true\
+            --set global.skipAdminBootstrap=false\
+            --set global.clientId XXX \
+            --set global.clientSecret XXX \
+            --set global.oAuthIssuerUrl https://console-stg.cloud.vmware.com/csp/gateway/am/api \
+            --set global.oAuthRedirectUrl http://localhost:10000/callback \
+            --set global.jwtClaim context_name \ 
+            --set global.jwtClaimValue a3fd9f51-0cbc-4606-aa65-60fa9d839cf9
+```
+Alternatively, if the admin runtime bootstrap step needs to be skipped
+```shell
+kubectl create ns <namespace> --label name=<namespace> --nexus=admin --dry-run -o yaml | kubectl apply -f  -
+helm install --wait nexus-runtime nexus-runtime harbor-vmware/nexus-runtime  --version <version> \
+            --set-string global.namespace=newtestv\
+            --set-string global.repository=harbor-repo.vmware.com/nexus\
+            --set global.nexusAdmin=true\
+            --set global.skipAdminBootstrap=true
 ```
 
-#### HELM Variables defintion
+#### HELM Variables definition
 
 | Variable | Definition | Example  | Default |
 | :---:   | :-: | :-: | :---: |
@@ -727,10 +743,10 @@ global.controller.tag | To override connect-controller image tag | --set global.
 global.runtimeEnabled | To enable all components of nexus runtime | --set global.runtimeEnabled=true | true
 global.CertEnabled | To enable cert creation for api-gateway to use SSL Termination | --set global.certEnabled=true | false
 global.imagepullsecret | To pull images from private registry setup used with --set global.registry=<> | --set global.imagepullsecret="xx" | ""
-
-
-
-
-
-
-
+global.clientId | The client-id of the OIDC app | --set global.clientId=XXX | ""
+global.clientSecret | The client-secret of the OIDC app | --set global.clientSecret=XXX | ""
+global.oAuthIssuerUrl | The OAuth issuer URL of the IDP | --set global.oAuthIssuerUrl=https://console-stg.cloud.vmware.com/csp/gateway/am/api | ""
+global.oAuthRedirectUrl | The URL that the IDP will redirect to post-authentication | --set global.oAuthRedirectUrl=http://<public-nexus-proxy-hostname>/callback | "" 
+global.jwtClaim | The JWT claim that forms the match condition to identify the admin user | --set global.jwtClaim=context_name | ""
+global.jwtClaimValue | The value of the JWT claim that forms the match condition to identify the admin user | --set global.jwtClaimValue=XXX | ""
+global.skipAdminBootstrap | To skip bootstrapping the admin runtime | --set global.skipAdminBootstrap | ""
