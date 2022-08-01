@@ -261,6 +261,9 @@ func (group *{{$node.GroupTypeName}}) Set{{$node.BaseNodeName}}{{$node.StatusNam
 	result, err := group.client.baseClient.
 	{{$node.GroupTypeName}}().
 	{{$node.GroupResourceNameTitle}}().Patch(ctx, objToUpdate.GetName(), types.MergePatchType, m, metav1.PatchOptions{}, "status")
+	if err != nil {
+		return nil, err
+	}
 
 	patch := Patch{
 	PatchOp{
@@ -269,7 +272,6 @@ func (group *{{$node.GroupTypeName}}) Set{{$node.BaseNodeName}}{{$node.StatusNam
 		Value: status,
 		},
 	}
-
 	marshaled, err := patch.Marshal()
 	if err != nil {
 		return nil, err
