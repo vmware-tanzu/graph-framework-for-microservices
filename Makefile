@@ -158,3 +158,6 @@ GOIMPORTS=$(GOBIN)/goimports
 else
 GOIMPORTS=$(shell which goimports)
 endif
+
+coverage:
+	go test -json -coverprofile=coverage.out ./... | tee report.json ;\
