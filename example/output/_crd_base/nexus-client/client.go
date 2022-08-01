@@ -1283,6 +1283,9 @@ func (group *GnsTsmV1) SetGnsStateByName(ctx context.Context,
 	result, err := group.client.baseClient.
 		GnsTsmV1().
 		Gnses().Patch(ctx, objToUpdate.GetName(), types.MergePatchType, m, metav1.PatchOptions{}, "status")
+	if err != nil {
+		return nil, err
+	}
 
 	patch := Patch{
 		PatchOp{
@@ -1291,7 +1294,6 @@ func (group *GnsTsmV1) SetGnsStateByName(ctx context.Context,
 			Value: status,
 		},
 	}
-
 	marshaled, err := patch.Marshal()
 	if err != nil {
 		return nil, err
@@ -2698,6 +2700,9 @@ func (group *PolicypkgTsmV1) SetACPConfigStatusByName(ctx context.Context,
 	result, err := group.client.baseClient.
 		PolicypkgTsmV1().
 		ACPConfigs().Patch(ctx, objToUpdate.GetName(), types.MergePatchType, m, metav1.PatchOptions{}, "status")
+	if err != nil {
+		return nil, err
+	}
 
 	patch := Patch{
 		PatchOp{
@@ -2706,7 +2711,6 @@ func (group *PolicypkgTsmV1) SetACPConfigStatusByName(ctx context.Context,
 			Value: status,
 		},
 	}
-
 	marshaled, err := patch.Marshal()
 	if err != nil {
 		return nil, err
