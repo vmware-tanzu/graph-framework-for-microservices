@@ -1,33 +1,31 @@
 package utils
 
 import (
+	"encoding/json"
 	"fmt"
+	"os"
 	"strings"
-	"sync"
+
+	log "github.com/sirupsen/logrus"
 
 	"k8s.io/apimachinery/pkg/runtime/schema"
-	"k8s.io/client-go/dynamic"
-)
-
-var (
-	CRDTypeToParentHierarchy      = make(map[string][]string)
-	crdTypeToParentHierarchyMutex = &sync.Mutex{}
-
-	ReplicationEnabledNode      = make(map[ReplicationObject]dynamic.Interface)
-	replicationEnabledNodeMutex = &sync.Mutex{}
-
-	ReplicatedNodes      = make(map[string]dynamic.Interface)
-	replicatedNodesMutex = &sync.Mutex{}
-
-	CRDTypeToChildren      = make(map[string]Children)
-	crdTypeToChildrenMutex = &sync.Mutex{}
 )
 
 const (
 	Upsert EventType = "Upsert"
 	Delete EventType = "Delete"
 
-	DisplayNameKey = "nexus/display_name"
+	RemoteEndpointHost = "REMOTE_ENDPOINT_HOST"
+	RemoteEndpointPort = "REMOTE_ENDPOINT_PORT"
+
+	DisplayNameKey           = "nexus/display_name"
+	DeploymentName           = "DEPLOYMENT_NAME"
+	StatusReplication        = "STATUS_REPLICATION"
+	StatusEnabled            = "ENABLED"
+	NexusReplicationManager  = "nexus-replication-manager"
+	NexusReplicationResource = "nexus-replication-resource"
+	secretNS                 = "SECRET_NS"
+	secretName               = "SECRET_NAME"
 
 	// Nexus-Connect DM CRDs.
 	NexusCRD             = "nexuses.api.nexus.org"
@@ -43,27 +41,6 @@ const (
 type EventType string
 
 type Children map[string]NodeHelperChild
-
-type ReplicationConfig struct {
-	AccessToken    string            `json:"accessToken"`
-	RemoteEndpoint Child             `json:"remoteEndpointGvk"`
-	Source         ReplicationObject `json:"source"`
-}
-
-type Child struct {
-	Group string `json:"group"`
-	Kind  string `json:"kind"`
-	Name  string `json:"name"`
-}
-
-type MultipleChildren map[string]Child
-
-type NexusEndpoint struct {
-	Host string `json:"host"`
-	Port string `json:"port"`
-	Cert string `json:"cert"`
-}
-
 type ReplicationObject struct {
 	Group string `json:"group"`
 	Kind  string `json:"kind"`
@@ -82,45 +59,9 @@ type NodeHelperChild struct {
 	IsNamed      bool   `json:"isNamed"`
 }
 
-func ConstructMapCRDTypeToParentHierarchy(eventType EventType, crdType string, hierarchy []string) {
-	crdTypeToParentHierarchyMutex.Lock()
-	defer crdTypeToParentHierarchyMutex.Unlock()
-
-	if eventType == Delete {
-		delete(CRDTypeToParentHierarchy, crdType)
-	}
-
-	CRDTypeToParentHierarchy[crdType] = hierarchy
-}
-
-func ConstructMapCRDTypeToChildren(eventType EventType, crdType string, children Children) {
-	crdTypeToChildrenMutex.Lock()
-	defer crdTypeToChildrenMutex.Unlock()
-
-	if eventType == Delete {
-		delete(CRDTypeToChildren, crdType)
-	}
-
-	CRDTypeToChildren[crdType] = children
-}
-
-func ConstructMapReplicationEnabledNode(repObj ReplicationObject, client dynamic.Interface) {
-	replicationEnabledNodeMutex.Lock()
-	defer replicationEnabledNodeMutex.Unlock()
-
-	ReplicationEnabledNode[repObj] = client
-}
-
-func ConstructMapWithReplicatedNodes(crdType, replicatedNode string, client dynamic.Interface) {
-	replicatedNodesMutex.Lock()
-	defer replicatedNodesMutex.Unlock()
-
-	rnKey := ConstructReplicatedNodeKey(crdType, replicatedNode)
-	ReplicatedNodes[rnKey] = client
-}
-
-func ConstructReplicatedNodeKey(crdType, replicatedNode string) string {
-	return fmt.Sprintf("%s:%s", crdType, replicatedNode)
+type ResourceAnnotation struct {
+	GVR  schema.GroupVersionResource
+	Name string
 }
 
 func GetCrdType(kind, groupName string) string {
@@ -182,6 +123,14 @@ func GetNodeLabels(parents []string, labels map[string]string, node string) stri
 	return nodeLabels
 }
 
+func GetReplicationObject(group, kind, name string) ReplicationObject {
+	return ReplicationObject{
+		Group: group,
+		Kind:  kind,
+		Name:  name,
+	}
+}
+
 func DeleteChildGvkFields(fields map[string]interface{}, children map[string]NodeHelperChild) {
 	for _, val := range children {
 		delete(fields, val.FieldNameGvk)
@@ -197,4 +146,23 @@ func NexusDatamodelCRDs(crdType string) bool {
 		return true
 	}
 	return false
+}
+
+func GenerateAnnotations(annotations map[string]string, gvr schema.GroupVersionResource, name string) map[string]string {
+	crInfoInByte, err := json.Marshal(ResourceAnnotation{
+		GVR:  gvr,
+		Name: name,
+	})
+	if err != nil {
+		log.Errorf("Error marshaling Source CR %v info %v", name, err)
+		return nil
+	}
+
+	if annotations == nil {
+		annotations = map[string]string{}
+	}
+	annotations[NexusReplicationManager] = os.Getenv(DeploymentName)
+	annotations[NexusReplicationResource] = string(crInfoInByte)
+
+	return annotations
 }
