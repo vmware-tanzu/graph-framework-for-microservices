@@ -41,17 +41,19 @@ spec:
             - |
               set -e
               
-              echo 'waiting for api-gw to be ready'
+              echo 'waiting for api-gw to be ready...'
               until $(curl --output /dev/null --silent --head --fail http://nexus-api-gw/readyz); do
                 echo '.'
                 sleep 5
               done
+              echo 'api-gw is now ready'
 
-              echo 'waiting for Nexus API DM CRDs to be installed'
+              echo 'waiting for Nexus CRD to be installed...'
               until $(kubectl get crd/nexuses.api.nexus.org > /dev/null 2>&1); do
                 echo '.'
                 sleep 5
               done
+              echo 'Nexus CRD is installed'
 
               if ! kubectl get nexuses.api.nexus.org -l nexus/display_name=default -o=jsonpath='{.items[0]}' > /dev/null 2>&1 ; then
                 echo 'creating Nexus node'
@@ -62,6 +64,13 @@ spec:
                   name: default
               EOF
               fi
+
+              echo 'waiting for Config CRD to be installed...'
+              until $(kubectl get crd/configs.config.nexus.org > /dev/null 2>&1); do
+                echo '.'
+                sleep 5
+              done
+              echo 'Config CRD is installed'
 
               if ! kubectl get configs.config.nexus.org -l nexus/display_name=default -o=jsonpath='{.items[0]}' > /dev/null 2>&1 ; then
                 echo 'creating Config node'
@@ -74,6 +83,13 @@ spec:
                     nexuses.api.nexus.org: default
               EOF
               fi
+
+              echo 'waiting for ApiGateway CRD to be installed...'
+              until $(kubectl get crd/apigateways.apigateway.nexus.org > /dev/null 2>&1); do
+                echo '.'
+                sleep 5
+              done
+              echo 'ApiGateway CRD is installed'
 
               if ! kubectl get apigateways.apigateway.nexus.org -l nexus/display_name=default -o=jsonpath='{.items[0]}' > /dev/null 2>&1 ; then
                 echo 'creating ApiGateway node'
