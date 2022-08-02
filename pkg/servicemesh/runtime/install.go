@@ -20,7 +20,13 @@ var Namespace string
 var Registry string
 var ImagePullSecret string
 var IsNexusAdmin bool
-var DryRunOutputFile string
+var clientId string
+var clientSecret string
+var oAuthIssuerUrl string
+var oAuthRedirectUrl string
+var jwtClaim string
+var jwtClaimValue string
+var skipAdminBootstrap bool
 
 type RuntimeInstallerData struct {
 	RuntimeInstaller  common.RuntimeInstaller
@@ -116,6 +122,19 @@ func HelmInstall(cmd *cobra.Command, args []string) error {
 	}
 	if IsNexusAdmin {
 		cmdlineArgs = fmt.Sprintf("%s,global.nexusAdmin=%t", cmdlineArgs, IsNexusAdmin)
+		cmdlineArgs = fmt.Sprintf("%s,global.skipAdminBootstrap=%t", cmdlineArgs, skipAdminBootstrap)
+		if !skipAdminBootstrap {
+			if clientId == "" || clientSecret == "" || oAuthIssuerUrl == "" || oAuthRedirectUrl == "" || jwtClaim == "" || jwtClaimValue == "" {
+				return fmt.Errorf("at least one mandatory arg (client-id, client-secret, oauth-issuer-url, oauth-redirect-url, jwt-clain, jwt-claim-value) missing in admin runtime install")
+			} else {
+				cmdlineArgs = fmt.Sprintf("%s,global.clientId=%s", cmdlineArgs, clientId)
+				cmdlineArgs = fmt.Sprintf("%s,global.clientSecret=%s", cmdlineArgs, clientSecret)
+				cmdlineArgs = fmt.Sprintf("%s,global.oAuthIssuerUrl=%s", cmdlineArgs, oAuthIssuerUrl)
+				cmdlineArgs = fmt.Sprintf("%s,global.oAuthRedirectUrl=%s", cmdlineArgs, oAuthRedirectUrl)
+				cmdlineArgs = fmt.Sprintf("%s,global.jwtClaim=%s", cmdlineArgs, jwtClaim)
+				cmdlineArgs = fmt.Sprintf("%s,global.jwtClaimValue=%s", cmdlineArgs, jwtClaimValue)
+			}
+		}
 	}
 	cmdlineArgs = GetCustomTags(cmdlineArgs)
 	runtimeVersion, err := utils.GetTagVersion("NexusRuntime", "NEXUS_RUNTIME_MANIFESTS_VERSION")
@@ -211,6 +230,16 @@ func RunJob(Namespace, jobName string, applyString bytes.Buffer) error {
 
 	err := exec.Command("kubectl", "wait", "--for=condition=complete", fmt.Sprintf("job/%s", jobName), "--timeout=10m", "-n", Namespace).Run()
 	if err != nil {
+		// dump some info to debug
+		log.Debugf("Pod Status")
+		if pods, err := exec.Command("kubectl", "get", "pods", "-n", Namespace).Output(); err == nil {
+			log.Debugf(string(pods))
+		}
+
+		log.Debugf("Job Status")
+		if jobs, err := exec.Command("kubectl", "get", "jobs", "-n", Namespace).Output(); err == nil {
+			log.Debugf(string(jobs))
+		}
 		return fmt.Errorf("could not complete the installation job: %s on %s", jobName, Namespace)
 	}
 
@@ -226,8 +255,20 @@ func init() {
 		"s", "", "Registry where validation webhook and api-gw is located")
 	InstallCmd.Flags().BoolVarP(&IsNexusAdmin, "admin",
 		"", false, "Install the Nexus Admin runtime")
-	InstallCmd.Flags().StringVarP(&DryRunOutputFile, "output",
-		"o", "", "Save genrated manifests to file")
+	InstallCmd.Flags().StringVarP(&clientId, "client-id",
+		"", "", "client id of the OIDC application. ignored if not --admin runtime")
+	InstallCmd.Flags().StringVarP(&clientSecret, "client-secret",
+		"", "", "client secret of the OIDC application. ignored if not --admin runtime")
+	InstallCmd.Flags().StringVarP(&oAuthIssuerUrl, "oauth-issuer-url",
+		"", "", "OAuth Issuer URL of the identity provider. ignored if not --admin runtime")
+	InstallCmd.Flags().StringVarP(&oAuthRedirectUrl, "oauth-redirect-url",
+		"", "", "OAuth Redirect/Callback URL. ignored if not --admin runtime")
+	InstallCmd.Flags().StringVarP(&jwtClaim, "jwt-claim",
+		"", "", "the JWT claim to be used as part of the admin match condition. ignored if not --admin runtime")
+	InstallCmd.Flags().StringVarP(&jwtClaimValue, "jwt-claim-value",
+		"", "", "the JWT claim to be used as part of the admin match condition. ignored if not --admin runtime")
+	InstallCmd.Flags().BoolVarP(&skipAdminBootstrap, "skip-bootstrap",
+		"", false, "skips the bootstrap step (only relevant for admin-runtime)")
 
 	err := cobra.MarkFlagRequired(InstallCmd.Flags(), "namespace")
 	if err != nil {
