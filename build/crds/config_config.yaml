@@ -4,7 +4,7 @@ kind: CustomResourceDefinition
 metadata:
   annotations:
     nexus: |
-      {"name":"Config.config","hierarchy":["nexuses.api.nexus.org"],"children":{"apigateways.apigateway.nexus.org":{"fieldName":"ApiGateway","fieldNameGvk":"apiGatewayGvk","isNamed":false},"connects.connect.nexus.org":{"fieldName":"Connect","fieldNameGvk":"connectGvk","isNamed":false},"routes.route.nexus.org":{"fieldName":"Routes","fieldNameGvk":"routesGvk","isNamed":true}},"nexus-rest-api-gen":{"uris":null}}
+      {"name":"config.Config","hierarchy":["nexuses.api.nexus.org"],"children":{"apigateways.apigateway.nexus.org":{"fieldName":"ApiGateway","fieldNameGvk":"apiGatewayGvk","isNamed":false},"connects.connect.nexus.org":{"fieldName":"Connect","fieldNameGvk":"connectGvk","isNamed":false},"routes.route.nexus.org":{"fieldName":"Routes","fieldNameGvk":"routesGvk","isNamed":true}},"is_singleton":false,"nexus-rest-api-gen":{"uris":null}}
   creationTimestamp: null
   name: configs.config.nexus.org
 spec:
@@ -80,9 +80,26 @@ spec:
                   type: object
                 type: object
             type: object
+          status:
+            properties:
+              nexus:
+                properties:
+                  remoteGeneration:
+                    format: int64
+                    type: integer
+                  sourceGeneration:
+                    format: int64
+                    type: integer
+                required:
+                - sourceGeneration
+                - remoteGeneration
+                type: object
+            type: object
         type: object
     served: true
     storage: true
+    subresources:
+      status: {}
 status:
   acceptedNames:
     kind: ""
