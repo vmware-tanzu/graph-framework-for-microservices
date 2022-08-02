@@ -9,7 +9,7 @@ spec:
       annotations:
         "sidecar.istio.io/inject": "false"
     spec:
-      activeDeadlineSeconds: 30
+      activeDeadlineSeconds: 300
       containers:
         - name: nexus-admin-runtime-bootstrapper
           image: "gcr.io/nsx-sm/tools:latest"
@@ -20,6 +20,48 @@ spec:
             - |
               set -e
 
+              echo 'waiting for api-gw to be ready...'
+              until $(curl --output /dev/null --silent --head --fail http://nexus-api-gw/readyz); do
+                echo '.'
+                sleep 5
+              done
+              echo 'api-gw is now ready'
+              
+              echo 'waiting for Nexus "default" object to be created...'
+              until $(kubectl get nexuses.api.nexus.org -l nexus/display_name=default -o=jsonpath='{.items[0]}' > /dev/null 2>&1); do
+                echo '.'
+                sleep 5
+              done
+              echo 'Nexus "default" object found'
+
+              echo 'waiting for Config "default" object to be created...'
+              until $(kubectl get configs.config.nexus.org -l nexus/display_name=default -o=jsonpath='{.items[0]}' > /dev/null 2>&1); do
+                echo '.'
+                sleep 5
+              done
+              echo 'Config "default" object found'
+
+              echo 'waiting for ApiGateway "default" object to be created...'
+              until $(kubectl get apigateways.apigateway.nexus.org -l nexus/display_name=default > /dev/null 2>&1); do
+                echo '.'
+                sleep 5
+              done
+              echo 'ApiGateway "default" object found'
+              
+              echo 'waiting for OIDC CRD to be installed...'
+              until $(kubectl get crd/oidcs.authentication.nexus.org > /dev/null 2>&1); do
+                echo '.'
+                sleep 5
+              done
+              echo 'OIDC CRD installed'
+
+              echo 'waiting for ProxyRule CRD to be installed...'
+              until $(kubectl get crd/proxyrules.admin.nexus.org > /dev/null 2>&1); do
+                echo '.'
+                sleep 5
+              done
+              echo 'ProxyRule CRD installed'
+              
               if ! kubectl get oidcs.authentication.nexus.org -l nexus/display_name=admin -o=jsonpath='{.items[0]}' > /dev/null 2>&1 ; then
                   echo 'creating OIDC object...'
                   kubectl apply -f -<<EOF
