@@ -1,4 +1,4 @@
-package controllers
+package app
 
 import (
 	"fmt"
@@ -42,6 +42,15 @@ func StartControllers(conf *config.Config, stopCh chan struct{}) {
 		return
 	}
 
+	var remoteDynamicClient dynamic.Interface
+	if conf.StatusReplicationEnabled {
+		remoteDynamicClient, err = utils.BuildRemoteClientAPI(conf.RemoteEndpointHost, conf.RemoteEndpointPort, localDynamicAPI)
+		if err != nil {
+			log.Fatalf("Error creating remote-client APIs: %v", err)
+			return
+		}
+	}
+
 	for {
 		select {
 		case <-stopCh:
@@ -54,8 +63,8 @@ func StartControllers(conf *config.Config, stopCh chan struct{}) {
 			}
 
 			gvr := utils.GetGVRFromCrdType(crd.CrdType)
-			informer := GetInformer(gvr)
-			handler := handlers.NewRemoteHandler(gvr, crd.CrdType, localDynamicAPI)
+			informer := getInformer(gvr)
+			handler := handlers.NewRemoteHandler(gvr, crd.CrdType, localDynamicAPI, remoteDynamicClient, conf)
 			c := newController(
 				fmt.Sprintf("controller-%s", crd.CrdType),
 				localAPI,
@@ -70,6 +79,26 @@ func StartControllers(conf *config.Config, stopCh chan struct{}) {
 			crd.CrdCache.UpsertController(crd.CrdType, c)
 		}
 	}
+}
+
+func StartReplicationConfigController(conf *config.Config, stopCh chan struct{}) {
+	log.Info("Starting ReplicationConfig Controller...")
+	localAPI, localDynamicAPI, err := utils.SetUpAPIs()
+	if err != nil {
+		log.Fatalf("Error creating APIs: %v", err)
+		return
+	}
+
+	gvr := utils.GetGVRFromCrdType(utils.ReplicationConfigCRD)
+	informer := getInformer(gvr)
+	handler := handlers.NewReplicationConfigHandler(gvr, conf, localDynamicAPI)
+	c := newController(
+		fmt.Sprintf("controller-%s", utils.ReplicationConfigCRD),
+		localAPI,
+		informer,
+		handler,
+		conf)
+	go c.Run(stopCh)
 }
 
 func newController(name string, client kubernetes.Interface,
@@ -88,15 +117,15 @@ func newController(name string, client kubernetes.Interface,
 		nil)
 }
 
-func GetInformer(gvr schema.GroupVersionResource) cache.SharedIndexInformer {
-	cfg, err := utils.GetRestConfig()
+func getInformer(gvr schema.GroupVersionResource) cache.SharedIndexInformer {
+	conf, err := utils.GetRestConfig()
 	if err != nil {
 		log.WithError(err).Fatal("could not get config")
 	}
-	dc, err := dynamic.NewForConfig(cfg)
+	dynamicAPI, err := dynamic.NewForConfig(conf)
 	if err != nil {
 		log.WithError(err).Fatal("could not generate dynamic client for config")
 	}
-	f := dynamicinformer.NewFilteredDynamicSharedInformerFactory(dc, 0, v1.NamespaceAll, nil)
+	f := dynamicinformer.NewFilteredDynamicSharedInformerFactory(dynamicAPI, 0, v1.NamespaceAll, nil)
 	return f.ForResource(gvr).Informer()
 }
