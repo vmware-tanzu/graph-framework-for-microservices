@@ -61,16 +61,24 @@ func (f *sharedInformerFactory) ForResource(resource schema.GroupVersionResource
 		return &genericInformer{resource: resource.GroupResource(), informer: f.ConfigTsm().V1().Configs().Informer()}, nil
 
 		// Group=gns.tsm.tanzu.vmware.com, Version=v1
+	case gnstsmtanzuvmwarecomv1.SchemeGroupVersion.WithResource("additionalgnsdatas"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.GnsTsm().V1().AdditionalGnsDatas().Informer()}, nil
 	case gnstsmtanzuvmwarecomv1.SchemeGroupVersion.WithResource("dnses"):
 		return &genericInformer{resource: resource.GroupResource(), informer: f.GnsTsm().V1().Dnses().Informer()}, nil
 	case gnstsmtanzuvmwarecomv1.SchemeGroupVersion.WithResource("gnses"):
 		return &genericInformer{resource: resource.GroupResource(), informer: f.GnsTsm().V1().Gnses().Informer()}, nil
+	case gnstsmtanzuvmwarecomv1.SchemeGroupVersion.WithResource("randomgnsdatas"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.GnsTsm().V1().RandomGnsDatas().Informer()}, nil
 
 		// Group=policypkg.tsm.tanzu.vmware.com, Version=v1
 	case policypkgtsmtanzuvmwarecomv1.SchemeGroupVersion.WithResource("acpconfigs"):
 		return &genericInformer{resource: resource.GroupResource(), informer: f.PolicypkgTsm().V1().ACPConfigs().Informer()}, nil
 	case policypkgtsmtanzuvmwarecomv1.SchemeGroupVersion.WithResource("accesscontrolpolicies"):
 		return &genericInformer{resource: resource.GroupResource(), informer: f.PolicypkgTsm().V1().AccessControlPolicies().Informer()}, nil
+	case policypkgtsmtanzuvmwarecomv1.SchemeGroupVersion.WithResource("additionalpolicydatas"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.PolicypkgTsm().V1().AdditionalPolicyDatas().Informer()}, nil
+	case policypkgtsmtanzuvmwarecomv1.SchemeGroupVersion.WithResource("randompolicydatas"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.PolicypkgTsm().V1().RandomPolicyDatas().Informer()}, nil
 	case policypkgtsmtanzuvmwarecomv1.SchemeGroupVersion.WithResource("vmpolicies"):
 		return &genericInformer{resource: resource.GroupResource(), informer: f.PolicypkgTsm().V1().VMpolicies().Informer()}, nil
 

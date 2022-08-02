@@ -28,6 +28,8 @@ type PolicypkgTsmV1Interface interface {
 	RESTClient() rest.Interface
 	ACPConfigsGetter
 	AccessControlPoliciesGetter
+	AdditionalPolicyDatasGetter
+	RandomPolicyDatasGetter
 	VMpoliciesGetter
 }
 
@@ -42,6 +44,14 @@ func (c *PolicypkgTsmV1Client) ACPConfigs() ACPConfigInterface {
 
 func (c *PolicypkgTsmV1Client) AccessControlPolicies() AccessControlPolicyInterface {
 	return newAccessControlPolicies(c)
+}
+
+func (c *PolicypkgTsmV1Client) AdditionalPolicyDatas() AdditionalPolicyDataInterface {
+	return newAdditionalPolicyDatas(c)
+}
+
+func (c *PolicypkgTsmV1Client) RandomPolicyDatas() RandomPolicyDataInterface {
+	return newRandomPolicyDatas(c)
 }
 
 func (c *PolicypkgTsmV1Client) VMpolicies() VMpolicyInterface {

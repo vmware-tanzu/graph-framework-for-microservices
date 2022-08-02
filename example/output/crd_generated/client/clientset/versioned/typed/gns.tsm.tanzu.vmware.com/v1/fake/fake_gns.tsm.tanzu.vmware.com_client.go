@@ -28,12 +28,20 @@ type FakeGnsTsmV1 struct {
 	*testing.Fake
 }
 
+func (c *FakeGnsTsmV1) AdditionalGnsDatas() v1.AdditionalGnsDataInterface {
+	return &FakeAdditionalGnsDatas{c}
+}
+
 func (c *FakeGnsTsmV1) Dnses() v1.DnsInterface {
 	return &FakeDnses{c}
 }
 
 func (c *FakeGnsTsmV1) Gnses() v1.GnsInterface {
 	return &FakeGnses{c}
+}
+
+func (c *FakeGnsTsmV1) RandomGnsDatas() v1.RandomGnsDataInterface {
+	return &FakeRandomGnsDatas{c}
 }
 
 // RESTClient returns a RESTClient that is used to communicate

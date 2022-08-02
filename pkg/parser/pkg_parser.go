@@ -6,6 +6,7 @@ import (
 	"go/token"
 	"io/fs"
 	"path/filepath"
+	"sort"
 	"strings"
 
 	log "github.com/sirupsen/logrus"
@@ -48,15 +49,7 @@ func ParseDSLPkg(startPath string) Packages {
 					FileSet:  fileset,
 					Pkg:      *v,
 				}
-
-				for _, file := range v.Files {
-					for _, decl := range file.Decls {
-						if genDecl, ok := decl.(*ast.GenDecl); ok {
-							pkg.GenDecls = append(pkg.GenDecls, *genDecl)
-						}
-					}
-				}
-
+				parseGenDecls(v, &pkg)
 				packages[pkgImport] = pkg
 			}
 		}
@@ -67,4 +60,20 @@ func ParseDSLPkg(startPath string) Packages {
 	}
 
 	return packages
+}
+
+func parseGenDecls(v *ast.Package, pkg *Package) {
+	sortedKeys := make([]string, 0, len(v.Files))
+	for k := range v.Files {
+		sortedKeys = append(sortedKeys, k)
+	}
+	sort.Strings(sortedKeys)
+	for _, k := range sortedKeys {
+		file := v.Files[k]
+		for _, decl := range file.Decls {
+			if genDecl, ok := decl.(*ast.GenDecl); ok {
+				pkg.GenDecls = append(pkg.GenDecls, *genDecl)
+			}
+		}
+	}
 }
