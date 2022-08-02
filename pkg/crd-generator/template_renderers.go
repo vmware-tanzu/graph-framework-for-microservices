@@ -247,6 +247,7 @@ type registerCRDVars struct {
 
 func RenderRegisterCRDTemplate(crdModulePath, baseGroupName string, pkg parser.Package) (*bytes.Buffer, error) {
 	var knownTypes string
+
 	for _, node := range pkg.GetNexusNodes() {
 		knownTypes += "\t\t&" + parser.GetTypeName(node) + "{},\n\t\t&" + parser.GetTypeName(node) + "List{},\n"
 	}

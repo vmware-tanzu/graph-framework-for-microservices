@@ -26,13 +26,19 @@ import (
 
 type GnsTsmV1Interface interface {
 	RESTClient() rest.Interface
+	AdditionalGnsDatasGetter
 	DnsesGetter
 	GnsesGetter
+	RandomGnsDatasGetter
 }
 
 // GnsTsmV1Client is used to interact with features provided by the gns.tsm.tanzu.vmware.com group.
 type GnsTsmV1Client struct {
 	restClient rest.Interface
+}
+
+func (c *GnsTsmV1Client) AdditionalGnsDatas() AdditionalGnsDataInterface {
+	return newAdditionalGnsDatas(c)
 }
 
 func (c *GnsTsmV1Client) Dnses() DnsInterface {
@@ -41,6 +47,10 @@ func (c *GnsTsmV1Client) Dnses() DnsInterface {
 
 func (c *GnsTsmV1Client) Gnses() GnsInterface {
 	return newGnses(c)
+}
+
+func (c *GnsTsmV1Client) RandomGnsDatas() RandomGnsDataInterface {
+	return newRandomGnsDatas(c)
 }
 
 // NewForConfig creates a new GnsTsmV1Client for the given config.

@@ -36,6 +36,47 @@ type NexusStatus struct {
 // +genclient:nonNamespaced
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 // +k8s:openapi-gen=true
+type RandomGnsData struct {
+	metav1.TypeMeta   `json:",inline" yaml:",inline"`
+	metav1.ObjectMeta `json:"metadata" yaml:"metadata"`
+	Spec              RandomGnsDataSpec        `json:"spec,omitempty" yaml:"spec,omitempty"`
+	Status            RandomGnsDataNexusStatus `json:"status,omitempty" yaml:"status,omitempty"`
+}
+
+// +k8s:openapi-gen=true
+type RandomGnsDataNexusStatus struct {
+	Status RandomStatus `json:"status,omitempty" yaml:"status,omitempty"`
+	Nexus  NexusStatus  `json:"nexus,omitempty" yaml:"nexus,omitempty"`
+}
+
+func (c *RandomGnsData) CRDName() string {
+	return "randomgnsdatas.gns.tsm.tanzu.vmware.com"
+}
+
+func (c *RandomGnsData) DisplayName() string {
+	if c.GetLabels() != nil {
+		return c.GetLabels()[common.DISPLAY_NAME_LABEL]
+	}
+	return ""
+}
+
+// +k8s:openapi-gen=true
+type RandomGnsDataSpec struct {
+	Description RandomDescription `json:"description" yaml:"description"`
+}
+
+// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
+type RandomGnsDataList struct {
+	metav1.TypeMeta `json:",inline" yaml:",inline"`
+	metav1.ListMeta `json:"metadata" yaml:"metadata"`
+	Items           []RandomGnsData `json:"items" yaml:"items"`
+}
+
+// +genclient
+// +genclient:noStatus
+// +genclient:nonNamespaced
+// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
+// +k8s:openapi-gen=true
 type Gns struct {
 	metav1.TypeMeta   `json:",inline" yaml:",inline"`
 	metav1.ObjectMeta `json:"metadata" yaml:"metadata"`
@@ -115,6 +156,61 @@ type DnsList struct {
 	Items           []Dns `json:"items" yaml:"items"`
 }
 
+// +genclient
+// +genclient:noStatus
+// +genclient:nonNamespaced
+// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
+// +k8s:openapi-gen=true
+type AdditionalGnsData struct {
+	metav1.TypeMeta   `json:",inline" yaml:",inline"`
+	metav1.ObjectMeta `json:"metadata" yaml:"metadata"`
+	Spec              AdditionalGnsDataSpec        `json:"spec,omitempty" yaml:"spec,omitempty"`
+	Status            AdditionalGnsDataNexusStatus `json:"status,omitempty" yaml:"status,omitempty"`
+}
+
+// +k8s:openapi-gen=true
+type AdditionalGnsDataNexusStatus struct {
+	Status AdditionalStatus `json:"status,omitempty" yaml:"status,omitempty"`
+	Nexus  NexusStatus      `json:"nexus,omitempty" yaml:"nexus,omitempty"`
+}
+
+func (c *AdditionalGnsData) CRDName() string {
+	return "additionalgnsdatas.gns.tsm.tanzu.vmware.com"
+}
+
+func (c *AdditionalGnsData) DisplayName() string {
+	if c.GetLabels() != nil {
+		return c.GetLabels()[common.DISPLAY_NAME_LABEL]
+	}
+	return ""
+}
+
+// +k8s:openapi-gen=true
+type AdditionalGnsDataSpec struct {
+	Description AdditionalDescription `json:"description" yaml:"description"`
+}
+
+// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
+type AdditionalGnsDataList struct {
+	metav1.TypeMeta `json:",inline" yaml:",inline"`
+	metav1.ListMeta `json:"metadata" yaml:"metadata"`
+	Items           []AdditionalGnsData `json:"items" yaml:"items"`
+}
+
+// +k8s:openapi-gen=true
+type RandomDescription struct {
+	DiscriptionA string
+	DiscriptionB string
+	DiscriptionC string
+	DiscriptionD string
+}
+
+// +k8s:openapi-gen=true
+type RandomStatus struct {
+	StatusX int
+	StatusY int
+}
+
 // +k8s:openapi-gen=true
 type ReplicationSource struct {
 	Kind SourceKind
@@ -133,12 +229,38 @@ type GnsState struct {
 	Temperature int
 }
 
+// +k8s:openapi-gen=true
+type AdditionalDescription struct {
+	DiscriptionA string
+	DiscriptionB string
+	DiscriptionC string
+	DiscriptionD string
+}
+
+// +k8s:openapi-gen=true
+type AdditionalStatus struct {
+	StatusX int
+	StatusY int
+}
+
+type RandomConst1 string
+type RandomConst2 string
+type RandomConst3 string
 type MyConst string
 type SourceKind string
 type MyStr string
+type TempConst1 string
+type TempConst2 string
+type TempConst3 string
 
 const (
-	Object SourceKind = "Object"
-	Type   SourceKind = "Type"
-	XYZ    MyConst    = "xyz"
+	MyConst3 RandomConst3 = "Const3"
+	MyConst2 RandomConst2 = "Const2"
+	MyConst1 RandomConst1 = "Const1"
+	Object   SourceKind   = "Object"
+	Type     SourceKind   = "Type"
+	XYZ      MyConst      = "xyz"
+	Const3   TempConst3   = "Const3"
+	Const2   TempConst2   = "Const2"
+	Const1   TempConst1   = "Const1"
 )

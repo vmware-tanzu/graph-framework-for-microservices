@@ -22,4 +22,8 @@ type ACPConfigExpansion interface{}
 
 type AccessControlPolicyExpansion interface{}
 
+type AdditionalPolicyDataExpansion interface{}
+
+type RandomPolicyDataExpansion interface{}
+
 type VMpolicyExpansion interface{}

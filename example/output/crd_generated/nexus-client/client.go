@@ -1132,6 +1132,298 @@ func (c *configConfigTsmV1Chainer) DeleteVMPPolicies(ctx context.Context, name s
 	return c.client.Policypkg().DeleteVMpolicyByName(ctx, hashedName)
 }
 
+// GetRandomGnsDataByName returns object stored in the database under the hashedName which is a hash of display
+// name and parents names. Use it when you know hashed name of object.
+func (group *GnsTsmV1) GetRandomGnsDataByName(ctx context.Context, hashedName string) (*GnsRandomGnsData, error) {
+	result, err := group.client.baseClient.
+		GnsTsmV1().
+		RandomGnsDatas().Get(ctx, hashedName, metav1.GetOptions{})
+	if err != nil {
+		return nil, err
+	}
+
+	return &GnsRandomGnsData{
+		client:        group.client,
+		RandomGnsData: result,
+	}, nil
+}
+
+// DeleteRandomGnsDataByName deletes object stored in the database under the hashedName which is a hash of
+// display name and parents names. Use it when you know hashed name of object.
+func (group *GnsTsmV1) DeleteRandomGnsDataByName(ctx context.Context, hashedName string) (err error) {
+
+	err = group.client.baseClient.
+		GnsTsmV1().
+		RandomGnsDatas().Delete(ctx, hashedName, metav1.DeleteOptions{})
+	if err != nil {
+		return err
+	}
+
+	return
+}
+
+// CreateRandomGnsDataByName creates object in the database without hashing the name.
+// Use it directly ONLY when objToCreate.Name is hashed name of the object.
+func (group *GnsTsmV1) CreateRandomGnsDataByName(ctx context.Context,
+	objToCreate *basegnstsmtanzuvmwarecomv1.RandomGnsData) (*GnsRandomGnsData, error) {
+	if objToCreate.GetLabels() == nil {
+		objToCreate.Labels = make(map[string]string)
+	}
+	if _, ok := objToCreate.Labels[common.DISPLAY_NAME_LABEL]; !ok {
+		objToCreate.Labels[common.DISPLAY_NAME_LABEL] = objToCreate.GetName()
+	}
+
+	result, err := group.client.baseClient.
+		GnsTsmV1().
+		RandomGnsDatas().Create(ctx, objToCreate, metav1.CreateOptions{})
+	if err != nil {
+		return nil, err
+	}
+
+	return &GnsRandomGnsData{
+		client:        group.client,
+		RandomGnsData: result,
+	}, nil
+}
+
+// SetRandomGnsDataStatusByName sets user defined status
+func (group *GnsTsmV1) SetRandomGnsDataStatusByName(ctx context.Context,
+	objToUpdate *basegnstsmtanzuvmwarecomv1.RandomGnsData, status *basegnstsmtanzuvmwarecomv1.RandomStatus) (*GnsRandomGnsData, error) {
+
+	// Make sure status field is present first
+	m := []byte("{\"status\":{}}")
+	result, err := group.client.baseClient.
+		GnsTsmV1().
+		RandomGnsDatas().Patch(ctx, objToUpdate.GetName(), types.MergePatchType, m, metav1.PatchOptions{}, "status")
+	if err != nil {
+		return nil, err
+	}
+
+	patch := Patch{
+		PatchOp{
+			Op:    "replace",
+			Path:  "/status/status",
+			Value: status,
+		},
+	}
+	marshaled, err := patch.Marshal()
+	if err != nil {
+		return nil, err
+	}
+	result, err = group.client.baseClient.
+		GnsTsmV1().
+		RandomGnsDatas().Patch(ctx, objToUpdate.GetName(), types.JSONPatchType, marshaled, metav1.PatchOptions{}, "status")
+	if err != nil {
+		return nil, err
+	}
+	return &GnsRandomGnsData{
+		client:        group.client,
+		RandomGnsData: result,
+	}, nil
+}
+
+// UpdateRandomGnsDataByName updates object stored in the database under the hashedName which is a hash of
+// display name and parents names.
+func (group *GnsTsmV1) UpdateRandomGnsDataByName(ctx context.Context,
+	objToUpdate *basegnstsmtanzuvmwarecomv1.RandomGnsData) (*GnsRandomGnsData, error) {
+
+	// ResourceVersion must be set for update
+	if objToUpdate.ResourceVersion == "" {
+		current, err := group.client.baseClient.
+			GnsTsmV1().
+			RandomGnsDatas().Get(ctx, objToUpdate.GetName(), metav1.GetOptions{})
+		if err != nil {
+			return nil, err
+		}
+		objToUpdate.ResourceVersion = current.ResourceVersion
+	}
+
+	var patch Patch
+	patchOpMeta := PatchOp{
+		Op:    "replace",
+		Path:  "/metadata",
+		Value: objToUpdate.ObjectMeta,
+	}
+	patch = append(patch, patchOpMeta)
+
+	patchValueDescription :=
+		objToUpdate.Spec.Description
+	patchOpDescription := PatchOp{
+		Op:    "replace",
+		Path:  "/spec/description",
+		Value: patchValueDescription,
+	}
+	patch = append(patch, patchOpDescription)
+
+	marshaled, err := patch.Marshal()
+	if err != nil {
+		return nil, err
+	}
+	result, err := group.client.baseClient.
+		GnsTsmV1().
+		RandomGnsDatas().Patch(ctx, objToUpdate.GetName(), types.JSONPatchType, marshaled, metav1.PatchOptions{}, "")
+	if err != nil {
+		return nil, err
+	}
+
+	return &GnsRandomGnsData{
+		client:        group.client,
+		RandomGnsData: result,
+	}, nil
+}
+
+// ListRandomGnsDatas returns slice of all existing objects of this type. Selectors can be provided in opts parameter.
+func (group *GnsTsmV1) ListRandomGnsDatas(ctx context.Context,
+	opts metav1.ListOptions) (result []*GnsRandomGnsData, err error) {
+	list, err := group.client.baseClient.GnsTsmV1().
+		RandomGnsDatas().List(ctx, opts)
+	if err != nil {
+		return nil, err
+	}
+	result = make([]*GnsRandomGnsData, len(list.Items))
+	for k, v := range list.Items {
+		item := v
+		result[k] = &GnsRandomGnsData{
+			client:        group.client,
+			RandomGnsData: &item,
+		}
+	}
+	return
+}
+
+type GnsRandomGnsData struct {
+	client *Clientset
+	*basegnstsmtanzuvmwarecomv1.RandomGnsData
+}
+
+// Delete removes obj and all it's children from the database.
+func (obj *GnsRandomGnsData) Delete(ctx context.Context) error {
+	err := obj.client.Gns().DeleteRandomGnsDataByName(ctx, obj.GetName())
+	if err != nil {
+		return err
+	}
+	obj.RandomGnsData = nil
+	return nil
+}
+
+// Update updates spec of object in database. Children and Link can not be updated using this function.
+func (obj *GnsRandomGnsData) Update(ctx context.Context) error {
+	result, err := obj.client.Gns().UpdateRandomGnsDataByName(ctx, obj.RandomGnsData)
+	if err != nil {
+		return err
+	}
+	obj.RandomGnsData = result.RandomGnsData
+	return nil
+}
+
+// SetStatus sets user defined status
+func (obj *GnsRandomGnsData) SetStatus(ctx context.Context, status *basegnstsmtanzuvmwarecomv1.RandomStatus) error {
+	result, err := obj.client.Gns().SetRandomGnsDataStatusByName(ctx, obj.RandomGnsData, status)
+	if err != nil {
+		return err
+	}
+	obj.RandomGnsData = result.RandomGnsData
+	return nil
+}
+
+// GetStatus to get user defined status
+func (obj *GnsRandomGnsData) GetStatus(ctx context.Context) (*basegnstsmtanzuvmwarecomv1.RandomStatus, error) {
+	getObj, err := obj.client.Gns().GetRandomGnsDataByName(ctx, obj.GetName())
+	if err != nil {
+		return nil, err
+	}
+	return &getObj.Status.Status, nil
+}
+
+// ClearStatus to clear user defined status
+func (obj *GnsRandomGnsData) ClearStatus(ctx context.Context) error {
+	result, err := obj.client.Gns().SetRandomGnsDataStatusByName(ctx, obj.RandomGnsData, &basegnstsmtanzuvmwarecomv1.RandomStatus{})
+	if err != nil {
+		return err
+	}
+	obj.RandomGnsData = result.RandomGnsData
+	return nil
+}
+
+// GetGnsRandomGnsData calculates the hashed name based on parents and displayName and
+// returns given object
+func (c *Clientset) GetGnsRandomGnsData(ctx context.Context, displayName string) (result *GnsRandomGnsData, err error) {
+	hashedName := helper.GetHashedName("randomgnsdatas.gns.tsm.tanzu.vmware.com", nil, displayName)
+	return c.Gns().GetRandomGnsDataByName(ctx, hashedName)
+}
+
+func (c *Clientset) GnsRandomGnsData(displayName string) *randomgnsdataGnsTsmV1Chainer {
+	parentLabels := make(map[string]string)
+	parentLabels["randomgnsdatas.gns.tsm.tanzu.vmware.com"] = displayName
+	return &randomgnsdataGnsTsmV1Chainer{
+		client:       c,
+		name:         displayName,
+		parentLabels: parentLabels,
+	}
+}
+
+// AddGnsRandomGnsData calculates hashed name of the object based on objToCreate.Name
+// and parents names and creates it. objToCreate.Name is changed to the hashed name. Original name is preserved in
+// nexus/display_name label and can be obtained using DisplayName() method.
+func (c *Clientset) AddGnsRandomGnsData(ctx context.Context,
+	objToCreate *basegnstsmtanzuvmwarecomv1.RandomGnsData) (result *GnsRandomGnsData, err error) {
+	if objToCreate.Labels == nil {
+		objToCreate.Labels = map[string]string{}
+	}
+	if objToCreate.Labels[common.IS_NAME_HASHED_LABEL] != "true" {
+		objToCreate.Labels[common.DISPLAY_NAME_LABEL] = objToCreate.GetName()
+		objToCreate.Labels[common.IS_NAME_HASHED_LABEL] = "true"
+		hashedName := helper.GetHashedName(objToCreate.CRDName(), nil, objToCreate.GetName())
+		objToCreate.Name = hashedName
+	}
+	return c.Gns().CreateRandomGnsDataByName(ctx, objToCreate)
+}
+
+// DeleteGnsRandomGnsData calculates hashedName of object based on displayName and
+// parents and deletes given object
+func (c *Clientset) DeleteGnsRandomGnsData(ctx context.Context, displayName string) (err error) {
+	hashedName := helper.GetHashedName("randomgnsdatas.gns.tsm.tanzu.vmware.com", nil, displayName)
+	return c.Gns().DeleteRandomGnsDataByName(ctx, hashedName)
+}
+
+type randomgnsdataGnsTsmV1Chainer struct {
+	client       *Clientset
+	name         string
+	parentLabels map[string]string
+}
+
+// ClearStatus to clear user defined status
+func (c *randomgnsdataGnsTsmV1Chainer) ClearStatus(ctx context.Context) (err error) {
+	hashedName := helper.GetHashedName("randomgnsdatas.gns.tsm.tanzu.vmware.com", c.parentLabels, c.name)
+	obj, err := c.client.Gns().GetRandomGnsDataByName(ctx, hashedName)
+	if err != nil {
+		return err
+	}
+	_, err = c.client.Gns().SetRandomGnsDataStatusByName(ctx, obj.RandomGnsData, nil)
+	return err
+}
+
+// GetStatus to get user defined status
+func (c *randomgnsdataGnsTsmV1Chainer) GetStatus(ctx context.Context) (result *basegnstsmtanzuvmwarecomv1.RandomStatus, err error) {
+	hashedName := helper.GetHashedName("randomgnsdatas.gns.tsm.tanzu.vmware.com", c.parentLabels, c.name)
+	obj, err := c.client.Gns().GetRandomGnsDataByName(ctx, hashedName)
+	if err != nil {
+		return nil, err
+	}
+	return &obj.Status.Status, nil
+}
+
+// SetStatus sets user defined status
+func (c *randomgnsdataGnsTsmV1Chainer) SetStatus(ctx context.Context, status *basegnstsmtanzuvmwarecomv1.RandomStatus) (err error) {
+	hashedName := helper.GetHashedName("randomgnsdatas.gns.tsm.tanzu.vmware.com", c.parentLabels, c.name)
+	obj, err := c.client.Gns().GetRandomGnsDataByName(ctx, hashedName)
+	if err != nil {
+		return err
+	}
+	_, err = c.client.Gns().SetRandomGnsDataStatusByName(ctx, obj.RandomGnsData, status)
+	return err
+}
+
 // GetGnsByName returns object stored in the database under the hashedName which is a hash of display
 // name and parents names. Use it when you know hashed name of object.
 func (group *GnsTsmV1) GetGnsByName(ctx context.Context, hashedName string) (*GnsGns, error) {
@@ -2007,6 +2299,298 @@ type dnsGnsTsmV1Chainer struct {
 	parentLabels map[string]string
 }
 
+// GetAdditionalGnsDataByName returns object stored in the database under the hashedName which is a hash of display
+// name and parents names. Use it when you know hashed name of object.
+func (group *GnsTsmV1) GetAdditionalGnsDataByName(ctx context.Context, hashedName string) (*GnsAdditionalGnsData, error) {
+	result, err := group.client.baseClient.
+		GnsTsmV1().
+		AdditionalGnsDatas().Get(ctx, hashedName, metav1.GetOptions{})
+	if err != nil {
+		return nil, err
+	}
+
+	return &GnsAdditionalGnsData{
+		client:            group.client,
+		AdditionalGnsData: result,
+	}, nil
+}
+
+// DeleteAdditionalGnsDataByName deletes object stored in the database under the hashedName which is a hash of
+// display name and parents names. Use it when you know hashed name of object.
+func (group *GnsTsmV1) DeleteAdditionalGnsDataByName(ctx context.Context, hashedName string) (err error) {
+
+	err = group.client.baseClient.
+		GnsTsmV1().
+		AdditionalGnsDatas().Delete(ctx, hashedName, metav1.DeleteOptions{})
+	if err != nil {
+		return err
+	}
+
+	return
+}
+
+// CreateAdditionalGnsDataByName creates object in the database without hashing the name.
+// Use it directly ONLY when objToCreate.Name is hashed name of the object.
+func (group *GnsTsmV1) CreateAdditionalGnsDataByName(ctx context.Context,
+	objToCreate *basegnstsmtanzuvmwarecomv1.AdditionalGnsData) (*GnsAdditionalGnsData, error) {
+	if objToCreate.GetLabels() == nil {
+		objToCreate.Labels = make(map[string]string)
+	}
+	if _, ok := objToCreate.Labels[common.DISPLAY_NAME_LABEL]; !ok {
+		objToCreate.Labels[common.DISPLAY_NAME_LABEL] = objToCreate.GetName()
+	}
+
+	result, err := group.client.baseClient.
+		GnsTsmV1().
+		AdditionalGnsDatas().Create(ctx, objToCreate, metav1.CreateOptions{})
+	if err != nil {
+		return nil, err
+	}
+
+	return &GnsAdditionalGnsData{
+		client:            group.client,
+		AdditionalGnsData: result,
+	}, nil
+}
+
+// SetAdditionalGnsDataStatusByName sets user defined status
+func (group *GnsTsmV1) SetAdditionalGnsDataStatusByName(ctx context.Context,
+	objToUpdate *basegnstsmtanzuvmwarecomv1.AdditionalGnsData, status *basegnstsmtanzuvmwarecomv1.AdditionalStatus) (*GnsAdditionalGnsData, error) {
+
+	// Make sure status field is present first
+	m := []byte("{\"status\":{}}")
+	result, err := group.client.baseClient.
+		GnsTsmV1().
+		AdditionalGnsDatas().Patch(ctx, objToUpdate.GetName(), types.MergePatchType, m, metav1.PatchOptions{}, "status")
+	if err != nil {
+		return nil, err
+	}
+
+	patch := Patch{
+		PatchOp{
+			Op:    "replace",
+			Path:  "/status/status",
+			Value: status,
+		},
+	}
+	marshaled, err := patch.Marshal()
+	if err != nil {
+		return nil, err
+	}
+	result, err = group.client.baseClient.
+		GnsTsmV1().
+		AdditionalGnsDatas().Patch(ctx, objToUpdate.GetName(), types.JSONPatchType, marshaled, metav1.PatchOptions{}, "status")
+	if err != nil {
+		return nil, err
+	}
+	return &GnsAdditionalGnsData{
+		client:            group.client,
+		AdditionalGnsData: result,
+	}, nil
+}
+
+// UpdateAdditionalGnsDataByName updates object stored in the database under the hashedName which is a hash of
+// display name and parents names.
+func (group *GnsTsmV1) UpdateAdditionalGnsDataByName(ctx context.Context,
+	objToUpdate *basegnstsmtanzuvmwarecomv1.AdditionalGnsData) (*GnsAdditionalGnsData, error) {
+
+	// ResourceVersion must be set for update
+	if objToUpdate.ResourceVersion == "" {
+		current, err := group.client.baseClient.
+			GnsTsmV1().
+			AdditionalGnsDatas().Get(ctx, objToUpdate.GetName(), metav1.GetOptions{})
+		if err != nil {
+			return nil, err
+		}
+		objToUpdate.ResourceVersion = current.ResourceVersion
+	}
+
+	var patch Patch
+	patchOpMeta := PatchOp{
+		Op:    "replace",
+		Path:  "/metadata",
+		Value: objToUpdate.ObjectMeta,
+	}
+	patch = append(patch, patchOpMeta)
+
+	patchValueDescription :=
+		objToUpdate.Spec.Description
+	patchOpDescription := PatchOp{
+		Op:    "replace",
+		Path:  "/spec/description",
+		Value: patchValueDescription,
+	}
+	patch = append(patch, patchOpDescription)
+
+	marshaled, err := patch.Marshal()
+	if err != nil {
+		return nil, err
+	}
+	result, err := group.client.baseClient.
+		GnsTsmV1().
+		AdditionalGnsDatas().Patch(ctx, objToUpdate.GetName(), types.JSONPatchType, marshaled, metav1.PatchOptions{}, "")
+	if err != nil {
+		return nil, err
+	}
+
+	return &GnsAdditionalGnsData{
+		client:            group.client,
+		AdditionalGnsData: result,
+	}, nil
+}
+
+// ListAdditionalGnsDatas returns slice of all existing objects of this type. Selectors can be provided in opts parameter.
+func (group *GnsTsmV1) ListAdditionalGnsDatas(ctx context.Context,
+	opts metav1.ListOptions) (result []*GnsAdditionalGnsData, err error) {
+	list, err := group.client.baseClient.GnsTsmV1().
+		AdditionalGnsDatas().List(ctx, opts)
+	if err != nil {
+		return nil, err
+	}
+	result = make([]*GnsAdditionalGnsData, len(list.Items))
+	for k, v := range list.Items {
+		item := v
+		result[k] = &GnsAdditionalGnsData{
+			client:            group.client,
+			AdditionalGnsData: &item,
+		}
+	}
+	return
+}
+
+type GnsAdditionalGnsData struct {
+	client *Clientset
+	*basegnstsmtanzuvmwarecomv1.AdditionalGnsData
+}
+
+// Delete removes obj and all it's children from the database.
+func (obj *GnsAdditionalGnsData) Delete(ctx context.Context) error {
+	err := obj.client.Gns().DeleteAdditionalGnsDataByName(ctx, obj.GetName())
+	if err != nil {
+		return err
+	}
+	obj.AdditionalGnsData = nil
+	return nil
+}
+
+// Update updates spec of object in database. Children and Link can not be updated using this function.
+func (obj *GnsAdditionalGnsData) Update(ctx context.Context) error {
+	result, err := obj.client.Gns().UpdateAdditionalGnsDataByName(ctx, obj.AdditionalGnsData)
+	if err != nil {
+		return err
+	}
+	obj.AdditionalGnsData = result.AdditionalGnsData
+	return nil
+}
+
+// SetStatus sets user defined status
+func (obj *GnsAdditionalGnsData) SetStatus(ctx context.Context, status *basegnstsmtanzuvmwarecomv1.AdditionalStatus) error {
+	result, err := obj.client.Gns().SetAdditionalGnsDataStatusByName(ctx, obj.AdditionalGnsData, status)
+	if err != nil {
+		return err
+	}
+	obj.AdditionalGnsData = result.AdditionalGnsData
+	return nil
+}
+
+// GetStatus to get user defined status
+func (obj *GnsAdditionalGnsData) GetStatus(ctx context.Context) (*basegnstsmtanzuvmwarecomv1.AdditionalStatus, error) {
+	getObj, err := obj.client.Gns().GetAdditionalGnsDataByName(ctx, obj.GetName())
+	if err != nil {
+		return nil, err
+	}
+	return &getObj.Status.Status, nil
+}
+
+// ClearStatus to clear user defined status
+func (obj *GnsAdditionalGnsData) ClearStatus(ctx context.Context) error {
+	result, err := obj.client.Gns().SetAdditionalGnsDataStatusByName(ctx, obj.AdditionalGnsData, &basegnstsmtanzuvmwarecomv1.AdditionalStatus{})
+	if err != nil {
+		return err
+	}
+	obj.AdditionalGnsData = result.AdditionalGnsData
+	return nil
+}
+
+// GetGnsAdditionalGnsData calculates the hashed name based on parents and displayName and
+// returns given object
+func (c *Clientset) GetGnsAdditionalGnsData(ctx context.Context, displayName string) (result *GnsAdditionalGnsData, err error) {
+	hashedName := helper.GetHashedName("additionalgnsdatas.gns.tsm.tanzu.vmware.com", nil, displayName)
+	return c.Gns().GetAdditionalGnsDataByName(ctx, hashedName)
+}
+
+func (c *Clientset) GnsAdditionalGnsData(displayName string) *additionalgnsdataGnsTsmV1Chainer {
+	parentLabels := make(map[string]string)
+	parentLabels["additionalgnsdatas.gns.tsm.tanzu.vmware.com"] = displayName
+	return &additionalgnsdataGnsTsmV1Chainer{
+		client:       c,
+		name:         displayName,
+		parentLabels: parentLabels,
+	}
+}
+
+// AddGnsAdditionalGnsData calculates hashed name of the object based on objToCreate.Name
+// and parents names and creates it. objToCreate.Name is changed to the hashed name. Original name is preserved in
+// nexus/display_name label and can be obtained using DisplayName() method.
+func (c *Clientset) AddGnsAdditionalGnsData(ctx context.Context,
+	objToCreate *basegnstsmtanzuvmwarecomv1.AdditionalGnsData) (result *GnsAdditionalGnsData, err error) {
+	if objToCreate.Labels == nil {
+		objToCreate.Labels = map[string]string{}
+	}
+	if objToCreate.Labels[common.IS_NAME_HASHED_LABEL] != "true" {
+		objToCreate.Labels[common.DISPLAY_NAME_LABEL] = objToCreate.GetName()
+		objToCreate.Labels[common.IS_NAME_HASHED_LABEL] = "true"
+		hashedName := helper.GetHashedName(objToCreate.CRDName(), nil, objToCreate.GetName())
+		objToCreate.Name = hashedName
+	}
+	return c.Gns().CreateAdditionalGnsDataByName(ctx, objToCreate)
+}
+
+// DeleteGnsAdditionalGnsData calculates hashedName of object based on displayName and
+// parents and deletes given object
+func (c *Clientset) DeleteGnsAdditionalGnsData(ctx context.Context, displayName string) (err error) {
+	hashedName := helper.GetHashedName("additionalgnsdatas.gns.tsm.tanzu.vmware.com", nil, displayName)
+	return c.Gns().DeleteAdditionalGnsDataByName(ctx, hashedName)
+}
+
+type additionalgnsdataGnsTsmV1Chainer struct {
+	client       *Clientset
+	name         string
+	parentLabels map[string]string
+}
+
+// ClearStatus to clear user defined status
+func (c *additionalgnsdataGnsTsmV1Chainer) ClearStatus(ctx context.Context) (err error) {
+	hashedName := helper.GetHashedName("additionalgnsdatas.gns.tsm.tanzu.vmware.com", c.parentLabels, c.name)
+	obj, err := c.client.Gns().GetAdditionalGnsDataByName(ctx, hashedName)
+	if err != nil {
+		return err
+	}
+	_, err = c.client.Gns().SetAdditionalGnsDataStatusByName(ctx, obj.AdditionalGnsData, nil)
+	return err
+}
+
+// GetStatus to get user defined status
+func (c *additionalgnsdataGnsTsmV1Chainer) GetStatus(ctx context.Context) (result *basegnstsmtanzuvmwarecomv1.AdditionalStatus, err error) {
+	hashedName := helper.GetHashedName("additionalgnsdatas.gns.tsm.tanzu.vmware.com", c.parentLabels, c.name)
+	obj, err := c.client.Gns().GetAdditionalGnsDataByName(ctx, hashedName)
+	if err != nil {
+		return nil, err
+	}
+	return &obj.Status.Status, nil
+}
+
+// SetStatus sets user defined status
+func (c *additionalgnsdataGnsTsmV1Chainer) SetStatus(ctx context.Context, status *basegnstsmtanzuvmwarecomv1.AdditionalStatus) (err error) {
+	hashedName := helper.GetHashedName("additionalgnsdatas.gns.tsm.tanzu.vmware.com", c.parentLabels, c.name)
+	obj, err := c.client.Gns().GetAdditionalGnsDataByName(ctx, hashedName)
+	if err != nil {
+		return err
+	}
+	_, err = c.client.Gns().SetAdditionalGnsDataStatusByName(ctx, obj.AdditionalGnsData, status)
+	return err
+}
+
 // GetSvcGroupByName returns object stored in the database under the hashedName which is a hash of display
 // name and parents names. Use it when you know hashed name of object.
 func (group *ServicegroupTsmV1) GetSvcGroupByName(ctx context.Context, hashedName string) (*ServicegroupSvcGroup, error) {
@@ -2235,6 +2819,298 @@ type svcgroupServicegroupTsmV1Chainer struct {
 	client       *Clientset
 	name         string
 	parentLabels map[string]string
+}
+
+// GetAdditionalPolicyDataByName returns object stored in the database under the hashedName which is a hash of display
+// name and parents names. Use it when you know hashed name of object.
+func (group *PolicypkgTsmV1) GetAdditionalPolicyDataByName(ctx context.Context, hashedName string) (*PolicypkgAdditionalPolicyData, error) {
+	result, err := group.client.baseClient.
+		PolicypkgTsmV1().
+		AdditionalPolicyDatas().Get(ctx, hashedName, metav1.GetOptions{})
+	if err != nil {
+		return nil, err
+	}
+
+	return &PolicypkgAdditionalPolicyData{
+		client:               group.client,
+		AdditionalPolicyData: result,
+	}, nil
+}
+
+// DeleteAdditionalPolicyDataByName deletes object stored in the database under the hashedName which is a hash of
+// display name and parents names. Use it when you know hashed name of object.
+func (group *PolicypkgTsmV1) DeleteAdditionalPolicyDataByName(ctx context.Context, hashedName string) (err error) {
+
+	err = group.client.baseClient.
+		PolicypkgTsmV1().
+		AdditionalPolicyDatas().Delete(ctx, hashedName, metav1.DeleteOptions{})
+	if err != nil {
+		return err
+	}
+
+	return
+}
+
+// CreateAdditionalPolicyDataByName creates object in the database without hashing the name.
+// Use it directly ONLY when objToCreate.Name is hashed name of the object.
+func (group *PolicypkgTsmV1) CreateAdditionalPolicyDataByName(ctx context.Context,
+	objToCreate *basepolicypkgtsmtanzuvmwarecomv1.AdditionalPolicyData) (*PolicypkgAdditionalPolicyData, error) {
+	if objToCreate.GetLabels() == nil {
+		objToCreate.Labels = make(map[string]string)
+	}
+	if _, ok := objToCreate.Labels[common.DISPLAY_NAME_LABEL]; !ok {
+		objToCreate.Labels[common.DISPLAY_NAME_LABEL] = objToCreate.GetName()
+	}
+
+	result, err := group.client.baseClient.
+		PolicypkgTsmV1().
+		AdditionalPolicyDatas().Create(ctx, objToCreate, metav1.CreateOptions{})
+	if err != nil {
+		return nil, err
+	}
+
+	return &PolicypkgAdditionalPolicyData{
+		client:               group.client,
+		AdditionalPolicyData: result,
+	}, nil
+}
+
+// SetAdditionalPolicyDataStatusByName sets user defined status
+func (group *PolicypkgTsmV1) SetAdditionalPolicyDataStatusByName(ctx context.Context,
+	objToUpdate *basepolicypkgtsmtanzuvmwarecomv1.AdditionalPolicyData, status *basepolicypkgtsmtanzuvmwarecomv1.AdditionalStatus) (*PolicypkgAdditionalPolicyData, error) {
+
+	// Make sure status field is present first
+	m := []byte("{\"status\":{}}")
+	result, err := group.client.baseClient.
+		PolicypkgTsmV1().
+		AdditionalPolicyDatas().Patch(ctx, objToUpdate.GetName(), types.MergePatchType, m, metav1.PatchOptions{}, "status")
+	if err != nil {
+		return nil, err
+	}
+
+	patch := Patch{
+		PatchOp{
+			Op:    "replace",
+			Path:  "/status/status",
+			Value: status,
+		},
+	}
+	marshaled, err := patch.Marshal()
+	if err != nil {
+		return nil, err
+	}
+	result, err = group.client.baseClient.
+		PolicypkgTsmV1().
+		AdditionalPolicyDatas().Patch(ctx, objToUpdate.GetName(), types.JSONPatchType, marshaled, metav1.PatchOptions{}, "status")
+	if err != nil {
+		return nil, err
+	}
+	return &PolicypkgAdditionalPolicyData{
+		client:               group.client,
+		AdditionalPolicyData: result,
+	}, nil
+}
+
+// UpdateAdditionalPolicyDataByName updates object stored in the database under the hashedName which is a hash of
+// display name and parents names.
+func (group *PolicypkgTsmV1) UpdateAdditionalPolicyDataByName(ctx context.Context,
+	objToUpdate *basepolicypkgtsmtanzuvmwarecomv1.AdditionalPolicyData) (*PolicypkgAdditionalPolicyData, error) {
+
+	// ResourceVersion must be set for update
+	if objToUpdate.ResourceVersion == "" {
+		current, err := group.client.baseClient.
+			PolicypkgTsmV1().
+			AdditionalPolicyDatas().Get(ctx, objToUpdate.GetName(), metav1.GetOptions{})
+		if err != nil {
+			return nil, err
+		}
+		objToUpdate.ResourceVersion = current.ResourceVersion
+	}
+
+	var patch Patch
+	patchOpMeta := PatchOp{
+		Op:    "replace",
+		Path:  "/metadata",
+		Value: objToUpdate.ObjectMeta,
+	}
+	patch = append(patch, patchOpMeta)
+
+	patchValueDescription :=
+		objToUpdate.Spec.Description
+	patchOpDescription := PatchOp{
+		Op:    "replace",
+		Path:  "/spec/description",
+		Value: patchValueDescription,
+	}
+	patch = append(patch, patchOpDescription)
+
+	marshaled, err := patch.Marshal()
+	if err != nil {
+		return nil, err
+	}
+	result, err := group.client.baseClient.
+		PolicypkgTsmV1().
+		AdditionalPolicyDatas().Patch(ctx, objToUpdate.GetName(), types.JSONPatchType, marshaled, metav1.PatchOptions{}, "")
+	if err != nil {
+		return nil, err
+	}
+
+	return &PolicypkgAdditionalPolicyData{
+		client:               group.client,
+		AdditionalPolicyData: result,
+	}, nil
+}
+
+// ListAdditionalPolicyDatas returns slice of all existing objects of this type. Selectors can be provided in opts parameter.
+func (group *PolicypkgTsmV1) ListAdditionalPolicyDatas(ctx context.Context,
+	opts metav1.ListOptions) (result []*PolicypkgAdditionalPolicyData, err error) {
+	list, err := group.client.baseClient.PolicypkgTsmV1().
+		AdditionalPolicyDatas().List(ctx, opts)
+	if err != nil {
+		return nil, err
+	}
+	result = make([]*PolicypkgAdditionalPolicyData, len(list.Items))
+	for k, v := range list.Items {
+		item := v
+		result[k] = &PolicypkgAdditionalPolicyData{
+			client:               group.client,
+			AdditionalPolicyData: &item,
+		}
+	}
+	return
+}
+
+type PolicypkgAdditionalPolicyData struct {
+	client *Clientset
+	*basepolicypkgtsmtanzuvmwarecomv1.AdditionalPolicyData
+}
+
+// Delete removes obj and all it's children from the database.
+func (obj *PolicypkgAdditionalPolicyData) Delete(ctx context.Context) error {
+	err := obj.client.Policypkg().DeleteAdditionalPolicyDataByName(ctx, obj.GetName())
+	if err != nil {
+		return err
+	}
+	obj.AdditionalPolicyData = nil
+	return nil
+}
+
+// Update updates spec of object in database. Children and Link can not be updated using this function.
+func (obj *PolicypkgAdditionalPolicyData) Update(ctx context.Context) error {
+	result, err := obj.client.Policypkg().UpdateAdditionalPolicyDataByName(ctx, obj.AdditionalPolicyData)
+	if err != nil {
+		return err
+	}
+	obj.AdditionalPolicyData = result.AdditionalPolicyData
+	return nil
+}
+
+// SetStatus sets user defined status
+func (obj *PolicypkgAdditionalPolicyData) SetStatus(ctx context.Context, status *basepolicypkgtsmtanzuvmwarecomv1.AdditionalStatus) error {
+	result, err := obj.client.Policypkg().SetAdditionalPolicyDataStatusByName(ctx, obj.AdditionalPolicyData, status)
+	if err != nil {
+		return err
+	}
+	obj.AdditionalPolicyData = result.AdditionalPolicyData
+	return nil
+}
+
+// GetStatus to get user defined status
+func (obj *PolicypkgAdditionalPolicyData) GetStatus(ctx context.Context) (*basepolicypkgtsmtanzuvmwarecomv1.AdditionalStatus, error) {
+	getObj, err := obj.client.Policypkg().GetAdditionalPolicyDataByName(ctx, obj.GetName())
+	if err != nil {
+		return nil, err
+	}
+	return &getObj.Status.Status, nil
+}
+
+// ClearStatus to clear user defined status
+func (obj *PolicypkgAdditionalPolicyData) ClearStatus(ctx context.Context) error {
+	result, err := obj.client.Policypkg().SetAdditionalPolicyDataStatusByName(ctx, obj.AdditionalPolicyData, &basepolicypkgtsmtanzuvmwarecomv1.AdditionalStatus{})
+	if err != nil {
+		return err
+	}
+	obj.AdditionalPolicyData = result.AdditionalPolicyData
+	return nil
+}
+
+// GetPolicypkgAdditionalPolicyData calculates the hashed name based on parents and displayName and
+// returns given object
+func (c *Clientset) GetPolicypkgAdditionalPolicyData(ctx context.Context, displayName string) (result *PolicypkgAdditionalPolicyData, err error) {
+	hashedName := helper.GetHashedName("additionalpolicydatas.policypkg.tsm.tanzu.vmware.com", nil, displayName)
+	return c.Policypkg().GetAdditionalPolicyDataByName(ctx, hashedName)
+}
+
+func (c *Clientset) PolicypkgAdditionalPolicyData(displayName string) *additionalpolicydataPolicypkgTsmV1Chainer {
+	parentLabels := make(map[string]string)
+	parentLabels["additionalpolicydatas.policypkg.tsm.tanzu.vmware.com"] = displayName
+	return &additionalpolicydataPolicypkgTsmV1Chainer{
+		client:       c,
+		name:         displayName,
+		parentLabels: parentLabels,
+	}
+}
+
+// AddPolicypkgAdditionalPolicyData calculates hashed name of the object based on objToCreate.Name
+// and parents names and creates it. objToCreate.Name is changed to the hashed name. Original name is preserved in
+// nexus/display_name label and can be obtained using DisplayName() method.
+func (c *Clientset) AddPolicypkgAdditionalPolicyData(ctx context.Context,
+	objToCreate *basepolicypkgtsmtanzuvmwarecomv1.AdditionalPolicyData) (result *PolicypkgAdditionalPolicyData, err error) {
+	if objToCreate.Labels == nil {
+		objToCreate.Labels = map[string]string{}
+	}
+	if objToCreate.Labels[common.IS_NAME_HASHED_LABEL] != "true" {
+		objToCreate.Labels[common.DISPLAY_NAME_LABEL] = objToCreate.GetName()
+		objToCreate.Labels[common.IS_NAME_HASHED_LABEL] = "true"
+		hashedName := helper.GetHashedName(objToCreate.CRDName(), nil, objToCreate.GetName())
+		objToCreate.Name = hashedName
+	}
+	return c.Policypkg().CreateAdditionalPolicyDataByName(ctx, objToCreate)
+}
+
+// DeletePolicypkgAdditionalPolicyData calculates hashedName of object based on displayName and
+// parents and deletes given object
+func (c *Clientset) DeletePolicypkgAdditionalPolicyData(ctx context.Context, displayName string) (err error) {
+	hashedName := helper.GetHashedName("additionalpolicydatas.policypkg.tsm.tanzu.vmware.com", nil, displayName)
+	return c.Policypkg().DeleteAdditionalPolicyDataByName(ctx, hashedName)
+}
+
+type additionalpolicydataPolicypkgTsmV1Chainer struct {
+	client       *Clientset
+	name         string
+	parentLabels map[string]string
+}
+
+// ClearStatus to clear user defined status
+func (c *additionalpolicydataPolicypkgTsmV1Chainer) ClearStatus(ctx context.Context) (err error) {
+	hashedName := helper.GetHashedName("additionalpolicydatas.policypkg.tsm.tanzu.vmware.com", c.parentLabels, c.name)
+	obj, err := c.client.Policypkg().GetAdditionalPolicyDataByName(ctx, hashedName)
+	if err != nil {
+		return err
+	}
+	_, err = c.client.Policypkg().SetAdditionalPolicyDataStatusByName(ctx, obj.AdditionalPolicyData, nil)
+	return err
+}
+
+// GetStatus to get user defined status
+func (c *additionalpolicydataPolicypkgTsmV1Chainer) GetStatus(ctx context.Context) (result *basepolicypkgtsmtanzuvmwarecomv1.AdditionalStatus, err error) {
+	hashedName := helper.GetHashedName("additionalpolicydatas.policypkg.tsm.tanzu.vmware.com", c.parentLabels, c.name)
+	obj, err := c.client.Policypkg().GetAdditionalPolicyDataByName(ctx, hashedName)
+	if err != nil {
+		return nil, err
+	}
+	return &obj.Status.Status, nil
+}
+
+// SetStatus sets user defined status
+func (c *additionalpolicydataPolicypkgTsmV1Chainer) SetStatus(ctx context.Context, status *basepolicypkgtsmtanzuvmwarecomv1.AdditionalStatus) (err error) {
+	hashedName := helper.GetHashedName("additionalpolicydatas.policypkg.tsm.tanzu.vmware.com", c.parentLabels, c.name)
+	obj, err := c.client.Policypkg().GetAdditionalPolicyDataByName(ctx, hashedName)
+	if err != nil {
+		return err
+	}
+	_, err = c.client.Policypkg().SetAdditionalPolicyDataStatusByName(ctx, obj.AdditionalPolicyData, status)
+	return err
 }
 
 // GetAccessControlPolicyByName returns object stored in the database under the hashedName which is a hash of display
@@ -3281,4 +4157,296 @@ type vmpolicyPolicypkgTsmV1Chainer struct {
 	client       *Clientset
 	name         string
 	parentLabels map[string]string
+}
+
+// GetRandomPolicyDataByName returns object stored in the database under the hashedName which is a hash of display
+// name and parents names. Use it when you know hashed name of object.
+func (group *PolicypkgTsmV1) GetRandomPolicyDataByName(ctx context.Context, hashedName string) (*PolicypkgRandomPolicyData, error) {
+	result, err := group.client.baseClient.
+		PolicypkgTsmV1().
+		RandomPolicyDatas().Get(ctx, hashedName, metav1.GetOptions{})
+	if err != nil {
+		return nil, err
+	}
+
+	return &PolicypkgRandomPolicyData{
+		client:           group.client,
+		RandomPolicyData: result,
+	}, nil
+}
+
+// DeleteRandomPolicyDataByName deletes object stored in the database under the hashedName which is a hash of
+// display name and parents names. Use it when you know hashed name of object.
+func (group *PolicypkgTsmV1) DeleteRandomPolicyDataByName(ctx context.Context, hashedName string) (err error) {
+
+	err = group.client.baseClient.
+		PolicypkgTsmV1().
+		RandomPolicyDatas().Delete(ctx, hashedName, metav1.DeleteOptions{})
+	if err != nil {
+		return err
+	}
+
+	return
+}
+
+// CreateRandomPolicyDataByName creates object in the database without hashing the name.
+// Use it directly ONLY when objToCreate.Name is hashed name of the object.
+func (group *PolicypkgTsmV1) CreateRandomPolicyDataByName(ctx context.Context,
+	objToCreate *basepolicypkgtsmtanzuvmwarecomv1.RandomPolicyData) (*PolicypkgRandomPolicyData, error) {
+	if objToCreate.GetLabels() == nil {
+		objToCreate.Labels = make(map[string]string)
+	}
+	if _, ok := objToCreate.Labels[common.DISPLAY_NAME_LABEL]; !ok {
+		objToCreate.Labels[common.DISPLAY_NAME_LABEL] = objToCreate.GetName()
+	}
+
+	result, err := group.client.baseClient.
+		PolicypkgTsmV1().
+		RandomPolicyDatas().Create(ctx, objToCreate, metav1.CreateOptions{})
+	if err != nil {
+		return nil, err
+	}
+
+	return &PolicypkgRandomPolicyData{
+		client:           group.client,
+		RandomPolicyData: result,
+	}, nil
+}
+
+// SetRandomPolicyDataStatusByName sets user defined status
+func (group *PolicypkgTsmV1) SetRandomPolicyDataStatusByName(ctx context.Context,
+	objToUpdate *basepolicypkgtsmtanzuvmwarecomv1.RandomPolicyData, status *basepolicypkgtsmtanzuvmwarecomv1.RandomStatus) (*PolicypkgRandomPolicyData, error) {
+
+	// Make sure status field is present first
+	m := []byte("{\"status\":{}}")
+	result, err := group.client.baseClient.
+		PolicypkgTsmV1().
+		RandomPolicyDatas().Patch(ctx, objToUpdate.GetName(), types.MergePatchType, m, metav1.PatchOptions{}, "status")
+	if err != nil {
+		return nil, err
+	}
+
+	patch := Patch{
+		PatchOp{
+			Op:    "replace",
+			Path:  "/status/status",
+			Value: status,
+		},
+	}
+	marshaled, err := patch.Marshal()
+	if err != nil {
+		return nil, err
+	}
+	result, err = group.client.baseClient.
+		PolicypkgTsmV1().
+		RandomPolicyDatas().Patch(ctx, objToUpdate.GetName(), types.JSONPatchType, marshaled, metav1.PatchOptions{}, "status")
+	if err != nil {
+		return nil, err
+	}
+	return &PolicypkgRandomPolicyData{
+		client:           group.client,
+		RandomPolicyData: result,
+	}, nil
+}
+
+// UpdateRandomPolicyDataByName updates object stored in the database under the hashedName which is a hash of
+// display name and parents names.
+func (group *PolicypkgTsmV1) UpdateRandomPolicyDataByName(ctx context.Context,
+	objToUpdate *basepolicypkgtsmtanzuvmwarecomv1.RandomPolicyData) (*PolicypkgRandomPolicyData, error) {
+
+	// ResourceVersion must be set for update
+	if objToUpdate.ResourceVersion == "" {
+		current, err := group.client.baseClient.
+			PolicypkgTsmV1().
+			RandomPolicyDatas().Get(ctx, objToUpdate.GetName(), metav1.GetOptions{})
+		if err != nil {
+			return nil, err
+		}
+		objToUpdate.ResourceVersion = current.ResourceVersion
+	}
+
+	var patch Patch
+	patchOpMeta := PatchOp{
+		Op:    "replace",
+		Path:  "/metadata",
+		Value: objToUpdate.ObjectMeta,
+	}
+	patch = append(patch, patchOpMeta)
+
+	patchValueDescription :=
+		objToUpdate.Spec.Description
+	patchOpDescription := PatchOp{
+		Op:    "replace",
+		Path:  "/spec/description",
+		Value: patchValueDescription,
+	}
+	patch = append(patch, patchOpDescription)
+
+	marshaled, err := patch.Marshal()
+	if err != nil {
+		return nil, err
+	}
+	result, err := group.client.baseClient.
+		PolicypkgTsmV1().
+		RandomPolicyDatas().Patch(ctx, objToUpdate.GetName(), types.JSONPatchType, marshaled, metav1.PatchOptions{}, "")
+	if err != nil {
+		return nil, err
+	}
+
+	return &PolicypkgRandomPolicyData{
+		client:           group.client,
+		RandomPolicyData: result,
+	}, nil
+}
+
+// ListRandomPolicyDatas returns slice of all existing objects of this type. Selectors can be provided in opts parameter.
+func (group *PolicypkgTsmV1) ListRandomPolicyDatas(ctx context.Context,
+	opts metav1.ListOptions) (result []*PolicypkgRandomPolicyData, err error) {
+	list, err := group.client.baseClient.PolicypkgTsmV1().
+		RandomPolicyDatas().List(ctx, opts)
+	if err != nil {
+		return nil, err
+	}
+	result = make([]*PolicypkgRandomPolicyData, len(list.Items))
+	for k, v := range list.Items {
+		item := v
+		result[k] = &PolicypkgRandomPolicyData{
+			client:           group.client,
+			RandomPolicyData: &item,
+		}
+	}
+	return
+}
+
+type PolicypkgRandomPolicyData struct {
+	client *Clientset
+	*basepolicypkgtsmtanzuvmwarecomv1.RandomPolicyData
+}
+
+// Delete removes obj and all it's children from the database.
+func (obj *PolicypkgRandomPolicyData) Delete(ctx context.Context) error {
+	err := obj.client.Policypkg().DeleteRandomPolicyDataByName(ctx, obj.GetName())
+	if err != nil {
+		return err
+	}
+	obj.RandomPolicyData = nil
+	return nil
+}
+
+// Update updates spec of object in database. Children and Link can not be updated using this function.
+func (obj *PolicypkgRandomPolicyData) Update(ctx context.Context) error {
+	result, err := obj.client.Policypkg().UpdateRandomPolicyDataByName(ctx, obj.RandomPolicyData)
+	if err != nil {
+		return err
+	}
+	obj.RandomPolicyData = result.RandomPolicyData
+	return nil
+}
+
+// SetStatus sets user defined status
+func (obj *PolicypkgRandomPolicyData) SetStatus(ctx context.Context, status *basepolicypkgtsmtanzuvmwarecomv1.RandomStatus) error {
+	result, err := obj.client.Policypkg().SetRandomPolicyDataStatusByName(ctx, obj.RandomPolicyData, status)
+	if err != nil {
+		return err
+	}
+	obj.RandomPolicyData = result.RandomPolicyData
+	return nil
+}
+
+// GetStatus to get user defined status
+func (obj *PolicypkgRandomPolicyData) GetStatus(ctx context.Context) (*basepolicypkgtsmtanzuvmwarecomv1.RandomStatus, error) {
+	getObj, err := obj.client.Policypkg().GetRandomPolicyDataByName(ctx, obj.GetName())
+	if err != nil {
+		return nil, err
+	}
+	return &getObj.Status.Status, nil
+}
+
+// ClearStatus to clear user defined status
+func (obj *PolicypkgRandomPolicyData) ClearStatus(ctx context.Context) error {
+	result, err := obj.client.Policypkg().SetRandomPolicyDataStatusByName(ctx, obj.RandomPolicyData, &basepolicypkgtsmtanzuvmwarecomv1.RandomStatus{})
+	if err != nil {
+		return err
+	}
+	obj.RandomPolicyData = result.RandomPolicyData
+	return nil
+}
+
+// GetPolicypkgRandomPolicyData calculates the hashed name based on parents and displayName and
+// returns given object
+func (c *Clientset) GetPolicypkgRandomPolicyData(ctx context.Context, displayName string) (result *PolicypkgRandomPolicyData, err error) {
+	hashedName := helper.GetHashedName("randompolicydatas.policypkg.tsm.tanzu.vmware.com", nil, displayName)
+	return c.Policypkg().GetRandomPolicyDataByName(ctx, hashedName)
+}
+
+func (c *Clientset) PolicypkgRandomPolicyData(displayName string) *randompolicydataPolicypkgTsmV1Chainer {
+	parentLabels := make(map[string]string)
+	parentLabels["randompolicydatas.policypkg.tsm.tanzu.vmware.com"] = displayName
+	return &randompolicydataPolicypkgTsmV1Chainer{
+		client:       c,
+		name:         displayName,
+		parentLabels: parentLabels,
+	}
+}
+
+// AddPolicypkgRandomPolicyData calculates hashed name of the object based on objToCreate.Name
+// and parents names and creates it. objToCreate.Name is changed to the hashed name. Original name is preserved in
+// nexus/display_name label and can be obtained using DisplayName() method.
+func (c *Clientset) AddPolicypkgRandomPolicyData(ctx context.Context,
+	objToCreate *basepolicypkgtsmtanzuvmwarecomv1.RandomPolicyData) (result *PolicypkgRandomPolicyData, err error) {
+	if objToCreate.Labels == nil {
+		objToCreate.Labels = map[string]string{}
+	}
+	if objToCreate.Labels[common.IS_NAME_HASHED_LABEL] != "true" {
+		objToCreate.Labels[common.DISPLAY_NAME_LABEL] = objToCreate.GetName()
+		objToCreate.Labels[common.IS_NAME_HASHED_LABEL] = "true"
+		hashedName := helper.GetHashedName(objToCreate.CRDName(), nil, objToCreate.GetName())
+		objToCreate.Name = hashedName
+	}
+	return c.Policypkg().CreateRandomPolicyDataByName(ctx, objToCreate)
+}
+
+// DeletePolicypkgRandomPolicyData calculates hashedName of object based on displayName and
+// parents and deletes given object
+func (c *Clientset) DeletePolicypkgRandomPolicyData(ctx context.Context, displayName string) (err error) {
+	hashedName := helper.GetHashedName("randompolicydatas.policypkg.tsm.tanzu.vmware.com", nil, displayName)
+	return c.Policypkg().DeleteRandomPolicyDataByName(ctx, hashedName)
+}
+
+type randompolicydataPolicypkgTsmV1Chainer struct {
+	client       *Clientset
+	name         string
+	parentLabels map[string]string
+}
+
+// ClearStatus to clear user defined status
+func (c *randompolicydataPolicypkgTsmV1Chainer) ClearStatus(ctx context.Context) (err error) {
+	hashedName := helper.GetHashedName("randompolicydatas.policypkg.tsm.tanzu.vmware.com", c.parentLabels, c.name)
+	obj, err := c.client.Policypkg().GetRandomPolicyDataByName(ctx, hashedName)
+	if err != nil {
+		return err
+	}
+	_, err = c.client.Policypkg().SetRandomPolicyDataStatusByName(ctx, obj.RandomPolicyData, nil)
+	return err
+}
+
+// GetStatus to get user defined status
+func (c *randompolicydataPolicypkgTsmV1Chainer) GetStatus(ctx context.Context) (result *basepolicypkgtsmtanzuvmwarecomv1.RandomStatus, err error) {
+	hashedName := helper.GetHashedName("randompolicydatas.policypkg.tsm.tanzu.vmware.com", c.parentLabels, c.name)
+	obj, err := c.client.Policypkg().GetRandomPolicyDataByName(ctx, hashedName)
+	if err != nil {
+		return nil, err
+	}
+	return &obj.Status.Status, nil
+}
+
+// SetStatus sets user defined status
+func (c *randompolicydataPolicypkgTsmV1Chainer) SetStatus(ctx context.Context, status *basepolicypkgtsmtanzuvmwarecomv1.RandomStatus) (err error) {
+	hashedName := helper.GetHashedName("randompolicydatas.policypkg.tsm.tanzu.vmware.com", c.parentLabels, c.name)
+	obj, err := c.client.Policypkg().GetRandomPolicyDataByName(ctx, hashedName)
+	if err != nil {
+		return err
+	}
+	_, err = c.client.Policypkg().SetRandomPolicyDataStatusByName(ctx, obj.RandomPolicyData, status)
+	return err
 }

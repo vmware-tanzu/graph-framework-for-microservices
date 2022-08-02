@@ -24,10 +24,14 @@ import (
 
 // Interface provides access to all the informers in this group version.
 type Interface interface {
+	// AdditionalGnsDatas returns a AdditionalGnsDataInformer.
+	AdditionalGnsDatas() AdditionalGnsDataInformer
 	// Dnses returns a DnsInformer.
 	Dnses() DnsInformer
 	// Gnses returns a GnsInformer.
 	Gnses() GnsInformer
+	// RandomGnsDatas returns a RandomGnsDataInformer.
+	RandomGnsDatas() RandomGnsDataInformer
 }
 
 type version struct {
@@ -41,6 +45,11 @@ func New(f internalinterfaces.SharedInformerFactory, namespace string, tweakList
 	return &version{factory: f, namespace: namespace, tweakListOptions: tweakListOptions}
 }
 
+// AdditionalGnsDatas returns a AdditionalGnsDataInformer.
+func (v *version) AdditionalGnsDatas() AdditionalGnsDataInformer {
+	return &additionalGnsDataInformer{factory: v.factory, tweakListOptions: v.tweakListOptions}
+}
+
 // Dnses returns a DnsInformer.
 func (v *version) Dnses() DnsInformer {
 	return &dnsInformer{factory: v.factory, tweakListOptions: v.tweakListOptions}
@@ -49,4 +58,9 @@ func (v *version) Dnses() DnsInformer {
 // Gnses returns a GnsInformer.
 func (v *version) Gnses() GnsInformer {
 	return &gnsInformer{factory: v.factory, tweakListOptions: v.tweakListOptions}
+}
+
+// RandomGnsDatas returns a RandomGnsDataInformer.
+func (v *version) RandomGnsDatas() RandomGnsDataInformer {
+	return &randomGnsDataInformer{factory: v.factory, tweakListOptions: v.tweakListOptions}
 }
