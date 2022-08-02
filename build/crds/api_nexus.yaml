@@ -4,7 +4,7 @@ kind: CustomResourceDefinition
 metadata:
   annotations:
     nexus: |
-      {"name":"Nexus.api","children":{"configs.config.nexus.org":{"fieldName":"Config","fieldNameGvk":"configGvk","isNamed":false}},"nexus-rest-api-gen":{"uris":null}}
+      {"name":"api.Nexus","children":{"configs.config.nexus.org":{"fieldName":"Config","fieldNameGvk":"configGvk","isNamed":false}},"is_singleton":false,"nexus-rest-api-gen":{"uris":null}}
   creationTimestamp: null
   name: nexuses.api.nexus.org
 spec:
@@ -52,9 +52,26 @@ spec:
                 - name
                 type: object
             type: object
+          status:
+            properties:
+              nexus:
+                properties:
+                  remoteGeneration:
+                    format: int64
+                    type: integer
+                  sourceGeneration:
+                    format: int64
+                    type: integer
+                required:
+                - sourceGeneration
+                - remoteGeneration
+                type: object
+            type: object
         type: object
     served: true
     storage: true
+    subresources:
+      status: {}
 status:
   acceptedNames:
     kind: ""

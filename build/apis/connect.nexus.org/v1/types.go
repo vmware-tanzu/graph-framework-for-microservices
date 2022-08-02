@@ -22,6 +22,12 @@ type Link struct {
 	Name  string `json:"name" yaml:"name"`
 }
 
+// +k8s:openapi-gen=true
+type NexusStatus struct {
+	SourceGeneration int64 `json:"sourceGeneration" yaml:"sourceGeneration"`
+	RemoteGeneration int64 `json:"remoteGeneration" yaml:"remoteGeneration"`
+}
+
 /* ------------------- CRDs definitions ------------------- */
 
 // +genclient
@@ -32,7 +38,13 @@ type Link struct {
 type Connect struct {
 	metav1.TypeMeta   `json:",inline" yaml:",inline"`
 	metav1.ObjectMeta `json:"metadata" yaml:"metadata"`
-	Spec              ConnectSpec `json:"spec,omitempty" yaml:"spec,omitempty"`
+	Spec              ConnectSpec        `json:"spec,omitempty" yaml:"spec,omitempty"`
+	Status            ConnectNexusStatus `json:"status,omitempty" yaml:"status,omitempty"`
+}
+
+// +k8s:openapi-gen=true
+type ConnectNexusStatus struct {
+	Nexus NexusStatus `json:"nexus,omitempty" yaml:"nexus,omitempty"`
 }
 
 func (c *Connect) CRDName() string {
@@ -67,7 +79,13 @@ type ConnectList struct {
 type NexusEndpoint struct {
 	metav1.TypeMeta   `json:",inline" yaml:",inline"`
 	metav1.ObjectMeta `json:"metadata" yaml:"metadata"`
-	Spec              NexusEndpointSpec `json:"spec,omitempty" yaml:"spec,omitempty"`
+	Spec              NexusEndpointSpec        `json:"spec,omitempty" yaml:"spec,omitempty"`
+	Status            NexusEndpointNexusStatus `json:"status,omitempty" yaml:"status,omitempty"`
+}
+
+// +k8s:openapi-gen=true
+type NexusEndpointNexusStatus struct {
+	Nexus NexusStatus `json:"nexus,omitempty" yaml:"nexus,omitempty"`
 }
 
 func (c *NexusEndpoint) CRDName() string {
@@ -103,7 +121,13 @@ type NexusEndpointList struct {
 type ReplicationConfig struct {
 	metav1.TypeMeta   `json:",inline" yaml:",inline"`
 	metav1.ObjectMeta `json:"metadata" yaml:"metadata"`
-	Spec              ReplicationConfigSpec `json:"spec,omitempty" yaml:"spec,omitempty"`
+	Spec              ReplicationConfigSpec        `json:"spec,omitempty" yaml:"spec,omitempty"`
+	Status            ReplicationConfigNexusStatus `json:"status,omitempty" yaml:"status,omitempty"`
+}
+
+// +k8s:openapi-gen=true
+type ReplicationConfigNexusStatus struct {
+	Nexus NexusStatus `json:"nexus,omitempty" yaml:"nexus,omitempty"`
 }
 
 func (c *ReplicationConfig) CRDName() string {
@@ -119,10 +143,11 @@ func (c *ReplicationConfig) DisplayName() string {
 
 // +k8s:openapi-gen=true
 type ReplicationConfigSpec struct {
-	AccessToken       string            `json:"accessToken" yaml:"accessToken"`
-	Source            ReplicationObject `json:"source" yaml:"source"`
-	Destination       ReplicationObject `json:"destination,omitempty" yaml:"destination,omitempty"`
-	RemoteEndpointGvk *Link             `json:"remoteEndpointGvk,omitempty" yaml:"remoteEndpointGvk,omitempty" nexus:"link"`
+	AccessToken       string                    `json:"accessToken" yaml:"accessToken"`
+	Source            ReplicationSource         `json:"source" yaml:"source"`
+	Destination       ReplicationDestination    `json:"destination" yaml:"destination"`
+	StatusEndpoint    ReplicationStatusEndpoint `json:"statusEndpoint" yaml:"statusEndpoint"`
+	RemoteEndpointGvk *Link                     `json:"remoteEndpointGvk,omitempty" yaml:"remoteEndpointGvk,omitempty" nexus:"link"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
@@ -133,16 +158,51 @@ type ReplicationConfigList struct {
 }
 
 // +k8s:openapi-gen=true
-type ReplicationObject struct {
-	Group        string    `json:"group" yaml:"group"`
-	Kind         string    `json:"kind" yaml:"kind"`
-	Name         string    `json:"name" yaml:"name"`
-	LocalRuntime bool      `json:"localRuntime,omitempty" yaml:"localRuntime,omitempty"`
-	Hierarchical bool      `json:"hierarchical,omitempty" yaml:"hierarchical,omitempty"`
-	Hierarchy    Hierarchy `json:"hierarchy,omitempty" yaml:"hierarchy,omitempty"`
+type KVP struct {
+	Key   string `json:"key"`
+	Value string `json:"value"`
 }
 
 // +k8s:openapi-gen=true
 type Hierarchy struct {
-	Path string
+	Labels []KVP `json:"labels"`
 }
+
+// +k8s:openapi-gen=true
+type ObjectType struct {
+	Group   string `json:"group"`
+	Kind    string `json:"kind"`
+	Version string `json:"version"`
+}
+
+// +k8s:openapi-gen=true
+type SourceObject struct {
+	ObjectType   `json:"objectType"`
+	Name         string    `json:"name"`
+	Hierarchical bool      `json:"hierarchical"`
+	Hierarchy    Hierarchy `json:"hierarchy,omitempty"`
+}
+
+// +k8s:openapi-gen=true
+type ReplicationSource struct {
+	Kind   SourceKind   `json:"kind"`
+	Type   ObjectType   `json:"type,omitempty"`
+	Object SourceObject `json:"object,omitempty"`
+}
+
+// +k8s:openapi-gen=true
+type ReplicationDestination struct {
+	Hierarchical bool      `json:"hierarchical"`
+	Hierarchy    Hierarchy `json:"hierarchy,omitempty"`
+	Namespace    string    `json:"namespace,omitempty"`
+}
+
+type ReplicationStatusEndpoint string
+type SourceKind string
+
+const (
+	Source      ReplicationStatusEndpoint = "Source"
+	Destination ReplicationStatusEndpoint = "Destination"
+	Object      SourceKind                = "Object"
+	Type        SourceKind                = "Type"
+)

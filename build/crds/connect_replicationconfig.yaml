@@ -4,7 +4,7 @@ kind: CustomResourceDefinition
 metadata:
   annotations:
     nexus: |
-      {"name":"ReplicationConfig.connect","hierarchy":["nexuses.api.nexus.org","configs.config.nexus.org","connects.connect.nexus.org"],"nexus-rest-api-gen":{"uris":null}}
+      {"name":"connect.ReplicationConfig","hierarchy":["nexuses.api.nexus.org","configs.config.nexus.org","connects.connect.nexus.org"],"is_singleton":false,"nexus-rest-api-gen":{"uris":null}}
   creationTimestamp: null
   name: replicationconfigs.connect.nexus.org
 spec:
@@ -42,27 +42,29 @@ spec:
                 type: string
               destination:
                 properties:
-                  group:
-                    type: string
                   hierarchical:
                     type: boolean
                   hierarchy:
                     properties:
-                      Path:
-                        type: string
+                      labels:
+                        items:
+                          properties:
+                            key:
+                              type: string
+                            value:
+                              type: string
+                          required:
+                          - key
+                          - value
+                          type: object
+                        type: array
                     required:
-                    - Path
+                    - labels
                     type: object
-                  kind:
-                    type: string
-                  localRuntime:
-                    type: boolean
-                  name:
+                  namespace:
                     type: string
                 required:
-                - group
-                - kind
-                - name
+                - hierarchical
                 type: object
               remoteEndpointGvk:
                 properties:
@@ -79,35 +81,93 @@ spec:
                 type: object
               source:
                 properties:
-                  group:
-                    type: string
-                  hierarchical:
-                    type: boolean
-                  hierarchy:
-                    properties:
-                      Path:
-                        type: string
-                    required:
-                    - Path
-                    type: object
                   kind:
                     type: string
-                  localRuntime:
-                    type: boolean
-                  name:
-                    type: string
+                  object:
+                    properties:
+                      hierarchical:
+                        type: boolean
+                      hierarchy:
+                        properties:
+                          labels:
+                            items:
+                              properties:
+                                key:
+                                  type: string
+                                value:
+                                  type: string
+                              required:
+                              - key
+                              - value
+                              type: object
+                            type: array
+                        required:
+                        - labels
+                        type: object
+                      name:
+                        type: string
+                      objectType:
+                        properties:
+                          group:
+                            type: string
+                          kind:
+                            type: string
+                          version:
+                            type: string
+                        required:
+                        - group
+                        - kind
+                        - version
+                        type: object
+                    required:
+                    - objectType
+                    - name
+                    - hierarchical
+                    type: object
+                  type:
+                    properties:
+                      group:
+                        type: string
+                      kind:
+                        type: string
+                      version:
+                        type: string
+                    required:
+                    - group
+                    - kind
+                    - version
+                    type: object
                 required:
-                - group
                 - kind
-                - name
                 type: object
+              statusEndpoint:
+                type: string
             required:
             - accessToken
             - source
+            - destination
+            - statusEndpoint
+            type: object
+          status:
+            properties:
+              nexus:
+                properties:
+                  remoteGeneration:
+                    format: int64
+                    type: integer
+                  sourceGeneration:
+                    format: int64
+                    type: integer
+                required:
+                - sourceGeneration
+                - remoteGeneration
+                type: object
             type: object
         type: object
     served: true
     storage: true
+    subresources:
+      status: {}
 status:
   acceptedNames:
     kind: ""

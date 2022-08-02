@@ -4,7 +4,7 @@ kind: CustomResourceDefinition
 metadata:
   annotations:
     nexus: |
-      {"name":"Connect.connect","hierarchy":["nexuses.api.nexus.org","configs.config.nexus.org"],"children":{"nexusendpoints.connect.nexus.org":{"fieldName":"Endpoints","fieldNameGvk":"endpointsGvk","isNamed":true},"replicationconfigs.connect.nexus.org":{"fieldName":"ReplicationConfig","fieldNameGvk":"replicationConfigGvk","isNamed":true}},"nexus-rest-api-gen":{"uris":null}}
+      {"name":"connect.Connect","hierarchy":["nexuses.api.nexus.org","configs.config.nexus.org"],"children":{"nexusendpoints.connect.nexus.org":{"fieldName":"Endpoints","fieldNameGvk":"endpointsGvk","isNamed":true},"replicationconfigs.connect.nexus.org":{"fieldName":"ReplicationConfig","fieldNameGvk":"replicationConfigGvk","isNamed":true}},"is_singleton":false,"nexus-rest-api-gen":{"uris":null}}
   creationTimestamp: null
   name: connects.connect.nexus.org
 spec:
@@ -69,9 +69,26 @@ spec:
                   type: object
                 type: object
             type: object
+          status:
+            properties:
+              nexus:
+                properties:
+                  remoteGeneration:
+                    format: int64
+                    type: integer
+                  sourceGeneration:
+                    format: int64
+                    type: integer
+                required:
+                - sourceGeneration
+                - remoteGeneration
+                type: object
+            type: object
         type: object
     served: true
     storage: true
+    subresources:
+      status: {}
 status:
   acceptedNames:
     kind: ""

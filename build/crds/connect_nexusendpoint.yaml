@@ -4,7 +4,7 @@ kind: CustomResourceDefinition
 metadata:
   annotations:
     nexus: |
-      {"name":"NexusEndpoint.connect","hierarchy":["nexuses.api.nexus.org","configs.config.nexus.org","connects.connect.nexus.org"],"nexus-rest-api-gen":{"uris":null}}
+      {"name":"connect.NexusEndpoint","hierarchy":["nexuses.api.nexus.org","configs.config.nexus.org","connects.connect.nexus.org"],"is_singleton":false,"nexus-rest-api-gen":{"uris":null}}
   creationTimestamp: null
   name: nexusendpoints.connect.nexus.org
 spec:
@@ -49,9 +49,26 @@ spec:
             - port
             - cert
             type: object
+          status:
+            properties:
+              nexus:
+                properties:
+                  remoteGeneration:
+                    format: int64
+                    type: integer
+                  sourceGeneration:
+                    format: int64
+                    type: integer
+                required:
+                - sourceGeneration
+                - remoteGeneration
+                type: object
+            type: object
         type: object
     served: true
     storage: true
+    subresources:
+      status: {}
 status:
   acceptedNames:
     kind: ""
