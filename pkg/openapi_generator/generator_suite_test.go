@@ -64,7 +64,7 @@ status:
 }
 
 func getSchemaName(name string) string {
-	return fmt.Sprintf("gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/_generated/apis/test.it/v1.%s", name)
+	return fmt.Sprintf("nexustempmodule/apis/test.it/v1.%s", name)
 }
 
 func compareTmpFileWithExpectedFile(actualFile, expectedFile string) {

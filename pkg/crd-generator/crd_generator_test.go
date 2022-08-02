@@ -16,7 +16,7 @@ import (
 
 const (
 	baseGroupName              = "tsm.tanzu.vmware.com"
-	crdModulePath              = "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/_generated/"
+	crdModulePath              = "nexustempmodule/"
 	examplePath                = "../../example/"
 	exampleDSLPath             = examplePath + "datamodel"
 	exampleCRDOutputPath       = examplePath + "output/_crd_base/"

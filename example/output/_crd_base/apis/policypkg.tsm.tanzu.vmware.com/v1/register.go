@@ -3,10 +3,10 @@
 package v1
 
 import (
-	policypkg_tsm_tanzu_vmware_com "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/_generated/apis/policypkg.tsm.tanzu.vmware.com"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
+	policypkg_tsm_tanzu_vmware_com "nexustempmodule/apis/policypkg.tsm.tanzu.vmware.com"
 )
 
 const ResourceVersion = "v1"

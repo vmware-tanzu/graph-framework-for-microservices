@@ -104,19 +104,30 @@ test_in_container: ${BUILDER_NAME}\:${BUILDER_TAG}.image.exists
 
 .PHONY: generate_code
 generate_code:
-	rm -rf _generated
+	echo "Cleaning up workdir"
+	rm -rf _generated ${GOPATH}/nexustempmodule
 	cp -R generated_base_structure _generated
 	cp ${DATAMODEL_PATH}/go.mod _generated/go.mod
-	sed -i "1s|.*|module gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/_generated|" _generated/go.mod
+	sed -i "1s|.*|module nexustempmodule|" _generated/go.mod
+	echo "Generating base nexus code structure"
 	CRD_MODULE_PATH=${CRD_MODULE_PATH} go run cmd/nexus-sdk/main.go -config-file ${CONFIG_FILE} -dsl ${DATAMODEL_PATH} -crd-output _generated
-	mv _generated/api_names.sh _generated/scripts/
-	cd _generated && go mod tidy -e && ./scripts/generate_k8s_api.sh
-	GOPRIVATE="gitlab.eng.vmware.com" go install gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git/cmd/nexus-openapi-gen@latest
-	cd _generated/ && go mod tidy -e && ./scripts/generate_openapi_schema.sh
-	cp -r _generated/openapi-generator/openapi pkg/openapi_generator
+	mv _generated/api_names.sh scripts/
+	echo "Resolving datamodel dependencies"
+	cd _generated && ../scripts/pin_deps.sh  && go mod tidy -e
+	echo "Generating kuberenetes APIs"
+	./scripts/generate_k8s_api.sh
+	echo "Generating openapi schema"
+	go install gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git/cmd/nexus-openapi-gen@latest
+	cd _generated/ && go mod tidy -e
+	./scripts/generate_openapi_schema.sh
+	echo "Generating CRD yamls"
 	go run cmd/generate-openapischema/generate-openapischema.go -yamls-path _generated/crds
 	git checkout -- pkg/openapi_generator/openapi/openapi_generated.go
-	cd _generated/ && ./scripts/replace_mod_path.sh
+	echo "Updating module name"
+	./scripts/replace_mod_path.sh
+	echo "Sorting imports"
+	cd _generated && goimports -w .
+	echo "Moving files to output directory"
 	cp -r _generated/{client,apis,crds,common,nexus-client,helper} ${GENERATED_OUTPUT_DIRECTORY}
 
 .PHONY: test_generate_code_in_container
@@ -130,7 +141,7 @@ test_generate_code_in_container: ${BUILDER_NAME}\:${BUILDER_TAG}.image.exists in
 		echo "The following changes should be committed:";\
 		git status;\
 		git diff;\
-		return 1;\
+		exit 1;\
 	fi
 
 .PHONY: generate_example

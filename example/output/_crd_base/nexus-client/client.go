@@ -20,16 +20,16 @@ import (
 	types "k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/rest"
 
-	baseClientset "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/_generated/client/clientset/versioned"
-	fakeBaseClienset "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/_generated/client/clientset/versioned/fake"
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/_generated/common"
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/_generated/helper"
+	baseClientset "nexustempmodule/client/clientset/versioned"
+	fakeBaseClienset "nexustempmodule/client/clientset/versioned/fake"
+	"nexustempmodule/common"
+	"nexustempmodule/helper"
 
-	baseconfigtsmtanzuvmwarecomv1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/_generated/apis/config.tsm.tanzu.vmware.com/v1"
-	basegnstsmtanzuvmwarecomv1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/_generated/apis/gns.tsm.tanzu.vmware.com/v1"
-	basepolicypkgtsmtanzuvmwarecomv1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/_generated/apis/policypkg.tsm.tanzu.vmware.com/v1"
-	baseroottsmtanzuvmwarecomv1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/_generated/apis/root.tsm.tanzu.vmware.com/v1"
-	baseservicegrouptsmtanzuvmwarecomv1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/_generated/apis/servicegroup.tsm.tanzu.vmware.com/v1"
+	baseconfigtsmtanzuvmwarecomv1 "nexustempmodule/apis/config.tsm.tanzu.vmware.com/v1"
+	basegnstsmtanzuvmwarecomv1 "nexustempmodule/apis/gns.tsm.tanzu.vmware.com/v1"
+	basepolicypkgtsmtanzuvmwarecomv1 "nexustempmodule/apis/policypkg.tsm.tanzu.vmware.com/v1"
+	baseroottsmtanzuvmwarecomv1 "nexustempmodule/apis/root.tsm.tanzu.vmware.com/v1"
+	baseservicegrouptsmtanzuvmwarecomv1 "nexustempmodule/apis/servicegroup.tsm.tanzu.vmware.com/v1"
 )
 
 type Clientset struct {
@@ -1283,6 +1283,9 @@ func (group *GnsTsmV1) SetGnsStateByName(ctx context.Context,
 	result, err := group.client.baseClient.
 		GnsTsmV1().
 		Gnses().Patch(ctx, objToUpdate.GetName(), types.MergePatchType, m, metav1.PatchOptions{}, "status")
+	if err != nil {
+		return nil, err
+	}
 
 	patch := Patch{
 		PatchOp{
@@ -1291,7 +1294,6 @@ func (group *GnsTsmV1) SetGnsStateByName(ctx context.Context,
 			Value: status,
 		},
 	}
-
 	marshaled, err := patch.Marshal()
 	if err != nil {
 		return nil, err
@@ -2698,6 +2700,9 @@ func (group *PolicypkgTsmV1) SetACPConfigStatusByName(ctx context.Context,
 	result, err := group.client.baseClient.
 		PolicypkgTsmV1().
 		ACPConfigs().Patch(ctx, objToUpdate.GetName(), types.MergePatchType, m, metav1.PatchOptions{}, "status")
+	if err != nil {
+		return nil, err
+	}
 
 	patch := Patch{
 		PatchOp{
@@ -2706,7 +2711,6 @@ func (group *PolicypkgTsmV1) SetACPConfigStatusByName(ctx context.Context,
 			Value: status,
 		},
 	}
-
 	marshaled, err := patch.Marshal()
 	if err != nil {
 		return nil, err

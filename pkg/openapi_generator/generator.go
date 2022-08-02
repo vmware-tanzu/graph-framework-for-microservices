@@ -13,7 +13,7 @@ import (
 	extensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 )
 
-const defaultNamePrefix = "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/_generated/apis"
+const defaultNamePrefix = "nexustempmodule/apis"
 
 type definition struct {
 	schema       *extensionsv1.JSONSchemaProps
