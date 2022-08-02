@@ -2,11 +2,11 @@ apiVersion: v2
 name: nexus-runtime
 description: A Helm chart for Kubernetes
 type: application
-version: 0.1.1
+version: 0.1.2
 
 dependencies:
   - name: core
-    version: 0.1.1
+    version: 0.1.2
     repository: 'file://./../subcharts/core/core'
     condition: global.runtimeEnabled
   - name: api-gateway
