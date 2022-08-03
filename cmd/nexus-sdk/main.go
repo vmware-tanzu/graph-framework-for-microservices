@@ -34,7 +34,7 @@ func main() {
 	}
 
 	if conf.CrdModulePath == "" {
-		conf.CrdModulePath = "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/_generated/"
+		conf.CrdModulePath = "nexustempmodule/"
 	}
 	// env overwrites config
 	envGroup := os.Getenv("GROUP_NAME")

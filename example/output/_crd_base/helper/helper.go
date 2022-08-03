@@ -8,7 +8,8 @@ import (
 
 	"github.com/elliotchance/orderedmap"
 
-	datamodel "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/_generated/client/clientset/versioned"
+	datamodel "nexustempmodule/client/clientset/versioned"
+
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 

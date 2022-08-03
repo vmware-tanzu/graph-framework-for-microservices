@@ -6,7 +6,7 @@ import (
 	cartv1 "github.com/vmware-tanzu/cartographer/pkg/apis/v1alpha1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/_generated/common"
+	"nexustempmodule/common"
 )
 
 // +k8s:openapi-gen=true

@@ -3,9 +3,10 @@ FROM 284299419820.dkr.ecr.us-west-2.amazonaws.com/golang:1.17
 ENV GOPATH /go
 ENV PATH $PATH:/usr/local/go/bin:/go/bin
 ENV GO111MODULE=on
-ENV GOPRIVATE gitlab.eng.vmware.com
-ENV GOPROXY "https://build-artifactory.eng.vmware.com/srp-mds-go-remote"
+ENV GOPRIVATE=*.vmware.com
+ENV GOPROXY=https://build-artifactory.eng.vmware.com/srp-mds-go-remote,direct
 ENV GONOPROXY=*.eng.vmware.com
+ENV GOINSECURE=golang-appnet.eng.vmware.com
 
 RUN tdnf -y --refresh install \
   make=4.3-2.ph4 \

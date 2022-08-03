@@ -6,6 +6,11 @@ ADD compiler.tar /go/src/gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/comp
 WORKDIR /go/src/gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git
 RUN make init_submodules
 
+WORKDIR /go/src/
+RUN mkdir nexustmp && cd nexustmp && go mod init && \
+    /go/src/gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/scripts/pin_deps.sh && \
+    go mod download
+
 WORKDIR /go/src/gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/_deps/github.com/kubernetes/code-generator
 RUN go mod download
 

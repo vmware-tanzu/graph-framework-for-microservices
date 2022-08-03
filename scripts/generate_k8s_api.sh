@@ -2,8 +2,7 @@
 
 set -e
 
-ROOT_PACKAGE="gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git"
-GENERATED_PACKAGE="${ROOT_PACKAGE}/_generated"
+GENERATED_PACKAGE="nexustempmodule"
 
 . $(dirname "$0")/api_names.sh
 
@@ -22,16 +21,14 @@ if [[ -z $DEFAULT_CLIENT_VERSION_TAG ]]; then
   exit 1
 fi
 echo "Generating default client"
-pushd ./../_deps/github.com/kubernetes/code-generator
+pushd ./_deps/github.com/kubernetes/code-generator
   git checkout -f $DEFAULT_CLIENT_VERSION_TAG
 popd
-./../_deps/github.com/kubernetes/code-generator/generate-groups.sh all "${GENERATED_PACKAGE}/client" "${GENERATED_PACKAGE}/apis" "${API_NAMES}" --go-header-file "./../_deps/github.com/kubernetes/code-generator/hack/boilerplate.go.txt"
+pushd _generated
+../_deps/github.com/kubernetes/code-generator/generate-groups.sh all "${GENERATED_PACKAGE}/client" "${GENERATED_PACKAGE}/apis" "${API_NAMES}" --go-header-file "../_deps/github.com/kubernetes/code-generator/hack/boilerplate.go.txt"
+popd
 
-case $PWD/ in
-  $GOPATH/src/${GENERATED_PACKAGE}/) echo "we're in GOPATH, no need to copy $GOPATH/src/${ROOT_PACKAGE}/";;
-  *) echo "we're NOT in GOPATH, need to copy generated code to repository path $PWD, $GOPATH/src/${ROOT_PACKAGE}/ "; \
-    cp -r $GOPATH/src/${GENERATED_PACKAGE}/* .;;
-esac
+cp -r $GOPATH/src/${GENERATED_PACKAGE}/* _generated
 
 # versioned clients generated to dedicated modules
 #yq eval -o=json .k8s_clients.versioned manifest.yaml | jq -c  '.[]?' | while read i; do
@@ -45,6 +42,6 @@ esac
 #done
 
 # restore code-generator to default
-pushd ./../_deps/github.com/kubernetes/code-generator
+pushd ./_deps/github.com/kubernetes/code-generator
   git checkout -f $DEFAULT_CLIENT_VERSION_TAG
 popd
