@@ -47,7 +47,7 @@ build:
     - *setup_aws
     - *create_builder
     - *harbor_login
-    - make docker TAG=$CI_COMMIT_SHA
+    - PKG_NAME=/builds/${REPOSITORY} make docker TAG=$CI_COMMIT_SHA
     - make publish TAG=$CI_COMMIT_SHA
 
 publish:

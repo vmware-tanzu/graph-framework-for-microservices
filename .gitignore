@@ -3,6 +3,7 @@ coverage*.out
 *.test
 
 cmd/nexus-sdk/nexus-sdk
+cmd/nexus-openapi-gen
 compiler.tar
 _generated
 
