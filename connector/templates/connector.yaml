@@ -4,20 +4,6 @@ metadata:
   name: connector-kubeconfig-local
   namespace: {{.Values.global.namespace}}
 data:
-  kubeconfig: |
-    current-context: localapiserver
-    apiVersion: v1
-    kind: Config
-    clusters:
-    - cluster:
-        api-version: v1
-        server: http://nexus-proxy-container:80
-        insecure-skip-tls-verify: true
-      name: localapiserver
-    contexts:
-    - context:
-        cluster: localapiserver
-      name: localapiserver
   connector-config: |
     dispatcher:
         workerTTL: "15s"
@@ -53,35 +39,26 @@ spec:
       labels:
         control-plane: connector
     spec:
-      initContainers:
-        - name: check-nexus-proxy-container
-          image: "gcr.io/mesh7-public-images/tools:latest"
-          command:
-            - /bin/bash
-            - -c
-            - |
-              #!/bin/bash
-              set -x
-              URL="http://nexus-proxy-container/api/v1/namespaces"
-              max_retries=20
-              counter=0
-              while [[ $counter -lt $max_retries ]]; do
-                    status=$(curl -s -o /dev/null -I -w "%{http_code}" -XGET $URL)
-                    if [ $status == "200" ]; then
-                        echo "$URL is reachable"
-                        exit 0
-                    else
-                        counter=$((counter +1))
-                        sleep 5
-                    fi
-              done
       containers:
-        -
-          image: {{.Values.global.registry}}/connector:{{.Values.global.connector.tag}}
+        - image: {{.Values.global.registry}}/connector:{{.Values.global.connector.tag}}
           name: connector
           env:
-            - name: KUBECONFIG
-              value: /config/kubeconfig
+            - name: DEPLOYMENT_NAME
+              value: connector
+            - name: REMOTE_ENDPOINT_HOST
+              value: {{ .Values.global.remoteEndpointHost }}
+            - name: REMOTE_ENDPOINT_PORT
+              value: "{{ .Values.global.remoteEndpointPort }}"
+            {{- if ne .Values.global.remoteEndpointCert "" }}
+            - name: REMOTE_ENDPOINT_CERT
+              value: {{ .Values.global.remoteEndpointCert }}
+            {{end}}
+            - name: STATUS_REPLICATION
+              value: {{ .Values.global.statusReplication }}
+            - name: SECRET_NS
+              value: {{.Values.global.namespace}}
+            - name: SECRET_NAME
+              value: controller-secret
           imagePullPolicy: IfNotPresent
           securityContext:
             allowPrivilegeEscalation: false
@@ -107,10 +84,15 @@ spec:
           volumeMounts:
             - mountPath: /config
               name: config
+            - mountPath: /etc/secret-volume
+              name: secret-volume
       volumes:
         - name: config
           configMap:
             name: connector-kubeconfig-local
+        - name: secret-volume
+          secret:
+            secretName: controller-secret
       {{if ne .Values.global.imagepullsecret "" }}
       imagePullSecrets:
       - name: {{ .Values.global.imagepullsecret }}
@@ -137,3 +119,72 @@ spec:
     targetPort: 443
   selector:
     control-plane: connector
+---
+apiVersion: v1
+data:
+  namespace: {{ .Values.global.namespace | b64enc }}
+  token: {{ .Values.global.Token | b64enc }}
+kind: Secret
+metadata:
+  name: controller-secret
+  namespace: {{.Values.global.namespace}}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: nexus-connector-role-{{.Values.global.namespace}}
+  namespace: {{ .Values.global.namespace }}
+rules:
+- apiGroups:
+  - "apps"
+  resources:
+  - "deployments"
+  verbs: 
+  - "*"
+- apiGroups:
+  - ""
+  resources:
+  - "configmaps"
+  - "services"
+  - "secrets"
+  verbs:
+  - "*"
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: nexus-connector-rb-{{.Values.global.namespace}}
+  namespace: {{.Values.global.namespace}}
+subjects:
+- kind: ServiceAccount
+  name: default 
+  namespace: {{.Values.global.namespace}}
+roleRef:
+  kind: Role
+  name: nexus-connector-role-{{.Values.global.namespace}}
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: nexus-connector-cr-{{.Values.global.namespace}}
+rules:
+  - apiGroups:
+      - '*'
+    resources:
+      - '*'
+    verbs:
+      - '*'
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: nexus-connector-crb-{{.Values.global.namespace}}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: nexus-connector-cr-{{.Values.global.namespace}}
+subjects:
+  - kind: ServiceAccount
+    name: default
+    namespace: default
