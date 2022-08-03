@@ -1,6 +1,7 @@
 package echo_server
 
 import (
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/common-library.git/pkg/nexus"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -11,7 +12,6 @@ import (
 
 	"api-gw/pkg/config"
 	"api-gw/pkg/model"
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/common-library.git/pkg/nexus"
 )
 
 var _ = Describe("Echo server tests", func() {
@@ -104,5 +104,62 @@ var _ = Describe("Echo server tests", func() {
 		err := putHandler(nc)
 		Expect(err).NotTo(HaveOccurred())
 		Expect(rec.Code).To(Equal(400))
+	})
+
+	It("should handle list query", func() {
+		restUri := nexus.RestURIs{
+			Uri:     "/leaders",
+			Methods: nexus.HTTPListResponse,
+		}
+		e.RegisterRouter(restUri)
+		model.ConstructMapCRDTypeToNode(model.Upsert, "leaders.orgchart.vmware.org", "management.Leader",
+			[]string{}, nil, true, "some description")
+		model.ConstructMapURIToCRDType(model.Upsert, "leaders.orgchart.vmware.org", []nexus.RestURIs{restUri})
+
+		req := httptest.NewRequest(http.MethodGet, "/leader", nil)
+		rec := httptest.NewRecorder()
+		c := e.Echo.NewContext(req, rec)
+		nc := &NexusContext{
+			NexusURI: "/leaders",
+			//Codes: nexus.DefaultHTTPMethodsResponses,
+			Context:   c,
+			CrdType:   "leaders.orgchart.vmware.org",
+			GroupName: "orgchart.vmware.org",
+			Resource:  "leaders",
+		}
+
+		err := listHandler(nc)
+		Expect(err).NotTo(HaveOccurred())
+		Expect(rec.Code).To(Equal(200))
+	})
+
+	It("should handle get query", func() {
+		restUri := nexus.RestURIs{
+			Uri:     "/leader/{management.Leader}",
+			Methods: nexus.HTTPListResponse,
+		}
+		e.RegisterRouter(restUri)
+		model.ConstructMapCRDTypeToNode(model.Upsert, "leaders.orgchart.vmware.org", "management.Leader",
+			[]string{}, nil, true, "some description")
+		model.ConstructMapURIToCRDType(model.Upsert, "leaders.orgchart.vmware.org", []nexus.RestURIs{restUri})
+
+		req := httptest.NewRequest(http.MethodGet, "/leader", nil)
+		rec := httptest.NewRecorder()
+		c := e.Echo.NewContext(req, rec)
+		c.SetPath("/leader/:management.Leader")
+		c.SetParamNames("management.Leader")
+		c.SetParamValues("default")
+		nc := &NexusContext{
+			NexusURI: "/leader/{management.Leader}",
+			//Codes: nexus.DefaultHTTPMethodsResponses,
+			Context:   c,
+			CrdType:   "leaders.orgchart.vmware.org",
+			GroupName: "orgchart.vmware.org",
+			Resource:  "leaders",
+		}
+
+		err := getHandler(nc)
+		Expect(err).NotTo(HaveOccurred())
+		Expect(rec.Code).To(Equal(200))
 	})
 })

@@ -4,6 +4,7 @@ import (
 	"api-gw/pkg/model"
 	"context"
 	"fmt"
+	k8sLabels "k8s.io/apimachinery/pkg/labels"
 	"net/http"
 	"strings"
 
@@ -28,14 +29,10 @@ func getHandler(c echo.Context) error {
 	crdName := model.UriToCRDType[nc.NexusURI]
 	crdInfo := model.CrdTypeToNodeInfo[crdName]
 
-	// List operation
-	list := true
-
 	// Get name from params
 	var name string
 	for _, param := range nc.ParamNames() {
 		if param == crdInfo.Name {
-			list = false
 			name = nc.Param(param)
 			if name == "" {
 				if val, ok := nc.Codes[http.StatusBadRequest]; ok {
@@ -50,7 +47,6 @@ func getHandler(c echo.Context) error {
 
 	// Get name from query params
 	if nc.QueryParams().Has(crdInfo.Name) {
-		list = false
 		name = nc.QueryParams().Get(crdInfo.Name)
 	}
 
@@ -66,30 +62,49 @@ func getHandler(c echo.Context) error {
 		Resource: parts[0],
 	}
 
-	var output interface{}
-	if list {
-		specs := make(map[string]interface{})
-		objs, err := client.Client.Resource(gvr).List(context.TODO(), metav1.ListOptions{})
-		if err != nil {
-			return handleClientError(nc, err)
-		}
-		for _, item := range objs.Items {
-			itemName := item.GetName()
-			if val, ok := item.GetLabels()["nexus/display_name"]; ok {
-				itemName = val
-			}
-			specs[itemName] = item.Object["spec"]
-		}
-		output = specs
-	} else {
-		obj, err := client.Client.Resource(gvr).Get(context.TODO(), hashedName, metav1.GetOptions{})
-		if err != nil {
-			return handleClientError(nc, err)
-		}
-		output = obj.Object["spec"]
+	obj, err := client.Client.Resource(gvr).Get(context.TODO(), hashedName, metav1.GetOptions{})
+	if err != nil {
+		return handleClientError(nc, err)
 	}
 
-	return nc.JSON(http.StatusOK, output)
+	return nc.JSON(http.StatusOK, obj.Object["spec"])
+}
+
+// listHandler is used to process GET list requests
+func listHandler(c echo.Context) error {
+	nc := c.(*NexusContext)
+	crdName := model.UriToCRDType[nc.NexusURI]
+	crdInfo := model.CrdTypeToNodeInfo[crdName]
+
+	labels := make(k8sLabels.Set)
+	for k, v := range parseLabels(nc, crdInfo.ParentHierarchy) {
+		labels[k] = v
+	}
+
+	// Setup GroupVersionResource
+	parts := strings.Split(crdName, ".")
+	gvr := schema.GroupVersionResource{
+		Group:    strings.Join(parts[1:], "."),
+		Version:  "v1",
+		Resource: parts[0],
+	}
+
+	specs := make(map[string]interface{})
+	objs, err := client.Client.Resource(gvr).List(context.TODO(), metav1.ListOptions{
+		LabelSelector: labels.AsSelector().String(),
+	})
+	if err != nil {
+		return handleClientError(nc, err)
+	}
+	for _, item := range objs.Items {
+		itemName := item.GetName()
+		if val, ok := item.GetLabels()["nexus/display_name"]; ok {
+			itemName = val
+		}
+		specs[itemName] = item.Object["spec"]
+	}
+
+	return nc.JSON(http.StatusOK, specs)
 }
 
 // putHandler is used to process PUT requests

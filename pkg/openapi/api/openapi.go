@@ -74,6 +74,18 @@ func AddPath(uri nexus.RestURIs) {
 		nameParts := strings.Split(crdInfo.Name, ".")
 
 		switch method {
+		case "LIST":
+			operation := &openapi3.Operation{
+				OperationID: opId,
+				Tags:        []string{nameParts[1]},
+				Parameters:  params,
+				Responses: openapi3.Responses{
+					"200": &openapi3.ResponseRef{
+						Ref: "#/components/responses/List" + crdInfo.Name,
+					},
+				},
+			}
+			pathItem.Get = operation
 		case http.MethodGet:
 			operation := &openapi3.Operation{
 				OperationID: opId,
@@ -84,19 +96,6 @@ func AddPath(uri nexus.RestURIs) {
 						Ref: "#/components/responses/Get" + crdInfo.Name,
 					},
 				},
-			}
-
-			if len(params) == 0 {
-				operation = &openapi3.Operation{
-					OperationID: opId,
-					Tags:        []string{nameParts[1]},
-					Parameters:  params,
-					Responses: openapi3.Responses{
-						"200": &openapi3.ResponseRef{
-							Ref: "#/components/responses/List" + crdInfo.Name,
-						},
-					},
-				}
 			}
 			pathItem.Get = operation
 		case http.MethodPut:
@@ -215,10 +214,6 @@ func parseFields(jsonSchema *openapi3.Schema, specProps map[string]v1.JSONSchema
 func parseUriParams(uri string, hierarchy []string) (parameters []*openapi3.ParameterRef) {
 	r := regexp.MustCompile(`{([^{}]+)}`)
 	params := r.FindAllStringSubmatch(uri, -1)
-	// If there are no params in URI then it's a list
-	if len(params) == 0 {
-		return
-	}
 
 	for _, param := range params {
 		description := "Name of the " + param[1] + " node"
@@ -249,6 +244,7 @@ func parseUriParams(uri string, hierarchy []string) (parameters []*openapi3.Para
 		} else {
 			description = "Name of the " + crdInfo.Name + " node"
 		}
+
 		if !paramExist(crdInfo.Name, params) {
 			parameters = append(parameters, &openapi3.ParameterRef{
 				Value: openapi3.NewQueryParameter(crdInfo.Name).
