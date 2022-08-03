@@ -29,21 +29,31 @@ var BarCustomMethodsResponses = nexus.HTTPMethodsResponses{
 var GNSRestAPISpec = nexus.RestAPISpec{
 	Uris: []nexus.RestURIs{
 		{
-			Uri:     "/v1alpha2/global-namespace/{gns.Gns}",
+			Uri: "/v1alpha2/global-namespace/{gns.Gns}",
+			QueryParams: []string{
+				"config.Config",
+			},
 			Methods: nexus.DefaultHTTPMethodsResponses,
 		},
 		{
 			Uri: "/v1alpha2/global-namespaces",
-			Methods: nexus.HTTPMethodsResponses{
-				http.MethodGet: nexus.DefaultHTTPGETResponses,
+			QueryParams: []string{
+				"config.Config",
 			},
+			Methods: nexus.HTTPListResponse,
 		},
 		{
-			Uri:     "/test-foo",
+			Uri: "/test-foo",
+			QueryParams: []string{
+				"config.Config",
+			},
 			Methods: FooCustomMethodsResponses,
 		},
 		{
-			Uri:     "/test-bar",
+			Uri: "/test-bar",
+			QueryParams: []string{
+				"config.Config",
+			},
 			Methods: BarCustomMethodsResponses,
 		},
 	},
@@ -52,14 +62,19 @@ var GNSRestAPISpec = nexus.RestAPISpec{
 var DNSRestAPISpec = nexus.RestAPISpec{
 	Uris: []nexus.RestURIs{
 		{
-			Uri:     "/v1alpha2/dns/{gns.Dns}",
+			Uri: "/v1alpha2/dns",
+			QueryParams: []string{
+				"config.Config",
+				"gns.Dns",
+			},
 			Methods: nexus.DefaultHTTPMethodsResponses,
 		},
 		{
 			Uri: "/v1alpha2/dnses",
-			Methods: nexus.HTTPMethodsResponses{
-				http.MethodGet: nexus.DefaultHTTPGETResponses,
+			QueryParams: []string{
+				"config.Config",
 			},
+			Methods: nexus.HTTPListResponse,
 		},
 	},
 }

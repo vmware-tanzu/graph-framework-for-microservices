@@ -362,6 +362,7 @@ func RenderCRDBaseTemplate(baseGroupName string, pkg parser.Package, parentsMap 
 
 		if annotation, ok := parser.GetNexusRestAPIGenAnnotation(pkg, typeName); ok {
 			nexusAnnotation.NexusRestAPIGen = restAPISpecMap[annotation]
+			rest.ValidateRestApiSpec(restAPISpecMap[annotation], parentsMap, crdName)
 		}
 		if annotation, ok := parser.GetNexusDescriptionAnnotation(pkg, typeName); ok {
 			nexusAnnotation.Description = annotation
