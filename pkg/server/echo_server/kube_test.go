@@ -35,6 +35,11 @@ var _ = Describe("Kube tests", func() {
 				Version:  "v1",
 				Resource: "roots",
 			}: "RootList",
+			schema.GroupVersionResource{
+				Group:    "orgchart.vmware.org",
+				Version:  "v1",
+				Resource: "leaders",
+			}: "LeaderList",
 		})
 
 		//fakeClient = k8sFake.NewSimpleClientset()

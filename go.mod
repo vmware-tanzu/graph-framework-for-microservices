@@ -13,7 +13,6 @@ require (
 	github.com/onsi/ginkgo v1.16.5
 	github.com/onsi/gomega v1.17.0
 	github.com/sirupsen/logrus v1.8.1
-	gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/common-library.git v0.0.0-20220428125452-2c6c391ae872
 	golang.org/x/oauth2 v0.0.0-20220524215830-622c5d57e401
 	gopkg.in/yaml.v2 v2.4.0
 	k8s.io/apiextensions-apiserver v0.23.0
@@ -24,8 +23,10 @@ require (
 
 require (
 	github.com/envoyproxy/go-control-plane v0.10.2-0.20220617004635-b54d66c55170
+	github.com/ghodss/yaml v1.0.0
 	github.com/golang/protobuf v1.5.2
-	golang-appnet.eng.vmware.com/nexus-sdk/api v0.0.8-0.20220707060117-3733f5ad86d6
+	gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/common-library.git v0.0.0-20220726103338-a90f24e3da64
+	golang-appnet.eng.vmware.com/nexus-sdk/api v0.0.8
 	google.golang.org/grpc v1.45.0
 	google.golang.org/protobuf v1.28.0
 	k8s.io/api v0.24.1
@@ -54,7 +55,6 @@ require (
 	github.com/evanphx/json-patch v4.12.0+incompatible // indirect
 	github.com/form3tech-oss/jwt-go v3.2.3+incompatible // indirect
 	github.com/fsnotify/fsnotify v1.5.1 // indirect
-	github.com/ghodss/yaml v1.0.0 // indirect
 	github.com/go-logr/logr v1.2.0 // indirect
 	github.com/go-logr/zapr v1.2.0 // indirect
 	github.com/go-openapi/analysis v0.21.2 // indirect

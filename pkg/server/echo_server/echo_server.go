@@ -129,6 +129,12 @@ func (s *EchoServer) RegisterRouter(restURI nexus.RestURIs) {
 		switch method {
 		// in "admin" mode, the responsibility of authentication is offloaded to the nexus-proxy.
 		// so we don't need to add the authn.VerifyAuthenticationMiddleware middleware
+		case "LIST":
+			if common.IsModeAdmin() {
+				s.Echo.GET(urlPattern, listHandler, getNexusContext(restURI, codes))
+			} else {
+				s.Echo.GET(urlPattern, listHandler, authn.VerifyAuthenticationMiddleware, getNexusContext(restURI, codes))
+			}
 		case http.MethodGet:
 			if common.IsModeAdmin() {
 				s.Echo.GET(urlPattern, getHandler, getNexusContext(restURI, codes))
