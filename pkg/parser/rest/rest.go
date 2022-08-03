@@ -13,6 +13,7 @@ var HttpCodesResponsesMap = map[string]nexus.HTTPCodesResponse{
 
 var HttpMethodsResponsesMap = map[string]nexus.HTTPMethodsResponses{
 	"DefaultHTTPMethodsResponses": nexus.DefaultHTTPMethodsResponses,
+	"HTTPListResponse":            nexus.HTTPListResponse,
 }
 
 func ParseResponses(pkgs parser.Packages) (map[string]nexus.HTTPMethodsResponses, map[string]nexus.HTTPCodesResponse) {

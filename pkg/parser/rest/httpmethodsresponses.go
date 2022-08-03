@@ -18,6 +18,7 @@ var httpMethods = map[string]string{
 	"MethodConnect": "CONNECT",
 	"MethodOptions": "OPTIONS",
 	"MethodTrace":   "TRACE",
+	"LIST":          "LIST",
 }
 
 func GetHttpMethodsResponses(p parser.Package, responsesMap map[string]nexus.HTTPMethodsResponses, httpCodes map[string]nexus.HTTPCodesResponse) map[string]nexus.HTTPMethodsResponses {

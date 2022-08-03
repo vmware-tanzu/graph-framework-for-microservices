@@ -164,10 +164,11 @@ func CreateParentsMap(graph map[string]Node) map[string]NodeHelper {
 				log.Fatalf("Internal compiler failure: Failed to determine crd name of node %v", node)
 			}
 			parents[node.CrdName] = NodeHelper{
-				Name:     node.Name,
-				RestName: fmt.Sprintf("%s.%s", node.PkgName, node.Name),
-				Parents:  node.Parents,
-				Children: children,
+				Name:        node.Name,
+				RestName:    fmt.Sprintf("%s.%s", node.PkgName, node.Name),
+				Parents:     node.Parents,
+				Children:    children,
+				IsSingleton: node.IsSingleton,
 			}
 		})
 	}

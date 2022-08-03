@@ -33,7 +33,6 @@ func GetRestApiSpecs(p parser.Package, httpMethods map[string]nexus.HTTPMethodsR
 
 						for _, uri := range uris.Value.(*ast.CompositeLit).Elts {
 							restUri := extractApiSpecRestURI(uri.(*ast.CompositeLit), httpMethods, httpCodes)
-							validateUri(restUri, parentsMap)
 							apiSpec.Uris = append(apiSpec.Uris, restUri)
 						}
 					}
@@ -59,6 +58,8 @@ func extractApiSpecRestURI(uri *ast.CompositeLit, httpMethods map[string]nexus.H
 				log.Errorf("Error %v", err)
 			}
 			restUri.Uri = key
+		case "QueryParams":
+			restUri.QueryParams = extractApiSpecQueryParams(kv)
 		case "Methods":
 			restUri.Methods = extractApiSpecMethods(kv, httpMethods, httpCodes)
 		}
@@ -86,22 +87,77 @@ func extractApiSpecMethods(methods *ast.KeyValueExpr, httpMethods map[string]nex
 	return nil
 }
 
-func validateUri(uri nexus.RestURIs, parentsMap map[string]parser.NodeHelper) {
-	r := regexp.MustCompile(`{([^{}]+)}`)
-	params := r.FindAllStringSubmatch(uri.Uri, -1)
+func extractApiSpecQueryParams(kv *ast.KeyValueExpr) []string {
+	var params []string
+	switch val := kv.Value.(type) {
+	case *ast.CompositeLit:
+		for _, v := range val.Elts {
+			lit := v.(*ast.BasicLit)
 
-	for _, param := range params {
-		if !nodeExist(param[1], parentsMap) {
-			log.Fatalf("RestApiSpec: Provided node name (%s) not found for uri: %s", param[1], uri.Uri)
+			param, err := strconv.Unquote(lit.Value)
+			if err != nil {
+				log.Errorf("Error %v", err)
+			}
+			params = append(params, param)
+		}
+	}
+	return params
+}
+
+func ValidateRestApiSpec(apiSpec nexus.RestAPISpec, parentsMap map[string]parser.NodeHelper, crdName string) {
+	r := regexp.MustCompile(`{([^{}]+)}`)
+	crdHelper := parentsMap[crdName]
+
+	for _, uri := range apiSpec.Uris {
+		uriParams := r.FindAllStringSubmatch(uri.Uri, -1)
+
+		if _, ok := uri.Methods["LIST"]; ok {
+			if nodeExist(crdHelper.RestName, uriParams) || queryParamExist(crdHelper.RestName, uri.QueryParams) {
+				log.Fatalf("RestApiSpec: Provided node name (%s) cannot be applied as a param because endpoint is a list. URI: %s", crdHelper.RestName, uri.Uri)
+			}
+		}
+
+		// Check if node name is in both URI and Query param
+		// We are ignoring checking for node in URL because endpoint can be a list, and then we don't need this param
+		if nodeExist(crdHelper.RestName, uriParams) && queryParamExist(crdHelper.RestName, uri.QueryParams) {
+			log.Fatalf("RestApiSpec: Provided node name (%s) cannot be applied to both URI Param and Query Param. URI: %s", crdHelper.RestName, uri.Uri)
+		}
+
+		for _, parentCrd := range crdHelper.Parents {
+			parentCrdHelper := parentsMap[parentCrd]
+			parentName := parentCrdHelper.RestName
+
+			if parentCrdHelper.IsSingleton {
+				continue
+			}
+
+			if nodeExist(parentName, uriParams) && queryParamExist(parentName, uri.QueryParams) {
+				log.Fatalf("RestApiSpec: Provided node name (%s) cannot be applied to both URI Param and Query Param. URI: %s", parentName, uri.Uri)
+			}
+
+			if !nodeExist(parentName, uriParams) && !queryParamExist(parentName, uri.QueryParams) {
+				log.Fatalf("RestApiSpec: Provided node name (%s) not found for uri: %s", parentName, uri.Uri)
+			}
 		}
 	}
 }
 
-func nodeExist(name string, parentsMap map[string]parser.NodeHelper) bool {
-	for _, p := range parentsMap {
-		if p.RestName == name {
+func nodeExist(name string, params [][]string) bool {
+	for _, p := range params {
+		if p[1] == name {
 			return true
 		}
 	}
+
+	return false
+}
+
+func queryParamExist(name string, params []string) bool {
+	for _, p := range params {
+		if p == name {
+			return true
+		}
+	}
+
 	return false
 }

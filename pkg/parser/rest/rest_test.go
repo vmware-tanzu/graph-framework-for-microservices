@@ -3,6 +3,8 @@ package rest_test
 import (
 	"net/http"
 
+	log "github.com/sirupsen/logrus"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/common-library.git/pkg/nexus"
@@ -59,14 +61,14 @@ var _ = Describe("Rest tests", func() {
 		expectedDnsApiSpec := nexus.RestAPISpec{
 			Uris: []nexus.RestURIs{
 				{
-					Uri:     "/v1alpha2/dns/{gns.Dns}",
-					Methods: nexus.DefaultHTTPMethodsResponses,
+					Uri:         "/v1alpha2/dns",
+					QueryParams: []string{"config.Config", "gns.Dns"},
+					Methods:     nexus.DefaultHTTPMethodsResponses,
 				},
 				{
-					Uri: "/v1alpha2/dnses",
-					Methods: nexus.HTTPMethodsResponses{
-						http.MethodGet: nexus.DefaultHTTPGETResponses,
-					},
+					Uri:         "/v1alpha2/dnses",
+					QueryParams: []string{"config.Config"},
+					Methods:     nexus.HTTPListResponse,
 				},
 			},
 		}
@@ -74,5 +76,51 @@ var _ = Describe("Rest tests", func() {
 		dnsRestApiSpec, ok := apiSpecs["DNSRestAPISpec"]
 		Expect(ok).To(BeTrue())
 		Expect(dnsRestApiSpec).To(Equal(expectedDnsApiSpec))
+	})
+
+	It("should validate RestAPISpec for list endpoint", func() {
+		defer func() { log.StandardLogger().ExitFunc = nil }()
+
+		fail := false
+		log.StandardLogger().ExitFunc = func(int) {
+			fail = true
+		}
+
+		restApiSpec := nexus.RestAPISpec{
+			Uris: []nexus.RestURIs{
+				{
+					Uri: "/v1alpha2/dnses",
+					QueryParams: []string{
+						"config.Config",
+					},
+					Methods: nexus.HTTPListResponse,
+				},
+			},
+		}
+		rest.ValidateRestApiSpec(restApiSpec, parentsMap, "dnses.gns.tsm.tanzu.vmware.com")
+		Expect(fail).To(BeFalse())
+	})
+
+	It("should fail validation of RestAPISpec for list endpoint with node name in URI", func() {
+		defer func() { log.StandardLogger().ExitFunc = nil }()
+
+		fail := false
+		log.StandardLogger().ExitFunc = func(int) {
+			fail = true
+		}
+
+		restApiSpec := nexus.RestAPISpec{
+			Uris: []nexus.RestURIs{
+				{
+					Uri: "/v1alpha2/dnses/{gns.Dns}",
+					QueryParams: []string{
+						"config.Config",
+					},
+					Methods: nexus.HTTPListResponse,
+				},
+			},
+		}
+		rest.ValidateRestApiSpec(restApiSpec, parentsMap, "dnses.gns.tsm.tanzu.vmware.com")
+		Expect(fail).To(BeTrue())
 	})
 })
