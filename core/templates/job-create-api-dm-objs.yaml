@@ -40,7 +40,24 @@ spec:
             - "-c"
             - |
               set -e
-              
+              function create_object() {
+                FILE=$1
+                RETRY=4
+                ATTEMPT=0
+                while [ $ATTEMPT -ne $RETRY ]; do
+                if ! cat $FILE | kubectl apply -f -; then
+                   ATTEMPT=$((ATTEMPT + 1))
+                   if [ $ATTEMPT -ne $RETRY ]; then
+                      sleep 2
+                   else
+                      exit 1
+                   fi
+                else
+                   break
+                fi
+                done
+              }
+
               echo 'waiting for api-gw to be ready'
               until $(curl --output /dev/null --silent --head --fail http://nexus-api-gw/readyz); do
                 echo '.'
@@ -55,17 +72,18 @@ spec:
 
               if ! kubectl get nexuses.api.nexus.org -l nexus/display_name=default -o=jsonpath='{.items[0]}' > /dev/null 2>&1 ; then
                 echo 'creating Nexus node'
-                kubectl apply -f -<<EOF
+                cat > /tmp/object <<EOF
                 apiVersion: api.nexus.org/v1
                 kind: Nexus
                 metadata:
                   name: default
               EOF
+                create_object /tmp/object
               fi
 
               if ! kubectl get configs.config.nexus.org -l nexus/display_name=default -o=jsonpath='{.items[0]}' > /dev/null 2>&1 ; then
                 echo 'creating Config node'
-                kubectl apply -f -<<EOF
+                cat > /tmp/object <<EOF
                 apiVersion: config.nexus.org/v1
                 kind: Config
                 metadata:
@@ -73,11 +91,12 @@ spec:
                   labels:
                     nexuses.api.nexus.org: default
               EOF
+              create_object /tmp/object
               fi
 
               if ! kubectl get apigateways.apigateway.nexus.org -l nexus/display_name=default -o=jsonpath='{.items[0]}' > /dev/null 2>&1 ; then
                 echo 'creating ApiGateway node'
-                kubectl apply -f -<<EOF
+                cat > /tmp/object <<EOF
                 apiVersion: apigateway.nexus.org/v1
                 kind: ApiGateway
                 metadata:
@@ -86,11 +105,12 @@ spec:
                     nexuses.api.nexus.org: default
                     configs.config.nexus.org: default
               EOF
+              create_object /tmp/object
               fi
 
               if ! kubectl get crds datamodels.nexus.org > /dev/null 2>&1 ; then
                 echo 'creating Datamodel CRD type'
-                kubectl apply -f - << EOF
+                cat > /tmp/object <<EOF
                   apiVersion: apiextensions.k8s.io/v1
                   kind: CustomResourceDefinition
                   metadata:
@@ -130,6 +150,7 @@ spec:
                       served: true
                       storage: true
               EOF
+              create_object /tmp/object
               fi
           env:
             - name: KUBECONFIG
