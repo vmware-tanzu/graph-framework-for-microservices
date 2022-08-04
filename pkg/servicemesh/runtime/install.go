@@ -8,6 +8,7 @@ import (
 	"os/exec"
 	"strings"
 	"text/template"
+	"time"
 
 	"github.com/spf13/cobra"
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/common"
@@ -158,7 +159,7 @@ func HelmInstall(cmd *cobra.Command, args []string) error {
 		}
 	}
 	var Args []string
-	Args = []string{"upgrade", "--install", Namespace, "/chart.tgz", cmdlineArgs, "--wait", "--wait-for-jobs", "--timeout=10m"}
+	Args = []string{"upgrade", "--install", Namespace, "/chart.tgz", cmdlineArgs, "--wait", "--wait-for-jobs", "--timeout=15m"}
 
 	var IsImagePullSecret bool = false
 	if ImagePullSecret != "" {
@@ -179,7 +180,6 @@ func HelmInstall(cmd *cobra.Command, args []string) error {
 	yamlFile, err := common.RuntimeTemplate.ReadFile("runtime_installer.yaml")
 	if err != nil {
 		return fmt.Errorf("error while reading version yamlFile %v", err)
-
 	}
 
 	tmpl, err := template.New("template").Parse(strings.TrimLeft(string(yamlFile), "'"))
@@ -189,7 +189,9 @@ func HelmInstall(cmd *cobra.Command, args []string) error {
 	var applyString bytes.Buffer
 	tmpl.Execute(&applyString, InstallerData)
 
+	fmt.Printf("Install job starting at %s\n", time.Now())
 	err = RunJob(Namespace, InstallerData.RuntimeInstaller.Name, applyString)
+	fmt.Printf("Install job ended at %s\n", time.Now())
 	if err != nil {
 		return err
 	}
