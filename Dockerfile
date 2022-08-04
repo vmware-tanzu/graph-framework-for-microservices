@@ -2,6 +2,7 @@ ARG BUILDER_TAG
 
 FROM nexus/compiler-builder:$BUILDER_TAG
 ADD compiler.tar /go/src/gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git
+ADD cmd/nexus-openapi-gen /go/bin/nexus-openapi-gen
 
 WORKDIR /go/src/gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git
 RUN make init_submodules

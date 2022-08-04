@@ -18,6 +18,8 @@ DATAMODEL_PATH ?= datamodel
 CONFIG_FILE ?= ""
 GENERATED_OUTPUT_DIRECTORY ?= generated
 
+NEXUS_KUBEOPENAPI_VERSION ?= 7416bd4754d3c0dd8b3fa37fff53d36594f11607
+
 ifeq ($(CONTAINER_ID),)
 define run_in_container
   docker run \
@@ -33,6 +35,7 @@ define run_in_container
  --volumes-from ${CONTAINER_ID} \
  --workdir ${PKG_NAME} \
  --env CICD_TOKEN=${CICD_TOKEN} \
+ --env PKG_NAME=${PKG_NAME} \
  "${BUILDER_NAME}:${BUILDER_TAG}" /bin/bash -c "make docker.gitlab_credentials && ${1}"
 endef
 endif
@@ -46,7 +49,7 @@ docker.builder:
 	docker build --no-cache -t ${BUILDER_NAME}:${BUILDER_TAG} builder/
 
 .PHONY: docker
-docker: init_submodules ${BUILDER_NAME}\:${BUILDER_TAG}.image.exists
+docker: init_submodules ${BUILDER_NAME}\:${BUILDER_TAG}.image.exists build_openapigen_in_container
 	git archive -o compiler.tar --format=tar HEAD
 	tar -rf compiler.tar .git
 	docker build --no-cache \
@@ -68,7 +71,15 @@ tools:
 	go install github.com/onsi/gomega/...@v1.17.0
 	go install golang.org/x/tools/cmd/goimports@latest
 	go install github.com/mikefarah/yq/v4@latest
-	go install gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git/cmd/nexus-openapi-gen@latest
+	go install gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git/cmd/nexus-openapi-gen@${NEXUS_KUBEOPENAPI_VERSION}
+
+.PHONY: build_openapigen_in_container
+build_openapigen_in_container:
+	$(call run_in_container,make build_openapigen)
+
+.PHONY: build_openapigen
+build_openapigen:
+	GOBIN=${PKG_NAME}/cmd go install gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git/cmd/nexus-openapi-gen@${NEXUS_KUBEOPENAPI_VERSION}
 
 .PHONY: unit-test
 unit-test:
@@ -117,7 +128,6 @@ generate_code:
 	echo "Generating kuberenetes APIs"
 	./scripts/generate_k8s_api.sh
 	echo "Generating openapi schema"
-	go install gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git/cmd/nexus-openapi-gen@latest
 	cd _generated/ && go mod tidy -e
 	./scripts/generate_openapi_schema.sh
 	echo "Generating CRD yamls"
@@ -132,7 +142,8 @@ generate_code:
 
 .PHONY: test_generate_code_in_container
 test_generate_code_in_container: ${BUILDER_NAME}\:${BUILDER_TAG}.image.exists init_submodules
-	$(call run_in_container, make generate_code DATAMODEL_PATH=example/datamodel \
+	$(call run_in_container, go install gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git/cmd/nexus-openapi-gen@${NEXUS_KUBEOPENAPI_VERSION} && \
+	make generate_code DATAMODEL_PATH=example/datamodel \
 	CONFIG_FILE=example/nexus-sdk.yaml \
 	CRD_MODULE_PATH="gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/crd_generated/" \
 	GENERATED_OUTPUT_DIRECTORY=example/output/crd_generated && \
