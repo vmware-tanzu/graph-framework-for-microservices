@@ -230,7 +230,7 @@ func RunJob(Namespace, jobName string, applyString bytes.Buffer) error {
 		return fmt.Errorf("Could not apply the installation job: %s on %s", jobName, Namespace)
 	}
 
-	err := exec.Command("kubectl", "wait", "--for=condition=complete", fmt.Sprintf("job/%s", jobName), "--timeout=10m", "-n", Namespace).Run()
+	err := exec.Command("kubectl", "wait", "--for=condition=complete", fmt.Sprintf("job/%s", jobName), "--timeout=15m", "-n", Namespace).Run()
 	if err != nil {
 		// dump some info to debug
 		log.Debugf("Pod Status")
