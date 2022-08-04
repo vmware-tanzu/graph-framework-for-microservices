@@ -14,6 +14,6 @@ case $PWD/ in
     cp $GOPATH/src/gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/pkg/openapi_generator/openapi/openapi_generated.go ../pkg/openapi_generator/openapi/;;
 esac
 
-sed -i "s|github.com/go-openapi/spec|gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git/pkg/validation/spec|" ../pkg/openapi_generator/openapi/openapi_generated.go
-sed -i "s|k8s.io/kube-openapi/pkg/common|gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git/pkg/common|" ../pkg/openapi_generator/openapi/openapi_generated.go
+sed -i'.bak' -e "s|github.com/go-openapi/spec|gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git/pkg/validation/spec|" ../pkg/openapi_generator/openapi/openapi_generated.go
+sed -i'.bak' -e "s|k8s.io/kube-openapi/pkg/common|gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git/pkg/common|" ../pkg/openapi_generator/openapi/openapi_generated.go
 popd

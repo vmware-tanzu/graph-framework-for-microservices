@@ -119,7 +119,7 @@ generate_code:
 	rm -rf _generated ${GOPATH}/nexustempmodule
 	cp -R generated_base_structure _generated
 	cp ${DATAMODEL_PATH}/go.mod _generated/go.mod
-	sed -i "1s|.*|module nexustempmodule|" _generated/go.mod
+	sed -i'.bak' -e "1s|.*|module nexustempmodule|" _generated/go.mod
 	echo "Generating base nexus code structure"
 	CRD_MODULE_PATH=${CRD_MODULE_PATH} go run cmd/nexus-sdk/main.go -config-file ${CONFIG_FILE} -dsl ${DATAMODEL_PATH} -crd-output _generated
 	mv _generated/api_names.sh scripts/
@@ -135,6 +135,7 @@ generate_code:
 	git checkout -- pkg/openapi_generator/openapi/openapi_generated.go
 	echo "Updating module name"
 	./scripts/replace_mod_path.sh
+	find . -name "*.bak" -type f -delete
 	echo "Sorting imports"
 	cd _generated && goimports -w .
 	echo "Moving files to output directory"

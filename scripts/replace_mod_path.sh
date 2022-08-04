@@ -4,9 +4,9 @@ set -e
 
 GENERATED_PACKAGE="nexustempmodule"
 
-if [[ -v CRD_MODULE_PATH ]]; then
+if [[ -n "$CRD_MODULE_PATH" ]]; then
   pushd _generated
   echo "Update import paths with user's CRD module path..."
-  find \( -type d -name .git -prune \) -o -type f -print0 | xargs -0 sed -i "s|${GENERATED_PACKAGE}/|${CRD_MODULE_PATH}|g"
+  find ./ \( -type d -name .git -prune \) -o -type f -print0 | xargs -0 sed -i'.bak' -e "s|${GENERATED_PACKAGE}/|${CRD_MODULE_PATH}|g"
   popd
 fi
