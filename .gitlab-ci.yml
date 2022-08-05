@@ -58,7 +58,7 @@ publish:
     - *setup_aws
     - *create_builder
     - *harbor_login
-    - make docker TAG=$CI_COMMIT_TAG
+    - PKG_NAME=/builds/${REPOSITORY} make docker TAG=$CI_COMMIT_TAG
     - make publish TAG=$CI_COMMIT_TAG
 
 coverage:
