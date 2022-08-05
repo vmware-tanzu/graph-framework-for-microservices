@@ -246,12 +246,11 @@ func (group *RootTsmV1) UpdateRootByName(ctx context.Context,
 	}
 
 	var patch Patch
-	patchOpMeta := PatchOp{
+	patch = append(patch, PatchOp{
 		Op:    "replace",
 		Path:  "/metadata",
 		Value: objToUpdate.ObjectMeta,
-	}
-	patch = append(patch, patchOpMeta)
+	})
 
 	marshaled, err := patch.Marshal()
 	if err != nil {
@@ -638,12 +637,11 @@ func (group *ConfigTsmV1) UpdateConfigByName(ctx context.Context,
 	}
 
 	var patch Patch
-	patchOpMeta := PatchOp{
+	patch = append(patch, PatchOp{
 		Op:    "replace",
 		Path:  "/metadata",
 		Value: objToUpdate.ObjectMeta,
-	}
-	patch = append(patch, patchOpMeta)
+	})
 
 	patchValueMyStr0 :=
 		objToUpdate.Spec.MyStr0
@@ -1239,12 +1237,11 @@ func (group *GnsTsmV1) UpdateRandomGnsDataByName(ctx context.Context,
 	}
 
 	var patch Patch
-	patchOpMeta := PatchOp{
+	patch = append(patch, PatchOp{
 		Op:    "replace",
 		Path:  "/metadata",
 		Value: objToUpdate.ObjectMeta,
-	}
-	patch = append(patch, patchOpMeta)
+	})
 
 	patchValueDescription :=
 		objToUpdate.Spec.Description
@@ -1619,12 +1616,11 @@ func (group *GnsTsmV1) UpdateGnsByName(ctx context.Context,
 	}
 
 	var patch Patch
-	patchOpMeta := PatchOp{
+	patch = append(patch, PatchOp{
 		Op:    "replace",
 		Path:  "/metadata",
 		Value: objToUpdate.ObjectMeta,
-	}
-	patch = append(patch, patchOpMeta)
+	})
 
 	patchValueDomain :=
 		objToUpdate.Spec.Domain
@@ -1652,6 +1648,15 @@ func (group *GnsTsmV1) UpdateGnsByName(ctx context.Context,
 		Value: patchValueDescription,
 	}
 	patch = append(patch, patchOpDescription)
+
+	patchValueMeta :=
+		objToUpdate.Spec.Meta
+	patchOpMeta := PatchOp{
+		Op:    "replace",
+		Path:  "/spec/meta",
+		Value: patchValueMeta,
+	}
+	patch = append(patch, patchOpMeta)
 
 	patchValueWorkloadSpec :=
 		objToUpdate.Spec.WorkloadSpec
@@ -2220,12 +2225,11 @@ func (group *GnsTsmV1) UpdateDnsByName(ctx context.Context,
 	}
 
 	var patch Patch
-	patchOpMeta := PatchOp{
+	patch = append(patch, PatchOp{
 		Op:    "replace",
 		Path:  "/metadata",
 		Value: objToUpdate.ObjectMeta,
-	}
-	patch = append(patch, patchOpMeta)
+	})
 
 	marshaled, err := patch.Marshal()
 	if err != nil {
@@ -2406,12 +2410,11 @@ func (group *GnsTsmV1) UpdateAdditionalGnsDataByName(ctx context.Context,
 	}
 
 	var patch Patch
-	patchOpMeta := PatchOp{
+	patch = append(patch, PatchOp{
 		Op:    "replace",
 		Path:  "/metadata",
 		Value: objToUpdate.ObjectMeta,
-	}
-	patch = append(patch, patchOpMeta)
+	})
 
 	patchValueDescription :=
 		objToUpdate.Spec.Description
@@ -2715,12 +2718,11 @@ func (group *ServicegroupTsmV1) UpdateSvcGroupByName(ctx context.Context,
 	}
 
 	var patch Patch
-	patchOpMeta := PatchOp{
+	patch = append(patch, PatchOp{
 		Op:    "replace",
 		Path:  "/metadata",
 		Value: objToUpdate.ObjectMeta,
-	}
-	patch = append(patch, patchOpMeta)
+	})
 
 	patchValueDisplayName :=
 		objToUpdate.Spec.DisplayName
@@ -2928,12 +2930,11 @@ func (group *PolicypkgTsmV1) UpdateAdditionalPolicyDataByName(ctx context.Contex
 	}
 
 	var patch Patch
-	patchOpMeta := PatchOp{
+	patch = append(patch, PatchOp{
 		Op:    "replace",
 		Path:  "/metadata",
 		Value: objToUpdate.ObjectMeta,
-	}
-	patch = append(patch, patchOpMeta)
+	})
 
 	patchValueDescription :=
 		objToUpdate.Spec.Description
@@ -3261,12 +3262,11 @@ func (group *PolicypkgTsmV1) UpdateAccessControlPolicyByName(ctx context.Context
 	}
 
 	var patch Patch
-	patchOpMeta := PatchOp{
+	patch = append(patch, PatchOp{
 		Op:    "replace",
 		Path:  "/metadata",
 		Value: objToUpdate.ObjectMeta,
-	}
-	patch = append(patch, patchOpMeta)
+	})
 
 	marshaled, err := patch.Marshal()
 	if err != nil {
@@ -3620,12 +3620,11 @@ func (group *PolicypkgTsmV1) UpdateACPConfigByName(ctx context.Context,
 	}
 
 	var patch Patch
-	patchOpMeta := PatchOp{
+	patch = append(patch, PatchOp{
 		Op:    "replace",
 		Path:  "/metadata",
 		Value: objToUpdate.ObjectMeta,
-	}
-	patch = append(patch, patchOpMeta)
+	})
 
 	patchValueDisplayName :=
 		objToUpdate.Spec.DisplayName
@@ -4080,12 +4079,11 @@ func (group *PolicypkgTsmV1) UpdateVMpolicyByName(ctx context.Context,
 	}
 
 	var patch Patch
-	patchOpMeta := PatchOp{
+	patch = append(patch, PatchOp{
 		Op:    "replace",
 		Path:  "/metadata",
 		Value: objToUpdate.ObjectMeta,
-	}
-	patch = append(patch, patchOpMeta)
+	})
 
 	marshaled, err := patch.Marshal()
 	if err != nil {
@@ -4266,12 +4264,11 @@ func (group *PolicypkgTsmV1) UpdateRandomPolicyDataByName(ctx context.Context,
 	}
 
 	var patch Patch
-	patchOpMeta := PatchOp{
+	patch = append(patch, PatchOp{
 		Op:    "replace",
 		Path:  "/metadata",
 		Value: objToUpdate.ObjectMeta,
-	}
-	patch = append(patch, patchOpMeta)
+	})
 
 	patchValueDescription :=
 		objToUpdate.Spec.Description

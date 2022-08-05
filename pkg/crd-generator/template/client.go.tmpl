@@ -308,12 +308,11 @@ func (group *{{$node.GroupTypeName}}) Update{{$node.BaseNodeName}}ByName(ctx con
 	}
 
 	var patch Patch
-	patchOpMeta := PatchOp{
+	patch = append(patch, PatchOp{
 		Op:    "replace",
 		Path:  "/metadata",
 		Value: objToUpdate.ObjectMeta,
-	}
-	patch = append(patch, patchOpMeta)
+	})
 	{{ range $key, $field := .Fields }}
 	patchValue{{$field.FieldName}} :=
 	objToUpdate.Spec.{{$field.FieldName}}

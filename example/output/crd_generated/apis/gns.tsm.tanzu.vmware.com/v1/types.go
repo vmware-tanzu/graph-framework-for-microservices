@@ -108,6 +108,7 @@ type GnsSpec struct {
 	Domain                    string              `json:"domain" yaml:"domain"`
 	UseSharedGateway          bool                `json:"useSharedGateway" yaml:"useSharedGateway"`
 	Description               Description         `json:"description" yaml:"description"`
+	Meta                      string              `json:"meta" yaml:"meta"`
 	WorkloadSpec              cartv1.WorkloadSpec `json:"workloadSpec" yaml:"workloadSpec"`
 	GnsServiceGroupsGvk       map[string]Child    `json:"gnsServiceGroupsGvk,omitempty" yaml:"gnsServiceGroupsGvk,omitempty" nexus:"children"`
 	GnsAccessControlPolicyGvk *Child              `json:"gnsAccessControlPolicyGvk,omitempty" yaml:"gnsAccessControlPolicyGvk,omitempty" nexus:"child"`

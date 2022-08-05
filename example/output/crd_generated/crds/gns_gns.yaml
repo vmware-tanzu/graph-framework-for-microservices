@@ -97,6 +97,8 @@ spec:
                   - name
                   type: object
                 type: object
+              meta:
+                type: string
               useSharedGateway:
                 type: boolean
               workloadSpec:
@@ -106,6 +108,7 @@ spec:
             - domain
             - useSharedGateway
             - description
+            - meta
             - workloadSpec
             type: object
           status:

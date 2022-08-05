@@ -107,6 +107,7 @@ type Gns struct {
 	GnsAccessControlPolicy policypkg.AccessControlPolicy `nexus:"child"`
 	Dns                    Dns                           `nexus:"link"`
 	State                  GnsState                      `nexus:"status"`
+	Meta                   string
 
 	WorkloadSpec cartv1.WorkloadSpec //external-field
 }
