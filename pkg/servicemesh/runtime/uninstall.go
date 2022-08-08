@@ -17,6 +17,7 @@ import (
 
 func Uninstall(cmd *cobra.Command, args []string) error {
 	cmdlineArgs := fmt.Sprintf("--set=global.namespace=%s", Namespace)
+	cmdlineArgs = fmt.Sprintf("%s,global.registry=%s", cmdlineArgs, Registry)
 	runtimeVersion, err := utils.GetTagVersion("NexusRuntime", "NEXUS_RUNTIME_MANIFESTS_VERSION")
 	if err != nil {
 		return fmt.Errorf("could not get runtime version: %s", err)
@@ -82,6 +83,8 @@ var UninstallCmd = &cobra.Command{
 func init() {
 	UninstallCmd.Flags().StringVarP(&Namespace, "namespace",
 		"n", "", "name of the namespace to be created")
+	UninstallCmd.Flags().StringVarP(&Registry, "registry",
+		"r", common.HarborRepo, "Registry where helm-chart is located")
 	err := cobra.MarkFlagRequired(UninstallCmd.Flags(), "namespace")
 	if err != nil {
 		logging.Debugf("Runtime uninstall err: %v", err)
