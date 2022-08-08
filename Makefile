@@ -116,7 +116,7 @@ test_in_container: ${BUILDER_NAME}\:${BUILDER_TAG}.image.exists
 .PHONY: generate_code
 generate_code:
 	echo "Cleaning up workdir"
-	rm -rf _generated ${GOPATH}/nexustempmodule
+	rm -rf _generated ${GOPATH}/src/nexustempmodule
 	cp -R generated_base_structure _generated
 	cp ${DATAMODEL_PATH}/go.mod _generated/go.mod
 	sed -i'.bak' -e "1s|.*|module nexustempmodule|" _generated/go.mod
@@ -128,7 +128,6 @@ generate_code:
 	echo "Generating kuberenetes APIs"
 	./scripts/generate_k8s_api.sh
 	echo "Generating openapi schema"
-	cd _generated/ && go mod tidy -e
 	./scripts/generate_openapi_schema.sh
 	echo "Generating CRD yamls"
 	go run cmd/generate-openapischema/generate-openapischema.go -yamls-path _generated/crds
