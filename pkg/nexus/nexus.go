@@ -37,6 +37,7 @@ type RestURIs struct {
 	Uri         string               `json:"uri"`
 	QueryParams []string             `json:"query_params,omitempty"`
 	Methods     HTTPMethodsResponses `json:"methods"`
+	Auth        bool                 `json:"auth"`
 }
 
 type RestAPISpec struct {
