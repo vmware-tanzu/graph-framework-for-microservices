@@ -1327,6 +1327,15 @@ func (group *AuthenticationNexusV1) UpdateOIDCByName(ctx context.Context,
 	}
 	patch = append(patch, patchOpValidationProps)
 
+	patchValueJwtClaimUsername :=
+		objToUpdate.Spec.JwtClaimUsername
+	patchOpJwtClaimUsername := PatchOp{
+		Op:    "replace",
+		Path:  "/spec/jwtClaimUsername",
+		Value: patchValueJwtClaimUsername,
+	}
+	patch = append(patch, patchOpJwtClaimUsername)
+
 	marshaled, err := patch.Marshal()
 	if err != nil {
 		return nil, err

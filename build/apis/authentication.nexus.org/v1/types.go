@@ -60,8 +60,9 @@ func (c *OIDC) DisplayName() string {
 
 // +k8s:openapi-gen=true
 type OIDCSpec struct {
-	Config          IDPConfig            `json:"config" yaml:"config"`
-	ValidationProps ValidationProperties `json:"validationProps" yaml:"validationProps"`
+	Config           IDPConfig            `json:"config"`
+	ValidationProps  ValidationProperties `json:"validationProps,omitempty"`
+	JwtClaimUsername string               `json:"jwtClaimUsername,omitempty"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
