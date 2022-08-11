@@ -45,8 +45,12 @@ type OIDC struct {
 	nexus.Node
 
 	// IDP configuration.
-	Config IDPConfig
+	Config IDPConfig `json:"config"`
 
 	// Properties to control the claim validation done by the gateway
-	ValidationProps ValidationProperties
+	ValidationProps ValidationProperties `json:"validationProps,omitempty"`
+
+	// JwtClaimUsername specifies the JWT claim within the JWT payload that
+	// holds the username (or a unique identifier for a user)
+	JwtClaimUsername string `json:"jwtClaimUsername,omitempty"`
 }

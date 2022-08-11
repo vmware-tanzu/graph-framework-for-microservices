@@ -59,6 +59,8 @@ spec:
                 - scopes
                 - oAuthRedirectUrl
                 type: object
+              jwtClaimUsername:
+                type: string
               validationProps:
                 properties:
                   insecureIssuerURLContext:
@@ -77,7 +79,6 @@ spec:
                 type: object
             required:
             - config
-            - validationProps
             type: object
           status:
             properties:
