@@ -60,6 +60,8 @@ const (
 	// connector - init container
 	initContainerName  = "check-nexus-proxy-container"
 	initContainerImage = "gcr.io/mesh7-public-images/tools:latest"
+
+	DeploymentName = "DEPLOYMENT_NAME"
 )
 
 // ApiCollaborationSpaceReconciler reconciles a ApiCollaborationSpace object
@@ -395,6 +397,10 @@ func (r *NexusConnectorReconciler) createDeployment(ctx context.Context, name, n
 								{
 									Name:  remoteEndpointCert,
 									Value: endpoint.Spec.Cert,
+								},
+								{
+									Name:  DeploymentName,
+									Value: name,
 								},
 							},
 						},
