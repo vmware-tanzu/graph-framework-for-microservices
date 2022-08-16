@@ -4,8 +4,11 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"strings"
 	"sync"
+
+	"k8s.io/client-go/dynamic"
 
 	v1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 
@@ -62,15 +65,24 @@ func (c *CRDStates) GetApiGroups() (apiGroups []string) {
 	return
 }
 
-func (c *CRDStates) GetParents(crdName string) []string {
+func (c *CRDStates) GetParents(crdName string, client dynamic.Interface) ([]string, error) {
 	c.mtx.Lock()
 	defer c.mtx.Unlock()
 
-	parents := c.ParentsMap[crdName]
+	parents, ok := c.ParentsMap[crdName]
+	if !ok {
+		log.Infof("Couldn't determine parents for %s, relisting CRDs to make sure CRD type definition wasn't"+
+			" added in the meantime", crdName)
+		ProcessCRDs(client)
+		parents, ok = c.ParentsMap[crdName]
+		if !ok {
+			return nil, fmt.Errorf("parents info not present for crd %s", crdName)
+		}
+	}
 	copiedParents := make([]string, len(parents))
 
 	copy(copiedParents, parents)
-	return copiedParents
+	return copiedParents, nil
 }
 
 func (c *CRDStates) IsSingleton(crdName string) bool {
