@@ -103,6 +103,14 @@ integration_test:
     - master
   extends: .run_integration_test
 
+unit-test:
+  stage: test
+  only:
+    - merge_requests
+    - master
+  script:
+    - make unit-test
+
 stages:
   - build
   - test

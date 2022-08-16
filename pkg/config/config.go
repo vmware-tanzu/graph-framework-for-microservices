@@ -11,17 +11,13 @@ import (
 	"connector/pkg/utils"
 )
 
-const (
-	RemoteEndpointHost = "REMOTE_ENDPOINT_HOST"
-	RemoteEndpointPort = "REMOTE_ENDPOINT_PORT"
-)
-
 type Config struct {
-	RemoteEndpoint     utils.NexusEndpoint `yaml:"remoteEndpoint"`
-	Dispatcher         Dispatcher          `yaml:"dispatcher"`
-	RemoteEndpointHost string              `yaml:"-"`
-	RemoteEndpointPort string              `yaml:"-"`
-	IgnoredNamespaces  IgnoredNamespaces   `yaml:"ignoredNamespaces"`
+	RemoteEndpoint           utils.NexusEndpoint `yaml:"remoteEndpoint"`
+	Dispatcher               Dispatcher          `yaml:"dispatcher"`
+	RemoteEndpointHost       string              `yaml:"-"`
+	RemoteEndpointPort       string              `yaml:"-"`
+	IgnoredNamespaces        IgnoredNamespaces   `yaml:"ignoredNamespaces"`
+	StatusReplicationEnabled bool                `yaml:"-"`
 }
 
 type Dispatcher struct {
@@ -55,7 +51,9 @@ func LoadConfig(configFile string) (*Config, error) {
 	if err != nil {
 		return nil, fmt.Errorf("invalid worker ttl: %v", err)
 	}
-	config.RemoteEndpointHost = os.Getenv(RemoteEndpointHost)
-	config.RemoteEndpointPort = os.Getenv(RemoteEndpointPort)
+	config.RemoteEndpointHost = os.Getenv(utils.RemoteEndpointHost)
+	config.RemoteEndpointPort = os.Getenv(utils.RemoteEndpointPort)
+	config.StatusReplicationEnabled = os.Getenv(utils.StatusReplication) == utils.StatusEnabled
+
 	return config, nil
 }
