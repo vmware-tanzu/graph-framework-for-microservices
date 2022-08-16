@@ -160,4 +160,4 @@ GOIMPORTS=$(shell which goimports)
 endif
 
 coverage:
-	go test -json -coverprofile=coverage.out ./... | tee report.json ;\
+	go test -json -coverpkg=./... -coverprofile=coverage.out ./... -tags=unit | tee report.json ;\
