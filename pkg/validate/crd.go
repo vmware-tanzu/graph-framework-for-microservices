@@ -123,15 +123,17 @@ func Crd(client dynamic.Interface, r admissionv1.AdmissionReview) (*admissionv1.
 
 		if !valid {
 			message := "singleton object display name can only be 'default'"
-			log.Warn(message)
-
-			admRes.Response.Allowed = false
-			admRes.Response.Result.Message = message
+			setResponseToNotAllowed(admRes, message)
 			return admRes, nil
 		}
 	}
 
-	parents := CRDs.GetParents(crdName)
+	parents, err := CRDs.GetParents(crdName, client)
+	if err != nil {
+		message := fmt.Sprintf("Couldn't determine parents info about for CRD %s, please make sure CRD definition is applied", crdName)
+		setResponseToNotAllowed(admRes, message)
+		return admRes, nil
+	}
 	for _, parent := range parents {
 		parts := strings.Split(parent, ".")
 		gvr := schema.GroupVersionResource{
@@ -139,7 +141,12 @@ func Crd(client dynamic.Interface, r admissionv1.AdmissionReview) (*admissionv1.
 			Version:  "v1",
 			Resource: parts[0],
 		}
-		parentParents := CRDs.GetParents(parent)
+		parentParents, err := CRDs.GetParents(parent, client)
+		if err != nil {
+			message := fmt.Sprintf("Couldn't determine parent info %s for CRD %s, please make sure CRD definition is applied", parent, crdName)
+			setResponseToNotAllowed(admRes, message)
+			return admRes, nil
+		}
 
 		isNameHashed := false
 		if val, ok := labels[IS_NAME_HASHED_LABEL]; ok {
@@ -158,10 +165,7 @@ func Crd(client dynamic.Interface, r admissionv1.AdmissionReview) (*admissionv1.
 			}
 			if getCrdObject(client, gvr, name) == nil {
 				message := fmt.Sprintf("required parent %s with name %s not found", parent, name)
-				log.Warn(message)
-
-				admRes.Response.Allowed = false
-				admRes.Response.Result.Message = message
+				setResponseToNotAllowed(admRes, message)
 				return admRes, nil
 			}
 		} else {
@@ -174,10 +178,7 @@ func Crd(client dynamic.Interface, r admissionv1.AdmissionReview) (*admissionv1.
 			log.Warnf("label %s not found", parent)
 			if getCrdObject(client, gvr, name) == nil {
 				message := fmt.Sprintf("required parent %s with name default not found", parent)
-				log.Warn(message)
-
-				admRes.Response.Allowed = false
-				admRes.Response.Result.Message = message
+				setResponseToNotAllowed(admRes, message)
 				return admRes, nil
 			}
 		}
@@ -218,4 +219,10 @@ func ProcessCRDs(client dynamic.Interface) {
 			panic(err)
 		}
 	}
+}
+
+func setResponseToNotAllowed(admRes *admissionv1.AdmissionReview, message string) {
+	log.Warn(message)
+	admRes.Response.Allowed = false
+	admRes.Response.Result.Message = message
 }
