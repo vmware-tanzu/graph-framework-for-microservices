@@ -7,7 +7,7 @@ global:
   api_gateway:
     tag: v0.0.20
   validation:
-    tag: v0.0.9
+    tag: v0.0.10
   connector:
     tag: v0.0.3
   controller:
