@@ -24,6 +24,7 @@ type NodeHelper struct {
 	RestName     string
 	Parents      []string
 	Children     map[string]NodeHelperChild // CRD Name => NodeHelperChild
+	Links        map[string]NodeHelperChild
 	RestMappings map[string]string
 	IsSingleton  bool
 }
