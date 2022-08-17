@@ -22,6 +22,8 @@ func RootPreRun(cmd *cobra.Command, args []string) error {
 	// Set logging level to debug if debugging is enabled.
 	if utils.IsDebug(cmd) {
 		log.SetLevel(log.DebugLevel)
+	} else {
+		log.SetLevel(log.InfoLevel)
 	}
 
 	if !nexusConfig.SkipUpgradeCheck {

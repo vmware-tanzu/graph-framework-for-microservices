@@ -79,7 +79,11 @@ func SystemCommand(cmd *cobra.Command, customErr ClientErrorCode, envList []stri
 	scanner := bufio.NewScanner(stdout)
 	go func() {
 		for scanner.Scan() {
-			log.Debugf("\t > %s\n", scanner.Text())
+			text := scanner.Text()
+			log.Debugf("\t > %s\n", text)
+			if !IsDebug(cmd) && strings.Contains(text, "NexusInfo") {
+				log.Infof("%s", text)
+			}
 		}
 	}()
 
