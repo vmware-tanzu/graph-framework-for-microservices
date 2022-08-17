@@ -16,6 +16,7 @@ type JwtAuthnConfig struct {
 	Issuer           string
 	JwksUri          string
 	CallbackEndpoint string
+	JwtClaimUsername string
 }
 
 // UpstreamConfig defines a condition (jwt_payload[JwtClaimKey] == JwtClaimValue), if matched,
@@ -39,10 +40,11 @@ type HeaderMatchedUpstream struct {
 }
 
 const (
-	ListenerPort      = 10000
-	clusterNexusAdmin = "nexus-admin"
-	routeDefault      = "default"
-	svcNexusApiGw     = "nexus-api-gw"
+	ListenerPort       = 10000
+	clusterNexusAdmin  = "nexus-admin"
+	routeDefault       = "default"
+	svcNexusApiGw      = "nexus-api-gw"
+	xNexusUserIdHeader = "x-user-id"
 )
 
 func GenerateNewSnapshot(jwtAuthnConfig *JwtAuthnConfig, upstreams map[string]*UpstreamConfig, headerUpstreams map[string]*HeaderMatchedUpstream) (*cachev3.Snapshot, error) {

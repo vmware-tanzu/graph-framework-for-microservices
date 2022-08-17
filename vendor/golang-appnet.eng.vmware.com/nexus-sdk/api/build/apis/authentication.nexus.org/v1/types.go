@@ -22,6 +22,12 @@ type Link struct {
 	Name  string `json:"name" yaml:"name"`
 }
 
+// +k8s:openapi-gen=true
+type NexusStatus struct {
+	SourceGeneration int64 `json:"sourceGeneration" yaml:"sourceGeneration"`
+	RemoteGeneration int64 `json:"remoteGeneration" yaml:"remoteGeneration"`
+}
+
 /* ------------------- CRDs definitions ------------------- */
 
 // +genclient
@@ -32,7 +38,13 @@ type Link struct {
 type OIDC struct {
 	metav1.TypeMeta   `json:",inline" yaml:",inline"`
 	metav1.ObjectMeta `json:"metadata" yaml:"metadata"`
-	Spec              OIDCSpec `json:"spec,omitempty" yaml:"spec,omitempty"`
+	Spec              OIDCSpec        `json:"spec,omitempty" yaml:"spec,omitempty"`
+	Status            OIDCNexusStatus `json:"status,omitempty" yaml:"status,omitempty"`
+}
+
+// +k8s:openapi-gen=true
+type OIDCNexusStatus struct {
+	Nexus NexusStatus `json:"nexus,omitempty" yaml:"nexus,omitempty"`
 }
 
 func (c *OIDC) CRDName() string {
@@ -48,8 +60,9 @@ func (c *OIDC) DisplayName() string {
 
 // +k8s:openapi-gen=true
 type OIDCSpec struct {
-	Config          IDPConfig            `json:"config" yaml:"config"`
-	ValidationProps ValidationProperties `json:"validationProps" yaml:"validationProps"`
+	Config           IDPConfig            `json:"config"`
+	ValidationProps  ValidationProperties `json:"validationProps,omitempty"`
+	JwtClaimUsername string               `json:"jwtClaimUsername,omitempty"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object

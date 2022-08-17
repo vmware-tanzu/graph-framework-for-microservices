@@ -26,7 +26,7 @@ require (
 	github.com/ghodss/yaml v1.0.0
 	github.com/golang/protobuf v1.5.2
 	gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/common-library.git v0.0.0-20220726103338-a90f24e3da64
-	golang-appnet.eng.vmware.com/nexus-sdk/api v0.0.8
+	golang-appnet.eng.vmware.com/nexus-sdk/api v0.0.12
 	google.golang.org/grpc v1.45.0
 	google.golang.org/protobuf v1.28.0
 	k8s.io/api v0.24.1

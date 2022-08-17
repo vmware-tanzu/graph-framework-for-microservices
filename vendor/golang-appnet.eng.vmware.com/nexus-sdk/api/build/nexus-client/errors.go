@@ -155,3 +155,22 @@ func (p LinkNotFound) Error() string {
 func IsLinkNotFound(err error) bool {
 	return errors.As(err, &LinkNotFound{})
 }
+
+type SingletonNameError struct {
+	errMessage string
+}
+
+func NewSingletonNameError(displayName string) SingletonNameError {
+	return SingletonNameError{
+		errMessage: fmt.Sprintf("wrong name of singleton object: %s, singleton can have only"+
+			"'default' as a display name", displayName),
+	}
+}
+
+func (p SingletonNameError) Error() string {
+	return p.errMessage
+}
+
+func IsSingletonNameError(err error) bool {
+	return errors.As(err, &SingletonNameError{})
+}

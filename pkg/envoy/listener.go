@@ -213,6 +213,27 @@ end
 		return nil, fmt.Errorf("error creating dummy lua filter: %s", err)
 	}
 
+	addJwtClaimsToHeaderLuaFilter := &luav3.Lua{
+		InlineCode: fmt.Sprintf(`
+function envoy_on_request(request_handle)
+  local jwtMetadata = request_handle:streamInfo():dynamicMetadata():get("envoy.filters.http.jwt_authn")
+  if jwtMetadata ~= nil then
+    local jwt = jwtMetadata["jwt_payload"]
+    if next(jwt) ~= nil then
+      local val = jwt["%s"]
+      if val ~= nil and type(val) ~= "table" then
+        request_handle:headers():remove("%s")
+        request_handle:headers():add("%s", val)
+      end
+    end
+  end
+end`, jwtAuthnConfig.JwtClaimUsername, xNexusUserIdHeader, xNexusUserIdHeader),
+	}
+	addJwtClaimsToHeaderLuaFilterTypedConfig, err := anypb.New(addJwtClaimsToHeaderLuaFilter)
+	if err != nil {
+		return nil, fmt.Errorf("addJwtClaimsToHeaderLuaFilter: error creating typedconfig: %s", err)
+	}
+
 	return []*hcm.HttpFilter{
 		{
 			Name: "envoy.filters.http.jwt_authn",
@@ -230,6 +251,12 @@ end
 			Name: wellknown.Lua,
 			ConfigType: &hcm.HttpFilter_TypedConfig{
 				TypedConfig: dummyLuaFilterTypedConfig,
+			},
+		},
+		{
+			Name: wellknown.Lua,
+			ConfigType: &hcm.HttpFilter_TypedConfig{
+				TypedConfig: addJwtClaimsToHeaderLuaFilterTypedConfig,
 			},
 		},
 		{
