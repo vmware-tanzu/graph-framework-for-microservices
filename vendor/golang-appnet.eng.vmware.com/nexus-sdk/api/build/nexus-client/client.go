@@ -259,6 +259,7 @@ func (group *ApiNexusV1) CreateNexusByName(ctx context.Context,
 // display name and parents names.
 func (group *ApiNexusV1) UpdateNexusByName(ctx context.Context,
 	objToUpdate *baseapinexusorgv1.Nexus) (*ApiNexus, error) {
+
 	// ResourceVersion must be set for update
 	if objToUpdate.ResourceVersion == "" {
 		current, err := group.client.baseClient.
@@ -339,6 +340,13 @@ func (obj *ApiNexus) Update(ctx context.Context) error {
 	return nil
 }
 
+// GetApiNexus calculates the hashed name based on parents and displayName and
+// returns given object
+func (c *Clientset) GetApiNexus(ctx context.Context, displayName string) (result *ApiNexus, err error) {
+	hashedName := helper.GetHashedName("nexuses.api.nexus.org", nil, displayName)
+	return c.Api().GetNexusByName(ctx, hashedName)
+}
+
 func (c *Clientset) ApiNexus(displayName string) *nexusApiNexusV1Chainer {
 	parentLabels := make(map[string]string)
 	parentLabels["nexuses.api.nexus.org"] = displayName
@@ -347,13 +355,6 @@ func (c *Clientset) ApiNexus(displayName string) *nexusApiNexusV1Chainer {
 		name:         displayName,
 		parentLabels: parentLabels,
 	}
-}
-
-// GetApiNexus calculates the hashed name based on parents and displayName and
-// returns given object
-func (c *Clientset) GetApiNexus(ctx context.Context, displayName string) (result *ApiNexus, err error) {
-	hashedName := helper.GetHashedName("nexuses.api.nexus.org", nil, displayName)
-	return c.Api().GetNexusByName(ctx, hashedName)
 }
 
 // AddApiNexus calculates hashed name of the object based on objToCreate.Name
@@ -598,6 +599,7 @@ func (group *AdminNexusV1) CreateProxyRuleByName(ctx context.Context,
 // display name and parents names.
 func (group *AdminNexusV1) UpdateProxyRuleByName(ctx context.Context,
 	objToUpdate *baseadminnexusorgv1.ProxyRule) (*AdminProxyRule, error) {
+
 	// ResourceVersion must be set for update
 	if objToUpdate.ResourceVersion == "" {
 		current, err := group.client.baseClient.
@@ -852,6 +854,7 @@ func (group *ApigatewayNexusV1) CreateApiGatewayByName(ctx context.Context,
 // display name and parents names.
 func (group *ApigatewayNexusV1) UpdateApiGatewayByName(ctx context.Context,
 	objToUpdate *baseapigatewaynexusorgv1.ApiGateway) (*ApigatewayApiGateway, error) {
+
 	// ResourceVersion must be set for update
 	if objToUpdate.ResourceVersion == "" {
 		current, err := group.client.baseClient.
@@ -1286,6 +1289,7 @@ func (group *AuthenticationNexusV1) CreateOIDCByName(ctx context.Context,
 // display name and parents names.
 func (group *AuthenticationNexusV1) UpdateOIDCByName(ctx context.Context,
 	objToUpdate *baseauthenticationnexusorgv1.OIDC) (*AuthenticationOIDC, error) {
+
 	// ResourceVersion must be set for update
 	if objToUpdate.ResourceVersion == "" {
 		current, err := group.client.baseClient.
@@ -1322,6 +1326,15 @@ func (group *AuthenticationNexusV1) UpdateOIDCByName(ctx context.Context,
 		Value: patchValueValidationProps,
 	}
 	patch = append(patch, patchOpValidationProps)
+
+	patchValueJwtClaimUsername :=
+		objToUpdate.Spec.JwtClaimUsername
+	patchOpJwtClaimUsername := PatchOp{
+		Op:    "replace",
+		Path:  "/spec/jwtClaimUsername",
+		Value: patchValueJwtClaimUsername,
+	}
+	patch = append(patch, patchOpJwtClaimUsername)
 
 	marshaled, err := patch.Marshal()
 	if err != nil {
@@ -1550,6 +1563,7 @@ func (group *ConfigNexusV1) CreateConfigByName(ctx context.Context,
 // display name and parents names.
 func (group *ConfigNexusV1) UpdateConfigByName(ctx context.Context,
 	objToUpdate *baseconfignexusorgv1.Config) (*ConfigConfig, error) {
+
 	// ResourceVersion must be set for update
 	if objToUpdate.ResourceVersion == "" {
 		current, err := group.client.baseClient.
@@ -2104,6 +2118,7 @@ func (group *ConnectNexusV1) CreateConnectByName(ctx context.Context,
 // display name and parents names.
 func (group *ConnectNexusV1) UpdateConnectByName(ctx context.Context,
 	objToUpdate *baseconnectnexusorgv1.Connect) (*ConnectConnect, error) {
+
 	// ResourceVersion must be set for update
 	if objToUpdate.ResourceVersion == "" {
 		current, err := group.client.baseClient.
@@ -2540,6 +2555,7 @@ func (group *ConnectNexusV1) CreateNexusEndpointByName(ctx context.Context,
 // display name and parents names.
 func (group *ConnectNexusV1) UpdateNexusEndpointByName(ctx context.Context,
 	objToUpdate *baseconnectnexusorgv1.NexusEndpoint) (*ConnectNexusEndpoint, error) {
+
 	// ResourceVersion must be set for update
 	if objToUpdate.ResourceVersion == "" {
 		current, err := group.client.baseClient.
@@ -2771,6 +2787,7 @@ func (group *ConnectNexusV1) CreateReplicationConfigByName(ctx context.Context,
 // display name and parents names.
 func (group *ConnectNexusV1) UpdateReplicationConfigByName(ctx context.Context,
 	objToUpdate *baseconnectnexusorgv1.ReplicationConfig) (*ConnectReplicationConfig, error) {
+
 	// ResourceVersion must be set for update
 	if objToUpdate.ResourceVersion == "" {
 		current, err := group.client.baseClient.
@@ -2816,6 +2833,15 @@ func (group *ConnectNexusV1) UpdateReplicationConfigByName(ctx context.Context,
 		Value: patchValueDestination,
 	}
 	patch = append(patch, patchOpDestination)
+
+	patchValueStatusEndpoint :=
+		objToUpdate.Spec.StatusEndpoint
+	patchOpStatusEndpoint := PatchOp{
+		Op:    "replace",
+		Path:  "/spec/statusEndpoint",
+		Value: patchValueStatusEndpoint,
+	}
+	patch = append(patch, patchOpStatusEndpoint)
 
 	marshaled, err := patch.Marshal()
 	if err != nil {
@@ -3061,6 +3087,7 @@ func (group *RouteNexusV1) CreateRouteByName(ctx context.Context,
 // display name and parents names.
 func (group *RouteNexusV1) UpdateRouteByName(ctx context.Context,
 	objToUpdate *baseroutenexusorgv1.Route) (*RouteRoute, error) {
+
 	// ResourceVersion must be set for update
 	if objToUpdate.ResourceVersion == "" {
 		current, err := group.client.baseClient.

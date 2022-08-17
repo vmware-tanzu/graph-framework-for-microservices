@@ -3,6 +3,7 @@ package envoy
 import (
 	"api-gw/pkg/common"
 	"fmt"
+
 	core "github.com/envoyproxy/go-control-plane/envoy/config/core/v3"
 	route "github.com/envoyproxy/go-control-plane/envoy/config/route/v3"
 	matcherv3 "github.com/envoyproxy/go-control-plane/envoy/type/matcher/v3"
@@ -155,10 +156,10 @@ func defaultRoute() *route.Route {
 		},
 		Action: &route.Route_DirectResponse{
 			DirectResponse: &route.DirectResponseAction{
-				Status: 404,
+				Status: 400,
 				Body: &core.DataSource{
 					Specifier: &core.DataSource_InlineString{
-						InlineString: "Not Found",
+						InlineString: "No Route Found",
 					},
 				},
 			},

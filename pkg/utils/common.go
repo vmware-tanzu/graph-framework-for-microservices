@@ -7,11 +7,12 @@ import (
 	"api-gw/pkg/envoy"
 	"context"
 	"fmt"
-	log "github.com/sirupsen/logrus"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"net/http"
 	"net/http/httputil"
 	"os"
+
+	log "github.com/sirupsen/logrus"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 func IsFileExists(filename string) bool {
@@ -76,6 +77,7 @@ func GetEnvoyInitParams() (*envoy.JwtAuthnConfig, map[string]*envoy.UpstreamConf
 				Issuer:           issuer,
 				JwksUri:          jwksUri,
 				CallbackEndpoint: callbackEndpoint,
+				JwtClaimUsername: jwts[0].Spec.JwtClaimUsername,
 			}
 		}
 	}

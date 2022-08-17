@@ -98,6 +98,7 @@ func HandleOidcNodeUpdate(event *model.OidcNodeEvent, e *echo.Echo) error {
 		IdpName:          event.Oidc.Name,
 		JwksUri:          authenticator.WellKnownJwksUri,
 		CallbackEndpoint: callbackPath,
+		JwtClaimUsername: event.Oidc.Spec.JwtClaimUsername,
 	})
 	if err != nil {
 		return fmt.Errorf("error adding envoy jwt authn config: %s", err)
