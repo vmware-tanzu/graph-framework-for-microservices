@@ -295,6 +295,13 @@ func ToGo(name string) string {
 	if name == "_" {
 		return "_"
 	}
+	return string(name)
+}
+
+func ToGoField(name string) string {
+	if name == "_" {
+		return "_"
+	}
 	runes := make([]rune, 0, len(name))
 
 	wordWalker(name, func(info *wordInfo) {
