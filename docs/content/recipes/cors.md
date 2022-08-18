@@ -17,13 +17,13 @@ package main
 import (
 	"net/http"
 
-	"github.com/99designs/gqlgen/graphql/handler/transport"
-	"github.com/99designs/gqlgen/_examples/starwars"
-	"github.com/99designs/gqlgen/graphql/handler"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/graphql/handler/transport"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/_examples/starwars"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/graphql/handler"
 	"github.com/go-chi/chi"
 	"github.com/rs/cors"
 	"github.com/gorilla/websocket"
-	"github.com/99designs/gqlgen/graphql/playground"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/graphql/playground"
 )
 
 func main() {

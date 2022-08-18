@@ -1,6 +1,6 @@
 package graph
 
-import "github.com/99designs/gqlgen/_examples/federation/products/graph/model"
+import "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/_examples/federation/products/graph/model"
 
 var hats = []*model.Product{
 	{

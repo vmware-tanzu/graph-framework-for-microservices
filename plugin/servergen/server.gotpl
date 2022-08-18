@@ -2,8 +2,8 @@
 {{ reserveImport "log" }}
 {{ reserveImport "net/http" }}
 {{ reserveImport "os" }}
-{{ reserveImport "github.com/99designs/gqlgen/graphql/playground" }}
-{{ reserveImport "github.com/99designs/gqlgen/graphql/handler" }}
+{{ reserveImport "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/graphql/playground" }}
+{{ reserveImport "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/graphql/handler" }}
 
 const defaultPort = "8080"
 

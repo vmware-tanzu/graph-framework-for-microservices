@@ -6,8 +6,8 @@ package graph
 import (
 	"context"
 
-	"github.com/99designs/gqlgen/_examples/federation/products/graph/generated"
-	"github.com/99designs/gqlgen/_examples/federation/products/graph/model"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/_examples/federation/products/graph/generated"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/_examples/federation/products/graph/model"
 )
 
 // TopProducts is the resolver for the topProducts field.

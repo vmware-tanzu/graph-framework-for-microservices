@@ -7,12 +7,12 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/99designs/gqlgen/client"
-	"github.com/99designs/gqlgen/graphql/handler"
 	"github.com/stretchr/testify/require"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/client"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/graphql/handler"
 
-	"github.com/99designs/gqlgen/plugin/federation/testdata/entityresolver"
-	"github.com/99designs/gqlgen/plugin/federation/testdata/entityresolver/generated"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/plugin/federation/testdata/entityresolver"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/plugin/federation/testdata/entityresolver/generated"
 )
 
 func TestEntityResolver(t *testing.T) {

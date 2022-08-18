@@ -1,12 +1,12 @@
 ---
-title: 'Using Apollo federation gqlgen'
+title: "Using Apollo federation gqlgen"
 description: How federate many services into a single graph using Apollo
 linkTitle: Apollo Federation
-menu: { main: { parent: 'recipes' } }
+menu: { main: { parent: "recipes" } }
 ---
 
 In this quick guide we are going to implement the example [Apollo Federation](https://www.apollographql.com/docs/apollo-server/federation/introduction/)
-server in gqlgen. You can find the finished result in the [examples directory](https://github.com/99designs/gqlgen/tree/master/_examples/federation).
+server in gqlgen. You can find the finished result in the [examples directory](https://gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/tree/master/_examples/federation).
 
 ## Enable federation
 
@@ -35,35 +35,37 @@ federation:
 For each server to be federated we will create a new gqlgen project.
 
 ```bash
-go run github.com/99designs/gqlgen
+go run gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git
 ```
 
 Update the schema to reflect the federated example
+
 ```graphql
 type Review {
-  body: String
-  author: User @provides(fields: "username")
-  product: Product
+	body: String
+	author: User @provides(fields: "username")
+	product: Product
 }
 
 extend type User @key(fields: "id") {
-  id: ID! @external
-  reviews: [Review]
+	id: ID! @external
+	reviews: [Review]
 }
 
 extend type Product @key(fields: "upc") {
-  upc: String! @external
-  reviews: [Review]
+	upc: String! @external
+	reviews: [Review]
 }
 ```
 
-
 and regenerate
+
 ```bash
-go run github.com/99designs/gqlgen
+go run gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git
 ```
 
 then implement the resolvers
+
 ```go
 // These two methods are required for gqlgen to resolve the internal id-only wrapper structs.
 // This boilerplate might be removed in a future version of gqlgen that can no-op id only nodes.
@@ -123,31 +125,32 @@ npm install --save @apollo/gateway apollo-server graphql
 ```
 
 ```typescript
-const { ApolloServer } = require('apollo-server');
+const { ApolloServer } = require("apollo-server");
 const { ApolloGateway } = require("@apollo/gateway");
 
 const gateway = new ApolloGateway({
-    serviceList: [
-        { name: 'accounts', url: 'http://localhost:4001/query' },
-        { name: 'products', url: 'http://localhost:4002/query' },
-        { name: 'reviews', url: 'http://localhost:4003/query' }
-    ],
+	serviceList: [
+		{ name: "accounts", url: "http://localhost:4001/query" },
+		{ name: "products", url: "http://localhost:4002/query" },
+		{ name: "reviews", url: "http://localhost:4003/query" },
+	],
 });
 
 const server = new ApolloServer({
-    gateway,
+	gateway,
 
-    subscriptions: false,
+	subscriptions: false,
 });
 
 server.listen().then(({ url }) => {
-    console.log(`🚀 Server ready at ${url}`);
+	console.log(`🚀 Server ready at ${url}`);
 });
 ```
 
 ## Start all the services
 
 In separate terminals:
+
 ```bash
 go run accounts/server.go
 go run products/server.go
@@ -161,16 +164,16 @@ The examples from the apollo doc should all work, eg
 
 ```graphql
 query {
-  me {
-    username
-    reviews {
-      body
-      product {
-        name
-        upc
-      }
-    }
-  }
+	me {
+		username
+		reviews {
+			body
+			product {
+				name
+				upc
+			}
+		}
+	}
 }
 ```
 
@@ -178,26 +181,26 @@ should return
 
 ```json
 {
-  "data": {
-    "me": {
-      "username": "Me",
-      "reviews": [
-        {
-          "body": "A highly effective form of birth control.",
-          "product": {
-            "name": "Trilby",
-            "upc": "top-1"
-          }
-        },
-        {
-          "body": "Fedoras are one of the most fashionable hats around and can look great with a variety of outfits.",
-          "product": {
-            "name": "Trilby",
-            "upc": "top-1"
-          }
-        }
-      ]
-    }
-  }
+	"data": {
+		"me": {
+			"username": "Me",
+			"reviews": [
+				{
+					"body": "A highly effective form of birth control.",
+					"product": {
+						"name": "Trilby",
+						"upc": "top-1"
+					}
+				},
+				{
+					"body": "Fedoras are one of the most fashionable hats around and can look great with a variety of outfits.",
+					"product": {
+						"name": "Trilby",
+						"upc": "top-1"
+					}
+				}
+			]
+		}
+	}
 }
 ```

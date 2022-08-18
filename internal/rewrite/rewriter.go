@@ -10,7 +10,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/99designs/gqlgen/internal/code"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/internal/code"
 	"golang.org/x/tools/go/packages"
 )
 

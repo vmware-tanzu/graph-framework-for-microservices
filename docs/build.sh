@@ -40,7 +40,7 @@ rebuild() {
 currentBranch=$(git rev-parse --abbrev-ref HEAD)
 
 if ! git remote  | grep -q origin ; then
-    git remote add origin https://github.com/99designs/gqlgen
+    git remote add origin https://gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git
 fi
 git fetch origin --tags
 

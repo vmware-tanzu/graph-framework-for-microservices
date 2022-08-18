@@ -9,8 +9,8 @@
 
 {{ reserveImport "github.com/vektah/gqlparser/v2" }}
 {{ reserveImport "github.com/vektah/gqlparser/v2/ast" }}
-{{ reserveImport "github.com/99designs/gqlgen/graphql" }}
-{{ reserveImport "github.com/99designs/gqlgen/graphql/introspection" }}
+{{ reserveImport "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/graphql" }}
+{{ reserveImport "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/graphql/introspection" }}
 
 {{- range $model := .Interfaces }}
 	{{ with .Description }} {{.|prefixLines "// "}} {{ end }}

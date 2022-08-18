@@ -1,4 +1,4 @@
-# regression test for https://github.com/99designs/gqlgen/issues/721
+# regression test for https://gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/issues/721
 
 extend type Query {
     wrappedStruct: WrappedStruct!
@@ -7,7 +7,14 @@ extend type Query {
     wrappedSlice: WrappedSlice!
 }
 
-type WrappedStruct { name: WrappedScalar!, desc: WrappedScalar }
+type WrappedStruct {
+    name: WrappedScalar!
+    desc: WrappedScalar
+}
 scalar WrappedScalar
-type WrappedMap { get(key: String!): String! }
-type WrappedSlice { get(idx: Int!): String! }
+type WrappedMap {
+    get(key: String!): String!
+}
+type WrappedSlice {
+    get(idx: Int!): String!
+}

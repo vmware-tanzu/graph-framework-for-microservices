@@ -8,9 +8,9 @@ import (
 	"go/types"
 	"testing"
 
-	"github.com/99designs/gqlgen/codegen/config"
 	"github.com/stretchr/testify/require"
 	ast2 "github.com/vektah/gqlparser/v2/ast"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/codegen/config"
 )
 
 func TestFindField(t *testing.T) {

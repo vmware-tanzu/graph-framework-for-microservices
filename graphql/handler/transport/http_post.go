@@ -4,7 +4,7 @@ import (
 	"mime"
 	"net/http"
 
-	"github.com/99designs/gqlgen/graphql"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/graphql"
 )
 
 // POST implements the POST side of the default HTTP transport

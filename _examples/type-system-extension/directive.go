@@ -4,7 +4,7 @@ import (
 	"context"
 	"log"
 
-	"github.com/99designs/gqlgen/graphql"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/graphql"
 )
 
 func EnumLogging(ctx context.Context, obj interface{}, next graphql.Resolver) (res interface{}, err error) {

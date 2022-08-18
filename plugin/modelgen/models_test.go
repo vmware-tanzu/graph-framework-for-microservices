@@ -10,12 +10,12 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/99designs/gqlgen/plugin/modelgen/out_struct_pointers"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/plugin/modelgen/out_struct_pointers"
 
-	"github.com/99designs/gqlgen/codegen/config"
-	"github.com/99designs/gqlgen/plugin/modelgen/out"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/codegen/config"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/plugin/modelgen/out"
 )
 
 func TestModelGeneration(t *testing.T) {

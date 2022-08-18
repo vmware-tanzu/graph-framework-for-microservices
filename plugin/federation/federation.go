@@ -8,11 +8,11 @@ import (
 
 	"github.com/vektah/gqlparser/v2/ast"
 
-	"github.com/99designs/gqlgen/codegen"
-	"github.com/99designs/gqlgen/codegen/config"
-	"github.com/99designs/gqlgen/codegen/templates"
-	"github.com/99designs/gqlgen/plugin"
-	"github.com/99designs/gqlgen/plugin/federation/fieldset"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/codegen"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/codegen/config"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/codegen/templates"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/plugin"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/plugin/federation/fieldset"
 )
 
 //go:embed federation.gotpl
@@ -43,21 +43,21 @@ func (f *federation) MutateConfig(cfg *config.Config) error {
 	builtins := config.TypeMap{
 		"_Service": {
 			Model: config.StringList{
-				"github.com/99designs/gqlgen/plugin/federation/fedruntime.Service",
+				"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/plugin/federation/fedruntime.Service",
 			},
 		},
 		"_Entity": {
 			Model: config.StringList{
-				"github.com/99designs/gqlgen/plugin/federation/fedruntime.Entity",
+				"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/plugin/federation/fedruntime.Entity",
 			},
 		},
 		"Entity": {
 			Model: config.StringList{
-				"github.com/99designs/gqlgen/plugin/federation/fedruntime.Entity",
+				"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/plugin/federation/fedruntime.Entity",
 			},
 		},
 		"_Any": {
-			Model: config.StringList{"github.com/99designs/gqlgen/graphql.Map"},
+			Model: config.StringList{"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/graphql.Map"},
 		},
 	}
 

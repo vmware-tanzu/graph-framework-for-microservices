@@ -6,7 +6,7 @@ package subdir
 import (
 	"context"
 
-	"github.com/99designs/gqlgen/_examples/embedding/subdir/gendir"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/_examples/embedding/subdir/gendir"
 )
 
 type Resolver struct{ *Resolver }

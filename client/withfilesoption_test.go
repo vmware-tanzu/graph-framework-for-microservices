@@ -10,8 +10,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/99designs/gqlgen/client"
 	"github.com/stretchr/testify/require"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/client"
 )
 
 func TestWithFiles(t *testing.T) {

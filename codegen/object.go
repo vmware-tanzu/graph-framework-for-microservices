@@ -7,8 +7,8 @@ import (
 	"strings"
 	"unicode"
 
-	"github.com/99designs/gqlgen/codegen/config"
 	"github.com/vektah/gqlparser/v2/ast"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/codegen/config"
 	"golang.org/x/text/cases"
 	"golang.org/x/text/language"
 )

@@ -1,11 +1,11 @@
-module github.com/99designs/gqlgen/_examples
+module gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/_examples
 
 go 1.16
 
-replace github.com/99designs/gqlgen => ../
+replace gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git => ../
 
 require (
-	github.com/99designs/gqlgen v0.16.0
+	gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git v0.16.0
 	github.com/gorilla/websocket v1.5.0
 	github.com/mitchellh/mapstructure v1.3.1
 	github.com/opentracing/opentracing-go v1.2.0

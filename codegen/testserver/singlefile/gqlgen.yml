@@ -13,13 +13,13 @@ resolver:
   type: Resolver
 
 autobind:
-  - "github.com/99designs/gqlgen/codegen/testserver"
-  - "github.com/99designs/gqlgen/codegen/testserver/singlefile"
-  - "github.com/99designs/gqlgen/codegen/testserver/singlefile/introspection"
-  - "github.com/99designs/gqlgen/codegen/testserver/singlefile/invalid-packagename"
+  - "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/codegen/testserver"
+  - "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/codegen/testserver/singlefile"
+  - "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/codegen/testserver/singlefile/introspection"
+  - "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/codegen/testserver/singlefile/invalid-packagename"
 
 models:
   Email:
-    model: "github.com/99designs/gqlgen/codegen/testserver/singlefile.Email"
+    model: "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/codegen/testserver/singlefile.Email"
   StringFromContextFunction:
-    model: "github.com/99designs/gqlgen/codegen/testserver/singlefile.StringFromContextFunction"
+    model: "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/codegen/testserver/singlefile.StringFromContextFunction"

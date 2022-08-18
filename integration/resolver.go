@@ -7,8 +7,8 @@ import (
 	"fmt"
 	"time"
 
-	models "github.com/99designs/gqlgen/integration/models-go"
-	"github.com/99designs/gqlgen/integration/remote_api"
+	models "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/integration/models-go"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/integration/remote_api"
 )
 
 type CustomError struct {

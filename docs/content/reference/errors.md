@@ -2,7 +2,7 @@
 linkTitle: Handling Errors
 title: Sending custom error data in the graphql response
 description: Customising graphql error types to send custom error data back to the client using gqlgen.
-menu: { main: { parent: 'reference', weight: 10 } }
+menu: { main: { parent: "reference", weight: 10 } }
 ---
 
 ## Returning errors
@@ -21,7 +21,7 @@ import (
 	"context"
 
 	"github.com/vektah/gqlparser/v2/gqlerror"
-	"github.com/99designs/gqlgen/graphql"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/graphql"
 )
 
 func (r Query) DoThings(ctx context.Context) (bool, error) {
@@ -46,17 +46,22 @@ func (r Query) DoThings(ctx context.Context) (bool, error) {
 ```
 
 They will be returned in the same order in the response, eg:
+
 ```json
 {
-  "data": {
-    "todo": null
-  },
-  "errors": [
-    { "message": "Error 1", "path": [ "todo" ] },
-    { "message": "zzzzzt", "path": [ "todo" ] },
-    { "message": "A descriptive error message", "path": [ "todo" ], "extensions": { "code": "10-4" } },
-    { "message": "BOOM! Headshot", "path": [ "todo" ] }
-  ]
+	"data": {
+		"todo": null
+	},
+	"errors": [
+		{ "message": "Error 1", "path": ["todo"] },
+		{ "message": "zzzzzt", "path": ["todo"] },
+		{
+			"message": "A descriptive error message",
+			"path": ["todo"],
+			"extensions": { "code": "10-4" }
+		},
+		{ "message": "BOOM! Headshot", "path": ["todo"] }
+	]
 }
 ```
 
@@ -70,6 +75,7 @@ This hook gives you the ability to customise errors however makes sense in your 
 The default error presenter will capture the resolver path and use the Error() message in the response.
 
 You change this when creating the server:
+
 ```go
 package bar
 
@@ -78,8 +84,8 @@ import (
 	"errors"
 
 	"github.com/vektah/gqlparser/v2/gqlerror"
-	"github.com/99designs/gqlgen/graphql"
-	"github.com/99designs/gqlgen/graphql/handler"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/graphql"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/graphql/handler"
 )
 
 func main() {
@@ -101,7 +107,6 @@ func main() {
 This function will be called with the same resolver context that generated it, so you can extract the
 current resolver path and whatever other state you might want to notify the client about.
 
-
 ### The panic handler
 
 There is also a panic handler, called whenever a panic happens to gracefully return a message to the user before
@@ -109,6 +114,7 @@ stopping parsing. This is a good spot to notify your bug tracker and send a cust
 returned from here will also go through the error presenter.
 
 You change this when creating the server:
+
 ```go
 server := handler.NewDefaultServer(MakeExecutableSchema(resolvers)
 server.SetRecoverFunc(func(ctx context.Context, err interface{}) error {
@@ -117,4 +123,3 @@ server.SetRecoverFunc(func(ctx context.Context, err interface{}) error {
 		return gqlerror.Errorf("Internal server error!")
 })
 ```
-

@@ -3,7 +3,7 @@ package codegen
 import (
 	"fmt"
 
-	"github.com/99designs/gqlgen/codegen/config"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/codegen/config"
 )
 
 func (b *builder) buildTypes() map[string]*config.TypeReference {

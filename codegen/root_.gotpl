@@ -11,8 +11,8 @@
 
 {{ reserveImport "github.com/vektah/gqlparser/v2" "gqlparser" }}
 {{ reserveImport "github.com/vektah/gqlparser/v2/ast" }}
-{{ reserveImport "github.com/99designs/gqlgen/graphql" }}
-{{ reserveImport "github.com/99designs/gqlgen/graphql/introspection" }}
+{{ reserveImport "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/graphql" }}
+{{ reserveImport "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/graphql/introspection" }}
 
 // NewExecutableSchema creates an ExecutableSchema from the ResolverRoot interface.
 func NewExecutableSchema(cfg Config) graphql.ExecutableSchema {

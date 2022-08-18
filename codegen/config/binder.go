@@ -8,9 +8,9 @@ import (
 
 	"golang.org/x/tools/go/packages"
 
-	"github.com/99designs/gqlgen/codegen/templates"
-	"github.com/99designs/gqlgen/internal/code"
 	"github.com/vektah/gqlparser/v2/ast"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/codegen/templates"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/internal/code"
 )
 
 var ErrTypeNotFound = errors.New("unable to find type")
@@ -375,7 +375,7 @@ func (b *Binder) TypeReference(schemaType *ast.Type, bindTarget types.Type) (ret
 
 		if fun, isFunc := obj.(*types.Func); isFunc {
 			ref.GO = fun.Type().(*types.Signature).Params().At(0).Type()
-			ref.IsContext = fun.Type().(*types.Signature).Results().At(0).Type().String() == "github.com/99designs/gqlgen/graphql.ContextMarshaler"
+			ref.IsContext = fun.Type().(*types.Signature).Results().At(0).Type().String() == "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/graphql.ContextMarshaler"
 			ref.Marshaler = fun
 			ref.Unmarshaler = types.NewFunc(0, fun.Pkg(), "Unmarshal"+typeName, nil)
 		} else if hasMethod(obj.Type(), "MarshalGQLContext") && hasMethod(obj.Type(), "UnmarshalGQLContext") {

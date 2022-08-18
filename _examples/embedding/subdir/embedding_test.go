@@ -3,10 +3,10 @@ package subdir
 import (
 	"testing"
 
-	"github.com/99designs/gqlgen/_examples/embedding/subdir/gendir"
-	"github.com/99designs/gqlgen/client"
-	"github.com/99designs/gqlgen/graphql/handler"
 	"github.com/stretchr/testify/require"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/_examples/embedding/subdir/gendir"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/client"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/graphql/handler"
 )
 
 func TestEmbeddingWorks(t *testing.T) {

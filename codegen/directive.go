@@ -5,8 +5,8 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/99designs/gqlgen/codegen/templates"
 	"github.com/vektah/gqlparser/v2/ast"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/codegen/templates"
 )
 
 type DirectiveList map[string]*Directive

@@ -5,10 +5,10 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/99designs/gqlgen/graphql/playground"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/graphql/playground"
 
-	extension "github.com/99designs/gqlgen/_examples/type-system-extension"
-	"github.com/99designs/gqlgen/graphql/handler"
+	extension "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/_examples/type-system-extension"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/graphql/handler"
 )
 
 const defaultPort = "8080"

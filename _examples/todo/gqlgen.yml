@@ -1,7 +1,7 @@
 models:
   Todo:
-    model: github.com/99designs/gqlgen/_examples/todo.Todo
+    model: gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/_examples/todo.Todo
   ID:
     model: # override the default id marshaller to use ints
-      - github.com/99designs/gqlgen/graphql.IntID
-      - github.com/99designs/gqlgen/graphql.ID
+      - gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/graphql.IntID
+      - gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/graphql.ID

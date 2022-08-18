@@ -8,12 +8,12 @@ import (
 	"os"
 	"testing"
 
-	"github.com/99designs/gqlgen/_examples/fileupload/model"
-	gqlclient "github.com/99designs/gqlgen/client"
-	"github.com/99designs/gqlgen/graphql"
-	"github.com/99designs/gqlgen/graphql/handler"
-	"github.com/99designs/gqlgen/graphql/handler/transport"
 	"github.com/stretchr/testify/require"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/_examples/fileupload/model"
+	gqlclient "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/client"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/graphql"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/graphql/handler"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/graphql/handler/transport"
 )
 
 func TestFileUpload(t *testing.T) {

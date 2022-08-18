@@ -12,11 +12,11 @@ resolver:
 
 models:
   Element:
-    model: github.com/99designs/gqlgen/integration/models-go.Element
+    model: gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/integration/models-go.Element
   Viewer:
-    model: github.com/99designs/gqlgen/integration/models-go.Viewer
+    model: gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/integration/models-go.Viewer
   User:
-    model: github.com/99designs/gqlgen/integration/remote_api.User
+    model: gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/integration/remote_api.User
     fields:
       likes:
         resolver: true

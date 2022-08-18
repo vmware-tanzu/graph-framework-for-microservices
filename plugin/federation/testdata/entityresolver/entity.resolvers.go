@@ -7,7 +7,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/99designs/gqlgen/plugin/federation/testdata/entityresolver/generated"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/plugin/federation/testdata/entityresolver/generated"
 )
 
 // FindHelloByName is the resolver for the findHelloByName field.

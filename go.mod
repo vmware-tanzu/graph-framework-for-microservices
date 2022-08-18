@@ -1,4 +1,4 @@
-module github.com/99designs/gqlgen
+module gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git
 
 go 1.16
 

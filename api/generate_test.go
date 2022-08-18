@@ -5,8 +5,8 @@ import (
 	"path"
 	"testing"
 
-	"github.com/99designs/gqlgen/codegen/config"
 	"github.com/stretchr/testify/require"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/codegen/config"
 )
 
 func cleanup(workDir string) {

@@ -2,7 +2,7 @@ style: github
 template: CHANGELOG-full-history.tpl.md
 info:
   title: CHANGELOG
-  repository_url: https://github.com/99designs/gqlgen
+  repository_url: https://gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git
 options:
   commits:
     # filters:

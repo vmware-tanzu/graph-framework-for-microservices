@@ -52,7 +52,7 @@ Maps an arbitrary GraphQL value to a `interface{}` Go type.
 
 ## Custom scalars with user defined types
 
-For user defined types you can implement the [graphql.Marshaler](https://pkg.go.dev/github.com/99designs/gqlgen/graphql#Marshaler) and [graphql.Unmarshaler](https://pkg.go.dev/github.com/99designs/gqlgen/graphql#Unmarshaler) or implement the [graphql.ContextMarshaler](https://pkg.go.dev/github.com/99designs/gqlgen/graphql#ContextMarshaler) and [graphql.ContextUnmarshaler](https://pkg.go.dev/github.com/99designs/gqlgen/graphql#ContextUnmarshaler) interfaces and they will be called.
+For user defined types you can implement the [graphql.Marshaler](https://pkg.go.dev/gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/graphql#Marshaler) and [graphql.Unmarshaler](https://pkg.go.dev/gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/graphql#Unmarshaler) or implement the [graphql.ContextMarshaler](https://pkg.go.dev/gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/graphql#ContextMarshaler) and [graphql.ContextUnmarshaler](https://pkg.go.dev/gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/graphql#ContextUnmarshaler) interfaces and they will be called.
 
 ```go
 package mypkg
@@ -152,7 +152,7 @@ import (
 	"io"
 	"strings"
 
-	"github.com/99designs/gqlgen/graphql"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/graphql"
 )
 
 
@@ -194,7 +194,7 @@ models:
 **Note:** you can also un/marshal with a context by having your custom marshal function return a
 `graphql.ContextMarshaler` _and_ your unmarshal function take a `context.Context` as the first argument.
 
-See the [_examples/scalars](https://github.com/99designs/gqlgen/tree/master/_examples/scalars) package for more examples.
+See the [\_examples/scalars](https://gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/tree/master/_examples/scalars) package for more examples.
 
 ## Marshaling/Unmarshaling Errors
 
@@ -202,49 +202,44 @@ The errors that occur as part of custom scalar marshaling/unmarshaling will retu
 For example, given the following schema ...
 
 ```graphql
-extend type Mutation{
-    updateUser(userInput: UserInput!): User!
+extend type Mutation {
+	updateUser(userInput: UserInput!): User!
 }
 
 input UserInput {
-    name: String!
-    primaryContactDetails: ContactDetailsInput!
-    secondaryContactDetails: ContactDetailsInput!
+	name: String!
+	primaryContactDetails: ContactDetailsInput!
+	secondaryContactDetails: ContactDetailsInput!
 }
 
 scalar Email
 input ContactDetailsInput {
-    email: Email!
+	email: Email!
 }
 ```
 
 ... and the following variables:
 
 ```json
-
 {
-  "userInput": {
-    "name": "George",
-    "primaryContactDetails": {
-      "email": "not-an-email"
-    },
-    "secondaryContactDetails": {
-      "email": "george@gmail.com"
-    }
-  }
+	"userInput": {
+		"name": "George",
+		"primaryContactDetails": {
+			"email": "not-an-email"
+		},
+		"secondaryContactDetails": {
+			"email": "george@gmail.com"
+		}
+	}
 }
 ```
 
 ... and an unmarshal function that returns an error if the email is invalid. The mutation will return an error containing the full path:
+
 ```json
 {
-  "message": "email invalid",
-  "path": [
-    "updateUser",
-    "userInput",
-    "primaryContactDetails",
-    "email"
-  ]
+	"message": "email invalid",
+	"path": ["updateUser", "userInput", "primaryContactDetails", "email"]
 }
 ```
 

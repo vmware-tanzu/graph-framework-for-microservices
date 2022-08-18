@@ -12,4 +12,4 @@ resolver:
 
 models:
   Resolver:
-    model: github.com/99designs/gqlgen/plugin/resolvergen/testdata/singlefile/out.Resolver
+    model: gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/plugin/resolvergen/testdata/singlefile/out.Resolver

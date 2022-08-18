@@ -1,6 +1,6 @@
 package followschema
 
-import "github.com/99designs/gqlgen/codegen/testserver/followschema/otherpkg"
+import "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/codegen/testserver/followschema/otherpkg"
 
 type (
 	WrappedScalar = otherpkg.Scalar

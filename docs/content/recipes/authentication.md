@@ -2,11 +2,10 @@
 title: "Providing authentication details through context"
 description: How to using golang context.Context to authenticate users and pass user data to resolvers.
 linkTitle: Authentication
-menu: { main: { parent: 'recipes' } }
+menu: { main: { parent: "recipes" } }
 ---
 
 We have an app where users are authenticated using a cookie in the HTTP request, and we want to check this authentication status somewhere in our graph. Because GraphQL is transport agnostic we can't assume there will even be an HTTP request, so we need to expose these authentication details to our graph using a middleware.
-
 
 ```go
 package auth
@@ -71,15 +70,16 @@ func ForContext(ctx context.Context) *User {
 **Note:** `getUserByID` and `validateAndGetUserID` have been left to the user to implement.
 
 Now when we create the server we should wrap it in our authentication middleware:
+
 ```go
 package main
 
 import (
 	"net/http"
 
-	"github.com/99designs/gqlgen/_examples/starwars"
-	"github.com/99designs/gqlgen/graphql/handler"
-	"github.com/99designs/gqlgen/graphql/playground"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/_examples/starwars"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/graphql/handler"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/graphql/playground"
 	"github.com/go-chi/chi"
 )
 
@@ -100,6 +100,7 @@ func main() {
 ```
 
 And in our resolvers (or directives) we can call `ForContext` to retrieve the data back out:
+
 ```go
 
 func (r *queryResolver) Hero(ctx context.Context, episode Episode) (Character, error) {
@@ -117,7 +118,7 @@ func (r *queryResolver) Hero(ctx context.Context, episode Episode) (Character, e
 ### Websockets
 
 If you need access to the websocket init payload you can add your `InitFunc` in `AddTransport`.  
-Your InitFunc implementation could then attempt to extract items from the payload:  
+Your InitFunc implementation could then attempt to extract items from the payload:
 
 ```go
 package main
@@ -130,10 +131,10 @@ import (
 	"os"
 	"time"
 
-	"github.com/99designs/gqlgen/graphql/handler"
-	"github.com/99designs/gqlgen/graphql/handler/extension"
-	"github.com/99designs/gqlgen/graphql/handler/transport"
-	"github.com/99designs/gqlgen/graphql/playground"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/graphql/handler"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/graphql/handler/extension"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/graphql/handler/transport"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/graphql/playground"
 	"github.com/go-chi/chi"
 	"github.com/gorilla/websocket"
 	"github.com/gqlgen/_examples/websocket-initfunc/server/graph"
@@ -202,4 +203,4 @@ func main() {
 > Note
 >
 > Subscriptions are long lived, if your tokens can timeout or need to be refreshed you should keep the token in
-context too and verify it is still valid in `auth.ForContext`.
+> context too and verify it is still valid in `auth.ForContext`.

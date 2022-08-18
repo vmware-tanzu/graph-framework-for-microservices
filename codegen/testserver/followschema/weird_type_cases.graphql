@@ -1,8 +1,20 @@
-# regression test for https://github.com/99designs/gqlgen/issues/583
+# regression test for https://gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/issues/583
 
-type asdfIt { id: ID! }
-type iIt { id: ID! }
-type AIt { id: ID! }
-type XXIt { id: ID! }
-type AbIt { id: ID! }
-type XxIt { id: ID! }
+type asdfIt {
+    id: ID!
+}
+type iIt {
+    id: ID!
+}
+type AIt {
+    id: ID!
+}
+type XXIt {
+    id: ID!
+}
+type AbIt {
+    id: ID!
+}
+type XxIt {
+    id: ID!
+}

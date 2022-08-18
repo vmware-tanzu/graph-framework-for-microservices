@@ -1,6 +1,6 @@
 package singlefile
 
-import "github.com/99designs/gqlgen/codegen/testserver/singlefile/otherpkg"
+import "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/codegen/testserver/singlefile/otherpkg"
 
 type (
 	WrappedScalar = otherpkg.Scalar

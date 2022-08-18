@@ -5,9 +5,9 @@ package followschema
 import (
 	"context"
 
-	introspection1 "github.com/99designs/gqlgen/codegen/testserver/followschema/introspection"
-	invalid_packagename "github.com/99designs/gqlgen/codegen/testserver/followschema/invalid-packagename"
-	"github.com/99designs/gqlgen/codegen/testserver/followschema/otherpkg"
+	introspection1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/codegen/testserver/followschema/introspection"
+	invalid_packagename "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/codegen/testserver/followschema/invalid-packagename"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/codegen/testserver/followschema/otherpkg"
 )
 
 type Resolver struct{}

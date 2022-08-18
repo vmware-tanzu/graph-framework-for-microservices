@@ -6,8 +6,8 @@ package graph
 import (
 	"context"
 
-	"github.com/99designs/gqlgen/_examples/federation/reviews/graph/generated"
-	"github.com/99designs/gqlgen/_examples/federation/reviews/graph/model"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/_examples/federation/reviews/graph/generated"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/_examples/federation/reviews/graph/model"
 )
 
 // Reviews is the resolver for the reviews field.

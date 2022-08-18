@@ -1,21 +1,26 @@
 {{- $repourl := $.Info.RepositoryURL -}}
+
 # CHANGELOG
+
 All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 <a name="unreleased"></a>
+
 ## [Unreleased]({{ .Info.RepositoryURL }}/compare/{{ $latest := index .Versions 0 }}{{ $latest.Tag.Name }}...HEAD)
 
 {{ if .Unreleased.NoteGroups }}
 {{ range .Unreleased.NoteGroups -}}
+
 ### {{ .Title }}
+
 {{ range .Notes -}}
 {{ .Body }}
-{{ end -}}  <!-- end of Notes -->
+{{ end -}} <!-- end of Notes -->
 {{ end -}} <!-- end of NoteGroups -->
-{{ end -}}  <!-- end of if -->
+{{ end -}} <!-- end of if -->
 {{ range .Unreleased.CommitGroups }}
 {{ range .Commits -}}
 
@@ -45,11 +50,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 {{- if .Versions }}
 {{ range .Versions -}}
 <a name="{{ .Tag.Name }}"></a>
-## {{ if .Tag.Previous }}[{{ .Tag.Name }}]({{ $.Info.RepositoryURL }}/compare/{{ .Tag.Previous.Name }}...{{ .Tag.Name }}){{ else }}[{{ .Tag.Name }}](https://github.com/99designs/gqlgen/releases/tag/{{ .Tag.Name }}){{ end }} - {{ datetime "2006-01-02" .Tag.Date }}
+
+## {{ if .Tag.Previous }}[{{ .Tag.Name }}]({{ $.Info.RepositoryURL }}/compare/{{ .Tag.Previous.Name }}...{{ .Tag.Name }}){{ else }}[{{ .Tag.Name }}](https://gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/releases/tag/{{ .Tag.Name }}){{ end }} - {{ datetime "2006-01-02" .Tag.Date }}
+
 {{- if .CommitGroups -}}
 {{ range .CommitGroups -}}
 
 ### {{ .Title }}
+
 {{ range .Commits -}}
 {{- /** Remove markdown urls when there's a pull request linked and replace it with a tag **/ -}}
 {{- $subject := (regexReplaceAll `URL` (regexReplaceAll `\[#(\d+)\]\(.*?\)` .Subject "<a href=\"URL/pull/${1}\">#${1}</a>") $repourl) -}}
@@ -71,10 +79,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 {{- end -}}
 
 - {{ if .Type }}**{{ .Type }}:** {{ end }}{{ if .Subject }}{{ .Subject }}{{ else }}{{ .Header }}{{ end }}
-{{ end }} <!-- end of Commits -->
-{{ end -}} <!-- end of CommitGroups -->
-{{ else }}
-{{ range .Commits -}}
+  {{ end }} <!-- end of Commits -->
+  {{ end -}} <!-- end of CommitGroups -->
+  {{ else }}
+  {{ range .Commits -}}
 
 {{- /** Remove markdown urls when there's a pull request linked and replace it with a tag **/ -}}
 {{- $subject := (regexReplaceAll `URL` (regexReplaceAll `\[#(\d+)\]\(.*?\)` .Subject "<a href=\"URL/pull/${1}\">#${1}</a>") $repourl) -}}
@@ -101,7 +109,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 {{ if .NoteGroups }}
 {{ range .NoteGroups -}}
+
 ### {{ .Title }}
+
 {{ range .Notes -}}
 {{ .Body }}
 {{ end -}} <!-- end of Notes -->

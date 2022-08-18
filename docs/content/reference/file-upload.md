@@ -139,7 +139,7 @@ That invokes the following operation:
 }
 ```
 
-See the [_examples/fileupload](https://github.com/99designs/gqlgen/tree/master/_examples/fileupload) package for more examples.
+See the [\_examples/fileupload](https://gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/tree/master/_examples/fileupload) package for more examples.
 
 # Usage with Apollo
 
@@ -151,7 +151,7 @@ import { createUploadLink } from "apollo-upload-client";
 
 const client = new ApolloClient({
 	cache: new InMemoryCache(),
-	link: createUploadLink({ uri: "/graphql" })
+	link: createUploadLink({ uri: "/graphql" }),
 });
 ```
 
