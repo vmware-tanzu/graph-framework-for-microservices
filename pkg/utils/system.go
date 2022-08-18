@@ -81,7 +81,7 @@ func SystemCommand(cmd *cobra.Command, customErr ClientErrorCode, envList []stri
 		for scanner.Scan() {
 			text := scanner.Text()
 			log.Debugf("\t > %s\n", text)
-			if !IsDebug(cmd) && strings.Contains(text, "NexusInfo") {
+			if !IsDebug(cmd) && strings.Contains(text, "Nexus Compiler") {
 				log.Infof("%s", text)
 			}
 		}
