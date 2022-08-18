@@ -326,7 +326,7 @@ func (m *Plugin) generateFields(cfg *config.Config, schemaType *ast.Definition) 
 			}
 		}
 
-		name := templates.ToGo(field.Name)
+		name := field.Name
 		if nameOveride := cfg.Models[schemaType.Name].Fields[field.Name].FieldName; nameOveride != "" {
 			name = nameOveride
 		}

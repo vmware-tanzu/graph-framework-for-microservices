@@ -130,7 +130,11 @@ func (m *Plugin) generatePerSchema(data *codegen.Data) error {
 						}
 					}
 				}
-				implementation = fmt.Sprintf("return c.get%vResolver(%v)", f.Name, args)
+				if templates.ToGo(o.Name) == "Query" {
+					implementation = fmt.Sprintf("return c.get%sResolver(%s)", templates.ToGo(f.Name), args)
+				} else {
+					implementation = fmt.Sprintf("return c.get%s%sResolver(%s)", templates.ToGo(o.Name), f.Name, args)
+				}
 			}
 			if comment == "" {
 				comment = fmt.Sprintf("%v is the resolver for the %v field.", f.GoFieldName, f.Name)
