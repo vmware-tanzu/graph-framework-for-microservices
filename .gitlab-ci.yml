@@ -73,6 +73,24 @@ build_tag:
     - make build_template
     - make publish_template TAG=$CI_COMMIT_TAG
 
+coverage:
+  before_script:
+    - git config --global url."https://gitlab.eng.vmware.com/".insteadOf "git@gitlab.eng.vmware.com:"
+    - git config --global gc.auto 0
+    - git config --global credential.helper store
+    - export GOPRIVATE=*.eng.vmware.com
+    - echo -e  "https://gitlab-ci-token:${CICD_TOKEN}@gitlab.eng.vmware.com/" >> ~/.git-credentials
+  image: runner.servicemesh.biz:5000/allspark/runner:latest
+  stage: tests
+  variables:
+    GIT_DEPTH: 0
+  only:
+    - merge_requests
+    - master
+  script:
+    - make coverage
+    - sonar-scanner
+
 integration_test:
   stage: tests
   variables:
