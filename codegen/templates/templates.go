@@ -295,13 +295,6 @@ func ToGo(name string) string {
 	if name == "_" {
 		return "_"
 	}
-	return string(name)
-}
-
-func ToGoField(name string) string {
-	if name == "_" {
-		return "_"
-	}
 	runes := make([]rune, 0, len(name))
 
 	wordWalker(name, func(info *wordInfo) {
@@ -460,53 +453,7 @@ func sanitizeKeywords(name string) string {
 // commonInitialisms is a set of common initialisms.
 // Only add entries that are highly unlikely to be non-initialisms.
 // For instance, "ID" is fine (Freudian code is rare), but "AND" is not.
-var commonInitialisms = map[string]bool{
-	"ACL":   true,
-	"API":   true,
-	"ASCII": true,
-	"CPU":   true,
-	"CSS":   true,
-	"CSV":   true,
-	"DNS":   true,
-	"EOF":   true,
-	"GUID":  true,
-	"HTML":  true,
-	"HTTP":  true,
-	"HTTPS": true,
-	"ICMP":  true,
-	"ID":    true,
-	"IP":    true,
-	"JSON":  true,
-	"KVK":   true,
-	"LHS":   true,
-	"PDF":   true,
-	"PGP":   true,
-	"QPS":   true,
-	"QR":    true,
-	"RAM":   true,
-	"RHS":   true,
-	"RPC":   true,
-	"SLA":   true,
-	"SMTP":  true,
-	"SQL":   true,
-	"SSH":   true,
-	"SVG":   true,
-	"TCP":   true,
-	"TLS":   true,
-	"TTL":   true,
-	"UDP":   true,
-	"UI":    true,
-	"UID":   true,
-	"URI":   true,
-	"URL":   true,
-	"UTF8":  true,
-	"UUID":  true,
-	"VM":    true,
-	"XML":   true,
-	"XMPP":  true,
-	"XSRF":  true,
-	"XSS":   true,
-}
+var commonInitialisms = map[string]bool{}
 
 func rawQuote(s string) string {
 	return "`" + strings.ReplaceAll(s, "`", "`+\"`\"+`") + "`"
