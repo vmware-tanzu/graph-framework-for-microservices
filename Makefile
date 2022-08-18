@@ -116,34 +116,34 @@ test_in_container: ${BUILDER_NAME}\:${BUILDER_TAG}.image.exists
 
 .PHONY: generate_code
 generate_code:
-	@echo "NexusInfo: Running compiler code generation"
-	@echo "NexusInfo: Cleaning up workdir"
+	@echo "Nexus Compiler: Running compiler code generation"
+	@echo "Cleaning up workdir"
 	rm -rf _generated ${GOPATH}/src/nexustempmodule
-	@echo "NexusInfo: Copying generated_base_structure to create directory structure"
+	@echo "Copying generated_base_structure to create directory structure"
 	cp -R generated_base_structure _generated
-	@echo "NexusInfo: Copying go.mod file of datamodel"
+	@echo "Copying go.mod file of datamodel"
 	cp ${DATAMODEL_PATH}/go.mod _generated/go.mod
 	sed -i'.bak' -e "1s|.*|module nexustempmodule|" _generated/go.mod
-	@echo "NexusInfo: Generating base nexus code structure"
+	@echo "Nexus Compiler: Generating base nexus code structure"
 	CRD_MODULE_PATH=${CRD_MODULE_PATH} go run cmd/nexus-sdk/main.go -config-file ${CONFIG_FILE} -dsl ${DATAMODEL_PATH} -crd-output _generated -log-level ${LOG_LEVEL}
 	mv _generated/api_names.sh scripts/
-	@echo "NexusInfo: Resolving datamodel dependencies"
+	@echo "Nexus Compiler: Resolving datamodel dependencies"
 	cd _generated && ../scripts/pin_deps.sh  && go mod tidy -e
-	@echo "NexusInfo: Generating kuberenetes APIs"
+	@echo "Nexus Compiler: Generating kuberenetes APIs"
 	./scripts/generate_k8s_api.sh
-	@echo "NexusInfo: Generating openapi schema"
+	@echo "Nexus Compiler: Generating openapi schema"
 	./scripts/generate_openapi_schema.sh
-	@echo "NexusInfo: Generating CRD yamls"
+	@echo "Nexus Compiler: Generating CRD yamls"
 	go run cmd/generate-openapischema/generate-openapischema.go -yamls-path _generated/crds
 	git checkout -- pkg/openapi_generator/openapi/openapi_generated.go
-	@echo "NexusInfo: Updating module name"
+	@echo "Updating module name"
 	./scripts/replace_mod_path.sh
 	find . -name "*.bak" -type f -delete
-	@echo "NexusInfo: Sorting imports"
+	@echo "Sorting imports"
 	cd _generated && goimports -w .
-	@echo "NexusInfo: Moving files to output directory"
+	@echo "Nexus Compiler: Moving files to output directory"
 	cp -r _generated/{client,apis,crds,common,nexus-client,helper} ${GENERATED_OUTPUT_DIRECTORY}
-	@echo "NexusInfo: Compiler code generation completed"
+	@echo "Nexus Compiler: Compiler code generation completed"
 
 .PHONY: test_generate_code_in_container
 test_generate_code_in_container: ${BUILDER_NAME}\:${BUILDER_TAG}.image.exists init_submodules
