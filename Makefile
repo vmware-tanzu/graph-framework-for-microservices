@@ -131,3 +131,6 @@ cred_setup:
         git config --global credential.helper store && \
         go mod tidy && go mod download ;\
     fi
+
+coverage:
+	go test -json -coverprofile=coverage.out ./... | tee report.json ;\

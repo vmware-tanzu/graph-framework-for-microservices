@@ -1,2 +1,7 @@
+*.tar
+*/*.tar
+coverage.out
+report.json
+*.coverprofile
 .vscode/
 cmd/connector/connector
