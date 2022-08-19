@@ -432,9 +432,9 @@ spec:
             port: 10254
             scheme: HTTP
           initialDelaySeconds: 10
-          periodSeconds: 10
+          periodSeconds: 5
           successThreshold: 1
-          timeoutSeconds: 1
+          timeoutSeconds: 5
         name: controller
         ports:
         - containerPort: 80
@@ -453,9 +453,9 @@ spec:
             port: 10254
             scheme: HTTP
           initialDelaySeconds: 10
-          periodSeconds: 10
+          periodSeconds: 5
           successThreshold: 1
-          timeoutSeconds: 1
+          timeoutSeconds: 5
         resources:
           requests:
             cpu: 100m
