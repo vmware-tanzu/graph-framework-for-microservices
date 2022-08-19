@@ -47,14 +47,15 @@ spec:
       serviceAccountName: nexus-api-gw-sa
       initContainers:
         - name: check-nexus-proxy-container
-          image: "gcr.io/mesh7-public-images/tools:latest"
+          image: "gcr.io/nsx-sm/tools:latest"
+          imagePullPolicy: IfNotPresent
           command:
             - /bin/bash
             - -c
             - |
               #!/bin/bash
               set -x
-              URL="http://nexus-proxy-container/api/v1/namespaces"
+              URL="http://nexus-apiserver:8080/api/v1/namespaces"
               max_retries=20
               counter=0
               while [[ $counter -lt $max_retries ]]; do
