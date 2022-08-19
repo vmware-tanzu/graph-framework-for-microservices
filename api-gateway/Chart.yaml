@@ -2,4 +2,4 @@ apiVersion: v2
 name: api-gateway
 description: A Helm chart for Nexus-sdk k8s api-server
 type: application
-version: 0.1.0
+version: 0.1.1
