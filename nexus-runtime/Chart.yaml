@@ -10,7 +10,7 @@ dependencies:
     repository: 'file://./../subcharts/core/core'
     condition: global.runtimeEnabled
   - name: api-gateway
-    version: 0.1.0
+    version: 0.1.1
     repository: 'file://./../subcharts/api-gateway/api-gateway'
   - name: datamodel
     version: 0.1.0
