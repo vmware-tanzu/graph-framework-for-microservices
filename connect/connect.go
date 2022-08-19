@@ -93,6 +93,9 @@ type ReplicationDestination struct {
 
 	// If specified, the replicated object will be scoped to this namespace.
 	Namespace string `json:"namespace,omitempty"`
+
+	// If specified, the object will be replicated to this type.
+	ObjectType `json:"objectType,omitempty"`
 }
 
 // ReplicationConfig defines a replication request/instance.
@@ -114,5 +117,5 @@ type ReplicationConfig struct {
 	// Endpoint in which status of replication should be captured.
 	// Status can be captured on the corresponding object in source or destination endpoint.
 	// This allows for capturing of status at the endpoint where status is being watched for.
-	StatusEndpoint ReplicationStatusEndpoint
+	StatusEndpoint ReplicationStatusEndpoint `json:"statusEndpoint,omitempty"`
 }

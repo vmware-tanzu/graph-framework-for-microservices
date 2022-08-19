@@ -272,12 +272,11 @@ func (group *ApiNexusV1) UpdateNexusByName(ctx context.Context,
 	}
 
 	var patch Patch
-	patchOpMeta := PatchOp{
+	patch = append(patch, PatchOp{
 		Op:    "replace",
 		Path:  "/metadata",
 		Value: objToUpdate.ObjectMeta,
-	}
-	patch = append(patch, patchOpMeta)
+	})
 
 	marshaled, err := patch.Marshal()
 	if err != nil {
@@ -612,12 +611,11 @@ func (group *AdminNexusV1) UpdateProxyRuleByName(ctx context.Context,
 	}
 
 	var patch Patch
-	patchOpMeta := PatchOp{
+	patch = append(patch, PatchOp{
 		Op:    "replace",
 		Path:  "/metadata",
 		Value: objToUpdate.ObjectMeta,
-	}
-	patch = append(patch, patchOpMeta)
+	})
 
 	patchValueMatchCondition :=
 		objToUpdate.Spec.MatchCondition
@@ -867,12 +865,11 @@ func (group *ApigatewayNexusV1) UpdateApiGatewayByName(ctx context.Context,
 	}
 
 	var patch Patch
-	patchOpMeta := PatchOp{
+	patch = append(patch, PatchOp{
 		Op:    "replace",
 		Path:  "/metadata",
 		Value: objToUpdate.ObjectMeta,
-	}
-	patch = append(patch, patchOpMeta)
+	})
 
 	marshaled, err := patch.Marshal()
 	if err != nil {
@@ -1302,12 +1299,11 @@ func (group *AuthenticationNexusV1) UpdateOIDCByName(ctx context.Context,
 	}
 
 	var patch Patch
-	patchOpMeta := PatchOp{
+	patch = append(patch, PatchOp{
 		Op:    "replace",
 		Path:  "/metadata",
 		Value: objToUpdate.ObjectMeta,
-	}
-	patch = append(patch, patchOpMeta)
+	})
 
 	patchValueConfig :=
 		objToUpdate.Spec.Config
@@ -1576,12 +1572,11 @@ func (group *ConfigNexusV1) UpdateConfigByName(ctx context.Context,
 	}
 
 	var patch Patch
-	patchOpMeta := PatchOp{
+	patch = append(patch, PatchOp{
 		Op:    "replace",
 		Path:  "/metadata",
 		Value: objToUpdate.ObjectMeta,
-	}
-	patch = append(patch, patchOpMeta)
+	})
 
 	marshaled, err := patch.Marshal()
 	if err != nil {
@@ -2131,12 +2126,11 @@ func (group *ConnectNexusV1) UpdateConnectByName(ctx context.Context,
 	}
 
 	var patch Patch
-	patchOpMeta := PatchOp{
+	patch = append(patch, PatchOp{
 		Op:    "replace",
 		Path:  "/metadata",
 		Value: objToUpdate.ObjectMeta,
-	}
-	patch = append(patch, patchOpMeta)
+	})
 
 	marshaled, err := patch.Marshal()
 	if err != nil {
@@ -2568,12 +2562,11 @@ func (group *ConnectNexusV1) UpdateNexusEndpointByName(ctx context.Context,
 	}
 
 	var patch Patch
-	patchOpMeta := PatchOp{
+	patch = append(patch, PatchOp{
 		Op:    "replace",
 		Path:  "/metadata",
 		Value: objToUpdate.ObjectMeta,
-	}
-	patch = append(patch, patchOpMeta)
+	})
 
 	patchValueHost :=
 		objToUpdate.Spec.Host
@@ -2800,12 +2793,11 @@ func (group *ConnectNexusV1) UpdateReplicationConfigByName(ctx context.Context,
 	}
 
 	var patch Patch
-	patchOpMeta := PatchOp{
+	patch = append(patch, PatchOp{
 		Op:    "replace",
 		Path:  "/metadata",
 		Value: objToUpdate.ObjectMeta,
-	}
-	patch = append(patch, patchOpMeta)
+	})
 
 	patchValueAccessToken :=
 		objToUpdate.Spec.AccessToken
@@ -3100,12 +3092,11 @@ func (group *RouteNexusV1) UpdateRouteByName(ctx context.Context,
 	}
 
 	var patch Patch
-	patchOpMeta := PatchOp{
+	patch = append(patch, PatchOp{
 		Op:    "replace",
 		Path:  "/metadata",
 		Value: objToUpdate.ObjectMeta,
-	}
-	patch = append(patch, patchOpMeta)
+	})
 
 	patchValueUri :=
 		objToUpdate.Spec.Uri

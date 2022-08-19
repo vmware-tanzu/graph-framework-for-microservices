@@ -146,7 +146,7 @@ type ReplicationConfigSpec struct {
 	AccessToken       string                    `json:"accessToken" yaml:"accessToken"`
 	Source            ReplicationSource         `json:"source" yaml:"source"`
 	Destination       ReplicationDestination    `json:"destination" yaml:"destination"`
-	StatusEndpoint    ReplicationStatusEndpoint `json:"statusEndpoint" yaml:"statusEndpoint"`
+	StatusEndpoint    ReplicationStatusEndpoint `json:"statusEndpoint,omitempty"`
 	RemoteEndpointGvk *Link                     `json:"remoteEndpointGvk,omitempty" yaml:"remoteEndpointGvk,omitempty" nexus:"link"`
 }
 
@@ -195,6 +195,7 @@ type ReplicationDestination struct {
 	Hierarchical bool      `json:"hierarchical"`
 	Hierarchy    Hierarchy `json:"hierarchy,omitempty"`
 	Namespace    string    `json:"namespace,omitempty"`
+	ObjectType   `json:"objectType,omitempty"`
 }
 
 type ReplicationStatusEndpoint string

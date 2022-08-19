@@ -63,6 +63,19 @@ spec:
                     type: object
                   namespace:
                     type: string
+                  objectType:
+                    properties:
+                      group:
+                        type: string
+                      kind:
+                        type: string
+                      version:
+                        type: string
+                    required:
+                    - group
+                    - kind
+                    - version
+                    type: object
                 required:
                 - hierarchical
                 type: object
@@ -146,7 +159,6 @@ spec:
             - accessToken
             - source
             - destination
-            - statusEndpoint
             type: object
           status:
             properties:

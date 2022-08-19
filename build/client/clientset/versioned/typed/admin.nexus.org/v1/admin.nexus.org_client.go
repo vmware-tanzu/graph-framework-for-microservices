@@ -21,6 +21,7 @@ package v1
 import (
 	v1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/admin.nexus.org/v1"
 	"golang-appnet.eng.vmware.com/nexus-sdk/api/build/client/clientset/versioned/scheme"
+
 	rest "k8s.io/client-go/rest"
 )
 
