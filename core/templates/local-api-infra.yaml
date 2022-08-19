@@ -156,7 +156,7 @@ spec:
         - --cert-dir=/etc/kubernetes/certs
         - --endpoint-reconciler-type=none
         - --port=8080
-        image: gcr.io/nsx-sm/k8s.gcr.io/kube-apiserver:v1.18.0
+        image: gcr.io/nsx-sm/k8s.gcr.io/kube-apiserver:v1.19.0
         imagePullPolicy: IfNotPresent
         ports:
           - containerPort: 8080
@@ -263,7 +263,7 @@ spec:
         - --master=nexus-apiserver:8080
         - --use-service-account-credentials=true
         - --authentication-skip-lookup=true
-        image: gcr.io/nsx-sm/k8s.gcr.io/kube-controller-manager:v1.18.0
+        image: gcr.io/nsx-sm/k8s.gcr.io/kube-controller-manager:v1.19.0
         imagePullPolicy: IfNotPresent
         livenessProbe:
           failureThreshold: 8
