@@ -326,6 +326,7 @@ type NexusAnnotation struct {
 	Name            string                            `json:"name,omitempty"`
 	Hierarchy       []string                          `json:"hierarchy,omitempty"`
 	Children        map[string]parser.NodeHelperChild `json:"children,omitempty"`
+	Links           map[string]parser.NodeHelperChild `json:"links,omitempty"`
 	IsSingleton     bool                              `json:"is_singleton"`
 	NexusRestAPIGen nexus.RestAPISpec                 `json:"nexus-rest-api-gen,omitempty"`
 	Description     string                            `json:"description,omitempty"`
@@ -357,6 +358,7 @@ func RenderCRDBaseTemplate(baseGroupName string, pkg parser.Package, parentsMap 
 		if ok {
 			nexusAnnotation.Hierarchy = parents.Parents
 			nexusAnnotation.Children = parents.Children
+			nexusAnnotation.Links = parents.Links
 			nexusAnnotation.Name = parents.RestName
 		}
 

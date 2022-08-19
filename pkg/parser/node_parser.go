@@ -159,15 +159,39 @@ func CreateParentsMap(graph map[string]Node) map[string]NodeHelper {
 					FieldNameGvk: util.GetGvkFieldTagName(key),
 				}
 			}
+			links := make(map[string]NodeHelperChild)
+			for key, link := range node.SingleLink {
+				if link.CrdName == "" {
+					log.Fatalf("Internal compiler failure: Failed to determine crd name of link %v", link)
+				}
+				links[link.CrdName] = NodeHelperChild{
+					IsNamed:      false,
+					FieldName:    key,
+					FieldNameGvk: util.GetGvkFieldTagName(key),
+				}
+			}
+
+			for key, link := range node.MultipleChildren {
+				if link.CrdName == "" {
+					log.Fatalf("Internal compiler failure: Failed to determine crd name of link %v", link)
+				}
+				links[link.CrdName] = NodeHelperChild{
+					IsNamed:      true,
+					FieldName:    key,
+					FieldNameGvk: util.GetGvkFieldTagName(key),
+				}
+			}
 
 			if node.CrdName == "" {
 				log.Fatalf("Internal compiler failure: Failed to determine crd name of node %v", node)
 			}
+
 			parents[node.CrdName] = NodeHelper{
 				Name:        node.Name,
 				RestName:    fmt.Sprintf("%s.%s", node.PkgName, node.Name),
 				Parents:     node.Parents,
 				Children:    children,
+				Links:       links,
 				IsSingleton: node.IsSingleton,
 			}
 		})
