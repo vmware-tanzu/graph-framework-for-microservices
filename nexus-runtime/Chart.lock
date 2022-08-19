@@ -1,10 +1,10 @@
 dependencies:
 - name: core
   repository: file://./../subcharts/core/core
-  version: 0.1.0
+  version: 0.1.2
 - name: api-gateway
   repository: file://./../subcharts/api-gateway/api-gateway
-  version: 0.1.0
+  version: 0.1.1
 - name: datamodel
   repository: file://./../subcharts/api/datamodel
   version: 0.1.0
@@ -14,5 +14,5 @@ dependencies:
 - name: controller
   repository: file://./../subcharts/controller/controller
   version: 0.1.0
-digest: sha256:acf83d93d1d79bbe348247fb7f15bc61e909d7168a8ed8dd35c1a883ee980f19
-generated: "2022-07-21T14:09:58.569716+05:30"
+digest: sha256:79146a327348c6ee606bd4708d4957dd056b9435d8c60b7a10930ba1abe4ca3e
+generated: "2022-08-19T16:10:38.798545+05:30"
