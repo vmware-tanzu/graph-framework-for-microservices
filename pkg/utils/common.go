@@ -166,3 +166,16 @@ func GenerateAnnotations(annotations map[string]string, gvr schema.GroupVersionR
 
 	return annotations
 }
+
+func GetDestinationGvrAndKind(destination ReplicationDestination, gvr schema.GroupVersionResource,
+	kind string) (schema.GroupVersionResource, string) {
+
+	destGvr := gvr
+	destKind := kind
+	if destination.ObjectType != nil && !destination.IsChild {
+		destCrdType := GetCrdType(destination.ObjectType.Kind, destination.ObjectType.Group)
+		destGvr = GetGVRFromCrdType(destCrdType)
+		destKind = destination.Kind
+	}
+	return destGvr, destKind
+}

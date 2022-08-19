@@ -40,8 +40,10 @@ var _ = Describe("ReplicationConfig Tests", func() {
 
 			endpointGvr := schema.GroupVersionResource{Group: "connect.nexus.org", Version: "v1", Resource: "nexusendpoints"}
 			acGvr := schema.GroupVersionResource{Group: "config.mazinger.com", Version: "v1", Resource: "apicollaborationspaces"}
+			adGvr := schema.GroupVersionResource{Group: "config.mazinger.com", Version: "v1", Resource: "apidevspaces"}
 			gvrToListKind[acGvr] = "ApiCollaborationSpaceList"
 			gvrToListKind[endpointGvr] = "NexusEndpointList"
+			gvrToListKind[adGvr] = "ApiDevSpaceList"
 
 			scheme := runtime.NewScheme()
 			client := fake_dynamic.NewSimpleDynamicClientWithCustomListKinds(scheme, gvrToListKind)
@@ -61,12 +63,32 @@ var _ = Describe("ReplicationConfig Tests", func() {
 			_, err := client.Resource(endpointGvr).Create(context.TODO(), nexusEndpoint, metav1.CreateOptions{})
 			Expect(err).NotTo(HaveOccurred())
 
+			inValidNexusEndpoint := &unstructured.Unstructured{
+				Object: map[string]interface{}{
+					"metadata": map[string]interface{}{
+						"name": "defaultNew",
+					},
+					"spec": map[string]interface{}{
+						"port": map[string]interface{}{
+							"invalid": "invalid",
+						},
+					},
+				},
+			}
+			_, err = client.Resource(endpointGvr).Create(context.TODO(), inValidNexusEndpoint, metav1.CreateOptions{})
+			Expect(err).NotTo(HaveOccurred())
+
 			ac1 := &unstructured.Unstructured{
 				Object: map[string]interface{}{
 					"apiVersion": "config.mazinger.com/v1",
 					"kind":       "ApiCollaborationSpace",
 					"metadata": map[string]interface{}{
 						"name": "ac1",
+						"labels": map[string]interface{}{
+							Root:    "root",
+							Project: "project",
+							Config:  "config",
+						},
 					},
 					"spec": map[string]interface{}{
 						"example": "example",
@@ -119,6 +141,102 @@ var _ = Describe("ReplicationConfig Tests", func() {
 			}
 			err := handler.Create(replicationConfig)
 			Expect(err).NotTo(HaveOccurred())
+		})
+
+		It("Should replicate the existing objects when source is hierarchical", func() {
+			server.AppendHandlers(
+				ghttp.CombineHandlers(
+					ghttp.VerifyRequest("GET", "/apis/config.mazinger.com/v1/apicollaborationspaces/ac1"),
+					ghttp.RespondWith(200, "turbo: true"),
+				),
+				ghttp.CombineHandlers(
+					ghttp.VerifyRequest("POST", "/apis/config.mazinger.com/v1/apicollaborationspaces"),
+					ghttp.RespondWith(200, "{\"apiVersion\":\"config.mazinger.com/v1\",\"kind\":\"ApiCollaborationSpace\",\"metadata\":{\"labels\":{\"configs.config.mazinger.com\":\"config\",\"projects.config.mazinger.com\":\"project\",\"roots.config.mazinger.com\":\"root\"},\"name\":\"ac1\",\"namespace\":\"\"},\"spec\":{\"example\":\"example\"}}"),
+				),
+			)
+			replicationConfig := &unstructured.Unstructured{
+				Object: map[string]interface{}{
+					"spec": map[string]interface{}{
+						"source": map[string]interface{}{
+							"name": "ac1",
+							"kind": "Object",
+							"object": map[string]interface{}{
+								"objectType": map[string]interface{}{
+									"group":   Group,
+									"version": "v1",
+									"kind":    AcKind,
+								},
+								"hierarchical": true,
+								"hierarchy": map[string]interface{}{
+									"labels": []map[string]interface{}{
+										{
+											"key":   Root,
+											"value": "root",
+										},
+										{
+											"key":   Project,
+											"value": "project",
+										},
+										{
+											"key":   Config,
+											"value": "config",
+										},
+									},
+								},
+							},
+						},
+						"destination": map[string]interface{}{
+							"hierarchical": false,
+						},
+						"remoteEndpointGvk": map[string]interface{}{
+							"group": "connect.nexus.org",
+							"kind":  "NexusEndpoint",
+							"name":  "default",
+						},
+					},
+				},
+			}
+			err := handler.Create(replicationConfig)
+			Expect(err).NotTo(HaveOccurred())
+		})
+
+		It("Should fail when configured with invalid fields", func() {
+			replicationConfig = &unstructured.Unstructured{
+				Object: map[string]interface{}{
+					"spec": map[string]interface{}{
+						"source": "inValidValue",
+					},
+				},
+			}
+			err := handler.Create(replicationConfig)
+			Expect(err.Error()).To(ContainSubstring("failed to unmarshal replicationconfig spec"))
+		})
+
+		It("Should fail when endpoint object not found", func() {
+			replicationConfig = &unstructured.Unstructured{
+				Object: map[string]interface{}{
+					"spec": map[string]interface{}{},
+				},
+			}
+			err := handler.Create(replicationConfig)
+			Expect(err.Error()).To(ContainSubstring("failed to get endpoint object"))
+		})
+
+		It("Should fail when invalid endpoint object is configured", func() {
+			replicationConfig = &unstructured.Unstructured{
+				Object: map[string]interface{}{
+					"spec": map[string]interface{}{
+						"remoteEndpointGvk": map[string]interface{}{
+							"group": "connect.nexus.org",
+							"kind":  "NexusEndpoint",
+							"name":  "defaultNew",
+						},
+					},
+				},
+			}
+
+			err := handler.Create(replicationConfig)
+			Expect(err.Error()).To(ContainSubstring("failed to unmarshal endpoint spec of defaultNew"))
 		})
 	})
 })
