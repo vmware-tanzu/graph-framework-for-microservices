@@ -93,7 +93,7 @@ func GetNonHierarchicalSourceConfig() utils.ReplicationSource {
 	return utils.ReplicationSource{
 		Kind: utils.Object,
 		Object: utils.SourceObject{
-			SourceType: utils.SourceType{
+			ObjectType: utils.ObjectType{
 				Group:   Group,
 				Version: "v1",
 				Kind:    AcKind,
@@ -107,7 +107,7 @@ func GetHierarchicalSourceConfig() utils.ReplicationSource {
 	return utils.ReplicationSource{
 		Kind: utils.Object,
 		Object: utils.SourceObject{
-			SourceType: utils.SourceType{
+			ObjectType: utils.ObjectType{
 				Group:   Group,
 				Version: "v1",
 				Kind:    AcKind,
@@ -136,7 +136,7 @@ func GetHierarchicalSourceConfig() utils.ReplicationSource {
 func GetTypeConfig() utils.ReplicationSource {
 	return utils.ReplicationSource{
 		Kind: utils.Type,
-		Type: utils.SourceType{
+		Type: utils.ObjectType{
 			Group:   Group,
 			Version: "v1",
 			Kind:    AcKind,

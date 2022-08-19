@@ -30,11 +30,11 @@ type ReplicationConfigSpec struct {
 
 type ReplicationSource struct {
 	Kind   SourceKind   `json:"kind"`
-	Type   SourceType   `json:"type"`
+	Type   ObjectType   `json:"type"`
 	Object SourceObject `json:"object"`
 }
 
-type SourceType struct {
+type ObjectType struct {
 	Group   string `json:"group"`
 	Kind    string `json:"kind"`
 	Version string `json:"version"`
@@ -47,7 +47,7 @@ type NexusEndpoint struct {
 }
 
 type SourceObject struct {
-	SourceType   `json:"objectType"`
+	ObjectType   `json:"objectType"`
 	Name         string    `json:"name"`
 	Hierarchical bool      `json:"hierarchical"`
 	Hierarchy    Hierarchy `json:"hierarchy"`
@@ -57,6 +57,8 @@ type ReplicationDestination struct {
 	Hierarchical bool      `json:"hierarchical"`
 	Hierarchy    Hierarchy `json:"hierarchy"`
 	Namespace    string    `json:"namespace"`
+	*ObjectType  `json:"objectType"`
+	IsChild      bool `json:"-"`
 }
 
 type KVP struct {

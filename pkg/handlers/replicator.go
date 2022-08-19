@@ -40,10 +40,13 @@ func createObject(gvr schema.GroupVersionResource, res *unstructured.Unstructure
 	annotations := map[string]string{}
 	annotations = utils.GenerateAnnotations(annotations, gvr, res.GetName())
 
+	// If destination object type is specified, then replicate the object to that type.
+	destGvr, destKind := utils.GetDestinationGvrAndKind(destination, gvr, res.GetKind())
+
 	obj := &unstructured.Unstructured{
 		Object: map[string]interface{}{
-			"apiVersion": gvr.GroupVersion().String(),
-			"kind":       res.GetKind(),
+			"apiVersion": destGvr.GroupVersion().String(),
+			"kind":       destKind,
 			"metadata": map[string]interface{}{
 				"name":        res.GetName(),
 				"labels":      labels,
@@ -54,13 +57,14 @@ func createObject(gvr schema.GroupVersionResource, res *unstructured.Unstructure
 		},
 	}
 
-	if destObj, err := client.Resource(gvr).Get(context.TODO(), obj.GetName(), metav1.GetOptions{}); destObj != nil && err == nil {
+	if destObj, err := client.Resource(destGvr).Namespace(destination.Namespace).Get(context.TODO(), obj.GetName(),
+		metav1.GetOptions{}); destObj != nil && err == nil {
 		return nil
 	}
 
 	log.Infof("Replication is enabled for the resource: %v, creating...", hierarchy)
 	// If the object was successfully replicated, we need to patch the source and remote generation ID.
-	destObj, err := client.Resource(gvr).Create(context.TODO(), obj, metav1.CreateOptions{})
+	destObj, err := client.Resource(destGvr).Namespace(destination.Namespace).Create(context.TODO(), obj, metav1.CreateOptions{})
 	if err == nil && destObj != nil {
 		if err = patchStatusObject(localClient, gvr, res.GetName(), res.GetGeneration(), destObj.GetGeneration()); err != nil {
 			log.Errorf("CR %q status patch failed with an error: %v", res.GetName(), err)
@@ -76,7 +80,10 @@ func updateObject(gvr schema.GroupVersionResource, res *unstructured.Unstructure
 	objData := res.UnstructuredContent()
 	spec := objData["spec"]
 
-	oldObject, err := client.Resource(gvr).Get(context.TODO(), res.GetName(), metav1.GetOptions{})
+	// If destination object type is specified, then replicate the object to that type.
+	destGvr, _ := utils.GetDestinationGvrAndKind(destination, gvr, "")
+
+	oldObject, err := client.Resource(destGvr).Namespace(destination.Namespace).Get(context.TODO(), res.GetName(), metav1.GetOptions{})
 	if err != nil && strings.Contains(err.Error(), "not found") {
 		log.Infof("Resource %s not found, creating instead", res.GetName())
 		return createObject(gvr, res, children, hierarchy, client, localClient, source, destination)
@@ -90,12 +97,11 @@ func updateObject(gvr schema.GroupVersionResource, res *unstructured.Unstructure
 
 	annotations := oldObject.GetAnnotations()
 	annotations = utils.GenerateAnnotations(annotations, gvr, res.GetName())
-
 	oldObject.SetAnnotations(annotations)
 
 	log.Infof("Replication is enabled for the resource: %v, updating...", hierarchy)
 	// If the object was successfully replicated, we need to patch the source and remote generation ID.
-	destObj, err := client.Resource(gvr).Update(context.TODO(), oldObject, metav1.UpdateOptions{})
+	destObj, err := client.Resource(destGvr).Namespace(destination.Namespace).Update(context.TODO(), oldObject, metav1.UpdateOptions{})
 	if err == nil && destObj != nil {
 		if err = patchStatusObject(localClient, gvr, res.GetName(), res.GetGeneration(), destObj.GetGeneration()); err != nil {
 			log.Errorf("CR %q status patch failed with an error: %v", res.GetName(), err)
@@ -136,7 +142,9 @@ func processEvents(h *RemoteHandler, eventType, hierarchy string, res *unstructu
 		}
 		if repInfo.Source.Object.Hierarchical && replicationEnabledNode {
 			// Replicate children only if the obj exactly matches the source object.
-			if err := ReplicateChildren(h.CrdType, res, h.LocalClient, repInfo.Client, repInfo.Source, repInfo.Destination); err != nil {
+			newRepDestination := repInfo.Destination
+			newRepDestination.IsChild = true
+			if err := ReplicateChildren(h.CrdType, res, h.LocalClient, repInfo.Client, repInfo.Source, newRepDestination); err != nil {
 				log.Errorf("Children replication failed for the resource %v: %v", hierarchy, err)
 				return err
 			}
@@ -231,7 +239,9 @@ func Replicator(obj interface{}, h *RemoteHandler, eventType string) error {
 		}
 	}
 	if replicate {
-		if err := processEvents(h, eventType, hierarchy, res, children, repInfo, false); err != nil {
+		newRepInfo := repInfo
+		newRepInfo.Destination.IsChild = true
+		if err := processEvents(h, eventType, hierarchy, res, children, newRepInfo, false); err != nil {
 			return err
 		}
 	}
@@ -336,6 +346,7 @@ func ReplicateChildren(crdType string, repEnabledNode *unstructured.Unstructured
 
 		for _, item := range c.Items {
 			hierarchy := utils.GetNodeHierarchy(parents, item.GetLabels(), child)
+			destination.IsChild = true
 			err := createObject(gvr, &item, children, hierarchy, remoteClient, localClient, source, destination)
 			if err != nil && !errors.IsAlreadyExists(err) {
 				log.Errorf("Error creating resource, skipping %v: %v", hierarchy, err)
