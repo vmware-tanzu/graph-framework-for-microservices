@@ -113,7 +113,7 @@ data:
                       value: {{`{{.DatamodelInstaller.Image}}`}}
                     - name: SKIP_CRD_INSTALLATION
                       value: {{`"{{.SkipCRDInstallation}}"`}}
-                    {{`{{if .Title}}`}}
+                    {{`{{if .DatamodelTitle}}`}}
                     - name: TITLE
                       value: {{`"{{.DatamodelTitle}}"`}}
                     {{`{{end}}`}}
