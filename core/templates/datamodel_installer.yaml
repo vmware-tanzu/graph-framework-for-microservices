@@ -29,6 +29,7 @@ data:
       set -ex
       NAME=${NAME:-}
       IMAGE="file://${NAME}"
+      TITLE=${TITLE:-}
       SKIP_CRD_INSTALLATION=${SKIP_CRD_INSTALLATION:-false}
       if [[ $SKIP_CRD_INSTALLATION == "false" ]]; then
           kubectl apply -f /crds --recursive
@@ -36,14 +37,26 @@ data:
           IMAGE=$(cat /IMAGE)
       fi
       if [[ -n $NAME ]] && [[ -n $IMAGE ]]; then
-        echo '
-        apiVersion: nexus.org/v1
-        kind: Datamodel
-        metadata:
-          name: '"$NAME"'
-        spec:
-          name: '"$NAME"'
-          url: '"$IMAGE"'' | kubectl apply -f -
+        if [[ -n $TITLE ]]; then
+          echo '
+            apiVersion: nexus.org/v1
+            kind: Datamodel
+            metadata:
+              name: '"$NAME"'
+            spec:
+              name: '"$NAME"'
+              url: '"$IMAGE"'
+              title: '"$TITLE"'' | kubectl apply -f -
+        else
+          echo '
+          apiVersion: nexus.org/v1
+          kind: Datamodel
+          metadata:
+            name: '"$NAME"'
+          spec:
+            name: '"$NAME"'
+            url: '"$IMAGE"'' | kubectl apply -f -
+        fi
       fi
 ---
 apiVersion: v1
@@ -100,6 +113,10 @@ data:
                       value: {{`{{.DatamodelInstaller.Image}}`}}
                     - name: SKIP_CRD_INSTALLATION
                       value: {{`"{{.SkipCRDInstallation}}"`}}
+                    {{`{{if .Title}}`}}
+                    - name: TITLE
+                      value: {{`"{{.DatamodelTitle}}"`}}
+                    {{`{{end}}`}}
                   image: {{`{{.DatamodelInstaller.Image}}`}}
                   imagePullPolicy: IfNotPresent
                   name: datamodel-installer-job
