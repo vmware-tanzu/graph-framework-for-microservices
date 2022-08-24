@@ -4,9 +4,10 @@ import (
 	"api-gw/pkg/model"
 	"context"
 	"fmt"
-	k8sLabels "k8s.io/apimachinery/pkg/labels"
 	"net/http"
 	"strings"
+
+	k8sLabels "k8s.io/apimachinery/pkg/labels"
 
 	"github.com/labstack/echo/v4"
 	log "github.com/sirupsen/logrus"
@@ -66,8 +67,16 @@ func getHandler(c echo.Context) error {
 	if err != nil {
 		return handleClientError(nc, err)
 	}
+	status := make(map[string]interface{})
+	if _, ok := obj.Object["status"]; ok {
+		status = obj.Object["status"].(map[string]interface{})
+	}
+	delete(status, "nexus")
+	r := make(map[string]interface{})
+	r["spec"] = obj.Object["spec"]
+	r["status"] = status
 
-	return nc.JSON(http.StatusOK, obj.Object["spec"])
+	return nc.JSON(http.StatusOK, r)
 }
 
 // listHandler is used to process GET list requests
