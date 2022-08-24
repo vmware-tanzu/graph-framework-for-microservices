@@ -162,6 +162,9 @@ spec:
                                   type: string
                                 url:
                                   type: string
+                                title:
+                                  type: string
+                                  default: "Nexus API GW APIs"
                               type: object
                       served: true
                       storage: true
