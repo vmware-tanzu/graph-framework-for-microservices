@@ -48,3 +48,7 @@ type OidcNodeEvent struct {
 	Oidc authnexusv1.OIDC
 	Type EventType
 }
+
+type DatamodelInfo struct {
+	Title string
+}

@@ -2,7 +2,9 @@ package model
 
 import (
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/common-library.git/pkg/nexus"
+	"golang.org/x/net/publicsuffix"
 	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"sync"
 )
 
@@ -27,7 +29,33 @@ var (
 	// CRD Type to k8s spec (gns.vmware.org => CustomResourceDefinitionSpec)
 	CrdTypeToSpec      = make(map[string]apiextensionsv1.CustomResourceDefinitionSpec)
 	crdTypeToSpecMutex = &sync.Mutex{}
+
+	DatamodelsChan           = make(chan string, 100)
+	DatamodelToDatamodelInfo = make(map[string]DatamodelInfo)
+	datamodelToDatamodelInfo = &sync.Mutex{}
 )
+
+func ConstructDatamodel(eventType EventType, name string, unstructuredObj *unstructured.Unstructured) {
+	datamodelToDatamodelInfo.Lock()
+	defer datamodelToDatamodelInfo.Unlock()
+
+	if eventType == Delete {
+		delete(DatamodelToDatamodelInfo, name)
+		return
+	}
+	obj := unstructuredObj.Object
+
+	spec := obj["spec"].(map[string]interface{})
+	title := spec["title"].(string)
+
+	//FIXME: data race
+	datamodelName, _ := publicsuffix.EffectiveTLDPlusOne(name)
+	DatamodelToDatamodelInfo[datamodelName] = DatamodelInfo{
+		Title: title,
+	}
+
+	DatamodelsChan <- datamodelName
+}
 
 func ConstructMapURIToCRDType(eventType EventType, crdType string, apiURIs []nexus.RestURIs) {
 	uriToCRDTypeMutex.Lock()

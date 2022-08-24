@@ -227,8 +227,18 @@ func InitManager(metricsAddr string, probeAddr string, enableLeaderElection bool
 		os.Exit(1)
 	}
 
+	if err = (&controllers.DatamodelReconciler{
+		Client:  mgr.GetClient(),
+		Scheme:  mgr.GetScheme(),
+		Dynamic: client.Client,
+	}).SetupWithManager(mgr); err != nil {
+		setupLog.Error(err, "unable to create controller", "controller", "Datamodel")
+		os.Exit(1)
+	}
+
 	// Create new openapi3 schema
-	api.New()
+	api.Recreate()
+	go api.DatamodelUpdateNotification()
 
 	log.Infoln("Init xDS server")
 	if jwt, upstreams, headerUpstreams, err := utils.GetEnvoyInitParams(); err != nil {

@@ -2,6 +2,7 @@ package api
 
 import (
 	"api-gw/pkg/model"
+	"api-gw/pkg/utils"
 	"crypto/sha1"
 	"encoding/hex"
 	"fmt"
@@ -14,13 +15,18 @@ import (
 	"strings"
 )
 
-var Schema openapi3.T
+var Schemas = make(map[string]openapi3.T)
 
-func New() {
+func New(datamodel string) {
+	// Check if datamodel info is present
+	title := "Nexus API GW APIs"
+	if info, ok := model.DatamodelToDatamodelInfo[datamodel]; ok {
+		title = info.Title
+	}
 	schema := openapi3.T{
 		OpenAPI: "3.0.0",
 		Info: &openapi3.Info{
-			Title:          "Nexus API GW APIs",
+			Title:          title,
 			Description:    "",
 			TermsOfService: "",
 			Contact:        nil,
@@ -56,13 +62,25 @@ func New() {
 			},
 		},
 	}
-	Schema = schema
+	Schemas[datamodel] = schema
 }
 
-func AddPath(uri nexus.RestURIs) {
+func DatamodelUpdateNotification() {
+	for {
+		select {
+		case name := <-model.DatamodelsChan:
+			if schema, ok := Schemas[name]; ok {
+				schema.Info.Title = model.DatamodelToDatamodelInfo[name].Title
+				log.Infof("Updated title: %s for %s openapi spec", schema.Info.Title, name)
+			}
+		}
+	}
+}
+
+func AddPath(uri nexus.RestURIs, datamodel string) {
 	crdType := model.UriToCRDType[uri.Uri]
 	crdInfo := model.CrdTypeToNodeInfo[crdType]
-	parseSpec(crdType)
+	parseSpec(crdType, datamodel)
 
 	h := sha1.New()
 
@@ -128,10 +146,11 @@ func AddPath(uri nexus.RestURIs) {
 		}
 	}
 
-	Schema.Paths[uri.Uri] = pathItem
+	log.Infof("adding %s path to %s", uri.Uri, datamodel)
+	Schemas[datamodel].Paths[uri.Uri] = pathItem
 }
 
-func parseSpec(crdType string) {
+func parseSpec(crdType string, datamodel string) {
 	crdInfo := model.CrdTypeToNodeInfo[crdType]
 	crdSpec := model.CrdTypeToSpec[crdType]
 
@@ -140,16 +159,16 @@ func parseSpec(crdType string) {
 	jsonSchema := openapi3.NewObjectSchema()
 	parseFields(jsonSchema, specProps)
 
-	Schema.Components.Schemas[crdInfo.Name] = openapi3.NewSchemaRef("", jsonSchema)
+	Schemas[datamodel].Components.Schemas[crdInfo.Name] = openapi3.NewSchemaRef("", jsonSchema)
 
-	Schema.Components.RequestBodies["Create"+crdInfo.Name] = &openapi3.RequestBodyRef{
+	Schemas[datamodel].Components.RequestBodies["Create"+crdInfo.Name] = &openapi3.RequestBodyRef{
 		Value: openapi3.NewRequestBody().
 			WithDescription("Request used to create " + crdInfo.Name).
 			WithRequired(true).
 			WithJSONSchemaRef(&openapi3.SchemaRef{Ref: "#/components/schemas/" + crdInfo.Name}),
 	}
 
-	Schema.Components.Responses["Get"+crdInfo.Name] = &openapi3.ResponseRef{
+	Schemas[datamodel].Components.Responses["Get"+crdInfo.Name] = &openapi3.ResponseRef{
 		Value: openapi3.NewResponse().
 			WithDescription("Response returned back after getting " + crdInfo.Name + " object").
 			WithContent(
@@ -157,7 +176,7 @@ func parseSpec(crdType string) {
 			),
 	}
 
-	Schema.Components.Responses["List"+crdInfo.Name] = &openapi3.ResponseRef{
+	Schemas[datamodel].Components.Responses["List"+crdInfo.Name] = &openapi3.ResponseRef{
 		Value: openapi3.NewResponse().
 			WithDescription("Response returned back after getting " + crdInfo.Name + " objects").
 			WithContent(
@@ -268,11 +287,14 @@ func paramExist(param string, params [][]string) bool {
 
 func Recreate() {
 	log.Debug("Recreating openapi spec")
-	New()
+	for crdType := range model.CrdTypeToRestUris {
+		New(utils.GetDatamodelName(crdType))
+	}
 
-	for _, uris := range model.CrdTypeToRestUris {
+	for crdType, uris := range model.CrdTypeToRestUris {
+		datamodel := utils.GetDatamodelName(crdType)
 		for _, uri := range uris {
-			AddPath(uri)
+			AddPath(uri, datamodel)
 		}
 	}
 }

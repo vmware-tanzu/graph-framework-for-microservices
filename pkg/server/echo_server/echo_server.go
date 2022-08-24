@@ -20,7 +20,6 @@ import (
 	"api-gw/pkg/model"
 	"api-gw/pkg/utils"
 
-	openMiddleware "github.com/go-openapi/runtime/middleware"
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/common-library.git/pkg/nexus"
 )
 
@@ -95,16 +94,12 @@ type NexusContext struct {
 
 func (s *EchoServer) RegisterNexusRoutes() {
 	// OpenAPI route
-	s.Echo.GET("/openapi.json", func(c echo.Context) error {
-		return c.JSON(http.StatusOK, api.Schema)
+	s.Echo.GET("/:datamodel/openapi.json", func(c echo.Context) error {
+		return c.JSON(http.StatusOK, api.Schemas[c.Param("datamodel")])
 	})
 
 	// Swagger-UI
-	opts := openMiddleware.SwaggerUIOpts{
-		SpecURL: "/openapi.json",
-		Title:   "API Gateway Documentation",
-	}
-	s.Echo.GET("/docs", echo.WrapHandler(openMiddleware.SwaggerUI(opts, nil)))
+	s.Echo.GET("/:datamodel/docs", SwaggerUI)
 
 	_, err := authn.RegisterCallbackHandler(s.Echo)
 	if err != nil {
