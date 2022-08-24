@@ -14,6 +14,7 @@ import (
 
 var Namespace string
 var DatamodelImage string
+var Title string
 var installPrerequisites []prereq.Prerequiste = []prereq.Prerequiste{
 	prereq.KUBERNETES,
 	prereq.KUBERNETES_VERSION,
@@ -35,7 +36,7 @@ func CheckSpecAvailable(JobSpecConfigmap, namespace string) error {
 	return nil
 }
 
-func InstallJob(DatamodelImage, DatamodelName, ImagePullsecret, Namespace, skipCRDInstallation string) error {
+func InstallJob(DatamodelImage, DatamodelName, ImagePullsecret, Namespace, skipCRDInstallation, Title string) error {
 	if DatamodelName == "" {
 		ImageName := strings.Split(DatamodelImage, ":")[0]
 		Name := strings.Split(ImageName, "/")
@@ -60,6 +61,7 @@ func InstallJob(DatamodelImage, DatamodelName, ImagePullsecret, Namespace, skipC
 		IsImagePullSecret:   IsImagePullSecret,
 		ImagePullSecret:     ImagePullSecret,
 		SkipCRDInstallation: skipCRDInstallation,
+		DatamodelTitle:      Title,
 	}
 	if err := CheckSpecAvailable(DatamodelJobSpecConfig, Namespace); err != nil {
 		return err
@@ -82,6 +84,8 @@ var InstallCmd = &cobra.Command{
 func init() {
 	InstallCmd.AddCommand(ImageCmd)
 	InstallCmd.AddCommand(NameCmd)
+	InstallCmd.PersistentFlags().StringVarP(&Title, "title",
+		"", "", "title of the swaggerDocs for rest endpoints")
 	InstallCmd.PersistentFlags().StringVarP(&Namespace, "namespace",
 		"r", "", "name of the namespace to install to")
 	err := cobra.MarkFlagRequired(InstallCmd.Flags(), "namespace")
