@@ -11,6 +11,7 @@ import (
 	"net/http/httputil"
 	"os"
 
+	"golang.org/x/net/publicsuffix"
 	log "github.com/sirupsen/logrus"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
@@ -114,4 +115,9 @@ func GetEnvoyInitParams() (*envoy.JwtAuthnConfig, map[string]*envoy.UpstreamConf
 		}
 	}
 	return jwt, upstreams, headerMatchedUpstreams, nil
+}
+
+func GetDatamodelName(crdType string) string {
+	p, _ := publicsuffix.EffectiveTLDPlusOne(crdType)
+	return p
 }
