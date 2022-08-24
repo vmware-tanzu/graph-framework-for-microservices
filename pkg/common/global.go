@@ -115,6 +115,7 @@ type Datamodel struct {
 	IsImagePullSecret   bool
 	ImagePullSecret     string
 	SkipCRDInstallation string
+	DatamodelTitle      string
 }
 type DatamodelInstaller struct {
 	Image string

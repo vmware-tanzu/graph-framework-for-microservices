@@ -18,7 +18,7 @@ func InstallRemote(cmd *cobra.Command, args []string) error {
 		prereq.PreReqListOnDemand(prerequisites)
 		return nil
 	}
-	if err := InstallJob(DatamodelImage, "", ImagePullSecret, Namespace, "false"); err != nil {
+	if err := InstallJob(DatamodelImage, "", ImagePullSecret, Namespace, "false", Title); err != nil {
 		return err
 	}
 	return nil
