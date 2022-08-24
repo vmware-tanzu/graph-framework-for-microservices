@@ -6,7 +6,7 @@ version: 0.1.2
 
 dependencies:
   - name: core
-    version: 0.1.2
+    version: 0.1.3
     repository: 'file://./../subcharts/core/core'
     condition: global.runtimeEnabled
   - name: api-gateway
