@@ -104,16 +104,16 @@ spec:
               fi
 
               echo 'waiting for Connect CRD to be installed...'
-              until $(kubectl get crd/connects.config.nexus.org > /dev/null 2>&1); do
+              until $(kubectl get crd/connects.connect.nexus.org > /dev/null 2>&1); do
                 echo '.'
                 sleep 5
               done
               echo 'Connect CRD is installed'
 
-              if ! kubectl get connects.config.nexus.org -l nexus/display_name=default -o=jsonpath='{.items[0]}' > /dev/null 2>&1 ; then
+              if ! kubectl get connects.connect.nexus.org -l nexus/display_name=default -o=jsonpath='{.items[0]}' > /dev/null 2>&1 ; then
                 echo 'creating Connect node'
                 cat > /tmp/object <<EOF
-                apiVersion: config.nexus.org/v1
+                apiVersion: connect.nexus.org/v1
                 kind: Connect
                 metadata:
                   name: default
