@@ -31,7 +31,7 @@ func getHandler(c echo.Context) error {
 	crdInfo := model.CrdTypeToNodeInfo[crdName]
 
 	// Get name from params
-	var name string
+	name := "default"
 	for _, param := range nc.ParamNames() {
 		if param == crdInfo.Name {
 			name = nc.Param(param)
