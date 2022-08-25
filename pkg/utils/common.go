@@ -11,8 +11,8 @@ import (
 	"net/http/httputil"
 	"os"
 
-	"golang.org/x/net/publicsuffix"
 	log "github.com/sirupsen/logrus"
+	"golang.org/x/net/publicsuffix"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 

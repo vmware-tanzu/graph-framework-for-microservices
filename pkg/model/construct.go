@@ -46,15 +46,16 @@ func ConstructDatamodel(eventType EventType, name string, unstructuredObj *unstr
 	obj := unstructuredObj.Object
 
 	spec := obj["spec"].(map[string]interface{})
-	title := spec["title"].(string)
 
-	//FIXME: data race
-	datamodelName, _ := publicsuffix.EffectiveTLDPlusOne(name)
-	DatamodelToDatamodelInfo[datamodelName] = DatamodelInfo{
-		Title: title,
+	if title, ok := spec["title"]; ok {
+		//FIXME: data race
+		datamodelName, _ := publicsuffix.EffectiveTLDPlusOne(name)
+		DatamodelToDatamodelInfo[datamodelName] = DatamodelInfo{
+			Title: title.(string),
+		}
+
+		DatamodelsChan <- datamodelName
 	}
-
-	DatamodelsChan <- datamodelName
 }
 
 func ConstructMapURIToCRDType(eventType EventType, crdType string, apiURIs []nexus.RestURIs) {
