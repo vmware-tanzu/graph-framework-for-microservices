@@ -77,6 +77,7 @@ func (r *CustomResourceDefinitionReconciler) Reconcile(ctx context.Context, req 
 	logrus.Debugf("Received [%s] event for CRD Type %s", eventType, crd.Name)
 	if err := r.ProcessAnnotation(req.NamespacedName.Name, crd.Annotations, eventType); err != nil {
 		logrus.Errorf("Error Processing CRD Annotation %v\n", err)
+		return ctrl.Result{}, err
 	}
 
 	if eventType != utils.Delete {

@@ -6,6 +6,7 @@ require (
 	github.com/onsi/ginkgo v1.16.5
 	github.com/onsi/gomega v1.17.0
 	github.com/sirupsen/logrus v1.8.1
+	github.com/stretchr/testify v1.7.0
 	gitlab.eng.vmware.com/nsx-allspark_users/m7/handler.git v0.0.0-20210831171900-f669271b731c
 	gopkg.in/yaml.v2 v2.4.0
 	k8s.io/api v0.24.3
@@ -13,6 +14,11 @@ require (
 	k8s.io/apimachinery v0.24.3
 	k8s.io/client-go v0.24.3
 	sigs.k8s.io/controller-runtime v0.11.0
+)
+
+require (
+	github.com/pmezard/go-difflib v1.0.0 // indirect
+	github.com/stretchr/objx v0.2.0 // indirect
 )
 
 require (

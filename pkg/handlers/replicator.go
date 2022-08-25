@@ -350,6 +350,7 @@ func ReplicateChildren(crdType string, repEnabledNode *unstructured.Unstructured
 			err := createObject(gvr, &item, children, hierarchy, remoteClient, localClient, source, destination)
 			if err != nil && !errors.IsAlreadyExists(err) {
 				log.Errorf("Error creating resource, skipping %v: %v", hierarchy, err)
+				return err
 			}
 		}
 	}
