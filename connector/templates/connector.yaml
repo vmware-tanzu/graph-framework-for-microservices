@@ -2,7 +2,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: connector-kubeconfig-local
-  namespace: {{.Values.global.namespace}}
+  namespace: {{.Release.Namespace}}
 data:
   connector-config: |
     dispatcher:
@@ -24,7 +24,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: connector
-  namespace: {{.Values.global.namespace}}
+  namespace: {{.Release.Namespace}}
   labels:
     control-plane: connector
 spec:
@@ -45,10 +45,18 @@ spec:
           env:
             - name: DEPLOYMENT_NAME
               value: connector
+            {{- if ne .Values.global.remoteEndpointHost "" }}
             - name: REMOTE_ENDPOINT_HOST
               value: {{ .Values.global.remoteEndpointHost }}
+            {{- else }}
+            {{- fail "Please provide valid remoteEndpointHost"}}
+            {{- end }}
+            {{- if ne .Values.global.remoteEndpointPort "" }}
             - name: REMOTE_ENDPOINT_PORT
               value: "{{ .Values.global.remoteEndpointPort }}"
+            {{- else }}
+            {{- fail "Please provide valid remoteEndpointPort"}}
+            {{- end }}
             {{- if ne .Values.global.remoteEndpointCert "" }}
             - name: REMOTE_ENDPOINT_CERT
               value: {{ .Values.global.remoteEndpointCert }}
@@ -56,7 +64,7 @@ spec:
             - name: STATUS_REPLICATION
               value: {{ .Values.global.statusReplication }}
             - name: SECRET_NS
-              value: {{.Values.global.namespace}}
+              value: {{.Release.Namespace}}
             - name: SECRET_NAME
               value: controller-secret
           imagePullPolicy: IfNotPresent
@@ -106,7 +114,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: nexus-connector
-  namespace: {{.Values.global.namespace}}
+  namespace: {{.Release.Namespace}}
 spec:
   ports:
   - protocol: TCP
@@ -122,18 +130,22 @@ spec:
 ---
 apiVersion: v1
 data:
-  namespace: {{ .Values.global.namespace | b64enc }}
-  token: {{ .Values.global.Token | b64enc }}
+  namespace: {{ .Release.Namespace | b64enc }}
+  {{- if ne .Values.global.token "" }}
+  token: {{ .Values.global.token | b64enc }}
+  {{- else }}
+  {{- fail "Please provide valid token"}}
+  {{- end }}
 kind: Secret
 metadata:
   name: controller-secret
-  namespace: {{.Values.global.namespace}}
+  namespace: {{.Release.Namespace}}
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
-  name: nexus-connector-role-{{.Values.global.namespace}}
-  namespace: {{ .Values.global.namespace }}
+  name: nexus-connector-role-{{.Release.Namespace}}
+  namespace: {{ .Release.Namespace }}
 rules:
 - apiGroups:
   - "apps"
@@ -153,21 +165,21 @@ rules:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
-  name: nexus-connector-rb-{{.Values.global.namespace}}
-  namespace: {{.Values.global.namespace}}
+  name: nexus-connector-rb-{{.Release.Namespace}}
+  namespace: {{.Release.Namespace}}
 subjects:
 - kind: ServiceAccount
   name: default 
-  namespace: {{.Values.global.namespace}}
+  namespace: {{.Release.Namespace}}
 roleRef:
   kind: Role
-  name: nexus-connector-role-{{.Values.global.namespace}}
+  name: nexus-connector-role-{{.Release.Namespace}}
   apiGroup: rbac.authorization.k8s.io
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-  name: nexus-connector-cr-{{.Values.global.namespace}}
+  name: nexus-connector-cr-{{.Release.Namespace}}
 rules:
   - apiGroups:
       - '*'
@@ -179,12 +191,12 @@ rules:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
-  name: nexus-connector-crb-{{.Values.global.namespace}}
+  name: nexus-connector-crb-{{.Release.Namespace}}
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
-  name: nexus-connector-cr-{{.Values.global.namespace}}
+  name: nexus-connector-cr-{{.Release.Namespace}}
 subjects:
   - kind: ServiceAccount
     name: default
-    namespace: default
+    namespace: {{.Release.Namespace}}
