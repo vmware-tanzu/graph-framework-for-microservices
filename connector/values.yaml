@@ -8,3 +8,4 @@ global:
   remoteEndpointHost: ""
   remoteEndpointPort: ""
   imagepullsecret: ""
+  token: ""
