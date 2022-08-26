@@ -52,7 +52,7 @@ spec:
       serviceAccountName: nexus-api-gw-sa
       containers:
         -
-          image: "{{.AS.services.local.nexus-api-gateway.imageUrl}}"
+          image: "{{.AS.services.local.nexus-api-gw.imageUrl}}"
           name: api-gw
           env:
             - name: KUBECONFIG
