@@ -9,7 +9,7 @@ global:
   validation:
     tag: v0.0.10
   connector:
-    tag: v0.0.4
+    tag: v0.0.5
   controller:
     tag: v0.0.3
   api:
