@@ -33,6 +33,23 @@ build:
   script:
     - make build
 
+publish-common-api-docker-image:
+  stage: build
+  image: runner.servicemesh.biz:5000/allspark/runner:latest
+  only:
+    - merge_requests
+    - master
+    - tags
+  before_script:
+    - npm init -y
+    - npm config set registry https://build-artifactory.eng.vmware.com/artifactory/api/npm/npm/
+    - npm config set @allspark:registry https://build-artifactory.eng.vmware.com/artifactory/api/npm/allspark-npm-local/
+    - aws configure set aws_secret_access_key $AWS_SECRET_ACCESS_KEY
+    - aws configure set aws_access_key_id $AWS_ACCESS_KEY_ID
+    - docker login --username AWS -p $(aws ecr get-login-password --region us-west-2) 284299419820.dkr.ecr.us-west-2.amazonaws.com
+  script:
+    - ./publish-common-api-docker-image.sh
+
 test:
   stage: test
   only:
