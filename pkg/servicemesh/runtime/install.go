@@ -108,7 +108,7 @@ func CreateNs(Namespace string) error {
 func GetCustomTags(cmdlinArgs string) string {
 	for _, value := range common.TagsList {
 		if customTag := os.Getenv(value.VersionEnv); customTag != "" {
-			cmdlinArgs = fmt.Sprintf("%s,global.%s.tag=%s", cmdlinArgs, value.VersionEnv, customTag)
+			cmdlinArgs = fmt.Sprintf("%s,global.%s.tag=%s", cmdlinArgs, value.FieldName, customTag)
 		}
 	}
 	return cmdlinArgs
