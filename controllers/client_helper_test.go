@@ -1,7 +1,4 @@
-//go:build unit
-// +build unit
-
-package tests
+package controllers_test
 
 import (
 	"context"

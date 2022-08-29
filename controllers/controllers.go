@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package nxcontroller
+package controllers
 
 import (
 	"context"
@@ -128,12 +128,13 @@ func (r *NexusConnectorReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 		logger.Errorf(err.Error())
 		return ctrl.Result{}, err
 	}
-
+	// deployment
 	err = r.createDeployment(ctx, name, namespace, connectorImage, &endpoint)
 	if err != nil {
 		logger.Errorf(err.Error())
 		return ctrl.Result{}, err
 	}
+	// service
 	err = r.createService(ctx, name, namespace)
 	if err != nil {
 		logger.Errorf(err.Error())
@@ -142,6 +143,7 @@ func (r *NexusConnectorReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 
 	return ctrl.Result{}, nil
 }
+
 func int32Ptr(i int32) *int32 {
 	return &i
 }
@@ -188,19 +190,18 @@ func (r *NexusConnectorReconciler) createService(ctx context.Context, name, name
 	if err != nil && errors.IsNotFound(err) {
 		_, err = r.K8sClient.CoreV1().Services(namespace).Create(ctx, service, metav1.CreateOptions{})
 		if err != nil {
-			logger.Errorf(err.Error())
 			return err
 		}
 	} else {
 		s.Spec = service.Spec
 		_, err = r.K8sClient.CoreV1().Services(namespace).Update(ctx, s, metav1.UpdateOptions{})
 		if err != nil {
-			logger.Errorf(err.Error())
 			return err
 		}
 	}
 	return nil
 }
+
 func (r *NexusConnectorReconciler) createConfigMap(ctx context.Context, name, namespace string) error {
 	var data = `
   connector-config: |
@@ -431,7 +432,6 @@ func (r *NexusConnectorReconciler) createDeployment(ctx context.Context, name, n
 	if err != nil && errors.IsNotFound(err) {
 		_, err = r.K8sClient.AppsV1().Deployments(namespace).Create(ctx, deploy, metav1.CreateOptions{})
 		if err != nil {
-			logger.Errorf(err.Error())
 			return err
 		}
 		logger.Infof("Nexus deploymemt: %q created in ns %q\n", name, namespace)
@@ -439,7 +439,6 @@ func (r *NexusConnectorReconciler) createDeployment(ctx context.Context, name, n
 		dep.Spec = deploy.Spec
 		_, err = r.K8sClient.AppsV1().Deployments(namespace).Update(ctx, dep, metav1.UpdateOptions{})
 		if err != nil {
-			logger.Errorf(err.Error())
 			return err
 		}
 		logger.Infof("Nexus deploymemt: %q updated\n", name)

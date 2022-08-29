@@ -1,7 +1,4 @@
-//go:build unit
-// +build unit
-
-package tests
+package controllers_test
 
 import (
 	"context"
@@ -64,7 +61,7 @@ func initDatamodel(ctx context.Context, client *nexus_client.Clientset) *Singlet
 	}
 }
 
-func intiEnvVars() {
+func initEnvVars() {
 	err := os.Setenv("NEXUS_CONNECTOR_VERSION", "v1.0")
 	Expect(err).NotTo(HaveOccurred())
 
@@ -124,7 +121,3 @@ func getHelperClientForDeleteEvent(ctx context.Context) *Client {
 func resource(resource string) schema.GroupResource {
 	return schema.GroupResource{Group: "", Resource: resource}
 }
-
-// func kind(kind string) schema.GroupKind {
-// 	return schema.GroupKind{Group: "", Kind: kind}
-// }
