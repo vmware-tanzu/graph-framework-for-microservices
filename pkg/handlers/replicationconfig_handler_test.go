@@ -16,6 +16,7 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	fake_dynamic "k8s.io/client-go/dynamic/fake"
+	"k8s.io/client-go/testing"
 
 	"connector/pkg/config"
 	"connector/pkg/handlers"
@@ -178,6 +179,41 @@ var _ = Describe("ReplicationConfig Tests", func() {
 								"group":   "config.mazinger.com",
 								"version": "v1",
 								"kind":    "ApiCollaborationSpace",
+							},
+						},
+						"destination": map[string]interface{}{
+							"hierarchical": false,
+						},
+						"remoteEndpointGvk": map[string]interface{}{
+							"group": "connect.nexus.org",
+							"kind":  "NexusEndpoint",
+							"name":  "default",
+						},
+					},
+				},
+			}
+			err := handler.Create(replicationConfig)
+			Expect(err.Error()).To(ContainSubstring("error replicating desired nodes"))
+		})
+
+		It("Should fail object creation when CRD Type not found on the destination.", func() {
+			client.Fake.PrependReactor("list", "apicollaborationspaces",
+				func(action testing.Action) (bool, runtime.Object, error) {
+					return true, nil, fmt.Errorf("nope")
+				})
+
+			replicationConfig = &unstructured.Unstructured{
+				Object: map[string]interface{}{
+					"spec": map[string]interface{}{
+						"source": map[string]interface{}{
+							"name": "INVALID_OBJECT",
+							"kind": "Object",
+							"object": map[string]interface{}{
+								"objectType": map[string]interface{}{
+									"group":   Group,
+									"version": "v1",
+									"kind":    AcKind,
+								},
 							},
 						},
 						"destination": map[string]interface{}{
