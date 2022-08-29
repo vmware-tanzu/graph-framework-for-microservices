@@ -269,19 +269,8 @@ func ReplicateNode(source utils.ReplicationSource, destination utils.Replication
 		// Add the entry to the ReplicationEnabledCRDType map.
 		utils.ConstructMapReplicationEnabledCRDType(crdType, repConfigSpec)
 
-		gvr := utils.GetGVRFromCrdType(crdType)
-		list, err := localClient.Resource(gvr).List(context.TODO(), metav1.ListOptions{})
-		if err != nil && !errors.IsNotFound(err) {
-			log.Errorf("Error getting objects of the crd type %v: %v", crdType, err)
+		if err := ReplicateAllObjectsOfType(crdType, localClient, repConfigSpec, children); err != nil {
 			return err
-		}
-
-		for _, item := range list.Items {
-			err = createObject(gvr, &item, children, item.GetName(), remoteClient, localClient, source, destination)
-			if err != nil && !errors.IsAlreadyExists(err) {
-				log.Errorf("Resource %v creation failed with an error: %v", item.GetName(), err)
-				return err
-			}
 		}
 		return nil
 	}
@@ -305,7 +294,7 @@ func ReplicateNode(source utils.ReplicationSource, destination utils.Replication
 	}
 
 	list, err := localClient.Resource(gvr).List(context.TODO(), metav1.ListOptions{LabelSelector: labelSelector})
-	if err != nil && !errors.IsNotFound(err) {
+	if err != nil {
 		log.Errorf("Error getting objects of the crd type %v: %v", crdType, err)
 		return err
 	}
@@ -352,6 +341,24 @@ func ReplicateChildren(crdType string, repEnabledNode *unstructured.Unstructured
 				log.Errorf("Error creating resource, skipping %v: %v", hierarchy, err)
 				return err
 			}
+		}
+	}
+	return nil
+}
+
+func ReplicateAllObjectsOfType(crdType string, localClient dynamic.Interface, repConfSpec utils.ReplicationConfigSpec, children utils.Children) error {
+	gvr := utils.GetGVRFromCrdType(crdType)
+	list, err := localClient.Resource(gvr).List(context.TODO(), metav1.ListOptions{})
+	if err != nil {
+		log.Errorf("Error getting objects of the crd type %v: %v", crdType, err)
+		return err
+	}
+
+	for _, item := range list.Items {
+		err = createObject(gvr, &item, children, item.GetName(), repConfSpec.Client, localClient, repConfSpec.Source, repConfSpec.Destination)
+		if err != nil && !errors.IsAlreadyExists(err) {
+			log.Errorf("Resource %v creation failed with an error: %v", item.GetName(), err)
+			return err
 		}
 	}
 	return nil
