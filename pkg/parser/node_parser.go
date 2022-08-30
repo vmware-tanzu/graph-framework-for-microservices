@@ -171,7 +171,7 @@ func CreateParentsMap(graph map[string]Node) map[string]NodeHelper {
 				}
 			}
 
-			for key, link := range node.MultipleChildren {
+			for key, link := range node.MultipleLink {
 				if link.CrdName == "" {
 					log.Fatalf("Internal compiler failure: Failed to determine crd name of link %v", link)
 				}
