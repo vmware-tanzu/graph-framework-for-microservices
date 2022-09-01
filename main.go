@@ -23,6 +23,7 @@ import (
 	"api-gw/pkg/utils"
 	"flag"
 	"os"
+	"sigs.k8s.io/controller-runtime/pkg/healthz"
 	"strconv"
 
 	log "github.com/sirupsen/logrus"
@@ -41,7 +42,6 @@ import (
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
 	ctrl "sigs.k8s.io/controller-runtime"
-	"sigs.k8s.io/controller-runtime/pkg/healthz"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
 	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
@@ -152,6 +152,15 @@ func InitManager(metricsAddr string, probeAddr string, enableLeaderElection bool
 		os.Exit(1)
 	}
 
+	if err := mgr.AddHealthzCheck("healthz", healthz.Ping); err != nil {
+		setupLog.Error(err, "unable to set up health check")
+		os.Exit(1)
+	}
+	if err := mgr.AddReadyzCheck("readyz", healthz.Ping); err != nil {
+		setupLog.Error(err, "unable to set up ready check")
+		os.Exit(1)
+	}
+
 	if err = (&controllers.CustomResourceDefinitionReconciler{
 		Client: mgr.GetClient(),
 		Scheme: mgr.GetScheme(),
@@ -206,15 +215,6 @@ func InitManager(metricsAddr string, probeAddr string, enableLeaderElection bool
 		os.Exit(1)
 	}
 	//+kubebuilder:scaffold:builder
-
-	if err := mgr.AddHealthzCheck("healthz", healthz.Ping); err != nil {
-		setupLog.Error(err, "unable to set up health check")
-		os.Exit(1)
-	}
-	if err := mgr.AddReadyzCheck("readyz", healthz.Ping); err != nil {
-		setupLog.Error(err, "unable to set up ready check")
-		os.Exit(1)
-	}
 
 	// Create new dynamic client for kubernetes
 	if err = client.New(ctrl.GetConfigOrDie()); err != nil {

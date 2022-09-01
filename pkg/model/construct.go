@@ -30,14 +30,14 @@ var (
 	CrdTypeToSpec      = make(map[string]apiextensionsv1.CustomResourceDefinitionSpec)
 	crdTypeToSpecMutex = &sync.Mutex{}
 
-	DatamodelsChan           = make(chan string, 100)
-	DatamodelToDatamodelInfo = make(map[string]DatamodelInfo)
-	datamodelToDatamodelInfo = &sync.Mutex{}
+	DatamodelsChan                = make(chan string, 100)
+	DatamodelToDatamodelInfo      = make(map[string]DatamodelInfo)
+	DatamodelToDatamodelInfoMutex = &sync.Mutex{}
 )
 
 func ConstructDatamodel(eventType EventType, name string, unstructuredObj *unstructured.Unstructured) {
-	datamodelToDatamodelInfo.Lock()
-	defer datamodelToDatamodelInfo.Unlock()
+	DatamodelToDatamodelInfoMutex.Lock()
+	defer DatamodelToDatamodelInfoMutex.Unlock()
 
 	if eventType == Delete {
 		delete(DatamodelToDatamodelInfo, name)
