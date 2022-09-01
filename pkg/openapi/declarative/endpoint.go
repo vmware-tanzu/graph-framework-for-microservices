@@ -24,7 +24,8 @@ type EndpointContext struct {
 
 	Single bool // used to identify which k8s endpoint we should use (resource/:name or resource/)
 
-	Uri string
+	SchemaName string // OpenAPI.components.schema name used to create yaml spec
+	Uri        string
 }
 
 const (
@@ -47,6 +48,14 @@ func SetupContext(uri string, method string, item *openapi3.Operation) *Endpoint
 		path = fmt.Sprintf(resourceNamePattern, groupName, resourceName)
 	}
 
+	schemaName := ""
+	if item.RequestBody != nil && item.RequestBody.Value != nil {
+		mediaType := item.RequestBody.Value.Content.Get("application/json")
+		if mediaType != nil {
+			schemaName = openapi3.DefaultRefNameResolver(mediaType.Schema.Ref)
+		}
+	}
+
 	return &EndpointContext{
 		SpecUri:      uri,
 		KindName:     kindName,
@@ -58,6 +67,7 @@ func SetupContext(uri string, method string, item *openapi3.Operation) *Endpoint
 		Single:       single,
 		Uri:          path,
 		Method:       method,
+		SchemaName:   schemaName,
 	}
 }
 

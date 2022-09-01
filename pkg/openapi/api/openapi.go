@@ -70,7 +70,9 @@ func DatamodelUpdateNotification() {
 		select {
 		case name := <-model.DatamodelsChan:
 			if schema, ok := Schemas[name]; ok {
+				model.DatamodelToDatamodelInfoMutex.Lock()
 				schema.Info.Title = model.DatamodelToDatamodelInfo[name].Title
+				model.DatamodelToDatamodelInfoMutex.Unlock()
 				log.Infof("Updated title: %s for %s openapi spec", schema.Info.Title, name)
 			}
 		}

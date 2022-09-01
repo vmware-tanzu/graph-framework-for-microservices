@@ -5,7 +5,7 @@ go 1.17
 require (
 	github.com/MicahParks/keyfunc v1.1.0
 	github.com/coreos/go-oidc/v3 v3.1.0
-	github.com/getkin/kin-openapi v0.76.0
+	github.com/getkin/kin-openapi v0.98.0
 	github.com/go-openapi/runtime v0.24.1
 	github.com/golang-jwt/jwt/v4 v4.4.1
 	github.com/google/uuid v1.1.2 // indirect
@@ -32,6 +32,7 @@ require (
 	google.golang.org/protobuf v1.28.0
 	k8s.io/api v0.24.1
 	k8s.io/kube-aggregator v0.24.1
+	sigs.k8s.io/yaml v1.3.0
 )
 
 require (
@@ -75,6 +76,7 @@ require (
 	github.com/google/go-cmp v0.5.7 // indirect
 	github.com/google/gofuzz v1.1.0 // indirect
 	github.com/imdario/mergo v0.3.12 // indirect
+	github.com/invopop/yaml v0.1.0 // indirect
 	github.com/josharian/intern v1.0.0 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/labstack/gommon v0.3.1 // indirect
@@ -111,12 +113,11 @@ require (
 	gopkg.in/inf.v0 v0.9.1 // indirect
 	gopkg.in/square/go-jose.v2 v2.5.1 // indirect
 	gopkg.in/tomb.v1 v1.0.0-20141024135613-dd632973f1e7 // indirect
-	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b // indirect
+	gopkg.in/yaml.v3 v3.0.1 // indirect
 	k8s.io/component-base v0.24.1 // indirect
 	k8s.io/klog/v2 v2.60.1 // indirect
 	k8s.io/kube-openapi v0.0.0-20220328201542-3ee0da9b0b42 // indirect
 	k8s.io/utils v0.0.0-20220210201930-3a6ce19ff2f9 // indirect
 	sigs.k8s.io/json v0.0.0-20211208200746-9f7c6b3444d2 // indirect
 	sigs.k8s.io/structured-merge-diff/v4 v4.2.1 // indirect
-	sigs.k8s.io/yaml v1.3.0 // indirect
 )
