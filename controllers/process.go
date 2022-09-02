@@ -4,8 +4,10 @@ import (
 	log "github.com/sirupsen/logrus"
 	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	"k8s.io/apimachinery/pkg/util/json"
+	"net/http"
 
 	"api-gw/pkg/model"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/common-library.git/pkg/nexus"
 )
 
 func (r *CustomResourceDefinitionReconciler) ProcessAnnotation(crdType string,
@@ -31,9 +33,25 @@ func (r *CustomResourceDefinitionReconciler) ProcessAnnotation(crdType string,
 		children = n.Children
 	}
 
+	links := make(map[string]model.NodeHelperChild)
+	if n.Links != nil {
+		links = n.Links
+	}
+
+	urisMap := make(map[string]model.RestUriInfo)
+
+	// add child, link and status URIs for each GET method
+	var newUris []nexus.RestURIs
+	ConstructNewURIs(n, urisMap, &newUris)
+
+	log.Debugf("New uris %v\n", newUris)
+
+	n.NexusRestAPIGen.Uris = append(n.NexusRestAPIGen.Uris, newUris...)
+
 	// It has stored the URI with the CRD type and CRD type with the Node Info.
+	model.ConstructMapUriToUriInfo(eventType, urisMap)
 	model.ConstructMapURIToCRDType(eventType, crdType, n.NexusRestAPIGen.Uris)
-	model.ConstructMapCRDTypeToNode(eventType, crdType, n.Name, n.Hierarchy, children, n.IsSingleton, n.Description)
+	model.ConstructMapCRDTypeToNode(eventType, crdType, n.Name, n.Hierarchy, children, links, n.IsSingleton, n.Description)
 	model.ConstructMapCRDTypeToRestUris(eventType, crdType, n.NexusRestAPIGen)
 
 	// Restart echo server
@@ -52,4 +70,50 @@ func (r *CustomResourceDefinitionReconciler) ProcessCrdSpec(crdType string,
 	// It has stored the CRD type with the CRD spec
 	model.ConstructMapCRDTypeToSpec(eventType, crdType, spec)
 	return nil
+}
+
+// ConstructNewURIs constructs the new URIs from ['status', 'children', 'links'] and store it in cache.
+func ConstructNewURIs(n model.NexusAnnotation, urisMap map[string]model.RestUriInfo, newUris *[]nexus.RestURIs) {
+	for _, uri := range n.NexusRestAPIGen.Uris {
+		urisMap[uri.Uri] = model.RestUriInfo{
+			TypeOfURI: model.DefaultURI,
+		}
+		for method := range uri.Methods {
+			if method == http.MethodGet {
+				statusUriPath := uri.Uri + "/status"
+				addUri(statusUriPath, model.StatusURI, urisMap, newUris)
+
+				for _, c := range []map[string]model.NodeHelperChild{n.Children, n.Links} {
+					processChildOrLink(c, uri, urisMap, newUris)
+				}
+			}
+		}
+	}
+}
+
+func processChildOrLink(nodes map[string]model.NodeHelperChild, uri nexus.RestURIs, urisMap map[string]model.RestUriInfo, newUris *[]nexus.RestURIs) {
+	for _, n := range nodes {
+		uriPath := uri.Uri + "/" + n.FieldName
+		var t model.URIType
+		if n.IsNamed {
+			t = model.NamedLinkURI
+		} else {
+			t = model.SingleLinkURI
+		}
+		addUri(uriPath, t, urisMap, newUris)
+	}
+}
+
+// addUri adds the uriPath </root/{orgchart.Root}/leader/{management.Leader}/HR> to the urisMap and to the uris list.
+func addUri(uriPath string, typeOfUri model.URIType, urisMap map[string]model.RestUriInfo, uris *[]nexus.RestURIs) {
+	newUri := nexus.RestURIs{
+		Uri: uriPath,
+		Methods: map[nexus.HTTPMethod]nexus.HTTPCodesResponse{
+			http.MethodGet: nexus.DefaultHTTPGETResponses,
+		},
+	}
+	urisMap[uriPath] = model.RestUriInfo{
+		TypeOfURI: typeOfUri,
+	}
+	*uris = append(*uris, newUri)
 }

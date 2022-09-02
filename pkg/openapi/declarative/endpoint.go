@@ -3,11 +3,12 @@ package declarative
 import (
 	"api-gw/pkg/utils"
 	"fmt"
-	"github.com/getkin/kin-openapi/openapi3"
-	"github.com/labstack/echo/v4"
 	"net/http"
 	"regexp"
 	"strings"
+
+	"github.com/getkin/kin-openapi/openapi3"
+	"github.com/labstack/echo/v4"
 )
 
 type EndpointContext struct {

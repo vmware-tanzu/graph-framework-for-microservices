@@ -3,9 +3,10 @@ package echo_server_test
 import (
 	"api-gw/pkg/config"
 	"api-gw/pkg/server/echo_server"
+	"net/http"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"net/http"
 )
 
 var _ = Describe("Echo server tests", func() {

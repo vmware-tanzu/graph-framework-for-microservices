@@ -1,23 +1,24 @@
 package echo_server
 
 import (
-	"api-gw/pkg/model"
 	"context"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"strings"
-
-	k8sLabels "k8s.io/apimachinery/pkg/labels"
 
 	"github.com/labstack/echo/v4"
 	log "github.com/sirupsen/logrus"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+	k8sLabels "k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/common-library.git/pkg/nexus"
-
 	"api-gw/pkg/client"
+	"api-gw/pkg/model"
+	"api-gw/pkg/utils"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/common-library.git/pkg/nexus"
 )
 
 type DefaultResponse struct {
@@ -29,7 +30,6 @@ func getHandler(c echo.Context) error {
 	nc := c.(*NexusContext)
 	crdName := model.UriToCRDType[nc.NexusURI]
 	crdInfo := model.CrdTypeToNodeInfo[crdName]
-
 	// Get name from params
 	name := "default"
 	for _, param := range nc.ParamNames() {
@@ -76,7 +76,123 @@ func getHandler(c echo.Context) error {
 	r["spec"] = obj.Object["spec"]
 	r["status"] = status
 
+	uriInfo, ok := model.GetUriInfo(nc.NexusURI)
+	if ok {
+		if uriInfo.TypeOfURI == model.SingleLinkURI || uriInfo.TypeOfURI == model.NamedLinkURI {
+			return getLinkInfo(nc, uriInfo.TypeOfURI, crdInfo, obj)
+		}
+		if uriInfo.TypeOfURI == model.StatusURI {
+			// TODO https://jira.eng.vmware.com/browse/NPT-434
+		}
+	}
+
 	return nc.JSON(http.StatusOK, r)
+}
+
+// getLinkInfo returns the children/links of parent node based on the requested gvk.
+func getLinkInfo(nc *NexusContext, uriType model.URIType, crdInfo model.NodeInfo, obj *unstructured.Unstructured) error {
+	splittedUri := strings.Split(nc.NexusURI, "/")
+	if len(splittedUri) < 2 {
+		return nc.JSON(http.StatusBadRequest, DefaultResponse{Message: "Couldn't determine child object"})
+	}
+
+	linkFieldName := splittedUri[len(splittedUri)-1]
+	var gvkField string
+	for _, child := range crdInfo.Children {
+		if child.FieldName == linkFieldName {
+			gvkField = child.FieldNameGvk
+		}
+	}
+	if gvkField == "" {
+		for _, link := range crdInfo.Links {
+			if link.FieldName == linkFieldName {
+				gvkField = link.FieldNameGvk
+			}
+		}
+	}
+	if gvkField == "" {
+		return nc.JSON(http.StatusInternalServerError, DefaultResponse{Message: "Couldn't determine gvk of link"})
+	}
+	spec, ok := obj.Object["spec"].(map[string]interface{})
+	if !ok {
+		return nc.JSON(http.StatusInternalServerError, DefaultResponse{Message: "Failed to parse spec of object"})
+	}
+
+	log.Debugf("URI %s, splitted URI %s, childFieldName %s, gvkField %s, spec %s, spec[gvkField] %s\n", nc.NexusURI,
+		splittedUri, linkFieldName, gvkField, spec, spec[gvkField])
+
+	if uriType == model.SingleLinkURI {
+		l := &model.LinkGvk{}
+		marshaled, err := json.Marshal(spec[gvkField])
+		if err != nil {
+			return nc.JSON(http.StatusInternalServerError, DefaultResponse{Message: "Couldn't marshal gvk of link"})
+		}
+		err = json.Unmarshal(marshaled, l)
+		if err != nil {
+			return nc.JSON(http.StatusInternalServerError, DefaultResponse{Message: "Couldn't unmarshal gvk of link"})
+		}
+
+		if len(l.Group) != 0 {
+			resourceName := utils.GetGroupResourceName(l.Kind)
+			item, err := getUnstructuredObject(l.Group, resourceName, l.Name)
+			if err != nil {
+				log.Errorf("Couldn't find object %q", l.Name)
+				return nc.JSON(http.StatusNotFound, DefaultResponse{Message: "Couldn't find object"})
+			}
+
+			// set parent hierarchy
+			crdType := utils.GetCrdType(l.Kind, l.Group)
+			if crdNodeInfo, ok := model.GetCRDTypeToNodeInfo(crdType); ok {
+				l.Hierarchy = utils.GetParentHierarchy(crdNodeInfo.ParentHierarchy, item.GetLabels())
+			}
+
+			// get display name of the object.
+			if val, ok := item.GetLabels()[utils.DISPLAY_NAME_LABEL]; ok {
+				l.Name = val
+			}
+			l.Group = l.Group + "/v1"
+		}
+		return nc.JSON(http.StatusOK, l)
+	}
+
+	if uriType == model.NamedLinkURI {
+		m := make(map[string]model.LinkGvk)
+		marshaled, err := json.Marshal(spec[gvkField])
+		if err != nil {
+			return nc.JSON(http.StatusInternalServerError, DefaultResponse{Message: "Couldn't marshal gvk of link"})
+		}
+		err = json.Unmarshal(marshaled, &m)
+		if err != nil {
+			return nc.JSON(http.StatusInternalServerError, DefaultResponse{Message: "Couldn't unmarshal gvk of link"})
+		}
+
+		list := make([]model.LinkGvk, len(m))
+		i := 0
+		hierarchy := []string{}
+		for k, link := range m {
+			// set parent hierarchy
+			if i == 0 {
+				resourceName := utils.GetGroupResourceName(link.Kind)
+				item, err := getUnstructuredObject(link.Group, resourceName, link.Name)
+				if err != nil {
+					log.Errorf("Couldn't find object, skipping... %q", link.Name)
+					continue
+				}
+				crdType := utils.GetCrdType(link.Kind, link.Group)
+				if crdNodeInfo, ok := model.GetCRDTypeToNodeInfo(crdType); ok {
+					hierarchy = utils.GetParentHierarchy(crdNodeInfo.ParentHierarchy, item.GetLabels())
+				}
+			}
+
+			link.Hierarchy = hierarchy
+			link.Name = k
+			link.Group = link.Group + "/v1"
+			list[i] = link
+			i++
+		}
+		return nc.JSON(http.StatusOK, list)
+	}
+	return nc.JSON(http.StatusInternalServerError, DefaultResponse{Message: "Something went wrong during link processing"})
 }
 
 // listHandler is used to process GET list requests
@@ -121,7 +237,6 @@ func putHandler(c echo.Context) error {
 	nc := c.(*NexusContext)
 	crdName := model.UriToCRDType[nc.NexusURI]
 	crdInfo := model.CrdTypeToNodeInfo[crdName]
-
 	// Get name from the URI segment
 	var name string
 	for _, param := range nc.ParamNames() {
@@ -315,4 +430,19 @@ func parseLabels(c echo.Context, parents []string) map[string]string {
 	}
 
 	return labels
+}
+
+func getUnstructuredObject(apiGroup, resourceName, name string) (*unstructured.Unstructured, error) {
+	gvr := schema.GroupVersionResource{
+		Group:    apiGroup,
+		Version:  "v1",
+		Resource: resourceName,
+	}
+
+	item, err := client.Client.Resource(gvr).Get(context.TODO(), name, metav1.GetOptions{})
+	if err != nil {
+		return nil, err
+	}
+
+	return item, nil
 }

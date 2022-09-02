@@ -3,14 +3,15 @@ package declarative_test
 import (
 	"api-gw/pkg/config"
 	"api-gw/pkg/openapi/declarative"
-	"github.com/labstack/echo/v4"
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
-	log "github.com/sirupsen/logrus"
 	"io"
 	"net/http"
 	"net/http/httptest"
 	"strings"
+
+	"github.com/labstack/echo/v4"
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
+	log "github.com/sirupsen/logrus"
 )
 
 var _ = Describe("Handler tests", func() {

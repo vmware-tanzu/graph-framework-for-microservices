@@ -5,6 +5,9 @@ import (
 	"api-gw/pkg/model"
 	"context"
 	"errors"
+	"net/http/httputil"
+	"net/url"
+
 	"github.com/labstack/echo/v4"
 	log "github.com/sirupsen/logrus"
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/common-library.git/pkg/nexus"
@@ -12,8 +15,6 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime/schema"
-	"net/http/httputil"
-	"net/url"
 )
 
 // kubeSetupProxy is used to set up reverse proxy to an API server

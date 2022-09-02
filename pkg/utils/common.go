@@ -10,11 +10,14 @@ import (
 	"net/http"
 	"net/http/httputil"
 	"os"
+	"strings"
 
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/net/publicsuffix"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
+
+const DISPLAY_NAME_LABEL = "nexus/display_name"
 
 func IsFileExists(filename string) bool {
 	info, err := os.Stat(filename)
@@ -120,4 +123,24 @@ func GetEnvoyInitParams() (*envoy.JwtAuthnConfig, map[string]*envoy.UpstreamConf
 func GetDatamodelName(crdType string) string {
 	p, _ := publicsuffix.EffectiveTLDPlusOne(crdType)
 	return p
+}
+
+func GetCrdType(kind, groupName string) string {
+	return GetGroupResourceName(kind) + "." + groupName // eg roots.root.helloworld.com
+}
+
+func GetGroupResourceName(kind string) string {
+	return strings.ToLower(ToPlural(kind)) // eg roots
+}
+
+// GetParentHierarchy constructs the parent in the format <roots.orgchart.vmware.org:default>
+func GetParentHierarchy(parents []string, labels map[string]string) (hierarchy []string) {
+	for _, parent := range parents {
+		for key, val := range labels {
+			if parent == key {
+				hierarchy = append(hierarchy, key+":"+val)
+			}
+		}
+	}
+	return
 }

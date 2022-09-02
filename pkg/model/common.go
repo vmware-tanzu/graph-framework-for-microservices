@@ -19,6 +19,7 @@ type NexusAnnotation struct {
 	Name                 string                     `json:"name,omitempty"`
 	Hierarchy            []string                   `json:"hierarchy,omitempty"`
 	Children             map[string]NodeHelperChild `json:"children,omitempty"`
+	Links                map[string]NodeHelperChild `json:"links,omitempty"`
 	NexusRestAPIGen      nexus.RestAPISpec          `json:"nexus-rest-api-gen,omitempty"`
 	NexusRestAPIMappings map[string]string          `json:"nexus-rest-api-mappings,omitempty"`
 	IsSingleton          bool                       `json:"is_singleton,omitempty"`
@@ -35,9 +36,23 @@ type NodeInfo struct {
 	Name            string
 	ParentHierarchy []string
 	Children        map[string]NodeHelperChild
+	Links           map[string]NodeHelperChild
 	IsSingleton     bool
 	Description     string
 }
+
+type RestUriInfo struct {
+	TypeOfURI URIType
+}
+
+type URIType int
+
+const (
+	DefaultURI URIType = iota
+	SingleLinkURI
+	NamedLinkURI
+	StatusURI
+)
 
 func ConstructEchoPathParamURL(uri string) string {
 	replacer := strings.NewReplacer("{", ":", "}", "")
@@ -51,4 +66,13 @@ type OidcNodeEvent struct {
 
 type DatamodelInfo struct {
 	Title string
+}
+
+// LinkGvk : This model used to carry fully qualified object <gvk> and
+// hierarchy information.
+type LinkGvk struct {
+	Group     string   `json:"group,omitempty" yaml:"group,omitempty"`
+	Kind      string   `json:"kind,omitempty" yaml:"kind,omitempty"`
+	Name      string   `json:"name,omitempty" yaml:"name,omitempty"`
+	Hierarchy []string `json:"hierarchy,omitempty" yaml:"hierarchy,omitempty"`
 }
