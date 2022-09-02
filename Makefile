@@ -211,7 +211,7 @@ publish_manifests:
 .PHONY: deploy_kind
 deploy_kind:
 	kind load docker-image --name ${KIND_NAME} ${IMAGE_REGISTRY}:${IMAGE_TAG}
-	kubectl -n ${NAMESPACE} set image deployment/${APP_NAME} ${APP_NAME}=${IMAGE_REGISTRY}:${IMAGE_TAG}
+	kubectl -n ${NAMESPACE} set image deployment/nexus-api-gw ${APP_NAME}=${IMAGE_REGISTRY}:${IMAGE_TAG}
 
 CURRENT_TIMESTAMP = $(shell date +%s)
 .PHONY: build_deploy_kind

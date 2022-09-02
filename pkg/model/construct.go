@@ -1,11 +1,12 @@
 package model
 
 import (
+	"sync"
+
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/common-library.git/pkg/nexus"
 	"golang.org/x/net/publicsuffix"
 	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
-	"sync"
 )
 
 var (
@@ -21,6 +22,10 @@ var (
 	// CRD name to CRD type (Gns.gns => gns.vmware.org)
 	UriToCRDType      = make(map[string]string)
 	uriToCRDTypeMutex = &sync.Mutex{}
+
+	// URI to info about this URI
+	UriToUriInfo      = make(map[string]RestUriInfo)
+	UriToUriInfoMutex = &sync.Mutex{}
 
 	// CRD Type to NodeInfo (gns.vmware.org => NodeInfo{})
 	CrdTypeToNodeInfo      = make(map[string]NodeInfo)
@@ -76,7 +81,7 @@ func ConstructMapURIToCRDType(eventType EventType, crdType string, apiURIs []nex
 }
 
 func ConstructMapCRDTypeToNode(eventType EventType, crdType, name string, parentHierarchy []string,
-	children map[string]NodeHelperChild, isSingleton bool, description string) {
+	children, links map[string]NodeHelperChild, isSingleton bool, description string) {
 	crdTypeToNodeInfoMutex.Lock()
 	defer crdTypeToNodeInfoMutex.Unlock()
 
@@ -88,12 +93,21 @@ func ConstructMapCRDTypeToNode(eventType EventType, crdType, name string, parent
 		Name:            name,
 		ParentHierarchy: parentHierarchy,
 		Children:        children,
+		Links:           links,
 		IsSingleton:     isSingleton,
 		Description:     description,
 	}
 
 	// Push new CRD Type to chan
 	CrdTypeChan <- crdType
+}
+
+func GetCRDTypeToNodeInfo(crdType string) (NodeInfo, bool) {
+	crdTypeToNodeInfoMutex.Lock()
+	defer crdTypeToNodeInfoMutex.Unlock()
+
+	info, ok := CrdTypeToNodeInfo[crdType]
+	return info, ok
 }
 
 func ConstructMapCRDTypeToSpec(eventType EventType, crdType string, spec apiextensionsv1.CustomResourceDefinitionSpec) {
@@ -120,4 +134,26 @@ func ConstructMapCRDTypeToRestUris(eventType EventType, crdType string, restSpec
 
 	// Push new uris to chan
 	RestURIChan <- uris
+}
+
+func ConstructMapUriToUriInfo(eventType EventType, m map[string]RestUriInfo) {
+	UriToUriInfoMutex.Lock()
+	defer UriToUriInfoMutex.Unlock()
+
+	if eventType == Delete {
+		for k := range m {
+			delete(UriToUriInfo, k)
+		}
+	}
+	for k, v := range m {
+		UriToUriInfo[k] = v
+	}
+}
+
+func GetUriInfo(uriPath string) (RestUriInfo, bool) {
+	UriToUriInfoMutex.Lock()
+	defer UriToUriInfoMutex.Unlock()
+
+	info, ok := UriToUriInfo[uriPath]
+	return info, ok
 }

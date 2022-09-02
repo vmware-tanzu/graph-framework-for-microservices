@@ -4,9 +4,10 @@ import (
 	"api-gw/pkg/config"
 	"api-gw/pkg/openapi/declarative"
 	"api-gw/pkg/server/echo_server"
+	"net/http"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"net/http"
 )
 
 var _ = Describe("OpenAPI tests", func() {

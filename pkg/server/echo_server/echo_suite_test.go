@@ -1,9 +1,10 @@
 package echo_server_test
 
 import (
+	"testing"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"testing"
 )
 
 func TestEcho(t *testing.T) {

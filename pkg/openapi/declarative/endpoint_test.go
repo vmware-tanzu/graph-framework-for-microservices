@@ -2,9 +2,10 @@ package declarative_test
 
 import (
 	"api-gw/pkg/openapi/declarative"
+	"net/http"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"net/http"
 )
 
 var _ = Describe("OpenAPI tests", func() {

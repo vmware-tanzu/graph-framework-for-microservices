@@ -5,6 +5,8 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"strings"
+
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/common-library.git/pkg/nexus"
 	nexus_client "golang-appnet.eng.vmware.com/nexus-sdk/api/build/nexus-client"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -13,7 +15,6 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/rest"
-	"strings"
 )
 
 var Client dynamic.Interface
@@ -164,7 +165,7 @@ func UpdateParentWithAddedChild(parentCrdType string, parentCrdInfo model.NodeIn
 	childNameParts := strings.Split(childCrdInfo.Name, ".")
 
 	if childGvk.IsNamed {
-		payload := "{\"spec\": {\"" + childGvk.FieldNameGvk + "\": {\"" + childName + "\": {\"name\": \"" + childHashedName + "\",\"kind\": \"" + childNameParts[0] + "\", \"group\": \"" + group + "\"}}}}"
+		payload := "{\"spec\": {\"" + childGvk.FieldNameGvk + "\": {\"" + childName + "\": {\"name\": \"" + childHashedName + "\",\"kind\": \"" + childNameParts[1] + "\", \"group\": \"" + group + "\"}}}}"
 
 		patchType = types.MergePatchType
 		marshaled = []byte(payload)
