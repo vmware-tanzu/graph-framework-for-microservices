@@ -1,3 +1,4 @@
+SHELL := /bin/bash
 #
 # App Info
 #
@@ -120,14 +121,21 @@ build: lint ## Build manager binary.
 	fi
 
 ##@ Test
+.PHONY: init-unit-test
+init-unit-test:
+	if [[ ! -f test/bin/etcd || ! -f test/bin/kube-apiserver || ! -f test/bin/kubectl ]]; then \
+  		curl -SLo envtest-bins.tar.gz "https://go.kubebuilder.io/test-tools/1.21.2/$$(go env GOOS)/$$(go env GOARCH)"; \
+        tar --strip-components=1 -xvf envtest-bins.tar.gz -C test; \
+        rm envtest-bins.tar.gz; \
+  	fi
 
 .PHONY: unit-test
-unit-test:
+unit-test: init-unit-test
 	ginkgo -cover ./controllers/...
 	ginkgo -cover ./pkg/...
 
 .PHONY: race-unit-test
-race-unit-test:
+race-unit-test: init-unit-test
 	ginkgo -cover ./controllers/...
 	ginkgo -race -cover ./pkg/...
 
