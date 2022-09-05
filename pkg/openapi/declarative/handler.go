@@ -22,6 +22,18 @@ type errorMessage struct {
 	Message string `json:"message"`
 }
 
+func ApisHandler(c echo.Context) error {
+	kindSchemasMutex.Lock()
+	defer kindSchemasMutex.Unlock()
+
+	kind := c.QueryParam("kind")
+	if val, ok := KindSchemas[kind]; ok {
+		return c.String(200, val)
+	}
+
+	return c.JSON(200, ApisList)
+}
+
 func ListHandler(c echo.Context) error {
 	ec := c.(*EndpointContext)
 	log.Debugf("ListHandler: %s <-> %s", c.Request().RequestURI, ec.SpecUri)

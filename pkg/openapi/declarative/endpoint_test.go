@@ -42,6 +42,8 @@ var _ = Describe("OpenAPI tests", func() {
 			Params:       [][]string{{"{projectId}", "projectId"}},
 			Identifier:   "",
 			Single:       false,
+			ShortName:    "gns",
+			ShortUri:     "/apis/v1/gns",
 			Uri:          "/apis/gns.vmware.org/v1/globalnamespaces",
 		}
 
@@ -63,6 +65,8 @@ var _ = Describe("OpenAPI tests", func() {
 			Identifier:   "id",
 			Single:       true,
 			Uri:          "/apis/gns.vmware.org/v1/globalnamespaces/:name",
+			ShortName:    "gns",
+			ShortUri:     "/apis/v1/gns/:name",
 		}
 
 		Expect(ec).To(Equal(&expectedEc))
