@@ -7,7 +7,7 @@ metadata:
   name: configs.config.tsm.tanzu.vmware.com
   annotations:
     nexus: |
-      {"name":"config.Config","hierarchy":["roots.root.tsm.tanzu.vmware.com"],"children":{"dnses.gns.tsm.tanzu.vmware.com":{"fieldName":"DNS","fieldNameGvk":"dNSGvk","isNamed":false},"gnses.gns.tsm.tanzu.vmware.com":{"fieldName":"GNS","fieldNameGvk":"gNSGvk","isNamed":false},"vmpolicies.policypkg.tsm.tanzu.vmware.com":{"fieldName":"VMPPolicies","fieldNameGvk":"vMPPoliciesGvk","isNamed":false}},"links":{"accesscontrolpolicies.policypkg.tsm.tanzu.vmware.com":{"fieldName":"ACPPolicies","fieldNameGvk":"aCPPoliciesGvk","isNamed":true}},"is_singleton":false,"nexus-rest-api-gen":{"uris":null}}
+      {"name":"config.Config","hierarchy":["roots.root.tsm.tanzu.vmware.com"],"children":{"dnses.gns.tsm.tanzu.vmware.com":{"fieldName":"DNS","fieldNameGvk":"dNSGvk","isNamed":false},"gnses.gns.tsm.tanzu.vmware.com":{"fieldName":"GNS","fieldNameGvk":"gNSGvk","isNamed":false},"vmpolicies.policypkg.tsm.tanzu.vmware.com":{"fieldName":"VMPPolicies","fieldNameGvk":"vMPPoliciesGvk","isNamed":false}},"links":{"ACPPolicies":{"fieldName":"ACPPolicies","fieldNameGvk":"aCPPoliciesGvk","isNamed":true}},"is_singleton":false,"nexus-rest-api-gen":{"uris":null}}
 spec:
   conversion:
     strategy: None

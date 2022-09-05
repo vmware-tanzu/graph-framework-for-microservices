@@ -164,7 +164,7 @@ func CreateParentsMap(graph map[string]Node) map[string]NodeHelper {
 				if link.CrdName == "" {
 					log.Fatalf("Internal compiler failure: Failed to determine crd name of link %v", link)
 				}
-				links[link.CrdName] = NodeHelperChild{
+				links[key] = NodeHelperChild{
 					IsNamed:      false,
 					FieldName:    key,
 					FieldNameGvk: util.GetGvkFieldTagName(key),
@@ -175,7 +175,7 @@ func CreateParentsMap(graph map[string]Node) map[string]NodeHelper {
 				if link.CrdName == "" {
 					log.Fatalf("Internal compiler failure: Failed to determine crd name of link %v", link)
 				}
-				links[link.CrdName] = NodeHelperChild{
+				links[key] = NodeHelperChild{
 					IsNamed:      true,
 					FieldName:    key,
 					FieldNameGvk: util.GetGvkFieldTagName(key),
