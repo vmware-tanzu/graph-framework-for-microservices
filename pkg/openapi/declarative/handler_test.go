@@ -3,6 +3,7 @@ package declarative_test
 import (
 	"api-gw/pkg/config"
 	"api-gw/pkg/openapi/declarative"
+	"api-gw/pkg/server/echo_server"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -244,5 +245,67 @@ var _ = Describe("Handler tests", func() {
 		})
 		Expect(err).To(BeNil())
 		Expect(url).To(Equal("/v1alpha1/project/default/global-namespaces/test"))
+	})
+
+	It("should test Apis handler", func() {
+		echoServer := echo_server.NewEchoServer(config.Cfg)
+		echoServer.RegisterDeclarativeRouter()
+
+		// setup echo test
+		e := echo.New()
+		req := httptest.NewRequest(http.MethodGet, "/declarative/apis", nil)
+		rec := httptest.NewRecorder()
+		c := e.NewContext(req, rec)
+		c.SetPath("/declarative/apis")
+
+		err := declarative.ApisHandler(c)
+		Expect(err).To(BeNil())
+
+		expectedBody := `{"/apis/gns.vmware.org/v1/globalnamespacelists":{"GET":{"group":"gns.vmware.org","kind":"GlobalNamespaceList","params":null,"uri":"/v1alpha1/global-namespaces/test"},"short":"/apis/v1/gns"},"/apis/gns.vmware.org/v1/globalnamespaces":{"GET":{"group":"gns.vmware.org","kind":"GlobalNamespace","params":["projectId"],"uri":"/v1alpha1/project/{projectId}/global-namespaces"},"PUT":{"group":"gns.vmware.org","kind":"GlobalNamespace","params":["projectId","id"],"uri":"/v1alpha1/project/{projectId}/global-namespaces/{id}"},"short":"/apis/v1/gns","yaml":"apiVersion: gns.vmware.org/v1\nkind: GlobalNamespace\nmetadata:\n  labels:\n    projectId: string\n  name: string\nspec:\n  api_discovery_enabled: true\n  ca: string\n  ca_type: PreExistingCA\n  color: string\n  description: string\n  display_name: string\n  domain_name: string\n  match_conditions:\n  - cluster:\n      match: string\n      type: string\n    namespace:\n      match: string\n      type: string\n  mtls_enforced: true\n  name: string\n  use_shared_gateway: true\n  version: string\n"},"/apis/gns.vmware.org/v1/globalnamespaces/:name":{"DELETE":{"group":"gns.vmware.org","kind":"GlobalNamespace","params":["projectId","id"],"uri":"/v1alpha1/project/{projectId}/global-namespaces/{id}"},"GET":{"group":"gns.vmware.org","kind":"GlobalNamespace","params":["projectId","id"],"uri":"/v1alpha1/project/{projectId}/global-namespaces/{id}"},"short":"/apis/v1/gns/:name"}}
+`
+		Expect(rec.Body.String()).To(Equal(expectedBody))
+	})
+
+	It("should test Apis handler with given kind", func() {
+		echoServer := echo_server.NewEchoServer(config.Cfg)
+		echoServer.RegisterDeclarativeRouter()
+
+		// setup echo test
+		e := echo.New()
+		req := httptest.NewRequest(http.MethodGet, "/declarative/apis?kind=GlobalNamespace", nil)
+		rec := httptest.NewRecorder()
+		c := e.NewContext(req, rec)
+		c.SetPath("/declarative/apis?kind=GlobalNamespace")
+
+		err := declarative.ApisHandler(c)
+		Expect(err).To(BeNil())
+
+		expectedBody := `apiVersion: gns.vmware.org/v1
+kind: GlobalNamespace
+metadata:
+  labels:
+    projectId: string
+  name: string
+spec:
+  api_discovery_enabled: true
+  ca: string
+  ca_type: PreExistingCA
+  color: string
+  description: string
+  display_name: string
+  domain_name: string
+  match_conditions:
+  - cluster:
+      match: string
+      type: string
+    namespace:
+      match: string
+      type: string
+  mtls_enforced: true
+  name: string
+  use_shared_gateway: true
+  version: string
+`
+		Expect(rec.Body.String()).To(Equal(expectedBody))
 	})
 })

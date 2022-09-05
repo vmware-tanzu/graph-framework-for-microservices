@@ -26,27 +26,34 @@ type EndpointContext struct {
 	Single bool // used to identify which k8s endpoint we should use (resource/:name or resource/)
 
 	SchemaName string // OpenAPI.components.schema name used to create yaml spec
+	ShortName  string
+	ShortUri   string
 	Uri        string
 }
 
 const (
-	resourcePattern     = "/apis/%s/v1/%s"
-	resourceNamePattern = resourcePattern + "/:name"
+	resourcePattern          = "/apis/%s/v1/%s"
+	resourceShortPattern     = "/apis/v1/%s"
+	resourceNamePattern      = resourcePattern + "/:name"
+	resourceNameShortPattern = resourceShortPattern + "/:name"
 )
 
 func SetupContext(uri string, method string, item *openapi3.Operation) *EndpointContext {
 	kindName := GetExtensionVal(item, NexusKindName)
 	groupName := GetExtensionVal(item, NexusGroupName)
+	shortName := GetExtensionVal(item, NexusShortName)
 	resourceName := strings.ToLower(utils.ToPlural(kindName))
 	crdName := resourceName + "." + groupName
 	requiredParams := extractUriParams(uri)
 	identifier := GetExtensionVal(item, "x-nexus-identifier")
 
 	path := fmt.Sprintf(resourcePattern, groupName, resourceName)
+	shortPath := fmt.Sprintf(resourceShortPattern, shortName)
 	single := false
 	if identifier != "" && method != http.MethodPut {
 		single = true
 		path = fmt.Sprintf(resourceNamePattern, groupName, resourceName)
+		shortPath = fmt.Sprintf(resourceNameShortPattern, shortName)
 	}
 
 	schemaName := ""
@@ -55,6 +62,10 @@ func SetupContext(uri string, method string, item *openapi3.Operation) *Endpoint
 		if mediaType != nil {
 			schemaName = openapi3.DefaultRefNameResolver(mediaType.Schema.Ref)
 		}
+	}
+
+	if shortName == "" {
+		shortPath = ""
 	}
 
 	return &EndpointContext{
@@ -69,6 +80,8 @@ func SetupContext(uri string, method string, item *openapi3.Operation) *Endpoint
 		Uri:          path,
 		Method:       method,
 		SchemaName:   schemaName,
+		ShortName:    shortName,
+		ShortUri:     shortPath,
 	}
 }
 

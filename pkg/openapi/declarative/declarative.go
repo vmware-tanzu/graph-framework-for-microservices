@@ -2,6 +2,7 @@ package declarative
 
 import (
 	"encoding/json"
+	"github.com/labstack/echo/v4"
 	log "github.com/sirupsen/logrus"
 	"io/ioutil"
 	"os"
@@ -17,6 +18,7 @@ var supportedOperations = []string{"GET", "DELETE", "PUT"}
 const NexusKindName = "x-nexus-kind-name"
 const NexusGroupName = "x-nexus-group-name"
 const NexusListEndpoint = "x-nexus-list-endpoint"
+const NexusShortName = "x-nexus-short-name"
 
 var (
 	Paths              = make(map[string]*openapi3.PathItem)
@@ -25,6 +27,8 @@ var (
 	Schemas            openapi3.Schemas
 	parsedSchemas      = make(map[string]interface{})
 	parsedSchemasMutex = sync.Mutex{}
+	KindSchemas        = make(map[string]string)
+	kindSchemasMutex   = sync.Mutex{}
 )
 
 func Setup() error {
@@ -95,7 +99,11 @@ func GetExtensionVal(operation *openapi3.Operation, key string) string {
 
 func AddApisEndpoint(ec *EndpointContext) {
 	apisListMutex.Lock()
-	defer apisListMutex.Unlock()
+	kindSchemasMutex.Lock()
+	defer func() {
+		apisListMutex.Unlock()
+		kindSchemasMutex.Unlock()
+	}()
 
 	if ApisList[ec.Uri] == nil {
 		ApisList[ec.Uri] = make(map[string]interface{})
@@ -114,25 +122,33 @@ func AddApisEndpoint(ec *EndpointContext) {
 	}
 
 	if ec.SchemaName != "" {
-		ApisList[ec.Uri]["yaml"] = ConvertSchemaToYaml(ec.SchemaName, ec.GroupName, ec.KindName, params)
+		schema := ConvertSchemaToYaml(ec, params)
+		ApisList[ec.Uri]["yaml"] = schema
+		KindSchemas[ec.KindName] = schema
+	}
+
+	if ec.ShortUri != "" {
+		ApisList[ec.Uri]["short"] = ec.ShortUri
 	}
 }
 
-func ConvertSchemaToYaml(schemaName string, group string, kind string, params []string) string {
+func ConvertSchemaToYaml(ec *EndpointContext, params []string) string {
 	labels := map[string]interface{}{}
 	for _, param := range params {
-		labels[param] = "string"
+		if param != ec.Identifier {
+			labels[param] = "string"
+		}
 	}
 
 	obj := map[string]interface{}{
-		"apiVersion": group + "/v1",
-		"kind":       kind,
+		"apiVersion": ec.GroupName + "/v1",
+		"kind":       ec.KindName,
 		"metadata": map[string]interface{}{
 			"name":   "string",
 			"labels": labels,
 		},
 	}
-	obj["spec"] = parsedSchemas[schemaName]
+	obj["spec"] = parsedSchemas[ec.SchemaName]
 	yamlObj, err := yaml.Marshal(obj)
 	if err != nil {
 		log.Warn(err)
@@ -235,3 +251,39 @@ func ParseSchemas() {
 	wg.Wait()
 	log.Debugf("Finished parsing schemas")
 }
+
+func Middleware(endpointContext *EndpointContext, single bool) echo.MiddlewareFunc {
+	return func(next echo.HandlerFunc) echo.HandlerFunc {
+		return func(c echo.Context) error {
+			endpointContext.Context = c
+			endpointContext.Single = single
+			return next(endpointContext)
+		}
+	}
+}
+
+// ShortNames method creates a list of short names which can be used to access APIs
+//func ShortNames(apisList map[string]map[string]interface{}) map[string]string {
+//	shortMap := make(map[string]string)
+//	for _, methods := range apisList {
+//		resources := make(map[string]string)
+//
+//		for _, val := range methods {
+//			if _, ok := val.(map[string]interface{}); !ok {
+//				continue
+//			}
+//			info := val.(map[string]interface{})
+//			resources[info["kind"].(string)] = info["group"].(string)
+//		}
+//
+//		for k, g := range resources {
+//			resourceName := strings.ToLower(utils.ToPlural(k))
+//			if _, ok := shortMap[resourceName]; !ok {
+//				shortMap[resourceName] = fmt.Sprintf("%s.%s", resourceName, g)
+//			} else {
+//				delete(shortMap, resourceName)
+//			}
+//		}
+//	}
+//	return shortMap
+//}

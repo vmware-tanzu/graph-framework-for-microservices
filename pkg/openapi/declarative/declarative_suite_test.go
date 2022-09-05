@@ -43,6 +43,7 @@ paths:
       x-nexus-kind-name: GlobalNamespace
       x-nexus-group-name: gns.vmware.org
       x-nexus-identifier: id
+      x-nexus-short-name: gns
       responses:
         '200':
           description: 'global namespace updated '
@@ -85,6 +86,7 @@ paths:
       description: Return the config for a global namespace
       x-nexus-kind-name: GlobalNamespace
       x-nexus-group-name: gns.vmware.org
+      x-nexus-short-name: gns
       responses:
         '200':
           description: global namespace config
@@ -114,6 +116,7 @@ paths:
       x-nexus-kind-name: GlobalNamespace
       x-nexus-group-name: gns.vmware.org
       x-nexus-identifier: id
+      x-nexus-short-name: gns
       responses:
         '200':
           description: 'global namespace delete '
@@ -169,6 +172,7 @@ paths:
       description: Get a list of GNS IDs that are defined
       x-nexus-kind-name: GlobalNamespace
       x-nexus-group-name: gns.vmware.org
+      x-nexus-short-name: gns
       responses:
         '200':
           description: list of gns defined
@@ -195,6 +199,7 @@ paths:
       x-nexus-kind-name: GlobalNamespaceList
       x-nexus-group-name: gns.vmware.org
       x-nexus-list-endpoint: true
+      x-nexus-short-name: gns
       responses:
         '200':
           description: list of gns defined

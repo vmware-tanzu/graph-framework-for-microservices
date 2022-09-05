@@ -47,17 +47,37 @@ var _ = Describe("OpenAPI tests", func() {
 		e.Echo.Router().Find(http.MethodGet, "/apis/gns.vmware.org/v1/globalnamespaces", c)
 		Expect(c.Path()).To(Equal("/apis/gns.vmware.org/v1/globalnamespaces"))
 
+		// short name
+		c = e.Echo.NewContext(nil, nil)
+		e.Echo.Router().Find(http.MethodGet, "/apis/v1/gns", c)
+		Expect(c.Path()).To(Equal("/apis/v1/gns"))
+
 		c = e.Echo.NewContext(nil, nil)
 		e.Echo.Router().Find(http.MethodGet, "/apis/gns.vmware.org/v1/globalnamespaces/:name", c)
 		Expect(c.Path()).To(Equal("/apis/gns.vmware.org/v1/globalnamespaces/:name"))
+
+		// short name
+		c = e.Echo.NewContext(nil, nil)
+		e.Echo.Router().Find(http.MethodGet, "/apis/v1/gns/:name", c)
+		Expect(c.Path()).To(Equal("/apis/v1/gns/:name"))
 
 		c = e.Echo.NewContext(nil, nil)
 		e.Echo.Router().Find(http.MethodPut, "/apis/gns.vmware.org/v1/globalnamespaces", c)
 		Expect(c.Path()).To(Equal("/apis/gns.vmware.org/v1/globalnamespaces"))
 
+		// short name
+		c = e.Echo.NewContext(nil, nil)
+		e.Echo.Router().Find(http.MethodGet, "/apis/v1/gns", c)
+		Expect(c.Path()).To(Equal("/apis/v1/gns"))
+
 		c = e.Echo.NewContext(nil, nil)
 		e.Echo.Router().Find(http.MethodDelete, "/apis/gns.vmware.org/v1/globalnamespaces/:name", c)
 		Expect(c.Path()).To(Equal("/apis/gns.vmware.org/v1/globalnamespaces/:name"))
+
+		// short name
+		c = e.Echo.NewContext(nil, nil)
+		e.Echo.Router().Find(http.MethodGet, "/apis/v1/gns/:name", c)
+		Expect(c.Path()).To(Equal("/apis/v1/gns/:name"))
 	})
 
 	It("should parse schema for GlobalNamespace", func() {
@@ -71,7 +91,6 @@ var _ = Describe("OpenAPI tests", func() {
 kind: GlobalNamespace
 metadata:
   labels:
-    id: string
     projectId: string
   name: string
 spec:
@@ -96,4 +115,66 @@ spec:
 `
 		Expect(declarative.ApisList["/apis/gns.vmware.org/v1/globalnamespaces"]["yaml"]).To(Equal(expectedYaml))
 	})
+
+	//It("should create a list of short names", func() {
+	//	apisList := map[string]map[string]interface{}{
+	//		"/one": {
+	//			"POST": map[string]interface{}{
+	//				"group": "vmware.org",
+	//				"kind":  "one",
+	//			},
+	//			"GET": map[string]interface{}{
+	//				"group": "vmware.org",
+	//				"kind":  "one",
+	//			},
+	//		},
+	//		"/two": {
+	//			"POST": map[string]interface{}{
+	//				"group": "vmware.org",
+	//				"kind":  "two",
+	//			},
+	//			"GET": map[string]interface{}{
+	//				"group": "vmware.org",
+	//				"kind":  "two",
+	//			},
+	//			"PUT": map[string]interface{}{
+	//				"group": "different.vmware.org",
+	//				"kind":  "different",
+	//			},
+	//			"DELETE": map[string]interface{}{
+	//				"group": "different.vmware.org",
+	//				"kind":  "different-kind",
+	//			},
+	//		},
+	//		"/oneone": {
+	//			"POST": map[string]interface{}{
+	//				"group": "vmware.org",
+	//				"kind":  "one",
+	//			},
+	//			"GET": map[string]interface{}{
+	//				"group": "vmware.org",
+	//				"kind":  "one",
+	//			},
+	//		},
+	//		"/three": {
+	//			"POST": map[string]interface{}{
+	//				"group": "vmware.org",
+	//				"kind":  "three",
+	//			},
+	//			"PUT": map[string]interface{}{
+	//				"group": "different.vmware.org",
+	//				"kind":  "different",
+	//			},
+	//		},
+	//	}
+	//
+	//	expectedShortNames := map[string]string{
+	//		"threes":          "threes.vmware.org",
+	//		"twos":            "twos.vmware.org",
+	//		"different-kinds": "different-kinds.different.vmware.org",
+	//	}
+	//	shortNames := declarative.ShortNames(apisList)
+	//	Expect(shortNames).To(BeEquivalentTo(expectedShortNames))
+	//
+	//})
 })
