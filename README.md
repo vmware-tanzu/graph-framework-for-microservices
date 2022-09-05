@@ -6,7 +6,7 @@ Nexus compiler main responsibility is to generate code based on provided datamod
 - CRD Go clients,
 - nexus shim layer.
 
-#How compiler works
+# How compiler works
 
 1. Compiler operates on datamodel provided by user (example can be found in `example/datamodel`).
 2. Compiler parses datamodel to build graph (this happens in the `parser` package).
@@ -138,3 +138,12 @@ To build nexus compiler docker image: `make docker`
 # Publishing
 
 nexus compiler docker image can be published by invoking: `make publish`
+
+# Known issues
+
+### External types which don't implement DeepCopy methods are not supported.
+If generated code can't be built with error message like
+```bash
+apis/root.tsm.tanzu.vmware.com/v1/zz_generated.deepcopy.go:173:6: in.F.DeepCopyInto undefined (type text.Frame has no field or method DeepCopyInto)
+```
+It means that text.Frame must implement DeepCopyInto method. This method must be added manually.
