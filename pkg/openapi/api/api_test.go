@@ -2,6 +2,7 @@ package api_test
 
 import (
 	"encoding/json"
+	"net/http"
 
 	yamlv1 "github.com/ghodss/yaml"
 	. "github.com/onsi/ginkgo"
@@ -101,6 +102,39 @@ var _ = Describe("OpenAPI tests", func() {
 		api.New("vmware.org")
 		api.AddPath(restUri, "vmware.org")
 		Expect(api.Schemas["vmware.org"].Paths[restUri.Uri].Get).To(Not(BeNil()))
+	})
+
+	It("should add GET and PUT status endpoint", func() {
+		statusUri := "/leaders/status"
+		restUri := nexus.RestURIs{
+			Uri: statusUri,
+			Methods: nexus.HTTPMethodsResponses{
+				http.MethodGet: nexus.DefaultHTTPGETResponses,
+				http.MethodPut: nexus.DefaultHTTPPUTResponses},
+		}
+
+		urisMap := map[string]model.RestUriInfo{
+			statusUri: {
+				TypeOfURI: model.StatusURI,
+			},
+		}
+		model.ConstructMapUriToUriInfo(model.Upsert, urisMap)
+
+		crdJson, err := yamlv1.YAMLToJSON([]byte(crdExample))
+		Expect(err).NotTo(HaveOccurred())
+		var crd apiextensionsv1.CustomResourceDefinition
+		err = json.Unmarshal(crdJson, &crd)
+		Expect(err).NotTo(HaveOccurred())
+
+		model.ConstructMapCRDTypeToNode(model.Upsert, "leaders.orgchart.vmware.org", "orgchart.Leader",
+			[]string{}, nil, nil, false, "")
+		model.ConstructMapURIToCRDType(model.Upsert, "leaders.orgchart.vmware.org", []nexus.RestURIs{restUri})
+
+		model.ConstructMapCRDTypeToSpec(model.Upsert, "leaders.orgchart.vmware.org", crd.Spec)
+		api.New("vmware.org")
+		api.AddPath(restUri, "vmware.org")
+		Expect(api.Schemas["vmware.org"].Paths[restUri.Uri].Get).To(Not(BeNil()))
+		Expect(api.Schemas["vmware.org"].Paths[restUri.Uri].Put).To(Not(BeNil()))
 	})
 
 	It("should test Recreate func", func() {

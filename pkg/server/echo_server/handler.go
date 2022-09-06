@@ -14,10 +14,12 @@ import (
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	k8sLabels "k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/runtime/schema"
+	"k8s.io/apimachinery/pkg/types"
 
 	"api-gw/pkg/client"
 	"api-gw/pkg/model"
 	"api-gw/pkg/utils"
+
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/common-library.git/pkg/nexus"
 )
 
@@ -72,20 +74,19 @@ func getHandler(c echo.Context) error {
 		status = obj.Object["status"].(map[string]interface{})
 	}
 	delete(status, "nexus")
-	r := make(map[string]interface{})
-	r["spec"] = obj.Object["spec"]
-	r["status"] = status
-
 	uriInfo, ok := model.GetUriInfo(nc.NexusURI)
 	if ok {
 		if uriInfo.TypeOfURI == model.SingleLinkURI || uriInfo.TypeOfURI == model.NamedLinkURI {
 			return getLinkInfo(nc, uriInfo.TypeOfURI, crdInfo, obj)
 		}
 		if uriInfo.TypeOfURI == model.StatusURI {
-			// TODO https://jira.eng.vmware.com/browse/NPT-434
+			return nc.JSON(http.StatusOK, status)
 		}
 	}
 
+	r := make(map[string]interface{})
+	r["spec"] = obj.Object["spec"]
+	r["status"] = status
 	return nc.JSON(http.StatusOK, r)
 }
 
@@ -214,7 +215,7 @@ func listHandler(c echo.Context) error {
 		Resource: parts[0],
 	}
 
-	specs := make(map[string]interface{})
+	resps := make(map[string]interface{})
 	objs, err := client.Client.Resource(gvr).List(context.TODO(), metav1.ListOptions{
 		LabelSelector: labels.AsSelector().String(),
 	})
@@ -226,10 +227,18 @@ func listHandler(c echo.Context) error {
 		if val, ok := item.GetLabels()["nexus/display_name"]; ok {
 			itemName = val
 		}
-		specs[itemName] = item.Object["spec"]
+		status := make(map[string]interface{})
+		if _, ok := item.Object["status"]; ok {
+			status = item.Object["status"].(map[string]interface{})
+		}
+		delete(status, "nexus")
+		r := make(map[string]interface{})
+		r["spec"] = item.Object["spec"]
+		r["status"] = status
+		resps[itemName] = r
 	}
 
-	return nc.JSON(http.StatusOK, specs)
+	return nc.JSON(http.StatusOK, resps)
 }
 
 // putHandler is used to process PUT requests
@@ -294,6 +303,9 @@ func putHandler(c echo.Context) error {
 	hashedName := nexus.GetHashedName(crdName, crdInfo.ParentHierarchy, labels, name)
 	obj, err := client.Client.Resource(gvr).Get(context.TODO(), hashedName, metav1.GetOptions{})
 	if err != nil {
+		if uriInfo, ok := model.GetUriInfo(nc.NexusURI); ok && uriInfo.TypeOfURI == model.StatusURI {
+			return c.JSON(http.StatusNotFound, DefaultResponse{Message: "Can't put status subresource as nexus object not found"})
+		}
 		if errors.IsNotFound(err) {
 			// Build object
 			err = client.CreateObject(gvr,
@@ -317,10 +329,43 @@ func putHandler(c echo.Context) error {
 	}
 
 	obj.SetLabels(labels)
-	obj.Object["spec"] = body
 
-	// Update resource
-	_, err = client.Client.Resource(gvr).Update(context.TODO(), obj, metav1.UpdateOptions{})
+	// Handle PUT status subresource
+	if uriInfo, ok := model.GetUriInfo(nc.NexusURI); ok && uriInfo.TypeOfURI == model.StatusURI {
+		delete(body, "nexus")
+
+		// Make sure status field is present first
+		if _, ok := obj.Object["status"]; !ok {
+			m := []byte("{\"status\":{}}")
+			_, err = client.Client.Resource(gvr).Patch(context.TODO(), obj.GetName(), types.MergePatchType, m, metav1.PatchOptions{}, "status")
+			if err != nil {
+				return handleClientError(nc, err)
+			}
+		}
+
+		patch := []PatchOp{}
+		for k, v := range body {
+			p := PatchOp{
+				Op:    "replace",
+				Path:  "/status/" + k,
+				Value: v,
+			}
+			patch = append(patch, p)
+		}
+		var patchBytes []byte
+		patchBytes, err = json.Marshal(patch)
+		if err != nil {
+			return c.JSON(http.StatusBadRequest, DefaultResponse{Message: "Wrong payload data provided"})
+		}
+
+		//Update status subresource
+		_, err = client.Client.Resource(gvr).Patch(context.TODO(), obj.GetName(), types.JSONPatchType, patchBytes, metav1.PatchOptions{}, "status")
+	} else {
+		obj.Object["spec"] = body
+
+		// Update resource
+		_, err = client.Client.Resource(gvr).Update(context.TODO(), obj, metav1.UpdateOptions{})
+	}
 	if err != nil {
 		return handleClientError(nc, err)
 	}
@@ -445,4 +490,10 @@ func getUnstructuredObject(apiGroup, resourceName, name string) (*unstructured.U
 	}
 
 	return item, nil
+}
+
+type PatchOp struct {
+	Op    string      `json:"op"`
+	Path  string      `json:"path"`
+	Value interface{} `json:"value,omitempty"`
 }

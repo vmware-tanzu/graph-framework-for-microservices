@@ -153,7 +153,6 @@ func ConstructMapUriToUriInfo(eventType EventType, m map[string]RestUriInfo) {
 func GetUriInfo(uriPath string) (RestUriInfo, bool) {
 	UriToUriInfoMutex.Lock()
 	defer UriToUriInfoMutex.Unlock()
-
 	info, ok := UriToUriInfo[uriPath]
 	return info, ok
 }

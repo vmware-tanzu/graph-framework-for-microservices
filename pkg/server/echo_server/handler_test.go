@@ -13,6 +13,7 @@ import (
 	"api-gw/controllers"
 	"api-gw/pkg/config"
 	"api-gw/pkg/model"
+
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/common-library.git/pkg/nexus"
 )
 
@@ -234,6 +235,7 @@ var _ = Describe("Echo server tests", func() {
 			nc, rec = createSampleHRRequest(e)
 			// should fail when child object not exists in DB
 			err = getHandler(nc)
+			Expect(err).NotTo(HaveOccurred())
 			Expect(rec.Code).To(Equal(404))
 			Expect(rec.Body.String()).To(Equal("{\"message\":\"Couldn't find object\"}\n"))
 		})
@@ -370,6 +372,102 @@ var _ = Describe("Echo server tests", func() {
 			Expect(rec.Body.String()).To(Equal("{\"message\":\"Couldn't unmarshal gvk of link\"}\n"))
 		})
 	})
+
+	It("should handle PUT and GET status subresource", func() {
+		// Create `Leader` object
+		leaderJson := `{
+				"designation": "abc",
+				"employeeID": 100,
+				"name": "xyz"
+			  }`
+		restUri := nexus.RestURIs{
+			Uri:     "/root/{orgchart.Root}/leader/{management.Leader}",
+			Methods: nexus.DefaultHTTPMethodsResponses,
+		}
+
+		nc, rec := initNode(e, "leaders.management.vmware.org", "management.vmware.org",
+			"leaders", "management.Leader", http.MethodPost, leaderJson,
+			"/root/:orgchart.Root/leader/:management.Leader", restUri)
+
+		err := putHandler(nc)
+		Expect(err).NotTo(HaveOccurred())
+		Expect(rec.Code).To(Equal(200))
+
+		// =========== Status subresource
+		leaderStatusJson := `{
+				"status": {
+				  "DaysLeftToEndOfVacations": 139,
+				  "IsOnVacations": true
+				}
+			  }`
+		statusUriPath := "/root/{orgchart.Root}/leader/{management.Leader}/status"
+		targetUri := "/root/:orgchart.Root/leader/:management.Leader/status"
+		model.UriToUriInfo[statusUriPath] = model.RestUriInfo{TypeOfURI: model.StatusURI}
+		restUriForStatus := nexus.RestURIs{
+			Uri: statusUriPath,
+			// Methods: nexus.DefaultHTTPMethodsResponses,
+			Methods: nexus.HTTPMethodsResponses{
+				http.MethodGet: nexus.DefaultHTTPGETResponses,
+				http.MethodPut: nexus.DefaultHTTPPUTResponses,
+			},
+		}
+		urisMap := map[string]model.RestUriInfo{
+			statusUriPath: {
+				TypeOfURI: model.StatusURI,
+			},
+		}
+		model.ConstructMapUriToUriInfo(model.Upsert, urisMap)
+
+		// =========== status PUT
+		e.RegisterRouter(restUri)
+		model.ConstructMapCRDTypeToNode(model.Upsert, "leaders.management.vmware.org", "management.Leader",
+			[]string{}, nil, nil, true, "some description")
+		model.ConstructMapURIToCRDType(model.Upsert, "leaders.management.vmware.org", []nexus.RestURIs{restUriForStatus})
+
+		req1 := httptest.NewRequest(http.MethodPost, targetUri, strings.NewReader(leaderStatusJson))
+		req1.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+		rec1 := httptest.NewRecorder()
+		c1 := e.Echo.NewContext(req1, rec1)
+		nc1 := &NexusContext{
+			NexusURI:  statusUriPath,
+			Context:   c1,
+			CrdType:   "leaders.management.vmware.org",
+			GroupName: "management.vmware.org",
+			Resource:  "leaders",
+		}
+		err = putHandler(nc1)
+		Expect(err).NotTo(HaveOccurred())
+		Expect(rec1.Code).To(Equal(200))
+
+		// ============ status GET
+		req2 := httptest.NewRequest(http.MethodPost, targetUri, nil)
+		req2.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+		rec2 := httptest.NewRecorder()
+		c2 := e.Echo.NewContext(req2, rec2)
+		nc2 := &NexusContext{
+			NexusURI: statusUriPath,
+			//Codes: nexus.DefaultHTTPMethodsResponses,
+			Context:   c2,
+			CrdType:   "leaders.management.vmware.org",
+			GroupName: "management.vmware.org",
+			Resource:  "leaders",
+		}
+
+		err = getHandler(nc2)
+		Expect(err).NotTo(HaveOccurred())
+		Expect(rec2.Code).To(Equal(200))
+		Expect(rec2.Body.String()).Should(Equal("{\"status\":{\"DaysLeftToEndOfVacations\":139,\"IsOnVacations\":true}}\n"))
+
+		// ============ GET Manager with status subresource
+		nc3, rec3 := initNode(e, "leaders.management.vmware.org", "management.vmware.org",
+			"leaders", "management.Leader", http.MethodGet, "",
+			"/root/:orgchart.Root/leader/:management.Leader", restUri)
+		err = getHandler(nc3)
+		Expect(err).NotTo(HaveOccurred())
+		Expect(rec3.Code).To(Equal(200))
+		Expect(rec3.Body.String()).Should(Equal("{\"spec\":{\"designation\":\"abc\",\"employeeID\":100,\"management.Leader\":\"default\",\"name\":\"xyz\"},\"status\":{\"status\":{\"DaysLeftToEndOfVacations\":139,\"IsOnVacations\":true}}}\n"))
+
+	})
 })
 
 func createTestNode(apiVersion, kind, name string) string {
@@ -391,6 +489,7 @@ func expectedEngManagersRestURIs() []nexus.RestURIs {
 			Uri: "/root/{orgchart.Root}/leader/{management.Leader}/status",
 			Methods: map[nexus.HTTPMethod]nexus.HTTPCodesResponse{
 				http.MethodGet: nexus.DefaultHTTPGETResponses,
+				http.MethodPut: nexus.DefaultHTTPPUTResponses,
 			},
 		},
 		{
@@ -408,6 +507,7 @@ func expectedHRRestURIs() []nexus.RestURIs {
 			Uri: "/root/{orgchart.Root}/leader/{management.Leader}/status",
 			Methods: map[nexus.HTTPMethod]nexus.HTTPCodesResponse{
 				http.MethodGet: nexus.DefaultHTTPGETResponses,
+				http.MethodPut: nexus.DefaultHTTPPUTResponses,
 			},
 		},
 		{
