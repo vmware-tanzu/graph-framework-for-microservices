@@ -1,4 +1,4 @@
-{{-if ne .Values.global.nexusAdmin true}}
+{{- if ne .Values.global.nexusAdmin true}}
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -148,4 +148,4 @@ roleRef:
   kind: Role
   name: nexus-controller-role-{{.Values.global.namespace}}
   apiGroup: rbac.authorization.k8s.io
-{{-end}}
+{{end}}
