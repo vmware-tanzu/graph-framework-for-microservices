@@ -26,17 +26,17 @@ var _ = Describe("Kube tests", func() {
 		scheme := runtime.NewScheme()
 		//client.Client = fake.NewSimpleDynamicClient(scheme)
 		client.Client = fake.NewSimpleDynamicClientWithCustomListKinds(scheme, map[schema.GroupVersionResource]string{
-			schema.GroupVersionResource{
+			{
 				Group:    "gns.vmware.org",
 				Version:  "v1",
 				Resource: "globalnamespaces",
 			}: "GlobalNamespaceList",
-			schema.GroupVersionResource{
+			{
 				Group:    "root.vmware.org",
 				Version:  "v1",
 				Resource: "roots",
 			}: "RootList",
-			schema.GroupVersionResource{
+			{
 				Group:    "orgchart.vmware.org",
 				Version:  "v1",
 				Resource: "leaders",

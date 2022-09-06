@@ -89,7 +89,7 @@ func AddPath(uri nexus.RestURIs, datamodel string) {
 
 	params := parseUriParams(uri.Uri, crdInfo.ParentHierarchy)
 	pathItem := &openapi3.PathItem{}
-	for method, _ := range uri.Methods {
+	for method := range uri.Methods {
 		h.Write([]byte(fmt.Sprintf("%s%s", method, uri.Uri)))
 		opId := hex.EncodeToString(h.Sum(nil))
 		nameParts := strings.Split(crdInfo.Name, ".")
@@ -112,26 +112,45 @@ func AddPath(uri nexus.RestURIs, datamodel string) {
 				OperationID: opId,
 				Tags:        []string{nameParts[1]},
 				Parameters:  params,
-				Responses: openapi3.Responses{
+			}
+			if uriInfo, ok := model.GetUriInfo(uri.Uri); ok && uriInfo.TypeOfURI == model.StatusURI {
+				operation.Responses = openapi3.Responses{
+					"200": &openapi3.ResponseRef{
+						Ref: "#/components/responses/Get" + crdInfo.Name + ".Status",
+					},
+				}
+			} else {
+				operation.Responses = openapi3.Responses{
 					"200": &openapi3.ResponseRef{
 						Ref: "#/components/responses/Get" + crdInfo.Name,
 					},
-				},
+				}
 			}
 			pathItem.Get = operation
 		case http.MethodPut:
 			operation := &openapi3.Operation{
 				OperationID: opId,
 				Tags:        []string{nameParts[1]},
-				RequestBody: &openapi3.RequestBodyRef{
-					Ref: "#/components/requestBodies/Create" + crdInfo.Name,
-				},
-				Responses: openapi3.Responses{
+				Parameters:  params,
+			}
+			if uriInfo, ok := model.GetUriInfo(uri.Uri); ok && uriInfo.TypeOfURI == model.StatusURI {
+				operation.RequestBody = &openapi3.RequestBodyRef{
+					Ref: "#/components/requestBodies/Create" + crdInfo.Name + ".Status",
+				}
+				operation.Responses = openapi3.Responses{
 					"200": &openapi3.ResponseRef{
 						Ref: "#/components/responses/DefaultResponse",
 					},
-				},
-				Parameters: params,
+				}
+			} else {
+				operation.RequestBody = &openapi3.RequestBodyRef{
+					Ref: "#/components/requestBodies/Create" + crdInfo.Name,
+				}
+				operation.Responses = openapi3.Responses{
+					"200": &openapi3.ResponseRef{
+						Ref: "#/components/responses/DefaultResponse",
+					},
+				}
 			}
 			pathItem.Put = operation
 		case http.MethodDelete:
@@ -164,6 +183,13 @@ func parseSpec(crdType string, datamodel string) {
 
 	Schemas[datamodel].Components.Schemas[crdInfo.Name] = openapi3.NewSchemaRef("", jsonSchema)
 
+	statusProps := openapiSchema.Properties["status"].Properties
+	delete(statusProps, "nexus")
+	jsonStatusSchema := openapi3.NewObjectSchema()
+	parseFields(jsonStatusSchema, statusProps)
+
+	Schemas[datamodel].Components.Schemas[crdInfo.Name+".Status"] = openapi3.NewSchemaRef("", jsonStatusSchema)
+
 	Schemas[datamodel].Components.RequestBodies["Create"+crdInfo.Name] = &openapi3.RequestBodyRef{
 		Value: openapi3.NewRequestBody().
 			WithDescription("Request used to create " + crdInfo.Name).
@@ -176,6 +202,21 @@ func parseSpec(crdType string, datamodel string) {
 			WithDescription("Response returned back after getting " + crdInfo.Name + " object").
 			WithContent(
 				openapi3.NewContentWithJSONSchemaRef(&openapi3.SchemaRef{Ref: "#/components/schemas/" + crdInfo.Name}),
+			),
+	}
+
+	Schemas[datamodel].Components.RequestBodies["Create"+crdInfo.Name+".Status"] = &openapi3.RequestBodyRef{
+		Value: openapi3.NewRequestBody().
+			WithDescription("Request used to create Status subresource of " + crdInfo.Name).
+			WithRequired(false).
+			WithJSONSchemaRef(&openapi3.SchemaRef{Ref: "#/components/schemas/" + crdInfo.Name + ".Status"}),
+	}
+
+	Schemas[datamodel].Components.Responses["Get"+crdInfo.Name+".Status"] = &openapi3.ResponseRef{
+		Value: openapi3.NewResponse().
+			WithDescription("Response returned back after getting status subresource of " + crdInfo.Name + " object").
+			WithContent(
+				openapi3.NewContentWithJSONSchemaRef(&openapi3.SchemaRef{Ref: "#/components/schemas/" + crdInfo.Name + ".Status"}),
 			),
 	}
 

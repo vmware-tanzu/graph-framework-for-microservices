@@ -81,7 +81,7 @@ func ConstructNewURIs(n model.NexusAnnotation, urisMap map[string]model.RestUriI
 		for method := range uri.Methods {
 			if method == http.MethodGet {
 				statusUriPath := uri.Uri + "/status"
-				addUri(statusUriPath, model.StatusURI, urisMap, newUris)
+				addStatusUri(statusUriPath, model.StatusURI, urisMap, newUris)
 
 				for _, c := range []map[string]model.NodeHelperChild{n.Children, n.Links} {
 					processChildOrLink(c, uri, urisMap, newUris)
@@ -110,6 +110,20 @@ func addUri(uriPath string, typeOfUri model.URIType, urisMap map[string]model.Re
 		Uri: uriPath,
 		Methods: map[nexus.HTTPMethod]nexus.HTTPCodesResponse{
 			http.MethodGet: nexus.DefaultHTTPGETResponses,
+		},
+	}
+	urisMap[uriPath] = model.RestUriInfo{
+		TypeOfURI: typeOfUri,
+	}
+	*uris = append(*uris, newUri)
+}
+
+func addStatusUri(uriPath string, typeOfUri model.URIType, urisMap map[string]model.RestUriInfo, uris *[]nexus.RestURIs) {
+	newUri := nexus.RestURIs{
+		Uri: uriPath,
+		Methods: map[nexus.HTTPMethod]nexus.HTTPCodesResponse{
+			http.MethodGet: nexus.DefaultHTTPGETResponses,
+			http.MethodPut: nexus.DefaultHTTPPUTResponses,
 		},
 	}
 	urisMap[uriPath] = model.RestUriInfo{
