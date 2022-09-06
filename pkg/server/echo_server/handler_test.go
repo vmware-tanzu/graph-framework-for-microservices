@@ -371,6 +371,48 @@ var _ = Describe("Echo server tests", func() {
 			Expect(rec.Code).To(Equal(500))
 			Expect(rec.Body.String()).To(Equal("{\"message\":\"Couldn't unmarshal gvk of link\"}\n"))
 		})
+
+		It("shouldn't show Child and Links GVK when doing object GET", func() {
+			// create HR child object
+			hrJson := createTestNode("hr.vmware.org/v1", "HumanResources", "default")
+			restUri := nexus.RestURIs{
+				Uri:     "/root/{orgchart.Root}/hr/{hr.HumanResources}",
+				Methods: nexus.DefaultHTTPMethodsResponses,
+			}
+			hrCtx, hrRec := initNode(e, "humanresourceses.hr.vmware.org", "hr.vmware.org",
+				"humanresourceses", "hr.HumanResources", http.MethodPost, hrJson,
+				"/root/:orgchart.Root/hr/:hr.HumanResources", restUri)
+
+			err := putHandler(hrCtx)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(hrRec.Code).To(Equal(200))
+
+			// construct annotation
+			n := constructTestAnnotation()
+
+			urisMap := make(map[string]model.RestUriInfo)
+			// add child, link and status URIs for each GET method
+			var newUris []nexus.RestURIs
+			controllers.ConstructNewURIs(n, urisMap, &newUris)
+
+			n.NexusRestAPIGen.Uris = append(n.NexusRestAPIGen.Uris, newUris...)
+
+			for _, restUri := range n.NexusRestAPIGen.Uris {
+				e.RegisterRouter(restUri)
+			}
+
+			model.ConstructMapCRDTypeToNode(model.Upsert, "leaders.management.vmware.org", "management.Leader",
+				n.Hierarchy, n.Children, n.Links, true, "some description")
+			model.ConstructMapURIToCRDType(model.Upsert, "leaders.management.vmware.org", n.NexusRestAPIGen.Uris)
+			model.ConstructMapUriToUriInfo(model.Upsert, urisMap)
+
+			nc, rec := createSampleLeaderRequest(e)
+			err = getHandler(nc)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(rec.Code).To(Equal(200))
+			Expect(rec.Body.String()).Should(Equal(
+				"{\"spec\":{\"designation\":\"NexusLead\",\"employeeID\":1,\"management.Leader\":\"default\"},\"status\":{}}\n"))
+		})
 	})
 
 	It("should handle PUT and GET status subresource", func() {
@@ -559,6 +601,33 @@ func constructTestChildrenAnnotation() model.NexusAnnotation {
 	}
 }
 
+func constructTestAnnotation() model.NexusAnnotation {
+	return model.NexusAnnotation{
+		Name: "management.Leader",
+		Children: map[string]model.NodeHelperChild{
+			"humanresourceses.hr.vmware.org": {
+				FieldName:    "HR",
+				FieldNameGvk: "hRGvk",
+				IsNamed:      false,
+			},
+		},
+		Links: map[string]model.NodeHelperChild{
+			"mgrs.management.vmware.org": {
+				FieldName:    "EngManagers",
+				FieldNameGvk: "engManagersGvk",
+				IsNamed:      true,
+			},
+		},
+		NexusRestAPIGen: nexus.RestAPISpec{
+			Uris: []nexus.RestURIs{{
+				Uri:     "/root/{orgchart.Root}/leader/{management.Leader}",
+				Methods: nexus.DefaultHTTPMethodsResponses,
+			}},
+		},
+		IsSingleton: false,
+	}
+}
+
 func initNode(e *EchoServer, crdType, groupName, resourceName, name, method, body, targetURI string, restUri nexus.RestURIs) (*NexusContext, *httptest.ResponseRecorder) {
 	e.RegisterRouter(restUri)
 	model.ConstructMapCRDTypeToNode(model.Upsert, crdType, name,
@@ -608,10 +677,22 @@ func createSampleRoleRequest(e *EchoServer) (*NexusContext, *httptest.ResponseRe
 		})
 }
 
+func createSampleLeaderRequest(e *EchoServer) (*NexusContext, *httptest.ResponseRecorder) {
+	return createTestNexusContext(e, "leaders.management.vmware.org", "management.vmware.org",
+		"leaders", "management.Leader", http.MethodGet, "",
+		"/root/:orgchart.Root/leader/:management.Leader", nexus.RestURIs{
+			Uri: "/root/{orgchart.Root}/leader/{management.Leader}",
+		})
+}
+
 func getLeaderChildrenJson(key, val string) string {
+	var additionalKey string
+	if len(key) > 0 {
+		additionalKey = fmt.Sprintf(`,"%s": "%s"`, key, val)
+	}
 	return fmt.Sprintf(`{
-          "designation": "string",
-          "employeeID": 0,
+          "designation": "NexusLead",
+          "employeeID": 1,
           "engManagersGvk": {
             "default": {
               "group": "management.vmware.org",
@@ -628,7 +709,6 @@ func getLeaderChildrenJson(key, val string) string {
             "group": "hr.vmware.org",
             "kind": "HumanResources",
             "name": "71d2f43510c62c8a4cc08ed4fffa58839d722608"
-        },
-          "%s": "%s"
-	}`, key, val)
+        } ` + additionalKey + `
+	}`)
 }

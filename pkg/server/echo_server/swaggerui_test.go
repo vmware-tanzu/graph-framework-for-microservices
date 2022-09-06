@@ -2,11 +2,12 @@ package echo_server_test
 
 import (
 	"api-gw/pkg/server/echo_server"
+	"net/http"
+	"net/http/httptest"
+
 	"github.com/labstack/echo/v4"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"net/http"
-	"net/http/httptest"
 )
 
 var _ = Describe("Swagger handler tests", func() {

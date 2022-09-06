@@ -74,6 +74,7 @@ func getHandler(c echo.Context) error {
 		status = obj.Object["status"].(map[string]interface{})
 	}
 	delete(status, "nexus")
+
 	uriInfo, ok := model.GetUriInfo(nc.NexusURI)
 	if ok {
 		if uriInfo.TypeOfURI == model.SingleLinkURI || uriInfo.TypeOfURI == model.NamedLinkURI {
@@ -84,9 +85,21 @@ func getHandler(c echo.Context) error {
 		}
 	}
 
+	spec := make(map[string]interface{})
+	if _, ok := obj.Object["spec"]; ok {
+		spec = obj.Object["spec"].(map[string]interface{})
+	}
+	for _, v := range crdInfo.Children {
+		delete(spec, v.FieldNameGvk)
+	}
+	for _, v := range crdInfo.Links {
+		delete(spec, v.FieldNameGvk)
+	}
+
 	r := make(map[string]interface{})
-	r["spec"] = obj.Object["spec"]
+	r["spec"] = spec
 	r["status"] = status
+
 	return nc.JSON(http.StatusOK, r)
 }
 
@@ -232,8 +245,19 @@ func listHandler(c echo.Context) error {
 			status = item.Object["status"].(map[string]interface{})
 		}
 		delete(status, "nexus")
+		spec := make(map[string]interface{})
+		if _, ok := item.Object["spec"]; ok {
+			spec = item.Object["spec"].(map[string]interface{})
+		}
+		for _, v := range crdInfo.Children {
+			delete(spec, v.FieldNameGvk)
+		}
+		for _, v := range crdInfo.Links {
+			delete(spec, v.FieldNameGvk)
+		}
+
 		r := make(map[string]interface{})
-		r["spec"] = item.Object["spec"]
+		r["spec"] = spec
 		r["status"] = status
 		resps[itemName] = r
 	}
