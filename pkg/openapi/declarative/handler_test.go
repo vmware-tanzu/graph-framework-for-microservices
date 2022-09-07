@@ -266,16 +266,16 @@ var _ = Describe("Handler tests", func() {
 		Expect(rec.Body.String()).To(Equal(expectedBody))
 	})
 
-	It("should test Apis handler with given kind", func() {
+	It("should test Apis handler with globalnamespaces.gns.vmware.org crd", func() {
 		echoServer := echo_server.NewEchoServer(config.Cfg)
 		echoServer.RegisterDeclarativeRouter()
 
 		// setup echo test
 		e := echo.New()
-		req := httptest.NewRequest(http.MethodGet, "/declarative/apis?kind=GlobalNamespace", nil)
+		req := httptest.NewRequest(http.MethodGet, "/declarative/apis?crd=globalnamespaces.gns.vmware.org", nil)
 		rec := httptest.NewRecorder()
 		c := e.NewContext(req, rec)
-		c.SetPath("/declarative/apis?kind=GlobalNamespace")
+		c.SetPath("/declarative/apis?crd=globalnamespaces.gns.vmware.org")
 
 		err := declarative.ApisHandler(c)
 		Expect(err).To(BeNil())
