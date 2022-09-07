@@ -1,3 +1,0 @@
-type AccessControlPolicy {
-    policyConfigs(name: ID): [ACPConfig!]
-}
