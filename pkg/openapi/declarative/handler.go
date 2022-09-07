@@ -23,11 +23,11 @@ type errorMessage struct {
 }
 
 func ApisHandler(c echo.Context) error {
-	kindSchemasMutex.Lock()
-	defer kindSchemasMutex.Unlock()
+	crdToSchemaMutex.Lock()
+	defer crdToSchemaMutex.Unlock()
 
-	kind := c.QueryParam("kind")
-	if val, ok := KindSchemas[kind]; ok {
+	crd := c.QueryParam("crd")
+	if val, ok := CrdToSchema[crd]; ok {
 		return c.String(200, val)
 	}
 

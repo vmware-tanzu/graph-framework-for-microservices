@@ -2,6 +2,7 @@ package declarative
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"os"
 	"strings"
@@ -28,8 +29,8 @@ var (
 	Schemas            openapi3.Schemas
 	parsedSchemas      = make(map[string]interface{})
 	parsedSchemasMutex = sync.Mutex{}
-	KindSchemas        = make(map[string]string)
-	kindSchemasMutex   = sync.Mutex{}
+	CrdToSchema        = make(map[string]string)
+	crdToSchemaMutex   = sync.Mutex{}
 )
 
 func Setup() error {
@@ -100,10 +101,10 @@ func GetExtensionVal(operation *openapi3.Operation, key string) string {
 
 func AddApisEndpoint(ec *EndpointContext) {
 	apisListMutex.Lock()
-	kindSchemasMutex.Lock()
+	crdToSchemaMutex.Lock()
 	defer func() {
 		apisListMutex.Unlock()
-		kindSchemasMutex.Unlock()
+		crdToSchemaMutex.Unlock()
 	}()
 
 	if ApisList[ec.Uri] == nil {
@@ -125,7 +126,7 @@ func AddApisEndpoint(ec *EndpointContext) {
 	if ec.SchemaName != "" {
 		schema := ConvertSchemaToYaml(ec, params)
 		ApisList[ec.Uri]["yaml"] = schema
-		KindSchemas[ec.KindName] = schema
+		CrdToSchema[fmt.Sprintf("%s.%s", ec.ResourceName, ec.GroupName)] = schema
 	}
 
 	if ec.ShortUri != "" {
