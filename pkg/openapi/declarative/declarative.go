@@ -2,13 +2,14 @@ package declarative
 
 import (
 	"encoding/json"
-	"github.com/labstack/echo/v4"
-	log "github.com/sirupsen/logrus"
 	"io/ioutil"
 	"os"
-	"sigs.k8s.io/yaml"
 	"strings"
 	"sync"
+
+	"github.com/labstack/echo/v4"
+	log "github.com/sirupsen/logrus"
+	"sigs.k8s.io/yaml"
 
 	"github.com/getkin/kin-openapi/openapi3"
 )

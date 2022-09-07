@@ -3,10 +3,11 @@ package echo_server
 import (
 	"bytes"
 	"fmt"
-	openMiddleware "github.com/go-openapi/runtime/middleware"
-	"github.com/labstack/echo/v4"
 	"html/template"
 	"net/http"
+
+	openMiddleware "github.com/go-openapi/runtime/middleware"
+	"github.com/labstack/echo/v4"
 )
 
 // Source: https://github.com/go-openapi/runtime
