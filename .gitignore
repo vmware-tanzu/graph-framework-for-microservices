@@ -1,0 +1,7 @@
+*.tar
+*/*.tar
+coverage.out
+report.json
+*.coverprofile
+.idea
+cmd/authz-controller/authz-controller

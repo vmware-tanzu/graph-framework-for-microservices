@@ -1,0 +1,7 @@
+domain: authz-controller.com
+layout:
+- go.kubebuilder.io/v3
+projectName: authz-controller
+repo: authz-controller
+version: "3"
+multigroup: true
