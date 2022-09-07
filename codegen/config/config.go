@@ -1,6 +1,7 @@
 package config
 
 import (
+	"bytes"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -11,7 +12,7 @@ import (
 	"github.com/vektah/gqlparser/v2"
 	"github.com/vektah/gqlparser/v2/ast"
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/internal/code"
-	"gopkg.in/yaml.v2"
+	"gopkg.in/yaml.v3"
 )
 
 type Config struct {
@@ -25,6 +26,7 @@ type Config struct {
 	StructTag                     string                     `yaml:"struct_tag,omitempty"`
 	Directives                    map[string]DirectiveConfig `yaml:"directives,omitempty"`
 	OmitSliceElementPointers      bool                       `yaml:"omit_slice_element_pointers,omitempty"`
+	OmitGetters                   bool                       `yaml:"omit_getters,omitempty"`
 	StructFieldsAlwaysPointers    bool                       `yaml:"struct_fields_always_pointers,omitempty"`
 	ResolversAlwaysReturnPointers bool                       `yaml:"resolvers_always_return_pointers,omitempty"`
 	SkipValidation                bool                       `yaml:"skip_validation,omitempty"`
@@ -102,7 +104,10 @@ func LoadConfig(filename string) (*Config, error) {
 		return nil, fmt.Errorf("unable to read config: %w", err)
 	}
 
-	if err := yaml.UnmarshalStrict(b, config); err != nil {
+	dec := yaml.NewDecoder(bytes.NewReader(b))
+	dec.KnownFields(true)
+
+	if err := dec.Decode(config); err != nil {
 		return nil, fmt.Errorf("unable to parse config: %w", err)
 	}
 

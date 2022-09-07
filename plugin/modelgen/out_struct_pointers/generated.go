@@ -10,44 +10,38 @@ import (
 
 type A interface {
 	IsA()
-	GetA() string
+}
+
+type ArrayOfA interface {
+	IsArrayOfA()
 }
 
 type B interface {
 	IsB()
-	GetB() int
 }
 
 type C interface {
 	IsA()
 	IsC()
-	GetA() string
-	GetC() bool
 }
 
 type D interface {
 	IsA()
 	IsB()
 	IsD()
-	GetA() string
-	GetB() int
-	GetD() *string
 }
 
 type FooBarer interface {
 	IsFooBarer()
-	GetName() string
 }
 
 // InterfaceWithDescription is an interface with a description
 type InterfaceWithDescription interface {
 	IsInterfaceWithDescription()
-	GetName() *string
 }
 
 type MissingInterface interface {
 	IsMissingInterface()
-	GetName() *string
 }
 
 type MissingUnion interface {
@@ -66,16 +60,11 @@ type CDImplemented struct {
 	D *string `json:"d" database:"CDImplementedd"`
 }
 
-func (CDImplemented) IsC()              {}
-func (this CDImplemented) GetA() string { return this.A }
-func (this CDImplemented) GetC() bool   { return this.C }
+func (CDImplemented) IsC() {}
 
 func (CDImplemented) IsA() {}
 
 func (CDImplemented) IsD() {}
-
-func (this CDImplemented) GetB() int     { return this.B }
-func (this CDImplemented) GetD() *string { return this.D }
 
 func (CDImplemented) IsB() {}
 
@@ -101,6 +90,13 @@ type FieldMutationHook struct {
 	Repeated *string       `json:"repeated" someTag:"value" repeated:"true" database:"FieldMutationHookrepeated"`
 }
 
+type ImplArrayOfA struct {
+	TrickyField        []*CDImplemented `json:"trickyField" database:"ImplArrayOfAtrickyField"`
+	TrickyFieldPointer []*CDImplemented `json:"trickyFieldPointer" database:"ImplArrayOfAtrickyFieldPointer"`
+}
+
+func (ImplArrayOfA) IsArrayOfA() {}
+
 type MissingInput struct {
 	Name *string      `json:"name" database:"MissingInputname"`
 	Enum *MissingEnum `json:"enum" database:"MissingInputenum"`
@@ -114,8 +110,7 @@ type MissingTypeNotNull struct {
 	Missing2 MissingTypeNullable `json:"missing2" database:"MissingTypeNotNullmissing2"`
 }
 
-func (MissingTypeNotNull) IsMissingInterface()   {}
-func (this MissingTypeNotNull) GetName() *string { return &this.Name }
+func (MissingTypeNotNull) IsMissingInterface() {}
 
 func (MissingTypeNotNull) IsExistingInterface() {}
 
@@ -131,8 +126,7 @@ type MissingTypeNullable struct {
 	Missing2 *MissingTypeNotNull `json:"missing2" database:"MissingTypeNullablemissing2"`
 }
 
-func (MissingTypeNullable) IsMissingInterface()   {}
-func (this MissingTypeNullable) GetName() *string { return this.Name }
+func (MissingTypeNullable) IsMissingInterface() {}
 
 func (MissingTypeNullable) IsExistingInterface() {}
 
@@ -173,8 +167,7 @@ type FooBarr struct {
 	Name string `json:"name" database:"_Foo_Barrname"`
 }
 
-func (FooBarr) IsFooBarer()          {}
-func (this FooBarr) GetName() string { return this.Name }
+func (FooBarr) IsFooBarer() {}
 
 // EnumWithDescription is an enum with a description
 type EnumWithDescription string
