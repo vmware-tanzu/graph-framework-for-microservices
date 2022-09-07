@@ -1,5 +1,0 @@
-type Config {
-    gns: GNS!
-    policy: AccessControlPolicy!
-}
-

@@ -1,7 +1,0 @@
-type SvcGroup {
-    name: ID
-    displayName: String
-    description: String
-    color: String
-    services: [Service]
-}
