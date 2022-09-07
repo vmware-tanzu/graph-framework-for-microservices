@@ -188,7 +188,7 @@ var _ = Describe("Validation tests", func() {
 		admRes := validate.CrdType(fakeClient, admReq)
 		Expect(admRes.Response.Allowed).To(BeTrue())
 
-		crdObjJson, err := yaml.YAMLToJSON([]byte(getEmployeeCRDObject("foo")))
+		crdObjJson, err := yaml.YAMLToJSON([]byte(getEmployeeCRDObject("foo", nil)))
 		Expect(err).NotTo(HaveOccurred())
 		admReqCRDObj := admissionv1.AdmissionReview{
 			Request: &admissionv1.AdmissionRequest{
@@ -207,5 +207,58 @@ var _ = Describe("Validation tests", func() {
 		admResCrd, err := validate.Crd(dynamicClient, admReqCRDObj)
 		Expect(err).NotTo(HaveOccurred())
 		Expect(admResCrd.Response.Allowed).To(BeFalse())
+	})
+
+	It("should reject object when it's parents is not present", func() {
+		crdDefJson, err := yaml.YAMLToJSON([]byte(getRootCRDDef(false)))
+		Expect(err).NotTo(HaveOccurred())
+		admReq := admissionv1.AdmissionReview{
+			Request: &admissionv1.AdmissionRequest{
+				Operation: admissionv1.Create,
+				Kind:      metav1.GroupVersionKind{Kind: "CustomResourceDefinition"},
+				Object: runtime.RawExtension{
+					Raw: crdDefJson,
+				},
+			},
+		}
+		admRes := validate.CrdType(fakeClient, admReq)
+		Expect(admRes.Response.Allowed).To(BeTrue())
+
+		crdDefJson, err = yaml.YAMLToJSON([]byte(getEmployeeCRDDef()))
+		Expect(err).NotTo(HaveOccurred())
+		admReq = admissionv1.AdmissionReview{
+			Request: &admissionv1.AdmissionRequest{
+				Operation: admissionv1.Create,
+				Kind:      metav1.GroupVersionKind{Kind: "CustomResourceDefinition"},
+				Object: runtime.RawExtension{
+					Raw: crdDefJson,
+				},
+			},
+		}
+		admRes = validate.CrdType(fakeClient, admReq)
+		Expect(admRes.Response.Allowed).To(BeTrue())
+
+		crdObjJson, err := yaml.YAMLToJSON([]byte(getEmployeeCRDObject("foo",
+			map[string]string{"roots.orgchart.vmware.org": "par"})))
+		Expect(err).NotTo(HaveOccurred())
+		admReqCRDObj := admissionv1.AdmissionReview{
+			Request: &admissionv1.AdmissionRequest{
+				Operation: admissionv1.Create,
+				Kind:      metav1.GroupVersionKind{Kind: "Employee"},
+				Object: runtime.RawExtension{
+					Raw: crdObjJson,
+				},
+				Resource: metav1.GroupVersionResource{
+					Group:    "role.vmware.org",
+					Resource: "employees",
+				},
+			},
+		}
+
+		admResCrd, err := validate.Crd(dynamicClient, admReqCRDObj)
+		Expect(err).NotTo(HaveOccurred())
+		Expect(admResCrd.Response.Allowed).To(BeFalse())
+		Expect(admResCrd.Response.Result.Message).To(
+			Equal("required parent roots.orgchart.vmware.org with display name par not found"))
 	})
 })
