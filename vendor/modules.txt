@@ -113,7 +113,7 @@ github.com/onsi/gomega/types
 # github.com/sirupsen/logrus v1.8.1
 ## explicit; go 1.13
 github.com/sirupsen/logrus
-# gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/common-library.git v0.0.0-20220726103338-a90f24e3da64
+# gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/common-library.git v0.0.0-20220909083510-01d43651301d
 ## explicit; go 1.17
 gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/common-library.git/pkg/nexus
 # gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git v0.0.0-20220603123335-7416bd4754d3
