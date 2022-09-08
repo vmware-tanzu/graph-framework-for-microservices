@@ -33,6 +33,7 @@ var _ = Describe("Create", func() {
 		conf                  *config.Config
 		repObj                utils.ReplicationObject
 		logBuffer             bytes.Buffer
+		repConfName           string
 	)
 
 	BeforeEach(func() {
@@ -45,6 +46,7 @@ var _ = Describe("Create", func() {
 			GetObject("Root", RootKind, "example"), GetObject("Config", ConfigKind, "example"), GetObject("Project", ProjectKind, "example"),
 		)
 
+		repConfName = "one"
 		conf = &config.Config{
 			StatusReplicationEnabled: false,
 		}
@@ -83,7 +85,8 @@ var _ = Describe("Create", func() {
 			)
 
 			// Enable replication for type apicollaborationspaces.config.mazinger.com
-			utils.ReplicationEnabledCRDType[ApiCollaborationSpace] = replicationConfigSpec
+			utils.ReplicationEnabledCRDType[ApiCollaborationSpace] = make(map[string]utils.ReplicationConfigSpec)
+			utils.ReplicationEnabledCRDType[ApiCollaborationSpace][repConfName] = replicationConfigSpec
 
 			// Create objA
 			err = remoteHandler.Create(GetObject("A", AcKind, "example"))
@@ -109,7 +112,8 @@ var _ = Describe("Create", func() {
 			)
 
 			// Enable replication for type apicollaborationspaces.config.mazinger.com
-			utils.ReplicationEnabledCRDType[ApiCollaborationSpace] = replicationConfigSpec
+			utils.ReplicationEnabledCRDType[ApiCollaborationSpace] = make(map[string]utils.ReplicationConfigSpec)
+			utils.ReplicationEnabledCRDType[ApiCollaborationSpace][repConfName] = replicationConfigSpec
 
 			// Create objA
 			err = remoteHandler.Create(GetObject("A", AcKind, "example"))
@@ -149,7 +153,8 @@ var _ = Describe("Create", func() {
 			)
 
 			// Enable replication for type apicollaborationspaces.config.mazinger.com
-			utils.ReplicationEnabledCRDType[ApiCollaborationSpace] = replicationConfigSpec
+			utils.ReplicationEnabledCRDType[ApiCollaborationSpace] = make(map[string]utils.ReplicationConfigSpec)
+			utils.ReplicationEnabledCRDType[ApiCollaborationSpace][repConfName] = replicationConfigSpec
 
 			// Create objA of type ApiCollaborationSpace
 			err = remoteHandler.Create(GetObject("A", AcKind, "example"))
@@ -186,7 +191,9 @@ var _ = Describe("Create", func() {
 
 			// Enable replication for object C of type apicollaborationspaces.config.mazinger.com
 			repObj := utils.GetReplicationObject(Group, AcKind, "C")
-			utils.ReplicationEnabledNode[repObj] = replicationConfigSpec
+
+			utils.ReplicationEnabledNode[repObj] = make(map[string]utils.ReplicationConfigSpec)
+			utils.ReplicationEnabledNode[repObj][repConfName] = replicationConfigSpec
 
 			// Create objC.
 			err = remoteHandler.Create(GetObject("C", AcKind, "example"))
@@ -208,7 +215,8 @@ var _ = Describe("Create", func() {
 
 			// Enable replication for object foo of type apicollaborationspaces.config.mazinger.com
 			repObj = utils.GetReplicationObject(Group, AcKind, "foo")
-			utils.ReplicationEnabledNode[repObj] = replicationConfigSpec
+			utils.ReplicationEnabledNode[repObj] = make(map[string]utils.ReplicationConfigSpec)
+			utils.ReplicationEnabledNode[repObj][repConfName] = replicationConfigSpec
 		})
 		When("Replication is enabled for the object's parent", func() {
 			BeforeEach(func() {
@@ -311,7 +319,8 @@ var _ = Describe("Create", func() {
 
 			// Enable replication for object bar of type apidevspaces.config.mazinger.com
 			repObj = utils.GetReplicationObject(Group, AdKind, "bar")
-			utils.ReplicationEnabledNode[repObj] = replicationConfigSpec
+			utils.ReplicationEnabledNode[repObj] = make(map[string]utils.ReplicationConfigSpec)
+			utils.ReplicationEnabledNode[repObj][repConfName] = replicationConfigSpec
 		})
 		When("Replication is enabled for an object of individual type", func() {
 			BeforeEach(func() {
@@ -369,7 +378,8 @@ var _ = Describe("Create", func() {
 					),
 				)
 				repObj = utils.GetReplicationObject(Group, AdKind, "status_fail")
-				utils.ReplicationEnabledNode[repObj] = replicationConfigSpec
+				utils.ReplicationEnabledNode[repObj] = make(map[string]utils.ReplicationConfigSpec)
+				utils.ReplicationEnabledNode[repObj][repConfName] = replicationConfigSpec
 
 				obj := &unstructured.Unstructured{
 					Object: map[string]interface{}{
@@ -408,7 +418,8 @@ var _ = Describe("Create", func() {
 			It("Should update the spec of that object to the destination endpoint", func() {
 				// Enable replication for object New of type apicollaborationspaces.config.mazinger.com
 				repObj := utils.GetReplicationObject(Group, AcKind, "update")
-				utils.ReplicationEnabledNode[repObj] = replicationConfigSpec
+				utils.ReplicationEnabledNode[repObj] = make(map[string]utils.ReplicationConfigSpec)
+				utils.ReplicationEnabledNode[repObj][repConfName] = replicationConfigSpec
 
 				// Update objNew.
 				expectedObj := GetObject("update", AcKind, "NEW_VALUE")
@@ -449,7 +460,9 @@ var _ = Describe("Create", func() {
 		replicationConfigSpec = utils.ReplicationConfigSpec{Client: remoteClient, Source: source, Destination: destination}
 
 		repObj := utils.GetReplicationObject(Group, AcKind, "C")
-		utils.ReplicationEnabledNode[repObj] = replicationConfigSpec
+
+		utils.ReplicationEnabledNode[repObj] = make(map[string]utils.ReplicationConfigSpec)
+		utils.ReplicationEnabledNode[repObj][repConfName] = replicationConfigSpec
 
 		err = remoteHandler.Create(GetObject("C", AcKind, "example"))
 		Expect(err).NotTo(HaveOccurred())

@@ -13,12 +13,12 @@ var (
 	CRDTypeToChildren      = make(map[string]Children)
 	crdTypeToChildrenMutex = &sync.Mutex{}
 
-	// ReplicationObject to ReplicationConfig Spec (ReplicationObject{Group, Kind, Name} => ReplicationConfigSpec{})
-	ReplicationEnabledNode      = make(map[ReplicationObject]ReplicationConfigSpec)
+	// ReplicationObject to ReplicationConfig Spec (ReplicationObject{Group, Kind, Name} => {"conf1": ReplicationConfigSpec{}, "conf2": ReplicationConfigSpec{})
+	ReplicationEnabledNode      = make(map[ReplicationObject]map[string]ReplicationConfigSpec)
 	replicationEnabledNodeMutex = &sync.Mutex{}
 
-	// CRDType to ReplicationConfig Spec (root.vmware.org => ReplicationConfigSpec{})
-	ReplicationEnabledCRDType      = make(map[string]ReplicationConfigSpec)
+	// CRDType to ReplicationConfig Spec (root.vmware.org => {"conf1": ReplicationConfigSpec{}, "conf2": ReplicationConfigSpec{})
+	ReplicationEnabledCRDType      = make(map[string]map[string]ReplicationConfigSpec)
 	replicationEnabledCRDTypeMutex = &sync.Mutex{}
 )
 
@@ -44,16 +44,24 @@ func ConstructMapCRDTypeToChildren(eventType EventType, crdType string, children
 	CRDTypeToChildren[crdType] = children
 }
 
-func ConstructMapReplicationEnabledNode(repObj ReplicationObject, spec ReplicationConfigSpec) {
+func ConstructMapReplicationEnabledNode(repObj ReplicationObject, name string, spec ReplicationConfigSpec) {
 	replicationEnabledNodeMutex.Lock()
 	defer replicationEnabledNodeMutex.Unlock()
 
-	ReplicationEnabledNode[repObj] = spec
+	if ReplicationEnabledNode[repObj] == nil {
+		ReplicationEnabledNode[repObj] = make(map[string]ReplicationConfigSpec)
+	}
+
+	ReplicationEnabledNode[repObj][name] = spec
 }
 
-func ConstructMapReplicationEnabledCRDType(crdType string, spec ReplicationConfigSpec) {
+func ConstructMapReplicationEnabledCRDType(crdType string, name string, spec ReplicationConfigSpec) {
 	replicationEnabledCRDTypeMutex.Lock()
 	defer replicationEnabledCRDTypeMutex.Unlock()
 
-	ReplicationEnabledCRDType[crdType] = spec
+	if ReplicationEnabledCRDType[crdType] == nil {
+		ReplicationEnabledCRDType[crdType] = make(map[string]ReplicationConfigSpec)
+	}
+
+	ReplicationEnabledCRDType[crdType][name] = spec
 }

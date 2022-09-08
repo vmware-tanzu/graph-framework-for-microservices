@@ -60,7 +60,9 @@ func (h *ReplicationConfigHandler) Create(obj interface{}) error {
 		return fmt.Errorf("error creating dynamic remote API: %v", err)
 	}
 
-	if err := ReplicateNode(repConf.Source, repConf.Destination, h.LocalClient, remoteClient); err != nil {
+	repConfigSpec := utils.ReplicationConfigSpec{Source: repConf.Source, Destination: repConf.Destination, Client: remoteClient}
+
+	if err := ReplicateNode(res.GetName(), repConfigSpec, h.LocalClient); err != nil {
 		return fmt.Errorf("error replicating desired nodes: %v", err)
 	}
 	return nil
