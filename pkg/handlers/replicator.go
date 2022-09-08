@@ -37,7 +37,7 @@ func createObject(gvr schema.GroupVersionResource, res *unstructured.Unstructure
 		}
 	}
 
-	annotations := map[string]string{}
+	annotations := res.GetAnnotations()
 	annotations = utils.GenerateAnnotations(annotations, gvr, res.GetName())
 
 	// If destination object type is specified, then replicate the object to that type.
@@ -164,7 +164,6 @@ func processEvents(h *RemoteHandler, eventType, hierarchy string, res *unstructu
 // 2. If only the object is of interest and if it is a part of a graph, then replicate the object and its immediate children.
 // 3. If the oject is not a part of a graph, then replicate only that object.
 func Replicator(obj interface{}, h *RemoteHandler, eventType string) error {
-
 	res := obj.(*unstructured.Unstructured)
 
 	var (
@@ -175,9 +174,11 @@ func Replicator(obj interface{}, h *RemoteHandler, eventType string) error {
 
 	// Verify if the type is of interest.
 	// If the CRDType is enabled for replication, simply replicate the object.
-	if repInfo, replicationEnabledType := utils.ReplicationEnabledCRDType[h.CrdType]; replicationEnabledType {
-		if err := processEvents(h, eventType, res.GetName(), res, nil, repInfo, false); err != nil {
-			return err
+	if repInfoMap, replicationEnabledType := utils.ReplicationEnabledCRDType[h.CrdType]; replicationEnabledType {
+		for _, repInfo := range repInfoMap {
+			if err := processEvents(h, eventType, res.GetName(), res, nil, repInfo, false); err != nil {
+				return err
+			}
 		}
 		return nil
 	}
@@ -193,14 +194,16 @@ func Replicator(obj interface{}, h *RemoteHandler, eventType string) error {
 	repObj = utils.GetReplicationObject(res.GroupVersionKind().Group, res.GetKind(), name)
 
 	// Verify if the obj is of interest.
-	repConf, replicationEnabledNode := utils.ReplicationEnabledNode[repObj]
+	repConfMap, replicationEnabledNode := utils.ReplicationEnabledNode[repObj]
 	if replicationEnabledNode {
-		hierarchy = name
-		if repConf.Source.Object.Hierarchical {
-			hierarchy = utils.GetNodeHierarchy(parents, labels, h.CrdType)
-		}
-		if err := processEvents(h, eventType, hierarchy, res, children, repConf, true); err != nil {
-			return err
+		for _, repConf := range repConfMap {
+			hierarchy = name
+			if repConf.Source.Object.Hierarchical {
+				hierarchy = utils.GetNodeHierarchy(parents, labels, h.CrdType)
+			}
+			if err := processEvents(h, eventType, hierarchy, res, children, repConf, true); err != nil {
+				return err
+			}
 		}
 		return nil
 	}
@@ -210,6 +213,7 @@ func Replicator(obj interface{}, h *RemoteHandler, eventType string) error {
 	if len(parents) <= 0 {
 		return nil
 	}
+
 	replicate := false
 	immediateParent := parents[len(parents)-1]
 	gvr := utils.GetGVRFromCrdType(immediateParent)
@@ -222,20 +226,21 @@ func Replicator(obj interface{}, h *RemoteHandler, eventType string) error {
 		return err
 	}
 
-	replicationEnabledNode = false
 	for _, item := range c.Items {
 		name := item.GetName()
 		if objName, ok := item.GetLabels()[utils.DisplayNameKey]; ok {
 			name = objName
 		}
 		repObj := utils.GetReplicationObject(item.GroupVersionKind().Group, item.GetKind(), name)
-		if repInfo, replicationEnabledNode = utils.ReplicationEnabledNode[repObj]; replicationEnabledNode {
-			hierarchy = name
-			if repInfo.Source.Object.Hierarchical {
-				hierarchy = utils.GetNodeHierarchy(parents, labels, h.CrdType)
+		if repInfoMap, replicationEnabledNode := utils.ReplicationEnabledNode[repObj]; replicationEnabledNode {
+			for _, repInfo = range repInfoMap {
+				hierarchy = name
+				if repInfo.Source.Object.Hierarchical {
+					hierarchy = utils.GetNodeHierarchy(parents, labels, h.CrdType)
+				}
+				replicate = true
+				break
 			}
-			replicate = true
-			break
 		}
 	}
 	if replicate {
@@ -251,8 +256,7 @@ func Replicator(obj interface{}, h *RemoteHandler, eventType string) error {
 // When ReplicationConfig Create events occurs, ReplicateNode() replicates the replication node if it exists.
 // If not, simply returns.
 // Replication occurs based on Source and Destination Kind.
-func ReplicateNode(source utils.ReplicationSource, destination utils.ReplicationDestination,
-	localClient, remoteClient dynamic.Interface) error {
+func ReplicateNode(confName string, repConfSpec utils.ReplicationConfigSpec, localClient dynamic.Interface) error {
 
 	var (
 		children      utils.Children
@@ -260,16 +264,14 @@ func ReplicateNode(source utils.ReplicationSource, destination utils.Replication
 		labelSelector string
 	)
 
-	repConfigSpec := utils.ReplicationConfigSpec{Source: source, Destination: destination, Client: remoteClient}
-
 	// If the source kind is "Type", replicate all the objects of that type.
-	if source.Kind == utils.Type {
-		crdType := utils.GetCrdType(source.Type.Kind, source.Type.Group)
+	if repConfSpec.Source.Kind == utils.Type {
+		crdType := utils.GetCrdType(repConfSpec.Source.Type.Kind, repConfSpec.Source.Type.Group)
 
 		// Add the entry to the ReplicationEnabledCRDType map.
-		utils.ConstructMapReplicationEnabledCRDType(crdType, repConfigSpec)
+		utils.ConstructMapReplicationEnabledCRDType(crdType, confName, repConfSpec)
 
-		if err := ReplicateAllObjectsOfType(crdType, localClient, repConfigSpec, children); err != nil {
+		if err := ReplicateAllObjectsOfType(crdType, localClient, repConfSpec, children); err != nil {
 			return err
 		}
 		return nil
@@ -278,16 +280,16 @@ func ReplicateNode(source utils.ReplicationSource, destination utils.Replication
 	// If the source kind is "Object", then:
 	// 1. If the source is hierarchical, replicate the object and its immediate children.
 	// 2. If not, replicate only the object.
-	crdType := utils.GetCrdType(source.Object.Kind, source.Object.Group)
+	crdType := utils.GetCrdType(repConfSpec.Source.Object.Kind, repConfSpec.Source.Object.Group)
 	gvr := utils.GetGVRFromCrdType(crdType)
 	children = utils.CRDTypeToChildren[crdType]
 
 	// Add the entry to ReplicationEnabledNode Map.
-	repObject := utils.GetReplicationObject(source.Object.Group, source.Object.Kind, source.Object.Name)
-	utils.ConstructMapReplicationEnabledNode(repObject, repConfigSpec)
+	repObject := utils.GetReplicationObject(repConfSpec.Source.Object.Group, repConfSpec.Source.Object.Kind, repConfSpec.Source.Object.Name)
+	utils.ConstructMapReplicationEnabledNode(repObject, confName, repConfSpec)
 
-	if source.Object.Hierarchical {
-		for _, label := range source.Object.Hierarchy.Labels {
+	if repConfSpec.Source.Object.Hierarchical {
+		for _, label := range repConfSpec.Source.Object.Hierarchy.Labels {
 			labels = append(labels, label.Key+"="+label.Value)
 		}
 		labelSelector = strings.Join(labels, ",")
@@ -300,13 +302,18 @@ func ReplicateNode(source utils.ReplicationSource, destination utils.Replication
 	}
 
 	for _, item := range list.Items {
-		err = createObject(gvr, &item, children, item.GetName(), remoteClient, localClient, source, destination)
+		if !repConfSpec.Source.Object.Hierarchical {
+			if repConfSpec.Source.Object.Name != item.GetName() {
+				continue
+			}
+		}
+		err = createObject(gvr, &item, children, item.GetName(), repConfSpec.Client, localClient, repConfSpec.Source, repConfSpec.Destination)
 		if err != nil && !errors.IsAlreadyExists(err) {
 			log.Errorf("Resource %v creation failed with an error: %v", item.GetName(), err)
 			return err
 		}
-		if source.Object.Hierarchical {
-			if err := ReplicateChildren(crdType, &item, localClient, remoteClient, source, destination); err != nil {
+		if repConfSpec.Source.Object.Hierarchical {
+			if err := ReplicateChildren(crdType, &item, localClient, repConfSpec.Client, repConfSpec.Source, repConfSpec.Destination); err != nil {
 				log.Errorf("Children replication failed for replication object %v: %v", &item, err)
 				return err
 			}
