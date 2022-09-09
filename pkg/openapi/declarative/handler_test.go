@@ -308,4 +308,20 @@ spec:
 `
 		Expect(rec.Body.String()).To(Equal(expectedBody))
 	})
+
+	It("should test Apis handler with non-existent crd", func() {
+		echoServer := echo_server.NewEchoServer(config.Cfg)
+		echoServer.RegisterDeclarativeRouter()
+
+		// setup echo test
+		e := echo.New()
+		req := httptest.NewRequest(http.MethodGet, "/declarative/apis?crd=non-existent-crd", nil)
+		rec := httptest.NewRecorder()
+		c := e.NewContext(req, rec)
+		c.SetPath("/declarative/apis?crd=non-existent-crd")
+
+		err := declarative.ApisHandler(c)
+		Expect(err).To(BeNil())
+		Expect(rec.Code).To(Equal(http.StatusNotFound))
+	})
 })
