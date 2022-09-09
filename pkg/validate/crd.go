@@ -158,13 +158,14 @@ func Crd(client dynamic.Interface, r admissionv1.AdmissionReview) (*admissionv1.
 		var name string
 		if label, ok := labels[parent]; ok {
 			log.Infof("label %s found, val: %s", parent, label)
+			displayName := label
 			if isNameHashed {
 				name = nexus.GetHashedName(parent, parentParents, labels, label)
 			} else {
 				name = label
 			}
 			if getCrdObject(client, gvr, name) == nil {
-				message := fmt.Sprintf("required parent %s with name %s not found", parent, name)
+				message := fmt.Sprintf("required parent %s with display name %s not found", parent, displayName)
 				setResponseToNotAllowed(admRes, message)
 				return admRes, nil
 			}

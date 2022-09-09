@@ -1,6 +1,8 @@
 package validate_test
 
-import "fmt"
+import (
+	"fmt"
+)
 
 func getRootCRDDef(isSingleton bool) string {
 	isSingletonString := fmt.Sprintf("%v", isSingleton)
@@ -183,7 +185,12 @@ metadata:
 `
 }
 
-func getEmployeeCRDObject(displayName string) string {
+func getEmployeeCRDObject(displayName string, extraLabels map[string]string) string {
+	var extraLabelsString string
+	for k, v := range extraLabels {
+		extraLabelsString += fmt.Sprintf("      %s: %s\n", k, v)
+	}
+
 	return `
 apiVersion: role.vmware.org/v1
 kind: Employee
@@ -192,6 +199,7 @@ metadata:
    labels:
       nexus/is_name_hashed: "true"
       nexus/display_name: ` + displayName + `
+` + extraLabelsString + `
 `
 }
 
