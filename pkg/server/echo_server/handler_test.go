@@ -166,6 +166,36 @@ var _ = Describe("Echo server tests", func() {
 		Expect(rec.Code).To(Equal(200))
 	})
 
+	It("should handle delete query", func() {
+		restUri := nexus.RestURIs{
+			Uri:     "/leader/{management.Leader}",
+			Methods: nexus.DefaultHTTPMethodsResponses,
+		}
+		e.RegisterRouter(restUri)
+		model.ConstructMapCRDTypeToNode(model.Upsert, "leaders.orgchart.vmware.org", "management.Leader",
+			[]string{}, nil, nil, true, "some description")
+		model.ConstructMapURIToCRDType(model.Upsert, "leaders.orgchart.vmware.org", []nexus.RestURIs{restUri})
+
+		req := httptest.NewRequest(http.MethodDelete, "/leader", nil)
+		rec := httptest.NewRecorder()
+		c := e.Echo.NewContext(req, rec)
+		c.SetPath("/leader/:management.Leader")
+		c.SetParamNames("management.Leader")
+		c.SetParamValues("some")
+		nc := &NexusContext{
+			NexusURI:  "/leader/{management.Leader}",
+			Codes:     nexus.DefaultHTTPDELETEResponses,
+			Context:   c,
+			CrdType:   "leaders.orgchart.vmware.org",
+			GroupName: "orgchart.vmware.org",
+			Resource:  "leaders",
+		}
+
+		err := deleteHandler(nc)
+		Expect(err).NotTo(HaveOccurred())
+		Expect(rec.Code).To(Equal(404))
+	})
+
 	Context("should GET child from Parent object", func() {
 		BeforeEach(func() {
 			// Create `Leader` object
