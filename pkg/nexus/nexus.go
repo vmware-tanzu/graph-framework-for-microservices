@@ -66,6 +66,7 @@ var DefaultHTTPPUTResponses = HTTPCodesResponse{
 // Default HTTP DELETE Response mappings.
 var DefaultHTTPDELETEResponses = HTTPCodesResponse{
 	http.StatusOK:        HTTPResponse{Description: http.StatusText(http.StatusOK)},
+	http.StatusNotFound:  HTTPResponse{Description: http.StatusText(http.StatusNotFound)},
 	DefaultHTTPErrorCode: DefaultHTTPError,
 }
 
