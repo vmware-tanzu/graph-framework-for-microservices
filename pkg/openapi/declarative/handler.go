@@ -27,8 +27,12 @@ func ApisHandler(c echo.Context) error {
 	defer crdToSchemaMutex.Unlock()
 
 	crd := c.QueryParam("crd")
-	if val, ok := CrdToSchema[crd]; ok {
-		return c.String(200, val)
+	if crd != "" {
+		if val, ok := CrdToSchema[crd]; ok {
+			return c.String(200, val)
+		} else {
+			return c.NoContent(http.StatusNotFound)
+		}
 	}
 
 	return c.JSON(200, ApisList)
