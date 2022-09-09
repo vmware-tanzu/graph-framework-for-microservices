@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
+	"net/http"
 	"reflect"
 	"sort"
 	"strings"
@@ -58,8 +59,12 @@ func GetResource(cmd *cobra.Command, args []string) error {
 		if len(args) > 1 {
 			objName = args[1]
 		}
-		GetRequest(token, apiVersion, resourceName, objName, kindName, Labels, serverInfo)
-		return nil
+
+		shortApiVersion, shortResourceName, _ := GetShortName(args[0], token, serverInfo)
+		if shortApiVersion != "" && shortResourceName != "" {
+			return GetRequest(token, shortApiVersion, shortResourceName, objName, kindName, Labels, serverInfo)
+		}
+		return GetRequest(token, apiVersion, resourceName, objName, kindName, Labels, serverInfo)
 	}
 
 	if len(GetResourceFile) == 0 {
@@ -123,7 +128,7 @@ func GetRequest(token, apiVersion, resourceName, objName, kindName, labels strin
 		url = fmt.Sprintf("https://%s/apis/%s/%s/%s?labelSelector=%s", serverInfo.Name, apiVersion, resourceName, objName, labels)
 		accessToken, err := auth.AccessToken()
 		if err != nil {
-			log.Errorf("Get acess token failed with error %v", err)
+			log.Errorf("Get access token failed with error %v", err)
 			return err
 		}
 		RestClient.SetHeaders(map[string]string{
@@ -200,16 +205,18 @@ func GetSpecRequest(token, crd string, serverInfo *auth.Server) error {
 		return err
 	}
 
+	if resp.StatusCode() == http.StatusNotFound {
+		return fmt.Errorf("%s spec not found", crd)
+	}
+
 	fmt.Print(string(resp.Body()))
 
 	return nil
 }
 
-func GetApisRequest(token string, serverInfo *auth.Server) error {
-	var (
-		resp *resty.Response
-		url  string
-	)
+func GetApisRequest(token string, serverInfo *auth.Server) (map[string]interface{}, error) {
+	var resp *resty.Response
+	var url string
 
 	//for Non-CSP Cluster
 	if !serverInfo.CSPEnabled {
@@ -221,8 +228,8 @@ func GetApisRequest(token string, serverInfo *auth.Server) error {
 		url = fmt.Sprintf("https://%s/declarative/apis", serverInfo.Name)
 		accessToken, err := auth.AccessToken()
 		if err != nil {
-			log.Errorf("Get acess token failed with error %v", err)
-			return err
+			log.Errorf("get access token failed with error %v", err)
+			return nil, err
 		}
 		RestClient.SetHeaders(map[string]string{
 			"Content-Type":   "application/json",
@@ -233,16 +240,24 @@ func GetApisRequest(token string, serverInfo *auth.Server) error {
 	log.Debugf(url)
 	resp, err := RestClient.R().Get(url)
 	if err != nil {
-		log.Errorf("Error while get request is sent to saas server %v", err)
-		return err
+		log.Errorf("error while get request is sent to saas server %v", err)
+		return nil, err
 	}
 
 	var data map[string]interface{}
 	err = json.Unmarshal(resp.Body(), &data)
 	if err != nil {
-		return fmt.Errorf("error while unmarshaling the response body: %v", err)
+		return nil, fmt.Errorf("error while unmarshaling the response body: %v", err)
 	}
-	log.Debugf("Response Body: %v", data)
+	//log.Debugf("Response Body: %v", data)
+	return data, nil
+}
+
+func GetApisList(token string, serverInfo *auth.Server) error {
+	data, err := GetApisRequest(token, serverInfo)
+	if err != nil {
+		return fmt.Errorf("error while executing get apis request %v", err)
+	}
 
 	var apis []string
 	apisCheck := make(map[string]bool)
@@ -276,6 +291,40 @@ func GetApisRequest(token string, serverInfo *auth.Server) error {
 	return nil
 }
 
+func GetShortName(shortName, token string, serverInfo *auth.Server) (string, string, error) {
+	data, err := GetApisRequest(token, serverInfo)
+	if err != nil {
+		return "", "", fmt.Errorf("error while executing get apis request %v", err)
+	}
+
+	for _, val := range data {
+		methods := val.(map[string]interface{})
+		if short, ok := methods["short"]; ok {
+			if short.(string) != fmt.Sprintf("/apis/v1/%s", shortName) &&
+				short.(string) != fmt.Sprintf("/apis/v1/%s/:name", shortName) {
+				continue
+			}
+		} else {
+			continue
+		}
+
+		var apiVersion, resourceName string
+		for _, info := range methods {
+			if info, ok := info.(map[string]interface{}); ok {
+				if v, ok := info["kind"]; ok {
+					resourceName = strings.ToLower(utils.ToPlural(v.(string)))
+				}
+				if v, ok := info["group"]; ok {
+					apiVersion = v.(string)
+				}
+			}
+		}
+		return apiVersion, resourceName, nil
+	}
+
+	return "", "", nil
+}
+
 func GetHelp(cmd *cobra.Command, args []string) {
 	DefaultGetHelpFunc(cmd, args)
 
@@ -291,7 +340,7 @@ func GetHelp(cmd *cobra.Command, args []string) {
 		return
 	}
 
-	err = GetApisRequest(token, serverInfo)
+	err = GetApisList(token, serverInfo)
 	if err != nil {
 		log.Errorf("Get apis request failed with error %v", err)
 	}
