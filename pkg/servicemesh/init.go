@@ -13,22 +13,28 @@ import (
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/servicemesh/version"
 )
 
-// ApplyCmd ... Apply command
+var GetCmd = &cobra.Command{
+	Use:   "get",
+	Short: "Get Declarative configuration from file or with type",
+	Args:  cobra.RangeArgs(0, 3),
+	RunE:  apply.GetResource,
+}
+
 var ApplyCmd = &cobra.Command{
 	Use:   "apply",
-	Short: "Apply Servicemesh configuration from file",
+	Short: "Apply Declarative configuration from file",
 	RunE:  apply.ApplyResource,
 }
 
 var DeleteCmd = &cobra.Command{
 	Use:   "delete",
-	Short: "Delete Servicemesh configuration from file",
+	Short: "Delete Declarative configuration from file",
 	RunE:  apply.DeleteResource,
 }
 
 var LoginCmd = &cobra.Command{
 	Use:   "login",
-	Short: "Login to csp",
+	Short: "Login to Saas",
 	RunE:  login.Login,
 }
 
@@ -58,6 +64,12 @@ var VersionCmd = &cobra.Command{
 	RunE:  version.Version,
 }
 
+var TSMVersionCmd = &cobra.Command{
+	Use:   "version",
+	Short: "Provides TSM CLI version",
+	RunE:  version.TSMVersion,
+}
+
 var ConfigCmd = &cobra.Command{
 	Use:   "config",
 	Short: "set nexus CLI preferences",
@@ -80,6 +92,15 @@ func initCommands() {
 		log.Debugf("init error: %v", err)
 	}
 
+	GetCmd.Flags().StringVarP(&apply.GetResourceFile, "file",
+		"f", "", "Resource file from which cluster is fetched.")
+	apply.DefaultGetHelpFunc = GetCmd.HelpFunc()
+	GetCmd.SetHelpFunc(apply.GetHelp)
+	GetCmd.Flags().BoolVarP(&apply.ShowSpec, "show-spec", "s", false, "Show yaml spec for a given kind.")
+
+	GetCmd.Flags().StringVarP(&apply.Labels, "labels",
+		"l", "", "labels required for the resource to fetch.")
+
 	LoginCmd.Flags().StringVarP(&login.ApiToken, "token",
 		"t", "", "token for api access")
 
@@ -95,8 +116,17 @@ func initCommands() {
 	if err != nil {
 		log.Debugf("saas server fqdn name is mandatory for login")
 	}
-	RuntimeCmd.AddCommand(runtime.UninstallCmd)
+
+	LoginCmd.Flags().BoolVarP(&login.IsPrivateSaas, "private-saas",
+		"p", false, "private saas cluster")
+
+	err = cobra.MarkFlagRequired(LoginCmd.Flags(), "server")
+	if err != nil {
+		log.Debugf("saas server fqdn name is mandatory for login")
+	}
+
 	RuntimeCmd.AddCommand(runtime.InstallCmd)
+	RuntimeCmd.AddCommand(runtime.UninstallCmd)
 
 	DataModelCmd.AddCommand(servicemesh_datamodel.InitCmd)
 	DataModelCmd.AddCommand(servicemesh_datamodel.InstallCmd)

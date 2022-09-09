@@ -12,9 +12,11 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"regexp"
 	"strings"
 	"time"
 
+	"gopkg.in/yaml.v2"
 	v1 "k8s.io/api/core/v1"
 
 	"github.com/aunum/log"
@@ -463,4 +465,71 @@ func CheckPortForwardSessionActive(url string, totalRetries int, waitPeriod time
 		}
 	}
 	return nil
+}
+
+func GetMetadata(input yaml.MapSlice) map[string]string {
+	var inputMetadata yaml.MapSlice
+	for _, value := range input {
+		if value.Key.(string) == "metadata" {
+			inputMetadata = value.Value.(yaml.MapSlice)
+		}
+	}
+	metadata := make(map[string]string)
+	for _, value := range inputMetadata {
+		strKey := fmt.Sprintf("%v", value.Key)
+		strValue := fmt.Sprintf("%v", value.Value)
+		metadata[strKey] = strValue
+	}
+	return metadata
+}
+
+func GetObjectName(input yaml.MapSlice) (objName string) {
+	metadata := GetMetadata(input)
+	if _, ok := metadata["name"]; ok {
+		objName = metadata["name"]
+	}
+	return objName
+}
+
+func GetProjectId(input yaml.MapSlice) (projectId string) {
+	metadata := GetMetadata(input)
+	if labels, ok := metadata["labels"]; ok {
+		projectId = labels
+	}
+	return "default"
+}
+
+func GetAPIVersion(input yaml.MapSlice) (apiVersion string) {
+	for _, value := range input {
+		if value.Key.(string) == "apiVersion" {
+			apiVersion = value.Value.(string)
+		}
+	}
+	return apiVersion
+}
+
+func GetKindName(input yaml.MapSlice) (kindName string) {
+	for _, value := range input {
+		if value.Key.(string) == "kind" {
+			kindName = value.Value.(string)
+		}
+	}
+	return kindName
+}
+
+func GetResourceName(input yaml.MapSlice) string {
+	return strings.ToLower(ToPlural(GetKindName(input)))
+}
+
+func GetLabels(input yaml.MapSlice) string {
+	paramsList := []string{}
+	metadata := GetMetadata(input)
+	if labels, ok := metadata["labels"]; ok {
+		for _, v := range strings.Split(labels, "} ") {
+			label := strings.TrimRight(strings.TrimLeft(v, "[{"), "}]")
+			m1 := regexp.MustCompile(` `)
+			paramsList = append(paramsList, m1.ReplaceAllString(label, "="))
+		}
+	}
+	return strings.Join(paramsList[:], ",")
 }

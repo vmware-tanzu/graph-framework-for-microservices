@@ -7,92 +7,124 @@ import (
 	"io/ioutil"
 	"strings"
 
+	yamltojson "github.com/ghodss/yaml"
 	"github.com/spf13/cobra"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/log"
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/servicemesh/auth"
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/servicemesh/generated"
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/utils"
 	"gopkg.in/resty.v1"
 	yaml "gopkg.in/yaml.v2"
 )
 
-var CreateResourceFile string
-var RestClient *resty.Client
+var (
+	CreateResourceFile string
+	RestClient         *resty.Client
+)
 
 func ApplyResource(cmd *cobra.Command, args []string) error {
-	fmt.Printf("%v\n", args)
-	fmt.Printf("%v\n", CreateResourceFile)
+	log.Debugf("Args: %v", args)
+	log.Debugf("CreateResourceFile: %v", CreateResourceFile)
 
-	if err := utils.IsFileExist(CreateResourceFile); err == nil {
+	err := utils.IsFileExist(CreateResourceFile)
+	if err != nil {
+		log.Errorf("File %v read failed with error: %v\n", CreateResourceFile, err)
+		return err
+	}
 
-		yamlFile, err := ioutil.ReadFile(CreateResourceFile)
+	yamlFile, err := ioutil.ReadFile(CreateResourceFile)
+	if err != nil {
+		msg := fmt.Sprintf("error: cannot read file \"%s\"", CreateResourceFile)
+		return errors.New(msg)
+	}
+
+	yamlDocs := strings.Split(string(yamlFile), "---")
+	for _, doc := range yamlDocs {
+		// Unmarshall the file to yam	result := yaml.MapSlice{}
+		input := yaml.MapSlice{}
+		err = yaml.Unmarshal([]byte(doc), &input)
 		if err != nil {
-			msg := fmt.Sprintf("error: cannot read file \"%s\"", CreateResourceFile)
-			return errors.New(msg)
+			return err
 		}
 
-		yamlDocs := strings.Split(string(yamlFile), "---")
-		for _, doc := range yamlDocs {
+		var url string
+		apiVersion := utils.GetAPIVersion(input)
+		resourceName := utils.GetResourceName(input)
+		objName := utils.GetObjectName(input)
+		kindName := utils.GetKindName(input)
 
-			// Unmarshall the file to yam	result := yaml.MapSlice{}
-			input := yaml.MapSlice{}
-			err = yaml.Unmarshal([]byte(doc), &input)
+		if len(apiVersion) == 0 || len(resourceName) == 0 || len(kindName) == 0 || len(objName) == 0 {
+			return fmt.Errorf("the given custom resource file is not a standard k8s YAML, apiVersion or kind may be missing ")
+		}
+
+		specMap := make(map[string]interface{})
+		err := yaml.Unmarshal([]byte(doc), &specMap)
+		if err != nil {
+			log.Errorf("Error while Unmarshal the spec %v", err)
+			return err
+		}
+		log.Debugf("Spec: %v", specMap["spec"])
+		specMap["apiVersion"] = ""
+		specMap["kind"] = ""
+		b, err := yaml.Marshal(specMap)
+		if err != nil {
+			panic(err)
+		}
+
+		serverInfo, err := auth.ServerInfo()
+		if err != nil {
+			log.Errorf("Get serverInfo failed with error %v", err)
+			return err
+		}
+
+		body, err := yamltojson.YAMLToJSON(b)
+		if err != nil {
+			log.Errorf("Yaml to Json conversion failed with error %v", err)
+			return err
+		}
+
+		var resp *resty.Response
+		//for Non-CSP Cluster
+		if !serverInfo.CSPEnabled {
+			token, err := auth.IdToken()
 			if err != nil {
+				log.Errorf("Get acess token failed with error %v", err)
 				return err
 			}
-
-			var metadata yaml.MapSlice
-			for _, value := range input {
-				if value.Key.(string) == "metadata" {
-					metadata = value.Value.(yaml.MapSlice)
-					fmt.Printf("%v Type: %T\n", value.Value, value.Value)
-				}
-			}
-
-			specMap := make(map[string]interface{})
-			yaml.Unmarshal([]byte(doc), &specMap)
-			fmt.Printf("specMap: %+v Type: %T", specMap["spec"], specMap["spec"])
-
-			serverFQDN, err := auth.ServerName()
-			if err != nil {
-				fmt.Printf("get serverFQDN name failed with error %v", err)
-				return err
-			}
-
-			url, body, _ := generated.ApplyDecode(metadata, specMap["spec"])
-			fmt.Printf("URL: %v", fmt.Sprintf("https://%s/tsm%s", serverFQDN, url))
-			fmt.Printf("\nJsonBody: %v\n", string(body))
-
+			url = fmt.Sprintf("https://%s/apis/%s/%s?token=%s", serverInfo.Name, apiVersion, resourceName, token)
+			RestClient.SetHeaders(map[string]string{
+				"Content-Type": "application/json",
+			})
+		} else { // CSP enabled Cluster
+			url = fmt.Sprintf("https://%s/apis/%s/%s", serverInfo.Name, apiVersion, resourceName)
 			accessToken, err := auth.AccessToken()
 			if err != nil {
-				fmt.Printf("get acess token failed with error %v", err)
+				log.Errorf("Get acess token failed with error %v", err)
 				return err
 			}
-
 			RestClient.SetHeaders(map[string]string{
-				"csp-auth-token": accessToken,
 				"Content-Type":   "application/json",
+				"csp-auth-token": accessToken,
 			})
-
-			var resp *resty.Response
-			if strings.Contains(url, "health-checks") {
-				resp, err = RestClient.R().SetBody(string(body)).Post(
-					fmt.Sprintf("https://%s/tsm%s", serverFQDN, url))
-			} else {
-				resp, err = RestClient.R().SetBody(string(body)).Put(
-					fmt.Sprintf("https://%s/tsm%s", serverFQDN, url))
-			}
-			if err != nil {
-				fmt.Printf("error while put request is sent to saas server %v", err)
-				return err
-			}
-			if resp != nil && resp.RawResponse != nil {
-				fmt.Printf("\nResponse Code: %v", resp.RawResponse.Status)
-				fmt.Printf("\nResponse Body: %v", string(resp.Body()))
-			}
 		}
 
-	} else {
-		fmt.Printf("File %v read failed with error: %v\n", CreateResourceFile, err)
+		log.Debugf("Resource URL: %v", url)
+		log.Debugf("Resource Body: %s", string(body))
+		resp, err = RestClient.R().SetBody(string(body)).Put(url)
+		if err != nil {
+			log.Errorf("Error while put request is sent to saas server %v", err)
+			return err
+		}
+
+		if resp != nil && resp.RawResponse != nil {
+			log.Debugf(resp.RawResponse.Status)
+			log.Debugf(string(resp.Body()))
+		}
+		statusOK := resp.StatusCode() >= 200 && resp.StatusCode() < 300
+		if !statusOK {
+			fmt.Printf("%s/%s creation failed, HTTP Response Status: %d\n", kindName, objName, resp.StatusCode())
+			return nil
+		}
+		fmt.Printf("%s/%s created\n", kindName, objName)
 	}
 	return nil
 }
@@ -100,11 +132,4 @@ func ApplyResource(cmd *cobra.Command, args []string) error {
 func init() {
 	RestClient = resty.New().
 		SetTLSClientConfig(&tls.Config{InsecureSkipVerify: true})
-
-	// For non-CSP cluster
-	/*
-		RestClient = resty.New().
-		SetTLSClientConfig(&tls.Config{InsecureSkipVerify: true}).SetQueryParams(map[string]string{
-		"token": "y61fPvZB9XXzE5tvYKeTeHT28OnEiKz3sDZvGrSrARq3SpceVYHV8XnpnePpqhEs"})
-	*/
 }
