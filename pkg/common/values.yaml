@@ -8,3 +8,5 @@ nexusDatamodelTemplates:
   version: v0.0.17
 nexusRuntime:
   version: v0.2.16
+tsmCli:
+  version: v0.0.1

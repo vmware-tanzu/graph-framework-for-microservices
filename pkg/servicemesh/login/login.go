@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/spf13/cobra"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/log"
 	"gopkg.in/resty.v1"
 )
 
@@ -21,7 +22,8 @@ type AccessToken struct {
 }
 
 type ServerInfo struct {
-	Name string `json:"name"`
+	Name       string `json:"name"`
+	CSPEnabled bool   `json:"csp_enabled"`
 }
 
 /*
@@ -48,16 +50,40 @@ Step 3: Read from file and use csp-auth-token
 
 */
 var (
-	tokenFile  string = ".servicemesh.config"
-	ApiToken   string
-	serverFile string = ".servicemesh.server"
-	Server     string
+	tokenFile     string = ".servicemesh.config"
+	ApiToken      string
+	serverFile    string = ".servicemesh.server"
+	Server        string
+	IsPrivateSaas bool
 )
 
 func Login(cmd *cobra.Command, args []string) error {
-	fmt.Printf("args: %v\n", args)
-	fmt.Printf("ApiToken: %v\n", ApiToken)
-	fmt.Printf("Server: %v\n", Server)
+	log.Debugf("Args: %v ApiToken: %v, Server: %v, IsPrivateSaas%v", args, ApiToken, Server, Server)
+
+	if IsPrivateSaas {
+		serverInfo := ServerInfo{
+			Name:       Server,
+			CSPEnabled: false,
+		}
+		homeDir, _ := os.UserHomeDir()
+		file, _ := json.MarshalIndent(serverInfo, "", " ")
+		err := ioutil.WriteFile(fmt.Sprintf("%s/%s", homeDir, serverFile), file, 0644)
+		if err != nil {
+			fmt.Printf("\nwriting server info to file %s failed with error %v", serverFile, err)
+			return err
+		}
+
+		var accessToken AccessToken
+		accessToken.IdToken = ApiToken
+		homeDir, _ = os.UserHomeDir()
+		file, _ = json.MarshalIndent(accessToken, "", " ")
+		err = ioutil.WriteFile(fmt.Sprintf("%s/%s", homeDir, tokenFile), file, 0644)
+		if err != nil {
+			fmt.Printf("\nwriting access token to file %s failed with error %v", tokenFile, err)
+			return err
+		}
+		return nil
+	}
 
 	cspClient := resty.New().
 		SetTLSClientConfig(&tls.Config{InsecureSkipVerify: true}).SetHeaders(map[string]string{
@@ -82,6 +108,7 @@ func Login(cmd *cobra.Command, args []string) error {
 			fmt.Printf("\nJson unmarshal of %s failed with error %v", string(resp.Body()), err)
 			return err
 		}
+
 		homeDir, _ := os.UserHomeDir()
 		file, _ := json.MarshalIndent(accessToken, "", " ")
 		err = ioutil.WriteFile(fmt.Sprintf("%s/%s", homeDir, tokenFile), file, 0644)
@@ -91,13 +118,15 @@ func Login(cmd *cobra.Command, args []string) error {
 		}
 
 		serverInfo := ServerInfo{
-			Name: Server,
+			Name:       Server,
+			CSPEnabled: true,
 		}
+
 		homeDir, _ = os.UserHomeDir()
 		file, _ = json.MarshalIndent(serverInfo, "", " ")
 		err = ioutil.WriteFile(fmt.Sprintf("%s/%s", homeDir, serverFile), file, 0644)
 		if err != nil {
-			fmt.Printf("\nwriting server name to file %s failed with error %v", serverFile, err)
+			fmt.Printf("\nwriting server info to file %s failed with error %v", serverFile, err)
 			return err
 		}
 		return nil
