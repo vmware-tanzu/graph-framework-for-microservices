@@ -37,6 +37,7 @@ type RestURIs struct {
 	Uri         string               `json:"uri"`
 	QueryParams []string             `json:"query_params,omitempty"`
 	Methods     HTTPMethodsResponses `json:"methods"`
+	Auth        bool                 `json:"auth"`
 }
 
 type RestAPISpec struct {
@@ -65,6 +66,7 @@ var DefaultHTTPPUTResponses = HTTPCodesResponse{
 // Default HTTP DELETE Response mappings.
 var DefaultHTTPDELETEResponses = HTTPCodesResponse{
 	http.StatusOK:        HTTPResponse{Description: http.StatusText(http.StatusOK)},
+	http.StatusNotFound:  HTTPResponse{Description: http.StatusText(http.StatusNotFound)},
 	DefaultHTTPErrorCode: DefaultHTTPError,
 }
 
