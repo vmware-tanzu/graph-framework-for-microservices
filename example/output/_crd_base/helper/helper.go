@@ -24,6 +24,7 @@ func GetCRDParentsMap() map[string][]string {
 		"configs.config.tsm.tanzu.vmware.com":                  {"roots.root.tsm.tanzu.vmware.com"},
 		"dnses.gns.tsm.tanzu.vmware.com":                       {"roots.root.tsm.tanzu.vmware.com", "configs.config.tsm.tanzu.vmware.com"},
 		"gnses.gns.tsm.tanzu.vmware.com":                       {"roots.root.tsm.tanzu.vmware.com", "configs.config.tsm.tanzu.vmware.com"},
+		"nonnexustypes.root.tsm.tanzu.vmware.com":              {},
 		"roots.root.tsm.tanzu.vmware.com":                      {},
 		"svcgroups.servicegroup.tsm.tanzu.vmware.com":          {"roots.root.tsm.tanzu.vmware.com", "configs.config.tsm.tanzu.vmware.com", "gnses.gns.tsm.tanzu.vmware.com"},
 		"vmpolicies.policypkg.tsm.tanzu.vmware.com":            {"roots.root.tsm.tanzu.vmware.com", "configs.config.tsm.tanzu.vmware.com"},
@@ -61,6 +62,13 @@ func GetObjectByCRDName(dmClient *datamodel.Clientset, crdName string, name stri
 	}
 	if crdName == "gnses.gns.tsm.tanzu.vmware.com" {
 		obj, err := dmClient.GnsTsmV1().Gnses().Get(context.TODO(), name, metav1.GetOptions{})
+		if err != nil {
+			return nil
+		}
+		return obj
+	}
+	if crdName == "nonnexustypes.root.tsm.tanzu.vmware.com" {
+		obj, err := dmClient.RootTsmV1().NonNexusTypes().Get(context.TODO(), name, metav1.GetOptions{})
 		if err != nil {
 			return nil
 		}

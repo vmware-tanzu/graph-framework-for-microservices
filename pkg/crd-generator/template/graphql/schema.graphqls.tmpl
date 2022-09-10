@@ -1,0 +1,6 @@
+{{ range $key, $node := .Nodes }}
+type {{ $node.SchemaName }} {
+{{ range $key, $field := $node.GraphqlSchemaFields }}
+    {{ $field.SchemaFieldName}}{{ end }}
+}
+{{ end }}

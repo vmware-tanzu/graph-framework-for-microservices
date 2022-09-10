@@ -1,0 +1,5 @@
+{{ range $key, $node := .Nodes }}{{ if ( gt $node.ResolverCount  0) }}{{ $node.SchemaName }}:
+  fields:{{ range $key, $field := $node.GraphqlSchemaFields }}{{ if $field.IsResolver }}
+    {{ $field.FieldName}}:
+      resolver: true
+{{ end }}{{ end }}{{ end }}{{ end }}

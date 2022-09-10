@@ -1,0 +1,22 @@
+
+//////////////////////////////////////
+// Resolver for Parent Node: {{.Node.SimpleGroupTypeName}}
+//////////////////////////////////////
+func (c *resolverConfig) getRootResolver() (*model.{{.Node.SimpleGroupTypeName}}{{.Node.BaseNodeName}}, error) {
+	k8sApiConfig := getK8sAPIEndpointConfig()
+	nc, err := nexus_client.NewForConfig(k8sApiConfig)
+	if err != nil {
+		panic(err)
+	}
+
+	v{{.Node.BaseNodeName}}, err := nc.Get{{.Node.SimpleGroupTypeName}}{{.Node.BaseNodeName}}(context.TODO())
+	if err != nil {
+		panic(err)
+	}
+	c.v{{.Node.SimpleGroupTypeName}}{{.Node.BaseNodeName}} = v{{.Node.BaseNodeName}}
+	ret := &model.{{.Node.SimpleGroupTypeName}}{{.Node.BaseNodeName}} {
+	{{.Fields}}
+	}
+	return ret, nil
+}
+

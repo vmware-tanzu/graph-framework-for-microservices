@@ -1,0 +1,27 @@
+root_Root:
+  fields:
+    CustomBar:
+      resolver: true
+
+    CustomBarMap:
+      resolver: true
+
+    ArrayBar:
+      resolver: true
+
+    Config:
+      resolver: true
+
+    Foochildren:
+      resolver: true
+
+    Foolink:
+      resolver: true
+
+    Foolinks:
+      resolver: true
+root_NonNexusType:
+  fields:
+    Bar:
+      resolver: true
+

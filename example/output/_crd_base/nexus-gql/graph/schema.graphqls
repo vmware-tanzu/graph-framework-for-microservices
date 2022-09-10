@@ -1,0 +1,25 @@
+
+type root_Bar {
+
+    Foo: Float
+}
+
+type root_Root {
+
+    Name: Int
+    CustomBar: root_Bar
+    NonStructFoo: String
+    CustomBarMap: String
+    ArrayBar(Id: ID): [root_Bar!]
+    Config: config_Config!
+    Foochildren(Id: ID): [config_Config!]
+    Foolink: config_Config!
+    Foolinks(Id: ID): [config_Config!]
+}
+
+type root_NonNexusType {
+
+    Test: Int
+    Foo: String
+    Bar: root_Bar
+}

@@ -15,6 +15,7 @@ import (
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/common-library.git/pkg/nexus"
 	"golang.org/x/tools/imports"
 
+	gg "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/pkg/graphql_generator"
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/pkg/parser"
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/pkg/parser/rest"
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/pkg/util"
@@ -40,6 +41,15 @@ var helperTemplateFile []byte
 
 //go:embed template/client.go.tmpl
 var clientTemplateFile []byte
+
+//go:embed template/graphql/schema.graphqls.tmpl
+var graphqlSchemaTemplateFile []byte
+
+//go:embed template/graphql/gqlgen.yml.tmpl
+var gqlgenconfigTemplateFile []byte
+
+//go:embed template/graphql/graphqlResolver.go.tmpl
+var graphqlResolverTemplateFile []byte
 
 func RenderCRDTemplate(baseGroupName, crdModulePath string,
 	pkgs parser.Packages, graph map[string]parser.Node, outputDir string,
@@ -119,6 +129,11 @@ func RenderCRDTemplate(baseGroupName, crdModulePath string,
 		return err
 	}
 	err = createApiNamesFile(pkgNames, outputDir)
+	if err != nil {
+		return err
+	}
+
+	err = RenderGraphqlResolver(baseGroupName, outputDir, crdModulePath, pkgs, parentsMap)
 	if err != nil {
 		return err
 	}
@@ -508,4 +523,53 @@ func RenderClientTemplate(baseGroupName, crdModulePath string, pkgs parser.Packa
 	}
 
 	return bytes.NewBuffer(out), nil
+}
+
+type graphDetails struct {
+	Nodes []gg.Node_prop
+}
+
+func RenderGraphqlResolver(baseGroupName, outputDir, crdModulePath string, pkgs parser.Packages, parentsMap map[string]parser.NodeHelper) error {
+	gqlFolder := outputDir + "/nexus-gql/graph"
+	var err error
+	err = createFolder(gqlFolder)
+	if err != nil {
+		return err
+	}
+	var vars graphDetails
+	vars.Nodes, err = gg.GenerateGraphqlResolverVars(baseGroupName, crdModulePath, pkgs, parentsMap)
+	if err != nil {
+		return err
+	}
+
+	schemaTemplate, err := readTemplateFile(graphqlSchemaTemplateFile)
+	if err != nil {
+		return err
+	}
+
+	file, err := renderTemplate(schemaTemplate, vars)
+	if err != nil {
+		return err
+	}
+
+	err = createFile(gqlFolder, "schema.graphqls", file, false)
+	if err != nil {
+		return err
+	}
+
+	gqlConfigTemplate, err := readTemplateFile(gqlgenconfigTemplateFile)
+	if err != nil {
+		return err
+	}
+
+	file, err = renderTemplate(gqlConfigTemplate, vars)
+	if err != nil {
+		return err
+	}
+
+	err = createFile(gqlFolder, "gqlgen.yml", file, false)
+	if err != nil {
+		return err
+	}
+	return nil
 }

@@ -185,6 +185,14 @@ func (group *RootTsmV1) DeleteRootByName(ctx context.Context, hashedName string)
 		}
 	}
 
+	for _, v := range result.Spec.FoochildrenGvk {
+		err := group.client.
+			Config().DeleteConfigByName(ctx, v.Name)
+		if err != nil {
+			return err
+		}
+	}
+
 	err = group.client.baseClient.
 		RootTsmV1().
 		Roots().Delete(ctx, hashedName, metav1.DeleteOptions{})
@@ -213,6 +221,9 @@ func (group *RootTsmV1) CreateRootByName(ctx context.Context,
 	}
 
 	objToCreate.Spec.ConfigGvk = nil
+	objToCreate.Spec.FoochildrenGvk = nil
+	objToCreate.Spec.FoolinkGvk = nil
+	objToCreate.Spec.FoolinksGvk = nil
 
 	result, err := group.client.baseClient.
 		RootTsmV1().
@@ -221,6 +232,42 @@ func (group *RootTsmV1) CreateRootByName(ctx context.Context,
 		return nil, err
 	}
 
+	return &RootRoot{
+		client: group.client,
+		Root:   result,
+	}, nil
+}
+
+// SetRootStatusBarMapByName sets user defined status
+func (group *RootTsmV1) SetRootStatusBarMapByName(ctx context.Context,
+	objToUpdate *baseroottsmtanzuvmwarecomv1.Root, status *baseroottsmtanzuvmwarecomv1.Bar) (*RootRoot, error) {
+
+	// Make sure status field is present first
+	m := []byte("{\"status\":{}}")
+	result, err := group.client.baseClient.
+		RootTsmV1().
+		Roots().Patch(ctx, objToUpdate.GetName(), types.MergePatchType, m, metav1.PatchOptions{}, "status")
+	if err != nil {
+		return nil, err
+	}
+
+	patch := Patch{
+		PatchOp{
+			Op:    "replace",
+			Path:  "/status/statusBarMap",
+			Value: status,
+		},
+	}
+	marshaled, err := patch.Marshal()
+	if err != nil {
+		return nil, err
+	}
+	result, err = group.client.baseClient.
+		RootTsmV1().
+		Roots().Patch(ctx, objToUpdate.GetName(), types.JSONPatchType, marshaled, metav1.PatchOptions{}, "status")
+	if err != nil {
+		return nil, err
+	}
 	return &RootRoot{
 		client: group.client,
 		Root:   result,
@@ -251,6 +298,51 @@ func (group *RootTsmV1) UpdateRootByName(ctx context.Context,
 		Path:  "/metadata",
 		Value: objToUpdate.ObjectMeta,
 	})
+
+	patchValueName :=
+		objToUpdate.Spec.Name
+	patchOpName := PatchOp{
+		Op:    "replace",
+		Path:  "/spec/name",
+		Value: patchValueName,
+	}
+	patch = append(patch, patchOpName)
+
+	patchValueCustomBar :=
+		objToUpdate.Spec.CustomBar
+	patchOpCustomBar := PatchOp{
+		Op:    "replace",
+		Path:  "/spec/customBar",
+		Value: patchValueCustomBar,
+	}
+	patch = append(patch, patchOpCustomBar)
+
+	patchValueNonStructFoo :=
+		objToUpdate.Spec.NonStructFoo
+	patchOpNonStructFoo := PatchOp{
+		Op:    "replace",
+		Path:  "/spec/nonStructFoo",
+		Value: patchValueNonStructFoo,
+	}
+	patch = append(patch, patchOpNonStructFoo)
+
+	patchValueCustomBarMap :=
+		objToUpdate.Spec.CustomBarMap
+	patchOpCustomBarMap := PatchOp{
+		Op:    "replace",
+		Path:  "/spec/customBarMap",
+		Value: patchValueCustomBarMap,
+	}
+	patch = append(patch, patchOpCustomBarMap)
+
+	patchValueArrayBar :=
+		objToUpdate.Spec.ArrayBar
+	patchOpArrayBar := PatchOp{
+		Op:    "replace",
+		Path:  "/spec/arrayBar",
+		Value: patchValueArrayBar,
+	}
+	patch = append(patch, patchOpArrayBar)
 
 	marshaled, err := patch.Marshal()
 	if err != nil {
@@ -306,6 +398,35 @@ func (obj *RootRoot) Delete(ctx context.Context) error {
 // Update updates spec of object in database. Children and Link can not be updated using this function.
 func (obj *RootRoot) Update(ctx context.Context) error {
 	result, err := obj.client.Root().UpdateRootByName(ctx, obj.Root)
+	if err != nil {
+		return err
+	}
+	obj.Root = result.Root
+	return nil
+}
+
+// SetStatusBarMap sets user defined status
+func (obj *RootRoot) SetStatusBarMap(ctx context.Context, status *baseroottsmtanzuvmwarecomv1.Bar) error {
+	result, err := obj.client.Root().SetRootStatusBarMapByName(ctx, obj.Root, status)
+	if err != nil {
+		return err
+	}
+	obj.Root = result.Root
+	return nil
+}
+
+// GetStatusBarMap to get user defined status
+func (obj *RootRoot) GetStatusBarMap(ctx context.Context) (*baseroottsmtanzuvmwarecomv1.Bar, error) {
+	getObj, err := obj.client.Root().GetRootByName(ctx, obj.GetName())
+	if err != nil {
+		return nil, err
+	}
+	return &getObj.Status.StatusBarMap, nil
+}
+
+// ClearStatusBarMap to clear user defined status
+func (obj *RootRoot) ClearStatusBarMap(ctx context.Context) error {
+	result, err := obj.client.Root().SetRootStatusBarMapByName(ctx, obj.Root, &baseroottsmtanzuvmwarecomv1.Bar{})
 	if err != nil {
 		return err
 	}
@@ -414,10 +535,237 @@ func (obj *RootRoot) DeleteConfig(ctx context.Context) (err error) {
 	return
 }
 
+// GetAllFoochildren returns all children of given type
+func (obj *RootRoot) GetAllFoochildren(ctx context.Context) (
+	result []*ConfigConfig, err error) {
+	result = make([]*ConfigConfig, 0, len(obj.Spec.FoochildrenGvk))
+	for _, v := range obj.Spec.FoochildrenGvk {
+		l, err := obj.client.Config().GetConfigByName(ctx, v.Name)
+		if err != nil {
+			return nil, err
+		}
+		result = append(result, l)
+	}
+	return
+}
+
+// GetFoochildren returns child which has given displayName
+func (obj *RootRoot) GetFoochildren(ctx context.Context,
+	displayName string) (result *ConfigConfig, err error) {
+	l, ok := obj.Spec.FoochildrenGvk[displayName]
+	if !ok {
+		return nil, NewChildNotFound(obj.DisplayName(), "Root.Root", "Foochildren", displayName)
+	}
+	result, err = obj.client.Config().GetConfigByName(ctx, l.Name)
+	return
+}
+
+// AddFoochildren calculates hashed name of the child to create based on objToCreate.Name
+// and parents names and creates it. objToCreate.Name is changed to the hashed name. Original name is preserved in
+// nexus/display_name label and can be obtained using DisplayName() method.
+func (obj *RootRoot) AddFoochildren(ctx context.Context,
+	objToCreate *baseconfigtsmtanzuvmwarecomv1.Config) (result *ConfigConfig, err error) {
+	if objToCreate.Labels == nil {
+		objToCreate.Labels = map[string]string{}
+	}
+	for _, v := range helper.GetCRDParentsMap()["roots.root.tsm.tanzu.vmware.com"] {
+		objToCreate.Labels[v] = obj.Labels[v]
+	}
+	objToCreate.Labels["roots.root.tsm.tanzu.vmware.com"] = obj.DisplayName()
+	if objToCreate.Labels[common.IS_NAME_HASHED_LABEL] != "true" {
+		objToCreate.Labels[common.DISPLAY_NAME_LABEL] = objToCreate.GetName()
+		objToCreate.Labels[common.IS_NAME_HASHED_LABEL] = "true"
+		hashedName := helper.GetHashedName(objToCreate.CRDName(), objToCreate.Labels, objToCreate.GetName())
+		objToCreate.Name = hashedName
+	}
+	result, err = obj.client.Config().CreateConfigByName(ctx, objToCreate)
+	updatedObj, getErr := obj.client.Root().GetRootByName(ctx, obj.GetName())
+	if getErr == nil {
+		obj.Root = updatedObj.Root
+	}
+	return
+}
+
+// DeleteFoochildren calculates hashed name of the child to delete based on displayName
+// and parents names and deletes it.
+
+func (obj *RootRoot) DeleteFoochildren(ctx context.Context, displayName string) (err error) {
+	l, ok := obj.Spec.FoochildrenGvk[displayName]
+	if !ok {
+		return NewChildNotFound(obj.DisplayName(), "Root.Root", "Foochildren", displayName)
+	}
+	err = obj.client.Config().DeleteConfigByName(ctx, l.Name)
+	if err != nil {
+		return err
+	}
+	updatedObj, err := obj.client.Root().GetRootByName(ctx, obj.GetName())
+	if err == nil {
+		obj.Root = updatedObj.Root
+	}
+	return
+}
+
+// GetFoolink returns link of given type
+func (obj *RootRoot) GetFoolink(ctx context.Context) (
+	result *ConfigConfig, err error) {
+	if obj.Spec.FoolinkGvk == nil {
+		return nil, NewLinkNotFound(obj.DisplayName(), "Root.Root", "Foolink")
+	}
+	return obj.client.Config().GetConfigByName(ctx, obj.Spec.FoolinkGvk.Name)
+}
+
+// LinkFoolink links obj with linkToAdd object. This function doesn't create linked object, it must be
+// already created.
+func (obj *RootRoot) LinkFoolink(ctx context.Context,
+	linkToAdd *ConfigConfig) error {
+
+	var patch Patch
+	patchOp := PatchOp{
+		Op:   "replace",
+		Path: "/spec/foolinkGvk",
+		Value: baseroottsmtanzuvmwarecomv1.Child{
+			Group: "config.tsm.tanzu.vmware.com",
+			Kind:  "Config",
+			Name:  linkToAdd.Name,
+		},
+	}
+	patch = append(patch, patchOp)
+	marshaled, err := patch.Marshal()
+	if err != nil {
+		return err
+	}
+	result, err := obj.client.baseClient.RootTsmV1().Roots().Patch(ctx, obj.Name, types.JSONPatchType, marshaled, metav1.PatchOptions{})
+	if err != nil {
+		return err
+	}
+
+	obj.Root = result
+	return nil
+}
+
+// UnlinkFoolink unlinks linkToRemove object from obj. This function doesn't delete linked object.
+func (obj *RootRoot) UnlinkFoolink(ctx context.Context) (err error) {
+	var patch Patch
+
+	patchOp := PatchOp{
+		Op:   "remove",
+		Path: "/spec/foolinkGvk",
+	}
+
+	patch = append(patch, patchOp)
+	marshaled, err := patch.Marshal()
+	if err != nil {
+		return err
+	}
+	result, err := obj.client.baseClient.RootTsmV1().Roots().Patch(ctx, obj.Name, types.JSONPatchType, marshaled, metav1.PatchOptions{})
+	if err != nil {
+		return err
+	}
+	obj.Root = result
+	return nil
+
+}
+
+// GetAllFoolinks returns all links of given type
+func (obj *RootRoot) GetAllFoolinks(ctx context.Context) (
+	result []*ConfigConfig, err error) {
+	result = make([]*ConfigConfig, 0, len(obj.Spec.FoolinksGvk))
+	for _, v := range obj.Spec.FoolinksGvk {
+		l, err := obj.client.Config().GetConfigByName(ctx, v.Name)
+		if err != nil {
+			return nil, err
+		}
+		result = append(result, l)
+	}
+	return
+}
+
+// GetFoolinks returns link which has given displayName
+func (obj *RootRoot) GetFoolinks(ctx context.Context,
+	displayName string) (result *ConfigConfig, err error) {
+	l, ok := obj.Spec.FoolinksGvk[displayName]
+	if !ok {
+		return nil, NewLinkNotFound(obj.DisplayName(), "Root.Root", "Foolinks", displayName)
+	}
+	result, err = obj.client.Config().GetConfigByName(ctx, l.Name)
+	return
+}
+
+// LinkFoolinks links obj with linkToAdd object. This function doesn't create linked object, it must be
+// already created.
+func (obj *RootRoot) LinkFoolinks(ctx context.Context,
+	linkToAdd *ConfigConfig) error {
+
+	payload := "{\"spec\": {\"foolinksGvk\": {\"" + linkToAdd.DisplayName() + "\": {\"name\": \"" + linkToAdd.Name + "\",\"kind\": \"Config\", \"group\": \"config.tsm.tanzu.vmware.com\"}}}}"
+	result, err := obj.client.baseClient.RootTsmV1().Roots().Patch(ctx, obj.Name, types.MergePatchType, []byte(payload), metav1.PatchOptions{})
+	if err != nil {
+		return err
+	}
+
+	obj.Root = result
+	return nil
+}
+
+// UnlinkFoolinks unlinks linkToRemove object from obj. This function doesn't delete linked object.
+func (obj *RootRoot) UnlinkFoolinks(ctx context.Context,
+	linkToRemove *ConfigConfig) (err error) {
+	var patch Patch
+
+	patchOp := PatchOp{
+		Op:   "remove",
+		Path: "/spec/foolinksGvk/" + linkToRemove.DisplayName(),
+	}
+
+	patch = append(patch, patchOp)
+	marshaled, err := patch.Marshal()
+	if err != nil {
+		return err
+	}
+	result, err := obj.client.baseClient.RootTsmV1().Roots().Patch(ctx, obj.Name, types.JSONPatchType, marshaled, metav1.PatchOptions{})
+	if err != nil {
+		return err
+	}
+	obj.Root = result
+	return nil
+
+}
+
 type rootRootTsmV1Chainer struct {
 	client       *Clientset
 	name         string
 	parentLabels map[string]string
+}
+
+// ClearStatusBarMap to clear user defined status
+func (c *rootRootTsmV1Chainer) ClearStatusBarMap(ctx context.Context) (err error) {
+	hashedName := helper.GetHashedName("roots.root.tsm.tanzu.vmware.com", c.parentLabels, c.name)
+	obj, err := c.client.Root().GetRootByName(ctx, hashedName)
+	if err != nil {
+		return err
+	}
+	_, err = c.client.Root().SetRootStatusBarMapByName(ctx, obj.Root, nil)
+	return err
+}
+
+// GetStatusBarMap to get user defined status
+func (c *rootRootTsmV1Chainer) GetStatusBarMap(ctx context.Context) (result *baseroottsmtanzuvmwarecomv1.Bar, err error) {
+	hashedName := helper.GetHashedName("roots.root.tsm.tanzu.vmware.com", c.parentLabels, c.name)
+	obj, err := c.client.Root().GetRootByName(ctx, hashedName)
+	if err != nil {
+		return nil, err
+	}
+	return &obj.Status.StatusBarMap, nil
+}
+
+// SetStatusBarMap sets user defined status
+func (c *rootRootTsmV1Chainer) SetStatusBarMap(ctx context.Context, status *baseroottsmtanzuvmwarecomv1.Bar) (err error) {
+	hashedName := helper.GetHashedName("roots.root.tsm.tanzu.vmware.com", c.parentLabels, c.name)
+	obj, err := c.client.Root().GetRootByName(ctx, hashedName)
+	if err != nil {
+		return err
+	}
+	_, err = c.client.Root().SetRootStatusBarMapByName(ctx, obj.Root, status)
+	return err
 }
 
 func (c *rootRootTsmV1Chainer) Config(name string) *configConfigTsmV1Chainer {
@@ -465,6 +813,362 @@ func (c *rootRootTsmV1Chainer) DeleteConfig(ctx context.Context, name string) (e
 	c.parentLabels[common.IS_NAME_HASHED_LABEL] = "true"
 	hashedName := helper.GetHashedName("configs.config.tsm.tanzu.vmware.com", c.parentLabels, name)
 	return c.client.Config().DeleteConfigByName(ctx, hashedName)
+}
+
+func (c *rootRootTsmV1Chainer) Foochildren(name string) *configConfigTsmV1Chainer {
+	parentLabels := c.parentLabels
+	parentLabels["configs.config.tsm.tanzu.vmware.com"] = name
+	return &configConfigTsmV1Chainer{
+		client:       c.client,
+		name:         name,
+		parentLabels: parentLabels,
+	}
+}
+
+// GetFoochildren calculates hashed name of the object based on displayName and it's parents and returns the object
+func (c *rootRootTsmV1Chainer) GetFoochildren(ctx context.Context, displayName string) (result *ConfigConfig, err error) {
+	hashedName := helper.GetHashedName("configs.config.tsm.tanzu.vmware.com", c.parentLabels, displayName)
+	return c.client.Config().GetConfigByName(ctx, hashedName)
+}
+
+// AddFoochildren calculates hashed name of the child to create based on objToCreate.Name
+// and parents names and creates it. objToCreate.Name is changed to the hashed name. Original name is preserved in
+// nexus/display_name label and can be obtained using DisplayName() method.
+func (c *rootRootTsmV1Chainer) AddFoochildren(ctx context.Context,
+	objToCreate *baseconfigtsmtanzuvmwarecomv1.Config) (result *ConfigConfig, err error) {
+	if objToCreate.Labels == nil {
+		objToCreate.Labels = map[string]string{}
+	}
+	for k, v := range c.parentLabels {
+		objToCreate.Labels[k] = v
+	}
+	if objToCreate.Labels[common.IS_NAME_HASHED_LABEL] != "true" {
+		objToCreate.Labels[common.DISPLAY_NAME_LABEL] = objToCreate.GetName()
+		objToCreate.Labels[common.IS_NAME_HASHED_LABEL] = "true"
+		hashedName := helper.GetHashedName("configs.config.tsm.tanzu.vmware.com", c.parentLabels, objToCreate.GetName())
+		objToCreate.Name = hashedName
+	}
+	return c.client.Config().CreateConfigByName(ctx, objToCreate)
+}
+
+// DeleteFoochildren calculates hashed name of the child to delete based on displayName
+// and parents names and deletes it.
+func (c *rootRootTsmV1Chainer) DeleteFoochildren(ctx context.Context, name string) (err error) {
+	if c.parentLabels == nil {
+		c.parentLabels = map[string]string{}
+	}
+	c.parentLabels[common.IS_NAME_HASHED_LABEL] = "true"
+	hashedName := helper.GetHashedName("configs.config.tsm.tanzu.vmware.com", c.parentLabels, name)
+	return c.client.Config().DeleteConfigByName(ctx, hashedName)
+}
+
+// GetNonNexusTypeByName returns object stored in the database under the hashedName which is a hash of display
+// name and parents names. Use it when you know hashed name of object.
+func (group *RootTsmV1) GetNonNexusTypeByName(ctx context.Context, hashedName string) (*RootNonNexusType, error) {
+	result, err := group.client.baseClient.
+		RootTsmV1().
+		NonNexusTypes().Get(ctx, hashedName, metav1.GetOptions{})
+	if err != nil {
+		return nil, err
+	}
+
+	return &RootNonNexusType{
+		client:       group.client,
+		NonNexusType: result,
+	}, nil
+}
+
+// DeleteNonNexusTypeByName deletes object stored in the database under the hashedName which is a hash of
+// display name and parents names. Use it when you know hashed name of object.
+func (group *RootTsmV1) DeleteNonNexusTypeByName(ctx context.Context, hashedName string) (err error) {
+
+	err = group.client.baseClient.
+		RootTsmV1().
+		NonNexusTypes().Delete(ctx, hashedName, metav1.DeleteOptions{})
+	if err != nil {
+		return err
+	}
+
+	return
+}
+
+// CreateNonNexusTypeByName creates object in the database without hashing the name.
+// Use it directly ONLY when objToCreate.Name is hashed name of the object.
+func (group *RootTsmV1) CreateNonNexusTypeByName(ctx context.Context,
+	objToCreate *baseroottsmtanzuvmwarecomv1.NonNexusType) (*RootNonNexusType, error) {
+	if objToCreate.GetLabels() == nil {
+		objToCreate.Labels = make(map[string]string)
+	}
+	if _, ok := objToCreate.Labels[common.DISPLAY_NAME_LABEL]; !ok {
+		objToCreate.Labels[common.DISPLAY_NAME_LABEL] = objToCreate.GetName()
+	}
+
+	result, err := group.client.baseClient.
+		RootTsmV1().
+		NonNexusTypes().Create(ctx, objToCreate, metav1.CreateOptions{})
+	if err != nil {
+		return nil, err
+	}
+
+	return &RootNonNexusType{
+		client:       group.client,
+		NonNexusType: result,
+	}, nil
+}
+
+// SetNonNexusTypeStatusBarByName sets user defined status
+func (group *RootTsmV1) SetNonNexusTypeStatusBarByName(ctx context.Context,
+	objToUpdate *baseroottsmtanzuvmwarecomv1.NonNexusType, status *baseroottsmtanzuvmwarecomv1.Bar) (*RootNonNexusType, error) {
+
+	// Make sure status field is present first
+	m := []byte("{\"status\":{}}")
+	result, err := group.client.baseClient.
+		RootTsmV1().
+		NonNexusTypes().Patch(ctx, objToUpdate.GetName(), types.MergePatchType, m, metav1.PatchOptions{}, "status")
+	if err != nil {
+		return nil, err
+	}
+
+	patch := Patch{
+		PatchOp{
+			Op:    "replace",
+			Path:  "/status/statusBar",
+			Value: status,
+		},
+	}
+	marshaled, err := patch.Marshal()
+	if err != nil {
+		return nil, err
+	}
+	result, err = group.client.baseClient.
+		RootTsmV1().
+		NonNexusTypes().Patch(ctx, objToUpdate.GetName(), types.JSONPatchType, marshaled, metav1.PatchOptions{}, "status")
+	if err != nil {
+		return nil, err
+	}
+	return &RootNonNexusType{
+		client:       group.client,
+		NonNexusType: result,
+	}, nil
+}
+
+// UpdateNonNexusTypeByName updates object stored in the database under the hashedName which is a hash of
+// display name and parents names.
+func (group *RootTsmV1) UpdateNonNexusTypeByName(ctx context.Context,
+	objToUpdate *baseroottsmtanzuvmwarecomv1.NonNexusType) (*RootNonNexusType, error) {
+
+	// ResourceVersion must be set for update
+	if objToUpdate.ResourceVersion == "" {
+		current, err := group.client.baseClient.
+			RootTsmV1().
+			NonNexusTypes().Get(ctx, objToUpdate.GetName(), metav1.GetOptions{})
+		if err != nil {
+			return nil, err
+		}
+		objToUpdate.ResourceVersion = current.ResourceVersion
+	}
+
+	var patch Patch
+	patch = append(patch, PatchOp{
+		Op:    "replace",
+		Path:  "/metadata",
+		Value: objToUpdate.ObjectMeta,
+	})
+
+	patchValueTest :=
+		objToUpdate.Spec.Test
+	patchOpTest := PatchOp{
+		Op:    "replace",
+		Path:  "/spec/test",
+		Value: patchValueTest,
+	}
+	patch = append(patch, patchOpTest)
+
+	patchValueFoo :=
+		objToUpdate.Spec.Foo
+	patchOpFoo := PatchOp{
+		Op:    "replace",
+		Path:  "/spec/foo",
+		Value: patchValueFoo,
+	}
+	patch = append(patch, patchOpFoo)
+
+	patchValueBar :=
+		objToUpdate.Spec.Bar
+	patchOpBar := PatchOp{
+		Op:    "replace",
+		Path:  "/spec/bar",
+		Value: patchValueBar,
+	}
+	patch = append(patch, patchOpBar)
+
+	marshaled, err := patch.Marshal()
+	if err != nil {
+		return nil, err
+	}
+	result, err := group.client.baseClient.
+		RootTsmV1().
+		NonNexusTypes().Patch(ctx, objToUpdate.GetName(), types.JSONPatchType, marshaled, metav1.PatchOptions{}, "")
+	if err != nil {
+		return nil, err
+	}
+
+	return &RootNonNexusType{
+		client:       group.client,
+		NonNexusType: result,
+	}, nil
+}
+
+// ListNonNexusTypes returns slice of all existing objects of this type. Selectors can be provided in opts parameter.
+func (group *RootTsmV1) ListNonNexusTypes(ctx context.Context,
+	opts metav1.ListOptions) (result []*RootNonNexusType, err error) {
+	list, err := group.client.baseClient.RootTsmV1().
+		NonNexusTypes().List(ctx, opts)
+	if err != nil {
+		return nil, err
+	}
+	result = make([]*RootNonNexusType, len(list.Items))
+	for k, v := range list.Items {
+		item := v
+		result[k] = &RootNonNexusType{
+			client:       group.client,
+			NonNexusType: &item,
+		}
+	}
+	return
+}
+
+type RootNonNexusType struct {
+	client *Clientset
+	*baseroottsmtanzuvmwarecomv1.NonNexusType
+}
+
+// Delete removes obj and all it's children from the database.
+func (obj *RootNonNexusType) Delete(ctx context.Context) error {
+	err := obj.client.Root().DeleteNonNexusTypeByName(ctx, obj.GetName())
+	if err != nil {
+		return err
+	}
+	obj.NonNexusType = nil
+	return nil
+}
+
+// Update updates spec of object in database. Children and Link can not be updated using this function.
+func (obj *RootNonNexusType) Update(ctx context.Context) error {
+	result, err := obj.client.Root().UpdateNonNexusTypeByName(ctx, obj.NonNexusType)
+	if err != nil {
+		return err
+	}
+	obj.NonNexusType = result.NonNexusType
+	return nil
+}
+
+// SetStatusBar sets user defined status
+func (obj *RootNonNexusType) SetStatusBar(ctx context.Context, status *baseroottsmtanzuvmwarecomv1.Bar) error {
+	result, err := obj.client.Root().SetNonNexusTypeStatusBarByName(ctx, obj.NonNexusType, status)
+	if err != nil {
+		return err
+	}
+	obj.NonNexusType = result.NonNexusType
+	return nil
+}
+
+// GetStatusBar to get user defined status
+func (obj *RootNonNexusType) GetStatusBar(ctx context.Context) (*baseroottsmtanzuvmwarecomv1.Bar, error) {
+	getObj, err := obj.client.Root().GetNonNexusTypeByName(ctx, obj.GetName())
+	if err != nil {
+		return nil, err
+	}
+	return &getObj.Status.StatusBar, nil
+}
+
+// ClearStatusBar to clear user defined status
+func (obj *RootNonNexusType) ClearStatusBar(ctx context.Context) error {
+	result, err := obj.client.Root().SetNonNexusTypeStatusBarByName(ctx, obj.NonNexusType, &baseroottsmtanzuvmwarecomv1.Bar{})
+	if err != nil {
+		return err
+	}
+	obj.NonNexusType = result.NonNexusType
+	return nil
+}
+
+// GetRootNonNexusType calculates the hashed name based on parents and displayName and
+// returns given object
+func (c *Clientset) GetRootNonNexusType(ctx context.Context, displayName string) (result *RootNonNexusType, err error) {
+	hashedName := helper.GetHashedName("nonnexustypes.root.tsm.tanzu.vmware.com", nil, displayName)
+	return c.Root().GetNonNexusTypeByName(ctx, hashedName)
+}
+
+func (c *Clientset) RootNonNexusType(displayName string) *nonnexustypeRootTsmV1Chainer {
+	parentLabels := make(map[string]string)
+	parentLabels["nonnexustypes.root.tsm.tanzu.vmware.com"] = displayName
+	return &nonnexustypeRootTsmV1Chainer{
+		client:       c,
+		name:         displayName,
+		parentLabels: parentLabels,
+	}
+}
+
+// AddRootNonNexusType calculates hashed name of the object based on objToCreate.Name
+// and parents names and creates it. objToCreate.Name is changed to the hashed name. Original name is preserved in
+// nexus/display_name label and can be obtained using DisplayName() method.
+func (c *Clientset) AddRootNonNexusType(ctx context.Context,
+	objToCreate *baseroottsmtanzuvmwarecomv1.NonNexusType) (result *RootNonNexusType, err error) {
+	if objToCreate.Labels == nil {
+		objToCreate.Labels = map[string]string{}
+	}
+	if objToCreate.Labels[common.IS_NAME_HASHED_LABEL] != "true" {
+		objToCreate.Labels[common.DISPLAY_NAME_LABEL] = objToCreate.GetName()
+		objToCreate.Labels[common.IS_NAME_HASHED_LABEL] = "true"
+		hashedName := helper.GetHashedName(objToCreate.CRDName(), nil, objToCreate.GetName())
+		objToCreate.Name = hashedName
+	}
+	return c.Root().CreateNonNexusTypeByName(ctx, objToCreate)
+}
+
+// DeleteRootNonNexusType calculates hashedName of object based on displayName and
+// parents and deletes given object
+func (c *Clientset) DeleteRootNonNexusType(ctx context.Context, displayName string) (err error) {
+	hashedName := helper.GetHashedName("nonnexustypes.root.tsm.tanzu.vmware.com", nil, displayName)
+	return c.Root().DeleteNonNexusTypeByName(ctx, hashedName)
+}
+
+type nonnexustypeRootTsmV1Chainer struct {
+	client       *Clientset
+	name         string
+	parentLabels map[string]string
+}
+
+// ClearStatusBar to clear user defined status
+func (c *nonnexustypeRootTsmV1Chainer) ClearStatusBar(ctx context.Context) (err error) {
+	hashedName := helper.GetHashedName("nonnexustypes.root.tsm.tanzu.vmware.com", c.parentLabels, c.name)
+	obj, err := c.client.Root().GetNonNexusTypeByName(ctx, hashedName)
+	if err != nil {
+		return err
+	}
+	_, err = c.client.Root().SetNonNexusTypeStatusBarByName(ctx, obj.NonNexusType, nil)
+	return err
+}
+
+// GetStatusBar to get user defined status
+func (c *nonnexustypeRootTsmV1Chainer) GetStatusBar(ctx context.Context) (result *baseroottsmtanzuvmwarecomv1.Bar, err error) {
+	hashedName := helper.GetHashedName("nonnexustypes.root.tsm.tanzu.vmware.com", c.parentLabels, c.name)
+	obj, err := c.client.Root().GetNonNexusTypeByName(ctx, hashedName)
+	if err != nil {
+		return nil, err
+	}
+	return &obj.Status.StatusBar, nil
+}
+
+// SetStatusBar sets user defined status
+func (c *nonnexustypeRootTsmV1Chainer) SetStatusBar(ctx context.Context, status *baseroottsmtanzuvmwarecomv1.Bar) (err error) {
+	hashedName := helper.GetHashedName("nonnexustypes.root.tsm.tanzu.vmware.com", c.parentLabels, c.name)
+	obj, err := c.client.Root().GetNonNexusTypeByName(ctx, hashedName)
+	if err != nil {
+		return err
+	}
+	_, err = c.client.Root().SetNonNexusTypeStatusBarByName(ctx, obj.NonNexusType, status)
+	return err
 }
 
 // GetConfigByName returns object stored in the database under the hashedName which is a hash of display
@@ -532,7 +1236,7 @@ func (group *ConfigTsmV1) DeleteConfigByName(ctx context.Context, hashedName str
 
 	patchOp := PatchOp{
 		Op:   "remove",
-		Path: "/spec/configGvk",
+		Path: "/spec/foochildrenGvk/" + result.DisplayName(),
 	}
 
 	patch = append(patch, patchOp)
@@ -592,24 +1296,10 @@ func (group *ConfigTsmV1) CreateConfigByName(ctx context.Context,
 		parentName = helper.GetHashedName("roots.root.tsm.tanzu.vmware.com", objToCreate.GetLabels(), parentName)
 	}
 
-	var patch Patch
-	patchOp := PatchOp{
-		Op:   "replace",
-		Path: "/spec/configGvk",
-		Value: baseconfigtsmtanzuvmwarecomv1.Child{
-			Group: "config.tsm.tanzu.vmware.com",
-			Kind:  "Config",
-			Name:  objToCreate.Name,
-		},
-	}
-	patch = append(patch, patchOp)
-	marshaled, err := patch.Marshal()
-	if err != nil {
-		return nil, err
-	}
+	payload := "{\"spec\": {\"foochildrenGvk\": {\"" + objToCreate.DisplayName() + "\": {\"name\": \"" + objToCreate.Name + "\",\"kind\": \"Config\", \"group\": \"config.tsm.tanzu.vmware.com\"}}}}"
 	_, err = group.client.baseClient.
 		RootTsmV1().
-		Roots().Patch(ctx, parentName, types.JSONPatchType, marshaled, metav1.PatchOptions{})
+		Roots().Patch(ctx, parentName, types.MergePatchType, []byte(payload), metav1.PatchOptions{})
 	if err != nil {
 		return nil, err
 	}

@@ -169,7 +169,7 @@ type {{.Name}}Spec struct {
 			}
 		}
 		specDef.Fields += "\t" + name + " "
-		typeString := constructType(aliasNameMap, field)
+		typeString := ConstructType(aliasNameMap, field)
 		specDef.Fields += typeString
 		specDef.Fields += " " + getTag(field, name, false) + "\n"
 	}
@@ -272,7 +272,7 @@ type {{.Name}} struct {
 			}
 		}
 		specDef.Fields += "\t" + name + " "
-		typeString := constructType(aliasNameMap, field)
+		typeString := ConstructType(aliasNameMap, field)
 
 		currentTags := parser.GetFieldTags(field)
 		if currentTags != nil && currentTags.Len() > 0 {
@@ -410,7 +410,7 @@ func constructImports(inputAlias, inputImportPath string) (string, string) {
 // 2. map[string]map[string]gns.MyStr
 // 3. []map[string]gns.MyStr
 // 4. **gns.MyStr
-func constructType(aliasNameMap map[string]string, field *ast.Field) string {
+func ConstructType(aliasNameMap map[string]string, field *ast.Field) string {
 	typeString := types.ExprString(field.Type)
 
 	// Check if the field is imported from a different package.
@@ -429,7 +429,7 @@ func constructType(aliasNameMap map[string]string, field *ast.Field) string {
 		for _, val := range mapStr {
 			parts := strings.Split(val, ".")
 			if len(parts) > 1 {
-				parts = constructTypeParts(aliasNameMap, parts)
+				parts = ConstructTypeParts(aliasNameMap, parts)
 				val = parts[0] + "." + parts[1]
 			}
 			types = append(types, val)
@@ -439,20 +439,20 @@ func constructType(aliasNameMap map[string]string, field *ast.Field) string {
 		arr := regexp.MustCompile(`^(\[])`).ReplaceAllString(typeString, "")
 		parts := strings.Split(arr, ".")
 		if len(parts) > 1 {
-			parts = constructTypeParts(aliasNameMap, parts)
+			parts = ConstructTypeParts(aliasNameMap, parts)
 			typeString = fmt.Sprintf("[]%s.%s", parts[0], parts[1])
 		}
 	default:
 		parts := strings.Split(typeString, ".")
 		if len(parts) > 1 {
-			parts = constructTypeParts(aliasNameMap, parts)
+			parts = ConstructTypeParts(aliasNameMap, parts)
 			typeString = fmt.Sprintf("%s.%s", parts[0], parts[1])
 		}
 	}
 	return typeString
 }
 
-func constructTypeParts(aliasNameMap map[string]string, parts []string) []string {
+func ConstructTypeParts(aliasNameMap map[string]string, parts []string) []string {
 	if strings.Contains(parts[0], "*") {
 		if val, ok := aliasNameMap[strings.TrimLeft(parts[0], "*")]; ok {
 			parts[0] = "*" + val

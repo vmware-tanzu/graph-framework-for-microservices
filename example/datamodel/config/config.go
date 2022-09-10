@@ -56,7 +56,7 @@ type TestValMarkers struct {
 
 type SomeStruct struct{}
 
-type StructWithEmbeddedField struct {
-	SomeStruct
-	gns.MyStr
-}
+// type StructWithEmbeddedField struct {
+// 	SomeStruct
+// 	gns.MyStr
+// }

@@ -103,9 +103,3 @@ type TestValMarkers struct {
 // +k8s:openapi-gen=true
 type SomeStruct struct {
 }
-
-// +k8s:openapi-gen=true
-type StructWithEmbeddedField struct {
-	SomeStruct
-	gnstsmtanzuvmwarecomv1.MyStr
-}

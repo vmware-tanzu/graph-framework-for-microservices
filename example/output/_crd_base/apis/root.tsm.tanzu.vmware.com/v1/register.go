@@ -39,6 +39,8 @@ func addKnownTypes(scheme *runtime.Scheme) error {
 		SchemeGroupVersion,
 		&Root{},
 		&RootList{},
+		&NonNexusType{},
+		&NonNexusTypeList{},
 	)
 
 	// register the type in the scheme
