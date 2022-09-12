@@ -136,13 +136,18 @@ generate_code:
 	@echo "Nexus Compiler: Generating CRD yamls"
 	go run cmd/generate-openapischema/generate-openapischema.go -yamls-path _generated/crds
 	git checkout -- pkg/openapi_generator/openapi/openapi_generated.go
+	@echo "Debug purpose"
+	cp -r _generated/{client,apis,crds,common,nexus-client,helper,nexus-gql} ${GENERATED_OUTPUT_DIRECTORY}
+	@echo "==> Nexus Compiler: Generating GRAPHQL pkg <=="
+	cd _generated && goimports -w .
+	cd _generated/nexus-gql && go mod tidy -go=1.16 && go run gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git generate
 	@echo "Updating module name"
 	./scripts/replace_mod_path.sh
 	find . -name "*.bak" -type f -delete
 	@echo "Sorting imports"
 	cd _generated && goimports -w .
 	@echo "Nexus Compiler: Moving files to output directory"
-	cp -r _generated/{client,apis,crds,common,nexus-client,helper} ${GENERATED_OUTPUT_DIRECTORY}
+	cp -r _generated/{client,apis,crds,common,nexus-client,helper,nexus-gql} ${GENERATED_OUTPUT_DIRECTORY}
 	@echo "Nexus Compiler: Compiler code generation completed"
 
 .PHONY: test_generate_code_in_container

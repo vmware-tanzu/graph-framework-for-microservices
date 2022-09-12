@@ -526,7 +526,8 @@ func RenderClientTemplate(baseGroupName, crdModulePath string, pkgs parser.Packa
 }
 
 type graphDetails struct {
-	Nodes []gg.Node_prop
+	BaseImportPath string
+	Nodes          []gg.Node_prop
 }
 
 func RenderGraphqlResolver(baseGroupName, outputDir, crdModulePath string, pkgs parser.Packages, parentsMap map[string]parser.NodeHelper) error {
@@ -537,6 +538,7 @@ func RenderGraphqlResolver(baseGroupName, outputDir, crdModulePath string, pkgs 
 		return err
 	}
 	var vars graphDetails
+	vars.BaseImportPath = crdModulePath
 	vars.Nodes, err = gg.GenerateGraphqlResolverVars(baseGroupName, crdModulePath, pkgs, parentsMap)
 	if err != nil {
 		return err
@@ -568,6 +570,20 @@ func RenderGraphqlResolver(baseGroupName, outputDir, crdModulePath string, pkgs 
 	}
 
 	err = createFile(gqlFolder, "gqlgen.yml", file, false)
+	if err != nil {
+		return err
+	}
+	gqlResolverTemplate, err := readTemplateFile(graphqlResolverTemplateFile)
+	if err != nil {
+		return err
+	}
+
+	file, err = renderTemplate(gqlResolverTemplate, vars)
+	if err != nil {
+		return err
+	}
+
+	err = createFile(gqlFolder, "graphqlResolver.go", file, false)
 	if err != nil {
 		return err
 	}

@@ -259,6 +259,22 @@ func GetSpecFields(n *ast.TypeSpec) []*ast.Field {
 	return fields
 }
 
+func GetNexusFields(n *ast.TypeSpec) []*ast.Field {
+	var fields []*ast.Field
+	if n == nil {
+		return nil
+	}
+	if val, ok := n.Type.(*ast.StructType); ok {
+		for _, f := range val.Fields.List {
+			if IsNexusField(f) || IsNexusTypeField(f) {
+				fields = append(fields, f)
+			}
+		}
+	}
+
+	return fields
+}
+
 func GetChildFields(n *ast.TypeSpec) []*ast.Field {
 	var fields []*ast.Field
 	if n == nil {
@@ -321,6 +337,27 @@ func IsNamedChildOrLink(f *ast.Field) bool {
 		tags := ParseFieldTags(f.Tag.Value)
 		if val, err := tags.Get("nexus"); err == nil {
 			if strings.ToLower(val.Name) == "children" || strings.ToLower(val.Name) == "links" {
+				return true
+			}
+		}
+	}
+
+	return false
+}
+
+func IsChildOrLink(f *ast.Field) bool {
+	if f == nil {
+		return false
+	}
+
+	if IsMapField(f) {
+		return true
+	}
+
+	if f.Tag != nil {
+		tags := ParseFieldTags(f.Tag.Value)
+		if val, err := tags.Get("nexus"); err == nil {
+			if strings.ToLower(val.Name) == "child" || strings.ToLower(val.Name) == "link" {
 				return true
 			}
 		}

@@ -104,12 +104,10 @@ type Gns struct {
 	UseSharedGateway       bool
 	Description            Description
 	GnsServiceGroups       service_group.SvcGroup        `nexus:"children"`
-	GnsAccessControlPolicy policypkg.AccessControlPolicy `nexus:"child"`
 	Dns                    Dns                           `nexus:"link"`
 	State                  GnsState                      `nexus:"status"`
 	Meta                   string
 
-	WorkloadSpec cartv1.WorkloadSpec //external-field
 }
 
 // This is Description struct.

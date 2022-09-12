@@ -7,7 +7,6 @@ import (
 
 type AccessControlPolicy struct {
 	nexus.Node
-	PolicyConfigs map[string]ACPConfig `nexus:"child"`
 }
 
 // ACPConfig is a configuration of AccessControl Policy
@@ -16,14 +15,11 @@ type ACPConfig struct {
 	DisplayName  string
 	Gns          string
 	Description  string
-	Tags         []string
 	ProjectId    string
 	DestGroups   ResourceGroupIDs `nexus:"@jsonencoded(file:'./root/config/policy/policy-config/policy-config.ts', gofile:'policy-config.go', name: 'ResourceGroupIDs')"`
 	SourceGroups ResourceGroupIDs `nexus:"@jsonencoded(file:'./root/config/policy/policy-config/policy-config.ts', gofile:'policy-config.go', name: 'ResourceGroupIDs')"`
 
-	DestSvcGroups   map[string]service_group.SvcGroup `nexus:"link"`  // support named children/links as map or `links` annotations
 	SourceSvcGroups service_group.SvcGroup            `nexus:"links"` // support named children/links as map or `links` annotations
-	Conditions      []string
 	Action          PolicyCfgActions `nexus:"@jsonencoded(file:'./root/config/policy/policy-config/policy-config.ts', gofile:'policy-config.go', name: 'PolicyCfgActions')"`
 	Status ACPStatus `nexus:"status"`
 }

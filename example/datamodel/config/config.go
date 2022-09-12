@@ -3,8 +3,6 @@ package config
 import (
 	"net/http"
 
-	py "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/datamodel/config/policy"
-
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/datamodel/config/gns"
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/datamodel/nexus"
 )
@@ -22,16 +20,10 @@ var BarCustomMethodsResponses = nexus.HTTPMethodsResponses{
 
 type Config struct {
 	nexus.Node
-	GNS         gns.Gns                `nexus:"child"`
-	DNS         gns.Dns                `nexus:"child"`
-	VMPPolicies py.VMpolicy            `nexus:"child"`
-	ACPPolicies py.AccessControlPolicy `nexus:"links"`
+	GNS gns.Gns `nexus:"child"`
+	DNS gns.Dns `nexus:"child"`
 
 	// Examples for cross-package import.
-	MyStr0 *gns.MyStr
-	MyStr1 []gns.MyStr
-	MyStr2 map[string]gns.MyStr
-
 	TestValMarkers TestValMarkers `json:"testValMarkers" yaml:"testValMarkers"`
 }
 

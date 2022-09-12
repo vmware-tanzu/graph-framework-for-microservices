@@ -3,7 +3,6 @@
 package v1
 
 import (
-	cartv1 "github.com/vmware-tanzu/cartographer/pkg/apis/v1alpha1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"nexustempmodule/common"
@@ -105,14 +104,12 @@ func (c *Gns) DisplayName() string {
 type GnsSpec struct {
 	//nexus-validation: MaxLength=8, MinLength=2
 	//nexus-validation: Pattern=abc
-	Domain                    string              `json:"domain" yaml:"domain"`
-	UseSharedGateway          bool                `json:"useSharedGateway" yaml:"useSharedGateway"`
-	Description               Description         `json:"description" yaml:"description"`
-	Meta                      string              `json:"meta" yaml:"meta"`
-	WorkloadSpec              cartv1.WorkloadSpec `json:"workloadSpec" yaml:"workloadSpec"`
-	GnsServiceGroupsGvk       map[string]Child    `json:"gnsServiceGroupsGvk,omitempty" yaml:"gnsServiceGroupsGvk,omitempty" nexus:"children"`
-	GnsAccessControlPolicyGvk *Child              `json:"gnsAccessControlPolicyGvk,omitempty" yaml:"gnsAccessControlPolicyGvk,omitempty" nexus:"child"`
-	DnsGvk                    *Link               `json:"dnsGvk,omitempty" yaml:"dnsGvk,omitempty" nexus:"link"`
+	Domain              string           `json:"domain" yaml:"domain"`
+	UseSharedGateway    bool             `json:"useSharedGateway" yaml:"useSharedGateway"`
+	Description         Description      `json:"description" yaml:"description"`
+	Meta                string           `json:"meta" yaml:"meta"`
+	GnsServiceGroupsGvk map[string]Child `json:"gnsServiceGroupsGvk,omitempty" yaml:"gnsServiceGroupsGvk,omitempty" nexus:"children"`
+	DnsGvk              *Link            `json:"dnsGvk,omitempty" yaml:"dnsGvk,omitempty" nexus:"link"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object

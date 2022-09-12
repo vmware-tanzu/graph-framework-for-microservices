@@ -1216,15 +1216,6 @@ func (group *ConfigTsmV1) DeleteConfigByName(ctx context.Context, hashedName str
 		}
 	}
 
-	if result.Spec.VMPPoliciesGvk != nil {
-		err := group.client.
-			Policypkg().
-			DeleteVMpolicyByName(ctx, result.Spec.VMPPoliciesGvk.Name)
-		if err != nil {
-			return err
-		}
-	}
-
 	err = group.client.baseClient.
 		ConfigTsmV1().
 		Configs().Delete(ctx, hashedName, metav1.DeleteOptions{})
@@ -1278,8 +1269,6 @@ func (group *ConfigTsmV1) CreateConfigByName(ctx context.Context,
 
 	objToCreate.Spec.GNSGvk = nil
 	objToCreate.Spec.DNSGvk = nil
-	objToCreate.Spec.VMPPoliciesGvk = nil
-	objToCreate.Spec.ACPPoliciesGvk = nil
 
 	result, err := group.client.baseClient.
 		ConfigTsmV1().
@@ -1332,33 +1321,6 @@ func (group *ConfigTsmV1) UpdateConfigByName(ctx context.Context,
 		Path:  "/metadata",
 		Value: objToUpdate.ObjectMeta,
 	})
-
-	patchValueMyStr0 :=
-		objToUpdate.Spec.MyStr0
-	patchOpMyStr0 := PatchOp{
-		Op:    "replace",
-		Path:  "/spec/myStr0",
-		Value: patchValueMyStr0,
-	}
-	patch = append(patch, patchOpMyStr0)
-
-	patchValueMyStr1 :=
-		objToUpdate.Spec.MyStr1
-	patchOpMyStr1 := PatchOp{
-		Op:    "replace",
-		Path:  "/spec/myStr1",
-		Value: patchValueMyStr1,
-	}
-	patch = append(patch, patchOpMyStr1)
-
-	patchValueMyStr2 :=
-		objToUpdate.Spec.MyStr2
-	patchOpMyStr2 := PatchOp{
-		Op:    "replace",
-		Path:  "/spec/myStr2",
-		Value: patchValueMyStr2,
-	}
-	patch = append(patch, patchOpMyStr2)
 
 	patchValueTestValMarkers :=
 		objToUpdate.Spec.TestValMarkers
@@ -1549,124 +1511,6 @@ func (obj *ConfigConfig) DeleteDNS(ctx context.Context) (err error) {
 	return
 }
 
-// GetVMPPolicies returns child of given type
-func (obj *ConfigConfig) GetVMPPolicies(ctx context.Context) (
-	result *PolicypkgVMpolicy, err error) {
-	if obj.Spec.VMPPoliciesGvk == nil {
-		return nil, NewChildNotFound(obj.DisplayName(), "Config.Config", "VMPPolicies")
-	}
-	return obj.client.Policypkg().GetVMpolicyByName(ctx, obj.Spec.VMPPoliciesGvk.Name)
-}
-
-// AddVMPPolicies calculates hashed name of the child to create based on objToCreate.Name
-// and parents names and creates it. objToCreate.Name is changed to the hashed name. Original name is preserved in
-// nexus/display_name label and can be obtained using DisplayName() method.
-func (obj *ConfigConfig) AddVMPPolicies(ctx context.Context,
-	objToCreate *basepolicypkgtsmtanzuvmwarecomv1.VMpolicy) (result *PolicypkgVMpolicy, err error) {
-	if objToCreate.Labels == nil {
-		objToCreate.Labels = map[string]string{}
-	}
-	for _, v := range helper.GetCRDParentsMap()["configs.config.tsm.tanzu.vmware.com"] {
-		objToCreate.Labels[v] = obj.Labels[v]
-	}
-	objToCreate.Labels["configs.config.tsm.tanzu.vmware.com"] = obj.DisplayName()
-	if objToCreate.Labels[common.IS_NAME_HASHED_LABEL] != "true" {
-		objToCreate.Labels[common.DISPLAY_NAME_LABEL] = objToCreate.GetName()
-		objToCreate.Labels[common.IS_NAME_HASHED_LABEL] = "true"
-		hashedName := helper.GetHashedName(objToCreate.CRDName(), objToCreate.Labels, objToCreate.GetName())
-		objToCreate.Name = hashedName
-	}
-	result, err = obj.client.Policypkg().CreateVMpolicyByName(ctx, objToCreate)
-	updatedObj, getErr := obj.client.Config().GetConfigByName(ctx, obj.GetName())
-	if getErr == nil {
-		obj.Config = updatedObj.Config
-	}
-	return
-}
-
-// DeleteVMPPolicies calculates hashed name of the child to delete based on displayName
-// and parents names and deletes it.
-
-func (obj *ConfigConfig) DeleteVMPPolicies(ctx context.Context) (err error) {
-	if obj.Spec.VMPPoliciesGvk != nil {
-		err = obj.client.
-			Policypkg().DeleteVMpolicyByName(ctx, obj.Spec.VMPPoliciesGvk.Name)
-		if err != nil {
-			return err
-		}
-	}
-	updatedObj, err := obj.client.
-		Config().GetConfigByName(ctx, obj.GetName())
-	if err == nil {
-		obj.Config = updatedObj.Config
-	}
-	return
-}
-
-// GetAllACPPolicies returns all links of given type
-func (obj *ConfigConfig) GetAllACPPolicies(ctx context.Context) (
-	result []*PolicypkgAccessControlPolicy, err error) {
-	result = make([]*PolicypkgAccessControlPolicy, 0, len(obj.Spec.ACPPoliciesGvk))
-	for _, v := range obj.Spec.ACPPoliciesGvk {
-		l, err := obj.client.Policypkg().GetAccessControlPolicyByName(ctx, v.Name)
-		if err != nil {
-			return nil, err
-		}
-		result = append(result, l)
-	}
-	return
-}
-
-// GetACPPolicies returns link which has given displayName
-func (obj *ConfigConfig) GetACPPolicies(ctx context.Context,
-	displayName string) (result *PolicypkgAccessControlPolicy, err error) {
-	l, ok := obj.Spec.ACPPoliciesGvk[displayName]
-	if !ok {
-		return nil, NewLinkNotFound(obj.DisplayName(), "Config.Config", "ACPPolicies", displayName)
-	}
-	result, err = obj.client.Policypkg().GetAccessControlPolicyByName(ctx, l.Name)
-	return
-}
-
-// LinkACPPolicies links obj with linkToAdd object. This function doesn't create linked object, it must be
-// already created.
-func (obj *ConfigConfig) LinkACPPolicies(ctx context.Context,
-	linkToAdd *PolicypkgAccessControlPolicy) error {
-
-	payload := "{\"spec\": {\"aCPPoliciesGvk\": {\"" + linkToAdd.DisplayName() + "\": {\"name\": \"" + linkToAdd.Name + "\",\"kind\": \"AccessControlPolicy\", \"group\": \"policypkg.tsm.tanzu.vmware.com\"}}}}"
-	result, err := obj.client.baseClient.ConfigTsmV1().Configs().Patch(ctx, obj.Name, types.MergePatchType, []byte(payload), metav1.PatchOptions{})
-	if err != nil {
-		return err
-	}
-
-	obj.Config = result
-	return nil
-}
-
-// UnlinkACPPolicies unlinks linkToRemove object from obj. This function doesn't delete linked object.
-func (obj *ConfigConfig) UnlinkACPPolicies(ctx context.Context,
-	linkToRemove *PolicypkgAccessControlPolicy) (err error) {
-	var patch Patch
-
-	patchOp := PatchOp{
-		Op:   "remove",
-		Path: "/spec/aCPPoliciesGvk/" + linkToRemove.DisplayName(),
-	}
-
-	patch = append(patch, patchOp)
-	marshaled, err := patch.Marshal()
-	if err != nil {
-		return err
-	}
-	result, err := obj.client.baseClient.ConfigTsmV1().Configs().Patch(ctx, obj.Name, types.JSONPatchType, marshaled, metav1.PatchOptions{})
-	if err != nil {
-		return err
-	}
-	obj.Config = result
-	return nil
-
-}
-
 type configConfigTsmV1Chainer struct {
 	client       *Clientset
 	name         string
@@ -1771,53 +1615,6 @@ func (c *configConfigTsmV1Chainer) DeleteDNS(ctx context.Context, name string) (
 	c.parentLabels[common.IS_NAME_HASHED_LABEL] = "true"
 	hashedName := helper.GetHashedName("dnses.gns.tsm.tanzu.vmware.com", c.parentLabels, name)
 	return c.client.Gns().DeleteDnsByName(ctx, hashedName)
-}
-
-func (c *configConfigTsmV1Chainer) VMPPolicies(name string) *vmpolicyPolicypkgTsmV1Chainer {
-	parentLabels := c.parentLabels
-	parentLabels["vmpolicies.policypkg.tsm.tanzu.vmware.com"] = name
-	return &vmpolicyPolicypkgTsmV1Chainer{
-		client:       c.client,
-		name:         name,
-		parentLabels: parentLabels,
-	}
-}
-
-// GetVMPPolicies calculates hashed name of the object based on displayName and it's parents and returns the object
-func (c *configConfigTsmV1Chainer) GetVMPPolicies(ctx context.Context, displayName string) (result *PolicypkgVMpolicy, err error) {
-	hashedName := helper.GetHashedName("vmpolicies.policypkg.tsm.tanzu.vmware.com", c.parentLabels, displayName)
-	return c.client.Policypkg().GetVMpolicyByName(ctx, hashedName)
-}
-
-// AddVMPPolicies calculates hashed name of the child to create based on objToCreate.Name
-// and parents names and creates it. objToCreate.Name is changed to the hashed name. Original name is preserved in
-// nexus/display_name label and can be obtained using DisplayName() method.
-func (c *configConfigTsmV1Chainer) AddVMPPolicies(ctx context.Context,
-	objToCreate *basepolicypkgtsmtanzuvmwarecomv1.VMpolicy) (result *PolicypkgVMpolicy, err error) {
-	if objToCreate.Labels == nil {
-		objToCreate.Labels = map[string]string{}
-	}
-	for k, v := range c.parentLabels {
-		objToCreate.Labels[k] = v
-	}
-	if objToCreate.Labels[common.IS_NAME_HASHED_LABEL] != "true" {
-		objToCreate.Labels[common.DISPLAY_NAME_LABEL] = objToCreate.GetName()
-		objToCreate.Labels[common.IS_NAME_HASHED_LABEL] = "true"
-		hashedName := helper.GetHashedName("vmpolicies.policypkg.tsm.tanzu.vmware.com", c.parentLabels, objToCreate.GetName())
-		objToCreate.Name = hashedName
-	}
-	return c.client.Policypkg().CreateVMpolicyByName(ctx, objToCreate)
-}
-
-// DeleteVMPPolicies calculates hashed name of the child to delete based on displayName
-// and parents names and deletes it.
-func (c *configConfigTsmV1Chainer) DeleteVMPPolicies(ctx context.Context, name string) (err error) {
-	if c.parentLabels == nil {
-		c.parentLabels = map[string]string{}
-	}
-	c.parentLabels[common.IS_NAME_HASHED_LABEL] = "true"
-	hashedName := helper.GetHashedName("vmpolicies.policypkg.tsm.tanzu.vmware.com", c.parentLabels, name)
-	return c.client.Policypkg().DeleteVMpolicyByName(ctx, hashedName)
 }
 
 // GetRandomGnsDataByName returns object stored in the database under the hashedName which is a hash of display
@@ -2146,15 +1943,6 @@ func (group *GnsTsmV1) DeleteGnsByName(ctx context.Context, hashedName string) (
 		}
 	}
 
-	if result.Spec.GnsAccessControlPolicyGvk != nil {
-		err := group.client.
-			Policypkg().
-			DeleteAccessControlPolicyByName(ctx, result.Spec.GnsAccessControlPolicyGvk.Name)
-		if err != nil {
-			return err
-		}
-	}
-
 	err = group.client.baseClient.
 		GnsTsmV1().
 		Gnses().Delete(ctx, hashedName, metav1.DeleteOptions{})
@@ -2207,7 +1995,6 @@ func (group *GnsTsmV1) CreateGnsByName(ctx context.Context,
 	}
 
 	objToCreate.Spec.GnsServiceGroupsGvk = nil
-	objToCreate.Spec.GnsAccessControlPolicyGvk = nil
 	objToCreate.Spec.DnsGvk = nil
 
 	result, err := group.client.baseClient.
@@ -2347,15 +2134,6 @@ func (group *GnsTsmV1) UpdateGnsByName(ctx context.Context,
 		Value: patchValueMeta,
 	}
 	patch = append(patch, patchOpMeta)
-
-	patchValueWorkloadSpec :=
-		objToUpdate.Spec.WorkloadSpec
-	patchOpWorkloadSpec := PatchOp{
-		Op:    "replace",
-		Path:  "/spec/workloadSpec",
-		Value: patchValueWorkloadSpec,
-	}
-	patch = append(patch, patchOpWorkloadSpec)
 
 	marshaled, err := patch.Marshal()
 	if err != nil {
@@ -2522,60 +2300,6 @@ func (obj *GnsGns) DeleteGnsServiceGroups(ctx context.Context, displayName strin
 	return
 }
 
-// GetGnsAccessControlPolicy returns child of given type
-func (obj *GnsGns) GetGnsAccessControlPolicy(ctx context.Context) (
-	result *PolicypkgAccessControlPolicy, err error) {
-	if obj.Spec.GnsAccessControlPolicyGvk == nil {
-		return nil, NewChildNotFound(obj.DisplayName(), "Gns.Gns", "GnsAccessControlPolicy")
-	}
-	return obj.client.Policypkg().GetAccessControlPolicyByName(ctx, obj.Spec.GnsAccessControlPolicyGvk.Name)
-}
-
-// AddGnsAccessControlPolicy calculates hashed name of the child to create based on objToCreate.Name
-// and parents names and creates it. objToCreate.Name is changed to the hashed name. Original name is preserved in
-// nexus/display_name label and can be obtained using DisplayName() method.
-func (obj *GnsGns) AddGnsAccessControlPolicy(ctx context.Context,
-	objToCreate *basepolicypkgtsmtanzuvmwarecomv1.AccessControlPolicy) (result *PolicypkgAccessControlPolicy, err error) {
-	if objToCreate.Labels == nil {
-		objToCreate.Labels = map[string]string{}
-	}
-	for _, v := range helper.GetCRDParentsMap()["gnses.gns.tsm.tanzu.vmware.com"] {
-		objToCreate.Labels[v] = obj.Labels[v]
-	}
-	objToCreate.Labels["gnses.gns.tsm.tanzu.vmware.com"] = obj.DisplayName()
-	if objToCreate.Labels[common.IS_NAME_HASHED_LABEL] != "true" {
-		objToCreate.Labels[common.DISPLAY_NAME_LABEL] = objToCreate.GetName()
-		objToCreate.Labels[common.IS_NAME_HASHED_LABEL] = "true"
-		hashedName := helper.GetHashedName(objToCreate.CRDName(), objToCreate.Labels, objToCreate.GetName())
-		objToCreate.Name = hashedName
-	}
-	result, err = obj.client.Policypkg().CreateAccessControlPolicyByName(ctx, objToCreate)
-	updatedObj, getErr := obj.client.Gns().GetGnsByName(ctx, obj.GetName())
-	if getErr == nil {
-		obj.Gns = updatedObj.Gns
-	}
-	return
-}
-
-// DeleteGnsAccessControlPolicy calculates hashed name of the child to delete based on displayName
-// and parents names and deletes it.
-
-func (obj *GnsGns) DeleteGnsAccessControlPolicy(ctx context.Context) (err error) {
-	if obj.Spec.GnsAccessControlPolicyGvk != nil {
-		err = obj.client.
-			Policypkg().DeleteAccessControlPolicyByName(ctx, obj.Spec.GnsAccessControlPolicyGvk.Name)
-		if err != nil {
-			return err
-		}
-	}
-	updatedObj, err := obj.client.
-		Gns().GetGnsByName(ctx, obj.GetName())
-	if err == nil {
-		obj.Gns = updatedObj.Gns
-	}
-	return
-}
-
 // GetDns returns link of given type
 func (obj *GnsGns) GetDns(ctx context.Context) (
 	result *GnsDns, err error) {
@@ -2720,53 +2444,6 @@ func (c *gnsGnsTsmV1Chainer) DeleteGnsServiceGroups(ctx context.Context, name st
 	c.parentLabels[common.IS_NAME_HASHED_LABEL] = "true"
 	hashedName := helper.GetHashedName("svcgroups.servicegroup.tsm.tanzu.vmware.com", c.parentLabels, name)
 	return c.client.Servicegroup().DeleteSvcGroupByName(ctx, hashedName)
-}
-
-func (c *gnsGnsTsmV1Chainer) GnsAccessControlPolicy(name string) *accesscontrolpolicyPolicypkgTsmV1Chainer {
-	parentLabels := c.parentLabels
-	parentLabels["accesscontrolpolicies.policypkg.tsm.tanzu.vmware.com"] = name
-	return &accesscontrolpolicyPolicypkgTsmV1Chainer{
-		client:       c.client,
-		name:         name,
-		parentLabels: parentLabels,
-	}
-}
-
-// GetGnsAccessControlPolicy calculates hashed name of the object based on displayName and it's parents and returns the object
-func (c *gnsGnsTsmV1Chainer) GetGnsAccessControlPolicy(ctx context.Context, displayName string) (result *PolicypkgAccessControlPolicy, err error) {
-	hashedName := helper.GetHashedName("accesscontrolpolicies.policypkg.tsm.tanzu.vmware.com", c.parentLabels, displayName)
-	return c.client.Policypkg().GetAccessControlPolicyByName(ctx, hashedName)
-}
-
-// AddGnsAccessControlPolicy calculates hashed name of the child to create based on objToCreate.Name
-// and parents names and creates it. objToCreate.Name is changed to the hashed name. Original name is preserved in
-// nexus/display_name label and can be obtained using DisplayName() method.
-func (c *gnsGnsTsmV1Chainer) AddGnsAccessControlPolicy(ctx context.Context,
-	objToCreate *basepolicypkgtsmtanzuvmwarecomv1.AccessControlPolicy) (result *PolicypkgAccessControlPolicy, err error) {
-	if objToCreate.Labels == nil {
-		objToCreate.Labels = map[string]string{}
-	}
-	for k, v := range c.parentLabels {
-		objToCreate.Labels[k] = v
-	}
-	if objToCreate.Labels[common.IS_NAME_HASHED_LABEL] != "true" {
-		objToCreate.Labels[common.DISPLAY_NAME_LABEL] = objToCreate.GetName()
-		objToCreate.Labels[common.IS_NAME_HASHED_LABEL] = "true"
-		hashedName := helper.GetHashedName("accesscontrolpolicies.policypkg.tsm.tanzu.vmware.com", c.parentLabels, objToCreate.GetName())
-		objToCreate.Name = hashedName
-	}
-	return c.client.Policypkg().CreateAccessControlPolicyByName(ctx, objToCreate)
-}
-
-// DeleteGnsAccessControlPolicy calculates hashed name of the child to delete based on displayName
-// and parents names and deletes it.
-func (c *gnsGnsTsmV1Chainer) DeleteGnsAccessControlPolicy(ctx context.Context, name string) (err error) {
-	if c.parentLabels == nil {
-		c.parentLabels = map[string]string{}
-	}
-	c.parentLabels[common.IS_NAME_HASHED_LABEL] = "true"
-	hashedName := helper.GetHashedName("accesscontrolpolicies.policypkg.tsm.tanzu.vmware.com", c.parentLabels, name)
-	return c.client.Policypkg().DeleteAccessControlPolicyByName(ctx, hashedName)
 }
 
 // GetDnsByName returns object stored in the database under the hashedName which is a hash of display
@@ -3824,54 +3501,9 @@ func (group *PolicypkgTsmV1) GetAccessControlPolicyByName(ctx context.Context, h
 // display name and parents names. Use it when you know hashed name of object.
 func (group *PolicypkgTsmV1) DeleteAccessControlPolicyByName(ctx context.Context, hashedName string) (err error) {
 
-	result, err := group.client.baseClient.
-		PolicypkgTsmV1().
-		AccessControlPolicies().Get(ctx, hashedName, metav1.GetOptions{})
-	if err != nil {
-		return err
-	}
-
-	for _, v := range result.Spec.PolicyConfigsGvk {
-		err := group.client.
-			Policypkg().DeleteACPConfigByName(ctx, v.Name)
-		if err != nil {
-			return err
-		}
-	}
-
 	err = group.client.baseClient.
 		PolicypkgTsmV1().
 		AccessControlPolicies().Delete(ctx, hashedName, metav1.DeleteOptions{})
-	if err != nil {
-		return err
-	}
-
-	var patch Patch
-
-	patchOp := PatchOp{
-		Op:   "remove",
-		Path: "/spec/gnsAccessControlPolicyGvk",
-	}
-
-	patch = append(patch, patchOp)
-	marshaled, err := patch.Marshal()
-	if err != nil {
-		return err
-	}
-	parents := result.GetLabels()
-	if parents == nil {
-		parents = make(map[string]string)
-	}
-	parentName, ok := parents["gnses.gns.tsm.tanzu.vmware.com"]
-	if !ok {
-		parentName = helper.DEFAULT_KEY
-	}
-	if parents[common.IS_NAME_HASHED_LABEL] == "true" {
-		parentName = helper.GetHashedName("gnses.gns.tsm.tanzu.vmware.com", parents, parentName)
-	}
-	_, err = group.client.baseClient.
-		GnsTsmV1().
-		Gnses().Patch(ctx, parentName, types.JSONPatchType, marshaled, metav1.PatchOptions{})
 	if err != nil {
 		return err
 	}
@@ -3890,41 +3522,9 @@ func (group *PolicypkgTsmV1) CreateAccessControlPolicyByName(ctx context.Context
 		objToCreate.Labels[common.DISPLAY_NAME_LABEL] = objToCreate.GetName()
 	}
 
-	objToCreate.Spec.PolicyConfigsGvk = nil
-
 	result, err := group.client.baseClient.
 		PolicypkgTsmV1().
 		AccessControlPolicies().Create(ctx, objToCreate, metav1.CreateOptions{})
-	if err != nil {
-		return nil, err
-	}
-
-	parentName, ok := objToCreate.GetLabels()["gnses.gns.tsm.tanzu.vmware.com"]
-	if !ok {
-		parentName = helper.DEFAULT_KEY
-	}
-	if objToCreate.Labels[common.IS_NAME_HASHED_LABEL] == "true" {
-		parentName = helper.GetHashedName("gnses.gns.tsm.tanzu.vmware.com", objToCreate.GetLabels(), parentName)
-	}
-
-	var patch Patch
-	patchOp := PatchOp{
-		Op:   "replace",
-		Path: "/spec/gnsAccessControlPolicyGvk",
-		Value: basepolicypkgtsmtanzuvmwarecomv1.Child{
-			Group: "policypkg.tsm.tanzu.vmware.com",
-			Kind:  "AccessControlPolicy",
-			Name:  objToCreate.Name,
-		},
-	}
-	patch = append(patch, patchOp)
-	marshaled, err := patch.Marshal()
-	if err != nil {
-		return nil, err
-	}
-	_, err = group.client.baseClient.
-		GnsTsmV1().
-		Gnses().Patch(ctx, parentName, types.JSONPatchType, marshaled, metav1.PatchOptions{})
 	if err != nil {
 		return nil, err
 	}
@@ -4019,132 +3619,51 @@ func (obj *PolicypkgAccessControlPolicy) Update(ctx context.Context) error {
 	return nil
 }
 
-func (obj *PolicypkgAccessControlPolicy) GetParent(ctx context.Context) (result *GnsGns, err error) {
-	hashedName := helper.GetHashedName("gnses.gns.tsm.tanzu.vmware.com", obj.Labels, obj.Labels["gnses.gns.tsm.tanzu.vmware.com"])
-	return obj.client.Gns().GetGnsByName(ctx, hashedName)
+// GetPolicypkgAccessControlPolicy calculates the hashed name based on parents and displayName and
+// returns given object
+func (c *Clientset) GetPolicypkgAccessControlPolicy(ctx context.Context, displayName string) (result *PolicypkgAccessControlPolicy, err error) {
+	hashedName := helper.GetHashedName("accesscontrolpolicies.policypkg.tsm.tanzu.vmware.com", nil, displayName)
+	return c.Policypkg().GetAccessControlPolicyByName(ctx, hashedName)
 }
 
-// GetAllPolicyConfigs returns all children of given type
-func (obj *PolicypkgAccessControlPolicy) GetAllPolicyConfigs(ctx context.Context) (
-	result []*PolicypkgACPConfig, err error) {
-	result = make([]*PolicypkgACPConfig, 0, len(obj.Spec.PolicyConfigsGvk))
-	for _, v := range obj.Spec.PolicyConfigsGvk {
-		l, err := obj.client.Policypkg().GetACPConfigByName(ctx, v.Name)
-		if err != nil {
-			return nil, err
-		}
-		result = append(result, l)
+func (c *Clientset) PolicypkgAccessControlPolicy(displayName string) *accesscontrolpolicyPolicypkgTsmV1Chainer {
+	parentLabels := make(map[string]string)
+	parentLabels["accesscontrolpolicies.policypkg.tsm.tanzu.vmware.com"] = displayName
+	return &accesscontrolpolicyPolicypkgTsmV1Chainer{
+		client:       c,
+		name:         displayName,
+		parentLabels: parentLabels,
 	}
-	return
 }
 
-// GetPolicyConfigs returns child which has given displayName
-func (obj *PolicypkgAccessControlPolicy) GetPolicyConfigs(ctx context.Context,
-	displayName string) (result *PolicypkgACPConfig, err error) {
-	l, ok := obj.Spec.PolicyConfigsGvk[displayName]
-	if !ok {
-		return nil, NewChildNotFound(obj.DisplayName(), "Policypkg.AccessControlPolicy", "PolicyConfigs", displayName)
-	}
-	result, err = obj.client.Policypkg().GetACPConfigByName(ctx, l.Name)
-	return
-}
-
-// AddPolicyConfigs calculates hashed name of the child to create based on objToCreate.Name
+// AddPolicypkgAccessControlPolicy calculates hashed name of the object based on objToCreate.Name
 // and parents names and creates it. objToCreate.Name is changed to the hashed name. Original name is preserved in
 // nexus/display_name label and can be obtained using DisplayName() method.
-func (obj *PolicypkgAccessControlPolicy) AddPolicyConfigs(ctx context.Context,
-	objToCreate *basepolicypkgtsmtanzuvmwarecomv1.ACPConfig) (result *PolicypkgACPConfig, err error) {
+func (c *Clientset) AddPolicypkgAccessControlPolicy(ctx context.Context,
+	objToCreate *basepolicypkgtsmtanzuvmwarecomv1.AccessControlPolicy) (result *PolicypkgAccessControlPolicy, err error) {
 	if objToCreate.Labels == nil {
 		objToCreate.Labels = map[string]string{}
 	}
-	for _, v := range helper.GetCRDParentsMap()["accesscontrolpolicies.policypkg.tsm.tanzu.vmware.com"] {
-		objToCreate.Labels[v] = obj.Labels[v]
-	}
-	objToCreate.Labels["accesscontrolpolicies.policypkg.tsm.tanzu.vmware.com"] = obj.DisplayName()
 	if objToCreate.Labels[common.IS_NAME_HASHED_LABEL] != "true" {
 		objToCreate.Labels[common.DISPLAY_NAME_LABEL] = objToCreate.GetName()
 		objToCreate.Labels[common.IS_NAME_HASHED_LABEL] = "true"
-		hashedName := helper.GetHashedName(objToCreate.CRDName(), objToCreate.Labels, objToCreate.GetName())
+		hashedName := helper.GetHashedName(objToCreate.CRDName(), nil, objToCreate.GetName())
 		objToCreate.Name = hashedName
 	}
-	result, err = obj.client.Policypkg().CreateACPConfigByName(ctx, objToCreate)
-	updatedObj, getErr := obj.client.Policypkg().GetAccessControlPolicyByName(ctx, obj.GetName())
-	if getErr == nil {
-		obj.AccessControlPolicy = updatedObj.AccessControlPolicy
-	}
-	return
+	return c.Policypkg().CreateAccessControlPolicyByName(ctx, objToCreate)
 }
 
-// DeletePolicyConfigs calculates hashed name of the child to delete based on displayName
-// and parents names and deletes it.
-
-func (obj *PolicypkgAccessControlPolicy) DeletePolicyConfigs(ctx context.Context, displayName string) (err error) {
-	l, ok := obj.Spec.PolicyConfigsGvk[displayName]
-	if !ok {
-		return NewChildNotFound(obj.DisplayName(), "Policypkg.AccessControlPolicy", "PolicyConfigs", displayName)
-	}
-	err = obj.client.Policypkg().DeleteACPConfigByName(ctx, l.Name)
-	if err != nil {
-		return err
-	}
-	updatedObj, err := obj.client.Policypkg().GetAccessControlPolicyByName(ctx, obj.GetName())
-	if err == nil {
-		obj.AccessControlPolicy = updatedObj.AccessControlPolicy
-	}
-	return
+// DeletePolicypkgAccessControlPolicy calculates hashedName of object based on displayName and
+// parents and deletes given object
+func (c *Clientset) DeletePolicypkgAccessControlPolicy(ctx context.Context, displayName string) (err error) {
+	hashedName := helper.GetHashedName("accesscontrolpolicies.policypkg.tsm.tanzu.vmware.com", nil, displayName)
+	return c.Policypkg().DeleteAccessControlPolicyByName(ctx, hashedName)
 }
 
 type accesscontrolpolicyPolicypkgTsmV1Chainer struct {
 	client       *Clientset
 	name         string
 	parentLabels map[string]string
-}
-
-func (c *accesscontrolpolicyPolicypkgTsmV1Chainer) PolicyConfigs(name string) *acpconfigPolicypkgTsmV1Chainer {
-	parentLabels := c.parentLabels
-	parentLabels["acpconfigs.policypkg.tsm.tanzu.vmware.com"] = name
-	return &acpconfigPolicypkgTsmV1Chainer{
-		client:       c.client,
-		name:         name,
-		parentLabels: parentLabels,
-	}
-}
-
-// GetPolicyConfigs calculates hashed name of the object based on displayName and it's parents and returns the object
-func (c *accesscontrolpolicyPolicypkgTsmV1Chainer) GetPolicyConfigs(ctx context.Context, displayName string) (result *PolicypkgACPConfig, err error) {
-	hashedName := helper.GetHashedName("acpconfigs.policypkg.tsm.tanzu.vmware.com", c.parentLabels, displayName)
-	return c.client.Policypkg().GetACPConfigByName(ctx, hashedName)
-}
-
-// AddPolicyConfigs calculates hashed name of the child to create based on objToCreate.Name
-// and parents names and creates it. objToCreate.Name is changed to the hashed name. Original name is preserved in
-// nexus/display_name label and can be obtained using DisplayName() method.
-func (c *accesscontrolpolicyPolicypkgTsmV1Chainer) AddPolicyConfigs(ctx context.Context,
-	objToCreate *basepolicypkgtsmtanzuvmwarecomv1.ACPConfig) (result *PolicypkgACPConfig, err error) {
-	if objToCreate.Labels == nil {
-		objToCreate.Labels = map[string]string{}
-	}
-	for k, v := range c.parentLabels {
-		objToCreate.Labels[k] = v
-	}
-	if objToCreate.Labels[common.IS_NAME_HASHED_LABEL] != "true" {
-		objToCreate.Labels[common.DISPLAY_NAME_LABEL] = objToCreate.GetName()
-		objToCreate.Labels[common.IS_NAME_HASHED_LABEL] = "true"
-		hashedName := helper.GetHashedName("acpconfigs.policypkg.tsm.tanzu.vmware.com", c.parentLabels, objToCreate.GetName())
-		objToCreate.Name = hashedName
-	}
-	return c.client.Policypkg().CreateACPConfigByName(ctx, objToCreate)
-}
-
-// DeletePolicyConfigs calculates hashed name of the child to delete based on displayName
-// and parents names and deletes it.
-func (c *accesscontrolpolicyPolicypkgTsmV1Chainer) DeletePolicyConfigs(ctx context.Context, name string) (err error) {
-	if c.parentLabels == nil {
-		c.parentLabels = map[string]string{}
-	}
-	c.parentLabels[common.IS_NAME_HASHED_LABEL] = "true"
-	hashedName := helper.GetHashedName("acpconfigs.policypkg.tsm.tanzu.vmware.com", c.parentLabels, name)
-	return c.client.Policypkg().DeleteACPConfigByName(ctx, hashedName)
 }
 
 // GetACPConfigByName returns object stored in the database under the hashedName which is a hash of display
@@ -4167,46 +3686,9 @@ func (group *PolicypkgTsmV1) GetACPConfigByName(ctx context.Context, hashedName 
 // display name and parents names. Use it when you know hashed name of object.
 func (group *PolicypkgTsmV1) DeleteACPConfigByName(ctx context.Context, hashedName string) (err error) {
 
-	result, err := group.client.baseClient.
-		PolicypkgTsmV1().
-		ACPConfigs().Get(ctx, hashedName, metav1.GetOptions{})
-	if err != nil {
-		return err
-	}
-
 	err = group.client.baseClient.
 		PolicypkgTsmV1().
 		ACPConfigs().Delete(ctx, hashedName, metav1.DeleteOptions{})
-	if err != nil {
-		return err
-	}
-
-	var patch Patch
-
-	patchOp := PatchOp{
-		Op:   "remove",
-		Path: "/spec/policyConfigsGvk/" + result.DisplayName(),
-	}
-
-	patch = append(patch, patchOp)
-	marshaled, err := patch.Marshal()
-	if err != nil {
-		return err
-	}
-	parents := result.GetLabels()
-	if parents == nil {
-		parents = make(map[string]string)
-	}
-	parentName, ok := parents["accesscontrolpolicies.policypkg.tsm.tanzu.vmware.com"]
-	if !ok {
-		parentName = helper.DEFAULT_KEY
-	}
-	if parents[common.IS_NAME_HASHED_LABEL] == "true" {
-		parentName = helper.GetHashedName("accesscontrolpolicies.policypkg.tsm.tanzu.vmware.com", parents, parentName)
-	}
-	_, err = group.client.baseClient.
-		PolicypkgTsmV1().
-		AccessControlPolicies().Patch(ctx, parentName, types.JSONPatchType, marshaled, metav1.PatchOptions{})
 	if err != nil {
 		return err
 	}
@@ -4225,28 +3707,11 @@ func (group *PolicypkgTsmV1) CreateACPConfigByName(ctx context.Context,
 		objToCreate.Labels[common.DISPLAY_NAME_LABEL] = objToCreate.GetName()
 	}
 
-	objToCreate.Spec.DestSvcGroupsGvk = nil
 	objToCreate.Spec.SourceSvcGroupsGvk = nil
 
 	result, err := group.client.baseClient.
 		PolicypkgTsmV1().
 		ACPConfigs().Create(ctx, objToCreate, metav1.CreateOptions{})
-	if err != nil {
-		return nil, err
-	}
-
-	parentName, ok := objToCreate.GetLabels()["accesscontrolpolicies.policypkg.tsm.tanzu.vmware.com"]
-	if !ok {
-		parentName = helper.DEFAULT_KEY
-	}
-	if objToCreate.Labels[common.IS_NAME_HASHED_LABEL] == "true" {
-		parentName = helper.GetHashedName("accesscontrolpolicies.policypkg.tsm.tanzu.vmware.com", objToCreate.GetLabels(), parentName)
-	}
-
-	payload := "{\"spec\": {\"policyConfigsGvk\": {\"" + objToCreate.DisplayName() + "\": {\"name\": \"" + objToCreate.Name + "\",\"kind\": \"ACPConfig\", \"group\": \"policypkg.tsm.tanzu.vmware.com\"}}}}"
-	_, err = group.client.baseClient.
-		PolicypkgTsmV1().
-		AccessControlPolicies().Patch(ctx, parentName, types.MergePatchType, []byte(payload), metav1.PatchOptions{})
 	if err != nil {
 		return nil, err
 	}
@@ -4460,73 +3925,45 @@ func (obj *PolicypkgACPConfig) ClearStatus(ctx context.Context) error {
 	return nil
 }
 
-func (obj *PolicypkgACPConfig) GetParent(ctx context.Context) (result *PolicypkgAccessControlPolicy, err error) {
-	hashedName := helper.GetHashedName("accesscontrolpolicies.policypkg.tsm.tanzu.vmware.com", obj.Labels, obj.Labels["accesscontrolpolicies.policypkg.tsm.tanzu.vmware.com"])
-	return obj.client.Policypkg().GetAccessControlPolicyByName(ctx, hashedName)
+// GetPolicypkgACPConfig calculates the hashed name based on parents and displayName and
+// returns given object
+func (c *Clientset) GetPolicypkgACPConfig(ctx context.Context, displayName string) (result *PolicypkgACPConfig, err error) {
+	hashedName := helper.GetHashedName("acpconfigs.policypkg.tsm.tanzu.vmware.com", nil, displayName)
+	return c.Policypkg().GetACPConfigByName(ctx, hashedName)
 }
 
-// GetAllDestSvcGroups returns all links of given type
-func (obj *PolicypkgACPConfig) GetAllDestSvcGroups(ctx context.Context) (
-	result []*ServicegroupSvcGroup, err error) {
-	result = make([]*ServicegroupSvcGroup, 0, len(obj.Spec.DestSvcGroupsGvk))
-	for _, v := range obj.Spec.DestSvcGroupsGvk {
-		l, err := obj.client.Servicegroup().GetSvcGroupByName(ctx, v.Name)
-		if err != nil {
-			return nil, err
-		}
-		result = append(result, l)
+func (c *Clientset) PolicypkgACPConfig(displayName string) *acpconfigPolicypkgTsmV1Chainer {
+	parentLabels := make(map[string]string)
+	parentLabels["acpconfigs.policypkg.tsm.tanzu.vmware.com"] = displayName
+	return &acpconfigPolicypkgTsmV1Chainer{
+		client:       c,
+		name:         displayName,
+		parentLabels: parentLabels,
 	}
-	return
 }
 
-// GetDestSvcGroups returns link which has given displayName
-func (obj *PolicypkgACPConfig) GetDestSvcGroups(ctx context.Context,
-	displayName string) (result *ServicegroupSvcGroup, err error) {
-	l, ok := obj.Spec.DestSvcGroupsGvk[displayName]
-	if !ok {
-		return nil, NewLinkNotFound(obj.DisplayName(), "Policypkg.ACPConfig", "DestSvcGroups", displayName)
+// AddPolicypkgACPConfig calculates hashed name of the object based on objToCreate.Name
+// and parents names and creates it. objToCreate.Name is changed to the hashed name. Original name is preserved in
+// nexus/display_name label and can be obtained using DisplayName() method.
+func (c *Clientset) AddPolicypkgACPConfig(ctx context.Context,
+	objToCreate *basepolicypkgtsmtanzuvmwarecomv1.ACPConfig) (result *PolicypkgACPConfig, err error) {
+	if objToCreate.Labels == nil {
+		objToCreate.Labels = map[string]string{}
 	}
-	result, err = obj.client.Servicegroup().GetSvcGroupByName(ctx, l.Name)
-	return
+	if objToCreate.Labels[common.IS_NAME_HASHED_LABEL] != "true" {
+		objToCreate.Labels[common.DISPLAY_NAME_LABEL] = objToCreate.GetName()
+		objToCreate.Labels[common.IS_NAME_HASHED_LABEL] = "true"
+		hashedName := helper.GetHashedName(objToCreate.CRDName(), nil, objToCreate.GetName())
+		objToCreate.Name = hashedName
+	}
+	return c.Policypkg().CreateACPConfigByName(ctx, objToCreate)
 }
 
-// LinkDestSvcGroups links obj with linkToAdd object. This function doesn't create linked object, it must be
-// already created.
-func (obj *PolicypkgACPConfig) LinkDestSvcGroups(ctx context.Context,
-	linkToAdd *ServicegroupSvcGroup) error {
-
-	payload := "{\"spec\": {\"destSvcGroupsGvk\": {\"" + linkToAdd.DisplayName() + "\": {\"name\": \"" + linkToAdd.Name + "\",\"kind\": \"SvcGroup\", \"group\": \"servicegroup.tsm.tanzu.vmware.com\"}}}}"
-	result, err := obj.client.baseClient.PolicypkgTsmV1().ACPConfigs().Patch(ctx, obj.Name, types.MergePatchType, []byte(payload), metav1.PatchOptions{})
-	if err != nil {
-		return err
-	}
-
-	obj.ACPConfig = result
-	return nil
-}
-
-// UnlinkDestSvcGroups unlinks linkToRemove object from obj. This function doesn't delete linked object.
-func (obj *PolicypkgACPConfig) UnlinkDestSvcGroups(ctx context.Context,
-	linkToRemove *ServicegroupSvcGroup) (err error) {
-	var patch Patch
-
-	patchOp := PatchOp{
-		Op:   "remove",
-		Path: "/spec/destSvcGroupsGvk/" + linkToRemove.DisplayName(),
-	}
-
-	patch = append(patch, patchOp)
-	marshaled, err := patch.Marshal()
-	if err != nil {
-		return err
-	}
-	result, err := obj.client.baseClient.PolicypkgTsmV1().ACPConfigs().Patch(ctx, obj.Name, types.JSONPatchType, marshaled, metav1.PatchOptions{})
-	if err != nil {
-		return err
-	}
-	obj.ACPConfig = result
-	return nil
-
+// DeletePolicypkgACPConfig calculates hashedName of object based on displayName and
+// parents and deletes given object
+func (c *Clientset) DeletePolicypkgACPConfig(ctx context.Context, displayName string) (err error) {
+	hashedName := helper.GetHashedName("acpconfigs.policypkg.tsm.tanzu.vmware.com", nil, displayName)
+	return c.Policypkg().DeleteACPConfigByName(ctx, hashedName)
 }
 
 // GetAllSourceSvcGroups returns all links of given type
@@ -4651,46 +4088,9 @@ func (group *PolicypkgTsmV1) GetVMpolicyByName(ctx context.Context, hashedName s
 // display name and parents names. Use it when you know hashed name of object.
 func (group *PolicypkgTsmV1) DeleteVMpolicyByName(ctx context.Context, hashedName string) (err error) {
 
-	result, err := group.client.baseClient.
-		PolicypkgTsmV1().
-		VMpolicies().Get(ctx, hashedName, metav1.GetOptions{})
-	if err != nil {
-		return err
-	}
-
 	err = group.client.baseClient.
 		PolicypkgTsmV1().
 		VMpolicies().Delete(ctx, hashedName, metav1.DeleteOptions{})
-	if err != nil {
-		return err
-	}
-
-	var patch Patch
-
-	patchOp := PatchOp{
-		Op:   "remove",
-		Path: "/spec/vMPPoliciesGvk",
-	}
-
-	patch = append(patch, patchOp)
-	marshaled, err := patch.Marshal()
-	if err != nil {
-		return err
-	}
-	parents := result.GetLabels()
-	if parents == nil {
-		parents = make(map[string]string)
-	}
-	parentName, ok := parents["configs.config.tsm.tanzu.vmware.com"]
-	if !ok {
-		parentName = helper.DEFAULT_KEY
-	}
-	if parents[common.IS_NAME_HASHED_LABEL] == "true" {
-		parentName = helper.GetHashedName("configs.config.tsm.tanzu.vmware.com", parents, parentName)
-	}
-	_, err = group.client.baseClient.
-		ConfigTsmV1().
-		Configs().Patch(ctx, parentName, types.JSONPatchType, marshaled, metav1.PatchOptions{})
 	if err != nil {
 		return err
 	}
@@ -4712,36 +4112,6 @@ func (group *PolicypkgTsmV1) CreateVMpolicyByName(ctx context.Context,
 	result, err := group.client.baseClient.
 		PolicypkgTsmV1().
 		VMpolicies().Create(ctx, objToCreate, metav1.CreateOptions{})
-	if err != nil {
-		return nil, err
-	}
-
-	parentName, ok := objToCreate.GetLabels()["configs.config.tsm.tanzu.vmware.com"]
-	if !ok {
-		parentName = helper.DEFAULT_KEY
-	}
-	if objToCreate.Labels[common.IS_NAME_HASHED_LABEL] == "true" {
-		parentName = helper.GetHashedName("configs.config.tsm.tanzu.vmware.com", objToCreate.GetLabels(), parentName)
-	}
-
-	var patch Patch
-	patchOp := PatchOp{
-		Op:   "replace",
-		Path: "/spec/vMPPoliciesGvk",
-		Value: basepolicypkgtsmtanzuvmwarecomv1.Child{
-			Group: "policypkg.tsm.tanzu.vmware.com",
-			Kind:  "VMpolicy",
-			Name:  objToCreate.Name,
-		},
-	}
-	patch = append(patch, patchOp)
-	marshaled, err := patch.Marshal()
-	if err != nil {
-		return nil, err
-	}
-	_, err = group.client.baseClient.
-		ConfigTsmV1().
-		Configs().Patch(ctx, parentName, types.JSONPatchType, marshaled, metav1.PatchOptions{})
 	if err != nil {
 		return nil, err
 	}
@@ -4836,9 +4206,45 @@ func (obj *PolicypkgVMpolicy) Update(ctx context.Context) error {
 	return nil
 }
 
-func (obj *PolicypkgVMpolicy) GetParent(ctx context.Context) (result *ConfigConfig, err error) {
-	hashedName := helper.GetHashedName("configs.config.tsm.tanzu.vmware.com", obj.Labels, obj.Labels["configs.config.tsm.tanzu.vmware.com"])
-	return obj.client.Config().GetConfigByName(ctx, hashedName)
+// GetPolicypkgVMpolicy calculates the hashed name based on parents and displayName and
+// returns given object
+func (c *Clientset) GetPolicypkgVMpolicy(ctx context.Context, displayName string) (result *PolicypkgVMpolicy, err error) {
+	hashedName := helper.GetHashedName("vmpolicies.policypkg.tsm.tanzu.vmware.com", nil, displayName)
+	return c.Policypkg().GetVMpolicyByName(ctx, hashedName)
+}
+
+func (c *Clientset) PolicypkgVMpolicy(displayName string) *vmpolicyPolicypkgTsmV1Chainer {
+	parentLabels := make(map[string]string)
+	parentLabels["vmpolicies.policypkg.tsm.tanzu.vmware.com"] = displayName
+	return &vmpolicyPolicypkgTsmV1Chainer{
+		client:       c,
+		name:         displayName,
+		parentLabels: parentLabels,
+	}
+}
+
+// AddPolicypkgVMpolicy calculates hashed name of the object based on objToCreate.Name
+// and parents names and creates it. objToCreate.Name is changed to the hashed name. Original name is preserved in
+// nexus/display_name label and can be obtained using DisplayName() method.
+func (c *Clientset) AddPolicypkgVMpolicy(ctx context.Context,
+	objToCreate *basepolicypkgtsmtanzuvmwarecomv1.VMpolicy) (result *PolicypkgVMpolicy, err error) {
+	if objToCreate.Labels == nil {
+		objToCreate.Labels = map[string]string{}
+	}
+	if objToCreate.Labels[common.IS_NAME_HASHED_LABEL] != "true" {
+		objToCreate.Labels[common.DISPLAY_NAME_LABEL] = objToCreate.GetName()
+		objToCreate.Labels[common.IS_NAME_HASHED_LABEL] = "true"
+		hashedName := helper.GetHashedName(objToCreate.CRDName(), nil, objToCreate.GetName())
+		objToCreate.Name = hashedName
+	}
+	return c.Policypkg().CreateVMpolicyByName(ctx, objToCreate)
+}
+
+// DeletePolicypkgVMpolicy calculates hashedName of object based on displayName and
+// parents and deletes given object
+func (c *Clientset) DeletePolicypkgVMpolicy(ctx context.Context, displayName string) (err error) {
+	hashedName := helper.GetHashedName("vmpolicies.policypkg.tsm.tanzu.vmware.com", nil, displayName)
+	return c.Policypkg().DeleteVMpolicyByName(ctx, hashedName)
 }
 
 type vmpolicyPolicypkgTsmV1Chainer struct {

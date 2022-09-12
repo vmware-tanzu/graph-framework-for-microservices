@@ -1,22 +1,122 @@
+package graph
 
-//////////////////////////////////////
-// Resolver for Parent Node: {{.Node.SimpleGroupTypeName}}
-//////////////////////////////////////
-func (c *resolverConfig) getRootResolver() (*model.{{.Node.SimpleGroupTypeName}}{{.Node.BaseNodeName}}, error) {
-	k8sApiConfig := getK8sAPIEndpointConfig()
-	nc, err := nexus_client.NewForConfig(k8sApiConfig)
-	if err != nil {
-		panic(err)
-	}
+import (
+	"context"
+	"encoding/json"
+	"fmt"
+	nexus_client "{{.BaseImportPath}}nexus-client"
+	"{{.BaseImportPath}}nexus-gql/graph/model"
 
-	v{{.Node.BaseNodeName}}, err := nc.Get{{.Node.SimpleGroupTypeName}}{{.Node.BaseNodeName}}(context.TODO())
-	if err != nil {
-		panic(err)
-	}
-	c.v{{.Node.SimpleGroupTypeName}}{{.Node.BaseNodeName}} = v{{.Node.BaseNodeName}}
-	ret := &model.{{.Node.SimpleGroupTypeName}}{{.Node.BaseNodeName}} {
-	{{.Fields}}
-	}
-	return ret, nil
+	qm "gitlab.eng.vmware.com/nsx-allspark_users/go-protos/pkg/query-manager"
+	libgrpc "gitlab.eng.vmware.com/nsx-allspark_users/lib-go/grpc"
+	"k8s.io/client-go/rest"
+)
+
+var c resolverConfig
+
+type resolverConfig struct {
+	{{ range  $key, $node := .Nodes }}{{ if $node.IsNexusNode }}v{{$node.PkgName}}{{$node.NodeName}} *nexus_client.{{$node.PkgName}}{{$node.NodeName}}
+	{{ else }}{{ end }}{{ end }}
 }
 
+//////////////////////////////////////
+// Nexus K8sAPIEndpointConfig
+//////////////////////////////////////
+func getK8sAPIEndpointConfig() *rest.Config {
+
+	var config *rest.Config
+	config = &rest.Config{
+		Host: "http://localhost:45192",
+	}
+
+	return config
+}
+
+//////////////////////////////////////
+// GRPC SERVER CONFIG
+//////////////////////////////////////
+func grpcServer() qm.ServerClient{
+	addr := "localhost:45781"
+	conn, err := libgrpc.ClientConn(addr, libgrpc.Config{})
+	if err != nil {
+		fmt.Printf("Failed to connect to query-manager server, err: %v", err)
+	}
+	return qm.NewServerClient(conn)
+}
+{{ range $key, $node := .Nodes }}{{ if $node.IsSingletonNode }}
+//////////////////////////////////////
+// Resolver for Parent Node: {{$node.PkgName}}
+//////////////////////////////////////
+func (c *resolverConfig) getRootResolver() (*model.{{$node.PkgName}}{{$node.NodeName}}, error) {
+	k8sApiConfig := getK8sAPIEndpointConfig()
+	nc, err := nexus_client.NewForConfig(k8sApiConfig)
+	Id := ""
+	if err != nil {
+		panic(err)
+	}
+	v{{$node.NodeName}}, err := nc.Get{{$node.PkgName}}{{$node.NodeName}}(context.TODO())
+	if err != nil {
+		panic(err)
+	}
+	c.v{{$node.PkgName}}{{$node.NodeName}} = v{{$node.NodeName}}
+	{{ $node.Alias }}
+	{{ $node.ReturnType }}
+	return ret, nil
+}{{ else }}{{ end }}{{ end }}
+{{ range $key, $node := .Nodes }}{{ range $key, $child := $node.ChildLinkFields }}
+//////////////////////////////////////
+// Child/Link Node : {{$child.FieldName}}
+// Resolver for {{$child.NodeName}}
+//////////////////////////////////////
+func (c *resolverConfig) get{{$child.PkgName}}{{$child.NodeName}}{{$child.FieldName}}Resolver() (*model.{{$child.FieldTypePkgPath}}, error) {
+	v{{$child.FieldTypePkgPath}}, err := c.v{{$child.PkgName}}{{$child.NodeName}}.Get{{$child.FieldName}}(context.TODO())
+	if err != nil {
+		panic(err)
+	}
+	Id := ""
+	c.v{{$child.FieldTypePkgPath}} = v{{$child.FieldTypePkgPath}}
+	{{ $child.Alias }}
+	{{ $child.ReturnType }}
+	return ret, nil
+}
+{{ end }}{{ range $key, $child := $node.ChildrenLinksFields }}
+//////////////////////////////////////
+// Children/Links Node : {{$child.FieldName}}
+// Resolver for {{$child.NodeName}}
+//////////////////////////////////////
+func (c *resolverConfig) get{{$child.PkgName}}{{$child.NodeName}}{{$child.FieldName}}Resolver(id *string) ([]*model.{{$child.FieldTypePkgPath}}, error) {
+	var v{{$child.FieldTypePkgPath}}List []*model.{{$child.FieldTypePkgPath}}
+	if id != nil && *id != "" {
+		Id := *id
+		v{{$child.FieldTypePkgPath}}, err := c.v{{$child.PkgName}}{{$child.NodeName}}.Get{{$child.FieldName}}(context.TODO(), *id)
+		if err != nil {
+			panic(err)
+		}
+		{{ $child.Alias }}
+		{{ $child.ReturnType }}
+		v{{$child.FieldTypePkgPath}}List = append(v{{$child.NodeName}}List, ret)
+		return v{{$child.FieldTypePkgPath}}List, nil
+	}
+	for i := range c.v{{$child.PkgName}}{{$child.NodeName}}.Spec.{{$child.FieldName}}Gvk {
+		Id := i
+		v{{$child.FieldTypePkgPath}}, err := c.v{{$child.PkgName}}{{$child.NodeName}}.Get{{$child.FieldName}}(context.TODO(), i)
+		if err != nil {
+			panic(err)
+		}
+		{{ $child.Alias }}
+		{{ $child.ReturnType }}
+		v{{$child.FieldTypePkgPath}}List = append(v{{$child.NodeName}}List, ret)
+	}
+	return v{{$child.FieldTypePkgPath}}List, nil
+}
+{{ end }}{{ range $key, $custom := $node.CustomFields }}
+//////////////////////////////////////
+// CustomField: {{$custom.FieldName}} of CustomType: {{$custom.NodeName}}
+// Resolver for {{$custom.NodeName}}
+//////////////////////////////////////
+func (c *resolverConfig) get{{$custom.PkgName}}{{$custom.NodeName}}{{$custom.FieldName}}Resolver() (*model.{{$custom.FieldTypePkgPath}}, error) {
+	v{{$custom.PkgName}} := c.v{{$custom.PkgName}}{{$custom.NodeName}}
+	{{ $custom.Alias }}
+	{{ $custom.ReturnType }}
+	return ret, nil
+}{{ end }}{{ end }}

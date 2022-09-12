@@ -62,14 +62,9 @@ func (c *Config) DisplayName() string {
 
 // +k8s:openapi-gen=true
 type ConfigSpec struct {
-	MyStr0         *gnstsmtanzuvmwarecomv1.MyStr           `json:"myStr0" yaml:"myStr0"`
-	MyStr1         []gnstsmtanzuvmwarecomv1.MyStr          `json:"myStr1" yaml:"myStr1"`
-	MyStr2         map[string]gnstsmtanzuvmwarecomv1.MyStr `json:"myStr2" yaml:"myStr2"`
-	TestValMarkers TestValMarkers                          `json:"testValMarkers" yaml:"testValMarkers"`
-	GNSGvk         *Child                                  `json:"gNSGvk,omitempty" yaml:"gNSGvk,omitempty" nexus:"child"`
-	DNSGvk         *Child                                  `json:"dNSGvk,omitempty" yaml:"dNSGvk,omitempty" nexus:"child"`
-	VMPPoliciesGvk *Child                                  `json:"vMPPoliciesGvk,omitempty" yaml:"vMPPoliciesGvk,omitempty" nexus:"child"`
-	ACPPoliciesGvk map[string]Link                         `json:"aCPPoliciesGvk,omitempty" yaml:"aCPPoliciesGvk,omitempty" nexus:"links"`
+	TestValMarkers TestValMarkers `json:"testValMarkers" yaml:"testValMarkers"`
+	GNSGvk         *Child         `json:"gNSGvk,omitempty" yaml:"gNSGvk,omitempty" nexus:"child"`
+	DNSGvk         *Child         `json:"dNSGvk,omitempty" yaml:"dNSGvk,omitempty" nexus:"child"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object

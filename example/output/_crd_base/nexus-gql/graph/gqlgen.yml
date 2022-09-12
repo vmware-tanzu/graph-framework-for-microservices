@@ -1,14 +1,5 @@
 root_Root:
   fields:
-    CustomBar:
-      resolver: true
-
-    CustomBarMap:
-      resolver: true
-
-    ArrayBar:
-      resolver: true
-
     Config:
       resolver: true
 
@@ -20,8 +11,67 @@ root_Root:
 
     Foolinks:
       resolver: true
+
+    CustomBar:
+      resolver: true
+
+    CustomBarMap:
+      resolver: true
+
+    ArrayBar:
+      resolver: true
 root_NonNexusType:
   fields:
     Bar:
+      resolver: true
+config_Config:
+  fields:
+    GNS:
+      resolver: true
+
+    DNS:
+      resolver: true
+
+    TestValMarkers:
+      resolver: true
+config_TestValMarkers:
+  fields:
+    MySlice:
+      resolver: true
+gns_RandomGnsData:
+  fields:
+    Description:
+      resolver: true
+gns_Gns:
+  fields:
+    GnsServiceGroups:
+      resolver: true
+
+    Dns:
+      resolver: true
+
+    Description:
+      resolver: true
+gns_AdditionalGnsData:
+  fields:
+    Description:
+      resolver: true
+policypkg_AdditionalPolicyData:
+  fields:
+    Description:
+      resolver: true
+policypkg_ACPConfig:
+  fields:
+    SourceSvcGroups:
+      resolver: true
+
+    Tags:
+      resolver: true
+
+    Conditions:
+      resolver: true
+policypkg_RandomPolicyData:
+  fields:
+    Description:
       resolver: true
 

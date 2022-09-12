@@ -6,20 +6,234 @@ type root_Bar {
 
 type root_Root {
 
+    Id: ID!
+    Config: config_Config!
+    Foochildren(Id: ID): [config_Config!]
+    Foolink: config_Config!
+    Foolinks(Id: ID): [config_Config!]
+    
     Name: Int
     CustomBar: root_Bar
     NonStructFoo: String
     CustomBarMap: String
     ArrayBar(Id: ID): [root_Bar!]
-    Config: config_Config!
-    Foochildren(Id: ID): [config_Config!]
-    Foolink: config_Config!
-    Foolinks(Id: ID): [config_Config!]
 }
 
 type root_NonNexusType {
 
+    Id: ID!
+    
     Test: Int
     Foo: String
     Bar: root_Bar
+}
+
+type config_Config {
+
+    Id: ID!
+    GNS: gns_Gns!
+    DNS: gns_Dns!
+    TestValMarkers: config_TestValMarkers
+}
+
+type config_CrossPackageTester {
+
+    Test: String
+}
+
+type config_EmptyStructTest {
+
+}
+
+type config_TestValMarkers {
+
+    MyStr: String
+    MyInt: Int
+    MySlice(Id: ID): [String!]
+}
+
+type config_SomeStruct {
+
+}
+
+type gns_RandomGnsData {
+
+    Id: ID!
+    
+    Description: gns_RandomDescription
+}
+
+type gns_RandomDescription {
+
+    DiscriptionA: String
+    DiscriptionB: String
+    DiscriptionC: String
+    DiscriptionD: String
+}
+
+type gns_RandomStatus {
+
+    StatusX: Int
+    StatusY: Int
+}
+
+type gns_ReplicationSource {
+
+    Kind: String
+}
+
+type gns_Gns {
+
+    Id: ID!
+    GnsServiceGroups(Id: ID): [servicegroup_SvcGroup!]
+    Dns: gns_Dns!
+    
+    Domain: String
+    UseSharedGateway: Boolean
+    Description: gns_Description
+    Meta: String
+}
+
+type gns_Description {
+
+    Color: String
+    Version: String
+    ProjectId: String
+}
+
+type gns_Dns {
+
+    Id: ID!
+}
+
+type gns_GnsState {
+
+    Working: Boolean
+    Temperature: Int
+}
+
+type gns_AdditionalGnsData {
+
+    Id: ID!
+    
+    Description: gns_AdditionalDescription
+}
+
+type gns_AdditionalDescription {
+
+    DiscriptionA: String
+    DiscriptionB: String
+    DiscriptionC: String
+    DiscriptionD: String
+}
+
+type gns_AdditionalStatus {
+
+    StatusX: Int
+    StatusY: Int
+}
+
+type servicegroup_SvcGroup {
+
+    Id: ID!
+    DisplayName: String
+    Description: String
+    Color: String
+}
+
+type policypkg_AdditionalPolicyData {
+
+    Id: ID!
+    
+    Description: policypkg_AdditionalDescription
+}
+
+type policypkg_AdditionalDescription {
+
+    DiscriptionA: String
+    DiscriptionB: String
+    DiscriptionC: String
+    DiscriptionD: String
+}
+
+type policypkg_AdditionalStatus {
+
+    StatusX: Int
+    StatusY: Int
+}
+
+type policypkg_AccessControlPolicy {
+
+    Id: ID!
+}
+
+type policypkg_ACPConfig {
+
+    Id: ID!
+    
+    
+    SourceSvcGroups(Id: ID): [servicegroup_SvcGroup!]
+    
+    
+    DisplayName: String
+    Gns: String
+    Description: String
+    Tags(Id: ID): [String!]
+    ProjectId: String
+    Conditions(Id: ID): [String!]
+}
+
+type policypkg_ACPStatus {
+
+    StatusABC: Int
+    StatusXYZ: Int
+}
+
+type policypkg_ResourceGroupRef {
+
+    Name: String
+    Type: String
+}
+
+type policypkg_ACPSvcGroupLinkInfo {
+
+    ServiceName: String
+    ServiceType: String
+}
+
+type policypkg_PolicyCfgAction {
+
+    Action: String
+}
+
+type policypkg_ResourceGroupID {
+
+    Name: String
+    Type: String
+}
+
+type policypkg_VMpolicy {
+
+    Id: ID!
+}
+
+type policypkg_RandomPolicyData {
+
+    Id: ID!
+    
+    Description: policypkg_RandomDescription
+}
+
+type policypkg_RandomDescription {
+
+    DiscriptionA: String
+    DiscriptionB: String
+    DiscriptionC: String
+    DiscriptionD: String
+}
+
+type policypkg_RandomStatus {
+
+    StatusX: Int
+    StatusY: Int
 }
