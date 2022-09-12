@@ -260,11 +260,11 @@ func GetApisList(token string, serverInfo *auth.Server) error {
 	}
 
 	var apis []string
-	apisCheck := make(map[string]bool)
+	apisMap := make(map[string]string)
 	for _, val := range data {
 		methods := val.(map[string]interface{})
-		var group, resource string
-		for _, methodInfo := range methods {
+		var group, resource, short string
+		for k, methodInfo := range methods {
 			if info, ok := methodInfo.(map[string]interface{}); ok {
 				if v, ok := info["kind"]; ok {
 					resource = strings.ToLower(utils.ToPlural(v.(string)))
@@ -273,19 +273,27 @@ func GetApisList(token string, serverInfo *auth.Server) error {
 					group = v.(string)
 				}
 			}
+
+			if k == "short" {
+				short = methodInfo.(map[string]interface{})["name"].(string)
+			}
 		}
 
 		api := fmt.Sprintf("%s.%s", resource, group)
-		if !apisCheck[api] {
+		if _, ok := apisMap[api]; !ok {
 			apis = append(apis, api)
-			apisCheck[api] = true
+			apisMap[api] = short
 		}
 	}
 
 	fmt.Printf("\nAvailable APIs:\n")
 	sort.Strings(apis)
 	for _, api := range apis {
-		fmt.Printf("· %s\n", api)
+		out := fmt.Sprintf("· %s", api)
+		if apisMap[api] != "" {
+			out += fmt.Sprintf(" ( %s )", apisMap[api])
+		}
+		fmt.Println(out)
 	}
 
 	return nil
@@ -299,9 +307,8 @@ func GetShortName(shortName, token string, serverInfo *auth.Server) (string, str
 
 	for _, val := range data {
 		methods := val.(map[string]interface{})
-		if short, ok := methods["short"]; ok {
-			if short.(string) != fmt.Sprintf("/apis/v1/%s", shortName) &&
-				short.(string) != fmt.Sprintf("/apis/v1/%s/:name", shortName) {
+		if short, ok := methods["short"].(map[string]interface{}); ok {
+			if short["name"] != shortName {
 				continue
 			}
 		} else {
