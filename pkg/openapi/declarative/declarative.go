@@ -130,7 +130,10 @@ func AddApisEndpoint(ec *EndpointContext) {
 	}
 
 	if ec.ShortUri != "" {
-		ApisList[ec.Uri]["short"] = ec.ShortUri
+		ApisList[ec.Uri]["short"] = map[string]interface{}{
+			"name": ec.ShortName,
+			"uri":  ec.ShortUri,
+		}
 	}
 }
 
