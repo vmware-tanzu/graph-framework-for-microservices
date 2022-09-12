@@ -3,8 +3,6 @@
 package v1
 
 import (
-	gnstsmtanzuvmwarecomv1 "nexustempmodule/apis/gns.tsm.tanzu.vmware.com/v1"
-
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"nexustempmodule/common"
@@ -62,9 +60,9 @@ func (c *Config) DisplayName() string {
 
 // +k8s:openapi-gen=true
 type ConfigSpec struct {
-	TestValMarkers TestValMarkers `json:"testValMarkers" yaml:"testValMarkers"`
-	GNSGvk         *Child         `json:"gNSGvk,omitempty" yaml:"gNSGvk,omitempty" nexus:"child"`
-	DNSGvk         *Child         `json:"dNSGvk,omitempty" yaml:"dNSGvk,omitempty" nexus:"child"`
+	ConfigName string  `json:"configName" yaml:"configName"`
+	Cluster    Cluster `json:"cluster" yaml:"cluster"`
+	GNSGvk     *Child  `json:"gNSGvk,omitempty" yaml:"gNSGvk,omitempty" nexus:"child"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
@@ -75,26 +73,7 @@ type ConfigList struct {
 }
 
 // +k8s:openapi-gen=true
-type CrossPackageTester struct {
-	Test gnstsmtanzuvmwarecomv1.MyStr
-}
-
-// +k8s:openapi-gen=true
-type EmptyStructTest struct {
-}
-
-// +k8s:openapi-gen=true
-type TestValMarkers struct {
-	//nexus-validation: MaxLength=8, MinLength=2, Pattern=ab
-	MyStr string `json:"myStr" yaml:"myStr"`
-	//nexus-validation: Maximum=8, Minimum=2
-	//nexus-validation: ExclusiveMaximum=true
-	MyInt int `json:"myInt" yaml:"myInt"`
-	//nexus-validation: MaxItems=3, MinItems=2
-	//nexus-validation: UniqueItems=true
-	MySlice []string `json:"mySlice" yaml:"mySlice"`
-}
-
-// +k8s:openapi-gen=true
-type SomeStruct struct {
+type Cluster struct {
+	Name string
+	MyID int
 }

@@ -3,10 +3,9 @@
 package v1
 
 import (
-	cartv1 "github.com/vmware-tanzu/cartographer/pkg/apis/v1alpha1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/crd_generated/common"
+	"nexustempmodule/common"
 )
 
 // +k8s:openapi-gen=true
@@ -36,47 +35,6 @@ type NexusStatus struct {
 // +genclient:nonNamespaced
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 // +k8s:openapi-gen=true
-type RandomGnsData struct {
-	metav1.TypeMeta   `json:",inline" yaml:",inline"`
-	metav1.ObjectMeta `json:"metadata" yaml:"metadata"`
-	Spec              RandomGnsDataSpec        `json:"spec,omitempty" yaml:"spec,omitempty"`
-	Status            RandomGnsDataNexusStatus `json:"status,omitempty" yaml:"status,omitempty"`
-}
-
-// +k8s:openapi-gen=true
-type RandomGnsDataNexusStatus struct {
-	Status RandomStatus `json:"status,omitempty" yaml:"status,omitempty"`
-	Nexus  NexusStatus  `json:"nexus,omitempty" yaml:"nexus,omitempty"`
-}
-
-func (c *RandomGnsData) CRDName() string {
-	return "randomgnsdatas.gns.tsm.tanzu.vmware.com"
-}
-
-func (c *RandomGnsData) DisplayName() string {
-	if c.GetLabels() != nil {
-		return c.GetLabels()[common.DISPLAY_NAME_LABEL]
-	}
-	return ""
-}
-
-// +k8s:openapi-gen=true
-type RandomGnsDataSpec struct {
-	Description RandomDescription `json:"description" yaml:"description"`
-}
-
-// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
-type RandomGnsDataList struct {
-	metav1.TypeMeta `json:",inline" yaml:",inline"`
-	metav1.ListMeta `json:"metadata" yaml:"metadata"`
-	Items           []RandomGnsData `json:"items" yaml:"items"`
-}
-
-// +genclient
-// +genclient:noStatus
-// +genclient:nonNamespaced
-// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
-// +k8s:openapi-gen=true
 type Gns struct {
 	metav1.TypeMeta   `json:",inline" yaml:",inline"`
 	metav1.ObjectMeta `json:"metadata" yaml:"metadata"`
@@ -86,7 +44,6 @@ type Gns struct {
 
 // +k8s:openapi-gen=true
 type GnsNexusStatus struct {
-	State GnsState    `json:"state,omitempty" yaml:"state,omitempty"`
 	Nexus NexusStatus `json:"nexus,omitempty" yaml:"nexus,omitempty"`
 }
 
@@ -105,14 +62,15 @@ func (c *Gns) DisplayName() string {
 type GnsSpec struct {
 	//nexus-validation: MaxLength=8, MinLength=2
 	//nexus-validation: Pattern=abc
-	Domain                    string              `json:"domain" yaml:"domain"`
-	UseSharedGateway          bool                `json:"useSharedGateway" yaml:"useSharedGateway"`
-	Description               Description         `json:"description" yaml:"description"`
-	Meta                      string              `json:"meta" yaml:"meta"`
-	WorkloadSpec              cartv1.WorkloadSpec `json:"workloadSpec" yaml:"workloadSpec"`
-	GnsServiceGroupsGvk       map[string]Child    `json:"gnsServiceGroupsGvk,omitempty" yaml:"gnsServiceGroupsGvk,omitempty" nexus:"children"`
-	GnsAccessControlPolicyGvk *Child              `json:"gnsAccessControlPolicyGvk,omitempty" yaml:"gnsAccessControlPolicyGvk,omitempty" nexus:"child"`
-	DnsGvk                    *Link               `json:"dnsGvk,omitempty" yaml:"dnsGvk,omitempty" nexus:"link"`
+	Domain           string           `json:"domain" yaml:"domain"`
+	UseSharedGateway bool             `json:"useSharedGateway" yaml:"useSharedGateway"`
+	Mydesc           Description      `json:"mydesc" yaml:"mydesc"`
+	HostPort         HostPort         `json:"hostPort" yaml:"hostPort"`
+	Instance         Instance         `json:"instance" yaml:"instance"`
+	FooChildGvk      *Child           `json:"fooChildGvk,omitempty" yaml:"fooChildGvk,omitempty" nexus:"child"`
+	FooChildrenGvk   map[string]Child `json:"fooChildrenGvk,omitempty" yaml:"fooChildrenGvk,omitempty" nexus:"children"`
+	FooLinkGvk       *Link            `json:"fooLinkGvk,omitempty" yaml:"fooLinkGvk,omitempty" nexus:"link"`
+	FooLinksGvk      map[string]Link  `json:"fooLinksGvk,omitempty" yaml:"fooLinksGvk,omitempty" nexus:"links"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
@@ -127,59 +85,23 @@ type GnsList struct {
 // +genclient:nonNamespaced
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 // +k8s:openapi-gen=true
-type Dns struct {
+type Bar struct {
 	metav1.TypeMeta   `json:",inline" yaml:",inline"`
 	metav1.ObjectMeta `json:"metadata" yaml:"metadata"`
-
-	Status DnsNexusStatus `json:"status,omitempty" yaml:"status,omitempty"`
+	Spec              BarSpec        `json:"spec,omitempty" yaml:"spec,omitempty"`
+	Status            BarNexusStatus `json:"status,omitempty" yaml:"status,omitempty"`
 }
 
 // +k8s:openapi-gen=true
-type DnsNexusStatus struct {
+type BarNexusStatus struct {
 	Nexus NexusStatus `json:"nexus,omitempty" yaml:"nexus,omitempty"`
 }
 
-func (c *Dns) CRDName() string {
-	return "dnses.gns.tsm.tanzu.vmware.com"
+func (c *Bar) CRDName() string {
+	return "bars.gns.tsm.tanzu.vmware.com"
 }
 
-func (c *Dns) DisplayName() string {
-	if c.GetLabels() != nil {
-		return c.GetLabels()[common.DISPLAY_NAME_LABEL]
-	}
-	return ""
-}
-
-// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
-type DnsList struct {
-	metav1.TypeMeta `json:",inline" yaml:",inline"`
-	metav1.ListMeta `json:"metadata" yaml:"metadata"`
-	Items           []Dns `json:"items" yaml:"items"`
-}
-
-// +genclient
-// +genclient:noStatus
-// +genclient:nonNamespaced
-// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
-// +k8s:openapi-gen=true
-type AdditionalGnsData struct {
-	metav1.TypeMeta   `json:",inline" yaml:",inline"`
-	metav1.ObjectMeta `json:"metadata" yaml:"metadata"`
-	Spec              AdditionalGnsDataSpec        `json:"spec,omitempty" yaml:"spec,omitempty"`
-	Status            AdditionalGnsDataNexusStatus `json:"status,omitempty" yaml:"status,omitempty"`
-}
-
-// +k8s:openapi-gen=true
-type AdditionalGnsDataNexusStatus struct {
-	Status AdditionalStatus `json:"status,omitempty" yaml:"status,omitempty"`
-	Nexus  NexusStatus      `json:"nexus,omitempty" yaml:"nexus,omitempty"`
-}
-
-func (c *AdditionalGnsData) CRDName() string {
-	return "additionalgnsdatas.gns.tsm.tanzu.vmware.com"
-}
-
-func (c *AdditionalGnsData) DisplayName() string {
+func (c *Bar) DisplayName() string {
 	if c.GetLabels() != nil {
 		return c.GetLabels()[common.DISPLAY_NAME_LABEL]
 	}
@@ -187,81 +109,32 @@ func (c *AdditionalGnsData) DisplayName() string {
 }
 
 // +k8s:openapi-gen=true
-type AdditionalGnsDataSpec struct {
-	Description AdditionalDescription `json:"description" yaml:"description"`
+type BarSpec struct {
+	Name string `json:"name" yaml:"name"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
-type AdditionalGnsDataList struct {
+type BarList struct {
 	metav1.TypeMeta `json:",inline" yaml:",inline"`
 	metav1.ListMeta `json:"metadata" yaml:"metadata"`
-	Items           []AdditionalGnsData `json:"items" yaml:"items"`
+	Items           []Bar `json:"items" yaml:"items"`
 }
 
 // +k8s:openapi-gen=true
-type RandomDescription struct {
-	DiscriptionA string
-	DiscriptionB string
-	DiscriptionC string
-	DiscriptionD string
-}
-
-// +k8s:openapi-gen=true
-type RandomStatus struct {
-	StatusX int
-	StatusY int
-}
-
-// +k8s:openapi-gen=true
-type ReplicationSource struct {
-	Kind SourceKind
+type HostPort struct {
+	Host Host
+	Port Port
 }
 
 // +k8s:openapi-gen=true
 type Description struct {
 	Color     string
 	Version   string
-	ProjectId string
+	ProjectID string
 }
 
-// +k8s:openapi-gen=true
-type GnsState struct {
-	Working     bool
-	Temperature int
-}
+type Port uint16
 
-// +k8s:openapi-gen=true
-type AdditionalDescription struct {
-	DiscriptionA string
-	DiscriptionB string
-	DiscriptionC string
-	DiscriptionD string
-}
-
-// +k8s:openapi-gen=true
-type AdditionalStatus struct {
-	StatusX int
-	StatusY int
-}
-
-type RandomConst1 string
-type RandomConst2 string
-type RandomConst3 string
-type MyConst string
-type SourceKind string
-type MyStr string
-type TempConst1 string
-type TempConst2 string
-type TempConst3 string
-
-const (
-	MyConst3 RandomConst3 = "Const3"
-	MyConst2 RandomConst2 = "Const2"
-	MyConst1 RandomConst1 = "Const1"
-	Object   SourceKind   = "Object"
-	Type     SourceKind   = "Type"
-	XYZ      MyConst      = "xyz"
-	Const3   TempConst3   = "Const3"
-	Const2   TempConst2   = "Const2"
-	Const1   TempConst1   = "Const1"
-)
+// Host the IP of the endpoint
+type Host string
+type Instance string

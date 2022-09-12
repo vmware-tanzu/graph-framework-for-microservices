@@ -18,10 +18,6 @@ limitations under the License.
 
 package v1
 
-type AdditionalGnsDataExpansion interface{}
-
-type DnsExpansion interface{}
+type BarExpansion interface{}
 
 type GnsExpansion interface{}
-
-type RandomGnsDataExpansion interface{}

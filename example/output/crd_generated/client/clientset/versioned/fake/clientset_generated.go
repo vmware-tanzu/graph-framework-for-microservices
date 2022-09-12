@@ -19,17 +19,13 @@ limitations under the License.
 package fake
 
 import (
-	clientset "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/crd_generated/client/clientset/versioned"
-	configtsmv1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/crd_generated/client/clientset/versioned/typed/config.tsm.tanzu.vmware.com/v1"
-	fakeconfigtsmv1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/crd_generated/client/clientset/versioned/typed/config.tsm.tanzu.vmware.com/v1/fake"
-	gnstsmv1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/crd_generated/client/clientset/versioned/typed/gns.tsm.tanzu.vmware.com/v1"
-	fakegnstsmv1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/crd_generated/client/clientset/versioned/typed/gns.tsm.tanzu.vmware.com/v1/fake"
-	policypkgtsmv1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/crd_generated/client/clientset/versioned/typed/policypkg.tsm.tanzu.vmware.com/v1"
-	fakepolicypkgtsmv1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/crd_generated/client/clientset/versioned/typed/policypkg.tsm.tanzu.vmware.com/v1/fake"
-	roottsmv1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/crd_generated/client/clientset/versioned/typed/root.tsm.tanzu.vmware.com/v1"
-	fakeroottsmv1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/crd_generated/client/clientset/versioned/typed/root.tsm.tanzu.vmware.com/v1/fake"
-	servicegrouptsmv1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/crd_generated/client/clientset/versioned/typed/servicegroup.tsm.tanzu.vmware.com/v1"
-	fakeservicegrouptsmv1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/crd_generated/client/clientset/versioned/typed/servicegroup.tsm.tanzu.vmware.com/v1/fake"
+	clientset "nexustempmodule/client/clientset/versioned"
+	configtsmv1 "nexustempmodule/client/clientset/versioned/typed/config.tsm.tanzu.vmware.com/v1"
+	fakeconfigtsmv1 "nexustempmodule/client/clientset/versioned/typed/config.tsm.tanzu.vmware.com/v1/fake"
+	gnstsmv1 "nexustempmodule/client/clientset/versioned/typed/gns.tsm.tanzu.vmware.com/v1"
+	fakegnstsmv1 "nexustempmodule/client/clientset/versioned/typed/gns.tsm.tanzu.vmware.com/v1/fake"
+	roottsmv1 "nexustempmodule/client/clientset/versioned/typed/root.tsm.tanzu.vmware.com/v1"
+	fakeroottsmv1 "nexustempmodule/client/clientset/versioned/typed/root.tsm.tanzu.vmware.com/v1/fake"
 
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/watch"
@@ -98,17 +94,7 @@ func (c *Clientset) GnsTsmV1() gnstsmv1.GnsTsmV1Interface {
 	return &fakegnstsmv1.FakeGnsTsmV1{Fake: &c.Fake}
 }
 
-// PolicypkgTsmV1 retrieves the PolicypkgTsmV1Client
-func (c *Clientset) PolicypkgTsmV1() policypkgtsmv1.PolicypkgTsmV1Interface {
-	return &fakepolicypkgtsmv1.FakePolicypkgTsmV1{Fake: &c.Fake}
-}
-
 // RootTsmV1 retrieves the RootTsmV1Client
 func (c *Clientset) RootTsmV1() roottsmv1.RootTsmV1Interface {
 	return &fakeroottsmv1.FakeRootTsmV1{Fake: &c.Fake}
-}
-
-// ServicegroupTsmV1 retrieves the ServicegroupTsmV1Client
-func (c *Clientset) ServicegroupTsmV1() servicegrouptsmv1.ServicegroupTsmV1Interface {
-	return &fakeservicegrouptsmv1.FakeServicegroupTsmV1{Fake: &c.Fake}
 }

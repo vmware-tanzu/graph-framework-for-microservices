@@ -69,12 +69,12 @@ func (c *resolverConfig) getRootResolver() (*model.{{$node.PkgName}}{{$node.Node
 // Resolver for {{$child.NodeName}}
 //////////////////////////////////////
 func (c *resolverConfig) get{{$child.PkgName}}{{$child.NodeName}}{{$child.FieldName}}Resolver() (*model.{{$child.FieldTypePkgPath}}, error) {
-	v{{$child.FieldTypePkgPath}}, err := c.v{{$child.PkgName}}{{$child.NodeName}}.Get{{$child.FieldName}}(context.TODO())
+	v{{$child.FieldName}}, err := c.v{{$child.PkgName}}{{$child.NodeName}}.Get{{$child.FieldName}}(context.TODO())
 	if err != nil {
 		panic(err)
 	}
 	Id := ""
-	c.v{{$child.FieldTypePkgPath}} = v{{$child.FieldTypePkgPath}}
+	c.v{{$child.FieldTypePkgPath}} = v{{$child.FieldName}}
 	{{ $child.Alias }}
 	{{ $child.ReturnType }}
 	return ret, nil

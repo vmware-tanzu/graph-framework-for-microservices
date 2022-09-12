@@ -20,12 +20,9 @@ package externalversions
 
 import (
 	"fmt"
-
-	v1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/crd_generated/apis/config.tsm.tanzu.vmware.com/v1"
-	gnstsmtanzuvmwarecomv1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/crd_generated/apis/gns.tsm.tanzu.vmware.com/v1"
-	policypkgtsmtanzuvmwarecomv1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/crd_generated/apis/policypkg.tsm.tanzu.vmware.com/v1"
-	roottsmtanzuvmwarecomv1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/crd_generated/apis/root.tsm.tanzu.vmware.com/v1"
-	servicegrouptsmtanzuvmwarecomv1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/crd_generated/apis/servicegroup.tsm.tanzu.vmware.com/v1"
+	v1 "nexustempmodule/apis/config.tsm.tanzu.vmware.com/v1"
+	gnstsmtanzuvmwarecomv1 "nexustempmodule/apis/gns.tsm.tanzu.vmware.com/v1"
+	roottsmtanzuvmwarecomv1 "nexustempmodule/apis/root.tsm.tanzu.vmware.com/v1"
 
 	schema "k8s.io/apimachinery/pkg/runtime/schema"
 	cache "k8s.io/client-go/tools/cache"
@@ -62,34 +59,14 @@ func (f *sharedInformerFactory) ForResource(resource schema.GroupVersionResource
 		return &genericInformer{resource: resource.GroupResource(), informer: f.ConfigTsm().V1().Configs().Informer()}, nil
 
 		// Group=gns.tsm.tanzu.vmware.com, Version=v1
-	case gnstsmtanzuvmwarecomv1.SchemeGroupVersion.WithResource("additionalgnsdatas"):
-		return &genericInformer{resource: resource.GroupResource(), informer: f.GnsTsm().V1().AdditionalGnsDatas().Informer()}, nil
-	case gnstsmtanzuvmwarecomv1.SchemeGroupVersion.WithResource("dnses"):
-		return &genericInformer{resource: resource.GroupResource(), informer: f.GnsTsm().V1().Dnses().Informer()}, nil
+	case gnstsmtanzuvmwarecomv1.SchemeGroupVersion.WithResource("bars"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.GnsTsm().V1().Bars().Informer()}, nil
 	case gnstsmtanzuvmwarecomv1.SchemeGroupVersion.WithResource("gnses"):
 		return &genericInformer{resource: resource.GroupResource(), informer: f.GnsTsm().V1().Gnses().Informer()}, nil
-	case gnstsmtanzuvmwarecomv1.SchemeGroupVersion.WithResource("randomgnsdatas"):
-		return &genericInformer{resource: resource.GroupResource(), informer: f.GnsTsm().V1().RandomGnsDatas().Informer()}, nil
-
-		// Group=policypkg.tsm.tanzu.vmware.com, Version=v1
-	case policypkgtsmtanzuvmwarecomv1.SchemeGroupVersion.WithResource("acpconfigs"):
-		return &genericInformer{resource: resource.GroupResource(), informer: f.PolicypkgTsm().V1().ACPConfigs().Informer()}, nil
-	case policypkgtsmtanzuvmwarecomv1.SchemeGroupVersion.WithResource("accesscontrolpolicies"):
-		return &genericInformer{resource: resource.GroupResource(), informer: f.PolicypkgTsm().V1().AccessControlPolicies().Informer()}, nil
-	case policypkgtsmtanzuvmwarecomv1.SchemeGroupVersion.WithResource("additionalpolicydatas"):
-		return &genericInformer{resource: resource.GroupResource(), informer: f.PolicypkgTsm().V1().AdditionalPolicyDatas().Informer()}, nil
-	case policypkgtsmtanzuvmwarecomv1.SchemeGroupVersion.WithResource("randompolicydatas"):
-		return &genericInformer{resource: resource.GroupResource(), informer: f.PolicypkgTsm().V1().RandomPolicyDatas().Informer()}, nil
-	case policypkgtsmtanzuvmwarecomv1.SchemeGroupVersion.WithResource("vmpolicies"):
-		return &genericInformer{resource: resource.GroupResource(), informer: f.PolicypkgTsm().V1().VMpolicies().Informer()}, nil
 
 		// Group=root.tsm.tanzu.vmware.com, Version=v1
 	case roottsmtanzuvmwarecomv1.SchemeGroupVersion.WithResource("roots"):
 		return &genericInformer{resource: resource.GroupResource(), informer: f.RootTsm().V1().Roots().Informer()}, nil
-
-		// Group=servicegroup.tsm.tanzu.vmware.com, Version=v1
-	case servicegrouptsmtanzuvmwarecomv1.SchemeGroupVersion.WithResource("svcgroups"):
-		return &genericInformer{resource: resource.GroupResource(), informer: f.ServicegroupTsm().V1().SvcGroups().Informer()}, nil
 
 	}
 

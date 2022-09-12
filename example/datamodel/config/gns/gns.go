@@ -3,10 +3,6 @@ package gns
 import (
 	"net/http"
 
-	cartv1 "github.com/vmware-tanzu/cartographer/pkg/apis/v1alpha1"
-
-	service_group "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/datamodel/config/gns/service-group"
-	policypkg "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/datamodel/config/policy"
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/datamodel/nexus"
 )
 
@@ -59,72 +55,44 @@ var GNSRestAPISpec = nexus.RestAPISpec{
 	},
 }
 
-var DNSRestAPISpec = nexus.RestAPISpec{
-	Uris: []nexus.RestURIs{
-		{
-			Uri: "/v1alpha2/dns",
-			QueryParams: []string{
-				"config.Config",
-				"gns.Dns",
-			},
-			Methods: nexus.DefaultHTTPMethodsResponses,
-		},
-		{
-			Uri: "/v1alpha2/dnses",
-			QueryParams: []string{
-				"config.Config",
-			},
-			Methods: nexus.HTTPListResponse,
-		},
-	},
+type Port uint16
+
+// Host the IP of the endpoint
+type Host string
+
+type HostPort struct {
+	Host Host
+	Port Port
 }
 
-type MyConst string
-type SourceKind string
-
-const (
-	Object SourceKind = "Object"
-	Type   SourceKind = "Type"
-	XYZ    MyConst    = "xyz"
-)
-
-type ReplicationSource struct {
-	Kind SourceKind
-}
+type Instance string
 
 // Gns struct.
-// nexus-rest-api-gen:GNSRestAPISpec
 // nexus-description: this is my awesome node
 // specification of GNS.
 type Gns struct {
 	nexus.Node
 	//nexus-validation: MaxLength=8, MinLength=2
 	//nexus-validation: Pattern=abc
-	Domain                 string
-	UseSharedGateway       bool
-	Description            Description
-	GnsServiceGroups       service_group.SvcGroup        `nexus:"children"`
-	Dns                    Dns                           `nexus:"link"`
-	State                  GnsState                      `nexus:"status"`
-	Meta                   string
-
+	Domain           string
+	UseSharedGateway bool
+	Mydesc           Description
+	FooLink          Bar `nexus:"link"`
+	FooLinks         Bar `nexus:"links"`
+	FooChild         Bar `nexus:"child"`
+	FooChildren      Bar `nexus:"children"`
+	HostPort         HostPort
+	Instance         Instance
 }
 
 // This is Description struct.
 type Description struct {
 	Color     string
 	Version   string
-	ProjectId string
+	ProjectID string
 }
 
-// nexus-rest-api-gen:DNSRestAPISpec
-type Dns struct {
-	nexus.SingletonNode
+type Bar struct {
+	nexus.Node
+	Name string
 }
-
-type GnsState struct {
-	Working     bool
-	Temperature int
-}
-
-type MyStr string

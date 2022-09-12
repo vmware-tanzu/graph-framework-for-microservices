@@ -44,8 +44,7 @@ type Root struct {
 
 // +k8s:openapi-gen=true
 type RootNexusStatus struct {
-	StatusBarMap Bar         `json:"statusBarMap,omitempty" yaml:"statusBarMap,omitempty"`
-	Nexus        NexusStatus `json:"nexus,omitempty" yaml:"nexus,omitempty"`
+	Nexus NexusStatus `json:"nexus,omitempty" yaml:"nexus,omitempty"`
 }
 
 func (c *Root) CRDName() string {
@@ -61,15 +60,9 @@ func (c *Root) DisplayName() string {
 
 // +k8s:openapi-gen=true
 type RootSpec struct {
-	Name           int              `json:"name" yaml:"name"`
-	CustomBar      Bar              `json:"customBar" yaml:"customBar"`
-	NonStructFoo   Foo              `json:"nonStructFoo" yaml:"nonStructFoo"`
-	CustomBarMap   map[string]Bar   `json:"customBarMap" yaml:"customBarMap"`
-	ArrayBar       []Bar            `json:"arrayBar" yaml:"arrayBar"`
-	ConfigGvk      *Child           `json:"configGvk,omitempty" yaml:"configGvk,omitempty" nexus:"child"`
-	FoochildrenGvk map[string]Child `json:"foochildrenGvk,omitempty" yaml:"foochildrenGvk,omitempty" nexus:"children"`
-	FoolinkGvk     *Link            `json:"foolinkGvk,omitempty" yaml:"foolinkGvk,omitempty" nexus:"link"`
-	FoolinksGvk    map[string]Link  `json:"foolinksGvk,omitempty" yaml:"foolinksGvk,omitempty" nexus:"links"`
+	DisplayName string `json:"displayName" yaml:"displayName"`
+	CustomBar   Bar    `json:"customBar" yaml:"customBar"`
+	ConfigGvk   *Child `json:"configGvk,omitempty" yaml:"configGvk,omitempty" nexus:"child"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
@@ -79,52 +72,7 @@ type RootList struct {
 	Items           []Root `json:"items" yaml:"items"`
 }
 
-// +genclient
-// +genclient:noStatus
-// +genclient:nonNamespaced
-// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
-// +k8s:openapi-gen=true
-type NonNexusType struct {
-	metav1.TypeMeta   `json:",inline" yaml:",inline"`
-	metav1.ObjectMeta `json:"metadata" yaml:"metadata"`
-	Spec              NonNexusTypeSpec        `json:"spec,omitempty" yaml:"spec,omitempty"`
-	Status            NonNexusTypeNexusStatus `json:"status,omitempty" yaml:"status,omitempty"`
-}
-
-// +k8s:openapi-gen=true
-type NonNexusTypeNexusStatus struct {
-	StatusBar Bar         `json:"statusBar,omitempty" yaml:"statusBar,omitempty"`
-	Nexus     NexusStatus `json:"nexus,omitempty" yaml:"nexus,omitempty"`
-}
-
-func (c *NonNexusType) CRDName() string {
-	return "nonnexustypes.root.tsm.tanzu.vmware.com"
-}
-
-func (c *NonNexusType) DisplayName() string {
-	if c.GetLabels() != nil {
-		return c.GetLabels()[common.DISPLAY_NAME_LABEL]
-	}
-	return ""
-}
-
-// +k8s:openapi-gen=true
-type NonNexusTypeSpec struct {
-	Test int `json:"test" yaml:"test"`
-	Foo  Foo `json:"foo" yaml:"foo"`
-	Bar  Bar `json:"bar" yaml:"bar"`
-}
-
-// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
-type NonNexusTypeList struct {
-	metav1.TypeMeta `json:",inline" yaml:",inline"`
-	metav1.ListMeta `json:"metadata" yaml:"metadata"`
-	Items           []NonNexusType `json:"items" yaml:"items"`
-}
-
 // +k8s:openapi-gen=true
 type Bar struct {
-	Foo float32
+	Name string
 }
-
-type Foo string

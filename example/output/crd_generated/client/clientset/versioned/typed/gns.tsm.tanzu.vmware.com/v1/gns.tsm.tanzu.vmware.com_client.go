@@ -19,18 +19,16 @@ limitations under the License.
 package v1
 
 import (
-	v1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/crd_generated/apis/gns.tsm.tanzu.vmware.com/v1"
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/crd_generated/client/clientset/versioned/scheme"
+	v1 "nexustempmodule/apis/gns.tsm.tanzu.vmware.com/v1"
+	"nexustempmodule/client/clientset/versioned/scheme"
 
 	rest "k8s.io/client-go/rest"
 )
 
 type GnsTsmV1Interface interface {
 	RESTClient() rest.Interface
-	AdditionalGnsDatasGetter
-	DnsesGetter
+	BarsGetter
 	GnsesGetter
-	RandomGnsDatasGetter
 }
 
 // GnsTsmV1Client is used to interact with features provided by the gns.tsm.tanzu.vmware.com group.
@@ -38,20 +36,12 @@ type GnsTsmV1Client struct {
 	restClient rest.Interface
 }
 
-func (c *GnsTsmV1Client) AdditionalGnsDatas() AdditionalGnsDataInterface {
-	return newAdditionalGnsDatas(c)
-}
-
-func (c *GnsTsmV1Client) Dnses() DnsInterface {
-	return newDnses(c)
+func (c *GnsTsmV1Client) Bars() BarInterface {
+	return newBars(c)
 }
 
 func (c *GnsTsmV1Client) Gnses() GnsInterface {
 	return newGnses(c)
-}
-
-func (c *GnsTsmV1Client) RandomGnsDatas() RandomGnsDataInterface {
-	return newRandomGnsDatas(c)
 }
 
 // NewForConfig creates a new GnsTsmV1Client for the given config.

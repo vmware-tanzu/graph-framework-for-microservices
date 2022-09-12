@@ -4,7 +4,7 @@ kind: CustomResourceDefinition
 metadata:
   annotations:
     nexus: |
-      {"name":"gns.Gns","hierarchy":["roots.root.tsm.tanzu.vmware.com","configs.config.tsm.tanzu.vmware.com"],"children":{"accesscontrolpolicies.policypkg.tsm.tanzu.vmware.com":{"fieldName":"GnsAccessControlPolicy","fieldNameGvk":"gnsAccessControlPolicyGvk","isNamed":false},"svcgroups.servicegroup.tsm.tanzu.vmware.com":{"fieldName":"GnsServiceGroups","fieldNameGvk":"gnsServiceGroupsGvk","isNamed":true}},"links":{"Dns":{"fieldName":"Dns","fieldNameGvk":"dnsGvk","isNamed":false}},"is_singleton":false,"nexus-rest-api-gen":{"uris":[{"uri":"/v1alpha2/global-namespace/{gns.Gns}","query_params":["config.Config"],"methods":{"DELETE":{"200":{"description":"OK"},"404":{"description":"Not Found"},"501":{"description":"Not Implemented"}},"GET":{"200":{"description":"OK"},"404":{"description":"Not Found"},"501":{"description":"Not Implemented"}},"PUT":{"200":{"description":"OK"},"201":{"description":"Created"},"501":{"description":"Not Implemented"}}},"auth":false},{"uri":"/v1alpha2/global-namespaces","query_params":["config.Config"],"methods":{"LIST":{"200":{"description":"OK"},"404":{"description":"Not Found"},"501":{"description":"Not Implemented"}}},"auth":false},{"uri":"/test-foo","query_params":["config.Config"],"methods":{"DELETE":{"200":{"description":"ok"},"404":{"description":"Not Found"},"501":{"description":"Not Implemented"}}},"auth":false},{"uri":"/test-bar","query_params":["config.Config"],"methods":{"PATCH":{"400":{"description":"Bad Request"}}},"auth":false}]},"description":"this is my awesome node"}
+      {"name":"gns.Gns","hierarchy":["roots.root.tsm.tanzu.vmware.com","configs.config.tsm.tanzu.vmware.com"],"children":{"bars.gns.tsm.tanzu.vmware.com":{"fieldName":"FooChildren","fieldNameGvk":"fooChildrenGvk","isNamed":true}},"links":{"FooLink":{"fieldName":"FooLink","fieldNameGvk":"fooLinkGvk","isNamed":false},"FooLinks":{"fieldName":"FooLinks","fieldNameGvk":"fooLinksGvk","isNamed":true}},"is_singleton":false,"nexus-rest-api-gen":{"uris":null},"description":"this is my awesome node"}
   creationTimestamp: null
   name: gnses.gns.tsm.tanzu.vmware.com
 spec:
@@ -38,38 +38,12 @@ spec:
             type: object
           spec:
             properties:
-              description:
-                properties:
-                  Color:
-                    type: string
-                  ProjectId:
-                    type: string
-                  Version:
-                    type: string
-                required:
-                - Color
-                - Version
-                - ProjectId
-                type: object
-              dnsGvk:
-                properties:
-                  group:
-                    type: string
-                  kind:
-                    type: string
-                  name:
-                    type: string
-                required:
-                - group
-                - kind
-                - name
-                type: object
               domain:
                 maxLength: 8
                 minLength: 2
                 pattern: abc
                 type: string
-              gnsAccessControlPolicyGvk:
+              fooChildGvk:
                 properties:
                   group:
                     type: string
@@ -82,7 +56,7 @@ spec:
                 - kind
                 - name
                 type: object
-              gnsServiceGroupsGvk:
+              fooChildrenGvk:
                 additionalProperties:
                   properties:
                     group:
@@ -97,19 +71,68 @@ spec:
                   - name
                   type: object
                 type: object
-              meta:
+              fooLinkGvk:
+                properties:
+                  group:
+                    type: string
+                  kind:
+                    type: string
+                  name:
+                    type: string
+                required:
+                - group
+                - kind
+                - name
+                type: object
+              fooLinksGvk:
+                additionalProperties:
+                  properties:
+                    group:
+                      type: string
+                    kind:
+                      type: string
+                    name:
+                      type: string
+                  required:
+                  - group
+                  - kind
+                  - name
+                  type: object
+                type: object
+              hostPort:
+                properties:
+                  Host:
+                    type: string
+                  Port:
+                    format: int32
+                    type: integer
+                required:
+                - Host
+                - Port
+                type: object
+              instance:
                 type: string
+              mydesc:
+                properties:
+                  Color:
+                    type: string
+                  ProjectID:
+                    type: string
+                  Version:
+                    type: string
+                required:
+                - Color
+                - Version
+                - ProjectID
+                type: object
               useSharedGateway:
                 type: boolean
-              workloadSpec:
-                type: object
-                x-kubernetes-preserve-unknown-fields: true
             required:
             - domain
             - useSharedGateway
-            - description
-            - meta
-            - workloadSpec
+            - mydesc
+            - hostPort
+            - instance
             type: object
           status:
             properties:
@@ -124,17 +147,6 @@ spec:
                 required:
                 - sourceGeneration
                 - remoteGeneration
-                type: object
-              state:
-                properties:
-                  Temperature:
-                    format: int32
-                    type: integer
-                  Working:
-                    type: boolean
-                required:
-                - Working
-                - Temperature
                 type: object
             type: object
         type: object

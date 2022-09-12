@@ -20,35 +20,12 @@ var BarCustomMethodsResponses = nexus.HTTPMethodsResponses{
 
 type Config struct {
 	nexus.Node
-	GNS gns.Gns `nexus:"child"`
-	DNS gns.Dns `nexus:"child"`
-
-	// Examples for cross-package import.
-	TestValMarkers TestValMarkers `json:"testValMarkers" yaml:"testValMarkers"`
+	ConfigName string
+	GNS      gns.Gns `nexus:"child"`
+	Cluster Cluster
 }
 
-type CrossPackageTester struct {
-	Test gns.MyStr
+type Cluster struct {
+	Name string
+	MyID int
 }
-
-type EmptyStructTest struct{}
-
-type TestValMarkers struct {
-	//nexus-validation: MaxLength=8, MinLength=2, Pattern=ab
-	MyStr string `json:"myStr" yaml:"myStr"`
-
-	//nexus-validation: Maximum=8, Minimum=2
-	//nexus-validation: ExclusiveMaximum=true
-	MyInt int `json:"myInt" yaml:"myInt"`
-
-	//nexus-validation: MaxItems=3, MinItems=2
-	//nexus-validation: UniqueItems=true
-	MySlice []string `json:"mySlice" yaml:"mySlice"`
-}
-
-type SomeStruct struct{}
-
-// type StructWithEmbeddedField struct {
-// 	SomeStruct
-// 	gns.MyStr
-// }

@@ -4,7 +4,7 @@ kind: CustomResourceDefinition
 metadata:
   annotations:
     nexus: |
-      {"name":"config.Config","hierarchy":["roots.root.tsm.tanzu.vmware.com"],"children":{"dnses.gns.tsm.tanzu.vmware.com":{"fieldName":"DNS","fieldNameGvk":"dNSGvk","isNamed":false},"gnses.gns.tsm.tanzu.vmware.com":{"fieldName":"GNS","fieldNameGvk":"gNSGvk","isNamed":false},"vmpolicies.policypkg.tsm.tanzu.vmware.com":{"fieldName":"VMPPolicies","fieldNameGvk":"vMPPoliciesGvk","isNamed":false}},"links":{"ACPPolicies":{"fieldName":"ACPPolicies","fieldNameGvk":"aCPPoliciesGvk","isNamed":true}},"is_singleton":false,"nexus-rest-api-gen":{"uris":null}}
+      {"name":"config.Config","hierarchy":["roots.root.tsm.tanzu.vmware.com"],"children":{"gnses.gns.tsm.tanzu.vmware.com":{"fieldName":"GNS","fieldNameGvk":"gNSGvk","isNamed":false}},"is_singleton":false,"nexus-rest-api-gen":{"uris":null}}
   creationTimestamp: null
   name: configs.config.tsm.tanzu.vmware.com
 spec:
@@ -38,34 +38,19 @@ spec:
             type: object
           spec:
             properties:
-              aCPPoliciesGvk:
-                additionalProperties:
-                  properties:
-                    group:
-                      type: string
-                    kind:
-                      type: string
-                    name:
-                      type: string
-                  required:
-                  - group
-                  - kind
-                  - name
-                  type: object
-                type: object
-              dNSGvk:
+              cluster:
                 properties:
-                  group:
-                    type: string
-                  kind:
-                    type: string
-                  name:
+                  MyID:
+                    format: int32
+                    type: integer
+                  Name:
                     type: string
                 required:
-                - group
-                - kind
-                - name
+                - Name
+                - MyID
                 type: object
+              configName:
+                type: string
               gNSGvk:
                 properties:
                   group:
@@ -79,59 +64,9 @@ spec:
                 - kind
                 - name
                 type: object
-              myStr0:
-                type: string
-              myStr1:
-                items:
-                  type: string
-                type: array
-              myStr2:
-                additionalProperties:
-                  type: string
-                type: object
-              testValMarkers:
-                properties:
-                  myInt:
-                    exclusiveMaximum: true
-                    format: int32
-                    maximum: 8
-                    minimum: 2
-                    type: integer
-                  mySlice:
-                    items:
-                      type: string
-                    maxItems: 3
-                    minItems: 2
-                    type: array
-                    uniqueItems: true
-                  myStr:
-                    maxLength: 8
-                    minLength: 2
-                    pattern: ab
-                    type: string
-                required:
-                - myStr
-                - myInt
-                - mySlice
-                type: object
-              vMPPoliciesGvk:
-                properties:
-                  group:
-                    type: string
-                  kind:
-                    type: string
-                  name:
-                    type: string
-                required:
-                - group
-                - kind
-                - name
-                type: object
             required:
-            - myStr0
-            - myStr1
-            - myStr2
-            - testValMarkers
+            - configName
+            - cluster
             type: object
           status:
             properties:

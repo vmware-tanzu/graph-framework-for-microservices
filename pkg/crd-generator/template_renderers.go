@@ -51,6 +51,18 @@ var gqlgenconfigTemplateFile []byte
 //go:embed template/graphql/graphqlResolver.go.tmpl
 var graphqlResolverTemplateFile []byte
 
+//go:embed template/graphql/tools.go.tmpl
+var gqltoolsTemplateFile []byte
+
+//go:embed template/graphql/server.go.tmpl
+var gqlserverTemplateFile []byte
+
+//go:embed template/graphql/resolver.go.tmpl
+var gqlresolverTemplateFile []byte
+
+//go:embed template/graphql/schema.resolvers.go.tmpl
+var gqlschemaTemplateFile []byte
+
 func RenderCRDTemplate(baseGroupName, crdModulePath string,
 	pkgs parser.Packages, graph map[string]parser.Node, outputDir string,
 	httpMethods map[string]nexus.HTTPMethodsResponses, httpCodes map[string]nexus.HTTPCodesResponse) error {
@@ -134,6 +146,21 @@ func RenderCRDTemplate(baseGroupName, crdModulePath string,
 	}
 
 	err = RenderGraphqlResolver(baseGroupName, outputDir, crdModulePath, pkgs, parentsMap)
+	if err != nil {
+		return err
+	}
+
+	err = RenderGqltools(outputDir)
+	if err != nil {
+		return err
+	}
+
+	err = RenderGqlserver(outputDir, crdModulePath)
+	if err != nil {
+		return err
+	}
+
+	err = RenderGqlresolver(outputDir)
 	if err != nil {
 		return err
 	}
@@ -587,5 +614,95 @@ func RenderGraphqlResolver(baseGroupName, outputDir, crdModulePath string, pkgs 
 	if err != nil {
 		return err
 	}
+	return nil
+}
+
+func RenderGqltools(outputDir string) error {
+	gqltoolsFolder := outputDir + "/nexus-gql"
+	var err error
+	err = createFolder(gqltoolsFolder)
+	if err != nil {
+		return err
+	}
+	registerGqltoolsTemplate, err := readTemplateFile(gqltoolsTemplateFile)
+	if err != nil {
+		return err
+	}
+	file, err := renderTemplate(registerGqltoolsTemplate, "")
+	if err != nil {
+		return err
+	}
+	log.Debugf("Rendered gqltools template: %s", file)
+	err = createFile(gqltoolsFolder, "tools.go", file, false)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+type serverVars struct {
+	BaseImportPath string
+}
+
+func RenderGqlserver(outputDir, crdModulePath string) error {
+	gqlserverFolder := outputDir + "/nexus-gql"
+	var err error
+	var vars serverVars
+	vars.BaseImportPath = crdModulePath
+	err = createFolder(gqlserverFolder)
+	if err != nil {
+		return err
+	}
+	registerGqlserverTemplate, err := readTemplateFile(gqlserverTemplateFile)
+	if err != nil {
+		return err
+	}
+	file, err := renderTemplate(registerGqlserverTemplate, vars)
+	if err != nil {
+		return err
+	}
+	log.Debugf("Rendered gqlserver template: %s", file)
+	err = createFile(gqlserverFolder, "server.go", file, false)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func RenderGqlresolver(outputDir string) error {
+	gqlresolverFolder := outputDir + "/nexus-gql/graph"
+	var err error
+	err = createFolder(gqlresolverFolder)
+	if err != nil {
+		return err
+	}
+	registerGqlresolverTemplate, err := readTemplateFile(gqlresolverTemplateFile)
+	if err != nil {
+		return err
+	}
+	file, err := renderTemplate(registerGqlresolverTemplate, "")
+	if err != nil {
+		return err
+	}
+	log.Debugf("Rendered gqlserver template: %s", file)
+	err = createFile(gqlresolverFolder, "resolver.go", file, false)
+	if err != nil {
+		return err
+	}
+	registerGqlscresolverTemplate, err := readTemplateFile(gqlschemaTemplateFile)
+	if err != nil {
+		return err
+	}
+	scfile, err := renderTemplate(registerGqlscresolverTemplate, "")
+	if err != nil {
+		return err
+	}
+	err = createFile(gqlresolverFolder, "schema.resolvers.go", scfile, false)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
