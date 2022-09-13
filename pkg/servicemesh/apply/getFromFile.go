@@ -24,7 +24,6 @@ var (
 	GetResourceFile    string
 	Labels             string
 	DefaultGetHelpFunc func(*cobra.Command, []string)
-	ShowSpec           bool
 )
 
 func GetResource(cmd *cobra.Command, args []string) error {
@@ -45,10 +44,6 @@ func GetResource(cmd *cobra.Command, args []string) error {
 	var resourceName, apiVersion, objName, kindName string
 	// GET Request with Positional Args
 	if len(args) != 0 {
-		if ShowSpec {
-			return GetSpecRequest(token, args[0], serverInfo)
-		}
-
 		metadata := strings.SplitN(args[0], ".", 2)
 
 		if len(metadata) > 1 {
@@ -351,6 +346,28 @@ func GetHelp(cmd *cobra.Command, args []string) {
 	if err != nil {
 		log.Errorf("Get apis request failed with error %v", err)
 	}
+}
+
+func GetSpec(cmd *cobra.Command, args []string) error {
+	log.Debugf("Args: %v", args)
+
+	serverInfo, err := auth.ServerInfo()
+	if err != nil {
+		log.Errorf("Get serverInfo failed with error %v", err)
+		return err
+	}
+
+	token, err := auth.IdToken()
+	if err != nil {
+		log.Errorf("Get Id token failed with error %v", err)
+		return err
+	}
+
+	apiVer, resName, _ := GetShortName(args[0], token, serverInfo)
+	if apiVer != "" && resName != "" {
+		return GetSpecRequest(token, fmt.Sprintf("%s.%s", resName, apiVer), serverInfo)
+	}
+	return GetSpecRequest(token, args[0], serverInfo)
 }
 
 func init() {

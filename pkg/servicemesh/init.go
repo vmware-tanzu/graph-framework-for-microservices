@@ -20,6 +20,13 @@ var GetCmd = &cobra.Command{
 	RunE:  apply.GetResource,
 }
 
+var GetSpecCmd = &cobra.Command{
+	Use:   "spec [short/long crd name]",
+	Short: "Get YAML spec for given object",
+	Args:  cobra.RangeArgs(1, 1),
+	RunE:  apply.GetSpec,
+}
+
 var ApplyCmd = &cobra.Command{
 	Use:   "apply",
 	Short: "Apply Declarative configuration from file",
@@ -96,7 +103,6 @@ func initCommands() {
 		"f", "", "Resource file from which cluster is fetched.")
 	apply.DefaultGetHelpFunc = GetCmd.HelpFunc()
 	GetCmd.SetHelpFunc(apply.GetHelp)
-	GetCmd.Flags().BoolVarP(&apply.ShowSpec, "show-spec", "s", false, "Show yaml spec for a given kind.")
 
 	GetCmd.Flags().StringVarP(&apply.Labels, "labels",
 		"l", "", "labels required for the resource to fetch.")
@@ -124,6 +130,8 @@ func initCommands() {
 	if err != nil {
 		log.Debugf("saas server fqdn name is mandatory for login")
 	}
+
+	GetCmd.AddCommand(GetSpecCmd)
 
 	RuntimeCmd.AddCommand(runtime.InstallCmd)
 	RuntimeCmd.AddCommand(runtime.UninstallCmd)
