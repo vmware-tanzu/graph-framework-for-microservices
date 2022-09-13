@@ -89,6 +89,19 @@ var _ = BeforeSuite(func() {
 	err = k8sClient.Create(context.TODO(), &crd)
 	Expect(err).ToNot(HaveOccurred())
 
+	Eventually(func() bool {
+		res := &apiextensionsv1.CustomResourceDefinition{}
+		err := k8sClient.Get(context.TODO(), client.ObjectKey{
+			Name: "datamodels.nexus.org",
+		}, res)
+		Expect(err).ToNot(HaveOccurred())
+		if res != nil {
+			return true
+		}
+
+		return false
+	}).Should(BeTrue())
+
 	dynamicClient, err = dynamic.NewForConfig(cfg)
 	Expect(err).NotTo(HaveOccurred())
 	Expect(dynamicClient).NotTo(BeNil())
