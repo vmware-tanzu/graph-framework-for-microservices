@@ -228,7 +228,7 @@ func listHandler(c echo.Context) error {
 		Resource: parts[0],
 	}
 
-	resps := make(map[string]interface{})
+	resps := make([]map[string]interface{}, 0)
 	objs, err := client.Client.Resource(gvr).List(context.TODO(), metav1.ListOptions{
 		LabelSelector: labels.AsSelector().String(),
 	})
@@ -257,9 +257,10 @@ func listHandler(c echo.Context) error {
 		}
 
 		r := make(map[string]interface{})
+		r["name"] = itemName
 		r["spec"] = spec
 		r["status"] = status
-		resps[itemName] = r
+		resps = append(resps, r)
 	}
 
 	return nc.JSON(http.StatusOK, resps)
@@ -305,7 +306,7 @@ func putHandler(c echo.Context) error {
 
 	// Parse body
 	body := make(map[string]interface{})
-	if err := nc.Bind(&body); err != nil {
+	if err := (&echo.DefaultBinder{}).BindBody(nc, &body); err != nil {
 		return err
 	}
 
@@ -353,41 +354,12 @@ func putHandler(c echo.Context) error {
 	}
 
 	obj.SetLabels(labels)
-
-	// Handle PUT status subresource
 	if uriInfo, ok := model.GetUriInfo(nc.NexusURI); ok && uriInfo.TypeOfURI == model.StatusURI {
-		delete(body, "nexus")
-
-		// Make sure status field is present first
-		if _, ok := obj.Object["status"]; !ok {
-			m := []byte("{\"status\":{}}")
-			_, err = client.Client.Resource(gvr).Patch(context.TODO(), obj.GetName(), types.MergePatchType, m, metav1.PatchOptions{}, "status")
-			if err != nil {
-				return handleClientError(nc, err)
-			}
-		}
-
-		patch := []PatchOp{}
-		for k, v := range body {
-			p := PatchOp{
-				Op:    "replace",
-				Path:  "/status/" + k,
-				Value: v,
-			}
-			patch = append(patch, p)
-		}
-		var patchBytes []byte
-		patchBytes, err = json.Marshal(patch)
-		if err != nil {
-			return c.JSON(http.StatusBadRequest, DefaultResponse{Message: "Wrong payload data provided"})
-		}
-
-		//Update status subresource
-		_, err = client.Client.Resource(gvr).Patch(context.TODO(), obj.GetName(), types.JSONPatchType, patchBytes, metav1.PatchOptions{}, "status")
+		// Handle PUT status subresource
+		err = putStatus(gvr, obj, body)
 	} else {
+		// Handle PUT nexus object spec
 		obj.Object["spec"] = body
-
-		// Update resource
 		_, err = client.Client.Resource(gvr).Update(context.TODO(), obj, metav1.UpdateOptions{})
 	}
 	if err != nil {
@@ -520,4 +492,38 @@ type PatchOp struct {
 	Op    string      `json:"op"`
 	Path  string      `json:"path"`
 	Value interface{} `json:"value,omitempty"`
+}
+
+// putStatus is used to create or update status subresource of nexus object
+func putStatus(gvr schema.GroupVersionResource, obj *unstructured.Unstructured, body map[string]interface{}) error {
+	delete(body, "nexus")
+	var err error
+
+	// Make sure status field is present first
+	if _, ok := obj.Object["status"]; !ok {
+		m := []byte("{\"status\":{}}")
+		_, err = client.Client.Resource(gvr).Patch(context.TODO(), obj.GetName(), types.MergePatchType, m, metav1.PatchOptions{}, "status")
+	}
+	if err != nil {
+		return err
+	}
+
+	var patchBytes []byte
+	patch := []PatchOp{}
+	for k, v := range body {
+		p := PatchOp{
+			Op:    "replace",
+			Path:  "/status/" + k,
+			Value: v,
+		}
+		patch = append(patch, p)
+	}
+	patchBytes, err = json.Marshal(patch)
+	if err != nil {
+		return err
+	}
+
+	// Update status subresource
+	_, err = client.Client.Resource(gvr).Patch(context.TODO(), obj.GetName(), types.JSONPatchType, patchBytes, metav1.PatchOptions{}, "status")
+	return err
 }

@@ -124,7 +124,7 @@ build: lint ## Build manager binary.
 .PHONY: init-unit-test
 init-unit-test:
 	if [[ ! -f test/bin/etcd || ! -f test/bin/kube-apiserver || ! -f test/bin/kubectl ]]; then \
-  		curl -SLo envtest-bins.tar.gz "https://go.kubebuilder.io/test-tools/1.21.2/$$(go env GOOS)/$$(go env GOARCH)"; \
+		curl -SLo envtest-bins.tar.gz "https://go.kubebuilder.io/test-tools/1.24.2/$$(go env GOOS)/$$(go env GOARCH)"; \
         tar --strip-components=1 -xvf envtest-bins.tar.gz -C test; \
         rm envtest-bins.tar.gz; \
   	fi

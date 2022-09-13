@@ -178,10 +178,8 @@ func parseSpec(crdType string, datamodel string) {
 
 	openapiSchema := crdSpec.Versions[0].Schema.OpenAPIV3Schema
 	specProps := openapiSchema.Properties["spec"].Properties
-	jsonSchema := openapi3.NewObjectSchema()
-	parseFields(jsonSchema, specProps)
-
-	Schemas[datamodel].Components.Schemas[crdInfo.Name] = openapi3.NewSchemaRef("", jsonSchema)
+	jsonSpecSchema := openapi3.NewObjectSchema()
+	parseFields(jsonSpecSchema, specProps)
 
 	statusProps := openapiSchema.Properties["status"].Properties
 	delete(statusProps, "nexus")
@@ -189,6 +187,20 @@ func parseSpec(crdType string, datamodel string) {
 	parseFields(jsonStatusSchema, statusProps)
 
 	Schemas[datamodel].Components.Schemas[crdInfo.Name+".Status"] = openapi3.NewSchemaRef("", jsonStatusSchema)
+
+	jsonSpecAndStatusSchema := openapi3.NewObjectSchema()
+	jsonSpecAndStatusSchema.WithProperty("spec", jsonSpecSchema)
+	jsonSpecAndStatusSchema.WithProperty("status", jsonStatusSchema)
+
+	Schemas[datamodel].Components.Schemas[crdInfo.Name] = openapi3.NewSchemaRef("", jsonSpecAndStatusSchema)
+
+	jsonListObjectSchema := openapi3.NewObjectSchema()
+	jsonListObjectSchema.WithProperty("name", openapi3.NewStringSchema())
+	jsonListObjectSchema.WithProperty("spec", jsonSpecSchema)
+	jsonListObjectSchema.WithProperty("status", jsonStatusSchema)
+	jsonListSchema := openapi3.NewArraySchema().WithItems(jsonListObjectSchema)
+
+	Schemas[datamodel].Components.Schemas[crdInfo.Name+".List"] = openapi3.NewSchemaRef("", jsonListSchema)
 
 	Schemas[datamodel].Components.RequestBodies["Create"+crdInfo.Name] = &openapi3.RequestBodyRef{
 		Value: openapi3.NewRequestBody().
@@ -224,7 +236,7 @@ func parseSpec(crdType string, datamodel string) {
 		Value: openapi3.NewResponse().
 			WithDescription("Response returned back after getting " + crdInfo.Name + " objects").
 			WithContent(
-				openapi3.NewContentWithJSONSchema(openapi3.NewSchema()),
+				openapi3.NewContentWithJSONSchemaRef(&openapi3.SchemaRef{Ref: "#/components/schemas/" + crdInfo.Name + ".List"}),
 			),
 	}
 }

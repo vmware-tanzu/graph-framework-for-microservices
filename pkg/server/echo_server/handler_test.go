@@ -29,17 +29,40 @@ var _ = Describe("Echo server tests", func() {
 		e = NewEchoServer(config.Cfg)
 	})
 
+	It("should handle list query for empty list", func() {
+		restUri := nexus.RestURIs{
+			Uri:     "/leaders",
+			Methods: nexus.HTTPListResponse,
+		}
+		e.RegisterRouter(restUri)
+		model.ConstructMapCRDTypeToNode(model.Upsert, "leaders.orgchart.vmware.org", "management.Leader",
+			[]string{}, nil, nil, true, "some description")
+		model.ConstructMapURIToCRDType(model.Upsert, "leaders.orgchart.vmware.org", []nexus.RestURIs{restUri})
+
+		req := httptest.NewRequest(http.MethodGet, "/:orgchart.Leader", nil)
+		rec := httptest.NewRecorder()
+		c := e.Echo.NewContext(req, rec)
+		nc := &NexusContext{
+			NexusURI: "/leaders",
+			//Codes: nexus.DefaultHTTPMethodsResponses,
+			Context:   c,
+			CrdType:   "leaders.orgchart.vmware.org",
+			GroupName: "orgchart.vmware.org",
+			Resource:  "leaders",
+		}
+
+		err := listHandler(nc)
+		Expect(err).NotTo(HaveOccurred())
+		Expect(rec.Code).To(Equal(200))
+		Expect(rec.Body.String()).Should(Equal("[]\n"))
+	})
+
 	It("should handle put query for singleton object with default as name", func() {
 		leaderJson := `{
-		"apiVersion": "orgchart.vmware.org/v1",
-		"kind": "Leader",
-	   "metadata": {
-	       "name": "default"
-	   },
-	   "spec": {
-	       "foo": "bar2"
-	   }
-	}`
+			"designation": "abc",
+			"employeeID": 100,
+			"name": "xyz"
+		}`
 
 		restUri := nexus.RestURIs{
 			Uri:     "/leader",
@@ -50,10 +73,12 @@ var _ = Describe("Echo server tests", func() {
 			[]string{}, nil, nil, true, "some description")
 		model.ConstructMapURIToCRDType(model.Upsert, "leaders.orgchart.vmware.org", []nexus.RestURIs{restUri})
 
-		req := httptest.NewRequest(http.MethodPost, "/leader", strings.NewReader(leaderJson))
+		req := httptest.NewRequest(http.MethodPost, "/:orgchart.Leader", strings.NewReader(leaderJson))
 		req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 		rec := httptest.NewRecorder()
 		c := e.Echo.NewContext(req, rec)
+		c.SetParamNames("orgchart.Leader")
+		c.SetParamValues("default")
 		nc := &NexusContext{
 			NexusURI: "/leader",
 			//Codes: nexus.DefaultHTTPMethodsResponses,
@@ -70,15 +95,10 @@ var _ = Describe("Echo server tests", func() {
 
 	It("shouldn't handle put query for singleton object with not default as name", func() {
 		leaderJson := `{
-	"apiVersion": "orgchart.vmware.org/v1",
-	"kind": "Leader",
-    "metadata": {
-        "name": "notdefault"
-    },
-    "spec": {
-        "foo": "bar2"
-    }
-}`
+			"designation": "abc",
+			"employeeID": 100,
+			"name": "xyz"
+		}`
 
 		restUri := nexus.RestURIs{
 			Uri:     "/leader/{orgchart.Leader}",
@@ -119,7 +139,7 @@ var _ = Describe("Echo server tests", func() {
 			[]string{}, nil, nil, true, "some description")
 		model.ConstructMapURIToCRDType(model.Upsert, "leaders.orgchart.vmware.org", []nexus.RestURIs{restUri})
 
-		req := httptest.NewRequest(http.MethodGet, "/leader", nil)
+		req := httptest.NewRequest(http.MethodGet, "/:orgchart.Leader", nil)
 		rec := httptest.NewRecorder()
 		c := e.Echo.NewContext(req, rec)
 		nc := &NexusContext{
@@ -134,6 +154,7 @@ var _ = Describe("Echo server tests", func() {
 		err := listHandler(nc)
 		Expect(err).NotTo(HaveOccurred())
 		Expect(rec.Code).To(Equal(200))
+		Expect(rec.Body.String()).Should(Equal("[{\"name\":\"default\",\"spec\":{\"designation\":\"abc\",\"employeeID\":100,\"name\":\"xyz\"},\"status\":{}}]\n"))
 	})
 
 	It("should handle get query", func() {
@@ -164,6 +185,7 @@ var _ = Describe("Echo server tests", func() {
 		err := getHandler(nc)
 		Expect(err).NotTo(HaveOccurred())
 		Expect(rec.Code).To(Equal(200))
+		Expect(rec.Body.String()).Should(Equal("{\"spec\":{\"designation\":\"abc\",\"employeeID\":100,\"name\":\"xyz\"},\"status\":{}}\n"))
 	})
 
 	It("should handle delete query", func() {
@@ -441,7 +463,7 @@ var _ = Describe("Echo server tests", func() {
 			Expect(err).NotTo(HaveOccurred())
 			Expect(rec.Code).To(Equal(200))
 			Expect(rec.Body.String()).Should(Equal(
-				"{\"spec\":{\"designation\":\"NexusLead\",\"employeeID\":1,\"management.Leader\":\"default\"},\"status\":{}}\n"))
+				"{\"spec\":{\"designation\":\"NexusLead\",\"employeeID\":1},\"status\":{}}\n"))
 		})
 	})
 
@@ -537,7 +559,7 @@ var _ = Describe("Echo server tests", func() {
 		err = getHandler(nc3)
 		Expect(err).NotTo(HaveOccurred())
 		Expect(rec3.Code).To(Equal(200))
-		Expect(rec3.Body.String()).Should(Equal("{\"spec\":{\"designation\":\"abc\",\"employeeID\":100,\"management.Leader\":\"default\",\"name\":\"xyz\"},\"status\":{\"status\":{\"DaysLeftToEndOfVacations\":139,\"IsOnVacations\":true}}}\n"))
+		Expect(rec3.Body.String()).Should(Equal("{\"spec\":{\"designation\":\"abc\",\"employeeID\":100,\"name\":\"xyz\"},\"status\":{\"status\":{\"DaysLeftToEndOfVacations\":139,\"IsOnVacations\":true}}}\n"))
 
 	})
 })
