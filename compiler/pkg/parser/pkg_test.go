@@ -4,9 +4,9 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	log "github.com/sirupsen/logrus"
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/pkg/config"
-	crd_generator "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/pkg/crd-generator"
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/pkg/parser"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/compiler/pkg/config"
+	crd_generator "github.com/vmware-tanzu/graph-framework-for-microservices/compiler/pkg/crd-generator"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/compiler/pkg/parser"
 )
 
 var _ = Describe("Pkg tests", func() {
@@ -22,9 +22,9 @@ var _ = Describe("Pkg tests", func() {
 		Expect(err).To(Not(HaveOccurred()))
 
 		pkgs = parser.ParseDSLPkg(exampleDSLPath)
-		pkg, ok = pkgs["gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/datamodel"]
+		pkg, ok = pkgs["github.com/vmware-tanzu/graph-framework-for-microservices/compiler/example/datamodel"]
 		Expect(ok).To(BeTrue())
-		gnsPkg, ok = pkgs["gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/datamodel/config/gns"]
+		gnsPkg, ok = pkgs["github.com/vmware-tanzu/graph-framework-for-microservices/compiler/example/datamodel/config/gns"]
 		Expect(ok).To(BeTrue())
 	})
 
@@ -33,8 +33,8 @@ var _ = Describe("Pkg tests", func() {
 		imports := crd_generator.GenerateImports(&pkg, aliasNameMap)
 
 		expectedImports := []string{
-			"configtsmtanzuvmwarecomv1 \"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/crd_generated/apis/config.tsm.tanzu.vmware.com/v1\"",
-			"nexustsmtanzuvmwarecomv1 \"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/crd_generated/apis/nexus.tsm.tanzu.vmware.com/v1\""}
+			"configtsmtanzuvmwarecomv1 \"github.com/vmware-tanzu/graph-framework-for-microservices/compiler/example/output/crd_generated/apis/config.tsm.tanzu.vmware.com/v1\"",
+			"nexustsmtanzuvmwarecomv1 \"github.com/vmware-tanzu/graph-framework-for-microservices/compiler/example/output/crd_generated/apis/nexus.tsm.tanzu.vmware.com/v1\""}
 
 		Expect(imports).To(Equal(expectedImports))
 	})

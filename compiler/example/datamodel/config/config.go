@@ -3,10 +3,10 @@ package config
 import (
 	"net/http"
 
-	py "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/datamodel/config/policy"
+	py "github.com/vmware-tanzu/graph-framework-for-microservices/compiler/example/datamodel/config/policy"
 
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/datamodel/config/gns"
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/datamodel/nexus"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/compiler/example/datamodel/config/gns"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/compiler/example/datamodel/nexus"
 )
 
 var nonNexusValue = 1

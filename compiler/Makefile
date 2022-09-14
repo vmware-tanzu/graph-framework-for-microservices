@@ -3,7 +3,7 @@ SHELL := /bin/bash
 DEBUG ?= FALSE
 LOG_LEVEL ?= error
 
-GO_PROJECT_NAME ?= compiler.git
+GO_PROJECT_NAME ?= compiler
 
 DOCKER_REGISTRY ?= harbor-repo.vmware.com
 
@@ -13,7 +13,7 @@ TAG ?= $(shell git rev-parse --verify --short=8 HEAD)
 BUILDER_NAME ?= ${IMAGE_NAME}-builder
 BUILDER_TAG := $(shell md5sum builder/Dockerfile | awk '{ print $1 }' | head -c 8)
 
-PKG_NAME?=/go/src/gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/${GO_PROJECT_NAME}
+PKG_NAME?=/go/src/github.com/vmware-tanzu/graph-framework-for-microservices/${GO_PROJECT_NAME}
 
 DATAMODEL_PATH ?= datamodel
 CONFIG_FILE ?= ""
@@ -150,7 +150,7 @@ test_generate_code_in_container: ${BUILDER_NAME}\:${BUILDER_TAG}.image.exists in
 	$(call run_in_container, go install gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git/cmd/nexus-openapi-gen@${NEXUS_KUBEOPENAPI_VERSION} && \
 	make generate_code DATAMODEL_PATH=example/datamodel \
 	CONFIG_FILE=example/nexus-sdk.yaml \
-	CRD_MODULE_PATH="gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/crd_generated/" \
+	CRD_MODULE_PATH="github.com/vmware-tanzu/graph-framework-for-microservices/compiler/example/output/crd_generated/" \
 	LOG_LEVEL=trace \
 	GENERATED_OUTPUT_DIRECTORY=example/output/crd_generated && \
 	cd example/output/crd_generated && go mod tidy && go vet ./... && golangci-lint run ./...)
@@ -163,7 +163,7 @@ test_generate_code_in_container: ${BUILDER_NAME}\:${BUILDER_TAG}.image.exists in
 
 .PHONY: generate_example
 generate_example:
-	$(MAKE) generate_code DATAMODEL_PATH=example/datamodel CONFIG_FILE=example/nexus-sdk.yaml CRD_MODULE_PATH="gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/crd_generated/" GENERATED_OUTPUT_DIRECTORY=example/output/crd_generated
+	$(MAKE) generate_code DATAMODEL_PATH=example/datamodel CONFIG_FILE=example/nexus-sdk.yaml CRD_MODULE_PATH="github.com/vmware-tanzu/graph-framework-for-microservices/compiler/example/output/crd_generated/" GENERATED_OUTPUT_DIRECTORY=example/output/crd_generated
 
 .PHONY: show-image-name
 show-image-name:

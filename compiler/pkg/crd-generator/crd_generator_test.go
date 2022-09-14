@@ -4,14 +4,14 @@ import (
 	"go/format"
 	"io/ioutil"
 
+	"github.com/vmware-tanzu/graph-framework-for-microservices/compiler/pkg/parser/rest"
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/common-library.git/pkg/nexus"
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/pkg/parser/rest"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	crdgenerator "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/pkg/crd-generator"
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/pkg/parser"
+	crdgenerator "github.com/vmware-tanzu/graph-framework-for-microservices/compiler/pkg/crd-generator"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/compiler/pkg/parser"
 )
 
 const (
@@ -44,7 +44,7 @@ var _ = Describe("Template renderers tests", func() {
 
 	BeforeEach(func() {
 		pkgs = parser.ParseDSLPkg(exampleDSLPath)
-		pkg, ok = pkgs["gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/datamodel/config/gns"]
+		pkg, ok = pkgs["github.com/vmware-tanzu/graph-framework-for-microservices/compiler/example/datamodel/config/gns"]
 		Expect(ok).To(BeTrue())
 
 		graph := parser.ParseDSLNodes(exampleDSLPath, baseGroupName)

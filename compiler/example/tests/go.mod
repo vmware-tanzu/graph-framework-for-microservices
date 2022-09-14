@@ -1,13 +1,13 @@
-module gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/tests
+module github.com/vmware-tanzu/graph-framework-for-microservices/compiler/example/tests
 
 go 1.17
 
-replace gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/crd_generated => ../output/crd_generated
+replace github.com/vmware-tanzu/graph-framework-for-microservices/compiler/example/output/crd_generated => ../output/crd_generated
 
 require (
 	github.com/onsi/ginkgo v1.16.5
 	github.com/onsi/gomega v1.18.1
-	gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/crd_generated v0.0.0-20220519084951-f419a2aaa2be
+	github.com/vmware-tanzu/graph-framework-for-microservices/compiler/example/output/crd_generated v0.0.0-20220519084951-f419a2aaa2be
 	k8s.io/apimachinery v0.23.5
 )
 

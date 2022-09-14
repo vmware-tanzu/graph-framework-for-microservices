@@ -1,8 +1,8 @@
 package policypkg
 
 import (
-	service_group "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/datamodel/config/gns/service-group"
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/datamodel/nexus"
+	service_group "github.com/vmware-tanzu/graph-framework-for-microservices/compiler/example/datamodel/config/gns/service-group"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/compiler/example/datamodel/nexus"
 )
 
 type AccessControlPolicy struct {
@@ -25,12 +25,12 @@ type ACPConfig struct {
 	SourceSvcGroups service_group.SvcGroup            `nexus:"links"` // support named children/links as map or `links` annotations
 	Conditions      []string
 	Action          PolicyCfgActions `nexus:"@jsonencoded(file:'./root/config/policy/policy-config/policy-config.ts', gofile:'policy-config.go', name: 'PolicyCfgActions')"`
-	Status ACPStatus `nexus:"status"`
+	Status          ACPStatus        `nexus:"status"`
 }
 
-type ACPStatus struct{
-    StatusABC int
-    StatusXYZ int
+type ACPStatus struct {
+	StatusABC int
+	StatusXYZ int
 }
 
 type ResourceGroupRef struct {

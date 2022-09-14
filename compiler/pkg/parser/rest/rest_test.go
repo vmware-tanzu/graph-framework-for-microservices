@@ -7,9 +7,9 @@ import (
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/compiler/pkg/parser"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/compiler/pkg/parser/rest"
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/common-library.git/pkg/nexus"
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/pkg/parser"
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/pkg/parser/rest"
 )
 
 var _ = Describe("Rest tests", func() {
@@ -25,7 +25,7 @@ var _ = Describe("Rest tests", func() {
 
 	BeforeEach(func() {
 		pkgs = parser.ParseDSLPkg(exampleDSLPath)
-		pkg, ok = pkgs["gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/datamodel/config/gns"]
+		pkg, ok = pkgs["github.com/vmware-tanzu/graph-framework-for-microservices/compiler/example/datamodel/config/gns"]
 		graph := parser.ParseDSLNodes(exampleDSLPath, baseGroupName)
 		parentsMap = parser.CreateParentsMap(graph)
 		Expect(ok).To(BeTrue())

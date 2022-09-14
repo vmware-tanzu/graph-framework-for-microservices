@@ -22,10 +22,10 @@ import (
 	"context"
 	time "time"
 
-	servicegrouptsmtanzuvmwarecomv1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/crd_generated/apis/servicegroup.tsm.tanzu.vmware.com/v1"
-	versioned "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/crd_generated/client/clientset/versioned"
-	internalinterfaces "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/crd_generated/client/informers/externalversions/internalinterfaces"
-	v1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/crd_generated/client/listers/servicegroup.tsm.tanzu.vmware.com/v1"
+	servicegrouptsmtanzuvmwarecomv1 "github.com/vmware-tanzu/graph-framework-for-microservices/compiler/example/output/crd_generated/apis/servicegroup.tsm.tanzu.vmware.com/v1"
+	versioned "github.com/vmware-tanzu/graph-framework-for-microservices/compiler/example/output/crd_generated/client/clientset/versioned"
+	internalinterfaces "github.com/vmware-tanzu/graph-framework-for-microservices/compiler/example/output/crd_generated/client/informers/externalversions/internalinterfaces"
+	v1 "github.com/vmware-tanzu/graph-framework-for-microservices/compiler/example/output/crd_generated/client/listers/servicegroup.tsm.tanzu.vmware.com/v1"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	runtime "k8s.io/apimachinery/pkg/runtime"

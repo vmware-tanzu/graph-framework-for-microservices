@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	log "github.com/sirupsen/logrus"
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/pkg/config"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/compiler/pkg/config"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -14,7 +14,7 @@ const (
 	examplePath    = "../../../example/"
 	exampleDSLPath = examplePath + "datamodel"
 	baseGroupName  = "tsm.tanzu.vmware.com"
-	crdModulePath  = "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/crd_generated/"
+	crdModulePath  = "github.com/vmware-tanzu/graph-framework-for-microservices/compiler/example/output/crd_generated/"
 )
 
 func TestParserRest(t *testing.T) {

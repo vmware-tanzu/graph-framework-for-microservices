@@ -8,8 +8,8 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	generator "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/pkg/openapi_generator"
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/pkg/openapi_generator/test_data/openapi"
+	generator "github.com/vmware-tanzu/graph-framework-for-microservices/compiler/pkg/openapi_generator"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/compiler/pkg/openapi_generator/test_data/openapi"
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git/pkg/common"
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git/pkg/validation/spec"
 )
@@ -41,7 +41,7 @@ var _ = Describe("Generator", func() {
 		gen, err := generator.NewGenerator(openapi.GetOpenAPIDefinitions(ref))
 		Expect(err).NotTo(HaveOccurred())
 
-		namePrefix := "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/pkg/openapi_generator/test_data"
+		namePrefix := "github.com/vmware-tanzu/graph-framework-for-microservices/compiler/pkg/openapi_generator/test_data"
 		gen.SetNamePrefix(namePrefix)
 
 		oneOfDefinition := common.OpenAPIDefinition{
