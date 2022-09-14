@@ -168,8 +168,9 @@ teardown_environment:
 
 ##@ Coverage
 .PHONY: coverage
-coverage:
-	go test -json -coverprofile=coverage.out -coverpkg=./... ./... | tee report.json ;\
+coverage: init-unit-test
+	go test --json -coverprofile=coverage.out -coverpkg=./... ./...   | tee report.json ; exit $${PIPESTATUS[0]} ;\
+
 
 ##@ Publish
 
