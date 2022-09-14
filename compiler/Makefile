@@ -52,7 +52,7 @@ docker.builder:
 .PHONY: docker
 docker: init_submodules ${BUILDER_NAME}\:${BUILDER_TAG}.image.exists build_openapigen_in_container
 	git archive -o compiler.tar --format=tar HEAD
-	tar -rf compiler.tar .git
+	tar -rf compiler.tar ../.git ../.gitmodules
 	docker build --no-cache \
 		--build-arg BUILDER_TAG=${BUILDER_TAG} \
 		-t ${IMAGE_NAME}:${TAG} .

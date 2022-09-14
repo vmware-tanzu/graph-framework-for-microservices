@@ -5,7 +5,7 @@ ADD compiler.tar /go/src/github.com/vmware-tanzu/graph-framework-for-microservic
 ADD cmd/nexus-openapi-gen /go/bin/nexus-openapi-gen
 
 WORKDIR /go/src/github.com/vmware-tanzu/graph-framework-for-microservices/compiler
-RUN make init_submodules
+RUN mv .git .gitmodules .. && make init_submodules
 
 WORKDIR /go/src/
 RUN mkdir nexustmp && cd nexustmp && go mod init && \
