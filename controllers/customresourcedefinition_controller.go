@@ -68,6 +68,7 @@ func (r *CustomResourceDefinitionReconciler) Reconcile(ctx context.Context, req 
 		logger.Errorf("Error Processing CRD spec %v\n", err)
 	}
 
+	// Recreate openapi specification
 	api.Recreate()
 
 	return ctrl.Result{}, nil

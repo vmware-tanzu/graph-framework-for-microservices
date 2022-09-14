@@ -18,15 +18,19 @@ package controllers
 
 import (
 	"context"
-	"encoding/json"
-	yamlv1 "github.com/ghodss/yaml"
+	adminnexusv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/admin.nexus.org/v1"
+	apinexusv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/api.nexus.org/v1"
+	authenticationnexusv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/authentication.nexus.org/v1"
+	confignexusv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/config.nexus.org/v1"
+	routenexusv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/route.nexus.org/v1"
 	"k8s.io/apiextensions-apiserver/pkg/apis/apiextensions"
-	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/kubernetes/scheme"
 	"os"
+	"path/filepath"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"testing"
+	"time"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -71,36 +75,40 @@ var _ = BeforeSuite(func() {
 	testEnv = &envtest.Environment{}
 	cfg, err = testEnv.Start()
 	Expect(err).NotTo(HaveOccurred())
+
+	// Install CRDs
+	opts := envtest.CRDInstallOptions{
+		Paths: []string{filepath.Join("..", "test", "crds", "bases")},
+	}
+	crds, err := envtest.InstallCRDs(cfg, opts)
+	Expect(err).NotTo(HaveOccurred())
+
+	err = envtest.WaitForCRDs(cfg, crds, envtest.CRDInstallOptions{})
+	Expect(err).NotTo(HaveOccurred())
+
 	//+kubebuilder:scaffold:scheme
 
 	err = apiextensions.AddToScheme(scheme.Scheme)
 	Expect(err).NotTo(HaveOccurred())
 
+	err = authenticationnexusv1.AddToScheme(scheme.Scheme)
+	Expect(err).NotTo(HaveOccurred())
+
+	err = adminnexusv1.AddToScheme(scheme.Scheme)
+	Expect(err).NotTo(HaveOccurred())
+
+	err = routenexusv1.AddToScheme(scheme.Scheme)
+	Expect(err).NotTo(HaveOccurred())
+
+	err = apinexusv1.AddToScheme(scheme.Scheme)
+	Expect(err).NotTo(HaveOccurred())
+
+	err = confignexusv1.AddToScheme(scheme.Scheme)
+	Expect(err).NotTo(HaveOccurred())
+
 	k8sClient, err = client.New(cfg, client.Options{Scheme: scheme.Scheme})
 	Expect(err).NotTo(HaveOccurred())
 	Expect(k8sClient).NotTo(BeNil())
-
-	crdJson, err := yamlv1.YAMLToJSON([]byte(datamodelCrdExample))
-	Expect(err).NotTo(HaveOccurred())
-
-	var crd apiextensionsv1.CustomResourceDefinition
-	err = json.Unmarshal(crdJson, &crd)
-	Expect(err).ToNot(HaveOccurred())
-	err = k8sClient.Create(context.TODO(), &crd)
-	Expect(err).ToNot(HaveOccurred())
-
-	Eventually(func() bool {
-		res := &apiextensionsv1.CustomResourceDefinition{}
-		err := k8sClient.Get(context.TODO(), client.ObjectKey{
-			Name: "datamodels.nexus.org",
-		}, res)
-		Expect(err).ToNot(HaveOccurred())
-		if res != nil {
-			return true
-		}
-
-		return false
-	}).Should(BeTrue())
 
 	dynamicClient, err = dynamic.NewForConfig(cfg)
 	Expect(err).NotTo(HaveOccurred())
@@ -111,10 +119,40 @@ var _ = BeforeSuite(func() {
 	})
 	Expect(err).ToNot(HaveOccurred())
 
+	// DatamodelReconciler
 	err = (&DatamodelReconciler{
 		Client:  k8sManager.GetClient(),
 		Scheme:  k8sManager.GetScheme(),
 		Dynamic: dynamicClient,
+	}).SetupWithManager(k8sManager)
+	Expect(err).ToNot(HaveOccurred())
+
+	// CustomResourceDefinitionReconciler
+	err = (&CustomResourceDefinitionReconciler{
+		Client: k8sManager.GetClient(),
+		Scheme: k8sManager.GetScheme(),
+	}).SetupWithManager(k8sManager)
+	Expect(err).ToNot(HaveOccurred())
+
+	// OidcConfigReconciler
+	err = (&OidcConfigReconciler{
+		Client: k8sManager.GetClient(),
+		Scheme: k8sManager.GetScheme(),
+	}).SetupWithManager(k8sManager)
+	Expect(err).ToNot(HaveOccurred())
+
+	// ProxyRuleReconciler
+	err = (&ProxyRuleReconciler{
+		Client: k8sManager.GetClient(),
+		Scheme: k8sManager.GetScheme(),
+	}).SetupWithManager(k8sManager)
+	Expect(err).ToNot(HaveOccurred())
+
+	// RouteReconciler
+	err = (&RouteReconciler{
+		Client:     k8sManager.GetClient(),
+		Scheme:     k8sManager.GetScheme(),
+		BaseClient: k8sManager.GetClient(),
 	}).SetupWithManager(k8sManager)
 	Expect(err).ToNot(HaveOccurred())
 
@@ -123,12 +161,16 @@ var _ = BeforeSuite(func() {
 		err = k8sManager.Start(ctx)
 		Expect(err).ToNot(HaveOccurred())
 	}()
-
 }, 60)
 
 var _ = AfterSuite(func() {
+	// https://github.com/kubernetes-sigs/controller-runtime/issues/1571
 	cancel()
 	err := testEnv.Stop()
+	if err != nil {
+		time.Sleep(4 * time.Second)
+	}
+	err = testEnv.Stop()
 	Expect(err).NotTo(HaveOccurred())
 
 	Expect(os.Unsetenv("TEST_ASSET_KUBE_APISERVER")).To(Succeed())
