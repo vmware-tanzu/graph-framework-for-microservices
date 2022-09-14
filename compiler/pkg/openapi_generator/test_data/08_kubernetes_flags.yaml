@@ -1,0 +1,64 @@
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  creationTimestamp: null
+  name: fizzs.test.it
+spec:
+  conversion:
+    strategy: None
+  group: test.it
+  names:
+    kind: Fizz
+    listKind: FizzList
+    plural: fizzs
+    shortNames:
+    - fizz
+    singular: fizz
+  scope: Namespaced
+  versions:
+  - name: v1
+    schema:
+      openAPIV3Schema:
+        properties:
+          emptyObject:
+            type: object
+            x-kubernetes-preserve-unknown-fields: true
+          anyOfProp:
+            anyOf:
+            - type: integer
+            - type: string
+            x-kubernetes-int-or-string: true
+          nested:
+            properties:
+              anyOfProp:
+                anyOf:
+                - type: integer
+                - type: string
+                x-kubernetes-int-or-string: true
+              emptyObject:
+                type: object
+                x-kubernetes-preserve-unknown-fields: true
+            type: object
+          array:
+            items:
+              - type: object
+                x-kubernetes-preserve-unknown-fields: true
+              - anyOf:
+                - type: integer
+                - type: string
+                x-kubernetes-int-or-string: true
+            type: array
+          metadata:
+            type: object
+        type: object
+    served: true
+    storage: true
+status:
+  acceptedNames:
+    kind: ""
+    plural: ""
+  conditions: null
+  storedVersions:
+  - v1
+

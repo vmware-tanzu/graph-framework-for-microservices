@@ -1,0 +1,62 @@
+syntax = "proto3";
+package proto;
+
+// +k8s:openapi-gen=true
+message Foo {
+  double double_value = 1;
+  float float_value = 2;
+  int32 int32_value = 3;
+  int64 int64_value = 4;
+  uint32 uint32_value = 5;
+  uint64 uint64_value = 6;
+  sint32 sint32_value = 7;
+  sint64 sint64_value = 8;
+  fixed32 fixed32_value = 9;
+  fixed64 fixed64_value = 10;
+  sfixed32 sfixed32_value = 11;
+  sfixed64 sfixed64_value = 12;
+  bool bool_value = 13;
+  string string_value = 14;
+  bytes bytes_value = 15;
+  // +k8s:openapi-gen=true
+  message NestedMessage {
+    string nested_message_value = 16;
+  }
+  enum NestedEnum {
+    JEDEN = 0;
+    DWA = 1;
+  }
+  // Mesh7CodeGenOpenAPIEnum
+  EnumValue enum_value = 17;
+  // Mesh7CodeGenOpenAPIEnum
+  NestedEnum nested_enum_value = 18;
+  NestedMessage nested_message = 19;
+  oneof oneof_value {
+    string oneof_value_string = 20;
+    int32 oneof_value_int = 21;
+  };
+  map<string, string> map_value = 22;
+  repeated int32 repeated_value = 23;
+  Bar bar_value = 24;
+  reserved "reserved";
+}
+
+// +k8s:openapi-gen=true
+enum EnumValue {
+  FIZZ = 0;
+  BUZZ = 1;
+}
+
+// +k8s:openapi-gen=true
+message Bar {
+  // Mesh7CodeGenOpenAPIEnum
+  EnumValue enum_value = 1;
+  oneof oneof_value {
+    string oneof_value_string = 2;
+    int32 oneof_value_int = 3;
+  };
+}
+
+service Service {
+  rpc DoStuff(Foo) returns (Foo);
+}
