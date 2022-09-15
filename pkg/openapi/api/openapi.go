@@ -113,16 +113,37 @@ func AddPath(uri nexus.RestURIs, datamodel string) {
 				Tags:        []string{nameParts[1]},
 				Parameters:  params,
 			}
-			if uriInfo, ok := model.GetUriInfo(uri.Uri); ok && uriInfo.TypeOfURI == model.StatusURI {
-				operation.Responses = openapi3.Responses{
-					"200": &openapi3.ResponseRef{
-						Ref: "#/components/responses/Get" + crdInfo.Name + ".Status",
-					},
+			if uriInfo, ok := model.GetUriInfo(uri.Uri); ok {
+				switch uriInfo.TypeOfURI {
+				case model.StatusURI:
+					operation.Responses = openapi3.Responses{
+						"200": &openapi3.ResponseRef{
+							Ref: "#/components/responses/Get" + crdInfo.Name + ".Status",
+						},
+					}
+				case model.SingleLinkURI:
+					operation.Responses = openapi3.Responses{
+						"200": &openapi3.ResponseRef{
+							Ref: "#/components/responses/Get" + crdInfo.Name + ".SingleLink",
+						},
+					}
+				case model.NamedLinkURI:
+					operation.Responses = openapi3.Responses{
+						"200": &openapi3.ResponseRef{
+							Ref: "#/components/responses/Get" + crdInfo.Name + ".NamedLink",
+						},
+					}
+				default:
+					operation.Responses = openapi3.Responses{
+						"200": &openapi3.ResponseRef{
+							Ref: "#/components/responses/Get" + crdInfo.Name,
+						},
+					}
 				}
 			} else {
 				operation.Responses = openapi3.Responses{
 					"200": &openapi3.ResponseRef{
-						Ref: "#/components/responses/Get" + crdInfo.Name,
+						Ref: "#/components/responses/DefaultResponse",
 					},
 				}
 			}
@@ -176,6 +197,13 @@ func parseSpec(crdType string, datamodel string) {
 	crdInfo := model.CrdTypeToNodeInfo[crdType]
 	crdSpec := model.CrdTypeToSpec[crdType]
 
+	getKey := makeKey(crdInfo.Name, "Get")
+	postKey := makeKey(crdInfo.Name, "Post")
+	listKey := makeKey(crdInfo.Name, "List")
+	statusKey := makeKey(crdInfo.Name, "Status")
+	singleLinkKey := makeKey(crdInfo.Name, "SingleLink")
+	namedLinkKey := makeKey(crdInfo.Name, "NamedLink")
+
 	openapiSchema := crdSpec.Versions[0].Schema.OpenAPIV3Schema
 	specProps := openapiSchema.Properties["spec"].Properties
 	jsonSpecSchema := openapi3.NewObjectSchema()
@@ -186,13 +214,14 @@ func parseSpec(crdType string, datamodel string) {
 	jsonStatusSchema := openapi3.NewObjectSchema()
 	parseFields(jsonStatusSchema, statusProps)
 
-	Schemas[datamodel].Components.Schemas[crdInfo.Name+".Status"] = openapi3.NewSchemaRef("", jsonStatusSchema)
+	Schemas[datamodel].Components.Schemas[statusKey] = openapi3.NewSchemaRef("", jsonStatusSchema)
 
 	jsonSpecAndStatusSchema := openapi3.NewObjectSchema()
 	jsonSpecAndStatusSchema.WithProperty("spec", jsonSpecSchema)
 	jsonSpecAndStatusSchema.WithProperty("status", jsonStatusSchema)
 
-	Schemas[datamodel].Components.Schemas[crdInfo.Name] = openapi3.NewSchemaRef("", jsonSpecAndStatusSchema)
+	Schemas[datamodel].Components.Schemas[postKey] = openapi3.NewSchemaRef("", jsonSpecSchema)
+	Schemas[datamodel].Components.Schemas[getKey] = openapi3.NewSchemaRef("", jsonSpecAndStatusSchema)
 
 	jsonListObjectSchema := openapi3.NewObjectSchema()
 	jsonListObjectSchema.WithProperty("name", openapi3.NewStringSchema())
@@ -200,35 +229,41 @@ func parseSpec(crdType string, datamodel string) {
 	jsonListObjectSchema.WithProperty("status", jsonStatusSchema)
 	jsonListSchema := openapi3.NewArraySchema().WithItems(jsonListObjectSchema)
 
-	Schemas[datamodel].Components.Schemas[crdInfo.Name+".List"] = openapi3.NewSchemaRef("", jsonListSchema)
+	Schemas[datamodel].Components.Schemas[listKey] = openapi3.NewSchemaRef("", jsonListSchema)
+
+	// TODO: Schema for single link and named link need to be generated
+	jsonSingleLinkSchema := openapi3.NewObjectSchema()
+	jsonNamedLinkSchema := openapi3.NewArraySchema().WithItems(jsonSingleLinkSchema)
+	Schemas[datamodel].Components.Schemas[singleLinkKey] = openapi3.NewSchemaRef("", jsonSingleLinkSchema)
+	Schemas[datamodel].Components.Schemas[namedLinkKey] = openapi3.NewSchemaRef("", jsonNamedLinkSchema)
 
 	Schemas[datamodel].Components.RequestBodies["Create"+crdInfo.Name] = &openapi3.RequestBodyRef{
 		Value: openapi3.NewRequestBody().
 			WithDescription("Request used to create " + crdInfo.Name).
 			WithRequired(true).
-			WithJSONSchemaRef(&openapi3.SchemaRef{Ref: "#/components/schemas/" + crdInfo.Name}),
+			WithJSONSchemaRef(&openapi3.SchemaRef{Ref: "#/components/schemas/" + postKey}),
 	}
 
 	Schemas[datamodel].Components.Responses["Get"+crdInfo.Name] = &openapi3.ResponseRef{
 		Value: openapi3.NewResponse().
 			WithDescription("Response returned back after getting " + crdInfo.Name + " object").
 			WithContent(
-				openapi3.NewContentWithJSONSchemaRef(&openapi3.SchemaRef{Ref: "#/components/schemas/" + crdInfo.Name}),
+				openapi3.NewContentWithJSONSchemaRef(&openapi3.SchemaRef{Ref: "#/components/schemas/" + getKey}),
 			),
 	}
 
-	Schemas[datamodel].Components.RequestBodies["Create"+crdInfo.Name+".Status"] = &openapi3.RequestBodyRef{
+	Schemas[datamodel].Components.RequestBodies["Create"+statusKey] = &openapi3.RequestBodyRef{
 		Value: openapi3.NewRequestBody().
 			WithDescription("Request used to create Status subresource of " + crdInfo.Name).
 			WithRequired(false).
-			WithJSONSchemaRef(&openapi3.SchemaRef{Ref: "#/components/schemas/" + crdInfo.Name + ".Status"}),
+			WithJSONSchemaRef(&openapi3.SchemaRef{Ref: "#/components/schemas/" + statusKey}),
 	}
 
-	Schemas[datamodel].Components.Responses["Get"+crdInfo.Name+".Status"] = &openapi3.ResponseRef{
+	Schemas[datamodel].Components.Responses["Get"+statusKey] = &openapi3.ResponseRef{
 		Value: openapi3.NewResponse().
 			WithDescription("Response returned back after getting status subresource of " + crdInfo.Name + " object").
 			WithContent(
-				openapi3.NewContentWithJSONSchemaRef(&openapi3.SchemaRef{Ref: "#/components/schemas/" + crdInfo.Name + ".Status"}),
+				openapi3.NewContentWithJSONSchemaRef(&openapi3.SchemaRef{Ref: "#/components/schemas/" + statusKey}),
 			),
 	}
 
@@ -236,7 +271,23 @@ func parseSpec(crdType string, datamodel string) {
 		Value: openapi3.NewResponse().
 			WithDescription("Response returned back after getting " + crdInfo.Name + " objects").
 			WithContent(
-				openapi3.NewContentWithJSONSchemaRef(&openapi3.SchemaRef{Ref: "#/components/schemas/" + crdInfo.Name + ".List"}),
+				openapi3.NewContentWithJSONSchemaRef(&openapi3.SchemaRef{Ref: "#/components/schemas/" + listKey}),
+			),
+	}
+
+	Schemas[datamodel].Components.Responses["Get"+singleLinkKey] = &openapi3.ResponseRef{
+		Value: openapi3.NewResponse().
+			WithDescription("Response returned back after getting " + crdInfo.Name + " objects").
+			WithContent(
+				openapi3.NewContentWithJSONSchemaRef(&openapi3.SchemaRef{Ref: "#/components/schemas/" + singleLinkKey}),
+			),
+	}
+
+	Schemas[datamodel].Components.Responses["Get"+namedLinkKey] = &openapi3.ResponseRef{
+		Value: openapi3.NewResponse().
+			WithDescription("Response returned back after getting " + crdInfo.Name + " objects").
+			WithContent(
+				openapi3.NewContentWithJSONSchemaRef(&openapi3.SchemaRef{Ref: "#/components/schemas/" + namedLinkKey}),
 			),
 	}
 }
@@ -353,4 +404,8 @@ func Recreate() {
 			AddPath(uri, datamodel)
 		}
 	}
+}
+
+func makeKey(crd, keyType string) string {
+	return crd + "." + keyType
 }
