@@ -1,0 +1,37 @@
+image:
+  name: runner.servicemesh.biz:5000/allspark/runner:latest
+
+before_script:
+  - git config --global url."https://gitlab.eng.vmware.com/".insteadOf "git@gitlab.eng.vmware.com:"
+  - git config --global gc.auto 0
+  - git config --global credential.helper store
+  - export GOPRIVATE=*.eng.vmware.com
+  - echo -e  "https://gitlab-ci-token:${CICD_TOKEN}@gitlab.eng.vmware.com/" >> ~/.git-credentials
+  - docker login harbor-repo.vmware.com --username $DOCKER_USERNAME --password $DOCKER_PASSWORD
+  - aws configure set aws_secret_access_key $AWS_SECRET_ACCESS_KEY
+  - aws configure set aws_access_key_id $AWS_ACCESS_KEY_ID
+  - docker login --username AWS -p $(aws ecr get-login-password --region us-west-2) 284299419820.dkr.ecr.us-west-2.amazonaws.com
+  - export CONTAINER_ID=$(docker ps -q -f "label=com.gitlab.gitlab-runner.job.id=$CI_JOB_ID" -f "label=com.gitlab.gitlab-runner.type=build")
+
+
+build:
+  stage: build
+  only:
+    - master
+    - merge_requests
+  script:
+    - make docker.builder
+    - CONTAINER_ID=$CONTAINER_ID PKG_NAME=$(realpath .) make publish IMAGE_TAG=$CI_COMMIT_SHA
+    - CONTAINER_ID=$CONTAINER_ID PKG_NAME=$(realpath .) DOCKER_REPO="284299419820.dkr.ecr.us-west-2.amazonaws.com/nexus" make publish IMAGE_TAG=$CI_COMMIT_SHA
+
+build_tag:
+  stage: build
+  only:
+    - tags
+  script:
+    - make docker.builder
+    - CONTAINER_ID=$CONTAINER_ID PKG_NAME=$(realpath .) make publish IMAGE_TAG=$CI_COMMIT_TAG
+    - CONTAINER_ID=$CONTAINER_ID PKG_NAME=$(realpath .) DOCKER_REPO="284299419820.dkr.ecr.us-west-2.amazonaws.com/nexus" make publish IMAGE_TAG=$CI_COMMIT_TAG
+    
+stages:
+  - build
