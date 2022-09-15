@@ -41,4 +41,31 @@ var _ = Describe("Echo server tests", func() {
 		Expect(c.Path()).To(Equal("/apis/gns.vmware.org/v1/globalnamespaces/:name"))
 	})
 
+	It("should start echo server", func() {
+		stopCh := make(chan struct{})
+		e := echo_server.InitEcho(stopCh, &config.Config{
+			Server: config.ServerConfig{
+				HttpPort: "0",
+			},
+			EnableNexusRuntime: true,
+			BackendService:     "http://localhost",
+		})
+		e.StopServer()
+	})
+
+	It("should start echo server and restart through channel", func() {
+		stopCh := make(chan struct{})
+		e := echo_server.InitEcho(stopCh, &config.Config{
+			Server: config.ServerConfig{
+				HttpPort: "0",
+			},
+			EnableNexusRuntime: true,
+			BackendService:     "http://localhost",
+		})
+
+		stopCh <- struct{}{}
+
+		e.StopServer()
+	})
+
 })

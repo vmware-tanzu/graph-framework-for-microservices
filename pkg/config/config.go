@@ -16,6 +16,7 @@ type Config struct {
 }
 
 type ServerConfig struct {
+	HttpPort string `json:"httpPort" yaml:"httpPort"`
 	Address  string `json:"address" yaml:"address"`
 	CertPath string `json:"certPath" yaml:"certPath"`
 	KeyPath  string `json:"keyPath" yaml:"keyPath"`

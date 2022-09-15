@@ -1,8 +1,10 @@
 package utils_test
 
 import (
+	"api-gw/pkg/client"
 	"api-gw/pkg/config"
 	"api-gw/pkg/utils"
+	nexus_client "golang-appnet.eng.vmware.com/nexus-sdk/api/build/nexus-client"
 	"os"
 
 	. "github.com/onsi/ginkgo"
@@ -56,5 +58,36 @@ var _ = Describe("Common tests", func() {
 	It("should get resource name", func() {
 		resource := utils.GetGroupResourceName("Test")
 		Expect(resource).To(Equal("tests"))
+	})
+
+	It("should GetEnvoyInitParams without error", func() {
+		client.NexusClient = nexus_client.NewFakeClient()
+		//TODO: more detailed test with mock server
+		//client.NexusClient.Authentication().CreateOIDCByName(context.TODO(), &v1.OIDC{
+		//	ObjectMeta: metav1.ObjectMeta{
+		//		Name: "okta",
+		//	},
+		//	Spec: v1.OIDCSpec{
+		//		Config: v1.IDPConfig{
+		//			ClientId:       "XXX",
+		//			ClientSecret:   "XXX",
+		//			OAuthIssuerUrl: "https://dev-XXX.okta.com/oauth2/default",
+		//			Scopes: []string{
+		//				"openid",
+		//				"profile",
+		//				"offline_access",
+		//			},
+		//			OAuthRedirectUrl: "http://<API-GW-DNS/IP>:<PORT>/<CALLBACK_PATH>",
+		//		},
+		//		ValidationProps: v1.ValidationProperties{
+		//			InsecureIssuerURLContext: false,
+		//			SkipIssuerValidation:     false,
+		//			SkipClientIdValidation:   false,
+		//			SkipClientAudValidation:  false,
+		//		},
+		//	},
+		//})
+		_, _, _, err := utils.GetEnvoyInitParams()
+		Expect(err).ToNot(HaveOccurred())
 	})
 })

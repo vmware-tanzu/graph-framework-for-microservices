@@ -28,15 +28,15 @@ type EchoServer struct {
 	Config *config.Config
 }
 
-func InitEcho(stopCh chan struct{}, conf *config.Config) {
+func InitEcho(stopCh chan struct{}, conf *config.Config) *EchoServer {
 	log.Infoln("Init Echo")
 	e := NewEchoServer(conf)
 
-	if config.Cfg.EnableNexusRuntime {
+	if conf.EnableNexusRuntime {
 		e.RegisterNexusRoutes()
 	}
 
-	if config.Cfg.BackendService != "" {
+	if conf.BackendService != "" {
 		e.RegisterDeclarativeRoutes()
 		e.RegisterDeclarativeRouter()
 	}
@@ -45,10 +45,17 @@ func InitEcho(stopCh chan struct{}, conf *config.Config) {
 	log.Infof("Gateway Mode: %s", common.Mode)
 
 	e.Start(stopCh)
+
+	return e
 }
 
 func (s *EchoServer) StartHTTPServer() {
-	if err := s.Echo.Start(":80"); err != nil && err != http.ErrServerClosed {
+	port := "80"
+	if s.Config.Server.HttpPort != "" {
+		port = s.Config.Server.HttpPort
+	}
+
+	if err := s.Echo.Start(fmt.Sprintf(":%s", port)); err != nil && err != http.ErrServerClosed {
 		log.Fatalf("Server error %v", err)
 	}
 }
@@ -304,7 +311,7 @@ func NewEchoServer(conf *config.Config) *EchoServer {
 	e.Pre(middleware.RemoveTrailingSlash())
 	e.Use(middleware.CORS())
 
-	if config.Cfg.EnableNexusRuntime {
+	if conf.EnableNexusRuntime {
 		// Setup proxy to api server
 		kubeSetupProxy(e)
 
