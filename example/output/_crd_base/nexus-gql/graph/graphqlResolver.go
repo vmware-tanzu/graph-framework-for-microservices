@@ -63,10 +63,7 @@ func (c *resolverConfig) getRootResolver() (*model.RootRoot, error) {
 	}
 	c.vRootRoot = vRoot
 	
-	ret := &model.RootRoot {
-		Id: &Id,
-		DisplayName: &vRoot.Spec.Root.DisplayName,
-	}
+	
 	return ret, nil
 }
 
@@ -82,10 +79,7 @@ func (c *resolverConfig) getRootRootConfigResolver() (*model.ConfigConfig, error
 	Id := ""
 	c.vConfigConfig = vConfig
 	
-	ret := &model.ConfigConfig {
-		Id: &Id,
-		ConfigName: &vConfig.Spec.Config.ConfigName,
-	}
+	
 	return ret, nil
 }
 
@@ -96,9 +90,7 @@ func (c *resolverConfig) getRootRootConfigResolver() (*model.ConfigConfig, error
 func (c *resolverConfig) getRootRootCustomBarResolver() (*model.RootBar, error) {
 	vRoot := c.vRootRoot
 	
-	ret := &model.RootBar {
-		Name: &vRoot.Spec.Bar.Name,
-	}
+	
 	return ret, nil
 }
 //////////////////////////////////////
@@ -112,14 +104,8 @@ func (c *resolverConfig) getConfigConfigGNSResolver() (*model.GnsGns, error) {
 	}
 	Id := ""
 	c.vGnsGns = vGNS
-	vInstance := string(vGns.Spec.Instance)
 	
-	ret := &model.GnsGns {
-		Id: &Id,
-		Domain: &vGns.Spec.Gns.Domain,
-		UseSharedGateway: &vGns.Spec.Gns.UseSharedGateway,
-		Instance: &vInstance,
-	}
+	
 	return ret, nil
 }
 
@@ -130,10 +116,7 @@ func (c *resolverConfig) getConfigConfigGNSResolver() (*model.GnsGns, error) {
 func (c *resolverConfig) getConfigConfigClusterResolver() (*model.ConfigCluster, error) {
 	vConfig := c.vConfigConfig
 	
-	ret := &model.ConfigCluster {
-		Name: &vConfig.Spec.Cluster.Name,
-		MyID: &vConfig.Spec.Cluster.MyID,
-	}
+	
 	return ret, nil
 }
 //////////////////////////////////////
@@ -148,10 +131,7 @@ func (c *resolverConfig) getGnsGnsFooLinkResolver() (*model.GnsBar, error) {
 	Id := ""
 	c.vGnsBar = vFooLink
 	
-	ret := &model.GnsBar {
-		Id: &Id,
-		Name: &vGns.Spec.Bar.Name,
-	}
+	
 	return ret, nil
 }
 
@@ -167,10 +147,7 @@ func (c *resolverConfig) getGnsGnsFooChildResolver() (*model.GnsBar, error) {
 	Id := ""
 	c.vGnsBar = vFooChild
 	
-	ret := &model.GnsBar {
-		Id: &Id,
-		Name: &vGns.Spec.Bar.Name,
-	}
+	
 	return ret, nil
 }
 
@@ -187,10 +164,7 @@ func (c *resolverConfig) getGnsGnsFooLinksResolver(id *string) ([]*model.GnsBar,
 			panic(err)
 		}
 		
-		ret := &model.GnsBar {
-		Id: &Id,
-		Name: &vGns.Spec.Bar.Name,
-	}
+		
 		vGnsBarList = append(vGnsList, ret)
 		return vGnsBarList, nil
 	}
@@ -201,10 +175,7 @@ func (c *resolverConfig) getGnsGnsFooLinksResolver(id *string) ([]*model.GnsBar,
 			panic(err)
 		}
 		
-		ret := &model.GnsBar {
-		Id: &Id,
-		Name: &vGns.Spec.Bar.Name,
-	}
+		
 		vGnsBarList = append(vGnsList, ret)
 	}
 	return vGnsBarList, nil
@@ -223,10 +194,7 @@ func (c *resolverConfig) getGnsGnsFooChildrenResolver(id *string) ([]*model.GnsB
 			panic(err)
 		}
 		
-		ret := &model.GnsBar {
-		Id: &Id,
-		Name: &vGns.Spec.Bar.Name,
-	}
+		
 		vGnsBarList = append(vGnsList, ret)
 		return vGnsBarList, nil
 	}
@@ -237,10 +205,7 @@ func (c *resolverConfig) getGnsGnsFooChildrenResolver(id *string) ([]*model.GnsB
 			panic(err)
 		}
 		
-		ret := &model.GnsBar {
-		Id: &Id,
-		Name: &vGns.Spec.Bar.Name,
-	}
+		
 		vGnsBarList = append(vGnsList, ret)
 	}
 	return vGnsBarList, nil
@@ -253,11 +218,7 @@ func (c *resolverConfig) getGnsGnsFooChildrenResolver(id *string) ([]*model.GnsB
 func (c *resolverConfig) getGnsGnsMydescResolver() (*model.GnsDescription, error) {
 	vGns := c.vGnsGns
 	
-	ret := &model.GnsDescription {
-		Color: &vGns.Spec.Description.Color,
-		Version: &vGns.Spec.Description.Version,
-		ProjectID: &vGns.Spec.Description.ProjectID,
-	}
+	
 	return ret, nil
 }
 //////////////////////////////////////
@@ -266,12 +227,7 @@ func (c *resolverConfig) getGnsGnsMydescResolver() (*model.GnsDescription, error
 //////////////////////////////////////
 func (c *resolverConfig) getGnsGnsHostPortResolver() (*model.GnsHostPort, error) {
 	vGns := c.vGnsGns
-	vHost := string(vHostPort.Spec.Host)
-	vPort := uint16(vHostPort.Spec.Port)
 	
-	ret := &model.GnsHostPort {
-		Host: &vHost,
-		Port: &vPort,
-	}
+	
 	return ret, nil
 }

@@ -15,7 +15,6 @@ import (
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/common-library.git/pkg/nexus"
 	"golang.org/x/tools/imports"
 
-	gg "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/pkg/graphql_generator"
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/pkg/parser"
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/pkg/parser/rest"
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/pkg/util"
@@ -554,7 +553,7 @@ func RenderClientTemplate(baseGroupName, crdModulePath string, pkgs parser.Packa
 
 type graphDetails struct {
 	BaseImportPath string
-	Nodes          []gg.Node_prop
+	Nodes          []Node_prop
 }
 
 func RenderGraphqlResolver(baseGroupName, outputDir, crdModulePath string, pkgs parser.Packages, parentsMap map[string]parser.NodeHelper) error {
@@ -566,7 +565,7 @@ func RenderGraphqlResolver(baseGroupName, outputDir, crdModulePath string, pkgs 
 	}
 	var vars graphDetails
 	vars.BaseImportPath = crdModulePath
-	vars.Nodes, err = gg.GenerateGraphqlResolverVars(baseGroupName, crdModulePath, pkgs, parentsMap)
+	vars.Nodes, err = GenerateGraphqlResolverVars(baseGroupName, crdModulePath, pkgs, parentsMap)
 	if err != nil {
 		return err
 	}
