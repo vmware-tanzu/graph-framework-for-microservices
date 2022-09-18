@@ -60,9 +60,14 @@ func (c *Config) DisplayName() string {
 
 // +k8s:openapi-gen=true
 type ConfigSpec struct {
-	ConfigName string  `json:"configName" yaml:"configName"`
-	Cluster    Cluster `json:"cluster" yaml:"cluster"`
-	GNSGvk     *Child  `json:"gNSGvk,omitempty" yaml:"gNSGvk,omitempty" nexus:"child"`
+	ConfigName string            `json:"configName" yaml:"configName"`
+	Cluster    Cluster           `json:"cluster" yaml:"cluster"`
+	FooA       AMap              `json:"fooA" yaml:"fooA"`
+	FooMap     map[string]string `json:"fooMap" yaml:"fooMap"`
+	FooB       BArray            `json:"fooB" yaml:"fooB"`
+	FooC       CInt              `nexus-graphql:"ignore:true"`
+	FooD       DFloat            `nexus-graphql:"type:string"`
+	GNSGvk     *Child            `json:"gNSGvk,omitempty" yaml:"gNSGvk,omitempty" nexus:"child"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
@@ -77,3 +82,8 @@ type Cluster struct {
 	Name string
 	MyID int
 }
+
+type AMap map[string]string
+type BArray []string
+type CInt uint8
+type DFloat float32

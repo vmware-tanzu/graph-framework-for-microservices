@@ -131,6 +131,7 @@ type Description struct {
 	Color     string
 	Version   string
 	ProjectID string
+	Instance  Instance
 }
 
 type Port uint16

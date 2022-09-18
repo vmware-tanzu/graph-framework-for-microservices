@@ -594,8 +594,8 @@ func RenderGraphqlResolver(baseGroupName, outputDir, crdModulePath string, pkgs 
 	if err != nil {
 		return err
 	}
-
-	err = createFile(gqlFolder, "gqlgen.yml", file, false)
+	gqlConfigFolder := outputDir + "/nexus-gql"
+	err = createFile(gqlConfigFolder, "gqlgen.yml", file, false)
 	if err != nil {
 		return err
 	}

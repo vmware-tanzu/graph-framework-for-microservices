@@ -38,6 +38,12 @@ spec:
             type: object
           spec:
             properties:
+              FooC:
+                format: byte
+                type: integer
+              FooD:
+                format: float
+                type: number
               cluster:
                 properties:
                   MyID:
@@ -51,6 +57,18 @@ spec:
                 type: object
               configName:
                 type: string
+              fooA:
+                additionalProperties:
+                  type: string
+                type: object
+              fooB:
+                items:
+                  type: string
+                type: array
+              fooMap:
+                additionalProperties:
+                  type: string
+                type: object
               gNSGvk:
                 properties:
                   group:
@@ -67,6 +85,11 @@ spec:
             required:
             - configName
             - cluster
+            - fooA
+            - fooMap
+            - fooB
+            - FooC
+            - FooD
             type: object
           status:
             properties:

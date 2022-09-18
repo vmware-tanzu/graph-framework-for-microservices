@@ -20,14 +20,14 @@ import (
 	types "k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/rest"
 
-	baseClientset "nexustempmodule/client/clientset/versioned"
-	fakeBaseClienset "nexustempmodule/client/clientset/versioned/fake"
-	"nexustempmodule/common"
-	"nexustempmodule/helper"
+	baseClientset "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/crd_generated/client/clientset/versioned"
+	fakeBaseClienset "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/crd_generated/client/clientset/versioned/fake"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/crd_generated/common"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/crd_generated/helper"
 
-	baseconfigtsmtanzuvmwarecomv1 "nexustempmodule/apis/config.tsm.tanzu.vmware.com/v1"
-	basegnstsmtanzuvmwarecomv1 "nexustempmodule/apis/gns.tsm.tanzu.vmware.com/v1"
-	baseroottsmtanzuvmwarecomv1 "nexustempmodule/apis/root.tsm.tanzu.vmware.com/v1"
+	baseconfigtsmtanzuvmwarecomv1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/crd_generated/apis/config.tsm.tanzu.vmware.com/v1"
+	basegnstsmtanzuvmwarecomv1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/crd_generated/apis/gns.tsm.tanzu.vmware.com/v1"
+	baseroottsmtanzuvmwarecomv1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/crd_generated/apis/root.tsm.tanzu.vmware.com/v1"
 )
 
 type Clientset struct {
@@ -623,6 +623,51 @@ func (group *ConfigTsmV1) UpdateConfigByName(ctx context.Context,
 		Value: patchValueCluster,
 	}
 	patch = append(patch, patchOpCluster)
+
+	patchValueFooA :=
+		objToUpdate.Spec.FooA
+	patchOpFooA := PatchOp{
+		Op:    "replace",
+		Path:  "/spec/fooA",
+		Value: patchValueFooA,
+	}
+	patch = append(patch, patchOpFooA)
+
+	patchValueFooMap :=
+		objToUpdate.Spec.FooMap
+	patchOpFooMap := PatchOp{
+		Op:    "replace",
+		Path:  "/spec/fooMap",
+		Value: patchValueFooMap,
+	}
+	patch = append(patch, patchOpFooMap)
+
+	patchValueFooB :=
+		objToUpdate.Spec.FooB
+	patchOpFooB := PatchOp{
+		Op:    "replace",
+		Path:  "/spec/fooB",
+		Value: patchValueFooB,
+	}
+	patch = append(patch, patchOpFooB)
+
+	patchValueFooC :=
+		objToUpdate.Spec.FooC
+	patchOpFooC := PatchOp{
+		Op:    "replace",
+		Path:  "/spec/fooC",
+		Value: patchValueFooC,
+	}
+	patch = append(patch, patchOpFooC)
+
+	patchValueFooD :=
+		objToUpdate.Spec.FooD
+	patchOpFooD := PatchOp{
+		Op:    "replace",
+		Path:  "/spec/fooD",
+		Value: patchValueFooD,
+	}
+	patch = append(patch, patchOpFooD)
 
 	marshaled, err := patch.Marshal()
 	if err != nil {

@@ -90,6 +90,7 @@ type Description struct {
 	Color     string
 	Version   string
 	ProjectID string
+	Instance  Instance
 }
 
 type Bar struct {

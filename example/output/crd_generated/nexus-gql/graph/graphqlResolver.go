@@ -4,8 +4,9 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	nexus_client "nexustempmodule/nexus-client"
-	"nexustempmodule/nexus-gql/graph/model"
+
+	nexus_client "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/crd_generated/nexus-client"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/crd_generated/nexus-gql/graph/model"
 
 	qm "gitlab.eng.vmware.com/nsx-allspark_users/go-protos/pkg/query-manager"
 	libgrpc "gitlab.eng.vmware.com/nsx-allspark_users/lib-go/grpc"
@@ -15,11 +16,10 @@ import (
 var c resolverConfig
 
 type resolverConfig struct {
-	vRootRoot *nexus_client.RootRoot
+	vRootRoot     *nexus_client.RootRoot
 	vConfigConfig *nexus_client.ConfigConfig
-	vGnsGns *nexus_client.GnsGns
-	vGnsBar *nexus_client.GnsBar
-	
+	vGnsGns       *nexus_client.GnsGns
+	vGnsBar       *nexus_client.GnsBar
 }
 
 //////////////////////////////////////
@@ -38,7 +38,7 @@ func getK8sAPIEndpointConfig() *rest.Config {
 //////////////////////////////////////
 // GRPC SERVER CONFIG
 //////////////////////////////////////
-func grpcServer() qm.ServerClient{
+func grpcServer() qm.ServerClient {
 	addr := "localhost:45781"
 	conn, err := libgrpc.ClientConn(addr, libgrpc.Config{})
 	if err != nil {
@@ -62,16 +62,17 @@ func (c *resolverConfig) getRootResolver() (*model.RootRoot, error) {
 		panic(err)
 	}
 	c.vRootRoot = vRoot
-	
-	ret := &model.RootRoot {
-		Id: &Id,
-		DisplayName: &vRoot.Spec.DisplayName,
+	vDisplayName := string(vRoot.Spec.DisplayName)
+
+	ret := &model.RootRoot{
+		Id:          &Id,
+		DisplayName: &vDisplayName,
 	}
 	return ret, nil
 }
 
 //////////////////////////////////////
-// Child/Link Node : Config
+// Child/Link Node : Config Config
 // Resolver for Root
 //////////////////////////////////////
 func (c *resolverConfig) getRootRootConfigResolver() (*model.ConfigConfig, error) {
@@ -81,10 +82,20 @@ func (c *resolverConfig) getRootRootConfigResolver() (*model.ConfigConfig, error
 	}
 	Id := ""
 	c.vConfigConfig = vConfig
-	
-	ret := &model.ConfigConfig {
-		Id: &Id,
-		ConfigName: &vConfig.Spec.ConfigName,
+	vConfigName := string(vConfig.Spec.ConfigName)
+	FooA, _ := json.Marshal(vConfig.Spec.FooA)
+	FooAData := string(FooA)
+	FooMap, _ := json.Marshal(vConfig.Spec.FooMap)
+	FooMapData := string(FooMap)
+	FooD, _ := json.Marshal(vConfig.Spec.FooD)
+	FooDData := string(FooD)
+
+	ret := &model.ConfigConfig{
+		Id:         &Id,
+		ConfigName: &vConfigName,
+		FooA:       &FooAData,
+		FooMap:     &FooMapData,
+		FooD:       &FooDData,
 	}
 	return ret, nil
 }
@@ -95,30 +106,34 @@ func (c *resolverConfig) getRootRootConfigResolver() (*model.ConfigConfig, error
 //////////////////////////////////////
 func (c *resolverConfig) getRootRootCustomBarResolver() (*model.RootBar, error) {
 	vRoot := c.vRootRoot
-	
-	ret := &model.RootBar {
-		Name: &vRoot.Spec.Name,
+	vName := string(vRoot.Spec.CustomBar.Name)
+
+	ret := &model.RootBar{
+		Name: &vName,
 	}
 	return ret, nil
 }
+
 //////////////////////////////////////
-// Child/Link Node : GNS
+// Child/Link Node : GNS Gns
 // Resolver for Config
 //////////////////////////////////////
 func (c *resolverConfig) getConfigConfigGNSResolver() (*model.GnsGns, error) {
-	vGNS, err := c.vConfigConfig.GetGNS(context.TODO())
+	vGns, err := c.vConfigConfig.GetGNS(context.TODO())
 	if err != nil {
 		panic(err)
 	}
 	Id := ""
-	c.vGnsGns = vGNS
+	c.vGnsGns = vGns
+	vDomain := string(vGns.Spec.Domain)
+	vUseSharedGateway := bool(vGns.Spec.UseSharedGateway)
 	vInstance := string(vGns.Spec.Instance)
-	
-	ret := &model.GnsGns {
-		Id: &Id,
-		Domain: &vGns.Spec.Domain,
-		UseSharedGateway: &vGns.Spec.UseSharedGateway,
-		Instance: &vInstance,
+
+	ret := &model.GnsGns{
+		Id:               &Id,
+		Domain:           &vDomain,
+		UseSharedGateway: &vUseSharedGateway,
+		Instance:         &vInstance,
 	}
 	return ret, nil
 }
@@ -129,47 +144,52 @@ func (c *resolverConfig) getConfigConfigGNSResolver() (*model.GnsGns, error) {
 //////////////////////////////////////
 func (c *resolverConfig) getConfigConfigClusterResolver() (*model.ConfigCluster, error) {
 	vConfig := c.vConfigConfig
-	
-	ret := &model.ConfigCluster {
-		Name: &vConfig.Spec.Name,
-		MyID: &vConfig.Spec.MyID,
-	}
-	return ret, nil
-}
-//////////////////////////////////////
-// Child/Link Node : FooLink
-// Resolver for Gns
-//////////////////////////////////////
-func (c *resolverConfig) getGnsGnsFooLinkResolver() (*model.GnsBar, error) {
-	vFooLink, err := c.vGnsGns.GetFooLink(context.TODO())
-	if err != nil {
-		panic(err)
-	}
-	Id := ""
-	c.vGnsBar = vFooLink
-	
-	ret := &model.GnsBar {
-		Id: &Id,
-		Name: &vGns.Spec.Name,
+	vName := string(vConfig.Spec.Cluster.Name)
+	vMyID := int(vConfig.Spec.Cluster.MyID)
+
+	ret := &model.ConfigCluster{
+		Name: &vName,
+		MyID: &vMyID,
 	}
 	return ret, nil
 }
 
 //////////////////////////////////////
-// Child/Link Node : FooChild
+// Child/Link Node : FooLink Bar
 // Resolver for Gns
 //////////////////////////////////////
-func (c *resolverConfig) getGnsGnsFooChildResolver() (*model.GnsBar, error) {
-	vFooChild, err := c.vGnsGns.GetFooChild(context.TODO())
+func (c *resolverConfig) getGnsGnsFooLinkResolver() (*model.GnsBar, error) {
+	vBar, err := c.vGnsGns.GetFooLink(context.TODO())
 	if err != nil {
 		panic(err)
 	}
 	Id := ""
-	c.vGnsBar = vFooChild
-	
-	ret := &model.GnsBar {
-		Id: &Id,
-		Name: &vGns.Spec.Name,
+	c.vGnsBar = vBar
+	vName := string(vBar.Spec.Name)
+
+	ret := &model.GnsBar{
+		Id:   &Id,
+		Name: &vName,
+	}
+	return ret, nil
+}
+
+//////////////////////////////////////
+// Child/Link Node : FooChild Bar
+// Resolver for Gns
+//////////////////////////////////////
+func (c *resolverConfig) getGnsGnsFooChildResolver() (*model.GnsBar, error) {
+	vBar, err := c.vGnsGns.GetFooChild(context.TODO())
+	if err != nil {
+		panic(err)
+	}
+	Id := ""
+	c.vGnsBar = vBar
+	vName := string(vBar.Spec.Name)
+
+	ret := &model.GnsBar{
+		Id:   &Id,
+		Name: &vName,
 	}
 	return ret, nil
 }
@@ -182,30 +202,32 @@ func (c *resolverConfig) getGnsGnsFooLinksResolver(id *string) ([]*model.GnsBar,
 	var vGnsBarList []*model.GnsBar
 	if id != nil && *id != "" {
 		Id := *id
-		vGnsBar, err := c.vGnsGns.GetFooLinks(context.TODO(), *id)
+		vBar, err := c.vGnsGns.GetFooLinks(context.TODO(), *id)
 		if err != nil {
 			panic(err)
 		}
-		
-		ret := &model.GnsBar {
-		Id: &Id,
-		Name: &vGns.Spec.Name,
-	}
-		vGnsBarList = append(vGnsList, ret)
+		vName := string(vBar.Spec.Name)
+
+		ret := &model.GnsBar{
+			Id:   &Id,
+			Name: &vName,
+		}
+		vGnsBarList = append(vGnsBarList, ret)
 		return vGnsBarList, nil
 	}
 	for i := range c.vGnsGns.Spec.FooLinksGvk {
 		Id := i
-		vGnsBar, err := c.vGnsGns.GetFooLinks(context.TODO(), i)
+		vBar, err := c.vGnsGns.GetFooLinks(context.TODO(), i)
 		if err != nil {
 			panic(err)
 		}
-		
-		ret := &model.GnsBar {
-		Id: &Id,
-		Name: &vGns.Spec.Name,
-	}
-		vGnsBarList = append(vGnsList, ret)
+		vName := string(vBar.Spec.Name)
+
+		ret := &model.GnsBar{
+			Id:   &Id,
+			Name: &vName,
+		}
+		vGnsBarList = append(vGnsBarList, ret)
 	}
 	return vGnsBarList, nil
 }
@@ -218,30 +240,32 @@ func (c *resolverConfig) getGnsGnsFooChildrenResolver(id *string) ([]*model.GnsB
 	var vGnsBarList []*model.GnsBar
 	if id != nil && *id != "" {
 		Id := *id
-		vGnsBar, err := c.vGnsGns.GetFooChildren(context.TODO(), *id)
+		vBar, err := c.vGnsGns.GetFooChildren(context.TODO(), *id)
 		if err != nil {
 			panic(err)
 		}
-		
-		ret := &model.GnsBar {
-		Id: &Id,
-		Name: &vGns.Spec.Name,
-	}
-		vGnsBarList = append(vGnsList, ret)
+		vName := string(vBar.Spec.Name)
+
+		ret := &model.GnsBar{
+			Id:   &Id,
+			Name: &vName,
+		}
+		vGnsBarList = append(vGnsBarList, ret)
 		return vGnsBarList, nil
 	}
 	for i := range c.vGnsGns.Spec.FooChildrenGvk {
 		Id := i
-		vGnsBar, err := c.vGnsGns.GetFooChildren(context.TODO(), i)
+		vBar, err := c.vGnsGns.GetFooChildren(context.TODO(), i)
 		if err != nil {
 			panic(err)
 		}
-		
-		ret := &model.GnsBar {
-		Id: &Id,
-		Name: &vGns.Spec.Name,
-	}
-		vGnsBarList = append(vGnsList, ret)
+		vName := string(vBar.Spec.Name)
+
+		ret := &model.GnsBar{
+			Id:   &Id,
+			Name: &vName,
+		}
+		vGnsBarList = append(vGnsBarList, ret)
 	}
 	return vGnsBarList, nil
 }
@@ -252,24 +276,30 @@ func (c *resolverConfig) getGnsGnsFooChildrenResolver(id *string) ([]*model.GnsB
 //////////////////////////////////////
 func (c *resolverConfig) getGnsGnsMydescResolver() (*model.GnsDescription, error) {
 	vGns := c.vGnsGns
-	
-	ret := &model.GnsDescription {
-		Color: &vGns.Spec.Color,
-		Version: &vGns.Spec.Version,
-		ProjectID: &vGns.Spec.ProjectID,
+	vColor := string(vGns.Spec.Mydesc.Color)
+	vVersion := string(vGns.Spec.Mydesc.Version)
+	vProjectID := string(vGns.Spec.Mydesc.ProjectID)
+	vInstance := string(vGns.Spec.Mydesc.Instance)
+
+	ret := &model.GnsDescription{
+		Color:     &vColor,
+		Version:   &vVersion,
+		ProjectID: &vProjectID,
+		Instance:  &vInstance,
 	}
 	return ret, nil
 }
+
 //////////////////////////////////////
 // CustomField: HostPort of CustomType: Gns
 // Resolver for Gns
 //////////////////////////////////////
 func (c *resolverConfig) getGnsGnsHostPortResolver() (*model.GnsHostPort, error) {
 	vGns := c.vGnsGns
-	vHost := string(vHostPort.Spec.Host)
-	vPort := uint16(vHostPort.Spec.Port)
-	
-	ret := &model.GnsHostPort {
+	vHost := string(vGns.Spec.HostPort.Host)
+	vPort := int(vGns.Spec.HostPort.Port)
+
+	ret := &model.GnsHostPort{
 		Host: &vHost,
 		Port: &vPort,
 	}

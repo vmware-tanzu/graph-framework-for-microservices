@@ -477,3 +477,18 @@ func getNexusValidationComments(field *ast.Field) []string {
 	}
 	return comments
 }
+
+func convertGoStdType(t string) string {
+	switch t {
+	case "string":
+		return "string"
+	case "int", "int8", "int16", "int32", "int64", "uint", "uint8", "uint16", "uint32", "uint64":
+		return "int"
+	case "bool":
+		return "bool"
+	case "float32", "float64":
+		return "float64"
+	default:
+		return ""
+	}
+}

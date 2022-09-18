@@ -19,9 +19,9 @@ limitations under the License.
 package fake
 
 import (
-	configtsmv1 "nexustempmodule/apis/config.tsm.tanzu.vmware.com/v1"
-	gnstsmv1 "nexustempmodule/apis/gns.tsm.tanzu.vmware.com/v1"
-	roottsmv1 "nexustempmodule/apis/root.tsm.tanzu.vmware.com/v1"
+	configtsmv1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/crd_generated/apis/config.tsm.tanzu.vmware.com/v1"
+	gnstsmv1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/crd_generated/apis/gns.tsm.tanzu.vmware.com/v1"
+	roottsmv1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/crd_generated/apis/root.tsm.tanzu.vmware.com/v1"
 
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	runtime "k8s.io/apimachinery/pkg/runtime"

@@ -65,16 +65,16 @@ func (c *resolverConfig) getRootResolver() (*model.{{$node.PkgName}}{{$node.Node
 }{{ else }}{{ end }}{{ end }}
 {{ range $key, $node := .Nodes }}{{ range $key, $child := $node.ChildLinkFields }}
 //////////////////////////////////////
-// Child/Link Node : {{$child.FieldName}}
+// Child/Link Node : {{$child.FieldName}} {{$child.BaseTypeName}}
 // Resolver for {{$child.NodeName}}
 //////////////////////////////////////
 func (c *resolverConfig) get{{$child.PkgName}}{{$child.NodeName}}{{$child.FieldName}}Resolver() (*model.{{$child.FieldTypePkgPath}}, error) {
-	v{{$child.FieldName}}, err := c.v{{$child.PkgName}}{{$child.NodeName}}.Get{{$child.FieldName}}(context.TODO())
+	v{{$child.BaseTypeName}}, err := c.v{{$child.PkgName}}{{$child.NodeName}}.Get{{$child.FieldName}}(context.TODO())
 	if err != nil {
 		panic(err)
 	}
 	Id := ""
-	c.v{{$child.FieldTypePkgPath}} = v{{$child.FieldName}}
+	c.v{{$child.FieldTypePkgPath}} = v{{$child.BaseTypeName}}
 	{{ $child.Alias }}
 	{{ $child.ReturnType }}
 	return ret, nil
@@ -88,24 +88,24 @@ func (c *resolverConfig) get{{$child.PkgName}}{{$child.NodeName}}{{$child.FieldN
 	var v{{$child.FieldTypePkgPath}}List []*model.{{$child.FieldTypePkgPath}}
 	if id != nil && *id != "" {
 		Id := *id
-		v{{$child.FieldTypePkgPath}}, err := c.v{{$child.PkgName}}{{$child.NodeName}}.Get{{$child.FieldName}}(context.TODO(), *id)
+		v{{$child.BaseTypeName}}, err := c.v{{$child.PkgName}}{{$child.NodeName}}.Get{{$child.FieldName}}(context.TODO(), *id)
 		if err != nil {
 			panic(err)
 		}
 		{{ $child.Alias }}
 		{{ $child.ReturnType }}
-		v{{$child.FieldTypePkgPath}}List = append(v{{$child.NodeName}}List, ret)
+		v{{$child.FieldTypePkgPath}}List = append(v{{$child.FieldTypePkgPath}}List, ret)
 		return v{{$child.FieldTypePkgPath}}List, nil
 	}
 	for i := range c.v{{$child.PkgName}}{{$child.NodeName}}.Spec.{{$child.FieldName}}Gvk {
 		Id := i
-		v{{$child.FieldTypePkgPath}}, err := c.v{{$child.PkgName}}{{$child.NodeName}}.Get{{$child.FieldName}}(context.TODO(), i)
+		v{{$child.BaseTypeName}}, err := c.v{{$child.PkgName}}{{$child.NodeName}}.Get{{$child.FieldName}}(context.TODO(), i)
 		if err != nil {
 			panic(err)
 		}
 		{{ $child.Alias }}
 		{{ $child.ReturnType }}
-		v{{$child.FieldTypePkgPath}}List = append(v{{$child.NodeName}}List, ret)
+		v{{$child.FieldTypePkgPath}}List = append(v{{$child.FieldTypePkgPath}}List, ret)
 	}
 	return v{{$child.FieldTypePkgPath}}List, nil
 }

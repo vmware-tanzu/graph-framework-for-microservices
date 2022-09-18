@@ -624,6 +624,51 @@ func (group *ConfigTsmV1) UpdateConfigByName(ctx context.Context,
 	}
 	patch = append(patch, patchOpCluster)
 
+	patchValueFooA :=
+		objToUpdate.Spec.FooA
+	patchOpFooA := PatchOp{
+		Op:    "replace",
+		Path:  "/spec/fooA",
+		Value: patchValueFooA,
+	}
+	patch = append(patch, patchOpFooA)
+
+	patchValueFooMap :=
+		objToUpdate.Spec.FooMap
+	patchOpFooMap := PatchOp{
+		Op:    "replace",
+		Path:  "/spec/fooMap",
+		Value: patchValueFooMap,
+	}
+	patch = append(patch, patchOpFooMap)
+
+	patchValueFooB :=
+		objToUpdate.Spec.FooB
+	patchOpFooB := PatchOp{
+		Op:    "replace",
+		Path:  "/spec/fooB",
+		Value: patchValueFooB,
+	}
+	patch = append(patch, patchOpFooB)
+
+	patchValueFooC :=
+		objToUpdate.Spec.FooC
+	patchOpFooC := PatchOp{
+		Op:    "replace",
+		Path:  "/spec/fooC",
+		Value: patchValueFooC,
+	}
+	patch = append(patch, patchOpFooC)
+
+	patchValueFooD :=
+		objToUpdate.Spec.FooD
+	patchOpFooD := PatchOp{
+		Op:    "replace",
+		Path:  "/spec/fooD",
+		Value: patchValueFooD,
+	}
+	patch = append(patch, patchOpFooD)
+
 	marshaled, err := patch.Marshal()
 	if err != nil {
 		return nil, err

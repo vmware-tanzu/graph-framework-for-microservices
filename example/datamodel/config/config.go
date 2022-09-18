@@ -21,11 +21,22 @@ var BarCustomMethodsResponses = nexus.HTTPMethodsResponses{
 type Config struct {
 	nexus.Node
 	ConfigName string
-	GNS      gns.Gns `nexus:"child"`
-	Cluster Cluster
+	GNS        gns.Gns `nexus:"child"`
+	Cluster    Cluster
+	FooA       AMap
+	FooMap     map[string]string
+	FooB       BArray
+	FooC       CInt   `nexus-graphql:"ignore:true"`
+	FooD       DFloat `nexus-graphql:"type:string"`
 }
 
 type Cluster struct {
 	Name string
 	MyID int
 }
+
+type AMap map[string]string
+
+type BArray []string
+type CInt uint8
+type DFloat float32

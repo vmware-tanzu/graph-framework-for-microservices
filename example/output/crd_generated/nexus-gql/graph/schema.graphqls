@@ -1,24 +1,34 @@
 
+type Query {
+    root: root_Root
+}
 type root_Root {
 
-    Id: ID!
+    Id: ID
     Config: config_Config!
     DisplayName: String
     CustomBar: root_Bar
 }
+
 
 type root_Bar {
 
     Name: String
 }
 
+
 type config_Config {
 
-    Id: ID!
+    Id: ID
     GNS: gns_Gns!
     ConfigName: String
     Cluster: config_Cluster
+    FooA: String
+    FooMap: String
+    FooB(Id: ID): [String!]
+    FooD: String
 }
+
 
 type config_Cluster {
 
@@ -26,15 +36,17 @@ type config_Cluster {
     MyID: Int
 }
 
+
 type gns_HostPort {
 
     Host: String
     Port: Int
 }
 
+
 type gns_Gns {
 
-    Id: ID!
+    Id: ID
     FooLink: gns_Bar!
     FooLinks(Id: ID): [gns_Bar!]
     FooChild: gns_Bar!
@@ -46,15 +58,18 @@ type gns_Gns {
     Instance: String
 }
 
+
 type gns_Description {
 
     Color: String
     Version: String
     ProjectID: String
+    Instance: String
 }
+
 
 type gns_Bar {
 
-    Id: ID!
+    Id: ID
     Name: String
 }
