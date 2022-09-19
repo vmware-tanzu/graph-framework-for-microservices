@@ -3,7 +3,10 @@ package echo_server_test
 import (
 	"api-gw/pkg/config"
 	"api-gw/pkg/server/echo_server"
+	"github.com/labstack/echo/v4"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/common-library.git/pkg/nexus"
 	"net/http"
+	"net/http/httptest"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -66,6 +69,60 @@ var _ = Describe("Echo server tests", func() {
 		stopCh <- struct{}{}
 
 		e.StopServer()
+	})
+
+	It("should get nexus crd context", func() {
+		req := httptest.NewRequest(echo.GET, "/", nil)
+		rec := httptest.NewRecorder()
+		c := e.Echo.NewContext(req, rec)
+		nexusCrdContext := e.GetNexusCrdContext("test.vmware.org", "vmware.org", "tests")
+
+		var actualContext *echo_server.NexusContext
+		c.SetHandler(
+			nexusCrdContext(
+				func(c echo.Context) error {
+					actualContext = c.(*echo_server.NexusContext)
+					return c.NoContent(200)
+				},
+			),
+		)
+		err := c.Handler()(c)
+		Expect(err).NotTo(HaveOccurred())
+
+		Expect(actualContext.Resource).To(Equal("tests"))
+		Expect(actualContext.GroupName).To(Equal("vmware.org"))
+		Expect(actualContext.CrdType).To(Equal("test.vmware.org"))
+	})
+
+	It("should get nexus context", func() {
+		req := httptest.NewRequest(echo.GET, "/", nil)
+		rec := httptest.NewRecorder()
+		c := e.Echo.NewContext(req, rec)
+		restUri := nexus.RestURIs{
+			Uri:     "/test",
+			Methods: nexus.DefaultHTTPMethodsResponses,
+		}
+		codes := map[nexus.ResponseCode]nexus.HTTPResponse{
+			http.StatusOK: {
+				Description: "description",
+			},
+		}
+
+		nexusCrdContext := e.GetNexusContext(restUri, codes)
+		var actualContext *echo_server.NexusContext
+		c.SetHandler(
+			nexusCrdContext(
+				func(c echo.Context) error {
+					actualContext = c.(*echo_server.NexusContext)
+					return c.NoContent(200)
+				},
+			),
+		)
+		err := c.Handler()(c)
+		Expect(err).NotTo(HaveOccurred())
+
+		Expect(actualContext.NexusURI).To(Equal("/test"))
+		Expect(actualContext.Codes[http.StatusOK].Description).To(Equal("description"))
 	})
 
 })

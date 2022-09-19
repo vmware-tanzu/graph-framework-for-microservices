@@ -126,38 +126,40 @@ func (s *EchoServer) RegisterRouter(restURI nexus.RestURIs) {
 	urlPattern := model.ConstructEchoPathParamURL(restURI.Uri)
 	for method, codes := range restURI.Methods {
 		log.Infof("Registered Router Path %s Method %s\n", urlPattern, method)
+
+		nexusContext := s.GetNexusContext(restURI, codes)
 		switch method {
 		// in "admin" mode, the responsibility of authentication is offloaded to the nexus-proxy.
 		// so we don't need to add the authn.VerifyAuthenticationMiddleware middleware
 		case "LIST":
 			if common.IsModeAdmin() {
-				s.Echo.GET(urlPattern, listHandler, getNexusContext(restURI, codes))
+				s.Echo.GET(urlPattern, listHandler, nexusContext)
 			} else {
-				s.Echo.GET(urlPattern, listHandler, authn.VerifyAuthenticationMiddleware, getNexusContext(restURI, codes))
+				s.Echo.GET(urlPattern, listHandler, authn.VerifyAuthenticationMiddleware, nexusContext)
 			}
 		case http.MethodGet:
 			if common.IsModeAdmin() {
-				s.Echo.GET(urlPattern, getHandler, getNexusContext(restURI, codes))
+				s.Echo.GET(urlPattern, getHandler, nexusContext)
 			} else {
-				s.Echo.GET(urlPattern, getHandler, authn.VerifyAuthenticationMiddleware, getNexusContext(restURI, codes))
+				s.Echo.GET(urlPattern, getHandler, authn.VerifyAuthenticationMiddleware, nexusContext)
 			}
 		case http.MethodPut:
 			if common.IsModeAdmin() {
-				s.Echo.PUT(urlPattern, putHandler, getNexusContext(restURI, codes))
+				s.Echo.PUT(urlPattern, putHandler, nexusContext)
 			} else {
-				s.Echo.PUT(urlPattern, putHandler, authn.VerifyAuthenticationMiddleware, getNexusContext(restURI, codes))
+				s.Echo.PUT(urlPattern, putHandler, authn.VerifyAuthenticationMiddleware, nexusContext)
 			}
 		case http.MethodDelete:
 			if common.IsModeAdmin() {
-				s.Echo.DELETE(urlPattern, deleteHandler, getNexusContext(restURI, codes))
+				s.Echo.DELETE(urlPattern, deleteHandler, nexusContext)
 			} else {
-				s.Echo.DELETE(urlPattern, deleteHandler, authn.VerifyAuthenticationMiddleware, getNexusContext(restURI, codes))
+				s.Echo.DELETE(urlPattern, deleteHandler, authn.VerifyAuthenticationMiddleware, nexusContext)
 			}
 		}
 	}
 }
 
-func getNexusContext(restURI nexus.RestURIs, codes nexus.HTTPCodesResponse) func(next echo.HandlerFunc) echo.HandlerFunc {
+func (s *EchoServer) GetNexusContext(restURI nexus.RestURIs, codes nexus.HTTPCodesResponse) func(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
 			nc := &NexusContext{
@@ -170,57 +172,32 @@ func getNexusContext(restURI nexus.RestURIs, codes nexus.HTTPCodesResponse) func
 	}
 }
 
+func (s *EchoServer) GetNexusCrdContext(crdType, groupName, resource string) func(next echo.HandlerFunc) echo.HandlerFunc {
+	return func(next echo.HandlerFunc) echo.HandlerFunc {
+		return func(c echo.Context) error {
+			nc := &NexusContext{
+				Context:   c,
+				CrdType:   crdType,
+				GroupName: groupName,
+				Resource:  resource,
+			}
+			return next(nc)
+		}
+	}
+}
+
 func (s *EchoServer) RegisterCrdRouter(crdType string) {
 	crdParts := strings.Split(crdType, ".")
 	groupName := strings.Join(crdParts[1:], ".")
 	resourcePattern := fmt.Sprintf("/apis/%s/v1/%s", groupName, crdParts[0])
 	resourceNamePattern := resourcePattern + "/:name"
+	crdContext := s.GetNexusCrdContext(crdType, groupName, crdParts[0])
 
 	// TODO NPT-313 support authentication for kubectl proxy requests
-	s.Echo.GET(resourceNamePattern, KubeGetByNameHandler, func(next echo.HandlerFunc) echo.HandlerFunc {
-		return func(c echo.Context) error {
-			nc := &NexusContext{
-				Context:   c,
-				CrdType:   crdType,
-				GroupName: groupName,
-				Resource:  crdParts[0],
-			}
-			return next(nc)
-		}
-	})
-	s.Echo.GET(resourcePattern, KubeGetHandler, func(next echo.HandlerFunc) echo.HandlerFunc {
-		return func(c echo.Context) error {
-			nc := &NexusContext{
-				Context:   c,
-				CrdType:   crdType,
-				GroupName: groupName,
-				Resource:  crdParts[0],
-			}
-			return next(nc)
-		}
-	})
-	s.Echo.POST(resourcePattern, KubePostHandler, func(next echo.HandlerFunc) echo.HandlerFunc {
-		return func(c echo.Context) error {
-			nc := &NexusContext{
-				Context:   c,
-				CrdType:   crdType,
-				GroupName: groupName,
-				Resource:  crdParts[0],
-			}
-			return next(nc)
-		}
-	})
-	s.Echo.DELETE(resourceNamePattern, KubeDeleteHandler, func(next echo.HandlerFunc) echo.HandlerFunc {
-		return func(c echo.Context) error {
-			nc := &NexusContext{
-				Context:   c,
-				CrdType:   crdType,
-				GroupName: groupName,
-				Resource:  crdParts[0],
-			}
-			return next(nc)
-		}
-	})
+	s.Echo.GET(resourceNamePattern, KubeGetByNameHandler, crdContext)
+	s.Echo.GET(resourcePattern, KubeGetHandler, crdContext)
+	s.Echo.POST(resourcePattern, KubePostHandler, crdContext)
+	s.Echo.DELETE(resourceNamePattern, KubeDeleteHandler, crdContext)
 }
 
 func (s *EchoServer) RegisterDeclarativeRouter() {
