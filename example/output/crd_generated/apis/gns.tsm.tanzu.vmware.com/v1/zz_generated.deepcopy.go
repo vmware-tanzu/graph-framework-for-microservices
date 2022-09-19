@@ -22,6 +22,7 @@ limitations under the License.
 package v1
 
 import (
+	v1alpha1 "github.com/vmware-tanzu/cartographer/pkg/apis/v1alpha1"
 	runtime "k8s.io/apimachinery/pkg/runtime"
 )
 
@@ -345,7 +346,42 @@ func (in *GnsNexusStatus) DeepCopy() *GnsNexusStatus {
 func (in *GnsSpec) DeepCopyInto(out *GnsSpec) {
 	*out = *in
 	out.Description = in.Description
+	if in.Port != nil {
+		in, out := &in.Port, &out.Port
+		*out = new(int)
+		**out = **in
+	}
+	if in.OtherDescription != nil {
+		in, out := &in.OtherDescription, &out.OtherDescription
+		*out = new(Description)
+		**out = **in
+	}
+	if in.MapPointer != nil {
+		in, out := &in.MapPointer, &out.MapPointer
+		*out = new(map[string]string)
+		if **in != nil {
+			in, out := *in, *out
+			*out = make(map[string]string, len(*in))
+			for key, val := range *in {
+				(*out)[key] = val
+			}
+		}
+	}
+	if in.SlicePointer != nil {
+		in, out := &in.SlicePointer, &out.SlicePointer
+		*out = new([]string)
+		if **in != nil {
+			in, out := *in, *out
+			*out = make([]string, len(*in))
+			copy(*out, *in)
+		}
+	}
 	in.WorkloadSpec.DeepCopyInto(&out.WorkloadSpec)
+	if in.DifferentSpec != nil {
+		in, out := &in.DifferentSpec, &out.DifferentSpec
+		*out = new(v1alpha1.WorkloadSpec)
+		(*in).DeepCopyInto(*out)
+	}
 	if in.GnsServiceGroupsGvk != nil {
 		in, out := &in.GnsServiceGroupsGvk, &out.GnsServiceGroupsGvk
 		*out = make(map[string]Child, len(*in))
