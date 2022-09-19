@@ -109,7 +109,13 @@ type Gns struct {
 	State                  GnsState                      `nexus:"status"`
 	Meta                   string
 
-	WorkloadSpec cartv1.WorkloadSpec //external-field
+	Port             *int         // pointer test
+	OtherDescription *Description // pointer test - struct
+	MapPointer       *map[string]string
+	SlicePointer     *[]string
+
+	WorkloadSpec  cartv1.WorkloadSpec  //external-field
+	DifferentSpec *cartv1.WorkloadSpec // external-field - pointer
 }
 
 // This is Description struct.

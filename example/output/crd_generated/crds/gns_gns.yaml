@@ -51,6 +51,9 @@ spec:
                 - Version
                 - ProjectId
                 type: object
+              differentSpec:
+                type: object
+                x-kubernetes-preserve-unknown-fields: true
               dnsGvk:
                 properties:
                   group:
@@ -97,8 +100,32 @@ spec:
                   - name
                   type: object
                 type: object
+              mapPointer:
+                additionalProperties:
+                  type: string
+                type: object
               meta:
                 type: string
+              otherDescription:
+                properties:
+                  Color:
+                    type: string
+                  ProjectId:
+                    type: string
+                  Version:
+                    type: string
+                required:
+                - Color
+                - Version
+                - ProjectId
+                type: object
+              port:
+                format: int32
+                type: integer
+              slicePointer:
+                items:
+                  type: string
+                type: array
               useSharedGateway:
                 type: boolean
               workloadSpec:
@@ -109,7 +136,12 @@ spec:
             - useSharedGateway
             - description
             - meta
+            - port
+            - otherDescription
+            - mapPointer
+            - slicePointer
             - workloadSpec
+            - differentSpec
             type: object
           status:
             properties:

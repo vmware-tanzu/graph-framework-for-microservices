@@ -1658,6 +1658,42 @@ func (group *GnsTsmV1) UpdateGnsByName(ctx context.Context,
 	}
 	patch = append(patch, patchOpMeta)
 
+	patchValuePort :=
+		objToUpdate.Spec.Port
+	patchOpPort := PatchOp{
+		Op:    "replace",
+		Path:  "/spec/port",
+		Value: patchValuePort,
+	}
+	patch = append(patch, patchOpPort)
+
+	patchValueOtherDescription :=
+		objToUpdate.Spec.OtherDescription
+	patchOpOtherDescription := PatchOp{
+		Op:    "replace",
+		Path:  "/spec/otherDescription",
+		Value: patchValueOtherDescription,
+	}
+	patch = append(patch, patchOpOtherDescription)
+
+	patchValueMapPointer :=
+		objToUpdate.Spec.MapPointer
+	patchOpMapPointer := PatchOp{
+		Op:    "replace",
+		Path:  "/spec/mapPointer",
+		Value: patchValueMapPointer,
+	}
+	patch = append(patch, patchOpMapPointer)
+
+	patchValueSlicePointer :=
+		objToUpdate.Spec.SlicePointer
+	patchOpSlicePointer := PatchOp{
+		Op:    "replace",
+		Path:  "/spec/slicePointer",
+		Value: patchValueSlicePointer,
+	}
+	patch = append(patch, patchOpSlicePointer)
+
 	patchValueWorkloadSpec :=
 		objToUpdate.Spec.WorkloadSpec
 	patchOpWorkloadSpec := PatchOp{
@@ -1666,6 +1702,15 @@ func (group *GnsTsmV1) UpdateGnsByName(ctx context.Context,
 		Value: patchValueWorkloadSpec,
 	}
 	patch = append(patch, patchOpWorkloadSpec)
+
+	patchValueDifferentSpec :=
+		objToUpdate.Spec.DifferentSpec
+	patchOpDifferentSpec := PatchOp{
+		Op:    "replace",
+		Path:  "/spec/differentSpec",
+		Value: patchValueDifferentSpec,
+	}
+	patch = append(patch, patchOpDifferentSpec)
 
 	marshaled, err := patch.Marshal()
 	if err != nil {

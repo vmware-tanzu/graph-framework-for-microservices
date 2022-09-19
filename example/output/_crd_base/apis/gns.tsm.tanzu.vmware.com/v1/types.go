@@ -105,14 +105,19 @@ func (c *Gns) DisplayName() string {
 type GnsSpec struct {
 	//nexus-validation: MaxLength=8, MinLength=2
 	//nexus-validation: Pattern=abc
-	Domain                    string              `json:"domain" yaml:"domain"`
-	UseSharedGateway          bool                `json:"useSharedGateway" yaml:"useSharedGateway"`
-	Description               Description         `json:"description" yaml:"description"`
-	Meta                      string              `json:"meta" yaml:"meta"`
-	WorkloadSpec              cartv1.WorkloadSpec `json:"workloadSpec" yaml:"workloadSpec"`
-	GnsServiceGroupsGvk       map[string]Child    `json:"gnsServiceGroupsGvk,omitempty" yaml:"gnsServiceGroupsGvk,omitempty" nexus:"children"`
-	GnsAccessControlPolicyGvk *Child              `json:"gnsAccessControlPolicyGvk,omitempty" yaml:"gnsAccessControlPolicyGvk,omitempty" nexus:"child"`
-	DnsGvk                    *Link               `json:"dnsGvk,omitempty" yaml:"dnsGvk,omitempty" nexus:"link"`
+	Domain                    string               `json:"domain" yaml:"domain"`
+	UseSharedGateway          bool                 `json:"useSharedGateway" yaml:"useSharedGateway"`
+	Description               Description          `json:"description" yaml:"description"`
+	Meta                      string               `json:"meta" yaml:"meta"`
+	Port                      *int                 `json:"port" yaml:"port"`
+	OtherDescription          *Description         `json:"otherDescription" yaml:"otherDescription"`
+	MapPointer                *map[string]string   `json:"mapPointer" yaml:"mapPointer"`
+	SlicePointer              *[]string            `json:"slicePointer" yaml:"slicePointer"`
+	WorkloadSpec              cartv1.WorkloadSpec  `json:"workloadSpec" yaml:"workloadSpec"`
+	DifferentSpec             *cartv1.WorkloadSpec `json:"differentSpec" yaml:"differentSpec"`
+	GnsServiceGroupsGvk       map[string]Child     `json:"gnsServiceGroupsGvk,omitempty" yaml:"gnsServiceGroupsGvk,omitempty" nexus:"children"`
+	GnsAccessControlPolicyGvk *Child               `json:"gnsAccessControlPolicyGvk,omitempty" yaml:"gnsAccessControlPolicyGvk,omitempty" nexus:"child"`
+	DnsGvk                    *Link                `json:"dnsGvk,omitempty" yaml:"dnsGvk,omitempty" nexus:"link"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
