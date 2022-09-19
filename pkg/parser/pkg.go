@@ -514,6 +514,18 @@ func IsArrayField(f *ast.Field) bool {
 	return false
 }
 
+func IsPointerToArrayField(f *ast.Field) bool {
+	if f == nil {
+		return false
+	}
+	if starExpr, ok := f.Type.(*ast.StarExpr); ok {
+		if _, ok := starExpr.X.(*ast.ArrayType); ok {
+			return true
+		}
+	}
+	return false
+}
+
 func GetNodeFieldName(f *ast.Field) (string, error) {
 	if f == nil {
 		return "", errors.New("provided field does not exist")

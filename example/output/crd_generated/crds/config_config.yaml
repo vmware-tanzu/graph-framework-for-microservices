@@ -86,6 +86,49 @@ spec:
                 - kind
                 - name
                 type: object
+              mapOfArrsPoints:
+                additionalProperties:
+                  items:
+                    type: string
+                  type: array
+                type: object
+              pointInt:
+                format: int32
+                type: integer
+              pointMap:
+                additionalProperties:
+                  type: string
+                type: object
+              pointPort:
+                format: int32
+                type: integer
+              pointSlice:
+                items:
+                  type: string
+                type: array
+              pointString:
+                type: string
+              pointStruct:
+                properties:
+                  MyID:
+                    format: int32
+                    type: integer
+                  Name:
+                    type: string
+                required:
+                - Name
+                - MyID
+                type: object
+              sliceOfArrPoints:
+                items:
+                  items:
+                    type: string
+                  type: array
+                type: array
+              sliceOfPoints:
+                items:
+                  type: string
+                type: array
               xYZPort:
                 items:
                   format: int32
@@ -101,6 +144,15 @@ spec:
             - FooD
             - xYZPort
             - aBCHost
+            - pointPort
+            - pointString
+            - pointInt
+            - pointMap
+            - pointSlice
+            - sliceOfPoints
+            - sliceOfArrPoints
+            - mapOfArrsPoints
+            - pointStruct
             type: object
           status:
             properties:

@@ -707,6 +707,87 @@ func (group *ConfigTsmV1) UpdateConfigByName(ctx context.Context,
 	}
 	patch = append(patch, patchOpABCHost)
 
+	patchValuePointPort :=
+		objToUpdate.Spec.PointPort
+	patchOpPointPort := PatchOp{
+		Op:    "replace",
+		Path:  "/spec/pointPort",
+		Value: patchValuePointPort,
+	}
+	patch = append(patch, patchOpPointPort)
+
+	patchValuePointString :=
+		objToUpdate.Spec.PointString
+	patchOpPointString := PatchOp{
+		Op:    "replace",
+		Path:  "/spec/pointString",
+		Value: patchValuePointString,
+	}
+	patch = append(patch, patchOpPointString)
+
+	patchValuePointInt :=
+		objToUpdate.Spec.PointInt
+	patchOpPointInt := PatchOp{
+		Op:    "replace",
+		Path:  "/spec/pointInt",
+		Value: patchValuePointInt,
+	}
+	patch = append(patch, patchOpPointInt)
+
+	patchValuePointMap :=
+		objToUpdate.Spec.PointMap
+	patchOpPointMap := PatchOp{
+		Op:    "replace",
+		Path:  "/spec/pointMap",
+		Value: patchValuePointMap,
+	}
+	patch = append(patch, patchOpPointMap)
+
+	patchValuePointSlice :=
+		objToUpdate.Spec.PointSlice
+	patchOpPointSlice := PatchOp{
+		Op:    "replace",
+		Path:  "/spec/pointSlice",
+		Value: patchValuePointSlice,
+	}
+	patch = append(patch, patchOpPointSlice)
+
+	patchValueSliceOfPoints :=
+		objToUpdate.Spec.SliceOfPoints
+	patchOpSliceOfPoints := PatchOp{
+		Op:    "replace",
+		Path:  "/spec/sliceOfPoints",
+		Value: patchValueSliceOfPoints,
+	}
+	patch = append(patch, patchOpSliceOfPoints)
+
+	patchValueSliceOfArrPoints :=
+		objToUpdate.Spec.SliceOfArrPoints
+	patchOpSliceOfArrPoints := PatchOp{
+		Op:    "replace",
+		Path:  "/spec/sliceOfArrPoints",
+		Value: patchValueSliceOfArrPoints,
+	}
+	patch = append(patch, patchOpSliceOfArrPoints)
+
+	patchValueMapOfArrsPoints :=
+		objToUpdate.Spec.MapOfArrsPoints
+	patchOpMapOfArrsPoints := PatchOp{
+		Op:    "replace",
+		Path:  "/spec/mapOfArrsPoints",
+		Value: patchValueMapOfArrsPoints,
+	}
+	patch = append(patch, patchOpMapOfArrsPoints)
+
+	patchValuePointStruct :=
+		objToUpdate.Spec.PointStruct
+	patchOpPointStruct := PatchOp{
+		Op:    "replace",
+		Path:  "/spec/pointStruct",
+		Value: patchValuePointStruct,
+	}
+	patch = append(patch, patchOpPointStruct)
+
 	marshaled, err := patch.Marshal()
 	if err != nil {
 		return nil, err
