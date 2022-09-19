@@ -63,6 +63,7 @@ type gns_Gns {
     UseSharedGateway: Boolean
     Mydesc: gns_Description
     HostPort: gns_HostPort
+    TestArray: gns_EmptyData
     Instance: String
 }
 
@@ -86,3 +87,7 @@ type gns_Bar {
 
 
  
+type gns_EmptyData {
+
+    Id: ID
+}

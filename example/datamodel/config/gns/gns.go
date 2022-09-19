@@ -82,6 +82,7 @@ type Gns struct {
 	FooChild         Bar `nexus:"child"`
 	FooChildren      Bar `nexus:"children"`
 	HostPort         HostPort
+	TestArray        EmptyData
 	Instance         Instance
 }
 
@@ -99,4 +100,5 @@ type Bar struct {
 }
 
 type EmptyData struct {
+	nexus.Node
 }

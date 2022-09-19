@@ -41,6 +41,8 @@ func addKnownTypes(scheme *runtime.Scheme) error {
 		&GnsList{},
 		&Bar{},
 		&BarList{},
+		&EmptyData{},
+		&EmptyDataList{},
 	)
 
 	// register the type in the scheme
