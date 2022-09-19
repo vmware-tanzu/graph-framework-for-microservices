@@ -43,7 +43,8 @@ func grpcServer() qm.ServerClient{
 	}
 	return qm.NewServerClient(conn)
 }
-{{ range $key, $node := .Nodes }}{{ if $node.IsParentNode }}
+{{ range $key, $node := .Nodes }}
+{{ if $node.IsParentNode }}
 //////////////////////////////////////
 // Resolver for Parent Node: {{$node.PkgName}}
 //////////////////////////////////////
@@ -64,7 +65,7 @@ func (c *resolverConfig) getRootResolver() (*model.{{$node.PkgName}}{{$node.Node
 	return ret, nil{{ else }}
 	ret := &model.{{$node.PkgName}}{{$node.NodeName}} {}
 	return ret, nil{{ end }}
-}
+}{{end}}
 {{ if $node.IsNexusNode }}
 //////////////////////////////////////
 // CustomQuery Resolver for Node: {{$node.PkgName}}{{$node.NodeName}}
@@ -205,7 +206,7 @@ func (c *resolverConfig) get{{$node.PkgName}}{{$node.NodeName}}queryServiceTopol
 	}
 	return ret,nil
 }
-{{ end }}{{ end }}{{ end }}
+{{ end }}{{ end }}
 {{ range $key, $node := .Nodes }}{{ range $key, $child := $node.ChildLinkFields }}
 //////////////////////////////////////
 // Child/Link Node : {{$child.FieldName}} {{$child.BaseTypeName}}
