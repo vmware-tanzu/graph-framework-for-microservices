@@ -48,6 +48,7 @@ func grpcServer() qm.ServerClient{
 	return qm.NewServerClient(conn)
 }
 
+
 //////////////////////////////////////
 // Resolver for Parent Node: Root
 //////////////////////////////////////
@@ -196,6 +197,582 @@ func (c *resolverConfig) getRootRootqueryOutgoingTCPResolver(startTime *string, 
 
 // Resolver for queryServiceTopology
 func (c *resolverConfig) getRootRootqueryServiceTopologyResolver(startTime *string, endTime *string, metricStringArray *string) (*model.TimeSeriesData,error) {
+	ctx := context.Background()
+	var filters = make(map[string]string)
+	filters[""] = ""
+	resp, err := grpcServer().GetMetrics(ctx, &qm.MetricArg{QueryType: "/ServiceTopology", StartTime: *startTime, EndTime: *endTime, Metric: *metricStringArray, Filters: filters,TimeInterval: ""})
+	if err != nil {
+		fmt.Printf("Failed to getMetrics, err: %v", err)
+	}
+	b, _ := json.Marshal(resp.Data)
+	data := string(b)
+	ret := &model.TimeSeriesData{
+		Data: &data,
+	}
+	return ret,nil
+}
+
+
+
+
+
+//////////////////////////////////////
+// CustomQuery Resolver for Node: ConfigConfig
+//////////////////////////////////////
+
+// Resolver for queryServiceTable
+func (c *resolverConfig) getConfigConfigqueryServiceTableResolver(startTime *string, endTime *string, systemServices *bool, showGateways *bool, groupby *string, noMetrics *bool) (*model.TimeSeriesData,error) {
+	ctx := context.Background()
+	var filters = make(map[string]string)
+	filters[""] = ""
+	resp, err := grpcServer().GetMetrics(ctx, &qm.MetricArg{QueryType: "/ServiceTable", StartTime: *startTime, EndTime: *endTime, Metric: "", Filters: filters,TimeInterval: ""})
+	if err != nil {
+		fmt.Printf("Failed to getMetrics, err: %v", err)
+	}
+	b, _ := json.Marshal(resp.Data)
+	data := string(b)
+	ret := &model.TimeSeriesData{
+		Data: &data,
+	}
+	return ret,nil
+}
+
+// Resolver for queryServiceVersionTable
+func (c *resolverConfig) getConfigConfigqueryServiceVersionTableResolver(startTime *string, endTime *string, systemServices *bool, showGateways *bool, noMetrics *bool) (*model.TimeSeriesData,error) {
+	ctx := context.Background()
+	var filters = make(map[string]string)
+	filters[""] = ""
+	resp, err := grpcServer().GetMetrics(ctx, &qm.MetricArg{QueryType: "/ServiceTable", StartTime: *startTime, EndTime: *endTime, Metric: "", Filters: filters,TimeInterval: ""})
+	if err != nil {
+		fmt.Printf("Failed to getMetrics, err: %v", err)
+	}
+	b, _ := json.Marshal(resp.Data)
+	data := string(b)
+	ret := &model.TimeSeriesData{
+		Data: &data,
+	}
+	return ret,nil
+}
+
+// Resolver for queryServiceTS
+func (c *resolverConfig) getConfigConfigqueryServiceTSResolver(svcMetric *string, startTime *string, endTime *string, timeInterval *string) (*model.TimeSeriesData,error) {
+	ctx := context.Background()
+	var filters = make(map[string]string)
+	filters[""] = ""
+	resp, err := grpcServer().GetMetrics(ctx, &qm.MetricArg{QueryType: "/ServiceMetricSeries", StartTime: *startTime, EndTime: *endTime, Metric: *svcMetric, Filters: filters,TimeInterval: *timeInterval})
+	if err != nil {
+		fmt.Printf("Failed to getMetrics, err: %v", err)
+	}
+	b, _ := json.Marshal(resp.Data)
+	data := string(b)
+	ret := &model.TimeSeriesData{
+		Data: &data,
+	}
+	return ret,nil
+}
+
+// Resolver for queryIncomingAPIs
+func (c *resolverConfig) getConfigConfigqueryIncomingAPIsResolver(startTime *string, endTime *string, destinationService *string, destinationServiceVersion *string, timeInterval *string, timeZone *string) (*model.TimeSeriesData,error) {
+	ctx := context.Background()
+	var filters = make(map[string]string)
+	filters[""] = ""
+	resp, err := grpcServer().GetMetrics(ctx, &qm.MetricArg{QueryType: "/IncomingAPIs", StartTime: *startTime, EndTime: *endTime, Metric: "", Filters: filters,TimeInterval: *timeInterval})
+	if err != nil {
+		fmt.Printf("Failed to getMetrics, err: %v", err)
+	}
+	b, _ := json.Marshal(resp.Data)
+	data := string(b)
+	ret := &model.TimeSeriesData{
+		Data: &data,
+	}
+	return ret,nil
+}
+
+// Resolver for queryOutgoingAPIs
+func (c *resolverConfig) getConfigConfigqueryOutgoingAPIsResolver(startTime *string, endTime *string, timeInterval *string, timeZone *string) (*model.TimeSeriesData,error) {
+	ctx := context.Background()
+	var filters = make(map[string]string)
+	filters[""] = ""
+	resp, err := grpcServer().GetMetrics(ctx, &qm.MetricArg{QueryType: "/OutgoingAPIs", StartTime: *startTime, EndTime: *endTime, Metric: "", Filters: filters,TimeInterval: *timeInterval})
+	if err != nil {
+		fmt.Printf("Failed to getMetrics, err: %v", err)
+	}
+	b, _ := json.Marshal(resp.Data)
+	data := string(b)
+	ret := &model.TimeSeriesData{
+		Data: &data,
+	}
+	return ret,nil
+}
+
+// Resolver for queryIncomingTCP
+func (c *resolverConfig) getConfigConfigqueryIncomingTCPResolver(startTime *string, endTime *string, destinationService *string, destinationServiceVersion *string) (*model.TimeSeriesData,error) {
+	ctx := context.Background()
+	var filters = make(map[string]string)
+	filters[""] = ""
+	resp, err := grpcServer().GetMetrics(ctx, &qm.MetricArg{QueryType: "/IncomingTCP", StartTime: *startTime, EndTime: *endTime, Metric: "", Filters: filters,TimeInterval: ""})
+	if err != nil {
+		fmt.Printf("Failed to getMetrics, err: %v", err)
+	}
+	b, _ := json.Marshal(resp.Data)
+	data := string(b)
+	ret := &model.TimeSeriesData{
+		Data: &data,
+	}
+	return ret,nil
+}
+
+// Resolver for queryOutgoingTCP
+func (c *resolverConfig) getConfigConfigqueryOutgoingTCPResolver(startTime *string, endTime *string, destinationService *string, destinationServiceVersion *string) (*model.TimeSeriesData,error) {
+	ctx := context.Background()
+	var filters = make(map[string]string)
+	filters[""] = ""
+	resp, err := grpcServer().GetMetrics(ctx, &qm.MetricArg{QueryType: "/OutgoingTCP", StartTime: *startTime, EndTime: *endTime, Metric: "", Filters: filters,TimeInterval: ""})
+	if err != nil {
+		fmt.Printf("Failed to getMetrics, err: %v", err)
+	}
+	b, _ := json.Marshal(resp.Data)
+	data := string(b)
+	ret := &model.TimeSeriesData{
+		Data: &data,
+	}
+	return ret,nil
+}
+
+// Resolver for queryServiceTopology
+func (c *resolverConfig) getConfigConfigqueryServiceTopologyResolver(startTime *string, endTime *string, metricStringArray *string) (*model.TimeSeriesData,error) {
+	ctx := context.Background()
+	var filters = make(map[string]string)
+	filters[""] = ""
+	resp, err := grpcServer().GetMetrics(ctx, &qm.MetricArg{QueryType: "/ServiceTopology", StartTime: *startTime, EndTime: *endTime, Metric: *metricStringArray, Filters: filters,TimeInterval: ""})
+	if err != nil {
+		fmt.Printf("Failed to getMetrics, err: %v", err)
+	}
+	b, _ := json.Marshal(resp.Data)
+	data := string(b)
+	ret := &model.TimeSeriesData{
+		Data: &data,
+	}
+	return ret,nil
+}
+
+
+
+
+
+
+
+//////////////////////////////////////
+// CustomQuery Resolver for Node: GnsGns
+//////////////////////////////////////
+
+// Resolver for queryServiceTable
+func (c *resolverConfig) getGnsGnsqueryServiceTableResolver(startTime *string, endTime *string, systemServices *bool, showGateways *bool, groupby *string, noMetrics *bool) (*model.TimeSeriesData,error) {
+	ctx := context.Background()
+	var filters = make(map[string]string)
+	filters[""] = ""
+	resp, err := grpcServer().GetMetrics(ctx, &qm.MetricArg{QueryType: "/ServiceTable", StartTime: *startTime, EndTime: *endTime, Metric: "", Filters: filters,TimeInterval: ""})
+	if err != nil {
+		fmt.Printf("Failed to getMetrics, err: %v", err)
+	}
+	b, _ := json.Marshal(resp.Data)
+	data := string(b)
+	ret := &model.TimeSeriesData{
+		Data: &data,
+	}
+	return ret,nil
+}
+
+// Resolver for queryServiceVersionTable
+func (c *resolverConfig) getGnsGnsqueryServiceVersionTableResolver(startTime *string, endTime *string, systemServices *bool, showGateways *bool, noMetrics *bool) (*model.TimeSeriesData,error) {
+	ctx := context.Background()
+	var filters = make(map[string]string)
+	filters[""] = ""
+	resp, err := grpcServer().GetMetrics(ctx, &qm.MetricArg{QueryType: "/ServiceTable", StartTime: *startTime, EndTime: *endTime, Metric: "", Filters: filters,TimeInterval: ""})
+	if err != nil {
+		fmt.Printf("Failed to getMetrics, err: %v", err)
+	}
+	b, _ := json.Marshal(resp.Data)
+	data := string(b)
+	ret := &model.TimeSeriesData{
+		Data: &data,
+	}
+	return ret,nil
+}
+
+// Resolver for queryServiceTS
+func (c *resolverConfig) getGnsGnsqueryServiceTSResolver(svcMetric *string, startTime *string, endTime *string, timeInterval *string) (*model.TimeSeriesData,error) {
+	ctx := context.Background()
+	var filters = make(map[string]string)
+	filters[""] = ""
+	resp, err := grpcServer().GetMetrics(ctx, &qm.MetricArg{QueryType: "/ServiceMetricSeries", StartTime: *startTime, EndTime: *endTime, Metric: *svcMetric, Filters: filters,TimeInterval: *timeInterval})
+	if err != nil {
+		fmt.Printf("Failed to getMetrics, err: %v", err)
+	}
+	b, _ := json.Marshal(resp.Data)
+	data := string(b)
+	ret := &model.TimeSeriesData{
+		Data: &data,
+	}
+	return ret,nil
+}
+
+// Resolver for queryIncomingAPIs
+func (c *resolverConfig) getGnsGnsqueryIncomingAPIsResolver(startTime *string, endTime *string, destinationService *string, destinationServiceVersion *string, timeInterval *string, timeZone *string) (*model.TimeSeriesData,error) {
+	ctx := context.Background()
+	var filters = make(map[string]string)
+	filters[""] = ""
+	resp, err := grpcServer().GetMetrics(ctx, &qm.MetricArg{QueryType: "/IncomingAPIs", StartTime: *startTime, EndTime: *endTime, Metric: "", Filters: filters,TimeInterval: *timeInterval})
+	if err != nil {
+		fmt.Printf("Failed to getMetrics, err: %v", err)
+	}
+	b, _ := json.Marshal(resp.Data)
+	data := string(b)
+	ret := &model.TimeSeriesData{
+		Data: &data,
+	}
+	return ret,nil
+}
+
+// Resolver for queryOutgoingAPIs
+func (c *resolverConfig) getGnsGnsqueryOutgoingAPIsResolver(startTime *string, endTime *string, timeInterval *string, timeZone *string) (*model.TimeSeriesData,error) {
+	ctx := context.Background()
+	var filters = make(map[string]string)
+	filters[""] = ""
+	resp, err := grpcServer().GetMetrics(ctx, &qm.MetricArg{QueryType: "/OutgoingAPIs", StartTime: *startTime, EndTime: *endTime, Metric: "", Filters: filters,TimeInterval: *timeInterval})
+	if err != nil {
+		fmt.Printf("Failed to getMetrics, err: %v", err)
+	}
+	b, _ := json.Marshal(resp.Data)
+	data := string(b)
+	ret := &model.TimeSeriesData{
+		Data: &data,
+	}
+	return ret,nil
+}
+
+// Resolver for queryIncomingTCP
+func (c *resolverConfig) getGnsGnsqueryIncomingTCPResolver(startTime *string, endTime *string, destinationService *string, destinationServiceVersion *string) (*model.TimeSeriesData,error) {
+	ctx := context.Background()
+	var filters = make(map[string]string)
+	filters[""] = ""
+	resp, err := grpcServer().GetMetrics(ctx, &qm.MetricArg{QueryType: "/IncomingTCP", StartTime: *startTime, EndTime: *endTime, Metric: "", Filters: filters,TimeInterval: ""})
+	if err != nil {
+		fmt.Printf("Failed to getMetrics, err: %v", err)
+	}
+	b, _ := json.Marshal(resp.Data)
+	data := string(b)
+	ret := &model.TimeSeriesData{
+		Data: &data,
+	}
+	return ret,nil
+}
+
+// Resolver for queryOutgoingTCP
+func (c *resolverConfig) getGnsGnsqueryOutgoingTCPResolver(startTime *string, endTime *string, destinationService *string, destinationServiceVersion *string) (*model.TimeSeriesData,error) {
+	ctx := context.Background()
+	var filters = make(map[string]string)
+	filters[""] = ""
+	resp, err := grpcServer().GetMetrics(ctx, &qm.MetricArg{QueryType: "/OutgoingTCP", StartTime: *startTime, EndTime: *endTime, Metric: "", Filters: filters,TimeInterval: ""})
+	if err != nil {
+		fmt.Printf("Failed to getMetrics, err: %v", err)
+	}
+	b, _ := json.Marshal(resp.Data)
+	data := string(b)
+	ret := &model.TimeSeriesData{
+		Data: &data,
+	}
+	return ret,nil
+}
+
+// Resolver for queryServiceTopology
+func (c *resolverConfig) getGnsGnsqueryServiceTopologyResolver(startTime *string, endTime *string, metricStringArray *string) (*model.TimeSeriesData,error) {
+	ctx := context.Background()
+	var filters = make(map[string]string)
+	filters[""] = ""
+	resp, err := grpcServer().GetMetrics(ctx, &qm.MetricArg{QueryType: "/ServiceTopology", StartTime: *startTime, EndTime: *endTime, Metric: *metricStringArray, Filters: filters,TimeInterval: ""})
+	if err != nil {
+		fmt.Printf("Failed to getMetrics, err: %v", err)
+	}
+	b, _ := json.Marshal(resp.Data)
+	data := string(b)
+	ret := &model.TimeSeriesData{
+		Data: &data,
+	}
+	return ret,nil
+}
+
+
+
+
+
+//////////////////////////////////////
+// CustomQuery Resolver for Node: GnsBar
+//////////////////////////////////////
+
+// Resolver for queryServiceTable
+func (c *resolverConfig) getGnsBarqueryServiceTableResolver(startTime *string, endTime *string, systemServices *bool, showGateways *bool, groupby *string, noMetrics *bool) (*model.TimeSeriesData,error) {
+	ctx := context.Background()
+	var filters = make(map[string]string)
+	filters[""] = ""
+	resp, err := grpcServer().GetMetrics(ctx, &qm.MetricArg{QueryType: "/ServiceTable", StartTime: *startTime, EndTime: *endTime, Metric: "", Filters: filters,TimeInterval: ""})
+	if err != nil {
+		fmt.Printf("Failed to getMetrics, err: %v", err)
+	}
+	b, _ := json.Marshal(resp.Data)
+	data := string(b)
+	ret := &model.TimeSeriesData{
+		Data: &data,
+	}
+	return ret,nil
+}
+
+// Resolver for queryServiceVersionTable
+func (c *resolverConfig) getGnsBarqueryServiceVersionTableResolver(startTime *string, endTime *string, systemServices *bool, showGateways *bool, noMetrics *bool) (*model.TimeSeriesData,error) {
+	ctx := context.Background()
+	var filters = make(map[string]string)
+	filters[""] = ""
+	resp, err := grpcServer().GetMetrics(ctx, &qm.MetricArg{QueryType: "/ServiceTable", StartTime: *startTime, EndTime: *endTime, Metric: "", Filters: filters,TimeInterval: ""})
+	if err != nil {
+		fmt.Printf("Failed to getMetrics, err: %v", err)
+	}
+	b, _ := json.Marshal(resp.Data)
+	data := string(b)
+	ret := &model.TimeSeriesData{
+		Data: &data,
+	}
+	return ret,nil
+}
+
+// Resolver for queryServiceTS
+func (c *resolverConfig) getGnsBarqueryServiceTSResolver(svcMetric *string, startTime *string, endTime *string, timeInterval *string) (*model.TimeSeriesData,error) {
+	ctx := context.Background()
+	var filters = make(map[string]string)
+	filters[""] = ""
+	resp, err := grpcServer().GetMetrics(ctx, &qm.MetricArg{QueryType: "/ServiceMetricSeries", StartTime: *startTime, EndTime: *endTime, Metric: *svcMetric, Filters: filters,TimeInterval: *timeInterval})
+	if err != nil {
+		fmt.Printf("Failed to getMetrics, err: %v", err)
+	}
+	b, _ := json.Marshal(resp.Data)
+	data := string(b)
+	ret := &model.TimeSeriesData{
+		Data: &data,
+	}
+	return ret,nil
+}
+
+// Resolver for queryIncomingAPIs
+func (c *resolverConfig) getGnsBarqueryIncomingAPIsResolver(startTime *string, endTime *string, destinationService *string, destinationServiceVersion *string, timeInterval *string, timeZone *string) (*model.TimeSeriesData,error) {
+	ctx := context.Background()
+	var filters = make(map[string]string)
+	filters[""] = ""
+	resp, err := grpcServer().GetMetrics(ctx, &qm.MetricArg{QueryType: "/IncomingAPIs", StartTime: *startTime, EndTime: *endTime, Metric: "", Filters: filters,TimeInterval: *timeInterval})
+	if err != nil {
+		fmt.Printf("Failed to getMetrics, err: %v", err)
+	}
+	b, _ := json.Marshal(resp.Data)
+	data := string(b)
+	ret := &model.TimeSeriesData{
+		Data: &data,
+	}
+	return ret,nil
+}
+
+// Resolver for queryOutgoingAPIs
+func (c *resolverConfig) getGnsBarqueryOutgoingAPIsResolver(startTime *string, endTime *string, timeInterval *string, timeZone *string) (*model.TimeSeriesData,error) {
+	ctx := context.Background()
+	var filters = make(map[string]string)
+	filters[""] = ""
+	resp, err := grpcServer().GetMetrics(ctx, &qm.MetricArg{QueryType: "/OutgoingAPIs", StartTime: *startTime, EndTime: *endTime, Metric: "", Filters: filters,TimeInterval: *timeInterval})
+	if err != nil {
+		fmt.Printf("Failed to getMetrics, err: %v", err)
+	}
+	b, _ := json.Marshal(resp.Data)
+	data := string(b)
+	ret := &model.TimeSeriesData{
+		Data: &data,
+	}
+	return ret,nil
+}
+
+// Resolver for queryIncomingTCP
+func (c *resolverConfig) getGnsBarqueryIncomingTCPResolver(startTime *string, endTime *string, destinationService *string, destinationServiceVersion *string) (*model.TimeSeriesData,error) {
+	ctx := context.Background()
+	var filters = make(map[string]string)
+	filters[""] = ""
+	resp, err := grpcServer().GetMetrics(ctx, &qm.MetricArg{QueryType: "/IncomingTCP", StartTime: *startTime, EndTime: *endTime, Metric: "", Filters: filters,TimeInterval: ""})
+	if err != nil {
+		fmt.Printf("Failed to getMetrics, err: %v", err)
+	}
+	b, _ := json.Marshal(resp.Data)
+	data := string(b)
+	ret := &model.TimeSeriesData{
+		Data: &data,
+	}
+	return ret,nil
+}
+
+// Resolver for queryOutgoingTCP
+func (c *resolverConfig) getGnsBarqueryOutgoingTCPResolver(startTime *string, endTime *string, destinationService *string, destinationServiceVersion *string) (*model.TimeSeriesData,error) {
+	ctx := context.Background()
+	var filters = make(map[string]string)
+	filters[""] = ""
+	resp, err := grpcServer().GetMetrics(ctx, &qm.MetricArg{QueryType: "/OutgoingTCP", StartTime: *startTime, EndTime: *endTime, Metric: "", Filters: filters,TimeInterval: ""})
+	if err != nil {
+		fmt.Printf("Failed to getMetrics, err: %v", err)
+	}
+	b, _ := json.Marshal(resp.Data)
+	data := string(b)
+	ret := &model.TimeSeriesData{
+		Data: &data,
+	}
+	return ret,nil
+}
+
+// Resolver for queryServiceTopology
+func (c *resolverConfig) getGnsBarqueryServiceTopologyResolver(startTime *string, endTime *string, metricStringArray *string) (*model.TimeSeriesData,error) {
+	ctx := context.Background()
+	var filters = make(map[string]string)
+	filters[""] = ""
+	resp, err := grpcServer().GetMetrics(ctx, &qm.MetricArg{QueryType: "/ServiceTopology", StartTime: *startTime, EndTime: *endTime, Metric: *metricStringArray, Filters: filters,TimeInterval: ""})
+	if err != nil {
+		fmt.Printf("Failed to getMetrics, err: %v", err)
+	}
+	b, _ := json.Marshal(resp.Data)
+	data := string(b)
+	ret := &model.TimeSeriesData{
+		Data: &data,
+	}
+	return ret,nil
+}
+
+
+
+//////////////////////////////////////
+// CustomQuery Resolver for Node: GnsEmptyData
+//////////////////////////////////////
+
+// Resolver for queryServiceTable
+func (c *resolverConfig) getGnsEmptyDataqueryServiceTableResolver(startTime *string, endTime *string, systemServices *bool, showGateways *bool, groupby *string, noMetrics *bool) (*model.TimeSeriesData,error) {
+	ctx := context.Background()
+	var filters = make(map[string]string)
+	filters[""] = ""
+	resp, err := grpcServer().GetMetrics(ctx, &qm.MetricArg{QueryType: "/ServiceTable", StartTime: *startTime, EndTime: *endTime, Metric: "", Filters: filters,TimeInterval: ""})
+	if err != nil {
+		fmt.Printf("Failed to getMetrics, err: %v", err)
+	}
+	b, _ := json.Marshal(resp.Data)
+	data := string(b)
+	ret := &model.TimeSeriesData{
+		Data: &data,
+	}
+	return ret,nil
+}
+
+// Resolver for queryServiceVersionTable
+func (c *resolverConfig) getGnsEmptyDataqueryServiceVersionTableResolver(startTime *string, endTime *string, systemServices *bool, showGateways *bool, noMetrics *bool) (*model.TimeSeriesData,error) {
+	ctx := context.Background()
+	var filters = make(map[string]string)
+	filters[""] = ""
+	resp, err := grpcServer().GetMetrics(ctx, &qm.MetricArg{QueryType: "/ServiceTable", StartTime: *startTime, EndTime: *endTime, Metric: "", Filters: filters,TimeInterval: ""})
+	if err != nil {
+		fmt.Printf("Failed to getMetrics, err: %v", err)
+	}
+	b, _ := json.Marshal(resp.Data)
+	data := string(b)
+	ret := &model.TimeSeriesData{
+		Data: &data,
+	}
+	return ret,nil
+}
+
+// Resolver for queryServiceTS
+func (c *resolverConfig) getGnsEmptyDataqueryServiceTSResolver(svcMetric *string, startTime *string, endTime *string, timeInterval *string) (*model.TimeSeriesData,error) {
+	ctx := context.Background()
+	var filters = make(map[string]string)
+	filters[""] = ""
+	resp, err := grpcServer().GetMetrics(ctx, &qm.MetricArg{QueryType: "/ServiceMetricSeries", StartTime: *startTime, EndTime: *endTime, Metric: *svcMetric, Filters: filters,TimeInterval: *timeInterval})
+	if err != nil {
+		fmt.Printf("Failed to getMetrics, err: %v", err)
+	}
+	b, _ := json.Marshal(resp.Data)
+	data := string(b)
+	ret := &model.TimeSeriesData{
+		Data: &data,
+	}
+	return ret,nil
+}
+
+// Resolver for queryIncomingAPIs
+func (c *resolverConfig) getGnsEmptyDataqueryIncomingAPIsResolver(startTime *string, endTime *string, destinationService *string, destinationServiceVersion *string, timeInterval *string, timeZone *string) (*model.TimeSeriesData,error) {
+	ctx := context.Background()
+	var filters = make(map[string]string)
+	filters[""] = ""
+	resp, err := grpcServer().GetMetrics(ctx, &qm.MetricArg{QueryType: "/IncomingAPIs", StartTime: *startTime, EndTime: *endTime, Metric: "", Filters: filters,TimeInterval: *timeInterval})
+	if err != nil {
+		fmt.Printf("Failed to getMetrics, err: %v", err)
+	}
+	b, _ := json.Marshal(resp.Data)
+	data := string(b)
+	ret := &model.TimeSeriesData{
+		Data: &data,
+	}
+	return ret,nil
+}
+
+// Resolver for queryOutgoingAPIs
+func (c *resolverConfig) getGnsEmptyDataqueryOutgoingAPIsResolver(startTime *string, endTime *string, timeInterval *string, timeZone *string) (*model.TimeSeriesData,error) {
+	ctx := context.Background()
+	var filters = make(map[string]string)
+	filters[""] = ""
+	resp, err := grpcServer().GetMetrics(ctx, &qm.MetricArg{QueryType: "/OutgoingAPIs", StartTime: *startTime, EndTime: *endTime, Metric: "", Filters: filters,TimeInterval: *timeInterval})
+	if err != nil {
+		fmt.Printf("Failed to getMetrics, err: %v", err)
+	}
+	b, _ := json.Marshal(resp.Data)
+	data := string(b)
+	ret := &model.TimeSeriesData{
+		Data: &data,
+	}
+	return ret,nil
+}
+
+// Resolver for queryIncomingTCP
+func (c *resolverConfig) getGnsEmptyDataqueryIncomingTCPResolver(startTime *string, endTime *string, destinationService *string, destinationServiceVersion *string) (*model.TimeSeriesData,error) {
+	ctx := context.Background()
+	var filters = make(map[string]string)
+	filters[""] = ""
+	resp, err := grpcServer().GetMetrics(ctx, &qm.MetricArg{QueryType: "/IncomingTCP", StartTime: *startTime, EndTime: *endTime, Metric: "", Filters: filters,TimeInterval: ""})
+	if err != nil {
+		fmt.Printf("Failed to getMetrics, err: %v", err)
+	}
+	b, _ := json.Marshal(resp.Data)
+	data := string(b)
+	ret := &model.TimeSeriesData{
+		Data: &data,
+	}
+	return ret,nil
+}
+
+// Resolver for queryOutgoingTCP
+func (c *resolverConfig) getGnsEmptyDataqueryOutgoingTCPResolver(startTime *string, endTime *string, destinationService *string, destinationServiceVersion *string) (*model.TimeSeriesData,error) {
+	ctx := context.Background()
+	var filters = make(map[string]string)
+	filters[""] = ""
+	resp, err := grpcServer().GetMetrics(ctx, &qm.MetricArg{QueryType: "/OutgoingTCP", StartTime: *startTime, EndTime: *endTime, Metric: "", Filters: filters,TimeInterval: ""})
+	if err != nil {
+		fmt.Printf("Failed to getMetrics, err: %v", err)
+	}
+	b, _ := json.Marshal(resp.Data)
+	data := string(b)
+	ret := &model.TimeSeriesData{
+		Data: &data,
+	}
+	return ret,nil
+}
+
+// Resolver for queryServiceTopology
+func (c *resolverConfig) getGnsEmptyDataqueryServiceTopologyResolver(startTime *string, endTime *string, metricStringArray *string) (*model.TimeSeriesData,error) {
 	ctx := context.Background()
 	var filters = make(map[string]string)
 	filters[""] = ""
