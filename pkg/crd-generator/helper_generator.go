@@ -7,6 +7,8 @@ import (
 
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/pkg/parser"
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/pkg/util"
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
 
 	log "github.com/sirupsen/logrus"
 )
@@ -52,7 +54,7 @@ func generateGetObjectByCRDName(keys []string, parentsMap map[string]parser.Node
 
 		s.CrdName = k
 		parts := strings.Split(k, ".")
-		s.Method = fmt.Sprintf("%s%sV1", strings.Title(parts[1]), strings.Title(parts[2]))
+		s.Method = fmt.Sprintf("%s%sV1", cases.Title(language.Und, cases.NoLower).String(parts[1]), cases.Title(language.Und, cases.NoLower).String(parts[2]))
 		s.Plural = util.ToPlural(v.Name)
 
 		b, err := renderTemplate(tmpl, s)

@@ -5,6 +5,7 @@ ADD compiler.tar /go/src/gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/comp
 ADD cmd/nexus-openapi-gen /go/bin/nexus-openapi-gen
 
 WORKDIR /go/src/gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git
+RUN git config --global --add safe.directory '*'
 RUN make init_submodules
 
 WORKDIR /go/src/
