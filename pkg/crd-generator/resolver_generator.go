@@ -89,7 +89,6 @@ func convertGraphqlStdType(t string) string {
 }
 
 func getArraySchema(FieldName, schemaTypeName string, nonStructMap map[string]string) string {
-	fmt.Println("0000000", schemaTypeName)
 	if val, ok := nonStructMap[schemaTypeName]; ok {
 		if convertGraphqlStdType(val) != "" {
 			return fmt.Sprintf("%s(Id: ID): [%s!]", FieldName, convertGraphqlStdType(val))
@@ -147,7 +146,7 @@ func GenerateGraphqlResolverVars(baseGroupName, crdModulePath string, pkgs parse
 		sortedPackages[i] = pkgs[k]
 	}
 	for _, pkg := range sortedPackages {
-		// Get all non struct type for enum
+		// Iterate All Non Struct Node from all pkg and store the details in nonStructMap
 		for _, node := range pkg.GetNonStructTypes() {
 			var pkgName string
 			if pkg.FullName == pkg.ModPath {
@@ -160,10 +159,9 @@ func GenerateGraphqlResolverVars(baseGroupName, crdModulePath string, pkgs parse
 				specTypePrefix := strings.ReplaceAll(libName, "-", "")
 				pkgName = specTypePrefix + "_" + parser.GetTypeName(node)
 			}
-			//Validate Alias type
+			// NonStruct Map
 			nonStructType := types.ExprString(node.Type)
 			nonStructMap[pkgName] = nonStructType
-
 		}
 
 		simpleGroupTypeName := util.GetSimpleGroupTypeName(pkg.Name)
@@ -182,9 +180,6 @@ func GenerateGraphqlResolverVars(baseGroupName, crdModulePath string, pkgs parse
 			}
 			if parser.IsSingletonNode(node) {
 				nodeProp.IsSingletonNode = true
-				// nodeProp.Alias = retMap[nodeProp.PkgName+nodeProp.NodeName].Alias
-				// nodeProp.ReturnType = retMap[nodeProp.PkgName+nodeProp.NodeName].ReturnType
-				fmt.Println("IsSingletonNode", node.Name.Name, nodeProp.PkgName+nodeProp.NodeName)
 			}
 			if parser.IsNexusNode(node) {
 				nodeProp.IsNexusNode = true
@@ -211,16 +206,15 @@ func GenerateGraphqlResolverVars(baseGroupName, crdModulePath string, pkgs parse
 						if err != nil {
 							log.Fatalf("failed to determine field name: %v", err)
 						}
-						// fmt.Println("Nexus-FIELDS", nf.Names[0].Name)
 					}
 					fieldProp.PkgName = simpleGroupTypeName
 					fieldProp.NodeName = node.Name.String()
-					// IGNORE FIELD
+					// IGNORE FIELD using Annotation `nexus-graphql:"ignore:true"`
 					if parser.IgnoreField(nf) {
 						fieldProp.IsFieldIgnore = true
 						continue
 					}
-					// STRING FIELD
+					// Convert to String type using annotation `nexus-graphql:"type:string"`
 					if parser.IsJsonStringField(nf) {
 						fieldProp.IsStringType = true
 						fieldProp.SchemaFieldName = fmt.Sprintf("%s: %s", fieldProp.FieldName, "String")
@@ -244,10 +238,6 @@ func GenerateGraphqlResolverVars(baseGroupName, crdModulePath string, pkgs parse
 						fieldProp.FieldTypePkgPath = resolverTypeName
 						fieldProp.SchemaTypeName = schemaTypeName
 						fieldProp.BaseTypeName = getBaseNodeType(pkg, typeString, importMap)
-						// fmt.Println("CHILD", fieldProp.FieldName, fieldProp.FieldType)
-						// update resolver return
-						// fieldProp.Alias = retMap[resolverTypeName].Alias
-						// fieldProp.ReturnType = retMap[resolverTypeName].ReturnType
 						nodeProp.ChildLinkFields = append(nodeProp.ChildLinkFields, fieldProp)
 					}
 					// Children and Links fields
@@ -261,9 +251,6 @@ func GenerateGraphqlResolverVars(baseGroupName, crdModulePath string, pkgs parse
 						fieldProp.FieldTypePkgPath = resolverTypeName
 						fieldProp.SchemaTypeName = schemaTypeName
 						fieldProp.BaseTypeName = getBaseNodeType(pkg, typeString, importMap)
-						// update resolver return
-						// fieldProp.Alias = retMap[resolverTypeName].Alias
-						// fieldProp.ReturnType = retMap[resolverTypeName].ReturnType
 						nodeProp.ChildrenLinksFields = append(nodeProp.ChildrenLinksFields, fieldProp)
 					}
 				}
@@ -295,13 +282,11 @@ func GenerateGraphqlResolverVars(baseGroupName, crdModulePath string, pkgs parse
 						fieldProp.IsStringType = true
 						fieldProp.SchemaFieldName = fmt.Sprintf("%s: %s", fieldProp.FieldName, "String")
 						resField[nodeProp.PkgName+nodeProp.NodeName] = append(resField[nodeProp.PkgName+nodeProp.NodeName], fieldProp)
-						// fmt.Println("XXXXXX", fieldProp.FieldName)
 					} else if parser.IsMapField(f) {
 						fieldProp.IsMapTypeField = true
 						fieldProp.SchemaFieldName = fmt.Sprintf("%s: %s", fieldProp.FieldName, "String")
 						resField[nodeProp.PkgName+nodeProp.NodeName] = append(resField[nodeProp.PkgName+nodeProp.NodeName], fieldProp)
-						// fieldProp.IsResolver = true
-						// ARRAY
+					// ARRAY FIELD
 					} else if parser.IsArrayField(f) {
 						fieldProp.IsArrayTypeField = true
 						var stdType string
@@ -322,22 +307,18 @@ func GenerateGraphqlResolverVars(baseGroupName, crdModulePath string, pkgs parse
 							fieldProp.BaseTypeName = getBaseNodeType(pkg, typeString, importMap)
 						}
 						nodeProp.ArrayFields = append(nodeProp.ArrayFields, fieldProp)
-						// CUSTOM FIELDS
+					// CUSTOM FIELDS
 					} else {
 						stdType := convertGraphqlStdType(typeString)
 						if stdType != "" {
 							fieldProp.IsStdTypeField = true
 							fieldProp.SchemaFieldName = fmt.Sprintf("%s: %s", fieldProp.FieldName, stdType)
-
-							// fmt.Println("Field-1", fieldProp.FieldName)
 							resField[nodeProp.PkgName+nodeProp.NodeName] = append(resField[nodeProp.PkgName+nodeProp.NodeName], fieldProp)
 
 						} else {
 							// check type is present in nonStructMap
 							schemaTypeName, _ := validateImportPkg(pkg, typeString, importMap)
-							// fmt.Println("IMPORT ALIAS:", fieldProp.FieldName)
 							if val, ok := nonStructMap[schemaTypeName]; ok {
-								fmt.Println("IMPORT ALIAS:", fieldProp.FieldName, val, nonStructMap[val])
 								fieldProp.IsAliasTypeField = true
 								if convertGoStdType(val) != "" {
 									fieldProp.SchemaFieldName = fmt.Sprintf("%s: %s", fieldProp.FieldName, convertGraphqlStdType(val))
@@ -367,28 +348,21 @@ func GenerateGraphqlResolverVars(baseGroupName, crdModulePath string, pkgs parse
 								fieldProp.SchemaTypeName = schemaTypeName
 								fieldProp.BaseTypeName = getBaseNodeType(pkg, typeString, importMap)
 								resField[nodeProp.PkgName+nodeProp.NodeName] = append(resField[nodeProp.PkgName+nodeProp.NodeName], fieldProp)
-								// fmt.Println("Field-1", fieldProp.FieldName, val, fieldProp.SchemaFieldName)
 							} else {
 								// CustomType Resolver
-								fmt.Println("IMPORT ALIAS:", fieldProp.FieldName, schemaTypeName)
 								fieldProp.IsCustomTypeField = true
 								schemaTypeName, resolverTypeName := validateImportPkg(pkg, typeString, importMap)
 								fieldProp.SchemaFieldName = fmt.Sprintf("%s: %s", fieldProp.FieldName, schemaTypeName)
-								// fmt.Println("CUSTOM Fields-1111", fieldProp.FieldName, fieldProp.FieldType)
 								fieldProp.IsResolver = true
 								fieldProp.FieldType = typeString
 								fieldProp.FieldTypePkgPath = resolverTypeName
 								fieldProp.SchemaTypeName = schemaTypeName
 								fieldProp.BaseTypeName = getBaseNodeType(pkg, typeString, importMap)
-								// update resolver return
-								// fieldProp.Alias = retMap[resolverTypeName].Alias
-								// fieldProp.ReturnType = retMap[resolverTypeName].ReturnType
 								nodeProp.CustomFields = append(nodeProp.CustomFields, fieldProp)
 							}
 						}
 					}
 				} else {
-					// fmt.Println("#### NO FIELDS")
 					continue
 				}
 				if fieldProp.IsResolver {
@@ -404,7 +378,6 @@ func GenerateGraphqlResolverVars(baseGroupName, crdModulePath string, pkgs parse
 	customApi := make(map[string]string)
 	for _, n := range Nodes {
 		for _, f := range n.CustomFields {
-			fmt.Println("customAPI:", f.BaseTypeName, f.FieldName, f.FieldType)
 			customApi[f.BaseTypeName] = f.FieldName
 		}
 	}
@@ -425,11 +398,9 @@ func GenerateGraphqlResolverVars(baseGroupName, crdModulePath string, pkgs parse
 			if i.IsAliasTypeField {
 				if val, ok := nonStructMap[i.SchemaTypeName]; ok {
 					if strings.HasPrefix(val, "map") {
-						fmt.Println("XXXXX-1:", i.NodeName, i.FieldName, i.FieldType, i.IsCustomTypeField, n.IsNexusNode)
 						retType += fmt.Sprintf("\t%s: &%sData,\n", i.FieldName, i.FieldName)
 						if !n.IsNexusNode {
 							aliasVal += jsonMarshalCustomResolver(i.FieldName, n.PkgName, i.NodeName)
-							fmt.Println("Alias-Field:", i.NodeName, i.FieldName, i.NodeName)
 						} else {
 							aliasVal += jsonMarshalResolver(i.FieldName, n.NodeName)
 						}
@@ -439,7 +410,6 @@ func GenerateGraphqlResolverVars(baseGroupName, crdModulePath string, pkgs parse
 						fmt.Println("Alias-Pointer:", i.NodeName, i.FieldName, i.FieldType)
 					} else {
 						if convertGoStdType(val) != "" {
-							fmt.Println("XXXXX-2:", i.NodeName, i.FieldName, i.FieldType, i.IsCustomTypeField, n.IsNexusNode)
 							retType += fmt.Sprintf("\t%s: &v%s,\n", i.FieldName, i.FieldName)
 							if !n.IsNexusNode {
 								aliasVal += fmt.Sprintf("v%s := %s(v%s.Spec.%s.%s)\n", i.FieldName, convertGoStdType(val), i.PkgName, customApi[i.NodeName], i.FieldName)
@@ -450,31 +420,22 @@ func GenerateGraphqlResolverVars(baseGroupName, crdModulePath string, pkgs parse
 							fmt.Println("Not found")
 						}
 					}
-				} else {
-					fmt.Println("Alias-Field Not detect:", i.NodeName, i.FieldName, i.FieldType)
 				}
 			} else if i.IsMapTypeField {
-				fmt.Println("Map-Field:", i.NodeName, i.FieldName, i.FieldType)
 				retType += fmt.Sprintf("\t%s: &%sData,\n", i.FieldName, i.FieldName)
 				if !n.IsNexusNode {
 					aliasVal += jsonMarshalCustomResolver(i.FieldName, n.PkgName, i.NodeName)
-					fmt.Println("Map-> string->Field:", i.NodeName, i.FieldName, i.NodeName)
 				} else {
-					// aliasVal += jsonMarshalResolver(i.NodeName, n.PkgName)
 					aliasVal += jsonMarshalResolver(i.FieldName, n.NodeName)
 				}
 			} else if i.IsStringType {
-				fmt.Println("Map-Field:", i.NodeName, i.FieldName, i.FieldType)
 				retType += fmt.Sprintf("\t%s: &%sData,\n", i.FieldName, i.FieldName)
 				if !n.IsNexusNode {
 					aliasVal += jsonMarshalCustomResolver(i.FieldName, n.PkgName, i.NodeName)
-					fmt.Println("Map-> string->Field:", i.NodeName, i.FieldName, i.NodeName)
 				} else {
-					// aliasVal += jsonMarshalResolver(i.NodeName, n.PkgName)
 					aliasVal += jsonMarshalResolver(i.FieldName, n.NodeName)
 				}
 			} else if i.IsStdTypeField {
-				fmt.Println("STD-Field:", i.NodeName, i.BaseTypeName, i.FieldName, i.FieldType, i.IsCustomTypeField, n.IsNexusNode)
 				if convertGoStdType(i.FieldType) != "" {
 					retType += fmt.Sprintf("\t%s: &v%s,\n", i.FieldName, i.FieldName)
 					if !n.IsNexusNode {
@@ -483,8 +444,6 @@ func GenerateGraphqlResolverVars(baseGroupName, crdModulePath string, pkgs parse
 						aliasVal += fmt.Sprintf("v%s := %s(v%s.Spec.%s)\n", i.FieldName, convertGoStdType(i.FieldType), i.NodeName, i.FieldName)
 					}
 				}
-			} else {
-				fmt.Println("NOT FOUND RE-Field:", i.NodeName, i.FieldName, i.FieldType)
 			}
 		}
 		if len(n.ResolverFields[n.PkgName+n.NodeName]) > 0 {
@@ -511,7 +470,6 @@ func GenerateGraphqlResolverVars(baseGroupName, crdModulePath string, pkgs parse
 		resNodeProp.NodeName = n.NodeName
 		resNodeProp.SchemaName = n.SchemaName
 		if !n.HasParent && n.IsParentNode {
-			fmt.Println("=====>>>PARENT>>>>:", n.NodeName)
 			resNodeProp.Alias = retMap[resNodeProp.PkgName+resNodeProp.NodeName].Alias
 			resNodeProp.ReturnType = retMap[resNodeProp.PkgName+resNodeProp.NodeName].ReturnType
 			resNodeProp.IsParentNode = true

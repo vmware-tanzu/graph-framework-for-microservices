@@ -581,20 +581,10 @@ func GetFieldType(f *ast.Field) string {
 		}
 	case *ast.StarExpr:
 		star = true
+		sel = types.ExprString(fieldType)
 		if expr, ok := fieldType.X.(*ast.SelectorExpr); ok {
 			x = types.ExprString(expr.X)
 			sel = expr.Sel.String()
-		}
-
-		if mapExpr, ok := fieldType.X.(*ast.MapType); ok {
-			if selExpr, ok := mapExpr.Value.(*ast.SelectorExpr); ok {
-				x = types.ExprString(selExpr.X)
-				sel = selExpr.Sel.String()
-			}
-
-			if ident, ok := mapExpr.Value.(*ast.Ident); ok {
-				sel = ident.String()
-			}
 		}
 	case *ast.Ident:
 		sel = fieldType.String()
@@ -604,7 +594,7 @@ func GetFieldType(f *ast.Field) string {
 	if x == "" {
 		fieldType = sel
 	}
-	if star {
+	if x != "" && star {
 		fieldType = fmt.Sprintf("*%s", fieldType)
 	}
 
