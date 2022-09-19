@@ -19,7 +19,7 @@ var BarCustomMethodsResponses = nexus.HTTPMethodsResponses{
 }
 
 type Config struct {
-	nexus.Node
+	nexus.SingletonNode
 	ConfigName string
 	GNS        gns.Gns `nexus:"child"`
 	Cluster    Cluster
@@ -28,6 +28,8 @@ type Config struct {
 	FooB       BArray
 	FooC       CInt   `nexus-graphql:"ignore:true"`
 	FooD       DFloat `nexus-graphql:"type:string"`
+	XYZPort    gns.Port
+	ABCHost    gns.Host
 }
 
 type Cluster struct {

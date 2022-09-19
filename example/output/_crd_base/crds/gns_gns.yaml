@@ -7,7 +7,7 @@ metadata:
   name: gnses.gns.tsm.tanzu.vmware.com
   annotations:
     nexus: |
-      {"name":"gns.Gns","hierarchy":["roots.root.tsm.tanzu.vmware.com","configs.config.tsm.tanzu.vmware.com"],"children":{"bars.gns.tsm.tanzu.vmware.com":{"fieldName":"FooChildren","fieldNameGvk":"fooChildrenGvk","isNamed":true}},"links":{"FooLink":{"fieldName":"FooLink","fieldNameGvk":"fooLinkGvk","isNamed":false},"FooLinks":{"fieldName":"FooLinks","fieldNameGvk":"fooLinksGvk","isNamed":true}},"is_singleton":false,"nexus-rest-api-gen":{"uris":null},"description":"this is my awesome node"}
+      {"name":"gns.Gns","hierarchy":["roots.root.tsm.tanzu.vmware.com","configs.config.tsm.tanzu.vmware.com"],"children":{"bars.gns.tsm.tanzu.vmware.com":{"fieldName":"FooChildren","fieldNameGvk":"fooChildrenGvk","isNamed":true}},"links":{"FooLink":{"fieldName":"FooLink","fieldNameGvk":"fooLinkGvk","isNamed":false},"FooLinks":{"fieldName":"FooLinks","fieldNameGvk":"fooLinksGvk","isNamed":true}},"is_singleton":true,"nexus-rest-api-gen":{"uris":null},"description":"this is my awesome node"}
 spec:
   conversion:
     strategy: None

@@ -334,7 +334,9 @@ func GenerateGraphqlResolverVars(baseGroupName, crdModulePath string, pkgs parse
 						} else {
 							// check type is present in nonStructMap
 							schemaTypeName, _ := validateImportPkg(pkg, typeString, importMap)
+							// fmt.Println("IMPORT ALIAS:", fieldProp.FieldName)
 							if val, ok := nonStructMap[schemaTypeName]; ok {
+								fmt.Println("IMPORT ALIAS:", fieldProp.FieldName, val, nonStructMap[val])
 								fieldProp.IsAliasTypeField = true
 								if convertGoStdType(val) != "" {
 									fieldProp.SchemaFieldName = fmt.Sprintf("%s: %s", fieldProp.FieldName, convertGraphqlStdType(val))
@@ -367,6 +369,7 @@ func GenerateGraphqlResolverVars(baseGroupName, crdModulePath string, pkgs parse
 								// fmt.Println("Field-1", fieldProp.FieldName, val, fieldProp.SchemaFieldName)
 							} else {
 								// CustomType Resolver
+								fmt.Println("IMPORT ALIAS:", fieldProp.FieldName, schemaTypeName)
 								fieldProp.IsCustomTypeField = true
 								schemaTypeName, resolverTypeName := validateImportPkg(pkg, typeString, importMap)
 								fieldProp.SchemaFieldName = fmt.Sprintf("%s: %s", fieldProp.FieldName, schemaTypeName)
@@ -410,9 +413,9 @@ func GenerateGraphqlResolverVars(baseGroupName, crdModulePath string, pkgs parse
 		var retType string
 		var aliasVal string
 		retType += fmt.Sprintf("ret := &model.%s%s {\n", n.PkgName, n.NodeName)
-		if n.IsNexusNode || n.IsSingletonNode {
-			retType += fmt.Sprintf("\t%s: &%s,\n", "Id", "Id")
-		}
+		// if n.IsNexusNode || n.IsSingletonNode {
+		// 	retType += fmt.Sprintf("\t%s: &%s,\n", "Id", "Id")
+		// }
 		for _, i := range n.ResolverFields[n.PkgName+n.NodeName] {
 			if i.IsAliasTypeField {
 				if val, ok := nonStructMap[i.SchemaTypeName]; ok {
@@ -516,6 +519,7 @@ func GenerateGraphqlResolverVars(baseGroupName, crdModulePath string, pkgs parse
 			resNodeProp.ChildrenLinksFields = append(resNodeProp.ChildrenLinksFields, f)
 		}
 		for _, f := range n.CustomFields {
+			fmt.Println("LLLLLLLLL", n.NodeName, f.FieldTypePkgPath, len(n.CustomFields), f.ReturnType == "")
 			f.ReturnType = retMap[f.FieldTypePkgPath].ReturnType
 			f.Alias = retMap[f.FieldTypePkgPath].Alias
 			resNodeProp.CustomFields = append(resNodeProp.CustomFields, f)

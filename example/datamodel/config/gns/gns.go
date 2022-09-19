@@ -71,7 +71,7 @@ type Instance string
 // nexus-description: this is my awesome node
 // specification of GNS.
 type Gns struct {
-	nexus.Node
+	nexus.SingletonNode
 	//nexus-validation: MaxLength=8, MinLength=2
 	//nexus-validation: Pattern=abc
 	Domain           string
@@ -96,4 +96,7 @@ type Description struct {
 type Bar struct {
 	nexus.Node
 	Name string
+}
+
+type EmptyData struct {
 }

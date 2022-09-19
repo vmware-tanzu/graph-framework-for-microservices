@@ -2,8 +2,9 @@
 {{ if $node.IsParentNode }}type Query {
     root: {{ $node.SchemaName }}
 }{{ else }}{{ end }}
+{{ $length := len $node.GraphqlSchemaFields }} {{ if eq $length 0 }}{{ else }}
 type {{ $node.SchemaName }} {
 {{ range $key, $field := $node.GraphqlSchemaFields }}
     {{ $field.SchemaFieldName}}{{ end }}
 }
-{{ end }}
+{{ end }}{{ end }}

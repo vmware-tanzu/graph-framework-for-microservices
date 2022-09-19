@@ -366,6 +366,12 @@ func (obj *RootRoot) AddConfig(ctx context.Context,
 	}
 	objToCreate.Labels["roots.root.tsm.tanzu.vmware.com"] = obj.DisplayName()
 	if objToCreate.Labels[common.IS_NAME_HASHED_LABEL] != "true" {
+		if objToCreate.GetName() == "" {
+			objToCreate.SetName(helper.DEFAULT_KEY)
+		}
+		if objToCreate.GetName() != helper.DEFAULT_KEY {
+			return nil, NewSingletonNameError(objToCreate.GetName())
+		}
 		objToCreate.Labels[common.DISPLAY_NAME_LABEL] = objToCreate.GetName()
 		objToCreate.Labels[common.IS_NAME_HASHED_LABEL] = "true"
 		hashedName := helper.GetHashedName(objToCreate.CRDName(), objToCreate.Labels, objToCreate.GetName())
@@ -404,27 +410,33 @@ type rootRootTsmV1Chainer struct {
 	parentLabels map[string]string
 }
 
-func (c *rootRootTsmV1Chainer) Config(name string) *configConfigTsmV1Chainer {
+func (c *rootRootTsmV1Chainer) Config() *configConfigTsmV1Chainer {
 	parentLabels := c.parentLabels
-	parentLabels["configs.config.tsm.tanzu.vmware.com"] = name
+	parentLabels["configs.config.tsm.tanzu.vmware.com"] = helper.DEFAULT_KEY
 	return &configConfigTsmV1Chainer{
 		client:       c.client,
-		name:         name,
+		name:         helper.DEFAULT_KEY,
 		parentLabels: parentLabels,
 	}
 }
 
-// GetConfig calculates hashed name of the object based on displayName and it's parents and returns the object
-func (c *rootRootTsmV1Chainer) GetConfig(ctx context.Context, displayName string) (result *ConfigConfig, err error) {
-	hashedName := helper.GetHashedName("configs.config.tsm.tanzu.vmware.com", c.parentLabels, displayName)
+// GetConfig calculates hashed name of the object based on it's parents and returns the object
+func (c *rootRootTsmV1Chainer) GetConfig(ctx context.Context) (result *ConfigConfig, err error) {
+	hashedName := helper.GetHashedName("configs.config.tsm.tanzu.vmware.com", c.parentLabels, helper.DEFAULT_KEY)
 	return c.client.Config().GetConfigByName(ctx, hashedName)
 }
 
-// AddConfig calculates hashed name of the child to create based on objToCreate.Name
-// and parents names and creates it. objToCreate.Name is changed to the hashed name. Original name is preserved in
+// AddConfig calculates hashed name of the child to create based on parents names and creates it.
+// objToCreate.Name is changed to the hashed name. Original name ('default') is preserved in
 // nexus/display_name label and can be obtained using DisplayName() method.
 func (c *rootRootTsmV1Chainer) AddConfig(ctx context.Context,
 	objToCreate *baseconfigtsmtanzuvmwarecomv1.Config) (result *ConfigConfig, err error) {
+	if objToCreate.GetName() == "" {
+		objToCreate.SetName(helper.DEFAULT_KEY)
+	}
+	if objToCreate.GetName() != helper.DEFAULT_KEY {
+		return nil, NewSingletonNameError(objToCreate.GetName())
+	}
 	if objToCreate.Labels == nil {
 		objToCreate.Labels = map[string]string{}
 	}
@@ -537,6 +549,12 @@ func (group *ConfigTsmV1) CreateConfigByName(ctx context.Context,
 	if _, ok := objToCreate.Labels[common.DISPLAY_NAME_LABEL]; !ok {
 		objToCreate.Labels[common.DISPLAY_NAME_LABEL] = objToCreate.GetName()
 	}
+	if objToCreate.Labels[common.DISPLAY_NAME_LABEL] == "" {
+		objToCreate.Labels[common.DISPLAY_NAME_LABEL] = helper.DEFAULT_KEY
+	}
+	if objToCreate.Labels[common.DISPLAY_NAME_LABEL] != helper.DEFAULT_KEY {
+		return nil, NewSingletonNameError(objToCreate.Labels[common.DISPLAY_NAME_LABEL])
+	}
 
 	objToCreate.Spec.GNSGvk = nil
 
@@ -587,7 +605,9 @@ func (group *ConfigTsmV1) CreateConfigByName(ctx context.Context,
 // display name and parents names.
 func (group *ConfigTsmV1) UpdateConfigByName(ctx context.Context,
 	objToUpdate *baseconfigtsmtanzuvmwarecomv1.Config) (*ConfigConfig, error) {
-
+	if objToUpdate.Labels[common.DISPLAY_NAME_LABEL] != helper.DEFAULT_KEY {
+		return nil, NewSingletonNameError(objToUpdate.Labels[common.DISPLAY_NAME_LABEL])
+	}
 	// ResourceVersion must be set for update
 	if objToUpdate.ResourceVersion == "" {
 		current, err := group.client.baseClient.
@@ -668,6 +688,24 @@ func (group *ConfigTsmV1) UpdateConfigByName(ctx context.Context,
 		Value: patchValueFooD,
 	}
 	patch = append(patch, patchOpFooD)
+
+	patchValueXYZPort :=
+		objToUpdate.Spec.XYZPort
+	patchOpXYZPort := PatchOp{
+		Op:    "replace",
+		Path:  "/spec/xYZPort",
+		Value: patchValueXYZPort,
+	}
+	patch = append(patch, patchOpXYZPort)
+
+	patchValueABCHost :=
+		objToUpdate.Spec.ABCHost
+	patchOpABCHost := PatchOp{
+		Op:    "replace",
+		Path:  "/spec/aBCHost",
+		Value: patchValueABCHost,
+	}
+	patch = append(patch, patchOpABCHost)
 
 	marshaled, err := patch.Marshal()
 	if err != nil {
@@ -757,6 +795,12 @@ func (obj *ConfigConfig) AddGNS(ctx context.Context,
 	}
 	objToCreate.Labels["configs.config.tsm.tanzu.vmware.com"] = obj.DisplayName()
 	if objToCreate.Labels[common.IS_NAME_HASHED_LABEL] != "true" {
+		if objToCreate.GetName() == "" {
+			objToCreate.SetName(helper.DEFAULT_KEY)
+		}
+		if objToCreate.GetName() != helper.DEFAULT_KEY {
+			return nil, NewSingletonNameError(objToCreate.GetName())
+		}
 		objToCreate.Labels[common.DISPLAY_NAME_LABEL] = objToCreate.GetName()
 		objToCreate.Labels[common.IS_NAME_HASHED_LABEL] = "true"
 		hashedName := helper.GetHashedName(objToCreate.CRDName(), objToCreate.Labels, objToCreate.GetName())
@@ -795,27 +839,33 @@ type configConfigTsmV1Chainer struct {
 	parentLabels map[string]string
 }
 
-func (c *configConfigTsmV1Chainer) GNS(name string) *gnsGnsTsmV1Chainer {
+func (c *configConfigTsmV1Chainer) GNS() *gnsGnsTsmV1Chainer {
 	parentLabels := c.parentLabels
-	parentLabels["gnses.gns.tsm.tanzu.vmware.com"] = name
+	parentLabels["gnses.gns.tsm.tanzu.vmware.com"] = helper.DEFAULT_KEY
 	return &gnsGnsTsmV1Chainer{
 		client:       c.client,
-		name:         name,
+		name:         helper.DEFAULT_KEY,
 		parentLabels: parentLabels,
 	}
 }
 
-// GetGNS calculates hashed name of the object based on displayName and it's parents and returns the object
-func (c *configConfigTsmV1Chainer) GetGNS(ctx context.Context, displayName string) (result *GnsGns, err error) {
-	hashedName := helper.GetHashedName("gnses.gns.tsm.tanzu.vmware.com", c.parentLabels, displayName)
+// GetGNS calculates hashed name of the object based on it's parents and returns the object
+func (c *configConfigTsmV1Chainer) GetGNS(ctx context.Context) (result *GnsGns, err error) {
+	hashedName := helper.GetHashedName("gnses.gns.tsm.tanzu.vmware.com", c.parentLabels, helper.DEFAULT_KEY)
 	return c.client.Gns().GetGnsByName(ctx, hashedName)
 }
 
-// AddGNS calculates hashed name of the child to create based on objToCreate.Name
-// and parents names and creates it. objToCreate.Name is changed to the hashed name. Original name is preserved in
+// AddGNS calculates hashed name of the child to create based on parents names and creates it.
+// objToCreate.Name is changed to the hashed name. Original name ('default') is preserved in
 // nexus/display_name label and can be obtained using DisplayName() method.
 func (c *configConfigTsmV1Chainer) AddGNS(ctx context.Context,
 	objToCreate *basegnstsmtanzuvmwarecomv1.Gns) (result *GnsGns, err error) {
+	if objToCreate.GetName() == "" {
+		objToCreate.SetName(helper.DEFAULT_KEY)
+	}
+	if objToCreate.GetName() != helper.DEFAULT_KEY {
+		return nil, NewSingletonNameError(objToCreate.GetName())
+	}
 	if objToCreate.Labels == nil {
 		objToCreate.Labels = map[string]string{}
 	}
@@ -936,6 +986,12 @@ func (group *GnsTsmV1) CreateGnsByName(ctx context.Context,
 	if _, ok := objToCreate.Labels[common.DISPLAY_NAME_LABEL]; !ok {
 		objToCreate.Labels[common.DISPLAY_NAME_LABEL] = objToCreate.GetName()
 	}
+	if objToCreate.Labels[common.DISPLAY_NAME_LABEL] == "" {
+		objToCreate.Labels[common.DISPLAY_NAME_LABEL] = helper.DEFAULT_KEY
+	}
+	if objToCreate.Labels[common.DISPLAY_NAME_LABEL] != helper.DEFAULT_KEY {
+		return nil, NewSingletonNameError(objToCreate.Labels[common.DISPLAY_NAME_LABEL])
+	}
 
 	objToCreate.Spec.FooChildGvk = nil
 	objToCreate.Spec.FooChildrenGvk = nil
@@ -989,7 +1045,9 @@ func (group *GnsTsmV1) CreateGnsByName(ctx context.Context,
 // display name and parents names.
 func (group *GnsTsmV1) UpdateGnsByName(ctx context.Context,
 	objToUpdate *basegnstsmtanzuvmwarecomv1.Gns) (*GnsGns, error) {
-
+	if objToUpdate.Labels[common.DISPLAY_NAME_LABEL] != helper.DEFAULT_KEY {
+		return nil, NewSingletonNameError(objToUpdate.Labels[common.DISPLAY_NAME_LABEL])
+	}
 	// ResourceVersion must be set for update
 	if objToUpdate.ResourceVersion == "" {
 		current, err := group.client.baseClient.

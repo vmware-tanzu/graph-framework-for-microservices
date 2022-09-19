@@ -2,6 +2,7 @@
 type Query {
     root: root_Root
 }
+ 
 type root_Root {
 
     Id: ID
@@ -11,12 +12,14 @@ type root_Root {
 }
 
 
+ 
 type root_Bar {
 
     Name: String
 }
 
 
+ 
 type config_Config {
 
     Id: ID
@@ -27,9 +30,12 @@ type config_Config {
     FooMap: String
     FooB(Id: ID): [String!]
     FooD: String
+    XYZPort: gns_Port
+    ABCHost: gns_Host
 }
 
 
+ 
 type config_Cluster {
 
     Name: String
@@ -37,6 +43,7 @@ type config_Cluster {
 }
 
 
+ 
 type gns_HostPort {
 
     Host: String
@@ -44,6 +51,7 @@ type gns_HostPort {
 }
 
 
+ 
 type gns_Gns {
 
     Id: ID
@@ -59,6 +67,7 @@ type gns_Gns {
 }
 
 
+ 
 type gns_Description {
 
     Color: String
@@ -68,8 +77,12 @@ type gns_Description {
 }
 
 
+ 
 type gns_Bar {
 
     Id: ID
     Name: String
 }
+
+
+ 

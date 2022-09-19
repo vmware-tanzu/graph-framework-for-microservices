@@ -134,6 +134,10 @@ type Description struct {
 	Instance  Instance
 }
 
+// +k8s:openapi-gen=true
+type EmptyData struct {
+}
+
 type Port uint16
 
 // Host the IP of the endpoint

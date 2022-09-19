@@ -43,25 +43,26 @@ func grpcServer() qm.ServerClient{
 	}
 	return qm.NewServerClient(conn)
 }
-{{ range $key, $node := .Nodes }}{{ if $node.IsSingletonNode }}
+{{ range $key, $node := .Nodes }}{{ if $node.IsParentNode }}
 //////////////////////////////////////
 // Resolver for Parent Node: {{$node.PkgName}}
 //////////////////////////////////////
 func (c *resolverConfig) getRootResolver() (*model.{{$node.PkgName}}{{$node.NodeName}}, error) {
 	k8sApiConfig := getK8sAPIEndpointConfig()
 	nc, err := nexus_client.NewForConfig(k8sApiConfig)
-	Id := ""
 	if err != nil {
 		panic(err)
 	}
-	v{{$node.NodeName}}, err := nc.Get{{$node.PkgName}}{{$node.NodeName}}(context.TODO())
+	{{ if $node.ReturnType }}v{{$node.NodeName}}, err := nc.Get{{$node.PkgName}}{{$node.NodeName}}(context.TODO())
 	if err != nil {
 		panic(err)
 	}
 	c.v{{$node.PkgName}}{{$node.NodeName}} = v{{$node.NodeName}}
 	{{ $node.Alias }}
 	{{ $node.ReturnType }}
-	return ret, nil
+	return ret, nil{{ else }}
+	ret := &model.{{$node.PkgName}}{{$node.NodeName}} {}
+	return ret, nil{{ end }}
 }{{ else }}{{ end }}{{ end }}
 {{ range $key, $node := .Nodes }}{{ range $key, $child := $node.ChildLinkFields }}
 //////////////////////////////////////
@@ -69,15 +70,15 @@ func (c *resolverConfig) getRootResolver() (*model.{{$node.PkgName}}{{$node.Node
 // Resolver for {{$child.NodeName}}
 //////////////////////////////////////
 func (c *resolverConfig) get{{$child.PkgName}}{{$child.NodeName}}{{$child.FieldName}}Resolver() (*model.{{$child.FieldTypePkgPath}}, error) {
-	v{{$child.BaseTypeName}}, err := c.v{{$child.PkgName}}{{$child.NodeName}}.Get{{$child.FieldName}}(context.TODO())
+	{{ if $child.ReturnType }}v{{$child.BaseTypeName}}, err := c.v{{$child.PkgName}}{{$child.NodeName}}.Get{{$child.FieldName}}(context.TODO())
 	if err != nil {
 		panic(err)
 	}
-	Id := ""
 	c.v{{$child.FieldTypePkgPath}} = v{{$child.BaseTypeName}}
 	{{ $child.Alias }}
 	{{ $child.ReturnType }}
-	return ret, nil
+	return ret, nil{{ else }}ret := &model.{{$child.FieldTypePkgPath}} {}
+	return ret, nil{{ end }}
 }
 {{ end }}{{ range $key, $child := $node.ChildrenLinksFields }}
 //////////////////////////////////////
@@ -85,9 +86,8 @@ func (c *resolverConfig) get{{$child.PkgName}}{{$child.NodeName}}{{$child.FieldN
 // Resolver for {{$child.NodeName}}
 //////////////////////////////////////
 func (c *resolverConfig) get{{$child.PkgName}}{{$child.NodeName}}{{$child.FieldName}}Resolver(id *string) ([]*model.{{$child.FieldTypePkgPath}}, error) {
-	var v{{$child.FieldTypePkgPath}}List []*model.{{$child.FieldTypePkgPath}}
+	{{ if $child.ReturnType }}var v{{$child.FieldTypePkgPath}}List []*model.{{$child.FieldTypePkgPath}}
 	if id != nil && *id != "" {
-		Id := *id
 		v{{$child.BaseTypeName}}, err := c.v{{$child.PkgName}}{{$child.NodeName}}.Get{{$child.FieldName}}(context.TODO(), *id)
 		if err != nil {
 			panic(err)
@@ -98,7 +98,6 @@ func (c *resolverConfig) get{{$child.PkgName}}{{$child.NodeName}}{{$child.FieldN
 		return v{{$child.FieldTypePkgPath}}List, nil
 	}
 	for i := range c.v{{$child.PkgName}}{{$child.NodeName}}.Spec.{{$child.FieldName}}Gvk {
-		Id := i
 		v{{$child.BaseTypeName}}, err := c.v{{$child.PkgName}}{{$child.NodeName}}.Get{{$child.FieldName}}(context.TODO(), i)
 		if err != nil {
 			panic(err)
@@ -108,6 +107,22 @@ func (c *resolverConfig) get{{$child.PkgName}}{{$child.NodeName}}{{$child.FieldN
 		v{{$child.FieldTypePkgPath}}List = append(v{{$child.FieldTypePkgPath}}List, ret)
 	}
 	return v{{$child.FieldTypePkgPath}}List, nil
+	{{ else }}var v{{$child.FieldTypePkgPath}}List []*model.{{$child.FieldTypePkgPath}}
+	if id != nil && *id != "" {
+		ret := &model.{{$child.FieldTypePkgPath}}{
+			Id: &id,
+		}
+		v{{$child.FieldTypePkgPath}}List = append(v{{$child.FieldTypePkgPath}}List, ret)
+		return v{{$child.FieldTypePkgPath}}List, nil
+	}
+	for i := range c.v{{$child.PkgName}}{{$child.NodeName}}.Spec.{{$child.FieldName}}Gvk {
+		Id: i
+		ret := &model.{{$child.FieldTypePkgPath}}{
+			Id: &id,
+		}
+		v{{$child.FieldTypePkgPath}}List = append(v{{$child.FieldTypePkgPath}}List, ret)
+	}
+	return v{{$child.FieldTypePkgPath}}List, nil{{ end }}
 }
 {{ end }}{{ range $key, $custom := $node.CustomFields }}
 //////////////////////////////////////
@@ -115,8 +130,9 @@ func (c *resolverConfig) get{{$child.PkgName}}{{$child.NodeName}}{{$child.FieldN
 // Resolver for {{$custom.NodeName}}
 //////////////////////////////////////
 func (c *resolverConfig) get{{$custom.PkgName}}{{$custom.NodeName}}{{$custom.FieldName}}Resolver() (*model.{{$custom.FieldTypePkgPath}}, error) {
-	v{{$custom.PkgName}} := c.v{{$custom.PkgName}}{{$custom.NodeName}}
+	{{ if $custom.ReturnType }}v{{$custom.PkgName}} := c.v{{$custom.PkgName}}{{$custom.NodeName}}
 	{{ $custom.Alias }}
 	{{ $custom.ReturnType }}
-	return ret, nil
+	return ret, nil{{ else }}ret := &model.{{$custom.FieldTypePkgPath}} {}
+	return ret, nil{{ end }}
 }{{ end }}{{ end }}
