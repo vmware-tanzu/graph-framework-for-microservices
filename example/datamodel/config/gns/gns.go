@@ -66,6 +66,7 @@ type HostPort struct {
 }
 
 type Instance string
+type AliasArr []int
 
 // Gns struct.
 // nexus-description: this is my awesome node
@@ -84,6 +85,11 @@ type Gns struct {
 	HostPort         HostPort
 	TestArray        EmptyData
 	Instance         Instance
+	Array1           []string
+	Array2           []Description
+	Array3           []Bar
+	Array4           []Instance
+	Array5           AliasArr
 }
 
 // This is Description struct.

@@ -91,16 +91,16 @@ func convertGraphqlStdType(t string) string {
 func getArraySchema(FieldName, schemaTypeName string, nonStructMap map[string]string) string {
 	if val, ok := nonStructMap[schemaTypeName]; ok {
 		if convertGraphqlStdType(val) != "" {
-			return fmt.Sprintf("%s(Id: ID): [%s!]", FieldName, convertGraphqlStdType(val))
+			return fmt.Sprintf("%s: [%s]!", FieldName, convertGraphqlStdType(val))
 		} else {
 			if strings.HasPrefix(val, "[]") {
 				arrStd := regexp.MustCompile(`^(\[])`).ReplaceAllString(val, "")
-				return fmt.Sprintf("%s(Id: ID): [%s!]", FieldName, convertGraphqlStdType(arrStd))
+				return fmt.Sprintf("%s: [%s]!", FieldName, convertGraphqlStdType(arrStd))
 			}
-			return fmt.Sprintf("%s(Id: ID): [%s!]", FieldName, val)
+			return fmt.Sprintf("%s: [%s]!", FieldName, val)
 		}
 	} else {
-		return fmt.Sprintf("%s(Id: ID): [%s!]", FieldName, schemaTypeName)
+		return fmt.Sprintf("%s: [%s]!", FieldName, schemaTypeName)
 	}
 }
 
@@ -290,6 +290,7 @@ func GenerateGraphqlResolverVars(baseGroupName, crdModulePath string, pkgs parse
 						// ARRAY FIELD
 					} else if parser.IsArrayField(f) {
 						fieldProp.IsArrayTypeField = true
+						fmt.Println("Array Fields")
 						var stdType string
 						arr := regexp.MustCompile(`^(\[])`).ReplaceAllString(typeString, "")
 						parts := strings.Split(arr, ".")
@@ -300,7 +301,7 @@ func GenerateGraphqlResolverVars(baseGroupName, crdModulePath string, pkgs parse
 							stdType = convertGraphqlStdType(parts[0])
 						}
 						if stdType != "" {
-							fieldProp.SchemaFieldName = fmt.Sprintf("%s(Id: ID): [%s!]", fieldProp.FieldName, stdType)
+							fieldProp.SchemaFieldName = fmt.Sprintf("%s: [%s]!", fieldProp.FieldName, stdType)
 						} else {
 							schemaTypeName, _ := validateImportPkg(pkg, arr, importMap)
 							fieldProp.SchemaFieldName = getArraySchema(fieldProp.FieldName, schemaTypeName, nonStructMap)
@@ -308,6 +309,7 @@ func GenerateGraphqlResolverVars(baseGroupName, crdModulePath string, pkgs parse
 							fieldProp.BaseTypeName = getBaseNodeType(pkg, typeString, importMap)
 						}
 						nodeProp.ArrayFields = append(nodeProp.ArrayFields, fieldProp)
+						resField[nodeProp.PkgName+nodeProp.NodeName] = append(resField[nodeProp.PkgName+nodeProp.NodeName], fieldProp)
 						// CUSTOM FIELDS
 					} else {
 						stdType := convertGraphqlStdType(typeString)
@@ -336,7 +338,7 @@ func GenerateGraphqlResolverVars(baseGroupName, crdModulePath string, pkgs parse
 										stdType = convertGraphqlStdType(parts[0])
 									}
 									if stdType != "" {
-										fieldProp.SchemaFieldName = fmt.Sprintf("%s(Id: ID): [%s!]", fieldProp.FieldName, stdType)
+										fieldProp.SchemaFieldName = fmt.Sprintf("%s: [%s]!", fieldProp.FieldName, stdType)
 									} else {
 										schemaTypeName, _ := validateImportPkg(pkg, arr, importMap)
 										fieldProp.SchemaFieldName = getArraySchema(fieldProp.FieldName, schemaTypeName, nonStructMap)
@@ -408,6 +410,11 @@ func GenerateGraphqlResolverVars(baseGroupName, crdModulePath string, pkgs parse
 						}
 					} else if strings.HasPrefix(val, "[]") {
 						fmt.Println("Alias-Array:", i.NodeName, i.FieldName, i.FieldType)
+						if !n.IsNexusNode {
+							retType += fmt.Sprintf("\t%s: v%s.Spec.%s.%s\n", i.FieldName, i.PkgName, customApi[i.NodeName], i.FieldName)
+						} else {
+							retType += fmt.Sprintf("\t%s: v%s.Spec.%s\n", i.FieldName, i.NodeName, i.FieldName)
+						}
 					} else if strings.HasPrefix(val, "*") {
 						fmt.Println("Alias-Pointer:", i.NodeName, i.FieldName, i.FieldType)
 					} else {
@@ -422,6 +429,13 @@ func GenerateGraphqlResolverVars(baseGroupName, crdModulePath string, pkgs parse
 							fmt.Println("Not found")
 						}
 					}
+				}
+			} else if i.IsArrayTypeField {
+				fmt.Println("Array:", i.FieldName, i.FieldType)
+				if !n.IsNexusNode {
+					retType += fmt.Sprintf("\t%s: v%s.Spec.%s.%s\n", i.FieldName, i.PkgName, customApi[i.NodeName], i.FieldName)
+				} else {
+					retType += fmt.Sprintf("\t%s: v%s.Spec.%s\n", i.FieldName, i.NodeName, i.FieldName)
 				}
 			} else if i.IsMapTypeField {
 				retType += fmt.Sprintf("\t%s: &%sData,\n", i.FieldName, i.FieldName)
