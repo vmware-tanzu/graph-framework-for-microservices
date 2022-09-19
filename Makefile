@@ -144,7 +144,7 @@ generate_code:
 	cd _generated/nexus-gql && go mod tidy -go=1.18 && go run gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git generate
 	cp -rf _generated/* ${GOPATH}/src/nexustempmodule/
 	cd ${GOPATH}/src/nexustempmodule && rm go.mod && go mod init &&  go  mod tidy -go=1.18 && cd nexus-gql && CGO_ENABLED=1 GOOS=linux \
-	 go build --trimpath -o graphql.so -buildmode=plugin server.go
+	go build --trimpath -o graphql.so -buildmode=plugin server.go
 	@echo "Updating module name"
 	./scripts/replace_mod_path.sh
 	find . -name "*.bak" -type f -delete

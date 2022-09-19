@@ -11,6 +11,8 @@ import (
 
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/pkg/parser"
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/pkg/util"
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
 )
 
 type ReturnStatement struct {
@@ -81,11 +83,11 @@ func validateImportPkg(pkg parser.Package, typeString string, importMap map[stri
 		if val, ok := importMap[part[0]]; ok {
 			pkgName := val[strings.LastIndex(val, "/")+1 : len(val)-1]
 			repName := strings.ReplaceAll(pkgName, "-", "")
-			return repName + "_" + part[1], strings.Title(repName) + strings.Title(part[1])
+			return repName + "_" + part[1], cases.Title(language.Und, cases.NoLower).String(repName) + cases.Title(language.Und, cases.NoLower).String(part[1])
 		}
-		return pkg.Name + part[1], strings.Title(pkg.Name) + strings.Title(part[1])
+		return pkg.Name + part[1], cases.Title(language.Und, cases.NoLower).String(pkg.Name) + cases.Title(language.Und, cases.NoLower).String(part[1])
 	}
-	return pkg.Name + "_" + typeString, strings.Title(pkg.Name) + strings.Title(typeString)
+	return pkg.Name + "_" + typeString, cases.Title(language.Und, cases.NoLower).String(pkg.Name) + cases.Title(language.Und, cases.NoLower).String(typeString)
 }
 
 // TODO: https://jira.eng.vmware.com/browse/NPT-296

@@ -20,9 +20,10 @@ package versioned
 
 import (
 	"fmt"
-	configtsmv1 "nexustempmodule/client/clientset/versioned/typed/config.tsm.tanzu.vmware.com/v1"
-	gnstsmv1 "nexustempmodule/client/clientset/versioned/typed/gns.tsm.tanzu.vmware.com/v1"
-	roottsmv1 "nexustempmodule/client/clientset/versioned/typed/root.tsm.tanzu.vmware.com/v1"
+
+	configtsmv1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/crd_generated/client/clientset/versioned/typed/config.tsm.tanzu.vmware.com/v1"
+	gnstsmv1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/crd_generated/client/clientset/versioned/typed/gns.tsm.tanzu.vmware.com/v1"
+	roottsmv1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/crd_generated/client/clientset/versioned/typed/root.tsm.tanzu.vmware.com/v1"
 
 	discovery "k8s.io/client-go/discovery"
 	rest "k8s.io/client-go/rest"

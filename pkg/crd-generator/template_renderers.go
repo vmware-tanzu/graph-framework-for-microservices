@@ -13,6 +13,8 @@ import (
 
 	log "github.com/sirupsen/logrus"
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/common-library.git/pkg/nexus"
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
 	"golang.org/x/tools/imports"
 
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/pkg/parser"
@@ -241,7 +243,7 @@ func RenderDocTemplate(baseGroupName string, pkg parser.Package) (*bytes.Buffer,
 		// TODO make it configurable
 		Version:     "v1",
 		GroupName:   pkg.Name + "." + baseGroupName,
-		GroupGoName: strings.Title(strings.ToLower(pkg.Name)) + strings.Title(strings.Split(baseGroupName, ".")[0]),
+		GroupGoName: cases.Title(language.Und, cases.NoLower).String(strings.ToLower(pkg.Name)) + cases.Title(language.Und, cases.NoLower).String(strings.Split(baseGroupName, ".")[0]),
 	}
 	if vars.GroupGoName == "" || vars.GroupName == "" {
 		return nil, fmt.Errorf("failed to determine group name of package")
@@ -387,7 +389,7 @@ func RenderCRDBaseTemplate(baseGroupName string, pkg parser.Package, parentsMap 
 		typeName := parser.GetTypeName(node)
 		groupName := pkg.Name + "." + baseGroupName
 		singular := strings.ToLower(typeName)
-		kind := strings.Title(typeName)
+		kind := cases.Title(language.Und, cases.NoLower).String(typeName)
 		plural := util.ToPlural(singular)
 		crdName := fmt.Sprintf("%s.%s", plural, groupName)
 

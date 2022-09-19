@@ -356,3 +356,12 @@ type gns_EmptyData {
     ): TimeSeriesData
 
 }
+
+
+type TimeSeriesData {
+  Code: Int
+  Message: String
+  Data: String
+  Last: String
+  TotalRecords: Int
+}
