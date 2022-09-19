@@ -111,7 +111,7 @@ func (c *resolverConfig) get{{$child.PkgName}}{{$child.NodeName}}{{$child.FieldN
 	{{ else }}var v{{$child.FieldTypePkgPath}}List []*model.{{$child.FieldTypePkgPath}}
 	if id != nil && *id != "" {
 		ret := &model.{{$child.FieldTypePkgPath}}{
-			Id: &id,
+			Id: id,
 		}
 		v{{$child.FieldTypePkgPath}}List = append(v{{$child.FieldTypePkgPath}}List, ret)
 		return v{{$child.FieldTypePkgPath}}List, nil

@@ -108,7 +108,7 @@ coverage:
 	go test -json -coverprofile=coverage.out -coverpkg=./... ./... | tee report.json ;
 
 .PHONY: test
-test: test-fmt vet lint race-unit-test
+test: test-fmt vet lint
 
 .PHONY: test_in_container
 test_in_container: ${BUILDER_NAME}\:${BUILDER_TAG}.image.exists
