@@ -19,7 +19,7 @@ limitations under the License.
 package fake
 
 import (
-	v1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/crd_generated/client/clientset/versioned/typed/gns.tsm.tanzu.vmware.com/v1"
+	v1 "nexustempmodule/client/clientset/versioned/typed/gns.tsm.tanzu.vmware.com/v1"
 
 	rest "k8s.io/client-go/rest"
 	testing "k8s.io/client-go/testing"
@@ -31,6 +31,10 @@ type FakeGnsTsmV1 struct {
 
 func (c *FakeGnsTsmV1) Bars() v1.BarInterface {
 	return &FakeBars{c}
+}
+
+func (c *FakeGnsTsmV1) EmptyDatas() v1.EmptyDataInterface {
+	return &FakeEmptyDatas{c}
 }
 
 func (c *FakeGnsTsmV1) Gnses() v1.GnsInterface {

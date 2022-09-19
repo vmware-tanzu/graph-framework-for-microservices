@@ -20,10 +20,9 @@ package externalversions
 
 import (
 	"fmt"
-
-	v1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/crd_generated/apis/config.tsm.tanzu.vmware.com/v1"
-	gnstsmtanzuvmwarecomv1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/crd_generated/apis/gns.tsm.tanzu.vmware.com/v1"
-	roottsmtanzuvmwarecomv1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/crd_generated/apis/root.tsm.tanzu.vmware.com/v1"
+	v1 "nexustempmodule/apis/config.tsm.tanzu.vmware.com/v1"
+	gnstsmtanzuvmwarecomv1 "nexustempmodule/apis/gns.tsm.tanzu.vmware.com/v1"
+	roottsmtanzuvmwarecomv1 "nexustempmodule/apis/root.tsm.tanzu.vmware.com/v1"
 
 	schema "k8s.io/apimachinery/pkg/runtime/schema"
 	cache "k8s.io/client-go/tools/cache"
@@ -62,6 +61,8 @@ func (f *sharedInformerFactory) ForResource(resource schema.GroupVersionResource
 		// Group=gns.tsm.tanzu.vmware.com, Version=v1
 	case gnstsmtanzuvmwarecomv1.SchemeGroupVersion.WithResource("bars"):
 		return &genericInformer{resource: resource.GroupResource(), informer: f.GnsTsm().V1().Bars().Informer()}, nil
+	case gnstsmtanzuvmwarecomv1.SchemeGroupVersion.WithResource("emptydatas"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.GnsTsm().V1().EmptyDatas().Informer()}, nil
 	case gnstsmtanzuvmwarecomv1.SchemeGroupVersion.WithResource("gnses"):
 		return &genericInformer{resource: resource.GroupResource(), informer: f.GnsTsm().V1().Gnses().Informer()}, nil
 

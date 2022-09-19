@@ -19,13 +19,15 @@ limitations under the License.
 package v1
 
 import (
-	internalinterfaces "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/crd_generated/client/informers/externalversions/internalinterfaces"
+	internalinterfaces "nexustempmodule/client/informers/externalversions/internalinterfaces"
 )
 
 // Interface provides access to all the informers in this group version.
 type Interface interface {
 	// Bars returns a BarInformer.
 	Bars() BarInformer
+	// EmptyDatas returns a EmptyDataInformer.
+	EmptyDatas() EmptyDataInformer
 	// Gnses returns a GnsInformer.
 	Gnses() GnsInformer
 }
@@ -44,6 +46,11 @@ func New(f internalinterfaces.SharedInformerFactory, namespace string, tweakList
 // Bars returns a BarInformer.
 func (v *version) Bars() BarInformer {
 	return &barInformer{factory: v.factory, tweakListOptions: v.tweakListOptions}
+}
+
+// EmptyDatas returns a EmptyDataInformer.
+func (v *version) EmptyDatas() EmptyDataInformer {
+	return &emptyDataInformer{factory: v.factory, tweakListOptions: v.tweakListOptions}
 }
 
 // Gnses returns a GnsInformer.

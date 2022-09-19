@@ -1,6 +1,6 @@
 package crd_generator
 
-const CustomQuerySchema = `    Id: ID
+const CustomQuerySchema = `Id: ID
     queryServiceTable(
         startTime: String
         endTime: String

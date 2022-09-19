@@ -8,3 +8,11 @@ type {{ $node.SchemaName }} {
     {{ $field.SchemaFieldName}}{{ end }}
 }
 {{ end }}{{ end }}
+
+type TimeSeriesData {
+  Code: Int
+  Message: String
+  Data: String
+  Last: String
+  TotalRecords: Int
+}

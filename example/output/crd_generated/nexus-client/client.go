@@ -20,14 +20,14 @@ import (
 	types "k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/rest"
 
-	baseClientset "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/crd_generated/client/clientset/versioned"
-	fakeBaseClienset "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/crd_generated/client/clientset/versioned/fake"
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/crd_generated/common"
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/crd_generated/helper"
+	baseClientset "nexustempmodule/client/clientset/versioned"
+	fakeBaseClienset "nexustempmodule/client/clientset/versioned/fake"
+	"nexustempmodule/common"
+	"nexustempmodule/helper"
 
-	baseconfigtsmtanzuvmwarecomv1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/crd_generated/apis/config.tsm.tanzu.vmware.com/v1"
-	basegnstsmtanzuvmwarecomv1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/crd_generated/apis/gns.tsm.tanzu.vmware.com/v1"
-	baseroottsmtanzuvmwarecomv1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/crd_generated/apis/root.tsm.tanzu.vmware.com/v1"
+	baseconfigtsmtanzuvmwarecomv1 "nexustempmodule/apis/config.tsm.tanzu.vmware.com/v1"
+	basegnstsmtanzuvmwarecomv1 "nexustempmodule/apis/gns.tsm.tanzu.vmware.com/v1"
+	baseroottsmtanzuvmwarecomv1 "nexustempmodule/apis/root.tsm.tanzu.vmware.com/v1"
 )
 
 type Clientset struct {
@@ -366,6 +366,12 @@ func (obj *RootRoot) AddConfig(ctx context.Context,
 	}
 	objToCreate.Labels["roots.root.tsm.tanzu.vmware.com"] = obj.DisplayName()
 	if objToCreate.Labels[common.IS_NAME_HASHED_LABEL] != "true" {
+		if objToCreate.GetName() == "" {
+			objToCreate.SetName(helper.DEFAULT_KEY)
+		}
+		if objToCreate.GetName() != helper.DEFAULT_KEY {
+			return nil, NewSingletonNameError(objToCreate.GetName())
+		}
 		objToCreate.Labels[common.DISPLAY_NAME_LABEL] = objToCreate.GetName()
 		objToCreate.Labels[common.IS_NAME_HASHED_LABEL] = "true"
 		hashedName := helper.GetHashedName(objToCreate.CRDName(), objToCreate.Labels, objToCreate.GetName())
@@ -404,27 +410,33 @@ type rootRootTsmV1Chainer struct {
 	parentLabels map[string]string
 }
 
-func (c *rootRootTsmV1Chainer) Config(name string) *configConfigTsmV1Chainer {
+func (c *rootRootTsmV1Chainer) Config() *configConfigTsmV1Chainer {
 	parentLabels := c.parentLabels
-	parentLabels["configs.config.tsm.tanzu.vmware.com"] = name
+	parentLabels["configs.config.tsm.tanzu.vmware.com"] = helper.DEFAULT_KEY
 	return &configConfigTsmV1Chainer{
 		client:       c.client,
-		name:         name,
+		name:         helper.DEFAULT_KEY,
 		parentLabels: parentLabels,
 	}
 }
 
-// GetConfig calculates hashed name of the object based on displayName and it's parents and returns the object
-func (c *rootRootTsmV1Chainer) GetConfig(ctx context.Context, displayName string) (result *ConfigConfig, err error) {
-	hashedName := helper.GetHashedName("configs.config.tsm.tanzu.vmware.com", c.parentLabels, displayName)
+// GetConfig calculates hashed name of the object based on it's parents and returns the object
+func (c *rootRootTsmV1Chainer) GetConfig(ctx context.Context) (result *ConfigConfig, err error) {
+	hashedName := helper.GetHashedName("configs.config.tsm.tanzu.vmware.com", c.parentLabels, helper.DEFAULT_KEY)
 	return c.client.Config().GetConfigByName(ctx, hashedName)
 }
 
-// AddConfig calculates hashed name of the child to create based on objToCreate.Name
-// and parents names and creates it. objToCreate.Name is changed to the hashed name. Original name is preserved in
+// AddConfig calculates hashed name of the child to create based on parents names and creates it.
+// objToCreate.Name is changed to the hashed name. Original name ('default') is preserved in
 // nexus/display_name label and can be obtained using DisplayName() method.
 func (c *rootRootTsmV1Chainer) AddConfig(ctx context.Context,
 	objToCreate *baseconfigtsmtanzuvmwarecomv1.Config) (result *ConfigConfig, err error) {
+	if objToCreate.GetName() == "" {
+		objToCreate.SetName(helper.DEFAULT_KEY)
+	}
+	if objToCreate.GetName() != helper.DEFAULT_KEY {
+		return nil, NewSingletonNameError(objToCreate.GetName())
+	}
 	if objToCreate.Labels == nil {
 		objToCreate.Labels = map[string]string{}
 	}
@@ -537,6 +549,12 @@ func (group *ConfigTsmV1) CreateConfigByName(ctx context.Context,
 	if _, ok := objToCreate.Labels[common.DISPLAY_NAME_LABEL]; !ok {
 		objToCreate.Labels[common.DISPLAY_NAME_LABEL] = objToCreate.GetName()
 	}
+	if objToCreate.Labels[common.DISPLAY_NAME_LABEL] == "" {
+		objToCreate.Labels[common.DISPLAY_NAME_LABEL] = helper.DEFAULT_KEY
+	}
+	if objToCreate.Labels[common.DISPLAY_NAME_LABEL] != helper.DEFAULT_KEY {
+		return nil, NewSingletonNameError(objToCreate.Labels[common.DISPLAY_NAME_LABEL])
+	}
 
 	objToCreate.Spec.GNSGvk = nil
 
@@ -587,7 +605,9 @@ func (group *ConfigTsmV1) CreateConfigByName(ctx context.Context,
 // display name and parents names.
 func (group *ConfigTsmV1) UpdateConfigByName(ctx context.Context,
 	objToUpdate *baseconfigtsmtanzuvmwarecomv1.Config) (*ConfigConfig, error) {
-
+	if objToUpdate.Labels[common.DISPLAY_NAME_LABEL] != helper.DEFAULT_KEY {
+		return nil, NewSingletonNameError(objToUpdate.Labels[common.DISPLAY_NAME_LABEL])
+	}
 	// ResourceVersion must be set for update
 	if objToUpdate.ResourceVersion == "" {
 		current, err := group.client.baseClient.
@@ -668,6 +688,24 @@ func (group *ConfigTsmV1) UpdateConfigByName(ctx context.Context,
 		Value: patchValueFooD,
 	}
 	patch = append(patch, patchOpFooD)
+
+	patchValueXYZPort :=
+		objToUpdate.Spec.XYZPort
+	patchOpXYZPort := PatchOp{
+		Op:    "replace",
+		Path:  "/spec/xYZPort",
+		Value: patchValueXYZPort,
+	}
+	patch = append(patch, patchOpXYZPort)
+
+	patchValueABCHost :=
+		objToUpdate.Spec.ABCHost
+	patchOpABCHost := PatchOp{
+		Op:    "replace",
+		Path:  "/spec/aBCHost",
+		Value: patchValueABCHost,
+	}
+	patch = append(patch, patchOpABCHost)
 
 	marshaled, err := patch.Marshal()
 	if err != nil {
@@ -757,6 +795,12 @@ func (obj *ConfigConfig) AddGNS(ctx context.Context,
 	}
 	objToCreate.Labels["configs.config.tsm.tanzu.vmware.com"] = obj.DisplayName()
 	if objToCreate.Labels[common.IS_NAME_HASHED_LABEL] != "true" {
+		if objToCreate.GetName() == "" {
+			objToCreate.SetName(helper.DEFAULT_KEY)
+		}
+		if objToCreate.GetName() != helper.DEFAULT_KEY {
+			return nil, NewSingletonNameError(objToCreate.GetName())
+		}
 		objToCreate.Labels[common.DISPLAY_NAME_LABEL] = objToCreate.GetName()
 		objToCreate.Labels[common.IS_NAME_HASHED_LABEL] = "true"
 		hashedName := helper.GetHashedName(objToCreate.CRDName(), objToCreate.Labels, objToCreate.GetName())
@@ -795,27 +839,33 @@ type configConfigTsmV1Chainer struct {
 	parentLabels map[string]string
 }
 
-func (c *configConfigTsmV1Chainer) GNS(name string) *gnsGnsTsmV1Chainer {
+func (c *configConfigTsmV1Chainer) GNS() *gnsGnsTsmV1Chainer {
 	parentLabels := c.parentLabels
-	parentLabels["gnses.gns.tsm.tanzu.vmware.com"] = name
+	parentLabels["gnses.gns.tsm.tanzu.vmware.com"] = helper.DEFAULT_KEY
 	return &gnsGnsTsmV1Chainer{
 		client:       c.client,
-		name:         name,
+		name:         helper.DEFAULT_KEY,
 		parentLabels: parentLabels,
 	}
 }
 
-// GetGNS calculates hashed name of the object based on displayName and it's parents and returns the object
-func (c *configConfigTsmV1Chainer) GetGNS(ctx context.Context, displayName string) (result *GnsGns, err error) {
-	hashedName := helper.GetHashedName("gnses.gns.tsm.tanzu.vmware.com", c.parentLabels, displayName)
+// GetGNS calculates hashed name of the object based on it's parents and returns the object
+func (c *configConfigTsmV1Chainer) GetGNS(ctx context.Context) (result *GnsGns, err error) {
+	hashedName := helper.GetHashedName("gnses.gns.tsm.tanzu.vmware.com", c.parentLabels, helper.DEFAULT_KEY)
 	return c.client.Gns().GetGnsByName(ctx, hashedName)
 }
 
-// AddGNS calculates hashed name of the child to create based on objToCreate.Name
-// and parents names and creates it. objToCreate.Name is changed to the hashed name. Original name is preserved in
+// AddGNS calculates hashed name of the child to create based on parents names and creates it.
+// objToCreate.Name is changed to the hashed name. Original name ('default') is preserved in
 // nexus/display_name label and can be obtained using DisplayName() method.
 func (c *configConfigTsmV1Chainer) AddGNS(ctx context.Context,
 	objToCreate *basegnstsmtanzuvmwarecomv1.Gns) (result *GnsGns, err error) {
+	if objToCreate.GetName() == "" {
+		objToCreate.SetName(helper.DEFAULT_KEY)
+	}
+	if objToCreate.GetName() != helper.DEFAULT_KEY {
+		return nil, NewSingletonNameError(objToCreate.GetName())
+	}
 	if objToCreate.Labels == nil {
 		objToCreate.Labels = map[string]string{}
 	}
@@ -936,6 +986,12 @@ func (group *GnsTsmV1) CreateGnsByName(ctx context.Context,
 	if _, ok := objToCreate.Labels[common.DISPLAY_NAME_LABEL]; !ok {
 		objToCreate.Labels[common.DISPLAY_NAME_LABEL] = objToCreate.GetName()
 	}
+	if objToCreate.Labels[common.DISPLAY_NAME_LABEL] == "" {
+		objToCreate.Labels[common.DISPLAY_NAME_LABEL] = helper.DEFAULT_KEY
+	}
+	if objToCreate.Labels[common.DISPLAY_NAME_LABEL] != helper.DEFAULT_KEY {
+		return nil, NewSingletonNameError(objToCreate.Labels[common.DISPLAY_NAME_LABEL])
+	}
 
 	objToCreate.Spec.FooChildGvk = nil
 	objToCreate.Spec.FooChildrenGvk = nil
@@ -989,7 +1045,9 @@ func (group *GnsTsmV1) CreateGnsByName(ctx context.Context,
 // display name and parents names.
 func (group *GnsTsmV1) UpdateGnsByName(ctx context.Context,
 	objToUpdate *basegnstsmtanzuvmwarecomv1.Gns) (*GnsGns, error) {
-
+	if objToUpdate.Labels[common.DISPLAY_NAME_LABEL] != helper.DEFAULT_KEY {
+		return nil, NewSingletonNameError(objToUpdate.Labels[common.DISPLAY_NAME_LABEL])
+	}
 	// ResourceVersion must be set for update
 	if objToUpdate.ResourceVersion == "" {
 		current, err := group.client.baseClient.
@@ -1043,6 +1101,15 @@ func (group *GnsTsmV1) UpdateGnsByName(ctx context.Context,
 		Value: patchValueHostPort,
 	}
 	patch = append(patch, patchOpHostPort)
+
+	patchValueTestArray :=
+		objToUpdate.Spec.TestArray
+	patchOpTestArray := PatchOp{
+		Op:    "replace",
+		Path:  "/spec/testArray",
+		Value: patchValueTestArray,
+	}
+	patch = append(patch, patchOpTestArray)
 
 	patchValueInstance :=
 		objToUpdate.Spec.Instance
@@ -1674,6 +1741,191 @@ func (obj *GnsBar) GetParent(ctx context.Context) (result *GnsGns, err error) {
 }
 
 type barGnsTsmV1Chainer struct {
+	client       *Clientset
+	name         string
+	parentLabels map[string]string
+}
+
+// GetEmptyDataByName returns object stored in the database under the hashedName which is a hash of display
+// name and parents names. Use it when you know hashed name of object.
+func (group *GnsTsmV1) GetEmptyDataByName(ctx context.Context, hashedName string) (*GnsEmptyData, error) {
+	result, err := group.client.baseClient.
+		GnsTsmV1().
+		EmptyDatas().Get(ctx, hashedName, metav1.GetOptions{})
+	if err != nil {
+		return nil, err
+	}
+
+	return &GnsEmptyData{
+		client:    group.client,
+		EmptyData: result,
+	}, nil
+}
+
+// DeleteEmptyDataByName deletes object stored in the database under the hashedName which is a hash of
+// display name and parents names. Use it when you know hashed name of object.
+func (group *GnsTsmV1) DeleteEmptyDataByName(ctx context.Context, hashedName string) (err error) {
+
+	err = group.client.baseClient.
+		GnsTsmV1().
+		EmptyDatas().Delete(ctx, hashedName, metav1.DeleteOptions{})
+	if err != nil {
+		return err
+	}
+
+	return
+}
+
+// CreateEmptyDataByName creates object in the database without hashing the name.
+// Use it directly ONLY when objToCreate.Name is hashed name of the object.
+func (group *GnsTsmV1) CreateEmptyDataByName(ctx context.Context,
+	objToCreate *basegnstsmtanzuvmwarecomv1.EmptyData) (*GnsEmptyData, error) {
+	if objToCreate.GetLabels() == nil {
+		objToCreate.Labels = make(map[string]string)
+	}
+	if _, ok := objToCreate.Labels[common.DISPLAY_NAME_LABEL]; !ok {
+		objToCreate.Labels[common.DISPLAY_NAME_LABEL] = objToCreate.GetName()
+	}
+
+	result, err := group.client.baseClient.
+		GnsTsmV1().
+		EmptyDatas().Create(ctx, objToCreate, metav1.CreateOptions{})
+	if err != nil {
+		return nil, err
+	}
+
+	return &GnsEmptyData{
+		client:    group.client,
+		EmptyData: result,
+	}, nil
+}
+
+// UpdateEmptyDataByName updates object stored in the database under the hashedName which is a hash of
+// display name and parents names.
+func (group *GnsTsmV1) UpdateEmptyDataByName(ctx context.Context,
+	objToUpdate *basegnstsmtanzuvmwarecomv1.EmptyData) (*GnsEmptyData, error) {
+
+	// ResourceVersion must be set for update
+	if objToUpdate.ResourceVersion == "" {
+		current, err := group.client.baseClient.
+			GnsTsmV1().
+			EmptyDatas().Get(ctx, objToUpdate.GetName(), metav1.GetOptions{})
+		if err != nil {
+			return nil, err
+		}
+		objToUpdate.ResourceVersion = current.ResourceVersion
+	}
+
+	var patch Patch
+	patch = append(patch, PatchOp{
+		Op:    "replace",
+		Path:  "/metadata",
+		Value: objToUpdate.ObjectMeta,
+	})
+
+	marshaled, err := patch.Marshal()
+	if err != nil {
+		return nil, err
+	}
+	result, err := group.client.baseClient.
+		GnsTsmV1().
+		EmptyDatas().Patch(ctx, objToUpdate.GetName(), types.JSONPatchType, marshaled, metav1.PatchOptions{}, "")
+	if err != nil {
+		return nil, err
+	}
+
+	return &GnsEmptyData{
+		client:    group.client,
+		EmptyData: result,
+	}, nil
+}
+
+// ListEmptyDatas returns slice of all existing objects of this type. Selectors can be provided in opts parameter.
+func (group *GnsTsmV1) ListEmptyDatas(ctx context.Context,
+	opts metav1.ListOptions) (result []*GnsEmptyData, err error) {
+	list, err := group.client.baseClient.GnsTsmV1().
+		EmptyDatas().List(ctx, opts)
+	if err != nil {
+		return nil, err
+	}
+	result = make([]*GnsEmptyData, len(list.Items))
+	for k, v := range list.Items {
+		item := v
+		result[k] = &GnsEmptyData{
+			client:    group.client,
+			EmptyData: &item,
+		}
+	}
+	return
+}
+
+type GnsEmptyData struct {
+	client *Clientset
+	*basegnstsmtanzuvmwarecomv1.EmptyData
+}
+
+// Delete removes obj and all it's children from the database.
+func (obj *GnsEmptyData) Delete(ctx context.Context) error {
+	err := obj.client.Gns().DeleteEmptyDataByName(ctx, obj.GetName())
+	if err != nil {
+		return err
+	}
+	obj.EmptyData = nil
+	return nil
+}
+
+// Update updates spec of object in database. Children and Link can not be updated using this function.
+func (obj *GnsEmptyData) Update(ctx context.Context) error {
+	result, err := obj.client.Gns().UpdateEmptyDataByName(ctx, obj.EmptyData)
+	if err != nil {
+		return err
+	}
+	obj.EmptyData = result.EmptyData
+	return nil
+}
+
+// GetGnsEmptyData calculates the hashed name based on parents and displayName and
+// returns given object
+func (c *Clientset) GetGnsEmptyData(ctx context.Context, displayName string) (result *GnsEmptyData, err error) {
+	hashedName := helper.GetHashedName("emptydatas.gns.tsm.tanzu.vmware.com", nil, displayName)
+	return c.Gns().GetEmptyDataByName(ctx, hashedName)
+}
+
+func (c *Clientset) GnsEmptyData(displayName string) *emptydataGnsTsmV1Chainer {
+	parentLabels := make(map[string]string)
+	parentLabels["emptydatas.gns.tsm.tanzu.vmware.com"] = displayName
+	return &emptydataGnsTsmV1Chainer{
+		client:       c,
+		name:         displayName,
+		parentLabels: parentLabels,
+	}
+}
+
+// AddGnsEmptyData calculates hashed name of the object based on objToCreate.Name
+// and parents names and creates it. objToCreate.Name is changed to the hashed name. Original name is preserved in
+// nexus/display_name label and can be obtained using DisplayName() method.
+func (c *Clientset) AddGnsEmptyData(ctx context.Context,
+	objToCreate *basegnstsmtanzuvmwarecomv1.EmptyData) (result *GnsEmptyData, err error) {
+	if objToCreate.Labels == nil {
+		objToCreate.Labels = map[string]string{}
+	}
+	if objToCreate.Labels[common.IS_NAME_HASHED_LABEL] != "true" {
+		objToCreate.Labels[common.DISPLAY_NAME_LABEL] = objToCreate.GetName()
+		objToCreate.Labels[common.IS_NAME_HASHED_LABEL] = "true"
+		hashedName := helper.GetHashedName(objToCreate.CRDName(), nil, objToCreate.GetName())
+		objToCreate.Name = hashedName
+	}
+	return c.Gns().CreateEmptyDataByName(ctx, objToCreate)
+}
+
+// DeleteGnsEmptyData calculates hashedName of object based on displayName and
+// parents and deletes given object
+func (c *Clientset) DeleteGnsEmptyData(ctx context.Context, displayName string) (err error) {
+	hashedName := helper.GetHashedName("emptydatas.gns.tsm.tanzu.vmware.com", nil, displayName)
+	return c.Gns().DeleteEmptyDataByName(ctx, hashedName)
+}
+
+type emptydataGnsTsmV1Chainer struct {
 	client       *Clientset
 	name         string
 	parentLabels map[string]string

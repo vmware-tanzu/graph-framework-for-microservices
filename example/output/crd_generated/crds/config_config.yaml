@@ -4,7 +4,7 @@ kind: CustomResourceDefinition
 metadata:
   annotations:
     nexus: |
-      {"name":"config.Config","hierarchy":["roots.root.tsm.tanzu.vmware.com"],"children":{"gnses.gns.tsm.tanzu.vmware.com":{"fieldName":"GNS","fieldNameGvk":"gNSGvk","isNamed":false}},"is_singleton":false,"nexus-rest-api-gen":{"uris":null}}
+      {"name":"config.Config","hierarchy":["roots.root.tsm.tanzu.vmware.com"],"children":{"gnses.gns.tsm.tanzu.vmware.com":{"fieldName":"GNS","fieldNameGvk":"gNSGvk","isNamed":false}},"is_singleton":true,"nexus-rest-api-gen":{"uris":null}}
   creationTimestamp: null
   name: configs.config.tsm.tanzu.vmware.com
 spec:
@@ -44,6 +44,8 @@ spec:
               FooD:
                 format: float
                 type: number
+              aBCHost:
+                type: string
               cluster:
                 properties:
                   MyID:
@@ -82,6 +84,9 @@ spec:
                 - kind
                 - name
                 type: object
+              xYZPort:
+                format: int32
+                type: integer
             required:
             - configName
             - cluster
@@ -90,6 +95,8 @@ spec:
             - fooB
             - FooC
             - FooD
+            - xYZPort
+            - aBCHost
             type: object
           status:
             properties:

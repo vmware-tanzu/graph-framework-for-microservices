@@ -47,12 +47,6 @@ models:
       Cluster:
         resolver: true
 
-      XYZPort:
-        resolver: true
-
-      ABCHost:
-        resolver: true
-
   gns_Gns:
     fields:
       FooLink:

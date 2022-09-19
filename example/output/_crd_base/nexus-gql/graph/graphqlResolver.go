@@ -72,6 +72,147 @@ func (c *resolverConfig) getRootResolver() (*model.RootRoot, error) {
 }
 
 //////////////////////////////////////
+// CustomQuery Resolver for Node: RootRoot
+//////////////////////////////////////
+
+// Resolver for queryServiceTable
+func (c *resolverConfig) getRootRootqueryServiceTableResolver(startTime *string, endTime *string, systemServices *bool, showGateways *bool, groupby *string, noMetrics *bool) (*model.TimeSeriesData,error) {
+	ctx := context.Background()
+	var filters = make(map[string]string)
+	filters[""] = ""
+	resp, err := grpcServer().GetMetrics(ctx, &qm.MetricArg{QueryType: "/ServiceTable", StartTime: *startTime, EndTime: *endTime, Metric: "", Filters: filters,TimeInterval: ""})
+	if err != nil {
+		fmt.Printf("Failed to getMetrics, err: %v", err)
+	}
+	b, _ := json.Marshal(resp.Data)
+	data := string(b)
+	ret := &model.TimeSeriesData{
+		Data: &data,
+	}
+	return ret,nil
+}
+
+// Resolver for queryServiceVersionTable
+func (c *resolverConfig) getRootRootqueryServiceVersionTableResolver(startTime *string, endTime *string, systemServices *bool, showGateways *bool, noMetrics *bool) (*model.TimeSeriesData,error) {
+	ctx := context.Background()
+	var filters = make(map[string]string)
+	filters[""] = ""
+	resp, err := grpcServer().GetMetrics(ctx, &qm.MetricArg{QueryType: "/ServiceTable", StartTime: *startTime, EndTime: *endTime, Metric: "", Filters: filters,TimeInterval: ""})
+	if err != nil {
+		fmt.Printf("Failed to getMetrics, err: %v", err)
+	}
+	b, _ := json.Marshal(resp.Data)
+	data := string(b)
+	ret := &model.TimeSeriesData{
+		Data: &data,
+	}
+	return ret,nil
+}
+
+// Resolver for queryServiceTS
+func (c *resolverConfig) getRootRootqueryServiceTSResolver(svcMetric *string, startTime *string, endTime *string, timeInterval *string) (*model.TimeSeriesData,error) {
+	ctx := context.Background()
+	var filters = make(map[string]string)
+	filters[""] = ""
+	resp, err := grpcServer().GetMetrics(ctx, &qm.MetricArg{QueryType: "/ServiceMetricSeries", StartTime: *startTime, EndTime: *endTime, Metric: *svcMetric, Filters: filters,TimeInterval: *timeInterval})
+	if err != nil {
+		fmt.Printf("Failed to getMetrics, err: %v", err)
+	}
+	b, _ := json.Marshal(resp.Data)
+	data := string(b)
+	ret := &model.TimeSeriesData{
+		Data: &data,
+	}
+	return ret,nil
+}
+
+// Resolver for queryIncomingAPIs
+func (c *resolverConfig) getRootRootqueryIncomingAPIsResolver(startTime *string, endTime *string, destinationService *string, destinationServiceVersion *string, timeInterval *string, timeZone *string) (*model.TimeSeriesData,error) {
+	ctx := context.Background()
+	var filters = make(map[string]string)
+	filters[""] = ""
+	resp, err := grpcServer().GetMetrics(ctx, &qm.MetricArg{QueryType: "/IncomingAPIs", StartTime: *startTime, EndTime: *endTime, Metric: "", Filters: filters,TimeInterval: *timeInterval})
+	if err != nil {
+		fmt.Printf("Failed to getMetrics, err: %v", err)
+	}
+	b, _ := json.Marshal(resp.Data)
+	data := string(b)
+	ret := &model.TimeSeriesData{
+		Data: &data,
+	}
+	return ret,nil
+}
+
+// Resolver for queryOutgoingAPIs
+func (c *resolverConfig) getRootRootqueryOutgoingAPIsResolver(startTime *string, endTime *string, timeInterval *string, timeZone *string) (*model.TimeSeriesData,error) {
+	ctx := context.Background()
+	var filters = make(map[string]string)
+	filters[""] = ""
+	resp, err := grpcServer().GetMetrics(ctx, &qm.MetricArg{QueryType: "/OutgoingAPIs", StartTime: *startTime, EndTime: *endTime, Metric: "", Filters: filters,TimeInterval: *timeInterval})
+	if err != nil {
+		fmt.Printf("Failed to getMetrics, err: %v", err)
+	}
+	b, _ := json.Marshal(resp.Data)
+	data := string(b)
+	ret := &model.TimeSeriesData{
+		Data: &data,
+	}
+	return ret,nil
+}
+
+// Resolver for queryIncomingTCP
+func (c *resolverConfig) getRootRootqueryIncomingTCPResolver(startTime *string, endTime *string, destinationService *string, destinationServiceVersion *string) (*model.TimeSeriesData,error) {
+	ctx := context.Background()
+	var filters = make(map[string]string)
+	filters[""] = ""
+	resp, err := grpcServer().GetMetrics(ctx, &qm.MetricArg{QueryType: "/IncomingTCP", StartTime: *startTime, EndTime: *endTime, Metric: "", Filters: filters,TimeInterval: ""})
+	if err != nil {
+		fmt.Printf("Failed to getMetrics, err: %v", err)
+	}
+	b, _ := json.Marshal(resp.Data)
+	data := string(b)
+	ret := &model.TimeSeriesData{
+		Data: &data,
+	}
+	return ret,nil
+}
+
+// Resolver for queryOutgoingTCP
+func (c *resolverConfig) getRootRootqueryOutgoingTCPResolver(startTime *string, endTime *string, destinationService *string, destinationServiceVersion *string) (*model.TimeSeriesData,error) {
+	ctx := context.Background()
+	var filters = make(map[string]string)
+	filters[""] = ""
+	resp, err := grpcServer().GetMetrics(ctx, &qm.MetricArg{QueryType: "/OutgoingTCP", StartTime: *startTime, EndTime: *endTime, Metric: "", Filters: filters,TimeInterval: ""})
+	if err != nil {
+		fmt.Printf("Failed to getMetrics, err: %v", err)
+	}
+	b, _ := json.Marshal(resp.Data)
+	data := string(b)
+	ret := &model.TimeSeriesData{
+		Data: &data,
+	}
+	return ret,nil
+}
+
+// Resolver for queryServiceTopology
+func (c *resolverConfig) getRootRootqueryServiceTopologyResolver(startTime *string, endTime *string, metricStringArray *string) (*model.TimeSeriesData,error) {
+	ctx := context.Background()
+	var filters = make(map[string]string)
+	filters[""] = ""
+	resp, err := grpcServer().GetMetrics(ctx, &qm.MetricArg{QueryType: "/ServiceTopology", StartTime: *startTime, EndTime: *endTime, Metric: *metricStringArray, Filters: filters,TimeInterval: ""})
+	if err != nil {
+		fmt.Printf("Failed to getMetrics, err: %v", err)
+	}
+	b, _ := json.Marshal(resp.Data)
+	data := string(b)
+	ret := &model.TimeSeriesData{
+		Data: &data,
+	}
+	return ret,nil
+}
+
+
+//////////////////////////////////////
 // Child/Link Node : Config Config
 // Resolver for Root
 //////////////////////////////////////
@@ -88,12 +229,16 @@ FooMap, _ := json.Marshal(vConfig.Spec.FooMap)
 FooMapData := string(FooMap)
 FooD, _ := json.Marshal(vConfig.Spec.FooD)
 FooDData := string(FooD)
+vXYZPort := int(vConfig.Spec.XYZPort)
+vABCHost := string(vConfig.Spec.ABCHost)
 
 	ret := &model.ConfigConfig {
 	ConfigName: &vConfigName,
 	FooA: &FooAData,
 	FooMap: &FooMapData,
 	FooD: &FooDData,
+	XYZPort: &vXYZPort,
+	ABCHost: &vABCHost,
 	}
 	return ret, nil
 }
@@ -146,22 +291,6 @@ vMyID := int(vConfig.Spec.Cluster.MyID)
 	Name: &vName,
 	MyID: &vMyID,
 	}
-	return ret, nil
-}
-//////////////////////////////////////
-// CustomField: XYZPort of CustomType: Config
-// Resolver for Config
-//////////////////////////////////////
-func (c *resolverConfig) getConfigConfigXYZPortResolver() (*model.GnsPort, error) {
-	ret := &model.GnsPort {}
-	return ret, nil
-}
-//////////////////////////////////////
-// CustomField: ABCHost of CustomType: Config
-// Resolver for Config
-//////////////////////////////////////
-func (c *resolverConfig) getConfigConfigABCHostResolver() (*model.GnsHost, error) {
-	ret := &model.GnsHost {}
 	return ret, nil
 }
 //////////////////////////////////////

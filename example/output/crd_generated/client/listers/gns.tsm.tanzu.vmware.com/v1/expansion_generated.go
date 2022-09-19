@@ -22,6 +22,10 @@ package v1
 // BarLister.
 type BarListerExpansion interface{}
 
+// EmptyDataListerExpansion allows custom methods to be added to
+// EmptyDataLister.
+type EmptyDataListerExpansion interface{}
+
 // GnsListerExpansion allows custom methods to be added to
 // GnsLister.
 type GnsListerExpansion interface{}

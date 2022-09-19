@@ -20,4 +20,6 @@ package v1
 
 type BarExpansion interface{}
 
+type EmptyDataExpansion interface{}
+
 type GnsExpansion interface{}

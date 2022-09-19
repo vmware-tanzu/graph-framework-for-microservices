@@ -145,8 +145,8 @@ func GenerateGraphqlResolverVars(baseGroupName, crdModulePath string, pkgs parse
 	for i, k := range sortedKeys {
 		sortedPackages[i] = pkgs[k]
 	}
+	// Iterate All Non Struct Node from all pkg and store the details in nonStructMap
 	for _, pkg := range sortedPackages {
-		// Iterate All Non Struct Node from all pkg and store the details in nonStructMap
 		for _, node := range pkg.GetNonStructTypes() {
 			var pkgName string
 			if pkg.FullName == pkg.ModPath {
@@ -163,7 +163,8 @@ func GenerateGraphqlResolverVars(baseGroupName, crdModulePath string, pkgs parse
 			nonStructType := types.ExprString(node.Type)
 			nonStructMap[pkgName] = nonStructType
 		}
-
+	}
+	for _, pkg := range sortedPackages {
 		simpleGroupTypeName := util.GetSimpleGroupTypeName(pkg.Name)
 		for _, node := range pkg.GetStructs() {
 			var nodeProp Node_prop
@@ -223,9 +224,9 @@ func GenerateGraphqlResolverVars(baseGroupName, crdModulePath string, pkgs parse
 					// Nexus Type Fields
 					if parser.IsNexusTypeField(nf) {
 						fieldProp.IsNexusOrSingletonField = true
-						fieldProp.SchemaFieldName = fmt.Sprintf("%s: %s", "Id", "ID")
+						//fieldProp.SchemaFieldName = fmt.Sprintf("%s: %s", "Id", "ID")
 						// Custom Query + ID
-						// fieldProp.SchemaFieldName = CustomQuerySchema
+						fieldProp.SchemaFieldName = CustomQuerySchema
 					}
 					// Child and Link fields
 					if parser.IsChildOrLink(nf) {
@@ -286,7 +287,7 @@ func GenerateGraphqlResolverVars(baseGroupName, crdModulePath string, pkgs parse
 						fieldProp.IsMapTypeField = true
 						fieldProp.SchemaFieldName = fmt.Sprintf("%s: %s", fieldProp.FieldName, "String")
 						resField[nodeProp.PkgName+nodeProp.NodeName] = append(resField[nodeProp.PkgName+nodeProp.NodeName], fieldProp)
-					// ARRAY FIELD
+						// ARRAY FIELD
 					} else if parser.IsArrayField(f) {
 						fieldProp.IsArrayTypeField = true
 						var stdType string
@@ -307,7 +308,7 @@ func GenerateGraphqlResolverVars(baseGroupName, crdModulePath string, pkgs parse
 							fieldProp.BaseTypeName = getBaseNodeType(pkg, typeString, importMap)
 						}
 						nodeProp.ArrayFields = append(nodeProp.ArrayFields, fieldProp)
-					// CUSTOM FIELDS
+						// CUSTOM FIELDS
 					} else {
 						stdType := convertGraphqlStdType(typeString)
 						if stdType != "" {
@@ -350,6 +351,7 @@ func GenerateGraphqlResolverVars(baseGroupName, crdModulePath string, pkgs parse
 								resField[nodeProp.PkgName+nodeProp.NodeName] = append(resField[nodeProp.PkgName+nodeProp.NodeName], fieldProp)
 							} else {
 								// CustomType Resolver
+
 								fieldProp.IsCustomTypeField = true
 								schemaTypeName, resolverTypeName := validateImportPkg(pkg, typeString, importMap)
 								fieldProp.SchemaFieldName = fmt.Sprintf("%s: %s", fieldProp.FieldName, schemaTypeName)

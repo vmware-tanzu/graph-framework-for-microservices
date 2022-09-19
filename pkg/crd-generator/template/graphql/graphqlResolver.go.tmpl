@@ -64,7 +64,148 @@ func (c *resolverConfig) getRootResolver() (*model.{{$node.PkgName}}{{$node.Node
 	return ret, nil{{ else }}
 	ret := &model.{{$node.PkgName}}{{$node.NodeName}} {}
 	return ret, nil{{ end }}
-}{{ else }}{{ end }}{{ end }}
+}
+{{ if $node.IsNexusNode }}
+//////////////////////////////////////
+// CustomQuery Resolver for Node: {{$node.PkgName}}{{$node.NodeName}}
+//////////////////////////////////////
+
+// Resolver for queryServiceTable
+func (c *resolverConfig) get{{$node.PkgName}}{{$node.NodeName}}queryServiceTableResolver(startTime *string, endTime *string, systemServices *bool, showGateways *bool, groupby *string, noMetrics *bool) (*model.TimeSeriesData,error) {
+	ctx := context.Background()
+	var filters = make(map[string]string)
+	filters[""] = ""
+	resp, err := grpcServer().GetMetrics(ctx, &qm.MetricArg{QueryType: "/ServiceTable", StartTime: *startTime, EndTime: *endTime, Metric: "", Filters: filters,TimeInterval: ""})
+	if err != nil {
+		fmt.Printf("Failed to getMetrics, err: %v", err)
+	}
+	b, _ := json.Marshal(resp.Data)
+	data := string(b)
+	ret := &model.TimeSeriesData{
+		Data: &data,
+	}
+	return ret,nil
+}
+
+// Resolver for queryServiceVersionTable
+func (c *resolverConfig) get{{$node.PkgName}}{{$node.NodeName}}queryServiceVersionTableResolver(startTime *string, endTime *string, systemServices *bool, showGateways *bool, noMetrics *bool) (*model.TimeSeriesData,error) {
+	ctx := context.Background()
+	var filters = make(map[string]string)
+	filters[""] = ""
+	resp, err := grpcServer().GetMetrics(ctx, &qm.MetricArg{QueryType: "/ServiceTable", StartTime: *startTime, EndTime: *endTime, Metric: "", Filters: filters,TimeInterval: ""})
+	if err != nil {
+		fmt.Printf("Failed to getMetrics, err: %v", err)
+	}
+	b, _ := json.Marshal(resp.Data)
+	data := string(b)
+	ret := &model.TimeSeriesData{
+		Data: &data,
+	}
+	return ret,nil
+}
+
+// Resolver for queryServiceTS
+func (c *resolverConfig) get{{$node.PkgName}}{{$node.NodeName}}queryServiceTSResolver(svcMetric *string, startTime *string, endTime *string, timeInterval *string) (*model.TimeSeriesData,error) {
+	ctx := context.Background()
+	var filters = make(map[string]string)
+	filters[""] = ""
+	resp, err := grpcServer().GetMetrics(ctx, &qm.MetricArg{QueryType: "/ServiceMetricSeries", StartTime: *startTime, EndTime: *endTime, Metric: *svcMetric, Filters: filters,TimeInterval: *timeInterval})
+	if err != nil {
+		fmt.Printf("Failed to getMetrics, err: %v", err)
+	}
+	b, _ := json.Marshal(resp.Data)
+	data := string(b)
+	ret := &model.TimeSeriesData{
+		Data: &data,
+	}
+	return ret,nil
+}
+
+// Resolver for queryIncomingAPIs
+func (c *resolverConfig) get{{$node.PkgName}}{{$node.NodeName}}queryIncomingAPIsResolver(startTime *string, endTime *string, destinationService *string, destinationServiceVersion *string, timeInterval *string, timeZone *string) (*model.TimeSeriesData,error) {
+	ctx := context.Background()
+	var filters = make(map[string]string)
+	filters[""] = ""
+	resp, err := grpcServer().GetMetrics(ctx, &qm.MetricArg{QueryType: "/IncomingAPIs", StartTime: *startTime, EndTime: *endTime, Metric: "", Filters: filters,TimeInterval: *timeInterval})
+	if err != nil {
+		fmt.Printf("Failed to getMetrics, err: %v", err)
+	}
+	b, _ := json.Marshal(resp.Data)
+	data := string(b)
+	ret := &model.TimeSeriesData{
+		Data: &data,
+	}
+	return ret,nil
+}
+
+// Resolver for queryOutgoingAPIs
+func (c *resolverConfig) get{{$node.PkgName}}{{$node.NodeName}}queryOutgoingAPIsResolver(startTime *string, endTime *string, timeInterval *string, timeZone *string) (*model.TimeSeriesData,error) {
+	ctx := context.Background()
+	var filters = make(map[string]string)
+	filters[""] = ""
+	resp, err := grpcServer().GetMetrics(ctx, &qm.MetricArg{QueryType: "/OutgoingAPIs", StartTime: *startTime, EndTime: *endTime, Metric: "", Filters: filters,TimeInterval: *timeInterval})
+	if err != nil {
+		fmt.Printf("Failed to getMetrics, err: %v", err)
+	}
+	b, _ := json.Marshal(resp.Data)
+	data := string(b)
+	ret := &model.TimeSeriesData{
+		Data: &data,
+	}
+	return ret,nil
+}
+
+// Resolver for queryIncomingTCP
+func (c *resolverConfig) get{{$node.PkgName}}{{$node.NodeName}}queryIncomingTCPResolver(startTime *string, endTime *string, destinationService *string, destinationServiceVersion *string) (*model.TimeSeriesData,error) {
+	ctx := context.Background()
+	var filters = make(map[string]string)
+	filters[""] = ""
+	resp, err := grpcServer().GetMetrics(ctx, &qm.MetricArg{QueryType: "/IncomingTCP", StartTime: *startTime, EndTime: *endTime, Metric: "", Filters: filters,TimeInterval: ""})
+	if err != nil {
+		fmt.Printf("Failed to getMetrics, err: %v", err)
+	}
+	b, _ := json.Marshal(resp.Data)
+	data := string(b)
+	ret := &model.TimeSeriesData{
+		Data: &data,
+	}
+	return ret,nil
+}
+
+// Resolver for queryOutgoingTCP
+func (c *resolverConfig) get{{$node.PkgName}}{{$node.NodeName}}queryOutgoingTCPResolver(startTime *string, endTime *string, destinationService *string, destinationServiceVersion *string) (*model.TimeSeriesData,error) {
+	ctx := context.Background()
+	var filters = make(map[string]string)
+	filters[""] = ""
+	resp, err := grpcServer().GetMetrics(ctx, &qm.MetricArg{QueryType: "/OutgoingTCP", StartTime: *startTime, EndTime: *endTime, Metric: "", Filters: filters,TimeInterval: ""})
+	if err != nil {
+		fmt.Printf("Failed to getMetrics, err: %v", err)
+	}
+	b, _ := json.Marshal(resp.Data)
+	data := string(b)
+	ret := &model.TimeSeriesData{
+		Data: &data,
+	}
+	return ret,nil
+}
+
+// Resolver for queryServiceTopology
+func (c *resolverConfig) get{{$node.PkgName}}{{$node.NodeName}}queryServiceTopologyResolver(startTime *string, endTime *string, metricStringArray *string) (*model.TimeSeriesData,error) {
+	ctx := context.Background()
+	var filters = make(map[string]string)
+	filters[""] = ""
+	resp, err := grpcServer().GetMetrics(ctx, &qm.MetricArg{QueryType: "/ServiceTopology", StartTime: *startTime, EndTime: *endTime, Metric: *metricStringArray, Filters: filters,TimeInterval: ""})
+	if err != nil {
+		fmt.Printf("Failed to getMetrics, err: %v", err)
+	}
+	b, _ := json.Marshal(resp.Data)
+	data := string(b)
+	ret := &model.TimeSeriesData{
+		Data: &data,
+	}
+	return ret,nil
+}
+{{ end }}{{ end }}{{ end }}
 {{ range $key, $node := .Nodes }}{{ range $key, $child := $node.ChildLinkFields }}
 //////////////////////////////////////
 // Child/Link Node : {{$child.FieldName}} {{$child.BaseTypeName}}

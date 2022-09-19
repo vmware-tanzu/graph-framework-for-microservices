@@ -67,3 +67,6 @@ models:
       HostPort:
         resolver: true
 
+      TestArray:
+        resolver: true
+

@@ -26,44 +26,44 @@ import (
 	"k8s.io/client-go/tools/cache"
 )
 
-// BarLister helps list Bars.
+// EmptyDataLister helps list EmptyDatas.
 // All objects returned here must be treated as read-only.
-type BarLister interface {
-	// List lists all Bars in the indexer.
+type EmptyDataLister interface {
+	// List lists all EmptyDatas in the indexer.
 	// Objects returned here must be treated as read-only.
-	List(selector labels.Selector) (ret []*v1.Bar, err error)
-	// Get retrieves the Bar from the index for a given name.
+	List(selector labels.Selector) (ret []*v1.EmptyData, err error)
+	// Get retrieves the EmptyData from the index for a given name.
 	// Objects returned here must be treated as read-only.
-	Get(name string) (*v1.Bar, error)
-	BarListerExpansion
+	Get(name string) (*v1.EmptyData, error)
+	EmptyDataListerExpansion
 }
 
-// barLister implements the BarLister interface.
-type barLister struct {
+// emptyDataLister implements the EmptyDataLister interface.
+type emptyDataLister struct {
 	indexer cache.Indexer
 }
 
-// NewBarLister returns a new BarLister.
-func NewBarLister(indexer cache.Indexer) BarLister {
-	return &barLister{indexer: indexer}
+// NewEmptyDataLister returns a new EmptyDataLister.
+func NewEmptyDataLister(indexer cache.Indexer) EmptyDataLister {
+	return &emptyDataLister{indexer: indexer}
 }
 
-// List lists all Bars in the indexer.
-func (s *barLister) List(selector labels.Selector) (ret []*v1.Bar, err error) {
+// List lists all EmptyDatas in the indexer.
+func (s *emptyDataLister) List(selector labels.Selector) (ret []*v1.EmptyData, err error) {
 	err = cache.ListAll(s.indexer, selector, func(m interface{}) {
-		ret = append(ret, m.(*v1.Bar))
+		ret = append(ret, m.(*v1.EmptyData))
 	})
 	return ret, err
 }
 
-// Get retrieves the Bar from the index for a given name.
-func (s *barLister) Get(name string) (*v1.Bar, error) {
+// Get retrieves the EmptyData from the index for a given name.
+func (s *emptyDataLister) Get(name string) (*v1.EmptyData, error) {
 	obj, exists, err := s.indexer.GetByKey(name)
 	if err != nil {
 		return nil, err
 	}
 	if !exists {
-		return nil, errors.NewNotFound(v1.Resource("bar"), name)
+		return nil, errors.NewNotFound(v1.Resource("emptydata"), name)
 	}
-	return obj.(*v1.Bar), nil
+	return obj.(*v1.EmptyData), nil
 }

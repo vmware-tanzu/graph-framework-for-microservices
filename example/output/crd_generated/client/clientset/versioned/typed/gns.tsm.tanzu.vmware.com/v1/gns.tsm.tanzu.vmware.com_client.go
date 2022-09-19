@@ -19,8 +19,8 @@ limitations under the License.
 package v1
 
 import (
-	v1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/crd_generated/apis/gns.tsm.tanzu.vmware.com/v1"
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/crd_generated/client/clientset/versioned/scheme"
+	v1 "nexustempmodule/apis/gns.tsm.tanzu.vmware.com/v1"
+	"nexustempmodule/client/clientset/versioned/scheme"
 
 	rest "k8s.io/client-go/rest"
 )
@@ -28,6 +28,7 @@ import (
 type GnsTsmV1Interface interface {
 	RESTClient() rest.Interface
 	BarsGetter
+	EmptyDatasGetter
 	GnsesGetter
 }
 
@@ -38,6 +39,10 @@ type GnsTsmV1Client struct {
 
 func (c *GnsTsmV1Client) Bars() BarInterface {
 	return newBars(c)
+}
+
+func (c *GnsTsmV1Client) EmptyDatas() EmptyDataInterface {
+	return newEmptyDatas(c)
 }
 
 func (c *GnsTsmV1Client) Gnses() GnsInterface {

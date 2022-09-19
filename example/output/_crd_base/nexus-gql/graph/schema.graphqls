@@ -6,6 +6,59 @@ type Query {
 type root_Root {
 
     Id: ID
+    queryServiceTable(
+        startTime: String
+        endTime: String
+        SystemServices: Boolean
+        ShowGateways: Boolean
+        Groupby: String
+        noMetrics: Boolean
+    ): TimeSeriesData
+    queryServiceVersionTable(
+        startTime: String
+        endTime: String
+        SystemServices: Boolean
+        ShowGateways: Boolean
+        noMetrics: Boolean
+    ): TimeSeriesData
+    queryServiceTS(
+        svcMetric: String
+        startTime: String
+        endTime: String
+        timeInterval: String
+    ): TimeSeriesData
+    queryIncomingAPIs(
+        startTime: String
+        endTime: String
+        destinationService: String
+        destinationServiceVersion: String
+        timeInterval: String
+        timeZone: String
+    ): TimeSeriesData
+    queryOutgoingAPIs(
+        startTime: String
+        endTime: String
+        timeInterval: String
+        timeZone: String
+    ): TimeSeriesData
+    queryIncomingTCP(
+        startTime: String
+        endTime: String
+        destinationService: String
+        destinationServiceVersion: String
+    ): TimeSeriesData
+    queryOutgoingTCP(
+        startTime: String
+        endTime: String
+        destinationService: String
+        destinationServiceVersion: String
+    ): TimeSeriesData
+    queryServiceTopology(
+        metricStringArray: String
+        startTime: String
+        endTime: String
+    ): TimeSeriesData
+
     Config: config_Config!
     DisplayName: String
     CustomBar: root_Bar
@@ -23,6 +76,59 @@ type root_Bar {
 type config_Config {
 
     Id: ID
+    queryServiceTable(
+        startTime: String
+        endTime: String
+        SystemServices: Boolean
+        ShowGateways: Boolean
+        Groupby: String
+        noMetrics: Boolean
+    ): TimeSeriesData
+    queryServiceVersionTable(
+        startTime: String
+        endTime: String
+        SystemServices: Boolean
+        ShowGateways: Boolean
+        noMetrics: Boolean
+    ): TimeSeriesData
+    queryServiceTS(
+        svcMetric: String
+        startTime: String
+        endTime: String
+        timeInterval: String
+    ): TimeSeriesData
+    queryIncomingAPIs(
+        startTime: String
+        endTime: String
+        destinationService: String
+        destinationServiceVersion: String
+        timeInterval: String
+        timeZone: String
+    ): TimeSeriesData
+    queryOutgoingAPIs(
+        startTime: String
+        endTime: String
+        timeInterval: String
+        timeZone: String
+    ): TimeSeriesData
+    queryIncomingTCP(
+        startTime: String
+        endTime: String
+        destinationService: String
+        destinationServiceVersion: String
+    ): TimeSeriesData
+    queryOutgoingTCP(
+        startTime: String
+        endTime: String
+        destinationService: String
+        destinationServiceVersion: String
+    ): TimeSeriesData
+    queryServiceTopology(
+        metricStringArray: String
+        startTime: String
+        endTime: String
+    ): TimeSeriesData
+
     GNS: gns_Gns!
     ConfigName: String
     Cluster: config_Cluster
@@ -30,8 +136,8 @@ type config_Config {
     FooMap: String
     FooB(Id: ID): [String!]
     FooD: String
-    XYZPort: gns_Port
-    ABCHost: gns_Host
+    XYZPort: Int
+    ABCHost: String
 }
 
 
@@ -55,6 +161,59 @@ type gns_HostPort {
 type gns_Gns {
 
     Id: ID
+    queryServiceTable(
+        startTime: String
+        endTime: String
+        SystemServices: Boolean
+        ShowGateways: Boolean
+        Groupby: String
+        noMetrics: Boolean
+    ): TimeSeriesData
+    queryServiceVersionTable(
+        startTime: String
+        endTime: String
+        SystemServices: Boolean
+        ShowGateways: Boolean
+        noMetrics: Boolean
+    ): TimeSeriesData
+    queryServiceTS(
+        svcMetric: String
+        startTime: String
+        endTime: String
+        timeInterval: String
+    ): TimeSeriesData
+    queryIncomingAPIs(
+        startTime: String
+        endTime: String
+        destinationService: String
+        destinationServiceVersion: String
+        timeInterval: String
+        timeZone: String
+    ): TimeSeriesData
+    queryOutgoingAPIs(
+        startTime: String
+        endTime: String
+        timeInterval: String
+        timeZone: String
+    ): TimeSeriesData
+    queryIncomingTCP(
+        startTime: String
+        endTime: String
+        destinationService: String
+        destinationServiceVersion: String
+    ): TimeSeriesData
+    queryOutgoingTCP(
+        startTime: String
+        endTime: String
+        destinationService: String
+        destinationServiceVersion: String
+    ): TimeSeriesData
+    queryServiceTopology(
+        metricStringArray: String
+        startTime: String
+        endTime: String
+    ): TimeSeriesData
+
     FooLink: gns_Bar!
     FooLinks(Id: ID): [gns_Bar!]
     FooChild: gns_Bar!
@@ -82,6 +241,59 @@ type gns_Description {
 type gns_Bar {
 
     Id: ID
+    queryServiceTable(
+        startTime: String
+        endTime: String
+        SystemServices: Boolean
+        ShowGateways: Boolean
+        Groupby: String
+        noMetrics: Boolean
+    ): TimeSeriesData
+    queryServiceVersionTable(
+        startTime: String
+        endTime: String
+        SystemServices: Boolean
+        ShowGateways: Boolean
+        noMetrics: Boolean
+    ): TimeSeriesData
+    queryServiceTS(
+        svcMetric: String
+        startTime: String
+        endTime: String
+        timeInterval: String
+    ): TimeSeriesData
+    queryIncomingAPIs(
+        startTime: String
+        endTime: String
+        destinationService: String
+        destinationServiceVersion: String
+        timeInterval: String
+        timeZone: String
+    ): TimeSeriesData
+    queryOutgoingAPIs(
+        startTime: String
+        endTime: String
+        timeInterval: String
+        timeZone: String
+    ): TimeSeriesData
+    queryIncomingTCP(
+        startTime: String
+        endTime: String
+        destinationService: String
+        destinationServiceVersion: String
+    ): TimeSeriesData
+    queryOutgoingTCP(
+        startTime: String
+        endTime: String
+        destinationService: String
+        destinationServiceVersion: String
+    ): TimeSeriesData
+    queryServiceTopology(
+        metricStringArray: String
+        startTime: String
+        endTime: String
+    ): TimeSeriesData
+
     Name: String
 }
 
@@ -90,4 +302,66 @@ type gns_Bar {
 type gns_EmptyData {
 
     Id: ID
+    queryServiceTable(
+        startTime: String
+        endTime: String
+        SystemServices: Boolean
+        ShowGateways: Boolean
+        Groupby: String
+        noMetrics: Boolean
+    ): TimeSeriesData
+    queryServiceVersionTable(
+        startTime: String
+        endTime: String
+        SystemServices: Boolean
+        ShowGateways: Boolean
+        noMetrics: Boolean
+    ): TimeSeriesData
+    queryServiceTS(
+        svcMetric: String
+        startTime: String
+        endTime: String
+        timeInterval: String
+    ): TimeSeriesData
+    queryIncomingAPIs(
+        startTime: String
+        endTime: String
+        destinationService: String
+        destinationServiceVersion: String
+        timeInterval: String
+        timeZone: String
+    ): TimeSeriesData
+    queryOutgoingAPIs(
+        startTime: String
+        endTime: String
+        timeInterval: String
+        timeZone: String
+    ): TimeSeriesData
+    queryIncomingTCP(
+        startTime: String
+        endTime: String
+        destinationService: String
+        destinationServiceVersion: String
+    ): TimeSeriesData
+    queryOutgoingTCP(
+        startTime: String
+        endTime: String
+        destinationService: String
+        destinationServiceVersion: String
+    ): TimeSeriesData
+    queryServiceTopology(
+        metricStringArray: String
+        startTime: String
+        endTime: String
+    ): TimeSeriesData
+
+}
+
+
+type TimeSeriesData {
+  Code: Int
+  Message: String
+  Data: String
+  Last: String
+  TotalRecords: Int
 }

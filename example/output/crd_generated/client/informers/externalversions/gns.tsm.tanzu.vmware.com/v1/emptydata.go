@@ -32,58 +32,58 @@ import (
 	cache "k8s.io/client-go/tools/cache"
 )
 
-// GnsInformer provides access to a shared informer and lister for
-// Gnses.
-type GnsInformer interface {
+// EmptyDataInformer provides access to a shared informer and lister for
+// EmptyDatas.
+type EmptyDataInformer interface {
 	Informer() cache.SharedIndexInformer
-	Lister() v1.GnsLister
+	Lister() v1.EmptyDataLister
 }
 
-type gnsInformer struct {
+type emptyDataInformer struct {
 	factory          internalinterfaces.SharedInformerFactory
 	tweakListOptions internalinterfaces.TweakListOptionsFunc
 }
 
-// NewGnsInformer constructs a new informer for Gns type.
+// NewEmptyDataInformer constructs a new informer for EmptyData type.
 // Always prefer using an informer factory to get a shared informer instead of getting an independent
 // one. This reduces memory footprint and number of connections to the server.
-func NewGnsInformer(client versioned.Interface, resyncPeriod time.Duration, indexers cache.Indexers) cache.SharedIndexInformer {
-	return NewFilteredGnsInformer(client, resyncPeriod, indexers, nil)
+func NewEmptyDataInformer(client versioned.Interface, resyncPeriod time.Duration, indexers cache.Indexers) cache.SharedIndexInformer {
+	return NewFilteredEmptyDataInformer(client, resyncPeriod, indexers, nil)
 }
 
-// NewFilteredGnsInformer constructs a new informer for Gns type.
+// NewFilteredEmptyDataInformer constructs a new informer for EmptyData type.
 // Always prefer using an informer factory to get a shared informer instead of getting an independent
 // one. This reduces memory footprint and number of connections to the server.
-func NewFilteredGnsInformer(client versioned.Interface, resyncPeriod time.Duration, indexers cache.Indexers, tweakListOptions internalinterfaces.TweakListOptionsFunc) cache.SharedIndexInformer {
+func NewFilteredEmptyDataInformer(client versioned.Interface, resyncPeriod time.Duration, indexers cache.Indexers, tweakListOptions internalinterfaces.TweakListOptionsFunc) cache.SharedIndexInformer {
 	return cache.NewSharedIndexInformer(
 		&cache.ListWatch{
 			ListFunc: func(options metav1.ListOptions) (runtime.Object, error) {
 				if tweakListOptions != nil {
 					tweakListOptions(&options)
 				}
-				return client.GnsTsmV1().Gnses().List(context.TODO(), options)
+				return client.GnsTsmV1().EmptyDatas().List(context.TODO(), options)
 			},
 			WatchFunc: func(options metav1.ListOptions) (watch.Interface, error) {
 				if tweakListOptions != nil {
 					tweakListOptions(&options)
 				}
-				return client.GnsTsmV1().Gnses().Watch(context.TODO(), options)
+				return client.GnsTsmV1().EmptyDatas().Watch(context.TODO(), options)
 			},
 		},
-		&gnstsmtanzuvmwarecomv1.Gns{},
+		&gnstsmtanzuvmwarecomv1.EmptyData{},
 		resyncPeriod,
 		indexers,
 	)
 }
 
-func (f *gnsInformer) defaultInformer(client versioned.Interface, resyncPeriod time.Duration) cache.SharedIndexInformer {
-	return NewFilteredGnsInformer(client, resyncPeriod, cache.Indexers{cache.NamespaceIndex: cache.MetaNamespaceIndexFunc}, f.tweakListOptions)
+func (f *emptyDataInformer) defaultInformer(client versioned.Interface, resyncPeriod time.Duration) cache.SharedIndexInformer {
+	return NewFilteredEmptyDataInformer(client, resyncPeriod, cache.Indexers{cache.NamespaceIndex: cache.MetaNamespaceIndexFunc}, f.tweakListOptions)
 }
 
-func (f *gnsInformer) Informer() cache.SharedIndexInformer {
-	return f.factory.InformerFor(&gnstsmtanzuvmwarecomv1.Gns{}, f.defaultInformer)
+func (f *emptyDataInformer) Informer() cache.SharedIndexInformer {
+	return f.factory.InformerFor(&gnstsmtanzuvmwarecomv1.EmptyData{}, f.defaultInformer)
 }
 
-func (f *gnsInformer) Lister() v1.GnsLister {
-	return v1.NewGnsLister(f.Informer().GetIndexer())
+func (f *emptyDataInformer) Lister() v1.EmptyDataLister {
+	return v1.NewEmptyDataLister(f.Informer().GetIndexer())
 }
