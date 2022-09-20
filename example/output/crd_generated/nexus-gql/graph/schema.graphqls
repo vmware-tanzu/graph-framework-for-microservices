@@ -134,7 +134,7 @@ type config_Config {
     Cluster: config_Cluster
     FooA: String
     FooMap: String
-    FooB: [String!]
+    FooB: [String]!
     FooD: String
     XYZPort: Int
     ABCHost: String
@@ -223,12 +223,12 @@ type gns_Gns {
     Mydesc: gns_Description
     HostPort: gns_HostPort
     TestArray: gns_EmptyData
-    Instance: String
-    Array1: [String]!
-    Array2: [gns_Description!]
-    Array3: [gns_Bar!]
-    Array4: [String!]!
-    Array5: [Int!]
+    Instance: Float
+    Array1: [Int]!
+    Array2: [gns_Description]!
+    Array3: [gns_Bar]!
+    Array4: [Float]!
+    Array5: [Int]!
 }
 
 
@@ -238,7 +238,7 @@ type gns_Description {
     Color: String
     Version: String
     ProjectID: String
-    Instance: String
+    Instance: Float
 }
 
 

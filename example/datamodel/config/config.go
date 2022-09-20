@@ -28,8 +28,8 @@ type Config struct {
 	FooB       BArray
 	FooC       CInt   `nexus-graphql:"ignore:true"`
 	FooD       DFloat `nexus-graphql:"type:string"`
-	XYZPort    gns.Port
-	ABCHost    gns.Host
+	XYZPort    []gns.Port
+	ABCHost    []gns.Host
 }
 
 type Cluster struct {

@@ -5,7 +5,7 @@ package v1
 import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/crd_generated/common"
+	"nexustempmodule/common"
 )
 
 // +k8s:openapi-gen=true
@@ -68,7 +68,7 @@ type GnsSpec struct {
 	HostPort         HostPort         `json:"hostPort" yaml:"hostPort"`
 	TestArray        EmptyData        `json:"testArray" yaml:"testArray"`
 	Instance         Instance         `json:"instance" yaml:"instance"`
-	Array1           []string         `json:"array1" yaml:"array1"`
+	Array1           []uint32         `json:"array1" yaml:"array1"`
 	Array2           []Description    `json:"array2" yaml:"array2"`
 	Array3           []Bar            `json:"array3" yaml:"array3"`
 	Array4           []Instance       `json:"array4" yaml:"array4"`
@@ -179,5 +179,5 @@ type Port uint16
 
 // Host the IP of the endpoint
 type Host string
-type Instance string
+type Instance float32
 type AliasArr []int

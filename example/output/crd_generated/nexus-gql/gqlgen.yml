@@ -70,3 +70,15 @@ models:
       TestArray:
         resolver: true
 
+      Array1:
+        resolver: true
+
+      Array2:
+        resolver: true
+
+      Array3:
+        resolver: true
+
+      Array4:
+        resolver: true
+

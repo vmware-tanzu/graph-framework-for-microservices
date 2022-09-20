@@ -47,6 +47,12 @@ models:
       Cluster:
         resolver: true
 
+      XYZPort:
+        resolver: true
+
+      ABCHost:
+        resolver: true
+
   gns_Gns:
     fields:
       FooLink:
@@ -68,5 +74,17 @@ models:
         resolver: true
 
       TestArray:
+        resolver: true
+
+      Array1:
+        resolver: true
+
+      Array2:
+        resolver: true
+
+      Array3:
+        resolver: true
+
+      Array4:
         resolver: true
 

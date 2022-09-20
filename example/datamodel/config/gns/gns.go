@@ -65,7 +65,7 @@ type HostPort struct {
 	Port Port
 }
 
-type Instance string
+type Instance float32
 type AliasArr []int
 
 // Gns struct.
@@ -85,7 +85,7 @@ type Gns struct {
 	HostPort         HostPort
 	TestArray        EmptyData
 	Instance         Instance
-	Array1           []string
+	Array1           []uint32
 	Array2           []Description
 	Array3           []Bar
 	Array4           []Instance

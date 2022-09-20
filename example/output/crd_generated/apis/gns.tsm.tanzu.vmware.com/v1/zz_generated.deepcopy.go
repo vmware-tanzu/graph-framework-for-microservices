@@ -334,7 +334,7 @@ func (in *GnsSpec) DeepCopyInto(out *GnsSpec) {
 	in.TestArray.DeepCopyInto(&out.TestArray)
 	if in.Array1 != nil {
 		in, out := &in.Array1, &out.Array1
-		*out = make([]string, len(*in))
+		*out = make([]uint32, len(*in))
 		copy(*out, *in)
 	}
 	if in.Array2 != nil {
