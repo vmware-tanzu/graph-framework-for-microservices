@@ -30,10 +30,10 @@ type ConfigConfig struct {
 	Cluster                  *ConfigCluster  `json:"Cluster"`
 	FooA                     *string         `json:"FooA"`
 	FooMap                   *string         `json:"FooMap"`
-	FooB                     []string        `json:"FooB"`
+	FooB                     []*string       `json:"FooB"`
 	FooD                     *string         `json:"FooD"`
-	XYZPort                  *int            `json:"XYZPort"`
-	ABCHost                  *string         `json:"ABCHost"`
+	XYZPort                  []*int          `json:"XYZPort"`
+	ABCHost                  []*string       `json:"ABCHost"`
 }
 
 type GnsBar struct {
@@ -50,10 +50,10 @@ type GnsBar struct {
 }
 
 type GnsDescription struct {
-	Color     *string `json:"Color"`
-	Version   *string `json:"Version"`
-	ProjectID *string `json:"ProjectID"`
-	Instance  *string `json:"Instance"`
+	Color     *string  `json:"Color"`
+	Version   *string  `json:"Version"`
+	ProjectID *string  `json:"ProjectID"`
+	Instance  *float64 `json:"Instance"`
 }
 
 type GnsEmptyData struct {
@@ -69,25 +69,30 @@ type GnsEmptyData struct {
 }
 
 type GnsGns struct {
-	Id                       *string         `json:"Id"`
-	queryServiceTable        *TimeSeriesData `json:"queryServiceTable"`
-	queryServiceVersionTable *TimeSeriesData `json:"queryServiceVersionTable"`
-	queryServiceTS           *TimeSeriesData `json:"queryServiceTS"`
-	queryIncomingAPIs        *TimeSeriesData `json:"queryIncomingAPIs"`
-	queryOutgoingAPIs        *TimeSeriesData `json:"queryOutgoingAPIs"`
-	queryIncomingTCP         *TimeSeriesData `json:"queryIncomingTCP"`
-	queryOutgoingTCP         *TimeSeriesData `json:"queryOutgoingTCP"`
-	queryServiceTopology     *TimeSeriesData `json:"queryServiceTopology"`
-	FooLink                  *GnsBar         `json:"FooLink"`
-	FooLinks                 []*GnsBar       `json:"FooLinks"`
-	FooChild                 *GnsBar         `json:"FooChild"`
-	FooChildren              []*GnsBar       `json:"FooChildren"`
-	Domain                   *string         `json:"Domain"`
-	UseSharedGateway         *bool           `json:"UseSharedGateway"`
-	Mydesc                   *GnsDescription `json:"Mydesc"`
-	HostPort                 *GnsHostPort    `json:"HostPort"`
-	TestArray                *GnsEmptyData   `json:"TestArray"`
-	Instance                 *string         `json:"Instance"`
+	Id                       *string           `json:"Id"`
+	queryServiceTable        *TimeSeriesData   `json:"queryServiceTable"`
+	queryServiceVersionTable *TimeSeriesData   `json:"queryServiceVersionTable"`
+	queryServiceTS           *TimeSeriesData   `json:"queryServiceTS"`
+	queryIncomingAPIs        *TimeSeriesData   `json:"queryIncomingAPIs"`
+	queryOutgoingAPIs        *TimeSeriesData   `json:"queryOutgoingAPIs"`
+	queryIncomingTCP         *TimeSeriesData   `json:"queryIncomingTCP"`
+	queryOutgoingTCP         *TimeSeriesData   `json:"queryOutgoingTCP"`
+	queryServiceTopology     *TimeSeriesData   `json:"queryServiceTopology"`
+	FooLink                  *GnsBar           `json:"FooLink"`
+	FooLinks                 []*GnsBar         `json:"FooLinks"`
+	FooChild                 *GnsBar           `json:"FooChild"`
+	FooChildren              []*GnsBar         `json:"FooChildren"`
+	Domain                   *string           `json:"Domain"`
+	UseSharedGateway         *bool             `json:"UseSharedGateway"`
+	Mydesc                   *GnsDescription   `json:"Mydesc"`
+	HostPort                 *GnsHostPort      `json:"HostPort"`
+	TestArray                *GnsEmptyData     `json:"TestArray"`
+	Instance                 *float64          `json:"Instance"`
+	Array1                   []*int            `json:"Array1"`
+	Array2                   []*GnsDescription `json:"Array2"`
+	Array3                   []*GnsBar         `json:"Array3"`
+	Array4                   []*float64        `json:"Array4"`
+	Array5                   []*int            `json:"Array5"`
 }
 
 type GnsHostPort struct {

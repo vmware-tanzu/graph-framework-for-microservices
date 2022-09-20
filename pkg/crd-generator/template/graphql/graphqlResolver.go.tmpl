@@ -291,9 +291,11 @@ func (c *resolverConfig) get{{$Array.PkgName}}{{$Array.NodeName}}{{$Array.FieldN
 	for _, i := range c.v{{$Array.PkgName}}{{$Array.NodeName}}.Spec.{{$Array.FieldName}} {
 		{{ if $Array.ReturnType }}
 		{{ $Array.Alias }}
-		{{ $Array.ReturnType }}{{ else }}
-		ret := {{ $Array.ModelType }}(&i){{ end }}
-		v{{$Array.FieldName}}List = append(v{{$Array.FieldName}}List, ret)
+		{{ $Array.ReturnType }}
+		v{{$Array.FieldName}}List = append(v{{$Array.FieldName}}List, ret){{ else }}
+		ret := {{ $Array.ModelType }}(i)
+		v{{$Array.FieldName}}List = append(v{{$Array.FieldName}}List, &ret)
+		{{ end }}
 	}
 	return v{{$Array.FieldName}}List, nil
 }

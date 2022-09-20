@@ -45,7 +45,9 @@ spec:
                 format: float
                 type: number
               aBCHost:
-                type: string
+                items:
+                  type: string
+                type: array
               cluster:
                 properties:
                   MyID:
@@ -85,8 +87,10 @@ spec:
                 - name
                 type: object
               xYZPort:
-                format: int32
-                type: integer
+                items:
+                  format: int32
+                  type: integer
+                type: array
             required:
             - configName
             - cluster

@@ -3,11 +3,11 @@
 package v1
 
 import (
-	gnstsmtanzuvmwarecomv1 "nexustempmodule/apis/gns.tsm.tanzu.vmware.com/v1"
+	gnstsmtanzuvmwarecomv1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/crd_generated/apis/gns.tsm.tanzu.vmware.com/v1"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	"nexustempmodule/common"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/crd_generated/common"
 )
 
 // +k8s:openapi-gen=true
@@ -62,16 +62,16 @@ func (c *Config) DisplayName() string {
 
 // +k8s:openapi-gen=true
 type ConfigSpec struct {
-	ConfigName string                      `json:"configName" yaml:"configName"`
-	Cluster    Cluster                     `json:"cluster" yaml:"cluster"`
-	FooA       AMap                        `json:"fooA" yaml:"fooA"`
-	FooMap     map[string]string           `json:"fooMap" yaml:"fooMap"`
-	FooB       BArray                      `json:"fooB" yaml:"fooB"`
-	FooC       CInt                        `nexus-graphql:"ignore:true"`
-	FooD       DFloat                      `nexus-graphql:"type:string"`
-	XYZPort    gnstsmtanzuvmwarecomv1.Port `json:"xYZPort" yaml:"xYZPort"`
-	ABCHost    gnstsmtanzuvmwarecomv1.Host `json:"aBCHost" yaml:"aBCHost"`
-	GNSGvk     *Child                      `json:"gNSGvk,omitempty" yaml:"gNSGvk,omitempty" nexus:"child"`
+	ConfigName string                        `json:"configName" yaml:"configName"`
+	Cluster    Cluster                       `json:"cluster" yaml:"cluster"`
+	FooA       AMap                          `json:"fooA" yaml:"fooA"`
+	FooMap     map[string]string             `json:"fooMap" yaml:"fooMap"`
+	FooB       BArray                        `json:"fooB" yaml:"fooB"`
+	FooC       CInt                          `nexus-graphql:"ignore:true"`
+	FooD       DFloat                        `nexus-graphql:"type:string"`
+	XYZPort    []gnstsmtanzuvmwarecomv1.Port `json:"xYZPort" yaml:"xYZPort"`
+	ABCHost    []gnstsmtanzuvmwarecomv1.Host `json:"aBCHost" yaml:"aBCHost"`
+	GNSGvk     *Child                        `json:"gNSGvk,omitempty" yaml:"gNSGvk,omitempty" nexus:"child"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object

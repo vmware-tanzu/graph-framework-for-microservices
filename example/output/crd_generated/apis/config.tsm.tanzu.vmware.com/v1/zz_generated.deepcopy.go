@@ -22,6 +22,8 @@ limitations under the License.
 package v1
 
 import (
+	gnstsmtanzuvmwarecomv1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/crd_generated/apis/gns.tsm.tanzu.vmware.com/v1"
+
 	runtime "k8s.io/apimachinery/pkg/runtime"
 )
 
@@ -198,6 +200,16 @@ func (in *ConfigSpec) DeepCopyInto(out *ConfigSpec) {
 	if in.FooB != nil {
 		in, out := &in.FooB, &out.FooB
 		*out = make(BArray, len(*in))
+		copy(*out, *in)
+	}
+	if in.XYZPort != nil {
+		in, out := &in.XYZPort, &out.XYZPort
+		*out = make([]gnstsmtanzuvmwarecomv1.Port, len(*in))
+		copy(*out, *in)
+	}
+	if in.ABCHost != nil {
+		in, out := &in.ABCHost, &out.ABCHost
+		*out = make([]gnstsmtanzuvmwarecomv1.Host, len(*in))
 		copy(*out, *in)
 	}
 	if in.GNSGvk != nil {

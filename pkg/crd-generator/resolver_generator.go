@@ -443,7 +443,7 @@ func GenerateGraphqlResolverVars(baseGroupName, crdModulePath string, pkgs parse
 						fmt.Println("1111######", i.FieldName, i.FieldType, val, i.IsArrayTypeField)
 						if convertGoStdType(val) != "" && !i.IsArrayTypeField {
 							retType += fmt.Sprintf("\t%s: &v%s,\n", i.FieldName, i.FieldName)
-							listRetVal += fmt.Sprintf("v%s := %s(&i.%s)\n", i.FieldName, convertGoStdType(val), i.FieldName)
+							listRetVal += fmt.Sprintf("v%s := %s(i.%s)\n", i.FieldName, convertGoStdType(val), i.FieldName)
 							if !n.IsNexusNode {
 								fmt.Println("RETURN STATEMENT", i.FieldName, i.FieldType, val)
 								aliasVal += fmt.Sprintf("v%s := %s(v%s.Spec.%s.%s)\n", i.FieldName, convertGoStdType(val), i.PkgName, customApi[i.NodeName], i.FieldName)
@@ -476,7 +476,7 @@ func GenerateGraphqlResolverVars(baseGroupName, crdModulePath string, pkgs parse
 				if convertGoStdType(i.FieldType) != "" {
 					fmt.Println("RETURN STATEMENT-2", n.NodeName, i.FieldName, i.FieldType)
 					retType += fmt.Sprintf("\t%s: &v%s,\n", i.FieldName, i.FieldName)
-					listRetVal += fmt.Sprintf("v%s := %s(&i.%s)\n", i.FieldName, convertGoStdType(i.FieldType), i.FieldName)
+					listRetVal += fmt.Sprintf("v%s := %s(i.%s)\n", i.FieldName, convertGoStdType(i.FieldType), i.FieldName)
 					if !n.IsNexusNode {
 						aliasVal += fmt.Sprintf("v%s := %s(v%s.Spec.%s.%s)\n", i.FieldName, convertGoStdType(i.FieldType), i.PkgName, customApi[i.NodeName], i.FieldName)
 					} else {

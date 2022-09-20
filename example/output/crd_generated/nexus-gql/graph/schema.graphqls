@@ -136,8 +136,8 @@ type config_Config {
     FooMap: String
     FooB: [String]!
     FooD: String
-    XYZPort: Int
-    ABCHost: String
+    XYZPort: [Int]!
+    ABCHost: [String]!
 }
 
 
