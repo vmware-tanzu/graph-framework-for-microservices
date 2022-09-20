@@ -69,7 +69,7 @@ build_in_container: ${BUILDER_NAME}\:${BUILDER_TAG}.image.exists
 .PHONY: tools
 tools:
 	go install github.com/onsi/ginkgo/ginkgo@v1.16.0
-	go install github.com/onsi/gomega/...@v1.17.0
+	go install github.com/onsi/gomega/...@v1.18.0
 	go install golang.org/x/tools/cmd/goimports@latest
 	go install github.com/mikefarah/yq/v4@latest
 	go install gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git/cmd/nexus-openapi-gen@${NEXUS_KUBEOPENAPI_VERSION}
@@ -124,6 +124,7 @@ generate_code:
 	@echo "Copying go.mod file of datamodel"
 	cp ${DATAMODEL_PATH}/go.mod _generated/go.mod
 	sed -i'.bak' -e "1s|.*|module nexustempmodule|" _generated/go.mod
+	cd _generated/ && go mod edit -go=1.18
 	@echo "Nexus Compiler: Generating base nexus code structure"
 	CRD_MODULE_PATH=${CRD_MODULE_PATH} go run cmd/nexus-sdk/main.go -config-file ${CONFIG_FILE} -dsl ${DATAMODEL_PATH} -crd-output _generated -log-level ${LOG_LEVEL}
 	mv _generated/api_names.sh scripts/
@@ -140,7 +141,10 @@ generate_code:
 	cp -r _generated/{client,apis,crds,common,nexus-client,helper,nexus-gql} ${GENERATED_OUTPUT_DIRECTORY}
 	@echo "==> Nexus Compiler: Generating GRAPHQL pkg <=="
 	cd _generated && goimports -w .
-	cd _generated/nexus-gql && go mod tidy -go=1.16 && go run gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git generate
+	cd _generated/nexus-gql && go mod tidy -go=1.18 && go run gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git generate
+	cp -rf _generated/* ${GOPATH}/src/nexustempmodule/
+	cd ${GOPATH}/src/nexustempmodule && rm go.mod && go mod init &&  go  mod tidy -go=1.18 && cd nexus-gql && CGO_ENABLED=1 GOOS=linux \
+	go build --trimpath -o graphql.so -buildmode=plugin server.go
 	@echo "Updating module name"
 	./scripts/replace_mod_path.sh
 	find . -name "*.bak" -type f -delete
@@ -148,6 +152,7 @@ generate_code:
 	cd _generated && goimports -w .
 	@echo "Nexus Compiler: Moving files to output directory"
 	cp -r _generated/{client,apis,crds,common,nexus-client,helper,nexus-gql} ${GENERATED_OUTPUT_DIRECTORY}
+	cp -r ${GOPATH}/src/nexustempmodule/nexus-gql/graphql.so ${GENERATED_OUTPUT_DIRECTORY}/nexus-gql
 	@echo "Nexus Compiler: Compiler code generation completed"
 
 .PHONY: test_generate_code_in_container

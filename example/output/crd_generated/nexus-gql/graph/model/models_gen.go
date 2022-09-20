@@ -2,25 +2,51 @@
 
 package model
 
+type TimeSeriesData struct {
+	Code         *int    `json:"Code"`
+	Message      *string `json:"Message"`
+	Data         *string `json:"Data"`
+	Last         *string `json:"Last"`
+	TotalRecords *int    `json:"TotalRecords"`
+}
+
 type ConfigCluster struct {
 	Name *string `json:"Name"`
 	MyID *int    `json:"MyID"`
 }
 
 type ConfigConfig struct {
-	Id         *string        `json:"Id"`
-	GNS        *GnsGns        `json:"GNS"`
-	ConfigName *string        `json:"ConfigName"`
-	Cluster    *ConfigCluster `json:"Cluster"`
-	FooA       *string        `json:"FooA"`
-	FooMap     *string        `json:"FooMap"`
-	FooB       []string       `json:"FooB"`
-	FooD       *string        `json:"FooD"`
+	Id                       *string         `json:"Id"`
+	queryServiceTable        *TimeSeriesData `json:"queryServiceTable"`
+	queryServiceVersionTable *TimeSeriesData `json:"queryServiceVersionTable"`
+	queryServiceTS           *TimeSeriesData `json:"queryServiceTS"`
+	queryIncomingAPIs        *TimeSeriesData `json:"queryIncomingAPIs"`
+	queryOutgoingAPIs        *TimeSeriesData `json:"queryOutgoingAPIs"`
+	queryIncomingTCP         *TimeSeriesData `json:"queryIncomingTCP"`
+	queryOutgoingTCP         *TimeSeriesData `json:"queryOutgoingTCP"`
+	queryServiceTopology     *TimeSeriesData `json:"queryServiceTopology"`
+	GNS                      *GnsGns         `json:"GNS"`
+	ConfigName               *string         `json:"ConfigName"`
+	Cluster                  *ConfigCluster  `json:"Cluster"`
+	FooA                     *string         `json:"FooA"`
+	FooMap                   *string         `json:"FooMap"`
+	FooB                     []string        `json:"FooB"`
+	FooD                     *string         `json:"FooD"`
+	XYZPort                  *int            `json:"XYZPort"`
+	ABCHost                  *string         `json:"ABCHost"`
 }
 
 type GnsBar struct {
-	Id   *string `json:"Id"`
-	Name *string `json:"Name"`
+	Id                       *string         `json:"Id"`
+	queryServiceTable        *TimeSeriesData `json:"queryServiceTable"`
+	queryServiceVersionTable *TimeSeriesData `json:"queryServiceVersionTable"`
+	queryServiceTS           *TimeSeriesData `json:"queryServiceTS"`
+	queryIncomingAPIs        *TimeSeriesData `json:"queryIncomingAPIs"`
+	queryOutgoingAPIs        *TimeSeriesData `json:"queryOutgoingAPIs"`
+	queryIncomingTCP         *TimeSeriesData `json:"queryIncomingTCP"`
+	queryOutgoingTCP         *TimeSeriesData `json:"queryOutgoingTCP"`
+	queryServiceTopology     *TimeSeriesData `json:"queryServiceTopology"`
+	Name                     *string         `json:"Name"`
 }
 
 type GnsDescription struct {
@@ -30,17 +56,38 @@ type GnsDescription struct {
 	Instance  *string `json:"Instance"`
 }
 
+type GnsEmptyData struct {
+	Id                       *string         `json:"Id"`
+	queryServiceTable        *TimeSeriesData `json:"queryServiceTable"`
+	queryServiceVersionTable *TimeSeriesData `json:"queryServiceVersionTable"`
+	queryServiceTS           *TimeSeriesData `json:"queryServiceTS"`
+	queryIncomingAPIs        *TimeSeriesData `json:"queryIncomingAPIs"`
+	queryOutgoingAPIs        *TimeSeriesData `json:"queryOutgoingAPIs"`
+	queryIncomingTCP         *TimeSeriesData `json:"queryIncomingTCP"`
+	queryOutgoingTCP         *TimeSeriesData `json:"queryOutgoingTCP"`
+	queryServiceTopology     *TimeSeriesData `json:"queryServiceTopology"`
+}
+
 type GnsGns struct {
-	Id               *string         `json:"Id"`
-	FooLink          *GnsBar         `json:"FooLink"`
-	FooLinks         []*GnsBar       `json:"FooLinks"`
-	FooChild         *GnsBar         `json:"FooChild"`
-	FooChildren      []*GnsBar       `json:"FooChildren"`
-	Domain           *string         `json:"Domain"`
-	UseSharedGateway *bool           `json:"UseSharedGateway"`
-	Mydesc           *GnsDescription `json:"Mydesc"`
-	HostPort         *GnsHostPort    `json:"HostPort"`
-	Instance         *string         `json:"Instance"`
+	Id                       *string         `json:"Id"`
+	queryServiceTable        *TimeSeriesData `json:"queryServiceTable"`
+	queryServiceVersionTable *TimeSeriesData `json:"queryServiceVersionTable"`
+	queryServiceTS           *TimeSeriesData `json:"queryServiceTS"`
+	queryIncomingAPIs        *TimeSeriesData `json:"queryIncomingAPIs"`
+	queryOutgoingAPIs        *TimeSeriesData `json:"queryOutgoingAPIs"`
+	queryIncomingTCP         *TimeSeriesData `json:"queryIncomingTCP"`
+	queryOutgoingTCP         *TimeSeriesData `json:"queryOutgoingTCP"`
+	queryServiceTopology     *TimeSeriesData `json:"queryServiceTopology"`
+	FooLink                  *GnsBar         `json:"FooLink"`
+	FooLinks                 []*GnsBar       `json:"FooLinks"`
+	FooChild                 *GnsBar         `json:"FooChild"`
+	FooChildren              []*GnsBar       `json:"FooChildren"`
+	Domain                   *string         `json:"Domain"`
+	UseSharedGateway         *bool           `json:"UseSharedGateway"`
+	Mydesc                   *GnsDescription `json:"Mydesc"`
+	HostPort                 *GnsHostPort    `json:"HostPort"`
+	TestArray                *GnsEmptyData   `json:"TestArray"`
+	Instance                 *string         `json:"Instance"`
 }
 
 type GnsHostPort struct {
@@ -53,8 +100,16 @@ type RootBar struct {
 }
 
 type RootRoot struct {
-	Id          *string       `json:"Id"`
-	Config      *ConfigConfig `json:"Config"`
-	DisplayName *string       `json:"DisplayName"`
-	CustomBar   *RootBar      `json:"CustomBar"`
+	Id                       *string         `json:"Id"`
+	queryServiceTable        *TimeSeriesData `json:"queryServiceTable"`
+	queryServiceVersionTable *TimeSeriesData `json:"queryServiceVersionTable"`
+	queryServiceTS           *TimeSeriesData `json:"queryServiceTS"`
+	queryIncomingAPIs        *TimeSeriesData `json:"queryIncomingAPIs"`
+	queryOutgoingAPIs        *TimeSeriesData `json:"queryOutgoingAPIs"`
+	queryIncomingTCP         *TimeSeriesData `json:"queryIncomingTCP"`
+	queryOutgoingTCP         *TimeSeriesData `json:"queryOutgoingTCP"`
+	queryServiceTopology     *TimeSeriesData `json:"queryServiceTopology"`
+	Config                   *ConfigConfig   `json:"Config"`
+	DisplayName              *string         `json:"DisplayName"`
+	CustomBar                *RootBar        `json:"CustomBar"`
 }

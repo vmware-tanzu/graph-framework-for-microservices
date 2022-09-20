@@ -19,8 +19,9 @@ limitations under the License.
 package internalinterfaces
 
 import (
-	versioned "nexustempmodule/client/clientset/versioned"
 	time "time"
+
+	versioned "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/crd_generated/client/clientset/versioned"
 
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	runtime "k8s.io/apimachinery/pkg/runtime"

@@ -24,9 +24,18 @@ type resolverConfig struct {
 //////////////////////////////////////
 func getK8sAPIEndpointConfig() *rest.Config {
 
-	var config *rest.Config
-	config = &rest.Config{
-		Host: "http://localhost:45192",
+	filePath := os.Getenv("KUBECONFIG")
+	if filePath != "" {
+		config, err := clientcmd.BuildConfigFromFlags("", filePath)
+		if err != nil {
+			return nil
+		}
+		return config
+	}
+
+	config, err := rest.InClusterConfig()
+	if err != nil {
+		return nil
 	}
 
 	return config

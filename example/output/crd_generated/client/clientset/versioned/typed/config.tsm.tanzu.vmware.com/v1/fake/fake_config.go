@@ -20,7 +20,8 @@ package fake
 
 import (
 	"context"
-	configtsmtanzuvmwarecomv1 "nexustempmodule/apis/config.tsm.tanzu.vmware.com/v1"
+
+	configtsmtanzuvmwarecomv1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/crd_generated/apis/config.tsm.tanzu.vmware.com/v1"
 
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	labels "k8s.io/apimachinery/pkg/labels"
