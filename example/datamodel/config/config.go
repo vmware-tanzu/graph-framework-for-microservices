@@ -28,7 +28,7 @@ type Config struct {
 	FooB       BArray
 	FooC       CInt   `nexus-graphql:"ignore:true"`
 	FooD       DFloat `nexus-graphql:"type:string"`
-	XYZPort    []gns.Port
+	XYZPort    []gns.Description
 	ABCHost    []gns.Host
 }
 

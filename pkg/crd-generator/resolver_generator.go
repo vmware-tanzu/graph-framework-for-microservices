@@ -294,13 +294,11 @@ func GenerateGraphqlResolverVars(baseGroupName, crdModulePath string, pkgs parse
 					} else if parser.IsArrayField(f) {
 						fieldProp.IsArrayTypeField = true
 						fieldProp.IsResolver = true
-						fmt.Println("TYPE ARRAY:", typeString, strings.ReplaceAll(typeString, "[]", ""))
-						schemaTypeName, _ := validateImportPkg(pkg, typeString, importMap)
+						schemaTypeName, resolverTypeName := validateImportPkg(pkg, typeString, importMap)
 						fieldProp.SchemaFieldName = fmt.Sprintf("%s(Id: ID): [%s!]", fieldProp.FieldName, schemaTypeName)
-
+						fmt.Println("resolverTypeName:AAAA", f.Names, resolverTypeName)
 						fieldProp.SchemaTypeName = schemaTypeName
 						fieldProp.BaseTypeName = getBaseNodeType(pkg, typeString, importMap)
-						fmt.Println("Array Fields", f.Names)
 						var stdType string
 						arr := regexp.MustCompile(`^(\[])`).ReplaceAllString(typeString, "")
 						parts := strings.Split(arr, ".")
@@ -316,22 +314,24 @@ func GenerateGraphqlResolverVars(baseGroupName, crdModulePath string, pkgs parse
 							fieldProp.BaseTypeName = getBaseNodeType(pkg, typeString, importMap)
 							fieldProp.FieldType = strings.ReplaceAll(typeString, "[]", "")
 							fieldProp.ModelType = convertGoStdType(strings.ReplaceAll(typeString, "[]", ""))
-							fieldProp.FieldTypePkgPath = ""
-							fmt.Println("AAA:", stdType, fieldProp.PkgName, fieldProp.SchemaTypeName, fieldProp.BaseTypeName, fieldProp.FieldTypePkgPath)
+							fmt.Println("resolverTypeName:BBBB", f.Names, resolverTypeName, strings.ReplaceAll(typeString, "[]", ""))
+							fieldProp.FieldTypePkgPath = convertGoStdType(strings.ReplaceAll(typeString, "[]", ""))
 						} else {
 							schemaTypeName, resolverTypeName := validateImportPkg(pkg, arr, importMap)
+							fmt.Println("resolverTypeName:CCCC", f.Names, resolverTypeName)
 							fieldProp.SchemaFieldName = getArraySchema(fieldProp.FieldName, schemaTypeName, nonStructMap)
-							fieldProp.ModelType = "model." + fieldProp.PkgName + strings.ReplaceAll(typeString, "[]", "")
+							fieldProp.ModelType = "model." + resolverTypeName
 							fieldProp.FieldTypePkgPath = resolverTypeName
 							if val, ok := nonStructMap[schemaTypeName]; ok {
 								fieldProp.IsAliasTypeField = true
+								// fieldProp.ModelType = convertGoStdType(val)
+								fieldProp.FieldTypePkgPath = convertGoStdType(val)
 								fieldProp.ModelType = convertGoStdType(val)
-								fieldProp.FieldTypePkgPath = ""
+								fmt.Println("resolverTypeName:DDDD", f.Names, resolverTypeName, convertGoStdType(val))
 							}
 							fieldProp.SchemaTypeName = schemaTypeName
 							fieldProp.BaseTypeName = getBaseNodeType(pkg, typeString, importMap)
 							fieldProp.FieldType = fieldProp.PkgName + strings.ReplaceAll(typeString, "[]", "")
-							fmt.Println("BBB:", stdType, fieldProp.PkgName, fieldProp.SchemaTypeName, fieldProp.BaseTypeName, fieldProp.FieldTypePkgPath)
 						}
 						nodeProp.ArrayFields = append(nodeProp.ArrayFields, fieldProp)
 						resField[nodeProp.PkgName+nodeProp.NodeName] = append(resField[nodeProp.PkgName+nodeProp.NodeName], fieldProp)
@@ -440,23 +440,21 @@ func GenerateGraphqlResolverVars(baseGroupName, crdModulePath string, pkgs parse
 					} else if strings.HasPrefix(val, "*") {
 						fmt.Println("Alias-Pointer:", i.NodeName, i.FieldName, i.FieldType)
 					} else {
-						fmt.Println("1111######", i.FieldName, i.FieldType, val, i.IsArrayTypeField)
 						if convertGoStdType(val) != "" && !i.IsArrayTypeField {
 							retType += fmt.Sprintf("\t%s: &v%s,\n", i.FieldName, i.FieldName)
 							listRetVal += fmt.Sprintf("v%s := %s(i.%s)\n", i.FieldName, convertGoStdType(val), i.FieldName)
 							if !n.IsNexusNode {
-								fmt.Println("RETURN STATEMENT", i.FieldName, i.FieldType, val)
 								aliasVal += fmt.Sprintf("v%s := %s(v%s.Spec.%s.%s)\n", i.FieldName, convertGoStdType(val), i.PkgName, customApi[i.NodeName], i.FieldName)
 							} else {
 								aliasVal += fmt.Sprintf("v%s := %s(v%s.Spec.%s)\n", i.FieldName, convertGoStdType(val), i.NodeName, i.FieldName)
 							}
 						} else {
-							fmt.Println("Not found")
+							fmt.Println("Not found", i.FieldName, i.FieldType)
 						}
 					}
 				}
 			} else if i.IsArrayTypeField {
-				fmt.Println("*******")
+				fmt.Println("*******", i.FieldName)
 			} else if i.IsMapTypeField {
 				retType += fmt.Sprintf("\t%s: &%sData,\n", i.FieldName, i.FieldName)
 				if !n.IsNexusNode {
@@ -472,9 +470,7 @@ func GenerateGraphqlResolverVars(baseGroupName, crdModulePath string, pkgs parse
 					aliasVal += jsonMarshalResolver(i.FieldName, n.NodeName)
 				}
 			} else if i.IsStdTypeField {
-				fmt.Println("2222######", i.FieldName)
 				if convertGoStdType(i.FieldType) != "" {
-					fmt.Println("RETURN STATEMENT-2", n.NodeName, i.FieldName, i.FieldType)
 					retType += fmt.Sprintf("\t%s: &v%s,\n", i.FieldName, i.FieldName)
 					listRetVal += fmt.Sprintf("v%s := %s(i.%s)\n", i.FieldName, convertGoStdType(i.FieldType), i.FieldName)
 					if !n.IsNexusNode {
@@ -497,7 +493,6 @@ func GenerateGraphqlResolverVars(baseGroupName, crdModulePath string, pkgs parse
 			Alias:      listRetVal,
 			ReturnType: retType,
 		}
-		fmt.Println("re", n.PkgName+n.NodeName)
 	}
 	var ResNodes []Node_prop
 	for _, n := range Nodes {
@@ -541,7 +536,6 @@ func GenerateGraphqlResolverVars(baseGroupName, crdModulePath string, pkgs parse
 		for _, f := range n.ArrayFields {
 			f.ReturnType = ListRetMap[f.FieldTypePkgPath].ReturnType
 			f.Alias = ListRetMap[f.FieldTypePkgPath].Alias
-			fmt.Println("AAARRR", f.FieldName, f.FieldTypePkgPath, ListRetMap[f.FieldTypePkgPath].ReturnType)
 			resNodeProp.ArrayFields = append(resNodeProp.ArrayFields, f)
 		}
 		ResNodes = append(ResNodes, resNodeProp)

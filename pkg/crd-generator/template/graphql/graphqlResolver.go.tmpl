@@ -15,8 +15,8 @@ import (
 var c resolverConfig
 
 type resolverConfig struct {
-	{{ range  $key, $node := .Nodes }}{{ if $node.IsNexusNode }}v{{$node.PkgName}}{{$node.NodeName}} *nexus_client.{{$node.PkgName}}{{$node.NodeName}}
-	{{ else }}{{ end }}{{ end }}
+	{{ range $key, $node := .Nodes }}v{{$node.PkgName}}{{$node.NodeName}} *nexus_client.{{$node.PkgName}}{{$node.NodeName}}
+	{{ end }}
 }
 
 //////////////////////////////////////
