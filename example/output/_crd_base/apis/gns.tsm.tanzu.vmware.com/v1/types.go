@@ -68,6 +68,11 @@ type GnsSpec struct {
 	HostPort         HostPort         `json:"hostPort" yaml:"hostPort"`
 	TestArray        EmptyData        `json:"testArray" yaml:"testArray"`
 	Instance         Instance         `json:"instance" yaml:"instance"`
+	Array1           []string         `json:"array1" yaml:"array1"`
+	Array2           []Description    `json:"array2" yaml:"array2"`
+	Array3           []Bar            `json:"array3" yaml:"array3"`
+	Array4           []Instance       `json:"array4" yaml:"array4"`
+	Array5           AliasArr         `json:"array5" yaml:"array5"`
 	FooChildGvk      *Child           `json:"fooChildGvk,omitempty" yaml:"fooChildGvk,omitempty" nexus:"child"`
 	FooChildrenGvk   map[string]Child `json:"fooChildrenGvk,omitempty" yaml:"fooChildrenGvk,omitempty" nexus:"children"`
 	FooLinkGvk       *Link            `json:"fooLinkGvk,omitempty" yaml:"fooLinkGvk,omitempty" nexus:"link"`
@@ -175,3 +180,4 @@ type Port uint16
 // Host the IP of the endpoint
 type Host string
 type Instance string
+type AliasArr []int

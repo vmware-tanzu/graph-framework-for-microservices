@@ -91,16 +91,16 @@ func convertGraphqlStdType(t string) string {
 func getArraySchema(FieldName, schemaTypeName string, nonStructMap map[string]string) string {
 	if val, ok := nonStructMap[schemaTypeName]; ok {
 		if convertGraphqlStdType(val) != "" {
-			return fmt.Sprintf("%s: [%s]!", FieldName, convertGraphqlStdType(val))
+			return fmt.Sprintf("%s: [%s!]!", FieldName, convertGraphqlStdType(val))
 		} else {
 			if strings.HasPrefix(val, "[]") {
 				arrStd := regexp.MustCompile(`^(\[])`).ReplaceAllString(val, "")
-				return fmt.Sprintf("%s: [%s]!", FieldName, convertGraphqlStdType(arrStd))
+				return fmt.Sprintf("%s: [%s!]", FieldName, convertGraphqlStdType(arrStd))
 			}
-			return fmt.Sprintf("%s: [%s]!", FieldName, val)
+			return fmt.Sprintf("%s: [%s!]", FieldName, val)
 		}
 	} else {
-		return fmt.Sprintf("%s: [%s]!", FieldName, schemaTypeName)
+		return fmt.Sprintf("%s: [%s!]", FieldName, schemaTypeName)
 	}
 }
 
@@ -338,7 +338,7 @@ func GenerateGraphqlResolverVars(baseGroupName, crdModulePath string, pkgs parse
 										stdType = convertGraphqlStdType(parts[0])
 									}
 									if stdType != "" {
-										fieldProp.SchemaFieldName = fmt.Sprintf("%s: [%s]!", fieldProp.FieldName, stdType)
+										fieldProp.SchemaFieldName = fmt.Sprintf("%s: [%s!]", fieldProp.FieldName, stdType)
 									} else {
 										schemaTypeName, _ := validateImportPkg(pkg, arr, importMap)
 										fieldProp.SchemaFieldName = getArraySchema(fieldProp.FieldName, schemaTypeName, nonStructMap)
@@ -409,11 +409,11 @@ func GenerateGraphqlResolverVars(baseGroupName, crdModulePath string, pkgs parse
 							aliasVal += jsonMarshalResolver(i.FieldName, n.NodeName)
 						}
 					} else if strings.HasPrefix(val, "[]") {
-						fmt.Println("Alias-Array:", i.NodeName, i.FieldName, i.FieldType)
+						retType += fmt.Sprintf("\t%s: &v%s,\n", i.FieldName, i.FieldName)
 						if !n.IsNexusNode {
-							retType += fmt.Sprintf("\t%s: v%s.Spec.%s.%s\n", i.FieldName, i.PkgName, customApi[i.NodeName], i.FieldName)
+							aliasVal += fmt.Sprintf("v%s := v%s.Spec.%s.%s\n", i.FieldName, i.PkgName, customApi[i.NodeName], i.FieldName)
 						} else {
-							retType += fmt.Sprintf("\t%s: v%s.Spec.%s\n", i.FieldName, i.NodeName, i.FieldName)
+							aliasVal += fmt.Sprintf("v%s := v%s.Spec.%s\n", i.FieldName, i.NodeName, i.FieldName)
 						}
 					} else if strings.HasPrefix(val, "*") {
 						fmt.Println("Alias-Pointer:", i.NodeName, i.FieldName, i.FieldType)
@@ -431,11 +431,11 @@ func GenerateGraphqlResolverVars(baseGroupName, crdModulePath string, pkgs parse
 					}
 				}
 			} else if i.IsArrayTypeField {
-				fmt.Println("Array:", i.FieldName, i.FieldType)
+				retType += fmt.Sprintf("\t%s: &v%s,\n", i.FieldName, i.FieldName)
 				if !n.IsNexusNode {
-					retType += fmt.Sprintf("\t%s: v%s.Spec.%s.%s\n", i.FieldName, i.PkgName, customApi[i.NodeName], i.FieldName)
+					aliasVal += fmt.Sprintf("v%s := v%s.Spec.%s.%s\n", i.FieldName, i.PkgName, customApi[i.NodeName], i.FieldName)
 				} else {
-					retType += fmt.Sprintf("\t%s: v%s.Spec.%s\n", i.FieldName, i.NodeName, i.FieldName)
+					aliasVal += fmt.Sprintf("v%s := v%s.Spec.%s\n", i.FieldName, i.NodeName, i.FieldName)
 				}
 			} else if i.IsMapTypeField {
 				retType += fmt.Sprintf("\t%s: &%sData,\n", i.FieldName, i.FieldName)

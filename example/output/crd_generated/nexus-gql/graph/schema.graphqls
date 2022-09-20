@@ -134,7 +134,7 @@ type config_Config {
     Cluster: config_Cluster
     FooA: String
     FooMap: String
-    FooB(Id: ID): [String!]
+    FooB: [String!]
     FooD: String
     XYZPort: Int
     ABCHost: String
@@ -224,6 +224,11 @@ type gns_Gns {
     HostPort: gns_HostPort
     TestArray: gns_EmptyData
     Instance: String
+    Array1: [String]!
+    Array2: [gns_Description!]
+    Array3: [gns_Bar!]
+    Array4: [String!]!
+    Array5: [Int!]
 }
 
 
@@ -355,4 +360,13 @@ type gns_EmptyData {
         endTime: String
     ): TimeSeriesData
 
+}
+
+
+type TimeSeriesData {
+  Code: Int
+  Message: String
+  Data: String
+  Last: String
+  TotalRecords: Int
 }

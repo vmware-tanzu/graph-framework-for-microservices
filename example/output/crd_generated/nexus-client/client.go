@@ -1120,6 +1120,51 @@ func (group *GnsTsmV1) UpdateGnsByName(ctx context.Context,
 	}
 	patch = append(patch, patchOpInstance)
 
+	patchValueArray1 :=
+		objToUpdate.Spec.Array1
+	patchOpArray1 := PatchOp{
+		Op:    "replace",
+		Path:  "/spec/array1",
+		Value: patchValueArray1,
+	}
+	patch = append(patch, patchOpArray1)
+
+	patchValueArray2 :=
+		objToUpdate.Spec.Array2
+	patchOpArray2 := PatchOp{
+		Op:    "replace",
+		Path:  "/spec/array2",
+		Value: patchValueArray2,
+	}
+	patch = append(patch, patchOpArray2)
+
+	patchValueArray3 :=
+		objToUpdate.Spec.Array3
+	patchOpArray3 := PatchOp{
+		Op:    "replace",
+		Path:  "/spec/array3",
+		Value: patchValueArray3,
+	}
+	patch = append(patch, patchOpArray3)
+
+	patchValueArray4 :=
+		objToUpdate.Spec.Array4
+	patchOpArray4 := PatchOp{
+		Op:    "replace",
+		Path:  "/spec/array4",
+		Value: patchValueArray4,
+	}
+	patch = append(patch, patchOpArray4)
+
+	patchValueArray5 :=
+		objToUpdate.Spec.Array5
+	patchOpArray5 := PatchOp{
+		Op:    "replace",
+		Path:  "/spec/array5",
+		Value: patchValueArray5,
+	}
+	patch = append(patch, patchOpArray5)
+
 	marshaled, err := patch.Marshal()
 	if err != nil {
 		return nil, err
