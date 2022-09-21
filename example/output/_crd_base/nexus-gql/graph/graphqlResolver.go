@@ -815,36 +815,15 @@ func (c *resolverConfig) getRootRootConfigResolver() (*model.ConfigConfig, error
 	}
 	c.vConfigConfig = vConfig
 	vConfigName := string(vConfig.Spec.ConfigName)
-FooA, _ := json.Marshal(vConfig.Spec.FooA)
-FooAData := string(FooA)
-FooMap, _ := json.Marshal(vConfig.Spec.FooMap)
-FooMapData := string(FooMap)
 FooD, _ := json.Marshal(vConfig.Spec.FooD)
 FooDData := string(FooD)
 
 	ret := &model.ConfigConfig {
 	ConfigName: &vConfigName,
-	FooA: &FooAData,
-	FooMap: &FooMapData,
 	FooD: &FooDData,
 	}
 	return ret, nil
 }
-
-//////////////////////////////////////
-// CustomField: CustomBar of CustomType: Root
-// Resolver for Root
-//////////////////////////////////////
-func (c *resolverConfig) getRootRootCustomBarResolver() (*model.RootBar, error) {
-	vRoot := c.vRootRoot
-	vName := string(vRoot.Spec.CustomBar.Name)
-
-	ret := &model.RootBar {
-	Name: &vName,
-	}
-	return ret, nil
-}
-
 
 //////////////////////////////////////
 // Child/Link Node : GNS Gns
@@ -858,85 +837,13 @@ func (c *resolverConfig) getConfigConfigGNSResolver() (*model.GnsGns, error) {
 	c.vGnsGns = vGns
 	vDomain := string(vGns.Spec.Domain)
 vUseSharedGateway := bool(vGns.Spec.UseSharedGateway)
-vInstance := float64(vGns.Spec.Instance)
 
 	ret := &model.GnsGns {
 	Domain: &vDomain,
 	UseSharedGateway: &vUseSharedGateway,
-	Instance: &vInstance,
 	}
 	return ret, nil
 }
-
-//////////////////////////////////////
-// CustomField: Cluster of CustomType: Config
-// Resolver for Config
-//////////////////////////////////////
-func (c *resolverConfig) getConfigConfigClusterResolver() (*model.ConfigCluster, error) {
-	vConfig := c.vConfigConfig
-	vName := string(vConfig.Spec.Cluster.Name)
-vMyID := int(vConfig.Spec.Cluster.MyID)
-
-	ret := &model.ConfigCluster {
-	Name: &vName,
-	MyID: &vMyID,
-	}
-	return ret, nil
-}
-
-//////////////////////////////////////
-// Array : XYZPort
-// Resolver for Config
-//////////////////////////////////////
-func (c *resolverConfig) getConfigConfigXYZPortResolver() ([]*model.GnsDescription, error) {
-	var vXYZPortList []*model.GnsDescription
-	
-	for _, i := range c.vConfigConfig.Spec.XYZPort {
-		vColor := string(i.Color)
-vVersion := string(i.Version)
-vInstance := float64(i.Instance)
-
-		ret := &model.GnsDescription {
-	Color: &vColor,
-	Version: &vVersion,
-	Instance: &vInstance,
-	}
-		vXYZPortList = append(vXYZPortList, ret)
-	}
-	
-	return vXYZPortList, nil
-}
-
-//////////////////////////////////////
-// Array : ABCHost
-// Resolver for Config
-//////////////////////////////////////
-func (c *resolverConfig) getConfigConfigABCHostResolver() ([]*string, error) {
-	var vABCHostList []*string
-	
-	
-	for _, i := range c.vConfigConfig.Spec.ABCHost {
-		ret := string(i)
-		vABCHostList = append(vABCHostList, &ret)
-	}
-	
-	return vABCHostList, nil
-}
-
-//////////////////////////////////////
-// Array : ClusterNamespaces
-// Resolver for Config
-//////////////////////////////////////
-func (c *resolverConfig) getConfigConfigClusterNamespacesResolver() ([]*model.ConfigClusterNamespace, error) {
-	var vClusterNamespacesList []*model.ConfigClusterNamespace
-	
-	
-	return vClusterNamespacesList, nil
-}
-
-
-
-
 
 //////////////////////////////////////
 // Child/Link Node : FooLink Bar
@@ -987,137 +894,4 @@ func (c *resolverConfig) getGnsGnsFooChildrenResolver(id *string) ([]*model.GnsB
 	}
 	return vGnsBarList, nil
 }
-
-//////////////////////////////////////
-// CustomField: Mydesc of CustomType: Gns
-// Resolver for Gns
-//////////////////////////////////////
-func (c *resolverConfig) getGnsGnsMydescResolver() (*model.GnsDescription, error) {
-	vGns := c.vGnsGns
-	vColor := string(vGns.Spec.Mydesc.Color)
-vVersion := string(vGns.Spec.Mydesc.Version)
-vInstance := float64(vGns.Spec.Mydesc.Instance)
-
-	ret := &model.GnsDescription {
-	Color: &vColor,
-	Version: &vVersion,
-	Instance: &vInstance,
-	}
-	return ret, nil
-}
-//////////////////////////////////////
-// CustomField: HostPort of CustomType: Gns
-// Resolver for Gns
-//////////////////////////////////////
-func (c *resolverConfig) getGnsGnsHostPortResolver() (*model.GnsHostPort, error) {
-	vGns := c.vGnsGns
-	vHost := string(vGns.Spec.HostPort.Host)
-vPort := int(vGns.Spec.HostPort.Port)
-
-	ret := &model.GnsHostPort {
-	Host: &vHost,
-	Port: &vPort,
-	}
-	return ret, nil
-}
-//////////////////////////////////////
-// CustomField: TestArray of CustomType: Gns
-// Resolver for Gns
-//////////////////////////////////////
-func (c *resolverConfig) getGnsGnsTestArrayResolver() (*model.GnsEmptyData, error) {
-	ret := &model.GnsEmptyData {}
-	return ret, nil
-}
-
-//////////////////////////////////////
-// Array : Array1
-// Resolver for Gns
-//////////////////////////////////////
-func (c *resolverConfig) getGnsGnsArray1Resolver() ([]*int, error) {
-	var vArray1List []*int
-	
-	
-	for _, i := range c.vGnsGns.Spec.Array1 {
-		ret := int(i)
-		vArray1List = append(vArray1List, &ret)
-	}
-	
-	return vArray1List, nil
-}
-
-//////////////////////////////////////
-// Array : Array2
-// Resolver for Gns
-//////////////////////////////////////
-func (c *resolverConfig) getGnsGnsArray2Resolver() ([]*model.GnsDescription, error) {
-	var vArray2List []*model.GnsDescription
-	
-	for _, i := range c.vGnsGns.Spec.Array2 {
-		vColor := string(i.Color)
-vVersion := string(i.Version)
-vInstance := float64(i.Instance)
-
-		ret := &model.GnsDescription {
-	Color: &vColor,
-	Version: &vVersion,
-	Instance: &vInstance,
-	}
-		vArray2List = append(vArray2List, ret)
-	}
-	
-	return vArray2List, nil
-}
-
-//////////////////////////////////////
-// Array : Array3
-// Resolver for Gns
-//////////////////////////////////////
-func (c *resolverConfig) getGnsGnsArray3Resolver() ([]*model.GnsBar, error) {
-	var vArray3List []*model.GnsBar
-	
-	for _, i := range c.vGnsGns.Spec.Array3 {
-		
-		ret := &model.GnsBar {
-	}
-		vArray3List = append(vArray3List, ret)
-	}
-	
-	return vArray3List, nil
-}
-
-//////////////////////////////////////
-// Array : Array4
-// Resolver for Gns
-//////////////////////////////////////
-func (c *resolverConfig) getGnsGnsArray4Resolver() ([]*float64, error) {
-	var vArray4List []*float64
-	
-	
-	for _, i := range c.vGnsGns.Spec.Array4 {
-		ret := float64(i)
-		vArray4List = append(vArray4List, &ret)
-	}
-	
-	return vArray4List, nil
-}
-
-
-
-//////////////////////////////////////
-// Array : Name
-// Resolver for Bar
-//////////////////////////////////////
-func (c *resolverConfig) getGnsBarNameResolver() ([]*string, error) {
-	var vNameList []*string
-	
-	
-	for _, i := range c.vGnsBar.Spec.Name {
-		ret := string(i)
-		vNameList = append(vNameList, &ret)
-	}
-	
-	return vNameList, nil
-}
-
-
 

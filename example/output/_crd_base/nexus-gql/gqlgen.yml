@@ -36,24 +36,9 @@ models:
       Config:
         resolver: true
 
-      CustomBar:
-        resolver: true
-
   config_Config:
     fields:
       GNS:
-        resolver: true
-
-      Cluster:
-        resolver: true
-
-      XYZPort:
-        resolver: true
-
-      ABCHost:
-        resolver: true
-
-      ClusterNamespaces:
         resolver: true
 
   gns_Gns:
@@ -70,29 +55,7 @@ models:
       FooChildren:
         resolver: true
 
-      Mydesc:
-        resolver: true
-
-      HostPort:
-        resolver: true
-
-      TestArray:
-        resolver: true
-
-      Array1:
-        resolver: true
-
-      Array2:
-        resolver: true
-
-      Array3:
-        resolver: true
-
-      Array4:
-        resolver: true
-
   gns_Bar:
     fields:
-      Name:
-        resolver: true
-
+  gns_EmptyData:
+    fields:

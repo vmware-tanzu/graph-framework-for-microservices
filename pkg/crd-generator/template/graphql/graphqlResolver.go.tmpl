@@ -269,37 +269,4 @@ func (c *resolverConfig) get{{$child.PkgName}}{{$child.NodeName}}{{$child.FieldN
 	}
 	return v{{$child.FieldTypePkgPath}}List, nil{{ end }}
 }
-{{ end }}{{ range $key, $custom := $node.CustomFields }}
-//////////////////////////////////////
-// CustomField: {{$custom.FieldName}} of CustomType: {{$custom.NodeName}}
-// Resolver for {{$custom.NodeName}}
-//////////////////////////////////////
-func (c *resolverConfig) get{{$custom.PkgName}}{{$custom.NodeName}}{{$custom.FieldName}}Resolver() (*model.{{$custom.FieldTypePkgPath}}, error) {
-	{{ if $custom.ReturnType }}v{{$custom.PkgName}} := c.v{{$custom.PkgName}}{{$custom.NodeName}}
-	{{ $custom.Alias }}
-	{{ $custom.ReturnType }}
-	return ret, nil{{ else }}ret := &model.{{$custom.FieldTypePkgPath}} {}
-	return ret, nil{{ end }}
-}{{ end }}
-{{ range $key, $Array := $node.ArrayFields }}
-//////////////////////////////////////
-// Array : {{$Array.FieldName}}
-// Resolver for {{$Array.NodeName}}
-//////////////////////////////////////
-func (c *resolverConfig) get{{$Array.PkgName}}{{$Array.NodeName}}{{$Array.FieldName}}Resolver() ([]*{{$Array.ModelType}}, error) {
-	var v{{$Array.FieldName}}List []*{{$Array.ModelType}}
-	{{ if $Array.ReturnType }}
-	for _, i := range c.v{{$Array.PkgName}}{{$Array.NodeName}}.Spec.{{$Array.FieldName}} {
-		{{ $Array.Alias }}
-		{{ $Array.ReturnType }}
-		v{{$Array.FieldName}}List = append(v{{$Array.FieldName}}List, ret)
-	}{{ end }}
-	{{ if $Array.IsArrayStdType }}
-	for _, i := range c.v{{$Array.PkgName}}{{$Array.NodeName}}.Spec.{{$Array.FieldName}} {
-		ret := {{ $Array.ModelType }}(i)
-		v{{$Array.FieldName}}List = append(v{{$Array.FieldName}}List, &ret)
-	}
-	{{ end }}
-	return v{{$Array.FieldName}}List, nil
-}
 {{ end }}{{ end }}

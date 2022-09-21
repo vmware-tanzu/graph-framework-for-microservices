@@ -2,6 +2,7 @@
 type Query {
     root: root_Root
 }
+
  
 type root_Root {
 
@@ -61,15 +62,10 @@ type root_Root {
 
     Config: config_Config!
     DisplayName: String
-    CustomBar: root_Bar
+    CustomBar: String
 }
 
 
- 
-type root_Bar {
-
-    Name: String
-}
 
 
  
@@ -131,47 +127,23 @@ type config_Config {
 
     GNS: gns_Gns!
     ConfigName: String
-    Cluster: config_Cluster
+    Cluster: String
     FooA: String
     FooMap: String
-    FooB: [String]!
+    FooB: String
     FooD: String
-    XYZPort: [gns_Description]!
-    ABCHost: [String]!
-    ClusterNamespaces: [config_ClusterNamespace]!
+    XYZPort: String
+    ABCHost: String
+    ClusterNamespaces: String
 }
 
 
- 
-type config_ClusterNamespace {
-
-    Cluster: config_MatchCondition
-    Namespace: config_MatchCondition
-}
 
 
- 
-type config_MatchCondition {
-
-    Name: String
-    Type: String
-}
 
 
- 
-type config_Cluster {
-
-    Name: String
-    MyID: Int
-}
 
 
- 
-type gns_HostPort {
-
-    Host: String
-    Port: Int
-}
 
 
  
@@ -237,26 +209,18 @@ type gns_Gns {
     FooChildren(Id: ID): [gns_Bar!]
     Domain: String
     UseSharedGateway: Boolean
-    Mydesc: gns_Description
-    HostPort: gns_HostPort
-    TestArray: gns_EmptyData
-    Instance: Float
-    Array1: [Int]!
-    Array2: [gns_Description]!
-    Array3: [gns_Bar]!
-    Array4: [Float]!
-    Array5: [Int]!
+    Mydesc: String
+    HostPort: String
+    TestArray: String
+    Instance: String
+    Array1: String
+    Array2: String
+    Array3: String
+    Array4: String
+    Array5: String
 }
 
 
- 
-type gns_Description {
-
-    Color: String
-    Version: String
-    Instance: Float
-    HostPort: gns_HostPort
-}
 
 
  
@@ -316,7 +280,7 @@ type gns_Bar {
         endTime: String
     ): TimeSeriesData
 
-    Name: [String]!
+    Name: String
 }
 
 
@@ -379,12 +343,6 @@ type gns_EmptyData {
 
 }
 
-
- 
-type gns_Answer {
-
-    Name: String
-}
 
 
 type TimeSeriesData {
