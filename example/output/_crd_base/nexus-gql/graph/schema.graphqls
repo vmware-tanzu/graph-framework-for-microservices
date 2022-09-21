@@ -213,7 +213,7 @@ type gns_Gns {
     HostPort: String
     TestArray: String
     Instance: String
-    Array1: String
+    Array1: Float
     Array2: String
     Array3: String
     Array4: String
@@ -280,7 +280,7 @@ type gns_Bar {
         endTime: String
     ): TimeSeriesData
 
-    Name: String
+    Name: Int
 }
 
 
@@ -341,6 +341,7 @@ type gns_EmptyData {
         endTime: String
     ): TimeSeriesData
 
+    NoLink: gns_Bar!
 }
 
 

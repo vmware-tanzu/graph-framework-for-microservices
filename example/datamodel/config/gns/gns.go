@@ -85,7 +85,7 @@ type Gns struct {
 	HostPort         HostPort
 	TestArray        EmptyData
 	Instance         Instance
-	Array1           []uint32
+	Array1           float32
 	Array2           []Description
 	Array3           []Bar
 	Array4           []Instance
@@ -104,7 +104,7 @@ type Description struct {
 
 type Bar struct {
 	nexus.Node
-	Name []string
+	Name uint64
 }
 
 type EmptyData struct {

@@ -68,7 +68,7 @@ type GnsSpec struct {
 	HostPort         HostPort         `json:"hostPort" yaml:"hostPort"`
 	TestArray        EmptyData        `json:"testArray" yaml:"testArray"`
 	Instance         Instance         `json:"instance" yaml:"instance"`
-	Array1           []uint32         `json:"array1" yaml:"array1"`
+	Array1           float32          `json:"array1" yaml:"array1"`
 	Array2           []Description    `json:"array2" yaml:"array2"`
 	Array3           []Bar            `json:"array3" yaml:"array3"`
 	Array4           []Instance       `json:"array4" yaml:"array4"`
@@ -116,7 +116,7 @@ func (c *Bar) DisplayName() string {
 
 // +k8s:openapi-gen=true
 type BarSpec struct {
-	Name []string `json:"name" yaml:"name"`
+	Name uint64 `json:"name" yaml:"name"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
@@ -134,8 +134,8 @@ type BarList struct {
 type EmptyData struct {
 	metav1.TypeMeta   `json:",inline" yaml:",inline"`
 	metav1.ObjectMeta `json:"metadata" yaml:"metadata"`
-
-	Status EmptyDataNexusStatus `json:"status,omitempty" yaml:"status,omitempty"`
+	Spec              EmptyDataSpec        `json:"spec,omitempty" yaml:"spec,omitempty"`
+	Status            EmptyDataNexusStatus `json:"status,omitempty" yaml:"status,omitempty"`
 }
 
 // +k8s:openapi-gen=true
@@ -152,6 +152,11 @@ func (c *EmptyData) DisplayName() string {
 		return c.GetLabels()[common.DISPLAY_NAME_LABEL]
 	}
 	return ""
+}
+
+// +k8s:openapi-gen=true
+type EmptyDataSpec struct {
+	NoLinkGvk *Link `json:"noLinkGvk,omitempty" yaml:"noLinkGvk,omitempty" nexus:"link"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object

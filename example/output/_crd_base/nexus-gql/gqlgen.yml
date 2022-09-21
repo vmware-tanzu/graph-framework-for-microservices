@@ -55,7 +55,8 @@ models:
       FooChildren:
         resolver: true
 
-  gns_Bar:
-    fields:
   gns_EmptyData:
     fields:
+      NoLink:
+        resolver: true
+

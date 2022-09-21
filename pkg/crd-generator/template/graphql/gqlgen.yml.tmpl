@@ -30,9 +30,9 @@ models:
       - gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/graphql.Int
       - gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/graphql.Int64
       - gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/graphql.Int32
-  {{ range $key, $node := .Nodes }}{{ if $node.IsNexusNode }}
+  {{ range $key, $node := .Nodes }}{{ if $node.IsNexusNode }}{{ if eq $node.ResolverCount 0 }}{{ else }}
   {{ $node.SchemaName }}:
     fields:{{ range $key, $field := $node.GraphqlSchemaFields }}{{ if $field.IsResolver }}
       {{ $field.FieldName}}:
         resolver: true
-{{ end }}{{ end }}{{ end }}{{ end }}
+{{ end }}{{ end }}{{ end }}{{ end }}{{ end }}
