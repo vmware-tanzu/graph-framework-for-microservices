@@ -57,6 +57,69 @@ var _ = Describe("Echo server tests", func() {
 		Expect(rec.Body.String()).Should(Equal("[]\n"))
 	})
 
+	It("shouldn't handle get query for singleton object if nexus object name is empty string", func() {
+		restUri := nexus.RestURIs{
+			Uri:     "/root/{orgchart.Root}/leader/{management.Leader}",
+			Methods: nexus.DefaultHTTPMethodsResponses,
+		}
+		e.RegisterRouter(restUri)
+		model.ConstructMapCRDTypeToNode(model.Upsert, "leaders.orgchart.vmware.org", "management.Leader",
+			[]string{}, nil, nil, true, "some description")
+		model.ConstructMapURIToCRDType(model.Upsert, "leaders.orgchart.vmware.org", []nexus.RestURIs{restUri})
+
+		req := httptest.NewRequest(http.MethodGet, "/root/:orgchart.Root/leader/:management.Leader", nil)
+		rec := httptest.NewRecorder()
+		c := e.Echo.NewContext(req, rec)
+		c.SetParamNames("management.Leader")
+		c.SetParamValues("")
+		nc := &NexusContext{
+			NexusURI: "/root/{orgchart.Root}/leader/{management.Leader}",
+			//Codes: nexus.DefaultHTTPMethodsResponses,
+			Context:   c,
+			CrdType:   "leaders.orgchart.vmware.org",
+			GroupName: "management.vmware.org",
+			Resource:  "leaders",
+		}
+
+		err := getHandler(nc)
+		Expect(err).NotTo(HaveOccurred())
+		Expect(rec.Code).ToNot(Equal(200))
+	})
+
+	It("should handle put query for singleton object without passing name parameters in request", func() {
+		leaderJson := `{
+			"designation": "abc",
+			"employeeID": 100,
+			"name": "xyz"
+		}`
+
+		restUri := nexus.RestURIs{
+			Uri:     "/leader",
+			Methods: nexus.DefaultHTTPMethodsResponses,
+		}
+		e.RegisterRouter(restUri)
+		model.ConstructMapCRDTypeToNode(model.Upsert, "leaders.orgchart.vmware.org", "management.Leader",
+			[]string{}, nil, nil, true, "some description")
+		model.ConstructMapURIToCRDType(model.Upsert, "leaders.orgchart.vmware.org", []nexus.RestURIs{restUri})
+
+		req := httptest.NewRequest(http.MethodPost, "/:orgchart.Leader", strings.NewReader(leaderJson))
+		req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+		rec := httptest.NewRecorder()
+		c := e.Echo.NewContext(req, rec)
+		nc := &NexusContext{
+			NexusURI: "/leader",
+			//Codes: nexus.DefaultHTTPMethodsResponses,
+			Context:   c,
+			CrdType:   "leaders.orgchart.vmware.org",
+			GroupName: "orgchart.vmware.org",
+			Resource:  "leaders",
+		}
+
+		err := putHandler(nc)
+		Expect(err).NotTo(HaveOccurred())
+		Expect(rec.Code).To(Equal(200))
+	})
+
 	It("should handle put query for singleton object with default as name", func() {
 		leaderJson := `{
 			"designation": "abc",
@@ -560,6 +623,77 @@ var _ = Describe("Echo server tests", func() {
 		Expect(err).NotTo(HaveOccurred())
 		Expect(rec3.Code).To(Equal(200))
 		Expect(rec3.Body.String()).Should(Equal("{\"spec\":{\"designation\":\"abc\",\"employeeID\":100,\"name\":\"xyz\"},\"status\":{\"status\":{\"DaysLeftToEndOfVacations\":139,\"IsOnVacations\":true}}}\n"))
+
+	})
+
+	It("shouldn't handle PUT status subresource if nexus native status subresource is presnet in status subresource payload", func() {
+		// Create `Leader` object
+		leaderJson := `{
+					"designation": "abc",
+					"employeeID": 100,
+					"name": "xyz"
+				  }`
+		restUri := nexus.RestURIs{
+			Uri:     "/root/{orgchart.Root}/leader/{management.Leader}",
+			Methods: nexus.DefaultHTTPMethodsResponses,
+		}
+
+		nc, rec := initNode(e, "leaders.management.vmware.org", "management.vmware.org",
+			"leaders", "management.Leader", http.MethodPost, leaderJson,
+			"/root/:orgchart.Root/leader/:management.Leader", restUri)
+
+		err := putHandler(nc)
+		Expect(err).NotTo(HaveOccurred())
+		Expect(rec.Code).To(Equal(200))
+
+		// =========== Status subresource
+		leaderStatusJson := `{
+					"nexus": {
+						"sourceGeneration": 101,
+						"remoteGeneration": 100
+					},
+					"status": {
+					  "DaysLeftToEndOfVacations": 139,
+					  "IsOnVacations": true
+					}
+				  }`
+		statusUriPath := "/root/{orgchart.Root}/leader/{management.Leader}/status"
+		targetUri := "/root/:orgchart.Root/leader/:management.Leader/status"
+		model.UriToUriInfo[statusUriPath] = model.RestUriInfo{TypeOfURI: model.StatusURI}
+		restUriForStatus := nexus.RestURIs{
+			Uri: statusUriPath,
+			// Methods: nexus.DefaultHTTPMethodsResponses,
+			Methods: nexus.HTTPMethodsResponses{
+				http.MethodPut: nexus.DefaultHTTPPUTResponses,
+			},
+		}
+		urisMap := map[string]model.RestUriInfo{
+			statusUriPath: {
+				TypeOfURI: model.StatusURI,
+			},
+		}
+		model.ConstructMapUriToUriInfo(model.Upsert, urisMap)
+
+		// =========== status PUT
+		e.RegisterRouter(restUri)
+		model.ConstructMapCRDTypeToNode(model.Upsert, "leaders.management.vmware.org", "management.Leader",
+			[]string{}, nil, nil, true, "some description")
+		model.ConstructMapURIToCRDType(model.Upsert, "leaders.management.vmware.org", []nexus.RestURIs{restUriForStatus})
+
+		req1 := httptest.NewRequest(http.MethodPost, targetUri, strings.NewReader(leaderStatusJson))
+		req1.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+		rec1 := httptest.NewRecorder()
+		c1 := e.Echo.NewContext(req1, rec1)
+		nc1 := &NexusContext{
+			NexusURI:  statusUriPath,
+			Context:   c1,
+			CrdType:   "leaders.management.vmware.org",
+			GroupName: "management.vmware.org",
+			Resource:  "leaders",
+		}
+		err = putHandler(nc1)
+		Expect(err).NotTo(HaveOccurred())
+		Expect(rec1.Code).ToNot(Equal(200))
 
 	})
 })
