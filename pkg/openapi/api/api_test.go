@@ -104,13 +104,14 @@ var _ = Describe("OpenAPI tests", func() {
 		Expect(api.Schemas["vmware.org"].Paths[restUri.Uri].Get).To(Not(BeNil()))
 	})
 
-	It("should add GET and PUT status endpoint", func() {
-		statusUri := "/leaders/status"
+	It("should add GET and PUT status endpoints", func() {
+		statusUri := "/leader/status"
 		restUri := nexus.RestURIs{
 			Uri: statusUri,
 			Methods: nexus.HTTPMethodsResponses{
 				http.MethodGet: nexus.DefaultHTTPGETResponses,
-				http.MethodPut: nexus.DefaultHTTPPUTResponses},
+				http.MethodPut: nexus.DefaultHTTPPUTResponses,
+			},
 		}
 
 		urisMap := map[string]model.RestUriInfo{
@@ -201,11 +202,7 @@ var _ = Describe("OpenAPI tests", func() {
 		model.ConstructDatamodel(model.Delete, "vmware.org", &unstructuredObj)
 
 		Eventually(func() bool {
-			if api.Schemas["vmware.org"].Info.Title == "VMWare Datamodel" {
-				return true
-			}
-
-			return false
+			return api.Schemas["vmware.org"].Info.Title == "VMWare Datamodel"
 		})
 	})
 })

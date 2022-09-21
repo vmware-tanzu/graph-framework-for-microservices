@@ -80,6 +80,7 @@ func DatamodelUpdateNotification() {
 	}
 }
 
+// AddPath creates and adds paths for all the methods of a URI
 func AddPath(uri nexus.RestURIs, datamodel string) {
 	crdType := model.UriToCRDType[uri.Uri]
 	crdInfo := model.CrdTypeToNodeInfo[crdType]
@@ -193,6 +194,7 @@ func AddPath(uri nexus.RestURIs, datamodel string) {
 	Schemas[datamodel].Paths[uri.Uri] = pathItem
 }
 
+// parseSpec parses openapi schema spec and status subresource
 func parseSpec(crdType string, datamodel string) {
 	crdInfo := model.CrdTypeToNodeInfo[crdType]
 	crdSpec := model.CrdTypeToSpec[crdType]
@@ -292,6 +294,7 @@ func parseSpec(crdType string, datamodel string) {
 	}
 }
 
+// ParseFields parses openapi schema fields
 func parseFields(jsonSchema *openapi3.Schema, specProps map[string]v1.JSONSchemaProps) {
 	for name, prop := range specProps {
 		if strings.Contains(name, "Gvk") {
@@ -337,6 +340,7 @@ func parseFields(jsonSchema *openapi3.Schema, specProps map[string]v1.JSONSchema
 	}
 }
 
+// parseUriParams parses the URI parameters
 func parseUriParams(uri string, hierarchy []string) (parameters []*openapi3.ParameterRef) {
 	r := regexp.MustCompile(`{([^{}]+)}`)
 	params := r.FindAllStringSubmatch(uri, -1)

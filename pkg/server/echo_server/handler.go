@@ -354,14 +354,7 @@ func putHandler(c echo.Context) error {
 	}
 
 	obj.SetLabels(labels)
-	if uriInfo, ok := model.GetUriInfo(nc.NexusURI); ok && uriInfo.TypeOfURI == model.StatusURI {
-		// Handle PUT status subresource
-		err = putStatus(gvr, obj, body)
-	} else {
-		// Handle PUT nexus object spec
-		obj.Object["spec"] = body
-		_, err = client.Client.Resource(gvr).Update(context.TODO(), obj, metav1.UpdateOptions{})
-	}
+	err = updateResource(nc, gvr, obj, body)
 	if err != nil {
 		return handleClientError(nc, err)
 	}
@@ -494,21 +487,43 @@ type PatchOp struct {
 	Value interface{} `json:"value,omitempty"`
 }
 
-// putStatus is used to create or update status subresource of nexus object
-func putStatus(gvr schema.GroupVersionResource, obj *unstructured.Unstructured, body map[string]interface{}) error {
-	delete(body, "nexus")
-	var err error
+// updateResource is used to create or update object resource or status subresource of nexus object
+func updateResource(nc *NexusContext, gvr schema.GroupVersionResource, obj *unstructured.Unstructured, body map[string]interface{}) error {
+	uriInfo, ok := model.GetUriInfo(nc.NexusURI)
+	if ok && uriInfo.TypeOfURI == model.StatusURI {
+		if _, ok := body["nexus"]; ok {
+			return fmt.Errorf("can't update nexus status subresource, only user defined status subresource update is allowed")
+		}
 
-	// Make sure status field is present first
-	if _, ok := obj.Object["status"]; !ok {
-		m := []byte("{\"status\":{}}")
-		_, err = client.Client.Resource(gvr).Patch(context.TODO(), obj.GetName(), types.MergePatchType, m, metav1.PatchOptions{}, "status")
-	}
-	if err != nil {
+		// Make sure status field is present first
+		var err error
+		if _, ok := obj.Object["status"]; !ok {
+			m := []byte("{\"status\":{}}")
+			_, err = client.Client.Resource(gvr).Patch(context.TODO(), obj.GetName(), types.MergePatchType, m, metav1.PatchOptions{}, "status")
+		}
+		if err != nil {
+			return err
+		}
+
+		patch := createStatusPatch(body)
+		var patchBytes []byte
+		patchBytes, err = json.Marshal(patch)
+		if err != nil {
+			return fmt.Errorf("error while marshaling json status subresource payload: %s", err.Error())
+		}
+
+		// Update status subresource
+		_, err = client.Client.Resource(gvr).Patch(context.TODO(), obj.GetName(), types.JSONPatchType, patchBytes, metav1.PatchOptions{}, "status")
 		return err
 	}
 
-	var patchBytes []byte
+	// Handle PUT nexus object spec
+	obj.Object["spec"] = body
+	_, err := client.Client.Resource(gvr).Update(context.TODO(), obj, metav1.UpdateOptions{})
+	return err
+}
+
+func createStatusPatch(body map[string]interface{}) []PatchOp {
 	patch := []PatchOp{}
 	for k, v := range body {
 		p := PatchOp{
@@ -518,12 +533,5 @@ func putStatus(gvr schema.GroupVersionResource, obj *unstructured.Unstructured, 
 		}
 		patch = append(patch, p)
 	}
-	patchBytes, err = json.Marshal(patch)
-	if err != nil {
-		return err
-	}
-
-	// Update status subresource
-	_, err = client.Client.Resource(gvr).Patch(context.TODO(), obj.GetName(), types.JSONPatchType, patchBytes, metav1.PatchOptions{}, "status")
-	return err
+	return patch
 }
