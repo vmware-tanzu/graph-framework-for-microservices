@@ -425,7 +425,7 @@ func GenerateGraphqlResolverVars(baseGroupName, crdModulePath string, pkgs parse
 									}
 								}
 
-								}
+							}
 						}
 					}
 				} else {
@@ -485,7 +485,7 @@ _ = json.Unmarshal(marshaled, &v%s)
 					}
 
 					aliasVal += fmt.Sprintf(" %s if %s != nil { \n%s\n}\n", a, val, alias)
-				}else if i.IsAliasTypeField {
+				} else if i.IsAliasTypeField {
 					if val, ok := nonStructMap[i.SchemaTypeName]; ok {
 						if strings.HasPrefix(val, "map") {
 							fieldCount += 1
