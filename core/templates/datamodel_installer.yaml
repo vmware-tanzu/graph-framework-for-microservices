@@ -100,7 +100,7 @@ data:
         selector:
           matchLabels:
             control-plane: graphql
-        replicas: 1
+        replicas: 0
         template:
           metadata:
             annotations:
