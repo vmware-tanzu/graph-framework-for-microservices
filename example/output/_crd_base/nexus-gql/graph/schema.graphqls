@@ -254,7 +254,6 @@ type gns_Description {
 
     Color: String
     Version: String
-    ProjectID: String
     Instance: Float
     HostPort: gns_HostPort
 }

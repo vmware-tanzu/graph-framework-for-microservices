@@ -171,7 +171,7 @@ type HostPort struct {
 type Description struct {
 	Color     string
 	Version   string
-	ProjectID string
+	ProjectID []string
 	TestAns   []Answer
 	Instance  Instance
 	HostPort  HostPort

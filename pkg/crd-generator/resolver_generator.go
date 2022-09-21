@@ -312,6 +312,12 @@ func GenerateGraphqlResolverVars(baseGroupName, crdModulePath string, pkgs parse
 							stdType = convertGraphqlStdType(parts[0])
 						}
 						if stdType != "" {
+							if !parser.IsNexusNode(node) {
+								fmt.Println("resolverTypeName:XXXXX", f.Names, resolverTypeName)
+								fieldProp.SchemaFieldName = getArraySchema(fieldProp.FieldName, schemaTypeName, nonStructMap)
+								fieldProp.IsResolver = false
+								continue
+							}
 							fieldProp.SchemaFieldName = fmt.Sprintf("%s: [%s]!", fieldProp.FieldName, stdType)
 							fieldProp.SchemaTypeName = schemaTypeName
 							fieldProp.BaseTypeName = getBaseNodeType(pkg, typeString, importMap)
@@ -546,21 +552,18 @@ func GenerateGraphqlResolverVars(baseGroupName, crdModulePath string, pkgs parse
 			resNodeProp.IsParentNode = true
 		}
 		for _, f := range n.ChildLinkFields {
-			fmt.Println("LINKS:", f.FieldTypePkgPath, f.FieldName, f.FieldType, retMap[f.FieldTypePkgPath].ReturnType, retMap[f.FieldTypePkgPath].FieldCount)
 			f.ReturnType = retMap[f.FieldTypePkgPath].ReturnType
 			f.Alias = retMap[f.FieldTypePkgPath].Alias
 			f.FieldCount = retMap[f.FieldTypePkgPath].FieldCount
 			resNodeProp.ChildLinkFields = append(resNodeProp.ChildLinkFields, f)
 		}
 		for _, f := range n.ChildrenLinksFields {
-			fmt.Println("LINKS:", f.FieldTypePkgPath, f.FieldName, f.FieldType, retMap[f.FieldTypePkgPath].ReturnType, retMap[f.FieldTypePkgPath].FieldCount)
 			f.ReturnType = retMap[f.FieldTypePkgPath].ReturnType
 			f.Alias = retMap[f.FieldTypePkgPath].Alias
 			f.FieldCount = retMap[f.FieldTypePkgPath].FieldCount
 			resNodeProp.ChildrenLinksFields = append(resNodeProp.ChildrenLinksFields, f)
 		}
 		for _, f := range n.CustomFields {
-			fmt.Println("LINKS:", f.FieldTypePkgPath, f.FieldName, f.FieldType, retMap[f.FieldTypePkgPath].ReturnType, retMap[f.FieldTypePkgPath].FieldCount)
 			f.ReturnType = retMap[f.FieldTypePkgPath].ReturnType
 			f.Alias = retMap[f.FieldTypePkgPath].Alias
 			f.FieldCount = retMap[f.FieldTypePkgPath].FieldCount
@@ -572,7 +575,6 @@ func GenerateGraphqlResolverVars(baseGroupName, crdModulePath string, pkgs parse
 			resNodeProp.NonStructFields = append(resNodeProp.NonStructFields, f)
 		}
 		for _, f := range n.ArrayFields {
-			fmt.Println("LINKS:", f.FieldTypePkgPath, f.FieldName, f.FieldType, retMap[f.FieldTypePkgPath].ReturnType, retMap[f.FieldTypePkgPath].FieldCount)
 			f.ReturnType = ListRetMap[f.FieldTypePkgPath].ReturnType
 			f.Alias = ListRetMap[f.FieldTypePkgPath].Alias
 			resNodeProp.ArrayFields = append(resNodeProp.ArrayFields, f)
