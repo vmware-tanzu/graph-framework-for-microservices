@@ -138,6 +138,23 @@ type config_Config {
     FooD: String
     XYZPort: [gns_Description]!
     ABCHost: [String]!
+    ClusterNamespaces: [config_ClusterNamespace]!
+}
+
+
+ 
+type config_ClusterNamespace {
+
+    
+    
+}
+
+
+ 
+type config_MatchCondition {
+
+    Name: String
+    Type: String
 }
 
 
@@ -239,6 +256,7 @@ type gns_Description {
     Version: String
     ProjectID: String
     Instance: Float
+    
 }
 
 

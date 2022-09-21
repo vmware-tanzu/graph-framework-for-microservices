@@ -173,6 +173,7 @@ type Description struct {
 	Version   string
 	ProjectID string
 	Instance  Instance
+	HostPort  HostPort
 }
 
 type Port uint16

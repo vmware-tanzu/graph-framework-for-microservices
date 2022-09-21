@@ -707,6 +707,15 @@ func (group *ConfigTsmV1) UpdateConfigByName(ctx context.Context,
 	}
 	patch = append(patch, patchOpABCHost)
 
+	patchValueClusterNamespaces :=
+		objToUpdate.Spec.ClusterNamespaces
+	patchOpClusterNamespaces := PatchOp{
+		Op:    "replace",
+		Path:  "/spec/clusterNamespaces",
+		Value: patchValueClusterNamespaces,
+	}
+	patch = append(patch, patchOpClusterNamespaces)
+
 	marshaled, err := patch.Marshal()
 	if err != nil {
 		return nil, err

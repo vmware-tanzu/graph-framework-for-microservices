@@ -15,8 +15,8 @@ import (
 var c resolverConfig
 
 type resolverConfig struct {
-	{{ range $key, $node := .Nodes }}v{{$node.PkgName}}{{$node.NodeName}} *nexus_client.{{$node.PkgName}}{{$node.NodeName}}
-	{{ end }}
+	{{ range  $key, $node := .Nodes }}{{ if $node.IsNexusNode }}v{{$node.PkgName}}{{$node.NodeName}} *nexus_client.{{$node.PkgName}}{{$node.NodeName}}
+    {{ else }}{{ end }}{{ end }}
 }
 
 //////////////////////////////////////
@@ -288,15 +288,18 @@ func (c *resolverConfig) get{{$custom.PkgName}}{{$custom.NodeName}}{{$custom.Fie
 //////////////////////////////////////
 func (c *resolverConfig) get{{$Array.PkgName}}{{$Array.NodeName}}{{$Array.FieldName}}Resolver() ([]*{{$Array.ModelType}}, error) {
 	var v{{$Array.FieldName}}List []*{{$Array.ModelType}}
+	{{ if $Array.ReturnType }}
 	for _, i := range c.v{{$Array.PkgName}}{{$Array.NodeName}}.Spec.{{$Array.FieldName}} {
-		{{ if $Array.ReturnType }}
 		{{ $Array.Alias }}
 		{{ $Array.ReturnType }}
-		v{{$Array.FieldName}}List = append(v{{$Array.FieldName}}List, ret){{ else }}
+		v{{$Array.FieldName}}List = append(v{{$Array.FieldName}}List, ret)
+	}{{ end }}
+	{{ if $Array.IsArrayStdType }}
+	for _, i := range c.v{{$Array.PkgName}}{{$Array.NodeName}}.Spec.{{$Array.FieldName}} {
 		ret := {{ $Array.ModelType }}(i)
 		v{{$Array.FieldName}}List = append(v{{$Array.FieldName}}List, &ret)
-		{{ end }}
 	}
+	{{ end }}
 	return v{{$Array.FieldName}}List, nil
 }
 {{ end }}{{ end }}

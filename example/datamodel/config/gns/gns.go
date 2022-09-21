@@ -98,6 +98,7 @@ type Description struct {
 	Version   string
 	ProjectID string
 	Instance  Instance
+	HostPort  HostPort
 }
 
 type Bar struct {

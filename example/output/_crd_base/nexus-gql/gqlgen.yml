@@ -53,6 +53,9 @@ models:
       ABCHost:
         resolver: true
 
+      ClusterNamespaces:
+        resolver: true
+
   gns_Gns:
     fields:
       FooLink:

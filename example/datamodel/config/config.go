@@ -20,16 +20,27 @@ var BarCustomMethodsResponses = nexus.HTTPMethodsResponses{
 
 type Config struct {
 	nexus.SingletonNode
-	ConfigName string
-	GNS        gns.Gns `nexus:"child"`
-	Cluster    Cluster
-	FooA       AMap
-	FooMap     map[string]string
-	FooB       BArray
-	FooC       CInt   `nexus-graphql:"ignore:true"`
-	FooD       DFloat `nexus-graphql:"type:string"`
-	XYZPort    []gns.Description
-	ABCHost    []gns.Host
+	ConfigName        string
+	GNS               gns.Gns `nexus:"child"`
+	Cluster           Cluster
+	FooA              AMap
+	FooMap            map[string]string
+	FooB              BArray
+	FooC              CInt   `nexus-graphql:"ignore:true"`
+	FooD              DFloat `nexus-graphql:"type:string"`
+	XYZPort           []gns.Description
+	ABCHost           []gns.Host
+	ClusterNamespaces []ClusterNamespace
+}
+
+type ClusterNamespace struct {
+	Cluster   MatchCondition
+	Namespace MatchCondition
+}
+
+type MatchCondition struct {
+	Name string
+	Type gns.Host
 }
 
 type Cluster struct {

@@ -16,15 +16,11 @@ var c resolverConfig
 
 type resolverConfig struct {
 	vRootRoot *nexus_client.RootRoot
-	vRootBar *nexus_client.RootBar
-	vConfigConfig *nexus_client.ConfigConfig
-	vConfigCluster *nexus_client.ConfigCluster
-	vGnsHostPort *nexus_client.GnsHostPort
-	vGnsGns *nexus_client.GnsGns
-	vGnsDescription *nexus_client.GnsDescription
-	vGnsBar *nexus_client.GnsBar
-	vGnsEmptyData *nexus_client.GnsEmptyData
-	
+    vConfigConfig *nexus_client.ConfigConfig
+    vGnsGns *nexus_client.GnsGns
+    vGnsBar *nexus_client.GnsBar
+    vGnsEmptyData *nexus_client.GnsEmptyData
+    
 }
 
 //////////////////////////////////////
@@ -368,6 +364,10 @@ func (c *resolverConfig) getConfigConfigqueryServiceTopologyResolver(startTime *
 	}
 	return ret,nil
 }
+
+
+
+
 
 
 
@@ -888,8 +888,8 @@ vMyID := int(vConfig.Spec.Cluster.MyID)
 //////////////////////////////////////
 func (c *resolverConfig) getConfigConfigXYZPortResolver() ([]*model.GnsDescription, error) {
 	var vXYZPortList []*model.GnsDescription
+	
 	for _, i := range c.vConfigConfig.Spec.XYZPort {
-		
 		vColor := string(i.Color)
 vVersion := string(i.Version)
 vProjectID := string(i.ProjectID)
@@ -903,6 +903,7 @@ vInstance := float64(i.Instance)
 	}
 		vXYZPortList = append(vXYZPortList, ret)
 	}
+	
 	return vXYZPortList, nil
 }
 
@@ -912,14 +913,28 @@ vInstance := float64(i.Instance)
 //////////////////////////////////////
 func (c *resolverConfig) getConfigConfigABCHostResolver() ([]*string, error) {
 	var vABCHostList []*string
+	
+	
 	for _, i := range c.vConfigConfig.Spec.ABCHost {
-		
 		ret := string(i)
 		vABCHostList = append(vABCHostList, &ret)
-		
 	}
+	
 	return vABCHostList, nil
 }
+
+//////////////////////////////////////
+// Array : ClusterNamespaces
+// Resolver for Config
+//////////////////////////////////////
+func (c *resolverConfig) getConfigConfigClusterNamespacesResolver() ([]*model.ConfigClusterNamespace, error) {
+	var vClusterNamespacesList []*model.ConfigClusterNamespace
+	
+	
+	return vClusterNamespacesList, nil
+}
+
+
 
 
 
@@ -1078,12 +1093,13 @@ func (c *resolverConfig) getGnsGnsTestArrayResolver() (*model.GnsEmptyData, erro
 //////////////////////////////////////
 func (c *resolverConfig) getGnsGnsArray1Resolver() ([]*int, error) {
 	var vArray1List []*int
+	
+	
 	for _, i := range c.vGnsGns.Spec.Array1 {
-		
 		ret := int(i)
 		vArray1List = append(vArray1List, &ret)
-		
 	}
+	
 	return vArray1List, nil
 }
 
@@ -1093,8 +1109,8 @@ func (c *resolverConfig) getGnsGnsArray1Resolver() ([]*int, error) {
 //////////////////////////////////////
 func (c *resolverConfig) getGnsGnsArray2Resolver() ([]*model.GnsDescription, error) {
 	var vArray2List []*model.GnsDescription
+	
 	for _, i := range c.vGnsGns.Spec.Array2 {
-		
 		vColor := string(i.Color)
 vVersion := string(i.Version)
 vProjectID := string(i.ProjectID)
@@ -1108,6 +1124,7 @@ vInstance := float64(i.Instance)
 	}
 		vArray2List = append(vArray2List, ret)
 	}
+	
 	return vArray2List, nil
 }
 
@@ -1117,8 +1134,8 @@ vInstance := float64(i.Instance)
 //////////////////////////////////////
 func (c *resolverConfig) getGnsGnsArray3Resolver() ([]*model.GnsBar, error) {
 	var vArray3List []*model.GnsBar
+	
 	for _, i := range c.vGnsGns.Spec.Array3 {
-		
 		vName := string(i.Name)
 
 		ret := &model.GnsBar {
@@ -1126,6 +1143,7 @@ func (c *resolverConfig) getGnsGnsArray3Resolver() ([]*model.GnsBar, error) {
 	}
 		vArray3List = append(vArray3List, ret)
 	}
+	
 	return vArray3List, nil
 }
 
@@ -1135,12 +1153,13 @@ func (c *resolverConfig) getGnsGnsArray3Resolver() ([]*model.GnsBar, error) {
 //////////////////////////////////////
 func (c *resolverConfig) getGnsGnsArray4Resolver() ([]*float64, error) {
 	var vArray4List []*float64
+	
+	
 	for _, i := range c.vGnsGns.Spec.Array4 {
-		
 		ret := float64(i)
 		vArray4List = append(vArray4List, &ret)
-		
 	}
+	
 	return vArray4List, nil
 }
 

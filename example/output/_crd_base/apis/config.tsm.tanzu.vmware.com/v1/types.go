@@ -62,16 +62,17 @@ func (c *Config) DisplayName() string {
 
 // +k8s:openapi-gen=true
 type ConfigSpec struct {
-	ConfigName string                               `json:"configName" yaml:"configName"`
-	Cluster    Cluster                              `json:"cluster" yaml:"cluster"`
-	FooA       AMap                                 `json:"fooA" yaml:"fooA"`
-	FooMap     map[string]string                    `json:"fooMap" yaml:"fooMap"`
-	FooB       BArray                               `json:"fooB" yaml:"fooB"`
-	FooC       CInt                                 `nexus-graphql:"ignore:true"`
-	FooD       DFloat                               `nexus-graphql:"type:string"`
-	XYZPort    []gnstsmtanzuvmwarecomv1.Description `json:"xYZPort" yaml:"xYZPort"`
-	ABCHost    []gnstsmtanzuvmwarecomv1.Host        `json:"aBCHost" yaml:"aBCHost"`
-	GNSGvk     *Child                               `json:"gNSGvk,omitempty" yaml:"gNSGvk,omitempty" nexus:"child"`
+	ConfigName        string                               `json:"configName" yaml:"configName"`
+	Cluster           Cluster                              `json:"cluster" yaml:"cluster"`
+	FooA              AMap                                 `json:"fooA" yaml:"fooA"`
+	FooMap            map[string]string                    `json:"fooMap" yaml:"fooMap"`
+	FooB              BArray                               `json:"fooB" yaml:"fooB"`
+	FooC              CInt                                 `nexus-graphql:"ignore:true"`
+	FooD              DFloat                               `nexus-graphql:"type:string"`
+	XYZPort           []gnstsmtanzuvmwarecomv1.Description `json:"xYZPort" yaml:"xYZPort"`
+	ABCHost           []gnstsmtanzuvmwarecomv1.Host        `json:"aBCHost" yaml:"aBCHost"`
+	ClusterNamespaces []ClusterNamespace                   `json:"clusterNamespaces" yaml:"clusterNamespaces"`
+	GNSGvk            *Child                               `json:"gNSGvk,omitempty" yaml:"gNSGvk,omitempty" nexus:"child"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
@@ -79,6 +80,18 @@ type ConfigList struct {
 	metav1.TypeMeta `json:",inline" yaml:",inline"`
 	metav1.ListMeta `json:"metadata" yaml:"metadata"`
 	Items           []Config `json:"items" yaml:"items"`
+}
+
+// +k8s:openapi-gen=true
+type ClusterNamespace struct {
+	Cluster   MatchCondition
+	Namespace MatchCondition
+}
+
+// +k8s:openapi-gen=true
+type MatchCondition struct {
+	Name string
+	Type gnstsmtanzuvmwarecomv1.Host
 }
 
 // +k8s:openapi-gen=true
