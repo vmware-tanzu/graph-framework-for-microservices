@@ -1,6 +1,7 @@
 package parser_test
 
 import (
+	"go/ast"
 	"sort"
 
 	. "github.com/onsi/ginkgo"
@@ -103,5 +104,36 @@ var _ = Describe("Node parser tests", func() {
 
 		parser.ParseDSLNodes("../../example/test-utils/invalid-type-name-datamodel", baseGroupName)
 		Expect(fail).To(BeTrue())
+	})
+	It("should be able to get graphql info from a field", func() {
+		graph = parser.ParseDSLNodes(exampleDSLPath, baseGroupName)
+		config, ok := graph["roots.root.tsm.tanzu.vmware.com"].SingleChildren["Config"]
+		Expect(ok).To(BeTrue())
+
+		if val, ok := config.TypeSpec.Type.(*ast.StructType); ok {
+			for _, f := range val.Fields.List {
+				isJsonString := parser.IsJsonStringField(f)
+				isIgnored := parser.IgnoreField(f)
+				name, err := parser.GetFieldName(f)
+				Expect(err).NotTo(HaveOccurred())
+				switch name {
+				case "FooD":
+					Expect(isIgnored).To(BeFalse())
+					Expect(isJsonString).To(BeTrue())
+				case "FooC":
+					Expect(isIgnored).To(BeTrue())
+					Expect(isJsonString).To(BeFalse())
+				case "FooE":
+					Expect(isIgnored).To(BeTrue())
+					Expect(isJsonString).To(BeFalse())
+				case "FooF":
+					Expect(isIgnored).To(BeFalse())
+					Expect(isJsonString).To(BeTrue())
+				default:
+					Expect(isIgnored).To(BeFalse())
+					Expect(isJsonString).To(BeFalse())
+				}
+			}
+		}
 	})
 })

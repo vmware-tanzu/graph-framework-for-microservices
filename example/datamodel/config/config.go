@@ -28,6 +28,8 @@ type Config struct {
 	FooB              BArray
 	FooC              CInt   `nexus-graphql:"ignore:true"`
 	FooD              DFloat `nexus-graphql:"type:string"`
+	FooE              CInt   `json:"foo_e" nexus-graphql:"ignore:true"`
+	FooF              DFloat `json:"foo_f" yaml:"c_int" nexus-graphql:"type:string"`
 	XYZPort           []gns.Description
 	ABCHost           []gns.Host
 	ClusterNamespaces []ClusterNamespace
