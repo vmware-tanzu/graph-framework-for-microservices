@@ -145,8 +145,8 @@ type config_Config {
  
 type config_ClusterNamespace {
 
-    
-    
+    Cluster: config_MatchCondition
+    Namespace: config_MatchCondition
 }
 
 
@@ -256,7 +256,7 @@ type gns_Description {
     Version: String
     ProjectID: String
     Instance: Float
-    
+    HostPort: gns_HostPort
 }
 
 

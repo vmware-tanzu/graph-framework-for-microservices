@@ -388,6 +388,7 @@ func GenerateGraphqlResolverVars(baseGroupName, crdModulePath string, pkgs parse
 								resField[nodeProp.PkgName+nodeProp.NodeName] = append(resField[nodeProp.PkgName+nodeProp.NodeName], fieldProp)
 							} else {
 								// CustomType Resolver
+								fieldProp.SchemaFieldName = fmt.Sprintf("%s: %s", fieldProp.FieldName, schemaTypeName)
 								if parser.IsNexusNode(node) {
 									fieldProp.IsCustomTypeField = true
 									schemaTypeName, resolverTypeName := validateImportPkg(pkg, typeString, importMap)
