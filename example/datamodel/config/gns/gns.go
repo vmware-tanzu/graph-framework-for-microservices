@@ -97,15 +97,20 @@ type Description struct {
 	Color     string
 	Version   string
 	ProjectID string
+	TestAns   []Answer
 	Instance  Instance
 	HostPort  HostPort
 }
 
 type Bar struct {
 	nexus.Node
-	Name string
+	Name []string
 }
 
 type EmptyData struct {
 	nexus.Node
+}
+
+type Answer struct {
+	Name string
 }

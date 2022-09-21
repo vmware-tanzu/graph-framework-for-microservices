@@ -116,7 +116,7 @@ func (c *Bar) DisplayName() string {
 
 // +k8s:openapi-gen=true
 type BarSpec struct {
-	Name string `json:"name" yaml:"name"`
+	Name []string `json:"name" yaml:"name"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
@@ -172,8 +172,14 @@ type Description struct {
 	Color     string
 	Version   string
 	ProjectID string
+	TestAns   []Answer
 	Instance  Instance
 	HostPort  HostPort
+}
+
+// +k8s:openapi-gen=true
+type Answer struct {
+	Name string
 }
 
 type Port uint16

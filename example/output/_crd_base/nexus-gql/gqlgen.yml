@@ -91,3 +91,8 @@ models:
       Array4:
         resolver: true
 
+  gns_Bar:
+    fields:
+      Name:
+        resolver: true
+

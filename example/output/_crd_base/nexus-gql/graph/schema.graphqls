@@ -317,7 +317,7 @@ type gns_Bar {
         endTime: String
     ): TimeSeriesData
 
-    Name: String
+    Name: [String]!
 }
 
 
@@ -378,6 +378,13 @@ type gns_EmptyData {
         endTime: String
     ): TimeSeriesData
 
+}
+
+
+ 
+type gns_Answer {
+
+    Name: String
 }
 
 
