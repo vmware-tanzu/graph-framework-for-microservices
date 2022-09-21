@@ -689,6 +689,24 @@ func (group *ConfigTsmV1) UpdateConfigByName(ctx context.Context,
 	}
 	patch = append(patch, patchOpFooD)
 
+	patchValueFooE :=
+		objToUpdate.Spec.FooE
+	patchOpFooE := PatchOp{
+		Op:    "replace",
+		Path:  "/spec/fooE",
+		Value: patchValueFooE,
+	}
+	patch = append(patch, patchOpFooE)
+
+	patchValueFooF :=
+		objToUpdate.Spec.FooF
+	patchOpFooF := PatchOp{
+		Op:    "replace",
+		Path:  "/spec/fooF",
+		Value: patchValueFooF,
+	}
+	patch = append(patch, patchOpFooF)
+
 	patchValueXYZPort :=
 		objToUpdate.Spec.XYZPort
 	patchOpXYZPort := PatchOp{
@@ -1841,8 +1859,6 @@ func (group *GnsTsmV1) CreateEmptyDataByName(ctx context.Context,
 		objToCreate.Labels[common.DISPLAY_NAME_LABEL] = objToCreate.GetName()
 	}
 
-	objToCreate.Spec.NoLinkGvk = nil
-
 	result, err := group.client.baseClient.
 		GnsTsmV1().
 		EmptyDatas().Create(ctx, objToCreate, metav1.CreateOptions{})
@@ -1979,67 +1995,6 @@ func (c *Clientset) AddGnsEmptyData(ctx context.Context,
 func (c *Clientset) DeleteGnsEmptyData(ctx context.Context, displayName string) (err error) {
 	hashedName := helper.GetHashedName("emptydatas.gns.tsm.tanzu.vmware.com", nil, displayName)
 	return c.Gns().DeleteEmptyDataByName(ctx, hashedName)
-}
-
-// GetNoLink returns link of given type
-func (obj *GnsEmptyData) GetNoLink(ctx context.Context) (
-	result *GnsBar, err error) {
-	if obj.Spec.NoLinkGvk == nil {
-		return nil, NewLinkNotFound(obj.DisplayName(), "Gns.EmptyData", "NoLink")
-	}
-	return obj.client.Gns().GetBarByName(ctx, obj.Spec.NoLinkGvk.Name)
-}
-
-// LinkNoLink links obj with linkToAdd object. This function doesn't create linked object, it must be
-// already created.
-func (obj *GnsEmptyData) LinkNoLink(ctx context.Context,
-	linkToAdd *GnsBar) error {
-
-	var patch Patch
-	patchOp := PatchOp{
-		Op:   "replace",
-		Path: "/spec/noLinkGvk",
-		Value: basegnstsmtanzuvmwarecomv1.Child{
-			Group: "gns.tsm.tanzu.vmware.com",
-			Kind:  "Bar",
-			Name:  linkToAdd.Name,
-		},
-	}
-	patch = append(patch, patchOp)
-	marshaled, err := patch.Marshal()
-	if err != nil {
-		return err
-	}
-	result, err := obj.client.baseClient.GnsTsmV1().EmptyDatas().Patch(ctx, obj.Name, types.JSONPatchType, marshaled, metav1.PatchOptions{})
-	if err != nil {
-		return err
-	}
-
-	obj.EmptyData = result
-	return nil
-}
-
-// UnlinkNoLink unlinks linkToRemove object from obj. This function doesn't delete linked object.
-func (obj *GnsEmptyData) UnlinkNoLink(ctx context.Context) (err error) {
-	var patch Patch
-
-	patchOp := PatchOp{
-		Op:   "remove",
-		Path: "/spec/noLinkGvk",
-	}
-
-	patch = append(patch, patchOp)
-	marshaled, err := patch.Marshal()
-	if err != nil {
-		return err
-	}
-	result, err := obj.client.baseClient.GnsTsmV1().EmptyDatas().Patch(ctx, obj.Name, types.JSONPatchType, marshaled, metav1.PatchOptions{})
-	if err != nil {
-		return err
-	}
-	obj.EmptyData = result
-	return nil
-
 }
 
 type emptydataGnsTsmV1Chainer struct {

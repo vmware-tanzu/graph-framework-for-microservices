@@ -132,6 +132,7 @@ type config_Config {
     FooMap: String
     FooB: String
     FooD: String
+    FooF: String
     XYZPort: String
     ABCHost: String
     ClusterNamespaces: String
@@ -341,7 +342,6 @@ type gns_EmptyData {
         endTime: String
     ): TimeSeriesData
 
-    NoLink: gns_Bar!
 }
 
 

@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"go/types"
 	"log"
-	"regexp"
 	"sort"
 	"strings"
 
@@ -96,27 +95,28 @@ func convertGraphqlStdType(t string) string {
 	}
 }
 
-func getArraySchema(FieldName, schemaTypeName string, nonStructMap map[string]string) string {
-	if val, ok := nonStructMap[schemaTypeName]; ok {
-		if convertGraphqlStdType(val) != "" {
-			return fmt.Sprintf("%s: [%s]!", FieldName, convertGraphqlStdType(val))
-		} else {
-			if strings.HasPrefix(val, "[]") {
-				arrStd := regexp.MustCompile(`^(\[])`).ReplaceAllString(val, "")
-				return fmt.Sprintf("%s: [%s]!", FieldName, convertGraphqlStdType(arrStd))
-			}
-			return fmt.Sprintf("%s: [%s]!", FieldName, val)
-		}
-	} else {
-		return fmt.Sprintf("%s: [%s]!", FieldName, schemaTypeName)
-	}
-}
+// func getArraySchema(FieldName, schemaTypeName string, nonStructMap map[string]string) string {
+// 	if val, ok := nonStructMap[schemaTypeName]; ok {
+// 		if convertGraphqlStdType(val) != "" {
+// 			return fmt.Sprintf("%s: [%s]!", FieldName, convertGraphqlStdType(val))
+// 		} else {
+// 			if strings.HasPrefix(val, "[]") {
+// 				arrStd := regexp.MustCompile(`^(\[])`).ReplaceAllString(val, "")
+// 				return fmt.Sprintf("%s: [%s]!", FieldName, convertGraphqlStdType(arrStd))
+// 			}
+// 			return fmt.Sprintf("%s: [%s]!", FieldName, val)
+// 		}
+// 	} else {
+// 		return fmt.Sprintf("%s: [%s]!", FieldName, schemaTypeName)
+// 	}
+// }
+
+// func jsonMarshalCustomResolver(FieldName, PkgName, FieldType string) string {
+// 	return fmt.Sprintf("%s, _ := json.Marshal(v%s.Spec.%s.%s)\n%sData := string(%s)\n", FieldName, PkgName, FieldType, FieldName, FieldName, FieldName)
+// }
 
 func jsonMarshalResolver(FieldName, PkgName string) string {
 	return fmt.Sprintf("%s, _ := json.Marshal(v%s.Spec.%s)\n%sData := string(%s)\n", FieldName, PkgName, FieldName, FieldName, FieldName)
-}
-func jsonMarshalCustomResolver(FieldName, PkgName, FieldType string) string {
-	return fmt.Sprintf("%s, _ := json.Marshal(v%s.Spec.%s.%s)\n%sData := string(%s)\n", FieldName, PkgName, FieldType, FieldName, FieldName, FieldName)
 }
 
 func validateImportPkg(pkg parser.Package, typeString string, importMap map[string]string) (string, string) {

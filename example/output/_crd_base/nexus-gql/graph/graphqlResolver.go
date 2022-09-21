@@ -828,6 +828,8 @@ FooB, _ := json.Marshal(vConfig.Spec.FooB)
 FooBData := string(FooB)
 FooD, _ := json.Marshal(vConfig.Spec.FooD)
 FooDData := string(FooD)
+FooF, _ := json.Marshal(vConfig.Spec.FooF)
+FooFData := string(FooF)
 XYZPort, _ := json.Marshal(vConfig.Spec.XYZPort)
 XYZPortData := string(XYZPort)
 ABCHost, _ := json.Marshal(vConfig.Spec.ABCHost)
@@ -842,6 +844,7 @@ ClusterNamespacesData := string(ClusterNamespaces)
 	FooMap: &FooMapData,
 	FooB: &FooBData,
 	FooD: &FooDData,
+	FooF: &FooFData,
 	XYZPort: &XYZPortData,
 	ABCHost: &ABCHostData,
 	ClusterNamespaces: &ClusterNamespacesData,
@@ -999,23 +1002,5 @@ func (c *resolverConfig) getGnsGnsFooChildrenResolver(id *string) ([]*model.GnsB
 	}
 	return vGnsBarList, nil
 	
-}
-
-//////////////////////////////////////
-// Child/Link Node : NoLink Bar
-// Resolver for EmptyData
-//////////////////////////////////////
-func (c *resolverConfig) getGnsEmptyDataNoLinkResolver() (*model.GnsBar, error) {
-	vBar, err := c.vGnsEmptyData.GetNoLink(context.TODO())
-	if err != nil {
-		panic(err)
-	}
-	c.vGnsBar = vBar
-	vName := int(vBar.Spec.Name)
-
-	ret := &model.GnsBar {
-	Name: &vName,
-	}
-	return ret, nil
 }
 

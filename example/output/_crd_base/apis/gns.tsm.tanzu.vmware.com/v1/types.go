@@ -134,8 +134,8 @@ type BarList struct {
 type EmptyData struct {
 	metav1.TypeMeta   `json:",inline" yaml:",inline"`
 	metav1.ObjectMeta `json:"metadata" yaml:"metadata"`
-	Spec              EmptyDataSpec        `json:"spec,omitempty" yaml:"spec,omitempty"`
-	Status            EmptyDataNexusStatus `json:"status,omitempty" yaml:"status,omitempty"`
+
+	Status EmptyDataNexusStatus `json:"status,omitempty" yaml:"status,omitempty"`
 }
 
 // +k8s:openapi-gen=true
@@ -152,11 +152,6 @@ func (c *EmptyData) DisplayName() string {
 		return c.GetLabels()[common.DISPLAY_NAME_LABEL]
 	}
 	return ""
-}
-
-// +k8s:openapi-gen=true
-type EmptyDataSpec struct {
-	NoLinkGvk *Link `json:"noLinkGvk,omitempty" yaml:"noLinkGvk,omitempty" nexus:"link"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
