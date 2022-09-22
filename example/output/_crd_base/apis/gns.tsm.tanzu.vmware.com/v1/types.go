@@ -66,7 +66,6 @@ type GnsSpec struct {
 	UseSharedGateway bool             `json:"useSharedGateway" yaml:"useSharedGateway"`
 	Mydesc           Description      `json:"mydesc" yaml:"mydesc"`
 	HostPort         HostPort         `json:"hostPort" yaml:"hostPort"`
-	TestArray        EmptyData        `json:"testArray" yaml:"testArray"`
 	Instance         Instance         `json:"instance" yaml:"instance"`
 	Array1           float32          `json:"array1" yaml:"array1"`
 	Array2           []Description    `json:"array2" yaml:"array2"`
@@ -124,41 +123,6 @@ type BarList struct {
 	metav1.TypeMeta `json:",inline" yaml:",inline"`
 	metav1.ListMeta `json:"metadata" yaml:"metadata"`
 	Items           []Bar `json:"items" yaml:"items"`
-}
-
-// +genclient
-// +genclient:noStatus
-// +genclient:nonNamespaced
-// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
-// +k8s:openapi-gen=true
-type EmptyData struct {
-	metav1.TypeMeta   `json:",inline" yaml:",inline"`
-	metav1.ObjectMeta `json:"metadata" yaml:"metadata"`
-
-	Status EmptyDataNexusStatus `json:"status,omitempty" yaml:"status,omitempty"`
-}
-
-// +k8s:openapi-gen=true
-type EmptyDataNexusStatus struct {
-	Nexus NexusStatus `json:"nexus,omitempty" yaml:"nexus,omitempty"`
-}
-
-func (c *EmptyData) CRDName() string {
-	return "emptydatas.gns.tsm.tanzu.vmware.com"
-}
-
-func (c *EmptyData) DisplayName() string {
-	if c.GetLabels() != nil {
-		return c.GetLabels()[common.DISPLAY_NAME_LABEL]
-	}
-	return ""
-}
-
-// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
-type EmptyDataList struct {
-	metav1.TypeMeta `json:",inline" yaml:",inline"`
-	metav1.ListMeta `json:"metadata" yaml:"metadata"`
-	Items           []EmptyData `json:"items" yaml:"items"`
 }
 
 // +k8s:openapi-gen=true

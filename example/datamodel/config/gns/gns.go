@@ -83,7 +83,6 @@ type Gns struct {
 	FooChild         Bar `nexus:"child"`
 	FooChildren      Bar `nexus:"children"`
 	HostPort         HostPort
-	TestArray        EmptyData
 	Instance         Instance
 	Array1           float32
 	Array2           []Description
@@ -105,10 +104,6 @@ type Description struct {
 type Bar struct {
 	nexus.Node
 	Name uint64
-}
-
-type EmptyData struct {
-	nexus.Node
 }
 
 type Answer struct {
