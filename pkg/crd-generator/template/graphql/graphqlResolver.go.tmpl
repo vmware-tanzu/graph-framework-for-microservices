@@ -4,12 +4,14 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	nexus_client "{{.BaseImportPath}}nexus-client"
-	"{{.BaseImportPath}}nexus-gql/graph/model"
+
+	"k8s.io/client-go/rest"
 
 	qm "gitlab.eng.vmware.com/nsx-allspark_users/go-protos/pkg/query-manager"
 	libgrpc "gitlab.eng.vmware.com/nsx-allspark_users/lib-go/grpc"
-	"k8s.io/client-go/rest"
+	log "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler/pkg/logging"
+	nexus_client "{{.BaseImportPath}}nexus-client"
+	"{{.BaseImportPath}}nexus-gql/graph/model"
 )
 
 var c resolverConfig
@@ -61,11 +63,12 @@ func (c *resolverConfig) getRootResolver() (*model.{{$node.PkgName}}{{$node.Node
 	k8sApiConfig := getK8sAPIEndpointConfig()
 	nc, err := nexus_client.NewForConfig(k8sApiConfig)
 	if err != nil {
-		panic(err)
+        return nil, fmt.Errorf("failed to get k8s client config: %s", err)
 	}
 	v{{$node.NodeName}}, err := nc.Get{{$node.PkgName}}{{$node.NodeName}}(context.TODO())
 	if err != nil {
-		panic(err)
+	    log.Errorf("Error getting root node %s", err)
+        return nil, fmt.Errorf("failed to get root node: %s", err)
 	}
 	c.v{{$node.PkgName}}{{$node.NodeName}} = v{{$node.NodeName}}
 	{{ if $node.ReturnType }}
@@ -224,8 +227,9 @@ func (c *resolverConfig) get{{$node.PkgName}}{{$node.NodeName}}queryServiceTopol
 func (c *resolverConfig) get{{$child.PkgName}}{{$child.NodeName}}{{$child.FieldName}}Resolver() (*model.{{$child.FieldTypePkgPath}}, error) {
 	{{ if ( gt $child.FieldCount  0) }}v{{$child.BaseTypeName}}, err := c.v{{$child.PkgName}}{{$child.NodeName}}.Get{{$child.FieldName}}(context.TODO())
 	if err != nil {
-		panic(err)
-	}
+	    log.Errorf("Error getting node %s", err)
+        return nil, fmt.Errorf("failed to get node: %s", err)
+    }
 	c.v{{$child.FieldTypePkgPath}} = v{{$child.BaseTypeName}}
 	{{ $child.Alias }}
 	{{ $child.ReturnType }}
@@ -242,8 +246,9 @@ func (c *resolverConfig) get{{$child.PkgName}}{{$child.NodeName}}{{$child.FieldN
 	if id != nil && *id != "" {
 		v{{$child.BaseTypeName}}, err := c.v{{$child.PkgName}}{{$child.NodeName}}.Get{{$child.FieldName}}(context.TODO(), *id)
 		if err != nil {
-			panic(err)
-		}
+	        log.Errorf("Error getting node %s", err)
+            return nil, fmt.Errorf("failed to get node: %s", err)
+        }
 		{{ $child.Alias }}
 		{{ $child.ReturnType }}
 		v{{$child.FieldTypePkgPath}}List = append(v{{$child.FieldTypePkgPath}}List, ret)
@@ -252,7 +257,8 @@ func (c *resolverConfig) get{{$child.PkgName}}{{$child.NodeName}}{{$child.FieldN
 	for i := range c.v{{$child.PkgName}}{{$child.NodeName}}.Spec.{{$child.FieldName}}Gvk {
 		v{{$child.BaseTypeName}}, err := c.v{{$child.PkgName}}{{$child.NodeName}}.Get{{$child.FieldName}}(context.TODO(), i)
 		if err != nil {
-			panic(err)
+	        log.Errorf("Error getting node %s", err)
+            return nil, fmt.Errorf("failed to get node: %s", err)
 		}
 		{{ $child.Alias }}
 		{{ $child.ReturnType }}

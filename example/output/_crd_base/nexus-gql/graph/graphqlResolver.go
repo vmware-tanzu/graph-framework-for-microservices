@@ -4,12 +4,14 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	nexus_client "nexustempmodule/nexus-client"
-	"nexustempmodule/nexus-gql/graph/model"
+
+	"k8s.io/client-go/rest"
 
 	qm "gitlab.eng.vmware.com/nsx-allspark_users/go-protos/pkg/query-manager"
 	libgrpc "gitlab.eng.vmware.com/nsx-allspark_users/lib-go/grpc"
-	"k8s.io/client-go/rest"
+	log "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler/pkg/logging"
+	nexus_client "nexustempmodule/nexus-client"
+	"nexustempmodule/nexus-gql/graph/model"
 )
 
 var c resolverConfig
@@ -64,19 +66,22 @@ func (c *resolverConfig) getRootResolver() (*model.RootRoot, error) {
 	k8sApiConfig := getK8sAPIEndpointConfig()
 	nc, err := nexus_client.NewForConfig(k8sApiConfig)
 	if err != nil {
-		panic(err)
+        return nil, fmt.Errorf("failed to get k8s client config: %s", err)
 	}
 	vRoot, err := nc.GetRootRoot(context.TODO())
 	if err != nil {
-		panic(err)
+	    log.Errorf("Error getting root node %s", err)
+        return nil, fmt.Errorf("failed to get root node: %s", err)
 	}
 	c.vRootRoot = vRoot
 	
-	vDisplayName := string(vRoot.Spec.DisplayName)
+	id := vRoot.DisplayName()
+vDisplayName := string(vRoot.Spec.DisplayName)
 CustomBar, _ := json.Marshal(vRoot.Spec.CustomBar)
 CustomBarData := string(CustomBar)
 
 	ret := &model.RootRoot {
+	Id: &id,
 	DisplayName: &vDisplayName,
 	CustomBar: &CustomBarData,
 	}
@@ -671,10 +676,12 @@ func (c *resolverConfig) getGnsBarqueryServiceTopologyResolver(startTime *string
 func (c *resolverConfig) getRootRootConfigResolver() (*model.ConfigConfig, error) {
 	vConfig, err := c.vRootRoot.GetConfig(context.TODO())
 	if err != nil {
-		panic(err)
-	}
+	    log.Errorf("Error getting node %s", err)
+        return nil, fmt.Errorf("failed to get node: %s", err)
+    }
 	c.vConfigConfig = vConfig
-	vConfigName := string(vConfig.Spec.ConfigName)
+	id := vConfig.DisplayName()
+vConfigName := string(vConfig.Spec.ConfigName)
 Cluster, _ := json.Marshal(vConfig.Spec.Cluster)
 ClusterData := string(Cluster)
 FooA, _ := json.Marshal(vConfig.Spec.FooA)
@@ -695,6 +702,7 @@ ClusterNamespaces, _ := json.Marshal(vConfig.Spec.ClusterNamespaces)
 ClusterNamespacesData := string(ClusterNamespaces)
 
 	ret := &model.ConfigConfig {
+	Id: &id,
 	ConfigName: &vConfigName,
 	Cluster: &ClusterData,
 	FooA: &FooAData,
@@ -716,10 +724,12 @@ ClusterNamespacesData := string(ClusterNamespaces)
 func (c *resolverConfig) getConfigConfigGNSResolver() (*model.GnsGns, error) {
 	vGns, err := c.vConfigConfig.GetGNS(context.TODO())
 	if err != nil {
-		panic(err)
-	}
+	    log.Errorf("Error getting node %s", err)
+        return nil, fmt.Errorf("failed to get node: %s", err)
+    }
 	c.vGnsGns = vGns
-	vDomain := string(vGns.Spec.Domain)
+	id := vGns.DisplayName()
+vDomain := string(vGns.Spec.Domain)
 vUseSharedGateway := bool(vGns.Spec.UseSharedGateway)
 Mydesc, _ := json.Marshal(vGns.Spec.Mydesc)
 MydescData := string(Mydesc)
@@ -738,6 +748,7 @@ Array5, _ := json.Marshal(vGns.Spec.Array5)
 Array5Data := string(Array5)
 
 	ret := &model.GnsGns {
+	Id: &id,
 	Domain: &vDomain,
 	UseSharedGateway: &vUseSharedGateway,
 	Mydesc: &MydescData,
@@ -759,12 +770,15 @@ Array5Data := string(Array5)
 func (c *resolverConfig) getGnsGnsFooLinkResolver() (*model.GnsBar, error) {
 	vBar, err := c.vGnsGns.GetFooLink(context.TODO())
 	if err != nil {
-		panic(err)
-	}
+	    log.Errorf("Error getting node %s", err)
+        return nil, fmt.Errorf("failed to get node: %s", err)
+    }
 	c.vGnsBar = vBar
-	vName := int(vBar.Spec.Name)
+	id := vBar.DisplayName()
+vName := int(vBar.Spec.Name)
 
 	ret := &model.GnsBar {
+	Id: &id,
 	Name: &vName,
 	}
 	return ret, nil
@@ -777,12 +791,15 @@ func (c *resolverConfig) getGnsGnsFooLinkResolver() (*model.GnsBar, error) {
 func (c *resolverConfig) getGnsGnsFooChildResolver() (*model.GnsBar, error) {
 	vBar, err := c.vGnsGns.GetFooChild(context.TODO())
 	if err != nil {
-		panic(err)
-	}
+	    log.Errorf("Error getting node %s", err)
+        return nil, fmt.Errorf("failed to get node: %s", err)
+    }
 	c.vGnsBar = vBar
-	vName := int(vBar.Spec.Name)
+	id := vBar.DisplayName()
+vName := int(vBar.Spec.Name)
 
 	ret := &model.GnsBar {
+	Id: &id,
 	Name: &vName,
 	}
 	return ret, nil
@@ -797,11 +814,14 @@ func (c *resolverConfig) getGnsGnsFooLinksResolver(id *string) ([]*model.GnsBar,
 	if id != nil && *id != "" {
 		vBar, err := c.vGnsGns.GetFooLinks(context.TODO(), *id)
 		if err != nil {
-			panic(err)
-		}
-		vName := int(vBar.Spec.Name)
+	        log.Errorf("Error getting node %s", err)
+            return nil, fmt.Errorf("failed to get node: %s", err)
+        }
+		id := vBar.DisplayName()
+vName := int(vBar.Spec.Name)
 
 		ret := &model.GnsBar {
+	Id: &id,
 	Name: &vName,
 	}
 		vGnsBarList = append(vGnsBarList, ret)
@@ -810,11 +830,14 @@ func (c *resolverConfig) getGnsGnsFooLinksResolver(id *string) ([]*model.GnsBar,
 	for i := range c.vGnsGns.Spec.FooLinksGvk {
 		vBar, err := c.vGnsGns.GetFooLinks(context.TODO(), i)
 		if err != nil {
-			panic(err)
+	        log.Errorf("Error getting node %s", err)
+            return nil, fmt.Errorf("failed to get node: %s", err)
 		}
-		vName := int(vBar.Spec.Name)
+		id := vBar.DisplayName()
+vName := int(vBar.Spec.Name)
 
 		ret := &model.GnsBar {
+	Id: &id,
 	Name: &vName,
 	}
 		vGnsBarList = append(vGnsBarList, ret)
@@ -832,11 +855,14 @@ func (c *resolverConfig) getGnsGnsFooChildrenResolver(id *string) ([]*model.GnsB
 	if id != nil && *id != "" {
 		vBar, err := c.vGnsGns.GetFooChildren(context.TODO(), *id)
 		if err != nil {
-			panic(err)
-		}
-		vName := int(vBar.Spec.Name)
+	        log.Errorf("Error getting node %s", err)
+            return nil, fmt.Errorf("failed to get node: %s", err)
+        }
+		id := vBar.DisplayName()
+vName := int(vBar.Spec.Name)
 
 		ret := &model.GnsBar {
+	Id: &id,
 	Name: &vName,
 	}
 		vGnsBarList = append(vGnsBarList, ret)
@@ -845,11 +871,14 @@ func (c *resolverConfig) getGnsGnsFooChildrenResolver(id *string) ([]*model.GnsB
 	for i := range c.vGnsGns.Spec.FooChildrenGvk {
 		vBar, err := c.vGnsGns.GetFooChildren(context.TODO(), i)
 		if err != nil {
-			panic(err)
+	        log.Errorf("Error getting node %s", err)
+            return nil, fmt.Errorf("failed to get node: %s", err)
 		}
-		vName := int(vBar.Spec.Name)
+		id := vBar.DisplayName()
+vName := int(vBar.Spec.Name)
 
 		ret := &model.GnsBar {
+	Id: &id,
 	Name: &vName,
 	}
 		vGnsBarList = append(vGnsBarList, ret)

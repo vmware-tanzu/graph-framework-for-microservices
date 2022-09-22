@@ -310,6 +310,11 @@ func GenerateGraphqlResolverVars(baseGroupName, crdModulePath string, pkgs parse
 		var fieldCount int
 		if len(n.ResolverFields[n.PkgName+n.NodeName]) > 0 {
 			retType += fmt.Sprintf("ret := &model.%s%s {\n", n.PkgName, n.NodeName)
+
+			if n.IsNexusNode || n.IsSingletonNode {
+				retType += fmt.Sprintf("\t%s: &%s,\n", "Id", "id")
+				aliasVal += fmt.Sprintf("%s := v%s.DisplayName()\n", "id", n.NodeName)
+			}
 			for _, i := range n.ResolverFields[n.PkgName+n.NodeName] {
 				if i.IsAliasTypeField {
 					if val, ok := nonStructMap[i.SchemaTypeName]; ok {
