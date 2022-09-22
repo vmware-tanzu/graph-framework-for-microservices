@@ -61,32 +61,37 @@ func grpcServer() qm.ServerClient{
 
 
 //////////////////////////////////////
-// Singleton Resolver for Parent Node: Root
+// Non singleton Resolver for Parent Node: Root
 //////////////////////////////////////
-func (c *resolverConfig) getRootResolver() (*model.RootRoot, error) {
+func (c *resolverConfig) getRootResolver(id *string) (*model.RootRoot, error) {
 	k8sApiConfig := getK8sAPIEndpointConfig()
 	nc, err := nexus_client.NewForConfig(k8sApiConfig)
 	if err != nil {
-        return nil, fmt.Errorf("failed to get k8s client config: %s", err)
+		return nil, fmt.Errorf("failed to get k8s client config: %s", err)
 	}
-	vRoot, err := nc.GetRootRoot(context.TODO())
-	if err != nil {
-	    log.Errorf("Error getting root node %s", err)
-        return nil, fmt.Errorf("failed to get root node: %s", err)
-	}
-	c.vRootRoot = vRoot
-	id := vRoot.DisplayName()
+	if id != nil && *id != "" {
+		vRoot, err := nc.GetRootRoot(context.TODO(), *id)
+		if err != nil {
+			log.Errorf("Error getting root node %s", err)
+			return nil, fmt.Errorf("failed to get root node: %s", err)
+		}
+		c.vRootRoot = vRoot
+		id := vRoot.DisplayName()
 vDisplayName := string(vRoot.Spec.DisplayName)
 CustomBar, _ := json.Marshal(vRoot.Spec.CustomBar)
 CustomBarData := string(CustomBar)
 
-	ret := &model.RootRoot {
+		ret := &model.RootRoot {
 	Id: &id,
 	DisplayName: &vDisplayName,
 	CustomBar: &CustomBarData,
 	}
+		return ret, nil
+	}
+	ret := &model.RootRoot{}
 	return ret, nil
 }
+
 
 //////////////////////////////////////
 // CustomQuery Resolver for Node: RootRoot
