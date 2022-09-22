@@ -5,11 +5,11 @@ import (
 	"encoding/json"
 	"fmt"
 
+	log "github.com/sirupsen/logrus"
 	"k8s.io/client-go/rest"
 
 	qm "gitlab.eng.vmware.com/nsx-allspark_users/go-protos/pkg/query-manager"
 	libgrpc "gitlab.eng.vmware.com/nsx-allspark_users/lib-go/grpc"
-	log "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler/pkg/logging"
 	nexus_client "nexustempmodule/nexus-client"
 	"nexustempmodule/nexus-gql/graph/model"
 )
