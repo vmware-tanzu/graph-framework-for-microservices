@@ -103,7 +103,6 @@ type Description struct {
 
 type Bar struct {
 	nexus.Node
-	Name uint64
 }
 
 type Answer struct {

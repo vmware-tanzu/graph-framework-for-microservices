@@ -59,8 +59,9 @@ func grpcServer() qm.ServerClient{
 }
 
 
+
 //////////////////////////////////////
-// Resolver for Parent Node: Root
+// Singleton Resolver for Parent Node: Root
 //////////////////////////////////////
 func (c *resolverConfig) getRootResolver() (*model.RootRoot, error) {
 	k8sApiConfig := getK8sAPIEndpointConfig()
@@ -74,7 +75,6 @@ func (c *resolverConfig) getRootResolver() (*model.RootRoot, error) {
         return nil, fmt.Errorf("failed to get root node: %s", err)
 	}
 	c.vRootRoot = vRoot
-	
 	id := vRoot.DisplayName()
 vDisplayName := string(vRoot.Spec.DisplayName)
 CustomBar, _ := json.Marshal(vRoot.Spec.CustomBar)
@@ -775,11 +775,9 @@ func (c *resolverConfig) getGnsGnsFooLinkResolver() (*model.GnsBar, error) {
     }
 	c.vGnsBar = vBar
 	id := vBar.DisplayName()
-vName := int(vBar.Spec.Name)
 
 	ret := &model.GnsBar {
 	Id: &id,
-	Name: &vName,
 	}
 	return ret, nil
 }
@@ -796,11 +794,9 @@ func (c *resolverConfig) getGnsGnsFooChildResolver() (*model.GnsBar, error) {
     }
 	c.vGnsBar = vBar
 	id := vBar.DisplayName()
-vName := int(vBar.Spec.Name)
 
 	ret := &model.GnsBar {
 	Id: &id,
-	Name: &vName,
 	}
 	return ret, nil
 }
@@ -818,11 +814,9 @@ func (c *resolverConfig) getGnsGnsFooLinksResolver(id *string) ([]*model.GnsBar,
             return nil, fmt.Errorf("failed to get node: %s", err)
         }
 		id := vBar.DisplayName()
-vName := int(vBar.Spec.Name)
 
 		ret := &model.GnsBar {
 	Id: &id,
-	Name: &vName,
 	}
 		vGnsBarList = append(vGnsBarList, ret)
 		return vGnsBarList, nil
@@ -834,16 +828,13 @@ vName := int(vBar.Spec.Name)
             return nil, fmt.Errorf("failed to get node: %s", err)
 		}
 		id := vBar.DisplayName()
-vName := int(vBar.Spec.Name)
 
 		ret := &model.GnsBar {
 	Id: &id,
-	Name: &vName,
 	}
 		vGnsBarList = append(vGnsBarList, ret)
 	}
 	return vGnsBarList, nil
-	
 }
 
 //////////////////////////////////////
@@ -859,11 +850,9 @@ func (c *resolverConfig) getGnsGnsFooChildrenResolver(id *string) ([]*model.GnsB
             return nil, fmt.Errorf("failed to get node: %s", err)
         }
 		id := vBar.DisplayName()
-vName := int(vBar.Spec.Name)
 
 		ret := &model.GnsBar {
 	Id: &id,
-	Name: &vName,
 	}
 		vGnsBarList = append(vGnsBarList, ret)
 		return vGnsBarList, nil
@@ -875,15 +864,12 @@ vName := int(vBar.Spec.Name)
             return nil, fmt.Errorf("failed to get node: %s", err)
 		}
 		id := vBar.DisplayName()
-vName := int(vBar.Spec.Name)
 
 		ret := &model.GnsBar {
 	Id: &id,
-	Name: &vName,
 	}
 		vGnsBarList = append(vGnsBarList, ret)
 	}
 	return vGnsBarList, nil
-	
 }
 

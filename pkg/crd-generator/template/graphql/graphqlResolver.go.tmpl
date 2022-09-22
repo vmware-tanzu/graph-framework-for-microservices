@@ -56,8 +56,9 @@ func grpcServer() qm.ServerClient{
 }
 {{ range $key, $node := .Nodes }}
 {{ if $node.IsParentNode }}
+{{ if $node.IsSingletonNode }}
 //////////////////////////////////////
-// Resolver for Parent Node: {{$node.PkgName}}
+// Singleton Resolver for Parent Node: {{$node.PkgName}}
 //////////////////////////////////////
 func (c *resolverConfig) getRootResolver() (*model.{{$node.PkgName}}{{$node.NodeName}}, error) {
 	k8sApiConfig := getK8sAPIEndpointConfig()
@@ -71,13 +72,34 @@ func (c *resolverConfig) getRootResolver() (*model.{{$node.PkgName}}{{$node.Node
         return nil, fmt.Errorf("failed to get root node: %s", err)
 	}
 	c.v{{$node.PkgName}}{{$node.NodeName}} = v{{$node.NodeName}}
-	{{ if $node.ReturnType }}
 	{{ $node.Alias }}
 	{{ $node.ReturnType }}
-	return ret, nil{{ else }}
-	ret := &model.{{$node.PkgName}}{{$node.NodeName}} {}
-	return ret, nil{{ end }}
-}{{end}}
+	return ret, nil
+}{{ else }}
+//////////////////////////////////////
+// Non singleton Resolver for Parent Node: {{$node.PkgName}}
+//////////////////////////////////////
+func (c *resolverConfig) getRootResolver(id *string) (*model.{{$node.PkgName}}{{$node.NodeName}}, error) {
+	k8sApiConfig := getK8sAPIEndpointConfig()
+	nc, err := nexus_client.NewForConfig(k8sApiConfig)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get k8s client config: %s", err)
+	}
+	if id != nil && *id != "" {
+		v{{$node.NodeName}}, err := nc.Get{{$node.PkgName}}{{$node.NodeName}}(context.TODO(), *id)
+		if err != nil {
+			log.Errorf("Error getting root node %s", err)
+			return nil, fmt.Errorf("failed to get root node: %s", err)
+		}
+		c.v{{$node.PkgName}}{{$node.NodeName}} = v{{$node.NodeName}}
+		{{ $node.Alias }}
+		{{ $node.ReturnType }}
+		return ret, nil
+	}
+	ret := &model.{{$node.PkgName}}{{$node.NodeName}}{}
+	return ret, nil
+}
+{{ end }}{{end}}
 {{ if $node.IsNexusNode }}
 //////////////////////////////////////
 // CustomQuery Resolver for Node: {{$node.PkgName}}{{$node.NodeName}}
@@ -225,7 +247,7 @@ func (c *resolverConfig) get{{$node.PkgName}}{{$node.NodeName}}queryServiceTopol
 // Resolver for {{$child.NodeName}}
 //////////////////////////////////////
 func (c *resolverConfig) get{{$child.PkgName}}{{$child.NodeName}}{{$child.FieldName}}Resolver() (*model.{{$child.FieldTypePkgPath}}, error) {
-	{{ if ( gt $child.FieldCount  0) }}v{{$child.BaseTypeName}}, err := c.v{{$child.PkgName}}{{$child.NodeName}}.Get{{$child.FieldName}}(context.TODO())
+	v{{$child.BaseTypeName}}, err := c.v{{$child.PkgName}}{{$child.NodeName}}.Get{{$child.FieldName}}(context.TODO())
 	if err != nil {
 	    log.Errorf("Error getting node %s", err)
         return nil, fmt.Errorf("failed to get node: %s", err)
@@ -233,8 +255,7 @@ func (c *resolverConfig) get{{$child.PkgName}}{{$child.NodeName}}{{$child.FieldN
 	c.v{{$child.FieldTypePkgPath}} = v{{$child.BaseTypeName}}
 	{{ $child.Alias }}
 	{{ $child.ReturnType }}
-	return ret, nil{{ else }}ret := &model.{{$child.FieldTypePkgPath}} {}
-	return ret, nil{{ end }}
+	return ret, nil
 }
 {{ end }}{{ range $key, $child := $node.ChildrenLinksFields }}
 //////////////////////////////////////
@@ -242,7 +263,7 @@ func (c *resolverConfig) get{{$child.PkgName}}{{$child.NodeName}}{{$child.FieldN
 // Resolver for {{$child.NodeName}}
 //////////////////////////////////////
 func (c *resolverConfig) get{{$child.PkgName}}{{$child.NodeName}}{{$child.FieldName}}Resolver(id *string) ([]*model.{{$child.FieldTypePkgPath}}, error) {
-	{{ if ( gt $child.FieldCount  0) }}var v{{$child.FieldTypePkgPath}}List []*model.{{$child.FieldTypePkgPath}}
+	var v{{$child.FieldTypePkgPath}}List []*model.{{$child.FieldTypePkgPath}}
 	if id != nil && *id != "" {
 		v{{$child.BaseTypeName}}, err := c.v{{$child.PkgName}}{{$child.NodeName}}.Get{{$child.FieldName}}(context.TODO(), *id)
 		if err != nil {
@@ -265,14 +286,5 @@ func (c *resolverConfig) get{{$child.PkgName}}{{$child.NodeName}}{{$child.FieldN
 		v{{$child.FieldTypePkgPath}}List = append(v{{$child.FieldTypePkgPath}}List, ret)
 	}
 	return v{{$child.FieldTypePkgPath}}List, nil
-	{{ else }}var v{{$child.FieldTypePkgPath}}List []*model.{{$child.FieldTypePkgPath}}
-	if id != nil && *id != "" {
-		ret := &model.{{$child.FieldTypePkgPath}}{
-			Id: id,
-		}
-		v{{$child.FieldTypePkgPath}}List = append(v{{$child.FieldTypePkgPath}}List, ret)
-		return v{{$child.FieldTypePkgPath}}List, nil
-	}
-	return v{{$child.FieldTypePkgPath}}List, nil{{ end }}
 }
 {{ end }}{{ end }}

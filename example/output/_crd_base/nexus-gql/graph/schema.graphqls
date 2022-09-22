@@ -280,7 +280,6 @@ type gns_Bar {
         endTime: String
     ): TimeSeriesData
 
-    Name: Int
 }
 
 

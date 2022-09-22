@@ -93,8 +93,8 @@ type GnsList struct {
 type Bar struct {
 	metav1.TypeMeta   `json:",inline" yaml:",inline"`
 	metav1.ObjectMeta `json:"metadata" yaml:"metadata"`
-	Spec              BarSpec        `json:"spec,omitempty" yaml:"spec,omitempty"`
-	Status            BarNexusStatus `json:"status,omitempty" yaml:"status,omitempty"`
+
+	Status BarNexusStatus `json:"status,omitempty" yaml:"status,omitempty"`
 }
 
 // +k8s:openapi-gen=true
@@ -111,11 +111,6 @@ func (c *Bar) DisplayName() string {
 		return c.GetLabels()[common.DISPLAY_NAME_LABEL]
 	}
 	return ""
-}
-
-// +k8s:openapi-gen=true
-type BarSpec struct {
-	Name uint64 `json:"name" yaml:"name"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object

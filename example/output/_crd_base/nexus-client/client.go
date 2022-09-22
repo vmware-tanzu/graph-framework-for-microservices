@@ -1728,15 +1728,6 @@ func (group *GnsTsmV1) UpdateBarByName(ctx context.Context,
 		Value: objToUpdate.ObjectMeta,
 	})
 
-	patchValueName :=
-		objToUpdate.Spec.Name
-	patchOpName := PatchOp{
-		Op:    "replace",
-		Path:  "/spec/name",
-		Value: patchValueName,
-	}
-	patch = append(patch, patchOpName)
-
 	marshaled, err := patch.Marshal()
 	if err != nil {
 		return nil, err

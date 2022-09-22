@@ -308,43 +308,40 @@ func GenerateGraphqlResolverVars(baseGroupName, crdModulePath string, pkgs parse
 		var aliasVal string
 		var listRetVal string
 		var fieldCount int
-		if len(n.ResolverFields[n.PkgName+n.NodeName]) > 0 {
-			retType += fmt.Sprintf("ret := &model.%s%s {\n", n.PkgName, n.NodeName)
-
-			if n.IsNexusNode || n.IsSingletonNode {
-				retType += fmt.Sprintf("\t%s: &%s,\n", "Id", "id")
-				aliasVal += fmt.Sprintf("%s := v%s.DisplayName()\n", "id", n.NodeName)
-			}
-			for _, i := range n.ResolverFields[n.PkgName+n.NodeName] {
-				if i.IsAliasTypeField {
-					if val, ok := nonStructMap[i.SchemaTypeName]; ok {
-						if strings.HasPrefix(val, "map") {
+		retType += fmt.Sprintf("ret := &model.%s%s {\n", n.PkgName, n.NodeName)
+		if n.IsNexusNode || n.IsSingletonNode {
+			retType += fmt.Sprintf("\t%s: &%s,\n", "Id", "id")
+			aliasVal += fmt.Sprintf("%s := v%s.DisplayName()\n", "id", n.NodeName)
+		}
+		for _, i := range n.ResolverFields[n.PkgName+n.NodeName] {
+			if i.IsAliasTypeField {
+				if val, ok := nonStructMap[i.SchemaTypeName]; ok {
+					if strings.HasPrefix(val, "map") {
+						fieldCount += 1
+						retType += fmt.Sprintf("\t%s: &%sData,\n", i.FieldName, i.FieldName)
+						aliasVal += jsonMarshalResolver(i.FieldName, n.NodeName)
+					} else {
+						if len(convertGoStdType(val)) != 0 && !i.IsArrayTypeField {
 							fieldCount += 1
-							retType += fmt.Sprintf("\t%s: &%sData,\n", i.FieldName, i.FieldName)
-							aliasVal += jsonMarshalResolver(i.FieldName, n.NodeName)
-						} else {
-							if len(convertGoStdType(val)) != 0 && !i.IsArrayTypeField {
-								fieldCount += 1
-								retType += fmt.Sprintf("\t%s: &v%s,\n", i.FieldName, i.FieldName)
-								aliasVal += fmt.Sprintf("v%s := %s(v%s.Spec.%s)\n", i.FieldName, convertGoStdType(val), i.NodeName, i.FieldName)
-							}
+							retType += fmt.Sprintf("\t%s: &v%s,\n", i.FieldName, i.FieldName)
+							aliasVal += fmt.Sprintf("v%s := %s(v%s.Spec.%s)\n", i.FieldName, convertGoStdType(val), i.NodeName, i.FieldName)
 						}
 					}
-				} else if i.IsMapTypeField || i.IsStringType {
+				}
+			} else if i.IsMapTypeField || i.IsStringType {
+				fieldCount += 1
+				retType += fmt.Sprintf("\t%s: &%sData,\n", i.FieldName, i.FieldName)
+				aliasVal += jsonMarshalResolver(i.FieldName, n.NodeName)
+			} else if i.IsStdTypeField {
+				if len(convertGoStdType(i.FieldType)) != 0 {
 					fieldCount += 1
-					retType += fmt.Sprintf("\t%s: &%sData,\n", i.FieldName, i.FieldName)
-					aliasVal += jsonMarshalResolver(i.FieldName, n.NodeName)
-				} else if i.IsStdTypeField {
-					if len(convertGoStdType(i.FieldType)) != 0 {
-						fieldCount += 1
-						retType += fmt.Sprintf("\t%s: &v%s,\n", i.FieldName, i.FieldName)
-						listRetVal += fmt.Sprintf("v%s := %s(i.%s)\n", i.FieldName, convertGoStdType(i.FieldType), i.FieldName)
-						aliasVal += fmt.Sprintf("v%s := %s(v%s.Spec.%s)\n", i.FieldName, convertGoStdType(i.FieldType), i.NodeName, i.FieldName)
-					}
+					retType += fmt.Sprintf("\t%s: &v%s,\n", i.FieldName, i.FieldName)
+					listRetVal += fmt.Sprintf("v%s := %s(i.%s)\n", i.FieldName, convertGoStdType(i.FieldType), i.FieldName)
+					aliasVal += fmt.Sprintf("v%s := %s(v%s.Spec.%s)\n", i.FieldName, convertGoStdType(i.FieldType), i.NodeName, i.FieldName)
 				}
 			}
-			retType += "\t}"
 		}
+		retType += "\t}"
 		retMap[n.PkgName+n.NodeName] = ReturnStatement{
 			Alias:      aliasVal,
 			ReturnType: retType,
