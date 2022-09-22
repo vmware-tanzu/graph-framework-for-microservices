@@ -16,7 +16,7 @@ datamodel_build:
 	rm -rf ${DATAMODEL_LOCAL_PATH}/build
 	mkdir -p ${BUILD_DIR}
 	if [ -z $(CONTAINER_ID) ]; then \
-		docker run --pull=always\
+		docker run --pull=missing\
 			--volume $(realpath .):/go/src/gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/datamodel/ \
 			-v /go/src/gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/datamodel/build/ \
 			--volume $(realpath .)/build:/go/src/gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/generated/ \
@@ -26,7 +26,7 @@ datamodel_build:
 			-e GOPRIVATE=gitlab.eng.vmware.com \
 			harbor-repo.vmware.com/nexus/compiler:$(TAG); \
 	else \
-		docker run --pull=always\
+		docker run --pull=missing\
 			--volumes-from=$(CONTAINER_ID) \
 			-e DATAMODEL_PATH=$(DATAMODEL_LOCAL_PATH) \
 			-e GENERATED_OUTPUT_DIRECTORY=$(DATAMODEL_LOCAL_PATH)/build \
@@ -41,7 +41,12 @@ datamodel_build:
 docker_build:
 	if [ -n "$(DOCKER_REPO)" ]; then \
 		if [ -n "$(VERSION)" ]; then \
-			docker build --build-arg IMAGE_NAME=$(DOCKER_REPO):$(VERSION) --build-arg NAME=$(NAME) -t $(DOCKER_REPO):$(VERSION) . -f Dockerfile ; \
+			if [ -n "$(NAME)" ]; then \
+				docker build --build-arg IMAGE_NAME=$(DOCKER_REPO):$(VERSION) --build-arg NAME=$(NAME) -t $(DOCKER_REPO):$(VERSION) . -f Dockerfile ; \
+			else \
+				echo "Please provide NAME (GroupName) when running docker_build" ;\
+				exit 1;\
+			fi \
 		else \
 			echo "Please provide VERSION when running docker_publish"; \
 			exit 1;\
