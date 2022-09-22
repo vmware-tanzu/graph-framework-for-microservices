@@ -128,7 +128,7 @@ data:
                   - |
                     #!/bin/bash
                     set -x
-                    URL="http://nexus-proxy-container/api/v1/namespaces"
+                    URL="http://nexus-apiserver:8080/api/v1/namespaces"
                     max_retries=20
                     counter=0
                     while [[ $counter -lt $max_retries ]]; do
@@ -240,7 +240,7 @@ data:
                     - |
                       #!/bin/bash
                       set -x
-                      URL="http://nexus-proxy-container/api/v1/namespaces"
+                      URL="http://nexus-apiserver:8080/api/v1/namespaces"
                       max_retries=60
                       counter=0
                       while [[ $counter -lt $max_retries ]]; do

@@ -166,6 +166,9 @@ spec:
             fieldRef:
               apiVersion: v1
               fieldPath: metadata.namespace
+        ## this is to fix tls certificate error in validation layer
+        - name: GODEBUG
+          value: x509ignoreCN=0
         name: kube-apiserver
         resources:
           requests:
