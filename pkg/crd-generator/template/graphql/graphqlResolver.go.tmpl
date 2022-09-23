@@ -13,8 +13,6 @@ import (
 	nexus_client "{{.BaseImportPath}}nexus-client"
 	"{{.BaseImportPath}}nexus-gql/graph/model"
 
-{{.HelperImport}}
-
 )
 
 var c resolverConfig
@@ -249,7 +247,7 @@ func (c *resolverConfig) get{{$node.PkgName}}{{$node.NodeName}}queryServiceTopol
 // Child/Link Node : {{$child.FieldName}} {{$child.BaseTypeName}}
 // Resolver for {{$child.NodeName}}
 //////////////////////////////////////
-func (c *resolverConfig) get{{$child.PkgName}}{{$child.NodeName}}{{$child.FieldName}}Resolver() (*model.{{$child.FieldTypePkgPath}}, error) {
+func (c *resolverConfig) get{{$child.PkgName}}{{$child.NodeName}}{{$child.FieldName}}Resolver(obj *model.{{$child.PkgName}}{{$child.NodeName}}) (*model.{{$child.FieldTypePkgPath}}, error) {
 	v{{$child.BaseTypeName}}, err := c.v{{$child.PkgName}}{{$child.NodeName}}.Get{{$child.FieldName}}(context.TODO())
 	if err != nil {
 	    log.Errorf("Error getting node %s", err)
@@ -259,9 +257,9 @@ func (c *resolverConfig) get{{$child.PkgName}}{{$child.NodeName}}{{$child.FieldN
 
 	c.v{{$child.FieldTypePkgPath}} = v{{$child.BaseTypeName}}
 	{{ $child.Alias }}
-	 for k, v := range helper.GetCRDParentsMap()["{{$child.CRDName}}"] {
-        		parentLabels[k] = [v]
-        	}
+    for k, v := range obj.ParentLabels {
+        parentLabels[k] = v
+    }
 	{{ $child.ReturnType }}
 	return ret, nil
 }
@@ -270,7 +268,7 @@ func (c *resolverConfig) get{{$child.PkgName}}{{$child.NodeName}}{{$child.FieldN
 // Children/Links Node : {{$child.FieldName}}
 // Resolver for {{$child.NodeName}}
 //////////////////////////////////////
-func (c *resolverConfig) get{{$child.PkgName}}{{$child.NodeName}}{{$child.FieldName}}Resolver(id *string) ([]*model.{{$child.FieldTypePkgPath}}, error) {
+func (c *resolverConfig) get{{$child.PkgName}}{{$child.NodeName}}{{$child.FieldName}}Resolver(obj *model.{{$child.PkgName}}{{$child.NodeName}}, id *string) ([]*model.{{$child.FieldTypePkgPath}}, error) {
 	var v{{$child.FieldTypePkgPath}}List []*model.{{$child.FieldTypePkgPath}}
 	if id != nil && *id != "" {
 		v{{$child.BaseTypeName}}, err := c.v{{$child.PkgName}}{{$child.NodeName}}.Get{{$child.FieldName}}(context.TODO(), *id)

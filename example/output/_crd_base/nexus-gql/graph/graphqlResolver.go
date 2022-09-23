@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"os"
 
 	log "github.com/sirupsen/logrus"
 	"k8s.io/client-go/rest"
@@ -13,8 +12,6 @@ import (
 	libgrpc "gitlab.eng.vmware.com/nsx-allspark_users/lib-go/grpc"
 	nexus_client "nexustempmodule/nexus-client"
 	"nexustempmodule/nexus-gql/graph/model"
-
-"nexustempmodule/helper"
 
 )
 
@@ -684,7 +681,7 @@ func (c *resolverConfig) getGnsBarqueryServiceTopologyResolver(startTime *string
 // Child/Link Node : Config Config
 // Resolver for Root
 //////////////////////////////////////
-func (c *resolverConfig) getRootRootConfigResolver() (*model.ConfigConfig, error) {
+func (c *resolverConfig) getRootRootConfigResolver(obj *model.RootRoot) (*model.ConfigConfig, error) {
 	vConfig, err := c.vRootRoot.GetConfig(context.TODO())
 	if err != nil {
 	    log.Errorf("Error getting node %s", err)
@@ -715,9 +712,9 @@ ABCHostData := string(ABCHost)
 ClusterNamespaces, _ := json.Marshal(vConfig.Spec.ClusterNamespaces)
 ClusterNamespacesData := string(ClusterNamespaces)
 
-	 for k, v := range helper.GetCRDParentsMap()["configs.config.tsm.tanzu.vmware.com"] {
-        		parentLabels[k] = [v]
-        	}
+    for k, v := range obj.ParentLabels {
+        parentLabels[k] = v
+    }
 	ret := &model.ConfigConfig {
 	Id: &id,
 	ParentLabels: parentLabels,
@@ -739,7 +736,7 @@ ClusterNamespacesData := string(ClusterNamespaces)
 // Child/Link Node : GNS Gns
 // Resolver for Config
 //////////////////////////////////////
-func (c *resolverConfig) getConfigConfigGNSResolver() (*model.GnsGns, error) {
+func (c *resolverConfig) getConfigConfigGNSResolver(obj *model.ConfigConfig) (*model.GnsGns, error) {
 	vGns, err := c.vConfigConfig.GetGNS(context.TODO())
 	if err != nil {
 	    log.Errorf("Error getting node %s", err)
@@ -768,9 +765,9 @@ Array4Data := string(Array4)
 Array5, _ := json.Marshal(vGns.Spec.Array5)
 Array5Data := string(Array5)
 
-	 for k, v := range helper.GetCRDParentsMap()["gnses.gns.tsm.tanzu.vmware.com"] {
-        		parentLabels[k] = [v]
-        	}
+    for k, v := range obj.ParentLabels {
+        parentLabels[k] = v
+    }
 	ret := &model.GnsGns {
 	Id: &id,
 	ParentLabels: parentLabels,
@@ -792,7 +789,7 @@ Array5Data := string(Array5)
 // Child/Link Node : FooLink Bar
 // Resolver for Gns
 //////////////////////////////////////
-func (c *resolverConfig) getGnsGnsFooLinkResolver() (*model.GnsBar, error) {
+func (c *resolverConfig) getGnsGnsFooLinkResolver(obj *model.GnsGns) (*model.GnsBar, error) {
 	vBar, err := c.vGnsGns.GetFooLink(context.TODO())
 	if err != nil {
 	    log.Errorf("Error getting node %s", err)
@@ -804,9 +801,9 @@ func (c *resolverConfig) getGnsGnsFooLinkResolver() (*model.GnsBar, error) {
 	id := vBar.DisplayName()
 parentLabels := map[string]interface{}{"bars.gns.tsm.tanzu.vmware.com":id}
 
-	 for k, v := range helper.GetCRDParentsMap()["bars.gns.tsm.tanzu.vmware.com"] {
-        		parentLabels[k] = [v]
-        	}
+    for k, v := range obj.ParentLabels {
+        parentLabels[k] = v
+    }
 	ret := &model.GnsBar {
 	Id: &id,
 	ParentLabels: parentLabels,
@@ -818,7 +815,7 @@ parentLabels := map[string]interface{}{"bars.gns.tsm.tanzu.vmware.com":id}
 // Child/Link Node : FooChild Bar
 // Resolver for Gns
 //////////////////////////////////////
-func (c *resolverConfig) getGnsGnsFooChildResolver() (*model.GnsBar, error) {
+func (c *resolverConfig) getGnsGnsFooChildResolver(obj *model.GnsGns) (*model.GnsBar, error) {
 	vBar, err := c.vGnsGns.GetFooChild(context.TODO())
 	if err != nil {
 	    log.Errorf("Error getting node %s", err)
@@ -830,9 +827,9 @@ func (c *resolverConfig) getGnsGnsFooChildResolver() (*model.GnsBar, error) {
 	id := vBar.DisplayName()
 parentLabels := map[string]interface{}{"bars.gns.tsm.tanzu.vmware.com":id}
 
-	 for k, v := range helper.GetCRDParentsMap()["bars.gns.tsm.tanzu.vmware.com"] {
-        		parentLabels[k] = [v]
-        	}
+    for k, v := range obj.ParentLabels {
+        parentLabels[k] = v
+    }
 	ret := &model.GnsBar {
 	Id: &id,
 	ParentLabels: parentLabels,
@@ -844,7 +841,7 @@ parentLabels := map[string]interface{}{"bars.gns.tsm.tanzu.vmware.com":id}
 // Children/Links Node : FooLinks
 // Resolver for Gns
 //////////////////////////////////////
-func (c *resolverConfig) getGnsGnsFooLinksResolver(id *string) ([]*model.GnsBar, error) {
+func (c *resolverConfig) getGnsGnsFooLinksResolver(obj *model.GnsGns, id *string) ([]*model.GnsBar, error) {
 	var vGnsBarList []*model.GnsBar
 	if id != nil && *id != "" {
 		vBar, err := c.vGnsGns.GetFooLinks(context.TODO(), *id)
@@ -884,7 +881,7 @@ parentLabels := map[string]interface{}{"bars.gns.tsm.tanzu.vmware.com":id}
 // Children/Links Node : FooChildren
 // Resolver for Gns
 //////////////////////////////////////
-func (c *resolverConfig) getGnsGnsFooChildrenResolver(id *string) ([]*model.GnsBar, error) {
+func (c *resolverConfig) getGnsGnsFooChildrenResolver(obj *model.GnsGns, id *string) ([]*model.GnsBar, error) {
 	var vGnsBarList []*model.GnsBar
 	if id != nil && *id != "" {
 		vBar, err := c.vGnsGns.GetFooChildren(context.TODO(), *id)
