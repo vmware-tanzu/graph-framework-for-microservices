@@ -251,7 +251,35 @@ var _ = Describe("Echo server tests", func() {
 		Expect(rec.Body.String()).Should(Equal("{\"spec\":{\"designation\":\"abc\",\"employeeID\":100,\"name\":\"xyz\"},\"status\":{}}\n"))
 	})
 
-	It("should handle delete query", func() {
+	It("should handle delete query for singleton object", func() {
+		restUri := nexus.RestURIs{
+			Uri:     "/leader/{management.Leader}",
+			Methods: nexus.DefaultHTTPMethodsResponses,
+		}
+		e.RegisterRouter(restUri)
+		model.ConstructMapCRDTypeToNode(model.Upsert, "leaders.orgchart.vmware.org", "management.Leader",
+			[]string{}, nil, nil, true, "some description")
+		model.ConstructMapURIToCRDType(model.Upsert, "leaders.orgchart.vmware.org", []nexus.RestURIs{restUri})
+
+		req := httptest.NewRequest(http.MethodDelete, "/leader", nil)
+		rec := httptest.NewRecorder()
+		c := e.Echo.NewContext(req, rec)
+		c.SetPath("/leader")
+		nc := &NexusContext{
+			NexusURI:  "/leader/{management.Leader}",
+			Codes:     nexus.DefaultHTTPDELETEResponses,
+			Context:   c,
+			CrdType:   "leaders.orgchart.vmware.org",
+			GroupName: "orgchart.vmware.org",
+			Resource:  "leaders",
+		}
+
+		err := deleteHandler(nc)
+		Expect(err).NotTo(HaveOccurred())
+		Expect(rec.Code).To(Equal(200))
+	})
+
+	It("should fail delete query for singleton object with provided name", func() {
 		restUri := nexus.RestURIs{
 			Uri:     "/leader/{management.Leader}",
 			Methods: nexus.DefaultHTTPMethodsResponses,
@@ -278,7 +306,73 @@ var _ = Describe("Echo server tests", func() {
 
 		err := deleteHandler(nc)
 		Expect(err).NotTo(HaveOccurred())
-		Expect(rec.Code).To(Equal(404))
+		Expect(rec.Code).To(Equal(400))
+	})
+
+	It("should handle put query for non-singleton object", func() {
+		mgrJson := `{
+			"designation": "abc",
+			"employeeID": 100,
+			"name": "xyz"
+		}`
+
+		restUri := nexus.RestURIs{
+			Uri:     "/mgr/{management.Mgr}",
+			Methods: nexus.DefaultHTTPMethodsResponses,
+		}
+		e.RegisterRouter(restUri)
+		model.ConstructMapCRDTypeToNode(model.Upsert, "mgrs.orgchart.vmware.org", "management.Mgr",
+			[]string{}, nil, nil, false, "some description")
+		model.ConstructMapURIToCRDType(model.Upsert, "mgrs.orgchart.vmware.org", []nexus.RestURIs{restUri})
+
+		req := httptest.NewRequest(http.MethodPost, "/mgr/:management.Mgr", strings.NewReader(mgrJson))
+		req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+		rec := httptest.NewRecorder()
+		c := e.Echo.NewContext(req, rec)
+		c.SetParamNames("management.Mgr")
+		c.SetParamValues("mgr1")
+		nc := &NexusContext{
+			NexusURI: "/mgr/{management.Mgr}",
+			//Codes: nexus.DefaultHTTPMethodsResponses,
+			Context:   c,
+			CrdType:   "mgrs.orgchart.vmware.org",
+			GroupName: "orgchart.vmware.org",
+			Resource:  "mgrs",
+		}
+
+		err := putHandler(nc)
+		Expect(err).NotTo(HaveOccurred())
+		Expect(rec.Code).To(Equal(200))
+	})
+
+	It("should handle delete query for non-singleton object with provided name", func() {
+		restUri := nexus.RestURIs{
+			Uri:     "/mgr/{management.Mgr}",
+			Methods: nexus.DefaultHTTPMethodsResponses,
+		}
+		e.RegisterRouter(restUri)
+		model.ConstructMapCRDTypeToNode(model.Upsert, "mgrs.orgchart.vmware.org", "management.Mgr",
+			[]string{}, nil, nil, false, "some description")
+		model.ConstructMapURIToCRDType(model.Upsert, "mgrs.orgchart.vmware.org", []nexus.RestURIs{restUri})
+
+		req := httptest.NewRequest(http.MethodDelete, "/leader", nil)
+		rec := httptest.NewRecorder()
+		c := e.Echo.NewContext(req, rec)
+		c.SetPath("/mgr/:management.Mgr")
+		c.SetParamNames("management.Mgr")
+		c.SetParamValues("mgr1")
+		nc := &NexusContext{
+			NexusURI:  "/mgr/{management.Mgr}",
+			Codes:     nexus.DefaultHTTPDELETEResponses,
+			Context:   c,
+			CrdType:   "mgrs.orgchart.vmware.org",
+			GroupName: "orgchart.vmware.org",
+			Resource:  "mgrs",
+		}
+
+		err := deleteHandler(nc)
+		Expect(err).NotTo(HaveOccurred())
+		Expect(rec.Code).To(Equal(200))
 	})
 
 	Context("should GET child from Parent object", func() {
