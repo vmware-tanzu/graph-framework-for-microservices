@@ -136,7 +136,8 @@ func GenerateGraphqlResolverVars(baseGroupName, crdModulePath string, pkgs parse
 	for i, k := range sortedKeys {
 		sortedPackages[i] = pkgs[k]
 	}
-	// Iterate All Non Struct Node from all pkg and store the details in nonStructMap
+	// Iterate over all non struct type from sortedPackages and store the details in nonStructMap
+	// nonStructMap[pkgName] = nodeType  --> ex: nonStructMap["root"] = "AliasTypeFoo"
 	for _, pkg := range sortedPackages {
 		for _, node := range pkg.GetNonStructTypes() {
 			var pkgName string
@@ -155,12 +156,13 @@ func GenerateGraphqlResolverVars(baseGroupName, crdModulePath string, pkgs parse
 			nonStructMap[pkgName] = nonStructType
 		}
 	}
+	// Iterate All Nodes in the sortedPackages
 	for _, pkg := range sortedPackages {
 		simpleGroupTypeName := util.GetSimpleGroupTypeName(pkg.Name)
 		for _, node := range pkg.GetStructs() {
 			var nodeProp Node_prop
 			resField := make(map[string][]Field_prop)
-			// GRAPHQL SCHEMA NAME
+			// Fill Node Properties
 			nodeProp.PkgName = simpleGroupTypeName
 			nodeProp.NodeName = node.Name.String()
 			nodeProp.BaseImportPath = crdModulePath
@@ -210,13 +212,13 @@ func GenerateGraphqlResolverVars(baseGroupName, crdModulePath string, pkgs parse
 						fieldProp.IsStringType = true
 						fieldProp.SchemaFieldName = fmt.Sprintf("%s: %s", fieldProp.FieldName, "String")
 					}
-					// Nexus Type Fields
+					// NexusOrSingletonField Type Fields
 					if parser.IsNexusTypeField(nf) {
 						fieldProp.IsNexusOrSingletonField = true
 						// Add Custom Query + ID
 						fieldProp.SchemaFieldName = CustomQuerySchema
 					}
-					// Child and Link fields
+					// Nexus Child and Link fields
 					if parser.IsChildOrLink(nf) {
 						schemaTypeName, resolverTypeName := validateImportPkg(pkg, typeString, importMap)
 						fieldProp.IsChildOrLink = true
@@ -229,7 +231,7 @@ func GenerateGraphqlResolverVars(baseGroupName, crdModulePath string, pkgs parse
 						fieldProp.BaseTypeName = getBaseNodeType(pkg, typeString, importMap)
 						nodeProp.ChildLinkFields = append(nodeProp.ChildLinkFields, fieldProp)
 					}
-					// Children and Links fields
+					// Nexus Children and Links fields details
 					if parser.IsNamedChildOrLink(nf) {
 						fieldProp.IsChildrenOrLinks = true
 						schemaTypeName, resolverTypeName := validateImportPkg(pkg, typeString, importMap)
@@ -243,17 +245,19 @@ func GenerateGraphqlResolverVars(baseGroupName, crdModulePath string, pkgs parse
 						nodeProp.ChildrenLinksFields = append(nodeProp.ChildrenLinksFields, fieldProp)
 					}
 				}
+				// No of resolver fields in a nodes
 				if fieldProp.IsResolver {
 					nodeProp.ResolverCount += 1
 				}
 				nodeProp.GraphqlSchemaFields = append(nodeProp.GraphqlSchemaFields, fieldProp)
 			}
+			// Iterate Non Nexus Fields
 			for _, f := range parser.GetSpecFields(node) {
 				var fieldProp Field_prop
 				var err error
 				typeString := ConstructType(aliasNameMap, f)
 				if f != nil {
-					// GET FIELD NAME
+					// Fill all field information in fieldProp
 					fieldProp.FieldName, err = parser.GetNodeFieldName(f)
 					fieldProp.FieldType = typeString
 					fieldProp.PkgName = simpleGroupTypeName
@@ -296,14 +300,14 @@ func GenerateGraphqlResolverVars(baseGroupName, crdModulePath string, pkgs parse
 			Nodes = append(Nodes, nodeProp)
 		}
 	}
-	// Calculate customType
+	// Create CustomType map
 	customApi := make(map[string]string)
 	for _, n := range Nodes {
 		for _, f := range n.CustomFields {
 			customApi[f.BaseTypeName] = f.FieldName
 		}
 	}
-	// calculate Returnvalue for resolver
+	// Collect ReturnValue of each Node for resolver
 	retMap := make(map[string]ReturnStatement)
 	for _, n := range Nodes {
 		var retType string
@@ -317,6 +321,12 @@ func GenerateGraphqlResolverVars(baseGroupName, crdModulePath string, pkgs parse
 
 			retType += fmt.Sprintf("\t%s: %s,\n", "ParentLabels", "parentLabels")
 			aliasVal += fmt.Sprintf("%s := map[string]interface{}{%q:%s}\n", "parentLabels", n.CrdName, "id")
+			// Need to walk through the parentMap and construct Chain API for each Node
+			// fmt.Println(parentsMap[n.CrdName].Name)
+			// fmt.Println(parentsMap[n.CrdName].Parents)
+			// fmt.Println(parentsMap[n.CrdName].IsSingleton)
+			// fmt.Println(parentsMap[n.CrdName].RestMappings)
+			// fmt.Println(parentsMap[n.CrdName].RestName)
 		}
 		for _, i := range n.ResolverFields[n.PkgName+n.NodeName] {
 			if i.IsAliasTypeField {
@@ -354,6 +364,7 @@ func GenerateGraphqlResolverVars(baseGroupName, crdModulePath string, pkgs parse
 			CRDName:    n.CrdName,
 		}
 	}
+	// set return value to each node
 	var ResNodes []Node_prop
 	for _, n := range Nodes {
 		var resNodeProp Node_prop

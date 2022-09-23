@@ -16,6 +16,7 @@ import (
 )
 
 var c resolverConfig
+var nc *Clientset
 
 type resolverConfig struct {
 	vRootRoot *nexus_client.RootRoot

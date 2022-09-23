@@ -16,6 +16,7 @@ import (
 )
 
 var c resolverConfig
+var nc *Clientset
 
 type resolverConfig struct {
 	{{ range  $key, $node := .Nodes }}{{ if $node.IsNexusNode }}v{{$node.PkgName}}{{$node.NodeName}} *nexus_client.{{$node.PkgName}}{{$node.NodeName}}
@@ -63,10 +64,11 @@ func grpcServer() qm.ServerClient{
 //////////////////////////////////////
 func (c *resolverConfig) getRootResolver() (*model.{{$node.PkgName}}{{$node.NodeName}}, error) {
 	k8sApiConfig := getK8sAPIEndpointConfig()
-	nc, err := nexus_client.NewForConfig(k8sApiConfig)
+	nexusClient, err := nexus_client.NewForConfig(k8sApiConfig)
 	if err != nil {
         return nil, fmt.Errorf("failed to get k8s client config: %s", err)
 	}
+	nc = nexusClient
 	v{{$node.NodeName}}, err := nc.Get{{$node.PkgName}}{{$node.NodeName}}(context.TODO())
 	if err != nil {
 	    log.Errorf("Error getting root node %s", err)
