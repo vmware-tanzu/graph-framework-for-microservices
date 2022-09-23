@@ -33,7 +33,7 @@ func getHandler(c echo.Context) error {
 	crdName := model.UriToCRDType[nc.NexusURI]
 	crdInfo := model.CrdTypeToNodeInfo[crdName]
 	// Get name from params
-	name := "default"
+	name := nexus.DEFAULT_KEY
 	for _, param := range nc.ParamNames() {
 		if param == crdInfo.Name {
 			name = nc.Param(param)
@@ -280,11 +280,11 @@ func putHandler(c echo.Context) error {
 	}
 	if crdInfo.IsSingleton {
 		if name == "" {
-			name = "default"
+			name = nexus.DEFAULT_KEY
 		}
-		if name != "default" {
-			msg := fmt.Sprintf("Wrong singleton node name %s: %s for request %s, only 'default' is allowed as name",
-				crdInfo.Name, name, nc.Request().RequestURI)
+		if name != nexus.DEFAULT_KEY {
+			msg := fmt.Sprintf("Wrong singleton node name %s: %s for request %s, only '%s' is allowed as name",
+				crdInfo.Name, name, nc.Request().RequestURI, nexus.DEFAULT_KEY)
 			log.Debugf(msg)
 			return nc.JSON(http.StatusBadRequest, DefaultResponse{Message: msg})
 		}
@@ -382,6 +382,18 @@ func deleteHandler(c echo.Context) error {
 		}
 	}
 
+	if crdInfo.IsSingleton {
+		if name == "" {
+			name = nexus.DEFAULT_KEY
+		}
+		if name != nexus.DEFAULT_KEY {
+			msg := fmt.Sprintf("Wrong singleton node name %s: %s for request %s, only '%s' is allowed as name",
+				crdInfo.Name, name, nc.Request().RequestURI, nexus.DEFAULT_KEY)
+			log.Debugf(msg)
+			return nc.JSON(http.StatusBadRequest, DefaultResponse{Message: msg})
+		}
+	}
+
 	// Get name from query params
 	if nc.QueryParams().Has(crdInfo.Name) {
 		name = nc.QueryParams().Get(crdInfo.Name)
@@ -458,7 +470,7 @@ func parseLabels(c echo.Context, parents []string) map[string]string {
 			} else if nc.QueryParams().Has(c.Name) {
 				labels[parent] = nc.QueryParams().Get(c.Name)
 			} else {
-				labels[parent] = "default"
+				labels[parent] = nexus.DEFAULT_KEY
 			}
 		}
 	}
