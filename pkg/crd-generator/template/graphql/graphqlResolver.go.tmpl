@@ -12,9 +12,11 @@ import (
 	libgrpc "gitlab.eng.vmware.com/nsx-allspark_users/lib-go/grpc"
 	nexus_client "{{.BaseImportPath}}nexus-client"
 	"{{.BaseImportPath}}nexus-gql/graph/model"
+
 )
 
 var c resolverConfig
+var nc *Clientset
 
 type resolverConfig struct {
 	{{ range  $key, $node := .Nodes }}{{ if $node.IsNexusNode }}v{{$node.PkgName}}{{$node.NodeName}} *nexus_client.{{$node.PkgName}}{{$node.NodeName}}
@@ -62,10 +64,11 @@ func grpcServer() qm.ServerClient{
 //////////////////////////////////////
 func (c *resolverConfig) getRootResolver() (*model.{{$node.PkgName}}{{$node.NodeName}}, error) {
 	k8sApiConfig := getK8sAPIEndpointConfig()
-	nc, err := nexus_client.NewForConfig(k8sApiConfig)
+	nexusClient, err := nexus_client.NewForConfig(k8sApiConfig)
 	if err != nil {
         return nil, fmt.Errorf("failed to get k8s client config: %s", err)
 	}
+	nc = nexusClient
 	v{{$node.NodeName}}, err := nc.Get{{$node.PkgName}}{{$node.NodeName}}(context.TODO())
 	if err != nil {
 	    log.Errorf("Error getting root node %s", err)
@@ -246,14 +249,19 @@ func (c *resolverConfig) get{{$node.PkgName}}{{$node.NodeName}}queryServiceTopol
 // Child/Link Node : {{$child.FieldName}} {{$child.BaseTypeName}}
 // Resolver for {{$child.NodeName}}
 //////////////////////////////////////
-func (c *resolverConfig) get{{$child.PkgName}}{{$child.NodeName}}{{$child.FieldName}}Resolver() (*model.{{$child.FieldTypePkgPath}}, error) {
+func (c *resolverConfig) get{{$child.PkgName}}{{$child.NodeName}}{{$child.FieldName}}Resolver(obj *model.{{$child.PkgName}}{{$child.NodeName}}) (*model.{{$child.FieldTypePkgPath}}, error) {
 	v{{$child.BaseTypeName}}, err := c.v{{$child.PkgName}}{{$child.NodeName}}.Get{{$child.FieldName}}(context.TODO())
 	if err != nil {
 	    log.Errorf("Error getting node %s", err)
         return nil, fmt.Errorf("failed to get node: %s", err)
     }
+
+
 	c.v{{$child.FieldTypePkgPath}} = v{{$child.BaseTypeName}}
 	{{ $child.Alias }}
+    for k, v := range obj.ParentLabels {
+        parentLabels[k] = v
+    }
 	{{ $child.ReturnType }}
 	return ret, nil
 }
@@ -262,7 +270,7 @@ func (c *resolverConfig) get{{$child.PkgName}}{{$child.NodeName}}{{$child.FieldN
 // Children/Links Node : {{$child.FieldName}}
 // Resolver for {{$child.NodeName}}
 //////////////////////////////////////
-func (c *resolverConfig) get{{$child.PkgName}}{{$child.NodeName}}{{$child.FieldName}}Resolver(id *string) ([]*model.{{$child.FieldTypePkgPath}}, error) {
+func (c *resolverConfig) get{{$child.PkgName}}{{$child.NodeName}}{{$child.FieldName}}Resolver(obj *model.{{$child.PkgName}}{{$child.NodeName}}, id *string) ([]*model.{{$child.FieldTypePkgPath}}, error) {
 	var v{{$child.FieldTypePkgPath}}List []*model.{{$child.FieldTypePkgPath}}
 	if id != nil && *id != "" {
 		v{{$child.BaseTypeName}}, err := c.v{{$child.PkgName}}{{$child.NodeName}}.Get{{$child.FieldName}}(context.TODO(), *id)

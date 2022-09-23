@@ -1,6 +1,7 @@
 package crd_generator
 
 const CustomQuerySchema = `Id: ID
+	ParentLabels: Map
     queryServiceTable(
         startTime: String
         endTime: String
