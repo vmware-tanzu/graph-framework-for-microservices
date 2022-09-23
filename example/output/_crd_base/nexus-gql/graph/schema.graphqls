@@ -1,3 +1,5 @@
+scalar Map
+
 
 type Query {
 
@@ -8,6 +10,7 @@ type Query {
 type root_Root {
 
     Id: ID
+	ParentLabels: Map
     queryServiceTable(
         startTime: String
         endTime: String
@@ -73,6 +76,7 @@ type root_Root {
 type config_Config {
 
     Id: ID
+	ParentLabels: Map
     queryServiceTable(
         startTime: String
         endTime: String
@@ -152,6 +156,7 @@ type config_Config {
 type gns_Gns {
 
     Id: ID
+	ParentLabels: Map
     queryServiceTable(
         startTime: String
         endTime: String
@@ -228,6 +233,7 @@ type gns_Gns {
 type gns_Bar {
 
     Id: ID
+	ParentLabels: Map
     queryServiceTable(
         startTime: String
         endTime: String

@@ -1,3 +1,5 @@
+scalar Map
+
 {{ range $key, $node := .Nodes }}
 {{ if $node.IsParentNode }}type Query {
 {{ if $node.IsSingletonNode }}

@@ -17,6 +17,7 @@ type ReturnStatement struct {
 	Alias      string
 	ReturnType string
 	FieldCount int
+	CRDName    string
 }
 
 type Field_prop struct {
@@ -45,6 +46,7 @@ type Field_prop struct {
 	Alias                   string
 	ReturnType              string
 	FieldCount              int
+	CRDName                 string
 }
 
 type Node_prop struct {
@@ -312,6 +314,9 @@ func GenerateGraphqlResolverVars(baseGroupName, crdModulePath string, pkgs parse
 		if n.IsNexusNode || n.IsSingletonNode {
 			retType += fmt.Sprintf("\t%s: &%s,\n", "Id", "id")
 			aliasVal += fmt.Sprintf("%s := v%s.DisplayName()\n", "id", n.NodeName)
+
+			retType += fmt.Sprintf("\t%s: %s,\n", "ParentLabels", "parentLabels")
+			aliasVal += fmt.Sprintf("%s := map[string]interface{}{%q:%s}\n", "parentLabels", n.CrdName, "id")
 		}
 		for _, i := range n.ResolverFields[n.PkgName+n.NodeName] {
 			if i.IsAliasTypeField {
@@ -346,6 +351,7 @@ func GenerateGraphqlResolverVars(baseGroupName, crdModulePath string, pkgs parse
 			Alias:      aliasVal,
 			ReturnType: retType,
 			FieldCount: fieldCount,
+			CRDName:    n.CrdName,
 		}
 	}
 	var ResNodes []Node_prop
@@ -371,6 +377,7 @@ func GenerateGraphqlResolverVars(baseGroupName, crdModulePath string, pkgs parse
 			f.ReturnType = retMap[f.FieldTypePkgPath].ReturnType
 			f.Alias = retMap[f.FieldTypePkgPath].Alias
 			f.FieldCount = retMap[f.FieldTypePkgPath].FieldCount
+			f.CRDName = retMap[f.FieldTypePkgPath].CRDName
 			resNodeProp.ChildLinkFields = append(resNodeProp.ChildLinkFields, f)
 		}
 		for _, f := range n.ChildrenLinksFields {

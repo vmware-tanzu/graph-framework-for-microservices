@@ -12,6 +12,9 @@ import (
 	libgrpc "gitlab.eng.vmware.com/nsx-allspark_users/lib-go/grpc"
 	nexus_client "{{.BaseImportPath}}nexus-client"
 	"{{.BaseImportPath}}nexus-gql/graph/model"
+
+{{.HelperImport}}
+
 )
 
 var c resolverConfig
@@ -252,8 +255,13 @@ func (c *resolverConfig) get{{$child.PkgName}}{{$child.NodeName}}{{$child.FieldN
 	    log.Errorf("Error getting node %s", err)
         return nil, fmt.Errorf("failed to get node: %s", err)
     }
+
+
 	c.v{{$child.FieldTypePkgPath}} = v{{$child.BaseTypeName}}
 	{{ $child.Alias }}
+	 for k, v := range helper.GetCRDParentsMap()["{{$child.CRDName}}"] {
+        		parentLabels[k] = [v]
+        	}
 	{{ $child.ReturnType }}
 	return ret, nil
 }

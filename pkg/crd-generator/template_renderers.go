@@ -554,8 +554,8 @@ func RenderClientTemplate(baseGroupName, crdModulePath string, pkgs parser.Packa
 }
 
 type graphDetails struct {
-	BaseImportPath string
-	Nodes          []Node_prop
+	BaseImportPath, HelperImport string
+	Nodes                        []Node_prop
 }
 
 func RenderGraphqlResolver(baseGroupName, outputDir, crdModulePath string, pkgs parser.Packages, parentsMap map[string]parser.NodeHelper) error {
@@ -567,6 +567,7 @@ func RenderGraphqlResolver(baseGroupName, outputDir, crdModulePath string, pkgs 
 	}
 	var vars graphDetails
 	vars.BaseImportPath = crdModulePath
+	vars.HelperImport = util.GetInternalImport(crdModulePath, "helper")
 	vars.Nodes, err = GenerateGraphqlResolverVars(baseGroupName, crdModulePath, pkgs, parentsMap)
 	if err != nil {
 		return err
