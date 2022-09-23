@@ -22,6 +22,7 @@ func GetCRDParentsMap() map[string][]string {
 		"apigateways.apigateway.nexus.org":     {"nexuses.api.nexus.org", "configs.config.nexus.org"},
 		"configs.config.nexus.org":             {"nexuses.api.nexus.org"},
 		"connects.connect.nexus.org":           {"nexuses.api.nexus.org", "configs.config.nexus.org"},
+		"corsconfigs.domain.nexus.org":         {"nexuses.api.nexus.org", "configs.config.nexus.org", "apigateways.apigateway.nexus.org"},
 		"nexusendpoints.connect.nexus.org":     {"nexuses.api.nexus.org", "configs.config.nexus.org", "connects.connect.nexus.org"},
 		"nexuses.api.nexus.org":                {},
 		"oidcs.authentication.nexus.org":       {"nexuses.api.nexus.org", "configs.config.nexus.org", "apigateways.apigateway.nexus.org"},
@@ -48,6 +49,13 @@ func GetObjectByCRDName(dmClient *datamodel.Clientset, crdName string, name stri
 	}
 	if crdName == "connects.connect.nexus.org" {
 		obj, err := dmClient.ConnectNexusV1().Connects().Get(context.TODO(), name, metav1.GetOptions{})
+		if err != nil {
+			return nil
+		}
+		return obj
+	}
+	if crdName == "corsconfigs.domain.nexus.org" {
+		obj, err := dmClient.DomainNexusV1().CORSConfigs().Get(context.TODO(), name, metav1.GetOptions{})
 		if err != nil {
 			return nil
 		}

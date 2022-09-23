@@ -4,7 +4,7 @@ go 1.17
 
 require (
 	github.com/elliotchance/orderedmap v1.4.0
-	golang-appnet.eng.vmware.com/nexus-sdk/nexus v0.0.0-20220609060534-bf4b11fbfe53
+	golang-appnet.eng.vmware.com/nexus-sdk/nexus v0.2.20
 	k8s.io/apimachinery v0.24.1
 	k8s.io/client-go v0.24.1
 )

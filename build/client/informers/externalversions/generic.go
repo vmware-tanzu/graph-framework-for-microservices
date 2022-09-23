@@ -27,6 +27,7 @@ import (
 	authenticationnexusorgv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/authentication.nexus.org/v1"
 	confignexusorgv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/config.nexus.org/v1"
 	connectnexusorgv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/connect.nexus.org/v1"
+	domainnexusorgv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/domain.nexus.org/v1"
 	routenexusorgv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/route.nexus.org/v1"
 
 	schema "k8s.io/apimachinery/pkg/runtime/schema"
@@ -86,6 +87,10 @@ func (f *sharedInformerFactory) ForResource(resource schema.GroupVersionResource
 		return &genericInformer{resource: resource.GroupResource(), informer: f.ConnectNexus().V1().NexusEndpoints().Informer()}, nil
 	case connectnexusorgv1.SchemeGroupVersion.WithResource("replicationconfigs"):
 		return &genericInformer{resource: resource.GroupResource(), informer: f.ConnectNexus().V1().ReplicationConfigs().Informer()}, nil
+
+		// Group=domain.nexus.org, Version=v1
+	case domainnexusorgv1.SchemeGroupVersion.WithResource("corsconfigs"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.DomainNexus().V1().CORSConfigs().Informer()}, nil
 
 		// Group=route.nexus.org, Version=v1
 	case routenexusorgv1.SchemeGroupVersion.WithResource("routes"):

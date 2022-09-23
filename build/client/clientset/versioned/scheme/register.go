@@ -25,6 +25,7 @@ import (
 	authenticationnexusv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/authentication.nexus.org/v1"
 	confignexusv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/config.nexus.org/v1"
 	connectnexusv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/connect.nexus.org/v1"
+	domainnexusv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/domain.nexus.org/v1"
 	routenexusv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/route.nexus.org/v1"
 
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -44,6 +45,7 @@ var localSchemeBuilder = runtime.SchemeBuilder{
 	authenticationnexusv1.AddToScheme,
 	confignexusv1.AddToScheme,
 	connectnexusv1.AddToScheme,
+	domainnexusv1.AddToScheme,
 	routenexusv1.AddToScheme,
 }
 
