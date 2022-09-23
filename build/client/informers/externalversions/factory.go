@@ -30,6 +30,7 @@ import (
 	authenticationnexusorg "golang-appnet.eng.vmware.com/nexus-sdk/api/build/client/informers/externalversions/authentication.nexus.org"
 	confignexusorg "golang-appnet.eng.vmware.com/nexus-sdk/api/build/client/informers/externalversions/config.nexus.org"
 	connectnexusorg "golang-appnet.eng.vmware.com/nexus-sdk/api/build/client/informers/externalversions/connect.nexus.org"
+	domainnexusorg "golang-appnet.eng.vmware.com/nexus-sdk/api/build/client/informers/externalversions/domain.nexus.org"
 	internalinterfaces "golang-appnet.eng.vmware.com/nexus-sdk/api/build/client/informers/externalversions/internalinterfaces"
 	routenexusorg "golang-appnet.eng.vmware.com/nexus-sdk/api/build/client/informers/externalversions/route.nexus.org"
 
@@ -185,6 +186,7 @@ type SharedInformerFactory interface {
 	AuthenticationNexus() authenticationnexusorg.Interface
 	ConfigNexus() confignexusorg.Interface
 	ConnectNexus() connectnexusorg.Interface
+	DomainNexus() domainnexusorg.Interface
 	RouteNexus() routenexusorg.Interface
 }
 
@@ -210,6 +212,10 @@ func (f *sharedInformerFactory) ConfigNexus() confignexusorg.Interface {
 
 func (f *sharedInformerFactory) ConnectNexus() connectnexusorg.Interface {
 	return connectnexusorg.New(f, f.namespace, f.tweakListOptions)
+}
+
+func (f *sharedInformerFactory) DomainNexus() domainnexusorg.Interface {
+	return domainnexusorg.New(f, f.namespace, f.tweakListOptions)
 }
 
 func (f *sharedInformerFactory) RouteNexus() routenexusorg.Interface {

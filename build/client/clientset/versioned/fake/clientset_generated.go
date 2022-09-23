@@ -32,6 +32,8 @@ import (
 	fakeconfignexusv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/client/clientset/versioned/typed/config.nexus.org/v1/fake"
 	connectnexusv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/client/clientset/versioned/typed/connect.nexus.org/v1"
 	fakeconnectnexusv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/client/clientset/versioned/typed/connect.nexus.org/v1/fake"
+	domainnexusv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/client/clientset/versioned/typed/domain.nexus.org/v1"
+	fakedomainnexusv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/client/clientset/versioned/typed/domain.nexus.org/v1/fake"
 	routenexusv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/client/clientset/versioned/typed/route.nexus.org/v1"
 	fakeroutenexusv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/client/clientset/versioned/typed/route.nexus.org/v1/fake"
 
@@ -120,6 +122,11 @@ func (c *Clientset) ConfigNexusV1() confignexusv1.ConfigNexusV1Interface {
 // ConnectNexusV1 retrieves the ConnectNexusV1Client
 func (c *Clientset) ConnectNexusV1() connectnexusv1.ConnectNexusV1Interface {
 	return &fakeconnectnexusv1.FakeConnectNexusV1{Fake: &c.Fake}
+}
+
+// DomainNexusV1 retrieves the DomainNexusV1Client
+func (c *Clientset) DomainNexusV1() domainnexusv1.DomainNexusV1Interface {
+	return &fakedomainnexusv1.FakeDomainNexusV1{Fake: &c.Fake}
 }
 
 // RouteNexusV1 retrieves the RouteNexusV1Client

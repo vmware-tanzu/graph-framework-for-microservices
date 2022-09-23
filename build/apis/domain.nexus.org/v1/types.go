@@ -35,23 +35,23 @@ type NexusStatus struct {
 // +genclient:nonNamespaced
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 // +k8s:openapi-gen=true
-type ApiGateway struct {
+type CORSConfig struct {
 	metav1.TypeMeta   `json:",inline" yaml:",inline"`
 	metav1.ObjectMeta `json:"metadata" yaml:"metadata"`
-	Spec              ApiGatewaySpec        `json:"spec,omitempty" yaml:"spec,omitempty"`
-	Status            ApiGatewayNexusStatus `json:"status,omitempty" yaml:"status,omitempty"`
+	Spec              CORSConfigSpec        `json:"spec,omitempty" yaml:"spec,omitempty"`
+	Status            CORSConfigNexusStatus `json:"status,omitempty" yaml:"status,omitempty"`
 }
 
 // +k8s:openapi-gen=true
-type ApiGatewayNexusStatus struct {
+type CORSConfigNexusStatus struct {
 	Nexus NexusStatus `json:"nexus,omitempty" yaml:"nexus,omitempty"`
 }
 
-func (c *ApiGateway) CRDName() string {
-	return "apigateways.apigateway.nexus.org"
+func (c *CORSConfig) CRDName() string {
+	return "corsconfigs.domain.nexus.org"
 }
 
-func (c *ApiGateway) DisplayName() string {
+func (c *CORSConfig) DisplayName() string {
 	if c.GetLabels() != nil {
 		return c.GetLabels()[common.DISPLAY_NAME_LABEL]
 	}
@@ -59,15 +59,14 @@ func (c *ApiGateway) DisplayName() string {
 }
 
 // +k8s:openapi-gen=true
-type ApiGatewaySpec struct {
-	ProxyRulesGvk map[string]Child `json:"proxyRulesGvk,omitempty" yaml:"proxyRulesGvk,omitempty" nexus:"child"`
-	AuthnGvk      *Child           `json:"authnGvk,omitempty" yaml:"authnGvk,omitempty" nexus:"child"`
-	CorsGvk       map[string]Child `json:"corsGvk,omitempty" yaml:"corsGvk,omitempty" nexus:"children"`
+type CORSConfigSpec struct {
+	Origins []string `json:"origins"`
+	Headers []string `json:"headers,omitempty"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
-type ApiGatewayList struct {
+type CORSConfigList struct {
 	metav1.TypeMeta `json:",inline" yaml:",inline"`
 	metav1.ListMeta `json:"metadata" yaml:"metadata"`
-	Items           []ApiGateway `json:"items" yaml:"items"`
+	Items           []CORSConfig `json:"items" yaml:"items"`
 }

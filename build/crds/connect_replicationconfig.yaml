@@ -4,7 +4,7 @@ kind: CustomResourceDefinition
 metadata:
   annotations:
     nexus: |
-      {"name":"connect.ReplicationConfig","hierarchy":["nexuses.api.nexus.org","configs.config.nexus.org","connects.connect.nexus.org"],"is_singleton":false,"nexus-rest-api-gen":{"uris":null}}
+      {"name":"connect.ReplicationConfig","hierarchy":["nexuses.api.nexus.org","configs.config.nexus.org","connects.connect.nexus.org"],"links":{"RemoteEndpoint":{"fieldName":"RemoteEndpoint","fieldNameGvk":"remoteEndpointGvk","isNamed":false}},"is_singleton":false,"nexus-rest-api-gen":{"uris":null}}
   creationTimestamp: null
   name: replicationconfigs.connect.nexus.org
 spec:

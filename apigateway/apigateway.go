@@ -3,6 +3,7 @@ package apigateway
 import (
 	"golang-appnet.eng.vmware.com/nexus-sdk/api/admin"
 	authentication "golang-appnet.eng.vmware.com/nexus-sdk/api/authn"
+	domain "golang-appnet.eng.vmware.com/nexus-sdk/api/domain"
 
 	"golang-appnet.eng.vmware.com/nexus-sdk/nexus/nexus"
 )
@@ -16,4 +17,7 @@ type ApiGateway struct {
 
 	// Authentication config associated with this Gateway.
 	Authn authentication.OIDC `nexus:"child"`
+
+	//Domain objects
+	Cors domain.CORSConfig `nexus:"children"`
 }
