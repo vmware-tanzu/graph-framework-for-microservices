@@ -263,6 +263,7 @@ func (c *resolverConfig) get{{$child.PkgName}}{{$child.NodeName}}{{$child.FieldN
     for k, v := range obj.ParentLabels {
         parentLabels[k] = v
     }
+
 	{{ $child.ReturnType }}
 	return ret, nil
 }
@@ -280,6 +281,10 @@ func (c *resolverConfig) get{{$child.PkgName}}{{$child.NodeName}}{{$child.FieldN
             return nil, fmt.Errorf("failed to get node: %s", err)
         }
 		{{ $child.Alias }}
+        for k, v := range obj.ParentLabels {
+            parentLabels[k] = v
+        }
+
 		{{ $child.ReturnType }}
 		v{{$child.FieldTypePkgPath}}List = append(v{{$child.FieldTypePkgPath}}List, ret)
 		return v{{$child.FieldTypePkgPath}}List, nil
