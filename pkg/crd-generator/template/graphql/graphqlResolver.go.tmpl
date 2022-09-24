@@ -16,7 +16,7 @@ import (
 )
 
 var c resolverConfig
-var nc *Clientset
+var nc *nexus_client.Clientset
 
 type resolverConfig struct {
 	{{ range  $key, $node := .Nodes }}{{ if $node.IsNexusNode }}v{{$node.PkgName}}{{$node.NodeName}} *nexus_client.{{$node.PkgName}}{{$node.NodeName}}
