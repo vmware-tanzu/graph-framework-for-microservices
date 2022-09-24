@@ -18,6 +18,7 @@ type ReturnStatement struct {
 	ReturnType string
 	FieldCount int
 	CRDName    string
+	ChainAPI   string
 }
 
 type Field_prop struct {
@@ -47,6 +48,7 @@ type Field_prop struct {
 	ReturnType              string
 	FieldCount              int
 	CRDName                 string
+	ChainAPI                string
 }
 
 type Node_prop struct {
@@ -302,7 +304,11 @@ func GenerateGraphqlResolverVars(baseGroupName, crdModulePath string, pkgs parse
 	}
 	// Create CustomType map
 	customApi := make(map[string]string)
+	CRDNameMap := make(map[string]string)
 	for _, n := range Nodes {
+		if n.IsNexusNode || n.IsSingletonNode {
+			CRDNameMap[n.CrdName] = n.PkgName + n.NodeName
+		}
 		for _, f := range n.CustomFields {
 			customApi[f.BaseTypeName] = f.FieldName
 		}
@@ -314,6 +320,7 @@ func GenerateGraphqlResolverVars(baseGroupName, crdModulePath string, pkgs parse
 		var aliasVal string
 		var listRetVal string
 		var fieldCount int
+		var ChainAPI string
 		retType += fmt.Sprintf("ret := &model.%s%s {\n", n.PkgName, n.NodeName)
 		if n.IsNexusNode || n.IsSingletonNode {
 			retType += fmt.Sprintf("\t%s: &%s,\n", "Id", "id")
@@ -327,6 +334,14 @@ func GenerateGraphqlResolverVars(baseGroupName, crdModulePath string, pkgs parse
 			// fmt.Println(parentsMap[n.CrdName].IsSingleton)
 			// fmt.Println(parentsMap[n.CrdName].RestMappings)
 			// fmt.Println(parentsMap[n.CrdName].RestName)
+			ChainAPI += "nc"
+			for _, i := range parentsMap[n.CrdName].Parents {
+				if parentsMap[i].IsSingleton {
+					ChainAPI += fmt.Sprintf(".%s()", CRDNameMap[i])
+				} else {
+					ChainAPI += fmt.Sprintf(".%s(obj.ParentLabels[\"%s\"].(string))", CRDNameMap[i], i)
+				}
+			}
 		}
 		for _, i := range n.ResolverFields[n.PkgName+n.NodeName] {
 			if i.IsAliasTypeField {
@@ -362,6 +377,7 @@ func GenerateGraphqlResolverVars(baseGroupName, crdModulePath string, pkgs parse
 			ReturnType: retType,
 			FieldCount: fieldCount,
 			CRDName:    n.CrdName,
+			ChainAPI:   ChainAPI,
 		}
 	}
 	// set return value to each node
@@ -389,12 +405,15 @@ func GenerateGraphqlResolverVars(baseGroupName, crdModulePath string, pkgs parse
 			f.Alias = retMap[f.FieldTypePkgPath].Alias
 			f.FieldCount = retMap[f.FieldTypePkgPath].FieldCount
 			f.CRDName = retMap[f.FieldTypePkgPath].CRDName
+			f.ChainAPI = retMap[f.FieldTypePkgPath].ChainAPI
 			resNodeProp.ChildLinkFields = append(resNodeProp.ChildLinkFields, f)
 		}
 		for _, f := range n.ChildrenLinksFields {
 			f.ReturnType = retMap[f.FieldTypePkgPath].ReturnType
 			f.Alias = retMap[f.FieldTypePkgPath].Alias
 			f.FieldCount = retMap[f.FieldTypePkgPath].FieldCount
+			f.CRDName = retMap[f.FieldTypePkgPath].CRDName
+			f.ChainAPI = retMap[f.FieldTypePkgPath].ChainAPI
 			resNodeProp.ChildrenLinksFields = append(resNodeProp.ChildrenLinksFields, f)
 		}
 		ResNodes = append(ResNodes, resNodeProp)

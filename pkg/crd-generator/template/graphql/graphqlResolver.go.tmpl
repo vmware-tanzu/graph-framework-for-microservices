@@ -251,7 +251,7 @@ func (c *resolverConfig) get{{$node.PkgName}}{{$node.NodeName}}queryServiceTopol
 // Resolver for {{$child.NodeName}}
 //////////////////////////////////////
 func (c *resolverConfig) get{{$child.PkgName}}{{$child.NodeName}}{{$child.FieldName}}Resolver(obj *model.{{$child.PkgName}}{{$child.NodeName}}) (*model.{{$child.FieldTypePkgPath}}, error) {
-	v{{$child.BaseTypeName}}, err := c.v{{$child.PkgName}}{{$child.NodeName}}.Get{{$child.FieldName}}(context.TODO())
+	v{{$child.BaseTypeName}}, err := {{$child.ChainAPI}}.Get{{$child.FieldName}}(context.TODO())
 	if err != nil {
 	    log.Errorf("Error getting node %s", err)
         return nil, fmt.Errorf("failed to get node: %s", err)
@@ -274,7 +274,7 @@ func (c *resolverConfig) get{{$child.PkgName}}{{$child.NodeName}}{{$child.FieldN
 func (c *resolverConfig) get{{$child.PkgName}}{{$child.NodeName}}{{$child.FieldName}}Resolver(obj *model.{{$child.PkgName}}{{$child.NodeName}}, id *string) ([]*model.{{$child.FieldTypePkgPath}}, error) {
 	var v{{$child.FieldTypePkgPath}}List []*model.{{$child.FieldTypePkgPath}}
 	if id != nil && *id != "" {
-		v{{$child.BaseTypeName}}, err := c.v{{$child.PkgName}}{{$child.NodeName}}.Get{{$child.FieldName}}(context.TODO(), *id)
+		v{{$child.BaseTypeName}}, err := {{$child.ChainAPI}}.Get{{$child.FieldName}}(context.TODO(), *id)
 		if err != nil {
 	        log.Errorf("Error getting node %s", err)
             return nil, fmt.Errorf("failed to get node: %s", err)
@@ -285,7 +285,7 @@ func (c *resolverConfig) get{{$child.PkgName}}{{$child.NodeName}}{{$child.FieldN
 		return v{{$child.FieldTypePkgPath}}List, nil
 	}
 	for i := range c.v{{$child.PkgName}}{{$child.NodeName}}.Spec.{{$child.FieldName}}Gvk {
-		v{{$child.BaseTypeName}}, err := c.v{{$child.PkgName}}{{$child.NodeName}}.Get{{$child.FieldName}}(context.TODO(), i)
+		v{{$child.BaseTypeName}}, err := {{$child.ChainAPI}}.Get{{$child.FieldName}}(context.TODO(), i)
 		if err != nil {
 	        log.Errorf("Error getting node %s", err)
             return nil, fmt.Errorf("failed to get node: %s", err)
