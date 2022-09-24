@@ -171,6 +171,12 @@ func (group *RootTsmV1) CreateRootByName(ctx context.Context,
 	if _, ok := objToCreate.Labels[common.DISPLAY_NAME_LABEL]; !ok {
 		objToCreate.Labels[common.DISPLAY_NAME_LABEL] = objToCreate.GetName()
 	}
+	if objToCreate.Labels[common.DISPLAY_NAME_LABEL] == "" {
+		objToCreate.Labels[common.DISPLAY_NAME_LABEL] = helper.DEFAULT_KEY
+	}
+	if objToCreate.Labels[common.DISPLAY_NAME_LABEL] != helper.DEFAULT_KEY {
+		return nil, NewSingletonNameError(objToCreate.Labels[common.DISPLAY_NAME_LABEL])
+	}
 
 	objToCreate.Spec.ConfigGvk = nil
 
@@ -191,7 +197,9 @@ func (group *RootTsmV1) CreateRootByName(ctx context.Context,
 // display name and parents names.
 func (group *RootTsmV1) UpdateRootByName(ctx context.Context,
 	objToUpdate *baseroottsmtanzuvmwarecomv1.Root) (*RootRoot, error) {
-
+	if objToUpdate.Labels[common.DISPLAY_NAME_LABEL] != helper.DEFAULT_KEY {
+		return nil, NewSingletonNameError(objToUpdate.Labels[common.DISPLAY_NAME_LABEL])
+	}
 	// ResourceVersion must be set for update
 	if objToUpdate.ResourceVersion == "" {
 		current, err := group.client.baseClient.
@@ -289,28 +297,34 @@ func (obj *RootRoot) Update(ctx context.Context) error {
 	return nil
 }
 
-// GetRootRoot calculates the hashed name based on parents and displayName and
+// GetRootRoot calculates the hashed name based on parents and
 // returns given object
-func (c *Clientset) GetRootRoot(ctx context.Context, displayName string) (result *RootRoot, err error) {
-	hashedName := helper.GetHashedName("roots.root.tsm.tanzu.vmware.com", nil, displayName)
+func (c *Clientset) GetRootRoot(ctx context.Context) (result *RootRoot, err error) {
+	hashedName := helper.GetHashedName("roots.root.tsm.tanzu.vmware.com", nil, helper.DEFAULT_KEY)
 	return c.Root().GetRootByName(ctx, hashedName)
 }
 
-func (c *Clientset) RootRoot(displayName string) *rootRootTsmV1Chainer {
+func (c *Clientset) RootRoot() *rootRootTsmV1Chainer {
 	parentLabels := make(map[string]string)
-	parentLabels["roots.root.tsm.tanzu.vmware.com"] = displayName
+	parentLabels["roots.root.tsm.tanzu.vmware.com"] = helper.DEFAULT_KEY
 	return &rootRootTsmV1Chainer{
 		client:       c,
-		name:         displayName,
+		name:         helper.DEFAULT_KEY,
 		parentLabels: parentLabels,
 	}
 }
 
-// AddRootRoot calculates hashed name of the object based on objToCreate.Name
-// and parents names and creates it. objToCreate.Name is changed to the hashed name. Original name is preserved in
+// AddRootRoot calculates hashed name of the object based on
+// parents names and creates it. objToCreate.Name is changed to the hashed name. Original name (helper.DEFAULT_KEY) is preserved in
 // nexus/display_name label and can be obtained using DisplayName() method.
 func (c *Clientset) AddRootRoot(ctx context.Context,
 	objToCreate *baseroottsmtanzuvmwarecomv1.Root) (result *RootRoot, err error) {
+	if objToCreate.GetName() == "" {
+		objToCreate.SetName(helper.DEFAULT_KEY)
+	}
+	if objToCreate.GetName() != helper.DEFAULT_KEY {
+		return nil, NewSingletonNameError(objToCreate.GetName())
+	}
 	if objToCreate.Labels == nil {
 		objToCreate.Labels = map[string]string{}
 	}
@@ -323,10 +337,10 @@ func (c *Clientset) AddRootRoot(ctx context.Context,
 	return c.Root().CreateRootByName(ctx, objToCreate)
 }
 
-// DeleteRootRoot calculates hashedName of object based on displayName and
+// DeleteRootRoot calculates hashedName of object based on
 // parents and deletes given object
-func (c *Clientset) DeleteRootRoot(ctx context.Context, displayName string) (err error) {
-	hashedName := helper.GetHashedName("roots.root.tsm.tanzu.vmware.com", nil, displayName)
+func (c *Clientset) DeleteRootRoot(ctx context.Context) (err error) {
+	hashedName := helper.GetHashedName("roots.root.tsm.tanzu.vmware.com", nil, helper.DEFAULT_KEY)
 	return c.Root().DeleteRootByName(ctx, hashedName)
 }
 
@@ -352,12 +366,6 @@ func (obj *RootRoot) AddConfig(ctx context.Context,
 	}
 	objToCreate.Labels["roots.root.tsm.tanzu.vmware.com"] = obj.DisplayName()
 	if objToCreate.Labels[common.IS_NAME_HASHED_LABEL] != "true" {
-		if objToCreate.GetName() == "" {
-			objToCreate.SetName(helper.DEFAULT_KEY)
-		}
-		if objToCreate.GetName() != helper.DEFAULT_KEY {
-			return nil, NewSingletonNameError(objToCreate.GetName())
-		}
 		objToCreate.Labels[common.DISPLAY_NAME_LABEL] = objToCreate.GetName()
 		objToCreate.Labels[common.IS_NAME_HASHED_LABEL] = "true"
 		hashedName := helper.GetHashedName(objToCreate.CRDName(), objToCreate.Labels, objToCreate.GetName())
@@ -396,33 +404,27 @@ type rootRootTsmV1Chainer struct {
 	parentLabels map[string]string
 }
 
-func (c *rootRootTsmV1Chainer) Config() *configConfigTsmV1Chainer {
+func (c *rootRootTsmV1Chainer) Config(name string) *configConfigTsmV1Chainer {
 	parentLabels := c.parentLabels
-	parentLabels["configs.config.tsm.tanzu.vmware.com"] = helper.DEFAULT_KEY
+	parentLabels["configs.config.tsm.tanzu.vmware.com"] = name
 	return &configConfigTsmV1Chainer{
 		client:       c.client,
-		name:         helper.DEFAULT_KEY,
+		name:         name,
 		parentLabels: parentLabels,
 	}
 }
 
-// GetConfig calculates hashed name of the object based on it's parents and returns the object
-func (c *rootRootTsmV1Chainer) GetConfig(ctx context.Context) (result *ConfigConfig, err error) {
-	hashedName := helper.GetHashedName("configs.config.tsm.tanzu.vmware.com", c.parentLabels, helper.DEFAULT_KEY)
+// GetConfig calculates hashed name of the object based on displayName and it's parents and returns the object
+func (c *rootRootTsmV1Chainer) GetConfig(ctx context.Context, displayName string) (result *ConfigConfig, err error) {
+	hashedName := helper.GetHashedName("configs.config.tsm.tanzu.vmware.com", c.parentLabels, displayName)
 	return c.client.Config().GetConfigByName(ctx, hashedName)
 }
 
-// AddConfig calculates hashed name of the child to create based on parents names and creates it.
-// objToCreate.Name is changed to the hashed name. Original name ('default') is preserved in
+// AddConfig calculates hashed name of the child to create based on objToCreate.Name
+// and parents names and creates it. objToCreate.Name is changed to the hashed name. Original name is preserved in
 // nexus/display_name label and can be obtained using DisplayName() method.
 func (c *rootRootTsmV1Chainer) AddConfig(ctx context.Context,
 	objToCreate *baseconfigtsmtanzuvmwarecomv1.Config) (result *ConfigConfig, err error) {
-	if objToCreate.GetName() == "" {
-		objToCreate.SetName(helper.DEFAULT_KEY)
-	}
-	if objToCreate.GetName() != helper.DEFAULT_KEY {
-		return nil, NewSingletonNameError(objToCreate.GetName())
-	}
 	if objToCreate.Labels == nil {
 		objToCreate.Labels = map[string]string{}
 	}
@@ -535,12 +537,6 @@ func (group *ConfigTsmV1) CreateConfigByName(ctx context.Context,
 	if _, ok := objToCreate.Labels[common.DISPLAY_NAME_LABEL]; !ok {
 		objToCreate.Labels[common.DISPLAY_NAME_LABEL] = objToCreate.GetName()
 	}
-	if objToCreate.Labels[common.DISPLAY_NAME_LABEL] == "" {
-		objToCreate.Labels[common.DISPLAY_NAME_LABEL] = helper.DEFAULT_KEY
-	}
-	if objToCreate.Labels[common.DISPLAY_NAME_LABEL] != helper.DEFAULT_KEY {
-		return nil, NewSingletonNameError(objToCreate.Labels[common.DISPLAY_NAME_LABEL])
-	}
 
 	objToCreate.Spec.GNSGvk = nil
 
@@ -591,9 +587,7 @@ func (group *ConfigTsmV1) CreateConfigByName(ctx context.Context,
 // display name and parents names.
 func (group *ConfigTsmV1) UpdateConfigByName(ctx context.Context,
 	objToUpdate *baseconfigtsmtanzuvmwarecomv1.Config) (*ConfigConfig, error) {
-	if objToUpdate.Labels[common.DISPLAY_NAME_LABEL] != helper.DEFAULT_KEY {
-		return nil, NewSingletonNameError(objToUpdate.Labels[common.DISPLAY_NAME_LABEL])
-	}
+
 	// ResourceVersion must be set for update
 	if objToUpdate.ResourceVersion == "" {
 		current, err := group.client.baseClient.

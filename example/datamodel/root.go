@@ -6,7 +6,7 @@ import (
 )
 
 type Root struct {
-	nexus.Node
+	nexus.SingletonNode
 	DisplayName string
 	Config      config.Config `nexus:"child"`
 	CustomBar   Bar

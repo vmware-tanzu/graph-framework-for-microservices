@@ -3,6 +3,7 @@ package config
 import (
 	"net/http"
 
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/common-library.git/pkg/nexus"
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/datamodel/config/gns"
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/datamodel/nexus"
 )
@@ -19,7 +20,7 @@ var BarCustomMethodsResponses = nexus.HTTPMethodsResponses{
 }
 
 type Config struct {
-	nexus.SingletonNode
+	nexus.Node
 	ConfigName        string
 	GNS               gns.Gns `nexus:"child"`
 	Cluster           Cluster

@@ -63,40 +63,35 @@ func grpcServer() qm.ServerClient{
 
 
 //////////////////////////////////////
-// Non singleton Resolver for Parent Node: Root
+// Singleton Resolver for Parent Node: Root
 //////////////////////////////////////
-func (c *resolverConfig) getRootResolver(id *string) (*model.RootRoot, error) {
+func (c *resolverConfig) getRootResolver() (*model.RootRoot, error) {
 	k8sApiConfig := getK8sAPIEndpointConfig()
 	nexusClient, err := nexus_client.NewForConfig(k8sApiConfig)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get k8s client config: %s", err)
+        return nil, fmt.Errorf("failed to get k8s client config: %s", err)
 	}
 	nc = nexusClient
-	if id != nil && *id != "" {
-		vRoot, err := nc.GetRootRoot(context.TODO(), *id)
-		if err != nil {
-			log.Errorf("Error getting root node %s", err)
-			return nil, fmt.Errorf("failed to get root node: %s", err)
-		}
-		c.vRootRoot = vRoot
-		id := vRoot.DisplayName()
+	vRoot, err := nc.GetRootRoot(context.TODO())
+	if err != nil {
+	    log.Errorf("Error getting root node %s", err)
+        return nil, fmt.Errorf("failed to get root node: %s", err)
+	}
+	c.vRootRoot = vRoot
+	id := vRoot.DisplayName()
 parentLabels := map[string]interface{}{"roots.root.tsm.tanzu.vmware.com":id}
 vDisplayName := string(vRoot.Spec.DisplayName)
 CustomBar, _ := json.Marshal(vRoot.Spec.CustomBar)
 CustomBarData := string(CustomBar)
 
-		ret := &model.RootRoot {
+	ret := &model.RootRoot {
 	Id: &id,
 	ParentLabels: parentLabels,
 	DisplayName: &vDisplayName,
 	CustomBar: &CustomBarData,
 	}
-		return ret, nil
-	}
-	ret := &model.RootRoot{}
 	return ret, nil
 }
-
 
 //////////////////////////////////////
 // CustomQuery Resolver for Node: RootRoot
@@ -684,7 +679,7 @@ func (c *resolverConfig) getGnsBarqueryServiceTopologyResolver(obj *model.GnsBar
 // Resolver for Root
 //////////////////////////////////////
 func (c *resolverConfig) getRootRootConfigResolver(obj *model.RootRoot) (*model.ConfigConfig, error) {
-	vConfig, err := nc.RootRoot(obj.ParentLabels["roots.root.tsm.tanzu.vmware.com"].(string)).GetConfig(context.TODO())
+	vConfig, err := nc.RootRoot().GetConfig(context.TODO())
 	if err != nil {
 	    log.Errorf("Error getting node %s", err)
         return nil, fmt.Errorf("failed to get node: %s", err)
@@ -739,7 +734,7 @@ ClusterNamespacesData := string(ClusterNamespaces)
 // Resolver for Config
 //////////////////////////////////////
 func (c *resolverConfig) getConfigConfigGNSResolver(obj *model.ConfigConfig) (*model.GnsGns, error) {
-	vGns, err := nc.RootRoot(obj.ParentLabels["roots.root.tsm.tanzu.vmware.com"].(string)).ConfigConfig().GetGNS(context.TODO())
+	vGns, err := nc.RootRoot().ConfigConfig(obj.ParentLabels["configs.config.tsm.tanzu.vmware.com"].(string)).GetGNS(context.TODO())
 	if err != nil {
 	    log.Errorf("Error getting node %s", err)
         return nil, fmt.Errorf("failed to get node: %s", err)
@@ -792,7 +787,7 @@ Array5Data := string(Array5)
 // Resolver for Gns
 //////////////////////////////////////
 func (c *resolverConfig) getGnsGnsFooLinkResolver(obj *model.GnsGns) (*model.GnsBar, error) {
-	vBar, err := nc.RootRoot(obj.ParentLabels["roots.root.tsm.tanzu.vmware.com"].(string)).ConfigConfig().GnsGns().GetFooLink(context.TODO())
+	vBar, err := nc.RootRoot().ConfigConfig(obj.ParentLabels["configs.config.tsm.tanzu.vmware.com"].(string)).GnsGns().GetFooLink(context.TODO())
 	if err != nil {
 	    log.Errorf("Error getting node %s", err)
         return nil, fmt.Errorf("failed to get node: %s", err)
@@ -818,7 +813,7 @@ parentLabels := map[string]interface{}{"bars.gns.tsm.tanzu.vmware.com":id}
 // Resolver for Gns
 //////////////////////////////////////
 func (c *resolverConfig) getGnsGnsFooChildResolver(obj *model.GnsGns) (*model.GnsBar, error) {
-	vBar, err := nc.RootRoot(obj.ParentLabels["roots.root.tsm.tanzu.vmware.com"].(string)).ConfigConfig().GnsGns().GetFooChild(context.TODO())
+	vBar, err := nc.RootRoot().ConfigConfig(obj.ParentLabels["configs.config.tsm.tanzu.vmware.com"].(string)).GnsGns().GetFooChild(context.TODO())
 	if err != nil {
 	    log.Errorf("Error getting node %s", err)
         return nil, fmt.Errorf("failed to get node: %s", err)
@@ -846,7 +841,7 @@ parentLabels := map[string]interface{}{"bars.gns.tsm.tanzu.vmware.com":id}
 func (c *resolverConfig) getGnsGnsFooLinksResolver(obj *model.GnsGns, id *string) ([]*model.GnsBar, error) {
 	var vGnsBarList []*model.GnsBar
 	if id != nil && *id != "" {
-		vBar, err := nc.RootRoot(obj.ParentLabels["roots.root.tsm.tanzu.vmware.com"].(string)).ConfigConfig().GnsGns().GetFooLinks(context.TODO(), *id)
+		vBar, err := nc.RootRoot().ConfigConfig(obj.ParentLabels["configs.config.tsm.tanzu.vmware.com"].(string)).GnsGns().GetFooLinks(context.TODO(), *id)
 		if err != nil {
 	        log.Errorf("Error getting node %s", err)
             return nil, fmt.Errorf("failed to get node: %s", err)
@@ -862,7 +857,7 @@ parentLabels := map[string]interface{}{"bars.gns.tsm.tanzu.vmware.com":id}
 		return vGnsBarList, nil
 	}
 	for i := range c.vGnsGns.Spec.FooLinksGvk {
-		vBar, err := nc.RootRoot(obj.ParentLabels["roots.root.tsm.tanzu.vmware.com"].(string)).ConfigConfig().GnsGns().GetFooLinks(context.TODO(), i)
+		vBar, err := nc.RootRoot().ConfigConfig(obj.ParentLabels["configs.config.tsm.tanzu.vmware.com"].(string)).GnsGns().GetFooLinks(context.TODO(), i)
 		if err != nil {
 	        log.Errorf("Error getting node %s", err)
             return nil, fmt.Errorf("failed to get node: %s", err)
@@ -886,7 +881,7 @@ parentLabels := map[string]interface{}{"bars.gns.tsm.tanzu.vmware.com":id}
 func (c *resolverConfig) getGnsGnsFooChildrenResolver(obj *model.GnsGns, id *string) ([]*model.GnsBar, error) {
 	var vGnsBarList []*model.GnsBar
 	if id != nil && *id != "" {
-		vBar, err := nc.RootRoot(obj.ParentLabels["roots.root.tsm.tanzu.vmware.com"].(string)).ConfigConfig().GnsGns().GetFooChildren(context.TODO(), *id)
+		vBar, err := nc.RootRoot().ConfigConfig(obj.ParentLabels["configs.config.tsm.tanzu.vmware.com"].(string)).GnsGns().GetFooChildren(context.TODO(), *id)
 		if err != nil {
 	        log.Errorf("Error getting node %s", err)
             return nil, fmt.Errorf("failed to get node: %s", err)
@@ -902,7 +897,7 @@ parentLabels := map[string]interface{}{"bars.gns.tsm.tanzu.vmware.com":id}
 		return vGnsBarList, nil
 	}
 	for i := range c.vGnsGns.Spec.FooChildrenGvk {
-		vBar, err := nc.RootRoot(obj.ParentLabels["roots.root.tsm.tanzu.vmware.com"].(string)).ConfigConfig().GnsGns().GetFooChildren(context.TODO(), i)
+		vBar, err := nc.RootRoot().ConfigConfig(obj.ParentLabels["configs.config.tsm.tanzu.vmware.com"].(string)).GnsGns().GetFooChildren(context.TODO(), i)
 		if err != nil {
 	        log.Errorf("Error getting node %s", err)
             return nil, fmt.Errorf("failed to get node: %s", err)
