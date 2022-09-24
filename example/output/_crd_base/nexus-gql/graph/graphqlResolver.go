@@ -712,6 +712,7 @@ ClusterNamespacesData := string(ClusterNamespaces)
     for k, v := range obj.ParentLabels {
         parentLabels[k] = v
     }
+
 	ret := &model.ConfigConfig {
 	Id: &id,
 	ParentLabels: parentLabels,
@@ -765,6 +766,7 @@ Array5Data := string(Array5)
     for k, v := range obj.ParentLabels {
         parentLabels[k] = v
     }
+
 	ret := &model.GnsGns {
 	Id: &id,
 	ParentLabels: parentLabels,
@@ -801,6 +803,7 @@ parentLabels := map[string]interface{}{"bars.gns.tsm.tanzu.vmware.com":id}
     for k, v := range obj.ParentLabels {
         parentLabels[k] = v
     }
+
 	ret := &model.GnsBar {
 	Id: &id,
 	ParentLabels: parentLabels,
@@ -827,6 +830,7 @@ parentLabels := map[string]interface{}{"bars.gns.tsm.tanzu.vmware.com":id}
     for k, v := range obj.ParentLabels {
         parentLabels[k] = v
     }
+
 	ret := &model.GnsBar {
 	Id: &id,
 	ParentLabels: parentLabels,
@@ -848,6 +852,10 @@ func (c *resolverConfig) getGnsGnsFooLinksResolver(obj *model.GnsGns, id *string
         }
 		id := vBar.DisplayName()
 parentLabels := map[string]interface{}{"bars.gns.tsm.tanzu.vmware.com":id}
+
+        for k, v := range obj.ParentLabels {
+            parentLabels[k] = v
+        }
 
 		ret := &model.GnsBar {
 	Id: &id,
@@ -888,6 +896,10 @@ func (c *resolverConfig) getGnsGnsFooChildrenResolver(obj *model.GnsGns, id *str
         }
 		id := vBar.DisplayName()
 parentLabels := map[string]interface{}{"bars.gns.tsm.tanzu.vmware.com":id}
+
+        for k, v := range obj.ParentLabels {
+            parentLabels[k] = v
+        }
 
 		ret := &model.GnsBar {
 	Id: &id,
