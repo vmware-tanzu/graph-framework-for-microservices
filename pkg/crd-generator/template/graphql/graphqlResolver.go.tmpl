@@ -84,10 +84,11 @@ func (c *resolverConfig) getRootResolver() (*model.{{$node.PkgName}}{{$node.Node
 //////////////////////////////////////
 func (c *resolverConfig) getRootResolver(id *string) (*model.{{$node.PkgName}}{{$node.NodeName}}, error) {
 	k8sApiConfig := getK8sAPIEndpointConfig()
-	nc, err := nexus_client.NewForConfig(k8sApiConfig)
+	nexusClient, err := nexus_client.NewForConfig(k8sApiConfig)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get k8s client config: %s", err)
 	}
+	nc = nexusClient
 	if id != nil && *id != "" {
 		v{{$node.NodeName}}, err := nc.Get{{$node.PkgName}}{{$node.NodeName}}(context.TODO(), *id)
 		if err != nil {
@@ -109,7 +110,7 @@ func (c *resolverConfig) getRootResolver(id *string) (*model.{{$node.PkgName}}{{
 //////////////////////////////////////
 
 // Resolver for queryServiceTable
-func (c *resolverConfig) get{{$node.PkgName}}{{$node.NodeName}}queryServiceTableResolver(startTime *string, endTime *string, systemServices *bool, showGateways *bool, groupby *string, noMetrics *bool) (*model.TimeSeriesData,error) {
+func (c *resolverConfig) get{{$node.PkgName}}{{$node.NodeName}}queryServiceTableResolver(*model.{{$node.PkgName}}{{$node.NodeName}}, startTime *string, endTime *string, systemServices *bool, showGateways *bool, groupby *string, noMetrics *bool) (*model.TimeSeriesData,error) {
 	ctx := context.Background()
 	var filters = make(map[string]string)
 	filters[""] = ""
@@ -126,7 +127,7 @@ func (c *resolverConfig) get{{$node.PkgName}}{{$node.NodeName}}queryServiceTable
 }
 
 // Resolver for queryServiceVersionTable
-func (c *resolverConfig) get{{$node.PkgName}}{{$node.NodeName}}queryServiceVersionTableResolver(startTime *string, endTime *string, systemServices *bool, showGateways *bool, noMetrics *bool) (*model.TimeSeriesData,error) {
+func (c *resolverConfig) get{{$node.PkgName}}{{$node.NodeName}}queryServiceVersionTableResolver(*model.{{$node.PkgName}}{{$node.NodeName}}, startTime *string, endTime *string, systemServices *bool, showGateways *bool, noMetrics *bool) (*model.TimeSeriesData,error) {
 	ctx := context.Background()
 	var filters = make(map[string]string)
 	filters[""] = ""
@@ -143,7 +144,7 @@ func (c *resolverConfig) get{{$node.PkgName}}{{$node.NodeName}}queryServiceVersi
 }
 
 // Resolver for queryServiceTS
-func (c *resolverConfig) get{{$node.PkgName}}{{$node.NodeName}}queryServiceTSResolver(svcMetric *string, startTime *string, endTime *string, timeInterval *string) (*model.TimeSeriesData,error) {
+func (c *resolverConfig) get{{$node.PkgName}}{{$node.NodeName}}queryServiceTSResolver(*model.{{$node.PkgName}}{{$node.NodeName}}, svcMetric *string, startTime *string, endTime *string, timeInterval *string) (*model.TimeSeriesData,error) {
 	ctx := context.Background()
 	var filters = make(map[string]string)
 	filters[""] = ""
@@ -160,7 +161,7 @@ func (c *resolverConfig) get{{$node.PkgName}}{{$node.NodeName}}queryServiceTSRes
 }
 
 // Resolver for queryIncomingAPIs
-func (c *resolverConfig) get{{$node.PkgName}}{{$node.NodeName}}queryIncomingAPIsResolver(startTime *string, endTime *string, destinationService *string, destinationServiceVersion *string, timeInterval *string, timeZone *string) (*model.TimeSeriesData,error) {
+func (c *resolverConfig) get{{$node.PkgName}}{{$node.NodeName}}queryIncomingAPIsResolver(*model.{{$node.PkgName}}{{$node.NodeName}}, startTime *string, endTime *string, destinationService *string, destinationServiceVersion *string, timeInterval *string, timeZone *string) (*model.TimeSeriesData,error) {
 	ctx := context.Background()
 	var filters = make(map[string]string)
 	filters[""] = ""
@@ -177,7 +178,7 @@ func (c *resolverConfig) get{{$node.PkgName}}{{$node.NodeName}}queryIncomingAPIs
 }
 
 // Resolver for queryOutgoingAPIs
-func (c *resolverConfig) get{{$node.PkgName}}{{$node.NodeName}}queryOutgoingAPIsResolver(startTime *string, endTime *string, timeInterval *string, timeZone *string) (*model.TimeSeriesData,error) {
+func (c *resolverConfig) get{{$node.PkgName}}{{$node.NodeName}}queryOutgoingAPIsResolver(*model.{{$node.PkgName}}{{$node.NodeName}}, startTime *string, endTime *string, timeInterval *string, timeZone *string) (*model.TimeSeriesData,error) {
 	ctx := context.Background()
 	var filters = make(map[string]string)
 	filters[""] = ""
@@ -194,7 +195,7 @@ func (c *resolverConfig) get{{$node.PkgName}}{{$node.NodeName}}queryOutgoingAPIs
 }
 
 // Resolver for queryIncomingTCP
-func (c *resolverConfig) get{{$node.PkgName}}{{$node.NodeName}}queryIncomingTCPResolver(startTime *string, endTime *string, destinationService *string, destinationServiceVersion *string) (*model.TimeSeriesData,error) {
+func (c *resolverConfig) get{{$node.PkgName}}{{$node.NodeName}}queryIncomingTCPResolver(*model.{{$node.PkgName}}{{$node.NodeName}}, startTime *string, endTime *string, destinationService *string, destinationServiceVersion *string) (*model.TimeSeriesData,error) {
 	ctx := context.Background()
 	var filters = make(map[string]string)
 	filters[""] = ""
@@ -211,7 +212,7 @@ func (c *resolverConfig) get{{$node.PkgName}}{{$node.NodeName}}queryIncomingTCPR
 }
 
 // Resolver for queryOutgoingTCP
-func (c *resolverConfig) get{{$node.PkgName}}{{$node.NodeName}}queryOutgoingTCPResolver(startTime *string, endTime *string, destinationService *string, destinationServiceVersion *string) (*model.TimeSeriesData,error) {
+func (c *resolverConfig) get{{$node.PkgName}}{{$node.NodeName}}queryOutgoingTCPResolver(*model.{{$node.PkgName}}{{$node.NodeName}}, startTime *string, endTime *string, destinationService *string, destinationServiceVersion *string) (*model.TimeSeriesData,error) {
 	ctx := context.Background()
 	var filters = make(map[string]string)
 	filters[""] = ""
@@ -228,7 +229,7 @@ func (c *resolverConfig) get{{$node.PkgName}}{{$node.NodeName}}queryOutgoingTCPR
 }
 
 // Resolver for queryServiceTopology
-func (c *resolverConfig) get{{$node.PkgName}}{{$node.NodeName}}queryServiceTopologyResolver(startTime *string, endTime *string, metricStringArray *string) (*model.TimeSeriesData,error) {
+func (c *resolverConfig) get{{$node.PkgName}}{{$node.NodeName}}queryServiceTopologyResolver(*model.{{$node.PkgName}}{{$node.NodeName}}, startTime *string, endTime *string, metricStringArray *string) (*model.TimeSeriesData,error) {
 	ctx := context.Background()
 	var filters = make(map[string]string)
 	filters[""] = ""
