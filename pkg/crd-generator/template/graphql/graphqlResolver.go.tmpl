@@ -110,7 +110,7 @@ func (c *resolverConfig) getRootResolver(id *string) (*model.{{$node.PkgName}}{{
 //////////////////////////////////////
 
 // Resolver for queryServiceTable
-func (c *resolverConfig) get{{$node.PkgName}}{{$node.NodeName}}queryServiceTableResolver(*model.{{$node.PkgName}}{{$node.NodeName}}, startTime *string, endTime *string, systemServices *bool, showGateways *bool, groupby *string, noMetrics *bool) (*model.TimeSeriesData,error) {
+func (c *resolverConfig) get{{$node.PkgName}}{{$node.NodeName}}queryServiceTableResolver(obj *model.{{$node.PkgName}}{{$node.NodeName}}, startTime *string, endTime *string, systemServices *bool, showGateways *bool, groupby *string, noMetrics *bool) (*model.TimeSeriesData,error) {
 	ctx := context.Background()
 	var filters = make(map[string]string)
 	filters[""] = ""
@@ -127,7 +127,7 @@ func (c *resolverConfig) get{{$node.PkgName}}{{$node.NodeName}}queryServiceTable
 }
 
 // Resolver for queryServiceVersionTable
-func (c *resolverConfig) get{{$node.PkgName}}{{$node.NodeName}}queryServiceVersionTableResolver(*model.{{$node.PkgName}}{{$node.NodeName}}, startTime *string, endTime *string, systemServices *bool, showGateways *bool, noMetrics *bool) (*model.TimeSeriesData,error) {
+func (c *resolverConfig) get{{$node.PkgName}}{{$node.NodeName}}queryServiceVersionTableResolver(obj *model.{{$node.PkgName}}{{$node.NodeName}}, startTime *string, endTime *string, systemServices *bool, showGateways *bool, noMetrics *bool) (*model.TimeSeriesData,error) {
 	ctx := context.Background()
 	var filters = make(map[string]string)
 	filters[""] = ""
@@ -144,7 +144,7 @@ func (c *resolverConfig) get{{$node.PkgName}}{{$node.NodeName}}queryServiceVersi
 }
 
 // Resolver for queryServiceTS
-func (c *resolverConfig) get{{$node.PkgName}}{{$node.NodeName}}queryServiceTSResolver(*model.{{$node.PkgName}}{{$node.NodeName}}, svcMetric *string, startTime *string, endTime *string, timeInterval *string) (*model.TimeSeriesData,error) {
+func (c *resolverConfig) get{{$node.PkgName}}{{$node.NodeName}}queryServiceTSResolver(obj *model.{{$node.PkgName}}{{$node.NodeName}}, svcMetric *string, startTime *string, endTime *string, timeInterval *string) (*model.TimeSeriesData,error) {
 	ctx := context.Background()
 	var filters = make(map[string]string)
 	filters[""] = ""
@@ -161,7 +161,7 @@ func (c *resolverConfig) get{{$node.PkgName}}{{$node.NodeName}}queryServiceTSRes
 }
 
 // Resolver for queryIncomingAPIs
-func (c *resolverConfig) get{{$node.PkgName}}{{$node.NodeName}}queryIncomingAPIsResolver(*model.{{$node.PkgName}}{{$node.NodeName}}, startTime *string, endTime *string, destinationService *string, destinationServiceVersion *string, timeInterval *string, timeZone *string) (*model.TimeSeriesData,error) {
+func (c *resolverConfig) get{{$node.PkgName}}{{$node.NodeName}}queryIncomingAPIsResolver(obj *model.{{$node.PkgName}}{{$node.NodeName}}, startTime *string, endTime *string, destinationService *string, destinationServiceVersion *string, timeInterval *string, timeZone *string) (*model.TimeSeriesData,error) {
 	ctx := context.Background()
 	var filters = make(map[string]string)
 	filters[""] = ""
@@ -178,7 +178,7 @@ func (c *resolverConfig) get{{$node.PkgName}}{{$node.NodeName}}queryIncomingAPIs
 }
 
 // Resolver for queryOutgoingAPIs
-func (c *resolverConfig) get{{$node.PkgName}}{{$node.NodeName}}queryOutgoingAPIsResolver(*model.{{$node.PkgName}}{{$node.NodeName}}, startTime *string, endTime *string, timeInterval *string, timeZone *string) (*model.TimeSeriesData,error) {
+func (c *resolverConfig) get{{$node.PkgName}}{{$node.NodeName}}queryOutgoingAPIsResolver(obj *model.{{$node.PkgName}}{{$node.NodeName}}, startTime *string, endTime *string, timeInterval *string, timeZone *string) (*model.TimeSeriesData,error) {
 	ctx := context.Background()
 	var filters = make(map[string]string)
 	filters[""] = ""
@@ -195,7 +195,7 @@ func (c *resolverConfig) get{{$node.PkgName}}{{$node.NodeName}}queryOutgoingAPIs
 }
 
 // Resolver for queryIncomingTCP
-func (c *resolverConfig) get{{$node.PkgName}}{{$node.NodeName}}queryIncomingTCPResolver(*model.{{$node.PkgName}}{{$node.NodeName}}, startTime *string, endTime *string, destinationService *string, destinationServiceVersion *string) (*model.TimeSeriesData,error) {
+func (c *resolverConfig) get{{$node.PkgName}}{{$node.NodeName}}queryIncomingTCPResolver(obj *model.{{$node.PkgName}}{{$node.NodeName}}, startTime *string, endTime *string, destinationService *string, destinationServiceVersion *string) (*model.TimeSeriesData,error) {
 	ctx := context.Background()
 	var filters = make(map[string]string)
 	filters[""] = ""
@@ -212,7 +212,7 @@ func (c *resolverConfig) get{{$node.PkgName}}{{$node.NodeName}}queryIncomingTCPR
 }
 
 // Resolver for queryOutgoingTCP
-func (c *resolverConfig) get{{$node.PkgName}}{{$node.NodeName}}queryOutgoingTCPResolver(*model.{{$node.PkgName}}{{$node.NodeName}}, startTime *string, endTime *string, destinationService *string, destinationServiceVersion *string) (*model.TimeSeriesData,error) {
+func (c *resolverConfig) get{{$node.PkgName}}{{$node.NodeName}}queryOutgoingTCPResolver(obj *model.{{$node.PkgName}}{{$node.NodeName}}, startTime *string, endTime *string, destinationService *string, destinationServiceVersion *string) (*model.TimeSeriesData,error) {
 	ctx := context.Background()
 	var filters = make(map[string]string)
 	filters[""] = ""
@@ -229,7 +229,7 @@ func (c *resolverConfig) get{{$node.PkgName}}{{$node.NodeName}}queryOutgoingTCPR
 }
 
 // Resolver for queryServiceTopology
-func (c *resolverConfig) get{{$node.PkgName}}{{$node.NodeName}}queryServiceTopologyResolver(*model.{{$node.PkgName}}{{$node.NodeName}}, startTime *string, endTime *string, metricStringArray *string) (*model.TimeSeriesData,error) {
+func (c *resolverConfig) get{{$node.PkgName}}{{$node.NodeName}}queryServiceTopologyResolver(obj *model.{{$node.PkgName}}{{$node.NodeName}}, startTime *string, endTime *string, metricStringArray *string) (*model.TimeSeriesData,error) {
 	ctx := context.Background()
 	var filters = make(map[string]string)
 	filters[""] = ""

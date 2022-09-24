@@ -103,7 +103,7 @@ CustomBarData := string(CustomBar)
 //////////////////////////////////////
 
 // Resolver for queryServiceTable
-func (c *resolverConfig) getRootRootqueryServiceTableResolver(*model.RootRoot, startTime *string, endTime *string, systemServices *bool, showGateways *bool, groupby *string, noMetrics *bool) (*model.TimeSeriesData,error) {
+func (c *resolverConfig) getRootRootqueryServiceTableResolver(obj *model.RootRoot, startTime *string, endTime *string, systemServices *bool, showGateways *bool, groupby *string, noMetrics *bool) (*model.TimeSeriesData,error) {
 	ctx := context.Background()
 	var filters = make(map[string]string)
 	filters[""] = ""
@@ -120,7 +120,7 @@ func (c *resolverConfig) getRootRootqueryServiceTableResolver(*model.RootRoot, s
 }
 
 // Resolver for queryServiceVersionTable
-func (c *resolverConfig) getRootRootqueryServiceVersionTableResolver(*model.RootRoot, startTime *string, endTime *string, systemServices *bool, showGateways *bool, noMetrics *bool) (*model.TimeSeriesData,error) {
+func (c *resolverConfig) getRootRootqueryServiceVersionTableResolver(obj *model.RootRoot, startTime *string, endTime *string, systemServices *bool, showGateways *bool, noMetrics *bool) (*model.TimeSeriesData,error) {
 	ctx := context.Background()
 	var filters = make(map[string]string)
 	filters[""] = ""
@@ -137,7 +137,7 @@ func (c *resolverConfig) getRootRootqueryServiceVersionTableResolver(*model.Root
 }
 
 // Resolver for queryServiceTS
-func (c *resolverConfig) getRootRootqueryServiceTSResolver(*model.RootRoot, svcMetric *string, startTime *string, endTime *string, timeInterval *string) (*model.TimeSeriesData,error) {
+func (c *resolverConfig) getRootRootqueryServiceTSResolver(obj *model.RootRoot, svcMetric *string, startTime *string, endTime *string, timeInterval *string) (*model.TimeSeriesData,error) {
 	ctx := context.Background()
 	var filters = make(map[string]string)
 	filters[""] = ""
@@ -154,7 +154,7 @@ func (c *resolverConfig) getRootRootqueryServiceTSResolver(*model.RootRoot, svcM
 }
 
 // Resolver for queryIncomingAPIs
-func (c *resolverConfig) getRootRootqueryIncomingAPIsResolver(*model.RootRoot, startTime *string, endTime *string, destinationService *string, destinationServiceVersion *string, timeInterval *string, timeZone *string) (*model.TimeSeriesData,error) {
+func (c *resolverConfig) getRootRootqueryIncomingAPIsResolver(obj *model.RootRoot, startTime *string, endTime *string, destinationService *string, destinationServiceVersion *string, timeInterval *string, timeZone *string) (*model.TimeSeriesData,error) {
 	ctx := context.Background()
 	var filters = make(map[string]string)
 	filters[""] = ""
@@ -171,7 +171,7 @@ func (c *resolverConfig) getRootRootqueryIncomingAPIsResolver(*model.RootRoot, s
 }
 
 // Resolver for queryOutgoingAPIs
-func (c *resolverConfig) getRootRootqueryOutgoingAPIsResolver(*model.RootRoot, startTime *string, endTime *string, timeInterval *string, timeZone *string) (*model.TimeSeriesData,error) {
+func (c *resolverConfig) getRootRootqueryOutgoingAPIsResolver(obj *model.RootRoot, startTime *string, endTime *string, timeInterval *string, timeZone *string) (*model.TimeSeriesData,error) {
 	ctx := context.Background()
 	var filters = make(map[string]string)
 	filters[""] = ""
@@ -188,7 +188,7 @@ func (c *resolverConfig) getRootRootqueryOutgoingAPIsResolver(*model.RootRoot, s
 }
 
 // Resolver for queryIncomingTCP
-func (c *resolverConfig) getRootRootqueryIncomingTCPResolver(*model.RootRoot, startTime *string, endTime *string, destinationService *string, destinationServiceVersion *string) (*model.TimeSeriesData,error) {
+func (c *resolverConfig) getRootRootqueryIncomingTCPResolver(obj *model.RootRoot, startTime *string, endTime *string, destinationService *string, destinationServiceVersion *string) (*model.TimeSeriesData,error) {
 	ctx := context.Background()
 	var filters = make(map[string]string)
 	filters[""] = ""
@@ -205,7 +205,7 @@ func (c *resolverConfig) getRootRootqueryIncomingTCPResolver(*model.RootRoot, st
 }
 
 // Resolver for queryOutgoingTCP
-func (c *resolverConfig) getRootRootqueryOutgoingTCPResolver(*model.RootRoot, startTime *string, endTime *string, destinationService *string, destinationServiceVersion *string) (*model.TimeSeriesData,error) {
+func (c *resolverConfig) getRootRootqueryOutgoingTCPResolver(obj *model.RootRoot, startTime *string, endTime *string, destinationService *string, destinationServiceVersion *string) (*model.TimeSeriesData,error) {
 	ctx := context.Background()
 	var filters = make(map[string]string)
 	filters[""] = ""
@@ -222,7 +222,7 @@ func (c *resolverConfig) getRootRootqueryOutgoingTCPResolver(*model.RootRoot, st
 }
 
 // Resolver for queryServiceTopology
-func (c *resolverConfig) getRootRootqueryServiceTopologyResolver(*model.RootRoot, startTime *string, endTime *string, metricStringArray *string) (*model.TimeSeriesData,error) {
+func (c *resolverConfig) getRootRootqueryServiceTopologyResolver(obj *model.RootRoot, startTime *string, endTime *string, metricStringArray *string) (*model.TimeSeriesData,error) {
 	ctx := context.Background()
 	var filters = make(map[string]string)
 	filters[""] = ""
@@ -247,7 +247,7 @@ func (c *resolverConfig) getRootRootqueryServiceTopologyResolver(*model.RootRoot
 //////////////////////////////////////
 
 // Resolver for queryServiceTable
-func (c *resolverConfig) getConfigConfigqueryServiceTableResolver(*model.ConfigConfig, startTime *string, endTime *string, systemServices *bool, showGateways *bool, groupby *string, noMetrics *bool) (*model.TimeSeriesData,error) {
+func (c *resolverConfig) getConfigConfigqueryServiceTableResolver(obj *model.ConfigConfig, startTime *string, endTime *string, systemServices *bool, showGateways *bool, groupby *string, noMetrics *bool) (*model.TimeSeriesData,error) {
 	ctx := context.Background()
 	var filters = make(map[string]string)
 	filters[""] = ""
@@ -264,7 +264,7 @@ func (c *resolverConfig) getConfigConfigqueryServiceTableResolver(*model.ConfigC
 }
 
 // Resolver for queryServiceVersionTable
-func (c *resolverConfig) getConfigConfigqueryServiceVersionTableResolver(*model.ConfigConfig, startTime *string, endTime *string, systemServices *bool, showGateways *bool, noMetrics *bool) (*model.TimeSeriesData,error) {
+func (c *resolverConfig) getConfigConfigqueryServiceVersionTableResolver(obj *model.ConfigConfig, startTime *string, endTime *string, systemServices *bool, showGateways *bool, noMetrics *bool) (*model.TimeSeriesData,error) {
 	ctx := context.Background()
 	var filters = make(map[string]string)
 	filters[""] = ""
@@ -281,7 +281,7 @@ func (c *resolverConfig) getConfigConfigqueryServiceVersionTableResolver(*model.
 }
 
 // Resolver for queryServiceTS
-func (c *resolverConfig) getConfigConfigqueryServiceTSResolver(*model.ConfigConfig, svcMetric *string, startTime *string, endTime *string, timeInterval *string) (*model.TimeSeriesData,error) {
+func (c *resolverConfig) getConfigConfigqueryServiceTSResolver(obj *model.ConfigConfig, svcMetric *string, startTime *string, endTime *string, timeInterval *string) (*model.TimeSeriesData,error) {
 	ctx := context.Background()
 	var filters = make(map[string]string)
 	filters[""] = ""
@@ -298,7 +298,7 @@ func (c *resolverConfig) getConfigConfigqueryServiceTSResolver(*model.ConfigConf
 }
 
 // Resolver for queryIncomingAPIs
-func (c *resolverConfig) getConfigConfigqueryIncomingAPIsResolver(*model.ConfigConfig, startTime *string, endTime *string, destinationService *string, destinationServiceVersion *string, timeInterval *string, timeZone *string) (*model.TimeSeriesData,error) {
+func (c *resolverConfig) getConfigConfigqueryIncomingAPIsResolver(obj *model.ConfigConfig, startTime *string, endTime *string, destinationService *string, destinationServiceVersion *string, timeInterval *string, timeZone *string) (*model.TimeSeriesData,error) {
 	ctx := context.Background()
 	var filters = make(map[string]string)
 	filters[""] = ""
@@ -315,7 +315,7 @@ func (c *resolverConfig) getConfigConfigqueryIncomingAPIsResolver(*model.ConfigC
 }
 
 // Resolver for queryOutgoingAPIs
-func (c *resolverConfig) getConfigConfigqueryOutgoingAPIsResolver(*model.ConfigConfig, startTime *string, endTime *string, timeInterval *string, timeZone *string) (*model.TimeSeriesData,error) {
+func (c *resolverConfig) getConfigConfigqueryOutgoingAPIsResolver(obj *model.ConfigConfig, startTime *string, endTime *string, timeInterval *string, timeZone *string) (*model.TimeSeriesData,error) {
 	ctx := context.Background()
 	var filters = make(map[string]string)
 	filters[""] = ""
@@ -332,7 +332,7 @@ func (c *resolverConfig) getConfigConfigqueryOutgoingAPIsResolver(*model.ConfigC
 }
 
 // Resolver for queryIncomingTCP
-func (c *resolverConfig) getConfigConfigqueryIncomingTCPResolver(*model.ConfigConfig, startTime *string, endTime *string, destinationService *string, destinationServiceVersion *string) (*model.TimeSeriesData,error) {
+func (c *resolverConfig) getConfigConfigqueryIncomingTCPResolver(obj *model.ConfigConfig, startTime *string, endTime *string, destinationService *string, destinationServiceVersion *string) (*model.TimeSeriesData,error) {
 	ctx := context.Background()
 	var filters = make(map[string]string)
 	filters[""] = ""
@@ -349,7 +349,7 @@ func (c *resolverConfig) getConfigConfigqueryIncomingTCPResolver(*model.ConfigCo
 }
 
 // Resolver for queryOutgoingTCP
-func (c *resolverConfig) getConfigConfigqueryOutgoingTCPResolver(*model.ConfigConfig, startTime *string, endTime *string, destinationService *string, destinationServiceVersion *string) (*model.TimeSeriesData,error) {
+func (c *resolverConfig) getConfigConfigqueryOutgoingTCPResolver(obj *model.ConfigConfig, startTime *string, endTime *string, destinationService *string, destinationServiceVersion *string) (*model.TimeSeriesData,error) {
 	ctx := context.Background()
 	var filters = make(map[string]string)
 	filters[""] = ""
@@ -366,7 +366,7 @@ func (c *resolverConfig) getConfigConfigqueryOutgoingTCPResolver(*model.ConfigCo
 }
 
 // Resolver for queryServiceTopology
-func (c *resolverConfig) getConfigConfigqueryServiceTopologyResolver(*model.ConfigConfig, startTime *string, endTime *string, metricStringArray *string) (*model.TimeSeriesData,error) {
+func (c *resolverConfig) getConfigConfigqueryServiceTopologyResolver(obj *model.ConfigConfig, startTime *string, endTime *string, metricStringArray *string) (*model.TimeSeriesData,error) {
 	ctx := context.Background()
 	var filters = make(map[string]string)
 	filters[""] = ""
@@ -397,7 +397,7 @@ func (c *resolverConfig) getConfigConfigqueryServiceTopologyResolver(*model.Conf
 //////////////////////////////////////
 
 // Resolver for queryServiceTable
-func (c *resolverConfig) getGnsGnsqueryServiceTableResolver(*model.GnsGns, startTime *string, endTime *string, systemServices *bool, showGateways *bool, groupby *string, noMetrics *bool) (*model.TimeSeriesData,error) {
+func (c *resolverConfig) getGnsGnsqueryServiceTableResolver(obj *model.GnsGns, startTime *string, endTime *string, systemServices *bool, showGateways *bool, groupby *string, noMetrics *bool) (*model.TimeSeriesData,error) {
 	ctx := context.Background()
 	var filters = make(map[string]string)
 	filters[""] = ""
@@ -414,7 +414,7 @@ func (c *resolverConfig) getGnsGnsqueryServiceTableResolver(*model.GnsGns, start
 }
 
 // Resolver for queryServiceVersionTable
-func (c *resolverConfig) getGnsGnsqueryServiceVersionTableResolver(*model.GnsGns, startTime *string, endTime *string, systemServices *bool, showGateways *bool, noMetrics *bool) (*model.TimeSeriesData,error) {
+func (c *resolverConfig) getGnsGnsqueryServiceVersionTableResolver(obj *model.GnsGns, startTime *string, endTime *string, systemServices *bool, showGateways *bool, noMetrics *bool) (*model.TimeSeriesData,error) {
 	ctx := context.Background()
 	var filters = make(map[string]string)
 	filters[""] = ""
@@ -431,7 +431,7 @@ func (c *resolverConfig) getGnsGnsqueryServiceVersionTableResolver(*model.GnsGns
 }
 
 // Resolver for queryServiceTS
-func (c *resolverConfig) getGnsGnsqueryServiceTSResolver(*model.GnsGns, svcMetric *string, startTime *string, endTime *string, timeInterval *string) (*model.TimeSeriesData,error) {
+func (c *resolverConfig) getGnsGnsqueryServiceTSResolver(obj *model.GnsGns, svcMetric *string, startTime *string, endTime *string, timeInterval *string) (*model.TimeSeriesData,error) {
 	ctx := context.Background()
 	var filters = make(map[string]string)
 	filters[""] = ""
@@ -448,7 +448,7 @@ func (c *resolverConfig) getGnsGnsqueryServiceTSResolver(*model.GnsGns, svcMetri
 }
 
 // Resolver for queryIncomingAPIs
-func (c *resolverConfig) getGnsGnsqueryIncomingAPIsResolver(*model.GnsGns, startTime *string, endTime *string, destinationService *string, destinationServiceVersion *string, timeInterval *string, timeZone *string) (*model.TimeSeriesData,error) {
+func (c *resolverConfig) getGnsGnsqueryIncomingAPIsResolver(obj *model.GnsGns, startTime *string, endTime *string, destinationService *string, destinationServiceVersion *string, timeInterval *string, timeZone *string) (*model.TimeSeriesData,error) {
 	ctx := context.Background()
 	var filters = make(map[string]string)
 	filters[""] = ""
@@ -465,7 +465,7 @@ func (c *resolverConfig) getGnsGnsqueryIncomingAPIsResolver(*model.GnsGns, start
 }
 
 // Resolver for queryOutgoingAPIs
-func (c *resolverConfig) getGnsGnsqueryOutgoingAPIsResolver(*model.GnsGns, startTime *string, endTime *string, timeInterval *string, timeZone *string) (*model.TimeSeriesData,error) {
+func (c *resolverConfig) getGnsGnsqueryOutgoingAPIsResolver(obj *model.GnsGns, startTime *string, endTime *string, timeInterval *string, timeZone *string) (*model.TimeSeriesData,error) {
 	ctx := context.Background()
 	var filters = make(map[string]string)
 	filters[""] = ""
@@ -482,7 +482,7 @@ func (c *resolverConfig) getGnsGnsqueryOutgoingAPIsResolver(*model.GnsGns, start
 }
 
 // Resolver for queryIncomingTCP
-func (c *resolverConfig) getGnsGnsqueryIncomingTCPResolver(*model.GnsGns, startTime *string, endTime *string, destinationService *string, destinationServiceVersion *string) (*model.TimeSeriesData,error) {
+func (c *resolverConfig) getGnsGnsqueryIncomingTCPResolver(obj *model.GnsGns, startTime *string, endTime *string, destinationService *string, destinationServiceVersion *string) (*model.TimeSeriesData,error) {
 	ctx := context.Background()
 	var filters = make(map[string]string)
 	filters[""] = ""
@@ -499,7 +499,7 @@ func (c *resolverConfig) getGnsGnsqueryIncomingTCPResolver(*model.GnsGns, startT
 }
 
 // Resolver for queryOutgoingTCP
-func (c *resolverConfig) getGnsGnsqueryOutgoingTCPResolver(*model.GnsGns, startTime *string, endTime *string, destinationService *string, destinationServiceVersion *string) (*model.TimeSeriesData,error) {
+func (c *resolverConfig) getGnsGnsqueryOutgoingTCPResolver(obj *model.GnsGns, startTime *string, endTime *string, destinationService *string, destinationServiceVersion *string) (*model.TimeSeriesData,error) {
 	ctx := context.Background()
 	var filters = make(map[string]string)
 	filters[""] = ""
@@ -516,7 +516,7 @@ func (c *resolverConfig) getGnsGnsqueryOutgoingTCPResolver(*model.GnsGns, startT
 }
 
 // Resolver for queryServiceTopology
-func (c *resolverConfig) getGnsGnsqueryServiceTopologyResolver(*model.GnsGns, startTime *string, endTime *string, metricStringArray *string) (*model.TimeSeriesData,error) {
+func (c *resolverConfig) getGnsGnsqueryServiceTopologyResolver(obj *model.GnsGns, startTime *string, endTime *string, metricStringArray *string) (*model.TimeSeriesData,error) {
 	ctx := context.Background()
 	var filters = make(map[string]string)
 	filters[""] = ""
@@ -541,7 +541,7 @@ func (c *resolverConfig) getGnsGnsqueryServiceTopologyResolver(*model.GnsGns, st
 //////////////////////////////////////
 
 // Resolver for queryServiceTable
-func (c *resolverConfig) getGnsBarqueryServiceTableResolver(*model.GnsBar, startTime *string, endTime *string, systemServices *bool, showGateways *bool, groupby *string, noMetrics *bool) (*model.TimeSeriesData,error) {
+func (c *resolverConfig) getGnsBarqueryServiceTableResolver(obj *model.GnsBar, startTime *string, endTime *string, systemServices *bool, showGateways *bool, groupby *string, noMetrics *bool) (*model.TimeSeriesData,error) {
 	ctx := context.Background()
 	var filters = make(map[string]string)
 	filters[""] = ""
@@ -558,7 +558,7 @@ func (c *resolverConfig) getGnsBarqueryServiceTableResolver(*model.GnsBar, start
 }
 
 // Resolver for queryServiceVersionTable
-func (c *resolverConfig) getGnsBarqueryServiceVersionTableResolver(*model.GnsBar, startTime *string, endTime *string, systemServices *bool, showGateways *bool, noMetrics *bool) (*model.TimeSeriesData,error) {
+func (c *resolverConfig) getGnsBarqueryServiceVersionTableResolver(obj *model.GnsBar, startTime *string, endTime *string, systemServices *bool, showGateways *bool, noMetrics *bool) (*model.TimeSeriesData,error) {
 	ctx := context.Background()
 	var filters = make(map[string]string)
 	filters[""] = ""
@@ -575,7 +575,7 @@ func (c *resolverConfig) getGnsBarqueryServiceVersionTableResolver(*model.GnsBar
 }
 
 // Resolver for queryServiceTS
-func (c *resolverConfig) getGnsBarqueryServiceTSResolver(*model.GnsBar, svcMetric *string, startTime *string, endTime *string, timeInterval *string) (*model.TimeSeriesData,error) {
+func (c *resolverConfig) getGnsBarqueryServiceTSResolver(obj *model.GnsBar, svcMetric *string, startTime *string, endTime *string, timeInterval *string) (*model.TimeSeriesData,error) {
 	ctx := context.Background()
 	var filters = make(map[string]string)
 	filters[""] = ""
@@ -592,7 +592,7 @@ func (c *resolverConfig) getGnsBarqueryServiceTSResolver(*model.GnsBar, svcMetri
 }
 
 // Resolver for queryIncomingAPIs
-func (c *resolverConfig) getGnsBarqueryIncomingAPIsResolver(*model.GnsBar, startTime *string, endTime *string, destinationService *string, destinationServiceVersion *string, timeInterval *string, timeZone *string) (*model.TimeSeriesData,error) {
+func (c *resolverConfig) getGnsBarqueryIncomingAPIsResolver(obj *model.GnsBar, startTime *string, endTime *string, destinationService *string, destinationServiceVersion *string, timeInterval *string, timeZone *string) (*model.TimeSeriesData,error) {
 	ctx := context.Background()
 	var filters = make(map[string]string)
 	filters[""] = ""
@@ -609,7 +609,7 @@ func (c *resolverConfig) getGnsBarqueryIncomingAPIsResolver(*model.GnsBar, start
 }
 
 // Resolver for queryOutgoingAPIs
-func (c *resolverConfig) getGnsBarqueryOutgoingAPIsResolver(*model.GnsBar, startTime *string, endTime *string, timeInterval *string, timeZone *string) (*model.TimeSeriesData,error) {
+func (c *resolverConfig) getGnsBarqueryOutgoingAPIsResolver(obj *model.GnsBar, startTime *string, endTime *string, timeInterval *string, timeZone *string) (*model.TimeSeriesData,error) {
 	ctx := context.Background()
 	var filters = make(map[string]string)
 	filters[""] = ""
@@ -626,7 +626,7 @@ func (c *resolverConfig) getGnsBarqueryOutgoingAPIsResolver(*model.GnsBar, start
 }
 
 // Resolver for queryIncomingTCP
-func (c *resolverConfig) getGnsBarqueryIncomingTCPResolver(*model.GnsBar, startTime *string, endTime *string, destinationService *string, destinationServiceVersion *string) (*model.TimeSeriesData,error) {
+func (c *resolverConfig) getGnsBarqueryIncomingTCPResolver(obj *model.GnsBar, startTime *string, endTime *string, destinationService *string, destinationServiceVersion *string) (*model.TimeSeriesData,error) {
 	ctx := context.Background()
 	var filters = make(map[string]string)
 	filters[""] = ""
@@ -643,7 +643,7 @@ func (c *resolverConfig) getGnsBarqueryIncomingTCPResolver(*model.GnsBar, startT
 }
 
 // Resolver for queryOutgoingTCP
-func (c *resolverConfig) getGnsBarqueryOutgoingTCPResolver(*model.GnsBar, startTime *string, endTime *string, destinationService *string, destinationServiceVersion *string) (*model.TimeSeriesData,error) {
+func (c *resolverConfig) getGnsBarqueryOutgoingTCPResolver(obj *model.GnsBar, startTime *string, endTime *string, destinationService *string, destinationServiceVersion *string) (*model.TimeSeriesData,error) {
 	ctx := context.Background()
 	var filters = make(map[string]string)
 	filters[""] = ""
@@ -660,7 +660,7 @@ func (c *resolverConfig) getGnsBarqueryOutgoingTCPResolver(*model.GnsBar, startT
 }
 
 // Resolver for queryServiceTopology
-func (c *resolverConfig) getGnsBarqueryServiceTopologyResolver(*model.GnsBar, startTime *string, endTime *string, metricStringArray *string) (*model.TimeSeriesData,error) {
+func (c *resolverConfig) getGnsBarqueryServiceTopologyResolver(obj *model.GnsBar, startTime *string, endTime *string, metricStringArray *string) (*model.TimeSeriesData,error) {
 	ctx := context.Background()
 	var filters = make(map[string]string)
 	filters[""] = ""
