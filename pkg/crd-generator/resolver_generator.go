@@ -351,13 +351,7 @@ func GenerateGraphqlResolverVars(baseGroupName, crdModulePath string, pkgs parse
 
 			retType += fmt.Sprintf("\t%s: %s,\n", "ParentLabels", "parentLabels")
 			aliasVal += fmt.Sprintf("%s := map[string]interface{}{%q:%s}\n", "parentLabels", n.CrdName, "dn")
-			// Need to walk through the parentMap and construct Chain API for each Node
-			// fmt.Println(parentsMap[n.CrdName].Name)
-			// fmt.Println(parentsMap[n.CrdName].Parents)
-			// fmt.Println(parentsMap[n.CrdName].IsSingleton)
-			// fmt.Println(parentsMap[n.CrdName].RestMappings)
-			// fmt.Println(parentsMap[n.CrdName].RestName)
-			fmt.Println("Node:", n.NodeName, len(parentsMap[n.CrdName].Parents))
+
 			ChainAPI += "nc"
 			var prevNode parser.NodeHelper
 			for _, i := range parentsMap[n.CrdName].Parents {
@@ -395,7 +389,6 @@ func GenerateGraphqlResolverVars(baseGroupName, crdModulePath string, pkgs parse
 			// Create LinkAPI
 			if n.IsSingletonNode {
 				IsSingleton = true
-				fmt.Println(n.PkgName+n.NodeName, n.IsSingletonNode, ChainAPI, prevNode.Children[n.CrdName].FieldName)
 				LinkAPI[n.PkgName+n.NodeName] = fmt.Sprintf("%s.Get%s(context.TODO())", ChainAPI, prevNode.Children[n.CrdName].FieldName)
 			} else {
 				IsSingleton = false
@@ -495,7 +488,6 @@ func GenerateGraphqlResolverVars(baseGroupName, crdModulePath string, pkgs parse
 			f.IsSingleton = retMap[f.FieldTypePkgPath].IsSingleton
 			f.LinkAPI = LinkAPI[f.PkgName+f.NodeName]
 			resNodeProp.LinkFields = append(resNodeProp.LinkFields, f)
-			fmt.Println("link", f.FieldName, f.PkgName+f.NodeName, LinkAPI[f.PkgName+f.NodeName])
 		}
 		for _, f := range n.LinksFields {
 			f.ReturnType = retMap[f.FieldTypePkgPath].ReturnType
@@ -506,7 +498,6 @@ func GenerateGraphqlResolverVars(baseGroupName, crdModulePath string, pkgs parse
 			f.IsSingleton = retMap[f.FieldTypePkgPath].IsSingleton
 			f.LinkAPI = LinkAPI[f.PkgName+f.NodeName]
 			resNodeProp.LinksFields = append(resNodeProp.LinksFields, f)
-			fmt.Println("links", f.FieldName, f.PkgName+f.NodeName, LinkAPI[f.PkgName+f.NodeName])
 		}
 		ResNodes = append(ResNodes, resNodeProp)
 	}
