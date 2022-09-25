@@ -130,7 +130,7 @@ type config_Config {
         endTime: String
     ): TimeSeriesData
 
-    GNS(Id: ID): gns_Gns!
+    GNS: gns_Gns!
     ConfigName: String
     Cluster: String
     FooA: String
@@ -212,7 +212,7 @@ type gns_Gns {
 
     FooLink: gns_BarLink!
     FooLinks(Id: ID): [gns_BarLinks!]
-    FooChild(Id: ID): gns_BarChild!
+    FooChild: gns_BarChild!
     FooChildren(Id: ID): [gns_BarChildren!]
     TestABCLink(Id: ID): [gns_ABCLink!]
     Domain: String

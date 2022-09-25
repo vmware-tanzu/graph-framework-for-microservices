@@ -228,11 +228,12 @@ func GenerateGraphqlResolverVars(baseGroupName, crdModulePath string, pkgs parse
 					// Nexus Child and Link fields
 					if parser.IsChildOrLink(nf) {
 						schemaTypeName, resolverTypeName := validateImportPkg(pkg, typeString, importMap)
-						if parser.IsChildField(nf) && !parser.IsSingletonNode(node) {
-							fieldProp.SchemaFieldName = fmt.Sprintf("%s(Id: ID): %s!", fieldProp.FieldName, schemaTypeName)
-						} else {
-							fieldProp.SchemaFieldName = fmt.Sprintf("%s: %s!", fieldProp.FieldName, schemaTypeName)
-						}
+						fieldProp.SchemaFieldName = fmt.Sprintf("%s: %s!", fieldProp.FieldName, schemaTypeName)
+						// if parser.IsChildField(nf) && !parser.IsSingletonNode(node) {
+						// 	fieldProp.SchemaFieldName = fmt.Sprintf("%s(Id: ID): %s!", fieldProp.FieldName, schemaTypeName)
+						// } else {
+						// 	fieldProp.SchemaFieldName = fmt.Sprintf("%s: %s!", fieldProp.FieldName, schemaTypeName)
+						// }
 						fieldProp.IsResolver = true
 						fieldProp.IsNexusTypeField = true
 						fieldProp.FieldType = typeString
