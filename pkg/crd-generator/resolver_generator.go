@@ -335,12 +335,38 @@ func GenerateGraphqlResolverVars(baseGroupName, crdModulePath string, pkgs parse
 			// fmt.Println(parentsMap[n.CrdName].RestMappings)
 			// fmt.Println(parentsMap[n.CrdName].RestName)
 			ChainAPI += "nc"
+			var prevNode parser.NodeHelper
 			for _, i := range parentsMap[n.CrdName].Parents {
-				if parentsMap[i].IsSingleton {
-					ChainAPI += fmt.Sprintf(".%s()", CRDNameMap[i])
+				currentNode := parentsMap[i]
+
+				if len(currentNode.Parents) == 0 {
+					// root of the graph
+					if currentNode.IsSingleton {
+						ChainAPI += fmt.Sprintf(".%s()", CRDNameMap[i])
+					} else {
+						ChainAPI += fmt.Sprintf(".%s(*id)", CRDNameMap[i])
+					}
 				} else {
-					ChainAPI += fmt.Sprintf(".%s(obj.ParentLabels[\"%s\"].(string))", CRDNameMap[i], i)
+					if childNode, ok := prevNode.Children[i]; ok {
+						if currentNode.IsSingleton {
+							ChainAPI += fmt.Sprintf(".%s()", childNode.FieldName)
+						} else {
+							ChainAPI += fmt.Sprintf(".%s(obj.ParentLabels[\"%s\"].(string))", childNode.FieldName, i)
+						}
+					} else {
+						panic(fmt.Sprintf("unable to find child %s in parent node of %s", i, prevNode.RestName))
+					}
+
 				}
+
+				// cache the non-leaf node
+				prevNode = currentNode
+
+				//				if parentsMap[i].IsSingleton {
+				//					ChainAPI += fmt.Sprintf(".%s()", CRDNameMap[i])
+				//				} else {
+				//					ChainAPI += fmt.Sprintf(".%s(obj.ParentLabels[\"%s\"].(string))", CRDNameMap[i], i)
+				//				}
 			}
 			fmt.Println("ChainAPI", ChainAPI)
 		}
