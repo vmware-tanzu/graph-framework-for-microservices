@@ -49,12 +49,12 @@ models:
       FooLinks:
         resolver: true
 
-      FooChild:
-        resolver: true
-
       FooChildren:
         resolver: true
 
       TestABCLink:
+        resolver: true
+
+      FooChild:
         resolver: true
 

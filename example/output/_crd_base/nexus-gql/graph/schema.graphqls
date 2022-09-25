@@ -64,9 +64,9 @@ type root_Root {
         endTime: String
     ): TimeSeriesData
 
-    Config: config_Config!
     DisplayName: String
     CustomBar: String
+    Config(Id: ID): config_Config!
 }
 
 
@@ -130,7 +130,6 @@ type config_Config {
         endTime: String
     ): TimeSeriesData
 
-    GNS: gns_Gns!
     ConfigName: String
     Cluster: String
     FooA: String
@@ -141,6 +140,7 @@ type config_Config {
     XYZPort: String
     ABCHost: String
     ClusterNamespaces: String
+    GNS(Id: ID): gns_Gns!
 }
 
 
@@ -212,7 +212,6 @@ type gns_Gns {
 
     FooLink: gns_BarLink!
     FooLinks(Id: ID): [gns_BarLinks!]
-    FooChild: gns_BarChild!
     FooChildren(Id: ID): [gns_BarChildren!]
     TestABCLink(Id: ID): [gns_ABCLink!]
     Domain: String
@@ -225,6 +224,7 @@ type gns_Gns {
     Array3: String
     Array4: String
     Array5: String
+    FooChild: gns_BarChild!
 }
 
 

@@ -226,25 +226,26 @@ func GenerateGraphqlResolverVars(baseGroupName, crdModulePath string, pkgs parse
 						fieldProp.SchemaFieldName = CustomQuerySchema
 					}
 					// Nexus Child and Link fields
-					if parser.IsChildOrLink(nf) {
+					if parser.IsOnlyLinkField(nf) {
 						schemaTypeName, resolverTypeName := validateImportPkg(pkg, typeString, importMap)
 						fieldProp.SchemaFieldName = fmt.Sprintf("%s: %s!", fieldProp.FieldName, schemaTypeName)
-						// if parser.IsChildField(nf) && !parser.IsSingletonNode(node) {
-						// 	fieldProp.SchemaFieldName = fmt.Sprintf("%s(Id: ID): %s!", fieldProp.FieldName, schemaTypeName)
-						// } else {
-						// 	fieldProp.SchemaFieldName = fmt.Sprintf("%s: %s!", fieldProp.FieldName, schemaTypeName)
-						// }
 						fieldProp.IsResolver = true
 						fieldProp.IsNexusTypeField = true
 						fieldProp.FieldType = typeString
 						fieldProp.FieldTypePkgPath = resolverTypeName
 						fieldProp.SchemaTypeName = schemaTypeName
 						fieldProp.BaseTypeName = getBaseNodeType(pkg, typeString, importMap)
-						if parser.IsOnlyChildField(nf) {
-							nodeProp.ChildFields = append(nodeProp.ChildFields, fieldProp)
-						} else {
-							nodeProp.LinkFields = append(nodeProp.LinkFields, fieldProp)
-						}
+						nodeProp.LinkFields = append(nodeProp.LinkFields, fieldProp)
+					}
+					if parser.IsOnlyChildField(nf) {
+						schemaTypeName, resolverTypeName := validateImportPkg(pkg, typeString, importMap)
+						fieldProp.SchemaFieldName = fmt.Sprintf("%s: %s!", fieldProp.FieldName, schemaTypeName)
+						fieldProp.IsNexusTypeField = true
+						fieldProp.FieldType = typeString
+						fieldProp.FieldTypePkgPath = resolverTypeName
+						fieldProp.SchemaTypeName = schemaTypeName
+						fieldProp.BaseTypeName = getBaseNodeType(pkg, typeString, importMap)
+						nodeProp.ChildFields = append(nodeProp.ChildFields, fieldProp)
 					}
 					// Nexus Children and Links fields details
 					if parser.IsNamedChildOrLink(nf) {
@@ -268,7 +269,9 @@ func GenerateGraphqlResolverVars(baseGroupName, crdModulePath string, pkgs parse
 				if fieldProp.IsResolver {
 					nodeProp.ResolverCount += 1
 				}
-				nodeProp.GraphqlSchemaFields = append(nodeProp.GraphqlSchemaFields, fieldProp)
+				if !parser.IsOnlyChildField(nf) {
+					nodeProp.GraphqlSchemaFields = append(nodeProp.GraphqlSchemaFields, fieldProp)
+				}
 			}
 			// Iterate Non Nexus Fields
 			for _, f := range parser.GetSpecFields(node) {
@@ -464,7 +467,15 @@ func GenerateGraphqlResolverVars(baseGroupName, crdModulePath string, pkgs parse
 			f.CRDName = retMap[f.FieldTypePkgPath].CRDName
 			f.ChainAPI = retMap[f.FieldTypePkgPath].ChainAPI
 			f.IsSingleton = retMap[f.FieldTypePkgPath].IsSingleton
+			f.IsResolver = true
+			resNodeProp.ResolverCount = 1
+			if f.IsSingleton {
+				f.SchemaFieldName = fmt.Sprintf("%s: %s!", f.FieldName, f.SchemaTypeName)
+			} else {
+				f.SchemaFieldName = fmt.Sprintf("%s(Id: ID): %s!", f.FieldName, f.SchemaTypeName)
+			}
 			resNodeProp.ChildFields = append(resNodeProp.ChildFields, f)
+			resNodeProp.GraphqlSchemaFields = append(resNodeProp.GraphqlSchemaFields, f)
 		}
 		for _, f := range n.ChildrenFields {
 			f.ReturnType = retMap[f.FieldTypePkgPath].ReturnType

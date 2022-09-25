@@ -398,6 +398,22 @@ func IsOnlyChildField(f *ast.Field) bool {
 	return false
 }
 
+func IsOnlyLinkField(f *ast.Field) bool {
+	if f == nil {
+		return false
+	}
+
+	if f.Tag != nil {
+		tags := ParseFieldTags(f.Tag.Value)
+		if val, err := tags.Get("nexus"); err == nil {
+			if strings.ToLower(val.Name) == "link" {
+				return true
+			}
+		}
+	}
+	return false
+}
+
 // Port           *Port `nexus-graphql:"ignore:true"`
 // ServiceType    string
 // Gateway        v1beta1.Gateway `nexus-graphql:"type:string"`
