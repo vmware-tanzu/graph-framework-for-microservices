@@ -228,7 +228,11 @@ func GenerateGraphqlResolverVars(baseGroupName, crdModulePath string, pkgs parse
 					// Nexus Child and Link fields
 					if parser.IsChildOrLink(nf) {
 						schemaTypeName, resolverTypeName := validateImportPkg(pkg, typeString, importMap)
-						fieldProp.SchemaFieldName = fmt.Sprintf("%s: %s!", fieldProp.FieldName, schemaTypeName)
+						if parser.IsChildField(nf) && !parser.IsSingletonNode(node) {
+							fieldProp.SchemaFieldName = fmt.Sprintf("%s(Id: ID): %s!", fieldProp.FieldName, schemaTypeName)
+						} else {
+							fieldProp.SchemaFieldName = fmt.Sprintf("%s: %s!", fieldProp.FieldName, schemaTypeName)
+						}
 						fieldProp.IsResolver = true
 						fieldProp.IsNexusTypeField = true
 						fieldProp.FieldType = typeString
@@ -342,7 +346,7 @@ func GenerateGraphqlResolverVars(baseGroupName, crdModulePath string, pkgs parse
 			aliasVal += fmt.Sprintf("%s := v%s.DisplayName()\n", "dn", n.NodeName)
 
 			retType += fmt.Sprintf("\t%s: %s,\n", "ParentLabels", "parentLabels")
-			aliasVal += fmt.Sprintf("%s := map[string]interface{}{%q:%s}\n", "parentLabels", n.CrdName, "id")
+			aliasVal += fmt.Sprintf("%s := map[string]interface{}{%q:%s}\n", "parentLabels", n.CrdName, "dn")
 			// Need to walk through the parentMap and construct Chain API for each Node
 			// fmt.Println(parentsMap[n.CrdName].Name)
 			// fmt.Println(parentsMap[n.CrdName].Parents)

@@ -81,7 +81,7 @@ func (c *resolverConfig) getRootResolver() (*model.RootRoot, error) {
 	}
 	c.vRootRoot = vRoot
 	dn := vRoot.DisplayName()
-parentLabels := map[string]interface{}{"roots.root.tsm.tanzu.vmware.com":id}
+parentLabels := map[string]interface{}{"roots.root.tsm.tanzu.vmware.com":dn}
 vDisplayName := string(vRoot.Spec.DisplayName)
 CustomBar, _ := json.Marshal(vRoot.Spec.CustomBar)
 CustomBarData := string(CustomBar)
@@ -551,7 +551,7 @@ func (c *resolverConfig) getRootResolver() (*model.GnsBarLink, error) {
 	}
 	c.vGnsBarLink = vBarLink
 	dn := vBarLink.DisplayName()
-parentLabels := map[string]interface{}{"barlinks.gns.tsm.tanzu.vmware.com":id}
+parentLabels := map[string]interface{}{"barlinks.gns.tsm.tanzu.vmware.com":dn}
 vName := string(vBarLink.Spec.Name)
 
 	ret := &model.GnsBarLink {
@@ -1007,7 +1007,7 @@ func (c *resolverConfig) getRootResolver(id *string) (*model.GnsBarLinks, error)
 		}
 		c.vGnsBarLinks = vBarLinks
 		dn := vBarLinks.DisplayName()
-parentLabels := map[string]interface{}{"barlinkses.gns.tsm.tanzu.vmware.com":id}
+parentLabels := map[string]interface{}{"barlinkses.gns.tsm.tanzu.vmware.com":dn}
 vName := string(vBarLinks.Spec.Name)
 
 		ret := &model.GnsBarLinks {
@@ -1185,7 +1185,7 @@ func (c *resolverConfig) getRootResolver(id *string) (*model.GnsABCLink, error) 
 		}
 		c.vGnsABCLink = vABCLink
 		dn := vABCLink.DisplayName()
-parentLabels := map[string]interface{}{"abclinks.gns.tsm.tanzu.vmware.com":id}
+parentLabels := map[string]interface{}{"abclinks.gns.tsm.tanzu.vmware.com":dn}
 
 		ret := &model.GnsABCLink {
 	Id: &dn,
@@ -1351,7 +1351,7 @@ func (c *resolverConfig) getRootRootConfigResolver(obj *model.RootRoot, id *stri
     }
 	c.vConfigConfig = vConfig
 	dn := vConfig.DisplayName()
-parentLabels := map[string]interface{}{"configs.config.tsm.tanzu.vmware.com":id}
+parentLabels := map[string]interface{}{"configs.config.tsm.tanzu.vmware.com":dn}
 vConfigName := string(vConfig.Spec.ConfigName)
 Cluster, _ := json.Marshal(vConfig.Spec.Cluster)
 ClusterData := string(Cluster)
@@ -1409,7 +1409,7 @@ func (c *resolverConfig) getConfigConfigGNSResolver(obj *model.ConfigConfig, id 
     }
 	c.vGnsGns = vGns
 	dn := vGns.DisplayName()
-parentLabels := map[string]interface{}{"gnses.gns.tsm.tanzu.vmware.com":id}
+parentLabels := map[string]interface{}{"gnses.gns.tsm.tanzu.vmware.com":dn}
 vDomain := string(vGns.Spec.Domain)
 vUseSharedGateway := bool(vGns.Spec.UseSharedGateway)
 Mydesc, _ := json.Marshal(vGns.Spec.Mydesc)
@@ -1474,7 +1474,7 @@ func (c *resolverConfig) getGnsGnsFooChildResolver(obj *model.GnsGns) (*model.Gn
     }
 	c.vGnsBarChild = vBarChild
 	dn := vBarChild.DisplayName()
-parentLabels := map[string]interface{}{"barchilds.gns.tsm.tanzu.vmware.com":id}
+parentLabels := map[string]interface{}{"barchilds.gns.tsm.tanzu.vmware.com":dn}
 vName := string(vBarChild.Spec.Name)
 
     for k, v := range obj.ParentLabels {
@@ -1505,7 +1505,7 @@ func (c *resolverConfig) getGnsGnsFooLinkResolver(obj *model.GnsGns) (*model.Gns
     }
 	c.vGnsBarLink = vBarLink
 	dn := vBarLink.DisplayName()
-parentLabels := map[string]interface{}{"barlinks.gns.tsm.tanzu.vmware.com":id}
+parentLabels := map[string]interface{}{"barlinks.gns.tsm.tanzu.vmware.com":dn}
 vName := string(vBarLink.Spec.Name)
 
     for k, v := range obj.ParentLabels {
@@ -1532,7 +1532,7 @@ func (c *resolverConfig) getGnsGnsFooChildrenResolver(obj *model.GnsGns, id *str
             return nil, fmt.Errorf("failed to get node: %s", err)
         }
 		dn := vBarChildren.DisplayName()
-parentLabels := map[string]interface{}{"barchildrens.gns.tsm.tanzu.vmware.com":id}
+parentLabels := map[string]interface{}{"barchildrens.gns.tsm.tanzu.vmware.com":dn}
 vName := string(vBarChildren.Spec.Name)
 
         for k, v := range obj.ParentLabels {
@@ -1553,7 +1553,7 @@ vName := string(vBarChildren.Spec.Name)
             return nil, fmt.Errorf("failed to get node: %s", err)
 		}
 		dn := vBarChildren.DisplayName()
-parentLabels := map[string]interface{}{"barchildrens.gns.tsm.tanzu.vmware.com":id}
+parentLabels := map[string]interface{}{"barchildrens.gns.tsm.tanzu.vmware.com":dn}
 vName := string(vBarChildren.Spec.Name)
 
 		ret := &model.GnsBarChildren {
@@ -1584,7 +1584,7 @@ func (c *resolverConfig) getGnsGnsFooLinksResolver(obj *model.GnsGns, id *string
 			return nil, fmt.Errorf("failed to get node: %s", err)
 		}
 		dn := vBarLinks.DisplayName()
-parentLabels := map[string]interface{}{"barlinkses.gns.tsm.tanzu.vmware.com":id}
+parentLabels := map[string]interface{}{"barlinkses.gns.tsm.tanzu.vmware.com":dn}
 vName := string(vBarLinks.Spec.Name)
 
         for k, v := range obj.ParentLabels {
@@ -1610,7 +1610,7 @@ vName := string(vBarLinks.Spec.Name)
 			return nil, fmt.Errorf("failed to get node: %s", err)
 		}
 		dn := vBarLinks.DisplayName()
-parentLabels := map[string]interface{}{"barlinkses.gns.tsm.tanzu.vmware.com":id}
+parentLabels := map[string]interface{}{"barlinkses.gns.tsm.tanzu.vmware.com":dn}
 vName := string(vBarLinks.Spec.Name)
 
 		ret := &model.GnsBarLinks {
@@ -1640,7 +1640,7 @@ func (c *resolverConfig) getGnsGnsTestABCLinkResolver(obj *model.GnsGns, id *str
 			return nil, fmt.Errorf("failed to get node: %s", err)
 		}
 		dn := vABCLink.DisplayName()
-parentLabels := map[string]interface{}{"abclinks.gns.tsm.tanzu.vmware.com":id}
+parentLabels := map[string]interface{}{"abclinks.gns.tsm.tanzu.vmware.com":dn}
 
         for k, v := range obj.ParentLabels {
             parentLabels[k] = v
@@ -1664,7 +1664,7 @@ parentLabels := map[string]interface{}{"abclinks.gns.tsm.tanzu.vmware.com":id}
 			return nil, fmt.Errorf("failed to get node: %s", err)
 		}
 		dn := vABCLink.DisplayName()
-parentLabels := map[string]interface{}{"abclinks.gns.tsm.tanzu.vmware.com":id}
+parentLabels := map[string]interface{}{"abclinks.gns.tsm.tanzu.vmware.com":dn}
 
 		ret := &model.GnsABCLink {
 	Id: &dn,
