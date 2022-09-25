@@ -26,6 +26,7 @@ type resolverConfig struct {
     vGnsBarChild *nexus_client.GnsBarChild
     vGnsBarChildren *nexus_client.GnsBarChildren
     vGnsBarLinks *nexus_client.GnsBarLinks
+    vGnsABCLink *nexus_client.GnsABCLink
     
 }
 
@@ -79,14 +80,14 @@ func (c *resolverConfig) getRootResolver() (*model.RootRoot, error) {
         return nil, fmt.Errorf("failed to get root node: %s", err)
 	}
 	c.vRootRoot = vRoot
-	id := vRoot.DisplayName()
+	dn := vRoot.DisplayName()
 parentLabels := map[string]interface{}{"roots.root.tsm.tanzu.vmware.com":id}
 vDisplayName := string(vRoot.Spec.DisplayName)
 CustomBar, _ := json.Marshal(vRoot.Spec.CustomBar)
 CustomBarData := string(CustomBar)
 
 	ret := &model.RootRoot {
-	Id: &id,
+	Id: &dn,
 	ParentLabels: parentLabels,
 	DisplayName: &vDisplayName,
 	CustomBar: &CustomBarData,
@@ -533,38 +534,33 @@ func (c *resolverConfig) getGnsGnsqueryServiceTopologyResolver(obj *model.GnsGns
 
 
 //////////////////////////////////////
-// Non Singleton Resolver for Parent Node
+// Singleton Resolver for Parent Node
 // PKG: Gns, NODE: Gns
 //////////////////////////////////////
-func (c *resolverConfig) getRootResolver(id *string) (*model.GnsBarLink, error) {
+func (c *resolverConfig) getRootResolver() (*model.GnsBarLink, error) {
 	k8sApiConfig := getK8sAPIEndpointConfig()
 	nexusClient, err := nexus_client.NewForConfig(k8sApiConfig)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get k8s client config: %s", err)
+        return nil, fmt.Errorf("failed to get k8s client config: %s", err)
 	}
 	nc = nexusClient
-	if id != nil && *id != "" {
-		vBarLink, err := nc.GetGnsBarLink(context.TODO(), *id)
-		if err != nil {
-			log.Errorf("Error getting root node %s", err)
-			return nil, fmt.Errorf("failed to get root node: %s", err)
-		}
-		c.vGnsBarLink = vBarLink
-		id := vBarLink.DisplayName()
+	vBarLink, err := nc.GetGnsBarLink(context.TODO())
+	if err != nil {
+	    log.Errorf("Error getting root node %s", err)
+        return nil, fmt.Errorf("failed to get root node: %s", err)
+	}
+	c.vGnsBarLink = vBarLink
+	dn := vBarLink.DisplayName()
 parentLabels := map[string]interface{}{"barlinks.gns.tsm.tanzu.vmware.com":id}
 vName := string(vBarLink.Spec.Name)
 
-		ret := &model.GnsBarLink {
-	Id: &id,
+	ret := &model.GnsBarLink {
+	Id: &dn,
 	ParentLabels: parentLabels,
 	Name: &vName,
 	}
-		return ret, nil
-	}
-	ret := &model.GnsBarLink{}
 	return ret, nil
 }
-
 
 //////////////////////////////////////
 // CustomQuery Resolver for Node: BarLink in PKG: Gns
@@ -1010,12 +1006,12 @@ func (c *resolverConfig) getRootResolver(id *string) (*model.GnsBarLinks, error)
 			return nil, fmt.Errorf("failed to get root node: %s", err)
 		}
 		c.vGnsBarLinks = vBarLinks
-		id := vBarLinks.DisplayName()
+		dn := vBarLinks.DisplayName()
 parentLabels := map[string]interface{}{"barlinkses.gns.tsm.tanzu.vmware.com":id}
 vName := string(vBarLinks.Spec.Name)
 
 		ret := &model.GnsBarLinks {
-	Id: &id,
+	Id: &dn,
 	ParentLabels: parentLabels,
 	Name: &vName,
 	}
@@ -1169,6 +1165,180 @@ func (c *resolverConfig) getGnsBarLinksqueryServiceTopologyResolver(obj *model.G
 
 
 
+
+//////////////////////////////////////
+// Non Singleton Resolver for Parent Node
+// PKG: Gns, NODE: Gns
+//////////////////////////////////////
+func (c *resolverConfig) getRootResolver(id *string) (*model.GnsABCLink, error) {
+	k8sApiConfig := getK8sAPIEndpointConfig()
+	nexusClient, err := nexus_client.NewForConfig(k8sApiConfig)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get k8s client config: %s", err)
+	}
+	nc = nexusClient
+	if id != nil && *id != "" {
+		vABCLink, err := nc.GetGnsABCLink(context.TODO(), *id)
+		if err != nil {
+			log.Errorf("Error getting root node %s", err)
+			return nil, fmt.Errorf("failed to get root node: %s", err)
+		}
+		c.vGnsABCLink = vABCLink
+		dn := vABCLink.DisplayName()
+parentLabels := map[string]interface{}{"abclinks.gns.tsm.tanzu.vmware.com":id}
+
+		ret := &model.GnsABCLink {
+	Id: &dn,
+	ParentLabels: parentLabels,
+	}
+		return ret, nil
+	}
+	ret := &model.GnsABCLink{}
+	return ret, nil
+}
+
+
+//////////////////////////////////////
+// CustomQuery Resolver for Node: ABCLink in PKG: Gns
+//////////////////////////////////////
+
+// Resolver for queryServiceTable
+func (c *resolverConfig) getGnsABCLinkqueryServiceTableResolver(obj *model.GnsABCLink, startTime *string, endTime *string, systemServices *bool, showGateways *bool, groupby *string, noMetrics *bool) (*model.TimeSeriesData,error) {
+	ctx := context.Background()
+	var filters = make(map[string]string)
+	filters[""] = ""
+	resp, err := grpcServer().GetMetrics(ctx, &qm.MetricArg{QueryType: "/ServiceTable", StartTime: *startTime, EndTime: *endTime, Metric: "", Filters: filters,TimeInterval: ""})
+	if err != nil {
+		fmt.Printf("Failed to getMetrics, err: %v", err)
+	}
+	b, _ := json.Marshal(resp.Data)
+	data := string(b)
+	ret := &model.TimeSeriesData{
+		Data: &data,
+	}
+	return ret,nil
+}
+
+// Resolver for queryServiceVersionTable
+func (c *resolverConfig) getGnsABCLinkqueryServiceVersionTableResolver(obj *model.GnsABCLink, startTime *string, endTime *string, systemServices *bool, showGateways *bool, noMetrics *bool) (*model.TimeSeriesData,error) {
+	ctx := context.Background()
+	var filters = make(map[string]string)
+	filters[""] = ""
+	resp, err := grpcServer().GetMetrics(ctx, &qm.MetricArg{QueryType: "/ServiceTable", StartTime: *startTime, EndTime: *endTime, Metric: "", Filters: filters,TimeInterval: ""})
+	if err != nil {
+		fmt.Printf("Failed to getMetrics, err: %v", err)
+	}
+	b, _ := json.Marshal(resp.Data)
+	data := string(b)
+	ret := &model.TimeSeriesData{
+		Data: &data,
+	}
+	return ret,nil
+}
+
+// Resolver for queryServiceTS
+func (c *resolverConfig) getGnsABCLinkqueryServiceTSResolver(obj *model.GnsABCLink, svcMetric *string, startTime *string, endTime *string, timeInterval *string) (*model.TimeSeriesData,error) {
+	ctx := context.Background()
+	var filters = make(map[string]string)
+	filters[""] = ""
+	resp, err := grpcServer().GetMetrics(ctx, &qm.MetricArg{QueryType: "/ServiceMetricSeries", StartTime: *startTime, EndTime: *endTime, Metric: *svcMetric, Filters: filters,TimeInterval: *timeInterval})
+	if err != nil {
+		fmt.Printf("Failed to getMetrics, err: %v", err)
+	}
+	b, _ := json.Marshal(resp.Data)
+	data := string(b)
+	ret := &model.TimeSeriesData{
+		Data: &data,
+	}
+	return ret,nil
+}
+
+// Resolver for queryIncomingAPIs
+func (c *resolverConfig) getGnsABCLinkqueryIncomingAPIsResolver(obj *model.GnsABCLink, startTime *string, endTime *string, destinationService *string, destinationServiceVersion *string, timeInterval *string, timeZone *string) (*model.TimeSeriesData,error) {
+	ctx := context.Background()
+	var filters = make(map[string]string)
+	filters[""] = ""
+	resp, err := grpcServer().GetMetrics(ctx, &qm.MetricArg{QueryType: "/IncomingAPIs", StartTime: *startTime, EndTime: *endTime, Metric: "", Filters: filters,TimeInterval: *timeInterval})
+	if err != nil {
+		fmt.Printf("Failed to getMetrics, err: %v", err)
+	}
+	b, _ := json.Marshal(resp.Data)
+	data := string(b)
+	ret := &model.TimeSeriesData{
+		Data: &data,
+	}
+	return ret,nil
+}
+
+// Resolver for queryOutgoingAPIs
+func (c *resolverConfig) getGnsABCLinkqueryOutgoingAPIsResolver(obj *model.GnsABCLink, startTime *string, endTime *string, timeInterval *string, timeZone *string) (*model.TimeSeriesData,error) {
+	ctx := context.Background()
+	var filters = make(map[string]string)
+	filters[""] = ""
+	resp, err := grpcServer().GetMetrics(ctx, &qm.MetricArg{QueryType: "/OutgoingAPIs", StartTime: *startTime, EndTime: *endTime, Metric: "", Filters: filters,TimeInterval: *timeInterval})
+	if err != nil {
+		fmt.Printf("Failed to getMetrics, err: %v", err)
+	}
+	b, _ := json.Marshal(resp.Data)
+	data := string(b)
+	ret := &model.TimeSeriesData{
+		Data: &data,
+	}
+	return ret,nil
+}
+
+// Resolver for queryIncomingTCP
+func (c *resolverConfig) getGnsABCLinkqueryIncomingTCPResolver(obj *model.GnsABCLink, startTime *string, endTime *string, destinationService *string, destinationServiceVersion *string) (*model.TimeSeriesData,error) {
+	ctx := context.Background()
+	var filters = make(map[string]string)
+	filters[""] = ""
+	resp, err := grpcServer().GetMetrics(ctx, &qm.MetricArg{QueryType: "/IncomingTCP", StartTime: *startTime, EndTime: *endTime, Metric: "", Filters: filters,TimeInterval: ""})
+	if err != nil {
+		fmt.Printf("Failed to getMetrics, err: %v", err)
+	}
+	b, _ := json.Marshal(resp.Data)
+	data := string(b)
+	ret := &model.TimeSeriesData{
+		Data: &data,
+	}
+	return ret,nil
+}
+
+// Resolver for queryOutgoingTCP
+func (c *resolverConfig) getGnsABCLinkqueryOutgoingTCPResolver(obj *model.GnsABCLink, startTime *string, endTime *string, destinationService *string, destinationServiceVersion *string) (*model.TimeSeriesData,error) {
+	ctx := context.Background()
+	var filters = make(map[string]string)
+	filters[""] = ""
+	resp, err := grpcServer().GetMetrics(ctx, &qm.MetricArg{QueryType: "/OutgoingTCP", StartTime: *startTime, EndTime: *endTime, Metric: "", Filters: filters,TimeInterval: ""})
+	if err != nil {
+		fmt.Printf("Failed to getMetrics, err: %v", err)
+	}
+	b, _ := json.Marshal(resp.Data)
+	data := string(b)
+	ret := &model.TimeSeriesData{
+		Data: &data,
+	}
+	return ret,nil
+}
+
+// Resolver for queryServiceTopology
+func (c *resolverConfig) getGnsABCLinkqueryServiceTopologyResolver(obj *model.GnsABCLink, startTime *string, endTime *string, metricStringArray *string) (*model.TimeSeriesData,error) {
+	ctx := context.Background()
+	var filters = make(map[string]string)
+	filters[""] = ""
+	resp, err := grpcServer().GetMetrics(ctx, &qm.MetricArg{QueryType: "/ServiceTopology", StartTime: *startTime, EndTime: *endTime, Metric: *metricStringArray, Filters: filters,TimeInterval: ""})
+	if err != nil {
+		fmt.Printf("Failed to getMetrics, err: %v", err)
+	}
+	b, _ := json.Marshal(resp.Data)
+	data := string(b)
+	ret := &model.TimeSeriesData{
+		Data: &data,
+	}
+	return ret,nil
+}
+
+
 //////////////////////////////////////
 // CHILD RESOLVER (Non Singleton)
 // FieldName: Config Node: Root PKG: Root
@@ -1180,7 +1350,7 @@ func (c *resolverConfig) getRootRootConfigResolver(obj *model.RootRoot, id *stri
         return nil, fmt.Errorf("failed to get node: %s", err)
     }
 	c.vConfigConfig = vConfig
-	id := vConfig.DisplayName()
+	dn := vConfig.DisplayName()
 parentLabels := map[string]interface{}{"configs.config.tsm.tanzu.vmware.com":id}
 vConfigName := string(vConfig.Spec.ConfigName)
 Cluster, _ := json.Marshal(vConfig.Spec.Cluster)
@@ -1206,7 +1376,7 @@ ClusterNamespacesData := string(ClusterNamespaces)
         parentLabels[k] = v
     }
 	ret := &model.ConfigConfig {
-	Id: &id,
+	Id: &dn,
 	ParentLabels: parentLabels,
 	ConfigName: &vConfigName,
 	Cluster: &ClusterData,
@@ -1238,7 +1408,7 @@ func (c *resolverConfig) getConfigConfigGNSResolver(obj *model.ConfigConfig, id 
         return nil, fmt.Errorf("failed to get node: %s", err)
     }
 	c.vGnsGns = vGns
-	id := vGns.DisplayName()
+	dn := vGns.DisplayName()
 parentLabels := map[string]interface{}{"gnses.gns.tsm.tanzu.vmware.com":id}
 vDomain := string(vGns.Spec.Domain)
 vUseSharedGateway := bool(vGns.Spec.UseSharedGateway)
@@ -1262,7 +1432,7 @@ Array5Data := string(Array5)
         parentLabels[k] = v
     }
 	ret := &model.GnsGns {
-	Id: &id,
+	Id: &dn,
 	ParentLabels: parentLabels,
 	Domain: &vDomain,
 	UseSharedGateway: &vUseSharedGateway,
@@ -1303,7 +1473,7 @@ func (c *resolverConfig) getGnsGnsFooChildResolver(obj *model.GnsGns) (*model.Gn
         return nil, fmt.Errorf("failed to get node: %s", err)
     }
 	c.vGnsBarChild = vBarChild
-	id := vBarChild.DisplayName()
+	dn := vBarChild.DisplayName()
 parentLabels := map[string]interface{}{"barchilds.gns.tsm.tanzu.vmware.com":id}
 vName := string(vBarChild.Spec.Name)
 
@@ -1311,7 +1481,7 @@ vName := string(vBarChild.Spec.Name)
         parentLabels[k] = v
     }
 	ret := &model.GnsBarChild {
-	Id: &id,
+	Id: &dn,
 	ParentLabels: parentLabels,
 	Name: &vName,
 	}
@@ -1319,22 +1489,22 @@ vName := string(vBarChild.Spec.Name)
 }
 
 //////////////////////////////////////
-// LINK RESOLVER (Non Singleton)
+// LINK RESOLVER
 // FieldName: FooLink Node: Gns PKG: Gns
 //////////////////////////////////////
-func (c *resolverConfig) getGnsGnsFooLinkResolver(obj *model.GnsGns, id *string) (*model.GnsBarLink, error) {
+func (c *resolverConfig) getGnsGnsFooLinkResolver(obj *model.GnsGns) (*model.GnsBarLink, error) {
 	vBarLinkParent, err := nc.RootRoot().Config(obj.ParentLabels["configs.config.tsm.tanzu.vmware.com"].(string)).GetGNS(context.TODO(), obj.ParentLabels["gnses.gns.tsm.tanzu.vmware.com"].(string))
 	if err != nil {
 	    log.Errorf("Error getting Parent node details %s", err)
         return nil, fmt.Errorf("failed to get Parent node details: %s", err)
     }
-	vBarLink, err := vBarLinkParent.GetFooLink(context.TODO(), *id)
+	vBarLink, err := vBarLinkParent.GetFooLink(context.TODO())
 	if err != nil {
 	    log.Errorf("Error getting node %s", err)
         return nil, fmt.Errorf("failed to get node: %s", err)
     }
 	c.vGnsBarLink = vBarLink
-	id := vBarLink.DisplayName()
+	dn := vBarLink.DisplayName()
 parentLabels := map[string]interface{}{"barlinks.gns.tsm.tanzu.vmware.com":id}
 vName := string(vBarLink.Spec.Name)
 
@@ -1342,7 +1512,7 @@ vName := string(vBarLink.Spec.Name)
         parentLabels[k] = v
     }
 	ret := &model.GnsBarLink {
-	Id: &id,
+	Id: &dn,
 	ParentLabels: parentLabels,
 	Name: &vName,
 	}
@@ -1350,7 +1520,7 @@ vName := string(vBarLink.Spec.Name)
 }
 
 //////////////////////////////////////
-// CHILDREN RESOLVER (Non Singleton
+// CHILDREN RESOLVER
 // FieldName: FooChildren Node: Gns PKG: Gns
 //////////////////////////////////////
 func (c *resolverConfig) getGnsGnsFooChildrenResolver(obj *model.GnsGns, id *string) ([]*model.GnsBarChildren, error) {
@@ -1361,7 +1531,7 @@ func (c *resolverConfig) getGnsGnsFooChildrenResolver(obj *model.GnsGns, id *str
 	        log.Errorf("Error getting node %s", err)
             return nil, fmt.Errorf("failed to get node: %s", err)
         }
-		id := vBarChildren.DisplayName()
+		dn := vBarChildren.DisplayName()
 parentLabels := map[string]interface{}{"barchildrens.gns.tsm.tanzu.vmware.com":id}
 vName := string(vBarChildren.Spec.Name)
 
@@ -1369,7 +1539,7 @@ vName := string(vBarChildren.Spec.Name)
             parentLabels[k] = v
         }
 		ret := &model.GnsBarChildren {
-	Id: &id,
+	Id: &dn,
 	ParentLabels: parentLabels,
 	Name: &vName,
 	}
@@ -1382,12 +1552,12 @@ vName := string(vBarChildren.Spec.Name)
 	        log.Errorf("Error getting node %s", err)
             return nil, fmt.Errorf("failed to get node: %s", err)
 		}
-		id := vBarChildren.DisplayName()
+		dn := vBarChildren.DisplayName()
 parentLabels := map[string]interface{}{"barchildrens.gns.tsm.tanzu.vmware.com":id}
 vName := string(vBarChildren.Spec.Name)
 
 		ret := &model.GnsBarChildren {
-	Id: &id,
+	Id: &dn,
 	ParentLabels: parentLabels,
 	Name: &vName,
 	}
@@ -1397,7 +1567,7 @@ vName := string(vBarChildren.Spec.Name)
 }
 
 //////////////////////////////////////
-// LINKS RESOLVER (Singleton/Non Singleton)
+// LINKS RESOLVER
 // FieldName: FooLinks Node: Gns PKG: Gns
 //////////////////////////////////////
 func (c *resolverConfig) getGnsGnsFooLinksResolver(obj *model.GnsGns, id *string) ([]*model.GnsBarLinks, error) {
@@ -1408,12 +1578,12 @@ func (c *resolverConfig) getGnsGnsFooLinksResolver(obj *model.GnsGns, id *string
 			log.Errorf("Error getting Parent node details %s", err)
 			return nil, fmt.Errorf("failed to get Parent node details: %s", err)
 		}
-		vBarLinks, err := vBarLinksParent.GetFooLinks(context.TODO())
+		vBarLinks, err := vBarLinksParent.GetFooLinks(context.TODO(), *id)
 		if err != nil {
 			log.Errorf("Error getting node %s", err)
 			return nil, fmt.Errorf("failed to get node: %s", err)
 		}
-		id := vBarLinks.DisplayName()
+		dn := vBarLinks.DisplayName()
 parentLabels := map[string]interface{}{"barlinkses.gns.tsm.tanzu.vmware.com":id}
 vName := string(vBarLinks.Spec.Name)
 
@@ -1421,7 +1591,7 @@ vName := string(vBarLinks.Spec.Name)
             parentLabels[k] = v
         }
 		ret := &model.GnsBarLinks {
-	Id: &id,
+	Id: &dn,
 	ParentLabels: parentLabels,
 	Name: &vName,
 	}
@@ -1434,17 +1604,17 @@ vName := string(vBarLinks.Spec.Name)
 			log.Errorf("Error getting Parent node details %s", err)
 			return nil, fmt.Errorf("failed to get Parent node details: %s", err)
 		}
-		vBarLinks, err := vBarLinksParent.GetFooLinks(context.TODO())
+		vBarLinks, err := vBarLinksParent.GetFooLinks(context.TODO(), i)
 		if err != nil {
 			log.Errorf("Error getting node %s", err)
 			return nil, fmt.Errorf("failed to get node: %s", err)
 		}
-		id := vBarLinks.DisplayName()
+		dn := vBarLinks.DisplayName()
 parentLabels := map[string]interface{}{"barlinkses.gns.tsm.tanzu.vmware.com":id}
 vName := string(vBarLinks.Spec.Name)
 
 		ret := &model.GnsBarLinks {
-	Id: &id,
+	Id: &dn,
 	ParentLabels: parentLabels,
 	Name: &vName,
 	}
@@ -1452,6 +1622,61 @@ vName := string(vBarLinks.Spec.Name)
 	}
 	return vGnsBarLinksList, nil
 }
+//////////////////////////////////////
+// LINKS RESOLVER
+// FieldName: TestABCLink Node: Gns PKG: Gns
+//////////////////////////////////////
+func (c *resolverConfig) getGnsGnsTestABCLinkResolver(obj *model.GnsGns, id *string) ([]*model.GnsABCLink, error) {
+	var vGnsABCLinkList []*model.GnsABCLink
+	if id != nil && *id != "" {
+		vABCLinkParent, err := nc.RootRoot().Config(obj.ParentLabels["configs.config.tsm.tanzu.vmware.com"].(string)).GetGNS(context.TODO(), obj.ParentLabels["gnses.gns.tsm.tanzu.vmware.com"].(string))
+		if err != nil {
+			log.Errorf("Error getting Parent node details %s", err)
+			return nil, fmt.Errorf("failed to get Parent node details: %s", err)
+		}
+		vABCLink, err := vABCLinkParent.GetTestABCLink(context.TODO(), *id)
+		if err != nil {
+			log.Errorf("Error getting node %s", err)
+			return nil, fmt.Errorf("failed to get node: %s", err)
+		}
+		dn := vABCLink.DisplayName()
+parentLabels := map[string]interface{}{"abclinks.gns.tsm.tanzu.vmware.com":id}
+
+        for k, v := range obj.ParentLabels {
+            parentLabels[k] = v
+        }
+		ret := &model.GnsABCLink {
+	Id: &dn,
+	ParentLabels: parentLabels,
+	}
+		vGnsABCLinkList = append(vGnsABCLinkList, ret)
+		return vGnsABCLinkList, nil
+	}
+	for i := range c.vGnsGns.Spec.TestABCLinkGvk {
+		vABCLinkParent, err := nc.RootRoot().Config(obj.ParentLabels["configs.config.tsm.tanzu.vmware.com"].(string)).GetGNS(context.TODO(), obj.ParentLabels["gnses.gns.tsm.tanzu.vmware.com"].(string))
+		if err != nil {
+			log.Errorf("Error getting Parent node details %s", err)
+			return nil, fmt.Errorf("failed to get Parent node details: %s", err)
+		}
+		vABCLink, err := vABCLinkParent.GetTestABCLink(context.TODO(), i)
+		if err != nil {
+			log.Errorf("Error getting node %s", err)
+			return nil, fmt.Errorf("failed to get node: %s", err)
+		}
+		dn := vABCLink.DisplayName()
+parentLabels := map[string]interface{}{"abclinks.gns.tsm.tanzu.vmware.com":id}
+
+		ret := &model.GnsABCLink {
+	Id: &dn,
+	ParentLabels: parentLabels,
+	}
+		vGnsABCLinkList = append(vGnsABCLinkList, ret)
+	}
+	return vGnsABCLinkList, nil
+}
+
+
+
 
 
 

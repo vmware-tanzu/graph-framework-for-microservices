@@ -281,9 +281,9 @@ func (c *resolverConfig) get{{$child.PkgName}}{{$child.NodeName}}{{$child.FieldN
 	{{ $child.ReturnType }}
 	return ret, nil
 }{{ end }}{{ end }}
-{{ range $key, $link := $node.LinkFields }}{{ if $link.IsSingleton }}
+{{ range $key, $link := $node.LinkFields }}
 //////////////////////////////////////
-// LINK RESOLVER (Singleton)
+// LINK RESOLVER
 // FieldName: {{$link.FieldName}} Node: {{$link.NodeName}} PKG: {{$link.PkgName}}
 //////////////////////////////////////
 func (c *resolverConfig) get{{$link.PkgName}}{{$link.NodeName}}{{$link.FieldName}}Resolver(obj *model.{{$link.PkgName}}{{$link.NodeName}}) (*model.{{$link.FieldTypePkgPath}}, error) {
@@ -304,33 +304,10 @@ func (c *resolverConfig) get{{$link.PkgName}}{{$link.NodeName}}{{$link.FieldName
     }
 	{{ $link.ReturnType }}
 	return ret, nil
-}{{ else }}
-//////////////////////////////////////
-// LINK RESOLVER (Non Singleton)
-// FieldName: {{$link.FieldName}} Node: {{$link.NodeName}} PKG: {{$link.PkgName}}
-//////////////////////////////////////
-func (c *resolverConfig) get{{$link.PkgName}}{{$link.NodeName}}{{$link.FieldName}}Resolver(obj *model.{{$link.PkgName}}{{$link.NodeName}}, id *string) (*model.{{$link.FieldTypePkgPath}}, error) {
-	v{{$link.BaseTypeName}}Parent, err := {{$link.LinkAPI}}
-	if err != nil {
-	    log.Errorf("Error getting Parent node details %s", err)
-        return nil, fmt.Errorf("failed to get Parent node details: %s", err)
-    }
-	v{{$link.BaseTypeName}}, err := v{{$link.BaseTypeName}}Parent.Get{{$link.FieldName}}(context.TODO(), *id)
-	if err != nil {
-	    log.Errorf("Error getting node %s", err)
-        return nil, fmt.Errorf("failed to get node: %s", err)
-    }
-	c.v{{$link.FieldTypePkgPath}} = v{{$link.BaseTypeName}}
-	{{ $link.Alias }}
-    for k, v := range obj.ParentLabels {
-        parentLabels[k] = v
-    }
-	{{ $link.ReturnType }}
-	return ret, nil
-}{{ end }}{{ end }}
+}{{ end }}
 {{ range $key, $children := $node.ChildrenFields }}
 //////////////////////////////////////
-// CHILDREN RESOLVER {{ if $children.IsSingleton }}(Singleton){{ else }}(Non Singleton{{ end }}
+// CHILDREN RESOLVER
 // FieldName: {{$children.FieldName}} Node: {{$children.NodeName}} PKG: {{$children.PkgName}}
 //////////////////////////////////////
 func (c *resolverConfig) get{{$children.PkgName}}{{$children.NodeName}}{{$children.FieldName}}Resolver(obj *model.{{$children.PkgName}}{{$children.NodeName}}, id *string) ([]*model.{{$children.FieldTypePkgPath}}, error) {
@@ -363,7 +340,7 @@ func (c *resolverConfig) get{{$children.PkgName}}{{$children.NodeName}}{{$childr
 }{{ end }}
 {{ range $key, $links := $node.LinksFields }}
 //////////////////////////////////////
-// LINKS RESOLVER (Singleton/Non Singleton)
+// LINKS RESOLVER
 // FieldName: {{$links.FieldName}} Node: {{$links.NodeName}} PKG: {{$links.PkgName}}
 //////////////////////////////////////
 func (c *resolverConfig) get{{$links.PkgName}}{{$links.NodeName}}{{$links.FieldName}}Resolver(obj *model.{{$links.PkgName}}{{$links.NodeName}}, id *string) ([]*model.{{$links.FieldTypePkgPath}}, error) {
@@ -374,7 +351,7 @@ func (c *resolverConfig) get{{$links.PkgName}}{{$links.NodeName}}{{$links.FieldN
 			log.Errorf("Error getting Parent node details %s", err)
 			return nil, fmt.Errorf("failed to get Parent node details: %s", err)
 		}
-		v{{$links.BaseTypeName}}, err := v{{$links.BaseTypeName}}Parent.Get{{$links.FieldName}}(context.TODO())
+		v{{$links.BaseTypeName}}, err := v{{$links.BaseTypeName}}Parent.Get{{$links.FieldName}}(context.TODO(), *id)
 		if err != nil {
 			log.Errorf("Error getting node %s", err)
 			return nil, fmt.Errorf("failed to get node: %s", err)
@@ -393,7 +370,7 @@ func (c *resolverConfig) get{{$links.PkgName}}{{$links.NodeName}}{{$links.FieldN
 			log.Errorf("Error getting Parent node details %s", err)
 			return nil, fmt.Errorf("failed to get Parent node details: %s", err)
 		}
-		v{{$links.BaseTypeName}}, err := v{{$links.BaseTypeName}}Parent.Get{{$links.FieldName}}(context.TODO())
+		v{{$links.BaseTypeName}}, err := v{{$links.BaseTypeName}}Parent.Get{{$links.FieldName}}(context.TODO(), i)
 		if err != nil {
 			log.Errorf("Error getting node %s", err)
 			return nil, fmt.Errorf("failed to get node: %s", err)

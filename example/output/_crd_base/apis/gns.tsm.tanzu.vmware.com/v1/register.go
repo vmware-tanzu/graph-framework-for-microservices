@@ -47,6 +47,8 @@ func addKnownTypes(scheme *runtime.Scheme) error {
 		&BarChildrenList{},
 		&BarLinks{},
 		&BarLinksList{},
+		&ABCLink{},
+		&ABCLinkList{},
 	)
 
 	// register the type in the scheme

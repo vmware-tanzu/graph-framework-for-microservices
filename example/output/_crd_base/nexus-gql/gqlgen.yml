@@ -55,3 +55,6 @@ models:
       FooChildren:
         resolver: true
 
+      TestABCLink:
+        resolver: true
+

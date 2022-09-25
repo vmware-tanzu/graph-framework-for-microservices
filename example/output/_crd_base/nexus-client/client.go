@@ -986,6 +986,7 @@ func (group *GnsTsmV1) CreateGnsByName(ctx context.Context,
 	objToCreate.Spec.FooChildrenGvk = nil
 	objToCreate.Spec.FooLinkGvk = nil
 	objToCreate.Spec.FooLinksGvk = nil
+	objToCreate.Spec.TestABCLinkGvk = nil
 
 	result, err := group.client.baseClient.
 		GnsTsmV1().
@@ -1464,6 +1465,70 @@ func (obj *GnsGns) UnlinkFooLinks(ctx context.Context,
 
 }
 
+// GetAllTestABCLink returns all links of given type
+func (obj *GnsGns) GetAllTestABCLink(ctx context.Context) (
+	result []*GnsABCLink, err error) {
+	result = make([]*GnsABCLink, 0, len(obj.Spec.TestABCLinkGvk))
+	for _, v := range obj.Spec.TestABCLinkGvk {
+		l, err := obj.client.Gns().GetABCLinkByName(ctx, v.Name)
+		if err != nil {
+			return nil, err
+		}
+		result = append(result, l)
+	}
+	return
+}
+
+// GetTestABCLink returns link which has given displayName
+func (obj *GnsGns) GetTestABCLink(ctx context.Context,
+	displayName string) (result *GnsABCLink, err error) {
+	l, ok := obj.Spec.TestABCLinkGvk[displayName]
+	if !ok {
+		return nil, NewLinkNotFound(obj.DisplayName(), "Gns.Gns", "TestABCLink", displayName)
+	}
+	result, err = obj.client.Gns().GetABCLinkByName(ctx, l.Name)
+	return
+}
+
+// LinkTestABCLink links obj with linkToAdd object. This function doesn't create linked object, it must be
+// already created.
+func (obj *GnsGns) LinkTestABCLink(ctx context.Context,
+	linkToAdd *GnsABCLink) error {
+
+	payload := "{\"spec\": {\"testABCLinkGvk\": {\"" + linkToAdd.DisplayName() + "\": {\"name\": \"" + linkToAdd.Name + "\",\"kind\": \"ABCLink\", \"group\": \"gns.tsm.tanzu.vmware.com\"}}}}"
+	result, err := obj.client.baseClient.GnsTsmV1().Gnses().Patch(ctx, obj.Name, types.MergePatchType, []byte(payload), metav1.PatchOptions{})
+	if err != nil {
+		return err
+	}
+
+	obj.Gns = result
+	return nil
+}
+
+// UnlinkTestABCLink unlinks linkToRemove object from obj. This function doesn't delete linked object.
+func (obj *GnsGns) UnlinkTestABCLink(ctx context.Context,
+	linkToRemove *GnsABCLink) (err error) {
+	var patch Patch
+
+	patchOp := PatchOp{
+		Op:   "remove",
+		Path: "/spec/testABCLinkGvk/" + linkToRemove.DisplayName(),
+	}
+
+	patch = append(patch, patchOp)
+	marshaled, err := patch.Marshal()
+	if err != nil {
+		return err
+	}
+	result, err := obj.client.baseClient.GnsTsmV1().Gnses().Patch(ctx, obj.Name, types.JSONPatchType, marshaled, metav1.PatchOptions{})
+	if err != nil {
+		return err
+	}
+	obj.Gns = result
+	return nil
+
+}
+
 type gnsGnsTsmV1Chainer struct {
 	client       *Clientset
 	name         string
@@ -1610,6 +1675,12 @@ func (group *GnsTsmV1) CreateBarLinkByName(ctx context.Context,
 	if _, ok := objToCreate.Labels[common.DISPLAY_NAME_LABEL]; !ok {
 		objToCreate.Labels[common.DISPLAY_NAME_LABEL] = objToCreate.GetName()
 	}
+	if objToCreate.Labels[common.DISPLAY_NAME_LABEL] == "" {
+		objToCreate.Labels[common.DISPLAY_NAME_LABEL] = helper.DEFAULT_KEY
+	}
+	if objToCreate.Labels[common.DISPLAY_NAME_LABEL] != helper.DEFAULT_KEY {
+		return nil, NewSingletonNameError(objToCreate.Labels[common.DISPLAY_NAME_LABEL])
+	}
 
 	result, err := group.client.baseClient.
 		GnsTsmV1().
@@ -1628,7 +1699,9 @@ func (group *GnsTsmV1) CreateBarLinkByName(ctx context.Context,
 // display name and parents names.
 func (group *GnsTsmV1) UpdateBarLinkByName(ctx context.Context,
 	objToUpdate *basegnstsmtanzuvmwarecomv1.BarLink) (*GnsBarLink, error) {
-
+	if objToUpdate.Labels[common.DISPLAY_NAME_LABEL] != helper.DEFAULT_KEY {
+		return nil, NewSingletonNameError(objToUpdate.Labels[common.DISPLAY_NAME_LABEL])
+	}
 	// ResourceVersion must be set for update
 	if objToUpdate.ResourceVersion == "" {
 		current, err := group.client.baseClient.
@@ -1717,28 +1790,34 @@ func (obj *GnsBarLink) Update(ctx context.Context) error {
 	return nil
 }
 
-// GetGnsBarLink calculates the hashed name based on parents and displayName and
+// GetGnsBarLink calculates the hashed name based on parents and
 // returns given object
-func (c *Clientset) GetGnsBarLink(ctx context.Context, displayName string) (result *GnsBarLink, err error) {
-	hashedName := helper.GetHashedName("barlinks.gns.tsm.tanzu.vmware.com", nil, displayName)
+func (c *Clientset) GetGnsBarLink(ctx context.Context) (result *GnsBarLink, err error) {
+	hashedName := helper.GetHashedName("barlinks.gns.tsm.tanzu.vmware.com", nil, helper.DEFAULT_KEY)
 	return c.Gns().GetBarLinkByName(ctx, hashedName)
 }
 
-func (c *Clientset) GnsBarLink(displayName string) *barlinkGnsTsmV1Chainer {
+func (c *Clientset) GnsBarLink() *barlinkGnsTsmV1Chainer {
 	parentLabels := make(map[string]string)
-	parentLabels["barlinks.gns.tsm.tanzu.vmware.com"] = displayName
+	parentLabels["barlinks.gns.tsm.tanzu.vmware.com"] = helper.DEFAULT_KEY
 	return &barlinkGnsTsmV1Chainer{
 		client:       c,
-		name:         displayName,
+		name:         helper.DEFAULT_KEY,
 		parentLabels: parentLabels,
 	}
 }
 
-// AddGnsBarLink calculates hashed name of the object based on objToCreate.Name
-// and parents names and creates it. objToCreate.Name is changed to the hashed name. Original name is preserved in
+// AddGnsBarLink calculates hashed name of the object based on
+// parents names and creates it. objToCreate.Name is changed to the hashed name. Original name (helper.DEFAULT_KEY) is preserved in
 // nexus/display_name label and can be obtained using DisplayName() method.
 func (c *Clientset) AddGnsBarLink(ctx context.Context,
 	objToCreate *basegnstsmtanzuvmwarecomv1.BarLink) (result *GnsBarLink, err error) {
+	if objToCreate.GetName() == "" {
+		objToCreate.SetName(helper.DEFAULT_KEY)
+	}
+	if objToCreate.GetName() != helper.DEFAULT_KEY {
+		return nil, NewSingletonNameError(objToCreate.GetName())
+	}
 	if objToCreate.Labels == nil {
 		objToCreate.Labels = map[string]string{}
 	}
@@ -1751,10 +1830,10 @@ func (c *Clientset) AddGnsBarLink(ctx context.Context,
 	return c.Gns().CreateBarLinkByName(ctx, objToCreate)
 }
 
-// DeleteGnsBarLink calculates hashedName of object based on displayName and
+// DeleteGnsBarLink calculates hashedName of object based on
 // parents and deletes given object
-func (c *Clientset) DeleteGnsBarLink(ctx context.Context, displayName string) (err error) {
-	hashedName := helper.GetHashedName("barlinks.gns.tsm.tanzu.vmware.com", nil, displayName)
+func (c *Clientset) DeleteGnsBarLink(ctx context.Context) (err error) {
+	hashedName := helper.GetHashedName("barlinks.gns.tsm.tanzu.vmware.com", nil, helper.DEFAULT_KEY)
 	return c.Gns().DeleteBarLinkByName(ctx, hashedName)
 }
 
@@ -2397,6 +2476,191 @@ func (c *Clientset) DeleteGnsBarLinks(ctx context.Context, displayName string) (
 }
 
 type barlinksGnsTsmV1Chainer struct {
+	client       *Clientset
+	name         string
+	parentLabels map[string]string
+}
+
+// GetABCLinkByName returns object stored in the database under the hashedName which is a hash of display
+// name and parents names. Use it when you know hashed name of object.
+func (group *GnsTsmV1) GetABCLinkByName(ctx context.Context, hashedName string) (*GnsABCLink, error) {
+	result, err := group.client.baseClient.
+		GnsTsmV1().
+		ABCLinks().Get(ctx, hashedName, metav1.GetOptions{})
+	if err != nil {
+		return nil, err
+	}
+
+	return &GnsABCLink{
+		client:  group.client,
+		ABCLink: result,
+	}, nil
+}
+
+// DeleteABCLinkByName deletes object stored in the database under the hashedName which is a hash of
+// display name and parents names. Use it when you know hashed name of object.
+func (group *GnsTsmV1) DeleteABCLinkByName(ctx context.Context, hashedName string) (err error) {
+
+	err = group.client.baseClient.
+		GnsTsmV1().
+		ABCLinks().Delete(ctx, hashedName, metav1.DeleteOptions{})
+	if err != nil {
+		return err
+	}
+
+	return
+}
+
+// CreateABCLinkByName creates object in the database without hashing the name.
+// Use it directly ONLY when objToCreate.Name is hashed name of the object.
+func (group *GnsTsmV1) CreateABCLinkByName(ctx context.Context,
+	objToCreate *basegnstsmtanzuvmwarecomv1.ABCLink) (*GnsABCLink, error) {
+	if objToCreate.GetLabels() == nil {
+		objToCreate.Labels = make(map[string]string)
+	}
+	if _, ok := objToCreate.Labels[common.DISPLAY_NAME_LABEL]; !ok {
+		objToCreate.Labels[common.DISPLAY_NAME_LABEL] = objToCreate.GetName()
+	}
+
+	result, err := group.client.baseClient.
+		GnsTsmV1().
+		ABCLinks().Create(ctx, objToCreate, metav1.CreateOptions{})
+	if err != nil {
+		return nil, err
+	}
+
+	return &GnsABCLink{
+		client:  group.client,
+		ABCLink: result,
+	}, nil
+}
+
+// UpdateABCLinkByName updates object stored in the database under the hashedName which is a hash of
+// display name and parents names.
+func (group *GnsTsmV1) UpdateABCLinkByName(ctx context.Context,
+	objToUpdate *basegnstsmtanzuvmwarecomv1.ABCLink) (*GnsABCLink, error) {
+
+	// ResourceVersion must be set for update
+	if objToUpdate.ResourceVersion == "" {
+		current, err := group.client.baseClient.
+			GnsTsmV1().
+			ABCLinks().Get(ctx, objToUpdate.GetName(), metav1.GetOptions{})
+		if err != nil {
+			return nil, err
+		}
+		objToUpdate.ResourceVersion = current.ResourceVersion
+	}
+
+	var patch Patch
+	patch = append(patch, PatchOp{
+		Op:    "replace",
+		Path:  "/metadata",
+		Value: objToUpdate.ObjectMeta,
+	})
+
+	marshaled, err := patch.Marshal()
+	if err != nil {
+		return nil, err
+	}
+	result, err := group.client.baseClient.
+		GnsTsmV1().
+		ABCLinks().Patch(ctx, objToUpdate.GetName(), types.JSONPatchType, marshaled, metav1.PatchOptions{}, "")
+	if err != nil {
+		return nil, err
+	}
+
+	return &GnsABCLink{
+		client:  group.client,
+		ABCLink: result,
+	}, nil
+}
+
+// ListABCLinks returns slice of all existing objects of this type. Selectors can be provided in opts parameter.
+func (group *GnsTsmV1) ListABCLinks(ctx context.Context,
+	opts metav1.ListOptions) (result []*GnsABCLink, err error) {
+	list, err := group.client.baseClient.GnsTsmV1().
+		ABCLinks().List(ctx, opts)
+	if err != nil {
+		return nil, err
+	}
+	result = make([]*GnsABCLink, len(list.Items))
+	for k, v := range list.Items {
+		item := v
+		result[k] = &GnsABCLink{
+			client:  group.client,
+			ABCLink: &item,
+		}
+	}
+	return
+}
+
+type GnsABCLink struct {
+	client *Clientset
+	*basegnstsmtanzuvmwarecomv1.ABCLink
+}
+
+// Delete removes obj and all it's children from the database.
+func (obj *GnsABCLink) Delete(ctx context.Context) error {
+	err := obj.client.Gns().DeleteABCLinkByName(ctx, obj.GetName())
+	if err != nil {
+		return err
+	}
+	obj.ABCLink = nil
+	return nil
+}
+
+// Update updates spec of object in database. Children and Link can not be updated using this function.
+func (obj *GnsABCLink) Update(ctx context.Context) error {
+	result, err := obj.client.Gns().UpdateABCLinkByName(ctx, obj.ABCLink)
+	if err != nil {
+		return err
+	}
+	obj.ABCLink = result.ABCLink
+	return nil
+}
+
+// GetGnsABCLink calculates the hashed name based on parents and displayName and
+// returns given object
+func (c *Clientset) GetGnsABCLink(ctx context.Context, displayName string) (result *GnsABCLink, err error) {
+	hashedName := helper.GetHashedName("abclinks.gns.tsm.tanzu.vmware.com", nil, displayName)
+	return c.Gns().GetABCLinkByName(ctx, hashedName)
+}
+
+func (c *Clientset) GnsABCLink(displayName string) *abclinkGnsTsmV1Chainer {
+	parentLabels := make(map[string]string)
+	parentLabels["abclinks.gns.tsm.tanzu.vmware.com"] = displayName
+	return &abclinkGnsTsmV1Chainer{
+		client:       c,
+		name:         displayName,
+		parentLabels: parentLabels,
+	}
+}
+
+// AddGnsABCLink calculates hashed name of the object based on objToCreate.Name
+// and parents names and creates it. objToCreate.Name is changed to the hashed name. Original name is preserved in
+// nexus/display_name label and can be obtained using DisplayName() method.
+func (c *Clientset) AddGnsABCLink(ctx context.Context,
+	objToCreate *basegnstsmtanzuvmwarecomv1.ABCLink) (result *GnsABCLink, err error) {
+	if objToCreate.Labels == nil {
+		objToCreate.Labels = map[string]string{}
+	}
+	if objToCreate.Labels[common.IS_NAME_HASHED_LABEL] != "true" {
+		objToCreate.Labels[common.DISPLAY_NAME_LABEL] = objToCreate.GetName()
+		objToCreate.Labels[common.IS_NAME_HASHED_LABEL] = "true"
+		hashedName := helper.GetHashedName(objToCreate.CRDName(), nil, objToCreate.GetName())
+		objToCreate.Name = hashedName
+	}
+	return c.Gns().CreateABCLinkByName(ctx, objToCreate)
+}
+
+// DeleteGnsABCLink calculates hashedName of object based on displayName and
+// parents and deletes given object
+func (c *Clientset) DeleteGnsABCLink(ctx context.Context, displayName string) (err error) {
+	hashedName := helper.GetHashedName("abclinks.gns.tsm.tanzu.vmware.com", nil, displayName)
+	return c.Gns().DeleteABCLinkByName(ctx, hashedName)
+}
+
+type abclinkGnsTsmV1Chainer struct {
 	client       *Clientset
 	name         string
 	parentLabels map[string]string

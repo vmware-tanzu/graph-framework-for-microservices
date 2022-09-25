@@ -214,6 +214,7 @@ type gns_Gns {
     FooLinks(Id: ID): [gns_BarLinks!]
     FooChild: gns_BarChild!
     FooChildren(Id: ID): [gns_BarChildren!]
+    TestABCLink(Id: ID): [gns_ABCLink!]
     Domain: String
     UseSharedGateway: Boolean
     Mydesc: String
@@ -229,7 +230,7 @@ type gns_Gns {
 
 type Query {
 
-    root(Id: ID): gns_BarLink
+    root: gns_BarLink
 }
 
  
@@ -483,6 +484,70 @@ type gns_BarLinks {
 }
 
 
+type Query {
+
+    root(Id: ID): gns_ABCLink
+}
+
+ 
+type gns_ABCLink {
+
+    Id: ID
+	ParentLabels: Map
+    queryServiceTable(
+        startTime: String
+        endTime: String
+        SystemServices: Boolean
+        ShowGateways: Boolean
+        Groupby: String
+        noMetrics: Boolean
+    ): TimeSeriesData
+    queryServiceVersionTable(
+        startTime: String
+        endTime: String
+        SystemServices: Boolean
+        ShowGateways: Boolean
+        noMetrics: Boolean
+    ): TimeSeriesData
+    queryServiceTS(
+        svcMetric: String
+        startTime: String
+        endTime: String
+        timeInterval: String
+    ): TimeSeriesData
+    queryIncomingAPIs(
+        startTime: String
+        endTime: String
+        destinationService: String
+        destinationServiceVersion: String
+        timeInterval: String
+        timeZone: String
+    ): TimeSeriesData
+    queryOutgoingAPIs(
+        startTime: String
+        endTime: String
+        timeInterval: String
+        timeZone: String
+    ): TimeSeriesData
+    queryIncomingTCP(
+        startTime: String
+        endTime: String
+        destinationService: String
+        destinationServiceVersion: String
+    ): TimeSeriesData
+    queryOutgoingTCP(
+        startTime: String
+        endTime: String
+        destinationService: String
+        destinationServiceVersion: String
+    ): TimeSeriesData
+    queryServiceTopology(
+        metricStringArray: String
+        startTime: String
+        endTime: String
+    ): TimeSeriesData
+
+}
 
 type TimeSeriesData {
   Code: Int

@@ -338,8 +338,8 @@ func GenerateGraphqlResolverVars(baseGroupName, crdModulePath string, pkgs parse
 
 		retType += fmt.Sprintf("ret := &model.%s%s {\n", n.PkgName, n.NodeName)
 		if n.IsNexusNode || n.IsSingletonNode {
-			retType += fmt.Sprintf("\t%s: &%s,\n", "Id", "id")
-			aliasVal += fmt.Sprintf("%s := v%s.DisplayName()\n", "id", n.NodeName)
+			retType += fmt.Sprintf("\t%s: &%s,\n", "Id", "dn")
+			aliasVal += fmt.Sprintf("%s := v%s.DisplayName()\n", "dn", n.NodeName)
 
 			retType += fmt.Sprintf("\t%s: %s,\n", "ParentLabels", "parentLabels")
 			aliasVal += fmt.Sprintf("%s := map[string]interface{}{%q:%s}\n", "parentLabels", n.CrdName, "id")

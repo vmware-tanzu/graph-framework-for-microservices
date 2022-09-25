@@ -76,6 +76,7 @@ type GnsSpec struct {
 	FooChildrenGvk   map[string]Child `json:"fooChildrenGvk,omitempty" yaml:"fooChildrenGvk,omitempty" nexus:"children"`
 	FooLinkGvk       *Link            `json:"fooLinkGvk,omitempty" yaml:"fooLinkGvk,omitempty" nexus:"link"`
 	FooLinksGvk      map[string]Link  `json:"fooLinksGvk,omitempty" yaml:"fooLinksGvk,omitempty" nexus:"links"`
+	TestABCLinkGvk   map[string]Link  `json:"testABCLinkGvk,omitempty" yaml:"testABCLinkGvk,omitempty" nexus:"links"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
@@ -243,6 +244,41 @@ type BarLinksList struct {
 	metav1.TypeMeta `json:",inline" yaml:",inline"`
 	metav1.ListMeta `json:"metadata" yaml:"metadata"`
 	Items           []BarLinks `json:"items" yaml:"items"`
+}
+
+// +genclient
+// +genclient:noStatus
+// +genclient:nonNamespaced
+// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
+// +k8s:openapi-gen=true
+type ABCLink struct {
+	metav1.TypeMeta   `json:",inline" yaml:",inline"`
+	metav1.ObjectMeta `json:"metadata" yaml:"metadata"`
+
+	Status ABCLinkNexusStatus `json:"status,omitempty" yaml:"status,omitempty"`
+}
+
+// +k8s:openapi-gen=true
+type ABCLinkNexusStatus struct {
+	Nexus NexusStatus `json:"nexus,omitempty" yaml:"nexus,omitempty"`
+}
+
+func (c *ABCLink) CRDName() string {
+	return "abclinks.gns.tsm.tanzu.vmware.com"
+}
+
+func (c *ABCLink) DisplayName() string {
+	if c.GetLabels() != nil {
+		return c.GetLabels()[common.DISPLAY_NAME_LABEL]
+	}
+	return ""
+}
+
+// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
+type ABCLinkList struct {
+	metav1.TypeMeta `json:",inline" yaml:",inline"`
+	metav1.ListMeta `json:"metadata" yaml:"metadata"`
+	Items           []ABCLink `json:"items" yaml:"items"`
 }
 
 // +k8s:openapi-gen=true

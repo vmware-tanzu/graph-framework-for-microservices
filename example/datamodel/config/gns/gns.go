@@ -89,6 +89,7 @@ type Gns struct {
 	Array3           []BarLink
 	Array4           []Instance
 	Array5           AliasArr
+	TestABCLink      ABCLink `nexus:"links"`
 }
 
 // This is Description struct.
@@ -102,7 +103,7 @@ type Description struct {
 }
 
 type BarLink struct {
-	nexus.Node
+	nexus.SingletonNode
 	Name string
 }
 
@@ -123,4 +124,8 @@ type BarLinks struct {
 
 type Answer struct {
 	Name string
+}
+
+type ABCLink struct {
+	nexus.Node
 }
