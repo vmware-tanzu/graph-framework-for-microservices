@@ -19,16 +19,24 @@ const IS_NAME_HASHED_LABEL = "nexus/is_name_hashed"
 
 func GetCRDParentsMap() map[string][]string {
 	return map[string][]string{
-		"bars.gns.tsm.tanzu.vmware.com":       {"roots.root.tsm.tanzu.vmware.com", "configs.config.tsm.tanzu.vmware.com", "gnses.gns.tsm.tanzu.vmware.com"},
-		"configs.config.tsm.tanzu.vmware.com": {"roots.root.tsm.tanzu.vmware.com"},
-		"gnses.gns.tsm.tanzu.vmware.com":      {"roots.root.tsm.tanzu.vmware.com", "configs.config.tsm.tanzu.vmware.com"},
-		"roots.root.tsm.tanzu.vmware.com":     {},
+		"barchildrens.gns.tsm.tanzu.vmware.com": {"roots.root.tsm.tanzu.vmware.com", "configs.config.tsm.tanzu.vmware.com", "gnses.gns.tsm.tanzu.vmware.com"},
+		"barchilds.gns.tsm.tanzu.vmware.com":    {"roots.root.tsm.tanzu.vmware.com", "configs.config.tsm.tanzu.vmware.com", "gnses.gns.tsm.tanzu.vmware.com"},
+		"configs.config.tsm.tanzu.vmware.com":   {"roots.root.tsm.tanzu.vmware.com"},
+		"gnses.gns.tsm.tanzu.vmware.com":        {"roots.root.tsm.tanzu.vmware.com", "configs.config.tsm.tanzu.vmware.com"},
+		"roots.root.tsm.tanzu.vmware.com":       {},
 	}
 }
 
 func GetObjectByCRDName(dmClient *datamodel.Clientset, crdName string, name string) interface{} {
-	if crdName == "bars.gns.tsm.tanzu.vmware.com" {
-		obj, err := dmClient.GnsTsmV1().Bars().Get(context.TODO(), name, metav1.GetOptions{})
+	if crdName == "barchildrens.gns.tsm.tanzu.vmware.com" {
+		obj, err := dmClient.GnsTsmV1().BarChildrens().Get(context.TODO(), name, metav1.GetOptions{})
+		if err != nil {
+			return nil
+		}
+		return obj
+	}
+	if crdName == "barchilds.gns.tsm.tanzu.vmware.com" {
+		obj, err := dmClient.GnsTsmV1().BarChilds().Get(context.TODO(), name, metav1.GetOptions{})
 		if err != nil {
 			return nil
 		}

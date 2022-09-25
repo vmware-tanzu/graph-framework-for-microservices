@@ -72,21 +72,21 @@ type AliasArr []int
 // nexus-description: this is my awesome node
 // specification of GNS.
 type Gns struct {
-	nexus.SingletonNode
+	nexus.Node
 	//nexus-validation: MaxLength=8, MinLength=2
 	//nexus-validation: Pattern=abc
 	Domain           string
 	UseSharedGateway bool
 	Mydesc           Description
-	FooLink          Bar `nexus:"link"`
-	FooLinks         Bar `nexus:"links"`
-	FooChild         Bar `nexus:"child"`
-	FooChildren      Bar `nexus:"children"`
+	FooLink          BarLink     `nexus:"link"`
+	FooLinks         BarLinks    `nexus:"links"`
+	FooChild         BarChild    `nexus:"child"`
+	FooChildren      BarChildren `nexus:"children"`
 	HostPort         HostPort
 	Instance         Instance
 	Array1           float32
 	Array2           []Description
-	Array3           []Bar
+	Array3           []BarLink
 	Array4           []Instance
 	Array5           AliasArr
 }
@@ -101,8 +101,24 @@ type Description struct {
 	HostPort  HostPort
 }
 
-type Bar struct {
+type BarLink struct {
 	nexus.Node
+	Name string
+}
+
+type BarChild struct {
+	nexus.SingletonNode
+	Name string
+}
+
+type BarChildren struct {
+	nexus.Node
+	Name string
+}
+
+type BarLinks struct {
+	nexus.Node
+	Name string
 }
 
 type Answer struct {

@@ -146,8 +146,8 @@ func RenderCRDTemplate(baseGroupName, crdModulePath string,
 		return err
 	}
 
-	fmt.Printf("\nPackages %#v\n", pkgs)
-	fmt.Printf("\nParents Map %#v\n", parentsMap)
+	// fmt.Printf("\nPackages %#v\n", pkgs)
+	// fmt.Printf("\nParents Map %#v\n", parentsMap)
 	err = RenderGraphqlResolver(baseGroupName, outputDir, crdModulePath, pkgs, parentsMap)
 	if err != nil {
 		return err

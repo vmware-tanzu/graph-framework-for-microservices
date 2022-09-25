@@ -69,7 +69,7 @@ type GnsSpec struct {
 	Instance         Instance         `json:"instance" yaml:"instance"`
 	Array1           float32          `json:"array1" yaml:"array1"`
 	Array2           []Description    `json:"array2" yaml:"array2"`
-	Array3           []Bar            `json:"array3" yaml:"array3"`
+	Array3           []BarLink        `json:"array3" yaml:"array3"`
 	Array4           []Instance       `json:"array4" yaml:"array4"`
 	Array5           AliasArr         `json:"array5" yaml:"array5"`
 	FooChildGvk      *Child           `json:"fooChildGvk,omitempty" yaml:"fooChildGvk,omitempty" nexus:"child"`
@@ -90,34 +90,159 @@ type GnsList struct {
 // +genclient:nonNamespaced
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 // +k8s:openapi-gen=true
-type Bar struct {
+type BarLink struct {
 	metav1.TypeMeta   `json:",inline" yaml:",inline"`
 	metav1.ObjectMeta `json:"metadata" yaml:"metadata"`
-
-	Status BarNexusStatus `json:"status,omitempty" yaml:"status,omitempty"`
+	Spec              BarLinkSpec        `json:"spec,omitempty" yaml:"spec,omitempty"`
+	Status            BarLinkNexusStatus `json:"status,omitempty" yaml:"status,omitempty"`
 }
 
 // +k8s:openapi-gen=true
-type BarNexusStatus struct {
+type BarLinkNexusStatus struct {
 	Nexus NexusStatus `json:"nexus,omitempty" yaml:"nexus,omitempty"`
 }
 
-func (c *Bar) CRDName() string {
-	return "bars.gns.tsm.tanzu.vmware.com"
+func (c *BarLink) CRDName() string {
+	return "barlinks.gns.tsm.tanzu.vmware.com"
 }
 
-func (c *Bar) DisplayName() string {
+func (c *BarLink) DisplayName() string {
 	if c.GetLabels() != nil {
 		return c.GetLabels()[common.DISPLAY_NAME_LABEL]
 	}
 	return ""
 }
 
+// +k8s:openapi-gen=true
+type BarLinkSpec struct {
+	Name string `json:"name" yaml:"name"`
+}
+
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
-type BarList struct {
+type BarLinkList struct {
 	metav1.TypeMeta `json:",inline" yaml:",inline"`
 	metav1.ListMeta `json:"metadata" yaml:"metadata"`
-	Items           []Bar `json:"items" yaml:"items"`
+	Items           []BarLink `json:"items" yaml:"items"`
+}
+
+// +genclient
+// +genclient:noStatus
+// +genclient:nonNamespaced
+// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
+// +k8s:openapi-gen=true
+type BarChild struct {
+	metav1.TypeMeta   `json:",inline" yaml:",inline"`
+	metav1.ObjectMeta `json:"metadata" yaml:"metadata"`
+	Spec              BarChildSpec        `json:"spec,omitempty" yaml:"spec,omitempty"`
+	Status            BarChildNexusStatus `json:"status,omitempty" yaml:"status,omitempty"`
+}
+
+// +k8s:openapi-gen=true
+type BarChildNexusStatus struct {
+	Nexus NexusStatus `json:"nexus,omitempty" yaml:"nexus,omitempty"`
+}
+
+func (c *BarChild) CRDName() string {
+	return "barchilds.gns.tsm.tanzu.vmware.com"
+}
+
+func (c *BarChild) DisplayName() string {
+	if c.GetLabels() != nil {
+		return c.GetLabels()[common.DISPLAY_NAME_LABEL]
+	}
+	return ""
+}
+
+// +k8s:openapi-gen=true
+type BarChildSpec struct {
+	Name string `json:"name" yaml:"name"`
+}
+
+// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
+type BarChildList struct {
+	metav1.TypeMeta `json:",inline" yaml:",inline"`
+	metav1.ListMeta `json:"metadata" yaml:"metadata"`
+	Items           []BarChild `json:"items" yaml:"items"`
+}
+
+// +genclient
+// +genclient:noStatus
+// +genclient:nonNamespaced
+// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
+// +k8s:openapi-gen=true
+type BarChildren struct {
+	metav1.TypeMeta   `json:",inline" yaml:",inline"`
+	metav1.ObjectMeta `json:"metadata" yaml:"metadata"`
+	Spec              BarChildrenSpec        `json:"spec,omitempty" yaml:"spec,omitempty"`
+	Status            BarChildrenNexusStatus `json:"status,omitempty" yaml:"status,omitempty"`
+}
+
+// +k8s:openapi-gen=true
+type BarChildrenNexusStatus struct {
+	Nexus NexusStatus `json:"nexus,omitempty" yaml:"nexus,omitempty"`
+}
+
+func (c *BarChildren) CRDName() string {
+	return "barchildrens.gns.tsm.tanzu.vmware.com"
+}
+
+func (c *BarChildren) DisplayName() string {
+	if c.GetLabels() != nil {
+		return c.GetLabels()[common.DISPLAY_NAME_LABEL]
+	}
+	return ""
+}
+
+// +k8s:openapi-gen=true
+type BarChildrenSpec struct {
+	Name string `json:"name" yaml:"name"`
+}
+
+// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
+type BarChildrenList struct {
+	metav1.TypeMeta `json:",inline" yaml:",inline"`
+	metav1.ListMeta `json:"metadata" yaml:"metadata"`
+	Items           []BarChildren `json:"items" yaml:"items"`
+}
+
+// +genclient
+// +genclient:noStatus
+// +genclient:nonNamespaced
+// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
+// +k8s:openapi-gen=true
+type BarLinks struct {
+	metav1.TypeMeta   `json:",inline" yaml:",inline"`
+	metav1.ObjectMeta `json:"metadata" yaml:"metadata"`
+	Spec              BarLinksSpec        `json:"spec,omitempty" yaml:"spec,omitempty"`
+	Status            BarLinksNexusStatus `json:"status,omitempty" yaml:"status,omitempty"`
+}
+
+// +k8s:openapi-gen=true
+type BarLinksNexusStatus struct {
+	Nexus NexusStatus `json:"nexus,omitempty" yaml:"nexus,omitempty"`
+}
+
+func (c *BarLinks) CRDName() string {
+	return "barlinkses.gns.tsm.tanzu.vmware.com"
+}
+
+func (c *BarLinks) DisplayName() string {
+	if c.GetLabels() != nil {
+		return c.GetLabels()[common.DISPLAY_NAME_LABEL]
+	}
+	return ""
+}
+
+// +k8s:openapi-gen=true
+type BarLinksSpec struct {
+	Name string `json:"name" yaml:"name"`
+}
+
+// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
+type BarLinksList struct {
+	metav1.TypeMeta `json:",inline" yaml:",inline"`
+	metav1.ListMeta `json:"metadata" yaml:"metadata"`
+	Items           []BarLinks `json:"items" yaml:"items"`
 }
 
 // +k8s:openapi-gen=true

@@ -802,12 +802,6 @@ func (obj *ConfigConfig) AddGNS(ctx context.Context,
 	}
 	objToCreate.Labels["configs.config.tsm.tanzu.vmware.com"] = obj.DisplayName()
 	if objToCreate.Labels[common.IS_NAME_HASHED_LABEL] != "true" {
-		if objToCreate.GetName() == "" {
-			objToCreate.SetName(helper.DEFAULT_KEY)
-		}
-		if objToCreate.GetName() != helper.DEFAULT_KEY {
-			return nil, NewSingletonNameError(objToCreate.GetName())
-		}
 		objToCreate.Labels[common.DISPLAY_NAME_LABEL] = objToCreate.GetName()
 		objToCreate.Labels[common.IS_NAME_HASHED_LABEL] = "true"
 		hashedName := helper.GetHashedName(objToCreate.CRDName(), objToCreate.Labels, objToCreate.GetName())
@@ -846,33 +840,27 @@ type configConfigTsmV1Chainer struct {
 	parentLabels map[string]string
 }
 
-func (c *configConfigTsmV1Chainer) GNS() *gnsGnsTsmV1Chainer {
+func (c *configConfigTsmV1Chainer) GNS(name string) *gnsGnsTsmV1Chainer {
 	parentLabels := c.parentLabels
-	parentLabels["gnses.gns.tsm.tanzu.vmware.com"] = helper.DEFAULT_KEY
+	parentLabels["gnses.gns.tsm.tanzu.vmware.com"] = name
 	return &gnsGnsTsmV1Chainer{
 		client:       c.client,
-		name:         helper.DEFAULT_KEY,
+		name:         name,
 		parentLabels: parentLabels,
 	}
 }
 
-// GetGNS calculates hashed name of the object based on it's parents and returns the object
-func (c *configConfigTsmV1Chainer) GetGNS(ctx context.Context) (result *GnsGns, err error) {
-	hashedName := helper.GetHashedName("gnses.gns.tsm.tanzu.vmware.com", c.parentLabels, helper.DEFAULT_KEY)
+// GetGNS calculates hashed name of the object based on displayName and it's parents and returns the object
+func (c *configConfigTsmV1Chainer) GetGNS(ctx context.Context, displayName string) (result *GnsGns, err error) {
+	hashedName := helper.GetHashedName("gnses.gns.tsm.tanzu.vmware.com", c.parentLabels, displayName)
 	return c.client.Gns().GetGnsByName(ctx, hashedName)
 }
 
-// AddGNS calculates hashed name of the child to create based on parents names and creates it.
-// objToCreate.Name is changed to the hashed name. Original name ('default') is preserved in
+// AddGNS calculates hashed name of the child to create based on objToCreate.Name
+// and parents names and creates it. objToCreate.Name is changed to the hashed name. Original name is preserved in
 // nexus/display_name label and can be obtained using DisplayName() method.
 func (c *configConfigTsmV1Chainer) AddGNS(ctx context.Context,
 	objToCreate *basegnstsmtanzuvmwarecomv1.Gns) (result *GnsGns, err error) {
-	if objToCreate.GetName() == "" {
-		objToCreate.SetName(helper.DEFAULT_KEY)
-	}
-	if objToCreate.GetName() != helper.DEFAULT_KEY {
-		return nil, NewSingletonNameError(objToCreate.GetName())
-	}
 	if objToCreate.Labels == nil {
 		objToCreate.Labels = map[string]string{}
 	}
@@ -929,7 +917,7 @@ func (group *GnsTsmV1) DeleteGnsByName(ctx context.Context, hashedName string) (
 	if result.Spec.FooChildGvk != nil {
 		err := group.client.
 			Gns().
-			DeleteBarByName(ctx, result.Spec.FooChildGvk.Name)
+			DeleteBarChildByName(ctx, result.Spec.FooChildGvk.Name)
 		if err != nil {
 			return err
 		}
@@ -937,7 +925,7 @@ func (group *GnsTsmV1) DeleteGnsByName(ctx context.Context, hashedName string) (
 
 	for _, v := range result.Spec.FooChildrenGvk {
 		err := group.client.
-			Gns().DeleteBarByName(ctx, v.Name)
+			Gns().DeleteBarChildrenByName(ctx, v.Name)
 		if err != nil {
 			return err
 		}
@@ -993,12 +981,6 @@ func (group *GnsTsmV1) CreateGnsByName(ctx context.Context,
 	if _, ok := objToCreate.Labels[common.DISPLAY_NAME_LABEL]; !ok {
 		objToCreate.Labels[common.DISPLAY_NAME_LABEL] = objToCreate.GetName()
 	}
-	if objToCreate.Labels[common.DISPLAY_NAME_LABEL] == "" {
-		objToCreate.Labels[common.DISPLAY_NAME_LABEL] = helper.DEFAULT_KEY
-	}
-	if objToCreate.Labels[common.DISPLAY_NAME_LABEL] != helper.DEFAULT_KEY {
-		return nil, NewSingletonNameError(objToCreate.Labels[common.DISPLAY_NAME_LABEL])
-	}
 
 	objToCreate.Spec.FooChildGvk = nil
 	objToCreate.Spec.FooChildrenGvk = nil
@@ -1052,9 +1034,7 @@ func (group *GnsTsmV1) CreateGnsByName(ctx context.Context,
 // display name and parents names.
 func (group *GnsTsmV1) UpdateGnsByName(ctx context.Context,
 	objToUpdate *basegnstsmtanzuvmwarecomv1.Gns) (*GnsGns, error) {
-	if objToUpdate.Labels[common.DISPLAY_NAME_LABEL] != helper.DEFAULT_KEY {
-		return nil, NewSingletonNameError(objToUpdate.Labels[common.DISPLAY_NAME_LABEL])
-	}
+
 	// ResourceVersion must be set for update
 	if objToUpdate.ResourceVersion == "" {
 		current, err := group.client.baseClient.
@@ -1231,18 +1211,18 @@ func (obj *GnsGns) GetParent(ctx context.Context) (result *ConfigConfig, err err
 
 // GetFooChild returns child of given type
 func (obj *GnsGns) GetFooChild(ctx context.Context) (
-	result *GnsBar, err error) {
+	result *GnsBarChild, err error) {
 	if obj.Spec.FooChildGvk == nil {
 		return nil, NewChildNotFound(obj.DisplayName(), "Gns.Gns", "FooChild")
 	}
-	return obj.client.Gns().GetBarByName(ctx, obj.Spec.FooChildGvk.Name)
+	return obj.client.Gns().GetBarChildByName(ctx, obj.Spec.FooChildGvk.Name)
 }
 
 // AddFooChild calculates hashed name of the child to create based on objToCreate.Name
 // and parents names and creates it. objToCreate.Name is changed to the hashed name. Original name is preserved in
 // nexus/display_name label and can be obtained using DisplayName() method.
 func (obj *GnsGns) AddFooChild(ctx context.Context,
-	objToCreate *basegnstsmtanzuvmwarecomv1.Bar) (result *GnsBar, err error) {
+	objToCreate *basegnstsmtanzuvmwarecomv1.BarChild) (result *GnsBarChild, err error) {
 	if objToCreate.Labels == nil {
 		objToCreate.Labels = map[string]string{}
 	}
@@ -1251,12 +1231,18 @@ func (obj *GnsGns) AddFooChild(ctx context.Context,
 	}
 	objToCreate.Labels["gnses.gns.tsm.tanzu.vmware.com"] = obj.DisplayName()
 	if objToCreate.Labels[common.IS_NAME_HASHED_LABEL] != "true" {
+		if objToCreate.GetName() == "" {
+			objToCreate.SetName(helper.DEFAULT_KEY)
+		}
+		if objToCreate.GetName() != helper.DEFAULT_KEY {
+			return nil, NewSingletonNameError(objToCreate.GetName())
+		}
 		objToCreate.Labels[common.DISPLAY_NAME_LABEL] = objToCreate.GetName()
 		objToCreate.Labels[common.IS_NAME_HASHED_LABEL] = "true"
 		hashedName := helper.GetHashedName(objToCreate.CRDName(), objToCreate.Labels, objToCreate.GetName())
 		objToCreate.Name = hashedName
 	}
-	result, err = obj.client.Gns().CreateBarByName(ctx, objToCreate)
+	result, err = obj.client.Gns().CreateBarChildByName(ctx, objToCreate)
 	updatedObj, getErr := obj.client.Gns().GetGnsByName(ctx, obj.GetName())
 	if getErr == nil {
 		obj.Gns = updatedObj.Gns
@@ -1270,7 +1256,7 @@ func (obj *GnsGns) AddFooChild(ctx context.Context,
 func (obj *GnsGns) DeleteFooChild(ctx context.Context) (err error) {
 	if obj.Spec.FooChildGvk != nil {
 		err = obj.client.
-			Gns().DeleteBarByName(ctx, obj.Spec.FooChildGvk.Name)
+			Gns().DeleteBarChildByName(ctx, obj.Spec.FooChildGvk.Name)
 		if err != nil {
 			return err
 		}
@@ -1285,10 +1271,10 @@ func (obj *GnsGns) DeleteFooChild(ctx context.Context) (err error) {
 
 // GetAllFooChildren returns all children of given type
 func (obj *GnsGns) GetAllFooChildren(ctx context.Context) (
-	result []*GnsBar, err error) {
-	result = make([]*GnsBar, 0, len(obj.Spec.FooChildrenGvk))
+	result []*GnsBarChildren, err error) {
+	result = make([]*GnsBarChildren, 0, len(obj.Spec.FooChildrenGvk))
 	for _, v := range obj.Spec.FooChildrenGvk {
-		l, err := obj.client.Gns().GetBarByName(ctx, v.Name)
+		l, err := obj.client.Gns().GetBarChildrenByName(ctx, v.Name)
 		if err != nil {
 			return nil, err
 		}
@@ -1299,12 +1285,12 @@ func (obj *GnsGns) GetAllFooChildren(ctx context.Context) (
 
 // GetFooChildren returns child which has given displayName
 func (obj *GnsGns) GetFooChildren(ctx context.Context,
-	displayName string) (result *GnsBar, err error) {
+	displayName string) (result *GnsBarChildren, err error) {
 	l, ok := obj.Spec.FooChildrenGvk[displayName]
 	if !ok {
 		return nil, NewChildNotFound(obj.DisplayName(), "Gns.Gns", "FooChildren", displayName)
 	}
-	result, err = obj.client.Gns().GetBarByName(ctx, l.Name)
+	result, err = obj.client.Gns().GetBarChildrenByName(ctx, l.Name)
 	return
 }
 
@@ -1312,7 +1298,7 @@ func (obj *GnsGns) GetFooChildren(ctx context.Context,
 // and parents names and creates it. objToCreate.Name is changed to the hashed name. Original name is preserved in
 // nexus/display_name label and can be obtained using DisplayName() method.
 func (obj *GnsGns) AddFooChildren(ctx context.Context,
-	objToCreate *basegnstsmtanzuvmwarecomv1.Bar) (result *GnsBar, err error) {
+	objToCreate *basegnstsmtanzuvmwarecomv1.BarChildren) (result *GnsBarChildren, err error) {
 	if objToCreate.Labels == nil {
 		objToCreate.Labels = map[string]string{}
 	}
@@ -1326,7 +1312,7 @@ func (obj *GnsGns) AddFooChildren(ctx context.Context,
 		hashedName := helper.GetHashedName(objToCreate.CRDName(), objToCreate.Labels, objToCreate.GetName())
 		objToCreate.Name = hashedName
 	}
-	result, err = obj.client.Gns().CreateBarByName(ctx, objToCreate)
+	result, err = obj.client.Gns().CreateBarChildrenByName(ctx, objToCreate)
 	updatedObj, getErr := obj.client.Gns().GetGnsByName(ctx, obj.GetName())
 	if getErr == nil {
 		obj.Gns = updatedObj.Gns
@@ -1342,7 +1328,7 @@ func (obj *GnsGns) DeleteFooChildren(ctx context.Context, displayName string) (e
 	if !ok {
 		return NewChildNotFound(obj.DisplayName(), "Gns.Gns", "FooChildren", displayName)
 	}
-	err = obj.client.Gns().DeleteBarByName(ctx, l.Name)
+	err = obj.client.Gns().DeleteBarChildrenByName(ctx, l.Name)
 	if err != nil {
 		return err
 	}
@@ -1355,17 +1341,17 @@ func (obj *GnsGns) DeleteFooChildren(ctx context.Context, displayName string) (e
 
 // GetFooLink returns link of given type
 func (obj *GnsGns) GetFooLink(ctx context.Context) (
-	result *GnsBar, err error) {
+	result *GnsBarLink, err error) {
 	if obj.Spec.FooLinkGvk == nil {
 		return nil, NewLinkNotFound(obj.DisplayName(), "Gns.Gns", "FooLink")
 	}
-	return obj.client.Gns().GetBarByName(ctx, obj.Spec.FooLinkGvk.Name)
+	return obj.client.Gns().GetBarLinkByName(ctx, obj.Spec.FooLinkGvk.Name)
 }
 
 // LinkFooLink links obj with linkToAdd object. This function doesn't create linked object, it must be
 // already created.
 func (obj *GnsGns) LinkFooLink(ctx context.Context,
-	linkToAdd *GnsBar) error {
+	linkToAdd *GnsBarLink) error {
 
 	var patch Patch
 	patchOp := PatchOp{
@@ -1373,7 +1359,7 @@ func (obj *GnsGns) LinkFooLink(ctx context.Context,
 		Path: "/spec/fooLinkGvk",
 		Value: basegnstsmtanzuvmwarecomv1.Child{
 			Group: "gns.tsm.tanzu.vmware.com",
-			Kind:  "Bar",
+			Kind:  "BarLink",
 			Name:  linkToAdd.Name,
 		},
 	}
@@ -1416,10 +1402,10 @@ func (obj *GnsGns) UnlinkFooLink(ctx context.Context) (err error) {
 
 // GetAllFooLinks returns all links of given type
 func (obj *GnsGns) GetAllFooLinks(ctx context.Context) (
-	result []*GnsBar, err error) {
-	result = make([]*GnsBar, 0, len(obj.Spec.FooLinksGvk))
+	result []*GnsBarLinks, err error) {
+	result = make([]*GnsBarLinks, 0, len(obj.Spec.FooLinksGvk))
 	for _, v := range obj.Spec.FooLinksGvk {
-		l, err := obj.client.Gns().GetBarByName(ctx, v.Name)
+		l, err := obj.client.Gns().GetBarLinksByName(ctx, v.Name)
 		if err != nil {
 			return nil, err
 		}
@@ -1430,21 +1416,21 @@ func (obj *GnsGns) GetAllFooLinks(ctx context.Context) (
 
 // GetFooLinks returns link which has given displayName
 func (obj *GnsGns) GetFooLinks(ctx context.Context,
-	displayName string) (result *GnsBar, err error) {
+	displayName string) (result *GnsBarLinks, err error) {
 	l, ok := obj.Spec.FooLinksGvk[displayName]
 	if !ok {
 		return nil, NewLinkNotFound(obj.DisplayName(), "Gns.Gns", "FooLinks", displayName)
 	}
-	result, err = obj.client.Gns().GetBarByName(ctx, l.Name)
+	result, err = obj.client.Gns().GetBarLinksByName(ctx, l.Name)
 	return
 }
 
 // LinkFooLinks links obj with linkToAdd object. This function doesn't create linked object, it must be
 // already created.
 func (obj *GnsGns) LinkFooLinks(ctx context.Context,
-	linkToAdd *GnsBar) error {
+	linkToAdd *GnsBarLinks) error {
 
-	payload := "{\"spec\": {\"fooLinksGvk\": {\"" + linkToAdd.DisplayName() + "\": {\"name\": \"" + linkToAdd.Name + "\",\"kind\": \"Bar\", \"group\": \"gns.tsm.tanzu.vmware.com\"}}}}"
+	payload := "{\"spec\": {\"fooLinksGvk\": {\"" + linkToAdd.DisplayName() + "\": {\"name\": \"" + linkToAdd.Name + "\",\"kind\": \"BarLinks\", \"group\": \"gns.tsm.tanzu.vmware.com\"}}}}"
 	result, err := obj.client.baseClient.GnsTsmV1().Gnses().Patch(ctx, obj.Name, types.MergePatchType, []byte(payload), metav1.PatchOptions{})
 	if err != nil {
 		return err
@@ -1456,7 +1442,7 @@ func (obj *GnsGns) LinkFooLinks(ctx context.Context,
 
 // UnlinkFooLinks unlinks linkToRemove object from obj. This function doesn't delete linked object.
 func (obj *GnsGns) UnlinkFooLinks(ctx context.Context,
-	linkToRemove *GnsBar) (err error) {
+	linkToRemove *GnsBarLinks) (err error) {
 	var patch Patch
 
 	patchOp := PatchOp{
@@ -1484,27 +1470,33 @@ type gnsGnsTsmV1Chainer struct {
 	parentLabels map[string]string
 }
 
-func (c *gnsGnsTsmV1Chainer) FooChild(name string) *barGnsTsmV1Chainer {
+func (c *gnsGnsTsmV1Chainer) FooChild() *barchildGnsTsmV1Chainer {
 	parentLabels := c.parentLabels
-	parentLabels["bars.gns.tsm.tanzu.vmware.com"] = name
-	return &barGnsTsmV1Chainer{
+	parentLabels["barchilds.gns.tsm.tanzu.vmware.com"] = helper.DEFAULT_KEY
+	return &barchildGnsTsmV1Chainer{
 		client:       c.client,
-		name:         name,
+		name:         helper.DEFAULT_KEY,
 		parentLabels: parentLabels,
 	}
 }
 
-// GetFooChild calculates hashed name of the object based on displayName and it's parents and returns the object
-func (c *gnsGnsTsmV1Chainer) GetFooChild(ctx context.Context, displayName string) (result *GnsBar, err error) {
-	hashedName := helper.GetHashedName("bars.gns.tsm.tanzu.vmware.com", c.parentLabels, displayName)
-	return c.client.Gns().GetBarByName(ctx, hashedName)
+// GetFooChild calculates hashed name of the object based on it's parents and returns the object
+func (c *gnsGnsTsmV1Chainer) GetFooChild(ctx context.Context) (result *GnsBarChild, err error) {
+	hashedName := helper.GetHashedName("barchilds.gns.tsm.tanzu.vmware.com", c.parentLabels, helper.DEFAULT_KEY)
+	return c.client.Gns().GetBarChildByName(ctx, hashedName)
 }
 
-// AddFooChild calculates hashed name of the child to create based on objToCreate.Name
-// and parents names and creates it. objToCreate.Name is changed to the hashed name. Original name is preserved in
+// AddFooChild calculates hashed name of the child to create based on parents names and creates it.
+// objToCreate.Name is changed to the hashed name. Original name ('default') is preserved in
 // nexus/display_name label and can be obtained using DisplayName() method.
 func (c *gnsGnsTsmV1Chainer) AddFooChild(ctx context.Context,
-	objToCreate *basegnstsmtanzuvmwarecomv1.Bar) (result *GnsBar, err error) {
+	objToCreate *basegnstsmtanzuvmwarecomv1.BarChild) (result *GnsBarChild, err error) {
+	if objToCreate.GetName() == "" {
+		objToCreate.SetName(helper.DEFAULT_KEY)
+	}
+	if objToCreate.GetName() != helper.DEFAULT_KEY {
+		return nil, NewSingletonNameError(objToCreate.GetName())
+	}
 	if objToCreate.Labels == nil {
 		objToCreate.Labels = map[string]string{}
 	}
@@ -1514,10 +1506,10 @@ func (c *gnsGnsTsmV1Chainer) AddFooChild(ctx context.Context,
 	if objToCreate.Labels[common.IS_NAME_HASHED_LABEL] != "true" {
 		objToCreate.Labels[common.DISPLAY_NAME_LABEL] = objToCreate.GetName()
 		objToCreate.Labels[common.IS_NAME_HASHED_LABEL] = "true"
-		hashedName := helper.GetHashedName("bars.gns.tsm.tanzu.vmware.com", c.parentLabels, objToCreate.GetName())
+		hashedName := helper.GetHashedName("barchilds.gns.tsm.tanzu.vmware.com", c.parentLabels, objToCreate.GetName())
 		objToCreate.Name = hashedName
 	}
-	return c.client.Gns().CreateBarByName(ctx, objToCreate)
+	return c.client.Gns().CreateBarChildByName(ctx, objToCreate)
 }
 
 // DeleteFooChild calculates hashed name of the child to delete based on displayName
@@ -1527,14 +1519,14 @@ func (c *gnsGnsTsmV1Chainer) DeleteFooChild(ctx context.Context, name string) (e
 		c.parentLabels = map[string]string{}
 	}
 	c.parentLabels[common.IS_NAME_HASHED_LABEL] = "true"
-	hashedName := helper.GetHashedName("bars.gns.tsm.tanzu.vmware.com", c.parentLabels, name)
-	return c.client.Gns().DeleteBarByName(ctx, hashedName)
+	hashedName := helper.GetHashedName("barchilds.gns.tsm.tanzu.vmware.com", c.parentLabels, name)
+	return c.client.Gns().DeleteBarChildByName(ctx, hashedName)
 }
 
-func (c *gnsGnsTsmV1Chainer) FooChildren(name string) *barGnsTsmV1Chainer {
+func (c *gnsGnsTsmV1Chainer) FooChildren(name string) *barchildrenGnsTsmV1Chainer {
 	parentLabels := c.parentLabels
-	parentLabels["bars.gns.tsm.tanzu.vmware.com"] = name
-	return &barGnsTsmV1Chainer{
+	parentLabels["barchildrens.gns.tsm.tanzu.vmware.com"] = name
+	return &barchildrenGnsTsmV1Chainer{
 		client:       c.client,
 		name:         name,
 		parentLabels: parentLabels,
@@ -1542,16 +1534,16 @@ func (c *gnsGnsTsmV1Chainer) FooChildren(name string) *barGnsTsmV1Chainer {
 }
 
 // GetFooChildren calculates hashed name of the object based on displayName and it's parents and returns the object
-func (c *gnsGnsTsmV1Chainer) GetFooChildren(ctx context.Context, displayName string) (result *GnsBar, err error) {
-	hashedName := helper.GetHashedName("bars.gns.tsm.tanzu.vmware.com", c.parentLabels, displayName)
-	return c.client.Gns().GetBarByName(ctx, hashedName)
+func (c *gnsGnsTsmV1Chainer) GetFooChildren(ctx context.Context, displayName string) (result *GnsBarChildren, err error) {
+	hashedName := helper.GetHashedName("barchildrens.gns.tsm.tanzu.vmware.com", c.parentLabels, displayName)
+	return c.client.Gns().GetBarChildrenByName(ctx, hashedName)
 }
 
 // AddFooChildren calculates hashed name of the child to create based on objToCreate.Name
 // and parents names and creates it. objToCreate.Name is changed to the hashed name. Original name is preserved in
 // nexus/display_name label and can be obtained using DisplayName() method.
 func (c *gnsGnsTsmV1Chainer) AddFooChildren(ctx context.Context,
-	objToCreate *basegnstsmtanzuvmwarecomv1.Bar) (result *GnsBar, err error) {
+	objToCreate *basegnstsmtanzuvmwarecomv1.BarChildren) (result *GnsBarChildren, err error) {
 	if objToCreate.Labels == nil {
 		objToCreate.Labels = map[string]string{}
 	}
@@ -1561,10 +1553,10 @@ func (c *gnsGnsTsmV1Chainer) AddFooChildren(ctx context.Context,
 	if objToCreate.Labels[common.IS_NAME_HASHED_LABEL] != "true" {
 		objToCreate.Labels[common.DISPLAY_NAME_LABEL] = objToCreate.GetName()
 		objToCreate.Labels[common.IS_NAME_HASHED_LABEL] = "true"
-		hashedName := helper.GetHashedName("bars.gns.tsm.tanzu.vmware.com", c.parentLabels, objToCreate.GetName())
+		hashedName := helper.GetHashedName("barchildrens.gns.tsm.tanzu.vmware.com", c.parentLabels, objToCreate.GetName())
 		objToCreate.Name = hashedName
 	}
-	return c.client.Gns().CreateBarByName(ctx, objToCreate)
+	return c.client.Gns().CreateBarChildrenByName(ctx, objToCreate)
 }
 
 // DeleteFooChildren calculates hashed name of the child to delete based on displayName
@@ -1574,40 +1566,467 @@ func (c *gnsGnsTsmV1Chainer) DeleteFooChildren(ctx context.Context, name string)
 		c.parentLabels = map[string]string{}
 	}
 	c.parentLabels[common.IS_NAME_HASHED_LABEL] = "true"
-	hashedName := helper.GetHashedName("bars.gns.tsm.tanzu.vmware.com", c.parentLabels, name)
-	return c.client.Gns().DeleteBarByName(ctx, hashedName)
+	hashedName := helper.GetHashedName("barchildrens.gns.tsm.tanzu.vmware.com", c.parentLabels, name)
+	return c.client.Gns().DeleteBarChildrenByName(ctx, hashedName)
 }
 
-// GetBarByName returns object stored in the database under the hashedName which is a hash of display
+// GetBarLinkByName returns object stored in the database under the hashedName which is a hash of display
 // name and parents names. Use it when you know hashed name of object.
-func (group *GnsTsmV1) GetBarByName(ctx context.Context, hashedName string) (*GnsBar, error) {
+func (group *GnsTsmV1) GetBarLinkByName(ctx context.Context, hashedName string) (*GnsBarLink, error) {
 	result, err := group.client.baseClient.
 		GnsTsmV1().
-		Bars().Get(ctx, hashedName, metav1.GetOptions{})
+		BarLinks().Get(ctx, hashedName, metav1.GetOptions{})
 	if err != nil {
 		return nil, err
 	}
 
-	return &GnsBar{
-		client: group.client,
-		Bar:    result,
+	return &GnsBarLink{
+		client:  group.client,
+		BarLink: result,
 	}, nil
 }
 
-// DeleteBarByName deletes object stored in the database under the hashedName which is a hash of
+// DeleteBarLinkByName deletes object stored in the database under the hashedName which is a hash of
 // display name and parents names. Use it when you know hashed name of object.
-func (group *GnsTsmV1) DeleteBarByName(ctx context.Context, hashedName string) (err error) {
+func (group *GnsTsmV1) DeleteBarLinkByName(ctx context.Context, hashedName string) (err error) {
+
+	err = group.client.baseClient.
+		GnsTsmV1().
+		BarLinks().Delete(ctx, hashedName, metav1.DeleteOptions{})
+	if err != nil {
+		return err
+	}
+
+	return
+}
+
+// CreateBarLinkByName creates object in the database without hashing the name.
+// Use it directly ONLY when objToCreate.Name is hashed name of the object.
+func (group *GnsTsmV1) CreateBarLinkByName(ctx context.Context,
+	objToCreate *basegnstsmtanzuvmwarecomv1.BarLink) (*GnsBarLink, error) {
+	if objToCreate.GetLabels() == nil {
+		objToCreate.Labels = make(map[string]string)
+	}
+	if _, ok := objToCreate.Labels[common.DISPLAY_NAME_LABEL]; !ok {
+		objToCreate.Labels[common.DISPLAY_NAME_LABEL] = objToCreate.GetName()
+	}
 
 	result, err := group.client.baseClient.
 		GnsTsmV1().
-		Bars().Get(ctx, hashedName, metav1.GetOptions{})
+		BarLinks().Create(ctx, objToCreate, metav1.CreateOptions{})
+	if err != nil {
+		return nil, err
+	}
+
+	return &GnsBarLink{
+		client:  group.client,
+		BarLink: result,
+	}, nil
+}
+
+// UpdateBarLinkByName updates object stored in the database under the hashedName which is a hash of
+// display name and parents names.
+func (group *GnsTsmV1) UpdateBarLinkByName(ctx context.Context,
+	objToUpdate *basegnstsmtanzuvmwarecomv1.BarLink) (*GnsBarLink, error) {
+
+	// ResourceVersion must be set for update
+	if objToUpdate.ResourceVersion == "" {
+		current, err := group.client.baseClient.
+			GnsTsmV1().
+			BarLinks().Get(ctx, objToUpdate.GetName(), metav1.GetOptions{})
+		if err != nil {
+			return nil, err
+		}
+		objToUpdate.ResourceVersion = current.ResourceVersion
+	}
+
+	var patch Patch
+	patch = append(patch, PatchOp{
+		Op:    "replace",
+		Path:  "/metadata",
+		Value: objToUpdate.ObjectMeta,
+	})
+
+	patchValueName :=
+		objToUpdate.Spec.Name
+	patchOpName := PatchOp{
+		Op:    "replace",
+		Path:  "/spec/name",
+		Value: patchValueName,
+	}
+	patch = append(patch, patchOpName)
+
+	marshaled, err := patch.Marshal()
+	if err != nil {
+		return nil, err
+	}
+	result, err := group.client.baseClient.
+		GnsTsmV1().
+		BarLinks().Patch(ctx, objToUpdate.GetName(), types.JSONPatchType, marshaled, metav1.PatchOptions{}, "")
+	if err != nil {
+		return nil, err
+	}
+
+	return &GnsBarLink{
+		client:  group.client,
+		BarLink: result,
+	}, nil
+}
+
+// ListBarLinks returns slice of all existing objects of this type. Selectors can be provided in opts parameter.
+func (group *GnsTsmV1) ListBarLinks(ctx context.Context,
+	opts metav1.ListOptions) (result []*GnsBarLink, err error) {
+	list, err := group.client.baseClient.GnsTsmV1().
+		BarLinks().List(ctx, opts)
+	if err != nil {
+		return nil, err
+	}
+	result = make([]*GnsBarLink, len(list.Items))
+	for k, v := range list.Items {
+		item := v
+		result[k] = &GnsBarLink{
+			client:  group.client,
+			BarLink: &item,
+		}
+	}
+	return
+}
+
+type GnsBarLink struct {
+	client *Clientset
+	*basegnstsmtanzuvmwarecomv1.BarLink
+}
+
+// Delete removes obj and all it's children from the database.
+func (obj *GnsBarLink) Delete(ctx context.Context) error {
+	err := obj.client.Gns().DeleteBarLinkByName(ctx, obj.GetName())
+	if err != nil {
+		return err
+	}
+	obj.BarLink = nil
+	return nil
+}
+
+// Update updates spec of object in database. Children and Link can not be updated using this function.
+func (obj *GnsBarLink) Update(ctx context.Context) error {
+	result, err := obj.client.Gns().UpdateBarLinkByName(ctx, obj.BarLink)
+	if err != nil {
+		return err
+	}
+	obj.BarLink = result.BarLink
+	return nil
+}
+
+// GetGnsBarLink calculates the hashed name based on parents and displayName and
+// returns given object
+func (c *Clientset) GetGnsBarLink(ctx context.Context, displayName string) (result *GnsBarLink, err error) {
+	hashedName := helper.GetHashedName("barlinks.gns.tsm.tanzu.vmware.com", nil, displayName)
+	return c.Gns().GetBarLinkByName(ctx, hashedName)
+}
+
+func (c *Clientset) GnsBarLink(displayName string) *barlinkGnsTsmV1Chainer {
+	parentLabels := make(map[string]string)
+	parentLabels["barlinks.gns.tsm.tanzu.vmware.com"] = displayName
+	return &barlinkGnsTsmV1Chainer{
+		client:       c,
+		name:         displayName,
+		parentLabels: parentLabels,
+	}
+}
+
+// AddGnsBarLink calculates hashed name of the object based on objToCreate.Name
+// and parents names and creates it. objToCreate.Name is changed to the hashed name. Original name is preserved in
+// nexus/display_name label and can be obtained using DisplayName() method.
+func (c *Clientset) AddGnsBarLink(ctx context.Context,
+	objToCreate *basegnstsmtanzuvmwarecomv1.BarLink) (result *GnsBarLink, err error) {
+	if objToCreate.Labels == nil {
+		objToCreate.Labels = map[string]string{}
+	}
+	if objToCreate.Labels[common.IS_NAME_HASHED_LABEL] != "true" {
+		objToCreate.Labels[common.DISPLAY_NAME_LABEL] = objToCreate.GetName()
+		objToCreate.Labels[common.IS_NAME_HASHED_LABEL] = "true"
+		hashedName := helper.GetHashedName(objToCreate.CRDName(), nil, objToCreate.GetName())
+		objToCreate.Name = hashedName
+	}
+	return c.Gns().CreateBarLinkByName(ctx, objToCreate)
+}
+
+// DeleteGnsBarLink calculates hashedName of object based on displayName and
+// parents and deletes given object
+func (c *Clientset) DeleteGnsBarLink(ctx context.Context, displayName string) (err error) {
+	hashedName := helper.GetHashedName("barlinks.gns.tsm.tanzu.vmware.com", nil, displayName)
+	return c.Gns().DeleteBarLinkByName(ctx, hashedName)
+}
+
+type barlinkGnsTsmV1Chainer struct {
+	client       *Clientset
+	name         string
+	parentLabels map[string]string
+}
+
+// GetBarChildByName returns object stored in the database under the hashedName which is a hash of display
+// name and parents names. Use it when you know hashed name of object.
+func (group *GnsTsmV1) GetBarChildByName(ctx context.Context, hashedName string) (*GnsBarChild, error) {
+	result, err := group.client.baseClient.
+		GnsTsmV1().
+		BarChilds().Get(ctx, hashedName, metav1.GetOptions{})
+	if err != nil {
+		return nil, err
+	}
+
+	return &GnsBarChild{
+		client:   group.client,
+		BarChild: result,
+	}, nil
+}
+
+// DeleteBarChildByName deletes object stored in the database under the hashedName which is a hash of
+// display name and parents names. Use it when you know hashed name of object.
+func (group *GnsTsmV1) DeleteBarChildByName(ctx context.Context, hashedName string) (err error) {
+
+	result, err := group.client.baseClient.
+		GnsTsmV1().
+		BarChilds().Get(ctx, hashedName, metav1.GetOptions{})
 	if err != nil {
 		return err
 	}
 
 	err = group.client.baseClient.
 		GnsTsmV1().
-		Bars().Delete(ctx, hashedName, metav1.DeleteOptions{})
+		BarChilds().Delete(ctx, hashedName, metav1.DeleteOptions{})
+	if err != nil {
+		return err
+	}
+
+	var patch Patch
+
+	patchOp := PatchOp{
+		Op:   "remove",
+		Path: "/spec/fooChildGvk",
+	}
+
+	patch = append(patch, patchOp)
+	marshaled, err := patch.Marshal()
+	if err != nil {
+		return err
+	}
+	parents := result.GetLabels()
+	if parents == nil {
+		parents = make(map[string]string)
+	}
+	parentName, ok := parents["gnses.gns.tsm.tanzu.vmware.com"]
+	if !ok {
+		parentName = helper.DEFAULT_KEY
+	}
+	if parents[common.IS_NAME_HASHED_LABEL] == "true" {
+		parentName = helper.GetHashedName("gnses.gns.tsm.tanzu.vmware.com", parents, parentName)
+	}
+	_, err = group.client.baseClient.
+		GnsTsmV1().
+		Gnses().Patch(ctx, parentName, types.JSONPatchType, marshaled, metav1.PatchOptions{})
+	if err != nil {
+		return err
+	}
+
+	return
+}
+
+// CreateBarChildByName creates object in the database without hashing the name.
+// Use it directly ONLY when objToCreate.Name is hashed name of the object.
+func (group *GnsTsmV1) CreateBarChildByName(ctx context.Context,
+	objToCreate *basegnstsmtanzuvmwarecomv1.BarChild) (*GnsBarChild, error) {
+	if objToCreate.GetLabels() == nil {
+		objToCreate.Labels = make(map[string]string)
+	}
+	if _, ok := objToCreate.Labels[common.DISPLAY_NAME_LABEL]; !ok {
+		objToCreate.Labels[common.DISPLAY_NAME_LABEL] = objToCreate.GetName()
+	}
+	if objToCreate.Labels[common.DISPLAY_NAME_LABEL] == "" {
+		objToCreate.Labels[common.DISPLAY_NAME_LABEL] = helper.DEFAULT_KEY
+	}
+	if objToCreate.Labels[common.DISPLAY_NAME_LABEL] != helper.DEFAULT_KEY {
+		return nil, NewSingletonNameError(objToCreate.Labels[common.DISPLAY_NAME_LABEL])
+	}
+
+	result, err := group.client.baseClient.
+		GnsTsmV1().
+		BarChilds().Create(ctx, objToCreate, metav1.CreateOptions{})
+	if err != nil {
+		return nil, err
+	}
+
+	parentName, ok := objToCreate.GetLabels()["gnses.gns.tsm.tanzu.vmware.com"]
+	if !ok {
+		parentName = helper.DEFAULT_KEY
+	}
+	if objToCreate.Labels[common.IS_NAME_HASHED_LABEL] == "true" {
+		parentName = helper.GetHashedName("gnses.gns.tsm.tanzu.vmware.com", objToCreate.GetLabels(), parentName)
+	}
+
+	var patch Patch
+	patchOp := PatchOp{
+		Op:   "replace",
+		Path: "/spec/fooChildGvk",
+		Value: basegnstsmtanzuvmwarecomv1.Child{
+			Group: "gns.tsm.tanzu.vmware.com",
+			Kind:  "BarChild",
+			Name:  objToCreate.Name,
+		},
+	}
+	patch = append(patch, patchOp)
+	marshaled, err := patch.Marshal()
+	if err != nil {
+		return nil, err
+	}
+	_, err = group.client.baseClient.
+		GnsTsmV1().
+		Gnses().Patch(ctx, parentName, types.JSONPatchType, marshaled, metav1.PatchOptions{})
+	if err != nil {
+		return nil, err
+	}
+
+	return &GnsBarChild{
+		client:   group.client,
+		BarChild: result,
+	}, nil
+}
+
+// UpdateBarChildByName updates object stored in the database under the hashedName which is a hash of
+// display name and parents names.
+func (group *GnsTsmV1) UpdateBarChildByName(ctx context.Context,
+	objToUpdate *basegnstsmtanzuvmwarecomv1.BarChild) (*GnsBarChild, error) {
+	if objToUpdate.Labels[common.DISPLAY_NAME_LABEL] != helper.DEFAULT_KEY {
+		return nil, NewSingletonNameError(objToUpdate.Labels[common.DISPLAY_NAME_LABEL])
+	}
+	// ResourceVersion must be set for update
+	if objToUpdate.ResourceVersion == "" {
+		current, err := group.client.baseClient.
+			GnsTsmV1().
+			BarChilds().Get(ctx, objToUpdate.GetName(), metav1.GetOptions{})
+		if err != nil {
+			return nil, err
+		}
+		objToUpdate.ResourceVersion = current.ResourceVersion
+	}
+
+	var patch Patch
+	patch = append(patch, PatchOp{
+		Op:    "replace",
+		Path:  "/metadata",
+		Value: objToUpdate.ObjectMeta,
+	})
+
+	patchValueName :=
+		objToUpdate.Spec.Name
+	patchOpName := PatchOp{
+		Op:    "replace",
+		Path:  "/spec/name",
+		Value: patchValueName,
+	}
+	patch = append(patch, patchOpName)
+
+	marshaled, err := patch.Marshal()
+	if err != nil {
+		return nil, err
+	}
+	result, err := group.client.baseClient.
+		GnsTsmV1().
+		BarChilds().Patch(ctx, objToUpdate.GetName(), types.JSONPatchType, marshaled, metav1.PatchOptions{}, "")
+	if err != nil {
+		return nil, err
+	}
+
+	return &GnsBarChild{
+		client:   group.client,
+		BarChild: result,
+	}, nil
+}
+
+// ListBarChilds returns slice of all existing objects of this type. Selectors can be provided in opts parameter.
+func (group *GnsTsmV1) ListBarChilds(ctx context.Context,
+	opts metav1.ListOptions) (result []*GnsBarChild, err error) {
+	list, err := group.client.baseClient.GnsTsmV1().
+		BarChilds().List(ctx, opts)
+	if err != nil {
+		return nil, err
+	}
+	result = make([]*GnsBarChild, len(list.Items))
+	for k, v := range list.Items {
+		item := v
+		result[k] = &GnsBarChild{
+			client:   group.client,
+			BarChild: &item,
+		}
+	}
+	return
+}
+
+type GnsBarChild struct {
+	client *Clientset
+	*basegnstsmtanzuvmwarecomv1.BarChild
+}
+
+// Delete removes obj and all it's children from the database.
+func (obj *GnsBarChild) Delete(ctx context.Context) error {
+	err := obj.client.Gns().DeleteBarChildByName(ctx, obj.GetName())
+	if err != nil {
+		return err
+	}
+	obj.BarChild = nil
+	return nil
+}
+
+// Update updates spec of object in database. Children and Link can not be updated using this function.
+func (obj *GnsBarChild) Update(ctx context.Context) error {
+	result, err := obj.client.Gns().UpdateBarChildByName(ctx, obj.BarChild)
+	if err != nil {
+		return err
+	}
+	obj.BarChild = result.BarChild
+	return nil
+}
+
+func (obj *GnsBarChild) GetParent(ctx context.Context) (result *GnsGns, err error) {
+	hashedName := helper.GetHashedName("gnses.gns.tsm.tanzu.vmware.com", obj.Labels, obj.Labels["gnses.gns.tsm.tanzu.vmware.com"])
+	return obj.client.Gns().GetGnsByName(ctx, hashedName)
+}
+
+type barchildGnsTsmV1Chainer struct {
+	client       *Clientset
+	name         string
+	parentLabels map[string]string
+}
+
+// GetBarChildrenByName returns object stored in the database under the hashedName which is a hash of display
+// name and parents names. Use it when you know hashed name of object.
+func (group *GnsTsmV1) GetBarChildrenByName(ctx context.Context, hashedName string) (*GnsBarChildren, error) {
+	result, err := group.client.baseClient.
+		GnsTsmV1().
+		BarChildrens().Get(ctx, hashedName, metav1.GetOptions{})
+	if err != nil {
+		return nil, err
+	}
+
+	return &GnsBarChildren{
+		client:      group.client,
+		BarChildren: result,
+	}, nil
+}
+
+// DeleteBarChildrenByName deletes object stored in the database under the hashedName which is a hash of
+// display name and parents names. Use it when you know hashed name of object.
+func (group *GnsTsmV1) DeleteBarChildrenByName(ctx context.Context, hashedName string) (err error) {
+
+	result, err := group.client.baseClient.
+		GnsTsmV1().
+		BarChildrens().Get(ctx, hashedName, metav1.GetOptions{})
+	if err != nil {
+		return err
+	}
+
+	err = group.client.baseClient.
+		GnsTsmV1().
+		BarChildrens().Delete(ctx, hashedName, metav1.DeleteOptions{})
 	if err != nil {
 		return err
 	}
@@ -1645,10 +2064,10 @@ func (group *GnsTsmV1) DeleteBarByName(ctx context.Context, hashedName string) (
 	return
 }
 
-// CreateBarByName creates object in the database without hashing the name.
+// CreateBarChildrenByName creates object in the database without hashing the name.
 // Use it directly ONLY when objToCreate.Name is hashed name of the object.
-func (group *GnsTsmV1) CreateBarByName(ctx context.Context,
-	objToCreate *basegnstsmtanzuvmwarecomv1.Bar) (*GnsBar, error) {
+func (group *GnsTsmV1) CreateBarChildrenByName(ctx context.Context,
+	objToCreate *basegnstsmtanzuvmwarecomv1.BarChildren) (*GnsBarChildren, error) {
 	if objToCreate.GetLabels() == nil {
 		objToCreate.Labels = make(map[string]string)
 	}
@@ -1658,7 +2077,7 @@ func (group *GnsTsmV1) CreateBarByName(ctx context.Context,
 
 	result, err := group.client.baseClient.
 		GnsTsmV1().
-		Bars().Create(ctx, objToCreate, metav1.CreateOptions{})
+		BarChildrens().Create(ctx, objToCreate, metav1.CreateOptions{})
 	if err != nil {
 		return nil, err
 	}
@@ -1671,7 +2090,7 @@ func (group *GnsTsmV1) CreateBarByName(ctx context.Context,
 		parentName = helper.GetHashedName("gnses.gns.tsm.tanzu.vmware.com", objToCreate.GetLabels(), parentName)
 	}
 
-	payload := "{\"spec\": {\"fooChildrenGvk\": {\"" + objToCreate.DisplayName() + "\": {\"name\": \"" + objToCreate.Name + "\",\"kind\": \"Bar\", \"group\": \"gns.tsm.tanzu.vmware.com\"}}}}"
+	payload := "{\"spec\": {\"fooChildrenGvk\": {\"" + objToCreate.DisplayName() + "\": {\"name\": \"" + objToCreate.Name + "\",\"kind\": \"BarChildren\", \"group\": \"gns.tsm.tanzu.vmware.com\"}}}}"
 	_, err = group.client.baseClient.
 		GnsTsmV1().
 		Gnses().Patch(ctx, parentName, types.MergePatchType, []byte(payload), metav1.PatchOptions{})
@@ -1679,22 +2098,22 @@ func (group *GnsTsmV1) CreateBarByName(ctx context.Context,
 		return nil, err
 	}
 
-	return &GnsBar{
-		client: group.client,
-		Bar:    result,
+	return &GnsBarChildren{
+		client:      group.client,
+		BarChildren: result,
 	}, nil
 }
 
-// UpdateBarByName updates object stored in the database under the hashedName which is a hash of
+// UpdateBarChildrenByName updates object stored in the database under the hashedName which is a hash of
 // display name and parents names.
-func (group *GnsTsmV1) UpdateBarByName(ctx context.Context,
-	objToUpdate *basegnstsmtanzuvmwarecomv1.Bar) (*GnsBar, error) {
+func (group *GnsTsmV1) UpdateBarChildrenByName(ctx context.Context,
+	objToUpdate *basegnstsmtanzuvmwarecomv1.BarChildren) (*GnsBarChildren, error) {
 
 	// ResourceVersion must be set for update
 	if objToUpdate.ResourceVersion == "" {
 		current, err := group.client.baseClient.
 			GnsTsmV1().
-			Bars().Get(ctx, objToUpdate.GetName(), metav1.GetOptions{})
+			BarChildrens().Get(ctx, objToUpdate.GetName(), metav1.GetOptions{})
 		if err != nil {
 			return nil, err
 		}
@@ -1708,73 +2127,276 @@ func (group *GnsTsmV1) UpdateBarByName(ctx context.Context,
 		Value: objToUpdate.ObjectMeta,
 	})
 
+	patchValueName :=
+		objToUpdate.Spec.Name
+	patchOpName := PatchOp{
+		Op:    "replace",
+		Path:  "/spec/name",
+		Value: patchValueName,
+	}
+	patch = append(patch, patchOpName)
+
 	marshaled, err := patch.Marshal()
 	if err != nil {
 		return nil, err
 	}
 	result, err := group.client.baseClient.
 		GnsTsmV1().
-		Bars().Patch(ctx, objToUpdate.GetName(), types.JSONPatchType, marshaled, metav1.PatchOptions{}, "")
+		BarChildrens().Patch(ctx, objToUpdate.GetName(), types.JSONPatchType, marshaled, metav1.PatchOptions{}, "")
 	if err != nil {
 		return nil, err
 	}
 
-	return &GnsBar{
-		client: group.client,
-		Bar:    result,
+	return &GnsBarChildren{
+		client:      group.client,
+		BarChildren: result,
 	}, nil
 }
 
-// ListBars returns slice of all existing objects of this type. Selectors can be provided in opts parameter.
-func (group *GnsTsmV1) ListBars(ctx context.Context,
-	opts metav1.ListOptions) (result []*GnsBar, err error) {
+// ListBarChildrens returns slice of all existing objects of this type. Selectors can be provided in opts parameter.
+func (group *GnsTsmV1) ListBarChildrens(ctx context.Context,
+	opts metav1.ListOptions) (result []*GnsBarChildren, err error) {
 	list, err := group.client.baseClient.GnsTsmV1().
-		Bars().List(ctx, opts)
+		BarChildrens().List(ctx, opts)
 	if err != nil {
 		return nil, err
 	}
-	result = make([]*GnsBar, len(list.Items))
+	result = make([]*GnsBarChildren, len(list.Items))
 	for k, v := range list.Items {
 		item := v
-		result[k] = &GnsBar{
-			client: group.client,
-			Bar:    &item,
+		result[k] = &GnsBarChildren{
+			client:      group.client,
+			BarChildren: &item,
 		}
 	}
 	return
 }
 
-type GnsBar struct {
+type GnsBarChildren struct {
 	client *Clientset
-	*basegnstsmtanzuvmwarecomv1.Bar
+	*basegnstsmtanzuvmwarecomv1.BarChildren
 }
 
 // Delete removes obj and all it's children from the database.
-func (obj *GnsBar) Delete(ctx context.Context) error {
-	err := obj.client.Gns().DeleteBarByName(ctx, obj.GetName())
+func (obj *GnsBarChildren) Delete(ctx context.Context) error {
+	err := obj.client.Gns().DeleteBarChildrenByName(ctx, obj.GetName())
 	if err != nil {
 		return err
 	}
-	obj.Bar = nil
+	obj.BarChildren = nil
 	return nil
 }
 
 // Update updates spec of object in database. Children and Link can not be updated using this function.
-func (obj *GnsBar) Update(ctx context.Context) error {
-	result, err := obj.client.Gns().UpdateBarByName(ctx, obj.Bar)
+func (obj *GnsBarChildren) Update(ctx context.Context) error {
+	result, err := obj.client.Gns().UpdateBarChildrenByName(ctx, obj.BarChildren)
 	if err != nil {
 		return err
 	}
-	obj.Bar = result.Bar
+	obj.BarChildren = result.BarChildren
 	return nil
 }
 
-func (obj *GnsBar) GetParent(ctx context.Context) (result *GnsGns, err error) {
+func (obj *GnsBarChildren) GetParent(ctx context.Context) (result *GnsGns, err error) {
 	hashedName := helper.GetHashedName("gnses.gns.tsm.tanzu.vmware.com", obj.Labels, obj.Labels["gnses.gns.tsm.tanzu.vmware.com"])
 	return obj.client.Gns().GetGnsByName(ctx, hashedName)
 }
 
-type barGnsTsmV1Chainer struct {
+type barchildrenGnsTsmV1Chainer struct {
+	client       *Clientset
+	name         string
+	parentLabels map[string]string
+}
+
+// GetBarLinksByName returns object stored in the database under the hashedName which is a hash of display
+// name and parents names. Use it when you know hashed name of object.
+func (group *GnsTsmV1) GetBarLinksByName(ctx context.Context, hashedName string) (*GnsBarLinks, error) {
+	result, err := group.client.baseClient.
+		GnsTsmV1().
+		BarLinkses().Get(ctx, hashedName, metav1.GetOptions{})
+	if err != nil {
+		return nil, err
+	}
+
+	return &GnsBarLinks{
+		client:   group.client,
+		BarLinks: result,
+	}, nil
+}
+
+// DeleteBarLinksByName deletes object stored in the database under the hashedName which is a hash of
+// display name and parents names. Use it when you know hashed name of object.
+func (group *GnsTsmV1) DeleteBarLinksByName(ctx context.Context, hashedName string) (err error) {
+
+	err = group.client.baseClient.
+		GnsTsmV1().
+		BarLinkses().Delete(ctx, hashedName, metav1.DeleteOptions{})
+	if err != nil {
+		return err
+	}
+
+	return
+}
+
+// CreateBarLinksByName creates object in the database without hashing the name.
+// Use it directly ONLY when objToCreate.Name is hashed name of the object.
+func (group *GnsTsmV1) CreateBarLinksByName(ctx context.Context,
+	objToCreate *basegnstsmtanzuvmwarecomv1.BarLinks) (*GnsBarLinks, error) {
+	if objToCreate.GetLabels() == nil {
+		objToCreate.Labels = make(map[string]string)
+	}
+	if _, ok := objToCreate.Labels[common.DISPLAY_NAME_LABEL]; !ok {
+		objToCreate.Labels[common.DISPLAY_NAME_LABEL] = objToCreate.GetName()
+	}
+
+	result, err := group.client.baseClient.
+		GnsTsmV1().
+		BarLinkses().Create(ctx, objToCreate, metav1.CreateOptions{})
+	if err != nil {
+		return nil, err
+	}
+
+	return &GnsBarLinks{
+		client:   group.client,
+		BarLinks: result,
+	}, nil
+}
+
+// UpdateBarLinksByName updates object stored in the database under the hashedName which is a hash of
+// display name and parents names.
+func (group *GnsTsmV1) UpdateBarLinksByName(ctx context.Context,
+	objToUpdate *basegnstsmtanzuvmwarecomv1.BarLinks) (*GnsBarLinks, error) {
+
+	// ResourceVersion must be set for update
+	if objToUpdate.ResourceVersion == "" {
+		current, err := group.client.baseClient.
+			GnsTsmV1().
+			BarLinkses().Get(ctx, objToUpdate.GetName(), metav1.GetOptions{})
+		if err != nil {
+			return nil, err
+		}
+		objToUpdate.ResourceVersion = current.ResourceVersion
+	}
+
+	var patch Patch
+	patch = append(patch, PatchOp{
+		Op:    "replace",
+		Path:  "/metadata",
+		Value: objToUpdate.ObjectMeta,
+	})
+
+	patchValueName :=
+		objToUpdate.Spec.Name
+	patchOpName := PatchOp{
+		Op:    "replace",
+		Path:  "/spec/name",
+		Value: patchValueName,
+	}
+	patch = append(patch, patchOpName)
+
+	marshaled, err := patch.Marshal()
+	if err != nil {
+		return nil, err
+	}
+	result, err := group.client.baseClient.
+		GnsTsmV1().
+		BarLinkses().Patch(ctx, objToUpdate.GetName(), types.JSONPatchType, marshaled, metav1.PatchOptions{}, "")
+	if err != nil {
+		return nil, err
+	}
+
+	return &GnsBarLinks{
+		client:   group.client,
+		BarLinks: result,
+	}, nil
+}
+
+// ListBarLinkses returns slice of all existing objects of this type. Selectors can be provided in opts parameter.
+func (group *GnsTsmV1) ListBarLinkses(ctx context.Context,
+	opts metav1.ListOptions) (result []*GnsBarLinks, err error) {
+	list, err := group.client.baseClient.GnsTsmV1().
+		BarLinkses().List(ctx, opts)
+	if err != nil {
+		return nil, err
+	}
+	result = make([]*GnsBarLinks, len(list.Items))
+	for k, v := range list.Items {
+		item := v
+		result[k] = &GnsBarLinks{
+			client:   group.client,
+			BarLinks: &item,
+		}
+	}
+	return
+}
+
+type GnsBarLinks struct {
+	client *Clientset
+	*basegnstsmtanzuvmwarecomv1.BarLinks
+}
+
+// Delete removes obj and all it's children from the database.
+func (obj *GnsBarLinks) Delete(ctx context.Context) error {
+	err := obj.client.Gns().DeleteBarLinksByName(ctx, obj.GetName())
+	if err != nil {
+		return err
+	}
+	obj.BarLinks = nil
+	return nil
+}
+
+// Update updates spec of object in database. Children and Link can not be updated using this function.
+func (obj *GnsBarLinks) Update(ctx context.Context) error {
+	result, err := obj.client.Gns().UpdateBarLinksByName(ctx, obj.BarLinks)
+	if err != nil {
+		return err
+	}
+	obj.BarLinks = result.BarLinks
+	return nil
+}
+
+// GetGnsBarLinks calculates the hashed name based on parents and displayName and
+// returns given object
+func (c *Clientset) GetGnsBarLinks(ctx context.Context, displayName string) (result *GnsBarLinks, err error) {
+	hashedName := helper.GetHashedName("barlinkses.gns.tsm.tanzu.vmware.com", nil, displayName)
+	return c.Gns().GetBarLinksByName(ctx, hashedName)
+}
+
+func (c *Clientset) GnsBarLinks(displayName string) *barlinksGnsTsmV1Chainer {
+	parentLabels := make(map[string]string)
+	parentLabels["barlinkses.gns.tsm.tanzu.vmware.com"] = displayName
+	return &barlinksGnsTsmV1Chainer{
+		client:       c,
+		name:         displayName,
+		parentLabels: parentLabels,
+	}
+}
+
+// AddGnsBarLinks calculates hashed name of the object based on objToCreate.Name
+// and parents names and creates it. objToCreate.Name is changed to the hashed name. Original name is preserved in
+// nexus/display_name label and can be obtained using DisplayName() method.
+func (c *Clientset) AddGnsBarLinks(ctx context.Context,
+	objToCreate *basegnstsmtanzuvmwarecomv1.BarLinks) (result *GnsBarLinks, err error) {
+	if objToCreate.Labels == nil {
+		objToCreate.Labels = map[string]string{}
+	}
+	if objToCreate.Labels[common.IS_NAME_HASHED_LABEL] != "true" {
+		objToCreate.Labels[common.DISPLAY_NAME_LABEL] = objToCreate.GetName()
+		objToCreate.Labels[common.IS_NAME_HASHED_LABEL] = "true"
+		hashedName := helper.GetHashedName(objToCreate.CRDName(), nil, objToCreate.GetName())
+		objToCreate.Name = hashedName
+	}
+	return c.Gns().CreateBarLinksByName(ctx, objToCreate)
+}
+
+// DeleteGnsBarLinks calculates hashedName of object based on displayName and
+// parents and deletes given object
+func (c *Clientset) DeleteGnsBarLinks(ctx context.Context, displayName string) (err error) {
+	hashedName := helper.GetHashedName("barlinkses.gns.tsm.tanzu.vmware.com", nil, displayName)
+	return c.Gns().DeleteBarLinksByName(ctx, hashedName)
+}
+
+type barlinksGnsTsmV1Chainer struct {
 	client       *Clientset
 	name         string
 	parentLabels map[string]string

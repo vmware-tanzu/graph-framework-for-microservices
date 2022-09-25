@@ -14,11 +14,12 @@ import (
 )
 
 type ReturnStatement struct {
-	Alias      string
-	ReturnType string
-	FieldCount int
-	CRDName    string
-	ChainAPI   string
+	Alias       string
+	ReturnType  string
+	FieldCount  int
+	CRDName     string
+	ChainAPI    string
+	IsSingleton bool
 }
 
 type Field_prop struct {
@@ -49,6 +50,8 @@ type Field_prop struct {
 	FieldCount              int
 	CRDName                 string
 	ChainAPI                string
+	IsSingleton             bool
+	LinkAPI                 string
 }
 
 type Node_prop struct {
@@ -58,8 +61,10 @@ type Node_prop struct {
 	IsNexusNode         bool
 	BaseImportPath      string
 	CrdName             string
-	ChildLinkFields     []Field_prop
-	ChildrenLinksFields []Field_prop
+	ChildFields         []Field_prop
+	LinkFields          []Field_prop
+	ChildrenFields      []Field_prop
+	LinksFields         []Field_prop
 	ArrayFields         []Field_prop
 	CustomFields        []Field_prop
 	NonStructFields     []Field_prop
@@ -223,7 +228,6 @@ func GenerateGraphqlResolverVars(baseGroupName, crdModulePath string, pkgs parse
 					// Nexus Child and Link fields
 					if parser.IsChildOrLink(nf) {
 						schemaTypeName, resolverTypeName := validateImportPkg(pkg, typeString, importMap)
-						fieldProp.IsChildOrLink = true
 						fieldProp.SchemaFieldName = fmt.Sprintf("%s: %s!", fieldProp.FieldName, schemaTypeName)
 						fieldProp.IsResolver = true
 						fieldProp.IsNexusTypeField = true
@@ -231,7 +235,11 @@ func GenerateGraphqlResolverVars(baseGroupName, crdModulePath string, pkgs parse
 						fieldProp.FieldTypePkgPath = resolverTypeName
 						fieldProp.SchemaTypeName = schemaTypeName
 						fieldProp.BaseTypeName = getBaseNodeType(pkg, typeString, importMap)
-						nodeProp.ChildLinkFields = append(nodeProp.ChildLinkFields, fieldProp)
+						if parser.IsOnlyChildField(nf) {
+							nodeProp.ChildFields = append(nodeProp.ChildFields, fieldProp)
+						} else {
+							nodeProp.LinkFields = append(nodeProp.LinkFields, fieldProp)
+						}
 					}
 					// Nexus Children and Links fields details
 					if parser.IsNamedChildOrLink(nf) {
@@ -244,7 +252,11 @@ func GenerateGraphqlResolverVars(baseGroupName, crdModulePath string, pkgs parse
 						fieldProp.FieldTypePkgPath = resolverTypeName
 						fieldProp.SchemaTypeName = schemaTypeName
 						fieldProp.BaseTypeName = getBaseNodeType(pkg, typeString, importMap)
-						nodeProp.ChildrenLinksFields = append(nodeProp.ChildrenLinksFields, fieldProp)
+						if parser.IsOnlyChildrenField(nf) {
+							nodeProp.ChildrenFields = append(nodeProp.ChildrenFields, fieldProp)
+						} else {
+							nodeProp.LinksFields = append(nodeProp.LinksFields, fieldProp)
+						}
 					}
 				}
 				// No of resolver fields in a nodes
@@ -314,13 +326,16 @@ func GenerateGraphqlResolverVars(baseGroupName, crdModulePath string, pkgs parse
 		}
 	}
 	// Collect ReturnValue of each Node for resolver
+	LinkAPI := make(map[string]string)
 	retMap := make(map[string]ReturnStatement)
 	for _, n := range Nodes {
 		var retType string
 		var aliasVal string
 		var listRetVal string
 		var fieldCount int
+		var IsSingleton bool
 		var ChainAPI string
+
 		retType += fmt.Sprintf("ret := &model.%s%s {\n", n.PkgName, n.NodeName)
 		if n.IsNexusNode || n.IsSingletonNode {
 			retType += fmt.Sprintf("\t%s: &%s,\n", "Id", "id")
@@ -334,6 +349,7 @@ func GenerateGraphqlResolverVars(baseGroupName, crdModulePath string, pkgs parse
 			// fmt.Println(parentsMap[n.CrdName].IsSingleton)
 			// fmt.Println(parentsMap[n.CrdName].RestMappings)
 			// fmt.Println(parentsMap[n.CrdName].RestName)
+			fmt.Println("Node:", n.NodeName, len(parentsMap[n.CrdName].Parents))
 			ChainAPI += "nc"
 			var prevNode parser.NodeHelper
 			for _, i := range parentsMap[n.CrdName].Parents {
@@ -368,7 +384,15 @@ func GenerateGraphqlResolverVars(baseGroupName, crdModulePath string, pkgs parse
 				//					ChainAPI += fmt.Sprintf(".%s(obj.ParentLabels[\"%s\"].(string))", CRDNameMap[i], i)
 				//				}
 			}
-			fmt.Println("ChainAPI", ChainAPI)
+			// Create LinkAPI
+			if n.IsSingletonNode {
+				IsSingleton = true
+				fmt.Println(n.PkgName+n.NodeName, n.IsSingletonNode, ChainAPI, prevNode.Children[n.CrdName].FieldName)
+				LinkAPI[n.PkgName+n.NodeName] = fmt.Sprintf("%s.Get%s(context.TODO())", ChainAPI, prevNode.Children[n.CrdName].FieldName)
+			} else {
+				IsSingleton = false
+				LinkAPI[n.PkgName+n.NodeName] = fmt.Sprintf("%s.Get%s(context.TODO(), obj.ParentLabels[\"%s\"].(string))", ChainAPI, prevNode.Children[n.CrdName].FieldName, n.CrdName)
+			}
 		}
 		for _, i := range n.ResolverFields[n.PkgName+n.NodeName] {
 			if i.IsAliasTypeField {
@@ -400,11 +424,12 @@ func GenerateGraphqlResolverVars(baseGroupName, crdModulePath string, pkgs parse
 		}
 		retType += "\t}"
 		retMap[n.PkgName+n.NodeName] = ReturnStatement{
-			Alias:      aliasVal,
-			ReturnType: retType,
-			FieldCount: fieldCount,
-			CRDName:    n.CrdName,
-			ChainAPI:   ChainAPI,
+			Alias:       aliasVal,
+			ReturnType:  retType,
+			FieldCount:  fieldCount,
+			CRDName:     n.CrdName,
+			ChainAPI:    ChainAPI,
+			IsSingleton: IsSingleton,
 		}
 	}
 	// set return value to each node
@@ -427,21 +452,45 @@ func GenerateGraphqlResolverVars(baseGroupName, crdModulePath string, pkgs parse
 			resNodeProp.ReturnType = retMap[resNodeProp.PkgName+resNodeProp.NodeName].ReturnType
 			resNodeProp.IsParentNode = true
 		}
-		for _, f := range n.ChildLinkFields {
+		for _, f := range n.ChildFields {
 			f.ReturnType = retMap[f.FieldTypePkgPath].ReturnType
 			f.Alias = retMap[f.FieldTypePkgPath].Alias
 			f.FieldCount = retMap[f.FieldTypePkgPath].FieldCount
 			f.CRDName = retMap[f.FieldTypePkgPath].CRDName
 			f.ChainAPI = retMap[f.FieldTypePkgPath].ChainAPI
-			resNodeProp.ChildLinkFields = append(resNodeProp.ChildLinkFields, f)
+			f.IsSingleton = retMap[f.FieldTypePkgPath].IsSingleton
+			resNodeProp.ChildFields = append(resNodeProp.ChildFields, f)
 		}
-		for _, f := range n.ChildrenLinksFields {
+		for _, f := range n.ChildrenFields {
 			f.ReturnType = retMap[f.FieldTypePkgPath].ReturnType
 			f.Alias = retMap[f.FieldTypePkgPath].Alias
 			f.FieldCount = retMap[f.FieldTypePkgPath].FieldCount
 			f.CRDName = retMap[f.FieldTypePkgPath].CRDName
 			f.ChainAPI = retMap[f.FieldTypePkgPath].ChainAPI
-			resNodeProp.ChildrenLinksFields = append(resNodeProp.ChildrenLinksFields, f)
+			f.IsSingleton = retMap[f.FieldTypePkgPath].IsSingleton
+			resNodeProp.ChildrenFields = append(resNodeProp.ChildrenFields, f)
+		}
+		for _, f := range n.LinkFields {
+			f.ReturnType = retMap[f.FieldTypePkgPath].ReturnType
+			f.Alias = retMap[f.FieldTypePkgPath].Alias
+			f.FieldCount = retMap[f.FieldTypePkgPath].FieldCount
+			f.CRDName = retMap[f.FieldTypePkgPath].CRDName
+			f.ChainAPI = retMap[f.FieldTypePkgPath].ChainAPI
+			f.IsSingleton = retMap[f.FieldTypePkgPath].IsSingleton
+			f.LinkAPI = LinkAPI[f.PkgName+f.NodeName]
+			resNodeProp.LinkFields = append(resNodeProp.LinkFields, f)
+			fmt.Println("link", f.FieldName, f.PkgName+f.NodeName, LinkAPI[f.PkgName+f.NodeName])
+		}
+		for _, f := range n.LinksFields {
+			f.ReturnType = retMap[f.FieldTypePkgPath].ReturnType
+			f.Alias = retMap[f.FieldTypePkgPath].Alias
+			f.FieldCount = retMap[f.FieldTypePkgPath].FieldCount
+			f.CRDName = retMap[f.FieldTypePkgPath].CRDName
+			f.ChainAPI = retMap[f.FieldTypePkgPath].ChainAPI
+			f.IsSingleton = retMap[f.FieldTypePkgPath].IsSingleton
+			f.LinkAPI = LinkAPI[f.PkgName+f.NodeName]
+			resNodeProp.LinksFields = append(resNodeProp.LinksFields, f)
+			fmt.Println("links", f.FieldName, f.PkgName+f.NodeName, LinkAPI[f.PkgName+f.NodeName])
 		}
 		ResNodes = append(ResNodes, resNodeProp)
 	}

@@ -366,7 +366,7 @@ func IsChildOrLink(f *ast.Field) bool {
 	return false
 }
 
-func IsOnlyLinkField(f *ast.Field) bool {
+func IsOnlyChildrenField(f *ast.Field) bool {
 	if f == nil {
 		return false
 	}
@@ -374,7 +374,7 @@ func IsOnlyLinkField(f *ast.Field) bool {
 	if f.Tag != nil {
 		tags := ParseFieldTags(f.Tag.Value)
 		if val, err := tags.Get("nexus"); err == nil {
-			if strings.ToLower(val.Name) == "link" {
+			if strings.ToLower(val.Name) == "children" {
 				return true
 			}
 		}

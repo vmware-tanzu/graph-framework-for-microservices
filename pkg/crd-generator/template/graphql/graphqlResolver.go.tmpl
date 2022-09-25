@@ -27,7 +27,6 @@ type resolverConfig struct {
 // Nexus K8sAPIEndpointConfig
 //////////////////////////////////////
 func getK8sAPIEndpointConfig() *rest.Config {
-
 	filePath := os.Getenv("KUBECONFIG")
 	if filePath != "" {
 		config, err := clientcmd.BuildConfigFromFlags("", filePath)
@@ -36,12 +35,10 @@ func getK8sAPIEndpointConfig() *rest.Config {
 		}
 		return config
 	}
-
 	config, err := rest.InClusterConfig()
 	if err != nil {
 		return nil
 	}
-
 	return config
 }
 
@@ -60,7 +57,8 @@ func grpcServer() qm.ServerClient{
 {{ if $node.IsParentNode }}
 {{ if $node.IsSingletonNode }}
 //////////////////////////////////////
-// Singleton Resolver for Parent Node: {{$node.PkgName}}
+// Singleton Resolver for Parent Node
+// PKG: {{$node.PkgName}}, NODE: {{$node.PkgName}}
 //////////////////////////////////////
 func (c *resolverConfig) getRootResolver() (*model.{{$node.PkgName}}{{$node.NodeName}}, error) {
 	k8sApiConfig := getK8sAPIEndpointConfig()
@@ -80,7 +78,8 @@ func (c *resolverConfig) getRootResolver() (*model.{{$node.PkgName}}{{$node.Node
 	return ret, nil
 }{{ else }}
 //////////////////////////////////////
-// Non singleton Resolver for Parent Node: {{$node.PkgName}}
+// Non Singleton Resolver for Parent Node
+// PKG: {{$node.PkgName}}, NODE: {{$node.PkgName}}
 //////////////////////////////////////
 func (c *resolverConfig) getRootResolver(id *string) (*model.{{$node.PkgName}}{{$node.NodeName}}, error) {
 	k8sApiConfig := getK8sAPIEndpointConfig()
@@ -106,7 +105,7 @@ func (c *resolverConfig) getRootResolver(id *string) (*model.{{$node.PkgName}}{{
 {{ end }}{{end}}
 {{ if $node.IsNexusNode }}
 //////////////////////////////////////
-// CustomQuery Resolver for Node: {{$node.PkgName}}{{$node.NodeName}}
+// CustomQuery Resolver for Node: {{$node.NodeName}} in PKG: {{$node.PkgName}}
 //////////////////////////////////////
 
 // Resolver for queryServiceTable
@@ -245,10 +244,10 @@ func (c *resolverConfig) get{{$node.PkgName}}{{$node.NodeName}}queryServiceTopol
 	return ret,nil
 }
 {{ end }}{{ end }}
-{{ range $key, $node := .Nodes }}{{ range $key, $child := $node.ChildLinkFields }}
+{{ range $key, $node := .Nodes }}{{ range $key, $child := $node.ChildFields }}{{ if $child.IsSingleton }}
 //////////////////////////////////////
-// Child/Link Node : {{$child.FieldName}} {{$child.BaseTypeName}}
-// Resolver for {{$child.NodeName}}
+// CHILD RESOLVER (Singleton)
+// FieldName: {{$child.FieldName}} Node: {{$child.NodeName}} PKG: {{$child.PkgName}}
 //////////////////////////////////////
 func (c *resolverConfig) get{{$child.PkgName}}{{$child.NodeName}}{{$child.FieldName}}Resolver(obj *model.{{$child.PkgName}}{{$child.NodeName}}) (*model.{{$child.FieldTypePkgPath}}, error) {
 	v{{$child.BaseTypeName}}, err := {{$child.ChainAPI}}.Get{{$child.FieldName}}(context.TODO())
@@ -256,49 +255,152 @@ func (c *resolverConfig) get{{$child.PkgName}}{{$child.NodeName}}{{$child.FieldN
 	    log.Errorf("Error getting node %s", err)
         return nil, fmt.Errorf("failed to get node: %s", err)
     }
-
-
 	c.v{{$child.FieldTypePkgPath}} = v{{$child.BaseTypeName}}
 	{{ $child.Alias }}
     for k, v := range obj.ParentLabels {
         parentLabels[k] = v
     }
-
 	{{ $child.ReturnType }}
 	return ret, nil
-}
-{{ end }}{{ range $key, $child := $node.ChildrenLinksFields }}
+}{{ else }}
 //////////////////////////////////////
-// Children/Links Node : {{$child.FieldName}}
-// Resolver for {{$child.NodeName}}
+// CHILD RESOLVER (Non Singleton)
+// FieldName: {{$child.FieldName}} Node: {{$child.NodeName}} PKG: {{$child.PkgName}}
 //////////////////////////////////////
-func (c *resolverConfig) get{{$child.PkgName}}{{$child.NodeName}}{{$child.FieldName}}Resolver(obj *model.{{$child.PkgName}}{{$child.NodeName}}, id *string) ([]*model.{{$child.FieldTypePkgPath}}, error) {
-	var v{{$child.FieldTypePkgPath}}List []*model.{{$child.FieldTypePkgPath}}
+func (c *resolverConfig) get{{$child.PkgName}}{{$child.NodeName}}{{$child.FieldName}}Resolver(obj *model.{{$child.PkgName}}{{$child.NodeName}}, id *string) (*model.{{$child.FieldTypePkgPath}}, error) {
+	v{{$child.BaseTypeName}}, err := {{$child.ChainAPI}}.Get{{$child.FieldName}}(context.TODO(), *id)
+	if err != nil {
+	    log.Errorf("Error getting node %s", err)
+        return nil, fmt.Errorf("failed to get node: %s", err)
+    }
+	c.v{{$child.FieldTypePkgPath}} = v{{$child.BaseTypeName}}
+	{{ $child.Alias }}
+    for k, v := range obj.ParentLabels {
+        parentLabels[k] = v
+    }
+	{{ $child.ReturnType }}
+	return ret, nil
+}{{ end }}{{ end }}
+{{ range $key, $link := $node.LinkFields }}{{ if $link.IsSingleton }}
+//////////////////////////////////////
+// LINK RESOLVER (Singleton)
+// FieldName: {{$link.FieldName}} Node: {{$link.NodeName}} PKG: {{$link.PkgName}}
+//////////////////////////////////////
+func (c *resolverConfig) get{{$link.PkgName}}{{$link.NodeName}}{{$link.FieldName}}Resolver(obj *model.{{$link.PkgName}}{{$link.NodeName}}) (*model.{{$link.FieldTypePkgPath}}, error) {
+	v{{$link.BaseTypeName}}Parent, err := {{$link.LinkAPI}}
+	if err != nil {
+	    log.Errorf("Error getting Parent node details %s", err)
+        return nil, fmt.Errorf("failed to get Parent node details: %s", err)
+    }
+	v{{$link.BaseTypeName}}, err := v{{$link.BaseTypeName}}Parent.Get{{$link.FieldName}}(context.TODO())
+	if err != nil {
+	    log.Errorf("Error getting node %s", err)
+        return nil, fmt.Errorf("failed to get node: %s", err)
+    }
+	c.v{{$link.FieldTypePkgPath}} = v{{$link.BaseTypeName}}
+	{{ $link.Alias }}
+    for k, v := range obj.ParentLabels {
+        parentLabels[k] = v
+    }
+	{{ $link.ReturnType }}
+	return ret, nil
+}{{ else }}
+//////////////////////////////////////
+// LINK RESOLVER (Non Singleton)
+// FieldName: {{$link.FieldName}} Node: {{$link.NodeName}} PKG: {{$link.PkgName}}
+//////////////////////////////////////
+func (c *resolverConfig) get{{$link.PkgName}}{{$link.NodeName}}{{$link.FieldName}}Resolver(obj *model.{{$link.PkgName}}{{$link.NodeName}}, id *string) (*model.{{$link.FieldTypePkgPath}}, error) {
+	v{{$link.BaseTypeName}}Parent, err := {{$link.LinkAPI}}
+	if err != nil {
+	    log.Errorf("Error getting Parent node details %s", err)
+        return nil, fmt.Errorf("failed to get Parent node details: %s", err)
+    }
+	v{{$link.BaseTypeName}}, err := v{{$link.BaseTypeName}}Parent.Get{{$link.FieldName}}(context.TODO(), *id)
+	if err != nil {
+	    log.Errorf("Error getting node %s", err)
+        return nil, fmt.Errorf("failed to get node: %s", err)
+    }
+	c.v{{$link.FieldTypePkgPath}} = v{{$link.BaseTypeName}}
+	{{ $link.Alias }}
+    for k, v := range obj.ParentLabels {
+        parentLabels[k] = v
+    }
+	{{ $link.ReturnType }}
+	return ret, nil
+}{{ end }}{{ end }}
+{{ range $key, $children := $node.ChildrenFields }}
+//////////////////////////////////////
+// CHILDREN RESOLVER {{ if $children.IsSingleton }}(Singleton){{ else }}(Non Singleton{{ end }}
+// FieldName: {{$children.FieldName}} Node: {{$children.NodeName}} PKG: {{$children.PkgName}}
+//////////////////////////////////////
+func (c *resolverConfig) get{{$children.PkgName}}{{$children.NodeName}}{{$children.FieldName}}Resolver(obj *model.{{$children.PkgName}}{{$children.NodeName}}, id *string) ([]*model.{{$children.FieldTypePkgPath}}, error) {
+	var v{{$children.FieldTypePkgPath}}List []*model.{{$children.FieldTypePkgPath}}
 	if id != nil && *id != "" {
-		v{{$child.BaseTypeName}}, err := {{$child.ChainAPI}}.Get{{$child.FieldName}}(context.TODO(), *id)
+		{{ if $children.IsSingleton }}v{{$children.BaseTypeName}}, err := {{$children.ChainAPI}}.Get{{$children.FieldName}}(context.TODO()){{ else }}v{{$children.BaseTypeName}}, err := {{$children.ChainAPI}}.Get{{$children.FieldName}}(context.TODO(), *id){{ end }}
 		if err != nil {
 	        log.Errorf("Error getting node %s", err)
             return nil, fmt.Errorf("failed to get node: %s", err)
         }
-		{{ $child.Alias }}
+		{{ $children.Alias }}
         for k, v := range obj.ParentLabels {
             parentLabels[k] = v
         }
-
-		{{ $child.ReturnType }}
-		v{{$child.FieldTypePkgPath}}List = append(v{{$child.FieldTypePkgPath}}List, ret)
-		return v{{$child.FieldTypePkgPath}}List, nil
+		{{ $children.ReturnType }}
+		v{{$children.FieldTypePkgPath}}List = append(v{{$children.FieldTypePkgPath}}List, ret)
+		return v{{$children.FieldTypePkgPath}}List, nil
 	}
-	for i := range c.v{{$child.PkgName}}{{$child.NodeName}}.Spec.{{$child.FieldName}}Gvk {
-		v{{$child.BaseTypeName}}, err := {{$child.ChainAPI}}.Get{{$child.FieldName}}(context.TODO(), i)
+	for i := range c.v{{$children.PkgName}}{{$children.NodeName}}.Spec.{{$children.FieldName}}Gvk {
+		{{ if $children.IsSingleton }}v{{$children.BaseTypeName}}, err := {{$children.ChainAPI}}.Get{{$children.FieldName}}(context.TODO()){{ else }}v{{$children.BaseTypeName}}, err := {{$children.ChainAPI}}.Get{{$children.FieldName}}(context.TODO(), i){{ end }}
 		if err != nil {
 	        log.Errorf("Error getting node %s", err)
             return nil, fmt.Errorf("failed to get node: %s", err)
 		}
-		{{ $child.Alias }}
-		{{ $child.ReturnType }}
-		v{{$child.FieldTypePkgPath}}List = append(v{{$child.FieldTypePkgPath}}List, ret)
+		{{ $children.Alias }}
+		{{ $children.ReturnType }}
+		v{{$children.FieldTypePkgPath}}List = append(v{{$children.FieldTypePkgPath}}List, ret)
 	}
-	return v{{$child.FieldTypePkgPath}}List, nil
-}
-{{ end }}{{ end }}
+	return v{{$children.FieldTypePkgPath}}List, nil
+}{{ end }}
+{{ range $key, $links := $node.LinksFields }}
+//////////////////////////////////////
+// LINKS RESOLVER (Singleton/Non Singleton)
+// FieldName: {{$links.FieldName}} Node: {{$links.NodeName}} PKG: {{$links.PkgName}}
+//////////////////////////////////////
+func (c *resolverConfig) get{{$links.PkgName}}{{$links.NodeName}}{{$links.FieldName}}Resolver(obj *model.{{$links.PkgName}}{{$links.NodeName}}, id *string) ([]*model.{{$links.FieldTypePkgPath}}, error) {
+	var v{{$links.FieldTypePkgPath}}List []*model.{{$links.FieldTypePkgPath}}
+	if id != nil && *id != "" {
+		v{{$links.BaseTypeName}}Parent, err := {{$links.LinkAPI}}
+		if err != nil {
+			log.Errorf("Error getting Parent node details %s", err)
+			return nil, fmt.Errorf("failed to get Parent node details: %s", err)
+		}
+		v{{$links.BaseTypeName}}, err := v{{$links.BaseTypeName}}Parent.Get{{$links.FieldName}}(context.TODO())
+		if err != nil {
+			log.Errorf("Error getting node %s", err)
+			return nil, fmt.Errorf("failed to get node: %s", err)
+		}
+		{{ $links.Alias }}
+        for k, v := range obj.ParentLabels {
+            parentLabels[k] = v
+        }
+		{{ $links.ReturnType }}
+		v{{$links.FieldTypePkgPath}}List = append(v{{$links.FieldTypePkgPath}}List, ret)
+		return v{{$links.FieldTypePkgPath}}List, nil
+	}
+	for i := range c.v{{$links.PkgName}}{{$links.NodeName}}.Spec.{{$links.FieldName}}Gvk {
+		v{{$links.BaseTypeName}}Parent, err := {{$links.LinkAPI}}
+		if err != nil {
+			log.Errorf("Error getting Parent node details %s", err)
+			return nil, fmt.Errorf("failed to get Parent node details: %s", err)
+		}
+		v{{$links.BaseTypeName}}, err := v{{$links.BaseTypeName}}Parent.Get{{$links.FieldName}}(context.TODO())
+		if err != nil {
+			log.Errorf("Error getting node %s", err)
+			return nil, fmt.Errorf("failed to get node: %s", err)
+		}
+		{{ $links.Alias }}
+		{{ $links.ReturnType }}
+		v{{$links.FieldTypePkgPath}}List = append(v{{$links.FieldTypePkgPath}}List, ret)
+	}
+	return v{{$links.FieldTypePkgPath}}List, nil
+}{{ end }}{{ end }}

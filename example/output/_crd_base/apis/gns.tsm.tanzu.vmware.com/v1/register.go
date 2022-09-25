@@ -39,8 +39,14 @@ func addKnownTypes(scheme *runtime.Scheme) error {
 		SchemeGroupVersion,
 		&Gns{},
 		&GnsList{},
-		&Bar{},
-		&BarList{},
+		&BarLink{},
+		&BarLinkList{},
+		&BarChild{},
+		&BarChildList{},
+		&BarChildren{},
+		&BarChildrenList{},
+		&BarLinks{},
+		&BarLinksList{},
 	)
 
 	// register the type in the scheme

@@ -22,7 +22,10 @@ type resolverConfig struct {
 	vRootRoot *nexus_client.RootRoot
     vConfigConfig *nexus_client.ConfigConfig
     vGnsGns *nexus_client.GnsGns
-    vGnsBar *nexus_client.GnsBar
+    vGnsBarLink *nexus_client.GnsBarLink
+    vGnsBarChild *nexus_client.GnsBarChild
+    vGnsBarChildren *nexus_client.GnsBarChildren
+    vGnsBarLinks *nexus_client.GnsBarLinks
     
 }
 
@@ -30,7 +33,6 @@ type resolverConfig struct {
 // Nexus K8sAPIEndpointConfig
 //////////////////////////////////////
 func getK8sAPIEndpointConfig() *rest.Config {
-
 	filePath := os.Getenv("KUBECONFIG")
 	if filePath != "" {
 		config, err := clientcmd.BuildConfigFromFlags("", filePath)
@@ -39,12 +41,10 @@ func getK8sAPIEndpointConfig() *rest.Config {
 		}
 		return config
 	}
-
 	config, err := rest.InClusterConfig()
 	if err != nil {
 		return nil
 	}
-
 	return config
 }
 
@@ -63,7 +63,8 @@ func grpcServer() qm.ServerClient{
 
 
 //////////////////////////////////////
-// Singleton Resolver for Parent Node: Root
+// Singleton Resolver for Parent Node
+// PKG: Root, NODE: Root
 //////////////////////////////////////
 func (c *resolverConfig) getRootResolver() (*model.RootRoot, error) {
 	k8sApiConfig := getK8sAPIEndpointConfig()
@@ -94,7 +95,7 @@ CustomBarData := string(CustomBar)
 }
 
 //////////////////////////////////////
-// CustomQuery Resolver for Node: RootRoot
+// CustomQuery Resolver for Node: Root in PKG: Root
 //////////////////////////////////////
 
 // Resolver for queryServiceTable
@@ -238,7 +239,7 @@ func (c *resolverConfig) getRootRootqueryServiceTopologyResolver(obj *model.Root
 
 
 //////////////////////////////////////
-// CustomQuery Resolver for Node: ConfigConfig
+// CustomQuery Resolver for Node: Config in PKG: Config
 //////////////////////////////////////
 
 // Resolver for queryServiceTable
@@ -388,7 +389,7 @@ func (c *resolverConfig) getConfigConfigqueryServiceTopologyResolver(obj *model.
 
 
 //////////////////////////////////////
-// CustomQuery Resolver for Node: GnsGns
+// CustomQuery Resolver for Node: Gns in PKG: Gns
 //////////////////////////////////////
 
 // Resolver for queryServiceTable
@@ -532,11 +533,45 @@ func (c *resolverConfig) getGnsGnsqueryServiceTopologyResolver(obj *model.GnsGns
 
 
 //////////////////////////////////////
-// CustomQuery Resolver for Node: GnsBar
+// Non Singleton Resolver for Parent Node
+// PKG: Gns, NODE: Gns
+//////////////////////////////////////
+func (c *resolverConfig) getRootResolver(id *string) (*model.GnsBarLink, error) {
+	k8sApiConfig := getK8sAPIEndpointConfig()
+	nexusClient, err := nexus_client.NewForConfig(k8sApiConfig)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get k8s client config: %s", err)
+	}
+	nc = nexusClient
+	if id != nil && *id != "" {
+		vBarLink, err := nc.GetGnsBarLink(context.TODO(), *id)
+		if err != nil {
+			log.Errorf("Error getting root node %s", err)
+			return nil, fmt.Errorf("failed to get root node: %s", err)
+		}
+		c.vGnsBarLink = vBarLink
+		id := vBarLink.DisplayName()
+parentLabels := map[string]interface{}{"barlinks.gns.tsm.tanzu.vmware.com":id}
+vName := string(vBarLink.Spec.Name)
+
+		ret := &model.GnsBarLink {
+	Id: &id,
+	ParentLabels: parentLabels,
+	Name: &vName,
+	}
+		return ret, nil
+	}
+	ret := &model.GnsBarLink{}
+	return ret, nil
+}
+
+
+//////////////////////////////////////
+// CustomQuery Resolver for Node: BarLink in PKG: Gns
 //////////////////////////////////////
 
 // Resolver for queryServiceTable
-func (c *resolverConfig) getGnsBarqueryServiceTableResolver(obj *model.GnsBar, startTime *string, endTime *string, systemServices *bool, showGateways *bool, groupby *string, noMetrics *bool) (*model.TimeSeriesData,error) {
+func (c *resolverConfig) getGnsBarLinkqueryServiceTableResolver(obj *model.GnsBarLink, startTime *string, endTime *string, systemServices *bool, showGateways *bool, groupby *string, noMetrics *bool) (*model.TimeSeriesData,error) {
 	ctx := context.Background()
 	var filters = make(map[string]string)
 	filters[""] = ""
@@ -553,7 +588,7 @@ func (c *resolverConfig) getGnsBarqueryServiceTableResolver(obj *model.GnsBar, s
 }
 
 // Resolver for queryServiceVersionTable
-func (c *resolverConfig) getGnsBarqueryServiceVersionTableResolver(obj *model.GnsBar, startTime *string, endTime *string, systemServices *bool, showGateways *bool, noMetrics *bool) (*model.TimeSeriesData,error) {
+func (c *resolverConfig) getGnsBarLinkqueryServiceVersionTableResolver(obj *model.GnsBarLink, startTime *string, endTime *string, systemServices *bool, showGateways *bool, noMetrics *bool) (*model.TimeSeriesData,error) {
 	ctx := context.Background()
 	var filters = make(map[string]string)
 	filters[""] = ""
@@ -570,7 +605,7 @@ func (c *resolverConfig) getGnsBarqueryServiceVersionTableResolver(obj *model.Gn
 }
 
 // Resolver for queryServiceTS
-func (c *resolverConfig) getGnsBarqueryServiceTSResolver(obj *model.GnsBar, svcMetric *string, startTime *string, endTime *string, timeInterval *string) (*model.TimeSeriesData,error) {
+func (c *resolverConfig) getGnsBarLinkqueryServiceTSResolver(obj *model.GnsBarLink, svcMetric *string, startTime *string, endTime *string, timeInterval *string) (*model.TimeSeriesData,error) {
 	ctx := context.Background()
 	var filters = make(map[string]string)
 	filters[""] = ""
@@ -587,7 +622,7 @@ func (c *resolverConfig) getGnsBarqueryServiceTSResolver(obj *model.GnsBar, svcM
 }
 
 // Resolver for queryIncomingAPIs
-func (c *resolverConfig) getGnsBarqueryIncomingAPIsResolver(obj *model.GnsBar, startTime *string, endTime *string, destinationService *string, destinationServiceVersion *string, timeInterval *string, timeZone *string) (*model.TimeSeriesData,error) {
+func (c *resolverConfig) getGnsBarLinkqueryIncomingAPIsResolver(obj *model.GnsBarLink, startTime *string, endTime *string, destinationService *string, destinationServiceVersion *string, timeInterval *string, timeZone *string) (*model.TimeSeriesData,error) {
 	ctx := context.Background()
 	var filters = make(map[string]string)
 	filters[""] = ""
@@ -604,7 +639,7 @@ func (c *resolverConfig) getGnsBarqueryIncomingAPIsResolver(obj *model.GnsBar, s
 }
 
 // Resolver for queryOutgoingAPIs
-func (c *resolverConfig) getGnsBarqueryOutgoingAPIsResolver(obj *model.GnsBar, startTime *string, endTime *string, timeInterval *string, timeZone *string) (*model.TimeSeriesData,error) {
+func (c *resolverConfig) getGnsBarLinkqueryOutgoingAPIsResolver(obj *model.GnsBarLink, startTime *string, endTime *string, timeInterval *string, timeZone *string) (*model.TimeSeriesData,error) {
 	ctx := context.Background()
 	var filters = make(map[string]string)
 	filters[""] = ""
@@ -621,7 +656,7 @@ func (c *resolverConfig) getGnsBarqueryOutgoingAPIsResolver(obj *model.GnsBar, s
 }
 
 // Resolver for queryIncomingTCP
-func (c *resolverConfig) getGnsBarqueryIncomingTCPResolver(obj *model.GnsBar, startTime *string, endTime *string, destinationService *string, destinationServiceVersion *string) (*model.TimeSeriesData,error) {
+func (c *resolverConfig) getGnsBarLinkqueryIncomingTCPResolver(obj *model.GnsBarLink, startTime *string, endTime *string, destinationService *string, destinationServiceVersion *string) (*model.TimeSeriesData,error) {
 	ctx := context.Background()
 	var filters = make(map[string]string)
 	filters[""] = ""
@@ -638,7 +673,7 @@ func (c *resolverConfig) getGnsBarqueryIncomingTCPResolver(obj *model.GnsBar, st
 }
 
 // Resolver for queryOutgoingTCP
-func (c *resolverConfig) getGnsBarqueryOutgoingTCPResolver(obj *model.GnsBar, startTime *string, endTime *string, destinationService *string, destinationServiceVersion *string) (*model.TimeSeriesData,error) {
+func (c *resolverConfig) getGnsBarLinkqueryOutgoingTCPResolver(obj *model.GnsBarLink, startTime *string, endTime *string, destinationService *string, destinationServiceVersion *string) (*model.TimeSeriesData,error) {
 	ctx := context.Background()
 	var filters = make(map[string]string)
 	filters[""] = ""
@@ -655,7 +690,467 @@ func (c *resolverConfig) getGnsBarqueryOutgoingTCPResolver(obj *model.GnsBar, st
 }
 
 // Resolver for queryServiceTopology
-func (c *resolverConfig) getGnsBarqueryServiceTopologyResolver(obj *model.GnsBar, startTime *string, endTime *string, metricStringArray *string) (*model.TimeSeriesData,error) {
+func (c *resolverConfig) getGnsBarLinkqueryServiceTopologyResolver(obj *model.GnsBarLink, startTime *string, endTime *string, metricStringArray *string) (*model.TimeSeriesData,error) {
+	ctx := context.Background()
+	var filters = make(map[string]string)
+	filters[""] = ""
+	resp, err := grpcServer().GetMetrics(ctx, &qm.MetricArg{QueryType: "/ServiceTopology", StartTime: *startTime, EndTime: *endTime, Metric: *metricStringArray, Filters: filters,TimeInterval: ""})
+	if err != nil {
+		fmt.Printf("Failed to getMetrics, err: %v", err)
+	}
+	b, _ := json.Marshal(resp.Data)
+	data := string(b)
+	ret := &model.TimeSeriesData{
+		Data: &data,
+	}
+	return ret,nil
+}
+
+
+
+//////////////////////////////////////
+// CustomQuery Resolver for Node: BarChild in PKG: Gns
+//////////////////////////////////////
+
+// Resolver for queryServiceTable
+func (c *resolverConfig) getGnsBarChildqueryServiceTableResolver(obj *model.GnsBarChild, startTime *string, endTime *string, systemServices *bool, showGateways *bool, groupby *string, noMetrics *bool) (*model.TimeSeriesData,error) {
+	ctx := context.Background()
+	var filters = make(map[string]string)
+	filters[""] = ""
+	resp, err := grpcServer().GetMetrics(ctx, &qm.MetricArg{QueryType: "/ServiceTable", StartTime: *startTime, EndTime: *endTime, Metric: "", Filters: filters,TimeInterval: ""})
+	if err != nil {
+		fmt.Printf("Failed to getMetrics, err: %v", err)
+	}
+	b, _ := json.Marshal(resp.Data)
+	data := string(b)
+	ret := &model.TimeSeriesData{
+		Data: &data,
+	}
+	return ret,nil
+}
+
+// Resolver for queryServiceVersionTable
+func (c *resolverConfig) getGnsBarChildqueryServiceVersionTableResolver(obj *model.GnsBarChild, startTime *string, endTime *string, systemServices *bool, showGateways *bool, noMetrics *bool) (*model.TimeSeriesData,error) {
+	ctx := context.Background()
+	var filters = make(map[string]string)
+	filters[""] = ""
+	resp, err := grpcServer().GetMetrics(ctx, &qm.MetricArg{QueryType: "/ServiceTable", StartTime: *startTime, EndTime: *endTime, Metric: "", Filters: filters,TimeInterval: ""})
+	if err != nil {
+		fmt.Printf("Failed to getMetrics, err: %v", err)
+	}
+	b, _ := json.Marshal(resp.Data)
+	data := string(b)
+	ret := &model.TimeSeriesData{
+		Data: &data,
+	}
+	return ret,nil
+}
+
+// Resolver for queryServiceTS
+func (c *resolverConfig) getGnsBarChildqueryServiceTSResolver(obj *model.GnsBarChild, svcMetric *string, startTime *string, endTime *string, timeInterval *string) (*model.TimeSeriesData,error) {
+	ctx := context.Background()
+	var filters = make(map[string]string)
+	filters[""] = ""
+	resp, err := grpcServer().GetMetrics(ctx, &qm.MetricArg{QueryType: "/ServiceMetricSeries", StartTime: *startTime, EndTime: *endTime, Metric: *svcMetric, Filters: filters,TimeInterval: *timeInterval})
+	if err != nil {
+		fmt.Printf("Failed to getMetrics, err: %v", err)
+	}
+	b, _ := json.Marshal(resp.Data)
+	data := string(b)
+	ret := &model.TimeSeriesData{
+		Data: &data,
+	}
+	return ret,nil
+}
+
+// Resolver for queryIncomingAPIs
+func (c *resolverConfig) getGnsBarChildqueryIncomingAPIsResolver(obj *model.GnsBarChild, startTime *string, endTime *string, destinationService *string, destinationServiceVersion *string, timeInterval *string, timeZone *string) (*model.TimeSeriesData,error) {
+	ctx := context.Background()
+	var filters = make(map[string]string)
+	filters[""] = ""
+	resp, err := grpcServer().GetMetrics(ctx, &qm.MetricArg{QueryType: "/IncomingAPIs", StartTime: *startTime, EndTime: *endTime, Metric: "", Filters: filters,TimeInterval: *timeInterval})
+	if err != nil {
+		fmt.Printf("Failed to getMetrics, err: %v", err)
+	}
+	b, _ := json.Marshal(resp.Data)
+	data := string(b)
+	ret := &model.TimeSeriesData{
+		Data: &data,
+	}
+	return ret,nil
+}
+
+// Resolver for queryOutgoingAPIs
+func (c *resolverConfig) getGnsBarChildqueryOutgoingAPIsResolver(obj *model.GnsBarChild, startTime *string, endTime *string, timeInterval *string, timeZone *string) (*model.TimeSeriesData,error) {
+	ctx := context.Background()
+	var filters = make(map[string]string)
+	filters[""] = ""
+	resp, err := grpcServer().GetMetrics(ctx, &qm.MetricArg{QueryType: "/OutgoingAPIs", StartTime: *startTime, EndTime: *endTime, Metric: "", Filters: filters,TimeInterval: *timeInterval})
+	if err != nil {
+		fmt.Printf("Failed to getMetrics, err: %v", err)
+	}
+	b, _ := json.Marshal(resp.Data)
+	data := string(b)
+	ret := &model.TimeSeriesData{
+		Data: &data,
+	}
+	return ret,nil
+}
+
+// Resolver for queryIncomingTCP
+func (c *resolverConfig) getGnsBarChildqueryIncomingTCPResolver(obj *model.GnsBarChild, startTime *string, endTime *string, destinationService *string, destinationServiceVersion *string) (*model.TimeSeriesData,error) {
+	ctx := context.Background()
+	var filters = make(map[string]string)
+	filters[""] = ""
+	resp, err := grpcServer().GetMetrics(ctx, &qm.MetricArg{QueryType: "/IncomingTCP", StartTime: *startTime, EndTime: *endTime, Metric: "", Filters: filters,TimeInterval: ""})
+	if err != nil {
+		fmt.Printf("Failed to getMetrics, err: %v", err)
+	}
+	b, _ := json.Marshal(resp.Data)
+	data := string(b)
+	ret := &model.TimeSeriesData{
+		Data: &data,
+	}
+	return ret,nil
+}
+
+// Resolver for queryOutgoingTCP
+func (c *resolverConfig) getGnsBarChildqueryOutgoingTCPResolver(obj *model.GnsBarChild, startTime *string, endTime *string, destinationService *string, destinationServiceVersion *string) (*model.TimeSeriesData,error) {
+	ctx := context.Background()
+	var filters = make(map[string]string)
+	filters[""] = ""
+	resp, err := grpcServer().GetMetrics(ctx, &qm.MetricArg{QueryType: "/OutgoingTCP", StartTime: *startTime, EndTime: *endTime, Metric: "", Filters: filters,TimeInterval: ""})
+	if err != nil {
+		fmt.Printf("Failed to getMetrics, err: %v", err)
+	}
+	b, _ := json.Marshal(resp.Data)
+	data := string(b)
+	ret := &model.TimeSeriesData{
+		Data: &data,
+	}
+	return ret,nil
+}
+
+// Resolver for queryServiceTopology
+func (c *resolverConfig) getGnsBarChildqueryServiceTopologyResolver(obj *model.GnsBarChild, startTime *string, endTime *string, metricStringArray *string) (*model.TimeSeriesData,error) {
+	ctx := context.Background()
+	var filters = make(map[string]string)
+	filters[""] = ""
+	resp, err := grpcServer().GetMetrics(ctx, &qm.MetricArg{QueryType: "/ServiceTopology", StartTime: *startTime, EndTime: *endTime, Metric: *metricStringArray, Filters: filters,TimeInterval: ""})
+	if err != nil {
+		fmt.Printf("Failed to getMetrics, err: %v", err)
+	}
+	b, _ := json.Marshal(resp.Data)
+	data := string(b)
+	ret := &model.TimeSeriesData{
+		Data: &data,
+	}
+	return ret,nil
+}
+
+
+
+//////////////////////////////////////
+// CustomQuery Resolver for Node: BarChildren in PKG: Gns
+//////////////////////////////////////
+
+// Resolver for queryServiceTable
+func (c *resolverConfig) getGnsBarChildrenqueryServiceTableResolver(obj *model.GnsBarChildren, startTime *string, endTime *string, systemServices *bool, showGateways *bool, groupby *string, noMetrics *bool) (*model.TimeSeriesData,error) {
+	ctx := context.Background()
+	var filters = make(map[string]string)
+	filters[""] = ""
+	resp, err := grpcServer().GetMetrics(ctx, &qm.MetricArg{QueryType: "/ServiceTable", StartTime: *startTime, EndTime: *endTime, Metric: "", Filters: filters,TimeInterval: ""})
+	if err != nil {
+		fmt.Printf("Failed to getMetrics, err: %v", err)
+	}
+	b, _ := json.Marshal(resp.Data)
+	data := string(b)
+	ret := &model.TimeSeriesData{
+		Data: &data,
+	}
+	return ret,nil
+}
+
+// Resolver for queryServiceVersionTable
+func (c *resolverConfig) getGnsBarChildrenqueryServiceVersionTableResolver(obj *model.GnsBarChildren, startTime *string, endTime *string, systemServices *bool, showGateways *bool, noMetrics *bool) (*model.TimeSeriesData,error) {
+	ctx := context.Background()
+	var filters = make(map[string]string)
+	filters[""] = ""
+	resp, err := grpcServer().GetMetrics(ctx, &qm.MetricArg{QueryType: "/ServiceTable", StartTime: *startTime, EndTime: *endTime, Metric: "", Filters: filters,TimeInterval: ""})
+	if err != nil {
+		fmt.Printf("Failed to getMetrics, err: %v", err)
+	}
+	b, _ := json.Marshal(resp.Data)
+	data := string(b)
+	ret := &model.TimeSeriesData{
+		Data: &data,
+	}
+	return ret,nil
+}
+
+// Resolver for queryServiceTS
+func (c *resolverConfig) getGnsBarChildrenqueryServiceTSResolver(obj *model.GnsBarChildren, svcMetric *string, startTime *string, endTime *string, timeInterval *string) (*model.TimeSeriesData,error) {
+	ctx := context.Background()
+	var filters = make(map[string]string)
+	filters[""] = ""
+	resp, err := grpcServer().GetMetrics(ctx, &qm.MetricArg{QueryType: "/ServiceMetricSeries", StartTime: *startTime, EndTime: *endTime, Metric: *svcMetric, Filters: filters,TimeInterval: *timeInterval})
+	if err != nil {
+		fmt.Printf("Failed to getMetrics, err: %v", err)
+	}
+	b, _ := json.Marshal(resp.Data)
+	data := string(b)
+	ret := &model.TimeSeriesData{
+		Data: &data,
+	}
+	return ret,nil
+}
+
+// Resolver for queryIncomingAPIs
+func (c *resolverConfig) getGnsBarChildrenqueryIncomingAPIsResolver(obj *model.GnsBarChildren, startTime *string, endTime *string, destinationService *string, destinationServiceVersion *string, timeInterval *string, timeZone *string) (*model.TimeSeriesData,error) {
+	ctx := context.Background()
+	var filters = make(map[string]string)
+	filters[""] = ""
+	resp, err := grpcServer().GetMetrics(ctx, &qm.MetricArg{QueryType: "/IncomingAPIs", StartTime: *startTime, EndTime: *endTime, Metric: "", Filters: filters,TimeInterval: *timeInterval})
+	if err != nil {
+		fmt.Printf("Failed to getMetrics, err: %v", err)
+	}
+	b, _ := json.Marshal(resp.Data)
+	data := string(b)
+	ret := &model.TimeSeriesData{
+		Data: &data,
+	}
+	return ret,nil
+}
+
+// Resolver for queryOutgoingAPIs
+func (c *resolverConfig) getGnsBarChildrenqueryOutgoingAPIsResolver(obj *model.GnsBarChildren, startTime *string, endTime *string, timeInterval *string, timeZone *string) (*model.TimeSeriesData,error) {
+	ctx := context.Background()
+	var filters = make(map[string]string)
+	filters[""] = ""
+	resp, err := grpcServer().GetMetrics(ctx, &qm.MetricArg{QueryType: "/OutgoingAPIs", StartTime: *startTime, EndTime: *endTime, Metric: "", Filters: filters,TimeInterval: *timeInterval})
+	if err != nil {
+		fmt.Printf("Failed to getMetrics, err: %v", err)
+	}
+	b, _ := json.Marshal(resp.Data)
+	data := string(b)
+	ret := &model.TimeSeriesData{
+		Data: &data,
+	}
+	return ret,nil
+}
+
+// Resolver for queryIncomingTCP
+func (c *resolverConfig) getGnsBarChildrenqueryIncomingTCPResolver(obj *model.GnsBarChildren, startTime *string, endTime *string, destinationService *string, destinationServiceVersion *string) (*model.TimeSeriesData,error) {
+	ctx := context.Background()
+	var filters = make(map[string]string)
+	filters[""] = ""
+	resp, err := grpcServer().GetMetrics(ctx, &qm.MetricArg{QueryType: "/IncomingTCP", StartTime: *startTime, EndTime: *endTime, Metric: "", Filters: filters,TimeInterval: ""})
+	if err != nil {
+		fmt.Printf("Failed to getMetrics, err: %v", err)
+	}
+	b, _ := json.Marshal(resp.Data)
+	data := string(b)
+	ret := &model.TimeSeriesData{
+		Data: &data,
+	}
+	return ret,nil
+}
+
+// Resolver for queryOutgoingTCP
+func (c *resolverConfig) getGnsBarChildrenqueryOutgoingTCPResolver(obj *model.GnsBarChildren, startTime *string, endTime *string, destinationService *string, destinationServiceVersion *string) (*model.TimeSeriesData,error) {
+	ctx := context.Background()
+	var filters = make(map[string]string)
+	filters[""] = ""
+	resp, err := grpcServer().GetMetrics(ctx, &qm.MetricArg{QueryType: "/OutgoingTCP", StartTime: *startTime, EndTime: *endTime, Metric: "", Filters: filters,TimeInterval: ""})
+	if err != nil {
+		fmt.Printf("Failed to getMetrics, err: %v", err)
+	}
+	b, _ := json.Marshal(resp.Data)
+	data := string(b)
+	ret := &model.TimeSeriesData{
+		Data: &data,
+	}
+	return ret,nil
+}
+
+// Resolver for queryServiceTopology
+func (c *resolverConfig) getGnsBarChildrenqueryServiceTopologyResolver(obj *model.GnsBarChildren, startTime *string, endTime *string, metricStringArray *string) (*model.TimeSeriesData,error) {
+	ctx := context.Background()
+	var filters = make(map[string]string)
+	filters[""] = ""
+	resp, err := grpcServer().GetMetrics(ctx, &qm.MetricArg{QueryType: "/ServiceTopology", StartTime: *startTime, EndTime: *endTime, Metric: *metricStringArray, Filters: filters,TimeInterval: ""})
+	if err != nil {
+		fmt.Printf("Failed to getMetrics, err: %v", err)
+	}
+	b, _ := json.Marshal(resp.Data)
+	data := string(b)
+	ret := &model.TimeSeriesData{
+		Data: &data,
+	}
+	return ret,nil
+}
+
+
+
+//////////////////////////////////////
+// Non Singleton Resolver for Parent Node
+// PKG: Gns, NODE: Gns
+//////////////////////////////////////
+func (c *resolverConfig) getRootResolver(id *string) (*model.GnsBarLinks, error) {
+	k8sApiConfig := getK8sAPIEndpointConfig()
+	nexusClient, err := nexus_client.NewForConfig(k8sApiConfig)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get k8s client config: %s", err)
+	}
+	nc = nexusClient
+	if id != nil && *id != "" {
+		vBarLinks, err := nc.GetGnsBarLinks(context.TODO(), *id)
+		if err != nil {
+			log.Errorf("Error getting root node %s", err)
+			return nil, fmt.Errorf("failed to get root node: %s", err)
+		}
+		c.vGnsBarLinks = vBarLinks
+		id := vBarLinks.DisplayName()
+parentLabels := map[string]interface{}{"barlinkses.gns.tsm.tanzu.vmware.com":id}
+vName := string(vBarLinks.Spec.Name)
+
+		ret := &model.GnsBarLinks {
+	Id: &id,
+	ParentLabels: parentLabels,
+	Name: &vName,
+	}
+		return ret, nil
+	}
+	ret := &model.GnsBarLinks{}
+	return ret, nil
+}
+
+
+//////////////////////////////////////
+// CustomQuery Resolver for Node: BarLinks in PKG: Gns
+//////////////////////////////////////
+
+// Resolver for queryServiceTable
+func (c *resolverConfig) getGnsBarLinksqueryServiceTableResolver(obj *model.GnsBarLinks, startTime *string, endTime *string, systemServices *bool, showGateways *bool, groupby *string, noMetrics *bool) (*model.TimeSeriesData,error) {
+	ctx := context.Background()
+	var filters = make(map[string]string)
+	filters[""] = ""
+	resp, err := grpcServer().GetMetrics(ctx, &qm.MetricArg{QueryType: "/ServiceTable", StartTime: *startTime, EndTime: *endTime, Metric: "", Filters: filters,TimeInterval: ""})
+	if err != nil {
+		fmt.Printf("Failed to getMetrics, err: %v", err)
+	}
+	b, _ := json.Marshal(resp.Data)
+	data := string(b)
+	ret := &model.TimeSeriesData{
+		Data: &data,
+	}
+	return ret,nil
+}
+
+// Resolver for queryServiceVersionTable
+func (c *resolverConfig) getGnsBarLinksqueryServiceVersionTableResolver(obj *model.GnsBarLinks, startTime *string, endTime *string, systemServices *bool, showGateways *bool, noMetrics *bool) (*model.TimeSeriesData,error) {
+	ctx := context.Background()
+	var filters = make(map[string]string)
+	filters[""] = ""
+	resp, err := grpcServer().GetMetrics(ctx, &qm.MetricArg{QueryType: "/ServiceTable", StartTime: *startTime, EndTime: *endTime, Metric: "", Filters: filters,TimeInterval: ""})
+	if err != nil {
+		fmt.Printf("Failed to getMetrics, err: %v", err)
+	}
+	b, _ := json.Marshal(resp.Data)
+	data := string(b)
+	ret := &model.TimeSeriesData{
+		Data: &data,
+	}
+	return ret,nil
+}
+
+// Resolver for queryServiceTS
+func (c *resolverConfig) getGnsBarLinksqueryServiceTSResolver(obj *model.GnsBarLinks, svcMetric *string, startTime *string, endTime *string, timeInterval *string) (*model.TimeSeriesData,error) {
+	ctx := context.Background()
+	var filters = make(map[string]string)
+	filters[""] = ""
+	resp, err := grpcServer().GetMetrics(ctx, &qm.MetricArg{QueryType: "/ServiceMetricSeries", StartTime: *startTime, EndTime: *endTime, Metric: *svcMetric, Filters: filters,TimeInterval: *timeInterval})
+	if err != nil {
+		fmt.Printf("Failed to getMetrics, err: %v", err)
+	}
+	b, _ := json.Marshal(resp.Data)
+	data := string(b)
+	ret := &model.TimeSeriesData{
+		Data: &data,
+	}
+	return ret,nil
+}
+
+// Resolver for queryIncomingAPIs
+func (c *resolverConfig) getGnsBarLinksqueryIncomingAPIsResolver(obj *model.GnsBarLinks, startTime *string, endTime *string, destinationService *string, destinationServiceVersion *string, timeInterval *string, timeZone *string) (*model.TimeSeriesData,error) {
+	ctx := context.Background()
+	var filters = make(map[string]string)
+	filters[""] = ""
+	resp, err := grpcServer().GetMetrics(ctx, &qm.MetricArg{QueryType: "/IncomingAPIs", StartTime: *startTime, EndTime: *endTime, Metric: "", Filters: filters,TimeInterval: *timeInterval})
+	if err != nil {
+		fmt.Printf("Failed to getMetrics, err: %v", err)
+	}
+	b, _ := json.Marshal(resp.Data)
+	data := string(b)
+	ret := &model.TimeSeriesData{
+		Data: &data,
+	}
+	return ret,nil
+}
+
+// Resolver for queryOutgoingAPIs
+func (c *resolverConfig) getGnsBarLinksqueryOutgoingAPIsResolver(obj *model.GnsBarLinks, startTime *string, endTime *string, timeInterval *string, timeZone *string) (*model.TimeSeriesData,error) {
+	ctx := context.Background()
+	var filters = make(map[string]string)
+	filters[""] = ""
+	resp, err := grpcServer().GetMetrics(ctx, &qm.MetricArg{QueryType: "/OutgoingAPIs", StartTime: *startTime, EndTime: *endTime, Metric: "", Filters: filters,TimeInterval: *timeInterval})
+	if err != nil {
+		fmt.Printf("Failed to getMetrics, err: %v", err)
+	}
+	b, _ := json.Marshal(resp.Data)
+	data := string(b)
+	ret := &model.TimeSeriesData{
+		Data: &data,
+	}
+	return ret,nil
+}
+
+// Resolver for queryIncomingTCP
+func (c *resolverConfig) getGnsBarLinksqueryIncomingTCPResolver(obj *model.GnsBarLinks, startTime *string, endTime *string, destinationService *string, destinationServiceVersion *string) (*model.TimeSeriesData,error) {
+	ctx := context.Background()
+	var filters = make(map[string]string)
+	filters[""] = ""
+	resp, err := grpcServer().GetMetrics(ctx, &qm.MetricArg{QueryType: "/IncomingTCP", StartTime: *startTime, EndTime: *endTime, Metric: "", Filters: filters,TimeInterval: ""})
+	if err != nil {
+		fmt.Printf("Failed to getMetrics, err: %v", err)
+	}
+	b, _ := json.Marshal(resp.Data)
+	data := string(b)
+	ret := &model.TimeSeriesData{
+		Data: &data,
+	}
+	return ret,nil
+}
+
+// Resolver for queryOutgoingTCP
+func (c *resolverConfig) getGnsBarLinksqueryOutgoingTCPResolver(obj *model.GnsBarLinks, startTime *string, endTime *string, destinationService *string, destinationServiceVersion *string) (*model.TimeSeriesData,error) {
+	ctx := context.Background()
+	var filters = make(map[string]string)
+	filters[""] = ""
+	resp, err := grpcServer().GetMetrics(ctx, &qm.MetricArg{QueryType: "/OutgoingTCP", StartTime: *startTime, EndTime: *endTime, Metric: "", Filters: filters,TimeInterval: ""})
+	if err != nil {
+		fmt.Printf("Failed to getMetrics, err: %v", err)
+	}
+	b, _ := json.Marshal(resp.Data)
+	data := string(b)
+	ret := &model.TimeSeriesData{
+		Data: &data,
+	}
+	return ret,nil
+}
+
+// Resolver for queryServiceTopology
+func (c *resolverConfig) getGnsBarLinksqueryServiceTopologyResolver(obj *model.GnsBarLinks, startTime *string, endTime *string, metricStringArray *string) (*model.TimeSeriesData,error) {
 	ctx := context.Background()
 	var filters = make(map[string]string)
 	filters[""] = ""
@@ -675,17 +1170,15 @@ func (c *resolverConfig) getGnsBarqueryServiceTopologyResolver(obj *model.GnsBar
 
 
 //////////////////////////////////////
-// Child/Link Node : Config Config
-// Resolver for Root
+// CHILD RESOLVER (Non Singleton)
+// FieldName: Config Node: Root PKG: Root
 //////////////////////////////////////
-func (c *resolverConfig) getRootRootConfigResolver(obj *model.RootRoot) (*model.ConfigConfig, error) {
-	vConfig, err := nc.RootRoot().GetConfig(context.TODO())
+func (c *resolverConfig) getRootRootConfigResolver(obj *model.RootRoot, id *string) (*model.ConfigConfig, error) {
+	vConfig, err := nc.RootRoot().GetConfig(context.TODO(), *id)
 	if err != nil {
 	    log.Errorf("Error getting node %s", err)
         return nil, fmt.Errorf("failed to get node: %s", err)
     }
-
-
 	c.vConfigConfig = vConfig
 	id := vConfig.DisplayName()
 parentLabels := map[string]interface{}{"configs.config.tsm.tanzu.vmware.com":id}
@@ -712,7 +1205,6 @@ ClusterNamespacesData := string(ClusterNamespaces)
     for k, v := range obj.ParentLabels {
         parentLabels[k] = v
     }
-
 	ret := &model.ConfigConfig {
 	Id: &id,
 	ParentLabels: parentLabels,
@@ -730,18 +1222,21 @@ ClusterNamespacesData := string(ClusterNamespaces)
 	return ret, nil
 }
 
+
+
+
+
+
 //////////////////////////////////////
-// Child/Link Node : GNS Gns
-// Resolver for Config
+// CHILD RESOLVER (Non Singleton)
+// FieldName: GNS Node: Config PKG: Config
 //////////////////////////////////////
-func (c *resolverConfig) getConfigConfigGNSResolver(obj *model.ConfigConfig) (*model.GnsGns, error) {
-	vGns, err := nc.RootRoot().Config(obj.ParentLabels["configs.config.tsm.tanzu.vmware.com"].(string)).GetGNS(context.TODO())
+func (c *resolverConfig) getConfigConfigGNSResolver(obj *model.ConfigConfig, id *string) (*model.GnsGns, error) {
+	vGns, err := nc.RootRoot().Config(obj.ParentLabels["configs.config.tsm.tanzu.vmware.com"].(string)).GetGNS(context.TODO(), *id)
 	if err != nil {
 	    log.Errorf("Error getting node %s", err)
         return nil, fmt.Errorf("failed to get node: %s", err)
     }
-
-
 	c.vGnsGns = vGns
 	id := vGns.DisplayName()
 parentLabels := map[string]interface{}{"gnses.gns.tsm.tanzu.vmware.com":id}
@@ -766,7 +1261,6 @@ Array5Data := string(Array5)
     for k, v := range obj.ParentLabels {
         parentLabels[k] = v
     }
-
 	ret := &model.GnsGns {
 	Id: &id,
 	ParentLabels: parentLabels,
@@ -784,145 +1278,195 @@ Array5Data := string(Array5)
 	return ret, nil
 }
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 //////////////////////////////////////
-// Child/Link Node : FooLink Bar
-// Resolver for Gns
+// CHILD RESOLVER (Singleton)
+// FieldName: FooChild Node: Gns PKG: Gns
 //////////////////////////////////////
-func (c *resolverConfig) getGnsGnsFooLinkResolver(obj *model.GnsGns) (*model.GnsBar, error) {
-	vBar, err := nc.RootRoot().Config(obj.ParentLabels["configs.config.tsm.tanzu.vmware.com"].(string)).GNS().GetFooLink(context.TODO())
+func (c *resolverConfig) getGnsGnsFooChildResolver(obj *model.GnsGns) (*model.GnsBarChild, error) {
+	vBarChild, err := nc.RootRoot().Config(obj.ParentLabels["configs.config.tsm.tanzu.vmware.com"].(string)).GNS(obj.ParentLabels["gnses.gns.tsm.tanzu.vmware.com"].(string)).GetFooChild(context.TODO())
 	if err != nil {
 	    log.Errorf("Error getting node %s", err)
         return nil, fmt.Errorf("failed to get node: %s", err)
     }
-
-
-	c.vGnsBar = vBar
-	id := vBar.DisplayName()
-parentLabels := map[string]interface{}{"bars.gns.tsm.tanzu.vmware.com":id}
+	c.vGnsBarChild = vBarChild
+	id := vBarChild.DisplayName()
+parentLabels := map[string]interface{}{"barchilds.gns.tsm.tanzu.vmware.com":id}
+vName := string(vBarChild.Spec.Name)
 
     for k, v := range obj.ParentLabels {
         parentLabels[k] = v
     }
-
-	ret := &model.GnsBar {
+	ret := &model.GnsBarChild {
 	Id: &id,
 	ParentLabels: parentLabels,
+	Name: &vName,
 	}
 	return ret, nil
 }
 
 //////////////////////////////////////
-// Child/Link Node : FooChild Bar
-// Resolver for Gns
+// LINK RESOLVER (Non Singleton)
+// FieldName: FooLink Node: Gns PKG: Gns
 //////////////////////////////////////
-func (c *resolverConfig) getGnsGnsFooChildResolver(obj *model.GnsGns) (*model.GnsBar, error) {
-	vBar, err := nc.RootRoot().Config(obj.ParentLabels["configs.config.tsm.tanzu.vmware.com"].(string)).GNS().GetFooChild(context.TODO())
+func (c *resolverConfig) getGnsGnsFooLinkResolver(obj *model.GnsGns, id *string) (*model.GnsBarLink, error) {
+	vBarLinkParent, err := nc.RootRoot().Config(obj.ParentLabels["configs.config.tsm.tanzu.vmware.com"].(string)).GetGNS(context.TODO(), obj.ParentLabels["gnses.gns.tsm.tanzu.vmware.com"].(string))
+	if err != nil {
+	    log.Errorf("Error getting Parent node details %s", err)
+        return nil, fmt.Errorf("failed to get Parent node details: %s", err)
+    }
+	vBarLink, err := vBarLinkParent.GetFooLink(context.TODO(), *id)
 	if err != nil {
 	    log.Errorf("Error getting node %s", err)
         return nil, fmt.Errorf("failed to get node: %s", err)
     }
-
-
-	c.vGnsBar = vBar
-	id := vBar.DisplayName()
-parentLabels := map[string]interface{}{"bars.gns.tsm.tanzu.vmware.com":id}
+	c.vGnsBarLink = vBarLink
+	id := vBarLink.DisplayName()
+parentLabels := map[string]interface{}{"barlinks.gns.tsm.tanzu.vmware.com":id}
+vName := string(vBarLink.Spec.Name)
 
     for k, v := range obj.ParentLabels {
         parentLabels[k] = v
     }
-
-	ret := &model.GnsBar {
+	ret := &model.GnsBarLink {
 	Id: &id,
 	ParentLabels: parentLabels,
+	Name: &vName,
 	}
 	return ret, nil
 }
 
 //////////////////////////////////////
-// Children/Links Node : FooLinks
-// Resolver for Gns
+// CHILDREN RESOLVER (Non Singleton
+// FieldName: FooChildren Node: Gns PKG: Gns
 //////////////////////////////////////
-func (c *resolverConfig) getGnsGnsFooLinksResolver(obj *model.GnsGns, id *string) ([]*model.GnsBar, error) {
-	var vGnsBarList []*model.GnsBar
+func (c *resolverConfig) getGnsGnsFooChildrenResolver(obj *model.GnsGns, id *string) ([]*model.GnsBarChildren, error) {
+	var vGnsBarChildrenList []*model.GnsBarChildren
 	if id != nil && *id != "" {
-		vBar, err := nc.RootRoot().Config(obj.ParentLabels["configs.config.tsm.tanzu.vmware.com"].(string)).GNS().GetFooLinks(context.TODO(), *id)
+		vBarChildren, err := nc.RootRoot().Config(obj.ParentLabels["configs.config.tsm.tanzu.vmware.com"].(string)).GNS(obj.ParentLabels["gnses.gns.tsm.tanzu.vmware.com"].(string)).GetFooChildren(context.TODO(), *id)
 		if err != nil {
 	        log.Errorf("Error getting node %s", err)
             return nil, fmt.Errorf("failed to get node: %s", err)
         }
-		id := vBar.DisplayName()
-parentLabels := map[string]interface{}{"bars.gns.tsm.tanzu.vmware.com":id}
+		id := vBarChildren.DisplayName()
+parentLabels := map[string]interface{}{"barchildrens.gns.tsm.tanzu.vmware.com":id}
+vName := string(vBarChildren.Spec.Name)
 
         for k, v := range obj.ParentLabels {
             parentLabels[k] = v
         }
-
-		ret := &model.GnsBar {
+		ret := &model.GnsBarChildren {
 	Id: &id,
 	ParentLabels: parentLabels,
+	Name: &vName,
 	}
-		vGnsBarList = append(vGnsBarList, ret)
-		return vGnsBarList, nil
-	}
-	for i := range c.vGnsGns.Spec.FooLinksGvk {
-		vBar, err := nc.RootRoot().Config(obj.ParentLabels["configs.config.tsm.tanzu.vmware.com"].(string)).GNS().GetFooLinks(context.TODO(), i)
-		if err != nil {
-	        log.Errorf("Error getting node %s", err)
-            return nil, fmt.Errorf("failed to get node: %s", err)
-		}
-		id := vBar.DisplayName()
-parentLabels := map[string]interface{}{"bars.gns.tsm.tanzu.vmware.com":id}
-
-		ret := &model.GnsBar {
-	Id: &id,
-	ParentLabels: parentLabels,
-	}
-		vGnsBarList = append(vGnsBarList, ret)
-	}
-	return vGnsBarList, nil
-}
-
-//////////////////////////////////////
-// Children/Links Node : FooChildren
-// Resolver for Gns
-//////////////////////////////////////
-func (c *resolverConfig) getGnsGnsFooChildrenResolver(obj *model.GnsGns, id *string) ([]*model.GnsBar, error) {
-	var vGnsBarList []*model.GnsBar
-	if id != nil && *id != "" {
-		vBar, err := nc.RootRoot().Config(obj.ParentLabels["configs.config.tsm.tanzu.vmware.com"].(string)).GNS().GetFooChildren(context.TODO(), *id)
-		if err != nil {
-	        log.Errorf("Error getting node %s", err)
-            return nil, fmt.Errorf("failed to get node: %s", err)
-        }
-		id := vBar.DisplayName()
-parentLabels := map[string]interface{}{"bars.gns.tsm.tanzu.vmware.com":id}
-
-        for k, v := range obj.ParentLabels {
-            parentLabels[k] = v
-        }
-
-		ret := &model.GnsBar {
-	Id: &id,
-	ParentLabels: parentLabels,
-	}
-		vGnsBarList = append(vGnsBarList, ret)
-		return vGnsBarList, nil
+		vGnsBarChildrenList = append(vGnsBarChildrenList, ret)
+		return vGnsBarChildrenList, nil
 	}
 	for i := range c.vGnsGns.Spec.FooChildrenGvk {
-		vBar, err := nc.RootRoot().Config(obj.ParentLabels["configs.config.tsm.tanzu.vmware.com"].(string)).GNS().GetFooChildren(context.TODO(), i)
+		vBarChildren, err := nc.RootRoot().Config(obj.ParentLabels["configs.config.tsm.tanzu.vmware.com"].(string)).GNS(obj.ParentLabels["gnses.gns.tsm.tanzu.vmware.com"].(string)).GetFooChildren(context.TODO(), i)
 		if err != nil {
 	        log.Errorf("Error getting node %s", err)
             return nil, fmt.Errorf("failed to get node: %s", err)
 		}
-		id := vBar.DisplayName()
-parentLabels := map[string]interface{}{"bars.gns.tsm.tanzu.vmware.com":id}
+		id := vBarChildren.DisplayName()
+parentLabels := map[string]interface{}{"barchildrens.gns.tsm.tanzu.vmware.com":id}
+vName := string(vBarChildren.Spec.Name)
 
-		ret := &model.GnsBar {
+		ret := &model.GnsBarChildren {
 	Id: &id,
 	ParentLabels: parentLabels,
+	Name: &vName,
 	}
-		vGnsBarList = append(vGnsBarList, ret)
+		vGnsBarChildrenList = append(vGnsBarChildrenList, ret)
 	}
-	return vGnsBarList, nil
+	return vGnsBarChildrenList, nil
 }
+
+//////////////////////////////////////
+// LINKS RESOLVER (Singleton/Non Singleton)
+// FieldName: FooLinks Node: Gns PKG: Gns
+//////////////////////////////////////
+func (c *resolverConfig) getGnsGnsFooLinksResolver(obj *model.GnsGns, id *string) ([]*model.GnsBarLinks, error) {
+	var vGnsBarLinksList []*model.GnsBarLinks
+	if id != nil && *id != "" {
+		vBarLinksParent, err := nc.RootRoot().Config(obj.ParentLabels["configs.config.tsm.tanzu.vmware.com"].(string)).GetGNS(context.TODO(), obj.ParentLabels["gnses.gns.tsm.tanzu.vmware.com"].(string))
+		if err != nil {
+			log.Errorf("Error getting Parent node details %s", err)
+			return nil, fmt.Errorf("failed to get Parent node details: %s", err)
+		}
+		vBarLinks, err := vBarLinksParent.GetFooLinks(context.TODO())
+		if err != nil {
+			log.Errorf("Error getting node %s", err)
+			return nil, fmt.Errorf("failed to get node: %s", err)
+		}
+		id := vBarLinks.DisplayName()
+parentLabels := map[string]interface{}{"barlinkses.gns.tsm.tanzu.vmware.com":id}
+vName := string(vBarLinks.Spec.Name)
+
+        for k, v := range obj.ParentLabels {
+            parentLabels[k] = v
+        }
+		ret := &model.GnsBarLinks {
+	Id: &id,
+	ParentLabels: parentLabels,
+	Name: &vName,
+	}
+		vGnsBarLinksList = append(vGnsBarLinksList, ret)
+		return vGnsBarLinksList, nil
+	}
+	for i := range c.vGnsGns.Spec.FooLinksGvk {
+		vBarLinksParent, err := nc.RootRoot().Config(obj.ParentLabels["configs.config.tsm.tanzu.vmware.com"].(string)).GetGNS(context.TODO(), obj.ParentLabels["gnses.gns.tsm.tanzu.vmware.com"].(string))
+		if err != nil {
+			log.Errorf("Error getting Parent node details %s", err)
+			return nil, fmt.Errorf("failed to get Parent node details: %s", err)
+		}
+		vBarLinks, err := vBarLinksParent.GetFooLinks(context.TODO())
+		if err != nil {
+			log.Errorf("Error getting node %s", err)
+			return nil, fmt.Errorf("failed to get node: %s", err)
+		}
+		id := vBarLinks.DisplayName()
+parentLabels := map[string]interface{}{"barlinkses.gns.tsm.tanzu.vmware.com":id}
+vName := string(vBarLinks.Spec.Name)
+
+		ret := &model.GnsBarLinks {
+	Id: &id,
+	ParentLabels: parentLabels,
+	Name: &vName,
+	}
+		vGnsBarLinksList = append(vGnsBarLinksList, ret)
+	}
+	return vGnsBarLinksList, nil
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
