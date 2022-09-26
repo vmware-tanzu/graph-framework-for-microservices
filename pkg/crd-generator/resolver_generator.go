@@ -477,6 +477,7 @@ func GenerateGraphqlResolverVars(baseGroupName, crdModulePath string, pkgs parse
 			f.CRDName = retMap[f.FieldTypePkgPath].CRDName
 			f.ChainAPI = retMap[f.FieldTypePkgPath].ChainAPI
 			f.IsSingleton = retMap[f.FieldTypePkgPath].IsSingleton
+			f.LinkAPI = LinkAPI[f.PkgName+f.NodeName]
 			resNodeProp.ChildrenFields = append(resNodeProp.ChildrenFields, f)
 		}
 		for _, f := range n.LinkFields {

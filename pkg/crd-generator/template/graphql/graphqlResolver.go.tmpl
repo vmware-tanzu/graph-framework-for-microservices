@@ -326,8 +326,18 @@ func (c *resolverConfig) get{{$children.PkgName}}{{$children.NodeName}}{{$childr
 		v{{$children.FieldTypePkgPath}}List = append(v{{$children.FieldTypePkgPath}}List, ret)
 		return v{{$children.FieldTypePkgPath}}List, nil
 	}
-	for i := range c.v{{$children.PkgName}}{{$children.NodeName}}.Spec.{{$children.FieldName}}Gvk {
-		{{ if $children.IsSingleton }}v{{$children.BaseTypeName}}, err := {{$children.ChainAPI}}.Get{{$children.FieldName}}(context.TODO()){{ else }}v{{$children.BaseTypeName}}, err := {{$children.ChainAPI}}.Get{{$children.FieldName}}(context.TODO(), i){{ end }}
+	v{{$children.BaseTypeName}}Parent, err := {{$children.LinkAPI}}
+	if err != nil {
+	    log.Errorf("Error getting Parent node details %s", err)
+        return nil, fmt.Errorf("failed to get Parent node details: %s", err)
+    }
+	v{{$children.BaseTypeName}}AllObj, err := v{{$children.BaseTypeName}}Parent.GetAll{{$children.FieldName}}(context.TODO())
+	if err != nil {
+	    log.Errorf("Error getting node %s", err)
+        return nil, fmt.Errorf("failed to get node: %s", err)
+    }
+	for _, i := range v{{$children.BaseTypeName}}AllObj {
+		{{ if $children.IsSingleton }}v{{$children.BaseTypeName}}, err := {{$children.ChainAPI}}.Get{{$children.FieldName}}(context.TODO()){{ else }}v{{$children.BaseTypeName}}, err := {{$children.ChainAPI}}.Get{{$children.FieldName}}(context.TODO(), i.DisplayName()){{ end }}
 		if err != nil {
 	        log.Errorf("Error getting node %s", err)
             return nil, fmt.Errorf("failed to get node: %s", err)
@@ -364,13 +374,23 @@ func (c *resolverConfig) get{{$links.PkgName}}{{$links.NodeName}}{{$links.FieldN
 		v{{$links.FieldTypePkgPath}}List = append(v{{$links.FieldTypePkgPath}}List, ret)
 		return v{{$links.FieldTypePkgPath}}List, nil
 	}
-	for i := range c.v{{$links.PkgName}}{{$links.NodeName}}.Spec.{{$links.FieldName}}Gvk {
+	v{{$links.BaseTypeName}}Parent, err := {{$links.LinkAPI}}
+	if err != nil {
+	    log.Errorf("Error getting Parent node details %s", err)
+        return nil, fmt.Errorf("failed to get Parent node details: %s", err)
+    }
+	v{{$links.BaseTypeName}}AllObj, err := v{{$links.BaseTypeName}}Parent.GetAll{{$links.FieldName}}(context.TODO())
+	if err != nil {
+	    log.Errorf("Error getting node %s", err)
+        return nil, fmt.Errorf("failed to get node: %s", err)
+    }
+	for _, i := range v{{$links.BaseTypeName}}AllObj {
 		v{{$links.BaseTypeName}}Parent, err := {{$links.LinkAPI}}
 		if err != nil {
 			log.Errorf("Error getting Parent node details %s", err)
 			return nil, fmt.Errorf("failed to get Parent node details: %s", err)
 		}
-		v{{$links.BaseTypeName}}, err := v{{$links.BaseTypeName}}Parent.Get{{$links.FieldName}}(context.TODO(), i)
+		v{{$links.BaseTypeName}}, err := v{{$links.BaseTypeName}}Parent.Get{{$links.FieldName}}(context.TODO(), i.DisplayName())
 		if err != nil {
 			log.Errorf("Error getting node %s", err)
 			return nil, fmt.Errorf("failed to get node: %s", err)
