@@ -31,6 +31,7 @@ import (
 	baseauthenticationnexusorgv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/authentication.nexus.org/v1"
 	baseconfignexusorgv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/config.nexus.org/v1"
 	baseconnectnexusorgv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/connect.nexus.org/v1"
+	basedomainnexusorgv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/domain.nexus.org/v1"
 	baseroutenexusorgv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/route.nexus.org/v1"
 )
 
@@ -42,6 +43,7 @@ type Clientset struct {
 	authenticationNexusV1 *AuthenticationNexusV1
 	configNexusV1         *ConfigNexusV1
 	connectNexusV1        *ConnectNexusV1
+	domainNexusV1         *DomainNexusV1
 	routeNexusV1          *RouteNexusV1
 }
 
@@ -59,6 +61,7 @@ func NewForConfig(config *rest.Config) (*Clientset, error) {
 	client.authenticationNexusV1 = newAuthenticationNexusV1(client)
 	client.configNexusV1 = newConfigNexusV1(client)
 	client.connectNexusV1 = newConnectNexusV1(client)
+	client.domainNexusV1 = newDomainNexusV1(client)
 	client.routeNexusV1 = newRouteNexusV1(client)
 
 	return client, nil
@@ -74,6 +77,7 @@ func NewFakeClient() *Clientset {
 	client.authenticationNexusV1 = newAuthenticationNexusV1(client)
 	client.configNexusV1 = newConfigNexusV1(client)
 	client.connectNexusV1 = newConnectNexusV1(client)
+	client.domainNexusV1 = newDomainNexusV1(client)
 	client.routeNexusV1 = newRouteNexusV1(client)
 
 	return client
@@ -108,6 +112,9 @@ func (c *Clientset) Config() *ConfigNexusV1 {
 }
 func (c *Clientset) Connect() *ConnectNexusV1 {
 	return c.connectNexusV1
+}
+func (c *Clientset) Domain() *DomainNexusV1 {
+	return c.domainNexusV1
 }
 func (c *Clientset) Route() *RouteNexusV1 {
 	return c.routeNexusV1
@@ -169,6 +176,16 @@ type ConnectNexusV1 struct {
 
 func newConnectNexusV1(client *Clientset) *ConnectNexusV1 {
 	return &ConnectNexusV1{
+		client: client,
+	}
+}
+
+type DomainNexusV1 struct {
+	client *Clientset
+}
+
+func newDomainNexusV1(client *Clientset) *DomainNexusV1 {
+	return &DomainNexusV1{
 		client: client,
 	}
 }
@@ -272,12 +289,11 @@ func (group *ApiNexusV1) UpdateNexusByName(ctx context.Context,
 	}
 
 	var patch Patch
-	patchOpMeta := PatchOp{
+	patch = append(patch, PatchOp{
 		Op:    "replace",
 		Path:  "/metadata",
 		Value: objToUpdate.ObjectMeta,
-	}
-	patch = append(patch, patchOpMeta)
+	})
 
 	marshaled, err := patch.Marshal()
 	if err != nil {
@@ -612,12 +628,11 @@ func (group *AdminNexusV1) UpdateProxyRuleByName(ctx context.Context,
 	}
 
 	var patch Patch
-	patchOpMeta := PatchOp{
+	patch = append(patch, PatchOp{
 		Op:    "replace",
 		Path:  "/metadata",
 		Value: objToUpdate.ObjectMeta,
-	}
-	patch = append(patch, patchOpMeta)
+	})
 
 	patchValueMatchCondition :=
 		objToUpdate.Spec.MatchCondition
@@ -753,6 +768,14 @@ func (group *ApigatewayNexusV1) DeleteApiGatewayByName(ctx context.Context, hash
 		}
 	}
 
+	for _, v := range result.Spec.CorsGvk {
+		err := group.client.
+			Domain().DeleteCORSConfigByName(ctx, v.Name)
+		if err != nil {
+			return err
+		}
+	}
+
 	err = group.client.baseClient.
 		ApigatewayNexusV1().
 		ApiGateways().Delete(ctx, hashedName, metav1.DeleteOptions{})
@@ -806,6 +829,7 @@ func (group *ApigatewayNexusV1) CreateApiGatewayByName(ctx context.Context,
 
 	objToCreate.Spec.ProxyRulesGvk = nil
 	objToCreate.Spec.AuthnGvk = nil
+	objToCreate.Spec.CorsGvk = nil
 
 	result, err := group.client.baseClient.
 		ApigatewayNexusV1().
@@ -867,12 +891,11 @@ func (group *ApigatewayNexusV1) UpdateApiGatewayByName(ctx context.Context,
 	}
 
 	var patch Patch
-	patchOpMeta := PatchOp{
+	patch = append(patch, PatchOp{
 		Op:    "replace",
 		Path:  "/metadata",
 		Value: objToUpdate.ObjectMeta,
-	}
-	patch = append(patch, patchOpMeta)
+	})
 
 	marshaled, err := patch.Marshal()
 	if err != nil {
@@ -1064,6 +1087,76 @@ func (obj *ApigatewayApiGateway) DeleteAuthn(ctx context.Context) (err error) {
 	return
 }
 
+// GetAllCors returns all children of given type
+func (obj *ApigatewayApiGateway) GetAllCors(ctx context.Context) (
+	result []*DomainCORSConfig, err error) {
+	result = make([]*DomainCORSConfig, 0, len(obj.Spec.CorsGvk))
+	for _, v := range obj.Spec.CorsGvk {
+		l, err := obj.client.Domain().GetCORSConfigByName(ctx, v.Name)
+		if err != nil {
+			return nil, err
+		}
+		result = append(result, l)
+	}
+	return
+}
+
+// GetCors returns child which has given displayName
+func (obj *ApigatewayApiGateway) GetCors(ctx context.Context,
+	displayName string) (result *DomainCORSConfig, err error) {
+	l, ok := obj.Spec.CorsGvk[displayName]
+	if !ok {
+		return nil, NewChildNotFound(obj.DisplayName(), "Apigateway.ApiGateway", "Cors", displayName)
+	}
+	result, err = obj.client.Domain().GetCORSConfigByName(ctx, l.Name)
+	return
+}
+
+// AddCors calculates hashed name of the child to create based on objToCreate.Name
+// and parents names and creates it. objToCreate.Name is changed to the hashed name. Original name is preserved in
+// nexus/display_name label and can be obtained using DisplayName() method.
+func (obj *ApigatewayApiGateway) AddCors(ctx context.Context,
+	objToCreate *basedomainnexusorgv1.CORSConfig) (result *DomainCORSConfig, err error) {
+	if objToCreate.Labels == nil {
+		objToCreate.Labels = map[string]string{}
+	}
+	for _, v := range helper.GetCRDParentsMap()["apigateways.apigateway.nexus.org"] {
+		objToCreate.Labels[v] = obj.Labels[v]
+	}
+	objToCreate.Labels["apigateways.apigateway.nexus.org"] = obj.DisplayName()
+	if objToCreate.Labels[common.IS_NAME_HASHED_LABEL] != "true" {
+		objToCreate.Labels[common.DISPLAY_NAME_LABEL] = objToCreate.GetName()
+		objToCreate.Labels[common.IS_NAME_HASHED_LABEL] = "true"
+		hashedName := helper.GetHashedName(objToCreate.CRDName(), objToCreate.Labels, objToCreate.GetName())
+		objToCreate.Name = hashedName
+	}
+	result, err = obj.client.Domain().CreateCORSConfigByName(ctx, objToCreate)
+	updatedObj, getErr := obj.client.Apigateway().GetApiGatewayByName(ctx, obj.GetName())
+	if getErr == nil {
+		obj.ApiGateway = updatedObj.ApiGateway
+	}
+	return
+}
+
+// DeleteCors calculates hashed name of the child to delete based on displayName
+// and parents names and deletes it.
+
+func (obj *ApigatewayApiGateway) DeleteCors(ctx context.Context, displayName string) (err error) {
+	l, ok := obj.Spec.CorsGvk[displayName]
+	if !ok {
+		return NewChildNotFound(obj.DisplayName(), "Apigateway.ApiGateway", "Cors", displayName)
+	}
+	err = obj.client.Domain().DeleteCORSConfigByName(ctx, l.Name)
+	if err != nil {
+		return err
+	}
+	updatedObj, err := obj.client.Apigateway().GetApiGatewayByName(ctx, obj.GetName())
+	if err == nil {
+		obj.ApiGateway = updatedObj.ApiGateway
+	}
+	return
+}
+
 type apigatewayApigatewayNexusV1Chainer struct {
 	client       *Clientset
 	name         string
@@ -1162,6 +1255,53 @@ func (c *apigatewayApigatewayNexusV1Chainer) DeleteAuthn(ctx context.Context, na
 	c.parentLabels[common.IS_NAME_HASHED_LABEL] = "true"
 	hashedName := helper.GetHashedName("oidcs.authentication.nexus.org", c.parentLabels, name)
 	return c.client.Authentication().DeleteOIDCByName(ctx, hashedName)
+}
+
+func (c *apigatewayApigatewayNexusV1Chainer) Cors(name string) *corsconfigDomainNexusV1Chainer {
+	parentLabels := c.parentLabels
+	parentLabels["corsconfigs.domain.nexus.org"] = name
+	return &corsconfigDomainNexusV1Chainer{
+		client:       c.client,
+		name:         name,
+		parentLabels: parentLabels,
+	}
+}
+
+// GetCors calculates hashed name of the object based on displayName and it's parents and returns the object
+func (c *apigatewayApigatewayNexusV1Chainer) GetCors(ctx context.Context, displayName string) (result *DomainCORSConfig, err error) {
+	hashedName := helper.GetHashedName("corsconfigs.domain.nexus.org", c.parentLabels, displayName)
+	return c.client.Domain().GetCORSConfigByName(ctx, hashedName)
+}
+
+// AddCors calculates hashed name of the child to create based on objToCreate.Name
+// and parents names and creates it. objToCreate.Name is changed to the hashed name. Original name is preserved in
+// nexus/display_name label and can be obtained using DisplayName() method.
+func (c *apigatewayApigatewayNexusV1Chainer) AddCors(ctx context.Context,
+	objToCreate *basedomainnexusorgv1.CORSConfig) (result *DomainCORSConfig, err error) {
+	if objToCreate.Labels == nil {
+		objToCreate.Labels = map[string]string{}
+	}
+	for k, v := range c.parentLabels {
+		objToCreate.Labels[k] = v
+	}
+	if objToCreate.Labels[common.IS_NAME_HASHED_LABEL] != "true" {
+		objToCreate.Labels[common.DISPLAY_NAME_LABEL] = objToCreate.GetName()
+		objToCreate.Labels[common.IS_NAME_HASHED_LABEL] = "true"
+		hashedName := helper.GetHashedName("corsconfigs.domain.nexus.org", c.parentLabels, objToCreate.GetName())
+		objToCreate.Name = hashedName
+	}
+	return c.client.Domain().CreateCORSConfigByName(ctx, objToCreate)
+}
+
+// DeleteCors calculates hashed name of the child to delete based on displayName
+// and parents names and deletes it.
+func (c *apigatewayApigatewayNexusV1Chainer) DeleteCors(ctx context.Context, name string) (err error) {
+	if c.parentLabels == nil {
+		c.parentLabels = map[string]string{}
+	}
+	c.parentLabels[common.IS_NAME_HASHED_LABEL] = "true"
+	hashedName := helper.GetHashedName("corsconfigs.domain.nexus.org", c.parentLabels, name)
+	return c.client.Domain().DeleteCORSConfigByName(ctx, hashedName)
 }
 
 // GetOIDCByName returns object stored in the database under the hashedName which is a hash of display
@@ -1302,12 +1442,11 @@ func (group *AuthenticationNexusV1) UpdateOIDCByName(ctx context.Context,
 	}
 
 	var patch Patch
-	patchOpMeta := PatchOp{
+	patch = append(patch, PatchOp{
 		Op:    "replace",
 		Path:  "/metadata",
 		Value: objToUpdate.ObjectMeta,
-	}
-	patch = append(patch, patchOpMeta)
+	})
 
 	patchValueConfig :=
 		objToUpdate.Spec.Config
@@ -1576,12 +1715,11 @@ func (group *ConfigNexusV1) UpdateConfigByName(ctx context.Context,
 	}
 
 	var patch Patch
-	patchOpMeta := PatchOp{
+	patch = append(patch, PatchOp{
 		Op:    "replace",
 		Path:  "/metadata",
 		Value: objToUpdate.ObjectMeta,
-	}
-	patch = append(patch, patchOpMeta)
+	})
 
 	marshaled, err := patch.Marshal()
 	if err != nil {
@@ -2131,12 +2269,11 @@ func (group *ConnectNexusV1) UpdateConnectByName(ctx context.Context,
 	}
 
 	var patch Patch
-	patchOpMeta := PatchOp{
+	patch = append(patch, PatchOp{
 		Op:    "replace",
 		Path:  "/metadata",
 		Value: objToUpdate.ObjectMeta,
-	}
-	patch = append(patch, patchOpMeta)
+	})
 
 	marshaled, err := patch.Marshal()
 	if err != nil {
@@ -2568,12 +2705,11 @@ func (group *ConnectNexusV1) UpdateNexusEndpointByName(ctx context.Context,
 	}
 
 	var patch Patch
-	patchOpMeta := PatchOp{
+	patch = append(patch, PatchOp{
 		Op:    "replace",
 		Path:  "/metadata",
 		Value: objToUpdate.ObjectMeta,
-	}
-	patch = append(patch, patchOpMeta)
+	})
 
 	patchValueHost :=
 		objToUpdate.Spec.Host
@@ -2800,12 +2936,11 @@ func (group *ConnectNexusV1) UpdateReplicationConfigByName(ctx context.Context,
 	}
 
 	var patch Patch
-	patchOpMeta := PatchOp{
+	patch = append(patch, PatchOp{
 		Op:    "replace",
 		Path:  "/metadata",
 		Value: objToUpdate.ObjectMeta,
-	}
-	patch = append(patch, patchOpMeta)
+	})
 
 	patchValueAccessToken :=
 		objToUpdate.Spec.AccessToken
@@ -2976,6 +3111,226 @@ type replicationconfigConnectNexusV1Chainer struct {
 	parentLabels map[string]string
 }
 
+// GetCORSConfigByName returns object stored in the database under the hashedName which is a hash of display
+// name and parents names. Use it when you know hashed name of object.
+func (group *DomainNexusV1) GetCORSConfigByName(ctx context.Context, hashedName string) (*DomainCORSConfig, error) {
+	result, err := group.client.baseClient.
+		DomainNexusV1().
+		CORSConfigs().Get(ctx, hashedName, metav1.GetOptions{})
+	if err != nil {
+		return nil, err
+	}
+
+	return &DomainCORSConfig{
+		client:     group.client,
+		CORSConfig: result,
+	}, nil
+}
+
+// DeleteCORSConfigByName deletes object stored in the database under the hashedName which is a hash of
+// display name and parents names. Use it when you know hashed name of object.
+func (group *DomainNexusV1) DeleteCORSConfigByName(ctx context.Context, hashedName string) (err error) {
+
+	result, err := group.client.baseClient.
+		DomainNexusV1().
+		CORSConfigs().Get(ctx, hashedName, metav1.GetOptions{})
+	if err != nil {
+		return err
+	}
+
+	err = group.client.baseClient.
+		DomainNexusV1().
+		CORSConfigs().Delete(ctx, hashedName, metav1.DeleteOptions{})
+	if err != nil {
+		return err
+	}
+
+	var patch Patch
+
+	patchOp := PatchOp{
+		Op:   "remove",
+		Path: "/spec/corsGvk/" + result.DisplayName(),
+	}
+
+	patch = append(patch, patchOp)
+	marshaled, err := patch.Marshal()
+	if err != nil {
+		return err
+	}
+	parents := result.GetLabels()
+	if parents == nil {
+		parents = make(map[string]string)
+	}
+	parentName, ok := parents["apigateways.apigateway.nexus.org"]
+	if !ok {
+		parentName = helper.DEFAULT_KEY
+	}
+	if parents[common.IS_NAME_HASHED_LABEL] == "true" {
+		parentName = helper.GetHashedName("apigateways.apigateway.nexus.org", parents, parentName)
+	}
+	_, err = group.client.baseClient.
+		ApigatewayNexusV1().
+		ApiGateways().Patch(ctx, parentName, types.JSONPatchType, marshaled, metav1.PatchOptions{})
+	if err != nil {
+		return err
+	}
+
+	return
+}
+
+// CreateCORSConfigByName creates object in the database without hashing the name.
+// Use it directly ONLY when objToCreate.Name is hashed name of the object.
+func (group *DomainNexusV1) CreateCORSConfigByName(ctx context.Context,
+	objToCreate *basedomainnexusorgv1.CORSConfig) (*DomainCORSConfig, error) {
+	if objToCreate.GetLabels() == nil {
+		objToCreate.Labels = make(map[string]string)
+	}
+	if _, ok := objToCreate.Labels[common.DISPLAY_NAME_LABEL]; !ok {
+		objToCreate.Labels[common.DISPLAY_NAME_LABEL] = objToCreate.GetName()
+	}
+
+	result, err := group.client.baseClient.
+		DomainNexusV1().
+		CORSConfigs().Create(ctx, objToCreate, metav1.CreateOptions{})
+	if err != nil {
+		return nil, err
+	}
+
+	parentName, ok := objToCreate.GetLabels()["apigateways.apigateway.nexus.org"]
+	if !ok {
+		parentName = helper.DEFAULT_KEY
+	}
+	if objToCreate.Labels[common.IS_NAME_HASHED_LABEL] == "true" {
+		parentName = helper.GetHashedName("apigateways.apigateway.nexus.org", objToCreate.GetLabels(), parentName)
+	}
+
+	payload := "{\"spec\": {\"corsGvk\": {\"" + objToCreate.DisplayName() + "\": {\"name\": \"" + objToCreate.Name + "\",\"kind\": \"CORSConfig\", \"group\": \"domain.nexus.org\"}}}}"
+	_, err = group.client.baseClient.
+		ApigatewayNexusV1().
+		ApiGateways().Patch(ctx, parentName, types.MergePatchType, []byte(payload), metav1.PatchOptions{})
+	if err != nil {
+		return nil, err
+	}
+
+	return &DomainCORSConfig{
+		client:     group.client,
+		CORSConfig: result,
+	}, nil
+}
+
+// UpdateCORSConfigByName updates object stored in the database under the hashedName which is a hash of
+// display name and parents names.
+func (group *DomainNexusV1) UpdateCORSConfigByName(ctx context.Context,
+	objToUpdate *basedomainnexusorgv1.CORSConfig) (*DomainCORSConfig, error) {
+
+	// ResourceVersion must be set for update
+	if objToUpdate.ResourceVersion == "" {
+		current, err := group.client.baseClient.
+			DomainNexusV1().
+			CORSConfigs().Get(ctx, objToUpdate.GetName(), metav1.GetOptions{})
+		if err != nil {
+			return nil, err
+		}
+		objToUpdate.ResourceVersion = current.ResourceVersion
+	}
+
+	var patch Patch
+	patch = append(patch, PatchOp{
+		Op:    "replace",
+		Path:  "/metadata",
+		Value: objToUpdate.ObjectMeta,
+	})
+
+	patchValueOrigins :=
+		objToUpdate.Spec.Origins
+	patchOpOrigins := PatchOp{
+		Op:    "replace",
+		Path:  "/spec/origins",
+		Value: patchValueOrigins,
+	}
+	patch = append(patch, patchOpOrigins)
+
+	patchValueHeaders :=
+		objToUpdate.Spec.Headers
+	patchOpHeaders := PatchOp{
+		Op:    "replace",
+		Path:  "/spec/headers",
+		Value: patchValueHeaders,
+	}
+	patch = append(patch, patchOpHeaders)
+
+	marshaled, err := patch.Marshal()
+	if err != nil {
+		return nil, err
+	}
+	result, err := group.client.baseClient.
+		DomainNexusV1().
+		CORSConfigs().Patch(ctx, objToUpdate.GetName(), types.JSONPatchType, marshaled, metav1.PatchOptions{}, "")
+	if err != nil {
+		return nil, err
+	}
+
+	return &DomainCORSConfig{
+		client:     group.client,
+		CORSConfig: result,
+	}, nil
+}
+
+// ListCORSConfigs returns slice of all existing objects of this type. Selectors can be provided in opts parameter.
+func (group *DomainNexusV1) ListCORSConfigs(ctx context.Context,
+	opts metav1.ListOptions) (result []*DomainCORSConfig, err error) {
+	list, err := group.client.baseClient.DomainNexusV1().
+		CORSConfigs().List(ctx, opts)
+	if err != nil {
+		return nil, err
+	}
+	result = make([]*DomainCORSConfig, len(list.Items))
+	for k, v := range list.Items {
+		item := v
+		result[k] = &DomainCORSConfig{
+			client:     group.client,
+			CORSConfig: &item,
+		}
+	}
+	return
+}
+
+type DomainCORSConfig struct {
+	client *Clientset
+	*basedomainnexusorgv1.CORSConfig
+}
+
+// Delete removes obj and all it's children from the database.
+func (obj *DomainCORSConfig) Delete(ctx context.Context) error {
+	err := obj.client.Domain().DeleteCORSConfigByName(ctx, obj.GetName())
+	if err != nil {
+		return err
+	}
+	obj.CORSConfig = nil
+	return nil
+}
+
+// Update updates spec of object in database. Children and Link can not be updated using this function.
+func (obj *DomainCORSConfig) Update(ctx context.Context) error {
+	result, err := obj.client.Domain().UpdateCORSConfigByName(ctx, obj.CORSConfig)
+	if err != nil {
+		return err
+	}
+	obj.CORSConfig = result.CORSConfig
+	return nil
+}
+
+func (obj *DomainCORSConfig) GetParent(ctx context.Context) (result *ApigatewayApiGateway, err error) {
+	hashedName := helper.GetHashedName("apigateways.apigateway.nexus.org", obj.Labels, obj.Labels["apigateways.apigateway.nexus.org"])
+	return obj.client.Apigateway().GetApiGatewayByName(ctx, hashedName)
+}
+
+type corsconfigDomainNexusV1Chainer struct {
+	client       *Clientset
+	name         string
+	parentLabels map[string]string
+}
+
 // GetRouteByName returns object stored in the database under the hashedName which is a hash of display
 // name and parents names. Use it when you know hashed name of object.
 func (group *RouteNexusV1) GetRouteByName(ctx context.Context, hashedName string) (*RouteRoute, error) {
@@ -3100,12 +3455,11 @@ func (group *RouteNexusV1) UpdateRouteByName(ctx context.Context,
 	}
 
 	var patch Patch
-	patchOpMeta := PatchOp{
+	patch = append(patch, PatchOp{
 		Op:    "replace",
 		Path:  "/metadata",
 		Value: objToUpdate.ObjectMeta,
-	}
-	patch = append(patch, patchOpMeta)
+	})
 
 	patchValueUri :=
 		objToUpdate.Spec.Uri

@@ -363,7 +363,7 @@ go.uber.org/zap/internal/bufferpool
 go.uber.org/zap/internal/color
 go.uber.org/zap/internal/exit
 go.uber.org/zap/zapcore
-# golang-appnet.eng.vmware.com/nexus-sdk/api v0.0.12
+# golang-appnet.eng.vmware.com/nexus-sdk/api v0.0.14
 ## explicit; go 1.17
 golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/admin.nexus.org
 golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/admin.nexus.org/v1
@@ -377,6 +377,8 @@ golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/config.nexus.org
 golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/config.nexus.org/v1
 golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/connect.nexus.org
 golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/connect.nexus.org/v1
+golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/domain.nexus.org
+golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/domain.nexus.org/v1
 golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/route.nexus.org
 golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/route.nexus.org/v1
 golang-appnet.eng.vmware.com/nexus-sdk/api/build/client/clientset/versioned
@@ -394,6 +396,8 @@ golang-appnet.eng.vmware.com/nexus-sdk/api/build/client/clientset/versioned/type
 golang-appnet.eng.vmware.com/nexus-sdk/api/build/client/clientset/versioned/typed/config.nexus.org/v1/fake
 golang-appnet.eng.vmware.com/nexus-sdk/api/build/client/clientset/versioned/typed/connect.nexus.org/v1
 golang-appnet.eng.vmware.com/nexus-sdk/api/build/client/clientset/versioned/typed/connect.nexus.org/v1/fake
+golang-appnet.eng.vmware.com/nexus-sdk/api/build/client/clientset/versioned/typed/domain.nexus.org/v1
+golang-appnet.eng.vmware.com/nexus-sdk/api/build/client/clientset/versioned/typed/domain.nexus.org/v1/fake
 golang-appnet.eng.vmware.com/nexus-sdk/api/build/client/clientset/versioned/typed/route.nexus.org/v1
 golang-appnet.eng.vmware.com/nexus-sdk/api/build/client/clientset/versioned/typed/route.nexus.org/v1/fake
 golang-appnet.eng.vmware.com/nexus-sdk/api/build/common

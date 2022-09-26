@@ -27,7 +27,9 @@ import (
 	authenticationnexusv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/client/clientset/versioned/typed/authentication.nexus.org/v1"
 	confignexusv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/client/clientset/versioned/typed/config.nexus.org/v1"
 	connectnexusv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/client/clientset/versioned/typed/connect.nexus.org/v1"
+	domainnexusv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/client/clientset/versioned/typed/domain.nexus.org/v1"
 	routenexusv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/client/clientset/versioned/typed/route.nexus.org/v1"
+
 	discovery "k8s.io/client-go/discovery"
 	rest "k8s.io/client-go/rest"
 	flowcontrol "k8s.io/client-go/util/flowcontrol"
@@ -41,6 +43,7 @@ type Interface interface {
 	AuthenticationNexusV1() authenticationnexusv1.AuthenticationNexusV1Interface
 	ConfigNexusV1() confignexusv1.ConfigNexusV1Interface
 	ConnectNexusV1() connectnexusv1.ConnectNexusV1Interface
+	DomainNexusV1() domainnexusv1.DomainNexusV1Interface
 	RouteNexusV1() routenexusv1.RouteNexusV1Interface
 }
 
@@ -54,6 +57,7 @@ type Clientset struct {
 	authenticationNexusV1 *authenticationnexusv1.AuthenticationNexusV1Client
 	configNexusV1         *confignexusv1.ConfigNexusV1Client
 	connectNexusV1        *connectnexusv1.ConnectNexusV1Client
+	domainNexusV1         *domainnexusv1.DomainNexusV1Client
 	routeNexusV1          *routenexusv1.RouteNexusV1Client
 }
 
@@ -85,6 +89,11 @@ func (c *Clientset) ConfigNexusV1() confignexusv1.ConfigNexusV1Interface {
 // ConnectNexusV1 retrieves the ConnectNexusV1Client
 func (c *Clientset) ConnectNexusV1() connectnexusv1.ConnectNexusV1Interface {
 	return c.connectNexusV1
+}
+
+// DomainNexusV1 retrieves the DomainNexusV1Client
+func (c *Clientset) DomainNexusV1() domainnexusv1.DomainNexusV1Interface {
+	return c.domainNexusV1
 }
 
 // RouteNexusV1 retrieves the RouteNexusV1Client
@@ -137,6 +146,10 @@ func NewForConfig(c *rest.Config) (*Clientset, error) {
 	if err != nil {
 		return nil, err
 	}
+	cs.domainNexusV1, err = domainnexusv1.NewForConfig(&configShallowCopy)
+	if err != nil {
+		return nil, err
+	}
 	cs.routeNexusV1, err = routenexusv1.NewForConfig(&configShallowCopy)
 	if err != nil {
 		return nil, err
@@ -159,6 +172,7 @@ func NewForConfigOrDie(c *rest.Config) *Clientset {
 	cs.authenticationNexusV1 = authenticationnexusv1.NewForConfigOrDie(c)
 	cs.configNexusV1 = confignexusv1.NewForConfigOrDie(c)
 	cs.connectNexusV1 = connectnexusv1.NewForConfigOrDie(c)
+	cs.domainNexusV1 = domainnexusv1.NewForConfigOrDie(c)
 	cs.routeNexusV1 = routenexusv1.NewForConfigOrDie(c)
 
 	cs.DiscoveryClient = discovery.NewDiscoveryClientForConfigOrDie(c)
@@ -174,6 +188,7 @@ func New(c rest.Interface) *Clientset {
 	cs.authenticationNexusV1 = authenticationnexusv1.New(c)
 	cs.configNexusV1 = confignexusv1.New(c)
 	cs.connectNexusV1 = connectnexusv1.New(c)
+	cs.domainNexusV1 = domainnexusv1.New(c)
 	cs.routeNexusV1 = routenexusv1.New(c)
 
 	cs.DiscoveryClient = discovery.NewDiscoveryClient(c)

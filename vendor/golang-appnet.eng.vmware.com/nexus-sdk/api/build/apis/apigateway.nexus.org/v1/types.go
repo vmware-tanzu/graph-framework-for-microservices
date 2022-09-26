@@ -62,6 +62,7 @@ func (c *ApiGateway) DisplayName() string {
 type ApiGatewaySpec struct {
 	ProxyRulesGvk map[string]Child `json:"proxyRulesGvk,omitempty" yaml:"proxyRulesGvk,omitempty" nexus:"child"`
 	AuthnGvk      *Child           `json:"authnGvk,omitempty" yaml:"authnGvk,omitempty" nexus:"child"`
+	CorsGvk       map[string]Child `json:"corsGvk,omitempty" yaml:"corsGvk,omitempty" nexus:"children"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object

@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"os"
 	"strings"
+	"sync"
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
@@ -22,6 +23,8 @@ import (
 
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/common-library.git/pkg/nexus"
 )
+
+var corsmutex = &sync.Mutex{}
 
 type EchoServer struct {
 	Echo   *echo.Echo
@@ -116,6 +119,7 @@ func (s *EchoServer) RegisterNexusRoutes() {
 	authn.RegisterLoginEndpoint(s.Echo)
 	authn.RegisterRefreshAccessTokenEndpoint(s.Echo)
 	authn.RegisterLogoutEndpoint(s.Echo)
+	SetUpCors(middleware.DefaultCORSConfig.AllowHeaders, s.Echo)
 }
 
 func (s *EchoServer) RegisterDeclarativeRoutes() {
@@ -271,6 +275,12 @@ func (s *EchoServer) NodeUpdateNotifications(stopCh chan struct{}) error {
 			if err != nil {
 				log.Errorf("error occurred while handling OIDC node update notification: %s", err)
 			}
+		case CorsNodeEvent := <-model.CorsChan:
+			log.Debug("Cors Event received")
+			err := HandleCorsNodeUpdate(&CorsNodeEvent, s.Echo)
+			if err != nil {
+				log.Errorf("error occured while handling CORS node update notification: %s", err)
+			}
 		}
 	}
 }
@@ -291,7 +301,6 @@ func NewEchoServer(conf *config.Config) *EchoServer {
 	if conf.EnableNexusRuntime {
 		// Setup proxy to api server
 		kubeSetupProxy(e)
-
 	}
 
 	e.Use(middleware.LoggerWithConfig(middleware.LoggerConfig{
@@ -303,4 +312,57 @@ func NewEchoServer(conf *config.Config) *EchoServer {
 		Echo:   e,
 		Config: conf,
 	}
+}
+
+func CheckCorsOrigin(origin string) (bool, error) {
+	if len(model.CorsConfigOrigins) == 0 {
+		return false, nil
+	}
+	for _, domains := range model.CorsConfigOrigins {
+		for _, domain := range domains {
+			if origin == domain {
+				return true, nil
+			}
+		}
+	}
+	return false, nil
+}
+
+func HandleCorsNodeUpdate(event *model.CorsNodeEvent, e *echo.Echo) error {
+	if event == nil {
+		log.Warnln("Nil event received")
+		return fmt.Errorf("nil type event received")
+	}
+	corsmutex.Lock()
+	defer corsmutex.Unlock()
+
+	if event.Type == model.Delete {
+		// delete predicate is already called to remove the object
+	} else {
+		model.CorsConfigOrigins[event.Cors.Name] = event.Cors.Spec.Origins
+		if len(event.Cors.Spec.Headers) != 0 {
+			model.CorsConfigHeaders[event.Cors.Name] = event.Cors.Spec.Headers
+		}
+	}
+
+	var headers []string
+	for _, headerArr := range model.CorsConfigHeaders {
+		for _, header := range headerArr {
+			headers = append(headers, header)
+		}
+	}
+	SetUpCors(headers, e)
+
+	// Add cors on echo server
+	return nil
+}
+
+func SetUpCors(headers []string, e *echo.Echo) {
+	e.Use(middleware.CORSWithConfig(
+		middleware.CORSConfig{
+			AllowHeaders:    headers,
+			AllowMethods:    middleware.DefaultCORSConfig.AllowMethods,
+			AllowOriginFunc: CheckCorsOrigin,
+		},
+	))
 }

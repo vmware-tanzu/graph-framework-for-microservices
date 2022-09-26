@@ -23,8 +23,9 @@ import (
 	"api-gw/pkg/utils"
 	"flag"
 	"os"
-	"sigs.k8s.io/controller-runtime/pkg/healthz"
 	"strconv"
+
+	"sigs.k8s.io/controller-runtime/pkg/healthz"
 
 	log "github.com/sirupsen/logrus"
 
@@ -32,6 +33,7 @@ import (
 
 	"api-gw/pkg/client"
 	"api-gw/pkg/config"
+
 	// Import all Kubernetes client auth plugins (e.g. Azure, GCP, OIDC, etc.)
 	// to ensure that exec-entrypoint and run can make use of them.
 
@@ -55,7 +57,9 @@ import (
 	adminnexusorgv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/admin.nexus.org/v1"
 	apigatewaynexusorgv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/apigateway.nexus.org/v1"
 
+	middleware_nexus_org_v1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/domain.nexus.org/v1"
 	routenexusorgv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/route.nexus.org/v1"
+
 	//+kubebuilder:scaffold:imports
 
 	"api-gw/pkg/server/echo_server"
@@ -75,6 +79,7 @@ func init() {
 	routenexusorgv1.AddToScheme(scheme)
 	apigatewaynexusorgv1.AddToScheme(scheme)
 	adminnexusorgv1.AddToScheme(scheme)
+	middleware_nexus_org_v1.AddToScheme(scheme)
 	//+kubebuilder:scaffold:scheme
 }
 
@@ -177,6 +182,13 @@ func InitManager(metricsAddr string, probeAddr string, enableLeaderElection bool
 		os.Exit(1)
 	}
 
+	if err = (&controllers.CORSReconciler{
+		Client: mgr.GetClient(),
+		Scheme: mgr.GetScheme(),
+	}).SetupWithManager(mgr); err != nil {
+		setupLog.Error(err, "unable to create controller", "controller", "CORSreconciler")
+		os.Exit(1)
+	}
 	baseConfig, err := rest.InClusterConfig()
 	if err != nil {
 		setupLog.Error(err, "unable to create manager for base k8s")
