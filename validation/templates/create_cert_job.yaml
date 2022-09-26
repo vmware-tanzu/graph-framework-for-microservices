@@ -181,7 +181,9 @@ data:
         - name: "nexus-validation-crd.webhook.svc"
           failurePolicy: Fail
           rules:
-            - apiGroups: [ "" ]
+            # leaving it empty would intercept all base group objects, adding the group name for root nexus object
+            # example: Couldn't determine parents for serviceaccounts., relisting CRDs to make sure CRD type definition wasn't added in the meantime
+            - apiGroups: [ "api.nexus.org" ]
               apiVersions: [ "v1" ]
               operations: [ "CREATE" ]
               resources: [ "*" ]
