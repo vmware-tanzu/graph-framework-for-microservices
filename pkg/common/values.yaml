@@ -1,5 +1,5 @@
 nexusCli:
-  version: v0.0.99
+  version: v0.0.100
 nexusCompiler:
   version: v0.0.40
 nexusAppTemplates:
@@ -7,6 +7,6 @@ nexusAppTemplates:
 nexusDatamodelTemplates:
   version: v0.0.19
 nexusRuntime:
-  version: v0.2.29
+  version: v0.2.30
 tsmCli:
   version: v0.0.1
