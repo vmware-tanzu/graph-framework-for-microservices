@@ -55,27 +55,28 @@ type Field_prop struct {
 }
 
 type Node_prop struct {
-	IsParentNode        bool
-	HasParent           bool
-	IsSingletonNode     bool
-	IsNexusNode         bool
-	BaseImportPath      string
-	CrdName             string
-	ChildFields         []Field_prop
-	LinkFields          []Field_prop
-	ChildrenFields      []Field_prop
-	LinksFields         []Field_prop
-	ArrayFields         []Field_prop
-	CustomFields        []Field_prop
-	NonStructFields     []Field_prop
-	GraphqlSchemaFields []Field_prop
-	ResolverFields      map[string][]Field_prop
-	ResolverCount       int
-	PkgName             string
-	NodeName            string
-	SchemaName          string
-	Alias               string
-	ReturnType          string
+	IsParentNode           bool
+	HasParent              bool
+	IsSingletonNode        bool
+	IsNexusNode            bool
+	BaseImportPath         string
+	CrdName                string
+	ChildFields            []Field_prop
+	LinkFields             []Field_prop
+	ChildrenFields         []Field_prop
+	LinksFields            []Field_prop
+	ArrayFields            []Field_prop
+	CustomFields           []Field_prop
+	NonStructFields        []Field_prop
+	GraphqlSchemaFields    []Field_prop
+	ResolverFields         map[string][]Field_prop
+	ResolverCount          int
+	PkgName                string
+	NodeName               string
+	SchemaName             string
+	Alias                  string
+	ReturnType             string
+	GroupResourceNameTitle string
 }
 
 const (
@@ -445,6 +446,7 @@ func GenerateGraphqlResolverVars(baseGroupName, crdModulePath string, pkgs parse
 	var ResNodes []Node_prop
 	for _, n := range Nodes {
 		var resNodeProp Node_prop
+		resNodeProp.GroupResourceNameTitle = util.GetGroupResourceNameTitle(n.NodeName)
 		resNodeProp.Alias = n.Alias
 		resNodeProp.ReturnType = n.ReturnType
 		resNodeProp.BaseImportPath = n.BaseImportPath

@@ -81,13 +81,14 @@ func (c *resolverConfig) getRootResolver() (*model.{{$node.PkgName}}{{$node.Node
 // Non Singleton Resolver for Parent Node
 // PKG: {{$node.PkgName}}, NODE: {{$node.PkgName}}
 //////////////////////////////////////
-func (c *resolverConfig) getRootResolver(id *string) (*model.{{$node.PkgName}}{{$node.NodeName}}, error) {
+func (c *resolverConfig) getRootResolver(id *string) ([]*model.{{$node.PkgName}}{{$node.NodeName}}, error) {
 	k8sApiConfig := getK8sAPIEndpointConfig()
 	nexusClient, err := nexus_client.NewForConfig(k8sApiConfig)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get k8s client config: %s", err)
 	}
 	nc = nexusClient
+	var v{{$node.NodeName}}List []*model.{{$node.PkgName}}{{$node.NodeName}}
 	if id != nil && *id != "" {
 		v{{$node.NodeName}}, err := nc.Get{{$node.PkgName}}{{$node.NodeName}}(context.TODO(), *id)
 		if err != nil {
@@ -97,10 +98,22 @@ func (c *resolverConfig) getRootResolver(id *string) (*model.{{$node.PkgName}}{{
 		c.v{{$node.PkgName}}{{$node.NodeName}} = v{{$node.NodeName}}
 		{{ $node.Alias }}
 		{{ $node.ReturnType }}
-		return ret, nil
+		v{{$node.NodeName}}List = append(v{{$node.NodeName}}List, ret)
+		return v{{$node.NodeName}}List, nil
 	}
-	ret := &model.{{$node.PkgName}}{{$node.NodeName}}{}
-	return ret, nil
+	v{{$node.NodeName}}ListObj, err := nc.{{$node.NodeName}}().List{{$node.GroupResourceNameTitle}}(context.TODO())
+	for _,i := range v{{$node.NodeName}}ListObj{
+		v{{$node.NodeName}}, err := nc.Get{{$node.PkgName}}{{$node.NodeName}}(context.TODO(), i.DisplayName())
+		if err != nil {
+			log.Errorf("Error getting root node %s", err)
+			return nil, nil
+		}
+		c.v{{$node.PkgName}}{{$node.NodeName}} = v{{$node.NodeName}}
+		{{ $node.Alias }}
+		{{ $node.ReturnType }}
+		v{{$node.NodeName}}List = append(v{{$node.NodeName}}List, ret)
+	}
+	return v{{$node.NodeName}}List, nil
 }
 {{ end }}{{end}}
 {{ if $node.IsNexusNode }}
@@ -285,12 +298,12 @@ func (c *resolverConfig) get{{$child.PkgName}}{{$child.NodeName}}{{$child.FieldN
 	v{{$child.BaseTypeName}}Parent, err := {{$child.LinkAPI}}
 	if err != nil {
 	    log.Errorf("Error getting Parent node details %s", err)
-        return nil, fmt.Errorf("failed to get Parent node details: %s", err)
+        return nil, nil
     }
 	v{{$child.BaseTypeName}}, err := v{{$child.BaseTypeName}}Parent.Get{{$child.FieldName}}(context.TODO())
 	if err != nil {
 	    log.Errorf("Error getting node %s", err)
-        return nil, fmt.Errorf("failed to get node: %s", err)
+        return nil, nil
     }
 	c.v{{$child.FieldTypePkgPath}} = v{{$child.BaseTypeName}}
 	{{ $child.Alias }}

@@ -67,13 +67,14 @@ func grpcServer() qm.ServerClient{
 // Non Singleton Resolver for Parent Node
 // PKG: Root, NODE: Root
 //////////////////////////////////////
-func (c *resolverConfig) getRootResolver(id *string) (*model.RootRoot, error) {
+func (c *resolverConfig) getRootResolver(id *string) ([]*model.RootRoot, error) {
 	k8sApiConfig := getK8sAPIEndpointConfig()
 	nexusClient, err := nexus_client.NewForConfig(k8sApiConfig)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get k8s client config: %s", err)
 	}
 	nc = nexusClient
+	var vRootList []*model.RootRoot
 	if id != nil && *id != "" {
 		vRoot, err := nc.GetRootRoot(context.TODO(), *id)
 		if err != nil {
@@ -93,10 +94,32 @@ CustomBarData := string(CustomBar)
 	DisplayName: &vDisplayName,
 	CustomBar: &CustomBarData,
 	}
-		return ret, nil
+		vRootList = append(vRootList, ret)
+		return vRootList, nil
 	}
-	ret := &model.RootRoot{}
-	return ret, nil
+	vRootListObj, err := nc.Root().ListRoots(context.TODO())
+	for _,i := range vRootListObj{
+		vRoot, err := nc.GetRootRoot(context.TODO(), i.DisplayName())
+		if err != nil {
+			log.Errorf("Error getting root node %s", err)
+			return nil, nil
+		}
+		c.vRootRoot = vRoot
+		dn := vRoot.DisplayName()
+parentLabels := map[string]interface{}{"roots.root.tsm.tanzu.vmware.com":dn}
+vDisplayName := string(vRoot.Spec.DisplayName)
+CustomBar, _ := json.Marshal(vRoot.Spec.CustomBar)
+CustomBarData := string(CustomBar)
+
+		ret := &model.RootRoot {
+	Id: &dn,
+	ParentLabels: parentLabels,
+	DisplayName: &vDisplayName,
+	CustomBar: &CustomBarData,
+	}
+		vRootList = append(vRootList, ret)
+	}
+	return vRootList, nil
 }
 
 
@@ -997,13 +1020,14 @@ func (c *resolverConfig) getGnsBarChildrenqueryServiceTopologyResolver(obj *mode
 // Non Singleton Resolver for Parent Node
 // PKG: Gns, NODE: Gns
 //////////////////////////////////////
-func (c *resolverConfig) getRootResolver(id *string) (*model.GnsBarLinks, error) {
+func (c *resolverConfig) getRootResolver(id *string) ([]*model.GnsBarLinks, error) {
 	k8sApiConfig := getK8sAPIEndpointConfig()
 	nexusClient, err := nexus_client.NewForConfig(k8sApiConfig)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get k8s client config: %s", err)
 	}
 	nc = nexusClient
+	var vBarLinksList []*model.GnsBarLinks
 	if id != nil && *id != "" {
 		vBarLinks, err := nc.GetGnsBarLinks(context.TODO(), *id)
 		if err != nil {
@@ -1020,10 +1044,29 @@ vName := string(vBarLinks.Spec.Name)
 	ParentLabels: parentLabels,
 	Name: &vName,
 	}
-		return ret, nil
+		vBarLinksList = append(vBarLinksList, ret)
+		return vBarLinksList, nil
 	}
-	ret := &model.GnsBarLinks{}
-	return ret, nil
+	vBarLinksListObj, err := nc.BarLinks().ListBarLinkses(context.TODO())
+	for _,i := range vBarLinksListObj{
+		vBarLinks, err := nc.GetGnsBarLinks(context.TODO(), i.DisplayName())
+		if err != nil {
+			log.Errorf("Error getting root node %s", err)
+			return nil, nil
+		}
+		c.vGnsBarLinks = vBarLinks
+		dn := vBarLinks.DisplayName()
+parentLabels := map[string]interface{}{"barlinkses.gns.tsm.tanzu.vmware.com":dn}
+vName := string(vBarLinks.Spec.Name)
+
+		ret := &model.GnsBarLinks {
+	Id: &dn,
+	ParentLabels: parentLabels,
+	Name: &vName,
+	}
+		vBarLinksList = append(vBarLinksList, ret)
+	}
+	return vBarLinksList, nil
 }
 
 
@@ -1175,13 +1218,14 @@ func (c *resolverConfig) getGnsBarLinksqueryServiceTopologyResolver(obj *model.G
 // Non Singleton Resolver for Parent Node
 // PKG: Gns, NODE: Gns
 //////////////////////////////////////
-func (c *resolverConfig) getRootResolver(id *string) (*model.GnsABCLink, error) {
+func (c *resolverConfig) getRootResolver(id *string) ([]*model.GnsABCLink, error) {
 	k8sApiConfig := getK8sAPIEndpointConfig()
 	nexusClient, err := nexus_client.NewForConfig(k8sApiConfig)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get k8s client config: %s", err)
 	}
 	nc = nexusClient
+	var vABCLinkList []*model.GnsABCLink
 	if id != nil && *id != "" {
 		vABCLink, err := nc.GetGnsABCLink(context.TODO(), *id)
 		if err != nil {
@@ -1196,10 +1240,27 @@ parentLabels := map[string]interface{}{"abclinks.gns.tsm.tanzu.vmware.com":dn}
 	Id: &dn,
 	ParentLabels: parentLabels,
 	}
-		return ret, nil
+		vABCLinkList = append(vABCLinkList, ret)
+		return vABCLinkList, nil
 	}
-	ret := &model.GnsABCLink{}
-	return ret, nil
+	vABCLinkListObj, err := nc.ABCLink().ListABCLinks(context.TODO())
+	for _,i := range vABCLinkListObj{
+		vABCLink, err := nc.GetGnsABCLink(context.TODO(), i.DisplayName())
+		if err != nil {
+			log.Errorf("Error getting root node %s", err)
+			return nil, nil
+		}
+		c.vGnsABCLink = vABCLink
+		dn := vABCLink.DisplayName()
+parentLabels := map[string]interface{}{"abclinks.gns.tsm.tanzu.vmware.com":dn}
+
+		ret := &model.GnsABCLink {
+	Id: &dn,
+	ParentLabels: parentLabels,
+	}
+		vABCLinkList = append(vABCLinkList, ret)
+	}
+	return vABCLinkList, nil
 }
 
 
@@ -1400,12 +1461,12 @@ ClusterNamespacesData := string(ClusterNamespaces)
 	vConfigParent, err := nc.GetRootRoot(context.TODO(), obj.ParentLabels["roots.root.tsm.tanzu.vmware.com"].(string))
 	if err != nil {
 	    log.Errorf("Error getting Parent node details %s", err)
-        return nil, fmt.Errorf("failed to get Parent node details: %s", err)
+        return nil, nil
     }
 	vConfig, err := vConfigParent.GetConfig(context.TODO())
 	if err != nil {
 	    log.Errorf("Error getting node %s", err)
-        return nil, fmt.Errorf("failed to get node: %s", err)
+        return nil, nil
     }
 	c.vConfigConfig = vConfig
 	dn := vConfig.DisplayName()
@@ -1509,12 +1570,12 @@ Array5Data := string(Array5)
 	vGnsParent, err := nc.RootRoot(obj.ParentLabels["roots.root.tsm.tanzu.vmware.com"].(string)).GetConfig(context.TODO(), obj.ParentLabels["configs.config.tsm.tanzu.vmware.com"].(string))
 	if err != nil {
 	    log.Errorf("Error getting Parent node details %s", err)
-        return nil, fmt.Errorf("failed to get Parent node details: %s", err)
+        return nil, nil
     }
 	vGns, err := vGnsParent.GetGNS(context.TODO())
 	if err != nil {
 	    log.Errorf("Error getting node %s", err)
-        return nil, fmt.Errorf("failed to get node: %s", err)
+        return nil, nil
     }
 	c.vGnsGns = vGns
 	dn := vGns.DisplayName()
