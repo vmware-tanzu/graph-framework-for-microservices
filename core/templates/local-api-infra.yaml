@@ -116,8 +116,6 @@ spec:
       app: nexus-kube-apiserver
   template:
     metadata:
-      annotations:
-        "sidecar.istio.io/inject": "false"
       labels:
         app: nexus-kube-apiserver
     spec:
@@ -228,8 +226,6 @@ spec:
       name: nexus-kube-controllermanager
   template:
     metadata:
-      annotations:
-        "sidecar.istio.io/inject": "false"
       labels:
         name: nexus-kube-controllermanager
     spec:
@@ -310,8 +306,6 @@ spec:
       app: nexus-proxy-container
   template:
     metadata:
-      annotations:
-        "sidecar.istio.io/inject": "false"
       labels:
         app: nexus-proxy-container
     spec:
