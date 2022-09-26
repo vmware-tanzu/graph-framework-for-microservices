@@ -497,6 +497,8 @@ metadata:
 spec:
   template:
     metadata:
+      annotations:
+        "sidecar.istio.io/inject": "false"
       labels:
         app.kubernetes.io/component: admission-webhook
         app.kubernetes.io/instance: ingress-nginx
@@ -546,6 +548,8 @@ metadata:
 spec:
   template:
     metadata:
+      annotations:
+        "sidecar.istio.io/inject": "false"
       labels:
         app.kubernetes.io/component: admission-webhook
         app.kubernetes.io/instance: ingress-nginx
@@ -638,8 +642,6 @@ spec:
     metadata:
       labels:
         app: nexus-nginx
-      annotations:
-        "sidecar.istio.io/inject": "false"
     spec:
       containers:
       - name: nginx
