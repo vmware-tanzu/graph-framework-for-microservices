@@ -2,7 +2,7 @@ module graphql-server-datamodel-example
 
 go 1.18
 
-require gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git v0.0.0-20220907103452-35b454baf46c
+require gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git v0.0.0-20220923155354-3246eebb23b7
 
 require (
 	github.com/agnivade/levenshtein v1.1.1 // indirect
