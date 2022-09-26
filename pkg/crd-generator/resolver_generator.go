@@ -475,6 +475,7 @@ func GenerateGraphqlResolverVars(baseGroupName, crdModulePath string, pkgs parse
 			} else {
 				f.SchemaFieldName = fmt.Sprintf("%s(Id: ID): %s!", f.FieldName, f.SchemaTypeName)
 			}
+			f.LinkAPI = LinkAPI[f.PkgName+f.NodeName]
 			resNodeProp.ChildFields = append(resNodeProp.ChildFields, f)
 			resNodeProp.GraphqlSchemaFields = append(resNodeProp.GraphqlSchemaFields, f)
 		}

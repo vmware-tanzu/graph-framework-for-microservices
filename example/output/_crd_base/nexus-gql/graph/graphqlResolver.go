@@ -1349,10 +1349,63 @@ func (c *resolverConfig) getGnsABCLinkqueryServiceTopologyResolver(obj *model.Gn
 // FieldName: Config Node: Root PKG: Root
 //////////////////////////////////////
 func (c *resolverConfig) getRootRootConfigResolver(obj *model.RootRoot, id *string) (*model.ConfigConfig, error) {
-	vConfig, err := nc.RootRoot(obj.ParentLabels["roots.root.tsm.tanzu.vmware.com"].(string)).GetConfig(context.TODO(), *id)
+	if id != nil && *id != "" {
+		vConfig, err := nc.RootRoot(obj.ParentLabels["roots.root.tsm.tanzu.vmware.com"].(string)).GetConfig(context.TODO(), *id)
+		if err != nil {
+			log.Errorf("Error getting node %s", err)
+			return nil, nil
+		}
+		c.vConfigConfig = vConfig
+		dn := vConfig.DisplayName()
+parentLabels := map[string]interface{}{"configs.config.tsm.tanzu.vmware.com":dn}
+vConfigName := string(vConfig.Spec.ConfigName)
+Cluster, _ := json.Marshal(vConfig.Spec.Cluster)
+ClusterData := string(Cluster)
+FooA, _ := json.Marshal(vConfig.Spec.FooA)
+FooAData := string(FooA)
+FooMap, _ := json.Marshal(vConfig.Spec.FooMap)
+FooMapData := string(FooMap)
+FooB, _ := json.Marshal(vConfig.Spec.FooB)
+FooBData := string(FooB)
+FooD, _ := json.Marshal(vConfig.Spec.FooD)
+FooDData := string(FooD)
+FooF, _ := json.Marshal(vConfig.Spec.FooF)
+FooFData := string(FooF)
+XYZPort, _ := json.Marshal(vConfig.Spec.XYZPort)
+XYZPortData := string(XYZPort)
+ABCHost, _ := json.Marshal(vConfig.Spec.ABCHost)
+ABCHostData := string(ABCHost)
+ClusterNamespaces, _ := json.Marshal(vConfig.Spec.ClusterNamespaces)
+ClusterNamespacesData := string(ClusterNamespaces)
+
+		for k, v := range obj.ParentLabels {
+			parentLabels[k] = v
+		}
+		ret := &model.ConfigConfig {
+	Id: &dn,
+	ParentLabels: parentLabels,
+	ConfigName: &vConfigName,
+	Cluster: &ClusterData,
+	FooA: &FooAData,
+	FooMap: &FooMapData,
+	FooB: &FooBData,
+	FooD: &FooDData,
+	FooF: &FooFData,
+	XYZPort: &XYZPortData,
+	ABCHost: &ABCHostData,
+	ClusterNamespaces: &ClusterNamespacesData,
+	}
+		return ret, nil
+	}
+	vConfigParent, err := nc.GetRootRoot(context.TODO(), obj.ParentLabels["roots.root.tsm.tanzu.vmware.com"].(string))
+	if err != nil {
+	    log.Errorf("Error getting Parent node details %s", err)
+        return nil, fmt.Errorf("failed to get Parent node details: %s", err)
+    }
+	vConfig, err := vConfigParent.GetConfig(context.TODO())
 	if err != nil {
 	    log.Errorf("Error getting node %s", err)
-        return nil, nil
+        return nil, fmt.Errorf("failed to get node: %s", err)
     }
 	c.vConfigConfig = vConfig
 	dn := vConfig.DisplayName()
@@ -1407,10 +1460,61 @@ ClusterNamespacesData := string(ClusterNamespaces)
 // FieldName: GNS Node: Config PKG: Config
 //////////////////////////////////////
 func (c *resolverConfig) getConfigConfigGNSResolver(obj *model.ConfigConfig, id *string) (*model.GnsGns, error) {
-	vGns, err := nc.RootRoot(obj.ParentLabels["roots.root.tsm.tanzu.vmware.com"].(string)).Config(obj.ParentLabels["configs.config.tsm.tanzu.vmware.com"].(string)).GetGNS(context.TODO(), *id)
+	if id != nil && *id != "" {
+		vGns, err := nc.RootRoot(obj.ParentLabels["roots.root.tsm.tanzu.vmware.com"].(string)).Config(obj.ParentLabels["configs.config.tsm.tanzu.vmware.com"].(string)).GetGNS(context.TODO(), *id)
+		if err != nil {
+			log.Errorf("Error getting node %s", err)
+			return nil, nil
+		}
+		c.vGnsGns = vGns
+		dn := vGns.DisplayName()
+parentLabels := map[string]interface{}{"gnses.gns.tsm.tanzu.vmware.com":dn}
+vDomain := string(vGns.Spec.Domain)
+vUseSharedGateway := bool(vGns.Spec.UseSharedGateway)
+Mydesc, _ := json.Marshal(vGns.Spec.Mydesc)
+MydescData := string(Mydesc)
+HostPort, _ := json.Marshal(vGns.Spec.HostPort)
+HostPortData := string(HostPort)
+Instance, _ := json.Marshal(vGns.Spec.Instance)
+InstanceData := string(Instance)
+vArray1 := float64(vGns.Spec.Array1)
+Array2, _ := json.Marshal(vGns.Spec.Array2)
+Array2Data := string(Array2)
+Array3, _ := json.Marshal(vGns.Spec.Array3)
+Array3Data := string(Array3)
+Array4, _ := json.Marshal(vGns.Spec.Array4)
+Array4Data := string(Array4)
+Array5, _ := json.Marshal(vGns.Spec.Array5)
+Array5Data := string(Array5)
+
+		for k, v := range obj.ParentLabels {
+			parentLabels[k] = v
+		}
+		ret := &model.GnsGns {
+	Id: &dn,
+	ParentLabels: parentLabels,
+	Domain: &vDomain,
+	UseSharedGateway: &vUseSharedGateway,
+	Mydesc: &MydescData,
+	HostPort: &HostPortData,
+	Instance: &InstanceData,
+	Array1: &vArray1,
+	Array2: &Array2Data,
+	Array3: &Array3Data,
+	Array4: &Array4Data,
+	Array5: &Array5Data,
+	}
+		return ret, nil
+	}
+	vGnsParent, err := nc.RootRoot(obj.ParentLabels["roots.root.tsm.tanzu.vmware.com"].(string)).GetConfig(context.TODO(), obj.ParentLabels["configs.config.tsm.tanzu.vmware.com"].(string))
+	if err != nil {
+	    log.Errorf("Error getting Parent node details %s", err)
+        return nil, fmt.Errorf("failed to get Parent node details: %s", err)
+    }
+	vGns, err := vGnsParent.GetGNS(context.TODO())
 	if err != nil {
 	    log.Errorf("Error getting node %s", err)
-        return nil, nil
+        return nil, fmt.Errorf("failed to get node: %s", err)
     }
 	c.vGnsGns = vGns
 	dn := vGns.DisplayName()

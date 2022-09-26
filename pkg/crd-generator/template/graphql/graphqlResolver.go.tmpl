@@ -268,10 +268,29 @@ func (c *resolverConfig) get{{$child.PkgName}}{{$child.NodeName}}{{$child.FieldN
 // FieldName: {{$child.FieldName}} Node: {{$child.NodeName}} PKG: {{$child.PkgName}}
 //////////////////////////////////////
 func (c *resolverConfig) get{{$child.PkgName}}{{$child.NodeName}}{{$child.FieldName}}Resolver(obj *model.{{$child.PkgName}}{{$child.NodeName}}, id *string) (*model.{{$child.FieldTypePkgPath}}, error) {
-	v{{$child.BaseTypeName}}, err := {{$child.ChainAPI}}.Get{{$child.FieldName}}(context.TODO(), *id)
+	if id != nil && *id != "" {
+		v{{$child.BaseTypeName}}, err := {{$child.ChainAPI}}.Get{{$child.FieldName}}(context.TODO(), *id)
+		if err != nil {
+			log.Errorf("Error getting node %s", err)
+			return nil, nil
+		}
+		c.v{{$child.FieldTypePkgPath}} = v{{$child.BaseTypeName}}
+		{{ $child.Alias }}
+		for k, v := range obj.ParentLabels {
+			parentLabels[k] = v
+		}
+		{{ $child.ReturnType }}
+		return ret, nil
+	}
+	v{{$child.BaseTypeName}}Parent, err := {{$child.LinkAPI}}
+	if err != nil {
+	    log.Errorf("Error getting Parent node details %s", err)
+        return nil, fmt.Errorf("failed to get Parent node details: %s", err)
+    }
+	v{{$child.BaseTypeName}}, err := v{{$child.BaseTypeName}}Parent.Get{{$child.FieldName}}(context.TODO())
 	if err != nil {
 	    log.Errorf("Error getting node %s", err)
-        return nil, nil
+        return nil, fmt.Errorf("failed to get node: %s", err)
     }
 	c.v{{$child.FieldTypePkgPath}} = v{{$child.BaseTypeName}}
 	{{ $child.Alias }}
