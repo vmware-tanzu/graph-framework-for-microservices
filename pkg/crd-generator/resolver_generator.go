@@ -389,10 +389,18 @@ func GenerateGraphqlResolverVars(baseGroupName, crdModulePath string, pkgs parse
 			// Create LinkAPI
 			if n.IsSingletonNode {
 				IsSingleton = true
-				LinkAPI[n.PkgName+n.NodeName] = fmt.Sprintf("%s.Get%s(context.TODO())", ChainAPI, prevNode.Children[n.CrdName].FieldName)
+				if !n.HasParent && n.IsParentNode {
+					LinkAPI[n.PkgName+n.NodeName] = fmt.Sprintf("%s.Get%s(context.TODO())", ChainAPI, n.PkgName+n.NodeName)
+				} else {
+					LinkAPI[n.PkgName+n.NodeName] = fmt.Sprintf("%s.Get%s(context.TODO())", ChainAPI, prevNode.Children[n.CrdName].FieldName)
+				}
 			} else {
 				IsSingleton = false
-				LinkAPI[n.PkgName+n.NodeName] = fmt.Sprintf("%s.Get%s(context.TODO(), obj.ParentLabels[\"%s\"].(string))", ChainAPI, prevNode.Children[n.CrdName].FieldName, n.CrdName)
+				if !n.HasParent && n.IsParentNode {
+					LinkAPI[n.PkgName+n.NodeName] = fmt.Sprintf("%s.Get%s(context.TODO(), obj.ParentLabels[\"%s\"].(string))", ChainAPI, n.PkgName+n.NodeName, n.CrdName)
+				} else {
+					LinkAPI[n.PkgName+n.NodeName] = fmt.Sprintf("%s.Get%s(context.TODO(), obj.ParentLabels[\"%s\"].(string))", ChainAPI, prevNode.Children[n.CrdName].FieldName, n.CrdName)
+				}
 			}
 		}
 		for _, i := range n.ResolverFields[n.PkgName+n.NodeName] {
