@@ -132,11 +132,11 @@ generate_code:
 	cd _generated && ../scripts/pin_deps.sh  && go mod tidy -e
 	@echo "Nexus Compiler: Generating kuberenetes APIs"
 	./scripts/generate_k8s_api.sh
-	#@echo "Nexus Compiler: Generating openapi schema"
-	#./scripts/generate_openapi_schema.sh
-	#@echo "Nexus Compiler: Generating CRD yamls"
-	#go run cmd/generate-openapischema/generate-openapischema.go -yamls-path _generated/crds
-	#git checkout -- pkg/openapi_generator/openapi/openapi_generated.go
+	@echo "Nexus Compiler: Generating openapi schema"
+	./scripts/generate_openapi_schema.sh
+	@echo "Nexus Compiler: Generating CRD yamls"
+	go run cmd/generate-openapischema/generate-openapischema.go -yamls-path _generated/crds
+	git checkout -- pkg/openapi_generator/openapi/openapi_generated.go
 	@echo "Debug purpose"
 	cp -r _generated/{client,apis,crds,common,nexus-client,helper,nexus-gql} ${GENERATED_OUTPUT_DIRECTORY}
 	@echo "==> Nexus Compiler: Generating GRAPHQL pkg <=="
