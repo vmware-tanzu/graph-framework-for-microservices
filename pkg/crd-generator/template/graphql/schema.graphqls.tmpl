@@ -4,7 +4,7 @@ scalar Map
 {{ if $node.IsParentNode }}type Query {
 {{ if $node.IsSingletonNode }}
     root: {{ $node.SchemaName }}{{ else }}
-    root(Id: ID): {{ $node.SchemaName }}{{ end }}
+    root(Id: ID): [{{ $node.SchemaName }}!]{{ end }}
 }{{ else }}{{ end }}
 {{ if $node.IsNexusNode }}
 {{ $length := len $node.GraphqlSchemaFields }} {{ if eq $length 0 }}{{ else }}

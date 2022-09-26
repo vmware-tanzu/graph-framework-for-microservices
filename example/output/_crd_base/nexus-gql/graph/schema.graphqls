@@ -3,7 +3,7 @@ scalar Map
 
 type Query {
 
-    root(Id: ID): root_Root
+    root(Id: ID): [root_Root!]
 }
 
  
@@ -419,7 +419,7 @@ type gns_BarChildren {
 }
 type Query {
 
-    root(Id: ID): gns_BarLinks
+    root(Id: ID): [gns_BarLinks!]
 }
 
  
@@ -486,7 +486,7 @@ type gns_BarLinks {
 
 type Query {
 
-    root(Id: ID): gns_ABCLink
+    root(Id: ID): [gns_ABCLink!]
 }
 
  
