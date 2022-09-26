@@ -5,7 +5,7 @@ global:
   runtimeEnabled: true
   imagepullsecret: ""
   api_gateway:
-    tag: v0.0.28
+    tag: v0.0.29
   validation:
     tag: v0.0.12
   connector:
@@ -13,6 +13,6 @@ global:
   controller:
     tag: v0.0.3
   api:
-    tag: v0.0.13
+    tag: v0.0.15
   graphql:
     tag: v0.0.1
