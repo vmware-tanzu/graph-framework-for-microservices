@@ -15,6 +15,7 @@ var (
 
 	// OidcChan is used to pass on OIDC node updates to the OIDC authenticator
 	OidcChan = make(chan OidcNodeEvent)
+	CorsChan = make(chan CorsNodeEvent)
 
 	CrdTypeToRestUris      = make(map[string][]nexus.RestURIs)
 	crdTypeToRestUrisMutex = &sync.Mutex{}

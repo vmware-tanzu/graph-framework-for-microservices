@@ -26,6 +26,20 @@ spec:
     skipClientAudValidation: false
 `
 
+var corsConfigExample = `
+kind: CORSConfig
+apiVersion: domain.nexus.org/v1
+metadata:
+  name: default
+spec:
+  origins:
+    - http://localhost
+    - http://test
+    - http://testing
+  headers:
+    - test
+`
+
 var proxyRuleHeaderExample = `
 apiVersion: admin.nexus.org/v1
 kind: ProxyRule

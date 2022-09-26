@@ -118,6 +118,13 @@ func (in *ApiGatewaySpec) DeepCopyInto(out *ApiGatewaySpec) {
 		*out = new(Child)
 		**out = **in
 	}
+	if in.CorsGvk != nil {
+		in, out := &in.CorsGvk, &out.CorsGvk
+		*out = make(map[string]Child, len(*in))
+		for key, val := range *in {
+			(*out)[key] = val
+		}
+	}
 	return
 }
 

@@ -2,14 +2,18 @@ package echo_server_test
 
 import (
 	"api-gw/pkg/config"
+	"api-gw/pkg/model"
 	"api-gw/pkg/server/echo_server"
-	"github.com/labstack/echo/v4"
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/common-library.git/pkg/nexus"
 	"net/http"
 	"net/http/httptest"
 
+	"github.com/labstack/echo/v4"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/common-library.git/pkg/nexus"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	domain_nexus_org "golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/domain.nexus.org/v1"
+	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 var _ = Describe("Echo server tests", func() {
@@ -42,6 +46,64 @@ var _ = Describe("Echo server tests", func() {
 		c = e.Echo.NewContext(nil, nil)
 		e.Echo.Router().Find(http.MethodDelete, "/apis/gns.vmware.org/v1/globalnamespaces/:name", c)
 		Expect(c.Path()).To(Equal("/apis/gns.vmware.org/v1/globalnamespaces/:name"))
+
+	})
+
+	It("should return true when origin is present", func() {
+		model.CorsConfigOrigins["default"] = []string{"http://testdomain"}
+
+		res, err := echo_server.CheckCorsOrigin("http://localhost")
+		Expect(res).To(BeFalse())
+		Expect(err).NotTo(HaveOccurred())
+
+		res, err = echo_server.CheckCorsOrigin("http://testdomain")
+		Expect(res).To(BeTrue())
+		Expect(err).NotTo(HaveOccurred())
+		//removing the added object
+		delete(model.CorsConfigOrigins, "default")
+
+		res, err = echo_server.CheckCorsOrigin("http://testdomain")
+		Expect(res).To(BeFalse())
+		Expect(err).NotTo(HaveOccurred())
+
+	})
+
+	It("should register cors middleware when event is recieved", func() {
+
+		e.RegisterCrdRouter("globalnamespaces.gns.vmware.org")
+		corsObject := domain_nexus_org.CORSConfig{
+			Spec: domain_nexus_org.CORSConfigSpec{
+				Origins: []string{"http://tester"},
+				Headers: []string{""},
+			},
+			ObjectMeta: v1.ObjectMeta{
+				Name: "test",
+			},
+		}
+
+		//check if corsOrigin is setup
+		corsUpdate := &model.CorsNodeEvent{Cors: corsObject, Type: model.Upsert}
+		echo_server.HandleCorsNodeUpdate(corsUpdate, e.Echo)
+		Eventually(func() bool {
+			res, _ := echo_server.CheckCorsOrigin("http://tester")
+			return res
+		})
+
+		//delete should remove the node
+		corsUpdate = &model.CorsNodeEvent{Cors: corsObject, Type: model.Delete}
+		delete(model.CorsConfigOrigins, "test")
+		echo_server.HandleCorsNodeUpdate(corsUpdate, e.Echo)
+		Eventually(func() bool {
+			res, _ := echo_server.CheckCorsOrigin("http://tester")
+			if res {
+				return false
+			}
+			return true
+		})
+
+		err := echo_server.HandleCorsNodeUpdate(nil, e.Echo)
+		Expect(err).To(HaveOccurred())
+
 	})
 
 	It("should start echo server", func() {

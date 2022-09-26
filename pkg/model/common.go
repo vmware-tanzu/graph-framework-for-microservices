@@ -6,7 +6,12 @@ import (
 	authnexusv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/authentication.nexus.org/v1"
 
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/common-library.git/pkg/nexus"
+	middlewarenexusv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/domain.nexus.org/v1"
 )
+
+// adding this global variables for CORS to support multiple domain and header configuration
+var CorsConfigOrigins = map[string][]string{}
+var CorsConfigHeaders = map[string][]string{}
 
 type EventType string
 
@@ -66,6 +71,11 @@ type OidcNodeEvent struct {
 
 type DatamodelInfo struct {
 	Title string
+}
+
+type CorsNodeEvent struct {
+	Cors middlewarenexusv1.CORSConfig
+	Type EventType
 }
 
 // LinkGvk : This model used to carry fully qualified object <gvk> and
