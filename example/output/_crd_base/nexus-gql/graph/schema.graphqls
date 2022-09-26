@@ -3,7 +3,7 @@ scalar Map
 
 type Query {
 
-    root: root_Root
+    root(Id: ID): root_Root
 }
 
  
