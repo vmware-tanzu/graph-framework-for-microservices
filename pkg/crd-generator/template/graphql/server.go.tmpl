@@ -13,7 +13,7 @@ import (
 func StartHttpServer() {
 	ES := generated.NewExecutableSchema(generated.Config{Resolvers: &graph.Resolver{}})
 	Hander_server := handler.NewDefaultServer(ES)
-	HttpHandlerFunc = playground.Handler("GraphQL playground", "/query")
+	HttpHandlerFunc := playground.Handler("GraphQL playground", "/query")
 	http.Handle("/", HttpHandlerFunc)
 	http.Handle("/query", Hander_server)
 }
