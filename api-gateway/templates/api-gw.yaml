@@ -11,7 +11,7 @@ data:
     clusters:
     - cluster:
         api-version: v1
-        server: http://nexus-proxy-container:80
+        server: http://nexus-apiserver:8080
         insecure-skip-tls-verify: true
       name: localapiserver
     contexts:
@@ -278,7 +278,7 @@ spec:
     port: 443
     targetPort: 443
   - protocol: TCP
-    name: http-xds
+    name: xds
     port: 18000
     targetPort: 18000
   selector:
