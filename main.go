@@ -7,10 +7,6 @@ import (
 	"os"
 
 	"plugin"
-
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/graphql"
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/graphql/handler"
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/graphql/playground"
 )
 
 const defaultPort = "8080"
@@ -43,27 +39,14 @@ func main() {
 		panic(err)
 	}
 
-	// Lookup resolver object present
-	esvar, err := pl.Lookup("ES")
-	if err != nil {
-		fmt.Printf("could not lookup the graphqlExecutable object: %s", err)
-		panic(err)
-	}
 	// Lookup init method present
-	plsm, err := pl.Lookup("NewResolverObject")
+	plsm, err := pl.Lookup("StartHttpServer")
 	if err != nil {
 		fmt.Printf("could not lookup the InitMethod : %s", err)
 		panic(err)
 	}
 	// Execute the init method for initialising resolvers and typecast to expected format
 	plsm.(func())()
-	esObject := *esvar.(*graphql.ExecutableSchema)
-
-	srv := handler.NewDefaultServer(esObject)
-
-	//Start HTTP router with graphql router and proxy it to resolver
-	http.Handle("/", playground.Handler("GraphQL playground", "/query"))
-	http.Handle("/query", srv)
 
 	log.Printf("connect to http://localhost:%s/ for GraphQL playground", port)
 	log.Fatal(http.ListenAndServe(":"+port, nil))
