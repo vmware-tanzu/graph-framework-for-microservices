@@ -100,16 +100,17 @@ func main() {
 		os.Exit(1)
 	}
 
+	cache := controllers.NewGvrCache()
 	if err = (&controllers.CustomResourceDefinitionReconciler{
 		Client: mgr.GetClient(),
 		Scheme: mgr.GetScheme(),
-		Cache:  controllers.NewCrdCache(),
+		Cache:  cache,
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "CustomResourceDefinition")
 		os.Exit(1)
 	}
 
-	go app.Start()
+	go app.Start(cache)
 	setupLog.Info("starting manager")
 	if err := mgr.Start(ctrl.SetupSignalHandler()); err != nil {
 		setupLog.Error(err, "problem running manager")

@@ -7,6 +7,7 @@ import (
 	. "github.com/onsi/gomega"
 
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+	"k8s.io/apimachinery/pkg/runtime/schema"
 
 	"connector/pkg/utils"
 )
@@ -28,6 +29,12 @@ const (
 	ConfigKind  = "Config"
 	AcKind      = "ApiCollaborationSpace"
 	AdKind      = "ApiDevSpace"
+)
+
+var (
+	apicollaborationspace = schema.GroupVersionResource{Group: "config.mazinger.com", Version: "v1", Resource: "apicollaborationspaces"}
+	apidevspace           = schema.GroupVersionResource{Group: "config.mazinger.com", Version: "v1", Resource: "apidevspaces"}
+	deployment            = schema.GroupVersionResource{Group: "apps", Version: "v1", Resource: "deployments"}
 )
 
 func GetObject(name, kind, specVal string) *unstructured.Unstructured {
@@ -185,13 +192,13 @@ func GetHierarchicalDestConfig() utils.ReplicationDestination {
 	}
 }
 
-func GetTypeConfig() utils.ReplicationSource {
+func GetTypeConfig(group, kind string) utils.ReplicationSource {
 	return utils.ReplicationSource{
 		Kind: utils.Type,
 		Type: utils.ObjectType{
-			Group:   Group,
+			Group:   group,
 			Version: "v1",
-			Kind:    AcKind,
+			Kind:    kind,
 		},
 	}
 }
@@ -203,6 +210,21 @@ func GetDifferentTypeDestConfig() utils.ReplicationDestination {
 			Group:   Group,
 			Version: "v1",
 			Kind:    AdKind,
+		},
+	}
+}
+
+func GetDefaultResourceObj() *unstructured.Unstructured {
+	return &unstructured.Unstructured{
+		Object: map[string]interface{}{
+			"apiVersion": "apps/v1",
+			"kind":       "Deployment",
+			"metadata": map[string]interface{}{
+				"name": "zoo",
+			},
+			"spec": map[string]interface{}{
+				"example": "example",
+			},
 		},
 	}
 }

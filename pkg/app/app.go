@@ -19,7 +19,7 @@ import (
 	"connector/pkg/utils"
 )
 
-func Start() {
+func Start(cache *controllers.GvrCache) {
 	conf, err := config.LoadConfig("/config/connector-config")
 	if err != nil {
 		log.Fatalf("Error loading config: %v", err)
@@ -27,14 +27,14 @@ func Start() {
 
 	for {
 		stopCh := make(chan struct{})
-		go StartControllers(conf, stopCh)
+		go StartControllers(conf, cache, stopCh)
 		go StartReplicationConfigController(conf, stopCh)
 		<-stopCh
 		log.Info("Stop signal received, restarting crd watcher")
 	}
 }
 
-func StartControllers(conf *config.Config, stopCh chan struct{}) {
+func StartControllers(conf *config.Config, cache *controllers.GvrCache, stopCh chan struct{}) {
 	log.Infoln("Starting Controllers...")
 	localAPI, localDynamicAPI, err := utils.SetUpAPIs()
 	if err != nil {
@@ -56,27 +56,25 @@ func StartControllers(conf *config.Config, stopCh chan struct{}) {
 		case <-stopCh:
 			log.Errorln("StartController() terminated..")
 			return
-		case crd := <-controllers.CrdCh:
+		case gvr := <-controllers.GvrCh:
 			// Skipping watcher creation for nexus datamodel CRDs.
-			if utils.NexusDatamodelCRDs(crd.CrdType) {
+			if utils.NexusDatamodelCRDs(gvr.Group) {
 				continue
 			}
 
-			gvr := utils.GetGVRFromCrdType(crd.CrdType)
 			informer := getInformer(gvr)
-			handler := handlers.NewRemoteHandler(gvr, crd.CrdType, localDynamicAPI, remoteDynamicClient, conf)
+			handler := handlers.NewRemoteHandler(gvr, localDynamicAPI, remoteDynamicClient, conf)
 			c := newController(
-				fmt.Sprintf("controller-%s", crd.CrdType),
+				fmt.Sprintf("controller-%s", gvr),
 				localAPI,
 				informer,
 				handler,
 				conf)
 
-			crdInfo := crd.CrdCache.Get(crd.CrdType)
-			if crdInfo.Controller == nil {
+			if cache.Get(gvr) == nil {
 				go c.Run(stopCh)
 			}
-			crd.CrdCache.UpsertController(crd.CrdType, c)
+			cache.UpsertController(gvr, c)
 		}
 	}
 }
@@ -89,7 +87,7 @@ func StartReplicationConfigController(conf *config.Config, stopCh chan struct{})
 		return
 	}
 
-	gvr := utils.GetGVRFromCrdType(utils.ReplicationConfigCRD)
+	gvr := utils.GetGVRFromCrdType(utils.ReplicationConfigCRD, utils.V1Version)
 	informer := getInformer(gvr)
 	handler := handlers.NewReplicationConfigHandler(gvr, conf, localDynamicAPI)
 	c := newController(

@@ -23,8 +23,7 @@ type ReplicationConfigHandler struct {
 }
 
 func NewReplicationConfigHandler(gvr schema.GroupVersionResource,
-	conf *config.Config,
-	localClient dynamic.Interface) *ReplicationConfigHandler {
+	conf *config.Config, localClient dynamic.Interface) *ReplicationConfigHandler {
 	return &ReplicationConfigHandler{
 		Gvr:         gvr,
 		Config:      conf,
@@ -60,9 +59,10 @@ func (h *ReplicationConfigHandler) Create(obj interface{}) error {
 		return fmt.Errorf("error creating dynamic remote API: %v", err)
 	}
 
-	repConfigSpec := utils.ReplicationConfigSpec{Source: repConf.Source, Destination: repConf.Destination, Client: remoteClient}
+	rc := utils.ReplicationConfigSpec{LocalClient: h.LocalClient, Source: repConf.Source, Destination: repConf.Destination,
+		RemoteClient: remoteClient, StatusEndpoint: repConf.StatusEndpoint}
 
-	if err := ReplicateNode(res.GetName(), repConfigSpec, h.LocalClient); err != nil {
+	if err := ReplicateNode(res.GetName(), rc); err != nil {
 		return fmt.Errorf("error replicating desired nodes: %v", err)
 	}
 	return nil

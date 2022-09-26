@@ -43,7 +43,7 @@ var _ = Describe("Create", func() {
 		localClient = fake_dynamic.NewSimpleDynamicClient(runtime.NewScheme(),
 			GetObject("A", AcKind, "example"), GetObject("B", AcKind, "example"), GetObject("update", AcKind, "example"), GetObject("create", AcKind, "example"),
 			GetObject("C", AcKind, "example"), GetObject("D", AcKind, "example"), GetParentObject("foo", AcKind), GetChildObject("bar", AdKind),
-			GetObject("Root", RootKind, "example"), GetObject("Config", ConfigKind, "example"), GetObject("Project", ProjectKind, "example"),
+			GetObject("Root", RootKind, "example"), GetObject("Config", ConfigKind, "example"), GetObject("Project", ProjectKind, "example"), GetDefaultResourceObj(),
 		)
 
 		repConfName = "one"
@@ -53,14 +53,17 @@ var _ = Describe("Create", func() {
 		server = ghttp.NewServer()
 		remoteClient, err = utils.SetUpDynamicRemoteAPI(fmt.Sprintf("http://%s", server.Addr()), "")
 		Expect(err).NotTo(HaveOccurred())
+
+		utils.CRDTypeToCrdVersion[ApiCollaborationSpace] = utils.V1Version
+		utils.CRDTypeToCrdVersion[ApiDevSpace] = utils.V1Version
 	})
 
 	When("Replication is enabled for CRD Type", func() {
 		BeforeEach(func() {
-			source := GetTypeConfig()
+			source := GetTypeConfig(Group, AcKind)
 			destination := GetNonHierarchicalDestConfig()
-			remoteHandler = h.NewRemoteHandler(utils.GetGVRFromCrdType(ApiCollaborationSpace), ApiCollaborationSpace, localClient, nil, conf)
-			replicationConfigSpec = utils.ReplicationConfigSpec{Client: remoteClient, Source: source, Destination: destination}
+			remoteHandler = h.NewRemoteHandler(apicollaborationspace, localClient, nil, conf)
+			replicationConfigSpec = utils.ReplicationConfigSpec{LocalClient: localClient, RemoteClient: remoteClient, Source: source, Destination: destination}
 		})
 
 		It("Should replicate all the objects of that type to the destination endpoint", func() {
@@ -84,9 +87,9 @@ var _ = Describe("Create", func() {
 				),
 			)
 
-			// Enable replication for type apicollaborationspaces.config.mazinger.com
-			utils.ReplicationEnabledCRDType[ApiCollaborationSpace] = make(map[string]utils.ReplicationConfigSpec)
-			utils.ReplicationEnabledCRDType[ApiCollaborationSpace][repConfName] = replicationConfigSpec
+			// Enable replication for gvr: config.mazinger.com/v1, apicollaborationspaces.
+			utils.ReplicationEnabledGVR[apicollaborationspace] = make(map[string]utils.ReplicationConfigSpec)
+			utils.ReplicationEnabledGVR[apicollaborationspace][repConfName] = replicationConfigSpec
 
 			// Create objA
 			err = remoteHandler.Create(GetObject("A", AcKind, "example"))
@@ -96,7 +99,7 @@ var _ = Describe("Create", func() {
 			err = remoteHandler.Create(GetObject("B", AcKind, "example"))
 			Expect(err).NotTo(HaveOccurred())
 
-			delete(utils.ReplicationEnabledCRDType, ApiCollaborationSpace)
+			delete(utils.ReplicationEnabledGVR, apicollaborationspace)
 		})
 
 		It("Should fail object creation when destination is down", func() {
@@ -111,24 +114,24 @@ var _ = Describe("Create", func() {
 				),
 			)
 
-			// Enable replication for type apicollaborationspaces.config.mazinger.com
-			utils.ReplicationEnabledCRDType[ApiCollaborationSpace] = make(map[string]utils.ReplicationConfigSpec)
-			utils.ReplicationEnabledCRDType[ApiCollaborationSpace][repConfName] = replicationConfigSpec
+			// Enable replication for gvr: config.mazinger.com/v1, apicollaborationspaces.
+			utils.ReplicationEnabledGVR[apicollaborationspace] = make(map[string]utils.ReplicationConfigSpec)
+			utils.ReplicationEnabledGVR[apicollaborationspace][repConfName] = replicationConfigSpec
 
 			// Create objA
 			err = remoteHandler.Create(GetObject("A", AcKind, "example"))
 			Expect(logBuffer.String()).To(ContainSubstring("Resource A create failed with an error"))
 
-			delete(utils.ReplicationEnabledCRDType, ApiCollaborationSpace)
+			delete(utils.ReplicationEnabledGVR, apicollaborationspace)
 		})
 	})
 
 	When("Replication is configured for CRD Type to be replicated from one type to another", func() {
 		BeforeEach(func() {
-			source := GetTypeConfig()
+			source := GetTypeConfig(Group, AcKind)
 			destination := GetDifferentTypeDestConfig()
-			remoteHandler = h.NewRemoteHandler(utils.GetGVRFromCrdType(ApiCollaborationSpace), ApiCollaborationSpace, localClient, nil, conf)
-			replicationConfigSpec = utils.ReplicationConfigSpec{Client: remoteClient, Source: source, Destination: destination}
+			remoteHandler = h.NewRemoteHandler(apicollaborationspace, localClient, nil, conf)
+			replicationConfigSpec = utils.ReplicationConfigSpec{LocalClient: localClient, RemoteClient: remoteClient, Source: source, Destination: destination}
 		})
 
 		It("Should replicate all the objects to the type configured in the replication config", func() {
@@ -152,9 +155,9 @@ var _ = Describe("Create", func() {
 				),
 			)
 
-			// Enable replication for type apicollaborationspaces.config.mazinger.com
-			utils.ReplicationEnabledCRDType[ApiCollaborationSpace] = make(map[string]utils.ReplicationConfigSpec)
-			utils.ReplicationEnabledCRDType[ApiCollaborationSpace][repConfName] = replicationConfigSpec
+			// Enable replication for gvr: config.mazinger.com/v1, apicollaborationspaces.
+			utils.ReplicationEnabledGVR[apicollaborationspace] = make(map[string]utils.ReplicationConfigSpec)
+			utils.ReplicationEnabledGVR[apicollaborationspace][repConfName] = replicationConfigSpec
 
 			// Create objA of type ApiCollaborationSpace
 			err = remoteHandler.Create(GetObject("A", AcKind, "example"))
@@ -164,7 +167,7 @@ var _ = Describe("Create", func() {
 			err = remoteHandler.Create(GetObject("B", AcKind, "example"))
 			Expect(err).NotTo(HaveOccurred())
 
-			delete(utils.ReplicationEnabledCRDType, ApiCollaborationSpace)
+			delete(utils.ReplicationEnabledGVR, apicollaborationspace)
 		})
 	})
 
@@ -172,8 +175,8 @@ var _ = Describe("Create", func() {
 		BeforeEach(func() {
 			source := GetNonHierarchicalSourceConfig()
 			destination := GetNonHierarchicalDestConfig()
-			remoteHandler = h.NewRemoteHandler(utils.GetGVRFromCrdType(ApiCollaborationSpace), ApiCollaborationSpace, localClient, nil, conf)
-			replicationConfigSpec = utils.ReplicationConfigSpec{Client: remoteClient, Source: source, Destination: destination}
+			remoteHandler = h.NewRemoteHandler(apicollaborationspace, localClient, nil, conf)
+			replicationConfigSpec = utils.ReplicationConfigSpec{LocalClient: localClient, RemoteClient: remoteClient, Source: source, Destination: destination}
 		})
 
 		It("Should replicate only that object to the destination endpoint", func() {
@@ -211,7 +214,7 @@ var _ = Describe("Create", func() {
 		BeforeEach(func() {
 			source := GetHierarchicalSourceConfig()
 			destination := GetNonHierarchicalDestConfig()
-			replicationConfigSpec = utils.ReplicationConfigSpec{Client: remoteClient, Source: source, Destination: destination}
+			replicationConfigSpec = utils.ReplicationConfigSpec{LocalClient: localClient, RemoteClient: remoteClient, Source: source, Destination: destination}
 
 			// Enable replication for object foo of type apicollaborationspaces.config.mazinger.com
 			repObj = utils.GetReplicationObject(Group, AcKind, "foo")
@@ -220,8 +223,8 @@ var _ = Describe("Create", func() {
 		})
 		When("Replication is enabled for the object's parent", func() {
 			BeforeEach(func() {
-				remoteHandler = h.NewRemoteHandler(utils.GetGVRFromCrdType(ApiDevSpace), ApiDevSpace, localClient, nil, conf)
-				utils.CRDTypeToParentHierarchy[ApiDevSpace] = []string{Root, Project,
+				remoteHandler = h.NewRemoteHandler(apidevspace, localClient, nil, conf)
+				utils.GVRToParentHierarchy[apidevspace] = []string{Root, Project,
 					Config, ApiCollaborationSpace}
 			})
 			It("Should replicate that object to the destination endpoint", func() {
@@ -246,13 +249,13 @@ var _ = Describe("Create", func() {
 		})
 		When("Replication is enabled for an object", func() {
 			BeforeEach(func() {
-				remoteHandler = h.NewRemoteHandler(utils.GetGVRFromCrdType(ApiCollaborationSpace), ApiCollaborationSpace, localClient, nil, conf)
-				utils.CRDTypeToChildren[ApiCollaborationSpace] = utils.Children{
+				remoteHandler = h.NewRemoteHandler(apicollaborationspace, localClient, nil, conf)
+				utils.GVRToChildren[apicollaborationspace] = utils.Children{
 					ApiDevSpace: utils.NodeHelperChild{
 						FieldNameGvk: "apiDevSpaceGvk",
 					},
 				}
-				utils.CRDTypeToParentHierarchy[ApiCollaborationSpace] = []string{Root, Project, Config}
+				utils.GVRToParentHierarchy[apicollaborationspace] = []string{Root, Project, Config}
 			})
 			It("Should replicate that object and its immediate children to the destination endpoint", func() {
 				// server receives obj "foo" and its immediate child "bar".
@@ -315,7 +318,8 @@ var _ = Describe("Create", func() {
 		BeforeEach(func() {
 			source := GetNonHierarchicalSourceConfig()
 			destination := GetHierarchicalDestConfig()
-			replicationConfigSpec = utils.ReplicationConfigSpec{Client: remoteClient, Source: source, Destination: destination}
+			replicationConfigSpec = utils.ReplicationConfigSpec{LocalClient: localClient, RemoteClient: remoteClient,
+				Source: source, Destination: destination, StatusEndpoint: utils.Source}
 
 			// Enable replication for object bar of type apidevspaces.config.mazinger.com
 			repObj = utils.GetReplicationObject(Group, AdKind, "bar")
@@ -324,8 +328,8 @@ var _ = Describe("Create", func() {
 		})
 		When("Replication is enabled for an object of individual type", func() {
 			BeforeEach(func() {
-				remoteHandler = h.NewRemoteHandler(utils.GetGVRFromCrdType(ApiDevSpace), ApiDevSpace, localClient, nil, conf)
-				utils.CRDTypeToParentHierarchy[ApiDevSpace] = []string{Root, Project,
+				remoteHandler = h.NewRemoteHandler(apidevspace, localClient, nil, conf)
+				utils.GVRToParentHierarchy[apidevspace] = []string{Root, Project,
 					Config, ApiCollaborationSpace}
 			})
 			It("Should replicate that object with parent info as labels", func() {
@@ -361,7 +365,7 @@ var _ = Describe("Create", func() {
 				)
 
 				err = remoteHandler.Create(GetObject("bar", AdKind, "example"))
-				Expect(logBuffer.String()).To(ContainSubstring("Resource bar create failed with an error"))
+				Expect(logBuffer.String()).To(ContainSubstring("create failed with an error"))
 
 				delete(utils.ReplicationEnabledNode, repObj)
 			})
@@ -399,16 +403,53 @@ var _ = Describe("Create", func() {
 		})
 	})
 
+	Context("Default K8s Resource Types", func() {
+		BeforeEach(func() {
+			source := GetTypeConfig("apps", "Deployment")
+			destination := GetHierarchicalDestConfig()
+			replicationConfigSpec = utils.ReplicationConfigSpec{LocalClient: localClient, RemoteClient: remoteClient,
+				Source: source, Destination: destination, StatusEndpoint: utils.Source}
+
+			// Enable replication for Deployment.
+			repObj = utils.GetReplicationObject("apps", "Deployment", "zoo")
+			utils.ReplicationEnabledNode[repObj] = make(map[string]utils.ReplicationConfigSpec)
+			utils.ReplicationEnabledNode[repObj][repConfName] = replicationConfigSpec
+		})
+		When("Replication is enabled for default K8s resource types", func() {
+			BeforeEach(func() {
+				remoteHandler = h.NewRemoteHandler(deployment, localClient, nil, conf)
+			})
+			It("Should replicate deployment objects to the desired destination hierarchy", func() {
+				// server receives obj "bar" with parent labels set.
+				server.AppendHandlers(
+					ghttp.CombineHandlers(
+						ghttp.VerifyRequest("GET", "/apis/apps/v1/deployments/zoo"),
+						ghttp.RespondWith(404, "not found"),
+					),
+					ghttp.CombineHandlers(
+						ghttp.VerifyRequest("POST", "/apis/apps/v1/deployments"),
+						ghttp.RespondWith(200, "{\"apiVersion\":\"apps/v1\",\"kind\":\"Deployment\",\"metadata\":{\"labels\":{\"configs.apix.mazinger.com\":\"config\",\"nexus/display_name\":\"zoo\",\"projects.apix.mazinger.com\":\"project\",\"roots.apix.mazinger.com\":\"root\"},\"name\":\"zoo\",\"namespace\":\"\"},\"spec\":{\"example\":\"example\"}}"),
+					),
+				)
+
+				err = remoteHandler.Create(GetDefaultResourceObj())
+				Expect(err).NotTo(HaveOccurred())
+
+				delete(utils.ReplicationEnabledNode, repObj)
+			})
+		})
+	})
+
 	Context("Update", func() {
 		When("Update event occurs for a replication enabled object", func() {
 			BeforeEach(func() {
 				source := GetHierarchicalSourceConfig()
 				destination := GetNonHierarchicalDestConfig()
-				remoteHandler = h.NewRemoteHandler(utils.GetGVRFromCrdType(ApiCollaborationSpace), ApiCollaborationSpace, localClient, nil, conf)
+				remoteHandler = h.NewRemoteHandler(apicollaborationspace, localClient, nil, conf)
 				remoteClient = fake_dynamic.NewSimpleDynamicClient(runtime.NewScheme(), GetObject("update", AcKind, "example"))
-				replicationConfigSpec = utils.ReplicationConfigSpec{Client: remoteClient, Source: source, Destination: destination}
+				replicationConfigSpec = utils.ReplicationConfigSpec{LocalClient: localClient, RemoteClient: remoteClient, Source: source, Destination: destination}
 
-				utils.CRDTypeToChildren[ApiCollaborationSpace] = utils.Children{
+				utils.GVRToChildren[apicollaborationspace] = utils.Children{
 					ApiDevSpace: utils.NodeHelperChild{
 						FieldNameGvk: "apiDevSpaceGvk",
 					},
@@ -454,10 +495,10 @@ var _ = Describe("Create", func() {
 	It("Should skip creation if already exists", func() {
 		source := GetNonHierarchicalSourceConfig()
 		destination := GetNonHierarchicalDestConfig()
-		remoteHandler = h.NewRemoteHandler(utils.GetGVRFromCrdType(ApiCollaborationSpace), ApiCollaborationSpace, localClient, nil, conf)
+		remoteHandler = h.NewRemoteHandler(apicollaborationspace, localClient, nil, conf)
 
 		remoteClient := fake_dynamic.NewSimpleDynamicClient(runtime.NewScheme(), GetObject("C", AcKind, "example"))
-		replicationConfigSpec = utils.ReplicationConfigSpec{Client: remoteClient, Source: source, Destination: destination}
+		replicationConfigSpec = utils.ReplicationConfigSpec{LocalClient: localClient, RemoteClient: remoteClient, Source: source, Destination: destination}
 
 		repObj := utils.GetReplicationObject(Group, AcKind, "C")
 

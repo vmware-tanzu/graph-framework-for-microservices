@@ -14,16 +14,14 @@ import (
 
 type RemoteHandler struct {
 	Gvr                       schema.GroupVersionResource
-	CrdType                   string
 	LocalClient, RemoteClient dynamic.Interface
 	Config                    *config.Config
 }
 
-func NewRemoteHandler(gvr schema.GroupVersionResource, crdType string,
+func NewRemoteHandler(gvr schema.GroupVersionResource,
 	localClient, remoteDynamicClient dynamic.Interface, conf *config.Config) *RemoteHandler {
 	return &RemoteHandler{
 		Gvr:          gvr,
-		CrdType:      crdType,
 		LocalClient:  localClient,
 		RemoteClient: remoteDynamicClient,
 		Config:       conf,

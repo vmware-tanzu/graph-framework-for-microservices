@@ -12,11 +12,12 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/dynamic"
 
+	"connector/controllers"
 	"connector/pkg/utils"
 )
 
-func createObject(gvr schema.GroupVersionResource, res *unstructured.Unstructured, children utils.Children, hierarchy string,
-	client, localClient dynamic.Interface, source utils.ReplicationSource, destination utils.ReplicationDestination) error {
+func createObject(gvr schema.GroupVersionResource, res *unstructured.Unstructured, children utils.Children,
+	hierarchy string, rc utils.ReplicationConfigSpec) error {
 
 	objData := res.UnstructuredContent()
 	labels := make(map[string]string)
@@ -25,14 +26,14 @@ func createObject(gvr schema.GroupVersionResource, res *unstructured.Unstructure
 	}
 	spec := objData["spec"]
 
-	if source.Kind == utils.Object && !destination.Hierarchical && children != nil {
+	if rc.Source.Kind == utils.Object && !rc.Destination.Hierarchical && children != nil {
 		// Ignore relationships.
 		utils.DeleteChildGvkFields(spec.(map[string]interface{}), children)
 		res.UnstructuredContent()["spec"] = spec
 	}
 
-	if destination.Hierarchical {
-		for _, label := range destination.Hierarchy.Labels {
+	if rc.Destination.Hierarchical {
+		for _, label := range rc.Destination.Hierarchy.Labels {
 			labels[label.Key] = label.Value
 		}
 	}
@@ -41,7 +42,7 @@ func createObject(gvr schema.GroupVersionResource, res *unstructured.Unstructure
 	annotations = utils.GenerateAnnotations(annotations, gvr, res.GetName())
 
 	// If destination object type is specified, then replicate the object to that type.
-	destGvr, destKind := utils.GetDestinationGvrAndKind(destination, gvr, res.GetKind())
+	destGvr, destKind := utils.GetDestinationGvrAndKind(rc.Destination, gvr, res.GetKind())
 
 	obj := &unstructured.Unstructured{
 		Object: map[string]interface{}{
@@ -50,46 +51,47 @@ func createObject(gvr schema.GroupVersionResource, res *unstructured.Unstructure
 			"metadata": map[string]interface{}{
 				"name":        res.GetName(),
 				"labels":      labels,
-				"namespace":   destination.Namespace,
+				"namespace":   rc.Destination.Namespace,
 				"annotations": annotations,
 			},
 			"spec": res.UnstructuredContent()["spec"],
 		},
 	}
 
-	if destObj, err := client.Resource(destGvr).Namespace(destination.Namespace).Get(context.TODO(), obj.GetName(),
+	if destObj, err := rc.RemoteClient.Resource(destGvr).Namespace(rc.Destination.Namespace).Get(context.TODO(), obj.GetName(),
 		metav1.GetOptions{}); destObj != nil && err == nil {
 		return nil
 	}
 
 	log.Infof("Replication is enabled for the resource: %v, creating...", hierarchy)
 	// If the object was successfully replicated, we need to patch the source and remote generation ID.
-	destObj, err := client.Resource(destGvr).Namespace(destination.Namespace).Create(context.TODO(), obj, metav1.CreateOptions{})
+	destObj, err := rc.RemoteClient.Resource(destGvr).Namespace(rc.Destination.Namespace).Create(context.TODO(), obj, metav1.CreateOptions{})
 	if err == nil && destObj != nil {
-		if err = patchStatusObject(localClient, gvr, res.GetName(), res.GetGeneration(), destObj.GetGeneration()); err != nil {
-			log.Errorf("CR %q status patch failed with an error: %v", res.GetName(), err)
+		if name, err := patchStatusObject(rc, gvr, destGvr, rc.Destination.Namespace, res.GetName(), destObj.GetName(),
+			res.GetGeneration(), destObj.GetGeneration()); err != nil {
+			log.Errorf("CR %q status patch failed with an error: %v", name, err)
 			return err
 		}
 	}
 	return err
 }
 
-func updateObject(gvr schema.GroupVersionResource, res *unstructured.Unstructured, children utils.Children, hierarchy string,
-	client, localClient dynamic.Interface, source utils.ReplicationSource, destination utils.ReplicationDestination) error {
+func updateObject(gvr schema.GroupVersionResource, res *unstructured.Unstructured, children utils.Children,
+	hierarchy string, rc utils.ReplicationConfigSpec) error {
 
 	objData := res.UnstructuredContent()
 	spec := objData["spec"]
 
 	// If destination object type is specified, then replicate the object to that type.
-	destGvr, _ := utils.GetDestinationGvrAndKind(destination, gvr, "")
+	destGvr, _ := utils.GetDestinationGvrAndKind(rc.Destination, gvr, "")
 
-	oldObject, err := client.Resource(destGvr).Namespace(destination.Namespace).Get(context.TODO(), res.GetName(), metav1.GetOptions{})
-	if err != nil && strings.Contains(err.Error(), "not found") {
+	oldObject, err := rc.RemoteClient.Resource(destGvr).Namespace(rc.Destination.Namespace).Get(context.TODO(), res.GetName(), metav1.GetOptions{})
+	if err != nil && errors.IsNotFound(err) {
 		log.Infof("Resource %s not found, creating instead", res.GetName())
-		return createObject(gvr, res, children, hierarchy, client, localClient, source, destination)
+		return createObject(gvr, res, children, hierarchy, rc)
 	}
 
-	if source.Object.Hierarchical && !destination.Hierarchical {
+	if rc.Source.Object.Hierarchical && !rc.Destination.Hierarchical {
 		// Ignore relationships.
 		utils.DeleteChildGvkFields(spec.(map[string]interface{}), children)
 	}
@@ -101,33 +103,56 @@ func updateObject(gvr schema.GroupVersionResource, res *unstructured.Unstructure
 
 	log.Infof("Replication is enabled for the resource: %v, updating...", hierarchy)
 	// If the object was successfully replicated, we need to patch the source and remote generation ID.
-	destObj, err := client.Resource(destGvr).Namespace(destination.Namespace).Update(context.TODO(), oldObject, metav1.UpdateOptions{})
+	destObj, err := rc.RemoteClient.Resource(destGvr).Namespace(rc.Destination.Namespace).Update(context.TODO(), oldObject, metav1.UpdateOptions{})
 	if err == nil && destObj != nil {
-		if err = patchStatusObject(localClient, gvr, res.GetName(), res.GetGeneration(), destObj.GetGeneration()); err != nil {
-			log.Errorf("CR %q status patch failed with an error: %v", res.GetName(), err)
+		if name, err := patchStatusObject(rc, gvr, destGvr, rc.Destination.Namespace, res.GetName(), destObj.GetName(),
+			res.GetGeneration(), destObj.GetGeneration()); err != nil {
+			log.Errorf("CR %q status patch failed with an error: %v", name, err)
 			return err
 		}
 	}
 	return err
 }
 
-func patchStatusObject(localClient dynamic.Interface, gvr schema.GroupVersionResource,
-	repObjName string, srcGeneration, destGeneration int64) error {
+func patchStatusObject(rc utils.ReplicationConfigSpec, srcGvr, destGvr schema.GroupVersionResource,
+	ns, srcObj, destObj string, srcGeneration, destGeneration int64) (string, error) {
+
+	var (
+		objName, namespace string
+		client             dynamic.Interface
+		gvr                schema.GroupVersionResource
+	)
+
+	switch rc.StatusEndpoint {
+	case utils.Source:
+		objName = srcObj
+		client = rc.LocalClient
+		gvr = srcGvr
+
+	case utils.Destination:
+		objName = destObj
+		namespace = ns
+		client = rc.RemoteClient
+		gvr = destGvr
+
+	default:
+		return "", nil
+	}
+
 	patchBytes, err := utils.CreatePatch(srcGeneration, destGeneration)
 	if err != nil {
-		log.Errorf("Could not create patch for the CR(%q) %v", repObjName, err)
-		return err
+		log.Errorf("Could not create patch for the CR(%q) %v", objName, err)
+		return objName, err
 	}
 
-	log.Debugf("Patching status of CR %q: %v", repObjName, string(patchBytes))
+	log.Debugf("Patching status of CR %q: %v", objName, string(patchBytes))
 
-	_, err = localClient.Resource(gvr).Patch(context.TODO(), repObjName, types.MergePatchType, patchBytes, metav1.PatchOptions{}, "status")
+	_, err = client.Resource(gvr).Namespace(namespace).Patch(context.TODO(), objName, types.MergePatchType, patchBytes, metav1.PatchOptions{}, "status")
 	if err != nil {
-		log.Errorf("Resource %s patching failed with an error: %v", repObjName, err)
-		return err
+		log.Errorf("Resource %s patching failed with an error: %v", objName, err)
+		return objName, err
 	}
-
-	return nil
+	return objName, nil
 }
 
 func processEvents(h *RemoteHandler, eventType, hierarchy string, res *unstructured.Unstructured, children utils.Children,
@@ -135,22 +160,22 @@ func processEvents(h *RemoteHandler, eventType, hierarchy string, res *unstructu
 
 	switch eventType {
 	case utils.Create:
-		err := createObject(h.Gvr, res, children, hierarchy, repInfo.Client, h.LocalClient, repInfo.Source, repInfo.Destination)
+		err := createObject(h.Gvr, res, children, hierarchy, repInfo)
 		if err != nil && !errors.IsAlreadyExists(err) {
 			log.Errorf("Resource %v create failed with an error: %v", hierarchy, err)
 			return err
 		}
 		if repInfo.Source.Object.Hierarchical && replicationEnabledNode {
 			// Replicate children only if the obj exactly matches the source object.
-			newRepDestination := repInfo.Destination
-			newRepDestination.IsChild = true
-			if err := ReplicateChildren(h.CrdType, res, h.LocalClient, repInfo.Client, repInfo.Source, newRepDestination); err != nil {
+			newRepInfo := repInfo
+			newRepInfo.Destination.IsChild = true
+			if err := ReplicateChildren(h.Gvr, res, newRepInfo); err != nil {
 				log.Errorf("Children replication failed for the resource %v: %v", hierarchy, err)
 				return err
 			}
 		}
 	case utils.Update:
-		err := updateObject(h.Gvr, res, children, hierarchy, repInfo.Client, h.LocalClient, repInfo.Source, repInfo.Destination)
+		err := updateObject(h.Gvr, res, children, hierarchy, repInfo)
 		if err != nil {
 			log.Errorf("Resource %v update failed with an error: %v", hierarchy, err)
 			return err
@@ -160,23 +185,23 @@ func processEvents(h *RemoteHandler, eventType, hierarchy string, res *unstructu
 }
 
 // For every object notification received, replicator replicates in the following order.
-// 1. If the CRDType is of interest, simply replicate the object.
+// 1. If the ResourceType is of interest, simply replicate the object.
 // 2. If only the object is of interest and if it is a part of a graph, then replicate the object and its immediate children.
 // 3. If the oject is not a part of a graph, then replicate only that object.
 func Replicator(obj interface{}, h *RemoteHandler, eventType string) error {
 	res := obj.(*unstructured.Unstructured)
 
 	var (
-		repInfo   utils.ReplicationConfigSpec
+		rc        utils.ReplicationConfigSpec
 		repObj    utils.ReplicationObject
 		hierarchy string
 	)
 
 	// Verify if the type is of interest.
-	// If the CRDType is enabled for replication, simply replicate the object.
-	if repInfoMap, replicationEnabledType := utils.ReplicationEnabledCRDType[h.CrdType]; replicationEnabledType {
-		for _, repInfo := range repInfoMap {
-			if err := processEvents(h, eventType, res.GetName(), res, nil, repInfo, false); err != nil {
+	// If the ResourceType is enabled for replication, simply replicate the object.
+	if repConfMap, replicationEnabledResourceType := utils.ReplicationEnabledGVR[h.Gvr]; replicationEnabledResourceType {
+		for _, rc = range repConfMap {
+			if err := processEvents(h, eventType, res.GetName(), res, nil, rc, false); err != nil {
 				return err
 			}
 		}
@@ -184,8 +209,8 @@ func Replicator(obj interface{}, h *RemoteHandler, eventType string) error {
 	}
 
 	labels := res.GetLabels()
-	parents := utils.CRDTypeToParentHierarchy[h.CrdType]
-	children := utils.CRDTypeToChildren[h.CrdType]
+	parents := utils.GVRToParentHierarchy[h.Gvr]
+	children := utils.GVRToChildren[h.Gvr]
 
 	name := res.GetName()
 	if objName, ok := labels[utils.DisplayNameKey]; ok {
@@ -196,12 +221,12 @@ func Replicator(obj interface{}, h *RemoteHandler, eventType string) error {
 	// Verify if the obj is of interest.
 	repConfMap, replicationEnabledNode := utils.ReplicationEnabledNode[repObj]
 	if replicationEnabledNode {
-		for _, repConf := range repConfMap {
+		for _, rc = range repConfMap {
 			hierarchy = name
-			if repConf.Source.Object.Hierarchical {
-				hierarchy = utils.GetNodeHierarchy(parents, labels, h.CrdType)
+			if parents != nil {
+				hierarchy = utils.GetNodeHierarchy(parents, labels, strings.Join([]string{h.Gvr.Resource, h.Gvr.Group}, "."))
 			}
-			if err := processEvents(h, eventType, hierarchy, res, children, repConf, true); err != nil {
+			if err := processEvents(h, eventType, hierarchy, res, children, rc, true); err != nil {
 				return err
 			}
 		}
@@ -216,7 +241,7 @@ func Replicator(obj interface{}, h *RemoteHandler, eventType string) error {
 
 	replicate := false
 	immediateParent := parents[len(parents)-1]
-	gvr := utils.GetGVRFromCrdType(immediateParent)
+	gvr := utils.GetGVRFromCrdType(immediateParent, utils.CRDTypeToCrdVersion[immediateParent])
 
 	// Get parent information from the object's labels to verify if the object's immediate parent is of interest.
 	opts := metav1.ListOptions{LabelSelector: utils.GetParentLabels(parents, labels)}
@@ -233,10 +258,10 @@ func Replicator(obj interface{}, h *RemoteHandler, eventType string) error {
 		}
 		repObj := utils.GetReplicationObject(item.GroupVersionKind().Group, item.GetKind(), name)
 		if repInfoMap, replicationEnabledNode := utils.ReplicationEnabledNode[repObj]; replicationEnabledNode {
-			for _, repInfo = range repInfoMap {
+			for _, rc = range repInfoMap {
 				hierarchy = name
-				if repInfo.Source.Object.Hierarchical {
-					hierarchy = utils.GetNodeHierarchy(parents, labels, h.CrdType)
+				if rc.Source.Object.Hierarchical {
+					hierarchy = utils.GetNodeHierarchy(parents, labels, strings.Join([]string{h.Gvr.Resource, h.Gvr.Group}, "."))
 				}
 				replicate = true
 				break
@@ -244,7 +269,7 @@ func Replicator(obj interface{}, h *RemoteHandler, eventType string) error {
 		}
 	}
 	if replicate {
-		newRepInfo := repInfo
+		newRepInfo := rc
 		newRepInfo.Destination.IsChild = true
 		if err := processEvents(h, eventType, hierarchy, res, children, newRepInfo, false); err != nil {
 			return err
@@ -256,7 +281,7 @@ func Replicator(obj interface{}, h *RemoteHandler, eventType string) error {
 // When ReplicationConfig Create events occurs, ReplicateNode() replicates the replication node if it exists.
 // If not, simply returns.
 // Replication occurs based on Source and Destination Kind.
-func ReplicateNode(confName string, repConfSpec utils.ReplicationConfigSpec, localClient dynamic.Interface) error {
+func ReplicateNode(confName string, rc utils.ReplicationConfigSpec) error {
 
 	var (
 		children      utils.Children
@@ -265,13 +290,17 @@ func ReplicateNode(confName string, repConfSpec utils.ReplicationConfigSpec, loc
 	)
 
 	// If the source kind is "Type", replicate all the objects of that type.
-	if repConfSpec.Source.Kind == utils.Type {
-		crdType := utils.GetCrdType(repConfSpec.Source.Type.Kind, repConfSpec.Source.Type.Group)
+	if rc.Source.Kind == utils.Type {
+		t := rc.Source.Type
+		gvr := schema.GroupVersionResource{Group: t.Group, Version: t.Version, Resource: utils.GetGroupResourceName(t.Kind)}
 
-		// Add the entry to the ReplicationEnabledCRDType map.
-		utils.ConstructMapReplicationEnabledCRDType(crdType, confName, repConfSpec)
+		// Start controller if not started.
+		controllers.GvrCh <- gvr
 
-		if err := ReplicateAllObjectsOfType(crdType, localClient, repConfSpec, children); err != nil {
+		// Add the entry to the ReplicationEnabledGVR map.
+		utils.ConstructMapReplicationEnabledGVR(gvr, confName, rc)
+
+		if err := ReplicateAllObjectsOfType(gvr, rc, children); err != nil {
 			return err
 		}
 		return nil
@@ -280,40 +309,43 @@ func ReplicateNode(confName string, repConfSpec utils.ReplicationConfigSpec, loc
 	// If the source kind is "Object", then:
 	// 1. If the source is hierarchical, replicate the object and its immediate children.
 	// 2. If not, replicate only the object.
-	crdType := utils.GetCrdType(repConfSpec.Source.Object.Kind, repConfSpec.Source.Object.Group)
-	gvr := utils.GetGVRFromCrdType(crdType)
-	children = utils.CRDTypeToChildren[crdType]
+	t := rc.Source.Object
+	gvr := schema.GroupVersionResource{Group: t.Group, Version: t.Version, Resource: utils.GetGroupResourceName(t.Kind)}
+	children = utils.GVRToChildren[gvr]
+
+	// // Start controller if not started.
+	controllers.GvrCh <- gvr
 
 	// Add the entry to ReplicationEnabledNode Map.
-	repObject := utils.GetReplicationObject(repConfSpec.Source.Object.Group, repConfSpec.Source.Object.Kind, repConfSpec.Source.Object.Name)
-	utils.ConstructMapReplicationEnabledNode(repObject, confName, repConfSpec)
+	repObject := utils.GetReplicationObject(rc.Source.Object.Group, rc.Source.Object.Kind, rc.Source.Object.Name)
+	utils.ConstructMapReplicationEnabledNode(repObject, confName, rc)
 
-	if repConfSpec.Source.Object.Hierarchical {
-		for _, label := range repConfSpec.Source.Object.Hierarchy.Labels {
+	if rc.Source.Object.Hierarchical {
+		for _, label := range rc.Source.Object.Hierarchy.Labels {
 			labels = append(labels, label.Key+"="+label.Value)
 		}
 		labelSelector = strings.Join(labels, ",")
 	}
 
-	list, err := localClient.Resource(gvr).List(context.TODO(), metav1.ListOptions{LabelSelector: labelSelector})
+	list, err := rc.LocalClient.Resource(gvr).List(context.TODO(), metav1.ListOptions{LabelSelector: labelSelector})
 	if err != nil {
-		log.Errorf("Error getting objects of the crd type %v: %v", crdType, err)
+		log.Errorf("Error getting objects for gvr %v: %v", gvr, err)
 		return err
 	}
 
 	for _, item := range list.Items {
-		if !repConfSpec.Source.Object.Hierarchical {
-			if repConfSpec.Source.Object.Name != item.GetName() {
+		if !rc.Source.Object.Hierarchical {
+			if rc.Source.Object.Name != item.GetName() {
 				continue
 			}
 		}
-		err = createObject(gvr, &item, children, item.GetName(), repConfSpec.Client, localClient, repConfSpec.Source, repConfSpec.Destination)
+		err = createObject(gvr, &item, children, item.GetName(), rc)
 		if err != nil && !errors.IsAlreadyExists(err) {
 			log.Errorf("Resource %v creation failed with an error: %v", item.GetName(), err)
 			return err
 		}
-		if repConfSpec.Source.Object.Hierarchical {
-			if err := ReplicateChildren(crdType, &item, localClient, repConfSpec.Client, repConfSpec.Source, repConfSpec.Destination); err != nil {
+		if rc.Source.Object.Hierarchical {
+			if err := ReplicateChildren(gvr, &item, rc); err != nil {
 				log.Errorf("Children replication failed for replication object %v: %v", &item, err)
 				return err
 			}
@@ -323,18 +355,17 @@ func ReplicateNode(confName string, repConfSpec utils.ReplicationConfigSpec, loc
 }
 
 // ReplicationChildren replicates the immediate children of desired node.
-func ReplicateChildren(crdType string, repEnabledNode *unstructured.Unstructured, localClient, remoteClient dynamic.Interface,
-	source utils.ReplicationSource, destination utils.ReplicationDestination) error {
+func ReplicateChildren(gvr schema.GroupVersionResource, repEnabledNode *unstructured.Unstructured, rc utils.ReplicationConfigSpec) error {
 
-	children := utils.CRDTypeToChildren[crdType]
-	parents := utils.CRDTypeToParentHierarchy[crdType]
+	children := utils.GVRToChildren[gvr]
+	parents := utils.GVRToParentHierarchy[gvr]
 	labels := repEnabledNode.GetLabels()
 
-	opts := utils.GetNodeLabels(parents, labels, crdType)
+	opts := utils.GetNodeLabels(parents, labels, strings.Join([]string{gvr.Resource, gvr.Group}, "."))
 	for child := range children {
-		parents = utils.CRDTypeToParentHierarchy[child]
-		gvr := utils.GetGVRFromCrdType(child)
-		c, err := localClient.Resource(gvr).List(context.TODO(), metav1.ListOptions{LabelSelector: opts})
+		childGvr := utils.GetGVRFromCrdType(child, utils.CRDTypeToCrdVersion[child])
+		parents = utils.GVRToParentHierarchy[childGvr]
+		c, err := rc.LocalClient.Resource(childGvr).List(context.TODO(), metav1.ListOptions{LabelSelector: opts})
 		if err != nil && !errors.IsNotFound(err) {
 			log.Errorf("Error getting child objects of %v: %v", repEnabledNode.GetName(), err)
 			return err
@@ -342,8 +373,8 @@ func ReplicateChildren(crdType string, repEnabledNode *unstructured.Unstructured
 
 		for _, item := range c.Items {
 			hierarchy := utils.GetNodeHierarchy(parents, item.GetLabels(), child)
-			destination.IsChild = true
-			err := createObject(gvr, &item, children, hierarchy, remoteClient, localClient, source, destination)
+			rc.Destination.IsChild = true
+			err := createObject(childGvr, &item, children, hierarchy, rc)
 			if err != nil && !errors.IsAlreadyExists(err) {
 				log.Errorf("Error creating resource, skipping %v: %v", hierarchy, err)
 				return err
@@ -353,16 +384,15 @@ func ReplicateChildren(crdType string, repEnabledNode *unstructured.Unstructured
 	return nil
 }
 
-func ReplicateAllObjectsOfType(crdType string, localClient dynamic.Interface, repConfSpec utils.ReplicationConfigSpec, children utils.Children) error {
-	gvr := utils.GetGVRFromCrdType(crdType)
-	list, err := localClient.Resource(gvr).List(context.TODO(), metav1.ListOptions{})
+func ReplicateAllObjectsOfType(gvr schema.GroupVersionResource, rc utils.ReplicationConfigSpec, children utils.Children) error {
+	list, err := rc.LocalClient.Resource(gvr).List(context.TODO(), metav1.ListOptions{})
 	if err != nil {
-		log.Errorf("Error getting objects of the crd type %v: %v", crdType, err)
+		log.Errorf("Error getting objects for gvr %v: %v", gvr, err)
 		return err
 	}
 
 	for _, item := range list.Items {
-		err = createObject(gvr, &item, children, item.GetName(), repConfSpec.Client, localClient, repConfSpec.Source, repConfSpec.Destination)
+		err = createObject(gvr, &item, children, item.GetName(), rc)
 		if err != nil && !errors.IsAlreadyExists(err) {
 			log.Errorf("Resource %v creation failed with an error: %v", item.GetName(), err)
 			return err
