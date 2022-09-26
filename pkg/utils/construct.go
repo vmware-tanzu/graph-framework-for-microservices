@@ -2,46 +2,71 @@ package utils
 
 import (
 	"sync"
+
+	"k8s.io/apimachinery/pkg/runtime/schema"
 )
 
 var (
-	// CRD Type to ParentInfo (config.vmware.org => []string{root.vmware.org, project.vmware.org})
-	CRDTypeToParentHierarchy      = make(map[string][]string)
-	crdTypeToParentHierarchyMutex = &sync.Mutex{}
+	/* GVR to ParentInfo.
+	Eg: {Group: vmware.org, Version: v1, Resource: configs} => []string{root.vmware.org, project.vmware.org}) */
+	GVRToParentHierarchy      = make(map[schema.GroupVersionResource][]string)
+	gvrToParentHierarchyMutex = &sync.Mutex{}
 
-	// CRD Type to ChilrenInfo (root.vmware.org => Children{})
-	CRDTypeToChildren      = make(map[string]Children)
-	crdTypeToChildrenMutex = &sync.Mutex{}
+	/* GVR to ChildrenInfo.
+	Eg: {Group: vmware.org, Version: v1, Resource: roots} => Children{}) */
+	GVRToChildren      = make(map[schema.GroupVersionResource]Children)
+	gvrToChildrenMutex = &sync.Mutex{}
 
-	// ReplicationObject to ReplicationConfig Spec (ReplicationObject{Group, Kind, Name} => {"conf1": ReplicationConfigSpec{}, "conf2": ReplicationConfigSpec{})
+	/* ReplicationObject to ReplicationConfig Spec
+	Eg: {Group: vmware.org, Kind: Root, Name: foo} => {"conf1": ReplicationConfigSpec{}, "conf2": ReplicationConfigSpec{}) */
 	ReplicationEnabledNode      = make(map[ReplicationObject]map[string]ReplicationConfigSpec)
 	replicationEnabledNodeMutex = &sync.Mutex{}
 
-	// CRDType to ReplicationConfig Spec (root.vmware.org => {"conf1": ReplicationConfigSpec{}, "conf2": ReplicationConfigSpec{})
-	ReplicationEnabledCRDType      = make(map[string]map[string]ReplicationConfigSpec)
-	replicationEnabledCRDTypeMutex = &sync.Mutex{}
+	/* GVR to ReplicationConfig Spec
+	Eg: {Group: vmware.org, Version: v1, Resource: roots} => {"conf1": ReplicationConfigSpec{}, "conf2": ReplicationConfigSpec{}) */
+	ReplicationEnabledGVR      = make(map[schema.GroupVersionResource]map[string]ReplicationConfigSpec)
+	replicationEnabledGVRMutex = &sync.Mutex{}
+
+	/* CRD Type to CRD version, assuming that there exists CRD of only one version.
+	Eg: {roots.vmware.org} => v1 */
+	CRDTypeToCrdVersion      = make(map[string]string)
+	crdTypeTocrdVersionMutex = &sync.Mutex{}
 )
 
-func ConstructMapCRDTypeToParentHierarchy(eventType EventType, crdType string, hierarchy []string) {
-	crdTypeToParentHierarchyMutex.Lock()
-	defer crdTypeToParentHierarchyMutex.Unlock()
+func ConstructCRDTypeToCrdVersion(eventType EventType, crdType, crdVersion string) {
+	crdTypeTocrdVersionMutex.Lock()
+	defer crdTypeTocrdVersionMutex.Unlock()
 
 	if eventType == Delete {
-		delete(CRDTypeToParentHierarchy, crdType)
+		delete(CRDTypeToCrdVersion, crdType)
+		return
 	}
 
-	CRDTypeToParentHierarchy[crdType] = hierarchy
+	CRDTypeToCrdVersion[crdType] = crdVersion
 }
 
-func ConstructMapCRDTypeToChildren(eventType EventType, crdType string, children Children) {
-	crdTypeToChildrenMutex.Lock()
-	defer crdTypeToChildrenMutex.Unlock()
+func ConstructMapGVRToParentHierarchy(eventType EventType, gvr schema.GroupVersionResource, hierarchy []string) {
+	gvrToParentHierarchyMutex.Lock()
+	defer gvrToParentHierarchyMutex.Unlock()
 
 	if eventType == Delete {
-		delete(CRDTypeToChildren, crdType)
+		delete(GVRToParentHierarchy, gvr)
+		return
 	}
 
-	CRDTypeToChildren[crdType] = children
+	GVRToParentHierarchy[gvr] = hierarchy
+}
+
+func ConstructMapGVRToChildren(eventType EventType, gvr schema.GroupVersionResource, children Children) {
+	gvrToChildrenMutex.Lock()
+	defer gvrToChildrenMutex.Unlock()
+
+	if eventType == Delete {
+		delete(GVRToChildren, gvr)
+		return
+	}
+
+	GVRToChildren[gvr] = children
 }
 
 func ConstructMapReplicationEnabledNode(repObj ReplicationObject, name string, spec ReplicationConfigSpec) {
@@ -55,13 +80,13 @@ func ConstructMapReplicationEnabledNode(repObj ReplicationObject, name string, s
 	ReplicationEnabledNode[repObj][name] = spec
 }
 
-func ConstructMapReplicationEnabledCRDType(crdType string, name string, spec ReplicationConfigSpec) {
-	replicationEnabledCRDTypeMutex.Lock()
-	defer replicationEnabledCRDTypeMutex.Unlock()
+func ConstructMapReplicationEnabledGVR(gvr schema.GroupVersionResource, name string, spec ReplicationConfigSpec) {
+	replicationEnabledGVRMutex.Lock()
+	defer replicationEnabledGVRMutex.Unlock()
 
-	if ReplicationEnabledCRDType[crdType] == nil {
-		ReplicationEnabledCRDType[crdType] = make(map[string]ReplicationConfigSpec)
+	if ReplicationEnabledGVR[gvr] == nil {
+		ReplicationEnabledGVR[gvr] = make(map[string]ReplicationConfigSpec)
 	}
 
-	ReplicationEnabledCRDType[crdType][name] = spec
+	ReplicationEnabledGVR[gvr][name] = spec
 }

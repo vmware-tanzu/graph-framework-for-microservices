@@ -18,11 +18,13 @@ package controllers
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/sirupsen/logrus"
 
 	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/runtime/schema"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
@@ -34,7 +36,7 @@ import (
 type CustomResourceDefinitionReconciler struct {
 	client.Client
 	Scheme *runtime.Scheme
-	Cache  *CrdCache
+	Cache  *GvrCache
 }
 
 //+kubebuilder:rbac:groups=apiextensions.k8s.io.api-gw.com,resources=customresourcedefinitions,verbs=get;list;watch;create;update;patch;delete
@@ -51,12 +53,11 @@ type CustomResourceDefinitionReconciler struct {
 // For more details, check Reconcile and its Result here:
 // - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.11.0/pkg/reconcile
 
-type Crd struct {
-	CrdType  string
-	CrdCache *CrdCache
+type Gvr struct {
+	Value schema.GroupVersionResource
 }
 
-var CrdCh = make(chan Crd, 100)
+var GvrCh = make(chan schema.GroupVersionResource, 100)
 
 func (r *CustomResourceDefinitionReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	_ = log.FromContext(ctx)
@@ -70,21 +71,33 @@ func (r *CustomResourceDefinitionReconciler) Reconcile(ctx context.Context, req 
 		eventType = utils.Delete
 	}
 
-	if utils.NexusDatamodelCRDs(crd.Name) {
+	if utils.NexusDatamodelCRDs(crd.Spec.Group) {
 		return ctrl.Result{}, nil
 	}
-
 	logrus.Debugf("Received [%s] event for CRD Type %s", eventType, crd.Name)
-	if err := r.ProcessAnnotation(req.NamespacedName.Name, crd.Annotations, eventType); err != nil {
+
+	var version string
+	if eventType != utils.Delete {
+		status := &crd.Status
+		if status == nil {
+			return ctrl.Result{}, fmt.Errorf("status field is empty, hence can't determine the crd version")
+		}
+		if len(crd.Status.StoredVersions) == 0 {
+			return ctrl.Result{}, fmt.Errorf("stored version in status field is empty, hence can't determine the crd version")
+		}
+		version = crd.Status.StoredVersions[0]
+	}
+
+	gvr := r.ConstructGVR(crd.Name, version)
+	if err := r.ProcessAnnotation(crd.Name, gvr, crd.Annotations, eventType); err != nil {
 		logrus.Errorf("Error Processing CRD Annotation %v\n", err)
 		return ctrl.Result{}, err
 	}
 
 	if eventType != utils.Delete {
-		r.Cache.Upsert(crd.Name, &CrdInfo{Spec: crd.Spec})
-		CrdCh <- Crd{crd.Name, r.Cache}
+		GvrCh <- gvr
 	} else {
-		r.Cache.Delete(crd.Name)
+		r.Cache.Delete(gvr)
 	}
 	return ctrl.Result{}, nil
 }

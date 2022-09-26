@@ -28,11 +28,11 @@ const (
 	secretName               = "SECRET_NAME"
 
 	// Nexus-Connect DM CRDs.
-	NexusCRD             = "nexuses.api.nexus.org"
-	ConfigCRD            = "configs.config.nexus.org"
-	ConnectCRD           = "connects.connect.nexus.org"
 	ReplicationConfigCRD = "replicationconfigs.connect.nexus.org"
 	NexusEndpointCRD     = "nexusendpoints.connect.nexus.org"
+
+	// CRD Version.
+	V1Version = "v1"
 
 	Update = "UPDATE"
 	Create = "CREATE"
@@ -72,11 +72,11 @@ func GetGroupResourceName(nodeName string) string {
 	return strings.ToLower(ToPlural(nodeName)) // eg roots
 }
 
-func GetGVRFromCrdType(crdType string) schema.GroupVersionResource {
+func GetGVRFromCrdType(crdType, crdVersion string) schema.GroupVersionResource {
 	parts := strings.Split(crdType, ".")
 	return schema.GroupVersionResource{
 		Group:    strings.Join(parts[1:], "."),
-		Version:  "v1",
+		Version:  crdVersion,
 		Resource: parts[0],
 	}
 }
@@ -137,15 +137,8 @@ func DeleteChildGvkFields(fields map[string]interface{}, children map[string]Nod
 	}
 }
 
-func NexusDatamodelCRDs(crdType string) bool {
-	if crdType == NexusCRD ||
-		crdType == ConfigCRD ||
-		crdType == ConnectCRD ||
-		crdType == ReplicationConfigCRD ||
-		crdType == NexusEndpointCRD {
-		return true
-	}
-	return false
+func NexusDatamodelCRDs(group string) bool {
+	return strings.Contains(group, "nexus.org")
 }
 
 func GenerateAnnotations(annotations map[string]string, gvr schema.GroupVersionResource, name string) map[string]string {
@@ -173,8 +166,9 @@ func GetDestinationGvrAndKind(destination ReplicationDestination, gvr schema.Gro
 	destGvr := gvr
 	destKind := kind
 	if destination.ObjectType != nil && !destination.IsChild {
-		destCrdType := GetCrdType(destination.ObjectType.Kind, destination.ObjectType.Group)
-		destGvr = GetGVRFromCrdType(destCrdType)
+		destGvr = schema.GroupVersionResource{Group: destination.ObjectType.Group,
+			Version:  destination.ObjectType.Version,
+			Resource: GetGroupResourceName(destination.ObjectType.Kind)}
 		destKind = destination.Kind
 	}
 	return destGvr, destKind

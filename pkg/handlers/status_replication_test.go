@@ -42,7 +42,7 @@ var _ = Describe("Status Replication", func() {
 			GetObject("Root", RootKind, "example"), GetObject("Config", ConfigKind, "example"), GetObject("Project", ProjectKind, "example"))
 		Expect(err).NotTo(HaveOccurred())
 
-		remoteHandler = h.NewRemoteHandler(utils.GetGVRFromCrdType(Config), Config, localClient, remoteClient, conf)
+		remoteHandler = h.NewRemoteHandler(utils.GetGVRFromCrdType(Config, utils.V1Version), localClient, remoteClient, conf)
 	})
 
 	It("Should replicate the custom status back to source", func() {

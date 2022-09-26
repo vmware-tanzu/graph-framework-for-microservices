@@ -42,6 +42,7 @@ func getHelperClient(ctx context.Context, crd *apiextensionsv1.CustomResourceDef
 		arg.Finalizers = crd.Finalizers
 		arg.ResourceVersion = crd.ResourceVersion
 		arg.Generation = crd.Generation
+		arg.Status = crd.Status
 	})
 	return client
 }
@@ -52,7 +53,10 @@ func getHelperClientForDeleteEvent(ctx context.Context) *Client {
 		mock.IsType(ctx),
 		mock.Anything,
 		mock.Anything,
-	).Return(errors.NewNotFound(resource("tests"), "3"))
+	).Return(errors.NewNotFound(resource("tests"), "3")).Run(func(args mock.Arguments) {
+		arg := args.Get(2).(*apiextensionsv1.CustomResourceDefinition)
+		arg.Status = crd.Status
+	})
 	return client
 }
 
@@ -83,6 +87,9 @@ func getCRD() *apiextensionsv1.CustomResourceDefinition {
 					Name: "v1",
 				},
 			},
+		},
+		Status: apiextensionsv1.CustomResourceDefinitionStatus{
+			StoredVersions: []string{"v1"},
 		},
 	}
 }

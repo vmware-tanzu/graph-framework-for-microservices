@@ -114,7 +114,7 @@ var _ = Describe("ReplicationConfig Tests", func() {
 			_, err = client.Resource(acGvr).Create(context.TODO(), ac1, metav1.CreateOptions{})
 			Expect(err).NotTo(HaveOccurred())
 
-			gvr = utils.GetGVRFromCrdType(utils.ReplicationConfigCRD)
+			gvr = utils.GetGVRFromCrdType(utils.ReplicationConfigCRD, utils.V1Version)
 			conf, err = config.LoadConfig("./../config/test_utils/correct.yaml")
 			Expect(err).NotTo(HaveOccurred())
 

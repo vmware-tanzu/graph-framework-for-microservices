@@ -4,9 +4,14 @@ import "k8s.io/client-go/dynamic"
 
 type SourceKind string
 
+type ReplicationStatusEndpoint string
+
 const (
 	Object SourceKind = "Object"
 	Type   SourceKind = "Type"
+
+	Source      ReplicationStatusEndpoint = "Source"
+	Destination ReplicationStatusEndpoint = "Destination"
 )
 
 type Link struct {
@@ -16,16 +21,19 @@ type Link struct {
 }
 
 type ReplicationConfig struct {
-	AccessToken    string                 `json:"accessToken"`
-	Source         ReplicationSource      `json:"source"`
-	Destination    ReplicationDestination `json:"destination"`
-	RemoteEndpoint Link                   `json:"remoteEndpointGvk"`
+	AccessToken    string                    `json:"accessToken"`
+	Source         ReplicationSource         `json:"source"`
+	Destination    ReplicationDestination    `json:"destination"`
+	RemoteEndpoint Link                      `json:"remoteEndpointGvk"`
+	StatusEndpoint ReplicationStatusEndpoint `json:"statusEndpoint"`
 }
 
 type ReplicationConfigSpec struct {
-	Client      dynamic.Interface
-	Source      ReplicationSource
-	Destination ReplicationDestination
+	LocalClient    dynamic.Interface
+	RemoteClient   dynamic.Interface
+	Source         ReplicationSource
+	Destination    ReplicationDestination
+	StatusEndpoint ReplicationStatusEndpoint
 }
 
 type ReplicationSource struct {

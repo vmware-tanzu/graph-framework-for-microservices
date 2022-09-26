@@ -6,29 +6,29 @@ import (
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	handler "gitlab.eng.vmware.com/nsx-allspark_users/m7/handler.git"
 
 	log "github.com/sirupsen/logrus"
 	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/types"
 	controllerruntime "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+
+	handler "gitlab.eng.vmware.com/nsx-allspark_users/m7/handler.git"
 
 	"connector/controllers"
 	"connector/pkg/utils"
 )
 
-const (
-	apicollaborationspace = "apicollaborationspaces.config.mazinger.com"
-	nexuscrd              = "nexuses.api.nexus.org"
-)
+const nexuscrd = "nexuses.api.nexus.org"
 
 var (
 	ctx        context.Context
 	nClient    client.Client
 	reconciler *controllers.CustomResourceDefinitionReconciler
 	crd        *apiextensionsv1.CustomResourceDefinition
+	gvr        schema.GroupVersionResource
 	logBuffer  bytes.Buffer
 )
 
@@ -39,11 +39,12 @@ var _ = Describe("Nexus Connector Reconciler Tests", func() {
 			log.SetLevel(log.DebugLevel)
 
 			crd = getCRD()
+			gvr = schema.GroupVersionResource{Group: "config.mazinger.com", Version: "v1", Resource: "apicollaborationspaces"}
 			nClient = getHelperClient(ctx, crd)
 			reconciler = &controllers.CustomResourceDefinitionReconciler{
 				Client: nClient,
 				Scheme: runtime.NewScheme(),
-				Cache:  controllers.NewCrdCache(),
+				Cache:  controllers.NewGvrCache(),
 			}
 		})
 
@@ -55,10 +56,9 @@ var _ = Describe("Nexus Connector Reconciler Tests", func() {
 			})
 			Expect(err).NotTo(HaveOccurred())
 
-			Expect(utils.CRDTypeToChildren).Should(HaveKey(apicollaborationspace))
-			Expect(utils.CRDTypeToParentHierarchy).Should(HaveKey(apicollaborationspace))
-			Expect(reconciler.Cache.CrdMap).To(HaveLen(1))
-			Expect(controllers.CrdCh).To(HaveLen(1))
+			Expect(utils.GVRToChildren).Should(HaveKey(gvr))
+			Expect(utils.GVRToParentHierarchy).Should(HaveKey(gvr))
+			Expect(controllers.GvrCh).To(HaveLen(1))
 		})
 
 		It("should fail if nexus annotation not present in the proper format.", func() {
@@ -73,17 +73,17 @@ var _ = Describe("Nexus Connector Reconciler Tests", func() {
 		})
 
 		It("should not process nexus datamodel crd.", func() {
-			crd.Name = nexuscrd
+			newCrd := getCRD()
+			newCrd.Name = nexuscrd
 			_, err := reconciler.Reconcile(ctx, controllerruntime.Request{
 				NamespacedName: types.NamespacedName{
-					Name: crd.Name,
+					Name: newCrd.Name,
 				},
 			})
 			Expect(err).NotTo(HaveOccurred())
 
-			Expect(utils.CRDTypeToChildren).Should(HaveLen(0))
-			Expect(utils.CRDTypeToParentHierarchy).Should(HaveLen(0))
-			Expect(reconciler.Cache.CrdMap).To(HaveLen(0))
+			Expect(utils.GVRToChildren).Should(HaveLen(1))
+			Expect(utils.GVRToParentHierarchy).Should(HaveLen(1))
 		})
 
 		It("should return without error if annotation not present.", func() {
@@ -95,14 +95,13 @@ var _ = Describe("Nexus Connector Reconciler Tests", func() {
 			})
 			Expect(err).NotTo(HaveOccurred())
 
-			Expect(utils.CRDTypeToChildren).Should(HaveLen(0))
-			Expect(utils.CRDTypeToParentHierarchy).Should(HaveLen(0))
-			Expect(reconciler.Cache.CrdMap).To(HaveLen(1))
+			Expect(utils.GVRToChildren).Should(HaveLen(0))
+			Expect(utils.GVRToParentHierarchy).Should(HaveLen(0))
 		})
 
 		AfterEach(func() {
-			delete(utils.CRDTypeToChildren, apicollaborationspace)
-			delete(utils.CRDTypeToParentHierarchy, apicollaborationspace)
+			delete(utils.GVRToChildren, gvr)
+			delete(utils.GVRToParentHierarchy, gvr)
 		})
 	})
 
@@ -112,7 +111,7 @@ var _ = Describe("Nexus Connector Reconciler Tests", func() {
 			reconciler = &controllers.CustomResourceDefinitionReconciler{
 				Client: nClient,
 				Scheme: runtime.NewScheme(),
-				Cache:  controllers.NewCrdCache(),
+				Cache:  controllers.NewGvrCache(),
 			}
 		})
 
@@ -123,7 +122,6 @@ var _ = Describe("Nexus Connector Reconciler Tests", func() {
 				},
 			})
 			Expect(err).NotTo(HaveOccurred())
-			Expect(reconciler.Cache.CrdMap).To(HaveLen(0))
 		})
 	})
 
@@ -134,7 +132,7 @@ var _ = Describe("Nexus Connector Reconciler Tests", func() {
 			reconciler = &controllers.CustomResourceDefinitionReconciler{
 				Client: nClient,
 				Scheme: runtime.NewScheme(),
-				Cache:  controllers.NewCrdCache(),
+				Cache:  controllers.NewGvrCache(),
 			}
 		})
 
@@ -147,9 +145,8 @@ var _ = Describe("Nexus Connector Reconciler Tests", func() {
 			Expect(err).NotTo(HaveOccurred())
 
 			c := &handler.Controller{}
-			reconciler.Cache.UpsertController(crd.Name, c)
-			Expect(reconciler.Cache.CrdMap).To(HaveLen(1))
-			Expect(reconciler.Cache.CrdMap[apicollaborationspace].Controller).To(Not(BeNil()))
+			reconciler.Cache.UpsertController(gvr, c)
+			Expect(reconciler.Cache.GvrMap[gvr].Controller).To(Not(BeNil()))
 		})
 
 		It("Get", func() {
@@ -161,10 +158,9 @@ var _ = Describe("Nexus Connector Reconciler Tests", func() {
 			Expect(err).NotTo(HaveOccurred())
 
 			controller := &handler.Controller{}
-			reconciler.Cache.UpsertController(crd.Name, controller)
+			reconciler.Cache.UpsertController(gvr, controller)
 
-			c := reconciler.Cache.Get(crd.Name)
-			Expect(c.Spec).To(Not(BeNil()))
+			c := reconciler.Cache.Get(gvr)
 			Expect(c.Controller).To(Not(BeNil()))
 		})
 	})
