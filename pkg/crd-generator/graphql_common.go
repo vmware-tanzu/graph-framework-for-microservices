@@ -34,6 +34,8 @@ const CustomQuerySchema = `Id: ID
     queryOutgoingAPIs(
         startTime: String
         endTime: String
+		destinationService: String
+        destinationServiceVersion: String
         timeInterval: String
         timeZone: String
     ): TimeSeriesData
