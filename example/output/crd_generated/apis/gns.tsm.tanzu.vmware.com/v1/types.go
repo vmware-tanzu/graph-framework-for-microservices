@@ -168,6 +168,15 @@ type HostPort struct {
 }
 
 // +k8s:openapi-gen=true
+type gnsQueryFilters struct {
+	StartTime           string
+	EndTime             string
+	Interval            string
+	IsServiceDeployment bool
+	StartVal            int
+}
+
+// +k8s:openapi-gen=true
 type Description struct {
 	Color     string
 	Version   string

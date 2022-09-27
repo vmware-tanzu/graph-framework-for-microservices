@@ -69,6 +69,7 @@ var DefaultHTTPPUTResponses = HTTPCodesResponse{
 // Default HTTP DELETE Response mappings.
 var DefaultHTTPDELETEResponses = HTTPCodesResponse{
 	http.StatusOK:        HTTPResponse{Description: http.StatusText(http.StatusOK)},
+	http.StatusNotFound:  HTTPResponse{Description: http.StatusText(http.StatusNotFound)},
 	DefaultHTTPErrorCode: DefaultHTTPError,
 }
 
@@ -79,6 +80,29 @@ var DefaultHTTPMethodsResponses = HTTPMethodsResponses{
 	http.MethodDelete: DefaultHTTPDELETEResponses,
 }
 
+// HTTP Response for List operation
 var HTTPListResponse = HTTPMethodsResponses{
 	"LIST": DefaultHTTPGETResponses,
+}
+
+// GraphQL Types.
+
+// A GraphQLQueryEndpoint specifies the network endpoint that serves a GraphQL query.
+type GraphQLQueryEndpoint struct {
+	Domain string `json:"domain"` // fully qualified domain name of the network endpoint
+	Port   int    `json:"port"`   // service port
+}
+
+// A GraphQLQuery specifies a custom query available via GraphQL API.
+// Each GraphQLQuery is self contained unit of the exposed custom query.
+type GraphQLQuery struct {
+	Name            string               `json:"name,omitempty"`            // query identifier
+	ServiceEndpoint GraphQLQueryEndpoint `json:"servce_endpoint,omitempty"` // endpoint that serves this query
+	Args            interface{}          `json:"args,omitempty"`            // custom graphql filters and arguments
+}
+
+// A GraphQLQuerySpec is a collection of GraphQLQuery.
+// GraphQLQuerySpec provides a handle to represent and refer a collection of GraphQLQuery.
+type GraphQLQuerySpec struct {
+	Queries []GraphQLQuery `json:"queries"`
 }

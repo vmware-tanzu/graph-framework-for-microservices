@@ -3,7 +3,7 @@ package gns
 import (
 	"net/http"
 
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/datamodel/nexus"
+	"golang-appnet.eng.vmware.com/nexus-sdk/nexus/nexus"
 )
 
 var FooCustomMethodsResponses = nexus.HTTPMethodsResponses{
@@ -55,6 +55,7 @@ var GNSRestAPISpec = nexus.RestAPISpec{
 	},
 }
 
+
 type Port uint16
 
 // Host the IP of the endpoint
@@ -68,15 +69,46 @@ type HostPort struct {
 type Instance float32
 type AliasArr []int
 
+type gnsQueryFilters struct {
+	StartTime           string
+	EndTime             string
+	Interval            string
+	IsServiceDeployment bool
+	StartVal            int
+}
+
+var CloudEndpointGraphQLQuerySpec = nexus.GraphQLQuerySpec{
+	Queries: []nexus.GraphQLQuery{
+		{
+			Name: "queryGns1",
+			ServiceEndpoint: nexus.GraphQLQueryEndpoint{
+				Domain: "query-manager",
+				Port:   15000,
+			},
+			Args: gnsQueryFilters{},
+		},
+		{
+			Name: "queryGns2",
+			ServiceEndpoint: nexus.GraphQLQueryEndpoint{
+				Domain: "query-manager2",
+				Port:   15002,
+			},
+			Args: nil,
+		},
+	},
+}
+
 // Gns struct.
+// nexus-rest-api-gen:GNSRestAPISpec
+// nexus-graphql-query:CloudEndpointGraphQLQuerySpec
 // nexus-description: this is my awesome node
 // specification of GNS.
 type Gns struct {
 	nexus.Node
 	//nexus-validation: MaxLength=8, MinLength=2
 	//nexus-validation: Pattern=abc
-	Domain           string
-	UseSharedGateway bool
+	Domain                 string
+	UseSharedGateway       bool
 	Mydesc           Description
 	FooLink          BarLink     `nexus:"link"`
 	FooLinks         BarLinks    `nexus:"links"`

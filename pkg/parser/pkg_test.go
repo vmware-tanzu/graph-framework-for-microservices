@@ -34,7 +34,7 @@ var _ = Describe("Pkg tests", func() {
 
 		expectedImports := []string{
 			"configtsmtanzuvmwarecomv1 \"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/crd_generated/apis/config.tsm.tanzu.vmware.com/v1\"",
-			"nexustsmtanzuvmwarecomv1 \"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/crd_generated/apis/nexus.tsm.tanzu.vmware.com/v1\""}
+			" \"golang-appnet.eng.vmware.com/nexus-sdk/nexus/nexus\""}
 
 		Expect(imports).To(Equal(expectedImports))
 	})
@@ -60,7 +60,7 @@ var _ = Describe("Pkg tests", func() {
 
 	It("should get all structs for gns", func() {
 		structs := gnsPkg.GetStructs()
-		Expect(structs).To(HaveLen(11))
+		Expect(structs).To(HaveLen(12))
 	})
 
 	It("should get all types for gns", func() {
@@ -75,7 +75,7 @@ var _ = Describe("Pkg tests", func() {
 
 	It("should get all nodes for gns", func() {
 		nodes := gnsPkg.GetNodes()
-		Expect(nodes).To(HaveLen(7))
+		Expect(nodes).To(HaveLen(8))
 	})
 
 	It("should get all consts for gns", func() {

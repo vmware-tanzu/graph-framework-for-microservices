@@ -25,10 +25,10 @@ func GetHttpMethodsResponses(p parser.Package, responsesMap map[string]nexus.HTT
 	for _, genDecl := range p.GenDecls {
 		for _, spec := range genDecl.Specs {
 			if valueSpec, ok := spec.(*ast.ValueSpec); ok {
-				name := valueSpec.Names[0].Name
-				if valueSpec.Values == nil {
+				if !parser.CheckValueSpec(valueSpec) {
 					continue
 				}
+				name := valueSpec.Names[0].Name
 
 				if value, ok := valueSpec.Values[0].(*ast.CompositeLit); ok {
 					if types.ExprString(value.Type) != "nexus.HTTPMethodsResponses" {

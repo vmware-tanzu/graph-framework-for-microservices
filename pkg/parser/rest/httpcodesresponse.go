@@ -2,7 +2,6 @@ package rest
 
 import (
 	"go/ast"
-	"go/types"
 	"net/http"
 	"strconv"
 
@@ -78,25 +77,9 @@ var httpStatusCodes = map[string]int{
 
 // GetHttpCodesResponses will extract all variables which type is HTTPCodesResponse
 func GetHttpCodesResponses(p parser.Package, responsesMap map[string]nexus.HTTPCodesResponse) map[string]nexus.HTTPCodesResponse {
-	for _, genDecl := range p.GenDecls {
-		for _, spec := range genDecl.Specs {
-			if valueSpec, ok := spec.(*ast.ValueSpec); ok {
-				name := valueSpec.Names[0].Name
-				if valueSpec.Values == nil {
-					continue
-				}
-
-				if value, ok := valueSpec.Values[0].(*ast.CompositeLit); ok {
-					if types.ExprString(value.Type) != "nexus.HTTPCodesResponse" {
-						continue
-					}
-
-					responsesMap[name] = extractHttpCodesResponse(value)
-				}
-			}
-		}
+	for _, spec := range parser.GetNexusSpecs(p, "nexus.HTTPCodesResponse") {
+		responsesMap[spec.Name] = extractHttpCodesResponse(spec.Value)
 	}
-
 	return responsesMap
 }
 

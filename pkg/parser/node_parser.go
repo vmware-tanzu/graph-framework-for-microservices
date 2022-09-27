@@ -16,7 +16,7 @@ import (
 )
 
 // ParseDSLNodes walks recursively through given path and looks for structs types definitions to add them to graph
-func ParseDSLNodes(startPath string, baseGroupName string) map[string]Node {
+func ParseDSLNodes(startPath string, baseGroupName string, packages Packages) map[string]Node {
 	modulePath := GetModulePath(startPath)
 
 	rootNodes := make([]string, 0)
@@ -78,6 +78,18 @@ func ParseDSLNodes(startPath string, baseGroupName string) map[string]Node {
 											}
 											if node.CrdName == "" {
 												log.Fatalf("Internal compiler failure: Failed to determine crd name of node %v", node.Name)
+											}
+											annotation, exists := GetNexusGraphqlAnnotation(packages[pkgImport], typeSpec.Name.Name)
+											if exists {
+												if !strings.Contains(annotation, ".") {
+													// look for spec in current package
+													annotation = v.Name + "." + annotation
+												}
+												m := GraphQLQueryMap
+												graphqlSpec, ok := m[annotation]
+												if ok {
+													node.GraphqlSpec = graphqlSpec
+												}
 											}
 											nodes[crdName] = node
 										}
@@ -193,6 +205,7 @@ func CreateParentsMap(graph map[string]Node) map[string]NodeHelper {
 				Children:    children,
 				Links:       links,
 				IsSingleton: node.IsSingleton,
+				GraphqlSpec: node.GraphqlSpec,
 			}
 		})
 	}

@@ -76,3 +76,12 @@ type RootList struct {
 type Bar struct {
 	Name string
 }
+
+// +k8s:openapi-gen=true
+type queryFilters struct {
+	StartTime           string
+	EndTime             string
+	Interval            string
+	IsServiceDeployment bool
+	StartVal            int
+}

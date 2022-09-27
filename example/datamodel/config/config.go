@@ -5,7 +5,7 @@ import (
 
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/common-library.git/pkg/nexus"
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/datamodel/config/gns"
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/datamodel/nexus"
+	"golang-appnet.eng.vmware.com/nexus-sdk/nexus/nexus"
 )
 
 var nonNexusValue = 1
@@ -19,6 +19,7 @@ var BarCustomMethodsResponses = nexus.HTTPMethodsResponses{
 	http.MethodPatch: BarCustomCodesResponses,
 }
 
+// nexus-graphql-query:root.GeneralGraphQLQuerySpec
 type Config struct {
 	nexus.Node
 	ConfigName        string

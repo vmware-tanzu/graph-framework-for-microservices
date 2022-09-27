@@ -1,7 +1,7 @@
 package build
 
 import (
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/datamodel/nexus"
+	"golang-appnet.eng.vmware.com/nexus-sdk/nexus/nexus"
 )
 
 // BuildTestStruct struct is in build directory and should be ignored by parser

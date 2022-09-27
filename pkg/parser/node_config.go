@@ -9,6 +9,7 @@ import (
 const (
 	NexusRestApiGenAnnotation  = "nexus-rest-api-gen"
 	NexusDescriptionAnnotation = "nexus-description"
+	NexusGraphqlAnnotation     = "nexus-graphql-query"
 )
 
 func GetNexusRestAPIGenAnnotation(pkg Package, name string) (string, bool) {
@@ -17,6 +18,10 @@ func GetNexusRestAPIGenAnnotation(pkg Package, name string) (string, bool) {
 
 func GetNexusDescriptionAnnotation(pkg Package, name string) (string, bool) {
 	return getNexusAnnotation(pkg, name, NexusDescriptionAnnotation)
+}
+
+func GetNexusGraphqlAnnotation(pkg Package, name string) (string, bool) {
+	return getNexusAnnotation(pkg, name, NexusGraphqlAnnotation)
 }
 
 func getNexusAnnotation(pkg Package, name string, annotationName string) (string, bool) {
