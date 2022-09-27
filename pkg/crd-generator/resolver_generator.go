@@ -363,7 +363,6 @@ func GenerateGraphqlResolverVars(baseGroupName, crdModulePath string, pkgs parse
 					if currentNode.IsSingleton {
 						ChainAPI += fmt.Sprintf(".%s()", CRDNameMap[i])
 					} else {
-						//ChainAPI += fmt.Sprintf(".%s(obj.ParentLabels[\"%s\"].(string))", CRDNameMap[i], i)
 						ChainAPI += fmt.Sprintf(".%s(getParentName(obj.ParentLabels, %q))", CRDNameMap[i], i)
 					}
 				} else {
