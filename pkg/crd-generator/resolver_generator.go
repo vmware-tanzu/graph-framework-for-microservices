@@ -363,14 +363,15 @@ func GenerateGraphqlResolverVars(baseGroupName, crdModulePath string, pkgs parse
 					if currentNode.IsSingleton {
 						ChainAPI += fmt.Sprintf(".%s()", CRDNameMap[i])
 					} else {
-						ChainAPI += fmt.Sprintf(".%s(obj.ParentLabels[\"%s\"].(string))", CRDNameMap[i], i)
+						//ChainAPI += fmt.Sprintf(".%s(obj.ParentLabels[\"%s\"].(string))", CRDNameMap[i], i)
+						ChainAPI += fmt.Sprintf(".%s(getParentName(obj.ParentLabels, %q))", CRDNameMap[i], i)
 					}
 				} else {
 					if childNode, ok := prevNode.Children[i]; ok {
 						if currentNode.IsSingleton {
 							ChainAPI += fmt.Sprintf(".%s()", childNode.FieldName)
 						} else {
-							ChainAPI += fmt.Sprintf(".%s(obj.ParentLabels[\"%s\"].(string))", childNode.FieldName, i)
+							ChainAPI += fmt.Sprintf(".%s(getParentName(obj.ParentLabels, %q))", childNode.FieldName, i)
 						}
 					} else {
 						panic(fmt.Sprintf("unable to find child %s in parent node of %s", i, prevNode.RestName))
@@ -398,9 +399,9 @@ func GenerateGraphqlResolverVars(baseGroupName, crdModulePath string, pkgs parse
 			} else {
 				IsSingleton = false
 				if !n.HasParent && n.IsParentNode {
-					LinkAPI[n.PkgName+n.NodeName] = fmt.Sprintf("%s.Get%s(context.TODO(), obj.ParentLabels[\"%s\"].(string))", ChainAPI, n.PkgName+n.NodeName, n.CrdName)
+					LinkAPI[n.PkgName+n.NodeName] = fmt.Sprintf("%s.Get%s(context.TODO(), getParentName(obj.ParentLabels, %q))", ChainAPI, n.PkgName+n.NodeName, n.CrdName)
 				} else {
-					LinkAPI[n.PkgName+n.NodeName] = fmt.Sprintf("%s.Get%s(context.TODO(), obj.ParentLabels[\"%s\"].(string))", ChainAPI, prevNode.Children[n.CrdName].FieldName, n.CrdName)
+					LinkAPI[n.PkgName+n.NodeName] = fmt.Sprintf("%s.Get%s(context.TODO(), getParentName(obj.ParentLabels, %q))", ChainAPI, prevNode.Children[n.CrdName].FieldName, n.CrdName)
 				}
 			}
 		}

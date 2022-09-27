@@ -6,8 +6,8 @@ import (
 	"fmt"
 
 	log "github.com/sirupsen/logrus"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/rest"
-    metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	qm "gitlab.eng.vmware.com/nsx-allspark_users/go-protos/pkg/query-manager"
 	libgrpc "gitlab.eng.vmware.com/nsx-allspark_users/lib-go/grpc"
@@ -22,6 +22,13 @@ var nc *nexus_client.Clientset
 type resolverConfig struct {
 	{{ range  $key, $node := .Nodes }}{{ if $node.IsNexusNode }}v{{$node.PkgName}}{{$node.NodeName}} *nexus_client.{{$node.PkgName}}{{$node.NodeName}}
     {{ else }}{{ end }}{{ end }}
+}
+
+func getParentName(parentLabels map[string]interface{}, key string) string {
+    if v, ok := parentLabels[key]; ok && v != nil {
+	    return v.(string)
+	}
+	return ""
 }
 
 //////////////////////////////////////
