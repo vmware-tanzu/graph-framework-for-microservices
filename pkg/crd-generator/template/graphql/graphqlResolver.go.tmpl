@@ -7,6 +7,7 @@ import (
 
 	log "github.com/sirupsen/logrus"
 	"k8s.io/client-go/rest"
+    metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	qm "gitlab.eng.vmware.com/nsx-allspark_users/go-protos/pkg/query-manager"
 	libgrpc "gitlab.eng.vmware.com/nsx-allspark_users/lib-go/grpc"
@@ -101,7 +102,7 @@ func (c *resolverConfig) getRootResolver(id *string) ([]*model.{{$node.PkgName}}
 		v{{$node.NodeName}}List = append(v{{$node.NodeName}}List, ret)
 		return v{{$node.NodeName}}List, nil
 	}
-	v{{$node.NodeName}}ListObj, err := nc.{{$node.NodeName}}().List{{$node.GroupResourceNameTitle}}(context.TODO())
+	v{{$node.NodeName}}ListObj, err := nc.{{$node.NodeName}}().List{{$node.GroupResourceNameTitle}}(context.TODO(), metav1.ListOptions{})
 	for _,i := range v{{$node.NodeName}}ListObj{
 		v{{$node.NodeName}}, err := nc.Get{{$node.PkgName}}{{$node.NodeName}}(context.TODO(), i.DisplayName())
 		if err != nil {
