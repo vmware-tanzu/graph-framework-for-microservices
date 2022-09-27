@@ -383,6 +383,9 @@ func (c *resolverConfig) get{{$children.PkgName}}{{$children.NodeName}}{{$childr
             continue
 		}
 		{{ $children.Alias }}
+		 for k, v := range obj.ParentLabels {
+             parentLabels[k] = v
+         }
 		{{ $children.ReturnType }}
 		v{{$children.FieldTypePkgPath}}List = append(v{{$children.FieldTypePkgPath}}List, ret)
 	}
@@ -436,6 +439,9 @@ func (c *resolverConfig) get{{$links.PkgName}}{{$links.NodeName}}{{$links.FieldN
 			continue
 		}
 		{{ $links.Alias }}
+		 for k, v := range obj.ParentLabels {
+             parentLabels[k] = v
+         }
 		{{ $links.ReturnType }}
 		v{{$links.FieldTypePkgPath}}List = append(v{{$links.FieldTypePkgPath}}List, ret)
 	}
