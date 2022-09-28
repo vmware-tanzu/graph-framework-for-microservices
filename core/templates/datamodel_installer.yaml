@@ -110,6 +110,7 @@ data:
           spec:
             initContainers:
               - name: extract-plugin
+                imagePullPolicy: IfNotPresent
                 image: {{`{{.DatamodelInstaller.Image}}`}}
                 command:
                   - /bin/bash
@@ -143,6 +144,7 @@ data:
                     done
               - name: create-backend-route-object
                 image: "gcr.io/mesh7-public-images/tools:latest"
+                imagePullPolicy: IfNotPresent
                 command:
                   - /bin/bash
                   - -c 
@@ -157,7 +159,7 @@ data:
                     spec:
                       service:
                         Name: graphql
-                        Port: 80
+                        Port: 8080
                         Scheme: Http
                       resource:
                         Name: graphql
@@ -237,6 +239,7 @@ data:
               initContainers:
                 - name: check-nexus-proxy-container
                   image: "gcr.io/nsx-sm/tools:latest"
+                  imagePullPolicy: IfNotPresent
                   command:
                     - /bin/bash
                     - -c
