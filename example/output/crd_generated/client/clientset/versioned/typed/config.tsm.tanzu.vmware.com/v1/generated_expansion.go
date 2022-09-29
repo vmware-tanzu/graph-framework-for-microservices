@@ -19,3 +19,7 @@ limitations under the License.
 package v1
 
 type ConfigExpansion interface{}
+
+type DomainExpansion interface{}
+
+type FooTypeExpansion interface{}

@@ -3,6 +3,10 @@ package gns
 import (
 	"net/http"
 
+	cartv1 "github.com/vmware-tanzu/cartographer/pkg/apis/v1alpha1"
+
+	service_group "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/datamodel/config/gns/service-group"
+	policypkg "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/datamodel/config/policy"
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/datamodel/nexus"
 )
 
@@ -55,9 +59,30 @@ var GNSRestAPISpec = nexus.RestAPISpec{
 	},
 }
 
-type Port uint16
+var DNSRestAPISpec = nexus.RestAPISpec{
+	Uris: []nexus.RestURIs{
+		{
+			Uri: "/v1alpha2/dns",
+			QueryParams: []string{
+				"config.Config",
+				"gns.Dns",
+			},
+			Methods: nexus.DefaultHTTPMethodsResponses,
+		},
+		{
+			Uri: "/v1alpha2/dnses",
+			QueryParams: []string{
+				"config.Config",
+			},
+			Methods: nexus.HTTPListResponse,
+		},
+	},
+}
 
-// Host the IP of the endpoint
+type MyConst string
+type SourceKind string
+
+type Port uint16
 type Host string
 
 type HostPort struct {
@@ -68,35 +93,47 @@ type HostPort struct {
 type Instance float32
 type AliasArr []int
 
+const (
+	Object SourceKind = "Object"
+	Type   SourceKind = "Type"
+	XYZ    MyConst    = "xyz"
+)
+
+type ReplicationSource struct {
+	Kind SourceKind
+}
+
 // Gns struct.
+// nexus-rest-api-gen:GNSRestAPISpec
 // nexus-description: this is my awesome node
 // specification of GNS.
 type Gns struct {
 	nexus.Node
 	//nexus-validation: MaxLength=8, MinLength=2
 	//nexus-validation: Pattern=abc
-	Domain           string
-	UseSharedGateway bool
-	Mydesc           Description
-	FooLink          BarLink     `nexus:"link"`
-	FooLinks         BarLinks    `nexus:"links"`
-	FooChild         BarChild    `nexus:"child"`
-	FooChildren      BarChildren `nexus:"children"`
-	HostPort         HostPort
-	Instance         Instance
-	Array1           float32
-	Array2           []Description
-	Array3           []BarLink
-	Array4           []Instance
-	Array5           AliasArr
-	TestABCLink      ABCLink `nexus:"links"`
+	Domain                 string
+	UseSharedGateway       bool
+	Description            Description
+	GnsServiceGroups       service_group.SvcGroup        `nexus:"children"`
+	GnsAccessControlPolicy policypkg.AccessControlPolicy `nexus:"child"`
+	Dns                    Dns                           `nexus:"link"`
+	State                  GnsState                      `nexus:"status"`
+	Meta                   string
+
+	Port             *int         // pointer test
+	OtherDescription *Description // pointer test - struct
+	MapPointer       *map[string]string
+	SlicePointer     *[]string
+
+	WorkloadSpec  cartv1.WorkloadSpec  //external-field
+	DifferentSpec *cartv1.WorkloadSpec // external-field - pointer
 }
 
 // This is Description struct.
 type Description struct {
 	Color     string
 	Version   string
-	ProjectID []string
+	ProjectId string
 	TestAns   []Answer
 	Instance  Instance
 	HostPort  HostPort
@@ -107,25 +144,18 @@ type BarLink struct {
 	Name string
 }
 
-type BarChild struct {
+// nexus-rest-api-gen:DNSRestAPISpec
+type Dns struct {
 	nexus.SingletonNode
-	Name string
-}
-
-type BarChildren struct {
-	nexus.Node
-	Name string
-}
-
-type BarLinks struct {
-	nexus.Node
-	Name string
 }
 
 type Answer struct {
 	Name string
 }
 
-type ABCLink struct {
-	nexus.Node
+type GnsState struct {
+	Working     bool
+	Temperature int
 }
+
+type MyStr string

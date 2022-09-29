@@ -7,7 +7,7 @@ scalar Map
     root(Id: ID): [{{ $node.SchemaName }}!]{{ end }}
 }{{ else }}{{ end }}
 {{ if $node.IsNexusNode }}
-{{ $length := len $node.GraphqlSchemaFields }} {{ if eq $length 0 }}{{ else }}
+{{ $length := len $node.GraphqlSchemaFields }}{{ if eq $length 0 }}{{ else }}
 type {{ $node.SchemaName }} {
 {{ range $key, $field := $node.GraphqlSchemaFields }}
     {{ $field.SchemaFieldName}}{{ end }}

@@ -51,18 +51,6 @@ spec:
                 - kind
                 - name
                 type: object
-              customBar:
-                properties:
-                  Name:
-                    type: string
-                required:
-                - Name
-                type: object
-              displayName:
-                type: string
-            required:
-            - displayName
-            - customBar
             type: object
           status:
             properties:

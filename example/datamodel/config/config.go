@@ -3,7 +3,8 @@ package config
 import (
 	"net/http"
 
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/common-library.git/pkg/nexus"
+	py "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/datamodel/config/policy"
+
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/datamodel/config/gns"
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/datamodel/nexus"
 )
@@ -21,19 +22,45 @@ var BarCustomMethodsResponses = nexus.HTTPMethodsResponses{
 
 type Config struct {
 	nexus.Node
-	ConfigName        string
-	GNS               gns.Gns `nexus:"child"`
-	Cluster           Cluster
-	FooA              AMap
-	FooMap            map[string]string
-	FooB              BArray
-	FooC              CInt   `nexus-graphql:"ignore:true"`
-	FooD              DFloat `nexus-graphql:"type:string"`
-	FooE              CInt   `json:"foo_e" nexus-graphql:"ignore:true"`
-	FooF              DFloat `json:"foo_f" yaml:"c_int" nexus-graphql:"type:string"`
-	XYZPort           []gns.Description
+	GNS         gns.Gns                `nexus:"child"`
+	DNS         gns.Dns                `nexus:"child"`
+	VMPPolicies py.VMpolicy            `nexus:"child"`
+	ACPPolicies py.AccessControlPolicy `nexus:"links"`
+	Domain      Domain                 `nexus:"child"`
+	// Examples for cross-package import.
+	MyStr0 *gns.MyStr
+	MyStr1 []gns.MyStr
+	MyStr2 map[string]gns.MyStr
+
+	XYZPort           gns.Port
 	ABCHost           []gns.Host
 	ClusterNamespaces []ClusterNamespace
+
+	TestValMarkers TestValMarkers `json:"testValMarkers" yaml:"testValMarkers"`
+	FooExample     FooType        `nexus:"children"`
+}
+
+type FooType struct {
+	nexus.Node
+	FooA AMap
+	FooB BArray
+	FooC CInt   `nexus-graphql:"ignore:true"`
+	FooD DFloat `nexus-graphql:"type:string"`
+	FooE CInt   `json:"foo_e" nexus-graphql:"ignore:true"`
+	FooF DFloat `json:"foo_f" yaml:"c_int" nexus-graphql:"type:string"`
+}
+
+type Domain struct {
+	nexus.Node
+	PointPort        *gns.Port
+	PointString      *string
+	PointInt         *int
+	PointMap         *map[string]string
+	PointSlice       *[]string
+	SliceOfPoints    []*string
+	SliceOfArrPoints []*BArray
+	MapOfArrsPoints  map[string]*BArray
+	PointStruct      *Cluster
 }
 
 type ClusterNamespace struct {
@@ -56,3 +83,29 @@ type AMap map[string]string
 type BArray []string
 type CInt uint8
 type DFloat float32
+
+type CrossPackageTester struct {
+	Test gns.MyStr
+}
+
+type EmptyStructTest struct{}
+
+type TestValMarkers struct {
+	//nexus-validation: MaxLength=8, MinLength=2, Pattern=ab
+	MyStr string `json:"myStr" yaml:"myStr"`
+
+	//nexus-validation: Maximum=8, Minimum=2
+	//nexus-validation: ExclusiveMaximum=true
+	MyInt int `json:"myInt" yaml:"myInt"`
+
+	//nexus-validation: MaxItems=3, MinItems=2
+	//nexus-validation: UniqueItems=true
+	MySlice []string `json:"mySlice" yaml:"mySlice"`
+}
+
+type SomeStruct struct{}
+
+type StructWithEmbeddedField struct {
+	SomeStruct
+	gns.MyStr
+}

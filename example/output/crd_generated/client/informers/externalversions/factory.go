@@ -19,15 +19,16 @@ limitations under the License.
 package externalversions
 
 import (
+	versioned "nexustempmodule/client/clientset/versioned"
+	configtsmtanzuvmwarecom "nexustempmodule/client/informers/externalversions/config.tsm.tanzu.vmware.com"
+	gnstsmtanzuvmwarecom "nexustempmodule/client/informers/externalversions/gns.tsm.tanzu.vmware.com"
+	internalinterfaces "nexustempmodule/client/informers/externalversions/internalinterfaces"
+	policypkgtsmtanzuvmwarecom "nexustempmodule/client/informers/externalversions/policypkg.tsm.tanzu.vmware.com"
+	roottsmtanzuvmwarecom "nexustempmodule/client/informers/externalversions/root.tsm.tanzu.vmware.com"
+	servicegrouptsmtanzuvmwarecom "nexustempmodule/client/informers/externalversions/servicegroup.tsm.tanzu.vmware.com"
 	reflect "reflect"
 	sync "sync"
 	time "time"
-
-	versioned "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/crd_generated/client/clientset/versioned"
-	configtsmtanzuvmwarecom "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/crd_generated/client/informers/externalversions/config.tsm.tanzu.vmware.com"
-	gnstsmtanzuvmwarecom "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/crd_generated/client/informers/externalversions/gns.tsm.tanzu.vmware.com"
-	internalinterfaces "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/crd_generated/client/informers/externalversions/internalinterfaces"
-	roottsmtanzuvmwarecom "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/crd_generated/client/informers/externalversions/root.tsm.tanzu.vmware.com"
 
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	runtime "k8s.io/apimachinery/pkg/runtime"
@@ -177,7 +178,9 @@ type SharedInformerFactory interface {
 
 	ConfigTsm() configtsmtanzuvmwarecom.Interface
 	GnsTsm() gnstsmtanzuvmwarecom.Interface
+	PolicypkgTsm() policypkgtsmtanzuvmwarecom.Interface
 	RootTsm() roottsmtanzuvmwarecom.Interface
+	ServicegroupTsm() servicegrouptsmtanzuvmwarecom.Interface
 }
 
 func (f *sharedInformerFactory) ConfigTsm() configtsmtanzuvmwarecom.Interface {
@@ -188,6 +191,14 @@ func (f *sharedInformerFactory) GnsTsm() gnstsmtanzuvmwarecom.Interface {
 	return gnstsmtanzuvmwarecom.New(f, f.namespace, f.tweakListOptions)
 }
 
+func (f *sharedInformerFactory) PolicypkgTsm() policypkgtsmtanzuvmwarecom.Interface {
+	return policypkgtsmtanzuvmwarecom.New(f, f.namespace, f.tweakListOptions)
+}
+
 func (f *sharedInformerFactory) RootTsm() roottsmtanzuvmwarecom.Interface {
 	return roottsmtanzuvmwarecom.New(f, f.namespace, f.tweakListOptions)
+}
+
+func (f *sharedInformerFactory) ServicegroupTsm() servicegrouptsmtanzuvmwarecom.Interface {
+	return servicegrouptsmtanzuvmwarecom.New(f, f.namespace, f.tweakListOptions)
 }

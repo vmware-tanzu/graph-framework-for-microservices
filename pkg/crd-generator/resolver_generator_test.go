@@ -27,7 +27,7 @@ var _ = Describe("Template renderers tests", func() {
 		vars, err := crdgenerator.GenerateGraphqlResolverVars(baseGroupName, crdModulePath, pkgs, parentsMap)
 		Expect(err).NotTo(HaveOccurred())
 
-		Expect(len(vars)).To(Equal(12))
+		Expect(len(vars)).To(Equal(40))
 		Expect(vars[0].NodeName).To(Equal("Root"))
 		Expect(vars[2].PkgName).To(Equal("Config"))
 		Expect(vars[2].NodeName).To(Equal("Config"))
@@ -37,7 +37,7 @@ var _ = Describe("Template renderers tests", func() {
 
 		Expect(vars[2].IsParentNode).To(BeFalse())
 		Expect(vars[2].HasParent).To(BeFalse())
-		Expect(vars[2].IsSingletonNode).To(BeTrue())
+		Expect(vars[2].IsSingletonNode).To(BeFalse())
 		Expect(vars[2].IsNexusNode).To(BeTrue())
 		Expect(vars[2].BaseImportPath).To(Equal("nexustempmodule/"))
 		Expect(vars[2].CrdName).To(Equal(""))

@@ -20,10 +20,9 @@ package v1
 
 import (
 	"context"
+	v1 "nexustempmodule/apis/policypkg.tsm.tanzu.vmware.com/v1"
+	scheme "nexustempmodule/client/clientset/versioned/scheme"
 	"time"
-
-	v1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/crd_generated/apis/policypkg.tsm.tanzu.vmware.com/v1"
-	scheme "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/crd_generated/client/clientset/versioned/scheme"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	types "k8s.io/apimachinery/pkg/types"

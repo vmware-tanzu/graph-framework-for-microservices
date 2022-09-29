@@ -19,17 +19,21 @@ limitations under the License.
 package v1
 
 import (
-	internalinterfaces "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/crd_generated/client/informers/externalversions/internalinterfaces"
+	internalinterfaces "nexustempmodule/client/informers/externalversions/internalinterfaces"
 )
 
 // Interface provides access to all the informers in this group version.
 type Interface interface {
-	// Bars returns a BarInformer.
-	Bars() BarInformer
-	// EmptyDatas returns a EmptyDataInformer.
-	EmptyDatas() EmptyDataInformer
+	// AdditionalGnsDatas returns a AdditionalGnsDataInformer.
+	AdditionalGnsDatas() AdditionalGnsDataInformer
+	// BarLinks returns a BarLinkInformer.
+	BarLinks() BarLinkInformer
+	// Dnses returns a DnsInformer.
+	Dnses() DnsInformer
 	// Gnses returns a GnsInformer.
 	Gnses() GnsInformer
+	// RandomGnsDatas returns a RandomGnsDataInformer.
+	RandomGnsDatas() RandomGnsDataInformer
 }
 
 type version struct {
@@ -43,17 +47,27 @@ func New(f internalinterfaces.SharedInformerFactory, namespace string, tweakList
 	return &version{factory: f, namespace: namespace, tweakListOptions: tweakListOptions}
 }
 
-// Bars returns a BarInformer.
-func (v *version) Bars() BarInformer {
-	return &barInformer{factory: v.factory, tweakListOptions: v.tweakListOptions}
+// AdditionalGnsDatas returns a AdditionalGnsDataInformer.
+func (v *version) AdditionalGnsDatas() AdditionalGnsDataInformer {
+	return &additionalGnsDataInformer{factory: v.factory, tweakListOptions: v.tweakListOptions}
 }
 
-// EmptyDatas returns a EmptyDataInformer.
-func (v *version) EmptyDatas() EmptyDataInformer {
-	return &emptyDataInformer{factory: v.factory, tweakListOptions: v.tweakListOptions}
+// BarLinks returns a BarLinkInformer.
+func (v *version) BarLinks() BarLinkInformer {
+	return &barLinkInformer{factory: v.factory, tweakListOptions: v.tweakListOptions}
+}
+
+// Dnses returns a DnsInformer.
+func (v *version) Dnses() DnsInformer {
+	return &dnsInformer{factory: v.factory, tweakListOptions: v.tweakListOptions}
 }
 
 // Gnses returns a GnsInformer.
 func (v *version) Gnses() GnsInformer {
 	return &gnsInformer{factory: v.factory, tweakListOptions: v.tweakListOptions}
+}
+
+// RandomGnsDatas returns a RandomGnsDataInformer.
+func (v *version) RandomGnsDatas() RandomGnsDataInformer {
+	return &randomGnsDataInformer{factory: v.factory, tweakListOptions: v.tweakListOptions}
 }

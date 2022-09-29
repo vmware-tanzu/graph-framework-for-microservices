@@ -19,8 +19,8 @@ limitations under the License.
 package v1
 
 import (
-	v1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/crd_generated/apis/config.tsm.tanzu.vmware.com/v1"
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/crd_generated/client/clientset/versioned/scheme"
+	v1 "nexustempmodule/apis/config.tsm.tanzu.vmware.com/v1"
+	"nexustempmodule/client/clientset/versioned/scheme"
 
 	rest "k8s.io/client-go/rest"
 )
@@ -28,6 +28,8 @@ import (
 type ConfigTsmV1Interface interface {
 	RESTClient() rest.Interface
 	ConfigsGetter
+	DomainsGetter
+	FooTypesGetter
 }
 
 // ConfigTsmV1Client is used to interact with features provided by the config.tsm.tanzu.vmware.com group.
@@ -37,6 +39,14 @@ type ConfigTsmV1Client struct {
 
 func (c *ConfigTsmV1Client) Configs() ConfigInterface {
 	return newConfigs(c)
+}
+
+func (c *ConfigTsmV1Client) Domains() DomainInterface {
+	return newDomains(c)
+}
+
+func (c *ConfigTsmV1Client) FooTypes() FooTypeInterface {
+	return newFooTypes(c)
 }
 
 // NewForConfig creates a new ConfigTsmV1Client for the given config.

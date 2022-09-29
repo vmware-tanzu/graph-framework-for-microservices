@@ -2,6 +2,7 @@ package crd_generator
 
 import (
 	"fmt"
+	"go/ast"
 	"go/types"
 	"log"
 	"sort"
@@ -9,8 +10,6 @@ import (
 
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/pkg/parser"
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/pkg/util"
-	"golang.org/x/text/cases"
-	"golang.org/x/text/language"
 )
 
 type ReturnStatement struct {
@@ -22,7 +21,7 @@ type ReturnStatement struct {
 	IsSingleton bool
 }
 
-type Field_prop struct {
+type FieldProperty struct {
 	IsResolver              bool
 	IsNexusTypeField        bool
 	IsNexusOrSingletonField bool
@@ -35,13 +34,14 @@ type Field_prop struct {
 	IsPointerTypeField      bool
 	IsStringType            bool
 	IsAliasTypeField        bool
+	IsArrayStdType          bool
+	IsSingleton             bool
 	PkgName                 string
 	NodeName                string
 	FieldName               string
 	FieldType               string
 	FieldTypePkgPath        string
 	ModelType               string
-	IsArrayStdType          bool
 	SchemaFieldName         string
 	SchemaTypeName          string
 	BaseTypeName            string
@@ -50,26 +50,16 @@ type Field_prop struct {
 	FieldCount              int
 	CRDName                 string
 	ChainAPI                string
-	IsSingleton             bool
 	LinkAPI                 string
 }
 
-type Node_prop struct {
+type NodeProperty struct {
 	IsParentNode           bool
 	HasParent              bool
 	IsSingletonNode        bool
 	IsNexusNode            bool
 	BaseImportPath         string
 	CrdName                string
-	ChildFields            []Field_prop
-	LinkFields             []Field_prop
-	ChildrenFields         []Field_prop
-	LinksFields            []Field_prop
-	ArrayFields            []Field_prop
-	CustomFields           []Field_prop
-	NonStructFields        []Field_prop
-	GraphqlSchemaFields    []Field_prop
-	ResolverFields         map[string][]Field_prop
 	ResolverCount          int
 	PkgName                string
 	NodeName               string
@@ -77,273 +67,114 @@ type Node_prop struct {
 	Alias                  string
 	ReturnType             string
 	GroupResourceNameTitle string
+	ChildFields            []FieldProperty
+	LinkFields             []FieldProperty
+	ChildrenFields         []FieldProperty
+	LinksFields            []FieldProperty
+	ArrayFields            []FieldProperty
+	CustomFields           []FieldProperty
+	NonStructFields        []FieldProperty
+	GraphqlSchemaFields    []FieldProperty
+	ResolverFields         map[string][]FieldProperty
 }
 
-const (
-	Int     string = "Int"
-	Float   string = "Float"
-	String  string = "String"
-	Boolean string = "Boolean"
-	ID      string = "String"
-)
+func populateValuesForEachNode(nodes []NodeProperty, linkAPI map[string]string, retMap map[string]ReturnStatement) []NodeProperty {
+	var nodeProperties []NodeProperty
+	for _, n := range nodes {
+		resNodeProp := NodeProperty{}
+		resNodeProp.GroupResourceNameTitle = util.GetGroupResourceNameTitle(n.NodeName)
+		resNodeProp.Alias = n.Alias
+		resNodeProp.ReturnType = n.ReturnType
+		resNodeProp.BaseImportPath = n.BaseImportPath
+		resNodeProp.GraphqlSchemaFields = n.GraphqlSchemaFields
+		resNodeProp.IsSingletonNode = n.IsSingletonNode
+		resNodeProp.IsNexusNode = n.IsNexusNode
+		resNodeProp.ResolverFields = n.ResolverFields
+		resNodeProp.ResolverCount = n.ResolverCount
+		resNodeProp.PkgName = n.PkgName
+		resNodeProp.NodeName = n.NodeName
+		resNodeProp.SchemaName = n.SchemaName
 
-// Convert go standardType to GraphQL standardType
-func convertGraphqlStdType(t string) string {
-	// remove pointers
-	typeWithoutPointer := strings.ReplaceAll(t, "*", "")
-	switch typeWithoutPointer {
-	case "string":
-		return String
-	case "int", "int8", "int16", "int32", "int64", "uint", "uint8", "uint16", "uint32", "uint64":
-		return Int
-	case "bool":
-		return Boolean
-	case "float32", "float64":
-		return Float
-	default:
-		return ""
-	}
-}
-
-func jsonMarshalResolver(FieldName, PkgName string) string {
-	return fmt.Sprintf("%s, _ := json.Marshal(v%s.Spec.%s)\n%sData := string(%s)\n", FieldName, PkgName, FieldName, FieldName, FieldName)
-}
-
-func validateImportPkg(pkg parser.Package, typeString string, importMap map[string]string) (string, string) {
-	typeWithoutPointers := strings.ReplaceAll(typeString, "*", "")
-	if strings.Contains(typeWithoutPointers, ".") {
-		part := strings.Split(typeWithoutPointers, ".")
-		if val, ok := importMap[part[0]]; ok {
-			pkgName := val[strings.LastIndex(val, "/")+1 : len(val)-1]
-			repName := strings.ReplaceAll(pkgName, "-", "")
-			return repName + "_" + part[1], cases.Title(language.Und, cases.NoLower).String(repName) + cases.Title(language.Und, cases.NoLower).String(part[1])
+		// populate return values for root of the graph
+		if !n.HasParent && n.IsParentNode {
+			resNodeProp.Alias = retMap[resNodeProp.PkgName+resNodeProp.NodeName].Alias
+			resNodeProp.ReturnType = retMap[resNodeProp.PkgName+resNodeProp.NodeName].ReturnType
+			resNodeProp.IsParentNode = true
 		}
-		return pkg.Name + part[1], cases.Title(language.Und, cases.NoLower).String(pkg.Name) + cases.Title(language.Und, cases.NoLower).String(part[1])
-	}
-	return pkg.Name + "_" + typeWithoutPointers, cases.Title(language.Und, cases.NoLower).String(pkg.Name) + cases.Title(language.Und, cases.NoLower).String(typeWithoutPointers)
-}
 
-func getBaseNodeType(pkg parser.Package, typeString string, importMap map[string]string) string {
-	if strings.Contains(typeString, ".") {
-		part := strings.Split(typeString, ".")
-		return part[1]
-	}
-	return typeString
-}
-
-func GenerateGraphqlResolverVars(baseGroupName, crdModulePath string, pkgs parser.Packages, parentsMap map[string]parser.NodeHelper) ([]Node_prop, error) {
-	var Nodes []Node_prop
-	aliasNameMap := make(map[string]string)
-	sortedKeys := make([]string, 0, len(pkgs))
-	nonStructMap := make(map[string]string)
-	for k := range pkgs {
-		sortedKeys = append(sortedKeys, k)
-	}
-	sort.Strings(sortedKeys)
-	sortedPackages := make([]parser.Package, len(pkgs))
-	for i, k := range sortedKeys {
-		sortedPackages[i] = pkgs[k]
-	}
-	// Iterate over all non struct type from sortedPackages and store the details in nonStructMap
-	// nonStructMap[pkgName] = nodeType  --> ex: nonStructMap["root"] = "AliasTypeFoo"
-	for _, pkg := range sortedPackages {
-		for _, node := range pkg.GetNonStructTypes() {
-			var pkgName string
-			if pkg.FullName == pkg.ModPath {
-				pkgName = pkg.Name + "_" + parser.GetTypeName(node)
-			} else if pkg.Name != "" {
-				pkgName = pkg.Name + "_" + parser.GetTypeName(node)
+		// populate return values for child fields
+		for _, f := range n.ChildFields {
+			f.ReturnType = retMap[f.FieldTypePkgPath].ReturnType
+			f.Alias = retMap[f.FieldTypePkgPath].Alias
+			f.FieldCount = retMap[f.FieldTypePkgPath].FieldCount
+			f.CRDName = retMap[f.FieldTypePkgPath].CRDName
+			f.ChainAPI = retMap[f.FieldTypePkgPath].ChainAPI
+			f.IsSingleton = retMap[f.FieldTypePkgPath].IsSingleton
+			f.IsResolver = true
+			resNodeProp.ResolverCount = 1
+			if f.IsSingleton {
+				f.SchemaFieldName = fmt.Sprintf("%s: %s!", f.FieldName, f.SchemaTypeName)
 			} else {
-				pkgPath := pkg.FullName
-				libName := pkgPath[strings.LastIndex(pkgPath, "/")+1:]
-				specTypePrefix := strings.ReplaceAll(libName, "-", "")
-				pkgName = specTypePrefix + "_" + parser.GetTypeName(node)
+				f.SchemaFieldName = fmt.Sprintf("%s(Id: ID): %s!", f.FieldName, f.SchemaTypeName)
 			}
-			// NonStruct Map
-			nonStructType := types.ExprString(node.Type)
-			nonStructMap[pkgName] = nonStructType
+			f.LinkAPI = linkAPI[f.PkgName+f.NodeName]
+			resNodeProp.ChildFields = append(resNodeProp.ChildFields, f)
+			resNodeProp.GraphqlSchemaFields = append(resNodeProp.GraphqlSchemaFields, f)
 		}
-	}
-	// Iterate All Nodes in the sortedPackages
-	for _, pkg := range sortedPackages {
-		simpleGroupTypeName := util.GetSimpleGroupTypeName(pkg.Name)
-		for _, node := range pkg.GetStructs() {
-			var nodeProp Node_prop
-			resField := make(map[string][]Field_prop)
-			// Fill Node Properties
-			nodeProp.PkgName = simpleGroupTypeName
-			nodeProp.NodeName = node.Name.String()
-			nodeProp.BaseImportPath = crdModulePath
-			nodeProp.CrdName = util.GetCrdName(node.Name.String(), pkg.Name, baseGroupName)
-			nodeHelper := parentsMap[nodeProp.CrdName]
-			nodeProp.IsParentNode = parser.IsNexusNode(node)
-			if len(nodeHelper.Parents) > 0 {
-				nodeProp.HasParent = true
-			}
-			if parser.IsSingletonNode(node) {
-				nodeProp.IsSingletonNode = true
-			}
-			if parser.IsNexusNode(node) {
-				nodeProp.IsNexusNode = true
-			}
-			if pkg.FullName == pkg.ModPath {
-				nodeProp.SchemaName = pkg.Name + "_" + parser.GetTypeName(node)
-			} else if pkg.Name != "" {
-				nodeProp.SchemaName = pkg.Name + "_" + parser.GetTypeName(node)
-			} else {
-				pkgPath := pkg.FullName
-				libName := pkgPath[strings.LastIndex(pkgPath, "/")+1:]
-				specTypePrefix := strings.ReplaceAll(libName, "-", "")
-				nodeProp.SchemaName = specTypePrefix + "_" + parser.GetTypeName(node)
-			}
-			importMap := pkg.GetImportMap()
 
-			for _, nf := range parser.GetNexusFields(node) {
-				var fieldProp Field_prop
-				var err error
-				typeString := ConstructType(aliasNameMap, nf)
-				if nf != nil {
-					if len(nf.Names) > 0 {
-						fieldProp.FieldName, err = parser.GetNodeFieldName(nf)
-						if err != nil {
-							log.Fatalf("failed to determine field name: %v", err)
-						}
-					}
-					fieldProp.PkgName = simpleGroupTypeName
-					fieldProp.NodeName = node.Name.String()
-					// IGNORE FIELD using Annotation `nexus-graphql:"ignore:true"`
-					if parser.IgnoreField(nf) {
-						continue
-					}
-					// Convert to String type using annotation `nexus-graphql:"type:string"`
-					if parser.IsJsonStringField(nf) {
-						fieldProp.IsStringType = true
-						fieldProp.SchemaFieldName = fmt.Sprintf("%s: %s", fieldProp.FieldName, "String")
-					}
-					// NexusOrSingletonField Type Fields
-					if parser.IsNexusTypeField(nf) {
-						fieldProp.IsNexusOrSingletonField = true
-						// Add Custom Query + ID
-						fieldProp.SchemaFieldName = CustomQuerySchema
-					}
-					// Nexus Child and Link fields
-					if parser.IsOnlyLinkField(nf) {
-						schemaTypeName, resolverTypeName := validateImportPkg(pkg, typeString, importMap)
-						fieldProp.SchemaFieldName = fmt.Sprintf("%s: %s!", fieldProp.FieldName, schemaTypeName)
-						fieldProp.IsResolver = true
-						fieldProp.IsNexusTypeField = true
-						fieldProp.FieldType = typeString
-						fieldProp.FieldTypePkgPath = resolverTypeName
-						fieldProp.SchemaTypeName = schemaTypeName
-						fieldProp.BaseTypeName = getBaseNodeType(pkg, typeString, importMap)
-						nodeProp.LinkFields = append(nodeProp.LinkFields, fieldProp)
-					}
-					if parser.IsOnlyChildField(nf) {
-						schemaTypeName, resolverTypeName := validateImportPkg(pkg, typeString, importMap)
-						fieldProp.SchemaFieldName = fmt.Sprintf("%s: %s!", fieldProp.FieldName, schemaTypeName)
-						fieldProp.IsNexusTypeField = true
-						fieldProp.FieldType = typeString
-						fieldProp.FieldTypePkgPath = resolverTypeName
-						fieldProp.SchemaTypeName = schemaTypeName
-						fieldProp.BaseTypeName = getBaseNodeType(pkg, typeString, importMap)
-						nodeProp.ChildFields = append(nodeProp.ChildFields, fieldProp)
-					}
-					// Nexus Children and Links fields details
-					if parser.IsNamedChildOrLink(nf) {
-						fieldProp.IsChildrenOrLinks = true
-						schemaTypeName, resolverTypeName := validateImportPkg(pkg, typeString, importMap)
-						fieldProp.SchemaFieldName = fmt.Sprintf("%s(Id: ID): [%s!]", fieldProp.FieldName, schemaTypeName)
-						fieldProp.IsResolver = true
-						fieldProp.IsNexusTypeField = true
-						fieldProp.FieldType = typeString
-						fieldProp.FieldTypePkgPath = resolverTypeName
-						fieldProp.SchemaTypeName = schemaTypeName
-						fieldProp.BaseTypeName = getBaseNodeType(pkg, typeString, importMap)
-						if parser.IsOnlyChildrenField(nf) {
-							nodeProp.ChildrenFields = append(nodeProp.ChildrenFields, fieldProp)
-						} else {
-							nodeProp.LinksFields = append(nodeProp.LinksFields, fieldProp)
-						}
-					}
-				}
-				// No of resolver fields in a nodes
-				if fieldProp.IsResolver {
-					nodeProp.ResolverCount += 1
-				}
-				if !parser.IsOnlyChildField(nf) {
-					nodeProp.GraphqlSchemaFields = append(nodeProp.GraphqlSchemaFields, fieldProp)
-				}
-			}
-			// Iterate Non Nexus Fields
-			for _, f := range parser.GetSpecFields(node) {
-				var fieldProp Field_prop
-				var err error
-				typeString := ConstructType(aliasNameMap, f)
-				if f != nil {
-					// Fill all field information in fieldProp
-					fieldProp.FieldName, err = parser.GetNodeFieldName(f)
-					fieldProp.FieldType = typeString
-					fieldProp.PkgName = simpleGroupTypeName
-					fieldProp.NodeName = node.Name.String()
-					if err != nil {
-						log.Fatalf("failed to determine field name: %v", err)
-					}
-					// IGNORE FIELD
-					if parser.IgnoreField(f) {
-						continue
-					}
-					// STRING FIELD
-					if parser.IsJsonStringField(f) {
-						fieldProp.IsStringType = true
-						fieldProp.SchemaFieldName = fmt.Sprintf("%s: %s", fieldProp.FieldName, "String")
-						resField[nodeProp.PkgName+nodeProp.NodeName] = append(resField[nodeProp.PkgName+nodeProp.NodeName], fieldProp)
-					} else {
-						stdType := convertGraphqlStdType(typeString)
-						// STANDARD TYPE CHECK
-						if len(stdType) != 0 {
-							fieldProp.IsStdTypeField = true
-							fieldProp.SchemaFieldName = fmt.Sprintf("%s: %s", fieldProp.FieldName, stdType)
-							resField[nodeProp.PkgName+nodeProp.NodeName] = append(resField[nodeProp.PkgName+nodeProp.NodeName], fieldProp)
-						} else {
-							// JSON MARSHAL
-							fieldProp.SchemaFieldName = fmt.Sprintf("%s: %s", fieldProp.FieldName, "String")
-							fieldProp.IsStringType = true
-							resField[nodeProp.PkgName+nodeProp.NodeName] = append(resField[nodeProp.PkgName+nodeProp.NodeName], fieldProp)
-						}
-					}
-				} else {
-					continue
-				}
-				if fieldProp.IsResolver {
-					nodeProp.ResolverCount += 1
-				}
-				nodeProp.GraphqlSchemaFields = append(nodeProp.GraphqlSchemaFields, fieldProp)
-				nodeProp.ResolverFields = resField
-			}
-			Nodes = append(Nodes, nodeProp)
+		// populate return values for multiple child fields
+		for _, f := range n.ChildrenFields {
+			f.ReturnType = retMap[f.FieldTypePkgPath].ReturnType
+			f.Alias = retMap[f.FieldTypePkgPath].Alias
+			f.FieldCount = retMap[f.FieldTypePkgPath].FieldCount
+			f.CRDName = retMap[f.FieldTypePkgPath].CRDName
+			f.ChainAPI = retMap[f.FieldTypePkgPath].ChainAPI
+			f.IsSingleton = retMap[f.FieldTypePkgPath].IsSingleton
+			f.LinkAPI = linkAPI[f.PkgName+f.NodeName]
+			resNodeProp.ChildrenFields = append(resNodeProp.ChildrenFields, f)
 		}
+
+		// populate return values for link fields
+		for _, f := range n.LinkFields {
+			f.ReturnType = retMap[f.FieldTypePkgPath].ReturnType
+			f.Alias = retMap[f.FieldTypePkgPath].Alias
+			f.FieldCount = retMap[f.FieldTypePkgPath].FieldCount
+			f.CRDName = retMap[f.FieldTypePkgPath].CRDName
+			f.ChainAPI = retMap[f.FieldTypePkgPath].ChainAPI
+			f.IsSingleton = retMap[f.FieldTypePkgPath].IsSingleton
+			f.LinkAPI = linkAPI[f.PkgName+f.NodeName]
+			resNodeProp.LinkFields = append(resNodeProp.LinkFields, f)
+		}
+
+		// populate return values for multiple link fields
+		for _, f := range n.LinksFields {
+			f.ReturnType = retMap[f.FieldTypePkgPath].ReturnType
+			f.Alias = retMap[f.FieldTypePkgPath].Alias
+			f.FieldCount = retMap[f.FieldTypePkgPath].FieldCount
+			f.CRDName = retMap[f.FieldTypePkgPath].CRDName
+			f.ChainAPI = retMap[f.FieldTypePkgPath].ChainAPI
+			f.IsSingleton = retMap[f.FieldTypePkgPath].IsSingleton
+			f.LinkAPI = linkAPI[f.PkgName+f.NodeName]
+			resNodeProp.LinksFields = append(resNodeProp.LinksFields, f)
+		}
+
+		nodeProperties = append(nodeProperties, resNodeProp)
 	}
-	// Create CustomType map
-	customApi := make(map[string]string)
-	CRDNameMap := make(map[string]string)
-	for _, n := range Nodes {
-		if n.IsNexusNode || n.IsSingletonNode {
-			CRDNameMap[n.CrdName] = n.PkgName + n.NodeName
-		}
-		for _, f := range n.CustomFields {
-			customApi[f.BaseTypeName] = f.FieldName
-		}
-	}
-	// Collect ReturnValue of each Node for resolver
-	LinkAPI := make(map[string]string)
+
+	return nodeProperties
+}
+
+func populateValuesForResolver(nodes []NodeProperty, parentsMap map[string]parser.NodeHelper,
+	crdNameMap, nonStructMap map[string]string) (map[string]string, map[string]ReturnStatement) {
+	linkAPI := make(map[string]string)
 	retMap := make(map[string]ReturnStatement)
-	for _, n := range Nodes {
-		var retType string
-		var aliasVal string
-		var listRetVal string
-		var fieldCount int
-		var IsSingleton bool
-		var ChainAPI string
+
+	for _, n := range nodes {
+		var (
+			retType, aliasVal, listRetVal, ChainAPI string
+			fieldCount                              int
+			IsSingleton                             bool
+		)
 
 		retType += fmt.Sprintf("ret := &model.%s%s {\n", n.PkgName, n.NodeName)
 		if n.IsNexusNode || n.IsSingletonNode {
@@ -361,9 +192,9 @@ func GenerateGraphqlResolverVars(baseGroupName, crdModulePath string, pkgs parse
 				if len(currentNode.Parents) == 0 {
 					// root of the graph
 					if currentNode.IsSingleton {
-						ChainAPI += fmt.Sprintf(".%s()", CRDNameMap[i])
+						ChainAPI += fmt.Sprintf(".%s()", crdNameMap[i])
 					} else {
-						ChainAPI += fmt.Sprintf(".%s(getParentName(obj.ParentLabels, %q))", CRDNameMap[i], i)
+						ChainAPI += fmt.Sprintf(".%s(getParentName(obj.ParentLabels, %q))", crdNameMap[i], i)
 					}
 				} else {
 					if childNode, ok := prevNode.Children[i]; ok {
@@ -375,32 +206,25 @@ func GenerateGraphqlResolverVars(baseGroupName, crdModulePath string, pkgs parse
 					} else {
 						panic(fmt.Sprintf("unable to find child %s in parent node of %s", i, prevNode.RestName))
 					}
-
 				}
-
 				// cache the non-leaf node
 				prevNode = currentNode
-
-				//				if parentsMap[i].IsSingleton {
-				//					ChainAPI += fmt.Sprintf(".%s()", CRDNameMap[i])
-				//				} else {
-				//					ChainAPI += fmt.Sprintf(".%s(obj.ParentLabels[\"%s\"].(string))", CRDNameMap[i], i)
-				//				}
 			}
-			// Create LinkAPI
+
+			// Create linkAPI
 			if n.IsSingletonNode {
 				IsSingleton = true
 				if !n.HasParent && n.IsParentNode {
-					LinkAPI[n.PkgName+n.NodeName] = fmt.Sprintf("%s.Get%s(context.TODO())", ChainAPI, n.PkgName+n.NodeName)
+					linkAPI[n.PkgName+n.NodeName] = fmt.Sprintf("%s.Get%s(context.TODO())", ChainAPI, n.PkgName+n.NodeName)
 				} else {
-					LinkAPI[n.PkgName+n.NodeName] = fmt.Sprintf("%s.Get%s(context.TODO())", ChainAPI, prevNode.Children[n.CrdName].FieldName)
+					linkAPI[n.PkgName+n.NodeName] = fmt.Sprintf("%s.Get%s(context.TODO())", ChainAPI, prevNode.Children[n.CrdName].FieldName)
 				}
 			} else {
 				IsSingleton = false
 				if !n.HasParent && n.IsParentNode {
-					LinkAPI[n.PkgName+n.NodeName] = fmt.Sprintf("%s.Get%s(context.TODO(), getParentName(obj.ParentLabels, %q))", ChainAPI, n.PkgName+n.NodeName, n.CrdName)
+					linkAPI[n.PkgName+n.NodeName] = fmt.Sprintf("%s.Get%s(context.TODO(), getParentName(obj.ParentLabels, %q))", ChainAPI, n.PkgName+n.NodeName, n.CrdName)
 				} else {
-					LinkAPI[n.PkgName+n.NodeName] = fmt.Sprintf("%s.Get%s(context.TODO(), getParentName(obj.ParentLabels, %q))", ChainAPI, prevNode.Children[n.CrdName].FieldName, n.CrdName)
+					linkAPI[n.PkgName+n.NodeName] = fmt.Sprintf("%s.Get%s(context.TODO(), getParentName(obj.ParentLabels, %q))", ChainAPI, prevNode.Children[n.CrdName].FieldName, n.CrdName)
 				}
 			}
 		}
@@ -442,76 +266,269 @@ func GenerateGraphqlResolverVars(baseGroupName, crdModulePath string, pkgs parse
 			IsSingleton: IsSingleton,
 		}
 	}
-	// set return value to each node
-	var ResNodes []Node_prop
-	for _, n := range Nodes {
-		var resNodeProp Node_prop
-		resNodeProp.GroupResourceNameTitle = util.GetGroupResourceNameTitle(n.NodeName)
-		resNodeProp.Alias = n.Alias
-		resNodeProp.ReturnType = n.ReturnType
-		resNodeProp.BaseImportPath = n.BaseImportPath
-		resNodeProp.GraphqlSchemaFields = n.GraphqlSchemaFields
-		resNodeProp.IsSingletonNode = n.IsSingletonNode
-		resNodeProp.IsNexusNode = n.IsNexusNode
-		resNodeProp.ResolverFields = n.ResolverFields
-		resNodeProp.ResolverCount = n.ResolverCount
-		resNodeProp.PkgName = n.PkgName
-		resNodeProp.NodeName = n.NodeName
-		resNodeProp.SchemaName = n.SchemaName
-		if !n.HasParent && n.IsParentNode {
-			resNodeProp.Alias = retMap[resNodeProp.PkgName+resNodeProp.NodeName].Alias
-			resNodeProp.ReturnType = retMap[resNodeProp.PkgName+resNodeProp.NodeName].ReturnType
-			resNodeProp.IsParentNode = true
+
+	return linkAPI, retMap
+}
+
+func constructCustomTypeMap(nodes []NodeProperty) map[string]string {
+	crdNameMap := make(map[string]string)
+	for _, n := range nodes {
+		if n.IsNexusNode || n.IsSingletonNode {
+			crdNameMap[n.CrdName] = n.PkgName + n.NodeName
 		}
-		for _, f := range n.ChildFields {
-			f.ReturnType = retMap[f.FieldTypePkgPath].ReturnType
-			f.Alias = retMap[f.FieldTypePkgPath].Alias
-			f.FieldCount = retMap[f.FieldTypePkgPath].FieldCount
-			f.CRDName = retMap[f.FieldTypePkgPath].CRDName
-			f.ChainAPI = retMap[f.FieldTypePkgPath].ChainAPI
-			f.IsSingleton = retMap[f.FieldTypePkgPath].IsSingleton
-			f.IsResolver = true
-			resNodeProp.ResolverCount = 1
-			if f.IsSingleton {
-				f.SchemaFieldName = fmt.Sprintf("%s: %s!", f.FieldName, f.SchemaTypeName)
-			} else {
-				f.SchemaFieldName = fmt.Sprintf("%s(Id: ID): %s!", f.FieldName, f.SchemaTypeName)
-			}
-			f.LinkAPI = LinkAPI[f.PkgName+f.NodeName]
-			resNodeProp.ChildFields = append(resNodeProp.ChildFields, f)
-			resNodeProp.GraphqlSchemaFields = append(resNodeProp.GraphqlSchemaFields, f)
-		}
-		for _, f := range n.ChildrenFields {
-			f.ReturnType = retMap[f.FieldTypePkgPath].ReturnType
-			f.Alias = retMap[f.FieldTypePkgPath].Alias
-			f.FieldCount = retMap[f.FieldTypePkgPath].FieldCount
-			f.CRDName = retMap[f.FieldTypePkgPath].CRDName
-			f.ChainAPI = retMap[f.FieldTypePkgPath].ChainAPI
-			f.IsSingleton = retMap[f.FieldTypePkgPath].IsSingleton
-			f.LinkAPI = LinkAPI[f.PkgName+f.NodeName]
-			resNodeProp.ChildrenFields = append(resNodeProp.ChildrenFields, f)
-		}
-		for _, f := range n.LinkFields {
-			f.ReturnType = retMap[f.FieldTypePkgPath].ReturnType
-			f.Alias = retMap[f.FieldTypePkgPath].Alias
-			f.FieldCount = retMap[f.FieldTypePkgPath].FieldCount
-			f.CRDName = retMap[f.FieldTypePkgPath].CRDName
-			f.ChainAPI = retMap[f.FieldTypePkgPath].ChainAPI
-			f.IsSingleton = retMap[f.FieldTypePkgPath].IsSingleton
-			f.LinkAPI = LinkAPI[f.PkgName+f.NodeName]
-			resNodeProp.LinkFields = append(resNodeProp.LinkFields, f)
-		}
-		for _, f := range n.LinksFields {
-			f.ReturnType = retMap[f.FieldTypePkgPath].ReturnType
-			f.Alias = retMap[f.FieldTypePkgPath].Alias
-			f.FieldCount = retMap[f.FieldTypePkgPath].FieldCount
-			f.CRDName = retMap[f.FieldTypePkgPath].CRDName
-			f.ChainAPI = retMap[f.FieldTypePkgPath].ChainAPI
-			f.IsSingleton = retMap[f.FieldTypePkgPath].IsSingleton
-			f.LinkAPI = LinkAPI[f.PkgName+f.NodeName]
-			resNodeProp.LinksFields = append(resNodeProp.LinksFields, f)
-		}
-		ResNodes = append(ResNodes, resNodeProp)
 	}
-	return ResNodes, nil
+	return crdNameMap
+}
+
+// 	processNexusFields process and populates properties for each non nexus fields
+//	<Domain  string>
+func processNonNexusFields(aliasNameMap map[string]string, node *ast.TypeSpec,
+	nodeProp NodeProperty, simpleGroupTypeName string) {
+	resField := make(map[string][]FieldProperty)
+	for _, f := range parser.GetSpecFields(node) {
+		if f == nil {
+			continue
+		}
+
+		var (
+			fieldProp FieldProperty
+			err       error
+		)
+		typeString := ConstructType(aliasNameMap, f)
+		// populate each field properties
+		if len(f.Names) > 0 {
+			fieldProp.FieldName, err = parser.GetNodeFieldName(f)
+			if err != nil {
+				log.Fatalf("failed to determine field name: %v", err)
+			}
+			fieldProp.FieldType = typeString
+			fieldProp.PkgName = simpleGroupTypeName
+			fieldProp.NodeName = node.Name.String()
+		}
+
+		if parser.IgnoreField(f) {
+			continue
+		}
+
+		if parser.IsJsonStringField(f) {
+			fieldProp.IsStringType = true
+			fieldProp.SchemaFieldName = fmt.Sprintf("%s: %s", fieldProp.FieldName, "String")
+			resField[nodeProp.PkgName+nodeProp.NodeName] = append(resField[nodeProp.PkgName+nodeProp.NodeName], fieldProp)
+		} else {
+			stdType := convertGraphqlStdType(typeString)
+			// standard type
+			if len(stdType) != 0 {
+				fieldProp.IsStdTypeField = true
+				fieldProp.SchemaFieldName = fmt.Sprintf("%s: %s", fieldProp.FieldName, stdType)
+				resField[nodeProp.PkgName+nodeProp.NodeName] = append(resField[nodeProp.PkgName+nodeProp.NodeName], fieldProp)
+			} else {
+				fieldProp.SchemaFieldName = fmt.Sprintf("%s: %s", fieldProp.FieldName, "String")
+				fieldProp.IsStringType = true
+				resField[nodeProp.PkgName+nodeProp.NodeName] = append(resField[nodeProp.PkgName+nodeProp.NodeName], fieldProp)
+			}
+		}
+		if fieldProp.IsResolver {
+			nodeProp.ResolverCount += 1
+		}
+		nodeProp.GraphqlSchemaFields = append(nodeProp.GraphqlSchemaFields, fieldProp)
+		nodeProp.ResolverFields = resField
+	}
+}
+
+// 	processNexusFields process and populates properties for each nexus fields
+//	<gns.Gns `nexus:"child"`>
+func processNexusFields(pkg parser.Package, aliasNameMap map[string]string, node *ast.TypeSpec,
+	nodeProp NodeProperty, simpleGroupTypeName string) {
+	importMap := pkg.GetImportMap()
+	for _, nf := range parser.GetNexusFields(node) {
+		if nf == nil {
+			continue
+		}
+		var (
+			fieldProp FieldProperty
+			err       error
+		)
+		if len(nf.Names) > 0 {
+			fieldProp.FieldName, err = parser.GetNodeFieldName(nf)
+			if err != nil {
+				log.Fatalf("Failed to determine field name: %v", err)
+			}
+			fieldProp.PkgName = simpleGroupTypeName
+			fieldProp.NodeName = node.Name.String()
+		}
+
+		// `Ignore:true` annotation used to ignore the specific field `nexus-graphql:"ignore:true"`
+		if parser.IgnoreField(nf) {
+			continue
+		}
+		// `type:string` annotation used to consider the type as string `nexus-graphql:"type:string"`
+		if parser.IsJsonStringField(nf) {
+			fieldProp.IsStringType = true
+			fieldProp.SchemaFieldName = fmt.Sprintf("%s: %s", fieldProp.FieldName, "String")
+		}
+
+		// denote field is nexus or singletonField type
+		if parser.IsNexusTypeField(nf) {
+			fieldProp.IsNexusOrSingletonField = true
+			// Add Custom Query + ID
+			fieldProp.SchemaFieldName = CustomQuerySchema
+		}
+
+		// nexus link field
+		typeString := ConstructType(aliasNameMap, nf)
+		if parser.IsOnlyLinkField(nf) {
+			schemaTypeName, resolverTypeName := validateImportPkg(pkg, typeString, importMap)
+			fieldProp.SchemaFieldName = fmt.Sprintf("%s: %s!", fieldProp.FieldName, schemaTypeName)
+			fieldProp.IsResolver = true
+			fieldProp.IsNexusTypeField = true
+			fieldProp.FieldType = typeString
+			fieldProp.FieldTypePkgPath = resolverTypeName
+			fieldProp.SchemaTypeName = schemaTypeName
+			fieldProp.BaseTypeName = getBaseNodeType(typeString)
+			nodeProp.LinkFields = append(nodeProp.LinkFields, fieldProp)
+		}
+
+		// nexus child field
+		if parser.IsOnlyChildField(nf) {
+			schemaTypeName, resolverTypeName := validateImportPkg(pkg, typeString, importMap)
+			fieldProp.SchemaFieldName = fmt.Sprintf("%s: %s!", fieldProp.FieldName, schemaTypeName)
+			fieldProp.IsNexusTypeField = true
+			fieldProp.FieldType = typeString
+			fieldProp.FieldTypePkgPath = resolverTypeName
+			fieldProp.SchemaTypeName = schemaTypeName
+			fieldProp.BaseTypeName = getBaseNodeType(typeString)
+			nodeProp.ChildFields = append(nodeProp.ChildFields, fieldProp)
+		}
+
+		// nexus children or links field
+		if parser.IsNamedChildOrLink(nf) {
+			fieldProp.IsChildrenOrLinks = true
+			schemaTypeName, resolverTypeName := validateImportPkg(pkg, typeString, importMap)
+			fieldProp.SchemaFieldName = fmt.Sprintf("%s(Id: ID): [%s!]", fieldProp.FieldName, schemaTypeName)
+			fieldProp.IsResolver = true
+			fieldProp.IsNexusTypeField = true
+			fieldProp.FieldType = typeString
+			fieldProp.FieldTypePkgPath = resolverTypeName
+			fieldProp.SchemaTypeName = schemaTypeName
+			fieldProp.BaseTypeName = getBaseNodeType(typeString)
+			if parser.IsOnlyChildrenField(nf) {
+				nodeProp.ChildrenFields = append(nodeProp.ChildrenFields, fieldProp)
+			} else {
+				nodeProp.LinksFields = append(nodeProp.LinksFields, fieldProp)
+			}
+		}
+		// no. of resolver field in a node
+		if fieldProp.IsResolver {
+			nodeProp.ResolverCount += 1
+		}
+		if !parser.IsOnlyChildField(nf) {
+			nodeProp.GraphqlSchemaFields = append(nodeProp.GraphqlSchemaFields, fieldProp)
+		}
+	}
+}
+
+/*
+		collect and construct type alias field into map recursively before
+	    populating the nexus node and custom struct type
+	    ex. nonStructMap[pkgName] = nodeType  -->  nonStructMap["root"] = "AliasTypeFoo"
+*/
+func constructAliasType(sortedPackages []parser.Package) map[string]string {
+	nonStructMap := make(map[string]string)
+	for _, pkg := range sortedPackages {
+		for _, node := range pkg.GetNonStructTypes() {
+			var pkgName string
+			if pkg.FullName == pkg.ModPath {
+				pkgName = pkg.Name + "_" + parser.GetTypeName(node)
+			} else if pkg.Name != "" {
+				pkgName = pkg.Name + "_" + parser.GetTypeName(node)
+			} else {
+				pkgPath := pkg.FullName
+				libName := pkgPath[strings.LastIndex(pkgPath, "/")+1:]
+				specTypePrefix := strings.ReplaceAll(libName, "-", "")
+				pkgName = specTypePrefix + "_" + parser.GetTypeName(node)
+			}
+			// NonStruct Map
+			nonStructType := types.ExprString(node.Type)
+			nonStructMap[pkgName] = nonStructType
+		}
+	}
+
+	return nonStructMap
+}
+
+// GenerateGraphqlResolverVars populates the node and its field properties required to generate graphql resolver
+func GenerateGraphqlResolverVars(baseGroupName, crdModulePath string, pkgs parser.Packages, parentsMap map[string]parser.NodeHelper) ([]NodeProperty, error) {
+	sortedKeys := make([]string, 0, len(pkgs))
+	for k := range pkgs {
+		sortedKeys = append(sortedKeys, k)
+	}
+	sort.Strings(sortedKeys)
+	sortedPackages := make([]parser.Package, len(pkgs))
+	for i, k := range sortedKeys {
+		sortedPackages[i] = pkgs[k]
+	}
+
+	// Iterate all the struct type and it's fields in the sortedPackages and
+	// set the node and field properties accordingly.
+	var nodes []NodeProperty
+	aliasNameMap := make(map[string]string)
+	for _, pkg := range sortedPackages {
+		simpleGroupTypeName := util.GetSimpleGroupTypeName(pkg.Name)
+		// Iterating struct type
+		for _, node := range pkg.GetStructs() {
+			// Skip Empty struct type
+			if len(parser.GetNexusFields(node)) == 0 && len(parser.GetSpecFields(node)) == 0 {
+				continue
+			}
+			nodeProp := NodeProperty{}
+			// populate node properties
+			nodeProp.PkgName = simpleGroupTypeName
+			nodeProp.NodeName = node.Name.String()
+			nodeProp.BaseImportPath = crdModulePath
+			nodeProp.CrdName = util.GetCrdName(node.Name.String(), pkg.Name, baseGroupName)
+			nodeHelper := parentsMap[nodeProp.CrdName]
+			nodeProp.IsParentNode = parser.IsNexusNode(node)
+
+			if len(nodeHelper.Parents) > 0 {
+				nodeProp.HasParent = true
+			}
+
+			if parser.IsSingletonNode(node) {
+				nodeProp.IsSingletonNode = true
+			}
+
+			if parser.IsNexusNode(node) {
+				nodeProp.IsNexusNode = true
+			}
+
+			if pkg.FullName == pkg.ModPath {
+				nodeProp.SchemaName = pkg.Name + "_" + parser.GetTypeName(node)
+			} else if pkg.Name != "" {
+				nodeProp.SchemaName = pkg.Name + "_" + parser.GetTypeName(node)
+			} else {
+				pkgPath := pkg.FullName
+				libName := pkgPath[strings.LastIndex(pkgPath, "/")+1:]
+				specTypePrefix := strings.ReplaceAll(libName, "-", "")
+				nodeProp.SchemaName = specTypePrefix + "_" + parser.GetTypeName(node)
+			}
+
+			// Iterate each node's nexus fields and set its properties
+			processNexusFields(pkg, aliasNameMap, node, nodeProp, simpleGroupTypeName)
+
+			// Iterate each node's non-nexus fields and set its properties
+			processNonNexusFields(aliasNameMap, node, nodeProp, simpleGroupTypeName)
+
+			nodes = append(nodes, nodeProp)
+		}
+	}
+
+	crdNameMap := constructCustomTypeMap(nodes)
+	// populate return values of each Node for resolver
+	nonStructMap := constructAliasType(sortedPackages)
+	linkAPI, retMap := populateValuesForResolver(nodes, parentsMap, crdNameMap, nonStructMap)
+
+	// populate return values of each node
+	nodeProperties := populateValuesForEachNode(nodes, linkAPI, retMap)
+
+	return nodeProperties, nil
 }

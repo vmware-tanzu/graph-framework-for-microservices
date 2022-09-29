@@ -5,7 +5,7 @@ package v1
 import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/crd_generated/common"
+	"nexustempmodule/common"
 )
 
 // +k8s:openapi-gen=true
@@ -60,9 +60,7 @@ func (c *Root) DisplayName() string {
 
 // +k8s:openapi-gen=true
 type RootSpec struct {
-	DisplayName string `json:"displayName" yaml:"displayName"`
-	CustomBar   Bar    `json:"customBar" yaml:"customBar"`
-	ConfigGvk   *Child `json:"configGvk,omitempty" yaml:"configGvk,omitempty" nexus:"child"`
+	ConfigGvk *Child `json:"configGvk,omitempty" yaml:"configGvk,omitempty" nexus:"child"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
@@ -73,6 +71,6 @@ type RootList struct {
 }
 
 // +k8s:openapi-gen=true
-type Bar struct {
-	Name string
+type NonNexusType struct {
+	Test int
 }

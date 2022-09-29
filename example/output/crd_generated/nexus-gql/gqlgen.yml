@@ -36,55 +36,47 @@ models:
       Config:
         resolver: true
 
-      CustomBar:
-        resolver: true
-
   config_Config:
     fields:
+      ACPPolicies:
+        resolver: true
+
+      FooExample:
+        resolver: true
+
       GNS:
         resolver: true
 
-      Cluster:
+      DNS:
         resolver: true
 
-      XYZPort:
+      VMPPolicies:
         resolver: true
 
-      ABCHost:
+      Domain:
         resolver: true
 
   gns_Gns:
     fields:
-      FooLink:
+      GnsServiceGroups:
         resolver: true
 
-      FooLinks:
+      Dns:
         resolver: true
 
-      FooChild:
+      GnsAccessControlPolicy:
         resolver: true
 
-      FooChildren:
+  policypkg_AccessControlPolicy:
+    fields:
+      PolicyConfigs:
         resolver: true
 
-      Mydesc:
+  policypkg_ACPConfig:
+    fields:
+      DestSvcGroups:
         resolver: true
 
-      HostPort:
-        resolver: true
-
-      TestArray:
-        resolver: true
-
-      Array1:
-        resolver: true
-
-      Array2:
-        resolver: true
-
-      Array3:
-        resolver: true
-
-      Array4:
+      SourceSvcGroups:
         resolver: true
 

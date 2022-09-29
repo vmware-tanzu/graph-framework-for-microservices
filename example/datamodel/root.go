@@ -1,18 +1,15 @@
 package root
 
 import (
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/common-library.git/pkg/nexus"
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/datamodel/config"
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/datamodel/nexus"
 )
 
 type Root struct {
-	nexus.Node
-	DisplayName string
-	Config      config.Config `nexus:"child"`
-	CustomBar   Bar
+	nexus.SingletonNode
+	Config config.Config `nexus:"child"`
 }
 
-type Bar struct {
-	Name string
+type NonNexusType struct {
+	Test int
 }
