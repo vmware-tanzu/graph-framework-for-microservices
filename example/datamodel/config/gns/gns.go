@@ -55,7 +55,6 @@ var GNSRestAPISpec = nexus.RestAPISpec{
 	},
 }
 
-
 type Port uint16
 
 // Host the IP of the endpoint
@@ -99,7 +98,6 @@ var CloudEndpointGraphQLQuerySpec = nexus.GraphQLQuerySpec{
 }
 
 // Gns struct.
-// nexus-rest-api-gen:GNSRestAPISpec
 // nexus-graphql-query:CloudEndpointGraphQLQuerySpec
 // nexus-description: this is my awesome node
 // specification of GNS.
@@ -107,8 +105,8 @@ type Gns struct {
 	nexus.Node
 	//nexus-validation: MaxLength=8, MinLength=2
 	//nexus-validation: Pattern=abc
-	Domain                 string
-	UseSharedGateway       bool
+	Domain           string
+	UseSharedGateway bool
 	Mydesc           Description
 	FooLink          BarLink     `nexus:"link"`
 	FooLinks         BarLinks    `nexus:"links"`

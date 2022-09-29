@@ -275,6 +275,8 @@ func (c *resolverConfig) getRootRootqueryServiceTopologyResolver(obj *model.Root
 
 
 
+
+
 //////////////////////////////////////
 // CustomQuery Resolver for Node: Config in PKG: Config
 //////////////////////////////////////
@@ -414,6 +416,8 @@ func (c *resolverConfig) getConfigConfigqueryServiceTopologyResolver(obj *model.
 	}
 	return ret,nil
 }
+
+
 
 
 
@@ -1524,6 +1528,9 @@ ClusterNamespacesData := string(ClusterNamespaces)
 
 
 
+
+
+
 //////////////////////////////////////
 // CHILD RESOLVER (Non Singleton)
 // FieldName: GNS Node: Config PKG: Config
@@ -1625,6 +1632,9 @@ Array5Data := string(Array5)
 	}
 	return ret, nil
 }
+
+
+
 
 
 

@@ -74,6 +74,8 @@ type root_Root {
 
 
 
+
+
  
 type config_Config {
 
@@ -146,6 +148,8 @@ type config_Config {
     ClusterNamespaces: String
     GNS(Id: ID): gns_Gns!
 }
+
+
 
 
 

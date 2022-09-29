@@ -3,7 +3,6 @@ package config
 import (
 	"net/http"
 
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/common-library.git/pkg/nexus"
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/datamodel/config/gns"
 	"golang-appnet.eng.vmware.com/nexus-sdk/nexus/nexus"
 )

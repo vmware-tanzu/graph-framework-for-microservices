@@ -1,7 +1,6 @@
 package root
 
 import (
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/common-library.git/pkg/nexus"
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/datamodel/config"
 	"golang-appnet.eng.vmware.com/nexus-sdk/nexus/nexus"
 )
