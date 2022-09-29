@@ -106,7 +106,7 @@ var _ = Describe("Node parser tests", func() {
 		Expect(fail).To(BeTrue())
 	})
 	It("should be able to get graphql info from a field", func() {
-		graph = parser.ParseDSLNodes(exampleDSLPath, baseGroupName)
+		graph = parser.ParseDSLNodes(exampleDSLPath, baseGroupName, nil)
 		config, ok := graph["roots.root.tsm.tanzu.vmware.com"].SingleChildren["Config"]
 		Expect(ok).To(BeTrue())
 

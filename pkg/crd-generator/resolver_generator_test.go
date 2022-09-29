@@ -20,7 +20,7 @@ var _ = Describe("Template renderers tests", func() {
 		pkgs = parser.ParseDSLPkg(exampleDSLPath)
 		//pkg, ok = pkgs["gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/datamodel/config"]
 		//Expect(ok).To(BeTrue())
-		graph := parser.ParseDSLNodes(exampleDSLPath, baseGroupName)
+		graph := parser.ParseDSLNodes(exampleDSLPath, baseGroupName, nil)
 		parentsMap = parser.CreateParentsMap(graph)
 	})
 	It("should resolve graphql vars", func() {

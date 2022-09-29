@@ -48,6 +48,7 @@ func main() {
 
 	config.ConfigInstance = conf
 	pkgs := parser.ParseDSLPkg(*dslDir)
+	parser.ParseGraphqlQuerySpecs(pkgs)
 	graph := parser.ParseDSLNodes(*dslDir, conf.GroupName, pkgs)
 	methods, codes := rest.ParseResponses(pkgs)
 	if err = crd_generator.RenderCRDTemplate(conf.GroupName, conf.CrdModulePath, pkgs, graph,

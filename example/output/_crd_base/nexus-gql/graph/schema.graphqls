@@ -135,6 +135,13 @@ type config_Config {
         startTime: String
         endTime: String
     ): TimeSeriesData
+    query(
+        StartTime: String
+        EndTime: String
+        Interval: String
+        IsServiceDeployment: Boolean
+        StartVal: Int
+    ): TimeSeriesData
 
     ConfigName: String
     Cluster: String
@@ -219,6 +226,14 @@ type gns_Gns {
         startTime: String
         endTime: String
     ): TimeSeriesData
+    queryGns1(
+        StartTime: String
+        EndTime: String
+        Interval: String
+        IsServiceDeployment: Boolean
+        StartVal: Int
+    ): TimeSeriesData
+    queryGns2: TimeSeriesData
 
     FooLink: gns_BarLink!
     FooLinks(Id: ID): [gns_BarLinks!]

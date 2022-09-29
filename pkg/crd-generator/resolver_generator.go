@@ -177,6 +177,7 @@ func GenerateGraphqlResolverVars(baseGroupName, crdModulePath string, pkgs parse
 			nodeProp.CrdName = util.GetCrdName(node.Name.String(), pkg.Name, baseGroupName)
 			nodeHelper := parentsMap[nodeProp.CrdName]
 			nodeProp.IsParentNode = parser.IsNexusNode(node)
+
 			if len(nodeHelper.Parents) > 0 {
 				nodeProp.HasParent = true
 			}
@@ -225,6 +226,9 @@ func GenerateGraphqlResolverVars(baseGroupName, crdModulePath string, pkgs parse
 						fieldProp.IsNexusOrSingletonField = true
 						// Add Custom Query + ID
 						fieldProp.SchemaFieldName = CustomQuerySchema
+						for _, customQuery := range nodeHelper.GraphqlSpec.Queries {
+							fieldProp.SchemaFieldName += CustomQueryToGraphqlSchema(customQuery)
+						}
 					}
 					// Nexus Child and Link fields
 					if parser.IsOnlyLinkField(nf) {

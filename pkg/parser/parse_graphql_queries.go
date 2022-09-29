@@ -18,11 +18,11 @@ func ParseGraphqlQuerySpecs(pkgs Packages) {
 
 func GetGraphqlQuerySpecs(queryMap map[string]nexus.GraphQLQuerySpec, p Package) {
 	for _, spec := range GetNexusSpecs(p, "nexus.GraphQLQuerySpec") {
-		queryMap[p.Name+"."+spec.Name] = parseQuerySpec(spec.Value)
+		queryMap[p.Name+"."+spec.Name] = parseQuerySpec(spec.Value, p)
 	}
 }
 
-func parseQuerySpec(v *ast.CompositeLit) nexus.GraphQLQuerySpec {
+func parseQuerySpec(v *ast.CompositeLit, p Package) nexus.GraphQLQuerySpec {
 	spec := nexus.GraphQLQuerySpec{}
 	for _, queryElt := range v.Elts {
 		querykv, ok := queryElt.(*ast.KeyValueExpr)
@@ -39,14 +39,14 @@ func parseQuerySpec(v *ast.CompositeLit) nexus.GraphQLQuerySpec {
 				log.Fatalf("Wrong format of graphql query spec field, please check graphql spec")
 			}
 
-			newQuery := parseQuery(queryComp)
+			newQuery := parseQuery(queryComp, p)
 			spec.Queries = append(spec.Queries, newQuery)
 		}
 	}
 	return spec
 }
 
-func parseQuery(queryComp *ast.CompositeLit) (newQuery nexus.GraphQLQuery) {
+func parseQuery(queryComp *ast.CompositeLit, p Package) (newQuery nexus.GraphQLQuery) {
 	newQuery = nexus.GraphQLQuery{}
 	for _, queryFieldCompElt := range queryComp.Elts {
 		queryFieldExp, ok := queryFieldCompElt.(*ast.KeyValueExpr)
@@ -88,9 +88,43 @@ func parseQuery(queryComp *ast.CompositeLit) (newQuery nexus.GraphQLQuery) {
 		case "Args":
 			queryFieldValue, ok := queryFieldExp.Value.(*ast.CompositeLit)
 			if ok {
-				newQuery.Args = queryFieldValue.Type
+				typ, ok := queryFieldValue.Type.(*ast.Ident)
+				if ok {
+					// translate args to map[arg.fieldName]arg.type
+					args := parseArgs(typ.Name, p)
+					newQuery.Args = args
+				}
 			}
 		}
 	}
 	return
+}
+
+type GraphQlArg struct {
+	Name string
+	Type string
+}
+
+func parseArgs(argsTypeName string, p Package) []GraphQlArg {
+	args := make([]GraphQlArg, 0)
+	for _, decl := range p.GenDecls {
+		for _, spec := range decl.Specs {
+			v, ok := spec.(*ast.TypeSpec)
+			if ok {
+				if v.Name.Name != argsTypeName {
+					continue
+				}
+				for _, field := range GetSpecFields(v) {
+					if len(field.Names) == 0 {
+						log.Fatalf("Field in graphql args must be named, args %s", argsTypeName)
+					}
+					args = append(args, GraphQlArg{
+						Name: field.Names[0].Name,
+						Type: GetFieldType(field),
+					})
+				}
+			}
+		}
+	}
+	return args
 }
