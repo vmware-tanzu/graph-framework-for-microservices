@@ -14,7 +14,7 @@ var _ = Describe("Graphql parsing tests", func() {
 		graph map[string]parser.Node
 	)
 
-	FIt("should parse graphql query specs", func() {
+	It("should parse graphql query specs", func() {
 		pkgs = parser.ParseDSLPkg(exampleDSLPath)
 		parser.ParseGraphqlQuerySpecs(pkgs)
 		graph = parser.ParseDSLNodes(exampleDSLPath, baseGroupName, pkgs)
@@ -49,7 +49,7 @@ var _ = Describe("Graphql parsing tests", func() {
 		Expect(gns.GraphqlSpec.Queries[1].Args).To(BeNil())
 	})
 
-	FIt("should match graphql query specs from other packages", func() {
+	It("should match graphql query specs from other packages", func() {
 		pkgs = parser.ParseDSLPkg(exampleDSLPath)
 		parser.ParseGraphqlQuerySpecs(pkgs)
 		graph = parser.ParseDSLNodes(exampleDSLPath, baseGroupName, pkgs)

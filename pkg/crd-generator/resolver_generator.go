@@ -7,6 +7,8 @@ import (
 	"sort"
 	"strings"
 
+	"golang-appnet.eng.vmware.com/nexus-sdk/nexus/nexus"
+
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/pkg/parser"
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/pkg/util"
 	"golang.org/x/text/cases"
@@ -77,6 +79,7 @@ type Node_prop struct {
 	Alias                  string
 	ReturnType             string
 	GroupResourceNameTitle string
+	CustomQueries          []nexus.GraphQLQuery
 }
 
 const (
@@ -177,6 +180,7 @@ func GenerateGraphqlResolverVars(baseGroupName, crdModulePath string, pkgs parse
 			nodeProp.CrdName = util.GetCrdName(node.Name.String(), pkg.Name, baseGroupName)
 			nodeHelper := parentsMap[nodeProp.CrdName]
 			nodeProp.IsParentNode = parser.IsNexusNode(node)
+			nodeProp.CustomQueries = nodeHelper.GraphqlSpec.Queries
 
 			if len(nodeHelper.Parents) > 0 {
 				nodeProp.HasParent = true
@@ -456,6 +460,7 @@ func GenerateGraphqlResolverVars(baseGroupName, crdModulePath string, pkgs parse
 		resNodeProp.BaseImportPath = n.BaseImportPath
 		resNodeProp.GraphqlSchemaFields = n.GraphqlSchemaFields
 		resNodeProp.IsSingletonNode = n.IsSingletonNode
+		resNodeProp.CustomQueries = n.CustomQueries
 		resNodeProp.IsNexusNode = n.IsNexusNode
 		resNodeProp.ResolverFields = n.ResolverFields
 		resNodeProp.ResolverCount = n.ResolverCount

@@ -264,6 +264,12 @@ func (c *resolverConfig) get{{$node.PkgName}}{{$node.NodeName}}queryServiceTopol
 	}
 	return ret,nil
 }
+{{ range $key, $query := $node.CustomQueries }}
+// Custom query
+func (c *resolverConfig) get{{$node.PkgName}}{{$node.NodeName}}{{$query.Name}}(obj *model.{{$node.PkgName}}{{$node.NodeName}}, {{ range $key, $arg := $query.Args }} {{$arg.Name}} *{{$arg.Type}}, {{ end }}) (*model.TimeSeriesData,error) {
+	// TODO FILL me
+	return nil, nil
+}{{ end }}
 {{ end }}{{ end }}
 {{ range $key, $node := .Nodes }}{{ range $key, $child := $node.ChildFields }}{{ if $child.IsSingleton }}
 //////////////////////////////////////

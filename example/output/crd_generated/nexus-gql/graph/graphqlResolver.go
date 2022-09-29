@@ -277,6 +277,18 @@ func (c *resolverConfig) getConfigConfigqueryServiceTSResolver(svcMetric *string
 	return ret, nil
 }
 
+// Custom query
+func (c *resolverConfig) getGnsGnsqueryGns1(obj *model.GnsGns, StartTime *string, EndTime *string, Interval *string, IsServiceDeployment *bool, StartVal *int) (*model.TimeSeriesData, error) {
+	// TODO FILL me
+	return nil, nil
+}
+
+// Custom query
+func (c *resolverConfig) getGnsGnsqueryGns2(obj *model.GnsGns) (*model.TimeSeriesData, error) {
+	// TODO FILL me
+	return nil, nil
+}
+
 // Resolver for queryIncomingAPIs
 func (c *resolverConfig) getConfigConfigqueryIncomingAPIsResolver(startTime *string, endTime *string, destinationService *string, destinationServiceVersion *string, timeInterval *string, timeZone *string) (*model.TimeSeriesData, error) {
 	ctx := context.Background()

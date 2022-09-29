@@ -135,7 +135,7 @@ type config_Config {
         startTime: String
         endTime: String
     ): TimeSeriesData
-    query(
+    QueryExample(
         StartTime: String
         EndTime: String
         Interval: String

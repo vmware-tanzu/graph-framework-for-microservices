@@ -26,7 +26,7 @@ var _ = Describe("Graphql Custom query generator tests", func() {
 		Expect(ok).To(BeTrue())
 	})
 
-	FIt("should translate graphql query spec to schema", func() {
+	It("should translate graphql query spec to schema", func() {
 		schema := crdgenerator.CustomQueryToGraphqlSchema(gns.GraphqlSpec.Queries[0])
 		Expect(schema).To(Equal(`queryGns1(
     StartTime: String

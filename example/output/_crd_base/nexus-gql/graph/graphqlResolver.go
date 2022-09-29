@@ -277,6 +277,7 @@ func (c *resolverConfig) getRootRootqueryServiceTopologyResolver(obj *model.Root
 
 
 
+
 //////////////////////////////////////
 // CustomQuery Resolver for Node: Config in PKG: Config
 //////////////////////////////////////
@@ -415,6 +416,12 @@ func (c *resolverConfig) getConfigConfigqueryServiceTopologyResolver(obj *model.
 		Data: &data,
 	}
 	return ret,nil
+}
+
+// Custom query
+func (c *resolverConfig) getConfigConfigQueryExample(obj *model.ConfigConfig,  StartTime *string,  EndTime *string,  Interval *string,  IsServiceDeployment *bool,  StartVal *int, ) (*model.TimeSeriesData,error) {
+	// TODO FILL me
+	return nil, nil
 }
 
 
@@ -567,6 +574,17 @@ func (c *resolverConfig) getGnsGnsqueryServiceTopologyResolver(obj *model.GnsGns
 		Data: &data,
 	}
 	return ret,nil
+}
+
+// Custom query
+func (c *resolverConfig) getGnsGnsqueryGns1(obj *model.GnsGns,  StartTime *string,  EndTime *string,  Interval *string,  IsServiceDeployment *bool,  StartVal *int, ) (*model.TimeSeriesData,error) {
+	// TODO FILL me
+	return nil, nil
+}
+// Custom query
+func (c *resolverConfig) getGnsGnsqueryGns2(obj *model.GnsGns, ) (*model.TimeSeriesData,error) {
+	// TODO FILL me
+	return nil, nil
 }
 
 
@@ -744,6 +762,7 @@ func (c *resolverConfig) getGnsBarLinkqueryServiceTopologyResolver(obj *model.Gn
 
 
 
+
 //////////////////////////////////////
 // CustomQuery Resolver for Node: BarChild in PKG: Gns
 //////////////////////////////////////
@@ -886,6 +905,7 @@ func (c *resolverConfig) getGnsBarChildqueryServiceTopologyResolver(obj *model.G
 
 
 
+
 //////////////////////////////////////
 // CustomQuery Resolver for Node: BarChildren in PKG: Gns
 //////////////////////////////////////
@@ -1025,6 +1045,7 @@ func (c *resolverConfig) getGnsBarChildrenqueryServiceTopologyResolver(obj *mode
 	}
 	return ret,nil
 }
+
 
 
 
@@ -1226,6 +1247,7 @@ func (c *resolverConfig) getGnsBarLinksqueryServiceTopologyResolver(obj *model.G
 
 
 
+
 //////////////////////////////////////
 // Non Singleton Resolver for Parent Node
 // PKG: Gns, NODE: Gns
@@ -1415,6 +1437,7 @@ func (c *resolverConfig) getGnsABCLinkqueryServiceTopologyResolver(obj *model.Gn
 	}
 	return ret,nil
 }
+
 
 
 //////////////////////////////////////

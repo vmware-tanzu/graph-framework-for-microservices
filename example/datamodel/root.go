@@ -27,7 +27,7 @@ type queryFilters struct {
 var GeneralGraphQLQuerySpec = nexus.GraphQLQuerySpec{
 	Queries: []nexus.GraphQLQuery{
 		{
-			Name: "query",
+			Name: "QueryExample",
 			ServiceEndpoint: nexus.GraphQLQueryEndpoint{
 				Domain: "query-manager",
 				Port:   6000,
