@@ -141,7 +141,7 @@ type config_Config {
         Interval: String
         IsServiceDeployment: Boolean
         StartVal: Int
-    ): TimeSeriesData
+    ): NexusGraphqlResponse
 
     ConfigName: String
     Cluster: String
@@ -232,8 +232,8 @@ type gns_Gns {
         Interval: String
         IsServiceDeployment: Boolean
         StartVal: Int
-    ): TimeSeriesData
-    queryGns2: TimeSeriesData
+    ): NexusGraphqlResponse
+    queryGns2: NexusGraphqlResponse
 
     FooLink: gns_BarLink!
     FooLinks(Id: ID): [gns_BarLinks!]
@@ -585,6 +585,14 @@ type gns_ABCLink {
 }
 
 type TimeSeriesData {
+  Code: Int
+  Message: String
+  Data: String
+  Last: String
+  TotalRecords: Int
+}
+
+type NexusGraphqlResponse {
   Code: Int
   Message: String
   Data: String

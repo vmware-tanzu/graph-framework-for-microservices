@@ -419,7 +419,7 @@ func (c *resolverConfig) getConfigConfigqueryServiceTopologyResolver(obj *model.
 }
 
 // Custom query
-func (c *resolverConfig) getConfigConfigQueryExample(obj *model.ConfigConfig,  StartTime *string,  EndTime *string,  Interval *string,  IsServiceDeployment *bool,  StartVal *int, ) (*model.TimeSeriesData,error) {
+func (c *resolverConfig) getConfigConfigQueryExample(obj *model.ConfigConfig,  StartTime *string,  EndTime *string,  Interval *string,  IsServiceDeployment *bool,  StartVal *int, ) (*model.NexusGraphqlResponse, error) {
 	// TODO FILL me
 	return nil, nil
 }
@@ -577,12 +577,12 @@ func (c *resolverConfig) getGnsGnsqueryServiceTopologyResolver(obj *model.GnsGns
 }
 
 // Custom query
-func (c *resolverConfig) getGnsGnsqueryGns1(obj *model.GnsGns,  StartTime *string,  EndTime *string,  Interval *string,  IsServiceDeployment *bool,  StartVal *int, ) (*model.TimeSeriesData,error) {
+func (c *resolverConfig) getGnsGnsqueryGns1(obj *model.GnsGns,  StartTime *string,  EndTime *string,  Interval *string,  IsServiceDeployment *bool,  StartVal *int, ) (*model.NexusGraphqlResponse, error) {
 	// TODO FILL me
 	return nil, nil
 }
 // Custom query
-func (c *resolverConfig) getGnsGnsqueryGns2(obj *model.GnsGns, ) (*model.TimeSeriesData,error) {
+func (c *resolverConfig) getGnsGnsqueryGns2(obj *model.GnsGns, ) (*model.NexusGraphqlResponse, error) {
 	// TODO FILL me
 	return nil, nil
 }

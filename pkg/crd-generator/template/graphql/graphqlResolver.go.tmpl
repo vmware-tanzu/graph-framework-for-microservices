@@ -266,7 +266,7 @@ func (c *resolverConfig) get{{$node.PkgName}}{{$node.NodeName}}queryServiceTopol
 }
 {{ range $key, $query := $node.CustomQueries }}
 // Custom query
-func (c *resolverConfig) get{{$node.PkgName}}{{$node.NodeName}}{{$query.Name}}(obj *model.{{$node.PkgName}}{{$node.NodeName}}, {{ range $key, $arg := $query.Args }} {{$arg.Name}} *{{$arg.Type}}, {{ end }}) (*model.TimeSeriesData,error) {
+func (c *resolverConfig) get{{$node.PkgName}}{{$node.NodeName}}{{$query.Name}}(obj *model.{{$node.PkgName}}{{$node.NodeName}}, {{ range $key, $arg := $query.Args }} {{$arg.Name}} *{{$arg.Type}}, {{ end }}) (*model.NexusGraphqlResponse, error) {
 	// TODO FILL me
 	return nil, nil
 }{{ end }}

@@ -34,10 +34,10 @@ var _ = Describe("Graphql Custom query generator tests", func() {
     Interval: String
     IsServiceDeployment: Boolean
     StartVal: Int
-): TimeSeriesData
+): NexusGraphqlResponse
 `))
 		schema = crdgenerator.CustomQueryToGraphqlSchema(gns.GraphqlSpec.Queries[1])
-		Expect(schema).To(Equal(`queryGns2(): TimeSeriesData
+		Expect(schema).To(Equal(`queryGns2(): NexusGraphqlResponse
 `))
 	})
 })
