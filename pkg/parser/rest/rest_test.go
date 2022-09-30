@@ -26,7 +26,8 @@ var _ = Describe("Rest tests", func() {
 	BeforeEach(func() {
 		pkgs = parser.ParseDSLPkg(exampleDSLPath)
 		pkg, ok = pkgs["gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/datamodel/config/gns"]
-		graph := parser.ParseDSLNodes(exampleDSLPath, baseGroupName, pkgs)
+		graphqlQueries := parser.ParseGraphqlQuerySpecs(pkgs)
+		graph := parser.ParseDSLNodes(exampleDSLPath, baseGroupName, pkgs, graphqlQueries)
 		parentsMap = parser.CreateParentsMap(graph)
 		Expect(ok).To(BeTrue())
 	})

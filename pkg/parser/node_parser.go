@@ -11,12 +11,14 @@ import (
 	"strings"
 
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/pkg/util"
+	"golang-appnet.eng.vmware.com/nexus-sdk/nexus/nexus"
 
 	log "github.com/sirupsen/logrus"
 )
 
 // ParseDSLNodes walks recursively through given path and looks for structs types definitions to add them to graph
-func ParseDSLNodes(startPath string, baseGroupName string, packages Packages) map[string]Node {
+func ParseDSLNodes(startPath string, baseGroupName string, packages Packages,
+	graphqlQueries map[string]nexus.GraphQLQuerySpec) map[string]Node {
 	modulePath := GetModulePath(startPath)
 
 	rootNodes := make([]string, 0)
@@ -85,8 +87,7 @@ func ParseDSLNodes(startPath string, baseGroupName string, packages Packages) ma
 													// look for spec in current package
 													annotation = v.Name + "." + annotation
 												}
-												m := GraphQLQueryMap
-												graphqlSpec, ok := m[annotation]
+												graphqlSpec, ok := graphqlQueries[annotation]
 												if ok {
 													node.GraphqlSpec = graphqlSpec
 												}

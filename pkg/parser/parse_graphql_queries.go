@@ -8,12 +8,12 @@ import (
 	"golang-appnet.eng.vmware.com/nexus-sdk/nexus/nexus"
 )
 
-var GraphQLQueryMap = make(map[string]nexus.GraphQLQuerySpec)
-
-func ParseGraphqlQuerySpecs(pkgs Packages) {
+func ParseGraphqlQuerySpecs(pkgs Packages) map[string]nexus.GraphQLQuerySpec {
+	graphQLQueryMap := make(map[string]nexus.GraphQLQuerySpec)
 	for _, pkg := range pkgs {
-		GetGraphqlQuerySpecs(GraphQLQueryMap, pkg)
+		GetGraphqlQuerySpecs(graphQLQueryMap, pkg)
 	}
+	return graphQLQueryMap
 }
 
 func GetGraphqlQuerySpecs(queryMap map[string]nexus.GraphQLQuerySpec, p Package) {
@@ -110,19 +110,17 @@ func parseArgs(argsTypeName string, p Package) []GraphQlArg {
 	for _, decl := range p.GenDecls {
 		for _, spec := range decl.Specs {
 			v, ok := spec.(*ast.TypeSpec)
-			if ok {
-				if v.Name.Name != argsTypeName {
-					continue
+			if !ok || v.Name.Name != argsTypeName {
+				continue
+			}
+			for _, field := range GetSpecFields(v) {
+				if len(field.Names) == 0 {
+					log.Fatalf("Field in graphql args must be named, args %s", argsTypeName)
 				}
-				for _, field := range GetSpecFields(v) {
-					if len(field.Names) == 0 {
-						log.Fatalf("Field in graphql args must be named, args %s", argsTypeName)
-					}
-					args = append(args, GraphQlArg{
-						Name: field.Names[0].Name,
-						Type: GetFieldType(field),
-					})
-				}
+				args = append(args, GraphQlArg{
+					Name: field.Names[0].Name,
+					Type: GetFieldType(field),
+				})
 			}
 		}
 	}

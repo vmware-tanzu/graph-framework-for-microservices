@@ -57,10 +57,7 @@ type RestAPISpec struct {
 }
 
 func CheckValueSpec(valueSpec *ast.ValueSpec) bool {
-	if len(valueSpec.Names) == 0 {
-		return false
-	}
-	if valueSpec.Values == nil {
+	if len(valueSpec.Names) == 0 || valueSpec.Values == nil {
 		return false
 	}
 	return true
@@ -74,22 +71,21 @@ type NexusSpec struct {
 func GetNexusSpecs(p Package, nexusType string) (specs []NexusSpec) {
 	for _, genDecl := range p.GenDecls {
 		for _, spec := range genDecl.Specs {
-			if valueSpec, ok := spec.(*ast.ValueSpec); ok {
-				if !CheckValueSpec(valueSpec) {
-					continue
-				}
-				name := valueSpec.Names[0].Name
-				if value, ok := valueSpec.Values[0].(*ast.CompositeLit); ok {
-					if types.ExprString(value.Type) != nexusType {
-						continue
-					}
-					specs = append(specs, NexusSpec{
-						Name:  name,
-						Value: value,
-					})
-				}
+			valueSpec, ok := spec.(*ast.ValueSpec)
+			if !ok || !CheckValueSpec(valueSpec) {
+				continue
 			}
+			name := valueSpec.Names[0].Name
+			value, ok := valueSpec.Values[0].(*ast.CompositeLit)
+			if !ok || types.ExprString(value.Type) != nexusType {
+				continue
+			}
+			specs = append(specs, NexusSpec{
+				Name:  name,
+				Value: value,
+			})
 		}
+
 	}
 	return
 }

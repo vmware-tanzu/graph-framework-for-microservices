@@ -2,6 +2,7 @@ package crd_generator
 
 import (
 	"fmt"
+
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/pkg/parser"
 
 	"golang-appnet.eng.vmware.com/nexus-sdk/nexus/nexus"

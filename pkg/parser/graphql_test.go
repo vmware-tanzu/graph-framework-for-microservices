@@ -16,8 +16,8 @@ var _ = Describe("Graphql parsing tests", func() {
 
 	It("should parse graphql query specs", func() {
 		pkgs = parser.ParseDSLPkg(exampleDSLPath)
-		parser.ParseGraphqlQuerySpecs(pkgs)
-		graph = parser.ParseDSLNodes(exampleDSLPath, baseGroupName, pkgs)
+		graphqlQueries := parser.ParseGraphqlQuerySpecs(pkgs)
+		graph = parser.ParseDSLNodes(exampleDSLPath, baseGroupName, pkgs, graphqlQueries)
 		root, ok := graph["roots.root.tsm.tanzu.vmware.com"]
 		Expect(ok).To(BeTrue())
 		config, ok := root.SingleChildren["Config"]
@@ -51,15 +51,15 @@ var _ = Describe("Graphql parsing tests", func() {
 
 	It("should match graphql query specs from other packages", func() {
 		pkgs = parser.ParseDSLPkg(exampleDSLPath)
-		parser.ParseGraphqlQuerySpecs(pkgs)
-		graph = parser.ParseDSLNodes(exampleDSLPath, baseGroupName, pkgs)
+		graphqlQueries := parser.ParseGraphqlQuerySpecs(pkgs)
+		graph = parser.ParseDSLNodes(exampleDSLPath, baseGroupName, pkgs, graphqlQueries)
 		root, ok := graph["roots.root.tsm.tanzu.vmware.com"]
 		Expect(ok).To(BeTrue())
 		config, ok := root.SingleChildren["Config"]
 		Expect(ok).To(BeTrue())
 
 		Expect(config.GraphqlSpec.Queries).To(HaveLen(1))
-		Expect(config.GraphqlSpec.Queries[0].Name).To(Equal("query"))
+		Expect(config.GraphqlSpec.Queries[0].Name).To(Equal("QueryExample"))
 		Expect(config.GraphqlSpec.Queries[0].ServiceEndpoint.Domain).To(Equal("query-manager"))
 		Expect(config.GraphqlSpec.Queries[0].ServiceEndpoint.Port).To(Equal(6000))
 		args := config.GraphqlSpec.Queries[0].Args.([]parser.GraphQlArg)
