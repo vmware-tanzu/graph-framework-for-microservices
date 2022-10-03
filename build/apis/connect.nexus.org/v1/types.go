@@ -103,7 +103,8 @@ func (c *NexusEndpoint) DisplayName() string {
 type NexusEndpointSpec struct {
 	Host string `json:"host" yaml:"host"`
 	Port string `json:"port" yaml:"port"`
-	Cert string `json:"cert" yaml:"cert"`
+	Cert string `json:"cert,omitempty"`
+	Path string `json:"path,omitempty"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object

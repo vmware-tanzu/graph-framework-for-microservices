@@ -42,12 +42,13 @@ spec:
                 type: string
               host:
                 type: string
+              path:
+                type: string
               port:
                 type: string
             required:
             - host
             - port
-            - cert
             type: object
           status:
             properties:
