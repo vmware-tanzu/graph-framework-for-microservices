@@ -17,6 +17,7 @@ const (
 
 	RemoteEndpointHost = "REMOTE_ENDPOINT_HOST"
 	RemoteEndpointPort = "REMOTE_ENDPOINT_PORT"
+	RemoteEndpointCert = "REMOTE_ENDPOINT_CERT"
 
 	DisplayNameKey           = "nexus/display_name"
 	DeploymentName           = "DEPLOYMENT_NAME"

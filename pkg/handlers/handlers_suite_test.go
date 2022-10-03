@@ -37,7 +37,7 @@ var (
 	deployment            = schema.GroupVersionResource{Group: "apps", Version: "v1", Resource: "deployments"}
 )
 
-func GetObject(name, kind, specVal string) *unstructured.Unstructured {
+func getObject(name, kind, specVal string) *unstructured.Unstructured {
 	return &unstructured.Unstructured{
 		Object: map[string]interface{}{
 			"apiVersion": ApiVersion,
@@ -52,7 +52,7 @@ func GetObject(name, kind, specVal string) *unstructured.Unstructured {
 	}
 }
 
-func GetParentObject(name, kind string) *unstructured.Unstructured {
+func getParentObject(name, kind string) *unstructured.Unstructured {
 	return &unstructured.Unstructured{
 		Object: map[string]interface{}{
 			"apiVersion": ApiVersion,
@@ -74,7 +74,7 @@ func GetParentObject(name, kind string) *unstructured.Unstructured {
 	}
 }
 
-func GetChildObject(name, kind string) *unstructured.Unstructured {
+func getChildObject(name, kind string) *unstructured.Unstructured {
 	return &unstructured.Unstructured{
 		Object: map[string]interface{}{
 			"apiVersion": ApiVersion,
@@ -96,7 +96,7 @@ func GetChildObject(name, kind string) *unstructured.Unstructured {
 	}
 }
 
-func GetReplicatedObject(name, kind string, status map[string]interface{}) *unstructured.Unstructured {
+func getReplicatedObject(name, kind string, status map[string]interface{}) *unstructured.Unstructured {
 	return &unstructured.Unstructured{
 		Object: map[string]interface{}{
 			"apiVersion": ApiVersion,
@@ -116,13 +116,13 @@ func GetReplicatedObject(name, kind string, status map[string]interface{}) *unst
 	}
 }
 
-func GetNonHierarchicalDestConfig() utils.ReplicationDestination {
+func getNonHierarchicalDestConfig() utils.ReplicationDestination {
 	return utils.ReplicationDestination{
 		Hierarchical: false,
 	}
 }
 
-func GetNonHierarchicalSourceConfig() utils.ReplicationSource {
+func getNonHierarchicalSourceConfig() utils.ReplicationSource {
 	return utils.ReplicationSource{
 		Kind: utils.Object,
 		Object: utils.SourceObject{
@@ -136,7 +136,7 @@ func GetNonHierarchicalSourceConfig() utils.ReplicationSource {
 	}
 }
 
-func GetHierarchicalSourceConfig() utils.ReplicationSource {
+func getHierarchicalSourceConfig() utils.ReplicationSource {
 	return utils.ReplicationSource{
 		Kind: utils.Object,
 		Object: utils.SourceObject{
@@ -166,7 +166,7 @@ func GetHierarchicalSourceConfig() utils.ReplicationSource {
 	}
 }
 
-func GetHierarchicalDestConfig() utils.ReplicationDestination {
+func getHierarchicalDestConfig() utils.ReplicationDestination {
 	return utils.ReplicationDestination{
 		Hierarchical: true,
 		Hierarchy: utils.Hierarchy{
@@ -192,7 +192,7 @@ func GetHierarchicalDestConfig() utils.ReplicationDestination {
 	}
 }
 
-func GetTypeConfig(group, kind string) utils.ReplicationSource {
+func getTypeConfig(group, kind string) utils.ReplicationSource {
 	return utils.ReplicationSource{
 		Kind: utils.Type,
 		Type: utils.ObjectType{
@@ -203,7 +203,7 @@ func GetTypeConfig(group, kind string) utils.ReplicationSource {
 	}
 }
 
-func GetDifferentTypeDestConfig() utils.ReplicationDestination {
+func getDifferentTypeDestConfig() utils.ReplicationDestination {
 	return utils.ReplicationDestination{
 		Hierarchical: false,
 		ObjectType: &utils.ObjectType{
@@ -214,7 +214,47 @@ func GetDifferentTypeDestConfig() utils.ReplicationDestination {
 	}
 }
 
-func GetDefaultResourceObj() *unstructured.Unstructured {
+func getNexusEndpointObject(name, host, port, cert interface{}) *unstructured.Unstructured {
+	return &unstructured.Unstructured{
+		Object: map[string]interface{}{
+			"metadata": map[string]interface{}{
+				"name": name,
+			},
+			"spec": map[string]interface{}{
+				"host": host,
+				"port": port,
+				"cert": cert,
+			},
+		},
+	}
+}
+
+func getReplicationConfigObject() *unstructured.Unstructured {
+	return &unstructured.Unstructured{
+		Object: map[string]interface{}{
+			"spec": map[string]interface{}{
+				"source": map[string]interface{}{
+					"kind": "Type",
+					"type": map[string]interface{}{
+						"group":   "config.mazinger.com",
+						"version": "v1",
+						"kind":    "ApiCollaborationSpace",
+					},
+				},
+				"destination": map[string]interface{}{
+					"hierarchical": false,
+				},
+				"remoteEndpointGvk": map[string]interface{}{
+					"group": "connect.nexus.org",
+					"kind":  "NexusEndpoint",
+					"name":  "default",
+				},
+			},
+		},
+	}
+}
+
+func getDefaultResourceObj() *unstructured.Unstructured {
 	return &unstructured.Unstructured{
 		Object: map[string]interface{}{
 			"apiVersion": "apps/v1",

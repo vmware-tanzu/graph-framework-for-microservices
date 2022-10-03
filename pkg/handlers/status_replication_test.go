@@ -33,20 +33,20 @@ var _ = Describe("Status Replication", func() {
 		log.SetOutput(&logBuffer)
 		log.SetLevel(log.DebugLevel)
 
-		localClient = fake_dynamic.NewSimpleDynamicClient(runtime.NewScheme(), GetReplicatedObject("New", ConfigKind, map[string]interface{}{"state": "ready", "date": "Mar20"}),
-			GetObject("Root", RootKind, "example"), GetObject("Config", ConfigKind, "example"), GetObject("Project", ProjectKind, "example"))
+		localClient = fake_dynamic.NewSimpleDynamicClient(runtime.NewScheme(), getReplicatedObject("New", ConfigKind, map[string]interface{}{"state": "ready", "date": "Mar20"}),
+			getObject("Root", RootKind, "example"), getObject("Config", ConfigKind, "example"), getObject("Project", ProjectKind, "example"))
 		conf = &config.Config{
 			StatusReplicationEnabled: true,
 		}
-		remoteClient = fake_dynamic.NewSimpleDynamicClient(runtime.NewScheme(), GetReplicatedObject("New", ConfigKind, map[string]interface{}{"state": "started", "date": "Mar20"}),
-			GetObject("Root", RootKind, "example"), GetObject("Config", ConfigKind, "example"), GetObject("Project", ProjectKind, "example"))
+		remoteClient = fake_dynamic.NewSimpleDynamicClient(runtime.NewScheme(), getReplicatedObject("New", ConfigKind, map[string]interface{}{"state": "started", "date": "Mar20"}),
+			getObject("Root", RootKind, "example"), getObject("Config", ConfigKind, "example"), getObject("Project", ProjectKind, "example"))
 		Expect(err).NotTo(HaveOccurred())
 
 		remoteHandler = h.NewRemoteHandler(utils.GetGVRFromCrdType(Config, utils.V1Version), localClient, remoteClient, conf)
 	})
 
 	It("Should replicate the custom status back to source", func() {
-		expectedObj := GetReplicatedObject("New", ConfigKind, map[string]interface{}{"state": "ready", "date": "Mar20"})
+		expectedObj := getReplicatedObject("New", ConfigKind, map[string]interface{}{"state": "ready", "date": "Mar20"})
 		err := remoteHandler.Create(expectedObj)
 		Expect(err).NotTo(HaveOccurred())
 
@@ -62,7 +62,7 @@ var _ = Describe("Status Replication", func() {
 	})
 
 	It("Should not add custom resource if not replicated by connector", func() {
-		expectedObj := GetReplicatedObject("New", ConfigKind, map[string]interface{}{"state": "ready"})
+		expectedObj := getReplicatedObject("New", ConfigKind, map[string]interface{}{"state": "ready"})
 
 		// Remove the nexus-replication-manager annotation.
 		expectedObj.SetAnnotations(nil)
@@ -73,7 +73,7 @@ var _ = Describe("Status Replication", func() {
 	})
 
 	It("Should fail if nexus-replication-resource annotation not found", func() {
-		expectedObj := GetReplicatedObject("New", ConfigKind, map[string]interface{}{"state": "ready"})
+		expectedObj := getReplicatedObject("New", ConfigKind, map[string]interface{}{"state": "ready"})
 
 		// Remove the nexus-replication-resource annotation.
 		expectedObj.SetAnnotations(map[string]string{utils.NexusReplicationManager: "connector"})
@@ -82,7 +82,7 @@ var _ = Describe("Status Replication", func() {
 	})
 
 	It("Should fail if invalid annotation found", func() {
-		expectedObj := GetReplicatedObject("New", ConfigKind, map[string]interface{}{"state": "ready"})
+		expectedObj := getReplicatedObject("New", ConfigKind, map[string]interface{}{"state": "ready"})
 
 		// Add invalid annotation.
 		expectedObj.SetAnnotations(map[string]string{utils.NexusReplicationManager: "connector",
@@ -107,8 +107,8 @@ var _ = Describe("Status Replication", func() {
 	})
 
 	It("Should skip patch if status is same", func() {
-		oldObj := GetReplicatedObject("New", ConfigKind, map[string]interface{}{"state": "started"})
-		expectedObj := GetReplicatedObject("New", ConfigKind, map[string]interface{}{"state": "started"})
+		oldObj := getReplicatedObject("New", ConfigKind, map[string]interface{}{"state": "started"})
+		expectedObj := getReplicatedObject("New", ConfigKind, map[string]interface{}{"state": "started"})
 
 		err := remoteHandler.Update(expectedObj, oldObj)
 		Expect(err).NotTo(HaveOccurred())
@@ -117,8 +117,8 @@ var _ = Describe("Status Replication", func() {
 	})
 
 	It("Should update patch if status is different", func() {
-		oldObj := GetReplicatedObject("New", ConfigKind, map[string]interface{}{"state": "initializing"})
-		expectedObj := GetReplicatedObject("New", ConfigKind, map[string]interface{}{"state": "started", "date": "Mar20"})
+		oldObj := getReplicatedObject("New", ConfigKind, map[string]interface{}{"state": "initializing"})
+		expectedObj := getReplicatedObject("New", ConfigKind, map[string]interface{}{"state": "started", "date": "Mar20"})
 
 		err := remoteHandler.Update(expectedObj, oldObj)
 		Expect(err).NotTo(HaveOccurred())
@@ -135,8 +135,8 @@ var _ = Describe("Status Replication", func() {
 	})
 
 	It("Should update patch if status not found", func() {
-		oldObj := GetReplicatedObject("New", ConfigKind, map[string]interface{}{"date": "Mar20"})
-		expectedObj := GetReplicatedObject("New", ConfigKind, map[string]interface{}{"state": "started"})
+		oldObj := getReplicatedObject("New", ConfigKind, map[string]interface{}{"date": "Mar20"})
+		expectedObj := getReplicatedObject("New", ConfigKind, map[string]interface{}{"state": "started"})
 
 		err := remoteHandler.Update(expectedObj, oldObj)
 		Expect(err).NotTo(HaveOccurred())
@@ -153,7 +153,7 @@ var _ = Describe("Status Replication", func() {
 	})
 
 	It("Should fail patching when object not found", func() {
-		expectedObj := GetReplicatedObject("Old", ConfigKind, nil)
+		expectedObj := getReplicatedObject("Old", ConfigKind, nil)
 
 		expectedObj.SetAnnotations(map[string]string{utils.NexusReplicationManager: "connector",
 			utils.NexusReplicationResource: `{"GVR":{"Group":"config.mazinger.com","Version":"v1","Resource":"configs"},"Name":"Old"}`})

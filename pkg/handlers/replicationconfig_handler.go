@@ -54,7 +54,7 @@ func (h *ReplicationConfigHandler) Create(obj interface{}) error {
 		return nil
 	}
 	host := fmt.Sprintf("%s:%s", h.Config.RemoteEndpointHost, h.Config.RemoteEndpointPort)
-	remoteClient, err := utils.SetUpDynamicRemoteAPI(host, repConf.AccessToken)
+	remoteClient, err := utils.SetUpDynamicRemoteAPI(host, repConf.AccessToken, endpoint.Cert)
 	if err != nil {
 		return fmt.Errorf("error creating dynamic remote API: %v", err)
 	}
