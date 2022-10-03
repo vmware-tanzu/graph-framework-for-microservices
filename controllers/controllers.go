@@ -56,6 +56,7 @@ const (
 	remoteEndpointHost = "REMOTE_ENDPOINT_HOST"
 	remoteEndpointPort = "REMOTE_ENDPOINT_PORT"
 	remoteEndpointCert = "REMOTE_ENDPOINT_CERT"
+	remoteEndpointPath = "REMOTE_ENDPOINT_PATH"
 	kubeconfigLocal    = "connector-kubeconfig-local"
 	// connector - init container
 	initContainerName  = "check-nexus-proxy-container"
@@ -398,6 +399,10 @@ func (r *NexusConnectorReconciler) createDeployment(ctx context.Context, name, n
 								{
 									Name:  remoteEndpointCert,
 									Value: endpoint.Spec.Cert,
+								},
+								{
+									Name:  remoteEndpointPath,
+									Value: endpoint.Spec.Path,
 								},
 								{
 									Name:  DeploymentName,
