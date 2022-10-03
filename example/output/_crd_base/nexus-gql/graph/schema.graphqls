@@ -7,17 +7,285 @@ type Query {
 }
 
 
+type root_Root {
+
+    Id: ID
+	ParentLabels: Map
+    queryServiceTable(
+        startTime: String
+        endTime: String
+        SystemServices: Boolean
+        ShowGateways: Boolean
+        Groupby: String
+        noMetrics: Boolean
+    ): TimeSeriesData
+    queryServiceVersionTable(
+        startTime: String
+        endTime: String
+        SystemServices: Boolean
+        ShowGateways: Boolean
+        noMetrics: Boolean
+    ): TimeSeriesData
+    queryServiceTS(
+        svcMetric: String
+        startTime: String
+        endTime: String
+        timeInterval: String
+    ): TimeSeriesData
+    queryIncomingAPIs(
+        startTime: String
+        endTime: String
+        destinationService: String
+        destinationServiceVersion: String
+        timeInterval: String
+        timeZone: String
+    ): TimeSeriesData
+    queryOutgoingAPIs(
+        startTime: String
+        endTime: String
+		destinationService: String
+        destinationServiceVersion: String
+        timeInterval: String
+        timeZone: String
+    ): TimeSeriesData
+    queryIncomingTCP(
+        startTime: String
+        endTime: String
+        destinationService: String
+        destinationServiceVersion: String
+    ): TimeSeriesData
+    queryOutgoingTCP(
+        startTime: String
+        endTime: String
+        destinationService: String
+        destinationServiceVersion: String
+    ): TimeSeriesData
+    queryServiceTopology(
+        metricStringArray: String
+        startTime: String
+        endTime: String
+    ): TimeSeriesData
+
+    Config(Id: ID): config_Config!
+}
 
 
 
 
 
+type config_Config {
+
+    Id: ID
+	ParentLabels: Map
+    queryServiceTable(
+        startTime: String
+        endTime: String
+        SystemServices: Boolean
+        ShowGateways: Boolean
+        Groupby: String
+        noMetrics: Boolean
+    ): TimeSeriesData
+    queryServiceVersionTable(
+        startTime: String
+        endTime: String
+        SystemServices: Boolean
+        ShowGateways: Boolean
+        noMetrics: Boolean
+    ): TimeSeriesData
+    queryServiceTS(
+        svcMetric: String
+        startTime: String
+        endTime: String
+        timeInterval: String
+    ): TimeSeriesData
+    queryIncomingAPIs(
+        startTime: String
+        endTime: String
+        destinationService: String
+        destinationServiceVersion: String
+        timeInterval: String
+        timeZone: String
+    ): TimeSeriesData
+    queryOutgoingAPIs(
+        startTime: String
+        endTime: String
+		destinationService: String
+        destinationServiceVersion: String
+        timeInterval: String
+        timeZone: String
+    ): TimeSeriesData
+    queryIncomingTCP(
+        startTime: String
+        endTime: String
+        destinationService: String
+        destinationServiceVersion: String
+    ): TimeSeriesData
+    queryOutgoingTCP(
+        startTime: String
+        endTime: String
+        destinationService: String
+        destinationServiceVersion: String
+    ): TimeSeriesData
+    queryServiceTopology(
+        metricStringArray: String
+        startTime: String
+        endTime: String
+    ): TimeSeriesData
+
+    ACPPolicies: policy_AccessControlPolicy!
+    FooExample: config_FooType!
+    MyStr0: String
+    MyStr1: String
+    MyStr2: String
+    XYZPort: String
+    ABCHost: String
+    ClusterNamespaces: String
+    TestValMarkers: String
+    Instance: Float
+    GNS(Id: ID): gns_Gns!
+    DNS: gns_Dns!
+    VMPPolicies(Id: ID): policy_VMpolicy!
+    Domain(Id: ID): config_Domain!
+}
 
 
 
+type config_FooType {
+
+    Id: ID
+	ParentLabels: Map
+    queryServiceTable(
+        startTime: String
+        endTime: String
+        SystemServices: Boolean
+        ShowGateways: Boolean
+        Groupby: String
+        noMetrics: Boolean
+    ): TimeSeriesData
+    queryServiceVersionTable(
+        startTime: String
+        endTime: String
+        SystemServices: Boolean
+        ShowGateways: Boolean
+        noMetrics: Boolean
+    ): TimeSeriesData
+    queryServiceTS(
+        svcMetric: String
+        startTime: String
+        endTime: String
+        timeInterval: String
+    ): TimeSeriesData
+    queryIncomingAPIs(
+        startTime: String
+        endTime: String
+        destinationService: String
+        destinationServiceVersion: String
+        timeInterval: String
+        timeZone: String
+    ): TimeSeriesData
+    queryOutgoingAPIs(
+        startTime: String
+        endTime: String
+		destinationService: String
+        destinationServiceVersion: String
+        timeInterval: String
+        timeZone: String
+    ): TimeSeriesData
+    queryIncomingTCP(
+        startTime: String
+        endTime: String
+        destinationService: String
+        destinationServiceVersion: String
+    ): TimeSeriesData
+    queryOutgoingTCP(
+        startTime: String
+        endTime: String
+        destinationService: String
+        destinationServiceVersion: String
+    ): TimeSeriesData
+    queryServiceTopology(
+        metricStringArray: String
+        startTime: String
+        endTime: String
+    ): TimeSeriesData
+
+    FooA: String
+    FooB: String
+    FooD: String
+    FooF: String
+}
 
 
 
+type config_Domain {
+
+    Id: ID
+	ParentLabels: Map
+    queryServiceTable(
+        startTime: String
+        endTime: String
+        SystemServices: Boolean
+        ShowGateways: Boolean
+        Groupby: String
+        noMetrics: Boolean
+    ): TimeSeriesData
+    queryServiceVersionTable(
+        startTime: String
+        endTime: String
+        SystemServices: Boolean
+        ShowGateways: Boolean
+        noMetrics: Boolean
+    ): TimeSeriesData
+    queryServiceTS(
+        svcMetric: String
+        startTime: String
+        endTime: String
+        timeInterval: String
+    ): TimeSeriesData
+    queryIncomingAPIs(
+        startTime: String
+        endTime: String
+        destinationService: String
+        destinationServiceVersion: String
+        timeInterval: String
+        timeZone: String
+    ): TimeSeriesData
+    queryOutgoingAPIs(
+        startTime: String
+        endTime: String
+		destinationService: String
+        destinationServiceVersion: String
+        timeInterval: String
+        timeZone: String
+    ): TimeSeriesData
+    queryIncomingTCP(
+        startTime: String
+        endTime: String
+        destinationService: String
+        destinationServiceVersion: String
+    ): TimeSeriesData
+    queryOutgoingTCP(
+        startTime: String
+        endTime: String
+        destinationService: String
+        destinationServiceVersion: String
+    ): TimeSeriesData
+    queryServiceTopology(
+        metricStringArray: String
+        startTime: String
+        endTime: String
+    ): TimeSeriesData
+
+    PointPort: String
+    PointString: String
+    PointInt: Int
+    PointMap: String
+    PointSlice: String
+    SliceOfPoints: String
+    SliceOfArrPoints: String
+    MapOfArrsPoints: String
+    PointStruct: String
+}
 
 
 
@@ -36,6 +304,68 @@ type Query {
 }
 
 
+type gns_RandomGnsData {
+
+    Id: ID
+	ParentLabels: Map
+    queryServiceTable(
+        startTime: String
+        endTime: String
+        SystemServices: Boolean
+        ShowGateways: Boolean
+        Groupby: String
+        noMetrics: Boolean
+    ): TimeSeriesData
+    queryServiceVersionTable(
+        startTime: String
+        endTime: String
+        SystemServices: Boolean
+        ShowGateways: Boolean
+        noMetrics: Boolean
+    ): TimeSeriesData
+    queryServiceTS(
+        svcMetric: String
+        startTime: String
+        endTime: String
+        timeInterval: String
+    ): TimeSeriesData
+    queryIncomingAPIs(
+        startTime: String
+        endTime: String
+        destinationService: String
+        destinationServiceVersion: String
+        timeInterval: String
+        timeZone: String
+    ): TimeSeriesData
+    queryOutgoingAPIs(
+        startTime: String
+        endTime: String
+		destinationService: String
+        destinationServiceVersion: String
+        timeInterval: String
+        timeZone: String
+    ): TimeSeriesData
+    queryIncomingTCP(
+        startTime: String
+        endTime: String
+        destinationService: String
+        destinationServiceVersion: String
+    ): TimeSeriesData
+    queryOutgoingTCP(
+        startTime: String
+        endTime: String
+        destinationService: String
+        destinationServiceVersion: String
+    ): TimeSeriesData
+    queryServiceTopology(
+        metricStringArray: String
+        startTime: String
+        endTime: String
+    ): TimeSeriesData
+
+    
+    Description: String
+}
 
 
 
@@ -47,6 +377,79 @@ type Query {
 
 
 
+type gns_Gns {
+
+    Id: ID
+	ParentLabels: Map
+    queryServiceTable(
+        startTime: String
+        endTime: String
+        SystemServices: Boolean
+        ShowGateways: Boolean
+        Groupby: String
+        noMetrics: Boolean
+    ): TimeSeriesData
+    queryServiceVersionTable(
+        startTime: String
+        endTime: String
+        SystemServices: Boolean
+        ShowGateways: Boolean
+        noMetrics: Boolean
+    ): TimeSeriesData
+    queryServiceTS(
+        svcMetric: String
+        startTime: String
+        endTime: String
+        timeInterval: String
+    ): TimeSeriesData
+    queryIncomingAPIs(
+        startTime: String
+        endTime: String
+        destinationService: String
+        destinationServiceVersion: String
+        timeInterval: String
+        timeZone: String
+    ): TimeSeriesData
+    queryOutgoingAPIs(
+        startTime: String
+        endTime: String
+		destinationService: String
+        destinationServiceVersion: String
+        timeInterval: String
+        timeZone: String
+    ): TimeSeriesData
+    queryIncomingTCP(
+        startTime: String
+        endTime: String
+        destinationService: String
+        destinationServiceVersion: String
+    ): TimeSeriesData
+    queryOutgoingTCP(
+        startTime: String
+        endTime: String
+        destinationService: String
+        destinationServiceVersion: String
+    ): TimeSeriesData
+    queryServiceTopology(
+        metricStringArray: String
+        startTime: String
+        endTime: String
+    ): TimeSeriesData
+
+    GnsServiceGroups: servicegroup_SvcGroup!
+    
+    Domain: String
+    UseSharedGateway: Boolean
+    Description: String
+    Meta: String
+    Port: Int
+    OtherDescription: String
+    MapPointer: String
+    SlicePointer: String
+    WorkloadSpec: String
+    DifferentSpec: String
+    GnsAccessControlPolicy(Id: ID): String!
+}
 
 
 type Query {
@@ -55,9 +458,130 @@ type Query {
 }
 
 
+type gns_BarLink {
+
+    Id: ID
+	ParentLabels: Map
+    queryServiceTable(
+        startTime: String
+        endTime: String
+        SystemServices: Boolean
+        ShowGateways: Boolean
+        Groupby: String
+        noMetrics: Boolean
+    ): TimeSeriesData
+    queryServiceVersionTable(
+        startTime: String
+        endTime: String
+        SystemServices: Boolean
+        ShowGateways: Boolean
+        noMetrics: Boolean
+    ): TimeSeriesData
+    queryServiceTS(
+        svcMetric: String
+        startTime: String
+        endTime: String
+        timeInterval: String
+    ): TimeSeriesData
+    queryIncomingAPIs(
+        startTime: String
+        endTime: String
+        destinationService: String
+        destinationServiceVersion: String
+        timeInterval: String
+        timeZone: String
+    ): TimeSeriesData
+    queryOutgoingAPIs(
+        startTime: String
+        endTime: String
+		destinationService: String
+        destinationServiceVersion: String
+        timeInterval: String
+        timeZone: String
+    ): TimeSeriesData
+    queryIncomingTCP(
+        startTime: String
+        endTime: String
+        destinationService: String
+        destinationServiceVersion: String
+    ): TimeSeriesData
+    queryOutgoingTCP(
+        startTime: String
+        endTime: String
+        destinationService: String
+        destinationServiceVersion: String
+    ): TimeSeriesData
+    queryServiceTopology(
+        metricStringArray: String
+        startTime: String
+        endTime: String
+    ): TimeSeriesData
+
+    Name: String
+}
 
 
 
+type gns_Dns {
+
+    Id: ID
+	ParentLabels: Map
+    queryServiceTable(
+        startTime: String
+        endTime: String
+        SystemServices: Boolean
+        ShowGateways: Boolean
+        Groupby: String
+        noMetrics: Boolean
+    ): TimeSeriesData
+    queryServiceVersionTable(
+        startTime: String
+        endTime: String
+        SystemServices: Boolean
+        ShowGateways: Boolean
+        noMetrics: Boolean
+    ): TimeSeriesData
+    queryServiceTS(
+        svcMetric: String
+        startTime: String
+        endTime: String
+        timeInterval: String
+    ): TimeSeriesData
+    queryIncomingAPIs(
+        startTime: String
+        endTime: String
+        destinationService: String
+        destinationServiceVersion: String
+        timeInterval: String
+        timeZone: String
+    ): TimeSeriesData
+    queryOutgoingAPIs(
+        startTime: String
+        endTime: String
+		destinationService: String
+        destinationServiceVersion: String
+        timeInterval: String
+        timeZone: String
+    ): TimeSeriesData
+    queryIncomingTCP(
+        startTime: String
+        endTime: String
+        destinationService: String
+        destinationServiceVersion: String
+    ): TimeSeriesData
+    queryOutgoingTCP(
+        startTime: String
+        endTime: String
+        destinationService: String
+        destinationServiceVersion: String
+    ): TimeSeriesData
+    queryServiceTopology(
+        metricStringArray: String
+        startTime: String
+        endTime: String
+    ): TimeSeriesData
+
+}
 
 
 
@@ -68,6 +592,68 @@ type Query {
 }
 
 
+type gns_AdditionalGnsData {
+
+    Id: ID
+	ParentLabels: Map
+    queryServiceTable(
+        startTime: String
+        endTime: String
+        SystemServices: Boolean
+        ShowGateways: Boolean
+        Groupby: String
+        noMetrics: Boolean
+    ): TimeSeriesData
+    queryServiceVersionTable(
+        startTime: String
+        endTime: String
+        SystemServices: Boolean
+        ShowGateways: Boolean
+        noMetrics: Boolean
+    ): TimeSeriesData
+    queryServiceTS(
+        svcMetric: String
+        startTime: String
+        endTime: String
+        timeInterval: String
+    ): TimeSeriesData
+    queryIncomingAPIs(
+        startTime: String
+        endTime: String
+        destinationService: String
+        destinationServiceVersion: String
+        timeInterval: String
+        timeZone: String
+    ): TimeSeriesData
+    queryOutgoingAPIs(
+        startTime: String
+        endTime: String
+		destinationService: String
+        destinationServiceVersion: String
+        timeInterval: String
+        timeZone: String
+    ): TimeSeriesData
+    queryIncomingTCP(
+        startTime: String
+        endTime: String
+        destinationService: String
+        destinationServiceVersion: String
+    ): TimeSeriesData
+    queryOutgoingTCP(
+        startTime: String
+        endTime: String
+        destinationService: String
+        destinationServiceVersion: String
+    ): TimeSeriesData
+    queryServiceTopology(
+        metricStringArray: String
+        startTime: String
+        endTime: String
+    ): TimeSeriesData
+
+    
+    Description: String
+}
 
 
 
@@ -75,9 +661,278 @@ type Query {
 
 
 
+type servicegroup_SvcGroup {
+
+    Id: ID
+	ParentLabels: Map
+    queryServiceTable(
+        startTime: String
+        endTime: String
+        SystemServices: Boolean
+        ShowGateways: Boolean
+        Groupby: String
+        noMetrics: Boolean
+    ): TimeSeriesData
+    queryServiceVersionTable(
+        startTime: String
+        endTime: String
+        SystemServices: Boolean
+        ShowGateways: Boolean
+        noMetrics: Boolean
+    ): TimeSeriesData
+    queryServiceTS(
+        svcMetric: String
+        startTime: String
+        endTime: String
+        timeInterval: String
+    ): TimeSeriesData
+    queryIncomingAPIs(
+        startTime: String
+        endTime: String
+        destinationService: String
+        destinationServiceVersion: String
+        timeInterval: String
+        timeZone: String
+    ): TimeSeriesData
+    queryOutgoingAPIs(
+        startTime: String
+        endTime: String
+		destinationService: String
+        destinationServiceVersion: String
+        timeInterval: String
+        timeZone: String
+    ): TimeSeriesData
+    queryIncomingTCP(
+        startTime: String
+        endTime: String
+        destinationService: String
+        destinationServiceVersion: String
+    ): TimeSeriesData
+    queryOutgoingTCP(
+        startTime: String
+        endTime: String
+        destinationService: String
+        destinationServiceVersion: String
+    ): TimeSeriesData
+    queryServiceTopology(
+        metricStringArray: String
+        startTime: String
+        endTime: String
+    ): TimeSeriesData
+
+    DisplayName: String
+    Description: String
+    Color: String
+}
 type Query {
 
-    root(Id: ID): [policypkg_AdditionalPolicyData!]
+    root(Id: ID): [policy_AdditionalPolicyData!]
+}
+
+
+type policy_AdditionalPolicyData {
+
+    Id: ID
+	ParentLabels: Map
+    queryServiceTable(
+        startTime: String
+        endTime: String
+        SystemServices: Boolean
+        ShowGateways: Boolean
+        Groupby: String
+        noMetrics: Boolean
+    ): TimeSeriesData
+    queryServiceVersionTable(
+        startTime: String
+        endTime: String
+        SystemServices: Boolean
+        ShowGateways: Boolean
+        noMetrics: Boolean
+    ): TimeSeriesData
+    queryServiceTS(
+        svcMetric: String
+        startTime: String
+        endTime: String
+        timeInterval: String
+    ): TimeSeriesData
+    queryIncomingAPIs(
+        startTime: String
+        endTime: String
+        destinationService: String
+        destinationServiceVersion: String
+        timeInterval: String
+        timeZone: String
+    ): TimeSeriesData
+    queryOutgoingAPIs(
+        startTime: String
+        endTime: String
+		destinationService: String
+        destinationServiceVersion: String
+        timeInterval: String
+        timeZone: String
+    ): TimeSeriesData
+    queryIncomingTCP(
+        startTime: String
+        endTime: String
+        destinationService: String
+        destinationServiceVersion: String
+    ): TimeSeriesData
+    queryOutgoingTCP(
+        startTime: String
+        endTime: String
+        destinationService: String
+        destinationServiceVersion: String
+    ): TimeSeriesData
+    queryServiceTopology(
+        metricStringArray: String
+        startTime: String
+        endTime: String
+    ): TimeSeriesData
+
+    
+    Description: String
+}
+
+
+
+
+
+
+
+type policy_AccessControlPolicy {
+
+    Id: ID
+	ParentLabels: Map
+    queryServiceTable(
+        startTime: String
+        endTime: String
+        SystemServices: Boolean
+        ShowGateways: Boolean
+        Groupby: String
+        noMetrics: Boolean
+    ): TimeSeriesData
+    queryServiceVersionTable(
+        startTime: String
+        endTime: String
+        SystemServices: Boolean
+        ShowGateways: Boolean
+        noMetrics: Boolean
+    ): TimeSeriesData
+    queryServiceTS(
+        svcMetric: String
+        startTime: String
+        endTime: String
+        timeInterval: String
+    ): TimeSeriesData
+    queryIncomingAPIs(
+        startTime: String
+        endTime: String
+        destinationService: String
+        destinationServiceVersion: String
+        timeInterval: String
+        timeZone: String
+    ): TimeSeriesData
+    queryOutgoingAPIs(
+        startTime: String
+        endTime: String
+		destinationService: String
+        destinationServiceVersion: String
+        timeInterval: String
+        timeZone: String
+    ): TimeSeriesData
+    queryIncomingTCP(
+        startTime: String
+        endTime: String
+        destinationService: String
+        destinationServiceVersion: String
+    ): TimeSeriesData
+    queryOutgoingTCP(
+        startTime: String
+        endTime: String
+        destinationService: String
+        destinationServiceVersion: String
+    ): TimeSeriesData
+    queryServiceTopology(
+        metricStringArray: String
+        startTime: String
+        endTime: String
+    ): TimeSeriesData
+
+}
+
+
+
+type policy_ACPConfig {
+
+    Id: ID
+	ParentLabels: Map
+    queryServiceTable(
+        startTime: String
+        endTime: String
+        SystemServices: Boolean
+        ShowGateways: Boolean
+        Groupby: String
+        noMetrics: Boolean
+    ): TimeSeriesData
+    queryServiceVersionTable(
+        startTime: String
+        endTime: String
+        SystemServices: Boolean
+        ShowGateways: Boolean
+        noMetrics: Boolean
+    ): TimeSeriesData
+    queryServiceTS(
+        svcMetric: String
+        startTime: String
+        endTime: String
+        timeInterval: String
+    ): TimeSeriesData
+    queryIncomingAPIs(
+        startTime: String
+        endTime: String
+        destinationService: String
+        destinationServiceVersion: String
+        timeInterval: String
+        timeZone: String
+    ): TimeSeriesData
+    queryOutgoingAPIs(
+        startTime: String
+        endTime: String
+		destinationService: String
+        destinationServiceVersion: String
+        timeInterval: String
+        timeZone: String
+    ): TimeSeriesData
+    queryIncomingTCP(
+        startTime: String
+        endTime: String
+        destinationService: String
+        destinationServiceVersion: String
+    ): TimeSeriesData
+    queryOutgoingTCP(
+        startTime: String
+        endTime: String
+        destinationService: String
+        destinationServiceVersion: String
+    ): TimeSeriesData
+    queryServiceTopology(
+        metricStringArray: String
+        startTime: String
+        endTime: String
+    ): TimeSeriesData
+
+    
+    
+    DestSvcGroups: String
+    SourceSvcGroups: servicegroup_SvcGroup!
+    
+    
+    DisplayName: String
+    Gns: String
+    Description: String
+    Tags: String
+    ProjectId: String
+    Conditions: String
 }
 
 
@@ -92,24 +947,134 @@ type Query {
 
 
 
+type policy_VMpolicy {
 
+    Id: ID
+	ParentLabels: Map
+    queryServiceTable(
+        startTime: String
+        endTime: String
+        SystemServices: Boolean
+        ShowGateways: Boolean
+        Groupby: String
+        noMetrics: Boolean
+    ): TimeSeriesData
+    queryServiceVersionTable(
+        startTime: String
+        endTime: String
+        SystemServices: Boolean
+        ShowGateways: Boolean
+        noMetrics: Boolean
+    ): TimeSeriesData
+    queryServiceTS(
+        svcMetric: String
+        startTime: String
+        endTime: String
+        timeInterval: String
+    ): TimeSeriesData
+    queryIncomingAPIs(
+        startTime: String
+        endTime: String
+        destinationService: String
+        destinationServiceVersion: String
+        timeInterval: String
+        timeZone: String
+    ): TimeSeriesData
+    queryOutgoingAPIs(
+        startTime: String
+        endTime: String
+		destinationService: String
+        destinationServiceVersion: String
+        timeInterval: String
+        timeZone: String
+    ): TimeSeriesData
+    queryIncomingTCP(
+        startTime: String
+        endTime: String
+        destinationService: String
+        destinationServiceVersion: String
+    ): TimeSeriesData
+    queryOutgoingTCP(
+        startTime: String
+        endTime: String
+        destinationService: String
+        destinationServiceVersion: String
+    ): TimeSeriesData
+    queryServiceTopology(
+        metricStringArray: String
+        startTime: String
+        endTime: String
+    ): TimeSeriesData
 
-
-
-
-
-
-
-
-
-
-
+}
 type Query {
 
-    root(Id: ID): [policypkg_RandomPolicyData!]
+    root(Id: ID): [policy_RandomPolicyData!]
 }
 
 
+type policy_RandomPolicyData {
+
+    Id: ID
+	ParentLabels: Map
+    queryServiceTable(
+        startTime: String
+        endTime: String
+        SystemServices: Boolean
+        ShowGateways: Boolean
+        Groupby: String
+        noMetrics: Boolean
+    ): TimeSeriesData
+    queryServiceVersionTable(
+        startTime: String
+        endTime: String
+        SystemServices: Boolean
+        ShowGateways: Boolean
+        noMetrics: Boolean
+    ): TimeSeriesData
+    queryServiceTS(
+        svcMetric: String
+        startTime: String
+        endTime: String
+        timeInterval: String
+    ): TimeSeriesData
+    queryIncomingAPIs(
+        startTime: String
+        endTime: String
+        destinationService: String
+        destinationServiceVersion: String
+        timeInterval: String
+        timeZone: String
+    ): TimeSeriesData
+    queryOutgoingAPIs(
+        startTime: String
+        endTime: String
+		destinationService: String
+        destinationServiceVersion: String
+        timeInterval: String
+        timeZone: String
+    ): TimeSeriesData
+    queryIncomingTCP(
+        startTime: String
+        endTime: String
+        destinationService: String
+        destinationServiceVersion: String
+    ): TimeSeriesData
+    queryOutgoingTCP(
+        startTime: String
+        endTime: String
+        destinationService: String
+        destinationServiceVersion: String
+    ): TimeSeriesData
+    queryServiceTopology(
+        metricStringArray: String
+        startTime: String
+        endTime: String
+    ): TimeSeriesData
+
+    
+    Description: String
+}
 
 
 

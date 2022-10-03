@@ -210,13 +210,13 @@ func (c *resolverConfig) get{{$node.PkgName}}{{$node.NodeName}}queryIncomingAPIs
 }
 
 // Resolver for queryOutgoingAPIs
-func (c *resolverConfig) get{{$node.PkgName}}{{$node.NodeName}}queryOutgoingAPIsResolver(obj *model.{{$node.PkgName}}{{$node.NodeName}}, startTime *string, endTime *string, timeInterval *string, timeZone *string) (*model.TimeSeriesData,error) {
+func (c *resolverConfig) get{{$node.PkgName}}{{$node.NodeName}}queryOutgoingAPIsResolver(obj *model.{{$node.PkgName}}{{$node.NodeName}}, startTime *string, endTime, destinationService, destinationServiceVersion *string, timeInterval *string, timeZone *string) (*model.TimeSeriesData,error) {
 	ctx := context.Background()
 	var filters = make(map[string]string)
 	filters[""] = ""
 	resp, err := grpcServer().GetMetrics(ctx, &qm.MetricArg{QueryType: "/OutgoingAPIs", StartTime: *startTime, EndTime: *endTime, Metric: "", Filters: filters,TimeInterval: *timeInterval})
 	if err != nil {
-		log.Errof("[get{{$node.PkgName}}{{$node.NodeName}}queryOutgoingAPIsResolver]Failed to get metrics, err: %v", err)
+		log.Errorf("[get{{$node.PkgName}}{{$node.NodeName}}queryOutgoingAPIsResolver]Failed to get metrics, err: %v", err)
 		return &model.TimeSeriesData{}, nil
 	}
 	b, _ := json.Marshal(resp.Data)

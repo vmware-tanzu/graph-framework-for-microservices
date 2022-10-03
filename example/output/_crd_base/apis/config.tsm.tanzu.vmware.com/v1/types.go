@@ -69,6 +69,7 @@ type ConfigSpec struct {
 	ABCHost           []gnstsmtanzuvmwarecomv1.Host           `json:"aBCHost" yaml:"aBCHost"`
 	ClusterNamespaces []ClusterNamespace                      `json:"clusterNamespaces" yaml:"clusterNamespaces"`
 	TestValMarkers    TestValMarkers                          `json:"testValMarkers" yaml:"testValMarkers"`
+	Instance          float32                                 `json:"instance" yaml:"instance"`
 	GNSGvk            *Child                                  `json:"gNSGvk,omitempty" yaml:"gNSGvk,omitempty" nexus:"child"`
 	DNSGvk            *Child                                  `json:"dNSGvk,omitempty" yaml:"dNSGvk,omitempty" nexus:"child"`
 	VMPPoliciesGvk    *Child                                  `json:"vMPPoliciesGvk,omitempty" yaml:"vMPPoliciesGvk,omitempty" nexus:"child"`

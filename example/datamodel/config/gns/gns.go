@@ -1,12 +1,12 @@
 package gns
 
 import (
+	policypkg "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/datamodel/config/policy"
 	"net/http"
 
 	cartv1 "github.com/vmware-tanzu/cartographer/pkg/apis/v1alpha1"
 
 	service_group "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/datamodel/config/gns/service-group"
-	policypkg "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/datamodel/config/policy"
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/datamodel/nexus"
 )
 
@@ -115,8 +115,8 @@ type Gns struct {
 	UseSharedGateway       bool
 	Description            Description
 	GnsServiceGroups       service_group.SvcGroup        `nexus:"children"`
-	GnsAccessControlPolicy policypkg.AccessControlPolicy `nexus:"child"`
-	Dns                    Dns                           `nexus:"link"`
+	GnsAccessControlPolicy policypkg.AccessControlPolicy `nexus:"child" nexus-graphql:"type:string"`
+	Dns                    Dns                           `nexus:"link" nexus-graphql:"ignore:true"`
 	State                  GnsState                      `nexus:"status"`
 	Meta                   string
 

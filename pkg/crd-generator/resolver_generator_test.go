@@ -10,19 +10,16 @@ import (
 
 var _ = Describe("Template renderers tests", func() {
 	var (
-		pkgs parser.Packages
-		//pkg  parser.Package
+		pkgs       parser.Packages
 		parentsMap map[string]parser.NodeHelper
-		//ok         bool
 	)
 
 	BeforeEach(func() {
 		pkgs = parser.ParseDSLPkg(exampleDSLPath)
-		//pkg, ok = pkgs["gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/datamodel/config"]
-		//Expect(ok).To(BeTrue())
 		graph := parser.ParseDSLNodes(exampleDSLPath, baseGroupName)
 		parentsMap = parser.CreateParentsMap(graph)
 	})
+
 	It("should resolve graphql vars", func() {
 		vars, err := crdgenerator.GenerateGraphqlResolverVars(baseGroupName, crdModulePath, pkgs, parentsMap)
 		Expect(err).NotTo(HaveOccurred())
@@ -41,5 +38,27 @@ var _ = Describe("Template renderers tests", func() {
 		Expect(vars[2].IsNexusNode).To(BeTrue())
 		Expect(vars[2].BaseImportPath).To(Equal("nexustempmodule/"))
 		Expect(vars[2].CrdName).To(Equal(""))
+	})
+
+	It("should resolve non-singleton root and singleton child node", func() {
+		pkgs = parser.ParseDSLPkg("../../example/test-utils/non-singleton-root")
+		graph := parser.ParseDSLNodes("../../example/test-utils/non-singleton-root", baseGroupName)
+		parentsMap = parser.CreateParentsMap(graph)
+
+		vars, err := crdgenerator.GenerateGraphqlResolverVars(baseGroupName, crdModulePath, pkgs, parentsMap)
+		Expect(err).NotTo(HaveOccurred())
+		Expect(len(vars)).To(Equal(3))
+
+		Expect(vars[0].NodeName).To(Equal("Root"))
+		Expect(vars[1].PkgName).To(Equal("Config"))
+		Expect(vars[1].NodeName).To(Equal("Config"))
+		Expect(vars[1].SchemaName).To(Equal("config_Config"))
+
+		Expect(vars[1].IsParentNode).To(BeFalse())
+		Expect(vars[1].HasParent).To(BeFalse())
+		Expect(vars[1].IsSingletonNode).To(BeTrue())
+		Expect(vars[1].IsNexusNode).To(BeTrue())
+		Expect(vars[1].BaseImportPath).To(Equal("nexustempmodule/"))
+		Expect(vars[1].CrdName).To(Equal(""))
 	})
 })

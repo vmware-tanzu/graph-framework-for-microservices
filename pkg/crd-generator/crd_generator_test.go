@@ -15,39 +15,34 @@ import (
 )
 
 const (
-	baseGroupName                = "tsm.tanzu.vmware.com"
-	crdModulePath                = "nexustempmodule/"
-	examplePath                  = "../../example/"
-	exampleDSLPath               = examplePath + "datamodel"
-	exampleCRDOutputPath         = examplePath + "output/_crd_base/"
-	exampleCRDApisOutputPath     = exampleCRDOutputPath + "apis"
-	gnsExamplePath               = exampleCRDApisOutputPath + "/gns.tsm.tanzu.vmware.com/"
-	gnsDocPath                   = gnsExamplePath + "v1/doc.go"
-	gnsRegisterGroupPath         = gnsExamplePath + "register.go"
-	gnsRegisterCRDPath           = gnsExamplePath + "v1/register.go"
-	gnsTypesPath                 = gnsExamplePath + "v1/types.go"
-	gnsCrdBasePath               = exampleCRDOutputPath + "crds/gns_gns.yaml"
-	exampleCRDClientOutputPath   = exampleCRDOutputPath + "/nexus-client/client.go"
-	exampleCRDHelperOutputPath   = exampleCRDOutputPath + "/helper/helper.go"
-	gqlgenOutputPath             = exampleCRDOutputPath + "/nexus-gql/gqlgen.yml"
-	graphqlServerOutputPath      = exampleCRDOutputPath + "/nexus-gql/server.go"
-	gglToolOutputPath            = exampleCRDOutputPath + "/nexus-gql/tools.go"
-	gglGraphqlResolverOutputPath = exampleCRDOutputPath + "/nexus-gql/graph/graphqlResolver.go"
-	gglResolverOutputPath        = exampleCRDOutputPath + "/nexus-gql/graph/resolver.go"
-	gglSchemaGraphqlOutputPath   = exampleCRDOutputPath + "/nexus-gql/graph/schema.graphqls"
-	gglSchemaResolverOutputPath  = exampleCRDOutputPath + "/nexus-gql/graph/schema.resolvers.go"
+	baseGroupName               = "tsm.tanzu.vmware.com"
+	crdModulePath               = "nexustempmodule/"
+	examplePath                 = "../../example/"
+	exampleDSLPath              = examplePath + "datamodel"
+	exampleCRDOutputPath        = examplePath + "output/_crd_base/"
+	exampleCRDApisOutputPath    = exampleCRDOutputPath + "apis"
+	gnsExamplePath              = exampleCRDApisOutputPath + "/gns.tsm.tanzu.vmware.com/"
+	gnsDocPath                  = gnsExamplePath + "v1/doc.go"
+	gnsRegisterGroupPath        = gnsExamplePath + "register.go"
+	gnsRegisterCRDPath          = gnsExamplePath + "v1/register.go"
+	gnsTypesPath                = gnsExamplePath + "v1/types.go"
+	gnsCrdBasePath              = exampleCRDOutputPath + "crds/gns_gns.yaml"
+	exampleCRDClientOutputPath  = exampleCRDOutputPath + "/nexus-client/client.go"
+	exampleCRDHelperOutputPath  = exampleCRDOutputPath + "/helper/helper.go"
+	gglToolOutputPath           = exampleCRDOutputPath + "/nexus-gql/tools.go"
+	gglResolverOutputPath       = exampleCRDOutputPath + "/nexus-gql/graph/resolver.go"
+	gglSchemaResolverOutputPath = exampleCRDOutputPath + "/nexus-gql/graph/schema.resolvers.go"
 )
 
 var _ = Describe("Template renderers tests", func() {
 	var (
-		//err error
 		pkgs       parser.Packages
 		pkg        parser.Package
 		parentsMap map[string]parser.NodeHelper
 		ok         bool
 		methods    map[string]nexus.HTTPMethodsResponses
 		codes      map[string]nexus.HTTPCodesResponse
-		gqlvar     crdgenerator.GraphDetails
+		gql        crdgenerator.GraphDetails
 	)
 
 	BeforeEach(func() {
@@ -60,9 +55,9 @@ var _ = Describe("Template renderers tests", func() {
 		Expect(parentsMap).To(HaveLen(10))
 
 		methods, codes = rest.ParseResponses(pkgs)
-		gqlvar.BaseImportPath = crdModulePath
+		gql.BaseImportPath = crdModulePath
 		var err error
-		gqlvar.Nodes, err = crdgenerator.GenerateGraphqlResolverVars(baseGroupName, crdModulePath, pkgs, parentsMap)
+		gql.Nodes, err = crdgenerator.GenerateGraphqlResolverVars(baseGroupName, crdModulePath, pkgs, parentsMap)
 		Expect(err).NotTo(HaveOccurred())
 	})
 
@@ -191,6 +186,7 @@ var _ = Describe("Template renderers tests", func() {
 
 		Expect(string(formatted)).To(Equal(string(expectedTypes)))
 	})
+
 	// Path:"example/output/_crd_base/nexus-gql/server.go"
 	It("should parse nexus-gql server template", func() {
 		var vars crdgenerator.ServerVars
@@ -198,19 +194,22 @@ var _ = Describe("Template renderers tests", func() {
 		_, err := crdgenerator.RenderGqlServerTemplate(vars)
 		Expect(err).NotTo(HaveOccurred())
 	})
+
 	// Path:"example/output/_crd_base/nexus-gql/graph/schema.graphqls"
 	It("should parse graph schema graphql template", func() {
-		_, err := crdgenerator.RenderGraphqlSchemaTemplate(gqlvar, baseGroupName, crdModulePath, pkgs, parentsMap)
+		_, err := crdgenerator.RenderGraphqlSchemaTemplate(gql, crdModulePath)
 		Expect(err).NotTo(HaveOccurred())
 	})
+
 	// Path:"example/output/_crd_base/nexus-gql/gqlgen.yml"
 	It("should parse nexus-gql gqlgen config template", func() {
-		_, err := crdgenerator.RenderGQLGenTemplate(gqlvar, baseGroupName, crdModulePath, pkgs, parentsMap)
+		_, err := crdgenerator.RenderGQLGenTemplate(gql, crdModulePath)
 		Expect(err).NotTo(HaveOccurred())
 	})
+
 	// Path:"example/output/_crd_base/nexus-gql/graph/graphqlResolver.go"
 	It("should parse graphql resolver template", func() {
-		_, err := crdgenerator.RenderGraphqlResolverTemplate(gqlvar, baseGroupName, crdModulePath, pkgs, parentsMap)
+		_, err := crdgenerator.RenderGraphqlResolverTemplate(gql, crdModulePath)
 		Expect(err).NotTo(HaveOccurred())
 	})
 })

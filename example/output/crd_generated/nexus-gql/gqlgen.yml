@@ -61,18 +61,10 @@ models:
       GnsServiceGroups:
         resolver: true
 
-      Dns:
-        resolver: true
-
       GnsAccessControlPolicy:
         resolver: true
 
-  policypkg_AccessControlPolicy:
-    fields:
-      PolicyConfigs:
-        resolver: true
-
-  policypkg_ACPConfig:
+  policy_ACPConfig:
     fields:
       DestSvcGroups:
         resolver: true

@@ -139,6 +139,9 @@ spec:
                 - kind
                 - name
                 type: object
+              instance:
+                format: float
+                type: number
               myStr0:
                 type: string
               myStr1:
@@ -198,6 +201,7 @@ spec:
             - aBCHost
             - clusterNamespaces
             - testValMarkers
+            - instance
             type: object
           status:
             properties:

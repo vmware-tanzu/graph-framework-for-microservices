@@ -120,3 +120,12 @@ func getBaseNodeType(typeString string) string {
 	}
 	return typeString
 }
+
+func getPkgName(pkg parser.Package) string {
+	if pkg.FullName == pkg.ModPath {
+		return pkg.Name
+	}
+	pkgPath := pkg.FullName
+	libName := pkgPath[strings.LastIndex(pkgPath, "/")+1:]
+	return strings.ReplaceAll(libName, "-", "")
+}
