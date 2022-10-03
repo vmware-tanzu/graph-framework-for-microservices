@@ -19,17 +19,18 @@ import (
 func createObject(gvr schema.GroupVersionResource, res *unstructured.Unstructured, children utils.Children,
 	hierarchy string, rc utils.ReplicationConfigSpec) error {
 
-	objData := res.UnstructuredContent()
 	labels := make(map[string]string)
 	for key, val := range res.GetLabels() {
 		labels[key] = val
 	}
-	spec := objData["spec"]
 
 	if rc.Source.Kind == utils.Object && !rc.Destination.Hierarchical && children != nil {
 		// Ignore relationships.
-		utils.DeleteChildGvkFields(spec.(map[string]interface{}), children)
-		res.UnstructuredContent()["spec"] = spec
+		spec, ok := res.UnstructuredContent()["spec"]
+		if ok {
+			utils.DeleteChildGvkFields(spec.(map[string]interface{}), children)
+			res.UnstructuredContent()["spec"] = spec
+		}
 	}
 
 	if rc.Destination.Hierarchical {
@@ -54,8 +55,11 @@ func createObject(gvr schema.GroupVersionResource, res *unstructured.Unstructure
 				"namespace":   rc.Destination.Namespace,
 				"annotations": annotations,
 			},
-			"spec": res.UnstructuredContent()["spec"],
 		},
+	}
+	spec, ok := res.UnstructuredContent()["spec"]
+	if ok {
+		obj.Object["spec"] = spec
 	}
 
 	if destObj, err := rc.RemoteClient.Resource(destGvr).Namespace(rc.Destination.Namespace).Get(context.TODO(), obj.GetName(),
@@ -79,9 +83,6 @@ func createObject(gvr schema.GroupVersionResource, res *unstructured.Unstructure
 func updateObject(gvr schema.GroupVersionResource, res *unstructured.Unstructured, children utils.Children,
 	hierarchy string, rc utils.ReplicationConfigSpec) error {
 
-	objData := res.UnstructuredContent()
-	spec := objData["spec"]
-
 	// If destination object type is specified, then replicate the object to that type.
 	destGvr, _ := utils.GetDestinationGvrAndKind(rc.Destination, gvr, "")
 
@@ -91,7 +92,8 @@ func updateObject(gvr schema.GroupVersionResource, res *unstructured.Unstructure
 		return createObject(gvr, res, children, hierarchy, rc)
 	}
 
-	if rc.Source.Object.Hierarchical && !rc.Destination.Hierarchical {
+	spec, ok := res.UnstructuredContent()["spec"]
+	if rc.Source.Object.Hierarchical && !rc.Destination.Hierarchical && ok {
 		// Ignore relationships.
 		utils.DeleteChildGvkFields(spec.(map[string]interface{}), children)
 	}
@@ -313,7 +315,7 @@ func ReplicateNode(confName string, rc utils.ReplicationConfigSpec) error {
 	gvr := schema.GroupVersionResource{Group: t.Group, Version: t.Version, Resource: utils.GetGroupResourceName(t.Kind)}
 	children = utils.GVRToChildren[gvr]
 
-	// // Start controller if not started.
+	// Start controller if not started.
 	controllers.GvrCh <- gvr
 
 	// Add the entry to ReplicationEnabledNode Map.
