@@ -38,6 +38,7 @@ type Config struct {
 
 	TestValMarkers TestValMarkers `json:"testValMarkers" yaml:"testValMarkers"`
 	FooExample     FooType        `nexus:"children"`
+	Instance       float32
 }
 
 type FooType struct {

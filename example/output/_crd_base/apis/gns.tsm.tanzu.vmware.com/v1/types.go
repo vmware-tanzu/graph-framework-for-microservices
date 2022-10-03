@@ -116,8 +116,8 @@ type GnsSpec struct {
 	WorkloadSpec              cartv1.WorkloadSpec  `json:"workloadSpec" yaml:"workloadSpec"`
 	DifferentSpec             *cartv1.WorkloadSpec `json:"differentSpec" yaml:"differentSpec"`
 	GnsServiceGroupsGvk       map[string]Child     `json:"gnsServiceGroupsGvk,omitempty" yaml:"gnsServiceGroupsGvk,omitempty" nexus:"children"`
-	GnsAccessControlPolicyGvk *Child               `json:"gnsAccessControlPolicyGvk,omitempty" yaml:"gnsAccessControlPolicyGvk,omitempty" nexus:"child"`
-	DnsGvk                    *Link                `json:"dnsGvk,omitempty" yaml:"dnsGvk,omitempty" nexus:"link"`
+	GnsAccessControlPolicyGvk *Child               `nexus:"child" nexus-graphql:"type:string"`
+	DnsGvk                    *Link                `nexus:"link" nexus-graphql:"ignore:true"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object

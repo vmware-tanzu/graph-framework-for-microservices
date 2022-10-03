@@ -115,8 +115,8 @@ type Gns struct {
 	UseSharedGateway       bool
 	Description            Description
 	GnsServiceGroups       service_group.SvcGroup        `nexus:"children"`
-	GnsAccessControlPolicy policypkg.AccessControlPolicy `nexus:"child"`
-	Dns                    Dns                           `nexus:"link"`
+	GnsAccessControlPolicy policypkg.AccessControlPolicy `nexus:"child" nexus-graphql:"type:string"`
+	Dns                    Dns                           `nexus:"link" nexus-graphql:"ignore:true"`
 	State                  GnsState                      `nexus:"status"`
 	Meta                   string
 

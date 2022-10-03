@@ -31,3 +31,49 @@ models:
       - gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/graphql.Int64
       - gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/graphql.Int32
   
+  root_Root:
+    fields:
+      Config:
+        resolver: true
+
+  config_Config:
+    fields:
+      ACPPolicies:
+        resolver: true
+
+      FooExample:
+        resolver: true
+
+      GNS:
+        resolver: true
+
+      DNS:
+        resolver: true
+
+      VMPPolicies:
+        resolver: true
+
+      Domain:
+        resolver: true
+
+  gns_Gns:
+    fields:
+      GnsServiceGroups:
+        resolver: true
+
+      GnsAccessControlPolicy:
+        resolver: true
+
+  policy_AccessControlPolicy:
+    fields:
+      PolicyConfigs:
+        resolver: true
+
+  policy_ACPConfig:
+    fields:
+      DestSvcGroups:
+        resolver: true
+
+      SourceSvcGroups:
+        resolver: true
+

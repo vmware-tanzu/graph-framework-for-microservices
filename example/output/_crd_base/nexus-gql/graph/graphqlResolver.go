@@ -742,10 +742,13 @@ func (c *resolverConfig) getRootResolver(id *string) ([]*model.GnsRandomGnsData,
 		c.vGnsRandomGnsData = vRandomGnsData
 		dn := vRandomGnsData.DisplayName()
 parentLabels := map[string]interface{}{"randomgnsdatas.gns.tsm.tanzu.vmware.com":dn}
+Description, _ := json.Marshal(vRandomGnsData.Spec.Description)
+DescriptionData := string(Description)
 
 		ret := &model.GnsRandomGnsData {
 	Id: &dn,
 	ParentLabels: parentLabels,
+	Description: &DescriptionData,
 	}
 		vRandomGnsDataList = append(vRandomGnsDataList, ret)
 		log.Debugf("[getRootResolver]Output RandomGnsData objects %+v", vRandomGnsDataList)
@@ -764,10 +767,13 @@ parentLabels := map[string]interface{}{"randomgnsdatas.gns.tsm.tanzu.vmware.com"
 		c.vGnsRandomGnsData = vRandomGnsData
 		dn := vRandomGnsData.DisplayName()
 parentLabels := map[string]interface{}{"randomgnsdatas.gns.tsm.tanzu.vmware.com":dn}
+Description, _ := json.Marshal(vRandomGnsData.Spec.Description)
+DescriptionData := string(Description)
 
 		ret := &model.GnsRandomGnsData {
 	Id: &dn,
 	ParentLabels: parentLabels,
+	Description: &DescriptionData,
 	}
 		vRandomGnsDataList = append(vRandomGnsDataList, ret)
 	}
@@ -1106,10 +1112,12 @@ func (c *resolverConfig) getRootResolver() (*model.GnsBarLink, error) {
 	c.vGnsBarLink = vBarLink
 	dn := vBarLink.DisplayName()
 parentLabels := map[string]interface{}{"barlinks.gns.tsm.tanzu.vmware.com":dn}
+vName := string(vBarLink.Spec.Name)
 
 	ret := &model.GnsBarLink {
 	Id: &dn,
 	ParentLabels: parentLabels,
+	Name: &vName,
 	}
 	log.Debug("[getRootResolver]Output BarLink object %+v", ret)
 	return ret, nil
@@ -1441,10 +1449,13 @@ func (c *resolverConfig) getRootResolver(id *string) ([]*model.GnsAdditionalGnsD
 		c.vGnsAdditionalGnsData = vAdditionalGnsData
 		dn := vAdditionalGnsData.DisplayName()
 parentLabels := map[string]interface{}{"additionalgnsdatas.gns.tsm.tanzu.vmware.com":dn}
+Description, _ := json.Marshal(vAdditionalGnsData.Spec.Description)
+DescriptionData := string(Description)
 
 		ret := &model.GnsAdditionalGnsData {
 	Id: &dn,
 	ParentLabels: parentLabels,
+	Description: &DescriptionData,
 	}
 		vAdditionalGnsDataList = append(vAdditionalGnsDataList, ret)
 		log.Debugf("[getRootResolver]Output AdditionalGnsData objects %+v", vAdditionalGnsDataList)
@@ -1463,10 +1474,13 @@ parentLabels := map[string]interface{}{"additionalgnsdatas.gns.tsm.tanzu.vmware.
 		c.vGnsAdditionalGnsData = vAdditionalGnsData
 		dn := vAdditionalGnsData.DisplayName()
 parentLabels := map[string]interface{}{"additionalgnsdatas.gns.tsm.tanzu.vmware.com":dn}
+Description, _ := json.Marshal(vAdditionalGnsData.Spec.Description)
+DescriptionData := string(Description)
 
 		ret := &model.GnsAdditionalGnsData {
 	Id: &dn,
 	ParentLabels: parentLabels,
+	Description: &DescriptionData,
 	}
 		vAdditionalGnsDataList = append(vAdditionalGnsDataList, ret)
 	}
@@ -1802,10 +1816,13 @@ func (c *resolverConfig) getRootResolver(id *string) ([]*model.PolicypkgAddition
 		c.vPolicypkgAdditionalPolicyData = vAdditionalPolicyData
 		dn := vAdditionalPolicyData.DisplayName()
 parentLabels := map[string]interface{}{"additionalpolicydatas.policypkg.tsm.tanzu.vmware.com":dn}
+Description, _ := json.Marshal(vAdditionalPolicyData.Spec.Description)
+DescriptionData := string(Description)
 
 		ret := &model.PolicypkgAdditionalPolicyData {
 	Id: &dn,
 	ParentLabels: parentLabels,
+	Description: &DescriptionData,
 	}
 		vAdditionalPolicyDataList = append(vAdditionalPolicyDataList, ret)
 		log.Debugf("[getRootResolver]Output AdditionalPolicyData objects %+v", vAdditionalPolicyDataList)
@@ -1824,10 +1841,13 @@ parentLabels := map[string]interface{}{"additionalpolicydatas.policypkg.tsm.tanz
 		c.vPolicypkgAdditionalPolicyData = vAdditionalPolicyData
 		dn := vAdditionalPolicyData.DisplayName()
 parentLabels := map[string]interface{}{"additionalpolicydatas.policypkg.tsm.tanzu.vmware.com":dn}
+Description, _ := json.Marshal(vAdditionalPolicyData.Spec.Description)
+DescriptionData := string(Description)
 
 		ret := &model.PolicypkgAdditionalPolicyData {
 	Id: &dn,
 	ParentLabels: parentLabels,
+	Description: &DescriptionData,
 	}
 		vAdditionalPolicyDataList = append(vAdditionalPolicyDataList, ret)
 	}
@@ -2473,10 +2493,13 @@ func (c *resolverConfig) getRootResolver(id *string) ([]*model.PolicypkgRandomPo
 		c.vPolicypkgRandomPolicyData = vRandomPolicyData
 		dn := vRandomPolicyData.DisplayName()
 parentLabels := map[string]interface{}{"randompolicydatas.policypkg.tsm.tanzu.vmware.com":dn}
+Description, _ := json.Marshal(vRandomPolicyData.Spec.Description)
+DescriptionData := string(Description)
 
 		ret := &model.PolicypkgRandomPolicyData {
 	Id: &dn,
 	ParentLabels: parentLabels,
+	Description: &DescriptionData,
 	}
 		vRandomPolicyDataList = append(vRandomPolicyDataList, ret)
 		log.Debugf("[getRootResolver]Output RandomPolicyData objects %+v", vRandomPolicyDataList)
@@ -2495,10 +2518,13 @@ parentLabels := map[string]interface{}{"randompolicydatas.policypkg.tsm.tanzu.vm
 		c.vPolicypkgRandomPolicyData = vRandomPolicyData
 		dn := vRandomPolicyData.DisplayName()
 parentLabels := map[string]interface{}{"randompolicydatas.policypkg.tsm.tanzu.vmware.com":dn}
+Description, _ := json.Marshal(vRandomPolicyData.Spec.Description)
+DescriptionData := string(Description)
 
 		ret := &model.PolicypkgRandomPolicyData {
 	Id: &dn,
 	ParentLabels: parentLabels,
+	Description: &DescriptionData,
 	}
 		vRandomPolicyDataList = append(vRandomPolicyDataList, ret)
 	}
@@ -2661,99 +2687,1033 @@ func (c *resolverConfig) getPolicypkgRandomPolicyDataqueryServiceTopologyResolve
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+//////////////////////////////////////
+// CHILD RESOLVER (Non Singleton)
+// FieldName: Config Node: Root PKG: Root
+//////////////////////////////////////
+func (c *resolverConfig) getRootRootConfigResolver(obj *model.RootRoot, id *string) (*model.ConfigConfig, error) {
+	log.Debugf("[getRootRootConfigResolver]Parent Object %+v", obj)
+	if id != nil && *id != "" {
+	     log.Debugf("[getRootRootConfigResolver]Id %q", *id)
+		vConfig, err := nc.RootRoot().GetConfig(context.TODO(), *id)
+		if err != nil {
+			log.Errorf("[getRootRootConfigResolver]Error getting Config node %q : %s", *id, err)
+			return &model.ConfigConfig{}, nil
+		}
+		c.vConfigConfig = vConfig
+		dn := vConfig.DisplayName()
+parentLabels := map[string]interface{}{"configs.config.tsm.tanzu.vmware.com":dn}
+MyStr0, _ := json.Marshal(vConfig.Spec.MyStr0)
+MyStr0Data := string(MyStr0)
+MyStr1, _ := json.Marshal(vConfig.Spec.MyStr1)
+MyStr1Data := string(MyStr1)
+MyStr2, _ := json.Marshal(vConfig.Spec.MyStr2)
+MyStr2Data := string(MyStr2)
+XYZPort, _ := json.Marshal(vConfig.Spec.XYZPort)
+XYZPortData := string(XYZPort)
+ABCHost, _ := json.Marshal(vConfig.Spec.ABCHost)
+ABCHostData := string(ABCHost)
+ClusterNamespaces, _ := json.Marshal(vConfig.Spec.ClusterNamespaces)
+ClusterNamespacesData := string(ClusterNamespaces)
+TestValMarkers, _ := json.Marshal(vConfig.Spec.TestValMarkers)
+TestValMarkersData := string(TestValMarkers)
+vInstance := float64(vConfig.Spec.Instance)
+
+		for k, v := range obj.ParentLabels {
+			parentLabels[k] = v
+		}
+		ret := &model.ConfigConfig {
+	Id: &dn,
+	ParentLabels: parentLabels,
+	MyStr0: &MyStr0Data,
+	MyStr1: &MyStr1Data,
+	MyStr2: &MyStr2Data,
+	XYZPort: &XYZPortData,
+	ABCHost: &ABCHostData,
+	ClusterNamespaces: &ClusterNamespacesData,
+	TestValMarkers: &TestValMarkersData,
+	Instance: &vInstance,
+	}
+
+		log.Debugf("[getRootRootConfigResolver]Output object %v", ret)
+		return ret, nil
+	}
+	log.Debug("[getRootRootConfigResolver]Id is empty, process all Configs")
+	vConfigParent, err := nc.GetRootRoot(context.TODO())
+	if err != nil {
+	    log.Errorf("[getRootRootConfigResolver]Failed to get parent node %s", err)
+        return &model.ConfigConfig{}, nil
+    }
+	vConfig, err := vConfigParent.GetConfig(context.TODO())
+	if err != nil {
+	    log.Errorf("[getRootRootConfigResolver]Error getting Config node %s", err)
+        return &model.ConfigConfig{}, nil
+    }
+	c.vConfigConfig = vConfig
+	dn := vConfig.DisplayName()
+parentLabels := map[string]interface{}{"configs.config.tsm.tanzu.vmware.com":dn}
+MyStr0, _ := json.Marshal(vConfig.Spec.MyStr0)
+MyStr0Data := string(MyStr0)
+MyStr1, _ := json.Marshal(vConfig.Spec.MyStr1)
+MyStr1Data := string(MyStr1)
+MyStr2, _ := json.Marshal(vConfig.Spec.MyStr2)
+MyStr2Data := string(MyStr2)
+XYZPort, _ := json.Marshal(vConfig.Spec.XYZPort)
+XYZPortData := string(XYZPort)
+ABCHost, _ := json.Marshal(vConfig.Spec.ABCHost)
+ABCHostData := string(ABCHost)
+ClusterNamespaces, _ := json.Marshal(vConfig.Spec.ClusterNamespaces)
+ClusterNamespacesData := string(ClusterNamespaces)
+TestValMarkers, _ := json.Marshal(vConfig.Spec.TestValMarkers)
+TestValMarkersData := string(TestValMarkers)
+vInstance := float64(vConfig.Spec.Instance)
+
+    for k, v := range obj.ParentLabels {
+        parentLabels[k] = v
+    }
+	ret := &model.ConfigConfig {
+	Id: &dn,
+	ParentLabels: parentLabels,
+	MyStr0: &MyStr0Data,
+	MyStr1: &MyStr1Data,
+	MyStr2: &MyStr2Data,
+	XYZPort: &XYZPortData,
+	ABCHost: &ABCHostData,
+	ClusterNamespaces: &ClusterNamespacesData,
+	TestValMarkers: &TestValMarkersData,
+	Instance: &vInstance,
+	}
+
+	log.Debugf("[getRootRootConfigResolver]Output object %v", ret)
+
+	return ret, nil
+}
+
+
+
+
+
+
+//////////////////////////////////////
+// CHILD RESOLVER (Non Singleton)
+// FieldName: GNS Node: Config PKG: Config
+//////////////////////////////////////
+func (c *resolverConfig) getConfigConfigGNSResolver(obj *model.ConfigConfig, id *string) (*model.GnsGns, error) {
+	log.Debugf("[getConfigConfigGNSResolver]Parent Object %+v", obj)
+	if id != nil && *id != "" {
+	     log.Debugf("[getConfigConfigGNSResolver]Id %q", *id)
+		vGns, err := nc.RootRoot().Config(getParentName(obj.ParentLabels, "configs.config.tsm.tanzu.vmware.com")).GetGNS(context.TODO(), *id)
+		if err != nil {
+			log.Errorf("[getConfigConfigGNSResolver]Error getting GNS node %q : %s", *id, err)
+			return &model.GnsGns{}, nil
+		}
+		c.vGnsGns = vGns
+		dn := vGns.DisplayName()
+parentLabels := map[string]interface{}{"gnses.gns.tsm.tanzu.vmware.com":dn}
+vDomain := string(vGns.Spec.Domain)
+vUseSharedGateway := bool(vGns.Spec.UseSharedGateway)
+Description, _ := json.Marshal(vGns.Spec.Description)
+DescriptionData := string(Description)
+vMeta := string(vGns.Spec.Meta)
+OtherDescription, _ := json.Marshal(vGns.Spec.OtherDescription)
+OtherDescriptionData := string(OtherDescription)
+MapPointer, _ := json.Marshal(vGns.Spec.MapPointer)
+MapPointerData := string(MapPointer)
+SlicePointer, _ := json.Marshal(vGns.Spec.SlicePointer)
+SlicePointerData := string(SlicePointer)
+WorkloadSpec, _ := json.Marshal(vGns.Spec.WorkloadSpec)
+WorkloadSpecData := string(WorkloadSpec)
+DifferentSpec, _ := json.Marshal(vGns.Spec.DifferentSpec)
+DifferentSpecData := string(DifferentSpec)
+
+		for k, v := range obj.ParentLabels {
+			parentLabels[k] = v
+		}
+		ret := &model.GnsGns {
+	Id: &dn,
+	ParentLabels: parentLabels,
+	Domain: &vDomain,
+	UseSharedGateway: &vUseSharedGateway,
+	Description: &DescriptionData,
+	Meta: &vMeta,
+	OtherDescription: &OtherDescriptionData,
+	MapPointer: &MapPointerData,
+	SlicePointer: &SlicePointerData,
+	WorkloadSpec: &WorkloadSpecData,
+	DifferentSpec: &DifferentSpecData,
+	}
+
+		log.Debugf("[getConfigConfigGNSResolver]Output object %v", ret)
+		return ret, nil
+	}
+	log.Debug("[getConfigConfigGNSResolver]Id is empty, process all GNSs")
+	vGnsParent, err := nc.RootRoot().GetConfig(context.TODO(), getParentName(obj.ParentLabels, "configs.config.tsm.tanzu.vmware.com"))
+	if err != nil {
+	    log.Errorf("[getConfigConfigGNSResolver]Failed to get parent node %s", err)
+        return &model.GnsGns{}, nil
+    }
+	vGns, err := vGnsParent.GetGNS(context.TODO())
+	if err != nil {
+	    log.Errorf("[getConfigConfigGNSResolver]Error getting GNS node %s", err)
+        return &model.GnsGns{}, nil
+    }
+	c.vGnsGns = vGns
+	dn := vGns.DisplayName()
+parentLabels := map[string]interface{}{"gnses.gns.tsm.tanzu.vmware.com":dn}
+vDomain := string(vGns.Spec.Domain)
+vUseSharedGateway := bool(vGns.Spec.UseSharedGateway)
+Description, _ := json.Marshal(vGns.Spec.Description)
+DescriptionData := string(Description)
+vMeta := string(vGns.Spec.Meta)
+OtherDescription, _ := json.Marshal(vGns.Spec.OtherDescription)
+OtherDescriptionData := string(OtherDescription)
+MapPointer, _ := json.Marshal(vGns.Spec.MapPointer)
+MapPointerData := string(MapPointer)
+SlicePointer, _ := json.Marshal(vGns.Spec.SlicePointer)
+SlicePointerData := string(SlicePointer)
+WorkloadSpec, _ := json.Marshal(vGns.Spec.WorkloadSpec)
+WorkloadSpecData := string(WorkloadSpec)
+DifferentSpec, _ := json.Marshal(vGns.Spec.DifferentSpec)
+DifferentSpecData := string(DifferentSpec)
+
+    for k, v := range obj.ParentLabels {
+        parentLabels[k] = v
+    }
+	ret := &model.GnsGns {
+	Id: &dn,
+	ParentLabels: parentLabels,
+	Domain: &vDomain,
+	UseSharedGateway: &vUseSharedGateway,
+	Description: &DescriptionData,
+	Meta: &vMeta,
+	OtherDescription: &OtherDescriptionData,
+	MapPointer: &MapPointerData,
+	SlicePointer: &SlicePointerData,
+	WorkloadSpec: &WorkloadSpecData,
+	DifferentSpec: &DifferentSpecData,
+	}
+
+	log.Debugf("[getConfigConfigGNSResolver]Output object %v", ret)
+
+	return ret, nil
+}
+//////////////////////////////////////
+// CHILD RESOLVER (Singleton)
+// FieldName: DNS Node: Config PKG: Config
+//////////////////////////////////////
+func (c *resolverConfig) getConfigConfigDNSResolver(obj *model.ConfigConfig) (*model.GnsDns, error) {
+	log.Debugf("[getConfigConfigDNSResolver]Parent Object %+v", obj)
+	vDns, err := nc.RootRoot().Config(getParentName(obj.ParentLabels, "configs.config.tsm.tanzu.vmware.com")).GetDNS(context.TODO())
+	if err != nil {
+	    log.Errorf("[getConfigConfigDNSResolver]Error getting Config node %s", err)
+        return &model.GnsDns{}, nil
+    }
+	c.vGnsDns = vDns
+	dn := vDns.DisplayName()
+parentLabels := map[string]interface{}{"dnses.gns.tsm.tanzu.vmware.com":dn}
+
+    for k, v := range obj.ParentLabels {
+        parentLabels[k] = v
+    }
+	ret := &model.GnsDns {
+	Id: &dn,
+	ParentLabels: parentLabels,
+	}
+
+    log.Debugf("[getConfigConfigDNSResolver]Output object %+v", ret)
+	return ret, nil
+}
+//////////////////////////////////////
+// CHILD RESOLVER (Non Singleton)
+// FieldName: VMPPolicies Node: Config PKG: Config
+//////////////////////////////////////
+func (c *resolverConfig) getConfigConfigVMPPoliciesResolver(obj *model.ConfigConfig, id *string) (*model.PolicyVMpolicy, error) {
+	log.Debugf("[getConfigConfigVMPPoliciesResolver]Parent Object %+v", obj)
+	if id != nil && *id != "" {
+	     log.Debugf("[getConfigConfigVMPPoliciesResolver]Id %q", *id)
+		vVMpolicy, err := .GetVMPPolicies(context.TODO(), *id)
+		if err != nil {
+			log.Errorf("[getConfigConfigVMPPoliciesResolver]Error getting VMPPolicies node %q : %s", *id, err)
+			return &model.PolicyVMpolicy{}, nil
+		}
+		c.vPolicyVMpolicy = vVMpolicy
+		
+		for k, v := range obj.ParentLabels {
+			parentLabels[k] = v
+		}
+		
+
+		log.Debugf("[getConfigConfigVMPPoliciesResolver]Output object %v", ret)
+		return ret, nil
+	}
+	log.Debug("[getConfigConfigVMPPoliciesResolver]Id is empty, process all VMPPoliciess")
+	vVMpolicyParent, err := nc.RootRoot().GetConfig(context.TODO(), getParentName(obj.ParentLabels, "configs.config.tsm.tanzu.vmware.com"))
+	if err != nil {
+	    log.Errorf("[getConfigConfigVMPPoliciesResolver]Failed to get parent node %s", err)
+        return &model.PolicyVMpolicy{}, nil
+    }
+	vVMpolicy, err := vVMpolicyParent.GetVMPPolicies(context.TODO())
+	if err != nil {
+	    log.Errorf("[getConfigConfigVMPPoliciesResolver]Error getting VMPPolicies node %s", err)
+        return &model.PolicyVMpolicy{}, nil
+    }
+	c.vPolicyVMpolicy = vVMpolicy
+	
+    for k, v := range obj.ParentLabels {
+        parentLabels[k] = v
+    }
+	
+
+	log.Debugf("[getConfigConfigVMPPoliciesResolver]Output object %v", ret)
+
+	return ret, nil
+}
+//////////////////////////////////////
+// CHILD RESOLVER (Non Singleton)
+// FieldName: Domain Node: Config PKG: Config
+//////////////////////////////////////
+func (c *resolverConfig) getConfigConfigDomainResolver(obj *model.ConfigConfig, id *string) (*model.ConfigDomain, error) {
+	log.Debugf("[getConfigConfigDomainResolver]Parent Object %+v", obj)
+	if id != nil && *id != "" {
+	     log.Debugf("[getConfigConfigDomainResolver]Id %q", *id)
+		vDomain, err := nc.RootRoot().Config(getParentName(obj.ParentLabels, "configs.config.tsm.tanzu.vmware.com")).GetDomain(context.TODO(), *id)
+		if err != nil {
+			log.Errorf("[getConfigConfigDomainResolver]Error getting Domain node %q : %s", *id, err)
+			return &model.ConfigDomain{}, nil
+		}
+		c.vConfigDomain = vDomain
+		dn := vDomain.DisplayName()
+parentLabels := map[string]interface{}{"domains.config.tsm.tanzu.vmware.com":dn}
+PointPort, _ := json.Marshal(vDomain.Spec.PointPort)
+PointPortData := string(PointPort)
+PointMap, _ := json.Marshal(vDomain.Spec.PointMap)
+PointMapData := string(PointMap)
+PointSlice, _ := json.Marshal(vDomain.Spec.PointSlice)
+PointSliceData := string(PointSlice)
+SliceOfPoints, _ := json.Marshal(vDomain.Spec.SliceOfPoints)
+SliceOfPointsData := string(SliceOfPoints)
+SliceOfArrPoints, _ := json.Marshal(vDomain.Spec.SliceOfArrPoints)
+SliceOfArrPointsData := string(SliceOfArrPoints)
+MapOfArrsPoints, _ := json.Marshal(vDomain.Spec.MapOfArrsPoints)
+MapOfArrsPointsData := string(MapOfArrsPoints)
+PointStruct, _ := json.Marshal(vDomain.Spec.PointStruct)
+PointStructData := string(PointStruct)
+
+		for k, v := range obj.ParentLabels {
+			parentLabels[k] = v
+		}
+		ret := &model.ConfigDomain {
+	Id: &dn,
+	ParentLabels: parentLabels,
+	PointPort: &PointPortData,
+	PointMap: &PointMapData,
+	PointSlice: &PointSliceData,
+	SliceOfPoints: &SliceOfPointsData,
+	SliceOfArrPoints: &SliceOfArrPointsData,
+	MapOfArrsPoints: &MapOfArrsPointsData,
+	PointStruct: &PointStructData,
+	}
+
+		log.Debugf("[getConfigConfigDomainResolver]Output object %v", ret)
+		return ret, nil
+	}
+	log.Debug("[getConfigConfigDomainResolver]Id is empty, process all Domains")
+	vDomainParent, err := nc.RootRoot().GetConfig(context.TODO(), getParentName(obj.ParentLabels, "configs.config.tsm.tanzu.vmware.com"))
+	if err != nil {
+	    log.Errorf("[getConfigConfigDomainResolver]Failed to get parent node %s", err)
+        return &model.ConfigDomain{}, nil
+    }
+	vDomain, err := vDomainParent.GetDomain(context.TODO())
+	if err != nil {
+	    log.Errorf("[getConfigConfigDomainResolver]Error getting Domain node %s", err)
+        return &model.ConfigDomain{}, nil
+    }
+	c.vConfigDomain = vDomain
+	dn := vDomain.DisplayName()
+parentLabels := map[string]interface{}{"domains.config.tsm.tanzu.vmware.com":dn}
+PointPort, _ := json.Marshal(vDomain.Spec.PointPort)
+PointPortData := string(PointPort)
+PointMap, _ := json.Marshal(vDomain.Spec.PointMap)
+PointMapData := string(PointMap)
+PointSlice, _ := json.Marshal(vDomain.Spec.PointSlice)
+PointSliceData := string(PointSlice)
+SliceOfPoints, _ := json.Marshal(vDomain.Spec.SliceOfPoints)
+SliceOfPointsData := string(SliceOfPoints)
+SliceOfArrPoints, _ := json.Marshal(vDomain.Spec.SliceOfArrPoints)
+SliceOfArrPointsData := string(SliceOfArrPoints)
+MapOfArrsPoints, _ := json.Marshal(vDomain.Spec.MapOfArrsPoints)
+MapOfArrsPointsData := string(MapOfArrsPoints)
+PointStruct, _ := json.Marshal(vDomain.Spec.PointStruct)
+PointStructData := string(PointStruct)
+
+    for k, v := range obj.ParentLabels {
+        parentLabels[k] = v
+    }
+	ret := &model.ConfigDomain {
+	Id: &dn,
+	ParentLabels: parentLabels,
+	PointPort: &PointPortData,
+	PointMap: &PointMapData,
+	PointSlice: &PointSliceData,
+	SliceOfPoints: &SliceOfPointsData,
+	SliceOfArrPoints: &SliceOfArrPointsData,
+	MapOfArrsPoints: &MapOfArrsPointsData,
+	PointStruct: &PointStructData,
+	}
+
+	log.Debugf("[getConfigConfigDomainResolver]Output object %v", ret)
+
+	return ret, nil
+}
+
+
+//////////////////////////////////////
+// CHILDREN RESOLVER
+// FieldName: FooExample Node: Config PKG: Config
+//////////////////////////////////////
+func (c *resolverConfig) getConfigConfigFooExampleResolver(obj *model.ConfigConfig, id *string) ([]*model.ConfigFooType, error) {
+	log.Debugf("[getConfigConfigFooExampleResolver]Parent Object %+v", obj)
+	var vConfigFooTypeList []*model.ConfigFooType
+	if id != nil && *id != "" {
+		log.Debugf("[getConfigConfigFooExampleResolver]Id %q", *id)
+		vFooType, err := nc.RootRoot().Config(getParentName(obj.ParentLabels, "configs.config.tsm.tanzu.vmware.com")).GetFooExample(context.TODO(), *id)
+		if err != nil {
+			log.Errorf("[getConfigConfigFooExampleResolver]Error getting FooExample node %q : %s", *id, err)
+            return vConfigFooTypeList, nil
+        }
+		dn := vFooType.DisplayName()
+parentLabels := map[string]interface{}{"footypes.config.tsm.tanzu.vmware.com":dn}
+FooA, _ := json.Marshal(vFooType.Spec.FooA)
+FooAData := string(FooA)
+FooB, _ := json.Marshal(vFooType.Spec.FooB)
+FooBData := string(FooB)
+FooD, _ := json.Marshal(vFooType.Spec.FooD)
+FooDData := string(FooD)
+FooF, _ := json.Marshal(vFooType.Spec.FooF)
+FooFData := string(FooF)
+
+        for k, v := range obj.ParentLabels {
+            parentLabels[k] = v
+        }
+		ret := &model.ConfigFooType {
+	Id: &dn,
+	ParentLabels: parentLabels,
+	FooA: &FooAData,
+	FooB: &FooBData,
+	FooD: &FooDData,
+	FooF: &FooFData,
+	}
+		vConfigFooTypeList = append(vConfigFooTypeList, ret)
+
+		log.Debugf("[getConfigConfigFooExampleResolver]Output FooExample objects %v", vConfigFooTypeList)
+
+		return vConfigFooTypeList, nil
+	}
+
+	log.Debug("[getConfigConfigFooExampleResolver]Id is empty, process all FooExamples")
+
+	vFooTypeParent, err := nc.RootRoot().GetConfig(context.TODO(), getParentName(obj.ParentLabels, "configs.config.tsm.tanzu.vmware.com"))
+	if err != nil {
+	    log.Errorf("[getConfigConfigFooExampleResolver]Error getting parent node %s", err)
+        return vConfigFooTypeList, nil
+    }
+	vFooTypeAllObj, err := vFooTypeParent.GetAllFooExample(context.TODO())
+	if err != nil {
+	    log.Errorf("[getConfigConfigFooExampleResolver]Error getting FooExample objects %s", err)
+        return vConfigFooTypeList, nil
+    }
+	for _, i := range vFooTypeAllObj {
+		vFooType, err := nc.RootRoot().Config(getParentName(obj.ParentLabels, "configs.config.tsm.tanzu.vmware.com")).GetFooExample(context.TODO(), i.DisplayName())
+		if err != nil {
+	        log.Errorf("[getConfigConfigFooExampleResolver]Error getting FooExample node %q : %s", i.DisplayName(), err)
+            continue
+		}
+		dn := vFooType.DisplayName()
+parentLabels := map[string]interface{}{"footypes.config.tsm.tanzu.vmware.com":dn}
+FooA, _ := json.Marshal(vFooType.Spec.FooA)
+FooAData := string(FooA)
+FooB, _ := json.Marshal(vFooType.Spec.FooB)
+FooBData := string(FooB)
+FooD, _ := json.Marshal(vFooType.Spec.FooD)
+FooDData := string(FooD)
+FooF, _ := json.Marshal(vFooType.Spec.FooF)
+FooFData := string(FooF)
+
+		for k, v := range obj.ParentLabels {
+            parentLabels[k] = v
+        }
+		ret := &model.ConfigFooType {
+	Id: &dn,
+	ParentLabels: parentLabels,
+	FooA: &FooAData,
+	FooB: &FooBData,
+	FooD: &FooDData,
+	FooF: &FooFData,
+	}
+		vConfigFooTypeList = append(vConfigFooTypeList, ret)
+	}
+
+	log.Debugf("[getConfigConfigFooExampleResolver]Output FooExample objects %v", vConfigFooTypeList)
+
+	return vConfigFooTypeList, nil
+}
+
+//////////////////////////////////////
+// LINKS RESOLVER
+// FieldName: ACPPolicies Node: Config PKG: Config
+//////////////////////////////////////
+func (c *resolverConfig) getConfigConfigACPPoliciesResolver(obj *model.ConfigConfig, id *string) ([]*model.PolicyAccessControlPolicy, error) {
+	log.Debugf("[getConfigConfigACPPoliciesResolver]Parent Object %+v", obj)
+	var vPolicyAccessControlPolicyList []*model.PolicyAccessControlPolicy
+	if id != nil && *id != "" {
+		log.Debugf("[getConfigConfigACPPoliciesResolver]Id %q", *id)
+		vAccessControlPolicyParent, err := nc.RootRoot().GetConfig(context.TODO(), getParentName(obj.ParentLabels, "configs.config.tsm.tanzu.vmware.com"))
+		if err != nil {
+			log.Errorf("[getConfigConfigACPPoliciesResolver]Error getting ACPPolicies %q : %s", *id, err)
+			return vPolicyAccessControlPolicyList, nil
+		}
+		vAccessControlPolicy, err := vAccessControlPolicyParent.GetACPPolicies(context.TODO(), *id)
+		if err != nil {
+			log.Errorf("[getConfigConfigACPPoliciesResolver]Error getting ACPPolicies %q : %s", *id, err)
+			return vPolicyAccessControlPolicyList, nil
+		}
+		
+        for k, v := range obj.ParentLabels {
+            parentLabels[k] = v
+        }
+		
+		vPolicyAccessControlPolicyList = append(vPolicyAccessControlPolicyList, ret)
+
+		log.Debugf("[getConfigConfigACPPoliciesResolver]Output ACPPolicies objects %v", vPolicyAccessControlPolicyList)
+
+		return vPolicyAccessControlPolicyList, nil
+	}
+
+	log.Debug("[getConfigConfigACPPoliciesResolver]Id is empty, process all ACPPoliciess")
+
+	vAccessControlPolicyParent, err := nc.RootRoot().GetConfig(context.TODO(), getParentName(obj.ParentLabels, "configs.config.tsm.tanzu.vmware.com"))
+	if err != nil {
+	    log.Errorf("[getConfigConfigACPPoliciesResolver]Error getting parent node %s", err)
+        return vPolicyAccessControlPolicyList, nil
+    }
+	vAccessControlPolicyAllObj, err := vAccessControlPolicyParent.GetAllACPPolicies(context.TODO())
+	if err != nil {
+	    log.Errorf("[getConfigConfigACPPoliciesResolver]Error getting ACPPolicies %s", err)
+        return vPolicyAccessControlPolicyList, nil
+    }
+	for _, i := range vAccessControlPolicyAllObj {
+		vAccessControlPolicyParent, err := nc.RootRoot().GetConfig(context.TODO(), getParentName(obj.ParentLabels, "configs.config.tsm.tanzu.vmware.com"))
+		if err != nil {
+			log.Errorf("[getConfigConfigACPPoliciesResolver]Error getting parent node %s, skipping...", err)
+            continue
+		}
+		vAccessControlPolicy, err := vAccessControlPolicyParent.GetACPPolicies(context.TODO(), i.DisplayName())
+		if err != nil {
+	        log.Errorf("[getConfigConfigACPPoliciesResolver]Error getting ACPPolicies node %q : %s, skipping...", i.DisplayName(), err)
+			continue
+		}
+		
+		for k, v := range obj.ParentLabels {
+            parentLabels[k] = v
+        }
+		
+		vPolicyAccessControlPolicyList = append(vPolicyAccessControlPolicyList, ret)
+	}
+	log.Debugf("[getConfigConfigACPPoliciesResolver]List of ACPPolicies object %v", vPolicyAccessControlPolicyList)
+	return vPolicyAccessControlPolicyList, nil
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+//////////////////////////////////////
+// CHILD RESOLVER (Non Singleton)
+// FieldName: GnsAccessControlPolicy Node: Gns PKG: Gns
+//////////////////////////////////////
+func (c *resolverConfig) getGnsGnsGnsAccessControlPolicyResolver(obj *model.GnsGns, id *string) (*model.PolicyAccessControlPolicy, error) {
+	log.Debugf("[getGnsGnsGnsAccessControlPolicyResolver]Parent Object %+v", obj)
+	if id != nil && *id != "" {
+	     log.Debugf("[getGnsGnsGnsAccessControlPolicyResolver]Id %q", *id)
+		vAccessControlPolicy, err := .GetGnsAccessControlPolicy(context.TODO(), *id)
+		if err != nil {
+			log.Errorf("[getGnsGnsGnsAccessControlPolicyResolver]Error getting GnsAccessControlPolicy node %q : %s", *id, err)
+			return &model.PolicyAccessControlPolicy{}, nil
+		}
+		c.vPolicyAccessControlPolicy = vAccessControlPolicy
+		
+		for k, v := range obj.ParentLabels {
+			parentLabels[k] = v
+		}
+		
+
+		log.Debugf("[getGnsGnsGnsAccessControlPolicyResolver]Output object %v", ret)
+		return ret, nil
+	}
+	log.Debug("[getGnsGnsGnsAccessControlPolicyResolver]Id is empty, process all GnsAccessControlPolicys")
+	vAccessControlPolicyParent, err := nc.RootRoot().Config(getParentName(obj.ParentLabels, "configs.config.tsm.tanzu.vmware.com")).GetGNS(context.TODO(), getParentName(obj.ParentLabels, "gnses.gns.tsm.tanzu.vmware.com"))
+	if err != nil {
+	    log.Errorf("[getGnsGnsGnsAccessControlPolicyResolver]Failed to get parent node %s", err)
+        return &model.PolicyAccessControlPolicy{}, nil
+    }
+	vAccessControlPolicy, err := vAccessControlPolicyParent.GetGnsAccessControlPolicy(context.TODO())
+	if err != nil {
+	    log.Errorf("[getGnsGnsGnsAccessControlPolicyResolver]Error getting GnsAccessControlPolicy node %s", err)
+        return &model.PolicyAccessControlPolicy{}, nil
+    }
+	c.vPolicyAccessControlPolicy = vAccessControlPolicy
+	
+    for k, v := range obj.ParentLabels {
+        parentLabels[k] = v
+    }
+	
+
+	log.Debugf("[getGnsGnsGnsAccessControlPolicyResolver]Output object %v", ret)
+
+	return ret, nil
+}
+
+
+//////////////////////////////////////
+// CHILDREN RESOLVER
+// FieldName: GnsServiceGroups Node: Gns PKG: Gns
+//////////////////////////////////////
+func (c *resolverConfig) getGnsGnsGnsServiceGroupsResolver(obj *model.GnsGns, id *string) ([]*model.ServicegroupSvcGroup, error) {
+	log.Debugf("[getGnsGnsGnsServiceGroupsResolver]Parent Object %+v", obj)
+	var vServicegroupSvcGroupList []*model.ServicegroupSvcGroup
+	if id != nil && *id != "" {
+		log.Debugf("[getGnsGnsGnsServiceGroupsResolver]Id %q", *id)
+		vSvcGroup, err := nc.RootRoot().Config(getParentName(obj.ParentLabels, "configs.config.tsm.tanzu.vmware.com")).GNS(getParentName(obj.ParentLabels, "gnses.gns.tsm.tanzu.vmware.com")).GetGnsServiceGroups(context.TODO(), *id)
+		if err != nil {
+			log.Errorf("[getGnsGnsGnsServiceGroupsResolver]Error getting GnsServiceGroups node %q : %s", *id, err)
+            return vServicegroupSvcGroupList, nil
+        }
+		dn := vSvcGroup.DisplayName()
+parentLabels := map[string]interface{}{"svcgroups.servicegroup.tsm.tanzu.vmware.com":dn}
+vDisplayName := string(vSvcGroup.Spec.DisplayName)
+vDescription := string(vSvcGroup.Spec.Description)
+vColor := string(vSvcGroup.Spec.Color)
+
+        for k, v := range obj.ParentLabels {
+            parentLabels[k] = v
+        }
+		ret := &model.ServicegroupSvcGroup {
+	Id: &dn,
+	ParentLabels: parentLabels,
+	DisplayName: &vDisplayName,
+	Description: &vDescription,
+	Color: &vColor,
+	}
+		vServicegroupSvcGroupList = append(vServicegroupSvcGroupList, ret)
+
+		log.Debugf("[getGnsGnsGnsServiceGroupsResolver]Output GnsServiceGroups objects %v", vServicegroupSvcGroupList)
+
+		return vServicegroupSvcGroupList, nil
+	}
+
+	log.Debug("[getGnsGnsGnsServiceGroupsResolver]Id is empty, process all GnsServiceGroupss")
+
+	vSvcGroupParent, err := nc.RootRoot().Config(getParentName(obj.ParentLabels, "configs.config.tsm.tanzu.vmware.com")).GetGNS(context.TODO(), getParentName(obj.ParentLabels, "gnses.gns.tsm.tanzu.vmware.com"))
+	if err != nil {
+	    log.Errorf("[getGnsGnsGnsServiceGroupsResolver]Error getting parent node %s", err)
+        return vServicegroupSvcGroupList, nil
+    }
+	vSvcGroupAllObj, err := vSvcGroupParent.GetAllGnsServiceGroups(context.TODO())
+	if err != nil {
+	    log.Errorf("[getGnsGnsGnsServiceGroupsResolver]Error getting GnsServiceGroups objects %s", err)
+        return vServicegroupSvcGroupList, nil
+    }
+	for _, i := range vSvcGroupAllObj {
+		vSvcGroup, err := nc.RootRoot().Config(getParentName(obj.ParentLabels, "configs.config.tsm.tanzu.vmware.com")).GNS(getParentName(obj.ParentLabels, "gnses.gns.tsm.tanzu.vmware.com")).GetGnsServiceGroups(context.TODO(), i.DisplayName())
+		if err != nil {
+	        log.Errorf("[getGnsGnsGnsServiceGroupsResolver]Error getting GnsServiceGroups node %q : %s", i.DisplayName(), err)
+            continue
+		}
+		dn := vSvcGroup.DisplayName()
+parentLabels := map[string]interface{}{"svcgroups.servicegroup.tsm.tanzu.vmware.com":dn}
+vDisplayName := string(vSvcGroup.Spec.DisplayName)
+vDescription := string(vSvcGroup.Spec.Description)
+vColor := string(vSvcGroup.Spec.Color)
+
+		for k, v := range obj.ParentLabels {
+            parentLabels[k] = v
+        }
+		ret := &model.ServicegroupSvcGroup {
+	Id: &dn,
+	ParentLabels: parentLabels,
+	DisplayName: &vDisplayName,
+	Description: &vDescription,
+	Color: &vColor,
+	}
+		vServicegroupSvcGroupList = append(vServicegroupSvcGroupList, ret)
+	}
+
+	log.Debugf("[getGnsGnsGnsServiceGroupsResolver]Output GnsServiceGroups objects %v", vServicegroupSvcGroupList)
+
+	return vServicegroupSvcGroupList, nil
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+//////////////////////////////////////
+// CHILD RESOLVER (Non Singleton)
+// FieldName: PolicyConfigs Node: AccessControlPolicy PKG: Policypkg
+//////////////////////////////////////
+func (c *resolverConfig) getPolicypkgAccessControlPolicyPolicyConfigsResolver(obj *model.PolicypkgAccessControlPolicy, id *string) (*model.PolicypkgMap[String]ACPConfig, error) {
+	log.Debugf("[getPolicypkgAccessControlPolicyPolicyConfigsResolver]Parent Object %+v", obj)
+	if id != nil && *id != "" {
+	     log.Debugf("[getPolicypkgAccessControlPolicyPolicyConfigsResolver]Id %q", *id)
+		vmap[string]ACPConfig, err := .GetPolicyConfigs(context.TODO(), *id)
+		if err != nil {
+			log.Errorf("[getPolicypkgAccessControlPolicyPolicyConfigsResolver]Error getting PolicyConfigs node %q : %s", *id, err)
+			return &model.PolicypkgMap[String]ACPConfig{}, nil
+		}
+		c.vPolicypkgMap[String]ACPConfig = vmap[string]ACPConfig
+		
+		for k, v := range obj.ParentLabels {
+			parentLabels[k] = v
+		}
+		
+
+		log.Debugf("[getPolicypkgAccessControlPolicyPolicyConfigsResolver]Output object %v", ret)
+		return ret, nil
+	}
+	log.Debug("[getPolicypkgAccessControlPolicyPolicyConfigsResolver]Id is empty, process all PolicyConfigss")
+	vmap[string]ACPConfigParent, err := nc.RootRoot().Config(getParentName(obj.ParentLabels, "configs.config.tsm.tanzu.vmware.com")).GNS(getParentName(obj.ParentLabels, "gnses.gns.tsm.tanzu.vmware.com")).GetGnsAccessControlPolicy(context.TODO(), getParentName(obj.ParentLabels, "accesscontrolpolicies.policypkg.tsm.tanzu.vmware.com"))
+	if err != nil {
+	    log.Errorf("[getPolicypkgAccessControlPolicyPolicyConfigsResolver]Failed to get parent node %s", err)
+        return &model.PolicypkgMap[String]ACPConfig{}, nil
+    }
+	vmap[string]ACPConfig, err := vmap[string]ACPConfigParent.GetPolicyConfigs(context.TODO())
+	if err != nil {
+	    log.Errorf("[getPolicypkgAccessControlPolicyPolicyConfigsResolver]Error getting PolicyConfigs node %s", err)
+        return &model.PolicypkgMap[String]ACPConfig{}, nil
+    }
+	c.vPolicypkgMap[String]ACPConfig = vmap[string]ACPConfig
+	
+    for k, v := range obj.ParentLabels {
+        parentLabels[k] = v
+    }
+	
+
+	log.Debugf("[getPolicypkgAccessControlPolicyPolicyConfigsResolver]Output object %v", ret)
+
+	return ret, nil
+}
+
+
+
+//////////////////////////////////////
+// LINKS RESOLVER
+// FieldName: PolicyConfigs Node: AccessControlPolicy PKG: Policypkg
+//////////////////////////////////////
+func (c *resolverConfig) getPolicypkgAccessControlPolicyPolicyConfigsResolver(obj *model.PolicypkgAccessControlPolicy, id *string) ([]*model.PolicypkgMap[String]ACPConfig, error) {
+	log.Debugf("[getPolicypkgAccessControlPolicyPolicyConfigsResolver]Parent Object %+v", obj)
+	var vPolicypkgMap[String]ACPConfigList []*model.PolicypkgMap[String]ACPConfig
+	if id != nil && *id != "" {
+		log.Debugf("[getPolicypkgAccessControlPolicyPolicyConfigsResolver]Id %q", *id)
+		vmap[string]ACPConfigParent, err := nc.RootRoot().Config(getParentName(obj.ParentLabels, "configs.config.tsm.tanzu.vmware.com")).GNS(getParentName(obj.ParentLabels, "gnses.gns.tsm.tanzu.vmware.com")).GetGnsAccessControlPolicy(context.TODO(), getParentName(obj.ParentLabels, "accesscontrolpolicies.policypkg.tsm.tanzu.vmware.com"))
+		if err != nil {
+			log.Errorf("[getPolicypkgAccessControlPolicyPolicyConfigsResolver]Error getting PolicyConfigs %q : %s", *id, err)
+			return vPolicypkgMap[String]ACPConfigList, nil
+		}
+		vmap[string]ACPConfig, err := vmap[string]ACPConfigParent.GetPolicyConfigs(context.TODO(), *id)
+		if err != nil {
+			log.Errorf("[getPolicypkgAccessControlPolicyPolicyConfigsResolver]Error getting PolicyConfigs %q : %s", *id, err)
+			return vPolicypkgMap[String]ACPConfigList, nil
+		}
+		
+        for k, v := range obj.ParentLabels {
+            parentLabels[k] = v
+        }
+		
+		vPolicypkgMap[String]ACPConfigList = append(vPolicypkgMap[String]ACPConfigList, ret)
+
+		log.Debugf("[getPolicypkgAccessControlPolicyPolicyConfigsResolver]Output PolicyConfigs objects %v", vPolicypkgMap[String]ACPConfigList)
+
+		return vPolicypkgMap[String]ACPConfigList, nil
+	}
+
+	log.Debug("[getPolicypkgAccessControlPolicyPolicyConfigsResolver]Id is empty, process all PolicyConfigss")
+
+	vmap[string]ACPConfigParent, err := nc.RootRoot().Config(getParentName(obj.ParentLabels, "configs.config.tsm.tanzu.vmware.com")).GNS(getParentName(obj.ParentLabels, "gnses.gns.tsm.tanzu.vmware.com")).GetGnsAccessControlPolicy(context.TODO(), getParentName(obj.ParentLabels, "accesscontrolpolicies.policypkg.tsm.tanzu.vmware.com"))
+	if err != nil {
+	    log.Errorf("[getPolicypkgAccessControlPolicyPolicyConfigsResolver]Error getting parent node %s", err)
+        return vPolicypkgMap[String]ACPConfigList, nil
+    }
+	vmap[string]ACPConfigAllObj, err := vmap[string]ACPConfigParent.GetAllPolicyConfigs(context.TODO())
+	if err != nil {
+	    log.Errorf("[getPolicypkgAccessControlPolicyPolicyConfigsResolver]Error getting PolicyConfigs %s", err)
+        return vPolicypkgMap[String]ACPConfigList, nil
+    }
+	for _, i := range vmap[string]ACPConfigAllObj {
+		vmap[string]ACPConfigParent, err := nc.RootRoot().Config(getParentName(obj.ParentLabels, "configs.config.tsm.tanzu.vmware.com")).GNS(getParentName(obj.ParentLabels, "gnses.gns.tsm.tanzu.vmware.com")).GetGnsAccessControlPolicy(context.TODO(), getParentName(obj.ParentLabels, "accesscontrolpolicies.policypkg.tsm.tanzu.vmware.com"))
+		if err != nil {
+			log.Errorf("[getPolicypkgAccessControlPolicyPolicyConfigsResolver]Error getting parent node %s, skipping...", err)
+            continue
+		}
+		vmap[string]ACPConfig, err := vmap[string]ACPConfigParent.GetPolicyConfigs(context.TODO(), i.DisplayName())
+		if err != nil {
+	        log.Errorf("[getPolicypkgAccessControlPolicyPolicyConfigsResolver]Error getting PolicyConfigs node %q : %s, skipping...", i.DisplayName(), err)
+			continue
+		}
+		
+		for k, v := range obj.ParentLabels {
+            parentLabels[k] = v
+        }
+		
+		vPolicypkgMap[String]ACPConfigList = append(vPolicypkgMap[String]ACPConfigList, ret)
+	}
+	log.Debugf("[getPolicypkgAccessControlPolicyPolicyConfigsResolver]List of PolicyConfigs object %v", vPolicypkgMap[String]ACPConfigList)
+	return vPolicypkgMap[String]ACPConfigList, nil
+}
+
+//////////////////////////////////////
+// LINK RESOLVER
+// FieldName: DestSvcGroups Node: ACPConfig PKG: Policypkg
+//////////////////////////////////////
+func (c *resolverConfig) getPolicypkgACPConfigDestSvcGroupsResolver(obj *model.PolicypkgACPConfig) (*model.PolicypkgSvcGroup, error) {
+    log.Debugf("[getPolicypkgACPConfigDestSvcGroupsResolver]Parent Object %+v", obj)
+	vSvcGroupParent, err := nc.RootRoot().Config(getParentName(obj.ParentLabels, "configs.config.tsm.tanzu.vmware.com")).GNS(getParentName(obj.ParentLabels, "gnses.gns.tsm.tanzu.vmware.com")).GnsAccessControlPolicy(getParentName(obj.ParentLabels, "accesscontrolpolicies.policypkg.tsm.tanzu.vmware.com")).GetPolicyConfigs(context.TODO(), getParentName(obj.ParentLabels, "acpconfigs.policypkg.tsm.tanzu.vmware.com"))
+	if err != nil {
+	    log.Errorf("[getPolicypkgACPConfigDestSvcGroupsResolver]Error getting parent node %s", err)
+        return &model.PolicypkgSvcGroup{}, nil
+    }
+	vSvcGroup, err := vSvcGroupParent.GetDestSvcGroups(context.TODO())
+	if err != nil {
+		log.Errorf("[getPolicypkgACPConfigDestSvcGroupsResolver]Error getting DestSvcGroups object %s", err)
+        return &model.PolicypkgSvcGroup{}, nil
+    }
+	c.vPolicypkgSvcGroup = vSvcGroup
+	
+    for k, v := range obj.ParentLabels {
+        parentLabels[k] = v
+    }
+	
+	log.Debugf("[getPolicypkgACPConfigDestSvcGroupsResolver]Output object %v", ret)
+
+	return ret, nil
+}
+
+
+//////////////////////////////////////
+// LINKS RESOLVER
+// FieldName: DestSvcGroups Node: ACPConfig PKG: Policypkg
+//////////////////////////////////////
+func (c *resolverConfig) getPolicypkgACPConfigDestSvcGroupsResolver(obj *model.PolicypkgACPConfig, id *string) ([]*model.PolicypkgSvcGroup, error) {
+	log.Debugf("[getPolicypkgACPConfigDestSvcGroupsResolver]Parent Object %+v", obj)
+	var vPolicypkgSvcGroupList []*model.PolicypkgSvcGroup
+	if id != nil && *id != "" {
+		log.Debugf("[getPolicypkgACPConfigDestSvcGroupsResolver]Id %q", *id)
+		vSvcGroupParent, err := nc.RootRoot().Config(getParentName(obj.ParentLabels, "configs.config.tsm.tanzu.vmware.com")).GNS(getParentName(obj.ParentLabels, "gnses.gns.tsm.tanzu.vmware.com")).GnsAccessControlPolicy(getParentName(obj.ParentLabels, "accesscontrolpolicies.policypkg.tsm.tanzu.vmware.com")).GetPolicyConfigs(context.TODO(), getParentName(obj.ParentLabels, "acpconfigs.policypkg.tsm.tanzu.vmware.com"))
+		if err != nil {
+			log.Errorf("[getPolicypkgACPConfigDestSvcGroupsResolver]Error getting DestSvcGroups %q : %s", *id, err)
+			return vPolicypkgSvcGroupList, nil
+		}
+		vSvcGroup, err := vSvcGroupParent.GetDestSvcGroups(context.TODO(), *id)
+		if err != nil {
+			log.Errorf("[getPolicypkgACPConfigDestSvcGroupsResolver]Error getting DestSvcGroups %q : %s", *id, err)
+			return vPolicypkgSvcGroupList, nil
+		}
+		
+        for k, v := range obj.ParentLabels {
+            parentLabels[k] = v
+        }
+		
+		vPolicypkgSvcGroupList = append(vPolicypkgSvcGroupList, ret)
+
+		log.Debugf("[getPolicypkgACPConfigDestSvcGroupsResolver]Output DestSvcGroups objects %v", vPolicypkgSvcGroupList)
+
+		return vPolicypkgSvcGroupList, nil
+	}
+
+	log.Debug("[getPolicypkgACPConfigDestSvcGroupsResolver]Id is empty, process all DestSvcGroupss")
+
+	vSvcGroupParent, err := nc.RootRoot().Config(getParentName(obj.ParentLabels, "configs.config.tsm.tanzu.vmware.com")).GNS(getParentName(obj.ParentLabels, "gnses.gns.tsm.tanzu.vmware.com")).GnsAccessControlPolicy(getParentName(obj.ParentLabels, "accesscontrolpolicies.policypkg.tsm.tanzu.vmware.com")).GetPolicyConfigs(context.TODO(), getParentName(obj.ParentLabels, "acpconfigs.policypkg.tsm.tanzu.vmware.com"))
+	if err != nil {
+	    log.Errorf("[getPolicypkgACPConfigDestSvcGroupsResolver]Error getting parent node %s", err)
+        return vPolicypkgSvcGroupList, nil
+    }
+	vSvcGroupAllObj, err := vSvcGroupParent.GetAllDestSvcGroups(context.TODO())
+	if err != nil {
+	    log.Errorf("[getPolicypkgACPConfigDestSvcGroupsResolver]Error getting DestSvcGroups %s", err)
+        return vPolicypkgSvcGroupList, nil
+    }
+	for _, i := range vSvcGroupAllObj {
+		vSvcGroupParent, err := nc.RootRoot().Config(getParentName(obj.ParentLabels, "configs.config.tsm.tanzu.vmware.com")).GNS(getParentName(obj.ParentLabels, "gnses.gns.tsm.tanzu.vmware.com")).GnsAccessControlPolicy(getParentName(obj.ParentLabels, "accesscontrolpolicies.policypkg.tsm.tanzu.vmware.com")).GetPolicyConfigs(context.TODO(), getParentName(obj.ParentLabels, "acpconfigs.policypkg.tsm.tanzu.vmware.com"))
+		if err != nil {
+			log.Errorf("[getPolicypkgACPConfigDestSvcGroupsResolver]Error getting parent node %s, skipping...", err)
+            continue
+		}
+		vSvcGroup, err := vSvcGroupParent.GetDestSvcGroups(context.TODO(), i.DisplayName())
+		if err != nil {
+	        log.Errorf("[getPolicypkgACPConfigDestSvcGroupsResolver]Error getting DestSvcGroups node %q : %s, skipping...", i.DisplayName(), err)
+			continue
+		}
+		
+		for k, v := range obj.ParentLabels {
+            parentLabels[k] = v
+        }
+		
+		vPolicypkgSvcGroupList = append(vPolicypkgSvcGroupList, ret)
+	}
+	log.Debugf("[getPolicypkgACPConfigDestSvcGroupsResolver]List of DestSvcGroups object %v", vPolicypkgSvcGroupList)
+	return vPolicypkgSvcGroupList, nil
+}
+//////////////////////////////////////
+// LINKS RESOLVER
+// FieldName: SourceSvcGroups Node: ACPConfig PKG: Policypkg
+//////////////////////////////////////
+func (c *resolverConfig) getPolicypkgACPConfigSourceSvcGroupsResolver(obj *model.PolicypkgACPConfig, id *string) ([]*model.ServicegroupSvcGroup, error) {
+	log.Debugf("[getPolicypkgACPConfigSourceSvcGroupsResolver]Parent Object %+v", obj)
+	var vServicegroupSvcGroupList []*model.ServicegroupSvcGroup
+	if id != nil && *id != "" {
+		log.Debugf("[getPolicypkgACPConfigSourceSvcGroupsResolver]Id %q", *id)
+		vSvcGroupParent, err := nc.RootRoot().Config(getParentName(obj.ParentLabels, "configs.config.tsm.tanzu.vmware.com")).GNS(getParentName(obj.ParentLabels, "gnses.gns.tsm.tanzu.vmware.com")).GnsAccessControlPolicy(getParentName(obj.ParentLabels, "accesscontrolpolicies.policypkg.tsm.tanzu.vmware.com")).GetPolicyConfigs(context.TODO(), getParentName(obj.ParentLabels, "acpconfigs.policypkg.tsm.tanzu.vmware.com"))
+		if err != nil {
+			log.Errorf("[getPolicypkgACPConfigSourceSvcGroupsResolver]Error getting SourceSvcGroups %q : %s", *id, err)
+			return vServicegroupSvcGroupList, nil
+		}
+		vSvcGroup, err := vSvcGroupParent.GetSourceSvcGroups(context.TODO(), *id)
+		if err != nil {
+			log.Errorf("[getPolicypkgACPConfigSourceSvcGroupsResolver]Error getting SourceSvcGroups %q : %s", *id, err)
+			return vServicegroupSvcGroupList, nil
+		}
+		dn := vSvcGroup.DisplayName()
+parentLabels := map[string]interface{}{"svcgroups.servicegroup.tsm.tanzu.vmware.com":dn}
+vDisplayName := string(vSvcGroup.Spec.DisplayName)
+vDescription := string(vSvcGroup.Spec.Description)
+vColor := string(vSvcGroup.Spec.Color)
+
+        for k, v := range obj.ParentLabels {
+            parentLabels[k] = v
+        }
+		ret := &model.ServicegroupSvcGroup {
+	Id: &dn,
+	ParentLabels: parentLabels,
+	DisplayName: &vDisplayName,
+	Description: &vDescription,
+	Color: &vColor,
+	}
+		vServicegroupSvcGroupList = append(vServicegroupSvcGroupList, ret)
+
+		log.Debugf("[getPolicypkgACPConfigSourceSvcGroupsResolver]Output SourceSvcGroups objects %v", vServicegroupSvcGroupList)
+
+		return vServicegroupSvcGroupList, nil
+	}
+
+	log.Debug("[getPolicypkgACPConfigSourceSvcGroupsResolver]Id is empty, process all SourceSvcGroupss")
+
+	vSvcGroupParent, err := nc.RootRoot().Config(getParentName(obj.ParentLabels, "configs.config.tsm.tanzu.vmware.com")).GNS(getParentName(obj.ParentLabels, "gnses.gns.tsm.tanzu.vmware.com")).GnsAccessControlPolicy(getParentName(obj.ParentLabels, "accesscontrolpolicies.policypkg.tsm.tanzu.vmware.com")).GetPolicyConfigs(context.TODO(), getParentName(obj.ParentLabels, "acpconfigs.policypkg.tsm.tanzu.vmware.com"))
+	if err != nil {
+	    log.Errorf("[getPolicypkgACPConfigSourceSvcGroupsResolver]Error getting parent node %s", err)
+        return vServicegroupSvcGroupList, nil
+    }
+	vSvcGroupAllObj, err := vSvcGroupParent.GetAllSourceSvcGroups(context.TODO())
+	if err != nil {
+	    log.Errorf("[getPolicypkgACPConfigSourceSvcGroupsResolver]Error getting SourceSvcGroups %s", err)
+        return vServicegroupSvcGroupList, nil
+    }
+	for _, i := range vSvcGroupAllObj {
+		vSvcGroupParent, err := nc.RootRoot().Config(getParentName(obj.ParentLabels, "configs.config.tsm.tanzu.vmware.com")).GNS(getParentName(obj.ParentLabels, "gnses.gns.tsm.tanzu.vmware.com")).GnsAccessControlPolicy(getParentName(obj.ParentLabels, "accesscontrolpolicies.policypkg.tsm.tanzu.vmware.com")).GetPolicyConfigs(context.TODO(), getParentName(obj.ParentLabels, "acpconfigs.policypkg.tsm.tanzu.vmware.com"))
+		if err != nil {
+			log.Errorf("[getPolicypkgACPConfigSourceSvcGroupsResolver]Error getting parent node %s, skipping...", err)
+            continue
+		}
+		vSvcGroup, err := vSvcGroupParent.GetSourceSvcGroups(context.TODO(), i.DisplayName())
+		if err != nil {
+	        log.Errorf("[getPolicypkgACPConfigSourceSvcGroupsResolver]Error getting SourceSvcGroups node %q : %s, skipping...", i.DisplayName(), err)
+			continue
+		}
+		dn := vSvcGroup.DisplayName()
+parentLabels := map[string]interface{}{"svcgroups.servicegroup.tsm.tanzu.vmware.com":dn}
+vDisplayName := string(vSvcGroup.Spec.DisplayName)
+vDescription := string(vSvcGroup.Spec.Description)
+vColor := string(vSvcGroup.Spec.Color)
+
+		for k, v := range obj.ParentLabels {
+            parentLabels[k] = v
+        }
+		ret := &model.ServicegroupSvcGroup {
+	Id: &dn,
+	ParentLabels: parentLabels,
+	DisplayName: &vDisplayName,
+	Description: &vDescription,
+	Color: &vColor,
+	}
+		vServicegroupSvcGroupList = append(vServicegroupSvcGroupList, ret)
+	}
+	log.Debugf("[getPolicypkgACPConfigSourceSvcGroupsResolver]List of SourceSvcGroups object %v", vServicegroupSvcGroupList)
+	return vServicegroupSvcGroupList, nil
+}
 
 
 

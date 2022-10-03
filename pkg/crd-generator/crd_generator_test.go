@@ -200,17 +200,17 @@ var _ = Describe("Template renderers tests", func() {
 	})
 	// Path:"example/output/_crd_base/nexus-gql/graph/schema.graphqls"
 	It("should parse graph schema graphql template", func() {
-		_, err := crdgenerator.RenderGraphqlSchemaTemplate(gqlvar, baseGroupName, crdModulePath, pkgs, parentsMap)
+		_, err := crdgenerator.RenderGraphqlSchemaTemplate(gqlvar, crdModulePath)
 		Expect(err).NotTo(HaveOccurred())
 	})
 	// Path:"example/output/_crd_base/nexus-gql/gqlgen.yml"
 	It("should parse nexus-gql gqlgen config template", func() {
-		_, err := crdgenerator.RenderGQLGenTemplate(gqlvar, baseGroupName, crdModulePath, pkgs, parentsMap)
+		_, err := crdgenerator.RenderGQLGenTemplate(gqlvar, crdModulePath)
 		Expect(err).NotTo(HaveOccurred())
 	})
 	// Path:"example/output/_crd_base/nexus-gql/graph/graphqlResolver.go"
 	It("should parse graphql resolver template", func() {
-		_, err := crdgenerator.RenderGraphqlResolverTemplate(gqlvar, baseGroupName, crdModulePath, pkgs, parentsMap)
+		_, err := crdgenerator.RenderGraphqlResolverTemplate(gqlvar, crdModulePath)
 		Expect(err).NotTo(HaveOccurred())
 	})
 })

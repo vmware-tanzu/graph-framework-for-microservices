@@ -6,7 +6,6 @@ import (
 	"go/types"
 	"log"
 	"sort"
-	"strings"
 
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/pkg/parser"
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/pkg/util"
@@ -33,7 +32,6 @@ type FieldProperty struct {
 	IsCustomTypeField       bool
 	IsPointerTypeField      bool
 	IsStringType            bool
-	IsAliasTypeField        bool
 	IsArrayStdType          bool
 	IsSingleton             bool
 	PkgName                 string
@@ -78,7 +76,7 @@ type NodeProperty struct {
 	ResolverFields         map[string][]FieldProperty
 }
 
-func populateValuesForEachNode(nodes []NodeProperty, linkAPI map[string]string, retMap map[string]ReturnStatement) []NodeProperty {
+func populateValuesForEachNode(nodes []*NodeProperty, linkAPI map[string]string, retMap map[string]ReturnStatement) []NodeProperty {
 	var nodeProperties []NodeProperty
 	for _, n := range nodes {
 		resNodeProp := NodeProperty{}
@@ -164,7 +162,7 @@ func populateValuesForEachNode(nodes []NodeProperty, linkAPI map[string]string, 
 	return nodeProperties
 }
 
-func populateValuesForResolver(nodes []NodeProperty, parentsMap map[string]parser.NodeHelper,
+func populateValuesForResolver(nodes []*NodeProperty, parentsMap map[string]parser.NodeHelper,
 	crdNameMap, nonStructMap map[string]string) (map[string]string, map[string]ReturnStatement) {
 	linkAPI := make(map[string]string)
 	retMap := make(map[string]ReturnStatement)
@@ -203,8 +201,6 @@ func populateValuesForResolver(nodes []NodeProperty, parentsMap map[string]parse
 						} else {
 							ChainAPI += fmt.Sprintf(".%s(getParentName(obj.ParentLabels, %q))", childNode.FieldName, i)
 						}
-					} else {
-						panic(fmt.Sprintf("unable to find child %s in parent node of %s", i, prevNode.RestName))
 					}
 				}
 				// cache the non-leaf node
@@ -229,21 +225,7 @@ func populateValuesForResolver(nodes []NodeProperty, parentsMap map[string]parse
 			}
 		}
 		for _, i := range n.ResolverFields[n.PkgName+n.NodeName] {
-			if i.IsAliasTypeField {
-				if val, ok := nonStructMap[i.SchemaTypeName]; ok {
-					if strings.HasPrefix(val, "map") {
-						fieldCount += 1
-						retType += fmt.Sprintf("\t%s: &%sData,\n", i.FieldName, i.FieldName)
-						aliasVal += jsonMarshalResolver(i.FieldName, n.NodeName)
-					} else {
-						if len(convertGoStdType(val)) != 0 && !i.IsArrayTypeField {
-							fieldCount += 1
-							retType += fmt.Sprintf("\t%s: &v%s,\n", i.FieldName, i.FieldName)
-							aliasVal += fmt.Sprintf("v%s := %s(v%s.Spec.%s)\n", i.FieldName, convertGoStdType(val), i.NodeName, i.FieldName)
-						}
-					}
-				}
-			} else if i.IsMapTypeField || i.IsStringType {
+			if i.IsMapTypeField || i.IsStringType {
 				fieldCount += 1
 				retType += fmt.Sprintf("\t%s: &%sData,\n", i.FieldName, i.FieldName)
 				aliasVal += jsonMarshalResolver(i.FieldName, n.NodeName)
@@ -270,7 +252,7 @@ func populateValuesForResolver(nodes []NodeProperty, parentsMap map[string]parse
 	return linkAPI, retMap
 }
 
-func constructCustomTypeMap(nodes []NodeProperty) map[string]string {
+func constructCustomTypeMap(nodes []*NodeProperty) map[string]string {
 	crdNameMap := make(map[string]string)
 	for _, n := range nodes {
 		if n.IsNexusNode || n.IsSingletonNode {
@@ -283,13 +265,9 @@ func constructCustomTypeMap(nodes []NodeProperty) map[string]string {
 // 	processNexusFields process and populates properties for each non nexus fields
 //	<Domain  string>
 func processNonNexusFields(aliasNameMap map[string]string, node *ast.TypeSpec,
-	nodeProp NodeProperty, simpleGroupTypeName string) {
+	nodeProp *NodeProperty, simpleGroupTypeName string) {
 	resField := make(map[string][]FieldProperty)
 	for _, f := range parser.GetSpecFields(node) {
-		if f == nil {
-			continue
-		}
-
 		var (
 			fieldProp FieldProperty
 			err       error
@@ -327,9 +305,6 @@ func processNonNexusFields(aliasNameMap map[string]string, node *ast.TypeSpec,
 				resField[nodeProp.PkgName+nodeProp.NodeName] = append(resField[nodeProp.PkgName+nodeProp.NodeName], fieldProp)
 			}
 		}
-		if fieldProp.IsResolver {
-			nodeProp.ResolverCount += 1
-		}
 		nodeProp.GraphqlSchemaFields = append(nodeProp.GraphqlSchemaFields, fieldProp)
 		nodeProp.ResolverFields = resField
 	}
@@ -338,12 +313,9 @@ func processNonNexusFields(aliasNameMap map[string]string, node *ast.TypeSpec,
 // 	processNexusFields process and populates properties for each nexus fields
 //	<gns.Gns `nexus:"child"`>
 func processNexusFields(pkg parser.Package, aliasNameMap map[string]string, node *ast.TypeSpec,
-	nodeProp NodeProperty, simpleGroupTypeName string) {
+	nodeProp *NodeProperty, simpleGroupTypeName string) {
 	importMap := pkg.GetImportMap()
 	for _, nf := range parser.GetNexusFields(node) {
-		if nf == nil {
-			continue
-		}
 		var (
 			fieldProp FieldProperty
 			err       error
@@ -439,12 +411,8 @@ func constructAliasType(sortedPackages []parser.Package) map[string]string {
 			var pkgName string
 			if pkg.FullName == pkg.ModPath {
 				pkgName = pkg.Name + "_" + parser.GetTypeName(node)
-			} else if pkg.Name != "" {
-				pkgName = pkg.Name + "_" + parser.GetTypeName(node)
 			} else {
-				pkgPath := pkg.FullName
-				libName := pkgPath[strings.LastIndex(pkgPath, "/")+1:]
-				specTypePrefix := strings.ReplaceAll(libName, "-", "")
+				specTypePrefix := getPkgName(pkg)
 				pkgName = specTypePrefix + "_" + parser.GetTypeName(node)
 			}
 			// NonStruct Map
@@ -470,7 +438,7 @@ func GenerateGraphqlResolverVars(baseGroupName, crdModulePath string, pkgs parse
 
 	// Iterate all the struct type and it's fields in the sortedPackages and
 	// set the node and field properties accordingly.
-	var nodes []NodeProperty
+	var nodes []*NodeProperty
 	aliasNameMap := make(map[string]string)
 	for _, pkg := range sortedPackages {
 		simpleGroupTypeName := util.GetSimpleGroupTypeName(pkg.Name)
@@ -480,7 +448,7 @@ func GenerateGraphqlResolverVars(baseGroupName, crdModulePath string, pkgs parse
 			if len(parser.GetNexusFields(node)) == 0 && len(parser.GetSpecFields(node)) == 0 {
 				continue
 			}
-			nodeProp := NodeProperty{}
+			nodeProp := &NodeProperty{}
 			// populate node properties
 			nodeProp.PkgName = simpleGroupTypeName
 			nodeProp.NodeName = node.Name.String()
@@ -503,12 +471,8 @@ func GenerateGraphqlResolverVars(baseGroupName, crdModulePath string, pkgs parse
 
 			if pkg.FullName == pkg.ModPath {
 				nodeProp.SchemaName = pkg.Name + "_" + parser.GetTypeName(node)
-			} else if pkg.Name != "" {
-				nodeProp.SchemaName = pkg.Name + "_" + parser.GetTypeName(node)
 			} else {
-				pkgPath := pkg.FullName
-				libName := pkgPath[strings.LastIndex(pkgPath, "/")+1:]
-				specTypePrefix := strings.ReplaceAll(libName, "-", "")
+				specTypePrefix := getPkgName(pkg)
 				nodeProp.SchemaName = specTypePrefix + "_" + parser.GetTypeName(node)
 			}
 
@@ -517,7 +481,6 @@ func GenerateGraphqlResolverVars(baseGroupName, crdModulePath string, pkgs parse
 
 			// Iterate each node's non-nexus fields and set its properties
 			processNonNexusFields(aliasNameMap, node, nodeProp, simpleGroupTypeName)
-
 			nodes = append(nodes, nodeProp)
 		}
 	}

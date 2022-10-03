@@ -1,9 +1,12 @@
 package parser_test
 
 import (
+	"go/ast"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	log "github.com/sirupsen/logrus"
+
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/pkg/config"
 	crd_generator "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/pkg/crd-generator"
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/pkg/parser"
@@ -140,5 +143,19 @@ var _ = Describe("Pkg tests", func() {
 
 		parser.ParseFieldTags("`nexus: \"child\"`")
 		Expect(fail).To(BeTrue())
+	})
+
+	It("should receive false when empty node is given", func() {
+		var f *ast.Field
+		childFields := parser.IsOnlyChildField(f)
+		Expect(childFields).To(BeFalse())
+		childrenFields := parser.IsOnlyChildrenField(f)
+		Expect(childrenFields).To(BeFalse())
+		link := parser.IsOnlyLinkField(f)
+		Expect(link).To(BeFalse())
+		links := parser.IgnoreField(f)
+		Expect(links).To(BeFalse())
+		jsonStrFields := parser.IsJsonStringField(f)
+		Expect(jsonStrFields).To(BeFalse())
 	})
 })
