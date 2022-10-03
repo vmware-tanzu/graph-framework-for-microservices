@@ -1,0 +1,2 @@
+groupName: "tsm.tanzu.vmware.com"
+crdModulePath: "github.com/vmware-tanzu/graph-framework-for-microservices/compiler/example/output/crd/"

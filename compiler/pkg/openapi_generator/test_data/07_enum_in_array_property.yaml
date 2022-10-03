@@ -1,0 +1,44 @@
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  creationTimestamp: null
+  name: bars.test.it
+spec:
+  conversion:
+    strategy: None
+  group: test.it
+  names:
+    kind: Bar
+    listKind: BarList
+    plural: bars
+    shortNames:
+    - bar
+    singular: bar
+  scope: Namespaced
+  versions:
+  - name: v1
+    schema:
+      openAPIV3Schema:
+        properties:
+          bar:
+            items:
+            - type: string
+            type: array
+          foo:
+            items:
+              type: string
+            type: array
+          metadata:
+            type: object
+        type: object
+    served: true
+    storage: true
+status:
+  acceptedNames:
+    kind: ""
+    plural: ""
+  conditions: null
+  storedVersions:
+  - v1
+
