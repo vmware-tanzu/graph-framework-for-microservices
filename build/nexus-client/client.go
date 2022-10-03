@@ -2738,6 +2738,15 @@ func (group *ConnectNexusV1) UpdateNexusEndpointByName(ctx context.Context,
 	}
 	patch = append(patch, patchOpCert)
 
+	patchValuePath :=
+		objToUpdate.Spec.Path
+	patchOpPath := PatchOp{
+		Op:    "replace",
+		Path:  "/spec/path",
+		Value: patchValuePath,
+	}
+	patch = append(patch, patchOpPath)
+
 	marshaled, err := patch.Marshal()
 	if err != nil {
 		return nil, err

@@ -19,7 +19,8 @@ type NexusEndpoint struct {
 
 	Host string
 	Port string
-	Cert string
+	Cert string `json:"cert,omitempty"`
+	Path string `json:"path,omitempty"`
 }
 
 type ReplicationStatusEndpoint string
