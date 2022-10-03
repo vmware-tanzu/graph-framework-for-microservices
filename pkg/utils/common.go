@@ -17,6 +17,7 @@ const (
 
 	RemoteEndpointHost = "REMOTE_ENDPOINT_HOST"
 	RemoteEndpointPort = "REMOTE_ENDPOINT_PORT"
+	RemoteEndpointPath = "REMOTE_ENDPOINT_PATH"
 	RemoteEndpointCert = "REMOTE_ENDPOINT_CERT"
 
 	DisplayNameKey           = "nexus/display_name"
@@ -173,4 +174,15 @@ func GetDestinationGvrAndKind(destination ReplicationDestination, gvr schema.Gro
 		destKind = destination.Kind
 	}
 	return destGvr, destKind
+}
+
+func ConstructURL(host, port, path string) string {
+	if path == "" && port == "" {
+		return host
+	} else if port == "" {
+		return fmt.Sprintf("%s/%s", host, path)
+	} else if path == "" {
+		return fmt.Sprintf("%s:%s", host, port)
+	}
+	return fmt.Sprintf("%s:%s/%s", host, port, path)
 }

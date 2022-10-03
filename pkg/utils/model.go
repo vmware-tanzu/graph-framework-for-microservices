@@ -51,6 +51,7 @@ type ObjectType struct {
 type NexusEndpoint struct {
 	Host string `json:"host"`
 	Port string `json:"port"`
+	Path string `json:"path"`
 	Cert string `json:"cert"`
 }
 

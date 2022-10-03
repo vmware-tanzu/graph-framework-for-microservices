@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"strings"
 
 	log "github.com/sirupsen/logrus"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -35,8 +34,7 @@ func (h *ReplicationConfigHandler) Create(obj interface{}) error {
 	res := obj.(*unstructured.Unstructured)
 	log.Infof("Received Create event for Replication Config %s", res.GetName())
 
-	m := res.UnstructuredContent()
-	spec := m["spec"]
+	spec := res.UnstructuredContent()["spec"]
 	specInByte, err := json.Marshal(spec)
 	if err != nil {
 		return fmt.Errorf("failed to marshal replicationconfig spec %v: %v", res.GetName(), err)
@@ -45,16 +43,20 @@ func (h *ReplicationConfigHandler) Create(obj interface{}) error {
 	if err := json.Unmarshal(specInByte, &repConf); err != nil {
 		return fmt.Errorf("failed to unmarshal replicationconfig spec %v: %v", res.GetName(), err)
 	}
-	endpoint, err := h.GetEndpointObject(repConf.RemoteEndpoint.Name)
+
+	eObj, err := h.GetEndpointObject(repConf.RemoteEndpoint.Name)
 	if err != nil {
 		return fmt.Errorf("failed to get endpoint object %v: %v", repConf.RemoteEndpoint.Name, err)
 	}
 
-	if endpoint.Host != h.Config.RemoteEndpointHost || endpoint.Port != h.Config.RemoteEndpointPort {
+	if !h.isValidReplicationConfig(eObj) {
 		return nil
 	}
-	host := fmt.Sprintf("%s:%s", h.Config.RemoteEndpointHost, h.Config.RemoteEndpointPort)
-	remoteClient, err := utils.SetUpDynamicRemoteAPI(host, repConf.AccessToken, endpoint.Cert)
+
+	host := utils.ConstructURL(h.Config.RemoteEndpointHost, h.Config.RemoteEndpointPort, h.Config.RemoteEndpointPath)
+
+	log.Infof("Connecting to the destination host: %v", host)
+	remoteClient, err := utils.SetUpDynamicRemoteAPI(host, repConf.AccessToken, eObj.Cert)
 	if err != nil {
 		return fmt.Errorf("error creating dynamic remote API: %v", err)
 	}
@@ -79,12 +81,7 @@ func (h *ReplicationConfigHandler) Delete(obj interface{}) error {
 }
 
 func (h *ReplicationConfigHandler) GetEndpointObject(name string) (*utils.NexusEndpoint, error) {
-	parts := strings.Split(utils.NexusEndpointCRD, ".")
-	gvr := schema.GroupVersionResource{
-		Group:    strings.Join(parts[1:], "."),
-		Version:  "v1",
-		Resource: parts[0],
-	}
+	gvr := utils.GetGVRFromCrdType(utils.NexusEndpointCRD, utils.V1Version)
 
 	// Get the desired endpoint object to get the endpoint information.
 	endpointObj, err := h.LocalClient.Resource(gvr).Get(context.TODO(), name, metav1.GetOptions{})
@@ -92,8 +89,7 @@ func (h *ReplicationConfigHandler) GetEndpointObject(name string) (*utils.NexusE
 		return nil, err
 	}
 
-	r := endpointObj.UnstructuredContent()
-	spec := r["spec"]
+	spec := endpointObj.UnstructuredContent()["spec"]
 	specInByte, err := json.Marshal(spec)
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal endpoint spec of %v: %v", endpointObj.GetName(), err)
@@ -102,9 +98,20 @@ func (h *ReplicationConfigHandler) GetEndpointObject(name string) (*utils.NexusE
 	if err := json.Unmarshal(specInByte, &eObj); err != nil {
 		return nil, fmt.Errorf("failed to unmarshal endpoint spec of %v: %v", endpointObj.GetName(), err)
 	}
-	return &utils.NexusEndpoint{
-		Host: eObj.Host,
-		Cert: eObj.Cert,
-		Port: eObj.Port,
-	}, nil
+
+	if eObj.Host == "" {
+		return nil, fmt.Errorf("host can't be empty in endpoint spec: %v", endpointObj.GetName())
+	}
+	return eObj, nil
+}
+
+// isValidReplicationConfig checks if the replication-config is of interest to the desired destination.
+// If not, skips this replication-config.
+func (h *ReplicationConfigHandler) isValidReplicationConfig(eObj *utils.NexusEndpoint) bool {
+	if eObj.Host != h.Config.RemoteEndpointHost ||
+		eObj.Port != h.Config.RemoteEndpointPort ||
+		eObj.Path != h.Config.RemoteEndpointPath {
+		return false
+	}
+	return true
 }

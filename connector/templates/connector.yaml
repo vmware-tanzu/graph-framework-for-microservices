@@ -61,6 +61,10 @@ spec:
             - name: REMOTE_ENDPOINT_CERT
               value: {{ .Values.global.remoteEndpointCert }}
             {{end}}
+             {{- if ne .Values.global.remoteEndpointUri "" }}
+            - name: REMOTE_ENDPOINT_URI
+              value: {{ .Values.global.remoteEndpointUri }}
+            {{end}}
             - name: STATUS_REPLICATION
               value: {{ .Values.global.statusReplication }}
             - name: SECRET_NS

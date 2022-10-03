@@ -16,6 +16,7 @@ type Config struct {
 	Dispatcher               Dispatcher          `yaml:"dispatcher"`
 	RemoteEndpointHost       string              `yaml:"-"`
 	RemoteEndpointPort       string              `yaml:"-"`
+	RemoteEndpointPath       string              `yaml:"-"`
 	RemoteEndpointCert       string              `yaml:"-"`
 	IgnoredNamespaces        IgnoredNamespaces   `yaml:"ignoredNamespaces"`
 	StatusReplicationEnabled bool                `yaml:"-"`
@@ -54,6 +55,7 @@ func LoadConfig(configFile string) (*Config, error) {
 	}
 	config.RemoteEndpointHost = os.Getenv(utils.RemoteEndpointHost)
 	config.RemoteEndpointPort = os.Getenv(utils.RemoteEndpointPort)
+	config.RemoteEndpointPath = os.Getenv(utils.RemoteEndpointPath)
 	config.RemoteEndpointCert = os.Getenv(utils.RemoteEndpointCert)
 	config.StatusReplicationEnabled = os.Getenv(utils.StatusReplication) == utils.StatusEnabled
 
