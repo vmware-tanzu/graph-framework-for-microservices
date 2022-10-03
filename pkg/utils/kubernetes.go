@@ -2,7 +2,11 @@ package utils
 
 import (
 	"context"
+	"crypto/tls"
+	"crypto/x509"
+	"encoding/base64"
 	"fmt"
+	"net/http"
 	"os"
 
 	corev1 "k8s.io/api/core/v1"
@@ -15,13 +19,28 @@ import (
 	"k8s.io/client-go/tools/clientcmd"
 )
 
-func SetUpDynamicRemoteAPI(host, token string) (dynamic.Interface, error) {
+func SetUpDynamicRemoteAPI(host, token, cert string) (dynamic.Interface, error) {
+	rawDecodedText, err := base64.StdEncoding.DecodeString(cert)
+	if err != nil {
+		return nil, fmt.Errorf("could not decode cert: %v", err)
+	}
+	pool := x509.NewCertPool()
+	pool.AppendCertsFromPEM(rawDecodedText)
+
 	conf := &rest.Config{
 		Host:        host,
 		BearerToken: token,
-		TLSClientConfig: rest.TLSClientConfig{
-			Insecure: true,
+		Transport: &http.Transport{
+			TLSClientConfig: &tls.Config{
+				RootCAs: pool,
+			},
 		},
+	}
+
+	// If cert is not provided, then skip cert verification.
+	if cert == "" {
+		conf.Transport = nil
+		conf.TLSClientConfig.Insecure = true
 	}
 	dynamicRemoteAPI, err := dynamic.NewForConfig(conf)
 	if err != nil {
@@ -104,12 +123,12 @@ func getTokenFromSecret(dynamicLocalClient dynamic.Interface) (string, error) {
 	return string(tokenInByte), nil
 }
 
-func BuildRemoteClientAPI(remoteEndpointHost, remoteEndpointPort string, dynamicLocalClient dynamic.Interface) (dynamic.Interface, error) {
+func BuildRemoteClientAPI(remoteEndpointHost, remoteEndpointPort, remoteEndpointCert string, dynamicLocalClient dynamic.Interface) (dynamic.Interface, error) {
 	host := fmt.Sprintf("%s:%s", remoteEndpointHost, remoteEndpointPort)
 
 	accessToken, err := getTokenFromSecret(dynamicLocalClient)
 	if err != nil {
 		return nil, fmt.Errorf("error getting token %v", err)
 	}
-	return SetUpDynamicRemoteAPI(host, accessToken)
+	return SetUpDynamicRemoteAPI(host, accessToken, remoteEndpointCert)
 }

@@ -51,21 +51,10 @@ var _ = Describe("ReplicationConfig Tests", func() {
 			scheme := runtime.NewScheme()
 			client = fake_dynamic.NewSimpleDynamicClientWithCustomListKinds(scheme, gvrToListKind)
 
-			nexusEndpoint := &unstructured.Unstructured{
-				Object: map[string]interface{}{
-					"metadata": map[string]interface{}{
-						"name": "default",
-					},
-					"spec": map[string]interface{}{
-						"host": fmt.Sprintf("http://%s", parts[0]),
-						"port": parts[1],
-						"cert": "abc",
-					},
-				},
-			}
-			_, err := client.Resource(endpointGvr).Create(context.TODO(), nexusEndpoint, metav1.CreateOptions{})
-			Expect(err).NotTo(HaveOccurred())
+			// Valid Nexus-Endpoint CR.
+			nexusEndpoint := getNexusEndpointObject("default", fmt.Sprintf("http://%s", parts[0]), parts[1], "")
 
+			// Invalid Nexus-Endpoint CR.
 			inValidNexusEndpoint := &unstructured.Unstructured{
 				Object: map[string]interface{}{
 					"metadata": map[string]interface{}{
@@ -78,21 +67,17 @@ var _ = Describe("ReplicationConfig Tests", func() {
 					},
 				},
 			}
-			_, err = client.Resource(endpointGvr).Create(context.TODO(), inValidNexusEndpoint, metav1.CreateOptions{})
-			Expect(err).NotTo(HaveOccurred())
 
-			wrongTypeNexusEndpoint := &unstructured.Unstructured{
-				Object: map[string]interface{}{
-					"metadata": map[string]interface{}{
-						"name": "wrongType",
-					},
-					"spec": map[string]interface{}{
-						"port": math.Inf(1),
-					},
-				},
+			// Wrong Type Nexus-Endpoint CR.
+			wrongTypeNexusEndpoint := getNexusEndpointObject("wrongType", fmt.Sprintf("http://%s", parts[0]), math.Inf(1), "")
+
+			// Wrong Cert Nexus-Endpoint CR.
+			wrongCertNexusEndpoint := getNexusEndpointObject("wrongCert", fmt.Sprintf("http://%s", parts[0]), parts[1], "abc")
+
+			for _, val := range []*unstructured.Unstructured{nexusEndpoint, inValidNexusEndpoint, wrongTypeNexusEndpoint, wrongCertNexusEndpoint} {
+				_, err := client.Resource(endpointGvr).Create(context.TODO(), val, metav1.CreateOptions{})
+				Expect(err).NotTo(HaveOccurred())
 			}
-			_, err = client.Resource(endpointGvr).Create(context.TODO(), wrongTypeNexusEndpoint, metav1.CreateOptions{})
-			Expect(err).NotTo(HaveOccurred())
 
 			ac1 := &unstructured.Unstructured{
 				Object: map[string]interface{}{
@@ -111,7 +96,7 @@ var _ = Describe("ReplicationConfig Tests", func() {
 					},
 				},
 			}
-			_, err = client.Resource(acGvr).Create(context.TODO(), ac1, metav1.CreateOptions{})
+			_, err := client.Resource(acGvr).Create(context.TODO(), ac1, metav1.CreateOptions{})
 			Expect(err).NotTo(HaveOccurred())
 
 			gvr = utils.GetGVRFromCrdType(utils.ReplicationConfigCRD, utils.V1Version)
@@ -133,28 +118,7 @@ var _ = Describe("ReplicationConfig Tests", func() {
 					ghttp.RespondWith(200, "{\"apiVersion\":\"config.mazinger.com/v1\",\"kind\":\"ApiCollaborationSpace\",\"metadata\":{\"labels\":{},\"name\":\"ac1\",\"namespace\":\"\"},\"spec\":{\"example\":\"example\"}}"),
 				),
 			)
-			replicationConfig = &unstructured.Unstructured{
-				Object: map[string]interface{}{
-					"spec": map[string]interface{}{
-						"source": map[string]interface{}{
-							"kind": "Type",
-							"type": map[string]interface{}{
-								"group":   "config.mazinger.com",
-								"version": "v1",
-								"kind":    "ApiCollaborationSpace",
-							},
-						},
-						"destination": map[string]interface{}{
-							"hierarchical": false,
-						},
-						"remoteEndpointGvk": map[string]interface{}{
-							"group": "connect.nexus.org",
-							"kind":  "NexusEndpoint",
-							"name":  "default",
-						},
-					},
-				},
-			}
+			replicationConfig = getReplicationConfigObject()
 			err := handler.Create(replicationConfig)
 			Expect(err).NotTo(HaveOccurred())
 		})
@@ -170,28 +134,7 @@ var _ = Describe("ReplicationConfig Tests", func() {
 					ghttp.RespondWith(400, "NotOK"),
 				),
 			)
-			replicationConfig = &unstructured.Unstructured{
-				Object: map[string]interface{}{
-					"spec": map[string]interface{}{
-						"source": map[string]interface{}{
-							"kind": "Type",
-							"type": map[string]interface{}{
-								"group":   "config.mazinger.com",
-								"version": "v1",
-								"kind":    "ApiCollaborationSpace",
-							},
-						},
-						"destination": map[string]interface{}{
-							"hierarchical": false,
-						},
-						"remoteEndpointGvk": map[string]interface{}{
-							"group": "connect.nexus.org",
-							"kind":  "NexusEndpoint",
-							"name":  "default",
-						},
-					},
-				},
-			}
+			replicationConfig = getReplicationConfigObject()
 			err := handler.Create(replicationConfig)
 			Expect(err.Error()).To(ContainSubstring("error replicating desired nodes"))
 		})
@@ -375,6 +318,22 @@ var _ = Describe("ReplicationConfig Tests", func() {
 			}
 			err := handler.Create(replicationConfig)
 			Expect(err.Error()).To(ContainSubstring("failed to marshal endpoint spec "))
+		})
+
+		It("Should fail when nexusendpoint with wrong cert is configured", func() {
+			replicationConfig = &unstructured.Unstructured{
+				Object: map[string]interface{}{
+					"spec": map[string]interface{}{
+						"remoteEndpointGvk": map[string]interface{}{
+							"group": "connect.nexus.org",
+							"kind":  "NexusEndpoint",
+							"name":  "wrongCert",
+						},
+					},
+				},
+			}
+			err := handler.Create(replicationConfig)
+			Expect(err.Error()).To(ContainSubstring("could not decode cert: illegal base64 data at input byte 0"))
 		})
 	})
 })

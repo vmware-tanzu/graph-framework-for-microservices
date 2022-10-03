@@ -44,7 +44,7 @@ func StartControllers(conf *config.Config, cache *controllers.GvrCache, stopCh c
 
 	var remoteDynamicClient dynamic.Interface
 	if conf.StatusReplicationEnabled {
-		remoteDynamicClient, err = utils.BuildRemoteClientAPI(conf.RemoteEndpointHost, conf.RemoteEndpointPort, localDynamicAPI)
+		remoteDynamicClient, err = utils.BuildRemoteClientAPI(conf.RemoteEndpointHost, conf.RemoteEndpointPort, conf.RemoteEndpointCert, localDynamicAPI)
 		if err != nil {
 			log.Fatalf("Error creating remote-client APIs: %v", err)
 			return

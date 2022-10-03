@@ -41,9 +41,9 @@ var _ = Describe("Create", func() {
 		log.SetLevel(log.DebugLevel)
 
 		localClient = fake_dynamic.NewSimpleDynamicClient(runtime.NewScheme(),
-			GetObject("A", AcKind, "example"), GetObject("B", AcKind, "example"), GetObject("update", AcKind, "example"), GetObject("create", AcKind, "example"),
-			GetObject("C", AcKind, "example"), GetObject("D", AcKind, "example"), GetParentObject("foo", AcKind), GetChildObject("bar", AdKind),
-			GetObject("Root", RootKind, "example"), GetObject("Config", ConfigKind, "example"), GetObject("Project", ProjectKind, "example"), GetDefaultResourceObj(),
+			getObject("A", AcKind, "example"), getObject("B", AcKind, "example"), getObject("update", AcKind, "example"), getObject("create", AcKind, "example"),
+			getObject("C", AcKind, "example"), getObject("D", AcKind, "example"), getParentObject("foo", AcKind), getChildObject("bar", AdKind),
+			getObject("Root", RootKind, "example"), getObject("Config", ConfigKind, "example"), getObject("Project", ProjectKind, "example"), getDefaultResourceObj(),
 		)
 
 		repConfName = "one"
@@ -51,7 +51,7 @@ var _ = Describe("Create", func() {
 			StatusReplicationEnabled: false,
 		}
 		server = ghttp.NewServer()
-		remoteClient, err = utils.SetUpDynamicRemoteAPI(fmt.Sprintf("http://%s", server.Addr()), "")
+		remoteClient, err = utils.SetUpDynamicRemoteAPI(fmt.Sprintf("http://%s", server.Addr()), "", "")
 		Expect(err).NotTo(HaveOccurred())
 
 		utils.CRDTypeToCrdVersion[ApiCollaborationSpace] = utils.V1Version
@@ -60,8 +60,8 @@ var _ = Describe("Create", func() {
 
 	When("Replication is enabled for CRD Type", func() {
 		BeforeEach(func() {
-			source := GetTypeConfig(Group, AcKind)
-			destination := GetNonHierarchicalDestConfig()
+			source := getTypeConfig(Group, AcKind)
+			destination := getNonHierarchicalDestConfig()
 			remoteHandler = h.NewRemoteHandler(apicollaborationspace, localClient, nil, conf)
 			replicationConfigSpec = utils.ReplicationConfigSpec{LocalClient: localClient, RemoteClient: remoteClient, Source: source, Destination: destination}
 		})
@@ -92,11 +92,11 @@ var _ = Describe("Create", func() {
 			utils.ReplicationEnabledGVR[apicollaborationspace][repConfName] = replicationConfigSpec
 
 			// Create objA
-			err = remoteHandler.Create(GetObject("A", AcKind, "example"))
+			err = remoteHandler.Create(getObject("A", AcKind, "example"))
 			Expect(err).NotTo(HaveOccurred())
 
 			// Create objB
-			err = remoteHandler.Create(GetObject("B", AcKind, "example"))
+			err = remoteHandler.Create(getObject("B", AcKind, "example"))
 			Expect(err).NotTo(HaveOccurred())
 
 			delete(utils.ReplicationEnabledGVR, apicollaborationspace)
@@ -119,7 +119,7 @@ var _ = Describe("Create", func() {
 			utils.ReplicationEnabledGVR[apicollaborationspace][repConfName] = replicationConfigSpec
 
 			// Create objA
-			err = remoteHandler.Create(GetObject("A", AcKind, "example"))
+			err = remoteHandler.Create(getObject("A", AcKind, "example"))
 			Expect(logBuffer.String()).To(ContainSubstring("Resource A create failed with an error"))
 
 			delete(utils.ReplicationEnabledGVR, apicollaborationspace)
@@ -128,8 +128,8 @@ var _ = Describe("Create", func() {
 
 	When("Replication is configured for CRD Type to be replicated from one type to another", func() {
 		BeforeEach(func() {
-			source := GetTypeConfig(Group, AcKind)
-			destination := GetDifferentTypeDestConfig()
+			source := getTypeConfig(Group, AcKind)
+			destination := getDifferentTypeDestConfig()
 			remoteHandler = h.NewRemoteHandler(apicollaborationspace, localClient, nil, conf)
 			replicationConfigSpec = utils.ReplicationConfigSpec{LocalClient: localClient, RemoteClient: remoteClient, Source: source, Destination: destination}
 		})
@@ -160,11 +160,11 @@ var _ = Describe("Create", func() {
 			utils.ReplicationEnabledGVR[apicollaborationspace][repConfName] = replicationConfigSpec
 
 			// Create objA of type ApiCollaborationSpace
-			err = remoteHandler.Create(GetObject("A", AcKind, "example"))
+			err = remoteHandler.Create(getObject("A", AcKind, "example"))
 			Expect(err).NotTo(HaveOccurred())
 
 			// Create objB of type ApiCollaborationSpace
-			err = remoteHandler.Create(GetObject("B", AcKind, "example"))
+			err = remoteHandler.Create(getObject("B", AcKind, "example"))
 			Expect(err).NotTo(HaveOccurred())
 
 			delete(utils.ReplicationEnabledGVR, apicollaborationspace)
@@ -173,8 +173,8 @@ var _ = Describe("Create", func() {
 
 	When("Replication is enabled for an individual object and if source is non-hierarchical", func() {
 		BeforeEach(func() {
-			source := GetNonHierarchicalSourceConfig()
-			destination := GetNonHierarchicalDestConfig()
+			source := getNonHierarchicalSourceConfig()
+			destination := getNonHierarchicalDestConfig()
 			remoteHandler = h.NewRemoteHandler(apicollaborationspace, localClient, nil, conf)
 			replicationConfigSpec = utils.ReplicationConfigSpec{LocalClient: localClient, RemoteClient: remoteClient, Source: source, Destination: destination}
 		})
@@ -199,11 +199,11 @@ var _ = Describe("Create", func() {
 			utils.ReplicationEnabledNode[repObj][repConfName] = replicationConfigSpec
 
 			// Create objC.
-			err = remoteHandler.Create(GetObject("C", AcKind, "example"))
+			err = remoteHandler.Create(getObject("C", AcKind, "example"))
 			Expect(err).NotTo(HaveOccurred())
 
 			// Create objD but the destination endpoint will not receive the request.
-			err = remoteHandler.Create(GetObject("D", AcKind, "example"))
+			err = remoteHandler.Create(getObject("D", AcKind, "example"))
 			Expect(err).NotTo(HaveOccurred())
 
 			delete(utils.ReplicationEnabledNode, repObj)
@@ -212,8 +212,8 @@ var _ = Describe("Create", func() {
 
 	Context("Hierarchical source and non-hierarchical destination", func() {
 		BeforeEach(func() {
-			source := GetHierarchicalSourceConfig()
-			destination := GetNonHierarchicalDestConfig()
+			source := getHierarchicalSourceConfig()
+			destination := getNonHierarchicalDestConfig()
 			replicationConfigSpec = utils.ReplicationConfigSpec{LocalClient: localClient, RemoteClient: remoteClient, Source: source, Destination: destination}
 
 			// Enable replication for object foo of type apicollaborationspaces.config.mazinger.com
@@ -241,7 +241,7 @@ var _ = Describe("Create", func() {
 				)
 
 				// Create obj bar.
-				err = remoteHandler.Create(GetChildObject("bar", AdKind))
+				err = remoteHandler.Create(getChildObject("bar", AdKind))
 				Expect(err).NotTo(HaveOccurred())
 
 				delete(utils.ReplicationEnabledNode, repObj)
@@ -280,7 +280,7 @@ var _ = Describe("Create", func() {
 				)
 
 				// Create obj foo.
-				err = remoteHandler.Create(GetParentObject("foo", AcKind))
+				err = remoteHandler.Create(getParentObject("foo", AcKind))
 				Expect(err).NotTo(HaveOccurred())
 			})
 
@@ -307,7 +307,7 @@ var _ = Describe("Create", func() {
 				)
 
 				// Create obj foo.
-				err = remoteHandler.Create(GetParentObject("foo", AcKind))
+				err = remoteHandler.Create(getParentObject("foo", AcKind))
 				Expect(logBuffer.String()).To(ContainSubstring("Children replication failed for the resource" +
 					" roots.config.mazinger.com/root/projects.config.mazinger.com/project/configs.config.mazinger.com/config/apicollaborationspaces.config.mazinger.com/foo"))
 			})
@@ -316,8 +316,8 @@ var _ = Describe("Create", func() {
 
 	Context("Non-hierarchical source and Hierarchical destination", func() {
 		BeforeEach(func() {
-			source := GetNonHierarchicalSourceConfig()
-			destination := GetHierarchicalDestConfig()
+			source := getNonHierarchicalSourceConfig()
+			destination := getHierarchicalDestConfig()
 			replicationConfigSpec = utils.ReplicationConfigSpec{LocalClient: localClient, RemoteClient: remoteClient,
 				Source: source, Destination: destination, StatusEndpoint: utils.Source}
 
@@ -346,7 +346,7 @@ var _ = Describe("Create", func() {
 				)
 
 				// Create obj bar without parent labels.
-				err = remoteHandler.Create(GetObject("bar", AdKind, "example"))
+				err = remoteHandler.Create(getObject("bar", AdKind, "example"))
 				Expect(err).NotTo(HaveOccurred())
 
 				delete(utils.ReplicationEnabledNode, repObj)
@@ -364,7 +364,7 @@ var _ = Describe("Create", func() {
 					),
 				)
 
-				err = remoteHandler.Create(GetObject("bar", AdKind, "example"))
+				err = remoteHandler.Create(getObject("bar", AdKind, "example"))
 				Expect(logBuffer.String()).To(ContainSubstring("create failed with an error"))
 
 				delete(utils.ReplicationEnabledNode, repObj)
@@ -405,8 +405,8 @@ var _ = Describe("Create", func() {
 
 	Context("Default K8s Resource Types", func() {
 		BeforeEach(func() {
-			source := GetTypeConfig("apps", "Deployment")
-			destination := GetHierarchicalDestConfig()
+			source := getTypeConfig("apps", "Deployment")
+			destination := getHierarchicalDestConfig()
 			replicationConfigSpec = utils.ReplicationConfigSpec{LocalClient: localClient, RemoteClient: remoteClient,
 				Source: source, Destination: destination, StatusEndpoint: utils.Source}
 
@@ -432,7 +432,7 @@ var _ = Describe("Create", func() {
 					),
 				)
 
-				err = remoteHandler.Create(GetDefaultResourceObj())
+				err = remoteHandler.Create(getDefaultResourceObj())
 				Expect(err).NotTo(HaveOccurred())
 
 				delete(utils.ReplicationEnabledNode, repObj)
@@ -443,10 +443,10 @@ var _ = Describe("Create", func() {
 	Context("Update", func() {
 		When("Update event occurs for a replication enabled object", func() {
 			BeforeEach(func() {
-				source := GetHierarchicalSourceConfig()
-				destination := GetNonHierarchicalDestConfig()
+				source := getHierarchicalSourceConfig()
+				destination := getNonHierarchicalDestConfig()
 				remoteHandler = h.NewRemoteHandler(apicollaborationspace, localClient, nil, conf)
-				remoteClient = fake_dynamic.NewSimpleDynamicClient(runtime.NewScheme(), GetObject("update", AcKind, "example"))
+				remoteClient = fake_dynamic.NewSimpleDynamicClient(runtime.NewScheme(), getObject("update", AcKind, "example"))
 				replicationConfigSpec = utils.ReplicationConfigSpec{LocalClient: localClient, RemoteClient: remoteClient, Source: source, Destination: destination}
 
 				utils.GVRToChildren[apicollaborationspace] = utils.Children{
@@ -463,8 +463,8 @@ var _ = Describe("Create", func() {
 				utils.ReplicationEnabledNode[repObj][repConfName] = replicationConfigSpec
 
 				// Update objNew.
-				expectedObj := GetObject("update", AcKind, "NEW_VALUE")
-				err = remoteHandler.Update(expectedObj, GetObject("update", AcKind, "example"))
+				expectedObj := getObject("update", AcKind, "NEW_VALUE")
+				err = remoteHandler.Update(expectedObj, getObject("update", AcKind, "example"))
 				Expect(err).NotTo(HaveOccurred())
 
 				gvr := schema.GroupVersionResource{
@@ -488,16 +488,16 @@ var _ = Describe("Create", func() {
 	})
 
 	It("Should fail if Update Event for object of wrong type is received", func() {
-		err = remoteHandler.Update(GetObject("update", AcKind, "NEW_VALUE"), "wrongtype")
+		err = remoteHandler.Update(getObject("update", AcKind, "NEW_VALUE"), "wrongtype")
 		Expect(err.Error()).To(ContainSubstring("unstructured client did not understand object during update event"))
 	})
 
 	It("Should skip creation if already exists", func() {
-		source := GetNonHierarchicalSourceConfig()
-		destination := GetNonHierarchicalDestConfig()
+		source := getNonHierarchicalSourceConfig()
+		destination := getNonHierarchicalDestConfig()
 		remoteHandler = h.NewRemoteHandler(apicollaborationspace, localClient, nil, conf)
 
-		remoteClient := fake_dynamic.NewSimpleDynamicClient(runtime.NewScheme(), GetObject("C", AcKind, "example"))
+		remoteClient := fake_dynamic.NewSimpleDynamicClient(runtime.NewScheme(), getObject("C", AcKind, "example"))
 		replicationConfigSpec = utils.ReplicationConfigSpec{LocalClient: localClient, RemoteClient: remoteClient, Source: source, Destination: destination}
 
 		repObj := utils.GetReplicationObject(Group, AcKind, "C")
@@ -505,7 +505,7 @@ var _ = Describe("Create", func() {
 		utils.ReplicationEnabledNode[repObj] = make(map[string]utils.ReplicationConfigSpec)
 		utils.ReplicationEnabledNode[repObj][repConfName] = replicationConfigSpec
 
-		err = remoteHandler.Create(GetObject("C", AcKind, "example"))
+		err = remoteHandler.Create(getObject("C", AcKind, "example"))
 		Expect(err).NotTo(HaveOccurred())
 	})
 })

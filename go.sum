@@ -594,10 +594,8 @@ github.com/yuin/goldmark v1.1.32/go.mod h1:3hX8gzYuyVAZsxl0MRgGTJEmQBFcNTphYh9de
 github.com/yuin/goldmark v1.2.1/go.mod h1:3hX8gzYuyVAZsxl0MRgGTJEmQBFcNTphYh9decYSb74=
 github.com/yuin/goldmark v1.3.5/go.mod h1:mwnBkeHKe2W/ZEtQ+71ViKU8L12m81fl3OWwC1Zlc8k=
 github.com/yuin/goldmark v1.4.0/go.mod h1:mwnBkeHKe2W/ZEtQ+71ViKU8L12m81fl3OWwC1Zlc8k=
-gitlab.eng.vmware.com/nsx-allspark_users/m7/handler.git v0.0.0-20220919115337-ec2008a69159 h1:kGVFb/UP5slW+RlldQtFM1j1nTjt7ULn2QFEnchzlso=
-gitlab.eng.vmware.com/nsx-allspark_users/m7/handler.git v0.0.0-20220919115337-ec2008a69159/go.mod h1:tzPDZUaSoNrqUYSnVNtiZZ2/3zhXZ5hP4jrAtWKQyhg=
-gitlab.eng.vmware.com/nsx-allspark_users/m7/handler.git v0.0.0-20220921134325-e2f42a9a9f42 h1:cnav54GkVI3+WzVK8PkeetRHs/2AW3q51bu24TGr3HY=
-gitlab.eng.vmware.com/nsx-allspark_users/m7/handler.git v0.0.0-20220921134325-e2f42a9a9f42/go.mod h1:tzPDZUaSoNrqUYSnVNtiZZ2/3zhXZ5hP4jrAtWKQyhg=
+gitlab.eng.vmware.com/nsx-allspark_users/m7/handler.git v0.0.0-20220926145227-9c71136f31a2 h1:xmPRWD2jrxnk3/Nh/1QVW39jDfncjXP1x28+blZBJDQ=
+gitlab.eng.vmware.com/nsx-allspark_users/m7/handler.git v0.0.0-20220926145227-9c71136f31a2/go.mod h1:tzPDZUaSoNrqUYSnVNtiZZ2/3zhXZ5hP4jrAtWKQyhg=
 gitlab.eng.vmware.com/nsx-allspark_users/m7/policymodel.git v0.0.0-20210824053649-67ceba4ea09e h1:BXSexq81Fcs2Omn9TCSCaqENARcG1ZEPLljzILWZ2NE=
 gitlab.eng.vmware.com/nsx-allspark_users/m7/policymodel.git v0.0.0-20210824053649-67ceba4ea09e/go.mod h1:vW9ngD5+gDOphHCTj19pvxd7i4/pvPGoyDVu7933Zfk=
 go.etcd.io/bbolt v1.3.2/go.mod h1:IbVyRI1SCnLcuJnV2u8VeU0CEYM7e686BmAb1XKL+uU=

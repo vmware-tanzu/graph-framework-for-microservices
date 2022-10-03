@@ -7,7 +7,7 @@ require (
 	github.com/onsi/gomega v1.17.0
 	github.com/sirupsen/logrus v1.8.1
 	github.com/stretchr/testify v1.7.0
-	gitlab.eng.vmware.com/nsx-allspark_users/m7/handler.git v0.0.0-20220921134325-e2f42a9a9f42
+	gitlab.eng.vmware.com/nsx-allspark_users/m7/handler.git v0.0.0-20220926145227-9c71136f31a2
 	gopkg.in/yaml.v2 v2.4.0
 	k8s.io/api v0.24.3
 	k8s.io/apiextensions-apiserver v0.23.0
