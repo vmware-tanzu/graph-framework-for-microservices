@@ -24,7 +24,7 @@ NEXUS_KUBEOPENAPI_VERSION ?= 7416bd4754d3c0dd8b3fa37fff53d36594f11607
 ifeq ($(CONTAINER_ID),)
 define run_in_container
   docker run \
-  --volume $(realpath .):${PKG_NAME} \
+  --volume $(realpath .)/..:/go/src/github.com/vmware-tanzu/graph-framework-for-microservices/ \
   --volume ~/.ssh:/root/.ssh \
   --network=host \
   --workdir ${PKG_NAME} \
@@ -119,7 +119,6 @@ generate_code:
 	@echo "Nexus Compiler: Running compiler code generation"
 	@echo "Cleaning up workdir"
 	rm -rf _generated ${GOPATH}/src/nexustempmodule
-	cp pkg/openapi_generator/openapi/openapi_generated.go /tmp/openapi_generated.go
 	@echo "Copying generated_base_structure to create directory structure"
 	cp -R generated_base_structure _generated
 	@echo "Copying go.mod file of datamodel"
@@ -136,7 +135,7 @@ generate_code:
 	./scripts/generate_openapi_schema.sh
 	@echo "Nexus Compiler: Generating CRD yamls"
 	go run cmd/generate-openapischema/generate-openapischema.go -yamls-path _generated/crds
-	mv /tmp/openapi_generated.go pkg/openapi_generator/openapi/openapi_generated.go
+	git checkout -- pkg/openapi_generator/openapi/openapi_generated.go
 	@echo "Updating module name"
 	./scripts/replace_mod_path.sh
 	find . -name "*.bak" -type f -delete

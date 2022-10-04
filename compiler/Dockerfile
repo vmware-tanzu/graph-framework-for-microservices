@@ -6,7 +6,6 @@ ADD cmd/nexus-openapi-gen /go/bin/nexus-openapi-gen
 
 WORKDIR /go/src/github.com/vmware-tanzu/graph-framework-for-microservices/compiler
 RUN mv .git .gitmodules .. && make init_submodules
-RUN cp -r ../.git .
 
 WORKDIR /go/src/
 RUN mkdir nexustmp && cd nexustmp && go mod init && \
