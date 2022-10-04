@@ -1,4 +1,4 @@
-*.coverprofile
+compiler/**/*.coverprofile
 coverage*.out
 *.test
 

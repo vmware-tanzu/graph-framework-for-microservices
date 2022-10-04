@@ -80,7 +80,7 @@ build_openapigen_in_container:
 
 .PHONY: build_openapigen
 build_openapigen:
-	GOBIN=${PKG_NAME}/cmd go install gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git/cmd/nexus-openapi-gen@${NEXUS_KUBEOPENAPI_VERSION}
+	GOBIN=${PKG_NAME}/cmd go install ./vendor/gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git/cmd/nexus-openapi-gen
 
 .PHONY: unit-test
 unit-test:
