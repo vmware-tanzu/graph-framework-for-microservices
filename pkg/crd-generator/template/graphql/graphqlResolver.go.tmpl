@@ -39,13 +39,13 @@ func getK8sAPIEndpointConfig() *rest.Config {
 	if filePath != "" {
 		config, err := clientcmd.BuildConfigFromFlags("", filePath)
 		if err != nil {
-			return nil
+			return err
 		}
 		return config
 	}
 	config, err := rest.InClusterConfig()
 	if err != nil {
-		return nil
+		return err
 	}
 	return config
 }
@@ -77,12 +77,13 @@ func (c *resolverConfig) getRootResolver() (*model.{{$node.PkgName}}{{$node.Node
 	nc = nexusClient
 	v{{$node.NodeName}}, err := nc.Get{{$node.PkgName}}{{$node.NodeName}}(context.TODO())
 	if err != nil {
-	    log.Errorf("Error getting root node %s", err)
+	    log.Errorf("[getRootResolver]Error getting {{$node.NodeName}} node %s", err)
         return nil, nil
 	}
 	c.v{{$node.PkgName}}{{$node.NodeName}} = v{{$node.NodeName}}
 	{{ $node.Alias }}
 	{{ $node.ReturnType }}
+	log.Debug("[getRootResolver]Output {{$node.NodeName}} object %+v", ret)
 	return ret, nil
 }{{ else }}
 //////////////////////////////////////
@@ -98,22 +99,27 @@ func (c *resolverConfig) getRootResolver(id *string) ([]*model.{{$node.PkgName}}
 	nc = nexusClient
 	var v{{$node.NodeName}}List []*model.{{$node.PkgName}}{{$node.NodeName}}
 	if id != nil && *id != "" {
+	    log.Debugf("[getRootResolver]Id: %q", *id)
 		v{{$node.NodeName}}, err := nc.Get{{$node.PkgName}}{{$node.NodeName}}(context.TODO(), *id)
 		if err != nil {
-			log.Errorf("Error getting root node %s", err)
+			log.Errorf("[getRootResolver]Error getting {{$node.NodeName}} node %q: %s", *id, err)
 			return nil, nil
 		}
 		c.v{{$node.PkgName}}{{$node.NodeName}} = v{{$node.NodeName}}
 		{{ $node.Alias }}
 		{{ $node.ReturnType }}
 		v{{$node.NodeName}}List = append(v{{$node.NodeName}}List, ret)
+		log.Debugf("[getRootResolver]Output {{$node.NodeName}} objects %+v", v{{$node.NodeName}}List)
 		return v{{$node.NodeName}}List, nil
 	}
+
+	log.Debugf("[getRootResolver]Id is empty, process all {{$node.NodeName}}s")
+
 	v{{$node.NodeName}}ListObj, err := nc.{{$node.NodeName}}().List{{$node.GroupResourceNameTitle}}(context.TODO(), metav1.ListOptions{})
 	for _,i := range v{{$node.NodeName}}ListObj{
 		v{{$node.NodeName}}, err := nc.Get{{$node.PkgName}}{{$node.NodeName}}(context.TODO(), i.DisplayName())
 		if err != nil {
-			log.Errorf("Error getting root node %s", err)
+			log.Errorf("[getRootResolver]Error getting {{$node.NodeName}} node %q : %s", i.DisplayName(), err)
 			continue
 		}
 		c.v{{$node.PkgName}}{{$node.NodeName}} = v{{$node.NodeName}}
@@ -121,6 +127,8 @@ func (c *resolverConfig) getRootResolver(id *string) ([]*model.{{$node.PkgName}}
 		{{ $node.ReturnType }}
 		v{{$node.NodeName}}List = append(v{{$node.NodeName}}List, ret)
 	}
+
+	log.Debugf("[getRootResolver]Output {{$node.NodeName}} objects %v", v{{$node.NodeName}}List)
 	return v{{$node.NodeName}}List, nil
 }
 {{ end }}{{end}}
@@ -136,7 +144,8 @@ func (c *resolverConfig) get{{$node.PkgName}}{{$node.NodeName}}queryServiceTable
 	filters[""] = ""
 	resp, err := grpcServer().GetMetrics(ctx, &qm.MetricArg{QueryType: "/ServiceTable", StartTime: *startTime, EndTime: *endTime, Metric: "", Filters: filters,TimeInterval: ""})
 	if err != nil {
-		fmt.Printf("Failed to getMetrics, err: %v", err)
+		log.Errorf("[get{{$node.PkgName}}{{$node.NodeName}}queryServiceTableResolver]Failed to get metrics, err: %v", err)
+		return &model.TimeSeriesData, nil
 	}
 	b, _ := json.Marshal(resp.Data)
 	data := string(b)
@@ -153,7 +162,8 @@ func (c *resolverConfig) get{{$node.PkgName}}{{$node.NodeName}}queryServiceVersi
 	filters[""] = ""
 	resp, err := grpcServer().GetMetrics(ctx, &qm.MetricArg{QueryType: "/ServiceTable", StartTime: *startTime, EndTime: *endTime, Metric: "", Filters: filters,TimeInterval: ""})
 	if err != nil {
-		fmt.Printf("Failed to getMetrics, err: %v", err)
+	   log.Errorf("[get{{$node.PkgName}}{{$node.NodeName}}queryServiceVersionTableResolver]Failed to get metrics, err: %v", err)
+	   return &model.TimeSeriesData, nil
 	}
 	b, _ := json.Marshal(resp.Data)
 	data := string(b)
@@ -170,7 +180,8 @@ func (c *resolverConfig) get{{$node.PkgName}}{{$node.NodeName}}queryServiceTSRes
 	filters[""] = ""
 	resp, err := grpcServer().GetMetrics(ctx, &qm.MetricArg{QueryType: "/ServiceMetricSeries", StartTime: *startTime, EndTime: *endTime, Metric: *svcMetric, Filters: filters,TimeInterval: *timeInterval})
 	if err != nil {
-		fmt.Printf("Failed to getMetrics, err: %v", err)
+		log.Errorf("[get{{$node.PkgName}}{{$node.NodeName}}queryServiceTSResolver]Failed to get metrics, err: %v", err)
+		return &model.TimeSeriesData, nil
 	}
 	b, _ := json.Marshal(resp.Data)
 	data := string(b)
@@ -187,7 +198,8 @@ func (c *resolverConfig) get{{$node.PkgName}}{{$node.NodeName}}queryIncomingAPIs
 	filters[""] = ""
 	resp, err := grpcServer().GetMetrics(ctx, &qm.MetricArg{QueryType: "/IncomingAPIs", StartTime: *startTime, EndTime: *endTime, Metric: "", Filters: filters,TimeInterval: *timeInterval})
 	if err != nil {
-		fmt.Printf("Failed to getMetrics, err: %v", err)
+        log.Errorf("[get{{$node.PkgName}}{{$node.NodeName}}queryIncomingAPIsResolver]Failed to get metrics, err: %v", err)
+        return &model.TimeSeriesData, nil
 	}
 	b, _ := json.Marshal(resp.Data)
 	data := string(b)
@@ -204,7 +216,8 @@ func (c *resolverConfig) get{{$node.PkgName}}{{$node.NodeName}}queryOutgoingAPIs
 	filters[""] = ""
 	resp, err := grpcServer().GetMetrics(ctx, &qm.MetricArg{QueryType: "/OutgoingAPIs", StartTime: *startTime, EndTime: *endTime, Metric: "", Filters: filters,TimeInterval: *timeInterval})
 	if err != nil {
-		fmt.Printf("Failed to getMetrics, err: %v", err)
+		log.Errof("[get{{$node.PkgName}}{{$node.NodeName}}queryOutgoingAPIsResolver]Failed to get metrics, err: %v", err)
+		return &model.TimeSeriesData{}, nil
 	}
 	b, _ := json.Marshal(resp.Data)
 	data := string(b)
@@ -221,7 +234,8 @@ func (c *resolverConfig) get{{$node.PkgName}}{{$node.NodeName}}queryIncomingTCPR
 	filters[""] = ""
 	resp, err := grpcServer().GetMetrics(ctx, &qm.MetricArg{QueryType: "/IncomingTCP", StartTime: *startTime, EndTime: *endTime, Metric: "", Filters: filters,TimeInterval: ""})
 	if err != nil {
-		fmt.Printf("Failed to getMetrics, err: %v", err)
+		log.Errorf("[get{{$node.PkgName}}{{$node.NodeName}}queryIncomingTCPResolver]Failed to get metrics, err: %v", err)
+		return &model.TimeSeriesData{}, nil
 	}
 	b, _ := json.Marshal(resp.Data)
 	data := string(b)
@@ -238,7 +252,8 @@ func (c *resolverConfig) get{{$node.PkgName}}{{$node.NodeName}}queryOutgoingTCPR
 	filters[""] = ""
 	resp, err := grpcServer().GetMetrics(ctx, &qm.MetricArg{QueryType: "/OutgoingTCP", StartTime: *startTime, EndTime: *endTime, Metric: "", Filters: filters,TimeInterval: ""})
 	if err != nil {
-		fmt.Printf("Failed to getMetrics, err: %v", err)
+		log.Errorf("[get{{$node.PkgName}}{{$node.NodeName}}queryOutgoingTCPResolver]Failed to get metrics, err: %v", err)
+		return &model.TimeSeriesData{}, nil
 	}
 	b, _ := json.Marshal(resp.Data)
 	data := string(b)
@@ -255,7 +270,8 @@ func (c *resolverConfig) get{{$node.PkgName}}{{$node.NodeName}}queryServiceTopol
 	filters[""] = ""
 	resp, err := grpcServer().GetMetrics(ctx, &qm.MetricArg{QueryType: "/ServiceTopology", StartTime: *startTime, EndTime: *endTime, Metric: *metricStringArray, Filters: filters,TimeInterval: ""})
 	if err != nil {
-		fmt.Printf("Failed to getMetrics, err: %v", err)
+		log.Errorf("[get{{$node.PkgName}}{{$node.NodeName}}queryServiceTopologyResolver]Failed to get metrics, err: %v", err)
+		return &model.TimeSeriesData{}, nil
 	}
 	b, _ := json.Marshal(resp.Data)
 	data := string(b)
@@ -277,9 +293,10 @@ func (c *resolverConfig) get{{$node.PkgName}}{{$node.NodeName}}{{$query.Name}}(o
 // FieldName: {{$child.FieldName}} Node: {{$child.NodeName}} PKG: {{$child.PkgName}}
 //////////////////////////////////////
 func (c *resolverConfig) get{{$child.PkgName}}{{$child.NodeName}}{{$child.FieldName}}Resolver(obj *model.{{$child.PkgName}}{{$child.NodeName}}) (*model.{{$child.FieldTypePkgPath}}, error) {
+	log.Debugf("[get{{$child.PkgName}}{{$child.NodeName}}{{$child.FieldName}}Resolver]Parent Object %+v", obj)
 	v{{$child.BaseTypeName}}, err := {{$child.ChainAPI}}.Get{{$child.FieldName}}(context.TODO())
 	if err != nil {
-	    log.Errorf("Error getting node %s", err)
+	    log.Errorf("[get{{$child.PkgName}}{{$child.NodeName}}{{$child.FieldName}}Resolver]Error getting {{$child.NodeName}} node %s", err)
         return &model.{{$child.FieldTypePkgPath}}{}, nil
     }
 	c.v{{$child.FieldTypePkgPath}} = v{{$child.BaseTypeName}}
@@ -288,6 +305,8 @@ func (c *resolverConfig) get{{$child.PkgName}}{{$child.NodeName}}{{$child.FieldN
         parentLabels[k] = v
     }
 	{{ $child.ReturnType }}
+
+    log.Debugf("[get{{$child.PkgName}}{{$child.NodeName}}{{$child.FieldName}}Resolver]Output object %+v", ret)
 	return ret, nil
 }{{ else }}
 //////////////////////////////////////
@@ -295,10 +314,12 @@ func (c *resolverConfig) get{{$child.PkgName}}{{$child.NodeName}}{{$child.FieldN
 // FieldName: {{$child.FieldName}} Node: {{$child.NodeName}} PKG: {{$child.PkgName}}
 //////////////////////////////////////
 func (c *resolverConfig) get{{$child.PkgName}}{{$child.NodeName}}{{$child.FieldName}}Resolver(obj *model.{{$child.PkgName}}{{$child.NodeName}}, id *string) (*model.{{$child.FieldTypePkgPath}}, error) {
+	log.Debugf("[get{{$child.PkgName}}{{$child.NodeName}}{{$child.FieldName}}Resolver]Parent Object %+v", obj)
 	if id != nil && *id != "" {
+	     log.Debugf("[get{{$child.PkgName}}{{$child.NodeName}}{{$child.FieldName}}Resolver]Id %q", *id)
 		v{{$child.BaseTypeName}}, err := {{$child.ChainAPI}}.Get{{$child.FieldName}}(context.TODO(), *id)
 		if err != nil {
-			log.Errorf("Error getting node %s", err)
+			log.Errorf("[get{{$child.PkgName}}{{$child.NodeName}}{{$child.FieldName}}Resolver]Error getting {{$child.FieldName}} node %q : %s", *id, err)
 			return &model.{{$child.FieldTypePkgPath}}{}, nil
 		}
 		c.v{{$child.FieldTypePkgPath}} = v{{$child.BaseTypeName}}
@@ -307,16 +328,19 @@ func (c *resolverConfig) get{{$child.PkgName}}{{$child.NodeName}}{{$child.FieldN
 			parentLabels[k] = v
 		}
 		{{ $child.ReturnType }}
+
+		log.Debugf("[get{{$child.PkgName}}{{$child.NodeName}}{{$child.FieldName}}Resolver]Output object %v", ret)
 		return ret, nil
 	}
+	log.Debug("[get{{$child.PkgName}}{{$child.NodeName}}{{$child.FieldName}}Resolver]Id is empty, process all {{$child.FieldName}}s")
 	v{{$child.BaseTypeName}}Parent, err := {{$child.LinkAPI}}
 	if err != nil {
-	    log.Errorf("Error getting Parent node details %s", err)
+	    log.Errorf("[get{{$child.PkgName}}{{$child.NodeName}}{{$child.FieldName}}Resolver]Failed to get parent node %s", err)
         return &model.{{$child.FieldTypePkgPath}}{}, nil
     }
 	v{{$child.BaseTypeName}}, err := v{{$child.BaseTypeName}}Parent.Get{{$child.FieldName}}(context.TODO())
 	if err != nil {
-	    log.Errorf("Error getting node %s", err)
+	    log.Errorf("[get{{$child.PkgName}}{{$child.NodeName}}{{$child.FieldName}}Resolver]Error getting {{$child.FieldName}} node %s", err)
         return &model.{{$child.FieldTypePkgPath}}{}, nil
     }
 	c.v{{$child.FieldTypePkgPath}} = v{{$child.BaseTypeName}}
@@ -325,6 +349,9 @@ func (c *resolverConfig) get{{$child.PkgName}}{{$child.NodeName}}{{$child.FieldN
         parentLabels[k] = v
     }
 	{{ $child.ReturnType }}
+
+	log.Debugf("[get{{$child.PkgName}}{{$child.NodeName}}{{$child.FieldName}}Resolver]Output object %v", ret)
+
 	return ret, nil
 }{{ end }}{{ end }}
 {{ range $key, $link := $node.LinkFields }}
@@ -333,14 +360,15 @@ func (c *resolverConfig) get{{$child.PkgName}}{{$child.NodeName}}{{$child.FieldN
 // FieldName: {{$link.FieldName}} Node: {{$link.NodeName}} PKG: {{$link.PkgName}}
 //////////////////////////////////////
 func (c *resolverConfig) get{{$link.PkgName}}{{$link.NodeName}}{{$link.FieldName}}Resolver(obj *model.{{$link.PkgName}}{{$link.NodeName}}) (*model.{{$link.FieldTypePkgPath}}, error) {
+    log.Debugf("[get{{$link.PkgName}}{{$link.NodeName}}{{$link.FieldName}}Resolver]Parent Object %+v", obj)
 	v{{$link.BaseTypeName}}Parent, err := {{$link.LinkAPI}}
 	if err != nil {
-	    log.Errorf("Error getting Parent node details %s", err)
+	    log.Errorf("[get{{$link.PkgName}}{{$link.NodeName}}{{$link.FieldName}}Resolver]Error getting parent node %s", err)
         return &model.{{$link.FieldTypePkgPath}}{}, nil
     }
 	v{{$link.BaseTypeName}}, err := v{{$link.BaseTypeName}}Parent.Get{{$link.FieldName}}(context.TODO())
 	if err != nil {
-	    log.Errorf("Error getting node %s", err)
+		log.Errorf("[get{{$link.PkgName}}{{$link.NodeName}}{{$link.FieldName}}Resolver]Error getting {{$link.FieldName}} object %s", err)
         return &model.{{$link.FieldTypePkgPath}}{}, nil
     }
 	c.v{{$link.FieldTypePkgPath}} = v{{$link.BaseTypeName}}
@@ -349,6 +377,8 @@ func (c *resolverConfig) get{{$link.PkgName}}{{$link.NodeName}}{{$link.FieldName
         parentLabels[k] = v
     }
 	{{ $link.ReturnType }}
+	log.Debugf("[get{{$link.PkgName}}{{$link.NodeName}}{{$link.FieldName}}Resolver]Output object %v", ret)
+
 	return ret, nil
 }{{ end }}
 {{ range $key, $children := $node.ChildrenFields }}
@@ -357,11 +387,13 @@ func (c *resolverConfig) get{{$link.PkgName}}{{$link.NodeName}}{{$link.FieldName
 // FieldName: {{$children.FieldName}} Node: {{$children.NodeName}} PKG: {{$children.PkgName}}
 //////////////////////////////////////
 func (c *resolverConfig) get{{$children.PkgName}}{{$children.NodeName}}{{$children.FieldName}}Resolver(obj *model.{{$children.PkgName}}{{$children.NodeName}}, id *string) ([]*model.{{$children.FieldTypePkgPath}}, error) {
+	log.Debugf("[get{{$children.PkgName}}{{$children.NodeName}}{{$children.FieldName}}Resolver]Parent Object %+v", obj)
 	var v{{$children.FieldTypePkgPath}}List []*model.{{$children.FieldTypePkgPath}}
 	if id != nil && *id != "" {
+		log.Debugf("[get{{$children.PkgName}}{{$children.NodeName}}{{$children.FieldName}}Resolver]Id %q", *id)
 		{{ if $children.IsSingleton }}v{{$children.BaseTypeName}}, err := {{$children.ChainAPI}}.Get{{$children.FieldName}}(context.TODO()){{ else }}v{{$children.BaseTypeName}}, err := {{$children.ChainAPI}}.Get{{$children.FieldName}}(context.TODO(), *id){{ end }}
 		if err != nil {
-	        log.Errorf("Error getting node %s", err)
+			log.Errorf("[get{{$children.PkgName}}{{$children.NodeName}}{{$children.FieldName}}Resolver]Error getting {{$children.FieldName}} node %q : %s", *id, err)
             return v{{$children.FieldTypePkgPath}}List, nil
         }
 		{{ $children.Alias }}
@@ -370,31 +402,40 @@ func (c *resolverConfig) get{{$children.PkgName}}{{$children.NodeName}}{{$childr
         }
 		{{ $children.ReturnType }}
 		v{{$children.FieldTypePkgPath}}List = append(v{{$children.FieldTypePkgPath}}List, ret)
+
+		log.Debugf("[get{{$children.PkgName}}{{$children.NodeName}}{{$children.FieldName}}Resolver]Output {{$children.FieldName}} objects %v", v{{$children.FieldTypePkgPath}}List)
+
 		return v{{$children.FieldTypePkgPath}}List, nil
 	}
+
+	log.Debug("[get{{$children.PkgName}}{{$children.NodeName}}{{$children.FieldName}}Resolver]Id is empty, process all {{$children.FieldName}}s")
+
 	v{{$children.BaseTypeName}}Parent, err := {{$children.LinkAPI}}
 	if err != nil {
-	    log.Errorf("Error getting Parent node details %s", err)
+	    log.Errorf("[get{{$children.PkgName}}{{$children.NodeName}}{{$children.FieldName}}Resolver]Error getting parent node %s", err)
         return v{{$children.FieldTypePkgPath}}List, nil
     }
 	v{{$children.BaseTypeName}}AllObj, err := v{{$children.BaseTypeName}}Parent.GetAll{{$children.FieldName}}(context.TODO())
 	if err != nil {
-	    log.Errorf("Error getting node %s", err)
+	    log.Errorf("[get{{$children.PkgName}}{{$children.NodeName}}{{$children.FieldName}}Resolver]Error getting {{$children.FieldName}} objects %s", err)
         return v{{$children.FieldTypePkgPath}}List, nil
     }
 	for _, i := range v{{$children.BaseTypeName}}AllObj {
 		{{ if $children.IsSingleton }}v{{$children.BaseTypeName}}, err := {{$children.ChainAPI}}.Get{{$children.FieldName}}(context.TODO()){{ else }}v{{$children.BaseTypeName}}, err := {{$children.ChainAPI}}.Get{{$children.FieldName}}(context.TODO(), i.DisplayName()){{ end }}
 		if err != nil {
-	        log.Errorf("Error getting node %s", err)
+	        log.Errorf("[get{{$children.PkgName}}{{$children.NodeName}}{{$children.FieldName}}Resolver]Error getting {{$children.FieldName}} node %q : %s", i.DisplayName(), err)
             continue
 		}
 		{{ $children.Alias }}
-		 for k, v := range obj.ParentLabels {
-             parentLabels[k] = v
-         }
+		for k, v := range obj.ParentLabels {
+            parentLabels[k] = v
+        }
 		{{ $children.ReturnType }}
 		v{{$children.FieldTypePkgPath}}List = append(v{{$children.FieldTypePkgPath}}List, ret)
 	}
+
+	log.Debugf("[get{{$children.PkgName}}{{$children.NodeName}}{{$children.FieldName}}Resolver]Output {{$children.FieldName}} objects %v", v{{$children.FieldTypePkgPath}}List)
+
 	return v{{$children.FieldTypePkgPath}}List, nil
 }{{ end }}
 {{ range $key, $links := $node.LinksFields }}
@@ -403,16 +444,18 @@ func (c *resolverConfig) get{{$children.PkgName}}{{$children.NodeName}}{{$childr
 // FieldName: {{$links.FieldName}} Node: {{$links.NodeName}} PKG: {{$links.PkgName}}
 //////////////////////////////////////
 func (c *resolverConfig) get{{$links.PkgName}}{{$links.NodeName}}{{$links.FieldName}}Resolver(obj *model.{{$links.PkgName}}{{$links.NodeName}}, id *string) ([]*model.{{$links.FieldTypePkgPath}}, error) {
+	log.Debugf("[get{{$links.PkgName}}{{$links.NodeName}}{{$links.FieldName}}Resolver]Parent Object %+v", obj)
 	var v{{$links.FieldTypePkgPath}}List []*model.{{$links.FieldTypePkgPath}}
 	if id != nil && *id != "" {
+		log.Debugf("[get{{$links.PkgName}}{{$links.NodeName}}{{$links.FieldName}}Resolver]Id %q", *id)
 		v{{$links.BaseTypeName}}Parent, err := {{$links.LinkAPI}}
 		if err != nil {
-			log.Errorf("Error getting Parent node details %s", err)
+			log.Errorf("[get{{$links.PkgName}}{{$links.NodeName}}{{$links.FieldName}}Resolver]Error getting {{$links.FieldName}} %q : %s", *id, err)
 			return v{{$links.FieldTypePkgPath}}List, nil
 		}
 		v{{$links.BaseTypeName}}, err := v{{$links.BaseTypeName}}Parent.Get{{$links.FieldName}}(context.TODO(), *id)
 		if err != nil {
-			log.Errorf("Error getting node %s", err)
+			log.Errorf("[get{{$links.PkgName}}{{$links.NodeName}}{{$links.FieldName}}Resolver]Error getting {{$links.FieldName}} %q : %s", *id, err)
 			return v{{$links.FieldTypePkgPath}}List, nil
 		}
 		{{ $links.Alias }}
@@ -421,35 +464,42 @@ func (c *resolverConfig) get{{$links.PkgName}}{{$links.NodeName}}{{$links.FieldN
         }
 		{{ $links.ReturnType }}
 		v{{$links.FieldTypePkgPath}}List = append(v{{$links.FieldTypePkgPath}}List, ret)
+
+		log.Debugf("[get{{$links.PkgName}}{{$links.NodeName}}{{$links.FieldName}}Resolver]Output {{$links.FieldName}} objects %v", v{{$links.FieldTypePkgPath}}List)
+
 		return v{{$links.FieldTypePkgPath}}List, nil
 	}
+
+	log.Debug("[get{{$links.PkgName}}{{$links.NodeName}}{{$links.FieldName}}Resolver]Id is empty, process all {{$links.FieldName}}s")
+
 	v{{$links.BaseTypeName}}Parent, err := {{$links.LinkAPI}}
 	if err != nil {
-	    log.Errorf("Error getting Parent node details %s", err)
+	    log.Errorf("[get{{$links.PkgName}}{{$links.NodeName}}{{$links.FieldName}}Resolver]Error getting parent node %s", err)
         return v{{$links.FieldTypePkgPath}}List, nil
     }
 	v{{$links.BaseTypeName}}AllObj, err := v{{$links.BaseTypeName}}Parent.GetAll{{$links.FieldName}}(context.TODO())
 	if err != nil {
-	    log.Errorf("Error getting node %s", err)
+	    log.Errorf("[get{{$links.PkgName}}{{$links.NodeName}}{{$links.FieldName}}Resolver]Error getting {{$links.FieldName}} %s", err)
         return v{{$links.FieldTypePkgPath}}List, nil
     }
 	for _, i := range v{{$links.BaseTypeName}}AllObj {
 		v{{$links.BaseTypeName}}Parent, err := {{$links.LinkAPI}}
 		if err != nil {
-			log.Errorf("Error getting Parent node details %s", err)
+			log.Errorf("[get{{$links.PkgName}}{{$links.NodeName}}{{$links.FieldName}}Resolver]Error getting parent node %s, skipping...", err)
             continue
 		}
 		v{{$links.BaseTypeName}}, err := v{{$links.BaseTypeName}}Parent.Get{{$links.FieldName}}(context.TODO(), i.DisplayName())
 		if err != nil {
-			log.Errorf("Error getting node %s", err)
+	        log.Errorf("[get{{$links.PkgName}}{{$links.NodeName}}{{$links.FieldName}}Resolver]Error getting {{$links.FieldName}} node %q : %s, skipping...", i.DisplayName(), err)
 			continue
 		}
 		{{ $links.Alias }}
-		 for k, v := range obj.ParentLabels {
-             parentLabels[k] = v
-         }
+		for k, v := range obj.ParentLabels {
+            parentLabels[k] = v
+        }
 		{{ $links.ReturnType }}
 		v{{$links.FieldTypePkgPath}}List = append(v{{$links.FieldTypePkgPath}}List, ret)
 	}
+	log.Debugf("[get{{$links.PkgName}}{{$links.NodeName}}{{$links.FieldName}}Resolver]List of {{$links.FieldName}} object %v", v{{$links.FieldTypePkgPath}}List)
 	return v{{$links.FieldTypePkgPath}}List, nil
 }{{ end }}{{ end }}

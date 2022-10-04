@@ -79,8 +79,8 @@ type AdditionalPolicyDataList struct {
 type AccessControlPolicy struct {
 	metav1.TypeMeta   `json:",inline" yaml:",inline"`
 	metav1.ObjectMeta `json:"metadata" yaml:"metadata"`
-
-	Status AccessControlPolicyNexusStatus `json:"status,omitempty" yaml:"status,omitempty"`
+	Spec              AccessControlPolicySpec        `json:"spec,omitempty" yaml:"spec,omitempty"`
+	Status            AccessControlPolicyNexusStatus `json:"status,omitempty" yaml:"status,omitempty"`
 }
 
 // +k8s:openapi-gen=true
@@ -97,6 +97,11 @@ func (c *AccessControlPolicy) DisplayName() string {
 		return c.GetLabels()[common.DISPLAY_NAME_LABEL]
 	}
 	return ""
+}
+
+// +k8s:openapi-gen=true
+type AccessControlPolicySpec struct {
+	PolicyConfigsGvk map[string]Child `json:"policyConfigsGvk,omitempty" yaml:"policyConfigsGvk,omitempty" nexus:"child"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
@@ -143,6 +148,7 @@ type ACPConfigSpec struct {
 	Tags               []string        `json:"tags" yaml:"tags"`
 	ProjectId          string          `json:"projectId" yaml:"projectId"`
 	Conditions         []string        `json:"conditions" yaml:"conditions"`
+	DestSvcGroupsGvk   map[string]Link `json:"destSvcGroupsGvk,omitempty" yaml:"destSvcGroupsGvk,omitempty" nexus:"link"`
 	SourceSvcGroupsGvk map[string]Link `json:"sourceSvcGroupsGvk,omitempty" yaml:"sourceSvcGroupsGvk,omitempty" nexus:"links"`
 }
 

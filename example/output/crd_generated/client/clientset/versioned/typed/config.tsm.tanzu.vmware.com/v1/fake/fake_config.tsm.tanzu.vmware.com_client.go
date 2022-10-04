@@ -19,7 +19,7 @@ limitations under the License.
 package fake
 
 import (
-	v1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/crd_generated/client/clientset/versioned/typed/config.tsm.tanzu.vmware.com/v1"
+	v1 "nexustempmodule/client/clientset/versioned/typed/config.tsm.tanzu.vmware.com/v1"
 
 	rest "k8s.io/client-go/rest"
 	testing "k8s.io/client-go/testing"
@@ -31,6 +31,14 @@ type FakeConfigTsmV1 struct {
 
 func (c *FakeConfigTsmV1) Configs() v1.ConfigInterface {
 	return &FakeConfigs{c}
+}
+
+func (c *FakeConfigTsmV1) Domains() v1.DomainInterface {
+	return &FakeDomains{c}
+}
+
+func (c *FakeConfigTsmV1) FooTypes() v1.FooTypeInterface {
+	return &FakeFooTypes{c}
 }
 
 // RESTClient returns a RESTClient that is used to communicate

@@ -6,14 +6,12 @@ import (
 )
 
 type Root struct {
-	nexus.Node
-	DisplayName string
-	Config      config.Config `nexus:"child"`
-	CustomBar   Bar
+	nexus.SingletonNode
+	Config config.Config `nexus:"child"`
 }
 
-type Bar struct {
-	Name string
+type NonNexusType struct {
+	Test int
 }
 
 type queryFilters struct {

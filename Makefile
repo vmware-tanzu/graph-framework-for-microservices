@@ -90,7 +90,6 @@ unit-test:
 .PHONY: race-unit-test
 race-unit-test:
 	ginkgo -race -cover ./pkg/...
-	cd example/tests && ginkgo -race -cover ./...
 
 .PHONY: test-fmt
 test-fmt:
@@ -108,7 +107,7 @@ coverage:
 	go test -json -coverprofile=coverage.out -coverpkg=./... ./... | tee report.json ;
 
 .PHONY: test
-test: test-fmt vet lint
+test: test-fmt vet lint race-unit-test
 
 .PHONY: test_in_container
 test_in_container: ${BUILDER_NAME}\:${BUILDER_TAG}.image.exists

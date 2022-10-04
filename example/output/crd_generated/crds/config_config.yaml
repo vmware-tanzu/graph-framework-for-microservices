@@ -4,7 +4,7 @@ kind: CustomResourceDefinition
 metadata:
   annotations:
     nexus: |
-      {"name":"config.Config","hierarchy":["roots.root.tsm.tanzu.vmware.com"],"children":{"gnses.gns.tsm.tanzu.vmware.com":{"fieldName":"GNS","fieldNameGvk":"gNSGvk","isNamed":false}},"is_singleton":true,"nexus-rest-api-gen":{"uris":null}}
+      {"name":"config.Config","hierarchy":["roots.root.tsm.tanzu.vmware.com"],"children":{"dnses.gns.tsm.tanzu.vmware.com":{"fieldName":"DNS","fieldNameGvk":"dNSGvk","isNamed":false},"domains.config.tsm.tanzu.vmware.com":{"fieldName":"Domain","fieldNameGvk":"domainGvk","isNamed":false},"footypes.config.tsm.tanzu.vmware.com":{"fieldName":"FooExample","fieldNameGvk":"fooExampleGvk","isNamed":true},"gnses.gns.tsm.tanzu.vmware.com":{"fieldName":"GNS","fieldNameGvk":"gNSGvk","isNamed":false},"vmpolicies.policypkg.tsm.tanzu.vmware.com":{"fieldName":"VMPPolicies","fieldNameGvk":"vMPPoliciesGvk","isNamed":false}},"links":{"ACPPolicies":{"fieldName":"ACPPolicies","fieldNameGvk":"aCPPoliciesGvk","isNamed":true}},"is_singleton":false,"nexus-rest-api-gen":{"uris":null}}
   creationTimestamp: null
   name: configs.config.tsm.tanzu.vmware.com
 spec:
@@ -38,40 +38,93 @@ spec:
             type: object
           spec:
             properties:
-              FooC:
-                format: byte
-                type: integer
-              FooD:
-                format: float
-                type: number
               aBCHost:
                 items:
                   type: string
                 type: array
-              cluster:
+              aCPPoliciesGvk:
+                additionalProperties:
+                  properties:
+                    group:
+                      type: string
+                    kind:
+                      type: string
+                    name:
+                      type: string
+                  required:
+                  - group
+                  - kind
+                  - name
+                  type: object
+                type: object
+              clusterNamespaces:
+                items:
+                  properties:
+                    Cluster:
+                      properties:
+                        Name:
+                          type: string
+                        Type:
+                          type: string
+                      required:
+                      - Name
+                      - Type
+                      type: object
+                    Namespace:
+                      properties:
+                        Name:
+                          type: string
+                        Type:
+                          type: string
+                      required:
+                      - Name
+                      - Type
+                      type: object
+                  required:
+                  - Cluster
+                  - Namespace
+                  type: object
+                type: array
+              dNSGvk:
                 properties:
-                  MyID:
-                    format: int32
-                    type: integer
-                  Name:
+                  group:
+                    type: string
+                  kind:
+                    type: string
+                  name:
                     type: string
                 required:
-                - Name
-                - MyID
+                - group
+                - kind
+                - name
                 type: object
-              configName:
-                type: string
-              fooA:
-                additionalProperties:
-                  type: string
+              domainGvk:
+                properties:
+                  group:
+                    type: string
+                  kind:
+                    type: string
+                  name:
+                    type: string
+                required:
+                - group
+                - kind
+                - name
                 type: object
-              fooB:
-                items:
-                  type: string
-                type: array
-              fooMap:
+              fooExampleGvk:
                 additionalProperties:
-                  type: string
+                  properties:
+                    group:
+                      type: string
+                    kind:
+                      type: string
+                    name:
+                      type: string
+                  required:
+                  - group
+                  - kind
+                  - name
+                  type: object
                 type: object
               gNSGvk:
                 properties:
@@ -86,73 +139,65 @@ spec:
                 - kind
                 - name
                 type: object
-              mapOfArrsPoints:
-                additionalProperties:
-                  items:
-                    type: string
-                  type: array
-                type: object
-              pointInt:
-                format: int32
-                type: integer
-              pointMap:
-                additionalProperties:
-                  type: string
-                type: object
-              pointPort:
-                format: int32
-                type: integer
-              pointSlice:
+              myStr0:
+                type: string
+              myStr1:
                 items:
                   type: string
                 type: array
-              pointString:
-                type: string
-              pointStruct:
+              myStr2:
+                additionalProperties:
+                  type: string
+                type: object
+              testValMarkers:
                 properties:
-                  MyID:
+                  myInt:
+                    exclusiveMaximum: true
                     format: int32
+                    maximum: 8
+                    minimum: 2
                     type: integer
-                  Name:
+                  mySlice:
+                    items:
+                      type: string
+                    maxItems: 3
+                    minItems: 2
+                    type: array
+                    uniqueItems: true
+                  myStr:
+                    maxLength: 8
+                    minLength: 2
+                    pattern: ab
                     type: string
                 required:
-                - Name
-                - MyID
+                - myStr
+                - myInt
+                - mySlice
                 type: object
-              sliceOfArrPoints:
-                items:
-                  items:
+              vMPPoliciesGvk:
+                properties:
+                  group:
                     type: string
-                  type: array
-                type: array
-              sliceOfPoints:
-                items:
-                  type: string
-                type: array
+                  kind:
+                    type: string
+                  name:
+                    type: string
+                required:
+                - group
+                - kind
+                - name
+                type: object
               xYZPort:
-                items:
-                  format: int32
-                  type: integer
-                type: array
+                format: int32
+                type: integer
             required:
-            - configName
-            - cluster
-            - fooA
-            - fooMap
-            - fooB
-            - FooC
-            - FooD
+            - myStr0
+            - myStr1
+            - myStr2
             - xYZPort
             - aBCHost
-            - pointPort
-            - pointString
-            - pointInt
-            - pointMap
-            - pointSlice
-            - sliceOfPoints
-            - sliceOfArrPoints
-            - mapOfArrsPoints
-            - pointStruct
+            - clusterNamespaces
+            - testValMarkers
             type: object
           status:
             properties:

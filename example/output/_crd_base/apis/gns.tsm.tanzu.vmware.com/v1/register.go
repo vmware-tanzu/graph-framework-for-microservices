@@ -37,18 +37,16 @@ var (
 func addKnownTypes(scheme *runtime.Scheme) error {
 	scheme.AddKnownTypes(
 		SchemeGroupVersion,
+		&RandomGnsData{},
+		&RandomGnsDataList{},
 		&Gns{},
 		&GnsList{},
 		&BarLink{},
 		&BarLinkList{},
-		&BarChild{},
-		&BarChildList{},
-		&BarChildren{},
-		&BarChildrenList{},
-		&BarLinks{},
-		&BarLinksList{},
-		&ABCLink{},
-		&ABCLinkList{},
+		&Dns{},
+		&DnsList{},
+		&AdditionalGnsData{},
+		&AdditionalGnsDataList{},
 	)
 
 	// register the type in the scheme

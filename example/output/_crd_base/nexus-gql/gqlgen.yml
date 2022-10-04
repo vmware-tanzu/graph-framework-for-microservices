@@ -38,23 +38,42 @@ models:
 
   config_Config:
     fields:
+      ACPPolicies:
+        resolver: true
+
+      FooExample:
+        resolver: true
+
       GNS:
+        resolver: true
+
+      DNS:
+        resolver: true
+
+      VMPPolicies:
+        resolver: true
+
+      Domain:
         resolver: true
 
   gns_Gns:
     fields:
-      FooLink:
+      GnsServiceGroups:
         resolver: true
 
-      FooLinks:
+      GnsAccessControlPolicy:
         resolver: true
 
-      FooChildren:
+  policy_AccessControlPolicy:
+    fields:
+      PolicyConfigs:
         resolver: true
 
-      TestABCLink:
+  policy_ACPConfig:
+    fields:
+      DestSvcGroups:
         resolver: true
 
-      FooChild:
+      SourceSvcGroups:
         resolver: true
 
