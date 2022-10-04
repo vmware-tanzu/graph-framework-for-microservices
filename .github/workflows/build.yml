@@ -2,7 +2,7 @@ name: Build Compiler image
 on:
   push:
     paths:
-      - compiler/
+      - compiler/*
   pull_request:
     branches: [ main ]
 jobs:
