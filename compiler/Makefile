@@ -207,9 +207,11 @@ docker.gitlab_credentials:
 	@if test -z $$CICD_TOKEN; then\
 		echo "Using ssh authentication" && \
         git config --global --add url."git@gitlab.eng.vmware.com:".insteadOf "https://gitlab.eng.vmware.com/"; \
+		ssh-keyscan github.com >> ~/.ssh/known_hosts ;\
 	else \
 		echo "Using https authentication" && \
         git config --global credential.helper store && \
         echo -e  "https://gitlab-ci-token:${CICD_TOKEN}@gitlab.eng.vmware.com/" >> ~/.git-credentials && \
         git config --global url."https://gitlab.eng.vmware.com/".insteadOf "git@gitlab.eng.vmware.com:"; \
+		ssh-keyscan github.com >> ~/.ssh/known_hosts ;\
 	fi
