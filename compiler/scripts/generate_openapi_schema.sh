@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -e
+set -ex
 
 pushd _generated
 nexus-openapi-gen \

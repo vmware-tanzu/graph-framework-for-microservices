@@ -119,6 +119,7 @@ generate_code:
 	@echo "Nexus Compiler: Running compiler code generation"
 	@echo "Cleaning up workdir"
 	rm -rf _generated ${GOPATH}/src/nexustempmodule
+	cp pkg/openapi_generator/openapi/openapi_generated.go /tmp/openapi_generated.go
 	@echo "Copying generated_base_structure to create directory structure"
 	cp -R generated_base_structure _generated
 	@echo "Copying go.mod file of datamodel"
@@ -135,7 +136,7 @@ generate_code:
 	./scripts/generate_openapi_schema.sh
 	@echo "Nexus Compiler: Generating CRD yamls"
 	go run cmd/generate-openapischema/generate-openapischema.go -yamls-path _generated/crds
-	git checkout -- pkg/openapi_generator/openapi/openapi_generated.go
+	mv /tmp/openapi_generated.go pkg/openapi_generator/openapi/openapi_generated.go
 	@echo "Updating module name"
 	./scripts/replace_mod_path.sh
 	find . -name "*.bak" -type f -delete
@@ -207,11 +208,9 @@ docker.gitlab_credentials:
 	@if test -z $$CICD_TOKEN; then\
 		echo "Using ssh authentication" && \
         git config --global --add url."git@gitlab.eng.vmware.com:".insteadOf "https://gitlab.eng.vmware.com/"; \
-		ssh-keyscan github.com >> ~/.ssh/known_hosts ;\
 	else \
 		echo "Using https authentication" && \
         git config --global credential.helper store && \
         echo -e  "https://gitlab-ci-token:${CICD_TOKEN}@gitlab.eng.vmware.com/" >> ~/.git-credentials && \
         git config --global url."https://gitlab.eng.vmware.com/".insteadOf "git@gitlab.eng.vmware.com:"; \
-		ssh-keyscan github.com >> ~/.ssh/known_hosts ;\
 	fi
