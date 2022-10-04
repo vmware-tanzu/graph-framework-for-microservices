@@ -258,6 +258,9 @@ func (c *resolverConfig) getRootRootqueryServiceTopologyResolver(obj *model.Root
 
 
 
+
+
+
 //////////////////////////////////////
 // CustomQuery Resolver for Node: Config in PKG: Config
 //////////////////////////////////////
@@ -404,6 +407,12 @@ func (c *resolverConfig) getConfigConfigqueryServiceTopologyResolver(obj *model.
 		Data: &data,
 	}
 	return ret,nil
+}
+
+// Custom query
+func (c *resolverConfig) getConfigConfigQueryExample(obj *model.ConfigConfig,  StartTime *string,  EndTime *string,  Interval *string,  IsServiceDeployment *bool,  StartVal *int, ) (*model.NexusGraphqlResponse, error) {
+	// TODO FILL me
+	return nil, nil
 }
 
 
@@ -558,6 +567,7 @@ func (c *resolverConfig) getConfigFooTypequeryServiceTopologyResolver(obj *model
 
 
 
+
 //////////////////////////////////////
 // CustomQuery Resolver for Node: Domain in PKG: Config
 //////////////////////////////////////
@@ -705,6 +715,7 @@ func (c *resolverConfig) getConfigDomainqueryServiceTopologyResolver(obj *model.
 	}
 	return ret,nil
 }
+
 
 
 
@@ -941,6 +952,9 @@ func (c *resolverConfig) getGnsRandomGnsDataqueryServiceTopologyResolver(obj *mo
 
 
 
+
+
+
 //////////////////////////////////////
 // CustomQuery Resolver for Node: Gns in PKG: Gns
 //////////////////////////////////////
@@ -1087,6 +1101,17 @@ func (c *resolverConfig) getGnsGnsqueryServiceTopologyResolver(obj *model.GnsGns
 		Data: &data,
 	}
 	return ret,nil
+}
+
+// Custom query
+func (c *resolverConfig) getGnsGnsqueryGns1(obj *model.GnsGns,  StartTime *string,  EndTime *string,  Interval *string,  IsServiceDeployment *bool,  StartVal *int, ) (*model.NexusGraphqlResponse, error) {
+	// TODO FILL me
+	return nil, nil
+}
+// Custom query
+func (c *resolverConfig) getGnsGnsqueryGns2(obj *model.GnsGns, ) (*model.NexusGraphqlResponse, error) {
+	// TODO FILL me
+	return nil, nil
 }
 
 
@@ -1273,6 +1298,7 @@ func (c *resolverConfig) getGnsBarLinkqueryServiceTopologyResolver(obj *model.Gn
 
 
 
+
 //////////////////////////////////////
 // CustomQuery Resolver for Node: Dns in PKG: Gns
 //////////////////////////////////////
@@ -1420,6 +1446,7 @@ func (c *resolverConfig) getGnsDnsqueryServiceTopologyResolver(obj *model.GnsDns
 	}
 	return ret,nil
 }
+
 
 
 
@@ -1644,6 +1671,7 @@ func (c *resolverConfig) getGnsAdditionalGnsDataqueryServiceTopologyResolver(obj
 
 
 
+
 //////////////////////////////////////
 // CustomQuery Resolver for Node: SvcGroup in PKG: Servicegroup
 //////////////////////////////////////
@@ -1791,6 +1819,7 @@ func (c *resolverConfig) getServicegroupSvcGroupqueryServiceTopologyResolver(obj
 	}
 	return ret,nil
 }
+
 
 
 
@@ -2011,6 +2040,7 @@ func (c *resolverConfig) getPolicypkgAdditionalPolicyDataqueryServiceTopologyRes
 
 
 
+
 //////////////////////////////////////
 // CustomQuery Resolver for Node: AccessControlPolicy in PKG: Policypkg
 //////////////////////////////////////
@@ -2158,6 +2188,7 @@ func (c *resolverConfig) getPolicypkgAccessControlPolicyqueryServiceTopologyReso
 	}
 	return ret,nil
 }
+
 
 
 
@@ -2321,6 +2352,7 @@ func (c *resolverConfig) getPolicypkgACPConfigqueryServiceTopologyResolver(obj *
 
 
 
+
 //////////////////////////////////////
 // CustomQuery Resolver for Node: VMpolicy in PKG: Policypkg
 //////////////////////////////////////
@@ -2468,6 +2500,7 @@ func (c *resolverConfig) getPolicypkgVMpolicyqueryServiceTopologyResolver(obj *m
 	}
 	return ret,nil
 }
+
 
 
 
@@ -2687,6 +2720,7 @@ func (c *resolverConfig) getPolicypkgRandomPolicyDataqueryServiceTopologyResolve
 
 
 
+
 //////////////////////////////////////
 // CHILD RESOLVER (Non Singleton)
 // FieldName: Config Node: Root PKG: Root
@@ -2788,6 +2822,9 @@ vInstance := float64(vConfig.Spec.Instance)
 
 	return ret, nil
 }
+
+
+
 
 
 
@@ -3222,6 +3259,9 @@ func (c *resolverConfig) getConfigConfigACPPoliciesResolver(obj *model.ConfigCon
 	log.Debugf("[getConfigConfigACPPoliciesResolver]List of ACPPolicies object %v", vPolicyAccessControlPolicyList)
 	return vPolicyAccessControlPolicyList, nil
 }
+
+
+
 
 
 

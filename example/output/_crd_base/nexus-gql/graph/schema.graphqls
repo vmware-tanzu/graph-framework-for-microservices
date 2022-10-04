@@ -73,6 +73,8 @@ type root_Root {
 
 
 
+
+
 type config_Config {
 
     Id: ID
@@ -131,6 +133,13 @@ type config_Config {
         startTime: String
         endTime: String
     ): TimeSeriesData
+    QueryExample(
+        StartTime: String
+        EndTime: String
+        Interval: String
+        IsServiceDeployment: Boolean
+        StartVal: Int
+    ): NexusGraphqlResponse
 
     ACPPolicies(Id: ID): [policy_AccessControlPolicy!]
     FooExample(Id: ID): [config_FooType!]
@@ -377,6 +386,8 @@ type gns_RandomGnsData {
 
 
 
+
+
 type gns_Gns {
 
     Id: ID
@@ -435,6 +446,14 @@ type gns_Gns {
         startTime: String
         endTime: String
     ): TimeSeriesData
+    queryGns1(
+        StartTime: String
+        EndTime: String
+        Interval: String
+        IsServiceDeployment: Boolean
+        StartVal: Int
+    ): NexusGraphqlResponse
+    queryGns2: NexusGraphqlResponse
 
     GnsServiceGroups(Id: ID): [servicegroup_SvcGroup!]
     
@@ -1082,6 +1101,14 @@ type policy_RandomPolicyData {
 
 
 type TimeSeriesData {
+  Code: Int
+  Message: String
+  Data: String
+  Last: String
+  TotalRecords: Int
+}
+
+type NexusGraphqlResponse {
   Code: Int
   Message: String
   Data: String

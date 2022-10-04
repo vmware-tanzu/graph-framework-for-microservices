@@ -6,7 +6,6 @@ import (
 	"go/types"
 	"log"
 	"sort"
-	"strings"
 
 	"golang-appnet.eng.vmware.com/nexus-sdk/nexus/nexus"
 
@@ -90,6 +89,7 @@ func populateValuesForEachNode(nodes []*NodeProperty, linkAPI map[string]string,
 		resNodeProp.BaseImportPath = n.BaseImportPath
 		resNodeProp.GraphqlSchemaFields = n.GraphqlSchemaFields
 		resNodeProp.IsSingletonNode = n.IsSingletonNode
+		resNodeProp.CustomQueries = n.CustomQueries
 		resNodeProp.IsNexusNode = n.IsNexusNode
 		resNodeProp.ResolverFields = n.ResolverFields
 		resNodeProp.ResolverCount = n.ResolverCount
@@ -348,6 +348,9 @@ func processNexusFields(pkg parser.Package, aliasNameMap map[string]string, node
 			fieldProp.IsNexusOrSingletonField = true
 			// Add Custom Query + ID
 			fieldProp.SchemaFieldName = CustomQuerySchema
+			for _, customQuery := range nodeProp.CustomQueries {
+				fieldProp.SchemaFieldName += CustomQueryToGraphqlSchema(customQuery)
+			}
 		}
 
 		// nexus link field
@@ -460,6 +463,7 @@ func GenerateGraphqlResolverVars(baseGroupName, crdModulePath string, pkgs parse
 			nodeProp.CrdName = util.GetCrdName(node.Name.String(), pkg.Name, baseGroupName)
 			nodeHelper := parentsMap[nodeProp.CrdName]
 			nodeProp.IsParentNode = parser.IsNexusNode(node)
+			nodeProp.CustomQueries = nodeHelper.GraphqlSpec.Queries
 
 			if len(nodeHelper.Parents) > 0 {
 				nodeProp.HasParent = true
