@@ -578,6 +578,7 @@ func RenderGraphQL(baseGroupName, outputDir, crdModulePath string, pkgs parser.P
 	if err != nil {
 		return err
 	}
+
 	// Render Graphql Resolver Template
 	file, err = RenderGraphqlResolverTemplate(vars, crdModulePath)
 	if err != nil {
@@ -598,12 +599,12 @@ func RenderGraphQL(baseGroupName, outputDir, crdModulePath string, pkgs parser.P
 	if err != nil {
 		return err
 	}
-
 	log.Debugf("Rendered gqlgen template: %s", file)
 	err = createFile(gqlgenFolder, "gqlgen.yml", file, false)
 	if err != nil {
 		return err
 	}
+
 	return nil
 }
 
@@ -639,10 +640,10 @@ func RenderGraphqlResolverTemplate(vars GraphDetails, crdModulePath string) (*by
 
 func RenderStaticGraphqlFile(outputDir string) error {
 	gqlFolder := outputDir + "/nexus-gql"
-	err := createFolder(gqlFolder)
-	if err != nil {
+	if err := createFolder(gqlFolder); err != nil {
 		return err
 	}
+
 	// Render Graphql Tool Template
 	file, err := RenderGraphqlToolTemplate()
 	if err != nil {
@@ -653,30 +654,31 @@ func RenderStaticGraphqlFile(outputDir string) error {
 	if err != nil {
 		return err
 	}
+
 	// Static GQL files
-	gqlresolverFolder := outputDir + "/nexus-gql/graph"
-	err = createFolder(gqlresolverFolder)
-	if err != nil {
+	gqlResolverFolder := outputDir + "/nexus-gql/graph"
+	if err = createFolder(gqlResolverFolder); err != nil {
 		return err
 	}
+
 	// Render Gql Resolver Template
 	file, err = RenderGqlResolverTemplate()
 	if err != nil {
 		return err
 	}
 	log.Debugf("Rendered gqlresolver template: %s", file)
-	err = createFile(gqlresolverFolder, "resolver.go", file, false)
+	err = createFile(gqlResolverFolder, "resolver.go", file, false)
 	if err != nil {
 		return err
 	}
+
 	// Render Gql Schema Resolver Template
 	file, err = RenderGqlSchemaResolverTemplate()
 	if err != nil {
 		return err
 	}
-
 	log.Debugf("Rendered gqlresolver template: %s", file)
-	if err = createFile(gqlresolverFolder, "schema.resolvers.go", file, false); err != nil {
+	if err = createFile(gqlResolverFolder, "schema.resolvers.go", file, false); err != nil {
 		return err
 	}
 
@@ -713,8 +715,7 @@ type ServerVars struct {
 
 func RenderGqlserver(outputDir, crdModulePath string) error {
 	gqlserverFolder := outputDir + "/nexus-gql"
-	err := createFolder(gqlserverFolder)
-	if err != nil {
+	if err := createFolder(gqlserverFolder); err != nil {
 		return err
 	}
 
@@ -725,12 +726,12 @@ func RenderGqlserver(outputDir, crdModulePath string) error {
 	if err != nil {
 		return err
 	}
-
 	log.Debugf("Rendered gqlserver template: %s", file)
 	err = createFile(gqlserverFolder, "server.go", file, false)
 	if err != nil {
 		return err
 	}
+
 	return nil
 }
 

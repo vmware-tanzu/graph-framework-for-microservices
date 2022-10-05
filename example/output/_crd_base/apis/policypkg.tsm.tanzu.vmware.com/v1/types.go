@@ -101,7 +101,7 @@ func (c *AccessControlPolicy) DisplayName() string {
 
 // +k8s:openapi-gen=true
 type AccessControlPolicySpec struct {
-	PolicyConfigsGvk map[string]Child `json:"policyConfigsGvk,omitempty" yaml:"policyConfigsGvk,omitempty" nexus:"child"`
+	PolicyConfigsGvk map[string]Child `nexus:"child" nexus-graphql:"ignore:true"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object

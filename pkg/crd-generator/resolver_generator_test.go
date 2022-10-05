@@ -3,7 +3,6 @@ package crd_generator_test
 import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"golang-appnet.eng.vmware.com/nexus-sdk/nexus/nexus"
 
 	crdgenerator "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/pkg/crd-generator"
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/pkg/parser"
@@ -11,17 +10,13 @@ import (
 
 var _ = Describe("Template renderers tests", func() {
 	var (
-		pkgs           parser.Packages
-		parentsMap     map[string]parser.NodeHelper
-		graphqlQueries map[string]nexus.GraphQLQuerySpec
+		pkgs       parser.Packages
+		parentsMap map[string]parser.NodeHelper
 	)
 
 	BeforeEach(func() {
 		pkgs = parser.ParseDSLPkg(exampleDSLPath)
-		//pkg, ok = pkgs["gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/datamodel/config"]
-		//Expect(ok).To(BeTrue())
-		graphqlQueries = parser.ParseGraphqlQuerySpecs(pkgs)
-		graph := parser.ParseDSLNodes(exampleDSLPath, baseGroupName, pkgs, graphqlQueries)
+		graph := parser.ParseDSLNodes(exampleDSLPath, baseGroupName)
 		parentsMap = parser.CreateParentsMap(graph)
 	})
 
@@ -45,14 +40,13 @@ var _ = Describe("Template renderers tests", func() {
 		Expect(vars[3].CrdName).To(Equal(""))
 	})
 
-	It("should resolve graphql vars", func() {
+	It("should resolve non-singleton root and singleton child node", func() {
 		pkgs = parser.ParseDSLPkg("../../example/test-utils/non-singleton-root")
 		graph := parser.ParseDSLNodes("../../example/test-utils/non-singleton-root", baseGroupName, pkgs, graphqlQueries)
 		parentsMap = parser.CreateParentsMap(graph)
 
 		vars, err := crdgenerator.GenerateGraphqlResolverVars(baseGroupName, crdModulePath, pkgs, parentsMap)
 		Expect(err).NotTo(HaveOccurred())
-
 		Expect(len(vars)).To(Equal(3))
 
 		Expect(vars[0].NodeName).To(Equal("Root"))

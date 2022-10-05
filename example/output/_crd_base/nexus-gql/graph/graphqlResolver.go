@@ -30,11 +30,11 @@ type resolverConfig struct {
     vGnsDns *nexus_client.GnsDns
     vGnsAdditionalGnsData *nexus_client.GnsAdditionalGnsData
     vServicegroupSvcGroup *nexus_client.ServicegroupSvcGroup
-    vPolicypkgAdditionalPolicyData *nexus_client.PolicypkgAdditionalPolicyData
-    vPolicypkgAccessControlPolicy *nexus_client.PolicypkgAccessControlPolicy
-    vPolicypkgACPConfig *nexus_client.PolicypkgACPConfig
-    vPolicypkgVMpolicy *nexus_client.PolicypkgVMpolicy
-    vPolicypkgRandomPolicyData *nexus_client.PolicypkgRandomPolicyData
+    vPolicyAdditionalPolicyData *nexus_client.PolicyAdditionalPolicyData
+    vPolicyAccessControlPolicy *nexus_client.PolicyAccessControlPolicy
+    vPolicyACPConfig *nexus_client.PolicyACPConfig
+    vPolicyVMpolicy *nexus_client.PolicyVMpolicy
+    vPolicyRandomPolicyData *nexus_client.PolicyRandomPolicyData
     
 }
 
@@ -183,13 +183,13 @@ func (c *resolverConfig) getRootRootqueryIncomingAPIsResolver(obj *model.RootRoo
 }
 
 // Resolver for queryOutgoingAPIs
-func (c *resolverConfig) getRootRootqueryOutgoingAPIsResolver(obj *model.RootRoot, startTime *string, endTime *string, timeInterval *string, timeZone *string) (*model.TimeSeriesData,error) {
+func (c *resolverConfig) getRootRootqueryOutgoingAPIsResolver(obj *model.RootRoot, startTime *string, endTime, destinationService, destinationServiceVersion *string, timeInterval *string, timeZone *string) (*model.TimeSeriesData,error) {
 	ctx := context.Background()
 	var filters = make(map[string]string)
 	filters[""] = ""
 	resp, err := grpcServer().GetMetrics(ctx, &qm.MetricArg{QueryType: "/OutgoingAPIs", StartTime: *startTime, EndTime: *endTime, Metric: "", Filters: filters,TimeInterval: *timeInterval})
 	if err != nil {
-		log.Errof("[getRootRootqueryOutgoingAPIsResolver]Failed to get metrics, err: %v", err)
+		log.Errorf("[getRootRootqueryOutgoingAPIsResolver]Failed to get metrics, err: %v", err)
 		return &model.TimeSeriesData{}, nil
 	}
 	b, _ := json.Marshal(resp.Data)
@@ -253,8 +253,6 @@ func (c *resolverConfig) getRootRootqueryServiceTopologyResolver(obj *model.Root
 	}
 	return ret,nil
 }
-
-
 
 
 
@@ -337,13 +335,13 @@ func (c *resolverConfig) getConfigConfigqueryIncomingAPIsResolver(obj *model.Con
 }
 
 // Resolver for queryOutgoingAPIs
-func (c *resolverConfig) getConfigConfigqueryOutgoingAPIsResolver(obj *model.ConfigConfig, startTime *string, endTime *string, timeInterval *string, timeZone *string) (*model.TimeSeriesData,error) {
+func (c *resolverConfig) getConfigConfigqueryOutgoingAPIsResolver(obj *model.ConfigConfig, startTime *string, endTime, destinationService, destinationServiceVersion *string, timeInterval *string, timeZone *string) (*model.TimeSeriesData,error) {
 	ctx := context.Background()
 	var filters = make(map[string]string)
 	filters[""] = ""
 	resp, err := grpcServer().GetMetrics(ctx, &qm.MetricArg{QueryType: "/OutgoingAPIs", StartTime: *startTime, EndTime: *endTime, Metric: "", Filters: filters,TimeInterval: *timeInterval})
 	if err != nil {
-		log.Errof("[getConfigConfigqueryOutgoingAPIsResolver]Failed to get metrics, err: %v", err)
+		log.Errorf("[getConfigConfigqueryOutgoingAPIsResolver]Failed to get metrics, err: %v", err)
 		return &model.TimeSeriesData{}, nil
 	}
 	b, _ := json.Marshal(resp.Data)
@@ -406,21 +404,6 @@ func (c *resolverConfig) getConfigConfigqueryServiceTopologyResolver(obj *model.
 		Data: &data,
 	}
 	return ret,nil
-}
-// Custom query
-func (c *resolverConfig) getConfigConfigQueryExample(obj *model.ConfigConfig,  StartTime *string,  EndTime *string,  Interval *string,  IsServiceDeployment *bool,  StartVal *int, ) (*model.NexusGraphqlResponse, error) {
-	query := &graphql.GraphQLQuery{
-		Query: "QueryExample",
-		UserProvidedArgs: map[string]string{
-			"StartTime": fmt.Sprintf("%v", *StartTime),
-			"EndTime": fmt.Sprintf("%v", *EndTime),
-			"Interval": fmt.Sprintf("%v", *Interval),
-			"IsServiceDeployment": fmt.Sprintf("%v", *IsServiceDeployment),
-			"StartVal": fmt.Sprintf("%v", *StartVal),
-		},
-		Hierarchy: obj.ParentLabels,
-	}
-	return c.CustomQueryHandler.Query("query-manager:6000", query)
 }
 
 
@@ -502,13 +485,13 @@ func (c *resolverConfig) getConfigFooTypequeryIncomingAPIsResolver(obj *model.Co
 }
 
 // Resolver for queryOutgoingAPIs
-func (c *resolverConfig) getConfigFooTypequeryOutgoingAPIsResolver(obj *model.ConfigFooType, startTime *string, endTime *string, timeInterval *string, timeZone *string) (*model.TimeSeriesData,error) {
+func (c *resolverConfig) getConfigFooTypequeryOutgoingAPIsResolver(obj *model.ConfigFooType, startTime *string, endTime, destinationService, destinationServiceVersion *string, timeInterval *string, timeZone *string) (*model.TimeSeriesData,error) {
 	ctx := context.Background()
 	var filters = make(map[string]string)
 	filters[""] = ""
 	resp, err := grpcServer().GetMetrics(ctx, &qm.MetricArg{QueryType: "/OutgoingAPIs", StartTime: *startTime, EndTime: *endTime, Metric: "", Filters: filters,TimeInterval: *timeInterval})
 	if err != nil {
-		log.Errof("[getConfigFooTypequeryOutgoingAPIsResolver]Failed to get metrics, err: %v", err)
+		log.Errorf("[getConfigFooTypequeryOutgoingAPIsResolver]Failed to get metrics, err: %v", err)
 		return &model.TimeSeriesData{}, nil
 	}
 	b, _ := json.Marshal(resp.Data)
@@ -652,13 +635,13 @@ func (c *resolverConfig) getConfigDomainqueryIncomingAPIsResolver(obj *model.Con
 }
 
 // Resolver for queryOutgoingAPIs
-func (c *resolverConfig) getConfigDomainqueryOutgoingAPIsResolver(obj *model.ConfigDomain, startTime *string, endTime *string, timeInterval *string, timeZone *string) (*model.TimeSeriesData,error) {
+func (c *resolverConfig) getConfigDomainqueryOutgoingAPIsResolver(obj *model.ConfigDomain, startTime *string, endTime, destinationService, destinationServiceVersion *string, timeInterval *string, timeZone *string) (*model.TimeSeriesData,error) {
 	ctx := context.Background()
 	var filters = make(map[string]string)
 	filters[""] = ""
 	resp, err := grpcServer().GetMetrics(ctx, &qm.MetricArg{QueryType: "/OutgoingAPIs", StartTime: *startTime, EndTime: *endTime, Metric: "", Filters: filters,TimeInterval: *timeInterval})
 	if err != nil {
-		log.Errof("[getConfigDomainqueryOutgoingAPIsResolver]Failed to get metrics, err: %v", err)
+		log.Errorf("[getConfigDomainqueryOutgoingAPIsResolver]Failed to get metrics, err: %v", err)
 		return &model.TimeSeriesData{}, nil
 	}
 	b, _ := json.Marshal(resp.Data)
@@ -877,13 +860,13 @@ func (c *resolverConfig) getGnsRandomGnsDataqueryIncomingAPIsResolver(obj *model
 }
 
 // Resolver for queryOutgoingAPIs
-func (c *resolverConfig) getGnsRandomGnsDataqueryOutgoingAPIsResolver(obj *model.GnsRandomGnsData, startTime *string, endTime *string, timeInterval *string, timeZone *string) (*model.TimeSeriesData,error) {
+func (c *resolverConfig) getGnsRandomGnsDataqueryOutgoingAPIsResolver(obj *model.GnsRandomGnsData, startTime *string, endTime, destinationService, destinationServiceVersion *string, timeInterval *string, timeZone *string) (*model.TimeSeriesData,error) {
 	ctx := context.Background()
 	var filters = make(map[string]string)
 	filters[""] = ""
 	resp, err := grpcServer().GetMetrics(ctx, &qm.MetricArg{QueryType: "/OutgoingAPIs", StartTime: *startTime, EndTime: *endTime, Metric: "", Filters: filters,TimeInterval: *timeInterval})
 	if err != nil {
-		log.Errof("[getGnsRandomGnsDataqueryOutgoingAPIsResolver]Failed to get metrics, err: %v", err)
+		log.Errorf("[getGnsRandomGnsDataqueryOutgoingAPIsResolver]Failed to get metrics, err: %v", err)
 		return &model.TimeSeriesData{}, nil
 	}
 	b, _ := json.Marshal(resp.Data)
@@ -947,8 +930,6 @@ func (c *resolverConfig) getGnsRandomGnsDataqueryServiceTopologyResolver(obj *mo
 	}
 	return ret,nil
 }
-
-
 
 
 
@@ -1037,13 +1018,13 @@ func (c *resolverConfig) getGnsGnsqueryIncomingAPIsResolver(obj *model.GnsGns, s
 }
 
 // Resolver for queryOutgoingAPIs
-func (c *resolverConfig) getGnsGnsqueryOutgoingAPIsResolver(obj *model.GnsGns, startTime *string, endTime *string, timeInterval *string, timeZone *string) (*model.TimeSeriesData,error) {
+func (c *resolverConfig) getGnsGnsqueryOutgoingAPIsResolver(obj *model.GnsGns, startTime *string, endTime, destinationService, destinationServiceVersion *string, timeInterval *string, timeZone *string) (*model.TimeSeriesData,error) {
 	ctx := context.Background()
 	var filters = make(map[string]string)
 	filters[""] = ""
 	resp, err := grpcServer().GetMetrics(ctx, &qm.MetricArg{QueryType: "/OutgoingAPIs", StartTime: *startTime, EndTime: *endTime, Metric: "", Filters: filters,TimeInterval: *timeInterval})
 	if err != nil {
-		log.Errof("[getGnsGnsqueryOutgoingAPIsResolver]Failed to get metrics, err: %v", err)
+		log.Errorf("[getGnsGnsqueryOutgoingAPIsResolver]Failed to get metrics, err: %v", err)
 		return &model.TimeSeriesData{}, nil
 	}
 	b, _ := json.Marshal(resp.Data)
@@ -1106,31 +1087,6 @@ func (c *resolverConfig) getGnsGnsqueryServiceTopologyResolver(obj *model.GnsGns
 		Data: &data,
 	}
 	return ret,nil
-}
-// Custom query
-func (c *resolverConfig) getGnsGnsqueryGns1(obj *model.GnsGns,  StartTime *string,  EndTime *string,  Interval *string,  IsServiceDeployment *bool,  StartVal *int, ) (*model.NexusGraphqlResponse, error) {
-	query := &graphql.GraphQLQuery{
-		Query: "queryGns1",
-		UserProvidedArgs: map[string]string{
-			"StartTime": fmt.Sprintf("%v", *StartTime),
-			"EndTime": fmt.Sprintf("%v", *EndTime),
-			"Interval": fmt.Sprintf("%v", *Interval),
-			"IsServiceDeployment": fmt.Sprintf("%v", *IsServiceDeployment),
-			"StartVal": fmt.Sprintf("%v", *StartVal),
-		},
-		Hierarchy: obj.ParentLabels,
-	}
-	return c.CustomQueryHandler.Query("query-manager:15000", query)
-}
-// Custom query
-func (c *resolverConfig) getGnsGnsqueryGns2(obj *model.GnsGns, ) (*model.NexusGraphqlResponse, error) {
-	query := &graphql.GraphQLQuery{
-		Query: "queryGns2",
-		UserProvidedArgs: map[string]string{
-		},
-		Hierarchy: obj.ParentLabels,
-	}
-	return c.CustomQueryHandler.Query("query-manager2:15002", query)
 }
 
 
@@ -1244,13 +1200,13 @@ func (c *resolverConfig) getGnsBarLinkqueryIncomingAPIsResolver(obj *model.GnsBa
 }
 
 // Resolver for queryOutgoingAPIs
-func (c *resolverConfig) getGnsBarLinkqueryOutgoingAPIsResolver(obj *model.GnsBarLink, startTime *string, endTime *string, timeInterval *string, timeZone *string) (*model.TimeSeriesData,error) {
+func (c *resolverConfig) getGnsBarLinkqueryOutgoingAPIsResolver(obj *model.GnsBarLink, startTime *string, endTime, destinationService, destinationServiceVersion *string, timeInterval *string, timeZone *string) (*model.TimeSeriesData,error) {
 	ctx := context.Background()
 	var filters = make(map[string]string)
 	filters[""] = ""
 	resp, err := grpcServer().GetMetrics(ctx, &qm.MetricArg{QueryType: "/OutgoingAPIs", StartTime: *startTime, EndTime: *endTime, Metric: "", Filters: filters,TimeInterval: *timeInterval})
 	if err != nil {
-		log.Errof("[getGnsBarLinkqueryOutgoingAPIsResolver]Failed to get metrics, err: %v", err)
+		log.Errorf("[getGnsBarLinkqueryOutgoingAPIsResolver]Failed to get metrics, err: %v", err)
 		return &model.TimeSeriesData{}, nil
 	}
 	b, _ := json.Marshal(resp.Data)
@@ -1394,13 +1350,13 @@ func (c *resolverConfig) getGnsDnsqueryIncomingAPIsResolver(obj *model.GnsDns, s
 }
 
 // Resolver for queryOutgoingAPIs
-func (c *resolverConfig) getGnsDnsqueryOutgoingAPIsResolver(obj *model.GnsDns, startTime *string, endTime *string, timeInterval *string, timeZone *string) (*model.TimeSeriesData,error) {
+func (c *resolverConfig) getGnsDnsqueryOutgoingAPIsResolver(obj *model.GnsDns, startTime *string, endTime, destinationService, destinationServiceVersion *string, timeInterval *string, timeZone *string) (*model.TimeSeriesData,error) {
 	ctx := context.Background()
 	var filters = make(map[string]string)
 	filters[""] = ""
 	resp, err := grpcServer().GetMetrics(ctx, &qm.MetricArg{QueryType: "/OutgoingAPIs", StartTime: *startTime, EndTime: *endTime, Metric: "", Filters: filters,TimeInterval: *timeInterval})
 	if err != nil {
-		log.Errof("[getGnsDnsqueryOutgoingAPIsResolver]Failed to get metrics, err: %v", err)
+		log.Errorf("[getGnsDnsqueryOutgoingAPIsResolver]Failed to get metrics, err: %v", err)
 		return &model.TimeSeriesData{}, nil
 	}
 	b, _ := json.Marshal(resp.Data)
@@ -1611,13 +1567,13 @@ func (c *resolverConfig) getGnsAdditionalGnsDataqueryIncomingAPIsResolver(obj *m
 }
 
 // Resolver for queryOutgoingAPIs
-func (c *resolverConfig) getGnsAdditionalGnsDataqueryOutgoingAPIsResolver(obj *model.GnsAdditionalGnsData, startTime *string, endTime *string, timeInterval *string, timeZone *string) (*model.TimeSeriesData,error) {
+func (c *resolverConfig) getGnsAdditionalGnsDataqueryOutgoingAPIsResolver(obj *model.GnsAdditionalGnsData, startTime *string, endTime, destinationService, destinationServiceVersion *string, timeInterval *string, timeZone *string) (*model.TimeSeriesData,error) {
 	ctx := context.Background()
 	var filters = make(map[string]string)
 	filters[""] = ""
 	resp, err := grpcServer().GetMetrics(ctx, &qm.MetricArg{QueryType: "/OutgoingAPIs", StartTime: *startTime, EndTime: *endTime, Metric: "", Filters: filters,TimeInterval: *timeInterval})
 	if err != nil {
-		log.Errof("[getGnsAdditionalGnsDataqueryOutgoingAPIsResolver]Failed to get metrics, err: %v", err)
+		log.Errorf("[getGnsAdditionalGnsDataqueryOutgoingAPIsResolver]Failed to get metrics, err: %v", err)
 		return &model.TimeSeriesData{}, nil
 	}
 	b, _ := json.Marshal(resp.Data)
@@ -1765,13 +1721,13 @@ func (c *resolverConfig) getServicegroupSvcGroupqueryIncomingAPIsResolver(obj *m
 }
 
 // Resolver for queryOutgoingAPIs
-func (c *resolverConfig) getServicegroupSvcGroupqueryOutgoingAPIsResolver(obj *model.ServicegroupSvcGroup, startTime *string, endTime *string, timeInterval *string, timeZone *string) (*model.TimeSeriesData,error) {
+func (c *resolverConfig) getServicegroupSvcGroupqueryOutgoingAPIsResolver(obj *model.ServicegroupSvcGroup, startTime *string, endTime, destinationService, destinationServiceVersion *string, timeInterval *string, timeZone *string) (*model.TimeSeriesData,error) {
 	ctx := context.Background()
 	var filters = make(map[string]string)
 	filters[""] = ""
 	resp, err := grpcServer().GetMetrics(ctx, &qm.MetricArg{QueryType: "/OutgoingAPIs", StartTime: *startTime, EndTime: *endTime, Metric: "", Filters: filters,TimeInterval: *timeInterval})
 	if err != nil {
-		log.Errof("[getServicegroupSvcGroupqueryOutgoingAPIsResolver]Failed to get metrics, err: %v", err)
+		log.Errorf("[getServicegroupSvcGroupqueryOutgoingAPIsResolver]Failed to get metrics, err: %v", err)
 		return &model.TimeSeriesData{}, nil
 	}
 	b, _ := json.Marshal(resp.Data)
@@ -1840,30 +1796,30 @@ func (c *resolverConfig) getServicegroupSvcGroupqueryServiceTopologyResolver(obj
 
 //////////////////////////////////////
 // Non Singleton Resolver for Parent Node
-// PKG: Policypkg, NODE: Policypkg
+// PKG: Policy, NODE: Policy
 //////////////////////////////////////
-func (c *resolverConfig) getRootResolver(id *string) ([]*model.PolicypkgAdditionalPolicyData, error) {
+func (c *resolverConfig) getRootResolver(id *string) ([]*model.PolicyAdditionalPolicyData, error) {
 	k8sApiConfig := getK8sAPIEndpointConfig()
 	nexusClient, err := nexus_client.NewForConfig(k8sApiConfig)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get k8s client config: %s", err)
 	}
 	nc = nexusClient
-	var vAdditionalPolicyDataList []*model.PolicypkgAdditionalPolicyData
+	var vAdditionalPolicyDataList []*model.PolicyAdditionalPolicyData
 	if id != nil && *id != "" {
 	    log.Debugf("[getRootResolver]Id: %q", *id)
-		vAdditionalPolicyData, err := nc.GetPolicypkgAdditionalPolicyData(context.TODO(), *id)
+		vAdditionalPolicyData, err := nc.GetPolicyAdditionalPolicyData(context.TODO(), *id)
 		if err != nil {
 			log.Errorf("[getRootResolver]Error getting AdditionalPolicyData node %q: %s", *id, err)
 			return nil, nil
 		}
-		c.vPolicypkgAdditionalPolicyData = vAdditionalPolicyData
+		c.vPolicyAdditionalPolicyData = vAdditionalPolicyData
 		dn := vAdditionalPolicyData.DisplayName()
 parentLabels := map[string]interface{}{"additionalpolicydatas.policypkg.tsm.tanzu.vmware.com":dn}
 Description, _ := json.Marshal(vAdditionalPolicyData.Spec.Description)
 DescriptionData := string(Description)
 
-		ret := &model.PolicypkgAdditionalPolicyData {
+		ret := &model.PolicyAdditionalPolicyData {
 	Id: &dn,
 	ParentLabels: parentLabels,
 	Description: &DescriptionData,
@@ -1877,18 +1833,18 @@ DescriptionData := string(Description)
 
 	vAdditionalPolicyDataListObj, err := nc.AdditionalPolicyData().ListAdditionalPolicyDatas(context.TODO(), metav1.ListOptions{})
 	for _,i := range vAdditionalPolicyDataListObj{
-		vAdditionalPolicyData, err := nc.GetPolicypkgAdditionalPolicyData(context.TODO(), i.DisplayName())
+		vAdditionalPolicyData, err := nc.GetPolicyAdditionalPolicyData(context.TODO(), i.DisplayName())
 		if err != nil {
 			log.Errorf("[getRootResolver]Error getting AdditionalPolicyData node %q : %s", i.DisplayName(), err)
 			continue
 		}
-		c.vPolicypkgAdditionalPolicyData = vAdditionalPolicyData
+		c.vPolicyAdditionalPolicyData = vAdditionalPolicyData
 		dn := vAdditionalPolicyData.DisplayName()
 parentLabels := map[string]interface{}{"additionalpolicydatas.policypkg.tsm.tanzu.vmware.com":dn}
 Description, _ := json.Marshal(vAdditionalPolicyData.Spec.Description)
 DescriptionData := string(Description)
 
-		ret := &model.PolicypkgAdditionalPolicyData {
+		ret := &model.PolicyAdditionalPolicyData {
 	Id: &dn,
 	ParentLabels: parentLabels,
 	Description: &DescriptionData,
@@ -1902,17 +1858,17 @@ DescriptionData := string(Description)
 
 
 //////////////////////////////////////
-// CustomQuery Resolver for Node: AdditionalPolicyData in PKG: Policypkg
+// CustomQuery Resolver for Node: AdditionalPolicyData in PKG: Policy
 //////////////////////////////////////
 
 // Resolver for queryServiceTable
-func (c *resolverConfig) getPolicypkgAdditionalPolicyDataqueryServiceTableResolver(obj *model.PolicypkgAdditionalPolicyData, startTime *string, endTime *string, systemServices *bool, showGateways *bool, groupby *string, noMetrics *bool) (*model.TimeSeriesData,error) {
+func (c *resolverConfig) getPolicyAdditionalPolicyDataqueryServiceTableResolver(obj *model.PolicyAdditionalPolicyData, startTime *string, endTime *string, systemServices *bool, showGateways *bool, groupby *string, noMetrics *bool) (*model.TimeSeriesData,error) {
 	ctx := context.Background()
 	var filters = make(map[string]string)
 	filters[""] = ""
 	resp, err := grpcServer().GetMetrics(ctx, &qm.MetricArg{QueryType: "/ServiceTable", StartTime: *startTime, EndTime: *endTime, Metric: "", Filters: filters,TimeInterval: ""})
 	if err != nil {
-		log.Errorf("[getPolicypkgAdditionalPolicyDataqueryServiceTableResolver]Failed to get metrics, err: %v", err)
+		log.Errorf("[getPolicyAdditionalPolicyDataqueryServiceTableResolver]Failed to get metrics, err: %v", err)
 		return &model.TimeSeriesData, nil
 	}
 	b, _ := json.Marshal(resp.Data)
@@ -1924,13 +1880,13 @@ func (c *resolverConfig) getPolicypkgAdditionalPolicyDataqueryServiceTableResolv
 }
 
 // Resolver for queryServiceVersionTable
-func (c *resolverConfig) getPolicypkgAdditionalPolicyDataqueryServiceVersionTableResolver(obj *model.PolicypkgAdditionalPolicyData, startTime *string, endTime *string, systemServices *bool, showGateways *bool, noMetrics *bool) (*model.TimeSeriesData,error) {
+func (c *resolverConfig) getPolicyAdditionalPolicyDataqueryServiceVersionTableResolver(obj *model.PolicyAdditionalPolicyData, startTime *string, endTime *string, systemServices *bool, showGateways *bool, noMetrics *bool) (*model.TimeSeriesData,error) {
 	ctx := context.Background()
 	var filters = make(map[string]string)
 	filters[""] = ""
 	resp, err := grpcServer().GetMetrics(ctx, &qm.MetricArg{QueryType: "/ServiceTable", StartTime: *startTime, EndTime: *endTime, Metric: "", Filters: filters,TimeInterval: ""})
 	if err != nil {
-	   log.Errorf("[getPolicypkgAdditionalPolicyDataqueryServiceVersionTableResolver]Failed to get metrics, err: %v", err)
+	   log.Errorf("[getPolicyAdditionalPolicyDataqueryServiceVersionTableResolver]Failed to get metrics, err: %v", err)
 	   return &model.TimeSeriesData, nil
 	}
 	b, _ := json.Marshal(resp.Data)
@@ -1942,13 +1898,13 @@ func (c *resolverConfig) getPolicypkgAdditionalPolicyDataqueryServiceVersionTabl
 }
 
 // Resolver for queryServiceTS
-func (c *resolverConfig) getPolicypkgAdditionalPolicyDataqueryServiceTSResolver(obj *model.PolicypkgAdditionalPolicyData, svcMetric *string, startTime *string, endTime *string, timeInterval *string) (*model.TimeSeriesData,error) {
+func (c *resolverConfig) getPolicyAdditionalPolicyDataqueryServiceTSResolver(obj *model.PolicyAdditionalPolicyData, svcMetric *string, startTime *string, endTime *string, timeInterval *string) (*model.TimeSeriesData,error) {
 	ctx := context.Background()
 	var filters = make(map[string]string)
 	filters[""] = ""
 	resp, err := grpcServer().GetMetrics(ctx, &qm.MetricArg{QueryType: "/ServiceMetricSeries", StartTime: *startTime, EndTime: *endTime, Metric: *svcMetric, Filters: filters,TimeInterval: *timeInterval})
 	if err != nil {
-		log.Errorf("[getPolicypkgAdditionalPolicyDataqueryServiceTSResolver]Failed to get metrics, err: %v", err)
+		log.Errorf("[getPolicyAdditionalPolicyDataqueryServiceTSResolver]Failed to get metrics, err: %v", err)
 		return &model.TimeSeriesData, nil
 	}
 	b, _ := json.Marshal(resp.Data)
@@ -1960,13 +1916,13 @@ func (c *resolverConfig) getPolicypkgAdditionalPolicyDataqueryServiceTSResolver(
 }
 
 // Resolver for queryIncomingAPIs
-func (c *resolverConfig) getPolicypkgAdditionalPolicyDataqueryIncomingAPIsResolver(obj *model.PolicypkgAdditionalPolicyData, startTime *string, endTime *string, destinationService *string, destinationServiceVersion *string, timeInterval *string, timeZone *string) (*model.TimeSeriesData,error) {
+func (c *resolverConfig) getPolicyAdditionalPolicyDataqueryIncomingAPIsResolver(obj *model.PolicyAdditionalPolicyData, startTime *string, endTime *string, destinationService *string, destinationServiceVersion *string, timeInterval *string, timeZone *string) (*model.TimeSeriesData,error) {
 	ctx := context.Background()
 	var filters = make(map[string]string)
 	filters[""] = ""
 	resp, err := grpcServer().GetMetrics(ctx, &qm.MetricArg{QueryType: "/IncomingAPIs", StartTime: *startTime, EndTime: *endTime, Metric: "", Filters: filters,TimeInterval: *timeInterval})
 	if err != nil {
-        log.Errorf("[getPolicypkgAdditionalPolicyDataqueryIncomingAPIsResolver]Failed to get metrics, err: %v", err)
+        log.Errorf("[getPolicyAdditionalPolicyDataqueryIncomingAPIsResolver]Failed to get metrics, err: %v", err)
         return &model.TimeSeriesData, nil
 	}
 	b, _ := json.Marshal(resp.Data)
@@ -1978,13 +1934,13 @@ func (c *resolverConfig) getPolicypkgAdditionalPolicyDataqueryIncomingAPIsResolv
 }
 
 // Resolver for queryOutgoingAPIs
-func (c *resolverConfig) getPolicypkgAdditionalPolicyDataqueryOutgoingAPIsResolver(obj *model.PolicypkgAdditionalPolicyData, startTime *string, endTime *string, timeInterval *string, timeZone *string) (*model.TimeSeriesData,error) {
+func (c *resolverConfig) getPolicyAdditionalPolicyDataqueryOutgoingAPIsResolver(obj *model.PolicyAdditionalPolicyData, startTime *string, endTime, destinationService, destinationServiceVersion *string, timeInterval *string, timeZone *string) (*model.TimeSeriesData,error) {
 	ctx := context.Background()
 	var filters = make(map[string]string)
 	filters[""] = ""
 	resp, err := grpcServer().GetMetrics(ctx, &qm.MetricArg{QueryType: "/OutgoingAPIs", StartTime: *startTime, EndTime: *endTime, Metric: "", Filters: filters,TimeInterval: *timeInterval})
 	if err != nil {
-		log.Errof("[getPolicypkgAdditionalPolicyDataqueryOutgoingAPIsResolver]Failed to get metrics, err: %v", err)
+		log.Errorf("[getPolicyAdditionalPolicyDataqueryOutgoingAPIsResolver]Failed to get metrics, err: %v", err)
 		return &model.TimeSeriesData{}, nil
 	}
 	b, _ := json.Marshal(resp.Data)
@@ -1996,13 +1952,13 @@ func (c *resolverConfig) getPolicypkgAdditionalPolicyDataqueryOutgoingAPIsResolv
 }
 
 // Resolver for queryIncomingTCP
-func (c *resolverConfig) getPolicypkgAdditionalPolicyDataqueryIncomingTCPResolver(obj *model.PolicypkgAdditionalPolicyData, startTime *string, endTime *string, destinationService *string, destinationServiceVersion *string) (*model.TimeSeriesData,error) {
+func (c *resolverConfig) getPolicyAdditionalPolicyDataqueryIncomingTCPResolver(obj *model.PolicyAdditionalPolicyData, startTime *string, endTime *string, destinationService *string, destinationServiceVersion *string) (*model.TimeSeriesData,error) {
 	ctx := context.Background()
 	var filters = make(map[string]string)
 	filters[""] = ""
 	resp, err := grpcServer().GetMetrics(ctx, &qm.MetricArg{QueryType: "/IncomingTCP", StartTime: *startTime, EndTime: *endTime, Metric: "", Filters: filters,TimeInterval: ""})
 	if err != nil {
-		log.Errorf("[getPolicypkgAdditionalPolicyDataqueryIncomingTCPResolver]Failed to get metrics, err: %v", err)
+		log.Errorf("[getPolicyAdditionalPolicyDataqueryIncomingTCPResolver]Failed to get metrics, err: %v", err)
 		return &model.TimeSeriesData{}, nil
 	}
 	b, _ := json.Marshal(resp.Data)
@@ -2014,13 +1970,13 @@ func (c *resolverConfig) getPolicypkgAdditionalPolicyDataqueryIncomingTCPResolve
 }
 
 // Resolver for queryOutgoingTCP
-func (c *resolverConfig) getPolicypkgAdditionalPolicyDataqueryOutgoingTCPResolver(obj *model.PolicypkgAdditionalPolicyData, startTime *string, endTime *string, destinationService *string, destinationServiceVersion *string) (*model.TimeSeriesData,error) {
+func (c *resolverConfig) getPolicyAdditionalPolicyDataqueryOutgoingTCPResolver(obj *model.PolicyAdditionalPolicyData, startTime *string, endTime *string, destinationService *string, destinationServiceVersion *string) (*model.TimeSeriesData,error) {
 	ctx := context.Background()
 	var filters = make(map[string]string)
 	filters[""] = ""
 	resp, err := grpcServer().GetMetrics(ctx, &qm.MetricArg{QueryType: "/OutgoingTCP", StartTime: *startTime, EndTime: *endTime, Metric: "", Filters: filters,TimeInterval: ""})
 	if err != nil {
-		log.Errorf("[getPolicypkgAdditionalPolicyDataqueryOutgoingTCPResolver]Failed to get metrics, err: %v", err)
+		log.Errorf("[getPolicyAdditionalPolicyDataqueryOutgoingTCPResolver]Failed to get metrics, err: %v", err)
 		return &model.TimeSeriesData{}, nil
 	}
 	b, _ := json.Marshal(resp.Data)
@@ -2032,13 +1988,13 @@ func (c *resolverConfig) getPolicypkgAdditionalPolicyDataqueryOutgoingTCPResolve
 }
 
 // Resolver for queryServiceTopology
-func (c *resolverConfig) getPolicypkgAdditionalPolicyDataqueryServiceTopologyResolver(obj *model.PolicypkgAdditionalPolicyData, startTime *string, endTime *string, metricStringArray *string) (*model.TimeSeriesData,error) {
+func (c *resolverConfig) getPolicyAdditionalPolicyDataqueryServiceTopologyResolver(obj *model.PolicyAdditionalPolicyData, startTime *string, endTime *string, metricStringArray *string) (*model.TimeSeriesData,error) {
 	ctx := context.Background()
 	var filters = make(map[string]string)
 	filters[""] = ""
 	resp, err := grpcServer().GetMetrics(ctx, &qm.MetricArg{QueryType: "/ServiceTopology", StartTime: *startTime, EndTime: *endTime, Metric: *metricStringArray, Filters: filters,TimeInterval: ""})
 	if err != nil {
-		log.Errorf("[getPolicypkgAdditionalPolicyDataqueryServiceTopologyResolver]Failed to get metrics, err: %v", err)
+		log.Errorf("[getPolicyAdditionalPolicyDataqueryServiceTopologyResolver]Failed to get metrics, err: %v", err)
 		return &model.TimeSeriesData{}, nil
 	}
 	b, _ := json.Marshal(resp.Data)
@@ -2056,17 +2012,17 @@ func (c *resolverConfig) getPolicypkgAdditionalPolicyDataqueryServiceTopologyRes
 
 
 //////////////////////////////////////
-// CustomQuery Resolver for Node: AccessControlPolicy in PKG: Policypkg
+// CustomQuery Resolver for Node: AccessControlPolicy in PKG: Policy
 //////////////////////////////////////
 
 // Resolver for queryServiceTable
-func (c *resolverConfig) getPolicypkgAccessControlPolicyqueryServiceTableResolver(obj *model.PolicypkgAccessControlPolicy, startTime *string, endTime *string, systemServices *bool, showGateways *bool, groupby *string, noMetrics *bool) (*model.TimeSeriesData,error) {
+func (c *resolverConfig) getPolicyAccessControlPolicyqueryServiceTableResolver(obj *model.PolicyAccessControlPolicy, startTime *string, endTime *string, systemServices *bool, showGateways *bool, groupby *string, noMetrics *bool) (*model.TimeSeriesData,error) {
 	ctx := context.Background()
 	var filters = make(map[string]string)
 	filters[""] = ""
 	resp, err := grpcServer().GetMetrics(ctx, &qm.MetricArg{QueryType: "/ServiceTable", StartTime: *startTime, EndTime: *endTime, Metric: "", Filters: filters,TimeInterval: ""})
 	if err != nil {
-		log.Errorf("[getPolicypkgAccessControlPolicyqueryServiceTableResolver]Failed to get metrics, err: %v", err)
+		log.Errorf("[getPolicyAccessControlPolicyqueryServiceTableResolver]Failed to get metrics, err: %v", err)
 		return &model.TimeSeriesData, nil
 	}
 	b, _ := json.Marshal(resp.Data)
@@ -2078,13 +2034,13 @@ func (c *resolverConfig) getPolicypkgAccessControlPolicyqueryServiceTableResolve
 }
 
 // Resolver for queryServiceVersionTable
-func (c *resolverConfig) getPolicypkgAccessControlPolicyqueryServiceVersionTableResolver(obj *model.PolicypkgAccessControlPolicy, startTime *string, endTime *string, systemServices *bool, showGateways *bool, noMetrics *bool) (*model.TimeSeriesData,error) {
+func (c *resolverConfig) getPolicyAccessControlPolicyqueryServiceVersionTableResolver(obj *model.PolicyAccessControlPolicy, startTime *string, endTime *string, systemServices *bool, showGateways *bool, noMetrics *bool) (*model.TimeSeriesData,error) {
 	ctx := context.Background()
 	var filters = make(map[string]string)
 	filters[""] = ""
 	resp, err := grpcServer().GetMetrics(ctx, &qm.MetricArg{QueryType: "/ServiceTable", StartTime: *startTime, EndTime: *endTime, Metric: "", Filters: filters,TimeInterval: ""})
 	if err != nil {
-	   log.Errorf("[getPolicypkgAccessControlPolicyqueryServiceVersionTableResolver]Failed to get metrics, err: %v", err)
+	   log.Errorf("[getPolicyAccessControlPolicyqueryServiceVersionTableResolver]Failed to get metrics, err: %v", err)
 	   return &model.TimeSeriesData, nil
 	}
 	b, _ := json.Marshal(resp.Data)
@@ -2096,13 +2052,13 @@ func (c *resolverConfig) getPolicypkgAccessControlPolicyqueryServiceVersionTable
 }
 
 // Resolver for queryServiceTS
-func (c *resolverConfig) getPolicypkgAccessControlPolicyqueryServiceTSResolver(obj *model.PolicypkgAccessControlPolicy, svcMetric *string, startTime *string, endTime *string, timeInterval *string) (*model.TimeSeriesData,error) {
+func (c *resolverConfig) getPolicyAccessControlPolicyqueryServiceTSResolver(obj *model.PolicyAccessControlPolicy, svcMetric *string, startTime *string, endTime *string, timeInterval *string) (*model.TimeSeriesData,error) {
 	ctx := context.Background()
 	var filters = make(map[string]string)
 	filters[""] = ""
 	resp, err := grpcServer().GetMetrics(ctx, &qm.MetricArg{QueryType: "/ServiceMetricSeries", StartTime: *startTime, EndTime: *endTime, Metric: *svcMetric, Filters: filters,TimeInterval: *timeInterval})
 	if err != nil {
-		log.Errorf("[getPolicypkgAccessControlPolicyqueryServiceTSResolver]Failed to get metrics, err: %v", err)
+		log.Errorf("[getPolicyAccessControlPolicyqueryServiceTSResolver]Failed to get metrics, err: %v", err)
 		return &model.TimeSeriesData, nil
 	}
 	b, _ := json.Marshal(resp.Data)
@@ -2114,13 +2070,13 @@ func (c *resolverConfig) getPolicypkgAccessControlPolicyqueryServiceTSResolver(o
 }
 
 // Resolver for queryIncomingAPIs
-func (c *resolverConfig) getPolicypkgAccessControlPolicyqueryIncomingAPIsResolver(obj *model.PolicypkgAccessControlPolicy, startTime *string, endTime *string, destinationService *string, destinationServiceVersion *string, timeInterval *string, timeZone *string) (*model.TimeSeriesData,error) {
+func (c *resolverConfig) getPolicyAccessControlPolicyqueryIncomingAPIsResolver(obj *model.PolicyAccessControlPolicy, startTime *string, endTime *string, destinationService *string, destinationServiceVersion *string, timeInterval *string, timeZone *string) (*model.TimeSeriesData,error) {
 	ctx := context.Background()
 	var filters = make(map[string]string)
 	filters[""] = ""
 	resp, err := grpcServer().GetMetrics(ctx, &qm.MetricArg{QueryType: "/IncomingAPIs", StartTime: *startTime, EndTime: *endTime, Metric: "", Filters: filters,TimeInterval: *timeInterval})
 	if err != nil {
-        log.Errorf("[getPolicypkgAccessControlPolicyqueryIncomingAPIsResolver]Failed to get metrics, err: %v", err)
+        log.Errorf("[getPolicyAccessControlPolicyqueryIncomingAPIsResolver]Failed to get metrics, err: %v", err)
         return &model.TimeSeriesData, nil
 	}
 	b, _ := json.Marshal(resp.Data)
@@ -2132,13 +2088,13 @@ func (c *resolverConfig) getPolicypkgAccessControlPolicyqueryIncomingAPIsResolve
 }
 
 // Resolver for queryOutgoingAPIs
-func (c *resolverConfig) getPolicypkgAccessControlPolicyqueryOutgoingAPIsResolver(obj *model.PolicypkgAccessControlPolicy, startTime *string, endTime *string, timeInterval *string, timeZone *string) (*model.TimeSeriesData,error) {
+func (c *resolverConfig) getPolicyAccessControlPolicyqueryOutgoingAPIsResolver(obj *model.PolicyAccessControlPolicy, startTime *string, endTime, destinationService, destinationServiceVersion *string, timeInterval *string, timeZone *string) (*model.TimeSeriesData,error) {
 	ctx := context.Background()
 	var filters = make(map[string]string)
 	filters[""] = ""
 	resp, err := grpcServer().GetMetrics(ctx, &qm.MetricArg{QueryType: "/OutgoingAPIs", StartTime: *startTime, EndTime: *endTime, Metric: "", Filters: filters,TimeInterval: *timeInterval})
 	if err != nil {
-		log.Errof("[getPolicypkgAccessControlPolicyqueryOutgoingAPIsResolver]Failed to get metrics, err: %v", err)
+		log.Errorf("[getPolicyAccessControlPolicyqueryOutgoingAPIsResolver]Failed to get metrics, err: %v", err)
 		return &model.TimeSeriesData{}, nil
 	}
 	b, _ := json.Marshal(resp.Data)
@@ -2150,13 +2106,13 @@ func (c *resolverConfig) getPolicypkgAccessControlPolicyqueryOutgoingAPIsResolve
 }
 
 // Resolver for queryIncomingTCP
-func (c *resolverConfig) getPolicypkgAccessControlPolicyqueryIncomingTCPResolver(obj *model.PolicypkgAccessControlPolicy, startTime *string, endTime *string, destinationService *string, destinationServiceVersion *string) (*model.TimeSeriesData,error) {
+func (c *resolverConfig) getPolicyAccessControlPolicyqueryIncomingTCPResolver(obj *model.PolicyAccessControlPolicy, startTime *string, endTime *string, destinationService *string, destinationServiceVersion *string) (*model.TimeSeriesData,error) {
 	ctx := context.Background()
 	var filters = make(map[string]string)
 	filters[""] = ""
 	resp, err := grpcServer().GetMetrics(ctx, &qm.MetricArg{QueryType: "/IncomingTCP", StartTime: *startTime, EndTime: *endTime, Metric: "", Filters: filters,TimeInterval: ""})
 	if err != nil {
-		log.Errorf("[getPolicypkgAccessControlPolicyqueryIncomingTCPResolver]Failed to get metrics, err: %v", err)
+		log.Errorf("[getPolicyAccessControlPolicyqueryIncomingTCPResolver]Failed to get metrics, err: %v", err)
 		return &model.TimeSeriesData{}, nil
 	}
 	b, _ := json.Marshal(resp.Data)
@@ -2168,13 +2124,13 @@ func (c *resolverConfig) getPolicypkgAccessControlPolicyqueryIncomingTCPResolver
 }
 
 // Resolver for queryOutgoingTCP
-func (c *resolverConfig) getPolicypkgAccessControlPolicyqueryOutgoingTCPResolver(obj *model.PolicypkgAccessControlPolicy, startTime *string, endTime *string, destinationService *string, destinationServiceVersion *string) (*model.TimeSeriesData,error) {
+func (c *resolverConfig) getPolicyAccessControlPolicyqueryOutgoingTCPResolver(obj *model.PolicyAccessControlPolicy, startTime *string, endTime *string, destinationService *string, destinationServiceVersion *string) (*model.TimeSeriesData,error) {
 	ctx := context.Background()
 	var filters = make(map[string]string)
 	filters[""] = ""
 	resp, err := grpcServer().GetMetrics(ctx, &qm.MetricArg{QueryType: "/OutgoingTCP", StartTime: *startTime, EndTime: *endTime, Metric: "", Filters: filters,TimeInterval: ""})
 	if err != nil {
-		log.Errorf("[getPolicypkgAccessControlPolicyqueryOutgoingTCPResolver]Failed to get metrics, err: %v", err)
+		log.Errorf("[getPolicyAccessControlPolicyqueryOutgoingTCPResolver]Failed to get metrics, err: %v", err)
 		return &model.TimeSeriesData{}, nil
 	}
 	b, _ := json.Marshal(resp.Data)
@@ -2186,13 +2142,13 @@ func (c *resolverConfig) getPolicypkgAccessControlPolicyqueryOutgoingTCPResolver
 }
 
 // Resolver for queryServiceTopology
-func (c *resolverConfig) getPolicypkgAccessControlPolicyqueryServiceTopologyResolver(obj *model.PolicypkgAccessControlPolicy, startTime *string, endTime *string, metricStringArray *string) (*model.TimeSeriesData,error) {
+func (c *resolverConfig) getPolicyAccessControlPolicyqueryServiceTopologyResolver(obj *model.PolicyAccessControlPolicy, startTime *string, endTime *string, metricStringArray *string) (*model.TimeSeriesData,error) {
 	ctx := context.Background()
 	var filters = make(map[string]string)
 	filters[""] = ""
 	resp, err := grpcServer().GetMetrics(ctx, &qm.MetricArg{QueryType: "/ServiceTopology", StartTime: *startTime, EndTime: *endTime, Metric: *metricStringArray, Filters: filters,TimeInterval: ""})
 	if err != nil {
-		log.Errorf("[getPolicypkgAccessControlPolicyqueryServiceTopologyResolver]Failed to get metrics, err: %v", err)
+		log.Errorf("[getPolicyAccessControlPolicyqueryServiceTopologyResolver]Failed to get metrics, err: %v", err)
 		return &model.TimeSeriesData{}, nil
 	}
 	b, _ := json.Marshal(resp.Data)
@@ -2206,17 +2162,17 @@ func (c *resolverConfig) getPolicypkgAccessControlPolicyqueryServiceTopologyReso
 
 
 //////////////////////////////////////
-// CustomQuery Resolver for Node: ACPConfig in PKG: Policypkg
+// CustomQuery Resolver for Node: ACPConfig in PKG: Policy
 //////////////////////////////////////
 
 // Resolver for queryServiceTable
-func (c *resolverConfig) getPolicypkgACPConfigqueryServiceTableResolver(obj *model.PolicypkgACPConfig, startTime *string, endTime *string, systemServices *bool, showGateways *bool, groupby *string, noMetrics *bool) (*model.TimeSeriesData,error) {
+func (c *resolverConfig) getPolicyACPConfigqueryServiceTableResolver(obj *model.PolicyACPConfig, startTime *string, endTime *string, systemServices *bool, showGateways *bool, groupby *string, noMetrics *bool) (*model.TimeSeriesData,error) {
 	ctx := context.Background()
 	var filters = make(map[string]string)
 	filters[""] = ""
 	resp, err := grpcServer().GetMetrics(ctx, &qm.MetricArg{QueryType: "/ServiceTable", StartTime: *startTime, EndTime: *endTime, Metric: "", Filters: filters,TimeInterval: ""})
 	if err != nil {
-		log.Errorf("[getPolicypkgACPConfigqueryServiceTableResolver]Failed to get metrics, err: %v", err)
+		log.Errorf("[getPolicyACPConfigqueryServiceTableResolver]Failed to get metrics, err: %v", err)
 		return &model.TimeSeriesData, nil
 	}
 	b, _ := json.Marshal(resp.Data)
@@ -2228,13 +2184,13 @@ func (c *resolverConfig) getPolicypkgACPConfigqueryServiceTableResolver(obj *mod
 }
 
 // Resolver for queryServiceVersionTable
-func (c *resolverConfig) getPolicypkgACPConfigqueryServiceVersionTableResolver(obj *model.PolicypkgACPConfig, startTime *string, endTime *string, systemServices *bool, showGateways *bool, noMetrics *bool) (*model.TimeSeriesData,error) {
+func (c *resolverConfig) getPolicyACPConfigqueryServiceVersionTableResolver(obj *model.PolicyACPConfig, startTime *string, endTime *string, systemServices *bool, showGateways *bool, noMetrics *bool) (*model.TimeSeriesData,error) {
 	ctx := context.Background()
 	var filters = make(map[string]string)
 	filters[""] = ""
 	resp, err := grpcServer().GetMetrics(ctx, &qm.MetricArg{QueryType: "/ServiceTable", StartTime: *startTime, EndTime: *endTime, Metric: "", Filters: filters,TimeInterval: ""})
 	if err != nil {
-	   log.Errorf("[getPolicypkgACPConfigqueryServiceVersionTableResolver]Failed to get metrics, err: %v", err)
+	   log.Errorf("[getPolicyACPConfigqueryServiceVersionTableResolver]Failed to get metrics, err: %v", err)
 	   return &model.TimeSeriesData, nil
 	}
 	b, _ := json.Marshal(resp.Data)
@@ -2246,13 +2202,13 @@ func (c *resolverConfig) getPolicypkgACPConfigqueryServiceVersionTableResolver(o
 }
 
 // Resolver for queryServiceTS
-func (c *resolverConfig) getPolicypkgACPConfigqueryServiceTSResolver(obj *model.PolicypkgACPConfig, svcMetric *string, startTime *string, endTime *string, timeInterval *string) (*model.TimeSeriesData,error) {
+func (c *resolverConfig) getPolicyACPConfigqueryServiceTSResolver(obj *model.PolicyACPConfig, svcMetric *string, startTime *string, endTime *string, timeInterval *string) (*model.TimeSeriesData,error) {
 	ctx := context.Background()
 	var filters = make(map[string]string)
 	filters[""] = ""
 	resp, err := grpcServer().GetMetrics(ctx, &qm.MetricArg{QueryType: "/ServiceMetricSeries", StartTime: *startTime, EndTime: *endTime, Metric: *svcMetric, Filters: filters,TimeInterval: *timeInterval})
 	if err != nil {
-		log.Errorf("[getPolicypkgACPConfigqueryServiceTSResolver]Failed to get metrics, err: %v", err)
+		log.Errorf("[getPolicyACPConfigqueryServiceTSResolver]Failed to get metrics, err: %v", err)
 		return &model.TimeSeriesData, nil
 	}
 	b, _ := json.Marshal(resp.Data)
@@ -2264,13 +2220,13 @@ func (c *resolverConfig) getPolicypkgACPConfigqueryServiceTSResolver(obj *model.
 }
 
 // Resolver for queryIncomingAPIs
-func (c *resolverConfig) getPolicypkgACPConfigqueryIncomingAPIsResolver(obj *model.PolicypkgACPConfig, startTime *string, endTime *string, destinationService *string, destinationServiceVersion *string, timeInterval *string, timeZone *string) (*model.TimeSeriesData,error) {
+func (c *resolverConfig) getPolicyACPConfigqueryIncomingAPIsResolver(obj *model.PolicyACPConfig, startTime *string, endTime *string, destinationService *string, destinationServiceVersion *string, timeInterval *string, timeZone *string) (*model.TimeSeriesData,error) {
 	ctx := context.Background()
 	var filters = make(map[string]string)
 	filters[""] = ""
 	resp, err := grpcServer().GetMetrics(ctx, &qm.MetricArg{QueryType: "/IncomingAPIs", StartTime: *startTime, EndTime: *endTime, Metric: "", Filters: filters,TimeInterval: *timeInterval})
 	if err != nil {
-        log.Errorf("[getPolicypkgACPConfigqueryIncomingAPIsResolver]Failed to get metrics, err: %v", err)
+        log.Errorf("[getPolicyACPConfigqueryIncomingAPIsResolver]Failed to get metrics, err: %v", err)
         return &model.TimeSeriesData, nil
 	}
 	b, _ := json.Marshal(resp.Data)
@@ -2282,13 +2238,13 @@ func (c *resolverConfig) getPolicypkgACPConfigqueryIncomingAPIsResolver(obj *mod
 }
 
 // Resolver for queryOutgoingAPIs
-func (c *resolverConfig) getPolicypkgACPConfigqueryOutgoingAPIsResolver(obj *model.PolicypkgACPConfig, startTime *string, endTime *string, timeInterval *string, timeZone *string) (*model.TimeSeriesData,error) {
+func (c *resolverConfig) getPolicyACPConfigqueryOutgoingAPIsResolver(obj *model.PolicyACPConfig, startTime *string, endTime, destinationService, destinationServiceVersion *string, timeInterval *string, timeZone *string) (*model.TimeSeriesData,error) {
 	ctx := context.Background()
 	var filters = make(map[string]string)
 	filters[""] = ""
 	resp, err := grpcServer().GetMetrics(ctx, &qm.MetricArg{QueryType: "/OutgoingAPIs", StartTime: *startTime, EndTime: *endTime, Metric: "", Filters: filters,TimeInterval: *timeInterval})
 	if err != nil {
-		log.Errof("[getPolicypkgACPConfigqueryOutgoingAPIsResolver]Failed to get metrics, err: %v", err)
+		log.Errorf("[getPolicyACPConfigqueryOutgoingAPIsResolver]Failed to get metrics, err: %v", err)
 		return &model.TimeSeriesData{}, nil
 	}
 	b, _ := json.Marshal(resp.Data)
@@ -2300,13 +2256,13 @@ func (c *resolverConfig) getPolicypkgACPConfigqueryOutgoingAPIsResolver(obj *mod
 }
 
 // Resolver for queryIncomingTCP
-func (c *resolverConfig) getPolicypkgACPConfigqueryIncomingTCPResolver(obj *model.PolicypkgACPConfig, startTime *string, endTime *string, destinationService *string, destinationServiceVersion *string) (*model.TimeSeriesData,error) {
+func (c *resolverConfig) getPolicyACPConfigqueryIncomingTCPResolver(obj *model.PolicyACPConfig, startTime *string, endTime *string, destinationService *string, destinationServiceVersion *string) (*model.TimeSeriesData,error) {
 	ctx := context.Background()
 	var filters = make(map[string]string)
 	filters[""] = ""
 	resp, err := grpcServer().GetMetrics(ctx, &qm.MetricArg{QueryType: "/IncomingTCP", StartTime: *startTime, EndTime: *endTime, Metric: "", Filters: filters,TimeInterval: ""})
 	if err != nil {
-		log.Errorf("[getPolicypkgACPConfigqueryIncomingTCPResolver]Failed to get metrics, err: %v", err)
+		log.Errorf("[getPolicyACPConfigqueryIncomingTCPResolver]Failed to get metrics, err: %v", err)
 		return &model.TimeSeriesData{}, nil
 	}
 	b, _ := json.Marshal(resp.Data)
@@ -2318,13 +2274,13 @@ func (c *resolverConfig) getPolicypkgACPConfigqueryIncomingTCPResolver(obj *mode
 }
 
 // Resolver for queryOutgoingTCP
-func (c *resolverConfig) getPolicypkgACPConfigqueryOutgoingTCPResolver(obj *model.PolicypkgACPConfig, startTime *string, endTime *string, destinationService *string, destinationServiceVersion *string) (*model.TimeSeriesData,error) {
+func (c *resolverConfig) getPolicyACPConfigqueryOutgoingTCPResolver(obj *model.PolicyACPConfig, startTime *string, endTime *string, destinationService *string, destinationServiceVersion *string) (*model.TimeSeriesData,error) {
 	ctx := context.Background()
 	var filters = make(map[string]string)
 	filters[""] = ""
 	resp, err := grpcServer().GetMetrics(ctx, &qm.MetricArg{QueryType: "/OutgoingTCP", StartTime: *startTime, EndTime: *endTime, Metric: "", Filters: filters,TimeInterval: ""})
 	if err != nil {
-		log.Errorf("[getPolicypkgACPConfigqueryOutgoingTCPResolver]Failed to get metrics, err: %v", err)
+		log.Errorf("[getPolicyACPConfigqueryOutgoingTCPResolver]Failed to get metrics, err: %v", err)
 		return &model.TimeSeriesData{}, nil
 	}
 	b, _ := json.Marshal(resp.Data)
@@ -2336,13 +2292,13 @@ func (c *resolverConfig) getPolicypkgACPConfigqueryOutgoingTCPResolver(obj *mode
 }
 
 // Resolver for queryServiceTopology
-func (c *resolverConfig) getPolicypkgACPConfigqueryServiceTopologyResolver(obj *model.PolicypkgACPConfig, startTime *string, endTime *string, metricStringArray *string) (*model.TimeSeriesData,error) {
+func (c *resolverConfig) getPolicyACPConfigqueryServiceTopologyResolver(obj *model.PolicyACPConfig, startTime *string, endTime *string, metricStringArray *string) (*model.TimeSeriesData,error) {
 	ctx := context.Background()
 	var filters = make(map[string]string)
 	filters[""] = ""
 	resp, err := grpcServer().GetMetrics(ctx, &qm.MetricArg{QueryType: "/ServiceTopology", StartTime: *startTime, EndTime: *endTime, Metric: *metricStringArray, Filters: filters,TimeInterval: ""})
 	if err != nil {
-		log.Errorf("[getPolicypkgACPConfigqueryServiceTopologyResolver]Failed to get metrics, err: %v", err)
+		log.Errorf("[getPolicyACPConfigqueryServiceTopologyResolver]Failed to get metrics, err: %v", err)
 		return &model.TimeSeriesData{}, nil
 	}
 	b, _ := json.Marshal(resp.Data)
@@ -2366,17 +2322,17 @@ func (c *resolverConfig) getPolicypkgACPConfigqueryServiceTopologyResolver(obj *
 
 
 //////////////////////////////////////
-// CustomQuery Resolver for Node: VMpolicy in PKG: Policypkg
+// CustomQuery Resolver for Node: VMpolicy in PKG: Policy
 //////////////////////////////////////
 
 // Resolver for queryServiceTable
-func (c *resolverConfig) getPolicypkgVMpolicyqueryServiceTableResolver(obj *model.PolicypkgVMpolicy, startTime *string, endTime *string, systemServices *bool, showGateways *bool, groupby *string, noMetrics *bool) (*model.TimeSeriesData,error) {
+func (c *resolverConfig) getPolicyVMpolicyqueryServiceTableResolver(obj *model.PolicyVMpolicy, startTime *string, endTime *string, systemServices *bool, showGateways *bool, groupby *string, noMetrics *bool) (*model.TimeSeriesData,error) {
 	ctx := context.Background()
 	var filters = make(map[string]string)
 	filters[""] = ""
 	resp, err := grpcServer().GetMetrics(ctx, &qm.MetricArg{QueryType: "/ServiceTable", StartTime: *startTime, EndTime: *endTime, Metric: "", Filters: filters,TimeInterval: ""})
 	if err != nil {
-		log.Errorf("[getPolicypkgVMpolicyqueryServiceTableResolver]Failed to get metrics, err: %v", err)
+		log.Errorf("[getPolicyVMpolicyqueryServiceTableResolver]Failed to get metrics, err: %v", err)
 		return &model.TimeSeriesData, nil
 	}
 	b, _ := json.Marshal(resp.Data)
@@ -2388,13 +2344,13 @@ func (c *resolverConfig) getPolicypkgVMpolicyqueryServiceTableResolver(obj *mode
 }
 
 // Resolver for queryServiceVersionTable
-func (c *resolverConfig) getPolicypkgVMpolicyqueryServiceVersionTableResolver(obj *model.PolicypkgVMpolicy, startTime *string, endTime *string, systemServices *bool, showGateways *bool, noMetrics *bool) (*model.TimeSeriesData,error) {
+func (c *resolverConfig) getPolicyVMpolicyqueryServiceVersionTableResolver(obj *model.PolicyVMpolicy, startTime *string, endTime *string, systemServices *bool, showGateways *bool, noMetrics *bool) (*model.TimeSeriesData,error) {
 	ctx := context.Background()
 	var filters = make(map[string]string)
 	filters[""] = ""
 	resp, err := grpcServer().GetMetrics(ctx, &qm.MetricArg{QueryType: "/ServiceTable", StartTime: *startTime, EndTime: *endTime, Metric: "", Filters: filters,TimeInterval: ""})
 	if err != nil {
-	   log.Errorf("[getPolicypkgVMpolicyqueryServiceVersionTableResolver]Failed to get metrics, err: %v", err)
+	   log.Errorf("[getPolicyVMpolicyqueryServiceVersionTableResolver]Failed to get metrics, err: %v", err)
 	   return &model.TimeSeriesData, nil
 	}
 	b, _ := json.Marshal(resp.Data)
@@ -2406,13 +2362,13 @@ func (c *resolverConfig) getPolicypkgVMpolicyqueryServiceVersionTableResolver(ob
 }
 
 // Resolver for queryServiceTS
-func (c *resolverConfig) getPolicypkgVMpolicyqueryServiceTSResolver(obj *model.PolicypkgVMpolicy, svcMetric *string, startTime *string, endTime *string, timeInterval *string) (*model.TimeSeriesData,error) {
+func (c *resolverConfig) getPolicyVMpolicyqueryServiceTSResolver(obj *model.PolicyVMpolicy, svcMetric *string, startTime *string, endTime *string, timeInterval *string) (*model.TimeSeriesData,error) {
 	ctx := context.Background()
 	var filters = make(map[string]string)
 	filters[""] = ""
 	resp, err := grpcServer().GetMetrics(ctx, &qm.MetricArg{QueryType: "/ServiceMetricSeries", StartTime: *startTime, EndTime: *endTime, Metric: *svcMetric, Filters: filters,TimeInterval: *timeInterval})
 	if err != nil {
-		log.Errorf("[getPolicypkgVMpolicyqueryServiceTSResolver]Failed to get metrics, err: %v", err)
+		log.Errorf("[getPolicyVMpolicyqueryServiceTSResolver]Failed to get metrics, err: %v", err)
 		return &model.TimeSeriesData, nil
 	}
 	b, _ := json.Marshal(resp.Data)
@@ -2424,13 +2380,13 @@ func (c *resolverConfig) getPolicypkgVMpolicyqueryServiceTSResolver(obj *model.P
 }
 
 // Resolver for queryIncomingAPIs
-func (c *resolverConfig) getPolicypkgVMpolicyqueryIncomingAPIsResolver(obj *model.PolicypkgVMpolicy, startTime *string, endTime *string, destinationService *string, destinationServiceVersion *string, timeInterval *string, timeZone *string) (*model.TimeSeriesData,error) {
+func (c *resolverConfig) getPolicyVMpolicyqueryIncomingAPIsResolver(obj *model.PolicyVMpolicy, startTime *string, endTime *string, destinationService *string, destinationServiceVersion *string, timeInterval *string, timeZone *string) (*model.TimeSeriesData,error) {
 	ctx := context.Background()
 	var filters = make(map[string]string)
 	filters[""] = ""
 	resp, err := grpcServer().GetMetrics(ctx, &qm.MetricArg{QueryType: "/IncomingAPIs", StartTime: *startTime, EndTime: *endTime, Metric: "", Filters: filters,TimeInterval: *timeInterval})
 	if err != nil {
-        log.Errorf("[getPolicypkgVMpolicyqueryIncomingAPIsResolver]Failed to get metrics, err: %v", err)
+        log.Errorf("[getPolicyVMpolicyqueryIncomingAPIsResolver]Failed to get metrics, err: %v", err)
         return &model.TimeSeriesData, nil
 	}
 	b, _ := json.Marshal(resp.Data)
@@ -2442,13 +2398,13 @@ func (c *resolverConfig) getPolicypkgVMpolicyqueryIncomingAPIsResolver(obj *mode
 }
 
 // Resolver for queryOutgoingAPIs
-func (c *resolverConfig) getPolicypkgVMpolicyqueryOutgoingAPIsResolver(obj *model.PolicypkgVMpolicy, startTime *string, endTime *string, timeInterval *string, timeZone *string) (*model.TimeSeriesData,error) {
+func (c *resolverConfig) getPolicyVMpolicyqueryOutgoingAPIsResolver(obj *model.PolicyVMpolicy, startTime *string, endTime, destinationService, destinationServiceVersion *string, timeInterval *string, timeZone *string) (*model.TimeSeriesData,error) {
 	ctx := context.Background()
 	var filters = make(map[string]string)
 	filters[""] = ""
 	resp, err := grpcServer().GetMetrics(ctx, &qm.MetricArg{QueryType: "/OutgoingAPIs", StartTime: *startTime, EndTime: *endTime, Metric: "", Filters: filters,TimeInterval: *timeInterval})
 	if err != nil {
-		log.Errof("[getPolicypkgVMpolicyqueryOutgoingAPIsResolver]Failed to get metrics, err: %v", err)
+		log.Errorf("[getPolicyVMpolicyqueryOutgoingAPIsResolver]Failed to get metrics, err: %v", err)
 		return &model.TimeSeriesData{}, nil
 	}
 	b, _ := json.Marshal(resp.Data)
@@ -2460,13 +2416,13 @@ func (c *resolverConfig) getPolicypkgVMpolicyqueryOutgoingAPIsResolver(obj *mode
 }
 
 // Resolver for queryIncomingTCP
-func (c *resolverConfig) getPolicypkgVMpolicyqueryIncomingTCPResolver(obj *model.PolicypkgVMpolicy, startTime *string, endTime *string, destinationService *string, destinationServiceVersion *string) (*model.TimeSeriesData,error) {
+func (c *resolverConfig) getPolicyVMpolicyqueryIncomingTCPResolver(obj *model.PolicyVMpolicy, startTime *string, endTime *string, destinationService *string, destinationServiceVersion *string) (*model.TimeSeriesData,error) {
 	ctx := context.Background()
 	var filters = make(map[string]string)
 	filters[""] = ""
 	resp, err := grpcServer().GetMetrics(ctx, &qm.MetricArg{QueryType: "/IncomingTCP", StartTime: *startTime, EndTime: *endTime, Metric: "", Filters: filters,TimeInterval: ""})
 	if err != nil {
-		log.Errorf("[getPolicypkgVMpolicyqueryIncomingTCPResolver]Failed to get metrics, err: %v", err)
+		log.Errorf("[getPolicyVMpolicyqueryIncomingTCPResolver]Failed to get metrics, err: %v", err)
 		return &model.TimeSeriesData{}, nil
 	}
 	b, _ := json.Marshal(resp.Data)
@@ -2478,13 +2434,13 @@ func (c *resolverConfig) getPolicypkgVMpolicyqueryIncomingTCPResolver(obj *model
 }
 
 // Resolver for queryOutgoingTCP
-func (c *resolverConfig) getPolicypkgVMpolicyqueryOutgoingTCPResolver(obj *model.PolicypkgVMpolicy, startTime *string, endTime *string, destinationService *string, destinationServiceVersion *string) (*model.TimeSeriesData,error) {
+func (c *resolverConfig) getPolicyVMpolicyqueryOutgoingTCPResolver(obj *model.PolicyVMpolicy, startTime *string, endTime *string, destinationService *string, destinationServiceVersion *string) (*model.TimeSeriesData,error) {
 	ctx := context.Background()
 	var filters = make(map[string]string)
 	filters[""] = ""
 	resp, err := grpcServer().GetMetrics(ctx, &qm.MetricArg{QueryType: "/OutgoingTCP", StartTime: *startTime, EndTime: *endTime, Metric: "", Filters: filters,TimeInterval: ""})
 	if err != nil {
-		log.Errorf("[getPolicypkgVMpolicyqueryOutgoingTCPResolver]Failed to get metrics, err: %v", err)
+		log.Errorf("[getPolicyVMpolicyqueryOutgoingTCPResolver]Failed to get metrics, err: %v", err)
 		return &model.TimeSeriesData{}, nil
 	}
 	b, _ := json.Marshal(resp.Data)
@@ -2496,13 +2452,13 @@ func (c *resolverConfig) getPolicypkgVMpolicyqueryOutgoingTCPResolver(obj *model
 }
 
 // Resolver for queryServiceTopology
-func (c *resolverConfig) getPolicypkgVMpolicyqueryServiceTopologyResolver(obj *model.PolicypkgVMpolicy, startTime *string, endTime *string, metricStringArray *string) (*model.TimeSeriesData,error) {
+func (c *resolverConfig) getPolicyVMpolicyqueryServiceTopologyResolver(obj *model.PolicyVMpolicy, startTime *string, endTime *string, metricStringArray *string) (*model.TimeSeriesData,error) {
 	ctx := context.Background()
 	var filters = make(map[string]string)
 	filters[""] = ""
 	resp, err := grpcServer().GetMetrics(ctx, &qm.MetricArg{QueryType: "/ServiceTopology", StartTime: *startTime, EndTime: *endTime, Metric: *metricStringArray, Filters: filters,TimeInterval: ""})
 	if err != nil {
-		log.Errorf("[getPolicypkgVMpolicyqueryServiceTopologyResolver]Failed to get metrics, err: %v", err)
+		log.Errorf("[getPolicyVMpolicyqueryServiceTopologyResolver]Failed to get metrics, err: %v", err)
 		return &model.TimeSeriesData{}, nil
 	}
 	b, _ := json.Marshal(resp.Data)
@@ -2517,30 +2473,30 @@ func (c *resolverConfig) getPolicypkgVMpolicyqueryServiceTopologyResolver(obj *m
 
 //////////////////////////////////////
 // Non Singleton Resolver for Parent Node
-// PKG: Policypkg, NODE: Policypkg
+// PKG: Policy, NODE: Policy
 //////////////////////////////////////
-func (c *resolverConfig) getRootResolver(id *string) ([]*model.PolicypkgRandomPolicyData, error) {
+func (c *resolverConfig) getRootResolver(id *string) ([]*model.PolicyRandomPolicyData, error) {
 	k8sApiConfig := getK8sAPIEndpointConfig()
 	nexusClient, err := nexus_client.NewForConfig(k8sApiConfig)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get k8s client config: %s", err)
 	}
 	nc = nexusClient
-	var vRandomPolicyDataList []*model.PolicypkgRandomPolicyData
+	var vRandomPolicyDataList []*model.PolicyRandomPolicyData
 	if id != nil && *id != "" {
 	    log.Debugf("[getRootResolver]Id: %q", *id)
-		vRandomPolicyData, err := nc.GetPolicypkgRandomPolicyData(context.TODO(), *id)
+		vRandomPolicyData, err := nc.GetPolicyRandomPolicyData(context.TODO(), *id)
 		if err != nil {
 			log.Errorf("[getRootResolver]Error getting RandomPolicyData node %q: %s", *id, err)
 			return nil, nil
 		}
-		c.vPolicypkgRandomPolicyData = vRandomPolicyData
+		c.vPolicyRandomPolicyData = vRandomPolicyData
 		dn := vRandomPolicyData.DisplayName()
 parentLabels := map[string]interface{}{"randompolicydatas.policypkg.tsm.tanzu.vmware.com":dn}
 Description, _ := json.Marshal(vRandomPolicyData.Spec.Description)
 DescriptionData := string(Description)
 
-		ret := &model.PolicypkgRandomPolicyData {
+		ret := &model.PolicyRandomPolicyData {
 	Id: &dn,
 	ParentLabels: parentLabels,
 	Description: &DescriptionData,
@@ -2554,18 +2510,18 @@ DescriptionData := string(Description)
 
 	vRandomPolicyDataListObj, err := nc.RandomPolicyData().ListRandomPolicyDatas(context.TODO(), metav1.ListOptions{})
 	for _,i := range vRandomPolicyDataListObj{
-		vRandomPolicyData, err := nc.GetPolicypkgRandomPolicyData(context.TODO(), i.DisplayName())
+		vRandomPolicyData, err := nc.GetPolicyRandomPolicyData(context.TODO(), i.DisplayName())
 		if err != nil {
 			log.Errorf("[getRootResolver]Error getting RandomPolicyData node %q : %s", i.DisplayName(), err)
 			continue
 		}
-		c.vPolicypkgRandomPolicyData = vRandomPolicyData
+		c.vPolicyRandomPolicyData = vRandomPolicyData
 		dn := vRandomPolicyData.DisplayName()
 parentLabels := map[string]interface{}{"randompolicydatas.policypkg.tsm.tanzu.vmware.com":dn}
 Description, _ := json.Marshal(vRandomPolicyData.Spec.Description)
 DescriptionData := string(Description)
 
-		ret := &model.PolicypkgRandomPolicyData {
+		ret := &model.PolicyRandomPolicyData {
 	Id: &dn,
 	ParentLabels: parentLabels,
 	Description: &DescriptionData,
@@ -2579,17 +2535,17 @@ DescriptionData := string(Description)
 
 
 //////////////////////////////////////
-// CustomQuery Resolver for Node: RandomPolicyData in PKG: Policypkg
+// CustomQuery Resolver for Node: RandomPolicyData in PKG: Policy
 //////////////////////////////////////
 
 // Resolver for queryServiceTable
-func (c *resolverConfig) getPolicypkgRandomPolicyDataqueryServiceTableResolver(obj *model.PolicypkgRandomPolicyData, startTime *string, endTime *string, systemServices *bool, showGateways *bool, groupby *string, noMetrics *bool) (*model.TimeSeriesData,error) {
+func (c *resolverConfig) getPolicyRandomPolicyDataqueryServiceTableResolver(obj *model.PolicyRandomPolicyData, startTime *string, endTime *string, systemServices *bool, showGateways *bool, groupby *string, noMetrics *bool) (*model.TimeSeriesData,error) {
 	ctx := context.Background()
 	var filters = make(map[string]string)
 	filters[""] = ""
 	resp, err := grpcServer().GetMetrics(ctx, &qm.MetricArg{QueryType: "/ServiceTable", StartTime: *startTime, EndTime: *endTime, Metric: "", Filters: filters,TimeInterval: ""})
 	if err != nil {
-		log.Errorf("[getPolicypkgRandomPolicyDataqueryServiceTableResolver]Failed to get metrics, err: %v", err)
+		log.Errorf("[getPolicyRandomPolicyDataqueryServiceTableResolver]Failed to get metrics, err: %v", err)
 		return &model.TimeSeriesData, nil
 	}
 	b, _ := json.Marshal(resp.Data)
@@ -2601,13 +2557,13 @@ func (c *resolverConfig) getPolicypkgRandomPolicyDataqueryServiceTableResolver(o
 }
 
 // Resolver for queryServiceVersionTable
-func (c *resolverConfig) getPolicypkgRandomPolicyDataqueryServiceVersionTableResolver(obj *model.PolicypkgRandomPolicyData, startTime *string, endTime *string, systemServices *bool, showGateways *bool, noMetrics *bool) (*model.TimeSeriesData,error) {
+func (c *resolverConfig) getPolicyRandomPolicyDataqueryServiceVersionTableResolver(obj *model.PolicyRandomPolicyData, startTime *string, endTime *string, systemServices *bool, showGateways *bool, noMetrics *bool) (*model.TimeSeriesData,error) {
 	ctx := context.Background()
 	var filters = make(map[string]string)
 	filters[""] = ""
 	resp, err := grpcServer().GetMetrics(ctx, &qm.MetricArg{QueryType: "/ServiceTable", StartTime: *startTime, EndTime: *endTime, Metric: "", Filters: filters,TimeInterval: ""})
 	if err != nil {
-	   log.Errorf("[getPolicypkgRandomPolicyDataqueryServiceVersionTableResolver]Failed to get metrics, err: %v", err)
+	   log.Errorf("[getPolicyRandomPolicyDataqueryServiceVersionTableResolver]Failed to get metrics, err: %v", err)
 	   return &model.TimeSeriesData, nil
 	}
 	b, _ := json.Marshal(resp.Data)
@@ -2619,13 +2575,13 @@ func (c *resolverConfig) getPolicypkgRandomPolicyDataqueryServiceVersionTableRes
 }
 
 // Resolver for queryServiceTS
-func (c *resolverConfig) getPolicypkgRandomPolicyDataqueryServiceTSResolver(obj *model.PolicypkgRandomPolicyData, svcMetric *string, startTime *string, endTime *string, timeInterval *string) (*model.TimeSeriesData,error) {
+func (c *resolverConfig) getPolicyRandomPolicyDataqueryServiceTSResolver(obj *model.PolicyRandomPolicyData, svcMetric *string, startTime *string, endTime *string, timeInterval *string) (*model.TimeSeriesData,error) {
 	ctx := context.Background()
 	var filters = make(map[string]string)
 	filters[""] = ""
 	resp, err := grpcServer().GetMetrics(ctx, &qm.MetricArg{QueryType: "/ServiceMetricSeries", StartTime: *startTime, EndTime: *endTime, Metric: *svcMetric, Filters: filters,TimeInterval: *timeInterval})
 	if err != nil {
-		log.Errorf("[getPolicypkgRandomPolicyDataqueryServiceTSResolver]Failed to get metrics, err: %v", err)
+		log.Errorf("[getPolicyRandomPolicyDataqueryServiceTSResolver]Failed to get metrics, err: %v", err)
 		return &model.TimeSeriesData, nil
 	}
 	b, _ := json.Marshal(resp.Data)
@@ -2637,13 +2593,13 @@ func (c *resolverConfig) getPolicypkgRandomPolicyDataqueryServiceTSResolver(obj 
 }
 
 // Resolver for queryIncomingAPIs
-func (c *resolverConfig) getPolicypkgRandomPolicyDataqueryIncomingAPIsResolver(obj *model.PolicypkgRandomPolicyData, startTime *string, endTime *string, destinationService *string, destinationServiceVersion *string, timeInterval *string, timeZone *string) (*model.TimeSeriesData,error) {
+func (c *resolverConfig) getPolicyRandomPolicyDataqueryIncomingAPIsResolver(obj *model.PolicyRandomPolicyData, startTime *string, endTime *string, destinationService *string, destinationServiceVersion *string, timeInterval *string, timeZone *string) (*model.TimeSeriesData,error) {
 	ctx := context.Background()
 	var filters = make(map[string]string)
 	filters[""] = ""
 	resp, err := grpcServer().GetMetrics(ctx, &qm.MetricArg{QueryType: "/IncomingAPIs", StartTime: *startTime, EndTime: *endTime, Metric: "", Filters: filters,TimeInterval: *timeInterval})
 	if err != nil {
-        log.Errorf("[getPolicypkgRandomPolicyDataqueryIncomingAPIsResolver]Failed to get metrics, err: %v", err)
+        log.Errorf("[getPolicyRandomPolicyDataqueryIncomingAPIsResolver]Failed to get metrics, err: %v", err)
         return &model.TimeSeriesData, nil
 	}
 	b, _ := json.Marshal(resp.Data)
@@ -2655,13 +2611,13 @@ func (c *resolverConfig) getPolicypkgRandomPolicyDataqueryIncomingAPIsResolver(o
 }
 
 // Resolver for queryOutgoingAPIs
-func (c *resolverConfig) getPolicypkgRandomPolicyDataqueryOutgoingAPIsResolver(obj *model.PolicypkgRandomPolicyData, startTime *string, endTime *string, timeInterval *string, timeZone *string) (*model.TimeSeriesData,error) {
+func (c *resolverConfig) getPolicyRandomPolicyDataqueryOutgoingAPIsResolver(obj *model.PolicyRandomPolicyData, startTime *string, endTime, destinationService, destinationServiceVersion *string, timeInterval *string, timeZone *string) (*model.TimeSeriesData,error) {
 	ctx := context.Background()
 	var filters = make(map[string]string)
 	filters[""] = ""
 	resp, err := grpcServer().GetMetrics(ctx, &qm.MetricArg{QueryType: "/OutgoingAPIs", StartTime: *startTime, EndTime: *endTime, Metric: "", Filters: filters,TimeInterval: *timeInterval})
 	if err != nil {
-		log.Errof("[getPolicypkgRandomPolicyDataqueryOutgoingAPIsResolver]Failed to get metrics, err: %v", err)
+		log.Errorf("[getPolicyRandomPolicyDataqueryOutgoingAPIsResolver]Failed to get metrics, err: %v", err)
 		return &model.TimeSeriesData{}, nil
 	}
 	b, _ := json.Marshal(resp.Data)
@@ -2673,13 +2629,13 @@ func (c *resolverConfig) getPolicypkgRandomPolicyDataqueryOutgoingAPIsResolver(o
 }
 
 // Resolver for queryIncomingTCP
-func (c *resolverConfig) getPolicypkgRandomPolicyDataqueryIncomingTCPResolver(obj *model.PolicypkgRandomPolicyData, startTime *string, endTime *string, destinationService *string, destinationServiceVersion *string) (*model.TimeSeriesData,error) {
+func (c *resolverConfig) getPolicyRandomPolicyDataqueryIncomingTCPResolver(obj *model.PolicyRandomPolicyData, startTime *string, endTime *string, destinationService *string, destinationServiceVersion *string) (*model.TimeSeriesData,error) {
 	ctx := context.Background()
 	var filters = make(map[string]string)
 	filters[""] = ""
 	resp, err := grpcServer().GetMetrics(ctx, &qm.MetricArg{QueryType: "/IncomingTCP", StartTime: *startTime, EndTime: *endTime, Metric: "", Filters: filters,TimeInterval: ""})
 	if err != nil {
-		log.Errorf("[getPolicypkgRandomPolicyDataqueryIncomingTCPResolver]Failed to get metrics, err: %v", err)
+		log.Errorf("[getPolicyRandomPolicyDataqueryIncomingTCPResolver]Failed to get metrics, err: %v", err)
 		return &model.TimeSeriesData{}, nil
 	}
 	b, _ := json.Marshal(resp.Data)
@@ -2691,13 +2647,13 @@ func (c *resolverConfig) getPolicypkgRandomPolicyDataqueryIncomingTCPResolver(ob
 }
 
 // Resolver for queryOutgoingTCP
-func (c *resolverConfig) getPolicypkgRandomPolicyDataqueryOutgoingTCPResolver(obj *model.PolicypkgRandomPolicyData, startTime *string, endTime *string, destinationService *string, destinationServiceVersion *string) (*model.TimeSeriesData,error) {
+func (c *resolverConfig) getPolicyRandomPolicyDataqueryOutgoingTCPResolver(obj *model.PolicyRandomPolicyData, startTime *string, endTime *string, destinationService *string, destinationServiceVersion *string) (*model.TimeSeriesData,error) {
 	ctx := context.Background()
 	var filters = make(map[string]string)
 	filters[""] = ""
 	resp, err := grpcServer().GetMetrics(ctx, &qm.MetricArg{QueryType: "/OutgoingTCP", StartTime: *startTime, EndTime: *endTime, Metric: "", Filters: filters,TimeInterval: ""})
 	if err != nil {
-		log.Errorf("[getPolicypkgRandomPolicyDataqueryOutgoingTCPResolver]Failed to get metrics, err: %v", err)
+		log.Errorf("[getPolicyRandomPolicyDataqueryOutgoingTCPResolver]Failed to get metrics, err: %v", err)
 		return &model.TimeSeriesData{}, nil
 	}
 	b, _ := json.Marshal(resp.Data)
@@ -2709,13 +2665,13 @@ func (c *resolverConfig) getPolicypkgRandomPolicyDataqueryOutgoingTCPResolver(ob
 }
 
 // Resolver for queryServiceTopology
-func (c *resolverConfig) getPolicypkgRandomPolicyDataqueryServiceTopologyResolver(obj *model.PolicypkgRandomPolicyData, startTime *string, endTime *string, metricStringArray *string) (*model.TimeSeriesData,error) {
+func (c *resolverConfig) getPolicyRandomPolicyDataqueryServiceTopologyResolver(obj *model.PolicyRandomPolicyData, startTime *string, endTime *string, metricStringArray *string) (*model.TimeSeriesData,error) {
 	ctx := context.Background()
 	var filters = make(map[string]string)
 	filters[""] = ""
 	resp, err := grpcServer().GetMetrics(ctx, &qm.MetricArg{QueryType: "/ServiceTopology", StartTime: *startTime, EndTime: *endTime, Metric: *metricStringArray, Filters: filters,TimeInterval: ""})
 	if err != nil {
-		log.Errorf("[getPolicypkgRandomPolicyDataqueryServiceTopologyResolver]Failed to get metrics, err: %v", err)
+		log.Errorf("[getPolicyRandomPolicyDataqueryServiceTopologyResolver]Failed to get metrics, err: %v", err)
 		return &model.TimeSeriesData{}, nil
 	}
 	b, _ := json.Marshal(resp.Data)
@@ -2832,9 +2788,6 @@ vInstance := float64(vConfig.Spec.Instance)
 
 	return ret, nil
 }
-
-
-
 
 
 
@@ -2978,17 +2931,22 @@ func (c *resolverConfig) getConfigConfigVMPPoliciesResolver(obj *model.ConfigCon
 	log.Debugf("[getConfigConfigVMPPoliciesResolver]Parent Object %+v", obj)
 	if id != nil && *id != "" {
 	     log.Debugf("[getConfigConfigVMPPoliciesResolver]Id %q", *id)
-		vVMpolicy, err := .GetVMPPolicies(context.TODO(), *id)
+		vVMpolicy, err := nc.RootRoot().Config(getParentName(obj.ParentLabels, "configs.config.tsm.tanzu.vmware.com")).GetVMPPolicies(context.TODO(), *id)
 		if err != nil {
 			log.Errorf("[getConfigConfigVMPPoliciesResolver]Error getting VMPPolicies node %q : %s", *id, err)
 			return &model.PolicyVMpolicy{}, nil
 		}
 		c.vPolicyVMpolicy = vVMpolicy
-		
+		dn := vVMpolicy.DisplayName()
+parentLabels := map[string]interface{}{"vmpolicies.policypkg.tsm.tanzu.vmware.com":dn}
+
 		for k, v := range obj.ParentLabels {
 			parentLabels[k] = v
 		}
-		
+		ret := &model.PolicyVMpolicy {
+	Id: &dn,
+	ParentLabels: parentLabels,
+	}
 
 		log.Debugf("[getConfigConfigVMPPoliciesResolver]Output object %v", ret)
 		return ret, nil
@@ -3005,11 +2963,16 @@ func (c *resolverConfig) getConfigConfigVMPPoliciesResolver(obj *model.ConfigCon
         return &model.PolicyVMpolicy{}, nil
     }
 	c.vPolicyVMpolicy = vVMpolicy
-	
+	dn := vVMpolicy.DisplayName()
+parentLabels := map[string]interface{}{"vmpolicies.policypkg.tsm.tanzu.vmware.com":dn}
+
     for k, v := range obj.ParentLabels {
         parentLabels[k] = v
     }
-	
+	ret := &model.PolicyVMpolicy {
+	Id: &dn,
+	ParentLabels: parentLabels,
+	}
 
 	log.Debugf("[getConfigConfigVMPPoliciesResolver]Output object %v", ret)
 
@@ -3224,11 +3187,16 @@ func (c *resolverConfig) getConfigConfigACPPoliciesResolver(obj *model.ConfigCon
 			log.Errorf("[getConfigConfigACPPoliciesResolver]Error getting ACPPolicies %q : %s", *id, err)
 			return vPolicyAccessControlPolicyList, nil
 		}
-		
+		dn := vAccessControlPolicy.DisplayName()
+parentLabels := map[string]interface{}{"accesscontrolpolicies.policypkg.tsm.tanzu.vmware.com":dn}
+
         for k, v := range obj.ParentLabels {
             parentLabels[k] = v
         }
-		
+		ret := &model.PolicyAccessControlPolicy {
+	Id: &dn,
+	ParentLabels: parentLabels,
+	}
 		vPolicyAccessControlPolicyList = append(vPolicyAccessControlPolicyList, ret)
 
 		log.Debugf("[getConfigConfigACPPoliciesResolver]Output ACPPolicies objects %v", vPolicyAccessControlPolicyList)
@@ -3259,19 +3227,21 @@ func (c *resolverConfig) getConfigConfigACPPoliciesResolver(obj *model.ConfigCon
 	        log.Errorf("[getConfigConfigACPPoliciesResolver]Error getting ACPPolicies node %q : %s, skipping...", i.DisplayName(), err)
 			continue
 		}
-		
+		dn := vAccessControlPolicy.DisplayName()
+parentLabels := map[string]interface{}{"accesscontrolpolicies.policypkg.tsm.tanzu.vmware.com":dn}
+
 		for k, v := range obj.ParentLabels {
             parentLabels[k] = v
         }
-		
+		ret := &model.PolicyAccessControlPolicy {
+	Id: &dn,
+	ParentLabels: parentLabels,
+	}
 		vPolicyAccessControlPolicyList = append(vPolicyAccessControlPolicyList, ret)
 	}
 	log.Debugf("[getConfigConfigACPPoliciesResolver]List of ACPPolicies object %v", vPolicyAccessControlPolicyList)
 	return vPolicyAccessControlPolicyList, nil
 }
-
-
-
 
 
 
@@ -3319,17 +3289,22 @@ func (c *resolverConfig) getGnsGnsGnsAccessControlPolicyResolver(obj *model.GnsG
 	log.Debugf("[getGnsGnsGnsAccessControlPolicyResolver]Parent Object %+v", obj)
 	if id != nil && *id != "" {
 	     log.Debugf("[getGnsGnsGnsAccessControlPolicyResolver]Id %q", *id)
-		vAccessControlPolicy, err := .GetGnsAccessControlPolicy(context.TODO(), *id)
+		vAccessControlPolicy, err := nc.RootRoot().Config(getParentName(obj.ParentLabels, "configs.config.tsm.tanzu.vmware.com")).GNS(getParentName(obj.ParentLabels, "gnses.gns.tsm.tanzu.vmware.com")).GetGnsAccessControlPolicy(context.TODO(), *id)
 		if err != nil {
 			log.Errorf("[getGnsGnsGnsAccessControlPolicyResolver]Error getting GnsAccessControlPolicy node %q : %s", *id, err)
 			return &model.PolicyAccessControlPolicy{}, nil
 		}
 		c.vPolicyAccessControlPolicy = vAccessControlPolicy
-		
+		dn := vAccessControlPolicy.DisplayName()
+parentLabels := map[string]interface{}{"accesscontrolpolicies.policypkg.tsm.tanzu.vmware.com":dn}
+
 		for k, v := range obj.ParentLabels {
 			parentLabels[k] = v
 		}
-		
+		ret := &model.PolicyAccessControlPolicy {
+	Id: &dn,
+	ParentLabels: parentLabels,
+	}
 
 		log.Debugf("[getGnsGnsGnsAccessControlPolicyResolver]Output object %v", ret)
 		return ret, nil
@@ -3346,11 +3321,16 @@ func (c *resolverConfig) getGnsGnsGnsAccessControlPolicyResolver(obj *model.GnsG
         return &model.PolicyAccessControlPolicy{}, nil
     }
 	c.vPolicyAccessControlPolicy = vAccessControlPolicy
-	
+	dn := vAccessControlPolicy.DisplayName()
+parentLabels := map[string]interface{}{"accesscontrolpolicies.policypkg.tsm.tanzu.vmware.com":dn}
+
     for k, v := range obj.ParentLabels {
         parentLabels[k] = v
     }
-	
+	ret := &model.PolicyAccessControlPolicy {
+	Id: &dn,
+	ParentLabels: parentLabels,
+	}
 
 	log.Debugf("[getGnsGnsGnsAccessControlPolicyResolver]Output object %v", ret)
 
@@ -3473,133 +3453,24 @@ vColor := string(vSvcGroup.Spec.Color)
 
 
 
-//////////////////////////////////////
-// CHILD RESOLVER (Non Singleton)
-// FieldName: PolicyConfigs Node: AccessControlPolicy PKG: Policypkg
-//////////////////////////////////////
-func (c *resolverConfig) getPolicypkgAccessControlPolicyPolicyConfigsResolver(obj *model.PolicypkgAccessControlPolicy, id *string) (*model.PolicypkgMap[String]ACPConfig, error) {
-	log.Debugf("[getPolicypkgAccessControlPolicyPolicyConfigsResolver]Parent Object %+v", obj)
-	if id != nil && *id != "" {
-	     log.Debugf("[getPolicypkgAccessControlPolicyPolicyConfigsResolver]Id %q", *id)
-		vmap[string]ACPConfig, err := .GetPolicyConfigs(context.TODO(), *id)
-		if err != nil {
-			log.Errorf("[getPolicypkgAccessControlPolicyPolicyConfigsResolver]Error getting PolicyConfigs node %q : %s", *id, err)
-			return &model.PolicypkgMap[String]ACPConfig{}, nil
-		}
-		c.vPolicypkgMap[String]ACPConfig = vmap[string]ACPConfig
-		
-		for k, v := range obj.ParentLabels {
-			parentLabels[k] = v
-		}
-		
-
-		log.Debugf("[getPolicypkgAccessControlPolicyPolicyConfigsResolver]Output object %v", ret)
-		return ret, nil
-	}
-	log.Debug("[getPolicypkgAccessControlPolicyPolicyConfigsResolver]Id is empty, process all PolicyConfigss")
-	vmap[string]ACPConfigParent, err := nc.RootRoot().Config(getParentName(obj.ParentLabels, "configs.config.tsm.tanzu.vmware.com")).GNS(getParentName(obj.ParentLabels, "gnses.gns.tsm.tanzu.vmware.com")).GetGnsAccessControlPolicy(context.TODO(), getParentName(obj.ParentLabels, "accesscontrolpolicies.policypkg.tsm.tanzu.vmware.com"))
-	if err != nil {
-	    log.Errorf("[getPolicypkgAccessControlPolicyPolicyConfigsResolver]Failed to get parent node %s", err)
-        return &model.PolicypkgMap[String]ACPConfig{}, nil
-    }
-	vmap[string]ACPConfig, err := vmap[string]ACPConfigParent.GetPolicyConfigs(context.TODO())
-	if err != nil {
-	    log.Errorf("[getPolicypkgAccessControlPolicyPolicyConfigsResolver]Error getting PolicyConfigs node %s", err)
-        return &model.PolicypkgMap[String]ACPConfig{}, nil
-    }
-	c.vPolicypkgMap[String]ACPConfig = vmap[string]ACPConfig
-	
-    for k, v := range obj.ParentLabels {
-        parentLabels[k] = v
-    }
-	
-
-	log.Debugf("[getPolicypkgAccessControlPolicyPolicyConfigsResolver]Output object %v", ret)
-
-	return ret, nil
-}
 
 
 
-//////////////////////////////////////
-// LINKS RESOLVER
-// FieldName: PolicyConfigs Node: AccessControlPolicy PKG: Policypkg
-//////////////////////////////////////
-func (c *resolverConfig) getPolicypkgAccessControlPolicyPolicyConfigsResolver(obj *model.PolicypkgAccessControlPolicy, id *string) ([]*model.PolicypkgMap[String]ACPConfig, error) {
-	log.Debugf("[getPolicypkgAccessControlPolicyPolicyConfigsResolver]Parent Object %+v", obj)
-	var vPolicypkgMap[String]ACPConfigList []*model.PolicypkgMap[String]ACPConfig
-	if id != nil && *id != "" {
-		log.Debugf("[getPolicypkgAccessControlPolicyPolicyConfigsResolver]Id %q", *id)
-		vmap[string]ACPConfigParent, err := nc.RootRoot().Config(getParentName(obj.ParentLabels, "configs.config.tsm.tanzu.vmware.com")).GNS(getParentName(obj.ParentLabels, "gnses.gns.tsm.tanzu.vmware.com")).GetGnsAccessControlPolicy(context.TODO(), getParentName(obj.ParentLabels, "accesscontrolpolicies.policypkg.tsm.tanzu.vmware.com"))
-		if err != nil {
-			log.Errorf("[getPolicypkgAccessControlPolicyPolicyConfigsResolver]Error getting PolicyConfigs %q : %s", *id, err)
-			return vPolicypkgMap[String]ACPConfigList, nil
-		}
-		vmap[string]ACPConfig, err := vmap[string]ACPConfigParent.GetPolicyConfigs(context.TODO(), *id)
-		if err != nil {
-			log.Errorf("[getPolicypkgAccessControlPolicyPolicyConfigsResolver]Error getting PolicyConfigs %q : %s", *id, err)
-			return vPolicypkgMap[String]ACPConfigList, nil
-		}
-		
-        for k, v := range obj.ParentLabels {
-            parentLabels[k] = v
-        }
-		
-		vPolicypkgMap[String]ACPConfigList = append(vPolicypkgMap[String]ACPConfigList, ret)
-
-		log.Debugf("[getPolicypkgAccessControlPolicyPolicyConfigsResolver]Output PolicyConfigs objects %v", vPolicypkgMap[String]ACPConfigList)
-
-		return vPolicypkgMap[String]ACPConfigList, nil
-	}
-
-	log.Debug("[getPolicypkgAccessControlPolicyPolicyConfigsResolver]Id is empty, process all PolicyConfigss")
-
-	vmap[string]ACPConfigParent, err := nc.RootRoot().Config(getParentName(obj.ParentLabels, "configs.config.tsm.tanzu.vmware.com")).GNS(getParentName(obj.ParentLabels, "gnses.gns.tsm.tanzu.vmware.com")).GetGnsAccessControlPolicy(context.TODO(), getParentName(obj.ParentLabels, "accesscontrolpolicies.policypkg.tsm.tanzu.vmware.com"))
-	if err != nil {
-	    log.Errorf("[getPolicypkgAccessControlPolicyPolicyConfigsResolver]Error getting parent node %s", err)
-        return vPolicypkgMap[String]ACPConfigList, nil
-    }
-	vmap[string]ACPConfigAllObj, err := vmap[string]ACPConfigParent.GetAllPolicyConfigs(context.TODO())
-	if err != nil {
-	    log.Errorf("[getPolicypkgAccessControlPolicyPolicyConfigsResolver]Error getting PolicyConfigs %s", err)
-        return vPolicypkgMap[String]ACPConfigList, nil
-    }
-	for _, i := range vmap[string]ACPConfigAllObj {
-		vmap[string]ACPConfigParent, err := nc.RootRoot().Config(getParentName(obj.ParentLabels, "configs.config.tsm.tanzu.vmware.com")).GNS(getParentName(obj.ParentLabels, "gnses.gns.tsm.tanzu.vmware.com")).GetGnsAccessControlPolicy(context.TODO(), getParentName(obj.ParentLabels, "accesscontrolpolicies.policypkg.tsm.tanzu.vmware.com"))
-		if err != nil {
-			log.Errorf("[getPolicypkgAccessControlPolicyPolicyConfigsResolver]Error getting parent node %s, skipping...", err)
-            continue
-		}
-		vmap[string]ACPConfig, err := vmap[string]ACPConfigParent.GetPolicyConfigs(context.TODO(), i.DisplayName())
-		if err != nil {
-	        log.Errorf("[getPolicypkgAccessControlPolicyPolicyConfigsResolver]Error getting PolicyConfigs node %q : %s, skipping...", i.DisplayName(), err)
-			continue
-		}
-		
-		for k, v := range obj.ParentLabels {
-            parentLabels[k] = v
-        }
-		
-		vPolicypkgMap[String]ACPConfigList = append(vPolicypkgMap[String]ACPConfigList, ret)
-	}
-	log.Debugf("[getPolicypkgAccessControlPolicyPolicyConfigsResolver]List of PolicyConfigs object %v", vPolicypkgMap[String]ACPConfigList)
-	return vPolicypkgMap[String]ACPConfigList, nil
-}
 
 //////////////////////////////////////
 // LINK RESOLVER
-// FieldName: DestSvcGroups Node: ACPConfig PKG: Policypkg
+// FieldName: DestSvcGroups Node: ACPConfig PKG: Policy
 //////////////////////////////////////
-func (c *resolverConfig) getPolicypkgACPConfigDestSvcGroupsResolver(obj *model.PolicypkgACPConfig) (*model.PolicypkgSvcGroup, error) {
-    log.Debugf("[getPolicypkgACPConfigDestSvcGroupsResolver]Parent Object %+v", obj)
+func (c *resolverConfig) getPolicyACPConfigDestSvcGroupsResolver(obj *model.PolicyACPConfig) (*model.PolicypkgSvcGroup, error) {
+    log.Debugf("[getPolicyACPConfigDestSvcGroupsResolver]Parent Object %+v", obj)
 	vSvcGroupParent, err := nc.RootRoot().Config(getParentName(obj.ParentLabels, "configs.config.tsm.tanzu.vmware.com")).GNS(getParentName(obj.ParentLabels, "gnses.gns.tsm.tanzu.vmware.com")).GnsAccessControlPolicy(getParentName(obj.ParentLabels, "accesscontrolpolicies.policypkg.tsm.tanzu.vmware.com")).GetPolicyConfigs(context.TODO(), getParentName(obj.ParentLabels, "acpconfigs.policypkg.tsm.tanzu.vmware.com"))
 	if err != nil {
-	    log.Errorf("[getPolicypkgACPConfigDestSvcGroupsResolver]Error getting parent node %s", err)
+	    log.Errorf("[getPolicyACPConfigDestSvcGroupsResolver]Error getting parent node %s", err)
         return &model.PolicypkgSvcGroup{}, nil
     }
 	vSvcGroup, err := vSvcGroupParent.GetDestSvcGroups(context.TODO())
 	if err != nil {
-		log.Errorf("[getPolicypkgACPConfigDestSvcGroupsResolver]Error getting DestSvcGroups object %s", err)
+		log.Errorf("[getPolicyACPConfigDestSvcGroupsResolver]Error getting DestSvcGroups object %s", err)
         return &model.PolicypkgSvcGroup{}, nil
     }
 	c.vPolicypkgSvcGroup = vSvcGroup
@@ -3608,7 +3479,7 @@ func (c *resolverConfig) getPolicypkgACPConfigDestSvcGroupsResolver(obj *model.P
         parentLabels[k] = v
     }
 	
-	log.Debugf("[getPolicypkgACPConfigDestSvcGroupsResolver]Output object %v", ret)
+	log.Debugf("[getPolicyACPConfigDestSvcGroupsResolver]Output object %v", ret)
 
 	return ret, nil
 }
@@ -3616,21 +3487,21 @@ func (c *resolverConfig) getPolicypkgACPConfigDestSvcGroupsResolver(obj *model.P
 
 //////////////////////////////////////
 // LINKS RESOLVER
-// FieldName: DestSvcGroups Node: ACPConfig PKG: Policypkg
+// FieldName: DestSvcGroups Node: ACPConfig PKG: Policy
 //////////////////////////////////////
-func (c *resolverConfig) getPolicypkgACPConfigDestSvcGroupsResolver(obj *model.PolicypkgACPConfig, id *string) ([]*model.PolicypkgSvcGroup, error) {
-	log.Debugf("[getPolicypkgACPConfigDestSvcGroupsResolver]Parent Object %+v", obj)
+func (c *resolverConfig) getPolicyACPConfigDestSvcGroupsResolver(obj *model.PolicyACPConfig, id *string) ([]*model.PolicypkgSvcGroup, error) {
+	log.Debugf("[getPolicyACPConfigDestSvcGroupsResolver]Parent Object %+v", obj)
 	var vPolicypkgSvcGroupList []*model.PolicypkgSvcGroup
 	if id != nil && *id != "" {
-		log.Debugf("[getPolicypkgACPConfigDestSvcGroupsResolver]Id %q", *id)
+		log.Debugf("[getPolicyACPConfigDestSvcGroupsResolver]Id %q", *id)
 		vSvcGroupParent, err := nc.RootRoot().Config(getParentName(obj.ParentLabels, "configs.config.tsm.tanzu.vmware.com")).GNS(getParentName(obj.ParentLabels, "gnses.gns.tsm.tanzu.vmware.com")).GnsAccessControlPolicy(getParentName(obj.ParentLabels, "accesscontrolpolicies.policypkg.tsm.tanzu.vmware.com")).GetPolicyConfigs(context.TODO(), getParentName(obj.ParentLabels, "acpconfigs.policypkg.tsm.tanzu.vmware.com"))
 		if err != nil {
-			log.Errorf("[getPolicypkgACPConfigDestSvcGroupsResolver]Error getting DestSvcGroups %q : %s", *id, err)
+			log.Errorf("[getPolicyACPConfigDestSvcGroupsResolver]Error getting DestSvcGroups %q : %s", *id, err)
 			return vPolicypkgSvcGroupList, nil
 		}
 		vSvcGroup, err := vSvcGroupParent.GetDestSvcGroups(context.TODO(), *id)
 		if err != nil {
-			log.Errorf("[getPolicypkgACPConfigDestSvcGroupsResolver]Error getting DestSvcGroups %q : %s", *id, err)
+			log.Errorf("[getPolicyACPConfigDestSvcGroupsResolver]Error getting DestSvcGroups %q : %s", *id, err)
 			return vPolicypkgSvcGroupList, nil
 		}
 		
@@ -3640,32 +3511,32 @@ func (c *resolverConfig) getPolicypkgACPConfigDestSvcGroupsResolver(obj *model.P
 		
 		vPolicypkgSvcGroupList = append(vPolicypkgSvcGroupList, ret)
 
-		log.Debugf("[getPolicypkgACPConfigDestSvcGroupsResolver]Output DestSvcGroups objects %v", vPolicypkgSvcGroupList)
+		log.Debugf("[getPolicyACPConfigDestSvcGroupsResolver]Output DestSvcGroups objects %v", vPolicypkgSvcGroupList)
 
 		return vPolicypkgSvcGroupList, nil
 	}
 
-	log.Debug("[getPolicypkgACPConfigDestSvcGroupsResolver]Id is empty, process all DestSvcGroupss")
+	log.Debug("[getPolicyACPConfigDestSvcGroupsResolver]Id is empty, process all DestSvcGroupss")
 
 	vSvcGroupParent, err := nc.RootRoot().Config(getParentName(obj.ParentLabels, "configs.config.tsm.tanzu.vmware.com")).GNS(getParentName(obj.ParentLabels, "gnses.gns.tsm.tanzu.vmware.com")).GnsAccessControlPolicy(getParentName(obj.ParentLabels, "accesscontrolpolicies.policypkg.tsm.tanzu.vmware.com")).GetPolicyConfigs(context.TODO(), getParentName(obj.ParentLabels, "acpconfigs.policypkg.tsm.tanzu.vmware.com"))
 	if err != nil {
-	    log.Errorf("[getPolicypkgACPConfigDestSvcGroupsResolver]Error getting parent node %s", err)
+	    log.Errorf("[getPolicyACPConfigDestSvcGroupsResolver]Error getting parent node %s", err)
         return vPolicypkgSvcGroupList, nil
     }
 	vSvcGroupAllObj, err := vSvcGroupParent.GetAllDestSvcGroups(context.TODO())
 	if err != nil {
-	    log.Errorf("[getPolicypkgACPConfigDestSvcGroupsResolver]Error getting DestSvcGroups %s", err)
+	    log.Errorf("[getPolicyACPConfigDestSvcGroupsResolver]Error getting DestSvcGroups %s", err)
         return vPolicypkgSvcGroupList, nil
     }
 	for _, i := range vSvcGroupAllObj {
 		vSvcGroupParent, err := nc.RootRoot().Config(getParentName(obj.ParentLabels, "configs.config.tsm.tanzu.vmware.com")).GNS(getParentName(obj.ParentLabels, "gnses.gns.tsm.tanzu.vmware.com")).GnsAccessControlPolicy(getParentName(obj.ParentLabels, "accesscontrolpolicies.policypkg.tsm.tanzu.vmware.com")).GetPolicyConfigs(context.TODO(), getParentName(obj.ParentLabels, "acpconfigs.policypkg.tsm.tanzu.vmware.com"))
 		if err != nil {
-			log.Errorf("[getPolicypkgACPConfigDestSvcGroupsResolver]Error getting parent node %s, skipping...", err)
+			log.Errorf("[getPolicyACPConfigDestSvcGroupsResolver]Error getting parent node %s, skipping...", err)
             continue
 		}
 		vSvcGroup, err := vSvcGroupParent.GetDestSvcGroups(context.TODO(), i.DisplayName())
 		if err != nil {
-	        log.Errorf("[getPolicypkgACPConfigDestSvcGroupsResolver]Error getting DestSvcGroups node %q : %s, skipping...", i.DisplayName(), err)
+	        log.Errorf("[getPolicyACPConfigDestSvcGroupsResolver]Error getting DestSvcGroups node %q : %s, skipping...", i.DisplayName(), err)
 			continue
 		}
 		
@@ -3675,26 +3546,26 @@ func (c *resolverConfig) getPolicypkgACPConfigDestSvcGroupsResolver(obj *model.P
 		
 		vPolicypkgSvcGroupList = append(vPolicypkgSvcGroupList, ret)
 	}
-	log.Debugf("[getPolicypkgACPConfigDestSvcGroupsResolver]List of DestSvcGroups object %v", vPolicypkgSvcGroupList)
+	log.Debugf("[getPolicyACPConfigDestSvcGroupsResolver]List of DestSvcGroups object %v", vPolicypkgSvcGroupList)
 	return vPolicypkgSvcGroupList, nil
 }
 //////////////////////////////////////
 // LINKS RESOLVER
-// FieldName: SourceSvcGroups Node: ACPConfig PKG: Policypkg
+// FieldName: SourceSvcGroups Node: ACPConfig PKG: Policy
 //////////////////////////////////////
-func (c *resolverConfig) getPolicypkgACPConfigSourceSvcGroupsResolver(obj *model.PolicypkgACPConfig, id *string) ([]*model.ServicegroupSvcGroup, error) {
-	log.Debugf("[getPolicypkgACPConfigSourceSvcGroupsResolver]Parent Object %+v", obj)
+func (c *resolverConfig) getPolicyACPConfigSourceSvcGroupsResolver(obj *model.PolicyACPConfig, id *string) ([]*model.ServicegroupSvcGroup, error) {
+	log.Debugf("[getPolicyACPConfigSourceSvcGroupsResolver]Parent Object %+v", obj)
 	var vServicegroupSvcGroupList []*model.ServicegroupSvcGroup
 	if id != nil && *id != "" {
-		log.Debugf("[getPolicypkgACPConfigSourceSvcGroupsResolver]Id %q", *id)
+		log.Debugf("[getPolicyACPConfigSourceSvcGroupsResolver]Id %q", *id)
 		vSvcGroupParent, err := nc.RootRoot().Config(getParentName(obj.ParentLabels, "configs.config.tsm.tanzu.vmware.com")).GNS(getParentName(obj.ParentLabels, "gnses.gns.tsm.tanzu.vmware.com")).GnsAccessControlPolicy(getParentName(obj.ParentLabels, "accesscontrolpolicies.policypkg.tsm.tanzu.vmware.com")).GetPolicyConfigs(context.TODO(), getParentName(obj.ParentLabels, "acpconfigs.policypkg.tsm.tanzu.vmware.com"))
 		if err != nil {
-			log.Errorf("[getPolicypkgACPConfigSourceSvcGroupsResolver]Error getting SourceSvcGroups %q : %s", *id, err)
+			log.Errorf("[getPolicyACPConfigSourceSvcGroupsResolver]Error getting SourceSvcGroups %q : %s", *id, err)
 			return vServicegroupSvcGroupList, nil
 		}
 		vSvcGroup, err := vSvcGroupParent.GetSourceSvcGroups(context.TODO(), *id)
 		if err != nil {
-			log.Errorf("[getPolicypkgACPConfigSourceSvcGroupsResolver]Error getting SourceSvcGroups %q : %s", *id, err)
+			log.Errorf("[getPolicyACPConfigSourceSvcGroupsResolver]Error getting SourceSvcGroups %q : %s", *id, err)
 			return vServicegroupSvcGroupList, nil
 		}
 		dn := vSvcGroup.DisplayName()
@@ -3715,32 +3586,32 @@ vColor := string(vSvcGroup.Spec.Color)
 	}
 		vServicegroupSvcGroupList = append(vServicegroupSvcGroupList, ret)
 
-		log.Debugf("[getPolicypkgACPConfigSourceSvcGroupsResolver]Output SourceSvcGroups objects %v", vServicegroupSvcGroupList)
+		log.Debugf("[getPolicyACPConfigSourceSvcGroupsResolver]Output SourceSvcGroups objects %v", vServicegroupSvcGroupList)
 
 		return vServicegroupSvcGroupList, nil
 	}
 
-	log.Debug("[getPolicypkgACPConfigSourceSvcGroupsResolver]Id is empty, process all SourceSvcGroupss")
+	log.Debug("[getPolicyACPConfigSourceSvcGroupsResolver]Id is empty, process all SourceSvcGroupss")
 
 	vSvcGroupParent, err := nc.RootRoot().Config(getParentName(obj.ParentLabels, "configs.config.tsm.tanzu.vmware.com")).GNS(getParentName(obj.ParentLabels, "gnses.gns.tsm.tanzu.vmware.com")).GnsAccessControlPolicy(getParentName(obj.ParentLabels, "accesscontrolpolicies.policypkg.tsm.tanzu.vmware.com")).GetPolicyConfigs(context.TODO(), getParentName(obj.ParentLabels, "acpconfigs.policypkg.tsm.tanzu.vmware.com"))
 	if err != nil {
-	    log.Errorf("[getPolicypkgACPConfigSourceSvcGroupsResolver]Error getting parent node %s", err)
+	    log.Errorf("[getPolicyACPConfigSourceSvcGroupsResolver]Error getting parent node %s", err)
         return vServicegroupSvcGroupList, nil
     }
 	vSvcGroupAllObj, err := vSvcGroupParent.GetAllSourceSvcGroups(context.TODO())
 	if err != nil {
-	    log.Errorf("[getPolicypkgACPConfigSourceSvcGroupsResolver]Error getting SourceSvcGroups %s", err)
+	    log.Errorf("[getPolicyACPConfigSourceSvcGroupsResolver]Error getting SourceSvcGroups %s", err)
         return vServicegroupSvcGroupList, nil
     }
 	for _, i := range vSvcGroupAllObj {
 		vSvcGroupParent, err := nc.RootRoot().Config(getParentName(obj.ParentLabels, "configs.config.tsm.tanzu.vmware.com")).GNS(getParentName(obj.ParentLabels, "gnses.gns.tsm.tanzu.vmware.com")).GnsAccessControlPolicy(getParentName(obj.ParentLabels, "accesscontrolpolicies.policypkg.tsm.tanzu.vmware.com")).GetPolicyConfigs(context.TODO(), getParentName(obj.ParentLabels, "acpconfigs.policypkg.tsm.tanzu.vmware.com"))
 		if err != nil {
-			log.Errorf("[getPolicypkgACPConfigSourceSvcGroupsResolver]Error getting parent node %s, skipping...", err)
+			log.Errorf("[getPolicyACPConfigSourceSvcGroupsResolver]Error getting parent node %s, skipping...", err)
             continue
 		}
 		vSvcGroup, err := vSvcGroupParent.GetSourceSvcGroups(context.TODO(), i.DisplayName())
 		if err != nil {
-	        log.Errorf("[getPolicypkgACPConfigSourceSvcGroupsResolver]Error getting SourceSvcGroups node %q : %s, skipping...", i.DisplayName(), err)
+	        log.Errorf("[getPolicyACPConfigSourceSvcGroupsResolver]Error getting SourceSvcGroups node %q : %s, skipping...", i.DisplayName(), err)
 			continue
 		}
 		dn := vSvcGroup.DisplayName()
@@ -3761,7 +3632,7 @@ vColor := string(vSvcGroup.Spec.Color)
 	}
 		vServicegroupSvcGroupList = append(vServicegroupSvcGroupList, ret)
 	}
-	log.Debugf("[getPolicypkgACPConfigSourceSvcGroupsResolver]List of SourceSvcGroups object %v", vServicegroupSvcGroupList)
+	log.Debugf("[getPolicyACPConfigSourceSvcGroupsResolver]List of SourceSvcGroups object %v", vServicegroupSvcGroupList)
 	return vServicegroupSvcGroupList, nil
 }
 

@@ -38,6 +38,32 @@ spec:
             type: object
           spec:
             properties:
+              DnsGvk:
+                properties:
+                  group:
+                    type: string
+                  kind:
+                    type: string
+                  name:
+                    type: string
+                required:
+                - group
+                - kind
+                - name
+                type: object
+              GnsAccessControlPolicyGvk:
+                properties:
+                  group:
+                    type: string
+                  kind:
+                    type: string
+                  name:
+                    type: string
+                required:
+                - group
+                - kind
+                - name
+                type: object
               description:
                 properties:
                   Color:
@@ -80,37 +106,11 @@ spec:
               differentSpec:
                 type: object
                 x-kubernetes-preserve-unknown-fields: true
-              dnsGvk:
-                properties:
-                  group:
-                    type: string
-                  kind:
-                    type: string
-                  name:
-                    type: string
-                required:
-                - group
-                - kind
-                - name
-                type: object
               domain:
                 maxLength: 8
                 minLength: 2
                 pattern: abc
                 type: string
-              gnsAccessControlPolicyGvk:
-                properties:
-                  group:
-                    type: string
-                  kind:
-                    type: string
-                  name:
-                    type: string
-                required:
-                - group
-                - kind
-                - name
-                type: object
               gnsServiceGroupsGvk:
                 additionalProperties:
                   properties:
@@ -194,6 +194,8 @@ spec:
             - slicePointer
             - workloadSpec
             - differentSpec
+            - GnsAccessControlPolicyGvk
+            - DnsGvk
             type: object
           status:
             properties:

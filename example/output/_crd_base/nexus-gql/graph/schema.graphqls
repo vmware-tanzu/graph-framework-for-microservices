@@ -73,8 +73,6 @@ type root_Root {
 
 
 
-
-
 type config_Config {
 
     Id: ID
@@ -133,16 +131,9 @@ type config_Config {
         startTime: String
         endTime: String
     ): TimeSeriesData
-    QueryExample(
-        StartTime: String
-        EndTime: String
-        Interval: String
-        IsServiceDeployment: Boolean
-        StartVal: Int
-    ): NexusGraphqlResponse
 
-    ACPPolicies(Id: ID): [policy_AccessControlPolicy!]
-    FooExample(Id: ID): [config_FooType!]
+    ACPPolicies: policy_AccessControlPolicy!
+    FooExample: config_FooType!
     MyStr0: String
     MyStr1: String
     MyStr2: String
@@ -386,8 +377,6 @@ type gns_RandomGnsData {
 
 
 
-
-
 type gns_Gns {
 
     Id: ID
@@ -446,16 +435,8 @@ type gns_Gns {
         startTime: String
         endTime: String
     ): TimeSeriesData
-    queryGns1(
-        StartTime: String
-        EndTime: String
-        Interval: String
-        IsServiceDeployment: Boolean
-        StartVal: Int
-    ): NexusGraphqlResponse
-    queryGns2: NexusGraphqlResponse
 
-    GnsServiceGroups(Id: ID): [servicegroup_SvcGroup!]
+    GnsServiceGroups: servicegroup_SvcGroup!
     
     Domain: String
     UseSharedGateway: Boolean
@@ -467,7 +448,7 @@ type gns_Gns {
     SlicePointer: String
     WorkloadSpec: String
     DifferentSpec: String
-    GnsAccessControlPolicy(Id: ID): policy_AccessControlPolicy!
+    GnsAccessControlPolicy(Id: ID): String!
 }
 
 
@@ -877,7 +858,6 @@ type policy_AccessControlPolicy {
         endTime: String
     ): TimeSeriesData
 
-    PolicyConfigs(Id: ID): policypkg_map[string]ACPConfig!
 }
 
 
@@ -943,8 +923,8 @@ type policy_ACPConfig {
 
     
     
-    DestSvcGroups(Id: ID): [policypkgSvcGroup!]
-    SourceSvcGroups(Id: ID): [servicegroup_SvcGroup!]
+    DestSvcGroups: String
+    SourceSvcGroups: servicegroup_SvcGroup!
     
     
     DisplayName: String
@@ -1101,14 +1081,6 @@ type policy_RandomPolicyData {
 
 
 type TimeSeriesData {
-  Code: Int
-  Message: String
-  Data: String
-  Last: String
-  TotalRecords: Int
-}
-
-type NexusGraphqlResponse {
   Code: Int
   Message: String
   Data: String

@@ -79,6 +79,7 @@ type NodeProperty struct {
 	CustomQueries          []nexus.GraphQLQuery
 }
 
+//populateValuesForEachNode populates each node with required resolver properties
 func populateValuesForEachNode(nodes []*NodeProperty, linkAPI map[string]string, retMap map[string]ReturnStatement) []NodeProperty {
 	var nodeProperties []NodeProperty
 	for _, n := range nodes {
@@ -205,7 +206,7 @@ func populateValuesForResolver(nodes []*NodeProperty, parentsMap map[string]pars
 						} else {
 							ChainAPI += fmt.Sprintf(".%s(getParentName(obj.ParentLabels, %q))", childNode.FieldName, i)
 						}
-					}
+						}
 				}
 				// cache the non-leaf node
 				prevNode = currentNode
@@ -256,7 +257,7 @@ func populateValuesForResolver(nodes []*NodeProperty, parentsMap map[string]pars
 	return linkAPI, retMap
 }
 
-func constructCustomTypeMap(nodes []*NodeProperty) map[string]string {
+func constructNexusTypeMap(nodes []*NodeProperty) map[string]string {
 	crdNameMap := make(map[string]string)
 	for _, n := range nodes {
 		if n.IsNexusNode || n.IsSingletonNode {
@@ -357,7 +358,13 @@ func processNexusFields(pkg parser.Package, aliasNameMap map[string]string, node
 		typeString := ConstructType(aliasNameMap, nf)
 		if parser.IsOnlyLinkField(nf) {
 			schemaTypeName, resolverTypeName := validateImportPkg(pkg, typeString, importMap)
+			// `type:string` annotation used to consider the type as string `nexus-graphql:"type:string"`
+			if parser.IsJsonStringField(nf) || parser.IsMapField(nf) {
+				fieldProp.IsStringType = true
+				fieldProp.SchemaFieldName = fmt.Sprintf("%s: %s", fieldProp.FieldName, "String")
+			} else {
 			fieldProp.SchemaFieldName = fmt.Sprintf("%s: %s!", fieldProp.FieldName, schemaTypeName)
+			}
 			fieldProp.IsResolver = true
 			fieldProp.IsNexusTypeField = true
 			fieldProp.FieldType = typeString
@@ -370,11 +377,17 @@ func processNexusFields(pkg parser.Package, aliasNameMap map[string]string, node
 		// nexus child field
 		if parser.IsOnlyChildField(nf) {
 			schemaTypeName, resolverTypeName := validateImportPkg(pkg, typeString, importMap)
+			if parser.IsJsonStringField(nf) || parser.IsMapField(nf) {
+				fieldProp.IsStringType = true
+				fieldProp.SchemaTypeName = "String"
+				fieldProp.SchemaFieldName = fmt.Sprintf("%s: %s", fieldProp.FieldName, "String")
+			} else {
 			fieldProp.SchemaFieldName = fmt.Sprintf("%s: %s!", fieldProp.FieldName, schemaTypeName)
+				fieldProp.SchemaTypeName = schemaTypeName
+			}
 			fieldProp.IsNexusTypeField = true
 			fieldProp.FieldType = typeString
 			fieldProp.FieldTypePkgPath = resolverTypeName
-			fieldProp.SchemaTypeName = schemaTypeName
 			fieldProp.BaseTypeName = getBaseNodeType(typeString)
 			nodeProp.ChildFields = append(nodeProp.ChildFields, fieldProp)
 		}
@@ -383,7 +396,12 @@ func processNexusFields(pkg parser.Package, aliasNameMap map[string]string, node
 		if parser.IsNamedChildOrLink(nf) {
 			fieldProp.IsChildrenOrLinks = true
 			schemaTypeName, resolverTypeName := validateImportPkg(pkg, typeString, importMap)
-			fieldProp.SchemaFieldName = fmt.Sprintf("%s(Id: ID): [%s!]", fieldProp.FieldName, schemaTypeName)
+			if parser.IsJsonStringField(nf) || parser.IsMapField(nf) {
+				fieldProp.IsStringType = true
+				fieldProp.SchemaFieldName = fmt.Sprintf("%s: %s", fieldProp.FieldName, "String")
+			} else {
+				fieldProp.SchemaFieldName = fmt.Sprintf("%s: %s!", fieldProp.FieldName, schemaTypeName)
+			}
 			fieldProp.IsResolver = true
 			fieldProp.IsNexusTypeField = true
 			fieldProp.FieldType = typeString
@@ -448,7 +466,7 @@ func GenerateGraphqlResolverVars(baseGroupName, crdModulePath string, pkgs parse
 	var nodes []*NodeProperty
 	aliasNameMap := make(map[string]string)
 	for _, pkg := range sortedPackages {
-		simpleGroupTypeName := util.GetSimpleGroupTypeName(pkg.Name)
+		simpleGroupTypeName := util.GetSimpleGroupTypeName(getPkgName(pkg))
 		// Iterating struct type
 		for _, node := range pkg.GetStructs() {
 			// Skip Empty struct type
@@ -493,7 +511,7 @@ func GenerateGraphqlResolverVars(baseGroupName, crdModulePath string, pkgs parse
 		}
 	}
 
-	crdNameMap := constructCustomTypeMap(nodes)
+	crdNameMap := constructNexusTypeMap(nodes)
 	// populate return values of each Node for resolver
 	nonStructMap := constructAliasType(sortedPackages)
 	linkAPI, retMap := populateValuesForResolver(nodes, parentsMap, crdNameMap, nonStructMap)

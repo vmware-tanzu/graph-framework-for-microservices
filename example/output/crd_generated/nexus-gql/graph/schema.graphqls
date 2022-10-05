@@ -132,8 +132,8 @@ type config_Config {
         endTime: String
     ): TimeSeriesData
 
-    ACPPolicies(Id: ID): [policy_AccessControlPolicy!]
-    FooExample(Id: ID): [config_FooType!]
+    ACPPolicies: policy_AccessControlPolicy!
+    FooExample: config_FooType!
     MyStr0: String
     MyStr1: String
     MyStr2: String
@@ -141,6 +141,7 @@ type config_Config {
     ABCHost: String
     ClusterNamespaces: String
     TestValMarkers: String
+    Instance: Float
     GNS(Id: ID): gns_Gns!
     DNS: gns_Dns!
     VMPPolicies(Id: ID): policy_VMpolicy!
@@ -435,8 +436,7 @@ type gns_Gns {
         endTime: String
     ): TimeSeriesData
 
-    GnsServiceGroups(Id: ID): [servicegroup_SvcGroup!]
-    Dns: gns_Dns!
+    GnsServiceGroups: servicegroup_SvcGroup!
     
     Domain: String
     UseSharedGateway: Boolean
@@ -448,7 +448,7 @@ type gns_Gns {
     SlicePointer: String
     WorkloadSpec: String
     DifferentSpec: String
-    GnsAccessControlPolicy(Id: ID): policy_AccessControlPolicy!
+    GnsAccessControlPolicy(Id: ID): String!
 }
 
 
@@ -726,11 +726,11 @@ type servicegroup_SvcGroup {
 }
 type Query {
 
-    root(Id: ID): [policypkg_AdditionalPolicyData!]
+    root(Id: ID): [policy_AdditionalPolicyData!]
 }
 
 
-type policypkg_AdditionalPolicyData {
+type policy_AdditionalPolicyData {
 
     Id: ID
 	ParentLabels: Map
@@ -799,7 +799,7 @@ type policypkg_AdditionalPolicyData {
 
 
 
-type policypkg_AccessControlPolicy {
+type policy_AccessControlPolicy {
 
     Id: ID
 	ParentLabels: Map
@@ -858,12 +858,11 @@ type policypkg_AccessControlPolicy {
         endTime: String
     ): TimeSeriesData
 
-    PolicyConfigs(Id: ID): policypkg_map[string]ACPConfig!
 }
 
 
 
-type policypkg_ACPConfig {
+type policy_ACPConfig {
 
     Id: ID
 	ParentLabels: Map
@@ -924,8 +923,8 @@ type policypkg_ACPConfig {
 
     
     
-    DestSvcGroups(Id: ID): [policypkgSvcGroup!]
-    SourceSvcGroups(Id: ID): [servicegroup_SvcGroup!]
+    DestSvcGroups: String
+    SourceSvcGroups: servicegroup_SvcGroup!
     
     
     DisplayName: String
@@ -948,7 +947,7 @@ type policypkg_ACPConfig {
 
 
 
-type policypkg_VMpolicy {
+type policy_VMpolicy {
 
     Id: ID
 	ParentLabels: Map
@@ -1010,11 +1009,11 @@ type policypkg_VMpolicy {
 }
 type Query {
 
-    root(Id: ID): [policypkg_RandomPolicyData!]
+    root(Id: ID): [policy_RandomPolicyData!]
 }
 
 
-type policypkg_RandomPolicyData {
+type policy_RandomPolicyData {
 
     Id: ID
 	ParentLabels: Map

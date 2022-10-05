@@ -64,11 +64,6 @@ models:
       GnsAccessControlPolicy:
         resolver: true
 
-  policy_AccessControlPolicy:
-    fields:
-      PolicyConfigs:
-        resolver: true
-
   policy_ACPConfig:
     fields:
       DestSvcGroups:
