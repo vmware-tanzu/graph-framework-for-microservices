@@ -39,13 +39,13 @@ func getK8sAPIEndpointConfig() *rest.Config {
 	if filePath != "" {
 		config, err := clientcmd.BuildConfigFromFlags("", filePath)
 		if err != nil {
-			return err
+			return nil
 		}
 		return config
 	}
 	config, err := rest.InClusterConfig()
 	if err != nil {
-		return err
+		return nil
 	}
 	return config
 }
@@ -145,7 +145,7 @@ func (c *resolverConfig) get{{$node.PkgName}}{{$node.NodeName}}queryServiceTable
 	resp, err := grpcServer().GetMetrics(ctx, &qm.MetricArg{QueryType: "/ServiceTable", StartTime: *startTime, EndTime: *endTime, Metric: "", Filters: filters,TimeInterval: ""})
 	if err != nil {
 		log.Errorf("[get{{$node.PkgName}}{{$node.NodeName}}queryServiceTableResolver]Failed to get metrics, err: %v", err)
-		return &model.TimeSeriesData, nil
+		return &model.TimeSeriesData{}, nil
 	}
 	b, _ := json.Marshal(resp.Data)
 	data := string(b)
@@ -163,7 +163,7 @@ func (c *resolverConfig) get{{$node.PkgName}}{{$node.NodeName}}queryServiceVersi
 	resp, err := grpcServer().GetMetrics(ctx, &qm.MetricArg{QueryType: "/ServiceTable", StartTime: *startTime, EndTime: *endTime, Metric: "", Filters: filters,TimeInterval: ""})
 	if err != nil {
 	   log.Errorf("[get{{$node.PkgName}}{{$node.NodeName}}queryServiceVersionTableResolver]Failed to get metrics, err: %v", err)
-	   return &model.TimeSeriesData, nil
+	   return &model.TimeSeriesData{}, nil
 	}
 	b, _ := json.Marshal(resp.Data)
 	data := string(b)
@@ -181,7 +181,7 @@ func (c *resolverConfig) get{{$node.PkgName}}{{$node.NodeName}}queryServiceTSRes
 	resp, err := grpcServer().GetMetrics(ctx, &qm.MetricArg{QueryType: "/ServiceMetricSeries", StartTime: *startTime, EndTime: *endTime, Metric: *svcMetric, Filters: filters,TimeInterval: *timeInterval})
 	if err != nil {
 		log.Errorf("[get{{$node.PkgName}}{{$node.NodeName}}queryServiceTSResolver]Failed to get metrics, err: %v", err)
-		return &model.TimeSeriesData, nil
+		return &model.TimeSeriesData{}, nil
 	}
 	b, _ := json.Marshal(resp.Data)
 	data := string(b)
@@ -199,7 +199,7 @@ func (c *resolverConfig) get{{$node.PkgName}}{{$node.NodeName}}queryIncomingAPIs
 	resp, err := grpcServer().GetMetrics(ctx, &qm.MetricArg{QueryType: "/IncomingAPIs", StartTime: *startTime, EndTime: *endTime, Metric: "", Filters: filters,TimeInterval: *timeInterval})
 	if err != nil {
         log.Errorf("[get{{$node.PkgName}}{{$node.NodeName}}queryIncomingAPIsResolver]Failed to get metrics, err: %v", err)
-        return &model.TimeSeriesData, nil
+        return &model.TimeSeriesData{}, nil
 	}
 	b, _ := json.Marshal(resp.Data)
 	data := string(b)
