@@ -18,5 +18,5 @@ func CustomQueryToGraphqlSchema(query nexus.GraphQLQuery) string {
 		}
 		args += "    )"
 	}
-	return fmt.Sprintf("    %s"+args+": NexusGraphqlResponse\n", query.Name)
+	return fmt.Sprintf("    query%s"+args+": NexusGraphqlResponse\n", query.Name)
 }

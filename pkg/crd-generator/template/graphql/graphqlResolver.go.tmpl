@@ -16,10 +16,16 @@ import (
 
 )
 
-var c resolverConfig
+var c = resolverConfig{
+	CustomQueryHandler: CustomQueryHandler{
+		mtx: sync.Mutex{},
+		Clients: map[string]graphql.ServerClient{},
+	},
+}
 var nc *nexus_client.Clientset
 
 type resolverConfig struct {
+	CustomQueryHandler
 	{{ range  $key, $node := .Nodes }}{{ if $node.IsNexusNode }}v{{$node.PkgName}}{{$node.NodeName}} *nexus_client.{{$node.PkgName}}{{$node.NodeName}}
     {{ else }}{{ end }}{{ end }}
 }
@@ -282,7 +288,14 @@ func (c *resolverConfig) get{{$node.PkgName}}{{$node.NodeName}}queryServiceTopol
 }
 {{- range $key, $query := $node.CustomQueries }}
 // Custom query
-func (c *resolverConfig) get{{$node.PkgName}}{{$node.NodeName}}{{$query.Name}}(obj *model.{{$node.PkgName}}{{$node.NodeName}}, {{ range $key, $arg := $query.Args }} {{$arg.Name}} *{{$arg.Type}}, {{ end }}) (*model.NexusGraphqlResponse, error) {
+func (c *resolverConfig) get{{$node.PkgName}}{{$node.NodeName}}query{{$query.Name}}Resolver(obj *model.{{$node.PkgName}}{{$node.NodeName}}, {{ range $key, $arg := $query.Args }} {{$arg.Name}} *{{$arg.Type}}, {{ end }}) (*model.NexusGraphqlResponse, error) {
+	parentLabels := make(map[string]string)
+	for k, v := range obj.ParentLabels {
+		val, ok :=  v.(string)
+		if ok {
+			parentLabels[k] = val
+		}
+	}
 	query := &graphql.GraphQLQuery{
 		Query: "{{$query.Name}}",
 		UserProvidedArgs: map[string]string{
@@ -290,7 +303,7 @@ func (c *resolverConfig) get{{$node.PkgName}}{{$node.NodeName}}{{$query.Name}}(o
 			"{{$arg.Name}}": fmt.Sprintf("%v", *{{$arg.Name}}),
 			{{- end }}
 		},
-		Hierarchy: obj.ParentLabels,
+		Hierarchy: parentLabels,
 	}
 	return c.CustomQueryHandler.Query("{{$query.ServiceEndpoint.Domain}}:{{$query.ServiceEndpoint.Port}}", query)
 }{{- end }}
