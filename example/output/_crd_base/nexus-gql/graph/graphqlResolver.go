@@ -258,6 +258,8 @@ func (c *resolverConfig) getRootRootqueryServiceTopologyResolver(obj *model.Root
 
 
 
+
+
 //////////////////////////////////////
 // CustomQuery Resolver for Node: Config in PKG: Config
 //////////////////////////////////////
@@ -404,6 +406,21 @@ func (c *resolverConfig) getConfigConfigqueryServiceTopologyResolver(obj *model.
 		Data: &data,
 	}
 	return ret,nil
+}
+// Custom query
+func (c *resolverConfig) getConfigConfigQueryExample(obj *model.ConfigConfig,  StartTime *string,  EndTime *string,  Interval *string,  IsServiceDeployment *bool,  StartVal *int, ) (*model.NexusGraphqlResponse, error) {
+	query := &graphql.GraphQLQuery{
+		Query: "QueryExample",
+		UserProvidedArgs: map[string]string{
+			"StartTime": fmt.Sprintf("%v", *StartTime),
+			"EndTime": fmt.Sprintf("%v", *EndTime),
+			"Interval": fmt.Sprintf("%v", *Interval),
+			"IsServiceDeployment": fmt.Sprintf("%v", *IsServiceDeployment),
+			"StartVal": fmt.Sprintf("%v", *StartVal),
+		},
+		Hierarchy: obj.ParentLabels,
+	}
+	return c.CustomQueryHandler.Query("query-manager:6000", query)
 }
 
 
@@ -941,6 +958,8 @@ func (c *resolverConfig) getGnsRandomGnsDataqueryServiceTopologyResolver(obj *mo
 
 
 
+
+
 //////////////////////////////////////
 // CustomQuery Resolver for Node: Gns in PKG: Gns
 //////////////////////////////////////
@@ -1087,6 +1106,31 @@ func (c *resolverConfig) getGnsGnsqueryServiceTopologyResolver(obj *model.GnsGns
 		Data: &data,
 	}
 	return ret,nil
+}
+// Custom query
+func (c *resolverConfig) getGnsGnsqueryGns1(obj *model.GnsGns,  StartTime *string,  EndTime *string,  Interval *string,  IsServiceDeployment *bool,  StartVal *int, ) (*model.NexusGraphqlResponse, error) {
+	query := &graphql.GraphQLQuery{
+		Query: "queryGns1",
+		UserProvidedArgs: map[string]string{
+			"StartTime": fmt.Sprintf("%v", *StartTime),
+			"EndTime": fmt.Sprintf("%v", *EndTime),
+			"Interval": fmt.Sprintf("%v", *Interval),
+			"IsServiceDeployment": fmt.Sprintf("%v", *IsServiceDeployment),
+			"StartVal": fmt.Sprintf("%v", *StartVal),
+		},
+		Hierarchy: obj.ParentLabels,
+	}
+	return c.CustomQueryHandler.Query("query-manager:15000", query)
+}
+// Custom query
+func (c *resolverConfig) getGnsGnsqueryGns2(obj *model.GnsGns, ) (*model.NexusGraphqlResponse, error) {
+	query := &graphql.GraphQLQuery{
+		Query: "queryGns2",
+		UserProvidedArgs: map[string]string{
+		},
+		Hierarchy: obj.ParentLabels,
+	}
+	return c.CustomQueryHandler.Query("query-manager2:15002", query)
 }
 
 
@@ -2794,6 +2838,9 @@ vInstance := float64(vConfig.Spec.Instance)
 
 
 
+
+
+
 //////////////////////////////////////
 // CHILD RESOLVER (Non Singleton)
 // FieldName: GNS Node: Config PKG: Config
@@ -3242,6 +3289,9 @@ parentLabels := map[string]interface{}{"accesscontrolpolicies.policypkg.tsm.tanz
 	log.Debugf("[getConfigConfigACPPoliciesResolver]List of ACPPolicies object %v", vPolicyAccessControlPolicyList)
 	return vPolicyAccessControlPolicyList, nil
 }
+
+
+
 
 
 

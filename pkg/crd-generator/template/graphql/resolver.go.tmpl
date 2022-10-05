@@ -23,7 +23,7 @@ type CustomQueryHandler struct {
 	Clients map[string]graphql.ServerClient
 }
 
-func (c *CustomQueryHandler) Connect(endpoint string)  (graphql.ServerClient, error)  {
+func (c *CustomQueryHandler) Connect(endpoint string) (graphql.ServerClient, error) {
 	conn, err := grpc.Dial(endpoint)
 	if err != nil {
 		return nil, err

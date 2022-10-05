@@ -3,6 +3,7 @@ package crd_generator_test
 import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	"golang-appnet.eng.vmware.com/nexus-sdk/nexus/nexus"
 
 	crdgenerator "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/pkg/crd-generator"
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/pkg/parser"
@@ -10,13 +11,15 @@ import (
 
 var _ = Describe("Template renderers tests", func() {
 	var (
-		pkgs       parser.Packages
-		parentsMap map[string]parser.NodeHelper
+		pkgs           parser.Packages
+		parentsMap     map[string]parser.NodeHelper
+		graphqlQueries map[string]nexus.GraphQLQuerySpec
 	)
 
 	BeforeEach(func() {
 		pkgs = parser.ParseDSLPkg(exampleDSLPath)
-		graph := parser.ParseDSLNodes(exampleDSLPath, baseGroupName)
+		graphqlQueries = parser.ParseGraphqlQuerySpecs(pkgs)
+		graph := parser.ParseDSLNodes(exampleDSLPath, baseGroupName, pkgs, graphqlQueries)
 		parentsMap = parser.CreateParentsMap(graph)
 	})
 
