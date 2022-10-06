@@ -39,7 +39,7 @@ func NewDefaults() (*args.GeneratorArgs, *CustomArgs) {
 	// WithoutDefaultFlagParsing() disables implicit addition of command line flags and parsing,
 	// which allows registering custom arguments afterwards
 	genericArgs := args.Default().WithoutDefaultFlagParsing()
-	genericArgs.GoHeaderFilePath = filepath.Join(args.DefaultSourceTree(), "github.com/vmware-tanzu/graph-framework-for-microservices/src/kube-openapi/boilerplate/boilerplate.go.txt")
+	genericArgs.GoHeaderFilePath = filepath.Join(args.DefaultSourceTree(), "github.com/vmware-tanzu/graph-framework-for-microservices/kube-openapi/boilerplate/boilerplate.go.txt")
 
 	customArgs := &CustomArgs{}
 	genericArgs.CustomArgs = customArgs

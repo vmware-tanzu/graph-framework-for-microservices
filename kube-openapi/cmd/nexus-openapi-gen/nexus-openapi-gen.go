@@ -24,8 +24,8 @@ import (
 	"flag"
 	"log"
 
-	generatorargs "github.com/vmware-tanzu/graph-framework-for-microservices/src/kube-openapi/cmd/nexus-openapi-gen/args"
-	"github.com/vmware-tanzu/graph-framework-for-microservices/src/kube-openapi/pkg/generators"
+	generatorargs "github.com/vmware-tanzu/graph-framework-for-microservices/kube-openapi/cmd/nexus-openapi-gen/args"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/kube-openapi/pkg/generators"
 
 	"github.com/spf13/pflag"
 
