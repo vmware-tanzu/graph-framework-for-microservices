@@ -24,8 +24,8 @@ import (
 	openapi_v2 "github.com/google/gnostic/openapiv2"
 	yaml "gopkg.in/yaml.v2"
 
-	"github.com/vmware-tanzu/graph-framework-for-microservices/kube-openapi/pkg/schemaconv"
-	"github.com/vmware-tanzu/graph-framework-for-microservices/kube-openapi/pkg/util/proto"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/src/kube-openapi/pkg/schemaconv"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/src/kube-openapi/pkg/util/proto"
 )
 
 func main() {

@@ -22,12 +22,12 @@ import (
 	"reflect"
 	"testing"
 
-	builderv2 "github.com/vmware-tanzu/graph-framework-for-microservices/kube-openapi/pkg/builder"
-	builderv3 "github.com/vmware-tanzu/graph-framework-for-microservices/kube-openapi/pkg/builder3"
-	"github.com/vmware-tanzu/graph-framework-for-microservices/kube-openapi/pkg/openapiconv"
-	"github.com/vmware-tanzu/graph-framework-for-microservices/kube-openapi/pkg/validation/spec"
-	"github.com/vmware-tanzu/graph-framework-for-microservices/kube-openapi/test/integration/pkg/generated"
-	"github.com/vmware-tanzu/graph-framework-for-microservices/kube-openapi/test/integration/testutil"
+	builderv2 "github.com/vmware-tanzu/graph-framework-for-microservices/src/kube-openapi/pkg/builder"
+	builderv3 "github.com/vmware-tanzu/graph-framework-for-microservices/src/kube-openapi/pkg/builder3"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/src/kube-openapi/pkg/openapiconv"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/src/kube-openapi/pkg/validation/spec"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/src/kube-openapi/test/integration/pkg/generated"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/src/kube-openapi/test/integration/testutil"
 )
 
 func TestConvertGolden(t *testing.T) {

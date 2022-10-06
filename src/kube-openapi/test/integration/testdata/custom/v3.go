@@ -17,8 +17,8 @@ limitations under the License.
 package custom
 
 import (
-	"github.com/vmware-tanzu/graph-framework-for-microservices/kube-openapi/pkg/common"
-	"github.com/vmware-tanzu/graph-framework-for-microservices/kube-openapi/pkg/validation/spec"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/src/kube-openapi/pkg/common"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/src/kube-openapi/pkg/validation/spec"
 )
 
 // +k8s:openapi-gen=true

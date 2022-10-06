@@ -1,4 +1,4 @@
-module github.com/vmware-tanzu/graph-framework-for-microservices/kube-openapi
+module github.com/vmware-tanzu/graph-framework-for-microservices/src/kube-openapi
 
 go 1.17
 

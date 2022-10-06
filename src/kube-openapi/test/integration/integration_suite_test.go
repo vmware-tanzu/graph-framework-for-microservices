@@ -31,7 +31,7 @@ import (
 const (
 	headerFilePath = "../../boilerplate/boilerplate.go.txt"
 	testdataDir    = "./testdata"
-	testPkgDir     = "github.com/vmware-tanzu/graph-framework-for-microservices/kube-openapi/test/integration/testdata"
+	testPkgDir     = "github.com/vmware-tanzu/graph-framework-for-microservices/src/kube-openapi/test/integration/testdata"
 	inputDir       = testPkgDir + "/listtype" +
 		"," + testPkgDir + "/maptype" +
 		"," + testPkgDir + "/structtype" +

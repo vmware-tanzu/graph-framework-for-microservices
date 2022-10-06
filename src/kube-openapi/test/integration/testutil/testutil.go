@@ -21,9 +21,9 @@ import (
 	"strings"
 
 	"github.com/emicklei/go-restful"
-	"github.com/vmware-tanzu/graph-framework-for-microservices/kube-openapi/pkg/common"
-	"github.com/vmware-tanzu/graph-framework-for-microservices/kube-openapi/pkg/util"
-	"github.com/vmware-tanzu/graph-framework-for-microservices/kube-openapi/pkg/validation/spec"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/src/kube-openapi/pkg/common"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/src/kube-openapi/pkg/util"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/src/kube-openapi/pkg/validation/spec"
 )
 
 // CreateOpenAPIBuilderConfig hard-codes some values in the API builder
@@ -94,7 +94,7 @@ type typeNamer struct {
 }
 
 func (t *typeNamer) OpenAPICanonicalTypeName() string {
-	return fmt.Sprintf("github.com/vmware-tanzu/graph-framework-for-microservices/kube-openapi/test/integration/testdata/%s.%s", t.pkg, t.name)
+	return fmt.Sprintf("github.com/vmware-tanzu/graph-framework-for-microservices/src/kube-openapi/test/integration/testdata/%s.%s", t.pkg, t.name)
 }
 
 func buildRouteForType(ws *restful.WebService, pkg, name string) []*restful.RouteBuilder {
