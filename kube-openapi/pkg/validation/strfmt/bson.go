@@ -15,7 +15,7 @@
 package strfmt
 
 import (
-	bsonprim "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git/pkg/validation/strfmt/bson"
+	bsonprim "github.com/vmware-tanzu/graph-framework-for-microservices/kube-openapi/pkg/validation/strfmt/bson"
 )
 
 func init() {

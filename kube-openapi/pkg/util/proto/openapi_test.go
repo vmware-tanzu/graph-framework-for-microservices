@@ -22,8 +22,8 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git/pkg/util/proto"
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git/pkg/util/proto/testing"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/kube-openapi/pkg/util/proto"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/kube-openapi/pkg/util/proto/testing"
 )
 
 var fakeSchema = testing.Fake{Path: filepath.Join("testdata", "swagger.json")}

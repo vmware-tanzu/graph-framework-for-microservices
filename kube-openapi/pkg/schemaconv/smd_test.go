@@ -23,8 +23,8 @@ import (
 
 	yaml "gopkg.in/yaml.v2"
 
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git/pkg/util/proto"
-	prototesting "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git/pkg/util/proto/testing"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/kube-openapi/pkg/util/proto"
+	prototesting "github.com/vmware-tanzu/graph-framework-for-microservices/kube-openapi/pkg/util/proto/testing"
 )
 
 func TestToSchema(t *testing.T) {

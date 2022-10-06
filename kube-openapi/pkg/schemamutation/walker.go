@@ -17,7 +17,7 @@ limitations under the License.
 package schemamutation
 
 import (
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git/pkg/validation/spec"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/kube-openapi/pkg/validation/spec"
 )
 
 // Walker runs callback functions on all references of an OpenAPI spec,

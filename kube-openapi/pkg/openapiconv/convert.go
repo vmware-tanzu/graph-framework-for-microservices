@@ -19,9 +19,9 @@ package openapiconv
 import (
 	"strings"
 
-	builderutil "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git/pkg/builder3/util"
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git/pkg/spec3"
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git/pkg/validation/spec"
+	builderutil "github.com/vmware-tanzu/graph-framework-for-microservices/kube-openapi/pkg/builder3/util"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/kube-openapi/pkg/spec3"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/kube-openapi/pkg/validation/spec"
 	klog "k8s.io/klog/v2"
 )
 

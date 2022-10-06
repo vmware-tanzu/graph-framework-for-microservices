@@ -19,8 +19,8 @@ package builder3
 import (
 	"sort"
 
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git/pkg/common"
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git/pkg/spec3"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/kube-openapi/pkg/common"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/kube-openapi/pkg/spec3"
 )
 
 func mapKeyFromParam(param common.Parameter) interface{} {

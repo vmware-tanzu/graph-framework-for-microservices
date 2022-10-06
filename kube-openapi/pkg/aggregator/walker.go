@@ -19,7 +19,7 @@ package aggregator
 import (
 	"strings"
 
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git/pkg/validation/spec"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/kube-openapi/pkg/validation/spec"
 )
 
 const (

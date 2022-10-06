@@ -21,9 +21,9 @@ import (
 	"reflect"
 	"testing"
 
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git/pkg/handler"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/kube-openapi/pkg/handler"
 
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git/pkg/validation/spec"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/kube-openapi/pkg/validation/spec"
 )
 
 func TestDefaultPruning(t *testing.T) {

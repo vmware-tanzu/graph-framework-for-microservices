@@ -22,12 +22,12 @@ import (
 	"reflect"
 	"testing"
 
-	builderv2 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git/pkg/builder"
-	builderv3 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git/pkg/builder3"
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git/pkg/openapiconv"
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git/pkg/validation/spec"
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git/test/integration/pkg/generated"
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git/test/integration/testutil"
+	builderv2 "github.com/vmware-tanzu/graph-framework-for-microservices/kube-openapi/pkg/builder"
+	builderv3 "github.com/vmware-tanzu/graph-framework-for-microservices/kube-openapi/pkg/builder3"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/kube-openapi/pkg/openapiconv"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/kube-openapi/pkg/validation/spec"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/kube-openapi/test/integration/pkg/generated"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/kube-openapi/test/integration/testutil"
 )
 
 func TestConvertGolden(t *testing.T) {

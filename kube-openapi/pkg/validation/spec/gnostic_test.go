@@ -30,7 +30,7 @@ import (
 	"github.com/google/go-cmp/cmp"
 	fuzz "github.com/google/gofuzz"
 	"github.com/stretchr/testify/require"
-	. "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git/pkg/validation/spec"
+	. "github.com/vmware-tanzu/graph-framework-for-microservices/kube-openapi/pkg/validation/spec"
 	"google.golang.org/protobuf/proto"
 	"gopkg.in/yaml.v3"
 )

@@ -20,7 +20,7 @@ import (
 	"reflect"
 	"strings"
 
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git/pkg/util/sets"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/kube-openapi/pkg/util/sets"
 
 	"k8s.io/gengo/types"
 )

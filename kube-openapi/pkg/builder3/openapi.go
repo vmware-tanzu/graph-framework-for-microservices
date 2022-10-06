@@ -24,12 +24,12 @@ import (
 
 	restful "github.com/emicklei/go-restful"
 
-	builderutil "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git/pkg/builder3/util"
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git/pkg/common"
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git/pkg/common/restfuladapter"
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git/pkg/spec3"
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git/pkg/util"
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git/pkg/validation/spec"
+	builderutil "github.com/vmware-tanzu/graph-framework-for-microservices/kube-openapi/pkg/builder3/util"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/kube-openapi/pkg/common"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/kube-openapi/pkg/common/restfuladapter"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/kube-openapi/pkg/spec3"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/kube-openapi/pkg/util"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/kube-openapi/pkg/validation/spec"
 )
 
 const (

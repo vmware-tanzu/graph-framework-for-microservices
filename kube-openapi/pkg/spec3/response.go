@@ -21,7 +21,7 @@ import (
 	"strconv"
 
 	"github.com/go-openapi/swag"
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git/pkg/validation/spec"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/kube-openapi/pkg/validation/spec"
 )
 
 // Responses holds the list of possible responses as they are returned from executing this operation

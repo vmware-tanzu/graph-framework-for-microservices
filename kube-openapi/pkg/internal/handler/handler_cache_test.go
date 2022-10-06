@@ -20,7 +20,7 @@ import (
 	"errors"
 	"testing"
 
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git/pkg/internal/handler"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/kube-openapi/pkg/internal/handler"
 )
 
 func TestCache(t *testing.T) {

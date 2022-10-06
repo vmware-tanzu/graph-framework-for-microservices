@@ -2,7 +2,7 @@ package restfuladapter
 
 import (
 	"github.com/emicklei/go-restful"
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git/pkg/common"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/kube-openapi/pkg/common"
 )
 
 // AdaptWebServices adapts a slice of restful.WebService into the common interfaces.

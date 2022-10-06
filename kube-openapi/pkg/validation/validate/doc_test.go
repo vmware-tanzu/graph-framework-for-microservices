@@ -21,9 +21,9 @@ import (
 
 	// Spec loading
 	"github.com/stretchr/testify/require"
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git/pkg/validation/spec"
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git/pkg/validation/strfmt"   // OpenAPI format extensions
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git/pkg/validation/validate" // This package
+	"github.com/vmware-tanzu/graph-framework-for-microservices/kube-openapi/pkg/validation/spec"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/kube-openapi/pkg/validation/strfmt"   // OpenAPI format extensions
+	"github.com/vmware-tanzu/graph-framework-for-microservices/kube-openapi/pkg/validation/validate" // This package
 )
 
 func ExampleAgainstSchema() {

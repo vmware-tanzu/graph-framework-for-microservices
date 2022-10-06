@@ -1,4 +1,4 @@
-module gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git
+module github.com/vmware-tanzu/graph-framework-for-microservices/kube-openapi
 
 go 1.17
 

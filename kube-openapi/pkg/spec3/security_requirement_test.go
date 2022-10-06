@@ -22,7 +22,7 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git/pkg/spec3"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/kube-openapi/pkg/spec3"
 )
 
 func TestSecurityRequirementJSONSerialization(t *testing.T) {

@@ -20,7 +20,7 @@ import (
 	"encoding/json"
 
 	"github.com/go-openapi/swag"
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git/pkg/validation/spec"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/kube-openapi/pkg/validation/spec"
 )
 
 // SecurityRequirementProps describes the required security schemes to execute an operation, more at https://swagger.io/specification/#security-requirement-object

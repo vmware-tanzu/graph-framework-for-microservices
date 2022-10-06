@@ -19,7 +19,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git/pkg/validation/strfmt"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/kube-openapi/pkg/validation/strfmt"
 )
 
 type expectedJSONType struct {

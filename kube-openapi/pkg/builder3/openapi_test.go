@@ -26,9 +26,9 @@ import (
 	"github.com/emicklei/go-restful"
 	"github.com/stretchr/testify/assert"
 
-	openapi "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git/pkg/common"
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git/pkg/spec3"
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git/pkg/validation/spec"
+	openapi "github.com/vmware-tanzu/graph-framework-for-microservices/kube-openapi/pkg/common"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/kube-openapi/pkg/spec3"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/kube-openapi/pkg/validation/spec"
 )
 
 // setUp is a convenience function for setting up for (most) tests.
@@ -203,8 +203,8 @@ func getConfig(fullMethods bool) (*openapi.Config, *restful.Container) {
 		},
 		GetDefinitions: func(_ openapi.ReferenceCallback) map[string]openapi.OpenAPIDefinition {
 			return map[string]openapi.OpenAPIDefinition{
-				"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git/pkg/builder3.TestInput":  *TestInput{}.OpenAPIDefinition(),
-				"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git/pkg/builder3.TestOutput": *TestOutput{}.OpenAPIDefinition(),
+				"github.com/vmware-tanzu/graph-framework-for-microservices/kube-openapi/pkg/builder3.TestInput":  *TestInput{}.OpenAPIDefinition(),
+				"github.com/vmware-tanzu/graph-framework-for-microservices/kube-openapi/pkg/builder3.TestOutput": *TestOutput{}.OpenAPIDefinition(),
 			}
 		},
 		GetDefinitionName: func(name string) (string, spec.Extensions) {

@@ -16,7 +16,7 @@ limitations under the License.
 
 package spec3
 
-import "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git/pkg/validation/spec"
+import "github.com/vmware-tanzu/graph-framework-for-microservices/kube-openapi/pkg/validation/spec"
 
 // Components holds a set of reusable objects for different aspects of the OAS.
 // All objects defined within the components object will have no effect on the API

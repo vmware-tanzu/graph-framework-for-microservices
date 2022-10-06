@@ -24,41 +24,41 @@ limitations under the License.
 package generated
 
 import (
-	common "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git/pkg/common"
-	spec "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git/pkg/validation/spec"
-	custom "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git/test/integration/testdata/custom"
+	common "github.com/vmware-tanzu/graph-framework-for-microservices/kube-openapi/pkg/common"
+	spec "github.com/vmware-tanzu/graph-framework-for-microservices/kube-openapi/pkg/validation/spec"
+	custom "github.com/vmware-tanzu/graph-framework-for-microservices/kube-openapi/test/integration/testdata/custom"
 )
 
 func GetOpenAPIDefinitions(ref common.ReferenceCallback) map[string]common.OpenAPIDefinition {
 	return map[string]common.OpenAPIDefinition{
-		"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git/test/integration/testdata/custom.Bac":                      common.EmbedOpenAPIDefinitionIntoV2Extension(custom.Bac{}.OpenAPIV3Definition(), custom.Bac{}.OpenAPIDefinition()),
-		"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git/test/integration/testdata/custom.Bah":                      schema_test_integration_testdata_custom_Bah(ref),
-		"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git/test/integration/testdata/custom.Bak":                      custom.Bak{}.OpenAPIDefinition(),
-		"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git/test/integration/testdata/custom.Bal":                      custom.Bal{}.OpenAPIV3Definition(),
-		"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git/test/integration/testdata/custom.FooV3OneOf":               schema_test_integration_testdata_custom_FooV3OneOf(ref),
-		"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git/test/integration/testdata/defaults.Defaulted":              schema_test_integration_testdata_defaults_Defaulted(ref),
-		"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git/test/integration/testdata/defaults.SubStruct":              schema_test_integration_testdata_defaults_SubStruct(ref),
-		"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git/test/integration/testdata/dummytype.Bar":                   schema_test_integration_testdata_dummytype_Bar(ref),
-		"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git/test/integration/testdata/dummytype.Baz":                   schema_test_integration_testdata_dummytype_Baz(ref),
-		"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git/test/integration/testdata/dummytype.Foo":                   schema_test_integration_testdata_dummytype_Foo(ref),
-		"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git/test/integration/testdata/dummytype.StatusError":           schema_test_integration_testdata_dummytype_StatusError(ref),
-		"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git/test/integration/testdata/dummytype.Waldo":                 schema_test_integration_testdata_dummytype_Waldo(ref),
-		"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git/test/integration/testdata/enumtype.FruitsBasket":           schema_test_integration_testdata_enumtype_FruitsBasket(ref),
-		"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git/test/integration/testdata/listtype.AtomicList":             schema_test_integration_testdata_listtype_AtomicList(ref),
-		"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git/test/integration/testdata/listtype.Item":                   schema_test_integration_testdata_listtype_Item(ref),
-		"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git/test/integration/testdata/listtype.MapList":                schema_test_integration_testdata_listtype_MapList(ref),
-		"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git/test/integration/testdata/listtype.SetList":                schema_test_integration_testdata_listtype_SetList(ref),
-		"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git/test/integration/testdata/listtype.UntypedList":            schema_test_integration_testdata_listtype_UntypedList(ref),
-		"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git/test/integration/testdata/maptype.AtomicMap":               schema_test_integration_testdata_maptype_AtomicMap(ref),
-		"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git/test/integration/testdata/maptype.GranularMap":             schema_test_integration_testdata_maptype_GranularMap(ref),
-		"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git/test/integration/testdata/structtype.AtomicStruct":         schema_test_integration_testdata_structtype_AtomicStruct(ref),
-		"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git/test/integration/testdata/structtype.ContainedStruct":      schema_test_integration_testdata_structtype_ContainedStruct(ref),
-		"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git/test/integration/testdata/structtype.DeclaredAtomicStruct": schema_test_integration_testdata_structtype_DeclaredAtomicStruct(ref),
-		"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git/test/integration/testdata/structtype.GranularStruct":       schema_test_integration_testdata_structtype_GranularStruct(ref),
-		"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git/test/integration/testdata/uniontype.InlinedUnion":          schema_test_integration_testdata_uniontype_InlinedUnion(ref),
-		"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git/test/integration/testdata/uniontype.TopLevelUnion":         schema_test_integration_testdata_uniontype_TopLevelUnion(ref),
-		"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git/test/integration/testdata/uniontype.Union":                 schema_test_integration_testdata_uniontype_Union(ref),
-		"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git/test/integration/testdata/uniontype.Union2":                schema_test_integration_testdata_uniontype_Union2(ref),
+		"github.com/vmware-tanzu/graph-framework-for-microservices/kube-openapi/test/integration/testdata/custom.Bac":                      common.EmbedOpenAPIDefinitionIntoV2Extension(custom.Bac{}.OpenAPIV3Definition(), custom.Bac{}.OpenAPIDefinition()),
+		"github.com/vmware-tanzu/graph-framework-for-microservices/kube-openapi/test/integration/testdata/custom.Bah":                      schema_test_integration_testdata_custom_Bah(ref),
+		"github.com/vmware-tanzu/graph-framework-for-microservices/kube-openapi/test/integration/testdata/custom.Bak":                      custom.Bak{}.OpenAPIDefinition(),
+		"github.com/vmware-tanzu/graph-framework-for-microservices/kube-openapi/test/integration/testdata/custom.Bal":                      custom.Bal{}.OpenAPIV3Definition(),
+		"github.com/vmware-tanzu/graph-framework-for-microservices/kube-openapi/test/integration/testdata/custom.FooV3OneOf":               schema_test_integration_testdata_custom_FooV3OneOf(ref),
+		"github.com/vmware-tanzu/graph-framework-for-microservices/kube-openapi/test/integration/testdata/defaults.Defaulted":              schema_test_integration_testdata_defaults_Defaulted(ref),
+		"github.com/vmware-tanzu/graph-framework-for-microservices/kube-openapi/test/integration/testdata/defaults.SubStruct":              schema_test_integration_testdata_defaults_SubStruct(ref),
+		"github.com/vmware-tanzu/graph-framework-for-microservices/kube-openapi/test/integration/testdata/dummytype.Bar":                   schema_test_integration_testdata_dummytype_Bar(ref),
+		"github.com/vmware-tanzu/graph-framework-for-microservices/kube-openapi/test/integration/testdata/dummytype.Baz":                   schema_test_integration_testdata_dummytype_Baz(ref),
+		"github.com/vmware-tanzu/graph-framework-for-microservices/kube-openapi/test/integration/testdata/dummytype.Foo":                   schema_test_integration_testdata_dummytype_Foo(ref),
+		"github.com/vmware-tanzu/graph-framework-for-microservices/kube-openapi/test/integration/testdata/dummytype.StatusError":           schema_test_integration_testdata_dummytype_StatusError(ref),
+		"github.com/vmware-tanzu/graph-framework-for-microservices/kube-openapi/test/integration/testdata/dummytype.Waldo":                 schema_test_integration_testdata_dummytype_Waldo(ref),
+		"github.com/vmware-tanzu/graph-framework-for-microservices/kube-openapi/test/integration/testdata/enumtype.FruitsBasket":           schema_test_integration_testdata_enumtype_FruitsBasket(ref),
+		"github.com/vmware-tanzu/graph-framework-for-microservices/kube-openapi/test/integration/testdata/listtype.AtomicList":             schema_test_integration_testdata_listtype_AtomicList(ref),
+		"github.com/vmware-tanzu/graph-framework-for-microservices/kube-openapi/test/integration/testdata/listtype.Item":                   schema_test_integration_testdata_listtype_Item(ref),
+		"github.com/vmware-tanzu/graph-framework-for-microservices/kube-openapi/test/integration/testdata/listtype.MapList":                schema_test_integration_testdata_listtype_MapList(ref),
+		"github.com/vmware-tanzu/graph-framework-for-microservices/kube-openapi/test/integration/testdata/listtype.SetList":                schema_test_integration_testdata_listtype_SetList(ref),
+		"github.com/vmware-tanzu/graph-framework-for-microservices/kube-openapi/test/integration/testdata/listtype.UntypedList":            schema_test_integration_testdata_listtype_UntypedList(ref),
+		"github.com/vmware-tanzu/graph-framework-for-microservices/kube-openapi/test/integration/testdata/maptype.AtomicMap":               schema_test_integration_testdata_maptype_AtomicMap(ref),
+		"github.com/vmware-tanzu/graph-framework-for-microservices/kube-openapi/test/integration/testdata/maptype.GranularMap":             schema_test_integration_testdata_maptype_GranularMap(ref),
+		"github.com/vmware-tanzu/graph-framework-for-microservices/kube-openapi/test/integration/testdata/structtype.AtomicStruct":         schema_test_integration_testdata_structtype_AtomicStruct(ref),
+		"github.com/vmware-tanzu/graph-framework-for-microservices/kube-openapi/test/integration/testdata/structtype.ContainedStruct":      schema_test_integration_testdata_structtype_ContainedStruct(ref),
+		"github.com/vmware-tanzu/graph-framework-for-microservices/kube-openapi/test/integration/testdata/structtype.DeclaredAtomicStruct": schema_test_integration_testdata_structtype_DeclaredAtomicStruct(ref),
+		"github.com/vmware-tanzu/graph-framework-for-microservices/kube-openapi/test/integration/testdata/structtype.GranularStruct":       schema_test_integration_testdata_structtype_GranularStruct(ref),
+		"github.com/vmware-tanzu/graph-framework-for-microservices/kube-openapi/test/integration/testdata/uniontype.InlinedUnion":          schema_test_integration_testdata_uniontype_InlinedUnion(ref),
+		"github.com/vmware-tanzu/graph-framework-for-microservices/kube-openapi/test/integration/testdata/uniontype.TopLevelUnion":         schema_test_integration_testdata_uniontype_TopLevelUnion(ref),
+		"github.com/vmware-tanzu/graph-framework-for-microservices/kube-openapi/test/integration/testdata/uniontype.Union":                 schema_test_integration_testdata_uniontype_Union(ref),
+		"github.com/vmware-tanzu/graph-framework-for-microservices/kube-openapi/test/integration/testdata/uniontype.Union2":                schema_test_integration_testdata_uniontype_Union2(ref),
 	}
 }
 
@@ -131,13 +131,13 @@ func schema_test_integration_testdata_defaults_Defaulted(ref common.ReferenceCal
 					"Sub": {
 						SchemaProps: spec.SchemaProps{
 							Default: map[string]interface{}{"i": 5, "s": "foo"},
-							Ref:     ref("gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git/test/integration/testdata/defaults.SubStruct"),
+							Ref:     ref("github.com/vmware-tanzu/graph-framework-for-microservices/kube-openapi/test/integration/testdata/defaults.SubStruct"),
 						},
 					},
 					"OtherSub": {
 						SchemaProps: spec.SchemaProps{
 							Default: map[string]interface{}{},
-							Ref:     ref("gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git/test/integration/testdata/defaults.SubStruct"),
+							Ref:     ref("github.com/vmware-tanzu/graph-framework-for-microservices/kube-openapi/test/integration/testdata/defaults.SubStruct"),
 						},
 					},
 					"Map": {
@@ -161,7 +161,7 @@ func schema_test_integration_testdata_defaults_Defaulted(ref common.ReferenceCal
 			},
 		},
 		Dependencies: []string{
-			"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git/test/integration/testdata/defaults.SubStruct"},
+			"github.com/vmware-tanzu/graph-framework-for-microservices/kube-openapi/test/integration/testdata/defaults.SubStruct"},
 	}
 }
 
@@ -456,7 +456,7 @@ func schema_test_integration_testdata_listtype_MapList(ref common.ReferenceCallb
 								Schema: &spec.Schema{
 									SchemaProps: spec.SchemaProps{
 										Default: map[string]interface{}{},
-										Ref:     ref("gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git/test/integration/testdata/listtype.Item"),
+										Ref:     ref("github.com/vmware-tanzu/graph-framework-for-microservices/kube-openapi/test/integration/testdata/listtype.Item"),
 									},
 								},
 							},
@@ -467,7 +467,7 @@ func schema_test_integration_testdata_listtype_MapList(ref common.ReferenceCallb
 			},
 		},
 		Dependencies: []string{
-			"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git/test/integration/testdata/listtype.Item"},
+			"github.com/vmware-tanzu/graph-framework-for-microservices/kube-openapi/test/integration/testdata/listtype.Item"},
 	}
 }
 
@@ -610,7 +610,7 @@ func schema_test_integration_testdata_structtype_AtomicStruct(ref common.Referen
 						},
 						SchemaProps: spec.SchemaProps{
 							Default: map[string]interface{}{},
-							Ref:     ref("gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git/test/integration/testdata/structtype.ContainedStruct"),
+							Ref:     ref("github.com/vmware-tanzu/graph-framework-for-microservices/kube-openapi/test/integration/testdata/structtype.ContainedStruct"),
 						},
 					},
 					"OtherField": {
@@ -625,7 +625,7 @@ func schema_test_integration_testdata_structtype_AtomicStruct(ref common.Referen
 			},
 		},
 		Dependencies: []string{
-			"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git/test/integration/testdata/structtype.ContainedStruct"},
+			"github.com/vmware-tanzu/graph-framework-for-microservices/kube-openapi/test/integration/testdata/structtype.ContainedStruct"},
 	}
 }
 
@@ -678,7 +678,7 @@ func schema_test_integration_testdata_structtype_GranularStruct(ref common.Refer
 						},
 						SchemaProps: spec.SchemaProps{
 							Default: map[string]interface{}{},
-							Ref:     ref("gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git/test/integration/testdata/structtype.ContainedStruct"),
+							Ref:     ref("github.com/vmware-tanzu/graph-framework-for-microservices/kube-openapi/test/integration/testdata/structtype.ContainedStruct"),
 						},
 					},
 					"OtherField": {
@@ -693,7 +693,7 @@ func schema_test_integration_testdata_structtype_GranularStruct(ref common.Refer
 			},
 		},
 		Dependencies: []string{
-			"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git/test/integration/testdata/structtype.ContainedStruct"},
+			"github.com/vmware-tanzu/graph-framework-for-microservices/kube-openapi/test/integration/testdata/structtype.ContainedStruct"},
 	}
 }
 

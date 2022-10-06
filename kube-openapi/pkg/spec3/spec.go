@@ -17,7 +17,7 @@ limitations under the License.
 package spec3
 
 import (
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git/pkg/validation/spec"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/kube-openapi/pkg/validation/spec"
 )
 
 // OpenAPI is an object that describes an API and conforms to the OpenAPI Specification.
