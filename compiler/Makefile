@@ -28,7 +28,6 @@ define run_in_container
   --volume ~/.ssh:/root/.ssh \
   --network=host \
   --workdir ${PKG_NAME} \
-  --env GOPATH=/go/src/github.com/vmware-tanzu/graph-framework-for-microservices/ \
   "${BUILDER_NAME}:${BUILDER_TAG}" /bin/bash -c "${1}"
 endef
 else
@@ -73,7 +72,7 @@ tools:
 	go install github.com/onsi/gomega/...@v1.17.0
 	go install golang.org/x/tools/cmd/goimports@latest
 	go install github.com/mikefarah/yq/v4@latest
-	GOPATH=$(PWD)/.. go install ../src/kube-openapi/cmd/nexus-openapi-gen
+	go install ../src/kube-openapi/cmd/nexus-openapi-gen
 
 .PHONY: build_openapigen_in_container
 build_openapigen_in_container:
@@ -81,7 +80,7 @@ build_openapigen_in_container:
 
 .PHONY: build_openapigen
 build_openapigen:
-	GOPATH=$(PWD)/.. GOBIN=${PKG_NAME}/cmd go install ../src/kube-openapi/cmd/nexus-openapi-gen
+	GOBIN=${PKG_NAME}/cmd go install ../src/kube-openapi/cmd/nexus-openapi-gen
 
 .PHONY: unit-test
 unit-test:
@@ -148,7 +147,7 @@ generate_code:
 
 .PHONY: test_generate_code_in_container
 test_generate_code_in_container: ${BUILDER_NAME}\:${BUILDER_TAG}.image.exists init_submodules
-	$(call run_in_container, GOPATH=$(PWD)/.. go install ../src/kube-openapi/cmd/nexus-openapi-gen && \
+	$(call run_in_container, go install ../src/kube-openapi/cmd/nexus-openapi-gen && \
 	make generate_code DATAMODEL_PATH=example/datamodel \
 	CONFIG_FILE=example/nexus-sdk.yaml \
 	CRD_MODULE_PATH="github.com/vmware-tanzu/graph-framework-for-microservices/compiler/example/output/crd_generated/" \
