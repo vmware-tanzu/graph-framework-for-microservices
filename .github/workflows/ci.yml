@@ -1,0 +1,39 @@
+name: ci-pipeline
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+
+  ci:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        go: [ '1.16', '1.x' ]
+        gostable: [true]
+        include:
+        - go: '1.x'
+          gostable: false
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        path: src/gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git/
+
+    - name: Set up Go
+      uses: actions/setup-go@v2
+      with:
+        go-version: "${{ matrix.go }}"
+        stable: ${{ matrix.gostable }}"
+
+    - name: Build
+      run: |
+        cd ${GITHUB_WORKSPACE}/src/gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git/
+        go mod tidy && git diff --exit-code
+        go build ./cmd/... ./pkg/...
+    - name: Test
+      run: |
+        cd ${GITHUB_WORKSPACE}/src/gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git/
+        GOPATH=${GITHUB_WORKSPACE} go test ./cmd/... ./pkg/... ./test/...
