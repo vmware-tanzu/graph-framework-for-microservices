@@ -72,7 +72,7 @@ tools:
 	go install github.com/onsi/gomega/...@v1.17.0
 	go install golang.org/x/tools/cmd/goimports@latest
 	go install github.com/mikefarah/yq/v4@latest
-	go install ./vendor/gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git/cmd/nexus-openapi-gen
+	GOPATH=$(PWD)/.. go install ../src/kube-openapi/cmd/nexus-openapi-gen
 
 .PHONY: build_openapigen_in_container
 build_openapigen_in_container:
@@ -80,7 +80,7 @@ build_openapigen_in_container:
 
 .PHONY: build_openapigen
 build_openapigen:
-	GOBIN=${PKG_NAME}/cmd go install ./vendor/gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git/cmd/nexus-openapi-gen
+	GOPATH=$(PWD)/.. GOBIN=${PKG_NAME}/cmd go install ../src/kube-openapi/cmd/nexus-openapi-gen
 
 .PHONY: unit-test
 unit-test:
@@ -147,7 +147,7 @@ generate_code:
 
 .PHONY: test_generate_code_in_container
 test_generate_code_in_container: ${BUILDER_NAME}\:${BUILDER_TAG}.image.exists init_submodules
-	$(call run_in_container, go install ./vendor/gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git/cmd/nexus-openapi-gen && \
+	$(call run_in_container, GOPATH=$(PWD)/.. go install ../src/kube-openapi/cmd/nexus-openapi-gen && \
 	make generate_code DATAMODEL_PATH=example/datamodel \
 	CONFIG_FILE=example/nexus-sdk.yaml \
 	CRD_MODULE_PATH="github.com/vmware-tanzu/graph-framework-for-microservices/compiler/example/output/crd_generated/" \
@@ -207,9 +207,11 @@ docker.gitlab_credentials:
 	@if test -z $$CICD_TOKEN; then\
 		echo "Using ssh authentication" && \
         git config --global --add url."git@gitlab.eng.vmware.com:".insteadOf "https://gitlab.eng.vmware.com/"; \
+		go mod download ;\
 	else \
 		echo "Using https authentication" && \
         git config --global credential.helper store && \
         echo -e  "https://gitlab-ci-token:${CICD_TOKEN}@gitlab.eng.vmware.com/" >> ~/.git-credentials && \
         git config --global url."https://gitlab.eng.vmware.com/".insteadOf "git@gitlab.eng.vmware.com:"; \
+		go mod download ;\
 	fi
