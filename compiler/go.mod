@@ -9,7 +9,7 @@ require (
 	github.com/onsi/ginkgo v1.16.5
 	github.com/onsi/gomega v1.19.0
 	github.com/sirupsen/logrus v1.8.1
-	gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/common-library.git v0.0.0-20220909083510-01d43651301d
+	github.com/vmware-tanzu/graph-framework-for-microservices/common-library v0.0.0-20221006053314-4dc499ee7bad
 	gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git v0.0.0-20220603123335-7416bd4754d3
 	golang.org/x/mod v0.6.0-dev.0.20220106191415-9b9b3d81d5e3
 	golang.org/x/tools v0.1.10-0.20220218145154-897bd77cd717
@@ -35,7 +35,6 @@ require (
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/modern-go/reflect2 v1.0.2 // indirect
 	github.com/nxadm/tail v1.4.8 // indirect
-	github.com/spf13/pflag v1.0.5 // indirect
 	golang.org/x/net v0.0.0-20220225172249-27dd8689420f // indirect
 	golang.org/x/sys v0.0.0-20220209214540-3681064d5158 // indirect
 	golang.org/x/text v0.3.7 // indirect

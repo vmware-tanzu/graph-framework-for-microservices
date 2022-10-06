@@ -6,8 +6,8 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/vmware-tanzu/graph-framework-for-microservices/common-library/pkg/nexus"
 	"github.com/vmware-tanzu/graph-framework-for-microservices/compiler/pkg/parser"
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/common-library.git/pkg/nexus"
 )
 
 var httpStatusCodes = map[string]int{

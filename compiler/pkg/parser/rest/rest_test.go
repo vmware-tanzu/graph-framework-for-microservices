@@ -7,9 +7,9 @@ import (
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/common-library/pkg/nexus"
 	"github.com/vmware-tanzu/graph-framework-for-microservices/compiler/pkg/parser"
 	"github.com/vmware-tanzu/graph-framework-for-microservices/compiler/pkg/parser/rest"
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/common-library.git/pkg/nexus"
 )
 
 var _ = Describe("Rest tests", func() {

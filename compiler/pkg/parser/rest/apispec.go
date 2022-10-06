@@ -7,8 +7,8 @@ import (
 	"strconv"
 
 	log "github.com/sirupsen/logrus"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/common-library/pkg/nexus"
 	"github.com/vmware-tanzu/graph-framework-for-microservices/compiler/pkg/parser"
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/common-library.git/pkg/nexus"
 )
 
 func GetRestApiSpecs(p parser.Package, httpMethods map[string]nexus.HTTPMethodsResponses,
