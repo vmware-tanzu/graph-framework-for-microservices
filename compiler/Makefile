@@ -52,7 +52,7 @@ docker.builder:
 .PHONY: docker
 docker: init_submodules ${BUILDER_NAME}\:${BUILDER_TAG}.image.exists build_openapigen_in_container
 	git archive -o compiler.tar --format=tar HEAD
-	tar -rf compiler.tar ../.git ../.gitmodules
+	tar -rf compiler.tar ../.git ../.gitmodules ../common-library ../src
 	docker build --no-cache \
 		--build-arg BUILDER_TAG=${BUILDER_TAG} \
 		-t ${IMAGE_NAME}:${TAG} .
@@ -201,3 +201,15 @@ test_render_templates: render_templates
     	return 1;\
     fi
 
+.PHONY: docker.gitlab_credentials
+docker.gitlab_credentials:
+	echo "Updating gitlab settings"
+	@if test -z $$CICD_TOKEN; then\
+		echo "Using ssh authentication" && \
+		git config --global --add url."git@gitlab.eng.vmware.com:".insteadOf "https://gitlab.eng.vmware.com/"; \
+	else \
+		echo "Using https authentication" && \
+		git config --global credential.helper store && \
+		echo -e  "https://gitlab-ci-token:${CICD_TOKEN}@gitlab.eng.vmware.com/" >> ~/.git-credentials && \
+		git config --global url."https://gitlab.eng.vmware.com/".insteadOf "git@gitlab.eng.vmware.com:"; \
+    fi
