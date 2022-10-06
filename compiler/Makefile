@@ -201,17 +201,3 @@ test_render_templates: render_templates
     	return 1;\
     fi
 
-.PHONY: docker.gitlab_credentials
-docker.gitlab_credentials:
-	echo "Updating gitlab settings"
-	@if test -z $$CICD_TOKEN; then\
-		echo "Using ssh authentication" && \
-        git config --global --add url."git@gitlab.eng.vmware.com:".insteadOf "https://gitlab.eng.vmware.com/"; \
-		go mod download ;\
-	else \
-		echo "Using https authentication" && \
-        git config --global credential.helper store && \
-        echo -e  "https://gitlab-ci-token:${CICD_TOKEN}@gitlab.eng.vmware.com/" >> ~/.git-credentials && \
-        git config --global url."https://gitlab.eng.vmware.com/".insteadOf "git@gitlab.eng.vmware.com:"; \
-		go mod download ;\
-	fi
