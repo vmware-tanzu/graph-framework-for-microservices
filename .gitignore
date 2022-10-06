@@ -33,5 +33,4 @@ report.json
 .idea/
 *.iml
 .vscode
-pkg/
 
