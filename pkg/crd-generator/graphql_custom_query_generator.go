@@ -2,6 +2,7 @@ package crd_generator
 
 import (
 	"fmt"
+	log "github.com/sirupsen/logrus"
 
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/pkg/parser"
 
@@ -14,7 +15,14 @@ func CustomQueryToGraphqlSchema(query nexus.GraphQLQuery) string {
 	if ok && len(argsList) > 0 {
 		args = "(\n"
 		for _, arg := range argsList {
-			args += fmt.Sprintf("        %s: %s\n", arg.Name, convertGraphqlStdType(arg.Type))
+			graphqlType := convertGraphqlStdType(arg.Type)
+			if graphqlType == "" {
+				log.Fatalf("Failed to convert type %s to graphql types, supported types are: "+
+					"string, bool, int, int8, int16, int32, int64, uint, uint8, uint16, uint32, uint64, "+
+					"float32, float64", arg.Type)
+			}
+
+			args += fmt.Sprintf("        %s: %s\n", arg.Name, graphqlType)
 		}
 		args += "    )"
 	}

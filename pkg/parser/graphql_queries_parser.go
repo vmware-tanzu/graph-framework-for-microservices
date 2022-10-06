@@ -87,14 +87,16 @@ func parseQuery(queryComp *ast.CompositeLit, p Package) (newQuery nexus.GraphQLQ
 			}
 		case "Args":
 			queryFieldValue, ok := queryFieldExp.Value.(*ast.CompositeLit)
-			if ok {
-				typ, ok := queryFieldValue.Type.(*ast.Ident)
-				if ok {
-					// translate args to map[arg.fieldName]arg.type
-					args := parseArgs(typ.Name, p)
-					newQuery.Args = args
-				}
+			if !ok {
+				log.Warnf("Something might be wrong with query Args param...")
 			}
+			typ, ok := queryFieldValue.Type.(*ast.Ident)
+			if !ok {
+				log.Fatalf("Graphql query args must not be imported, wrong type: %v", queryFieldValue.Type)
+			}
+			// translate args to map[arg.fieldName]arg.type
+			args := parseArgs(typ.Name, p)
+			newQuery.Args = args
 		}
 	}
 	return
