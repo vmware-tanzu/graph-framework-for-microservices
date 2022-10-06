@@ -300,7 +300,7 @@ func (c *resolverConfig) get{{$node.PkgName}}{{$node.NodeName}}query{{$query.Nam
 		Query: "{{$query.Name}}",
 		UserProvidedArgs: map[string]string{
 			{{- range $key, $arg := $query.Args }}
-			"{{$arg.Name}}": fmt.Sprintf("%v", *{{$arg.Name}}),
+			"{{$arg.Name}}": pointerToString({{$arg.Name}}),
 			{{- end }}
 		},
 		Hierarchy: parentLabels,
