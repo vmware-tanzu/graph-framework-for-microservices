@@ -2,11 +2,6 @@ module github.com/vmware-tanzu/graph-framework-for-microservices/compiler
 
 go 1.17
 
-replace (
-	github.com/vmware-tanzu/graph-framework-for-microservices/common-library => ../common-library
-	github.com/vmware-tanzu/graph-framework-for-microservices/src/kube-openapi => ../src/kube-openapi
-)
-
 require (
 	github.com/fatih/structtag v1.2.0
 	github.com/ghodss/yaml v1.0.0
@@ -14,8 +9,8 @@ require (
 	github.com/onsi/ginkgo v1.16.5
 	github.com/onsi/gomega v1.19.0
 	github.com/sirupsen/logrus v1.8.1
-	github.com/vmware-tanzu/graph-framework-for-microservices/common-library v0.0.0-20221006053314-4dc499ee7bad
-	github.com/vmware-tanzu/graph-framework-for-microservices/src/kube-openapi v0.0.0-20221006060748-c8a18a182993
+	github.com/vmware-tanzu/graph-framework-for-microservices/common-library v0.0.0-20221006082910-46a4527bfc1b
+	github.com/vmware-tanzu/graph-framework-for-microservices/src/kube-openapi v0.0.0-20221006090643-3f127f888bf6
 	golang.org/x/mod v0.6.0-dev.0.20220106191415-9b9b3d81d5e3
 	golang.org/x/tools v0.1.10-0.20220218145154-897bd77cd717
 	k8s.io/apiextensions-apiserver v0.24.0
@@ -55,3 +50,7 @@ require (
 	sigs.k8s.io/json v0.0.0-20211208200746-9f7c6b3444d2 // indirect
 	sigs.k8s.io/structured-merge-diff/v4 v4.2.1 // indirect
 )
+
+replace github.com/vmware-tanzu/graph-framework-for-microservices/src/kube-openapi => ../src/kube-openapi
+
+replace github.com/vmware-tanzu/graph-framework-for-microservices/common-library => ../common-library

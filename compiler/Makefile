@@ -28,7 +28,8 @@ define run_in_container
   --volume ~/.ssh:/root/.ssh \
   --network=host \
   --workdir ${PKG_NAME} \
-  "${BUILDER_NAME}:${BUILDER_TAG}" /bin/bash -c "make docker.gitlab_credentials && ${1}"
+  --env GOPATH=/go/src/github.com/vmware-tanzu/graph-framework-for-microservices/ \
+  "${BUILDER_NAME}:${BUILDER_TAG}" /bin/bash -c "${1}"
 endef
 else
 define run_in_container
@@ -37,7 +38,7 @@ define run_in_container
  --workdir ${PKG_NAME} \
  --env CICD_TOKEN=${CICD_TOKEN} \
  --env PKG_NAME=${PKG_NAME} \
- "${BUILDER_NAME}:${BUILDER_TAG}" /bin/bash -c "make docker.gitlab_credentials && ${1}"
+ "${BUILDER_NAME}:${BUILDER_TAG}" /bin/bash -c "${1}"
 endef
 endif
 
