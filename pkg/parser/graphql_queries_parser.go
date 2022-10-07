@@ -88,7 +88,7 @@ func parseQuery(queryComp *ast.CompositeLit, p Package) (newQuery nexus.GraphQLQ
 		case "Args":
 			queryFieldValue, ok := queryFieldExp.Value.(*ast.CompositeLit)
 			if !ok {
-				log.Warnf("Something might be wrong with query Args param...")
+				continue
 			}
 			typ, ok := queryFieldValue.Type.(*ast.Ident)
 			if !ok {

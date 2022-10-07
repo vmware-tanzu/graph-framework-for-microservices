@@ -16,10 +16,16 @@ import (
 
 )
 
-var c resolverConfig
+var c = resolverConfig{
+	CustomQueryHandler: CustomQueryHandler{
+		mtx: sync.Mutex{},
+		Clients: map[string]graphql.ServerClient{},
+	},
+}
 var nc *nexus_client.Clientset
 
 type resolverConfig struct {
+	CustomQueryHandler
 	vRootRoot *nexus_client.RootRoot
     vConfigConfig *nexus_client.ConfigConfig
     vConfigFooType *nexus_client.ConfigFooType
@@ -53,13 +59,13 @@ func getK8sAPIEndpointConfig() *rest.Config {
 	if filePath != "" {
 		config, err := clientcmd.BuildConfigFromFlags("", filePath)
 		if err != nil {
-			return err
+			return nil
 		}
 		return config
 	}
 	config, err := rest.InClusterConfig()
 	if err != nil {
-		return err
+		return nil
 	}
 	return config
 }
@@ -118,7 +124,7 @@ func (c *resolverConfig) getRootRootqueryServiceTableResolver(obj *model.RootRoo
 	resp, err := grpcServer().GetMetrics(ctx, &qm.MetricArg{QueryType: "/ServiceTable", StartTime: *startTime, EndTime: *endTime, Metric: "", Filters: filters,TimeInterval: ""})
 	if err != nil {
 		log.Errorf("[getRootRootqueryServiceTableResolver]Failed to get metrics, err: %v", err)
-		return &model.TimeSeriesData, nil
+		return &model.TimeSeriesData{}, nil
 	}
 	b, _ := json.Marshal(resp.Data)
 	data := string(b)
@@ -136,7 +142,7 @@ func (c *resolverConfig) getRootRootqueryServiceVersionTableResolver(obj *model.
 	resp, err := grpcServer().GetMetrics(ctx, &qm.MetricArg{QueryType: "/ServiceTable", StartTime: *startTime, EndTime: *endTime, Metric: "", Filters: filters,TimeInterval: ""})
 	if err != nil {
 	   log.Errorf("[getRootRootqueryServiceVersionTableResolver]Failed to get metrics, err: %v", err)
-	   return &model.TimeSeriesData, nil
+	   return &model.TimeSeriesData{}, nil
 	}
 	b, _ := json.Marshal(resp.Data)
 	data := string(b)
@@ -154,7 +160,7 @@ func (c *resolverConfig) getRootRootqueryServiceTSResolver(obj *model.RootRoot, 
 	resp, err := grpcServer().GetMetrics(ctx, &qm.MetricArg{QueryType: "/ServiceMetricSeries", StartTime: *startTime, EndTime: *endTime, Metric: *svcMetric, Filters: filters,TimeInterval: *timeInterval})
 	if err != nil {
 		log.Errorf("[getRootRootqueryServiceTSResolver]Failed to get metrics, err: %v", err)
-		return &model.TimeSeriesData, nil
+		return &model.TimeSeriesData{}, nil
 	}
 	b, _ := json.Marshal(resp.Data)
 	data := string(b)
@@ -172,7 +178,7 @@ func (c *resolverConfig) getRootRootqueryIncomingAPIsResolver(obj *model.RootRoo
 	resp, err := grpcServer().GetMetrics(ctx, &qm.MetricArg{QueryType: "/IncomingAPIs", StartTime: *startTime, EndTime: *endTime, Metric: "", Filters: filters,TimeInterval: *timeInterval})
 	if err != nil {
         log.Errorf("[getRootRootqueryIncomingAPIsResolver]Failed to get metrics, err: %v", err)
-        return &model.TimeSeriesData, nil
+        return &model.TimeSeriesData{}, nil
 	}
 	b, _ := json.Marshal(resp.Data)
 	data := string(b)
@@ -272,7 +278,7 @@ func (c *resolverConfig) getConfigConfigqueryServiceTableResolver(obj *model.Con
 	resp, err := grpcServer().GetMetrics(ctx, &qm.MetricArg{QueryType: "/ServiceTable", StartTime: *startTime, EndTime: *endTime, Metric: "", Filters: filters,TimeInterval: ""})
 	if err != nil {
 		log.Errorf("[getConfigConfigqueryServiceTableResolver]Failed to get metrics, err: %v", err)
-		return &model.TimeSeriesData, nil
+		return &model.TimeSeriesData{}, nil
 	}
 	b, _ := json.Marshal(resp.Data)
 	data := string(b)
@@ -290,7 +296,7 @@ func (c *resolverConfig) getConfigConfigqueryServiceVersionTableResolver(obj *mo
 	resp, err := grpcServer().GetMetrics(ctx, &qm.MetricArg{QueryType: "/ServiceTable", StartTime: *startTime, EndTime: *endTime, Metric: "", Filters: filters,TimeInterval: ""})
 	if err != nil {
 	   log.Errorf("[getConfigConfigqueryServiceVersionTableResolver]Failed to get metrics, err: %v", err)
-	   return &model.TimeSeriesData, nil
+	   return &model.TimeSeriesData{}, nil
 	}
 	b, _ := json.Marshal(resp.Data)
 	data := string(b)
@@ -308,7 +314,7 @@ func (c *resolverConfig) getConfigConfigqueryServiceTSResolver(obj *model.Config
 	resp, err := grpcServer().GetMetrics(ctx, &qm.MetricArg{QueryType: "/ServiceMetricSeries", StartTime: *startTime, EndTime: *endTime, Metric: *svcMetric, Filters: filters,TimeInterval: *timeInterval})
 	if err != nil {
 		log.Errorf("[getConfigConfigqueryServiceTSResolver]Failed to get metrics, err: %v", err)
-		return &model.TimeSeriesData, nil
+		return &model.TimeSeriesData{}, nil
 	}
 	b, _ := json.Marshal(resp.Data)
 	data := string(b)
@@ -326,7 +332,7 @@ func (c *resolverConfig) getConfigConfigqueryIncomingAPIsResolver(obj *model.Con
 	resp, err := grpcServer().GetMetrics(ctx, &qm.MetricArg{QueryType: "/IncomingAPIs", StartTime: *startTime, EndTime: *endTime, Metric: "", Filters: filters,TimeInterval: *timeInterval})
 	if err != nil {
         log.Errorf("[getConfigConfigqueryIncomingAPIsResolver]Failed to get metrics, err: %v", err)
-        return &model.TimeSeriesData, nil
+        return &model.TimeSeriesData{}, nil
 	}
 	b, _ := json.Marshal(resp.Data)
 	data := string(b)
@@ -408,17 +414,26 @@ func (c *resolverConfig) getConfigConfigqueryServiceTopologyResolver(obj *model.
 	return ret,nil
 }
 // Custom query
-func (c *resolverConfig) getConfigConfigQueryExample(obj *model.ConfigConfig,  StartTime *string,  EndTime *string,  Interval *string,  IsServiceDeployment *bool,  StartVal *int, ) (*model.NexusGraphqlResponse, error) {
+func (c *resolverConfig) getConfigConfigqueryQueryExampleResolver(obj *model.ConfigConfig,  StartTime *string,  EndTime *string,  Interval *string,  IsServiceDeployment *bool,  StartVal *int, ) (*model.NexusGraphqlResponse, error) {
+	parentLabels := make(map[string]string)
+	if obj != nil {
+		for k, v := range obj.ParentLabels {
+			val, ok := v.(string)
+			if ok {
+				parentLabels[k] = val
+			}
+		}
+	}
 	query := &graphql.GraphQLQuery{
 		Query: "QueryExample",
 		UserProvidedArgs: map[string]string{
-			"StartTime": fmt.Sprintf("%v", *StartTime),
-			"EndTime": fmt.Sprintf("%v", *EndTime),
-			"Interval": fmt.Sprintf("%v", *Interval),
-			"IsServiceDeployment": fmt.Sprintf("%v", *IsServiceDeployment),
-			"StartVal": fmt.Sprintf("%v", *StartVal),
+			"StartTime": pointerToString(StartTime),
+			"EndTime": pointerToString(EndTime),
+			"Interval": pointerToString(Interval),
+			"IsServiceDeployment": pointerToString(IsServiceDeployment),
+			"StartVal": pointerToString(StartVal),
 		},
-		Hierarchy: obj.ParentLabels,
+		Hierarchy: parentLabels,
 	}
 	return c.CustomQueryHandler.Query("query-manager:6000", query)
 }
@@ -437,7 +452,7 @@ func (c *resolverConfig) getConfigFooTypequeryServiceTableResolver(obj *model.Co
 	resp, err := grpcServer().GetMetrics(ctx, &qm.MetricArg{QueryType: "/ServiceTable", StartTime: *startTime, EndTime: *endTime, Metric: "", Filters: filters,TimeInterval: ""})
 	if err != nil {
 		log.Errorf("[getConfigFooTypequeryServiceTableResolver]Failed to get metrics, err: %v", err)
-		return &model.TimeSeriesData, nil
+		return &model.TimeSeriesData{}, nil
 	}
 	b, _ := json.Marshal(resp.Data)
 	data := string(b)
@@ -455,7 +470,7 @@ func (c *resolverConfig) getConfigFooTypequeryServiceVersionTableResolver(obj *m
 	resp, err := grpcServer().GetMetrics(ctx, &qm.MetricArg{QueryType: "/ServiceTable", StartTime: *startTime, EndTime: *endTime, Metric: "", Filters: filters,TimeInterval: ""})
 	if err != nil {
 	   log.Errorf("[getConfigFooTypequeryServiceVersionTableResolver]Failed to get metrics, err: %v", err)
-	   return &model.TimeSeriesData, nil
+	   return &model.TimeSeriesData{}, nil
 	}
 	b, _ := json.Marshal(resp.Data)
 	data := string(b)
@@ -473,7 +488,7 @@ func (c *resolverConfig) getConfigFooTypequeryServiceTSResolver(obj *model.Confi
 	resp, err := grpcServer().GetMetrics(ctx, &qm.MetricArg{QueryType: "/ServiceMetricSeries", StartTime: *startTime, EndTime: *endTime, Metric: *svcMetric, Filters: filters,TimeInterval: *timeInterval})
 	if err != nil {
 		log.Errorf("[getConfigFooTypequeryServiceTSResolver]Failed to get metrics, err: %v", err)
-		return &model.TimeSeriesData, nil
+		return &model.TimeSeriesData{}, nil
 	}
 	b, _ := json.Marshal(resp.Data)
 	data := string(b)
@@ -491,7 +506,7 @@ func (c *resolverConfig) getConfigFooTypequeryIncomingAPIsResolver(obj *model.Co
 	resp, err := grpcServer().GetMetrics(ctx, &qm.MetricArg{QueryType: "/IncomingAPIs", StartTime: *startTime, EndTime: *endTime, Metric: "", Filters: filters,TimeInterval: *timeInterval})
 	if err != nil {
         log.Errorf("[getConfigFooTypequeryIncomingAPIsResolver]Failed to get metrics, err: %v", err)
-        return &model.TimeSeriesData, nil
+        return &model.TimeSeriesData{}, nil
 	}
 	b, _ := json.Marshal(resp.Data)
 	data := string(b)
@@ -587,7 +602,7 @@ func (c *resolverConfig) getConfigDomainqueryServiceTableResolver(obj *model.Con
 	resp, err := grpcServer().GetMetrics(ctx, &qm.MetricArg{QueryType: "/ServiceTable", StartTime: *startTime, EndTime: *endTime, Metric: "", Filters: filters,TimeInterval: ""})
 	if err != nil {
 		log.Errorf("[getConfigDomainqueryServiceTableResolver]Failed to get metrics, err: %v", err)
-		return &model.TimeSeriesData, nil
+		return &model.TimeSeriesData{}, nil
 	}
 	b, _ := json.Marshal(resp.Data)
 	data := string(b)
@@ -605,7 +620,7 @@ func (c *resolverConfig) getConfigDomainqueryServiceVersionTableResolver(obj *mo
 	resp, err := grpcServer().GetMetrics(ctx, &qm.MetricArg{QueryType: "/ServiceTable", StartTime: *startTime, EndTime: *endTime, Metric: "", Filters: filters,TimeInterval: ""})
 	if err != nil {
 	   log.Errorf("[getConfigDomainqueryServiceVersionTableResolver]Failed to get metrics, err: %v", err)
-	   return &model.TimeSeriesData, nil
+	   return &model.TimeSeriesData{}, nil
 	}
 	b, _ := json.Marshal(resp.Data)
 	data := string(b)
@@ -623,7 +638,7 @@ func (c *resolverConfig) getConfigDomainqueryServiceTSResolver(obj *model.Config
 	resp, err := grpcServer().GetMetrics(ctx, &qm.MetricArg{QueryType: "/ServiceMetricSeries", StartTime: *startTime, EndTime: *endTime, Metric: *svcMetric, Filters: filters,TimeInterval: *timeInterval})
 	if err != nil {
 		log.Errorf("[getConfigDomainqueryServiceTSResolver]Failed to get metrics, err: %v", err)
-		return &model.TimeSeriesData, nil
+		return &model.TimeSeriesData{}, nil
 	}
 	b, _ := json.Marshal(resp.Data)
 	data := string(b)
@@ -641,7 +656,7 @@ func (c *resolverConfig) getConfigDomainqueryIncomingAPIsResolver(obj *model.Con
 	resp, err := grpcServer().GetMetrics(ctx, &qm.MetricArg{QueryType: "/IncomingAPIs", StartTime: *startTime, EndTime: *endTime, Metric: "", Filters: filters,TimeInterval: *timeInterval})
 	if err != nil {
         log.Errorf("[getConfigDomainqueryIncomingAPIsResolver]Failed to get metrics, err: %v", err)
-        return &model.TimeSeriesData, nil
+        return &model.TimeSeriesData{}, nil
 	}
 	b, _ := json.Marshal(resp.Data)
 	data := string(b)
@@ -812,7 +827,7 @@ func (c *resolverConfig) getGnsRandomGnsDataqueryServiceTableResolver(obj *model
 	resp, err := grpcServer().GetMetrics(ctx, &qm.MetricArg{QueryType: "/ServiceTable", StartTime: *startTime, EndTime: *endTime, Metric: "", Filters: filters,TimeInterval: ""})
 	if err != nil {
 		log.Errorf("[getGnsRandomGnsDataqueryServiceTableResolver]Failed to get metrics, err: %v", err)
-		return &model.TimeSeriesData, nil
+		return &model.TimeSeriesData{}, nil
 	}
 	b, _ := json.Marshal(resp.Data)
 	data := string(b)
@@ -830,7 +845,7 @@ func (c *resolverConfig) getGnsRandomGnsDataqueryServiceVersionTableResolver(obj
 	resp, err := grpcServer().GetMetrics(ctx, &qm.MetricArg{QueryType: "/ServiceTable", StartTime: *startTime, EndTime: *endTime, Metric: "", Filters: filters,TimeInterval: ""})
 	if err != nil {
 	   log.Errorf("[getGnsRandomGnsDataqueryServiceVersionTableResolver]Failed to get metrics, err: %v", err)
-	   return &model.TimeSeriesData, nil
+	   return &model.TimeSeriesData{}, nil
 	}
 	b, _ := json.Marshal(resp.Data)
 	data := string(b)
@@ -848,7 +863,7 @@ func (c *resolverConfig) getGnsRandomGnsDataqueryServiceTSResolver(obj *model.Gn
 	resp, err := grpcServer().GetMetrics(ctx, &qm.MetricArg{QueryType: "/ServiceMetricSeries", StartTime: *startTime, EndTime: *endTime, Metric: *svcMetric, Filters: filters,TimeInterval: *timeInterval})
 	if err != nil {
 		log.Errorf("[getGnsRandomGnsDataqueryServiceTSResolver]Failed to get metrics, err: %v", err)
-		return &model.TimeSeriesData, nil
+		return &model.TimeSeriesData{}, nil
 	}
 	b, _ := json.Marshal(resp.Data)
 	data := string(b)
@@ -866,7 +881,7 @@ func (c *resolverConfig) getGnsRandomGnsDataqueryIncomingAPIsResolver(obj *model
 	resp, err := grpcServer().GetMetrics(ctx, &qm.MetricArg{QueryType: "/IncomingAPIs", StartTime: *startTime, EndTime: *endTime, Metric: "", Filters: filters,TimeInterval: *timeInterval})
 	if err != nil {
         log.Errorf("[getGnsRandomGnsDataqueryIncomingAPIsResolver]Failed to get metrics, err: %v", err)
-        return &model.TimeSeriesData, nil
+        return &model.TimeSeriesData{}, nil
 	}
 	b, _ := json.Marshal(resp.Data)
 	data := string(b)
@@ -972,7 +987,7 @@ func (c *resolverConfig) getGnsGnsqueryServiceTableResolver(obj *model.GnsGns, s
 	resp, err := grpcServer().GetMetrics(ctx, &qm.MetricArg{QueryType: "/ServiceTable", StartTime: *startTime, EndTime: *endTime, Metric: "", Filters: filters,TimeInterval: ""})
 	if err != nil {
 		log.Errorf("[getGnsGnsqueryServiceTableResolver]Failed to get metrics, err: %v", err)
-		return &model.TimeSeriesData, nil
+		return &model.TimeSeriesData{}, nil
 	}
 	b, _ := json.Marshal(resp.Data)
 	data := string(b)
@@ -990,7 +1005,7 @@ func (c *resolverConfig) getGnsGnsqueryServiceVersionTableResolver(obj *model.Gn
 	resp, err := grpcServer().GetMetrics(ctx, &qm.MetricArg{QueryType: "/ServiceTable", StartTime: *startTime, EndTime: *endTime, Metric: "", Filters: filters,TimeInterval: ""})
 	if err != nil {
 	   log.Errorf("[getGnsGnsqueryServiceVersionTableResolver]Failed to get metrics, err: %v", err)
-	   return &model.TimeSeriesData, nil
+	   return &model.TimeSeriesData{}, nil
 	}
 	b, _ := json.Marshal(resp.Data)
 	data := string(b)
@@ -1008,7 +1023,7 @@ func (c *resolverConfig) getGnsGnsqueryServiceTSResolver(obj *model.GnsGns, svcM
 	resp, err := grpcServer().GetMetrics(ctx, &qm.MetricArg{QueryType: "/ServiceMetricSeries", StartTime: *startTime, EndTime: *endTime, Metric: *svcMetric, Filters: filters,TimeInterval: *timeInterval})
 	if err != nil {
 		log.Errorf("[getGnsGnsqueryServiceTSResolver]Failed to get metrics, err: %v", err)
-		return &model.TimeSeriesData, nil
+		return &model.TimeSeriesData{}, nil
 	}
 	b, _ := json.Marshal(resp.Data)
 	data := string(b)
@@ -1026,7 +1041,7 @@ func (c *resolverConfig) getGnsGnsqueryIncomingAPIsResolver(obj *model.GnsGns, s
 	resp, err := grpcServer().GetMetrics(ctx, &qm.MetricArg{QueryType: "/IncomingAPIs", StartTime: *startTime, EndTime: *endTime, Metric: "", Filters: filters,TimeInterval: *timeInterval})
 	if err != nil {
         log.Errorf("[getGnsGnsqueryIncomingAPIsResolver]Failed to get metrics, err: %v", err)
-        return &model.TimeSeriesData, nil
+        return &model.TimeSeriesData{}, nil
 	}
 	b, _ := json.Marshal(resp.Data)
 	data := string(b)
@@ -1108,27 +1123,45 @@ func (c *resolverConfig) getGnsGnsqueryServiceTopologyResolver(obj *model.GnsGns
 	return ret,nil
 }
 // Custom query
-func (c *resolverConfig) getGnsGnsqueryGns1(obj *model.GnsGns,  StartTime *string,  EndTime *string,  Interval *string,  IsServiceDeployment *bool,  StartVal *int, ) (*model.NexusGraphqlResponse, error) {
+func (c *resolverConfig) getGnsGnsqueryqueryGns1Resolver(obj *model.GnsGns,  StartTime *string,  EndTime *string,  Interval *string,  IsServiceDeployment *bool,  StartVal *int, ) (*model.NexusGraphqlResponse, error) {
+	parentLabels := make(map[string]string)
+	if obj != nil {
+		for k, v := range obj.ParentLabels {
+			val, ok := v.(string)
+			if ok {
+				parentLabels[k] = val
+			}
+		}
+	}
 	query := &graphql.GraphQLQuery{
 		Query: "queryGns1",
 		UserProvidedArgs: map[string]string{
-			"StartTime": fmt.Sprintf("%v", *StartTime),
-			"EndTime": fmt.Sprintf("%v", *EndTime),
-			"Interval": fmt.Sprintf("%v", *Interval),
-			"IsServiceDeployment": fmt.Sprintf("%v", *IsServiceDeployment),
-			"StartVal": fmt.Sprintf("%v", *StartVal),
+			"StartTime": pointerToString(StartTime),
+			"EndTime": pointerToString(EndTime),
+			"Interval": pointerToString(Interval),
+			"IsServiceDeployment": pointerToString(IsServiceDeployment),
+			"StartVal": pointerToString(StartVal),
 		},
-		Hierarchy: obj.ParentLabels,
+		Hierarchy: parentLabels,
 	}
 	return c.CustomQueryHandler.Query("query-manager:15000", query)
 }
 // Custom query
-func (c *resolverConfig) getGnsGnsqueryGns2(obj *model.GnsGns, ) (*model.NexusGraphqlResponse, error) {
+func (c *resolverConfig) getGnsGnsqueryqueryGns2Resolver(obj *model.GnsGns, ) (*model.NexusGraphqlResponse, error) {
+	parentLabels := make(map[string]string)
+	if obj != nil {
+		for k, v := range obj.ParentLabels {
+			val, ok := v.(string)
+			if ok {
+				parentLabels[k] = val
+			}
+		}
+	}
 	query := &graphql.GraphQLQuery{
 		Query: "queryGns2",
 		UserProvidedArgs: map[string]string{
 		},
-		Hierarchy: obj.ParentLabels,
+		Hierarchy: parentLabels,
 	}
 	return c.CustomQueryHandler.Query("query-manager2:15002", query)
 }
@@ -1179,7 +1212,7 @@ func (c *resolverConfig) getGnsBarLinkqueryServiceTableResolver(obj *model.GnsBa
 	resp, err := grpcServer().GetMetrics(ctx, &qm.MetricArg{QueryType: "/ServiceTable", StartTime: *startTime, EndTime: *endTime, Metric: "", Filters: filters,TimeInterval: ""})
 	if err != nil {
 		log.Errorf("[getGnsBarLinkqueryServiceTableResolver]Failed to get metrics, err: %v", err)
-		return &model.TimeSeriesData, nil
+		return &model.TimeSeriesData{}, nil
 	}
 	b, _ := json.Marshal(resp.Data)
 	data := string(b)
@@ -1197,7 +1230,7 @@ func (c *resolverConfig) getGnsBarLinkqueryServiceVersionTableResolver(obj *mode
 	resp, err := grpcServer().GetMetrics(ctx, &qm.MetricArg{QueryType: "/ServiceTable", StartTime: *startTime, EndTime: *endTime, Metric: "", Filters: filters,TimeInterval: ""})
 	if err != nil {
 	   log.Errorf("[getGnsBarLinkqueryServiceVersionTableResolver]Failed to get metrics, err: %v", err)
-	   return &model.TimeSeriesData, nil
+	   return &model.TimeSeriesData{}, nil
 	}
 	b, _ := json.Marshal(resp.Data)
 	data := string(b)
@@ -1215,7 +1248,7 @@ func (c *resolverConfig) getGnsBarLinkqueryServiceTSResolver(obj *model.GnsBarLi
 	resp, err := grpcServer().GetMetrics(ctx, &qm.MetricArg{QueryType: "/ServiceMetricSeries", StartTime: *startTime, EndTime: *endTime, Metric: *svcMetric, Filters: filters,TimeInterval: *timeInterval})
 	if err != nil {
 		log.Errorf("[getGnsBarLinkqueryServiceTSResolver]Failed to get metrics, err: %v", err)
-		return &model.TimeSeriesData, nil
+		return &model.TimeSeriesData{}, nil
 	}
 	b, _ := json.Marshal(resp.Data)
 	data := string(b)
@@ -1233,7 +1266,7 @@ func (c *resolverConfig) getGnsBarLinkqueryIncomingAPIsResolver(obj *model.GnsBa
 	resp, err := grpcServer().GetMetrics(ctx, &qm.MetricArg{QueryType: "/IncomingAPIs", StartTime: *startTime, EndTime: *endTime, Metric: "", Filters: filters,TimeInterval: *timeInterval})
 	if err != nil {
         log.Errorf("[getGnsBarLinkqueryIncomingAPIsResolver]Failed to get metrics, err: %v", err)
-        return &model.TimeSeriesData, nil
+        return &model.TimeSeriesData{}, nil
 	}
 	b, _ := json.Marshal(resp.Data)
 	data := string(b)
@@ -1329,7 +1362,7 @@ func (c *resolverConfig) getGnsDnsqueryServiceTableResolver(obj *model.GnsDns, s
 	resp, err := grpcServer().GetMetrics(ctx, &qm.MetricArg{QueryType: "/ServiceTable", StartTime: *startTime, EndTime: *endTime, Metric: "", Filters: filters,TimeInterval: ""})
 	if err != nil {
 		log.Errorf("[getGnsDnsqueryServiceTableResolver]Failed to get metrics, err: %v", err)
-		return &model.TimeSeriesData, nil
+		return &model.TimeSeriesData{}, nil
 	}
 	b, _ := json.Marshal(resp.Data)
 	data := string(b)
@@ -1347,7 +1380,7 @@ func (c *resolverConfig) getGnsDnsqueryServiceVersionTableResolver(obj *model.Gn
 	resp, err := grpcServer().GetMetrics(ctx, &qm.MetricArg{QueryType: "/ServiceTable", StartTime: *startTime, EndTime: *endTime, Metric: "", Filters: filters,TimeInterval: ""})
 	if err != nil {
 	   log.Errorf("[getGnsDnsqueryServiceVersionTableResolver]Failed to get metrics, err: %v", err)
-	   return &model.TimeSeriesData, nil
+	   return &model.TimeSeriesData{}, nil
 	}
 	b, _ := json.Marshal(resp.Data)
 	data := string(b)
@@ -1365,7 +1398,7 @@ func (c *resolverConfig) getGnsDnsqueryServiceTSResolver(obj *model.GnsDns, svcM
 	resp, err := grpcServer().GetMetrics(ctx, &qm.MetricArg{QueryType: "/ServiceMetricSeries", StartTime: *startTime, EndTime: *endTime, Metric: *svcMetric, Filters: filters,TimeInterval: *timeInterval})
 	if err != nil {
 		log.Errorf("[getGnsDnsqueryServiceTSResolver]Failed to get metrics, err: %v", err)
-		return &model.TimeSeriesData, nil
+		return &model.TimeSeriesData{}, nil
 	}
 	b, _ := json.Marshal(resp.Data)
 	data := string(b)
@@ -1383,7 +1416,7 @@ func (c *resolverConfig) getGnsDnsqueryIncomingAPIsResolver(obj *model.GnsDns, s
 	resp, err := grpcServer().GetMetrics(ctx, &qm.MetricArg{QueryType: "/IncomingAPIs", StartTime: *startTime, EndTime: *endTime, Metric: "", Filters: filters,TimeInterval: *timeInterval})
 	if err != nil {
         log.Errorf("[getGnsDnsqueryIncomingAPIsResolver]Failed to get metrics, err: %v", err)
-        return &model.TimeSeriesData, nil
+        return &model.TimeSeriesData{}, nil
 	}
 	b, _ := json.Marshal(resp.Data)
 	data := string(b)
@@ -1546,7 +1579,7 @@ func (c *resolverConfig) getGnsAdditionalGnsDataqueryServiceTableResolver(obj *m
 	resp, err := grpcServer().GetMetrics(ctx, &qm.MetricArg{QueryType: "/ServiceTable", StartTime: *startTime, EndTime: *endTime, Metric: "", Filters: filters,TimeInterval: ""})
 	if err != nil {
 		log.Errorf("[getGnsAdditionalGnsDataqueryServiceTableResolver]Failed to get metrics, err: %v", err)
-		return &model.TimeSeriesData, nil
+		return &model.TimeSeriesData{}, nil
 	}
 	b, _ := json.Marshal(resp.Data)
 	data := string(b)
@@ -1564,7 +1597,7 @@ func (c *resolverConfig) getGnsAdditionalGnsDataqueryServiceVersionTableResolver
 	resp, err := grpcServer().GetMetrics(ctx, &qm.MetricArg{QueryType: "/ServiceTable", StartTime: *startTime, EndTime: *endTime, Metric: "", Filters: filters,TimeInterval: ""})
 	if err != nil {
 	   log.Errorf("[getGnsAdditionalGnsDataqueryServiceVersionTableResolver]Failed to get metrics, err: %v", err)
-	   return &model.TimeSeriesData, nil
+	   return &model.TimeSeriesData{}, nil
 	}
 	b, _ := json.Marshal(resp.Data)
 	data := string(b)
@@ -1582,7 +1615,7 @@ func (c *resolverConfig) getGnsAdditionalGnsDataqueryServiceTSResolver(obj *mode
 	resp, err := grpcServer().GetMetrics(ctx, &qm.MetricArg{QueryType: "/ServiceMetricSeries", StartTime: *startTime, EndTime: *endTime, Metric: *svcMetric, Filters: filters,TimeInterval: *timeInterval})
 	if err != nil {
 		log.Errorf("[getGnsAdditionalGnsDataqueryServiceTSResolver]Failed to get metrics, err: %v", err)
-		return &model.TimeSeriesData, nil
+		return &model.TimeSeriesData{}, nil
 	}
 	b, _ := json.Marshal(resp.Data)
 	data := string(b)
@@ -1600,7 +1633,7 @@ func (c *resolverConfig) getGnsAdditionalGnsDataqueryIncomingAPIsResolver(obj *m
 	resp, err := grpcServer().GetMetrics(ctx, &qm.MetricArg{QueryType: "/IncomingAPIs", StartTime: *startTime, EndTime: *endTime, Metric: "", Filters: filters,TimeInterval: *timeInterval})
 	if err != nil {
         log.Errorf("[getGnsAdditionalGnsDataqueryIncomingAPIsResolver]Failed to get metrics, err: %v", err)
-        return &model.TimeSeriesData, nil
+        return &model.TimeSeriesData{}, nil
 	}
 	b, _ := json.Marshal(resp.Data)
 	data := string(b)
@@ -1700,7 +1733,7 @@ func (c *resolverConfig) getServicegroupSvcGroupqueryServiceTableResolver(obj *m
 	resp, err := grpcServer().GetMetrics(ctx, &qm.MetricArg{QueryType: "/ServiceTable", StartTime: *startTime, EndTime: *endTime, Metric: "", Filters: filters,TimeInterval: ""})
 	if err != nil {
 		log.Errorf("[getServicegroupSvcGroupqueryServiceTableResolver]Failed to get metrics, err: %v", err)
-		return &model.TimeSeriesData, nil
+		return &model.TimeSeriesData{}, nil
 	}
 	b, _ := json.Marshal(resp.Data)
 	data := string(b)
@@ -1718,7 +1751,7 @@ func (c *resolverConfig) getServicegroupSvcGroupqueryServiceVersionTableResolver
 	resp, err := grpcServer().GetMetrics(ctx, &qm.MetricArg{QueryType: "/ServiceTable", StartTime: *startTime, EndTime: *endTime, Metric: "", Filters: filters,TimeInterval: ""})
 	if err != nil {
 	   log.Errorf("[getServicegroupSvcGroupqueryServiceVersionTableResolver]Failed to get metrics, err: %v", err)
-	   return &model.TimeSeriesData, nil
+	   return &model.TimeSeriesData{}, nil
 	}
 	b, _ := json.Marshal(resp.Data)
 	data := string(b)
@@ -1736,7 +1769,7 @@ func (c *resolverConfig) getServicegroupSvcGroupqueryServiceTSResolver(obj *mode
 	resp, err := grpcServer().GetMetrics(ctx, &qm.MetricArg{QueryType: "/ServiceMetricSeries", StartTime: *startTime, EndTime: *endTime, Metric: *svcMetric, Filters: filters,TimeInterval: *timeInterval})
 	if err != nil {
 		log.Errorf("[getServicegroupSvcGroupqueryServiceTSResolver]Failed to get metrics, err: %v", err)
-		return &model.TimeSeriesData, nil
+		return &model.TimeSeriesData{}, nil
 	}
 	b, _ := json.Marshal(resp.Data)
 	data := string(b)
@@ -1754,7 +1787,7 @@ func (c *resolverConfig) getServicegroupSvcGroupqueryIncomingAPIsResolver(obj *m
 	resp, err := grpcServer().GetMetrics(ctx, &qm.MetricArg{QueryType: "/IncomingAPIs", StartTime: *startTime, EndTime: *endTime, Metric: "", Filters: filters,TimeInterval: *timeInterval})
 	if err != nil {
         log.Errorf("[getServicegroupSvcGroupqueryIncomingAPIsResolver]Failed to get metrics, err: %v", err)
-        return &model.TimeSeriesData, nil
+        return &model.TimeSeriesData{}, nil
 	}
 	b, _ := json.Marshal(resp.Data)
 	data := string(b)
@@ -1913,7 +1946,7 @@ func (c *resolverConfig) getPolicyAdditionalPolicyDataqueryServiceTableResolver(
 	resp, err := grpcServer().GetMetrics(ctx, &qm.MetricArg{QueryType: "/ServiceTable", StartTime: *startTime, EndTime: *endTime, Metric: "", Filters: filters,TimeInterval: ""})
 	if err != nil {
 		log.Errorf("[getPolicyAdditionalPolicyDataqueryServiceTableResolver]Failed to get metrics, err: %v", err)
-		return &model.TimeSeriesData, nil
+		return &model.TimeSeriesData{}, nil
 	}
 	b, _ := json.Marshal(resp.Data)
 	data := string(b)
@@ -1931,7 +1964,7 @@ func (c *resolverConfig) getPolicyAdditionalPolicyDataqueryServiceVersionTableRe
 	resp, err := grpcServer().GetMetrics(ctx, &qm.MetricArg{QueryType: "/ServiceTable", StartTime: *startTime, EndTime: *endTime, Metric: "", Filters: filters,TimeInterval: ""})
 	if err != nil {
 	   log.Errorf("[getPolicyAdditionalPolicyDataqueryServiceVersionTableResolver]Failed to get metrics, err: %v", err)
-	   return &model.TimeSeriesData, nil
+	   return &model.TimeSeriesData{}, nil
 	}
 	b, _ := json.Marshal(resp.Data)
 	data := string(b)
@@ -1949,7 +1982,7 @@ func (c *resolverConfig) getPolicyAdditionalPolicyDataqueryServiceTSResolver(obj
 	resp, err := grpcServer().GetMetrics(ctx, &qm.MetricArg{QueryType: "/ServiceMetricSeries", StartTime: *startTime, EndTime: *endTime, Metric: *svcMetric, Filters: filters,TimeInterval: *timeInterval})
 	if err != nil {
 		log.Errorf("[getPolicyAdditionalPolicyDataqueryServiceTSResolver]Failed to get metrics, err: %v", err)
-		return &model.TimeSeriesData, nil
+		return &model.TimeSeriesData{}, nil
 	}
 	b, _ := json.Marshal(resp.Data)
 	data := string(b)
@@ -1967,7 +2000,7 @@ func (c *resolverConfig) getPolicyAdditionalPolicyDataqueryIncomingAPIsResolver(
 	resp, err := grpcServer().GetMetrics(ctx, &qm.MetricArg{QueryType: "/IncomingAPIs", StartTime: *startTime, EndTime: *endTime, Metric: "", Filters: filters,TimeInterval: *timeInterval})
 	if err != nil {
         log.Errorf("[getPolicyAdditionalPolicyDataqueryIncomingAPIsResolver]Failed to get metrics, err: %v", err)
-        return &model.TimeSeriesData, nil
+        return &model.TimeSeriesData{}, nil
 	}
 	b, _ := json.Marshal(resp.Data)
 	data := string(b)
@@ -2067,7 +2100,7 @@ func (c *resolverConfig) getPolicyAccessControlPolicyqueryServiceTableResolver(o
 	resp, err := grpcServer().GetMetrics(ctx, &qm.MetricArg{QueryType: "/ServiceTable", StartTime: *startTime, EndTime: *endTime, Metric: "", Filters: filters,TimeInterval: ""})
 	if err != nil {
 		log.Errorf("[getPolicyAccessControlPolicyqueryServiceTableResolver]Failed to get metrics, err: %v", err)
-		return &model.TimeSeriesData, nil
+		return &model.TimeSeriesData{}, nil
 	}
 	b, _ := json.Marshal(resp.Data)
 	data := string(b)
@@ -2085,7 +2118,7 @@ func (c *resolverConfig) getPolicyAccessControlPolicyqueryServiceVersionTableRes
 	resp, err := grpcServer().GetMetrics(ctx, &qm.MetricArg{QueryType: "/ServiceTable", StartTime: *startTime, EndTime: *endTime, Metric: "", Filters: filters,TimeInterval: ""})
 	if err != nil {
 	   log.Errorf("[getPolicyAccessControlPolicyqueryServiceVersionTableResolver]Failed to get metrics, err: %v", err)
-	   return &model.TimeSeriesData, nil
+	   return &model.TimeSeriesData{}, nil
 	}
 	b, _ := json.Marshal(resp.Data)
 	data := string(b)
@@ -2103,7 +2136,7 @@ func (c *resolverConfig) getPolicyAccessControlPolicyqueryServiceTSResolver(obj 
 	resp, err := grpcServer().GetMetrics(ctx, &qm.MetricArg{QueryType: "/ServiceMetricSeries", StartTime: *startTime, EndTime: *endTime, Metric: *svcMetric, Filters: filters,TimeInterval: *timeInterval})
 	if err != nil {
 		log.Errorf("[getPolicyAccessControlPolicyqueryServiceTSResolver]Failed to get metrics, err: %v", err)
-		return &model.TimeSeriesData, nil
+		return &model.TimeSeriesData{}, nil
 	}
 	b, _ := json.Marshal(resp.Data)
 	data := string(b)
@@ -2121,7 +2154,7 @@ func (c *resolverConfig) getPolicyAccessControlPolicyqueryIncomingAPIsResolver(o
 	resp, err := grpcServer().GetMetrics(ctx, &qm.MetricArg{QueryType: "/IncomingAPIs", StartTime: *startTime, EndTime: *endTime, Metric: "", Filters: filters,TimeInterval: *timeInterval})
 	if err != nil {
         log.Errorf("[getPolicyAccessControlPolicyqueryIncomingAPIsResolver]Failed to get metrics, err: %v", err)
-        return &model.TimeSeriesData, nil
+        return &model.TimeSeriesData{}, nil
 	}
 	b, _ := json.Marshal(resp.Data)
 	data := string(b)
@@ -2217,7 +2250,7 @@ func (c *resolverConfig) getPolicyACPConfigqueryServiceTableResolver(obj *model.
 	resp, err := grpcServer().GetMetrics(ctx, &qm.MetricArg{QueryType: "/ServiceTable", StartTime: *startTime, EndTime: *endTime, Metric: "", Filters: filters,TimeInterval: ""})
 	if err != nil {
 		log.Errorf("[getPolicyACPConfigqueryServiceTableResolver]Failed to get metrics, err: %v", err)
-		return &model.TimeSeriesData, nil
+		return &model.TimeSeriesData{}, nil
 	}
 	b, _ := json.Marshal(resp.Data)
 	data := string(b)
@@ -2235,7 +2268,7 @@ func (c *resolverConfig) getPolicyACPConfigqueryServiceVersionTableResolver(obj 
 	resp, err := grpcServer().GetMetrics(ctx, &qm.MetricArg{QueryType: "/ServiceTable", StartTime: *startTime, EndTime: *endTime, Metric: "", Filters: filters,TimeInterval: ""})
 	if err != nil {
 	   log.Errorf("[getPolicyACPConfigqueryServiceVersionTableResolver]Failed to get metrics, err: %v", err)
-	   return &model.TimeSeriesData, nil
+	   return &model.TimeSeriesData{}, nil
 	}
 	b, _ := json.Marshal(resp.Data)
 	data := string(b)
@@ -2253,7 +2286,7 @@ func (c *resolverConfig) getPolicyACPConfigqueryServiceTSResolver(obj *model.Pol
 	resp, err := grpcServer().GetMetrics(ctx, &qm.MetricArg{QueryType: "/ServiceMetricSeries", StartTime: *startTime, EndTime: *endTime, Metric: *svcMetric, Filters: filters,TimeInterval: *timeInterval})
 	if err != nil {
 		log.Errorf("[getPolicyACPConfigqueryServiceTSResolver]Failed to get metrics, err: %v", err)
-		return &model.TimeSeriesData, nil
+		return &model.TimeSeriesData{}, nil
 	}
 	b, _ := json.Marshal(resp.Data)
 	data := string(b)
@@ -2271,7 +2304,7 @@ func (c *resolverConfig) getPolicyACPConfigqueryIncomingAPIsResolver(obj *model.
 	resp, err := grpcServer().GetMetrics(ctx, &qm.MetricArg{QueryType: "/IncomingAPIs", StartTime: *startTime, EndTime: *endTime, Metric: "", Filters: filters,TimeInterval: *timeInterval})
 	if err != nil {
         log.Errorf("[getPolicyACPConfigqueryIncomingAPIsResolver]Failed to get metrics, err: %v", err)
-        return &model.TimeSeriesData, nil
+        return &model.TimeSeriesData{}, nil
 	}
 	b, _ := json.Marshal(resp.Data)
 	data := string(b)
@@ -2377,7 +2410,7 @@ func (c *resolverConfig) getPolicyVMpolicyqueryServiceTableResolver(obj *model.P
 	resp, err := grpcServer().GetMetrics(ctx, &qm.MetricArg{QueryType: "/ServiceTable", StartTime: *startTime, EndTime: *endTime, Metric: "", Filters: filters,TimeInterval: ""})
 	if err != nil {
 		log.Errorf("[getPolicyVMpolicyqueryServiceTableResolver]Failed to get metrics, err: %v", err)
-		return &model.TimeSeriesData, nil
+		return &model.TimeSeriesData{}, nil
 	}
 	b, _ := json.Marshal(resp.Data)
 	data := string(b)
@@ -2395,7 +2428,7 @@ func (c *resolverConfig) getPolicyVMpolicyqueryServiceVersionTableResolver(obj *
 	resp, err := grpcServer().GetMetrics(ctx, &qm.MetricArg{QueryType: "/ServiceTable", StartTime: *startTime, EndTime: *endTime, Metric: "", Filters: filters,TimeInterval: ""})
 	if err != nil {
 	   log.Errorf("[getPolicyVMpolicyqueryServiceVersionTableResolver]Failed to get metrics, err: %v", err)
-	   return &model.TimeSeriesData, nil
+	   return &model.TimeSeriesData{}, nil
 	}
 	b, _ := json.Marshal(resp.Data)
 	data := string(b)
@@ -2413,7 +2446,7 @@ func (c *resolverConfig) getPolicyVMpolicyqueryServiceTSResolver(obj *model.Poli
 	resp, err := grpcServer().GetMetrics(ctx, &qm.MetricArg{QueryType: "/ServiceMetricSeries", StartTime: *startTime, EndTime: *endTime, Metric: *svcMetric, Filters: filters,TimeInterval: *timeInterval})
 	if err != nil {
 		log.Errorf("[getPolicyVMpolicyqueryServiceTSResolver]Failed to get metrics, err: %v", err)
-		return &model.TimeSeriesData, nil
+		return &model.TimeSeriesData{}, nil
 	}
 	b, _ := json.Marshal(resp.Data)
 	data := string(b)
@@ -2431,7 +2464,7 @@ func (c *resolverConfig) getPolicyVMpolicyqueryIncomingAPIsResolver(obj *model.P
 	resp, err := grpcServer().GetMetrics(ctx, &qm.MetricArg{QueryType: "/IncomingAPIs", StartTime: *startTime, EndTime: *endTime, Metric: "", Filters: filters,TimeInterval: *timeInterval})
 	if err != nil {
         log.Errorf("[getPolicyVMpolicyqueryIncomingAPIsResolver]Failed to get metrics, err: %v", err)
-        return &model.TimeSeriesData, nil
+        return &model.TimeSeriesData{}, nil
 	}
 	b, _ := json.Marshal(resp.Data)
 	data := string(b)
@@ -2590,7 +2623,7 @@ func (c *resolverConfig) getPolicyRandomPolicyDataqueryServiceTableResolver(obj 
 	resp, err := grpcServer().GetMetrics(ctx, &qm.MetricArg{QueryType: "/ServiceTable", StartTime: *startTime, EndTime: *endTime, Metric: "", Filters: filters,TimeInterval: ""})
 	if err != nil {
 		log.Errorf("[getPolicyRandomPolicyDataqueryServiceTableResolver]Failed to get metrics, err: %v", err)
-		return &model.TimeSeriesData, nil
+		return &model.TimeSeriesData{}, nil
 	}
 	b, _ := json.Marshal(resp.Data)
 	data := string(b)
@@ -2608,7 +2641,7 @@ func (c *resolverConfig) getPolicyRandomPolicyDataqueryServiceVersionTableResolv
 	resp, err := grpcServer().GetMetrics(ctx, &qm.MetricArg{QueryType: "/ServiceTable", StartTime: *startTime, EndTime: *endTime, Metric: "", Filters: filters,TimeInterval: ""})
 	if err != nil {
 	   log.Errorf("[getPolicyRandomPolicyDataqueryServiceVersionTableResolver]Failed to get metrics, err: %v", err)
-	   return &model.TimeSeriesData, nil
+	   return &model.TimeSeriesData{}, nil
 	}
 	b, _ := json.Marshal(resp.Data)
 	data := string(b)
@@ -2626,7 +2659,7 @@ func (c *resolverConfig) getPolicyRandomPolicyDataqueryServiceTSResolver(obj *mo
 	resp, err := grpcServer().GetMetrics(ctx, &qm.MetricArg{QueryType: "/ServiceMetricSeries", StartTime: *startTime, EndTime: *endTime, Metric: *svcMetric, Filters: filters,TimeInterval: *timeInterval})
 	if err != nil {
 		log.Errorf("[getPolicyRandomPolicyDataqueryServiceTSResolver]Failed to get metrics, err: %v", err)
-		return &model.TimeSeriesData, nil
+		return &model.TimeSeriesData{}, nil
 	}
 	b, _ := json.Marshal(resp.Data)
 	data := string(b)
@@ -2644,7 +2677,7 @@ func (c *resolverConfig) getPolicyRandomPolicyDataqueryIncomingAPIsResolver(obj 
 	resp, err := grpcServer().GetMetrics(ctx, &qm.MetricArg{QueryType: "/IncomingAPIs", StartTime: *startTime, EndTime: *endTime, Metric: "", Filters: filters,TimeInterval: *timeInterval})
 	if err != nil {
         log.Errorf("[getPolicyRandomPolicyDataqueryIncomingAPIsResolver]Failed to get metrics, err: %v", err)
-        return &model.TimeSeriesData, nil
+        return &model.TimeSeriesData{}, nil
 	}
 	b, _ := json.Marshal(resp.Data)
 	data := string(b)

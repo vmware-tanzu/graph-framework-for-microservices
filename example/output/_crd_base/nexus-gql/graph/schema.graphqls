@@ -133,7 +133,7 @@ type config_Config {
         startTime: String
         endTime: String
     ): TimeSeriesData
-    QueryExample(
+    queryQueryExample(
         StartTime: String
         EndTime: String
         Interval: String
@@ -446,14 +446,14 @@ type gns_Gns {
         startTime: String
         endTime: String
     ): TimeSeriesData
-    queryGns1(
+    queryqueryGns1(
         StartTime: String
         EndTime: String
         Interval: String
         IsServiceDeployment: Boolean
         StartVal: Int
     ): NexusGraphqlResponse
-    queryGns2: NexusGraphqlResponse
+    queryqueryGns2: NexusGraphqlResponse
 
     GnsServiceGroups: servicegroup_SvcGroup!
     

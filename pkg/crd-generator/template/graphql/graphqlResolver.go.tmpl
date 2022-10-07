@@ -290,10 +290,12 @@ func (c *resolverConfig) get{{$node.PkgName}}{{$node.NodeName}}queryServiceTopol
 // Custom query
 func (c *resolverConfig) get{{$node.PkgName}}{{$node.NodeName}}query{{$query.Name}}Resolver(obj *model.{{$node.PkgName}}{{$node.NodeName}}, {{ range $key, $arg := $query.Args }} {{$arg.Name}} *{{$arg.Type}}, {{ end }}) (*model.NexusGraphqlResponse, error) {
 	parentLabels := make(map[string]string)
-	for k, v := range obj.ParentLabels {
-		val, ok :=  v.(string)
-		if ok {
-			parentLabels[k] = val
+	if obj != nil {
+		for k, v := range obj.ParentLabels {
+			val, ok := v.(string)
+			if ok {
+				parentLabels[k] = val
+			}
 		}
 	}
 	query := &graphql.GraphQLQuery{

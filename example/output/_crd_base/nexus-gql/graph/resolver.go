@@ -11,12 +11,11 @@ import (
 
 	"golang-appnet.eng.vmware.com/nexus-sdk/nexus/generated/graphql"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 	"nexustempmodule/nexus-gql/graph/model"
 )
 
-type Resolver struct {
-	CustomQueryHandler
-}
+type Resolver struct {}
 
 type CustomQueryHandler struct {
 	mtx     sync.Mutex
@@ -24,7 +23,7 @@ type CustomQueryHandler struct {
 }
 
 func (c *CustomQueryHandler) Connect(endpoint string) (graphql.ServerClient, error) {
-	conn, err := grpc.Dial(endpoint)
+	conn, err := grpc.Dial(endpoint, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		return nil, err
 	}
@@ -80,4 +79,11 @@ func intToPointer(i int) *int {
 
 func stringToPointer(i string) *string {
 	return &i
+}
+
+func pointerToString[T any, Ptr *T](any Ptr) string {
+	if any == nil {
+		return ""
+	}
+	return fmt.Sprintf("%v", *any)
 }
