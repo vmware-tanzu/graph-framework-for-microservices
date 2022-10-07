@@ -4,6 +4,7 @@ import (
 	"api-gw/pkg/client"
 	"api-gw/pkg/model"
 	"api-gw/pkg/server/echo_server"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -47,7 +48,7 @@ var _ = Describe("Kube tests", func() {
 		log.SetLevel(log.TraceLevel)
 	})
 
-	It("should test kubePost handler with invalid body", func() {
+	It("should fail the request with invalid body using kubePost handler", func() {
 		gnsJson := `invalid`
 
 		//var requestUri string
@@ -75,7 +76,7 @@ var _ = Describe("Kube tests", func() {
 		Expect(err).To(Not(BeNil()))
 	})
 
-	It("should test kubePost handler without k8s spec", func() {
+	It("should fail creating object without a spec using kubePost handler", func() {
 		gnsJson := `{}`
 
 		//var requestUri string
@@ -115,7 +116,7 @@ var _ = Describe("Kube tests", func() {
 		Expect(err).To(Not(BeNil()))
 	})
 
-	It("should test kubePost handler and add root object without a spec", func() {
+	It("should create root object without a spec using kubePost handler", func() {
 		gnsJson := `{
 	"apiVersion": "root.vmware.org/v1",
 	"kind": "Root",
@@ -163,7 +164,7 @@ var _ = Describe("Kube tests", func() {
 		Expect(rec.Body.String()).To(Equal(expectedResponse))
 	})
 
-	It("should test kubePost handler and add gns object", func() {
+	It("should create gns object using kubePost handler", func() {
 		gnsJson := `{
 	"apiVersion": "gns.vmware.org/v1",
 	"kind": "GlobalNamespace",
@@ -210,7 +211,7 @@ var _ = Describe("Kube tests", func() {
 		Expect(rec.Body.String()).To(Equal(expectedResponse))
 	})
 
-	It("should test kubeGet handler", func() {
+	It("should get gns object using kubeGet handler", func() {
 		//var requestUri string
 		server := httptest.NewServer(http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 			//requestUri = req.URL.String()
@@ -237,7 +238,7 @@ var _ = Describe("Kube tests", func() {
 		Expect(rec.Body.String()).To(Equal(expectedResponse))
 	})
 
-	It("should test kubePost handler and add update object", func() {
+	It("should update gns object using kubePost handler", func() {
 		gnsJson := `{
 	"apiVersion": "gns.vmware.org/v1",
 	"kind": "GlobalNamespace",
@@ -284,7 +285,7 @@ var _ = Describe("Kube tests", func() {
 		Expect(rec.Body.String()).To(Equal(expectedResponse))
 	})
 
-	It("should test kubeGetByName handler", func() {
+	It("should get gns object using kubeGetByName handler", func() {
 		//var requestUri string
 		server := httptest.NewServer(http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 			//requestUri = req.URL.String()
@@ -314,7 +315,7 @@ var _ = Describe("Kube tests", func() {
 		Expect(rec.Body.String()).To(Equal(expectedResponse))
 	})
 
-	It("should test kubeGetByName handler with non-existent name and get an error", func() {
+	It("should fail kubeGetByName handler by using object with non-existent name", func() {
 		//var requestUri string
 		server := httptest.NewServer(http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 			//requestUri = req.URL.String()
@@ -344,7 +345,7 @@ var _ = Describe("Kube tests", func() {
 		Expect(rec.Body.String()).To(Equal(expectedResponse))
 	})
 
-	It("should test kubeDelete handler", func() {
+	It("should delete gns object using kubeDelete handler with kubectl user agent", func() {
 		//var requestUri string
 		server := httptest.NewServer(http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 			//requestUri = req.URL.String()
@@ -355,6 +356,7 @@ var _ = Describe("Kube tests", func() {
 
 		e := echo.New()
 		req := httptest.NewRequest(http.MethodDelete, "/", nil)
+		req.Header.Set("User-Agent", "kubectl")
 		rec := httptest.NewRecorder()
 		c := e.NewContext(req, rec)
 		c.SetPath("/:name")
@@ -374,7 +376,117 @@ var _ = Describe("Kube tests", func() {
 		Expect(rec.Body.String()).To(Equal(expectedResponse))
 	})
 
-	It("should test kubeDelete handler with non-existent name and get an error", func() {
+	Context("test delete method with label selector", func() {
+		It("should create gns object using kubePost handler", func() {
+			gnsJson := `{
+	"apiVersion": "gns.vmware.org/v1",
+	"kind": "GlobalNamespace",
+    "metadata": {
+        "name": "test",
+		"labels": {
+			"roots.root.vmware.org": "root"
+		}
+    },
+    "spec": {
+        "foo": "bar"
+    }
+}`
+
+			//var requestUri string
+			server := httptest.NewServer(http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+				//requestUri = req.URL.String()
+				res.WriteHeader(200)
+				res.Write([]byte(`[]`))
+			}))
+			defer server.Close()
+
+			e := echo.New()
+			req := httptest.NewRequest(http.MethodPost, "/", strings.NewReader(gnsJson))
+			req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+			rec := httptest.NewRecorder()
+			c := e.NewContext(req, rec)
+
+			nc := &echo_server.NexusContext{
+				Context:   c,
+				CrdType:   "globalnamespaces.gns.vmware.org",
+				GroupName: "gns.vmware.org",
+				Resource:  "globalnamespaces",
+			}
+
+			model.CrdTypeToNodeInfo["globalnamespaces.gns.vmware.org"] = model.NodeInfo{
+				Name:            "Gns.gns",
+				ParentHierarchy: []string{"roots.root.vmware.org"},
+			}
+
+			err := echo_server.KubePostHandler(nc)
+			Expect(err).To(BeNil())
+			expectedResponse := "{\"apiVersion\":\"gns.vmware.org/v1\",\"kind\":\"GlobalNamespace\",\"metadata\":{\"labels\":{\"nexus/display_name\":\"test\",\"nexus/is_name_hashed\":\"true\",\"roots.root.vmware.org\":\"root\"},\"name\":\"2587591c2e1023ff9498b1b70ac5cbcb84504352\"},\"spec\":{\"foo\":\"bar\"}}\n"
+			Expect(rec.Body.String()).To(Equal(expectedResponse))
+		})
+
+		It("should delete gns object using kubeDelete handler", func() {
+			//var requestUri string
+			server := httptest.NewServer(http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+				//requestUri = req.URL.String()
+				res.WriteHeader(200)
+				res.Write([]byte(`[]`))
+			}))
+			defer server.Close()
+
+			e := echo.New()
+			req := httptest.NewRequest(http.MethodDelete, "/test?labelSelector=roots.root.vmware.org=root", nil)
+			rec := httptest.NewRecorder()
+			c := e.NewContext(req, rec)
+			c.SetPath("/:name?labelSelector=roots.root.vmware.org=root")
+			c.SetParamNames("name")
+			c.SetParamValues("test")
+
+			nc := &echo_server.NexusContext{
+				Context:   c,
+				CrdType:   "globalnamespaces.gns.vmware.org",
+				GroupName: "gns.vmware.org",
+				Resource:  "globalnamespaces",
+			}
+
+			err := echo_server.KubeDeleteHandler(nc)
+			Expect(err).To(BeNil())
+			expectedResponse := "{\"apiVersion\":\"v1\",\"details\":{\"group\":\"gns.vmware.org\",\"kind\":\"globalnamespaces\",\"name\":\"test\"},\"kind\":\"Status\",\"metadata\":{},\"status\":\"Success\"}\n"
+			Expect(rec.Body.String()).To(Equal(expectedResponse))
+		})
+
+		It("should delete root object using kubeDeleteHandler", func() {
+			//var requestUri string
+			server := httptest.NewServer(http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+				//requestUri = req.URL.String()
+				res.WriteHeader(200)
+				res.Write([]byte(`[]`))
+			}))
+			defer server.Close()
+
+			e := echo.New()
+			req := httptest.NewRequest(http.MethodDelete, "/root", nil)
+			rec := httptest.NewRecorder()
+			c := e.NewContext(req, rec)
+			c.SetPath("/:name")
+			c.SetParamNames("name")
+			c.SetParamValues("root")
+
+			nc := &echo_server.NexusContext{
+				Context:   c,
+				CrdType:   "roots.root.vmware.org",
+				GroupName: "root.vmware.org",
+				Resource:  "roots",
+			}
+
+			err := echo_server.KubeDeleteHandler(nc)
+			Expect(err).To(BeNil())
+			expectedResponse := "{\"apiVersion\":\"v1\",\"details\":{\"group\":\"root.vmware.org\",\"kind\":\"roots\",\"name\":\"root\"},\"kind\":\"Status\",\"metadata\":{},\"status\":\"Success\"}\n"
+			fmt.Println(rec.Body.String())
+			Expect(rec.Body.String()).To(Equal(expectedResponse))
+		})
+	})
+
+	It("should fail kubeDelete handler with kubectl user agent by using object with non-existent name", func() {
 		//var requestUri string
 		server := httptest.NewServer(http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 			//requestUri = req.URL.String()
@@ -385,6 +497,7 @@ var _ = Describe("Kube tests", func() {
 
 		e := echo.New()
 		req := httptest.NewRequest(http.MethodDelete, "/", nil)
+		req.Header.Set("User-Agent", "kubectl")
 		rec := httptest.NewRecorder()
 		c := e.NewContext(req, rec)
 		c.SetPath("/:name")

@@ -5,8 +5,10 @@ import (
 	"api-gw/pkg/model"
 	"context"
 	"errors"
+	labelSelector "k8s.io/apimachinery/pkg/labels"
 	"net/http/httputil"
 	"net/url"
+	"strings"
 
 	"github.com/labstack/echo/v4"
 	log "github.com/sirupsen/logrus"
@@ -174,8 +176,26 @@ func KubeDeleteHandler(c echo.Context) error {
 		Version:  "v1",
 		Resource: nc.Resource,
 	}
+	labels := make(map[string]string)
+	name := c.Param("name")
 
-	err := client.DeleteObject(gvr, nc.CrdType, crdInfo, c.Param("name"))
+	if c.QueryParams().Has("labelSelector") {
+		labelsMap, err := labelSelector.ConvertSelectorToLabelsMap(c.QueryParams().Get("labelSelector"))
+		if err != nil {
+			return err
+		}
+		for key, val := range labelsMap {
+			labels[key] = val
+		}
+	}
+
+	if !strings.Contains(c.Request().Header.Get("User-Agent"), "kubectl") {
+		name = nexus.GetHashedName(nc.CrdType, crdInfo.ParentHierarchy, labels, name)
+	}
+
+	log.Debugf("KubeDeleteHandler: name: %s, labels: %s", name, labels)
+
+	err := client.DeleteObject(gvr, nc.CrdType, crdInfo, name)
 	if err != nil {
 		if status := kerrors.APIStatus(nil); errors.As(err, &status) {
 			return c.JSON(int(status.Status().Code), status.Status())
