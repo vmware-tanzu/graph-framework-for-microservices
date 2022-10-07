@@ -5,7 +5,7 @@ LOG_LEVEL ?= error
 
 GO_PROJECT_NAME ?= compiler
 
-DOCKER_REGISTRY ?= harbor-repo.vmware.com
+DOCKER_REGISTRY ?= gcr.io/nsx-sm
 
 IMAGE_NAME ?= nexus/compiler
 TAG ?= $(shell git rev-parse --verify --short=8 HEAD)

@@ -29,7 +29,7 @@ jobs:
               make docker.builder
               make build_in_container
               make docker
-              make publish DOCKER_REGISTRY=gcr.io/nsx-sm/nexus/compiler
+              make publish
             popd
   test:
     name: Run Unit tests
