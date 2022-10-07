@@ -15,13 +15,21 @@ jobs:
           go-version: '>=1.17.0'
       - name: setup-docker
         uses: docker-practice/actions-setup-docker@1.0.11
+      - name: 'Set up Cloud SDK'
+        uses: 'google-github-actions/setup-gcloud@v0'
       - name: Build Compiler image
+        env:
+          GOOGLE_SERVICE_ACCOUNT_KEY: ${{ secrets.GCPServiceAccountKey }}
+          GCR_REPOSITORY: gcr.io/nsx-sm
         run: |
+            set -x
+            echo $GOOGLE_SERVICE_ACCOUNT_KEY | docker login -u _json_key --password-stdin $GCR_REPOSITORY
             git config --global url."https://github.com/".insteadOf "git@github.com:"
             pushd compiler
               make docker.builder
               make build_in_container
               make docker
+              make publish DOCKER_REGISTRY=gcr.io/nsx-sm/nexus/compiler
             popd
   test:
     name: Run Unit tests
