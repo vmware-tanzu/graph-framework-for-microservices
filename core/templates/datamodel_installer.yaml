@@ -230,6 +230,7 @@ data:
         metadata:
           name: {{`{{.DatamodelInstaller.Name}}`}}-dmi
         spec:
+          ttlSecondsAfterFinished: 30
           backoffLimit: 6
           template:
             metadata:

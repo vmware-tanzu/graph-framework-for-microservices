@@ -74,6 +74,7 @@ metadata:
   name: nexus-k8scert-creation-job
   namespace: {{.Values.global.namespace}} 
 spec:
+  ttlSecondsAfterFinished: 30
   template:
     metadata:
       annotations:
