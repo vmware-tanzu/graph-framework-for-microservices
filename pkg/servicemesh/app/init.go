@@ -29,7 +29,6 @@ var (
 
 var prerequisites []prereq.Prerequiste = []prereq.Prerequiste{
 	prereq.GOLANG_VERSION,
-	prereq.GOPATH,
 }
 
 func Init(cmd *cobra.Command, args []string) error {
