@@ -11,7 +11,6 @@ import (
 
 var appBuildPrereqs = []prereq.Prerequiste{
 	prereq.GOLANG_VERSION,
-	prereq.GOPATH,
 	prereq.DOCKER,
 }
 
