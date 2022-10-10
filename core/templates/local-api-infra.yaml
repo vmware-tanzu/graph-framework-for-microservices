@@ -93,7 +93,12 @@ spec:
           openssl rand -out /root/.rnd -hex 256
           openssl genrsa -out /tmp/ca.key 2048
           openssl req -x509 -new -nodes -key /tmp/ca.key -subj "/CN=nexus-apiserver" -days 10000 -out /tmp/ca.crt
-          kubectl create secret generic nexus-customapi-ca --from-file=/tmp/ca.key --from-file=/tmp/ca.crt -n $KUBERNETES_POD_NAMESPACE --dry-run -o yaml | kubectl apply -f -
+          if kubectl get secret nexus-customapi-ca -n $KUBERNETES_POD_NAMESPACE 1>&2>/dev/null; then \
+            echo "Skipping Secret ${secret} creation on $KUBERNETES_POD_NAMESPACE as it already exists"
+            exit 0
+          else
+            kubectl create secret generic nexus-customapi-ca --from-file=/tmp/ca.key --from-file=/tmp/ca.crt -n $KUBERNETES_POD_NAMESPACE --dry-run -o yaml | kubectl apply -f -
+          fi
         env:
           - name: KUBERNETES_POD_NAMESPACE
             valueFrom:
