@@ -132,6 +132,7 @@ metadata:
   annotations:
     "nexus-upgrade": "false"
 spec:
+  ttlSecondsAfterFinished: 30
   backoffLimit: 6
   template:
     metadata:
@@ -215,6 +216,7 @@ metadata:
   annotations:
     "nexus-upgrade": "false"
 spec:
+  ttlSecondsAfterFinished: 30
   backoffLimit: 6
   template:
     metadata:
