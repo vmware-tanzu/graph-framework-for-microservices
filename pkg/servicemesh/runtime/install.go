@@ -203,18 +203,9 @@ func HelmInstall(cmd *cobra.Command, args []string) error {
 func RunJob(Namespace, jobName string, applyString bytes.Buffer) error {
 	var data []byte = applyString.Bytes()
 
-	// this cmd is for ensuring the previous incomplete jobs can be deleted and re-ran again
-	clearPreviouscmd := exec.Command("kubectl", "delete", "-f", "-", "-n", Namespace, "--ignore-not-found=true")
-	clearPreviouscmd.Stdin = bytes.NewBuffer(data)
-	clearPreviouscmd.Stdout = os.Stdout
-	clearPreviouscmd.Stderr = os.Stderr
-
-	if err := clearPreviouscmd.Start(); err != nil {
-		return fmt.Errorf("Could not delete the existing installation job: %s on %s", jobName, Namespace)
-	}
-
-	if err := clearPreviouscmd.Wait(); err != nil {
-		return fmt.Errorf("Could not delete the existing installation job: %s on %s", jobName, Namespace)
+	err := DeleteJob(data, jobName, Namespace)
+	if err != nil {
+		return err
 	}
 
 	applyCmd := exec.Command("kubectl", "apply", "-f", "-", "-n", Namespace)
@@ -230,7 +221,7 @@ func RunJob(Namespace, jobName string, applyString bytes.Buffer) error {
 		return fmt.Errorf("Could not apply the installation job: %s on %s", jobName, Namespace)
 	}
 
-	err := exec.Command("kubectl", "wait", "--for=condition=complete", fmt.Sprintf("job/%s", jobName), "--timeout=15m", "-n", Namespace).Run()
+	err = exec.Command("kubectl", "wait", "--for=condition=complete", fmt.Sprintf("job/%s", jobName), "--timeout=15m", "-n", Namespace).Run()
 	if err != nil {
 		// dump some info to debug
 		log.Debugf("Pod Status")
@@ -245,6 +236,27 @@ func RunJob(Namespace, jobName string, applyString bytes.Buffer) error {
 		return fmt.Errorf("could not complete the installation job: %s on %s", jobName, Namespace)
 	}
 
+	err = DeleteJob(data, jobName, Namespace)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func DeleteJob(data []byte, jobName, Namespace string) error {
+	deleteCmd := exec.Command("kubectl", "delete", "-f", "-", "-n", Namespace, "--ignore-not-found=true")
+	deleteCmd.Stdin = bytes.NewBuffer(data)
+	deleteCmd.Stdout = os.Stdout
+	deleteCmd.Stderr = os.Stderr
+
+	// add delete job after installation or uninstallation completed
+	if err := deleteCmd.Start(); err != nil {
+		return fmt.Errorf("Could not delete the existing installation job objects: %s on %s", jobName, Namespace)
+	}
+
+	if err := deleteCmd.Wait(); err != nil {
+		return fmt.Errorf("Could not delete the existing installation job objects: %s on %s", jobName, Namespace)
+	}
 	return nil
 }
 
