@@ -112,7 +112,7 @@ data:
 
         # create the secret with CA cert and server cert/key
         # adding check here to avoid rewrite
-        if kubectl get ${secret} -n ${namespace} 1>&2>/dev/null; then \
+        if kubectl get secret ${secret} -n ${namespace} 1>&2>/dev/null; then \
           echo "Skipping Secret ${secret} creation on ${namespace} as it already exists"
           exit 0
         else
