@@ -25,6 +25,7 @@ metadata:
   name: nexus-api-dm-obj-installer
   namespace: {{.Values.global.namespace}}
 spec:
+  ttlSecondsAfterFinished: 30
   template:
     metadata:
       annotations:
