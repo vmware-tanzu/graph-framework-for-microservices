@@ -5,7 +5,7 @@ package v1
 import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	"nexustempmodule/common"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/crd_generated/common"
 )
 
 // +k8s:openapi-gen=true
@@ -101,7 +101,7 @@ func (c *AccessControlPolicy) DisplayName() string {
 
 // +k8s:openapi-gen=true
 type AccessControlPolicySpec struct {
-	PolicyConfigsGvk map[string]Child `nexus:"child" nexus-graphql:"ignore:true"`
+	PolicyConfigsGvk map[string]Child `json:"policyConfigsGvk,omitempty" yaml:"policyConfigsGvk,omitempty" nexus:"children"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
@@ -148,7 +148,7 @@ type ACPConfigSpec struct {
 	Tags               []string        `json:"tags" yaml:"tags"`
 	ProjectId          string          `json:"projectId" yaml:"projectId"`
 	Conditions         []string        `json:"conditions" yaml:"conditions"`
-	DestSvcGroupsGvk   map[string]Link `json:"destSvcGroupsGvk,omitempty" yaml:"destSvcGroupsGvk,omitempty" nexus:"link"`
+	DestSvcGroupsGvk   map[string]Link `json:"destSvcGroupsGvk,omitempty" yaml:"destSvcGroupsGvk,omitempty" nexus:"links"`
 	SourceSvcGroupsGvk map[string]Link `json:"sourceSvcGroupsGvk,omitempty" yaml:"sourceSvcGroupsGvk,omitempty" nexus:"links"`
 }
 

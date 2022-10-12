@@ -3,10 +3,11 @@
 package v1
 
 import (
+	gns_tsm_tanzu_vmware_com "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/crd_generated/apis/gns.tsm.tanzu.vmware.com"
+
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
-	gns_tsm_tanzu_vmware_com "nexustempmodule/apis/gns.tsm.tanzu.vmware.com"
 )
 
 const ResourceVersion = "v1"
@@ -41,8 +42,10 @@ func addKnownTypes(scheme *runtime.Scheme) error {
 		&RandomGnsDataList{},
 		&Gns{},
 		&GnsList{},
-		&BarLink{},
-		&BarLinkList{},
+		&BarChild{},
+		&BarChildList{},
+		&IgnoreChild{},
+		&IgnoreChildList{},
 		&Dns{},
 		&DnsList{},
 		&AdditionalGnsData{},

@@ -1,14 +1,14 @@
 package main
 
 import (
-	"nexustempmodule/nexus-gql/graph"
-	"nexustempmodule/nexus-gql/graph/generated"
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/graphql"
+	"net/http"
+
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/crd_generated/nexus-gql/graph"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/crd_generated/nexus-gql/graph/generated"
+
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/graphql/handler"
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/graphql/playground"
-	"net/http"
 )
-
 
 func StartHttpServer() {
 	ES := generated.NewExecutableSchema(generated.Config{Resolvers: &graph.Resolver{}})

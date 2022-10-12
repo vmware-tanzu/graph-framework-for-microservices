@@ -6,7 +6,7 @@ import (
 	cartv1 "github.com/vmware-tanzu/cartographer/pkg/apis/v1alpha1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	"nexustempmodule/common"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/crd_generated/common"
 )
 
 // +k8s:openapi-gen=true
@@ -116,8 +116,10 @@ type GnsSpec struct {
 	WorkloadSpec              cartv1.WorkloadSpec  `json:"workloadSpec" yaml:"workloadSpec"`
 	DifferentSpec             *cartv1.WorkloadSpec `json:"differentSpec" yaml:"differentSpec"`
 	GnsServiceGroupsGvk       map[string]Child     `json:"gnsServiceGroupsGvk,omitempty" yaml:"gnsServiceGroupsGvk,omitempty" nexus:"children"`
-	GnsAccessControlPolicyGvk *Child               `nexus:"child" nexus-graphql:"type:string"`
-	DnsGvk                    *Link                `nexus:"link" nexus-graphql:"ignore:true"`
+	GnsAccessControlPolicyGvk *Child               `json:"gnsAccessControlPolicyGvk,omitempty" yaml:"gnsAccessControlPolicyGvk,omitempty" nexus:"child"`
+	FooChildGvk               *Child               `nexus:"child" nexus-graphql:"type:string"`
+	IgnoreChildGvk            *Child               `nexus:"child" nexus-graphql:"ignore:true"`
+	DnsGvk                    *Link                `json:"dnsGvk,omitempty" yaml:"dnsGvk,omitempty" nexus:"link"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
@@ -132,23 +134,23 @@ type GnsList struct {
 // +genclient:nonNamespaced
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 // +k8s:openapi-gen=true
-type BarLink struct {
+type BarChild struct {
 	metav1.TypeMeta   `json:",inline" yaml:",inline"`
 	metav1.ObjectMeta `json:"metadata" yaml:"metadata"`
-	Spec              BarLinkSpec        `json:"spec,omitempty" yaml:"spec,omitempty"`
-	Status            BarLinkNexusStatus `json:"status,omitempty" yaml:"status,omitempty"`
+	Spec              BarChildSpec        `json:"spec,omitempty" yaml:"spec,omitempty"`
+	Status            BarChildNexusStatus `json:"status,omitempty" yaml:"status,omitempty"`
 }
 
 // +k8s:openapi-gen=true
-type BarLinkNexusStatus struct {
+type BarChildNexusStatus struct {
 	Nexus NexusStatus `json:"nexus,omitempty" yaml:"nexus,omitempty"`
 }
 
-func (c *BarLink) CRDName() string {
-	return "barlinks.gns.tsm.tanzu.vmware.com"
+func (c *BarChild) CRDName() string {
+	return "barchilds.gns.tsm.tanzu.vmware.com"
 }
 
-func (c *BarLink) DisplayName() string {
+func (c *BarChild) DisplayName() string {
 	if c.GetLabels() != nil {
 		return c.GetLabels()[common.DISPLAY_NAME_LABEL]
 	}
@@ -156,15 +158,55 @@ func (c *BarLink) DisplayName() string {
 }
 
 // +k8s:openapi-gen=true
-type BarLinkSpec struct {
+type BarChildSpec struct {
 	Name string `json:"name" yaml:"name"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
-type BarLinkList struct {
+type BarChildList struct {
 	metav1.TypeMeta `json:",inline" yaml:",inline"`
 	metav1.ListMeta `json:"metadata" yaml:"metadata"`
-	Items           []BarLink `json:"items" yaml:"items"`
+	Items           []BarChild `json:"items" yaml:"items"`
+}
+
+// +genclient
+// +genclient:noStatus
+// +genclient:nonNamespaced
+// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
+// +k8s:openapi-gen=true
+type IgnoreChild struct {
+	metav1.TypeMeta   `json:",inline" yaml:",inline"`
+	metav1.ObjectMeta `json:"metadata" yaml:"metadata"`
+	Spec              IgnoreChildSpec        `json:"spec,omitempty" yaml:"spec,omitempty"`
+	Status            IgnoreChildNexusStatus `json:"status,omitempty" yaml:"status,omitempty"`
+}
+
+// +k8s:openapi-gen=true
+type IgnoreChildNexusStatus struct {
+	Nexus NexusStatus `json:"nexus,omitempty" yaml:"nexus,omitempty"`
+}
+
+func (c *IgnoreChild) CRDName() string {
+	return "ignorechilds.gns.tsm.tanzu.vmware.com"
+}
+
+func (c *IgnoreChild) DisplayName() string {
+	if c.GetLabels() != nil {
+		return c.GetLabels()[common.DISPLAY_NAME_LABEL]
+	}
+	return ""
+}
+
+// +k8s:openapi-gen=true
+type IgnoreChildSpec struct {
+	Name string `json:"name" yaml:"name"`
+}
+
+// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
+type IgnoreChildList struct {
+	metav1.TypeMeta `json:",inline" yaml:",inline"`
+	metav1.ListMeta `json:"metadata" yaml:"metadata"`
+	Items           []IgnoreChild `json:"items" yaml:"items"`
 }
 
 // +genclient

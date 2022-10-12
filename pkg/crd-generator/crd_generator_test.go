@@ -15,20 +15,20 @@ import (
 )
 
 const (
-	baseGroupName               = "tsm.tanzu.vmware.com"
-	crdModulePath               = "nexustempmodule/"
-	examplePath                 = "../../example/"
-	exampleDSLPath              = examplePath + "datamodel"
-	exampleCRDOutputPath        = examplePath + "output/_crd_base/"
-	exampleCRDApisOutputPath    = exampleCRDOutputPath + "apis"
-	gnsExamplePath              = exampleCRDApisOutputPath + "/gns.tsm.tanzu.vmware.com/"
-	gnsDocPath                  = gnsExamplePath + "v1/doc.go"
-	gnsRegisterGroupPath        = gnsExamplePath + "register.go"
-	gnsRegisterCRDPath          = gnsExamplePath + "v1/register.go"
-	gnsTypesPath                = gnsExamplePath + "v1/types.go"
-	gnsCrdBasePath              = exampleCRDOutputPath + "crds/gns_gns.yaml"
-	exampleCRDClientOutputPath  = exampleCRDOutputPath + "/nexus-client/client.go"
-	exampleCRDHelperOutputPath  = exampleCRDOutputPath + "/helper/helper.go"
+	baseGroupName              = "tsm.tanzu.vmware.com"
+	crdModulePath              = "nexustempmodule/"
+	examplePath                = "../../example/"
+	exampleDSLPath             = examplePath + "datamodel"
+	exampleCRDOutputPath       = examplePath + "output/_crd_base/"
+	exampleCRDApisOutputPath   = exampleCRDOutputPath + "apis"
+	gnsExamplePath             = exampleCRDApisOutputPath + "/gns.tsm.tanzu.vmware.com/"
+	gnsDocPath                 = gnsExamplePath + "v1/doc.go"
+	gnsRegisterGroupPath       = gnsExamplePath + "register.go"
+	gnsRegisterCRDPath         = gnsExamplePath + "v1/register.go"
+	gnsTypesPath               = gnsExamplePath + "v1/types.go"
+	gnsCrdBasePath             = exampleCRDOutputPath + "crds/gns_gns.yaml"
+	exampleCRDClientOutputPath = exampleCRDOutputPath + "/nexus-client/client.go"
+	exampleCRDHelperOutputPath = exampleCRDOutputPath + "/helper/helper.go"
 	gglToolOutputPath           = exampleCRDOutputPath + "/nexus-gql/tools.go"
 	gglResolverOutputPath       = exampleCRDOutputPath + "/nexus-gql/graph/resolver.go"
 	gglSchemaResolverOutputPath = exampleCRDOutputPath + "/nexus-gql/graph/schema.resolvers.go"
@@ -52,7 +52,7 @@ var _ = Describe("Template renderers tests", func() {
 		graphqlQueries := parser.ParseGraphqlQuerySpecs(pkgs)
 		graph := parser.ParseDSLNodes(exampleDSLPath, baseGroupName, pkgs, graphqlQueries)
 		parentsMap = parser.CreateParentsMap(graph)
-		Expect(parentsMap).To(HaveLen(10))
+		Expect(parentsMap).To(HaveLen(12))
 
 		methods, codes = rest.ParseResponses(pkgs)
 		gql.BaseImportPath = crdModulePath
@@ -100,13 +100,13 @@ var _ = Describe("Template renderers tests", func() {
 	It("should parse base crd template", func() {
 		files, err := crdgenerator.RenderCRDBaseTemplate(baseGroupName, pkg, parentsMap, methods, codes)
 		Expect(err).NotTo(HaveOccurred())
-		Expect(files).To(HaveLen(5))
+		Expect(files).To(HaveLen(6))
 
 		expectedSdk, err := ioutil.ReadFile(gnsCrdBasePath)
 		Expect(err).NotTo(HaveOccurred())
 
-		Expect("gns_gns.yaml").To(Or(Equal(files[0].Name), Equal(files[1].Name), Equal(files[2].Name), Equal(files[3].Name)))
-		Expect(string(expectedSdk)).To(Or(Equal(files[0].File.String()), Equal(files[1].File.String()), Equal(files[2].File.String()), Equal(files[3].File.String())))
+		Expect("gns_gns.yaml").To(Or(Equal(files[0].Name), Equal(files[1].Name)))
+		Expect(string(expectedSdk)).To(Or(Equal(files[0].File.String()), Equal(files[1].File.String())))
 	})
 
 	It("should parse types template", func() {
@@ -143,45 +143,6 @@ var _ = Describe("Template renderers tests", func() {
 		Expect(err).NotTo(HaveOccurred())
 
 		expectedTypes, err := ioutil.ReadFile(exampleCRDHelperOutputPath)
-		Expect(err).NotTo(HaveOccurred())
-
-		Expect(string(formatted)).To(Equal(string(expectedTypes)))
-	})
-	// Path:"example/output/_crd_base/nexus-gql/tools.go"
-	It("should parse nexus-gql tool template", func() {
-		qglBytes, err := crdgenerator.RenderGraphqlToolTemplate()
-		Expect(err).NotTo(HaveOccurred())
-
-		formatted, err := format.Source(qglBytes.Bytes())
-		Expect(err).NotTo(HaveOccurred())
-
-		expectedTypes, err := ioutil.ReadFile(gglToolOutputPath)
-		Expect(err).NotTo(HaveOccurred())
-
-		Expect(string(formatted)).To(Equal(string(expectedTypes)))
-	})
-	// Path:"example/output/_crd_base/nexus-gql/graph/schema.resolvers.go"
-	It("should parse graph schema resolver template", func() {
-		qglBytes, err := crdgenerator.RenderGqlSchemaResolverTemplate()
-		Expect(err).NotTo(HaveOccurred())
-
-		formatted, err := format.Source(qglBytes.Bytes())
-		Expect(err).NotTo(HaveOccurred())
-
-		expectedTypes, err := ioutil.ReadFile(gglSchemaResolverOutputPath)
-		Expect(err).NotTo(HaveOccurred())
-
-		Expect(string(formatted)).To(Equal(string(expectedTypes)))
-	})
-	// Path:"example/output/_crd_base/nexus-gql/graph/resolver.go"
-	It("should parse graph resolver template", func() {
-		qglBytes, err := crdgenerator.RenderGqlResolverTemplate()
-		Expect(err).NotTo(HaveOccurred())
-
-		formatted, err := format.Source(qglBytes.Bytes())
-		Expect(err).NotTo(HaveOccurred())
-
-		expectedTypes, err := ioutil.ReadFile(gglResolverOutputPath)
 		Expect(err).NotTo(HaveOccurred())
 
 		Expect(string(formatted)).To(Equal(string(expectedTypes)))

@@ -119,6 +119,29 @@ var _ = Describe("Pkg tests", func() {
 		Expect(fieldType).To(Equal("config.Config"))
 	})
 
+	It("should get pointer field type", func() {
+		nodes := gnsPkg.GetNexusNodes()
+		specFields := parser.GetSpecFields(nodes[1])
+		for _, f := range specFields {
+			name, err := parser.GetFieldName(f)
+			Expect(err).NotTo(HaveOccurred())
+			switch name {
+			case "Port":
+				Expect(parser.GetFieldType(f)).To(Equal("*int"))
+			case "OtherDescription":
+				Expect(parser.GetFieldType(f)).To(Equal("*Description"))
+			case "MapPointer":
+				Expect(parser.GetFieldType(f)).To(Equal("*map[string]string"))
+			case "SlicePointer":
+				Expect(parser.GetFieldType(f)).To(Equal("*[]string"))
+			case "WorkloadSpec":
+				Expect(parser.GetFieldType(f)).To(Equal("cartv1.WorkloadSpec"))
+			case "DifferentSpec":
+				Expect(parser.GetFieldType(f)).To(Equal("*cartv1.WorkloadSpec"))
+			}
+		}
+	})
+
 	It("should check if field is named child", func() {
 		nodes := gnsPkg.GetNexusNodes()
 		childFields := parser.GetChildFields(nodes[1])

@@ -2,119 +2,118 @@
 
 package model
 
-type TimeSeriesData struct {
-	Code         *int    `json:"Code"`
-	Message      *string `json:"Message"`
-	Data         *string `json:"Data"`
-	Last         *string `json:"Last"`
-	TotalRecords *int    `json:"TotalRecords"`
-}
-
-type ConfigCluster struct {
-	Name *string `json:"Name"`
-	MyID *int    `json:"MyID"`
-}
-
 type ConfigConfig struct {
-	Id                       *string         `json:"Id"`
-	queryServiceTable        *TimeSeriesData `json:"queryServiceTable"`
-	queryServiceVersionTable *TimeSeriesData `json:"queryServiceVersionTable"`
-	queryServiceTS           *TimeSeriesData `json:"queryServiceTS"`
-	queryIncomingAPIs        *TimeSeriesData `json:"queryIncomingAPIs"`
-	queryOutgoingAPIs        *TimeSeriesData `json:"queryOutgoingAPIs"`
-	queryIncomingTCP         *TimeSeriesData `json:"queryIncomingTCP"`
-	queryOutgoingTCP         *TimeSeriesData `json:"queryOutgoingTCP"`
-	queryServiceTopology     *TimeSeriesData `json:"queryServiceTopology"`
-	GNS                      *GnsGns         `json:"GNS"`
-	ConfigName               *string         `json:"ConfigName"`
-	Cluster                  *ConfigCluster  `json:"Cluster"`
-	FooA                     *string         `json:"FooA"`
-	FooMap                   *string         `json:"FooMap"`
-	FooB                     []*string       `json:"FooB"`
-	FooD                     *string         `json:"FooD"`
-	XYZPort                  []*int          `json:"XYZPort"`
-	ABCHost                  []*string       `json:"ABCHost"`
+	Id                *string                      `json:"Id"`
+	ParentLabels      map[string]interface{}       `json:"ParentLabels"`
+	ACPPolicies       []*PolicyAccessControlPolicy `json:"ACPPolicies"`
+	FooExample        []*ConfigFooType             `json:"FooExample"`
+	MyStr0            *string                      `json:"MyStr0"`
+	MyStr1            *string                      `json:"MyStr1"`
+	MyStr2            *string                      `json:"MyStr2"`
+	XYZPort           *string                      `json:"XYZPort"`
+	ABCHost           *string                      `json:"ABCHost"`
+	ClusterNamespaces *string                      `json:"ClusterNamespaces"`
+	TestValMarkers    *string                      `json:"TestValMarkers"`
+	Instance          *float64                     `json:"Instance"`
+	GNS               *GnsGns                      `json:"GNS"`
+	DNS               *GnsDns                      `json:"DNS"`
+	VMPPolicies       *PolicyVMpolicy              `json:"VMPPolicies"`
+	Domain            *ConfigDomain                `json:"Domain"`
 }
 
-type GnsBar struct {
-	Id                       *string         `json:"Id"`
-	queryServiceTable        *TimeSeriesData `json:"queryServiceTable"`
-	queryServiceVersionTable *TimeSeriesData `json:"queryServiceVersionTable"`
-	queryServiceTS           *TimeSeriesData `json:"queryServiceTS"`
-	queryIncomingAPIs        *TimeSeriesData `json:"queryIncomingAPIs"`
-	queryOutgoingAPIs        *TimeSeriesData `json:"queryOutgoingAPIs"`
-	queryIncomingTCP         *TimeSeriesData `json:"queryIncomingTCP"`
-	queryOutgoingTCP         *TimeSeriesData `json:"queryOutgoingTCP"`
-	queryServiceTopology     *TimeSeriesData `json:"queryServiceTopology"`
-	Name                     *string         `json:"Name"`
+type ConfigDomain struct {
+	Id               *string                `json:"Id"`
+	ParentLabels     map[string]interface{} `json:"ParentLabels"`
+	PointPort        *string                `json:"PointPort"`
+	PointString      *string                `json:"PointString"`
+	PointInt         *int                   `json:"PointInt"`
+	PointMap         *string                `json:"PointMap"`
+	PointSlice       *string                `json:"PointSlice"`
+	SliceOfPoints    *string                `json:"SliceOfPoints"`
+	SliceOfArrPoints *string                `json:"SliceOfArrPoints"`
+	MapOfArrsPoints  *string                `json:"MapOfArrsPoints"`
+	PointStruct      *string                `json:"PointStruct"`
 }
 
-type GnsDescription struct {
-	Color     *string  `json:"Color"`
-	Version   *string  `json:"Version"`
-	ProjectID *string  `json:"ProjectID"`
-	Instance  *float64 `json:"Instance"`
+type ConfigFooType struct {
+	Id           *string                `json:"Id"`
+	ParentLabels map[string]interface{} `json:"ParentLabels"`
+	FooA         *string                `json:"FooA"`
+	FooB         *string                `json:"FooB"`
+	FooD         *string                `json:"FooD"`
+	FooF         *string                `json:"FooF"`
 }
 
-type GnsEmptyData struct {
-	Id                       *string         `json:"Id"`
-	queryServiceTable        *TimeSeriesData `json:"queryServiceTable"`
-	queryServiceVersionTable *TimeSeriesData `json:"queryServiceVersionTable"`
-	queryServiceTS           *TimeSeriesData `json:"queryServiceTS"`
-	queryIncomingAPIs        *TimeSeriesData `json:"queryIncomingAPIs"`
-	queryOutgoingAPIs        *TimeSeriesData `json:"queryOutgoingAPIs"`
-	queryIncomingTCP         *TimeSeriesData `json:"queryIncomingTCP"`
-	queryOutgoingTCP         *TimeSeriesData `json:"queryOutgoingTCP"`
-	queryServiceTopology     *TimeSeriesData `json:"queryServiceTopology"`
+type GnsBarChild struct {
+	Id           *string                `json:"Id"`
+	ParentLabels map[string]interface{} `json:"ParentLabels"`
+	Name         *string                `json:"Name"`
+}
+
+type GnsDns struct {
+	Id           *string                `json:"Id"`
+	ParentLabels map[string]interface{} `json:"ParentLabels"`
 }
 
 type GnsGns struct {
-	Id                       *string           `json:"Id"`
-	queryServiceTable        *TimeSeriesData   `json:"queryServiceTable"`
-	queryServiceVersionTable *TimeSeriesData   `json:"queryServiceVersionTable"`
-	queryServiceTS           *TimeSeriesData   `json:"queryServiceTS"`
-	queryIncomingAPIs        *TimeSeriesData   `json:"queryIncomingAPIs"`
-	queryOutgoingAPIs        *TimeSeriesData   `json:"queryOutgoingAPIs"`
-	queryIncomingTCP         *TimeSeriesData   `json:"queryIncomingTCP"`
-	queryOutgoingTCP         *TimeSeriesData   `json:"queryOutgoingTCP"`
-	queryServiceTopology     *TimeSeriesData   `json:"queryServiceTopology"`
-	FooLink                  *GnsBar           `json:"FooLink"`
-	FooLinks                 []*GnsBar         `json:"FooLinks"`
-	FooChild                 *GnsBar           `json:"FooChild"`
-	FooChildren              []*GnsBar         `json:"FooChildren"`
-	Domain                   *string           `json:"Domain"`
-	UseSharedGateway         *bool             `json:"UseSharedGateway"`
-	Mydesc                   *GnsDescription   `json:"Mydesc"`
-	HostPort                 *GnsHostPort      `json:"HostPort"`
-	TestArray                *GnsEmptyData     `json:"TestArray"`
-	Instance                 *float64          `json:"Instance"`
-	Array1                   []*int            `json:"Array1"`
-	Array2                   []*GnsDescription `json:"Array2"`
-	Array3                   []*GnsBar         `json:"Array3"`
-	Array4                   []*float64        `json:"Array4"`
-	Array5                   []*int            `json:"Array5"`
+	Id                     *string                    `json:"Id"`
+	ParentLabels           map[string]interface{}     `json:"ParentLabels"`
+	GnsServiceGroups       []*ServicegroupSvcGroup    `json:"GnsServiceGroups"`
+	Dns                    *GnsDns                    `json:"Dns"`
+	Domain                 *string                    `json:"Domain"`
+	UseSharedGateway       *bool                      `json:"UseSharedGateway"`
+	Description            *string                    `json:"Description"`
+	Meta                   *string                    `json:"Meta"`
+	Port                   *int                       `json:"Port"`
+	OtherDescription       *string                    `json:"OtherDescription"`
+	MapPointer             *string                    `json:"MapPointer"`
+	SlicePointer           *string                    `json:"SlicePointer"`
+	WorkloadSpec           *string                    `json:"WorkloadSpec"`
+	DifferentSpec          *string                    `json:"DifferentSpec"`
+	GnsAccessControlPolicy *PolicyAccessControlPolicy `json:"GnsAccessControlPolicy"`
+	FooChild               *GnsBarChild               `json:"FooChild"`
 }
 
-type GnsHostPort struct {
-	Host *string `json:"Host"`
-	Port *int    `json:"Port"`
+type GnsIgnoreChild struct {
+	Id           *string                `json:"Id"`
+	ParentLabels map[string]interface{} `json:"ParentLabels"`
+	Name         *string                `json:"Name"`
 }
 
-type RootBar struct {
-	Name *string `json:"Name"`
+type PolicyACPConfig struct {
+	Id              *string                 `json:"Id"`
+	ParentLabels    map[string]interface{}  `json:"ParentLabels"`
+	DestSvcGroups   []*ServicegroupSvcGroup `json:"DestSvcGroups"`
+	SourceSvcGroups []*ServicegroupSvcGroup `json:"SourceSvcGroups"`
+	DisplayName     *string                 `json:"DisplayName"`
+	Gns             *string                 `json:"Gns"`
+	Description     *string                 `json:"Description"`
+	Tags            *string                 `json:"Tags"`
+	ProjectId       *string                 `json:"ProjectId"`
+	Conditions      *string                 `json:"Conditions"`
+}
+
+type PolicyAccessControlPolicy struct {
+	Id            *string                `json:"Id"`
+	ParentLabels  map[string]interface{} `json:"ParentLabels"`
+	PolicyConfigs []*PolicyACPConfig     `json:"PolicyConfigs"`
+}
+
+type PolicyVMpolicy struct {
+	Id           *string                `json:"Id"`
+	ParentLabels map[string]interface{} `json:"ParentLabels"`
 }
 
 type RootRoot struct {
-	Id                       *string         `json:"Id"`
-	queryServiceTable        *TimeSeriesData `json:"queryServiceTable"`
-	queryServiceVersionTable *TimeSeriesData `json:"queryServiceVersionTable"`
-	queryServiceTS           *TimeSeriesData `json:"queryServiceTS"`
-	queryIncomingAPIs        *TimeSeriesData `json:"queryIncomingAPIs"`
-	queryOutgoingAPIs        *TimeSeriesData `json:"queryOutgoingAPIs"`
-	queryIncomingTCP         *TimeSeriesData `json:"queryIncomingTCP"`
-	queryOutgoingTCP         *TimeSeriesData `json:"queryOutgoingTCP"`
-	queryServiceTopology     *TimeSeriesData `json:"queryServiceTopology"`
-	Config                   *ConfigConfig   `json:"Config"`
-	DisplayName              *string         `json:"DisplayName"`
-	CustomBar                *RootBar        `json:"CustomBar"`
+	Id           *string                `json:"Id"`
+	ParentLabels map[string]interface{} `json:"ParentLabels"`
+	Config       *ConfigConfig          `json:"Config"`
+}
+
+type ServicegroupSvcGroup struct {
+	Id           *string                `json:"Id"`
+	ParentLabels map[string]interface{} `json:"ParentLabels"`
+	DisplayName  *string                `json:"DisplayName"`
+	Description  *string                `json:"Description"`
+	Color        *string                `json:"Color"`
 }

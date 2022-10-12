@@ -11,8 +11,8 @@ import (
 
 var _ = Describe("Template renderers tests", func() {
 	var (
-		pkgs           parser.Packages
-		parentsMap     map[string]parser.NodeHelper
+		pkgs       parser.Packages
+		parentsMap map[string]parser.NodeHelper
 		graphqlQueries map[string]nexus.GraphQLQuerySpec
 	)
 
@@ -27,20 +27,20 @@ var _ = Describe("Template renderers tests", func() {
 		vars, err := crdgenerator.GenerateGraphqlResolverVars(baseGroupName, crdModulePath, pkgs, parentsMap)
 		Expect(err).NotTo(HaveOccurred())
 
-		Expect(len(vars)).To(Equal(42))
+		Expect(len(vars)).To(Equal(12))
 		Expect(vars[0].NodeName).To(Equal("Root"))
-		Expect(vars[3].PkgName).To(Equal("Config"))
-		Expect(vars[3].NodeName).To(Equal("Config"))
-		Expect(vars[3].SchemaName).To(Equal("config_Config"))
-		Expect(vars[3].Alias).To(Equal(""))
-		Expect(vars[3].ReturnType).To(Equal(""))
+		Expect(vars[2].PkgName).To(Equal("Config"))
+		Expect(vars[2].NodeName).To(Equal("FooType"))
+		Expect(vars[2].SchemaName).To(Equal("config_FooType"))
+		Expect(vars[2].Alias).To(Equal(""))
+		Expect(vars[2].ReturnType).To(Equal(""))
 
-		Expect(vars[3].IsParentNode).To(BeFalse())
-		Expect(vars[3].HasParent).To(BeFalse())
-		Expect(vars[3].IsSingletonNode).To(BeFalse())
-		Expect(vars[3].IsNexusNode).To(BeTrue())
-		Expect(vars[3].BaseImportPath).To(Equal("nexustempmodule/"))
-		Expect(vars[3].CrdName).To(Equal(""))
+		Expect(vars[2].IsParentNode).To(BeFalse())
+		Expect(vars[2].HasParent).To(BeFalse())
+		Expect(vars[2].IsSingletonNode).To(BeFalse())
+		Expect(vars[2].IsNexusNode).To(BeTrue())
+		Expect(vars[2].BaseImportPath).To(Equal("nexustempmodule/"))
+		Expect(vars[2].CrdName).To(Equal(""))
 	})
 
 	It("should resolve non-singleton root and singleton child node", func() {

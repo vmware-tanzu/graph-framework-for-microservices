@@ -148,6 +148,8 @@ type Gns struct {
 	GnsAccessControlPolicy policypkg.AccessControlPolicy `nexus:"child" nexus-graphql:"type:string"`
 	Dns                    Dns                           `nexus:"link" nexus-graphql:"ignore:true"`
 	State                  GnsState                      `nexus:"status"`
+	FooChild               BarChild                      `nexus:"child" nexus-graphql:"type:string"`
+	IgnoreChild            IgnoreChild                   `nexus:"child" nexus-graphql:"ignore:true"`
 	Meta                   string
 
 	Port             *int         // pointer test
@@ -169,8 +171,13 @@ type Description struct {
 	HostPort  HostPort
 }
 
-type BarLink struct {
+type BarChild struct {
 	nexus.SingletonNode
+	Name string
+}
+
+type IgnoreChild struct {
+	nexus.Node
 	Name string
 }
 

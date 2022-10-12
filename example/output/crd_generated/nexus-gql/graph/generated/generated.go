@@ -39,9 +39,9 @@ type Config struct {
 type ResolverRoot interface {
 	Query() QueryResolver
 	Config_Config() Config_ConfigResolver
-	Gns_Bar() Gns_BarResolver
-	Gns_EmptyData() Gns_EmptyDataResolver
 	Gns_Gns() Gns_GnsResolver
+	Policy_ACPConfig() Policy_ACPConfigResolver
+	Policy_AccessControlPolicy() Policy_AccessControlPolicyResolver
 	Root_Root() Root_RootResolver
 }
 
@@ -53,121 +53,120 @@ type ComplexityRoot struct {
 		Root func(childComplexity int) int
 	}
 
-	TimeSeriesData struct {
-		Code         func(childComplexity int) int
-		Data         func(childComplexity int) int
-		Last         func(childComplexity int) int
-		Message      func(childComplexity int) int
-		TotalRecords func(childComplexity int) int
-	}
-
-	Config_Cluster struct {
-		MyID func(childComplexity int) int
-		Name func(childComplexity int) int
-	}
-
 	Config_Config struct {
-		ABCHost                  func(childComplexity int) int
-		Cluster                  func(childComplexity int) int
-		ConfigName               func(childComplexity int) int
-		FooA                     func(childComplexity int) int
-		FooB                     func(childComplexity int) int
-		FooD                     func(childComplexity int) int
-		FooMap                   func(childComplexity int) int
-		Gns                      func(childComplexity int) int
-		Id                       func(childComplexity int) int
-		QueryIncomingAPIs        func(childComplexity int, startTime *string, endTime *string, destinationService *string, destinationServiceVersion *string, timeInterval *string, timeZone *string) int
-		QueryIncomingTcp         func(childComplexity int, startTime *string, endTime *string, destinationService *string, destinationServiceVersion *string) int
-		QueryOutgoingAPIs        func(childComplexity int, startTime *string, endTime *string, timeInterval *string, timeZone *string) int
-		QueryOutgoingTcp         func(childComplexity int, startTime *string, endTime *string, destinationService *string, destinationServiceVersion *string) int
-		QueryServiceTable        func(childComplexity int, startTime *string, endTime *string, systemServices *bool, showGateways *bool, groupby *string, noMetrics *bool) int
-		QueryServiceTopology     func(childComplexity int, metricStringArray *string, startTime *string, endTime *string) int
-		QueryServiceTs           func(childComplexity int, svcMetric *string, startTime *string, endTime *string, timeInterval *string) int
-		QueryServiceVersionTable func(childComplexity int, startTime *string, endTime *string, systemServices *bool, showGateways *bool, noMetrics *bool) int
-		XYZPort                  func(childComplexity int) int
+		ABCHost           func(childComplexity int) int
+		ACPPolicies       func(childComplexity int, id *string) int
+		ClusterNamespaces func(childComplexity int) int
+		Dns               func(childComplexity int) int
+		Domain            func(childComplexity int, id *string) int
+		FooExample        func(childComplexity int, id *string) int
+		Gns               func(childComplexity int, id *string) int
+		Id                func(childComplexity int) int
+		Instance          func(childComplexity int) int
+		MyStr0            func(childComplexity int) int
+		MyStr1            func(childComplexity int) int
+		MyStr2            func(childComplexity int) int
+		ParentLabels      func(childComplexity int) int
+		TestValMarkers    func(childComplexity int) int
+		VMPPolicies       func(childComplexity int, id *string) int
+		XYZPort           func(childComplexity int) int
 	}
 
-	Gns_Bar struct {
-		Id                       func(childComplexity int) int
-		Name                     func(childComplexity int) int
-		QueryIncomingAPIs        func(childComplexity int, startTime *string, endTime *string, destinationService *string, destinationServiceVersion *string, timeInterval *string, timeZone *string) int
-		QueryIncomingTcp         func(childComplexity int, startTime *string, endTime *string, destinationService *string, destinationServiceVersion *string) int
-		QueryOutgoingAPIs        func(childComplexity int, startTime *string, endTime *string, timeInterval *string, timeZone *string) int
-		QueryOutgoingTcp         func(childComplexity int, startTime *string, endTime *string, destinationService *string, destinationServiceVersion *string) int
-		QueryServiceTable        func(childComplexity int, startTime *string, endTime *string, systemServices *bool, showGateways *bool, groupby *string, noMetrics *bool) int
-		QueryServiceTopology     func(childComplexity int, metricStringArray *string, startTime *string, endTime *string) int
-		QueryServiceTs           func(childComplexity int, svcMetric *string, startTime *string, endTime *string, timeInterval *string) int
-		QueryServiceVersionTable func(childComplexity int, startTime *string, endTime *string, systemServices *bool, showGateways *bool, noMetrics *bool) int
+	Config_Domain struct {
+		Id               func(childComplexity int) int
+		MapOfArrsPoints  func(childComplexity int) int
+		ParentLabels     func(childComplexity int) int
+		PointInt         func(childComplexity int) int
+		PointMap         func(childComplexity int) int
+		PointPort        func(childComplexity int) int
+		PointSlice       func(childComplexity int) int
+		PointString      func(childComplexity int) int
+		PointStruct      func(childComplexity int) int
+		SliceOfArrPoints func(childComplexity int) int
+		SliceOfPoints    func(childComplexity int) int
 	}
 
-	Gns_Description struct {
-		Color     func(childComplexity int) int
-		Instance  func(childComplexity int) int
-		ProjectID func(childComplexity int) int
-		Version   func(childComplexity int) int
+	Config_FooType struct {
+		FooA         func(childComplexity int) int
+		FooB         func(childComplexity int) int
+		FooD         func(childComplexity int) int
+		FooF         func(childComplexity int) int
+		Id           func(childComplexity int) int
+		ParentLabels func(childComplexity int) int
 	}
 
-	Gns_EmptyData struct {
-		Id                       func(childComplexity int) int
-		QueryIncomingAPIs        func(childComplexity int, startTime *string, endTime *string, destinationService *string, destinationServiceVersion *string, timeInterval *string, timeZone *string) int
-		QueryIncomingTcp         func(childComplexity int, startTime *string, endTime *string, destinationService *string, destinationServiceVersion *string) int
-		QueryOutgoingAPIs        func(childComplexity int, startTime *string, endTime *string, timeInterval *string, timeZone *string) int
-		QueryOutgoingTcp         func(childComplexity int, startTime *string, endTime *string, destinationService *string, destinationServiceVersion *string) int
-		QueryServiceTable        func(childComplexity int, startTime *string, endTime *string, systemServices *bool, showGateways *bool, groupby *string, noMetrics *bool) int
-		QueryServiceTopology     func(childComplexity int, metricStringArray *string, startTime *string, endTime *string) int
-		QueryServiceTs           func(childComplexity int, svcMetric *string, startTime *string, endTime *string, timeInterval *string) int
-		QueryServiceVersionTable func(childComplexity int, startTime *string, endTime *string, systemServices *bool, showGateways *bool, noMetrics *bool) int
+	Gns_BarChild struct {
+		Id           func(childComplexity int) int
+		Name         func(childComplexity int) int
+		ParentLabels func(childComplexity int) int
+	}
+
+	Gns_Dns struct {
+		Id           func(childComplexity int) int
+		ParentLabels func(childComplexity int) int
 	}
 
 	Gns_Gns struct {
-		Array1                   func(childComplexity int) int
-		Array2                   func(childComplexity int) int
-		Array3                   func(childComplexity int) int
-		Array4                   func(childComplexity int) int
-		Array5                   func(childComplexity int) int
-		Domain                   func(childComplexity int) int
-		FooChild                 func(childComplexity int) int
-		FooChildren              func(childComplexity int, id *string) int
-		FooLink                  func(childComplexity int) int
-		FooLinks                 func(childComplexity int, id *string) int
-		HostPort                 func(childComplexity int) int
-		Id                       func(childComplexity int) int
-		Instance                 func(childComplexity int) int
-		Mydesc                   func(childComplexity int) int
-		QueryIncomingAPIs        func(childComplexity int, startTime *string, endTime *string, destinationService *string, destinationServiceVersion *string, timeInterval *string, timeZone *string) int
-		QueryIncomingTcp         func(childComplexity int, startTime *string, endTime *string, destinationService *string, destinationServiceVersion *string) int
-		QueryOutgoingAPIs        func(childComplexity int, startTime *string, endTime *string, timeInterval *string, timeZone *string) int
-		QueryOutgoingTcp         func(childComplexity int, startTime *string, endTime *string, destinationService *string, destinationServiceVersion *string) int
-		QueryServiceTable        func(childComplexity int, startTime *string, endTime *string, systemServices *bool, showGateways *bool, groupby *string, noMetrics *bool) int
-		QueryServiceTopology     func(childComplexity int, metricStringArray *string, startTime *string, endTime *string) int
-		QueryServiceTs           func(childComplexity int, svcMetric *string, startTime *string, endTime *string, timeInterval *string) int
-		QueryServiceVersionTable func(childComplexity int, startTime *string, endTime *string, systemServices *bool, showGateways *bool, noMetrics *bool) int
-		TestArray                func(childComplexity int) int
-		UseSharedGateway         func(childComplexity int) int
+		Description            func(childComplexity int) int
+		DifferentSpec          func(childComplexity int) int
+		Dns                    func(childComplexity int) int
+		Domain                 func(childComplexity int) int
+		FooChild               func(childComplexity int) int
+		GnsAccessControlPolicy func(childComplexity int, id *string) int
+		GnsServiceGroups       func(childComplexity int, id *string) int
+		Id                     func(childComplexity int) int
+		MapPointer             func(childComplexity int) int
+		Meta                   func(childComplexity int) int
+		OtherDescription       func(childComplexity int) int
+		ParentLabels           func(childComplexity int) int
+		Port                   func(childComplexity int) int
+		SlicePointer           func(childComplexity int) int
+		UseSharedGateway       func(childComplexity int) int
+		WorkloadSpec           func(childComplexity int) int
 	}
 
-	Gns_HostPort struct {
-		Host func(childComplexity int) int
-		Port func(childComplexity int) int
+	Gns_IgnoreChild struct {
+		Id           func(childComplexity int) int
+		Name         func(childComplexity int) int
+		ParentLabels func(childComplexity int) int
 	}
 
-	Root_Bar struct {
-		Name func(childComplexity int) int
+	Policy_ACPConfig struct {
+		Conditions      func(childComplexity int) int
+		Description     func(childComplexity int) int
+		DestSvcGroups   func(childComplexity int, id *string) int
+		DisplayName     func(childComplexity int) int
+		Gns             func(childComplexity int) int
+		Id              func(childComplexity int) int
+		ParentLabels    func(childComplexity int) int
+		ProjectId       func(childComplexity int) int
+		SourceSvcGroups func(childComplexity int, id *string) int
+		Tags            func(childComplexity int) int
+	}
+
+	Policy_AccessControlPolicy struct {
+		Id            func(childComplexity int) int
+		ParentLabels  func(childComplexity int) int
+		PolicyConfigs func(childComplexity int, id *string) int
+	}
+
+	Policy_VMpolicy struct {
+		Id           func(childComplexity int) int
+		ParentLabels func(childComplexity int) int
 	}
 
 	Root_Root struct {
-		Config                   func(childComplexity int) int
-		CustomBar                func(childComplexity int) int
-		DisplayName              func(childComplexity int) int
-		Id                       func(childComplexity int) int
-		QueryIncomingAPIs        func(childComplexity int, startTime *string, endTime *string, destinationService *string, destinationServiceVersion *string, timeInterval *string, timeZone *string) int
-		QueryIncomingTcp         func(childComplexity int, startTime *string, endTime *string, destinationService *string, destinationServiceVersion *string) int
-		QueryOutgoingAPIs        func(childComplexity int, startTime *string, endTime *string, timeInterval *string, timeZone *string) int
-		QueryOutgoingTcp         func(childComplexity int, startTime *string, endTime *string, destinationService *string, destinationServiceVersion *string) int
-		QueryServiceTable        func(childComplexity int, startTime *string, endTime *string, systemServices *bool, showGateways *bool, groupby *string, noMetrics *bool) int
-		QueryServiceTopology     func(childComplexity int, metricStringArray *string, startTime *string, endTime *string) int
-		QueryServiceTs           func(childComplexity int, svcMetric *string, startTime *string, endTime *string, timeInterval *string) int
-		QueryServiceVersionTable func(childComplexity int, startTime *string, endTime *string, systemServices *bool, showGateways *bool, noMetrics *bool) int
+		Config       func(childComplexity int, id *string) int
+		Id           func(childComplexity int) int
+		ParentLabels func(childComplexity int) int
+	}
+
+	Servicegroup_SvcGroup struct {
+		Color        func(childComplexity int) int
+		Description  func(childComplexity int) int
+		DisplayName  func(childComplexity int) int
+		Id           func(childComplexity int) int
+		ParentLabels func(childComplexity int) int
 	}
 }
 
@@ -175,76 +174,30 @@ type QueryResolver interface {
 	Root(ctx context.Context) (*model.RootRoot, error)
 }
 type Config_ConfigResolver interface {
-	QueryServiceTable(ctx context.Context, obj *model.ConfigConfig, startTime *string, endTime *string, systemServices *bool, showGateways *bool, groupby *string, noMetrics *bool) (*model.TimeSeriesData, error)
-	QueryServiceVersionTable(ctx context.Context, obj *model.ConfigConfig, startTime *string, endTime *string, systemServices *bool, showGateways *bool, noMetrics *bool) (*model.TimeSeriesData, error)
-	QueryServiceTs(ctx context.Context, obj *model.ConfigConfig, svcMetric *string, startTime *string, endTime *string, timeInterval *string) (*model.TimeSeriesData, error)
-	QueryIncomingAPIs(ctx context.Context, obj *model.ConfigConfig, startTime *string, endTime *string, destinationService *string, destinationServiceVersion *string, timeInterval *string, timeZone *string) (*model.TimeSeriesData, error)
-	QueryOutgoingAPIs(ctx context.Context, obj *model.ConfigConfig, startTime *string, endTime *string, timeInterval *string, timeZone *string) (*model.TimeSeriesData, error)
-	QueryIncomingTcp(ctx context.Context, obj *model.ConfigConfig, startTime *string, endTime *string, destinationService *string, destinationServiceVersion *string) (*model.TimeSeriesData, error)
-	QueryOutgoingTcp(ctx context.Context, obj *model.ConfigConfig, startTime *string, endTime *string, destinationService *string, destinationServiceVersion *string) (*model.TimeSeriesData, error)
-	QueryServiceTopology(ctx context.Context, obj *model.ConfigConfig, metricStringArray *string, startTime *string, endTime *string) (*model.TimeSeriesData, error)
-	Gns(ctx context.Context, obj *model.ConfigConfig) (*model.GnsGns, error)
+	ACPPolicies(ctx context.Context, obj *model.ConfigConfig, id *string) ([]*model.PolicyAccessControlPolicy, error)
+	FooExample(ctx context.Context, obj *model.ConfigConfig, id *string) ([]*model.ConfigFooType, error)
 
-	Cluster(ctx context.Context, obj *model.ConfigConfig) (*model.ConfigCluster, error)
-
-	XYZPort(ctx context.Context, obj *model.ConfigConfig) ([]*int, error)
-	ABCHost(ctx context.Context, obj *model.ConfigConfig) ([]*string, error)
-}
-type Gns_BarResolver interface {
-	QueryServiceTable(ctx context.Context, obj *model.GnsBar, startTime *string, endTime *string, systemServices *bool, showGateways *bool, groupby *string, noMetrics *bool) (*model.TimeSeriesData, error)
-	QueryServiceVersionTable(ctx context.Context, obj *model.GnsBar, startTime *string, endTime *string, systemServices *bool, showGateways *bool, noMetrics *bool) (*model.TimeSeriesData, error)
-	QueryServiceTs(ctx context.Context, obj *model.GnsBar, svcMetric *string, startTime *string, endTime *string, timeInterval *string) (*model.TimeSeriesData, error)
-	QueryIncomingAPIs(ctx context.Context, obj *model.GnsBar, startTime *string, endTime *string, destinationService *string, destinationServiceVersion *string, timeInterval *string, timeZone *string) (*model.TimeSeriesData, error)
-	QueryOutgoingAPIs(ctx context.Context, obj *model.GnsBar, startTime *string, endTime *string, timeInterval *string, timeZone *string) (*model.TimeSeriesData, error)
-	QueryIncomingTcp(ctx context.Context, obj *model.GnsBar, startTime *string, endTime *string, destinationService *string, destinationServiceVersion *string) (*model.TimeSeriesData, error)
-	QueryOutgoingTcp(ctx context.Context, obj *model.GnsBar, startTime *string, endTime *string, destinationService *string, destinationServiceVersion *string) (*model.TimeSeriesData, error)
-	QueryServiceTopology(ctx context.Context, obj *model.GnsBar, metricStringArray *string, startTime *string, endTime *string) (*model.TimeSeriesData, error)
-}
-type Gns_EmptyDataResolver interface {
-	QueryServiceTable(ctx context.Context, obj *model.GnsEmptyData, startTime *string, endTime *string, systemServices *bool, showGateways *bool, groupby *string, noMetrics *bool) (*model.TimeSeriesData, error)
-	QueryServiceVersionTable(ctx context.Context, obj *model.GnsEmptyData, startTime *string, endTime *string, systemServices *bool, showGateways *bool, noMetrics *bool) (*model.TimeSeriesData, error)
-	QueryServiceTs(ctx context.Context, obj *model.GnsEmptyData, svcMetric *string, startTime *string, endTime *string, timeInterval *string) (*model.TimeSeriesData, error)
-	QueryIncomingAPIs(ctx context.Context, obj *model.GnsEmptyData, startTime *string, endTime *string, destinationService *string, destinationServiceVersion *string, timeInterval *string, timeZone *string) (*model.TimeSeriesData, error)
-	QueryOutgoingAPIs(ctx context.Context, obj *model.GnsEmptyData, startTime *string, endTime *string, timeInterval *string, timeZone *string) (*model.TimeSeriesData, error)
-	QueryIncomingTcp(ctx context.Context, obj *model.GnsEmptyData, startTime *string, endTime *string, destinationService *string, destinationServiceVersion *string) (*model.TimeSeriesData, error)
-	QueryOutgoingTcp(ctx context.Context, obj *model.GnsEmptyData, startTime *string, endTime *string, destinationService *string, destinationServiceVersion *string) (*model.TimeSeriesData, error)
-	QueryServiceTopology(ctx context.Context, obj *model.GnsEmptyData, metricStringArray *string, startTime *string, endTime *string) (*model.TimeSeriesData, error)
+	Gns(ctx context.Context, obj *model.ConfigConfig, id *string) (*model.GnsGns, error)
+	Dns(ctx context.Context, obj *model.ConfigConfig) (*model.GnsDns, error)
+	VMPPolicies(ctx context.Context, obj *model.ConfigConfig, id *string) (*model.PolicyVMpolicy, error)
+	Domain(ctx context.Context, obj *model.ConfigConfig, id *string) (*model.ConfigDomain, error)
 }
 type Gns_GnsResolver interface {
-	QueryServiceTable(ctx context.Context, obj *model.GnsGns, startTime *string, endTime *string, systemServices *bool, showGateways *bool, groupby *string, noMetrics *bool) (*model.TimeSeriesData, error)
-	QueryServiceVersionTable(ctx context.Context, obj *model.GnsGns, startTime *string, endTime *string, systemServices *bool, showGateways *bool, noMetrics *bool) (*model.TimeSeriesData, error)
-	QueryServiceTs(ctx context.Context, obj *model.GnsGns, svcMetric *string, startTime *string, endTime *string, timeInterval *string) (*model.TimeSeriesData, error)
-	QueryIncomingAPIs(ctx context.Context, obj *model.GnsGns, startTime *string, endTime *string, destinationService *string, destinationServiceVersion *string, timeInterval *string, timeZone *string) (*model.TimeSeriesData, error)
-	QueryOutgoingAPIs(ctx context.Context, obj *model.GnsGns, startTime *string, endTime *string, timeInterval *string, timeZone *string) (*model.TimeSeriesData, error)
-	QueryIncomingTcp(ctx context.Context, obj *model.GnsGns, startTime *string, endTime *string, destinationService *string, destinationServiceVersion *string) (*model.TimeSeriesData, error)
-	QueryOutgoingTcp(ctx context.Context, obj *model.GnsGns, startTime *string, endTime *string, destinationService *string, destinationServiceVersion *string) (*model.TimeSeriesData, error)
-	QueryServiceTopology(ctx context.Context, obj *model.GnsGns, metricStringArray *string, startTime *string, endTime *string) (*model.TimeSeriesData, error)
-	FooLink(ctx context.Context, obj *model.GnsGns) (*model.GnsBar, error)
-	FooLinks(ctx context.Context, obj *model.GnsGns, id *string) ([]*model.GnsBar, error)
-	FooChild(ctx context.Context, obj *model.GnsGns) (*model.GnsBar, error)
-	FooChildren(ctx context.Context, obj *model.GnsGns, id *string) ([]*model.GnsBar, error)
+	GnsServiceGroups(ctx context.Context, obj *model.GnsGns, id *string) ([]*model.ServicegroupSvcGroup, error)
+	Dns(ctx context.Context, obj *model.GnsGns) (*model.GnsDns, error)
 
-	Mydesc(ctx context.Context, obj *model.GnsGns) (*model.GnsDescription, error)
-	HostPort(ctx context.Context, obj *model.GnsGns) (*model.GnsHostPort, error)
-	TestArray(ctx context.Context, obj *model.GnsGns) (*model.GnsEmptyData, error)
-
-	Array1(ctx context.Context, obj *model.GnsGns) ([]*int, error)
-	Array2(ctx context.Context, obj *model.GnsGns) ([]*model.GnsDescription, error)
-	Array3(ctx context.Context, obj *model.GnsGns) ([]*model.GnsBar, error)
-	Array4(ctx context.Context, obj *model.GnsGns) ([]*float64, error)
+	GnsAccessControlPolicy(ctx context.Context, obj *model.GnsGns, id *string) (*model.PolicyAccessControlPolicy, error)
+	FooChild(ctx context.Context, obj *model.GnsGns) (*model.GnsBarChild, error)
+}
+type Policy_ACPConfigResolver interface {
+	DestSvcGroups(ctx context.Context, obj *model.PolicyACPConfig, id *string) ([]*model.ServicegroupSvcGroup, error)
+	SourceSvcGroups(ctx context.Context, obj *model.PolicyACPConfig, id *string) ([]*model.ServicegroupSvcGroup, error)
+}
+type Policy_AccessControlPolicyResolver interface {
+	PolicyConfigs(ctx context.Context, obj *model.PolicyAccessControlPolicy, id *string) ([]*model.PolicyACPConfig, error)
 }
 type Root_RootResolver interface {
-	QueryServiceTable(ctx context.Context, obj *model.RootRoot, startTime *string, endTime *string, systemServices *bool, showGateways *bool, groupby *string, noMetrics *bool) (*model.TimeSeriesData, error)
-	QueryServiceVersionTable(ctx context.Context, obj *model.RootRoot, startTime *string, endTime *string, systemServices *bool, showGateways *bool, noMetrics *bool) (*model.TimeSeriesData, error)
-	QueryServiceTs(ctx context.Context, obj *model.RootRoot, svcMetric *string, startTime *string, endTime *string, timeInterval *string) (*model.TimeSeriesData, error)
-	QueryIncomingAPIs(ctx context.Context, obj *model.RootRoot, startTime *string, endTime *string, destinationService *string, destinationServiceVersion *string, timeInterval *string, timeZone *string) (*model.TimeSeriesData, error)
-	QueryOutgoingAPIs(ctx context.Context, obj *model.RootRoot, startTime *string, endTime *string, timeInterval *string, timeZone *string) (*model.TimeSeriesData, error)
-	QueryIncomingTcp(ctx context.Context, obj *model.RootRoot, startTime *string, endTime *string, destinationService *string, destinationServiceVersion *string) (*model.TimeSeriesData, error)
-	QueryOutgoingTcp(ctx context.Context, obj *model.RootRoot, startTime *string, endTime *string, destinationService *string, destinationServiceVersion *string) (*model.TimeSeriesData, error)
-	QueryServiceTopology(ctx context.Context, obj *model.RootRoot, metricStringArray *string, startTime *string, endTime *string) (*model.TimeSeriesData, error)
-	Config(ctx context.Context, obj *model.RootRoot) (*model.ConfigConfig, error)
-
-	CustomBar(ctx context.Context, obj *model.RootRoot) (*model.RootBar, error)
+	Config(ctx context.Context, obj *model.RootRoot, id *string) (*model.ConfigConfig, error)
 }
 
 type executableSchema struct {
@@ -269,55 +222,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.Root(childComplexity), true
 
-	case "TimeSeriesData.Code":
-		if e.complexity.TimeSeriesData.Code == nil {
-			break
-		}
-
-		return e.complexity.TimeSeriesData.Code(childComplexity), true
-
-	case "TimeSeriesData.Data":
-		if e.complexity.TimeSeriesData.Data == nil {
-			break
-		}
-
-		return e.complexity.TimeSeriesData.Data(childComplexity), true
-
-	case "TimeSeriesData.Last":
-		if e.complexity.TimeSeriesData.Last == nil {
-			break
-		}
-
-		return e.complexity.TimeSeriesData.Last(childComplexity), true
-
-	case "TimeSeriesData.Message":
-		if e.complexity.TimeSeriesData.Message == nil {
-			break
-		}
-
-		return e.complexity.TimeSeriesData.Message(childComplexity), true
-
-	case "TimeSeriesData.TotalRecords":
-		if e.complexity.TimeSeriesData.TotalRecords == nil {
-			break
-		}
-
-		return e.complexity.TimeSeriesData.TotalRecords(childComplexity), true
-
-	case "config_Cluster.MyID":
-		if e.complexity.Config_Cluster.MyID == nil {
-			break
-		}
-
-		return e.complexity.Config_Cluster.MyID(childComplexity), true
-
-	case "config_Cluster.Name":
-		if e.complexity.Config_Cluster.Name == nil {
-			break
-		}
-
-		return e.complexity.Config_Cluster.Name(childComplexity), true
-
 	case "config_Config.ABCHost":
 		if e.complexity.Config_Config.ABCHost == nil {
 			break
@@ -325,54 +229,67 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Config_Config.ABCHost(childComplexity), true
 
-	case "config_Config.Cluster":
-		if e.complexity.Config_Config.Cluster == nil {
+	case "config_Config.ACPPolicies":
+		if e.complexity.Config_Config.ACPPolicies == nil {
 			break
 		}
 
-		return e.complexity.Config_Config.Cluster(childComplexity), true
+		args, err := ec.field_config_Config_ACPPolicies_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
 
-	case "config_Config.ConfigName":
-		if e.complexity.Config_Config.ConfigName == nil {
+		return e.complexity.Config_Config.ACPPolicies(childComplexity, args["Id"].(*string)), true
+
+	case "config_Config.ClusterNamespaces":
+		if e.complexity.Config_Config.ClusterNamespaces == nil {
 			break
 		}
 
-		return e.complexity.Config_Config.ConfigName(childComplexity), true
+		return e.complexity.Config_Config.ClusterNamespaces(childComplexity), true
 
-	case "config_Config.FooA":
-		if e.complexity.Config_Config.FooA == nil {
+	case "config_Config.DNS":
+		if e.complexity.Config_Config.Dns == nil {
 			break
 		}
 
-		return e.complexity.Config_Config.FooA(childComplexity), true
+		return e.complexity.Config_Config.Dns(childComplexity), true
 
-	case "config_Config.FooB":
-		if e.complexity.Config_Config.FooB == nil {
+	case "config_Config.Domain":
+		if e.complexity.Config_Config.Domain == nil {
 			break
 		}
 
-		return e.complexity.Config_Config.FooB(childComplexity), true
+		args, err := ec.field_config_Config_Domain_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
 
-	case "config_Config.FooD":
-		if e.complexity.Config_Config.FooD == nil {
+		return e.complexity.Config_Config.Domain(childComplexity, args["Id"].(*string)), true
+
+	case "config_Config.FooExample":
+		if e.complexity.Config_Config.FooExample == nil {
 			break
 		}
 
-		return e.complexity.Config_Config.FooD(childComplexity), true
-
-	case "config_Config.FooMap":
-		if e.complexity.Config_Config.FooMap == nil {
-			break
+		args, err := ec.field_config_Config_FooExample_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
 		}
 
-		return e.complexity.Config_Config.FooMap(childComplexity), true
+		return e.complexity.Config_Config.FooExample(childComplexity, args["Id"].(*string)), true
 
 	case "config_Config.GNS":
 		if e.complexity.Config_Config.Gns == nil {
 			break
 		}
 
-		return e.complexity.Config_Config.Gns(childComplexity), true
+		args, err := ec.field_config_Config_GNS_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Config_Config.Gns(childComplexity, args["Id"].(*string)), true
 
 	case "config_Config.Id":
 		if e.complexity.Config_Config.Id == nil {
@@ -381,101 +298,59 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Config_Config.Id(childComplexity), true
 
-	case "config_Config.queryIncomingAPIs":
-		if e.complexity.Config_Config.QueryIncomingAPIs == nil {
+	case "config_Config.Instance":
+		if e.complexity.Config_Config.Instance == nil {
 			break
 		}
 
-		args, err := ec.field_config_Config_queryIncomingAPIs_args(context.TODO(), rawArgs)
+		return e.complexity.Config_Config.Instance(childComplexity), true
+
+	case "config_Config.MyStr0":
+		if e.complexity.Config_Config.MyStr0 == nil {
+			break
+		}
+
+		return e.complexity.Config_Config.MyStr0(childComplexity), true
+
+	case "config_Config.MyStr1":
+		if e.complexity.Config_Config.MyStr1 == nil {
+			break
+		}
+
+		return e.complexity.Config_Config.MyStr1(childComplexity), true
+
+	case "config_Config.MyStr2":
+		if e.complexity.Config_Config.MyStr2 == nil {
+			break
+		}
+
+		return e.complexity.Config_Config.MyStr2(childComplexity), true
+
+	case "config_Config.ParentLabels":
+		if e.complexity.Config_Config.ParentLabels == nil {
+			break
+		}
+
+		return e.complexity.Config_Config.ParentLabels(childComplexity), true
+
+	case "config_Config.TestValMarkers":
+		if e.complexity.Config_Config.TestValMarkers == nil {
+			break
+		}
+
+		return e.complexity.Config_Config.TestValMarkers(childComplexity), true
+
+	case "config_Config.VMPPolicies":
+		if e.complexity.Config_Config.VMPPolicies == nil {
+			break
+		}
+
+		args, err := ec.field_config_Config_VMPPolicies_args(context.TODO(), rawArgs)
 		if err != nil {
 			return 0, false
 		}
 
-		return e.complexity.Config_Config.QueryIncomingAPIs(childComplexity, args["startTime"].(*string), args["endTime"].(*string), args["destinationService"].(*string), args["destinationServiceVersion"].(*string), args["timeInterval"].(*string), args["timeZone"].(*string)), true
-
-	case "config_Config.queryIncomingTCP":
-		if e.complexity.Config_Config.QueryIncomingTcp == nil {
-			break
-		}
-
-		args, err := ec.field_config_Config_queryIncomingTCP_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Config_Config.QueryIncomingTcp(childComplexity, args["startTime"].(*string), args["endTime"].(*string), args["destinationService"].(*string), args["destinationServiceVersion"].(*string)), true
-
-	case "config_Config.queryOutgoingAPIs":
-		if e.complexity.Config_Config.QueryOutgoingAPIs == nil {
-			break
-		}
-
-		args, err := ec.field_config_Config_queryOutgoingAPIs_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Config_Config.QueryOutgoingAPIs(childComplexity, args["startTime"].(*string), args["endTime"].(*string), args["timeInterval"].(*string), args["timeZone"].(*string)), true
-
-	case "config_Config.queryOutgoingTCP":
-		if e.complexity.Config_Config.QueryOutgoingTcp == nil {
-			break
-		}
-
-		args, err := ec.field_config_Config_queryOutgoingTCP_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Config_Config.QueryOutgoingTcp(childComplexity, args["startTime"].(*string), args["endTime"].(*string), args["destinationService"].(*string), args["destinationServiceVersion"].(*string)), true
-
-	case "config_Config.queryServiceTable":
-		if e.complexity.Config_Config.QueryServiceTable == nil {
-			break
-		}
-
-		args, err := ec.field_config_Config_queryServiceTable_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Config_Config.QueryServiceTable(childComplexity, args["startTime"].(*string), args["endTime"].(*string), args["SystemServices"].(*bool), args["ShowGateways"].(*bool), args["Groupby"].(*string), args["noMetrics"].(*bool)), true
-
-	case "config_Config.queryServiceTopology":
-		if e.complexity.Config_Config.QueryServiceTopology == nil {
-			break
-		}
-
-		args, err := ec.field_config_Config_queryServiceTopology_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Config_Config.QueryServiceTopology(childComplexity, args["metricStringArray"].(*string), args["startTime"].(*string), args["endTime"].(*string)), true
-
-	case "config_Config.queryServiceTS":
-		if e.complexity.Config_Config.QueryServiceTs == nil {
-			break
-		}
-
-		args, err := ec.field_config_Config_queryServiceTS_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Config_Config.QueryServiceTs(childComplexity, args["svcMetric"].(*string), args["startTime"].(*string), args["endTime"].(*string), args["timeInterval"].(*string)), true
-
-	case "config_Config.queryServiceVersionTable":
-		if e.complexity.Config_Config.QueryServiceVersionTable == nil {
-			break
-		}
-
-		args, err := ec.field_config_Config_queryServiceVersionTable_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Config_Config.QueryServiceVersionTable(childComplexity, args["startTime"].(*string), args["endTime"].(*string), args["SystemServices"].(*bool), args["ShowGateways"].(*bool), args["noMetrics"].(*bool)), true
+		return e.complexity.Config_Config.VMPPolicies(childComplexity, args["Id"].(*string)), true
 
 	case "config_Config.XYZPort":
 		if e.complexity.Config_Config.XYZPort == nil {
@@ -484,281 +359,180 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Config_Config.XYZPort(childComplexity), true
 
-	case "gns_Bar.Id":
-		if e.complexity.Gns_Bar.Id == nil {
+	case "config_Domain.Id":
+		if e.complexity.Config_Domain.Id == nil {
 			break
 		}
 
-		return e.complexity.Gns_Bar.Id(childComplexity), true
+		return e.complexity.Config_Domain.Id(childComplexity), true
 
-	case "gns_Bar.Name":
-		if e.complexity.Gns_Bar.Name == nil {
+	case "config_Domain.MapOfArrsPoints":
+		if e.complexity.Config_Domain.MapOfArrsPoints == nil {
 			break
 		}
 
-		return e.complexity.Gns_Bar.Name(childComplexity), true
+		return e.complexity.Config_Domain.MapOfArrsPoints(childComplexity), true
 
-	case "gns_Bar.queryIncomingAPIs":
-		if e.complexity.Gns_Bar.QueryIncomingAPIs == nil {
+	case "config_Domain.ParentLabels":
+		if e.complexity.Config_Domain.ParentLabels == nil {
 			break
 		}
 
-		args, err := ec.field_gns_Bar_queryIncomingAPIs_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
+		return e.complexity.Config_Domain.ParentLabels(childComplexity), true
 
-		return e.complexity.Gns_Bar.QueryIncomingAPIs(childComplexity, args["startTime"].(*string), args["endTime"].(*string), args["destinationService"].(*string), args["destinationServiceVersion"].(*string), args["timeInterval"].(*string), args["timeZone"].(*string)), true
-
-	case "gns_Bar.queryIncomingTCP":
-		if e.complexity.Gns_Bar.QueryIncomingTcp == nil {
+	case "config_Domain.PointInt":
+		if e.complexity.Config_Domain.PointInt == nil {
 			break
 		}
 
-		args, err := ec.field_gns_Bar_queryIncomingTCP_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
+		return e.complexity.Config_Domain.PointInt(childComplexity), true
 
-		return e.complexity.Gns_Bar.QueryIncomingTcp(childComplexity, args["startTime"].(*string), args["endTime"].(*string), args["destinationService"].(*string), args["destinationServiceVersion"].(*string)), true
-
-	case "gns_Bar.queryOutgoingAPIs":
-		if e.complexity.Gns_Bar.QueryOutgoingAPIs == nil {
+	case "config_Domain.PointMap":
+		if e.complexity.Config_Domain.PointMap == nil {
 			break
 		}
 
-		args, err := ec.field_gns_Bar_queryOutgoingAPIs_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
+		return e.complexity.Config_Domain.PointMap(childComplexity), true
 
-		return e.complexity.Gns_Bar.QueryOutgoingAPIs(childComplexity, args["startTime"].(*string), args["endTime"].(*string), args["timeInterval"].(*string), args["timeZone"].(*string)), true
-
-	case "gns_Bar.queryOutgoingTCP":
-		if e.complexity.Gns_Bar.QueryOutgoingTcp == nil {
+	case "config_Domain.PointPort":
+		if e.complexity.Config_Domain.PointPort == nil {
 			break
 		}
 
-		args, err := ec.field_gns_Bar_queryOutgoingTCP_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
+		return e.complexity.Config_Domain.PointPort(childComplexity), true
 
-		return e.complexity.Gns_Bar.QueryOutgoingTcp(childComplexity, args["startTime"].(*string), args["endTime"].(*string), args["destinationService"].(*string), args["destinationServiceVersion"].(*string)), true
-
-	case "gns_Bar.queryServiceTable":
-		if e.complexity.Gns_Bar.QueryServiceTable == nil {
+	case "config_Domain.PointSlice":
+		if e.complexity.Config_Domain.PointSlice == nil {
 			break
 		}
 
-		args, err := ec.field_gns_Bar_queryServiceTable_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
+		return e.complexity.Config_Domain.PointSlice(childComplexity), true
 
-		return e.complexity.Gns_Bar.QueryServiceTable(childComplexity, args["startTime"].(*string), args["endTime"].(*string), args["SystemServices"].(*bool), args["ShowGateways"].(*bool), args["Groupby"].(*string), args["noMetrics"].(*bool)), true
-
-	case "gns_Bar.queryServiceTopology":
-		if e.complexity.Gns_Bar.QueryServiceTopology == nil {
+	case "config_Domain.PointString":
+		if e.complexity.Config_Domain.PointString == nil {
 			break
 		}
 
-		args, err := ec.field_gns_Bar_queryServiceTopology_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
+		return e.complexity.Config_Domain.PointString(childComplexity), true
 
-		return e.complexity.Gns_Bar.QueryServiceTopology(childComplexity, args["metricStringArray"].(*string), args["startTime"].(*string), args["endTime"].(*string)), true
-
-	case "gns_Bar.queryServiceTS":
-		if e.complexity.Gns_Bar.QueryServiceTs == nil {
+	case "config_Domain.PointStruct":
+		if e.complexity.Config_Domain.PointStruct == nil {
 			break
 		}
 
-		args, err := ec.field_gns_Bar_queryServiceTS_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
+		return e.complexity.Config_Domain.PointStruct(childComplexity), true
 
-		return e.complexity.Gns_Bar.QueryServiceTs(childComplexity, args["svcMetric"].(*string), args["startTime"].(*string), args["endTime"].(*string), args["timeInterval"].(*string)), true
-
-	case "gns_Bar.queryServiceVersionTable":
-		if e.complexity.Gns_Bar.QueryServiceVersionTable == nil {
+	case "config_Domain.SliceOfArrPoints":
+		if e.complexity.Config_Domain.SliceOfArrPoints == nil {
 			break
 		}
 
-		args, err := ec.field_gns_Bar_queryServiceVersionTable_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
+		return e.complexity.Config_Domain.SliceOfArrPoints(childComplexity), true
 
-		return e.complexity.Gns_Bar.QueryServiceVersionTable(childComplexity, args["startTime"].(*string), args["endTime"].(*string), args["SystemServices"].(*bool), args["ShowGateways"].(*bool), args["noMetrics"].(*bool)), true
-
-	case "gns_Description.Color":
-		if e.complexity.Gns_Description.Color == nil {
+	case "config_Domain.SliceOfPoints":
+		if e.complexity.Config_Domain.SliceOfPoints == nil {
 			break
 		}
 
-		return e.complexity.Gns_Description.Color(childComplexity), true
+		return e.complexity.Config_Domain.SliceOfPoints(childComplexity), true
 
-	case "gns_Description.Instance":
-		if e.complexity.Gns_Description.Instance == nil {
+	case "config_FooType.FooA":
+		if e.complexity.Config_FooType.FooA == nil {
 			break
 		}
 
-		return e.complexity.Gns_Description.Instance(childComplexity), true
+		return e.complexity.Config_FooType.FooA(childComplexity), true
 
-	case "gns_Description.ProjectID":
-		if e.complexity.Gns_Description.ProjectID == nil {
+	case "config_FooType.FooB":
+		if e.complexity.Config_FooType.FooB == nil {
 			break
 		}
 
-		return e.complexity.Gns_Description.ProjectID(childComplexity), true
+		return e.complexity.Config_FooType.FooB(childComplexity), true
 
-	case "gns_Description.Version":
-		if e.complexity.Gns_Description.Version == nil {
+	case "config_FooType.FooD":
+		if e.complexity.Config_FooType.FooD == nil {
 			break
 		}
 
-		return e.complexity.Gns_Description.Version(childComplexity), true
+		return e.complexity.Config_FooType.FooD(childComplexity), true
 
-	case "gns_EmptyData.Id":
-		if e.complexity.Gns_EmptyData.Id == nil {
+	case "config_FooType.FooF":
+		if e.complexity.Config_FooType.FooF == nil {
 			break
 		}
 
-		return e.complexity.Gns_EmptyData.Id(childComplexity), true
+		return e.complexity.Config_FooType.FooF(childComplexity), true
 
-	case "gns_EmptyData.queryIncomingAPIs":
-		if e.complexity.Gns_EmptyData.QueryIncomingAPIs == nil {
+	case "config_FooType.Id":
+		if e.complexity.Config_FooType.Id == nil {
 			break
 		}
 
-		args, err := ec.field_gns_EmptyData_queryIncomingAPIs_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
+		return e.complexity.Config_FooType.Id(childComplexity), true
 
-		return e.complexity.Gns_EmptyData.QueryIncomingAPIs(childComplexity, args["startTime"].(*string), args["endTime"].(*string), args["destinationService"].(*string), args["destinationServiceVersion"].(*string), args["timeInterval"].(*string), args["timeZone"].(*string)), true
-
-	case "gns_EmptyData.queryIncomingTCP":
-		if e.complexity.Gns_EmptyData.QueryIncomingTcp == nil {
+	case "config_FooType.ParentLabels":
+		if e.complexity.Config_FooType.ParentLabels == nil {
 			break
 		}
 
-		args, err := ec.field_gns_EmptyData_queryIncomingTCP_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
+		return e.complexity.Config_FooType.ParentLabels(childComplexity), true
 
-		return e.complexity.Gns_EmptyData.QueryIncomingTcp(childComplexity, args["startTime"].(*string), args["endTime"].(*string), args["destinationService"].(*string), args["destinationServiceVersion"].(*string)), true
-
-	case "gns_EmptyData.queryOutgoingAPIs":
-		if e.complexity.Gns_EmptyData.QueryOutgoingAPIs == nil {
+	case "gns_BarChild.Id":
+		if e.complexity.Gns_BarChild.Id == nil {
 			break
 		}
 
-		args, err := ec.field_gns_EmptyData_queryOutgoingAPIs_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
+		return e.complexity.Gns_BarChild.Id(childComplexity), true
 
-		return e.complexity.Gns_EmptyData.QueryOutgoingAPIs(childComplexity, args["startTime"].(*string), args["endTime"].(*string), args["timeInterval"].(*string), args["timeZone"].(*string)), true
-
-	case "gns_EmptyData.queryOutgoingTCP":
-		if e.complexity.Gns_EmptyData.QueryOutgoingTcp == nil {
+	case "gns_BarChild.Name":
+		if e.complexity.Gns_BarChild.Name == nil {
 			break
 		}
 
-		args, err := ec.field_gns_EmptyData_queryOutgoingTCP_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
+		return e.complexity.Gns_BarChild.Name(childComplexity), true
 
-		return e.complexity.Gns_EmptyData.QueryOutgoingTcp(childComplexity, args["startTime"].(*string), args["endTime"].(*string), args["destinationService"].(*string), args["destinationServiceVersion"].(*string)), true
-
-	case "gns_EmptyData.queryServiceTable":
-		if e.complexity.Gns_EmptyData.QueryServiceTable == nil {
+	case "gns_BarChild.ParentLabels":
+		if e.complexity.Gns_BarChild.ParentLabels == nil {
 			break
 		}
 
-		args, err := ec.field_gns_EmptyData_queryServiceTable_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
+		return e.complexity.Gns_BarChild.ParentLabels(childComplexity), true
 
-		return e.complexity.Gns_EmptyData.QueryServiceTable(childComplexity, args["startTime"].(*string), args["endTime"].(*string), args["SystemServices"].(*bool), args["ShowGateways"].(*bool), args["Groupby"].(*string), args["noMetrics"].(*bool)), true
-
-	case "gns_EmptyData.queryServiceTopology":
-		if e.complexity.Gns_EmptyData.QueryServiceTopology == nil {
+	case "gns_Dns.Id":
+		if e.complexity.Gns_Dns.Id == nil {
 			break
 		}
 
-		args, err := ec.field_gns_EmptyData_queryServiceTopology_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
+		return e.complexity.Gns_Dns.Id(childComplexity), true
 
-		return e.complexity.Gns_EmptyData.QueryServiceTopology(childComplexity, args["metricStringArray"].(*string), args["startTime"].(*string), args["endTime"].(*string)), true
-
-	case "gns_EmptyData.queryServiceTS":
-		if e.complexity.Gns_EmptyData.QueryServiceTs == nil {
+	case "gns_Dns.ParentLabels":
+		if e.complexity.Gns_Dns.ParentLabels == nil {
 			break
 		}
 
-		args, err := ec.field_gns_EmptyData_queryServiceTS_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
+		return e.complexity.Gns_Dns.ParentLabels(childComplexity), true
 
-		return e.complexity.Gns_EmptyData.QueryServiceTs(childComplexity, args["svcMetric"].(*string), args["startTime"].(*string), args["endTime"].(*string), args["timeInterval"].(*string)), true
-
-	case "gns_EmptyData.queryServiceVersionTable":
-		if e.complexity.Gns_EmptyData.QueryServiceVersionTable == nil {
+	case "gns_Gns.Description":
+		if e.complexity.Gns_Gns.Description == nil {
 			break
 		}
 
-		args, err := ec.field_gns_EmptyData_queryServiceVersionTable_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
+		return e.complexity.Gns_Gns.Description(childComplexity), true
 
-		return e.complexity.Gns_EmptyData.QueryServiceVersionTable(childComplexity, args["startTime"].(*string), args["endTime"].(*string), args["SystemServices"].(*bool), args["ShowGateways"].(*bool), args["noMetrics"].(*bool)), true
-
-	case "gns_Gns.Array1":
-		if e.complexity.Gns_Gns.Array1 == nil {
+	case "gns_Gns.DifferentSpec":
+		if e.complexity.Gns_Gns.DifferentSpec == nil {
 			break
 		}
 
-		return e.complexity.Gns_Gns.Array1(childComplexity), true
+		return e.complexity.Gns_Gns.DifferentSpec(childComplexity), true
 
-	case "gns_Gns.Array2":
-		if e.complexity.Gns_Gns.Array2 == nil {
+	case "gns_Gns.Dns":
+		if e.complexity.Gns_Gns.Dns == nil {
 			break
 		}
 
-		return e.complexity.Gns_Gns.Array2(childComplexity), true
-
-	case "gns_Gns.Array3":
-		if e.complexity.Gns_Gns.Array3 == nil {
-			break
-		}
-
-		return e.complexity.Gns_Gns.Array3(childComplexity), true
-
-	case "gns_Gns.Array4":
-		if e.complexity.Gns_Gns.Array4 == nil {
-			break
-		}
-
-		return e.complexity.Gns_Gns.Array4(childComplexity), true
-
-	case "gns_Gns.Array5":
-		if e.complexity.Gns_Gns.Array5 == nil {
-			break
-		}
-
-		return e.complexity.Gns_Gns.Array5(childComplexity), true
+		return e.complexity.Gns_Gns.Dns(childComplexity), true
 
 	case "gns_Gns.Domain":
 		if e.complexity.Gns_Gns.Domain == nil {
@@ -774,43 +548,29 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Gns_Gns.FooChild(childComplexity), true
 
-	case "gns_Gns.FooChildren":
-		if e.complexity.Gns_Gns.FooChildren == nil {
+	case "gns_Gns.GnsAccessControlPolicy":
+		if e.complexity.Gns_Gns.GnsAccessControlPolicy == nil {
 			break
 		}
 
-		args, err := ec.field_gns_Gns_FooChildren_args(context.TODO(), rawArgs)
+		args, err := ec.field_gns_Gns_GnsAccessControlPolicy_args(context.TODO(), rawArgs)
 		if err != nil {
 			return 0, false
 		}
 
-		return e.complexity.Gns_Gns.FooChildren(childComplexity, args["Id"].(*string)), true
+		return e.complexity.Gns_Gns.GnsAccessControlPolicy(childComplexity, args["Id"].(*string)), true
 
-	case "gns_Gns.FooLink":
-		if e.complexity.Gns_Gns.FooLink == nil {
+	case "gns_Gns.GnsServiceGroups":
+		if e.complexity.Gns_Gns.GnsServiceGroups == nil {
 			break
 		}
 
-		return e.complexity.Gns_Gns.FooLink(childComplexity), true
-
-	case "gns_Gns.FooLinks":
-		if e.complexity.Gns_Gns.FooLinks == nil {
-			break
-		}
-
-		args, err := ec.field_gns_Gns_FooLinks_args(context.TODO(), rawArgs)
+		args, err := ec.field_gns_Gns_GnsServiceGroups_args(context.TODO(), rawArgs)
 		if err != nil {
 			return 0, false
 		}
 
-		return e.complexity.Gns_Gns.FooLinks(childComplexity, args["Id"].(*string)), true
-
-	case "gns_Gns.HostPort":
-		if e.complexity.Gns_Gns.HostPort == nil {
-			break
-		}
-
-		return e.complexity.Gns_Gns.HostPort(childComplexity), true
+		return e.complexity.Gns_Gns.GnsServiceGroups(childComplexity, args["Id"].(*string)), true
 
 	case "gns_Gns.Id":
 		if e.complexity.Gns_Gns.Id == nil {
@@ -819,122 +579,47 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Gns_Gns.Id(childComplexity), true
 
-	case "gns_Gns.Instance":
-		if e.complexity.Gns_Gns.Instance == nil {
+	case "gns_Gns.MapPointer":
+		if e.complexity.Gns_Gns.MapPointer == nil {
 			break
 		}
 
-		return e.complexity.Gns_Gns.Instance(childComplexity), true
+		return e.complexity.Gns_Gns.MapPointer(childComplexity), true
 
-	case "gns_Gns.Mydesc":
-		if e.complexity.Gns_Gns.Mydesc == nil {
+	case "gns_Gns.Meta":
+		if e.complexity.Gns_Gns.Meta == nil {
 			break
 		}
 
-		return e.complexity.Gns_Gns.Mydesc(childComplexity), true
+		return e.complexity.Gns_Gns.Meta(childComplexity), true
 
-	case "gns_Gns.queryIncomingAPIs":
-		if e.complexity.Gns_Gns.QueryIncomingAPIs == nil {
+	case "gns_Gns.OtherDescription":
+		if e.complexity.Gns_Gns.OtherDescription == nil {
 			break
 		}
 
-		args, err := ec.field_gns_Gns_queryIncomingAPIs_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
+		return e.complexity.Gns_Gns.OtherDescription(childComplexity), true
 
-		return e.complexity.Gns_Gns.QueryIncomingAPIs(childComplexity, args["startTime"].(*string), args["endTime"].(*string), args["destinationService"].(*string), args["destinationServiceVersion"].(*string), args["timeInterval"].(*string), args["timeZone"].(*string)), true
-
-	case "gns_Gns.queryIncomingTCP":
-		if e.complexity.Gns_Gns.QueryIncomingTcp == nil {
+	case "gns_Gns.ParentLabels":
+		if e.complexity.Gns_Gns.ParentLabels == nil {
 			break
 		}
 
-		args, err := ec.field_gns_Gns_queryIncomingTCP_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
+		return e.complexity.Gns_Gns.ParentLabels(childComplexity), true
 
-		return e.complexity.Gns_Gns.QueryIncomingTcp(childComplexity, args["startTime"].(*string), args["endTime"].(*string), args["destinationService"].(*string), args["destinationServiceVersion"].(*string)), true
-
-	case "gns_Gns.queryOutgoingAPIs":
-		if e.complexity.Gns_Gns.QueryOutgoingAPIs == nil {
+	case "gns_Gns.Port":
+		if e.complexity.Gns_Gns.Port == nil {
 			break
 		}
 
-		args, err := ec.field_gns_Gns_queryOutgoingAPIs_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
+		return e.complexity.Gns_Gns.Port(childComplexity), true
 
-		return e.complexity.Gns_Gns.QueryOutgoingAPIs(childComplexity, args["startTime"].(*string), args["endTime"].(*string), args["timeInterval"].(*string), args["timeZone"].(*string)), true
-
-	case "gns_Gns.queryOutgoingTCP":
-		if e.complexity.Gns_Gns.QueryOutgoingTcp == nil {
+	case "gns_Gns.SlicePointer":
+		if e.complexity.Gns_Gns.SlicePointer == nil {
 			break
 		}
 
-		args, err := ec.field_gns_Gns_queryOutgoingTCP_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Gns_Gns.QueryOutgoingTcp(childComplexity, args["startTime"].(*string), args["endTime"].(*string), args["destinationService"].(*string), args["destinationServiceVersion"].(*string)), true
-
-	case "gns_Gns.queryServiceTable":
-		if e.complexity.Gns_Gns.QueryServiceTable == nil {
-			break
-		}
-
-		args, err := ec.field_gns_Gns_queryServiceTable_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Gns_Gns.QueryServiceTable(childComplexity, args["startTime"].(*string), args["endTime"].(*string), args["SystemServices"].(*bool), args["ShowGateways"].(*bool), args["Groupby"].(*string), args["noMetrics"].(*bool)), true
-
-	case "gns_Gns.queryServiceTopology":
-		if e.complexity.Gns_Gns.QueryServiceTopology == nil {
-			break
-		}
-
-		args, err := ec.field_gns_Gns_queryServiceTopology_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Gns_Gns.QueryServiceTopology(childComplexity, args["metricStringArray"].(*string), args["startTime"].(*string), args["endTime"].(*string)), true
-
-	case "gns_Gns.queryServiceTS":
-		if e.complexity.Gns_Gns.QueryServiceTs == nil {
-			break
-		}
-
-		args, err := ec.field_gns_Gns_queryServiceTS_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Gns_Gns.QueryServiceTs(childComplexity, args["svcMetric"].(*string), args["startTime"].(*string), args["endTime"].(*string), args["timeInterval"].(*string)), true
-
-	case "gns_Gns.queryServiceVersionTable":
-		if e.complexity.Gns_Gns.QueryServiceVersionTable == nil {
-			break
-		}
-
-		args, err := ec.field_gns_Gns_queryServiceVersionTable_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Gns_Gns.QueryServiceVersionTable(childComplexity, args["startTime"].(*string), args["endTime"].(*string), args["SystemServices"].(*bool), args["ShowGateways"].(*bool), args["noMetrics"].(*bool)), true
-
-	case "gns_Gns.TestArray":
-		if e.complexity.Gns_Gns.TestArray == nil {
-			break
-		}
-
-		return e.complexity.Gns_Gns.TestArray(childComplexity), true
+		return e.complexity.Gns_Gns.SlicePointer(childComplexity), true
 
 	case "gns_Gns.UseSharedGateway":
 		if e.complexity.Gns_Gns.UseSharedGateway == nil {
@@ -943,47 +628,165 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Gns_Gns.UseSharedGateway(childComplexity), true
 
-	case "gns_HostPort.Host":
-		if e.complexity.Gns_HostPort.Host == nil {
+	case "gns_Gns.WorkloadSpec":
+		if e.complexity.Gns_Gns.WorkloadSpec == nil {
 			break
 		}
 
-		return e.complexity.Gns_HostPort.Host(childComplexity), true
+		return e.complexity.Gns_Gns.WorkloadSpec(childComplexity), true
 
-	case "gns_HostPort.Port":
-		if e.complexity.Gns_HostPort.Port == nil {
+	case "gns_IgnoreChild.Id":
+		if e.complexity.Gns_IgnoreChild.Id == nil {
 			break
 		}
 
-		return e.complexity.Gns_HostPort.Port(childComplexity), true
+		return e.complexity.Gns_IgnoreChild.Id(childComplexity), true
 
-	case "root_Bar.Name":
-		if e.complexity.Root_Bar.Name == nil {
+	case "gns_IgnoreChild.Name":
+		if e.complexity.Gns_IgnoreChild.Name == nil {
 			break
 		}
 
-		return e.complexity.Root_Bar.Name(childComplexity), true
+		return e.complexity.Gns_IgnoreChild.Name(childComplexity), true
+
+	case "gns_IgnoreChild.ParentLabels":
+		if e.complexity.Gns_IgnoreChild.ParentLabels == nil {
+			break
+		}
+
+		return e.complexity.Gns_IgnoreChild.ParentLabels(childComplexity), true
+
+	case "policy_ACPConfig.Conditions":
+		if e.complexity.Policy_ACPConfig.Conditions == nil {
+			break
+		}
+
+		return e.complexity.Policy_ACPConfig.Conditions(childComplexity), true
+
+	case "policy_ACPConfig.Description":
+		if e.complexity.Policy_ACPConfig.Description == nil {
+			break
+		}
+
+		return e.complexity.Policy_ACPConfig.Description(childComplexity), true
+
+	case "policy_ACPConfig.DestSvcGroups":
+		if e.complexity.Policy_ACPConfig.DestSvcGroups == nil {
+			break
+		}
+
+		args, err := ec.field_policy_ACPConfig_DestSvcGroups_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Policy_ACPConfig.DestSvcGroups(childComplexity, args["Id"].(*string)), true
+
+	case "policy_ACPConfig.DisplayName":
+		if e.complexity.Policy_ACPConfig.DisplayName == nil {
+			break
+		}
+
+		return e.complexity.Policy_ACPConfig.DisplayName(childComplexity), true
+
+	case "policy_ACPConfig.Gns":
+		if e.complexity.Policy_ACPConfig.Gns == nil {
+			break
+		}
+
+		return e.complexity.Policy_ACPConfig.Gns(childComplexity), true
+
+	case "policy_ACPConfig.Id":
+		if e.complexity.Policy_ACPConfig.Id == nil {
+			break
+		}
+
+		return e.complexity.Policy_ACPConfig.Id(childComplexity), true
+
+	case "policy_ACPConfig.ParentLabels":
+		if e.complexity.Policy_ACPConfig.ParentLabels == nil {
+			break
+		}
+
+		return e.complexity.Policy_ACPConfig.ParentLabels(childComplexity), true
+
+	case "policy_ACPConfig.ProjectId":
+		if e.complexity.Policy_ACPConfig.ProjectId == nil {
+			break
+		}
+
+		return e.complexity.Policy_ACPConfig.ProjectId(childComplexity), true
+
+	case "policy_ACPConfig.SourceSvcGroups":
+		if e.complexity.Policy_ACPConfig.SourceSvcGroups == nil {
+			break
+		}
+
+		args, err := ec.field_policy_ACPConfig_SourceSvcGroups_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Policy_ACPConfig.SourceSvcGroups(childComplexity, args["Id"].(*string)), true
+
+	case "policy_ACPConfig.Tags":
+		if e.complexity.Policy_ACPConfig.Tags == nil {
+			break
+		}
+
+		return e.complexity.Policy_ACPConfig.Tags(childComplexity), true
+
+	case "policy_AccessControlPolicy.Id":
+		if e.complexity.Policy_AccessControlPolicy.Id == nil {
+			break
+		}
+
+		return e.complexity.Policy_AccessControlPolicy.Id(childComplexity), true
+
+	case "policy_AccessControlPolicy.ParentLabels":
+		if e.complexity.Policy_AccessControlPolicy.ParentLabels == nil {
+			break
+		}
+
+		return e.complexity.Policy_AccessControlPolicy.ParentLabels(childComplexity), true
+
+	case "policy_AccessControlPolicy.PolicyConfigs":
+		if e.complexity.Policy_AccessControlPolicy.PolicyConfigs == nil {
+			break
+		}
+
+		args, err := ec.field_policy_AccessControlPolicy_PolicyConfigs_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Policy_AccessControlPolicy.PolicyConfigs(childComplexity, args["Id"].(*string)), true
+
+	case "policy_VMpolicy.Id":
+		if e.complexity.Policy_VMpolicy.Id == nil {
+			break
+		}
+
+		return e.complexity.Policy_VMpolicy.Id(childComplexity), true
+
+	case "policy_VMpolicy.ParentLabels":
+		if e.complexity.Policy_VMpolicy.ParentLabels == nil {
+			break
+		}
+
+		return e.complexity.Policy_VMpolicy.ParentLabels(childComplexity), true
 
 	case "root_Root.Config":
 		if e.complexity.Root_Root.Config == nil {
 			break
 		}
 
-		return e.complexity.Root_Root.Config(childComplexity), true
-
-	case "root_Root.CustomBar":
-		if e.complexity.Root_Root.CustomBar == nil {
-			break
+		args, err := ec.field_root_Root_Config_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
 		}
 
-		return e.complexity.Root_Root.CustomBar(childComplexity), true
-
-	case "root_Root.DisplayName":
-		if e.complexity.Root_Root.DisplayName == nil {
-			break
-		}
-
-		return e.complexity.Root_Root.DisplayName(childComplexity), true
+		return e.complexity.Root_Root.Config(childComplexity, args["Id"].(*string)), true
 
 	case "root_Root.Id":
 		if e.complexity.Root_Root.Id == nil {
@@ -992,101 +795,47 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Root_Root.Id(childComplexity), true
 
-	case "root_Root.queryIncomingAPIs":
-		if e.complexity.Root_Root.QueryIncomingAPIs == nil {
+	case "root_Root.ParentLabels":
+		if e.complexity.Root_Root.ParentLabels == nil {
 			break
 		}
 
-		args, err := ec.field_root_Root_queryIncomingAPIs_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
+		return e.complexity.Root_Root.ParentLabels(childComplexity), true
 
-		return e.complexity.Root_Root.QueryIncomingAPIs(childComplexity, args["startTime"].(*string), args["endTime"].(*string), args["destinationService"].(*string), args["destinationServiceVersion"].(*string), args["timeInterval"].(*string), args["timeZone"].(*string)), true
-
-	case "root_Root.queryIncomingTCP":
-		if e.complexity.Root_Root.QueryIncomingTcp == nil {
+	case "servicegroup_SvcGroup.Color":
+		if e.complexity.Servicegroup_SvcGroup.Color == nil {
 			break
 		}
 
-		args, err := ec.field_root_Root_queryIncomingTCP_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
+		return e.complexity.Servicegroup_SvcGroup.Color(childComplexity), true
 
-		return e.complexity.Root_Root.QueryIncomingTcp(childComplexity, args["startTime"].(*string), args["endTime"].(*string), args["destinationService"].(*string), args["destinationServiceVersion"].(*string)), true
-
-	case "root_Root.queryOutgoingAPIs":
-		if e.complexity.Root_Root.QueryOutgoingAPIs == nil {
+	case "servicegroup_SvcGroup.Description":
+		if e.complexity.Servicegroup_SvcGroup.Description == nil {
 			break
 		}
 
-		args, err := ec.field_root_Root_queryOutgoingAPIs_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
+		return e.complexity.Servicegroup_SvcGroup.Description(childComplexity), true
 
-		return e.complexity.Root_Root.QueryOutgoingAPIs(childComplexity, args["startTime"].(*string), args["endTime"].(*string), args["timeInterval"].(*string), args["timeZone"].(*string)), true
-
-	case "root_Root.queryOutgoingTCP":
-		if e.complexity.Root_Root.QueryOutgoingTcp == nil {
+	case "servicegroup_SvcGroup.DisplayName":
+		if e.complexity.Servicegroup_SvcGroup.DisplayName == nil {
 			break
 		}
 
-		args, err := ec.field_root_Root_queryOutgoingTCP_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
+		return e.complexity.Servicegroup_SvcGroup.DisplayName(childComplexity), true
 
-		return e.complexity.Root_Root.QueryOutgoingTcp(childComplexity, args["startTime"].(*string), args["endTime"].(*string), args["destinationService"].(*string), args["destinationServiceVersion"].(*string)), true
-
-	case "root_Root.queryServiceTable":
-		if e.complexity.Root_Root.QueryServiceTable == nil {
+	case "servicegroup_SvcGroup.Id":
+		if e.complexity.Servicegroup_SvcGroup.Id == nil {
 			break
 		}
 
-		args, err := ec.field_root_Root_queryServiceTable_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
+		return e.complexity.Servicegroup_SvcGroup.Id(childComplexity), true
 
-		return e.complexity.Root_Root.QueryServiceTable(childComplexity, args["startTime"].(*string), args["endTime"].(*string), args["SystemServices"].(*bool), args["ShowGateways"].(*bool), args["Groupby"].(*string), args["noMetrics"].(*bool)), true
-
-	case "root_Root.queryServiceTopology":
-		if e.complexity.Root_Root.QueryServiceTopology == nil {
+	case "servicegroup_SvcGroup.ParentLabels":
+		if e.complexity.Servicegroup_SvcGroup.ParentLabels == nil {
 			break
 		}
 
-		args, err := ec.field_root_Root_queryServiceTopology_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Root_Root.QueryServiceTopology(childComplexity, args["metricStringArray"].(*string), args["startTime"].(*string), args["endTime"].(*string)), true
-
-	case "root_Root.queryServiceTS":
-		if e.complexity.Root_Root.QueryServiceTs == nil {
-			break
-		}
-
-		args, err := ec.field_root_Root_queryServiceTS_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Root_Root.QueryServiceTs(childComplexity, args["svcMetric"].(*string), args["startTime"].(*string), args["endTime"].(*string), args["timeInterval"].(*string)), true
-
-	case "root_Root.queryServiceVersionTable":
-		if e.complexity.Root_Root.QueryServiceVersionTable == nil {
-			break
-		}
-
-		args, err := ec.field_root_Root_queryServiceVersionTable_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Root_Root.QueryServiceVersionTable(childComplexity, args["startTime"].(*string), args["endTime"].(*string), args["SystemServices"].(*bool), args["ShowGateways"].(*bool), args["noMetrics"].(*bool)), true
+		return e.complexity.Servicegroup_SvcGroup.ParentLabels(childComplexity), true
 
 	}
 	return 0, false
@@ -1140,377 +889,142 @@ func (ec *executionContext) introspectType(name string) (*introspection.Type, er
 }
 
 var sources = []*ast.Source{
-	{Name: "../schema.graphqls", Input: `
+	{Name: "../schema.graphqls", Input: `scalar Map
 type Query {
     root: root_Root
 }
- 
+
 type root_Root {
-
     Id: ID
-    queryServiceTable(
-        startTime: String
-        endTime: String
-        SystemServices: Boolean
-        ShowGateways: Boolean
-        Groupby: String
-        noMetrics: Boolean
-    ): TimeSeriesData
-    queryServiceVersionTable(
-        startTime: String
-        endTime: String
-        SystemServices: Boolean
-        ShowGateways: Boolean
-        noMetrics: Boolean
-    ): TimeSeriesData
-    queryServiceTS(
-        svcMetric: String
-        startTime: String
-        endTime: String
-        timeInterval: String
-    ): TimeSeriesData
-    queryIncomingAPIs(
-        startTime: String
-        endTime: String
-        destinationService: String
-        destinationServiceVersion: String
-        timeInterval: String
-        timeZone: String
-    ): TimeSeriesData
-    queryOutgoingAPIs(
-        startTime: String
-        endTime: String
-        timeInterval: String
-        timeZone: String
-    ): TimeSeriesData
-    queryIncomingTCP(
-        startTime: String
-        endTime: String
-        destinationService: String
-        destinationServiceVersion: String
-    ): TimeSeriesData
-    queryOutgoingTCP(
-        startTime: String
-        endTime: String
-        destinationService: String
-        destinationServiceVersion: String
-    ): TimeSeriesData
-    queryServiceTopology(
-        metricStringArray: String
-        startTime: String
-        endTime: String
-    ): TimeSeriesData
+	ParentLabels: Map
 
-    Config: config_Config!
-    DisplayName: String
-    CustomBar: root_Bar
+    Config(Id: ID): config_Config!
 }
 
-
- 
-type root_Bar {
-
-    Name: String
-}
-
-
- 
 type config_Config {
-
     Id: ID
-    queryServiceTable(
-        startTime: String
-        endTime: String
-        SystemServices: Boolean
-        ShowGateways: Boolean
-        Groupby: String
-        noMetrics: Boolean
-    ): TimeSeriesData
-    queryServiceVersionTable(
-        startTime: String
-        endTime: String
-        SystemServices: Boolean
-        ShowGateways: Boolean
-        noMetrics: Boolean
-    ): TimeSeriesData
-    queryServiceTS(
-        svcMetric: String
-        startTime: String
-        endTime: String
-        timeInterval: String
-    ): TimeSeriesData
-    queryIncomingAPIs(
-        startTime: String
-        endTime: String
-        destinationService: String
-        destinationServiceVersion: String
-        timeInterval: String
-        timeZone: String
-    ): TimeSeriesData
-    queryOutgoingAPIs(
-        startTime: String
-        endTime: String
-        timeInterval: String
-        timeZone: String
-    ): TimeSeriesData
-    queryIncomingTCP(
-        startTime: String
-        endTime: String
-        destinationService: String
-        destinationServiceVersion: String
-    ): TimeSeriesData
-    queryOutgoingTCP(
-        startTime: String
-        endTime: String
-        destinationService: String
-        destinationServiceVersion: String
-    ): TimeSeriesData
-    queryServiceTopology(
-        metricStringArray: String
-        startTime: String
-        endTime: String
-    ): TimeSeriesData
+	ParentLabels: Map
 
-    GNS: gns_Gns!
-    ConfigName: String
-    Cluster: config_Cluster
+    ACPPolicies(Id: ID): [policy_AccessControlPolicy!]
+    FooExample(Id: ID): [config_FooType!]
+    MyStr0: String
+    MyStr1: String
+    MyStr2: String
+    XYZPort: String
+    ABCHost: String
+    ClusterNamespaces: String
+    TestValMarkers: String
+    Instance: Float
+    GNS(Id: ID): gns_Gns!
+    DNS: gns_Dns!
+    VMPPolicies(Id: ID): policy_VMpolicy!
+    Domain(Id: ID): config_Domain!
+}
+
+type config_FooType {
+    Id: ID
+	ParentLabels: Map
+
     FooA: String
-    FooMap: String
-    FooB: [String]!
+    FooB: String
     FooD: String
-    XYZPort: [Int]!
-    ABCHost: [String]!
+    FooF: String
 }
 
-
- 
-type config_Cluster {
-
-    Name: String
-    MyID: Int
-}
-
-
- 
-type gns_HostPort {
-
-    Host: String
-    Port: Int
-}
-
-
- 
-type gns_Gns {
-
+type config_Domain {
     Id: ID
-    queryServiceTable(
-        startTime: String
-        endTime: String
-        SystemServices: Boolean
-        ShowGateways: Boolean
-        Groupby: String
-        noMetrics: Boolean
-    ): TimeSeriesData
-    queryServiceVersionTable(
-        startTime: String
-        endTime: String
-        SystemServices: Boolean
-        ShowGateways: Boolean
-        noMetrics: Boolean
-    ): TimeSeriesData
-    queryServiceTS(
-        svcMetric: String
-        startTime: String
-        endTime: String
-        timeInterval: String
-    ): TimeSeriesData
-    queryIncomingAPIs(
-        startTime: String
-        endTime: String
-        destinationService: String
-        destinationServiceVersion: String
-        timeInterval: String
-        timeZone: String
-    ): TimeSeriesData
-    queryOutgoingAPIs(
-        startTime: String
-        endTime: String
-        timeInterval: String
-        timeZone: String
-    ): TimeSeriesData
-    queryIncomingTCP(
-        startTime: String
-        endTime: String
-        destinationService: String
-        destinationServiceVersion: String
-    ): TimeSeriesData
-    queryOutgoingTCP(
-        startTime: String
-        endTime: String
-        destinationService: String
-        destinationServiceVersion: String
-    ): TimeSeriesData
-    queryServiceTopology(
-        metricStringArray: String
-        startTime: String
-        endTime: String
-    ): TimeSeriesData
+	ParentLabels: Map
 
-    FooLink: gns_Bar!
-    FooLinks(Id: ID): [gns_Bar!]
-    FooChild: gns_Bar!
-    FooChildren(Id: ID): [gns_Bar!]
+    PointPort: String
+    PointString: String
+    PointInt: Int
+    PointMap: String
+    PointSlice: String
+    SliceOfPoints: String
+    SliceOfArrPoints: String
+    MapOfArrsPoints: String
+    PointStruct: String
+}
+
+type gns_Gns {
+    Id: ID
+	ParentLabels: Map
+
+    GnsServiceGroups(Id: ID): [servicegroup_SvcGroup!]
+    Dns: gns_Dns!
+    
     Domain: String
     UseSharedGateway: Boolean
-    Mydesc: gns_Description
-    HostPort: gns_HostPort
-    TestArray: gns_EmptyData
-    Instance: Float
-    Array1: [Int]!
-    Array2: [gns_Description]!
-    Array3: [gns_Bar]!
-    Array4: [Float]!
-    Array5: [Int]!
+    Description: String
+    Meta: String
+    Port: Int
+    OtherDescription: String
+    MapPointer: String
+    SlicePointer: String
+    WorkloadSpec: String
+    DifferentSpec: String
+    GnsAccessControlPolicy(Id: ID): policy_AccessControlPolicy!
+    FooChild: gns_BarChild!
 }
 
-
- 
-type gns_Description {
-
-    Color: String
-    Version: String
-    ProjectID: String
-    Instance: Float
-}
-
-
- 
-type gns_Bar {
-
+type gns_BarChild {
     Id: ID
-    queryServiceTable(
-        startTime: String
-        endTime: String
-        SystemServices: Boolean
-        ShowGateways: Boolean
-        Groupby: String
-        noMetrics: Boolean
-    ): TimeSeriesData
-    queryServiceVersionTable(
-        startTime: String
-        endTime: String
-        SystemServices: Boolean
-        ShowGateways: Boolean
-        noMetrics: Boolean
-    ): TimeSeriesData
-    queryServiceTS(
-        svcMetric: String
-        startTime: String
-        endTime: String
-        timeInterval: String
-    ): TimeSeriesData
-    queryIncomingAPIs(
-        startTime: String
-        endTime: String
-        destinationService: String
-        destinationServiceVersion: String
-        timeInterval: String
-        timeZone: String
-    ): TimeSeriesData
-    queryOutgoingAPIs(
-        startTime: String
-        endTime: String
-        timeInterval: String
-        timeZone: String
-    ): TimeSeriesData
-    queryIncomingTCP(
-        startTime: String
-        endTime: String
-        destinationService: String
-        destinationServiceVersion: String
-    ): TimeSeriesData
-    queryOutgoingTCP(
-        startTime: String
-        endTime: String
-        destinationService: String
-        destinationServiceVersion: String
-    ): TimeSeriesData
-    queryServiceTopology(
-        metricStringArray: String
-        startTime: String
-        endTime: String
-    ): TimeSeriesData
+	ParentLabels: Map
 
     Name: String
 }
 
-
- 
-type gns_EmptyData {
-
+type gns_IgnoreChild {
     Id: ID
-    queryServiceTable(
-        startTime: String
-        endTime: String
-        SystemServices: Boolean
-        ShowGateways: Boolean
-        Groupby: String
-        noMetrics: Boolean
-    ): TimeSeriesData
-    queryServiceVersionTable(
-        startTime: String
-        endTime: String
-        SystemServices: Boolean
-        ShowGateways: Boolean
-        noMetrics: Boolean
-    ): TimeSeriesData
-    queryServiceTS(
-        svcMetric: String
-        startTime: String
-        endTime: String
-        timeInterval: String
-    ): TimeSeriesData
-    queryIncomingAPIs(
-        startTime: String
-        endTime: String
-        destinationService: String
-        destinationServiceVersion: String
-        timeInterval: String
-        timeZone: String
-    ): TimeSeriesData
-    queryOutgoingAPIs(
-        startTime: String
-        endTime: String
-        timeInterval: String
-        timeZone: String
-    ): TimeSeriesData
-    queryIncomingTCP(
-        startTime: String
-        endTime: String
-        destinationService: String
-        destinationServiceVersion: String
-    ): TimeSeriesData
-    queryOutgoingTCP(
-        startTime: String
-        endTime: String
-        destinationService: String
-        destinationServiceVersion: String
-    ): TimeSeriesData
-    queryServiceTopology(
-        metricStringArray: String
-        startTime: String
-        endTime: String
-    ): TimeSeriesData
+	ParentLabels: Map
+
+    Name: String
+}
+
+type gns_Dns {
+    Id: ID
+	ParentLabels: Map
 
 }
 
+type servicegroup_SvcGroup {
+    Id: ID
+	ParentLabels: Map
 
-type TimeSeriesData {
-  Code: Int
-  Message: String
-  Data: String
-  Last: String
-  TotalRecords: Int
+    DisplayName: String
+    Description: String
+    Color: String
+}
+
+type policy_AccessControlPolicy {
+    Id: ID
+	ParentLabels: Map
+
+    PolicyConfigs(Id: ID): [policy_ACPConfig!]
+}
+
+type policy_ACPConfig {
+    Id: ID
+	ParentLabels: Map
+
+    
+    
+    DestSvcGroups(Id: ID): [servicegroup_SvcGroup!]
+    SourceSvcGroups(Id: ID): [servicegroup_SvcGroup!]
+    
+    
+    DisplayName: String
+    Gns: String
+    Description: String
+    Tags: String
+    ProjectId: String
+    Conditions: String
+}
+
+type policy_VMpolicy {
+    Id: ID
+	ParentLabels: Map
+
 }
 `, BuiltIn: false},
 }
@@ -1565,1123 +1079,7 @@ func (ec *executionContext) field___Type_fields_args(ctx context.Context, rawArg
 	return args, nil
 }
 
-func (ec *executionContext) field_config_Config_queryIncomingAPIs_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 *string
-	if tmp, ok := rawArgs["startTime"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("startTime"))
-		arg0, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["startTime"] = arg0
-	var arg1 *string
-	if tmp, ok := rawArgs["endTime"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("endTime"))
-		arg1, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["endTime"] = arg1
-	var arg2 *string
-	if tmp, ok := rawArgs["destinationService"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("destinationService"))
-		arg2, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["destinationService"] = arg2
-	var arg3 *string
-	if tmp, ok := rawArgs["destinationServiceVersion"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("destinationServiceVersion"))
-		arg3, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["destinationServiceVersion"] = arg3
-	var arg4 *string
-	if tmp, ok := rawArgs["timeInterval"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("timeInterval"))
-		arg4, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["timeInterval"] = arg4
-	var arg5 *string
-	if tmp, ok := rawArgs["timeZone"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("timeZone"))
-		arg5, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["timeZone"] = arg5
-	return args, nil
-}
-
-func (ec *executionContext) field_config_Config_queryIncomingTCP_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 *string
-	if tmp, ok := rawArgs["startTime"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("startTime"))
-		arg0, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["startTime"] = arg0
-	var arg1 *string
-	if tmp, ok := rawArgs["endTime"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("endTime"))
-		arg1, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["endTime"] = arg1
-	var arg2 *string
-	if tmp, ok := rawArgs["destinationService"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("destinationService"))
-		arg2, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["destinationService"] = arg2
-	var arg3 *string
-	if tmp, ok := rawArgs["destinationServiceVersion"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("destinationServiceVersion"))
-		arg3, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["destinationServiceVersion"] = arg3
-	return args, nil
-}
-
-func (ec *executionContext) field_config_Config_queryOutgoingAPIs_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 *string
-	if tmp, ok := rawArgs["startTime"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("startTime"))
-		arg0, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["startTime"] = arg0
-	var arg1 *string
-	if tmp, ok := rawArgs["endTime"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("endTime"))
-		arg1, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["endTime"] = arg1
-	var arg2 *string
-	if tmp, ok := rawArgs["timeInterval"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("timeInterval"))
-		arg2, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["timeInterval"] = arg2
-	var arg3 *string
-	if tmp, ok := rawArgs["timeZone"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("timeZone"))
-		arg3, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["timeZone"] = arg3
-	return args, nil
-}
-
-func (ec *executionContext) field_config_Config_queryOutgoingTCP_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 *string
-	if tmp, ok := rawArgs["startTime"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("startTime"))
-		arg0, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["startTime"] = arg0
-	var arg1 *string
-	if tmp, ok := rawArgs["endTime"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("endTime"))
-		arg1, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["endTime"] = arg1
-	var arg2 *string
-	if tmp, ok := rawArgs["destinationService"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("destinationService"))
-		arg2, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["destinationService"] = arg2
-	var arg3 *string
-	if tmp, ok := rawArgs["destinationServiceVersion"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("destinationServiceVersion"))
-		arg3, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["destinationServiceVersion"] = arg3
-	return args, nil
-}
-
-func (ec *executionContext) field_config_Config_queryServiceTS_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 *string
-	if tmp, ok := rawArgs["svcMetric"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("svcMetric"))
-		arg0, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["svcMetric"] = arg0
-	var arg1 *string
-	if tmp, ok := rawArgs["startTime"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("startTime"))
-		arg1, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["startTime"] = arg1
-	var arg2 *string
-	if tmp, ok := rawArgs["endTime"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("endTime"))
-		arg2, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["endTime"] = arg2
-	var arg3 *string
-	if tmp, ok := rawArgs["timeInterval"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("timeInterval"))
-		arg3, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["timeInterval"] = arg3
-	return args, nil
-}
-
-func (ec *executionContext) field_config_Config_queryServiceTable_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 *string
-	if tmp, ok := rawArgs["startTime"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("startTime"))
-		arg0, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["startTime"] = arg0
-	var arg1 *string
-	if tmp, ok := rawArgs["endTime"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("endTime"))
-		arg1, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["endTime"] = arg1
-	var arg2 *bool
-	if tmp, ok := rawArgs["SystemServices"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("SystemServices"))
-		arg2, err = ec.unmarshalOBoolean2ᚖbool(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["SystemServices"] = arg2
-	var arg3 *bool
-	if tmp, ok := rawArgs["ShowGateways"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("ShowGateways"))
-		arg3, err = ec.unmarshalOBoolean2ᚖbool(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["ShowGateways"] = arg3
-	var arg4 *string
-	if tmp, ok := rawArgs["Groupby"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("Groupby"))
-		arg4, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["Groupby"] = arg4
-	var arg5 *bool
-	if tmp, ok := rawArgs["noMetrics"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("noMetrics"))
-		arg5, err = ec.unmarshalOBoolean2ᚖbool(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["noMetrics"] = arg5
-	return args, nil
-}
-
-func (ec *executionContext) field_config_Config_queryServiceTopology_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 *string
-	if tmp, ok := rawArgs["metricStringArray"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("metricStringArray"))
-		arg0, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["metricStringArray"] = arg0
-	var arg1 *string
-	if tmp, ok := rawArgs["startTime"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("startTime"))
-		arg1, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["startTime"] = arg1
-	var arg2 *string
-	if tmp, ok := rawArgs["endTime"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("endTime"))
-		arg2, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["endTime"] = arg2
-	return args, nil
-}
-
-func (ec *executionContext) field_config_Config_queryServiceVersionTable_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 *string
-	if tmp, ok := rawArgs["startTime"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("startTime"))
-		arg0, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["startTime"] = arg0
-	var arg1 *string
-	if tmp, ok := rawArgs["endTime"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("endTime"))
-		arg1, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["endTime"] = arg1
-	var arg2 *bool
-	if tmp, ok := rawArgs["SystemServices"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("SystemServices"))
-		arg2, err = ec.unmarshalOBoolean2ᚖbool(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["SystemServices"] = arg2
-	var arg3 *bool
-	if tmp, ok := rawArgs["ShowGateways"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("ShowGateways"))
-		arg3, err = ec.unmarshalOBoolean2ᚖbool(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["ShowGateways"] = arg3
-	var arg4 *bool
-	if tmp, ok := rawArgs["noMetrics"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("noMetrics"))
-		arg4, err = ec.unmarshalOBoolean2ᚖbool(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["noMetrics"] = arg4
-	return args, nil
-}
-
-func (ec *executionContext) field_gns_Bar_queryIncomingAPIs_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 *string
-	if tmp, ok := rawArgs["startTime"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("startTime"))
-		arg0, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["startTime"] = arg0
-	var arg1 *string
-	if tmp, ok := rawArgs["endTime"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("endTime"))
-		arg1, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["endTime"] = arg1
-	var arg2 *string
-	if tmp, ok := rawArgs["destinationService"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("destinationService"))
-		arg2, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["destinationService"] = arg2
-	var arg3 *string
-	if tmp, ok := rawArgs["destinationServiceVersion"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("destinationServiceVersion"))
-		arg3, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["destinationServiceVersion"] = arg3
-	var arg4 *string
-	if tmp, ok := rawArgs["timeInterval"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("timeInterval"))
-		arg4, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["timeInterval"] = arg4
-	var arg5 *string
-	if tmp, ok := rawArgs["timeZone"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("timeZone"))
-		arg5, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["timeZone"] = arg5
-	return args, nil
-}
-
-func (ec *executionContext) field_gns_Bar_queryIncomingTCP_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 *string
-	if tmp, ok := rawArgs["startTime"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("startTime"))
-		arg0, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["startTime"] = arg0
-	var arg1 *string
-	if tmp, ok := rawArgs["endTime"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("endTime"))
-		arg1, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["endTime"] = arg1
-	var arg2 *string
-	if tmp, ok := rawArgs["destinationService"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("destinationService"))
-		arg2, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["destinationService"] = arg2
-	var arg3 *string
-	if tmp, ok := rawArgs["destinationServiceVersion"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("destinationServiceVersion"))
-		arg3, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["destinationServiceVersion"] = arg3
-	return args, nil
-}
-
-func (ec *executionContext) field_gns_Bar_queryOutgoingAPIs_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 *string
-	if tmp, ok := rawArgs["startTime"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("startTime"))
-		arg0, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["startTime"] = arg0
-	var arg1 *string
-	if tmp, ok := rawArgs["endTime"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("endTime"))
-		arg1, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["endTime"] = arg1
-	var arg2 *string
-	if tmp, ok := rawArgs["timeInterval"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("timeInterval"))
-		arg2, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["timeInterval"] = arg2
-	var arg3 *string
-	if tmp, ok := rawArgs["timeZone"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("timeZone"))
-		arg3, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["timeZone"] = arg3
-	return args, nil
-}
-
-func (ec *executionContext) field_gns_Bar_queryOutgoingTCP_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 *string
-	if tmp, ok := rawArgs["startTime"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("startTime"))
-		arg0, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["startTime"] = arg0
-	var arg1 *string
-	if tmp, ok := rawArgs["endTime"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("endTime"))
-		arg1, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["endTime"] = arg1
-	var arg2 *string
-	if tmp, ok := rawArgs["destinationService"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("destinationService"))
-		arg2, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["destinationService"] = arg2
-	var arg3 *string
-	if tmp, ok := rawArgs["destinationServiceVersion"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("destinationServiceVersion"))
-		arg3, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["destinationServiceVersion"] = arg3
-	return args, nil
-}
-
-func (ec *executionContext) field_gns_Bar_queryServiceTS_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 *string
-	if tmp, ok := rawArgs["svcMetric"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("svcMetric"))
-		arg0, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["svcMetric"] = arg0
-	var arg1 *string
-	if tmp, ok := rawArgs["startTime"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("startTime"))
-		arg1, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["startTime"] = arg1
-	var arg2 *string
-	if tmp, ok := rawArgs["endTime"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("endTime"))
-		arg2, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["endTime"] = arg2
-	var arg3 *string
-	if tmp, ok := rawArgs["timeInterval"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("timeInterval"))
-		arg3, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["timeInterval"] = arg3
-	return args, nil
-}
-
-func (ec *executionContext) field_gns_Bar_queryServiceTable_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 *string
-	if tmp, ok := rawArgs["startTime"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("startTime"))
-		arg0, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["startTime"] = arg0
-	var arg1 *string
-	if tmp, ok := rawArgs["endTime"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("endTime"))
-		arg1, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["endTime"] = arg1
-	var arg2 *bool
-	if tmp, ok := rawArgs["SystemServices"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("SystemServices"))
-		arg2, err = ec.unmarshalOBoolean2ᚖbool(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["SystemServices"] = arg2
-	var arg3 *bool
-	if tmp, ok := rawArgs["ShowGateways"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("ShowGateways"))
-		arg3, err = ec.unmarshalOBoolean2ᚖbool(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["ShowGateways"] = arg3
-	var arg4 *string
-	if tmp, ok := rawArgs["Groupby"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("Groupby"))
-		arg4, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["Groupby"] = arg4
-	var arg5 *bool
-	if tmp, ok := rawArgs["noMetrics"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("noMetrics"))
-		arg5, err = ec.unmarshalOBoolean2ᚖbool(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["noMetrics"] = arg5
-	return args, nil
-}
-
-func (ec *executionContext) field_gns_Bar_queryServiceTopology_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 *string
-	if tmp, ok := rawArgs["metricStringArray"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("metricStringArray"))
-		arg0, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["metricStringArray"] = arg0
-	var arg1 *string
-	if tmp, ok := rawArgs["startTime"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("startTime"))
-		arg1, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["startTime"] = arg1
-	var arg2 *string
-	if tmp, ok := rawArgs["endTime"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("endTime"))
-		arg2, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["endTime"] = arg2
-	return args, nil
-}
-
-func (ec *executionContext) field_gns_Bar_queryServiceVersionTable_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 *string
-	if tmp, ok := rawArgs["startTime"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("startTime"))
-		arg0, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["startTime"] = arg0
-	var arg1 *string
-	if tmp, ok := rawArgs["endTime"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("endTime"))
-		arg1, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["endTime"] = arg1
-	var arg2 *bool
-	if tmp, ok := rawArgs["SystemServices"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("SystemServices"))
-		arg2, err = ec.unmarshalOBoolean2ᚖbool(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["SystemServices"] = arg2
-	var arg3 *bool
-	if tmp, ok := rawArgs["ShowGateways"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("ShowGateways"))
-		arg3, err = ec.unmarshalOBoolean2ᚖbool(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["ShowGateways"] = arg3
-	var arg4 *bool
-	if tmp, ok := rawArgs["noMetrics"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("noMetrics"))
-		arg4, err = ec.unmarshalOBoolean2ᚖbool(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["noMetrics"] = arg4
-	return args, nil
-}
-
-func (ec *executionContext) field_gns_EmptyData_queryIncomingAPIs_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 *string
-	if tmp, ok := rawArgs["startTime"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("startTime"))
-		arg0, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["startTime"] = arg0
-	var arg1 *string
-	if tmp, ok := rawArgs["endTime"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("endTime"))
-		arg1, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["endTime"] = arg1
-	var arg2 *string
-	if tmp, ok := rawArgs["destinationService"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("destinationService"))
-		arg2, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["destinationService"] = arg2
-	var arg3 *string
-	if tmp, ok := rawArgs["destinationServiceVersion"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("destinationServiceVersion"))
-		arg3, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["destinationServiceVersion"] = arg3
-	var arg4 *string
-	if tmp, ok := rawArgs["timeInterval"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("timeInterval"))
-		arg4, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["timeInterval"] = arg4
-	var arg5 *string
-	if tmp, ok := rawArgs["timeZone"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("timeZone"))
-		arg5, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["timeZone"] = arg5
-	return args, nil
-}
-
-func (ec *executionContext) field_gns_EmptyData_queryIncomingTCP_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 *string
-	if tmp, ok := rawArgs["startTime"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("startTime"))
-		arg0, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["startTime"] = arg0
-	var arg1 *string
-	if tmp, ok := rawArgs["endTime"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("endTime"))
-		arg1, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["endTime"] = arg1
-	var arg2 *string
-	if tmp, ok := rawArgs["destinationService"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("destinationService"))
-		arg2, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["destinationService"] = arg2
-	var arg3 *string
-	if tmp, ok := rawArgs["destinationServiceVersion"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("destinationServiceVersion"))
-		arg3, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["destinationServiceVersion"] = arg3
-	return args, nil
-}
-
-func (ec *executionContext) field_gns_EmptyData_queryOutgoingAPIs_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 *string
-	if tmp, ok := rawArgs["startTime"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("startTime"))
-		arg0, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["startTime"] = arg0
-	var arg1 *string
-	if tmp, ok := rawArgs["endTime"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("endTime"))
-		arg1, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["endTime"] = arg1
-	var arg2 *string
-	if tmp, ok := rawArgs["timeInterval"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("timeInterval"))
-		arg2, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["timeInterval"] = arg2
-	var arg3 *string
-	if tmp, ok := rawArgs["timeZone"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("timeZone"))
-		arg3, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["timeZone"] = arg3
-	return args, nil
-}
-
-func (ec *executionContext) field_gns_EmptyData_queryOutgoingTCP_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 *string
-	if tmp, ok := rawArgs["startTime"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("startTime"))
-		arg0, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["startTime"] = arg0
-	var arg1 *string
-	if tmp, ok := rawArgs["endTime"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("endTime"))
-		arg1, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["endTime"] = arg1
-	var arg2 *string
-	if tmp, ok := rawArgs["destinationService"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("destinationService"))
-		arg2, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["destinationService"] = arg2
-	var arg3 *string
-	if tmp, ok := rawArgs["destinationServiceVersion"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("destinationServiceVersion"))
-		arg3, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["destinationServiceVersion"] = arg3
-	return args, nil
-}
-
-func (ec *executionContext) field_gns_EmptyData_queryServiceTS_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 *string
-	if tmp, ok := rawArgs["svcMetric"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("svcMetric"))
-		arg0, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["svcMetric"] = arg0
-	var arg1 *string
-	if tmp, ok := rawArgs["startTime"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("startTime"))
-		arg1, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["startTime"] = arg1
-	var arg2 *string
-	if tmp, ok := rawArgs["endTime"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("endTime"))
-		arg2, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["endTime"] = arg2
-	var arg3 *string
-	if tmp, ok := rawArgs["timeInterval"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("timeInterval"))
-		arg3, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["timeInterval"] = arg3
-	return args, nil
-}
-
-func (ec *executionContext) field_gns_EmptyData_queryServiceTable_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 *string
-	if tmp, ok := rawArgs["startTime"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("startTime"))
-		arg0, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["startTime"] = arg0
-	var arg1 *string
-	if tmp, ok := rawArgs["endTime"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("endTime"))
-		arg1, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["endTime"] = arg1
-	var arg2 *bool
-	if tmp, ok := rawArgs["SystemServices"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("SystemServices"))
-		arg2, err = ec.unmarshalOBoolean2ᚖbool(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["SystemServices"] = arg2
-	var arg3 *bool
-	if tmp, ok := rawArgs["ShowGateways"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("ShowGateways"))
-		arg3, err = ec.unmarshalOBoolean2ᚖbool(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["ShowGateways"] = arg3
-	var arg4 *string
-	if tmp, ok := rawArgs["Groupby"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("Groupby"))
-		arg4, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["Groupby"] = arg4
-	var arg5 *bool
-	if tmp, ok := rawArgs["noMetrics"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("noMetrics"))
-		arg5, err = ec.unmarshalOBoolean2ᚖbool(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["noMetrics"] = arg5
-	return args, nil
-}
-
-func (ec *executionContext) field_gns_EmptyData_queryServiceTopology_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 *string
-	if tmp, ok := rawArgs["metricStringArray"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("metricStringArray"))
-		arg0, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["metricStringArray"] = arg0
-	var arg1 *string
-	if tmp, ok := rawArgs["startTime"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("startTime"))
-		arg1, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["startTime"] = arg1
-	var arg2 *string
-	if tmp, ok := rawArgs["endTime"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("endTime"))
-		arg2, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["endTime"] = arg2
-	return args, nil
-}
-
-func (ec *executionContext) field_gns_EmptyData_queryServiceVersionTable_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 *string
-	if tmp, ok := rawArgs["startTime"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("startTime"))
-		arg0, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["startTime"] = arg0
-	var arg1 *string
-	if tmp, ok := rawArgs["endTime"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("endTime"))
-		arg1, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["endTime"] = arg1
-	var arg2 *bool
-	if tmp, ok := rawArgs["SystemServices"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("SystemServices"))
-		arg2, err = ec.unmarshalOBoolean2ᚖbool(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["SystemServices"] = arg2
-	var arg3 *bool
-	if tmp, ok := rawArgs["ShowGateways"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("ShowGateways"))
-		arg3, err = ec.unmarshalOBoolean2ᚖbool(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["ShowGateways"] = arg3
-	var arg4 *bool
-	if tmp, ok := rawArgs["noMetrics"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("noMetrics"))
-		arg4, err = ec.unmarshalOBoolean2ᚖbool(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["noMetrics"] = arg4
-	return args, nil
-}
-
-func (ec *executionContext) field_gns_Gns_FooChildren_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+func (ec *executionContext) field_config_Config_ACPPolicies_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
 	var arg0 *string
@@ -2696,7 +1094,7 @@ func (ec *executionContext) field_gns_Gns_FooChildren_args(ctx context.Context, 
 	return args, nil
 }
 
-func (ec *executionContext) field_gns_Gns_FooLinks_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+func (ec *executionContext) field_config_Config_Domain_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
 	var arg0 *string
@@ -2711,747 +1109,138 @@ func (ec *executionContext) field_gns_Gns_FooLinks_args(ctx context.Context, raw
 	return args, nil
 }
 
-func (ec *executionContext) field_gns_Gns_queryIncomingAPIs_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+func (ec *executionContext) field_config_Config_FooExample_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
 	var arg0 *string
-	if tmp, ok := rawArgs["startTime"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("startTime"))
-		arg0, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+	if tmp, ok := rawArgs["Id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("Id"))
+		arg0, err = ec.unmarshalOID2ᚖstring(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["startTime"] = arg0
-	var arg1 *string
-	if tmp, ok := rawArgs["endTime"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("endTime"))
-		arg1, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["endTime"] = arg1
-	var arg2 *string
-	if tmp, ok := rawArgs["destinationService"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("destinationService"))
-		arg2, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["destinationService"] = arg2
-	var arg3 *string
-	if tmp, ok := rawArgs["destinationServiceVersion"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("destinationServiceVersion"))
-		arg3, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["destinationServiceVersion"] = arg3
-	var arg4 *string
-	if tmp, ok := rawArgs["timeInterval"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("timeInterval"))
-		arg4, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["timeInterval"] = arg4
-	var arg5 *string
-	if tmp, ok := rawArgs["timeZone"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("timeZone"))
-		arg5, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["timeZone"] = arg5
+	args["Id"] = arg0
 	return args, nil
 }
 
-func (ec *executionContext) field_gns_Gns_queryIncomingTCP_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+func (ec *executionContext) field_config_Config_GNS_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
 	var arg0 *string
-	if tmp, ok := rawArgs["startTime"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("startTime"))
-		arg0, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+	if tmp, ok := rawArgs["Id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("Id"))
+		arg0, err = ec.unmarshalOID2ᚖstring(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["startTime"] = arg0
-	var arg1 *string
-	if tmp, ok := rawArgs["endTime"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("endTime"))
-		arg1, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["endTime"] = arg1
-	var arg2 *string
-	if tmp, ok := rawArgs["destinationService"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("destinationService"))
-		arg2, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["destinationService"] = arg2
-	var arg3 *string
-	if tmp, ok := rawArgs["destinationServiceVersion"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("destinationServiceVersion"))
-		arg3, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["destinationServiceVersion"] = arg3
+	args["Id"] = arg0
 	return args, nil
 }
 
-func (ec *executionContext) field_gns_Gns_queryOutgoingAPIs_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+func (ec *executionContext) field_config_Config_VMPPolicies_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
 	var arg0 *string
-	if tmp, ok := rawArgs["startTime"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("startTime"))
-		arg0, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+	if tmp, ok := rawArgs["Id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("Id"))
+		arg0, err = ec.unmarshalOID2ᚖstring(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["startTime"] = arg0
-	var arg1 *string
-	if tmp, ok := rawArgs["endTime"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("endTime"))
-		arg1, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["endTime"] = arg1
-	var arg2 *string
-	if tmp, ok := rawArgs["timeInterval"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("timeInterval"))
-		arg2, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["timeInterval"] = arg2
-	var arg3 *string
-	if tmp, ok := rawArgs["timeZone"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("timeZone"))
-		arg3, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["timeZone"] = arg3
+	args["Id"] = arg0
 	return args, nil
 }
 
-func (ec *executionContext) field_gns_Gns_queryOutgoingTCP_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+func (ec *executionContext) field_gns_Gns_GnsAccessControlPolicy_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
 	var arg0 *string
-	if tmp, ok := rawArgs["startTime"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("startTime"))
-		arg0, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+	if tmp, ok := rawArgs["Id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("Id"))
+		arg0, err = ec.unmarshalOID2ᚖstring(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["startTime"] = arg0
-	var arg1 *string
-	if tmp, ok := rawArgs["endTime"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("endTime"))
-		arg1, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["endTime"] = arg1
-	var arg2 *string
-	if tmp, ok := rawArgs["destinationService"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("destinationService"))
-		arg2, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["destinationService"] = arg2
-	var arg3 *string
-	if tmp, ok := rawArgs["destinationServiceVersion"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("destinationServiceVersion"))
-		arg3, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["destinationServiceVersion"] = arg3
+	args["Id"] = arg0
 	return args, nil
 }
 
-func (ec *executionContext) field_gns_Gns_queryServiceTS_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+func (ec *executionContext) field_gns_Gns_GnsServiceGroups_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
 	var arg0 *string
-	if tmp, ok := rawArgs["svcMetric"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("svcMetric"))
-		arg0, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+	if tmp, ok := rawArgs["Id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("Id"))
+		arg0, err = ec.unmarshalOID2ᚖstring(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["svcMetric"] = arg0
-	var arg1 *string
-	if tmp, ok := rawArgs["startTime"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("startTime"))
-		arg1, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["startTime"] = arg1
-	var arg2 *string
-	if tmp, ok := rawArgs["endTime"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("endTime"))
-		arg2, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["endTime"] = arg2
-	var arg3 *string
-	if tmp, ok := rawArgs["timeInterval"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("timeInterval"))
-		arg3, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["timeInterval"] = arg3
+	args["Id"] = arg0
 	return args, nil
 }
 
-func (ec *executionContext) field_gns_Gns_queryServiceTable_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+func (ec *executionContext) field_policy_ACPConfig_DestSvcGroups_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
 	var arg0 *string
-	if tmp, ok := rawArgs["startTime"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("startTime"))
-		arg0, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+	if tmp, ok := rawArgs["Id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("Id"))
+		arg0, err = ec.unmarshalOID2ᚖstring(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["startTime"] = arg0
-	var arg1 *string
-	if tmp, ok := rawArgs["endTime"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("endTime"))
-		arg1, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["endTime"] = arg1
-	var arg2 *bool
-	if tmp, ok := rawArgs["SystemServices"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("SystemServices"))
-		arg2, err = ec.unmarshalOBoolean2ᚖbool(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["SystemServices"] = arg2
-	var arg3 *bool
-	if tmp, ok := rawArgs["ShowGateways"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("ShowGateways"))
-		arg3, err = ec.unmarshalOBoolean2ᚖbool(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["ShowGateways"] = arg3
-	var arg4 *string
-	if tmp, ok := rawArgs["Groupby"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("Groupby"))
-		arg4, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["Groupby"] = arg4
-	var arg5 *bool
-	if tmp, ok := rawArgs["noMetrics"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("noMetrics"))
-		arg5, err = ec.unmarshalOBoolean2ᚖbool(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["noMetrics"] = arg5
+	args["Id"] = arg0
 	return args, nil
 }
 
-func (ec *executionContext) field_gns_Gns_queryServiceTopology_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+func (ec *executionContext) field_policy_ACPConfig_SourceSvcGroups_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
 	var arg0 *string
-	if tmp, ok := rawArgs["metricStringArray"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("metricStringArray"))
-		arg0, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+	if tmp, ok := rawArgs["Id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("Id"))
+		arg0, err = ec.unmarshalOID2ᚖstring(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["metricStringArray"] = arg0
-	var arg1 *string
-	if tmp, ok := rawArgs["startTime"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("startTime"))
-		arg1, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["startTime"] = arg1
-	var arg2 *string
-	if tmp, ok := rawArgs["endTime"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("endTime"))
-		arg2, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["endTime"] = arg2
+	args["Id"] = arg0
 	return args, nil
 }
 
-func (ec *executionContext) field_gns_Gns_queryServiceVersionTable_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+func (ec *executionContext) field_policy_AccessControlPolicy_PolicyConfigs_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
 	var arg0 *string
-	if tmp, ok := rawArgs["startTime"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("startTime"))
-		arg0, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+	if tmp, ok := rawArgs["Id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("Id"))
+		arg0, err = ec.unmarshalOID2ᚖstring(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["startTime"] = arg0
-	var arg1 *string
-	if tmp, ok := rawArgs["endTime"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("endTime"))
-		arg1, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["endTime"] = arg1
-	var arg2 *bool
-	if tmp, ok := rawArgs["SystemServices"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("SystemServices"))
-		arg2, err = ec.unmarshalOBoolean2ᚖbool(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["SystemServices"] = arg2
-	var arg3 *bool
-	if tmp, ok := rawArgs["ShowGateways"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("ShowGateways"))
-		arg3, err = ec.unmarshalOBoolean2ᚖbool(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["ShowGateways"] = arg3
-	var arg4 *bool
-	if tmp, ok := rawArgs["noMetrics"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("noMetrics"))
-		arg4, err = ec.unmarshalOBoolean2ᚖbool(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["noMetrics"] = arg4
+	args["Id"] = arg0
 	return args, nil
 }
 
-func (ec *executionContext) field_root_Root_queryIncomingAPIs_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+func (ec *executionContext) field_root_Root_Config_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
 	var arg0 *string
-	if tmp, ok := rawArgs["startTime"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("startTime"))
-		arg0, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+	if tmp, ok := rawArgs["Id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("Id"))
+		arg0, err = ec.unmarshalOID2ᚖstring(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["startTime"] = arg0
-	var arg1 *string
-	if tmp, ok := rawArgs["endTime"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("endTime"))
-		arg1, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["endTime"] = arg1
-	var arg2 *string
-	if tmp, ok := rawArgs["destinationService"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("destinationService"))
-		arg2, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["destinationService"] = arg2
-	var arg3 *string
-	if tmp, ok := rawArgs["destinationServiceVersion"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("destinationServiceVersion"))
-		arg3, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["destinationServiceVersion"] = arg3
-	var arg4 *string
-	if tmp, ok := rawArgs["timeInterval"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("timeInterval"))
-		arg4, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["timeInterval"] = arg4
-	var arg5 *string
-	if tmp, ok := rawArgs["timeZone"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("timeZone"))
-		arg5, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["timeZone"] = arg5
-	return args, nil
-}
-
-func (ec *executionContext) field_root_Root_queryIncomingTCP_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 *string
-	if tmp, ok := rawArgs["startTime"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("startTime"))
-		arg0, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["startTime"] = arg0
-	var arg1 *string
-	if tmp, ok := rawArgs["endTime"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("endTime"))
-		arg1, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["endTime"] = arg1
-	var arg2 *string
-	if tmp, ok := rawArgs["destinationService"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("destinationService"))
-		arg2, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["destinationService"] = arg2
-	var arg3 *string
-	if tmp, ok := rawArgs["destinationServiceVersion"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("destinationServiceVersion"))
-		arg3, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["destinationServiceVersion"] = arg3
-	return args, nil
-}
-
-func (ec *executionContext) field_root_Root_queryOutgoingAPIs_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 *string
-	if tmp, ok := rawArgs["startTime"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("startTime"))
-		arg0, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["startTime"] = arg0
-	var arg1 *string
-	if tmp, ok := rawArgs["endTime"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("endTime"))
-		arg1, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["endTime"] = arg1
-	var arg2 *string
-	if tmp, ok := rawArgs["timeInterval"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("timeInterval"))
-		arg2, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["timeInterval"] = arg2
-	var arg3 *string
-	if tmp, ok := rawArgs["timeZone"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("timeZone"))
-		arg3, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["timeZone"] = arg3
-	return args, nil
-}
-
-func (ec *executionContext) field_root_Root_queryOutgoingTCP_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 *string
-	if tmp, ok := rawArgs["startTime"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("startTime"))
-		arg0, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["startTime"] = arg0
-	var arg1 *string
-	if tmp, ok := rawArgs["endTime"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("endTime"))
-		arg1, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["endTime"] = arg1
-	var arg2 *string
-	if tmp, ok := rawArgs["destinationService"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("destinationService"))
-		arg2, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["destinationService"] = arg2
-	var arg3 *string
-	if tmp, ok := rawArgs["destinationServiceVersion"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("destinationServiceVersion"))
-		arg3, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["destinationServiceVersion"] = arg3
-	return args, nil
-}
-
-func (ec *executionContext) field_root_Root_queryServiceTS_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 *string
-	if tmp, ok := rawArgs["svcMetric"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("svcMetric"))
-		arg0, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["svcMetric"] = arg0
-	var arg1 *string
-	if tmp, ok := rawArgs["startTime"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("startTime"))
-		arg1, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["startTime"] = arg1
-	var arg2 *string
-	if tmp, ok := rawArgs["endTime"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("endTime"))
-		arg2, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["endTime"] = arg2
-	var arg3 *string
-	if tmp, ok := rawArgs["timeInterval"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("timeInterval"))
-		arg3, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["timeInterval"] = arg3
-	return args, nil
-}
-
-func (ec *executionContext) field_root_Root_queryServiceTable_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 *string
-	if tmp, ok := rawArgs["startTime"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("startTime"))
-		arg0, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["startTime"] = arg0
-	var arg1 *string
-	if tmp, ok := rawArgs["endTime"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("endTime"))
-		arg1, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["endTime"] = arg1
-	var arg2 *bool
-	if tmp, ok := rawArgs["SystemServices"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("SystemServices"))
-		arg2, err = ec.unmarshalOBoolean2ᚖbool(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["SystemServices"] = arg2
-	var arg3 *bool
-	if tmp, ok := rawArgs["ShowGateways"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("ShowGateways"))
-		arg3, err = ec.unmarshalOBoolean2ᚖbool(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["ShowGateways"] = arg3
-	var arg4 *string
-	if tmp, ok := rawArgs["Groupby"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("Groupby"))
-		arg4, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["Groupby"] = arg4
-	var arg5 *bool
-	if tmp, ok := rawArgs["noMetrics"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("noMetrics"))
-		arg5, err = ec.unmarshalOBoolean2ᚖbool(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["noMetrics"] = arg5
-	return args, nil
-}
-
-func (ec *executionContext) field_root_Root_queryServiceTopology_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 *string
-	if tmp, ok := rawArgs["metricStringArray"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("metricStringArray"))
-		arg0, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["metricStringArray"] = arg0
-	var arg1 *string
-	if tmp, ok := rawArgs["startTime"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("startTime"))
-		arg1, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["startTime"] = arg1
-	var arg2 *string
-	if tmp, ok := rawArgs["endTime"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("endTime"))
-		arg2, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["endTime"] = arg2
-	return args, nil
-}
-
-func (ec *executionContext) field_root_Root_queryServiceVersionTable_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 *string
-	if tmp, ok := rawArgs["startTime"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("startTime"))
-		arg0, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["startTime"] = arg0
-	var arg1 *string
-	if tmp, ok := rawArgs["endTime"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("endTime"))
-		arg1, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["endTime"] = arg1
-	var arg2 *bool
-	if tmp, ok := rawArgs["SystemServices"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("SystemServices"))
-		arg2, err = ec.unmarshalOBoolean2ᚖbool(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["SystemServices"] = arg2
-	var arg3 *bool
-	if tmp, ok := rawArgs["ShowGateways"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("ShowGateways"))
-		arg3, err = ec.unmarshalOBoolean2ᚖbool(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["ShowGateways"] = arg3
-	var arg4 *bool
-	if tmp, ok := rawArgs["noMetrics"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("noMetrics"))
-		arg4, err = ec.unmarshalOBoolean2ᚖbool(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["noMetrics"] = arg4
+	args["Id"] = arg0
 	return args, nil
 }
 
@@ -3501,28 +1290,10 @@ func (ec *executionContext) fieldContext_Query_root(ctx context.Context, field g
 			switch field.Name {
 			case "Id":
 				return ec.fieldContext_root_Root_Id(ctx, field)
-			case "queryServiceTable":
-				return ec.fieldContext_root_Root_queryServiceTable(ctx, field)
-			case "queryServiceVersionTable":
-				return ec.fieldContext_root_Root_queryServiceVersionTable(ctx, field)
-			case "queryServiceTS":
-				return ec.fieldContext_root_Root_queryServiceTS(ctx, field)
-			case "queryIncomingAPIs":
-				return ec.fieldContext_root_Root_queryIncomingAPIs(ctx, field)
-			case "queryOutgoingAPIs":
-				return ec.fieldContext_root_Root_queryOutgoingAPIs(ctx, field)
-			case "queryIncomingTCP":
-				return ec.fieldContext_root_Root_queryIncomingTCP(ctx, field)
-			case "queryOutgoingTCP":
-				return ec.fieldContext_root_Root_queryOutgoingTCP(ctx, field)
-			case "queryServiceTopology":
-				return ec.fieldContext_root_Root_queryServiceTopology(ctx, field)
+			case "ParentLabels":
+				return ec.fieldContext_root_Root_ParentLabels(ctx, field)
 			case "Config":
 				return ec.fieldContext_root_Root_Config(ctx, field)
-			case "DisplayName":
-				return ec.fieldContext_root_Root_DisplayName(ctx, field)
-			case "CustomBar":
-				return ec.fieldContext_root_Root_CustomBar(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type root_Root", field.Name)
 		},
@@ -3654,211 +1425,6 @@ func (ec *executionContext) fieldContext_Query___schema(ctx context.Context, fie
 				return ec.fieldContext___Schema_directives(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type __Schema", field.Name)
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _TimeSeriesData_Code(ctx context.Context, field graphql.CollectedField, obj *model.TimeSeriesData) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_TimeSeriesData_Code(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Code, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*int)
-	fc.Result = res
-	return ec.marshalOInt2ᚖint(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_TimeSeriesData_Code(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "TimeSeriesData",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Int does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _TimeSeriesData_Message(ctx context.Context, field graphql.CollectedField, obj *model.TimeSeriesData) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_TimeSeriesData_Message(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Message, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*string)
-	fc.Result = res
-	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_TimeSeriesData_Message(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "TimeSeriesData",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _TimeSeriesData_Data(ctx context.Context, field graphql.CollectedField, obj *model.TimeSeriesData) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_TimeSeriesData_Data(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Data, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*string)
-	fc.Result = res
-	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_TimeSeriesData_Data(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "TimeSeriesData",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _TimeSeriesData_Last(ctx context.Context, field graphql.CollectedField, obj *model.TimeSeriesData) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_TimeSeriesData_Last(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Last, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*string)
-	fc.Result = res
-	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_TimeSeriesData_Last(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "TimeSeriesData",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _TimeSeriesData_TotalRecords(ctx context.Context, field graphql.CollectedField, obj *model.TimeSeriesData) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_TimeSeriesData_TotalRecords(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.TotalRecords, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*int)
-	fc.Result = res
-	return ec.marshalOInt2ᚖint(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_TimeSeriesData_TotalRecords(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "TimeSeriesData",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Int does not have child fields")
 		},
 	}
 	return fc, nil
@@ -5633,88 +3199,6 @@ func (ec *executionContext) fieldContext___Type_specifiedByURL(ctx context.Conte
 	return fc, nil
 }
 
-func (ec *executionContext) _config_Cluster_Name(ctx context.Context, field graphql.CollectedField, obj *model.ConfigCluster) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_config_Cluster_Name(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Name, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*string)
-	fc.Result = res
-	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_config_Cluster_Name(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "config_Cluster",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _config_Cluster_MyID(ctx context.Context, field graphql.CollectedField, obj *model.ConfigCluster) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_config_Cluster_MyID(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.MyID, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*int)
-	fc.Result = res
-	return ec.marshalOInt2ᚖint(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_config_Cluster_MyID(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "config_Cluster",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Int does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
 func (ec *executionContext) _config_Config_Id(ctx context.Context, field graphql.CollectedField, obj *model.ConfigConfig) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_config_Config_Id(ctx, field)
 	if err != nil {
@@ -5756,8 +3240,8 @@ func (ec *executionContext) fieldContext_config_Config_Id(ctx context.Context, f
 	return fc, nil
 }
 
-func (ec *executionContext) _config_Config_queryServiceTable(ctx context.Context, field graphql.CollectedField, obj *model.ConfigConfig) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_config_Config_queryServiceTable(ctx, field)
+func (ec *executionContext) _config_Config_ParentLabels(ctx context.Context, field graphql.CollectedField, obj *model.ConfigConfig) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_config_Config_ParentLabels(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -5770,7 +3254,7 @@ func (ec *executionContext) _config_Config_queryServiceTable(ctx context.Context
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Config_Config().QueryServiceTable(rctx, obj, fc.Args["startTime"].(*string), fc.Args["endTime"].(*string), fc.Args["SystemServices"].(*bool), fc.Args["ShowGateways"].(*bool), fc.Args["Groupby"].(*string), fc.Args["noMetrics"].(*bool))
+		return obj.ParentLabels, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -5779,49 +3263,26 @@ func (ec *executionContext) _config_Config_queryServiceTable(ctx context.Context
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(*model.TimeSeriesData)
+	res := resTmp.(map[string]interface{})
 	fc.Result = res
-	return ec.marshalOTimeSeriesData2ᚖnexustempmoduleᚋnexusᚑgqlᚋgraphᚋmodelᚐTimeSeriesData(ctx, field.Selections, res)
+	return ec.marshalOMap2map(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_config_Config_queryServiceTable(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_config_Config_ParentLabels(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "config_Config",
 		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
+		IsMethod:   false,
+		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "Code":
-				return ec.fieldContext_TimeSeriesData_Code(ctx, field)
-			case "Message":
-				return ec.fieldContext_TimeSeriesData_Message(ctx, field)
-			case "Data":
-				return ec.fieldContext_TimeSeriesData_Data(ctx, field)
-			case "Last":
-				return ec.fieldContext_TimeSeriesData_Last(ctx, field)
-			case "TotalRecords":
-				return ec.fieldContext_TimeSeriesData_TotalRecords(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type TimeSeriesData", field.Name)
+			return nil, errors.New("field of type Map does not have child fields")
 		},
-	}
-	defer func() {
-		if r := recover(); r != nil {
-			err = ec.Recover(ctx, r)
-			ec.Error(ctx, err)
-		}
-	}()
-	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_config_Config_queryServiceTable_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
-		ec.Error(ctx, err)
-		return
 	}
 	return fc, nil
 }
 
-func (ec *executionContext) _config_Config_queryServiceVersionTable(ctx context.Context, field graphql.CollectedField, obj *model.ConfigConfig) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_config_Config_queryServiceVersionTable(ctx, field)
+func (ec *executionContext) _config_Config_ACPPolicies(ctx context.Context, field graphql.CollectedField, obj *model.ConfigConfig) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_config_Config_ACPPolicies(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -5834,7 +3295,7 @@ func (ec *executionContext) _config_Config_queryServiceVersionTable(ctx context.
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Config_Config().QueryServiceVersionTable(rctx, obj, fc.Args["startTime"].(*string), fc.Args["endTime"].(*string), fc.Args["SystemServices"].(*bool), fc.Args["ShowGateways"].(*bool), fc.Args["noMetrics"].(*bool))
+		return ec.resolvers.Config_Config().ACPPolicies(rctx, obj, fc.Args["Id"].(*string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -5843,463 +3304,12 @@ func (ec *executionContext) _config_Config_queryServiceVersionTable(ctx context.
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(*model.TimeSeriesData)
+	res := resTmp.([]*model.PolicyAccessControlPolicy)
 	fc.Result = res
-	return ec.marshalOTimeSeriesData2ᚖnexustempmoduleᚋnexusᚑgqlᚋgraphᚋmodelᚐTimeSeriesData(ctx, field.Selections, res)
+	return ec.marshalOpolicy_AccessControlPolicy2ᚕᚖnexustempmoduleᚋnexusᚑgqlᚋgraphᚋmodelᚐPolicyAccessControlPolicyᚄ(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_config_Config_queryServiceVersionTable(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "config_Config",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "Code":
-				return ec.fieldContext_TimeSeriesData_Code(ctx, field)
-			case "Message":
-				return ec.fieldContext_TimeSeriesData_Message(ctx, field)
-			case "Data":
-				return ec.fieldContext_TimeSeriesData_Data(ctx, field)
-			case "Last":
-				return ec.fieldContext_TimeSeriesData_Last(ctx, field)
-			case "TotalRecords":
-				return ec.fieldContext_TimeSeriesData_TotalRecords(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type TimeSeriesData", field.Name)
-		},
-	}
-	defer func() {
-		if r := recover(); r != nil {
-			err = ec.Recover(ctx, r)
-			ec.Error(ctx, err)
-		}
-	}()
-	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_config_Config_queryServiceVersionTable_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
-		ec.Error(ctx, err)
-		return
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _config_Config_queryServiceTS(ctx context.Context, field graphql.CollectedField, obj *model.ConfigConfig) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_config_Config_queryServiceTS(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Config_Config().QueryServiceTs(rctx, obj, fc.Args["svcMetric"].(*string), fc.Args["startTime"].(*string), fc.Args["endTime"].(*string), fc.Args["timeInterval"].(*string))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*model.TimeSeriesData)
-	fc.Result = res
-	return ec.marshalOTimeSeriesData2ᚖnexustempmoduleᚋnexusᚑgqlᚋgraphᚋmodelᚐTimeSeriesData(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_config_Config_queryServiceTS(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "config_Config",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "Code":
-				return ec.fieldContext_TimeSeriesData_Code(ctx, field)
-			case "Message":
-				return ec.fieldContext_TimeSeriesData_Message(ctx, field)
-			case "Data":
-				return ec.fieldContext_TimeSeriesData_Data(ctx, field)
-			case "Last":
-				return ec.fieldContext_TimeSeriesData_Last(ctx, field)
-			case "TotalRecords":
-				return ec.fieldContext_TimeSeriesData_TotalRecords(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type TimeSeriesData", field.Name)
-		},
-	}
-	defer func() {
-		if r := recover(); r != nil {
-			err = ec.Recover(ctx, r)
-			ec.Error(ctx, err)
-		}
-	}()
-	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_config_Config_queryServiceTS_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
-		ec.Error(ctx, err)
-		return
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _config_Config_queryIncomingAPIs(ctx context.Context, field graphql.CollectedField, obj *model.ConfigConfig) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_config_Config_queryIncomingAPIs(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Config_Config().QueryIncomingAPIs(rctx, obj, fc.Args["startTime"].(*string), fc.Args["endTime"].(*string), fc.Args["destinationService"].(*string), fc.Args["destinationServiceVersion"].(*string), fc.Args["timeInterval"].(*string), fc.Args["timeZone"].(*string))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*model.TimeSeriesData)
-	fc.Result = res
-	return ec.marshalOTimeSeriesData2ᚖnexustempmoduleᚋnexusᚑgqlᚋgraphᚋmodelᚐTimeSeriesData(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_config_Config_queryIncomingAPIs(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "config_Config",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "Code":
-				return ec.fieldContext_TimeSeriesData_Code(ctx, field)
-			case "Message":
-				return ec.fieldContext_TimeSeriesData_Message(ctx, field)
-			case "Data":
-				return ec.fieldContext_TimeSeriesData_Data(ctx, field)
-			case "Last":
-				return ec.fieldContext_TimeSeriesData_Last(ctx, field)
-			case "TotalRecords":
-				return ec.fieldContext_TimeSeriesData_TotalRecords(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type TimeSeriesData", field.Name)
-		},
-	}
-	defer func() {
-		if r := recover(); r != nil {
-			err = ec.Recover(ctx, r)
-			ec.Error(ctx, err)
-		}
-	}()
-	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_config_Config_queryIncomingAPIs_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
-		ec.Error(ctx, err)
-		return
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _config_Config_queryOutgoingAPIs(ctx context.Context, field graphql.CollectedField, obj *model.ConfigConfig) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_config_Config_queryOutgoingAPIs(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Config_Config().QueryOutgoingAPIs(rctx, obj, fc.Args["startTime"].(*string), fc.Args["endTime"].(*string), fc.Args["timeInterval"].(*string), fc.Args["timeZone"].(*string))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*model.TimeSeriesData)
-	fc.Result = res
-	return ec.marshalOTimeSeriesData2ᚖnexustempmoduleᚋnexusᚑgqlᚋgraphᚋmodelᚐTimeSeriesData(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_config_Config_queryOutgoingAPIs(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "config_Config",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "Code":
-				return ec.fieldContext_TimeSeriesData_Code(ctx, field)
-			case "Message":
-				return ec.fieldContext_TimeSeriesData_Message(ctx, field)
-			case "Data":
-				return ec.fieldContext_TimeSeriesData_Data(ctx, field)
-			case "Last":
-				return ec.fieldContext_TimeSeriesData_Last(ctx, field)
-			case "TotalRecords":
-				return ec.fieldContext_TimeSeriesData_TotalRecords(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type TimeSeriesData", field.Name)
-		},
-	}
-	defer func() {
-		if r := recover(); r != nil {
-			err = ec.Recover(ctx, r)
-			ec.Error(ctx, err)
-		}
-	}()
-	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_config_Config_queryOutgoingAPIs_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
-		ec.Error(ctx, err)
-		return
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _config_Config_queryIncomingTCP(ctx context.Context, field graphql.CollectedField, obj *model.ConfigConfig) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_config_Config_queryIncomingTCP(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Config_Config().QueryIncomingTcp(rctx, obj, fc.Args["startTime"].(*string), fc.Args["endTime"].(*string), fc.Args["destinationService"].(*string), fc.Args["destinationServiceVersion"].(*string))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*model.TimeSeriesData)
-	fc.Result = res
-	return ec.marshalOTimeSeriesData2ᚖnexustempmoduleᚋnexusᚑgqlᚋgraphᚋmodelᚐTimeSeriesData(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_config_Config_queryIncomingTCP(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "config_Config",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "Code":
-				return ec.fieldContext_TimeSeriesData_Code(ctx, field)
-			case "Message":
-				return ec.fieldContext_TimeSeriesData_Message(ctx, field)
-			case "Data":
-				return ec.fieldContext_TimeSeriesData_Data(ctx, field)
-			case "Last":
-				return ec.fieldContext_TimeSeriesData_Last(ctx, field)
-			case "TotalRecords":
-				return ec.fieldContext_TimeSeriesData_TotalRecords(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type TimeSeriesData", field.Name)
-		},
-	}
-	defer func() {
-		if r := recover(); r != nil {
-			err = ec.Recover(ctx, r)
-			ec.Error(ctx, err)
-		}
-	}()
-	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_config_Config_queryIncomingTCP_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
-		ec.Error(ctx, err)
-		return
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _config_Config_queryOutgoingTCP(ctx context.Context, field graphql.CollectedField, obj *model.ConfigConfig) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_config_Config_queryOutgoingTCP(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Config_Config().QueryOutgoingTcp(rctx, obj, fc.Args["startTime"].(*string), fc.Args["endTime"].(*string), fc.Args["destinationService"].(*string), fc.Args["destinationServiceVersion"].(*string))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*model.TimeSeriesData)
-	fc.Result = res
-	return ec.marshalOTimeSeriesData2ᚖnexustempmoduleᚋnexusᚑgqlᚋgraphᚋmodelᚐTimeSeriesData(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_config_Config_queryOutgoingTCP(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "config_Config",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "Code":
-				return ec.fieldContext_TimeSeriesData_Code(ctx, field)
-			case "Message":
-				return ec.fieldContext_TimeSeriesData_Message(ctx, field)
-			case "Data":
-				return ec.fieldContext_TimeSeriesData_Data(ctx, field)
-			case "Last":
-				return ec.fieldContext_TimeSeriesData_Last(ctx, field)
-			case "TotalRecords":
-				return ec.fieldContext_TimeSeriesData_TotalRecords(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type TimeSeriesData", field.Name)
-		},
-	}
-	defer func() {
-		if r := recover(); r != nil {
-			err = ec.Recover(ctx, r)
-			ec.Error(ctx, err)
-		}
-	}()
-	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_config_Config_queryOutgoingTCP_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
-		ec.Error(ctx, err)
-		return
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _config_Config_queryServiceTopology(ctx context.Context, field graphql.CollectedField, obj *model.ConfigConfig) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_config_Config_queryServiceTopology(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Config_Config().QueryServiceTopology(rctx, obj, fc.Args["metricStringArray"].(*string), fc.Args["startTime"].(*string), fc.Args["endTime"].(*string))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*model.TimeSeriesData)
-	fc.Result = res
-	return ec.marshalOTimeSeriesData2ᚖnexustempmoduleᚋnexusᚑgqlᚋgraphᚋmodelᚐTimeSeriesData(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_config_Config_queryServiceTopology(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "config_Config",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "Code":
-				return ec.fieldContext_TimeSeriesData_Code(ctx, field)
-			case "Message":
-				return ec.fieldContext_TimeSeriesData_Message(ctx, field)
-			case "Data":
-				return ec.fieldContext_TimeSeriesData_Data(ctx, field)
-			case "Last":
-				return ec.fieldContext_TimeSeriesData_Last(ctx, field)
-			case "TotalRecords":
-				return ec.fieldContext_TimeSeriesData_TotalRecords(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type TimeSeriesData", field.Name)
-		},
-	}
-	defer func() {
-		if r := recover(); r != nil {
-			err = ec.Recover(ctx, r)
-			ec.Error(ctx, err)
-		}
-	}()
-	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_config_Config_queryServiceTopology_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
-		ec.Error(ctx, err)
-		return
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _config_Config_GNS(ctx context.Context, field graphql.CollectedField, obj *model.ConfigConfig) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_config_Config_GNS(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Config_Config().Gns(rctx, obj)
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(*model.GnsGns)
-	fc.Result = res
-	return ec.marshalNgns_Gns2ᚖnexustempmoduleᚋnexusᚑgqlᚋgraphᚋmodelᚐGnsGns(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_config_Config_GNS(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_config_Config_ACPPolicies(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "config_Config",
 		Field:      field,
@@ -6308,62 +3318,31 @@ func (ec *executionContext) fieldContext_config_Config_GNS(ctx context.Context, 
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
 			case "Id":
-				return ec.fieldContext_gns_Gns_Id(ctx, field)
-			case "queryServiceTable":
-				return ec.fieldContext_gns_Gns_queryServiceTable(ctx, field)
-			case "queryServiceVersionTable":
-				return ec.fieldContext_gns_Gns_queryServiceVersionTable(ctx, field)
-			case "queryServiceTS":
-				return ec.fieldContext_gns_Gns_queryServiceTS(ctx, field)
-			case "queryIncomingAPIs":
-				return ec.fieldContext_gns_Gns_queryIncomingAPIs(ctx, field)
-			case "queryOutgoingAPIs":
-				return ec.fieldContext_gns_Gns_queryOutgoingAPIs(ctx, field)
-			case "queryIncomingTCP":
-				return ec.fieldContext_gns_Gns_queryIncomingTCP(ctx, field)
-			case "queryOutgoingTCP":
-				return ec.fieldContext_gns_Gns_queryOutgoingTCP(ctx, field)
-			case "queryServiceTopology":
-				return ec.fieldContext_gns_Gns_queryServiceTopology(ctx, field)
-			case "FooLink":
-				return ec.fieldContext_gns_Gns_FooLink(ctx, field)
-			case "FooLinks":
-				return ec.fieldContext_gns_Gns_FooLinks(ctx, field)
-			case "FooChild":
-				return ec.fieldContext_gns_Gns_FooChild(ctx, field)
-			case "FooChildren":
-				return ec.fieldContext_gns_Gns_FooChildren(ctx, field)
-			case "Domain":
-				return ec.fieldContext_gns_Gns_Domain(ctx, field)
-			case "UseSharedGateway":
-				return ec.fieldContext_gns_Gns_UseSharedGateway(ctx, field)
-			case "Mydesc":
-				return ec.fieldContext_gns_Gns_Mydesc(ctx, field)
-			case "HostPort":
-				return ec.fieldContext_gns_Gns_HostPort(ctx, field)
-			case "TestArray":
-				return ec.fieldContext_gns_Gns_TestArray(ctx, field)
-			case "Instance":
-				return ec.fieldContext_gns_Gns_Instance(ctx, field)
-			case "Array1":
-				return ec.fieldContext_gns_Gns_Array1(ctx, field)
-			case "Array2":
-				return ec.fieldContext_gns_Gns_Array2(ctx, field)
-			case "Array3":
-				return ec.fieldContext_gns_Gns_Array3(ctx, field)
-			case "Array4":
-				return ec.fieldContext_gns_Gns_Array4(ctx, field)
-			case "Array5":
-				return ec.fieldContext_gns_Gns_Array5(ctx, field)
+				return ec.fieldContext_policy_AccessControlPolicy_Id(ctx, field)
+			case "ParentLabels":
+				return ec.fieldContext_policy_AccessControlPolicy_ParentLabels(ctx, field)
+			case "PolicyConfigs":
+				return ec.fieldContext_policy_AccessControlPolicy_PolicyConfigs(ctx, field)
 			}
-			return nil, fmt.Errorf("no field named %q was found under type gns_Gns", field.Name)
+			return nil, fmt.Errorf("no field named %q was found under type policy_AccessControlPolicy", field.Name)
 		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_config_Config_ACPPolicies_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
 	}
 	return fc, nil
 }
 
-func (ec *executionContext) _config_Config_ConfigName(ctx context.Context, field graphql.CollectedField, obj *model.ConfigConfig) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_config_Config_ConfigName(ctx, field)
+func (ec *executionContext) _config_Config_FooExample(ctx context.Context, field graphql.CollectedField, obj *model.ConfigConfig) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_config_Config_FooExample(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -6376,7 +3355,7 @@ func (ec *executionContext) _config_Config_ConfigName(ctx context.Context, field
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.ConfigName, nil
+		return ec.resolvers.Config_Config().FooExample(rctx, obj, fc.Args["Id"].(*string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -6385,53 +3364,12 @@ func (ec *executionContext) _config_Config_ConfigName(ctx context.Context, field
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(*string)
+	res := resTmp.([]*model.ConfigFooType)
 	fc.Result = res
-	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+	return ec.marshalOconfig_FooType2ᚕᚖnexustempmoduleᚋnexusᚑgqlᚋgraphᚋmodelᚐConfigFooTypeᚄ(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_config_Config_ConfigName(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "config_Config",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _config_Config_Cluster(ctx context.Context, field graphql.CollectedField, obj *model.ConfigConfig) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_config_Config_Cluster(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Config_Config().Cluster(rctx, obj)
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*model.ConfigCluster)
-	fc.Result = res
-	return ec.marshalOconfig_Cluster2ᚖnexustempmoduleᚋnexusᚑgqlᚋgraphᚋmodelᚐConfigCluster(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_config_Config_Cluster(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_config_Config_FooExample(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "config_Config",
 		Field:      field,
@@ -6439,19 +3377,38 @@ func (ec *executionContext) fieldContext_config_Config_Cluster(ctx context.Conte
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
-			case "Name":
-				return ec.fieldContext_config_Cluster_Name(ctx, field)
-			case "MyID":
-				return ec.fieldContext_config_Cluster_MyID(ctx, field)
+			case "Id":
+				return ec.fieldContext_config_FooType_Id(ctx, field)
+			case "ParentLabels":
+				return ec.fieldContext_config_FooType_ParentLabels(ctx, field)
+			case "FooA":
+				return ec.fieldContext_config_FooType_FooA(ctx, field)
+			case "FooB":
+				return ec.fieldContext_config_FooType_FooB(ctx, field)
+			case "FooD":
+				return ec.fieldContext_config_FooType_FooD(ctx, field)
+			case "FooF":
+				return ec.fieldContext_config_FooType_FooF(ctx, field)
 			}
-			return nil, fmt.Errorf("no field named %q was found under type config_Cluster", field.Name)
+			return nil, fmt.Errorf("no field named %q was found under type config_FooType", field.Name)
 		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_config_Config_FooExample_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
 	}
 	return fc, nil
 }
 
-func (ec *executionContext) _config_Config_FooA(ctx context.Context, field graphql.CollectedField, obj *model.ConfigConfig) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_config_Config_FooA(ctx, field)
+func (ec *executionContext) _config_Config_MyStr0(ctx context.Context, field graphql.CollectedField, obj *model.ConfigConfig) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_config_Config_MyStr0(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -6464,7 +3421,7 @@ func (ec *executionContext) _config_Config_FooA(ctx context.Context, field graph
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.FooA, nil
+		return obj.MyStr0, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -6478,7 +3435,7 @@ func (ec *executionContext) _config_Config_FooA(ctx context.Context, field graph
 	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_config_Config_FooA(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_config_Config_MyStr0(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "config_Config",
 		Field:      field,
@@ -6491,8 +3448,8 @@ func (ec *executionContext) fieldContext_config_Config_FooA(ctx context.Context,
 	return fc, nil
 }
 
-func (ec *executionContext) _config_Config_FooMap(ctx context.Context, field graphql.CollectedField, obj *model.ConfigConfig) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_config_Config_FooMap(ctx, field)
+func (ec *executionContext) _config_Config_MyStr1(ctx context.Context, field graphql.CollectedField, obj *model.ConfigConfig) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_config_Config_MyStr1(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -6505,7 +3462,7 @@ func (ec *executionContext) _config_Config_FooMap(ctx context.Context, field gra
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.FooMap, nil
+		return obj.MyStr1, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -6519,7 +3476,7 @@ func (ec *executionContext) _config_Config_FooMap(ctx context.Context, field gra
 	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_config_Config_FooMap(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_config_Config_MyStr1(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "config_Config",
 		Field:      field,
@@ -6532,8 +3489,8 @@ func (ec *executionContext) fieldContext_config_Config_FooMap(ctx context.Contex
 	return fc, nil
 }
 
-func (ec *executionContext) _config_Config_FooB(ctx context.Context, field graphql.CollectedField, obj *model.ConfigConfig) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_config_Config_FooB(ctx, field)
+func (ec *executionContext) _config_Config_MyStr2(ctx context.Context, field graphql.CollectedField, obj *model.ConfigConfig) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_config_Config_MyStr2(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -6546,51 +3503,7 @@ func (ec *executionContext) _config_Config_FooB(ctx context.Context, field graph
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.FooB, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.([]*string)
-	fc.Result = res
-	return ec.marshalNString2ᚕᚖstring(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_config_Config_FooB(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "config_Config",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _config_Config_FooD(ctx context.Context, field graphql.CollectedField, obj *model.ConfigConfig) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_config_Config_FooD(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.FooD, nil
+		return obj.MyStr2, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -6604,7 +3517,7 @@ func (ec *executionContext) _config_Config_FooD(ctx context.Context, field graph
 	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_config_Config_FooD(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_config_Config_MyStr2(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "config_Config",
 		Field:      field,
@@ -6631,31 +3544,28 @@ func (ec *executionContext) _config_Config_XYZPort(ctx context.Context, field gr
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Config_Config().XYZPort(rctx, obj)
+		return obj.XYZPort, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
-	res := resTmp.([]*int)
+	res := resTmp.(*string)
 	fc.Result = res
-	return ec.marshalNInt2ᚕᚖint(ctx, field.Selections, res)
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_config_Config_XYZPort(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "config_Config",
 		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
+		IsMethod:   false,
+		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Int does not have child fields")
+			return nil, errors.New("field of type String does not have child fields")
 		},
 	}
 	return fc, nil
@@ -6675,29 +3585,26 @@ func (ec *executionContext) _config_Config_ABCHost(ctx context.Context, field gr
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Config_Config().ABCHost(rctx, obj)
+		return obj.ABCHost, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
-	res := resTmp.([]*string)
+	res := resTmp.(*string)
 	fc.Result = res
-	return ec.marshalNString2ᚕᚖstring(ctx, field.Selections, res)
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_config_Config_ABCHost(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "config_Config",
 		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
+		IsMethod:   false,
+		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type String does not have child fields")
 		},
@@ -6705,8 +3612,8 @@ func (ec *executionContext) fieldContext_config_Config_ABCHost(ctx context.Conte
 	return fc, nil
 }
 
-func (ec *executionContext) _gns_Bar_Id(ctx context.Context, field graphql.CollectedField, obj *model.GnsBar) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_gns_Bar_Id(ctx, field)
+func (ec *executionContext) _config_Config_ClusterNamespaces(ctx context.Context, field graphql.CollectedField, obj *model.ConfigConfig) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_config_Config_ClusterNamespaces(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -6719,560 +3626,7 @@ func (ec *executionContext) _gns_Bar_Id(ctx context.Context, field graphql.Colle
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Id, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*string)
-	fc.Result = res
-	return ec.marshalOID2ᚖstring(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_gns_Bar_Id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "gns_Bar",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type ID does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _gns_Bar_queryServiceTable(ctx context.Context, field graphql.CollectedField, obj *model.GnsBar) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_gns_Bar_queryServiceTable(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Gns_Bar().QueryServiceTable(rctx, obj, fc.Args["startTime"].(*string), fc.Args["endTime"].(*string), fc.Args["SystemServices"].(*bool), fc.Args["ShowGateways"].(*bool), fc.Args["Groupby"].(*string), fc.Args["noMetrics"].(*bool))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*model.TimeSeriesData)
-	fc.Result = res
-	return ec.marshalOTimeSeriesData2ᚖnexustempmoduleᚋnexusᚑgqlᚋgraphᚋmodelᚐTimeSeriesData(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_gns_Bar_queryServiceTable(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "gns_Bar",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "Code":
-				return ec.fieldContext_TimeSeriesData_Code(ctx, field)
-			case "Message":
-				return ec.fieldContext_TimeSeriesData_Message(ctx, field)
-			case "Data":
-				return ec.fieldContext_TimeSeriesData_Data(ctx, field)
-			case "Last":
-				return ec.fieldContext_TimeSeriesData_Last(ctx, field)
-			case "TotalRecords":
-				return ec.fieldContext_TimeSeriesData_TotalRecords(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type TimeSeriesData", field.Name)
-		},
-	}
-	defer func() {
-		if r := recover(); r != nil {
-			err = ec.Recover(ctx, r)
-			ec.Error(ctx, err)
-		}
-	}()
-	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_gns_Bar_queryServiceTable_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
-		ec.Error(ctx, err)
-		return
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _gns_Bar_queryServiceVersionTable(ctx context.Context, field graphql.CollectedField, obj *model.GnsBar) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_gns_Bar_queryServiceVersionTable(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Gns_Bar().QueryServiceVersionTable(rctx, obj, fc.Args["startTime"].(*string), fc.Args["endTime"].(*string), fc.Args["SystemServices"].(*bool), fc.Args["ShowGateways"].(*bool), fc.Args["noMetrics"].(*bool))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*model.TimeSeriesData)
-	fc.Result = res
-	return ec.marshalOTimeSeriesData2ᚖnexustempmoduleᚋnexusᚑgqlᚋgraphᚋmodelᚐTimeSeriesData(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_gns_Bar_queryServiceVersionTable(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "gns_Bar",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "Code":
-				return ec.fieldContext_TimeSeriesData_Code(ctx, field)
-			case "Message":
-				return ec.fieldContext_TimeSeriesData_Message(ctx, field)
-			case "Data":
-				return ec.fieldContext_TimeSeriesData_Data(ctx, field)
-			case "Last":
-				return ec.fieldContext_TimeSeriesData_Last(ctx, field)
-			case "TotalRecords":
-				return ec.fieldContext_TimeSeriesData_TotalRecords(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type TimeSeriesData", field.Name)
-		},
-	}
-	defer func() {
-		if r := recover(); r != nil {
-			err = ec.Recover(ctx, r)
-			ec.Error(ctx, err)
-		}
-	}()
-	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_gns_Bar_queryServiceVersionTable_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
-		ec.Error(ctx, err)
-		return
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _gns_Bar_queryServiceTS(ctx context.Context, field graphql.CollectedField, obj *model.GnsBar) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_gns_Bar_queryServiceTS(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Gns_Bar().QueryServiceTs(rctx, obj, fc.Args["svcMetric"].(*string), fc.Args["startTime"].(*string), fc.Args["endTime"].(*string), fc.Args["timeInterval"].(*string))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*model.TimeSeriesData)
-	fc.Result = res
-	return ec.marshalOTimeSeriesData2ᚖnexustempmoduleᚋnexusᚑgqlᚋgraphᚋmodelᚐTimeSeriesData(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_gns_Bar_queryServiceTS(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "gns_Bar",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "Code":
-				return ec.fieldContext_TimeSeriesData_Code(ctx, field)
-			case "Message":
-				return ec.fieldContext_TimeSeriesData_Message(ctx, field)
-			case "Data":
-				return ec.fieldContext_TimeSeriesData_Data(ctx, field)
-			case "Last":
-				return ec.fieldContext_TimeSeriesData_Last(ctx, field)
-			case "TotalRecords":
-				return ec.fieldContext_TimeSeriesData_TotalRecords(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type TimeSeriesData", field.Name)
-		},
-	}
-	defer func() {
-		if r := recover(); r != nil {
-			err = ec.Recover(ctx, r)
-			ec.Error(ctx, err)
-		}
-	}()
-	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_gns_Bar_queryServiceTS_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
-		ec.Error(ctx, err)
-		return
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _gns_Bar_queryIncomingAPIs(ctx context.Context, field graphql.CollectedField, obj *model.GnsBar) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_gns_Bar_queryIncomingAPIs(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Gns_Bar().QueryIncomingAPIs(rctx, obj, fc.Args["startTime"].(*string), fc.Args["endTime"].(*string), fc.Args["destinationService"].(*string), fc.Args["destinationServiceVersion"].(*string), fc.Args["timeInterval"].(*string), fc.Args["timeZone"].(*string))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*model.TimeSeriesData)
-	fc.Result = res
-	return ec.marshalOTimeSeriesData2ᚖnexustempmoduleᚋnexusᚑgqlᚋgraphᚋmodelᚐTimeSeriesData(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_gns_Bar_queryIncomingAPIs(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "gns_Bar",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "Code":
-				return ec.fieldContext_TimeSeriesData_Code(ctx, field)
-			case "Message":
-				return ec.fieldContext_TimeSeriesData_Message(ctx, field)
-			case "Data":
-				return ec.fieldContext_TimeSeriesData_Data(ctx, field)
-			case "Last":
-				return ec.fieldContext_TimeSeriesData_Last(ctx, field)
-			case "TotalRecords":
-				return ec.fieldContext_TimeSeriesData_TotalRecords(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type TimeSeriesData", field.Name)
-		},
-	}
-	defer func() {
-		if r := recover(); r != nil {
-			err = ec.Recover(ctx, r)
-			ec.Error(ctx, err)
-		}
-	}()
-	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_gns_Bar_queryIncomingAPIs_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
-		ec.Error(ctx, err)
-		return
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _gns_Bar_queryOutgoingAPIs(ctx context.Context, field graphql.CollectedField, obj *model.GnsBar) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_gns_Bar_queryOutgoingAPIs(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Gns_Bar().QueryOutgoingAPIs(rctx, obj, fc.Args["startTime"].(*string), fc.Args["endTime"].(*string), fc.Args["timeInterval"].(*string), fc.Args["timeZone"].(*string))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*model.TimeSeriesData)
-	fc.Result = res
-	return ec.marshalOTimeSeriesData2ᚖnexustempmoduleᚋnexusᚑgqlᚋgraphᚋmodelᚐTimeSeriesData(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_gns_Bar_queryOutgoingAPIs(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "gns_Bar",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "Code":
-				return ec.fieldContext_TimeSeriesData_Code(ctx, field)
-			case "Message":
-				return ec.fieldContext_TimeSeriesData_Message(ctx, field)
-			case "Data":
-				return ec.fieldContext_TimeSeriesData_Data(ctx, field)
-			case "Last":
-				return ec.fieldContext_TimeSeriesData_Last(ctx, field)
-			case "TotalRecords":
-				return ec.fieldContext_TimeSeriesData_TotalRecords(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type TimeSeriesData", field.Name)
-		},
-	}
-	defer func() {
-		if r := recover(); r != nil {
-			err = ec.Recover(ctx, r)
-			ec.Error(ctx, err)
-		}
-	}()
-	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_gns_Bar_queryOutgoingAPIs_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
-		ec.Error(ctx, err)
-		return
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _gns_Bar_queryIncomingTCP(ctx context.Context, field graphql.CollectedField, obj *model.GnsBar) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_gns_Bar_queryIncomingTCP(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Gns_Bar().QueryIncomingTcp(rctx, obj, fc.Args["startTime"].(*string), fc.Args["endTime"].(*string), fc.Args["destinationService"].(*string), fc.Args["destinationServiceVersion"].(*string))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*model.TimeSeriesData)
-	fc.Result = res
-	return ec.marshalOTimeSeriesData2ᚖnexustempmoduleᚋnexusᚑgqlᚋgraphᚋmodelᚐTimeSeriesData(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_gns_Bar_queryIncomingTCP(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "gns_Bar",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "Code":
-				return ec.fieldContext_TimeSeriesData_Code(ctx, field)
-			case "Message":
-				return ec.fieldContext_TimeSeriesData_Message(ctx, field)
-			case "Data":
-				return ec.fieldContext_TimeSeriesData_Data(ctx, field)
-			case "Last":
-				return ec.fieldContext_TimeSeriesData_Last(ctx, field)
-			case "TotalRecords":
-				return ec.fieldContext_TimeSeriesData_TotalRecords(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type TimeSeriesData", field.Name)
-		},
-	}
-	defer func() {
-		if r := recover(); r != nil {
-			err = ec.Recover(ctx, r)
-			ec.Error(ctx, err)
-		}
-	}()
-	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_gns_Bar_queryIncomingTCP_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
-		ec.Error(ctx, err)
-		return
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _gns_Bar_queryOutgoingTCP(ctx context.Context, field graphql.CollectedField, obj *model.GnsBar) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_gns_Bar_queryOutgoingTCP(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Gns_Bar().QueryOutgoingTcp(rctx, obj, fc.Args["startTime"].(*string), fc.Args["endTime"].(*string), fc.Args["destinationService"].(*string), fc.Args["destinationServiceVersion"].(*string))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*model.TimeSeriesData)
-	fc.Result = res
-	return ec.marshalOTimeSeriesData2ᚖnexustempmoduleᚋnexusᚑgqlᚋgraphᚋmodelᚐTimeSeriesData(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_gns_Bar_queryOutgoingTCP(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "gns_Bar",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "Code":
-				return ec.fieldContext_TimeSeriesData_Code(ctx, field)
-			case "Message":
-				return ec.fieldContext_TimeSeriesData_Message(ctx, field)
-			case "Data":
-				return ec.fieldContext_TimeSeriesData_Data(ctx, field)
-			case "Last":
-				return ec.fieldContext_TimeSeriesData_Last(ctx, field)
-			case "TotalRecords":
-				return ec.fieldContext_TimeSeriesData_TotalRecords(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type TimeSeriesData", field.Name)
-		},
-	}
-	defer func() {
-		if r := recover(); r != nil {
-			err = ec.Recover(ctx, r)
-			ec.Error(ctx, err)
-		}
-	}()
-	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_gns_Bar_queryOutgoingTCP_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
-		ec.Error(ctx, err)
-		return
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _gns_Bar_queryServiceTopology(ctx context.Context, field graphql.CollectedField, obj *model.GnsBar) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_gns_Bar_queryServiceTopology(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Gns_Bar().QueryServiceTopology(rctx, obj, fc.Args["metricStringArray"].(*string), fc.Args["startTime"].(*string), fc.Args["endTime"].(*string))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*model.TimeSeriesData)
-	fc.Result = res
-	return ec.marshalOTimeSeriesData2ᚖnexustempmoduleᚋnexusᚑgqlᚋgraphᚋmodelᚐTimeSeriesData(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_gns_Bar_queryServiceTopology(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "gns_Bar",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "Code":
-				return ec.fieldContext_TimeSeriesData_Code(ctx, field)
-			case "Message":
-				return ec.fieldContext_TimeSeriesData_Message(ctx, field)
-			case "Data":
-				return ec.fieldContext_TimeSeriesData_Data(ctx, field)
-			case "Last":
-				return ec.fieldContext_TimeSeriesData_Last(ctx, field)
-			case "TotalRecords":
-				return ec.fieldContext_TimeSeriesData_TotalRecords(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type TimeSeriesData", field.Name)
-		},
-	}
-	defer func() {
-		if r := recover(); r != nil {
-			err = ec.Recover(ctx, r)
-			ec.Error(ctx, err)
-		}
-	}()
-	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_gns_Bar_queryServiceTopology_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
-		ec.Error(ctx, err)
-		return
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _gns_Bar_Name(ctx context.Context, field graphql.CollectedField, obj *model.GnsBar) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_gns_Bar_Name(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Name, nil
+		return obj.ClusterNamespaces, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -7286,9 +3640,9 @@ func (ec *executionContext) _gns_Bar_Name(ctx context.Context, field graphql.Col
 	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_gns_Bar_Name(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_config_Config_ClusterNamespaces(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
-		Object:     "gns_Bar",
+		Object:     "config_Config",
 		Field:      field,
 		IsMethod:   false,
 		IsResolver: false,
@@ -7299,8 +3653,8 @@ func (ec *executionContext) fieldContext_gns_Bar_Name(ctx context.Context, field
 	return fc, nil
 }
 
-func (ec *executionContext) _gns_Description_Color(ctx context.Context, field graphql.CollectedField, obj *model.GnsDescription) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_gns_Description_Color(ctx, field)
+func (ec *executionContext) _config_Config_TestValMarkers(ctx context.Context, field graphql.CollectedField, obj *model.ConfigConfig) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_config_Config_TestValMarkers(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -7313,7 +3667,7 @@ func (ec *executionContext) _gns_Description_Color(ctx context.Context, field gr
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Color, nil
+		return obj.TestValMarkers, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -7327,9 +3681,9 @@ func (ec *executionContext) _gns_Description_Color(ctx context.Context, field gr
 	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_gns_Description_Color(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_config_Config_TestValMarkers(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
-		Object:     "gns_Description",
+		Object:     "config_Config",
 		Field:      field,
 		IsMethod:   false,
 		IsResolver: false,
@@ -7340,90 +3694,8 @@ func (ec *executionContext) fieldContext_gns_Description_Color(ctx context.Conte
 	return fc, nil
 }
 
-func (ec *executionContext) _gns_Description_Version(ctx context.Context, field graphql.CollectedField, obj *model.GnsDescription) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_gns_Description_Version(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Version, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*string)
-	fc.Result = res
-	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_gns_Description_Version(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "gns_Description",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _gns_Description_ProjectID(ctx context.Context, field graphql.CollectedField, obj *model.GnsDescription) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_gns_Description_ProjectID(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.ProjectID, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*string)
-	fc.Result = res
-	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_gns_Description_ProjectID(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "gns_Description",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _gns_Description_Instance(ctx context.Context, field graphql.CollectedField, obj *model.GnsDescription) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_gns_Description_Instance(ctx, field)
+func (ec *executionContext) _config_Config_Instance(ctx context.Context, field graphql.CollectedField, obj *model.ConfigConfig) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_config_Config_Instance(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -7450,9 +3722,9 @@ func (ec *executionContext) _gns_Description_Instance(ctx context.Context, field
 	return ec.marshalOFloat2ᚖfloat64(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_gns_Description_Instance(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_config_Config_Instance(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
-		Object:     "gns_Description",
+		Object:     "config_Config",
 		Field:      field,
 		IsMethod:   false,
 		IsResolver: false,
@@ -7463,8 +3735,287 @@ func (ec *executionContext) fieldContext_gns_Description_Instance(ctx context.Co
 	return fc, nil
 }
 
-func (ec *executionContext) _gns_EmptyData_Id(ctx context.Context, field graphql.CollectedField, obj *model.GnsEmptyData) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_gns_EmptyData_Id(ctx, field)
+func (ec *executionContext) _config_Config_GNS(ctx context.Context, field graphql.CollectedField, obj *model.ConfigConfig) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_config_Config_GNS(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Config_Config().Gns(rctx, obj, fc.Args["Id"].(*string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.GnsGns)
+	fc.Result = res
+	return ec.marshalNgns_Gns2ᚖnexustempmoduleᚋnexusᚑgqlᚋgraphᚋmodelᚐGnsGns(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_config_Config_GNS(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "config_Config",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "Id":
+				return ec.fieldContext_gns_Gns_Id(ctx, field)
+			case "ParentLabels":
+				return ec.fieldContext_gns_Gns_ParentLabels(ctx, field)
+			case "GnsServiceGroups":
+				return ec.fieldContext_gns_Gns_GnsServiceGroups(ctx, field)
+			case "Dns":
+				return ec.fieldContext_gns_Gns_Dns(ctx, field)
+			case "Domain":
+				return ec.fieldContext_gns_Gns_Domain(ctx, field)
+			case "UseSharedGateway":
+				return ec.fieldContext_gns_Gns_UseSharedGateway(ctx, field)
+			case "Description":
+				return ec.fieldContext_gns_Gns_Description(ctx, field)
+			case "Meta":
+				return ec.fieldContext_gns_Gns_Meta(ctx, field)
+			case "Port":
+				return ec.fieldContext_gns_Gns_Port(ctx, field)
+			case "OtherDescription":
+				return ec.fieldContext_gns_Gns_OtherDescription(ctx, field)
+			case "MapPointer":
+				return ec.fieldContext_gns_Gns_MapPointer(ctx, field)
+			case "SlicePointer":
+				return ec.fieldContext_gns_Gns_SlicePointer(ctx, field)
+			case "WorkloadSpec":
+				return ec.fieldContext_gns_Gns_WorkloadSpec(ctx, field)
+			case "DifferentSpec":
+				return ec.fieldContext_gns_Gns_DifferentSpec(ctx, field)
+			case "GnsAccessControlPolicy":
+				return ec.fieldContext_gns_Gns_GnsAccessControlPolicy(ctx, field)
+			case "FooChild":
+				return ec.fieldContext_gns_Gns_FooChild(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type gns_Gns", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_config_Config_GNS_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _config_Config_DNS(ctx context.Context, field graphql.CollectedField, obj *model.ConfigConfig) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_config_Config_DNS(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Config_Config().Dns(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.GnsDns)
+	fc.Result = res
+	return ec.marshalNgns_Dns2ᚖnexustempmoduleᚋnexusᚑgqlᚋgraphᚋmodelᚐGnsDns(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_config_Config_DNS(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "config_Config",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "Id":
+				return ec.fieldContext_gns_Dns_Id(ctx, field)
+			case "ParentLabels":
+				return ec.fieldContext_gns_Dns_ParentLabels(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type gns_Dns", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _config_Config_VMPPolicies(ctx context.Context, field graphql.CollectedField, obj *model.ConfigConfig) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_config_Config_VMPPolicies(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Config_Config().VMPPolicies(rctx, obj, fc.Args["Id"].(*string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.PolicyVMpolicy)
+	fc.Result = res
+	return ec.marshalNpolicy_VMpolicy2ᚖnexustempmoduleᚋnexusᚑgqlᚋgraphᚋmodelᚐPolicyVMpolicy(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_config_Config_VMPPolicies(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "config_Config",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "Id":
+				return ec.fieldContext_policy_VMpolicy_Id(ctx, field)
+			case "ParentLabels":
+				return ec.fieldContext_policy_VMpolicy_ParentLabels(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type policy_VMpolicy", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_config_Config_VMPPolicies_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _config_Config_Domain(ctx context.Context, field graphql.CollectedField, obj *model.ConfigConfig) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_config_Config_Domain(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Config_Config().Domain(rctx, obj, fc.Args["Id"].(*string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.ConfigDomain)
+	fc.Result = res
+	return ec.marshalNconfig_Domain2ᚖnexustempmoduleᚋnexusᚑgqlᚋgraphᚋmodelᚐConfigDomain(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_config_Config_Domain(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "config_Config",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "Id":
+				return ec.fieldContext_config_Domain_Id(ctx, field)
+			case "ParentLabels":
+				return ec.fieldContext_config_Domain_ParentLabels(ctx, field)
+			case "PointPort":
+				return ec.fieldContext_config_Domain_PointPort(ctx, field)
+			case "PointString":
+				return ec.fieldContext_config_Domain_PointString(ctx, field)
+			case "PointInt":
+				return ec.fieldContext_config_Domain_PointInt(ctx, field)
+			case "PointMap":
+				return ec.fieldContext_config_Domain_PointMap(ctx, field)
+			case "PointSlice":
+				return ec.fieldContext_config_Domain_PointSlice(ctx, field)
+			case "SliceOfPoints":
+				return ec.fieldContext_config_Domain_SliceOfPoints(ctx, field)
+			case "SliceOfArrPoints":
+				return ec.fieldContext_config_Domain_SliceOfArrPoints(ctx, field)
+			case "MapOfArrsPoints":
+				return ec.fieldContext_config_Domain_MapOfArrsPoints(ctx, field)
+			case "PointStruct":
+				return ec.fieldContext_config_Domain_PointStruct(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type config_Domain", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_config_Config_Domain_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _config_Domain_Id(ctx context.Context, field graphql.CollectedField, obj *model.ConfigDomain) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_config_Domain_Id(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -7491,9 +4042,9 @@ func (ec *executionContext) _gns_EmptyData_Id(ctx context.Context, field graphql
 	return ec.marshalOID2ᚖstring(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_gns_EmptyData_Id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_config_Domain_Id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
-		Object:     "gns_EmptyData",
+		Object:     "config_Domain",
 		Field:      field,
 		IsMethod:   false,
 		IsResolver: false,
@@ -7504,8 +4055,8 @@ func (ec *executionContext) fieldContext_gns_EmptyData_Id(ctx context.Context, f
 	return fc, nil
 }
 
-func (ec *executionContext) _gns_EmptyData_queryServiceTable(ctx context.Context, field graphql.CollectedField, obj *model.GnsEmptyData) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_gns_EmptyData_queryServiceTable(ctx, field)
+func (ec *executionContext) _config_Domain_ParentLabels(ctx context.Context, field graphql.CollectedField, obj *model.ConfigDomain) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_config_Domain_ParentLabels(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -7518,7 +4069,7 @@ func (ec *executionContext) _gns_EmptyData_queryServiceTable(ctx context.Context
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Gns_EmptyData().QueryServiceTable(rctx, obj, fc.Args["startTime"].(*string), fc.Args["endTime"].(*string), fc.Args["SystemServices"].(*bool), fc.Args["ShowGateways"].(*bool), fc.Args["Groupby"].(*string), fc.Args["noMetrics"].(*bool))
+		return obj.ParentLabels, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -7527,49 +4078,26 @@ func (ec *executionContext) _gns_EmptyData_queryServiceTable(ctx context.Context
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(*model.TimeSeriesData)
+	res := resTmp.(map[string]interface{})
 	fc.Result = res
-	return ec.marshalOTimeSeriesData2ᚖnexustempmoduleᚋnexusᚑgqlᚋgraphᚋmodelᚐTimeSeriesData(ctx, field.Selections, res)
+	return ec.marshalOMap2map(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_gns_EmptyData_queryServiceTable(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_config_Domain_ParentLabels(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
-		Object:     "gns_EmptyData",
+		Object:     "config_Domain",
 		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
+		IsMethod:   false,
+		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "Code":
-				return ec.fieldContext_TimeSeriesData_Code(ctx, field)
-			case "Message":
-				return ec.fieldContext_TimeSeriesData_Message(ctx, field)
-			case "Data":
-				return ec.fieldContext_TimeSeriesData_Data(ctx, field)
-			case "Last":
-				return ec.fieldContext_TimeSeriesData_Last(ctx, field)
-			case "TotalRecords":
-				return ec.fieldContext_TimeSeriesData_TotalRecords(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type TimeSeriesData", field.Name)
+			return nil, errors.New("field of type Map does not have child fields")
 		},
-	}
-	defer func() {
-		if r := recover(); r != nil {
-			err = ec.Recover(ctx, r)
-			ec.Error(ctx, err)
-		}
-	}()
-	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_gns_EmptyData_queryServiceTable_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
-		ec.Error(ctx, err)
-		return
 	}
 	return fc, nil
 }
 
-func (ec *executionContext) _gns_EmptyData_queryServiceVersionTable(ctx context.Context, field graphql.CollectedField, obj *model.GnsEmptyData) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_gns_EmptyData_queryServiceVersionTable(ctx, field)
+func (ec *executionContext) _config_Domain_PointPort(ctx context.Context, field graphql.CollectedField, obj *model.ConfigDomain) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_config_Domain_PointPort(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -7582,7 +4110,7 @@ func (ec *executionContext) _gns_EmptyData_queryServiceVersionTable(ctx context.
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Gns_EmptyData().QueryServiceVersionTable(rctx, obj, fc.Args["startTime"].(*string), fc.Args["endTime"].(*string), fc.Args["SystemServices"].(*bool), fc.Args["ShowGateways"].(*bool), fc.Args["noMetrics"].(*bool))
+		return obj.PointPort, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -7591,49 +4119,26 @@ func (ec *executionContext) _gns_EmptyData_queryServiceVersionTable(ctx context.
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(*model.TimeSeriesData)
+	res := resTmp.(*string)
 	fc.Result = res
-	return ec.marshalOTimeSeriesData2ᚖnexustempmoduleᚋnexusᚑgqlᚋgraphᚋmodelᚐTimeSeriesData(ctx, field.Selections, res)
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_gns_EmptyData_queryServiceVersionTable(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_config_Domain_PointPort(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
-		Object:     "gns_EmptyData",
+		Object:     "config_Domain",
 		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
+		IsMethod:   false,
+		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "Code":
-				return ec.fieldContext_TimeSeriesData_Code(ctx, field)
-			case "Message":
-				return ec.fieldContext_TimeSeriesData_Message(ctx, field)
-			case "Data":
-				return ec.fieldContext_TimeSeriesData_Data(ctx, field)
-			case "Last":
-				return ec.fieldContext_TimeSeriesData_Last(ctx, field)
-			case "TotalRecords":
-				return ec.fieldContext_TimeSeriesData_TotalRecords(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type TimeSeriesData", field.Name)
+			return nil, errors.New("field of type String does not have child fields")
 		},
-	}
-	defer func() {
-		if r := recover(); r != nil {
-			err = ec.Recover(ctx, r)
-			ec.Error(ctx, err)
-		}
-	}()
-	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_gns_EmptyData_queryServiceVersionTable_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
-		ec.Error(ctx, err)
-		return
 	}
 	return fc, nil
 }
 
-func (ec *executionContext) _gns_EmptyData_queryServiceTS(ctx context.Context, field graphql.CollectedField, obj *model.GnsEmptyData) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_gns_EmptyData_queryServiceTS(ctx, field)
+func (ec *executionContext) _config_Domain_PointString(ctx context.Context, field graphql.CollectedField, obj *model.ConfigDomain) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_config_Domain_PointString(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -7646,7 +4151,7 @@ func (ec *executionContext) _gns_EmptyData_queryServiceTS(ctx context.Context, f
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Gns_EmptyData().QueryServiceTs(rctx, obj, fc.Args["svcMetric"].(*string), fc.Args["startTime"].(*string), fc.Args["endTime"].(*string), fc.Args["timeInterval"].(*string))
+		return obj.PointString, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -7655,49 +4160,26 @@ func (ec *executionContext) _gns_EmptyData_queryServiceTS(ctx context.Context, f
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(*model.TimeSeriesData)
+	res := resTmp.(*string)
 	fc.Result = res
-	return ec.marshalOTimeSeriesData2ᚖnexustempmoduleᚋnexusᚑgqlᚋgraphᚋmodelᚐTimeSeriesData(ctx, field.Selections, res)
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_gns_EmptyData_queryServiceTS(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_config_Domain_PointString(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
-		Object:     "gns_EmptyData",
+		Object:     "config_Domain",
 		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
+		IsMethod:   false,
+		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "Code":
-				return ec.fieldContext_TimeSeriesData_Code(ctx, field)
-			case "Message":
-				return ec.fieldContext_TimeSeriesData_Message(ctx, field)
-			case "Data":
-				return ec.fieldContext_TimeSeriesData_Data(ctx, field)
-			case "Last":
-				return ec.fieldContext_TimeSeriesData_Last(ctx, field)
-			case "TotalRecords":
-				return ec.fieldContext_TimeSeriesData_TotalRecords(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type TimeSeriesData", field.Name)
+			return nil, errors.New("field of type String does not have child fields")
 		},
-	}
-	defer func() {
-		if r := recover(); r != nil {
-			err = ec.Recover(ctx, r)
-			ec.Error(ctx, err)
-		}
-	}()
-	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_gns_EmptyData_queryServiceTS_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
-		ec.Error(ctx, err)
-		return
 	}
 	return fc, nil
 }
 
-func (ec *executionContext) _gns_EmptyData_queryIncomingAPIs(ctx context.Context, field graphql.CollectedField, obj *model.GnsEmptyData) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_gns_EmptyData_queryIncomingAPIs(ctx, field)
+func (ec *executionContext) _config_Domain_PointInt(ctx context.Context, field graphql.CollectedField, obj *model.ConfigDomain) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_config_Domain_PointInt(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -7710,7 +4192,7 @@ func (ec *executionContext) _gns_EmptyData_queryIncomingAPIs(ctx context.Context
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Gns_EmptyData().QueryIncomingAPIs(rctx, obj, fc.Args["startTime"].(*string), fc.Args["endTime"].(*string), fc.Args["destinationService"].(*string), fc.Args["destinationServiceVersion"].(*string), fc.Args["timeInterval"].(*string), fc.Args["timeZone"].(*string))
+		return obj.PointInt, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -7719,49 +4201,26 @@ func (ec *executionContext) _gns_EmptyData_queryIncomingAPIs(ctx context.Context
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(*model.TimeSeriesData)
+	res := resTmp.(*int)
 	fc.Result = res
-	return ec.marshalOTimeSeriesData2ᚖnexustempmoduleᚋnexusᚑgqlᚋgraphᚋmodelᚐTimeSeriesData(ctx, field.Selections, res)
+	return ec.marshalOInt2ᚖint(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_gns_EmptyData_queryIncomingAPIs(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_config_Domain_PointInt(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
-		Object:     "gns_EmptyData",
+		Object:     "config_Domain",
 		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
+		IsMethod:   false,
+		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "Code":
-				return ec.fieldContext_TimeSeriesData_Code(ctx, field)
-			case "Message":
-				return ec.fieldContext_TimeSeriesData_Message(ctx, field)
-			case "Data":
-				return ec.fieldContext_TimeSeriesData_Data(ctx, field)
-			case "Last":
-				return ec.fieldContext_TimeSeriesData_Last(ctx, field)
-			case "TotalRecords":
-				return ec.fieldContext_TimeSeriesData_TotalRecords(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type TimeSeriesData", field.Name)
+			return nil, errors.New("field of type Int does not have child fields")
 		},
-	}
-	defer func() {
-		if r := recover(); r != nil {
-			err = ec.Recover(ctx, r)
-			ec.Error(ctx, err)
-		}
-	}()
-	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_gns_EmptyData_queryIncomingAPIs_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
-		ec.Error(ctx, err)
-		return
 	}
 	return fc, nil
 }
 
-func (ec *executionContext) _gns_EmptyData_queryOutgoingAPIs(ctx context.Context, field graphql.CollectedField, obj *model.GnsEmptyData) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_gns_EmptyData_queryOutgoingAPIs(ctx, field)
+func (ec *executionContext) _config_Domain_PointMap(ctx context.Context, field graphql.CollectedField, obj *model.ConfigDomain) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_config_Domain_PointMap(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -7774,7 +4233,7 @@ func (ec *executionContext) _gns_EmptyData_queryOutgoingAPIs(ctx context.Context
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Gns_EmptyData().QueryOutgoingAPIs(rctx, obj, fc.Args["startTime"].(*string), fc.Args["endTime"].(*string), fc.Args["timeInterval"].(*string), fc.Args["timeZone"].(*string))
+		return obj.PointMap, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -7783,49 +4242,26 @@ func (ec *executionContext) _gns_EmptyData_queryOutgoingAPIs(ctx context.Context
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(*model.TimeSeriesData)
+	res := resTmp.(*string)
 	fc.Result = res
-	return ec.marshalOTimeSeriesData2ᚖnexustempmoduleᚋnexusᚑgqlᚋgraphᚋmodelᚐTimeSeriesData(ctx, field.Selections, res)
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_gns_EmptyData_queryOutgoingAPIs(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_config_Domain_PointMap(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
-		Object:     "gns_EmptyData",
+		Object:     "config_Domain",
 		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
+		IsMethod:   false,
+		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "Code":
-				return ec.fieldContext_TimeSeriesData_Code(ctx, field)
-			case "Message":
-				return ec.fieldContext_TimeSeriesData_Message(ctx, field)
-			case "Data":
-				return ec.fieldContext_TimeSeriesData_Data(ctx, field)
-			case "Last":
-				return ec.fieldContext_TimeSeriesData_Last(ctx, field)
-			case "TotalRecords":
-				return ec.fieldContext_TimeSeriesData_TotalRecords(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type TimeSeriesData", field.Name)
+			return nil, errors.New("field of type String does not have child fields")
 		},
-	}
-	defer func() {
-		if r := recover(); r != nil {
-			err = ec.Recover(ctx, r)
-			ec.Error(ctx, err)
-		}
-	}()
-	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_gns_EmptyData_queryOutgoingAPIs_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
-		ec.Error(ctx, err)
-		return
 	}
 	return fc, nil
 }
 
-func (ec *executionContext) _gns_EmptyData_queryIncomingTCP(ctx context.Context, field graphql.CollectedField, obj *model.GnsEmptyData) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_gns_EmptyData_queryIncomingTCP(ctx, field)
+func (ec *executionContext) _config_Domain_PointSlice(ctx context.Context, field graphql.CollectedField, obj *model.ConfigDomain) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_config_Domain_PointSlice(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -7838,7 +4274,7 @@ func (ec *executionContext) _gns_EmptyData_queryIncomingTCP(ctx context.Context,
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Gns_EmptyData().QueryIncomingTcp(rctx, obj, fc.Args["startTime"].(*string), fc.Args["endTime"].(*string), fc.Args["destinationService"].(*string), fc.Args["destinationServiceVersion"].(*string))
+		return obj.PointSlice, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -7847,49 +4283,26 @@ func (ec *executionContext) _gns_EmptyData_queryIncomingTCP(ctx context.Context,
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(*model.TimeSeriesData)
+	res := resTmp.(*string)
 	fc.Result = res
-	return ec.marshalOTimeSeriesData2ᚖnexustempmoduleᚋnexusᚑgqlᚋgraphᚋmodelᚐTimeSeriesData(ctx, field.Selections, res)
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_gns_EmptyData_queryIncomingTCP(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_config_Domain_PointSlice(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
-		Object:     "gns_EmptyData",
+		Object:     "config_Domain",
 		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
+		IsMethod:   false,
+		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "Code":
-				return ec.fieldContext_TimeSeriesData_Code(ctx, field)
-			case "Message":
-				return ec.fieldContext_TimeSeriesData_Message(ctx, field)
-			case "Data":
-				return ec.fieldContext_TimeSeriesData_Data(ctx, field)
-			case "Last":
-				return ec.fieldContext_TimeSeriesData_Last(ctx, field)
-			case "TotalRecords":
-				return ec.fieldContext_TimeSeriesData_TotalRecords(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type TimeSeriesData", field.Name)
+			return nil, errors.New("field of type String does not have child fields")
 		},
-	}
-	defer func() {
-		if r := recover(); r != nil {
-			err = ec.Recover(ctx, r)
-			ec.Error(ctx, err)
-		}
-	}()
-	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_gns_EmptyData_queryIncomingTCP_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
-		ec.Error(ctx, err)
-		return
 	}
 	return fc, nil
 }
 
-func (ec *executionContext) _gns_EmptyData_queryOutgoingTCP(ctx context.Context, field graphql.CollectedField, obj *model.GnsEmptyData) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_gns_EmptyData_queryOutgoingTCP(ctx, field)
+func (ec *executionContext) _config_Domain_SliceOfPoints(ctx context.Context, field graphql.CollectedField, obj *model.ConfigDomain) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_config_Domain_SliceOfPoints(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -7902,7 +4315,7 @@ func (ec *executionContext) _gns_EmptyData_queryOutgoingTCP(ctx context.Context,
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Gns_EmptyData().QueryOutgoingTcp(rctx, obj, fc.Args["startTime"].(*string), fc.Args["endTime"].(*string), fc.Args["destinationService"].(*string), fc.Args["destinationServiceVersion"].(*string))
+		return obj.SliceOfPoints, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -7911,49 +4324,26 @@ func (ec *executionContext) _gns_EmptyData_queryOutgoingTCP(ctx context.Context,
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(*model.TimeSeriesData)
+	res := resTmp.(*string)
 	fc.Result = res
-	return ec.marshalOTimeSeriesData2ᚖnexustempmoduleᚋnexusᚑgqlᚋgraphᚋmodelᚐTimeSeriesData(ctx, field.Selections, res)
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_gns_EmptyData_queryOutgoingTCP(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_config_Domain_SliceOfPoints(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
-		Object:     "gns_EmptyData",
+		Object:     "config_Domain",
 		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
+		IsMethod:   false,
+		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "Code":
-				return ec.fieldContext_TimeSeriesData_Code(ctx, field)
-			case "Message":
-				return ec.fieldContext_TimeSeriesData_Message(ctx, field)
-			case "Data":
-				return ec.fieldContext_TimeSeriesData_Data(ctx, field)
-			case "Last":
-				return ec.fieldContext_TimeSeriesData_Last(ctx, field)
-			case "TotalRecords":
-				return ec.fieldContext_TimeSeriesData_TotalRecords(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type TimeSeriesData", field.Name)
+			return nil, errors.New("field of type String does not have child fields")
 		},
-	}
-	defer func() {
-		if r := recover(); r != nil {
-			err = ec.Recover(ctx, r)
-			ec.Error(ctx, err)
-		}
-	}()
-	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_gns_EmptyData_queryOutgoingTCP_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
-		ec.Error(ctx, err)
-		return
 	}
 	return fc, nil
 }
 
-func (ec *executionContext) _gns_EmptyData_queryServiceTopology(ctx context.Context, field graphql.CollectedField, obj *model.GnsEmptyData) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_gns_EmptyData_queryServiceTopology(ctx, field)
+func (ec *executionContext) _config_Domain_SliceOfArrPoints(ctx context.Context, field graphql.CollectedField, obj *model.ConfigDomain) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_config_Domain_SliceOfArrPoints(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -7966,7 +4356,7 @@ func (ec *executionContext) _gns_EmptyData_queryServiceTopology(ctx context.Cont
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Gns_EmptyData().QueryServiceTopology(rctx, obj, fc.Args["metricStringArray"].(*string), fc.Args["startTime"].(*string), fc.Args["endTime"].(*string))
+		return obj.SliceOfArrPoints, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -7975,43 +4365,553 @@ func (ec *executionContext) _gns_EmptyData_queryServiceTopology(ctx context.Cont
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(*model.TimeSeriesData)
+	res := resTmp.(*string)
 	fc.Result = res
-	return ec.marshalOTimeSeriesData2ᚖnexustempmoduleᚋnexusᚑgqlᚋgraphᚋmodelᚐTimeSeriesData(ctx, field.Selections, res)
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_gns_EmptyData_queryServiceTopology(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_config_Domain_SliceOfArrPoints(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
-		Object:     "gns_EmptyData",
+		Object:     "config_Domain",
 		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
+		IsMethod:   false,
+		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "Code":
-				return ec.fieldContext_TimeSeriesData_Code(ctx, field)
-			case "Message":
-				return ec.fieldContext_TimeSeriesData_Message(ctx, field)
-			case "Data":
-				return ec.fieldContext_TimeSeriesData_Data(ctx, field)
-			case "Last":
-				return ec.fieldContext_TimeSeriesData_Last(ctx, field)
-			case "TotalRecords":
-				return ec.fieldContext_TimeSeriesData_TotalRecords(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type TimeSeriesData", field.Name)
+			return nil, errors.New("field of type String does not have child fields")
 		},
 	}
+	return fc, nil
+}
+
+func (ec *executionContext) _config_Domain_MapOfArrsPoints(ctx context.Context, field graphql.CollectedField, obj *model.ConfigDomain) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_config_Domain_MapOfArrsPoints(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
 	defer func() {
 		if r := recover(); r != nil {
-			err = ec.Recover(ctx, r)
-			ec.Error(ctx, err)
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
 		}
 	}()
-	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_gns_EmptyData_queryServiceTopology_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.MapOfArrsPoints, nil
+	})
+	if err != nil {
 		ec.Error(ctx, err)
-		return
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_config_Domain_MapOfArrsPoints(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "config_Domain",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _config_Domain_PointStruct(ctx context.Context, field graphql.CollectedField, obj *model.ConfigDomain) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_config_Domain_PointStruct(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.PointStruct, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_config_Domain_PointStruct(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "config_Domain",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _config_FooType_Id(ctx context.Context, field graphql.CollectedField, obj *model.ConfigFooType) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_config_FooType_Id(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Id, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOID2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_config_FooType_Id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "config_FooType",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _config_FooType_ParentLabels(ctx context.Context, field graphql.CollectedField, obj *model.ConfigFooType) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_config_FooType_ParentLabels(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ParentLabels, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(map[string]interface{})
+	fc.Result = res
+	return ec.marshalOMap2map(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_config_FooType_ParentLabels(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "config_FooType",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Map does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _config_FooType_FooA(ctx context.Context, field graphql.CollectedField, obj *model.ConfigFooType) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_config_FooType_FooA(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.FooA, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_config_FooType_FooA(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "config_FooType",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _config_FooType_FooB(ctx context.Context, field graphql.CollectedField, obj *model.ConfigFooType) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_config_FooType_FooB(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.FooB, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_config_FooType_FooB(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "config_FooType",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _config_FooType_FooD(ctx context.Context, field graphql.CollectedField, obj *model.ConfigFooType) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_config_FooType_FooD(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.FooD, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_config_FooType_FooD(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "config_FooType",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _config_FooType_FooF(ctx context.Context, field graphql.CollectedField, obj *model.ConfigFooType) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_config_FooType_FooF(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.FooF, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_config_FooType_FooF(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "config_FooType",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _gns_BarChild_Id(ctx context.Context, field graphql.CollectedField, obj *model.GnsBarChild) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_gns_BarChild_Id(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Id, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOID2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_gns_BarChild_Id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "gns_BarChild",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _gns_BarChild_ParentLabels(ctx context.Context, field graphql.CollectedField, obj *model.GnsBarChild) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_gns_BarChild_ParentLabels(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ParentLabels, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(map[string]interface{})
+	fc.Result = res
+	return ec.marshalOMap2map(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_gns_BarChild_ParentLabels(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "gns_BarChild",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Map does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _gns_BarChild_Name(ctx context.Context, field graphql.CollectedField, obj *model.GnsBarChild) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_gns_BarChild_Name(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Name, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_gns_BarChild_Name(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "gns_BarChild",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _gns_Dns_Id(ctx context.Context, field graphql.CollectedField, obj *model.GnsDns) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_gns_Dns_Id(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Id, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOID2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_gns_Dns_Id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "gns_Dns",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _gns_Dns_ParentLabels(ctx context.Context, field graphql.CollectedField, obj *model.GnsDns) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_gns_Dns_ParentLabels(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ParentLabels, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(map[string]interface{})
+	fc.Result = res
+	return ec.marshalOMap2map(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_gns_Dns_ParentLabels(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "gns_Dns",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Map does not have child fields")
+		},
 	}
 	return fc, nil
 }
@@ -8057,8 +4957,8 @@ func (ec *executionContext) fieldContext_gns_Gns_Id(ctx context.Context, field g
 	return fc, nil
 }
 
-func (ec *executionContext) _gns_Gns_queryServiceTable(ctx context.Context, field graphql.CollectedField, obj *model.GnsGns) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_gns_Gns_queryServiceTable(ctx, field)
+func (ec *executionContext) _gns_Gns_ParentLabels(ctx context.Context, field graphql.CollectedField, obj *model.GnsGns) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_gns_Gns_ParentLabels(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -8071,7 +4971,7 @@ func (ec *executionContext) _gns_Gns_queryServiceTable(ctx context.Context, fiel
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Gns_Gns().QueryServiceTable(rctx, obj, fc.Args["startTime"].(*string), fc.Args["endTime"].(*string), fc.Args["SystemServices"].(*bool), fc.Args["ShowGateways"].(*bool), fc.Args["Groupby"].(*string), fc.Args["noMetrics"].(*bool))
+		return obj.ParentLabels, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -8080,12 +4980,53 @@ func (ec *executionContext) _gns_Gns_queryServiceTable(ctx context.Context, fiel
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(*model.TimeSeriesData)
+	res := resTmp.(map[string]interface{})
 	fc.Result = res
-	return ec.marshalOTimeSeriesData2ᚖnexustempmoduleᚋnexusᚑgqlᚋgraphᚋmodelᚐTimeSeriesData(ctx, field.Selections, res)
+	return ec.marshalOMap2map(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_gns_Gns_queryServiceTable(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_gns_Gns_ParentLabels(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "gns_Gns",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Map does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _gns_Gns_GnsServiceGroups(ctx context.Context, field graphql.CollectedField, obj *model.GnsGns) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_gns_Gns_GnsServiceGroups(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Gns_Gns().GnsServiceGroups(rctx, obj, fc.Args["Id"].(*string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*model.ServicegroupSvcGroup)
+	fc.Result = res
+	return ec.marshalOservicegroup_SvcGroup2ᚕᚖnexustempmoduleᚋnexusᚑgqlᚋgraphᚋmodelᚐServicegroupSvcGroupᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_gns_Gns_GnsServiceGroups(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "gns_Gns",
 		Field:      field,
@@ -8093,18 +5034,18 @@ func (ec *executionContext) fieldContext_gns_Gns_queryServiceTable(ctx context.C
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
-			case "Code":
-				return ec.fieldContext_TimeSeriesData_Code(ctx, field)
-			case "Message":
-				return ec.fieldContext_TimeSeriesData_Message(ctx, field)
-			case "Data":
-				return ec.fieldContext_TimeSeriesData_Data(ctx, field)
-			case "Last":
-				return ec.fieldContext_TimeSeriesData_Last(ctx, field)
-			case "TotalRecords":
-				return ec.fieldContext_TimeSeriesData_TotalRecords(ctx, field)
+			case "Id":
+				return ec.fieldContext_servicegroup_SvcGroup_Id(ctx, field)
+			case "ParentLabels":
+				return ec.fieldContext_servicegroup_SvcGroup_ParentLabels(ctx, field)
+			case "DisplayName":
+				return ec.fieldContext_servicegroup_SvcGroup_DisplayName(ctx, field)
+			case "Description":
+				return ec.fieldContext_servicegroup_SvcGroup_Description(ctx, field)
+			case "Color":
+				return ec.fieldContext_servicegroup_SvcGroup_Color(ctx, field)
 			}
-			return nil, fmt.Errorf("no field named %q was found under type TimeSeriesData", field.Name)
+			return nil, fmt.Errorf("no field named %q was found under type servicegroup_SvcGroup", field.Name)
 		},
 	}
 	defer func() {
@@ -8114,15 +5055,15 @@ func (ec *executionContext) fieldContext_gns_Gns_queryServiceTable(ctx context.C
 		}
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_gns_Gns_queryServiceTable_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+	if fc.Args, err = ec.field_gns_Gns_GnsServiceGroups_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return
 	}
 	return fc, nil
 }
 
-func (ec *executionContext) _gns_Gns_queryServiceVersionTable(ctx context.Context, field graphql.CollectedField, obj *model.GnsGns) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_gns_Gns_queryServiceVersionTable(ctx, field)
+func (ec *executionContext) _gns_Gns_Dns(ctx context.Context, field graphql.CollectedField, obj *model.GnsGns) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_gns_Gns_Dns(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -8135,455 +5076,7 @@ func (ec *executionContext) _gns_Gns_queryServiceVersionTable(ctx context.Contex
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Gns_Gns().QueryServiceVersionTable(rctx, obj, fc.Args["startTime"].(*string), fc.Args["endTime"].(*string), fc.Args["SystemServices"].(*bool), fc.Args["ShowGateways"].(*bool), fc.Args["noMetrics"].(*bool))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*model.TimeSeriesData)
-	fc.Result = res
-	return ec.marshalOTimeSeriesData2ᚖnexustempmoduleᚋnexusᚑgqlᚋgraphᚋmodelᚐTimeSeriesData(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_gns_Gns_queryServiceVersionTable(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "gns_Gns",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "Code":
-				return ec.fieldContext_TimeSeriesData_Code(ctx, field)
-			case "Message":
-				return ec.fieldContext_TimeSeriesData_Message(ctx, field)
-			case "Data":
-				return ec.fieldContext_TimeSeriesData_Data(ctx, field)
-			case "Last":
-				return ec.fieldContext_TimeSeriesData_Last(ctx, field)
-			case "TotalRecords":
-				return ec.fieldContext_TimeSeriesData_TotalRecords(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type TimeSeriesData", field.Name)
-		},
-	}
-	defer func() {
-		if r := recover(); r != nil {
-			err = ec.Recover(ctx, r)
-			ec.Error(ctx, err)
-		}
-	}()
-	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_gns_Gns_queryServiceVersionTable_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
-		ec.Error(ctx, err)
-		return
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _gns_Gns_queryServiceTS(ctx context.Context, field graphql.CollectedField, obj *model.GnsGns) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_gns_Gns_queryServiceTS(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Gns_Gns().QueryServiceTs(rctx, obj, fc.Args["svcMetric"].(*string), fc.Args["startTime"].(*string), fc.Args["endTime"].(*string), fc.Args["timeInterval"].(*string))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*model.TimeSeriesData)
-	fc.Result = res
-	return ec.marshalOTimeSeriesData2ᚖnexustempmoduleᚋnexusᚑgqlᚋgraphᚋmodelᚐTimeSeriesData(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_gns_Gns_queryServiceTS(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "gns_Gns",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "Code":
-				return ec.fieldContext_TimeSeriesData_Code(ctx, field)
-			case "Message":
-				return ec.fieldContext_TimeSeriesData_Message(ctx, field)
-			case "Data":
-				return ec.fieldContext_TimeSeriesData_Data(ctx, field)
-			case "Last":
-				return ec.fieldContext_TimeSeriesData_Last(ctx, field)
-			case "TotalRecords":
-				return ec.fieldContext_TimeSeriesData_TotalRecords(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type TimeSeriesData", field.Name)
-		},
-	}
-	defer func() {
-		if r := recover(); r != nil {
-			err = ec.Recover(ctx, r)
-			ec.Error(ctx, err)
-		}
-	}()
-	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_gns_Gns_queryServiceTS_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
-		ec.Error(ctx, err)
-		return
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _gns_Gns_queryIncomingAPIs(ctx context.Context, field graphql.CollectedField, obj *model.GnsGns) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_gns_Gns_queryIncomingAPIs(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Gns_Gns().QueryIncomingAPIs(rctx, obj, fc.Args["startTime"].(*string), fc.Args["endTime"].(*string), fc.Args["destinationService"].(*string), fc.Args["destinationServiceVersion"].(*string), fc.Args["timeInterval"].(*string), fc.Args["timeZone"].(*string))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*model.TimeSeriesData)
-	fc.Result = res
-	return ec.marshalOTimeSeriesData2ᚖnexustempmoduleᚋnexusᚑgqlᚋgraphᚋmodelᚐTimeSeriesData(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_gns_Gns_queryIncomingAPIs(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "gns_Gns",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "Code":
-				return ec.fieldContext_TimeSeriesData_Code(ctx, field)
-			case "Message":
-				return ec.fieldContext_TimeSeriesData_Message(ctx, field)
-			case "Data":
-				return ec.fieldContext_TimeSeriesData_Data(ctx, field)
-			case "Last":
-				return ec.fieldContext_TimeSeriesData_Last(ctx, field)
-			case "TotalRecords":
-				return ec.fieldContext_TimeSeriesData_TotalRecords(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type TimeSeriesData", field.Name)
-		},
-	}
-	defer func() {
-		if r := recover(); r != nil {
-			err = ec.Recover(ctx, r)
-			ec.Error(ctx, err)
-		}
-	}()
-	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_gns_Gns_queryIncomingAPIs_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
-		ec.Error(ctx, err)
-		return
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _gns_Gns_queryOutgoingAPIs(ctx context.Context, field graphql.CollectedField, obj *model.GnsGns) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_gns_Gns_queryOutgoingAPIs(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Gns_Gns().QueryOutgoingAPIs(rctx, obj, fc.Args["startTime"].(*string), fc.Args["endTime"].(*string), fc.Args["timeInterval"].(*string), fc.Args["timeZone"].(*string))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*model.TimeSeriesData)
-	fc.Result = res
-	return ec.marshalOTimeSeriesData2ᚖnexustempmoduleᚋnexusᚑgqlᚋgraphᚋmodelᚐTimeSeriesData(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_gns_Gns_queryOutgoingAPIs(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "gns_Gns",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "Code":
-				return ec.fieldContext_TimeSeriesData_Code(ctx, field)
-			case "Message":
-				return ec.fieldContext_TimeSeriesData_Message(ctx, field)
-			case "Data":
-				return ec.fieldContext_TimeSeriesData_Data(ctx, field)
-			case "Last":
-				return ec.fieldContext_TimeSeriesData_Last(ctx, field)
-			case "TotalRecords":
-				return ec.fieldContext_TimeSeriesData_TotalRecords(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type TimeSeriesData", field.Name)
-		},
-	}
-	defer func() {
-		if r := recover(); r != nil {
-			err = ec.Recover(ctx, r)
-			ec.Error(ctx, err)
-		}
-	}()
-	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_gns_Gns_queryOutgoingAPIs_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
-		ec.Error(ctx, err)
-		return
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _gns_Gns_queryIncomingTCP(ctx context.Context, field graphql.CollectedField, obj *model.GnsGns) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_gns_Gns_queryIncomingTCP(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Gns_Gns().QueryIncomingTcp(rctx, obj, fc.Args["startTime"].(*string), fc.Args["endTime"].(*string), fc.Args["destinationService"].(*string), fc.Args["destinationServiceVersion"].(*string))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*model.TimeSeriesData)
-	fc.Result = res
-	return ec.marshalOTimeSeriesData2ᚖnexustempmoduleᚋnexusᚑgqlᚋgraphᚋmodelᚐTimeSeriesData(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_gns_Gns_queryIncomingTCP(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "gns_Gns",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "Code":
-				return ec.fieldContext_TimeSeriesData_Code(ctx, field)
-			case "Message":
-				return ec.fieldContext_TimeSeriesData_Message(ctx, field)
-			case "Data":
-				return ec.fieldContext_TimeSeriesData_Data(ctx, field)
-			case "Last":
-				return ec.fieldContext_TimeSeriesData_Last(ctx, field)
-			case "TotalRecords":
-				return ec.fieldContext_TimeSeriesData_TotalRecords(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type TimeSeriesData", field.Name)
-		},
-	}
-	defer func() {
-		if r := recover(); r != nil {
-			err = ec.Recover(ctx, r)
-			ec.Error(ctx, err)
-		}
-	}()
-	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_gns_Gns_queryIncomingTCP_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
-		ec.Error(ctx, err)
-		return
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _gns_Gns_queryOutgoingTCP(ctx context.Context, field graphql.CollectedField, obj *model.GnsGns) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_gns_Gns_queryOutgoingTCP(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Gns_Gns().QueryOutgoingTcp(rctx, obj, fc.Args["startTime"].(*string), fc.Args["endTime"].(*string), fc.Args["destinationService"].(*string), fc.Args["destinationServiceVersion"].(*string))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*model.TimeSeriesData)
-	fc.Result = res
-	return ec.marshalOTimeSeriesData2ᚖnexustempmoduleᚋnexusᚑgqlᚋgraphᚋmodelᚐTimeSeriesData(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_gns_Gns_queryOutgoingTCP(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "gns_Gns",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "Code":
-				return ec.fieldContext_TimeSeriesData_Code(ctx, field)
-			case "Message":
-				return ec.fieldContext_TimeSeriesData_Message(ctx, field)
-			case "Data":
-				return ec.fieldContext_TimeSeriesData_Data(ctx, field)
-			case "Last":
-				return ec.fieldContext_TimeSeriesData_Last(ctx, field)
-			case "TotalRecords":
-				return ec.fieldContext_TimeSeriesData_TotalRecords(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type TimeSeriesData", field.Name)
-		},
-	}
-	defer func() {
-		if r := recover(); r != nil {
-			err = ec.Recover(ctx, r)
-			ec.Error(ctx, err)
-		}
-	}()
-	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_gns_Gns_queryOutgoingTCP_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
-		ec.Error(ctx, err)
-		return
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _gns_Gns_queryServiceTopology(ctx context.Context, field graphql.CollectedField, obj *model.GnsGns) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_gns_Gns_queryServiceTopology(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Gns_Gns().QueryServiceTopology(rctx, obj, fc.Args["metricStringArray"].(*string), fc.Args["startTime"].(*string), fc.Args["endTime"].(*string))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*model.TimeSeriesData)
-	fc.Result = res
-	return ec.marshalOTimeSeriesData2ᚖnexustempmoduleᚋnexusᚑgqlᚋgraphᚋmodelᚐTimeSeriesData(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_gns_Gns_queryServiceTopology(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "gns_Gns",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "Code":
-				return ec.fieldContext_TimeSeriesData_Code(ctx, field)
-			case "Message":
-				return ec.fieldContext_TimeSeriesData_Message(ctx, field)
-			case "Data":
-				return ec.fieldContext_TimeSeriesData_Data(ctx, field)
-			case "Last":
-				return ec.fieldContext_TimeSeriesData_Last(ctx, field)
-			case "TotalRecords":
-				return ec.fieldContext_TimeSeriesData_TotalRecords(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type TimeSeriesData", field.Name)
-		},
-	}
-	defer func() {
-		if r := recover(); r != nil {
-			err = ec.Recover(ctx, r)
-			ec.Error(ctx, err)
-		}
-	}()
-	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_gns_Gns_queryServiceTopology_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
-		ec.Error(ctx, err)
-		return
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _gns_Gns_FooLink(ctx context.Context, field graphql.CollectedField, obj *model.GnsGns) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_gns_Gns_FooLink(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Gns_Gns().FooLink(rctx, obj)
+		return ec.resolvers.Gns_Gns().Dns(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -8595,12 +5088,12 @@ func (ec *executionContext) _gns_Gns_FooLink(ctx context.Context, field graphql.
 		}
 		return graphql.Null
 	}
-	res := resTmp.(*model.GnsBar)
+	res := resTmp.(*model.GnsDns)
 	fc.Result = res
-	return ec.marshalNgns_Bar2ᚖnexustempmoduleᚋnexusᚑgqlᚋgraphᚋmodelᚐGnsBar(ctx, field.Selections, res)
+	return ec.marshalNgns_Dns2ᚖnexustempmoduleᚋnexusᚑgqlᚋgraphᚋmodelᚐGnsDns(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_gns_Gns_FooLink(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_gns_Gns_Dns(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "gns_Gns",
 		Field:      field,
@@ -8609,242 +5102,12 @@ func (ec *executionContext) fieldContext_gns_Gns_FooLink(ctx context.Context, fi
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
 			case "Id":
-				return ec.fieldContext_gns_Bar_Id(ctx, field)
-			case "queryServiceTable":
-				return ec.fieldContext_gns_Bar_queryServiceTable(ctx, field)
-			case "queryServiceVersionTable":
-				return ec.fieldContext_gns_Bar_queryServiceVersionTable(ctx, field)
-			case "queryServiceTS":
-				return ec.fieldContext_gns_Bar_queryServiceTS(ctx, field)
-			case "queryIncomingAPIs":
-				return ec.fieldContext_gns_Bar_queryIncomingAPIs(ctx, field)
-			case "queryOutgoingAPIs":
-				return ec.fieldContext_gns_Bar_queryOutgoingAPIs(ctx, field)
-			case "queryIncomingTCP":
-				return ec.fieldContext_gns_Bar_queryIncomingTCP(ctx, field)
-			case "queryOutgoingTCP":
-				return ec.fieldContext_gns_Bar_queryOutgoingTCP(ctx, field)
-			case "queryServiceTopology":
-				return ec.fieldContext_gns_Bar_queryServiceTopology(ctx, field)
-			case "Name":
-				return ec.fieldContext_gns_Bar_Name(ctx, field)
+				return ec.fieldContext_gns_Dns_Id(ctx, field)
+			case "ParentLabels":
+				return ec.fieldContext_gns_Dns_ParentLabels(ctx, field)
 			}
-			return nil, fmt.Errorf("no field named %q was found under type gns_Bar", field.Name)
+			return nil, fmt.Errorf("no field named %q was found under type gns_Dns", field.Name)
 		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _gns_Gns_FooLinks(ctx context.Context, field graphql.CollectedField, obj *model.GnsGns) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_gns_Gns_FooLinks(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Gns_Gns().FooLinks(rctx, obj, fc.Args["Id"].(*string))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.([]*model.GnsBar)
-	fc.Result = res
-	return ec.marshalOgns_Bar2ᚕᚖnexustempmoduleᚋnexusᚑgqlᚋgraphᚋmodelᚐGnsBarᚄ(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_gns_Gns_FooLinks(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "gns_Gns",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "Id":
-				return ec.fieldContext_gns_Bar_Id(ctx, field)
-			case "queryServiceTable":
-				return ec.fieldContext_gns_Bar_queryServiceTable(ctx, field)
-			case "queryServiceVersionTable":
-				return ec.fieldContext_gns_Bar_queryServiceVersionTable(ctx, field)
-			case "queryServiceTS":
-				return ec.fieldContext_gns_Bar_queryServiceTS(ctx, field)
-			case "queryIncomingAPIs":
-				return ec.fieldContext_gns_Bar_queryIncomingAPIs(ctx, field)
-			case "queryOutgoingAPIs":
-				return ec.fieldContext_gns_Bar_queryOutgoingAPIs(ctx, field)
-			case "queryIncomingTCP":
-				return ec.fieldContext_gns_Bar_queryIncomingTCP(ctx, field)
-			case "queryOutgoingTCP":
-				return ec.fieldContext_gns_Bar_queryOutgoingTCP(ctx, field)
-			case "queryServiceTopology":
-				return ec.fieldContext_gns_Bar_queryServiceTopology(ctx, field)
-			case "Name":
-				return ec.fieldContext_gns_Bar_Name(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type gns_Bar", field.Name)
-		},
-	}
-	defer func() {
-		if r := recover(); r != nil {
-			err = ec.Recover(ctx, r)
-			ec.Error(ctx, err)
-		}
-	}()
-	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_gns_Gns_FooLinks_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
-		ec.Error(ctx, err)
-		return
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _gns_Gns_FooChild(ctx context.Context, field graphql.CollectedField, obj *model.GnsGns) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_gns_Gns_FooChild(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Gns_Gns().FooChild(rctx, obj)
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(*model.GnsBar)
-	fc.Result = res
-	return ec.marshalNgns_Bar2ᚖnexustempmoduleᚋnexusᚑgqlᚋgraphᚋmodelᚐGnsBar(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_gns_Gns_FooChild(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "gns_Gns",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "Id":
-				return ec.fieldContext_gns_Bar_Id(ctx, field)
-			case "queryServiceTable":
-				return ec.fieldContext_gns_Bar_queryServiceTable(ctx, field)
-			case "queryServiceVersionTable":
-				return ec.fieldContext_gns_Bar_queryServiceVersionTable(ctx, field)
-			case "queryServiceTS":
-				return ec.fieldContext_gns_Bar_queryServiceTS(ctx, field)
-			case "queryIncomingAPIs":
-				return ec.fieldContext_gns_Bar_queryIncomingAPIs(ctx, field)
-			case "queryOutgoingAPIs":
-				return ec.fieldContext_gns_Bar_queryOutgoingAPIs(ctx, field)
-			case "queryIncomingTCP":
-				return ec.fieldContext_gns_Bar_queryIncomingTCP(ctx, field)
-			case "queryOutgoingTCP":
-				return ec.fieldContext_gns_Bar_queryOutgoingTCP(ctx, field)
-			case "queryServiceTopology":
-				return ec.fieldContext_gns_Bar_queryServiceTopology(ctx, field)
-			case "Name":
-				return ec.fieldContext_gns_Bar_Name(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type gns_Bar", field.Name)
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _gns_Gns_FooChildren(ctx context.Context, field graphql.CollectedField, obj *model.GnsGns) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_gns_Gns_FooChildren(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Gns_Gns().FooChildren(rctx, obj, fc.Args["Id"].(*string))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.([]*model.GnsBar)
-	fc.Result = res
-	return ec.marshalOgns_Bar2ᚕᚖnexustempmoduleᚋnexusᚑgqlᚋgraphᚋmodelᚐGnsBarᚄ(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_gns_Gns_FooChildren(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "gns_Gns",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "Id":
-				return ec.fieldContext_gns_Bar_Id(ctx, field)
-			case "queryServiceTable":
-				return ec.fieldContext_gns_Bar_queryServiceTable(ctx, field)
-			case "queryServiceVersionTable":
-				return ec.fieldContext_gns_Bar_queryServiceVersionTable(ctx, field)
-			case "queryServiceTS":
-				return ec.fieldContext_gns_Bar_queryServiceTS(ctx, field)
-			case "queryIncomingAPIs":
-				return ec.fieldContext_gns_Bar_queryIncomingAPIs(ctx, field)
-			case "queryOutgoingAPIs":
-				return ec.fieldContext_gns_Bar_queryOutgoingAPIs(ctx, field)
-			case "queryIncomingTCP":
-				return ec.fieldContext_gns_Bar_queryIncomingTCP(ctx, field)
-			case "queryOutgoingTCP":
-				return ec.fieldContext_gns_Bar_queryOutgoingTCP(ctx, field)
-			case "queryServiceTopology":
-				return ec.fieldContext_gns_Bar_queryServiceTopology(ctx, field)
-			case "Name":
-				return ec.fieldContext_gns_Bar_Name(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type gns_Bar", field.Name)
-		},
-	}
-	defer func() {
-		if r := recover(); r != nil {
-			err = ec.Recover(ctx, r)
-			ec.Error(ctx, err)
-		}
-	}()
-	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_gns_Gns_FooChildren_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
-		ec.Error(ctx, err)
-		return
 	}
 	return fc, nil
 }
@@ -8931,8 +5194,8 @@ func (ec *executionContext) fieldContext_gns_Gns_UseSharedGateway(ctx context.Co
 	return fc, nil
 }
 
-func (ec *executionContext) _gns_Gns_Mydesc(ctx context.Context, field graphql.CollectedField, obj *model.GnsGns) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_gns_Gns_Mydesc(ctx, field)
+func (ec *executionContext) _gns_Gns_Description(ctx context.Context, field graphql.CollectedField, obj *model.GnsGns) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_gns_Gns_Description(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -8945,459 +5208,7 @@ func (ec *executionContext) _gns_Gns_Mydesc(ctx context.Context, field graphql.C
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Gns_Gns().Mydesc(rctx, obj)
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*model.GnsDescription)
-	fc.Result = res
-	return ec.marshalOgns_Description2ᚖnexustempmoduleᚋnexusᚑgqlᚋgraphᚋmodelᚐGnsDescription(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_gns_Gns_Mydesc(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "gns_Gns",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "Color":
-				return ec.fieldContext_gns_Description_Color(ctx, field)
-			case "Version":
-				return ec.fieldContext_gns_Description_Version(ctx, field)
-			case "ProjectID":
-				return ec.fieldContext_gns_Description_ProjectID(ctx, field)
-			case "Instance":
-				return ec.fieldContext_gns_Description_Instance(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type gns_Description", field.Name)
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _gns_Gns_HostPort(ctx context.Context, field graphql.CollectedField, obj *model.GnsGns) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_gns_Gns_HostPort(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Gns_Gns().HostPort(rctx, obj)
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*model.GnsHostPort)
-	fc.Result = res
-	return ec.marshalOgns_HostPort2ᚖnexustempmoduleᚋnexusᚑgqlᚋgraphᚋmodelᚐGnsHostPort(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_gns_Gns_HostPort(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "gns_Gns",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "Host":
-				return ec.fieldContext_gns_HostPort_Host(ctx, field)
-			case "Port":
-				return ec.fieldContext_gns_HostPort_Port(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type gns_HostPort", field.Name)
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _gns_Gns_TestArray(ctx context.Context, field graphql.CollectedField, obj *model.GnsGns) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_gns_Gns_TestArray(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Gns_Gns().TestArray(rctx, obj)
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*model.GnsEmptyData)
-	fc.Result = res
-	return ec.marshalOgns_EmptyData2ᚖnexustempmoduleᚋnexusᚑgqlᚋgraphᚋmodelᚐGnsEmptyData(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_gns_Gns_TestArray(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "gns_Gns",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "Id":
-				return ec.fieldContext_gns_EmptyData_Id(ctx, field)
-			case "queryServiceTable":
-				return ec.fieldContext_gns_EmptyData_queryServiceTable(ctx, field)
-			case "queryServiceVersionTable":
-				return ec.fieldContext_gns_EmptyData_queryServiceVersionTable(ctx, field)
-			case "queryServiceTS":
-				return ec.fieldContext_gns_EmptyData_queryServiceTS(ctx, field)
-			case "queryIncomingAPIs":
-				return ec.fieldContext_gns_EmptyData_queryIncomingAPIs(ctx, field)
-			case "queryOutgoingAPIs":
-				return ec.fieldContext_gns_EmptyData_queryOutgoingAPIs(ctx, field)
-			case "queryIncomingTCP":
-				return ec.fieldContext_gns_EmptyData_queryIncomingTCP(ctx, field)
-			case "queryOutgoingTCP":
-				return ec.fieldContext_gns_EmptyData_queryOutgoingTCP(ctx, field)
-			case "queryServiceTopology":
-				return ec.fieldContext_gns_EmptyData_queryServiceTopology(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type gns_EmptyData", field.Name)
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _gns_Gns_Instance(ctx context.Context, field graphql.CollectedField, obj *model.GnsGns) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_gns_Gns_Instance(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Instance, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*float64)
-	fc.Result = res
-	return ec.marshalOFloat2ᚖfloat64(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_gns_Gns_Instance(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "gns_Gns",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Float does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _gns_Gns_Array1(ctx context.Context, field graphql.CollectedField, obj *model.GnsGns) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_gns_Gns_Array1(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Gns_Gns().Array1(rctx, obj)
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.([]*int)
-	fc.Result = res
-	return ec.marshalNInt2ᚕᚖint(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_gns_Gns_Array1(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "gns_Gns",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Int does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _gns_Gns_Array2(ctx context.Context, field graphql.CollectedField, obj *model.GnsGns) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_gns_Gns_Array2(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Gns_Gns().Array2(rctx, obj)
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.([]*model.GnsDescription)
-	fc.Result = res
-	return ec.marshalNgns_Description2ᚕᚖnexustempmoduleᚋnexusᚑgqlᚋgraphᚋmodelᚐGnsDescription(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_gns_Gns_Array2(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "gns_Gns",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "Color":
-				return ec.fieldContext_gns_Description_Color(ctx, field)
-			case "Version":
-				return ec.fieldContext_gns_Description_Version(ctx, field)
-			case "ProjectID":
-				return ec.fieldContext_gns_Description_ProjectID(ctx, field)
-			case "Instance":
-				return ec.fieldContext_gns_Description_Instance(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type gns_Description", field.Name)
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _gns_Gns_Array3(ctx context.Context, field graphql.CollectedField, obj *model.GnsGns) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_gns_Gns_Array3(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Gns_Gns().Array3(rctx, obj)
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.([]*model.GnsBar)
-	fc.Result = res
-	return ec.marshalNgns_Bar2ᚕᚖnexustempmoduleᚋnexusᚑgqlᚋgraphᚋmodelᚐGnsBar(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_gns_Gns_Array3(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "gns_Gns",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "Id":
-				return ec.fieldContext_gns_Bar_Id(ctx, field)
-			case "queryServiceTable":
-				return ec.fieldContext_gns_Bar_queryServiceTable(ctx, field)
-			case "queryServiceVersionTable":
-				return ec.fieldContext_gns_Bar_queryServiceVersionTable(ctx, field)
-			case "queryServiceTS":
-				return ec.fieldContext_gns_Bar_queryServiceTS(ctx, field)
-			case "queryIncomingAPIs":
-				return ec.fieldContext_gns_Bar_queryIncomingAPIs(ctx, field)
-			case "queryOutgoingAPIs":
-				return ec.fieldContext_gns_Bar_queryOutgoingAPIs(ctx, field)
-			case "queryIncomingTCP":
-				return ec.fieldContext_gns_Bar_queryIncomingTCP(ctx, field)
-			case "queryOutgoingTCP":
-				return ec.fieldContext_gns_Bar_queryOutgoingTCP(ctx, field)
-			case "queryServiceTopology":
-				return ec.fieldContext_gns_Bar_queryServiceTopology(ctx, field)
-			case "Name":
-				return ec.fieldContext_gns_Bar_Name(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type gns_Bar", field.Name)
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _gns_Gns_Array4(ctx context.Context, field graphql.CollectedField, obj *model.GnsGns) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_gns_Gns_Array4(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Gns_Gns().Array4(rctx, obj)
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.([]*float64)
-	fc.Result = res
-	return ec.marshalNFloat2ᚕᚖfloat64(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_gns_Gns_Array4(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "gns_Gns",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Float does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _gns_Gns_Array5(ctx context.Context, field graphql.CollectedField, obj *model.GnsGns) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_gns_Gns_Array5(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Array5, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.([]*int)
-	fc.Result = res
-	return ec.marshalNInt2ᚕᚖint(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_gns_Gns_Array5(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "gns_Gns",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Int does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _gns_HostPort_Host(ctx context.Context, field graphql.CollectedField, obj *model.GnsHostPort) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_gns_HostPort_Host(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Host, nil
+		return obj.Description, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -9411,9 +5222,9 @@ func (ec *executionContext) _gns_HostPort_Host(ctx context.Context, field graphq
 	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_gns_HostPort_Host(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_gns_Gns_Description(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
-		Object:     "gns_HostPort",
+		Object:     "gns_Gns",
 		Field:      field,
 		IsMethod:   false,
 		IsResolver: false,
@@ -9424,8 +5235,49 @@ func (ec *executionContext) fieldContext_gns_HostPort_Host(ctx context.Context, 
 	return fc, nil
 }
 
-func (ec *executionContext) _gns_HostPort_Port(ctx context.Context, field graphql.CollectedField, obj *model.GnsHostPort) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_gns_HostPort_Port(ctx, field)
+func (ec *executionContext) _gns_Gns_Meta(ctx context.Context, field graphql.CollectedField, obj *model.GnsGns) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_gns_Gns_Meta(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Meta, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_gns_Gns_Meta(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "gns_Gns",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _gns_Gns_Port(ctx context.Context, field graphql.CollectedField, obj *model.GnsGns) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_gns_Gns_Port(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -9452,9 +5304,9 @@ func (ec *executionContext) _gns_HostPort_Port(ctx context.Context, field graphq
 	return ec.marshalOInt2ᚖint(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_gns_HostPort_Port(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_gns_Gns_Port(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
-		Object:     "gns_HostPort",
+		Object:     "gns_Gns",
 		Field:      field,
 		IsMethod:   false,
 		IsResolver: false,
@@ -9465,8 +5317,410 @@ func (ec *executionContext) fieldContext_gns_HostPort_Port(ctx context.Context, 
 	return fc, nil
 }
 
-func (ec *executionContext) _root_Bar_Name(ctx context.Context, field graphql.CollectedField, obj *model.RootBar) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_root_Bar_Name(ctx, field)
+func (ec *executionContext) _gns_Gns_OtherDescription(ctx context.Context, field graphql.CollectedField, obj *model.GnsGns) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_gns_Gns_OtherDescription(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.OtherDescription, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_gns_Gns_OtherDescription(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "gns_Gns",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _gns_Gns_MapPointer(ctx context.Context, field graphql.CollectedField, obj *model.GnsGns) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_gns_Gns_MapPointer(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.MapPointer, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_gns_Gns_MapPointer(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "gns_Gns",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _gns_Gns_SlicePointer(ctx context.Context, field graphql.CollectedField, obj *model.GnsGns) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_gns_Gns_SlicePointer(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.SlicePointer, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_gns_Gns_SlicePointer(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "gns_Gns",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _gns_Gns_WorkloadSpec(ctx context.Context, field graphql.CollectedField, obj *model.GnsGns) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_gns_Gns_WorkloadSpec(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.WorkloadSpec, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_gns_Gns_WorkloadSpec(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "gns_Gns",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _gns_Gns_DifferentSpec(ctx context.Context, field graphql.CollectedField, obj *model.GnsGns) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_gns_Gns_DifferentSpec(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.DifferentSpec, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_gns_Gns_DifferentSpec(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "gns_Gns",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _gns_Gns_GnsAccessControlPolicy(ctx context.Context, field graphql.CollectedField, obj *model.GnsGns) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_gns_Gns_GnsAccessControlPolicy(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Gns_Gns().GnsAccessControlPolicy(rctx, obj, fc.Args["Id"].(*string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.PolicyAccessControlPolicy)
+	fc.Result = res
+	return ec.marshalNpolicy_AccessControlPolicy2ᚖnexustempmoduleᚋnexusᚑgqlᚋgraphᚋmodelᚐPolicyAccessControlPolicy(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_gns_Gns_GnsAccessControlPolicy(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "gns_Gns",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "Id":
+				return ec.fieldContext_policy_AccessControlPolicy_Id(ctx, field)
+			case "ParentLabels":
+				return ec.fieldContext_policy_AccessControlPolicy_ParentLabels(ctx, field)
+			case "PolicyConfigs":
+				return ec.fieldContext_policy_AccessControlPolicy_PolicyConfigs(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type policy_AccessControlPolicy", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_gns_Gns_GnsAccessControlPolicy_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _gns_Gns_FooChild(ctx context.Context, field graphql.CollectedField, obj *model.GnsGns) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_gns_Gns_FooChild(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Gns_Gns().FooChild(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.GnsBarChild)
+	fc.Result = res
+	return ec.marshalNgns_BarChild2ᚖnexustempmoduleᚋnexusᚑgqlᚋgraphᚋmodelᚐGnsBarChild(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_gns_Gns_FooChild(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "gns_Gns",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "Id":
+				return ec.fieldContext_gns_BarChild_Id(ctx, field)
+			case "ParentLabels":
+				return ec.fieldContext_gns_BarChild_ParentLabels(ctx, field)
+			case "Name":
+				return ec.fieldContext_gns_BarChild_Name(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type gns_BarChild", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _gns_IgnoreChild_Id(ctx context.Context, field graphql.CollectedField, obj *model.GnsIgnoreChild) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_gns_IgnoreChild_Id(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Id, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOID2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_gns_IgnoreChild_Id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "gns_IgnoreChild",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _gns_IgnoreChild_ParentLabels(ctx context.Context, field graphql.CollectedField, obj *model.GnsIgnoreChild) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_gns_IgnoreChild_ParentLabels(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ParentLabels, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(map[string]interface{})
+	fc.Result = res
+	return ec.marshalOMap2map(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_gns_IgnoreChild_ParentLabels(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "gns_IgnoreChild",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Map does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _gns_IgnoreChild_Name(ctx context.Context, field graphql.CollectedField, obj *model.GnsIgnoreChild) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_gns_IgnoreChild_Name(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -9493,14 +5747,708 @@ func (ec *executionContext) _root_Bar_Name(ctx context.Context, field graphql.Co
 	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_root_Bar_Name(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_gns_IgnoreChild_Name(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
-		Object:     "root_Bar",
+		Object:     "gns_IgnoreChild",
 		Field:      field,
 		IsMethod:   false,
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _policy_ACPConfig_Id(ctx context.Context, field graphql.CollectedField, obj *model.PolicyACPConfig) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_policy_ACPConfig_Id(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Id, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOID2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_policy_ACPConfig_Id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "policy_ACPConfig",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _policy_ACPConfig_ParentLabels(ctx context.Context, field graphql.CollectedField, obj *model.PolicyACPConfig) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_policy_ACPConfig_ParentLabels(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ParentLabels, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(map[string]interface{})
+	fc.Result = res
+	return ec.marshalOMap2map(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_policy_ACPConfig_ParentLabels(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "policy_ACPConfig",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Map does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _policy_ACPConfig_DestSvcGroups(ctx context.Context, field graphql.CollectedField, obj *model.PolicyACPConfig) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_policy_ACPConfig_DestSvcGroups(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Policy_ACPConfig().DestSvcGroups(rctx, obj, fc.Args["Id"].(*string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*model.ServicegroupSvcGroup)
+	fc.Result = res
+	return ec.marshalOservicegroup_SvcGroup2ᚕᚖnexustempmoduleᚋnexusᚑgqlᚋgraphᚋmodelᚐServicegroupSvcGroupᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_policy_ACPConfig_DestSvcGroups(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "policy_ACPConfig",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "Id":
+				return ec.fieldContext_servicegroup_SvcGroup_Id(ctx, field)
+			case "ParentLabels":
+				return ec.fieldContext_servicegroup_SvcGroup_ParentLabels(ctx, field)
+			case "DisplayName":
+				return ec.fieldContext_servicegroup_SvcGroup_DisplayName(ctx, field)
+			case "Description":
+				return ec.fieldContext_servicegroup_SvcGroup_Description(ctx, field)
+			case "Color":
+				return ec.fieldContext_servicegroup_SvcGroup_Color(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type servicegroup_SvcGroup", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_policy_ACPConfig_DestSvcGroups_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _policy_ACPConfig_SourceSvcGroups(ctx context.Context, field graphql.CollectedField, obj *model.PolicyACPConfig) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_policy_ACPConfig_SourceSvcGroups(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Policy_ACPConfig().SourceSvcGroups(rctx, obj, fc.Args["Id"].(*string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*model.ServicegroupSvcGroup)
+	fc.Result = res
+	return ec.marshalOservicegroup_SvcGroup2ᚕᚖnexustempmoduleᚋnexusᚑgqlᚋgraphᚋmodelᚐServicegroupSvcGroupᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_policy_ACPConfig_SourceSvcGroups(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "policy_ACPConfig",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "Id":
+				return ec.fieldContext_servicegroup_SvcGroup_Id(ctx, field)
+			case "ParentLabels":
+				return ec.fieldContext_servicegroup_SvcGroup_ParentLabels(ctx, field)
+			case "DisplayName":
+				return ec.fieldContext_servicegroup_SvcGroup_DisplayName(ctx, field)
+			case "Description":
+				return ec.fieldContext_servicegroup_SvcGroup_Description(ctx, field)
+			case "Color":
+				return ec.fieldContext_servicegroup_SvcGroup_Color(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type servicegroup_SvcGroup", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_policy_ACPConfig_SourceSvcGroups_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _policy_ACPConfig_DisplayName(ctx context.Context, field graphql.CollectedField, obj *model.PolicyACPConfig) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_policy_ACPConfig_DisplayName(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.DisplayName, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_policy_ACPConfig_DisplayName(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "policy_ACPConfig",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _policy_ACPConfig_Gns(ctx context.Context, field graphql.CollectedField, obj *model.PolicyACPConfig) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_policy_ACPConfig_Gns(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Gns, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_policy_ACPConfig_Gns(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "policy_ACPConfig",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _policy_ACPConfig_Description(ctx context.Context, field graphql.CollectedField, obj *model.PolicyACPConfig) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_policy_ACPConfig_Description(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Description, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_policy_ACPConfig_Description(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "policy_ACPConfig",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _policy_ACPConfig_Tags(ctx context.Context, field graphql.CollectedField, obj *model.PolicyACPConfig) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_policy_ACPConfig_Tags(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Tags, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_policy_ACPConfig_Tags(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "policy_ACPConfig",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _policy_ACPConfig_ProjectId(ctx context.Context, field graphql.CollectedField, obj *model.PolicyACPConfig) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_policy_ACPConfig_ProjectId(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ProjectId, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_policy_ACPConfig_ProjectId(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "policy_ACPConfig",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _policy_ACPConfig_Conditions(ctx context.Context, field graphql.CollectedField, obj *model.PolicyACPConfig) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_policy_ACPConfig_Conditions(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Conditions, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_policy_ACPConfig_Conditions(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "policy_ACPConfig",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _policy_AccessControlPolicy_Id(ctx context.Context, field graphql.CollectedField, obj *model.PolicyAccessControlPolicy) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_policy_AccessControlPolicy_Id(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Id, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOID2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_policy_AccessControlPolicy_Id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "policy_AccessControlPolicy",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _policy_AccessControlPolicy_ParentLabels(ctx context.Context, field graphql.CollectedField, obj *model.PolicyAccessControlPolicy) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_policy_AccessControlPolicy_ParentLabels(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ParentLabels, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(map[string]interface{})
+	fc.Result = res
+	return ec.marshalOMap2map(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_policy_AccessControlPolicy_ParentLabels(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "policy_AccessControlPolicy",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Map does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _policy_AccessControlPolicy_PolicyConfigs(ctx context.Context, field graphql.CollectedField, obj *model.PolicyAccessControlPolicy) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_policy_AccessControlPolicy_PolicyConfigs(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Policy_AccessControlPolicy().PolicyConfigs(rctx, obj, fc.Args["Id"].(*string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*model.PolicyACPConfig)
+	fc.Result = res
+	return ec.marshalOpolicy_ACPConfig2ᚕᚖnexustempmoduleᚋnexusᚑgqlᚋgraphᚋmodelᚐPolicyACPConfigᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_policy_AccessControlPolicy_PolicyConfigs(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "policy_AccessControlPolicy",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "Id":
+				return ec.fieldContext_policy_ACPConfig_Id(ctx, field)
+			case "ParentLabels":
+				return ec.fieldContext_policy_ACPConfig_ParentLabels(ctx, field)
+			case "DestSvcGroups":
+				return ec.fieldContext_policy_ACPConfig_DestSvcGroups(ctx, field)
+			case "SourceSvcGroups":
+				return ec.fieldContext_policy_ACPConfig_SourceSvcGroups(ctx, field)
+			case "DisplayName":
+				return ec.fieldContext_policy_ACPConfig_DisplayName(ctx, field)
+			case "Gns":
+				return ec.fieldContext_policy_ACPConfig_Gns(ctx, field)
+			case "Description":
+				return ec.fieldContext_policy_ACPConfig_Description(ctx, field)
+			case "Tags":
+				return ec.fieldContext_policy_ACPConfig_Tags(ctx, field)
+			case "ProjectId":
+				return ec.fieldContext_policy_ACPConfig_ProjectId(ctx, field)
+			case "Conditions":
+				return ec.fieldContext_policy_ACPConfig_Conditions(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type policy_ACPConfig", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_policy_AccessControlPolicy_PolicyConfigs_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _policy_VMpolicy_Id(ctx context.Context, field graphql.CollectedField, obj *model.PolicyVMpolicy) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_policy_VMpolicy_Id(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Id, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOID2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_policy_VMpolicy_Id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "policy_VMpolicy",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _policy_VMpolicy_ParentLabels(ctx context.Context, field graphql.CollectedField, obj *model.PolicyVMpolicy) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_policy_VMpolicy_ParentLabels(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ParentLabels, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(map[string]interface{})
+	fc.Result = res
+	return ec.marshalOMap2map(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_policy_VMpolicy_ParentLabels(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "policy_VMpolicy",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Map does not have child fields")
 		},
 	}
 	return fc, nil
@@ -9547,8 +6495,8 @@ func (ec *executionContext) fieldContext_root_Root_Id(ctx context.Context, field
 	return fc, nil
 }
 
-func (ec *executionContext) _root_Root_queryServiceTable(ctx context.Context, field graphql.CollectedField, obj *model.RootRoot) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_root_Root_queryServiceTable(ctx, field)
+func (ec *executionContext) _root_Root_ParentLabels(ctx context.Context, field graphql.CollectedField, obj *model.RootRoot) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_root_Root_ParentLabels(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -9561,7 +6509,7 @@ func (ec *executionContext) _root_Root_queryServiceTable(ctx context.Context, fi
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Root_Root().QueryServiceTable(rctx, obj, fc.Args["startTime"].(*string), fc.Args["endTime"].(*string), fc.Args["SystemServices"].(*bool), fc.Args["ShowGateways"].(*bool), fc.Args["Groupby"].(*string), fc.Args["noMetrics"].(*bool))
+		return obj.ParentLabels, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -9570,491 +6518,20 @@ func (ec *executionContext) _root_Root_queryServiceTable(ctx context.Context, fi
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(*model.TimeSeriesData)
+	res := resTmp.(map[string]interface{})
 	fc.Result = res
-	return ec.marshalOTimeSeriesData2ᚖnexustempmoduleᚋnexusᚑgqlᚋgraphᚋmodelᚐTimeSeriesData(ctx, field.Selections, res)
+	return ec.marshalOMap2map(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_root_Root_queryServiceTable(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_root_Root_ParentLabels(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "root_Root",
 		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
+		IsMethod:   false,
+		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "Code":
-				return ec.fieldContext_TimeSeriesData_Code(ctx, field)
-			case "Message":
-				return ec.fieldContext_TimeSeriesData_Message(ctx, field)
-			case "Data":
-				return ec.fieldContext_TimeSeriesData_Data(ctx, field)
-			case "Last":
-				return ec.fieldContext_TimeSeriesData_Last(ctx, field)
-			case "TotalRecords":
-				return ec.fieldContext_TimeSeriesData_TotalRecords(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type TimeSeriesData", field.Name)
+			return nil, errors.New("field of type Map does not have child fields")
 		},
-	}
-	defer func() {
-		if r := recover(); r != nil {
-			err = ec.Recover(ctx, r)
-			ec.Error(ctx, err)
-		}
-	}()
-	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_root_Root_queryServiceTable_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
-		ec.Error(ctx, err)
-		return
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _root_Root_queryServiceVersionTable(ctx context.Context, field graphql.CollectedField, obj *model.RootRoot) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_root_Root_queryServiceVersionTable(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Root_Root().QueryServiceVersionTable(rctx, obj, fc.Args["startTime"].(*string), fc.Args["endTime"].(*string), fc.Args["SystemServices"].(*bool), fc.Args["ShowGateways"].(*bool), fc.Args["noMetrics"].(*bool))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*model.TimeSeriesData)
-	fc.Result = res
-	return ec.marshalOTimeSeriesData2ᚖnexustempmoduleᚋnexusᚑgqlᚋgraphᚋmodelᚐTimeSeriesData(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_root_Root_queryServiceVersionTable(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "root_Root",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "Code":
-				return ec.fieldContext_TimeSeriesData_Code(ctx, field)
-			case "Message":
-				return ec.fieldContext_TimeSeriesData_Message(ctx, field)
-			case "Data":
-				return ec.fieldContext_TimeSeriesData_Data(ctx, field)
-			case "Last":
-				return ec.fieldContext_TimeSeriesData_Last(ctx, field)
-			case "TotalRecords":
-				return ec.fieldContext_TimeSeriesData_TotalRecords(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type TimeSeriesData", field.Name)
-		},
-	}
-	defer func() {
-		if r := recover(); r != nil {
-			err = ec.Recover(ctx, r)
-			ec.Error(ctx, err)
-		}
-	}()
-	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_root_Root_queryServiceVersionTable_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
-		ec.Error(ctx, err)
-		return
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _root_Root_queryServiceTS(ctx context.Context, field graphql.CollectedField, obj *model.RootRoot) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_root_Root_queryServiceTS(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Root_Root().QueryServiceTs(rctx, obj, fc.Args["svcMetric"].(*string), fc.Args["startTime"].(*string), fc.Args["endTime"].(*string), fc.Args["timeInterval"].(*string))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*model.TimeSeriesData)
-	fc.Result = res
-	return ec.marshalOTimeSeriesData2ᚖnexustempmoduleᚋnexusᚑgqlᚋgraphᚋmodelᚐTimeSeriesData(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_root_Root_queryServiceTS(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "root_Root",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "Code":
-				return ec.fieldContext_TimeSeriesData_Code(ctx, field)
-			case "Message":
-				return ec.fieldContext_TimeSeriesData_Message(ctx, field)
-			case "Data":
-				return ec.fieldContext_TimeSeriesData_Data(ctx, field)
-			case "Last":
-				return ec.fieldContext_TimeSeriesData_Last(ctx, field)
-			case "TotalRecords":
-				return ec.fieldContext_TimeSeriesData_TotalRecords(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type TimeSeriesData", field.Name)
-		},
-	}
-	defer func() {
-		if r := recover(); r != nil {
-			err = ec.Recover(ctx, r)
-			ec.Error(ctx, err)
-		}
-	}()
-	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_root_Root_queryServiceTS_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
-		ec.Error(ctx, err)
-		return
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _root_Root_queryIncomingAPIs(ctx context.Context, field graphql.CollectedField, obj *model.RootRoot) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_root_Root_queryIncomingAPIs(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Root_Root().QueryIncomingAPIs(rctx, obj, fc.Args["startTime"].(*string), fc.Args["endTime"].(*string), fc.Args["destinationService"].(*string), fc.Args["destinationServiceVersion"].(*string), fc.Args["timeInterval"].(*string), fc.Args["timeZone"].(*string))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*model.TimeSeriesData)
-	fc.Result = res
-	return ec.marshalOTimeSeriesData2ᚖnexustempmoduleᚋnexusᚑgqlᚋgraphᚋmodelᚐTimeSeriesData(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_root_Root_queryIncomingAPIs(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "root_Root",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "Code":
-				return ec.fieldContext_TimeSeriesData_Code(ctx, field)
-			case "Message":
-				return ec.fieldContext_TimeSeriesData_Message(ctx, field)
-			case "Data":
-				return ec.fieldContext_TimeSeriesData_Data(ctx, field)
-			case "Last":
-				return ec.fieldContext_TimeSeriesData_Last(ctx, field)
-			case "TotalRecords":
-				return ec.fieldContext_TimeSeriesData_TotalRecords(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type TimeSeriesData", field.Name)
-		},
-	}
-	defer func() {
-		if r := recover(); r != nil {
-			err = ec.Recover(ctx, r)
-			ec.Error(ctx, err)
-		}
-	}()
-	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_root_Root_queryIncomingAPIs_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
-		ec.Error(ctx, err)
-		return
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _root_Root_queryOutgoingAPIs(ctx context.Context, field graphql.CollectedField, obj *model.RootRoot) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_root_Root_queryOutgoingAPIs(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Root_Root().QueryOutgoingAPIs(rctx, obj, fc.Args["startTime"].(*string), fc.Args["endTime"].(*string), fc.Args["timeInterval"].(*string), fc.Args["timeZone"].(*string))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*model.TimeSeriesData)
-	fc.Result = res
-	return ec.marshalOTimeSeriesData2ᚖnexustempmoduleᚋnexusᚑgqlᚋgraphᚋmodelᚐTimeSeriesData(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_root_Root_queryOutgoingAPIs(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "root_Root",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "Code":
-				return ec.fieldContext_TimeSeriesData_Code(ctx, field)
-			case "Message":
-				return ec.fieldContext_TimeSeriesData_Message(ctx, field)
-			case "Data":
-				return ec.fieldContext_TimeSeriesData_Data(ctx, field)
-			case "Last":
-				return ec.fieldContext_TimeSeriesData_Last(ctx, field)
-			case "TotalRecords":
-				return ec.fieldContext_TimeSeriesData_TotalRecords(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type TimeSeriesData", field.Name)
-		},
-	}
-	defer func() {
-		if r := recover(); r != nil {
-			err = ec.Recover(ctx, r)
-			ec.Error(ctx, err)
-		}
-	}()
-	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_root_Root_queryOutgoingAPIs_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
-		ec.Error(ctx, err)
-		return
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _root_Root_queryIncomingTCP(ctx context.Context, field graphql.CollectedField, obj *model.RootRoot) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_root_Root_queryIncomingTCP(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Root_Root().QueryIncomingTcp(rctx, obj, fc.Args["startTime"].(*string), fc.Args["endTime"].(*string), fc.Args["destinationService"].(*string), fc.Args["destinationServiceVersion"].(*string))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*model.TimeSeriesData)
-	fc.Result = res
-	return ec.marshalOTimeSeriesData2ᚖnexustempmoduleᚋnexusᚑgqlᚋgraphᚋmodelᚐTimeSeriesData(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_root_Root_queryIncomingTCP(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "root_Root",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "Code":
-				return ec.fieldContext_TimeSeriesData_Code(ctx, field)
-			case "Message":
-				return ec.fieldContext_TimeSeriesData_Message(ctx, field)
-			case "Data":
-				return ec.fieldContext_TimeSeriesData_Data(ctx, field)
-			case "Last":
-				return ec.fieldContext_TimeSeriesData_Last(ctx, field)
-			case "TotalRecords":
-				return ec.fieldContext_TimeSeriesData_TotalRecords(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type TimeSeriesData", field.Name)
-		},
-	}
-	defer func() {
-		if r := recover(); r != nil {
-			err = ec.Recover(ctx, r)
-			ec.Error(ctx, err)
-		}
-	}()
-	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_root_Root_queryIncomingTCP_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
-		ec.Error(ctx, err)
-		return
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _root_Root_queryOutgoingTCP(ctx context.Context, field graphql.CollectedField, obj *model.RootRoot) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_root_Root_queryOutgoingTCP(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Root_Root().QueryOutgoingTcp(rctx, obj, fc.Args["startTime"].(*string), fc.Args["endTime"].(*string), fc.Args["destinationService"].(*string), fc.Args["destinationServiceVersion"].(*string))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*model.TimeSeriesData)
-	fc.Result = res
-	return ec.marshalOTimeSeriesData2ᚖnexustempmoduleᚋnexusᚑgqlᚋgraphᚋmodelᚐTimeSeriesData(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_root_Root_queryOutgoingTCP(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "root_Root",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "Code":
-				return ec.fieldContext_TimeSeriesData_Code(ctx, field)
-			case "Message":
-				return ec.fieldContext_TimeSeriesData_Message(ctx, field)
-			case "Data":
-				return ec.fieldContext_TimeSeriesData_Data(ctx, field)
-			case "Last":
-				return ec.fieldContext_TimeSeriesData_Last(ctx, field)
-			case "TotalRecords":
-				return ec.fieldContext_TimeSeriesData_TotalRecords(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type TimeSeriesData", field.Name)
-		},
-	}
-	defer func() {
-		if r := recover(); r != nil {
-			err = ec.Recover(ctx, r)
-			ec.Error(ctx, err)
-		}
-	}()
-	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_root_Root_queryOutgoingTCP_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
-		ec.Error(ctx, err)
-		return
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _root_Root_queryServiceTopology(ctx context.Context, field graphql.CollectedField, obj *model.RootRoot) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_root_Root_queryServiceTopology(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Root_Root().QueryServiceTopology(rctx, obj, fc.Args["metricStringArray"].(*string), fc.Args["startTime"].(*string), fc.Args["endTime"].(*string))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*model.TimeSeriesData)
-	fc.Result = res
-	return ec.marshalOTimeSeriesData2ᚖnexustempmoduleᚋnexusᚑgqlᚋgraphᚋmodelᚐTimeSeriesData(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_root_Root_queryServiceTopology(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "root_Root",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "Code":
-				return ec.fieldContext_TimeSeriesData_Code(ctx, field)
-			case "Message":
-				return ec.fieldContext_TimeSeriesData_Message(ctx, field)
-			case "Data":
-				return ec.fieldContext_TimeSeriesData_Data(ctx, field)
-			case "Last":
-				return ec.fieldContext_TimeSeriesData_Last(ctx, field)
-			case "TotalRecords":
-				return ec.fieldContext_TimeSeriesData_TotalRecords(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type TimeSeriesData", field.Name)
-		},
-	}
-	defer func() {
-		if r := recover(); r != nil {
-			err = ec.Recover(ctx, r)
-			ec.Error(ctx, err)
-		}
-	}()
-	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_root_Root_queryServiceTopology_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
-		ec.Error(ctx, err)
-		return
 	}
 	return fc, nil
 }
@@ -10073,7 +6550,7 @@ func (ec *executionContext) _root_Root_Config(ctx context.Context, field graphql
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Root_Root().Config(rctx, obj)
+		return ec.resolvers.Root_Root().Config(rctx, obj, fc.Args["Id"].(*string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -10100,49 +6577,138 @@ func (ec *executionContext) fieldContext_root_Root_Config(ctx context.Context, f
 			switch field.Name {
 			case "Id":
 				return ec.fieldContext_config_Config_Id(ctx, field)
-			case "queryServiceTable":
-				return ec.fieldContext_config_Config_queryServiceTable(ctx, field)
-			case "queryServiceVersionTable":
-				return ec.fieldContext_config_Config_queryServiceVersionTable(ctx, field)
-			case "queryServiceTS":
-				return ec.fieldContext_config_Config_queryServiceTS(ctx, field)
-			case "queryIncomingAPIs":
-				return ec.fieldContext_config_Config_queryIncomingAPIs(ctx, field)
-			case "queryOutgoingAPIs":
-				return ec.fieldContext_config_Config_queryOutgoingAPIs(ctx, field)
-			case "queryIncomingTCP":
-				return ec.fieldContext_config_Config_queryIncomingTCP(ctx, field)
-			case "queryOutgoingTCP":
-				return ec.fieldContext_config_Config_queryOutgoingTCP(ctx, field)
-			case "queryServiceTopology":
-				return ec.fieldContext_config_Config_queryServiceTopology(ctx, field)
-			case "GNS":
-				return ec.fieldContext_config_Config_GNS(ctx, field)
-			case "ConfigName":
-				return ec.fieldContext_config_Config_ConfigName(ctx, field)
-			case "Cluster":
-				return ec.fieldContext_config_Config_Cluster(ctx, field)
-			case "FooA":
-				return ec.fieldContext_config_Config_FooA(ctx, field)
-			case "FooMap":
-				return ec.fieldContext_config_Config_FooMap(ctx, field)
-			case "FooB":
-				return ec.fieldContext_config_Config_FooB(ctx, field)
-			case "FooD":
-				return ec.fieldContext_config_Config_FooD(ctx, field)
+			case "ParentLabels":
+				return ec.fieldContext_config_Config_ParentLabels(ctx, field)
+			case "ACPPolicies":
+				return ec.fieldContext_config_Config_ACPPolicies(ctx, field)
+			case "FooExample":
+				return ec.fieldContext_config_Config_FooExample(ctx, field)
+			case "MyStr0":
+				return ec.fieldContext_config_Config_MyStr0(ctx, field)
+			case "MyStr1":
+				return ec.fieldContext_config_Config_MyStr1(ctx, field)
+			case "MyStr2":
+				return ec.fieldContext_config_Config_MyStr2(ctx, field)
 			case "XYZPort":
 				return ec.fieldContext_config_Config_XYZPort(ctx, field)
 			case "ABCHost":
 				return ec.fieldContext_config_Config_ABCHost(ctx, field)
+			case "ClusterNamespaces":
+				return ec.fieldContext_config_Config_ClusterNamespaces(ctx, field)
+			case "TestValMarkers":
+				return ec.fieldContext_config_Config_TestValMarkers(ctx, field)
+			case "Instance":
+				return ec.fieldContext_config_Config_Instance(ctx, field)
+			case "GNS":
+				return ec.fieldContext_config_Config_GNS(ctx, field)
+			case "DNS":
+				return ec.fieldContext_config_Config_DNS(ctx, field)
+			case "VMPPolicies":
+				return ec.fieldContext_config_Config_VMPPolicies(ctx, field)
+			case "Domain":
+				return ec.fieldContext_config_Config_Domain(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type config_Config", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_root_Root_Config_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _servicegroup_SvcGroup_Id(ctx context.Context, field graphql.CollectedField, obj *model.ServicegroupSvcGroup) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_servicegroup_SvcGroup_Id(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Id, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOID2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_servicegroup_SvcGroup_Id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "servicegroup_SvcGroup",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
 		},
 	}
 	return fc, nil
 }
 
-func (ec *executionContext) _root_Root_DisplayName(ctx context.Context, field graphql.CollectedField, obj *model.RootRoot) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_root_Root_DisplayName(ctx, field)
+func (ec *executionContext) _servicegroup_SvcGroup_ParentLabels(ctx context.Context, field graphql.CollectedField, obj *model.ServicegroupSvcGroup) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_servicegroup_SvcGroup_ParentLabels(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ParentLabels, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(map[string]interface{})
+	fc.Result = res
+	return ec.marshalOMap2map(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_servicegroup_SvcGroup_ParentLabels(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "servicegroup_SvcGroup",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Map does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _servicegroup_SvcGroup_DisplayName(ctx context.Context, field graphql.CollectedField, obj *model.ServicegroupSvcGroup) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_servicegroup_SvcGroup_DisplayName(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -10169,9 +6735,9 @@ func (ec *executionContext) _root_Root_DisplayName(ctx context.Context, field gr
 	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_root_Root_DisplayName(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_servicegroup_SvcGroup_DisplayName(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
-		Object:     "root_Root",
+		Object:     "servicegroup_SvcGroup",
 		Field:      field,
 		IsMethod:   false,
 		IsResolver: false,
@@ -10182,8 +6748,8 @@ func (ec *executionContext) fieldContext_root_Root_DisplayName(ctx context.Conte
 	return fc, nil
 }
 
-func (ec *executionContext) _root_Root_CustomBar(ctx context.Context, field graphql.CollectedField, obj *model.RootRoot) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_root_Root_CustomBar(ctx, field)
+func (ec *executionContext) _servicegroup_SvcGroup_Description(ctx context.Context, field graphql.CollectedField, obj *model.ServicegroupSvcGroup) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_servicegroup_SvcGroup_Description(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -10196,7 +6762,7 @@ func (ec *executionContext) _root_Root_CustomBar(ctx context.Context, field grap
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Root_Root().CustomBar(rctx, obj)
+		return obj.Description, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -10205,23 +6771,60 @@ func (ec *executionContext) _root_Root_CustomBar(ctx context.Context, field grap
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(*model.RootBar)
+	res := resTmp.(*string)
 	fc.Result = res
-	return ec.marshalOroot_Bar2ᚖnexustempmoduleᚋnexusᚑgqlᚋgraphᚋmodelᚐRootBar(ctx, field.Selections, res)
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_root_Root_CustomBar(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_servicegroup_SvcGroup_Description(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
-		Object:     "root_Root",
+		Object:     "servicegroup_SvcGroup",
 		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
+		IsMethod:   false,
+		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "Name":
-				return ec.fieldContext_root_Bar_Name(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type root_Bar", field.Name)
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _servicegroup_SvcGroup_Color(ctx context.Context, field graphql.CollectedField, obj *model.ServicegroupSvcGroup) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_servicegroup_SvcGroup_Color(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Color, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_servicegroup_SvcGroup_Color(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "servicegroup_SvcGroup",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
 		},
 	}
 	return fc, nil
@@ -10289,47 +6892,6 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Query___schema(ctx, field)
 			})
-
-		default:
-			panic("unknown field " + strconv.Quote(field.Name))
-		}
-	}
-	out.Dispatch()
-	if invalids > 0 {
-		return graphql.Null
-	}
-	return out
-}
-
-var timeSeriesDataImplementors = []string{"TimeSeriesData"}
-
-func (ec *executionContext) _TimeSeriesData(ctx context.Context, sel ast.SelectionSet, obj *model.TimeSeriesData) graphql.Marshaler {
-	fields := graphql.CollectFields(ec.OperationContext, sel, timeSeriesDataImplementors)
-	out := graphql.NewFieldSet(fields)
-	var invalids uint32
-	for i, field := range fields {
-		switch field.Name {
-		case "__typename":
-			out.Values[i] = graphql.MarshalString("TimeSeriesData")
-		case "Code":
-
-			out.Values[i] = ec._TimeSeriesData_Code(ctx, field, obj)
-
-		case "Message":
-
-			out.Values[i] = ec._TimeSeriesData_Message(ctx, field, obj)
-
-		case "Data":
-
-			out.Values[i] = ec._TimeSeriesData_Data(ctx, field, obj)
-
-		case "Last":
-
-			out.Values[i] = ec._TimeSeriesData_Last(ctx, field, obj)
-
-		case "TotalRecords":
-
-			out.Values[i] = ec._TimeSeriesData_TotalRecords(ctx, field, obj)
 
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
@@ -10656,35 +7218,6 @@ func (ec *executionContext) ___Type(ctx context.Context, sel ast.SelectionSet, o
 	return out
 }
 
-var config_ClusterImplementors = []string{"config_Cluster"}
-
-func (ec *executionContext) _config_Cluster(ctx context.Context, sel ast.SelectionSet, obj *model.ConfigCluster) graphql.Marshaler {
-	fields := graphql.CollectFields(ec.OperationContext, sel, config_ClusterImplementors)
-	out := graphql.NewFieldSet(fields)
-	var invalids uint32
-	for i, field := range fields {
-		switch field.Name {
-		case "__typename":
-			out.Values[i] = graphql.MarshalString("config_Cluster")
-		case "Name":
-
-			out.Values[i] = ec._config_Cluster_Name(ctx, field, obj)
-
-		case "MyID":
-
-			out.Values[i] = ec._config_Cluster_MyID(ctx, field, obj)
-
-		default:
-			panic("unknown field " + strconv.Quote(field.Name))
-		}
-	}
-	out.Dispatch()
-	if invalids > 0 {
-		return graphql.Null
-	}
-	return out
-}
-
 var config_ConfigImplementors = []string{"config_Config"}
 
 func (ec *executionContext) _config_Config(ctx context.Context, sel ast.SelectionSet, obj *model.ConfigConfig) graphql.Marshaler {
@@ -10699,7 +7232,11 @@ func (ec *executionContext) _config_Config(ctx context.Context, sel ast.Selectio
 
 			out.Values[i] = ec._config_Config_Id(ctx, field, obj)
 
-		case "queryServiceTable":
+		case "ParentLabels":
+
+			out.Values[i] = ec._config_Config_ParentLabels(ctx, field, obj)
+
+		case "ACPPolicies":
 			field := field
 
 			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
@@ -10708,7 +7245,7 @@ func (ec *executionContext) _config_Config(ctx context.Context, sel ast.Selectio
 						ec.Error(ctx, ec.Recover(ctx, r))
 					}
 				}()
-				res = ec._config_Config_queryServiceTable(ctx, field, obj)
+				res = ec._config_Config_ACPPolicies(ctx, field, obj)
 				return res
 			}
 
@@ -10716,7 +7253,7 @@ func (ec *executionContext) _config_Config(ctx context.Context, sel ast.Selectio
 				return innerFunc(ctx)
 
 			})
-		case "queryServiceVersionTable":
+		case "FooExample":
 			field := field
 
 			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
@@ -10725,7 +7262,7 @@ func (ec *executionContext) _config_Config(ctx context.Context, sel ast.Selectio
 						ec.Error(ctx, ec.Recover(ctx, r))
 					}
 				}()
-				res = ec._config_Config_queryServiceVersionTable(ctx, field, obj)
+				res = ec._config_Config_FooExample(ctx, field, obj)
 				return res
 			}
 
@@ -10733,108 +7270,38 @@ func (ec *executionContext) _config_Config(ctx context.Context, sel ast.Selectio
 				return innerFunc(ctx)
 
 			})
-		case "queryServiceTS":
-			field := field
+		case "MyStr0":
 
-			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._config_Config_queryServiceTS(ctx, field, obj)
-				return res
-			}
+			out.Values[i] = ec._config_Config_MyStr0(ctx, field, obj)
 
-			out.Concurrently(i, func() graphql.Marshaler {
-				return innerFunc(ctx)
+		case "MyStr1":
 
-			})
-		case "queryIncomingAPIs":
-			field := field
+			out.Values[i] = ec._config_Config_MyStr1(ctx, field, obj)
 
-			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._config_Config_queryIncomingAPIs(ctx, field, obj)
-				return res
-			}
+		case "MyStr2":
 
-			out.Concurrently(i, func() graphql.Marshaler {
-				return innerFunc(ctx)
+			out.Values[i] = ec._config_Config_MyStr2(ctx, field, obj)
 
-			})
-		case "queryOutgoingAPIs":
-			field := field
+		case "XYZPort":
 
-			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._config_Config_queryOutgoingAPIs(ctx, field, obj)
-				return res
-			}
+			out.Values[i] = ec._config_Config_XYZPort(ctx, field, obj)
 
-			out.Concurrently(i, func() graphql.Marshaler {
-				return innerFunc(ctx)
+		case "ABCHost":
 
-			})
-		case "queryIncomingTCP":
-			field := field
+			out.Values[i] = ec._config_Config_ABCHost(ctx, field, obj)
 
-			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._config_Config_queryIncomingTCP(ctx, field, obj)
-				return res
-			}
+		case "ClusterNamespaces":
 
-			out.Concurrently(i, func() graphql.Marshaler {
-				return innerFunc(ctx)
+			out.Values[i] = ec._config_Config_ClusterNamespaces(ctx, field, obj)
 
-			})
-		case "queryOutgoingTCP":
-			field := field
+		case "TestValMarkers":
 
-			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._config_Config_queryOutgoingTCP(ctx, field, obj)
-				return res
-			}
+			out.Values[i] = ec._config_Config_TestValMarkers(ctx, field, obj)
 
-			out.Concurrently(i, func() graphql.Marshaler {
-				return innerFunc(ctx)
+		case "Instance":
 
-			})
-		case "queryServiceTopology":
-			field := field
+			out.Values[i] = ec._config_Config_Instance(ctx, field, obj)
 
-			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._config_Config_queryServiceTopology(ctx, field, obj)
-				return res
-			}
-
-			out.Concurrently(i, func() graphql.Marshaler {
-				return innerFunc(ctx)
-
-			})
 		case "GNS":
 			field := field
 
@@ -10855,11 +7322,7 @@ func (ec *executionContext) _config_Config(ctx context.Context, sel ast.Selectio
 				return innerFunc(ctx)
 
 			})
-		case "ConfigName":
-
-			out.Values[i] = ec._config_Config_ConfigName(ctx, field, obj)
-
-		case "Cluster":
+		case "DNS":
 			field := field
 
 			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
@@ -10868,7 +7331,10 @@ func (ec *executionContext) _config_Config(ctx context.Context, sel ast.Selectio
 						ec.Error(ctx, ec.Recover(ctx, r))
 					}
 				}()
-				res = ec._config_Config_Cluster(ctx, field, obj)
+				res = ec._config_Config_DNS(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
 				return res
 			}
 
@@ -10876,65 +7342,156 @@ func (ec *executionContext) _config_Config(ctx context.Context, sel ast.Selectio
 				return innerFunc(ctx)
 
 			})
+		case "VMPPolicies":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._config_Config_VMPPolicies(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
+		case "Domain":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._config_Config_Domain(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var config_DomainImplementors = []string{"config_Domain"}
+
+func (ec *executionContext) _config_Domain(ctx context.Context, sel ast.SelectionSet, obj *model.ConfigDomain) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, config_DomainImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("config_Domain")
+		case "Id":
+
+			out.Values[i] = ec._config_Domain_Id(ctx, field, obj)
+
+		case "ParentLabels":
+
+			out.Values[i] = ec._config_Domain_ParentLabels(ctx, field, obj)
+
+		case "PointPort":
+
+			out.Values[i] = ec._config_Domain_PointPort(ctx, field, obj)
+
+		case "PointString":
+
+			out.Values[i] = ec._config_Domain_PointString(ctx, field, obj)
+
+		case "PointInt":
+
+			out.Values[i] = ec._config_Domain_PointInt(ctx, field, obj)
+
+		case "PointMap":
+
+			out.Values[i] = ec._config_Domain_PointMap(ctx, field, obj)
+
+		case "PointSlice":
+
+			out.Values[i] = ec._config_Domain_PointSlice(ctx, field, obj)
+
+		case "SliceOfPoints":
+
+			out.Values[i] = ec._config_Domain_SliceOfPoints(ctx, field, obj)
+
+		case "SliceOfArrPoints":
+
+			out.Values[i] = ec._config_Domain_SliceOfArrPoints(ctx, field, obj)
+
+		case "MapOfArrsPoints":
+
+			out.Values[i] = ec._config_Domain_MapOfArrsPoints(ctx, field, obj)
+
+		case "PointStruct":
+
+			out.Values[i] = ec._config_Domain_PointStruct(ctx, field, obj)
+
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var config_FooTypeImplementors = []string{"config_FooType"}
+
+func (ec *executionContext) _config_FooType(ctx context.Context, sel ast.SelectionSet, obj *model.ConfigFooType) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, config_FooTypeImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("config_FooType")
+		case "Id":
+
+			out.Values[i] = ec._config_FooType_Id(ctx, field, obj)
+
+		case "ParentLabels":
+
+			out.Values[i] = ec._config_FooType_ParentLabels(ctx, field, obj)
+
 		case "FooA":
 
-			out.Values[i] = ec._config_Config_FooA(ctx, field, obj)
-
-		case "FooMap":
-
-			out.Values[i] = ec._config_Config_FooMap(ctx, field, obj)
+			out.Values[i] = ec._config_FooType_FooA(ctx, field, obj)
 
 		case "FooB":
 
-			out.Values[i] = ec._config_Config_FooB(ctx, field, obj)
+			out.Values[i] = ec._config_FooType_FooB(ctx, field, obj)
 
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
-			}
 		case "FooD":
 
-			out.Values[i] = ec._config_Config_FooD(ctx, field, obj)
+			out.Values[i] = ec._config_FooType_FooD(ctx, field, obj)
 
-		case "XYZPort":
-			field := field
+		case "FooF":
 
-			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._config_Config_XYZPort(ctx, field, obj)
-				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
-				}
-				return res
-			}
+			out.Values[i] = ec._config_FooType_FooF(ctx, field, obj)
 
-			out.Concurrently(i, func() graphql.Marshaler {
-				return innerFunc(ctx)
-
-			})
-		case "ABCHost":
-			field := field
-
-			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._config_Config_ABCHost(ctx, field, obj)
-				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
-				}
-				return res
-			}
-
-			out.Concurrently(i, func() graphql.Marshaler {
-				return innerFunc(ctx)
-
-			})
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -10946,159 +7503,27 @@ func (ec *executionContext) _config_Config(ctx context.Context, sel ast.Selectio
 	return out
 }
 
-var gns_BarImplementors = []string{"gns_Bar"}
+var gns_BarChildImplementors = []string{"gns_BarChild"}
 
-func (ec *executionContext) _gns_Bar(ctx context.Context, sel ast.SelectionSet, obj *model.GnsBar) graphql.Marshaler {
-	fields := graphql.CollectFields(ec.OperationContext, sel, gns_BarImplementors)
+func (ec *executionContext) _gns_BarChild(ctx context.Context, sel ast.SelectionSet, obj *model.GnsBarChild) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, gns_BarChildImplementors)
 	out := graphql.NewFieldSet(fields)
 	var invalids uint32
 	for i, field := range fields {
 		switch field.Name {
 		case "__typename":
-			out.Values[i] = graphql.MarshalString("gns_Bar")
+			out.Values[i] = graphql.MarshalString("gns_BarChild")
 		case "Id":
 
-			out.Values[i] = ec._gns_Bar_Id(ctx, field, obj)
+			out.Values[i] = ec._gns_BarChild_Id(ctx, field, obj)
 
-		case "queryServiceTable":
-			field := field
+		case "ParentLabels":
 
-			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._gns_Bar_queryServiceTable(ctx, field, obj)
-				return res
-			}
+			out.Values[i] = ec._gns_BarChild_ParentLabels(ctx, field, obj)
 
-			out.Concurrently(i, func() graphql.Marshaler {
-				return innerFunc(ctx)
-
-			})
-		case "queryServiceVersionTable":
-			field := field
-
-			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._gns_Bar_queryServiceVersionTable(ctx, field, obj)
-				return res
-			}
-
-			out.Concurrently(i, func() graphql.Marshaler {
-				return innerFunc(ctx)
-
-			})
-		case "queryServiceTS":
-			field := field
-
-			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._gns_Bar_queryServiceTS(ctx, field, obj)
-				return res
-			}
-
-			out.Concurrently(i, func() graphql.Marshaler {
-				return innerFunc(ctx)
-
-			})
-		case "queryIncomingAPIs":
-			field := field
-
-			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._gns_Bar_queryIncomingAPIs(ctx, field, obj)
-				return res
-			}
-
-			out.Concurrently(i, func() graphql.Marshaler {
-				return innerFunc(ctx)
-
-			})
-		case "queryOutgoingAPIs":
-			field := field
-
-			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._gns_Bar_queryOutgoingAPIs(ctx, field, obj)
-				return res
-			}
-
-			out.Concurrently(i, func() graphql.Marshaler {
-				return innerFunc(ctx)
-
-			})
-		case "queryIncomingTCP":
-			field := field
-
-			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._gns_Bar_queryIncomingTCP(ctx, field, obj)
-				return res
-			}
-
-			out.Concurrently(i, func() graphql.Marshaler {
-				return innerFunc(ctx)
-
-			})
-		case "queryOutgoingTCP":
-			field := field
-
-			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._gns_Bar_queryOutgoingTCP(ctx, field, obj)
-				return res
-			}
-
-			out.Concurrently(i, func() graphql.Marshaler {
-				return innerFunc(ctx)
-
-			})
-		case "queryServiceTopology":
-			field := field
-
-			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._gns_Bar_queryServiceTopology(ctx, field, obj)
-				return res
-			}
-
-			out.Concurrently(i, func() graphql.Marshaler {
-				return innerFunc(ctx)
-
-			})
 		case "Name":
 
-			out.Values[i] = ec._gns_Bar_Name(ctx, field, obj)
+			out.Values[i] = ec._gns_BarChild_Name(ctx, field, obj)
 
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
@@ -11111,193 +7536,24 @@ func (ec *executionContext) _gns_Bar(ctx context.Context, sel ast.SelectionSet, 
 	return out
 }
 
-var gns_DescriptionImplementors = []string{"gns_Description"}
+var gns_DnsImplementors = []string{"gns_Dns"}
 
-func (ec *executionContext) _gns_Description(ctx context.Context, sel ast.SelectionSet, obj *model.GnsDescription) graphql.Marshaler {
-	fields := graphql.CollectFields(ec.OperationContext, sel, gns_DescriptionImplementors)
+func (ec *executionContext) _gns_Dns(ctx context.Context, sel ast.SelectionSet, obj *model.GnsDns) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, gns_DnsImplementors)
 	out := graphql.NewFieldSet(fields)
 	var invalids uint32
 	for i, field := range fields {
 		switch field.Name {
 		case "__typename":
-			out.Values[i] = graphql.MarshalString("gns_Description")
-		case "Color":
-
-			out.Values[i] = ec._gns_Description_Color(ctx, field, obj)
-
-		case "Version":
-
-			out.Values[i] = ec._gns_Description_Version(ctx, field, obj)
-
-		case "ProjectID":
-
-			out.Values[i] = ec._gns_Description_ProjectID(ctx, field, obj)
-
-		case "Instance":
-
-			out.Values[i] = ec._gns_Description_Instance(ctx, field, obj)
-
-		default:
-			panic("unknown field " + strconv.Quote(field.Name))
-		}
-	}
-	out.Dispatch()
-	if invalids > 0 {
-		return graphql.Null
-	}
-	return out
-}
-
-var gns_EmptyDataImplementors = []string{"gns_EmptyData"}
-
-func (ec *executionContext) _gns_EmptyData(ctx context.Context, sel ast.SelectionSet, obj *model.GnsEmptyData) graphql.Marshaler {
-	fields := graphql.CollectFields(ec.OperationContext, sel, gns_EmptyDataImplementors)
-	out := graphql.NewFieldSet(fields)
-	var invalids uint32
-	for i, field := range fields {
-		switch field.Name {
-		case "__typename":
-			out.Values[i] = graphql.MarshalString("gns_EmptyData")
+			out.Values[i] = graphql.MarshalString("gns_Dns")
 		case "Id":
 
-			out.Values[i] = ec._gns_EmptyData_Id(ctx, field, obj)
+			out.Values[i] = ec._gns_Dns_Id(ctx, field, obj)
 
-		case "queryServiceTable":
-			field := field
+		case "ParentLabels":
 
-			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._gns_EmptyData_queryServiceTable(ctx, field, obj)
-				return res
-			}
+			out.Values[i] = ec._gns_Dns_ParentLabels(ctx, field, obj)
 
-			out.Concurrently(i, func() graphql.Marshaler {
-				return innerFunc(ctx)
-
-			})
-		case "queryServiceVersionTable":
-			field := field
-
-			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._gns_EmptyData_queryServiceVersionTable(ctx, field, obj)
-				return res
-			}
-
-			out.Concurrently(i, func() graphql.Marshaler {
-				return innerFunc(ctx)
-
-			})
-		case "queryServiceTS":
-			field := field
-
-			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._gns_EmptyData_queryServiceTS(ctx, field, obj)
-				return res
-			}
-
-			out.Concurrently(i, func() graphql.Marshaler {
-				return innerFunc(ctx)
-
-			})
-		case "queryIncomingAPIs":
-			field := field
-
-			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._gns_EmptyData_queryIncomingAPIs(ctx, field, obj)
-				return res
-			}
-
-			out.Concurrently(i, func() graphql.Marshaler {
-				return innerFunc(ctx)
-
-			})
-		case "queryOutgoingAPIs":
-			field := field
-
-			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._gns_EmptyData_queryOutgoingAPIs(ctx, field, obj)
-				return res
-			}
-
-			out.Concurrently(i, func() graphql.Marshaler {
-				return innerFunc(ctx)
-
-			})
-		case "queryIncomingTCP":
-			field := field
-
-			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._gns_EmptyData_queryIncomingTCP(ctx, field, obj)
-				return res
-			}
-
-			out.Concurrently(i, func() graphql.Marshaler {
-				return innerFunc(ctx)
-
-			})
-		case "queryOutgoingTCP":
-			field := field
-
-			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._gns_EmptyData_queryOutgoingTCP(ctx, field, obj)
-				return res
-			}
-
-			out.Concurrently(i, func() graphql.Marshaler {
-				return innerFunc(ctx)
-
-			})
-		case "queryServiceTopology":
-			field := field
-
-			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._gns_EmptyData_queryServiceTopology(ctx, field, obj)
-				return res
-			}
-
-			out.Concurrently(i, func() graphql.Marshaler {
-				return innerFunc(ctx)
-
-			})
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -11323,7 +7579,11 @@ func (ec *executionContext) _gns_Gns(ctx context.Context, sel ast.SelectionSet, 
 
 			out.Values[i] = ec._gns_Gns_Id(ctx, field, obj)
 
-		case "queryServiceTable":
+		case "ParentLabels":
+
+			out.Values[i] = ec._gns_Gns_ParentLabels(ctx, field, obj)
+
+		case "GnsServiceGroups":
 			field := field
 
 			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
@@ -11332,7 +7592,7 @@ func (ec *executionContext) _gns_Gns(ctx context.Context, sel ast.SelectionSet, 
 						ec.Error(ctx, ec.Recover(ctx, r))
 					}
 				}()
-				res = ec._gns_Gns_queryServiceTable(ctx, field, obj)
+				res = ec._gns_Gns_GnsServiceGroups(ctx, field, obj)
 				return res
 			}
 
@@ -11340,7 +7600,7 @@ func (ec *executionContext) _gns_Gns(ctx context.Context, sel ast.SelectionSet, 
 				return innerFunc(ctx)
 
 			})
-		case "queryServiceVersionTable":
+		case "Dns":
 			field := field
 
 			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
@@ -11349,126 +7609,7 @@ func (ec *executionContext) _gns_Gns(ctx context.Context, sel ast.SelectionSet, 
 						ec.Error(ctx, ec.Recover(ctx, r))
 					}
 				}()
-				res = ec._gns_Gns_queryServiceVersionTable(ctx, field, obj)
-				return res
-			}
-
-			out.Concurrently(i, func() graphql.Marshaler {
-				return innerFunc(ctx)
-
-			})
-		case "queryServiceTS":
-			field := field
-
-			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._gns_Gns_queryServiceTS(ctx, field, obj)
-				return res
-			}
-
-			out.Concurrently(i, func() graphql.Marshaler {
-				return innerFunc(ctx)
-
-			})
-		case "queryIncomingAPIs":
-			field := field
-
-			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._gns_Gns_queryIncomingAPIs(ctx, field, obj)
-				return res
-			}
-
-			out.Concurrently(i, func() graphql.Marshaler {
-				return innerFunc(ctx)
-
-			})
-		case "queryOutgoingAPIs":
-			field := field
-
-			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._gns_Gns_queryOutgoingAPIs(ctx, field, obj)
-				return res
-			}
-
-			out.Concurrently(i, func() graphql.Marshaler {
-				return innerFunc(ctx)
-
-			})
-		case "queryIncomingTCP":
-			field := field
-
-			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._gns_Gns_queryIncomingTCP(ctx, field, obj)
-				return res
-			}
-
-			out.Concurrently(i, func() graphql.Marshaler {
-				return innerFunc(ctx)
-
-			})
-		case "queryOutgoingTCP":
-			field := field
-
-			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._gns_Gns_queryOutgoingTCP(ctx, field, obj)
-				return res
-			}
-
-			out.Concurrently(i, func() graphql.Marshaler {
-				return innerFunc(ctx)
-
-			})
-		case "queryServiceTopology":
-			field := field
-
-			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._gns_Gns_queryServiceTopology(ctx, field, obj)
-				return res
-			}
-
-			out.Concurrently(i, func() graphql.Marshaler {
-				return innerFunc(ctx)
-
-			})
-		case "FooLink":
-			field := field
-
-			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._gns_Gns_FooLink(ctx, field, obj)
+				res = ec._gns_Gns_Dns(ctx, field, obj)
 				if res == graphql.Null {
 					atomic.AddUint32(&invalids, 1)
 				}
@@ -11479,7 +7620,47 @@ func (ec *executionContext) _gns_Gns(ctx context.Context, sel ast.SelectionSet, 
 				return innerFunc(ctx)
 
 			})
-		case "FooLinks":
+		case "Domain":
+
+			out.Values[i] = ec._gns_Gns_Domain(ctx, field, obj)
+
+		case "UseSharedGateway":
+
+			out.Values[i] = ec._gns_Gns_UseSharedGateway(ctx, field, obj)
+
+		case "Description":
+
+			out.Values[i] = ec._gns_Gns_Description(ctx, field, obj)
+
+		case "Meta":
+
+			out.Values[i] = ec._gns_Gns_Meta(ctx, field, obj)
+
+		case "Port":
+
+			out.Values[i] = ec._gns_Gns_Port(ctx, field, obj)
+
+		case "OtherDescription":
+
+			out.Values[i] = ec._gns_Gns_OtherDescription(ctx, field, obj)
+
+		case "MapPointer":
+
+			out.Values[i] = ec._gns_Gns_MapPointer(ctx, field, obj)
+
+		case "SlicePointer":
+
+			out.Values[i] = ec._gns_Gns_SlicePointer(ctx, field, obj)
+
+		case "WorkloadSpec":
+
+			out.Values[i] = ec._gns_Gns_WorkloadSpec(ctx, field, obj)
+
+		case "DifferentSpec":
+
+			out.Values[i] = ec._gns_Gns_DifferentSpec(ctx, field, obj)
+
+		case "GnsAccessControlPolicy":
 			field := field
 
 			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
@@ -11488,7 +7669,10 @@ func (ec *executionContext) _gns_Gns(ctx context.Context, sel ast.SelectionSet, 
 						ec.Error(ctx, ec.Recover(ctx, r))
 					}
 				}()
-				res = ec._gns_Gns_FooLinks(ctx, field, obj)
+				res = ec._gns_Gns_GnsAccessControlPolicy(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
 				return res
 			}
 
@@ -11516,173 +7700,6 @@ func (ec *executionContext) _gns_Gns(ctx context.Context, sel ast.SelectionSet, 
 				return innerFunc(ctx)
 
 			})
-		case "FooChildren":
-			field := field
-
-			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._gns_Gns_FooChildren(ctx, field, obj)
-				return res
-			}
-
-			out.Concurrently(i, func() graphql.Marshaler {
-				return innerFunc(ctx)
-
-			})
-		case "Domain":
-
-			out.Values[i] = ec._gns_Gns_Domain(ctx, field, obj)
-
-		case "UseSharedGateway":
-
-			out.Values[i] = ec._gns_Gns_UseSharedGateway(ctx, field, obj)
-
-		case "Mydesc":
-			field := field
-
-			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._gns_Gns_Mydesc(ctx, field, obj)
-				return res
-			}
-
-			out.Concurrently(i, func() graphql.Marshaler {
-				return innerFunc(ctx)
-
-			})
-		case "HostPort":
-			field := field
-
-			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._gns_Gns_HostPort(ctx, field, obj)
-				return res
-			}
-
-			out.Concurrently(i, func() graphql.Marshaler {
-				return innerFunc(ctx)
-
-			})
-		case "TestArray":
-			field := field
-
-			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._gns_Gns_TestArray(ctx, field, obj)
-				return res
-			}
-
-			out.Concurrently(i, func() graphql.Marshaler {
-				return innerFunc(ctx)
-
-			})
-		case "Instance":
-
-			out.Values[i] = ec._gns_Gns_Instance(ctx, field, obj)
-
-		case "Array1":
-			field := field
-
-			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._gns_Gns_Array1(ctx, field, obj)
-				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
-				}
-				return res
-			}
-
-			out.Concurrently(i, func() graphql.Marshaler {
-				return innerFunc(ctx)
-
-			})
-		case "Array2":
-			field := field
-
-			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._gns_Gns_Array2(ctx, field, obj)
-				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
-				}
-				return res
-			}
-
-			out.Concurrently(i, func() graphql.Marshaler {
-				return innerFunc(ctx)
-
-			})
-		case "Array3":
-			field := field
-
-			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._gns_Gns_Array3(ctx, field, obj)
-				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
-				}
-				return res
-			}
-
-			out.Concurrently(i, func() graphql.Marshaler {
-				return innerFunc(ctx)
-
-			})
-		case "Array4":
-			field := field
-
-			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._gns_Gns_Array4(ctx, field, obj)
-				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
-				}
-				return res
-			}
-
-			out.Concurrently(i, func() graphql.Marshaler {
-				return innerFunc(ctx)
-
-			})
-		case "Array5":
-
-			out.Values[i] = ec._gns_Gns_Array5(ctx, field, obj)
-
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
-			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -11694,48 +7711,189 @@ func (ec *executionContext) _gns_Gns(ctx context.Context, sel ast.SelectionSet, 
 	return out
 }
 
-var gns_HostPortImplementors = []string{"gns_HostPort"}
+var gns_IgnoreChildImplementors = []string{"gns_IgnoreChild"}
 
-func (ec *executionContext) _gns_HostPort(ctx context.Context, sel ast.SelectionSet, obj *model.GnsHostPort) graphql.Marshaler {
-	fields := graphql.CollectFields(ec.OperationContext, sel, gns_HostPortImplementors)
+func (ec *executionContext) _gns_IgnoreChild(ctx context.Context, sel ast.SelectionSet, obj *model.GnsIgnoreChild) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, gns_IgnoreChildImplementors)
 	out := graphql.NewFieldSet(fields)
 	var invalids uint32
 	for i, field := range fields {
 		switch field.Name {
 		case "__typename":
-			out.Values[i] = graphql.MarshalString("gns_HostPort")
-		case "Host":
+			out.Values[i] = graphql.MarshalString("gns_IgnoreChild")
+		case "Id":
 
-			out.Values[i] = ec._gns_HostPort_Host(ctx, field, obj)
+			out.Values[i] = ec._gns_IgnoreChild_Id(ctx, field, obj)
 
-		case "Port":
+		case "ParentLabels":
 
-			out.Values[i] = ec._gns_HostPort_Port(ctx, field, obj)
+			out.Values[i] = ec._gns_IgnoreChild_ParentLabels(ctx, field, obj)
 
-		default:
-			panic("unknown field " + strconv.Quote(field.Name))
-		}
-	}
-	out.Dispatch()
-	if invalids > 0 {
-		return graphql.Null
-	}
-	return out
-}
-
-var root_BarImplementors = []string{"root_Bar"}
-
-func (ec *executionContext) _root_Bar(ctx context.Context, sel ast.SelectionSet, obj *model.RootBar) graphql.Marshaler {
-	fields := graphql.CollectFields(ec.OperationContext, sel, root_BarImplementors)
-	out := graphql.NewFieldSet(fields)
-	var invalids uint32
-	for i, field := range fields {
-		switch field.Name {
-		case "__typename":
-			out.Values[i] = graphql.MarshalString("root_Bar")
 		case "Name":
 
-			out.Values[i] = ec._root_Bar_Name(ctx, field, obj)
+			out.Values[i] = ec._gns_IgnoreChild_Name(ctx, field, obj)
+
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var policy_ACPConfigImplementors = []string{"policy_ACPConfig"}
+
+func (ec *executionContext) _policy_ACPConfig(ctx context.Context, sel ast.SelectionSet, obj *model.PolicyACPConfig) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, policy_ACPConfigImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("policy_ACPConfig")
+		case "Id":
+
+			out.Values[i] = ec._policy_ACPConfig_Id(ctx, field, obj)
+
+		case "ParentLabels":
+
+			out.Values[i] = ec._policy_ACPConfig_ParentLabels(ctx, field, obj)
+
+		case "DestSvcGroups":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._policy_ACPConfig_DestSvcGroups(ctx, field, obj)
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
+		case "SourceSvcGroups":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._policy_ACPConfig_SourceSvcGroups(ctx, field, obj)
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
+		case "DisplayName":
+
+			out.Values[i] = ec._policy_ACPConfig_DisplayName(ctx, field, obj)
+
+		case "Gns":
+
+			out.Values[i] = ec._policy_ACPConfig_Gns(ctx, field, obj)
+
+		case "Description":
+
+			out.Values[i] = ec._policy_ACPConfig_Description(ctx, field, obj)
+
+		case "Tags":
+
+			out.Values[i] = ec._policy_ACPConfig_Tags(ctx, field, obj)
+
+		case "ProjectId":
+
+			out.Values[i] = ec._policy_ACPConfig_ProjectId(ctx, field, obj)
+
+		case "Conditions":
+
+			out.Values[i] = ec._policy_ACPConfig_Conditions(ctx, field, obj)
+
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var policy_AccessControlPolicyImplementors = []string{"policy_AccessControlPolicy"}
+
+func (ec *executionContext) _policy_AccessControlPolicy(ctx context.Context, sel ast.SelectionSet, obj *model.PolicyAccessControlPolicy) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, policy_AccessControlPolicyImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("policy_AccessControlPolicy")
+		case "Id":
+
+			out.Values[i] = ec._policy_AccessControlPolicy_Id(ctx, field, obj)
+
+		case "ParentLabels":
+
+			out.Values[i] = ec._policy_AccessControlPolicy_ParentLabels(ctx, field, obj)
+
+		case "PolicyConfigs":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._policy_AccessControlPolicy_PolicyConfigs(ctx, field, obj)
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var policy_VMpolicyImplementors = []string{"policy_VMpolicy"}
+
+func (ec *executionContext) _policy_VMpolicy(ctx context.Context, sel ast.SelectionSet, obj *model.PolicyVMpolicy) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, policy_VMpolicyImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("policy_VMpolicy")
+		case "Id":
+
+			out.Values[i] = ec._policy_VMpolicy_Id(ctx, field, obj)
+
+		case "ParentLabels":
+
+			out.Values[i] = ec._policy_VMpolicy_ParentLabels(ctx, field, obj)
 
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
@@ -11762,142 +7920,10 @@ func (ec *executionContext) _root_Root(ctx context.Context, sel ast.SelectionSet
 
 			out.Values[i] = ec._root_Root_Id(ctx, field, obj)
 
-		case "queryServiceTable":
-			field := field
+		case "ParentLabels":
 
-			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._root_Root_queryServiceTable(ctx, field, obj)
-				return res
-			}
+			out.Values[i] = ec._root_Root_ParentLabels(ctx, field, obj)
 
-			out.Concurrently(i, func() graphql.Marshaler {
-				return innerFunc(ctx)
-
-			})
-		case "queryServiceVersionTable":
-			field := field
-
-			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._root_Root_queryServiceVersionTable(ctx, field, obj)
-				return res
-			}
-
-			out.Concurrently(i, func() graphql.Marshaler {
-				return innerFunc(ctx)
-
-			})
-		case "queryServiceTS":
-			field := field
-
-			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._root_Root_queryServiceTS(ctx, field, obj)
-				return res
-			}
-
-			out.Concurrently(i, func() graphql.Marshaler {
-				return innerFunc(ctx)
-
-			})
-		case "queryIncomingAPIs":
-			field := field
-
-			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._root_Root_queryIncomingAPIs(ctx, field, obj)
-				return res
-			}
-
-			out.Concurrently(i, func() graphql.Marshaler {
-				return innerFunc(ctx)
-
-			})
-		case "queryOutgoingAPIs":
-			field := field
-
-			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._root_Root_queryOutgoingAPIs(ctx, field, obj)
-				return res
-			}
-
-			out.Concurrently(i, func() graphql.Marshaler {
-				return innerFunc(ctx)
-
-			})
-		case "queryIncomingTCP":
-			field := field
-
-			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._root_Root_queryIncomingTCP(ctx, field, obj)
-				return res
-			}
-
-			out.Concurrently(i, func() graphql.Marshaler {
-				return innerFunc(ctx)
-
-			})
-		case "queryOutgoingTCP":
-			field := field
-
-			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._root_Root_queryOutgoingTCP(ctx, field, obj)
-				return res
-			}
-
-			out.Concurrently(i, func() graphql.Marshaler {
-				return innerFunc(ctx)
-
-			})
-		case "queryServiceTopology":
-			field := field
-
-			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._root_Root_queryServiceTopology(ctx, field, obj)
-				return res
-			}
-
-			out.Concurrently(i, func() graphql.Marshaler {
-				return innerFunc(ctx)
-
-			})
 		case "Config":
 			field := field
 
@@ -11918,27 +7944,47 @@ func (ec *executionContext) _root_Root(ctx context.Context, sel ast.SelectionSet
 				return innerFunc(ctx)
 
 			})
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var servicegroup_SvcGroupImplementors = []string{"servicegroup_SvcGroup"}
+
+func (ec *executionContext) _servicegroup_SvcGroup(ctx context.Context, sel ast.SelectionSet, obj *model.ServicegroupSvcGroup) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, servicegroup_SvcGroupImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("servicegroup_SvcGroup")
+		case "Id":
+
+			out.Values[i] = ec._servicegroup_SvcGroup_Id(ctx, field, obj)
+
+		case "ParentLabels":
+
+			out.Values[i] = ec._servicegroup_SvcGroup_ParentLabels(ctx, field, obj)
+
 		case "DisplayName":
 
-			out.Values[i] = ec._root_Root_DisplayName(ctx, field, obj)
+			out.Values[i] = ec._servicegroup_SvcGroup_DisplayName(ctx, field, obj)
 
-		case "CustomBar":
-			field := field
+		case "Description":
 
-			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._root_Root_CustomBar(ctx, field, obj)
-				return res
-			}
+			out.Values[i] = ec._servicegroup_SvcGroup_Description(ctx, field, obj)
 
-			out.Concurrently(i, func() graphql.Marshaler {
-				return innerFunc(ctx)
+		case "Color":
 
-			})
+			out.Values[i] = ec._servicegroup_SvcGroup_Color(ctx, field, obj)
+
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -11969,58 +8015,6 @@ func (ec *executionContext) marshalNBoolean2bool(ctx context.Context, sel ast.Se
 	return res
 }
 
-func (ec *executionContext) unmarshalNFloat2ᚕᚖfloat64(ctx context.Context, v interface{}) ([]*float64, error) {
-	var vSlice []interface{}
-	if v != nil {
-		vSlice = graphql.CoerceList(v)
-	}
-	var err error
-	res := make([]*float64, len(vSlice))
-	for i := range vSlice {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
-		res[i], err = ec.unmarshalOFloat2ᚖfloat64(ctx, vSlice[i])
-		if err != nil {
-			return nil, err
-		}
-	}
-	return res, nil
-}
-
-func (ec *executionContext) marshalNFloat2ᚕᚖfloat64(ctx context.Context, sel ast.SelectionSet, v []*float64) graphql.Marshaler {
-	ret := make(graphql.Array, len(v))
-	for i := range v {
-		ret[i] = ec.marshalOFloat2ᚖfloat64(ctx, sel, v[i])
-	}
-
-	return ret
-}
-
-func (ec *executionContext) unmarshalNInt2ᚕᚖint(ctx context.Context, v interface{}) ([]*int, error) {
-	var vSlice []interface{}
-	if v != nil {
-		vSlice = graphql.CoerceList(v)
-	}
-	var err error
-	res := make([]*int, len(vSlice))
-	for i := range vSlice {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
-		res[i], err = ec.unmarshalOInt2ᚖint(ctx, vSlice[i])
-		if err != nil {
-			return nil, err
-		}
-	}
-	return res, nil
-}
-
-func (ec *executionContext) marshalNInt2ᚕᚖint(ctx context.Context, sel ast.SelectionSet, v []*int) graphql.Marshaler {
-	ret := make(graphql.Array, len(v))
-	for i := range v {
-		ret[i] = ec.marshalOInt2ᚖint(ctx, sel, v[i])
-	}
-
-	return ret
-}
-
 func (ec *executionContext) unmarshalNString2string(ctx context.Context, v interface{}) (string, error) {
 	res, err := graphql.UnmarshalString(v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -12034,32 +8028,6 @@ func (ec *executionContext) marshalNString2string(ctx context.Context, sel ast.S
 		}
 	}
 	return res
-}
-
-func (ec *executionContext) unmarshalNString2ᚕᚖstring(ctx context.Context, v interface{}) ([]*string, error) {
-	var vSlice []interface{}
-	if v != nil {
-		vSlice = graphql.CoerceList(v)
-	}
-	var err error
-	res := make([]*string, len(vSlice))
-	for i := range vSlice {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
-		res[i], err = ec.unmarshalOString2ᚖstring(ctx, vSlice[i])
-		if err != nil {
-			return nil, err
-		}
-	}
-	return res, nil
-}
-
-func (ec *executionContext) marshalNString2ᚕᚖstring(ctx context.Context, sel ast.SelectionSet, v []*string) graphql.Marshaler {
-	ret := make(graphql.Array, len(v))
-	for i := range v {
-		ret[i] = ec.marshalOString2ᚖstring(ctx, sel, v[i])
-	}
-
-	return ret
 }
 
 func (ec *executionContext) marshalN__Directive2gitlabᚗengᚗvmwareᚗcomᚋnsxᚑallspark_usersᚋnexusᚑsdkᚋgqlgenᚗgitᚋgraphqlᚋintrospectionᚐDirective(ctx context.Context, sel ast.SelectionSet, v introspection.Directive) graphql.Marshaler {
@@ -12329,94 +8297,56 @@ func (ec *executionContext) marshalNconfig_Config2ᚖnexustempmoduleᚋnexusᚑg
 	return ec._config_Config(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNgns_Bar2nexustempmoduleᚋnexusᚑgqlᚋgraphᚋmodelᚐGnsBar(ctx context.Context, sel ast.SelectionSet, v model.GnsBar) graphql.Marshaler {
-	return ec._gns_Bar(ctx, sel, &v)
+func (ec *executionContext) marshalNconfig_Domain2nexustempmoduleᚋnexusᚑgqlᚋgraphᚋmodelᚐConfigDomain(ctx context.Context, sel ast.SelectionSet, v model.ConfigDomain) graphql.Marshaler {
+	return ec._config_Domain(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNgns_Bar2ᚕᚖnexustempmoduleᚋnexusᚑgqlᚋgraphᚋmodelᚐGnsBar(ctx context.Context, sel ast.SelectionSet, v []*model.GnsBar) graphql.Marshaler {
-	ret := make(graphql.Array, len(v))
-	var wg sync.WaitGroup
-	isLen1 := len(v) == 1
-	if !isLen1 {
-		wg.Add(len(v))
-	}
-	for i := range v {
-		i := i
-		fc := &graphql.FieldContext{
-			Index:  &i,
-			Result: &v[i],
-		}
-		ctx := graphql.WithFieldContext(ctx, fc)
-		f := func(i int) {
-			defer func() {
-				if r := recover(); r != nil {
-					ec.Error(ctx, ec.Recover(ctx, r))
-					ret = nil
-				}
-			}()
-			if !isLen1 {
-				defer wg.Done()
-			}
-			ret[i] = ec.marshalOgns_Bar2ᚖnexustempmoduleᚋnexusᚑgqlᚋgraphᚋmodelᚐGnsBar(ctx, sel, v[i])
-		}
-		if isLen1 {
-			f(i)
-		} else {
-			go f(i)
-		}
-
-	}
-	wg.Wait()
-
-	return ret
-}
-
-func (ec *executionContext) marshalNgns_Bar2ᚖnexustempmoduleᚋnexusᚑgqlᚋgraphᚋmodelᚐGnsBar(ctx context.Context, sel ast.SelectionSet, v *model.GnsBar) graphql.Marshaler {
+func (ec *executionContext) marshalNconfig_Domain2ᚖnexustempmoduleᚋnexusᚑgqlᚋgraphᚋmodelᚐConfigDomain(ctx context.Context, sel ast.SelectionSet, v *model.ConfigDomain) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
 		}
 		return graphql.Null
 	}
-	return ec._gns_Bar(ctx, sel, v)
+	return ec._config_Domain(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNgns_Description2ᚕᚖnexustempmoduleᚋnexusᚑgqlᚋgraphᚋmodelᚐGnsDescription(ctx context.Context, sel ast.SelectionSet, v []*model.GnsDescription) graphql.Marshaler {
-	ret := make(graphql.Array, len(v))
-	var wg sync.WaitGroup
-	isLen1 := len(v) == 1
-	if !isLen1 {
-		wg.Add(len(v))
+func (ec *executionContext) marshalNconfig_FooType2ᚖnexustempmoduleᚋnexusᚑgqlᚋgraphᚋmodelᚐConfigFooType(ctx context.Context, sel ast.SelectionSet, v *model.ConfigFooType) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
 	}
-	for i := range v {
-		i := i
-		fc := &graphql.FieldContext{
-			Index:  &i,
-			Result: &v[i],
-		}
-		ctx := graphql.WithFieldContext(ctx, fc)
-		f := func(i int) {
-			defer func() {
-				if r := recover(); r != nil {
-					ec.Error(ctx, ec.Recover(ctx, r))
-					ret = nil
-				}
-			}()
-			if !isLen1 {
-				defer wg.Done()
-			}
-			ret[i] = ec.marshalOgns_Description2ᚖnexustempmoduleᚋnexusᚑgqlᚋgraphᚋmodelᚐGnsDescription(ctx, sel, v[i])
-		}
-		if isLen1 {
-			f(i)
-		} else {
-			go f(i)
-		}
+	return ec._config_FooType(ctx, sel, v)
+}
 
+func (ec *executionContext) marshalNgns_BarChild2nexustempmoduleᚋnexusᚑgqlᚋgraphᚋmodelᚐGnsBarChild(ctx context.Context, sel ast.SelectionSet, v model.GnsBarChild) graphql.Marshaler {
+	return ec._gns_BarChild(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNgns_BarChild2ᚖnexustempmoduleᚋnexusᚑgqlᚋgraphᚋmodelᚐGnsBarChild(ctx context.Context, sel ast.SelectionSet, v *model.GnsBarChild) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
 	}
-	wg.Wait()
+	return ec._gns_BarChild(ctx, sel, v)
+}
 
-	return ret
+func (ec *executionContext) marshalNgns_Dns2nexustempmoduleᚋnexusᚑgqlᚋgraphᚋmodelᚐGnsDns(ctx context.Context, sel ast.SelectionSet, v model.GnsDns) graphql.Marshaler {
+	return ec._gns_Dns(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNgns_Dns2ᚖnexustempmoduleᚋnexusᚑgqlᚋgraphᚋmodelᚐGnsDns(ctx context.Context, sel ast.SelectionSet, v *model.GnsDns) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._gns_Dns(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalNgns_Gns2nexustempmoduleᚋnexusᚑgqlᚋgraphᚋmodelᚐGnsGns(ctx context.Context, sel ast.SelectionSet, v model.GnsGns) graphql.Marshaler {
@@ -12431,6 +8361,54 @@ func (ec *executionContext) marshalNgns_Gns2ᚖnexustempmoduleᚋnexusᚑgqlᚋg
 		return graphql.Null
 	}
 	return ec._gns_Gns(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNpolicy_ACPConfig2ᚖnexustempmoduleᚋnexusᚑgqlᚋgraphᚋmodelᚐPolicyACPConfig(ctx context.Context, sel ast.SelectionSet, v *model.PolicyACPConfig) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._policy_ACPConfig(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNpolicy_AccessControlPolicy2nexustempmoduleᚋnexusᚑgqlᚋgraphᚋmodelᚐPolicyAccessControlPolicy(ctx context.Context, sel ast.SelectionSet, v model.PolicyAccessControlPolicy) graphql.Marshaler {
+	return ec._policy_AccessControlPolicy(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNpolicy_AccessControlPolicy2ᚖnexustempmoduleᚋnexusᚑgqlᚋgraphᚋmodelᚐPolicyAccessControlPolicy(ctx context.Context, sel ast.SelectionSet, v *model.PolicyAccessControlPolicy) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._policy_AccessControlPolicy(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNpolicy_VMpolicy2nexustempmoduleᚋnexusᚑgqlᚋgraphᚋmodelᚐPolicyVMpolicy(ctx context.Context, sel ast.SelectionSet, v model.PolicyVMpolicy) graphql.Marshaler {
+	return ec._policy_VMpolicy(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNpolicy_VMpolicy2ᚖnexustempmoduleᚋnexusᚑgqlᚋgraphᚋmodelᚐPolicyVMpolicy(ctx context.Context, sel ast.SelectionSet, v *model.PolicyVMpolicy) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._policy_VMpolicy(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNservicegroup_SvcGroup2ᚖnexustempmoduleᚋnexusᚑgqlᚋgraphᚋmodelᚐServicegroupSvcGroup(ctx context.Context, sel ast.SelectionSet, v *model.ServicegroupSvcGroup) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._servicegroup_SvcGroup(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalOBoolean2bool(ctx context.Context, v interface{}) (bool, error) {
@@ -12507,6 +8485,22 @@ func (ec *executionContext) marshalOInt2ᚖint(ctx context.Context, sel ast.Sele
 	return res
 }
 
+func (ec *executionContext) unmarshalOMap2map(ctx context.Context, v interface{}) (map[string]interface{}, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := graphql.UnmarshalMap(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOMap2map(ctx context.Context, sel ast.SelectionSet, v map[string]interface{}) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	res := graphql.MarshalMap(v)
+	return res
+}
+
 func (ec *executionContext) unmarshalOString2ᚖstring(ctx context.Context, v interface{}) (*string, error) {
 	if v == nil {
 		return nil, nil
@@ -12521,13 +8515,6 @@ func (ec *executionContext) marshalOString2ᚖstring(ctx context.Context, sel as
 	}
 	res := graphql.MarshalString(*v)
 	return res
-}
-
-func (ec *executionContext) marshalOTimeSeriesData2ᚖnexustempmoduleᚋnexusᚑgqlᚋgraphᚋmodelᚐTimeSeriesData(ctx context.Context, sel ast.SelectionSet, v *model.TimeSeriesData) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	return ec._TimeSeriesData(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalO__EnumValue2ᚕgitlabᚗengᚗvmwareᚗcomᚋnsxᚑallspark_usersᚋnexusᚑsdkᚋgqlgenᚗgitᚋgraphqlᚋintrospectionᚐEnumValueᚄ(ctx context.Context, sel ast.SelectionSet, v []introspection.EnumValue) graphql.Marshaler {
@@ -12732,14 +8719,7 @@ func (ec *executionContext) marshalO__Type2ᚖgitlabᚗengᚗvmwareᚗcomᚋnsx�
 	return ec.___Type(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalOconfig_Cluster2ᚖnexustempmoduleᚋnexusᚑgqlᚋgraphᚋmodelᚐConfigCluster(ctx context.Context, sel ast.SelectionSet, v *model.ConfigCluster) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	return ec._config_Cluster(ctx, sel, v)
-}
-
-func (ec *executionContext) marshalOgns_Bar2ᚕᚖnexustempmoduleᚋnexusᚑgqlᚋgraphᚋmodelᚐGnsBarᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.GnsBar) graphql.Marshaler {
+func (ec *executionContext) marshalOconfig_FooType2ᚕᚖnexustempmoduleᚋnexusᚑgqlᚋgraphᚋmodelᚐConfigFooTypeᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.ConfigFooType) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
@@ -12766,7 +8746,7 @@ func (ec *executionContext) marshalOgns_Bar2ᚕᚖnexustempmoduleᚋnexusᚑgql�
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNgns_Bar2ᚖnexustempmoduleᚋnexusᚑgqlᚋgraphᚋmodelᚐGnsBar(ctx, sel, v[i])
+			ret[i] = ec.marshalNconfig_FooType2ᚖnexustempmoduleᚋnexusᚑgqlᚋgraphᚋmodelᚐConfigFooType(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -12786,39 +8766,98 @@ func (ec *executionContext) marshalOgns_Bar2ᚕᚖnexustempmoduleᚋnexusᚑgql�
 	return ret
 }
 
-func (ec *executionContext) marshalOgns_Bar2ᚖnexustempmoduleᚋnexusᚑgqlᚋgraphᚋmodelᚐGnsBar(ctx context.Context, sel ast.SelectionSet, v *model.GnsBar) graphql.Marshaler {
+func (ec *executionContext) marshalOpolicy_ACPConfig2ᚕᚖnexustempmoduleᚋnexusᚑgqlᚋgraphᚋmodelᚐPolicyACPConfigᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.PolicyACPConfig) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
-	return ec._gns_Bar(ctx, sel, v)
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNpolicy_ACPConfig2ᚖnexustempmoduleᚋnexusᚑgqlᚋgraphᚋmodelᚐPolicyACPConfig(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
 }
 
-func (ec *executionContext) marshalOgns_Description2ᚖnexustempmoduleᚋnexusᚑgqlᚋgraphᚋmodelᚐGnsDescription(ctx context.Context, sel ast.SelectionSet, v *model.GnsDescription) graphql.Marshaler {
+func (ec *executionContext) marshalOpolicy_AccessControlPolicy2ᚕᚖnexustempmoduleᚋnexusᚑgqlᚋgraphᚋmodelᚐPolicyAccessControlPolicyᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.PolicyAccessControlPolicy) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
-	return ec._gns_Description(ctx, sel, v)
-}
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNpolicy_AccessControlPolicy2ᚖnexustempmoduleᚋnexusᚑgqlᚋgraphᚋmodelᚐPolicyAccessControlPolicy(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
 
-func (ec *executionContext) marshalOgns_EmptyData2ᚖnexustempmoduleᚋnexusᚑgqlᚋgraphᚋmodelᚐGnsEmptyData(ctx context.Context, sel ast.SelectionSet, v *model.GnsEmptyData) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
 	}
-	return ec._gns_EmptyData(ctx, sel, v)
-}
+	wg.Wait()
 
-func (ec *executionContext) marshalOgns_HostPort2ᚖnexustempmoduleᚋnexusᚑgqlᚋgraphᚋmodelᚐGnsHostPort(ctx context.Context, sel ast.SelectionSet, v *model.GnsHostPort) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
 	}
-	return ec._gns_HostPort(ctx, sel, v)
-}
 
-func (ec *executionContext) marshalOroot_Bar2ᚖnexustempmoduleᚋnexusᚑgqlᚋgraphᚋmodelᚐRootBar(ctx context.Context, sel ast.SelectionSet, v *model.RootBar) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	return ec._root_Bar(ctx, sel, v)
+	return ret
 }
 
 func (ec *executionContext) marshalOroot_Root2ᚖnexustempmoduleᚋnexusᚑgqlᚋgraphᚋmodelᚐRootRoot(ctx context.Context, sel ast.SelectionSet, v *model.RootRoot) graphql.Marshaler {
@@ -12826,6 +8865,53 @@ func (ec *executionContext) marshalOroot_Root2ᚖnexustempmoduleᚋnexusᚑgql�
 		return graphql.Null
 	}
 	return ec._root_Root(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalOservicegroup_SvcGroup2ᚕᚖnexustempmoduleᚋnexusᚑgqlᚋgraphᚋmodelᚐServicegroupSvcGroupᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.ServicegroupSvcGroup) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNservicegroup_SvcGroup2ᚖnexustempmoduleᚋnexusᚑgqlᚋgraphᚋmodelᚐServicegroupSvcGroup(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
 }
 
 // endregion ***************************** type.gotpl *****************************

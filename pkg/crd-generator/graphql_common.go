@@ -20,60 +20,6 @@ const (
 	// Custom query
 	CustomQuerySchema = `Id: ID
 	ParentLabels: Map
-    queryServiceTable(
-        startTime: String
-        endTime: String
-        SystemServices: Boolean
-        ShowGateways: Boolean
-        Groupby: String
-        noMetrics: Boolean
-    ): TimeSeriesData
-    queryServiceVersionTable(
-        startTime: String
-        endTime: String
-        SystemServices: Boolean
-        ShowGateways: Boolean
-        noMetrics: Boolean
-    ): TimeSeriesData
-    queryServiceTS(
-        svcMetric: String
-        startTime: String
-        endTime: String
-        timeInterval: String
-    ): TimeSeriesData
-    queryIncomingAPIs(
-        startTime: String
-        endTime: String
-        destinationService: String
-        destinationServiceVersion: String
-        timeInterval: String
-        timeZone: String
-    ): TimeSeriesData
-    queryOutgoingAPIs(
-        startTime: String
-        endTime: String
-		destinationService: String
-        destinationServiceVersion: String
-        timeInterval: String
-        timeZone: String
-    ): TimeSeriesData
-    queryIncomingTCP(
-        startTime: String
-        endTime: String
-        destinationService: String
-        destinationServiceVersion: String
-    ): TimeSeriesData
-    queryOutgoingTCP(
-        startTime: String
-        endTime: String
-        destinationService: String
-        destinationServiceVersion: String
-    ): TimeSeriesData
-    queryServiceTopology(
-        metricStringArray: String
-        startTime: String
-        endTime: String
-    ): TimeSeriesData
 `
 )
 
@@ -99,7 +45,7 @@ func jsonMarshalResolver(FieldName, PkgName string) string {
 	return fmt.Sprintf("%s, _ := json.Marshal(v%s.Spec.%s)\n%sData := string(%s)\n", FieldName, PkgName, FieldName, FieldName, FieldName)
 }
 
-func validateImportPkg(pkg parser.Package, typeString string, importMap map[string]string) (string, string) {
+func validateImportPkg(pkgName, typeString string, importMap map[string]string) (string, string) {
 	typeWithoutPointers := strings.ReplaceAll(typeString, "*", "")
 	if strings.Contains(typeWithoutPointers, ".") {
 		part := strings.Split(typeWithoutPointers, ".")
@@ -108,9 +54,9 @@ func validateImportPkg(pkg parser.Package, typeString string, importMap map[stri
 			repName := strings.ReplaceAll(pkgName, "-", "")
 			return repName + "_" + part[1], cases.Title(language.Und, cases.NoLower).String(repName) + cases.Title(language.Und, cases.NoLower).String(part[1])
 		}
-		return pkg.Name + part[1], cases.Title(language.Und, cases.NoLower).String(pkg.Name) + cases.Title(language.Und, cases.NoLower).String(part[1])
+		return strings.ToLower(pkgName) + part[1], cases.Title(language.Und, cases.NoLower).String(pkgName) + cases.Title(language.Und, cases.NoLower).String(part[1])
 	}
-	return pkg.Name + "_" + typeWithoutPointers, cases.Title(language.Und, cases.NoLower).String(pkg.Name) + cases.Title(language.Und, cases.NoLower).String(typeWithoutPointers)
+	return strings.ToLower(pkgName) + "_" + typeWithoutPointers, cases.Title(language.Und, cases.NoLower).String(pkgName) + cases.Title(language.Und, cases.NoLower).String(typeWithoutPointers)
 }
 
 func getBaseNodeType(typeString string) string {

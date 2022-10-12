@@ -22,9 +22,9 @@ package v1
 // AdditionalGnsDataLister.
 type AdditionalGnsDataListerExpansion interface{}
 
-// BarLinkListerExpansion allows custom methods to be added to
-// BarLinkLister.
-type BarLinkListerExpansion interface{}
+// BarChildListerExpansion allows custom methods to be added to
+// BarChildLister.
+type BarChildListerExpansion interface{}
 
 // DnsListerExpansion allows custom methods to be added to
 // DnsLister.
@@ -33,6 +33,10 @@ type DnsListerExpansion interface{}
 // GnsListerExpansion allows custom methods to be added to
 // GnsLister.
 type GnsListerExpansion interface{}
+
+// IgnoreChildListerExpansion allows custom methods to be added to
+// IgnoreChildLister.
+type IgnoreChildListerExpansion interface{}
 
 // RandomGnsDataListerExpansion allows custom methods to be added to
 // RandomGnsDataLister.

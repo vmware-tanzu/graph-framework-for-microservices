@@ -30,11 +30,13 @@ var _ = Describe("Node parser tests", func() {
 		expectedNodes := []string{
 			"ACPConfig",
 			"AccessControlPolicy",
+			"BarChild",
 			"Config",
 			"Dns",
 			"Domain",
 			"FooType",
 			"Gns",
+			"IgnoreChild",
 			"Root",
 			"SvcGroup",
 			"VMpolicy",
@@ -44,7 +46,7 @@ var _ = Describe("Node parser tests", func() {
 			nodes = append(nodes, node.Name)
 		})
 		sort.Strings(nodes)
-		Expect(nodes).To(HaveLen(10))
+		Expect(nodes).To(HaveLen(12))
 		Expect(nodes).To(Equal(expectedNodes))
 	})
 
@@ -56,7 +58,7 @@ var _ = Describe("Node parser tests", func() {
 			fail = true
 		}
 
-		parser.ParseDSLNodes("../../example/test-utils/invalid-pkg-name-datamodel", baseGroupName, nil, nil)
+		parser.ParseDSLNodes("../../example/test-utils/invalid-pkg-name-datamodel", baseGroupName)
 		Expect(fail).To(BeTrue())
 	})
 
@@ -68,7 +70,7 @@ var _ = Describe("Node parser tests", func() {
 			fail = true
 		}
 
-		parser.ParseDSLNodes("../../example/test-utils/invalid-type-datamodel", baseGroupName, nil, nil)
+		parser.ParseDSLNodes("../../example/test-utils/invalid-type-datamodel", baseGroupName)
 		Expect(fail).To(BeTrue())
 	})
 

@@ -20,6 +20,7 @@ CONFIG_FILE ?= ""
 GENERATED_OUTPUT_DIRECTORY ?= generated
 
 NEXUS_KUBEOPENAPI_VERSION ?= 7416bd4754d3c0dd8b3fa37fff53d36594f11607
+NEXUS_GRAPHQLGEN_VERSION ?= 32f028bce22efeb70b47a640195bd969dbb337f0
 
 ifeq ($(CONTAINER_ID),)
 define run_in_container
@@ -50,7 +51,7 @@ docker.builder:
 	docker build --no-cache -t ${BUILDER_NAME}:${BUILDER_TAG} builder/
 
 .PHONY: docker
-docker: init_submodules ${BUILDER_NAME}\:${BUILDER_TAG}.image.exists build_openapigen_in_container
+docker: init_submodules ${BUILDER_NAME}\:${BUILDER_TAG}.image.exists build_openapigen_in_container build_gqlgen_in_container
 	git archive -o compiler.tar --format=tar HEAD
 	tar -rf compiler.tar .git
 	docker build --no-cache \
@@ -82,6 +83,12 @@ build_openapigen_in_container:
 build_openapigen:
 	GOBIN=${PKG_NAME}/cmd go install gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git/cmd/nexus-openapi-gen@${NEXUS_KUBEOPENAPI_VERSION}
 
+build_gqlgen_in_container:
+	$(call run_in_container,make build_gqlgen)
+
+build_gqlgen:
+	GOBIN=${PKG_NAME}/cmd go install gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git@${NEXUS_GRAPHQLGEN_VERSION}
+
 .PHONY: unit-test
 unit-test:
 	ginkgo -cover ./pkg/...
@@ -90,6 +97,7 @@ unit-test:
 .PHONY: race-unit-test
 race-unit-test:
 	ginkgo -race -cover ./pkg/...
+	cd example/tests && ginkgo -race -cover ./...
 
 .PHONY: test-fmt
 test-fmt:
@@ -136,13 +144,11 @@ generate_code:
 	@echo "Nexus Compiler: Generating CRD yamls"
 	go run cmd/generate-openapischema/generate-openapischema.go -yamls-path _generated/crds
 	git checkout -- pkg/openapi_generator/openapi/openapi_generated.go
-	@echo "Debug purpose"
-	cp -r _generated/{client,apis,crds,common,nexus-client,helper,nexus-gql} ${GENERATED_OUTPUT_DIRECTORY}
 	@echo "==> Nexus Compiler: Generating GRAPHQL pkg <=="
 	cd _generated && goimports -w .
-	cd _generated/nexus-gql && go mod tidy -go=1.18 && go run gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git generate
+	cd _generated/nexus-gql && go get github.com/cespare/xxhash/v2@v2.1.2 && gqlgen generate
 	cp -rf _generated/* ${GOPATH}/src/nexustempmodule/
-	cd ${GOPATH}/src/nexustempmodule && rm go.mod && go mod init && go get golang-appnet.eng.vmware.com/nexus-sdk/nexus@NPT-482-add-server-client &&  go  mod tidy -go=1.18 && cd nexus-gql && CGO_ENABLED=1 GOOS=linux \
+	cd ${GOPATH}/src/nexustempmodule && cd nexus-gql && CGO_ENABLED=1 GOOS=linux \
 	go build --trimpath -o graphql.so -buildmode=plugin server.go
 	@echo "Updating module name"
 	./scripts/replace_mod_path.sh
@@ -157,6 +163,8 @@ generate_code:
 .PHONY: test_generate_code_in_container
 test_generate_code_in_container: ${BUILDER_NAME}\:${BUILDER_TAG}.image.exists init_submodules
 	$(call run_in_container, go install gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git/cmd/nexus-openapi-gen@${NEXUS_KUBEOPENAPI_VERSION} && \
+	go install gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git@${NEXUS_GRAPHQLGEN_VERSION} && \
+	mv /go/bin/gqlgen.git /go/bin/gqlgen && \
 	make generate_code DATAMODEL_PATH=example/datamodel \
 	CONFIG_FILE=example/nexus-sdk.yaml \
 	CRD_MODULE_PATH="gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/crd_generated/" \

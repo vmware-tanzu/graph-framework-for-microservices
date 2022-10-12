@@ -1,4 +1,5 @@
 #graphql's and compiler's builder/Dockerfile should be in sync
+#https://gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/graphql-server/-/blob/master/builder/Dockerfile - graphql Dockerfile
 FROM harbor-repo.vmware.com/nexus/golang:1.18
 
 ENV GOPATH /go

@@ -19,19 +19,21 @@ limitations under the License.
 package v1
 
 import (
-	internalinterfaces "nexustempmodule/client/informers/externalversions/internalinterfaces"
+	internalinterfaces "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/crd_generated/client/informers/externalversions/internalinterfaces"
 )
 
 // Interface provides access to all the informers in this group version.
 type Interface interface {
 	// AdditionalGnsDatas returns a AdditionalGnsDataInformer.
 	AdditionalGnsDatas() AdditionalGnsDataInformer
-	// BarLinks returns a BarLinkInformer.
-	BarLinks() BarLinkInformer
+	// BarChilds returns a BarChildInformer.
+	BarChilds() BarChildInformer
 	// Dnses returns a DnsInformer.
 	Dnses() DnsInformer
 	// Gnses returns a GnsInformer.
 	Gnses() GnsInformer
+	// IgnoreChilds returns a IgnoreChildInformer.
+	IgnoreChilds() IgnoreChildInformer
 	// RandomGnsDatas returns a RandomGnsDataInformer.
 	RandomGnsDatas() RandomGnsDataInformer
 }
@@ -52,9 +54,9 @@ func (v *version) AdditionalGnsDatas() AdditionalGnsDataInformer {
 	return &additionalGnsDataInformer{factory: v.factory, tweakListOptions: v.tweakListOptions}
 }
 
-// BarLinks returns a BarLinkInformer.
-func (v *version) BarLinks() BarLinkInformer {
-	return &barLinkInformer{factory: v.factory, tweakListOptions: v.tweakListOptions}
+// BarChilds returns a BarChildInformer.
+func (v *version) BarChilds() BarChildInformer {
+	return &barChildInformer{factory: v.factory, tweakListOptions: v.tweakListOptions}
 }
 
 // Dnses returns a DnsInformer.
@@ -65,6 +67,11 @@ func (v *version) Dnses() DnsInformer {
 // Gnses returns a GnsInformer.
 func (v *version) Gnses() GnsInformer {
 	return &gnsInformer{factory: v.factory, tweakListOptions: v.tweakListOptions}
+}
+
+// IgnoreChilds returns a IgnoreChildInformer.
+func (v *version) IgnoreChilds() IgnoreChildInformer {
+	return &ignoreChildInformer{factory: v.factory, tweakListOptions: v.tweakListOptions}
 }
 
 // RandomGnsDatas returns a RandomGnsDataInformer.

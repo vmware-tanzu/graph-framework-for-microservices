@@ -19,7 +19,7 @@ limitations under the License.
 package fake
 
 import (
-	v1 "nexustempmodule/client/clientset/versioned/typed/gns.tsm.tanzu.vmware.com/v1"
+	v1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/crd_generated/client/clientset/versioned/typed/gns.tsm.tanzu.vmware.com/v1"
 
 	rest "k8s.io/client-go/rest"
 	testing "k8s.io/client-go/testing"
@@ -33,8 +33,8 @@ func (c *FakeGnsTsmV1) AdditionalGnsDatas() v1.AdditionalGnsDataInterface {
 	return &FakeAdditionalGnsDatas{c}
 }
 
-func (c *FakeGnsTsmV1) BarLinks() v1.BarLinkInterface {
-	return &FakeBarLinks{c}
+func (c *FakeGnsTsmV1) BarChilds() v1.BarChildInterface {
+	return &FakeBarChilds{c}
 }
 
 func (c *FakeGnsTsmV1) Dnses() v1.DnsInterface {
@@ -43,6 +43,10 @@ func (c *FakeGnsTsmV1) Dnses() v1.DnsInterface {
 
 func (c *FakeGnsTsmV1) Gnses() v1.GnsInterface {
 	return &FakeGnses{c}
+}
+
+func (c *FakeGnsTsmV1) IgnoreChilds() v1.IgnoreChildInterface {
+	return &FakeIgnoreChilds{c}
 }
 
 func (c *FakeGnsTsmV1) RandomGnsDatas() v1.RandomGnsDataInterface {
