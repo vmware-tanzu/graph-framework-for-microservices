@@ -5,9 +5,17 @@ CONTAINER_ID ?= ""
 DATAMODEL_LOCAL_PATH ?= $(realpath .)
 BUCKET ?= nexus-template-downloads
 DOCKER_REPO ?= $(shell cat nexus.yaml | grep dockerRepo | awk '{print $$2}' | tr -d '"')
-VERSION ?= $(shell git rev-parse --verify HEAD)
+VERSION ?= $(shell git rev-parse --verify HEAD 2>/dev/null)
 NAME ?= $(shell cat nexus.yaml | grep groupName | awk '{print $$2}' | tr -d '"')
 NAMESPACE ?= ""
+
+ifeq ($(DOCKER_REPO),)
+DOCKER_REPO=$(NAME)
+endif
+
+ifeq ($(VERSION),)
+VERSION="latest"
+endif
 
 .PHONY: datamodel_build
 datamodel_build:
@@ -39,21 +47,12 @@ datamodel_build:
 	fi
 
 docker_build:
-	if [ -n "$(DOCKER_REPO)" ]; then \
-		if [ -n "$(VERSION)" ]; then \
-			if [ -n "$(NAME)" ]; then \
+	@if [ -n "$(NAME)" ]; then \
+				echo "Building image: $(DOCKER_REPO):$(VERSION)" ;\
 				docker build --build-arg IMAGE_NAME=$(DOCKER_REPO):$(VERSION) --build-arg NAME=$(NAME) -t $(DOCKER_REPO):$(VERSION) . -f Dockerfile ; \
-			else \
-				echo "Please provide NAME (GroupName) when running docker_build" ;\
-				exit 1;\
-			fi \
-		else \
-			echo "Please provide VERSION when running docker_publish"; \
-			exit 1;\
-		fi \
 	else \
-		echo "Please add dockerRepo in datamodel properties (or) call with DOCKER_REPO variable"; \
-		exit 1 ;\
+			echo "Please provide NAME (GroupName) when running docker_build" ;\
+			exit 1;\
 	fi
 
 docker_publish: docker_build
