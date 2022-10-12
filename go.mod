@@ -10,15 +10,19 @@ require (
 	github.com/onsi/gomega v1.19.0
 	github.com/sirupsen/logrus v1.8.1
 	gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/common-library.git v0.0.0-20220909083510-01d43651301d
+	gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git v0.0.0-20220923155354-3246eebb23b7
 	gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git v0.0.0-20220603123335-7416bd4754d3
 	golang.org/x/mod v0.6.0-dev.0.20220106191415-9b9b3d81d5e3
-	golang.org/x/tools v0.1.10-0.20220218145154-897bd77cd717
+	golang.org/x/text v0.3.7
+	golang.org/x/tools v0.1.10
 	k8s.io/apiextensions-apiserver v0.24.0
 	k8s.io/apimachinery v0.24.0
 	k8s.io/gengo v0.0.0-20220307231824-4627b89bbf1b
 )
 
 require (
+	github.com/agnivade/levenshtein v1.1.1 // indirect
+	github.com/cpuguy83/go-md2man/v2 v2.0.1 // indirect
 	github.com/elliotchance/orderedmap v1.4.0 // indirect
 	github.com/emicklei/go-restful v2.15.0+incompatible // indirect
 	github.com/fsnotify/fsnotify v1.5.1 // indirect
@@ -35,9 +39,12 @@ require (
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/modern-go/reflect2 v1.0.2 // indirect
 	github.com/nxadm/tail v1.4.8 // indirect
+	github.com/russross/blackfriday/v2 v2.1.0 // indirect
+	github.com/urfave/cli/v2 v2.8.1 // indirect
+	github.com/vektah/gqlparser/v2 v2.5.0 // indirect
+	github.com/xrash/smetrics v0.0.0-20201216005158-039620a65673 // indirect
 	golang.org/x/net v0.0.0-20220225172249-27dd8689420f // indirect
 	golang.org/x/sys v0.0.0-20220209214540-3681064d5158 // indirect
-	golang.org/x/text v0.3.7 // indirect
 	golang.org/x/xerrors v0.0.0-20200804184101-5ec99f83aff1 // indirect
 	google.golang.org/protobuf v1.28.0 // indirect
 	gopkg.in/check.v1 v1.0.0-20200902074654-038fdea0a05b // indirect

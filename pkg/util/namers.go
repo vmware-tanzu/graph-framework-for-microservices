@@ -4,6 +4,9 @@ import (
 	"strings"
 	"unicode"
 
+	"golang.org/x/text/cases"
+
+	"golang.org/x/text/language"
 	"k8s.io/gengo/namer"
 )
 
@@ -32,23 +35,23 @@ func GetGroupResourceName(nodeName string) string {
 }
 
 func GetNodeNameTitle(nodeName string) string {
-	return strings.Title(nodeName) // eg Root
+	return cases.Title(language.Und, cases.NoLower).String(nodeName) // eg Root
 }
 
 func GetGroupVarName(pkgName, baseGroupName, version string) string {
-	return pkgName + GetGroupGoName(baseGroupName) + strings.Title(version) // eg rootHelloworldV1
+	return pkgName + GetGroupGoName(baseGroupName) + cases.Title(language.Und, cases.NoLower).String(version) // eg rootHelloworldV1
 }
 
 func GetGroupTypeName(pkgName, baseGroupName, version string) string {
-	return strings.Title(RemoveSpecialChars(pkgName)) + GetGroupGoName(baseGroupName) + strings.Title(version) // eg RootHelloworldV1
+	return cases.Title(language.Und, cases.NoLower).String(RemoveSpecialChars(pkgName)) + GetGroupGoName(baseGroupName) + cases.Title(language.Und, cases.NoLower).String(version) // eg RootHelloworldV1
 }
 
 func GetSimpleGroupTypeName(pkgName string) string {
-	return strings.Title(RemoveSpecialChars(pkgName)) // eg Root
+	return cases.Title(language.Und, cases.NoLower).String(RemoveSpecialChars(pkgName)) // eg Root
 }
 
 func GetGroupResourceNameTitle(nodeName string) string {
-	return strings.Title(ToPlural(nodeName)) // eg Roots
+	return cases.Title(language.Und, cases.NoLower).String(ToPlural(nodeName)) // eg Roots
 }
 
 func GetGroupResourceType(baseNodeName, pkgName, baseGroupName, version string) string {

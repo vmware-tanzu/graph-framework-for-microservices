@@ -26,6 +26,10 @@ import (
 type Interface interface {
 	// Configs returns a ConfigInformer.
 	Configs() ConfigInformer
+	// Domains returns a DomainInformer.
+	Domains() DomainInformer
+	// FooTypes returns a FooTypeInformer.
+	FooTypes() FooTypeInformer
 }
 
 type version struct {
@@ -42,4 +46,14 @@ func New(f internalinterfaces.SharedInformerFactory, namespace string, tweakList
 // Configs returns a ConfigInformer.
 func (v *version) Configs() ConfigInformer {
 	return &configInformer{factory: v.factory, tweakListOptions: v.tweakListOptions}
+}
+
+// Domains returns a DomainInformer.
+func (v *version) Domains() DomainInformer {
+	return &domainInformer{factory: v.factory, tweakListOptions: v.tweakListOptions}
+}
+
+// FooTypes returns a FooTypeInformer.
+func (v *version) FooTypes() FooTypeInformer {
+	return &fooTypeInformer{factory: v.factory, tweakListOptions: v.tweakListOptions}
 }

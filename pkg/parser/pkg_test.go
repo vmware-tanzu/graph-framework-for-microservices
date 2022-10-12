@@ -1,9 +1,12 @@
 package parser_test
 
 import (
+	"go/ast"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	log "github.com/sirupsen/logrus"
+
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/pkg/config"
 	crd_generator "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/pkg/crd-generator"
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/pkg/parser"
@@ -60,12 +63,12 @@ var _ = Describe("Pkg tests", func() {
 
 	It("should get all structs for gns", func() {
 		structs := gnsPkg.GetStructs()
-		Expect(structs).To(HaveLen(11))
+		Expect(structs).To(HaveLen(15))
 	})
 
 	It("should get all types for gns", func() {
 		types := gnsPkg.GetTypes()
-		Expect(types).To(HaveLen(9))
+		Expect(types).To(HaveLen(13))
 	})
 
 	It("should get imports for gns", func() {
@@ -75,7 +78,7 @@ var _ = Describe("Pkg tests", func() {
 
 	It("should get all nodes for gns", func() {
 		nodes := gnsPkg.GetNodes()
-		Expect(nodes).To(HaveLen(7))
+		Expect(nodes).To(HaveLen(9))
 	})
 
 	It("should get all consts for gns", func() {
@@ -91,8 +94,8 @@ var _ = Describe("Pkg tests", func() {
 
 	It("should get link fields for gns", func() {
 		nodes := gnsPkg.GetNexusNodes()
-		linkFields := parser.GetChildFields(nodes[1])
-		Expect(linkFields).To(HaveLen(2))
+		linkFields := parser.GetLinkFields(nodes[1])
+		Expect(linkFields).To(HaveLen(1))
 	})
 
 	It("should get spec fields for gns", func() {
@@ -163,5 +166,19 @@ var _ = Describe("Pkg tests", func() {
 
 		parser.ParseFieldTags("`nexus: \"child\"`")
 		Expect(fail).To(BeTrue())
+	})
+
+	It("should receive false when empty node is given", func() {
+		var f *ast.Field
+		childFields := parser.IsOnlyChildField(f)
+		Expect(childFields).To(BeFalse())
+		childrenFields := parser.IsOnlyChildrenField(f)
+		Expect(childrenFields).To(BeFalse())
+		link := parser.IsOnlyLinkField(f)
+		Expect(link).To(BeFalse())
+		links := parser.IgnoreField(f)
+		Expect(links).To(BeFalse())
+		jsonStrFields := parser.IsJsonStringField(f)
+		Expect(jsonStrFields).To(BeFalse())
 	})
 })

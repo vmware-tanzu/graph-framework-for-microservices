@@ -21,3 +21,11 @@ package v1
 // ConfigListerExpansion allows custom methods to be added to
 // ConfigLister.
 type ConfigListerExpansion interface{}
+
+// DomainListerExpansion allows custom methods to be added to
+// DomainLister.
+type DomainListerExpansion interface{}
+
+// FooTypeListerExpansion allows custom methods to be added to
+// FooTypeLister.
+type FooTypeListerExpansion interface{}

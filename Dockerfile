@@ -3,8 +3,10 @@ ARG BUILDER_TAG
 FROM nexus/compiler-builder:$BUILDER_TAG
 ADD compiler.tar /go/src/gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git
 ADD cmd/nexus-openapi-gen /go/bin/nexus-openapi-gen
+ADD cmd/gqlgen.git /go/bin/gqlgen
 
 WORKDIR /go/src/gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git
+RUN git config --global --add safe.directory '*'
 RUN make init_submodules
 
 WORKDIR /go/src/

@@ -28,8 +28,10 @@ import (
 type GnsTsmV1Interface interface {
 	RESTClient() rest.Interface
 	AdditionalGnsDatasGetter
+	BarChildsGetter
 	DnsesGetter
 	GnsesGetter
+	IgnoreChildsGetter
 	RandomGnsDatasGetter
 }
 
@@ -42,12 +44,20 @@ func (c *GnsTsmV1Client) AdditionalGnsDatas() AdditionalGnsDataInterface {
 	return newAdditionalGnsDatas(c)
 }
 
+func (c *GnsTsmV1Client) BarChilds() BarChildInterface {
+	return newBarChilds(c)
+}
+
 func (c *GnsTsmV1Client) Dnses() DnsInterface {
 	return newDnses(c)
 }
 
 func (c *GnsTsmV1Client) Gnses() GnsInterface {
 	return newGnses(c)
+}
+
+func (c *GnsTsmV1Client) IgnoreChilds() IgnoreChildInterface {
+	return newIgnoreChilds(c)
 }
 
 func (c *GnsTsmV1Client) RandomGnsDatas() RandomGnsDataInterface {
