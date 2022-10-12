@@ -60,14 +60,22 @@ func (f *sharedInformerFactory) ForResource(resource schema.GroupVersionResource
 	// Group=config.tsm.tanzu.vmware.com, Version=v1
 	case v1.SchemeGroupVersion.WithResource("configs"):
 		return &genericInformer{resource: resource.GroupResource(), informer: f.ConfigTsm().V1().Configs().Informer()}, nil
+	case v1.SchemeGroupVersion.WithResource("domains"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.ConfigTsm().V1().Domains().Informer()}, nil
+	case v1.SchemeGroupVersion.WithResource("footypes"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.ConfigTsm().V1().FooTypes().Informer()}, nil
 
 		// Group=gns.tsm.tanzu.vmware.com, Version=v1
 	case gnstsmtanzuvmwarecomv1.SchemeGroupVersion.WithResource("additionalgnsdatas"):
 		return &genericInformer{resource: resource.GroupResource(), informer: f.GnsTsm().V1().AdditionalGnsDatas().Informer()}, nil
+	case gnstsmtanzuvmwarecomv1.SchemeGroupVersion.WithResource("barchilds"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.GnsTsm().V1().BarChilds().Informer()}, nil
 	case gnstsmtanzuvmwarecomv1.SchemeGroupVersion.WithResource("dnses"):
 		return &genericInformer{resource: resource.GroupResource(), informer: f.GnsTsm().V1().Dnses().Informer()}, nil
 	case gnstsmtanzuvmwarecomv1.SchemeGroupVersion.WithResource("gnses"):
 		return &genericInformer{resource: resource.GroupResource(), informer: f.GnsTsm().V1().Gnses().Informer()}, nil
+	case gnstsmtanzuvmwarecomv1.SchemeGroupVersion.WithResource("ignorechilds"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.GnsTsm().V1().IgnoreChilds().Informer()}, nil
 	case gnstsmtanzuvmwarecomv1.SchemeGroupVersion.WithResource("randomgnsdatas"):
 		return &genericInformer{resource: resource.GroupResource(), informer: f.GnsTsm().V1().RandomGnsDatas().Informer()}, nil
 

@@ -20,8 +20,12 @@ package v1
 
 type AdditionalGnsDataExpansion interface{}
 
+type BarChildExpansion interface{}
+
 type DnsExpansion interface{}
 
 type GnsExpansion interface{}
+
+type IgnoreChildExpansion interface{}
 
 type RandomGnsDataExpansion interface{}

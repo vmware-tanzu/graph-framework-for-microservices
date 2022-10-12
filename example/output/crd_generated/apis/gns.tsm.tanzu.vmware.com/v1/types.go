@@ -117,6 +117,8 @@ type GnsSpec struct {
 	DifferentSpec             *cartv1.WorkloadSpec `json:"differentSpec" yaml:"differentSpec"`
 	GnsServiceGroupsGvk       map[string]Child     `json:"gnsServiceGroupsGvk,omitempty" yaml:"gnsServiceGroupsGvk,omitempty" nexus:"children"`
 	GnsAccessControlPolicyGvk *Child               `json:"gnsAccessControlPolicyGvk,omitempty" yaml:"gnsAccessControlPolicyGvk,omitempty" nexus:"child"`
+	FooChildGvk               *Child               `nexus:"child" nexus-graphql:"type:string"`
+	IgnoreChildGvk            *Child               `nexus:"child" nexus-graphql:"ignore:true"`
 	DnsGvk                    *Link                `json:"dnsGvk,omitempty" yaml:"dnsGvk,omitempty" nexus:"link"`
 }
 
@@ -125,6 +127,86 @@ type GnsList struct {
 	metav1.TypeMeta `json:",inline" yaml:",inline"`
 	metav1.ListMeta `json:"metadata" yaml:"metadata"`
 	Items           []Gns `json:"items" yaml:"items"`
+}
+
+// +genclient
+// +genclient:noStatus
+// +genclient:nonNamespaced
+// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
+// +k8s:openapi-gen=true
+type BarChild struct {
+	metav1.TypeMeta   `json:",inline" yaml:",inline"`
+	metav1.ObjectMeta `json:"metadata" yaml:"metadata"`
+	Spec              BarChildSpec        `json:"spec,omitempty" yaml:"spec,omitempty"`
+	Status            BarChildNexusStatus `json:"status,omitempty" yaml:"status,omitempty"`
+}
+
+// +k8s:openapi-gen=true
+type BarChildNexusStatus struct {
+	Nexus NexusStatus `json:"nexus,omitempty" yaml:"nexus,omitempty"`
+}
+
+func (c *BarChild) CRDName() string {
+	return "barchilds.gns.tsm.tanzu.vmware.com"
+}
+
+func (c *BarChild) DisplayName() string {
+	if c.GetLabels() != nil {
+		return c.GetLabels()[common.DISPLAY_NAME_LABEL]
+	}
+	return ""
+}
+
+// +k8s:openapi-gen=true
+type BarChildSpec struct {
+	Name string `json:"name" yaml:"name"`
+}
+
+// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
+type BarChildList struct {
+	metav1.TypeMeta `json:",inline" yaml:",inline"`
+	metav1.ListMeta `json:"metadata" yaml:"metadata"`
+	Items           []BarChild `json:"items" yaml:"items"`
+}
+
+// +genclient
+// +genclient:noStatus
+// +genclient:nonNamespaced
+// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
+// +k8s:openapi-gen=true
+type IgnoreChild struct {
+	metav1.TypeMeta   `json:",inline" yaml:",inline"`
+	metav1.ObjectMeta `json:"metadata" yaml:"metadata"`
+	Spec              IgnoreChildSpec        `json:"spec,omitempty" yaml:"spec,omitempty"`
+	Status            IgnoreChildNexusStatus `json:"status,omitempty" yaml:"status,omitempty"`
+}
+
+// +k8s:openapi-gen=true
+type IgnoreChildNexusStatus struct {
+	Nexus NexusStatus `json:"nexus,omitempty" yaml:"nexus,omitempty"`
+}
+
+func (c *IgnoreChild) CRDName() string {
+	return "ignorechilds.gns.tsm.tanzu.vmware.com"
+}
+
+func (c *IgnoreChild) DisplayName() string {
+	if c.GetLabels() != nil {
+		return c.GetLabels()[common.DISPLAY_NAME_LABEL]
+	}
+	return ""
+}
+
+// +k8s:openapi-gen=true
+type IgnoreChildSpec struct {
+	Name string `json:"name" yaml:"name"`
+}
+
+// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
+type IgnoreChildList struct {
+	metav1.TypeMeta `json:",inline" yaml:",inline"`
+	metav1.ListMeta `json:"metadata" yaml:"metadata"`
+	Items           []IgnoreChild `json:"items" yaml:"items"`
 }
 
 // +genclient
@@ -218,6 +300,12 @@ type RandomStatus struct {
 }
 
 // +k8s:openapi-gen=true
+type HostPort struct {
+	Host Host
+	Port Port
+}
+
+// +k8s:openapi-gen=true
 type ReplicationSource struct {
 	Kind SourceKind
 }
@@ -227,6 +315,14 @@ type Description struct {
 	Color     string
 	Version   string
 	ProjectId string
+	TestAns   []Answer
+	Instance  Instance
+	HostPort  HostPort
+}
+
+// +k8s:openapi-gen=true
+type Answer struct {
+	Name string
 }
 
 // +k8s:openapi-gen=true
@@ -254,6 +350,10 @@ type RandomConst2 string
 type RandomConst3 string
 type MyConst string
 type SourceKind string
+type Port uint16
+type Host string
+type Instance float32
+type AliasArr []int
 type MyStr string
 type TempConst1 string
 type TempConst2 string

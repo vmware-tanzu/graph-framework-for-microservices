@@ -28,6 +28,8 @@ import (
 type ConfigTsmV1Interface interface {
 	RESTClient() rest.Interface
 	ConfigsGetter
+	DomainsGetter
+	FooTypesGetter
 }
 
 // ConfigTsmV1Client is used to interact with features provided by the config.tsm.tanzu.vmware.com group.
@@ -37,6 +39,14 @@ type ConfigTsmV1Client struct {
 
 func (c *ConfigTsmV1Client) Configs() ConfigInterface {
 	return newConfigs(c)
+}
+
+func (c *ConfigTsmV1Client) Domains() DomainInterface {
+	return newDomains(c)
+}
+
+func (c *ConfigTsmV1Client) FooTypes() FooTypeInterface {
+	return newFooTypes(c)
 }
 
 // NewForConfig creates a new ConfigTsmV1Client for the given config.

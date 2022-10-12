@@ -93,4 +93,3 @@ stages:
   - build
   - coverage
   - integration_test
-

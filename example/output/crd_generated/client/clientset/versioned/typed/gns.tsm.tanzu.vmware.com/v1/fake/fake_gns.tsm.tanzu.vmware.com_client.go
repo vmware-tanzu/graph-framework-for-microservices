@@ -33,12 +33,20 @@ func (c *FakeGnsTsmV1) AdditionalGnsDatas() v1.AdditionalGnsDataInterface {
 	return &FakeAdditionalGnsDatas{c}
 }
 
+func (c *FakeGnsTsmV1) BarChilds() v1.BarChildInterface {
+	return &FakeBarChilds{c}
+}
+
 func (c *FakeGnsTsmV1) Dnses() v1.DnsInterface {
 	return &FakeDnses{c}
 }
 
 func (c *FakeGnsTsmV1) Gnses() v1.GnsInterface {
 	return &FakeGnses{c}
+}
+
+func (c *FakeGnsTsmV1) IgnoreChilds() v1.IgnoreChildInterface {
+	return &FakeIgnoreChilds{c}
 }
 
 func (c *FakeGnsTsmV1) RandomGnsDatas() v1.RandomGnsDataInterface {
