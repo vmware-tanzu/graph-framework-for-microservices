@@ -74,6 +74,9 @@ tools:
 	go install golang.org/x/tools/cmd/goimports@latest
 	go install github.com/mikefarah/yq/v4@latest
 	go install gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git/cmd/nexus-openapi-gen@${NEXUS_KUBEOPENAPI_VERSION}
+	go install gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git@${NEXUS_GRAPHQLGEN_VERSION}
+	mv ${GOPATH}/bin/gqlgen.git ${GOPATH}/bin/gqlgen
+	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b "$(go env GOPATH)"/bin v1.49.0
 
 .PHONY: build_openapigen_in_container
 build_openapigen_in_container:

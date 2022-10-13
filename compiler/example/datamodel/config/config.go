@@ -1,7 +1,7 @@
 package config
 
 import (
-	py "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/datamodel/config/policy"
+	py "github.com/vmware-tanzu/graph-framework-for-microservices/compiler/example/datamodel/config/policy"
 	"net/http"
 
 	"github.com/vmware-tanzu/graph-framework-for-microservices/compiler/example/datamodel/config/gns"

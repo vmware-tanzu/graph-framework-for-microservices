@@ -10,8 +10,8 @@ import (
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 
-	nexus_client "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/crd_generated/nexus-client"
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/crd_generated/nexus-gql/graph/model"
+	nexus_client "github.com/vmware-tanzu/graph-framework-for-microservices/compiler/example/output/crd_generated/nexus-client"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/compiler/example/output/crd_generated/nexus-gql/graph/model"
 )
 
 var nc *nexus_client.Clientset
