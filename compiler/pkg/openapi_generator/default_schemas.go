@@ -342,7 +342,7 @@ func k8sAPIMachineryTypeName(name string) string {
 }
 
 func kavachTypeName(name string) string { //nolint:deadcode,unused
-	return fmt.Sprintf("gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/pkg/%v", name)
+	return fmt.Sprintf("github.com/vmware-tanzu/graph-framework-for-microservices/compiler/pkg/%v", name)
 }
 
 func envoyTypeName(name string) string {

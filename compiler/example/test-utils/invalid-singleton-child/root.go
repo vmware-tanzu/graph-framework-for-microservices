@@ -1,7 +1,7 @@
 package root
 
 import (
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler/example/test-utils/invalid-singleton-child/nexus"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/compiler/example/test-utils/invalid-singleton-child/nexus"
 )
 
 type Root struct {

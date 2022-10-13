@@ -1,4 +1,4 @@
-module gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git
+module github.com/vmware-tanzu/graph-framework-for-microservices/compiler
 
 go 1.17
 

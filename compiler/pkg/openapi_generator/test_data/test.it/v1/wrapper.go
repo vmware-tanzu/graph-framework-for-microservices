@@ -1,7 +1,7 @@
 package v1
 
 import (
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/pkg/openapi_generator/test_data/proto"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/compiler/pkg/openapi_generator/test_data/proto"
 )
 
 // +k8s:openapi-gen=true

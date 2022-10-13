@@ -9,10 +9,9 @@ compiler.tar
 _generated
 
 ### GoLand ###
-../.idea
+.idea
 report.json
 
 cmd/debug
 coverage.json
 report.json
-*.so

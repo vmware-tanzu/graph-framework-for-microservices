@@ -3,7 +3,7 @@ package parser_test
 import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/pkg/parser"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/compiler/pkg/parser"
 )
 
 var _ = Describe("Node config tests", func() {
@@ -15,7 +15,7 @@ var _ = Describe("Node config tests", func() {
 
 	BeforeEach(func() {
 		pkgs := parser.ParseDSLPkg(exampleDSLPath)
-		pkg, ok = pkgs["gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/datamodel/config/gns"]
+		pkg, ok = pkgs["github.com/vmware-tanzu/graph-framework-for-microservices/compiler/example/datamodel/config/gns"]
 		Expect(ok).To(BeTrue())
 	})
 

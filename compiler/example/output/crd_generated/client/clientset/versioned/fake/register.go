@@ -19,11 +19,11 @@ limitations under the License.
 package fake
 
 import (
-	configtsmv1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/crd_generated/apis/config.tsm.tanzu.vmware.com/v1"
-	gnstsmv1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/crd_generated/apis/gns.tsm.tanzu.vmware.com/v1"
-	policypkgtsmv1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/crd_generated/apis/policypkg.tsm.tanzu.vmware.com/v1"
-	roottsmv1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/crd_generated/apis/root.tsm.tanzu.vmware.com/v1"
-	servicegrouptsmv1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/crd_generated/apis/servicegroup.tsm.tanzu.vmware.com/v1"
+	configtsmv1 "github.com/vmware-tanzu/graph-framework-for-microservices/compiler/example/output/crd_generated/apis/config.tsm.tanzu.vmware.com/v1"
+	gnstsmv1 "github.com/vmware-tanzu/graph-framework-for-microservices/compiler/example/output/crd_generated/apis/gns.tsm.tanzu.vmware.com/v1"
+	policypkgtsmv1 "github.com/vmware-tanzu/graph-framework-for-microservices/compiler/example/output/crd_generated/apis/policypkg.tsm.tanzu.vmware.com/v1"
+	roottsmv1 "github.com/vmware-tanzu/graph-framework-for-microservices/compiler/example/output/crd_generated/apis/root.tsm.tanzu.vmware.com/v1"
+	servicegrouptsmv1 "github.com/vmware-tanzu/graph-framework-for-microservices/compiler/example/output/crd_generated/apis/servicegroup.tsm.tanzu.vmware.com/v1"
 
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	runtime "k8s.io/apimachinery/pkg/runtime"

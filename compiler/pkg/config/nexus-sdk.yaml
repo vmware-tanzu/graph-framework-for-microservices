@@ -1,2 +1,2 @@
 groupName: "tsm.tanzu.vmware.com"
-crdModulePath: "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/crd/"
+crdModulePath: "github.com/vmware-tanzu/graph-framework-for-microservices/compiler/example/output/crd/"

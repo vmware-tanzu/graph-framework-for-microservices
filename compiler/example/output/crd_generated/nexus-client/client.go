@@ -20,16 +20,16 @@ import (
 	types "k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/rest"
 
-	baseClientset "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/crd_generated/client/clientset/versioned"
-	fakeBaseClienset "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/crd_generated/client/clientset/versioned/fake"
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/crd_generated/common"
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/crd_generated/helper"
+	baseClientset "github.com/vmware-tanzu/graph-framework-for-microservices/compiler/example/output/crd_generated/client/clientset/versioned"
+	fakeBaseClienset "github.com/vmware-tanzu/graph-framework-for-microservices/compiler/example/output/crd_generated/client/clientset/versioned/fake"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/compiler/example/output/crd_generated/common"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/compiler/example/output/crd_generated/helper"
 
-	baseconfigtsmtanzuvmwarecomv1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/crd_generated/apis/config.tsm.tanzu.vmware.com/v1"
-	basegnstsmtanzuvmwarecomv1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/crd_generated/apis/gns.tsm.tanzu.vmware.com/v1"
-	basepolicypkgtsmtanzuvmwarecomv1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/crd_generated/apis/policypkg.tsm.tanzu.vmware.com/v1"
-	baseroottsmtanzuvmwarecomv1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/crd_generated/apis/root.tsm.tanzu.vmware.com/v1"
-	baseservicegrouptsmtanzuvmwarecomv1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/crd_generated/apis/servicegroup.tsm.tanzu.vmware.com/v1"
+	baseconfigtsmtanzuvmwarecomv1 "github.com/vmware-tanzu/graph-framework-for-microservices/compiler/example/output/crd_generated/apis/config.tsm.tanzu.vmware.com/v1"
+	basegnstsmtanzuvmwarecomv1 "github.com/vmware-tanzu/graph-framework-for-microservices/compiler/example/output/crd_generated/apis/gns.tsm.tanzu.vmware.com/v1"
+	basepolicypkgtsmtanzuvmwarecomv1 "github.com/vmware-tanzu/graph-framework-for-microservices/compiler/example/output/crd_generated/apis/policypkg.tsm.tanzu.vmware.com/v1"
+	baseroottsmtanzuvmwarecomv1 "github.com/vmware-tanzu/graph-framework-for-microservices/compiler/example/output/crd_generated/apis/root.tsm.tanzu.vmware.com/v1"
+	baseservicegrouptsmtanzuvmwarecomv1 "github.com/vmware-tanzu/graph-framework-for-microservices/compiler/example/output/crd_generated/apis/servicegroup.tsm.tanzu.vmware.com/v1"
 )
 
 type Clientset struct {
