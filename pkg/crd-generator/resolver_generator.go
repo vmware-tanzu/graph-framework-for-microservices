@@ -8,9 +8,9 @@ import (
 
 	log "github.com/sirupsen/logrus"
 
-	"golang-appnet.eng.vmware.com/nexus-sdk/nexus/nexus"
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/pkg/parser"
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/pkg/util"
+	"golang-appnet.eng.vmware.com/nexus-sdk/nexus/nexus"
 )
 
 type ReturnStatement struct {

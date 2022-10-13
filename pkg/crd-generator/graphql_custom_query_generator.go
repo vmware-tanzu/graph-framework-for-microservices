@@ -2,6 +2,7 @@ package crd_generator
 
 import (
 	"fmt"
+
 	log "github.com/sirupsen/logrus"
 
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/pkg/parser"

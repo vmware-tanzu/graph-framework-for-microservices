@@ -19,7 +19,6 @@ import (
 var c = CustomQueryHandler{
 		mtx: sync.Mutex{},
 		Clients: map[string]graphql.ServerClient{},
-	},
 }
 var nc *nexus_client.Clientset
 
@@ -131,6 +130,7 @@ func getRootResolver(id *string) ([]*model.{{$node.PkgName}}{{$node.NodeName}}, 
 	log.Debugf("[getRootResolver]Output {{$node.NodeName}} objects %v", v{{$node.NodeName}}List)
 	return v{{$node.NodeName}}List, nil
 }
+{{ end }}{{end}}
 {{- range $key, $query := $node.CustomQueries }}
 // Custom query
 func get{{$node.PkgName}}{{$node.NodeName}}query{{$query.Name}}Resolver(obj *model.{{$node.PkgName}}{{$node.NodeName}}, {{ range $key, $arg := $query.Args }} {{$arg.Name}} *{{$arg.Type}}, {{ end }}) (*model.NexusGraphqlResponse, error) {
@@ -154,7 +154,7 @@ func get{{$node.PkgName}}{{$node.NodeName}}query{{$query.Name}}Resolver(obj *mod
 	}
 	return c.Query("{{$query.ServiceEndpoint.Domain}}:{{$query.ServiceEndpoint.Port}}", query)
 }{{- end }}
-{{ end }}{{end}}{{ end }}
+{{ end }}
 {{- range $key, $node := .Nodes }}
 {{- range $key, $child := $node.ChildFields }}
 {{- if $child.IsSingleton }}

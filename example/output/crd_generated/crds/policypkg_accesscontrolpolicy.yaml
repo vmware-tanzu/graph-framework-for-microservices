@@ -38,7 +38,7 @@ spec:
             type: object
           spec:
             properties:
-              PolicyConfigsGvk:
+              policyConfigsGvk:
                 additionalProperties:
                   properties:
                     group:
@@ -53,8 +53,6 @@ spec:
                   - name
                   type: object
                 type: object
-            required:
-            - PolicyConfigsGvk
             type: object
           status:
             properties:

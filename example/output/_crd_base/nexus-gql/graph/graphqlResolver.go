@@ -16,6 +16,11 @@ import (
 
 )
 
+var c = CustomQueryHandler{
+		mtx: sync.Mutex{},
+		Clients: map[string]graphql.ServerClient{},
+	},
+}
 var nc *nexus_client.Clientset
 
 func getParentName(parentLabels map[string]interface{}, key string) string {
@@ -696,37 +701,6 @@ vName := string(vBarChild.Spec.Name)
     log.Debugf("[getGnsGnsFooChildResolver]Output object %+v", ret)
 	return ret, nil
 }
-//////////////////////////////////////
-// LINK RESOLVER
-// FieldName: Dns Node: Gns PKG: Gns
-//////////////////////////////////////
-func getGnsGnsDnsResolver(obj *model.GnsGns) (*model.GnsDns, error) {
-    log.Debugf("[getGnsGnsDnsResolver]Parent Object %+v", obj)
-	vDnsParent, err := nc.RootRoot().Config(getParentName(obj.ParentLabels, "configs.config.tsm.tanzu.vmware.com")).GetGNS(context.TODO(), getParentName(obj.ParentLabels, "gnses.gns.tsm.tanzu.vmware.com"))
-	if err != nil {
-	    log.Errorf("[getGnsGnsDnsResolver]Error getting parent node %s", err)
-        return &model.GnsDns{}, nil
-    }
-	vDns, err := vDnsParent.GetDns(context.TODO())
-	if err != nil {
-		log.Errorf("[getGnsGnsDnsResolver]Error getting Dns object %s", err)
-        return &model.GnsDns{}, nil
-    }
-	dn := vDns.DisplayName()
-parentLabels := map[string]interface{}{"dnses.gns.tsm.tanzu.vmware.com":dn}
-
-    for k, v := range obj.ParentLabels {
-        parentLabels[k] = v
-    }
-	ret := &model.GnsDns {
-	Id: &dn,
-	ParentLabels: parentLabels,
-	}
-	log.Debugf("[getGnsGnsDnsResolver]Output object %v", ret)
-
-	return ret, nil
-}
-
 //////////////////////////////////////
 // CHILDREN RESOLVER
 // FieldName: GnsServiceGroups Node: Gns PKG: Gns

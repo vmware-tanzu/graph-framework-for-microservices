@@ -116,10 +116,10 @@ type GnsSpec struct {
 	WorkloadSpec              cartv1.WorkloadSpec  `json:"workloadSpec" yaml:"workloadSpec"`
 	DifferentSpec             *cartv1.WorkloadSpec `json:"differentSpec" yaml:"differentSpec"`
 	GnsServiceGroupsGvk       map[string]Child     `json:"gnsServiceGroupsGvk,omitempty" yaml:"gnsServiceGroupsGvk,omitempty" nexus:"children"`
-	GnsAccessControlPolicyGvk *Child               `json:"gnsAccessControlPolicyGvk,omitempty" yaml:"gnsAccessControlPolicyGvk,omitempty" nexus:"child"`
+	GnsAccessControlPolicyGvk *Child               `nexus:"child" nexus-graphql:"type:string"`
 	FooChildGvk               *Child               `nexus:"child" nexus-graphql:"type:string"`
 	IgnoreChildGvk            *Child               `nexus:"child" nexus-graphql:"ignore:true"`
-	DnsGvk                    *Link                `json:"dnsGvk,omitempty" yaml:"dnsGvk,omitempty" nexus:"link"`
+	DnsGvk                    *Link                `nexus:"link" nexus-graphql:"ignore:true"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
@@ -308,6 +308,15 @@ type HostPort struct {
 // +k8s:openapi-gen=true
 type ReplicationSource struct {
 	Kind SourceKind
+}
+
+// +k8s:openapi-gen=true
+type gnsQueryFilters struct {
+	StartTime           string
+	EndTime             string
+	Interval            string
+	IsServiceDeployment bool
+	StartVal            int
 }
 
 // +k8s:openapi-gen=true

@@ -52,8 +52,6 @@ models:
     fields:
       GnsServiceGroups:
         resolver: true
-      Dns:
-        resolver: true
       GnsAccessControlPolicy:
         resolver: true
       FooChild:

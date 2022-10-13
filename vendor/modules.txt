@@ -161,6 +161,9 @@ gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git/pkg/openapic
 gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git/pkg/schemamutation
 gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git/pkg/spec3
 gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git/pkg/validation/spec
+# golang-appnet.eng.vmware.com/nexus-sdk/nexus v0.2.19-0.20220923034407-590ee37ec521
+## explicit; go 1.17
+golang-appnet.eng.vmware.com/nexus-sdk/nexus/nexus
 # golang.org/x/mod v0.6.0-dev.0.20220106191415-9b9b3d81d5e3
 ## explicit; go 1.17
 golang.org/x/mod/internal/lazyregexp

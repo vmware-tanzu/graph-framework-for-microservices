@@ -2,9 +2,18 @@
 
 package model
 
+type NexusGraphqlResponse struct {
+	Code         *int    `json:"Code"`
+	Message      *string `json:"Message"`
+	Data         *string `json:"Data"`
+	Last         *string `json:"Last"`
+	TotalRecords *int    `json:"TotalRecords"`
+}
+
 type ConfigConfig struct {
 	Id                *string                      `json:"Id"`
 	ParentLabels      map[string]interface{}       `json:"ParentLabels"`
+	queryQueryExample *NexusGraphqlResponse        `json:"queryQueryExample"`
 	ACPPolicies       []*PolicyAccessControlPolicy `json:"ACPPolicies"`
 	FooExample        []*ConfigFooType             `json:"FooExample"`
 	MyStr0            *string                      `json:"MyStr0"`
@@ -58,8 +67,9 @@ type GnsDns struct {
 type GnsGns struct {
 	Id                     *string                    `json:"Id"`
 	ParentLabels           map[string]interface{}     `json:"ParentLabels"`
+	queryqueryGns1         *NexusGraphqlResponse      `json:"queryqueryGns1"`
+	queryqueryGns2         *NexusGraphqlResponse      `json:"queryqueryGns2"`
 	GnsServiceGroups       []*ServicegroupSvcGroup    `json:"GnsServiceGroups"`
-	Dns                    *GnsDns                    `json:"Dns"`
 	Domain                 *string                    `json:"Domain"`
 	UseSharedGateway       *bool                      `json:"UseSharedGateway"`
 	Description            *string                    `json:"Description"`

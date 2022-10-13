@@ -11,8 +11,8 @@ import (
 
 var _ = Describe("Template renderers tests", func() {
 	var (
-		pkgs       parser.Packages
-		parentsMap map[string]parser.NodeHelper
+		pkgs           parser.Packages
+		parentsMap     map[string]parser.NodeHelper
 		graphqlQueries map[string]nexus.GraphQLQuerySpec
 	)
 

@@ -15,6 +15,11 @@ func (r *queryResolver) Root(ctx context.Context) (*model.RootRoot, error) {
 	return getRootResolver()
 }
 
+// QueryQueryExample is the resolver for the queryQueryExample field.
+func (r *config_ConfigResolver) QueryQueryExample(ctx context.Context, obj *model.ConfigConfig, startTime *string, endTime *string, interval *string, isServiceDeployment *bool, startVal *int) (*model.NexusGraphqlResponse, error) {
+	return getConfigConfigqueryQueryExampleResolver(obj, startTime, endTime, interval, isServiceDeployment, startVal)
+}
+
 // ACPPolicies is the resolver for the ACPPolicies field.
 func (r *config_ConfigResolver) ACPPolicies(ctx context.Context, obj *model.ConfigConfig, id *string) ([]*model.PolicyAccessControlPolicy, error) {
 	return getConfigConfigACPPoliciesResolver(obj, id)
@@ -45,14 +50,19 @@ func (r *config_ConfigResolver) Domain(ctx context.Context, obj *model.ConfigCon
 	return getConfigConfigDomainResolver(obj, id)
 }
 
+// QueryqueryGns1 is the resolver for the queryqueryGns1 field.
+func (r *gns_GnsResolver) QueryqueryGns1(ctx context.Context, obj *model.GnsGns, startTime *string, endTime *string, interval *string, isServiceDeployment *bool, startVal *int) (*model.NexusGraphqlResponse, error) {
+	return getGnsGnsqueryqueryGns1Resolver(obj, startTime, endTime, interval, isServiceDeployment, startVal)
+}
+
+// QueryqueryGns2 is the resolver for the queryqueryGns2 field.
+func (r *gns_GnsResolver) QueryqueryGns2(ctx context.Context, obj *model.GnsGns) (*model.NexusGraphqlResponse, error) {
+	return getGnsGnsqueryqueryGns2Resolver(obj)
+}
+
 // GnsServiceGroups is the resolver for the GnsServiceGroups field.
 func (r *gns_GnsResolver) GnsServiceGroups(ctx context.Context, obj *model.GnsGns, id *string) ([]*model.ServicegroupSvcGroup, error) {
 	return getGnsGnsGnsServiceGroupsResolver(obj, id)
-}
-
-// Dns is the resolver for the Dns field.
-func (r *gns_GnsResolver) Dns(ctx context.Context, obj *model.GnsGns) (*model.GnsDns, error) {
-	return getGnsGnsDnsResolver(obj)
 }
 
 // GnsAccessControlPolicy is the resolver for the GnsAccessControlPolicy field.

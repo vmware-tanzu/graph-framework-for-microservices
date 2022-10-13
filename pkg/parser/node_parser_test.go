@@ -58,7 +58,7 @@ var _ = Describe("Node parser tests", func() {
 			fail = true
 		}
 
-		parser.ParseDSLNodes("../../example/test-utils/invalid-pkg-name-datamodel", baseGroupName)
+		parser.ParseDSLNodes("../../example/test-utils/invalid-pkg-name-datamodel", baseGroupName, nil, nil)
 		Expect(fail).To(BeTrue())
 	})
 
@@ -70,7 +70,7 @@ var _ = Describe("Node parser tests", func() {
 			fail = true
 		}
 
-		parser.ParseDSLNodes("../../example/test-utils/invalid-type-datamodel", baseGroupName)
+		parser.ParseDSLNodes("../../example/test-utils/invalid-type-datamodel", baseGroupName, nil, nil)
 		Expect(fail).To(BeTrue())
 	})
 
