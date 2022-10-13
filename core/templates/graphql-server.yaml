@@ -83,11 +83,24 @@ spec:
             - |
               #!/bin/bash
               set -x
-              echo "Creating custom route object"
+              echo "Creating custom route object - for base URL"
               echo 'apiVersion: route.nexus.org/v1
               kind: Route
               metadata:
                 name: graphql
+              spec:
+                service:
+                  Name: graphql
+                  Port: 8080
+                  Scheme: Http
+                resource:
+                  Name: graphql
+                uri: "/"' | kubectl -s nexus-api-gw:80 apply -f -
+              echo "Creating custom route object"
+              echo 'apiVersion: route.nexus.org/v1
+              kind: Route
+              metadata:
+                name: graphqlv2
               spec:
                 service:
                   Name: graphql
