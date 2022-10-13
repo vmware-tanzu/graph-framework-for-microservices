@@ -82,6 +82,17 @@ var DNSRestAPISpec = nexus.RestAPISpec{
 type MyConst string
 type SourceKind string
 
+type Port uint16
+type Host string
+
+type HostPort struct {
+	Host Host
+	Port Port
+}
+
+type Instance float32
+type AliasArr []int
+
 const (
 	Object SourceKind = "Object"
 	Type   SourceKind = "Type"
@@ -107,9 +118,17 @@ type Gns struct {
 	GnsAccessControlPolicy policypkg.AccessControlPolicy `nexus:"child"`
 	Dns                    Dns                           `nexus:"link"`
 	State                  GnsState                      `nexus:"status"`
+	FooChild               BarChild                      `nexus:"child" nexus-graphql:"type:string"`
+	IgnoreChild            IgnoreChild                   `nexus:"child" nexus-graphql:"ignore:true"`
 	Meta                   string
 
-	WorkloadSpec cartv1.WorkloadSpec //external-field
+	Port             *int         // pointer test
+	OtherDescription *Description // pointer test - struct
+	MapPointer       *map[string]string
+	SlicePointer     *[]string
+
+	WorkloadSpec  cartv1.WorkloadSpec  //external-field
+	DifferentSpec *cartv1.WorkloadSpec // external-field - pointer
 }
 
 // This is Description struct.
@@ -117,11 +136,28 @@ type Description struct {
 	Color     string
 	Version   string
 	ProjectId string
+	TestAns   []Answer
+	Instance  Instance
+	HostPort  HostPort
+}
+
+type BarChild struct {
+	nexus.SingletonNode
+	Name string
+}
+
+type IgnoreChild struct {
+	nexus.Node
+	Name string
 }
 
 // nexus-rest-api-gen:DNSRestAPISpec
 type Dns struct {
 	nexus.SingletonNode
+}
+
+type Answer struct {
+	Name string
 }
 
 type GnsState struct {

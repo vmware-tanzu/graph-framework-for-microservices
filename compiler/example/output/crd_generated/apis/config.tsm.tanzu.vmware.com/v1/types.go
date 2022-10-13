@@ -62,14 +62,20 @@ func (c *Config) DisplayName() string {
 
 // +k8s:openapi-gen=true
 type ConfigSpec struct {
-	MyStr0         *gnstsmtanzuvmwarecomv1.MyStr           `json:"myStr0" yaml:"myStr0"`
-	MyStr1         []gnstsmtanzuvmwarecomv1.MyStr          `json:"myStr1" yaml:"myStr1"`
-	MyStr2         map[string]gnstsmtanzuvmwarecomv1.MyStr `json:"myStr2" yaml:"myStr2"`
-	TestValMarkers TestValMarkers                          `json:"testValMarkers" yaml:"testValMarkers"`
-	GNSGvk         *Child                                  `json:"gNSGvk,omitempty" yaml:"gNSGvk,omitempty" nexus:"child"`
-	DNSGvk         *Child                                  `json:"dNSGvk,omitempty" yaml:"dNSGvk,omitempty" nexus:"child"`
-	VMPPoliciesGvk *Child                                  `json:"vMPPoliciesGvk,omitempty" yaml:"vMPPoliciesGvk,omitempty" nexus:"child"`
-	ACPPoliciesGvk map[string]Link                         `json:"aCPPoliciesGvk,omitempty" yaml:"aCPPoliciesGvk,omitempty" nexus:"links"`
+	MyStr0            *gnstsmtanzuvmwarecomv1.MyStr           `json:"myStr0" yaml:"myStr0"`
+	MyStr1            []gnstsmtanzuvmwarecomv1.MyStr          `json:"myStr1" yaml:"myStr1"`
+	MyStr2            map[string]gnstsmtanzuvmwarecomv1.MyStr `json:"myStr2" yaml:"myStr2"`
+	XYZPort           gnstsmtanzuvmwarecomv1.Port             `json:"xYZPort" yaml:"xYZPort"`
+	ABCHost           []gnstsmtanzuvmwarecomv1.Host           `json:"aBCHost" yaml:"aBCHost"`
+	ClusterNamespaces []ClusterNamespace                      `json:"clusterNamespaces" yaml:"clusterNamespaces"`
+	TestValMarkers    TestValMarkers                          `json:"testValMarkers" yaml:"testValMarkers"`
+	Instance          float32                                 `json:"instance" yaml:"instance"`
+	GNSGvk            *Child                                  `json:"gNSGvk,omitempty" yaml:"gNSGvk,omitempty" nexus:"child"`
+	DNSGvk            *Child                                  `json:"dNSGvk,omitempty" yaml:"dNSGvk,omitempty" nexus:"child"`
+	VMPPoliciesGvk    *Child                                  `json:"vMPPoliciesGvk,omitempty" yaml:"vMPPoliciesGvk,omitempty" nexus:"child"`
+	DomainGvk         *Child                                  `json:"domainGvk,omitempty" yaml:"domainGvk,omitempty" nexus:"child"`
+	FooExampleGvk     map[string]Child                        `json:"fooExampleGvk,omitempty" yaml:"fooExampleGvk,omitempty" nexus:"children"`
+	ACPPoliciesGvk    map[string]Link                         `json:"aCPPoliciesGvk,omitempty" yaml:"aCPPoliciesGvk,omitempty" nexus:"links"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
@@ -77,6 +83,117 @@ type ConfigList struct {
 	metav1.TypeMeta `json:",inline" yaml:",inline"`
 	metav1.ListMeta `json:"metadata" yaml:"metadata"`
 	Items           []Config `json:"items" yaml:"items"`
+}
+
+// +genclient
+// +genclient:noStatus
+// +genclient:nonNamespaced
+// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
+// +k8s:openapi-gen=true
+type FooType struct {
+	metav1.TypeMeta   `json:",inline" yaml:",inline"`
+	metav1.ObjectMeta `json:"metadata" yaml:"metadata"`
+	Spec              FooTypeSpec        `json:"spec,omitempty" yaml:"spec,omitempty"`
+	Status            FooTypeNexusStatus `json:"status,omitempty" yaml:"status,omitempty"`
+}
+
+// +k8s:openapi-gen=true
+type FooTypeNexusStatus struct {
+	Nexus NexusStatus `json:"nexus,omitempty" yaml:"nexus,omitempty"`
+}
+
+func (c *FooType) CRDName() string {
+	return "footypes.config.tsm.tanzu.vmware.com"
+}
+
+func (c *FooType) DisplayName() string {
+	if c.GetLabels() != nil {
+		return c.GetLabels()[common.DISPLAY_NAME_LABEL]
+	}
+	return ""
+}
+
+// +k8s:openapi-gen=true
+type FooTypeSpec struct {
+	FooA AMap   `json:"fooA" yaml:"fooA"`
+	FooB BArray `json:"fooB" yaml:"fooB"`
+	FooC CInt   `nexus-graphql:"ignore:true"`
+	FooD DFloat `nexus-graphql:"type:string"`
+	FooE CInt   `json:"foo_e" nexus-graphql:"ignore:true"`
+	FooF DFloat `json:"foo_f" yaml:"c_int" nexus-graphql:"type:string"`
+}
+
+// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
+type FooTypeList struct {
+	metav1.TypeMeta `json:",inline" yaml:",inline"`
+	metav1.ListMeta `json:"metadata" yaml:"metadata"`
+	Items           []FooType `json:"items" yaml:"items"`
+}
+
+// +genclient
+// +genclient:noStatus
+// +genclient:nonNamespaced
+// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
+// +k8s:openapi-gen=true
+type Domain struct {
+	metav1.TypeMeta   `json:",inline" yaml:",inline"`
+	metav1.ObjectMeta `json:"metadata" yaml:"metadata"`
+	Spec              DomainSpec        `json:"spec,omitempty" yaml:"spec,omitempty"`
+	Status            DomainNexusStatus `json:"status,omitempty" yaml:"status,omitempty"`
+}
+
+// +k8s:openapi-gen=true
+type DomainNexusStatus struct {
+	Nexus NexusStatus `json:"nexus,omitempty" yaml:"nexus,omitempty"`
+}
+
+func (c *Domain) CRDName() string {
+	return "domains.config.tsm.tanzu.vmware.com"
+}
+
+func (c *Domain) DisplayName() string {
+	if c.GetLabels() != nil {
+		return c.GetLabels()[common.DISPLAY_NAME_LABEL]
+	}
+	return ""
+}
+
+// +k8s:openapi-gen=true
+type DomainSpec struct {
+	PointPort        *gnstsmtanzuvmwarecomv1.Port `json:"pointPort" yaml:"pointPort"`
+	PointString      *string                      `json:"pointString" yaml:"pointString"`
+	PointInt         *int                         `json:"pointInt" yaml:"pointInt"`
+	PointMap         *map[string]string           `json:"pointMap" yaml:"pointMap"`
+	PointSlice       *[]string                    `json:"pointSlice" yaml:"pointSlice"`
+	SliceOfPoints    []*string                    `json:"sliceOfPoints" yaml:"sliceOfPoints"`
+	SliceOfArrPoints []*BArray                    `json:"sliceOfArrPoints" yaml:"sliceOfArrPoints"`
+	MapOfArrsPoints  map[string]*BArray           `json:"mapOfArrsPoints" yaml:"mapOfArrsPoints"`
+	PointStruct      *Cluster                     `json:"pointStruct" yaml:"pointStruct"`
+}
+
+// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
+type DomainList struct {
+	metav1.TypeMeta `json:",inline" yaml:",inline"`
+	metav1.ListMeta `json:"metadata" yaml:"metadata"`
+	Items           []Domain `json:"items" yaml:"items"`
+}
+
+// +k8s:openapi-gen=true
+type ClusterNamespace struct {
+	Cluster   MatchCondition
+	Namespace MatchCondition
+}
+
+// +k8s:openapi-gen=true
+type MatchCondition struct {
+	Name string
+	Type gnstsmtanzuvmwarecomv1.Host
+}
+
+// +k8s:openapi-gen=true
+type Cluster struct {
+	Name string
+	MyID int
 }
 
 // +k8s:openapi-gen=true
@@ -109,3 +226,8 @@ type StructWithEmbeddedField struct {
 	SomeStruct
 	gnstsmtanzuvmwarecomv1.MyStr
 }
+
+type AMap map[string]string
+type BArray []string
+type CInt uint8
+type DFloat float32

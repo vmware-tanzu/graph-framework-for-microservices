@@ -13,6 +13,8 @@ import (
 
 	log "github.com/sirupsen/logrus"
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/common-library.git/pkg/nexus"
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
 	"golang.org/x/tools/imports"
 
 	"github.com/vmware-tanzu/graph-framework-for-microservices/compiler/pkg/parser"
@@ -40,6 +42,18 @@ var helperTemplateFile []byte
 
 //go:embed template/client.go.tmpl
 var clientTemplateFile []byte
+
+//go:embed template/graphql/schema.graphqls.tmpl
+var graphqlSchemaTemplateFile []byte
+
+//go:embed template/graphql/gqlgen.yml.tmpl
+var gqlgenconfigTemplateFile []byte
+
+//go:embed template/graphql/graphqlResolver.go.tmpl
+var graphqlResolverTemplateFile []byte
+
+//go:embed template/graphql/server.go.tmpl
+var gqlserverTemplateFile []byte
 
 func RenderCRDTemplate(baseGroupName, crdModulePath string,
 	pkgs parser.Packages, graph map[string]parser.Node, outputDir string,
@@ -123,6 +137,15 @@ func RenderCRDTemplate(baseGroupName, crdModulePath string,
 		return err
 	}
 
+	err = RenderGraphQL(baseGroupName, outputDir, crdModulePath, pkgs, parentsMap)
+	if err != nil {
+		return err
+	}
+
+	err = RenderGqlserver(outputDir, crdModulePath)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -200,7 +223,7 @@ func RenderDocTemplate(baseGroupName string, pkg parser.Package) (*bytes.Buffer,
 		// TODO make it configurable
 		Version:     "v1",
 		GroupName:   pkg.Name + "." + baseGroupName,
-		GroupGoName: strings.Title(strings.ToLower(pkg.Name)) + strings.Title(strings.Split(baseGroupName, ".")[0]),
+		GroupGoName: cases.Title(language.Und, cases.NoLower).String(strings.ToLower(pkg.Name)) + cases.Title(language.Und, cases.NoLower).String(strings.Split(baseGroupName, ".")[0]),
 	}
 	if vars.GroupGoName == "" || vars.GroupName == "" {
 		return nil, fmt.Errorf("failed to determine group name of package")
@@ -346,7 +369,7 @@ func RenderCRDBaseTemplate(baseGroupName string, pkg parser.Package, parentsMap 
 		typeName := parser.GetTypeName(node)
 		groupName := pkg.Name + "." + baseGroupName
 		singular := strings.ToLower(typeName)
-		kind := strings.Title(typeName)
+		kind := cases.Title(language.Und, cases.NoLower).String(typeName)
 		plural := util.ToPlural(singular)
 		crdName := fmt.Sprintf("%s.%s", plural, groupName)
 
@@ -508,4 +531,119 @@ func RenderClientTemplate(baseGroupName, crdModulePath string, pkgs parser.Packa
 	}
 
 	return bytes.NewBuffer(out), nil
+}
+
+type GraphDetails struct {
+	BaseImportPath string
+	Nodes          []NodeProperty
+}
+
+func RenderGraphQL(baseGroupName, outputDir, crdModulePath string, pkgs parser.Packages, parentsMap map[string]parser.NodeHelper) error {
+	gqlFolder := outputDir + "/nexus-gql/graph"
+	var (
+		vars GraphDetails
+		err  error
+	)
+
+	vars.BaseImportPath = crdModulePath
+	vars.Nodes, err = GenerateGraphqlResolverVars(baseGroupName, crdModulePath, pkgs, parentsMap)
+	if err != nil {
+		return err
+	}
+	// Render Graphql Schema Template
+	file, err := RenderGraphqlSchemaTemplate(vars, crdModulePath)
+	if err != nil {
+		return err
+	}
+	log.Debugf("Rendered graphql schema template: %s", file)
+	err = createFile(gqlFolder, "schema.graphqls", file, false)
+	if err != nil {
+		return err
+	}
+
+	// Render Graphql Resolver Template
+	file, err = RenderGraphqlResolverTemplate(vars, crdModulePath)
+	if err != nil {
+		return err
+	}
+	log.Debugf("Rendered graphql Resolver template: %s", file)
+	if err = createFile(gqlFolder, "graphqlResolver.go", file, false); err != nil {
+		return err
+	}
+
+	gqlgenFolder := outputDir + "/nexus-gql"
+
+	// Render GQLGen Template
+	file, err = RenderGQLGenTemplate(vars, crdModulePath)
+	if err != nil {
+		return err
+	}
+	log.Debugf("Rendered gqlgen template: %s", file)
+	err = createFile(gqlgenFolder, "gqlgen.yml", file, false)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func RenderGraphqlSchemaTemplate(vars GraphDetails, crdModulePath string) (*bytes.Buffer, error) {
+	vars.BaseImportPath = crdModulePath
+	schemaTemplate, err := readTemplateFile(graphqlSchemaTemplateFile)
+	if err != nil {
+		return nil, err
+	}
+
+	return renderTemplate(schemaTemplate, vars)
+}
+
+func RenderGQLGenTemplate(vars GraphDetails, crdModulePath string) (*bytes.Buffer, error) {
+	vars.BaseImportPath = crdModulePath
+	gqlConfigTemplate, err := readTemplateFile(gqlgenconfigTemplateFile)
+	if err != nil {
+		return nil, err
+	}
+
+	return renderTemplate(gqlConfigTemplate, vars)
+}
+
+func RenderGraphqlResolverTemplate(vars GraphDetails, crdModulePath string) (*bytes.Buffer, error) {
+	vars.BaseImportPath = crdModulePath
+	gqlResolverTemplate, err := readTemplateFile(graphqlResolverTemplateFile)
+	if err != nil {
+		return nil, err
+	}
+
+	return renderTemplate(gqlResolverTemplate, vars)
+}
+
+type ServerVars struct {
+	BaseImportPath string
+}
+
+func RenderGqlserver(outputDir, crdModulePath string) error {
+	gqlserverFolder := outputDir + "/nexus-gql"
+
+	// Render Gql Server Template
+	var vars ServerVars
+	vars.BaseImportPath = crdModulePath
+	file, err := RenderGqlServerTemplate(vars)
+	if err != nil {
+		return err
+	}
+	log.Debugf("Rendered gqlserver template: %s", file)
+	err = createFile(gqlserverFolder, "server.go", file, false)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func RenderGqlServerTemplate(vars ServerVars) (*bytes.Buffer, error) {
+	registerGqlserverTemplate, err := readTemplateFile(gqlserverTemplateFile)
+	if err != nil {
+		return nil, err
+	}
+	return renderTemplate(registerGqlserverTemplate, vars)
 }

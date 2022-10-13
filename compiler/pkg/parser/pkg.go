@@ -83,6 +83,22 @@ func (p *Package) GetImportStrings() []string {
 	return importList
 }
 
+func (p *Package) GetImportMap() map[string]string {
+	var importMap = make(map[string]string)
+	imports := p.GetImports()
+	var importKey string
+	for _, val := range imports {
+		importVal := val.Path.Value
+		if val.Name != nil {
+			importKey = val.Name.String()
+		} else {
+			importKey = importVal[strings.LastIndex(importVal, "/")+1 : len(importVal)-1]
+		}
+		importMap[importKey] = importVal
+	}
+	return importMap
+}
+
 func (p *Package) GetNodes() []*ast.TypeSpec {
 	var nodes []*ast.TypeSpec
 	structs := p.GetStructs()
@@ -117,6 +133,20 @@ func (p *Package) GetStructs() []*ast.TypeSpec {
 		}
 	}
 	return structs
+}
+
+func (p *Package) GetNonStructTypes() []*ast.TypeSpec {
+	var nonStructs []*ast.TypeSpec
+	for _, genDecl := range p.GenDecls {
+		for _, spec := range genDecl.Specs {
+			if typeSpec, ok := spec.(*ast.TypeSpec); ok {
+				if _, ok := typeSpec.Type.(*ast.StructType); !ok {
+					nonStructs = append(nonStructs, typeSpec)
+				}
+			}
+		}
+	}
+	return nonStructs
 }
 
 func (p *Package) GetTypes() []ast.GenDecl {
@@ -229,6 +259,22 @@ func GetSpecFields(n *ast.TypeSpec) []*ast.Field {
 	return fields
 }
 
+func GetNexusFields(n *ast.TypeSpec) []*ast.Field {
+	var fields []*ast.Field
+	if n == nil {
+		return nil
+	}
+	if val, ok := n.Type.(*ast.StructType); ok {
+		for _, f := range val.Fields.List {
+			if IsNexusField(f) || IsNexusTypeField(f) {
+				fields = append(fields, f)
+			}
+		}
+	}
+
+	return fields
+}
+
 func GetChildFields(n *ast.TypeSpec) []*ast.Field {
 	var fields []*ast.Field
 	if n == nil {
@@ -291,6 +337,88 @@ func IsNamedChildOrLink(f *ast.Field) bool {
 		tags := ParseFieldTags(f.Tag.Value)
 		if val, err := tags.Get("nexus"); err == nil {
 			if strings.ToLower(val.Name) == "children" || strings.ToLower(val.Name) == "links" {
+				return true
+			}
+		}
+	}
+
+	return false
+}
+
+func IsOnlyChildrenField(f *ast.Field) bool {
+	if f == nil {
+		return false
+	}
+
+	if f.Tag != nil {
+		tags := ParseFieldTags(f.Tag.Value)
+		if val, err := tags.Get("nexus"); err == nil {
+			if strings.ToLower(val.Name) == "children" {
+				return true
+			}
+		}
+	}
+	return false
+}
+
+func IsOnlyChildField(f *ast.Field) bool {
+	if f == nil {
+		return false
+	}
+
+	if f.Tag != nil {
+		tags := ParseFieldTags(f.Tag.Value)
+		if val, err := tags.Get("nexus"); err == nil {
+			if strings.ToLower(val.Name) == "child" {
+				return true
+			}
+		}
+	}
+	return false
+}
+
+func IsOnlyLinkField(f *ast.Field) bool {
+	if f == nil {
+		return false
+	}
+
+	if f.Tag != nil {
+		tags := ParseFieldTags(f.Tag.Value)
+		if val, err := tags.Get("nexus"); err == nil {
+			if strings.ToLower(val.Name) == "link" {
+				return true
+			}
+		}
+	}
+	return false
+}
+
+func IgnoreField(f *ast.Field) bool {
+	if f == nil {
+		return false
+	}
+
+	if f.Tag != nil {
+		tags := ParseFieldTags(f.Tag.Value)
+		if val, err := tags.Get("nexus-graphql"); err == nil {
+			if strings.ToLower(val.Name) == "ignore:true" {
+				return true
+			}
+		}
+	}
+
+	return false
+}
+
+func IsJsonStringField(f *ast.Field) bool {
+	if f == nil {
+		return false
+	}
+
+	if f.Tag != nil {
+		tags := ParseFieldTags(f.Tag.Value)
+		if val, err := tags.Get("nexus-graphql"); err == nil {
+			if strings.ToLower(val.Name) == "type:string" {
 				return true
 			}
 		}
@@ -377,6 +505,18 @@ func IsArrayField(f *ast.Field) bool {
 	return false
 }
 
+func IsPointerToArrayField(f *ast.Field) bool {
+	if f == nil {
+		return false
+	}
+	if starExpr, ok := f.Type.(*ast.StarExpr); ok {
+		if _, ok := starExpr.X.(*ast.ArrayType); ok {
+			return true
+		}
+	}
+	return false
+}
+
 func GetNodeFieldName(f *ast.Field) (string, error) {
 	if f == nil {
 		return "", errors.New("provided field does not exist")
@@ -444,20 +584,10 @@ func GetFieldType(f *ast.Field) string {
 		}
 	case *ast.StarExpr:
 		star = true
+		sel = types.ExprString(fieldType)
 		if expr, ok := fieldType.X.(*ast.SelectorExpr); ok {
 			x = types.ExprString(expr.X)
 			sel = expr.Sel.String()
-		}
-
-		if mapExpr, ok := fieldType.X.(*ast.MapType); ok {
-			if selExpr, ok := mapExpr.Value.(*ast.SelectorExpr); ok {
-				x = types.ExprString(selExpr.X)
-				sel = selExpr.Sel.String()
-			}
-
-			if ident, ok := mapExpr.Value.(*ast.Ident); ok {
-				sel = ident.String()
-			}
 		}
 	case *ast.Ident:
 		sel = fieldType.String()
@@ -467,7 +597,7 @@ func GetFieldType(f *ast.Field) string {
 	if x == "" {
 		fieldType = sel
 	}
-	if star {
+	if x != "" && star {
 		fieldType = fmt.Sprintf("*%s", fieldType)
 	}
 

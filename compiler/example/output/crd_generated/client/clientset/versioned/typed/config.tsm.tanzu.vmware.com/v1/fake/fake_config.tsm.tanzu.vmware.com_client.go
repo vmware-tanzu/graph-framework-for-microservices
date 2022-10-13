@@ -33,6 +33,14 @@ func (c *FakeConfigTsmV1) Configs() v1.ConfigInterface {
 	return &FakeConfigs{c}
 }
 
+func (c *FakeConfigTsmV1) Domains() v1.DomainInterface {
+	return &FakeDomains{c}
+}
+
+func (c *FakeConfigTsmV1) FooTypes() v1.FooTypeInterface {
+	return &FakeFooTypes{c}
+}
+
 // RESTClient returns a RESTClient that is used to communicate
 // with API server by this client implementation.
 func (c *FakeConfigTsmV1) RESTClient() rest.Interface {

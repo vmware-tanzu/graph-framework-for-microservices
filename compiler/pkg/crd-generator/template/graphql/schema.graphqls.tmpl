@@ -1,0 +1,19 @@
+scalar Map
+
+{{- range $key, $node := .Nodes }}
+{{- if $node.IsParentNode }}
+type Query {
+{{- if $node.IsSingletonNode }}
+    root: {{ $node.SchemaName }}{{ else }}
+    root(Id: ID): [{{ $node.SchemaName }}!]{{ end }}
+}
+{{- else -}}
+{{- end -}}
+{{- if $node.IsNexusNode }}
+{{ $length := len $node.GraphqlSchemaFields }}{{- if eq $length 0 }}{{- else }}
+type {{ $node.SchemaName }} {
+    {{- range $key, $field := $node.GraphqlSchemaFields }}
+    {{ $field.SchemaFieldName -}}
+    {{- end }}
+}
+{{- end }}{{- end }}{{- end }}
