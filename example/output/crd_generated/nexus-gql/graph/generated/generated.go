@@ -1026,8 +1026,6 @@ type config_Domain {
 }
 
 type gns_Gns {
-    
-    
     Id: ID
 	ParentLabels: Map
     queryGns1(

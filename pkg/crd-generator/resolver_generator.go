@@ -5,6 +5,7 @@ import (
 	"go/ast"
 	"go/types"
 	"sort"
+	"unicode"
 
 	log "github.com/sirupsen/logrus"
 
@@ -351,10 +352,13 @@ func processNexusFields(pkg parser.Package, aliasNameMap map[string]string, node
 			fieldProp.SchemaFieldName = CustomQuerySchema
 			for _, customQuery := range nodeProp.CustomQueries {
 				fieldProp.SchemaFieldName += CustomQueryToGraphqlSchema(customQuery)
-				var customQueryFieldProp FieldProperty
-				customQueryFieldProp.IsResolver = true
-				customQueryFieldProp.FieldName = customQuery.Name
-				nodeProp.GraphqlSchemaFields = append(nodeProp.GraphqlSchemaFields, customQueryFieldProp)
+				if unicode.IsUpper(rune(customQuery.Name[0])) {
+					var customQueryFieldProp FieldProperty
+					customQueryFieldProp.IsResolver = true
+					customQueryFieldProp.FieldName = customQuery.Name
+					nodeProp.GraphqlSchemaFields = append(nodeProp.GraphqlSchemaFields, customQueryFieldProp)
+				}
+
 			}
 		}
 
