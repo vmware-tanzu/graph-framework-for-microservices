@@ -36,7 +36,7 @@ test:
     - *create_builder
     - CONTAINER_ID=$CONTAINER_ID PKG_NAME=/builds/${REPOSITORY} make test_in_container
     - CONTAINER_ID=$CONTAINER_ID PKG_NAME=/builds/${REPOSITORY} make test_render_templates
-    #- CONTAINER_ID=$CONTAINER_ID PKG_NAME=/builds/${REPOSITORY} make test_generate_code_in_container
+    - CONTAINER_ID=$CONTAINER_ID PKG_NAME=/builds/${REPOSITORY} make test_generate_code_in_container
 
 build:
   stage: build

@@ -38,58 +38,6 @@ spec:
             type: object
           spec:
             properties:
-              DnsGvk:
-                properties:
-                  group:
-                    type: string
-                  kind:
-                    type: string
-                  name:
-                    type: string
-                required:
-                - group
-                - kind
-                - name
-                type: object
-              FooChildGvk:
-                properties:
-                  group:
-                    type: string
-                  kind:
-                    type: string
-                  name:
-                    type: string
-                required:
-                - group
-                - kind
-                - name
-                type: object
-              GnsAccessControlPolicyGvk:
-                properties:
-                  group:
-                    type: string
-                  kind:
-                    type: string
-                  name:
-                    type: string
-                required:
-                - group
-                - kind
-                - name
-                type: object
-              IgnoreChildGvk:
-                properties:
-                  group:
-                    type: string
-                  kind:
-                    type: string
-                  name:
-                    type: string
-                required:
-                - group
-                - kind
-                - name
-                type: object
               description:
                 properties:
                   Color:
@@ -132,11 +80,50 @@ spec:
               differentSpec:
                 type: object
                 x-kubernetes-preserve-unknown-fields: true
+              dnsGvk:
+                properties:
+                  group:
+                    type: string
+                  kind:
+                    type: string
+                  name:
+                    type: string
+                required:
+                - group
+                - kind
+                - name
+                type: object
               domain:
                 maxLength: 8
                 minLength: 2
                 pattern: abc
                 type: string
+              fooChildGvk:
+                properties:
+                  group:
+                    type: string
+                  kind:
+                    type: string
+                  name:
+                    type: string
+                required:
+                - group
+                - kind
+                - name
+                type: object
+              gnsAccessControlPolicyGvk:
+                properties:
+                  group:
+                    type: string
+                  kind:
+                    type: string
+                  name:
+                    type: string
+                required:
+                - group
+                - kind
+                - name
+                type: object
               gnsServiceGroupsGvk:
                 additionalProperties:
                   properties:
@@ -151,6 +138,19 @@ spec:
                   - kind
                   - name
                   type: object
+                type: object
+              ignoreChildGvk:
+                properties:
+                  group:
+                    type: string
+                  kind:
+                    type: string
+                  name:
+                    type: string
+                required:
+                - group
+                - kind
+                - name
                 type: object
               mapPointer:
                 additionalProperties:
@@ -220,10 +220,6 @@ spec:
             - slicePointer
             - workloadSpec
             - differentSpec
-            - GnsAccessControlPolicyGvk
-            - FooChildGvk
-            - IgnoreChildGvk
-            - DnsGvk
             type: object
           status:
             properties:
