@@ -36,6 +36,8 @@ models:
         resolver: true
   config_Config:
     fields:
+      QueryExample:
+        resolver: true
       ACPPolicies:
         resolver: true
       FooExample:
@@ -50,6 +52,10 @@ models:
         resolver: true
   gns_Gns:
     fields:
+      queryGns1:
+        resolver: true
+      queryGns2:
+        resolver: true
       GnsServiceGroups:
         resolver: true
       GnsAccessControlPolicy:

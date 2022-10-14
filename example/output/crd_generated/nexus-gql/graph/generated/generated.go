@@ -75,7 +75,7 @@ type ComplexityRoot struct {
 		MyStr1            func(childComplexity int) int
 		MyStr2            func(childComplexity int) int
 		ParentLabels      func(childComplexity int) int
-		QueryQueryExample func(childComplexity int, startTime *string, endTime *string, interval *string, isServiceDeployment *bool, startVal *int) int
+		QueryExample      func(childComplexity int, startTime *string, endTime *string, interval *string, isServiceDeployment *bool, startVal *int) int
 		TestValMarkers    func(childComplexity int) int
 		VMPPolicies       func(childComplexity int, id *string) int
 		XYZPort           func(childComplexity int) int
@@ -128,8 +128,8 @@ type ComplexityRoot struct {
 		OtherDescription       func(childComplexity int) int
 		ParentLabels           func(childComplexity int) int
 		Port                   func(childComplexity int) int
-		QueryqueryGns1         func(childComplexity int, startTime *string, endTime *string, interval *string, isServiceDeployment *bool, startVal *int) int
-		QueryqueryGns2         func(childComplexity int) int
+		QueryGns1              func(childComplexity int, startTime *string, endTime *string, interval *string, isServiceDeployment *bool, startVal *int) int
+		QueryGns2              func(childComplexity int) int
 		SlicePointer           func(childComplexity int) int
 		UseSharedGateway       func(childComplexity int) int
 		WorkloadSpec           func(childComplexity int) int
@@ -184,7 +184,7 @@ type QueryResolver interface {
 	Root(ctx context.Context) (*model.RootRoot, error)
 }
 type Config_ConfigResolver interface {
-	QueryQueryExample(ctx context.Context, obj *model.ConfigConfig, startTime *string, endTime *string, interval *string, isServiceDeployment *bool, startVal *int) (*model.NexusGraphqlResponse, error)
+	QueryExample(ctx context.Context, obj *model.ConfigConfig, startTime *string, endTime *string, interval *string, isServiceDeployment *bool, startVal *int) (*model.NexusGraphqlResponse, error)
 	ACPPolicies(ctx context.Context, obj *model.ConfigConfig, id *string) ([]*model.PolicyAccessControlPolicy, error)
 	FooExample(ctx context.Context, obj *model.ConfigConfig, id *string) ([]*model.ConfigFooType, error)
 
@@ -194,8 +194,8 @@ type Config_ConfigResolver interface {
 	Domain(ctx context.Context, obj *model.ConfigConfig, id *string) (*model.ConfigDomain, error)
 }
 type Gns_GnsResolver interface {
-	QueryqueryGns1(ctx context.Context, obj *model.GnsGns, startTime *string, endTime *string, interval *string, isServiceDeployment *bool, startVal *int) (*model.NexusGraphqlResponse, error)
-	QueryqueryGns2(ctx context.Context, obj *model.GnsGns) (*model.NexusGraphqlResponse, error)
+	QueryGns1(ctx context.Context, obj *model.GnsGns, startTime *string, endTime *string, interval *string, isServiceDeployment *bool, startVal *int) (*model.NexusGraphqlResponse, error)
+	QueryGns2(ctx context.Context, obj *model.GnsGns) (*model.NexusGraphqlResponse, error)
 	GnsServiceGroups(ctx context.Context, obj *model.GnsGns, id *string) ([]*model.ServicegroupSvcGroup, error)
 
 	GnsAccessControlPolicy(ctx context.Context, obj *model.GnsGns, id *string) (*model.PolicyAccessControlPolicy, error)
@@ -380,17 +380,17 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Config_Config.ParentLabels(childComplexity), true
 
-	case "config_Config.queryQueryExample":
-		if e.complexity.Config_Config.QueryQueryExample == nil {
+	case "config_Config.QueryExample":
+		if e.complexity.Config_Config.QueryExample == nil {
 			break
 		}
 
-		args, err := ec.field_config_Config_queryQueryExample_args(context.TODO(), rawArgs)
+		args, err := ec.field_config_Config_QueryExample_args(context.TODO(), rawArgs)
 		if err != nil {
 			return 0, false
 		}
 
-		return e.complexity.Config_Config.QueryQueryExample(childComplexity, args["StartTime"].(*string), args["EndTime"].(*string), args["Interval"].(*string), args["IsServiceDeployment"].(*bool), args["StartVal"].(*int)), true
+		return e.complexity.Config_Config.QueryExample(childComplexity, args["StartTime"].(*string), args["EndTime"].(*string), args["Interval"].(*string), args["IsServiceDeployment"].(*bool), args["StartVal"].(*int)), true
 
 	case "config_Config.TestValMarkers":
 		if e.complexity.Config_Config.TestValMarkers == nil {
@@ -666,24 +666,24 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Gns_Gns.Port(childComplexity), true
 
-	case "gns_Gns.queryqueryGns1":
-		if e.complexity.Gns_Gns.QueryqueryGns1 == nil {
+	case "gns_Gns.queryGns1":
+		if e.complexity.Gns_Gns.QueryGns1 == nil {
 			break
 		}
 
-		args, err := ec.field_gns_Gns_queryqueryGns1_args(context.TODO(), rawArgs)
+		args, err := ec.field_gns_Gns_queryGns1_args(context.TODO(), rawArgs)
 		if err != nil {
 			return 0, false
 		}
 
-		return e.complexity.Gns_Gns.QueryqueryGns1(childComplexity, args["StartTime"].(*string), args["EndTime"].(*string), args["Interval"].(*string), args["IsServiceDeployment"].(*bool), args["StartVal"].(*int)), true
+		return e.complexity.Gns_Gns.QueryGns1(childComplexity, args["StartTime"].(*string), args["EndTime"].(*string), args["Interval"].(*string), args["IsServiceDeployment"].(*bool), args["StartVal"].(*int)), true
 
-	case "gns_Gns.queryqueryGns2":
-		if e.complexity.Gns_Gns.QueryqueryGns2 == nil {
+	case "gns_Gns.queryGns2":
+		if e.complexity.Gns_Gns.QueryGns2 == nil {
 			break
 		}
 
-		return e.complexity.Gns_Gns.QueryqueryGns2(childComplexity), true
+		return e.complexity.Gns_Gns.QueryGns2(childComplexity), true
 
 	case "gns_Gns.SlicePointer":
 		if e.complexity.Gns_Gns.SlicePointer == nil {
@@ -973,9 +973,10 @@ type root_Root {
 }
 
 type config_Config {
+    
     Id: ID
 	ParentLabels: Map
-    queryQueryExample(
+    QueryExample(
         StartTime: String
         EndTime: String
         Interval: String
@@ -1025,16 +1026,18 @@ type config_Domain {
 }
 
 type gns_Gns {
+    
+    
     Id: ID
 	ParentLabels: Map
-    queryqueryGns1(
+    queryGns1(
         StartTime: String
         EndTime: String
         Interval: String
         IsServiceDeployment: Boolean
         StartVal: Int
     ): NexusGraphqlResponse
-    queryqueryGns2: NexusGraphqlResponse
+    queryGns2: NexusGraphqlResponse
 
     GnsServiceGroups(Id: ID): [servicegroup_SvcGroup!]
     
@@ -1232,22 +1235,7 @@ func (ec *executionContext) field_config_Config_GNS_args(ctx context.Context, ra
 	return args, nil
 }
 
-func (ec *executionContext) field_config_Config_VMPPolicies_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 *string
-	if tmp, ok := rawArgs["Id"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("Id"))
-		arg0, err = ec.unmarshalOID2ᚖstring(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["Id"] = arg0
-	return args, nil
-}
-
-func (ec *executionContext) field_config_Config_queryQueryExample_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+func (ec *executionContext) field_config_Config_QueryExample_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
 	var arg0 *string
@@ -1298,6 +1286,21 @@ func (ec *executionContext) field_config_Config_queryQueryExample_args(ctx conte
 	return args, nil
 }
 
+func (ec *executionContext) field_config_Config_VMPPolicies_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *string
+	if tmp, ok := rawArgs["Id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("Id"))
+		arg0, err = ec.unmarshalOID2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["Id"] = arg0
+	return args, nil
+}
+
 func (ec *executionContext) field_gns_Gns_GnsAccessControlPolicy_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -1328,7 +1331,7 @@ func (ec *executionContext) field_gns_Gns_GnsServiceGroups_args(ctx context.Cont
 	return args, nil
 }
 
-func (ec *executionContext) field_gns_Gns_queryqueryGns1_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+func (ec *executionContext) field_gns_Gns_queryGns1_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
 	var arg0 *string
@@ -3681,8 +3684,8 @@ func (ec *executionContext) fieldContext_config_Config_ParentLabels(ctx context.
 	return fc, nil
 }
 
-func (ec *executionContext) _config_Config_queryQueryExample(ctx context.Context, field graphql.CollectedField, obj *model.ConfigConfig) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_config_Config_queryQueryExample(ctx, field)
+func (ec *executionContext) _config_Config_QueryExample(ctx context.Context, field graphql.CollectedField, obj *model.ConfigConfig) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_config_Config_QueryExample(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -3695,7 +3698,7 @@ func (ec *executionContext) _config_Config_queryQueryExample(ctx context.Context
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Config_Config().QueryQueryExample(rctx, obj, fc.Args["StartTime"].(*string), fc.Args["EndTime"].(*string), fc.Args["Interval"].(*string), fc.Args["IsServiceDeployment"].(*bool), fc.Args["StartVal"].(*int))
+		return ec.resolvers.Config_Config().QueryExample(rctx, obj, fc.Args["StartTime"].(*string), fc.Args["EndTime"].(*string), fc.Args["Interval"].(*string), fc.Args["IsServiceDeployment"].(*bool), fc.Args["StartVal"].(*int))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -3709,7 +3712,7 @@ func (ec *executionContext) _config_Config_queryQueryExample(ctx context.Context
 	return ec.marshalONexusGraphqlResponse2ᚖnexustempmoduleᚋnexusᚑgqlᚋgraphᚋmodelᚐNexusGraphqlResponse(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_config_Config_queryQueryExample(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_config_Config_QueryExample(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "config_Config",
 		Field:      field,
@@ -3738,7 +3741,7 @@ func (ec *executionContext) fieldContext_config_Config_queryQueryExample(ctx con
 		}
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_config_Config_queryQueryExample_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+	if fc.Args, err = ec.field_config_Config_QueryExample_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return
 	}
@@ -4242,10 +4245,10 @@ func (ec *executionContext) fieldContext_config_Config_GNS(ctx context.Context, 
 				return ec.fieldContext_gns_Gns_Id(ctx, field)
 			case "ParentLabels":
 				return ec.fieldContext_gns_Gns_ParentLabels(ctx, field)
-			case "queryqueryGns1":
-				return ec.fieldContext_gns_Gns_queryqueryGns1(ctx, field)
-			case "queryqueryGns2":
-				return ec.fieldContext_gns_Gns_queryqueryGns2(ctx, field)
+			case "queryGns1":
+				return ec.fieldContext_gns_Gns_queryGns1(ctx, field)
+			case "queryGns2":
+				return ec.fieldContext_gns_Gns_queryGns2(ctx, field)
 			case "GnsServiceGroups":
 				return ec.fieldContext_gns_Gns_GnsServiceGroups(ctx, field)
 			case "Domain":
@@ -5464,8 +5467,8 @@ func (ec *executionContext) fieldContext_gns_Gns_ParentLabels(ctx context.Contex
 	return fc, nil
 }
 
-func (ec *executionContext) _gns_Gns_queryqueryGns1(ctx context.Context, field graphql.CollectedField, obj *model.GnsGns) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_gns_Gns_queryqueryGns1(ctx, field)
+func (ec *executionContext) _gns_Gns_queryGns1(ctx context.Context, field graphql.CollectedField, obj *model.GnsGns) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_gns_Gns_queryGns1(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -5478,7 +5481,7 @@ func (ec *executionContext) _gns_Gns_queryqueryGns1(ctx context.Context, field g
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Gns_Gns().QueryqueryGns1(rctx, obj, fc.Args["StartTime"].(*string), fc.Args["EndTime"].(*string), fc.Args["Interval"].(*string), fc.Args["IsServiceDeployment"].(*bool), fc.Args["StartVal"].(*int))
+		return ec.resolvers.Gns_Gns().QueryGns1(rctx, obj, fc.Args["StartTime"].(*string), fc.Args["EndTime"].(*string), fc.Args["Interval"].(*string), fc.Args["IsServiceDeployment"].(*bool), fc.Args["StartVal"].(*int))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -5492,7 +5495,7 @@ func (ec *executionContext) _gns_Gns_queryqueryGns1(ctx context.Context, field g
 	return ec.marshalONexusGraphqlResponse2ᚖnexustempmoduleᚋnexusᚑgqlᚋgraphᚋmodelᚐNexusGraphqlResponse(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_gns_Gns_queryqueryGns1(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_gns_Gns_queryGns1(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "gns_Gns",
 		Field:      field,
@@ -5521,15 +5524,15 @@ func (ec *executionContext) fieldContext_gns_Gns_queryqueryGns1(ctx context.Cont
 		}
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_gns_Gns_queryqueryGns1_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+	if fc.Args, err = ec.field_gns_Gns_queryGns1_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return
 	}
 	return fc, nil
 }
 
-func (ec *executionContext) _gns_Gns_queryqueryGns2(ctx context.Context, field graphql.CollectedField, obj *model.GnsGns) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_gns_Gns_queryqueryGns2(ctx, field)
+func (ec *executionContext) _gns_Gns_queryGns2(ctx context.Context, field graphql.CollectedField, obj *model.GnsGns) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_gns_Gns_queryGns2(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -5542,7 +5545,7 @@ func (ec *executionContext) _gns_Gns_queryqueryGns2(ctx context.Context, field g
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Gns_Gns().QueryqueryGns2(rctx, obj)
+		return ec.resolvers.Gns_Gns().QueryGns2(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -5556,7 +5559,7 @@ func (ec *executionContext) _gns_Gns_queryqueryGns2(ctx context.Context, field g
 	return ec.marshalONexusGraphqlResponse2ᚖnexustempmoduleᚋnexusᚑgqlᚋgraphᚋmodelᚐNexusGraphqlResponse(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_gns_Gns_queryqueryGns2(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_gns_Gns_queryGns2(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "gns_Gns",
 		Field:      field,
@@ -7112,8 +7115,8 @@ func (ec *executionContext) fieldContext_root_Root_Config(ctx context.Context, f
 				return ec.fieldContext_config_Config_Id(ctx, field)
 			case "ParentLabels":
 				return ec.fieldContext_config_Config_ParentLabels(ctx, field)
-			case "queryQueryExample":
-				return ec.fieldContext_config_Config_queryQueryExample(ctx, field)
+			case "QueryExample":
+				return ec.fieldContext_config_Config_QueryExample(ctx, field)
 			case "ACPPolicies":
 				return ec.fieldContext_config_Config_ACPPolicies(ctx, field)
 			case "FooExample":
@@ -7812,7 +7815,7 @@ func (ec *executionContext) _config_Config(ctx context.Context, sel ast.Selectio
 
 			out.Values[i] = ec._config_Config_ParentLabels(ctx, field, obj)
 
-		case "queryQueryExample":
+		case "QueryExample":
 			field := field
 
 			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
@@ -7821,7 +7824,7 @@ func (ec *executionContext) _config_Config(ctx context.Context, sel ast.Selectio
 						ec.Error(ctx, ec.Recover(ctx, r))
 					}
 				}()
-				res = ec._config_Config_queryQueryExample(ctx, field, obj)
+				res = ec._config_Config_QueryExample(ctx, field, obj)
 				return res
 			}
 
@@ -8176,7 +8179,7 @@ func (ec *executionContext) _gns_Gns(ctx context.Context, sel ast.SelectionSet, 
 
 			out.Values[i] = ec._gns_Gns_ParentLabels(ctx, field, obj)
 
-		case "queryqueryGns1":
+		case "queryGns1":
 			field := field
 
 			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
@@ -8185,7 +8188,7 @@ func (ec *executionContext) _gns_Gns(ctx context.Context, sel ast.SelectionSet, 
 						ec.Error(ctx, ec.Recover(ctx, r))
 					}
 				}()
-				res = ec._gns_Gns_queryqueryGns1(ctx, field, obj)
+				res = ec._gns_Gns_queryGns1(ctx, field, obj)
 				return res
 			}
 
@@ -8193,7 +8196,7 @@ func (ec *executionContext) _gns_Gns(ctx context.Context, sel ast.SelectionSet, 
 				return innerFunc(ctx)
 
 			})
-		case "queryqueryGns2":
+		case "queryGns2":
 			field := field
 
 			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
@@ -8202,7 +8205,7 @@ func (ec *executionContext) _gns_Gns(ctx context.Context, sel ast.SelectionSet, 
 						ec.Error(ctx, ec.Recover(ctx, r))
 					}
 				}()
-				res = ec._gns_Gns_queryqueryGns2(ctx, field, obj)
+				res = ec._gns_Gns_queryGns2(ctx, field, obj)
 				return res
 			}
 

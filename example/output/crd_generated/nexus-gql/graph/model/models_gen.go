@@ -13,7 +13,7 @@ type NexusGraphqlResponse struct {
 type ConfigConfig struct {
 	Id                *string                      `json:"Id"`
 	ParentLabels      map[string]interface{}       `json:"ParentLabels"`
-	queryQueryExample *NexusGraphqlResponse        `json:"queryQueryExample"`
+	QueryExample      *NexusGraphqlResponse        `json:"QueryExample"`
 	ACPPolicies       []*PolicyAccessControlPolicy `json:"ACPPolicies"`
 	FooExample        []*ConfigFooType             `json:"FooExample"`
 	MyStr0            *string                      `json:"MyStr0"`
@@ -67,8 +67,8 @@ type GnsDns struct {
 type GnsGns struct {
 	Id                     *string                    `json:"Id"`
 	ParentLabels           map[string]interface{}     `json:"ParentLabels"`
-	queryqueryGns1         *NexusGraphqlResponse      `json:"queryqueryGns1"`
-	queryqueryGns2         *NexusGraphqlResponse      `json:"queryqueryGns2"`
+	queryGns1              *NexusGraphqlResponse      `json:"queryGns1"`
+	queryGns2              *NexusGraphqlResponse      `json:"queryGns2"`
 	GnsServiceGroups       []*ServicegroupSvcGroup    `json:"GnsServiceGroups"`
 	Domain                 *string                    `json:"Domain"`
 	UseSharedGateway       *bool                      `json:"UseSharedGateway"`

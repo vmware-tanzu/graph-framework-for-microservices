@@ -11,9 +11,10 @@ type root_Root {
 }
 
 type config_Config {
+    
     Id: ID
 	ParentLabels: Map
-    queryQueryExample(
+    QueryExample(
         StartTime: String
         EndTime: String
         Interval: String
@@ -63,16 +64,18 @@ type config_Domain {
 }
 
 type gns_Gns {
+    
+    
     Id: ID
 	ParentLabels: Map
-    queryqueryGns1(
+    queryGns1(
         StartTime: String
         EndTime: String
         Interval: String
         IsServiceDeployment: Boolean
         StartVal: Int
     ): NexusGraphqlResponse
-    queryqueryGns2: NexusGraphqlResponse
+    queryGns2: NexusGraphqlResponse
 
     GnsServiceGroups(Id: ID): [servicegroup_SvcGroup!]
     

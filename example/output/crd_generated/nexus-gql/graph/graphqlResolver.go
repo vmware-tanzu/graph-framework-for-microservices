@@ -79,7 +79,7 @@ func getRootResolver() (*model.RootRoot, error) {
 }
 
 // Custom query
-func getConfigConfigqueryQueryExampleResolver(obj *model.ConfigConfig, StartTime *string, EndTime *string, Interval *string, IsServiceDeployment *bool, StartVal *int) (*model.NexusGraphqlResponse, error) {
+func getConfigConfigQueryExampleResolver(obj *model.ConfigConfig, StartTime *string, EndTime *string, Interval *string, IsServiceDeployment *bool, StartVal *int) (*model.NexusGraphqlResponse, error) {
 	parentLabels := make(map[string]string)
 	if obj != nil {
 		for k, v := range obj.ParentLabels {
@@ -104,7 +104,7 @@ func getConfigConfigqueryQueryExampleResolver(obj *model.ConfigConfig, StartTime
 }
 
 // Custom query
-func getGnsGnsqueryqueryGns1Resolver(obj *model.GnsGns, StartTime *string, EndTime *string, Interval *string, IsServiceDeployment *bool, StartVal *int) (*model.NexusGraphqlResponse, error) {
+func getGnsGnsqueryGns1Resolver(obj *model.GnsGns, StartTime *string, EndTime *string, Interval *string, IsServiceDeployment *bool, StartVal *int) (*model.NexusGraphqlResponse, error) {
 	parentLabels := make(map[string]string)
 	if obj != nil {
 		for k, v := range obj.ParentLabels {
@@ -129,7 +129,7 @@ func getGnsGnsqueryqueryGns1Resolver(obj *model.GnsGns, StartTime *string, EndTi
 }
 
 // Custom query
-func getGnsGnsqueryqueryGns2Resolver(obj *model.GnsGns) (*model.NexusGraphqlResponse, error) {
+func getGnsGnsqueryGns2Resolver(obj *model.GnsGns) (*model.NexusGraphqlResponse, error) {
 	parentLabels := make(map[string]string)
 	if obj != nil {
 		for k, v := range obj.ParentLabels {

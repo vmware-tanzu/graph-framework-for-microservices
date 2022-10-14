@@ -15,9 +15,9 @@ func (r *queryResolver) Root(ctx context.Context) (*model.RootRoot, error) {
 	return getRootResolver()
 }
 
-// QueryQueryExample is the resolver for the queryQueryExample field.
-func (r *config_ConfigResolver) QueryQueryExample(ctx context.Context, obj *model.ConfigConfig, startTime *string, endTime *string, interval *string, isServiceDeployment *bool, startVal *int) (*model.NexusGraphqlResponse, error) {
-	return getConfigConfigqueryQueryExampleResolver(obj, startTime, endTime, interval, isServiceDeployment, startVal)
+// QueryExample is the resolver for the QueryExample field.
+func (r *config_ConfigResolver) QueryExample(ctx context.Context, obj *model.ConfigConfig, startTime *string, endTime *string, interval *string, isServiceDeployment *bool, startVal *int) (*model.NexusGraphqlResponse, error) {
+	return getConfigConfigQueryExampleResolver(obj, startTime, endTime, interval, isServiceDeployment, startVal)
 }
 
 // ACPPolicies is the resolver for the ACPPolicies field.
@@ -50,14 +50,14 @@ func (r *config_ConfigResolver) Domain(ctx context.Context, obj *model.ConfigCon
 	return getConfigConfigDomainResolver(obj, id)
 }
 
-// QueryqueryGns1 is the resolver for the queryqueryGns1 field.
-func (r *gns_GnsResolver) QueryqueryGns1(ctx context.Context, obj *model.GnsGns, startTime *string, endTime *string, interval *string, isServiceDeployment *bool, startVal *int) (*model.NexusGraphqlResponse, error) {
-	return getGnsGnsqueryqueryGns1Resolver(obj, startTime, endTime, interval, isServiceDeployment, startVal)
+// QueryGns1 is the resolver for the queryGns1 field.
+func (r *gns_GnsResolver) QueryGns1(ctx context.Context, obj *model.GnsGns, startTime *string, endTime *string, interval *string, isServiceDeployment *bool, startVal *int) (*model.NexusGraphqlResponse, error) {
+	return getGnsGnsqueryGns1Resolver(obj, startTime, endTime, interval, isServiceDeployment, startVal)
 }
 
-// QueryqueryGns2 is the resolver for the queryqueryGns2 field.
-func (r *gns_GnsResolver) QueryqueryGns2(ctx context.Context, obj *model.GnsGns) (*model.NexusGraphqlResponse, error) {
-	return getGnsGnsqueryqueryGns2Resolver(obj)
+// QueryGns2 is the resolver for the queryGns2 field.
+func (r *gns_GnsResolver) QueryGns2(ctx context.Context, obj *model.GnsGns) (*model.NexusGraphqlResponse, error) {
+	return getGnsGnsqueryGns2Resolver(obj)
 }
 
 // GnsServiceGroups is the resolver for the GnsServiceGroups field.

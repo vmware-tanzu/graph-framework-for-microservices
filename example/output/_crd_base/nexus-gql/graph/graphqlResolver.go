@@ -19,7 +19,6 @@ import (
 var c = CustomQueryHandler{
 		mtx: sync.Mutex{},
 		Clients: map[string]graphql.ServerClient{},
-	},
 }
 var nc *nexus_client.Clientset
 
@@ -77,6 +76,85 @@ parentLabels := map[string]interface{}{"roots.root.tsm.tanzu.vmware.com":dn}
 	log.Debugf("[getRootResolver]Output Root object %+v", ret)
 	return ret, nil
 }
+
+// Custom query
+func getConfigConfigQueryExampleResolver(obj *model.ConfigConfig,  StartTime *string,  EndTime *string,  Interval *string,  IsServiceDeployment *bool,  StartVal *int, ) (*model.NexusGraphqlResponse, error) {
+	parentLabels := make(map[string]string)
+	if obj != nil {
+		for k, v := range obj.ParentLabels {
+			val, ok := v.(string)
+			if ok {
+				parentLabels[k] = val
+			}
+		}
+	}
+	query := &graphql.GraphQLQuery{
+		Query: "QueryExample",
+		UserProvidedArgs: map[string]string{
+			"StartTime": pointerToString(StartTime),
+			"EndTime": pointerToString(EndTime),
+			"Interval": pointerToString(Interval),
+			"IsServiceDeployment": pointerToString(IsServiceDeployment),
+			"StartVal": pointerToString(StartVal),
+		},
+		Hierarchy: parentLabels,
+	}
+	return c.Query("query-manager:6000", query)
+}
+
+
+
+// Custom query
+func getGnsGnsqueryGns1Resolver(obj *model.GnsGns,  StartTime *string,  EndTime *string,  Interval *string,  IsServiceDeployment *bool,  StartVal *int, ) (*model.NexusGraphqlResponse, error) {
+	parentLabels := make(map[string]string)
+	if obj != nil {
+		for k, v := range obj.ParentLabels {
+			val, ok := v.(string)
+			if ok {
+				parentLabels[k] = val
+			}
+		}
+	}
+	query := &graphql.GraphQLQuery{
+		Query: "queryGns1",
+		UserProvidedArgs: map[string]string{
+			"StartTime": pointerToString(StartTime),
+			"EndTime": pointerToString(EndTime),
+			"Interval": pointerToString(Interval),
+			"IsServiceDeployment": pointerToString(IsServiceDeployment),
+			"StartVal": pointerToString(StartVal),
+		},
+		Hierarchy: parentLabels,
+	}
+	return c.Query("query-manager:15000", query)
+}
+// Custom query
+func getGnsGnsqueryGns2Resolver(obj *model.GnsGns, ) (*model.NexusGraphqlResponse, error) {
+	parentLabels := make(map[string]string)
+	if obj != nil {
+		for k, v := range obj.ParentLabels {
+			val, ok := v.(string)
+			if ok {
+				parentLabels[k] = val
+			}
+		}
+	}
+	query := &graphql.GraphQLQuery{
+		Query: "queryGns2",
+		UserProvidedArgs: map[string]string{
+		},
+		Hierarchy: parentLabels,
+	}
+	return c.Query("query-manager2:15002", query)
+}
+
+
+
+
+
+
+
+
 //////////////////////////////////////
 // CHILD RESOLVER (Non Singleton)
 // FieldName: Config Node: Root PKG: Root
