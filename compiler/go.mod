@@ -10,6 +10,7 @@ require (
 	github.com/onsi/gomega v1.19.0
 	github.com/sirupsen/logrus v1.8.1
 	github.com/vmware-tanzu/graph-framework-for-microservices/common-library v0.0.0-20220909083510-01d43651301d
+	github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen v0.0.0-00010101000000-000000000000
 	github.com/vmware-tanzu/graph-framework-for-microservices/src/kube-openapi v0.0.0-20220603123335-7416bd4754d3
 	golang.org/x/mod v0.6.0-dev.0.20220106191415-9b9b3d81d5e3
 	golang.org/x/text v0.3.7
@@ -58,5 +59,7 @@ require (
 )
 
 replace github.com/vmware-tanzu/graph-framework-for-microservices/common-library => ../common-library
+
 replace github.com/vmware-tanzu/graph-framework-for-microservices/src/kube-openapi => ../src/kube-openapi
+
 replace github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen => ../src/gqlgen
