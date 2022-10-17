@@ -4,9 +4,9 @@ import (
 	"log"
 	"net/http"
 
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/_examples/scalars"
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/graphql/handler"
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/graphql/playground"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/_examples/scalars"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/graphql/handler"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/graphql/playground"
 )
 
 func main() {

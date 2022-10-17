@@ -6,8 +6,8 @@ package graph
 import (
 	"context"
 
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/_examples/federation/reviews/graph/generated"
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/_examples/federation/reviews/graph/model"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/_examples/federation/reviews/graph/generated"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/_examples/federation/reviews/graph/model"
 )
 
 // FindProductByManufacturerIDAndID is the resolver for the findProductByManufacturerIDAndID field.

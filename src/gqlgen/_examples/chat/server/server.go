@@ -6,16 +6,16 @@ import (
 	"net/url"
 	"time"
 
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/graphql/handler/extension"
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/graphql/handler/transport"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/graphql/handler/extension"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/graphql/handler/transport"
 
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/graphql/playground"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/graphql/playground"
 
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/_examples/chat"
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/graphql/handler"
 	"github.com/gorilla/websocket"
 	"github.com/opentracing/opentracing-go"
 	"github.com/rs/cors"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/_examples/chat"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/graphql/handler"
 	"sourcegraph.com/sourcegraph/appdash"
 	appdashtracer "sourcegraph.com/sourcegraph/appdash/opentracing"
 	"sourcegraph.com/sourcegraph/appdash/traceapp"

@@ -12,11 +12,11 @@ resolver:
 
 models:
   Element:
-    model: gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/integration/models-go.Element
+    model: github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/integration/models-go.Element
   Viewer:
-    model: gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/integration/models-go.Viewer
+    model: github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/integration/models-go.Viewer
   User:
-    model: gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/integration/remote_api.User
+    model: github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/integration/remote_api.User
     fields:
       likes:
         resolver: true

@@ -5,12 +5,12 @@ import (
 	"fmt"
 	"testing"
 
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/graphql"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/graphql"
 
 	"github.com/stretchr/testify/require"
 	"github.com/vektah/gqlparser/v2/gqlerror"
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/client"
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/graphql/handler"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/client"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/graphql/handler"
 )
 
 func TestPanics(t *testing.T) {

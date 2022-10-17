@@ -6,7 +6,7 @@ import (
 	"strconv"
 	"strings"
 
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/internal/code"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/internal/code"
 )
 
 type Import struct {

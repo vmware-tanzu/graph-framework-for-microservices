@@ -6,8 +6,8 @@ package graph
 import (
 	"context"
 
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/_examples/federation/accounts/graph/generated"
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/_examples/federation/accounts/graph/model"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/_examples/federation/accounts/graph/generated"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/_examples/federation/accounts/graph/model"
 )
 
 // FindEmailHostByID is the resolver for the findEmailHostByID field.

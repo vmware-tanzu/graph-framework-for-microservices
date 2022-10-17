@@ -17,7 +17,7 @@ func TestExtractModuleName(t *testing.T) {
 	modDir := filepath.Join(wd, "..", "..", "testdata")
 	content, err := os.ReadFile(filepath.Join(modDir, "gomod-with-leading-comments.mod"))
 	require.NoError(t, err)
-	assert.Equal(t, "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git", extractModuleName(content))
+	assert.Equal(t, "github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen", extractModuleName(content))
 }
 
 func TestImportPathForDir(t *testing.T) {
@@ -25,16 +25,16 @@ func TestImportPathForDir(t *testing.T) {
 
 	require.NoError(t, err)
 
-	assert.Equal(t, "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/internal/code", ImportPathForDir(wd))
+	assert.Equal(t, "github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/internal/code", ImportPathForDir(wd))
 
-	assert.Equal(t, "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/internal/code", ImportPathForDir(wd))
-	assert.Equal(t, "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/api", ImportPathForDir(filepath.Join(wd, "..", "..", "api")))
+	assert.Equal(t, "github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/internal/code", ImportPathForDir(wd))
+	assert.Equal(t, "github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/api", ImportPathForDir(filepath.Join(wd, "..", "..", "api")))
 
 	// doesnt contain go code, but should still give a valid import path
-	assert.Equal(t, "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/docs", ImportPathForDir(filepath.Join(wd, "..", "..", "docs")))
+	assert.Equal(t, "github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/docs", ImportPathForDir(filepath.Join(wd, "..", "..", "docs")))
 
 	// directory does not exist
-	assert.Equal(t, "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/dos", ImportPathForDir(filepath.Join(wd, "..", "..", "dos")))
+	assert.Equal(t, "github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/dos", ImportPathForDir(filepath.Join(wd, "..", "..", "dos")))
 
 	// out of module
 	assert.Equal(t, "", ImportPathForDir(filepath.Join(wd, "..", "..", "..")))

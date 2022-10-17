@@ -13,13 +13,13 @@ resolver:
   type: Resolver
 
 autobind:
-  - "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/codegen/testserver"
-  - "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/codegen/testserver/singlefile"
-  - "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/codegen/testserver/singlefile/introspection"
-  - "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/codegen/testserver/singlefile/invalid-packagename"
+  - "github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/codegen/testserver"
+  - "github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/codegen/testserver/singlefile"
+  - "github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/codegen/testserver/singlefile/introspection"
+  - "github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/codegen/testserver/singlefile/invalid-packagename"
 
 models:
   Email:
-    model: "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/codegen/testserver/singlefile.Email"
+    model: "github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/codegen/testserver/singlefile.Email"
   StringFromContextFunction:
-    model: "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/codegen/testserver/singlefile.StringFromContextFunction"
+    model: "github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/codegen/testserver/singlefile.StringFromContextFunction"

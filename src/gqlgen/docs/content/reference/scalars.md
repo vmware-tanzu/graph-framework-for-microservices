@@ -52,7 +52,7 @@ Maps an arbitrary GraphQL value to a `interface{}` Go type.
 
 ## Custom scalars with user defined types
 
-For user defined types you can implement the [graphql.Marshaler](https://pkg.go.dev/gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/graphql#Marshaler) and [graphql.Unmarshaler](https://pkg.go.dev/gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/graphql#Unmarshaler) or implement the [graphql.ContextMarshaler](https://pkg.go.dev/gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/graphql#ContextMarshaler) and [graphql.ContextUnmarshaler](https://pkg.go.dev/gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/graphql#ContextUnmarshaler) interfaces and they will be called.
+For user defined types you can implement the [graphql.Marshaler](https://pkg.go.dev/github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/graphql#Marshaler) and [graphql.Unmarshaler](https://pkg.go.dev/github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/graphql#Unmarshaler) or implement the [graphql.ContextMarshaler](https://pkg.go.dev/github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/graphql#ContextMarshaler) and [graphql.ContextUnmarshaler](https://pkg.go.dev/github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/graphql#ContextUnmarshaler) interfaces and they will be called.
 
 ```go
 package mypkg
@@ -152,7 +152,7 @@ import (
 	"io"
 	"strings"
 
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/graphql"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/graphql"
 )
 
 
@@ -194,7 +194,7 @@ models:
 **Note:** you can also un/marshal with a context by having your custom marshal function return a
 `graphql.ContextMarshaler` _and_ your unmarshal function take a `context.Context` as the first argument.
 
-See the [\_examples/scalars](https://gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/tree/master/_examples/scalars) package for more examples.
+See the [\_examples/scalars](https://github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/tree/master/_examples/scalars) package for more examples.
 
 ## Marshaling/Unmarshaling Errors
 

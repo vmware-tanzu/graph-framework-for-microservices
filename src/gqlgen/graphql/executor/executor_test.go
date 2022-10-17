@@ -9,9 +9,9 @@ import (
 	"github.com/vektah/gqlparser/v2/ast"
 	"github.com/vektah/gqlparser/v2/gqlerror"
 	"github.com/vektah/gqlparser/v2/parser"
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/graphql"
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/graphql/errcode"
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/graphql/executor/testexecutor"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/graphql"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/graphql/errcode"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/graphql/executor/testexecutor"
 )
 
 func TestExecutor(t *testing.T) {

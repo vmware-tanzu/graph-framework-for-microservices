@@ -51,7 +51,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 {{ range .Versions -}}
 <a name="{{ .Tag.Name }}"></a>
 
-## {{ if .Tag.Previous }}[{{ .Tag.Name }}]({{ $.Info.RepositoryURL }}/compare/{{ .Tag.Previous.Name }}...{{ .Tag.Name }}){{ else }}[{{ .Tag.Name }}](https://gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/releases/tag/{{ .Tag.Name }}){{ end }} - {{ datetime "2006-01-02" .Tag.Date }}
+## {{ if .Tag.Previous }}[{{ .Tag.Name }}]({{ $.Info.RepositoryURL }}/compare/{{ .Tag.Previous.Name }}...{{ .Tag.Name }}){{ else }}[{{ .Tag.Name }}](https://github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/releases/tag/{{ .Tag.Name }}){{ end }} - {{ datetime "2006-01-02" .Tag.Date }}
 
 {{- if .CommitGroups -}}
 {{ range .CommitGroups -}}

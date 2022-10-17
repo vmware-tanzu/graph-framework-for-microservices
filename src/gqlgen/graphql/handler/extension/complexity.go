@@ -5,9 +5,9 @@ import (
 	"fmt"
 
 	"github.com/vektah/gqlparser/v2/gqlerror"
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/complexity"
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/graphql"
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/graphql/errcode"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/complexity"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/graphql"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/graphql/errcode"
 )
 
 const errComplexityLimit = "COMPLEXITY_LIMIT_EXCEEDED"

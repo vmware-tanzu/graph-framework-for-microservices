@@ -8,8 +8,8 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/graphql/handler/testserver"
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/graphql/handler/transport"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/graphql/handler/testserver"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/graphql/handler/transport"
 )
 
 func TestPOST(t *testing.T) {

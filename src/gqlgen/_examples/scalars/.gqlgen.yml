@@ -3,18 +3,18 @@ model:
 
 models:
   User:
-    model: gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/_examples/scalars/model.User
+    model: github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/_examples/scalars/model.User
   Timestamp:
-    model: gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/_examples/scalars/model.Timestamp
+    model: github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/_examples/scalars/model.Timestamp
   SearchArgs:
-    model: gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/_examples/scalars/model.SearchArgs
+    model: github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/_examples/scalars/model.SearchArgs
   Point:
-    model: gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/_examples/scalars/model.Point
+    model: github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/_examples/scalars/model.Point
   ID:
-    model: gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/_examples/scalars/model.ID
+    model: github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/_examples/scalars/model.ID
   Tier:
-    model: gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/_examples/scalars/model.Tier
+    model: github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/_examples/scalars/model.Tier
   Banned:
-    model: gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/_examples/scalars/model.Banned
+    model: github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/_examples/scalars/model.Banned
   DarkMode:
-    model: gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/_examples/scalars/model.Preferences
+    model: github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/_examples/scalars/model.Preferences

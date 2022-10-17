@@ -1,5 +1,5 @@
 models:
   Order:
-    model: gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/_examples/dataloader.Order
+    model: github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/_examples/dataloader.Order
   Customer:
-    model: gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/_examples/dataloader.Customer
+    model: github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/_examples/dataloader.Customer

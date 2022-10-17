@@ -12,12 +12,12 @@ import (
 	"strings"
 	"testing"
 
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/plugin/modelgen/out_struct_pointers"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/plugin/modelgen/out_struct_pointers"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/codegen/config"
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/plugin/modelgen/out"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/codegen/config"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/plugin/modelgen/out"
 )
 
 func TestModelGeneration(t *testing.T) {

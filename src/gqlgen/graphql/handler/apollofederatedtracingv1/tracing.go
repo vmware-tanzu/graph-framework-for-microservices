@@ -6,7 +6,7 @@ import (
 	"fmt"
 
 	"github.com/vektah/gqlparser/v2/gqlerror"
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/graphql"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/graphql"
 	"google.golang.org/protobuf/proto"
 )
 

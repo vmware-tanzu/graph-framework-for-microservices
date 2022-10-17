@@ -7,8 +7,8 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/codegen"
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/codegen/config"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/codegen"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/codegen/config"
 	"golang.org/x/tools/go/packages"
 )
 
@@ -27,7 +27,7 @@ func TestLayoutSingleFile(t *testing.T) {
 	}
 
 	require.NoError(t, p.GenerateCode(data))
-	assertNoErrors(t, "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/plugin/resolvergen/testdata/singlefile/out")
+	assertNoErrors(t, "github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/plugin/resolvergen/testdata/singlefile/out")
 }
 
 func TestLayoutFollowSchema(t *testing.T) {
@@ -79,7 +79,7 @@ func testFollowSchemaPersistence(t *testing.T, dir string) {
 	}
 
 	require.NoError(t, p.GenerateCode(data))
-	assertNoErrors(t, "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/plugin/resolvergen/"+dir+"/out")
+	assertNoErrors(t, "github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/plugin/resolvergen/"+dir+"/out")
 }
 
 func assertNoErrors(t *testing.T, pkg string) {

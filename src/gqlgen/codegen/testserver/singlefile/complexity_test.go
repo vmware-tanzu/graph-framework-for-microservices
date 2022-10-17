@@ -5,9 +5,9 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/client"
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/graphql/handler"
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/graphql/handler/extension"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/client"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/graphql/handler"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/graphql/handler/extension"
 )
 
 func TestComplexityCollisions(t *testing.T) {

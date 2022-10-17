@@ -1,6 +1,6 @@
 package followschema
 
-import "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/codegen/testserver/followschema/otherpkg"
+import "github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/codegen/testserver/followschema/otherpkg"
 
 type (
 	WrappedScalar = otherpkg.Scalar

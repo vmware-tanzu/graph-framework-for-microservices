@@ -70,15 +70,15 @@ resolver:
 models:
   ID:
     model:
-      - gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/graphql.ID
-      - gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/graphql.Int
-      - gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/graphql.Int64
-      - gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/graphql.Int32
+      - github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/graphql.ID
+      - github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/graphql.Int
+      - github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/graphql.Int64
+      - github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/graphql.Int32
   Int:
     model:
-      - gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/graphql.Int
-      - gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/graphql.Int64
-      - gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/graphql.Int32
+      - github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/graphql.Int
+      - github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/graphql.Int64
+      - github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/graphql.Int32
 ```
 
 Everything has defaults, so add things as you need.
@@ -109,7 +109,7 @@ directive @goTag(
 > Here be dragons
 >
 > gqlgen doesnt currently support user-configurable directives for SCALAR, ENUM, INTERFACE or UNION. This only works
-> for internal directives. You can track the progress [here](https://gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/issues/760)
+> for internal directives. You can track the progress [here](https://github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/issues/760)
 
 Now you can use these directives when defining types in your schema:
 

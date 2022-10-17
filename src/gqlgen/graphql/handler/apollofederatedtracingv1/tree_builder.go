@@ -6,8 +6,8 @@ import (
 	"sync"
 	"time"
 
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/graphql"
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/graphql/handler/apollofederatedtracingv1/generated"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/graphql"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/graphql/handler/apollofederatedtracingv1/generated"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 

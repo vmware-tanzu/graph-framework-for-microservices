@@ -8,10 +8,10 @@ import (
 	"os"
 	"time"
 
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/api"
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/codegen/config"
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/graphql"
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/plugin/stubgen"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/api"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/codegen/config"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/graphql"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/plugin/stubgen"
 )
 
 func main() {

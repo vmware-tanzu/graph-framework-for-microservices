@@ -8,11 +8,11 @@ import (
 
 	"github.com/vektah/gqlparser/v2/ast"
 
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/codegen"
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/codegen/config"
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/codegen/templates"
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/plugin"
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/plugin/federation/fieldset"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/codegen"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/codegen/config"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/codegen/templates"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/plugin"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/plugin/federation/fieldset"
 )
 
 //go:embed federation.gotpl
@@ -43,21 +43,21 @@ func (f *federation) MutateConfig(cfg *config.Config) error {
 	builtins := config.TypeMap{
 		"_Service": {
 			Model: config.StringList{
-				"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/plugin/federation/fedruntime.Service",
+				"github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/plugin/federation/fedruntime.Service",
 			},
 		},
 		"_Entity": {
 			Model: config.StringList{
-				"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/plugin/federation/fedruntime.Entity",
+				"github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/plugin/federation/fedruntime.Entity",
 			},
 		},
 		"Entity": {
 			Model: config.StringList{
-				"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/plugin/federation/fedruntime.Entity",
+				"github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/plugin/federation/fedruntime.Entity",
 			},
 		},
 		"_Any": {
-			Model: config.StringList{"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/graphql.Map"},
+			Model: config.StringList{"github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/graphql.Map"},
 		},
 	}
 

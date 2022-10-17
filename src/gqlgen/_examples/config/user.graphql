@@ -1,11 +1,11 @@
 type User
-@goModel(model:"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/_examples/config.User") {
+@goModel(model:"github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/_examples/config.User") {
   id: ID!
   name: String! @goField(name:"FullName")
   role: role!
 }
 
 type role
-@goModel(model:"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/_examples/config.UserRole") {
+@goModel(model:"github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/_examples/config.UserRole") {
     name: String!
 }

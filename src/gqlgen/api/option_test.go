@@ -4,11 +4,11 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/codegen/config"
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/plugin"
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/plugin/federation"
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/plugin/modelgen"
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/plugin/resolvergen"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/codegen/config"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/plugin"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/plugin/federation"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/plugin/modelgen"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/plugin/resolvergen"
 )
 
 type testPlugin struct{}

@@ -7,7 +7,7 @@ import (
 	"context"
 	"fmt"
 
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/plugin/federation/testdata/entityresolver/generated"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/plugin/federation/testdata/entityresolver/generated"
 )
 
 // FindHelloByName is the resolver for the findHelloByName field.

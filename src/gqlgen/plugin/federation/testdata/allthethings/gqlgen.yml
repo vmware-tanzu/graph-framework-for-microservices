@@ -6,4 +6,4 @@ federation:
   filename: testdata/allthethings/generated/federation.go
 
 autobind:
-  - "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/plugin/federation/testdata/allthethings/model"
+  - "github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/plugin/federation/testdata/allthethings/model"

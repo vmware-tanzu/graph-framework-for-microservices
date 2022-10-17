@@ -7,8 +7,8 @@ import (
 	"fmt"
 	"time"
 
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/_examples/scalars/external"
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/_examples/scalars/model"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/_examples/scalars/external"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/_examples/scalars/model"
 )
 
 type Resolver struct{}

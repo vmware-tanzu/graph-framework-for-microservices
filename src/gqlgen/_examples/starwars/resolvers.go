@@ -11,9 +11,9 @@ import (
 	"strings"
 	"time"
 
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/_examples/starwars/generated"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/_examples/starwars/generated"
 
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/_examples/starwars/models"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/_examples/starwars/models"
 )
 
 type Resolver struct {

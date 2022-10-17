@@ -68,7 +68,7 @@ input ValidInput {
     _: String! @goField(name: "Underscore")
 }
 
-# see https://gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/issues/694
+# see https://github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/issues/694
 type Content_User {
     foo: String
 }

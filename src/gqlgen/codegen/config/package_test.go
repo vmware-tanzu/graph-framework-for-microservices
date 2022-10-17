@@ -15,10 +15,10 @@ func TestPackageConfig(t *testing.T) {
 		require.NoError(t, p.Check())
 
 		require.Equal(t, p.Package, "config_test_data")
-		require.Equal(t, "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/codegen/config/testdata", p.ImportPath())
+		require.Equal(t, "github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/codegen/config/testdata", p.ImportPath())
 
 		require.Equal(t, "config_test_data", p.Pkg().Name())
-		require.Equal(t, "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/codegen/config/testdata", p.Pkg().Path())
+		require.Equal(t, "github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/codegen/config/testdata", p.Pkg().Path())
 
 		require.Contains(t, filepath.ToSlash(p.Filename), "codegen/config/testdata/example.go")
 		require.Contains(t, filepath.ToSlash(p.Dir()), "codegen/config/testdata")
@@ -31,10 +31,10 @@ func TestPackageConfig(t *testing.T) {
 		require.NoError(t, p.Check())
 
 		require.Equal(t, p.Package, "wololo")
-		require.Equal(t, "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/codegen/config/testdata", p.ImportPath())
+		require.Equal(t, "github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/codegen/config/testdata", p.ImportPath())
 
 		require.Equal(t, "wololo", p.Pkg().Name())
-		require.Equal(t, "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/codegen/config/testdata", p.Pkg().Path())
+		require.Equal(t, "github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/codegen/config/testdata", p.Pkg().Path())
 
 		require.Contains(t, filepath.ToSlash(p.Filename), "codegen/config/testdata/example.go")
 		require.Contains(t, filepath.ToSlash(p.Dir()), "codegen/config/testdata")

@@ -6,12 +6,12 @@ import (
 	"encoding/hex"
 	"fmt"
 
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/graphql/errcode"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/graphql/errcode"
 
 	"github.com/vektah/gqlparser/v2/gqlerror"
 
 	"github.com/mitchellh/mapstructure"
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/graphql"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/graphql"
 )
 
 const (

@@ -3,7 +3,7 @@ module github.com/gqlgen/_examples/websocket-initfunc/server
 go 1.18
 
 require (
-	gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git v0.17.12
+	github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen v0.17.12
 	github.com/go-chi/chi v1.5.4
 	github.com/gorilla/websocket v1.5.0
 	github.com/rs/cors v1.8.2

@@ -5,9 +5,9 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/require"
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/client"
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/graphql/handler"
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/graphql/introspection"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/client"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/graphql/handler"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/graphql/introspection"
 )
 
 type RawUser struct {

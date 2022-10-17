@@ -1,6 +1,6 @@
 # This example should build stable output. If the file content starts
 # alternating nondeterministically between two outputs, then see
-# https://gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/issues/896.
+# https://github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/issues/896.
 
 extend schema {
   query: Query

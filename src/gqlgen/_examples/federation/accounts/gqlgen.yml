@@ -34,7 +34,7 @@ resolver:
 # gqlgen will search for any type names in the schema in these go packages
 # if they match it will use them, otherwise it will generate them.
 autobind:
-  - "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/_examples/federation/accounts/graph/model"
+  - "github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/_examples/federation/accounts/graph/model"
 
 # This section declares type mapping between the GraphQL and go type systems
 #
@@ -44,12 +44,12 @@ autobind:
 models:
   ID:
     model:
-      - gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/graphql.ID
-      - gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/graphql.Int
-      - gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/graphql.Int64
-      - gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/graphql.Int32
+      - github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/graphql.ID
+      - github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/graphql.Int
+      - github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/graphql.Int64
+      - github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/graphql.Int32
   Int:
     model:
-      - gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/graphql.Int
-      - gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/graphql.Int64
-      - gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/graphql.Int32
+      - github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/graphql.Int
+      - github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/graphql.Int64
+      - github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/graphql.Int32

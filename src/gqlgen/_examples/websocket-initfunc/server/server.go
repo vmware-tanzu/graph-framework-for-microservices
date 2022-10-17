@@ -13,10 +13,10 @@ import (
 	"github.com/gqlgen/_examples/websocket-initfunc/server/graph"
 	"github.com/gqlgen/_examples/websocket-initfunc/server/graph/generated"
 	"github.com/rs/cors"
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/graphql/handler"
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/graphql/handler/extension"
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/graphql/handler/transport"
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/graphql/playground"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/graphql/handler"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/graphql/handler/extension"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/graphql/handler/transport"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/graphql/playground"
 )
 
 func webSocketInit(ctx context.Context, initPayload transport.InitPayload) (context.Context, error) {

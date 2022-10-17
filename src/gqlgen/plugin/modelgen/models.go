@@ -9,9 +9,9 @@ import (
 	"text/template"
 
 	"github.com/vektah/gqlparser/v2/ast"
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/codegen/config"
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/codegen/templates"
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/plugin"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/codegen/config"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/codegen/templates"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/plugin"
 )
 
 //go:embed models.gotpl
@@ -193,7 +193,7 @@ func (m *Plugin) MutateConfig(cfg *config.Config) error {
 		cfg.Models.Add(it.Name, cfg.Model.ImportPath()+"."+templates.ToGo(it.Name))
 	}
 	for _, it := range b.Scalars {
-		cfg.Models.Add(it, "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/graphql.String")
+		cfg.Models.Add(it, "github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/graphql.String")
 	}
 
 	if len(b.Models) == 0 && len(b.Enums) == 0 && len(b.Interfaces) == 0 && len(b.Scalars) == 0 {
@@ -430,7 +430,7 @@ func findAndHandleCyclicalRelationships(b *ModelBuild) {
 				continue
 			}
 
-			// the field Type string will be in the form "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/codegen/testserver/followschema.LoopA"
+			// the field Type string will be in the form "github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/codegen/testserver/followschema.LoopA"
 			// we only want the part after the last dot: "LoopA"
 			// this could lead to false positives, as we are only checking the name of the struct type, but these
 			// should be extremely rare, if it is even possible at all.

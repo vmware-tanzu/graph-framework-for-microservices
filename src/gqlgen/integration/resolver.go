@@ -7,8 +7,8 @@ import (
 	"fmt"
 	"time"
 
-	models "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/integration/models-go"
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/integration/remote_api"
+	models "github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/integration/models-go"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/integration/remote_api"
 )
 
 type CustomError struct {

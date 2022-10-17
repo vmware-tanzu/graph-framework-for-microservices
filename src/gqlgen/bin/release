@@ -45,4 +45,4 @@ git commit -m "$VERSION postrelease bump"
 git push origin HEAD:master
 
 
-echo "Now go write some release notes! https://gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/releases"
+echo "Now go write some release notes! https://github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/releases"

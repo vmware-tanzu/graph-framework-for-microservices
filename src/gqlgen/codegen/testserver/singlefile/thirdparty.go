@@ -5,7 +5,7 @@ import (
 	"io"
 	"strconv"
 
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/graphql"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/graphql"
 )
 
 type ThirdParty struct {

@@ -6,7 +6,7 @@ import (
 	"os"
 	"testing"
 
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/internal/code"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/internal/code"
 
 	"github.com/stretchr/testify/require"
 )
@@ -15,9 +15,9 @@ func TestImports(t *testing.T) {
 	wd, err := os.Getwd()
 	require.NoError(t, err)
 
-	aBar := "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/codegen/templates/testdata/a/bar"
-	bBar := "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/codegen/templates/testdata/b/bar"
-	mismatch := "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/codegen/templates/testdata/pkg_mismatch"
+	aBar := "github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/codegen/templates/testdata/a/bar"
+	bBar := "github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/codegen/templates/testdata/b/bar"
+	mismatch := "github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/codegen/templates/testdata/pkg_mismatch"
 
 	t.Run("multiple lookups is ok", func(t *testing.T) {
 		a := Imports{destDir: wd, packages: &code.Packages{}}
@@ -29,7 +29,7 @@ func TestImports(t *testing.T) {
 	t.Run("lookup by type", func(t *testing.T) {
 		a := Imports{destDir: wd, packages: &code.Packages{}}
 
-		pkg := types.NewPackage("gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/codegen/templates/testdata/b/bar", "bar")
+		pkg := types.NewPackage("github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/codegen/templates/testdata/b/bar", "bar")
 		typ := types.NewNamed(types.NewTypeName(0, pkg, "Boolean", types.Typ[types.Bool]), types.Typ[types.Bool], nil)
 
 		require.Equal(t, "bar.Boolean", a.LookupType(typ))
@@ -49,7 +49,7 @@ func TestImports(t *testing.T) {
 	t.Run("duplicates above 10 are decollisioned", func(t *testing.T) {
 		a := Imports{destDir: wd, packages: &code.Packages{}}
 		for i := 0; i < 100; i++ {
-			cBar := fmt.Sprintf("gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/codegen/templates/testdata/%d/bar", i)
+			cBar := fmt.Sprintf("github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/codegen/templates/testdata/%d/bar", i)
 			if i > 0 {
 				require.Equal(t, fmt.Sprintf("bar%d", i), a.Lookup(cBar))
 			} else {
@@ -72,9 +72,9 @@ func TestImports(t *testing.T) {
 
 		require.Equal(
 			t,
-			`"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/codegen/templates/testdata/a/bar"
-bar1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/codegen/templates/testdata/b/bar"
-turtles "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/codegen/templates/testdata/pkg_mismatch"`,
+			`"github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/codegen/templates/testdata/a/bar"
+bar1 "github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/codegen/templates/testdata/b/bar"
+turtles "github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/codegen/templates/testdata/pkg_mismatch"`,
 			a.String(),
 		)
 	})
@@ -85,7 +85,7 @@ turtles "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/codegen/t
 		_, _ = a.Reserve(aBar, "abar")
 		_, _ = a.Reserve(bBar, "bbar")
 
-		require.Equal(t, `abar "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/codegen/templates/testdata/a/bar"
-bbar "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/codegen/templates/testdata/b/bar"`, a.String())
+		require.Equal(t, `abar "github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/codegen/templates/testdata/a/bar"
+bbar "github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/codegen/templates/testdata/b/bar"`, a.String())
 	})
 }

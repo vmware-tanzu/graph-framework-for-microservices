@@ -21,9 +21,9 @@ import (
 	"fmt"
 	"os"
 
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/api"
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/codegen/config"
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/plugin/modelgen"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/api"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/codegen/config"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/plugin/modelgen"
 )
 
 // Defining mutation function
@@ -90,9 +90,9 @@ import (
 	"github.com/vektah/gqlparser/v2/ast"
 	"os"
 
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/api"
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/codegen/config"
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/plugin/modelgen"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/api"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/codegen/config"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/plugin/modelgen"
 )
 
 // Defining mutation function

@@ -5,8 +5,8 @@ import (
 	"strings"
 
 	"github.com/vektah/gqlparser/v2/ast"
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/codegen"
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/codegen/templates"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/codegen"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/codegen/templates"
 )
 
 // Set represents a FieldSet that is used in federation directives @key and @requires.

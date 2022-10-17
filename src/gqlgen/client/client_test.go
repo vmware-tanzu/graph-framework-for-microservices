@@ -10,7 +10,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/client"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/client"
 )
 
 func TestClient(t *testing.T) {

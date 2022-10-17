@@ -11,14 +11,14 @@ omit_getters: true
 
 models:
   ExistingModel:
-    model: gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/plugin/modelgen/out_struct_pointers.ExistingModel
+    model: github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/plugin/modelgen/out_struct_pointers.ExistingModel
   ExistingInput:
-    model: gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/plugin/modelgen/out_struct_pointers.ExistingInput
+    model: github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/plugin/modelgen/out_struct_pointers.ExistingInput
   ExistingEnum:
-    model: gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/plugin/modelgen/out_struct_pointers.ExistingEnum
+    model: github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/plugin/modelgen/out_struct_pointers.ExistingEnum
   ExistingInterface:
-    model: gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/plugin/modelgen/out_struct_pointers.ExistingInterface
+    model: github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/plugin/modelgen/out_struct_pointers.ExistingInterface
   ExistingUnion:
-    model: gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/plugin/modelgen/out_struct_pointers.ExistingUnion
+    model: github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/plugin/modelgen/out_struct_pointers.ExistingUnion
   ExistingType:
-    model: gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/plugin/modelgen/out_struct_pointers.ExistingType
+    model: github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/plugin/modelgen/out_struct_pointers.ExistingType

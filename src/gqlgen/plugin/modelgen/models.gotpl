@@ -9,8 +9,8 @@
 
 {{ reserveImport "github.com/vektah/gqlparser/v2" }}
 {{ reserveImport "github.com/vektah/gqlparser/v2/ast" }}
-{{ reserveImport "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/graphql" }}
-{{ reserveImport "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/graphql/introspection" }}
+{{ reserveImport "github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/graphql" }}
+{{ reserveImport "github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/graphql/introspection" }}
 
 {{- range $model := .Interfaces }}
 	{{ with .Description }} {{.|prefixLines "// "}} {{ end }}

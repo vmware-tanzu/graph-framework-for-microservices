@@ -23,7 +23,7 @@ menu:
       weight: 10
     - name: pkg.go.dev →
       parent: reference
-      url: https://pkg.go.dev/gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git
+      url: https://pkg.go.dev/github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen
 
 security:
   funcs:

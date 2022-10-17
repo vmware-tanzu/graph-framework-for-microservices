@@ -6,7 +6,7 @@ package subdir
 import (
 	"context"
 
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/_examples/embedding/subdir/gendir"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/_examples/embedding/subdir/gendir"
 )
 
 type Resolver struct{ *Resolver }

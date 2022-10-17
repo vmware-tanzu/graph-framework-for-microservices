@@ -1,7 +1,7 @@
 models:
   Todo:
-    model: gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/_examples/todo.Todo
+    model: github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/_examples/todo.Todo
   ID:
     model: # override the default id marshaller to use ints
-      - gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/graphql.IntID
-      - gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/graphql.ID
+      - github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/graphql.IntID
+      - github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/graphql.ID

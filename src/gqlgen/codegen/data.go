@@ -9,7 +9,7 @@ import (
 
 	"github.com/vektah/gqlparser/v2/ast"
 
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/codegen/config"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/codegen/config"
 )
 
 // Data is a unified model of the code to be generated. Plugins may modify this structure to do things like implement

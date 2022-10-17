@@ -1,11 +1,11 @@
-module gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/_examples
+module github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/_examples
 
 go 1.16
 
-replace gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git => ../
+replace github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen => ../
 
 require (
-	gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git v0.16.0
+	github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen v0.16.0
 	github.com/gorilla/websocket v1.5.0
 	github.com/mitchellh/mapstructure v1.3.1
 	github.com/opentracing/opentracing-go v1.2.0

@@ -1,5 +1,5 @@
 package b
 
-import "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/internal/code/testdata/a"
+import "github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/internal/code/testdata/a"
 
 var B = a.A + " B"

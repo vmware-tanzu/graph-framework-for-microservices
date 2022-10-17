@@ -1,6 +1,6 @@
 package graph
 
-import "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/_examples/federation/reviews/graph/model"
+import "github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/_examples/federation/reviews/graph/model"
 
 var reviews = []*model.Review{
 	{

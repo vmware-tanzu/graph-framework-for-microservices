@@ -9,11 +9,11 @@ import (
 	"path/filepath"
 	"strings"
 
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/codegen"
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/codegen/config"
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/codegen/templates"
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/internal/rewrite"
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/plugin"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/codegen"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/codegen/config"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/codegen/templates"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/internal/rewrite"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/plugin"
 	"golang.org/x/text/cases"
 	"golang.org/x/text/language"
 )
@@ -133,7 +133,7 @@ func (m *Plugin) generatePerSchema(data *codegen.Data) error {
 				if templates.ToGo(o.Name) == "Query" {
 					implementation = fmt.Sprintf("return c.get%sResolver(%s)", templates.ToGo(f.Name), args)
 				} else {
-					implementation = fmt.Sprintf("return c.get%s%sResolver(%s,%s)", templates.ToGo(o.Name), f.Name, "obj",args)
+					implementation = fmt.Sprintf("return c.get%s%sResolver(%s,%s)", templates.ToGo(o.Name), f.Name, "obj", args)
 				}
 			}
 			if comment == "" {

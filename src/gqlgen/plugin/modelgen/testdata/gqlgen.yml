@@ -8,17 +8,17 @@ model:
 
 models:
   ExistingModel:
-    model: gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/plugin/modelgen/out.ExistingModel
+    model: github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/plugin/modelgen/out.ExistingModel
   ExistingInput:
-    model: gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/plugin/modelgen/out.ExistingInput
+    model: github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/plugin/modelgen/out.ExistingInput
   ExistingEnum:
-    model: gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/plugin/modelgen/out.ExistingEnum
+    model: github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/plugin/modelgen/out.ExistingEnum
   ExistingInterface:
-    model: gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/plugin/modelgen/out.ExistingInterface
+    model: github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/plugin/modelgen/out.ExistingInterface
   ExistingUnion:
-    model: gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/plugin/modelgen/out.ExistingUnion
+    model: github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/plugin/modelgen/out.ExistingUnion
   ExistingType:
-    model: gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/plugin/modelgen/out.ExistingType
+    model: github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/plugin/modelgen/out.ExistingType
   RenameFieldTest:
     fields:
       badName:

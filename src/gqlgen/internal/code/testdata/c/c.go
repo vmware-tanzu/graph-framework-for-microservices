@@ -1,7 +1,7 @@
 package c
 
 import (
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/internal/code/testdata/b"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/internal/code/testdata/b"
 )
 
 var C = b.B + " C"

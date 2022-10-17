@@ -2,7 +2,7 @@
 
 Assuming the next version is $NEW_VERSION=v0.16.0 or something like that.
 
-1. Run the https://gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/blob/master/bin/release:
+1. Run the https://github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/blob/master/bin/release:
 
 ```
 ./bin/release $NEW_VERSION
@@ -10,7 +10,7 @@ Assuming the next version is $NEW_VERSION=v0.16.0 or something like that.
 
 2. git-chglog -o CHANGELOG.md
 3. git commit and push the CHANGELOG.md
-4. Go to https://gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/releases and draft new release, autogenerate the release notes, and Create a discussion for this release
+4. Go to https://github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/releases and draft new release, autogenerate the release notes, and Create a discussion for this release
 5. Comment on the release discussion with any really important notes (breaking changes)
 
 I used https://github.com/git-chglog/git-chglog to automate the changelog maintenance process for now. We could just as easily use go releaser to make the whole thing automated.

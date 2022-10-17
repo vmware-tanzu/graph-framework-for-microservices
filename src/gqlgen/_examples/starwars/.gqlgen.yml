@@ -4,7 +4,7 @@ model:
   filename: models/generated.go
 
 autobind:
-  - gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/_examples/starwars/models
+  - github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/_examples/starwars/models
 
 models:
   ReviewInput:

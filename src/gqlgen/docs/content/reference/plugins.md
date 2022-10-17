@@ -23,9 +23,9 @@ import (
 	"os"
 	"time"
 
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/api"
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/codegen/config"
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/plugin/stubgen"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/api"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/codegen/config"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/plugin/stubgen"
 )
 
 func main() {
@@ -53,9 +53,9 @@ There are currently only two hooks:
 
 - MutateConfig: Allows a plugin to mutate the config before codegen starts. This allows plugins to add
   custom directives, define types, and implement resolvers. see
-  [modelgen](https://gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/tree/master/plugin/modelgen) for an example
+  [modelgen](https://github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/tree/master/plugin/modelgen) for an example
 - GenerateCode: Allows a plugin to generate a new output file, see
-  [stubgen](https://gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/tree/master/plugin/stubgen) for an example
+  [stubgen](https://github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/tree/master/plugin/stubgen) for an example
 
-Take a look at [plugin.go](https://gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/blob/master/plugin/plugin.go) for the full list of
+Take a look at [plugin.go](https://github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/blob/master/plugin/plugin.go) for the full list of
 available hooks. These are likely to change with each release.

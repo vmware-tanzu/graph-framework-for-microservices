@@ -1,4 +1,4 @@
-module gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git
+module github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen
 
 go 1.16
 

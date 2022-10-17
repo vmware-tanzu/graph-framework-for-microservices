@@ -11,7 +11,7 @@ import (
 
 	"github.com/vektah/gqlparser/v2"
 	"github.com/vektah/gqlparser/v2/ast"
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/internal/code"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/internal/code"
 	"gopkg.in/yaml.v3"
 )
 
@@ -227,8 +227,8 @@ func (c *Config) Init() error {
 
 func (c *Config) packageList() []string {
 	pkgs := []string{
-		"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/graphql",
-		"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/graphql/introspection",
+		"github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/graphql",
+		"github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/graphql/introspection",
 	}
 	pkgs = append(pkgs, c.Models.ReferencedPackages()...)
 	pkgs = append(pkgs, c.AutoBind...)
@@ -576,26 +576,26 @@ func (c *Config) autobind() error {
 
 func (c *Config) injectBuiltins() {
 	builtins := TypeMap{
-		"__Directive":         {Model: StringList{"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/graphql/introspection.Directive"}},
-		"__DirectiveLocation": {Model: StringList{"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/graphql.String"}},
-		"__Type":              {Model: StringList{"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/graphql/introspection.Type"}},
-		"__TypeKind":          {Model: StringList{"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/graphql.String"}},
-		"__Field":             {Model: StringList{"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/graphql/introspection.Field"}},
-		"__EnumValue":         {Model: StringList{"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/graphql/introspection.EnumValue"}},
-		"__InputValue":        {Model: StringList{"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/graphql/introspection.InputValue"}},
-		"__Schema":            {Model: StringList{"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/graphql/introspection.Schema"}},
-		"Float":               {Model: StringList{"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/graphql.FloatContext"}},
-		"String":              {Model: StringList{"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/graphql.String"}},
-		"Boolean":             {Model: StringList{"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/graphql.Boolean"}},
+		"__Directive":         {Model: StringList{"github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/graphql/introspection.Directive"}},
+		"__DirectiveLocation": {Model: StringList{"github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/graphql.String"}},
+		"__Type":              {Model: StringList{"github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/graphql/introspection.Type"}},
+		"__TypeKind":          {Model: StringList{"github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/graphql.String"}},
+		"__Field":             {Model: StringList{"github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/graphql/introspection.Field"}},
+		"__EnumValue":         {Model: StringList{"github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/graphql/introspection.EnumValue"}},
+		"__InputValue":        {Model: StringList{"github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/graphql/introspection.InputValue"}},
+		"__Schema":            {Model: StringList{"github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/graphql/introspection.Schema"}},
+		"Float":               {Model: StringList{"github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/graphql.FloatContext"}},
+		"String":              {Model: StringList{"github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/graphql.String"}},
+		"Boolean":             {Model: StringList{"github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/graphql.Boolean"}},
 		"Int": {Model: StringList{
-			"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/graphql.Int",
-			"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/graphql.Int32",
-			"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/graphql.Int64",
+			"github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/graphql.Int",
+			"github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/graphql.Int32",
+			"github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/graphql.Int64",
 		}},
 		"ID": {
 			Model: StringList{
-				"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/graphql.ID",
-				"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/graphql.IntID",
+				"github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/graphql.ID",
+				"github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/graphql.IntID",
 			},
 		},
 	}
@@ -608,10 +608,10 @@ func (c *Config) injectBuiltins() {
 
 	// These are additional types that are injected if defined in the schema as scalars.
 	extraBuiltins := TypeMap{
-		"Time":   {Model: StringList{"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/graphql.Time"}},
-		"Map":    {Model: StringList{"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/graphql.Map"}},
-		"Upload": {Model: StringList{"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/graphql.Upload"}},
-		"Any":    {Model: StringList{"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/graphql.Any"}},
+		"Time":   {Model: StringList{"github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/graphql.Time"}},
+		"Map":    {Model: StringList{"github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/graphql.Map"}},
+		"Upload": {Model: StringList{"github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/graphql.Upload"}},
+		"Any":    {Model: StringList{"github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/graphql.Any"}},
 	}
 
 	for typeName, entry := range extraBuiltins {

@@ -8,7 +8,7 @@ First get an update from gqlgen:
 
 ```bash
 go mod tidy
-go get -u gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git
+go get -u github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen
 ```
 
 Next just make the build:

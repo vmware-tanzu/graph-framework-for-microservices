@@ -12,12 +12,12 @@ import (
 	"os"
 	"path/filepath"
 
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/api"
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/codegen/config"
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/graphql"
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/internal/code"
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/plugin/servergen"
 	"github.com/urfave/cli/v2"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/api"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/codegen/config"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/graphql"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/internal/code"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/plugin/servergen"
 )
 
 //go:embed init-templates/schema.graphqls
