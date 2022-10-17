@@ -1,4 +1,4 @@
-FROM gcr.io/nsx-sm/golang:1.19
+FROM gcr.io/nsx-sm/golang:1.17
 
 ENV GOPATH /go
 ENV PATH $PATH:/usr/local/go/bin:/go/bin
