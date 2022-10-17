@@ -74,7 +74,7 @@ tools:
 	go install golang.org/x/tools/cmd/goimports@latest
 	go install github.com/mikefarah/yq/v4@latest
 	go install ../src/kube-openapi/cmd/nexus-openapi-gen
-	go install gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git@${NEXUS_GRAPHQLGEN_VERSION}
+	go install ../src/gqlgen
 	mv ${GOPATH}/bin/gqlgen.git ${GOPATH}/bin/gqlgen
 	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b "$(go env GOPATH)"/bin v1.49.0
 
@@ -90,7 +90,7 @@ build_gqlgen_in_container:
 	$(call run_in_container,make build_gqlgen)
 
 build_gqlgen:
-	GOBIN=${PKG_NAME}/cmd go install gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git@${NEXUS_GRAPHQLGEN_VERSION}
+	GOBIN=${PKG_NAME}/cmd go install ../src/gqlgen
 
 .PHONY: unit-test
 unit-test:
@@ -166,7 +166,7 @@ generate_code:
 .PHONY: test_generate_code_in_container
 test_generate_code_in_container: ${BUILDER_NAME}\:${BUILDER_TAG}.image.exists init_submodules
 	$(call run_in_container, go install ../src/kube-openapi/cmd/nexus-openapi-gen && \
-	go install gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git@${NEXUS_GRAPHQLGEN_VERSION} && \
+	go install ../src/gqlgen && \
 	mv /go/bin/gqlgen.git /go/bin/gqlgen && \
 	make generate_code DATAMODEL_PATH=example/datamodel \
 	CONFIG_FILE=example/nexus-sdk.yaml \
