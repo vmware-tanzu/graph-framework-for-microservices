@@ -1,0 +1,3 @@
+models:
+  Chatroom:
+    model: github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/_examples/chat.Chatroom

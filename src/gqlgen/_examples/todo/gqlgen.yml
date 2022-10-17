@@ -1,0 +1,7 @@
+models:
+  Todo:
+    model: github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/_examples/todo.Todo
+  ID:
+    model: # override the default id marshaller to use ints
+      - github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/graphql.IntID
+      - github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/graphql.ID

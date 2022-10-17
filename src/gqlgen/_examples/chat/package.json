@@ -1,0 +1,30 @@
+{
+  "name": "chat",
+  "version": "0.1.0",
+  "private": true,
+  "dependencies": {
+    "@apollo/client": "^3.2.3",
+    "apollo-utilities": "^1.0.26",
+    "graphql": "^14.0.2",
+    "graphql-tag": "^2.10.0",
+    "graphql-ws": "^5.8.1",
+    "react": "^16.6.3",
+    "react-dom": "^16.6.3",
+    "react-scripts": "^2.1.1",
+    "styled-components": "^5.2.0",
+    "subscriptions-transport-ws": "^0.9.5"
+  },
+  "scripts": {
+    "start": "react-scripts start",
+    "start:graphql-transport-ws": "REACT_APP_WS_PROTOCOL=graphql-transport-ws npm run start",
+    "build": "react-scripts build",
+    "test": "react-scripts test --env=jsdom",
+    "eject": "react-scripts eject"
+  },
+  "browserslist": [
+    ">0.2%",
+    "not dead",
+    "not ie <= 11",
+    "not op_mini all"
+  ]
+}

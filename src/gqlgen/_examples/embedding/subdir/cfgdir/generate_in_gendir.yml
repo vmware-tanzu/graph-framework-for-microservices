@@ -1,0 +1,16 @@
+schema:
+  - schemadir/*.graphqls
+  - ../*.graphqls
+  - '*.graphqls'
+exec:
+  dir: gendir
+  filename: gendir/generated.go
+  package: gendir
+
+federation:
+  filename: gendir/federation_gen.go
+  package: gendir
+
+model:
+  filename: gendir/model.go
+  package: gendir
