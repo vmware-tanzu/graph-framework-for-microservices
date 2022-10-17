@@ -42,6 +42,7 @@ func getHandler(c echo.Context) error {
 					return nc.JSON(http.StatusBadRequest, DefaultResponse{Message: val.Description})
 				} else {
 					log.Debugf("Could not find required param %s for request %s", crdInfo.Name, nc.Request().RequestURI)
+					log.Debugf("crdName: %s, nexusURI: %s, paramNames: %s, paramValues: %s", crdInfo.Name, nc.NexusURI, nc.ParamNames(), nc.ParamValues())
 					return nc.JSON(http.StatusBadRequest, DefaultResponse{Message: fmt.Sprintf("Could not find required param: %s", crdInfo.Name)})
 				}
 			}
@@ -286,6 +287,7 @@ func putHandler(c echo.Context) error {
 			msg := fmt.Sprintf("Wrong singleton node name %s: %s for request %s, only '%s' is allowed as name",
 				crdInfo.Name, name, nc.Request().RequestURI, nexus.DEFAULT_KEY)
 			log.Debugf(msg)
+			log.Debugf("crdName: %s, nexusURI: %s, paramNames: %s, paramValues: %s", crdInfo.Name, nc.NexusURI, nc.ParamNames(), nc.ParamValues())
 			return nc.JSON(http.StatusBadRequest, DefaultResponse{Message: msg})
 		}
 	}
@@ -300,6 +302,7 @@ func putHandler(c echo.Context) error {
 			return nc.JSON(http.StatusBadRequest, DefaultResponse{Message: val.Description})
 		} else {
 			log.Debugf("Could not find required param %s for request %s", crdInfo.Name, nc.Request().RequestURI)
+			log.Debugf("crdName: %s, nexusURI: %s, paramNames: %s, paramValues: %s", crdInfo.Name, nc.NexusURI, nc.ParamNames(), nc.ParamValues())
 			return nc.JSON(http.StatusBadRequest, DefaultResponse{Message: fmt.Sprintf("Could not find required param: %s", crdInfo.Name)})
 		}
 	}
