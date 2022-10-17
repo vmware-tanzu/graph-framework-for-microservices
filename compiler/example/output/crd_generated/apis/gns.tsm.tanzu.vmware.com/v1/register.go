@@ -4,6 +4,7 @@ package v1
 
 import (
 	gns_tsm_tanzu_vmware_com "github.com/vmware-tanzu/graph-framework-for-microservices/compiler/example/output/crd_generated/apis/gns.tsm.tanzu.vmware.com"
+
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
@@ -41,6 +42,10 @@ func addKnownTypes(scheme *runtime.Scheme) error {
 		&RandomGnsDataList{},
 		&Gns{},
 		&GnsList{},
+		&BarChild{},
+		&BarChildList{},
+		&IgnoreChild{},
+		&IgnoreChildList{},
 		&Dns{},
 		&DnsList{},
 		&AdditionalGnsData{},

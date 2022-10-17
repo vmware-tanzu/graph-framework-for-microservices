@@ -4,7 +4,7 @@ kind: CustomResourceDefinition
 metadata:
   annotations:
     nexus: |
-      {"name":"config.Config","hierarchy":["roots.root.tsm.tanzu.vmware.com"],"children":{"dnses.gns.tsm.tanzu.vmware.com":{"fieldName":"DNS","fieldNameGvk":"dNSGvk","isNamed":false},"gnses.gns.tsm.tanzu.vmware.com":{"fieldName":"GNS","fieldNameGvk":"gNSGvk","isNamed":false},"vmpolicies.policypkg.tsm.tanzu.vmware.com":{"fieldName":"VMPPolicies","fieldNameGvk":"vMPPoliciesGvk","isNamed":false}},"links":{"ACPPolicies":{"fieldName":"ACPPolicies","fieldNameGvk":"aCPPoliciesGvk","isNamed":true}},"is_singleton":false,"nexus-rest-api-gen":{"uris":null}}
+      {"name":"config.Config","hierarchy":["roots.root.tsm.tanzu.vmware.com"],"children":{"dnses.gns.tsm.tanzu.vmware.com":{"fieldName":"DNS","fieldNameGvk":"dNSGvk","isNamed":false},"domains.config.tsm.tanzu.vmware.com":{"fieldName":"Domain","fieldNameGvk":"domainGvk","isNamed":false},"footypes.config.tsm.tanzu.vmware.com":{"fieldName":"FooExample","fieldNameGvk":"fooExampleGvk","isNamed":true},"gnses.gns.tsm.tanzu.vmware.com":{"fieldName":"GNS","fieldNameGvk":"gNSGvk","isNamed":false},"vmpolicies.policypkg.tsm.tanzu.vmware.com":{"fieldName":"VMPPolicies","fieldNameGvk":"vMPPoliciesGvk","isNamed":false}},"links":{"ACPPolicies":{"fieldName":"ACPPolicies","fieldNameGvk":"aCPPoliciesGvk","isNamed":true}},"is_singleton":false,"nexus-rest-api-gen":{"uris":null}}
   creationTimestamp: null
   name: configs.config.tsm.tanzu.vmware.com
 spec:
@@ -38,6 +38,10 @@ spec:
             type: object
           spec:
             properties:
+              aBCHost:
+                items:
+                  type: string
+                type: array
               aCPPoliciesGvk:
                 additionalProperties:
                   properties:
@@ -53,6 +57,34 @@ spec:
                   - name
                   type: object
                 type: object
+              clusterNamespaces:
+                items:
+                  properties:
+                    Cluster:
+                      properties:
+                        Name:
+                          type: string
+                        Type:
+                          type: string
+                      required:
+                      - Name
+                      - Type
+                      type: object
+                    Namespace:
+                      properties:
+                        Name:
+                          type: string
+                        Type:
+                          type: string
+                      required:
+                      - Name
+                      - Type
+                      type: object
+                  required:
+                  - Cluster
+                  - Namespace
+                  type: object
+                type: array
               dNSGvk:
                 properties:
                   group:
@@ -65,6 +97,34 @@ spec:
                 - group
                 - kind
                 - name
+                type: object
+              domainGvk:
+                properties:
+                  group:
+                    type: string
+                  kind:
+                    type: string
+                  name:
+                    type: string
+                required:
+                - group
+                - kind
+                - name
+                type: object
+              fooExampleGvk:
+                additionalProperties:
+                  properties:
+                    group:
+                      type: string
+                    kind:
+                      type: string
+                    name:
+                      type: string
+                  required:
+                  - group
+                  - kind
+                  - name
+                  type: object
                 type: object
               gNSGvk:
                 properties:
@@ -79,6 +139,9 @@ spec:
                 - kind
                 - name
                 type: object
+              instance:
+                format: float
+                type: number
               myStr0:
                 type: string
               myStr1:
@@ -127,11 +190,18 @@ spec:
                 - kind
                 - name
                 type: object
+              xYZPort:
+                format: int32
+                type: integer
             required:
             - myStr0
             - myStr1
             - myStr2
+            - xYZPort
+            - aBCHost
+            - clusterNamespaces
             - testValMarkers
+            - instance
             type: object
           status:
             properties:

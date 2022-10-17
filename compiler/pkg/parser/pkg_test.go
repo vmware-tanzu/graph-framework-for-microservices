@@ -1,9 +1,12 @@
 package parser_test
 
 import (
+	"go/ast"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	log "github.com/sirupsen/logrus"
+
 	"github.com/vmware-tanzu/graph-framework-for-microservices/compiler/pkg/config"
 	crd_generator "github.com/vmware-tanzu/graph-framework-for-microservices/compiler/pkg/crd-generator"
 	"github.com/vmware-tanzu/graph-framework-for-microservices/compiler/pkg/parser"
@@ -60,12 +63,12 @@ var _ = Describe("Pkg tests", func() {
 
 	It("should get all structs for gns", func() {
 		structs := gnsPkg.GetStructs()
-		Expect(structs).To(HaveLen(11))
+		Expect(structs).To(HaveLen(15))
 	})
 
 	It("should get all types for gns", func() {
 		types := gnsPkg.GetTypes()
-		Expect(types).To(HaveLen(9))
+		Expect(types).To(HaveLen(13))
 	})
 
 	It("should get imports for gns", func() {
@@ -75,7 +78,7 @@ var _ = Describe("Pkg tests", func() {
 
 	It("should get all nodes for gns", func() {
 		nodes := gnsPkg.GetNodes()
-		Expect(nodes).To(HaveLen(7))
+		Expect(nodes).To(HaveLen(9))
 	})
 
 	It("should get all consts for gns", func() {
@@ -91,14 +94,14 @@ var _ = Describe("Pkg tests", func() {
 
 	It("should get link fields for gns", func() {
 		nodes := gnsPkg.GetNexusNodes()
-		linkFields := parser.GetChildFields(nodes[1])
-		Expect(linkFields).To(HaveLen(2))
+		linkFields := parser.GetLinkFields(nodes[1])
+		Expect(linkFields).To(HaveLen(1))
 	})
 
 	It("should get spec fields for gns", func() {
 		nodes := gnsPkg.GetNexusNodes()
 		specFields := parser.GetSpecFields(nodes[1])
-		Expect(specFields).To(HaveLen(5))
+		Expect(specFields).To(HaveLen(10))
 	})
 
 	It("should get field name", func() {
@@ -114,6 +117,29 @@ var _ = Describe("Pkg tests", func() {
 		childFields := parser.GetChildFields(nodes[0])
 		fieldType := parser.GetFieldType(childFields[0])
 		Expect(fieldType).To(Equal("config.Config"))
+	})
+
+	It("should get pointer field type", func() {
+		nodes := gnsPkg.GetNexusNodes()
+		specFields := parser.GetSpecFields(nodes[1])
+		for _, f := range specFields {
+			name, err := parser.GetFieldName(f)
+			Expect(err).NotTo(HaveOccurred())
+			switch name {
+			case "Port":
+				Expect(parser.GetFieldType(f)).To(Equal("*int"))
+			case "OtherDescription":
+				Expect(parser.GetFieldType(f)).To(Equal("*Description"))
+			case "MapPointer":
+				Expect(parser.GetFieldType(f)).To(Equal("*map[string]string"))
+			case "SlicePointer":
+				Expect(parser.GetFieldType(f)).To(Equal("*[]string"))
+			case "WorkloadSpec":
+				Expect(parser.GetFieldType(f)).To(Equal("cartv1.WorkloadSpec"))
+			case "DifferentSpec":
+				Expect(parser.GetFieldType(f)).To(Equal("*cartv1.WorkloadSpec"))
+			}
+		}
 	})
 
 	It("should check if field is named child", func() {
@@ -140,5 +166,19 @@ var _ = Describe("Pkg tests", func() {
 
 		parser.ParseFieldTags("`nexus: \"child\"`")
 		Expect(fail).To(BeTrue())
+	})
+
+	It("should receive false when empty node is given", func() {
+		var f *ast.Field
+		childFields := parser.IsOnlyChildField(f)
+		Expect(childFields).To(BeFalse())
+		childrenFields := parser.IsOnlyChildrenField(f)
+		Expect(childrenFields).To(BeFalse())
+		link := parser.IsOnlyLinkField(f)
+		Expect(link).To(BeFalse())
+		links := parser.IgnoreField(f)
+		Expect(links).To(BeFalse())
+		jsonStrFields := parser.IsJsonStringField(f)
+		Expect(jsonStrFields).To(BeFalse())
 	})
 })

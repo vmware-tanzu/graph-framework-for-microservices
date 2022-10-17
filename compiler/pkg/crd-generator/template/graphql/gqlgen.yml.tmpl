@@ -1,0 +1,43 @@
+# Where are all the schema files located? globs are supported eg  src/**/*.graphqls
+schema:
+  - graph/*.graphqls
+
+# Where should the generated server code go?
+exec:
+  filename: graph/generated/generated.go
+  package: generated
+
+# Where should any generated models go?
+model:
+  filename: graph/model/models_gen.go
+  package: model
+
+# Where should the resolver implementations go?
+resolver:
+  layout: follow-schema
+  dir: graph
+  package: graph
+
+models:
+  ID:
+    model:
+      - gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/graphql.ID
+      - gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/graphql.Int
+      - gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/graphql.Int64
+      - gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/graphql.Int32
+  Int:
+    model:
+      - gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/graphql.Int
+      - gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/graphql.Int64
+      - gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/graphql.Int32
+  {{- range $key, $node := .Nodes }}
+  {{- if $node.IsNexusNode }}
+  {{- if eq $node.ResolverCount 0 }}{{- else }}
+  {{ $node.SchemaName }}:
+    fields:
+    {{- range $key, $field := $node.GraphqlSchemaFields }}
+      {{- if $field.IsResolver }}
+      {{ $field.FieldName}}:
+        resolver: true
+    {{- end }}
+{{- end }}{{ end }}{{ end }}{{ end }}

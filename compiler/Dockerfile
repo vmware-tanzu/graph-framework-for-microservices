@@ -3,9 +3,12 @@ ARG BUILDER_TAG
 FROM nexus/compiler-builder:$BUILDER_TAG
 ADD compiler.tar /go/src/github.com/vmware-tanzu/graph-framework-for-microservices/compiler
 ADD cmd/nexus-openapi-gen /go/bin/nexus-openapi-gen
+ADD cmd/gqlgen.git /go/bin/gqlgen
 
 WORKDIR /go/src/github.com/vmware-tanzu/graph-framework-for-microservices/compiler
-RUN mv .git .gitmodules common-library src .. && make init_submodules
+RUN mv .git .gitmodules common-library src ..
+RUN git config --global --add safe.directory '*'
+RUN make init_submodules
 
 WORKDIR /go/src/
 RUN mkdir nexustmp && cd nexustmp && go mod init && \

@@ -1,0 +1,70 @@
+# Where are all the schema files located? globs are supported eg  src/**/*.graphqls
+schema:
+  - graph/*.graphqls
+
+# Where should the generated server code go?
+exec:
+  filename: graph/generated/generated.go
+  package: generated
+
+# Where should any generated models go?
+model:
+  filename: graph/model/models_gen.go
+  package: model
+
+# Where should the resolver implementations go?
+resolver:
+  layout: follow-schema
+  dir: graph
+  package: graph
+
+models:
+  ID:
+    model:
+      - gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/graphql.ID
+      - gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/graphql.Int
+      - gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/graphql.Int64
+      - gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/graphql.Int32
+  Int:
+    model:
+      - gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/graphql.Int
+      - gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/graphql.Int64
+      - gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/graphql.Int32
+  root_Root:
+    fields:
+      Config:
+        resolver: true
+  config_Config:
+    fields:
+      ACPPolicies:
+        resolver: true
+      FooExample:
+        resolver: true
+      GNS:
+        resolver: true
+      DNS:
+        resolver: true
+      VMPPolicies:
+        resolver: true
+      Domain:
+        resolver: true
+  gns_Gns:
+    fields:
+      GnsServiceGroups:
+        resolver: true
+      Dns:
+        resolver: true
+      GnsAccessControlPolicy:
+        resolver: true
+      FooChild:
+        resolver: true
+  policy_AccessControlPolicy:
+    fields:
+      PolicyConfigs:
+        resolver: true
+  policy_ACPConfig:
+    fields:
+      DestSvcGroups:
+        resolver: true
+      SourceSvcGroups:
+        resolver: true
