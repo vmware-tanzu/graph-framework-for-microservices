@@ -1,0 +1,9 @@
+k8s_clients:
+  default: k8s-1.22
+  versioned:
+  - name: k8s-1.16
+    k8s_version: 1.16 # compatible with client-go <= 1.17
+    k8s_code_generator_git_tag: v0.16.15
+  - name: k8s-1.22
+    k8s_version: 1.22 # compatible with client-go >= 1.18
+    k8s_code_generator_git_tag: v0.22.5
