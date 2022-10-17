@@ -29,7 +29,8 @@ define run_in_container
   --volume ~/.ssh:/root/.ssh \
   --network=host \
   --workdir ${PKG_NAME} \
-  "${BUILDER_NAME}:${BUILDER_TAG}" /bin/bash -c "make docker.gitlab_credentials && ${1}"
+  "${BUILDER_NAME}:${BUILDER_TAG}" /bin/bash -c "make docker.gitlab_credentials && \
+  git config --global --add safe.directory '*' && ${1}"
 endef
 else
 define run_in_container
