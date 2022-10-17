@@ -192,6 +192,40 @@ var _ = Describe("Echo server tests", func() {
 		Expect(rec.Code).To(Equal(400))
 	})
 
+	It("shouldn't handle put query for object without a name", func() {
+		leaderJson := `{
+			"designation": "abc",
+			"employeeID": 100,
+			"name": "xyz"
+		}`
+
+		restUri := nexus.RestURIs{
+			Uri:     "/leader/{orgchart.Leader}",
+			Methods: nexus.DefaultHTTPMethodsResponses,
+		}
+		e.RegisterRouter(restUri)
+		model.ConstructMapCRDTypeToNode(model.Upsert, "leaders.orgchart.vmware.org", "orgchart.Leader",
+			[]string{}, nil, nil, false, "")
+		model.ConstructMapURIToCRDType(model.Upsert, "leaders.orgchart.vmware.org", []nexus.RestURIs{restUri})
+
+		req := httptest.NewRequest(http.MethodPost, "/", strings.NewReader(leaderJson))
+		req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+		rec := httptest.NewRecorder()
+		c := e.Echo.NewContext(req, rec)
+		c.SetPath("/:orgchart.Leader")
+		nc := &NexusContext{
+			NexusURI:  "/leader/{orgchart.Leader}",
+			Context:   c,
+			CrdType:   "leaders.orgchart.vmware.org",
+			GroupName: "orgchart.vmware.org",
+			Resource:  "leaders",
+		}
+
+		err := putHandler(nc)
+		Expect(err).NotTo(HaveOccurred())
+		Expect(rec.Code).To(Equal(400))
+	})
+
 	It("should handle list query", func() {
 		restUri := nexus.RestURIs{
 			Uri:     "/leaders",
