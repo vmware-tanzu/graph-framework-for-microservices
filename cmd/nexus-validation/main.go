@@ -4,32 +4,27 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
-	"os"
 
 	log "github.com/sirupsen/logrus"
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/validation.git/pkg/validate"
 	admissionv1 "k8s.io/api/admission/v1"
-	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/util/json"
 	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/kubernetes"
-	"k8s.io/client-go/rest"
-	"k8s.io/client-go/tools/clientcmd"
+
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/validation.git/pkg/config"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/validation.git/pkg/validate"
 )
 
 var client kubernetes.Interface
 var dynamicClient dynamic.Interface
 
 func init() {
+	var err error
+
 	// Added this check for starting the deployment along with local apiserver config.
 	kubeconfigFile := "/etc/kubeconfig/kubeconfig"
-	var config *rest.Config
-	_, err := os.Stat(kubeconfigFile)
-	if errors.IsNotFound(err) {
-		config, err = rest.InClusterConfig()
-	} else {
-		config, err = clientcmd.BuildConfigFromFlags("", kubeconfigFile)
-	}
+
+	config, err := config.GetConfig(kubeconfigFile)
 	if err != nil {
 		panic(err)
 	}
