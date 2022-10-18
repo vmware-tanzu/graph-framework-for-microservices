@@ -14,13 +14,13 @@ import (
 	"sync/atomic"
 	"time"
 
+	gqlparser "github.com/vektah/gqlparser/v2"
+	"github.com/vektah/gqlparser/v2/ast"
 	introspection1 "github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/codegen/testserver/singlefile/introspection"
 	invalid_packagename "github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/codegen/testserver/singlefile/invalid-packagename"
 	"github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/codegen/testserver/singlefile/otherpkg"
 	"github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/graphql"
 	"github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/graphql/introspection"
-	gqlparser "github.com/vektah/gqlparser/v2"
-	"github.com/vektah/gqlparser/v2/ast"
 )
 
 // region    ************************** generated!.gotpl **************************

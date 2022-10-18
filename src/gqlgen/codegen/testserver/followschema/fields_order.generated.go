@@ -7,8 +7,8 @@ import (
 	"errors"
 	"strconv"
 
-	"github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/graphql"
 	"github.com/vektah/gqlparser/v2/ast"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/graphql"
 )
 
 // region    ************************** generated!.gotpl **************************

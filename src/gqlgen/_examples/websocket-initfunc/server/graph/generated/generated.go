@@ -11,11 +11,11 @@ import (
 	"strconv"
 	"sync"
 
-	"github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/graphql"
-	"github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/graphql/introspection"
 	"github.com/gqlgen/_examples/websocket-initfunc/server/graph/model"
 	gqlparser "github.com/vektah/gqlparser/v2"
 	"github.com/vektah/gqlparser/v2/ast"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/graphql"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/graphql/introspection"
 )
 
 // region    ************************** generated!.gotpl **************************

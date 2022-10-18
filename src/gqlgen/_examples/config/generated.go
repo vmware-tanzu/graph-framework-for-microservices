@@ -12,10 +12,10 @@ import (
 	"sync"
 	"sync/atomic"
 
-	"github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/graphql"
-	"github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/graphql/introspection"
 	gqlparser "github.com/vektah/gqlparser/v2"
 	"github.com/vektah/gqlparser/v2/ast"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/graphql"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/graphql/introspection"
 )
 
 // region    ************************** generated!.gotpl **************************

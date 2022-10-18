@@ -8,9 +8,9 @@ import (
 	"strconv"
 	"sync/atomic"
 
+	"github.com/vektah/gqlparser/v2/ast"
 	"github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/codegen/testserver/followschema/otherpkg"
 	"github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/graphql"
-	"github.com/vektah/gqlparser/v2/ast"
 )
 
 // region    ************************** generated!.gotpl **************************
