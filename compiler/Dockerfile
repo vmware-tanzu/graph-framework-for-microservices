@@ -6,7 +6,7 @@ ADD cmd/nexus-openapi-gen /go/bin/nexus-openapi-gen
 ADD cmd/gqlgen /go/bin/gqlgen
 
 WORKDIR /go/src/github.com/vmware-tanzu/graph-framework-for-microservices/compiler
-RUN mv .git .gitmodules common-library src ..
+RUN mv .git .gitmodules common-library kube-openapi gqlgen ..
 RUN git config --global --add safe.directory '*'
 RUN make init_submodules
 
