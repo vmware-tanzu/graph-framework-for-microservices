@@ -4,7 +4,7 @@ coverage*.out
 
 cmd/nexus-sdk/nexus-sdk
 cmd/nexus-openapi-gen
-cmd/gqlgen.git
+cmd/gqlgen
 compiler.tar
 _generated
 

@@ -10,7 +10,7 @@
 package openapi
 
 import (
-	common "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git/pkg/common"
+	common "github.com/vmware-tanzu/graph-framework-for-microservices/kube-openapi/pkg/common"
 )
 
 func GetOpenAPIDefinitions(ref common.ReferenceCallback) map[string]common.OpenAPIDefinition {

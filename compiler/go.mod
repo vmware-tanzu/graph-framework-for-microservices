@@ -9,9 +9,9 @@ require (
 	github.com/onsi/ginkgo v1.16.5
 	github.com/onsi/gomega v1.19.0
 	github.com/sirupsen/logrus v1.8.1
-	gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/common-library.git v0.0.0-20220909083510-01d43651301d
-	gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git v0.0.0-20220923155354-3246eebb23b7
-	gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git v0.0.0-20220603123335-7416bd4754d3
+	github.com/vmware-tanzu/graph-framework-for-microservices/common-library v0.0.0-20220909083510-01d43651301d
+	github.com/vmware-tanzu/graph-framework-for-microservices/gqlgen v0.0.0-00010101000000-000000000000
+	github.com/vmware-tanzu/graph-framework-for-microservices/kube-openapi v0.0.0-20220603123335-7416bd4754d3
 	golang.org/x/mod v0.6.0-dev.0.20220106191415-9b9b3d81d5e3
 	golang.org/x/text v0.3.7
 	golang.org/x/tools v0.1.10
@@ -57,3 +57,9 @@ require (
 	sigs.k8s.io/json v0.0.0-20211208200746-9f7c6b3444d2 // indirect
 	sigs.k8s.io/structured-merge-diff/v4 v4.2.1 // indirect
 )
+
+replace github.com/vmware-tanzu/graph-framework-for-microservices/common-library => ../common-library
+
+replace github.com/vmware-tanzu/graph-framework-for-microservices/kube-openapi => ../kube-openapi
+
+replace github.com/vmware-tanzu/graph-framework-for-microservices/gqlgen => ../gqlgen

@@ -5,7 +5,7 @@ LOG_LEVEL ?= error
 
 GO_PROJECT_NAME ?= compiler
 
-DOCKER_REGISTRY ?= harbor-repo.vmware.com
+DOCKER_REGISTRY ?= gcr.io/nsx-sm
 
 IMAGE_NAME ?= nexus/compiler
 TAG ?= $(shell git rev-parse --verify --short=8 HEAD)
@@ -25,11 +25,11 @@ NEXUS_GRAPHQLGEN_VERSION ?= 32f028bce22efeb70b47a640195bd969dbb337f0
 ifeq ($(CONTAINER_ID),)
 define run_in_container
   docker run \
-  --volume $(realpath .):${PKG_NAME} \
+  --volume $(realpath .)/..:/go/src/github.com/vmware-tanzu/graph-framework-for-microservices/ \
   --volume ~/.ssh:/root/.ssh \
   --network=host \
   --workdir ${PKG_NAME} \
-  "${BUILDER_NAME}:${BUILDER_TAG}" /bin/bash -c "make docker.gitlab_credentials && ${1}"
+  "${BUILDER_NAME}:${BUILDER_TAG}" /bin/bash -c "${1}"
 endef
 else
 define run_in_container
@@ -38,7 +38,7 @@ define run_in_container
  --workdir ${PKG_NAME} \
  --env CICD_TOKEN=${CICD_TOKEN} \
  --env PKG_NAME=${PKG_NAME} \
- "${BUILDER_NAME}:${BUILDER_TAG}" /bin/bash -c "make docker.gitlab_credentials && ${1}"
+ "${BUILDER_NAME}:${BUILDER_TAG}" /bin/bash -c "${1}"
 endef
 endif
 
@@ -53,7 +53,7 @@ docker.builder:
 .PHONY: docker
 docker: init_submodules ${BUILDER_NAME}\:${BUILDER_TAG}.image.exists build_openapigen_in_container build_gqlgen_in_container
 	git archive -o compiler.tar --format=tar HEAD
-	tar -rf compiler.tar ../.git ../.gitmodules
+	tar -rf compiler.tar ../.git ../.gitmodules ../common-library ../gqlgen ../kube-openapi
 	docker build --no-cache \
 		--build-arg BUILDER_TAG=${BUILDER_TAG} \
 		-t ${IMAGE_NAME}:${TAG} .
@@ -73,10 +73,9 @@ tools:
 	go install github.com/onsi/gomega/...@v1.18.0
 	go install golang.org/x/tools/cmd/goimports@latest
 	go install github.com/mikefarah/yq/v4@latest
-	go install gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git/cmd/nexus-openapi-gen@${NEXUS_KUBEOPENAPI_VERSION}
-	go install gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git@${NEXUS_GRAPHQLGEN_VERSION}
-	mv ${GOPATH}/bin/gqlgen.git ${GOPATH}/bin/gqlgen
-	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b "$(go env GOPATH)"/bin v1.49.0
+	go install ../kube-openapi/cmd/nexus-openapi-gen
+	go install ../gqlgen
+	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b "$$(go env GOPATH)"/bin v1.49.0
 
 .PHONY: build_openapigen_in_container
 build_openapigen_in_container:
@@ -84,13 +83,13 @@ build_openapigen_in_container:
 
 .PHONY: build_openapigen
 build_openapigen:
-	GOBIN=${PKG_NAME}/cmd go install gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git/cmd/nexus-openapi-gen@${NEXUS_KUBEOPENAPI_VERSION}
+	GOBIN=${PKG_NAME}/cmd go install ../kube-openapi/cmd/nexus-openapi-gen
 
 build_gqlgen_in_container:
 	$(call run_in_container,make build_gqlgen)
 
 build_gqlgen:
-	GOBIN=${PKG_NAME}/cmd go install gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git@${NEXUS_GRAPHQLGEN_VERSION}
+	GOBIN=${PKG_NAME}/cmd go install ../gqlgen
 
 .PHONY: unit-test
 unit-test:
@@ -120,6 +119,10 @@ coverage:
 .PHONY: test
 test: test-fmt vet lint race-unit-test
 
+.PHONY: generate_example_in_container
+generate_example_in_container:
+	$(call run_in_container, make tools && make generate_example)
+
 .PHONY: test_in_container
 test_in_container: ${BUILDER_NAME}\:${BUILDER_TAG}.image.exists
 	$(call run_in_container, make test)
@@ -139,7 +142,7 @@ generate_code:
 	CRD_MODULE_PATH=${CRD_MODULE_PATH} go run cmd/nexus-sdk/main.go -config-file ${CONFIG_FILE} -dsl ${DATAMODEL_PATH} -crd-output _generated -log-level ${LOG_LEVEL}
 	mv _generated/api_names.sh scripts/
 	@echo "Nexus Compiler: Resolving datamodel dependencies"
-	cd _generated && ../scripts/pin_deps.sh  && go mod tidy -e
+	cd _generated && ../scripts/pin_deps.sh && go mod tidy -e
 	@echo "Nexus Compiler: Generating kuberenetes APIs"
 	./scripts/generate_k8s_api.sh
 	@echo "Nexus Compiler: Generating openapi schema"
@@ -149,7 +152,7 @@ generate_code:
 	git checkout -- pkg/openapi_generator/openapi/openapi_generated.go
 	@echo "==> Nexus Compiler: Generating GRAPHQL pkg <=="
 	cd _generated && goimports -w .
-	cd _generated/nexus-gql && go get github.com/cespare/xxhash/v2@v2.1.2 && gqlgen generate
+	cd _generated/nexus-gql && go mod edit -replace github.com/vmware-tanzu/graph-framework-for-microservices/gqlgen=/go/src/github.com/vmware-tanzu/graph-framework-for-microservices/gqlgen && go mod edit -replace github.com/vmware-tanzu/graph-framework-for-microservices/kube-openapi=/go/src/github.com/vmware-tanzu/graph-framework-for-microservices/kube-openapi && go get github.com/cespare/xxhash/v2@v2.1.2 && gqlgen generate
 	cp -rf _generated/* ${GOPATH}/src/nexustempmodule/
 	cd ${GOPATH}/src/nexustempmodule && cd nexus-gql && CGO_ENABLED=1 GOOS=linux \
 	go build --trimpath -o graphql.so -buildmode=plugin server.go
@@ -165,21 +168,21 @@ generate_code:
 
 .PHONY: test_generate_code_in_container
 test_generate_code_in_container: ${BUILDER_NAME}\:${BUILDER_TAG}.image.exists init_submodules
-	$(call run_in_container, go install gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git/cmd/nexus-openapi-gen@${NEXUS_KUBEOPENAPI_VERSION} && \
-	go install gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git@${NEXUS_GRAPHQLGEN_VERSION} && \
-	mv /go/bin/gqlgen.git /go/bin/gqlgen && \
+	$(call run_in_container, go install ../kube-openapi/cmd/nexus-openapi-gen && \
+	go install ../gqlgen && \
 	make generate_code DATAMODEL_PATH=example/datamodel \
 	CONFIG_FILE=example/nexus-sdk.yaml \
 	CRD_MODULE_PATH="github.com/vmware-tanzu/graph-framework-for-microservices/compiler/example/output/crd_generated/" \
 	LOG_LEVEL=trace \
 	GENERATED_OUTPUT_DIRECTORY=example/output/crd_generated && \
-	cd example/output/crd_generated && go mod tidy && go vet ./... && golangci-lint run ./...)
+	cd example/output/crd_generated && go mod edit -replace github.com/vmware-tanzu/graph-framework-for-microservices/gqlgen=../../../../gqlgen && go mod edit -replace github.com/vmware-tanzu/graph-framework-for-microservices/kube-openapi=../../../../kube-openapi && go mod tidy && go vet ./... && golangci-lint run ./...)
 	@if [ -n "$$(git ls-files --modified --exclude-standard)" ]; then\
 		echo "The following changes should be committed:";\
 		git status;\
 		git diff;\
 		exit 1;\
 	fi
+
 
 .PHONY: generate_example
 generate_example:
@@ -223,13 +226,13 @@ test_render_templates: render_templates
 
 .PHONY: docker.gitlab_credentials
 docker.gitlab_credentials:
-	echo "Updating gitlab settings"
+	echo "Updating gitlab settings";
 	@if test -z $$CICD_TOKEN; then\
 		echo "Using ssh authentication" && \
-        git config --global --add url."git@gitlab.eng.vmware.com:".insteadOf "https://gitlab.eng.vmware.com/"; \
+		git config --global --add url."git@gitlab.eng.vmware.com:".insteadOf "https://gitlab.eng.vmware.com/"; \
 	else \
 		echo "Using https authentication" && \
-        git config --global credential.helper store && \
-        echo -e  "https://gitlab-ci-token:${CICD_TOKEN}@gitlab.eng.vmware.com/" >> ~/.git-credentials && \
-        git config --global url."https://gitlab.eng.vmware.com/".insteadOf "git@gitlab.eng.vmware.com:"; \
+		git config --global credential.helper store && \
+			echo -e  "https://gitlab-ci-token:${CICD_TOKEN}@gitlab.eng.vmware.com/" >> ~/.git-credentials && \
+			git config --global url."https://gitlab.eng.vmware.com/".insteadOf "git@gitlab.eng.vmware.com:"; \
 	fi

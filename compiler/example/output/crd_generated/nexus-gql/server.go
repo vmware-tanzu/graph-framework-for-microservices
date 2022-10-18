@@ -6,8 +6,8 @@ import (
 	"github.com/vmware-tanzu/graph-framework-for-microservices/compiler/example/output/crd_generated/nexus-gql/graph"
 	"github.com/vmware-tanzu/graph-framework-for-microservices/compiler/example/output/crd_generated/nexus-gql/graph/generated"
 
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/graphql/handler"
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/graphql/playground"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/gqlgen/graphql/handler"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/gqlgen/graphql/playground"
 )
 
 func StartHttpServer() {
