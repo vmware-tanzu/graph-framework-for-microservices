@@ -175,7 +175,7 @@ test_generate_code_in_container: ${BUILDER_NAME}\:${BUILDER_TAG}.image.exists in
 	CRD_MODULE_PATH="github.com/vmware-tanzu/graph-framework-for-microservices/compiler/example/output/crd_generated/" \
 	LOG_LEVEL=trace \
 	GENERATED_OUTPUT_DIRECTORY=example/output/crd_generated && \
-	cd example/output/crd_generated && go mod edit -replace github.com/vmware-tanzu/graph-framework-for-microservices/gqlgen=../../../../gqlgen && go mod edit -replace github.com/vmware-tanzu/graph-framework-for-microservices/kube-openapi=../../../..//kube-openapi && go mod tidy && go vet ./... && golangci-lint run ./...)
+	cd example/output/crd_generated && go mod edit -replace github.com/vmware-tanzu/graph-framework-for-microservices/gqlgen=../../../../gqlgen && go mod edit -replace github.com/vmware-tanzu/graph-framework-for-microservices/kube-openapi=../../../../kube-openapi && go mod tidy && go vet ./... && golangci-lint run ./...)
 	@if [ -n "$$(git ls-files --modified --exclude-standard)" ]; then\
 		echo "The following changes should be committed:";\
 		git status;\
@@ -222,17 +222,4 @@ test_render_templates: render_templates
     	git status;\
     	git diff;\
     	return 1;\
-    fi
-
-.PHONY: docker.gitlab_credentials
-docker.gitlab_credentials:
-	echo "Updating gitlab settings"
-	@if test -z $$CICD_TOKEN; then\
-		echo "Using ssh authentication" && \
-		git config --global --add url."git@gitlab.eng.vmware.com:".insteadOf "https://gitlab.eng.vmware.com/"; \
-	else \
-		echo "Using https authentication" && \
-		git config --global credential.helper store && \
-		echo -e  "https://gitlab-ci-token:${CICD_TOKEN}@gitlab.eng.vmware.com/" >> ~/.git-credentials && \
-		git config --global url."https://gitlab.eng.vmware.com/".insteadOf "git@gitlab.eng.vmware.com:"; \
     fi

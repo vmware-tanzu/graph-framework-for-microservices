@@ -10,6 +10,7 @@ ENV GOFLAGS="-buildvcs=false"
 ENV GONOPROXY=*.eng.vmware.com
 ENV GOINSECURE=golang-appnet.eng.vmware.com
 
+RUN git config --global --add safe.directory '*'
 RUN tdnf -y --refresh install \
   make=4.3-2.ph4 \
   coreutils=8.32-3.ph4 \

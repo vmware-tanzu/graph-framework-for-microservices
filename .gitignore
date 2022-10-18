@@ -29,8 +29,6 @@ report.json
 # Project-local glide cache, RE: https://github.com/Masterminds/glide/issues/736
 .glide/
 
-# Intellij IDEA files
-.idea/
 *.iml
 .vscode
 
