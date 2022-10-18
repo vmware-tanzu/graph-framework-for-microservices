@@ -7,7 +7,7 @@ require (
 	github.com/sirupsen/logrus v1.8.1
 	github.com/vektah/gqlparser/v2 v2.5.0
 	github.com/vmware-tanzu/cartographer v0.3.0
-	github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen v0.0.0-00010101000000-000000000000
+	github.com/vmware-tanzu/graph-framework-for-microservices/gqlgen v0.0.0-00010101000000-000000000000
 	k8s.io/apimachinery v0.23.5
 	k8s.io/client-go v0.23.5
 )
@@ -69,6 +69,6 @@ require (
 	sigs.k8s.io/yaml v1.3.0 // indirect
 )
 
-replace github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen => /go/src/github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen
+replace github.com/vmware-tanzu/graph-framework-for-microservices/gqlgen => ../../../../src/github.com/vmware-tanzu/graph-framework-for-microservices/gqlgen
 
-replace github.com/vmware-tanzu/graph-framework-for-microservices/src/kube-openapi => /go/src/github.com/vmware-tanzu/graph-framework-for-microservices/src/kube-openapi
+replace github.com/vmware-tanzu/graph-framework-for-microservices/kube-openapi => ../src/github.com/vmware-tanzu/graph-framework-for-microservices/kube-openapi

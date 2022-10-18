@@ -3,4 +3,4 @@
 
 package tools
 
-import _ "github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen"
+import _ "github.com/vmware-tanzu/graph-framework-for-microservices/gqlgen"

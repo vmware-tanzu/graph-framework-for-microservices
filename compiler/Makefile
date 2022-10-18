@@ -53,7 +53,7 @@ docker.builder:
 .PHONY: docker
 docker: init_submodules ${BUILDER_NAME}\:${BUILDER_TAG}.image.exists build_openapigen_in_container build_gqlgen_in_container
 	git archive -o compiler.tar --format=tar HEAD
-	tar -rf compiler.tar ../.git ../.gitmodules ../common-library ../src
+	tar -rf compiler.tar ../.git ../.gitmodules ../common-library ../gqlgen ../kube-openapi
 	docker build --no-cache \
 		--build-arg BUILDER_TAG=${BUILDER_TAG} \
 		-t ${IMAGE_NAME}:${TAG} .
@@ -61,7 +61,7 @@ docker: init_submodules ${BUILDER_NAME}\:${BUILDER_TAG}.image.exists build_opena
 .PHONY: build
 build:
 	cd cmd/nexus-sdk && \
-		CGO_ENABLED=0 go build -ldflags="-w -s" .
+		CGO_ENABLED=0 go build -buildvcs=false -ldflags="-w -s" .
 
 .PHONY: build_in_container
 build_in_container: ${BUILDER_NAME}\:${BUILDER_TAG}.image.exists
@@ -73,8 +73,8 @@ tools:
 	go install github.com/onsi/gomega/...@v1.18.0
 	go install golang.org/x/tools/cmd/goimports@latest
 	go install github.com/mikefarah/yq/v4@latest
-	go install ../src/kube-openapi/cmd/nexus-openapi-gen
-	go install ../src/gqlgen
+	go install ../kube-openapi/cmd/nexus-openapi-gen
+	go install ../gqlgen
 	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b "$(go env GOPATH)"/bin v1.49.0
 
 .PHONY: build_openapigen_in_container
@@ -83,13 +83,13 @@ build_openapigen_in_container:
 
 .PHONY: build_openapigen
 build_openapigen:
-	GOBIN=${PKG_NAME}/cmd go install ../src/kube-openapi/cmd/nexus-openapi-gen
+	GOBIN=${PKG_NAME}/cmd go install ../kube-openapi/cmd/nexus-openapi-gen
 
 build_gqlgen_in_container:
 	$(call run_in_container,make build_gqlgen)
 
 build_gqlgen:
-	GOBIN=${PKG_NAME}/cmd go install ../src/gqlgen
+	GOBIN=${PKG_NAME}/cmd go install ../gqlgen
 
 .PHONY: unit-test
 unit-test:
@@ -148,7 +148,7 @@ generate_code:
 	git checkout -- pkg/openapi_generator/openapi/openapi_generated.go
 	@echo "==> Nexus Compiler: Generating GRAPHQL pkg <=="
 	cd _generated && goimports -w .
-	cd _generated/nexus-gql && go mod edit -replace github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen=/go/src/github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen && go mod edit -replace github.com/vmware-tanzu/graph-framework-for-microservices/src/kube-openapi=/go/src/github.com/vmware-tanzu/graph-framework-for-microservices/src/kube-openapi && go get github.com/cespare/xxhash/v2@v2.1.2 && gqlgen generate
+	cd _generated/nexus-gql && go mod edit -replace github.com/vmware-tanzu/graph-framework-for-microservices/gqlgen=/go/src/github.com/vmware-tanzu/graph-framework-for-microservices/gqlgen && go mod edit -replace github.com/vmware-tanzu/graph-framework-for-microservices/kube-openapi=/go/src/github.com/vmware-tanzu/graph-framework-for-microservices/kube-openapi && go get github.com/cespare/xxhash/v2@v2.1.2 && gqlgen generate
 	cp -rf _generated/* ${GOPATH}/src/nexustempmodule/
 	cd ${GOPATH}/src/nexustempmodule && cd nexus-gql && CGO_ENABLED=1 GOOS=linux \
 	go build --trimpath -o graphql.so -buildmode=plugin server.go
@@ -164,14 +164,14 @@ generate_code:
 
 .PHONY: test_generate_code_in_container
 test_generate_code_in_container: ${BUILDER_NAME}\:${BUILDER_TAG}.image.exists init_submodules
-	$(call run_in_container, go install ../src/kube-openapi/cmd/nexus-openapi-gen && \
-	go install ../src/gqlgen && \
+	$(call run_in_container, go install ../kube-openapi/cmd/nexus-openapi-gen && \
+	go install ../gqlgen && \
 	make generate_code DATAMODEL_PATH=example/datamodel \
 	CONFIG_FILE=example/nexus-sdk.yaml \
 	CRD_MODULE_PATH="github.com/vmware-tanzu/graph-framework-for-microservices/compiler/example/output/crd_generated/" \
 	LOG_LEVEL=trace \
 	GENERATED_OUTPUT_DIRECTORY=example/output/crd_generated && \
-	cd example/output/crd_generated && go mod edit -replace github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen=/go/src/github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen && go mod edit -replace github.com/vmware-tanzu/graph-framework-for-microservices/src/kube-openapi=/go/src/github.com/vmware-tanzu/graph-framework-for-microservices/src/kube-openapi && go mod tidy && go vet ./... && golangci-lint run ./...)
+	cd example/output/crd_generated && go mod edit -replace github.com/vmware-tanzu/graph-framework-for-microservices/gqlgen=../../../../github.com/vmware-tanzu/graph-framework-for-microservices/gqlgen && go mod edit -replace github.com/vmware-tanzu/graph-framework-for-microservices/kube-openapi=../github.com/vmware-tanzu/graph-framework-for-microservices/kube-openapi && go mod tidy && go vet ./... && golangci-lint run ./...)
 	@if [ -n "$$(git ls-files --modified --exclude-standard)" ]; then\
 		echo "The following changes should be committed:";\
 		git status;\

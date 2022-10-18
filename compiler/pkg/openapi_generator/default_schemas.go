@@ -3,8 +3,8 @@ package openapi_generator
 import (
 	"fmt"
 
-	"github.com/vmware-tanzu/graph-framework-for-microservices/src/kube-openapi/pkg/common"
-	"github.com/vmware-tanzu/graph-framework-for-microservices/src/kube-openapi/pkg/validation/spec"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/kube-openapi/pkg/common"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/kube-openapi/pkg/validation/spec"
 )
 
 const (

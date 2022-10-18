@@ -21,15 +21,15 @@ resolver:
 models:
   ID:
     model:
-      - github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/graphql.ID
-      - github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/graphql.Int
-      - github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/graphql.Int64
-      - github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/graphql.Int32
+      - github.com/vmware-tanzu/graph-framework-for-microservices/gqlgen/graphql.ID
+      - github.com/vmware-tanzu/graph-framework-for-microservices/gqlgen/graphql.Int
+      - github.com/vmware-tanzu/graph-framework-for-microservices/gqlgen/graphql.Int64
+      - github.com/vmware-tanzu/graph-framework-for-microservices/gqlgen/graphql.Int32
   Int:
     model:
-      - github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/graphql.Int
-      - github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/graphql.Int64
-      - github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen/graphql.Int32
+      - github.com/vmware-tanzu/graph-framework-for-microservices/gqlgen/graphql.Int
+      - github.com/vmware-tanzu/graph-framework-for-microservices/gqlgen/graphql.Int64
+      - github.com/vmware-tanzu/graph-framework-for-microservices/gqlgen/graphql.Int32
   {{- range $key, $node := .Nodes }}
   {{- if $node.IsNexusNode }}
   {{- if eq $node.ResolverCount 0 }}{{- else }}

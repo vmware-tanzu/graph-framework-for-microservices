@@ -10,8 +10,8 @@ import (
 
 	generator "github.com/vmware-tanzu/graph-framework-for-microservices/compiler/pkg/openapi_generator"
 	"github.com/vmware-tanzu/graph-framework-for-microservices/compiler/pkg/openapi_generator/test_data/openapi"
-	"github.com/vmware-tanzu/graph-framework-for-microservices/src/kube-openapi/pkg/common"
-	"github.com/vmware-tanzu/graph-framework-for-microservices/src/kube-openapi/pkg/validation/spec"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/kube-openapi/pkg/common"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/kube-openapi/pkg/validation/spec"
 )
 
 var _ = Describe("Generator", func() {
