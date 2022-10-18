@@ -8,16 +8,16 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"golang-appnet.eng.vmware.com/nexus-sdk/nexus/nexus"
 	"sync"
-
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/crd_generated/nexus-gql/graph/model"
 
 	"golang-appnet.eng.vmware.com/nexus-sdk/nexus/generated/graphql"
 	qm "golang-appnet.eng.vmware.com/nexus-sdk/nexus/generated/query-manager"
+	"golang-appnet.eng.vmware.com/nexus-sdk/nexus/nexus"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/protobuf/proto"
+
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/crd_generated/nexus-gql/graph/model"
 )
 
 type Resolver struct{}

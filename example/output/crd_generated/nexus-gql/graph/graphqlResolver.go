@@ -16,7 +16,7 @@ import (
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/crd_generated/nexus-gql/graph/model"
 )
 
-var c = CustomQueryHandler{
+var c = GrpcClients{
 	mtx:     sync.Mutex{},
 	Clients: map[string]graphql.ServerClient{},
 }

@@ -12,7 +12,7 @@ require (
 	gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/common-library.git v0.0.0-20220909083510-01d43651301d
 	gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git v0.0.0-20220923155354-3246eebb23b7
 	gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git v0.0.0-20220603123335-7416bd4754d3
-	golang-appnet.eng.vmware.com/nexus-sdk/nexus v0.2.19-0.20220923034407-590ee37ec521
+	golang-appnet.eng.vmware.com/nexus-sdk/nexus v0.2.19-0.20221017070824-fe366a5f56e9
 	golang.org/x/mod v0.6.0-dev.0.20220106191415-9b9b3d81d5e3
 	golang.org/x/text v0.3.7
 	golang.org/x/tools v0.1.10

@@ -128,7 +128,7 @@ generate_code:
 	@echo "Cleaning up workdir"
 	rm -rf _generated ${GOPATH}/src/nexustempmodule
 	@echo "Copying generated_base_structure to create directory structure"
-	cp -R generated_base_structure _generated
+	cp -R _generated_base_structure _generated
 	@echo "Copying go.mod file of datamodel"
 	cp ${DATAMODEL_PATH}/go.mod _generated/go.mod
 	sed -i'.bak' -e "1s|.*|module nexustempmodule|" _generated/go.mod

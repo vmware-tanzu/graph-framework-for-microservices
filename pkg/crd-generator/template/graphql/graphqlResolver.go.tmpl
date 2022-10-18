@@ -152,6 +152,8 @@ func get{{$node.PkgName}}{{$node.NodeName}}{{$query.Name}}Resolver(obj *model.{{
 		},
 		Hierarchy: parentLabels,
 	}
+
+
 	return c.Query("{{$query.ServiceEndpoint.Domain}}:{{$query.ServiceEndpoint.Port}}", query)
 }{{- end }}
 {{ end }}

@@ -8,7 +8,7 @@ require (
 	github.com/vektah/gqlparser/v2 v2.5.0
 	github.com/vmware-tanzu/cartographer v0.3.0
 	gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git v0.0.0-20220907103452-35b454baf46c
-	golang-appnet.eng.vmware.com/nexus-sdk/nexus v0.2.19-0.20221003113352-69c4292453f8
+	golang-appnet.eng.vmware.com/nexus-sdk/nexus v0.2.19-0.20221017112310-5e7a04c3ecf5
 	google.golang.org/grpc v1.43.0
 	k8s.io/apimachinery v0.23.5
 	k8s.io/client-go v0.23.5
