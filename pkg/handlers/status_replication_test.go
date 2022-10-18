@@ -3,6 +3,7 @@ package handlers_test
 import (
 	"bytes"
 	"context"
+	"time"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -37,6 +38,7 @@ var _ = Describe("Status Replication", func() {
 			getObject("Root", RootKind, "example"), getObject("Config", ConfigKind, "example"), getObject("Project", ProjectKind, "example"))
 		conf = &config.Config{
 			StatusReplicationEnabled: true,
+			PeriodicSyncInterval:     3 * time.Second,
 		}
 		remoteClient = fake_dynamic.NewSimpleDynamicClient(runtime.NewScheme(), getReplicatedObject("New", ConfigKind, map[string]interface{}{"state": "started", "date": "Mar20"}),
 			getObject("Root", RootKind, "example"), getObject("Config", ConfigKind, "example"), getObject("Project", ProjectKind, "example"))

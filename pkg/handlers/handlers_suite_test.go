@@ -32,6 +32,7 @@ const (
 )
 
 var (
+	project               = schema.GroupVersionResource{Group: "config.mazinger.com", Version: "v1", Resource: "projects"}
 	apicollaborationspace = schema.GroupVersionResource{Group: "config.mazinger.com", Version: "v1", Resource: "apicollaborationspaces"}
 	apidevspace           = schema.GroupVersionResource{Group: "config.mazinger.com", Version: "v1", Resource: "apidevspaces"}
 	deployment            = schema.GroupVersionResource{Group: "apps", Version: "v1", Resource: "deployments"}
@@ -136,10 +137,11 @@ func getNonHierarchicalSourceConfig() utils.ReplicationSource {
 	}
 }
 
-func getHierarchicalSourceConfig() utils.ReplicationSource {
+func getHierarchicalSourceConfig(name string) utils.ReplicationSource {
 	return utils.ReplicationSource{
 		Kind: utils.Object,
 		Object: utils.SourceObject{
+			Name: name,
 			ObjectType: utils.ObjectType{
 				Group:   Group,
 				Version: "v1",
@@ -169,7 +171,7 @@ func getHierarchicalSourceConfig() utils.ReplicationSource {
 func getHierarchicalDestConfig() utils.ReplicationDestination {
 	return utils.ReplicationDestination{
 		Hierarchical: true,
-		Hierarchy: utils.Hierarchy{
+		Hierarchy: &utils.Hierarchy{
 			Labels: []utils.KVP{
 				{
 					Key:   Root,
@@ -209,7 +211,7 @@ func getDifferentTypeDestConfig() utils.ReplicationDestination {
 		ObjectType: &utils.ObjectType{
 			Group:   Group,
 			Version: "v1",
-			Kind:    AdKind,
+			Kind:    ConfigKind,
 		},
 	}
 }

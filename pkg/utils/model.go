@@ -63,9 +63,9 @@ type SourceObject struct {
 }
 
 type ReplicationDestination struct {
-	Hierarchical bool      `json:"hierarchical"`
-	Hierarchy    Hierarchy `json:"hierarchy"`
-	Namespace    string    `json:"namespace"`
+	Hierarchical bool       `json:"hierarchical"`
+	Hierarchy    *Hierarchy `json:"hierarchy"`
+	Namespace    string     `json:"namespace"`
 	*ObjectType  `json:"objectType"`
 	IsChild      bool `json:"-"`
 }

@@ -6,6 +6,7 @@ import (
 	"math"
 	"os"
 	"strings"
+	"time"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -103,6 +104,7 @@ var _ = Describe("ReplicationConfig Tests", func() {
 			conf, err = config.LoadConfig("./../config/test_utils/correct.yaml")
 			Expect(err).NotTo(HaveOccurred())
 
+			conf.PeriodicSyncInterval = 3 * time.Second
 			handler = handlers.NewReplicationConfigHandler(gvr, conf, client)
 		})
 
@@ -121,22 +123,8 @@ var _ = Describe("ReplicationConfig Tests", func() {
 			replicationConfig = getReplicationConfigObject()
 			err := handler.Create(replicationConfig)
 			Expect(err).NotTo(HaveOccurred())
-		})
 
-		It("Should fail object creation when unable to connect to destination.", func() {
-			server.AppendHandlers(
-				ghttp.CombineHandlers(
-					ghttp.VerifyRequest("GET", "/apis/config.mazinger.com/v1/apicollaborationspaces/ac1"),
-					ghttp.RespondWith(200, "turbo: true"),
-				),
-				ghttp.CombineHandlers(
-					ghttp.VerifyRequest("POST", "/apis/config.mazinger.com/v1/apicollaborationspaces"),
-					ghttp.RespondWith(400, "NotOK"),
-				),
-			)
-			replicationConfig = getReplicationConfigObject()
-			err := handler.Create(replicationConfig)
-			Expect(err.Error()).To(ContainSubstring("error replicating desired nodes"))
+			Expect(server.ReceivedRequests()).Should(HaveLen(2))
 		})
 
 		It("Should fail object creation when CRD Type not found on the destination.", func() {
@@ -229,6 +217,7 @@ var _ = Describe("ReplicationConfig Tests", func() {
 			}
 			err := handler.Create(replicationConfig)
 			Expect(err).NotTo(HaveOccurred())
+			Expect(server.ReceivedRequests()).Should(HaveLen(2))
 		})
 
 		It("Should skip replicationconfigs configured for different endpoints", func() {
