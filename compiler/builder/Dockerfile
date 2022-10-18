@@ -6,6 +6,7 @@ ENV PATH $PATH:/usr/local/go/bin:/go/bin
 ENV GO111MODULE=on
 ENV GOPRIVATE=*.vmware.com
 ENV GOPROXY=""
+ENV GOFLAGS="-buildvcs=false"
 ENV GONOPROXY=*.eng.vmware.com
 ENV GOINSECURE=golang-appnet.eng.vmware.com
 
