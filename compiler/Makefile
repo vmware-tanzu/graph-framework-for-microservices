@@ -75,7 +75,7 @@ tools:
 	go install github.com/mikefarah/yq/v4@latest
 	go install ../kube-openapi/cmd/nexus-openapi-gen
 	go install ../gqlgen
-	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b "$(go env GOPATH)"/bin v1.49.0
+	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b "$$(go env GOPATH)"/bin v1.49.0
 
 .PHONY: build_openapigen_in_container
 build_openapigen_in_container:
@@ -119,6 +119,10 @@ coverage:
 .PHONY: test
 test: test-fmt vet lint race-unit-test
 
+.PHONY: generate_example_in_container
+generate_example_in_container:
+	$(call run_in_container, make generate_example)
+
 .PHONY: test_in_container
 test_in_container: ${BUILDER_NAME}\:${BUILDER_TAG}.image.exists
 	$(call run_in_container, make test)
@@ -138,7 +142,7 @@ generate_code:
 	CRD_MODULE_PATH=${CRD_MODULE_PATH} go run cmd/nexus-sdk/main.go -config-file ${CONFIG_FILE} -dsl ${DATAMODEL_PATH} -crd-output _generated -log-level ${LOG_LEVEL}
 	mv _generated/api_names.sh scripts/
 	@echo "Nexus Compiler: Resolving datamodel dependencies"
-	cd _generated && ../scripts/pin_deps.sh && cat go.mod && go mod tidy -e
+	cd _generated && ../scripts/pin_deps.sh && go mod tidy -e
 	@echo "Nexus Compiler: Generating kuberenetes APIs"
 	./scripts/generate_k8s_api.sh
 	@echo "Nexus Compiler: Generating openapi schema"
@@ -179,8 +183,9 @@ test_generate_code_in_container: ${BUILDER_NAME}\:${BUILDER_TAG}.image.exists in
 		exit 1;\
 	fi
 
+
 .PHONY: generate_example
-generate_example:
+generate_example: tools
 	$(MAKE) generate_code DATAMODEL_PATH=example/datamodel CONFIG_FILE=example/nexus-sdk.yaml CRD_MODULE_PATH="github.com/vmware-tanzu/graph-framework-for-microservices/compiler/example/output/crd_generated/" GENERATED_OUTPUT_DIRECTORY=example/output/crd_generated
 
 .PHONY: show-image-name
