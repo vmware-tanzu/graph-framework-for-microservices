@@ -20,6 +20,7 @@ type Config struct {
 	RemoteEndpointCert       string              `yaml:"-"`
 	IgnoredNamespaces        IgnoredNamespaces   `yaml:"ignoredNamespaces"`
 	StatusReplicationEnabled bool                `yaml:"-"`
+	PeriodicSyncInterval     time.Duration       `yaml:"-"`
 }
 
 type Dispatcher struct {
@@ -58,6 +59,8 @@ func LoadConfig(configFile string) (*Config, error) {
 	config.RemoteEndpointPath = os.Getenv(utils.RemoteEndpointPath)
 	config.RemoteEndpointCert = os.Getenv(utils.RemoteEndpointCert)
 	config.StatusReplicationEnabled = os.Getenv(utils.StatusReplication) == utils.StatusEnabled
+
+	config.PeriodicSyncInterval = time.Second * 30
 
 	return config, nil
 }
