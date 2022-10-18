@@ -32,3 +32,20 @@ report.json
 *.iml
 .vscode
 
+compiler/*.coverprofile
+compiler/coverage*.out
+compiler/*.test
+
+compiler/cmd/nexus-sdk/nexus-sdk
+compiler/cmd/nexus-openapi-gen
+compiler/cmd/gqlgen
+compiler/compiler.tar
+compiler/_generated
+
+### GoLand ###
+compiler/.idea
+compiler/report.json
+
+compiler/cmd/debug
+compiler/coverage.json
+compiler/report.json

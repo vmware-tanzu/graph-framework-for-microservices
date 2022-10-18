@@ -61,7 +61,7 @@ docker: init_submodules ${BUILDER_NAME}\:${BUILDER_TAG}.image.exists build_opena
 .PHONY: build
 build:
 	cd cmd/nexus-sdk && \
-		CGO_ENABLED=0 go build -buildvcs=false -ldflags="-w -s" .
+		CGO_ENABLED=0 go build -ldflags="-w -s" .
 
 .PHONY: build_in_container
 build_in_container: ${BUILDER_NAME}\:${BUILDER_TAG}.image.exists
