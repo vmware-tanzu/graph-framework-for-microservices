@@ -138,7 +138,7 @@ generate_code:
 	CRD_MODULE_PATH=${CRD_MODULE_PATH} go run cmd/nexus-sdk/main.go -config-file ${CONFIG_FILE} -dsl ${DATAMODEL_PATH} -crd-output _generated -log-level ${LOG_LEVEL}
 	mv _generated/api_names.sh scripts/
 	@echo "Nexus Compiler: Resolving datamodel dependencies"
-	cd _generated && ../scripts/pin_deps.sh  && go mod tidy -e
+	cd _generated && ../scripts/pin_deps.sh && cat go.mod && go mod tidy -e
 	@echo "Nexus Compiler: Generating kuberenetes APIs"
 	./scripts/generate_k8s_api.sh
 	@echo "Nexus Compiler: Generating openapi schema"
@@ -148,7 +148,7 @@ generate_code:
 	git checkout -- pkg/openapi_generator/openapi/openapi_generated.go
 	@echo "==> Nexus Compiler: Generating GRAPHQL pkg <=="
 	cd _generated && goimports -w .
-	cd _generated/nexus-gql && go get github.com/cespare/xxhash/v2@v2.1.2 && gqlgen generate
+	cd _generated/nexus-gql && go mod edit -replace github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen=/go/src/github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen && go mod edit -replace github.com/vmware-tanzu/graph-framework-for-microservices/src/kube-openapi=/go/src/github.com/vmware-tanzu/graph-framework-for-microservices/src/kube-openapi && go get github.com/cespare/xxhash/v2@v2.1.2 && gqlgen generate
 	cp -rf _generated/* ${GOPATH}/src/nexustempmodule/
 	cd ${GOPATH}/src/nexustempmodule && cd nexus-gql && CGO_ENABLED=1 GOOS=linux \
 	go build --trimpath -o graphql.so -buildmode=plugin server.go
@@ -171,7 +171,7 @@ test_generate_code_in_container: ${BUILDER_NAME}\:${BUILDER_TAG}.image.exists in
 	CRD_MODULE_PATH="github.com/vmware-tanzu/graph-framework-for-microservices/compiler/example/output/crd_generated/" \
 	LOG_LEVEL=trace \
 	GENERATED_OUTPUT_DIRECTORY=example/output/crd_generated && \
-	cd example/output/crd_generated && go mod tidy && go vet ./... && golangci-lint run ./...)
+	cd example/output/crd_generated && go mod edit -replace github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen=/go/src/github.com/vmware-tanzu/graph-framework-for-microservices/src/gqlgen && go mod edit -replace github.com/vmware-tanzu/graph-framework-for-microservices/src/kube-openapi=/go/src/github.com/vmware-tanzu/graph-framework-for-microservices/src/kube-openapi && go mod tidy && go vet ./... && golangci-lint run ./...)
 	@if [ -n "$$(git ls-files --modified --exclude-standard)" ]; then\
 		echo "The following changes should be committed:";\
 		git status;\

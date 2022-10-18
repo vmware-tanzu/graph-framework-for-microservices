@@ -1,4 +1,5 @@
-FROM gcr.io/nsx-sm/golang:1.17
+#graphql's and compiler's builder/Dockerfile should be in sync
+FROM gcr.io/nsx-sm/nexus/golang:1.18
 
 ENV GOPATH /go
 ENV PATH $PATH:/usr/local/go/bin:/go/bin
