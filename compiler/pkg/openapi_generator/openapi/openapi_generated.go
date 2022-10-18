@@ -10,7 +10,7 @@
 package openapi
 
 import (
-	common "github.com/vmware-tanzu/graph-framework-for-microservices/src/kube-openapi/pkg/common"
+	common "github.com/vmware-tanzu/graph-framework-for-microservices/kube-openapi/pkg/common"
 )
 
 func GetOpenAPIDefinitions(ref common.ReferenceCallback) map[string]common.OpenAPIDefinition {
