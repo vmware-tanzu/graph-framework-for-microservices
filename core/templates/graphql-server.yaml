@@ -81,21 +81,41 @@ spec:
             - /bin/bash
             - -c 
             - |
-              #!/bin/bash
-              set -x
-              echo "Creating custom route object"
-              echo 'apiVersion: route.nexus.org/v1
-              kind: Route
-              metadata:
-                name: graphql
-              spec:
-                service:
-                  Name: graphql
-                  Port: 8080
-                  Scheme: Http
-                resource:
-                  Name: graphql
-                uri: "/*"' | kubectl -s nexus-api-gw:80 apply -f -
+                #!/bin/bash
+                set -x
+                function create_object() {
+                FILE=$1
+                RETRY=4
+                ATTEMPT=0
+                while [ $ATTEMPT -ne $RETRY ]; do
+                  if ! cat $FILE | kubectl -s nexus-api-gw:80 apply -f -; then
+                    ATTEMPT=$((ATTEMPT + 1))
+                    if [ $ATTEMPT -ne $RETRY ]; then
+                        sleep 2
+                    else
+                        exit 1
+                    fi
+                  else
+                    break
+                  fi
+                  done
+                }
+                echo "Creating custom route object"
+                cat > /tmp/object <<EOF
+                apiVersion: route.nexus.org/v1
+                kind: Route
+                metadata:
+                  name: graphqlv2
+                spec:
+                  service:
+                    Name: graphql
+                    Port: 8080
+                    Scheme: Http
+                  resource:
+                    Name: graphql
+                  uri: /
+                EOF
+                create_object /tmp/object
       containers:
         -
           image: {{.Values.global.registry}}/graphql-server:{{ required "Please provide global.graphql.tag value using --set-string option!" .Values.global.graphql.tag }}
