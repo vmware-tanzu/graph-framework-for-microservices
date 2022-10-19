@@ -20,7 +20,7 @@ func StartHttpServer() {
 
 	ES := generated.NewExecutableSchema(generated.Config{Resolvers: &graph.Resolver{}})
 	Hander_server := handler.NewDefaultServer(ES)
-	HttpHandlerFunc := playground.Handler("GraphQL playground", "/apis/grapqhl/v1/query")
+	HttpHandlerFunc := playground.Handler("GraphQL playground", "/apis/graphql/v1/query")
 	http.Handle("/", HttpHandlerFunc)
 	http.Handle("/query", c.Handler(Hander_server))
 }
