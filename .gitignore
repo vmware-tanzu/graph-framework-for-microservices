@@ -1,10 +1,9 @@
-*.coverprofile
+compiler/**/*.coverprofile
 coverage*.out
 *.test
 
 cmd/nexus-sdk/nexus-sdk
 cmd/nexus-openapi-gen
-cmd/gqlgen.git
 compiler.tar
 _generated
 
@@ -15,4 +14,38 @@ report.json
 cmd/debug
 coverage.json
 report.json
+# Binaries for programs and plugins
+*.exe
+*.dll
 *.so
+*.dylib
+
+# Test binary, build with `go test -c`
+*.test
+
+# Output of the go coverage tool, specifically when used with LiteIDE
+*.out
+
+# Project-local glide cache, RE: https://github.com/Masterminds/glide/issues/736
+.glide/
+
+*.iml
+.vscode
+
+compiler/*.coverprofile
+compiler/coverage*.out
+compiler/*.test
+
+compiler/cmd/nexus-sdk/nexus-sdk
+compiler/cmd/nexus-openapi-gen
+compiler/cmd/gqlgen
+compiler/compiler.tar
+compiler/_generated
+
+### GoLand ###
+compiler/.idea
+compiler/report.json
+
+compiler/cmd/debug
+compiler/coverage.json
+compiler/report.json

@@ -1,0 +1,5 @@
+models:
+  Order:
+    model: github.com/vmware-tanzu/graph-framework-for-microservices/gqlgen/_examples/dataloader.Order
+  Customer:
+    model: github.com/vmware-tanzu/graph-framework-for-microservices/gqlgen/_examples/dataloader.Customer

@@ -1,0 +1,20 @@
+# regression test for https://github.com/vmware-tanzu/graph-framework-for-microservices/gqlgen/issues/583
+
+type asdfIt {
+    id: ID!
+}
+type iIt {
+    id: ID!
+}
+type AIt {
+    id: ID!
+}
+type XXIt {
+    id: ID!
+}
+type AbIt {
+    id: ID!
+}
+type XxIt {
+    id: ID!
+}
