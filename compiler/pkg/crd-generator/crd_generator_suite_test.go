@@ -6,7 +6,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/pkg/config"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/compiler/pkg/config"
 )
 
 func TestCRDGenerator(t *testing.T) {

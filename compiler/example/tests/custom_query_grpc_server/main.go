@@ -1,7 +1,7 @@
 package main
 
 import (
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/tests/custom_query_grpc_server/server"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/compiler/example/tests/custom_query_grpc_server/server"
 )
 
 func main() {

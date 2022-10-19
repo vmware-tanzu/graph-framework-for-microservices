@@ -19,8 +19,8 @@ limitations under the License.
 package v1
 
 import (
-	v1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/crd_generated/apis/policypkg.tsm.tanzu.vmware.com/v1"
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/crd_generated/client/clientset/versioned/scheme"
+	v1 "github.com/vmware-tanzu/graph-framework-for-microservices/compiler/example/output/crd_generated/apis/policypkg.tsm.tanzu.vmware.com/v1"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/compiler/example/output/crd_generated/client/clientset/versioned/scheme"
 
 	rest "k8s.io/client-go/rest"
 )

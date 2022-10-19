@@ -1,4 +1,5 @@
 # nexus compiler
+[![Build Compiler image](https://github.com/vmware-tanzu/graph-framework-for-microservices/actions/workflows/build.yml/badge.svg)](https://github.com/vmware-tanzu/graph-framework-for-microservices/actions/workflows/build.yml)
 
 Nexus compiler main responsibility is to generate code based on provided datamodel. Currently, generated are:
 - CRD yamls with OpenAPI schema,
@@ -27,8 +28,8 @@ Very detailed flow chart
 1. Create datamodel based on [docs](https://gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/docs/-/blob/master/getting_started/WorkingWithDatamodel.md)
 2. Download compiler image or build in compiler repo using `make docker.builder && make docker` command
 3. Run compiler from your application nexus directory. Specify GROUP_NAME env variable with your CRD group name:
-Your datamodel should be mounted to /go/src/gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/datamodel directory, and directory to
-which you would like to generate your files should be mounted to /go/src/gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/generated
+Your datamodel should be mounted to /go/src/github.com/vmware-tanzu/graph-framework-for-microservices/compiler/datamodel directory, and directory to
+which you would like to generate your files should be mounted to /go/src/github.com/vmware-tanzu/graph-framework-for-microservices/compiler/generated
 directory. CRD_MODULE_PATH env var will determine import paths for genereted files.
 If you follow structure from example above you just need to specify GROUP_NAME and copy rest of following example
 command
@@ -36,11 +37,11 @@ command
 $ cd nexus
 $ GROUP_NAME=helloworld.com && \
 docker run  \
- --volume $(realpath .)/datamodel:/go/src/gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/datamodel  \
- --volume $(realpath .)/generated:/go/src/gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/generated \
+ --volume $(realpath .)/datamodel:/go/src/github.com/vmware-tanzu/graph-framework-for-microservices/compiler/datamodel  \
+ --volume $(realpath .)/generated:/go/src/github.com/vmware-tanzu/graph-framework-for-microservices/compiler/generated \
  -e CRD_MODULE_PATH=$(go list -m)/nexus/generated/ \
  -e GROUP_NAME=$GROUP_NAME  \
- --workdir /go/src/gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/ \
+ --workdir /go/src/github.com/vmware-tanzu/graph-framework-for-microservices/compiler/ \
   nexus-compiler:1ce29d44
 ```
 

@@ -1,4 +1,4 @@
-module gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/datamodel
+module github.com/vmware-tanzu/graph-framework-for-microservices/compiler/example/datamodel
 
 go 1.16
 

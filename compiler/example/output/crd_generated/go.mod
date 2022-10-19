@@ -1,4 +1,4 @@
-module gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/crd_generated
+module github.com/vmware-tanzu/graph-framework-for-microservices/compiler/example/output/crd_generated
 
 go 1.18
 
