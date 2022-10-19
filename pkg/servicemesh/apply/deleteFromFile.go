@@ -73,8 +73,13 @@ func DeleteResource(cmd *cobra.Command, args []string) error {
 		)
 
 		//for Non-CSP Cluster
-		if !serverInfo.CSPEnabled {
+		if !serverInfo.CSPEnabled && !serverInfo.InSecure {
 			url = fmt.Sprintf("https://%s/apis/%s/%s/%s?labelSelector=%s&token=%s", serverInfo.Name, apiVersion, resourceName, objName, labels, token)
+		} else if serverInfo.InSecure { // Local/Kind Clusters
+			url = fmt.Sprintf("http://%s/apis/%s/%s/%s?labelSelector=%s", serverInfo.Name, apiVersion, resourceName, objName, labels)
+			RestClient.SetHeaders(map[string]string{
+				"Content-Type": "application/json",
+			})
 		} else { // CSP enabled Cluster
 			url = fmt.Sprintf("https://%s/apis/%s/%s/%s?labelSelector=%s", serverInfo.Name, apiVersion, resourceName, objName, labels)
 			accessToken, err := auth.AccessToken()

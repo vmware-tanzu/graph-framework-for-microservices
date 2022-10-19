@@ -114,8 +114,13 @@ func GetRequest(token, apiVersion, resourceName, objName, kindName, labels strin
 		apiVersion = apiVersion + apiVersionSuffix
 	}
 	//for Non-CSP Cluster
-	if !serverInfo.CSPEnabled {
+	if !serverInfo.CSPEnabled && !serverInfo.InSecure {
 		url = fmt.Sprintf("https://%s/apis/%s/%s/%s?labelSelector=%s&token=%s", serverInfo.Name, apiVersion, resourceName, objName, labels, token)
+		RestClient.SetHeaders(map[string]string{
+			"Content-Type": "application/json",
+		})
+	} else if serverInfo.InSecure { // Local/Kind Clusters
+		url = fmt.Sprintf("http://%s/apis/%s/%s/%s?labelSelector=%s", serverInfo.Name, apiVersion, resourceName, objName, labels)
 		RestClient.SetHeaders(map[string]string{
 			"Content-Type": "application/json",
 		})
@@ -175,8 +180,13 @@ func GetSpecRequest(token, crd string, serverInfo *auth.Server) error {
 		url  string
 	)
 	//for Non-CSP Cluster
-	if !serverInfo.CSPEnabled {
+	if !serverInfo.CSPEnabled && !serverInfo.InSecure {
 		url = fmt.Sprintf("https://%s/declarative/apis?crd=%s&token=%s", serverInfo.Name, crd, token)
+		RestClient.SetHeaders(map[string]string{
+			"Content-Type": "application/json",
+		})
+	} else if serverInfo.InSecure { // Local/Kind Clusters
+		url = fmt.Sprintf("http://%s/declarative/apis?crd=%s&token=%s", serverInfo.Name, crd, token)
 		RestClient.SetHeaders(map[string]string{
 			"Content-Type": "application/json",
 		})
@@ -214,8 +224,13 @@ func GetApisRequest(token string, serverInfo *auth.Server) (map[string]interface
 	var url string
 
 	//for Non-CSP Cluster
-	if !serverInfo.CSPEnabled {
+	if !serverInfo.CSPEnabled && !serverInfo.InSecure {
 		url = fmt.Sprintf("https://%s/declarative/apis?token=%s", serverInfo.Name, token)
+		RestClient.SetHeaders(map[string]string{
+			"Content-Type": "application/json",
+		})
+	} else if serverInfo.InSecure { // Local/Kind Clusters
+		url = fmt.Sprintf("http://%s/declarative/apis", serverInfo.Name)
 		RestClient.SetHeaders(map[string]string{
 			"Content-Type": "application/json",
 		})

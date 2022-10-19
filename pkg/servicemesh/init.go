@@ -42,7 +42,13 @@ var DeleteCmd = &cobra.Command{
 var LoginCmd = &cobra.Command{
 	Use:   "login",
 	Short: "Login to Saas",
-	RunE:  login.Login,
+	PreRun: func(cmd *cobra.Command, args []string) {
+		insecure, _ := cmd.Flags().GetBool("in-secure")
+		if !insecure {
+			cmd.MarkFlagRequired("token")
+		}
+	},
+	RunE: login.Login,
 }
 
 var RuntimeCmd = &cobra.Command{
@@ -110,11 +116,6 @@ func initCommands() {
 	LoginCmd.Flags().StringVarP(&login.ApiToken, "token",
 		"t", "", "token for api access")
 
-	err = cobra.MarkFlagRequired(LoginCmd.Flags(), "token")
-	if err != nil {
-		log.Debugf("api token is mandatory for login")
-	}
-
 	LoginCmd.Flags().StringVarP(&login.Server, "server",
 		"s", "", "saas server fqdn")
 
@@ -125,6 +126,9 @@ func initCommands() {
 
 	LoginCmd.Flags().BoolVarP(&login.IsPrivateSaas, "private-saas",
 		"p", false, "private saas cluster")
+
+	LoginCmd.Flags().BoolVarP(&login.IsInSecure, "in-secure",
+		"k", false, "local/kind cluster")
 
 	err = cobra.MarkFlagRequired(LoginCmd.Flags(), "server")
 	if err != nil {

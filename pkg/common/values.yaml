@@ -1,5 +1,5 @@
 nexusCli:
-  version: v0.0.110
+  version: v0.0.111
 nexusCompiler:
   version: v0.0.42
 nexusAppTemplates:
