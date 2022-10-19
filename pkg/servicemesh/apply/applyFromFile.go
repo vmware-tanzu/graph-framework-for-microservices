@@ -9,6 +9,7 @@ import (
 
 	yamltojson "github.com/ghodss/yaml"
 	"github.com/spf13/cobra"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/common"
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/log"
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/servicemesh/auth"
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/utils"
@@ -19,6 +20,7 @@ import (
 var (
 	CreateResourceFile string
 	RestClient         *resty.Client
+	IsTSMCli           bool
 )
 
 func ApplyResource(cmd *cobra.Command, args []string) error {
@@ -56,15 +58,22 @@ func ApplyResource(cmd *cobra.Command, args []string) error {
 			return fmt.Errorf("the given custom resource file is not a standard k8s YAML, apiVersion or kind may be missing ")
 		}
 
+		IsTSMCli = strings.Contains(apiVersion, common.NexusGroupSuffix)
+		log.Debugf("Checking the request is for TSM CLI: %s:%s:%b", apiVersion, common.NexusGroupSuffix, IsTSMCli)
+
 		specMap := make(map[string]interface{})
-		err := yaml.Unmarshal([]byte(doc), &specMap)
+		err = yaml.Unmarshal([]byte(doc), &specMap)
 		if err != nil {
 			log.Errorf("Error while Unmarshal the spec %v", err)
 			return err
 		}
 		log.Debugf("Spec: %v", specMap["spec"])
-		specMap["apiVersion"] = ""
-		specMap["kind"] = ""
+
+		if IsTSMCli {
+			specMap["apiVersion"] = ""
+			specMap["kind"] = ""
+		}
+
 		b, err := yaml.Marshal(specMap)
 		if err != nil {
 			panic(err)
@@ -75,7 +84,6 @@ func ApplyResource(cmd *cobra.Command, args []string) error {
 			log.Errorf("Get serverInfo failed with error %v", err)
 			return err
 		}
-
 		body, err := yamltojson.YAMLToJSON(b)
 		if err != nil {
 			log.Errorf("Yaml to Json conversion failed with error %v", err)
@@ -84,13 +92,18 @@ func ApplyResource(cmd *cobra.Command, args []string) error {
 
 		var resp *resty.Response
 		//for Non-CSP Cluster
-		if !serverInfo.CSPEnabled {
+		if !serverInfo.CSPEnabled && !serverInfo.InSecure {
 			token, err := auth.IdToken()
 			if err != nil {
 				log.Errorf("Get acess token failed with error %v", err)
 				return err
 			}
 			url = fmt.Sprintf("https://%s/apis/%s/%s?token=%s", serverInfo.Name, apiVersion, resourceName, token)
+			RestClient.SetHeaders(map[string]string{
+				"Content-Type": "application/json",
+			})
+		} else if serverInfo.InSecure { // Local/Kind Clusters
+			url = fmt.Sprintf("http://%s/apis/%s/%s", serverInfo.Name, apiVersion, resourceName)
 			RestClient.SetHeaders(map[string]string{
 				"Content-Type": "application/json",
 			})
@@ -109,7 +122,11 @@ func ApplyResource(cmd *cobra.Command, args []string) error {
 
 		log.Debugf("Resource URL: %v", url)
 		log.Debugf("Resource Body: %s", string(body))
-		resp, err = RestClient.R().SetBody(string(body)).Put(url)
+		if IsTSMCli {
+			resp, err = RestClient.R().SetBody(string(body)).Put(url)
+		} else {
+			resp, err = RestClient.R().SetBody(string(body)).Post(url)
+		}
 		if err != nil {
 			log.Errorf("Error while put request is sent to saas server %v", err)
 			return err

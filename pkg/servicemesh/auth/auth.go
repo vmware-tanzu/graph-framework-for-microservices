@@ -18,6 +18,7 @@ type AuthToken struct {
 type Server struct {
 	Name       string `json:"name"`
 	CSPEnabled bool   `json:"csp_enabled"`
+	InSecure   bool   `json:"in_secure"`
 }
 
 /*

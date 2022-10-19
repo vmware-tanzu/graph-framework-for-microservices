@@ -24,6 +24,7 @@ type AccessToken struct {
 type ServerInfo struct {
 	Name       string `json:"name"`
 	CSPEnabled bool   `json:"csp_enabled"`
+	InSecure   bool   `json:"in_secure"`
 }
 
 /*
@@ -53,10 +54,26 @@ var (
 	serverFile    string = ".servicemesh.server"
 	Server        string
 	IsPrivateSaas bool
+	IsInSecure    bool
 )
 
 func Login(cmd *cobra.Command, args []string) error {
 	log.Debugf("Args: %v ApiToken: %v, Server: %v, IsPrivateSaas%v", args, ApiToken, Server, Server)
+
+	if IsInSecure {
+		serverInfo := ServerInfo{
+			Name:     Server,
+			InSecure: true,
+		}
+		homeDir, _ := os.UserHomeDir()
+		file, _ := json.MarshalIndent(serverInfo, "", " ")
+		err := ioutil.WriteFile(fmt.Sprintf("%s/%s", homeDir, serverFile), file, 0644)
+		if err != nil {
+			fmt.Printf("\nwriting server info to file %s failed with error %v", serverFile, err)
+			return err
+		}
+		return nil
+	}
 
 	if IsPrivateSaas {
 		serverInfo := ServerInfo{
