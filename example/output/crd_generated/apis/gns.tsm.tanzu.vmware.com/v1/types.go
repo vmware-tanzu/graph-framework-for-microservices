@@ -320,6 +320,13 @@ type gnsQueryFilters struct {
 }
 
 // +k8s:openapi-gen=true
+type metricsFilers struct {
+	StartTime string
+	EndTime   string
+	Interval  string
+}
+
+// +k8s:openapi-gen=true
 type Description struct {
 	Color     string
 	Version   string

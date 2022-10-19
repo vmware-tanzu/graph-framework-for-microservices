@@ -16,9 +16,9 @@ import (
 
 )
 
-var c = CustomQueryHandler{
+var c = GrpcClients{
 		mtx: sync.Mutex{},
-		Clients: map[string]graphql.ServerClient{},
+		Clients: map[string]GrpcClient{},
 }
 var nc *nexus_client.Clientset
 
@@ -134,6 +134,7 @@ func getRootResolver(id *string) ([]*model.{{$node.PkgName}}{{$node.NodeName}}, 
 {{- range $key, $query := $node.CustomQueries }}
 // Custom query
 func get{{$node.PkgName}}{{$node.NodeName}}{{$query.Name}}Resolver(obj *model.{{$node.PkgName}}{{$node.NodeName}}, {{ range $key, $arg := $query.Args }} {{$arg.Name}} *{{$arg.Type}}, {{ end }}) (*model.NexusGraphqlResponse, error) {
+	{{- if eq $query.ApiType 0 }}
 	parentLabels := make(map[string]string)
 	if obj != nil {
 		for k, v := range obj.ParentLabels {
@@ -152,9 +153,26 @@ func get{{$node.PkgName}}{{$node.NodeName}}{{$query.Name}}Resolver(obj *model.{{
 		},
 		Hierarchy: parentLabels,
 	}
-
-
-	return c.Query("{{$query.ServiceEndpoint.Domain}}:{{$query.ServiceEndpoint.Port}}", query)
+	return c.Request("{{$query.ServiceEndpoint.Domain}}:{{$query.ServiceEndpoint.Port}}", nexus.GraphQLQueryApi, query)
+	{{- else if eq $query.ApiType 1 }}
+	metricArgs := &qm.MetricArg{
+		QueryType: "{{$query.Name}}",
+		{{- range $key, $arg := $query.Args }}
+		{{- if eq $arg.Name "StartTime" }}
+		StartTime: *StartTime,
+		{{- else if eq $arg.Name "EndTime" }}
+		EndTime: *EndTime,
+		{{- else if eq $arg.Name "Metric" }}
+		Metric: *Metric,
+		{{- else if eq $arg.Name "Filters" }}
+		Filters: *Filters,
+		{{- else if eq $arg.Name "TimeInterval" }}
+		TimeInterval: *TimeInterval,
+		{{- end }}
+		{{- end }}
+	}
+	return c.Request("{{$query.ServiceEndpoint.Domain}}:{{$query.ServiceEndpoint.Port}}", nexus.GetMetricsApi, metricArgs)
+	{{- end }}
 }{{- end }}
 {{ end }}
 {{- range $key, $node := .Nodes }}

@@ -99,6 +99,7 @@ type GraphQLQuery struct {
 	Name            string               `json:"name,omitempty"`            // query identifier
 	ServiceEndpoint GraphQLQueryEndpoint `json:"servce_endpoint,omitempty"` // endpoint that serves this query
 	Args            interface{}          `json:"args,omitempty"`            // custom graphql filters and arguments
+	ApiType         GraphQlApiType       `json:"api_type,omitempty"`
 }
 
 // A GraphQLQuerySpec is a collection of GraphQLQuery.
@@ -106,3 +107,10 @@ type GraphQLQuery struct {
 type GraphQLQuerySpec struct {
 	Queries []GraphQLQuery `json:"queries"`
 }
+
+type GraphQlApiType int
+
+const (
+	GraphQLQueryApi GraphQlApiType = iota
+	GetMetricsApi
+)

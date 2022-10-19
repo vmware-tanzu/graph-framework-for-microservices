@@ -99,7 +99,7 @@ func getConfigConfigQueryExampleResolver(obj *model.ConfigConfig,  StartTime *st
 		},
 		Hierarchy: parentLabels,
 	}
-	return c.Query("query-manager:6000", query)
+	return c.Request("query-manager:6000", query)
 }
 
 
@@ -126,26 +126,23 @@ func getGnsGnsqueryGns1Resolver(obj *model.GnsGns,  StartTime *string,  EndTime 
 		},
 		Hierarchy: parentLabels,
 	}
-	return c.Query("query-manager:15000", query)
+	return c.Request("nexus-query-responder:15000", query)
 }
 // Custom query
 func getGnsGnsqueryGns2Resolver(obj *model.GnsGns, ) (*model.NexusGraphqlResponse, error) {
-	parentLabels := make(map[string]string)
-	if obj != nil {
-		for k, v := range obj.ParentLabels {
-			val, ok := v.(string)
-			if ok {
-				parentLabels[k] = val
-			}
-		}
+	metricArgs := &qm.MetricArg{
+		QueryType: "queryGns2",
 	}
-	query := &graphql.GraphQLQuery{
-		Query: "queryGns2",
-		UserProvidedArgs: map[string]string{
-		},
-		Hierarchy: parentLabels,
+	return c.Request("query-manager:15002", query)
+}
+// Custom query
+func getGnsGnsqueryGns2Resolver(obj *model.GnsGns,  StartTime *string,  EndTime *string,  Interval *string, ) (*model.NexusGraphqlResponse, error) {
+	metricArgs := &qm.MetricArg{
+		QueryType: "queryGns2",
+		StartTime: *StartTime,
+		EndTime: *EndTime,
 	}
-	return c.Query("query-manager2:15002", query)
+	return c.Request("query-manager:15002", query)
 }
 
 

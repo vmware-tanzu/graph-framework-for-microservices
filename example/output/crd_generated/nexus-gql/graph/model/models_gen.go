@@ -68,7 +68,8 @@ type GnsGns struct {
 	Id                     *string                    `json:"Id"`
 	ParentLabels           map[string]interface{}     `json:"ParentLabels"`
 	queryGns1              *NexusGraphqlResponse      `json:"queryGns1"`
-	queryGns2              *NexusGraphqlResponse      `json:"queryGns2"`
+	queryGnsQM1            *NexusGraphqlResponse      `json:"queryGnsQM1"`
+	queryGnsQM             *NexusGraphqlResponse      `json:"queryGnsQM"`
 	GnsServiceGroups       []*ServicegroupSvcGroup    `json:"GnsServiceGroups"`
 	Domain                 *string                    `json:"Domain"`
 	UseSharedGateway       *bool                      `json:"UseSharedGateway"`

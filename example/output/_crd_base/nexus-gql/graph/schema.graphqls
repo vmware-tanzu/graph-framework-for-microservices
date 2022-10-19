@@ -74,6 +74,11 @@ type gns_Gns {
         StartVal: Int
     ): NexusGraphqlResponse
     queryGns2: NexusGraphqlResponse
+    queryGns2(
+        StartTime: String
+        EndTime: String
+        Interval: String
+    ): NexusGraphqlResponse
 
     GnsServiceGroups(Id: ID): [servicegroup_SvcGroup!]
     

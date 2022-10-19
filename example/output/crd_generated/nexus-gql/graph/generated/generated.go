@@ -129,7 +129,8 @@ type ComplexityRoot struct {
 		ParentLabels           func(childComplexity int) int
 		Port                   func(childComplexity int) int
 		QueryGns1              func(childComplexity int, startTime *string, endTime *string, interval *string, isServiceDeployment *bool, startVal *int) int
-		QueryGns2              func(childComplexity int) int
+		QueryGnsQm             func(childComplexity int, startTime *string, endTime *string, interval *string) int
+		QueryGnsQm1            func(childComplexity int) int
 		SlicePointer           func(childComplexity int) int
 		UseSharedGateway       func(childComplexity int) int
 		WorkloadSpec           func(childComplexity int) int
@@ -195,7 +196,8 @@ type Config_ConfigResolver interface {
 }
 type Gns_GnsResolver interface {
 	QueryGns1(ctx context.Context, obj *model.GnsGns, startTime *string, endTime *string, interval *string, isServiceDeployment *bool, startVal *int) (*model.NexusGraphqlResponse, error)
-	QueryGns2(ctx context.Context, obj *model.GnsGns) (*model.NexusGraphqlResponse, error)
+	QueryGnsQm1(ctx context.Context, obj *model.GnsGns) (*model.NexusGraphqlResponse, error)
+	QueryGnsQm(ctx context.Context, obj *model.GnsGns, startTime *string, endTime *string, interval *string) (*model.NexusGraphqlResponse, error)
 	GnsServiceGroups(ctx context.Context, obj *model.GnsGns, id *string) ([]*model.ServicegroupSvcGroup, error)
 
 	GnsAccessControlPolicy(ctx context.Context, obj *model.GnsGns, id *string) (*model.PolicyAccessControlPolicy, error)
@@ -678,12 +680,24 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Gns_Gns.QueryGns1(childComplexity, args["StartTime"].(*string), args["EndTime"].(*string), args["Interval"].(*string), args["IsServiceDeployment"].(*bool), args["StartVal"].(*int)), true
 
-	case "gns_Gns.queryGns2":
-		if e.complexity.Gns_Gns.QueryGns2 == nil {
+	case "gns_Gns.queryGnsQM":
+		if e.complexity.Gns_Gns.QueryGnsQm == nil {
 			break
 		}
 
-		return e.complexity.Gns_Gns.QueryGns2(childComplexity), true
+		args, err := ec.field_gns_Gns_queryGnsQM_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Gns_Gns.QueryGnsQm(childComplexity, args["StartTime"].(*string), args["EndTime"].(*string), args["Interval"].(*string)), true
+
+	case "gns_Gns.queryGnsQM1":
+		if e.complexity.Gns_Gns.QueryGnsQm1 == nil {
+			break
+		}
+
+		return e.complexity.Gns_Gns.QueryGnsQm1(childComplexity), true
 
 	case "gns_Gns.SlicePointer":
 		if e.complexity.Gns_Gns.SlicePointer == nil {
@@ -1035,7 +1049,12 @@ type gns_Gns {
         IsServiceDeployment: Boolean
         StartVal: Int
     ): NexusGraphqlResponse
-    queryGns2: NexusGraphqlResponse
+    queryGnsQM1: NexusGraphqlResponse
+    queryGnsQM(
+        StartTime: String
+        EndTime: String
+        Interval: String
+    ): NexusGraphqlResponse
 
     GnsServiceGroups(Id: ID): [servicegroup_SvcGroup!]
     
@@ -1377,6 +1396,39 @@ func (ec *executionContext) field_gns_Gns_queryGns1_args(ctx context.Context, ra
 		}
 	}
 	args["StartVal"] = arg4
+	return args, nil
+}
+
+func (ec *executionContext) field_gns_Gns_queryGnsQM_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *string
+	if tmp, ok := rawArgs["StartTime"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("StartTime"))
+		arg0, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["StartTime"] = arg0
+	var arg1 *string
+	if tmp, ok := rawArgs["EndTime"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("EndTime"))
+		arg1, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["EndTime"] = arg1
+	var arg2 *string
+	if tmp, ok := rawArgs["Interval"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("Interval"))
+		arg2, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["Interval"] = arg2
 	return args, nil
 }
 
@@ -4245,8 +4297,10 @@ func (ec *executionContext) fieldContext_config_Config_GNS(ctx context.Context, 
 				return ec.fieldContext_gns_Gns_ParentLabels(ctx, field)
 			case "queryGns1":
 				return ec.fieldContext_gns_Gns_queryGns1(ctx, field)
-			case "queryGns2":
-				return ec.fieldContext_gns_Gns_queryGns2(ctx, field)
+			case "queryGnsQM1":
+				return ec.fieldContext_gns_Gns_queryGnsQM1(ctx, field)
+			case "queryGnsQM":
+				return ec.fieldContext_gns_Gns_queryGnsQM(ctx, field)
 			case "GnsServiceGroups":
 				return ec.fieldContext_gns_Gns_GnsServiceGroups(ctx, field)
 			case "Domain":
@@ -5529,8 +5583,8 @@ func (ec *executionContext) fieldContext_gns_Gns_queryGns1(ctx context.Context, 
 	return fc, nil
 }
 
-func (ec *executionContext) _gns_Gns_queryGns2(ctx context.Context, field graphql.CollectedField, obj *model.GnsGns) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_gns_Gns_queryGns2(ctx, field)
+func (ec *executionContext) _gns_Gns_queryGnsQM1(ctx context.Context, field graphql.CollectedField, obj *model.GnsGns) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_gns_Gns_queryGnsQM1(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -5543,7 +5597,7 @@ func (ec *executionContext) _gns_Gns_queryGns2(ctx context.Context, field graphq
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Gns_Gns().QueryGns2(rctx, obj)
+		return ec.resolvers.Gns_Gns().QueryGnsQm1(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -5557,7 +5611,7 @@ func (ec *executionContext) _gns_Gns_queryGns2(ctx context.Context, field graphq
 	return ec.marshalONexusGraphqlResponse2ᚖnexustempmoduleᚋnexusᚑgqlᚋgraphᚋmodelᚐNexusGraphqlResponse(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_gns_Gns_queryGns2(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_gns_Gns_queryGnsQM1(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "gns_Gns",
 		Field:      field,
@@ -5578,6 +5632,70 @@ func (ec *executionContext) fieldContext_gns_Gns_queryGns2(ctx context.Context, 
 			}
 			return nil, fmt.Errorf("no field named %q was found under type NexusGraphqlResponse", field.Name)
 		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _gns_Gns_queryGnsQM(ctx context.Context, field graphql.CollectedField, obj *model.GnsGns) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_gns_Gns_queryGnsQM(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Gns_Gns().QueryGnsQm(rctx, obj, fc.Args["StartTime"].(*string), fc.Args["EndTime"].(*string), fc.Args["Interval"].(*string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model.NexusGraphqlResponse)
+	fc.Result = res
+	return ec.marshalONexusGraphqlResponse2ᚖnexustempmoduleᚋnexusᚑgqlᚋgraphᚋmodelᚐNexusGraphqlResponse(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_gns_Gns_queryGnsQM(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "gns_Gns",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "Code":
+				return ec.fieldContext_NexusGraphqlResponse_Code(ctx, field)
+			case "Message":
+				return ec.fieldContext_NexusGraphqlResponse_Message(ctx, field)
+			case "Data":
+				return ec.fieldContext_NexusGraphqlResponse_Data(ctx, field)
+			case "Last":
+				return ec.fieldContext_NexusGraphqlResponse_Last(ctx, field)
+			case "TotalRecords":
+				return ec.fieldContext_NexusGraphqlResponse_TotalRecords(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type NexusGraphqlResponse", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_gns_Gns_queryGnsQM_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
 	}
 	return fc, nil
 }
@@ -8194,7 +8312,7 @@ func (ec *executionContext) _gns_Gns(ctx context.Context, sel ast.SelectionSet, 
 				return innerFunc(ctx)
 
 			})
-		case "queryGns2":
+		case "queryGnsQM1":
 			field := field
 
 			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
@@ -8203,7 +8321,24 @@ func (ec *executionContext) _gns_Gns(ctx context.Context, sel ast.SelectionSet, 
 						ec.Error(ctx, ec.Recover(ctx, r))
 					}
 				}()
-				res = ec._gns_Gns_queryGns2(ctx, field, obj)
+				res = ec._gns_Gns_queryGnsQM1(ctx, field, obj)
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
+		case "queryGnsQM":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._gns_Gns_queryGnsQM(ctx, field, obj)
 				return res
 			}
 

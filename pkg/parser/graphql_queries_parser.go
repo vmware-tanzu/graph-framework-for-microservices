@@ -97,6 +97,20 @@ func parseQuery(queryComp *ast.CompositeLit, p Package) (newQuery nexus.GraphQLQ
 			// translate args to map[arg.fieldName]arg.type
 			args := parseArgs(typ.Name, p)
 			newQuery.Args = args
+		case "ApiType":
+			selExpr, ok := queryFieldExp.Value.(*ast.SelectorExpr)
+			if !ok {
+				log.Fatalf("Failed to parse ApiType param in graphql custom query")
+			}
+			sel := selExpr.Sel.String()
+			switch sel {
+			case "GraphQLQueryApi":
+				newQuery.ApiType = nexus.GraphQLQueryApi
+			case "GetMetricsApi":
+				newQuery.ApiType = nexus.GetMetricsApi
+			default:
+				newQuery.ApiType = nexus.GraphQLQueryApi
+			}
 		}
 	}
 	return

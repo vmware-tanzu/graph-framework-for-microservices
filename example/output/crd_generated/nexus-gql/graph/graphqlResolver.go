@@ -9,16 +9,19 @@ import (
 
 	log "github.com/sirupsen/logrus"
 	"golang-appnet.eng.vmware.com/nexus-sdk/nexus/generated/graphql"
+	"golang-appnet.eng.vmware.com/nexus-sdk/nexus/nexus"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 
 	nexus_client "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/crd_generated/nexus-client"
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/crd_generated/nexus-gql/graph/model"
+
+	qm "gitlab.eng.vmware.com/nsx-allspark_users/go-protos/pkg/query-manager"
 )
 
 var c = GrpcClients{
 	mtx:     sync.Mutex{},
-	Clients: map[string]graphql.ServerClient{},
+	Clients: map[string]GrpcClient{},
 }
 var nc *nexus_client.Clientset
 
@@ -100,7 +103,7 @@ func getConfigConfigQueryExampleResolver(obj *model.ConfigConfig, StartTime *str
 		},
 		Hierarchy: parentLabels,
 	}
-	return c.Query("query-manager:6000", query)
+	return c.Request("query-manager:6000", nexus.GraphQLQueryApi, query)
 }
 
 // Custom query
@@ -125,26 +128,25 @@ func getGnsGnsqueryGns1Resolver(obj *model.GnsGns, StartTime *string, EndTime *s
 		},
 		Hierarchy: parentLabels,
 	}
-	return c.Query("query-manager:15000", query)
+	return c.Request("nexus-query-responder:15000", nexus.GraphQLQueryApi, query)
 }
 
 // Custom query
-func getGnsGnsqueryGns2Resolver(obj *model.GnsGns) (*model.NexusGraphqlResponse, error) {
-	parentLabels := make(map[string]string)
-	if obj != nil {
-		for k, v := range obj.ParentLabels {
-			val, ok := v.(string)
-			if ok {
-				parentLabels[k] = val
-			}
-		}
+func getGnsGnsqueryGnsQM1Resolver(obj *model.GnsGns) (*model.NexusGraphqlResponse, error) {
+	metricArgs := &qm.MetricArg{
+		QueryType: "queryGnsQM1",
 	}
-	query := &graphql.GraphQLQuery{
-		Query:            "queryGns2",
-		UserProvidedArgs: map[string]string{},
-		Hierarchy:        parentLabels,
+	return c.Request("query-manager:15002", nexus.GetMetricsApi, metricArgs)
+}
+
+// Custom query
+func getGnsGnsqueryGnsQMResolver(obj *model.GnsGns, StartTime *string, EndTime *string, Interval *string) (*model.NexusGraphqlResponse, error) {
+	metricArgs := &qm.MetricArg{
+		QueryType: "queryGnsQM",
+		StartTime: *StartTime,
+		EndTime:   *EndTime,
 	}
-	return c.Query("query-manager2:15002", query)
+	return c.Request("query-manager:15003", nexus.GetMetricsApi, metricArgs)
 }
 
 // ////////////////////////////////////

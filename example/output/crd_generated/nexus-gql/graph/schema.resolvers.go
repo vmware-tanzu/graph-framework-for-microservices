@@ -55,9 +55,14 @@ func (r *gns_GnsResolver) QueryGns1(ctx context.Context, obj *model.GnsGns, star
 	return getGnsGnsqueryGns1Resolver(obj, startTime, endTime, interval, isServiceDeployment, startVal)
 }
 
-// QueryGns2 is the resolver for the queryGns2 field.
-func (r *gns_GnsResolver) QueryGns2(ctx context.Context, obj *model.GnsGns) (*model.NexusGraphqlResponse, error) {
-	return getGnsGnsqueryGns2Resolver(obj)
+// QueryGnsQm1 is the resolver for the queryGnsQM1 field.
+func (r *gns_GnsResolver) QueryGnsQm1(ctx context.Context, obj *model.GnsGns) (*model.NexusGraphqlResponse, error) {
+	return getGnsGnsqueryGnsQM1Resolver(obj)
+}
+
+// QueryGnsQm is the resolver for the queryGnsQM field.
+func (r *gns_GnsResolver) QueryGnsQm(ctx context.Context, obj *model.GnsGns, startTime *string, endTime *string, interval *string) (*model.NexusGraphqlResponse, error) {
+	return getGnsGnsqueryGnsQMResolver(obj, startTime, endTime, interval)
 }
 
 // GnsServiceGroups is the resolver for the GnsServiceGroups field.

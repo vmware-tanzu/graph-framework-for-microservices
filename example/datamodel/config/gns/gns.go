@@ -111,23 +111,40 @@ type gnsQueryFilters struct {
 	StartVal            int
 }
 
+type metricsFilers struct {
+	StartTime string
+	EndTime   string
+	Interval  string
+}
+
 var CloudEndpointGraphQLQuerySpec = nexus.GraphQLQuerySpec{
 	Queries: []nexus.GraphQLQuery{
 		{
 			Name: "queryGns1",
 			ServiceEndpoint: nexus.GraphQLQueryEndpoint{
-				Domain: "query-manager",
+				Domain: "nexus-query-responder",
 				Port:   15000,
 			},
-			Args: gnsQueryFilters{},
+			Args:    gnsQueryFilters{},
+			ApiType: nexus.GraphQLQueryApi,
 		},
 		{
-			Name: "queryGns2",
+			Name: "queryGnsQM1",
 			ServiceEndpoint: nexus.GraphQLQueryEndpoint{
-				Domain: "query-manager2",
+				Domain: "query-manager",
 				Port:   15002,
 			},
-			Args: nil,
+			Args:    nil,
+			ApiType: nexus.GetMetricsApi,
+		},
+		{
+			Name: "queryGnsQM",
+			ServiceEndpoint: nexus.GraphQLQueryEndpoint{
+				Domain: "query-manager",
+				Port:   15003,
+			},
+			Args:    metricsFilers{},
+			ApiType: nexus.GetMetricsApi,
 		},
 	},
 }

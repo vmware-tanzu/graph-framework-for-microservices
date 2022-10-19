@@ -8,16 +8,16 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"golang-appnet.eng.vmware.com/nexus-sdk/nexus/nexus"
 	"sync"
 
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/crd_generated/nexus-gql/graph/model"
-
+	"github.com/golang/protobuf/proto"
 	"golang-appnet.eng.vmware.com/nexus-sdk/nexus/generated/graphql"
 	qm "golang-appnet.eng.vmware.com/nexus-sdk/nexus/generated/query-manager"
+	"golang-appnet.eng.vmware.com/nexus-sdk/nexus/nexus"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
-	"google.golang.org/protobuf/proto"
+
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/crd_generated/nexus-gql/graph/model"
 )
 
 type Resolver struct{}
@@ -25,6 +25,14 @@ type Resolver struct{}
 type GrpcClients struct {
 	mtx     sync.Mutex
 	Clients map[string]GrpcClient
+}
+
+func (s *GrpcClients) Request(endpoint string, apiType nexus.GraphQlApiType, query proto.Message) (*model.NexusGraphqlResponse, error) {
+	cl, err := s.getClient(endpoint, apiType)
+	if err != nil {
+		return nil, err
+	}
+	return cl.Request(query)
 }
 
 func (s *GrpcClients) addClient(endpoint string, apiType nexus.GraphQlApiType) (GrpcClient, error) {
@@ -44,13 +52,13 @@ func (s *GrpcClients) addClient(endpoint string, apiType nexus.GraphQlApiType) (
 		s.Clients[string(apiType)+"/"+endpoint] = cl
 		return cl, nil
 	default:
-		return nil, fmt.Errorf("unsupported GraphqlApiType %v", apiType)
+		return nil, fmt.Errorf("unsupported GraphQlApiType %v", apiType)
 	}
 }
 
 func (s *GrpcClients) getClient(endpoint string, apiType nexus.GraphQlApiType) (GrpcClient, error) {
 	s.mtx.Lock()
-	cl, ok := c.Clients[endpoint]
+	cl, ok := s.Clients[endpoint]
 	s.mtx.Unlock()
 	if ok {
 		return cl, nil
