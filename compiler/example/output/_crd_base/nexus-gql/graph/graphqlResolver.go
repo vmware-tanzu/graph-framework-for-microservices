@@ -16,9 +16,9 @@ import (
 
 )
 
-var c = CustomQueryHandler{
+var c = GrpcClients{
 		mtx: sync.Mutex{},
-		Clients: map[string]graphql.ServerClient{},
+		Clients: map[string]GrpcClient{},
 }
 var nc *nexus_client.Clientset
 
@@ -99,7 +99,7 @@ func getConfigConfigQueryExampleResolver(obj *model.ConfigConfig,  StartTime *st
 		},
 		Hierarchy: parentLabels,
 	}
-	return c.Request("query-manager:6000", query)
+	return c.Request("query-manager:6000", nexus.GraphQLQueryApi, query)
 }
 
 
@@ -126,23 +126,23 @@ func getGnsGnsqueryGns1Resolver(obj *model.GnsGns,  StartTime *string,  EndTime 
 		},
 		Hierarchy: parentLabels,
 	}
-	return c.Request("nexus-query-responder:15000", query)
+	return c.Request("nexus-query-responder:15000", nexus.GraphQLQueryApi, query)
 }
 // Custom query
-func getGnsGnsqueryGns2Resolver(obj *model.GnsGns, ) (*model.NexusGraphqlResponse, error) {
+func getGnsGnsqueryGnsQM1Resolver(obj *model.GnsGns, ) (*model.NexusGraphqlResponse, error) {
 	metricArgs := &qm.MetricArg{
-		QueryType: "queryGns2",
+		QueryType: "queryGnsQM1",
 	}
-	return c.Request("query-manager:15002", query)
+	return c.Request("query-manager:15002", nexus.GetMetricsApi, metricArgs)
 }
 // Custom query
-func getGnsGnsqueryGns2Resolver(obj *model.GnsGns,  StartTime *string,  EndTime *string,  Interval *string, ) (*model.NexusGraphqlResponse, error) {
+func getGnsGnsqueryGnsQMResolver(obj *model.GnsGns,  StartTime *string,  EndTime *string,  Interval *string, ) (*model.NexusGraphqlResponse, error) {
 	metricArgs := &qm.MetricArg{
-		QueryType: "queryGns2",
+		QueryType: "queryGnsQM",
 		StartTime: *StartTime,
 		EndTime: *EndTime,
 	}
-	return c.Request("query-manager:15002", query)
+	return c.Request("query-manager:15003", nexus.GetMetricsApi, metricArgs)
 }
 
 
