@@ -61,6 +61,14 @@ type ComplexityRoot struct {
 		Root func(childComplexity int) int
 	}
 
+	TimeSeriesData struct {
+		Code         func(childComplexity int) int
+		Data         func(childComplexity int) int
+		Last         func(childComplexity int) int
+		Message      func(childComplexity int) int
+		TotalRecords func(childComplexity int) int
+	}
+
 	Config_Config struct {
 		ABCHost           func(childComplexity int) int
 		ACPPolicies       func(childComplexity int, id *string) int
@@ -270,6 +278,41 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.Root(childComplexity), true
+
+	case "TimeSeriesData.Code":
+		if e.complexity.TimeSeriesData.Code == nil {
+			break
+		}
+
+		return e.complexity.TimeSeriesData.Code(childComplexity), true
+
+	case "TimeSeriesData.Data":
+		if e.complexity.TimeSeriesData.Data == nil {
+			break
+		}
+
+		return e.complexity.TimeSeriesData.Data(childComplexity), true
+
+	case "TimeSeriesData.Last":
+		if e.complexity.TimeSeriesData.Last == nil {
+			break
+		}
+
+		return e.complexity.TimeSeriesData.Last(childComplexity), true
+
+	case "TimeSeriesData.Message":
+		if e.complexity.TimeSeriesData.Message == nil {
+			break
+		}
+
+		return e.complexity.TimeSeriesData.Message(childComplexity), true
+
+	case "TimeSeriesData.TotalRecords":
+		if e.complexity.TimeSeriesData.TotalRecords == nil {
+			break
+		}
+
+		return e.complexity.TimeSeriesData.TotalRecords(childComplexity), true
 
 	case "config_Config.ABCHost":
 		if e.complexity.Config_Config.ABCHost == nil {
@@ -1139,6 +1182,15 @@ type NexusGraphqlResponse {
   Last: String
   TotalRecords: Int
 }
+
+type TimeSeriesData {
+  Code: Int
+  Message: String
+  Data: String
+  Last: String
+  TotalRecords: Int
+}
+
 `, BuiltIn: false},
 }
 var parsedSchema = gqlparser.MustLoadSchema(sources...)
@@ -1878,6 +1930,211 @@ func (ec *executionContext) fieldContext_Query___schema(ctx context.Context, fie
 				return ec.fieldContext___Schema_directives(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type __Schema", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _TimeSeriesData_Code(ctx context.Context, field graphql.CollectedField, obj *model.TimeSeriesData) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_TimeSeriesData_Code(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Code, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*int)
+	fc.Result = res
+	return ec.marshalOInt2ᚖint(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_TimeSeriesData_Code(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "TimeSeriesData",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _TimeSeriesData_Message(ctx context.Context, field graphql.CollectedField, obj *model.TimeSeriesData) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_TimeSeriesData_Message(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Message, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_TimeSeriesData_Message(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "TimeSeriesData",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _TimeSeriesData_Data(ctx context.Context, field graphql.CollectedField, obj *model.TimeSeriesData) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_TimeSeriesData_Data(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Data, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_TimeSeriesData_Data(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "TimeSeriesData",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _TimeSeriesData_Last(ctx context.Context, field graphql.CollectedField, obj *model.TimeSeriesData) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_TimeSeriesData_Last(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Last, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_TimeSeriesData_Last(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "TimeSeriesData",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _TimeSeriesData_TotalRecords(ctx context.Context, field graphql.CollectedField, obj *model.TimeSeriesData) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_TimeSeriesData_TotalRecords(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.TotalRecords, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*int)
+	fc.Result = res
+	return ec.marshalOInt2ᚖint(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_TimeSeriesData_TotalRecords(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "TimeSeriesData",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
 		},
 	}
 	return fc, nil
@@ -7587,6 +7844,47 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Query___schema(ctx, field)
 			})
+
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var timeSeriesDataImplementors = []string{"TimeSeriesData"}
+
+func (ec *executionContext) _TimeSeriesData(ctx context.Context, sel ast.SelectionSet, obj *model.TimeSeriesData) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, timeSeriesDataImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("TimeSeriesData")
+		case "Code":
+
+			out.Values[i] = ec._TimeSeriesData_Code(ctx, field, obj)
+
+		case "Message":
+
+			out.Values[i] = ec._TimeSeriesData_Message(ctx, field, obj)
+
+		case "Data":
+
+			out.Values[i] = ec._TimeSeriesData_Data(ctx, field, obj)
+
+		case "Last":
+
+			out.Values[i] = ec._TimeSeriesData_Last(ctx, field, obj)
+
+		case "TotalRecords":
+
+			out.Values[i] = ec._TimeSeriesData_TotalRecords(ctx, field, obj)
 
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))

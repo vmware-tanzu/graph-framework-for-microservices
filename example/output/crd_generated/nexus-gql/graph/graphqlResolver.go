@@ -134,7 +134,7 @@ func getGnsGnsqueryGns1Resolver(obj *model.GnsGns, StartTime *string, EndTime *s
 // Custom query
 func getGnsGnsqueryGnsQM1Resolver(obj *model.GnsGns) (*model.NexusGraphqlResponse, error) {
 	metricArgs := &qm.MetricArg{
-		QueryType: "queryGnsQM1",
+		QueryType: "/queryGnsQM1",
 	}
 	return c.Request("query-manager:15002", nexus.GetMetricsApi, metricArgs)
 }
@@ -142,7 +142,7 @@ func getGnsGnsqueryGnsQM1Resolver(obj *model.GnsGns) (*model.NexusGraphqlRespons
 // Custom query
 func getGnsGnsqueryGnsQMResolver(obj *model.GnsGns, StartTime *string, EndTime *string, Interval *string) (*model.NexusGraphqlResponse, error) {
 	metricArgs := &qm.MetricArg{
-		QueryType: "queryGnsQM",
+		QueryType: "/queryGnsQM",
 		StartTime: *StartTime,
 		EndTime:   *EndTime,
 	}

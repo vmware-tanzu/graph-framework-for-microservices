@@ -10,6 +10,14 @@ type NexusGraphqlResponse struct {
 	TotalRecords *int    `json:"TotalRecords"`
 }
 
+type TimeSeriesData struct {
+	Code         *int    `json:"Code"`
+	Message      *string `json:"Message"`
+	Data         *string `json:"Data"`
+	Last         *string `json:"Last"`
+	TotalRecords *int    `json:"TotalRecords"`
+}
+
 type ConfigConfig struct {
 	Id                *string                      `json:"Id"`
 	ParentLabels      map[string]interface{}       `json:"ParentLabels"`

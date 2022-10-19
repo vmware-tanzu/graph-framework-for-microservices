@@ -156,7 +156,7 @@ func get{{$node.PkgName}}{{$node.NodeName}}{{$query.Name}}Resolver(obj *model.{{
 	return c.Request("{{$query.ServiceEndpoint.Domain}}:{{$query.ServiceEndpoint.Port}}", nexus.GraphQLQueryApi, query)
 	{{- else if eq $query.ApiType 1 }}
 	metricArgs := &qm.MetricArg{
-		QueryType: "{{$query.Name}}",
+		QueryType: "/{{$query.Name}}",
 		{{- range $key, $arg := $query.Args }}
 		{{- if eq $arg.Name "StartTime" }}
 		StartTime: *StartTime,
