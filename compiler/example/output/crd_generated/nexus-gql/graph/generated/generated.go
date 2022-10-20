@@ -107,22 +107,26 @@ type ComplexityRoot struct {
 	}
 
 	Gns_Gns struct {
-		Description            func(childComplexity int) int
-		DifferentSpec          func(childComplexity int) int
-		Dns                    func(childComplexity int) int
-		Domain                 func(childComplexity int) int
-		FooChild               func(childComplexity int) int
-		GnsAccessControlPolicy func(childComplexity int, id *string) int
-		GnsServiceGroups       func(childComplexity int, id *string) int
-		Id                     func(childComplexity int) int
-		MapPointer             func(childComplexity int) int
-		Meta                   func(childComplexity int) int
-		OtherDescription       func(childComplexity int) int
-		ParentLabels           func(childComplexity int) int
-		Port                   func(childComplexity int) int
-		SlicePointer           func(childComplexity int) int
-		UseSharedGateway       func(childComplexity int) int
-		WorkloadSpec           func(childComplexity int) int
+		Description              func(childComplexity int) int
+		DifferentSpec            func(childComplexity int) int
+		Dns                      func(childComplexity int) int
+		Domain                   func(childComplexity int) int
+		FooChild                 func(childComplexity int) int
+		GnsAccessControlPolicy   func(childComplexity int, id *string) int
+		GnsServiceGroups         func(childComplexity int, id *string) int
+		Id                       func(childComplexity int) int
+		MapPointer               func(childComplexity int) int
+		Meta                     func(childComplexity int) int
+		OtherDescription         func(childComplexity int) int
+		ParentLabels             func(childComplexity int) int
+		Port                     func(childComplexity int) int
+		ServiceSegmentRef        func(childComplexity int) int
+		ServiceSegmentRefMap     func(childComplexity int) int
+		ServiceSegmentRefPointer func(childComplexity int) int
+		ServiceSegmentRefs       func(childComplexity int) int
+		SlicePointer             func(childComplexity int) int
+		UseSharedGateway         func(childComplexity int) int
+		WorkloadSpec             func(childComplexity int) int
 	}
 
 	Gns_IgnoreChild struct {
@@ -614,6 +618,34 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Gns_Gns.Port(childComplexity), true
 
+	case "gns_Gns.ServiceSegmentRef":
+		if e.complexity.Gns_Gns.ServiceSegmentRef == nil {
+			break
+		}
+
+		return e.complexity.Gns_Gns.ServiceSegmentRef(childComplexity), true
+
+	case "gns_Gns.ServiceSegmentRefMap":
+		if e.complexity.Gns_Gns.ServiceSegmentRefMap == nil {
+			break
+		}
+
+		return e.complexity.Gns_Gns.ServiceSegmentRefMap(childComplexity), true
+
+	case "gns_Gns.ServiceSegmentRefPointer":
+		if e.complexity.Gns_Gns.ServiceSegmentRefPointer == nil {
+			break
+		}
+
+		return e.complexity.Gns_Gns.ServiceSegmentRefPointer(childComplexity), true
+
+	case "gns_Gns.ServiceSegmentRefs":
+		if e.complexity.Gns_Gns.ServiceSegmentRefs == nil {
+			break
+		}
+
+		return e.complexity.Gns_Gns.ServiceSegmentRefs(childComplexity), true
+
 	case "gns_Gns.SlicePointer":
 		if e.complexity.Gns_Gns.SlicePointer == nil {
 			break
@@ -963,6 +995,10 @@ type gns_Gns {
     SlicePointer: String
     WorkloadSpec: String
     DifferentSpec: String
+    ServiceSegmentRef: String
+    ServiceSegmentRefPointer: String
+    ServiceSegmentRefs: String
+    ServiceSegmentRefMap: String
     GnsAccessControlPolicy(Id: ID): policy_AccessControlPolicy!
     FooChild: gns_BarChild!
 }
@@ -3802,6 +3838,14 @@ func (ec *executionContext) fieldContext_config_Config_GNS(ctx context.Context, 
 				return ec.fieldContext_gns_Gns_WorkloadSpec(ctx, field)
 			case "DifferentSpec":
 				return ec.fieldContext_gns_Gns_DifferentSpec(ctx, field)
+			case "ServiceSegmentRef":
+				return ec.fieldContext_gns_Gns_ServiceSegmentRef(ctx, field)
+			case "ServiceSegmentRefPointer":
+				return ec.fieldContext_gns_Gns_ServiceSegmentRefPointer(ctx, field)
+			case "ServiceSegmentRefs":
+				return ec.fieldContext_gns_Gns_ServiceSegmentRefs(ctx, field)
+			case "ServiceSegmentRefMap":
+				return ec.fieldContext_gns_Gns_ServiceSegmentRefMap(ctx, field)
 			case "GnsAccessControlPolicy":
 				return ec.fieldContext_gns_Gns_GnsAccessControlPolicy(ctx, field)
 			case "FooChild":
@@ -5510,6 +5554,170 @@ func (ec *executionContext) _gns_Gns_DifferentSpec(ctx context.Context, field gr
 }
 
 func (ec *executionContext) fieldContext_gns_Gns_DifferentSpec(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "gns_Gns",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _gns_Gns_ServiceSegmentRef(ctx context.Context, field graphql.CollectedField, obj *model.GnsGns) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_gns_Gns_ServiceSegmentRef(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ServiceSegmentRef, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_gns_Gns_ServiceSegmentRef(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "gns_Gns",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _gns_Gns_ServiceSegmentRefPointer(ctx context.Context, field graphql.CollectedField, obj *model.GnsGns) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_gns_Gns_ServiceSegmentRefPointer(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ServiceSegmentRefPointer, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_gns_Gns_ServiceSegmentRefPointer(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "gns_Gns",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _gns_Gns_ServiceSegmentRefs(ctx context.Context, field graphql.CollectedField, obj *model.GnsGns) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_gns_Gns_ServiceSegmentRefs(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ServiceSegmentRefs, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_gns_Gns_ServiceSegmentRefs(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "gns_Gns",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _gns_Gns_ServiceSegmentRefMap(ctx context.Context, field graphql.CollectedField, obj *model.GnsGns) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_gns_Gns_ServiceSegmentRefMap(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ServiceSegmentRefMap, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_gns_Gns_ServiceSegmentRefMap(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "gns_Gns",
 		Field:      field,
@@ -7659,6 +7867,22 @@ func (ec *executionContext) _gns_Gns(ctx context.Context, sel ast.SelectionSet, 
 		case "DifferentSpec":
 
 			out.Values[i] = ec._gns_Gns_DifferentSpec(ctx, field, obj)
+
+		case "ServiceSegmentRef":
+
+			out.Values[i] = ec._gns_Gns_ServiceSegmentRef(ctx, field, obj)
+
+		case "ServiceSegmentRefPointer":
+
+			out.Values[i] = ec._gns_Gns_ServiceSegmentRefPointer(ctx, field, obj)
+
+		case "ServiceSegmentRefs":
+
+			out.Values[i] = ec._gns_Gns_ServiceSegmentRefs(ctx, field, obj)
+
+		case "ServiceSegmentRefMap":
+
+			out.Values[i] = ec._gns_Gns_ServiceSegmentRefMap(ctx, field, obj)
 
 		case "GnsAccessControlPolicy":
 			field := field
