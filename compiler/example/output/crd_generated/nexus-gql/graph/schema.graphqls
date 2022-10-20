@@ -72,6 +72,10 @@ type gns_Gns {
     SlicePointer: String
     WorkloadSpec: String
     DifferentSpec: String
+    ServiceSegmentRef: String
+    ServiceSegmentRefPointer: String
+    ServiceSegmentRefs: String
+    ServiceSegmentRefMap: String
     GnsAccessControlPolicy(Id: ID): policy_AccessControlPolicy!
     FooChild: gns_BarChild!
 }

@@ -208,22 +208,34 @@ func getConfigConfigGNSResolver(obj *model.ConfigConfig, id *string) (*model.Gns
 		WorkloadSpecData := string(WorkloadSpec)
 		DifferentSpec, _ := json.Marshal(vGns.Spec.DifferentSpec)
 		DifferentSpecData := string(DifferentSpec)
+		ServiceSegmentRef, _ := json.Marshal(vGns.Spec.ServiceSegmentRef)
+		ServiceSegmentRefData := string(ServiceSegmentRef)
+		ServiceSegmentRefPointer, _ := json.Marshal(vGns.Spec.ServiceSegmentRefPointer)
+		ServiceSegmentRefPointerData := string(ServiceSegmentRefPointer)
+		ServiceSegmentRefs, _ := json.Marshal(vGns.Spec.ServiceSegmentRefs)
+		ServiceSegmentRefsData := string(ServiceSegmentRefs)
+		ServiceSegmentRefMap, _ := json.Marshal(vGns.Spec.ServiceSegmentRefMap)
+		ServiceSegmentRefMapData := string(ServiceSegmentRefMap)
 
 		for k, v := range obj.ParentLabels {
 			parentLabels[k] = v
 		}
 		ret := &model.GnsGns{
-			Id:               &dn,
-			ParentLabels:     parentLabels,
-			Domain:           &vDomain,
-			UseSharedGateway: &vUseSharedGateway,
-			Description:      &DescriptionData,
-			Meta:             &vMeta,
-			OtherDescription: &OtherDescriptionData,
-			MapPointer:       &MapPointerData,
-			SlicePointer:     &SlicePointerData,
-			WorkloadSpec:     &WorkloadSpecData,
-			DifferentSpec:    &DifferentSpecData,
+			Id:                       &dn,
+			ParentLabels:             parentLabels,
+			Domain:                   &vDomain,
+			UseSharedGateway:         &vUseSharedGateway,
+			Description:              &DescriptionData,
+			Meta:                     &vMeta,
+			OtherDescription:         &OtherDescriptionData,
+			MapPointer:               &MapPointerData,
+			SlicePointer:             &SlicePointerData,
+			WorkloadSpec:             &WorkloadSpecData,
+			DifferentSpec:            &DifferentSpecData,
+			ServiceSegmentRef:        &ServiceSegmentRefData,
+			ServiceSegmentRefPointer: &ServiceSegmentRefPointerData,
+			ServiceSegmentRefs:       &ServiceSegmentRefsData,
+			ServiceSegmentRefMap:     &ServiceSegmentRefMapData,
 		}
 
 		log.Debugf("[getConfigConfigGNSResolver]Output object %v", ret)
@@ -257,22 +269,34 @@ func getConfigConfigGNSResolver(obj *model.ConfigConfig, id *string) (*model.Gns
 	WorkloadSpecData := string(WorkloadSpec)
 	DifferentSpec, _ := json.Marshal(vGns.Spec.DifferentSpec)
 	DifferentSpecData := string(DifferentSpec)
+	ServiceSegmentRef, _ := json.Marshal(vGns.Spec.ServiceSegmentRef)
+	ServiceSegmentRefData := string(ServiceSegmentRef)
+	ServiceSegmentRefPointer, _ := json.Marshal(vGns.Spec.ServiceSegmentRefPointer)
+	ServiceSegmentRefPointerData := string(ServiceSegmentRefPointer)
+	ServiceSegmentRefs, _ := json.Marshal(vGns.Spec.ServiceSegmentRefs)
+	ServiceSegmentRefsData := string(ServiceSegmentRefs)
+	ServiceSegmentRefMap, _ := json.Marshal(vGns.Spec.ServiceSegmentRefMap)
+	ServiceSegmentRefMapData := string(ServiceSegmentRefMap)
 
 	for k, v := range obj.ParentLabels {
 		parentLabels[k] = v
 	}
 	ret := &model.GnsGns{
-		Id:               &dn,
-		ParentLabels:     parentLabels,
-		Domain:           &vDomain,
-		UseSharedGateway: &vUseSharedGateway,
-		Description:      &DescriptionData,
-		Meta:             &vMeta,
-		OtherDescription: &OtherDescriptionData,
-		MapPointer:       &MapPointerData,
-		SlicePointer:     &SlicePointerData,
-		WorkloadSpec:     &WorkloadSpecData,
-		DifferentSpec:    &DifferentSpecData,
+		Id:                       &dn,
+		ParentLabels:             parentLabels,
+		Domain:                   &vDomain,
+		UseSharedGateway:         &vUseSharedGateway,
+		Description:              &DescriptionData,
+		Meta:                     &vMeta,
+		OtherDescription:         &OtherDescriptionData,
+		MapPointer:               &MapPointerData,
+		SlicePointer:             &SlicePointerData,
+		WorkloadSpec:             &WorkloadSpecData,
+		DifferentSpec:            &DifferentSpecData,
+		ServiceSegmentRef:        &ServiceSegmentRefData,
+		ServiceSegmentRefPointer: &ServiceSegmentRefPointerData,
+		ServiceSegmentRefs:       &ServiceSegmentRefsData,
+		ServiceSegmentRefMap:     &ServiceSegmentRefMapData,
 	}
 
 	log.Debugf("[getConfigConfigGNSResolver]Output object %v", ret)

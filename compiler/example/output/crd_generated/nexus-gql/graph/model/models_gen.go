@@ -56,22 +56,26 @@ type GnsDns struct {
 }
 
 type GnsGns struct {
-	Id                     *string                    `json:"Id"`
-	ParentLabels           map[string]interface{}     `json:"ParentLabels"`
-	GnsServiceGroups       []*ServicegroupSvcGroup    `json:"GnsServiceGroups"`
-	Dns                    *GnsDns                    `json:"Dns"`
-	Domain                 *string                    `json:"Domain"`
-	UseSharedGateway       *bool                      `json:"UseSharedGateway"`
-	Description            *string                    `json:"Description"`
-	Meta                   *string                    `json:"Meta"`
-	Port                   *int                       `json:"Port"`
-	OtherDescription       *string                    `json:"OtherDescription"`
-	MapPointer             *string                    `json:"MapPointer"`
-	SlicePointer           *string                    `json:"SlicePointer"`
-	WorkloadSpec           *string                    `json:"WorkloadSpec"`
-	DifferentSpec          *string                    `json:"DifferentSpec"`
-	GnsAccessControlPolicy *PolicyAccessControlPolicy `json:"GnsAccessControlPolicy"`
-	FooChild               *GnsBarChild               `json:"FooChild"`
+	Id                       *string                    `json:"Id"`
+	ParentLabels             map[string]interface{}     `json:"ParentLabels"`
+	GnsServiceGroups         []*ServicegroupSvcGroup    `json:"GnsServiceGroups"`
+	Dns                      *GnsDns                    `json:"Dns"`
+	Domain                   *string                    `json:"Domain"`
+	UseSharedGateway         *bool                      `json:"UseSharedGateway"`
+	Description              *string                    `json:"Description"`
+	Meta                     *string                    `json:"Meta"`
+	Port                     *int                       `json:"Port"`
+	OtherDescription         *string                    `json:"OtherDescription"`
+	MapPointer               *string                    `json:"MapPointer"`
+	SlicePointer             *string                    `json:"SlicePointer"`
+	WorkloadSpec             *string                    `json:"WorkloadSpec"`
+	DifferentSpec            *string                    `json:"DifferentSpec"`
+	ServiceSegmentRef        *string                    `json:"ServiceSegmentRef"`
+	ServiceSegmentRefPointer *string                    `json:"ServiceSegmentRefPointer"`
+	ServiceSegmentRefs       *string                    `json:"ServiceSegmentRefs"`
+	ServiceSegmentRefMap     *string                    `json:"ServiceSegmentRefMap"`
+	GnsAccessControlPolicy   *PolicyAccessControlPolicy `json:"GnsAccessControlPolicy"`
+	FooChild                 *GnsBarChild               `json:"FooChild"`
 }
 
 type GnsIgnoreChild struct {
