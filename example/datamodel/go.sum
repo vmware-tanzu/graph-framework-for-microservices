@@ -645,6 +645,8 @@ golang-appnet.eng.vmware.com/nexus-sdk/nexus v0.2.19-0.20221017112310-5e7a04c3ec
 golang-appnet.eng.vmware.com/nexus-sdk/nexus v0.2.19-0.20221017112310-5e7a04c3ecf5/go.mod h1:4aQW8+vwLoP/wKbnbrINNUzH8SnA0E9zzLVWauvPJNw=
 golang-appnet.eng.vmware.com/nexus-sdk/nexus v0.2.19-0.20221018100619-2c6b79fa32f2 h1:mR+YUMKT6cpypB6M5nZFIFJdPuB1wCs/37cwqltSAzA=
 golang-appnet.eng.vmware.com/nexus-sdk/nexus v0.2.19-0.20221018100619-2c6b79fa32f2/go.mod h1:4aQW8+vwLoP/wKbnbrINNUzH8SnA0E9zzLVWauvPJNw=
+golang-appnet.eng.vmware.com/nexus-sdk/nexus v0.2.36-0.20221020122051-65fc0c94548b h1:mpZ2HHkVPRAeq9oPd++KuQdL5royO5nxJyPReW1X51A=
+golang-appnet.eng.vmware.com/nexus-sdk/nexus v0.2.36-0.20221020122051-65fc0c94548b/go.mod h1:4aQW8+vwLoP/wKbnbrINNUzH8SnA0E9zzLVWauvPJNw=
 golang.org/x/crypto v0.0.0-20180904163835-0709b304e793/go.mod h1:6SG95UA2DQfeDnfUPMdvaQW0Q7yPrPDi9nlGo2tz2b4=
 golang.org/x/crypto v0.0.0-20181029021203-45a5f77698d3/go.mod h1:6SG95UA2DQfeDnfUPMdvaQW0Q7yPrPDi9nlGo2tz2b4=
 golang.org/x/crypto v0.0.0-20190308221718-c2843e01d9a2/go.mod h1:djNgcEr1/C05ACkg1iLfiJU5Ep61QUkGW8qpdssI0+w=
