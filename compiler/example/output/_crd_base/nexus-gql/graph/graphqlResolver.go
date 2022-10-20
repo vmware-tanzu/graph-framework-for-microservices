@@ -206,6 +206,14 @@ WorkloadSpec, _ := json.Marshal(vGns.Spec.WorkloadSpec)
 WorkloadSpecData := string(WorkloadSpec)
 DifferentSpec, _ := json.Marshal(vGns.Spec.DifferentSpec)
 DifferentSpecData := string(DifferentSpec)
+ServiceSegmentRef, _ := json.Marshal(vGns.Spec.ServiceSegmentRef)
+ServiceSegmentRefData := string(ServiceSegmentRef)
+ServiceSegmentRefPointer, _ := json.Marshal(vGns.Spec.ServiceSegmentRefPointer)
+ServiceSegmentRefPointerData := string(ServiceSegmentRefPointer)
+ServiceSegmentRefs, _ := json.Marshal(vGns.Spec.ServiceSegmentRefs)
+ServiceSegmentRefsData := string(ServiceSegmentRefs)
+ServiceSegmentRefMap, _ := json.Marshal(vGns.Spec.ServiceSegmentRefMap)
+ServiceSegmentRefMapData := string(ServiceSegmentRefMap)
 
 		for k, v := range obj.ParentLabels {
 			parentLabels[k] = v
@@ -222,6 +230,10 @@ DifferentSpecData := string(DifferentSpec)
 	SlicePointer: &SlicePointerData,
 	WorkloadSpec: &WorkloadSpecData,
 	DifferentSpec: &DifferentSpecData,
+	ServiceSegmentRef: &ServiceSegmentRefData,
+	ServiceSegmentRefPointer: &ServiceSegmentRefPointerData,
+	ServiceSegmentRefs: &ServiceSegmentRefsData,
+	ServiceSegmentRefMap: &ServiceSegmentRefMapData,
 	}
 
 		log.Debugf("[getConfigConfigGNSResolver]Output object %v", ret)
@@ -255,6 +267,14 @@ WorkloadSpec, _ := json.Marshal(vGns.Spec.WorkloadSpec)
 WorkloadSpecData := string(WorkloadSpec)
 DifferentSpec, _ := json.Marshal(vGns.Spec.DifferentSpec)
 DifferentSpecData := string(DifferentSpec)
+ServiceSegmentRef, _ := json.Marshal(vGns.Spec.ServiceSegmentRef)
+ServiceSegmentRefData := string(ServiceSegmentRef)
+ServiceSegmentRefPointer, _ := json.Marshal(vGns.Spec.ServiceSegmentRefPointer)
+ServiceSegmentRefPointerData := string(ServiceSegmentRefPointer)
+ServiceSegmentRefs, _ := json.Marshal(vGns.Spec.ServiceSegmentRefs)
+ServiceSegmentRefsData := string(ServiceSegmentRefs)
+ServiceSegmentRefMap, _ := json.Marshal(vGns.Spec.ServiceSegmentRefMap)
+ServiceSegmentRefMapData := string(ServiceSegmentRefMap)
 
     for k, v := range obj.ParentLabels {
         parentLabels[k] = v
@@ -271,6 +291,10 @@ DifferentSpecData := string(DifferentSpec)
 	SlicePointer: &SlicePointerData,
 	WorkloadSpec: &WorkloadSpecData,
 	DifferentSpec: &DifferentSpecData,
+	ServiceSegmentRef: &ServiceSegmentRefData,
+	ServiceSegmentRefPointer: &ServiceSegmentRefPointerData,
+	ServiceSegmentRefs: &ServiceSegmentRefsData,
+	ServiceSegmentRefMap: &ServiceSegmentRefMapData,
 	}
 
 	log.Debugf("[getConfigConfigGNSResolver]Output object %v", ret)
