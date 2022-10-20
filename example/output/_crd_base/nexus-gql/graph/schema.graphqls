@@ -73,12 +73,12 @@ type gns_Gns {
         IsServiceDeployment: Boolean
         StartVal: Int
     ): NexusGraphqlResponse
-    queryGns2: NexusGraphqlResponse
-    queryGns2(
+    queryGnsQM1: TimeSeriesData
+    queryGnsQM(
         StartTime: String
         EndTime: String
         Interval: String
-    ): NexusGraphqlResponse
+    ): TimeSeriesData
 
     GnsServiceGroups(Id: ID): [servicegroup_SvcGroup!]
     
@@ -157,6 +157,14 @@ type policy_VMpolicy {
 }
 
 type NexusGraphqlResponse {
+  Code: Int
+  Message: String
+  Data: String
+  Last: String
+  TotalRecords: Int
+}
+
+type TimeSeriesData {
   Code: Int
   Message: String
   Data: String
