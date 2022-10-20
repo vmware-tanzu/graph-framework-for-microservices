@@ -200,6 +200,50 @@ spec:
               port:
                 format: int32
                 type: integer
+              serviceSegmentRef:
+                properties:
+                  Field1:
+                    type: string
+                  Field2:
+                    type: string
+                required:
+                - Field1
+                - Field2
+                type: object
+              serviceSegmentRefMap:
+                additionalProperties:
+                  properties:
+                    Field1:
+                      type: string
+                    Field2:
+                      type: string
+                  required:
+                  - Field1
+                  - Field2
+                  type: object
+                type: object
+              serviceSegmentRefPointer:
+                properties:
+                  Field1:
+                    type: string
+                  Field2:
+                    type: string
+                required:
+                - Field1
+                - Field2
+                type: object
+              serviceSegmentRefs:
+                items:
+                  properties:
+                    Field1:
+                      type: string
+                    Field2:
+                      type: string
+                  required:
+                  - Field1
+                  - Field2
+                  type: object
+                type: array
               slicePointer:
                 items:
                   type: string
