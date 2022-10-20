@@ -25,9 +25,9 @@ var _ = Describe("Graphql parsing tests", func() {
 		gns, ok := config.SingleChildren["GNS"]
 		Expect(ok).To(BeTrue())
 
-		Expect(gns.GraphqlSpec.Queries).To(HaveLen(2))
+		Expect(gns.GraphqlSpec.Queries).To(HaveLen(3))
 		Expect(gns.GraphqlSpec.Queries[0].Name).To(Equal("queryGns1"))
-		Expect(gns.GraphqlSpec.Queries[0].ServiceEndpoint.Domain).To(Equal("query-manager"))
+		Expect(gns.GraphqlSpec.Queries[0].ServiceEndpoint.Domain).To(Equal("nexus-query-responder"))
 		Expect(gns.GraphqlSpec.Queries[0].ServiceEndpoint.Port).To(Equal(15000))
 		args := gns.GraphqlSpec.Queries[0].Args.([]parser.GraphQlArg)
 		Expect(len(args)).To(Equal(5))
@@ -43,8 +43,8 @@ var _ = Describe("Graphql parsing tests", func() {
 		Expect(args[4].Name).To(Equal("StartVal"))
 		Expect(args[4].Type).To(Equal("int"))
 
-		Expect(gns.GraphqlSpec.Queries[1].Name).To(Equal("queryGns2"))
-		Expect(gns.GraphqlSpec.Queries[1].ServiceEndpoint.Domain).To(Equal("query-manager2"))
+		Expect(gns.GraphqlSpec.Queries[1].Name).To(Equal("queryGnsQM1"))
+		Expect(gns.GraphqlSpec.Queries[1].ServiceEndpoint.Domain).To(Equal("query-manager"))
 		Expect(gns.GraphqlSpec.Queries[1].ServiceEndpoint.Port).To(Equal(15002))
 		Expect(gns.GraphqlSpec.Queries[1].Args).To(BeNil())
 	})

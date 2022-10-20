@@ -63,7 +63,7 @@ var _ = Describe("Pkg tests", func() {
 
 	It("should get all structs for gns", func() {
 		structs := gnsPkg.GetStructs()
-		Expect(structs).To(HaveLen(16))
+		Expect(structs).To(HaveLen(17))
 	})
 
 	It("should get all types for gns", func() {
@@ -78,7 +78,7 @@ var _ = Describe("Pkg tests", func() {
 
 	It("should get all nodes for gns", func() {
 		nodes := gnsPkg.GetNodes()
-		Expect(nodes).To(HaveLen(10))
+		Expect(nodes).To(HaveLen(11))
 	})
 
 	It("should get all consts for gns", func() {

@@ -37,7 +37,7 @@ var _ = Describe("Graphql Custom query generator tests", func() {
     ): NexusGraphqlResponse
 `))
 		schema = crdgenerator.CustomQueryToGraphqlSchema(gns.GraphqlSpec.Queries[1])
-		Expect(schema).To(Equal(`    queryGns2: NexusGraphqlResponse
+		Expect(schema).To(Equal(`    queryGnsQM1: TimeSeriesData
 `))
 	})
 })
