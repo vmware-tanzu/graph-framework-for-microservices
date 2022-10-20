@@ -9,6 +9,7 @@ import (
 	log "github.com/sirupsen/logrus"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
+	"k8s.io/client-go/util/flowcontrol"
 
 	nexus_client "github.com/vmware-tanzu/graph-framework-for-microservices/compiler/example/output/crd_generated/nexus-client"
 	"github.com/vmware-tanzu/graph-framework-for-microservices/compiler/example/output/crd_generated/nexus-gql/graph/model"
@@ -27,18 +28,23 @@ func getParentName(parentLabels map[string]interface{}, key string) string {
 // Nexus K8sAPIEndpointConfig
 //////////////////////////////////////
 func getK8sAPIEndpointConfig() *rest.Config {
+	var (
+		config *rest.Config
+		err    error
+	)
 	filePath := os.Getenv("KUBECONFIG")
 	if filePath != "" {
-		config, err := clientcmd.BuildConfigFromFlags("", filePath)
+		config, err = clientcmd.BuildConfigFromFlags("", filePath)
 		if err != nil {
 			return nil
 		}
-		return config
+	} else {
+		config, err = rest.InClusterConfig()
+		if err != nil {
+			return nil
+		}
 	}
-	config, err := rest.InClusterConfig()
-	if err != nil {
-		return nil
-	}
+	config.RateLimiter = flowcontrol.NewTokenBucketRateLimiter(200, 300)
 	return config
 }
 
