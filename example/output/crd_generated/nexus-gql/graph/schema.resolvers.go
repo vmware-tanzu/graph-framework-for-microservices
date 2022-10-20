@@ -56,12 +56,12 @@ func (r *gns_GnsResolver) QueryGns1(ctx context.Context, obj *model.GnsGns, star
 }
 
 // QueryGnsQm1 is the resolver for the queryGnsQM1 field.
-func (r *gns_GnsResolver) QueryGnsQm1(ctx context.Context, obj *model.GnsGns) (*model.NexusGraphqlResponse, error) {
+func (r *gns_GnsResolver) QueryGnsQm1(ctx context.Context, obj *model.GnsGns) (*model.TimeSeriesData, error) {
 	return getGnsGnsqueryGnsQM1Resolver(obj)
 }
 
 // QueryGnsQm is the resolver for the queryGnsQM field.
-func (r *gns_GnsResolver) QueryGnsQm(ctx context.Context, obj *model.GnsGns, startTime *string, endTime *string, interval *string) (*model.NexusGraphqlResponse, error) {
+func (r *gns_GnsResolver) QueryGnsQm(ctx context.Context, obj *model.GnsGns, startTime *string, endTime *string, interval *string) (*model.TimeSeriesData, error) {
 	return getGnsGnsqueryGnsQMResolver(obj, startTime, endTime, interval)
 }
 

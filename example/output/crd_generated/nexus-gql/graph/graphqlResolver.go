@@ -103,7 +103,12 @@ func getConfigConfigQueryExampleResolver(obj *model.ConfigConfig, StartTime *str
 		},
 		Hierarchy: parentLabels,
 	}
-	return c.Request("query-manager:6000", nexus.GraphQLQueryApi, query)
+
+	resp, err := c.Request("query-manager:6000", nexus.GraphQLQueryApi, query)
+	if err != nil {
+		return nil, err
+	}
+	return resp.(*model.NexusGraphqlResponse), nil
 }
 
 // Custom query
@@ -128,25 +133,38 @@ func getGnsGnsqueryGns1Resolver(obj *model.GnsGns, StartTime *string, EndTime *s
 		},
 		Hierarchy: parentLabels,
 	}
-	return c.Request("nexus-query-responder:15000", nexus.GraphQLQueryApi, query)
+
+	resp, err := c.Request("nexus-query-responder:15000", nexus.GraphQLQueryApi, query)
+	if err != nil {
+		return nil, err
+	}
+	return resp.(*model.NexusGraphqlResponse), nil
 }
 
 // Custom query
-func getGnsGnsqueryGnsQM1Resolver(obj *model.GnsGns) (*model.NexusGraphqlResponse, error) {
+func getGnsGnsqueryGnsQM1Resolver(obj *model.GnsGns) (*model.TimeSeriesData, error) {
 	metricArgs := &qm.MetricArg{
 		QueryType: "/queryGnsQM1",
 	}
-	return c.Request("query-manager:15002", nexus.GetMetricsApi, metricArgs)
+	resp, err := c.Request("query-manager:15002", nexus.GetMetricsApi, metricArgs)
+	if err != nil {
+		return nil, err
+	}
+	return resp.(*model.TimeSeriesData), nil
 }
 
 // Custom query
-func getGnsGnsqueryGnsQMResolver(obj *model.GnsGns, StartTime *string, EndTime *string, Interval *string) (*model.NexusGraphqlResponse, error) {
+func getGnsGnsqueryGnsQMResolver(obj *model.GnsGns, StartTime *string, EndTime *string, Interval *string) (*model.TimeSeriesData, error) {
 	metricArgs := &qm.MetricArg{
 		QueryType: "/queryGnsQM",
 		StartTime: *StartTime,
 		EndTime:   *EndTime,
 	}
-	return c.Request("query-manager:15003", nexus.GetMetricsApi, metricArgs)
+	resp, err := c.Request("query-manager:15003", nexus.GetMetricsApi, metricArgs)
+	if err != nil {
+		return nil, err
+	}
+	return resp.(*model.TimeSeriesData), nil
 }
 
 // ////////////////////////////////////

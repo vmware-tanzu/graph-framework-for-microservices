@@ -22,12 +22,16 @@ import (
 
 type Resolver struct{}
 
+type GrpcClient interface {
+	Request(query proto.Message) (interface{}, error)
+}
+
 type GrpcClients struct {
 	mtx     sync.Mutex
 	Clients map[string]GrpcClient
 }
 
-func (s *GrpcClients) Request(endpoint string, apiType nexus.GraphQlApiType, query proto.Message) (*model.NexusGraphqlResponse, error) {
+func (s *GrpcClients) Request(endpoint string, apiType nexus.GraphQlApiType, query proto.Message) (interface{}, error) {
 	cl, err := s.getClient(endpoint, apiType)
 	if err != nil {
 		return nil, err
@@ -45,11 +49,11 @@ func (s *GrpcClients) addClient(endpoint string, apiType nexus.GraphQlApiType) (
 	switch apiType {
 	case 1:
 		cl := &NexusQueryClient{graphql.NewServerClient(conn)}
-		s.Clients[string(apiType)+"/"+endpoint] = cl
+		s.Clients[fmt.Sprint(apiType)+"/"+endpoint] = cl
 		return cl, nil
 	case 2:
 		cl := &QmClient{qm.NewServerClient(conn)}
-		s.Clients[string(apiType)+"/"+endpoint] = cl
+		s.Clients[fmt.Sprint(apiType)+"/"+endpoint] = cl
 		return cl, nil
 	default:
 		return nil, fmt.Errorf("unsupported GraphQlApiType %v", apiType)
@@ -66,15 +70,11 @@ func (s *GrpcClients) getClient(endpoint string, apiType nexus.GraphQlApiType) (
 	return s.addClient(endpoint, apiType)
 }
 
-type GrpcClient interface {
-	Request(query proto.Message) (*model.NexusGraphqlResponse, error)
-}
-
 type NexusQueryClient struct {
 	graphql.ServerClient
 }
 
-func (c *NexusQueryClient) Request(query proto.Message) (*model.NexusGraphqlResponse, error) {
+func (c *NexusQueryClient) Request(query proto.Message) (interface{}, error) {
 	q, ok := query.(*graphql.GraphQLQuery)
 	if !ok {
 		return nil, fmt.Errorf("wrong format of query used for nexus query")
@@ -107,7 +107,7 @@ type QmClient struct {
 	qm.ServerClient
 }
 
-func (c *QmClient) Request(query proto.Message) (*model.NexusGraphqlResponse, error) {
+func (c *QmClient) Request(query proto.Message) (interface{}, error) {
 	q, ok := query.(*qm.MetricArg)
 	if !ok {
 		return nil, fmt.Errorf("wrong format of query used for metrics query")
@@ -116,10 +116,10 @@ func (c *QmClient) Request(query proto.Message) (*model.NexusGraphqlResponse, er
 	if err != nil {
 		return nil, err
 	}
-	return timeSeriesResToGraphQl(resp)
+	return timeSeriesResToTimeSeriesData(resp)
 }
 
-func timeSeriesResToGraphQl(response *qm.TimeSeriesResponse) (*model.NexusGraphqlResponse, error) {
+func timeSeriesResToTimeSeriesData(response *qm.TimeSeriesResponse) (*model.TimeSeriesData, error) {
 	if response == nil {
 		return nil, nil
 	}
@@ -127,7 +127,7 @@ func timeSeriesResToGraphQl(response *qm.TimeSeriesResponse) (*model.NexusGraphq
 	if err != nil {
 		return nil, err
 	}
-	return &model.NexusGraphqlResponse{
+	return &model.TimeSeriesData{
 		Code:         intToPointer(int(response.Code)),
 		TotalRecords: intToPointer(int(response.TotalRecords)),
 		Message:      &response.Message,

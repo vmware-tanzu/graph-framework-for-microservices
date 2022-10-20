@@ -204,8 +204,8 @@ type Config_ConfigResolver interface {
 }
 type Gns_GnsResolver interface {
 	QueryGns1(ctx context.Context, obj *model.GnsGns, startTime *string, endTime *string, interval *string, isServiceDeployment *bool, startVal *int) (*model.NexusGraphqlResponse, error)
-	QueryGnsQm1(ctx context.Context, obj *model.GnsGns) (*model.NexusGraphqlResponse, error)
-	QueryGnsQm(ctx context.Context, obj *model.GnsGns, startTime *string, endTime *string, interval *string) (*model.NexusGraphqlResponse, error)
+	QueryGnsQm1(ctx context.Context, obj *model.GnsGns) (*model.TimeSeriesData, error)
+	QueryGnsQm(ctx context.Context, obj *model.GnsGns, startTime *string, endTime *string, interval *string) (*model.TimeSeriesData, error)
 	GnsServiceGroups(ctx context.Context, obj *model.GnsGns, id *string) ([]*model.ServicegroupSvcGroup, error)
 
 	GnsAccessControlPolicy(ctx context.Context, obj *model.GnsGns, id *string) (*model.PolicyAccessControlPolicy, error)
@@ -1092,12 +1092,12 @@ type gns_Gns {
         IsServiceDeployment: Boolean
         StartVal: Int
     ): NexusGraphqlResponse
-    queryGnsQM1: NexusGraphqlResponse
+    queryGnsQM1: TimeSeriesData
     queryGnsQM(
         StartTime: String
         EndTime: String
         Interval: String
-    ): NexusGraphqlResponse
+    ): TimeSeriesData
 
     GnsServiceGroups(Id: ID): [servicegroup_SvcGroup!]
     
@@ -1190,7 +1190,6 @@ type TimeSeriesData {
   Last: String
   TotalRecords: Int
 }
-
 `, BuiltIn: false},
 }
 var parsedSchema = gqlparser.MustLoadSchema(sources...)
@@ -5863,9 +5862,9 @@ func (ec *executionContext) _gns_Gns_queryGnsQM1(ctx context.Context, field grap
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(*model.NexusGraphqlResponse)
+	res := resTmp.(*model.TimeSeriesData)
 	fc.Result = res
-	return ec.marshalONexusGraphqlResponse2ᚖnexustempmoduleᚋnexusᚑgqlᚋgraphᚋmodelᚐNexusGraphqlResponse(ctx, field.Selections, res)
+	return ec.marshalOTimeSeriesData2ᚖnexustempmoduleᚋnexusᚑgqlᚋgraphᚋmodelᚐTimeSeriesData(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_gns_Gns_queryGnsQM1(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -5877,17 +5876,17 @@ func (ec *executionContext) fieldContext_gns_Gns_queryGnsQM1(ctx context.Context
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
 			case "Code":
-				return ec.fieldContext_NexusGraphqlResponse_Code(ctx, field)
+				return ec.fieldContext_TimeSeriesData_Code(ctx, field)
 			case "Message":
-				return ec.fieldContext_NexusGraphqlResponse_Message(ctx, field)
+				return ec.fieldContext_TimeSeriesData_Message(ctx, field)
 			case "Data":
-				return ec.fieldContext_NexusGraphqlResponse_Data(ctx, field)
+				return ec.fieldContext_TimeSeriesData_Data(ctx, field)
 			case "Last":
-				return ec.fieldContext_NexusGraphqlResponse_Last(ctx, field)
+				return ec.fieldContext_TimeSeriesData_Last(ctx, field)
 			case "TotalRecords":
-				return ec.fieldContext_NexusGraphqlResponse_TotalRecords(ctx, field)
+				return ec.fieldContext_TimeSeriesData_TotalRecords(ctx, field)
 			}
-			return nil, fmt.Errorf("no field named %q was found under type NexusGraphqlResponse", field.Name)
+			return nil, fmt.Errorf("no field named %q was found under type TimeSeriesData", field.Name)
 		},
 	}
 	return fc, nil
@@ -5916,9 +5915,9 @@ func (ec *executionContext) _gns_Gns_queryGnsQM(ctx context.Context, field graph
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(*model.NexusGraphqlResponse)
+	res := resTmp.(*model.TimeSeriesData)
 	fc.Result = res
-	return ec.marshalONexusGraphqlResponse2ᚖnexustempmoduleᚋnexusᚑgqlᚋgraphᚋmodelᚐNexusGraphqlResponse(ctx, field.Selections, res)
+	return ec.marshalOTimeSeriesData2ᚖnexustempmoduleᚋnexusᚑgqlᚋgraphᚋmodelᚐTimeSeriesData(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_gns_Gns_queryGnsQM(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -5930,17 +5929,17 @@ func (ec *executionContext) fieldContext_gns_Gns_queryGnsQM(ctx context.Context,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
 			case "Code":
-				return ec.fieldContext_NexusGraphqlResponse_Code(ctx, field)
+				return ec.fieldContext_TimeSeriesData_Code(ctx, field)
 			case "Message":
-				return ec.fieldContext_NexusGraphqlResponse_Message(ctx, field)
+				return ec.fieldContext_TimeSeriesData_Message(ctx, field)
 			case "Data":
-				return ec.fieldContext_NexusGraphqlResponse_Data(ctx, field)
+				return ec.fieldContext_TimeSeriesData_Data(ctx, field)
 			case "Last":
-				return ec.fieldContext_NexusGraphqlResponse_Last(ctx, field)
+				return ec.fieldContext_TimeSeriesData_Last(ctx, field)
 			case "TotalRecords":
-				return ec.fieldContext_NexusGraphqlResponse_TotalRecords(ctx, field)
+				return ec.fieldContext_TimeSeriesData_TotalRecords(ctx, field)
 			}
-			return nil, fmt.Errorf("no field named %q was found under type NexusGraphqlResponse", field.Name)
+			return nil, fmt.Errorf("no field named %q was found under type TimeSeriesData", field.Name)
 		},
 	}
 	defer func() {
@@ -9563,6 +9562,13 @@ func (ec *executionContext) marshalOString2ᚖstring(ctx context.Context, sel as
 	}
 	res := graphql.MarshalString(*v)
 	return res
+}
+
+func (ec *executionContext) marshalOTimeSeriesData2ᚖnexustempmoduleᚋnexusᚑgqlᚋgraphᚋmodelᚐTimeSeriesData(ctx context.Context, sel ast.SelectionSet, v *model.TimeSeriesData) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._TimeSeriesData(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalO__EnumValue2ᚕgitlabᚗengᚗvmwareᚗcomᚋnsxᚑallspark_usersᚋnexusᚑsdkᚋgqlgenᚗgitᚋgraphqlᚋintrospectionᚐEnumValueᚄ(ctx context.Context, sel ast.SelectionSet, v []introspection.EnumValue) graphql.Marshaler {

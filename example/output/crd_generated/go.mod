@@ -4,11 +4,13 @@ go 1.18
 
 require (
 	github.com/elliotchance/orderedmap v1.4.0
+	github.com/golang/protobuf v1.5.2
 	github.com/sirupsen/logrus v1.8.1
 	github.com/vektah/gqlparser/v2 v2.5.0
 	github.com/vmware-tanzu/cartographer v0.3.0
+	gitlab.eng.vmware.com/nsx-allspark_users/go-protos/pkg v0.0.0-20221020064256-d061ae76adbc
 	gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git v0.0.0-20220907103452-35b454baf46c
-	golang-appnet.eng.vmware.com/nexus-sdk/nexus v0.2.19-0.20221017112310-5e7a04c3ecf5
+	golang-appnet.eng.vmware.com/nexus-sdk/nexus v0.2.36-0.20221019134229-f47a3f43cc69
 	google.golang.org/grpc v1.43.0
 	k8s.io/apimachinery v0.23.5
 	k8s.io/client-go v0.23.5
@@ -24,7 +26,6 @@ require (
 	github.com/fsnotify/fsnotify v1.5.1 // indirect
 	github.com/go-logr/logr v1.2.3 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
-	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/google/go-cmp v0.5.6 // indirect
 	github.com/google/gofuzz v1.2.0 // indirect
 	github.com/googleapis/gnostic v0.5.5 // indirect

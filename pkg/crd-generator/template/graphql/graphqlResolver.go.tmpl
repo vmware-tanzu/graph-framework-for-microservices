@@ -133,7 +133,7 @@ func getRootResolver(id *string) ([]*model.{{$node.PkgName}}{{$node.NodeName}}, 
 {{ end }}{{end}}
 {{- range $key, $query := $node.CustomQueries }}
 // Custom query
-func get{{$node.PkgName}}{{$node.NodeName}}{{$query.Name}}Resolver(obj *model.{{$node.PkgName}}{{$node.NodeName}}, {{ range $key, $arg := $query.Args }} {{$arg.Name}} *{{$arg.Type}}, {{ end }}) (*model.NexusGraphqlResponse, error) {
+func get{{$node.PkgName}}{{$node.NodeName}}{{$query.Name}}Resolver(obj *model.{{$node.PkgName}}{{$node.NodeName}}, {{ range $key, $arg := $query.Args }} {{$arg.Name}} *{{$arg.Type}}, {{ end }}) ({{- if eq $query.ApiType 0 }}*model.NexusGraphqlResponse{{- else if eq $query.ApiType 1 }}*model.TimeSeriesData {{- end}}, error) {
 	{{- if eq $query.ApiType 0 }}
 	parentLabels := make(map[string]string)
 	if obj != nil {
@@ -153,7 +153,12 @@ func get{{$node.PkgName}}{{$node.NodeName}}{{$query.Name}}Resolver(obj *model.{{
 		},
 		Hierarchy: parentLabels,
 	}
-	return c.Request("{{$query.ServiceEndpoint.Domain}}:{{$query.ServiceEndpoint.Port}}", nexus.GraphQLQueryApi, query)
+
+	resp, err := c.Request("{{$query.ServiceEndpoint.Domain}}:{{$query.ServiceEndpoint.Port}}", nexus.GraphQLQueryApi, query)
+	if err != nil {
+		return nil, err
+	}
+	return resp.(*model.NexusGraphqlResponse), nil
 	{{- else if eq $query.ApiType 1 }}
 	metricArgs := &qm.MetricArg{
 		QueryType: "/{{$query.Name}}",
@@ -171,7 +176,11 @@ func get{{$node.PkgName}}{{$node.NodeName}}{{$query.Name}}Resolver(obj *model.{{
 		{{- end }}
 		{{- end }}
 	}
-	return c.Request("{{$query.ServiceEndpoint.Domain}}:{{$query.ServiceEndpoint.Port}}", nexus.GetMetricsApi, metricArgs)
+	resp, err := c.Request("{{$query.ServiceEndpoint.Domain}}:{{$query.ServiceEndpoint.Port}}", nexus.GetMetricsApi, metricArgs)
+	if err != nil {
+		return nil, err
+	}
+	return resp.(*model.TimeSeriesData), nil
 	{{- end }}
 }{{- end }}
 {{ end }}

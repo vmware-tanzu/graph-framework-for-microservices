@@ -27,5 +27,16 @@ func CustomQueryToGraphqlSchema(query nexus.GraphQLQuery) string {
 		}
 		args += "    )"
 	}
-	return fmt.Sprintf("    %s"+args+": NexusGraphqlResponse\n", query.Name)
+
+	var returnType string
+	switch query.ApiType {
+	case nexus.GraphQLQueryApi:
+		returnType = "NexusGraphqlResponse"
+	case nexus.GetMetricsApi:
+		returnType = "TimeSeriesData"
+	default:
+		log.Fatalf("Wrong Api Type of Graphql custom query")
+	}
+
+	return fmt.Sprintf("    %s"+args+": "+returnType+"\n", query.Name)
 }
