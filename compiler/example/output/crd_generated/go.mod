@@ -4,6 +4,7 @@ go 1.18
 
 require (
 	github.com/elliotchance/orderedmap v1.4.0
+	github.com/rs/cors v1.8.2
 	github.com/sirupsen/logrus v1.8.1
 	github.com/vektah/gqlparser/v2 v2.5.0
 	github.com/vmware-tanzu/cartographer v0.3.0
