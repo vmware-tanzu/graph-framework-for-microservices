@@ -489,8 +489,6 @@ github.com/yuin/goldmark v1.2.1/go.mod h1:3hX8gzYuyVAZsxl0MRgGTJEmQBFcNTphYh9dec
 github.com/yuin/goldmark v1.3.5/go.mod h1:mwnBkeHKe2W/ZEtQ+71ViKU8L12m81fl3OWwC1Zlc8k=
 github.com/yuin/goldmark v1.4.0/go.mod h1:mwnBkeHKe2W/ZEtQ+71ViKU8L12m81fl3OWwC1Zlc8k=
 github.com/yuin/goldmark v1.4.1/go.mod h1:mwnBkeHKe2W/ZEtQ+71ViKU8L12m81fl3OWwC1Zlc8k=
-gitlab.eng.vmware.com/nsx-allspark_users/go-protos/pkg v0.0.0-20221020064256-d061ae76adbc h1:P2mNyHJpAjG12HR8BZgz20wiRlAwT+3fYXzaBRf0Cxg=
-gitlab.eng.vmware.com/nsx-allspark_users/go-protos/pkg v0.0.0-20221020064256-d061ae76adbc/go.mod h1:WCCzLkZVziGxfc2ZQKC6mOBg8RtIRfO86Y/37gc3g6U=
 gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git v0.0.0-20220907103452-35b454baf46c h1:M+n07YzrsFS+gxtPJn8ksWP7krW/8hQTCibE4wPY9GI=
 gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git v0.0.0-20220907103452-35b454baf46c/go.mod h1:86gA89soYFp3vriTBZKyy9Vr02bywlO3VCoBOp78LYY=
 go.etcd.io/bbolt v1.3.2/go.mod h1:IbVyRI1SCnLcuJnV2u8VeU0CEYM7e686BmAb1XKL+uU=
@@ -628,7 +626,6 @@ golang.org/x/net v0.0.0-20210405180319-a5a99cb37ef4/go.mod h1:p54w0d4576C0XHj96b
 golang.org/x/net v0.0.0-20210525063256-abc453219eb5/go.mod h1:9nx3DQGgdP8bBQD5qxJ1jj9UTztislL4KSBs9R2vV5Y=
 golang.org/x/net v0.0.0-20210805182204-aaa1db679c0d/go.mod h1:9nx3DQGgdP8bBQD5qxJ1jj9UTztislL4KSBs9R2vV5Y=
 golang.org/x/net v0.0.0-20210825183410-e898025ed96a/go.mod h1:9nx3DQGgdP8bBQD5qxJ1jj9UTztislL4KSBs9R2vV5Y=
-golang.org/x/net v0.0.0-20211008194852-3b03d305991f/go.mod h1:9nx3DQGgdP8bBQD5qxJ1jj9UTztislL4KSBs9R2vV5Y=
 golang.org/x/net v0.0.0-20211015210444-4f30a5c0130f/go.mod h1:9nx3DQGgdP8bBQD5qxJ1jj9UTztislL4KSBs9R2vV5Y=
 golang.org/x/net v0.0.0-20211209124913-491a49abca63 h1:iocB37TsdFuN6IBRZ+ry36wrkoV51/tl5vOWqkcPGvY=
 golang.org/x/net v0.0.0-20211209124913-491a49abca63/go.mod h1:9nx3DQGgdP8bBQD5qxJ1jj9UTztislL4KSBs9R2vV5Y=

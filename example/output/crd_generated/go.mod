@@ -8,7 +8,6 @@ require (
 	github.com/sirupsen/logrus v1.8.1
 	github.com/vektah/gqlparser/v2 v2.5.0
 	github.com/vmware-tanzu/cartographer v0.3.0
-	gitlab.eng.vmware.com/nsx-allspark_users/go-protos/pkg v0.0.0-20221020064256-d061ae76adbc
 	gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git v0.0.0-20220907103452-35b454baf46c
 	golang-appnet.eng.vmware.com/nexus-sdk/nexus v0.2.36-0.20221019134229-f47a3f43cc69
 	google.golang.org/grpc v1.43.0

@@ -47,11 +47,11 @@ func (s *GrpcClients) addClient(endpoint string, apiType nexus.GraphQlApiType) (
 		return nil, err
 	}
 	switch apiType {
-	case 1:
+	case nexus.GraphQLQueryApi:
 		cl := &NexusQueryClient{graphql.NewServerClient(conn)}
 		s.Clients[fmt.Sprint(apiType)+"/"+endpoint] = cl
 		return cl, nil
-	case 2:
+	case nexus.GetMetricsApi:
 		cl := &QmClient{qm.NewServerClient(conn)}
 		s.Clients[fmt.Sprint(apiType)+"/"+endpoint] = cl
 		return cl, nil

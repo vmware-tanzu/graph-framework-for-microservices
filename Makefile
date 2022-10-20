@@ -147,7 +147,7 @@ generate_code:
 	git checkout -- pkg/openapi_generator/openapi/openapi_generated.go
 	@echo "==> Nexus Compiler: Generating GRAPHQL pkg <=="
 	cd _generated && goimports -w .
-	cd _generated/nexus-gql && go get github.com/cespare/xxhash/v2@v2.1.2 && go get golang-appnet.eng.vmware.com/nexus-sdk/nexus@NPT-482 && gqlgen generate
+	cd _generated/nexus-gql && go get github.com/cespare/xxhash/v2@v2.1.2 && gqlgen generate
 	cp -rf _generated/* ${GOPATH}/src/nexustempmodule/
 	cd ${GOPATH}/src/nexustempmodule && cd nexus-gql && CGO_ENABLED=1 GOOS=linux \
 	go build --trimpath -o graphql.so -buildmode=plugin server.go

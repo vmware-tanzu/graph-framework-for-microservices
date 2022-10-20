@@ -8,15 +8,15 @@ import (
 	"sync"
 
 	log "github.com/sirupsen/logrus"
-	"golang-appnet.eng.vmware.com/nexus-sdk/nexus/generated/graphql"
-	"golang-appnet.eng.vmware.com/nexus-sdk/nexus/nexus"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 
 	nexus_client "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/crd_generated/nexus-client"
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/crd_generated/nexus-gql/graph/model"
 
-	qm "gitlab.eng.vmware.com/nsx-allspark_users/go-protos/pkg/query-manager"
+	"golang-appnet.eng.vmware.com/nexus-sdk/nexus/generated/graphql"
+	qm "golang-appnet.eng.vmware.com/nexus-sdk/nexus/generated/query-manager"
+	"golang-appnet.eng.vmware.com/nexus-sdk/nexus/nexus"
 )
 
 var c = GrpcClients{

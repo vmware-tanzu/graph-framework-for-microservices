@@ -9,11 +9,10 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/rest"
 
-	qm "gitlab.eng.vmware.com/nsx-allspark_users/go-protos/pkg/query-manager"
+	qm "golang-appnet.eng.vmware.com/nexus-sdk/nexus/generated/query-manager"
 	libgrpc "gitlab.eng.vmware.com/nsx-allspark_users/lib-go/grpc"
 	nexus_client "nexustempmodule/nexus-client"
 	"nexustempmodule/nexus-gql/graph/model"
-
 )
 
 var c = GrpcClients{
