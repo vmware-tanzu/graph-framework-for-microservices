@@ -8,6 +8,10 @@ IMAGE_NAME ?= "nexus-runtime-chart"
 submodule:
 	git submodule update --init --remote
 
+generate:
+	protoc --go_out=generated --go-grpc_out=generated proto/**/*
+	mockgen -source=generated/graphql/query_grpc.pb.go > generated/graphql/mock/mock.go
+
 build: submodule
 	if [ -z $(VERSION) ]; then \
 		echo "Please provide VERSION=<>" ; \
