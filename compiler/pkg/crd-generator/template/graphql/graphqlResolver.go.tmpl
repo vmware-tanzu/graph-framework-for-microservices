@@ -44,7 +44,7 @@ func getK8sAPIEndpointConfig() *rest.Config {
 		    return nil
 	    }
 	}
-    config.RateLimiter = flowcontrol.NewTokenBucketRateLimiter(200, 300)
+	config.RateLimiter = flowcontrol.NewTokenBucketRateLimiter(200, 300)
 	return config
 }
 {{- range $key, $node := .Nodes }}
