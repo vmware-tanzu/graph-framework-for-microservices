@@ -25,7 +25,7 @@ require (
 	github.com/envoyproxy/go-control-plane v0.10.2-0.20220617004635-b54d66c55170
 	github.com/ghodss/yaml v1.0.0
 	github.com/golang/protobuf v1.5.2
-	gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/common-library.git v0.0.0-20220909083510-01d43651301d
+	github.com/vmware-tanzu/graph-framework-for-microservices/common-library v0.0.0-20221020140923-7deb4d75cfcf
 	golang-appnet.eng.vmware.com/nexus-sdk/api v0.0.14
 	golang.org/x/net v0.0.0-20220127200216-cd36cc0744dd
 	google.golang.org/grpc v1.45.0

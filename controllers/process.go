@@ -7,7 +7,7 @@ import (
 	"net/http"
 
 	"api-gw/pkg/model"
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/common-library.git/pkg/nexus"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/common-library/pkg/nexus"
 )
 
 func (r *CustomResourceDefinitionReconciler) ProcessAnnotation(crdType string,
