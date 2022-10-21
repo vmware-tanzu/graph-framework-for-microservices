@@ -3,7 +3,7 @@ package server
 import (
 	"context"
 	"fmt"
-	"golang-appnet.eng.vmware.com/nexus-sdk/nexus/generated/graphql"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/nexus/generated/graphql"
 	"google.golang.org/grpc"
 	"log"
 	"net"

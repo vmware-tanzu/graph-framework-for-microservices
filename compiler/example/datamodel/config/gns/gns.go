@@ -5,9 +5,9 @@ import (
 
 	cartv1 "github.com/vmware-tanzu/cartographer/pkg/apis/v1alpha1"
 
-	service_group "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/datamodel/config/gns/service-group"
-	policypkg "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/datamodel/config/policy"
-	"golang-appnet.eng.vmware.com/nexus-sdk/nexus/nexus"
+	service_group "github.com/vmware-tanzu/graph-framework-for-microservices/compiler/example/datamodel/config/gns/service-group"
+	policypkg "github.com/vmware-tanzu/graph-framework-for-microservices/compiler/example/datamodel/config/policy"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/nexus/nexus"
 )
 
 var FooCustomMethodsResponses = nexus.HTTPMethodsResponses{

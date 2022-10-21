@@ -1,8 +1,8 @@
 package root
 
 import (
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/datamodel/config"
-	"golang-appnet.eng.vmware.com/nexus-sdk/nexus/nexus"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/compiler/example/datamodel/config"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/nexus/nexus"
 )
 
 type Root struct {

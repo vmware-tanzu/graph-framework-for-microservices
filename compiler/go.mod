@@ -1,4 +1,4 @@
-module gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git
+module github.com/vmware-tanzu/graph-framework-for-microservices/compiler
 
 go 1.17
 
@@ -9,9 +9,9 @@ require (
 	github.com/onsi/ginkgo v1.16.5
 	github.com/onsi/gomega v1.19.0
 	github.com/sirupsen/logrus v1.8.1
-	gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/common-library.git v0.0.0-20220909083510-01d43651301d
-	gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git v0.0.0-20220603123335-7416bd4754d3
-	golang-appnet.eng.vmware.com/nexus-sdk/nexus v0.2.19-0.20221018100619-2c6b79fa32f2
+	github.com/vmware-tanzu/graph-framework-for-microservices/common-library v0.0.0-20220909083510-01d43651301d
+	github.com/vmware-tanzu/graph-framework-for-microservices/kube-openapi v0.0.0-20220603123335-7416bd4754d3
+	github.com/vmware-tanzu/graph-framework-for-microservices/nexus v0.2.19-0.20221018100619-2c6b79fa32f2
 	golang.org/x/mod v0.6.0-dev.0.20220106191415-9b9b3d81d5e3
 	golang.org/x/text v0.3.7
 	golang.org/x/tools v0.1.10

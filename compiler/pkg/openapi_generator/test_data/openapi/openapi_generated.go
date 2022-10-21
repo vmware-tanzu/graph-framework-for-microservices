@@ -10,16 +10,16 @@
 package openapi
 
 import (
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git/pkg/common"
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git/pkg/validation/spec"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/kube-openapi/pkg/common"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/kube-openapi/pkg/validation/spec"
 )
 
 func GetOpenAPIDefinitions(ref common.ReferenceCallback) map[string]common.OpenAPIDefinition {
 	return map[string]common.OpenAPIDefinition{
-		"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/pkg/openapi_generator/test_data/proto.Bar":               schema_pkg_openapi_generator_test_data_proto_Bar(ref),
-		"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/pkg/openapi_generator/test_data/proto.Foo":               schema_pkg_openapi_generator_test_data_proto_Foo(ref),
-		"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/pkg/openapi_generator/test_data/proto.Foo_NestedMessage": schema_pkg_openapi_generator_test_data_proto_Foo_NestedMessage(ref),
-		"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/pkg/openapi_generator/test_data/test.it/v1.FooWrapper":   schema_openapi_generator_test_data_testit_v1_FooWrapper(ref),
+		"github.com/vmware-tanzu/graph-framework-for-microservices/compiler/pkg/openapi_generator/test_data/proto.Bar":               schema_pkg_openapi_generator_test_data_proto_Bar(ref),
+		"github.com/vmware-tanzu/graph-framework-for-microservices/compiler/pkg/openapi_generator/test_data/proto.Foo":               schema_pkg_openapi_generator_test_data_proto_Foo(ref),
+		"github.com/vmware-tanzu/graph-framework-for-microservices/compiler/pkg/openapi_generator/test_data/proto.Foo_NestedMessage": schema_pkg_openapi_generator_test_data_proto_Foo_NestedMessage(ref),
+		"github.com/vmware-tanzu/graph-framework-for-microservices/compiler/pkg/openapi_generator/test_data/test.it/v1.FooWrapper":   schema_openapi_generator_test_data_testit_v1_FooWrapper(ref),
 	}
 }
 
@@ -39,7 +39,7 @@ func schema_pkg_openapi_generator_test_data_proto_Bar(ref common.ReferenceCallba
 					"OneofValue": {
 						SchemaProps: spec.SchemaProps{
 							Description: "Types that are valid to be assigned to OneofValue:\n\t*Bar_OneofValueString\n\t*Bar_OneofValueInt",
-							Ref:         ref("gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/pkg/openapi_generator/test_data/proto.isBar_OneofValue"),
+							Ref:         ref("github.com/vmware-tanzu/graph-framework-for-microservices/compiler/pkg/openapi_generator/test_data/proto.isBar_OneofValue"),
 						},
 					},
 				},
@@ -47,7 +47,7 @@ func schema_pkg_openapi_generator_test_data_proto_Bar(ref common.ReferenceCallba
 			},
 		},
 		Dependencies: []string{
-			"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/pkg/openapi_generator/test_data/proto.isBar_OneofValue"},
+			"github.com/vmware-tanzu/graph-framework-for-microservices/compiler/pkg/openapi_generator/test_data/proto.isBar_OneofValue"},
 	}
 }
 
@@ -163,13 +163,13 @@ func schema_pkg_openapi_generator_test_data_proto_Foo(ref common.ReferenceCallba
 					},
 					"nested_message": {
 						SchemaProps: spec.SchemaProps{
-							Ref: ref("gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/pkg/openapi_generator/test_data/proto.Foo_NestedMessage"),
+							Ref: ref("github.com/vmware-tanzu/graph-framework-for-microservices/compiler/pkg/openapi_generator/test_data/proto.Foo_NestedMessage"),
 						},
 					},
 					"OneofValue": {
 						SchemaProps: spec.SchemaProps{
 							Description: "Types that are valid to be assigned to OneofValue:\n\t*Foo_OneofValueString\n\t*Foo_OneofValueInt",
-							Ref:         ref("gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/pkg/openapi_generator/test_data/proto.isFoo_OneofValue"),
+							Ref:         ref("github.com/vmware-tanzu/graph-framework-for-microservices/compiler/pkg/openapi_generator/test_data/proto.isFoo_OneofValue"),
 						},
 					},
 					"map_value": {
@@ -203,7 +203,7 @@ func schema_pkg_openapi_generator_test_data_proto_Foo(ref common.ReferenceCallba
 					},
 					"bar_value": {
 						SchemaProps: spec.SchemaProps{
-							Ref: ref("gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/pkg/openapi_generator/test_data/proto.Bar"),
+							Ref: ref("github.com/vmware-tanzu/graph-framework-for-microservices/compiler/pkg/openapi_generator/test_data/proto.Bar"),
 						},
 					},
 				},
@@ -211,7 +211,7 @@ func schema_pkg_openapi_generator_test_data_proto_Foo(ref common.ReferenceCallba
 			},
 		},
 		Dependencies: []string{
-			"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/pkg/openapi_generator/test_data/proto.Bar", "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/pkg/openapi_generator/test_data/proto.Foo_NestedMessage", "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/pkg/openapi_generator/test_data/proto.isFoo_OneofValue"},
+			"github.com/vmware-tanzu/graph-framework-for-microservices/compiler/pkg/openapi_generator/test_data/proto.Bar", "github.com/vmware-tanzu/graph-framework-for-microservices/compiler/pkg/openapi_generator/test_data/proto.Foo_NestedMessage", "github.com/vmware-tanzu/graph-framework-for-microservices/compiler/pkg/openapi_generator/test_data/proto.isFoo_OneofValue"},
 	}
 }
 
@@ -242,7 +242,7 @@ func schema_openapi_generator_test_data_testit_v1_FooWrapper(ref common.Referenc
 					"foo": {
 						SchemaProps: spec.SchemaProps{
 							Default: map[string]interface{}{},
-							Ref:     ref("gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/pkg/openapi_generator/test_data/proto.Foo"),
+							Ref:     ref("github.com/vmware-tanzu/graph-framework-for-microservices/compiler/pkg/openapi_generator/test_data/proto.Foo"),
 						},
 					},
 				},
@@ -250,6 +250,6 @@ func schema_openapi_generator_test_data_testit_v1_FooWrapper(ref common.Referenc
 			},
 		},
 		Dependencies: []string{
-			"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/pkg/openapi_generator/test_data/proto.Foo"},
+			"github.com/vmware-tanzu/graph-framework-for-microservices/compiler/pkg/openapi_generator/test_data/proto.Foo"},
 	}
 }

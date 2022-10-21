@@ -11,9 +11,9 @@ import (
 	"sync"
 
 	"github.com/golang/protobuf/proto"
-	"golang-appnet.eng.vmware.com/nexus-sdk/nexus/generated/graphql"
-	qm "golang-appnet.eng.vmware.com/nexus-sdk/nexus/generated/query-manager"
-	"golang-appnet.eng.vmware.com/nexus-sdk/nexus/nexus"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/nexus/generated/graphql"
+	qm "github.com/vmware-tanzu/graph-framework-for-microservices/nexus/generated/query-manager"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/nexus/nexus"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 

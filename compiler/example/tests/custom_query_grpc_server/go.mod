@@ -1,8 +1,8 @@
-module gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/tests/custom_query_grpc_server
+module github.com/vmware-tanzu/graph-framework-for-microservices/compiler/example/tests/custom_query_grpc_server
 
 go 1.19
 
-require golang-appnet.eng.vmware.com/nexus-sdk/nexus v0.2.19-0.20221003113352-69c4292453f8
+require github.com/vmware-tanzu/graph-framework-for-microservices/nexus v0.2.19-0.20221003113352-69c4292453f8
 
 require (
 	github.com/golang/protobuf v1.5.0 // indirect

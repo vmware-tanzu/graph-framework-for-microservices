@@ -19,8 +19,8 @@ limitations under the License.
 package gns
 
 import (
-	v1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/crd_generated/client/informers/externalversions/gns.tsm.tanzu.vmware.com/v1"
-	internalinterfaces "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/crd_generated/client/informers/externalversions/internalinterfaces"
+	v1 "github.com/vmware-tanzu/graph-framework-for-microservices/compiler/example/output/crd_generated/client/informers/externalversions/gns.tsm.tanzu.vmware.com/v1"
+	internalinterfaces "github.com/vmware-tanzu/graph-framework-for-microservices/compiler/example/output/crd_generated/client/informers/externalversions/internalinterfaces"
 )
 
 // Interface provides access to each of this group's versions.

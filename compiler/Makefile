@@ -74,7 +74,7 @@ tools:
 	go install github.com/onsi/gomega/...@v1.18.0
 	go install golang.org/x/tools/cmd/goimports@latest
 	go install github.com/mikefarah/yq/v4@latest
-	go install gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git/cmd/nexus-openapi-gen@${NEXUS_KUBEOPENAPI_VERSION}
+	go install github.com/vmware-tanzu/graph-framework-for-microservices/kube-openapi/cmd/nexus-openapi-gen@${NEXUS_KUBEOPENAPI_VERSION}
 
 .PHONY: build_openapigen_in_container
 build_openapigen_in_container:
@@ -82,7 +82,7 @@ build_openapigen_in_container:
 
 .PHONY: build_openapigen
 build_openapigen:
-	GOBIN=${PKG_NAME}/cmd go install gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git/cmd/nexus-openapi-gen@${NEXUS_KUBEOPENAPI_VERSION}
+	GOBIN=${PKG_NAME}/cmd go install github.com/vmware-tanzu/graph-framework-for-microservices/kube-openapi/cmd/nexus-openapi-gen@${NEXUS_KUBEOPENAPI_VERSION}
 
 build_gqlgen_in_container:
 	$(call run_in_container,make build_gqlgen)
@@ -163,12 +163,12 @@ generate_code:
 
 .PHONY: test_generate_code_in_container
 test_generate_code_in_container: ${BUILDER_NAME}\:${BUILDER_TAG}.image.exists init_submodules
-	$(call run_in_container, go install gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git/cmd/nexus-openapi-gen@${NEXUS_KUBEOPENAPI_VERSION} && \
+	$(call run_in_container, go install github.com/vmware-tanzu/graph-framework-for-microservices/kube-openapi/cmd/nexus-openapi-gen@${NEXUS_KUBEOPENAPI_VERSION} && \
 	go install gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git@${NEXUS_GRAPHQLGEN_VERSION} && \
 	mv /go/bin/gqlgen.git /go/bin/gqlgen && \
 	make generate_code DATAMODEL_PATH=example/datamodel \
 	CONFIG_FILE=example/nexus-sdk.yaml \
-	CRD_MODULE_PATH="gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/crd_generated/" \
+	CRD_MODULE_PATH="github.com/vmware-tanzu/graph-framework-for-microservices/compiler/example/output/crd_generated/" \
 	LOG_LEVEL=trace \
 	GENERATED_OUTPUT_DIRECTORY=example/output/crd_generated && \
 	cd example/output/crd_generated && go mod tidy && go vet -structtag=FALSE ./... && golangci-lint run ./...)
@@ -181,7 +181,7 @@ test_generate_code_in_container: ${BUILDER_NAME}\:${BUILDER_TAG}.image.exists in
 
 .PHONY: generate_example
 generate_example:
-	$(MAKE) generate_code DATAMODEL_PATH=example/datamodel CONFIG_FILE=example/nexus-sdk.yaml CRD_MODULE_PATH="gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/crd_generated/" GENERATED_OUTPUT_DIRECTORY=example/output/crd_generated
+	$(MAKE) generate_code DATAMODEL_PATH=example/datamodel CONFIG_FILE=example/nexus-sdk.yaml CRD_MODULE_PATH="github.com/vmware-tanzu/graph-framework-for-microservices/compiler/example/output/crd_generated/" GENERATED_OUTPUT_DIRECTORY=example/output/crd_generated
 
 .PHONY: show-image-name
 show-image-name:

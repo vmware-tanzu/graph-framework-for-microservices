@@ -466,10 +466,10 @@ github.com/yuin/goldmark v1.1.32/go.mod h1:3hX8gzYuyVAZsxl0MRgGTJEmQBFcNTphYh9de
 github.com/yuin/goldmark v1.2.1/go.mod h1:3hX8gzYuyVAZsxl0MRgGTJEmQBFcNTphYh9decYSb74=
 github.com/yuin/goldmark v1.3.5/go.mod h1:mwnBkeHKe2W/ZEtQ+71ViKU8L12m81fl3OWwC1Zlc8k=
 github.com/yuin/goldmark v1.4.1/go.mod h1:mwnBkeHKe2W/ZEtQ+71ViKU8L12m81fl3OWwC1Zlc8k=
-gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/common-library.git v0.0.0-20220909083510-01d43651301d h1:HmE1RSkQ3mm+KRcCKUy81r+3pmOUTPYTYAqx8/MvseY=
-gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/common-library.git v0.0.0-20220909083510-01d43651301d/go.mod h1:qsp3ldq98WGJ5fYzYwMATr6utcuc+au10OgPUzJ+F6g=
-gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git v0.0.0-20220603123335-7416bd4754d3 h1:CXbFpOvn19PBOnM0Qacpj2VJEDZoWHNYzKD3mu3QQOw=
-gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git v0.0.0-20220603123335-7416bd4754d3/go.mod h1:FxYhrhp9MC4OY49R6Y9jEWE1pDbBMAb4n8b49O/TU/Q=
+github.com/vmware-tanzu/graph-framework-for-microservices/common-library v0.0.0-20220909083510-01d43651301d h1:HmE1RSkQ3mm+KRcCKUy81r+3pmOUTPYTYAqx8/MvseY=
+github.com/vmware-tanzu/graph-framework-for-microservices/common-library v0.0.0-20220909083510-01d43651301d/go.mod h1:qsp3ldq98WGJ5fYzYwMATr6utcuc+au10OgPUzJ+F6g=
+github.com/vmware-tanzu/graph-framework-for-microservices/kube-openapi v0.0.0-20220603123335-7416bd4754d3 h1:CXbFpOvn19PBOnM0Qacpj2VJEDZoWHNYzKD3mu3QQOw=
+github.com/vmware-tanzu/graph-framework-for-microservices/kube-openapi v0.0.0-20220603123335-7416bd4754d3/go.mod h1:FxYhrhp9MC4OY49R6Y9jEWE1pDbBMAb4n8b49O/TU/Q=
 go.etcd.io/bbolt v1.3.2/go.mod h1:IbVyRI1SCnLcuJnV2u8VeU0CEYM7e686BmAb1XKL+uU=
 go.etcd.io/bbolt v1.3.6/go.mod h1:qXsaaIqmgQH0T+OPdb99Bf+PKfBBQVAdyD6TY9G8XM4=
 go.etcd.io/etcd/api/v3 v3.5.0/go.mod h1:cbVKeC6lCfl7j/8jBhAK6aIYO9XOjdptoxU/nLQcPvs=
@@ -509,8 +509,8 @@ go.uber.org/multierr v1.6.0/go.mod h1:cdWPpRnG4AhwMwsgIHip0KRBQjJy5kYEpYjJxpXp9i
 go.uber.org/zap v1.10.0/go.mod h1:vwi/ZaCAaUcBkycHslxD9B2zi4UTXhF60s6SWpuDF0Q=
 go.uber.org/zap v1.17.0/go.mod h1:MXVU+bhUf/A7Xi2HNOnopQOrmycQ5Ih87HtOu4q5SSo=
 go.uber.org/zap v1.19.0/go.mod h1:xg/QME4nWcxGxrpdeYfq7UvYrLh66cuVKdrbD1XF/NI=
-golang-appnet.eng.vmware.com/nexus-sdk/nexus v0.2.19-0.20221018100619-2c6b79fa32f2 h1:mR+YUMKT6cpypB6M5nZFIFJdPuB1wCs/37cwqltSAzA=
-golang-appnet.eng.vmware.com/nexus-sdk/nexus v0.2.19-0.20221018100619-2c6b79fa32f2/go.mod h1:4aQW8+vwLoP/wKbnbrINNUzH8SnA0E9zzLVWauvPJNw=
+github.com/vmware-tanzu/graph-framework-for-microservices/nexus v0.2.19-0.20221018100619-2c6b79fa32f2 h1:mR+YUMKT6cpypB6M5nZFIFJdPuB1wCs/37cwqltSAzA=
+github.com/vmware-tanzu/graph-framework-for-microservices/nexus v0.2.19-0.20221018100619-2c6b79fa32f2/go.mod h1:4aQW8+vwLoP/wKbnbrINNUzH8SnA0E9zzLVWauvPJNw=
 golang.org/x/crypto v0.0.0-20180904163835-0709b304e793/go.mod h1:6SG95UA2DQfeDnfUPMdvaQW0Q7yPrPDi9nlGo2tz2b4=
 golang.org/x/crypto v0.0.0-20181029021203-45a5f77698d3/go.mod h1:6SG95UA2DQfeDnfUPMdvaQW0Q7yPrPDi9nlGo2tz2b4=
 golang.org/x/crypto v0.0.0-20190308221718-c2843e01d9a2/go.mod h1:djNgcEr1/C05ACkg1iLfiJU5Ep61QUkGW8qpdssI0+w=

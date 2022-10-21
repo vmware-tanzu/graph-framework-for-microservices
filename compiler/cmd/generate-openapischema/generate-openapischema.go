@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"strings"
 
-	generator "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/pkg/openapi_generator"
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/pkg/openapi_generator/openapi"
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git/pkg/validation/spec"
+	generator "github.com/vmware-tanzu/graph-framework-for-microservices/compiler/pkg/openapi_generator"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/compiler/pkg/openapi_generator/openapi"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/kube-openapi/pkg/validation/spec"
 )
 
 func main() {
@@ -37,7 +37,7 @@ func main() {
 		for pkg := range g.MissingDefinitions() {
 			fmt.Printf("\n***\nMissing schema for %q\n***\n", pkg)
 		}
-		readmePath := "https://gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/blob/master/" +
+		readmePath := "https://github.com/vmware-tanzu/graph-framework-for-microservices/compiler/blob/master/" +
 			"cmd/generate-openapischema/README.md" +
 			"#possible-missing-schema-error-messages-and-how-to-solve-them"
 		fmt.Printf("\"openapi-gen\" did not generate all the needed schemas.\n"+

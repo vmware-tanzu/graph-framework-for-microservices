@@ -3,8 +3,8 @@ package openapi_generator
 import (
 	"fmt"
 
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git/pkg/common"
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kube-openapi.git/pkg/validation/spec"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/kube-openapi/pkg/common"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/kube-openapi/pkg/validation/spec"
 )
 
 const (
@@ -342,7 +342,7 @@ func k8sAPIMachineryTypeName(name string) string {
 }
 
 func kavachTypeName(name string) string { //nolint:deadcode,unused
-	return fmt.Sprintf("gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/pkg/%v", name)
+	return fmt.Sprintf("github.com/vmware-tanzu/graph-framework-for-microservices/compiler/pkg/%v", name)
 }
 
 func envoyTypeName(name string) string {

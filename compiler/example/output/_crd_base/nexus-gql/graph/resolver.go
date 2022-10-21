@@ -9,13 +9,13 @@ import (
 	"fmt"
 	"sync"
 
-	"golang-appnet.eng.vmware.com/nexus-sdk/nexus/generated/graphql"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/nexus/generated/graphql"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	"nexustempmodule/nexus-gql/graph/model"
 )
 
-type Resolver struct {}
+type Resolver struct{}
 
 type CustomQueryHandler struct {
 	mtx     sync.Mutex

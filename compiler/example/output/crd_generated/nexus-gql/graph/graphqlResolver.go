@@ -11,12 +11,12 @@ import (
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 
-	nexus_client "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/crd_generated/nexus-client"
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/crd_generated/nexus-gql/graph/model"
+	nexus_client "github.com/vmware-tanzu/graph-framework-for-microservices/compiler/example/output/crd_generated/nexus-client"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/compiler/example/output/crd_generated/nexus-gql/graph/model"
 
-	"golang-appnet.eng.vmware.com/nexus-sdk/nexus/generated/graphql"
-	qm "golang-appnet.eng.vmware.com/nexus-sdk/nexus/generated/query-manager"
-	"golang-appnet.eng.vmware.com/nexus-sdk/nexus/nexus"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/nexus/generated/graphql"
+	qm "github.com/vmware-tanzu/graph-framework-for-microservices/nexus/generated/query-manager"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/nexus/nexus"
 )
 
 var c = GrpcClients{
