@@ -1,4 +1,4 @@
-module gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler/example/test-utils/invalid-type-name-datamodel
+module github.com/vmware-tanzu/graph-framework-for-microservices/compiler/example/test-utils/invalid-type-name-datamodel
 
 go 1.17
 
