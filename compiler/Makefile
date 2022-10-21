@@ -152,9 +152,7 @@ generate_code:
 	git checkout -- pkg/openapi_generator/openapi/openapi_generated.go
 	@echo "==> Nexus Compiler: Generating GRAPHQL pkg <=="
 	cd _generated && goimports -w .
-	cd _generated/nexus-gql && go mod edit -replace github.com/vmware-tanzu/graph-framework-for-microservices/gqlgen=../../gqlgen && \
-	  go mod edit -replace github.com/vmware-tanzu/graph-framework-for-microservices/kube-openapi=../../kube-openapi && \
-	  go mod edit -replace github.com/vmware-tanzu/graph-framework-for-microservices/nexus=../../nexus && \
+	cd _generated/nexus-gql && \
 	  go get github.com/cespare/xxhash/v2@v2.1.2 && \
 	  go mod tidy && \
 	  gqlgen generate && \
