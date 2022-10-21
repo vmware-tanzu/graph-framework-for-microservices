@@ -2558,6 +2558,42 @@ func (group *GnsTsmV1) UpdateGnsByName(ctx context.Context,
 	}
 	patch = append(patch, patchOpDifferentSpec)
 
+	patchValueServiceSegmentRef :=
+		objToUpdate.Spec.ServiceSegmentRef
+	patchOpServiceSegmentRef := PatchOp{
+		Op:    "replace",
+		Path:  "/spec/serviceSegmentRef",
+		Value: patchValueServiceSegmentRef,
+	}
+	patch = append(patch, patchOpServiceSegmentRef)
+
+	patchValueServiceSegmentRefPointer :=
+		objToUpdate.Spec.ServiceSegmentRefPointer
+	patchOpServiceSegmentRefPointer := PatchOp{
+		Op:    "replace",
+		Path:  "/spec/serviceSegmentRefPointer",
+		Value: patchValueServiceSegmentRefPointer,
+	}
+	patch = append(patch, patchOpServiceSegmentRefPointer)
+
+	patchValueServiceSegmentRefs :=
+		objToUpdate.Spec.ServiceSegmentRefs
+	patchOpServiceSegmentRefs := PatchOp{
+		Op:    "replace",
+		Path:  "/spec/serviceSegmentRefs",
+		Value: patchValueServiceSegmentRefs,
+	}
+	patch = append(patch, patchOpServiceSegmentRefs)
+
+	patchValueServiceSegmentRefMap :=
+		objToUpdate.Spec.ServiceSegmentRefMap
+	patchOpServiceSegmentRefMap := PatchOp{
+		Op:    "replace",
+		Path:  "/spec/serviceSegmentRefMap",
+		Value: patchValueServiceSegmentRefMap,
+	}
+	patch = append(patch, patchOpServiceSegmentRefMap)
+
 	marshaled, err := patch.Marshal()
 	if err != nil {
 		return nil, err

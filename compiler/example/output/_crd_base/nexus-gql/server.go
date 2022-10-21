@@ -3,13 +3,11 @@ package main
 import (
 	"net/http"
 
+	"github.com/vmware-tanzu/graph-framework-for-microservices/gqlgen/graphql/handler"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/gqlgen/graphql/playground"
 	"nexustempmodule/nexus-gql/graph"
 	"nexustempmodule/nexus-gql/graph/generated"
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/graphql"
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/graphql/handler"
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/graphql/playground"
 )
-
 
 func StartHttpServer() {
 	ES := generated.NewExecutableSchema(generated.Config{Resolvers: &graph.Resolver{}})

@@ -176,6 +176,16 @@ type Gns struct {
 
 	WorkloadSpec  cartv1.WorkloadSpec  //external-field
 	DifferentSpec *cartv1.WorkloadSpec // external-field - pointer
+
+	ServiceSegmentRef        ServiceSegmentRef            `json:"serviceSegmentRef,omitempty"`
+	ServiceSegmentRefPointer *ServiceSegmentRef           `json:"serviceSegmentRefPointer,omitempty"`
+	ServiceSegmentRefs       []ServiceSegmentRef          `json:"serviceSegmentRefs,omitempty"`
+	ServiceSegmentRefMap     map[string]ServiceSegmentRef `json:"serviceSegmentRefMap,omitempty"`
+}
+
+type ServiceSegmentRef struct {
+	Field1 string
+	Field2 string
 }
 
 // This is Description struct.
