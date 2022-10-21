@@ -671,23 +671,27 @@ func (group *ConfigTsmV1) UpdateConfigByName(ctx context.Context,
 	}
 	patch = append(patch, patchOpMyStr0)
 
-	patchValueMyStr1 :=
-		objToUpdate.Spec.MyStr1
-	patchOpMyStr1 := PatchOp{
-		Op:    "replace",
-		Path:  "/spec/myStr1",
-		Value: patchValueMyStr1,
+	if objToUpdate.Spec.MyStr1 != nil {
+		patchValueMyStr1 :=
+			objToUpdate.Spec.MyStr1
+		patchOpMyStr1 := PatchOp{
+			Op:    "replace",
+			Path:  "/spec/myStr1",
+			Value: patchValueMyStr1,
+		}
+		patch = append(patch, patchOpMyStr1)
 	}
-	patch = append(patch, patchOpMyStr1)
 
-	patchValueMyStr2 :=
-		objToUpdate.Spec.MyStr2
-	patchOpMyStr2 := PatchOp{
-		Op:    "replace",
-		Path:  "/spec/myStr2",
-		Value: patchValueMyStr2,
+	if objToUpdate.Spec.MyStr2 != nil {
+		patchValueMyStr2 :=
+			objToUpdate.Spec.MyStr2
+		patchOpMyStr2 := PatchOp{
+			Op:    "replace",
+			Path:  "/spec/myStr2",
+			Value: patchValueMyStr2,
+		}
+		patch = append(patch, patchOpMyStr2)
 	}
-	patch = append(patch, patchOpMyStr2)
 
 	patchValueXYZPort :=
 		objToUpdate.Spec.XYZPort
@@ -698,23 +702,27 @@ func (group *ConfigTsmV1) UpdateConfigByName(ctx context.Context,
 	}
 	patch = append(patch, patchOpXYZPort)
 
-	patchValueABCHost :=
-		objToUpdate.Spec.ABCHost
-	patchOpABCHost := PatchOp{
-		Op:    "replace",
-		Path:  "/spec/aBCHost",
-		Value: patchValueABCHost,
+	if objToUpdate.Spec.ABCHost != nil {
+		patchValueABCHost :=
+			objToUpdate.Spec.ABCHost
+		patchOpABCHost := PatchOp{
+			Op:    "replace",
+			Path:  "/spec/aBCHost",
+			Value: patchValueABCHost,
+		}
+		patch = append(patch, patchOpABCHost)
 	}
-	patch = append(patch, patchOpABCHost)
 
-	patchValueClusterNamespaces :=
-		objToUpdate.Spec.ClusterNamespaces
-	patchOpClusterNamespaces := PatchOp{
-		Op:    "replace",
-		Path:  "/spec/clusterNamespaces",
-		Value: patchValueClusterNamespaces,
+	if objToUpdate.Spec.ClusterNamespaces != nil {
+		patchValueClusterNamespaces :=
+			objToUpdate.Spec.ClusterNamespaces
+		patchOpClusterNamespaces := PatchOp{
+			Op:    "replace",
+			Path:  "/spec/clusterNamespaces",
+			Value: patchValueClusterNamespaces,
+		}
+		patch = append(patch, patchOpClusterNamespaces)
 	}
-	patch = append(patch, patchOpClusterNamespaces)
 
 	patchValueTestValMarkers :=
 		objToUpdate.Spec.TestValMarkers
@@ -1830,14 +1838,16 @@ func (group *ConfigTsmV1) UpdateDomainByName(ctx context.Context,
 	}
 	patch = append(patch, patchOpPointInt)
 
-	patchValuePointMap :=
-		objToUpdate.Spec.PointMap
-	patchOpPointMap := PatchOp{
-		Op:    "replace",
-		Path:  "/spec/pointMap",
-		Value: patchValuePointMap,
+	if objToUpdate.Spec.PointMap != nil {
+		patchValuePointMap :=
+			objToUpdate.Spec.PointMap
+		patchOpPointMap := PatchOp{
+			Op:    "replace",
+			Path:  "/spec/pointMap",
+			Value: patchValuePointMap,
+		}
+		patch = append(patch, patchOpPointMap)
 	}
-	patch = append(patch, patchOpPointMap)
 
 	patchValuePointSlice :=
 		objToUpdate.Spec.PointSlice
@@ -1848,32 +1858,38 @@ func (group *ConfigTsmV1) UpdateDomainByName(ctx context.Context,
 	}
 	patch = append(patch, patchOpPointSlice)
 
-	patchValueSliceOfPoints :=
-		objToUpdate.Spec.SliceOfPoints
-	patchOpSliceOfPoints := PatchOp{
-		Op:    "replace",
-		Path:  "/spec/sliceOfPoints",
-		Value: patchValueSliceOfPoints,
+	if objToUpdate.Spec.SliceOfPoints != nil {
+		patchValueSliceOfPoints :=
+			objToUpdate.Spec.SliceOfPoints
+		patchOpSliceOfPoints := PatchOp{
+			Op:    "replace",
+			Path:  "/spec/sliceOfPoints",
+			Value: patchValueSliceOfPoints,
+		}
+		patch = append(patch, patchOpSliceOfPoints)
 	}
-	patch = append(patch, patchOpSliceOfPoints)
 
-	patchValueSliceOfArrPoints :=
-		objToUpdate.Spec.SliceOfArrPoints
-	patchOpSliceOfArrPoints := PatchOp{
-		Op:    "replace",
-		Path:  "/spec/sliceOfArrPoints",
-		Value: patchValueSliceOfArrPoints,
+	if objToUpdate.Spec.SliceOfArrPoints != nil {
+		patchValueSliceOfArrPoints :=
+			objToUpdate.Spec.SliceOfArrPoints
+		patchOpSliceOfArrPoints := PatchOp{
+			Op:    "replace",
+			Path:  "/spec/sliceOfArrPoints",
+			Value: patchValueSliceOfArrPoints,
+		}
+		patch = append(patch, patchOpSliceOfArrPoints)
 	}
-	patch = append(patch, patchOpSliceOfArrPoints)
 
-	patchValueMapOfArrsPoints :=
-		objToUpdate.Spec.MapOfArrsPoints
-	patchOpMapOfArrsPoints := PatchOp{
-		Op:    "replace",
-		Path:  "/spec/mapOfArrsPoints",
-		Value: patchValueMapOfArrsPoints,
+	if objToUpdate.Spec.MapOfArrsPoints != nil {
+		patchValueMapOfArrsPoints :=
+			objToUpdate.Spec.MapOfArrsPoints
+		patchOpMapOfArrsPoints := PatchOp{
+			Op:    "replace",
+			Path:  "/spec/mapOfArrsPoints",
+			Value: patchValueMapOfArrsPoints,
+		}
+		patch = append(patch, patchOpMapOfArrsPoints)
 	}
-	patch = append(patch, patchOpMapOfArrsPoints)
 
 	patchValuePointStruct :=
 		objToUpdate.Spec.PointStruct
@@ -2522,14 +2538,16 @@ func (group *GnsTsmV1) UpdateGnsByName(ctx context.Context,
 	}
 	patch = append(patch, patchOpOtherDescription)
 
-	patchValueMapPointer :=
-		objToUpdate.Spec.MapPointer
-	patchOpMapPointer := PatchOp{
-		Op:    "replace",
-		Path:  "/spec/mapPointer",
-		Value: patchValueMapPointer,
+	if objToUpdate.Spec.MapPointer != nil {
+		patchValueMapPointer :=
+			objToUpdate.Spec.MapPointer
+		patchOpMapPointer := PatchOp{
+			Op:    "replace",
+			Path:  "/spec/mapPointer",
+			Value: patchValueMapPointer,
+		}
+		patch = append(patch, patchOpMapPointer)
 	}
-	patch = append(patch, patchOpMapPointer)
 
 	patchValueSlicePointer :=
 		objToUpdate.Spec.SlicePointer
@@ -2576,23 +2594,27 @@ func (group *GnsTsmV1) UpdateGnsByName(ctx context.Context,
 	}
 	patch = append(patch, patchOpServiceSegmentRefPointer)
 
-	patchValueServiceSegmentRefs :=
-		objToUpdate.Spec.ServiceSegmentRefs
-	patchOpServiceSegmentRefs := PatchOp{
-		Op:    "replace",
-		Path:  "/spec/serviceSegmentRefs",
-		Value: patchValueServiceSegmentRefs,
+	if objToUpdate.Spec.ServiceSegmentRefs != nil {
+		patchValueServiceSegmentRefs :=
+			objToUpdate.Spec.ServiceSegmentRefs
+		patchOpServiceSegmentRefs := PatchOp{
+			Op:    "replace",
+			Path:  "/spec/serviceSegmentRefs",
+			Value: patchValueServiceSegmentRefs,
+		}
+		patch = append(patch, patchOpServiceSegmentRefs)
 	}
-	patch = append(patch, patchOpServiceSegmentRefs)
 
-	patchValueServiceSegmentRefMap :=
-		objToUpdate.Spec.ServiceSegmentRefMap
-	patchOpServiceSegmentRefMap := PatchOp{
-		Op:    "replace",
-		Path:  "/spec/serviceSegmentRefMap",
-		Value: patchValueServiceSegmentRefMap,
+	if objToUpdate.Spec.ServiceSegmentRefMap != nil {
+		patchValueServiceSegmentRefMap :=
+			objToUpdate.Spec.ServiceSegmentRefMap
+		patchOpServiceSegmentRefMap := PatchOp{
+			Op:    "replace",
+			Path:  "/spec/serviceSegmentRefMap",
+			Value: patchValueServiceSegmentRefMap,
+		}
+		patch = append(patch, patchOpServiceSegmentRefMap)
 	}
-	patch = append(patch, patchOpServiceSegmentRefMap)
 
 	marshaled, err := patch.Marshal()
 	if err != nil {
@@ -5252,14 +5274,16 @@ func (group *PolicypkgTsmV1) UpdateACPConfigByName(ctx context.Context,
 	}
 	patch = append(patch, patchOpDescription)
 
-	patchValueTags :=
-		objToUpdate.Spec.Tags
-	patchOpTags := PatchOp{
-		Op:    "replace",
-		Path:  "/spec/tags",
-		Value: patchValueTags,
+	if objToUpdate.Spec.Tags != nil {
+		patchValueTags :=
+			objToUpdate.Spec.Tags
+		patchOpTags := PatchOp{
+			Op:    "replace",
+			Path:  "/spec/tags",
+			Value: patchValueTags,
+		}
+		patch = append(patch, patchOpTags)
 	}
-	patch = append(patch, patchOpTags)
 
 	patchValueProjectId :=
 		objToUpdate.Spec.ProjectId
@@ -5270,14 +5294,16 @@ func (group *PolicypkgTsmV1) UpdateACPConfigByName(ctx context.Context,
 	}
 	patch = append(patch, patchOpProjectId)
 
-	patchValueConditions :=
-		objToUpdate.Spec.Conditions
-	patchOpConditions := PatchOp{
-		Op:    "replace",
-		Path:  "/spec/conditions",
-		Value: patchValueConditions,
+	if objToUpdate.Spec.Conditions != nil {
+		patchValueConditions :=
+			objToUpdate.Spec.Conditions
+		patchOpConditions := PatchOp{
+			Op:    "replace",
+			Path:  "/spec/conditions",
+			Value: patchValueConditions,
+		}
+		patch = append(patch, patchOpConditions)
 	}
-	patch = append(patch, patchOpConditions)
 
 	marshaled, err := patch.Marshal()
 	if err != nil {
