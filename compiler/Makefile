@@ -13,14 +13,12 @@ TAG ?= $(shell git rev-parse --verify --short=8 HEAD)
 BUILDER_NAME ?= ${IMAGE_NAME}-builder
 BUILDER_TAG := $(shell md5sum builder/Dockerfile | awk '{ print $1 }' | head -c 8)
 
-PKG_NAME?=/go/src/github.com/vmware-tanzu/graph-framework-for-microservices/${GO_PROJECT_NAME}
+COMPILER_DIR_NAME?=/go/src/github.com/vmware-tanzu/graph-framework-for-microservices/${GO_PROJECT_NAME}
 
+GOBIN?=${PWD}/cmd
 DATAMODEL_PATH ?= datamodel
 CONFIG_FILE ?= ""
 GENERATED_OUTPUT_DIRECTORY ?= generated
-
-NEXUS_KUBEOPENAPI_VERSION ?= 7416bd4754d3c0dd8b3fa37fff53d36594f11607
-NEXUS_GRAPHQLGEN_VERSION ?= 32f028bce22efeb70b47a640195bd969dbb337f0
 
 ifeq ($(CONTAINER_ID),)
 define run_in_container
@@ -28,16 +26,16 @@ define run_in_container
   --volume $(realpath .)/..:/go/src/github.com/vmware-tanzu/graph-framework-for-microservices/ \
   --volume ~/.ssh:/root/.ssh \
   --network=host \
-  --workdir ${PKG_NAME} \
+  --workdir ${COMPILER_DIR_NAME} \
   "${BUILDER_NAME}:${BUILDER_TAG}" /bin/bash -c "${1}"
 endef
 else
 define run_in_container
  docker run \
  --volumes-from ${CONTAINER_ID} \
- --workdir ${PKG_NAME} \
+ --workdir ${COMPILER_DIR_NAME} \
  --env CICD_TOKEN=${CICD_TOKEN} \
- --env PKG_NAME=${PKG_NAME} \
+ --env COMPILER_DIR_NAME=${COMPILER_DIR_NAME} \
  "${BUILDER_NAME}:${BUILDER_TAG}" /bin/bash -c "${1}"
 endef
 endif
@@ -83,13 +81,15 @@ build_openapigen_in_container:
 
 .PHONY: build_openapigen
 build_openapigen:
-	GOBIN=${PKG_NAME}/cmd go install ../kube-openapi/cmd/nexus-openapi-gen
+	GOBIN=$(GOBIN) go install ../kube-openapi/cmd/nexus-openapi-gen
+	@echo "----export PATH=$$PATH:$(GOBIN) if running locally---"
 
 build_gqlgen_in_container:
 	$(call run_in_container,make build_gqlgen)
 
 build_gqlgen:
-	GOBIN=${PKG_NAME}/cmd go install ../gqlgen
+	GOBIN=$(GOBIN) go install ../gqlgen
+	 @echo "----export PATH=$$PATH:$(GOBIN) if running locally---"
 
 .PHONY: unit-test
 unit-test:
