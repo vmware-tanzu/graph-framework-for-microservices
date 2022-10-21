@@ -360,94 +360,101 @@ var _ = Describe("Nexus clients tests", func() {
 	})
 
 	Context("Linking objects", func() {
-		fakeClient = nexus_client.NewFakeClient()
-		rootDef := &rootv1.Root{
-			ObjectMeta: metav1.ObjectMeta{
-				Name: "default",
-			},
-		}
-		root, err := fakeClient.AddRootRoot(context.TODO(), rootDef)
-		Expect(err).NotTo(HaveOccurred())
-		cfgDef := &configv1.Config{
-			ObjectMeta: metav1.ObjectMeta{
-				Name: "cfg",
-			},
-			Spec: configv1.ConfigSpec{
-				MyStr0: &str,
-			},
-		}
-		cfg, err := root.AddConfig(context.TODO(), cfgDef)
-		fmt.Println(err)
-		Expect(err).NotTo(HaveOccurred())
-		gnsDef := &gnsv1.Gns{
-			ObjectMeta: metav1.ObjectMeta{
-				Name: "gnsName",
-			},
-		}
-		gns, err := cfg.AddGNS(context.TODO(), gnsDef)
-		Expect(err).NotTo(HaveOccurred())
-		dnsDef := &gnsv1.Dns{
-			ObjectMeta: metav1.ObjectMeta{
-				Name: "default",
-			},
-		}
-		dns, err := gns.GetDns(context.TODO())
-		Expect(err).To(HaveOccurred())
-		Expect(dns).To(BeNil())
+		It("should link object", func() {
 
-		dns, err = cfg.AddDNS(context.TODO(), dnsDef)
-		Expect(err).NotTo(HaveOccurred())
+			fakeClient = nexus_client.NewFakeClient()
+			rootDef := &rootv1.Root{
+				ObjectMeta: metav1.ObjectMeta{
+					Name: "default",
+				},
+			}
+			root, err := fakeClient.AddRootRoot(context.TODO(), rootDef)
+			Expect(err).NotTo(HaveOccurred())
+			cfgDef := &configv1.Config{
+				ObjectMeta: metav1.ObjectMeta{
+					Name: "cfg",
+				},
+				Spec: configv1.ConfigSpec{
+					MyStr0: &str,
+				},
+			}
+			cfg, err := root.AddConfig(context.TODO(), cfgDef)
+			Expect(err).NotTo(HaveOccurred())
+			gnsDef := &gnsv1.Gns{
+				ObjectMeta: metav1.ObjectMeta{
+					Name: "gnsName",
+				},
+			}
+			gns, err := cfg.AddGNS(context.TODO(), gnsDef)
+			Expect(err).NotTo(HaveOccurred())
+			dnsDef := &gnsv1.Dns{
+				ObjectMeta: metav1.ObjectMeta{
+					Name: "default",
+				},
+			}
+			dns, err := gns.GetDns(context.TODO())
+			Expect(err).To(HaveOccurred())
+			Expect(dns).To(BeNil())
 
-		err = gns.LinkDns(context.TODO(), dns)
-		Expect(err).NotTo(HaveOccurred())
+			dns, err = cfg.AddDNS(context.TODO(), dnsDef)
+			Expect(err).NotTo(HaveOccurred())
+			dns, err = cfg.GetDNS(context.TODO())
+			Expect(err).NotTo(HaveOccurred())
+			fmt.Println(dns)
 
-		getLinkedDns, err := gns.GetDns(context.TODO())
-		Expect(err).NotTo(HaveOccurred())
-		Expect(getLinkedDns.DisplayName()).To(Equal("default"))
+			err = gns.LinkDns(context.TODO(), dns)
+			Expect(err).NotTo(HaveOccurred())
 
-		err = gns.UnlinkDns(context.TODO())
-		Expect(err).NotTo(HaveOccurred())
+			getLinkedDns, err := gns.GetDns(context.TODO())
+			Expect(err).NotTo(HaveOccurred())
+			Expect(getLinkedDns.DisplayName()).To(Equal("default"))
 
-		getLinkedDns, err = gns.GetDns(context.TODO())
-		Expect(err).To(HaveOccurred())
-		Expect(getLinkedDns).To(BeNil())
+			err = gns.UnlinkDns(context.TODO())
+			Expect(err).NotTo(HaveOccurred())
+
+			getLinkedDns, err = gns.GetDns(context.TODO())
+			Expect(err).To(HaveOccurred())
+			Expect(getLinkedDns).To(BeNil())
+		})
 	})
 
 	Context("Getting parent", func() {
-		fakeClient = nexus_client.NewFakeClient()
-		rootDef := &rootv1.Root{
-			ObjectMeta: metav1.ObjectMeta{
-				Name: "default",
-			},
-		}
-		root, err := fakeClient.AddRootRoot(context.TODO(), rootDef)
-		Expect(err).NotTo(HaveOccurred())
-		cfgDef := &configv1.Config{
-			ObjectMeta: metav1.ObjectMeta{
-				Name: "cfg",
-			},
-			Spec: configv1.ConfigSpec{
-				MyStr0: &str,
-			},
-		}
-		cfg, err := root.AddConfig(context.TODO(), cfgDef)
-		Expect(err).NotTo(HaveOccurred())
-		gnsDef := &gnsv1.Gns{
-			ObjectMeta: metav1.ObjectMeta{
-				Name: "gnsName",
-			},
-		}
-		gns, err := cfg.AddGNS(context.TODO(), gnsDef)
-		Expect(err).NotTo(HaveOccurred())
+		It("should get parent", func() {
+			fakeClient = nexus_client.NewFakeClient()
+			rootDef := &rootv1.Root{
+				ObjectMeta: metav1.ObjectMeta{
+					Name: "default",
+				},
+			}
+			root, err := fakeClient.AddRootRoot(context.TODO(), rootDef)
+			Expect(err).NotTo(HaveOccurred())
+			cfgDef := &configv1.Config{
+				ObjectMeta: metav1.ObjectMeta{
+					Name: "cfg",
+				},
+				Spec: configv1.ConfigSpec{
+					MyStr0: &str,
+				},
+			}
+			cfg, err := root.AddConfig(context.TODO(), cfgDef)
+			Expect(err).NotTo(HaveOccurred())
+			gnsDef := &gnsv1.Gns{
+				ObjectMeta: metav1.ObjectMeta{
+					Name: "gnsName",
+				},
+			}
+			gns, err := cfg.AddGNS(context.TODO(), gnsDef)
+			Expect(err).NotTo(HaveOccurred())
 
-		gnsParent, err := gns.GetParent(context.TODO())
-		Expect(err).NotTo(HaveOccurred())
+			gnsParent, err := gns.GetParent(context.TODO())
+			Expect(err).NotTo(HaveOccurred())
 
-		Expect(gnsParent.DisplayName()).To(Equal("cfg"))
+			Expect(gnsParent.DisplayName()).To(Equal("cfg"))
 
-		configParent, err := gnsParent.GetParent(context.TODO())
-		Expect(err).NotTo(HaveOccurred())
-		Expect(configParent.DisplayName()).To(Equal("default"))
+			configParent, err := gnsParent.GetParent(context.TODO())
+			Expect(err).NotTo(HaveOccurred())
+			Expect(configParent.DisplayName()).To(Equal("default"))
+		})
 	})
 
 	Context("Custom Errors", func() {

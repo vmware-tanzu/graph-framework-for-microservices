@@ -313,19 +313,7 @@ func (group *{{$node.GroupTypeName}}) Update{{$node.BaseNodeName}}ByName(ctx con
 		Path:  "/metadata",
 		Value: objToUpdate.ObjectMeta,
 	})
-	{{ range $key, $field := .Fields }} 
-	{{ if $field.IsAggregateKind }}
-	if objToUpdate.Spec.{{$field.FieldName}} != nil {
-		patchValue{{$field.FieldName}} :=
-		objToUpdate.Spec.{{$field.FieldName}}
-			patchOp{{$field.FieldName}} := PatchOp{
-			Op:    "replace",
-			Path:  "/spec/{{$field.FieldNameTag}}",
-			Value: patchValue{{$field.FieldName}},
-		}
-		patch = append(patch, patchOp{{$field.FieldName}})
-	}
-	{{else}}
+	{{ range $key, $field := .Fields }}
 	patchValue{{$field.FieldName}} :=
 	objToUpdate.Spec.{{$field.FieldName}}
 		patchOp{{$field.FieldName}} := PatchOp{
@@ -334,7 +322,6 @@ func (group *{{$node.GroupTypeName}}) Update{{$node.BaseNodeName}}ByName(ctx con
 		Value: patchValue{{$field.FieldName}},
 	}
 	patch = append(patch, patchOp{{$field.FieldName}})
-	{{ end }}
 	{{ end }}
 	marshaled, err := patch.Marshal()
 	if err != nil {

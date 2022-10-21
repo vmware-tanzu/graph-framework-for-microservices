@@ -5,11 +5,13 @@ import (
 	"go/ast"
 	"go/types"
 	"sort"
+	"unicode"
 
 	log "github.com/sirupsen/logrus"
 
 	"github.com/vmware-tanzu/graph-framework-for-microservices/compiler/pkg/parser"
 	"github.com/vmware-tanzu/graph-framework-for-microservices/compiler/pkg/util"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/nexus/nexus"
 )
 
 type ReturnStatement struct {
@@ -75,6 +77,7 @@ type NodeProperty struct {
 	NonStructFields        []FieldProperty
 	GraphqlSchemaFields    []FieldProperty
 	ResolverFields         map[string][]FieldProperty
+	CustomQueries          []nexus.GraphQLQuery
 }
 
 // populateValuesForEachNode populates each node with required resolver properties
@@ -88,6 +91,7 @@ func populateValuesForEachNode(nodes []*NodeProperty, linkAPI map[string]string,
 		resNodeProp.BaseImportPath = n.BaseImportPath
 		resNodeProp.GraphqlSchemaFields = n.GraphqlSchemaFields
 		resNodeProp.IsSingletonNode = n.IsSingletonNode
+		resNodeProp.CustomQueries = n.CustomQueries
 		resNodeProp.IsNexusNode = n.IsNexusNode
 		resNodeProp.ResolverFields = n.ResolverFields
 		resNodeProp.ResolverCount = n.ResolverCount
@@ -346,6 +350,16 @@ func processNexusFields(pkg parser.Package, aliasNameMap map[string]string, node
 			fieldProp.IsNexusOrSingletonField = true
 			// Add Custom Query + ID
 			fieldProp.SchemaFieldName = CustomQuerySchema
+			for _, customQuery := range nodeProp.CustomQueries {
+				fieldProp.SchemaFieldName += CustomQueryToGraphqlSchema(customQuery)
+				if unicode.IsUpper(rune(customQuery.Name[0])) {
+					var customQueryFieldProp FieldProperty
+					customQueryFieldProp.IsResolver = true
+					customQueryFieldProp.FieldName = customQuery.Name
+					nodeProp.GraphqlSchemaFields = append(nodeProp.GraphqlSchemaFields, customQueryFieldProp)
+				}
+
+			}
 		}
 
 		// nexus link field
@@ -485,6 +499,7 @@ func GenerateGraphqlResolverVars(baseGroupName, crdModulePath string, pkgs parse
 			nodeProp.CrdName = util.GetCrdName(node.Name.String(), pkg.Name, baseGroupName)
 			nodeHelper := parentsMap[nodeProp.CrdName]
 			nodeProp.IsParentNode = parser.IsNexusNode(node)
+			nodeProp.CustomQueries = nodeHelper.GraphqlSpec.Queries
 
 			if len(nodeHelper.Parents) == 0 && rootOfGraph {
 				log.Errorf("Can't allow multiple root of the graph, skipping...")

@@ -2,6 +2,8 @@ package parser
 
 import (
 	"go/ast"
+
+	"github.com/vmware-tanzu/graph-framework-for-microservices/nexus/nexus"
 )
 
 type Node struct {
@@ -17,6 +19,7 @@ type Node struct {
 	MultipleChildren map[string]Node
 	SingleLink       map[string]Node
 	MultipleLink     map[string]Node
+	GraphqlSpec      nexus.GraphQLQuerySpec
 }
 
 type NodeHelper struct {
@@ -27,6 +30,7 @@ type NodeHelper struct {
 	Links        map[string]NodeHelperChild // FieldName => NodeHelperChild
 	RestMappings map[string]string
 	IsSingleton  bool
+	GraphqlSpec  nexus.GraphQLQuerySpec
 }
 
 type NodeHelperChild struct {

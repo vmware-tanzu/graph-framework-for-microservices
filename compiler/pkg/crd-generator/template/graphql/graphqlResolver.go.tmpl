@@ -8,13 +8,17 @@ import (
 	log "github.com/sirupsen/logrus"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/rest"
-	"k8s.io/client-go/util/flowcontrol"
 
+	qm "github.com/vmware-tanzu/graph-framework-for-microservices/nexus/generated/query-manager"
+	libgrpc "gitlab.eng.vmware.com/nsx-allspark_users/lib-go/grpc"
 	nexus_client "{{.BaseImportPath}}nexus-client"
 	"{{.BaseImportPath}}nexus-gql/graph/model"
-
 )
 
+var c = GrpcClients{
+		mtx: sync.Mutex{},
+		Clients: map[string]GrpcClient{},
+}
 var nc *nexus_client.Clientset
 
 func getParentName(parentLabels map[string]interface{}, key string) string {
@@ -24,36 +28,31 @@ func getParentName(parentLabels map[string]interface{}, key string) string {
 	return ""
 }
 
-//////////////////////////////////////
+// ////////////////////////////////////
 // Nexus K8sAPIEndpointConfig
-//////////////////////////////////////
+// ////////////////////////////////////
 func getK8sAPIEndpointConfig() *rest.Config {
-    var (
-		config *rest.Config
-		err    error
-	)
 	filePath := os.Getenv("KUBECONFIG")
 	if filePath != "" {
-		config, err = clientcmd.BuildConfigFromFlags("", filePath)
+		config, err := clientcmd.BuildConfigFromFlags("", filePath)
 		if err != nil {
 			return nil
 		}
-	} else {
-	    config, err = rest.InClusterConfig()
-	    if err != nil {
-		    return nil
-	    }
+		return config
 	}
-	config.RateLimiter = flowcontrol.NewTokenBucketRateLimiter(200, 300)
+	config, err := rest.InClusterConfig()
+	if err != nil {
+		return nil
+	}
 	return config
 }
 {{- range $key, $node := .Nodes }}
 {{- if $node.IsParentNode }}
 {{- if $node.IsSingletonNode }}
-//////////////////////////////////////
+// ////////////////////////////////////
 // Singleton Resolver for Parent Node
 // PKG: {{$node.PkgName}}, NODE: {{$node.PkgName}}
-//////////////////////////////////////
+// ////////////////////////////////////
 func getRootResolver() (*model.{{$node.PkgName}}{{$node.NodeName}}, error) {
     if nc == nil {
        k8sApiConfig := getK8sAPIEndpointConfig()
@@ -75,10 +74,10 @@ func getRootResolver() (*model.{{$node.PkgName}}{{$node.NodeName}}, error) {
 	return ret, nil
 }
 {{- else }}
-//////////////////////////////////////
+// ////////////////////////////////////
 // Non Singleton Resolver for Parent Node
 // PKG: {{$node.PkgName}}, NODE: {{$node.PkgName}}
-//////////////////////////////////////
+// ////////////////////////////////////
 func getRootResolver(id *string) ([]*model.{{$node.PkgName}}{{$node.NodeName}}, error) {
     if nc == nil {
         k8sApiConfig := getK8sAPIEndpointConfig()
@@ -130,14 +129,67 @@ func getRootResolver(id *string) ([]*model.{{$node.PkgName}}{{$node.NodeName}}, 
 	log.Debugf("[getRootResolver]Output {{$node.NodeName}} objects %v", v{{$node.NodeName}}List)
 	return v{{$node.NodeName}}List, nil
 }
-{{ end }}{{end}}{{ end }}
+{{ end }}{{end}}
+{{- range $key, $query := $node.CustomQueries }}
+// Custom query
+func get{{$node.PkgName}}{{$node.NodeName}}{{$query.Name}}Resolver(obj *model.{{$node.PkgName}}{{$node.NodeName}}, {{ range $key, $arg := $query.Args }} {{$arg.Name}} *{{$arg.Type}}, {{ end }}) ({{- if eq $query.ApiType 0 }}*model.NexusGraphqlResponse{{- else if eq $query.ApiType 1 }}*model.TimeSeriesData {{- end}}, error) {
+	{{- if eq $query.ApiType 0 }}
+	parentLabels := make(map[string]string)
+	if obj != nil {
+		for k, v := range obj.ParentLabels {
+			val, ok := v.(string)
+			if ok {
+				parentLabels[k] = val
+			}
+		}
+	}
+	query := &graphql.GraphQLQuery{
+		Query: "{{$query.Name}}",
+		UserProvidedArgs: map[string]string{
+			{{- range $key, $arg := $query.Args }}
+			"{{$arg.Name}}": pointerToString({{$arg.Name}}),
+			{{- end }}
+		},
+		Hierarchy: parentLabels,
+	}
+
+	resp, err := c.Request("{{$query.ServiceEndpoint.Domain}}:{{$query.ServiceEndpoint.Port}}", nexus.GraphQLQueryApi, query)
+	if err != nil {
+		return nil, err
+	}
+	return resp.(*model.NexusGraphqlResponse), nil
+	{{- else if eq $query.ApiType 1 }}
+	metricArgs := &qm.MetricArg{
+		QueryType: "/{{$query.Name}}",
+		{{- range $key, $arg := $query.Args }}
+		{{- if eq $arg.Name "StartTime" }}
+		StartTime: *StartTime,
+		{{- else if eq $arg.Name "EndTime" }}
+		EndTime: *EndTime,
+		{{- else if eq $arg.Name "Metric" }}
+		Metric: *Metric,
+		{{- else if eq $arg.Name "Filters" }}
+		Filters: *Filters,
+		{{- else if eq $arg.Name "TimeInterval" }}
+		TimeInterval: *TimeInterval,
+		{{- end }}
+		{{- end }}
+	}
+	resp, err := c.Request("{{$query.ServiceEndpoint.Domain}}:{{$query.ServiceEndpoint.Port}}", nexus.GetMetricsApi, metricArgs)
+	if err != nil {
+		return nil, err
+	}
+	return resp.(*model.TimeSeriesData), nil
+	{{- end }}
+}{{- end }}
+{{ end }}
 {{- range $key, $node := .Nodes }}
 {{- range $key, $child := $node.ChildFields }}
 {{- if $child.IsSingleton }}
-//////////////////////////////////////
+// ////////////////////////////////////
 // CHILD RESOLVER (Singleton)
 // FieldName: {{$child.FieldName}} Node: {{$child.NodeName}} PKG: {{$child.PkgName}}
-//////////////////////////////////////
+// ////////////////////////////////////
 func get{{$child.PkgName}}{{$child.NodeName}}{{$child.FieldName}}Resolver(obj *model.{{$child.PkgName}}{{$child.NodeName}}) (*model.{{$child.FieldTypePkgPath}}, error) {
 	log.Debugf("[get{{$child.PkgName}}{{$child.NodeName}}{{$child.FieldName}}Resolver]Parent Object %+v", obj)
 	v{{$child.BaseTypeName}}, err := {{$child.ChainAPI}}.Get{{$child.FieldName}}(context.TODO())
@@ -155,10 +207,10 @@ func get{{$child.PkgName}}{{$child.NodeName}}{{$child.FieldName}}Resolver(obj *m
 	return ret, nil
 }
 {{- else }}
-//////////////////////////////////////
+// ////////////////////////////////////
 // CHILD RESOLVER (Non Singleton)
 // FieldName: {{$child.FieldName}} Node: {{$child.NodeName}} PKG: {{$child.PkgName}}
-//////////////////////////////////////
+// ////////////////////////////////////
 func get{{$child.PkgName}}{{$child.NodeName}}{{$child.FieldName}}Resolver(obj *model.{{$child.PkgName}}{{$child.NodeName}}, id *string) (*model.{{$child.FieldTypePkgPath}}, error) {
 	log.Debugf("[get{{$child.PkgName}}{{$child.NodeName}}{{$child.FieldName}}Resolver]Parent Object %+v", obj)
 	if id != nil && *id != "" {
@@ -200,10 +252,10 @@ func get{{$child.PkgName}}{{$child.NodeName}}{{$child.FieldName}}Resolver(obj *m
 }
 {{ end }}{{ end }}
 {{- range $key, $link := $node.LinkFields }}
-//////////////////////////////////////
+// ////////////////////////////////////
 // LINK RESOLVER
 // FieldName: {{$link.FieldName}} Node: {{$link.NodeName}} PKG: {{$link.PkgName}}
-//////////////////////////////////////
+// ////////////////////////////////////
 func get{{$link.PkgName}}{{$link.NodeName}}{{$link.FieldName}}Resolver(obj *model.{{$link.PkgName}}{{$link.NodeName}}) (*model.{{$link.FieldTypePkgPath}}, error) {
     log.Debugf("[get{{$link.PkgName}}{{$link.NodeName}}{{$link.FieldName}}Resolver]Parent Object %+v", obj)
 	v{{$link.BaseTypeName}}Parent, err := {{$link.LinkAPI}}
@@ -227,10 +279,10 @@ func get{{$link.PkgName}}{{$link.NodeName}}{{$link.FieldName}}Resolver(obj *mode
 }
 {{ end }}
 {{- range $key, $children := $node.ChildrenFields }}
-//////////////////////////////////////
+// ////////////////////////////////////
 // CHILDREN RESOLVER
 // FieldName: {{$children.FieldName}} Node: {{$children.NodeName}} PKG: {{$children.PkgName}}
-//////////////////////////////////////
+// ////////////////////////////////////
 func get{{$children.PkgName}}{{$children.NodeName}}{{$children.FieldName}}Resolver(obj *model.{{$children.PkgName}}{{$children.NodeName}}, id *string) ([]*model.{{$children.FieldTypePkgPath}}, error) {
 	log.Debugf("[get{{$children.PkgName}}{{$children.NodeName}}{{$children.FieldName}}Resolver]Parent Object %+v", obj)
 	var v{{$children.FieldTypePkgPath}}List []*model.{{$children.FieldTypePkgPath}}
@@ -285,10 +337,10 @@ func get{{$children.PkgName}}{{$children.NodeName}}{{$children.FieldName}}Resolv
 }
 {{ end }}
 {{- range $key, $links := $node.LinksFields }}
-//////////////////////////////////////
+// ////////////////////////////////////
 // LINKS RESOLVER
 // FieldName: {{$links.FieldName}} Node: {{$links.NodeName}} PKG: {{$links.PkgName}}
-//////////////////////////////////////
+// ////////////////////////////////////
 func get{{$links.PkgName}}{{$links.NodeName}}{{$links.FieldName}}Resolver(obj *model.{{$links.PkgName}}{{$links.NodeName}}, id *string) ([]*model.{{$links.FieldTypePkgPath}}, error) {
 	log.Debugf("[get{{$links.PkgName}}{{$links.NodeName}}{{$links.FieldName}}Resolver]Parent Object %+v", obj)
 	var v{{$links.FieldTypePkgPath}}List []*model.{{$links.FieldTypePkgPath}}

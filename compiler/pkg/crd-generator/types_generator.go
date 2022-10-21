@@ -125,7 +125,7 @@ func getTag(f *ast.Field, name string, omitempty bool) string {
 	currentTags := parser.GetFieldTags(f)
 	if currentTags != nil && currentTags.Len() > 0 {
 		nexusTag, err := currentTags.Get("nexus")
-		if currentTags.Len() == 1 && err == nil {
+		if err == nil {
 			tag += " " + nexusTag.String()
 		} else {
 			tag = currentTags.String()
@@ -393,7 +393,7 @@ func GenerateImports(p *parser.Package, aliasNameMap map[string]string) []string
 }
 
 func constructImports(inputAlias, inputImportPath string) (string, string) {
-	re, err := regexp.Compile(`[\_\.-]`)
+	re, err := regexp.Compile(`[\_\.]`)
 	if err != nil {
 		log.Fatalf("failed to construct output import path for import path %v : %v", inputImportPath, err)
 	}

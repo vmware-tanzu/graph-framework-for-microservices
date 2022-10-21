@@ -3,6 +3,7 @@ package crd_generator_test
 import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/nexus/nexus"
 
 	crdgenerator "github.com/vmware-tanzu/graph-framework-for-microservices/compiler/pkg/crd-generator"
 	"github.com/vmware-tanzu/graph-framework-for-microservices/compiler/pkg/parser"
@@ -10,13 +11,15 @@ import (
 
 var _ = Describe("Template renderers tests", func() {
 	var (
-		pkgs       parser.Packages
-		parentsMap map[string]parser.NodeHelper
+		pkgs           parser.Packages
+		parentsMap     map[string]parser.NodeHelper
+		graphqlQueries map[string]nexus.GraphQLQuerySpec
 	)
 
 	BeforeEach(func() {
 		pkgs = parser.ParseDSLPkg(exampleDSLPath)
-		graph := parser.ParseDSLNodes(exampleDSLPath, baseGroupName)
+		graphqlQueries = parser.ParseGraphqlQuerySpecs(pkgs)
+		graph := parser.ParseDSLNodes(exampleDSLPath, baseGroupName, pkgs, graphqlQueries)
 		parentsMap = parser.CreateParentsMap(graph)
 	})
 
@@ -42,7 +45,7 @@ var _ = Describe("Template renderers tests", func() {
 
 	It("should resolve non-singleton root and singleton child node", func() {
 		pkgs = parser.ParseDSLPkg("../../example/test-utils/non-singleton-root")
-		graph := parser.ParseDSLNodes("../../example/test-utils/non-singleton-root", baseGroupName)
+		graph := parser.ParseDSLNodes("../../example/test-utils/non-singleton-root", baseGroupName, pkgs, graphqlQueries)
 		parentsMap = parser.CreateParentsMap(graph)
 
 		vars, err := crdgenerator.GenerateGraphqlResolverVars(baseGroupName, crdModulePath, pkgs, parentsMap)

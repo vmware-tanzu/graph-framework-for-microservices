@@ -26,7 +26,8 @@ var _ = Describe("Rest tests", func() {
 	BeforeEach(func() {
 		pkgs = parser.ParseDSLPkg(exampleDSLPath)
 		pkg, ok = pkgs["github.com/vmware-tanzu/graph-framework-for-microservices/compiler/example/datamodel/config/gns"]
-		graph := parser.ParseDSLNodes(exampleDSLPath, baseGroupName)
+		graphqlQueries := parser.ParseGraphqlQuerySpecs(pkgs)
+		graph := parser.ParseDSLNodes(exampleDSLPath, baseGroupName, pkgs, graphqlQueries)
 		parentsMap = parser.CreateParentsMap(graph)
 		Expect(ok).To(BeTrue())
 	})
@@ -121,29 +122,6 @@ var _ = Describe("Rest tests", func() {
 			},
 		}
 		rest.ValidateRestApiSpec(restApiSpec, parentsMap, "dnses.gns.tsm.tanzu.vmware.com")
-		Expect(fail).To(BeTrue())
-	})
-
-	It("should fail if duplication is found", func() {
-		defer func() { log.StandardLogger().ExitFunc = nil }()
-
-		fail := false
-		log.StandardLogger().ExitFunc = func(int) {
-			fail = true
-		}
-
-		pkgs := parser.ParseDSLPkg("../../../example/test-utils/duplicated-uris-datamodel")
-		g := parser.ParseDSLNodes("../../../example/test-utils/duplicated-uris-datamodel", baseGroupName)
-		parents := parser.CreateParentsMap(g)
-
-		for _, p := range pkgs {
-			restAPISpecMap := rest.GetRestApiSpecs(p, methods, codes, parents)
-
-			for _, apiSpec := range restAPISpecMap {
-				rest.ValidateRestApiSpec(apiSpec, parents, "...")
-			}
-		}
-
 		Expect(fail).To(BeTrue())
 	})
 })

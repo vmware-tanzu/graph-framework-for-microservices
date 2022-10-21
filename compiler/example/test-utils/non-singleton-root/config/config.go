@@ -1,7 +1,7 @@
 package config
 
 import (
-	"github.com/vmware-tanzu/graph-framework-for-microservices/common-library/pkg/nexus"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler/example/test-utils/non-singleton-root/nexus"
 )
 
 type Config struct {

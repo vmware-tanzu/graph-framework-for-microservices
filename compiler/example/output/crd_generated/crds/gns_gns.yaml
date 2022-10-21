@@ -4,7 +4,7 @@ kind: CustomResourceDefinition
 metadata:
   annotations:
     nexus: |
-      {"name":"gns.Gns","hierarchy":["roots.root.tsm.tanzu.vmware.com","configs.config.tsm.tanzu.vmware.com"],"children":{"accesscontrolpolicies.policypkg.tsm.tanzu.vmware.com":{"fieldName":"GnsAccessControlPolicy","fieldNameGvk":"gnsAccessControlPolicyGvk","isNamed":false},"barchilds.gns.tsm.tanzu.vmware.com":{"fieldName":"FooChild","fieldNameGvk":"fooChildGvk","isNamed":false},"ignorechilds.gns.tsm.tanzu.vmware.com":{"fieldName":"IgnoreChild","fieldNameGvk":"ignoreChildGvk","isNamed":false},"svcgroups.servicegroup.tsm.tanzu.vmware.com":{"fieldName":"GnsServiceGroups","fieldNameGvk":"gnsServiceGroupsGvk","isNamed":true}},"links":{"Dns":{"fieldName":"Dns","fieldNameGvk":"dnsGvk","isNamed":false}},"is_singleton":false,"nexus-rest-api-gen":{"uris":[{"uri":"/v1alpha2/global-namespace/{gns.Gns}","query_params":["config.Config"],"methods":{"DELETE":{"200":{"description":"OK"},"404":{"description":"Not Found"},"501":{"description":"Not Implemented"}},"GET":{"200":{"description":"OK"},"404":{"description":"Not Found"},"501":{"description":"Not Implemented"}},"PUT":{"200":{"description":"OK"},"201":{"description":"Created"},"501":{"description":"Not Implemented"}}}},{"uri":"/v1alpha2/global-namespaces","query_params":["config.Config"],"methods":{"LIST":{"200":{"description":"OK"},"404":{"description":"Not Found"},"501":{"description":"Not Implemented"}}}},{"uri":"/test-foo","query_params":["config.Config"],"methods":{"DELETE":{"200":{"description":"ok"},"404":{"description":"Not Found"},"501":{"description":"Not Implemented"}}}},{"uri":"/test-bar","query_params":["config.Config"],"methods":{"PATCH":{"400":{"description":"Bad Request"}}}}]},"description":"this is my awesome node"}
+      {"name":"gns.Gns","hierarchy":["roots.root.tsm.tanzu.vmware.com","configs.config.tsm.tanzu.vmware.com"],"children":{"accesscontrolpolicies.policypkg.tsm.tanzu.vmware.com":{"fieldName":"GnsAccessControlPolicy","fieldNameGvk":"gnsAccessControlPolicyGvk","isNamed":false},"barchilds.gns.tsm.tanzu.vmware.com":{"fieldName":"FooChild","fieldNameGvk":"fooChildGvk","isNamed":false},"ignorechilds.gns.tsm.tanzu.vmware.com":{"fieldName":"IgnoreChild","fieldNameGvk":"ignoreChildGvk","isNamed":false},"svcgroups.servicegroup.tsm.tanzu.vmware.com":{"fieldName":"GnsServiceGroups","fieldNameGvk":"gnsServiceGroupsGvk","isNamed":true}},"links":{"Dns":{"fieldName":"Dns","fieldNameGvk":"dnsGvk","isNamed":false}},"is_singleton":false,"nexus-rest-api-gen":{"uris":[{"uri":"/v1alpha2/global-namespace/{gns.Gns}","query_params":["config.Config"],"methods":{"DELETE":{"200":{"description":"OK"},"404":{"description":"Not Found"},"501":{"description":"Not Implemented"}},"GET":{"200":{"description":"OK"},"404":{"description":"Not Found"},"501":{"description":"Not Implemented"}},"PUT":{"200":{"description":"OK"},"201":{"description":"Created"},"501":{"description":"Not Implemented"}}},"auth":false},{"uri":"/v1alpha2/global-namespaces","query_params":["config.Config"],"methods":{"LIST":{"200":{"description":"OK"},"404":{"description":"Not Found"},"501":{"description":"Not Implemented"}}},"auth":false},{"uri":"/test-foo","query_params":["config.Config"],"methods":{"DELETE":{"200":{"description":"ok"},"404":{"description":"Not Found"},"501":{"description":"Not Implemented"}}},"auth":false},{"uri":"/test-bar","query_params":["config.Config"],"methods":{"PATCH":{"400":{"description":"Bad Request"}}},"auth":false}]},"description":"this is my awesome node"}
   creationTimestamp: null
   name: gnses.gns.tsm.tanzu.vmware.com
 spec:
@@ -38,32 +38,6 @@ spec:
             type: object
           spec:
             properties:
-              FooChildGvk:
-                properties:
-                  group:
-                    type: string
-                  kind:
-                    type: string
-                  name:
-                    type: string
-                required:
-                - group
-                - kind
-                - name
-                type: object
-              IgnoreChildGvk:
-                properties:
-                  group:
-                    type: string
-                  kind:
-                    type: string
-                  name:
-                    type: string
-                required:
-                - group
-                - kind
-                - name
-                type: object
               description:
                 properties:
                   Color:
@@ -124,6 +98,19 @@ spec:
                 minLength: 2
                 pattern: abc
                 type: string
+              fooChildGvk:
+                properties:
+                  group:
+                    type: string
+                  kind:
+                    type: string
+                  name:
+                    type: string
+                required:
+                - group
+                - kind
+                - name
+                type: object
               gnsAccessControlPolicyGvk:
                 properties:
                   group:
@@ -151,6 +138,19 @@ spec:
                   - kind
                   - name
                   type: object
+                type: object
+              ignoreChildGvk:
+                properties:
+                  group:
+                    type: string
+                  kind:
+                    type: string
+                  name:
+                    type: string
+                required:
+                - group
+                - kind
+                - name
                 type: object
               mapPointer:
                 additionalProperties:
@@ -200,50 +200,6 @@ spec:
               port:
                 format: int32
                 type: integer
-              serviceSegmentRef:
-                properties:
-                  Field1:
-                    type: string
-                  Field2:
-                    type: string
-                required:
-                - Field1
-                - Field2
-                type: object
-              serviceSegmentRefMap:
-                additionalProperties:
-                  properties:
-                    Field1:
-                      type: string
-                    Field2:
-                      type: string
-                  required:
-                  - Field1
-                  - Field2
-                  type: object
-                type: object
-              serviceSegmentRefPointer:
-                properties:
-                  Field1:
-                    type: string
-                  Field2:
-                    type: string
-                required:
-                - Field1
-                - Field2
-                type: object
-              serviceSegmentRefs:
-                items:
-                  properties:
-                    Field1:
-                      type: string
-                    Field2:
-                      type: string
-                  required:
-                  - Field1
-                  - Field2
-                  type: object
-                type: array
               slicePointer:
                 items:
                   type: string
@@ -264,8 +220,6 @@ spec:
             - slicePointer
             - workloadSpec
             - differentSpec
-            - FooChildGvk
-            - IgnoreChildGvk
             type: object
           status:
             properties:

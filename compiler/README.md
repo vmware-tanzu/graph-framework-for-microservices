@@ -1,5 +1,4 @@
 # nexus compiler
-[![Build Compiler image](https://github.com/vmware-tanzu/graph-framework-for-microservices/actions/workflows/build.yml/badge.svg)](https://github.com/vmware-tanzu/graph-framework-for-microservices/actions/workflows/build.yml)
 
 Nexus compiler main responsibility is to generate code based on provided datamodel. Currently, generated are:
 - CRD yamls with OpenAPI schema,

@@ -2,7 +2,7 @@ package root
 
 import (
 	"github.com/vmware-tanzu/graph-framework-for-microservices/common-library/pkg/nexus"
-	"github.com/vmware-tanzu/graph-framework-for-microservices/compiler/example/test-utils/pointer-type-datamodel/config"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler/example/test-utils/pointer-type-datamodel/config"
 )
 
 type Root struct {

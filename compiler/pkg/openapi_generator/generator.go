@@ -218,10 +218,10 @@ func (g *Generator) getDefinition(pkg string) *definition {
 }
 
 // addKubernetesExtensionsFlags adds the following flags:
-// * x-kubernetes-preserve-unknown-fields - required properties of type object
-//   with no properties specified
-// * x-kubernetes-int-or-string - required for properties which use anyOf with
-//   integer or string values
+//   - x-kubernetes-preserve-unknown-fields - required properties of type object
+//     with no properties specified
+//   - x-kubernetes-int-or-string - required for properties which use anyOf with
+//     integer or string values
 func (g *Generator) addKubernetesExtensionsFlags(schema *extensionsv1.JSONSchemaProps) {
 	if len(schema.Properties) == 0 && schema.AdditionalProperties == nil && schema.Type == "object" {
 		t := true

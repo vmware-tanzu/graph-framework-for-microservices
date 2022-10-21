@@ -5,7 +5,7 @@ import (
 	"net/http"
 
 	"github.com/vmware-tanzu/graph-framework-for-microservices/compiler/example/datamodel/config/gns"
-	"github.com/vmware-tanzu/graph-framework-for-microservices/compiler/example/datamodel/nexus"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/nexus/nexus"
 )
 
 var nonNexusValue = 1
@@ -19,6 +19,7 @@ var BarCustomMethodsResponses = nexus.HTTPMethodsResponses{
 	http.MethodPatch: BarCustomCodesResponses,
 }
 
+// nexus-graphql-query:root.GeneralGraphQLQuerySpec
 type Config struct {
 	nexus.Node
 	GNS         gns.Gns                `nexus:"child"`

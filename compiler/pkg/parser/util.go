@@ -1,6 +1,8 @@
 package parser
 
 import (
+	"go/ast"
+	"go/types"
 	"io/ioutil"
 	"path"
 	"regexp"
@@ -52,4 +54,38 @@ type RestURIs struct {
 
 type RestAPISpec struct {
 	Uris []RestURIs `json:"uris"`
+}
+
+func CheckValueSpec(valueSpec *ast.ValueSpec) bool {
+	if len(valueSpec.Names) == 0 || valueSpec.Values == nil {
+		return false
+	}
+	return true
+}
+
+type NexusSpec struct {
+	Name  string
+	Value *ast.CompositeLit
+}
+
+func GetNexusSpecs(p Package, nexusType string) (specs []NexusSpec) {
+	for _, genDecl := range p.GenDecls {
+		for _, spec := range genDecl.Specs {
+			valueSpec, ok := spec.(*ast.ValueSpec)
+			if !ok || !CheckValueSpec(valueSpec) {
+				continue
+			}
+			name := valueSpec.Names[0].Name
+			value, ok := valueSpec.Values[0].(*ast.CompositeLit)
+			if !ok || types.ExprString(value.Type) != nexusType {
+				continue
+			}
+			specs = append(specs, NexusSpec{
+				Name:  name,
+				Value: value,
+			})
+		}
+
+	}
+	return
 }
