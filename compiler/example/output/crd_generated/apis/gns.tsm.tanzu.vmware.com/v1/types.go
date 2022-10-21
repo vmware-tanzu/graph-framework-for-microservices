@@ -105,21 +105,25 @@ func (c *Gns) DisplayName() string {
 type GnsSpec struct {
 	//nexus-validation: MaxLength=8, MinLength=2
 	//nexus-validation: Pattern=abc
-	Domain                    string               `json:"domain" yaml:"domain"`
-	UseSharedGateway          bool                 `json:"useSharedGateway" yaml:"useSharedGateway"`
-	Description               Description          `json:"description" yaml:"description"`
-	Meta                      string               `json:"meta" yaml:"meta"`
-	Port                      *int                 `json:"port" yaml:"port"`
-	OtherDescription          *Description         `json:"otherDescription" yaml:"otherDescription"`
-	MapPointer                *map[string]string   `json:"mapPointer" yaml:"mapPointer"`
-	SlicePointer              *[]string            `json:"slicePointer" yaml:"slicePointer"`
-	WorkloadSpec              cartv1.WorkloadSpec  `json:"workloadSpec" yaml:"workloadSpec"`
-	DifferentSpec             *cartv1.WorkloadSpec `json:"differentSpec" yaml:"differentSpec"`
-	GnsServiceGroupsGvk       map[string]Child     `json:"gnsServiceGroupsGvk,omitempty" yaml:"gnsServiceGroupsGvk,omitempty" nexus:"children"`
-	GnsAccessControlPolicyGvk *Child               `json:"gnsAccessControlPolicyGvk,omitempty" yaml:"gnsAccessControlPolicyGvk,omitempty" nexus:"child"`
-	FooChildGvk               *Child               `json:"fooChildGvk,omitempty" yaml:"fooChildGvk,omitempty" nexus:"child"`
-	IgnoreChildGvk            *Child               `json:"ignoreChildGvk,omitempty" yaml:"ignoreChildGvk,omitempty" nexus:"child"`
-	DnsGvk                    *Link                `json:"dnsGvk,omitempty" yaml:"dnsGvk,omitempty" nexus:"link"`
+	Domain                    string                       `json:"domain" yaml:"domain"`
+	UseSharedGateway          bool                         `json:"useSharedGateway" yaml:"useSharedGateway"`
+	Description               Description                  `json:"description" yaml:"description"`
+	Meta                      string                       `json:"meta" yaml:"meta"`
+	Port                      *int                         `json:"port" yaml:"port"`
+	OtherDescription          *Description                 `json:"otherDescription" yaml:"otherDescription"`
+	MapPointer                *map[string]string           `json:"mapPointer" yaml:"mapPointer"`
+	SlicePointer              *[]string                    `json:"slicePointer" yaml:"slicePointer"`
+	WorkloadSpec              cartv1.WorkloadSpec          `json:"workloadSpec" yaml:"workloadSpec"`
+	DifferentSpec             *cartv1.WorkloadSpec         `json:"differentSpec" yaml:"differentSpec"`
+	ServiceSegmentRef         ServiceSegmentRef            `json:"serviceSegmentRef,omitempty"`
+	ServiceSegmentRefPointer  *ServiceSegmentRef           `json:"serviceSegmentRefPointer,omitempty"`
+	ServiceSegmentRefs        []ServiceSegmentRef          `json:"serviceSegmentRefs,omitempty"`
+	ServiceSegmentRefMap      map[string]ServiceSegmentRef `json:"serviceSegmentRefMap,omitempty"`
+	GnsServiceGroupsGvk       map[string]Child             `json:"gnsServiceGroupsGvk,omitempty" yaml:"gnsServiceGroupsGvk,omitempty" nexus:"children"`
+	GnsAccessControlPolicyGvk *Child                       `json:"gnsAccessControlPolicyGvk,omitempty" yaml:"gnsAccessControlPolicyGvk,omitempty" nexus:"child"`
+	FooChildGvk               *Child                       `json:"fooChildGvk,omitempty" yaml:"fooChildGvk,omitempty" nexus:"child"`
+	IgnoreChildGvk            *Child                       `json:"ignoreChildGvk,omitempty" yaml:"ignoreChildGvk,omitempty" nexus:"child"`
+	DnsGvk                    *Link                        `json:"dnsGvk,omitempty" yaml:"dnsGvk,omitempty" nexus:"link"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
@@ -324,6 +328,12 @@ type metricsFilers struct {
 	StartTime string
 	EndTime   string
 	Interval  string
+}
+
+// +k8s:openapi-gen=true
+type ServiceSegmentRef struct {
+	Field1 string
+	Field2 string
 }
 
 // +k8s:openapi-gen=true

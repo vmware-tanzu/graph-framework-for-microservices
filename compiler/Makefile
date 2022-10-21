@@ -152,10 +152,13 @@ generate_code:
 	git checkout -- pkg/openapi_generator/openapi/openapi_generated.go
 	@echo "==> Nexus Compiler: Generating GRAPHQL pkg <=="
 	cd _generated && goimports -w .
-	cd _generated/nexus-gql && go mod edit -replace github.com/vmware-tanzu/graph-framework-for-microservices/gqlgen=/go/src/github.com/vmware-tanzu/graph-framework-for-microservices/gqlgen && go mod edit -replace github.com/vmware-tanzu/graph-framework-for-microservices/kube-openapi=/go/src/github.com/vmware-tanzu/graph-framework-for-microservices/kube-openapi && go get github.com/cespare/xxhash/v2@v2.1.2 && gqlgen generate
-	cp -rf _generated/* ${GOPATH}/src/nexustempmodule/
-	cd ${GOPATH}/src/nexustempmodule && cd nexus-gql && CGO_ENABLED=1 GOOS=linux \
-	go build --trimpath -o graphql.so -buildmode=plugin server.go
+	cd _generated/nexus-gql && go mod edit -replace github.com/vmware-tanzu/graph-framework-for-microservices/gqlgen=../../gqlgen && \
+	  go mod edit -replace github.com/vmware-tanzu/graph-framework-for-microservices/kube-openapi=../../kube-openapi && \
+	  go mod edit -replace github.com/vmware-tanzu/graph-framework-for-microservices/nexus=../../nexus && \
+	  go get github.com/cespare/xxhash/v2@v2.1.2 && \
+	  go mod tidy && \
+	  gqlgen generate && \
+	  CGO_ENABLED=1 GOOS=linux go build --trimpath -o graphql.so -buildmode=plugin server.go
 	@echo "Updating module name"
 	./scripts/replace_mod_path.sh
 	find . -name "*.bak" -type f -delete
@@ -163,7 +166,6 @@ generate_code:
 	cd _generated && goimports -w .
 	@echo "Nexus Compiler: Moving files to output directory"
 	cp -r _generated/{client,apis,crds,common,nexus-client,helper,nexus-gql} ${GENERATED_OUTPUT_DIRECTORY}
-	cp -r ${GOPATH}/src/nexustempmodule/nexus-gql/graphql.so ${GENERATED_OUTPUT_DIRECTORY}/nexus-gql
 	@echo "Nexus Compiler: Compiler code generation completed"
 
 .PHONY: test_generate_code_in_container

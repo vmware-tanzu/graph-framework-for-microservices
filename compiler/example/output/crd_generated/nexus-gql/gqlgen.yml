@@ -21,15 +21,15 @@ resolver:
 models:
   ID:
     model:
-      - gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/graphql.ID
-      - gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/graphql.Int
-      - gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/graphql.Int64
-      - gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/graphql.Int32
+      - github.com/vmware-tanzu/graph-framework-for-microservices/gqlgen/graphql.ID
+      - github.com/vmware-tanzu/graph-framework-for-microservices/gqlgen/graphql.Int
+      - github.com/vmware-tanzu/graph-framework-for-microservices/gqlgen/graphql.Int64
+      - github.com/vmware-tanzu/graph-framework-for-microservices/gqlgen/graphql.Int32
   Int:
     model:
-      - gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/graphql.Int
-      - gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/graphql.Int64
-      - gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/gqlgen.git/graphql.Int32
+      - github.com/vmware-tanzu/graph-framework-for-microservices/gqlgen/graphql.Int
+      - github.com/vmware-tanzu/graph-framework-for-microservices/gqlgen/graphql.Int64
+      - github.com/vmware-tanzu/graph-framework-for-microservices/gqlgen/graphql.Int32
   root_Root:
     fields:
       Config:
