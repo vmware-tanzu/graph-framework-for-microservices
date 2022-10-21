@@ -1,6 +1,7 @@
 package crd_generator_test
 
 import (
+	"github.com/vmware-tanzu/graph-framework-for-microservices/compiler/pkg/util"
 	"go/format"
 	"io/ioutil"
 
@@ -173,4 +174,24 @@ var _ = Describe("Template renderers tests", func() {
 		_, err := crdgenerator.RenderGraphqlResolverTemplate(gql, crdModulePath)
 		Expect(err).NotTo(HaveOccurred())
 	})
+
+	It("should test GetPackageName ", func() {
+		expectedPackageName := "tsm_tanzu_vmware_com"
+
+		groupName := "tsm-tanzu.vmware.com"
+		packageName := util.GetPackageName(groupName)
+		Expect(packageName).To(Equal(expectedPackageName))
+
+		groupName = "tsm.tanzu-vmware.com"
+		packageName = util.GetPackageName(groupName)
+		Expect(packageName).To(Equal(expectedPackageName))
+	})
+
+	It("should test GetGroupGoName", func() {
+		expectedGroupGoName := "Tsm"
+		groupName := "tsm-tanzu.vmware.com"
+		packageName := util.GetGroupGoName(groupName)
+		Expect(packageName).To(Equal(expectedGroupGoName))
+	})
+
 })
