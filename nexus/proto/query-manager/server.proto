@@ -1,0 +1,34 @@
+syntax = "proto3";
+
+package queryManager;
+
+option go_package = "./query-manager";
+
+service Server {
+  // Create a new Resource Group
+  rpc GetMetrics(MetricArg) returns (TimeSeriesResponse) {}
+}
+message MetricArg {
+  string query_type = 1;
+  string metric = 2;
+  string start_time = 3;
+  string end_time = 4;
+  string time_interval = 5;
+  map<string, string> filters = 6;
+}
+
+message EmptyArg {}
+
+// Used in federating a service from one cluster to another
+message TimeSeriesResponse {
+  // name of the group
+  uint32 code = 1;
+  string message = 2;
+  message TimeSeriesItem {
+      string timeslot = 1;
+      map<string, string> data = 2;
+  }
+  repeated TimeSeriesItem data = 3;
+  string last = 4;
+  uint32 total_records = 5;
+}
