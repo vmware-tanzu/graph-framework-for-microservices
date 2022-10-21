@@ -1,9 +1,10 @@
 package crd_generator_test
 
 import (
-	"github.com/vmware-tanzu/graph-framework-for-microservices/compiler/pkg/util"
 	"go/format"
 	"io/ioutil"
+
+	"github.com/vmware-tanzu/graph-framework-for-microservices/compiler/pkg/util"
 
 	"github.com/vmware-tanzu/graph-framework-for-microservices/common-library/pkg/nexus"
 	"github.com/vmware-tanzu/graph-framework-for-microservices/compiler/pkg/parser/rest"
