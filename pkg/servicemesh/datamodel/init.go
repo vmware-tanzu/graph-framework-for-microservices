@@ -141,8 +141,6 @@ func InitOperation(cmd *cobra.Command, args []string) error {
 	fmt.Printf("Datamodel name: %s\n", dmName)
 	checkIfDirectoryEmpty(!localDatamodel, DatamodelName)
 
-	fmt.Printf("Datamodel name: %s\n", dmName)
-
 	if localDatamodel {
 		err := utils.CreateNexusDirectory(NEXUS_DIR, fmt.Sprintf(NEXUS_TEMPLATE_URL, datamodelVersion))
 		if err != nil {
