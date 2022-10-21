@@ -45,6 +45,11 @@ func getObject(name, kind, specVal string) *unstructured.Unstructured {
 			"kind":       kind,
 			"metadata": map[string]interface{}{
 				"name": name,
+				"labels": map[string]interface{}{
+					Root:    "root",
+					Project: "project",
+					Config:  "config",
+				},
 			},
 			"spec": map[string]interface{}{
 				"example": specVal,
