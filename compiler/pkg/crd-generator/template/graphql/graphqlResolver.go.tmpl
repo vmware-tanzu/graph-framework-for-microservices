@@ -28,9 +28,9 @@ func getParentName(parentLabels map[string]interface{}, key string) string {
 	return ""
 }
 
-// ////////////////////////////////////
+//////////////////////////////////////
 // Nexus K8sAPIEndpointConfig
-// ////////////////////////////////////
+//////////////////////////////////////
 func getK8sAPIEndpointConfig() *rest.Config {
 	filePath := os.Getenv("KUBECONFIG")
 	if filePath != "" {
@@ -49,10 +49,10 @@ func getK8sAPIEndpointConfig() *rest.Config {
 {{- range $key, $node := .Nodes }}
 {{- if $node.IsParentNode }}
 {{- if $node.IsSingletonNode }}
-// ////////////////////////////////////
+//////////////////////////////////////
 // Singleton Resolver for Parent Node
 // PKG: {{$node.PkgName}}, NODE: {{$node.PkgName}}
-// ////////////////////////////////////
+//////////////////////////////////////
 func getRootResolver() (*model.{{$node.PkgName}}{{$node.NodeName}}, error) {
     if nc == nil {
        k8sApiConfig := getK8sAPIEndpointConfig()
@@ -74,10 +74,10 @@ func getRootResolver() (*model.{{$node.PkgName}}{{$node.NodeName}}, error) {
 	return ret, nil
 }
 {{- else }}
-// ////////////////////////////////////
+//////////////////////////////////////
 // Non Singleton Resolver for Parent Node
 // PKG: {{$node.PkgName}}, NODE: {{$node.PkgName}}
-// ////////////////////////////////////
+//////////////////////////////////////
 func getRootResolver(id *string) ([]*model.{{$node.PkgName}}{{$node.NodeName}}, error) {
     if nc == nil {
         k8sApiConfig := getK8sAPIEndpointConfig()
@@ -186,10 +186,10 @@ func get{{$node.PkgName}}{{$node.NodeName}}{{$query.Name}}Resolver(obj *model.{{
 {{- range $key, $node := .Nodes }}
 {{- range $key, $child := $node.ChildFields }}
 {{- if $child.IsSingleton }}
-// ////////////////////////////////////
+//////////////////////////////////////
 // CHILD RESOLVER (Singleton)
 // FieldName: {{$child.FieldName}} Node: {{$child.NodeName}} PKG: {{$child.PkgName}}
-// ////////////////////////////////////
+//////////////////////////////////////
 func get{{$child.PkgName}}{{$child.NodeName}}{{$child.FieldName}}Resolver(obj *model.{{$child.PkgName}}{{$child.NodeName}}) (*model.{{$child.FieldTypePkgPath}}, error) {
 	log.Debugf("[get{{$child.PkgName}}{{$child.NodeName}}{{$child.FieldName}}Resolver]Parent Object %+v", obj)
 	v{{$child.BaseTypeName}}, err := {{$child.ChainAPI}}.Get{{$child.FieldName}}(context.TODO())
@@ -207,10 +207,10 @@ func get{{$child.PkgName}}{{$child.NodeName}}{{$child.FieldName}}Resolver(obj *m
 	return ret, nil
 }
 {{- else }}
-// ////////////////////////////////////
+//////////////////////////////////////
 // CHILD RESOLVER (Non Singleton)
 // FieldName: {{$child.FieldName}} Node: {{$child.NodeName}} PKG: {{$child.PkgName}}
-// ////////////////////////////////////
+//////////////////////////////////////
 func get{{$child.PkgName}}{{$child.NodeName}}{{$child.FieldName}}Resolver(obj *model.{{$child.PkgName}}{{$child.NodeName}}, id *string) (*model.{{$child.FieldTypePkgPath}}, error) {
 	log.Debugf("[get{{$child.PkgName}}{{$child.NodeName}}{{$child.FieldName}}Resolver]Parent Object %+v", obj)
 	if id != nil && *id != "" {
@@ -252,10 +252,10 @@ func get{{$child.PkgName}}{{$child.NodeName}}{{$child.FieldName}}Resolver(obj *m
 }
 {{ end }}{{ end }}
 {{- range $key, $link := $node.LinkFields }}
-// ////////////////////////////////////
+//////////////////////////////////////
 // LINK RESOLVER
 // FieldName: {{$link.FieldName}} Node: {{$link.NodeName}} PKG: {{$link.PkgName}}
-// ////////////////////////////////////
+//////////////////////////////////////
 func get{{$link.PkgName}}{{$link.NodeName}}{{$link.FieldName}}Resolver(obj *model.{{$link.PkgName}}{{$link.NodeName}}) (*model.{{$link.FieldTypePkgPath}}, error) {
     log.Debugf("[get{{$link.PkgName}}{{$link.NodeName}}{{$link.FieldName}}Resolver]Parent Object %+v", obj)
 	v{{$link.BaseTypeName}}Parent, err := {{$link.LinkAPI}}
@@ -279,10 +279,10 @@ func get{{$link.PkgName}}{{$link.NodeName}}{{$link.FieldName}}Resolver(obj *mode
 }
 {{ end }}
 {{- range $key, $children := $node.ChildrenFields }}
-// ////////////////////////////////////
+//////////////////////////////////////
 // CHILDREN RESOLVER
 // FieldName: {{$children.FieldName}} Node: {{$children.NodeName}} PKG: {{$children.PkgName}}
-// ////////////////////////////////////
+//////////////////////////////////////
 func get{{$children.PkgName}}{{$children.NodeName}}{{$children.FieldName}}Resolver(obj *model.{{$children.PkgName}}{{$children.NodeName}}, id *string) ([]*model.{{$children.FieldTypePkgPath}}, error) {
 	log.Debugf("[get{{$children.PkgName}}{{$children.NodeName}}{{$children.FieldName}}Resolver]Parent Object %+v", obj)
 	var v{{$children.FieldTypePkgPath}}List []*model.{{$children.FieldTypePkgPath}}
@@ -337,10 +337,10 @@ func get{{$children.PkgName}}{{$children.NodeName}}{{$children.FieldName}}Resolv
 }
 {{ end }}
 {{- range $key, $links := $node.LinksFields }}
-// ////////////////////////////////////
+//////////////////////////////////////
 // LINKS RESOLVER
 // FieldName: {{$links.FieldName}} Node: {{$links.NodeName}} PKG: {{$links.PkgName}}
-// ////////////////////////////////////
+//////////////////////////////////////
 func get{{$links.PkgName}}{{$links.NodeName}}{{$links.FieldName}}Resolver(obj *model.{{$links.PkgName}}{{$links.NodeName}}, id *string) ([]*model.{{$links.FieldTypePkgPath}}, error) {
 	log.Debugf("[get{{$links.PkgName}}{{$links.NodeName}}{{$links.FieldName}}Resolver]Parent Object %+v", obj)
 	var v{{$links.FieldTypePkgPath}}List []*model.{{$links.FieldTypePkgPath}}
