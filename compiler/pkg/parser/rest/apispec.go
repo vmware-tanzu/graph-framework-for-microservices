@@ -11,6 +11,8 @@ import (
 	"github.com/vmware-tanzu/graph-framework-for-microservices/compiler/pkg/parser"
 )
 
+var uris = map[string]string{}
+
 func GetRestApiSpecs(p parser.Package, httpMethods map[string]nexus.HTTPMethodsResponses,
 	httpCodes map[string]nexus.HTTPCodesResponse, parentsMap map[string]parser.NodeHelper) map[string]nexus.RestAPISpec {
 
@@ -95,8 +97,14 @@ func ValidateRestApiSpec(apiSpec nexus.RestAPISpec, parentsMap map[string]parser
 	crdHelper := parentsMap[crdName]
 
 	for _, uri := range apiSpec.Uris {
-		uriParams := r.FindAllStringSubmatch(uri.Uri, -1)
+		uriRegex, _ := regexp.Compile("{.*?}")
+		redactedUri := uriRegex.ReplaceAllString(uri.Uri, "{param}")
 
+		if u, ok := uris[redactedUri]; ok {
+			log.Fatalf("RestApiSpec: Duplicate found: %s and %s", u, uri.Uri)
+		}
+
+		uriParams := r.FindAllStringSubmatch(uri.Uri, -1)
 		if _, ok := uri.Methods["LIST"]; ok {
 			if nodeExist(crdHelper.RestName, uriParams) || queryParamExist(crdHelper.RestName, uri.QueryParams) {
 				log.Fatalf("RestApiSpec: Provided node name (%s) cannot be applied as a param because endpoint is a list. URI: %s", crdHelper.RestName, uri.Uri)
@@ -125,6 +133,8 @@ func ValidateRestApiSpec(apiSpec nexus.RestAPISpec, parentsMap map[string]parser
 				log.Fatalf("RestApiSpec: Provided node name (%s) not found for uri: %s", parentName, uri.Uri)
 			}
 		}
+
+		uris[redactedUri] = uri.Uri
 	}
 }
 

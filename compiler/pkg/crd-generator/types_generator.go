@@ -393,7 +393,7 @@ func GenerateImports(p *parser.Package, aliasNameMap map[string]string) []string
 }
 
 func constructImports(inputAlias, inputImportPath string) (string, string) {
-	re, err := regexp.Compile(`[\_\.]`)
+	re, err := regexp.Compile(`[\_\.-]`)
 	if err != nil {
 		log.Fatalf("failed to construct output import path for import path %v : %v", inputImportPath, err)
 	}
