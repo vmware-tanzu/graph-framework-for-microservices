@@ -283,6 +283,38 @@ var _ = Describe("Create", func() {
 				delete(utils.ReplicationEnabledNode, repObj)
 			})
 		})
+
+		When("There are two objects with same name under different hierarchy and replication is enabled for only one object", func() {
+			It("Should not replicate the other object to the destination endpoint", func() {
+				server := ghttp.NewServer()
+				remoteClient, err := utils.SetUpDynamicRemoteAPI(fmt.Sprintf("http://%s", server.Addr()), "", "")
+				Expect(err).NotTo(HaveOccurred())
+
+				source := getHierarchicalSourceConfig("foo")
+				source.Object.Hierarchy = utils.Hierarchy{Labels: []utils.KVP{{Key: Root, Value: "root"}, {Key: Project, Value: "project"}, {Key: Config, Value: "different"}}}
+
+				replicationConfigSpec := utils.ReplicationConfigSpec{LocalClient: localClient, RemoteClient: remoteClient,
+					Source: source, Destination: getNonHierarchicalDestConfig()}
+
+				remoteHandler := h.NewRemoteHandler(apidevspace, localClient, nil, conf)
+				utils.GVRToParentHierarchy[apidevspace] = []string{Root, Project,
+					Config, ApiCollaborationSpace}
+
+				// Enable replication for object "Root/root/Project/default/Config/different/ApiCollaborationSpace/foo"
+				repObj := utils.GetReplicationObject(Group, AcKind, "foo")
+				utils.ReplicationEnabledNode[repObj] = make(map[string]utils.ReplicationConfigSpec)
+				utils.ReplicationEnabledNode[repObj][repConfName] = replicationConfigSpec
+
+				// Create object "Root/root/Project/default/Config/config/ApiCollaborationSpace/foo"
+				err = remoteHandler.Create(getObject("foo", AcKind, "example"))
+				Expect(err).NotTo(HaveOccurred())
+
+				// Destination didn't receive it.
+				Eventually(func() []*http.Request { return server.ReceivedRequests() }).Should(HaveLen(0))
+
+				delete(utils.ReplicationEnabledNode, repObj)
+			})
+		})
 	})
 
 	Context("Non-hierarchical source and Hierarchical destination", func() {

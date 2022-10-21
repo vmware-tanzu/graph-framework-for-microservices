@@ -315,6 +315,14 @@ func Replicator(obj interface{}, h *RemoteHandler, eventType string) error {
 	repConfMap, replicationEnabledNode := utils.ReplicationEnabledNode[repObj]
 	if replicationEnabledNode {
 		for _, rc = range repConfMap {
+
+			// When source is hierarchical, replicate only when hierarchy match.
+			if rc.Source.Object.Hierarchical {
+				if !utils.HierarchyMatch(rc.Source.Object.Hierarchy, labels) {
+					continue
+				}
+			}
+
 			hierarchy = name
 			if parents != nil {
 				hierarchy = utils.GetNodeHierarchy(parents, labels, strings.Join([]string{h.Gvr.Resource, h.Gvr.Group}, "."))
@@ -354,6 +362,10 @@ func Replicator(obj interface{}, h *RemoteHandler, eventType string) error {
 			for _, rc = range repInfoMap {
 				hierarchy = name
 				if rc.Source.Object.Hierarchical {
+					// When source is hierarchical, replicate only when hierarchy match.
+					if !utils.HierarchyMatch(rc.Source.Object.Hierarchy, item.GetLabels()) {
+						continue
+					}
 					hierarchy = utils.GetNodeHierarchy(parents, labels, strings.Join([]string{h.Gvr.Resource, h.Gvr.Group}, "."))
 				}
 				replicate = true

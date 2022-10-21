@@ -186,3 +186,13 @@ func ConstructURL(host, port, path string) string {
 	}
 	return fmt.Sprintf("%s:%s/%s", host, port, path)
 }
+
+func HierarchyMatch(hierarchyLabels Hierarchy, objectLabels map[string]string) bool {
+	for _, name := range hierarchyLabels.Labels {
+		label, ok := objectLabels[name.Key]
+		if !ok || label != name.Value {
+			return false
+		}
+	}
+	return true
+}
