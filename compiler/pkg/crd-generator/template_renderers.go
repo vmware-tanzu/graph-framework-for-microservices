@@ -66,9 +66,9 @@ func RenderCRDTemplate(baseGroupName, crdModulePath string,
 		groupName := pkg.Name + "." + baseGroupName
 		pkgNames[i] = groupName + ":v1"
 		i++
-		groupFolder := outputDir + "/apis/" + groupName + "/"
+		groupFolder := outputDir + "/apis/" + groupName
 		crdFolder := outputDir + "/crds"
-		apiFolder := groupFolder + "v1"
+		apiFolder := groupFolder + "/v1"
 		var err error
 		err = createFolder(apiFolder)
 		if err != nil {
@@ -219,11 +219,12 @@ type docVars struct {
 }
 
 func RenderDocTemplate(baseGroupName string, pkg parser.Package) (*bytes.Buffer, error) {
+	groupGoName := util.GetSimpleGroupTypeName(pkg.Name) + util.GetGroupGoName(baseGroupName)
 	vars := docVars{
 		// TODO make it configurable
 		Version:     "v1",
 		GroupName:   pkg.Name + "." + baseGroupName,
-		GroupGoName: cases.Title(language.Und, cases.NoLower).String(strings.ToLower(pkg.Name)) + cases.Title(language.Und, cases.NoLower).String(strings.Split(baseGroupName, ".")[0]),
+		GroupGoName: groupGoName,
 	}
 	if vars.GroupGoName == "" || vars.GroupName == "" {
 		return nil, fmt.Errorf("failed to determine group name of package")
@@ -246,7 +247,7 @@ func RenderRegisterGroupTemplate(baseGroupName string, pkg parser.Package) (*byt
 	groupName := pkg.Name + "." + baseGroupName
 	vars := registerGroupVars{
 		GroupName:   groupName,
-		PackageName: strings.Replace(groupName, ".", "_", -1),
+		PackageName: util.GetPackageName(groupName),
 	}
 
 	if vars.PackageName == "" || vars.GroupName == "" {
@@ -277,7 +278,7 @@ func RenderRegisterCRDTemplate(crdModulePath, baseGroupName string, pkg parser.P
 
 	groupName := pkg.Name + "." + baseGroupName
 	vars := registerCRDVars{
-		GroupPackageName:   strings.Replace(groupName, ".", "_", -1),
+		GroupPackageName:   util.GetPackageName(groupName),
 		GroupPackageImport: crdModulePath + "apis/" + groupName,
 		// TODO make configurable by some variable in package
 		ResourceVersion: "v1",

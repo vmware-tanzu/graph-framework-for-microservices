@@ -27,6 +27,7 @@ func GetBaseImportName(pkgName, baseGroupName, version string) string {
 }
 
 func GetGroupGoName(baseGroupName string) string {
+	baseGroupName = strings.Replace(baseGroupName, "-", ".", 1)
 	return namer.IC(strings.Split(baseGroupName, ".")[0]) // eg Helloworld
 }
 
@@ -82,4 +83,9 @@ func GetPackageNameFromCrdName(crdName string) string {
 
 func GetInternalImport(crdModulePath string, packageName string) string {
 	return `"` + crdModulePath + packageName + `"`
+}
+
+func GetPackageName(groupName string) string {
+	replacer := strings.NewReplacer(".", "_", "-", "_")
+	return replacer.Replace(groupName)
 }
