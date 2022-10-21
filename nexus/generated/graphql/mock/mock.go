@@ -7,7 +7,7 @@ package mock_graphql
 import (
 	context "context"
 	gomock "github.com/golang/mock/gomock"
-	graphql "golang-appnet.eng.vmware.com/nexus-sdk/nexus/generated/graphql"
+	graphql "github.com/vmware-tanzu/graph-framework-for-microservices/nexus/generated/graphql"
 	grpc "google.golang.org/grpc"
 	reflect "reflect"
 )
@@ -55,26 +55,6 @@ func (mr *MockServerClientMockRecorder) Query(ctx, in interface{}, opts ...inter
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Query", reflect.TypeOf((*MockServerClient)(nil).Query), varargs...)
 }
 
-// GetMetrics mocks base method
-func (m *MockServerClient) GetMetrics(ctx context.Context, in *graphql.MetricArg, opts ...grpc.CallOption) (*graphql.TimeSeriesResponse, error) {
-	m.ctrl.T.Helper()
-	varargs := []interface{}{ctx, in}
-	for _, a := range opts {
-		varargs = append(varargs, a)
-	}
-	ret := m.ctrl.Call(m, "GetMetrics", varargs...)
-	ret0, _ := ret[0].(*graphql.TimeSeriesResponse)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// GetMetrics indicates an expected call of GetMetrics
-func (mr *MockServerClientMockRecorder) GetMetrics(ctx, in interface{}, opts ...interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	varargs := append([]interface{}{ctx, in}, opts...)
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetMetrics", reflect.TypeOf((*MockServerClient)(nil).GetMetrics), varargs...)
-}
-
 // MockUnstableServerService is a mock of UnstableServerService interface
 type MockUnstableServerService struct {
 	ctrl     *gomock.Controller
@@ -111,19 +91,4 @@ func (m *MockUnstableServerService) Query(arg0 context.Context, arg1 *graphql.Gr
 func (mr *MockUnstableServerServiceMockRecorder) Query(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Query", reflect.TypeOf((*MockUnstableServerService)(nil).Query), arg0, arg1)
-}
-
-// GetMetrics mocks base method
-func (m *MockUnstableServerService) GetMetrics(arg0 context.Context, arg1 *graphql.MetricArg) (*graphql.TimeSeriesResponse, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetMetrics", arg0, arg1)
-	ret0, _ := ret[0].(*graphql.TimeSeriesResponse)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// GetMetrics indicates an expected call of GetMetrics
-func (mr *MockUnstableServerServiceMockRecorder) GetMetrics(arg0, arg1 interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetMetrics", reflect.TypeOf((*MockUnstableServerService)(nil).GetMetrics), arg0, arg1)
 }

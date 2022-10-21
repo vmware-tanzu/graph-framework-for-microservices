@@ -1,4 +1,4 @@
-module golang-appnet.eng.vmware.com/nexus-sdk/nexus
+module github.com/vmware-tanzu/graph-framework-for-microservices/nexus
 
 go 1.17
 
