@@ -1,0 +1,23 @@
+syntax = "proto3";
+
+package graphql;
+
+option go_package = "./graphql";
+
+service Server {
+  rpc Query(GraphQLQuery) returns (GraphQLResponse) {}
+}
+
+message GraphQLQuery {
+    string query = 1;                         // string  uniquely identifying the query
+    map<string, string> Hierarchy = 2;        // kvp's identifying the entire hierarchy of the node
+    map<string, string> UserProvidedArgs = 3; // custom filter kvp's.
+}
+
+message GraphQLResponse {
+    uint32 code = 1;
+    string message = 2;
+    map<string, string> data = 3;
+    string last = 4;
+    uint32 total_records = 5;
+}
