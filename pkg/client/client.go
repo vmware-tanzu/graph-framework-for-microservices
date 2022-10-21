@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"strings"
 
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/common-library.git/pkg/nexus"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/common-library/pkg/nexus"
 	nexus_client "golang-appnet.eng.vmware.com/nexus-sdk/api/build/nexus-client"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"

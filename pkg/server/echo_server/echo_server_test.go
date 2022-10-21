@@ -8,7 +8,7 @@ import (
 	"net/http/httptest"
 
 	"github.com/labstack/echo/v4"
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/common-library.git/pkg/nexus"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/common-library/pkg/nexus"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
