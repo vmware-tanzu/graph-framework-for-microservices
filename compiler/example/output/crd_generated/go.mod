@@ -2,6 +2,13 @@ module github.com/vmware-tanzu/graph-framework-for-microservices/compiler/exampl
 
 go 1.18
 
+replace github.com/vmware-tanzu/graph-framework-for-microservices/gqlgen => ../../gqlgen
+
+replace github.com/vmware-tanzu/graph-framework-for-microservices/kube-openapi => ../../kube-openapi
+
+replace github.com/vmware-tanzu/graph-framework-for-microservices/nexus => ../../nexus
+
+
 require (
 	github.com/elliotchance/orderedmap v1.4.0
 	github.com/golang/protobuf v1.5.2
