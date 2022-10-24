@@ -175,7 +175,7 @@ test_generate_code_in_container: ${BUILDER_NAME}\:${BUILDER_TAG}.image.exists in
 	CRD_MODULE_PATH="github.com/vmware-tanzu/graph-framework-for-microservices/compiler/example/output/crd_generated/" \
 	LOG_LEVEL=trace \
 	GENERATED_OUTPUT_DIRECTORY=example/output/crd_generated && \
-	cd example/output/crd_generated && go mod edit -replace github.com/vmware-tanzu/graph-framework-for-microservices/gqlgen=../../../../gqlgen && go mod edit -replace github.com/vmware-tanzu/graph-framework-for-microservices/kube-openapi=../../../../kube-openapi && go mod tidy && go vet ./... -structtag=FALSE && golangci-lint run ./...)
+	cd example/output/crd_generated && go vet -structtag=FALSE ./... && golangci-lint run ./...)
 	@if [ -n "$$(git ls-files --modified --exclude-standard)" ]; then\
 		echo "The following changes should be committed:";\
 		git status;\
