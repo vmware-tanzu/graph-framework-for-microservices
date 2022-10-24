@@ -33,9 +33,9 @@ func getParentName(parentLabels map[string]interface{}, key string) string {
 	return ""
 }
 
-// ////////////////////////////////////
+//////////////////////////////////////
 // Nexus K8sAPIEndpointConfig
-// ////////////////////////////////////
+//////////////////////////////////////
 func getK8sAPIEndpointConfig() *rest.Config {
 	var (
 		config *rest.Config
@@ -57,10 +57,10 @@ func getK8sAPIEndpointConfig() *rest.Config {
 	return config
 }
 
-// ////////////////////////////////////
+//////////////////////////////////////
 // Singleton Resolver for Parent Node
 // PKG: Root, NODE: Root
-// ////////////////////////////////////
+//////////////////////////////////////
 func getRootResolver() (*model.RootRoot, error) {
 	if nc == nil {
 		k8sApiConfig := getK8sAPIEndpointConfig()
@@ -173,10 +173,10 @@ func getGnsGnsqueryGnsQMResolver(obj *model.GnsGns, StartTime *string, EndTime *
 	return resp.(*model.TimeSeriesData), nil
 }
 
-// ////////////////////////////////////
+//////////////////////////////////////
 // CHILD RESOLVER (Non Singleton)
 // FieldName: Config Node: Root PKG: Root
-// ////////////////////////////////////
+//////////////////////////////////////
 func getRootRootConfigResolver(obj *model.RootRoot, id *string) (*model.ConfigConfig, error) {
 	log.Debugf("[getRootRootConfigResolver]Parent Object %+v", obj)
 	if id != nil && *id != "" {
@@ -273,10 +273,10 @@ func getRootRootConfigResolver(obj *model.RootRoot, id *string) (*model.ConfigCo
 	return ret, nil
 }
 
-// ////////////////////////////////////
+//////////////////////////////////////
 // CHILD RESOLVER (Non Singleton)
 // FieldName: GNS Node: Config PKG: Config
-// ////////////////////////////////////
+//////////////////////////////////////
 func getConfigConfigGNSResolver(obj *model.ConfigConfig, id *string) (*model.GnsGns, error) {
 	log.Debugf("[getConfigConfigGNSResolver]Parent Object %+v", obj)
 	if id != nil && *id != "" {
@@ -399,10 +399,10 @@ func getConfigConfigGNSResolver(obj *model.ConfigConfig, id *string) (*model.Gns
 	return ret, nil
 }
 
-// ////////////////////////////////////
+//////////////////////////////////////
 // CHILD RESOLVER (Singleton)
 // FieldName: DNS Node: Config PKG: Config
-// ////////////////////////////////////
+//////////////////////////////////////
 func getConfigConfigDNSResolver(obj *model.ConfigConfig) (*model.GnsDns, error) {
 	log.Debugf("[getConfigConfigDNSResolver]Parent Object %+v", obj)
 	vDns, err := nc.RootRoot().Config(getParentName(obj.ParentLabels, "configs.config.tsm.tanzu.vmware.com")).GetDNS(context.TODO())
@@ -425,10 +425,10 @@ func getConfigConfigDNSResolver(obj *model.ConfigConfig) (*model.GnsDns, error) 
 	return ret, nil
 }
 
-// ////////////////////////////////////
+//////////////////////////////////////
 // CHILD RESOLVER (Non Singleton)
 // FieldName: VMPPolicies Node: Config PKG: Config
-// ////////////////////////////////////
+//////////////////////////////////////
 func getConfigConfigVMPPoliciesResolver(obj *model.ConfigConfig, id *string) (*model.PolicyVMpolicy, error) {
 	log.Debugf("[getConfigConfigVMPPoliciesResolver]Parent Object %+v", obj)
 	if id != nil && *id != "" {
@@ -479,10 +479,10 @@ func getConfigConfigVMPPoliciesResolver(obj *model.ConfigConfig, id *string) (*m
 	return ret, nil
 }
 
-// ////////////////////////////////////
+//////////////////////////////////////
 // CHILD RESOLVER (Non Singleton)
 // FieldName: Domain Node: Config PKG: Config
-// ////////////////////////////////////
+//////////////////////////////////////
 func getConfigConfigDomainResolver(obj *model.ConfigConfig, id *string) (*model.ConfigDomain, error) {
 	log.Debugf("[getConfigConfigDomainResolver]Parent Object %+v", obj)
 	if id != nil && *id != "" {
@@ -575,10 +575,10 @@ func getConfigConfigDomainResolver(obj *model.ConfigConfig, id *string) (*model.
 	return ret, nil
 }
 
-// ////////////////////////////////////
+//////////////////////////////////////
 // CHILDREN RESOLVER
 // FieldName: FooExample Node: Config PKG: Config
-// ////////////////////////////////////
+//////////////////////////////////////
 func getConfigConfigFooExampleResolver(obj *model.ConfigConfig, id *string) ([]*model.ConfigFooType, error) {
 	log.Debugf("[getConfigConfigFooExampleResolver]Parent Object %+v", obj)
 	var vConfigFooTypeList []*model.ConfigFooType
@@ -666,10 +666,10 @@ func getConfigConfigFooExampleResolver(obj *model.ConfigConfig, id *string) ([]*
 	return vConfigFooTypeList, nil
 }
 
-// ////////////////////////////////////
+//////////////////////////////////////
 // LINKS RESOLVER
 // FieldName: ACPPolicies Node: Config PKG: Config
-// ////////////////////////////////////
+//////////////////////////////////////
 func getConfigConfigACPPoliciesResolver(obj *model.ConfigConfig, id *string) ([]*model.PolicyAccessControlPolicy, error) {
 	log.Debugf("[getConfigConfigACPPoliciesResolver]Parent Object %+v", obj)
 	var vPolicyAccessControlPolicyList []*model.PolicyAccessControlPolicy
@@ -741,10 +741,10 @@ func getConfigConfigACPPoliciesResolver(obj *model.ConfigConfig, id *string) ([]
 	return vPolicyAccessControlPolicyList, nil
 }
 
-// ////////////////////////////////////
+//////////////////////////////////////
 // CHILD RESOLVER (Non Singleton)
 // FieldName: GnsAccessControlPolicy Node: Gns PKG: Gns
-// ////////////////////////////////////
+//////////////////////////////////////
 func getGnsGnsGnsAccessControlPolicyResolver(obj *model.GnsGns, id *string) (*model.PolicyAccessControlPolicy, error) {
 	log.Debugf("[getGnsGnsGnsAccessControlPolicyResolver]Parent Object %+v", obj)
 	if id != nil && *id != "" {
@@ -795,10 +795,10 @@ func getGnsGnsGnsAccessControlPolicyResolver(obj *model.GnsGns, id *string) (*mo
 	return ret, nil
 }
 
-// ////////////////////////////////////
+//////////////////////////////////////
 // CHILD RESOLVER (Singleton)
 // FieldName: FooChild Node: Gns PKG: Gns
-// ////////////////////////////////////
+//////////////////////////////////////
 func getGnsGnsFooChildResolver(obj *model.GnsGns) (*model.GnsBarChild, error) {
 	log.Debugf("[getGnsGnsFooChildResolver]Parent Object %+v", obj)
 	vBarChild, err := nc.RootRoot().Config(getParentName(obj.ParentLabels, "configs.config.tsm.tanzu.vmware.com")).GNS(getParentName(obj.ParentLabels, "gnses.gns.tsm.tanzu.vmware.com")).GetFooChild(context.TODO())
@@ -823,10 +823,10 @@ func getGnsGnsFooChildResolver(obj *model.GnsGns) (*model.GnsBarChild, error) {
 	return ret, nil
 }
 
-// ////////////////////////////////////
+//////////////////////////////////////
 // CHILDREN RESOLVER
 // FieldName: GnsServiceGroups Node: Gns PKG: Gns
-// ////////////////////////////////////
+//////////////////////////////////////
 func getGnsGnsGnsServiceGroupsResolver(obj *model.GnsGns, id *string) ([]*model.ServicegroupSvcGroup, error) {
 	log.Debugf("[getGnsGnsGnsServiceGroupsResolver]Parent Object %+v", obj)
 	var vServicegroupSvcGroupList []*model.ServicegroupSvcGroup
@@ -902,10 +902,10 @@ func getGnsGnsGnsServiceGroupsResolver(obj *model.GnsGns, id *string) ([]*model.
 	return vServicegroupSvcGroupList, nil
 }
 
-// ////////////////////////////////////
+//////////////////////////////////////
 // CHILDREN RESOLVER
 // FieldName: PolicyConfigs Node: AccessControlPolicy PKG: Policy
-// ////////////////////////////////////
+//////////////////////////////////////
 func getPolicyAccessControlPolicyPolicyConfigsResolver(obj *model.PolicyAccessControlPolicy, id *string) ([]*model.PolicyACPConfig, error) {
 	log.Debugf("[getPolicyAccessControlPolicyPolicyConfigsResolver]Parent Object %+v", obj)
 	var vPolicyACPConfigList []*model.PolicyACPConfig
@@ -997,10 +997,10 @@ func getPolicyAccessControlPolicyPolicyConfigsResolver(obj *model.PolicyAccessCo
 	return vPolicyACPConfigList, nil
 }
 
-// ////////////////////////////////////
+//////////////////////////////////////
 // LINKS RESOLVER
 // FieldName: DestSvcGroups Node: ACPConfig PKG: Policy
-// ////////////////////////////////////
+//////////////////////////////////////
 func getPolicyACPConfigDestSvcGroupsResolver(obj *model.PolicyACPConfig, id *string) ([]*model.ServicegroupSvcGroup, error) {
 	log.Debugf("[getPolicyACPConfigDestSvcGroupsResolver]Parent Object %+v", obj)
 	var vServicegroupSvcGroupList []*model.ServicegroupSvcGroup
@@ -1084,10 +1084,10 @@ func getPolicyACPConfigDestSvcGroupsResolver(obj *model.PolicyACPConfig, id *str
 	return vServicegroupSvcGroupList, nil
 }
 
-// ////////////////////////////////////
+//////////////////////////////////////
 // LINKS RESOLVER
 // FieldName: SourceSvcGroups Node: ACPConfig PKG: Policy
-// ////////////////////////////////////
+//////////////////////////////////////
 func getPolicyACPConfigSourceSvcGroupsResolver(obj *model.PolicyACPConfig, id *string) ([]*model.ServicegroupSvcGroup, error) {
 	log.Debugf("[getPolicyACPConfigSourceSvcGroupsResolver]Parent Object %+v", obj)
 	var vServicegroupSvcGroupList []*model.ServicegroupSvcGroup
