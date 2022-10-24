@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/golang/protobuf/proto"
+	"github.com/golang/protobuf/proto" // nolint: staticcheck
 	"github.com/vmware-tanzu/graph-framework-for-microservices/nexus/generated/graphql"
 	qm "github.com/vmware-tanzu/graph-framework-for-microservices/nexus/generated/query-manager"
 	"github.com/vmware-tanzu/graph-framework-for-microservices/nexus/nexus"
