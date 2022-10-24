@@ -154,7 +154,6 @@ generate_code:
 	cd _generated && goimports -w .
 	cd _generated/nexus-gql && \
 	  go get github.com/cespare/xxhash/v2@v2.1.2 && \
-	  go mod tidy && \
 	  gqlgen generate && \
 	  CGO_ENABLED=1 GOOS=linux go build --trimpath -o graphql.so -buildmode=plugin server.go
 	@echo "Updating module name"
