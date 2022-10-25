@@ -139,13 +139,79 @@ type LeaderStatus struct {
 
 ### REST API spec
 
-...
+Nexus provides REST API Gateway out-of-the-box, all you need to do is to provide REST API spec in your data model,
+to specify which operations for which nodes you want to enable.
+To define REST API spec you can use `nexus.RestAPISpec` struct imported from
+[nexus](https://github.com/vmware-tanzu/graph-framework-for-microservices/blob/main/nexus/nexus/nexus.go) package.
+In the spec you need to provide list of URLs which you want to expose on given Nexus node, you specify URI, methods
+with responses and optionally query params. In URL or query params you can provide parents. To attach a spec to a node
+you should add a comment above a node with format: `// nexus-rest-api-gen:NameOfYourSpecVariable`.
+For example, in here Leader is a child of Root, so we add Root as a part of URI or query param:
+```Go
+package role
+
+import (
+  "github.com/vmware-tanzu/graph-framework-for-microservices/nexus/nexus"
+)
+
+// nexus-rest-api-gen:LeaderRestAPISpec
+type Leader struct {
+  nexus.Node
+  EmployeeID int
+}
+
+var LeaderRestAPISpec = nexus.RestAPISpec{
+  Uris: []nexus.RestURIs{
+    {
+      Uri: "/v1alpha2/root/{root}/leader/{role.Leader}",
+      Methods: nexus.HTTPMethodsResponses{
+        http.MethodGet: nexus.DefaultHTTPGETResponses,
+      },
+    },
+    {
+      Uri: "/v1alpha2/leader",
+      QueryParams: []string{
+        "root",
+        "role.Leader"
+      },
+      Methods: nexus.HTTPMethodsResponses{
+        http.MethodGet: nexus.DefaultHTTPGETResponses,
+      },
+    },
+    {
+      Uri:     "/v1alpha2/root/{root}/leader",
+      Methods: nexus.HTTPListResponse,
+    },
+  },
+}
+```
 
 ### Custom GraphQL query spec
 
 ...
 
-### OpenAPI validation spec
+### OpenAPI validation
+
+Spec fields of nexus nodes can be extended with additional validation, for field which should be validated you can add
+comments above a field with format `//nexus-validation: Validation pattern`.
+Example:
+```Go
+package role
+
+import (
+  "github.com/vmware-tanzu/graph-framework-for-microservices/nexus/nexus"
+)
+
+type Leader struct {
+  nexus.Node
+  //nexus-validation: MaxLength=8, MinLength=2
+  //nexus-validation: Pattern=abc
+  Department string
+  EmployeeID int
+}
+```
+
+### Singleton nodes
 
 ...
 
