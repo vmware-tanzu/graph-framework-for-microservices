@@ -26,6 +26,7 @@ use `nexus.Node`. Node definition can be imported from
 `https://github.com/vmware-tanzu/graph-framework-for-microservices/nexus/nexus`
 package. As a rest of struct fields you can specify spec of your node.
 For a spec you can use standard Go types like `int`, `string` or more complex structs.
+
 So your first data model can look like such Go file:
 ```Go
 package role
@@ -115,7 +116,9 @@ don't have `nexus.Node` field can be used for defining spec.
 ### Status of a node
 
 You can add custom status of nexus node by using `nexus:"status"` annotation. In the runtime
-you can use this field for specifying current state of the object. Example:
+you can use this field for specifying current state of the object.
+
+Example:
 
 ```Go
 package role
@@ -146,6 +149,7 @@ To define REST API spec you can use `nexus.RestAPISpec` struct imported from
 In the spec you need to provide list of URLs which you want to expose on given Nexus node, you specify URI, methods
 with responses and optionally query params. In URL or query params you can provide parents. To attach a spec to a node
 you should add a comment above a node with format: `// nexus-rest-api-gen:NameOfYourSpecVariable`.
+
 For example, in here Leader is a child of Root, so we add Root as a part of URI or query param:
 ```Go
 package role
@@ -194,6 +198,7 @@ var LeaderRestAPISpec = nexus.RestAPISpec{
 
 Spec fields of nexus nodes can be extended with additional validation, for field which should be validated you can add
 comments above a field with format `//nexus-validation: Validation pattern`.
+
 Example:
 ```Go
 package role
@@ -213,7 +218,22 @@ type Leader struct {
 
 ### Singleton nodes
 
-...
+Singleton Nodes are Nexus Nodes for which we are enforcing that in a given hierarchy there will be only one node of a
+given type. To specify node to be a singleton use `nexus.SingletonNode` as a field, instead of `nexus.Node`.
+
+Example:
+```Go
+package role
+
+import (
+	"github.com/vmware-tanzu/graph-framework-for-microservices/nexus/nexus"
+)
+
+type Leader struct {
+	nexus.SingletonNode
+	EmployeeID int
+}
+```
 
 ## Data model structure
 
