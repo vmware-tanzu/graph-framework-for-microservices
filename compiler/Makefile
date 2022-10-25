@@ -29,6 +29,7 @@ define run_in_container
   --volume ~/.ssh:/root/.ssh \
   --network=host \
   --workdir ${PKG_NAME} \
+  --user $(shell id -u):$(shell id -g) \
   "${BUILDER_NAME}:${BUILDER_TAG}" /bin/bash -c "${1}"
 endef
 else
