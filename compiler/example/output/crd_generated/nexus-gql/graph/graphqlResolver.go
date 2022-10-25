@@ -9,6 +9,7 @@ import (
 	log "github.com/sirupsen/logrus"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
+	"k8s.io/client-go/util/flowcontrol"
 
 	nexus_client "github.com/vmware-tanzu/graph-framework-for-microservices/compiler/example/output/crd_generated/nexus-client"
 	"github.com/vmware-tanzu/graph-framework-for-microservices/compiler/example/output/crd_generated/nexus-gql/graph/model"
@@ -27,18 +28,23 @@ func getParentName(parentLabels map[string]interface{}, key string) string {
 // Nexus K8sAPIEndpointConfig
 //////////////////////////////////////
 func getK8sAPIEndpointConfig() *rest.Config {
+	var (
+		config *rest.Config
+		err    error
+	)
 	filePath := os.Getenv("KUBECONFIG")
 	if filePath != "" {
-		config, err := clientcmd.BuildConfigFromFlags("", filePath)
+		config, err = clientcmd.BuildConfigFromFlags("", filePath)
 		if err != nil {
 			return nil
 		}
-		return config
+	} else {
+		config, err = rest.InClusterConfig()
+		if err != nil {
+			return nil
+		}
 	}
-	config, err := rest.InClusterConfig()
-	if err != nil {
-		return nil
-	}
+	config.RateLimiter = flowcontrol.NewTokenBucketRateLimiter(200, 300)
 	return config
 }
 
@@ -202,22 +208,34 @@ func getConfigConfigGNSResolver(obj *model.ConfigConfig, id *string) (*model.Gns
 		WorkloadSpecData := string(WorkloadSpec)
 		DifferentSpec, _ := json.Marshal(vGns.Spec.DifferentSpec)
 		DifferentSpecData := string(DifferentSpec)
+		ServiceSegmentRef, _ := json.Marshal(vGns.Spec.ServiceSegmentRef)
+		ServiceSegmentRefData := string(ServiceSegmentRef)
+		ServiceSegmentRefPointer, _ := json.Marshal(vGns.Spec.ServiceSegmentRefPointer)
+		ServiceSegmentRefPointerData := string(ServiceSegmentRefPointer)
+		ServiceSegmentRefs, _ := json.Marshal(vGns.Spec.ServiceSegmentRefs)
+		ServiceSegmentRefsData := string(ServiceSegmentRefs)
+		ServiceSegmentRefMap, _ := json.Marshal(vGns.Spec.ServiceSegmentRefMap)
+		ServiceSegmentRefMapData := string(ServiceSegmentRefMap)
 
 		for k, v := range obj.ParentLabels {
 			parentLabels[k] = v
 		}
 		ret := &model.GnsGns{
-			Id:               &dn,
-			ParentLabels:     parentLabels,
-			Domain:           &vDomain,
-			UseSharedGateway: &vUseSharedGateway,
-			Description:      &DescriptionData,
-			Meta:             &vMeta,
-			OtherDescription: &OtherDescriptionData,
-			MapPointer:       &MapPointerData,
-			SlicePointer:     &SlicePointerData,
-			WorkloadSpec:     &WorkloadSpecData,
-			DifferentSpec:    &DifferentSpecData,
+			Id:                       &dn,
+			ParentLabels:             parentLabels,
+			Domain:                   &vDomain,
+			UseSharedGateway:         &vUseSharedGateway,
+			Description:              &DescriptionData,
+			Meta:                     &vMeta,
+			OtherDescription:         &OtherDescriptionData,
+			MapPointer:               &MapPointerData,
+			SlicePointer:             &SlicePointerData,
+			WorkloadSpec:             &WorkloadSpecData,
+			DifferentSpec:            &DifferentSpecData,
+			ServiceSegmentRef:        &ServiceSegmentRefData,
+			ServiceSegmentRefPointer: &ServiceSegmentRefPointerData,
+			ServiceSegmentRefs:       &ServiceSegmentRefsData,
+			ServiceSegmentRefMap:     &ServiceSegmentRefMapData,
 		}
 
 		log.Debugf("[getConfigConfigGNSResolver]Output object %v", ret)
@@ -251,22 +269,34 @@ func getConfigConfigGNSResolver(obj *model.ConfigConfig, id *string) (*model.Gns
 	WorkloadSpecData := string(WorkloadSpec)
 	DifferentSpec, _ := json.Marshal(vGns.Spec.DifferentSpec)
 	DifferentSpecData := string(DifferentSpec)
+	ServiceSegmentRef, _ := json.Marshal(vGns.Spec.ServiceSegmentRef)
+	ServiceSegmentRefData := string(ServiceSegmentRef)
+	ServiceSegmentRefPointer, _ := json.Marshal(vGns.Spec.ServiceSegmentRefPointer)
+	ServiceSegmentRefPointerData := string(ServiceSegmentRefPointer)
+	ServiceSegmentRefs, _ := json.Marshal(vGns.Spec.ServiceSegmentRefs)
+	ServiceSegmentRefsData := string(ServiceSegmentRefs)
+	ServiceSegmentRefMap, _ := json.Marshal(vGns.Spec.ServiceSegmentRefMap)
+	ServiceSegmentRefMapData := string(ServiceSegmentRefMap)
 
 	for k, v := range obj.ParentLabels {
 		parentLabels[k] = v
 	}
 	ret := &model.GnsGns{
-		Id:               &dn,
-		ParentLabels:     parentLabels,
-		Domain:           &vDomain,
-		UseSharedGateway: &vUseSharedGateway,
-		Description:      &DescriptionData,
-		Meta:             &vMeta,
-		OtherDescription: &OtherDescriptionData,
-		MapPointer:       &MapPointerData,
-		SlicePointer:     &SlicePointerData,
-		WorkloadSpec:     &WorkloadSpecData,
-		DifferentSpec:    &DifferentSpecData,
+		Id:                       &dn,
+		ParentLabels:             parentLabels,
+		Domain:                   &vDomain,
+		UseSharedGateway:         &vUseSharedGateway,
+		Description:              &DescriptionData,
+		Meta:                     &vMeta,
+		OtherDescription:         &OtherDescriptionData,
+		MapPointer:               &MapPointerData,
+		SlicePointer:             &SlicePointerData,
+		WorkloadSpec:             &WorkloadSpecData,
+		DifferentSpec:            &DifferentSpecData,
+		ServiceSegmentRef:        &ServiceSegmentRefData,
+		ServiceSegmentRefPointer: &ServiceSegmentRefPointerData,
+		ServiceSegmentRefs:       &ServiceSegmentRefsData,
+		ServiceSegmentRefMap:     &ServiceSegmentRefMapData,
 	}
 
 	log.Debugf("[getConfigConfigGNSResolver]Output object %v", ret)

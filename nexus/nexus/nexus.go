@@ -2,6 +2,11 @@ package nexus
 
 import "net/http"
 
+const (
+	tagName              = "nexus.vmware"
+	BaseGroupName string = "tanzu.tsm.vmware.com"
+)
+
 type ID struct {
 	Id string `nexus.vmware:"id"`
 }
@@ -33,8 +38,9 @@ type HTTPMethodsResponses map[HTTPMethod]HTTPCodesResponse
 
 // RestURIs and associated data.
 type RestURIs struct {
-	Uri     string               `json:"uri"`
-	Methods HTTPMethodsResponses `json:"methods"`
+	Uri         string               `json:"uri"`
+	QueryParams []string             `json:"query_params,omitempty"`
+	Methods     HTTPMethodsResponses `json:"methods"`
 }
 
 type RestAPISpec struct {
@@ -63,6 +69,7 @@ var DefaultHTTPPUTResponses = HTTPCodesResponse{
 // Default HTTP DELETE Response mappings.
 var DefaultHTTPDELETEResponses = HTTPCodesResponse{
 	http.StatusOK:        HTTPResponse{Description: http.StatusText(http.StatusOK)},
+	http.StatusNotFound:  HTTPResponse{Description: http.StatusText(http.StatusNotFound)},
 	DefaultHTTPErrorCode: DefaultHTTPError,
 }
 
@@ -72,3 +79,38 @@ var DefaultHTTPMethodsResponses = HTTPMethodsResponses{
 	http.MethodPut:    DefaultHTTPPUTResponses,
 	http.MethodDelete: DefaultHTTPDELETEResponses,
 }
+
+// HTTP Response for List operation
+var HTTPListResponse = HTTPMethodsResponses{
+	"LIST": DefaultHTTPGETResponses,
+}
+
+// GraphQL Types.
+
+// A GraphQLQueryEndpoint specifies the network endpoint that serves a GraphQL query.
+type GraphQLQueryEndpoint struct {
+	Domain string `json:"domain"` // fully qualified domain name of the network endpoint
+	Port   int    `json:"port"`   // service port
+}
+
+// A GraphQLQuery specifies a custom query available via GraphQL API.
+// Each GraphQLQuery is self contained unit of the exposed custom query.
+type GraphQLQuery struct {
+	Name            string               `json:"name,omitempty"`             // query identifier
+	ServiceEndpoint GraphQLQueryEndpoint `json:"service_endpoint,omitempty"` // endpoint that serves this query
+	Args            interface{}          `json:"args,omitempty"`             // custom graphql filters and arguments
+	ApiType         GraphQlApiType       `json:"api_type,omitempty"`         // type of GRPC API endpoint
+}
+
+// A GraphQLQuerySpec is a collection of GraphQLQuery.
+// GraphQLQuerySpec provides a handle to represent and refer a collection of GraphQLQuery.
+type GraphQLQuerySpec struct {
+	Queries []GraphQLQuery `json:"queries"`
+}
+
+type GraphQlApiType int
+
+const (
+	GraphQLQueryApi GraphQlApiType = iota
+	GetMetricsApi
+)
