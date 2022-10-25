@@ -1,10 +1,14 @@
-package config
+package root
 
 import (
 	"github.com/vmware-tanzu/graph-framework-for-microservices/common-library/pkg/nexus"
 )
 
-type Config struct {
+type Root struct {
 	nexus.Node
-	MyId string
+	MyField MyField
+}
+
+type MyField struct {
+	ID string
 }
