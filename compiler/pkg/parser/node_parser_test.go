@@ -118,7 +118,7 @@ var _ = Describe("Node parser tests", func() {
 			fail = true
 		}
 
-		parser.ParseDSLNodes("../../example/test-utils/with-id-field", baseGroupName)
+		parser.ParseDSLNodes("../../example/test-utils/with-id-field", baseGroupName, nil, nil)
 		Expect(fail).To(BeTrue())
 	})
 
@@ -130,7 +130,7 @@ var _ = Describe("Node parser tests", func() {
 			fail = true
 		}
 
-		parser.ParseDSLNodes("../../example/test-utils/with-id-type", baseGroupName)
+		parser.ParseDSLNodes("../../example/test-utils/with-id-type", baseGroupName, nil, nil)
 		Expect(fail).To(BeTrue())
 	})
 
