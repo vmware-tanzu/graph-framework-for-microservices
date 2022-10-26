@@ -27,7 +27,7 @@ var _ = Describe("Template renderers tests", func() {
 		vars, err := crdgenerator.GenerateGraphqlResolverVars(baseGroupName, crdModulePath, pkgs, parentsMap)
 		Expect(err).NotTo(HaveOccurred())
 
-		Expect(len(vars)).To(Equal(12))
+		Expect(len(vars)).To(Equal(41))
 		Expect(vars[0].NodeName).To(Equal("Root"))
 		Expect(vars[2].PkgName).To(Equal("Config"))
 		Expect(vars[2].NodeName).To(Equal("FooType"))

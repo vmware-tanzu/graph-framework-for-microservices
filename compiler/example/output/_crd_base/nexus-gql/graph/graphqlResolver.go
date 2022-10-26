@@ -80,7 +80,6 @@ parentLabels := map[string]interface{}{"roots.root.tsm.tanzu.vmware.com":dn}
 	log.Debugf("[getRootResolver]Output Root object %+v", ret)
 	return ret, nil
 }
-
 // Custom query
 func getConfigConfigQueryExampleResolver(obj *model.ConfigConfig,  StartTime *string,  EndTime *string,  Interval *string,  IsServiceDeployment *bool,  StartVal *int, ) (*model.NexusGraphqlResponse, error) {
 	parentLabels := make(map[string]string)
@@ -110,9 +109,6 @@ func getConfigConfigQueryExampleResolver(obj *model.ConfigConfig,  StartTime *st
 	}
 	return resp.(*model.NexusGraphqlResponse), nil
 }
-
-
-
 // Custom query
 func getGnsGnsqueryGns1Resolver(obj *model.GnsGns,  StartTime *string,  EndTime *string,  Interval *string,  IsServiceDeployment *bool,  StartVal *int, ) (*model.NexusGraphqlResponse, error) {
 	parentLabels := make(map[string]string)
@@ -166,14 +162,6 @@ func getGnsGnsqueryGnsQMResolver(obj *model.GnsGns,  StartTime *string,  EndTime
 	}
 	return resp.(*model.TimeSeriesData), nil
 }
-
-
-
-
-
-
-
-
 //////////////////////////////////////
 // CHILD RESOLVER (Non Singleton)
 // FieldName: Config Node: Root PKG: Root

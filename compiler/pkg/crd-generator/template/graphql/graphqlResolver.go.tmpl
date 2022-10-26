@@ -186,8 +186,8 @@ func get{{$node.PkgName}}{{$node.NodeName}}{{$query.Name}}Resolver(obj *model.{{
 	}
 	return resp.(*model.TimeSeriesData), nil
 	{{- end }}
-}{{- end }}
-{{ end }}
+}{{- end -}}
+{{- end -}}
 {{- range $key, $node := .Nodes }}
 {{- range $key, $child := $node.ChildFields }}
 {{- if $child.IsSingleton }}

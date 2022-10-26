@@ -150,7 +150,8 @@ generate_code:
 	@echo "Nexus Compiler: Generating CRD yamls"
 	go run cmd/generate-openapischema/generate-openapischema.go -yamls-path _generated/crds
 	git checkout -- pkg/openapi_generator/openapi/openapi_generated.go
-	@echo "==> Nexus Compiler: Generating GRAPHQL pkg <=="
+	cp -r _generated/{client,apis,crds,common,nexus-client,helper,nexus-gql} ${GENERATED_OUTPUT_DIRECTORY}
+	@echo "Nexus Compiler: Generating GRAPHQL PKG"
 	cd _generated && goimports -w .
 	cd _generated/nexus-gql && \
 	  go get github.com/cespare/xxhash/v2@v2.1.2 && \
