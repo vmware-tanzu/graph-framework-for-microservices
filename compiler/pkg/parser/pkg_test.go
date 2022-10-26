@@ -37,7 +37,7 @@ var _ = Describe("Pkg tests", func() {
 
 		expectedImports := []string{
 			"configtsmtanzuvmwarecomv1 \"github.com/vmware-tanzu/graph-framework-for-microservices/compiler/example/output/crd_generated/apis/config.tsm.tanzu.vmware.com/v1\"",
-			"nexustsmtanzuvmwarecomv1 \"github.com/vmware-tanzu/graph-framework-for-microservices/compiler/example/output/crd_generated/apis/nexus.tsm.tanzu.vmware.com/v1\""}
+			" \"github.com/vmware-tanzu/graph-framework-for-microservices/nexus/nexus\""}
 
 		Expect(imports).To(Equal(expectedImports))
 	})
@@ -63,7 +63,7 @@ var _ = Describe("Pkg tests", func() {
 
 	It("should get all structs for gns", func() {
 		structs := gnsPkg.GetStructs()
-		Expect(structs).To(HaveLen(16))
+		Expect(structs).To(HaveLen(18))
 	})
 
 	It("should get all types for gns", func() {
@@ -78,7 +78,7 @@ var _ = Describe("Pkg tests", func() {
 
 	It("should get all nodes for gns", func() {
 		nodes := gnsPkg.GetNodes()
-		Expect(nodes).To(HaveLen(10))
+		Expect(nodes).To(HaveLen(12))
 	})
 
 	It("should get all consts for gns", func() {
@@ -94,8 +94,8 @@ var _ = Describe("Pkg tests", func() {
 
 	It("should get link fields for gns", func() {
 		nodes := gnsPkg.GetNexusNodes()
-		linkFields := parser.GetLinkFields(nodes[1])
-		Expect(linkFields).To(HaveLen(1))
+		linkFields := parser.GetChildFields(nodes[1])
+		Expect(linkFields).To(HaveLen(4))
 	})
 
 	It("should get spec fields for gns", func() {

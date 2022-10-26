@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"sync"
 
 	log "github.com/sirupsen/logrus"
 	"k8s.io/client-go/rest"
@@ -13,8 +14,16 @@ import (
 
 	nexus_client "github.com/vmware-tanzu/graph-framework-for-microservices/compiler/example/output/crd_generated/nexus-client"
 	"github.com/vmware-tanzu/graph-framework-for-microservices/compiler/example/output/crd_generated/nexus-gql/graph/model"
+
+	"github.com/vmware-tanzu/graph-framework-for-microservices/nexus/generated/graphql"
+	qm "github.com/vmware-tanzu/graph-framework-for-microservices/nexus/generated/query-manager"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/nexus/nexus"
 )
 
+var c = GrpcClients{
+	mtx:     sync.Mutex{},
+	Clients: map[string]GrpcClient{},
+}
 var nc *nexus_client.Clientset
 
 func getParentName(parentLabels map[string]interface{}, key string) string {
@@ -76,6 +85,92 @@ func getRootResolver() (*model.RootRoot, error) {
 	}
 	log.Debugf("[getRootResolver]Output Root object %+v", ret)
 	return ret, nil
+}
+
+// Custom query
+func getConfigConfigQueryExampleResolver(obj *model.ConfigConfig, StartTime *string, EndTime *string, Interval *string, IsServiceDeployment *bool, StartVal *int) (*model.NexusGraphqlResponse, error) {
+	parentLabels := make(map[string]string)
+	if obj != nil {
+		for k, v := range obj.ParentLabels {
+			val, ok := v.(string)
+			if ok {
+				parentLabels[k] = val
+			}
+		}
+	}
+	query := &graphql.GraphQLQuery{
+		Query: "QueryExample",
+		UserProvidedArgs: map[string]string{
+			"StartTime":           pointerToString(StartTime),
+			"EndTime":             pointerToString(EndTime),
+			"Interval":            pointerToString(Interval),
+			"IsServiceDeployment": pointerToString(IsServiceDeployment),
+			"StartVal":            pointerToString(StartVal),
+		},
+		Hierarchy: parentLabels,
+	}
+
+	resp, err := c.Request("query-manager:6000", nexus.GraphQLQueryApi, query)
+	if err != nil {
+		return nil, err
+	}
+	return resp.(*model.NexusGraphqlResponse), nil
+}
+
+// Custom query
+func getGnsGnsqueryGns1Resolver(obj *model.GnsGns, StartTime *string, EndTime *string, Interval *string, IsServiceDeployment *bool, StartVal *int) (*model.NexusGraphqlResponse, error) {
+	parentLabels := make(map[string]string)
+	if obj != nil {
+		for k, v := range obj.ParentLabels {
+			val, ok := v.(string)
+			if ok {
+				parentLabels[k] = val
+			}
+		}
+	}
+	query := &graphql.GraphQLQuery{
+		Query: "queryGns1",
+		UserProvidedArgs: map[string]string{
+			"StartTime":           pointerToString(StartTime),
+			"EndTime":             pointerToString(EndTime),
+			"Interval":            pointerToString(Interval),
+			"IsServiceDeployment": pointerToString(IsServiceDeployment),
+			"StartVal":            pointerToString(StartVal),
+		},
+		Hierarchy: parentLabels,
+	}
+
+	resp, err := c.Request("nexus-query-responder:15000", nexus.GraphQLQueryApi, query)
+	if err != nil {
+		return nil, err
+	}
+	return resp.(*model.NexusGraphqlResponse), nil
+}
+
+// Custom query
+func getGnsGnsqueryGnsQM1Resolver(obj *model.GnsGns) (*model.TimeSeriesData, error) {
+	metricArgs := &qm.MetricArg{
+		QueryType: "/queryGnsQM1",
+	}
+	resp, err := c.Request("query-manager:15002", nexus.GetMetricsApi, metricArgs)
+	if err != nil {
+		return nil, err
+	}
+	return resp.(*model.TimeSeriesData), nil
+}
+
+// Custom query
+func getGnsGnsqueryGnsQMResolver(obj *model.GnsGns, StartTime *string, EndTime *string, Interval *string) (*model.TimeSeriesData, error) {
+	metricArgs := &qm.MetricArg{
+		QueryType: "/queryGnsQM",
+		StartTime: *StartTime,
+		EndTime:   *EndTime,
+	}
+	resp, err := c.Request("query-manager:15003", nexus.GetMetricsApi, metricArgs)
+	if err != nil {
+		return nil, err
+	}
+	return resp.(*model.TimeSeriesData), nil
 }
 
 //////////////////////////////////////
@@ -725,37 +820,6 @@ func getGnsGnsFooChildResolver(obj *model.GnsGns) (*model.GnsBarChild, error) {
 	}
 
 	log.Debugf("[getGnsGnsFooChildResolver]Output object %+v", ret)
-	return ret, nil
-}
-
-//////////////////////////////////////
-// LINK RESOLVER
-// FieldName: Dns Node: Gns PKG: Gns
-//////////////////////////////////////
-func getGnsGnsDnsResolver(obj *model.GnsGns) (*model.GnsDns, error) {
-	log.Debugf("[getGnsGnsDnsResolver]Parent Object %+v", obj)
-	vDnsParent, err := nc.RootRoot().Config(getParentName(obj.ParentLabels, "configs.config.tsm.tanzu.vmware.com")).GetGNS(context.TODO(), getParentName(obj.ParentLabels, "gnses.gns.tsm.tanzu.vmware.com"))
-	if err != nil {
-		log.Errorf("[getGnsGnsDnsResolver]Error getting parent node %s", err)
-		return &model.GnsDns{}, nil
-	}
-	vDns, err := vDnsParent.GetDns(context.TODO())
-	if err != nil {
-		log.Errorf("[getGnsGnsDnsResolver]Error getting Dns object %s", err)
-		return &model.GnsDns{}, nil
-	}
-	dn := vDns.DisplayName()
-	parentLabels := map[string]interface{}{"dnses.gns.tsm.tanzu.vmware.com": dn}
-
-	for k, v := range obj.ParentLabels {
-		parentLabels[k] = v
-	}
-	ret := &model.GnsDns{
-		Id:           &dn,
-		ParentLabels: parentLabels,
-	}
-	log.Debugf("[getGnsGnsDnsResolver]Output object %v", ret)
-
 	return ret, nil
 }
 

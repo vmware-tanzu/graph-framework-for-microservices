@@ -15,34 +15,20 @@ var uris = map[string]string{}
 
 func GetRestApiSpecs(p parser.Package, httpMethods map[string]nexus.HTTPMethodsResponses,
 	httpCodes map[string]nexus.HTTPCodesResponse, parentsMap map[string]parser.NodeHelper) map[string]nexus.RestAPISpec {
+
 	apiSpecs := make(map[string]nexus.RestAPISpec)
+	for _, spec := range parser.GetNexusSpecs(p, "nexus.RestAPISpec") {
+		apiSpec := nexus.RestAPISpec{}
+		for _, elt := range spec.Value.Elts {
+			uris := elt.(*ast.KeyValueExpr)
 
-	for _, genDecl := range p.GenDecls {
-		for _, spec := range genDecl.Specs {
-			if valueSpec, ok := spec.(*ast.ValueSpec); ok {
-				name := valueSpec.Names[0].Name
-				if valueSpec.Values == nil {
-					continue
-				}
-				if value, ok := valueSpec.Values[0].(*ast.CompositeLit); ok {
-					if types.ExprString(value.Type) != "nexus.RestAPISpec" {
-						continue
-					}
-
-					apiSpec := nexus.RestAPISpec{}
-					for _, elt := range value.Elts {
-						uris := elt.(*ast.KeyValueExpr)
-
-						for _, uri := range uris.Value.(*ast.CompositeLit).Elts {
-							restUri := extractApiSpecRestURI(uri.(*ast.CompositeLit), httpMethods, httpCodes)
-							apiSpec.Uris = append(apiSpec.Uris, restUri)
-						}
-					}
-
-					apiSpecs[name] = apiSpec
-				}
+			for _, uri := range uris.Value.(*ast.CompositeLit).Elts {
+				restUri := extractApiSpecRestURI(uri.(*ast.CompositeLit), httpMethods, httpCodes)
+				apiSpec.Uris = append(apiSpec.Uris, restUri)
 			}
 		}
+
+		apiSpecs[spec.Name] = apiSpec
 	}
 
 	return apiSpecs

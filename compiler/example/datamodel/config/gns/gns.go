@@ -7,7 +7,7 @@ import (
 
 	service_group "github.com/vmware-tanzu/graph-framework-for-microservices/compiler/example/datamodel/config/gns/service-group"
 	policypkg "github.com/vmware-tanzu/graph-framework-for-microservices/compiler/example/datamodel/config/policy"
-	"github.com/vmware-tanzu/graph-framework-for-microservices/compiler/example/datamodel/nexus"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/nexus/nexus"
 )
 
 var FooCustomMethodsResponses = nexus.HTTPMethodsResponses{
@@ -103,7 +103,54 @@ type ReplicationSource struct {
 	SourceKind SourceKind
 }
 
+type gnsQueryFilters struct {
+	StartTime           string
+	EndTime             string
+	Interval            string
+	IsServiceDeployment bool
+	StartVal            int
+}
+
+type metricsFilers struct {
+	StartTime string
+	EndTime   string
+	Interval  string
+}
+
+var CloudEndpointGraphQLQuerySpec = nexus.GraphQLQuerySpec{
+	Queries: []nexus.GraphQLQuery{
+		{
+			Name: "queryGns1",
+			ServiceEndpoint: nexus.GraphQLQueryEndpoint{
+				Domain: "nexus-query-responder",
+				Port:   15000,
+			},
+			Args:    gnsQueryFilters{},
+			ApiType: nexus.GraphQLQueryApi,
+		},
+		{
+			Name: "queryGnsQM1",
+			ServiceEndpoint: nexus.GraphQLQueryEndpoint{
+				Domain: "query-manager",
+				Port:   15002,
+			},
+			Args:    nil,
+			ApiType: nexus.GetMetricsApi,
+		},
+		{
+			Name: "queryGnsQM",
+			ServiceEndpoint: nexus.GraphQLQueryEndpoint{
+				Domain: "query-manager",
+				Port:   15003,
+			},
+			Args:    metricsFilers{},
+			ApiType: nexus.GetMetricsApi,
+		},
+	},
+}
+
 // Gns struct.
+// nexus-graphql-query:CloudEndpointGraphQLQuerySpec
 // nexus-rest-api-gen:GNSRestAPISpec
 // nexus-description: this is my awesome node
 // specification of GNS.
@@ -115,8 +162,8 @@ type Gns struct {
 	UseSharedGateway       bool
 	Description            Description
 	GnsServiceGroups       service_group.SvcGroup        `nexus:"children"`
-	GnsAccessControlPolicy policypkg.AccessControlPolicy `nexus:"child"`
-	Dns                    Dns                           `nexus:"link"`
+	GnsAccessControlPolicy policypkg.AccessControlPolicy `nexus:"child" nexus-graphql:"type:string"`
+	Dns                    Dns                           `nexus:"link" nexus-graphql:"ignore:true"`
 	State                  GnsState                      `nexus:"status"`
 	FooChild               BarChild                      `nexus:"child" nexus-graphql:"type:string"`
 	IgnoreChild            IgnoreChild                   `nexus:"child" nexus-graphql:"ignore:true"`

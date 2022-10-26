@@ -74,3 +74,12 @@ type RootList struct {
 type NonNexusType struct {
 	Test int
 }
+
+// +k8s:openapi-gen=true
+type queryFilters struct {
+	StartTime           string
+	EndTime             string
+	Interval            string
+	IsServiceDeployment bool
+	StartVal            int
+}

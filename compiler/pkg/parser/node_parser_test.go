@@ -21,7 +21,7 @@ var _ = Describe("Node parser tests", func() {
 	)
 
 	BeforeEach(func() {
-		graph = parser.ParseDSLNodes(exampleDSLPath, baseGroupName)
+		graph = parser.ParseDSLNodes(exampleDSLPath, baseGroupName, nil, nil)
 		root, ok = graph["roots.root.tsm.tanzu.vmware.com"]
 		Expect(ok).To(BeTrue())
 	})
@@ -58,7 +58,7 @@ var _ = Describe("Node parser tests", func() {
 			fail = true
 		}
 
-		parser.ParseDSLNodes("../../example/test-utils/invalid-pkg-name-datamodel", baseGroupName)
+		parser.ParseDSLNodes("../../example/test-utils/invalid-pkg-name-datamodel", baseGroupName, nil, nil)
 		Expect(fail).To(BeTrue())
 	})
 
@@ -70,7 +70,7 @@ var _ = Describe("Node parser tests", func() {
 			fail = true
 		}
 
-		parser.ParseDSLNodes("../../example/test-utils/invalid-type-datamodel", baseGroupName)
+		parser.ParseDSLNodes("../../example/test-utils/invalid-type-datamodel", baseGroupName, nil, nil)
 		Expect(fail).To(BeTrue())
 	})
 
@@ -82,7 +82,7 @@ var _ = Describe("Node parser tests", func() {
 			fail = true
 		}
 
-		parser.ParseDSLNodes("../../example/test-utils/pointer-type-datamodel", baseGroupName)
+		parser.ParseDSLNodes("../../example/test-utils/pointer-type-datamodel", baseGroupName, nil, nil)
 		Expect(fail).To(BeTrue())
 	})
 
@@ -94,7 +94,7 @@ var _ = Describe("Node parser tests", func() {
 			fail = true
 		}
 
-		parser.ParseDSLNodes("../../example/test-utils/invalid-singleton-child", baseGroupName)
+		parser.ParseDSLNodes("../../example/test-utils/invalid-singleton-child", baseGroupName, nil, nil)
 		Expect(fail).To(BeTrue())
 	})
 
@@ -106,7 +106,7 @@ var _ = Describe("Node parser tests", func() {
 			fail = true
 		}
 
-		parser.ParseDSLNodes("../../example/test-utils/invalid-type-name-datamodel", baseGroupName)
+		parser.ParseDSLNodes("../../example/test-utils/invalid-type-name-datamodel", baseGroupName, nil, nil)
 		Expect(fail).To(BeTrue())
 	})
 
@@ -118,7 +118,7 @@ var _ = Describe("Node parser tests", func() {
 			fail = true
 		}
 
-		parser.ParseDSLNodes("../../example/test-utils/with-id-field", baseGroupName)
+		parser.ParseDSLNodes("../../example/test-utils/with-id-field", baseGroupName, nil, nil)
 		Expect(fail).To(BeTrue())
 	})
 
@@ -130,12 +130,12 @@ var _ = Describe("Node parser tests", func() {
 			fail = true
 		}
 
-		parser.ParseDSLNodes("../../example/test-utils/with-id-type", baseGroupName)
+		parser.ParseDSLNodes("../../example/test-utils/with-id-type", baseGroupName, nil, nil)
 		Expect(fail).To(BeTrue())
 	})
 
 	It("should be able to get graphql info from a field", func() {
-		graph = parser.ParseDSLNodes(exampleDSLPath, baseGroupName)
+		graph = parser.ParseDSLNodes(exampleDSLPath, baseGroupName, nil, nil)
 		config, ok := graph["roots.root.tsm.tanzu.vmware.com"].SingleChildren["Config"]
 		Expect(ok).To(BeTrue())
 

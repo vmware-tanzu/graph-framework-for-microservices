@@ -125,7 +125,7 @@ func getTag(f *ast.Field, name string, omitempty bool) string {
 	currentTags := parser.GetFieldTags(f)
 	if currentTags != nil && currentTags.Len() > 0 {
 		nexusTag, err := currentTags.Get("nexus")
-		if currentTags.Len() == 1 && err == nil {
+		if err == nil {
 			tag += " " + nexusTag.String()
 		} else {
 			tag = currentTags.String()

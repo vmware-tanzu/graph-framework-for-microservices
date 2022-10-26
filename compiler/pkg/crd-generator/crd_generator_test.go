@@ -4,9 +4,10 @@ import (
 	"go/format"
 	"io/ioutil"
 
+	"github.com/vmware-tanzu/graph-framework-for-microservices/compiler/pkg/util"
+
 	"github.com/vmware-tanzu/graph-framework-for-microservices/common-library/pkg/nexus"
 	"github.com/vmware-tanzu/graph-framework-for-microservices/compiler/pkg/parser/rest"
-	"github.com/vmware-tanzu/graph-framework-for-microservices/compiler/pkg/util"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -50,8 +51,8 @@ var _ = Describe("Template renderers tests", func() {
 		pkgs = parser.ParseDSLPkg(exampleDSLPath)
 		pkg, ok = pkgs["github.com/vmware-tanzu/graph-framework-for-microservices/compiler/example/datamodel/config/gns"]
 		Expect(ok).To(BeTrue())
-
-		graph := parser.ParseDSLNodes(exampleDSLPath, baseGroupName)
+		graphqlQueries := parser.ParseGraphqlQuerySpecs(pkgs)
+		graph := parser.ParseDSLNodes(exampleDSLPath, baseGroupName, pkgs, graphqlQueries)
 		parentsMap = parser.CreateParentsMap(graph)
 		Expect(parentsMap).To(HaveLen(12))
 

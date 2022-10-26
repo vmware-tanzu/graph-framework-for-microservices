@@ -313,7 +313,7 @@ func (group *{{$node.GroupTypeName}}) Update{{$node.BaseNodeName}}ByName(ctx con
 		Path:  "/metadata",
 		Value: objToUpdate.ObjectMeta,
 	})
-	{{ range $key, $field := .Fields }} 
+	{{ range $key, $field := .Fields }}
 	{{ if $field.IsAggregateKind }}
 	if objToUpdate.Spec.{{$field.FieldName}} != nil {
 		patchValue{{$field.FieldName}} :=

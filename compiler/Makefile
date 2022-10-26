@@ -54,7 +54,7 @@ docker.builder:
 .PHONY: docker
 docker: init_submodules ${BUILDER_NAME}\:${BUILDER_TAG}.image.exists build_openapigen_in_container build_gqlgen_in_container
 	git archive -o compiler.tar --format=tar HEAD
-	tar -rf compiler.tar ../.git ../.gitmodules ../common-library ../gqlgen ../kube-openapi
+	tar -rf compiler.tar ../.git ../.gitmodules ../common-library ../gqlgen ../kube-openapi ../nexus
 	docker build --no-cache \
 		--build-arg BUILDER_TAG=${BUILDER_TAG} \
 		-t ${IMAGE_NAME}:${TAG} .
@@ -115,7 +115,7 @@ lint:
 	golangci-lint run ./cmd/... ./pkg/...
 
 coverage:
-	go test -json -coverprofile=coverage.out -coverpkg=./... ./... | tee report.json ;
+	go test -json -coverprofile=coverage.out -coverpkg=./... ./pkg/... | tee report.json ;
 
 .PHONY: test
 test: test-fmt vet lint race-unit-test
@@ -134,7 +134,7 @@ generate_code:
 	@echo "Cleaning up workdir"
 	rm -rf _generated ${GOPATH}/src/nexustempmodule
 	@echo "Copying generated_base_structure to create directory structure"
-	cp -R generated_base_structure _generated
+	cp -R _generated_base_structure _generated
 	@echo "Copying go.mod file of datamodel"
 	cp ${DATAMODEL_PATH}/go.mod _generated/go.mod
 	sed -i'.bak' -e "1s|.*|module nexustempmodule|" _generated/go.mod
@@ -151,12 +151,13 @@ generate_code:
 	@echo "Nexus Compiler: Generating CRD yamls"
 	go run cmd/generate-openapischema/generate-openapischema.go -yamls-path _generated/crds
 	git checkout -- pkg/openapi_generator/openapi/openapi_generated.go
-	@echo "==> Nexus Compiler: Generating GRAPHQL pkg <=="
+	cp -r _generated/{client,apis,crds,common,nexus-client,helper,nexus-gql} ${GENERATED_OUTPUT_DIRECTORY}
+	@echo "Nexus Compiler: Generating GRAPHQL PKG"
 	cd _generated && goimports -w .
-	cd _generated/nexus-gql && go mod edit -replace github.com/vmware-tanzu/graph-framework-for-microservices/gqlgen=/go/src/github.com/vmware-tanzu/graph-framework-for-microservices/gqlgen && go mod edit -replace github.com/vmware-tanzu/graph-framework-for-microservices/kube-openapi=/go/src/github.com/vmware-tanzu/graph-framework-for-microservices/kube-openapi && go get github.com/cespare/xxhash/v2@v2.1.2 && gqlgen generate
-	cp -rf _generated/* ${GOPATH}/src/nexustempmodule/
-	cd ${GOPATH}/src/nexustempmodule && cd nexus-gql && CGO_ENABLED=1 GOOS=linux \
-	go build --trimpath -o graphql.so -buildmode=plugin server.go
+	cd _generated/nexus-gql && \
+	  go get github.com/cespare/xxhash/v2@v2.1.2 && \
+	  gqlgen generate && \
+	  CGO_ENABLED=1 GOOS=linux go build --trimpath -o graphql.so -buildmode=plugin server.go
 	@echo "Updating module name"
 	./scripts/replace_mod_path.sh
 	find . -name "*.bak" -type f -delete
@@ -164,7 +165,6 @@ generate_code:
 	cd _generated && goimports -w .
 	@echo "Nexus Compiler: Moving files to output directory"
 	cp -r _generated/{client,apis,crds,common,nexus-client,helper,nexus-gql} ${GENERATED_OUTPUT_DIRECTORY}
-	cp -r ${GOPATH}/src/nexustempmodule/nexus-gql/graphql.so ${GENERATED_OUTPUT_DIRECTORY}/nexus-gql
 	@echo "Nexus Compiler: Compiler code generation completed"
 
 .PHONY: test_generate_code_in_container
@@ -176,14 +176,13 @@ test_generate_code_in_container: ${BUILDER_NAME}\:${BUILDER_TAG}.image.exists in
 	CRD_MODULE_PATH="github.com/vmware-tanzu/graph-framework-for-microservices/compiler/example/output/crd_generated/" \
 	LOG_LEVEL=trace \
 	GENERATED_OUTPUT_DIRECTORY=example/output/crd_generated && \
-	cd example/output/crd_generated && go mod edit -replace github.com/vmware-tanzu/graph-framework-for-microservices/gqlgen=../../../../gqlgen && go mod edit -replace github.com/vmware-tanzu/graph-framework-for-microservices/kube-openapi=../../../../kube-openapi && go mod tidy && go vet ./... && golangci-lint run ./...)
+	cd example/output/crd_generated && go vet -structtag=FALSE ./... && golangci-lint run ./...)
 	@if [ -n "$$(git ls-files --modified --exclude-standard)" ]; then\
 		echo "The following changes should be committed:";\
 		git status;\
 		git diff;\
 		exit 1;\
 	fi
-
 
 .PHONY: generate_example
 generate_example:

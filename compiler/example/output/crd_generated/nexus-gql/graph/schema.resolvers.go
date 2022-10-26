@@ -15,6 +15,11 @@ func (r *queryResolver) Root(ctx context.Context) (*model.RootRoot, error) {
 	return getRootResolver()
 }
 
+// QueryExample is the resolver for the QueryExample field.
+func (r *config_ConfigResolver) QueryExample(ctx context.Context, obj *model.ConfigConfig, startTime *string, endTime *string, interval *string, isServiceDeployment *bool, startVal *int) (*model.NexusGraphqlResponse, error) {
+	return getConfigConfigQueryExampleResolver(obj, startTime, endTime, interval, isServiceDeployment, startVal)
+}
+
 // ACPPolicies is the resolver for the ACPPolicies field.
 func (r *config_ConfigResolver) ACPPolicies(ctx context.Context, obj *model.ConfigConfig, id *string) ([]*model.PolicyAccessControlPolicy, error) {
 	return getConfigConfigACPPoliciesResolver(obj, id)
@@ -45,14 +50,24 @@ func (r *config_ConfigResolver) Domain(ctx context.Context, obj *model.ConfigCon
 	return getConfigConfigDomainResolver(obj, id)
 }
 
+// QueryGns1 is the resolver for the queryGns1 field.
+func (r *gns_GnsResolver) QueryGns1(ctx context.Context, obj *model.GnsGns, startTime *string, endTime *string, interval *string, isServiceDeployment *bool, startVal *int) (*model.NexusGraphqlResponse, error) {
+	return getGnsGnsqueryGns1Resolver(obj, startTime, endTime, interval, isServiceDeployment, startVal)
+}
+
+// QueryGnsQm1 is the resolver for the queryGnsQM1 field.
+func (r *gns_GnsResolver) QueryGnsQm1(ctx context.Context, obj *model.GnsGns) (*model.TimeSeriesData, error) {
+	return getGnsGnsqueryGnsQM1Resolver(obj)
+}
+
+// QueryGnsQm is the resolver for the queryGnsQM field.
+func (r *gns_GnsResolver) QueryGnsQm(ctx context.Context, obj *model.GnsGns, startTime *string, endTime *string, interval *string) (*model.TimeSeriesData, error) {
+	return getGnsGnsqueryGnsQMResolver(obj, startTime, endTime, interval)
+}
+
 // GnsServiceGroups is the resolver for the GnsServiceGroups field.
 func (r *gns_GnsResolver) GnsServiceGroups(ctx context.Context, obj *model.GnsGns, id *string) ([]*model.ServicegroupSvcGroup, error) {
 	return getGnsGnsGnsServiceGroupsResolver(obj, id)
-}
-
-// Dns is the resolver for the Dns field.
-func (r *gns_GnsResolver) Dns(ctx context.Context, obj *model.GnsGns) (*model.GnsDns, error) {
-	return getGnsGnsDnsResolver(obj)
 }
 
 // GnsAccessControlPolicy is the resolver for the GnsAccessControlPolicy field.
