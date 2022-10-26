@@ -25,6 +25,6 @@ go mod edit -replace k8s.io/apiextensions-apiserver=k8s.io/apiextensions-apiserv
 go mod edit -replace k8s.io/apimachinery=k8s.io/apimachinery@$DEFAULT_CLIENT_VERSION_TAG
 go mod edit -replace k8s.io/client-go=k8s.io/client-go@$DEFAULT_CLIENT_VERSION_TAG
 
-go mod edit -replace github.com/vmware-tanzu/graph-framework-for-microservices/gqlgen=../../gqlgen
-go mod edit -replace github.com/vmware-tanzu/graph-framework-for-microservices/kube-openapi=../../kube-openapi
-go mod edit -replace github.com/vmware-tanzu/graph-framework-for-microservices/nexus=../../nexus
+go mod edit -replace github.com/vmware-tanzu/graph-framework-for-microservices/gqlgen=/go/src/github.com/vmware-tanzu/graph-framework-for-microservices/gqlgen
+go mod edit -replace github.com/vmware-tanzu/graph-framework-for-microservices/kube-openapi=/go/src/github.com/vmware-tanzu/graph-framework-for-microservices/kube-openapi
+go mod edit -replace github.com/vmware-tanzu/graph-framework-for-microservices/nexus=/go/src/github.com/vmware-tanzu/graph-framework-for-microservices/nexus
