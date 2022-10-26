@@ -22,4 +22,7 @@ RUN tdnf -y --refresh install \
   && go install golang.org/x/tools/cmd/goimports@latest \
   && go install github.com/mikefarah/yq/v4@latest \
   && go install -buildvcs=false k8s.io/kube-openapi/cmd/openapi-gen@1a6458611d189dc17e98a0824dc92536365efedf \
-  && curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b "$(go env GOPATH)"/bin v1.49.0 \
+  && curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b "$(go env GOPATH)"/bin v1.49.0
+
+# Create .cache dir and add write permissions for .cache and /go dirs
+RUN mkdir /.cache && chmod -R a+w /.cache && chmod -R a+w /go
