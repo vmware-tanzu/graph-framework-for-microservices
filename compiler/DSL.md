@@ -224,7 +224,93 @@ var LeaderRestAPISpec = nexus.RestAPISpec{
 
 ### Custom GraphQL query spec
 
-...
+Custom GraphQl query spec is a way of extending GraphQl server with queries to external GRPC servers. 
+
+To add custom queries you need to use `nexus.GraphQLQuerySpec` struct imported from
+[nexus](https://github.com/vmware-tanzu/graph-framework-for-microservices/blob/main/nexus/nexus/nexus.go) package.
+
+This is a collection  of `nexus.GraphQLQuery` structs. A GraphQLQuery specifies a custom query available via GraphQL API.
+Each GraphQLQuery is self contained unit of the exposed custom query.
+Format is as following:
+
+```Go
+type GraphQLQuery struct {
+    Name            string               `json:"name,omitempty"`             // query identifier
+    ServiceEndpoint GraphQLQueryEndpoint `json:"service_endpoint,omitempty"` // endpoint that serves this query
+    Args            interface{}          `json:"args,omitempty"`             // custom graphql filters and arguments
+    ApiType         GraphQlApiType       `json:"api_type,omitempty"`         // type of GRPC API endpoint
+}
+```
+
+Currently there are two API types supported:
+- NexusGraphQL Query, [proto file](https://github.com/vmware-tanzu/graph-framework-for-microservices/blob/main/nexus/proto/graphql/query.proto)
+  specifies Query requests and responses which server should implement
+- GetMetrics, [proto_file](https://github.com/vmware-tanzu/graph-framework-for-microservices/blob/main/nexus/proto/query-manager/server.proto)
+  specifies expected requests and responses.
+
+In NexusGraphQL Query you can provide any arguments, they will be translated into map. In GetMetrics arguments must be a
+subset of [MetricsArg](https://github.com/vmware-tanzu/graph-framework-for-microservices/blob/main/nexus/generated/query-manager/server.pb.go#L23)
+arguments.
+
+GraphQlQuerySpec can be attached to a Nexus Node using comment above a Node.
+
+Example custom query:
+```Go
+package role
+
+import (
+  "github.com/vmware-tanzu/graph-framework-for-microservices/nexus/nexus"
+)
+
+// nexus-graphql-query:MyCustomQueries
+type Leader struct {
+  nexus.Node
+  EmployeeID int
+}
+
+var MyCustomQueries = nexus.GraphQLQuerySpec{
+  Queries: []nexus.GraphQLQuery{
+    {
+      Name: "queryGns1",
+      ServiceEndpoint: nexus.GraphQLQueryEndpoint{
+        Domain: "nexus-query-responder",
+        Port:   15000,
+      },
+      Args:    QueryFilters{},
+      ApiType: nexus.GraphQLQueryApi,
+    },
+    {
+      Name: "queryMetrics1",
+      ServiceEndpoint: nexus.GraphQLQueryEndpoint{
+        Domain: "query-manager",
+        Port:   15002,
+      },
+      Args:    nil,
+      ApiType: nexus.GetMetricsApi,
+    },
+    {
+      Name: "queryMetrics2",
+      ServiceEndpoint: nexus.GraphQLQueryEndpoint{
+        Domain: "query-manager",
+        Port:   15003,
+      },
+      Args:    metricsFilers{},
+      ApiType: nexus.GetMetricsApi,
+    },
+  },
+}
+
+type QueryFilters struct {
+  foo           string
+  bar             string
+}
+
+type metricsFilers struct {
+  StartTime string
+  EndTime   string
+  TimeInterval  string
+}
+```
 
 ### OpenAPI validation
 
