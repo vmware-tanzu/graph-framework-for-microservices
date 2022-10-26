@@ -6,7 +6,7 @@ import (
 
 type Config struct {
 	nexus.Node
-	Id          string
+	MyId          string
 	FooResource Resource
 }
 

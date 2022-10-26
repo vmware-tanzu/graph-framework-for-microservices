@@ -53,8 +53,10 @@ func ParseDSLNodes(startPath string, baseGroupName string) map[string]Node {
 						if ok {
 							for _, spec := range genDecl.Specs {
 								if typeSpec, ok := spec.(*ast.TypeSpec); ok {
+									if v.Name != "nexus" {
+										CheckIfNameReserved(typeSpec)
+									}
 									if _, ok := typeSpec.Type.(*ast.StructType); ok {
-										checkIfReserved(typeSpec.Name.Name)
 										crdName := util.GetCrdName(typeSpec.Name.Name, v.Name, baseGroupName)
 										if IsNexusNode(typeSpec) {
 											// Detect root nodes
@@ -209,6 +211,7 @@ func processNode(node *Node, nodes map[string]Node, baseGroupName string) {
 				log.Fatalf(`"Invalid Type for %v. Nexus Child or Link can't be an array. Please represent it in the form of a map.`+"\n"+
 					`For example: `+
 					`myStr []string should be represented in the form of myStr map[string]string`, f.Names)
+				return
 			}
 		}
 
@@ -340,12 +343,4 @@ func findMatchingImport(nodeName string, imports []*ast.ImportSpec, allNodes map
 		}
 	}
 	return ""
-}
-
-func checkIfReserved(name string) {
-	for _, reservedName := range ReservedTypeNames {
-		if name == reservedName {
-			log.Fatalf("Name %s is reserved. Please change type name.", reservedName)
-		}
-	}
 }
