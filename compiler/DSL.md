@@ -1,33 +1,40 @@
 # Nexus DSL
 
-In Nexus, you can specify your data model using Domain Specific Language, which is Golang.
+Nexus DSL empowers applications to specify its datamodel in Go (also called Golang or Go language).
+
+Using Go, applications can express its datamodel as a graph, the specification of a node in the graph, its hierarchy, its relationships etc.
 
 Why Go? Go is easy to read, easy to type and easy to parse. Golang's structs are
 natural data types definitions and Golang's annotations and comments can be used as additional parameters.
 
-## DSL syntax
+## Datamodel as a Graph
 
-In the following points we'll explain Nexus DSL, for a shortcut you can go [here](#Nexus-DSL-syntax-shortcut).
+A datamodel allows an application to structure its business data for simplified organization, storage and consumption. Cloud native applications are rarely static. These applications evolve constantly and often. As these applications evolve, so does its datamodel as well. Relational datamodels are not well suited to handle this agility.
+Graphl datamodels fit that bill.
 
-### Go packages as API groups
-When you define your data model first of all you need to think about logical grouping of
-your data resources.
-For example, you can partition model of a company into departments or roles. In Nexus this
-can be represented by creating separate Go package for each of your logical group. Nexus compiler
-will translate this into separate API groups, which are equivalents to [Kubernetes API
-groups](https://kubernetes.io/docs/reference/using-api/#api-groups).
+Graph datamodels are agile, flexible and highly performant while allow the datamodel and inturn data to grow along with the application and business needs.
 
-### Go structs as data types
+Graph datamodel is composed of two types of elements: nodes and relationships
+- nodes representing an entity (a person, place, thing etc)
+- relationships representing how any two nodes are associated
 
-In nexus logical unit of data type is Nexus Node. As Nexus
-follows a graph data-model-centric design pattern each Nexus Node is a node in a graph.
-Defining Nexus nodes is easy, you just need to define Go struct and as one of embedded fields
-use `nexus.Node`. Node definition can be imported from
-`https://github.com/vmware-tanzu/graph-framework-for-microservices/nexus/nexus`
-package. As a rest of struct fields you can specify spec of your node.
-For a spec you can use standard Go types like `int`, `string` or more complex structs.
+Nexus DSL represent your application data as a Graph Datamodel.
+## Nexus DSL syntax
 
-So your first data model can look like such Go file:
+ #### TL;DR [here](#Nexus-DSL-syntax-shortcut)
+
+### Nodes: Go Structs
+
+Nexus node is a Go struct annotated as a graph node in Nexus DSL.
+
+It is a Go struct, and so can hold fields of all valid Go types.
+
+A struct can be annotated as a Nexus node by including `nexus.Node` (defined [here](https://github.com/vmware-tanzu/graph-framework-for-microservices/nexus/nexus))as an embedded field in the struct. A struct without this annotation is not a Nexus node, but just a valid Go struct.
+
+In essence, not all Go structs are Nexus nodes, but all Nexus nodes are Go structs.
+
+Here is a sample Nexus node:
+
 ```Go
 package role
 
@@ -40,23 +47,35 @@ type Leader struct {
 	EmployeeID int
 }
 ```
+### Relationships
 
-### Go annotations as relation specifications
+Nexus nodes can be associated with other Nexus nodes through Relationships.
 
-In a graph of your data you need to specify relations between nodes. In a Nexus graph there are
-two types of relations which you can specify:
-- parent-child relation to specify tree-like hierarchy
-- soft link relation between nodes from different parts of tree.
+Nexus DSL supports two types of relations between Nexus nodes:
 
-To specify relations you can use nexus annotations.
-For parent-child relations you can use two types of annotatations:
-- `nexus:"child"`
-- `nexus:"children`.
+- child / children
+- link / links
 
-`nexus:"child"` means that given parent object can have only one child of this type, `nexus:"children"`
-that given parent object can have many children objects of this type.
+#### Child / Children
 
-Example datamodel with parent-child relations:
+A Child relationship provides a way to designate one Nexus node as a "parent" or as a hierarchical root to other Nexus node/s in the graph. The Nexus nodes that are associated with the Parent node are referred to has "children" or "child" nodes.
+
+Parent-child relationships in Nexus DSL have the following attributes:
+
+* a Nexus node cannot be claimed by more than one Nexus node as a child. So, each Nexus node can have atmost one parent
+* object for child Nexus node can only be created if the object of its parent Nexus node exists in the graph
+* the lifecycle of the child objects are strictly tied to the lifecycle of the parent object. If the parent object is deleted, all children are deleted as well
+* lifecycle of the parent object is independent of the lifecycle of the children object. So parent can exist even if the child object does not exist
+* circular relationships are prohibited; i.e a parent node cannot be claimed as a child by any of the Nexus nodes in the parent's hierarchy
+
+
+Child relationship can be created by annotating a field of the parent Nexus node with one of the following:
+
+ * `nexus:"child"` if the parent can only claim a specific object of a Nexus Node, as a child
+ * `nexus:"children` if the parent can claim multiple child objects of a Nexus node, as children
+
+Example datamodel with Child relationship:
+
 ```Go
 package role
 
@@ -84,10 +103,24 @@ type Developer struct {
 
 So in this example parent node Leader can have one child object HR and multiple child objects Developer.
 
-Similarly, you can add soft links relations. `nexus:"link"` means there can be one linked object,
-`nexus:"links"` - multiple objects. Links are unidirectional.
+#### Link / Links
+
+A Link relationship provides a way to designate one Nexus node "linked" to other Nexus node/s in the graph. Link relationships are useful to provide a soft or non-hierarchical construct to associate nodes in the graph.
+
+Links can be across hierarchy and so provide a loose coupling between nodes of the graph. As such, Links come with very little riders or restrictions.
+
+Link relationships in Nexus DSL have the following attributes:
+
+* an node can be linked by any other Nexus node in the graph, without restrictions
+* lifecycle of the linked nodes are independent of each other
+
+Link relationship can be created by annotating a field of the Nexus node with one of the following:
+
+ * `nexus:"link"` if the node would like to link to a specific object of a Nexus node
+ * `nexus:"links` if the node would like to link to multiple objects of a Nexus node
 
 For example to link `Developer` to `Location` you can use follow syntax:
+
 ```Go
 package geo
 
@@ -138,7 +171,6 @@ type LeaderStatus struct {
 	DaysLeftToEndOfVacations int
 }
 ```
-
 
 ### REST API spec
 
