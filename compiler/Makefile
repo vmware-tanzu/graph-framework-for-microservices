@@ -158,6 +158,7 @@ generate_code:
 	  go get github.com/cespare/xxhash/v2@v2.1.2 && \
 	  gqlgen generate && \
 	  cp -rf _generated/* ${GOPATH}/src/nexustempmodule/ && \
+	  go mod edit -replace github.com/vmware-tanzu/graph-framework-for-microservices/gqlgen=/go/src/github.com/vmware-tanzu/graph-framework-for-microservices/gqlgen && go mod edit -replace github.com/vmware-tanzu/graph-framework-for-microservices/kube-openapi=/go/src/github.com/vmware-tanzu/graph-framework-for-microservices/kube-openapi && \
 	  cd ${GOPATH}/src/nexustempmodule && cd nexus-gql && \
 	  CGO_ENABLED=1 GOOS=linux go build --trimpath -o graphql.so -buildmode=plugin server.go
 	@echo "Updating module name"
