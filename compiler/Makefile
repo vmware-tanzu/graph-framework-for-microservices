@@ -157,6 +157,8 @@ generate_code:
 	cd _generated/nexus-gql && \
 	  go get github.com/cespare/xxhash/v2@v2.1.2 && \
 	  gqlgen generate && \
+	  cp -rf _generated/* ${GOPATH}/src/nexustempmodule/ && \
+	  cd ${GOPATH}/src/nexustempmodule && cd nexus-gql && \
 	  CGO_ENABLED=1 GOOS=linux go build --trimpath -o graphql.so -buildmode=plugin server.go
 	@echo "Updating module name"
 	./scripts/replace_mod_path.sh
