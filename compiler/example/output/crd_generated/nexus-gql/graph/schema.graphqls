@@ -11,8 +11,16 @@ type root_Root {
 }
 
 type config_Config {
+    
     Id: ID
 	ParentLabels: Map
+    QueryExample(
+        StartTime: String
+        EndTime: String
+        Interval: String
+        IsServiceDeployment: Boolean
+        StartVal: Int
+    ): NexusGraphqlResponse
 
     ACPPolicies(Id: ID): [policy_AccessControlPolicy!]
     FooExample(Id: ID): [config_FooType!]
@@ -58,9 +66,21 @@ type config_Domain {
 type gns_Gns {
     Id: ID
 	ParentLabels: Map
+    queryGns1(
+        StartTime: String
+        EndTime: String
+        Interval: String
+        IsServiceDeployment: Boolean
+        StartVal: Int
+    ): NexusGraphqlResponse
+    queryGnsQM1: TimeSeriesData
+    queryGnsQM(
+        StartTime: String
+        EndTime: String
+        Interval: String
+    ): TimeSeriesData
 
     GnsServiceGroups(Id: ID): [servicegroup_SvcGroup!]
-    Dns: gns_Dns!
     
     Domain: String
     UseSharedGateway: Boolean
@@ -138,4 +158,20 @@ type policy_VMpolicy {
     Id: ID
 	ParentLabels: Map
 
+}
+
+type NexusGraphqlResponse {
+  Code: Int
+  Message: String
+  Data: String
+  Last: String
+  TotalRecords: Int
+}
+
+type TimeSeriesData {
+  Code: Int
+  Message: String
+  Data: String
+  Last: String
+  TotalRecords: Int
 }

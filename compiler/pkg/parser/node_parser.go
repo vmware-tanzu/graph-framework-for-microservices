@@ -11,12 +11,14 @@ import (
 	"strings"
 
 	"github.com/vmware-tanzu/graph-framework-for-microservices/compiler/pkg/util"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/nexus/nexus"
 
 	log "github.com/sirupsen/logrus"
 )
 
 // ParseDSLNodes walks recursively through given path and looks for structs types definitions to add them to graph
-func ParseDSLNodes(startPath string, baseGroupName string) map[string]Node {
+func ParseDSLNodes(startPath string, baseGroupName string, packages Packages,
+	graphqlQueries map[string]nexus.GraphQLQuerySpec) map[string]Node {
 	modulePath := GetModulePath(startPath)
 
 	rootNodes := make([]string, 0)
@@ -53,8 +55,10 @@ func ParseDSLNodes(startPath string, baseGroupName string) map[string]Node {
 						if ok {
 							for _, spec := range genDecl.Specs {
 								if typeSpec, ok := spec.(*ast.TypeSpec); ok {
+									if v.Name != "nexus" {
+										CheckIfNameReserved(typeSpec)
+									}
 									if _, ok := typeSpec.Type.(*ast.StructType); ok {
-										checkIfReserved(typeSpec.Name.Name)
 										crdName := util.GetCrdName(typeSpec.Name.Name, v.Name, baseGroupName)
 										if IsNexusNode(typeSpec) {
 											// Detect root nodes
@@ -78,6 +82,17 @@ func ParseDSLNodes(startPath string, baseGroupName string) map[string]Node {
 											}
 											if node.CrdName == "" {
 												log.Fatalf("Internal compiler failure: Failed to determine crd name of node %v", node.Name)
+											}
+											annotation, exists := GetNexusGraphqlAnnotation(packages[pkgImport], typeSpec.Name.Name)
+											if exists {
+												if !strings.Contains(annotation, ".") {
+													// look for spec in current package
+													annotation = v.Name + "." + annotation
+												}
+												graphqlSpec, ok := graphqlQueries[annotation]
+												if ok {
+													node.GraphqlSpec = graphqlSpec
+												}
 											}
 											nodes[crdName] = node
 										}
@@ -193,6 +208,7 @@ func CreateParentsMap(graph map[string]Node) map[string]NodeHelper {
 				Children:    children,
 				Links:       links,
 				IsSingleton: node.IsSingleton,
+				GraphqlSpec: node.GraphqlSpec,
 			}
 		})
 	}
@@ -209,6 +225,7 @@ func processNode(node *Node, nodes map[string]Node, baseGroupName string) {
 				log.Fatalf(`"Invalid Type for %v. Nexus Child or Link can't be an array. Please represent it in the form of a map.`+"\n"+
 					`For example: `+
 					`myStr []string should be represented in the form of myStr map[string]string`, f.Names)
+				return
 			}
 		}
 
@@ -340,12 +357,4 @@ func findMatchingImport(nodeName string, imports []*ast.ImportSpec, allNodes map
 		}
 	}
 	return ""
-}
-
-func checkIfReserved(name string) {
-	for _, reservedName := range ReservedTypeNames {
-		if name == reservedName {
-			log.Fatalf("Name %s is reserved. Please change type name.", reservedName)
-		}
-	}
 }

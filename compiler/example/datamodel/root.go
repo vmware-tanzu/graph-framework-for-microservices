@@ -2,7 +2,7 @@ package root
 
 import (
 	"github.com/vmware-tanzu/graph-framework-for-microservices/compiler/example/datamodel/config"
-	"github.com/vmware-tanzu/graph-framework-for-microservices/compiler/example/datamodel/nexus"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/nexus/nexus"
 )
 
 type Root struct {
@@ -12,4 +12,25 @@ type Root struct {
 
 type NonNexusType struct {
 	Test int
+}
+
+type queryFilters struct {
+	StartTime           string
+	EndTime             string
+	Interval            string
+	IsServiceDeployment bool
+	StartVal            int
+}
+
+var GeneralGraphQLQuerySpec = nexus.GraphQLQuerySpec{
+	Queries: []nexus.GraphQLQuery{
+		{
+			Name: "QueryExample",
+			ServiceEndpoint: nexus.GraphQLQueryEndpoint{
+				Domain: "query-manager",
+				Port:   6000,
+			},
+			Args: queryFilters{},
+		},
+	},
 }

@@ -38,32 +38,6 @@ spec:
             type: object
           spec:
             properties:
-              FooChildGvk:
-                properties:
-                  group:
-                    type: string
-                  kind:
-                    type: string
-                  name:
-                    type: string
-                required:
-                - group
-                - kind
-                - name
-                type: object
-              IgnoreChildGvk:
-                properties:
-                  group:
-                    type: string
-                  kind:
-                    type: string
-                  name:
-                    type: string
-                required:
-                - group
-                - kind
-                - name
-                type: object
               description:
                 properties:
                   Color:
@@ -124,6 +98,19 @@ spec:
                 minLength: 2
                 pattern: abc
                 type: string
+              fooChildGvk:
+                properties:
+                  group:
+                    type: string
+                  kind:
+                    type: string
+                  name:
+                    type: string
+                required:
+                - group
+                - kind
+                - name
+                type: object
               gnsAccessControlPolicyGvk:
                 properties:
                   group:
@@ -151,6 +138,19 @@ spec:
                   - kind
                   - name
                   type: object
+                type: object
+              ignoreChildGvk:
+                properties:
+                  group:
+                    type: string
+                  kind:
+                    type: string
+                  name:
+                    type: string
+                required:
+                - group
+                - kind
+                - name
                 type: object
               mapPointer:
                 additionalProperties:
@@ -264,8 +264,6 @@ spec:
             - slicePointer
             - workloadSpec
             - differentSpec
-            - FooChildGvk
-            - IgnoreChildGvk
             type: object
           status:
             properties:

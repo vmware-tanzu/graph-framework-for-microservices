@@ -121,8 +121,8 @@ type GnsSpec struct {
 	ServiceSegmentRefMap      map[string]ServiceSegmentRef `json:"serviceSegmentRefMap,omitempty"`
 	GnsServiceGroupsGvk       map[string]Child             `json:"gnsServiceGroupsGvk,omitempty" yaml:"gnsServiceGroupsGvk,omitempty" nexus:"children"`
 	GnsAccessControlPolicyGvk *Child                       `json:"gnsAccessControlPolicyGvk,omitempty" yaml:"gnsAccessControlPolicyGvk,omitempty" nexus:"child"`
-	FooChildGvk               *Child                       `nexus:"child" nexus-graphql:"type:string"`
-	IgnoreChildGvk            *Child                       `nexus:"child" nexus-graphql:"ignore:true"`
+	FooChildGvk               *Child                       `json:"fooChildGvk,omitempty" yaml:"fooChildGvk,omitempty" nexus:"child"`
+	IgnoreChildGvk            *Child                       `json:"ignoreChildGvk,omitempty" yaml:"ignoreChildGvk,omitempty" nexus:"child"`
 	DnsGvk                    *Link                        `json:"dnsGvk,omitempty" yaml:"dnsGvk,omitempty" nexus:"link"`
 }
 
@@ -311,7 +311,23 @@ type HostPort struct {
 
 // +k8s:openapi-gen=true
 type ReplicationSource struct {
-	Kind SourceKind
+	SourceKind SourceKind
+}
+
+// +k8s:openapi-gen=true
+type gnsQueryFilters struct {
+	StartTime           string
+	EndTime             string
+	Interval            string
+	IsServiceDeployment bool
+	StartVal            int
+}
+
+// +k8s:openapi-gen=true
+type metricsFilers struct {
+	StartTime string
+	EndTime   string
+	Interval  string
 }
 
 // +k8s:openapi-gen=true

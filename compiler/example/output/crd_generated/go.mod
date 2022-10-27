@@ -2,13 +2,22 @@ module github.com/vmware-tanzu/graph-framework-for-microservices/compiler/exampl
 
 go 1.18
 
+replace github.com/vmware-tanzu/graph-framework-for-microservices/gqlgen => ../../../../gqlgen
+
+replace github.com/vmware-tanzu/graph-framework-for-microservices/kube-openapi => ../../../../kube-openapi
+
+replace github.com/vmware-tanzu/graph-framework-for-microservices/nexus => ../../../../nexus
+
 require (
 	github.com/elliotchance/orderedmap v1.4.0
+	github.com/golang/protobuf v1.5.2
 	github.com/rs/cors v1.8.2
 	github.com/sirupsen/logrus v1.8.1
 	github.com/vektah/gqlparser/v2 v2.5.0
 	github.com/vmware-tanzu/cartographer v0.3.0
 	github.com/vmware-tanzu/graph-framework-for-microservices/gqlgen v0.0.0-00010101000000-000000000000
+	github.com/vmware-tanzu/graph-framework-for-microservices/nexus v0.2.36-0.20221019134229-f47a3f43cc69
+	google.golang.org/grpc v1.43.0
 	k8s.io/apimachinery v0.23.5
 	k8s.io/client-go v0.23.5
 )
@@ -23,7 +32,6 @@ require (
 	github.com/fsnotify/fsnotify v1.5.1 // indirect
 	github.com/go-logr/logr v1.2.3 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
-	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/google/go-cmp v0.5.6 // indirect
 	github.com/google/gofuzz v1.2.0 // indirect
 	github.com/googleapis/gnostic v0.5.5 // indirect
@@ -55,6 +63,7 @@ require (
 	golang.org/x/xerrors v0.0.0-20200804184101-5ec99f83aff1 // indirect
 	gomodules.xyz/jsonpatch/v2 v2.2.0 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
+	google.golang.org/genproto v0.0.0-20210831024726-fe130286e0e2 // indirect
 	google.golang.org/protobuf v1.28.0 // indirect
 	gopkg.in/inf.v0 v0.9.1 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
@@ -69,7 +78,3 @@ require (
 	sigs.k8s.io/structured-merge-diff/v4 v4.2.1 // indirect
 	sigs.k8s.io/yaml v1.3.0 // indirect
 )
-
-replace github.com/vmware-tanzu/graph-framework-for-microservices/gqlgen => ../../../../gqlgen
-
-replace github.com/vmware-tanzu/graph-framework-for-microservices/kube-openapi => ../../../../kube-openapi
