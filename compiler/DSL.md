@@ -19,7 +19,7 @@ Graph datamodel is composed of two types of elements: nodes and relationships
 - relationships representing how any two nodes are associated
 
 Nexus DSL represent your application data as a Graph Datamodel.
-## Nexus DSL syntax
+## Graph Syntax
 
  #### TL;DR [here](#Nexus-DSL-syntax-shortcut)
 
@@ -143,15 +143,22 @@ type Address struct {
 }
 ```
 
-As you can see you can use Go imports for adding nodes from different package. Structs which
+TBR: As you can see you can use Go imports for adding nodes from different package. Structs which
 don't have `nexus.Node` field can be used for defining spec.
 
-### Status of a node
+### Node Status
 
-You can add custom status of nexus node by using `nexus:"status"` annotation. In the runtime
-you can use this field for specifying current state of the object.
+Nexus DSL provides the ability to capture "status" data on a Nexus node.
 
-Example:
+While the spec fields and relationships of a Nexus node capture its user specified configuration and state, a Status, on the other hand captures runtime state / data that are relevant, as deemed by the user / application.
+
+A custome status can be associated with the Nexus node, by annotating a field in the node struct annotation:
+
+```
+ `nexus:"status"`
+```
+
+The below example associates status of type "LeaderStatus" with Nexus node "Leader"
 
 ```Go
 package role
@@ -172,29 +179,63 @@ type LeaderStatus struct {
 }
 ```
 
-### REST API spec
+### Nexus Graph
 
-Nexus provides REST API Gateway out-of-the-box, all you need to do is to provide REST API spec in your data model,
-to specify which operations for which nodes you want to enable.
-To define REST API spec you can use `nexus.RestAPISpec` struct imported from
-[nexus](https://github.com/vmware-tanzu/graph-framework-for-microservices/blob/main/nexus/nexus/nexus.go) package.
-In the spec you need to provide list of URLs which you want to expose on given Nexus node, you specify URI, methods
-with responses and optionally query params. In URL or query params you can provide parents. To attach a spec to a node
-you should add a comment above a node with format: `// nexus-rest-api-gen:NameOfYourSpecVariable`.
+A graph in Nexus datamodel is a collection of Nexus nodes and their relationships.
 
-For example, in here Leader is a child of Root, so we add Root as a part of URI or query param:
+Graph built using Nexus DSL will have the following attributes:
+
+* graph will be directed and acyclic
+* graph is rooted by a Nexus node. A root node in the graph is a node which is not claimed as child by any other nexus node. Nexus datamodel only allows one root node
+* an instance of a graph is identified by a name and domain in Nexus runtime
+
+## API Syntax
+
+Nexus Graph is a collection of Nexus Nodes and Relationships.
+
+Nexus DSL provides the following API schemes to interact with the graph datamodel:
+
+* REST API
+* GraphQL
+
+The Nexus node is the unit at which API's are defined and exposed. Through these API's, the user can CRUD the node spec, status, its relationships etc. 
+
+### REST API
+
+Nexus DSL provides the syntax to access a Nexus node through one or more REST API's. 
+
+The syntax for declaration of REST API for a Nexus node has 2 parts in Nexus DSL:
+
+1. Create an instance of type [nexus.RestAPISpec](https://github.com/vmware-tanzu/graph-framework-for-microservices/blob/main/nexus/nexus/nexus.go) that defines one or most REST APIs.
+
+2. Associate the `nexus.RestAPISpec` instance with a Nexus node.
+
+#### nexus.RestAPISpec
+
+Declares one or more REST API's.
+
+Each API spec captures information about the REST API, such as:
+
+* URI
+* Allowed http methods
+* Desired Response codes
+
+#### Associate nexus.RestAPISpec with Nexus node
+
+The association of an instance/variable of type nexus.RestAPISpec to a Nexus node is achieved by adding a `comment` on the Nexus node in the following format:
+
+`//nexus-rest-api-gen:<variable of type nexus.RestAPISpec>`
+
+The keyword `nexus-rest-api-gen` is an instruction in Nexus DSL to the Nexus Compiler that the referenced REST API's should be associated with the Nexus Node.
+
+As an exanple:
+
 ```Go
 package role
 
 import (
   "github.com/vmware-tanzu/graph-framework-for-microservices/nexus/nexus"
 )
-
-// nexus-rest-api-gen:LeaderRestAPISpec
-type Leader struct {
-  nexus.Node
-  EmployeeID int
-}
 
 var LeaderRestAPISpec = nexus.RestAPISpec{
   Uris: []nexus.RestURIs{
@@ -220,7 +261,15 @@ var LeaderRestAPISpec = nexus.RestAPISpec{
     },
   },
 }
+
+// nexus-rest-api-gen:LeaderRestAPISpec
+type Leader struct {
+  nexus.Node
+  EmployeeID int
+}
 ```
+
+The above example, defined a variable LeaderRestAPISpec of type nexus.RestAPISpec. This variable is then referenced in the code comment on Nexus node using the keyword: `nexus-rest-api-gen`
 
 ### Custom GraphQL query spec
 
