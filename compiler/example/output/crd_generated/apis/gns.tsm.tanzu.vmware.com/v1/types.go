@@ -311,7 +311,7 @@ type HostPort struct {
 
 // +k8s:openapi-gen=true
 type ReplicationSource struct {
-	SourceKind SourceKind
+	Kind SourceKind
 }
 
 // +k8s:openapi-gen=true
