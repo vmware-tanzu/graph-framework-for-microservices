@@ -21,7 +21,7 @@ const (
 	crdModulePath               = "nexustempmodule/"
 	examplePath                 = "../../example/"
 	exampleDSLPath              = examplePath + "datamodel"
-	exampleCRDOutputPath        = examplePath + "output/_crd_base/"
+	exampleCRDOutputPath        = examplePath + "output/_rendered_templates/"
 	exampleCRDApisOutputPath    = exampleCRDOutputPath + "apis"
 	gnsExamplePath              = exampleCRDApisOutputPath + "/gns.tsm.tanzu.vmware.com/"
 	gnsDocPath                  = gnsExamplePath + "v1/doc.go"
@@ -150,7 +150,7 @@ var _ = Describe("Template renderers tests", func() {
 		Expect(string(formatted)).To(Equal(string(expectedTypes)))
 	})
 
-	// Path:"example/output/_crd_base/nexus-gql/server.go"
+	// Path:"example/output/_rendered_templates/nexus-gql/server.go"
 	It("should parse nexus-gql server template", func() {
 		var vars generator.ServerVars
 		vars.BaseImportPath = crdModulePath
@@ -158,19 +158,19 @@ var _ = Describe("Template renderers tests", func() {
 		Expect(err).NotTo(HaveOccurred())
 	})
 
-	// Path:"example/output/_crd_base/nexus-gql/graph/schema.graphqls"
+	// Path:"example/output/_rendered_templates/nexus-gql/graph/schema.graphqls"
 	It("should parse graph schema graphql template", func() {
 		_, err := generator.RenderGraphqlSchemaTemplate(gql, crdModulePath)
 		Expect(err).NotTo(HaveOccurred())
 	})
 
-	// Path:"example/output/_crd_base/nexus-gql/gqlgen.yml"
+	// Path:"example/output/_rendered_templates/nexus-gql/gqlgen.yml"
 	It("should parse nexus-gql gqlgen config template", func() {
 		_, err := generator.RenderGQLGenTemplate(gql, crdModulePath)
 		Expect(err).NotTo(HaveOccurred())
 	})
 
-	// Path:"example/output/_crd_base/nexus-gql/graph/graphqlResolver.go"
+	// Path:"example/output/_rendered_templates/nexus-gql/graph/graphqlResolver.go"
 	It("should parse graphql resolver template", func() {
 		_, err := generator.RenderGraphqlResolverTemplate(gql, crdModulePath)
 		Expect(err).NotTo(HaveOccurred())

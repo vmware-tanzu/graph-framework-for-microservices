@@ -12,7 +12,7 @@ Nexus compiler main responsibility is to generate code based on provided datamod
 1. Compiler operates on datamodel provided by user (example can be found in `example/datamodel`).
 2. Compiler parses datamodel to build graph (this happens in the `parser` package).
 3. Based on built graph base templates are rendered and created (this happens in the `pkg/generator` package),
-example output of this operation is in the `example/output/_crd_base` directory.
+example output of this operation is in the `example/output/_rendered_templates` directory.
 4. kubernetes code generator generates more additional Go code (this happens in the `generated_base_structure/scripts/generate_k8s_api.sh`),
 it generates kuberentes go-client and deepcopy functions, example output is in
 `example/crd-generated/client and example/crd-generated/apis/{api_name}/v1/zz_generated_deepcopy.go`.
@@ -93,7 +93,7 @@ To run build in a fixed/sandboxed environment:
 Install required tools using `make tools`
 
 To render templates for example datamodel use `make render_templates` (this step executes steps 1-3 from
-[How compiler works](#How compiler works)). This will generate rendered templates to `example/output/_crd_base` directory.
+[How compiler works](#How compiler works)). This will generate rendered templates to `example/output/_rendered_templates` directory.
 To generate all code for example use `make generate_example` (this step executes all steps from
 [How compiler works](#How compiler works)). This will generate code to `example/output/crd_generated` directory.
 
@@ -113,7 +113,7 @@ To run tests in a fixed/sandboxed environment:
 To render crd templates you can run:
 `make render_templates`
 
-This will generate rendered templates to `example/output/_crd_base` directory. This directory can be used for unit tests.
+This will generate rendered templates to `example/output/_rendered_templates` directory. This directory can be used for unit tests.
 
 ### Test whole code generation:
 
