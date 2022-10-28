@@ -6,5 +6,5 @@ import (
 
 type Config struct {
 	nexus.Node
-	MyId string
+	Id string
 }
