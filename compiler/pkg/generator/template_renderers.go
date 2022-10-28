@@ -1,4 +1,4 @@
-package crd_generator
+package generator
 
 import (
 	"bytes"

@@ -8,7 +8,7 @@ import (
 	log "github.com/sirupsen/logrus"
 
 	"github.com/vmware-tanzu/graph-framework-for-microservices/compiler/pkg/config"
-	crd_generator "github.com/vmware-tanzu/graph-framework-for-microservices/compiler/pkg/crd-generator"
+	generator "github.com/vmware-tanzu/graph-framework-for-microservices/compiler/pkg/generator"
 	"github.com/vmware-tanzu/graph-framework-for-microservices/compiler/pkg/parser"
 )
 
@@ -33,7 +33,7 @@ var _ = Describe("Pkg tests", func() {
 
 	It("should return generated import strings", func() {
 		aliasNameMap := make(map[string]string)
-		imports := crd_generator.GenerateImports(&pkg, aliasNameMap)
+		imports := generator.GenerateImports(&pkg, aliasNameMap)
 
 		expectedImports := []string{
 			"configtsmtanzuvmwarecomv1 \"github.com/vmware-tanzu/graph-framework-for-microservices/compiler/example/output/crd_generated/apis/config.tsm.tanzu.vmware.com/v1\"",

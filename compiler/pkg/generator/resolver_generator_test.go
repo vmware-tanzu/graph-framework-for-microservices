@@ -1,11 +1,11 @@
-package crd_generator_test
+package generator_test
 
 import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/vmware-tanzu/graph-framework-for-microservices/nexus/nexus"
 
-	crdgenerator "github.com/vmware-tanzu/graph-framework-for-microservices/compiler/pkg/crd-generator"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/compiler/pkg/generator"
 	"github.com/vmware-tanzu/graph-framework-for-microservices/compiler/pkg/parser"
 )
 
@@ -24,7 +24,7 @@ var _ = Describe("Template renderers tests", func() {
 	})
 
 	It("should resolve graphql vars", func() {
-		vars, err := crdgenerator.GenerateGraphqlResolverVars(baseGroupName, crdModulePath, pkgs, parentsMap)
+		vars, err := generator.GenerateGraphqlResolverVars(baseGroupName, crdModulePath, pkgs, parentsMap)
 		Expect(err).NotTo(HaveOccurred())
 
 		Expect(len(vars)).To(Equal(41))
@@ -48,7 +48,7 @@ var _ = Describe("Template renderers tests", func() {
 		graph := parser.ParseDSLNodes("../../example/test-utils/non-singleton-root", baseGroupName, pkgs, graphqlQueries)
 		parentsMap = parser.CreateParentsMap(graph)
 
-		vars, err := crdgenerator.GenerateGraphqlResolverVars(baseGroupName, crdModulePath, pkgs, parentsMap)
+		vars, err := generator.GenerateGraphqlResolverVars(baseGroupName, crdModulePath, pkgs, parentsMap)
 		Expect(err).NotTo(HaveOccurred())
 		Expect(len(vars)).To(Equal(3))
 

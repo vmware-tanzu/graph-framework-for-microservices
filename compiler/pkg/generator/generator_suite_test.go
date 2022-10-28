@@ -1,4 +1,4 @@
-package crd_generator_test
+package generator_test
 
 import (
 	"testing"
@@ -9,9 +9,9 @@ import (
 	"github.com/vmware-tanzu/graph-framework-for-microservices/compiler/pkg/config"
 )
 
-func TestCRDGenerator(t *testing.T) {
+func TestGenerator(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "CRD generator Suite")
+	RunSpecs(t, "Generator Suite")
 }
 
 func init() {

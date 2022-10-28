@@ -1,10 +1,10 @@
-package crd_generator_test
+package generator_test
 
 import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	crdgenerator "github.com/vmware-tanzu/graph-framework-for-microservices/compiler/pkg/crd-generator"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/compiler/pkg/generator"
 	"github.com/vmware-tanzu/graph-framework-for-microservices/compiler/pkg/parser"
 )
 
@@ -27,7 +27,7 @@ var _ = Describe("Graphql Custom query generator tests", func() {
 	})
 
 	It("should translate graphql query spec to schema", func() {
-		schema := crdgenerator.CustomQueryToGraphqlSchema(gns.GraphqlSpec.Queries[0])
+		schema := generator.CustomQueryToGraphqlSchema(gns.GraphqlSpec.Queries[0])
 		Expect(schema).To(Equal(`    queryGns1(
         StartTime: String
         EndTime: String
@@ -36,7 +36,7 @@ var _ = Describe("Graphql Custom query generator tests", func() {
         StartVal: Int
     ): NexusGraphqlResponse
 `))
-		schema = crdgenerator.CustomQueryToGraphqlSchema(gns.GraphqlSpec.Queries[1])
+		schema = generator.CustomQueryToGraphqlSchema(gns.GraphqlSpec.Queries[1])
 		Expect(schema).To(Equal(`    queryGnsQM1: TimeSeriesData
 `))
 	})

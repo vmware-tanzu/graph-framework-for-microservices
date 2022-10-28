@@ -1,4 +1,4 @@
-package crd_generator_test
+package generator_test
 
 import (
 	"go/format"
@@ -12,7 +12,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	crdgenerator "github.com/vmware-tanzu/graph-framework-for-microservices/compiler/pkg/crd-generator"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/compiler/pkg/generator"
 	"github.com/vmware-tanzu/graph-framework-for-microservices/compiler/pkg/parser"
 )
 
@@ -44,7 +44,7 @@ var _ = Describe("Template renderers tests", func() {
 		ok         bool
 		methods    map[string]nexus.HTTPMethodsResponses
 		codes      map[string]nexus.HTTPCodesResponse
-		gql        crdgenerator.GraphDetails
+		gql        generator.GraphDetails
 	)
 
 	BeforeEach(func() {
@@ -59,12 +59,12 @@ var _ = Describe("Template renderers tests", func() {
 		methods, codes = rest.ParseResponses(pkgs)
 		gql.BaseImportPath = crdModulePath
 		var err error
-		gql.Nodes, err = crdgenerator.GenerateGraphqlResolverVars(baseGroupName, crdModulePath, pkgs, parentsMap)
+		gql.Nodes, err = generator.GenerateGraphqlResolverVars(baseGroupName, crdModulePath, pkgs, parentsMap)
 		Expect(err).NotTo(HaveOccurred())
 	})
 
 	It("should parse doc template", func() {
-		docBytes, err := crdgenerator.RenderDocTemplate(baseGroupName, pkg)
+		docBytes, err := generator.RenderDocTemplate(baseGroupName, pkg)
 		Expect(err).NotTo(HaveOccurred())
 		formatted, err := format.Source(docBytes.Bytes())
 		Expect(err).NotTo(HaveOccurred())
@@ -76,7 +76,7 @@ var _ = Describe("Template renderers tests", func() {
 	})
 
 	It("should parse register group template", func() {
-		regBytes, err := crdgenerator.RenderRegisterGroupTemplate(baseGroupName, pkg)
+		regBytes, err := generator.RenderRegisterGroupTemplate(baseGroupName, pkg)
 		Expect(err).NotTo(HaveOccurred())
 		formatted, err := format.Source(regBytes.Bytes())
 		Expect(err).NotTo(HaveOccurred())
@@ -88,7 +88,7 @@ var _ = Describe("Template renderers tests", func() {
 	})
 
 	It("should parse register CRD template", func() {
-		regBytes, err := crdgenerator.RenderRegisterCRDTemplate(crdModulePath, baseGroupName, pkg)
+		regBytes, err := generator.RenderRegisterCRDTemplate(crdModulePath, baseGroupName, pkg)
 		Expect(err).NotTo(HaveOccurred())
 		formatted, err := format.Source(regBytes.Bytes())
 		Expect(err).NotTo(HaveOccurred())
@@ -100,7 +100,7 @@ var _ = Describe("Template renderers tests", func() {
 	})
 
 	It("should parse base crd template", func() {
-		files, err := crdgenerator.RenderCRDBaseTemplate(baseGroupName, pkg, parentsMap, methods, codes)
+		files, err := generator.RenderCRDBaseTemplate(baseGroupName, pkg, parentsMap, methods, codes)
 		Expect(err).NotTo(HaveOccurred())
 		Expect(files).To(HaveLen(6))
 
@@ -112,7 +112,7 @@ var _ = Describe("Template renderers tests", func() {
 	})
 
 	It("should parse types template", func() {
-		typesBytes, err := crdgenerator.RenderTypesTemplate(crdModulePath, pkg)
+		typesBytes, err := generator.RenderTypesTemplate(crdModulePath, pkg)
 		Expect(err).NotTo(HaveOccurred())
 
 		formatted, err := format.Source(typesBytes.Bytes())
@@ -125,7 +125,7 @@ var _ = Describe("Template renderers tests", func() {
 	})
 
 	It("should parse client template", func() {
-		clientsBytes, err := crdgenerator.RenderClientTemplate(baseGroupName, crdModulePath, pkgs, parentsMap)
+		clientsBytes, err := generator.RenderClientTemplate(baseGroupName, crdModulePath, pkgs, parentsMap)
 		Expect(err).NotTo(HaveOccurred())
 
 		formatted, err := format.Source(clientsBytes.Bytes())
@@ -138,7 +138,7 @@ var _ = Describe("Template renderers tests", func() {
 	})
 
 	It("should parse helper template", func() {
-		helperBytes, err := crdgenerator.RenderHelperTemplate(parentsMap, crdModulePath)
+		helperBytes, err := generator.RenderHelperTemplate(parentsMap, crdModulePath)
 		Expect(err).NotTo(HaveOccurred())
 
 		formatted, err := format.Source(helperBytes.Bytes())
@@ -152,27 +152,27 @@ var _ = Describe("Template renderers tests", func() {
 
 	// Path:"example/output/_crd_base/nexus-gql/server.go"
 	It("should parse nexus-gql server template", func() {
-		var vars crdgenerator.ServerVars
+		var vars generator.ServerVars
 		vars.BaseImportPath = crdModulePath
-		_, err := crdgenerator.RenderGqlServerTemplate(vars)
+		_, err := generator.RenderGqlServerTemplate(vars)
 		Expect(err).NotTo(HaveOccurred())
 	})
 
 	// Path:"example/output/_crd_base/nexus-gql/graph/schema.graphqls"
 	It("should parse graph schema graphql template", func() {
-		_, err := crdgenerator.RenderGraphqlSchemaTemplate(gql, crdModulePath)
+		_, err := generator.RenderGraphqlSchemaTemplate(gql, crdModulePath)
 		Expect(err).NotTo(HaveOccurred())
 	})
 
 	// Path:"example/output/_crd_base/nexus-gql/gqlgen.yml"
 	It("should parse nexus-gql gqlgen config template", func() {
-		_, err := crdgenerator.RenderGQLGenTemplate(gql, crdModulePath)
+		_, err := generator.RenderGQLGenTemplate(gql, crdModulePath)
 		Expect(err).NotTo(HaveOccurred())
 	})
 
 	// Path:"example/output/_crd_base/nexus-gql/graph/graphqlResolver.go"
 	It("should parse graphql resolver template", func() {
-		_, err := crdgenerator.RenderGraphqlResolverTemplate(gql, crdModulePath)
+		_, err := generator.RenderGraphqlResolverTemplate(gql, crdModulePath)
 		Expect(err).NotTo(HaveOccurred())
 	})
 

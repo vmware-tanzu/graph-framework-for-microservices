@@ -11,7 +11,7 @@ Nexus compiler main responsibility is to generate code based on provided datamod
 
 1. Compiler operates on datamodel provided by user (example can be found in `example/datamodel`).
 2. Compiler parses datamodel to build graph (this happens in the `parser` package).
-3. Based on built graph base templates are rendered and created (this happens in the `pkg/crd-generator` package),
+3. Based on built graph base templates are rendered and created (this happens in the `pkg/generator` package),
 example output of this operation is in the `example/output/_crd_base` directory.
 4. kubernetes code generator generates more additional Go code (this happens in the `generated_base_structure/scripts/generate_k8s_api.sh`),
 it generates kuberentes go-client and deepcopy functions, example output is in
