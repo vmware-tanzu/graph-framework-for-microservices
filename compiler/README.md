@@ -18,7 +18,7 @@ it generates kuberentes go-client and deepcopy functions, example output is in
 `example/crd-generated/client and example/crd-generated/apis/{api_name}/v1/zz_generated_deepcopy.go`.
 5. OpenAPI generator updates CRD yamls with OpenAPI specification (this happens in the `generated_base_structure/scripts`,
 uses k8s.io/kube-openapi/cmd/openapi-gen and code from some our custom logic in the `generated_base_structure/openapi_generator` package),
-example output is in the `example/output/crd_generated/crds`.
+example output is in the `example/output/generated/crds`.
 
 Very detailed flow chart
 <p align="center"><img src="code_generation.png" width="60%"></p>
@@ -30,7 +30,7 @@ Very detailed flow chart
 3. Run compiler from your application nexus directory. Specify GROUP_NAME env variable with your CRD group name:
 Your datamodel should be mounted to /go/src/github.com/vmware-tanzu/graph-framework-for-microservices/compiler/datamodel directory, and directory to
 which you would like to generate your files should be mounted to /go/src/github.com/vmware-tanzu/graph-framework-for-microservices/compiler/generated
-directory. CRD_MODULE_PATH env var will determine import paths for genereted files.
+directory. CRD_MODULE_PATH env var will determine import paths for generated files.
 If you follow structure from example above you just need to specify GROUP_NAME and copy rest of following example
 command
 ```
@@ -95,7 +95,7 @@ Install required tools using `make tools`
 To render templates for example datamodel use `make render_templates` (this step executes steps 1-3 from
 [How compiler works](#How compiler works)). This will generate rendered templates to `example/output/_rendered_templates` directory.
 To generate all code for example use `make generate_example` (this step executes all steps from
-[How compiler works](#How compiler works)). This will generate code to `example/output/crd_generated` directory.
+[How compiler works](#How compiler works)). This will generate code to `example/output/generated` directory.
 
 ## Test
 ### Run tests in containerized sandbox (Recommended)
@@ -120,7 +120,7 @@ This will generate rendered templates to `example/output/_rendered_templates` di
 To test code generation for example datamodel run:
 `make generate_example`
 
-This will generate code to `example/output/crd_generated` directory.
+This will generate code to `example/output/generated` directory.
 
 # Packaging
 
