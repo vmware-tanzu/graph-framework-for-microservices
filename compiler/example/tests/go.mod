@@ -2,12 +2,12 @@ module github.com/vmware-tanzu/graph-framework-for-microservices/compiler/exampl
 
 go 1.17
 
-replace github.com/vmware-tanzu/graph-framework-for-microservices/compiler/example/output/crd_generated => ../output/crd_generated
+replace github.com/vmware-tanzu/graph-framework-for-microservices/compiler/example/output/generated => ../output/generated
 
 require (
 	github.com/onsi/ginkgo v1.16.5
 	github.com/onsi/gomega v1.20.0
-	github.com/vmware-tanzu/graph-framework-for-microservices/compiler/example/output/crd_generated v0.0.0-20220519084951-f419a2aaa2be
+	github.com/vmware-tanzu/graph-framework-for-microservices/compiler/example/output/generated v0.0.0-20220519084951-f419a2aaa2be
 	k8s.io/apimachinery v0.24.4
 )
 

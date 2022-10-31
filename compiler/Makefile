@@ -180,10 +180,10 @@ test_generate_code_in_container: ${BUILDER_NAME}\:${BUILDER_TAG}.image.exists in
 	go install ../gqlgen && \
 	make generate_code DATAMODEL_PATH=example/datamodel \
 	CONFIG_FILE=example/nexus-sdk.yaml \
-	CRD_MODULE_PATH="github.com/vmware-tanzu/graph-framework-for-microservices/compiler/example/output/crd_generated/" \
+	CRD_MODULE_PATH="github.com/vmware-tanzu/graph-framework-for-microservices/compiler/example/output/generated/" \
 	LOG_LEVEL=trace \
-	GENERATED_OUTPUT_DIRECTORY=example/output/crd_generated && \
-	cd example/output/crd_generated && go vet -structtag=FALSE ./... && golangci-lint run ./...)
+	GENERATED_OUTPUT_DIRECTORY=example/output/generated && \
+	cd example/output/generated && go vet -structtag=FALSE ./... && golangci-lint run ./...)
 	@if [ -n "$$(git ls-files --modified --exclude-standard)" ]; then\
 		echo "The following changes should be committed:";\
 		git status;\
@@ -193,7 +193,7 @@ test_generate_code_in_container: ${BUILDER_NAME}\:${BUILDER_TAG}.image.exists in
 
 .PHONY: generate_example
 generate_example:
-	$(MAKE) generate_code DATAMODEL_PATH=example/datamodel CONFIG_FILE=example/nexus-sdk.yaml CRD_MODULE_PATH="github.com/vmware-tanzu/graph-framework-for-microservices/compiler/example/output/crd_generated/" GENERATED_OUTPUT_DIRECTORY=example/output/crd_generated
+	$(MAKE) generate_code DATAMODEL_PATH=example/datamodel CONFIG_FILE=example/nexus-sdk.yaml CRD_MODULE_PATH="github.com/vmware-tanzu/graph-framework-for-microservices/compiler/example/output/generated/" GENERATED_OUTPUT_DIRECTORY=example/output/generated
 
 .PHONY: show-image-name
 show-image-name:
@@ -220,7 +220,7 @@ init_submodules:
 
 .PHONY: render_templates
 render_templates:
-	go run cmd/nexus-sdk/main.go -config-file example/nexus-sdk.yaml -dsl example/datamodel -crd-output example/output/_crd_base
+	go run cmd/nexus-sdk/main.go -config-file example/nexus-sdk.yaml -dsl example/datamodel -crd-output example/output/_rendered_templates
 
 .PHONY: test_render_templates
 test_render_templates: render_templates
