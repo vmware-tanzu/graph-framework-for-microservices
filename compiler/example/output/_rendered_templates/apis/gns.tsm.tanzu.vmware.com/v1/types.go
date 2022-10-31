@@ -163,8 +163,8 @@ type GnsSpec struct {
 	GnsAccessControlPolicyGvk *Child                       `json:"gnsAccessControlPolicyGvk,omitempty" yaml:"gnsAccessControlPolicyGvk,omitempty" nexus:"child"`
 	FooChildGvk               *Child                       `json:"fooChildGvk,omitempty" yaml:"fooChildGvk,omitempty" nexus:"child"`
 	IgnoreChildGvk            *Child                       `json:"ignoreChildGvk,omitempty" yaml:"ignoreChildGvk,omitempty" nexus:"child"`
+	FooGvk                    *Child                       `json:"fooGvk,omitempty" yaml:"fooGvk,omitempty" nexus:"child"`
 	DnsGvk                    *Link                        `json:"dnsGvk,omitempty" yaml:"dnsGvk,omitempty" nexus:"link"`
-	FooGvk                    *Link                        `json:"fooGvk,omitempty" yaml:"fooGvk,omitempty" nexus:"link"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object

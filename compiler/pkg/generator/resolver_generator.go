@@ -491,6 +491,12 @@ func GenerateGraphqlResolverVars(baseGroupName, crdModulePath string, pkgs parse
 			if len(parser.GetNexusFields(node)) == 0 && len(parser.GetSpecFields(node)) == 0 {
 				continue
 			}
+
+			typeName := parser.GetTypeName(node)
+			if _, ok := parser.GetNexusSecretSpecAnnotation(pkg, typeName); ok {
+				continue
+			}
+
 			nodeProp := &NodeProperty{}
 			// populate node properties
 			nodeProp.PkgName = simpleGroupTypeName

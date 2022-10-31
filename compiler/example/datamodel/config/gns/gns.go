@@ -175,7 +175,7 @@ type Gns struct {
 	State                  GnsState                      `nexus:"status"`
 	FooChild               BarChild                      `nexus:"child" nexus-graphql:"type:string"`
 	IgnoreChild            IgnoreChild                   `nexus:"child" nexus-graphql:"ignore:true"`
-	Foo                    Foo                           `nexus:"child"`
+	Foo                    Foo                           `nexus:"child" nexus-graphql:"ignore:true"`
 	Meta                   string
 
 	Port             *int         // pointer test

@@ -2283,9 +2283,46 @@ func (group *GnsTsmV1) GetFooByName(ctx context.Context, hashedName string) (*Gn
 // display name and parents names. Use it when you know hashed name of object.
 func (group *GnsTsmV1) DeleteFooByName(ctx context.Context, hashedName string) (err error) {
 
+	result, err := group.client.baseClient.
+		GnsTsmV1().
+		Foos().Get(ctx, hashedName, metav1.GetOptions{})
+	if err != nil {
+		return err
+	}
+
 	err = group.client.baseClient.
 		GnsTsmV1().
 		Foos().Delete(ctx, hashedName, metav1.DeleteOptions{})
+	if err != nil {
+		return err
+	}
+
+	var patch Patch
+
+	patchOp := PatchOp{
+		Op:   "remove",
+		Path: "/spec/fooGvk",
+	}
+
+	patch = append(patch, patchOp)
+	marshaled, err := patch.Marshal()
+	if err != nil {
+		return err
+	}
+	parents := result.GetLabels()
+	if parents == nil {
+		parents = make(map[string]string)
+	}
+	parentName, ok := parents["gnses.gns.tsm.tanzu.vmware.com"]
+	if !ok {
+		parentName = helper.DEFAULT_KEY
+	}
+	if parents[common.IS_NAME_HASHED_LABEL] == "true" {
+		parentName = helper.GetHashedName("gnses.gns.tsm.tanzu.vmware.com", parents, parentName)
+	}
+	_, err = group.client.baseClient.
+		GnsTsmV1().
+		Gnses().Patch(ctx, parentName, types.JSONPatchType, marshaled, metav1.PatchOptions{})
 	if err != nil {
 		return err
 	}
@@ -2307,6 +2344,36 @@ func (group *GnsTsmV1) CreateFooByName(ctx context.Context,
 	result, err := group.client.baseClient.
 		GnsTsmV1().
 		Foos().Create(ctx, objToCreate, metav1.CreateOptions{})
+	if err != nil {
+		return nil, err
+	}
+
+	parentName, ok := objToCreate.GetLabels()["gnses.gns.tsm.tanzu.vmware.com"]
+	if !ok {
+		parentName = helper.DEFAULT_KEY
+	}
+	if objToCreate.Labels[common.IS_NAME_HASHED_LABEL] == "true" {
+		parentName = helper.GetHashedName("gnses.gns.tsm.tanzu.vmware.com", objToCreate.GetLabels(), parentName)
+	}
+
+	var patch Patch
+	patchOp := PatchOp{
+		Op:   "replace",
+		Path: "/spec/fooGvk",
+		Value: basegnstsmtanzuvmwarecomv1.Child{
+			Group: "gns.tsm.tanzu.vmware.com",
+			Kind:  "Foo",
+			Name:  objToCreate.Name,
+		},
+	}
+	patch = append(patch, patchOp)
+	marshaled, err := patch.Marshal()
+	if err != nil {
+		return nil, err
+	}
+	_, err = group.client.baseClient.
+		GnsTsmV1().
+		Gnses().Patch(ctx, parentName, types.JSONPatchType, marshaled, metav1.PatchOptions{})
 	if err != nil {
 		return nil, err
 	}
@@ -2410,45 +2477,9 @@ func (obj *GnsFoo) Update(ctx context.Context) error {
 	return nil
 }
 
-// GetGnsFoo calculates the hashed name based on parents and displayName and
-// returns given object
-func (c *Clientset) GetGnsFoo(ctx context.Context, displayName string) (result *GnsFoo, err error) {
-	hashedName := helper.GetHashedName("foos.gns.tsm.tanzu.vmware.com", nil, displayName)
-	return c.Gns().GetFooByName(ctx, hashedName)
-}
-
-func (c *Clientset) GnsFoo(displayName string) *fooGnsTsmV1Chainer {
-	parentLabels := make(map[string]string)
-	parentLabels["foos.gns.tsm.tanzu.vmware.com"] = displayName
-	return &fooGnsTsmV1Chainer{
-		client:       c,
-		name:         displayName,
-		parentLabels: parentLabels,
-	}
-}
-
-// AddGnsFoo calculates hashed name of the object based on objToCreate.Name
-// and parents names and creates it. objToCreate.Name is changed to the hashed name. Original name is preserved in
-// nexus/display_name label and can be obtained using DisplayName() method.
-func (c *Clientset) AddGnsFoo(ctx context.Context,
-	objToCreate *basegnstsmtanzuvmwarecomv1.Foo) (result *GnsFoo, err error) {
-	if objToCreate.Labels == nil {
-		objToCreate.Labels = map[string]string{}
-	}
-	if objToCreate.Labels[common.IS_NAME_HASHED_LABEL] != "true" {
-		objToCreate.Labels[common.DISPLAY_NAME_LABEL] = objToCreate.GetName()
-		objToCreate.Labels[common.IS_NAME_HASHED_LABEL] = "true"
-		hashedName := helper.GetHashedName(objToCreate.CRDName(), nil, objToCreate.GetName())
-		objToCreate.Name = hashedName
-	}
-	return c.Gns().CreateFooByName(ctx, objToCreate)
-}
-
-// DeleteGnsFoo calculates hashedName of object based on displayName and
-// parents and deletes given object
-func (c *Clientset) DeleteGnsFoo(ctx context.Context, displayName string) (err error) {
-	hashedName := helper.GetHashedName("foos.gns.tsm.tanzu.vmware.com", nil, displayName)
-	return c.Gns().DeleteFooByName(ctx, hashedName)
+func (obj *GnsFoo) GetParent(ctx context.Context) (result *GnsGns, err error) {
+	hashedName := helper.GetHashedName("gnses.gns.tsm.tanzu.vmware.com", obj.Labels, obj.Labels["gnses.gns.tsm.tanzu.vmware.com"])
+	return obj.client.Gns().GetGnsByName(ctx, hashedName)
 }
 
 type fooGnsTsmV1Chainer struct {
@@ -2519,6 +2550,15 @@ func (group *GnsTsmV1) DeleteGnsByName(ctx context.Context, hashedName string) (
 		}
 	}
 
+	if result.Spec.FooGvk != nil {
+		err := group.client.
+			Gns().
+			DeleteFooByName(ctx, result.Spec.FooGvk.Name)
+		if err != nil {
+			return err
+		}
+	}
+
 	err = group.client.baseClient.
 		GnsTsmV1().
 		Gnses().Delete(ctx, hashedName, metav1.DeleteOptions{})
@@ -2574,8 +2614,8 @@ func (group *GnsTsmV1) CreateGnsByName(ctx context.Context,
 	objToCreate.Spec.GnsAccessControlPolicyGvk = nil
 	objToCreate.Spec.FooChildGvk = nil
 	objToCreate.Spec.IgnoreChildGvk = nil
-	objToCreate.Spec.DnsGvk = nil
 	objToCreate.Spec.FooGvk = nil
+	objToCreate.Spec.DnsGvk = nil
 
 	result, err := group.client.baseClient.
 		GnsTsmV1().
@@ -3144,6 +3184,60 @@ func (obj *GnsGns) DeleteIgnoreChild(ctx context.Context) (err error) {
 	return
 }
 
+// GetFoo returns child of given type
+func (obj *GnsGns) GetFoo(ctx context.Context) (
+	result *GnsFoo, err error) {
+	if obj.Spec.FooGvk == nil {
+		return nil, NewChildNotFound(obj.DisplayName(), "Gns.Gns", "Foo")
+	}
+	return obj.client.Gns().GetFooByName(ctx, obj.Spec.FooGvk.Name)
+}
+
+// AddFoo calculates hashed name of the child to create based on objToCreate.Name
+// and parents names and creates it. objToCreate.Name is changed to the hashed name. Original name is preserved in
+// nexus/display_name label and can be obtained using DisplayName() method.
+func (obj *GnsGns) AddFoo(ctx context.Context,
+	objToCreate *basegnstsmtanzuvmwarecomv1.Foo) (result *GnsFoo, err error) {
+	if objToCreate.Labels == nil {
+		objToCreate.Labels = map[string]string{}
+	}
+	for _, v := range helper.GetCRDParentsMap()["gnses.gns.tsm.tanzu.vmware.com"] {
+		objToCreate.Labels[v] = obj.Labels[v]
+	}
+	objToCreate.Labels["gnses.gns.tsm.tanzu.vmware.com"] = obj.DisplayName()
+	if objToCreate.Labels[common.IS_NAME_HASHED_LABEL] != "true" {
+		objToCreate.Labels[common.DISPLAY_NAME_LABEL] = objToCreate.GetName()
+		objToCreate.Labels[common.IS_NAME_HASHED_LABEL] = "true"
+		hashedName := helper.GetHashedName(objToCreate.CRDName(), objToCreate.Labels, objToCreate.GetName())
+		objToCreate.Name = hashedName
+	}
+	result, err = obj.client.Gns().CreateFooByName(ctx, objToCreate)
+	updatedObj, getErr := obj.client.Gns().GetGnsByName(ctx, obj.GetName())
+	if getErr == nil {
+		obj.Gns = updatedObj.Gns
+	}
+	return
+}
+
+// DeleteFoo calculates hashed name of the child to delete based on displayName
+// and parents names and deletes it.
+
+func (obj *GnsGns) DeleteFoo(ctx context.Context) (err error) {
+	if obj.Spec.FooGvk != nil {
+		err = obj.client.
+			Gns().DeleteFooByName(ctx, obj.Spec.FooGvk.Name)
+		if err != nil {
+			return err
+		}
+	}
+	updatedObj, err := obj.client.
+		Gns().GetGnsByName(ctx, obj.GetName())
+	if err == nil {
+		obj.Gns = updatedObj.Gns
+	}
+	return
+}
+
 // GetDns returns link of given type
 func (obj *GnsGns) GetDns(ctx context.Context) (
 	result *GnsDns, err error) {
@@ -3189,67 +3283,6 @@ func (obj *GnsGns) UnlinkDns(ctx context.Context) (err error) {
 	patchOp := PatchOp{
 		Op:   "remove",
 		Path: "/spec/dnsGvk",
-	}
-
-	patch = append(patch, patchOp)
-	marshaled, err := patch.Marshal()
-	if err != nil {
-		return err
-	}
-	result, err := obj.client.baseClient.GnsTsmV1().Gnses().Patch(ctx, obj.Name, types.JSONPatchType, marshaled, metav1.PatchOptions{})
-	if err != nil {
-		return err
-	}
-	obj.Gns = result
-	return nil
-
-}
-
-// GetFoo returns link of given type
-func (obj *GnsGns) GetFoo(ctx context.Context) (
-	result *GnsFoo, err error) {
-	if obj.Spec.FooGvk == nil {
-		return nil, NewLinkNotFound(obj.DisplayName(), "Gns.Gns", "Foo")
-	}
-	return obj.client.Gns().GetFooByName(ctx, obj.Spec.FooGvk.Name)
-}
-
-// LinkFoo links obj with linkToAdd object. This function doesn't create linked object, it must be
-// already created.
-func (obj *GnsGns) LinkFoo(ctx context.Context,
-	linkToAdd *GnsFoo) error {
-
-	var patch Patch
-	patchOp := PatchOp{
-		Op:   "replace",
-		Path: "/spec/fooGvk",
-		Value: basegnstsmtanzuvmwarecomv1.Child{
-			Group: "gns.tsm.tanzu.vmware.com",
-			Kind:  "Foo",
-			Name:  linkToAdd.Name,
-		},
-	}
-	patch = append(patch, patchOp)
-	marshaled, err := patch.Marshal()
-	if err != nil {
-		return err
-	}
-	result, err := obj.client.baseClient.GnsTsmV1().Gnses().Patch(ctx, obj.Name, types.JSONPatchType, marshaled, metav1.PatchOptions{})
-	if err != nil {
-		return err
-	}
-
-	obj.Gns = result
-	return nil
-}
-
-// UnlinkFoo unlinks linkToRemove object from obj. This function doesn't delete linked object.
-func (obj *GnsGns) UnlinkFoo(ctx context.Context) (err error) {
-	var patch Patch
-
-	patchOp := PatchOp{
-		Op:   "remove",
-		Path: "/spec/fooGvk",
 	}
 
 	patch = append(patch, patchOp)
@@ -3496,6 +3529,53 @@ func (c *gnsGnsTsmV1Chainer) DeleteIgnoreChild(ctx context.Context, name string)
 	c.parentLabels[common.IS_NAME_HASHED_LABEL] = "true"
 	hashedName := helper.GetHashedName("ignorechilds.gns.tsm.tanzu.vmware.com", c.parentLabels, name)
 	return c.client.Gns().DeleteIgnoreChildByName(ctx, hashedName)
+}
+
+func (c *gnsGnsTsmV1Chainer) Foo(name string) *fooGnsTsmV1Chainer {
+	parentLabels := c.parentLabels
+	parentLabels["foos.gns.tsm.tanzu.vmware.com"] = name
+	return &fooGnsTsmV1Chainer{
+		client:       c.client,
+		name:         name,
+		parentLabels: parentLabels,
+	}
+}
+
+// GetFoo calculates hashed name of the object based on displayName and it's parents and returns the object
+func (c *gnsGnsTsmV1Chainer) GetFoo(ctx context.Context, displayName string) (result *GnsFoo, err error) {
+	hashedName := helper.GetHashedName("foos.gns.tsm.tanzu.vmware.com", c.parentLabels, displayName)
+	return c.client.Gns().GetFooByName(ctx, hashedName)
+}
+
+// AddFoo calculates hashed name of the child to create based on objToCreate.Name
+// and parents names and creates it. objToCreate.Name is changed to the hashed name. Original name is preserved in
+// nexus/display_name label and can be obtained using DisplayName() method.
+func (c *gnsGnsTsmV1Chainer) AddFoo(ctx context.Context,
+	objToCreate *basegnstsmtanzuvmwarecomv1.Foo) (result *GnsFoo, err error) {
+	if objToCreate.Labels == nil {
+		objToCreate.Labels = map[string]string{}
+	}
+	for k, v := range c.parentLabels {
+		objToCreate.Labels[k] = v
+	}
+	if objToCreate.Labels[common.IS_NAME_HASHED_LABEL] != "true" {
+		objToCreate.Labels[common.DISPLAY_NAME_LABEL] = objToCreate.GetName()
+		objToCreate.Labels[common.IS_NAME_HASHED_LABEL] = "true"
+		hashedName := helper.GetHashedName("foos.gns.tsm.tanzu.vmware.com", c.parentLabels, objToCreate.GetName())
+		objToCreate.Name = hashedName
+	}
+	return c.client.Gns().CreateFooByName(ctx, objToCreate)
+}
+
+// DeleteFoo calculates hashed name of the child to delete based on displayName
+// and parents names and deletes it.
+func (c *gnsGnsTsmV1Chainer) DeleteFoo(ctx context.Context, name string) (err error) {
+	if c.parentLabels == nil {
+		c.parentLabels = map[string]string{}
+	}
+	c.parentLabels[common.IS_NAME_HASHED_LABEL] = "true"
+	hashedName := helper.GetHashedName("foos.gns.tsm.tanzu.vmware.com", c.parentLabels, name)
+	return c.client.Gns().DeleteFooByName(ctx, hashedName)
 }
 
 // GetBarChildByName returns object stored in the database under the hashedName which is a hash of display

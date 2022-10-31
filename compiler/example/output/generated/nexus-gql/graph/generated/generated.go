@@ -123,17 +123,10 @@ type ComplexityRoot struct {
 		ParentLabels func(childComplexity int) int
 	}
 
-	Gns_Foo struct {
-		Id           func(childComplexity int) int
-		ParentLabels func(childComplexity int) int
-		Password     func(childComplexity int) int
-	}
-
 	Gns_Gns struct {
 		Description              func(childComplexity int) int
 		DifferentSpec            func(childComplexity int) int
 		Domain                   func(childComplexity int) int
-		Foo                      func(childComplexity int, id *string) int
 		FooChild                 func(childComplexity int) int
 		GnsAccessControlPolicy   func(childComplexity int, id *string) int
 		GnsServiceGroups         func(childComplexity int, id *string) int
@@ -221,7 +214,6 @@ type Gns_GnsResolver interface {
 
 	GnsAccessControlPolicy(ctx context.Context, obj *model.GnsGns, id *string) (*model.PolicyAccessControlPolicy, error)
 	FooChild(ctx context.Context, obj *model.GnsGns) (*model.GnsBarChild, error)
-	Foo(ctx context.Context, obj *model.GnsGns, id *string) (*model.GnsFoo, error)
 }
 type Policy_ACPConfigResolver interface {
 	DestSvcGroups(ctx context.Context, obj *model.PolicyACPConfig, id *string) ([]*model.ServicegroupSvcGroup, error)
@@ -629,27 +621,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Gns_Dns.ParentLabels(childComplexity), true
 
-	case "gns_Foo.Id":
-		if e.complexity.Gns_Foo.Id == nil {
-			break
-		}
-
-		return e.complexity.Gns_Foo.Id(childComplexity), true
-
-	case "gns_Foo.ParentLabels":
-		if e.complexity.Gns_Foo.ParentLabels == nil {
-			break
-		}
-
-		return e.complexity.Gns_Foo.ParentLabels(childComplexity), true
-
-	case "gns_Foo.Password":
-		if e.complexity.Gns_Foo.Password == nil {
-			break
-		}
-
-		return e.complexity.Gns_Foo.Password(childComplexity), true
-
 	case "gns_Gns.Description":
 		if e.complexity.Gns_Gns.Description == nil {
 			break
@@ -670,18 +641,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Gns_Gns.Domain(childComplexity), true
-
-	case "gns_Gns.Foo":
-		if e.complexity.Gns_Gns.Foo == nil {
-			break
-		}
-
-		args, err := ec.field_gns_Gns_Foo_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Gns_Gns.Foo(childComplexity, args["Id"].(*string)), true
 
 	case "gns_Gns.FooChild":
 		if e.complexity.Gns_Gns.FooChild == nil {
@@ -1155,13 +1114,6 @@ type config_Domain {
     PointStruct: String
 }
 
-type gns_Foo {
-    Id: ID
-	ParentLabels: Map
-
-    Password: String
-}
-
 type gns_Gns {
     Id: ID
 	ParentLabels: Map
@@ -1197,7 +1149,6 @@ type gns_Gns {
     ServiceSegmentRefMap: String
     GnsAccessControlPolicy(Id: ID): policy_AccessControlPolicy!
     FooChild: gns_BarChild!
-    Foo(Id: ID): gns_Foo!
 }
 
 type gns_BarChild {
@@ -1440,21 +1391,6 @@ func (ec *executionContext) field_config_Config_QueryExample_args(ctx context.Co
 }
 
 func (ec *executionContext) field_config_Config_VMPPolicies_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 *string
-	if tmp, ok := rawArgs["Id"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("Id"))
-		arg0, err = ec.unmarshalOID2ᚖstring(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["Id"] = arg0
-	return args, nil
-}
-
-func (ec *executionContext) field_gns_Gns_Foo_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
 	var arg0 *string
@@ -4691,8 +4627,6 @@ func (ec *executionContext) fieldContext_config_Config_GNS(ctx context.Context, 
 				return ec.fieldContext_gns_Gns_GnsAccessControlPolicy(ctx, field)
 			case "FooChild":
 				return ec.fieldContext_gns_Gns_FooChild(ctx, field)
-			case "Foo":
-				return ec.fieldContext_gns_Gns_Foo(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type gns_Gns", field.Name)
 		},
@@ -5803,129 +5737,6 @@ func (ec *executionContext) fieldContext_gns_Dns_ParentLabels(ctx context.Contex
 	return fc, nil
 }
 
-func (ec *executionContext) _gns_Foo_Id(ctx context.Context, field graphql.CollectedField, obj *model.GnsFoo) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_gns_Foo_Id(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Id, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*string)
-	fc.Result = res
-	return ec.marshalOID2ᚖstring(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_gns_Foo_Id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "gns_Foo",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type ID does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _gns_Foo_ParentLabels(ctx context.Context, field graphql.CollectedField, obj *model.GnsFoo) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_gns_Foo_ParentLabels(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.ParentLabels, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(map[string]interface{})
-	fc.Result = res
-	return ec.marshalOMap2map(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_gns_Foo_ParentLabels(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "gns_Foo",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Map does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _gns_Foo_Password(ctx context.Context, field graphql.CollectedField, obj *model.GnsFoo) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_gns_Foo_Password(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Password, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*string)
-	fc.Result = res
-	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_gns_Foo_Password(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "gns_Foo",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
 func (ec *executionContext) _gns_Gns_Id(ctx context.Context, field graphql.CollectedField, obj *model.GnsGns) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_gns_Gns_Id(ctx, field)
 	if err != nil {
@@ -6938,69 +6749,6 @@ func (ec *executionContext) fieldContext_gns_Gns_FooChild(ctx context.Context, f
 			}
 			return nil, fmt.Errorf("no field named %q was found under type gns_BarChild", field.Name)
 		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _gns_Gns_Foo(ctx context.Context, field graphql.CollectedField, obj *model.GnsGns) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_gns_Gns_Foo(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Gns_Gns().Foo(rctx, obj, fc.Args["Id"].(*string))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(*model.GnsFoo)
-	fc.Result = res
-	return ec.marshalNgns_Foo2ᚖnexustempmoduleᚋnexusᚑgqlᚋgraphᚋmodelᚐGnsFoo(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_gns_Gns_Foo(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "gns_Gns",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "Id":
-				return ec.fieldContext_gns_Foo_Id(ctx, field)
-			case "ParentLabels":
-				return ec.fieldContext_gns_Foo_ParentLabels(ctx, field)
-			case "Password":
-				return ec.fieldContext_gns_Foo_Password(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type gns_Foo", field.Name)
-		},
-	}
-	defer func() {
-		if r := recover(); r != nil {
-			err = ec.Recover(ctx, r)
-			ec.Error(ctx, err)
-		}
-	}()
-	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_gns_Gns_Foo_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
-		ec.Error(ctx, err)
-		return
 	}
 	return fc, nil
 }
@@ -9034,39 +8782,6 @@ func (ec *executionContext) _gns_Dns(ctx context.Context, sel ast.SelectionSet, 
 	return out
 }
 
-var gns_FooImplementors = []string{"gns_Foo"}
-
-func (ec *executionContext) _gns_Foo(ctx context.Context, sel ast.SelectionSet, obj *model.GnsFoo) graphql.Marshaler {
-	fields := graphql.CollectFields(ec.OperationContext, sel, gns_FooImplementors)
-	out := graphql.NewFieldSet(fields)
-	var invalids uint32
-	for i, field := range fields {
-		switch field.Name {
-		case "__typename":
-			out.Values[i] = graphql.MarshalString("gns_Foo")
-		case "Id":
-
-			out.Values[i] = ec._gns_Foo_Id(ctx, field, obj)
-
-		case "ParentLabels":
-
-			out.Values[i] = ec._gns_Foo_ParentLabels(ctx, field, obj)
-
-		case "Password":
-
-			out.Values[i] = ec._gns_Foo_Password(ctx, field, obj)
-
-		default:
-			panic("unknown field " + strconv.Quote(field.Name))
-		}
-	}
-	out.Dispatch()
-	if invalids > 0 {
-		return graphql.Null
-	}
-	return out
-}
-
 var gns_GnsImplementors = []string{"gns_Gns"}
 
 func (ec *executionContext) _gns_Gns(ctx context.Context, sel ast.SelectionSet, obj *model.GnsGns) graphql.Marshaler {
@@ -9239,26 +8954,6 @@ func (ec *executionContext) _gns_Gns(ctx context.Context, sel ast.SelectionSet, 
 					}
 				}()
 				res = ec._gns_Gns_FooChild(ctx, field, obj)
-				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
-				}
-				return res
-			}
-
-			out.Concurrently(i, func() graphql.Marshaler {
-				return innerFunc(ctx)
-
-			})
-		case "Foo":
-			field := field
-
-			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._gns_Gns_Foo(ctx, field, obj)
 				if res == graphql.Null {
 					atomic.AddUint32(&invalids, 1)
 				}
@@ -9916,20 +9611,6 @@ func (ec *executionContext) marshalNgns_Dns2ᚖnexustempmoduleᚋnexusᚑgqlᚋg
 		return graphql.Null
 	}
 	return ec._gns_Dns(ctx, sel, v)
-}
-
-func (ec *executionContext) marshalNgns_Foo2nexustempmoduleᚋnexusᚑgqlᚋgraphᚋmodelᚐGnsFoo(ctx context.Context, sel ast.SelectionSet, v model.GnsFoo) graphql.Marshaler {
-	return ec._gns_Foo(ctx, sel, &v)
-}
-
-func (ec *executionContext) marshalNgns_Foo2ᚖnexustempmoduleᚋnexusᚑgqlᚋgraphᚋmodelᚐGnsFoo(ctx context.Context, sel ast.SelectionSet, v *model.GnsFoo) graphql.Marshaler {
-	if v == nil {
-		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
-			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
-		}
-		return graphql.Null
-	}
-	return ec._gns_Foo(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalNgns_Gns2nexustempmoduleᚋnexusᚑgqlᚋgraphᚋmodelᚐGnsGns(ctx context.Context, sel ast.SelectionSet, v model.GnsGns) graphql.Marshaler {

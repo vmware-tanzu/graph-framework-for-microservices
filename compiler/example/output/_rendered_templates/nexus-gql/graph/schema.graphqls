@@ -82,7 +82,6 @@ type gns_Gns {
 
     GnsServiceGroups(Id: ID): [servicegroup_SvcGroup!]
     
-    Foo: gns_Foo!
     Domain: String
     UseSharedGateway: Boolean
     Description: String

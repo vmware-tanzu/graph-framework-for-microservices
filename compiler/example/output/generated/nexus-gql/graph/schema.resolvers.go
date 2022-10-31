@@ -80,11 +80,6 @@ func (r *gns_GnsResolver) FooChild(ctx context.Context, obj *model.GnsGns) (*mod
 	return getGnsGnsFooChildResolver(obj)
 }
 
-// Foo is the resolver for the Foo field.
-func (r *gns_GnsResolver) Foo(ctx context.Context, obj *model.GnsGns, id *string) (*model.GnsFoo, error) {
-	return getGnsGnsFooResolver(obj, id)
-}
-
 // DestSvcGroups is the resolver for the DestSvcGroups field.
 func (r *policy_ACPConfigResolver) DestSvcGroups(ctx context.Context, obj *model.PolicyACPConfig, id *string) ([]*model.ServicegroupSvcGroup, error) {
 	return getPolicyACPConfigDestSvcGroupsResolver(obj, id)

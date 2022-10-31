@@ -811,32 +811,6 @@ vName := string(vBarChild.Spec.Name)
 	return ret, nil
 }
 //////////////////////////////////////
-// LINK RESOLVER
-// FieldName: Foo Node: Gns PKG: Gns
-//////////////////////////////////////
-func getGnsGnsFooResolver(obj *model.GnsGns) (*model.GnsFoo, error) {
-    log.Debugf("[getGnsGnsFooResolver]Parent Object %+v", obj)
-	vFooParent, err := nc.RootRoot().Config(getParentName(obj.ParentLabels, "configs.config.tsm.tanzu.vmware.com")).GetGNS(context.TODO(), getParentName(obj.ParentLabels, "gnses.gns.tsm.tanzu.vmware.com"))
-	if err != nil {
-	    log.Errorf("[getGnsGnsFooResolver]Error getting parent node %s", err)
-        return &model.GnsFoo{}, nil
-    }
-	vFoo, err := vFooParent.GetFoo(context.TODO())
-	if err != nil {
-		log.Errorf("[getGnsGnsFooResolver]Error getting Foo object %s", err)
-        return &model.GnsFoo{}, nil
-    }
-	
-    for k, v := range obj.ParentLabels {
-        parentLabels[k] = v
-    }
-	
-	log.Debugf("[getGnsGnsFooResolver]Output object %v", ret)
-
-	return ret, nil
-}
-
-//////////////////////////////////////
 // CHILDREN RESOLVER
 // FieldName: GnsServiceGroups Node: Gns PKG: Gns
 //////////////////////////////////////

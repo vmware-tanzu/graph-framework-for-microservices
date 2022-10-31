@@ -63,13 +63,6 @@ type config_Domain {
     PointStruct: String
 }
 
-type gns_Foo {
-    Id: ID
-	ParentLabels: Map
-
-    Password: String
-}
-
 type gns_Gns {
     Id: ID
 	ParentLabels: Map
@@ -105,7 +98,6 @@ type gns_Gns {
     ServiceSegmentRefMap: String
     GnsAccessControlPolicy(Id: ID): policy_AccessControlPolicy!
     FooChild: gns_BarChild!
-    Foo(Id: ID): gns_Foo!
 }
 
 type gns_BarChild {
