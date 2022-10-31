@@ -58,6 +58,8 @@ models:
         resolver: true
       FooChild:
         resolver: true
+      Foo:
+        resolver: true
   policy_AccessControlPolicy:
     fields:
       PolicyConfigs:

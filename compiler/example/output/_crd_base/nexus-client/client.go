@@ -2263,6 +2263,200 @@ func (c *randomgnsdataGnsTsmV1Chainer) SetStatus(ctx context.Context, status *ba
 	return err
 }
 
+// GetFooByName returns object stored in the database under the hashedName which is a hash of display
+// name and parents names. Use it when you know hashed name of object.
+func (group *GnsTsmV1) GetFooByName(ctx context.Context, hashedName string) (*GnsFoo, error) {
+	result, err := group.client.baseClient.
+		GnsTsmV1().
+		Foos().Get(ctx, hashedName, metav1.GetOptions{})
+	if err != nil {
+		return nil, err
+	}
+
+	return &GnsFoo{
+		client: group.client,
+		Foo:    result,
+	}, nil
+}
+
+// DeleteFooByName deletes object stored in the database under the hashedName which is a hash of
+// display name and parents names. Use it when you know hashed name of object.
+func (group *GnsTsmV1) DeleteFooByName(ctx context.Context, hashedName string) (err error) {
+
+	err = group.client.baseClient.
+		GnsTsmV1().
+		Foos().Delete(ctx, hashedName, metav1.DeleteOptions{})
+	if err != nil {
+		return err
+	}
+
+	return
+}
+
+// CreateFooByName creates object in the database without hashing the name.
+// Use it directly ONLY when objToCreate.Name is hashed name of the object.
+func (group *GnsTsmV1) CreateFooByName(ctx context.Context,
+	objToCreate *basegnstsmtanzuvmwarecomv1.Foo) (*GnsFoo, error) {
+	if objToCreate.GetLabels() == nil {
+		objToCreate.Labels = make(map[string]string)
+	}
+	if _, ok := objToCreate.Labels[common.DISPLAY_NAME_LABEL]; !ok {
+		objToCreate.Labels[common.DISPLAY_NAME_LABEL] = objToCreate.GetName()
+	}
+
+	result, err := group.client.baseClient.
+		GnsTsmV1().
+		Foos().Create(ctx, objToCreate, metav1.CreateOptions{})
+	if err != nil {
+		return nil, err
+	}
+
+	return &GnsFoo{
+		client: group.client,
+		Foo:    result,
+	}, nil
+}
+
+// UpdateFooByName updates object stored in the database under the hashedName which is a hash of
+// display name and parents names.
+func (group *GnsTsmV1) UpdateFooByName(ctx context.Context,
+	objToUpdate *basegnstsmtanzuvmwarecomv1.Foo) (*GnsFoo, error) {
+
+	// ResourceVersion must be set for update
+	if objToUpdate.ResourceVersion == "" {
+		current, err := group.client.baseClient.
+			GnsTsmV1().
+			Foos().Get(ctx, objToUpdate.GetName(), metav1.GetOptions{})
+		if err != nil {
+			return nil, err
+		}
+		objToUpdate.ResourceVersion = current.ResourceVersion
+	}
+
+	var patch Patch
+	patch = append(patch, PatchOp{
+		Op:    "replace",
+		Path:  "/metadata",
+		Value: objToUpdate.ObjectMeta,
+	})
+
+	patchValuePassword :=
+		objToUpdate.Spec.Password
+	patchOpPassword := PatchOp{
+		Op:    "replace",
+		Path:  "/spec/password",
+		Value: patchValuePassword,
+	}
+	patch = append(patch, patchOpPassword)
+
+	marshaled, err := patch.Marshal()
+	if err != nil {
+		return nil, err
+	}
+	result, err := group.client.baseClient.
+		GnsTsmV1().
+		Foos().Patch(ctx, objToUpdate.GetName(), types.JSONPatchType, marshaled, metav1.PatchOptions{}, "")
+	if err != nil {
+		return nil, err
+	}
+
+	return &GnsFoo{
+		client: group.client,
+		Foo:    result,
+	}, nil
+}
+
+// ListFoos returns slice of all existing objects of this type. Selectors can be provided in opts parameter.
+func (group *GnsTsmV1) ListFoos(ctx context.Context,
+	opts metav1.ListOptions) (result []*GnsFoo, err error) {
+	list, err := group.client.baseClient.GnsTsmV1().
+		Foos().List(ctx, opts)
+	if err != nil {
+		return nil, err
+	}
+	result = make([]*GnsFoo, len(list.Items))
+	for k, v := range list.Items {
+		item := v
+		result[k] = &GnsFoo{
+			client: group.client,
+			Foo:    &item,
+		}
+	}
+	return
+}
+
+type GnsFoo struct {
+	client *Clientset
+	*basegnstsmtanzuvmwarecomv1.Foo
+}
+
+// Delete removes obj and all it's children from the database.
+func (obj *GnsFoo) Delete(ctx context.Context) error {
+	err := obj.client.Gns().DeleteFooByName(ctx, obj.GetName())
+	if err != nil {
+		return err
+	}
+	obj.Foo = nil
+	return nil
+}
+
+// Update updates spec of object in database. Children and Link can not be updated using this function.
+func (obj *GnsFoo) Update(ctx context.Context) error {
+	result, err := obj.client.Gns().UpdateFooByName(ctx, obj.Foo)
+	if err != nil {
+		return err
+	}
+	obj.Foo = result.Foo
+	return nil
+}
+
+// GetGnsFoo calculates the hashed name based on parents and displayName and
+// returns given object
+func (c *Clientset) GetGnsFoo(ctx context.Context, displayName string) (result *GnsFoo, err error) {
+	hashedName := helper.GetHashedName("foos.gns.tsm.tanzu.vmware.com", nil, displayName)
+	return c.Gns().GetFooByName(ctx, hashedName)
+}
+
+func (c *Clientset) GnsFoo(displayName string) *fooGnsTsmV1Chainer {
+	parentLabels := make(map[string]string)
+	parentLabels["foos.gns.tsm.tanzu.vmware.com"] = displayName
+	return &fooGnsTsmV1Chainer{
+		client:       c,
+		name:         displayName,
+		parentLabels: parentLabels,
+	}
+}
+
+// AddGnsFoo calculates hashed name of the object based on objToCreate.Name
+// and parents names and creates it. objToCreate.Name is changed to the hashed name. Original name is preserved in
+// nexus/display_name label and can be obtained using DisplayName() method.
+func (c *Clientset) AddGnsFoo(ctx context.Context,
+	objToCreate *basegnstsmtanzuvmwarecomv1.Foo) (result *GnsFoo, err error) {
+	if objToCreate.Labels == nil {
+		objToCreate.Labels = map[string]string{}
+	}
+	if objToCreate.Labels[common.IS_NAME_HASHED_LABEL] != "true" {
+		objToCreate.Labels[common.DISPLAY_NAME_LABEL] = objToCreate.GetName()
+		objToCreate.Labels[common.IS_NAME_HASHED_LABEL] = "true"
+		hashedName := helper.GetHashedName(objToCreate.CRDName(), nil, objToCreate.GetName())
+		objToCreate.Name = hashedName
+	}
+	return c.Gns().CreateFooByName(ctx, objToCreate)
+}
+
+// DeleteGnsFoo calculates hashedName of object based on displayName and
+// parents and deletes given object
+func (c *Clientset) DeleteGnsFoo(ctx context.Context, displayName string) (err error) {
+	hashedName := helper.GetHashedName("foos.gns.tsm.tanzu.vmware.com", nil, displayName)
+	return c.Gns().DeleteFooByName(ctx, hashedName)
+}
+
+type fooGnsTsmV1Chainer struct {
+	client       *Clientset
+	name         string
+	parentLabels map[string]string
+}
+
 // GetGnsByName returns object stored in the database under the hashedName which is a hash of display
 // name and parents names. Use it when you know hashed name of object.
 func (group *GnsTsmV1) GetGnsByName(ctx context.Context, hashedName string) (*GnsGns, error) {
@@ -2381,6 +2575,7 @@ func (group *GnsTsmV1) CreateGnsByName(ctx context.Context,
 	objToCreate.Spec.FooChildGvk = nil
 	objToCreate.Spec.IgnoreChildGvk = nil
 	objToCreate.Spec.DnsGvk = nil
+	objToCreate.Spec.FooGvk = nil
 
 	result, err := group.client.baseClient.
 		GnsTsmV1().
@@ -2994,6 +3189,67 @@ func (obj *GnsGns) UnlinkDns(ctx context.Context) (err error) {
 	patchOp := PatchOp{
 		Op:   "remove",
 		Path: "/spec/dnsGvk",
+	}
+
+	patch = append(patch, patchOp)
+	marshaled, err := patch.Marshal()
+	if err != nil {
+		return err
+	}
+	result, err := obj.client.baseClient.GnsTsmV1().Gnses().Patch(ctx, obj.Name, types.JSONPatchType, marshaled, metav1.PatchOptions{})
+	if err != nil {
+		return err
+	}
+	obj.Gns = result
+	return nil
+
+}
+
+// GetFoo returns link of given type
+func (obj *GnsGns) GetFoo(ctx context.Context) (
+	result *GnsFoo, err error) {
+	if obj.Spec.FooGvk == nil {
+		return nil, NewLinkNotFound(obj.DisplayName(), "Gns.Gns", "Foo")
+	}
+	return obj.client.Gns().GetFooByName(ctx, obj.Spec.FooGvk.Name)
+}
+
+// LinkFoo links obj with linkToAdd object. This function doesn't create linked object, it must be
+// already created.
+func (obj *GnsGns) LinkFoo(ctx context.Context,
+	linkToAdd *GnsFoo) error {
+
+	var patch Patch
+	patchOp := PatchOp{
+		Op:   "replace",
+		Path: "/spec/fooGvk",
+		Value: basegnstsmtanzuvmwarecomv1.Child{
+			Group: "gns.tsm.tanzu.vmware.com",
+			Kind:  "Foo",
+			Name:  linkToAdd.Name,
+		},
+	}
+	patch = append(patch, patchOp)
+	marshaled, err := patch.Marshal()
+	if err != nil {
+		return err
+	}
+	result, err := obj.client.baseClient.GnsTsmV1().Gnses().Patch(ctx, obj.Name, types.JSONPatchType, marshaled, metav1.PatchOptions{})
+	if err != nil {
+		return err
+	}
+
+	obj.Gns = result
+	return nil
+}
+
+// UnlinkFoo unlinks linkToRemove object from obj. This function doesn't delete linked object.
+func (obj *GnsGns) UnlinkFoo(ctx context.Context) (err error) {
+	var patch Patch
+
+	patchOp := PatchOp{
+		Op:   "remove",
+		Path: "/spec/fooGvk",
 	}
 
 	patch = append(patch, patchOp)

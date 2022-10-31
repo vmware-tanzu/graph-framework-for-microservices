@@ -41,6 +41,10 @@ func (c *FakeGnsTsmV1) Dnses() v1.DnsInterface {
 	return &FakeDnses{c}
 }
 
+func (c *FakeGnsTsmV1) Foos() v1.FooInterface {
+	return &FakeFoos{c}
+}
+
 func (c *FakeGnsTsmV1) Gnses() v1.GnsInterface {
 	return &FakeGnses{c}
 }

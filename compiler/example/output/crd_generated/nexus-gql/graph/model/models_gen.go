@@ -72,6 +72,12 @@ type GnsDns struct {
 	ParentLabels map[string]interface{} `json:"ParentLabels"`
 }
 
+type GnsFoo struct {
+	Id           *string                `json:"Id"`
+	ParentLabels map[string]interface{} `json:"ParentLabels"`
+	Password     *string                `json:"Password"`
+}
+
 type GnsGns struct {
 	Id                       *string                    `json:"Id"`
 	ParentLabels             map[string]interface{}     `json:"ParentLabels"`
@@ -95,6 +101,7 @@ type GnsGns struct {
 	ServiceSegmentRefMap     *string                    `json:"ServiceSegmentRefMap"`
 	GnsAccessControlPolicy   *PolicyAccessControlPolicy `json:"GnsAccessControlPolicy"`
 	FooChild                 *GnsBarChild               `json:"FooChild"`
+	Foo                      *GnsFoo                    `json:"Foo"`
 }
 
 type GnsIgnoreChild struct {

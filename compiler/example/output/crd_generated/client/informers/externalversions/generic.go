@@ -72,6 +72,8 @@ func (f *sharedInformerFactory) ForResource(resource schema.GroupVersionResource
 		return &genericInformer{resource: resource.GroupResource(), informer: f.GnsTsm().V1().BarChilds().Informer()}, nil
 	case gnstsmtanzuvmwarecomv1.SchemeGroupVersion.WithResource("dnses"):
 		return &genericInformer{resource: resource.GroupResource(), informer: f.GnsTsm().V1().Dnses().Informer()}, nil
+	case gnstsmtanzuvmwarecomv1.SchemeGroupVersion.WithResource("foos"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.GnsTsm().V1().Foos().Informer()}, nil
 	case gnstsmtanzuvmwarecomv1.SchemeGroupVersion.WithResource("gnses"):
 		return &genericInformer{resource: resource.GroupResource(), informer: f.GnsTsm().V1().Gnses().Informer()}, nil
 	case gnstsmtanzuvmwarecomv1.SchemeGroupVersion.WithResource("ignorechilds"):

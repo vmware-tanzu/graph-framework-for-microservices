@@ -824,6 +824,64 @@ func getGnsGnsFooChildResolver(obj *model.GnsGns) (*model.GnsBarChild, error) {
 }
 
 //////////////////////////////////////
+// CHILD RESOLVER (Non Singleton)
+// FieldName: Foo Node: Gns PKG: Gns
+//////////////////////////////////////
+func getGnsGnsFooResolver(obj *model.GnsGns, id *string) (*model.GnsFoo, error) {
+	log.Debugf("[getGnsGnsFooResolver]Parent Object %+v", obj)
+	if id != nil && *id != "" {
+		log.Debugf("[getGnsGnsFooResolver]Id %q", *id)
+		vFoo, err := nc.RootRoot().Config(getParentName(obj.ParentLabels, "configs.config.tsm.tanzu.vmware.com")).GNS(getParentName(obj.ParentLabels, "gnses.gns.tsm.tanzu.vmware.com")).GetFoo(context.TODO(), *id)
+		if err != nil {
+			log.Errorf("[getGnsGnsFooResolver]Error getting Foo node %q : %s", *id, err)
+			return &model.GnsFoo{}, nil
+		}
+		dn := vFoo.DisplayName()
+		parentLabels := map[string]interface{}{"foos.gns.tsm.tanzu.vmware.com": dn}
+		vPassword := string(vFoo.Spec.Password)
+
+		for k, v := range obj.ParentLabels {
+			parentLabels[k] = v
+		}
+		ret := &model.GnsFoo{
+			Id:           &dn,
+			ParentLabels: parentLabels,
+			Password:     &vPassword,
+		}
+
+		log.Debugf("[getGnsGnsFooResolver]Output object %v", ret)
+		return ret, nil
+	}
+	log.Debug("[getGnsGnsFooResolver]Id is empty, process all Foos")
+	vFooParent, err := nc.RootRoot().Config(getParentName(obj.ParentLabels, "configs.config.tsm.tanzu.vmware.com")).GetGNS(context.TODO(), getParentName(obj.ParentLabels, "gnses.gns.tsm.tanzu.vmware.com"))
+	if err != nil {
+		log.Errorf("[getGnsGnsFooResolver]Failed to get parent node %s", err)
+		return &model.GnsFoo{}, nil
+	}
+	vFoo, err := vFooParent.GetFoo(context.TODO())
+	if err != nil {
+		log.Errorf("[getGnsGnsFooResolver]Error getting Foo node %s", err)
+		return &model.GnsFoo{}, nil
+	}
+	dn := vFoo.DisplayName()
+	parentLabels := map[string]interface{}{"foos.gns.tsm.tanzu.vmware.com": dn}
+	vPassword := string(vFoo.Spec.Password)
+
+	for k, v := range obj.ParentLabels {
+		parentLabels[k] = v
+	}
+	ret := &model.GnsFoo{
+		Id:           &dn,
+		ParentLabels: parentLabels,
+		Password:     &vPassword,
+	}
+
+	log.Debugf("[getGnsGnsFooResolver]Output object %v", ret)
+
+	return ret, nil
+}
+
+//////////////////////////////////////
 // CHILDREN RESOLVER
 // FieldName: GnsServiceGroups Node: Gns PKG: Gns
 //////////////////////////////////////

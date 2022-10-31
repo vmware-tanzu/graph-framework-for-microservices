@@ -30,6 +30,8 @@ type Interface interface {
 	BarChilds() BarChildInformer
 	// Dnses returns a DnsInformer.
 	Dnses() DnsInformer
+	// Foos returns a FooInformer.
+	Foos() FooInformer
 	// Gnses returns a GnsInformer.
 	Gnses() GnsInformer
 	// IgnoreChilds returns a IgnoreChildInformer.
@@ -62,6 +64,11 @@ func (v *version) BarChilds() BarChildInformer {
 // Dnses returns a DnsInformer.
 func (v *version) Dnses() DnsInformer {
 	return &dnsInformer{factory: v.factory, tweakListOptions: v.tweakListOptions}
+}
+
+// Foos returns a FooInformer.
+func (v *version) Foos() FooInformer {
+	return &fooInformer{factory: v.factory, tweakListOptions: v.tweakListOptions}
 }
 
 // Gnses returns a GnsInformer.
