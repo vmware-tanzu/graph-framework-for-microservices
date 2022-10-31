@@ -35,7 +35,7 @@ define run_in_container
   --network=host \
   --workdir ${PKG_NAME} \
   --user $(shell id -u):$(shell id -g) \
-  "${BUILDER_NAME}:${BUILDER_TAG}" /bin/bash -c "${1}"
+  "${BUILDER_NAME}:${BUILDER_TAG}" /bin/bash -c 'chown -R $(shell id -u) .; ${1}'
 endef
 else
 define run_in_container

@@ -100,7 +100,7 @@ const (
 )
 
 type ReplicationSource struct {
-	SourceKind SourceKind
+	Kind SourceKind
 }
 
 type gnsQueryFilters struct {

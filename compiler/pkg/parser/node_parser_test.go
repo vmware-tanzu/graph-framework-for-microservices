@@ -110,30 +110,6 @@ var _ = Describe("Node parser tests", func() {
 		Expect(fail).To(BeTrue())
 	})
 
-	It("should fail when DSL has ID/id/Id/iD as a feild", func() {
-		defer func() { log.StandardLogger().ExitFunc = nil }()
-
-		fail := false
-		log.StandardLogger().ExitFunc = func(int) {
-			fail = true
-		}
-
-		parser.ParseDSLNodes("../../example/test-utils/with-id-field", baseGroupName, nil, nil)
-		Expect(fail).To(BeTrue())
-	})
-
-	It("should fail when DSL has ID/id/Id/iD as a type.", func() {
-		defer func() { log.StandardLogger().ExitFunc = nil }()
-
-		fail := false
-		log.StandardLogger().ExitFunc = func(int) {
-			fail = true
-		}
-
-		parser.ParseDSLNodes("../../example/test-utils/with-id-type", baseGroupName, nil, nil)
-		Expect(fail).To(BeTrue())
-	})
-
 	It("should be able to get graphql info from a field", func() {
 		graph = parser.ParseDSLNodes(exampleDSLPath, baseGroupName, nil, nil)
 		config, ok := graph["roots.root.tsm.tanzu.vmware.com"].SingleChildren["Config"]
