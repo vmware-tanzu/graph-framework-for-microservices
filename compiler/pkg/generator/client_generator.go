@@ -153,8 +153,11 @@ func resolveNode(baseImportName string, pkg parser.Package, allPkgs parser.Packa
 		fieldInfo := getFieldInfo(pkg, allPkgs, f)
 		var vars apiGroupsClientVarsLink
 		vars.FieldName = fieldInfo.fieldName
-		vars.FieldNameTag, _ = parser.GetFieldNameJsonTag(f)
-		vars.FieldNameTag = util.GetTag(vars.FieldNameTag)
+
+		vars.FieldNameTag = parser.GetFieldNameJsonTag(f)
+		if vars.FieldNameTag == "" {
+			vars.FieldNameTag = util.GetTag(fieldInfo.fieldName)
+		}
 
 		vars.IsAggregateKind = parser.IsAggregateKind(f)
 
