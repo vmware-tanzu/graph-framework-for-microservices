@@ -14,7 +14,7 @@ const (
 	examplePath    = "../../example/"
 	exampleDSLPath = examplePath + "datamodel"
 	baseGroupName  = "tsm.tanzu.vmware.com"
-	crdModulePath  = "github.com/vmware-tanzu/graph-framework-for-microservices/compiler/example/output/crd_generated/"
+	crdModulePath  = "github.com/vmware-tanzu/graph-framework-for-microservices/compiler/example/output/generated/"
 )
 
 func TestParser(t *testing.T) {
