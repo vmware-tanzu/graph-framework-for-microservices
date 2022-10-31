@@ -8,7 +8,7 @@ import (
 
 	log "github.com/sirupsen/logrus"
 	"github.com/vmware-tanzu/graph-framework-for-microservices/compiler/pkg/config"
-	crd_generator "github.com/vmware-tanzu/graph-framework-for-microservices/compiler/pkg/crd-generator"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/compiler/pkg/generator"
 	"github.com/vmware-tanzu/graph-framework-for-microservices/compiler/pkg/parser"
 )
 
@@ -51,7 +51,7 @@ func main() {
 	graphlqQueries := parser.ParseGraphqlQuerySpecs(pkgs)
 	graph := parser.ParseDSLNodes(*dslDir, conf.GroupName, pkgs, graphlqQueries)
 	methods, codes := rest.ParseResponses(pkgs)
-	if err = crd_generator.RenderCRDTemplate(conf.GroupName, conf.CrdModulePath, pkgs, graph,
+	if err = generator.RenderCRDTemplate(conf.GroupName, conf.CrdModulePath, pkgs, graph,
 		*crdDir, methods, codes); err != nil {
 		log.Fatalf("Error rendering crd template: %v", err)
 	}
