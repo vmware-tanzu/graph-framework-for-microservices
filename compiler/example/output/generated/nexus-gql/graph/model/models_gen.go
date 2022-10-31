@@ -32,6 +32,7 @@ type ConfigConfig struct {
 	ClusterNamespaces *string                      `json:"ClusterNamespaces"`
 	TestValMarkers    *string                      `json:"TestValMarkers"`
 	Instance          *float64                     `json:"Instance"`
+	CuOption          *string                      `json:"CuOption"`
 	GNS               *GnsGns                      `json:"GNS"`
 	DNS               *GnsDns                      `json:"DNS"`
 	VMPPolicies       *PolicyVMpolicy              `json:"VMPPolicies"`
