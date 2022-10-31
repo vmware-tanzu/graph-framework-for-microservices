@@ -742,6 +742,15 @@ func (group *ConfigTsmV1) UpdateConfigByName(ctx context.Context,
 	}
 	patch = append(patch, patchOpInstance)
 
+	patchValueCuOption :=
+		objToUpdate.Spec.CuOption
+	patchOpCuOption := PatchOp{
+		Op:    "replace",
+		Path:  "/spec/option_cu",
+		Value: patchValueCuOption,
+	}
+	patch = append(patch, patchOpCuOption)
+
 	marshaled, err := patch.Marshal()
 	if err != nil {
 		return nil, err
@@ -1581,7 +1590,7 @@ func (group *ConfigTsmV1) UpdateFooTypeByName(ctx context.Context,
 		objToUpdate.Spec.FooE
 	patchOpFooE := PatchOp{
 		Op:    "replace",
-		Path:  "/spec/fooE",
+		Path:  "/spec/foo_e",
 		Value: patchValueFooE,
 	}
 	patch = append(patch, patchOpFooE)
@@ -1590,7 +1599,7 @@ func (group *ConfigTsmV1) UpdateFooTypeByName(ctx context.Context,
 		objToUpdate.Spec.FooF
 	patchOpFooF := PatchOp{
 		Op:    "replace",
-		Path:  "/spec/fooF",
+		Path:  "/spec/foo_f",
 		Value: patchValueFooF,
 	}
 	patch = append(patch, patchOpFooF)

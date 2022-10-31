@@ -32,6 +32,7 @@ type config_Config {
     ClusterNamespaces: String
     TestValMarkers: String
     Instance: Float
+    CuOption: String
     GNS(Id: ID): gns_Gns!
     DNS: gns_Dns!
     VMPPolicies(Id: ID): policy_VMpolicy!
