@@ -774,6 +774,10 @@ func (c *{{$node.GroupResourceType}}Chainer) Set{{$node.StatusName}}(ctx context
 }
 {{ end }}
 
+// SUBSCRIBE...
+func (c *{{$node.GroupResourceType}}Chainer) Subscribe() {
+}
+
 {{ range $key, $link := .Children }}
 {{ if $link.IsSingleton }}
 func (c *{{$node.GroupResourceType}}Chainer) {{$link.FieldName}}() *{{$link.GroupResourceType}}Chainer {

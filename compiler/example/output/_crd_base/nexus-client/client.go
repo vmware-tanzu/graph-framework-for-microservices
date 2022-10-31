@@ -39,6 +39,7 @@ type Clientset struct {
 	gnsTsmV1          *GnsTsmV1
 	servicegroupTsmV1 *ServicegroupTsmV1
 	policypkgTsmV1    *PolicypkgTsmV1
+	subscribers map[string]bool
 }
 
 // NewForConfig returns Client which can be which can be used to connect to database
@@ -54,6 +55,14 @@ func NewForConfig(config *rest.Config) (*Clientset, error) {
 	client.gnsTsmV1 = newGnsTsmV1(client)
 	client.servicegroupTsmV1 = newServicegroupTsmV1(client)
 	client.policypkgTsmV1 = newPolicypkgTsmV1(client)
+
+	client.RootRoot().Subscribe()
+
+	//objToCreate := &baseroottsmtanzuvmwarecomv1.Root{}
+	//root, err := client.AddRootRoot(context.TODO(), objToCreate)
+	client.RootRoot().ConfigConfig().Subscribe()
+	client.RootRoot().ConfigConfig().GNS().Subscribe()
+	client.RootRoot().ConfigConfig().DNS().Subscribe()
 
 	return client, nil
 }
@@ -418,6 +427,15 @@ type rootRootTsmV1Chainer struct {
 	client       *Clientset
 	name         string
 	parentLabels map[string]string
+}
+
+// SUBSCRIBE...
+func (c *rootRootTsmV1Chainer) Subscribe() {
+}
+
+func (c *rootRootTsmV1Chainer) ConfigConfig() *configConfigTsmV1Chainer {
+	return &configConfigTsmV1Chainer{
+	}
 }
 
 func (c *rootRootTsmV1Chainer) Config(name string) *configConfigTsmV1Chainer {
@@ -1170,6 +1188,17 @@ type configConfigTsmV1Chainer struct {
 	parentLabels map[string]string
 }
 
+// SUBSCRIBE...
+func (c *configConfigTsmV1Chainer) Subscribe() {
+	//c.client.subscribers["configConfig"] = true
+
+	// push GVR to chan
+}
+
+func (c *configConfigTsmV1Chainer) GnsGns() *gnsGnsTsmV1Chainer {
+	return &gnsGnsTsmV1Chainer{
+	}
+}
 func (c *configConfigTsmV1Chainer) GNS(name string) *gnsGnsTsmV1Chainer {
 	parentLabels := c.parentLabels
 	parentLabels["gnses.gns.tsm.tanzu.vmware.com"] = name
@@ -1667,6 +1696,10 @@ type footypeConfigTsmV1Chainer struct {
 	parentLabels map[string]string
 }
 
+// SUBSCRIBE...
+func (c *footypeConfigTsmV1Chainer) Subscribe() {
+}
+
 // GetDomainByName returns object stored in the database under the hashedName which is a hash of display
 // name and parents names. Use it when you know hashed name of object.
 func (group *ConfigTsmV1) GetDomainByName(ctx context.Context, hashedName string) (*ConfigDomain, error) {
@@ -1972,6 +2005,10 @@ type domainConfigTsmV1Chainer struct {
 	parentLabels map[string]string
 }
 
+// SUBSCRIBE...
+func (c *domainConfigTsmV1Chainer) Subscribe() {
+}
+
 // GetRandomGnsDataByName returns object stored in the database under the hashedName which is a hash of display
 // name and parents names. Use it when you know hashed name of object.
 func (group *GnsTsmV1) GetRandomGnsDataByName(ctx context.Context, hashedName string) (*GnsRandomGnsData, error) {
@@ -2261,6 +2298,10 @@ func (c *randomgnsdataGnsTsmV1Chainer) SetStatus(ctx context.Context, status *ba
 	}
 	_, err = c.client.Gns().SetRandomGnsDataStatusByName(ctx, obj.RandomGnsData, status)
 	return err
+}
+
+// SUBSCRIBE...
+func (c *randomgnsdataGnsTsmV1Chainer) Subscribe() {
 }
 
 // GetGnsByName returns object stored in the database under the hashedName which is a hash of display
@@ -3048,6 +3089,10 @@ func (c *gnsGnsTsmV1Chainer) SetState(ctx context.Context, status *basegnstsmtan
 	return err
 }
 
+// SUBSCRIBE...
+func (c *gnsGnsTsmV1Chainer) Subscribe() {
+}
+
 func (c *gnsGnsTsmV1Chainer) GnsServiceGroups(name string) *svcgroupServicegroupTsmV1Chainer {
 	parentLabels := c.parentLabels
 	parentLabels["svcgroups.servicegroup.tsm.tanzu.vmware.com"] = name
@@ -3475,6 +3520,10 @@ type barchildGnsTsmV1Chainer struct {
 	parentLabels map[string]string
 }
 
+// SUBSCRIBE...
+func (c *barchildGnsTsmV1Chainer) Subscribe() {
+}
+
 // GetIgnoreChildByName returns object stored in the database under the hashedName which is a hash of display
 // name and parents names. Use it when you know hashed name of object.
 func (group *GnsTsmV1) GetIgnoreChildByName(ctx context.Context, hashedName string) (*GnsIgnoreChild, error) {
@@ -3700,6 +3749,10 @@ type ignorechildGnsTsmV1Chainer struct {
 	parentLabels map[string]string
 }
 
+// SUBSCRIBE...
+func (c *ignorechildGnsTsmV1Chainer) Subscribe() {
+}
+
 // GetDnsByName returns object stored in the database under the hashedName which is a hash of display
 // name and parents names. Use it when you know hashed name of object.
 func (group *GnsTsmV1) GetDnsByName(ctx context.Context, hashedName string) (*GnsDns, error) {
@@ -3922,6 +3975,10 @@ type dnsGnsTsmV1Chainer struct {
 	client       *Clientset
 	name         string
 	parentLabels map[string]string
+}
+
+// SUBSCRIBE...
+func (c *dnsGnsTsmV1Chainer) Subscribe() {
 }
 
 // GetAdditionalGnsDataByName returns object stored in the database under the hashedName which is a hash of display
@@ -4215,6 +4272,10 @@ func (c *additionalgnsdataGnsTsmV1Chainer) SetStatus(ctx context.Context, status
 	return err
 }
 
+// SUBSCRIBE...
+func (c *additionalgnsdataGnsTsmV1Chainer) Subscribe() {
+}
+
 // GetSvcGroupByName returns object stored in the database under the hashedName which is a hash of display
 // name and parents names. Use it when you know hashed name of object.
 func (group *ServicegroupTsmV1) GetSvcGroupByName(ctx context.Context, hashedName string) (*ServicegroupSvcGroup, error) {
@@ -4442,6 +4503,10 @@ type svcgroupServicegroupTsmV1Chainer struct {
 	client       *Clientset
 	name         string
 	parentLabels map[string]string
+}
+
+// SUBSCRIBE...
+func (c *svcgroupServicegroupTsmV1Chainer) Subscribe() {
 }
 
 // GetAdditionalPolicyDataByName returns object stored in the database under the hashedName which is a hash of display
@@ -4733,6 +4798,10 @@ func (c *additionalpolicydataPolicypkgTsmV1Chainer) SetStatus(ctx context.Contex
 	}
 	_, err = c.client.Policypkg().SetAdditionalPolicyDataStatusByName(ctx, obj.AdditionalPolicyData, status)
 	return err
+}
+
+// SUBSCRIBE...
+func (c *additionalpolicydataPolicypkgTsmV1Chainer) Subscribe() {
 }
 
 // GetAccessControlPolicyByName returns object stored in the database under the hashedName which is a hash of display
@@ -5029,6 +5098,10 @@ type accesscontrolpolicyPolicypkgTsmV1Chainer struct {
 	client       *Clientset
 	name         string
 	parentLabels map[string]string
+}
+
+// SUBSCRIBE...
+func (c *accesscontrolpolicyPolicypkgTsmV1Chainer) Subscribe() {
 }
 
 func (c *accesscontrolpolicyPolicypkgTsmV1Chainer) PolicyConfigs(name string) *acpconfigPolicypkgTsmV1Chainer {
@@ -5566,6 +5639,10 @@ func (c *acpconfigPolicypkgTsmV1Chainer) SetStatus(ctx context.Context, status *
 	return err
 }
 
+// SUBSCRIBE...
+func (c *acpconfigPolicypkgTsmV1Chainer) Subscribe() {
+}
+
 // GetVMpolicyByName returns object stored in the database under the hashedName which is a hash of display
 // name and parents names. Use it when you know hashed name of object.
 func (group *PolicypkgTsmV1) GetVMpolicyByName(ctx context.Context, hashedName string) (*PolicypkgVMpolicy, error) {
@@ -5780,6 +5857,10 @@ type vmpolicyPolicypkgTsmV1Chainer struct {
 	client       *Clientset
 	name         string
 	parentLabels map[string]string
+}
+
+// SUBSCRIBE...
+func (c *vmpolicyPolicypkgTsmV1Chainer) Subscribe() {
 }
 
 // GetRandomPolicyDataByName returns object stored in the database under the hashedName which is a hash of display
@@ -6071,4 +6152,8 @@ func (c *randompolicydataPolicypkgTsmV1Chainer) SetStatus(ctx context.Context, s
 	}
 	_, err = c.client.Policypkg().SetRandomPolicyDataStatusByName(ctx, obj.RandomPolicyData, status)
 	return err
+}
+
+// SUBSCRIBE...
+func (c *randompolicydataPolicypkgTsmV1Chainer) Subscribe() {
 }
