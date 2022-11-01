@@ -195,4 +195,19 @@ var _ = Describe("Template renderers tests", func() {
 		Expect(packageName).To(Equal(expectedGroupGoName))
 	})
 
+	It("should handle hyphen in group-name", func() {
+		datamodelPath := "../../example/test-utils/group-name-with-hyphen-datamodel"
+		groupName := "tsm-tanzu.vmware.com"
+		crdModulePath := "../../example/test-utils/test-output/crd_generated/"
+		outputDir := "../../example/test-utils/test-output/crd_generated"
+
+		pkgs := parser.ParseDSLPkg(datamodelPath)
+		graphlqQueries := parser.ParseGraphqlQuerySpecs(pkgs)
+		graph := parser.ParseDSLNodes(datamodelPath, groupName, pkgs, graphlqQueries)
+		methods, codes := rest.ParseResponses(pkgs)
+		err := crdgenerator.RenderCRDTemplate(groupName, crdModulePath, pkgs, graph,
+			outputDir, methods, codes)
+		Expect(err).NotTo(HaveOccurred())
+	})
+
 })

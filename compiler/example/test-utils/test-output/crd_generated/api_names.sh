@@ -1,0 +1,1 @@
+API_NAMES="config.tsm-tanzu.vmware.com:v1 project.tsm-tanzu.vmware.com:v1 root.tsm-tanzu.vmware.com:v1 "
