@@ -33,58 +33,58 @@ import (
 	cache "k8s.io/client-go/tools/cache"
 )
 
-// FooTypeInformer provides access to a shared informer and lister for
-// FooTypes.
-type FooTypeInformer interface {
+// FooTypeABCInformer provides access to a shared informer and lister for
+// FooTypeABCs.
+type FooTypeABCInformer interface {
 	Informer() cache.SharedIndexInformer
-	Lister() v1.FooTypeLister
+	Lister() v1.FooTypeABCLister
 }
 
-type fooTypeInformer struct {
+type fooTypeABCInformer struct {
 	factory          internalinterfaces.SharedInformerFactory
 	tweakListOptions internalinterfaces.TweakListOptionsFunc
 }
 
-// NewFooTypeInformer constructs a new informer for FooType type.
+// NewFooTypeABCInformer constructs a new informer for FooTypeABC type.
 // Always prefer using an informer factory to get a shared informer instead of getting an independent
 // one. This reduces memory footprint and number of connections to the server.
-func NewFooTypeInformer(client versioned.Interface, resyncPeriod time.Duration, indexers cache.Indexers) cache.SharedIndexInformer {
-	return NewFilteredFooTypeInformer(client, resyncPeriod, indexers, nil)
+func NewFooTypeABCInformer(client versioned.Interface, resyncPeriod time.Duration, indexers cache.Indexers) cache.SharedIndexInformer {
+	return NewFilteredFooTypeABCInformer(client, resyncPeriod, indexers, nil)
 }
 
-// NewFilteredFooTypeInformer constructs a new informer for FooType type.
+// NewFilteredFooTypeABCInformer constructs a new informer for FooTypeABC type.
 // Always prefer using an informer factory to get a shared informer instead of getting an independent
 // one. This reduces memory footprint and number of connections to the server.
-func NewFilteredFooTypeInformer(client versioned.Interface, resyncPeriod time.Duration, indexers cache.Indexers, tweakListOptions internalinterfaces.TweakListOptionsFunc) cache.SharedIndexInformer {
+func NewFilteredFooTypeABCInformer(client versioned.Interface, resyncPeriod time.Duration, indexers cache.Indexers, tweakListOptions internalinterfaces.TweakListOptionsFunc) cache.SharedIndexInformer {
 	return cache.NewSharedIndexInformer(
 		&cache.ListWatch{
 			ListFunc: func(options metav1.ListOptions) (runtime.Object, error) {
 				if tweakListOptions != nil {
 					tweakListOptions(&options)
 				}
-				return client.ConfigTsmV1().FooTypes().List(context.TODO(), options)
+				return client.ConfigTsmV1().FooTypeABCs().List(context.TODO(), options)
 			},
 			WatchFunc: func(options metav1.ListOptions) (watch.Interface, error) {
 				if tweakListOptions != nil {
 					tweakListOptions(&options)
 				}
-				return client.ConfigTsmV1().FooTypes().Watch(context.TODO(), options)
+				return client.ConfigTsmV1().FooTypeABCs().Watch(context.TODO(), options)
 			},
 		},
-		&configtsmtanzuvmwarecomv1.FooType{},
+		&configtsmtanzuvmwarecomv1.FooTypeABC{},
 		resyncPeriod,
 		indexers,
 	)
 }
 
-func (f *fooTypeInformer) defaultInformer(client versioned.Interface, resyncPeriod time.Duration) cache.SharedIndexInformer {
-	return NewFilteredFooTypeInformer(client, resyncPeriod, cache.Indexers{cache.NamespaceIndex: cache.MetaNamespaceIndexFunc}, f.tweakListOptions)
+func (f *fooTypeABCInformer) defaultInformer(client versioned.Interface, resyncPeriod time.Duration) cache.SharedIndexInformer {
+	return NewFilteredFooTypeABCInformer(client, resyncPeriod, cache.Indexers{cache.NamespaceIndex: cache.MetaNamespaceIndexFunc}, f.tweakListOptions)
 }
 
-func (f *fooTypeInformer) Informer() cache.SharedIndexInformer {
-	return f.factory.InformerFor(&configtsmtanzuvmwarecomv1.FooType{}, f.defaultInformer)
+func (f *fooTypeABCInformer) Informer() cache.SharedIndexInformer {
+	return f.factory.InformerFor(&configtsmtanzuvmwarecomv1.FooTypeABC{}, f.defaultInformer)
 }
 
-func (f *fooTypeInformer) Lister() v1.FooTypeLister {
-	return v1.NewFooTypeLister(f.Informer().GetIndexer())
+func (f *fooTypeABCInformer) Lister() v1.FooTypeABCLister {
+	return v1.NewFooTypeABCLister(f.Informer().GetIndexer())
 }

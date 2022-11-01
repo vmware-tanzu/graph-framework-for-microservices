@@ -532,7 +532,7 @@ func (group *ConfigTsmV1) DeleteConfigByName(ctx context.Context, hashedName str
 
 	for _, v := range result.Spec.FooExampleGvk {
 		err := group.client.
-			Config().DeleteFooTypeByName(ctx, v.Name)
+			Config().DeleteFooTypeABCByName(ctx, v.Name)
 		if err != nil {
 			return err
 		}
@@ -1032,10 +1032,10 @@ func (obj *ConfigConfig) DeleteDomain(ctx context.Context) (err error) {
 
 // GetAllFooExample returns all children of given type
 func (obj *ConfigConfig) GetAllFooExample(ctx context.Context) (
-	result []*ConfigFooType, err error) {
-	result = make([]*ConfigFooType, 0, len(obj.Spec.FooExampleGvk))
+	result []*ConfigFooTypeABC, err error) {
+	result = make([]*ConfigFooTypeABC, 0, len(obj.Spec.FooExampleGvk))
 	for _, v := range obj.Spec.FooExampleGvk {
-		l, err := obj.client.Config().GetFooTypeByName(ctx, v.Name)
+		l, err := obj.client.Config().GetFooTypeABCByName(ctx, v.Name)
 		if err != nil {
 			return nil, err
 		}
@@ -1046,12 +1046,12 @@ func (obj *ConfigConfig) GetAllFooExample(ctx context.Context) (
 
 // GetFooExample returns child which has given displayName
 func (obj *ConfigConfig) GetFooExample(ctx context.Context,
-	displayName string) (result *ConfigFooType, err error) {
+	displayName string) (result *ConfigFooTypeABC, err error) {
 	l, ok := obj.Spec.FooExampleGvk[displayName]
 	if !ok {
 		return nil, NewChildNotFound(obj.DisplayName(), "Config.Config", "FooExample", displayName)
 	}
-	result, err = obj.client.Config().GetFooTypeByName(ctx, l.Name)
+	result, err = obj.client.Config().GetFooTypeABCByName(ctx, l.Name)
 	return
 }
 
@@ -1059,7 +1059,7 @@ func (obj *ConfigConfig) GetFooExample(ctx context.Context,
 // and parents names and creates it. objToCreate.Name is changed to the hashed name. Original name is preserved in
 // nexus/display_name label and can be obtained using DisplayName() method.
 func (obj *ConfigConfig) AddFooExample(ctx context.Context,
-	objToCreate *baseconfigtsmtanzuvmwarecomv1.FooType) (result *ConfigFooType, err error) {
+	objToCreate *baseconfigtsmtanzuvmwarecomv1.FooTypeABC) (result *ConfigFooTypeABC, err error) {
 	if objToCreate.Labels == nil {
 		objToCreate.Labels = map[string]string{}
 	}
@@ -1073,7 +1073,7 @@ func (obj *ConfigConfig) AddFooExample(ctx context.Context,
 		hashedName := helper.GetHashedName(objToCreate.CRDName(), objToCreate.Labels, objToCreate.GetName())
 		objToCreate.Name = hashedName
 	}
-	result, err = obj.client.Config().CreateFooTypeByName(ctx, objToCreate)
+	result, err = obj.client.Config().CreateFooTypeABCByName(ctx, objToCreate)
 	updatedObj, getErr := obj.client.Config().GetConfigByName(ctx, obj.GetName())
 	if getErr == nil {
 		obj.Config = updatedObj.Config
@@ -1089,7 +1089,7 @@ func (obj *ConfigConfig) DeleteFooExample(ctx context.Context, displayName strin
 	if !ok {
 		return NewChildNotFound(obj.DisplayName(), "Config.Config", "FooExample", displayName)
 	}
-	err = obj.client.Config().DeleteFooTypeByName(ctx, l.Name)
+	err = obj.client.Config().DeleteFooTypeABCByName(ctx, l.Name)
 	if err != nil {
 		return err
 	}
@@ -1364,10 +1364,10 @@ func (c *configConfigTsmV1Chainer) DeleteDomain(ctx context.Context, name string
 	return c.client.Config().DeleteDomainByName(ctx, hashedName)
 }
 
-func (c *configConfigTsmV1Chainer) FooExample(name string) *footypeConfigTsmV1Chainer {
+func (c *configConfigTsmV1Chainer) FooExample(name string) *footypeabcConfigTsmV1Chainer {
 	parentLabels := c.parentLabels
-	parentLabels["footypes.config.tsm.tanzu.vmware.com"] = name
-	return &footypeConfigTsmV1Chainer{
+	parentLabels["footypeabcs.config.tsm.tanzu.vmware.com"] = name
+	return &footypeabcConfigTsmV1Chainer{
 		client:       c.client,
 		name:         name,
 		parentLabels: parentLabels,
@@ -1375,16 +1375,16 @@ func (c *configConfigTsmV1Chainer) FooExample(name string) *footypeConfigTsmV1Ch
 }
 
 // GetFooExample calculates hashed name of the object based on displayName and it's parents and returns the object
-func (c *configConfigTsmV1Chainer) GetFooExample(ctx context.Context, displayName string) (result *ConfigFooType, err error) {
-	hashedName := helper.GetHashedName("footypes.config.tsm.tanzu.vmware.com", c.parentLabels, displayName)
-	return c.client.Config().GetFooTypeByName(ctx, hashedName)
+func (c *configConfigTsmV1Chainer) GetFooExample(ctx context.Context, displayName string) (result *ConfigFooTypeABC, err error) {
+	hashedName := helper.GetHashedName("footypeabcs.config.tsm.tanzu.vmware.com", c.parentLabels, displayName)
+	return c.client.Config().GetFooTypeABCByName(ctx, hashedName)
 }
 
 // AddFooExample calculates hashed name of the child to create based on objToCreate.Name
 // and parents names and creates it. objToCreate.Name is changed to the hashed name. Original name is preserved in
 // nexus/display_name label and can be obtained using DisplayName() method.
 func (c *configConfigTsmV1Chainer) AddFooExample(ctx context.Context,
-	objToCreate *baseconfigtsmtanzuvmwarecomv1.FooType) (result *ConfigFooType, err error) {
+	objToCreate *baseconfigtsmtanzuvmwarecomv1.FooTypeABC) (result *ConfigFooTypeABC, err error) {
 	if objToCreate.Labels == nil {
 		objToCreate.Labels = map[string]string{}
 	}
@@ -1394,10 +1394,10 @@ func (c *configConfigTsmV1Chainer) AddFooExample(ctx context.Context,
 	if objToCreate.Labels[common.IS_NAME_HASHED_LABEL] != "true" {
 		objToCreate.Labels[common.DISPLAY_NAME_LABEL] = objToCreate.GetName()
 		objToCreate.Labels[common.IS_NAME_HASHED_LABEL] = "true"
-		hashedName := helper.GetHashedName("footypes.config.tsm.tanzu.vmware.com", c.parentLabels, objToCreate.GetName())
+		hashedName := helper.GetHashedName("footypeabcs.config.tsm.tanzu.vmware.com", c.parentLabels, objToCreate.GetName())
 		objToCreate.Name = hashedName
 	}
-	return c.client.Config().CreateFooTypeByName(ctx, objToCreate)
+	return c.client.Config().CreateFooTypeABCByName(ctx, objToCreate)
 }
 
 // DeleteFooExample calculates hashed name of the child to delete based on displayName
@@ -1407,40 +1407,40 @@ func (c *configConfigTsmV1Chainer) DeleteFooExample(ctx context.Context, name st
 		c.parentLabels = map[string]string{}
 	}
 	c.parentLabels[common.IS_NAME_HASHED_LABEL] = "true"
-	hashedName := helper.GetHashedName("footypes.config.tsm.tanzu.vmware.com", c.parentLabels, name)
-	return c.client.Config().DeleteFooTypeByName(ctx, hashedName)
+	hashedName := helper.GetHashedName("footypeabcs.config.tsm.tanzu.vmware.com", c.parentLabels, name)
+	return c.client.Config().DeleteFooTypeABCByName(ctx, hashedName)
 }
 
-// GetFooTypeByName returns object stored in the database under the hashedName which is a hash of display
+// GetFooTypeABCByName returns object stored in the database under the hashedName which is a hash of display
 // name and parents names. Use it when you know hashed name of object.
-func (group *ConfigTsmV1) GetFooTypeByName(ctx context.Context, hashedName string) (*ConfigFooType, error) {
+func (group *ConfigTsmV1) GetFooTypeABCByName(ctx context.Context, hashedName string) (*ConfigFooTypeABC, error) {
 	result, err := group.client.baseClient.
 		ConfigTsmV1().
-		FooTypes().Get(ctx, hashedName, metav1.GetOptions{})
+		FooTypeABCs().Get(ctx, hashedName, metav1.GetOptions{})
 	if err != nil {
 		return nil, err
 	}
 
-	return &ConfigFooType{
-		client:  group.client,
-		FooType: result,
+	return &ConfigFooTypeABC{
+		client:     group.client,
+		FooTypeABC: result,
 	}, nil
 }
 
-// DeleteFooTypeByName deletes object stored in the database under the hashedName which is a hash of
+// DeleteFooTypeABCByName deletes object stored in the database under the hashedName which is a hash of
 // display name and parents names. Use it when you know hashed name of object.
-func (group *ConfigTsmV1) DeleteFooTypeByName(ctx context.Context, hashedName string) (err error) {
+func (group *ConfigTsmV1) DeleteFooTypeABCByName(ctx context.Context, hashedName string) (err error) {
 
 	result, err := group.client.baseClient.
 		ConfigTsmV1().
-		FooTypes().Get(ctx, hashedName, metav1.GetOptions{})
+		FooTypeABCs().Get(ctx, hashedName, metav1.GetOptions{})
 	if err != nil {
 		return err
 	}
 
 	err = group.client.baseClient.
 		ConfigTsmV1().
-		FooTypes().Delete(ctx, hashedName, metav1.DeleteOptions{})
+		FooTypeABCs().Delete(ctx, hashedName, metav1.DeleteOptions{})
 	if err != nil {
 		return err
 	}
@@ -1478,10 +1478,10 @@ func (group *ConfigTsmV1) DeleteFooTypeByName(ctx context.Context, hashedName st
 	return
 }
 
-// CreateFooTypeByName creates object in the database without hashing the name.
+// CreateFooTypeABCByName creates object in the database without hashing the name.
 // Use it directly ONLY when objToCreate.Name is hashed name of the object.
-func (group *ConfigTsmV1) CreateFooTypeByName(ctx context.Context,
-	objToCreate *baseconfigtsmtanzuvmwarecomv1.FooType) (*ConfigFooType, error) {
+func (group *ConfigTsmV1) CreateFooTypeABCByName(ctx context.Context,
+	objToCreate *baseconfigtsmtanzuvmwarecomv1.FooTypeABC) (*ConfigFooTypeABC, error) {
 	if objToCreate.GetLabels() == nil {
 		objToCreate.Labels = make(map[string]string)
 	}
@@ -1491,7 +1491,7 @@ func (group *ConfigTsmV1) CreateFooTypeByName(ctx context.Context,
 
 	result, err := group.client.baseClient.
 		ConfigTsmV1().
-		FooTypes().Create(ctx, objToCreate, metav1.CreateOptions{})
+		FooTypeABCs().Create(ctx, objToCreate, metav1.CreateOptions{})
 	if err != nil {
 		return nil, err
 	}
@@ -1504,7 +1504,7 @@ func (group *ConfigTsmV1) CreateFooTypeByName(ctx context.Context,
 		parentName = helper.GetHashedName("configs.config.tsm.tanzu.vmware.com", objToCreate.GetLabels(), parentName)
 	}
 
-	payload := "{\"spec\": {\"fooExampleGvk\": {\"" + objToCreate.DisplayName() + "\": {\"name\": \"" + objToCreate.Name + "\",\"kind\": \"FooType\", \"group\": \"config.tsm.tanzu.vmware.com\"}}}}"
+	payload := "{\"spec\": {\"fooExampleGvk\": {\"" + objToCreate.DisplayName() + "\": {\"name\": \"" + objToCreate.Name + "\",\"kind\": \"FooTypeABC\", \"group\": \"config.tsm.tanzu.vmware.com\"}}}}"
 	_, err = group.client.baseClient.
 		ConfigTsmV1().
 		Configs().Patch(ctx, parentName, types.MergePatchType, []byte(payload), metav1.PatchOptions{})
@@ -1512,22 +1512,22 @@ func (group *ConfigTsmV1) CreateFooTypeByName(ctx context.Context,
 		return nil, err
 	}
 
-	return &ConfigFooType{
-		client:  group.client,
-		FooType: result,
+	return &ConfigFooTypeABC{
+		client:     group.client,
+		FooTypeABC: result,
 	}, nil
 }
 
-// UpdateFooTypeByName updates object stored in the database under the hashedName which is a hash of
+// UpdateFooTypeABCByName updates object stored in the database under the hashedName which is a hash of
 // display name and parents names.
-func (group *ConfigTsmV1) UpdateFooTypeByName(ctx context.Context,
-	objToUpdate *baseconfigtsmtanzuvmwarecomv1.FooType) (*ConfigFooType, error) {
+func (group *ConfigTsmV1) UpdateFooTypeABCByName(ctx context.Context,
+	objToUpdate *baseconfigtsmtanzuvmwarecomv1.FooTypeABC) (*ConfigFooTypeABC, error) {
 
 	// ResourceVersion must be set for update
 	if objToUpdate.ResourceVersion == "" {
 		current, err := group.client.baseClient.
 			ConfigTsmV1().
-			FooTypes().Get(ctx, objToUpdate.GetName(), metav1.GetOptions{})
+			FooTypeABCs().Get(ctx, objToUpdate.GetName(), metav1.GetOptions{})
 		if err != nil {
 			return nil, err
 		}
@@ -1601,67 +1601,67 @@ func (group *ConfigTsmV1) UpdateFooTypeByName(ctx context.Context,
 	}
 	result, err := group.client.baseClient.
 		ConfigTsmV1().
-		FooTypes().Patch(ctx, objToUpdate.GetName(), types.JSONPatchType, marshaled, metav1.PatchOptions{}, "")
+		FooTypeABCs().Patch(ctx, objToUpdate.GetName(), types.JSONPatchType, marshaled, metav1.PatchOptions{}, "")
 	if err != nil {
 		return nil, err
 	}
 
-	return &ConfigFooType{
-		client:  group.client,
-		FooType: result,
+	return &ConfigFooTypeABC{
+		client:     group.client,
+		FooTypeABC: result,
 	}, nil
 }
 
-// ListFooTypes returns slice of all existing objects of this type. Selectors can be provided in opts parameter.
-func (group *ConfigTsmV1) ListFooTypes(ctx context.Context,
-	opts metav1.ListOptions) (result []*ConfigFooType, err error) {
+// ListFooTypeABCs returns slice of all existing objects of this type. Selectors can be provided in opts parameter.
+func (group *ConfigTsmV1) ListFooTypeABCs(ctx context.Context,
+	opts metav1.ListOptions) (result []*ConfigFooTypeABC, err error) {
 	list, err := group.client.baseClient.ConfigTsmV1().
-		FooTypes().List(ctx, opts)
+		FooTypeABCs().List(ctx, opts)
 	if err != nil {
 		return nil, err
 	}
-	result = make([]*ConfigFooType, len(list.Items))
+	result = make([]*ConfigFooTypeABC, len(list.Items))
 	for k, v := range list.Items {
 		item := v
-		result[k] = &ConfigFooType{
-			client:  group.client,
-			FooType: &item,
+		result[k] = &ConfigFooTypeABC{
+			client:     group.client,
+			FooTypeABC: &item,
 		}
 	}
 	return
 }
 
-type ConfigFooType struct {
+type ConfigFooTypeABC struct {
 	client *Clientset
-	*baseconfigtsmtanzuvmwarecomv1.FooType
+	*baseconfigtsmtanzuvmwarecomv1.FooTypeABC
 }
 
 // Delete removes obj and all it's children from the database.
-func (obj *ConfigFooType) Delete(ctx context.Context) error {
-	err := obj.client.Config().DeleteFooTypeByName(ctx, obj.GetName())
+func (obj *ConfigFooTypeABC) Delete(ctx context.Context) error {
+	err := obj.client.Config().DeleteFooTypeABCByName(ctx, obj.GetName())
 	if err != nil {
 		return err
 	}
-	obj.FooType = nil
+	obj.FooTypeABC = nil
 	return nil
 }
 
 // Update updates spec of object in database. Children and Link can not be updated using this function.
-func (obj *ConfigFooType) Update(ctx context.Context) error {
-	result, err := obj.client.Config().UpdateFooTypeByName(ctx, obj.FooType)
+func (obj *ConfigFooTypeABC) Update(ctx context.Context) error {
+	result, err := obj.client.Config().UpdateFooTypeABCByName(ctx, obj.FooTypeABC)
 	if err != nil {
 		return err
 	}
-	obj.FooType = result.FooType
+	obj.FooTypeABC = result.FooTypeABC
 	return nil
 }
 
-func (obj *ConfigFooType) GetParent(ctx context.Context) (result *ConfigConfig, err error) {
+func (obj *ConfigFooTypeABC) GetParent(ctx context.Context) (result *ConfigConfig, err error) {
 	hashedName := helper.GetHashedName("configs.config.tsm.tanzu.vmware.com", obj.Labels, obj.Labels["configs.config.tsm.tanzu.vmware.com"])
 	return obj.client.Config().GetConfigByName(ctx, hashedName)
 }
 
-type footypeConfigTsmV1Chainer struct {
+type footypeabcConfigTsmV1Chainer struct {
 	client       *Clientset
 	name         string
 	parentLabels map[string]string
