@@ -22,4 +22,4 @@ type ConfigExpansion interface{}
 
 type DomainExpansion interface{}
 
-type FooTypeExpansion interface{}
+type FooTypeABCExpansion interface{}

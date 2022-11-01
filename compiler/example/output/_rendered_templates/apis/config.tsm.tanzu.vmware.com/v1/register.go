@@ -39,8 +39,8 @@ func addKnownTypes(scheme *runtime.Scheme) error {
 		SchemeGroupVersion,
 		&Config{},
 		&ConfigList{},
-		&FooType{},
-		&FooTypeList{},
+		&FooTypeABC{},
+		&FooTypeABCList{},
 		&Domain{},
 		&DomainList{},
 	)

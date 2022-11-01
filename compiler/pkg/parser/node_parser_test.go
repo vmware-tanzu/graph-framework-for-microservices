@@ -34,7 +34,7 @@ var _ = Describe("Node parser tests", func() {
 			"Config",
 			"Dns",
 			"Domain",
-			"FooType",
+			"FooTypeABC",
 			"Gns",
 			"IgnoreChild",
 			"Root",

@@ -37,11 +37,11 @@ type Config struct {
 	ClusterNamespaces []ClusterNamespace
 
 	TestValMarkers TestValMarkers `json:"testValMarkers" yaml:"testValMarkers"`
-	FooExample     FooType        `nexus:"children"`
+	FooExample     FooTypeABC        `nexus:"children"`
 	Instance       float32
 }
 
-type FooType struct {
+type FooTypeABC struct {
 	nexus.Node
 	FooA AMap
 	FooB BArray
