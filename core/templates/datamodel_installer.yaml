@@ -31,10 +31,25 @@ data:
       IMAGE="file://${NAME}"
       TITLE=${TITLE:-}
       SKIP_CRD_INSTALLATION=${SKIP_CRD_INSTALLATION:-false}
+      GRAPHQL_ENABLED=${GRAPHQL_ENABLED:-false}
+      GRAPHQL_PATH=${GRAPHQL_PATH:-}
       if [[ $SKIP_CRD_INSTALLATION == "false" ]]; then
           kubectl apply -f /crds --recursive
           NAME=$(cat /NAME)
           IMAGE=$(cat /IMAGE)
+      if [[ -n $GRAPHQL_PATH ]]; then
+          GRAPHQL_ENABLED=true
+      fi
+      if [[ $(test -z /graphql.so) ]]; then
+          GRAPHQL_ENABLED=true
+          if [[ -z $GRAPHQL_PATH ]]; then
+              if [[ $(curl --retry 10 --max-time 10  -T /graphql.so http://nginx/datamodel/plugin) ]]; then
+                  echo "not able to upload graphql plugin"
+                  exit 1
+              fi
+              GRAPHQL_PATH="http://nginx/datamodel/plugin"
+          fi
+      fi
       fi
       if [[ -n $NAME ]] && [[ -n $IMAGE ]]; then
         if [[ -n $TITLE ]]; then
@@ -46,7 +61,9 @@ data:
             spec:
               name: '"$NAME"'
               url: '"$IMAGE"'
-              title: '"$TITLE"'' | kubectl apply -f -
+              title: '"$TITLE"
+              enableGraphql: '"$GRAPHQL_ENABLED"''
+              graphqlPath: '"$GRAPHQL_PATH"'' | kubectl apply -f -
         else
           echo '
           apiVersion: nexus.org/v1
@@ -55,7 +72,9 @@ data:
             name: '"$NAME"'
           spec:
             name: '"$NAME"'
-            url: '"$IMAGE"'' | kubectl apply -f -
+            url: '"$IMAGE"
+            enableGraphql: '"$GRAPHQL_ENABLED"'
+            graphqlPath: '"$GRAPHQL_PATH"'' | kubectl apply -f -
         fi
       fi
 ---
@@ -147,7 +166,7 @@ data:
                 imagePullPolicy: IfNotPresent
                 command:
                   - /bin/bash
-                  - -c 
+                  - -c
                   - |
                       #!/bin/bash
                       set -x
