@@ -162,7 +162,14 @@ generate_code:
 	cd _generated/nexus-gql && \
 	go get github.com/cespare/xxhash/v2@v2.1.2 && gqlgen generate
 	cp -rf _generated/* ${GOPATH}/src/nexustempmodule/
-	cd ${GOPATH}/src/nexustempmodule && cd nexus-gql && CGO_ENABLED=1 GOOS=linux \
+	cd ${GOPATH}/src/nexustempmodule && cd nexus-gql && go mod init && go get github.com/cespare/xxhash/v2@v2.1.2 && \
+	go mod edit -replace nexustempmodule=${GOPATH}/src/nexustempmodule && \
+	go mod edit -replace github.com/vmware-tanzu/graph-framework-for-microservices/gqlgen=${COMPILER_SRC_DIRECTORY}/../gqlgen && \
+	go mod edit -replace github.com/vmware-tanzu/graph-framework-for-microservices/kube-openapi=${COMPILER_SRC_DIRECTORY}/../kube-openapi && \
+	go mod edit -replace github.com/vmware-tanzu/graph-framework-for-microservices/nexus=${COMPILER_SRC_DIRECTORY}/../nexus && \
+	go get -u sigs.k8s.io/yaml@v1.3.0 && \
+	go mod tidy -e && \
+	cat go.mod && cat go.sum && CGO_ENABLED=1 GOOS=linux \
 	go build --trimpath -o graphql.so -buildmode=plugin server.go
 	@echo "Updating module name"
 	./scripts/replace_mod_path.sh
