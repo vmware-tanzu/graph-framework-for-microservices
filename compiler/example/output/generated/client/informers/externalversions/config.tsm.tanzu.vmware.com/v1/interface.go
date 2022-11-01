@@ -19,7 +19,7 @@ limitations under the License.
 package v1
 
 import (
-	internalinterfaces "github.com/vmware-tanzu/graph-framework-for-microservices/compiler/example/output/generated/client/informers/externalversions/internalinterfaces"
+	internalinterfaces "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/crd_generatedclient/informers/externalversions/internalinterfaces"
 )
 
 // Interface provides access to all the informers in this group version.
@@ -28,8 +28,8 @@ type Interface interface {
 	Configs() ConfigInformer
 	// Domains returns a DomainInformer.
 	Domains() DomainInformer
-	// FooTypes returns a FooTypeInformer.
-	FooTypes() FooTypeInformer
+	// FooTypeABCs returns a FooTypeABCInformer.
+	FooTypeABCs() FooTypeABCInformer
 }
 
 type version struct {
@@ -53,7 +53,7 @@ func (v *version) Domains() DomainInformer {
 	return &domainInformer{factory: v.factory, tweakListOptions: v.tweakListOptions}
 }
 
-// FooTypes returns a FooTypeInformer.
-func (v *version) FooTypes() FooTypeInformer {
-	return &fooTypeInformer{factory: v.factory, tweakListOptions: v.tweakListOptions}
+// FooTypeABCs returns a FooTypeABCInformer.
+func (v *version) FooTypeABCs() FooTypeABCInformer {
+	return &fooTypeABCInformer{factory: v.factory, tweakListOptions: v.tweakListOptions}
 }

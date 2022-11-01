@@ -19,8 +19,8 @@ limitations under the License.
 package v1
 
 import (
-	v1 "github.com/vmware-tanzu/graph-framework-for-microservices/compiler/example/output/generated/apis/config.tsm.tanzu.vmware.com/v1"
-	"github.com/vmware-tanzu/graph-framework-for-microservices/compiler/example/output/generated/client/clientset/versioned/scheme"
+	v1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/crd_generatedapis/config.tsm.tanzu.vmware.com/v1"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/crd_generatedclient/clientset/versioned/scheme"
 
 	rest "k8s.io/client-go/rest"
 )
@@ -29,7 +29,7 @@ type ConfigTsmV1Interface interface {
 	RESTClient() rest.Interface
 	ConfigsGetter
 	DomainsGetter
-	FooTypesGetter
+	FooTypeABCsGetter
 }
 
 // ConfigTsmV1Client is used to interact with features provided by the config.tsm.tanzu.vmware.com group.
@@ -45,8 +45,8 @@ func (c *ConfigTsmV1Client) Domains() DomainInterface {
 	return newDomains(c)
 }
 
-func (c *ConfigTsmV1Client) FooTypes() FooTypeInterface {
-	return newFooTypes(c)
+func (c *ConfigTsmV1Client) FooTypeABCs() FooTypeABCInterface {
+	return newFooTypeABCs(c)
 }
 
 // NewForConfig creates a new ConfigTsmV1Client for the given config.

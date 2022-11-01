@@ -8,7 +8,7 @@ import (
 
 	"github.com/elliotchance/orderedmap"
 
-	datamodel "github.com/vmware-tanzu/graph-framework-for-microservices/compiler/example/output/generated/client/clientset/versioned"
+	datamodel "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/crd_generatedclient/clientset/versioned"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
@@ -25,7 +25,7 @@ func GetCRDParentsMap() map[string][]string {
 		"configs.config.tsm.tanzu.vmware.com":                  {"roots.root.tsm.tanzu.vmware.com"},
 		"dnses.gns.tsm.tanzu.vmware.com":                       {"roots.root.tsm.tanzu.vmware.com", "configs.config.tsm.tanzu.vmware.com"},
 		"domains.config.tsm.tanzu.vmware.com":                  {"roots.root.tsm.tanzu.vmware.com", "configs.config.tsm.tanzu.vmware.com"},
-		"footypes.config.tsm.tanzu.vmware.com":                 {"roots.root.tsm.tanzu.vmware.com", "configs.config.tsm.tanzu.vmware.com"},
+		"footypeabcs.config.tsm.tanzu.vmware.com":              {"roots.root.tsm.tanzu.vmware.com", "configs.config.tsm.tanzu.vmware.com"},
 		"gnses.gns.tsm.tanzu.vmware.com":                       {"roots.root.tsm.tanzu.vmware.com", "configs.config.tsm.tanzu.vmware.com"},
 		"ignorechilds.gns.tsm.tanzu.vmware.com":                {"roots.root.tsm.tanzu.vmware.com", "configs.config.tsm.tanzu.vmware.com", "gnses.gns.tsm.tanzu.vmware.com"},
 		"roots.root.tsm.tanzu.vmware.com":                      {},
@@ -77,8 +77,8 @@ func GetObjectByCRDName(dmClient *datamodel.Clientset, crdName string, name stri
 		}
 		return obj
 	}
-	if crdName == "footypes.config.tsm.tanzu.vmware.com" {
-		obj, err := dmClient.ConfigTsmV1().FooTypes().Get(context.TODO(), name, metav1.GetOptions{})
+	if crdName == "footypeabcs.config.tsm.tanzu.vmware.com" {
+		obj, err := dmClient.ConfigTsmV1().FooTypeABCs().Get(context.TODO(), name, metav1.GetOptions{})
 		if err != nil {
 			return nil
 		}

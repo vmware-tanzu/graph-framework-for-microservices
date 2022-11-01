@@ -19,7 +19,7 @@ limitations under the License.
 package v1
 
 import (
-	internalinterfaces "github.com/vmware-tanzu/graph-framework-for-microservices/compiler/example/output/generated/client/informers/externalversions/internalinterfaces"
+	internalinterfaces "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/crd_generatedclient/informers/externalversions/internalinterfaces"
 )
 
 // Interface provides access to all the informers in this group version.

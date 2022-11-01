@@ -19,17 +19,17 @@ limitations under the License.
 package fake
 
 import (
-	clientset "github.com/vmware-tanzu/graph-framework-for-microservices/compiler/example/output/generated/client/clientset/versioned"
-	configtsmv1 "github.com/vmware-tanzu/graph-framework-for-microservices/compiler/example/output/generated/client/clientset/versioned/typed/config.tsm.tanzu.vmware.com/v1"
-	fakeconfigtsmv1 "github.com/vmware-tanzu/graph-framework-for-microservices/compiler/example/output/generated/client/clientset/versioned/typed/config.tsm.tanzu.vmware.com/v1/fake"
-	gnstsmv1 "github.com/vmware-tanzu/graph-framework-for-microservices/compiler/example/output/generated/client/clientset/versioned/typed/gns.tsm.tanzu.vmware.com/v1"
-	fakegnstsmv1 "github.com/vmware-tanzu/graph-framework-for-microservices/compiler/example/output/generated/client/clientset/versioned/typed/gns.tsm.tanzu.vmware.com/v1/fake"
-	policypkgtsmv1 "github.com/vmware-tanzu/graph-framework-for-microservices/compiler/example/output/generated/client/clientset/versioned/typed/policypkg.tsm.tanzu.vmware.com/v1"
-	fakepolicypkgtsmv1 "github.com/vmware-tanzu/graph-framework-for-microservices/compiler/example/output/generated/client/clientset/versioned/typed/policypkg.tsm.tanzu.vmware.com/v1/fake"
-	roottsmv1 "github.com/vmware-tanzu/graph-framework-for-microservices/compiler/example/output/generated/client/clientset/versioned/typed/root.tsm.tanzu.vmware.com/v1"
-	fakeroottsmv1 "github.com/vmware-tanzu/graph-framework-for-microservices/compiler/example/output/generated/client/clientset/versioned/typed/root.tsm.tanzu.vmware.com/v1/fake"
-	servicegrouptsmv1 "github.com/vmware-tanzu/graph-framework-for-microservices/compiler/example/output/generated/client/clientset/versioned/typed/servicegroup.tsm.tanzu.vmware.com/v1"
-	fakeservicegrouptsmv1 "github.com/vmware-tanzu/graph-framework-for-microservices/compiler/example/output/generated/client/clientset/versioned/typed/servicegroup.tsm.tanzu.vmware.com/v1/fake"
+	clientset "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/crd_generatedclient/clientset/versioned"
+	configtsmv1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/crd_generatedclient/clientset/versioned/typed/config.tsm.tanzu.vmware.com/v1"
+	fakeconfigtsmv1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/crd_generatedclient/clientset/versioned/typed/config.tsm.tanzu.vmware.com/v1/fake"
+	gnstsmv1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/crd_generatedclient/clientset/versioned/typed/gns.tsm.tanzu.vmware.com/v1"
+	fakegnstsmv1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/crd_generatedclient/clientset/versioned/typed/gns.tsm.tanzu.vmware.com/v1/fake"
+	policypkgtsmv1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/crd_generatedclient/clientset/versioned/typed/policypkg.tsm.tanzu.vmware.com/v1"
+	fakepolicypkgtsmv1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/crd_generatedclient/clientset/versioned/typed/policypkg.tsm.tanzu.vmware.com/v1/fake"
+	roottsmv1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/crd_generatedclient/clientset/versioned/typed/root.tsm.tanzu.vmware.com/v1"
+	fakeroottsmv1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/crd_generatedclient/clientset/versioned/typed/root.tsm.tanzu.vmware.com/v1/fake"
+	servicegrouptsmv1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/crd_generatedclient/clientset/versioned/typed/servicegroup.tsm.tanzu.vmware.com/v1"
+	fakeservicegrouptsmv1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/crd_generatedclient/clientset/versioned/typed/servicegroup.tsm.tanzu.vmware.com/v1/fake"
 
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/watch"

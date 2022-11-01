@@ -21,11 +21,11 @@ package externalversions
 import (
 	"fmt"
 
-	v1 "github.com/vmware-tanzu/graph-framework-for-microservices/compiler/example/output/generated/apis/config.tsm.tanzu.vmware.com/v1"
-	gnstsmtanzuvmwarecomv1 "github.com/vmware-tanzu/graph-framework-for-microservices/compiler/example/output/generated/apis/gns.tsm.tanzu.vmware.com/v1"
-	policypkgtsmtanzuvmwarecomv1 "github.com/vmware-tanzu/graph-framework-for-microservices/compiler/example/output/generated/apis/policypkg.tsm.tanzu.vmware.com/v1"
-	roottsmtanzuvmwarecomv1 "github.com/vmware-tanzu/graph-framework-for-microservices/compiler/example/output/generated/apis/root.tsm.tanzu.vmware.com/v1"
-	servicegrouptsmtanzuvmwarecomv1 "github.com/vmware-tanzu/graph-framework-for-microservices/compiler/example/output/generated/apis/servicegroup.tsm.tanzu.vmware.com/v1"
+	v1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/crd_generatedapis/config.tsm.tanzu.vmware.com/v1"
+	gnstsmtanzuvmwarecomv1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/crd_generatedapis/gns.tsm.tanzu.vmware.com/v1"
+	policypkgtsmtanzuvmwarecomv1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/crd_generatedapis/policypkg.tsm.tanzu.vmware.com/v1"
+	roottsmtanzuvmwarecomv1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/crd_generatedapis/root.tsm.tanzu.vmware.com/v1"
+	servicegrouptsmtanzuvmwarecomv1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/crd_generatedapis/servicegroup.tsm.tanzu.vmware.com/v1"
 
 	schema "k8s.io/apimachinery/pkg/runtime/schema"
 	cache "k8s.io/client-go/tools/cache"
@@ -62,8 +62,8 @@ func (f *sharedInformerFactory) ForResource(resource schema.GroupVersionResource
 		return &genericInformer{resource: resource.GroupResource(), informer: f.ConfigTsm().V1().Configs().Informer()}, nil
 	case v1.SchemeGroupVersion.WithResource("domains"):
 		return &genericInformer{resource: resource.GroupResource(), informer: f.ConfigTsm().V1().Domains().Informer()}, nil
-	case v1.SchemeGroupVersion.WithResource("footypes"):
-		return &genericInformer{resource: resource.GroupResource(), informer: f.ConfigTsm().V1().FooTypes().Informer()}, nil
+	case v1.SchemeGroupVersion.WithResource("footypeabcs"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.ConfigTsm().V1().FooTypeABCs().Informer()}, nil
 
 		// Group=gns.tsm.tanzu.vmware.com, Version=v1
 	case gnstsmtanzuvmwarecomv1.SchemeGroupVersion.WithResource("additionalgnsdatas"):

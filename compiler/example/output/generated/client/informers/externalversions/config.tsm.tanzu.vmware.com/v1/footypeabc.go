@@ -22,10 +22,10 @@ import (
 	"context"
 	time "time"
 
-	gnstsmtanzuvmwarecomv1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/crd_generatedapis/gns.tsm.tanzu.vmware.com/v1"
+	configtsmtanzuvmwarecomv1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/crd_generatedapis/config.tsm.tanzu.vmware.com/v1"
 	versioned "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/crd_generatedclient/clientset/versioned"
 	internalinterfaces "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/crd_generatedclient/informers/externalversions/internalinterfaces"
-	v1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/crd_generatedclient/listers/gns.tsm.tanzu.vmware.com/v1"
+	v1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/crd_generatedclient/listers/config.tsm.tanzu.vmware.com/v1"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	runtime "k8s.io/apimachinery/pkg/runtime"
@@ -33,58 +33,58 @@ import (
 	cache "k8s.io/client-go/tools/cache"
 )
 
-// AdditionalGnsDataInformer provides access to a shared informer and lister for
-// AdditionalGnsDatas.
-type AdditionalGnsDataInformer interface {
+// FooTypeABCInformer provides access to a shared informer and lister for
+// FooTypeABCs.
+type FooTypeABCInformer interface {
 	Informer() cache.SharedIndexInformer
-	Lister() v1.AdditionalGnsDataLister
+	Lister() v1.FooTypeABCLister
 }
 
-type additionalGnsDataInformer struct {
+type fooTypeABCInformer struct {
 	factory          internalinterfaces.SharedInformerFactory
 	tweakListOptions internalinterfaces.TweakListOptionsFunc
 }
 
-// NewAdditionalGnsDataInformer constructs a new informer for AdditionalGnsData type.
+// NewFooTypeABCInformer constructs a new informer for FooTypeABC type.
 // Always prefer using an informer factory to get a shared informer instead of getting an independent
 // one. This reduces memory footprint and number of connections to the server.
-func NewAdditionalGnsDataInformer(client versioned.Interface, resyncPeriod time.Duration, indexers cache.Indexers) cache.SharedIndexInformer {
-	return NewFilteredAdditionalGnsDataInformer(client, resyncPeriod, indexers, nil)
+func NewFooTypeABCInformer(client versioned.Interface, resyncPeriod time.Duration, indexers cache.Indexers) cache.SharedIndexInformer {
+	return NewFilteredFooTypeABCInformer(client, resyncPeriod, indexers, nil)
 }
 
-// NewFilteredAdditionalGnsDataInformer constructs a new informer for AdditionalGnsData type.
+// NewFilteredFooTypeABCInformer constructs a new informer for FooTypeABC type.
 // Always prefer using an informer factory to get a shared informer instead of getting an independent
 // one. This reduces memory footprint and number of connections to the server.
-func NewFilteredAdditionalGnsDataInformer(client versioned.Interface, resyncPeriod time.Duration, indexers cache.Indexers, tweakListOptions internalinterfaces.TweakListOptionsFunc) cache.SharedIndexInformer {
+func NewFilteredFooTypeABCInformer(client versioned.Interface, resyncPeriod time.Duration, indexers cache.Indexers, tweakListOptions internalinterfaces.TweakListOptionsFunc) cache.SharedIndexInformer {
 	return cache.NewSharedIndexInformer(
 		&cache.ListWatch{
 			ListFunc: func(options metav1.ListOptions) (runtime.Object, error) {
 				if tweakListOptions != nil {
 					tweakListOptions(&options)
 				}
-				return client.GnsTsmV1().AdditionalGnsDatas().List(context.TODO(), options)
+				return client.ConfigTsmV1().FooTypeABCs().List(context.TODO(), options)
 			},
 			WatchFunc: func(options metav1.ListOptions) (watch.Interface, error) {
 				if tweakListOptions != nil {
 					tweakListOptions(&options)
 				}
-				return client.GnsTsmV1().AdditionalGnsDatas().Watch(context.TODO(), options)
+				return client.ConfigTsmV1().FooTypeABCs().Watch(context.TODO(), options)
 			},
 		},
-		&gnstsmtanzuvmwarecomv1.AdditionalGnsData{},
+		&configtsmtanzuvmwarecomv1.FooTypeABC{},
 		resyncPeriod,
 		indexers,
 	)
 }
 
-func (f *additionalGnsDataInformer) defaultInformer(client versioned.Interface, resyncPeriod time.Duration) cache.SharedIndexInformer {
-	return NewFilteredAdditionalGnsDataInformer(client, resyncPeriod, cache.Indexers{cache.NamespaceIndex: cache.MetaNamespaceIndexFunc}, f.tweakListOptions)
+func (f *fooTypeABCInformer) defaultInformer(client versioned.Interface, resyncPeriod time.Duration) cache.SharedIndexInformer {
+	return NewFilteredFooTypeABCInformer(client, resyncPeriod, cache.Indexers{cache.NamespaceIndex: cache.MetaNamespaceIndexFunc}, f.tweakListOptions)
 }
 
-func (f *additionalGnsDataInformer) Informer() cache.SharedIndexInformer {
-	return f.factory.InformerFor(&gnstsmtanzuvmwarecomv1.AdditionalGnsData{}, f.defaultInformer)
+func (f *fooTypeABCInformer) Informer() cache.SharedIndexInformer {
+	return f.factory.InformerFor(&configtsmtanzuvmwarecomv1.FooTypeABC{}, f.defaultInformer)
 }
 
-func (f *additionalGnsDataInformer) Lister() v1.AdditionalGnsDataLister {
-	return v1.NewAdditionalGnsDataLister(f.Informer().GetIndexer())
+func (f *fooTypeABCInformer) Lister() v1.FooTypeABCLister {
+	return v1.NewFooTypeABCLister(f.Informer().GetIndexer())
 }

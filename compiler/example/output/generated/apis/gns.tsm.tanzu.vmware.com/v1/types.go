@@ -4,9 +4,8 @@ package v1
 
 import (
 	cartv1 "github.com/vmware-tanzu/cartographer/pkg/apis/v1alpha1"
+	"golang-appnet.eng.vmware.com/mazinger/dm-sdk/common"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-
-	"github.com/vmware-tanzu/graph-framework-for-microservices/compiler/example/output/generated/common"
 )
 
 // +k8s:openapi-gen=true

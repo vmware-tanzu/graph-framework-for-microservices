@@ -26,6 +26,6 @@ type ConfigListerExpansion interface{}
 // DomainLister.
 type DomainListerExpansion interface{}
 
-// FooTypeListerExpansion allows custom methods to be added to
-// FooTypeLister.
-type FooTypeListerExpansion interface{}
+// FooTypeABCListerExpansion allows custom methods to be added to
+// FooTypeABCLister.
+type FooTypeABCListerExpansion interface{}

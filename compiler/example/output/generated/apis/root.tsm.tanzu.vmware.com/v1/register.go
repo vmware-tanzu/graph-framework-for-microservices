@@ -3,7 +3,7 @@
 package v1
 
 import (
-	root_tsm_tanzu_vmware_com "github.com/vmware-tanzu/graph-framework-for-microservices/compiler/example/output/generated/apis/root.tsm.tanzu.vmware.com"
+	root_tsm_tanzu_vmware_com "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/crd_generatedapis/root.tsm.tanzu.vmware.com"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"

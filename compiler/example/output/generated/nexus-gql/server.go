@@ -3,8 +3,8 @@ package main
 import (
 	"net/http"
 
-	"github.com/vmware-tanzu/graph-framework-for-microservices/compiler/example/output/generated/nexus-gql/graph"
-	"github.com/vmware-tanzu/graph-framework-for-microservices/compiler/example/output/generated/nexus-gql/graph/generated"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/crd_generatednexus-gql/graph"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/crd_generatednexus-gql/graph/generated"
 
 	"github.com/rs/cors"
 	"github.com/vmware-tanzu/graph-framework-for-microservices/gqlgen/graphql/handler"

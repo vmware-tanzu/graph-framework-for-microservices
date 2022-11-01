@@ -19,11 +19,11 @@ limitations under the License.
 package fake
 
 import (
-	configtsmv1 "github.com/vmware-tanzu/graph-framework-for-microservices/compiler/example/output/generated/apis/config.tsm.tanzu.vmware.com/v1"
-	gnstsmv1 "github.com/vmware-tanzu/graph-framework-for-microservices/compiler/example/output/generated/apis/gns.tsm.tanzu.vmware.com/v1"
-	policypkgtsmv1 "github.com/vmware-tanzu/graph-framework-for-microservices/compiler/example/output/generated/apis/policypkg.tsm.tanzu.vmware.com/v1"
-	roottsmv1 "github.com/vmware-tanzu/graph-framework-for-microservices/compiler/example/output/generated/apis/root.tsm.tanzu.vmware.com/v1"
-	servicegrouptsmv1 "github.com/vmware-tanzu/graph-framework-for-microservices/compiler/example/output/generated/apis/servicegroup.tsm.tanzu.vmware.com/v1"
+	configtsmv1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/crd_generatedapis/config.tsm.tanzu.vmware.com/v1"
+	gnstsmv1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/crd_generatedapis/gns.tsm.tanzu.vmware.com/v1"
+	policypkgtsmv1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/crd_generatedapis/policypkg.tsm.tanzu.vmware.com/v1"
+	roottsmv1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/crd_generatedapis/root.tsm.tanzu.vmware.com/v1"
+	servicegrouptsmv1 "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/compiler.git/example/output/crd_generatedapis/servicegroup.tsm.tanzu.vmware.com/v1"
 
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	runtime "k8s.io/apimachinery/pkg/runtime"
@@ -46,14 +46,14 @@ var localSchemeBuilder = runtime.SchemeBuilder{
 // AddToScheme adds all types of this clientset into the given scheme. This allows composition
 // of clientsets, like in:
 //
-//   import (
-//     "k8s.io/client-go/kubernetes"
-//     clientsetscheme "k8s.io/client-go/kubernetes/scheme"
-//     aggregatorclientsetscheme "k8s.io/kube-aggregator/pkg/client/clientset_generated/clientset/scheme"
-//   )
+//	import (
+//	  "k8s.io/client-go/kubernetes"
+//	  clientsetscheme "k8s.io/client-go/kubernetes/scheme"
+//	  aggregatorclientsetscheme "k8s.io/kube-aggregator/pkg/client/clientset_generated/clientset/scheme"
+//	)
 //
-//   kclientset, _ := kubernetes.NewForConfig(c)
-//   _ = aggregatorclientsetscheme.AddToScheme(clientsetscheme.Scheme)
+//	kclientset, _ := kubernetes.NewForConfig(c)
+//	_ = aggregatorclientsetscheme.AddToScheme(clientsetscheme.Scheme)
 //
 // After this, RawExtensions in Kubernetes types will serialize kube-aggregator types
 // correctly.
