@@ -1,0 +1,171 @@
+/*
+Copyright 2022.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+
+package controllers
+
+import (
+	"context"
+	"fmt"
+	"io"
+	"net/http"
+	net_http "net/http"
+	"os"
+
+	"plugin"
+
+	logger "github.com/sirupsen/logrus"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/runtime/schema"
+	"k8s.io/client-go/dynamic"
+	ctrl "sigs.k8s.io/controller-runtime"
+	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/log"
+)
+
+const defaultPort = "8080"
+
+// Defaulting to build.so for local debug
+const defaultPath = "graphql.so"
+
+// DatamodelReconciler reconciles a Datamodels object
+type DatamodelReconciler struct {
+	client.Client
+	Scheme  *runtime.Scheme
+	StopCh  chan struct{}
+	Dynamic dynamic.Interface
+}
+
+//+kubebuilder:rbac:groups=apiextensions.k8s.io.api-gw.com,resources=datamodels,verbs=get;list;watch;create;update;patch;delete
+//+kubebuilder:rbac:groups=apiextensions.k8s.io.api-gw.com,resources=datamodels/status,verbs=get;update;patch
+//+kubebuilder:rbac:groups=apiextensions.k8s.io.api-gw.com,resources=datamodels/finalizers,verbs=update
+
+// Reconcile is part of the main kubernetes reconciliation loop which aims to
+// move the current state of the cluster closer to the desired state.
+//
+// For more details, check Reconcile and its Result here:
+// - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.11.0/pkg/reconcile
+
+func DownloadFile(url string, filename string) error {
+	url = fmt.Sprintf("%s", url)
+	resp, err := net_http.Get(url)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+	out, _ := os.Create(filename)
+	defer out.Close()
+	_, err = io.Copy(out, resp.Body)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func Startserver(stopCh chan struct{}, graphqlBuildplugin string) {
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = defaultPort
+	}
+
+	if _, err := os.Stat(graphqlBuildplugin); err != nil {
+		fmt.Printf("error in checking graphql plugin file %s", graphqlBuildplugin)
+		panic(err)
+	}
+	// Opening graphql plugin file archieved from datamodel image
+	pl, err := plugin.Open(graphqlBuildplugin)
+	if err != nil {
+		fmt.Printf("could not open pluginfile: %s", err)
+		panic(err)
+	}
+
+	// Lookup init method present
+	plsm, err := pl.Lookup("StartHttpServer")
+	if err != nil {
+		fmt.Printf("could not lookup the InitMethod : %s", err)
+		panic(err)
+	}
+	// Execute the init method for initialising resolvers and typecast to expected format
+	plsm.(func())()
+
+	fmt.Printf("connect to http://localhost:%s/ for GraphQL playground", port)
+	go func() {
+		srv := &http.Server{Addr: ":8080"}
+		srv.ListenAndServe()
+		select {
+		case <-stopCh:
+			srv.Shutdown(context.TODO())
+		}
+	}()
+
+}
+
+func (r *DatamodelReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
+	_ = log.FromContext(ctx)
+	eventType := "Update"
+
+	wholeObject, err := r.Dynamic.Resource(schema.GroupVersionResource{
+		Group:    "nexus.org",
+		Version:  "v1",
+		Resource: "datamodels",
+	}).Get(ctx, req.Name, metav1.GetOptions{})
+	if err != nil {
+		if client.IgnoreNotFound(err) != nil {
+			return ctrl.Result{}, err
+		}
+		eventType = "Delete"
+	}
+	obj := wholeObject.Object
+	spec := obj["spec"].(map[string]interface{})
+	logger.Info(spec)
+	if eventType != "Delete" {
+		if enableGraphql, ok := spec["enableGraphql"]; ok {
+			if enableGraphql.(bool) {
+				logger.Infof("Trying to download graphqlPlugin because of %v:", enableGraphql.(bool))
+				if graphqlUrl, ok := spec["graphqlPath"]; ok {
+					logger.Infof("Download graphqlPlugin from : %s", graphqlUrl.(string))
+					// PLUGIN_PATH environment variable will be part of the deployment spec: https://gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/nexus-runtime-manifests/-/blob/add_graphql/core/templates/datamodel_installer.yaml#L172
+					// PLUGIN will be dynamically unarchieved from datamodel image using a init containerhttps://gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/nexus-runtime-manifests/-/blob/add_graphql/core/templates/datamodel_installer.yaml#L112
+					// defaulting to graphql.so for debugging purposes
+					if err := DownloadFile(graphqlUrl.(string), "/tmp/plugintest"); err != nil {
+						return ctrl.Result{}, fmt.Errorf("could not download the graphql plugin fro url %s", graphqlUrl.(string))
+					}
+					logger.Infof("Downloaded graphqlPlugin file: %s", graphqlUrl.(string))
+					go func() { r.StopCh <- struct{}{} }()
+					Startserver(r.StopCh, "/tmp/plugintest")
+				}
+			}
+		}
+	}
+	logger.Infof("Received Datamodel notification for Name %s Type %s", req.Name, eventType)
+
+	return ctrl.Result{}, nil
+}
+
+// SetupWithManager sets up the controller with the Manager.
+func (r *DatamodelReconciler) SetupWithManager(mgr ctrl.Manager) error {
+	u := &unstructured.Unstructured{}
+	u.SetGroupVersionKind(schema.GroupVersionKind{
+		Kind:    "Datamodel",
+		Group:   "nexus.org",
+		Version: "v1",
+	})
+
+	return ctrl.NewControllerManagedBy(mgr).
+		For(u).
+		Complete(r)
+}
