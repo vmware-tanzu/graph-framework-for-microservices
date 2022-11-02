@@ -10,7 +10,6 @@ import (
 	"k8s.io/client-go/rest"
 
 	qm "github.com/vmware-tanzu/graph-framework-for-microservices/nexus/generated/query-manager"
-	libgrpc "gitlab.eng.vmware.com/nsx-allspark_users/lib-go/grpc"
 	nexus_client "nexustempmodule/nexus-client"
 	"nexustempmodule/nexus-gql/graph/model"
 )
@@ -192,6 +191,7 @@ ClusterNamespacesData := string(ClusterNamespaces)
 TestValMarkers, _ := json.Marshal(vConfig.Spec.TestValMarkers)
 TestValMarkersData := string(TestValMarkers)
 vInstance := float64(vConfig.Spec.Instance)
+vCuOption := string(vConfig.Spec.CuOption)
 
 		for k, v := range obj.ParentLabels {
 			parentLabels[k] = v
@@ -207,6 +207,7 @@ vInstance := float64(vConfig.Spec.Instance)
 	ClusterNamespaces: &ClusterNamespacesData,
 	TestValMarkers: &TestValMarkersData,
 	Instance: &vInstance,
+	CuOption: &vCuOption,
 	}
 
 		log.Debugf("[getRootRootConfigResolver]Output object %v", ret)
@@ -240,6 +241,7 @@ ClusterNamespacesData := string(ClusterNamespaces)
 TestValMarkers, _ := json.Marshal(vConfig.Spec.TestValMarkers)
 TestValMarkersData := string(TestValMarkers)
 vInstance := float64(vConfig.Spec.Instance)
+vCuOption := string(vConfig.Spec.CuOption)
 
     for k, v := range obj.ParentLabels {
         parentLabels[k] = v
@@ -255,6 +257,7 @@ vInstance := float64(vConfig.Spec.Instance)
 	ClusterNamespaces: &ClusterNamespacesData,
 	TestValMarkers: &TestValMarkersData,
 	Instance: &vInstance,
+	CuOption: &vCuOption,
 	}
 
 	log.Debugf("[getRootRootConfigResolver]Output object %v", ret)

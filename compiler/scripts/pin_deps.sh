@@ -19,6 +19,7 @@ fi
 COMPILER_SRC_DIRECTORY=$1
 
 go mod edit -require github.com/elliotchance/orderedmap@v1.4.0
+go mod edit -require github.com/cespare/xxhash/v2@v2.1.2
 go mod edit -require k8s.io/apimachinery@$DEFAULT_CLIENT_VERSION_TAG
 go mod edit -require k8s.io/client-go@$DEFAULT_CLIENT_VERSION_TAG
 
