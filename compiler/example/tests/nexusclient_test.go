@@ -557,6 +557,39 @@ var _ = Describe("Nexus clients tests", func() {
 			Expect(nexus_client.IsNotFound(err)).To(BeFalse())
 
 		})
+
+		It("should use json tags in update", func() {
+
+			rootDef := &rootv1.Root{
+				ObjectMeta: metav1.ObjectMeta{
+					Name: "default",
+				},
+			}
+			root, err := fakeClient.AddRootRoot(context.TODO(), rootDef)
+			Expect(err).NotTo(HaveOccurred())
+
+			cfgName := "configObj"
+			cfgDef := &configv1.Config{
+				ObjectMeta: metav1.ObjectMeta{
+					Name: cfgName,
+				},
+				Spec: configv1.ConfigSpec{
+					CuOption: "new",
+				},
+			}
+			cfg, err := root.AddConfig(context.TODO(), cfgDef)
+			Expect(err).NotTo(HaveOccurred())
+
+			cfg.Spec.CuOption = "upd"
+			err = cfg.Update(context.TODO())
+			Expect(err).NotTo(HaveOccurred())
+			Expect(cfg.Spec.CuOption).To(Equal("upd"))
+			cfg, err = root.GetConfig(context.TODO())
+			Expect(err).NotTo(HaveOccurred())
+			Expect(cfg.Spec.CuOption).To(Equal("upd"))
+
+		})
+
 	})
 
 	Context("Singleton nodes", func() {

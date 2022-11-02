@@ -545,6 +545,14 @@ func GetFieldName(f *ast.Field) (string, error) {
 	return f.Names[0].Name, nil
 }
 
+func GetFieldNameJsonTag(f *ast.Field) string {
+	tag := GetFieldJsonTag(f)
+	if tag == nil {
+		return ""
+	}
+	return tag.Name
+}
+
 func GetFieldJsonTag(f *ast.Field) *structtag.Tag {
 	if f == nil || f.Tag == nil {
 		return nil

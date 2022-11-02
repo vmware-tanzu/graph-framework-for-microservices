@@ -26,44 +26,44 @@ import (
 	"k8s.io/client-go/tools/cache"
 )
 
-// FooTypeLister helps list FooTypes.
+// FooTypeABCLister helps list FooTypeABCs.
 // All objects returned here must be treated as read-only.
-type FooTypeLister interface {
-	// List lists all FooTypes in the indexer.
+type FooTypeABCLister interface {
+	// List lists all FooTypeABCs in the indexer.
 	// Objects returned here must be treated as read-only.
-	List(selector labels.Selector) (ret []*v1.FooType, err error)
-	// Get retrieves the FooType from the index for a given name.
+	List(selector labels.Selector) (ret []*v1.FooTypeABC, err error)
+	// Get retrieves the FooTypeABC from the index for a given name.
 	// Objects returned here must be treated as read-only.
-	Get(name string) (*v1.FooType, error)
-	FooTypeListerExpansion
+	Get(name string) (*v1.FooTypeABC, error)
+	FooTypeABCListerExpansion
 }
 
-// fooTypeLister implements the FooTypeLister interface.
-type fooTypeLister struct {
+// fooTypeABCLister implements the FooTypeABCLister interface.
+type fooTypeABCLister struct {
 	indexer cache.Indexer
 }
 
-// NewFooTypeLister returns a new FooTypeLister.
-func NewFooTypeLister(indexer cache.Indexer) FooTypeLister {
-	return &fooTypeLister{indexer: indexer}
+// NewFooTypeABCLister returns a new FooTypeABCLister.
+func NewFooTypeABCLister(indexer cache.Indexer) FooTypeABCLister {
+	return &fooTypeABCLister{indexer: indexer}
 }
 
-// List lists all FooTypes in the indexer.
-func (s *fooTypeLister) List(selector labels.Selector) (ret []*v1.FooType, err error) {
+// List lists all FooTypeABCs in the indexer.
+func (s *fooTypeABCLister) List(selector labels.Selector) (ret []*v1.FooTypeABC, err error) {
 	err = cache.ListAll(s.indexer, selector, func(m interface{}) {
-		ret = append(ret, m.(*v1.FooType))
+		ret = append(ret, m.(*v1.FooTypeABC))
 	})
 	return ret, err
 }
 
-// Get retrieves the FooType from the index for a given name.
-func (s *fooTypeLister) Get(name string) (*v1.FooType, error) {
+// Get retrieves the FooTypeABC from the index for a given name.
+func (s *fooTypeABCLister) Get(name string) (*v1.FooTypeABC, error) {
 	obj, exists, err := s.indexer.GetByKey(name)
 	if err != nil {
 		return nil, err
 	}
 	if !exists {
-		return nil, errors.NewNotFound(v1.Resource("footype"), name)
+		return nil, errors.NewNotFound(v1.Resource("footypeabc"), name)
 	}
-	return obj.(*v1.FooType), nil
+	return obj.(*v1.FooTypeABC), nil
 }

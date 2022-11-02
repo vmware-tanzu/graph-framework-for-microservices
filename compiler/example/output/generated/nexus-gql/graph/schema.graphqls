@@ -23,7 +23,7 @@ type config_Config {
     ): NexusGraphqlResponse
 
     ACPPolicies(Id: ID): [policy_AccessControlPolicy!]
-    FooExample(Id: ID): [config_FooType!]
+    FooExample(Id: ID): [config_FooTypeABC!]
     MyStr0: String
     MyStr1: String
     MyStr2: String
@@ -32,13 +32,14 @@ type config_Config {
     ClusterNamespaces: String
     TestValMarkers: String
     Instance: Float
+    CuOption: String
     GNS(Id: ID): gns_Gns!
     DNS: gns_Dns!
     VMPPolicies(Id: ID): policy_VMpolicy!
     Domain(Id: ID): config_Domain!
 }
 
-type config_FooType {
+type config_FooTypeABC {
     Id: ID
 	ParentLabels: Map
 

@@ -70,6 +70,7 @@ type ConfigSpec struct {
 	ClusterNamespaces []ClusterNamespace                      `json:"clusterNamespaces" yaml:"clusterNamespaces"`
 	TestValMarkers    TestValMarkers                          `json:"testValMarkers" yaml:"testValMarkers"`
 	Instance          float32                                 `json:"instance" yaml:"instance"`
+	CuOption          string                                  `json:"option_cu"`
 	GNSGvk            *Child                                  `json:"gNSGvk,omitempty" yaml:"gNSGvk,omitempty" nexus:"child"`
 	DNSGvk            *Child                                  `json:"dNSGvk,omitempty" yaml:"dNSGvk,omitempty" nexus:"child"`
 	VMPPoliciesGvk    *Child                                  `json:"vMPPoliciesGvk,omitempty" yaml:"vMPPoliciesGvk,omitempty" nexus:"child"`
@@ -90,23 +91,23 @@ type ConfigList struct {
 // +genclient:nonNamespaced
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 // +k8s:openapi-gen=true
-type FooType struct {
+type FooTypeABC struct {
 	metav1.TypeMeta   `json:",inline" yaml:",inline"`
 	metav1.ObjectMeta `json:"metadata" yaml:"metadata"`
-	Spec              FooTypeSpec        `json:"spec,omitempty" yaml:"spec,omitempty"`
-	Status            FooTypeNexusStatus `json:"status,omitempty" yaml:"status,omitempty"`
+	Spec              FooTypeABCSpec        `json:"spec,omitempty" yaml:"spec,omitempty"`
+	Status            FooTypeABCNexusStatus `json:"status,omitempty" yaml:"status,omitempty"`
 }
 
 // +k8s:openapi-gen=true
-type FooTypeNexusStatus struct {
+type FooTypeABCNexusStatus struct {
 	Nexus NexusStatus `json:"nexus,omitempty" yaml:"nexus,omitempty"`
 }
 
-func (c *FooType) CRDName() string {
-	return "footypes.config.tsm.tanzu.vmware.com"
+func (c *FooTypeABC) CRDName() string {
+	return "footypeabcs.config.tsm.tanzu.vmware.com"
 }
 
-func (c *FooType) DisplayName() string {
+func (c *FooTypeABC) DisplayName() string {
 	if c.GetLabels() != nil {
 		return c.GetLabels()[common.DISPLAY_NAME_LABEL]
 	}
@@ -114,7 +115,7 @@ func (c *FooType) DisplayName() string {
 }
 
 // +k8s:openapi-gen=true
-type FooTypeSpec struct {
+type FooTypeABCSpec struct {
 	FooA AMap   `json:"fooA" yaml:"fooA"`
 	FooB BArray `json:"fooB" yaml:"fooB"`
 	FooC CInt   `nexus-graphql:"ignore:true"`
@@ -124,10 +125,10 @@ type FooTypeSpec struct {
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
-type FooTypeList struct {
+type FooTypeABCList struct {
 	metav1.TypeMeta `json:",inline" yaml:",inline"`
 	metav1.ListMeta `json:"metadata" yaml:"metadata"`
-	Items           []FooType `json:"items" yaml:"items"`
+	Items           []FooTypeABC `json:"items" yaml:"items"`
 }
 
 // +genclient

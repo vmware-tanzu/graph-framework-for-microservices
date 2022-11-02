@@ -23,7 +23,7 @@ type ConfigConfig struct {
 	ParentLabels      map[string]interface{}       `json:"ParentLabels"`
 	QueryExample      *NexusGraphqlResponse        `json:"QueryExample"`
 	ACPPolicies       []*PolicyAccessControlPolicy `json:"ACPPolicies"`
-	FooExample        []*ConfigFooType             `json:"FooExample"`
+	FooExample        []*ConfigFooTypeABC          `json:"FooExample"`
 	MyStr0            *string                      `json:"MyStr0"`
 	MyStr1            *string                      `json:"MyStr1"`
 	MyStr2            *string                      `json:"MyStr2"`
@@ -32,6 +32,7 @@ type ConfigConfig struct {
 	ClusterNamespaces *string                      `json:"ClusterNamespaces"`
 	TestValMarkers    *string                      `json:"TestValMarkers"`
 	Instance          *float64                     `json:"Instance"`
+	CuOption          *string                      `json:"CuOption"`
 	GNS               *GnsGns                      `json:"GNS"`
 	DNS               *GnsDns                      `json:"DNS"`
 	VMPPolicies       *PolicyVMpolicy              `json:"VMPPolicies"`
@@ -52,7 +53,7 @@ type ConfigDomain struct {
 	PointStruct      *string                `json:"PointStruct"`
 }
 
-type ConfigFooType struct {
+type ConfigFooTypeABC struct {
 	Id           *string                `json:"Id"`
 	ParentLabels map[string]interface{} `json:"ParentLabels"`
 	FooA         *string                `json:"FooA"`

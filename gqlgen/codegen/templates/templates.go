@@ -435,7 +435,7 @@ func wordWalkerFunc(private bool, nameRunes *[]rune) func(*wordInfo) {
 		case !info.HasCommonInitial && (strings.ToUpper(word) == word || strings.ToLower(word) == word):
 			// FOO or foo → Foo
 			// FOo → FOo
-			word = UcFirst(strings.ToLower(word))
+			word = UcFirst(word)
 		}
 
 		*nameRunes = append(*nameRunes, []rune(word)...)
