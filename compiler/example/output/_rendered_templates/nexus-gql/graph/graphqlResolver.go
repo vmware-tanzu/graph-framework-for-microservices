@@ -192,6 +192,7 @@ ClusterNamespacesData := string(ClusterNamespaces)
 TestValMarkers, _ := json.Marshal(vConfig.Spec.TestValMarkers)
 TestValMarkersData := string(TestValMarkers)
 vInstance := float64(vConfig.Spec.Instance)
+vCuOption := string(vConfig.Spec.CuOption)
 
 		for k, v := range obj.ParentLabels {
 			parentLabels[k] = v
@@ -207,6 +208,7 @@ vInstance := float64(vConfig.Spec.Instance)
 	ClusterNamespaces: &ClusterNamespacesData,
 	TestValMarkers: &TestValMarkersData,
 	Instance: &vInstance,
+	CuOption: &vCuOption,
 	}
 
 		log.Debugf("[getRootRootConfigResolver]Output object %v", ret)
@@ -240,6 +242,7 @@ ClusterNamespacesData := string(ClusterNamespaces)
 TestValMarkers, _ := json.Marshal(vConfig.Spec.TestValMarkers)
 TestValMarkersData := string(TestValMarkers)
 vInstance := float64(vConfig.Spec.Instance)
+vCuOption := string(vConfig.Spec.CuOption)
 
     for k, v := range obj.ParentLabels {
         parentLabels[k] = v
@@ -255,6 +258,7 @@ vInstance := float64(vConfig.Spec.Instance)
 	ClusterNamespaces: &ClusterNamespacesData,
 	TestValMarkers: &TestValMarkersData,
 	Instance: &vInstance,
+	CuOption: &vCuOption,
 	}
 
 	log.Debugf("[getRootRootConfigResolver]Output object %v", ret)
