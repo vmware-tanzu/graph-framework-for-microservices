@@ -248,27 +248,39 @@ func patchStatusObject(rc utils.ReplicationConfigSpec, srcGvr, destGvr schema.Gr
 	return objName, nil
 }
 
-func processEvents(h *RemoteHandler, eventType, hierarchy string, res *unstructured.Unstructured, children utils.Children,
-	repInfo utils.ReplicationConfigSpec, replicationEnabledNode bool, conf *config.Config) error {
+func (h *RemoteHandler) processEvents(eventType string, res *unstructured.Unstructured, spec utils.ReplicationConfigSpec,
+	replicateChildren bool) error {
+
+	parents := utils.GetParents(h.Gvr)
+	children := utils.GetChildren(h.Gvr)
+
+	hierarchy := res.GetName()
+	if spec.Source.Object != nil {
+		if spec.Source.Object.Hierarchical {
+			hierarchy = utils.GetNodeHierarchy(parents, res.GetLabels(), strings.Join([]string{h.Gvr.Resource, h.Gvr.Group}, "."))
+		}
+	}
 
 	switch eventType {
 	case utils.Create:
-		err := createObject(h.Gvr, res, children, hierarchy, repInfo, conf)
+		err := createObject(h.Gvr, res, children, hierarchy, spec, h.Config)
 		if err != nil && !errors.IsAlreadyExists(err) {
 			log.Errorf("Resource %v create failed with an error: %v", hierarchy, err)
 			return err
 		}
-		if repInfo.Source.Object.Hierarchical && replicationEnabledNode {
-			// Replicate children only if the obj exactly matches the source object.
-			newRepInfo := repInfo
-			newRepInfo.Destination.IsChild = true
-			if err := ReplicateChildren(h.Gvr, res, newRepInfo, conf); err != nil {
-				log.Errorf("Children replication failed for the resource %v: %v", hierarchy, err)
-				return err
+		if spec.Source.Object != nil {
+			if spec.Source.Object.Hierarchical && replicateChildren {
+				// Replicate children only if the obj exactly matches the source object.
+				newSpec := spec
+				newSpec.Destination.IsChild = true
+				if err := ReplicateChildren(h.Gvr, res, newSpec, h.Config); err != nil {
+					log.Errorf("Children replication failed for the resource %v: %v", hierarchy, err)
+					return err
+				}
 			}
 		}
 	case utils.Update:
-		err := updateObject(h.Gvr, res, children, hierarchy, repInfo, conf)
+		err := updateObject(h.Gvr, res, children, hierarchy, spec, h.Config)
 		if err != nil {
 			log.Errorf("Resource %v update failed with an error: %v", hierarchy, err)
 			return err
@@ -281,57 +293,41 @@ func processEvents(h *RemoteHandler, eventType, hierarchy string, res *unstructu
 // 1. If the ResourceType is of interest, simply replicate the object.
 // 2. If only the object is of interest and if it is a part of a graph, then replicate the object and its immediate children.
 // 3. If the oject is not a part of a graph, then replicate only that object.
-func Replicator(obj interface{}, h *RemoteHandler, eventType string) error {
+func (h *RemoteHandler) Replicator(obj interface{}, eventType string) error {
 	res := obj.(*unstructured.Unstructured)
 
-	var (
-		rc        utils.ReplicationConfigSpec
-		repObj    utils.ReplicationObject
-		hierarchy string
-	)
-
 	// Verify if the type is of interest.
-	// If the ResourceType is enabled for replication, simply replicate the object.
+	// If the ResourceType is enabled for replication, simply replicate all the objects of that Resource Type.
 	if repConfMap, replicationEnabledResourceType := utils.ReplicationEnabledGVR[h.Gvr]; replicationEnabledResourceType {
-		for _, rc = range repConfMap {
-			if err := processEvents(h, eventType, res.GetName(), res, nil, rc, false, h.Config); err != nil {
-				return err
+		for _, spec := range repConfMap {
+			if isDesiredObject(spec, res) {
+				if err := h.processEvents(eventType, res, spec, false); err != nil {
+					return err
+				}
 			}
 		}
 		return nil
 	}
 
 	labels := res.GetLabels()
-	parents := utils.GVRToParentHierarchy[h.Gvr]
-	children := utils.GVRToChildren[h.Gvr]
+	parents := utils.GetParents(h.Gvr)
 
 	name := res.GetName()
 	if objName, ok := labels[utils.DisplayNameKey]; ok {
 		name = objName
 	}
-	repObj = utils.GetReplicationObject(res.GroupVersionKind().Group, res.GetKind(), name)
+	repObj := utils.GetReplicationObject(res.GroupVersionKind().Group, res.GetKind(), name)
 
 	// Verify if the obj is of interest.
-	repConfMap, replicationEnabledNode := utils.ReplicationEnabledNode[repObj]
-	if replicationEnabledNode {
-		for _, rc = range repConfMap {
-
-			// When source is hierarchical, replicate only when hierarchy match.
-			if rc.Source.Object.Hierarchical {
-				if !utils.HierarchyMatch(rc.Source.Object.Hierarchy, labels) {
-					continue
+	if repConfMap, replicationEnabledNode := utils.ReplicationEnabledNode[repObj]; replicationEnabledNode {
+		for _, spec := range repConfMap {
+			if isDesiredObject(spec, res) {
+				if err := h.processEvents(eventType, res, spec, true); err != nil {
+					return err
 				}
 			}
-
-			hierarchy = name
-			if parents != nil {
-				hierarchy = utils.GetNodeHierarchy(parents, labels, strings.Join([]string{h.Gvr.Resource, h.Gvr.Group}, "."))
-			}
-			if err := processEvents(h, eventType, hierarchy, res, children, rc, true, h.Config); err != nil {
-				return err
-			}
+			return nil
 		}
-		return nil
 	}
 
 	// Verify if obj's immediate parent matches replication object source.
@@ -352,6 +348,7 @@ func Replicator(obj interface{}, h *RemoteHandler, eventType string) error {
 		return err
 	}
 
+	var spec utils.ReplicationConfigSpec
 	for _, item := range c.Items {
 		name := item.GetName()
 		if objName, ok := item.GetLabels()[utils.DisplayNameKey]; ok {
@@ -359,14 +356,9 @@ func Replicator(obj interface{}, h *RemoteHandler, eventType string) error {
 		}
 		repObj := utils.GetReplicationObject(item.GroupVersionKind().Group, item.GetKind(), name)
 		if repInfoMap, replicationEnabledNode := utils.ReplicationEnabledNode[repObj]; replicationEnabledNode {
-			for _, rc = range repInfoMap {
-				hierarchy = name
-				if rc.Source.Object.Hierarchical {
-					// When source is hierarchical, replicate only when hierarchy match.
-					if !utils.HierarchyMatch(rc.Source.Object.Hierarchy, item.GetLabels()) {
-						continue
-					}
-					hierarchy = utils.GetNodeHierarchy(parents, labels, strings.Join([]string{h.Gvr.Resource, h.Gvr.Group}, "."))
+			for _, spec = range repInfoMap {
+				if !isDesiredObject(spec, res) {
+					continue
 				}
 				replicate = true
 				break
@@ -374,13 +366,43 @@ func Replicator(obj interface{}, h *RemoteHandler, eventType string) error {
 		}
 	}
 	if replicate {
-		newRepInfo := rc
-		newRepInfo.Destination.IsChild = true
-		if err := processEvents(h, eventType, hierarchy, res, children, newRepInfo, false, h.Config); err != nil {
+		newSpec := spec
+		newSpec.Destination.IsChild = true
+		if err := h.processEvents(eventType, res, newSpec, false); err != nil {
 			return err
 		}
 	}
 	return nil
+}
+
+/*
+isDesiredObject filters objects to the replicated based on:
+1. SourceFilters: Namespace and Labels.
+2. Source Hierarchy.
+
+If object is of interest, return true, else return false.
+*/
+func isDesiredObject(spec utils.ReplicationConfigSpec, res *unstructured.Unstructured) bool {
+
+	// When source is hierarchical, replicate only when hierarchy match.
+	if spec.Source.Kind != "Type" && spec.Source.Object.Hierarchical {
+		if !utils.HierarchyMatch(spec.Source.Object.Hierarchy, res.GetLabels()) {
+			return false
+		}
+	}
+
+	labelMatch := true
+	for _, label := range spec.Source.Filters.Labels {
+		if objLabel, ok := res.GetLabels()[label.Key]; !ok || objLabel != label.Value {
+			labelMatch = false
+			break
+		}
+	}
+
+	if spec.Source.Filters.Namespace != res.GetNamespace() || !labelMatch {
+		return false
+	}
+	return true
 }
 
 // When ReplicationConfig Create events occurs, ReplicateNode() replicates the replication node if it exists.
@@ -490,7 +512,13 @@ func ReplicateChildren(gvr schema.GroupVersionResource, repEnabledNode *unstruct
 }
 
 func ReplicateAllObjectsOfType(gvr schema.GroupVersionResource, rc utils.ReplicationConfigSpec, children utils.Children, conf *config.Config) error {
-	list, err := rc.LocalClient.Resource(gvr).List(context.TODO(), metav1.ListOptions{})
+	var labels []string
+	for _, label := range rc.Source.Filters.Labels {
+		labels = append(labels, label.Key+"="+label.Value)
+	}
+	labelSelector := strings.Join(labels, ",")
+
+	list, err := rc.LocalClient.Resource(gvr).Namespace(rc.Source.Filters.Namespace).List(context.TODO(), metav1.ListOptions{LabelSelector: labelSelector})
 	if err != nil {
 		log.Errorf("Error getting objects for gvr %v: %v", gvr, err)
 		return err

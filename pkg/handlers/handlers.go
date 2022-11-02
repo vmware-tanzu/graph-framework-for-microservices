@@ -37,7 +37,7 @@ func (h *RemoteHandler) handleEvent(obj, oldObj *unstructured.Unstructured, even
 		}
 	}
 
-	if err := Replicator(obj, h, eventType); err != nil {
+	if err := h.Replicator(obj, eventType); err != nil {
 		return err
 	}
 
