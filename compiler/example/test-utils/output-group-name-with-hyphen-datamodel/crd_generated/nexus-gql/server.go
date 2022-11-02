@@ -3,8 +3,8 @@ package main
 import (
 	"net/http"
 
-	"../../example/test-utils/test-output/crd_generated/nexus-gql/graph"
-	"../../example/test-utils/test-output/crd_generated/nexus-gql/graph/generated"
+	"../../example/test-utils/output-group-name-with-hyphen-datamodel/crd_generated/nexus-gql/graph"
+	"../../example/test-utils/output-group-name-with-hyphen-datamodel/crd_generated/nexus-gql/graph/generated"
 	"github.com/rs/cors"
 	"github.com/vmware-tanzu/graph-framework-for-microservices/gqlgen/graphql"
 	"github.com/vmware-tanzu/graph-framework-for-microservices/gqlgen/graphql/handler"

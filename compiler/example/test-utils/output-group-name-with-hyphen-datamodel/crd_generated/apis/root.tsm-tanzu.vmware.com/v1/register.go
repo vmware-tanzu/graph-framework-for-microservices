@@ -3,7 +3,7 @@
 package v1
 
 import (
-	root_tsm_tanzu_vmware_com "../../example/test-utils/test-output/crd_generated/apis/root.tsm-tanzu.vmware.com"
+	root_tsm_tanzu_vmware_com "../../example/test-utils/output-group-name-with-hyphen-datamodel/crd_generated/apis/root.tsm-tanzu.vmware.com"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"

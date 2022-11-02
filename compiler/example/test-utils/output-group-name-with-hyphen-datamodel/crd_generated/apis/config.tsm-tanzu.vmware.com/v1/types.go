@@ -5,7 +5,7 @@ package v1
 import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	"../../example/test-utils/test-output/crd_generated/common"
+	"../../example/test-utils/output-group-name-with-hyphen-datamodel/crd_generated/common"
 )
 
 // +k8s:openapi-gen=true

@@ -7,7 +7,7 @@ import (
 
 	"github.com/elliotchance/orderedmap"
 
-	datamodel "../../example/test-utils/test-output/crd_generated/client/clientset/versioned"
+	datamodel "../../example/test-utils/output-group-name-with-hyphen-datamodel/crd_generated/client/clientset/versioned"
 )
 
 const DEFAULT_KEY = "default"

@@ -20,14 +20,14 @@ import (
 	types "k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/rest"
 
-	baseClientset "../../example/test-utils/test-output/crd_generated/client/clientset/versioned"
-	fakeBaseClienset "../../example/test-utils/test-output/crd_generated/client/clientset/versioned/fake"
-	"../../example/test-utils/test-output/crd_generated/common"
-	"../../example/test-utils/test-output/crd_generated/helper"
+	baseClientset "../../example/test-utils/output-group-name-with-hyphen-datamodel/crd_generated/client/clientset/versioned"
+	fakeBaseClienset "../../example/test-utils/output-group-name-with-hyphen-datamodel/crd_generated/client/clientset/versioned/fake"
+	"../../example/test-utils/output-group-name-with-hyphen-datamodel/crd_generated/common"
+	"../../example/test-utils/output-group-name-with-hyphen-datamodel/crd_generated/helper"
 
-	baseconfigtsmtanzuvmwarecomv1 "../../example/test-utils/test-output/crd_generated/apis/config.tsm-tanzu.vmware.com/v1"
-	baseprojecttsmtanzuvmwarecomv1 "../../example/test-utils/test-output/crd_generated/apis/project.tsm-tanzu.vmware.com/v1"
-	baseroottsmtanzuvmwarecomv1 "../../example/test-utils/test-output/crd_generated/apis/root.tsm-tanzu.vmware.com/v1"
+	baseconfigtsmtanzuvmwarecomv1 "../../example/test-utils/output-group-name-with-hyphen-datamodel/crd_generated/apis/config.tsm-tanzu.vmware.com/v1"
+	baseprojecttsmtanzuvmwarecomv1 "../../example/test-utils/output-group-name-with-hyphen-datamodel/crd_generated/apis/project.tsm-tanzu.vmware.com/v1"
+	baseroottsmtanzuvmwarecomv1 "../../example/test-utils/output-group-name-with-hyphen-datamodel/crd_generated/apis/root.tsm-tanzu.vmware.com/v1"
 )
 
 type Clientset struct {

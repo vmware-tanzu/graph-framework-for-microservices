@@ -5,7 +5,7 @@ package v1
 import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	"../../example/test-utils/test-output/crd_generated/common"
+	"../../example/test-utils/output-group-name-with-hyphen-datamodel/crd_generated/common"
 )
 
 // +k8s:openapi-gen=true
@@ -35,23 +35,23 @@ type NexusStatus struct {
 // +genclient:nonNamespaced
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 // +k8s:openapi-gen=true
-type Project struct {
+type Root struct {
 	metav1.TypeMeta   `json:",inline" yaml:",inline"`
 	metav1.ObjectMeta `json:"metadata" yaml:"metadata"`
-	Spec              ProjectSpec        `json:"spec,omitempty" yaml:"spec,omitempty"`
-	Status            ProjectNexusStatus `json:"status,omitempty" yaml:"status,omitempty"`
+	Spec              RootSpec        `json:"spec,omitempty" yaml:"spec,omitempty"`
+	Status            RootNexusStatus `json:"status,omitempty" yaml:"status,omitempty"`
 }
 
 // +k8s:openapi-gen=true
-type ProjectNexusStatus struct {
+type RootNexusStatus struct {
 	Nexus NexusStatus `json:"nexus,omitempty" yaml:"nexus,omitempty"`
 }
 
-func (c *Project) CRDName() string {
-	return "projects.project.tsm.tanzu.vmware.com"
+func (c *Root) CRDName() string {
+	return "roots.root.tsm.tanzu.vmware.com"
 }
 
-func (c *Project) DisplayName() string {
+func (c *Root) DisplayName() string {
 	if c.GetLabels() != nil {
 		return c.GetLabels()[common.DISPLAY_NAME_LABEL]
 	}
@@ -59,16 +59,14 @@ func (c *Project) DisplayName() string {
 }
 
 // +k8s:openapi-gen=true
-type ProjectSpec struct {
-	Key       string `json:"key" yaml:"key"`
-	Field1    string `json:"field1" yaml:"field1"`
-	Field2    int64  `json:"field2" yaml:"field2"`
-	ConfigGvk *Child `json:"configGvk,omitempty" yaml:"configGvk,omitempty" nexus:"child"`
+type RootSpec struct {
+	SomeRootData string `json:"someRootData" yaml:"someRootData"`
+	ProjectGvk   *Child `json:"projectGvk,omitempty" yaml:"projectGvk,omitempty" nexus:"child"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
-type ProjectList struct {
+type RootList struct {
 	metav1.TypeMeta `json:",inline" yaml:",inline"`
 	metav1.ListMeta `json:"metadata" yaml:"metadata"`
-	Items           []Project `json:"items" yaml:"items"`
+	Items           []Root `json:"items" yaml:"items"`
 }

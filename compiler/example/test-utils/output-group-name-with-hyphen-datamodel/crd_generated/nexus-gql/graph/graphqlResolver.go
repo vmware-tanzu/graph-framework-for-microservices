@@ -11,8 +11,8 @@ import (
 
 	qm "github.com/vmware-tanzu/graph-framework-for-microservices/nexus/generated/query-manager"
 	libgrpc "gitlab.eng.vmware.com/nsx-allspark_users/lib-go/grpc"
-	nexus_client "../../example/test-utils/test-output/crd_generated/nexus-client"
-	"../../example/test-utils/test-output/crd_generated/nexus-gql/graph/model"
+	nexus_client "../../example/test-utils/output-group-name-with-hyphen-datamodel/crd_generated/nexus-client"
+	"../../example/test-utils/output-group-name-with-hyphen-datamodel/crd_generated/nexus-gql/graph/model"
 )
 
 var c = GrpcClients{
