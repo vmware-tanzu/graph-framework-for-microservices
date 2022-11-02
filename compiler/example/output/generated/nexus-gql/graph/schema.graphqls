@@ -23,7 +23,7 @@ type config_Config {
     ): NexusGraphqlResponse
 
     ACPPolicies(Id: ID): [policy_AccessControlPolicy!]
-    FooExample(Id: ID): [config_FooType!]
+    FooExample(Id: ID): [config_FooTypeABC!]
     MyStr0: String
     MyStr1: String
     MyStr2: String
@@ -39,7 +39,7 @@ type config_Config {
     Domain(Id: ID): config_Domain!
 }
 
-type config_FooType {
+type config_FooTypeABC {
     Id: ID
 	ParentLabels: Map
 

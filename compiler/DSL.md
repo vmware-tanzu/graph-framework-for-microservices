@@ -10,7 +10,7 @@ natural data types definitions and Golang's annotations and comments can be used
 ## Datamodel as a Graph
 
 A datamodel allows an application to structure its business data for simplified organization, storage and consumption. Cloud native applications are rarely static. These applications evolve constantly and often. As these applications evolve, so does its datamodel as well. Relational datamodels are not well suited to handle this agility.
-Graphl datamodels fit that bill.
+Graph datamodels fit that bill.
 
 Graph datamodels are agile, flexible and highly performant while allow the datamodel and inturn data to grow along with the application and business needs.
 
@@ -29,7 +29,7 @@ Nexus node is a Go struct annotated as a graph node in Nexus DSL.
 
 It is a Go struct, and so can hold fields of all valid Go types.
 
-A struct can be annotated as a Nexus node by including `nexus.Node` (defined [here](https://github.com/vmware-tanzu/graph-framework-for-microservices/nexus/nexus))as an embedded field in the struct. A struct without this annotation is not a Nexus node, but just a valid Go struct.
+A struct can be annotated as a Nexus node by including `nexus.Node` (defined [here](https://github.com/vmware-tanzu/graph-framework-for-microservices/blob/main/nexus/nexus/nexus.go))as an embedded field in the struct. A struct without this annotation is not a Nexus node, but just a valid Go struct.
 
 In essence, not all Go structs are Nexus nodes, but all Nexus nodes are Go structs.
 
@@ -62,7 +62,7 @@ A Child relationship provides a way to designate one Nexus node as a "parent" or
 
 Parent-child relationships in Nexus DSL have the following attributes:
 
-* a Nexus node cannot be claimed by more than one Nexus node as a child. So, each Nexus node can have atmost one parent
+* a Nexus node cannot be claimed by more than one Nexus node as a child. So, each Nexus node can have at most one parent
 * object for child Nexus node can only be created if the object of its parent Nexus node exists in the graph
 * the lifecycle of the child objects are strictly tied to the lifecycle of the parent object. If the parent object is deleted, all children are deleted as well
 * lifecycle of the parent object is independent of the lifecycle of the children object. So parent can exist even if the child object does not exist
@@ -152,7 +152,7 @@ Nexus DSL provides the ability to capture "status" data on a Nexus node.
 
 While the spec fields and relationships of a Nexus node capture its user specified configuration and state, a Status, on the other hand captures runtime state / data that are relevant, as deemed by the user / application.
 
-A custome status can be associated with the Nexus node, by annotating a field in the node struct annotation:
+A custom status can be associated with the Nexus node, by annotating a field in the node struct annotation:
 
 ```
  `nexus:"status"`
@@ -228,7 +228,7 @@ The association of an instance/variable of type nexus.RestAPISpec to a Nexus nod
 
 The keyword `nexus-rest-api-gen` is an instruction in Nexus DSL to the Nexus Compiler that the referenced REST API's should be associated with the Nexus Node.
 
-As an exanple:
+As an example:
 
 ```Go
 package role

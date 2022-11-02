@@ -583,31 +583,31 @@ func getConfigConfigDomainResolver(obj *model.ConfigConfig, id *string) (*model.
 // CHILDREN RESOLVER
 // FieldName: FooExample Node: Config PKG: Config
 //////////////////////////////////////
-func getConfigConfigFooExampleResolver(obj *model.ConfigConfig, id *string) ([]*model.ConfigFooType, error) {
+func getConfigConfigFooExampleResolver(obj *model.ConfigConfig, id *string) ([]*model.ConfigFooTypeABC, error) {
 	log.Debugf("[getConfigConfigFooExampleResolver]Parent Object %+v", obj)
-	var vConfigFooTypeList []*model.ConfigFooType
+	var vConfigFooTypeABCList []*model.ConfigFooTypeABC
 	if id != nil && *id != "" {
 		log.Debugf("[getConfigConfigFooExampleResolver]Id %q", *id)
-		vFooType, err := nc.RootRoot().Config(getParentName(obj.ParentLabels, "configs.config.tsm.tanzu.vmware.com")).GetFooExample(context.TODO(), *id)
+		vFooTypeABC, err := nc.RootRoot().Config(getParentName(obj.ParentLabels, "configs.config.tsm.tanzu.vmware.com")).GetFooExample(context.TODO(), *id)
 		if err != nil {
 			log.Errorf("[getConfigConfigFooExampleResolver]Error getting FooExample node %q : %s", *id, err)
-			return vConfigFooTypeList, nil
+			return vConfigFooTypeABCList, nil
 		}
-		dn := vFooType.DisplayName()
-		parentLabels := map[string]interface{}{"footypes.config.tsm.tanzu.vmware.com": dn}
-		FooA, _ := json.Marshal(vFooType.Spec.FooA)
+		dn := vFooTypeABC.DisplayName()
+		parentLabels := map[string]interface{}{"footypeabcs.config.tsm.tanzu.vmware.com": dn}
+		FooA, _ := json.Marshal(vFooTypeABC.Spec.FooA)
 		FooAData := string(FooA)
-		FooB, _ := json.Marshal(vFooType.Spec.FooB)
+		FooB, _ := json.Marshal(vFooTypeABC.Spec.FooB)
 		FooBData := string(FooB)
-		FooD, _ := json.Marshal(vFooType.Spec.FooD)
+		FooD, _ := json.Marshal(vFooTypeABC.Spec.FooD)
 		FooDData := string(FooD)
-		FooF, _ := json.Marshal(vFooType.Spec.FooF)
+		FooF, _ := json.Marshal(vFooTypeABC.Spec.FooF)
 		FooFData := string(FooF)
 
 		for k, v := range obj.ParentLabels {
 			parentLabels[k] = v
 		}
-		ret := &model.ConfigFooType{
+		ret := &model.ConfigFooTypeABC{
 			Id:           &dn,
 			ParentLabels: parentLabels,
 			FooA:         &FooAData,
@@ -615,46 +615,46 @@ func getConfigConfigFooExampleResolver(obj *model.ConfigConfig, id *string) ([]*
 			FooD:         &FooDData,
 			FooF:         &FooFData,
 		}
-		vConfigFooTypeList = append(vConfigFooTypeList, ret)
+		vConfigFooTypeABCList = append(vConfigFooTypeABCList, ret)
 
-		log.Debugf("[getConfigConfigFooExampleResolver]Output FooExample objects %v", vConfigFooTypeList)
+		log.Debugf("[getConfigConfigFooExampleResolver]Output FooExample objects %v", vConfigFooTypeABCList)
 
-		return vConfigFooTypeList, nil
+		return vConfigFooTypeABCList, nil
 	}
 
 	log.Debug("[getConfigConfigFooExampleResolver]Id is empty, process all FooExamples")
 
-	vFooTypeParent, err := nc.RootRoot().GetConfig(context.TODO(), getParentName(obj.ParentLabels, "configs.config.tsm.tanzu.vmware.com"))
+	vFooTypeABCParent, err := nc.RootRoot().GetConfig(context.TODO(), getParentName(obj.ParentLabels, "configs.config.tsm.tanzu.vmware.com"))
 	if err != nil {
 		log.Errorf("[getConfigConfigFooExampleResolver]Error getting parent node %s", err)
-		return vConfigFooTypeList, nil
+		return vConfigFooTypeABCList, nil
 	}
-	vFooTypeAllObj, err := vFooTypeParent.GetAllFooExample(context.TODO())
+	vFooTypeABCAllObj, err := vFooTypeABCParent.GetAllFooExample(context.TODO())
 	if err != nil {
 		log.Errorf("[getConfigConfigFooExampleResolver]Error getting FooExample objects %s", err)
-		return vConfigFooTypeList, nil
+		return vConfigFooTypeABCList, nil
 	}
-	for _, i := range vFooTypeAllObj {
-		vFooType, err := nc.RootRoot().Config(getParentName(obj.ParentLabels, "configs.config.tsm.tanzu.vmware.com")).GetFooExample(context.TODO(), i.DisplayName())
+	for _, i := range vFooTypeABCAllObj {
+		vFooTypeABC, err := nc.RootRoot().Config(getParentName(obj.ParentLabels, "configs.config.tsm.tanzu.vmware.com")).GetFooExample(context.TODO(), i.DisplayName())
 		if err != nil {
 			log.Errorf("[getConfigConfigFooExampleResolver]Error getting FooExample node %q : %s", i.DisplayName(), err)
 			continue
 		}
-		dn := vFooType.DisplayName()
-		parentLabels := map[string]interface{}{"footypes.config.tsm.tanzu.vmware.com": dn}
-		FooA, _ := json.Marshal(vFooType.Spec.FooA)
+		dn := vFooTypeABC.DisplayName()
+		parentLabels := map[string]interface{}{"footypeabcs.config.tsm.tanzu.vmware.com": dn}
+		FooA, _ := json.Marshal(vFooTypeABC.Spec.FooA)
 		FooAData := string(FooA)
-		FooB, _ := json.Marshal(vFooType.Spec.FooB)
+		FooB, _ := json.Marshal(vFooTypeABC.Spec.FooB)
 		FooBData := string(FooB)
-		FooD, _ := json.Marshal(vFooType.Spec.FooD)
+		FooD, _ := json.Marshal(vFooTypeABC.Spec.FooD)
 		FooDData := string(FooD)
-		FooF, _ := json.Marshal(vFooType.Spec.FooF)
+		FooF, _ := json.Marshal(vFooTypeABC.Spec.FooF)
 		FooFData := string(FooF)
 
 		for k, v := range obj.ParentLabels {
 			parentLabels[k] = v
 		}
-		ret := &model.ConfigFooType{
+		ret := &model.ConfigFooTypeABC{
 			Id:           &dn,
 			ParentLabels: parentLabels,
 			FooA:         &FooAData,
@@ -662,12 +662,12 @@ func getConfigConfigFooExampleResolver(obj *model.ConfigConfig, id *string) ([]*
 			FooD:         &FooDData,
 			FooF:         &FooFData,
 		}
-		vConfigFooTypeList = append(vConfigFooTypeList, ret)
+		vConfigFooTypeABCList = append(vConfigFooTypeABCList, ret)
 	}
 
-	log.Debugf("[getConfigConfigFooExampleResolver]Output FooExample objects %v", vConfigFooTypeList)
+	log.Debugf("[getConfigConfigFooExampleResolver]Output FooExample objects %v", vConfigFooTypeABCList)
 
-	return vConfigFooTypeList, nil
+	return vConfigFooTypeABCList, nil
 }
 
 //////////////////////////////////////

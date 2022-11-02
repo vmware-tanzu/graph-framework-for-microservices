@@ -74,10 +74,10 @@ type ComplexityRoot struct {
 		ACPPolicies       func(childComplexity int, id *string) int
 		ClusterNamespaces func(childComplexity int) int
 		CuOption          func(childComplexity int) int
-		Dns               func(childComplexity int) int
+		DNS               func(childComplexity int) int
 		Domain            func(childComplexity int, id *string) int
 		FooExample        func(childComplexity int, id *string) int
-		Gns               func(childComplexity int, id *string) int
+		GNS               func(childComplexity int, id *string) int
 		Id                func(childComplexity int) int
 		Instance          func(childComplexity int) int
 		MyStr0            func(childComplexity int) int
@@ -104,7 +104,7 @@ type ComplexityRoot struct {
 		SliceOfPoints    func(childComplexity int) int
 	}
 
-	Config_FooType struct {
+	Config_FooTypeABC struct {
 		FooA         func(childComplexity int) int
 		FooB         func(childComplexity int) int
 		FooD         func(childComplexity int) int
@@ -138,8 +138,8 @@ type ComplexityRoot struct {
 		ParentLabels             func(childComplexity int) int
 		Port                     func(childComplexity int) int
 		QueryGns1                func(childComplexity int, startTime *string, endTime *string, interval *string, isServiceDeployment *bool, startVal *int) int
-		QueryGnsQm               func(childComplexity int, startTime *string, endTime *string, interval *string) int
-		QueryGnsQm1              func(childComplexity int) int
+		QueryGnsQM               func(childComplexity int, startTime *string, endTime *string, interval *string) int
+		QueryGnsQM1              func(childComplexity int) int
 		ServiceSegmentRef        func(childComplexity int) int
 		ServiceSegmentRefMap     func(childComplexity int) int
 		ServiceSegmentRefPointer func(childComplexity int) int
@@ -200,17 +200,17 @@ type QueryResolver interface {
 type Config_ConfigResolver interface {
 	QueryExample(ctx context.Context, obj *model.ConfigConfig, startTime *string, endTime *string, interval *string, isServiceDeployment *bool, startVal *int) (*model.NexusGraphqlResponse, error)
 	ACPPolicies(ctx context.Context, obj *model.ConfigConfig, id *string) ([]*model.PolicyAccessControlPolicy, error)
-	FooExample(ctx context.Context, obj *model.ConfigConfig, id *string) ([]*model.ConfigFooType, error)
+	FooExample(ctx context.Context, obj *model.ConfigConfig, id *string) ([]*model.ConfigFooTypeABC, error)
 
-	Gns(ctx context.Context, obj *model.ConfigConfig, id *string) (*model.GnsGns, error)
-	Dns(ctx context.Context, obj *model.ConfigConfig) (*model.GnsDns, error)
+	GNS(ctx context.Context, obj *model.ConfigConfig, id *string) (*model.GnsGns, error)
+	DNS(ctx context.Context, obj *model.ConfigConfig) (*model.GnsDns, error)
 	VMPPolicies(ctx context.Context, obj *model.ConfigConfig, id *string) (*model.PolicyVMpolicy, error)
 	Domain(ctx context.Context, obj *model.ConfigConfig, id *string) (*model.ConfigDomain, error)
 }
 type Gns_GnsResolver interface {
 	QueryGns1(ctx context.Context, obj *model.GnsGns, startTime *string, endTime *string, interval *string, isServiceDeployment *bool, startVal *int) (*model.NexusGraphqlResponse, error)
-	QueryGnsQm1(ctx context.Context, obj *model.GnsGns) (*model.TimeSeriesData, error)
-	QueryGnsQm(ctx context.Context, obj *model.GnsGns, startTime *string, endTime *string, interval *string) (*model.TimeSeriesData, error)
+	QueryGnsQM1(ctx context.Context, obj *model.GnsGns) (*model.TimeSeriesData, error)
+	QueryGnsQM(ctx context.Context, obj *model.GnsGns, startTime *string, endTime *string, interval *string) (*model.TimeSeriesData, error)
 	GnsServiceGroups(ctx context.Context, obj *model.GnsGns, id *string) ([]*model.ServicegroupSvcGroup, error)
 
 	GnsAccessControlPolicy(ctx context.Context, obj *model.GnsGns, id *string) (*model.PolicyAccessControlPolicy, error)
@@ -353,11 +353,11 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		return e.complexity.Config_Config.CuOption(childComplexity), true
 
 	case "config_Config.DNS":
-		if e.complexity.Config_Config.Dns == nil {
+		if e.complexity.Config_Config.DNS == nil {
 			break
 		}
 
-		return e.complexity.Config_Config.Dns(childComplexity), true
+		return e.complexity.Config_Config.DNS(childComplexity), true
 
 	case "config_Config.Domain":
 		if e.complexity.Config_Config.Domain == nil {
@@ -384,7 +384,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		return e.complexity.Config_Config.FooExample(childComplexity, args["Id"].(*string)), true
 
 	case "config_Config.GNS":
-		if e.complexity.Config_Config.Gns == nil {
+		if e.complexity.Config_Config.GNS == nil {
 			break
 		}
 
@@ -393,7 +393,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Config_Config.Gns(childComplexity, args["Id"].(*string)), true
+		return e.complexity.Config_Config.GNS(childComplexity, args["Id"].(*string)), true
 
 	case "config_Config.Id":
 		if e.complexity.Config_Config.Id == nil {
@@ -552,47 +552,47 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Config_Domain.SliceOfPoints(childComplexity), true
 
-	case "config_FooType.FooA":
-		if e.complexity.Config_FooType.FooA == nil {
+	case "config_FooTypeABC.FooA":
+		if e.complexity.Config_FooTypeABC.FooA == nil {
 			break
 		}
 
-		return e.complexity.Config_FooType.FooA(childComplexity), true
+		return e.complexity.Config_FooTypeABC.FooA(childComplexity), true
 
-	case "config_FooType.FooB":
-		if e.complexity.Config_FooType.FooB == nil {
+	case "config_FooTypeABC.FooB":
+		if e.complexity.Config_FooTypeABC.FooB == nil {
 			break
 		}
 
-		return e.complexity.Config_FooType.FooB(childComplexity), true
+		return e.complexity.Config_FooTypeABC.FooB(childComplexity), true
 
-	case "config_FooType.FooD":
-		if e.complexity.Config_FooType.FooD == nil {
+	case "config_FooTypeABC.FooD":
+		if e.complexity.Config_FooTypeABC.FooD == nil {
 			break
 		}
 
-		return e.complexity.Config_FooType.FooD(childComplexity), true
+		return e.complexity.Config_FooTypeABC.FooD(childComplexity), true
 
-	case "config_FooType.FooF":
-		if e.complexity.Config_FooType.FooF == nil {
+	case "config_FooTypeABC.FooF":
+		if e.complexity.Config_FooTypeABC.FooF == nil {
 			break
 		}
 
-		return e.complexity.Config_FooType.FooF(childComplexity), true
+		return e.complexity.Config_FooTypeABC.FooF(childComplexity), true
 
-	case "config_FooType.Id":
-		if e.complexity.Config_FooType.Id == nil {
+	case "config_FooTypeABC.Id":
+		if e.complexity.Config_FooTypeABC.Id == nil {
 			break
 		}
 
-		return e.complexity.Config_FooType.Id(childComplexity), true
+		return e.complexity.Config_FooTypeABC.Id(childComplexity), true
 
-	case "config_FooType.ParentLabels":
-		if e.complexity.Config_FooType.ParentLabels == nil {
+	case "config_FooTypeABC.ParentLabels":
+		if e.complexity.Config_FooTypeABC.ParentLabels == nil {
 			break
 		}
 
-		return e.complexity.Config_FooType.ParentLabels(childComplexity), true
+		return e.complexity.Config_FooTypeABC.ParentLabels(childComplexity), true
 
 	case "gns_BarChild.Id":
 		if e.complexity.Gns_BarChild.Id == nil {
@@ -736,7 +736,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		return e.complexity.Gns_Gns.QueryGns1(childComplexity, args["StartTime"].(*string), args["EndTime"].(*string), args["Interval"].(*string), args["IsServiceDeployment"].(*bool), args["StartVal"].(*int)), true
 
 	case "gns_Gns.queryGnsQM":
-		if e.complexity.Gns_Gns.QueryGnsQm == nil {
+		if e.complexity.Gns_Gns.QueryGnsQM == nil {
 			break
 		}
 
@@ -745,14 +745,14 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Gns_Gns.QueryGnsQm(childComplexity, args["StartTime"].(*string), args["EndTime"].(*string), args["Interval"].(*string)), true
+		return e.complexity.Gns_Gns.QueryGnsQM(childComplexity, args["StartTime"].(*string), args["EndTime"].(*string), args["Interval"].(*string)), true
 
 	case "gns_Gns.queryGnsQM1":
-		if e.complexity.Gns_Gns.QueryGnsQm1 == nil {
+		if e.complexity.Gns_Gns.QueryGnsQM1 == nil {
 			break
 		}
 
-		return e.complexity.Gns_Gns.QueryGnsQm1(childComplexity), true
+		return e.complexity.Gns_Gns.QueryGnsQM1(childComplexity), true
 
 	case "gns_Gns.ServiceSegmentRef":
 		if e.complexity.Gns_Gns.ServiceSegmentRef == nil {
@@ -1082,7 +1082,7 @@ type config_Config {
     ): NexusGraphqlResponse
 
     ACPPolicies(Id: ID): [policy_AccessControlPolicy!]
-    FooExample(Id: ID): [config_FooType!]
+    FooExample(Id: ID): [config_FooTypeABC!]
     MyStr0: String
     MyStr1: String
     MyStr2: String
@@ -1098,7 +1098,7 @@ type config_Config {
     Domain(Id: ID): config_Domain!
 }
 
-type config_FooType {
+type config_FooTypeABC {
     Id: ID
 	ParentLabels: Map
 
@@ -4182,9 +4182,9 @@ func (ec *executionContext) _config_Config_FooExample(ctx context.Context, field
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.([]*model.ConfigFooType)
+	res := resTmp.([]*model.ConfigFooTypeABC)
 	fc.Result = res
-	return ec.marshalOconfig_FooType2ᚕᚖnexustempmoduleᚋnexusᚑgqlᚋgraphᚋmodelᚐConfigFooTypeᚄ(ctx, field.Selections, res)
+	return ec.marshalOconfig_FooTypeABC2ᚕᚖnexustempmoduleᚋnexusᚑgqlᚋgraphᚋmodelᚐConfigFooTypeABCᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_config_Config_FooExample(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -4196,19 +4196,19 @@ func (ec *executionContext) fieldContext_config_Config_FooExample(ctx context.Co
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
 			case "Id":
-				return ec.fieldContext_config_FooType_Id(ctx, field)
+				return ec.fieldContext_config_FooTypeABC_Id(ctx, field)
 			case "ParentLabels":
-				return ec.fieldContext_config_FooType_ParentLabels(ctx, field)
+				return ec.fieldContext_config_FooTypeABC_ParentLabels(ctx, field)
 			case "FooA":
-				return ec.fieldContext_config_FooType_FooA(ctx, field)
+				return ec.fieldContext_config_FooTypeABC_FooA(ctx, field)
 			case "FooB":
-				return ec.fieldContext_config_FooType_FooB(ctx, field)
+				return ec.fieldContext_config_FooTypeABC_FooB(ctx, field)
 			case "FooD":
-				return ec.fieldContext_config_FooType_FooD(ctx, field)
+				return ec.fieldContext_config_FooTypeABC_FooD(ctx, field)
 			case "FooF":
-				return ec.fieldContext_config_FooType_FooF(ctx, field)
+				return ec.fieldContext_config_FooTypeABC_FooF(ctx, field)
 			}
-			return nil, fmt.Errorf("no field named %q was found under type config_FooType", field.Name)
+			return nil, fmt.Errorf("no field named %q was found under type config_FooTypeABC", field.Name)
 		},
 	}
 	defer func() {
@@ -4608,7 +4608,7 @@ func (ec *executionContext) _config_Config_GNS(ctx context.Context, field graphq
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Config_Config().Gns(rctx, obj, fc.Args["Id"].(*string))
+		return ec.resolvers.Config_Config().GNS(rctx, obj, fc.Args["Id"].(*string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -4709,7 +4709,7 @@ func (ec *executionContext) _config_Config_DNS(ctx context.Context, field graphq
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Config_Config().Dns(rctx, obj)
+		return ec.resolvers.Config_Config().DNS(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -5336,8 +5336,8 @@ func (ec *executionContext) fieldContext_config_Domain_PointStruct(ctx context.C
 	return fc, nil
 }
 
-func (ec *executionContext) _config_FooType_Id(ctx context.Context, field graphql.CollectedField, obj *model.ConfigFooType) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_config_FooType_Id(ctx, field)
+func (ec *executionContext) _config_FooTypeABC_Id(ctx context.Context, field graphql.CollectedField, obj *model.ConfigFooTypeABC) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_config_FooTypeABC_Id(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -5364,9 +5364,9 @@ func (ec *executionContext) _config_FooType_Id(ctx context.Context, field graphq
 	return ec.marshalOID2ᚖstring(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_config_FooType_Id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_config_FooTypeABC_Id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
-		Object:     "config_FooType",
+		Object:     "config_FooTypeABC",
 		Field:      field,
 		IsMethod:   false,
 		IsResolver: false,
@@ -5377,8 +5377,8 @@ func (ec *executionContext) fieldContext_config_FooType_Id(ctx context.Context, 
 	return fc, nil
 }
 
-func (ec *executionContext) _config_FooType_ParentLabels(ctx context.Context, field graphql.CollectedField, obj *model.ConfigFooType) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_config_FooType_ParentLabels(ctx, field)
+func (ec *executionContext) _config_FooTypeABC_ParentLabels(ctx context.Context, field graphql.CollectedField, obj *model.ConfigFooTypeABC) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_config_FooTypeABC_ParentLabels(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -5405,9 +5405,9 @@ func (ec *executionContext) _config_FooType_ParentLabels(ctx context.Context, fi
 	return ec.marshalOMap2map(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_config_FooType_ParentLabels(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_config_FooTypeABC_ParentLabels(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
-		Object:     "config_FooType",
+		Object:     "config_FooTypeABC",
 		Field:      field,
 		IsMethod:   false,
 		IsResolver: false,
@@ -5418,8 +5418,8 @@ func (ec *executionContext) fieldContext_config_FooType_ParentLabels(ctx context
 	return fc, nil
 }
 
-func (ec *executionContext) _config_FooType_FooA(ctx context.Context, field graphql.CollectedField, obj *model.ConfigFooType) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_config_FooType_FooA(ctx, field)
+func (ec *executionContext) _config_FooTypeABC_FooA(ctx context.Context, field graphql.CollectedField, obj *model.ConfigFooTypeABC) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_config_FooTypeABC_FooA(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -5446,9 +5446,9 @@ func (ec *executionContext) _config_FooType_FooA(ctx context.Context, field grap
 	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_config_FooType_FooA(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_config_FooTypeABC_FooA(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
-		Object:     "config_FooType",
+		Object:     "config_FooTypeABC",
 		Field:      field,
 		IsMethod:   false,
 		IsResolver: false,
@@ -5459,8 +5459,8 @@ func (ec *executionContext) fieldContext_config_FooType_FooA(ctx context.Context
 	return fc, nil
 }
 
-func (ec *executionContext) _config_FooType_FooB(ctx context.Context, field graphql.CollectedField, obj *model.ConfigFooType) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_config_FooType_FooB(ctx, field)
+func (ec *executionContext) _config_FooTypeABC_FooB(ctx context.Context, field graphql.CollectedField, obj *model.ConfigFooTypeABC) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_config_FooTypeABC_FooB(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -5487,9 +5487,9 @@ func (ec *executionContext) _config_FooType_FooB(ctx context.Context, field grap
 	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_config_FooType_FooB(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_config_FooTypeABC_FooB(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
-		Object:     "config_FooType",
+		Object:     "config_FooTypeABC",
 		Field:      field,
 		IsMethod:   false,
 		IsResolver: false,
@@ -5500,8 +5500,8 @@ func (ec *executionContext) fieldContext_config_FooType_FooB(ctx context.Context
 	return fc, nil
 }
 
-func (ec *executionContext) _config_FooType_FooD(ctx context.Context, field graphql.CollectedField, obj *model.ConfigFooType) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_config_FooType_FooD(ctx, field)
+func (ec *executionContext) _config_FooTypeABC_FooD(ctx context.Context, field graphql.CollectedField, obj *model.ConfigFooTypeABC) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_config_FooTypeABC_FooD(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -5528,9 +5528,9 @@ func (ec *executionContext) _config_FooType_FooD(ctx context.Context, field grap
 	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_config_FooType_FooD(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_config_FooTypeABC_FooD(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
-		Object:     "config_FooType",
+		Object:     "config_FooTypeABC",
 		Field:      field,
 		IsMethod:   false,
 		IsResolver: false,
@@ -5541,8 +5541,8 @@ func (ec *executionContext) fieldContext_config_FooType_FooD(ctx context.Context
 	return fc, nil
 }
 
-func (ec *executionContext) _config_FooType_FooF(ctx context.Context, field graphql.CollectedField, obj *model.ConfigFooType) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_config_FooType_FooF(ctx, field)
+func (ec *executionContext) _config_FooTypeABC_FooF(ctx context.Context, field graphql.CollectedField, obj *model.ConfigFooTypeABC) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_config_FooTypeABC_FooF(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -5569,9 +5569,9 @@ func (ec *executionContext) _config_FooType_FooF(ctx context.Context, field grap
 	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_config_FooType_FooF(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_config_FooTypeABC_FooF(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
-		Object:     "config_FooType",
+		Object:     "config_FooTypeABC",
 		Field:      field,
 		IsMethod:   false,
 		IsResolver: false,
@@ -5947,7 +5947,7 @@ func (ec *executionContext) _gns_Gns_queryGnsQM1(ctx context.Context, field grap
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Gns_Gns().QueryGnsQm1(rctx, obj)
+		return ec.resolvers.Gns_Gns().QueryGnsQM1(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -6000,7 +6000,7 @@ func (ec *executionContext) _gns_Gns_queryGnsQM(ctx context.Context, field graph
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Gns_Gns().QueryGnsQm(rctx, obj, fc.Args["StartTime"].(*string), fc.Args["EndTime"].(*string), fc.Args["Interval"].(*string))
+		return ec.resolvers.Gns_Gns().QueryGnsQM(rctx, obj, fc.Args["StartTime"].(*string), fc.Args["EndTime"].(*string), fc.Args["Interval"].(*string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -8731,39 +8731,39 @@ func (ec *executionContext) _config_Domain(ctx context.Context, sel ast.Selectio
 	return out
 }
 
-var config_FooTypeImplementors = []string{"config_FooType"}
+var config_FooTypeABCImplementors = []string{"config_FooTypeABC"}
 
-func (ec *executionContext) _config_FooType(ctx context.Context, sel ast.SelectionSet, obj *model.ConfigFooType) graphql.Marshaler {
-	fields := graphql.CollectFields(ec.OperationContext, sel, config_FooTypeImplementors)
+func (ec *executionContext) _config_FooTypeABC(ctx context.Context, sel ast.SelectionSet, obj *model.ConfigFooTypeABC) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, config_FooTypeABCImplementors)
 	out := graphql.NewFieldSet(fields)
 	var invalids uint32
 	for i, field := range fields {
 		switch field.Name {
 		case "__typename":
-			out.Values[i] = graphql.MarshalString("config_FooType")
+			out.Values[i] = graphql.MarshalString("config_FooTypeABC")
 		case "Id":
 
-			out.Values[i] = ec._config_FooType_Id(ctx, field, obj)
+			out.Values[i] = ec._config_FooTypeABC_Id(ctx, field, obj)
 
 		case "ParentLabels":
 
-			out.Values[i] = ec._config_FooType_ParentLabels(ctx, field, obj)
+			out.Values[i] = ec._config_FooTypeABC_ParentLabels(ctx, field, obj)
 
 		case "FooA":
 
-			out.Values[i] = ec._config_FooType_FooA(ctx, field, obj)
+			out.Values[i] = ec._config_FooTypeABC_FooA(ctx, field, obj)
 
 		case "FooB":
 
-			out.Values[i] = ec._config_FooType_FooB(ctx, field, obj)
+			out.Values[i] = ec._config_FooTypeABC_FooB(ctx, field, obj)
 
 		case "FooD":
 
-			out.Values[i] = ec._config_FooType_FooD(ctx, field, obj)
+			out.Values[i] = ec._config_FooTypeABC_FooD(ctx, field, obj)
 
 		case "FooF":
 
-			out.Values[i] = ec._config_FooType_FooF(ctx, field, obj)
+			out.Values[i] = ec._config_FooTypeABC_FooF(ctx, field, obj)
 
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
@@ -9631,14 +9631,14 @@ func (ec *executionContext) marshalNconfig_Domain2ᚖnexustempmoduleᚋnexusᚑg
 	return ec._config_Domain(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNconfig_FooType2ᚖnexustempmoduleᚋnexusᚑgqlᚋgraphᚋmodelᚐConfigFooType(ctx context.Context, sel ast.SelectionSet, v *model.ConfigFooType) graphql.Marshaler {
+func (ec *executionContext) marshalNconfig_FooTypeABC2ᚖnexustempmoduleᚋnexusᚑgqlᚋgraphᚋmodelᚐConfigFooTypeABC(ctx context.Context, sel ast.SelectionSet, v *model.ConfigFooTypeABC) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
 		}
 		return graphql.Null
 	}
-	return ec._config_FooType(ctx, sel, v)
+	return ec._config_FooTypeABC(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalNgns_BarChild2nexustempmoduleᚋnexusᚑgqlᚋgraphᚋmodelᚐGnsBarChild(ctx context.Context, sel ast.SelectionSet, v model.GnsBarChild) graphql.Marshaler {
@@ -10053,7 +10053,7 @@ func (ec *executionContext) marshalO__Type2ᚖgithubᚗcomᚋvmwareᚑtanzuᚋgr
 	return ec.___Type(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalOconfig_FooType2ᚕᚖnexustempmoduleᚋnexusᚑgqlᚋgraphᚋmodelᚐConfigFooTypeᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.ConfigFooType) graphql.Marshaler {
+func (ec *executionContext) marshalOconfig_FooTypeABC2ᚕᚖnexustempmoduleᚋnexusᚑgqlᚋgraphᚋmodelᚐConfigFooTypeABCᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.ConfigFooTypeABC) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
@@ -10080,7 +10080,7 @@ func (ec *executionContext) marshalOconfig_FooType2ᚕᚖnexustempmoduleᚋnexus
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNconfig_FooType2ᚖnexustempmoduleᚋnexusᚑgqlᚋgraphᚋmodelᚐConfigFooType(ctx, sel, v[i])
+			ret[i] = ec.marshalNconfig_FooTypeABC2ᚖnexustempmoduleᚋnexusᚑgqlᚋgraphᚋmodelᚐConfigFooTypeABC(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)

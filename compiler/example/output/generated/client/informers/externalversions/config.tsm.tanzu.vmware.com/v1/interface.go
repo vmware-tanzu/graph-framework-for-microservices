@@ -28,8 +28,8 @@ type Interface interface {
 	Configs() ConfigInformer
 	// Domains returns a DomainInformer.
 	Domains() DomainInformer
-	// FooTypes returns a FooTypeInformer.
-	FooTypes() FooTypeInformer
+	// FooTypeABCs returns a FooTypeABCInformer.
+	FooTypeABCs() FooTypeABCInformer
 }
 
 type version struct {
@@ -53,7 +53,7 @@ func (v *version) Domains() DomainInformer {
 	return &domainInformer{factory: v.factory, tweakListOptions: v.tweakListOptions}
 }
 
-// FooTypes returns a FooTypeInformer.
-func (v *version) FooTypes() FooTypeInformer {
-	return &fooTypeInformer{factory: v.factory, tweakListOptions: v.tweakListOptions}
+// FooTypeABCs returns a FooTypeABCInformer.
+func (v *version) FooTypeABCs() FooTypeABCInformer {
+	return &fooTypeABCInformer{factory: v.factory, tweakListOptions: v.tweakListOptions}
 }
