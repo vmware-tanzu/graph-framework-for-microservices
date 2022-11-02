@@ -57,6 +57,12 @@ func ConstructMapGVRToParentHierarchy(eventType EventType, gvr schema.GroupVersi
 	GVRToParentHierarchy[gvr] = hierarchy
 }
 
+func GetParents(gvr schema.GroupVersionResource) []string {
+	gvrToParentHierarchyMutex.Lock()
+	defer gvrToParentHierarchyMutex.Unlock()
+	return GVRToParentHierarchy[gvr]
+}
+
 func ConstructMapGVRToChildren(eventType EventType, gvr schema.GroupVersionResource, children Children) {
 	gvrToChildrenMutex.Lock()
 	defer gvrToChildrenMutex.Unlock()
@@ -67,6 +73,12 @@ func ConstructMapGVRToChildren(eventType EventType, gvr schema.GroupVersionResou
 	}
 
 	GVRToChildren[gvr] = children
+}
+
+func GetChildren(gvr schema.GroupVersionResource) Children {
+	gvrToChildrenMutex.Lock()
+	defer gvrToChildrenMutex.Unlock()
+	return GVRToChildren[gvr]
 }
 
 func ConstructMapReplicationEnabledNode(repObj ReplicationObject, name string, spec ReplicationConfigSpec) {

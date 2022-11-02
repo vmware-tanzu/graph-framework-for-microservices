@@ -566,4 +566,53 @@ var _ = Describe("Create", func() {
 
 		delete(utils.ReplicationEnabledNode, repObj)
 	})
+
+	When("Replication is filtered based on namespace", func() {
+		It("Should sync objects only from the namespace of interest.", func() {
+			server := ghttp.NewServer()
+			remoteClient, err := utils.SetUpDynamicRemoteAPI(fmt.Sprintf("http://%s", server.Addr()), "", "")
+			Expect(err).NotTo(HaveOccurred())
+
+			source := getTypeConfig(Group, AcKind)
+			source.Filters.Namespace = "required_ns"
+			replicationConfigSpec := utils.ReplicationConfigSpec{LocalClient: localClient, RemoteClient: remoteClient,
+				Source: source, Destination: getNonHierarchicalDestConfig()}
+
+			utils.ReplicationEnabledGVR[apicollaborationspace] = make(map[string]utils.ReplicationConfigSpec)
+			utils.ReplicationEnabledGVR[apicollaborationspace][repConfName] = replicationConfigSpec
+
+			remoteHandler := h.NewRemoteHandler(apicollaborationspace, localClient, nil, conf)
+			utils.GVRToParentHierarchy[apicollaborationspace] = []string{Root, Project,
+				Config, ApiCollaborationSpace}
+
+			server.AppendHandlers(
+				ghttp.CombineHandlers(
+					ghttp.VerifyRequest("GET", "/apis/config.mazinger.com/v1/apicollaborationspaces/foo"),
+					ghttp.RespondWith(404, "not found"),
+				),
+				ghttp.CombineHandlers(
+					ghttp.VerifyRequest("POST", "/apis/config.mazinger.com/v1/apicollaborationspaces"),
+					ghttp.RespondWith(200, "{\"apiVersion\":\"config.mazinger.com/v1\",\"kind\":\"ApiCollaborationSpace\",\"metadata\":{\"labels\":{\"configs.apix.mazinger.com\":\"config\",\"nexus/display_name\":\"foo\",\"projects.apix.mazinger.com\":\"project\",\"roots.apix.mazinger.com\":\"root\"},\"name\":\"foo\",\"namespace\":\"\"},\"spec\":{\"example\":\"example\"}}"),
+				),
+			)
+
+			// Object from non-desired namespace should not be synced.
+			obj1 := getObject("foo", AcKind, "example")
+			obj1.UnstructuredContent()["metadata"].(map[string]interface{})["namespace"] = "NOT_required_ns"
+
+			err = remoteHandler.Create(obj1)
+			Expect(err).NotTo(HaveOccurred())
+			Eventually(func() []*http.Request { return server.ReceivedRequests() }).Should(HaveLen(0))
+
+			// Object from desired namespace should be synced.
+			obj2 := getObject("foo", AcKind, "example")
+			obj2.UnstructuredContent()["metadata"].(map[string]interface{})["namespace"] = "required_ns"
+
+			err = remoteHandler.Create(obj2)
+			Expect(err).NotTo(HaveOccurred())
+			Eventually(func() []*http.Request { return server.ReceivedRequests() }).Should(HaveLen(2))
+
+			delete(utils.ReplicationEnabledNode, repObj)
+		})
+	})
 })

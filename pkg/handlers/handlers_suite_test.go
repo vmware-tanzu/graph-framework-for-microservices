@@ -131,7 +131,7 @@ func getNonHierarchicalDestConfig() utils.ReplicationDestination {
 func getNonHierarchicalSourceConfig() utils.ReplicationSource {
 	return utils.ReplicationSource{
 		Kind: utils.Object,
-		Object: utils.SourceObject{
+		Object: &utils.SourceObject{
 			ObjectType: utils.ObjectType{
 				Group:   Group,
 				Version: "v1",
@@ -145,7 +145,7 @@ func getNonHierarchicalSourceConfig() utils.ReplicationSource {
 func getHierarchicalSourceConfig(name string) utils.ReplicationSource {
 	return utils.ReplicationSource{
 		Kind: utils.Object,
-		Object: utils.SourceObject{
+		Object: &utils.SourceObject{
 			Name: name,
 			ObjectType: utils.ObjectType{
 				Group:   Group,

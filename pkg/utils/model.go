@@ -37,9 +37,15 @@ type ReplicationConfigSpec struct {
 }
 
 type ReplicationSource struct {
-	Kind   SourceKind   `json:"kind"`
-	Type   ObjectType   `json:"type"`
-	Object SourceObject `json:"object"`
+	Kind    SourceKind    `json:"kind"`
+	Type    ObjectType    `json:"type"`
+	Object  *SourceObject `json:"object"`
+	Filters SourceFilters `json:"sourceFilters"`
+}
+
+type SourceFilters struct {
+	Namespace string `json:"namespace"`
+	Labels    []KVP  `json:"labels"`
 }
 
 type ObjectType struct {
