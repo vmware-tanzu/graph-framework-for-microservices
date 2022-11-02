@@ -25,8 +25,7 @@ func GetCRDParentsMap() map[string][]string {
 		"configs.config.tsm.tanzu.vmware.com":                  {"roots.root.tsm.tanzu.vmware.com"},
 		"dnses.gns.tsm.tanzu.vmware.com":                       {"roots.root.tsm.tanzu.vmware.com", "configs.config.tsm.tanzu.vmware.com"},
 		"domains.config.tsm.tanzu.vmware.com":                  {"roots.root.tsm.tanzu.vmware.com", "configs.config.tsm.tanzu.vmware.com"},
-		"foos.gns.tsm.tanzu.vmware.com":                        {"roots.root.tsm.tanzu.vmware.com", "configs.config.tsm.tanzu.vmware.com", "gnses.gns.tsm.tanzu.vmware.com"},
-		"footypes.config.tsm.tanzu.vmware.com":                 {"roots.root.tsm.tanzu.vmware.com", "configs.config.tsm.tanzu.vmware.com"},
+		"footypeabcs.config.tsm.tanzu.vmware.com":              {"roots.root.tsm.tanzu.vmware.com", "configs.config.tsm.tanzu.vmware.com"},
 		"gnses.gns.tsm.tanzu.vmware.com":                       {"roots.root.tsm.tanzu.vmware.com", "configs.config.tsm.tanzu.vmware.com"},
 		"ignorechilds.gns.tsm.tanzu.vmware.com":                {"roots.root.tsm.tanzu.vmware.com", "configs.config.tsm.tanzu.vmware.com", "gnses.gns.tsm.tanzu.vmware.com"},
 		"roots.root.tsm.tanzu.vmware.com":                      {},
@@ -78,15 +77,8 @@ func GetObjectByCRDName(dmClient *datamodel.Clientset, crdName string, name stri
 		}
 		return obj
 	}
-	if crdName == "foos.gns.tsm.tanzu.vmware.com" {
-		obj, err := dmClient.GnsTsmV1().Foos().Get(context.TODO(), name, metav1.GetOptions{})
-		if err != nil {
-			return nil
-		}
-		return obj
-	}
-	if crdName == "footypes.config.tsm.tanzu.vmware.com" {
-		obj, err := dmClient.ConfigTsmV1().FooTypes().Get(context.TODO(), name, metav1.GetOptions{})
+	if crdName == "footypeabcs.config.tsm.tanzu.vmware.com" {
+		obj, err := dmClient.ConfigTsmV1().FooTypeABCs().Get(context.TODO(), name, metav1.GetOptions{})
 		if err != nil {
 			return nil
 		}

@@ -62,8 +62,8 @@ func (f *sharedInformerFactory) ForResource(resource schema.GroupVersionResource
 		return &genericInformer{resource: resource.GroupResource(), informer: f.ConfigTsm().V1().Configs().Informer()}, nil
 	case v1.SchemeGroupVersion.WithResource("domains"):
 		return &genericInformer{resource: resource.GroupResource(), informer: f.ConfigTsm().V1().Domains().Informer()}, nil
-	case v1.SchemeGroupVersion.WithResource("footypes"):
-		return &genericInformer{resource: resource.GroupResource(), informer: f.ConfigTsm().V1().FooTypes().Informer()}, nil
+	case v1.SchemeGroupVersion.WithResource("footypeabcs"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.ConfigTsm().V1().FooTypeABCs().Informer()}, nil
 
 		// Group=gns.tsm.tanzu.vmware.com, Version=v1
 	case gnstsmtanzuvmwarecomv1.SchemeGroupVersion.WithResource("additionalgnsdatas"):

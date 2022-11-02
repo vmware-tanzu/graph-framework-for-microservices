@@ -37,8 +37,8 @@ func (c *FakeConfigTsmV1) Domains() v1.DomainInterface {
 	return &FakeDomains{c}
 }
 
-func (c *FakeConfigTsmV1) FooTypes() v1.FooTypeInterface {
-	return &FakeFooTypes{c}
+func (c *FakeConfigTsmV1) FooTypeABCs() v1.FooTypeABCInterface {
+	return &FakeFooTypeABCs{c}
 }
 
 // RESTClient returns a RESTClient that is used to communicate
