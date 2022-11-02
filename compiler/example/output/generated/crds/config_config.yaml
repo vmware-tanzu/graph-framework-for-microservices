@@ -152,6 +152,8 @@ spec:
                 additionalProperties:
                   type: string
                 type: object
+              optionCu:
+                type: string
               testValMarkers:
                 properties:
                   myInt:
@@ -202,6 +204,7 @@ spec:
             - clusterNamespaces
             - testValMarkers
             - instance
+            - optionCu
             type: object
           status:
             properties:
