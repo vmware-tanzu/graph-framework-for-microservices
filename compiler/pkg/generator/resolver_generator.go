@@ -324,19 +324,19 @@ func findTypeAndPkgForField(ptParts []string, importMap map[string]string, pkgs 
 
 	pkgPath, ok := importMap[structPkg]
 	if !ok {
-		log.Errorf("Can't find the pkgName: %s", structPkg)
+		log.Errorf("Cannot find the package name %s for the type %s", structPkg, structType)
 		return "", nil
 	}
 
 	importPath, err := strconv.Unquote(pkgPath)
 	if err != nil {
-		log.Errorf("Failed to parse the package path : %s: %v", pkgPath, err)
+		log.Errorf("Failed to parse package %s for the type %s with error %v", pkgPath, structType, err)
 		return "", nil
 	}
 
 	p, ok := pkgs[importPath]
 	if !ok {
-		log.Errorf("Can't find the pkg for the path: %s", importPath)
+		log.Errorf("Cannot find the package details from the path %s for the type %s", importPath, structType)
 		return "", nil
 	}
 
