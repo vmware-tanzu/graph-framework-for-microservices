@@ -230,6 +230,7 @@ func getRootRootConfigResolver(obj *model.RootRoot, id *string) (*model.ConfigCo
 		TestValMarkers, _ := json.Marshal(vConfig.Spec.TestValMarkers)
 		TestValMarkersData := string(TestValMarkers)
 		vInstance := float64(vConfig.Spec.Instance)
+		vCuOption := string(vConfig.Spec.CuOption)
 
 		for k, v := range obj.ParentLabels {
 			parentLabels[k] = v
@@ -245,6 +246,7 @@ func getRootRootConfigResolver(obj *model.RootRoot, id *string) (*model.ConfigCo
 			ClusterNamespaces: &ClusterNamespacesData,
 			TestValMarkers:    &TestValMarkersData,
 			Instance:          &vInstance,
+			CuOption:          &vCuOption,
 		}
 
 		log.Debugf("[getRootRootConfigResolver]Output object %v", ret)
@@ -278,6 +280,7 @@ func getRootRootConfigResolver(obj *model.RootRoot, id *string) (*model.ConfigCo
 	TestValMarkers, _ := json.Marshal(vConfig.Spec.TestValMarkers)
 	TestValMarkersData := string(TestValMarkers)
 	vInstance := float64(vConfig.Spec.Instance)
+	vCuOption := string(vConfig.Spec.CuOption)
 
 	for k, v := range obj.ParentLabels {
 		parentLabels[k] = v
@@ -293,6 +296,7 @@ func getRootRootConfigResolver(obj *model.RootRoot, id *string) (*model.ConfigCo
 		ClusterNamespaces: &ClusterNamespacesData,
 		TestValMarkers:    &TestValMarkersData,
 		Instance:          &vInstance,
+		CuOption:          &vCuOption,
 	}
 
 	log.Debugf("[getRootRootConfigResolver]Output object %v", ret)

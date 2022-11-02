@@ -73,6 +73,7 @@ type ComplexityRoot struct {
 		ABCHost           func(childComplexity int) int
 		ACPPolicies       func(childComplexity int, id *string) int
 		ClusterNamespaces func(childComplexity int) int
+		CuOption          func(childComplexity int) int
 		DNS               func(childComplexity int) int
 		Domain            func(childComplexity int, id *string) int
 		FooExample        func(childComplexity int, id *string) int
@@ -343,6 +344,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Config_Config.ClusterNamespaces(childComplexity), true
+
+	case "config_Config.CuOption":
+		if e.complexity.Config_Config.CuOption == nil {
+			break
+		}
+
+		return e.complexity.Config_Config.CuOption(childComplexity), true
 
 	case "config_Config.DNS":
 		if e.complexity.Config_Config.DNS == nil {
@@ -1083,6 +1091,7 @@ type config_Config {
     ClusterNamespaces: String
     TestValMarkers: String
     Instance: Float
+    CuOption: String
     GNS(Id: ID): gns_Gns!
     DNS: gns_Dns!
     VMPPolicies(Id: ID): policy_VMpolicy!
@@ -4574,6 +4583,47 @@ func (ec *executionContext) fieldContext_config_Config_Instance(ctx context.Cont
 	return fc, nil
 }
 
+func (ec *executionContext) _config_Config_CuOption(ctx context.Context, field graphql.CollectedField, obj *model.ConfigConfig) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_config_Config_CuOption(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.CuOption, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_config_Config_CuOption(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "config_Config",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _config_Config_GNS(ctx context.Context, field graphql.CollectedField, obj *model.ConfigConfig) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_config_Config_GNS(ctx, field)
 	if err != nil {
@@ -7747,6 +7797,8 @@ func (ec *executionContext) fieldContext_root_Root_Config(ctx context.Context, f
 				return ec.fieldContext_config_Config_TestValMarkers(ctx, field)
 			case "Instance":
 				return ec.fieldContext_config_Config_Instance(ctx, field)
+			case "CuOption":
+				return ec.fieldContext_config_Config_CuOption(ctx, field)
 			case "GNS":
 				return ec.fieldContext_config_Config_GNS(ctx, field)
 			case "DNS":
@@ -8548,6 +8600,10 @@ func (ec *executionContext) _config_Config(ctx context.Context, sel ast.Selectio
 		case "Instance":
 
 			out.Values[i] = ec._config_Config_Instance(ctx, field, obj)
+
+		case "CuOption":
+
+			out.Values[i] = ec._config_Config_CuOption(ctx, field, obj)
 
 		case "GNS":
 			field := field
