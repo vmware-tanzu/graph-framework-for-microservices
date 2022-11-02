@@ -42,7 +42,7 @@ docker.builder:
 build:
 	go build -trimpath main.go
 
-docker: #build_in_container
+docker: build_in_container
 	docker build -t $(DOCKER_REPO)/$(IMAGE_NAME):$(IMAGE_TAG) . -f Dockerfile ;\
 
 publish: docker

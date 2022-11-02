@@ -39,8 +39,7 @@ import (
 
 const defaultPort = "8080"
 
-// Defaulting to build.so for local debug
-const defaultPath = "graphql.so"
+var PLUGIN_PATH = os.Getenv("PLUGIN_PATH")
 
 // DatamodelReconciler reconciles a Datamodels object
 type DatamodelReconciler struct {
@@ -83,20 +82,20 @@ func Startserver(stopCh chan struct{}, graphqlBuildplugin string) {
 	}
 
 	if _, err := os.Stat(graphqlBuildplugin); err != nil {
-		fmt.Printf("error in checking graphql plugin file %s", graphqlBuildplugin)
+		logger.Errorf("error in checking graphql plugin file %s", graphqlBuildplugin)
 		panic(err)
 	}
 	// Opening graphql plugin file archieved from datamodel image
 	pl, err := plugin.Open(graphqlBuildplugin)
 	if err != nil {
-		fmt.Printf("could not open pluginfile: %s", err)
+		logger.Errorf("could not open pluginfile: %s", err)
 		panic(err)
 	}
 
 	// Lookup init method present
 	plsm, err := pl.Lookup("StartHttpServer")
 	if err != nil {
-		fmt.Printf("could not lookup the InitMethod : %s", err)
+		logger.Errorf("could not lookup the InitMethod : %s", err)
 		panic(err)
 	}
 	// Execute the init method for initialising resolvers and typecast to expected format
@@ -104,11 +103,17 @@ func Startserver(stopCh chan struct{}, graphqlBuildplugin string) {
 
 	fmt.Printf("connect to http://localhost:%s/ for GraphQL playground", port)
 	go func() {
-		srv := &http.Server{Addr: ":8080"}
-		srv.ListenAndServe()
+		srv := &http.Server{Addr: fmt.Sprintf(":%s", port)}
+		if err := srv.ListenAndServe(); err != nil {
+			logger.Error("could not start graphqlServer")
+			panic(err)
+		}
 		select {
 		case <-stopCh:
-			srv.Shutdown(context.TODO())
+			if err := srv.Shutdown(context.TODO()); err != nil {
+				logger.Error("could not stop running graphqlServer")
+				panic(err)
+			}
 		}
 	}()
 
@@ -131,28 +136,22 @@ func (r *DatamodelReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 	}
 	obj := wholeObject.Object
 	spec := obj["spec"].(map[string]interface{})
-	logger.Info(spec)
 	if eventType != "Delete" {
-		if enableGraphql, ok := spec["enableGraphql"]; ok {
-			if enableGraphql.(bool) {
-				logger.Infof("Trying to download graphqlPlugin because of %v:", enableGraphql.(bool))
-				if graphqlUrl, ok := spec["graphqlPath"]; ok {
-					logger.Infof("Download graphqlPlugin from : %s", graphqlUrl.(string))
-					// PLUGIN_PATH environment variable will be part of the deployment spec: https://gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/nexus-runtime-manifests/-/blob/add_graphql/core/templates/datamodel_installer.yaml#L172
-					// PLUGIN will be dynamically unarchieved from datamodel image using a init containerhttps://gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/nexus-runtime-manifests/-/blob/add_graphql/core/templates/datamodel_installer.yaml#L112
-					// defaulting to graphql.so for debugging purposes
-					if err := DownloadFile(graphqlUrl.(string), "/tmp/plugintest"); err != nil {
-						return ctrl.Result{}, fmt.Errorf("could not download the graphql plugin fro url %s", graphqlUrl.(string))
-					}
-					logger.Infof("Downloaded graphqlPlugin file: %s", graphqlUrl.(string))
-					go func() { r.StopCh <- struct{}{} }()
-					Startserver(r.StopCh, "/tmp/plugintest")
+		if enableGraphql, ok := spec["enableGraphql"]; ok && enableGraphql.(bool) {
+			if graphqlUrl, ok := spec["graphqlPath"]; ok {
+				logger.Infof("Downloading graphqlPlugin from URL...: %s", graphqlUrl.(string))
+				if err := DownloadFile(graphqlUrl.(string), PLUGIN_PATH); err != nil {
+					return ctrl.Result{}, fmt.Errorf("could not download the graphql plugin fro url %s", graphqlUrl.(string))
 				}
+				logger.Infof("Downloaded graphqlPlugin file from URL.....: %s", graphqlUrl.(string))
+				logger.Info("stopping existing graphqlServer.....")
+				go func() { r.StopCh <- struct{}{} }()
+				logger.Info("restarting graphqlServer with new plugin.....")
+				Startserver(r.StopCh, PLUGIN_PATH)
 			}
 		}
 	}
 	logger.Infof("Received Datamodel notification for Name %s Type %s", req.Name, eventType)
-
 	return ctrl.Result{}, nil
 }
 
