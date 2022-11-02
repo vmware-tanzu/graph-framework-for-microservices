@@ -6,8 +6,8 @@ import (
 
 	"github.com/vmware-tanzu/graph-framework-for-microservices/compiler/pkg/util"
 
-	"github.com/vmware-tanzu/graph-framework-for-microservices/common-library/pkg/nexus"
 	"github.com/vmware-tanzu/graph-framework-for-microservices/compiler/pkg/parser/rest"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/nexus/nexus"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
