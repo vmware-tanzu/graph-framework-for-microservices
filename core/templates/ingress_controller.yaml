@@ -664,7 +664,8 @@ spec:
           configMap:
             name: nexus-nginx-config-default
         - name: nginx-data
-          emptyDir: {}
+          persistentVolumeClaim:
+            claimName: nexus-nginx-data
 ---
 apiVersion: v1
 kind: Service
@@ -708,3 +709,17 @@ data:
                           proxy_redirect off;
                       }
                       }
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: nexus-nginx-data
+  namespace: {{.Values.global.namespace}}
+  labels:
+    created-by: nexus
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi

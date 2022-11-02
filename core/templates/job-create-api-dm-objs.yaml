@@ -106,8 +106,8 @@ spec:
                                   type: string
                                   default: "Nexus API GW APIs"
                                 enableGraphql:
-                                  type: string
-                                  default: "false"
+                                  type: boolean
+                                  default: false
                                 graphqlPath:
                                   type: string
                                   default: ""

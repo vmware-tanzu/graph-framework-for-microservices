@@ -32,22 +32,20 @@ data:
       TITLE=${TITLE:-}
       SKIP_CRD_INSTALLATION=${SKIP_CRD_INSTALLATION:-false}
       GRAPHQL_ENABLED=${GRAPHQL_ENABLED:-false}
-      GRAPHQL_PATH=${GRAPHQL_PATH:-}
+      GRAPHQL_PATH=${GRAPHQL_PATH:-NA}
       if [[ $SKIP_CRD_INSTALLATION == "false" ]]; then
           kubectl apply -f /crds --recursive
           NAME=$(cat /NAME)
           IMAGE=$(cat /IMAGE)
-      if [[ -n $GRAPHQL_PATH ]]; then
+      [[ $GRAPHQL_PATH != NA ]] && GRAPHQL_ENABLED=true
+      if test -f /build/graphql.so; then
           GRAPHQL_ENABLED=true
-      fi
-      if [[ $(test -z /graphql.so) ]]; then
-          GRAPHQL_ENABLED=true
-          if [[ -z $GRAPHQL_PATH ]]; then
-              if [[ $(curl --retry 10 --max-time 10  -T /graphql.so http://nginx/datamodel/plugin) ]]; then
-                  echo "not able to upload graphql plugin"
+          if [[ $GRAPHQL_PATH == NA ]]; then
+              if curl --retry 10 --max-time 10  -T /build/graphql.so http://nexus-nginx/datamodel/plugin ; then
+                  GRAPHQL_PATH="http://nexus-nginx/datamodel/plugin"
+              else
                   exit 1
               fi
-              GRAPHQL_PATH="http://nginx/datamodel/plugin"
           fi
       fi
       fi
@@ -61,8 +59,8 @@ data:
             spec:
               name: '"$NAME"'
               url: '"$IMAGE"'
-              title: '"$TITLE"
-              enableGraphql: '"$GRAPHQL_ENABLED"''
+              title: '"$TITLE"'
+              enableGraphql: '"$GRAPHQL_ENABLED"'
               graphqlPath: '"$GRAPHQL_PATH"'' | kubectl apply -f -
         else
           echo '
@@ -72,7 +70,7 @@ data:
             name: '"$NAME"'
           spec:
             name: '"$NAME"'
-            url: '"$IMAGE"
+            url: '"$IMAGE"'
             enableGraphql: '"$GRAPHQL_ENABLED"'
             graphqlPath: '"$GRAPHQL_PATH"'' | kubectl apply -f -
         fi
@@ -85,184 +83,6 @@ metadata:
   namespace: {{.Values.global.namespace}}
 data:
     jobSpec.yaml: |
-      ---
-      {{`{{if eq .SkipCRDInstallation "false"}}`}}
-      apiVersion: v1
-      kind: ConfigMap
-      metadata:
-        name: nexus-graphql-kubeconfig
-        namespace: {{.Values.global.namespace}}
-      data:
-        kubeconfig: |
-          current-context: localapiserver
-          apiVersion: v1
-          kind: Config
-          clusters:
-          - cluster:
-              api-version: v1
-              server: http://nexus-apiserver:8080
-              insecure-skip-tls-verify: true
-            name: localapiserver
-          contexts:
-          - context:
-              cluster: localapiserver
-            name: localapiserver
-      ---
-      apiVersion: apps/v1
-      kind: Deployment
-      metadata:
-        name: graphql-server
-        namespace: {{.Values.global.namespace}}
-        labels:
-          control-plane: graphql
-      spec:
-        selector:
-          matchLabels:
-            control-plane: graphql
-        replicas: 0
-        template:
-          metadata:
-            annotations:
-              kubectl.kubernetes.io/default-container: graphql
-            labels:
-              control-plane: graphql
-          spec:
-            initContainers:
-              - name: extract-plugin
-                imagePullPolicy: IfNotPresent
-                image: {{`{{.DatamodelInstaller.Image}}`}}
-                command:
-                  - /bin/bash
-                  - -c
-                  - |
-                    #!/bin/bash
-                    cp /build/graphql.so /tmp/plugin
-                volumeMounts:
-                  - mountPath: /tmp/plugin
-                    name: graphql-plugin
-              - name: check-nexus-proxy-container
-                image: "gcr.io/mesh7-public-images/tools:latest"
-                command:
-                  - /bin/bash
-                  - -c
-                  - |
-                    #!/bin/bash
-                    set -x
-                    URL="http://nexus-apiserver:8080/api/v1/namespaces"
-                    max_retries=20
-                    counter=0
-                    while [[ $counter -lt $max_retries ]]; do
-                          status=$(curl -s -o /dev/null -I -w "%{http_code}" -XGET $URL)
-                          if [ $status == "200" ]; then
-                              echo "$URL is reachable"
-                              exit 0
-                          else
-                              counter=$((counter +1))
-                              sleep 5
-                          fi
-                    done
-              - name: create-backend-route-object
-                image: "gcr.io/mesh7-public-images/tools:latest"
-                imagePullPolicy: IfNotPresent
-                command:
-                  - /bin/bash
-                  - -c
-                  - |
-                      #!/bin/bash
-                      set -x
-                      function create_object() {
-                      FILE=$1
-                      RETRY=4
-                      ATTEMPT=0
-                      while [ $ATTEMPT -ne $RETRY ]; do
-                        if ! cat $FILE | kubectl -s nexus-api-gw:80 apply -f -; then
-                          ATTEMPT=$((ATTEMPT + 1))
-                          if [ $ATTEMPT -ne $RETRY ]; then
-                              sleep 2
-                          else
-                              exit 1
-                          fi
-                        else
-                          break
-                        fi
-                        done
-                      }
-                      echo "Creating custom route object"
-                      cat > /tmp/object <<EOF
-                      apiVersion: route.nexus.org/v1
-                      kind: Route
-                      metadata:
-                        name: graphql
-                      spec:
-                        service:
-                          Name: graphql
-                          Port: 8080
-                          Scheme: Http
-                        resource:
-                          Name: graphql
-                        uri: /
-                      EOF
-                      create_object /tmp/object
-            containers:
-              -
-                image: {{.Values.global.registry}}/graphql-server:{{ required "Please provide global.graphql.tag value using --set-string option!" .Values.global.graphql.tag }}
-                name: graphql
-                env:
-                  - name: KUBECONFIG
-                    value: /kubeconfig/kubeconfig
-                  - name: PLUGIN_PATH
-                    value: /tmp/plugin/graphql.so
-                  - name: NAMESPACE
-                    valueFrom:
-                      fieldRef:
-                        apiVersion: v1
-                        fieldPath: metadata.namespace
-                imagePullPolicy: IfNotPresent
-                securityContext:
-                  allowPrivilegeEscalation: false
-                # TODO(user): Configure the resources accordingly based on the project requirements.
-                # More info: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/
-                resources:
-                  limits:
-                    cpu: 500m
-                    memory: 128Mi
-                  requests:
-                    cpu: 10m
-                    memory: 64Mi
-                volumeMounts:
-                  - mountPath: /kubeconfig
-                    name: nexus-kubeconfig
-                  - mountPath: /tmp/plugin
-                    name: graphql-plugin
-            volumes:
-              - name: nexus-kubeconfig
-                configMap:
-                  name: nexus-graphql-kubeconfig
-              - name: graphql-plugin
-                emptyDir: {}
-            {{`{{- if .IsImagePullSecret }}`}}
-            imagePullSecrets:
-              - name: {{`{{.ImagePullSecret}}`}}
-            {{`{{- end }}`}}
-            terminationGracePeriodSeconds: 10
-            securityContext:
-              runAsUser: 0
-              runAsGroup: 0
-      ---
-      apiVersion: v1
-      kind: Service
-      metadata:
-        name: graphql
-        namespace: {{.Values.global.namespace}}
-      spec:
-        ports:
-        - protocol: TCP
-          name: http
-          port: 8080
-          targetPort: 8080
-        selector:
-          control-plane: graphql
-      {{`{{- end }}`}}
       ---
         apiVersion: batch/v1
         kind: Job
@@ -320,6 +140,8 @@ data:
                     - name: TITLE
                       value: {{`"{{.DatamodelTitle}}"`}}
                     {{`{{end}}`}}
+                    - name: GRAPHQL_PATH
+                      value: {{`"{{.GraphqlPath}}"`}}
                   image: {{`{{.DatamodelInstaller.Image}}`}}
                   imagePullPolicy: IfNotPresent
                   name: datamodel-installer-job
