@@ -80,7 +80,6 @@ type gns_Gns {
         Interval: String
     ): TimeSeriesData
 
-    GnsServiceGroups(Id: ID): [servicegroup_SvcGroup!]
     
     Domain: String
     UseSharedGateway: Boolean
@@ -120,15 +119,6 @@ type gns_Dns {
 
 }
 
-type servicegroup_SvcGroup {
-    Id: ID
-	ParentLabels: Map
-
-    DisplayName: String
-    Description: String
-    Color: String
-}
-
 type policy_AccessControlPolicy {
     Id: ID
 	ParentLabels: Map
@@ -142,8 +132,6 @@ type policy_ACPConfig {
 
     
     
-    DestSvcGroups(Id: ID): [servicegroup_SvcGroup!]
-    SourceSvcGroups(Id: ID): [servicegroup_SvcGroup!]
     
     
     DisplayName: String

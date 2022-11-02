@@ -78,7 +78,6 @@ type GnsGns struct {
 	queryGns1                *NexusGraphqlResponse      `json:"queryGns1"`
 	queryGnsQM1              *TimeSeriesData            `json:"queryGnsQM1"`
 	queryGnsQM               *TimeSeriesData            `json:"queryGnsQM"`
-	GnsServiceGroups         []*ServicegroupSvcGroup    `json:"GnsServiceGroups"`
 	Domain                   *string                    `json:"Domain"`
 	UseSharedGateway         *bool                      `json:"UseSharedGateway"`
 	Description              *string                    `json:"Description"`
@@ -104,16 +103,14 @@ type GnsIgnoreChild struct {
 }
 
 type PolicyACPConfig struct {
-	Id              *string                 `json:"Id"`
-	ParentLabels    map[string]interface{}  `json:"ParentLabels"`
-	DestSvcGroups   []*ServicegroupSvcGroup `json:"DestSvcGroups"`
-	SourceSvcGroups []*ServicegroupSvcGroup `json:"SourceSvcGroups"`
-	DisplayName     *string                 `json:"DisplayName"`
-	Gns             *string                 `json:"Gns"`
-	Description     *string                 `json:"Description"`
-	Tags            *string                 `json:"Tags"`
-	ProjectId       *string                 `json:"ProjectId"`
-	Conditions      *string                 `json:"Conditions"`
+	Id           *string                `json:"Id"`
+	ParentLabels map[string]interface{} `json:"ParentLabels"`
+	DisplayName  *string                `json:"DisplayName"`
+	Gns          *string                `json:"Gns"`
+	Description  *string                `json:"Description"`
+	Tags         *string                `json:"Tags"`
+	ProjectId    *string                `json:"ProjectId"`
+	Conditions   *string                `json:"Conditions"`
 }
 
 type PolicyAccessControlPolicy struct {
@@ -131,12 +128,4 @@ type RootRoot struct {
 	Id           *string                `json:"Id"`
 	ParentLabels map[string]interface{} `json:"ParentLabels"`
 	Config       *ConfigConfig          `json:"Config"`
-}
-
-type ServicegroupSvcGroup struct {
-	Id           *string                `json:"Id"`
-	ParentLabels map[string]interface{} `json:"ParentLabels"`
-	DisplayName  *string                `json:"DisplayName"`
-	Description  *string                `json:"Description"`
-	Color        *string                `json:"Color"`
 }

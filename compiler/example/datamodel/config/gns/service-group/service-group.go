@@ -4,6 +4,7 @@ import (
 	"github.com/vmware-tanzu/graph-framework-for-microservices/compiler/example/datamodel/nexus"
 )
 
+// nexus-secret-spec:ApiKeySecretSpec
 type SvcGroup struct {
 	nexus.Node
 	DisplayName string

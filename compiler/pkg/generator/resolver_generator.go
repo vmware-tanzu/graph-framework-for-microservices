@@ -5,6 +5,8 @@ import (
 	"go/ast"
 	"go/types"
 	"sort"
+	"strconv"
+	"strings"
 	"unicode"
 
 	log "github.com/sirupsen/logrus"
@@ -316,10 +318,35 @@ func processNonNexusFields(aliasNameMap map[string]string, node *ast.TypeSpec,
 	}
 }
 
+func findTypeAndPkgForField(ptParts []string, importMap map[string]string, pkgs map[string]parser.Package) (string, *parser.Package) {
+	structPkg := ptParts[0]
+	structType := ptParts[1]
+
+	pkgPath, ok := importMap[structPkg]
+	if !ok {
+		log.Errorf("Can't find the pkgName: %s", structPkg)
+		return "", nil
+	}
+
+	importPath, err := strconv.Unquote(pkgPath)
+	if err != nil {
+		log.Errorf("Failed to parse the package path : %s: %v", pkgPath, err)
+		return "", nil
+	}
+
+	p, ok := pkgs[importPath]
+	if !ok {
+		log.Errorf("Can't find the pkg for the path: %s", importPath)
+		return "", nil
+	}
+
+	return structType, &p
+}
+
 // processNexusFields process and populates properties for each nexus fields
 // <gns.Gns `nexus:"child"`>
 func processNexusFields(pkg parser.Package, aliasNameMap map[string]string, node *ast.TypeSpec,
-	nodeProp *NodeProperty, simpleGroupTypeName string) {
+	nodeProp *NodeProperty, simpleGroupTypeName string, pkgs map[string]parser.Package) {
 	importMap := pkg.GetImportMap()
 	for _, nf := range parser.GetNexusFields(node) {
 		var (
@@ -333,6 +360,25 @@ func processNexusFields(pkg parser.Package, aliasNameMap map[string]string, node
 			}
 			fieldProp.PkgName = simpleGroupTypeName
 			fieldProp.NodeName = node.Name.String()
+		}
+
+		// Except for nexus fields (nexus.Node and nexus.SingletonNode),
+		// this will check other fields to see whether they have nexus secrets annotated on them
+		// If yes, the field is ignored in the response.
+		if !parser.IsNexusTypeField(nf) {
+			nfType := parser.GetFieldType(nf)
+			fieldPkg := &pkg
+			structType := nfType
+
+			if ptParts := strings.Split(nfType, "."); len(ptParts) == 2 { //service_group.SvcGroup
+				structType, fieldPkg = findTypeAndPkgForField(ptParts, importMap, pkgs)
+			}
+			if len(structType) != 0 {
+				if _, ok := parser.GetNexusSecretSpecAnnotation(*fieldPkg, structType); ok {
+					log.Debugf("Ignoring the field %s since the node is annotated as nexus secret", fieldProp.FieldName)
+					continue
+				}
+			}
 		}
 
 		// `Ignore:true` annotation used to ignore the specific field `nexus-graphql:"ignore:true"`
@@ -494,6 +540,7 @@ func GenerateGraphqlResolverVars(baseGroupName, crdModulePath string, pkgs parse
 
 			typeName := parser.GetTypeName(node)
 			if _, ok := parser.GetNexusSecretSpecAnnotation(pkg, typeName); ok {
+				log.Debugf("Ignoring the node %s since the node is annotated as nexus secret", typeName)
 				continue
 			}
 
@@ -525,7 +572,7 @@ func GenerateGraphqlResolverVars(baseGroupName, crdModulePath string, pkgs parse
 			}
 
 			// Iterate each node's nexus fields and set its properties
-			processNexusFields(pkg, aliasNameMap, node, nodeProp, simpleGroupTypeName)
+			processNexusFields(pkg, aliasNameMap, node, nodeProp, simpleGroupTypeName, pkgs)
 
 			// Iterate each node's non-nexus fields and set its properties
 			processNonNexusFields(aliasNameMap, node, nodeProp, simpleGroupTypeName)

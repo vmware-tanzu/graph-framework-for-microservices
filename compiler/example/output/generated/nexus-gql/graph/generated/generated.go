@@ -40,7 +40,6 @@ type ResolverRoot interface {
 	Query() QueryResolver
 	Config_Config() Config_ConfigResolver
 	Gns_Gns() Gns_GnsResolver
-	Policy_ACPConfig() Policy_ACPConfigResolver
 	Policy_AccessControlPolicy() Policy_AccessControlPolicyResolver
 	Root_Root() Root_RootResolver
 }
@@ -129,7 +128,6 @@ type ComplexityRoot struct {
 		Domain                   func(childComplexity int) int
 		FooChild                 func(childComplexity int) int
 		GnsAccessControlPolicy   func(childComplexity int, id *string) int
-		GnsServiceGroups         func(childComplexity int, id *string) int
 		Id                       func(childComplexity int) int
 		MapPointer               func(childComplexity int) int
 		Meta                     func(childComplexity int) int
@@ -155,16 +153,14 @@ type ComplexityRoot struct {
 	}
 
 	Policy_ACPConfig struct {
-		Conditions      func(childComplexity int) int
-		Description     func(childComplexity int) int
-		DestSvcGroups   func(childComplexity int, id *string) int
-		DisplayName     func(childComplexity int) int
-		Gns             func(childComplexity int) int
-		Id              func(childComplexity int) int
-		ParentLabels    func(childComplexity int) int
-		ProjectId       func(childComplexity int) int
-		SourceSvcGroups func(childComplexity int, id *string) int
-		Tags            func(childComplexity int) int
+		Conditions   func(childComplexity int) int
+		Description  func(childComplexity int) int
+		DisplayName  func(childComplexity int) int
+		Gns          func(childComplexity int) int
+		Id           func(childComplexity int) int
+		ParentLabels func(childComplexity int) int
+		ProjectId    func(childComplexity int) int
+		Tags         func(childComplexity int) int
 	}
 
 	Policy_AccessControlPolicy struct {
@@ -180,14 +176,6 @@ type ComplexityRoot struct {
 
 	Root_Root struct {
 		Config       func(childComplexity int, id *string) int
-		Id           func(childComplexity int) int
-		ParentLabels func(childComplexity int) int
-	}
-
-	Servicegroup_SvcGroup struct {
-		Color        func(childComplexity int) int
-		Description  func(childComplexity int) int
-		DisplayName  func(childComplexity int) int
 		Id           func(childComplexity int) int
 		ParentLabels func(childComplexity int) int
 	}
@@ -210,14 +198,9 @@ type Gns_GnsResolver interface {
 	QueryGns1(ctx context.Context, obj *model.GnsGns, startTime *string, endTime *string, interval *string, isServiceDeployment *bool, startVal *int) (*model.NexusGraphqlResponse, error)
 	QueryGnsQm1(ctx context.Context, obj *model.GnsGns) (*model.TimeSeriesData, error)
 	QueryGnsQm(ctx context.Context, obj *model.GnsGns, startTime *string, endTime *string, interval *string) (*model.TimeSeriesData, error)
-	GnsServiceGroups(ctx context.Context, obj *model.GnsGns, id *string) ([]*model.ServicegroupSvcGroup, error)
 
 	GnsAccessControlPolicy(ctx context.Context, obj *model.GnsGns, id *string) (*model.PolicyAccessControlPolicy, error)
 	FooChild(ctx context.Context, obj *model.GnsGns) (*model.GnsBarChild, error)
-}
-type Policy_ACPConfigResolver interface {
-	DestSvcGroups(ctx context.Context, obj *model.PolicyACPConfig, id *string) ([]*model.ServicegroupSvcGroup, error)
-	SourceSvcGroups(ctx context.Context, obj *model.PolicyACPConfig, id *string) ([]*model.ServicegroupSvcGroup, error)
 }
 type Policy_AccessControlPolicyResolver interface {
 	PolicyConfigs(ctx context.Context, obj *model.PolicyAccessControlPolicy, id *string) ([]*model.PolicyACPConfig, error)
@@ -661,18 +644,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Gns_Gns.GnsAccessControlPolicy(childComplexity, args["Id"].(*string)), true
 
-	case "gns_Gns.GnsServiceGroups":
-		if e.complexity.Gns_Gns.GnsServiceGroups == nil {
-			break
-		}
-
-		args, err := ec.field_gns_Gns_GnsServiceGroups_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Gns_Gns.GnsServiceGroups(childComplexity, args["Id"].(*string)), true
-
 	case "gns_Gns.Id":
 		if e.complexity.Gns_Gns.Id == nil {
 			break
@@ -830,18 +801,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Policy_ACPConfig.Description(childComplexity), true
 
-	case "policy_ACPConfig.DestSvcGroups":
-		if e.complexity.Policy_ACPConfig.DestSvcGroups == nil {
-			break
-		}
-
-		args, err := ec.field_policy_ACPConfig_DestSvcGroups_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Policy_ACPConfig.DestSvcGroups(childComplexity, args["Id"].(*string)), true
-
 	case "policy_ACPConfig.DisplayName":
 		if e.complexity.Policy_ACPConfig.DisplayName == nil {
 			break
@@ -876,18 +835,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Policy_ACPConfig.ProjectId(childComplexity), true
-
-	case "policy_ACPConfig.SourceSvcGroups":
-		if e.complexity.Policy_ACPConfig.SourceSvcGroups == nil {
-			break
-		}
-
-		args, err := ec.field_policy_ACPConfig_SourceSvcGroups_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Policy_ACPConfig.SourceSvcGroups(childComplexity, args["Id"].(*string)), true
 
 	case "policy_ACPConfig.Tags":
 		if e.complexity.Policy_ACPConfig.Tags == nil {
@@ -961,41 +908,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Root_Root.ParentLabels(childComplexity), true
-
-	case "servicegroup_SvcGroup.Color":
-		if e.complexity.Servicegroup_SvcGroup.Color == nil {
-			break
-		}
-
-		return e.complexity.Servicegroup_SvcGroup.Color(childComplexity), true
-
-	case "servicegroup_SvcGroup.Description":
-		if e.complexity.Servicegroup_SvcGroup.Description == nil {
-			break
-		}
-
-		return e.complexity.Servicegroup_SvcGroup.Description(childComplexity), true
-
-	case "servicegroup_SvcGroup.DisplayName":
-		if e.complexity.Servicegroup_SvcGroup.DisplayName == nil {
-			break
-		}
-
-		return e.complexity.Servicegroup_SvcGroup.DisplayName(childComplexity), true
-
-	case "servicegroup_SvcGroup.Id":
-		if e.complexity.Servicegroup_SvcGroup.Id == nil {
-			break
-		}
-
-		return e.complexity.Servicegroup_SvcGroup.Id(childComplexity), true
-
-	case "servicegroup_SvcGroup.ParentLabels":
-		if e.complexity.Servicegroup_SvcGroup.ParentLabels == nil {
-			break
-		}
-
-		return e.complexity.Servicegroup_SvcGroup.ParentLabels(childComplexity), true
 
 	}
 	return 0, false
@@ -1131,7 +1043,6 @@ type gns_Gns {
         Interval: String
     ): TimeSeriesData
 
-    GnsServiceGroups(Id: ID): [servicegroup_SvcGroup!]
     
     Domain: String
     UseSharedGateway: Boolean
@@ -1171,15 +1082,6 @@ type gns_Dns {
 
 }
 
-type servicegroup_SvcGroup {
-    Id: ID
-	ParentLabels: Map
-
-    DisplayName: String
-    Description: String
-    Color: String
-}
-
 type policy_AccessControlPolicy {
     Id: ID
 	ParentLabels: Map
@@ -1193,8 +1095,6 @@ type policy_ACPConfig {
 
     
     
-    DestSvcGroups(Id: ID): [servicegroup_SvcGroup!]
-    SourceSvcGroups(Id: ID): [servicegroup_SvcGroup!]
     
     
     DisplayName: String
@@ -1420,21 +1320,6 @@ func (ec *executionContext) field_gns_Gns_GnsAccessControlPolicy_args(ctx contex
 	return args, nil
 }
 
-func (ec *executionContext) field_gns_Gns_GnsServiceGroups_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 *string
-	if tmp, ok := rawArgs["Id"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("Id"))
-		arg0, err = ec.unmarshalOID2ᚖstring(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["Id"] = arg0
-	return args, nil
-}
-
 func (ec *executionContext) field_gns_Gns_queryGns1_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -1516,36 +1401,6 @@ func (ec *executionContext) field_gns_Gns_queryGnsQM_args(ctx context.Context, r
 		}
 	}
 	args["Interval"] = arg2
-	return args, nil
-}
-
-func (ec *executionContext) field_policy_ACPConfig_DestSvcGroups_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 *string
-	if tmp, ok := rawArgs["Id"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("Id"))
-		arg0, err = ec.unmarshalOID2ᚖstring(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["Id"] = arg0
-	return args, nil
-}
-
-func (ec *executionContext) field_policy_ACPConfig_SourceSvcGroups_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 *string
-	if tmp, ok := rawArgs["Id"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("Id"))
-		arg0, err = ec.unmarshalOID2ᚖstring(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["Id"] = arg0
 	return args, nil
 }
 
@@ -4593,8 +4448,6 @@ func (ec *executionContext) fieldContext_config_Config_GNS(ctx context.Context, 
 				return ec.fieldContext_gns_Gns_queryGnsQM1(ctx, field)
 			case "queryGnsQM":
 				return ec.fieldContext_gns_Gns_queryGnsQM(ctx, field)
-			case "GnsServiceGroups":
-				return ec.fieldContext_gns_Gns_GnsServiceGroups(ctx, field)
 			case "Domain":
 				return ec.fieldContext_gns_Gns_Domain(ctx, field)
 			case "UseSharedGateway":
@@ -6000,70 +5853,6 @@ func (ec *executionContext) fieldContext_gns_Gns_queryGnsQM(ctx context.Context,
 	return fc, nil
 }
 
-func (ec *executionContext) _gns_Gns_GnsServiceGroups(ctx context.Context, field graphql.CollectedField, obj *model.GnsGns) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_gns_Gns_GnsServiceGroups(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Gns_Gns().GnsServiceGroups(rctx, obj, fc.Args["Id"].(*string))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.([]*model.ServicegroupSvcGroup)
-	fc.Result = res
-	return ec.marshalOservicegroup_SvcGroup2ᚕᚖnexustempmoduleᚋnexusᚑgqlᚋgraphᚋmodelᚐServicegroupSvcGroupᚄ(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_gns_Gns_GnsServiceGroups(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "gns_Gns",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "Id":
-				return ec.fieldContext_servicegroup_SvcGroup_Id(ctx, field)
-			case "ParentLabels":
-				return ec.fieldContext_servicegroup_SvcGroup_ParentLabels(ctx, field)
-			case "DisplayName":
-				return ec.fieldContext_servicegroup_SvcGroup_DisplayName(ctx, field)
-			case "Description":
-				return ec.fieldContext_servicegroup_SvcGroup_Description(ctx, field)
-			case "Color":
-				return ec.fieldContext_servicegroup_SvcGroup_Color(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type servicegroup_SvcGroup", field.Name)
-		},
-	}
-	defer func() {
-		if r := recover(); r != nil {
-			err = ec.Recover(ctx, r)
-			ec.Error(ctx, err)
-		}
-	}()
-	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_gns_Gns_GnsServiceGroups_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
-		ec.Error(ctx, err)
-		return
-	}
-	return fc, nil
-}
-
 func (ec *executionContext) _gns_Gns_Domain(ctx context.Context, field graphql.CollectedField, obj *model.GnsGns) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_gns_Gns_Domain(ctx, field)
 	if err != nil {
@@ -6958,134 +6747,6 @@ func (ec *executionContext) fieldContext_policy_ACPConfig_ParentLabels(ctx conte
 	return fc, nil
 }
 
-func (ec *executionContext) _policy_ACPConfig_DestSvcGroups(ctx context.Context, field graphql.CollectedField, obj *model.PolicyACPConfig) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_policy_ACPConfig_DestSvcGroups(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Policy_ACPConfig().DestSvcGroups(rctx, obj, fc.Args["Id"].(*string))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.([]*model.ServicegroupSvcGroup)
-	fc.Result = res
-	return ec.marshalOservicegroup_SvcGroup2ᚕᚖnexustempmoduleᚋnexusᚑgqlᚋgraphᚋmodelᚐServicegroupSvcGroupᚄ(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_policy_ACPConfig_DestSvcGroups(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "policy_ACPConfig",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "Id":
-				return ec.fieldContext_servicegroup_SvcGroup_Id(ctx, field)
-			case "ParentLabels":
-				return ec.fieldContext_servicegroup_SvcGroup_ParentLabels(ctx, field)
-			case "DisplayName":
-				return ec.fieldContext_servicegroup_SvcGroup_DisplayName(ctx, field)
-			case "Description":
-				return ec.fieldContext_servicegroup_SvcGroup_Description(ctx, field)
-			case "Color":
-				return ec.fieldContext_servicegroup_SvcGroup_Color(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type servicegroup_SvcGroup", field.Name)
-		},
-	}
-	defer func() {
-		if r := recover(); r != nil {
-			err = ec.Recover(ctx, r)
-			ec.Error(ctx, err)
-		}
-	}()
-	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_policy_ACPConfig_DestSvcGroups_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
-		ec.Error(ctx, err)
-		return
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _policy_ACPConfig_SourceSvcGroups(ctx context.Context, field graphql.CollectedField, obj *model.PolicyACPConfig) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_policy_ACPConfig_SourceSvcGroups(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Policy_ACPConfig().SourceSvcGroups(rctx, obj, fc.Args["Id"].(*string))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.([]*model.ServicegroupSvcGroup)
-	fc.Result = res
-	return ec.marshalOservicegroup_SvcGroup2ᚕᚖnexustempmoduleᚋnexusᚑgqlᚋgraphᚋmodelᚐServicegroupSvcGroupᚄ(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_policy_ACPConfig_SourceSvcGroups(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "policy_ACPConfig",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "Id":
-				return ec.fieldContext_servicegroup_SvcGroup_Id(ctx, field)
-			case "ParentLabels":
-				return ec.fieldContext_servicegroup_SvcGroup_ParentLabels(ctx, field)
-			case "DisplayName":
-				return ec.fieldContext_servicegroup_SvcGroup_DisplayName(ctx, field)
-			case "Description":
-				return ec.fieldContext_servicegroup_SvcGroup_Description(ctx, field)
-			case "Color":
-				return ec.fieldContext_servicegroup_SvcGroup_Color(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type servicegroup_SvcGroup", field.Name)
-		},
-	}
-	defer func() {
-		if r := recover(); r != nil {
-			err = ec.Recover(ctx, r)
-			ec.Error(ctx, err)
-		}
-	}()
-	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_policy_ACPConfig_SourceSvcGroups_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
-		ec.Error(ctx, err)
-		return
-	}
-	return fc, nil
-}
-
 func (ec *executionContext) _policy_ACPConfig_DisplayName(ctx context.Context, field graphql.CollectedField, obj *model.PolicyACPConfig) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_policy_ACPConfig_DisplayName(ctx, field)
 	if err != nil {
@@ -7454,10 +7115,6 @@ func (ec *executionContext) fieldContext_policy_AccessControlPolicy_PolicyConfig
 				return ec.fieldContext_policy_ACPConfig_Id(ctx, field)
 			case "ParentLabels":
 				return ec.fieldContext_policy_ACPConfig_ParentLabels(ctx, field)
-			case "DestSvcGroups":
-				return ec.fieldContext_policy_ACPConfig_DestSvcGroups(ctx, field)
-			case "SourceSvcGroups":
-				return ec.fieldContext_policy_ACPConfig_SourceSvcGroups(ctx, field)
 			case "DisplayName":
 				return ec.fieldContext_policy_ACPConfig_DisplayName(ctx, field)
 			case "Gns":
@@ -7739,211 +7396,6 @@ func (ec *executionContext) fieldContext_root_Root_Config(ctx context.Context, f
 	if fc.Args, err = ec.field_root_Root_Config_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _servicegroup_SvcGroup_Id(ctx context.Context, field graphql.CollectedField, obj *model.ServicegroupSvcGroup) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_servicegroup_SvcGroup_Id(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Id, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*string)
-	fc.Result = res
-	return ec.marshalOID2ᚖstring(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_servicegroup_SvcGroup_Id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "servicegroup_SvcGroup",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type ID does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _servicegroup_SvcGroup_ParentLabels(ctx context.Context, field graphql.CollectedField, obj *model.ServicegroupSvcGroup) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_servicegroup_SvcGroup_ParentLabels(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.ParentLabels, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(map[string]interface{})
-	fc.Result = res
-	return ec.marshalOMap2map(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_servicegroup_SvcGroup_ParentLabels(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "servicegroup_SvcGroup",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Map does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _servicegroup_SvcGroup_DisplayName(ctx context.Context, field graphql.CollectedField, obj *model.ServicegroupSvcGroup) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_servicegroup_SvcGroup_DisplayName(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.DisplayName, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*string)
-	fc.Result = res
-	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_servicegroup_SvcGroup_DisplayName(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "servicegroup_SvcGroup",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _servicegroup_SvcGroup_Description(ctx context.Context, field graphql.CollectedField, obj *model.ServicegroupSvcGroup) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_servicegroup_SvcGroup_Description(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Description, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*string)
-	fc.Result = res
-	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_servicegroup_SvcGroup_Description(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "servicegroup_SvcGroup",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _servicegroup_SvcGroup_Color(ctx context.Context, field graphql.CollectedField, obj *model.ServicegroupSvcGroup) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_servicegroup_SvcGroup_Color(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Color, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*string)
-	fc.Result = res
-	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_servicegroup_SvcGroup_Color(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "servicegroup_SvcGroup",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
-		},
 	}
 	return fc, nil
 }
@@ -8851,23 +8303,6 @@ func (ec *executionContext) _gns_Gns(ctx context.Context, sel ast.SelectionSet, 
 				return innerFunc(ctx)
 
 			})
-		case "GnsServiceGroups":
-			field := field
-
-			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._gns_Gns_GnsServiceGroups(ctx, field, obj)
-				return res
-			}
-
-			out.Concurrently(i, func() graphql.Marshaler {
-				return innerFunc(ctx)
-
-			})
 		case "Domain":
 
 			out.Values[i] = ec._gns_Gns_Domain(ctx, field, obj)
@@ -9026,40 +8461,6 @@ func (ec *executionContext) _policy_ACPConfig(ctx context.Context, sel ast.Selec
 
 			out.Values[i] = ec._policy_ACPConfig_ParentLabels(ctx, field, obj)
 
-		case "DestSvcGroups":
-			field := field
-
-			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._policy_ACPConfig_DestSvcGroups(ctx, field, obj)
-				return res
-			}
-
-			out.Concurrently(i, func() graphql.Marshaler {
-				return innerFunc(ctx)
-
-			})
-		case "SourceSvcGroups":
-			field := field
-
-			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._policy_ACPConfig_SourceSvcGroups(ctx, field, obj)
-				return res
-			}
-
-			out.Concurrently(i, func() graphql.Marshaler {
-				return innerFunc(ctx)
-
-			})
 		case "DisplayName":
 
 			out.Values[i] = ec._policy_ACPConfig_DisplayName(ctx, field, obj)
@@ -9208,47 +8609,6 @@ func (ec *executionContext) _root_Root(ctx context.Context, sel ast.SelectionSet
 				return innerFunc(ctx)
 
 			})
-		default:
-			panic("unknown field " + strconv.Quote(field.Name))
-		}
-	}
-	out.Dispatch()
-	if invalids > 0 {
-		return graphql.Null
-	}
-	return out
-}
-
-var servicegroup_SvcGroupImplementors = []string{"servicegroup_SvcGroup"}
-
-func (ec *executionContext) _servicegroup_SvcGroup(ctx context.Context, sel ast.SelectionSet, obj *model.ServicegroupSvcGroup) graphql.Marshaler {
-	fields := graphql.CollectFields(ec.OperationContext, sel, servicegroup_SvcGroupImplementors)
-	out := graphql.NewFieldSet(fields)
-	var invalids uint32
-	for i, field := range fields {
-		switch field.Name {
-		case "__typename":
-			out.Values[i] = graphql.MarshalString("servicegroup_SvcGroup")
-		case "Id":
-
-			out.Values[i] = ec._servicegroup_SvcGroup_Id(ctx, field, obj)
-
-		case "ParentLabels":
-
-			out.Values[i] = ec._servicegroup_SvcGroup_ParentLabels(ctx, field, obj)
-
-		case "DisplayName":
-
-			out.Values[i] = ec._servicegroup_SvcGroup_DisplayName(ctx, field, obj)
-
-		case "Description":
-
-			out.Values[i] = ec._servicegroup_SvcGroup_Description(ctx, field, obj)
-
-		case "Color":
-
-			out.Values[i] = ec._servicegroup_SvcGroup_Color(ctx, field, obj)
-
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -9663,16 +9023,6 @@ func (ec *executionContext) marshalNpolicy_VMpolicy2ᚖnexustempmoduleᚋnexus�
 		return graphql.Null
 	}
 	return ec._policy_VMpolicy(ctx, sel, v)
-}
-
-func (ec *executionContext) marshalNservicegroup_SvcGroup2ᚖnexustempmoduleᚋnexusᚑgqlᚋgraphᚋmodelᚐServicegroupSvcGroup(ctx context.Context, sel ast.SelectionSet, v *model.ServicegroupSvcGroup) graphql.Marshaler {
-	if v == nil {
-		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
-			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
-		}
-		return graphql.Null
-	}
-	return ec._servicegroup_SvcGroup(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalOBoolean2bool(ctx context.Context, v interface{}) (bool, error) {
@@ -10143,53 +9493,6 @@ func (ec *executionContext) marshalOroot_Root2ᚖnexustempmoduleᚋnexusᚑgql�
 		return graphql.Null
 	}
 	return ec._root_Root(ctx, sel, v)
-}
-
-func (ec *executionContext) marshalOservicegroup_SvcGroup2ᚕᚖnexustempmoduleᚋnexusᚑgqlᚋgraphᚋmodelᚐServicegroupSvcGroupᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.ServicegroupSvcGroup) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	ret := make(graphql.Array, len(v))
-	var wg sync.WaitGroup
-	isLen1 := len(v) == 1
-	if !isLen1 {
-		wg.Add(len(v))
-	}
-	for i := range v {
-		i := i
-		fc := &graphql.FieldContext{
-			Index:  &i,
-			Result: &v[i],
-		}
-		ctx := graphql.WithFieldContext(ctx, fc)
-		f := func(i int) {
-			defer func() {
-				if r := recover(); r != nil {
-					ec.Error(ctx, ec.Recover(ctx, r))
-					ret = nil
-				}
-			}()
-			if !isLen1 {
-				defer wg.Done()
-			}
-			ret[i] = ec.marshalNservicegroup_SvcGroup2ᚖnexustempmoduleᚋnexusᚑgqlᚋgraphᚋmodelᚐServicegroupSvcGroup(ctx, sel, v[i])
-		}
-		if isLen1 {
-			f(i)
-		} else {
-			go f(i)
-		}
-
-	}
-	wg.Wait()
-
-	for _, e := range ret {
-		if e == graphql.Null {
-			return graphql.Null
-		}
-	}
-
-	return ret
 }
 
 // endregion ***************************** type.gotpl *****************************
