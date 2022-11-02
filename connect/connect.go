@@ -8,9 +8,9 @@ import (
 type Connect struct {
 	nexus.Node
 
-	Endpoints map[string]NexusEndpoint `nexus:"child"`
+	Endpoints NexusEndpoint `nexus:"children"`
 
-	ReplicationConfig map[string]ReplicationConfig `nexus:"child"`
+	ReplicationConfig ReplicationConfig `nexus:"children"`
 }
 
 // NexusEndpoint identifies a Nexus Runtime endpoint.
@@ -81,6 +81,19 @@ type ReplicationSource struct {
 
 	// Relevant if a specific object (and optionally its children) are to be replicated.
 	Object SourceObject `json:"object,omitempty"`
+
+	// Relevant if objects have to be replicated based on filters.
+	Filters SourceFilters `json:"sourceFilters,omitempty"`
+}
+
+// SourceFilters filters object in datamodel to be replicated.
+type SourceFilters struct {
+
+	// If specified, the objects to be replicated will be filtered based on namespace.
+	Namespace string `json:"namespace,omitempty"`
+
+	// If specified, the objects to be replicated will be filtered based on labels.
+	Labels []KVP `json:"labels,omitempty"`
 }
 
 // ReplicationDestination specifies the attributes with which objects are to be created

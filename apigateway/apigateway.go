@@ -13,7 +13,7 @@ type ApiGateway struct {
 	nexus.Node
 
 	// ProxyRules define a match condition and a corresponding upstream
-	ProxyRules map[string]admin.ProxyRule `nexus:"child"`
+	ProxyRules admin.ProxyRule `nexus:"children"`
 
 	// Authentication config associated with this Gateway.
 	Authn authentication.OIDC `nexus:"child"`

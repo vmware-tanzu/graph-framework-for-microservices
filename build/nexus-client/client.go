@@ -3250,23 +3250,27 @@ func (group *DomainNexusV1) UpdateCORSConfigByName(ctx context.Context,
 		Value: objToUpdate.ObjectMeta,
 	})
 
-	patchValueOrigins :=
-		objToUpdate.Spec.Origins
-	patchOpOrigins := PatchOp{
-		Op:    "replace",
-		Path:  "/spec/origins",
-		Value: patchValueOrigins,
+	if objToUpdate.Spec.Origins != nil {
+		patchValueOrigins :=
+			objToUpdate.Spec.Origins
+		patchOpOrigins := PatchOp{
+			Op:    "replace",
+			Path:  "/spec/origins",
+			Value: patchValueOrigins,
+		}
+		patch = append(patch, patchOpOrigins)
 	}
-	patch = append(patch, patchOpOrigins)
 
-	patchValueHeaders :=
-		objToUpdate.Spec.Headers
-	patchOpHeaders := PatchOp{
-		Op:    "replace",
-		Path:  "/spec/headers",
-		Value: patchValueHeaders,
+	if objToUpdate.Spec.Headers != nil {
+		patchValueHeaders :=
+			objToUpdate.Spec.Headers
+		patchOpHeaders := PatchOp{
+			Op:    "replace",
+			Path:  "/spec/headers",
+			Value: patchValueHeaders,
+		}
+		patch = append(patch, patchOpHeaders)
 	}
-	patch = append(patch, patchOpHeaders)
 
 	marshaled, err := patch.Marshal()
 	if err != nil {

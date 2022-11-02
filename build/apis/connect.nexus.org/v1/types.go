@@ -60,8 +60,8 @@ func (c *Connect) DisplayName() string {
 
 // +k8s:openapi-gen=true
 type ConnectSpec struct {
-	EndpointsGvk         map[string]Child `json:"endpointsGvk,omitempty" yaml:"endpointsGvk,omitempty" nexus:"child"`
-	ReplicationConfigGvk map[string]Child `json:"replicationConfigGvk,omitempty" yaml:"replicationConfigGvk,omitempty" nexus:"child"`
+	EndpointsGvk         map[string]Child `json:"endpointsGvk,omitempty" yaml:"endpointsGvk,omitempty" nexus:"children"`
+	ReplicationConfigGvk map[string]Child `json:"replicationConfigGvk,omitempty" yaml:"replicationConfigGvk,omitempty" nexus:"children"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
@@ -186,9 +186,16 @@ type SourceObject struct {
 
 // +k8s:openapi-gen=true
 type ReplicationSource struct {
-	Kind   SourceKind   `json:"kind"`
-	Type   ObjectType   `json:"type,omitempty"`
-	Object SourceObject `json:"object,omitempty"`
+	Kind    SourceKind    `json:"kind"`
+	Type    ObjectType    `json:"type,omitempty"`
+	Object  SourceObject  `json:"object,omitempty"`
+	Filters SourceFilters `json:"sourceFilters,omitempty"`
+}
+
+// +k8s:openapi-gen=true
+type SourceFilters struct {
+	Namespace string `json:"namespace,omitempty"`
+	Labels    []KVP  `json:"labels,omitempty"`
 }
 
 // +k8s:openapi-gen=true

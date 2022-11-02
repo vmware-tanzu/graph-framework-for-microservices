@@ -60,7 +60,7 @@ func (c *ApiGateway) DisplayName() string {
 
 // +k8s:openapi-gen=true
 type ApiGatewaySpec struct {
-	ProxyRulesGvk map[string]Child `json:"proxyRulesGvk,omitempty" yaml:"proxyRulesGvk,omitempty" nexus:"child"`
+	ProxyRulesGvk map[string]Child `json:"proxyRulesGvk,omitempty" yaml:"proxyRulesGvk,omitempty" nexus:"children"`
 	AuthnGvk      *Child           `json:"authnGvk,omitempty" yaml:"authnGvk,omitempty" nexus:"child"`
 	CorsGvk       map[string]Child `json:"corsGvk,omitempty" yaml:"corsGvk,omitempty" nexus:"children"`
 }

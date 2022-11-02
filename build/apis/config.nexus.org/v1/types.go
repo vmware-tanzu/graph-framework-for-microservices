@@ -61,7 +61,7 @@ func (c *Config) DisplayName() string {
 // +k8s:openapi-gen=true
 type ConfigSpec struct {
 	ApiGatewayGvk *Child           `json:"apiGatewayGvk,omitempty" yaml:"apiGatewayGvk,omitempty" nexus:"child"`
-	RoutesGvk     map[string]Child `json:"routesGvk,omitempty" yaml:"routesGvk,omitempty" nexus:"child"`
+	RoutesGvk     map[string]Child `json:"routesGvk,omitempty" yaml:"routesGvk,omitempty" nexus:"children"`
 	ConnectGvk    *Child           `json:"connectGvk,omitempty" yaml:"connectGvk,omitempty" nexus:"child"`
 }
 
