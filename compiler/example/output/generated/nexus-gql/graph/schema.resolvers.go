@@ -61,8 +61,8 @@ func (r *gns_GnsResolver) QueryGnsQM1(ctx context.Context, obj *model.GnsGns) (*
 }
 
 // QueryGnsQM is the resolver for the queryGnsQM field.
-func (r *gns_GnsResolver) QueryGnsQM(ctx context.Context, obj *model.GnsGns, startTime *string, endTime *string, interval *string) (*model.TimeSeriesData, error) {
-	return getGnsGnsqueryGnsQMResolver(obj, startTime, endTime, interval)
+func (r *gns_GnsResolver) QueryGnsQM(ctx context.Context, obj *model.GnsGns, startTime *string, endTime *string, timeInterval *string, someUserArg1 *string, someUserArg2 *int, someUserArg3 *bool) (*model.TimeSeriesData, error) {
+	return getGnsGnsqueryGnsQMResolver(obj, startTime, endTime, timeInterval, someUserArg1, someUserArg2, someUserArg3)
 }
 
 // GnsServiceGroups is the resolver for the GnsServiceGroups field.
