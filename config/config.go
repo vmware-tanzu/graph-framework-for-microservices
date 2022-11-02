@@ -16,7 +16,7 @@ type Config struct {
 	ApiGateway apigateway.ApiGateway `nexus:"child"`
 
 	// API extensions configuration.
-	Routes map[string]route.Route `nexus:"child"`
+	Routes route.Route `nexus:"children"`
 
 	// Nexus Connect configuration.
 	Connect connect.Connect `nexus:"child"`

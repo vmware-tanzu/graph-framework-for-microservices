@@ -137,6 +137,23 @@ spec:
                     - name
                     - hierarchical
                     type: object
+                  sourceFilters:
+                    properties:
+                      labels:
+                        items:
+                          properties:
+                            key:
+                              type: string
+                            value:
+                              type: string
+                          required:
+                          - key
+                          - value
+                          type: object
+                        type: array
+                      namespace:
+                        type: string
+                    type: object
                   type:
                     properties:
                       group:
