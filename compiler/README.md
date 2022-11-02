@@ -1,7 +1,7 @@
-# nexus compiler
+# Compiler
 [![Build Compiler image](https://github.com/vmware-tanzu/graph-framework-for-microservices/actions/workflows/build.yml/badge.svg)](https://github.com/vmware-tanzu/graph-framework-for-microservices/actions/workflows/build.yml)
 
-Nexus compiler main responsibility is to generate code based on provided datamodel. Currently, generated are:
+Compiler's main responsibility is to generate code based on provided datamodel. Currently, generated are:
 - CRD yamls with OpenAPI schema,
 - CRD Go types definitions,
 - CRD Go clients,
@@ -86,7 +86,7 @@ To run build in a fixed/sandboxed environment:
 
 1. Download the build sandbox: `make docker.builder`
 
-2. Build nexus compiler: `make docker`
+2. Build compiler: `make docker`
 
 ### Generate code for example datamodel in custom/local environment
 
@@ -104,7 +104,7 @@ To run tests in a fixed/sandboxed environment:
 
 1. Download the test sandbox: `make docker.builder`
 
-2. Test nexus compiler: `make test_in_container`
+2. Test compiler: `make test_in_container`
 
 3. Test generation with `make test_generate_code_in_container`
 
@@ -124,7 +124,7 @@ This will generate code to `example/output/generated` directory.
 
 # Packaging
 
-nexus compiler is packaged and published a Docker container images.
+Compiler is packaged and published a Docker container images.
 
 Packaging is achieved by the following two steps:
 ## Creating a base image
@@ -132,13 +132,13 @@ Packaging is achieved by the following two steps:
 Create base image: `make docker`
 
 
-## nexus compiler image
+## Compiler image
 
-To build nexus compiler docker image: `make docker`
+To build compiler docker image: `make docker`
 
 # Publishing
 
-nexus compiler docker image can be published by invoking: `make publish`
+Compiler docker image can be published by invoking: `make publish`
 
 # Known issues
 
