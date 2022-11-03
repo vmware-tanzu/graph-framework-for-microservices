@@ -10,7 +10,6 @@ import (
 	"k8s.io/client-go/rest"
 
 	qm "github.com/vmware-tanzu/graph-framework-for-microservices/nexus/generated/query-manager"
-	libgrpc "gitlab.eng.vmware.com/nsx-allspark_users/lib-go/grpc"
 	nexus_client "{{.BaseImportPath}}nexus-client"
 	"{{.BaseImportPath}}nexus-gql/graph/model"
 )
@@ -138,7 +137,6 @@ func getRootResolver(id *string) ([]*model.{{$node.PkgName}}{{$node.NodeName}}, 
 {{- range $key, $query := $node.CustomQueries }}
 // Custom query
 func get{{$node.PkgName}}{{$node.NodeName}}{{$query.Name}}Resolver(obj *model.{{$node.PkgName}}{{$node.NodeName}}, {{ range $key, $arg := $query.Args }} {{$arg.Name}} *{{$arg.Type}}, {{ end }}) ({{- if eq $query.ApiType 0 }}*model.NexusGraphqlResponse{{- else if eq $query.ApiType 1 }}*model.TimeSeriesData {{- end}}, error) {
-	{{- if eq $query.ApiType 0 }}
 	parentLabels := make(map[string]string)
 	if obj != nil {
 		for k, v := range obj.ParentLabels {
@@ -148,6 +146,7 @@ func get{{$node.PkgName}}{{$node.NodeName}}{{$query.Name}}Resolver(obj *model.{{
 			}
 		}
 	}
+	{{- if eq $query.ApiType 0 }}
 	query := &graphql.GraphQLQuery{
 		Query: "{{$query.Name}}",
 		UserProvidedArgs: map[string]string{
@@ -173,12 +172,18 @@ func get{{$node.PkgName}}{{$node.NodeName}}{{$query.Name}}Resolver(obj *model.{{
 		EndTime: *EndTime,
 		{{- else if eq $arg.Name "Metric" }}
 		Metric: *Metric,
-		{{- else if eq $arg.Name "Filters" }}
-		Filters: *Filters,
 		{{- else if eq $arg.Name "TimeInterval" }}
 		TimeInterval: *TimeInterval,
 		{{- end }}
 		{{- end }}
+		Hierarchy: parentLabels,
+		UserProvidedArgs: map[string]string{
+			{{- range $key, $arg := $query.Args }}
+			{{- if and (ne $arg.Name "StartTime") (ne $arg.Name "EndTime") (ne $arg.Name "Metric") (ne $arg.Name "TimeInterval")}}
+			"{{$arg.Name}}": pointerToString({{$arg.Name}}),
+			{{- end }}
+			{{- end }}
+		},
 	}
 	resp, err := c.Request("{{$query.ServiceEndpoint.Domain}}:{{$query.ServiceEndpoint.Port}}", nexus.GetMetricsApi, metricArgs)
 	if err != nil {
