@@ -1,5 +1,3 @@
 concurrency: 10
 timeout: 10
-rest:
-  put_employee: 
 ---

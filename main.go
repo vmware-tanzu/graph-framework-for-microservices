@@ -25,7 +25,7 @@ const (
 	defaultConcurrency = 10
 	defaultTestTime    = 10
 	//apiGateway         = "http://localhost:45192"
-	apiGateway = "http://localhost:10000"
+	apiGateway = "http://localhost:45192"
 	url        = "http://localhost:45192/apis/graphql/v1/query"
 )
 
@@ -98,88 +98,30 @@ func main() {
 	//workManager(GET_HR, c.Concurrency, c.Timeout)
 	//time.Sleep(10 * time.Second)
 	gclient = graphql.NewClient(url, zipkinClient)
-	workManager("GET_MANAGERS", c.Concurrency, c.Timeout)
-	workManager("GET_EMPLOYEES", c.Concurrency, c.Timeout)
 
+	// REST worker
 	w := workmanager.Worker{
 		ZipkinClient: zipkinClient,
 		WorkerType:   0,
 		FuncMap:      funcMap,
 	}
-	w.WorkManager(GET_HR, 10)
-	w.StartWithAutoStop(10)
-}
 
-// workManager - starts and stops workers, manages concurrency and time
-func workManager(job string, concurrency, runFor int) {
-	// wait for start and stop singal for the job
-	start := make(chan bool)
-	stop := make(chan bool)
-	go func() {
-		for i := 0; i < 2; i++ {
-			select {
-			// start job on signal
-			case <-start:
-				go startWorkers(concurrency, job)
-			// stop job on signal
-			case <-time.After(time.Duration(runFor) * time.Second):
-				log.Println("exiting worker ")
-				stop <- true
-			}
-		}
-	}()
-	// signal start of the job
-	start <- true
-
-	// wait on stop singal to arrive
-	<-stop
-	log.Println("Work stopped, closing worker...")
-
-}
-
-func startWorkers(concurrency int, job string) {
-	// concurrent work that can be done = no. of bool set in the channel
-	work := make(chan bool, concurrency)
-	for i := 0; i < concurrency; i++ {
-		work <- true
+	for k := range funcMap {
+		w.WorkManager(k, c.Concurrency)
+		w.StartWithAutoStop(c.Timeout)
 	}
-	if workerType {
-		for {
-			// consume work
-			<-work
-			doWork(zipkinClient, job, work)
-		}
-	} else {
-		for {
-			<-work
-			doGraphqlQuery(gclient, job, work)
-		}
+
+	// GraphQL query worker
+	w2 := workmanager.Worker{
+		GraphqlFuncMap: graphqlFuncMap,
+		Gclient:        gclient,
+		WorkerType:     1,
 	}
-}
-
-// async work
-func doWork(client *zipkinhttp.Client, job string, work chan bool) {
-	// get work
-	req := funcMap[job]()
-	req.Header.Add("accept", "application/json")
-	var res *http.Response
-	res, err := client.DoWithAppSpan(req, job)
-	if err != nil {
-		log.Fatalf("unable to do http request: %+v\n", err)
+	for k := range graphqlFuncMap {
+		w2.WorkManager(k, c.Concurrency)
+		w2.StartWithAutoStop(c.Timeout)
 	}
-	defer res.Body.Close()
-	// work done
-	work <- true
 
-}
-
-// async work
-func doGraphqlQuery(gclient graphql.Client, job string, work chan bool) {
-	// get work
-	gqlFunc := graphqlFuncMap[job]
-	gqlFunc(gclient)
-	// work done
-	work <- true
 }
 
 func getHR() *http.Request {

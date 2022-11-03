@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/hasura/go-graphql-client"
+	"github.com/Khan/genqlient/graphql"
 	zipkinhttp "github.com/openzipkin/zipkin-go/middleware/http"
 )
 
@@ -18,6 +18,7 @@ type Worker struct {
 	start          chan bool
 	stop           chan bool
 	started        bool
+	workTimes      []int
 }
 
 // workManager - starts and stops workers, manages concurrency and time
@@ -73,7 +74,9 @@ func (w *Worker) startWorkers(concurrency int, job string) {
 		for {
 			// consume work
 			<-work
+			start := time.Now()
 			w.doWork(job, work)
+			_ = time.Since(start)
 		}
 	case 1:
 		// graphql get worker
