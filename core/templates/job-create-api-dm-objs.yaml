@@ -105,6 +105,12 @@ spec:
                                 title:
                                   type: string
                                   default: "Nexus API GW APIs"
+                                enableGraphql:
+                                  type: boolean
+                                  default: false
+                                graphqlPath:
+                                  type: string
+                                  default: ""
                               type: object
                       served: true
                       storage: true

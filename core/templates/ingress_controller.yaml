@@ -301,6 +301,8 @@ subjects:
 apiVersion: v1
 data:
   allow-snippet-annotations: "true"
+  enable-underscores-in-headers: "true"
+  ignore-invalid-headers: "false"
 kind: ConfigMap
 metadata:
   labels:
@@ -650,6 +652,20 @@ spec:
         image: "gcr.io/nsx-sm/nginx:latest"
         ports:
         - containerPort: 80
+        volumeMounts:
+          - mountPath: /etc/nginx/conf.d
+            name: nginx-conf
+            readOnly: true
+          - name: nginx-data
+            mountPath: /data
+            readOnly: false
+      volumes:
+        - name: nginx-conf
+          configMap:
+            name: nexus-nginx-config-default
+        - name: nginx-data
+          persistentVolumeClaim:
+            claimName: nexus-nginx-data
 ---
 apiVersion: v1
 kind: Service
@@ -667,3 +683,43 @@ spec:
   selector:
     app: nexus-nginx
   type: ClusterIP
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nexus-nginx-config-default
+  namespace: {{.Values.global.namespace}}
+data:
+  default.conf: |
+                      server {
+                      listen *;
+
+                      location ~ "/datamodel/([0-9a-zA-Z-.]*)$" {
+                          dav_methods  PUT DELETE MKCOL COPY MOVE;
+                          client_body_temp_path /tmp/incoming;
+                          alias     /data/$1;
+                          create_full_put_path   on;
+                          dav_access             group:rw  all:r;
+
+                          client_body_in_file_only on;
+                          client_body_buffer_size 128k;
+                          client_max_body_size 100M;
+                          proxy_pass_request_headers on;
+                          proxy_set_body $request_body_file;
+                          proxy_redirect off;
+                      }
+                      }
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: nexus-nginx-data
+  namespace: {{.Values.global.namespace}}
+  labels:
+    created-by: nexus
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
