@@ -297,9 +297,9 @@ Currently there are two API types supported:
 - GetMetrics, [proto_file](https://github.com/vmware-tanzu/graph-framework-for-microservices/blob/main/nexus/proto/query-manager/server.proto)
   specifies expected requests and responses.
 
-In NexusGraphQL Query you can provide any arguments, they will be translated into map. In GetMetrics arguments must be a
-subset of [MetricsArg](https://github.com/vmware-tanzu/graph-framework-for-microservices/blob/main/nexus/generated/query-manager/server.pb.go#L23)
-arguments.
+In NexusGraphQL Query you can provide any arguments, they will be translated into a `UserProvidedArgs` map. In GetMetrics arguments can be a
+subset of well-known [MetricsArg](https://github.com/vmware-tanzu/graph-framework-for-microservices/blob/main/nexus/generated/query-manager/server.pb.go#L23)
+arguments (`Metric`, `StartTime`, `EndTime`, `TimeInterval`) or additional custom arguments which will be translated into a `UserProvidedArgs` map.
 
 GraphQlQuerySpec can be attached to a Nexus Node using comment above a Node.
 
