@@ -24,6 +24,8 @@ type BarChildExpansion interface{}
 
 type DnsExpansion interface{}
 
+type FooExpansion interface{}
+
 type GnsExpansion interface{}
 
 type IgnoreChildExpansion interface{}
