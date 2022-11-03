@@ -153,7 +153,7 @@ var _ = Describe("Pkg tests", func() {
 		nodes := gnsPkg.GetNexusNodes()
 		childFields := parser.GetChildFields(nodes[1])
 		fieldType := parser.GetFieldType(childFields[0])
-		Expect(fieldType).To(Equal("service_group.SvcGroup"))
+		Expect(fieldType).To(Equal("servicegroup.SvcGroup"))
 	})
 
 	It("should fail if wrong struct tag is given", func() {

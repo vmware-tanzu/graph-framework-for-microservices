@@ -58,11 +58,11 @@ models:
         resolver: true
       FooChild:
         resolver: true
-  policy_AccessControlPolicy:
+  policypkg_AccessControlPolicy:
     fields:
       PolicyConfigs:
         resolver: true
-  policy_ACPConfig:
+  policypkg_ACPConfig:
     fields:
       DestSvcGroups:
         resolver: true

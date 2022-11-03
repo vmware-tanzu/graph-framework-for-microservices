@@ -58,7 +58,6 @@ func ParseDSLPkg(startPath string) Packages {
 	if err != nil {
 		log.Fatalf("Failed to parse DSL: %v", err)
 	}
-
 	return packages
 }
 
