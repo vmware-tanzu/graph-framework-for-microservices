@@ -512,3 +512,30 @@ type Gns struct {
 }
 
 ```
+
+
+
+# Support for Secrets in Nexus Platform
+
+To define nexus secret node, add `nexus-secret-spec` annotation on nexus node, and compiler will not generate graphql code for nexus secret node.
+
+
+DSL can be defined as below to add secret in a nexus node
+
+```
+// nexus-rest-api-gen:IntegrationRestApiSpec
+type Integration struct {
+   nexus.Node
+   IntegrationType string
+   status          IntegrationStatus `nexus:"status"`
+   Foo             Foo               `nexus:"child"`
+}
+
+var ApiKeySecretSpec = nexus.SecretSpec{}
+
+// nexus-secret-spec:ApiKeySecretSpec
+type Foo struct {
+   nexus.Node
+   Password  string
+}
+```
