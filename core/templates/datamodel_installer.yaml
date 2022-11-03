@@ -32,6 +32,7 @@ data:
       TITLE=${TITLE:-}
       SKIP_CRD_INSTALLATION=${SKIP_CRD_INSTALLATION:-false}
       GRAPHQL_ENABLED=${GRAPHQL_ENABLED:-false}
+      ### User can pass the custom HTTP URL where the graphql plugin can be downloaded via internet
       GRAPHQL_PATH=${GRAPHQL_PATH:-NA}
       ### This is to support older way of installing datamodel from local folder
       if [[ $SKIP_CRD_INSTALLATION == "false" ]]; then
