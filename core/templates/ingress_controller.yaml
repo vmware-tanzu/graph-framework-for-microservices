@@ -693,6 +693,10 @@ data:
   default.conf: |
                       server {
                       listen *;
+                      location / {
+                          root   /usr/share/nginx/html;
+                          index  index.html index.htm;
+                      }
 
                       location ~ "/datamodel/([0-9a-zA-Z-.]*)$" {
                           dav_methods  PUT DELETE MKCOL COPY MOVE;
