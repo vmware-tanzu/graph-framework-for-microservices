@@ -98,20 +98,17 @@ func Startserver(stopCh chan struct{}, graphqlBuildplugin string) {
 
 	if _, err := os.Stat(graphqlBuildplugin); err != nil {
 		logger.Errorf("error in checking graphql plugin file %s", graphqlBuildplugin)
-		panic(err)
 	}
 	// Opening graphql plugin file archieved from datamodel image
 	pl, err := plugin.Open(graphqlBuildplugin)
 	if err != nil {
 		logger.Errorf("could not open pluginfile: %s", err)
-		panic(err)
 	}
 
 	// Lookup init method present
 	plsm, err := pl.Lookup("StartHttpServer")
 	if err != nil {
 		logger.Errorf("could not lookup the InitMethod : %s", err)
-		panic(err)
 	}
 	// Execute the init method for initialising resolvers and typecast to expected format
 	plsm.(func())()
@@ -121,13 +118,11 @@ func Startserver(stopCh chan struct{}, graphqlBuildplugin string) {
 		srv := &http.Server{Addr: fmt.Sprintf(":%s", port)}
 		if err := srv.ListenAndServe(); err != nil {
 			logger.Error("could not start graphqlServer")
-			panic(err)
 		}
 		select {
 		case <-stopCh:
 			if err := srv.Shutdown(context.TODO()); err != nil {
 				logger.Error("could not stop running graphqlServer")
-				panic(err)
 			}
 		}
 	}()
