@@ -297,9 +297,9 @@ Currently there are two API types supported:
 - GetMetrics, [proto_file](https://github.com/vmware-tanzu/graph-framework-for-microservices/blob/main/nexus/proto/query-manager/server.proto)
   specifies expected requests and responses.
 
-In NexusGraphQL Query you can provide any arguments, they will be translated into map. In GetMetrics arguments must be a
-subset of [MetricsArg](https://github.com/vmware-tanzu/graph-framework-for-microservices/blob/main/nexus/generated/query-manager/server.pb.go#L23)
-arguments.
+In NexusGraphQL Query you can provide any arguments, they will be translated into a `UserProvidedArgs` map. In GetMetrics arguments can be a
+subset of well-known [MetricsArg](https://github.com/vmware-tanzu/graph-framework-for-microservices/blob/main/nexus/generated/query-manager/server.pb.go#L23)
+arguments (`Metric`, `StartTime`, `EndTime`, `TimeInterval`) or additional custom arguments which will be translated into a `UserProvidedArgs` map.
 
 GraphQlQuerySpec can be attached to a Nexus Node using comment above a Node.
 
@@ -511,4 +511,31 @@ type Gns struct {
     S1 StatusType1 `nexus:"status"`                             <--- Declares a status field of type "StatusType".
 }
 
+```
+
+
+
+# Support for Secrets in Nexus Platform
+
+To define nexus secret node, add `nexus-secret-spec` annotation on nexus node, and compiler will not generate graphql code for nexus secret node.
+
+
+DSL can be defined as below to add secret in a nexus node
+
+```
+// nexus-rest-api-gen:IntegrationRestApiSpec
+type Integration struct {
+   nexus.Node
+   IntegrationType string
+   status          IntegrationStatus `nexus:"status"`
+   Foo             Foo               `nexus:"child"`
+}
+
+var ApiKeySecretSpec = nexus.SecretSpec{}
+
+// nexus-secret-spec:ApiKeySecretSpec
+type Foo struct {
+   nexus.Node
+   Password  string
+}
 ```

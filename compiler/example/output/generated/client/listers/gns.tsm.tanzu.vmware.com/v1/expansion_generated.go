@@ -30,6 +30,10 @@ type BarChildListerExpansion interface{}
 // DnsLister.
 type DnsListerExpansion interface{}
 
+// FooListerExpansion allows custom methods to be added to
+// FooLister.
+type FooListerExpansion interface{}
+
 // GnsListerExpansion allows custom methods to be added to
 // GnsLister.
 type GnsListerExpansion interface{}

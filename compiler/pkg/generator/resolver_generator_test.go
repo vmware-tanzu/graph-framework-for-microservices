@@ -27,7 +27,7 @@ var _ = Describe("Template renderers tests", func() {
 		vars, err := generator.GenerateGraphqlResolverVars(baseGroupName, crdModulePath, pkgs, parentsMap)
 		Expect(err).NotTo(HaveOccurred())
 
-		Expect(len(vars)).To(Equal(41))
+		Expect(len(vars)).To(Equal(40))
 		Expect(vars[0].NodeName).To(Equal("Root"))
 		Expect(vars[3].PkgName).To(Equal("Config"))
 		Expect(vars[3].NodeName).To(Equal("Config"))
@@ -41,6 +41,9 @@ var _ = Describe("Template renderers tests", func() {
 		Expect(vars[2].IsNexusNode).To(BeFalse())
 		Expect(vars[2].BaseImportPath).To(Equal("nexustempmodule/"))
 		Expect(vars[2].CrdName).To(Equal(""))
+
+		// Test that nexus-secret Node should not be present
+		Expect(vars).NotTo(ContainElement(HaveField("NodeName", "Foo")))
 	})
 
 	It("should resolve non-singleton root and singleton child node", func() {

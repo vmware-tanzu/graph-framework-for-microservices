@@ -10,7 +10,12 @@ const (
 	NexusRestApiGenAnnotation  = "nexus-rest-api-gen"
 	NexusDescriptionAnnotation = "nexus-description"
 	NexusGraphqlAnnotation     = "nexus-graphql-query"
+	NexusSecretSpecAnnotation  = "nexus-secret-spec"
 )
+
+func GetNexusSecretSpecAnnotation(pkg Package, name string) (string, bool) {
+	return getNexusAnnotation(pkg, name, NexusSecretSpecAnnotation)
+}
 
 func GetNexusRestAPIGenAnnotation(pkg Package, name string) (string, bool) {
 	return getNexusAnnotation(pkg, name, NexusRestApiGenAnnotation)

@@ -39,6 +39,8 @@ func addKnownTypes(scheme *runtime.Scheme) error {
 		SchemeGroupVersion,
 		&RandomGnsData{},
 		&RandomGnsDataList{},
+		&Foo{},
+		&FooList{},
 		&Gns{},
 		&GnsList{},
 		&BarChild{},

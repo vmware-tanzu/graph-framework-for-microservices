@@ -54,7 +54,7 @@ var _ = Describe("Template renderers tests", func() {
 		graphqlQueries := parser.ParseGraphqlQuerySpecs(pkgs)
 		graph := parser.ParseDSLNodes(exampleDSLPath, baseGroupName, pkgs, graphqlQueries)
 		parentsMap = parser.CreateParentsMap(graph)
-		Expect(parentsMap).To(HaveLen(12))
+		Expect(parentsMap).To(HaveLen(13))
 
 		methods, codes = rest.ParseResponses(pkgs)
 		gql.BaseImportPath = crdModulePath
@@ -102,13 +102,13 @@ var _ = Describe("Template renderers tests", func() {
 	It("should parse base crd template", func() {
 		files, err := generator.RenderCRDBaseTemplate(baseGroupName, pkg, parentsMap, methods, codes)
 		Expect(err).NotTo(HaveOccurred())
-		Expect(files).To(HaveLen(6))
+		Expect(files).To(HaveLen(7))
 
 		expectedSdk, err := ioutil.ReadFile(gnsCrdBasePath)
 		Expect(err).NotTo(HaveOccurred())
 
-		Expect("gns_gns.yaml").To(Or(Equal(files[0].Name), Equal(files[1].Name)))
-		Expect(string(expectedSdk)).To(Or(Equal(files[0].File.String()), Equal(files[1].File.String())))
+		Expect("gns_gns.yaml").To(Or(Equal(files[1].Name), Equal(files[2].Name)))
+		Expect(string(expectedSdk)).To(Or(Equal(files[1].File.String()), Equal(files[2].File.String())))
 	})
 
 	It("should parse types template", func() {

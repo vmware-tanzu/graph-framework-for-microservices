@@ -30,6 +30,7 @@ type GnsTsmV1Interface interface {
 	AdditionalGnsDatasGetter
 	BarChildsGetter
 	DnsesGetter
+	FoosGetter
 	GnsesGetter
 	IgnoreChildsGetter
 	RandomGnsDatasGetter
@@ -50,6 +51,10 @@ func (c *GnsTsmV1Client) BarChilds() BarChildInterface {
 
 func (c *GnsTsmV1Client) Dnses() DnsInterface {
 	return newDnses(c)
+}
+
+func (c *GnsTsmV1Client) Foos() FooInterface {
+	return newFoos(c)
 }
 
 func (c *GnsTsmV1Client) Gnses() GnsInterface {

@@ -61,13 +61,8 @@ func (r *gns_GnsResolver) QueryGnsQM1(ctx context.Context, obj *model.GnsGns) (*
 }
 
 // QueryGnsQM is the resolver for the queryGnsQM field.
-func (r *gns_GnsResolver) QueryGnsQM(ctx context.Context, obj *model.GnsGns, startTime *string, endTime *string, interval *string) (*model.TimeSeriesData, error) {
-	return getGnsGnsqueryGnsQMResolver(obj, startTime, endTime, interval)
-}
-
-// GnsServiceGroups is the resolver for the GnsServiceGroups field.
-func (r *gns_GnsResolver) GnsServiceGroups(ctx context.Context, obj *model.GnsGns, id *string) ([]*model.ServicegroupSvcGroup, error) {
-	return getGnsGnsGnsServiceGroupsResolver(obj, id)
+func (r *gns_GnsResolver) QueryGnsQM(ctx context.Context, obj *model.GnsGns, startTime *string, endTime *string, timeInterval *string, someUserArg1 *string, someUserArg2 *int, someUserArg3 *bool) (*model.TimeSeriesData, error) {
+	return getGnsGnsqueryGnsQMResolver(obj, startTime, endTime, timeInterval, someUserArg1, someUserArg2, someUserArg3)
 }
 
 // GnsAccessControlPolicy is the resolver for the GnsAccessControlPolicy field.
@@ -78,16 +73,6 @@ func (r *gns_GnsResolver) GnsAccessControlPolicy(ctx context.Context, obj *model
 // FooChild is the resolver for the FooChild field.
 func (r *gns_GnsResolver) FooChild(ctx context.Context, obj *model.GnsGns) (*model.GnsBarChild, error) {
 	return getGnsGnsFooChildResolver(obj)
-}
-
-// DestSvcGroups is the resolver for the DestSvcGroups field.
-func (r *policy_ACPConfigResolver) DestSvcGroups(ctx context.Context, obj *model.PolicyACPConfig, id *string) ([]*model.ServicegroupSvcGroup, error) {
-	return getPolicyACPConfigDestSvcGroupsResolver(obj, id)
-}
-
-// SourceSvcGroups is the resolver for the SourceSvcGroups field.
-func (r *policy_ACPConfigResolver) SourceSvcGroups(ctx context.Context, obj *model.PolicyACPConfig, id *string) ([]*model.ServicegroupSvcGroup, error) {
-	return getPolicyACPConfigSourceSvcGroupsResolver(obj, id)
 }
 
 // PolicyConfigs is the resolver for the PolicyConfigs field.
@@ -109,11 +94,6 @@ func (r *Resolver) Config_Config() generated.Config_ConfigResolver { return &con
 // Gns_Gns returns generated.Gns_GnsResolver implementation.
 func (r *Resolver) Gns_Gns() generated.Gns_GnsResolver { return &gns_GnsResolver{r} }
 
-// Policy_ACPConfig returns generated.Policy_ACPConfigResolver implementation.
-func (r *Resolver) Policy_ACPConfig() generated.Policy_ACPConfigResolver {
-	return &policy_ACPConfigResolver{r}
-}
-
 // Policy_AccessControlPolicy returns generated.Policy_AccessControlPolicyResolver implementation.
 func (r *Resolver) Policy_AccessControlPolicy() generated.Policy_AccessControlPolicyResolver {
 	return &policy_AccessControlPolicyResolver{r}
@@ -125,6 +105,5 @@ func (r *Resolver) Root_Root() generated.Root_RootResolver { return &root_RootRe
 type queryResolver struct{ *Resolver }
 type config_ConfigResolver struct{ *Resolver }
 type gns_GnsResolver struct{ *Resolver }
-type policy_ACPConfigResolver struct{ *Resolver }
 type policy_AccessControlPolicyResolver struct{ *Resolver }
 type root_RootResolver struct{ *Resolver }

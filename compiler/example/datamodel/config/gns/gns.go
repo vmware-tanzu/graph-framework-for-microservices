@@ -112,9 +112,12 @@ type gnsQueryFilters struct {
 }
 
 type metricsFilers struct {
-	StartTime string
-	EndTime   string
-	Interval  string
+	StartTime    string
+	EndTime      string
+	TimeInterval string
+	SomeUserArg1 string
+	SomeUserArg2 int
+	SomeUserArg3 bool
 }
 
 var CloudEndpointGraphQLQuerySpec = nexus.GraphQLQuerySpec{
@@ -149,6 +152,14 @@ var CloudEndpointGraphQLQuerySpec = nexus.GraphQLQuerySpec{
 	},
 }
 
+var ApiKeySecretSpec = nexus.SecretSpec{}
+
+// nexus-secret-spec:ApiKeySecretSpec
+type Foo struct {
+	nexus.Node
+	Password string
+}
+
 // Gns struct.
 // nexus-graphql-query:CloudEndpointGraphQLQuerySpec
 // nexus-rest-api-gen:GNSRestAPISpec
@@ -167,6 +178,7 @@ type Gns struct {
 	State                  GnsState                      `nexus:"status"`
 	FooChild               BarChild                      `nexus:"child" nexus-graphql:"type:string"`
 	IgnoreChild            IgnoreChild                   `nexus:"child" nexus-graphql:"ignore:true"`
+	Foo                    Foo                           `nexus:"child"`
 	Meta                   string
 
 	Port             *int         // pointer test
