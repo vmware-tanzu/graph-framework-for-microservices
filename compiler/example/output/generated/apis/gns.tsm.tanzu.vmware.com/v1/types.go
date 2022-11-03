@@ -366,9 +366,12 @@ type gnsQueryFilters struct {
 
 // +k8s:openapi-gen=true
 type metricsFilers struct {
-	StartTime string
-	EndTime   string
-	Interval  string
+	StartTime    string
+	EndTime      string
+	TimeInterval string
+	SomeUserArg1 string
+	SomeUserArg2 int
+	SomeUserArg3 bool
 }
 
 // +k8s:openapi-gen=true

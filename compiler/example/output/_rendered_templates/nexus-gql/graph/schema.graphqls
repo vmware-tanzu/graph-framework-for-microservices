@@ -78,7 +78,10 @@ type gns_Gns {
     queryGnsQM(
         StartTime: String
         EndTime: String
-        Interval: String
+        TimeInterval: String
+        SomeUserArg1: String
+        SomeUserArg2: Int
+        SomeUserArg3: Boolean
     ): TimeSeriesData
 
     

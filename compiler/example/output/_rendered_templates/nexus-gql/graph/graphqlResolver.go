@@ -10,7 +10,6 @@ import (
 	"k8s.io/client-go/rest"
 
 	qm "github.com/vmware-tanzu/graph-framework-for-microservices/nexus/generated/query-manager"
-	libgrpc "gitlab.eng.vmware.com/nsx-allspark_users/lib-go/grpc"
 	nexus_client "nexustempmodule/nexus-client"
 	"nexustempmodule/nexus-gql/graph/model"
 )
@@ -140,8 +139,20 @@ func getGnsGnsqueryGns1Resolver(obj *model.GnsGns,  StartTime *string,  EndTime 
 }
 // Custom query
 func getGnsGnsqueryGnsQM1Resolver(obj *model.GnsGns, ) (*model.TimeSeriesData, error) {
+	parentLabels := make(map[string]string)
+	if obj != nil {
+		for k, v := range obj.ParentLabels {
+			val, ok := v.(string)
+			if ok {
+				parentLabels[k] = val
+			}
+		}
+	}
 	metricArgs := &qm.MetricArg{
 		QueryType: "/queryGnsQM1",
+		Hierarchy: parentLabels,
+		UserProvidedArgs: map[string]string{
+		},
 	}
 	resp, err := c.Request("query-manager:15002", nexus.GetMetricsApi, metricArgs)
 	if err != nil {
@@ -150,11 +161,27 @@ func getGnsGnsqueryGnsQM1Resolver(obj *model.GnsGns, ) (*model.TimeSeriesData, e
 	return resp.(*model.TimeSeriesData), nil
 }
 // Custom query
-func getGnsGnsqueryGnsQMResolver(obj *model.GnsGns,  StartTime *string,  EndTime *string,  Interval *string, ) (*model.TimeSeriesData, error) {
+func getGnsGnsqueryGnsQMResolver(obj *model.GnsGns,  StartTime *string,  EndTime *string,  TimeInterval *string,  SomeUserArg1 *string,  SomeUserArg2 *int,  SomeUserArg3 *bool, ) (*model.TimeSeriesData, error) {
+	parentLabels := make(map[string]string)
+	if obj != nil {
+		for k, v := range obj.ParentLabels {
+			val, ok := v.(string)
+			if ok {
+				parentLabels[k] = val
+			}
+		}
+	}
 	metricArgs := &qm.MetricArg{
 		QueryType: "/queryGnsQM",
 		StartTime: *StartTime,
 		EndTime: *EndTime,
+		TimeInterval: *TimeInterval,
+		Hierarchy: parentLabels,
+		UserProvidedArgs: map[string]string{
+			"SomeUserArg1": pointerToString(SomeUserArg1),
+			"SomeUserArg2": pointerToString(SomeUserArg2),
+			"SomeUserArg3": pointerToString(SomeUserArg3),
+		},
 	}
 	resp, err := c.Request("query-manager:15003", nexus.GetMetricsApi, metricArgs)
 	if err != nil {
