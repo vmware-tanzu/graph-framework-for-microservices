@@ -43,7 +43,7 @@ func main() {
 	// Setup log level
 	logLevel := os.Getenv("LOG_LEVEL")
 	if logLevel == "" {
-		logLevel = "DEBUG"
+		logLevel = "ERROR"
 	}
 	lvl, err := log.ParseLevel(logLevel)
 	if err != nil {

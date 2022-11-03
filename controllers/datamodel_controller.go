@@ -61,18 +61,33 @@ type DatamodelReconciler struct {
 
 func DownloadFile(url string, filename string) error {
 	url = fmt.Sprintf("%s", url)
-	resp, err := net_http.Get(url)
-	if err != nil {
-		return err
+
+	var (
+		retries int = 5
+		resp    *net_http.Response
+		err     error
+	)
+	for retries > 0 {
+		resp, err = net_http.Get(url)
+		if err != nil {
+			logger.Errorf("Retrying download of file : %s due to :%s...", url, err)
+			retries -= 1
+		} else {
+			break
+		}
 	}
-	defer resp.Body.Close()
-	out, _ := os.Create(filename)
-	defer out.Close()
-	_, err = io.Copy(out, resp.Body)
-	if err != nil {
-		return err
+	if resp != nil {
+		defer resp.Body.Close()
+		out, _ := os.Create(filename)
+		defer out.Close()
+		_, err := io.Copy(out, resp.Body)
+		if err != nil {
+			return err
+		}
+		return nil
 	}
-	return nil
+	return fmt.Errorf("URL is not valid")
+
 }
 
 func Startserver(stopCh chan struct{}, graphqlBuildplugin string) {
