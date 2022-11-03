@@ -22,7 +22,7 @@ type config_Config {
         StartVal: Int
     ): NexusGraphqlResponse
 
-    ACPPolicies(Id: ID): [policy_AccessControlPolicy!]
+    ACPPolicies(Id: ID): [policypkg_AccessControlPolicy!]
     FooExample(Id: ID): [config_FooTypeABC!]
     MyStr0: String
     MyStr1: String
@@ -35,7 +35,7 @@ type config_Config {
     CuOption: String
     GNS(Id: ID): gns_Gns!
     DNS: gns_Dns!
-    VMPPolicies(Id: ID): policy_VMpolicy!
+    VMPPolicies(Id: ID): policypkg_VMpolicy!
     Domain(Id: ID): config_Domain!
 }
 
@@ -99,7 +99,7 @@ type gns_Gns {
     ServiceSegmentRefPointer: String
     ServiceSegmentRefs: String
     ServiceSegmentRefMap: String
-    GnsAccessControlPolicy(Id: ID): policy_AccessControlPolicy!
+    GnsAccessControlPolicy(Id: ID): policypkg_AccessControlPolicy!
     FooChild: gns_BarChild!
 }
 
@@ -123,14 +123,14 @@ type gns_Dns {
 
 }
 
-type policy_AccessControlPolicy {
+type policypkg_AccessControlPolicy {
     Id: ID
 	ParentLabels: Map
 
-    PolicyConfigs(Id: ID): [policy_ACPConfig!]
+    PolicyConfigs(Id: ID): [policypkg_ACPConfig!]
 }
 
-type policy_ACPConfig {
+type policypkg_ACPConfig {
     Id: ID
 	ParentLabels: Map
 
@@ -146,7 +146,7 @@ type policy_ACPConfig {
     Conditions: String
 }
 
-type policy_VMpolicy {
+type policypkg_VMpolicy {
     Id: ID
 	ParentLabels: Map
 

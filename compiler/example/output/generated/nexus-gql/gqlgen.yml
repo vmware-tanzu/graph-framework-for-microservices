@@ -56,7 +56,7 @@ models:
         resolver: true
       FooChild:
         resolver: true
-  policy_AccessControlPolicy:
+  policypkg_AccessControlPolicy:
     fields:
       PolicyConfigs:
         resolver: true
