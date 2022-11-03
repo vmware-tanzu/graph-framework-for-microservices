@@ -62,6 +62,7 @@ func Uninstall(cmd *cobra.Command, args []string) error {
 	}
 
 	utils.SystemCommand(cmd, utils.RUNTIME_UNINSTALL_FAILED, []string{}, "kubectl", "delete", "pvc", "-n", Namespace, "-lapp=nexus-etcd")
+	utils.SystemCommand(cmd, utils.RUNTIME_UNINSTALL_FAILED, []string{}, "kubectl", "delete", "pvc", "-n", Namespace, "-lcreated-by=nexus")
 	//adding additional job cleanup after uninstallation...
 	utils.SystemCommand(cmd, utils.RUNTIME_UNINSTALL_FAILED, []string{}, "kubectl", "delete", "jobs", "-n", Namespace, "--all", "--ignore-not-found=true")
 	fmt.Printf("\u2713 Runtime %s uninstallation successful\n", Namespace)

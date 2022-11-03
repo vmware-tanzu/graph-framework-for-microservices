@@ -118,6 +118,7 @@ type Datamodel struct {
 	ImagePullSecret     string
 	SkipCRDInstallation string
 	DatamodelTitle      string
+	GraphqlPath         string
 }
 type DatamodelInstaller struct {
 	Image string
