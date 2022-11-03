@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -9,10 +10,13 @@ import (
 	"strings"
 	"time"
 
+	"github.com/Khan/genqlient/graphql"
 	"github.com/openzipkin/zipkin-go"
 	zipkinhttp "github.com/openzipkin/zipkin-go/middleware/http"
 	"github.com/openzipkin/zipkin-go/model"
 	reporterhttp "github.com/openzipkin/zipkin-go/reporter/http"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/nexus-calibration/gqlclient"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/nexus-calibration/workmanager"
 	"gopkg.in/yaml.v2"
 )
 
@@ -20,7 +24,9 @@ const (
 	endpointURL        = "http://localhost:9411/api/v2/spans"
 	defaultConcurrency = 10
 	defaultTestTime    = 10
-	apiGateway         = "http://localhost:45192"
+	//apiGateway         = "http://localhost:45192"
+	apiGateway = "http://localhost:10000"
+	url        = "http://localhost:45192/apis/graphql/v1/query"
 )
 
 // function keys
@@ -33,7 +39,16 @@ type BuildReq func() *http.Request
 
 var funcMap map[string]func() *http.Request
 
-var client *zipkinhttp.Client
+var graphqlFuncMap map[string]func(graphql.Client)
+
+var tracer *zipkin.Tracer
+
+var zipkinClient *zipkinhttp.Client
+
+var gclient graphql.Client
+
+// true for http, false for graphql
+var workerType bool
 
 type conf struct {
 	Concurrency int `yaml:"concurrency"`
@@ -41,7 +56,6 @@ type conf struct {
 }
 
 func (c *conf) getConf() *conf {
-
 	yamlFile, err := ioutil.ReadFile("conf.yaml")
 	if err != nil {
 		log.Printf("yamlFile.Get err   #%v ", err)
@@ -61,14 +75,16 @@ func main() {
 	log.Println("con ", c.Concurrency, " timeout ", c.Timeout)
 
 	funcMap = make(map[string]func() *http.Request)
-	tracer, err := newTracer()
+	graphqlFuncMap = make(map[string]func(graphql.Client))
+	var err error
+	tracer, err = newTracer()
 	if err != nil {
 		log.Fatalf("error out %v", err)
 	}
 	log.Println("tracer added")
 	// tracer can now be used to create spans.
 	// create global zipkin traced http client
-	client, err = zipkinhttp.NewClient(tracer, zipkinhttp.ClientTrace(true))
+	zipkinClient, err = zipkinhttp.NewClient(tracer, zipkinhttp.ClientTrace(true))
 	if err != nil {
 		log.Fatalf("unable to create client: %+v\n", err)
 	}
@@ -76,9 +92,22 @@ func main() {
 	// add functions
 	funcMap[PUT_EMPLOYEE] = putEmployee
 	funcMap[GET_HR] = getHR
-	workManager(GET_HR, c.Concurrency, c.Timeout)
-	time.Sleep(10 * time.Second)
 
+	graphqlFuncMap["GET_MANAGERS"] = gqlGetManagers
+	graphqlFuncMap["GET_EMPLOYEES"] = gqlGetEmployeeRole
+	//workManager(GET_HR, c.Concurrency, c.Timeout)
+	//time.Sleep(10 * time.Second)
+	gclient = graphql.NewClient(url, zipkinClient)
+	workManager("GET_MANAGERS", c.Concurrency, c.Timeout)
+	workManager("GET_EMPLOYEES", c.Concurrency, c.Timeout)
+
+	w := workmanager.Worker{
+		ZipkinClient: zipkinClient,
+		WorkerType:   0,
+		FuncMap:      funcMap,
+	}
+	w.WorkManager(GET_HR, 10)
+	w.StartWithAutoStop(10)
 }
 
 // workManager - starts and stops workers, manages concurrency and time
@@ -94,7 +123,7 @@ func workManager(job string, concurrency, runFor int) {
 				go startWorkers(concurrency, job)
 			// stop job on signal
 			case <-time.After(time.Duration(runFor) * time.Second):
-				log.Println("exiting")
+				log.Println("exiting worker ")
 				stop <- true
 			}
 		}
@@ -114,10 +143,17 @@ func startWorkers(concurrency int, job string) {
 	for i := 0; i < concurrency; i++ {
 		work <- true
 	}
-	for {
-		// consume work
-		<-work
-		doWork(client, job, work)
+	if workerType {
+		for {
+			// consume work
+			<-work
+			doWork(zipkinClient, job, work)
+		}
+	} else {
+		for {
+			<-work
+			doGraphqlQuery(gclient, job, work)
+		}
 	}
 }
 
@@ -134,15 +170,16 @@ func doWork(client *zipkinhttp.Client, job string, work chan bool) {
 	defer res.Body.Close()
 	// work done
 	work <- true
-	/*
-		body, err := ioutil.ReadAll(res.Body)
-		if err != nil {
-			fmt.Println(err)
-			return
-		}
-		fmt.Println(string(body))
-	*/
 
+}
+
+// async work
+func doGraphqlQuery(gclient graphql.Client, job string, work chan bool) {
+	// get work
+	gqlFunc := graphqlFuncMap[job]
+	gqlFunc(gclient)
+	// work done
+	work <- true
 }
 
 func getHR() *http.Request {
@@ -174,7 +211,7 @@ func newTracer() (*zipkin.Tracer, error) {
 	localEndpoint := &model.Endpoint{ServiceName: "http_client", Port: 8080}
 
 	// Sampler tells you which traces are going to be sampled or not. In this case we will record 100% (1.00) of traces.
-	sampler, err := zipkin.NewCountingSampler(1)
+	sampler, err := zipkin.NewCountingSampler(0.1)
 	if err != nil {
 		return nil, err
 	}
@@ -202,9 +239,28 @@ func putEmployee() *http.Request {
 
 	if err != nil {
 		log.Fatalf("Failed to build request %v", err)
-
 	}
 	req.Header.Add("accept", "application/json")
 	req.Header.Add("Content-Type", "application/json")
 	return req
+}
+
+func gqlGetManagers(gclient graphql.Client) {
+	ctx := context.Background()
+	span, ctx := tracer.StartSpanFromContext(ctx, "get_managers")
+	_, err := gqlclient.Managers(ctx, gclient)
+	if err != nil {
+		log.Printf("Failed to build request %v", err)
+	}
+	span.Finish()
+}
+
+func gqlGetEmployeeRole(gclient graphql.Client) {
+	ctx := context.Background()
+	span, ctx := tracer.StartSpanFromContext(ctx, "get_employee_role")
+	_, err := gqlclient.Employees(ctx, gclient)
+	if err != nil {
+		log.Printf("Failed to build request %v", err)
+	}
+	span.Finish()
 }

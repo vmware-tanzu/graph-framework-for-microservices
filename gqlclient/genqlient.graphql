@@ -1,0 +1,17 @@
+query Managers{
+  root{
+    CEO {
+      EngManagers {
+        Id
+      }
+    }
+  }
+}
+
+query Employees{
+  root{
+    EmployeeRole {
+      Id
+    }
+  }
+}
