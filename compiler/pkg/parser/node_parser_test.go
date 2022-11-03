@@ -34,6 +34,7 @@ var _ = Describe("Node parser tests", func() {
 			"Config",
 			"Dns",
 			"Domain",
+			"Foo",
 			"FooTypeABC",
 			"Gns",
 			"IgnoreChild",
@@ -46,7 +47,7 @@ var _ = Describe("Node parser tests", func() {
 			nodes = append(nodes, node.Name)
 		})
 		sort.Strings(nodes)
-		Expect(nodes).To(HaveLen(12))
+		Expect(nodes).To(HaveLen(13))
 		Expect(nodes).To(Equal(expectedNodes))
 	})
 

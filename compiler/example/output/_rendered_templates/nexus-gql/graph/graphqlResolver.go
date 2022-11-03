@@ -10,7 +10,6 @@ import (
 	"k8s.io/client-go/rest"
 
 	qm "github.com/vmware-tanzu/graph-framework-for-microservices/nexus/generated/query-manager"
-	libgrpc "gitlab.eng.vmware.com/nsx-allspark_users/lib-go/grpc"
 	nexus_client "nexustempmodule/nexus-client"
 	"nexustempmodule/nexus-gql/graph/model"
 )
@@ -140,8 +139,20 @@ func getGnsGnsqueryGns1Resolver(obj *model.GnsGns,  StartTime *string,  EndTime 
 }
 // Custom query
 func getGnsGnsqueryGnsQM1Resolver(obj *model.GnsGns, ) (*model.TimeSeriesData, error) {
+	parentLabels := make(map[string]string)
+	if obj != nil {
+		for k, v := range obj.ParentLabels {
+			val, ok := v.(string)
+			if ok {
+				parentLabels[k] = val
+			}
+		}
+	}
 	metricArgs := &qm.MetricArg{
 		QueryType: "/queryGnsQM1",
+		Hierarchy: parentLabels,
+		UserProvidedArgs: map[string]string{
+		},
 	}
 	resp, err := c.Request("query-manager:15002", nexus.GetMetricsApi, metricArgs)
 	if err != nil {
@@ -150,11 +161,27 @@ func getGnsGnsqueryGnsQM1Resolver(obj *model.GnsGns, ) (*model.TimeSeriesData, e
 	return resp.(*model.TimeSeriesData), nil
 }
 // Custom query
-func getGnsGnsqueryGnsQMResolver(obj *model.GnsGns,  StartTime *string,  EndTime *string,  Interval *string, ) (*model.TimeSeriesData, error) {
+func getGnsGnsqueryGnsQMResolver(obj *model.GnsGns,  StartTime *string,  EndTime *string,  TimeInterval *string,  SomeUserArg1 *string,  SomeUserArg2 *int,  SomeUserArg3 *bool, ) (*model.TimeSeriesData, error) {
+	parentLabels := make(map[string]string)
+	if obj != nil {
+		for k, v := range obj.ParentLabels {
+			val, ok := v.(string)
+			if ok {
+				parentLabels[k] = val
+			}
+		}
+	}
 	metricArgs := &qm.MetricArg{
 		QueryType: "/queryGnsQM",
 		StartTime: *StartTime,
 		EndTime: *EndTime,
+		TimeInterval: *TimeInterval,
+		Hierarchy: parentLabels,
+		UserProvidedArgs: map[string]string{
+			"SomeUserArg1": pointerToString(SomeUserArg1),
+			"SomeUserArg2": pointerToString(SomeUserArg2),
+			"SomeUserArg3": pointerToString(SomeUserArg3),
+		},
 	}
 	resp, err := c.Request("query-manager:15003", nexus.GetMetricsApi, metricArgs)
 	if err != nil {
@@ -816,85 +843,6 @@ vName := string(vBarChild.Spec.Name)
 }
 //////////////////////////////////////
 // CHILDREN RESOLVER
-// FieldName: GnsServiceGroups Node: Gns PKG: Gns
-//////////////////////////////////////
-func getGnsGnsGnsServiceGroupsResolver(obj *model.GnsGns, id *string) ([]*model.ServicegroupSvcGroup, error) {
-	log.Debugf("[getGnsGnsGnsServiceGroupsResolver]Parent Object %+v", obj)
-	var vServicegroupSvcGroupList []*model.ServicegroupSvcGroup
-	if id != nil && *id != "" {
-		log.Debugf("[getGnsGnsGnsServiceGroupsResolver]Id %q", *id)
-		vSvcGroup, err := nc.RootRoot().Config(getParentName(obj.ParentLabels, "configs.config.tsm.tanzu.vmware.com")).GNS(getParentName(obj.ParentLabels, "gnses.gns.tsm.tanzu.vmware.com")).GetGnsServiceGroups(context.TODO(), *id)
-		if err != nil {
-			log.Errorf("[getGnsGnsGnsServiceGroupsResolver]Error getting GnsServiceGroups node %q : %s", *id, err)
-            return vServicegroupSvcGroupList, nil
-        }
-		dn := vSvcGroup.DisplayName()
-parentLabels := map[string]interface{}{"svcgroups.servicegroup.tsm.tanzu.vmware.com":dn}
-vDisplayName := string(vSvcGroup.Spec.DisplayName)
-vDescription := string(vSvcGroup.Spec.Description)
-vColor := string(vSvcGroup.Spec.Color)
-
-        for k, v := range obj.ParentLabels {
-            parentLabels[k] = v
-        }
-		ret := &model.ServicegroupSvcGroup {
-	Id: &dn,
-	ParentLabels: parentLabels,
-	DisplayName: &vDisplayName,
-	Description: &vDescription,
-	Color: &vColor,
-	}
-		vServicegroupSvcGroupList = append(vServicegroupSvcGroupList, ret)
-
-		log.Debugf("[getGnsGnsGnsServiceGroupsResolver]Output GnsServiceGroups objects %v", vServicegroupSvcGroupList)
-
-		return vServicegroupSvcGroupList, nil
-	}
-
-	log.Debug("[getGnsGnsGnsServiceGroupsResolver]Id is empty, process all GnsServiceGroupss")
-
-	vSvcGroupParent, err := nc.RootRoot().Config(getParentName(obj.ParentLabels, "configs.config.tsm.tanzu.vmware.com")).GetGNS(context.TODO(), getParentName(obj.ParentLabels, "gnses.gns.tsm.tanzu.vmware.com"))
-	if err != nil {
-	    log.Errorf("[getGnsGnsGnsServiceGroupsResolver]Error getting parent node %s", err)
-        return vServicegroupSvcGroupList, nil
-    }
-	vSvcGroupAllObj, err := vSvcGroupParent.GetAllGnsServiceGroups(context.TODO())
-	if err != nil {
-	    log.Errorf("[getGnsGnsGnsServiceGroupsResolver]Error getting GnsServiceGroups objects %s", err)
-        return vServicegroupSvcGroupList, nil
-    }
-	for _, i := range vSvcGroupAllObj {
-		vSvcGroup, err := nc.RootRoot().Config(getParentName(obj.ParentLabels, "configs.config.tsm.tanzu.vmware.com")).GNS(getParentName(obj.ParentLabels, "gnses.gns.tsm.tanzu.vmware.com")).GetGnsServiceGroups(context.TODO(), i.DisplayName())
-		if err != nil {
-	        log.Errorf("[getGnsGnsGnsServiceGroupsResolver]Error getting GnsServiceGroups node %q : %s", i.DisplayName(), err)
-            continue
-		}
-		dn := vSvcGroup.DisplayName()
-parentLabels := map[string]interface{}{"svcgroups.servicegroup.tsm.tanzu.vmware.com":dn}
-vDisplayName := string(vSvcGroup.Spec.DisplayName)
-vDescription := string(vSvcGroup.Spec.Description)
-vColor := string(vSvcGroup.Spec.Color)
-
-		for k, v := range obj.ParentLabels {
-            parentLabels[k] = v
-        }
-		ret := &model.ServicegroupSvcGroup {
-	Id: &dn,
-	ParentLabels: parentLabels,
-	DisplayName: &vDisplayName,
-	Description: &vDescription,
-	Color: &vColor,
-	}
-		vServicegroupSvcGroupList = append(vServicegroupSvcGroupList, ret)
-	}
-
-	log.Debugf("[getGnsGnsGnsServiceGroupsResolver]Output GnsServiceGroups objects %v", vServicegroupSvcGroupList)
-
-	return vServicegroupSvcGroupList, nil
-}
-
-//////////////////////////////////////
-// CHILDREN RESOLVER
 // FieldName: PolicyConfigs Node: AccessControlPolicy PKG: Policy
 //////////////////////////////////////
 func getPolicyAccessControlPolicyPolicyConfigsResolver(obj *model.PolicyAccessControlPolicy, id *string) ([]*model.PolicyACPConfig, error) {
@@ -986,179 +934,5 @@ ConditionsData := string(Conditions)
 	log.Debugf("[getPolicyAccessControlPolicyPolicyConfigsResolver]Output PolicyConfigs objects %v", vPolicyACPConfigList)
 
 	return vPolicyACPConfigList, nil
-}
-
-//////////////////////////////////////
-// LINKS RESOLVER
-// FieldName: DestSvcGroups Node: ACPConfig PKG: Policy
-//////////////////////////////////////
-func getPolicyACPConfigDestSvcGroupsResolver(obj *model.PolicyACPConfig, id *string) ([]*model.ServicegroupSvcGroup, error) {
-	log.Debugf("[getPolicyACPConfigDestSvcGroupsResolver]Parent Object %+v", obj)
-	var vServicegroupSvcGroupList []*model.ServicegroupSvcGroup
-	if id != nil && *id != "" {
-		log.Debugf("[getPolicyACPConfigDestSvcGroupsResolver]Id %q", *id)
-		vSvcGroupParent, err := nc.RootRoot().Config(getParentName(obj.ParentLabels, "configs.config.tsm.tanzu.vmware.com")).GNS(getParentName(obj.ParentLabels, "gnses.gns.tsm.tanzu.vmware.com")).GnsAccessControlPolicy(getParentName(obj.ParentLabels, "accesscontrolpolicies.policypkg.tsm.tanzu.vmware.com")).GetPolicyConfigs(context.TODO(), getParentName(obj.ParentLabels, "acpconfigs.policypkg.tsm.tanzu.vmware.com"))
-		if err != nil {
-			log.Errorf("[getPolicyACPConfigDestSvcGroupsResolver]Error getting DestSvcGroups %q : %s", *id, err)
-			return vServicegroupSvcGroupList, nil
-		}
-		vSvcGroup, err := vSvcGroupParent.GetDestSvcGroups(context.TODO(), *id)
-		if err != nil {
-			log.Errorf("[getPolicyACPConfigDestSvcGroupsResolver]Error getting DestSvcGroups %q : %s", *id, err)
-			return vServicegroupSvcGroupList, nil
-		}
-		dn := vSvcGroup.DisplayName()
-parentLabels := map[string]interface{}{"svcgroups.servicegroup.tsm.tanzu.vmware.com":dn}
-vDisplayName := string(vSvcGroup.Spec.DisplayName)
-vDescription := string(vSvcGroup.Spec.Description)
-vColor := string(vSvcGroup.Spec.Color)
-
-        for k, v := range obj.ParentLabels {
-            parentLabels[k] = v
-        }
-		ret := &model.ServicegroupSvcGroup {
-	Id: &dn,
-	ParentLabels: parentLabels,
-	DisplayName: &vDisplayName,
-	Description: &vDescription,
-	Color: &vColor,
-	}
-		vServicegroupSvcGroupList = append(vServicegroupSvcGroupList, ret)
-
-		log.Debugf("[getPolicyACPConfigDestSvcGroupsResolver]Output DestSvcGroups objects %v", vServicegroupSvcGroupList)
-
-		return vServicegroupSvcGroupList, nil
-	}
-
-	log.Debug("[getPolicyACPConfigDestSvcGroupsResolver]Id is empty, process all DestSvcGroupss")
-
-	vSvcGroupParent, err := nc.RootRoot().Config(getParentName(obj.ParentLabels, "configs.config.tsm.tanzu.vmware.com")).GNS(getParentName(obj.ParentLabels, "gnses.gns.tsm.tanzu.vmware.com")).GnsAccessControlPolicy(getParentName(obj.ParentLabels, "accesscontrolpolicies.policypkg.tsm.tanzu.vmware.com")).GetPolicyConfigs(context.TODO(), getParentName(obj.ParentLabels, "acpconfigs.policypkg.tsm.tanzu.vmware.com"))
-	if err != nil {
-	    log.Errorf("[getPolicyACPConfigDestSvcGroupsResolver]Error getting parent node %s", err)
-        return vServicegroupSvcGroupList, nil
-    }
-	vSvcGroupAllObj, err := vSvcGroupParent.GetAllDestSvcGroups(context.TODO())
-	if err != nil {
-	    log.Errorf("[getPolicyACPConfigDestSvcGroupsResolver]Error getting DestSvcGroups %s", err)
-        return vServicegroupSvcGroupList, nil
-    }
-	for _, i := range vSvcGroupAllObj {
-		vSvcGroupParent, err := nc.RootRoot().Config(getParentName(obj.ParentLabels, "configs.config.tsm.tanzu.vmware.com")).GNS(getParentName(obj.ParentLabels, "gnses.gns.tsm.tanzu.vmware.com")).GnsAccessControlPolicy(getParentName(obj.ParentLabels, "accesscontrolpolicies.policypkg.tsm.tanzu.vmware.com")).GetPolicyConfigs(context.TODO(), getParentName(obj.ParentLabels, "acpconfigs.policypkg.tsm.tanzu.vmware.com"))
-		if err != nil {
-			log.Errorf("[getPolicyACPConfigDestSvcGroupsResolver]Error getting parent node %s, skipping...", err)
-            continue
-		}
-		vSvcGroup, err := vSvcGroupParent.GetDestSvcGroups(context.TODO(), i.DisplayName())
-		if err != nil {
-	        log.Errorf("[getPolicyACPConfigDestSvcGroupsResolver]Error getting DestSvcGroups node %q : %s, skipping...", i.DisplayName(), err)
-			continue
-		}
-		dn := vSvcGroup.DisplayName()
-parentLabels := map[string]interface{}{"svcgroups.servicegroup.tsm.tanzu.vmware.com":dn}
-vDisplayName := string(vSvcGroup.Spec.DisplayName)
-vDescription := string(vSvcGroup.Spec.Description)
-vColor := string(vSvcGroup.Spec.Color)
-
-		for k, v := range obj.ParentLabels {
-            parentLabels[k] = v
-        }
-		ret := &model.ServicegroupSvcGroup {
-	Id: &dn,
-	ParentLabels: parentLabels,
-	DisplayName: &vDisplayName,
-	Description: &vDescription,
-	Color: &vColor,
-	}
-		vServicegroupSvcGroupList = append(vServicegroupSvcGroupList, ret)
-	}
-	log.Debugf("[getPolicyACPConfigDestSvcGroupsResolver]List of DestSvcGroups object %v", vServicegroupSvcGroupList)
-	return vServicegroupSvcGroupList, nil
-}
-
-//////////////////////////////////////
-// LINKS RESOLVER
-// FieldName: SourceSvcGroups Node: ACPConfig PKG: Policy
-//////////////////////////////////////
-func getPolicyACPConfigSourceSvcGroupsResolver(obj *model.PolicyACPConfig, id *string) ([]*model.ServicegroupSvcGroup, error) {
-	log.Debugf("[getPolicyACPConfigSourceSvcGroupsResolver]Parent Object %+v", obj)
-	var vServicegroupSvcGroupList []*model.ServicegroupSvcGroup
-	if id != nil && *id != "" {
-		log.Debugf("[getPolicyACPConfigSourceSvcGroupsResolver]Id %q", *id)
-		vSvcGroupParent, err := nc.RootRoot().Config(getParentName(obj.ParentLabels, "configs.config.tsm.tanzu.vmware.com")).GNS(getParentName(obj.ParentLabels, "gnses.gns.tsm.tanzu.vmware.com")).GnsAccessControlPolicy(getParentName(obj.ParentLabels, "accesscontrolpolicies.policypkg.tsm.tanzu.vmware.com")).GetPolicyConfigs(context.TODO(), getParentName(obj.ParentLabels, "acpconfigs.policypkg.tsm.tanzu.vmware.com"))
-		if err != nil {
-			log.Errorf("[getPolicyACPConfigSourceSvcGroupsResolver]Error getting SourceSvcGroups %q : %s", *id, err)
-			return vServicegroupSvcGroupList, nil
-		}
-		vSvcGroup, err := vSvcGroupParent.GetSourceSvcGroups(context.TODO(), *id)
-		if err != nil {
-			log.Errorf("[getPolicyACPConfigSourceSvcGroupsResolver]Error getting SourceSvcGroups %q : %s", *id, err)
-			return vServicegroupSvcGroupList, nil
-		}
-		dn := vSvcGroup.DisplayName()
-parentLabels := map[string]interface{}{"svcgroups.servicegroup.tsm.tanzu.vmware.com":dn}
-vDisplayName := string(vSvcGroup.Spec.DisplayName)
-vDescription := string(vSvcGroup.Spec.Description)
-vColor := string(vSvcGroup.Spec.Color)
-
-        for k, v := range obj.ParentLabels {
-            parentLabels[k] = v
-        }
-		ret := &model.ServicegroupSvcGroup {
-	Id: &dn,
-	ParentLabels: parentLabels,
-	DisplayName: &vDisplayName,
-	Description: &vDescription,
-	Color: &vColor,
-	}
-		vServicegroupSvcGroupList = append(vServicegroupSvcGroupList, ret)
-
-		log.Debugf("[getPolicyACPConfigSourceSvcGroupsResolver]Output SourceSvcGroups objects %v", vServicegroupSvcGroupList)
-
-		return vServicegroupSvcGroupList, nil
-	}
-
-	log.Debug("[getPolicyACPConfigSourceSvcGroupsResolver]Id is empty, process all SourceSvcGroupss")
-
-	vSvcGroupParent, err := nc.RootRoot().Config(getParentName(obj.ParentLabels, "configs.config.tsm.tanzu.vmware.com")).GNS(getParentName(obj.ParentLabels, "gnses.gns.tsm.tanzu.vmware.com")).GnsAccessControlPolicy(getParentName(obj.ParentLabels, "accesscontrolpolicies.policypkg.tsm.tanzu.vmware.com")).GetPolicyConfigs(context.TODO(), getParentName(obj.ParentLabels, "acpconfigs.policypkg.tsm.tanzu.vmware.com"))
-	if err != nil {
-	    log.Errorf("[getPolicyACPConfigSourceSvcGroupsResolver]Error getting parent node %s", err)
-        return vServicegroupSvcGroupList, nil
-    }
-	vSvcGroupAllObj, err := vSvcGroupParent.GetAllSourceSvcGroups(context.TODO())
-	if err != nil {
-	    log.Errorf("[getPolicyACPConfigSourceSvcGroupsResolver]Error getting SourceSvcGroups %s", err)
-        return vServicegroupSvcGroupList, nil
-    }
-	for _, i := range vSvcGroupAllObj {
-		vSvcGroupParent, err := nc.RootRoot().Config(getParentName(obj.ParentLabels, "configs.config.tsm.tanzu.vmware.com")).GNS(getParentName(obj.ParentLabels, "gnses.gns.tsm.tanzu.vmware.com")).GnsAccessControlPolicy(getParentName(obj.ParentLabels, "accesscontrolpolicies.policypkg.tsm.tanzu.vmware.com")).GetPolicyConfigs(context.TODO(), getParentName(obj.ParentLabels, "acpconfigs.policypkg.tsm.tanzu.vmware.com"))
-		if err != nil {
-			log.Errorf("[getPolicyACPConfigSourceSvcGroupsResolver]Error getting parent node %s, skipping...", err)
-            continue
-		}
-		vSvcGroup, err := vSvcGroupParent.GetSourceSvcGroups(context.TODO(), i.DisplayName())
-		if err != nil {
-	        log.Errorf("[getPolicyACPConfigSourceSvcGroupsResolver]Error getting SourceSvcGroups node %q : %s, skipping...", i.DisplayName(), err)
-			continue
-		}
-		dn := vSvcGroup.DisplayName()
-parentLabels := map[string]interface{}{"svcgroups.servicegroup.tsm.tanzu.vmware.com":dn}
-vDisplayName := string(vSvcGroup.Spec.DisplayName)
-vDescription := string(vSvcGroup.Spec.Description)
-vColor := string(vSvcGroup.Spec.Color)
-
-		for k, v := range obj.ParentLabels {
-            parentLabels[k] = v
-        }
-		ret := &model.ServicegroupSvcGroup {
-	Id: &dn,
-	ParentLabels: parentLabels,
-	DisplayName: &vDisplayName,
-	Description: &vDescription,
-	Color: &vColor,
-	}
-		vServicegroupSvcGroupList = append(vServicegroupSvcGroupList, ret)
-	}
-	log.Debugf("[getPolicyACPConfigSourceSvcGroupsResolver]List of SourceSvcGroups object %v", vServicegroupSvcGroupList)
-	return vServicegroupSvcGroupList, nil
 }
 

@@ -15,6 +15,9 @@ message MetricArg {
   string end_time = 4;
   string time_interval = 5;
   map<string, string> filters = 6;
+
+  map<string, string> hierarchy = 7;
+  map<string, string> user_provided_args = 8;
 }
 
 message EmptyArg {}

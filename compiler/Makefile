@@ -139,6 +139,7 @@ generate_code:
 	@echo "Cleaning up workdir"
 	rm -rf _generated ${GOPATH}/src/nexustempmodule
 	@echo "Copying generated_base_structure to create directory structure"
+	@echo "COMPILER_SRC_DIRECTORY: ${COMPILER_SRC_DIRECTORY}"
 	cp -R _generated_base_structure _generated
 	@echo "Copying go.mod file of datamodel"
 	cp ${DATAMODEL_PATH}/go.mod _generated/go.mod
@@ -148,7 +149,7 @@ generate_code:
 	CRD_MODULE_PATH=${CRD_MODULE_PATH} go run cmd/nexus-sdk/main.go -config-file ${CONFIG_FILE} -dsl ${DATAMODEL_PATH} -crd-output _generated -log-level ${LOG_LEVEL}
 	mv _generated/api_names.sh scripts/
 	@echo "Nexus Compiler: Resolving datamodel dependencies"
-	cd _generated && ../scripts/pin_deps.sh ${COMPILER_SRC_DIRECTORY} && go mod tidy -e
+	cd _generated && ../scripts/pin_deps.sh ${COMPILER_SRC_DIRECTORY} && ../scripts/pin_graphql_deps.sh ${COMPILER_SRC_DIRECTORY} && go mod tidy -e
 	@echo "Nexus Compiler: Generating kuberenetes APIs"
 	./scripts/generate_k8s_api.sh
 	@echo "Nexus Compiler: Generating openapi schema"
@@ -159,10 +160,13 @@ generate_code:
 	cp -r _generated/{client,apis,crds,common,nexus-client,helper,nexus-gql} ${GENERATED_OUTPUT_DIRECTORY}
 	@echo "Nexus Compiler: Generating GRAPHQL PKG"
 	cd _generated && goimports -w .
-	cd _generated/nexus-gql && \
-	go get github.com/cespare/xxhash/v2@v2.1.2 && gqlgen generate
+	cd _generated/nexus-gql && gqlgen generate
 	cp -rf _generated/* ${GOPATH}/src/nexustempmodule/
-	cd ${GOPATH}/src/nexustempmodule && cd nexus-gql && CGO_ENABLED=1 GOOS=linux \
+	cd ${GOPATH}/src/nexustempmodule && cd nexus-gql && go mod init && \
+	go mod edit -replace nexustempmodule=${GOPATH}/src/nexustempmodule && \
+	${COMPILER_SRC_DIRECTORY}/scripts/pin_graphql_deps.sh ${COMPILER_SRC_DIRECTORY} && \
+	go mod tidy -e && \
+	CGO_ENABLED=1 GOOS=linux \
 	go build --trimpath -o graphql.so -buildmode=plugin server.go
 	@echo "Updating module name"
 	./scripts/replace_mod_path.sh

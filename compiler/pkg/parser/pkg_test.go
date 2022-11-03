@@ -63,7 +63,7 @@ var _ = Describe("Pkg tests", func() {
 
 	It("should get all structs for gns", func() {
 		structs := gnsPkg.GetStructs()
-		Expect(structs).To(HaveLen(18))
+		Expect(structs).To(HaveLen(19))
 	})
 
 	It("should get all types for gns", func() {
@@ -94,13 +94,13 @@ var _ = Describe("Pkg tests", func() {
 
 	It("should get link fields for gns", func() {
 		nodes := gnsPkg.GetNexusNodes()
-		linkFields := parser.GetChildFields(nodes[1])
-		Expect(linkFields).To(HaveLen(4))
+		linkFields := parser.GetChildFields(nodes[2])
+		Expect(linkFields).To(HaveLen(5))
 	})
 
 	It("should get spec fields for gns", func() {
 		nodes := gnsPkg.GetNexusNodes()
-		specFields := parser.GetSpecFields(nodes[1])
+		specFields := parser.GetSpecFields(nodes[2])
 		Expect(specFields).To(HaveLen(14))
 	})
 
@@ -144,14 +144,14 @@ var _ = Describe("Pkg tests", func() {
 
 	It("should check if field is named child", func() {
 		nodes := gnsPkg.GetNexusNodes()
-		childFields := parser.GetChildFields(nodes[1])
+		childFields := parser.GetChildFields(nodes[2])
 		isNamed := parser.IsNamedChildOrLink(childFields[0])
 		Expect(isNamed).To(BeTrue())
 	})
 
 	It("should get field type for MapType", func() {
 		nodes := gnsPkg.GetNexusNodes()
-		childFields := parser.GetChildFields(nodes[1])
+		childFields := parser.GetChildFields(nodes[2])
 		fieldType := parser.GetFieldType(childFields[0])
 		Expect(fieldType).To(Equal("service_group.SvcGroup"))
 	})
