@@ -19,24 +19,24 @@ type TimeSeriesData struct {
 }
 
 type ConfigConfig struct {
-	Id                *string                      `json:"Id"`
-	ParentLabels      map[string]interface{}       `json:"ParentLabels"`
-	QueryExample      *NexusGraphqlResponse        `json:"QueryExample"`
-	ACPPolicies       []*PolicyAccessControlPolicy `json:"ACPPolicies"`
-	FooExample        []*ConfigFooTypeABC          `json:"FooExample"`
-	MyStr0            *string                      `json:"MyStr0"`
-	MyStr1            *string                      `json:"MyStr1"`
-	MyStr2            *string                      `json:"MyStr2"`
-	XYZPort           *string                      `json:"XYZPort"`
-	ABCHost           *string                      `json:"ABCHost"`
-	ClusterNamespaces *string                      `json:"ClusterNamespaces"`
-	TestValMarkers    *string                      `json:"TestValMarkers"`
-	Instance          *float64                     `json:"Instance"`
-	CuOption          *string                      `json:"CuOption"`
-	GNS               *GnsGns                      `json:"GNS"`
-	DNS               *GnsDns                      `json:"DNS"`
-	VMPPolicies       *PolicyVMpolicy              `json:"VMPPolicies"`
-	Domain            *ConfigDomain                `json:"Domain"`
+	Id                *string                         `json:"Id"`
+	ParentLabels      map[string]interface{}          `json:"ParentLabels"`
+	QueryExample      *NexusGraphqlResponse           `json:"QueryExample"`
+	ACPPolicies       []*PolicypkgAccessControlPolicy `json:"ACPPolicies"`
+	FooExample        []*ConfigFooTypeABC             `json:"FooExample"`
+	MyStr0            *string                         `json:"MyStr0"`
+	MyStr1            *string                         `json:"MyStr1"`
+	MyStr2            *string                         `json:"MyStr2"`
+	XYZPort           *string                         `json:"XYZPort"`
+	ABCHost           *string                         `json:"ABCHost"`
+	ClusterNamespaces *string                         `json:"ClusterNamespaces"`
+	TestValMarkers    *string                         `json:"TestValMarkers"`
+	Instance          *float64                        `json:"Instance"`
+	CuOption          *string                         `json:"CuOption"`
+	GNS               *GnsGns                         `json:"GNS"`
+	DNS               *GnsDns                         `json:"DNS"`
+	VMPPolicies       *PolicypkgVMpolicy              `json:"VMPPolicies"`
+	Domain            *ConfigDomain                   `json:"Domain"`
 }
 
 type ConfigDomain struct {
@@ -74,28 +74,28 @@ type GnsDns struct {
 }
 
 type GnsGns struct {
-	Id                       *string                    `json:"Id"`
-	ParentLabels             map[string]interface{}     `json:"ParentLabels"`
-	queryGns1                *NexusGraphqlResponse      `json:"queryGns1"`
-	queryGnsQM1              *TimeSeriesData            `json:"queryGnsQM1"`
-	queryGnsQM               *TimeSeriesData            `json:"queryGnsQM"`
-	GnsServiceGroups         []*ServicegroupSvcGroup    `json:"GnsServiceGroups"`
-	Domain                   *string                    `json:"Domain"`
-	UseSharedGateway         *bool                      `json:"UseSharedGateway"`
-	Description              *string                    `json:"Description"`
-	Meta                     *string                    `json:"Meta"`
-	Port                     *int                       `json:"Port"`
-	OtherDescription         *string                    `json:"OtherDescription"`
-	MapPointer               *string                    `json:"MapPointer"`
-	SlicePointer             *string                    `json:"SlicePointer"`
-	WorkloadSpec             *string                    `json:"WorkloadSpec"`
-	DifferentSpec            *string                    `json:"DifferentSpec"`
-	ServiceSegmentRef        *string                    `json:"ServiceSegmentRef"`
-	ServiceSegmentRefPointer *string                    `json:"ServiceSegmentRefPointer"`
-	ServiceSegmentRefs       *string                    `json:"ServiceSegmentRefs"`
-	ServiceSegmentRefMap     *string                    `json:"ServiceSegmentRefMap"`
-	GnsAccessControlPolicy   *PolicyAccessControlPolicy `json:"GnsAccessControlPolicy"`
-	FooChild                 *GnsBarChild               `json:"FooChild"`
+	Id                       *string                       `json:"Id"`
+	ParentLabels             map[string]interface{}        `json:"ParentLabels"`
+	queryGns1                *NexusGraphqlResponse         `json:"queryGns1"`
+	queryGnsQM1              *TimeSeriesData               `json:"queryGnsQM1"`
+	queryGnsQM               *TimeSeriesData               `json:"queryGnsQM"`
+	GnsServiceGroups         []*ServicegroupSvcGroup       `json:"GnsServiceGroups"`
+	Domain                   *string                       `json:"Domain"`
+	UseSharedGateway         *bool                         `json:"UseSharedGateway"`
+	Description              *string                       `json:"Description"`
+	Meta                     *string                       `json:"Meta"`
+	Port                     *int                          `json:"Port"`
+	OtherDescription         *string                       `json:"OtherDescription"`
+	MapPointer               *string                       `json:"MapPointer"`
+	SlicePointer             *string                       `json:"SlicePointer"`
+	WorkloadSpec             *string                       `json:"WorkloadSpec"`
+	DifferentSpec            *string                       `json:"DifferentSpec"`
+	ServiceSegmentRef        *string                       `json:"ServiceSegmentRef"`
+	ServiceSegmentRefPointer *string                       `json:"ServiceSegmentRefPointer"`
+	ServiceSegmentRefs       *string                       `json:"ServiceSegmentRefs"`
+	ServiceSegmentRefMap     *string                       `json:"ServiceSegmentRefMap"`
+	GnsAccessControlPolicy   *PolicypkgAccessControlPolicy `json:"GnsAccessControlPolicy"`
+	FooChild                 *GnsBarChild                  `json:"FooChild"`
 }
 
 type GnsIgnoreChild struct {
@@ -104,7 +104,7 @@ type GnsIgnoreChild struct {
 	Name         *string                `json:"Name"`
 }
 
-type PolicyACPConfig struct {
+type PolicypkgACPConfig struct {
 	Id              *string                 `json:"Id"`
 	ParentLabels    map[string]interface{}  `json:"ParentLabels"`
 	DestSvcGroups   []*ServicegroupSvcGroup `json:"DestSvcGroups"`
@@ -117,13 +117,13 @@ type PolicyACPConfig struct {
 	Conditions      *string                 `json:"Conditions"`
 }
 
-type PolicyAccessControlPolicy struct {
+type PolicypkgAccessControlPolicy struct {
 	Id            *string                `json:"Id"`
 	ParentLabels  map[string]interface{} `json:"ParentLabels"`
-	PolicyConfigs []*PolicyACPConfig     `json:"PolicyConfigs"`
+	PolicyConfigs []*PolicypkgACPConfig  `json:"PolicyConfigs"`
 }
 
-type PolicyVMpolicy struct {
+type PolicypkgVMpolicy struct {
 	Id           *string                `json:"Id"`
 	ParentLabels map[string]interface{} `json:"ParentLabels"`
 }

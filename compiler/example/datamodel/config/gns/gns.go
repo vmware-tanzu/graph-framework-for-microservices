@@ -5,7 +5,7 @@ import (
 
 	cartv1 "github.com/vmware-tanzu/cartographer/pkg/apis/v1alpha1"
 
-	service_group "github.com/vmware-tanzu/graph-framework-for-microservices/compiler/example/datamodel/config/gns/service-group"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/compiler/example/datamodel/config/gns/service-group"
 	policypkg "github.com/vmware-tanzu/graph-framework-for-microservices/compiler/example/datamodel/config/policy"
 	"github.com/vmware-tanzu/graph-framework-for-microservices/nexus/nexus"
 )
@@ -164,7 +164,7 @@ type Gns struct {
 	Domain                 string
 	UseSharedGateway       bool
 	Description            Description
-	GnsServiceGroups       service_group.SvcGroup        `nexus:"children"`
+	GnsServiceGroups       servicegroup.SvcGroup        `nexus:"children"`
 	GnsAccessControlPolicy policypkg.AccessControlPolicy `nexus:"child" nexus-graphql:"type:string"`
 	Dns                    Dns                           `nexus:"link" nexus-graphql:"ignore:true"`
 	State                  GnsState                      `nexus:"status"`
