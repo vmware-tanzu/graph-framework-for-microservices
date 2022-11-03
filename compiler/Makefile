@@ -166,7 +166,7 @@ generate_code:
 	go mod edit -replace nexustempmodule=${GOPATH}/src/nexustempmodule && \
 	${COMPILER_SRC_DIRECTORY}/scripts/pin_graphql_deps.sh ${COMPILER_SRC_DIRECTORY} && \
 	go mod tidy -e && \
-	CGO_ENABLED=1 GOOS=linux \
+	cat go.mod && cat go.sum && CGO_ENABLED=1 GOOS=linux \
 	go build --trimpath -o graphql.so -buildmode=plugin server.go
 	@echo "Updating module name"
 	./scripts/replace_mod_path.sh
