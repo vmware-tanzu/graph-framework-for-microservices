@@ -41,6 +41,9 @@ var _ = Describe("Template renderers tests", func() {
 		Expect(vars[2].IsNexusNode).To(BeFalse())
 		Expect(vars[2].BaseImportPath).To(Equal("nexustempmodule/"))
 		Expect(vars[2].CrdName).To(Equal(""))
+
+		// Test that nexus-secret Node should not be present
+		Expect(vars).NotTo(ContainElement(HaveField("NodeName", "Foo")))
 	})
 
 	It("should resolve non-singleton root and singleton child node", func() {
