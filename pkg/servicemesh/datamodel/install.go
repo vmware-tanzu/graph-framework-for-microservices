@@ -15,6 +15,7 @@ import (
 var Namespace string
 var DatamodelImage string
 var Title string
+var GraphqlPath string
 var installPrerequisites []prereq.Prerequiste = []prereq.Prerequiste{
 	prereq.KUBERNETES,
 	prereq.KUBERNETES_VERSION,
@@ -62,6 +63,7 @@ func InstallJob(DatamodelImage, DatamodelName, ImagePullsecret, Namespace, skipC
 		ImagePullSecret:     ImagePullSecret,
 		SkipCRDInstallation: skipCRDInstallation,
 		DatamodelTitle:      Title,
+		GraphqlPath:         GraphqlPath,
 	}
 	if err := CheckSpecAvailable(DatamodelJobSpecConfig, Namespace); err != nil {
 		return err
@@ -86,6 +88,8 @@ func init() {
 	InstallCmd.AddCommand(NameCmd)
 	InstallCmd.PersistentFlags().StringVarP(&Title, "title",
 		"", "", "title of the swaggerDocs for rest endpoints")
+	InstallCmd.PersistentFlags().StringVarP(&GraphqlPath, "graphql-url",
+		"", "", "Url where graphql plugin is available if any custom storage is used")
 	InstallCmd.PersistentFlags().StringVarP(&Namespace, "namespace",
 		"r", "", "name of the namespace to install to")
 	err := cobra.MarkFlagRequired(InstallCmd.Flags(), "namespace")
