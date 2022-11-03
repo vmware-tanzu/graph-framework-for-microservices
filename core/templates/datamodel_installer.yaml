@@ -33,22 +33,24 @@ data:
       SKIP_CRD_INSTALLATION=${SKIP_CRD_INSTALLATION:-false}
       GRAPHQL_ENABLED=${GRAPHQL_ENABLED:-false}
       GRAPHQL_PATH=${GRAPHQL_PATH:-NA}
+      ### This is to support older way of installing datamodel from local folder
       if [[ $SKIP_CRD_INSTALLATION == "false" ]]; then
           kubectl apply -f /crds --recursive
           NAME=$(cat /NAME)
           IMAGE=$(cat /IMAGE)
-      [[ $GRAPHQL_PATH != NA ]] && GRAPHQL_ENABLED=true
-      if test -f /build/graphql.so; then
-          GRAPHQL_ENABLED=true
-          if [[ $GRAPHQL_PATH == NA ]]; then
-              if curl --retry 10 --max-time 10  -T /build/graphql.so http://nexus-nginx/datamodel/plugin ; then
-                  GRAPHQL_PATH="http://nexus-nginx/datamodel/plugin"
-              else
-                  exit 1
+          [[ $GRAPHQL_PATH != NA ]] && GRAPHQL_ENABLED=true
+          if test -f /build/graphql.so; then
+              GRAPHQL_ENABLED=true
+              if [[ $GRAPHQL_PATH == NA ]]; then
+                  if curl --retry 10 --max-time 10  -T /build/graphql.so http://nexus-nginx/datamodel/plugin ; then
+                      GRAPHQL_PATH="http://nexus-nginx/datamodel/plugin"
+                  else
+                      exit 1
+                  fi
               fi
           fi
       fi
-      fi
+      ### We will create datamodel object
       if [[ -n $NAME ]] && [[ -n $IMAGE ]]; then
         if [[ -n $TITLE ]]; then
           echo '
