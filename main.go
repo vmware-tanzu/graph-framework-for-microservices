@@ -1,53 +1,118 @@
 package main
 
 import (
-	"fmt"
-	"log"
-	"net/http"
+	"flag"
+	"graphql-server-datamodel-example/controllers"
+
+	"graphql-server-datamodel-example/pkg/client"
 	"os"
 
-	"plugin"
+	"sigs.k8s.io/controller-runtime/pkg/healthz"
+	"sigs.k8s.io/controller-runtime/pkg/log/zap"
+
+	log "github.com/sirupsen/logrus"
+
+	// Import all Kubernetes client auth plugins (e.g. Azure, GCP, OIDC, etc.)
+	// to ensure that exec-entrypoint and run can make use of them.
+
+	_ "k8s.io/client-go/plugin/pkg/client/auth"
+
+	"k8s.io/apimachinery/pkg/runtime"
+	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
+	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
+	ctrl "sigs.k8s.io/controller-runtime"
 )
 
-const defaultPort = "8080"
-
-// Defaulting to build.so for local debug
-const defaultPath = "graphql.so"
-
 func main() {
-	port := os.Getenv("PORT")
-	if port == "" {
-		port = defaultPort
+	var (
+		metricsAddr          string
+		enableLeaderElection bool
+		probeAddr            string
+	)
+	flag.StringVar(&metricsAddr, "metrics-bind-address", ":8082", "The address the metric endpoint binds to.")
+	flag.StringVar(&probeAddr, "health-probe-bind-address", ":8083", "The address the probe endpoint binds to.")
+	flag.BoolVar(&enableLeaderElection, "leader-elect", false,
+		"Enable leader election for controller manager. "+
+			"Enabling this will ensure there is only one active controller manager.")
+	opts := zap.Options{
+		Development: true,
 	}
+	opts.BindFlags(flag.CommandLine)
+	flag.Parse()
 
-	// PLUGIN_PATH environment variable will be part of the deployment spec: https://gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/nexus-runtime-manifests/-/blob/add_graphql/core/templates/datamodel_installer.yaml#L172
-	// PLUGIN will be dynamically unarchieved from datamodel image using a init containerhttps://gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/nexus-runtime-manifests/-/blob/add_graphql/core/templates/datamodel_installer.yaml#L112
-	// defaulting to graphql.so for debugging purposes
-	graphqlBuildplugin := os.Getenv("PLUGIN_PATH")
-	if graphqlBuildplugin == "" {
-		graphqlBuildplugin = "graphql.so"
-	}
+	ctrl.SetLogger(zap.New(zap.UseFlagOptions(&opts)))
 
-	if _, err := os.Stat(graphqlBuildplugin); err != nil {
-		fmt.Printf("error in checking graphql plugin file %s", graphqlBuildplugin)
-		panic(err)
+	// Setup log level
+	logLevel := os.Getenv("LOG_LEVEL")
+	if logLevel == "" {
+		logLevel = "ERROR"
 	}
-	// Opening graphql plugin file archieved from datamodel image
-	pl, err := plugin.Open(graphqlBuildplugin)
+	lvl, err := log.ParseLevel(logLevel)
 	if err != nil {
-		fmt.Printf("could not open pluginfile: %s", err)
-		panic(err)
+		log.Fatalf("Failed to configure logging: %v\n", err)
 	}
+	log.SetLevel(lvl)
 
-	// Lookup init method present
-	plsm, err := pl.Lookup("StartHttpServer")
+	customFormatter := new(log.TextFormatter)
+	customFormatter.TimestampFormat = "2006-01-02T15:04:05Z07:00"
+	customFormatter.FullTimestamp = true
+	log.SetFormatter(customFormatter)
+
+	stopCh := make(chan struct{})
+	InitManager(metricsAddr, probeAddr, enableLeaderElection, stopCh, lvl)
+
+}
+
+var (
+	scheme   = runtime.NewScheme()
+	setupLog = ctrl.Log.WithName("setup")
+)
+
+func init() {
+	utilruntime.Must(clientgoscheme.AddToScheme(scheme))
+	//+kubebuilder:scaffold:scheme
+}
+
+func InitManager(metricsAddr string, probeAddr string, enableLeaderElection bool, stopCh chan struct{}, lvl log.Level) {
+	mgr, err := ctrl.NewManager(ctrl.GetConfigOrDie(), ctrl.Options{
+		Scheme:                 scheme,
+		MetricsBindAddress:     metricsAddr,
+		Port:                   9443,
+		HealthProbeBindAddress: probeAddr,
+		LeaderElection:         enableLeaderElection,
+		LeaderElectionID:       "7b10c258.api-gw.com",
+	})
 	if err != nil {
-		fmt.Printf("could not lookup the InitMethod : %s", err)
-		panic(err)
+		setupLog.Error(err, "unable to start manager")
+		os.Exit(1)
 	}
-	// Execute the init method for initialising resolvers and typecast to expected format
-	plsm.(func())()
+	if err = client.New(ctrl.GetConfigOrDie()); err != nil {
+		setupLog.Error(err, "unable to set up dynamic client")
+		os.Exit(1)
+	}
 
-	log.Printf("connect to http://localhost:%s/ for GraphQL playground", port)
-	log.Fatal(http.ListenAndServe(":"+port, nil))
+	if err := mgr.AddHealthzCheck("healthz", healthz.Ping); err != nil {
+		setupLog.Error(err, "unable to set up health check")
+		os.Exit(1)
+	}
+	if err := mgr.AddReadyzCheck("readyz", healthz.Ping); err != nil {
+		setupLog.Error(err, "unable to set up ready check")
+		os.Exit(1)
+	}
+
+	if err = (&controllers.DatamodelReconciler{
+		Client:  mgr.GetClient(),
+		Scheme:  mgr.GetScheme(),
+		Dynamic: client.Client,
+		StopCh:  stopCh,
+	}).SetupWithManager(mgr); err != nil {
+		setupLog.Error(err, "unable to create controller", "controller", "Datamodel")
+		os.Exit(1)
+	}
+
+	setupLog.Info("starting manager")
+	if err := mgr.Start(ctrl.SetupSignalHandler()); err != nil {
+		setupLog.Error(err, "problem running manager")
+		os.Exit(1)
+	}
 }
