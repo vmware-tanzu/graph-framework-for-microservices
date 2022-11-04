@@ -124,6 +124,9 @@ type PolicypkgAccessControlPolicy struct {
 type PolicypkgVMpolicy struct {
 	Id           *string                `json:"Id"`
 	ParentLabels map[string]interface{} `json:"ParentLabels"`
+	queryGns1    *NexusGraphqlResponse  `json:"queryGns1"`
+	queryGnsQM1  *TimeSeriesData        `json:"queryGnsQM1"`
+	queryGnsQM   *TimeSeriesData        `json:"queryGnsQM"`
 }
 
 type RootRoot struct {

@@ -85,6 +85,21 @@ func (r *policypkg_AccessControlPolicyResolver) PolicyConfigs(ctx context.Contex
 	return getPolicypkgAccessControlPolicyPolicyConfigsResolver(obj, id)
 }
 
+// QueryGns1 is the resolver for the queryGns1 field.
+func (r *policypkg_VMpolicyResolver) QueryGns1(ctx context.Context, obj *model.PolicypkgVMpolicy, startTime *string, endTime *string, interval *string, isServiceDeployment *bool, startVal *int) (*model.NexusGraphqlResponse, error) {
+	return getPolicypkgVMpolicyqueryGns1Resolver(obj, startTime, endTime, interval, isServiceDeployment, startVal)
+}
+
+// QueryGnsQM1 is the resolver for the queryGnsQM1 field.
+func (r *policypkg_VMpolicyResolver) QueryGnsQM1(ctx context.Context, obj *model.PolicypkgVMpolicy) (*model.TimeSeriesData, error) {
+	return getPolicypkgVMpolicyqueryGnsQM1Resolver(obj)
+}
+
+// QueryGnsQM is the resolver for the queryGnsQM field.
+func (r *policypkg_VMpolicyResolver) QueryGnsQM(ctx context.Context, obj *model.PolicypkgVMpolicy, startTime *string, endTime *string, timeInterval *string, someUserArg1 *string, someUserArg2 *int, someUserArg3 *bool) (*model.TimeSeriesData, error) {
+	return getPolicypkgVMpolicyqueryGnsQMResolver(obj, startTime, endTime, timeInterval, someUserArg1, someUserArg2, someUserArg3)
+}
+
 // Config is the resolver for the Config field.
 func (r *root_RootResolver) Config(ctx context.Context, obj *model.RootRoot, id *string) (*model.ConfigConfig, error) {
 	return getRootRootConfigResolver(obj, id)
@@ -104,6 +119,11 @@ func (r *Resolver) Policypkg_AccessControlPolicy() generated.Policypkg_AccessCon
 	return &policypkg_AccessControlPolicyResolver{r}
 }
 
+// Policypkg_VMpolicy returns generated.Policypkg_VMpolicyResolver implementation.
+func (r *Resolver) Policypkg_VMpolicy() generated.Policypkg_VMpolicyResolver {
+	return &policypkg_VMpolicyResolver{r}
+}
+
 // Root_Root returns generated.Root_RootResolver implementation.
 func (r *Resolver) Root_Root() generated.Root_RootResolver { return &root_RootResolver{r} }
 
@@ -111,4 +131,5 @@ type queryResolver struct{ *Resolver }
 type config_ConfigResolver struct{ *Resolver }
 type gns_GnsResolver struct{ *Resolver }
 type policypkg_AccessControlPolicyResolver struct{ *Resolver }
+type policypkg_VMpolicyResolver struct{ *Resolver }
 type root_RootResolver struct{ *Resolver }

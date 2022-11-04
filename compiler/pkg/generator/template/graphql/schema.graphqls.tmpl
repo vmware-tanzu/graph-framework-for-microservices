@@ -13,7 +13,9 @@ type Query {
 {{ $length := len $node.GraphqlSchemaFields }}{{- if eq $length 0 }}{{- else }}
 type {{ $node.SchemaName }} {
     {{- range $key, $field := $node.GraphqlSchemaFields }}
+    {{- if $field.SchemaFieldName }}
     {{ $field.SchemaFieldName -}}
+    {{- end}}
     {{- end }}
 }
 {{- end }}{{- end }}{{- end }}

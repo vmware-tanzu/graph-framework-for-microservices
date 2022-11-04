@@ -11,7 +11,6 @@ type root_Root {
 }
 
 type config_Config {
-    
     Id: ID
 	ParentLabels: Map
     QueryExample(
@@ -85,7 +84,6 @@ type gns_Gns {
         SomeUserArg3: Boolean
     ): TimeSeriesData
 
-    
     Domain: String
     UseSharedGateway: Boolean
     Description: String
@@ -145,10 +143,6 @@ type policypkg_ACPConfig {
     Id: ID
 	ParentLabels: Map
 
-    
-    
-    
-    
     DisplayName: String
     Gns: String
     Description: String
@@ -160,6 +154,22 @@ type policypkg_ACPConfig {
 type policypkg_VMpolicy {
     Id: ID
 	ParentLabels: Map
+    queryGns1(
+        StartTime: String
+        EndTime: String
+        Interval: String
+        IsServiceDeployment: Boolean
+        StartVal: Int
+    ): NexusGraphqlResponse
+    queryGnsQM1: TimeSeriesData
+    queryGnsQM(
+        StartTime: String
+        EndTime: String
+        TimeInterval: String
+        SomeUserArg1: String
+        SomeUserArg2: Int
+        SomeUserArg3: Boolean
+    ): TimeSeriesData
 
 }
 

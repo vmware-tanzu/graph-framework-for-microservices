@@ -189,6 +189,87 @@ func getGnsGnsqueryGnsQMResolver(obj *model.GnsGns,  StartTime *string,  EndTime
 	}
 	return resp.(*model.TimeSeriesData), nil
 }
+// Custom query
+func getPolicypkgVMpolicyqueryGns1Resolver(obj *model.PolicypkgVMpolicy,  StartTime *string,  EndTime *string,  Interval *string,  IsServiceDeployment *bool,  StartVal *int, ) (*model.NexusGraphqlResponse, error) {
+	parentLabels := make(map[string]string)
+	if obj != nil {
+		for k, v := range obj.ParentLabels {
+			val, ok := v.(string)
+			if ok {
+				parentLabels[k] = val
+			}
+		}
+	}
+	query := &graphql.GraphQLQuery{
+		Query: "queryGns1",
+		UserProvidedArgs: map[string]string{
+			"StartTime": pointerToString(StartTime),
+			"EndTime": pointerToString(EndTime),
+			"Interval": pointerToString(Interval),
+			"IsServiceDeployment": pointerToString(IsServiceDeployment),
+			"StartVal": pointerToString(StartVal),
+		},
+		Hierarchy: parentLabels,
+	}
+
+	resp, err := c.Request("nexus-query-responder:15000", nexus.GraphQLQueryApi, query)
+	if err != nil {
+		return nil, err
+	}
+	return resp.(*model.NexusGraphqlResponse), nil
+}
+// Custom query
+func getPolicypkgVMpolicyqueryGnsQM1Resolver(obj *model.PolicypkgVMpolicy, ) (*model.TimeSeriesData, error) {
+	parentLabels := make(map[string]string)
+	if obj != nil {
+		for k, v := range obj.ParentLabels {
+			val, ok := v.(string)
+			if ok {
+				parentLabels[k] = val
+			}
+		}
+	}
+	metricArgs := &qm.MetricArg{
+		QueryType: "/queryGnsQM1",
+		Hierarchy: parentLabels,
+		UserProvidedArgs: map[string]string{
+		},
+	}
+	resp, err := c.Request("query-manager:15002", nexus.GetMetricsApi, metricArgs)
+	if err != nil {
+		return nil, err
+	}
+	return resp.(*model.TimeSeriesData), nil
+}
+// Custom query
+func getPolicypkgVMpolicyqueryGnsQMResolver(obj *model.PolicypkgVMpolicy,  StartTime *string,  EndTime *string,  TimeInterval *string,  SomeUserArg1 *string,  SomeUserArg2 *int,  SomeUserArg3 *bool, ) (*model.TimeSeriesData, error) {
+	parentLabels := make(map[string]string)
+	if obj != nil {
+		for k, v := range obj.ParentLabels {
+			val, ok := v.(string)
+			if ok {
+				parentLabels[k] = val
+			}
+		}
+	}
+	metricArgs := &qm.MetricArg{
+		QueryType: "/queryGnsQM",
+		StartTime: *StartTime,
+		EndTime: *EndTime,
+		TimeInterval: *TimeInterval,
+		Hierarchy: parentLabels,
+		UserProvidedArgs: map[string]string{
+			"SomeUserArg1": pointerToString(SomeUserArg1),
+			"SomeUserArg2": pointerToString(SomeUserArg2),
+			"SomeUserArg3": pointerToString(SomeUserArg3),
+		},
+	}
+	resp, err := c.Request("query-manager:15003", nexus.GetMetricsApi, metricArgs)
+	if err != nil {
+		return nil, err
+	}
+	return resp.(*model.TimeSeriesData), nil
+}
 //////////////////////////////////////
 // CHILD RESOLVER (Non Singleton)
 // FieldName: Config Node: Root PKG: Root
