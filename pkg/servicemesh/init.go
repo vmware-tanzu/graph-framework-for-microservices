@@ -7,6 +7,7 @@ import (
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/servicemesh/apply"
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/servicemesh/config"
 	servicemesh_datamodel "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/servicemesh/datamodel"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/servicemesh/debug"
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/servicemesh/login"
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/servicemesh/operator"
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/servicemesh/runtime"
@@ -88,6 +89,12 @@ var ConfigCmd = &cobra.Command{
 	Short: "set nexus CLI preferences",
 }
 
+var DebugCmd = &cobra.Command{
+	Use:   "debug",
+	Short: "Collect required debug info",
+	RunE:  debug.Debug,
+}
+
 func initCommands() {
 	ApplyCmd.Flags().StringVarP(&apply.CreateResourceFile, "file",
 		"f", "", "Resource file from which cluster is created.")
@@ -134,6 +141,9 @@ func initCommands() {
 	if err != nil {
 		log.Debugf("saas server fqdn name is mandatory for login")
 	}
+
+	DebugCmd.Flags().BoolVarP(&debug.IsDatamodelObjs, "datamodel-objs",
+		"d", false, "dump all the datamodel crd and objects")
 
 	GetCmd.AddCommand(GetSpecCmd)
 

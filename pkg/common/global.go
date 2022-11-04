@@ -64,6 +64,9 @@ var TemplateFs embed.FS
 //go:embed runtime_installer.yaml
 var RuntimeTemplate embed.FS
 
+//go:embed dump_datamodel_objects.sh
+var ScriptFs embed.FS
+
 var WaitTimeout = 2 * time.Minute
 
 var NexusGroupSuffix string = ".tsm.vmware.com"
