@@ -41,6 +41,7 @@ type ResolverRoot interface {
 	Config_Config() Config_ConfigResolver
 	Gns_Gns() Gns_GnsResolver
 	Policypkg_AccessControlPolicy() Policypkg_AccessControlPolicyResolver
+	Policypkg_VMpolicy() Policypkg_VMpolicyResolver
 	Root_Root() Root_RootResolver
 }
 
@@ -174,6 +175,9 @@ type ComplexityRoot struct {
 	Policypkg_VMpolicy struct {
 		Id           func(childComplexity int) int
 		ParentLabels func(childComplexity int) int
+		QueryGns1    func(childComplexity int, startTime *string, endTime *string, interval *string, isServiceDeployment *bool, startVal *int) int
+		QueryGnsQM   func(childComplexity int, startTime *string, endTime *string, timeInterval *string, someUserArg1 *string, someUserArg2 *int, someUserArg3 *bool) int
+		QueryGnsQM1  func(childComplexity int) int
 	}
 
 	Root_Root struct {
@@ -216,6 +220,11 @@ type Gns_GnsResolver interface {
 }
 type Policypkg_AccessControlPolicyResolver interface {
 	PolicyConfigs(ctx context.Context, obj *model.PolicypkgAccessControlPolicy, id *string) ([]*model.PolicypkgACPConfig, error)
+}
+type Policypkg_VMpolicyResolver interface {
+	QueryGns1(ctx context.Context, obj *model.PolicypkgVMpolicy, startTime *string, endTime *string, interval *string, isServiceDeployment *bool, startVal *int) (*model.NexusGraphqlResponse, error)
+	QueryGnsQM1(ctx context.Context, obj *model.PolicypkgVMpolicy) (*model.TimeSeriesData, error)
+	QueryGnsQM(ctx context.Context, obj *model.PolicypkgVMpolicy, startTime *string, endTime *string, timeInterval *string, someUserArg1 *string, someUserArg2 *int, someUserArg3 *bool) (*model.TimeSeriesData, error)
 }
 type Root_RootResolver interface {
 	Config(ctx context.Context, obj *model.RootRoot, id *string) (*model.ConfigConfig, error)
@@ -914,6 +923,37 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Policypkg_VMpolicy.ParentLabels(childComplexity), true
 
+	case "policypkg_VMpolicy.queryGns1":
+		if e.complexity.Policypkg_VMpolicy.QueryGns1 == nil {
+			break
+		}
+
+		args, err := ec.field_policypkg_VMpolicy_queryGns1_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Policypkg_VMpolicy.QueryGns1(childComplexity, args["StartTime"].(*string), args["EndTime"].(*string), args["Interval"].(*string), args["IsServiceDeployment"].(*bool), args["StartVal"].(*int)), true
+
+	case "policypkg_VMpolicy.queryGnsQM":
+		if e.complexity.Policypkg_VMpolicy.QueryGnsQM == nil {
+			break
+		}
+
+		args, err := ec.field_policypkg_VMpolicy_queryGnsQM_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Policypkg_VMpolicy.QueryGnsQM(childComplexity, args["StartTime"].(*string), args["EndTime"].(*string), args["TimeInterval"].(*string), args["SomeUserArg1"].(*string), args["SomeUserArg2"].(*int), args["SomeUserArg3"].(*bool)), true
+
+	case "policypkg_VMpolicy.queryGnsQM1":
+		if e.complexity.Policypkg_VMpolicy.QueryGnsQM1 == nil {
+			break
+		}
+
+		return e.complexity.Policypkg_VMpolicy.QueryGnsQM1(childComplexity), true
+
 	case "root_Root.Config":
 		if e.complexity.Root_Root.Config == nil {
 			break
@@ -1047,7 +1087,6 @@ type root_Root {
 }
 
 type config_Config {
-    
     Id: ID
 	ParentLabels: Map
     QueryExample(
@@ -1121,7 +1160,6 @@ type gns_Gns {
         SomeUserArg3: Boolean
     ): TimeSeriesData
 
-    
     Domain: String
     UseSharedGateway: Boolean
     Description: String
@@ -1181,10 +1219,6 @@ type policypkg_ACPConfig {
     Id: ID
 	ParentLabels: Map
 
-    
-    
-    
-    
     DisplayName: String
     Gns: String
     Description: String
@@ -1196,6 +1230,22 @@ type policypkg_ACPConfig {
 type policypkg_VMpolicy {
     Id: ID
 	ParentLabels: Map
+    queryGns1(
+        StartTime: String
+        EndTime: String
+        Interval: String
+        IsServiceDeployment: Boolean
+        StartVal: Int
+    ): NexusGraphqlResponse
+    queryGnsQM1: TimeSeriesData
+    queryGnsQM(
+        StartTime: String
+        EndTime: String
+        TimeInterval: String
+        SomeUserArg1: String
+        SomeUserArg2: Int
+        SomeUserArg3: Boolean
+    ): TimeSeriesData
 
 }
 
@@ -1546,6 +1596,117 @@ func (ec *executionContext) field_policypkg_AccessControlPolicy_PolicyConfigs_ar
 		}
 	}
 	args["Id"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_policypkg_VMpolicy_queryGns1_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *string
+	if tmp, ok := rawArgs["StartTime"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("StartTime"))
+		arg0, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["StartTime"] = arg0
+	var arg1 *string
+	if tmp, ok := rawArgs["EndTime"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("EndTime"))
+		arg1, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["EndTime"] = arg1
+	var arg2 *string
+	if tmp, ok := rawArgs["Interval"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("Interval"))
+		arg2, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["Interval"] = arg2
+	var arg3 *bool
+	if tmp, ok := rawArgs["IsServiceDeployment"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("IsServiceDeployment"))
+		arg3, err = ec.unmarshalOBoolean2ᚖbool(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["IsServiceDeployment"] = arg3
+	var arg4 *int
+	if tmp, ok := rawArgs["StartVal"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("StartVal"))
+		arg4, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["StartVal"] = arg4
+	return args, nil
+}
+
+func (ec *executionContext) field_policypkg_VMpolicy_queryGnsQM_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *string
+	if tmp, ok := rawArgs["StartTime"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("StartTime"))
+		arg0, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["StartTime"] = arg0
+	var arg1 *string
+	if tmp, ok := rawArgs["EndTime"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("EndTime"))
+		arg1, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["EndTime"] = arg1
+	var arg2 *string
+	if tmp, ok := rawArgs["TimeInterval"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("TimeInterval"))
+		arg2, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["TimeInterval"] = arg2
+	var arg3 *string
+	if tmp, ok := rawArgs["SomeUserArg1"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("SomeUserArg1"))
+		arg3, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["SomeUserArg1"] = arg3
+	var arg4 *int
+	if tmp, ok := rawArgs["SomeUserArg2"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("SomeUserArg2"))
+		arg4, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["SomeUserArg2"] = arg4
+	var arg5 *bool
+	if tmp, ok := rawArgs["SomeUserArg3"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("SomeUserArg3"))
+		arg5, err = ec.unmarshalOBoolean2ᚖbool(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["SomeUserArg3"] = arg5
 	return args, nil
 }
 
@@ -4762,6 +4923,12 @@ func (ec *executionContext) fieldContext_config_Config_VMPPolicies(ctx context.C
 				return ec.fieldContext_policypkg_VMpolicy_Id(ctx, field)
 			case "ParentLabels":
 				return ec.fieldContext_policypkg_VMpolicy_ParentLabels(ctx, field)
+			case "queryGns1":
+				return ec.fieldContext_policypkg_VMpolicy_queryGns1(ctx, field)
+			case "queryGnsQM1":
+				return ec.fieldContext_policypkg_VMpolicy_queryGnsQM1(ctx, field)
+			case "queryGnsQM":
+				return ec.fieldContext_policypkg_VMpolicy_queryGnsQM(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type policypkg_VMpolicy", field.Name)
 		},
@@ -7467,6 +7634,187 @@ func (ec *executionContext) fieldContext_policypkg_VMpolicy_ParentLabels(ctx con
 	return fc, nil
 }
 
+func (ec *executionContext) _policypkg_VMpolicy_queryGns1(ctx context.Context, field graphql.CollectedField, obj *model.PolicypkgVMpolicy) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_policypkg_VMpolicy_queryGns1(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Policypkg_VMpolicy().QueryGns1(rctx, obj, fc.Args["StartTime"].(*string), fc.Args["EndTime"].(*string), fc.Args["Interval"].(*string), fc.Args["IsServiceDeployment"].(*bool), fc.Args["StartVal"].(*int))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model.NexusGraphqlResponse)
+	fc.Result = res
+	return ec.marshalONexusGraphqlResponse2ᚖnexustempmoduleᚋnexusᚑgqlᚋgraphᚋmodelᚐNexusGraphqlResponse(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_policypkg_VMpolicy_queryGns1(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "policypkg_VMpolicy",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "Code":
+				return ec.fieldContext_NexusGraphqlResponse_Code(ctx, field)
+			case "Message":
+				return ec.fieldContext_NexusGraphqlResponse_Message(ctx, field)
+			case "Data":
+				return ec.fieldContext_NexusGraphqlResponse_Data(ctx, field)
+			case "Last":
+				return ec.fieldContext_NexusGraphqlResponse_Last(ctx, field)
+			case "TotalRecords":
+				return ec.fieldContext_NexusGraphqlResponse_TotalRecords(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type NexusGraphqlResponse", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_policypkg_VMpolicy_queryGns1_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _policypkg_VMpolicy_queryGnsQM1(ctx context.Context, field graphql.CollectedField, obj *model.PolicypkgVMpolicy) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_policypkg_VMpolicy_queryGnsQM1(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Policypkg_VMpolicy().QueryGnsQM1(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model.TimeSeriesData)
+	fc.Result = res
+	return ec.marshalOTimeSeriesData2ᚖnexustempmoduleᚋnexusᚑgqlᚋgraphᚋmodelᚐTimeSeriesData(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_policypkg_VMpolicy_queryGnsQM1(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "policypkg_VMpolicy",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "Code":
+				return ec.fieldContext_TimeSeriesData_Code(ctx, field)
+			case "Message":
+				return ec.fieldContext_TimeSeriesData_Message(ctx, field)
+			case "Data":
+				return ec.fieldContext_TimeSeriesData_Data(ctx, field)
+			case "Last":
+				return ec.fieldContext_TimeSeriesData_Last(ctx, field)
+			case "TotalRecords":
+				return ec.fieldContext_TimeSeriesData_TotalRecords(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type TimeSeriesData", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _policypkg_VMpolicy_queryGnsQM(ctx context.Context, field graphql.CollectedField, obj *model.PolicypkgVMpolicy) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_policypkg_VMpolicy_queryGnsQM(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Policypkg_VMpolicy().QueryGnsQM(rctx, obj, fc.Args["StartTime"].(*string), fc.Args["EndTime"].(*string), fc.Args["TimeInterval"].(*string), fc.Args["SomeUserArg1"].(*string), fc.Args["SomeUserArg2"].(*int), fc.Args["SomeUserArg3"].(*bool))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model.TimeSeriesData)
+	fc.Result = res
+	return ec.marshalOTimeSeriesData2ᚖnexustempmoduleᚋnexusᚑgqlᚋgraphᚋmodelᚐTimeSeriesData(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_policypkg_VMpolicy_queryGnsQM(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "policypkg_VMpolicy",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "Code":
+				return ec.fieldContext_TimeSeriesData_Code(ctx, field)
+			case "Message":
+				return ec.fieldContext_TimeSeriesData_Message(ctx, field)
+			case "Data":
+				return ec.fieldContext_TimeSeriesData_Data(ctx, field)
+			case "Last":
+				return ec.fieldContext_TimeSeriesData_Last(ctx, field)
+			case "TotalRecords":
+				return ec.fieldContext_TimeSeriesData_TotalRecords(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type TimeSeriesData", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_policypkg_VMpolicy_queryGnsQM_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _root_Root_Id(ctx context.Context, field graphql.CollectedField, obj *model.RootRoot) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_root_Root_Id(ctx, field)
 	if err != nil {
@@ -9074,6 +9422,57 @@ func (ec *executionContext) _policypkg_VMpolicy(ctx context.Context, sel ast.Sel
 
 			out.Values[i] = ec._policypkg_VMpolicy_ParentLabels(ctx, field, obj)
 
+		case "queryGns1":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._policypkg_VMpolicy_queryGns1(ctx, field, obj)
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
+		case "queryGnsQM1":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._policypkg_VMpolicy_queryGnsQM1(ctx, field, obj)
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
+		case "queryGnsQM":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._policypkg_VMpolicy_queryGnsQM(ctx, field, obj)
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
