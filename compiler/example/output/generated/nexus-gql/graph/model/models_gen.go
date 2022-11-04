@@ -37,6 +37,7 @@ type ConfigConfig struct {
 	DNS               *GnsDns                         `json:"DNS"`
 	VMPPolicies       *PolicypkgVMpolicy              `json:"VMPPolicies"`
 	Domain            *ConfigDomain                   `json:"Domain"`
+	SvcGrpInfo        *ServicegroupSvcGroupLinkInfo   `json:"SvcGrpInfo"`
 }
 
 type ConfigDomain struct {
@@ -129,4 +130,13 @@ type RootRoot struct {
 	Id           *string                `json:"Id"`
 	ParentLabels map[string]interface{} `json:"ParentLabels"`
 	Config       *ConfigConfig          `json:"Config"`
+}
+
+type ServicegroupSvcGroupLinkInfo struct {
+	Id           *string                `json:"Id"`
+	ParentLabels map[string]interface{} `json:"ParentLabels"`
+	ClusterName  *string                `json:"ClusterName"`
+	DomainName   *string                `json:"DomainName"`
+	ServiceName  *string                `json:"ServiceName"`
+	ServiceType  *string                `json:"ServiceType"`
 }

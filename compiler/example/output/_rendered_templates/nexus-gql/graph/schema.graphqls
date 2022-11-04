@@ -37,6 +37,7 @@ type config_Config {
     DNS: gns_Dns!
     VMPPolicies(Id: ID): policypkg_VMpolicy!
     Domain(Id: ID): config_Domain!
+    SvcGrpInfo(Id: ID): servicegroup_SvcGroupLinkInfo!
 }
 
 type config_FooTypeABC {
@@ -121,6 +122,16 @@ type gns_Dns {
     Id: ID
 	ParentLabels: Map
 
+}
+
+type servicegroup_SvcGroupLinkInfo {
+    Id: ID
+	ParentLabels: Map
+
+    ClusterName: String
+    DomainName: String
+    ServiceName: String
+    ServiceType: String
 }
 
 type policypkg_AccessControlPolicy {

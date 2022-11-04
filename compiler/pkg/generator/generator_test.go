@@ -54,7 +54,7 @@ var _ = Describe("Template renderers tests", func() {
 		graphqlQueries := parser.ParseGraphqlQuerySpecs(pkgs)
 		graph := parser.ParseDSLNodes(exampleDSLPath, baseGroupName, pkgs, graphqlQueries)
 		parentsMap = parser.CreateParentsMap(graph)
-		Expect(parentsMap).To(HaveLen(13))
+		Expect(parentsMap).To(HaveLen(14))
 
 		methods, codes = rest.ParseResponses(pkgs)
 		gql.BaseImportPath = crdModulePath

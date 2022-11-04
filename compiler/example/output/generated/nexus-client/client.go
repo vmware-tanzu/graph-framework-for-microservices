@@ -538,6 +538,15 @@ func (group *ConfigTsmV1) DeleteConfigByName(ctx context.Context, hashedName str
 		}
 	}
 
+	if result.Spec.SvcGrpInfoGvk != nil {
+		err := group.client.
+			Servicegroup().
+			DeleteSvcGroupLinkInfoByName(ctx, result.Spec.SvcGrpInfoGvk.Name)
+		if err != nil {
+			return err
+		}
+	}
+
 	err = group.client.baseClient.
 		ConfigTsmV1().
 		Configs().Delete(ctx, hashedName, metav1.DeleteOptions{})
@@ -594,6 +603,7 @@ func (group *ConfigTsmV1) CreateConfigByName(ctx context.Context,
 	objToCreate.Spec.VMPPoliciesGvk = nil
 	objToCreate.Spec.DomainGvk = nil
 	objToCreate.Spec.FooExampleGvk = nil
+	objToCreate.Spec.SvcGrpInfoGvk = nil
 	objToCreate.Spec.ACPPoliciesGvk = nil
 
 	result, err := group.client.baseClient.
@@ -1109,6 +1119,60 @@ func (obj *ConfigConfig) DeleteFooExample(ctx context.Context, displayName strin
 	return
 }
 
+// GetSvcGrpInfo returns child of given type
+func (obj *ConfigConfig) GetSvcGrpInfo(ctx context.Context) (
+	result *ServicegroupSvcGroupLinkInfo, err error) {
+	if obj.Spec.SvcGrpInfoGvk == nil {
+		return nil, NewChildNotFound(obj.DisplayName(), "Config.Config", "SvcGrpInfo")
+	}
+	return obj.client.Servicegroup().GetSvcGroupLinkInfoByName(ctx, obj.Spec.SvcGrpInfoGvk.Name)
+}
+
+// AddSvcGrpInfo calculates hashed name of the child to create based on objToCreate.Name
+// and parents names and creates it. objToCreate.Name is changed to the hashed name. Original name is preserved in
+// nexus/display_name label and can be obtained using DisplayName() method.
+func (obj *ConfigConfig) AddSvcGrpInfo(ctx context.Context,
+	objToCreate *baseservicegrouptsmtanzuvmwarecomv1.SvcGroupLinkInfo) (result *ServicegroupSvcGroupLinkInfo, err error) {
+	if objToCreate.Labels == nil {
+		objToCreate.Labels = map[string]string{}
+	}
+	for _, v := range helper.GetCRDParentsMap()["configs.config.tsm.tanzu.vmware.com"] {
+		objToCreate.Labels[v] = obj.Labels[v]
+	}
+	objToCreate.Labels["configs.config.tsm.tanzu.vmware.com"] = obj.DisplayName()
+	if objToCreate.Labels[common.IS_NAME_HASHED_LABEL] != "true" {
+		objToCreate.Labels[common.DISPLAY_NAME_LABEL] = objToCreate.GetName()
+		objToCreate.Labels[common.IS_NAME_HASHED_LABEL] = "true"
+		hashedName := helper.GetHashedName(objToCreate.CRDName(), objToCreate.Labels, objToCreate.GetName())
+		objToCreate.Name = hashedName
+	}
+	result, err = obj.client.Servicegroup().CreateSvcGroupLinkInfoByName(ctx, objToCreate)
+	updatedObj, getErr := obj.client.Config().GetConfigByName(ctx, obj.GetName())
+	if getErr == nil {
+		obj.Config = updatedObj.Config
+	}
+	return
+}
+
+// DeleteSvcGrpInfo calculates hashed name of the child to delete based on displayName
+// and parents names and deletes it.
+
+func (obj *ConfigConfig) DeleteSvcGrpInfo(ctx context.Context) (err error) {
+	if obj.Spec.SvcGrpInfoGvk != nil {
+		err = obj.client.
+			Servicegroup().DeleteSvcGroupLinkInfoByName(ctx, obj.Spec.SvcGrpInfoGvk.Name)
+		if err != nil {
+			return err
+		}
+	}
+	updatedObj, err := obj.client.
+		Config().GetConfigByName(ctx, obj.GetName())
+	if err == nil {
+		obj.Config = updatedObj.Config
+	}
+	return
+}
+
 // GetAllACPPolicies returns all links of given type
 func (obj *ConfigConfig) GetAllACPPolicies(ctx context.Context) (
 	result []*PolicypkgAccessControlPolicy, err error) {
@@ -1418,6 +1482,53 @@ func (c *configConfigTsmV1Chainer) DeleteFooExample(ctx context.Context, name st
 	c.parentLabels[common.IS_NAME_HASHED_LABEL] = "true"
 	hashedName := helper.GetHashedName("footypeabcs.config.tsm.tanzu.vmware.com", c.parentLabels, name)
 	return c.client.Config().DeleteFooTypeABCByName(ctx, hashedName)
+}
+
+func (c *configConfigTsmV1Chainer) SvcGrpInfo(name string) *svcgrouplinkinfoServicegroupTsmV1Chainer {
+	parentLabels := c.parentLabels
+	parentLabels["svcgrouplinkinfos.servicegroup.tsm.tanzu.vmware.com"] = name
+	return &svcgrouplinkinfoServicegroupTsmV1Chainer{
+		client:       c.client,
+		name:         name,
+		parentLabels: parentLabels,
+	}
+}
+
+// GetSvcGrpInfo calculates hashed name of the object based on displayName and it's parents and returns the object
+func (c *configConfigTsmV1Chainer) GetSvcGrpInfo(ctx context.Context, displayName string) (result *ServicegroupSvcGroupLinkInfo, err error) {
+	hashedName := helper.GetHashedName("svcgrouplinkinfos.servicegroup.tsm.tanzu.vmware.com", c.parentLabels, displayName)
+	return c.client.Servicegroup().GetSvcGroupLinkInfoByName(ctx, hashedName)
+}
+
+// AddSvcGrpInfo calculates hashed name of the child to create based on objToCreate.Name
+// and parents names and creates it. objToCreate.Name is changed to the hashed name. Original name is preserved in
+// nexus/display_name label and can be obtained using DisplayName() method.
+func (c *configConfigTsmV1Chainer) AddSvcGrpInfo(ctx context.Context,
+	objToCreate *baseservicegrouptsmtanzuvmwarecomv1.SvcGroupLinkInfo) (result *ServicegroupSvcGroupLinkInfo, err error) {
+	if objToCreate.Labels == nil {
+		objToCreate.Labels = map[string]string{}
+	}
+	for k, v := range c.parentLabels {
+		objToCreate.Labels[k] = v
+	}
+	if objToCreate.Labels[common.IS_NAME_HASHED_LABEL] != "true" {
+		objToCreate.Labels[common.DISPLAY_NAME_LABEL] = objToCreate.GetName()
+		objToCreate.Labels[common.IS_NAME_HASHED_LABEL] = "true"
+		hashedName := helper.GetHashedName("svcgrouplinkinfos.servicegroup.tsm.tanzu.vmware.com", c.parentLabels, objToCreate.GetName())
+		objToCreate.Name = hashedName
+	}
+	return c.client.Servicegroup().CreateSvcGroupLinkInfoByName(ctx, objToCreate)
+}
+
+// DeleteSvcGrpInfo calculates hashed name of the child to delete based on displayName
+// and parents names and deletes it.
+func (c *configConfigTsmV1Chainer) DeleteSvcGrpInfo(ctx context.Context, name string) (err error) {
+	if c.parentLabels == nil {
+		c.parentLabels = map[string]string{}
+	}
+	c.parentLabels[common.IS_NAME_HASHED_LABEL] = "true"
+	hashedName := helper.GetHashedName("svcgrouplinkinfos.servicegroup.tsm.tanzu.vmware.com", c.parentLabels, name)
+	return c.client.Servicegroup().DeleteSvcGroupLinkInfoByName(ctx, hashedName)
 }
 
 // GetFooTypeABCByName returns object stored in the database under the hashedName which is a hash of display
@@ -4784,6 +4895,258 @@ func (obj *ServicegroupSvcGroup) GetParent(ctx context.Context) (result *GnsGns,
 }
 
 type svcgroupServicegroupTsmV1Chainer struct {
+	client       *Clientset
+	name         string
+	parentLabels map[string]string
+}
+
+// GetSvcGroupLinkInfoByName returns object stored in the database under the hashedName which is a hash of display
+// name and parents names. Use it when you know hashed name of object.
+func (group *ServicegroupTsmV1) GetSvcGroupLinkInfoByName(ctx context.Context, hashedName string) (*ServicegroupSvcGroupLinkInfo, error) {
+	result, err := group.client.baseClient.
+		ServicegroupTsmV1().
+		SvcGroupLinkInfos().Get(ctx, hashedName, metav1.GetOptions{})
+	if err != nil {
+		return nil, err
+	}
+
+	return &ServicegroupSvcGroupLinkInfo{
+		client:           group.client,
+		SvcGroupLinkInfo: result,
+	}, nil
+}
+
+// DeleteSvcGroupLinkInfoByName deletes object stored in the database under the hashedName which is a hash of
+// display name and parents names. Use it when you know hashed name of object.
+func (group *ServicegroupTsmV1) DeleteSvcGroupLinkInfoByName(ctx context.Context, hashedName string) (err error) {
+
+	result, err := group.client.baseClient.
+		ServicegroupTsmV1().
+		SvcGroupLinkInfos().Get(ctx, hashedName, metav1.GetOptions{})
+	if err != nil {
+		return err
+	}
+
+	err = group.client.baseClient.
+		ServicegroupTsmV1().
+		SvcGroupLinkInfos().Delete(ctx, hashedName, metav1.DeleteOptions{})
+	if err != nil {
+		return err
+	}
+
+	var patch Patch
+
+	patchOp := PatchOp{
+		Op:   "remove",
+		Path: "/spec/svcGrpInfoGvk",
+	}
+
+	patch = append(patch, patchOp)
+	marshaled, err := patch.Marshal()
+	if err != nil {
+		return err
+	}
+	parents := result.GetLabels()
+	if parents == nil {
+		parents = make(map[string]string)
+	}
+	parentName, ok := parents["configs.config.tsm.tanzu.vmware.com"]
+	if !ok {
+		parentName = helper.DEFAULT_KEY
+	}
+	if parents[common.IS_NAME_HASHED_LABEL] == "true" {
+		parentName = helper.GetHashedName("configs.config.tsm.tanzu.vmware.com", parents, parentName)
+	}
+	_, err = group.client.baseClient.
+		ConfigTsmV1().
+		Configs().Patch(ctx, parentName, types.JSONPatchType, marshaled, metav1.PatchOptions{})
+	if err != nil {
+		return err
+	}
+
+	return
+}
+
+// CreateSvcGroupLinkInfoByName creates object in the database without hashing the name.
+// Use it directly ONLY when objToCreate.Name is hashed name of the object.
+func (group *ServicegroupTsmV1) CreateSvcGroupLinkInfoByName(ctx context.Context,
+	objToCreate *baseservicegrouptsmtanzuvmwarecomv1.SvcGroupLinkInfo) (*ServicegroupSvcGroupLinkInfo, error) {
+	if objToCreate.GetLabels() == nil {
+		objToCreate.Labels = make(map[string]string)
+	}
+	if _, ok := objToCreate.Labels[common.DISPLAY_NAME_LABEL]; !ok {
+		objToCreate.Labels[common.DISPLAY_NAME_LABEL] = objToCreate.GetName()
+	}
+
+	result, err := group.client.baseClient.
+		ServicegroupTsmV1().
+		SvcGroupLinkInfos().Create(ctx, objToCreate, metav1.CreateOptions{})
+	if err != nil {
+		return nil, err
+	}
+
+	parentName, ok := objToCreate.GetLabels()["configs.config.tsm.tanzu.vmware.com"]
+	if !ok {
+		parentName = helper.DEFAULT_KEY
+	}
+	if objToCreate.Labels[common.IS_NAME_HASHED_LABEL] == "true" {
+		parentName = helper.GetHashedName("configs.config.tsm.tanzu.vmware.com", objToCreate.GetLabels(), parentName)
+	}
+
+	var patch Patch
+	patchOp := PatchOp{
+		Op:   "replace",
+		Path: "/spec/svcGrpInfoGvk",
+		Value: baseservicegrouptsmtanzuvmwarecomv1.Child{
+			Group: "servicegroup.tsm.tanzu.vmware.com",
+			Kind:  "SvcGroupLinkInfo",
+			Name:  objToCreate.Name,
+		},
+	}
+	patch = append(patch, patchOp)
+	marshaled, err := patch.Marshal()
+	if err != nil {
+		return nil, err
+	}
+	_, err = group.client.baseClient.
+		ConfigTsmV1().
+		Configs().Patch(ctx, parentName, types.JSONPatchType, marshaled, metav1.PatchOptions{})
+	if err != nil {
+		return nil, err
+	}
+
+	return &ServicegroupSvcGroupLinkInfo{
+		client:           group.client,
+		SvcGroupLinkInfo: result,
+	}, nil
+}
+
+// UpdateSvcGroupLinkInfoByName updates object stored in the database under the hashedName which is a hash of
+// display name and parents names.
+func (group *ServicegroupTsmV1) UpdateSvcGroupLinkInfoByName(ctx context.Context,
+	objToUpdate *baseservicegrouptsmtanzuvmwarecomv1.SvcGroupLinkInfo) (*ServicegroupSvcGroupLinkInfo, error) {
+
+	// ResourceVersion must be set for update
+	if objToUpdate.ResourceVersion == "" {
+		current, err := group.client.baseClient.
+			ServicegroupTsmV1().
+			SvcGroupLinkInfos().Get(ctx, objToUpdate.GetName(), metav1.GetOptions{})
+		if err != nil {
+			return nil, err
+		}
+		objToUpdate.ResourceVersion = current.ResourceVersion
+	}
+
+	var patch Patch
+	patch = append(patch, PatchOp{
+		Op:    "replace",
+		Path:  "/metadata",
+		Value: objToUpdate.ObjectMeta,
+	})
+
+	patchValueClusterName :=
+		objToUpdate.Spec.ClusterName
+	patchOpClusterName := PatchOp{
+		Op:    "replace",
+		Path:  "/spec/clusterName",
+		Value: patchValueClusterName,
+	}
+	patch = append(patch, patchOpClusterName)
+
+	patchValueDomainName :=
+		objToUpdate.Spec.DomainName
+	patchOpDomainName := PatchOp{
+		Op:    "replace",
+		Path:  "/spec/domainName",
+		Value: patchValueDomainName,
+	}
+	patch = append(patch, patchOpDomainName)
+
+	patchValueServiceName :=
+		objToUpdate.Spec.ServiceName
+	patchOpServiceName := PatchOp{
+		Op:    "replace",
+		Path:  "/spec/serviceName",
+		Value: patchValueServiceName,
+	}
+	patch = append(patch, patchOpServiceName)
+
+	patchValueServiceType :=
+		objToUpdate.Spec.ServiceType
+	patchOpServiceType := PatchOp{
+		Op:    "replace",
+		Path:  "/spec/serviceType",
+		Value: patchValueServiceType,
+	}
+	patch = append(patch, patchOpServiceType)
+
+	marshaled, err := patch.Marshal()
+	if err != nil {
+		return nil, err
+	}
+	result, err := group.client.baseClient.
+		ServicegroupTsmV1().
+		SvcGroupLinkInfos().Patch(ctx, objToUpdate.GetName(), types.JSONPatchType, marshaled, metav1.PatchOptions{}, "")
+	if err != nil {
+		return nil, err
+	}
+
+	return &ServicegroupSvcGroupLinkInfo{
+		client:           group.client,
+		SvcGroupLinkInfo: result,
+	}, nil
+}
+
+// ListSvcGroupLinkInfos returns slice of all existing objects of this type. Selectors can be provided in opts parameter.
+func (group *ServicegroupTsmV1) ListSvcGroupLinkInfos(ctx context.Context,
+	opts metav1.ListOptions) (result []*ServicegroupSvcGroupLinkInfo, err error) {
+	list, err := group.client.baseClient.ServicegroupTsmV1().
+		SvcGroupLinkInfos().List(ctx, opts)
+	if err != nil {
+		return nil, err
+	}
+	result = make([]*ServicegroupSvcGroupLinkInfo, len(list.Items))
+	for k, v := range list.Items {
+		item := v
+		result[k] = &ServicegroupSvcGroupLinkInfo{
+			client:           group.client,
+			SvcGroupLinkInfo: &item,
+		}
+	}
+	return
+}
+
+type ServicegroupSvcGroupLinkInfo struct {
+	client *Clientset
+	*baseservicegrouptsmtanzuvmwarecomv1.SvcGroupLinkInfo
+}
+
+// Delete removes obj and all it's children from the database.
+func (obj *ServicegroupSvcGroupLinkInfo) Delete(ctx context.Context) error {
+	err := obj.client.Servicegroup().DeleteSvcGroupLinkInfoByName(ctx, obj.GetName())
+	if err != nil {
+		return err
+	}
+	obj.SvcGroupLinkInfo = nil
+	return nil
+}
+
+// Update updates spec of object in database. Children and Link can not be updated using this function.
+func (obj *ServicegroupSvcGroupLinkInfo) Update(ctx context.Context) error {
+	result, err := obj.client.Servicegroup().UpdateSvcGroupLinkInfoByName(ctx, obj.SvcGroupLinkInfo)
+	if err != nil {
+		return err
+	}
+	obj.SvcGroupLinkInfo = result.SvcGroupLinkInfo
+	return nil
+}
+
+func (obj *ServicegroupSvcGroupLinkInfo) GetParent(ctx context.Context) (result *ConfigConfig, err error) {
+	hashedName := helper.GetHashedName("configs.config.tsm.tanzu.vmware.com", obj.Labels, obj.Labels["configs.config.tsm.tanzu.vmware.com"])
+	return obj.client.Config().GetConfigByName(ctx, hashedName)
+}
+
+type svcgrouplinkinfoServicegroupTsmV1Chainer struct {
 	client       *Clientset
 	name         string
 	parentLabels map[string]string

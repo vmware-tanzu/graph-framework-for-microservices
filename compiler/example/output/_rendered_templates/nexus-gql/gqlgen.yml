@@ -50,6 +50,8 @@ models:
         resolver: true
       Domain:
         resolver: true
+      SvcGrpInfo:
+        resolver: true
   gns_Gns:
     fields:
       GnsAccessControlPolicy:

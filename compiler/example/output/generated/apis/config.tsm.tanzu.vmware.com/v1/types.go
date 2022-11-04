@@ -76,6 +76,7 @@ type ConfigSpec struct {
 	VMPPoliciesGvk    *Child                                  `json:"vMPPoliciesGvk,omitempty" yaml:"vMPPoliciesGvk,omitempty" nexus:"child"`
 	DomainGvk         *Child                                  `json:"domainGvk,omitempty" yaml:"domainGvk,omitempty" nexus:"child"`
 	FooExampleGvk     map[string]Child                        `json:"fooExampleGvk,omitempty" yaml:"fooExampleGvk,omitempty" nexus:"children"`
+	SvcGrpInfoGvk     *Child                                  `json:"svcGrpInfoGvk,omitempty" yaml:"svcGrpInfoGvk,omitempty" nexus:"child"`
 	ACPPoliciesGvk    map[string]Link                         `json:"aCPPoliciesGvk,omitempty" yaml:"aCPPoliciesGvk,omitempty" nexus:"links"`
 }
 

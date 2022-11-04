@@ -595,6 +595,76 @@ PointStructData := string(PointStruct)
 }
 
 //////////////////////////////////////
+// CHILD RESOLVER (Non Singleton)
+// FieldName: SvcGrpInfo Node: Config PKG: Config
+//////////////////////////////////////
+func getConfigConfigSvcGrpInfoResolver(obj *model.ConfigConfig, id *string) (*model.ServicegroupSvcGroupLinkInfo, error) {
+	log.Debugf("[getConfigConfigSvcGrpInfoResolver]Parent Object %+v", obj)
+	if id != nil && *id != "" {
+	     log.Debugf("[getConfigConfigSvcGrpInfoResolver]Id %q", *id)
+		vSvcGroupLinkInfo, err := nc.RootRoot().Config(getParentName(obj.ParentLabels, "configs.config.tsm.tanzu.vmware.com")).GetSvcGrpInfo(context.TODO(), *id)
+		if err != nil {
+			log.Errorf("[getConfigConfigSvcGrpInfoResolver]Error getting SvcGrpInfo node %q : %s", *id, err)
+			return &model.ServicegroupSvcGroupLinkInfo{}, nil
+		}
+		dn := vSvcGroupLinkInfo.DisplayName()
+parentLabels := map[string]interface{}{"svcgrouplinkinfos.servicegroup.tsm.tanzu.vmware.com":dn}
+vClusterName := string(vSvcGroupLinkInfo.Spec.ClusterName)
+vDomainName := string(vSvcGroupLinkInfo.Spec.DomainName)
+vServiceName := string(vSvcGroupLinkInfo.Spec.ServiceName)
+vServiceType := string(vSvcGroupLinkInfo.Spec.ServiceType)
+
+		for k, v := range obj.ParentLabels {
+			parentLabels[k] = v
+		}
+		ret := &model.ServicegroupSvcGroupLinkInfo {
+	Id: &dn,
+	ParentLabels: parentLabels,
+	ClusterName: &vClusterName,
+	DomainName: &vDomainName,
+	ServiceName: &vServiceName,
+	ServiceType: &vServiceType,
+	}
+
+		log.Debugf("[getConfigConfigSvcGrpInfoResolver]Output object %v", ret)
+		return ret, nil
+	}
+	log.Debug("[getConfigConfigSvcGrpInfoResolver]Id is empty, process all SvcGrpInfos")
+	vSvcGroupLinkInfoParent, err := nc.RootRoot().GetConfig(context.TODO(), getParentName(obj.ParentLabels, "configs.config.tsm.tanzu.vmware.com"))
+	if err != nil {
+	    log.Errorf("[getConfigConfigSvcGrpInfoResolver]Failed to get parent node %s", err)
+        return &model.ServicegroupSvcGroupLinkInfo{}, nil
+    }
+	vSvcGroupLinkInfo, err := vSvcGroupLinkInfoParent.GetSvcGrpInfo(context.TODO())
+	if err != nil {
+	    log.Errorf("[getConfigConfigSvcGrpInfoResolver]Error getting SvcGrpInfo node %s", err)
+        return &model.ServicegroupSvcGroupLinkInfo{}, nil
+    }
+	dn := vSvcGroupLinkInfo.DisplayName()
+parentLabels := map[string]interface{}{"svcgrouplinkinfos.servicegroup.tsm.tanzu.vmware.com":dn}
+vClusterName := string(vSvcGroupLinkInfo.Spec.ClusterName)
+vDomainName := string(vSvcGroupLinkInfo.Spec.DomainName)
+vServiceName := string(vSvcGroupLinkInfo.Spec.ServiceName)
+vServiceType := string(vSvcGroupLinkInfo.Spec.ServiceType)
+
+    for k, v := range obj.ParentLabels {
+        parentLabels[k] = v
+    }
+	ret := &model.ServicegroupSvcGroupLinkInfo {
+	Id: &dn,
+	ParentLabels: parentLabels,
+	ClusterName: &vClusterName,
+	DomainName: &vDomainName,
+	ServiceName: &vServiceName,
+	ServiceType: &vServiceType,
+	}
+
+	log.Debugf("[getConfigConfigSvcGrpInfoResolver]Output object %v", ret)
+
+	return ret, nil
+}
+
+//////////////////////////////////////
 // CHILDREN RESOLVER
 // FieldName: FooExample Node: Config PKG: Config
 //////////////////////////////////////

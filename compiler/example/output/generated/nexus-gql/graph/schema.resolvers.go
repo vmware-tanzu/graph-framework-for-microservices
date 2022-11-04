@@ -50,6 +50,11 @@ func (r *config_ConfigResolver) Domain(ctx context.Context, obj *model.ConfigCon
 	return getConfigConfigDomainResolver(obj, id)
 }
 
+// SvcGrpInfo is the resolver for the SvcGrpInfo field.
+func (r *config_ConfigResolver) SvcGrpInfo(ctx context.Context, obj *model.ConfigConfig, id *string) (*model.ServicegroupSvcGroupLinkInfo, error) {
+	return getConfigConfigSvcGrpInfoResolver(obj, id)
+}
+
 // QueryGns1 is the resolver for the queryGns1 field.
 func (r *gns_GnsResolver) QueryGns1(ctx context.Context, obj *model.GnsGns, startTime *string, endTime *string, interval *string, isServiceDeployment *bool, startVal *int) (*model.NexusGraphqlResponse, error) {
 	return getGnsGnsqueryGns1Resolver(obj, startTime, endTime, interval, isServiceDeployment, startVal)
