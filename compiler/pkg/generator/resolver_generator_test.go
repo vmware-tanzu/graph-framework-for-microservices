@@ -70,7 +70,7 @@ var _ = Describe("Template renderers tests", func() {
 
 	It("should validate the import pkg and translate to graphql schema and resolver typeName", func() {
 		pkg := pkgs["github.com/vmware-tanzu/graph-framework-for-microservices/compiler/example/datamodel/config/gns"]
-		schemaTypeName, resolverTypeName := generator.ValidateImportPkg(pkg.Name, "service_group.SvcGroup", pkg.GetImportMap(), pkgs)
+		schemaTypeName, resolverTypeName := generator.ValidateImportPkg(pkg.Name, "servicegroup.SvcGroup", pkg.GetImportMap(), pkgs)
 
 		Expect(pkg.Name).To(Equal("gns"))
 		Expect(schemaTypeName).To(Equal("servicegroup_SvcGroup"))

@@ -55,6 +55,10 @@ func getPkgName(pkgs parser.Packages, pkgPath string) string {
 	return pkgs[importPath].Name
 }
 
+func genSchemaResolverName(fn1, fn2 string) (string, string) {
+	return fmt.Sprintf("%s_%s", strings.ToLower(fn1), fn2), cases.Title(language.Und, cases.NoLower).String(fn1) + cases.Title(language.Und, cases.NoLower).String(fn2)
+}
+
 func ValidateImportPkg(pkgName, typeString string, importMap map[string]string, pkgs parser.Packages) (string, string) {
 	typeWithoutPointers := strings.ReplaceAll(typeString, "*", "")
 	if strings.Contains(typeWithoutPointers, ".") {
@@ -62,18 +66,18 @@ func ValidateImportPkg(pkgName, typeString string, importMap map[string]string, 
 		if val, ok := importMap[part[0]]; ok {
 			pkgName := getPkgName(pkgs, val)
 			repName := strings.ReplaceAll(pkgName, "-", "")
-			return fmt.Sprintf("%s_%s", repName, part[1]), cases.Title(language.Und, cases.NoLower).String(repName) + cases.Title(language.Und, cases.NoLower).String(part[1])
+			return genSchemaResolverName(repName, part[1])
 		}
 		for _, v := range importMap {
 			pkgName := getPkgName(pkgs, v)
-			if pkgName != "" {
+			if pkgName == part[0] {
 				repName := strings.ReplaceAll(pkgName, "-", "")
-				return fmt.Sprintf("%s_%s", repName, part[1]), cases.Title(language.Und, cases.NoLower).String(repName) + cases.Title(language.Und, cases.NoLower).String(part[1])
+				return genSchemaResolverName(repName, part[1])
 			}
 		}
-		return fmt.Sprintf("%s_%s", strings.ToLower(pkgName), part[1]), cases.Title(language.Und, cases.NoLower).String(pkgName) + cases.Title(language.Und, cases.NoLower).String(part[1])
+		return genSchemaResolverName(pkgName, part[1])
 	}
-	return fmt.Sprintf("%s_%s", strings.ToLower(pkgName), typeWithoutPointers), cases.Title(language.Und, cases.NoLower).String(pkgName) + cases.Title(language.Und, cases.NoLower).String(typeWithoutPointers)
+	return genSchemaResolverName(pkgName, typeWithoutPointers)
 }
 
 func getBaseNodeType(typeString string) string {
