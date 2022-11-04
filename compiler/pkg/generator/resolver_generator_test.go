@@ -67,4 +67,13 @@ var _ = Describe("Template renderers tests", func() {
 		Expect(vars[1].BaseImportPath).To(Equal("nexustempmodule/"))
 		Expect(vars[1].CrdName).To(Equal(""))
 	})
+
+	It("should validate the import pkg and translate to graphql schema and resolver typeName", func() {
+		pkg := pkgs["github.com/vmware-tanzu/graph-framework-for-microservices/compiler/example/datamodel/config/gns"]
+		schemaTypeName, resolverTypeName := generator.ValidateImportPkg(pkg.Name, "service_group.SvcGroup", pkg.GetImportMap(), pkgs)
+
+		Expect(pkg.Name).To(Equal("gns"))
+		Expect(schemaTypeName).To(Equal("servicegroup_SvcGroup"))
+		Expect(resolverTypeName).To(Equal("ServicegroupSvcGroup"))
+	})
 })

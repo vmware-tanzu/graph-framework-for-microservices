@@ -411,7 +411,7 @@ func processNexusFields(pkg parser.Package, aliasNameMap map[string]string, node
 		// nexus link field
 		typeString := ConstructType(aliasNameMap, nf)
 		if parser.IsOnlyLinkField(nf) {
-			schemaTypeName, resolverTypeName := validateImportPkg(nodeProp.PkgName, typeString, importMap, pkgs)
+			schemaTypeName, resolverTypeName := ValidateImportPkg(nodeProp.PkgName, typeString, importMap, pkgs)
 			// `type:string` annotation used to consider the type as string `nexus-graphql:"type:string"`
 			fieldProp.SchemaFieldName = fmt.Sprintf("%s: %s!", fieldProp.FieldName, schemaTypeName)
 			fieldProp.IsResolver = true
@@ -425,7 +425,7 @@ func processNexusFields(pkg parser.Package, aliasNameMap map[string]string, node
 
 		// nexus child field
 		if parser.IsOnlyChildField(nf) {
-			schemaTypeName, resolverTypeName := validateImportPkg(nodeProp.PkgName, typeString, importMap, pkgs)
+			schemaTypeName, resolverTypeName := ValidateImportPkg(nodeProp.PkgName, typeString, importMap, pkgs)
 			fieldProp.SchemaFieldName = fmt.Sprintf("%s: %s!", fieldProp.FieldName, schemaTypeName)
 			fieldProp.SchemaTypeName = schemaTypeName
 			fieldProp.IsNexusTypeField = true
@@ -438,7 +438,7 @@ func processNexusFields(pkg parser.Package, aliasNameMap map[string]string, node
 		// nexus children or links field
 		if parser.IsNamedChildOrLink(nf) {
 			fieldProp.IsChildrenOrLinks = true
-			schemaTypeName, resolverTypeName := validateImportPkg(nodeProp.PkgName, typeString, importMap, pkgs)
+			schemaTypeName, resolverTypeName := ValidateImportPkg(nodeProp.PkgName, typeString, importMap, pkgs)
 			fieldProp.SchemaFieldName = fmt.Sprintf("%s(Id: ID): [%s!]", fieldProp.FieldName, schemaTypeName)
 			fieldProp.IsResolver = true
 			fieldProp.IsNexusTypeField = true

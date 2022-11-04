@@ -55,7 +55,7 @@ func getPkgName(pkgs parser.Packages, pkgPath string) string {
 	return pkgs[importPath].Name
 }
 
-func validateImportPkg(pkgName, typeString string, importMap map[string]string, pkgs parser.Packages) (string, string) {
+func ValidateImportPkg(pkgName, typeString string, importMap map[string]string, pkgs parser.Packages) (string, string) {
 	typeWithoutPointers := strings.ReplaceAll(typeString, "*", "")
 	if strings.Contains(typeWithoutPointers, ".") {
 		part := strings.Split(typeWithoutPointers, ".")
