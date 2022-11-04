@@ -20,7 +20,8 @@ type Worker struct {
 	stop           chan bool
 	started        bool
 	WorkDuration   WorkDuration
-	SampleRate     int
+	SampleRate     float32
+	moduloRate     int
 }
 
 type WorkDuration struct {
@@ -47,6 +48,10 @@ func (w *Worker) WorkManager(job string, concurrency int) {
 			}
 		}
 	}()
+
+	// set moduloRate
+	w.moduloRate = int(1 / w.SampleRate)
+	log.Printf("Sampling rate %f, modulo no - %d\n", w.SampleRate, w.moduloRate)
 
 }
 
@@ -97,7 +102,7 @@ func (w *Worker) startWorkers(concurrency int, job string) {
 			start := time.Now()
 			w.doWork(job, work)
 			elapsed := time.Since(start)
-			if (count % w.SampleRate) == 0 {
+			if (count % w.moduloRate) == 0 {
 				w.WorkDuration.Duration = append(w.WorkDuration.Duration, elapsed.Milliseconds())
 			}
 		}
@@ -111,7 +116,7 @@ func (w *Worker) startWorkers(concurrency int, job string) {
 			start := time.Now()
 			w.doGraphqlQuery(job, work)
 			elapsed := time.Since(start)
-			if (count % w.SampleRate) == 0 {
+			if (count % w.moduloRate) == 0 {
 				w.WorkDuration.Duration = append(w.WorkDuration.Duration, elapsed.Milliseconds())
 			}
 		}

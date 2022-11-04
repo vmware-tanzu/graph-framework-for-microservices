@@ -108,7 +108,7 @@ func main() {
 		ZipkinClient: zipkinClient,
 		WorkerType:   0,
 		FuncMap:      funcMap,
-		SampleRate:   10, // => 1 / 10
+		SampleRate:   0.15,
 	}
 
 	for _, k := range c.Rest {
@@ -124,7 +124,7 @@ func main() {
 		GraphqlFuncMap: graphqlFuncMap,
 		Gclient:        gclient,
 		WorkerType:     1,
-		SampleRate:     10, // => 1 / 10
+		SampleRate:     0.2,
 	}
 	for _, k := range c.Graphql {
 		w2.WorkManager(k, c.Concurrency)
@@ -182,7 +182,8 @@ func newTracer() (*zipkin.Tracer, error) {
 }
 
 func putEmployee() *http.Request {
-	empName := "e5"
+	//empName := "e5"
+	empName := RandomString(10)
 	url := fmt.Sprintf("%s/root/default/employee/%s", apiGateway, empName)
 	method := "PUT"
 
