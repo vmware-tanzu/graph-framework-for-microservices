@@ -109,6 +109,8 @@ func main() {
 	for k := range funcMap {
 		w.WorkManager(k, c.Concurrency)
 		w.StartWithAutoStop(c.Timeout)
+		w.WorkDuration.CalculateAverage()
+		log.Println(w.WorkDuration.Average, w.WorkDuration.Low, w.WorkDuration.High)
 	}
 
 	// GraphQL query worker
@@ -120,6 +122,8 @@ func main() {
 	for k := range graphqlFuncMap {
 		w2.WorkManager(k, c.Concurrency)
 		w2.StartWithAutoStop(c.Timeout)
+		w2.WorkDuration.CalculateAverage()
+		log.Println(w2.WorkDuration.Average, w2.WorkDuration.Low, w2.WorkDuration.High)
 	}
 
 }

@@ -2,6 +2,7 @@ package workmanager
 
 import (
 	"log"
+	"math"
 	"net/http"
 	"time"
 
@@ -18,7 +19,14 @@ type Worker struct {
 	start          chan bool
 	stop           chan bool
 	started        bool
-	workTimes      []int
+	WorkDuration   WorkDuration
+}
+
+type WorkDuration struct {
+	Duration []int64
+	Average  int64
+	High     int64
+	Low      int64
 }
 
 // workManager - starts and stops workers, manages concurrency and time
@@ -43,16 +51,23 @@ func (w *Worker) WorkManager(job string, concurrency int) {
 
 // StartWithAutoStop : runFor - run for n seconds
 func (w *Worker) StartWithAutoStop(runFor int) {
+	if w.started {
+		log.Println("Worker already started")
+		return
+	}
+	w.WorkDuration = WorkDuration{}
 	w.start <- true
 	w.started = true
 	time.Sleep(time.Second * time.Duration(runFor))
 	w.stop <- true
+	w.started = false
 	log.Println("Work stopped, closing worker...")
 }
 
 func (w *Worker) Start() {
 	if w.started {
 		log.Println("Worker already started")
+		return
 	}
 	log.Println("Starting worker")
 	w.start <- true
@@ -61,6 +76,7 @@ func (w *Worker) Start() {
 func (w *Worker) Stop() {
 	log.Println("Work stopped, closing worker...")
 	w.stop <- true
+	w.started = false
 }
 func (w *Worker) startWorkers(concurrency int, job string) {
 	// concurrent work that can be done = no. of bool set in the channel
@@ -71,18 +87,31 @@ func (w *Worker) startWorkers(concurrency int, job string) {
 	switch w.WorkerType {
 	case 0:
 		// http worker
+		count := 0
 		for {
 			// consume work
+			count++
 			<-work
 			start := time.Now()
 			w.doWork(job, work)
-			_ = time.Since(start)
+			elapsed := time.Since(start)
+			if (count % 10) == 0 {
+				w.WorkDuration.Duration = append(w.WorkDuration.Duration, elapsed.Milliseconds())
+			}
 		}
 	case 1:
 		// graphql get worker
+		count := 0
 		for {
+			// consume work
+			count++
 			<-work
+			start := time.Now()
 			w.doGraphqlQuery(job, work)
+			elapsed := time.Since(start)
+			if (count % 10) == 0 {
+				w.WorkDuration.Duration = append(w.WorkDuration.Duration, elapsed.Milliseconds())
+			}
 		}
 	}
 
@@ -111,4 +140,20 @@ func (w *Worker) doGraphqlQuery(job string, work chan bool) {
 	gqlFunc(w.Gclient)
 	// work done
 	work <- true
+}
+
+func (d *WorkDuration) CalculateAverage() {
+	d.Low = math.MaxInt64
+	d.High = 0
+	var sum int64 = 0
+	for _, v := range d.Duration {
+		if v < d.Low {
+			d.Low = v
+		}
+		if v > d.High {
+			d.High = v
+		}
+		sum += v
+	}
+	d.Average = sum / int64(len(d.Duration))
 }
