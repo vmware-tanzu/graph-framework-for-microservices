@@ -1,10 +1,11 @@
 package config
 
 import (
-	py "github.com/vmware-tanzu/graph-framework-for-microservices/compiler/example/datamodel/config/policy"
 	"net/http"
 
 	"github.com/vmware-tanzu/graph-framework-for-microservices/compiler/example/datamodel/config/gns"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/compiler/example/datamodel/config/gns/service-group"
+	py "github.com/vmware-tanzu/graph-framework-for-microservices/compiler/example/datamodel/config/policy"
 	"github.com/vmware-tanzu/graph-framework-for-microservices/nexus/nexus"
 )
 
@@ -37,9 +38,10 @@ type Config struct {
 	ClusterNamespaces []ClusterNamespace
 
 	TestValMarkers TestValMarkers `json:"testValMarkers" yaml:"testValMarkers"`
-	FooExample     FooTypeABC        `nexus:"children"`
+	FooExample     FooTypeABC     `nexus:"children"`
 	Instance       float32
-	CuOption       string `json:"option_cu"`
+	CuOption       string                        `json:"option_cu"`
+	SvcGrpInfo     servicegroup.SvcGroupLinkInfo `nexus:"child"`
 }
 
 type FooTypeABC struct {

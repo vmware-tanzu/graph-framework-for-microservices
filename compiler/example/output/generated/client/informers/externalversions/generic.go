@@ -100,6 +100,8 @@ func (f *sharedInformerFactory) ForResource(resource schema.GroupVersionResource
 		// Group=servicegroup.tsm.tanzu.vmware.com, Version=v1
 	case servicegrouptsmtanzuvmwarecomv1.SchemeGroupVersion.WithResource("svcgroups"):
 		return &genericInformer{resource: resource.GroupResource(), informer: f.ServicegroupTsm().V1().SvcGroups().Informer()}, nil
+	case servicegrouptsmtanzuvmwarecomv1.SchemeGroupVersion.WithResource("svcgrouplinkinfos"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.ServicegroupTsm().V1().SvcGroupLinkInfos().Informer()}, nil
 
 	}
 

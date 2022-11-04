@@ -40,7 +40,7 @@ type ResolverRoot interface {
 	Query() QueryResolver
 	Config_Config() Config_ConfigResolver
 	Gns_Gns() Gns_GnsResolver
-	Policy_AccessControlPolicy() Policy_AccessControlPolicyResolver
+	Policypkg_AccessControlPolicy() Policypkg_AccessControlPolicyResolver
 	Root_Root() Root_RootResolver
 }
 
@@ -84,6 +84,7 @@ type ComplexityRoot struct {
 		MyStr2            func(childComplexity int) int
 		ParentLabels      func(childComplexity int) int
 		QueryExample      func(childComplexity int, startTime *string, endTime *string, interval *string, isServiceDeployment *bool, startVal *int) int
+		SvcGrpInfo        func(childComplexity int, id *string) int
 		TestValMarkers    func(childComplexity int) int
 		VMPPolicies       func(childComplexity int, id *string) int
 		XYZPort           func(childComplexity int) int
@@ -153,7 +154,7 @@ type ComplexityRoot struct {
 		ParentLabels func(childComplexity int) int
 	}
 
-	Policy_ACPConfig struct {
+	Policypkg_ACPConfig struct {
 		Conditions   func(childComplexity int) int
 		Description  func(childComplexity int) int
 		DisplayName  func(childComplexity int) int
@@ -164,13 +165,13 @@ type ComplexityRoot struct {
 		Tags         func(childComplexity int) int
 	}
 
-	Policy_AccessControlPolicy struct {
+	Policypkg_AccessControlPolicy struct {
 		Id            func(childComplexity int) int
 		ParentLabels  func(childComplexity int) int
 		PolicyConfigs func(childComplexity int, id *string) int
 	}
 
-	Policy_VMpolicy struct {
+	Policypkg_VMpolicy struct {
 		Id           func(childComplexity int) int
 		ParentLabels func(childComplexity int) int
 	}
@@ -180,6 +181,15 @@ type ComplexityRoot struct {
 		Id           func(childComplexity int) int
 		ParentLabels func(childComplexity int) int
 	}
+
+	Servicegroup_SvcGroupLinkInfo struct {
+		ClusterName  func(childComplexity int) int
+		DomainName   func(childComplexity int) int
+		Id           func(childComplexity int) int
+		ParentLabels func(childComplexity int) int
+		ServiceName  func(childComplexity int) int
+		ServiceType  func(childComplexity int) int
+	}
 }
 
 type QueryResolver interface {
@@ -187,24 +197,25 @@ type QueryResolver interface {
 }
 type Config_ConfigResolver interface {
 	QueryExample(ctx context.Context, obj *model.ConfigConfig, startTime *string, endTime *string, interval *string, isServiceDeployment *bool, startVal *int) (*model.NexusGraphqlResponse, error)
-	ACPPolicies(ctx context.Context, obj *model.ConfigConfig, id *string) ([]*model.PolicyAccessControlPolicy, error)
+	ACPPolicies(ctx context.Context, obj *model.ConfigConfig, id *string) ([]*model.PolicypkgAccessControlPolicy, error)
 	FooExample(ctx context.Context, obj *model.ConfigConfig, id *string) ([]*model.ConfigFooTypeABC, error)
 
 	GNS(ctx context.Context, obj *model.ConfigConfig, id *string) (*model.GnsGns, error)
 	DNS(ctx context.Context, obj *model.ConfigConfig) (*model.GnsDns, error)
-	VMPPolicies(ctx context.Context, obj *model.ConfigConfig, id *string) (*model.PolicyVMpolicy, error)
+	VMPPolicies(ctx context.Context, obj *model.ConfigConfig, id *string) (*model.PolicypkgVMpolicy, error)
 	Domain(ctx context.Context, obj *model.ConfigConfig, id *string) (*model.ConfigDomain, error)
+	SvcGrpInfo(ctx context.Context, obj *model.ConfigConfig, id *string) (*model.ServicegroupSvcGroupLinkInfo, error)
 }
 type Gns_GnsResolver interface {
 	QueryGns1(ctx context.Context, obj *model.GnsGns, startTime *string, endTime *string, interval *string, isServiceDeployment *bool, startVal *int) (*model.NexusGraphqlResponse, error)
 	QueryGnsQM1(ctx context.Context, obj *model.GnsGns) (*model.TimeSeriesData, error)
 	QueryGnsQM(ctx context.Context, obj *model.GnsGns, startTime *string, endTime *string, timeInterval *string, someUserArg1 *string, someUserArg2 *int, someUserArg3 *bool) (*model.TimeSeriesData, error)
 
-	GnsAccessControlPolicy(ctx context.Context, obj *model.GnsGns, id *string) (*model.PolicyAccessControlPolicy, error)
+	GnsAccessControlPolicy(ctx context.Context, obj *model.GnsGns, id *string) (*model.PolicypkgAccessControlPolicy, error)
 	FooChild(ctx context.Context, obj *model.GnsGns) (*model.GnsBarChild, error)
 }
-type Policy_AccessControlPolicyResolver interface {
-	PolicyConfigs(ctx context.Context, obj *model.PolicyAccessControlPolicy, id *string) ([]*model.PolicyACPConfig, error)
+type Policypkg_AccessControlPolicyResolver interface {
+	PolicyConfigs(ctx context.Context, obj *model.PolicypkgAccessControlPolicy, id *string) ([]*model.PolicypkgACPConfig, error)
 }
 type Root_RootResolver interface {
 	Config(ctx context.Context, obj *model.RootRoot, id *string) (*model.ConfigConfig, error)
@@ -431,6 +442,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Config_Config.QueryExample(childComplexity, args["StartTime"].(*string), args["EndTime"].(*string), args["Interval"].(*string), args["IsServiceDeployment"].(*bool), args["StartVal"].(*int)), true
+
+	case "config_Config.SvcGrpInfo":
+		if e.complexity.Config_Config.SvcGrpInfo == nil {
+			break
+		}
+
+		args, err := ec.field_config_Config_SvcGrpInfo_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Config_Config.SvcGrpInfo(childComplexity, args["Id"].(*string)), true
 
 	case "config_Config.TestValMarkers":
 		if e.complexity.Config_Config.TestValMarkers == nil {
@@ -795,101 +818,101 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Gns_IgnoreChild.ParentLabels(childComplexity), true
 
-	case "policy_ACPConfig.Conditions":
-		if e.complexity.Policy_ACPConfig.Conditions == nil {
+	case "policypkg_ACPConfig.Conditions":
+		if e.complexity.Policypkg_ACPConfig.Conditions == nil {
 			break
 		}
 
-		return e.complexity.Policy_ACPConfig.Conditions(childComplexity), true
+		return e.complexity.Policypkg_ACPConfig.Conditions(childComplexity), true
 
-	case "policy_ACPConfig.Description":
-		if e.complexity.Policy_ACPConfig.Description == nil {
+	case "policypkg_ACPConfig.Description":
+		if e.complexity.Policypkg_ACPConfig.Description == nil {
 			break
 		}
 
-		return e.complexity.Policy_ACPConfig.Description(childComplexity), true
+		return e.complexity.Policypkg_ACPConfig.Description(childComplexity), true
 
-	case "policy_ACPConfig.DisplayName":
-		if e.complexity.Policy_ACPConfig.DisplayName == nil {
+	case "policypkg_ACPConfig.DisplayName":
+		if e.complexity.Policypkg_ACPConfig.DisplayName == nil {
 			break
 		}
 
-		return e.complexity.Policy_ACPConfig.DisplayName(childComplexity), true
+		return e.complexity.Policypkg_ACPConfig.DisplayName(childComplexity), true
 
-	case "policy_ACPConfig.Gns":
-		if e.complexity.Policy_ACPConfig.Gns == nil {
+	case "policypkg_ACPConfig.Gns":
+		if e.complexity.Policypkg_ACPConfig.Gns == nil {
 			break
 		}
 
-		return e.complexity.Policy_ACPConfig.Gns(childComplexity), true
+		return e.complexity.Policypkg_ACPConfig.Gns(childComplexity), true
 
-	case "policy_ACPConfig.Id":
-		if e.complexity.Policy_ACPConfig.Id == nil {
+	case "policypkg_ACPConfig.Id":
+		if e.complexity.Policypkg_ACPConfig.Id == nil {
 			break
 		}
 
-		return e.complexity.Policy_ACPConfig.Id(childComplexity), true
+		return e.complexity.Policypkg_ACPConfig.Id(childComplexity), true
 
-	case "policy_ACPConfig.ParentLabels":
-		if e.complexity.Policy_ACPConfig.ParentLabels == nil {
+	case "policypkg_ACPConfig.ParentLabels":
+		if e.complexity.Policypkg_ACPConfig.ParentLabels == nil {
 			break
 		}
 
-		return e.complexity.Policy_ACPConfig.ParentLabels(childComplexity), true
+		return e.complexity.Policypkg_ACPConfig.ParentLabels(childComplexity), true
 
-	case "policy_ACPConfig.ProjectId":
-		if e.complexity.Policy_ACPConfig.ProjectId == nil {
+	case "policypkg_ACPConfig.ProjectId":
+		if e.complexity.Policypkg_ACPConfig.ProjectId == nil {
 			break
 		}
 
-		return e.complexity.Policy_ACPConfig.ProjectId(childComplexity), true
+		return e.complexity.Policypkg_ACPConfig.ProjectId(childComplexity), true
 
-	case "policy_ACPConfig.Tags":
-		if e.complexity.Policy_ACPConfig.Tags == nil {
+	case "policypkg_ACPConfig.Tags":
+		if e.complexity.Policypkg_ACPConfig.Tags == nil {
 			break
 		}
 
-		return e.complexity.Policy_ACPConfig.Tags(childComplexity), true
+		return e.complexity.Policypkg_ACPConfig.Tags(childComplexity), true
 
-	case "policy_AccessControlPolicy.Id":
-		if e.complexity.Policy_AccessControlPolicy.Id == nil {
+	case "policypkg_AccessControlPolicy.Id":
+		if e.complexity.Policypkg_AccessControlPolicy.Id == nil {
 			break
 		}
 
-		return e.complexity.Policy_AccessControlPolicy.Id(childComplexity), true
+		return e.complexity.Policypkg_AccessControlPolicy.Id(childComplexity), true
 
-	case "policy_AccessControlPolicy.ParentLabels":
-		if e.complexity.Policy_AccessControlPolicy.ParentLabels == nil {
+	case "policypkg_AccessControlPolicy.ParentLabels":
+		if e.complexity.Policypkg_AccessControlPolicy.ParentLabels == nil {
 			break
 		}
 
-		return e.complexity.Policy_AccessControlPolicy.ParentLabels(childComplexity), true
+		return e.complexity.Policypkg_AccessControlPolicy.ParentLabels(childComplexity), true
 
-	case "policy_AccessControlPolicy.PolicyConfigs":
-		if e.complexity.Policy_AccessControlPolicy.PolicyConfigs == nil {
+	case "policypkg_AccessControlPolicy.PolicyConfigs":
+		if e.complexity.Policypkg_AccessControlPolicy.PolicyConfigs == nil {
 			break
 		}
 
-		args, err := ec.field_policy_AccessControlPolicy_PolicyConfigs_args(context.TODO(), rawArgs)
+		args, err := ec.field_policypkg_AccessControlPolicy_PolicyConfigs_args(context.TODO(), rawArgs)
 		if err != nil {
 			return 0, false
 		}
 
-		return e.complexity.Policy_AccessControlPolicy.PolicyConfigs(childComplexity, args["Id"].(*string)), true
+		return e.complexity.Policypkg_AccessControlPolicy.PolicyConfigs(childComplexity, args["Id"].(*string)), true
 
-	case "policy_VMpolicy.Id":
-		if e.complexity.Policy_VMpolicy.Id == nil {
+	case "policypkg_VMpolicy.Id":
+		if e.complexity.Policypkg_VMpolicy.Id == nil {
 			break
 		}
 
-		return e.complexity.Policy_VMpolicy.Id(childComplexity), true
+		return e.complexity.Policypkg_VMpolicy.Id(childComplexity), true
 
-	case "policy_VMpolicy.ParentLabels":
-		if e.complexity.Policy_VMpolicy.ParentLabels == nil {
+	case "policypkg_VMpolicy.ParentLabels":
+		if e.complexity.Policypkg_VMpolicy.ParentLabels == nil {
 			break
 		}
 
-		return e.complexity.Policy_VMpolicy.ParentLabels(childComplexity), true
+		return e.complexity.Policypkg_VMpolicy.ParentLabels(childComplexity), true
 
 	case "root_Root.Config":
 		if e.complexity.Root_Root.Config == nil {
@@ -916,6 +939,48 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Root_Root.ParentLabels(childComplexity), true
+
+	case "servicegroup_SvcGroupLinkInfo.ClusterName":
+		if e.complexity.Servicegroup_SvcGroupLinkInfo.ClusterName == nil {
+			break
+		}
+
+		return e.complexity.Servicegroup_SvcGroupLinkInfo.ClusterName(childComplexity), true
+
+	case "servicegroup_SvcGroupLinkInfo.DomainName":
+		if e.complexity.Servicegroup_SvcGroupLinkInfo.DomainName == nil {
+			break
+		}
+
+		return e.complexity.Servicegroup_SvcGroupLinkInfo.DomainName(childComplexity), true
+
+	case "servicegroup_SvcGroupLinkInfo.Id":
+		if e.complexity.Servicegroup_SvcGroupLinkInfo.Id == nil {
+			break
+		}
+
+		return e.complexity.Servicegroup_SvcGroupLinkInfo.Id(childComplexity), true
+
+	case "servicegroup_SvcGroupLinkInfo.ParentLabels":
+		if e.complexity.Servicegroup_SvcGroupLinkInfo.ParentLabels == nil {
+			break
+		}
+
+		return e.complexity.Servicegroup_SvcGroupLinkInfo.ParentLabels(childComplexity), true
+
+	case "servicegroup_SvcGroupLinkInfo.ServiceName":
+		if e.complexity.Servicegroup_SvcGroupLinkInfo.ServiceName == nil {
+			break
+		}
+
+		return e.complexity.Servicegroup_SvcGroupLinkInfo.ServiceName(childComplexity), true
+
+	case "servicegroup_SvcGroupLinkInfo.ServiceType":
+		if e.complexity.Servicegroup_SvcGroupLinkInfo.ServiceType == nil {
+			break
+		}
+
+		return e.complexity.Servicegroup_SvcGroupLinkInfo.ServiceType(childComplexity), true
 
 	}
 	return 0, false
@@ -993,7 +1058,7 @@ type config_Config {
         StartVal: Int
     ): NexusGraphqlResponse
 
-    ACPPolicies(Id: ID): [policy_AccessControlPolicy!]
+    ACPPolicies(Id: ID): [policypkg_AccessControlPolicy!]
     FooExample(Id: ID): [config_FooTypeABC!]
     MyStr0: String
     MyStr1: String
@@ -1006,8 +1071,9 @@ type config_Config {
     CuOption: String
     GNS(Id: ID): gns_Gns!
     DNS: gns_Dns!
-    VMPPolicies(Id: ID): policy_VMpolicy!
+    VMPPolicies(Id: ID): policypkg_VMpolicy!
     Domain(Id: ID): config_Domain!
+    SvcGrpInfo(Id: ID): servicegroup_SvcGroupLinkInfo!
 }
 
 type config_FooTypeABC {
@@ -1070,7 +1136,7 @@ type gns_Gns {
     ServiceSegmentRefPointer: String
     ServiceSegmentRefs: String
     ServiceSegmentRefMap: String
-    GnsAccessControlPolicy(Id: ID): policy_AccessControlPolicy!
+    GnsAccessControlPolicy(Id: ID): policypkg_AccessControlPolicy!
     FooChild: gns_BarChild!
 }
 
@@ -1094,14 +1160,24 @@ type gns_Dns {
 
 }
 
-type policy_AccessControlPolicy {
+type servicegroup_SvcGroupLinkInfo {
     Id: ID
 	ParentLabels: Map
 
-    PolicyConfigs(Id: ID): [policy_ACPConfig!]
+    ClusterName: String
+    DomainName: String
+    ServiceName: String
+    ServiceType: String
 }
 
-type policy_ACPConfig {
+type policypkg_AccessControlPolicy {
+    Id: ID
+	ParentLabels: Map
+
+    PolicyConfigs(Id: ID): [policypkg_ACPConfig!]
+}
+
+type policypkg_ACPConfig {
     Id: ID
 	ParentLabels: Map
 
@@ -1117,7 +1193,7 @@ type policy_ACPConfig {
     Conditions: String
 }
 
-type policy_VMpolicy {
+type policypkg_VMpolicy {
     Id: ID
 	ParentLabels: Map
 
@@ -1302,6 +1378,21 @@ func (ec *executionContext) field_config_Config_QueryExample_args(ctx context.Co
 	return args, nil
 }
 
+func (ec *executionContext) field_config_Config_SvcGrpInfo_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *string
+	if tmp, ok := rawArgs["Id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("Id"))
+		arg0, err = ec.unmarshalOID2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["Id"] = arg0
+	return args, nil
+}
+
 func (ec *executionContext) field_config_Config_VMPPolicies_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -1443,7 +1534,7 @@ func (ec *executionContext) field_gns_Gns_queryGnsQM_args(ctx context.Context, r
 	return args, nil
 }
 
-func (ec *executionContext) field_policy_AccessControlPolicy_PolicyConfigs_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+func (ec *executionContext) field_policypkg_AccessControlPolicy_PolicyConfigs_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
 	var arg0 *string
@@ -4007,9 +4098,9 @@ func (ec *executionContext) _config_Config_ACPPolicies(ctx context.Context, fiel
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.([]*model.PolicyAccessControlPolicy)
+	res := resTmp.([]*model.PolicypkgAccessControlPolicy)
 	fc.Result = res
-	return ec.marshalOpolicy_AccessControlPolicy2ᚕᚖnexustempmoduleᚋnexusᚑgqlᚋgraphᚋmodelᚐPolicyAccessControlPolicyᚄ(ctx, field.Selections, res)
+	return ec.marshalOpolicypkg_AccessControlPolicy2ᚕᚖnexustempmoduleᚋnexusᚑgqlᚋgraphᚋmodelᚐPolicypkgAccessControlPolicyᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_config_Config_ACPPolicies(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -4021,13 +4112,13 @@ func (ec *executionContext) fieldContext_config_Config_ACPPolicies(ctx context.C
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
 			case "Id":
-				return ec.fieldContext_policy_AccessControlPolicy_Id(ctx, field)
+				return ec.fieldContext_policypkg_AccessControlPolicy_Id(ctx, field)
 			case "ParentLabels":
-				return ec.fieldContext_policy_AccessControlPolicy_ParentLabels(ctx, field)
+				return ec.fieldContext_policypkg_AccessControlPolicy_ParentLabels(ctx, field)
 			case "PolicyConfigs":
-				return ec.fieldContext_policy_AccessControlPolicy_PolicyConfigs(ctx, field)
+				return ec.fieldContext_policypkg_AccessControlPolicy_PolicyConfigs(ctx, field)
 			}
-			return nil, fmt.Errorf("no field named %q was found under type policy_AccessControlPolicy", field.Name)
+			return nil, fmt.Errorf("no field named %q was found under type policypkg_AccessControlPolicy", field.Name)
 		},
 	}
 	defer func() {
@@ -4654,9 +4745,9 @@ func (ec *executionContext) _config_Config_VMPPolicies(ctx context.Context, fiel
 		}
 		return graphql.Null
 	}
-	res := resTmp.(*model.PolicyVMpolicy)
+	res := resTmp.(*model.PolicypkgVMpolicy)
 	fc.Result = res
-	return ec.marshalNpolicy_VMpolicy2ᚖnexustempmoduleᚋnexusᚑgqlᚋgraphᚋmodelᚐPolicyVMpolicy(ctx, field.Selections, res)
+	return ec.marshalNpolicypkg_VMpolicy2ᚖnexustempmoduleᚋnexusᚑgqlᚋgraphᚋmodelᚐPolicypkgVMpolicy(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_config_Config_VMPPolicies(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -4668,11 +4759,11 @@ func (ec *executionContext) fieldContext_config_Config_VMPPolicies(ctx context.C
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
 			case "Id":
-				return ec.fieldContext_policy_VMpolicy_Id(ctx, field)
+				return ec.fieldContext_policypkg_VMpolicy_Id(ctx, field)
 			case "ParentLabels":
-				return ec.fieldContext_policy_VMpolicy_ParentLabels(ctx, field)
+				return ec.fieldContext_policypkg_VMpolicy_ParentLabels(ctx, field)
 			}
-			return nil, fmt.Errorf("no field named %q was found under type policy_VMpolicy", field.Name)
+			return nil, fmt.Errorf("no field named %q was found under type policypkg_VMpolicy", field.Name)
 		},
 	}
 	defer func() {
@@ -4762,6 +4853,75 @@ func (ec *executionContext) fieldContext_config_Config_Domain(ctx context.Contex
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_config_Config_Domain_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _config_Config_SvcGrpInfo(ctx context.Context, field graphql.CollectedField, obj *model.ConfigConfig) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_config_Config_SvcGrpInfo(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Config_Config().SvcGrpInfo(rctx, obj, fc.Args["Id"].(*string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.ServicegroupSvcGroupLinkInfo)
+	fc.Result = res
+	return ec.marshalNservicegroup_SvcGroupLinkInfo2ᚖnexustempmoduleᚋnexusᚑgqlᚋgraphᚋmodelᚐServicegroupSvcGroupLinkInfo(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_config_Config_SvcGrpInfo(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "config_Config",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "Id":
+				return ec.fieldContext_servicegroup_SvcGroupLinkInfo_Id(ctx, field)
+			case "ParentLabels":
+				return ec.fieldContext_servicegroup_SvcGroupLinkInfo_ParentLabels(ctx, field)
+			case "ClusterName":
+				return ec.fieldContext_servicegroup_SvcGroupLinkInfo_ClusterName(ctx, field)
+			case "DomainName":
+				return ec.fieldContext_servicegroup_SvcGroupLinkInfo_DomainName(ctx, field)
+			case "ServiceName":
+				return ec.fieldContext_servicegroup_SvcGroupLinkInfo_ServiceName(ctx, field)
+			case "ServiceType":
+				return ec.fieldContext_servicegroup_SvcGroupLinkInfo_ServiceType(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type servicegroup_SvcGroupLinkInfo", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_config_Config_SvcGrpInfo_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return
 	}
@@ -6533,9 +6693,9 @@ func (ec *executionContext) _gns_Gns_GnsAccessControlPolicy(ctx context.Context,
 		}
 		return graphql.Null
 	}
-	res := resTmp.(*model.PolicyAccessControlPolicy)
+	res := resTmp.(*model.PolicypkgAccessControlPolicy)
 	fc.Result = res
-	return ec.marshalNpolicy_AccessControlPolicy2ᚖnexustempmoduleᚋnexusᚑgqlᚋgraphᚋmodelᚐPolicyAccessControlPolicy(ctx, field.Selections, res)
+	return ec.marshalNpolicypkg_AccessControlPolicy2ᚖnexustempmoduleᚋnexusᚑgqlᚋgraphᚋmodelᚐPolicypkgAccessControlPolicy(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_gns_Gns_GnsAccessControlPolicy(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -6547,13 +6707,13 @@ func (ec *executionContext) fieldContext_gns_Gns_GnsAccessControlPolicy(ctx cont
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
 			case "Id":
-				return ec.fieldContext_policy_AccessControlPolicy_Id(ctx, field)
+				return ec.fieldContext_policypkg_AccessControlPolicy_Id(ctx, field)
 			case "ParentLabels":
-				return ec.fieldContext_policy_AccessControlPolicy_ParentLabels(ctx, field)
+				return ec.fieldContext_policypkg_AccessControlPolicy_ParentLabels(ctx, field)
 			case "PolicyConfigs":
-				return ec.fieldContext_policy_AccessControlPolicy_PolicyConfigs(ctx, field)
+				return ec.fieldContext_policypkg_AccessControlPolicy_PolicyConfigs(ctx, field)
 			}
-			return nil, fmt.Errorf("no field named %q was found under type policy_AccessControlPolicy", field.Name)
+			return nil, fmt.Errorf("no field named %q was found under type policypkg_AccessControlPolicy", field.Name)
 		},
 	}
 	defer func() {
@@ -6745,8 +6905,8 @@ func (ec *executionContext) fieldContext_gns_IgnoreChild_Name(ctx context.Contex
 	return fc, nil
 }
 
-func (ec *executionContext) _policy_ACPConfig_Id(ctx context.Context, field graphql.CollectedField, obj *model.PolicyACPConfig) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_policy_ACPConfig_Id(ctx, field)
+func (ec *executionContext) _policypkg_ACPConfig_Id(ctx context.Context, field graphql.CollectedField, obj *model.PolicypkgACPConfig) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_policypkg_ACPConfig_Id(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -6773,9 +6933,9 @@ func (ec *executionContext) _policy_ACPConfig_Id(ctx context.Context, field grap
 	return ec.marshalOID2ᚖstring(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_policy_ACPConfig_Id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_policypkg_ACPConfig_Id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
-		Object:     "policy_ACPConfig",
+		Object:     "policypkg_ACPConfig",
 		Field:      field,
 		IsMethod:   false,
 		IsResolver: false,
@@ -6786,8 +6946,8 @@ func (ec *executionContext) fieldContext_policy_ACPConfig_Id(ctx context.Context
 	return fc, nil
 }
 
-func (ec *executionContext) _policy_ACPConfig_ParentLabels(ctx context.Context, field graphql.CollectedField, obj *model.PolicyACPConfig) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_policy_ACPConfig_ParentLabels(ctx, field)
+func (ec *executionContext) _policypkg_ACPConfig_ParentLabels(ctx context.Context, field graphql.CollectedField, obj *model.PolicypkgACPConfig) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_policypkg_ACPConfig_ParentLabels(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -6814,9 +6974,9 @@ func (ec *executionContext) _policy_ACPConfig_ParentLabels(ctx context.Context, 
 	return ec.marshalOMap2map(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_policy_ACPConfig_ParentLabels(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_policypkg_ACPConfig_ParentLabels(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
-		Object:     "policy_ACPConfig",
+		Object:     "policypkg_ACPConfig",
 		Field:      field,
 		IsMethod:   false,
 		IsResolver: false,
@@ -6827,8 +6987,8 @@ func (ec *executionContext) fieldContext_policy_ACPConfig_ParentLabels(ctx conte
 	return fc, nil
 }
 
-func (ec *executionContext) _policy_ACPConfig_DisplayName(ctx context.Context, field graphql.CollectedField, obj *model.PolicyACPConfig) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_policy_ACPConfig_DisplayName(ctx, field)
+func (ec *executionContext) _policypkg_ACPConfig_DisplayName(ctx context.Context, field graphql.CollectedField, obj *model.PolicypkgACPConfig) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_policypkg_ACPConfig_DisplayName(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -6855,9 +7015,9 @@ func (ec *executionContext) _policy_ACPConfig_DisplayName(ctx context.Context, f
 	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_policy_ACPConfig_DisplayName(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_policypkg_ACPConfig_DisplayName(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
-		Object:     "policy_ACPConfig",
+		Object:     "policypkg_ACPConfig",
 		Field:      field,
 		IsMethod:   false,
 		IsResolver: false,
@@ -6868,8 +7028,8 @@ func (ec *executionContext) fieldContext_policy_ACPConfig_DisplayName(ctx contex
 	return fc, nil
 }
 
-func (ec *executionContext) _policy_ACPConfig_Gns(ctx context.Context, field graphql.CollectedField, obj *model.PolicyACPConfig) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_policy_ACPConfig_Gns(ctx, field)
+func (ec *executionContext) _policypkg_ACPConfig_Gns(ctx context.Context, field graphql.CollectedField, obj *model.PolicypkgACPConfig) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_policypkg_ACPConfig_Gns(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -6896,9 +7056,9 @@ func (ec *executionContext) _policy_ACPConfig_Gns(ctx context.Context, field gra
 	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_policy_ACPConfig_Gns(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_policypkg_ACPConfig_Gns(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
-		Object:     "policy_ACPConfig",
+		Object:     "policypkg_ACPConfig",
 		Field:      field,
 		IsMethod:   false,
 		IsResolver: false,
@@ -6909,8 +7069,8 @@ func (ec *executionContext) fieldContext_policy_ACPConfig_Gns(ctx context.Contex
 	return fc, nil
 }
 
-func (ec *executionContext) _policy_ACPConfig_Description(ctx context.Context, field graphql.CollectedField, obj *model.PolicyACPConfig) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_policy_ACPConfig_Description(ctx, field)
+func (ec *executionContext) _policypkg_ACPConfig_Description(ctx context.Context, field graphql.CollectedField, obj *model.PolicypkgACPConfig) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_policypkg_ACPConfig_Description(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -6937,9 +7097,9 @@ func (ec *executionContext) _policy_ACPConfig_Description(ctx context.Context, f
 	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_policy_ACPConfig_Description(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_policypkg_ACPConfig_Description(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
-		Object:     "policy_ACPConfig",
+		Object:     "policypkg_ACPConfig",
 		Field:      field,
 		IsMethod:   false,
 		IsResolver: false,
@@ -6950,8 +7110,8 @@ func (ec *executionContext) fieldContext_policy_ACPConfig_Description(ctx contex
 	return fc, nil
 }
 
-func (ec *executionContext) _policy_ACPConfig_Tags(ctx context.Context, field graphql.CollectedField, obj *model.PolicyACPConfig) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_policy_ACPConfig_Tags(ctx, field)
+func (ec *executionContext) _policypkg_ACPConfig_Tags(ctx context.Context, field graphql.CollectedField, obj *model.PolicypkgACPConfig) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_policypkg_ACPConfig_Tags(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -6978,9 +7138,9 @@ func (ec *executionContext) _policy_ACPConfig_Tags(ctx context.Context, field gr
 	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_policy_ACPConfig_Tags(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_policypkg_ACPConfig_Tags(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
-		Object:     "policy_ACPConfig",
+		Object:     "policypkg_ACPConfig",
 		Field:      field,
 		IsMethod:   false,
 		IsResolver: false,
@@ -6991,8 +7151,8 @@ func (ec *executionContext) fieldContext_policy_ACPConfig_Tags(ctx context.Conte
 	return fc, nil
 }
 
-func (ec *executionContext) _policy_ACPConfig_ProjectId(ctx context.Context, field graphql.CollectedField, obj *model.PolicyACPConfig) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_policy_ACPConfig_ProjectId(ctx, field)
+func (ec *executionContext) _policypkg_ACPConfig_ProjectId(ctx context.Context, field graphql.CollectedField, obj *model.PolicypkgACPConfig) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_policypkg_ACPConfig_ProjectId(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -7019,9 +7179,9 @@ func (ec *executionContext) _policy_ACPConfig_ProjectId(ctx context.Context, fie
 	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_policy_ACPConfig_ProjectId(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_policypkg_ACPConfig_ProjectId(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
-		Object:     "policy_ACPConfig",
+		Object:     "policypkg_ACPConfig",
 		Field:      field,
 		IsMethod:   false,
 		IsResolver: false,
@@ -7032,8 +7192,8 @@ func (ec *executionContext) fieldContext_policy_ACPConfig_ProjectId(ctx context.
 	return fc, nil
 }
 
-func (ec *executionContext) _policy_ACPConfig_Conditions(ctx context.Context, field graphql.CollectedField, obj *model.PolicyACPConfig) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_policy_ACPConfig_Conditions(ctx, field)
+func (ec *executionContext) _policypkg_ACPConfig_Conditions(ctx context.Context, field graphql.CollectedField, obj *model.PolicypkgACPConfig) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_policypkg_ACPConfig_Conditions(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -7060,9 +7220,9 @@ func (ec *executionContext) _policy_ACPConfig_Conditions(ctx context.Context, fi
 	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_policy_ACPConfig_Conditions(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_policypkg_ACPConfig_Conditions(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
-		Object:     "policy_ACPConfig",
+		Object:     "policypkg_ACPConfig",
 		Field:      field,
 		IsMethod:   false,
 		IsResolver: false,
@@ -7073,8 +7233,8 @@ func (ec *executionContext) fieldContext_policy_ACPConfig_Conditions(ctx context
 	return fc, nil
 }
 
-func (ec *executionContext) _policy_AccessControlPolicy_Id(ctx context.Context, field graphql.CollectedField, obj *model.PolicyAccessControlPolicy) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_policy_AccessControlPolicy_Id(ctx, field)
+func (ec *executionContext) _policypkg_AccessControlPolicy_Id(ctx context.Context, field graphql.CollectedField, obj *model.PolicypkgAccessControlPolicy) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_policypkg_AccessControlPolicy_Id(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -7101,9 +7261,9 @@ func (ec *executionContext) _policy_AccessControlPolicy_Id(ctx context.Context, 
 	return ec.marshalOID2ᚖstring(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_policy_AccessControlPolicy_Id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_policypkg_AccessControlPolicy_Id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
-		Object:     "policy_AccessControlPolicy",
+		Object:     "policypkg_AccessControlPolicy",
 		Field:      field,
 		IsMethod:   false,
 		IsResolver: false,
@@ -7114,8 +7274,8 @@ func (ec *executionContext) fieldContext_policy_AccessControlPolicy_Id(ctx conte
 	return fc, nil
 }
 
-func (ec *executionContext) _policy_AccessControlPolicy_ParentLabels(ctx context.Context, field graphql.CollectedField, obj *model.PolicyAccessControlPolicy) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_policy_AccessControlPolicy_ParentLabels(ctx, field)
+func (ec *executionContext) _policypkg_AccessControlPolicy_ParentLabels(ctx context.Context, field graphql.CollectedField, obj *model.PolicypkgAccessControlPolicy) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_policypkg_AccessControlPolicy_ParentLabels(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -7142,9 +7302,9 @@ func (ec *executionContext) _policy_AccessControlPolicy_ParentLabels(ctx context
 	return ec.marshalOMap2map(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_policy_AccessControlPolicy_ParentLabels(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_policypkg_AccessControlPolicy_ParentLabels(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
-		Object:     "policy_AccessControlPolicy",
+		Object:     "policypkg_AccessControlPolicy",
 		Field:      field,
 		IsMethod:   false,
 		IsResolver: false,
@@ -7155,8 +7315,8 @@ func (ec *executionContext) fieldContext_policy_AccessControlPolicy_ParentLabels
 	return fc, nil
 }
 
-func (ec *executionContext) _policy_AccessControlPolicy_PolicyConfigs(ctx context.Context, field graphql.CollectedField, obj *model.PolicyAccessControlPolicy) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_policy_AccessControlPolicy_PolicyConfigs(ctx, field)
+func (ec *executionContext) _policypkg_AccessControlPolicy_PolicyConfigs(ctx context.Context, field graphql.CollectedField, obj *model.PolicypkgAccessControlPolicy) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_policypkg_AccessControlPolicy_PolicyConfigs(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -7169,7 +7329,7 @@ func (ec *executionContext) _policy_AccessControlPolicy_PolicyConfigs(ctx contex
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Policy_AccessControlPolicy().PolicyConfigs(rctx, obj, fc.Args["Id"].(*string))
+		return ec.resolvers.Policypkg_AccessControlPolicy().PolicyConfigs(rctx, obj, fc.Args["Id"].(*string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -7178,37 +7338,37 @@ func (ec *executionContext) _policy_AccessControlPolicy_PolicyConfigs(ctx contex
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.([]*model.PolicyACPConfig)
+	res := resTmp.([]*model.PolicypkgACPConfig)
 	fc.Result = res
-	return ec.marshalOpolicy_ACPConfig2ᚕᚖnexustempmoduleᚋnexusᚑgqlᚋgraphᚋmodelᚐPolicyACPConfigᚄ(ctx, field.Selections, res)
+	return ec.marshalOpolicypkg_ACPConfig2ᚕᚖnexustempmoduleᚋnexusᚑgqlᚋgraphᚋmodelᚐPolicypkgACPConfigᚄ(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_policy_AccessControlPolicy_PolicyConfigs(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_policypkg_AccessControlPolicy_PolicyConfigs(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
-		Object:     "policy_AccessControlPolicy",
+		Object:     "policypkg_AccessControlPolicy",
 		Field:      field,
 		IsMethod:   true,
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
 			case "Id":
-				return ec.fieldContext_policy_ACPConfig_Id(ctx, field)
+				return ec.fieldContext_policypkg_ACPConfig_Id(ctx, field)
 			case "ParentLabels":
-				return ec.fieldContext_policy_ACPConfig_ParentLabels(ctx, field)
+				return ec.fieldContext_policypkg_ACPConfig_ParentLabels(ctx, field)
 			case "DisplayName":
-				return ec.fieldContext_policy_ACPConfig_DisplayName(ctx, field)
+				return ec.fieldContext_policypkg_ACPConfig_DisplayName(ctx, field)
 			case "Gns":
-				return ec.fieldContext_policy_ACPConfig_Gns(ctx, field)
+				return ec.fieldContext_policypkg_ACPConfig_Gns(ctx, field)
 			case "Description":
-				return ec.fieldContext_policy_ACPConfig_Description(ctx, field)
+				return ec.fieldContext_policypkg_ACPConfig_Description(ctx, field)
 			case "Tags":
-				return ec.fieldContext_policy_ACPConfig_Tags(ctx, field)
+				return ec.fieldContext_policypkg_ACPConfig_Tags(ctx, field)
 			case "ProjectId":
-				return ec.fieldContext_policy_ACPConfig_ProjectId(ctx, field)
+				return ec.fieldContext_policypkg_ACPConfig_ProjectId(ctx, field)
 			case "Conditions":
-				return ec.fieldContext_policy_ACPConfig_Conditions(ctx, field)
+				return ec.fieldContext_policypkg_ACPConfig_Conditions(ctx, field)
 			}
-			return nil, fmt.Errorf("no field named %q was found under type policy_ACPConfig", field.Name)
+			return nil, fmt.Errorf("no field named %q was found under type policypkg_ACPConfig", field.Name)
 		},
 	}
 	defer func() {
@@ -7218,15 +7378,15 @@ func (ec *executionContext) fieldContext_policy_AccessControlPolicy_PolicyConfig
 		}
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_policy_AccessControlPolicy_PolicyConfigs_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+	if fc.Args, err = ec.field_policypkg_AccessControlPolicy_PolicyConfigs_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return
 	}
 	return fc, nil
 }
 
-func (ec *executionContext) _policy_VMpolicy_Id(ctx context.Context, field graphql.CollectedField, obj *model.PolicyVMpolicy) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_policy_VMpolicy_Id(ctx, field)
+func (ec *executionContext) _policypkg_VMpolicy_Id(ctx context.Context, field graphql.CollectedField, obj *model.PolicypkgVMpolicy) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_policypkg_VMpolicy_Id(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -7253,9 +7413,9 @@ func (ec *executionContext) _policy_VMpolicy_Id(ctx context.Context, field graph
 	return ec.marshalOID2ᚖstring(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_policy_VMpolicy_Id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_policypkg_VMpolicy_Id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
-		Object:     "policy_VMpolicy",
+		Object:     "policypkg_VMpolicy",
 		Field:      field,
 		IsMethod:   false,
 		IsResolver: false,
@@ -7266,8 +7426,8 @@ func (ec *executionContext) fieldContext_policy_VMpolicy_Id(ctx context.Context,
 	return fc, nil
 }
 
-func (ec *executionContext) _policy_VMpolicy_ParentLabels(ctx context.Context, field graphql.CollectedField, obj *model.PolicyVMpolicy) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_policy_VMpolicy_ParentLabels(ctx, field)
+func (ec *executionContext) _policypkg_VMpolicy_ParentLabels(ctx context.Context, field graphql.CollectedField, obj *model.PolicypkgVMpolicy) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_policypkg_VMpolicy_ParentLabels(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -7294,9 +7454,9 @@ func (ec *executionContext) _policy_VMpolicy_ParentLabels(ctx context.Context, f
 	return ec.marshalOMap2map(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_policy_VMpolicy_ParentLabels(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_policypkg_VMpolicy_ParentLabels(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
-		Object:     "policy_VMpolicy",
+		Object:     "policypkg_VMpolicy",
 		Field:      field,
 		IsMethod:   false,
 		IsResolver: false,
@@ -7464,6 +7624,8 @@ func (ec *executionContext) fieldContext_root_Root_Config(ctx context.Context, f
 				return ec.fieldContext_config_Config_VMPPolicies(ctx, field)
 			case "Domain":
 				return ec.fieldContext_config_Config_Domain(ctx, field)
+			case "SvcGrpInfo":
+				return ec.fieldContext_config_Config_SvcGrpInfo(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type config_Config", field.Name)
 		},
@@ -7478,6 +7640,252 @@ func (ec *executionContext) fieldContext_root_Root_Config(ctx context.Context, f
 	if fc.Args, err = ec.field_root_Root_Config_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _servicegroup_SvcGroupLinkInfo_Id(ctx context.Context, field graphql.CollectedField, obj *model.ServicegroupSvcGroupLinkInfo) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_servicegroup_SvcGroupLinkInfo_Id(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Id, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOID2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_servicegroup_SvcGroupLinkInfo_Id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "servicegroup_SvcGroupLinkInfo",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _servicegroup_SvcGroupLinkInfo_ParentLabels(ctx context.Context, field graphql.CollectedField, obj *model.ServicegroupSvcGroupLinkInfo) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_servicegroup_SvcGroupLinkInfo_ParentLabels(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ParentLabels, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(map[string]interface{})
+	fc.Result = res
+	return ec.marshalOMap2map(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_servicegroup_SvcGroupLinkInfo_ParentLabels(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "servicegroup_SvcGroupLinkInfo",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Map does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _servicegroup_SvcGroupLinkInfo_ClusterName(ctx context.Context, field graphql.CollectedField, obj *model.ServicegroupSvcGroupLinkInfo) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_servicegroup_SvcGroupLinkInfo_ClusterName(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ClusterName, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_servicegroup_SvcGroupLinkInfo_ClusterName(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "servicegroup_SvcGroupLinkInfo",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _servicegroup_SvcGroupLinkInfo_DomainName(ctx context.Context, field graphql.CollectedField, obj *model.ServicegroupSvcGroupLinkInfo) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_servicegroup_SvcGroupLinkInfo_DomainName(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.DomainName, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_servicegroup_SvcGroupLinkInfo_DomainName(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "servicegroup_SvcGroupLinkInfo",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _servicegroup_SvcGroupLinkInfo_ServiceName(ctx context.Context, field graphql.CollectedField, obj *model.ServicegroupSvcGroupLinkInfo) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_servicegroup_SvcGroupLinkInfo_ServiceName(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ServiceName, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_servicegroup_SvcGroupLinkInfo_ServiceName(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "servicegroup_SvcGroupLinkInfo",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _servicegroup_SvcGroupLinkInfo_ServiceType(ctx context.Context, field graphql.CollectedField, obj *model.ServicegroupSvcGroupLinkInfo) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_servicegroup_SvcGroupLinkInfo_ServiceType(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ServiceType, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_servicegroup_SvcGroupLinkInfo_ServiceType(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "servicegroup_SvcGroupLinkInfo",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
 	}
 	return fc, nil
 }
@@ -8137,6 +8545,26 @@ func (ec *executionContext) _config_Config(ctx context.Context, sel ast.Selectio
 				return innerFunc(ctx)
 
 			})
+		case "SvcGrpInfo":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._config_Config_SvcGrpInfo(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -8529,47 +8957,47 @@ func (ec *executionContext) _gns_IgnoreChild(ctx context.Context, sel ast.Select
 	return out
 }
 
-var policy_ACPConfigImplementors = []string{"policy_ACPConfig"}
+var policypkg_ACPConfigImplementors = []string{"policypkg_ACPConfig"}
 
-func (ec *executionContext) _policy_ACPConfig(ctx context.Context, sel ast.SelectionSet, obj *model.PolicyACPConfig) graphql.Marshaler {
-	fields := graphql.CollectFields(ec.OperationContext, sel, policy_ACPConfigImplementors)
+func (ec *executionContext) _policypkg_ACPConfig(ctx context.Context, sel ast.SelectionSet, obj *model.PolicypkgACPConfig) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, policypkg_ACPConfigImplementors)
 	out := graphql.NewFieldSet(fields)
 	var invalids uint32
 	for i, field := range fields {
 		switch field.Name {
 		case "__typename":
-			out.Values[i] = graphql.MarshalString("policy_ACPConfig")
+			out.Values[i] = graphql.MarshalString("policypkg_ACPConfig")
 		case "Id":
 
-			out.Values[i] = ec._policy_ACPConfig_Id(ctx, field, obj)
+			out.Values[i] = ec._policypkg_ACPConfig_Id(ctx, field, obj)
 
 		case "ParentLabels":
 
-			out.Values[i] = ec._policy_ACPConfig_ParentLabels(ctx, field, obj)
+			out.Values[i] = ec._policypkg_ACPConfig_ParentLabels(ctx, field, obj)
 
 		case "DisplayName":
 
-			out.Values[i] = ec._policy_ACPConfig_DisplayName(ctx, field, obj)
+			out.Values[i] = ec._policypkg_ACPConfig_DisplayName(ctx, field, obj)
 
 		case "Gns":
 
-			out.Values[i] = ec._policy_ACPConfig_Gns(ctx, field, obj)
+			out.Values[i] = ec._policypkg_ACPConfig_Gns(ctx, field, obj)
 
 		case "Description":
 
-			out.Values[i] = ec._policy_ACPConfig_Description(ctx, field, obj)
+			out.Values[i] = ec._policypkg_ACPConfig_Description(ctx, field, obj)
 
 		case "Tags":
 
-			out.Values[i] = ec._policy_ACPConfig_Tags(ctx, field, obj)
+			out.Values[i] = ec._policypkg_ACPConfig_Tags(ctx, field, obj)
 
 		case "ProjectId":
 
-			out.Values[i] = ec._policy_ACPConfig_ProjectId(ctx, field, obj)
+			out.Values[i] = ec._policypkg_ACPConfig_ProjectId(ctx, field, obj)
 
 		case "Conditions":
 
-			out.Values[i] = ec._policy_ACPConfig_Conditions(ctx, field, obj)
+			out.Values[i] = ec._policypkg_ACPConfig_Conditions(ctx, field, obj)
 
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
@@ -8582,23 +9010,23 @@ func (ec *executionContext) _policy_ACPConfig(ctx context.Context, sel ast.Selec
 	return out
 }
 
-var policy_AccessControlPolicyImplementors = []string{"policy_AccessControlPolicy"}
+var policypkg_AccessControlPolicyImplementors = []string{"policypkg_AccessControlPolicy"}
 
-func (ec *executionContext) _policy_AccessControlPolicy(ctx context.Context, sel ast.SelectionSet, obj *model.PolicyAccessControlPolicy) graphql.Marshaler {
-	fields := graphql.CollectFields(ec.OperationContext, sel, policy_AccessControlPolicyImplementors)
+func (ec *executionContext) _policypkg_AccessControlPolicy(ctx context.Context, sel ast.SelectionSet, obj *model.PolicypkgAccessControlPolicy) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, policypkg_AccessControlPolicyImplementors)
 	out := graphql.NewFieldSet(fields)
 	var invalids uint32
 	for i, field := range fields {
 		switch field.Name {
 		case "__typename":
-			out.Values[i] = graphql.MarshalString("policy_AccessControlPolicy")
+			out.Values[i] = graphql.MarshalString("policypkg_AccessControlPolicy")
 		case "Id":
 
-			out.Values[i] = ec._policy_AccessControlPolicy_Id(ctx, field, obj)
+			out.Values[i] = ec._policypkg_AccessControlPolicy_Id(ctx, field, obj)
 
 		case "ParentLabels":
 
-			out.Values[i] = ec._policy_AccessControlPolicy_ParentLabels(ctx, field, obj)
+			out.Values[i] = ec._policypkg_AccessControlPolicy_ParentLabels(ctx, field, obj)
 
 		case "PolicyConfigs":
 			field := field
@@ -8609,7 +9037,7 @@ func (ec *executionContext) _policy_AccessControlPolicy(ctx context.Context, sel
 						ec.Error(ctx, ec.Recover(ctx, r))
 					}
 				}()
-				res = ec._policy_AccessControlPolicy_PolicyConfigs(ctx, field, obj)
+				res = ec._policypkg_AccessControlPolicy_PolicyConfigs(ctx, field, obj)
 				return res
 			}
 
@@ -8628,23 +9056,23 @@ func (ec *executionContext) _policy_AccessControlPolicy(ctx context.Context, sel
 	return out
 }
 
-var policy_VMpolicyImplementors = []string{"policy_VMpolicy"}
+var policypkg_VMpolicyImplementors = []string{"policypkg_VMpolicy"}
 
-func (ec *executionContext) _policy_VMpolicy(ctx context.Context, sel ast.SelectionSet, obj *model.PolicyVMpolicy) graphql.Marshaler {
-	fields := graphql.CollectFields(ec.OperationContext, sel, policy_VMpolicyImplementors)
+func (ec *executionContext) _policypkg_VMpolicy(ctx context.Context, sel ast.SelectionSet, obj *model.PolicypkgVMpolicy) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, policypkg_VMpolicyImplementors)
 	out := graphql.NewFieldSet(fields)
 	var invalids uint32
 	for i, field := range fields {
 		switch field.Name {
 		case "__typename":
-			out.Values[i] = graphql.MarshalString("policy_VMpolicy")
+			out.Values[i] = graphql.MarshalString("policypkg_VMpolicy")
 		case "Id":
 
-			out.Values[i] = ec._policy_VMpolicy_Id(ctx, field, obj)
+			out.Values[i] = ec._policypkg_VMpolicy_Id(ctx, field, obj)
 
 		case "ParentLabels":
 
-			out.Values[i] = ec._policy_VMpolicy_ParentLabels(ctx, field, obj)
+			out.Values[i] = ec._policypkg_VMpolicy_ParentLabels(ctx, field, obj)
 
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
@@ -8695,6 +9123,51 @@ func (ec *executionContext) _root_Root(ctx context.Context, sel ast.SelectionSet
 				return innerFunc(ctx)
 
 			})
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var servicegroup_SvcGroupLinkInfoImplementors = []string{"servicegroup_SvcGroupLinkInfo"}
+
+func (ec *executionContext) _servicegroup_SvcGroupLinkInfo(ctx context.Context, sel ast.SelectionSet, obj *model.ServicegroupSvcGroupLinkInfo) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, servicegroup_SvcGroupLinkInfoImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("servicegroup_SvcGroupLinkInfo")
+		case "Id":
+
+			out.Values[i] = ec._servicegroup_SvcGroupLinkInfo_Id(ctx, field, obj)
+
+		case "ParentLabels":
+
+			out.Values[i] = ec._servicegroup_SvcGroupLinkInfo_ParentLabels(ctx, field, obj)
+
+		case "ClusterName":
+
+			out.Values[i] = ec._servicegroup_SvcGroupLinkInfo_ClusterName(ctx, field, obj)
+
+		case "DomainName":
+
+			out.Values[i] = ec._servicegroup_SvcGroupLinkInfo_DomainName(ctx, field, obj)
+
+		case "ServiceName":
+
+			out.Values[i] = ec._servicegroup_SvcGroupLinkInfo_ServiceName(ctx, field, obj)
+
+		case "ServiceType":
+
+			out.Values[i] = ec._servicegroup_SvcGroupLinkInfo_ServiceType(ctx, field, obj)
+
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -9073,42 +9546,56 @@ func (ec *executionContext) marshalNgns_Gns2ᚖnexustempmoduleᚋnexusᚑgqlᚋg
 	return ec._gns_Gns(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNpolicy_ACPConfig2ᚖnexustempmoduleᚋnexusᚑgqlᚋgraphᚋmodelᚐPolicyACPConfig(ctx context.Context, sel ast.SelectionSet, v *model.PolicyACPConfig) graphql.Marshaler {
+func (ec *executionContext) marshalNpolicypkg_ACPConfig2ᚖnexustempmoduleᚋnexusᚑgqlᚋgraphᚋmodelᚐPolicypkgACPConfig(ctx context.Context, sel ast.SelectionSet, v *model.PolicypkgACPConfig) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
 		}
 		return graphql.Null
 	}
-	return ec._policy_ACPConfig(ctx, sel, v)
+	return ec._policypkg_ACPConfig(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNpolicy_AccessControlPolicy2nexustempmoduleᚋnexusᚑgqlᚋgraphᚋmodelᚐPolicyAccessControlPolicy(ctx context.Context, sel ast.SelectionSet, v model.PolicyAccessControlPolicy) graphql.Marshaler {
-	return ec._policy_AccessControlPolicy(ctx, sel, &v)
+func (ec *executionContext) marshalNpolicypkg_AccessControlPolicy2nexustempmoduleᚋnexusᚑgqlᚋgraphᚋmodelᚐPolicypkgAccessControlPolicy(ctx context.Context, sel ast.SelectionSet, v model.PolicypkgAccessControlPolicy) graphql.Marshaler {
+	return ec._policypkg_AccessControlPolicy(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNpolicy_AccessControlPolicy2ᚖnexustempmoduleᚋnexusᚑgqlᚋgraphᚋmodelᚐPolicyAccessControlPolicy(ctx context.Context, sel ast.SelectionSet, v *model.PolicyAccessControlPolicy) graphql.Marshaler {
+func (ec *executionContext) marshalNpolicypkg_AccessControlPolicy2ᚖnexustempmoduleᚋnexusᚑgqlᚋgraphᚋmodelᚐPolicypkgAccessControlPolicy(ctx context.Context, sel ast.SelectionSet, v *model.PolicypkgAccessControlPolicy) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
 		}
 		return graphql.Null
 	}
-	return ec._policy_AccessControlPolicy(ctx, sel, v)
+	return ec._policypkg_AccessControlPolicy(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNpolicy_VMpolicy2nexustempmoduleᚋnexusᚑgqlᚋgraphᚋmodelᚐPolicyVMpolicy(ctx context.Context, sel ast.SelectionSet, v model.PolicyVMpolicy) graphql.Marshaler {
-	return ec._policy_VMpolicy(ctx, sel, &v)
+func (ec *executionContext) marshalNpolicypkg_VMpolicy2nexustempmoduleᚋnexusᚑgqlᚋgraphᚋmodelᚐPolicypkgVMpolicy(ctx context.Context, sel ast.SelectionSet, v model.PolicypkgVMpolicy) graphql.Marshaler {
+	return ec._policypkg_VMpolicy(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNpolicy_VMpolicy2ᚖnexustempmoduleᚋnexusᚑgqlᚋgraphᚋmodelᚐPolicyVMpolicy(ctx context.Context, sel ast.SelectionSet, v *model.PolicyVMpolicy) graphql.Marshaler {
+func (ec *executionContext) marshalNpolicypkg_VMpolicy2ᚖnexustempmoduleᚋnexusᚑgqlᚋgraphᚋmodelᚐPolicypkgVMpolicy(ctx context.Context, sel ast.SelectionSet, v *model.PolicypkgVMpolicy) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
 		}
 		return graphql.Null
 	}
-	return ec._policy_VMpolicy(ctx, sel, v)
+	return ec._policypkg_VMpolicy(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNservicegroup_SvcGroupLinkInfo2nexustempmoduleᚋnexusᚑgqlᚋgraphᚋmodelᚐServicegroupSvcGroupLinkInfo(ctx context.Context, sel ast.SelectionSet, v model.ServicegroupSvcGroupLinkInfo) graphql.Marshaler {
+	return ec._servicegroup_SvcGroupLinkInfo(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNservicegroup_SvcGroupLinkInfo2ᚖnexustempmoduleᚋnexusᚑgqlᚋgraphᚋmodelᚐServicegroupSvcGroupLinkInfo(ctx context.Context, sel ast.SelectionSet, v *model.ServicegroupSvcGroupLinkInfo) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._servicegroup_SvcGroupLinkInfo(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalOBoolean2bool(ctx context.Context, v interface{}) (bool, error) {
@@ -9480,7 +9967,7 @@ func (ec *executionContext) marshalOconfig_FooTypeABC2ᚕᚖnexustempmoduleᚋne
 	return ret
 }
 
-func (ec *executionContext) marshalOpolicy_ACPConfig2ᚕᚖnexustempmoduleᚋnexusᚑgqlᚋgraphᚋmodelᚐPolicyACPConfigᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.PolicyACPConfig) graphql.Marshaler {
+func (ec *executionContext) marshalOpolicypkg_ACPConfig2ᚕᚖnexustempmoduleᚋnexusᚑgqlᚋgraphᚋmodelᚐPolicypkgACPConfigᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.PolicypkgACPConfig) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
@@ -9507,7 +9994,7 @@ func (ec *executionContext) marshalOpolicy_ACPConfig2ᚕᚖnexustempmoduleᚋnex
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNpolicy_ACPConfig2ᚖnexustempmoduleᚋnexusᚑgqlᚋgraphᚋmodelᚐPolicyACPConfig(ctx, sel, v[i])
+			ret[i] = ec.marshalNpolicypkg_ACPConfig2ᚖnexustempmoduleᚋnexusᚑgqlᚋgraphᚋmodelᚐPolicypkgACPConfig(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -9527,7 +10014,7 @@ func (ec *executionContext) marshalOpolicy_ACPConfig2ᚕᚖnexustempmoduleᚋnex
 	return ret
 }
 
-func (ec *executionContext) marshalOpolicy_AccessControlPolicy2ᚕᚖnexustempmoduleᚋnexusᚑgqlᚋgraphᚋmodelᚐPolicyAccessControlPolicyᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.PolicyAccessControlPolicy) graphql.Marshaler {
+func (ec *executionContext) marshalOpolicypkg_AccessControlPolicy2ᚕᚖnexustempmoduleᚋnexusᚑgqlᚋgraphᚋmodelᚐPolicypkgAccessControlPolicyᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.PolicypkgAccessControlPolicy) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
@@ -9554,7 +10041,7 @@ func (ec *executionContext) marshalOpolicy_AccessControlPolicy2ᚕᚖnexustempmo
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNpolicy_AccessControlPolicy2ᚖnexustempmoduleᚋnexusᚑgqlᚋgraphᚋmodelᚐPolicyAccessControlPolicy(ctx, sel, v[i])
+			ret[i] = ec.marshalNpolicypkg_AccessControlPolicy2ᚖnexustempmoduleᚋnexusᚑgqlᚋgraphᚋmodelᚐPolicypkgAccessControlPolicy(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)

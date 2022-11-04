@@ -50,13 +50,15 @@ models:
         resolver: true
       Domain:
         resolver: true
+      SvcGrpInfo:
+        resolver: true
   gns_Gns:
     fields:
       GnsAccessControlPolicy:
         resolver: true
       FooChild:
         resolver: true
-  policy_AccessControlPolicy:
+  policypkg_AccessControlPolicy:
     fields:
       PolicyConfigs:
         resolver: true

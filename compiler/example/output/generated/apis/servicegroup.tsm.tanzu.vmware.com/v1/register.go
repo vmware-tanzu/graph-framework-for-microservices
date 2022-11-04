@@ -40,6 +40,8 @@ func addKnownTypes(scheme *runtime.Scheme) error {
 		SchemeGroupVersion,
 		&SvcGroup{},
 		&SvcGroupList{},
+		&SvcGroupLinkInfo{},
+		&SvcGroupLinkInfoList{},
 	)
 
 	// register the type in the scheme

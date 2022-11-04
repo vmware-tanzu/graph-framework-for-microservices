@@ -27,7 +27,7 @@ var _ = Describe("Template renderers tests", func() {
 		vars, err := generator.GenerateGraphqlResolverVars(baseGroupName, crdModulePath, pkgs, parentsMap)
 		Expect(err).NotTo(HaveOccurred())
 
-		Expect(len(vars)).To(Equal(40))
+		Expect(len(vars)).To(Equal(41))
 		Expect(vars[0].NodeName).To(Equal("Root"))
 		Expect(vars[3].PkgName).To(Equal("Config"))
 		Expect(vars[3].NodeName).To(Equal("Config"))
@@ -66,5 +66,14 @@ var _ = Describe("Template renderers tests", func() {
 		Expect(vars[1].IsNexusNode).To(BeTrue())
 		Expect(vars[1].BaseImportPath).To(Equal("nexustempmodule/"))
 		Expect(vars[1].CrdName).To(Equal(""))
+	})
+
+	It("should validate the import pkg and translate to graphql schema and resolver typeName", func() {
+		pkg := pkgs["github.com/vmware-tanzu/graph-framework-for-microservices/compiler/example/datamodel/config/gns"]
+		schemaTypeName, resolverTypeName := generator.ValidateImportPkg(pkg.Name, "servicegroup.SvcGroup", pkg.GetImportMap(), pkgs)
+
+		Expect(pkg.Name).To(Equal("gns"))
+		Expect(schemaTypeName).To(Equal("servicegroup_SvcGroup"))
+		Expect(resolverTypeName).To(Equal("ServicegroupSvcGroup"))
 	})
 })

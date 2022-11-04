@@ -21,3 +21,7 @@ package v1
 // SvcGroupListerExpansion allows custom methods to be added to
 // SvcGroupLister.
 type SvcGroupListerExpansion interface{}
+
+// SvcGroupLinkInfoListerExpansion allows custom methods to be added to
+// SvcGroupLinkInfoLister.
+type SvcGroupLinkInfoListerExpansion interface{}

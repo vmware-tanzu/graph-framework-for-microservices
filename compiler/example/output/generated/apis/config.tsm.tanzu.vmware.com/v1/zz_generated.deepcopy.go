@@ -255,6 +255,11 @@ func (in *ConfigSpec) DeepCopyInto(out *ConfigSpec) {
 			(*out)[key] = val
 		}
 	}
+	if in.SvcGrpInfoGvk != nil {
+		in, out := &in.SvcGrpInfoGvk, &out.SvcGrpInfoGvk
+		*out = new(Child)
+		**out = **in
+	}
 	if in.ACPPoliciesGvk != nil {
 		in, out := &in.ACPPoliciesGvk, &out.ACPPoliciesGvk
 		*out = make(map[string]Link, len(*in))

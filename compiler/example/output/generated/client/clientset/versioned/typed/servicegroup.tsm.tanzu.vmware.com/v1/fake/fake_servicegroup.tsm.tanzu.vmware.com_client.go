@@ -33,6 +33,10 @@ func (c *FakeServicegroupTsmV1) SvcGroups() v1.SvcGroupInterface {
 	return &FakeSvcGroups{c}
 }
 
+func (c *FakeServicegroupTsmV1) SvcGroupLinkInfos() v1.SvcGroupLinkInfoInterface {
+	return &FakeSvcGroupLinkInfos{c}
+}
+
 // RESTClient returns a RESTClient that is used to communicate
 // with API server by this client implementation.
 func (c *FakeServicegroupTsmV1) RESTClient() rest.Interface {

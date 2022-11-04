@@ -30,6 +30,7 @@ func GetCRDParentsMap() map[string][]string {
 		"gnses.gns.tsm.tanzu.vmware.com":                       {"roots.root.tsm.tanzu.vmware.com", "configs.config.tsm.tanzu.vmware.com"},
 		"ignorechilds.gns.tsm.tanzu.vmware.com":                {"roots.root.tsm.tanzu.vmware.com", "configs.config.tsm.tanzu.vmware.com", "gnses.gns.tsm.tanzu.vmware.com"},
 		"roots.root.tsm.tanzu.vmware.com":                      {},
+		"svcgrouplinkinfos.servicegroup.tsm.tanzu.vmware.com":  {"roots.root.tsm.tanzu.vmware.com", "configs.config.tsm.tanzu.vmware.com"},
 		"svcgroups.servicegroup.tsm.tanzu.vmware.com":          {"roots.root.tsm.tanzu.vmware.com", "configs.config.tsm.tanzu.vmware.com", "gnses.gns.tsm.tanzu.vmware.com"},
 		"vmpolicies.policypkg.tsm.tanzu.vmware.com":            {"roots.root.tsm.tanzu.vmware.com", "configs.config.tsm.tanzu.vmware.com"},
 	}
@@ -108,6 +109,13 @@ func GetObjectByCRDName(dmClient *datamodel.Clientset, crdName string, name stri
 	}
 	if crdName == "roots.root.tsm.tanzu.vmware.com" {
 		obj, err := dmClient.RootTsmV1().Roots().Get(context.TODO(), name, metav1.GetOptions{})
+		if err != nil {
+			return nil
+		}
+		return obj
+	}
+	if crdName == "svcgrouplinkinfos.servicegroup.tsm.tanzu.vmware.com" {
+		obj, err := dmClient.ServicegroupTsmV1().SvcGroupLinkInfos().Get(context.TODO(), name, metav1.GetOptions{})
 		if err != nil {
 			return nil
 		}
