@@ -1,0 +1,29 @@
+scalar Map
+type Query {
+    root: config_Config
+}
+
+type config_Config {
+    Id: ID
+	ParentLabels: Map
+
+    FieldX: String
+    FieldY: Int
+    MyStructField: String
+}
+
+type NexusGraphqlResponse {
+  Code: Int
+  Message: String
+  Data: String
+  Last: String
+  TotalRecords: Int
+}
+
+type TimeSeriesData {
+  Code: Int
+  Message: String
+  Data: String
+  Last: String
+  TotalRecords: Int
+}
