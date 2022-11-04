@@ -20,6 +20,7 @@ type Worker struct {
 	stop           chan bool
 	started        bool
 	WorkDuration   WorkDuration
+	SampleRate     int
 }
 
 type WorkDuration struct {
@@ -80,6 +81,7 @@ func (w *Worker) Stop() {
 }
 func (w *Worker) startWorkers(concurrency int, job string) {
 	// concurrent work that can be done = no. of bool set in the channel
+	log.Printf("Starting workers for job %s \n", job)
 	work := make(chan bool, concurrency)
 	for i := 0; i < concurrency; i++ {
 		work <- true
@@ -95,7 +97,7 @@ func (w *Worker) startWorkers(concurrency int, job string) {
 			start := time.Now()
 			w.doWork(job, work)
 			elapsed := time.Since(start)
-			if (count % 10) == 0 {
+			if (count % w.SampleRate) == 0 {
 				w.WorkDuration.Duration = append(w.WorkDuration.Duration, elapsed.Milliseconds())
 			}
 		}
@@ -109,7 +111,7 @@ func (w *Worker) startWorkers(concurrency int, job string) {
 			start := time.Now()
 			w.doGraphqlQuery(job, work)
 			elapsed := time.Since(start)
-			if (count % 10) == 0 {
+			if (count % w.SampleRate) == 0 {
 				w.WorkDuration.Duration = append(w.WorkDuration.Duration, elapsed.Milliseconds())
 			}
 		}

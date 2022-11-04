@@ -1,3 +1,9 @@
-concurrency: 10
-timeout: 10
+concurrency: 60
+timeout: 60
+rest:
+- put_employee
+- get_hr
+graphql:
+- get_managers
+- get_employee_role
 ---

@@ -21,9 +21,7 @@ import (
 )
 
 const (
-	endpointURL        = "http://localhost:9411/api/v2/spans"
-	defaultConcurrency = 10
-	defaultTestTime    = 10
+	endpointURL = "http://localhost:9411/api/v2/spans"
 	//apiGateway         = "http://localhost:45192"
 	apiGateway = "http://localhost:45192"
 	url        = "http://localhost:45192/apis/graphql/v1/query"
@@ -31,8 +29,12 @@ const (
 
 // function keys
 const (
+	// rest function keys
 	PUT_EMPLOYEE = "put_employee"
 	GET_HR       = "get_hr"
+	// graphql function keys
+	GET_MANAGERS      = "get_managers"
+	GET_EMPLOYEE_ROLE = "get_employee_role"
 )
 
 type BuildReq func() *http.Request
@@ -51,8 +53,10 @@ var gclient graphql.Client
 var workerType bool
 
 type conf struct {
-	Concurrency int `yaml:"concurrency"`
-	Timeout     int `yaml:"timeout"`
+	Concurrency int      `yaml:"concurrency"`
+	Timeout     int      `yaml:"timeout"`
+	Rest        []string `yaml:"rest"`
+	Graphql     []string `yaml:"graphql"`
 }
 
 func (c *conf) getConf() *conf {
@@ -73,7 +77,7 @@ func main() {
 	var c conf
 	c.getConf()
 	log.Println("con ", c.Concurrency, " timeout ", c.Timeout)
-
+	log.Println(c.Rest, c.Graphql)
 	funcMap = make(map[string]func() *http.Request)
 	graphqlFuncMap = make(map[string]func(graphql.Client))
 	var err error
@@ -93,8 +97,8 @@ func main() {
 	funcMap[PUT_EMPLOYEE] = putEmployee
 	funcMap[GET_HR] = getHR
 
-	graphqlFuncMap["GET_MANAGERS"] = gqlGetManagers
-	graphqlFuncMap["GET_EMPLOYEES"] = gqlGetEmployeeRole
+	graphqlFuncMap[GET_MANAGERS] = gqlGetManagers
+	graphqlFuncMap[GET_EMPLOYEE_ROLE] = gqlGetEmployeeRole
 	//workManager(GET_HR, c.Concurrency, c.Timeout)
 	//time.Sleep(10 * time.Second)
 	gclient = graphql.NewClient(url, zipkinClient)
@@ -104,9 +108,11 @@ func main() {
 		ZipkinClient: zipkinClient,
 		WorkerType:   0,
 		FuncMap:      funcMap,
+		SampleRate:   10, // => 1 / 10
 	}
 
-	for k := range funcMap {
+	for _, k := range c.Rest {
+		log.Println(k)
 		w.WorkManager(k, c.Concurrency)
 		w.StartWithAutoStop(c.Timeout)
 		w.WorkDuration.CalculateAverage()
@@ -118,8 +124,9 @@ func main() {
 		GraphqlFuncMap: graphqlFuncMap,
 		Gclient:        gclient,
 		WorkerType:     1,
+		SampleRate:     10, // => 1 / 10
 	}
-	for k := range graphqlFuncMap {
+	for _, k := range c.Graphql {
 		w2.WorkManager(k, c.Concurrency)
 		w2.StartWithAutoStop(c.Timeout)
 		w2.WorkDuration.CalculateAverage()
@@ -193,7 +200,7 @@ func putEmployee() *http.Request {
 
 func gqlGetManagers(gclient graphql.Client) {
 	ctx := context.Background()
-	span, ctx := tracer.StartSpanFromContext(ctx, "get_managers")
+	span, ctx := tracer.StartSpanFromContext(ctx, GET_MANAGERS)
 	_, err := gqlclient.Managers(ctx, gclient)
 	if err != nil {
 		log.Printf("Failed to build request %v", err)
@@ -203,7 +210,7 @@ func gqlGetManagers(gclient graphql.Client) {
 
 func gqlGetEmployeeRole(gclient graphql.Client) {
 	ctx := context.Background()
-	span, ctx := tracer.StartSpanFromContext(ctx, "get_employee_role")
+	span, ctx := tracer.StartSpanFromContext(ctx, GET_EMPLOYEE_ROLE)
 	_, err := gqlclient.Employees(ctx, gclient)
 	if err != nil {
 		log.Printf("Failed to build request %v", err)
