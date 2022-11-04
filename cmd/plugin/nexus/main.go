@@ -40,6 +40,7 @@ func init() {
 		upgrade.UpgradeCmd,
 		prereq.PreReqCmd,
 		servicemesh.ConfigCmd,
+		servicemesh.DebugCmd,
 	)
 
 	rootCmd.PersistentFlags().BoolVarP(&enableDebug, utils.EnableDebugFlag, "", false, "Enables extra logging")
