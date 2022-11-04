@@ -53,8 +53,7 @@ func generateGetObjectByCRDName(keys []string, parentsMap map[string]parser.Node
 		}
 
 		s.CrdName = k
-		parts := strings.Split(k, ".")
-		s.Method = fmt.Sprintf("%s%sV1", cases.Title(language.Und, cases.NoLower).String(parts[1]), cases.Title(language.Und, cases.NoLower).String(parts[2]))
+		s.Method = getMethodName(k)
 		s.Plural = util.ToPlural(v.Name)
 
 		b, err := renderTemplate(tmpl, s)
@@ -65,4 +64,10 @@ func generateGetObjectByCRDName(keys []string, parentsMap map[string]parser.Node
 	}
 
 	return output
+}
+
+func getMethodName(crdName string) string {
+	crdName = strings.ReplaceAll(crdName, "-", ".")
+	parts := strings.Split(crdName, ".")
+	return fmt.Sprintf("%s%sV1", cases.Title(language.Und, cases.NoLower).String(parts[1]), cases.Title(language.Und, cases.NoLower).String(parts[2]))
 }
