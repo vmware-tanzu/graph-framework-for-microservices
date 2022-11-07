@@ -62,6 +62,10 @@ func GetResource(cmd *cobra.Command, args []string) error {
 		return GetRequest(token, apiVersion, resourceName, objName, kindName, Labels, serverInfo)
 	}
 
+	if len(GetResourceFile) == 0 {
+		return fmt.Errorf("please run with 'tsm -h' for the required options to set")
+	}
+
 	// GET Request with Declarative Config Yaml
 	err = utils.IsFileExist(GetResourceFile)
 	if err != nil {

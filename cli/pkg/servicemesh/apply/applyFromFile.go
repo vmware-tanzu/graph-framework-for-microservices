@@ -9,6 +9,7 @@ import (
 
 	yamltojson "github.com/ghodss/yaml"
 	"github.com/spf13/cobra"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/cli/pkg/common"
 	"github.com/vmware-tanzu/graph-framework-for-microservices/cli/pkg/log"
 	"github.com/vmware-tanzu/graph-framework-for-microservices/cli/pkg/servicemesh/auth"
 	"github.com/vmware-tanzu/graph-framework-for-microservices/cli/pkg/utils"
@@ -19,6 +20,7 @@ import (
 var (
 	CreateResourceFile string
 	RestClient         *resty.Client
+	IsTSMCli           bool
 )
 
 func ApplyResource(cmd *cobra.Command, args []string) error {
@@ -56,6 +58,9 @@ func ApplyResource(cmd *cobra.Command, args []string) error {
 			return fmt.Errorf("the given custom resource file is not a standard k8s YAML, apiVersion or kind may be missing ")
 		}
 
+		IsTSMCli = strings.Contains(apiVersion, common.NexusGroupSuffix)
+		log.Debugf("Checking the request is for TSM CLI: %s:%s:%b", apiVersion, common.NexusGroupSuffix, IsTSMCli)
+
 		specMap := make(map[string]interface{})
 		err = yaml.Unmarshal([]byte(doc), &specMap)
 		if err != nil {
@@ -63,6 +68,11 @@ func ApplyResource(cmd *cobra.Command, args []string) error {
 			return err
 		}
 		log.Debugf("Spec: %v", specMap["spec"])
+
+		if IsTSMCli {
+			specMap["apiVersion"] = ""
+			specMap["kind"] = ""
+		}
 
 		b, err := yaml.Marshal(specMap)
 		if err != nil {
@@ -112,7 +122,11 @@ func ApplyResource(cmd *cobra.Command, args []string) error {
 
 		log.Debugf("Resource URL: %v", url)
 		log.Debugf("Resource Body: %s", string(body))
-		resp, err = RestClient.R().SetBody(string(body)).Post(url)
+		if IsTSMCli {
+			resp, err = RestClient.R().SetBody(string(body)).Put(url)
+		} else {
+			resp, err = RestClient.R().SetBody(string(body)).Post(url)
+		}
 		if err != nil {
 			log.Errorf("Error while put request is sent to saas server %v", err)
 			return err

@@ -69,6 +69,8 @@ var ScriptFs embed.FS
 
 var WaitTimeout = 2 * time.Minute
 
+var NexusGroupSuffix string = ".tsm.vmware.com"
+
 func GetEnvList() []string {
 	return []string{
 		fmt.Sprintf("GOPRIVATE=%s", getGoPrivate()),
