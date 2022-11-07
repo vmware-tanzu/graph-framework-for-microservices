@@ -1,4 +1,7 @@
-concurrency: 60
+server:
+  url: http://nexus-api-gw.nexus
+  zipkin: http://zipkin:9411
+concurrency: 5
 timeout: 60
 rest:
 - put_employee

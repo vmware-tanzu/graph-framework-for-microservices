@@ -13,6 +13,7 @@ import (
 type Worker struct {
 	WorkerType     int
 	ZipkinClient   *zipkinhttp.Client
+	HttpClient     *http.Client
 	Gclient        graphql.Client
 	FuncMap        map[string]func() *http.Request
 	GraphqlFuncMap map[string]func(graphql.Client)
@@ -130,9 +131,17 @@ func (w *Worker) doWork(job string, work chan bool) {
 	req := w.FuncMap[job]()
 	req.Header.Add("accept", "application/json")
 	var res *http.Response
-	res, err := w.ZipkinClient.DoWithAppSpan(req, job)
-	if err != nil {
-		log.Fatalf("unable to do http request: %+v\n", err)
+	var err error
+	if w.ZipkinClient == nil {
+		res, err = w.HttpClient.Do(req)
+		if err != nil {
+			log.Fatalf("unable to do http request: %+v\n", err)
+		}
+	} else {
+		res, err = w.ZipkinClient.DoWithAppSpan(req, job)
+		if err != nil {
+			log.Fatalf("unable to do http request: %+v\n", err)
+		}
 	}
 	defer res.Body.Close()
 	// work done

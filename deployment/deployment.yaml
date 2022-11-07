@@ -1,0 +1,25 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: nexus-calibrate
+spec:
+  backoffLimit: 4
+  template:
+    spec:
+      containers:
+      - name: nexus-calibrate
+        #image: 284299419820.dkr.ecr.us-west-2.amazonaws.com/nexus/nexus-calib:latest
+        image: nexus-calib:t1
+        command: ["/bin/calib"]
+        volumeMounts:
+        - name: config
+          mountPath: "/root/config/"
+          readOnly: true
+      restartPolicy: Never
+      volumes:
+        - name: config
+          configMap:
+            name: nexus-calib-config
+            items:
+            - key: "conf.yaml"
+              path: "conf.yaml"

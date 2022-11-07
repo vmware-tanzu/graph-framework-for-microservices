@@ -20,12 +20,11 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-const (
-	endpointURL = "http://localhost:9411/api/v2/spans"
-	//apiGateway         = "http://localhost:45192"
-	apiGateway = "http://localhost:45192"
-	url        = "http://localhost:45192/apis/graphql/v1/query"
-)
+var endpointURL string
+
+// apiGateway         = "http://localhost:45192"
+var apiGateway string
+var gqlURL string
 
 // function keys
 const (
@@ -52,7 +51,13 @@ var gclient graphql.Client
 // true for http, false for graphql
 var workerType bool
 
+type server struct {
+	URL    string `yaml:"url"`
+	Zipkin string `yaml:"zipkin"`
+}
+
 type conf struct {
+	Server      server   `yaml:"server"`
 	Concurrency int      `yaml:"concurrency"`
 	Timeout     int      `yaml:"timeout"`
 	Rest        []string `yaml:"rest"`
@@ -60,7 +65,7 @@ type conf struct {
 }
 
 func (c *conf) getConf() *conf {
-	yamlFile, err := ioutil.ReadFile("conf.yaml")
+	yamlFile, err := ioutil.ReadFile("/root/config/conf.yaml")
 	if err != nil {
 		log.Printf("yamlFile.Get err   #%v ", err)
 	}
@@ -78,6 +83,11 @@ func main() {
 	c.getConf()
 	log.Println("con ", c.Concurrency, " timeout ", c.Timeout)
 	log.Println(c.Rest, c.Graphql)
+
+	apiGateway = c.Server.URL
+	endpointURL = c.Server.Zipkin + "/api/v2/spans"
+	gqlURL = apiGateway + "/apis/graphql/v1/query"
+
 	funcMap = make(map[string]func() *http.Request)
 	graphqlFuncMap = make(map[string]func(graphql.Client))
 	var err error
@@ -101,9 +111,10 @@ func main() {
 	graphqlFuncMap[GET_EMPLOYEE_ROLE] = gqlGetEmployeeRole
 	//workManager(GET_HR, c.Concurrency, c.Timeout)
 	//time.Sleep(10 * time.Second)
-	gclient = graphql.NewClient(url, zipkinClient)
+	gclient = graphql.NewClient(gqlURL, zipkinClient)
 
 	// REST worker
+	// create regualr rest client to skip zipkin
 	w := workmanager.Worker{
 		ZipkinClient: zipkinClient,
 		WorkerType:   0,
@@ -133,6 +144,7 @@ func main() {
 		log.Println(w2.WorkDuration.Average, w2.WorkDuration.Low, w2.WorkDuration.High)
 	}
 
+	time.Sleep(10 * time.Second)
 }
 
 func getHR() *http.Request {
@@ -201,20 +213,20 @@ func putEmployee() *http.Request {
 
 func gqlGetManagers(gclient graphql.Client) {
 	ctx := context.Background()
-	span, ctx := tracer.StartSpanFromContext(ctx, GET_MANAGERS)
+	// span, ctx := tracer.StartSpanFromContext(ctx, GET_MANAGERS)
 	_, err := gqlclient.Managers(ctx, gclient)
 	if err != nil {
 		log.Printf("Failed to build request %v", err)
 	}
-	span.Finish()
+	// span.Finish()
 }
 
 func gqlGetEmployeeRole(gclient graphql.Client) {
 	ctx := context.Background()
-	span, ctx := tracer.StartSpanFromContext(ctx, GET_EMPLOYEE_ROLE)
+	// span, ctx := tracer.StartSpanFromContext(ctx, GET_EMPLOYEE_ROLE)
 	_, err := gqlclient.Employees(ctx, gclient)
 	if err != nil {
 		log.Printf("Failed to build request %v", err)
 	}
-	span.Finish()
+	// span.Finish()
 }
