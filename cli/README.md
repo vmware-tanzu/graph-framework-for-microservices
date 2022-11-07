@@ -7,5 +7,6 @@
     ```
 
 2. Verify nexus sdk pre-requisites are satisfied
-
+    ``` 
     nexus prereq verify
+    ```
