@@ -13,11 +13,18 @@ A clear and concise description of what the problem is. Ex. I'm always frustrate
 **Describe the solution you'd like**
 A clear and concise description of what you want to happen.
 
-**Describe alternatives you've considered**
-A clear and concise description of any alternative solutions or features you've considered.
+**Screenshots**
+If applicable, add screenshots to help explain your problem.
 
 **Priority**
-Priority with which you would like this feature request to be implemented.
+Priority with which you would like this feature to be addressed.
+- [ ] Blocker - solution is unusable without this feature
+- [ ] Critical - solution is severely limited in value without this feature
+- [ ] Major - important feature to be incorporated as there are no  known alternatives in the solution
+- [ ] Minor - nice to have feature that adds value to the solution
 
 **Additional context**
 Add any other context or screenshots about the feature request here.
+
+**Describe alternatives you've considered**
+A clear and concise description of any alternative solutions or features you've considered.
