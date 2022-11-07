@@ -650,6 +650,10 @@ spec:
       containers:
       - name: nginx
         image: "gcr.io/nsx-sm/nginx:latest"
+        command:
+          - "/bin/bash"
+          - "-c"
+          - "chown -R nginx:nginx /data && nginx -g 'daemon off;'"
         ports:
         - containerPort: 80
         volumeMounts:
