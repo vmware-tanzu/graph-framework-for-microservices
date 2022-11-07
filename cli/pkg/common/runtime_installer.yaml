@@ -1,0 +1,74 @@
+apiVersion: v1
+automountServiceAccountToken: true
+kind: ServiceAccount
+metadata:
+  labels:
+    component: nexus
+  name: {{.RuntimeInstaller.Name}}-sa
+  namespace: {{.Namespace}}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels:
+    app.kubernetes.io/instance: ingress-nginx
+    app.kubernetes.io/name: ingress-nginx
+    app.kubernetes.io/part-of: ingress-nginx
+    app.kubernetes.io/version: 1.2.0
+    component: nexus
+  name: {{.RuntimeInstaller.Name}}-cr
+rules:
+- apiGroups:
+  - "*"
+  resources:
+  - "*"
+  verbs:
+  - "*"
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  labels:
+    app.kubernetes.io/instance: ingress-nginx
+    app.kubernetes.io/name: ingress-nginx
+    app.kubernetes.io/part-of: ingress-nginx
+    app.kubernetes.io/version: 1.2.0
+    component: nexus
+  name: {{.RuntimeInstaller.Name}}-crb
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: {{.RuntimeInstaller.Name}}-cr
+subjects:
+- kind: ServiceAccount
+  name: {{.RuntimeInstaller.Name}}-sa
+  namespace: {{.Namespace}}
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{.RuntimeInstaller.Name}}
+spec:
+  backoffLimit: 6
+  ttlSecondsAfterFinished: 30
+  template:
+    metadata:
+      annotations:
+        "sidecar.istio.io/inject": "false"
+    spec:
+      containers:
+        - command: {{range .RuntimeInstaller.Command}}
+          - {{.}}
+          {{- end }}
+          args: {{range .RuntimeInstaller.Args}}
+          - {{.}}
+          {{ end }}
+          image: {{.RuntimeInstaller.Image}}
+          imagePullPolicy: IfNotPresent
+          name: installer
+      serviceAccountName: {{.RuntimeInstaller.Name}}-sa
+      restartPolicy: OnFailure
+      {{- if .IsImagePullSecret }}
+      imagePullSecrets:
+        - name: {{.ImagePullSecret}}
+      {{- end }}

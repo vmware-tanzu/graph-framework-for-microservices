@@ -1,0 +1,84 @@
+image:
+  name: harbor-repo.vmware.com/nexus/runner:latest
+
+include:
+- project: "nsx-allspark_users/nexus-sdk/integration-tests"
+  ref: master
+  file: ".gitlab-ci-template.yml"
+
+variables:
+  REPOSITORY: nsx-allspark_users/nexus-sdk/cli
+
+before_script:
+  - git config --global url."https://gitlab.eng.vmware.com/".insteadOf "git@gitlab.eng.vmware.com:"
+  - git config --global gc.auto 0
+  - git config --global credential.helper store
+  - echo -e  "https://gitlab-ci-token:${CICD_TOKEN}@gitlab.eng.vmware.com/" >> ~/.git-credentials
+  - export GOPRIVATE=gitlab.eng.vmware.com
+
+.setup_aws: &setup_aws
+  - apt clean && apt update -y && apt install unzip -y
+  - curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64-2.0.30.zip" -o "awscliv2.zip"
+  - unzip -qq awscliv2.zip
+  - ./aws/install -i /usr/local/aws-cli -b /usr/local/bin
+  - aws configure set aws_secret_access_key $AWS_SECRET_ACCESS_KEY
+  - aws configure set aws_access_key_id $AWS_ACCESS_KEY_ID
+  - docker login --username AWS -p $(aws ecr get-login-password --region us-west-2) 284299419820.dkr.ecr.us-west-2.amazonaws.com
+
+build:
+  stage: build
+  only:
+    - merge_requests
+    - master
+  script:
+    - make build
+
+publish-common-api-docker-image:
+  stage: build
+  image: runner.servicemesh.biz:5000/allspark/runner:latest
+  only:
+    - merge_requests
+    - master
+    - tags
+  before_script:
+    - npm init -y
+    - npm config set registry https://build-artifactory.eng.vmware.com/artifactory/api/npm/npm/
+    - npm config set @allspark:registry https://build-artifactory.eng.vmware.com/artifactory/api/npm/allspark-npm-local/
+    - aws configure set aws_secret_access_key $AWS_SECRET_ACCESS_KEY
+    - aws configure set aws_access_key_id $AWS_ACCESS_KEY_ID
+    - docker login --username AWS -p $(aws ecr get-login-password --region us-west-2) 284299419820.dkr.ecr.us-west-2.amazonaws.com
+  script:
+    - ./publish-common-api-docker-image.sh
+
+test:
+  stage: test
+  only:
+    - merge_requests
+    - master
+  script:
+    - docker ps
+    - make build
+    - make test
+
+integration_test:
+  stage: integration_test
+  only:
+    - merge_requests
+    - master
+  variables:
+    CLI_BRANCH: $CI_COMMIT_SHA
+  extends: .run_integration_test
+        
+#tag_creation:
+#  stage: tag_create
+#  only:
+#    - master
+#  script:
+#    - ./scripts.sh create_tag_if_not_exists
+
+stages:
+  - build
+  - test
+  - tag_create
+  - tag_update_periodic
+  - integration_test
