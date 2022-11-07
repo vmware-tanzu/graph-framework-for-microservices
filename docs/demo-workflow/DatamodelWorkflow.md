@@ -31,21 +31,8 @@ This guided workflow will walk you through setting up a datamodel that is local 
 Install Nexus CLI
 
 ```
-GONOPROXY="github.com"  go install github.com/vmware-tanzu/graph-framework-for-microservices/cli/cmd/plugin/nexus@NPT-604-Migrate-CLI-Repo
+go install github.com/vmware-tanzu/graph-framework-for-microservices/cli/cmd/plugin/nexus@NPT-604-Migrate-CLI-Repo
 ```
-
-   <details><summary>FAQ</summary>
-   The above commmand shows unable to connect to gitlab.eng.vmware.com ?
-
-   Verify that you have permissions to the repo
-
-       git ls-remote git@gitlab.eng.vmware.com:nsx-allspark_users/nexus-sdk/cli.git
-
-   Update gitconfig to use ssh instead of https
-
-       git config --global url.git@gitlab.eng.vmware.com:.insteadOf https://gitlab.eng.vmware.com
-
-   </details>
 
 ## Nexus Pre-req Verify
 
