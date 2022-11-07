@@ -31,7 +31,7 @@ This guided workflow will walk you through setting up a datamodel that is local 
 Install Nexus CLI
 
 ```
-GOPRIVATE="gitlab.eng.vmware.com" go install gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/cmd/plugin/nexus@master
+GONOPROXY="github.com"  go install github.com/vmware-tanzu/graph-framework-for-microservices/cli/cmd/plugin/nexus@NPT-604-Migrate-CLI-Repo
 ```
 
    <details><summary>FAQ</summary>
