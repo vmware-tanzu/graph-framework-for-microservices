@@ -4,13 +4,13 @@ kind: Job
 metadata:
   name: nexus-admin-runtime-bootstrapper
 spec:
+  ttlSecondsAfterFinished: 30
   template:
     metadata:
       annotations:
         "sidecar.istio.io/inject": "false"
     spec:
       activeDeadlineSeconds: 300
-      ttlSecondsAfterFinished: 30
       containers:
         - name: nexus-admin-runtime-bootstrapper
           image: "gcr.io/nsx-sm/tools:latest"
