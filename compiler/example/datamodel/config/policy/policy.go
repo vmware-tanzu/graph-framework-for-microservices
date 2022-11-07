@@ -1,7 +1,7 @@
 package policypkg
 
 import (
-	service_group "github.com/vmware-tanzu/graph-framework-for-microservices/compiler/example/datamodel/config/gns/service-group"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/compiler/example/datamodel/config/gns/service-group"
 	"github.com/vmware-tanzu/graph-framework-for-microservices/compiler/example/datamodel/nexus"
 )
 
@@ -21,8 +21,8 @@ type ACPConfig struct {
 	DestGroups   ResourceGroupIDs `nexus:"@jsonencoded(file:'./root/config/policy/policy-config/policy-config.ts', gofile:'policy-config.go', name: 'ResourceGroupIDs')"`
 	SourceGroups ResourceGroupIDs `nexus:"@jsonencoded(file:'./root/config/policy/policy-config/policy-config.ts', gofile:'policy-config.go', name: 'ResourceGroupIDs')"`
 
-	DestSvcGroups   service_group.SvcGroup `nexus:"links"` // support named children/links as map or `links` annotations
-	SourceSvcGroups service_group.SvcGroup `nexus:"links"` // support named children/links as map or `links` annotations
+	DestSvcGroups   servicegroup.SvcGroup `nexus:"links"` // support named children/links as map or `links` annotations
+	SourceSvcGroups servicegroup.SvcGroup `nexus:"links"` // support named children/links as map or `links` annotations
 	Conditions      []string
 	Action          PolicyCfgActions `nexus:"@jsonencoded(file:'./root/config/policy/policy-config/policy-config.ts', gofile:'policy-config.go', name: 'PolicyCfgActions')"`
 	Status          ACPStatus        `nexus:"status"`
