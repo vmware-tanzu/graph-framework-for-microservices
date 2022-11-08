@@ -8,7 +8,7 @@ GIT_BRANCH := $(shell git show-ref | grep "$(GIT_REVISION)" | \
 	   sed 's|refs/remotes/origin/||' | \
 	   sed 's|refs/heads/||' | sort | head -n 1)
 
-BUILD_VERSION ?= $$(cat BUILD_VERSION)
+BUILD_VERSION ?= $(GIT_REVISION)
 
 PKG = gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/$(PACKAGE_NAME)
 COMMON_PACKAGE = $(PKG)/pkg/common
@@ -37,6 +37,10 @@ build:
 	mv nexus $(ARTIFACTS_PATH)/nexus-darwin_amd64
 	GOOS=linux GOARCH=amd64 go build --ldflags "$(GO_LDFLAGS)" ./cmd/plugin/nexus
 	mv nexus $(ARTIFACTS_PATH)/nexus-linux_amd64
+	GOOS=darwin GOARCH=arm64 go build --ldflags "$(GO_LDFLAGS)" ./cmd/plugin/nexus
+	mv nexus $(ARTIFACTS_PATH)/nexus-darwin_arm64
+	GOOS=linux GOARCH=arm64 go build --ldflags "$(GO_LDFLAGS)" ./cmd/plugin/nexus
+	mv nexus $(ARTIFACTS_PATH)/nexus-linux_arm64
 
 .PHONY: install
 install:
