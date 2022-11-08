@@ -26,6 +26,8 @@ import (
 type Interface interface {
 	// SvcGroups returns a SvcGroupInformer.
 	SvcGroups() SvcGroupInformer
+	// SvcGroupLinkInfos returns a SvcGroupLinkInfoInformer.
+	SvcGroupLinkInfos() SvcGroupLinkInfoInformer
 }
 
 type version struct {
@@ -42,4 +44,9 @@ func New(f internalinterfaces.SharedInformerFactory, namespace string, tweakList
 // SvcGroups returns a SvcGroupInformer.
 func (v *version) SvcGroups() SvcGroupInformer {
 	return &svcGroupInformer{factory: v.factory, tweakListOptions: v.tweakListOptions}
+}
+
+// SvcGroupLinkInfos returns a SvcGroupLinkInfoInformer.
+func (v *version) SvcGroupLinkInfos() SvcGroupLinkInfoInformer {
+	return &svcGroupLinkInfoInformer{factory: v.factory, tweakListOptions: v.tweakListOptions}
 }

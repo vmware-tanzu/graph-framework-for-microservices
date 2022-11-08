@@ -65,6 +65,7 @@ type ResourceGroupID struct {
 
 type ResourceGroupIDs []ResourceGroupID
 
+// nexus-graphql-query:gns.CloudEndpointGraphQLQuerySpec
 type VMpolicy struct {
 	nexus.Node
 }

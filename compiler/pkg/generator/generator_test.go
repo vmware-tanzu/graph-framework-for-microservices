@@ -54,7 +54,7 @@ var _ = Describe("Template renderers tests", func() {
 		graphqlQueries := parser.ParseGraphqlQuerySpecs(pkgs)
 		graph := parser.ParseDSLNodes(exampleDSLPath, baseGroupName, pkgs, graphqlQueries)
 		parentsMap = parser.CreateParentsMap(graph)
-		Expect(parentsMap).To(HaveLen(13))
+		Expect(parentsMap).To(HaveLen(14))
 
 		methods, codes = rest.ParseResponses(pkgs)
 		gql.BaseImportPath = crdModulePath
@@ -193,6 +193,21 @@ var _ = Describe("Template renderers tests", func() {
 		groupName := "tsm-tanzu.vmware.com"
 		packageName := util.GetGroupGoName(groupName)
 		Expect(packageName).To(Equal(expectedGroupGoName))
+	})
+
+	It("should handle hyphen in group-name", func() {
+		datamodelPath := "../../example/test-utils/group-name-with-hyphen-datamodel"
+		groupName := "tsm-tanzu.vmware.com"
+		crdModulePath := "../../example/test-utils/output-group-name-with-hyphen-datamodel/crd_generated/"
+		outputDir := "../../example/test-utils/output-group-name-with-hyphen-datamodel/crd_generated"
+
+		pkgs := parser.ParseDSLPkg(datamodelPath)
+		graphlqQueries := parser.ParseGraphqlQuerySpecs(pkgs)
+		graph := parser.ParseDSLNodes(datamodelPath, groupName, pkgs, graphlqQueries)
+		methods, codes := rest.ParseResponses(pkgs)
+		err := generator.RenderCRDTemplate(groupName, crdModulePath, pkgs, graph,
+			outputDir, methods, codes)
+		Expect(err).NotTo(HaveOccurred())
 	})
 
 })

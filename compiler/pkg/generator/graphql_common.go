@@ -2,11 +2,13 @@ package generator
 
 import (
 	"fmt"
+	"strconv"
 	"strings"
 
 	"golang.org/x/text/cases"
 	"golang.org/x/text/language"
 
+	log "github.com/sirupsen/logrus"
 	"github.com/vmware-tanzu/graph-framework-for-microservices/compiler/pkg/parser"
 )
 
@@ -45,18 +47,37 @@ func jsonMarshalResolver(FieldName, PkgName string) string {
 	return fmt.Sprintf("%s, _ := json.Marshal(v%s.Spec.%s)\n%sData := string(%s)\n", FieldName, PkgName, FieldName, FieldName, FieldName)
 }
 
-func validateImportPkg(pkgName, typeString string, importMap map[string]string) (string, string) {
+func getPkgName(pkgs parser.Packages, pkgPath string) string {
+	importPath, err := strconv.Unquote(pkgPath)
+	if err != nil {
+		log.Errorf("Failed to parse the package path : %s: %v", pkgPath, err)
+	}
+	return pkgs[importPath].Name
+}
+
+func genSchemaResolverName(fn1, fn2 string) (string, string) {
+	return fmt.Sprintf("%s_%s", strings.ToLower(fn1), fn2), cases.Title(language.Und, cases.NoLower).String(fn1) + cases.Title(language.Und, cases.NoLower).String(fn2)
+}
+
+func ValidateImportPkg(pkgName, typeString string, importMap map[string]string, pkgs parser.Packages) (string, string) {
 	typeWithoutPointers := strings.ReplaceAll(typeString, "*", "")
 	if strings.Contains(typeWithoutPointers, ".") {
 		part := strings.Split(typeWithoutPointers, ".")
 		if val, ok := importMap[part[0]]; ok {
-			pkgName := val[strings.LastIndex(val, "/")+1 : len(val)-1]
+			pkgName := getPkgName(pkgs, val)
 			repName := strings.ReplaceAll(pkgName, "-", "")
-			return repName + "_" + part[1], cases.Title(language.Und, cases.NoLower).String(repName) + cases.Title(language.Und, cases.NoLower).String(part[1])
+			return genSchemaResolverName(repName, part[1])
 		}
-		return strings.ToLower(pkgName) + part[1], cases.Title(language.Und, cases.NoLower).String(pkgName) + cases.Title(language.Und, cases.NoLower).String(part[1])
+		for _, v := range importMap {
+			pkgName := getPkgName(pkgs, v)
+			if pkgName == part[0] {
+				repName := strings.ReplaceAll(pkgName, "-", "")
+				return genSchemaResolverName(repName, part[1])
+			}
+		}
+		return genSchemaResolverName(pkgName, part[1])
 	}
-	return strings.ToLower(pkgName) + "_" + typeWithoutPointers, cases.Title(language.Und, cases.NoLower).String(pkgName) + cases.Title(language.Und, cases.NoLower).String(typeWithoutPointers)
+	return genSchemaResolverName(pkgName, typeWithoutPointers)
 }
 
 func getBaseNodeType(typeString string) string {
@@ -65,13 +86,4 @@ func getBaseNodeType(typeString string) string {
 		return part[1]
 	}
 	return typeString
-}
-
-func getPkgName(pkg parser.Package) string {
-	if pkg.FullName == pkg.ModPath {
-		return pkg.Name
-	}
-	pkgPath := pkg.FullName
-	libName := pkgPath[strings.LastIndex(pkgPath, "/")+1:]
-	return strings.ReplaceAll(libName, "-", "")
 }

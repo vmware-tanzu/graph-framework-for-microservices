@@ -28,6 +28,7 @@ import (
 type ServicegroupTsmV1Interface interface {
 	RESTClient() rest.Interface
 	SvcGroupsGetter
+	SvcGroupLinkInfosGetter
 }
 
 // ServicegroupTsmV1Client is used to interact with features provided by the servicegroup.tsm.tanzu.vmware.com group.
@@ -37,6 +38,10 @@ type ServicegroupTsmV1Client struct {
 
 func (c *ServicegroupTsmV1Client) SvcGroups() SvcGroupInterface {
 	return newSvcGroups(c)
+}
+
+func (c *ServicegroupTsmV1Client) SvcGroupLinkInfos() SvcGroupLinkInfoInterface {
+	return newSvcGroupLinkInfos(c)
 }
 
 // NewForConfig creates a new ServicegroupTsmV1Client for the given config.

@@ -71,3 +71,46 @@ type SvcGroupList struct {
 	metav1.ListMeta `json:"metadata" yaml:"metadata"`
 	Items           []SvcGroup `json:"items" yaml:"items"`
 }
+
+// +genclient
+// +genclient:noStatus
+// +genclient:nonNamespaced
+// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
+// +k8s:openapi-gen=true
+type SvcGroupLinkInfo struct {
+	metav1.TypeMeta   `json:",inline" yaml:",inline"`
+	metav1.ObjectMeta `json:"metadata" yaml:"metadata"`
+	Spec              SvcGroupLinkInfoSpec        `json:"spec,omitempty" yaml:"spec,omitempty"`
+	Status            SvcGroupLinkInfoNexusStatus `json:"status,omitempty" yaml:"status,omitempty"`
+}
+
+// +k8s:openapi-gen=true
+type SvcGroupLinkInfoNexusStatus struct {
+	Nexus NexusStatus `json:"nexus,omitempty" yaml:"nexus,omitempty"`
+}
+
+func (c *SvcGroupLinkInfo) CRDName() string {
+	return "svcgrouplinkinfos.servicegroup.tsm.tanzu.vmware.com"
+}
+
+func (c *SvcGroupLinkInfo) DisplayName() string {
+	if c.GetLabels() != nil {
+		return c.GetLabels()[common.DISPLAY_NAME_LABEL]
+	}
+	return ""
+}
+
+// +k8s:openapi-gen=true
+type SvcGroupLinkInfoSpec struct {
+	ClusterName string `json:"clusterName" yaml:"clusterName"`
+	DomainName  string `json:"domainName" yaml:"domainName"`
+	ServiceName string `json:"serviceName" yaml:"serviceName"`
+	ServiceType string `json:"serviceType" yaml:"serviceType"`
+}
+
+// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
+type SvcGroupLinkInfoList struct {
+	metav1.TypeMeta `json:",inline" yaml:",inline"`
+	metav1.ListMeta `json:"metadata" yaml:"metadata"`
+	Items           []SvcGroupLinkInfo `json:"items" yaml:"items"`
+}

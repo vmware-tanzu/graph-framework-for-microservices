@@ -7,7 +7,6 @@ import (
 	"sort"
 	"strconv"
 	"strings"
-	"unicode"
 
 	log "github.com/sirupsen/logrus"
 
@@ -270,7 +269,7 @@ func constructNexusTypeMap(nodes []*NodeProperty) map[string]string {
 	return crdNameMap
 }
 
-// processNexusFields process and populates properties for each non nexus fields
+// processNonNexusFields process and populates properties for each non nexus fields
 // <Domain  string>
 func processNonNexusFields(aliasNameMap map[string]string, node *ast.TypeSpec,
 	nodeProp *NodeProperty, simpleGroupTypeName string) {
@@ -398,20 +397,18 @@ func processNexusFields(pkg parser.Package, aliasNameMap map[string]string, node
 			fieldProp.SchemaFieldName = CustomQuerySchema
 			for _, customQuery := range nodeProp.CustomQueries {
 				fieldProp.SchemaFieldName += CustomQueryToGraphqlSchema(customQuery)
-				if unicode.IsUpper(rune(customQuery.Name[0])) {
-					var customQueryFieldProp FieldProperty
-					customQueryFieldProp.IsResolver = true
-					customQueryFieldProp.FieldName = customQuery.Name
-					nodeProp.GraphqlSchemaFields = append(nodeProp.GraphqlSchemaFields, customQueryFieldProp)
-				}
-
+				var customQueryFieldProp FieldProperty
+				customQueryFieldProp.IsResolver = true
+				customQueryFieldProp.FieldName = customQuery.Name
+				nodeProp.GraphqlSchemaFields = append(nodeProp.GraphqlSchemaFields, customQueryFieldProp)
+				nodeProp.ResolverCount += 1
 			}
 		}
 
 		// nexus link field
 		typeString := ConstructType(aliasNameMap, nf)
 		if parser.IsOnlyLinkField(nf) {
-			schemaTypeName, resolverTypeName := validateImportPkg(nodeProp.PkgName, typeString, importMap)
+			schemaTypeName, resolverTypeName := ValidateImportPkg(nodeProp.PkgName, typeString, importMap, pkgs)
 			// `type:string` annotation used to consider the type as string `nexus-graphql:"type:string"`
 			fieldProp.SchemaFieldName = fmt.Sprintf("%s: %s!", fieldProp.FieldName, schemaTypeName)
 			fieldProp.IsResolver = true
@@ -425,7 +422,7 @@ func processNexusFields(pkg parser.Package, aliasNameMap map[string]string, node
 
 		// nexus child field
 		if parser.IsOnlyChildField(nf) {
-			schemaTypeName, resolverTypeName := validateImportPkg(nodeProp.PkgName, typeString, importMap)
+			schemaTypeName, resolverTypeName := ValidateImportPkg(nodeProp.PkgName, typeString, importMap, pkgs)
 			fieldProp.SchemaFieldName = fmt.Sprintf("%s: %s!", fieldProp.FieldName, schemaTypeName)
 			fieldProp.SchemaTypeName = schemaTypeName
 			fieldProp.IsNexusTypeField = true
@@ -438,7 +435,7 @@ func processNexusFields(pkg parser.Package, aliasNameMap map[string]string, node
 		// nexus children or links field
 		if parser.IsNamedChildOrLink(nf) {
 			fieldProp.IsChildrenOrLinks = true
-			schemaTypeName, resolverTypeName := validateImportPkg(nodeProp.PkgName, typeString, importMap)
+			schemaTypeName, resolverTypeName := ValidateImportPkg(nodeProp.PkgName, typeString, importMap, pkgs)
 			fieldProp.SchemaFieldName = fmt.Sprintf("%s(Id: ID): [%s!]", fieldProp.FieldName, schemaTypeName)
 			fieldProp.IsResolver = true
 			fieldProp.IsNexusTypeField = true
@@ -471,13 +468,7 @@ func constructAliasType(sortedPackages []parser.Package) map[string]string {
 	nonStructMap := make(map[string]string)
 	for _, pkg := range sortedPackages {
 		for _, node := range pkg.GetNonStructTypes() {
-			var pkgName string
-			if pkg.FullName == pkg.ModPath {
-				pkgName = pkg.Name + "_" + parser.GetTypeName(node)
-			} else {
-				specTypePrefix := getPkgName(pkg)
-				pkgName = specTypePrefix + "_" + parser.GetTypeName(node)
-			}
+			pkgName := fmt.Sprintf("%s_%s", pkg.Name, parser.GetTypeName(node))
 			// NonStruct Map
 			nonStructType := types.ExprString(node.Type)
 			nonStructMap[pkgName] = nonStructType
@@ -530,7 +521,7 @@ func GenerateGraphqlResolverVars(baseGroupName, crdModulePath string, pkgs parse
 	aliasNameMap := make(map[string]string)
 	rootOfGraph := false
 	for _, pkg := range sortedPackages {
-		simpleGroupTypeName := util.GetSimpleGroupTypeName(getPkgName(pkg))
+		simpleGroupTypeName := util.GetSimpleGroupTypeName(pkg.Name)
 		// Iterating struct type
 		for _, node := range pkg.GetStructs() {
 			// Skip Empty struct type
@@ -563,13 +554,7 @@ func GenerateGraphqlResolverVars(baseGroupName, crdModulePath string, pkgs parse
 				rootOfGraph = isRootOfGraph(nodeHelper.Parents, rootOfGraph)
 			}
 			setNexusProperties(nodeHelper, node, nodeProp)
-
-			if pkg.FullName == pkg.ModPath {
-				nodeProp.SchemaName = pkg.Name + "_" + parser.GetTypeName(node)
-			} else {
-				specTypePrefix := getPkgName(pkg)
-				nodeProp.SchemaName = specTypePrefix + "_" + parser.GetTypeName(node)
-			}
+			nodeProp.SchemaName = fmt.Sprintf("%s_%s", pkg.Name, parser.GetTypeName(node))
 
 			// Iterate each node's nexus fields and set its properties
 			processNexusFields(pkg, aliasNameMap, node, nodeProp, simpleGroupTypeName, pkgs)

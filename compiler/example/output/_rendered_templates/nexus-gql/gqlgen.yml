@@ -50,13 +50,29 @@ models:
         resolver: true
       Domain:
         resolver: true
+      SvcGrpInfo:
+        resolver: true
   gns_Gns:
     fields:
+      queryGns1:
+        resolver: true
+      queryGnsQM1:
+        resolver: true
+      queryGnsQM:
+        resolver: true
       GnsAccessControlPolicy:
         resolver: true
       FooChild:
         resolver: true
-  policy_AccessControlPolicy:
+  policypkg_AccessControlPolicy:
     fields:
       PolicyConfigs:
+        resolver: true
+  policypkg_VMpolicy:
+    fields:
+      queryGns1:
+        resolver: true
+      queryGnsQM1:
+        resolver: true
+      queryGnsQM:
         resolver: true
