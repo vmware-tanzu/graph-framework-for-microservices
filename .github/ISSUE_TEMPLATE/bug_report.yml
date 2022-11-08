@@ -43,7 +43,7 @@ body:
       description: "What was the expected behavior?"
       label: "Describe the expected behavior"
       placeholder: "What was the expected behavior?"
-      value: ""
+      value: " "
     validations: 
       required: false
     id: what-was-expected-behavior
@@ -53,7 +53,7 @@ body:
       description: "Output of command - nexus version"
       label: "What version are you running?"
       placeholder: "Output of command - nexus version"
-      value: ""
+      value: " "
     validations: 
       required: false
     id: version
@@ -76,7 +76,7 @@ body:
       description: "Share with us, the steps to hit the bug"
       label: "How can we recreate the bug?"
       placeholder: "Share with us, the steps to hit the bug"
-      value: ""
+      value: " "
     validations: 
       required: false
     id: how-can-we-recreate-the-bug
@@ -84,9 +84,10 @@ body:
   - 
     type: markdown
     attributes:
-      label: "Can you share some basic diagnostic data?"
       value: |
-        Providing additional details would speed up resolution of the issue by many light years !
+        **Can you share some basic diagnostic data?**
+        
+        Providing these would speed up resolution of the issue by many light years !
         For generic debug info, attach output of:
         ```
         nexus debug
@@ -107,7 +108,7 @@ body:
       description: "Any debug data that you are able to share?"
       label: "Any debug data that you are able to share?"
       placeholder: "Any debug data that you are able to share?"
-      value: ""
+      value: " "
     validations: 
       required: false
     id: debug
@@ -126,7 +127,7 @@ body:
     attributes: 
       description: "Any additional / relevant info."
       label: "Any additional / relevant info"
-      value: ""
+      value: " "
     id: additional-info
     type: textarea
     validations: 
