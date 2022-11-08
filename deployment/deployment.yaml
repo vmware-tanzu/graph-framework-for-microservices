@@ -8,8 +8,7 @@ spec:
     spec:
       containers:
       - name: nexus-calibrate
-        #image: 284299419820.dkr.ecr.us-west-2.amazonaws.com/nexus/nexus-calib:latest
-        image: nexus-calib:t1
+        image: 284299419820.dkr.ecr.us-west-2.amazonaws.com/nexus/nexus-calib:latest
         command: ["/bin/calib"]
         volumeMounts:
         - name: config
