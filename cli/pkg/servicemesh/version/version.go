@@ -7,7 +7,7 @@ import (
 	"strings"
 
 	"github.com/spf13/cobra"
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/common"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/cli/pkg/common"
 	"gopkg.in/yaml.v2"
 )
 

@@ -14,10 +14,10 @@ import (
 
 	"github.com/hashicorp/go-version"
 	"github.com/spf13/cobra"
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/common"
-	nexusCommon "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/common"
-	nexusVersion "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/servicemesh/version"
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/utils"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/cli/pkg/common"
+	nexusCommon "github.com/vmware-tanzu/graph-framework-for-microservices/cli/pkg/common"
+	nexusVersion "github.com/vmware-tanzu/graph-framework-for-microservices/cli/pkg/servicemesh/version"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/cli/pkg/utils"
 )
 
 const goMinVersion = "1.17"

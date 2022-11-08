@@ -4,7 +4,7 @@ import (
 	"strings"
 
 	"github.com/coreos/go-semver/semver"
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/log"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/cli/pkg/log"
 )
 
 // IsNexusCliUpdateAvailable returns a bool indicating if a newer CLI version is available

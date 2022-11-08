@@ -4,14 +4,14 @@ import (
 	"fmt"
 
 	"github.com/spf13/cobra"
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/common"
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/servicemesh/version"
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/utils"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/cli/pkg/common"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/cli/pkg/servicemesh/version"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/cli/pkg/utils"
 )
 
 var (
 	upgradeToVersion string
-	nexusCliRepo     string = "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/cmd/plugin/nexus"
+	nexusCliRepo     string = "github.com/vmware-tanzu/graph-framework-for-microservices/cli/cmd/plugin/nexus"
 )
 
 func upgradeCli(cmd *cobra.Command, args []string) error {

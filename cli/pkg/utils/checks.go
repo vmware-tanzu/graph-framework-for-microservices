@@ -6,8 +6,8 @@ import (
 	"reflect"
 
 	"github.com/spf13/cobra"
-	common "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/common"
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/servicemesh/version"
+	common "github.com/vmware-tanzu/graph-framework-for-microservices/cli/pkg/common"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/cli/pkg/servicemesh/version"
 	"gopkg.in/yaml.v2"
 )
 

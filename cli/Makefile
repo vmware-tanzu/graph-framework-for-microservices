@@ -37,24 +37,16 @@ build:
 	mv nexus $(ARTIFACTS_PATH)/nexus-darwin_amd64
 	GOOS=linux GOARCH=amd64 go build --ldflags "$(GO_LDFLAGS)" ./cmd/plugin/nexus
 	mv nexus $(ARTIFACTS_PATH)/nexus-linux_amd64
-	GOOS=darwin GOARCH=amd64 go build --ldflags "$(GO_LDFLAGS)" ./cmd/plugin/tsm
-	mv tsm $(ARTIFACTS_PATH)/tsm-darwin_amd64
-	GOOS=linux GOARCH=amd64 go build --ldflags "$(GO_LDFLAGS)" ./cmd/plugin/tsm
-	mv tsm $(ARTIFACTS_PATH)/tsm-linux_amd64
 
 .PHONY: install
 install:
 	@if [ "$(UNAME)" = "Darwin" ]; then\
 	    cp $(ARTIFACTS_PATH)/nexus-darwin_amd64 /usr/local/bin/nexus;\
 		echo "nexus cli installed successfully, please use nexus -h to know more";\
-		cp $(ARTIFACTS_PATH)/tsm-darwin_amd64 /usr/local/bin/tsm;\
-		echo "tsm cli installed successfully, please use tsm -h to know more";\
 	fi
 	@if [ "$(UNAME)" = "Linux" ]; then \
 	    cp $(ARTIFACTS_PATH)/nexus-linux_amd64 /usr/local/bin/nexus;\
 		echo "nexus installed successfully, please use nexus -h to know more";\
-		cp $(ARTIFACTS_PATH)/tsm-linux_amd64 /usr/local/bin/tsm;\
-		echo "tsm cli installed successfully, please use tsm -h to know more";\
 	fi
 
 .PHONY: lint

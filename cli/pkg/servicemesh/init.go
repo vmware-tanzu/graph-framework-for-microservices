@@ -2,16 +2,16 @@ package servicemesh
 
 import (
 	"github.com/spf13/cobra"
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/log"
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/servicemesh/app"
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/servicemesh/apply"
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/servicemesh/config"
-	servicemesh_datamodel "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/servicemesh/datamodel"
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/servicemesh/debug"
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/servicemesh/login"
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/servicemesh/operator"
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/servicemesh/runtime"
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/servicemesh/version"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/cli/pkg/log"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/cli/pkg/servicemesh/app"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/cli/pkg/servicemesh/apply"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/cli/pkg/servicemesh/config"
+	servicemesh_datamodel "github.com/vmware-tanzu/graph-framework-for-microservices/cli/pkg/servicemesh/datamodel"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/cli/pkg/servicemesh/debug"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/cli/pkg/servicemesh/login"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/cli/pkg/servicemesh/operator"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/cli/pkg/servicemesh/runtime"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/cli/pkg/servicemesh/version"
 )
 
 var GetCmd = &cobra.Command{

@@ -3,12 +3,12 @@ package operator
 import (
 	"fmt"
 
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/common"
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/servicemesh/app"
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/servicemesh/prereq"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/cli/pkg/common"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/cli/pkg/servicemesh/app"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/cli/pkg/servicemesh/prereq"
 
 	"github.com/spf13/cobra"
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/utils"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/cli/pkg/utils"
 )
 
 var prerequisites []prereq.Prerequiste = []prereq.Prerequiste{

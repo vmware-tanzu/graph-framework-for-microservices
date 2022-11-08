@@ -11,7 +11,7 @@ import (
 
 	"github.com/hashicorp/go-version"
 	"github.com/spf13/cobra"
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/log"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/cli/pkg/log"
 )
 
 type K8sVersionObject struct {

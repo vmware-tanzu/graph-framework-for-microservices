@@ -21,7 +21,7 @@ import (
 
 	"github.com/aunum/log"
 	"github.com/spf13/cobra"
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/common"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/cli/pkg/common"
 	apiErrs "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"

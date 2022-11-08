@@ -5,9 +5,9 @@ import (
 	"os/exec"
 
 	"github.com/spf13/cobra"
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/common"
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/log"
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/servicemesh/auth"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/cli/pkg/common"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/cli/pkg/log"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/cli/pkg/servicemesh/auth"
 )
 
 var IsDatamodelObjs bool
