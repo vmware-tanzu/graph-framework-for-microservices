@@ -65,7 +65,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUBTOKEN }}
         with:
           repo_token: ${{ secrets.GITHUBTOKEN }}
-          file: ./cli/artificats/nexus/nexus-linux_arm64
+          file: ./cli/artifacts/nexus/nexus-linux_arm64
           asset_name: nexus-linux_arm64
           tag: ${{ github.ref }}
       - name: Upload CLI Binaries - DarwinARM64
