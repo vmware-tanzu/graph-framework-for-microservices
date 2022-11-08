@@ -49,3 +49,4 @@ compiler/report.json
 compiler/cmd/debug
 compiler/coverage.json
 compiler/report.json
+cli/artifacts

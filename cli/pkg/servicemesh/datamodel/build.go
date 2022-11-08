@@ -39,7 +39,7 @@ func Build(cmd *cobra.Command, args []string) error {
 		prereq.PreReqListOnDemand(prerequisites)
 		return nil
 	}
-	compilerVersion, err := utils.GetTagVersion("NexusCompiler", "NEXUS_DATAMODEL_COMPILER_VERSION")
+	compilerVersion, err := utils.GetTagVersion("Nexus", "NEXUS_DATAMODEL_COMPILER_VERSION")
 	if err != nil {
 		return utils.GetCustomError(utils.DATAMODEL_BUILD_FAILED, fmt.Errorf("could not get compiler Version information due to %s", err)).Print().ExitIfFatalOrReturn()
 	}
