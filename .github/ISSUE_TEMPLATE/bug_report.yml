@@ -17,14 +17,17 @@ body:
     type: input
   - 
     attributes: 
-      description: "Output of command - nexus version"
-      label: "What version are you running?"
-      placeholder: "Output of command - nexus version"
-      value: "Output of: nexus version"
+      description: "Tell us the project / group you are associated with"
+      label: "Tell us the project / group you are associated with"
+      options: 
+        - "Community (Default)"
+        - "Project ServiceMesh"
+        - "Project Mazinger"
+        - "Project Watch"
     validations: 
-      required: false
-    id: version
-    type: textarea
+      required: true
+    id: associated-project
+    type: dropdown
   - 
     attributes: 
       description: "Describe the bug"
@@ -40,11 +43,21 @@ body:
       description: "What was the expected behavior?"
       label: "Describe the expected behavior"
       placeholder: "What was the expected behavior?"
-      value: "Not Applicable"
+      value: ""
     validations: 
       required: false
     id: what-was-expected-behavior
     type: textarea
+  - 
+    attributes: 
+      description: "Output of command - nexus version"
+      label: "What version are you running?"
+      placeholder: "Output of command - nexus version"
+      value: ""
+    validations: 
+      required: false
+    id: version
+    type: textarea   
   - 
     attributes: 
       label: "How critical is this bug to you?"
@@ -63,7 +76,7 @@ body:
       description: "Share with us, the steps to hit the bug"
       label: "How can we recreate the bug?"
       placeholder: "Share with us, the steps to hit the bug"
-      value: "Not Applicable"
+      value: ""
     validations: 
       required: false
     id: how-can-we-recreate-the-bug
@@ -71,46 +84,35 @@ body:
   - 
     type: markdown
     attributes:
+      label: "Can you share some basic diagnostic data?"
       value: |
         Providing additional details would speed up resolution of the issue by many light years !
         For generic debug info, attach output of:
-        '''
+        ```
         nexus debug
-        '''
+        ```
         
         For compilation bugs, output of:
-        '''
+        ```
         nexus datamodel build --debug
-        '''
+        ```
         
         For installation bugs, output of:
-        '''
+        ```
         nexus prereq verify
         kubectl get pods -A -o yaml
-        '''
+        ```
   - 
     attributes: 
       description: "Any debug data that you are able to share?"
       label: "Any debug data that you are able to share?"
       placeholder: "Any debug data that you are able to share?"
-      value: "Not Applicable"
+      value: ""
     validations: 
       required: false
     id: debug
     type: textarea
-  - 
-    attributes: 
-      description: "Tell us the project / group you are associated with"
-      label: "Tell us the project / group you are associated with"
-      options: 
-        - "Community (Default)"
-        - "Project ServiceMesh"
-        - "Project Mazinger"
-        - "Project Watch"
-    validations: 
-      required: true
-    id: associated-project
-    type: dropdown
+
   - 
     attributes: 
       label: "What is your operating system?"
@@ -124,7 +126,7 @@ body:
     attributes: 
       description: "Any additional / relevant info."
       label: "Any additional / relevant info"
-      value: "Not Applicable"
+      value: ""
     id: additional-info
     type: textarea
     validations: 
