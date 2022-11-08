@@ -17,7 +17,7 @@ import (
 )
 
 // VERSION ...Version set at compile time.
-var VERSION string
+var VERSION string = "unknown"
 
 // OS ...OS set at compile time.
 var OS string
