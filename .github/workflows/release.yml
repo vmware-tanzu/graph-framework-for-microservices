@@ -22,7 +22,7 @@ jobs:
         env:
           GOOGLE_SERVICE_ACCOUNT_KEY: ${{ secrets.GCPServiceAccountKey }}
           GCR_REPOSITORY: gcr.io/nsx-sm
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUBTOKEN }}
         run: |
             set -x
             echo $GOOGLE_SERVICE_ACCOUNT_KEY | docker login -u _json_key --password-stdin $GCR_REPOSITORY
@@ -39,42 +39,43 @@ jobs:
               make build BUILD_VERSION=$GITHUB_REF_NAME
             popd
       - name: Upload CLI Binaries - DarwinAMD64
-        id: upload-cli-binaries
-        uses: actions/upload-release-asset@v1
+        id: upload-cli-binaries-darwin-amd64
+        uses: svenstaro/upload-release-action@v2
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUBTOKEN }}
         with:
-          upload_url: https://uploads.github.com/repos/vmware-tanzu/graph-framework-for-microservices/releases/$GITHUB_REF_NAME/assets
-          asset_path: ./cli/artifcats/nexus/nexus-darwin_amd64
+          repo_token: ${{ secrets.GITHUBTOKEN }}
+          file: ./cli/artifacts/nexus/nexus-darwin_amd64
           asset_name: nexus-darwin_amd64
-          asset_content_type: application/octet-stream
+          tag: ${{ github.ref }}
       - name: Upload CLI Binaries - LinuxAMD64
-        id: upload-cli-binaries
-        uses: actions/upload-release-asset@v1
+        id: upload-cli-binaries-linux-amd64
+        uses: svenstaro/upload-release-action@v2
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}   
+          GITHUB_TOKEN: ${{ secrets.GITHUBTOKEN }}
         with:
-          upload_url: https://uploads.github.com/repos/vmware-tanzu/graph-framework-for-microservices/releases/$GITHUB_REF_NAME/assets
-          asset_path: ./cli/artifcats/nexus/nexus-linux_amd64
+          repo_token: ${{ secrets.GITHUBTOKEN }}
+          file: ./cli/artifacts/nexus/nexus-linux_amd64
           asset_name: nexus-linux_amd64
-          asset_content_type: application/octet-stream
+          tag: ${{ github.ref }}
       - name: Upload CLI Binaries - LinuxARM64
-        id: upload-cli-binaries
-        uses: actions/upload-release-asset@v1
+        id: upload-cli-binaries-linux-arm64
+        uses: svenstaro/upload-release-action@v2
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUBTOKEN }}
         with:
-          upload_url: https://uploads.github.com/repos/vmware-tanzu/graph-framework-for-microservices/releases/$GITHUB_REF_NAME/assets
-          asset_path: ./cli/artifcats/nexus/nexus-linux_arm64
+          repo_token: ${{ secrets.GITHUBTOKEN }}
+          file: ./cli/artificats/nexus/nexus-linux_arm64
           asset_name: nexus-linux_arm64
-          asset_content_type: application/octet-stream
+          tag: ${{ github.ref }}
       - name: Upload CLI Binaries - DarwinARM64
-        id: upload-cli-binaries
-        uses: actions/upload-release-asset@v1
+        id: upload-cli-binaries-darwin-arm64
+        uses: svenstaro/upload-release-action@v2
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUBTOKEN }}
         with:
-          upload_url: https://uploads.github.com/repos/vmware-tanzu/graph-framework-for-microservices/releases/$GITHUB_REF_NAME/assets
-          asset_path: ./cli/artifcats/nexus/nexus-darwin_arm64
+          repo_token: ${{ secrets.GITHUBTOKEN }}
+          file: ./cli/artifacts/nexus/nexus-darwin_arm64
           asset_name: nexus-darwin_arm64
-          asset_content_type: application/octet-stream
+          tag: ${{ github.ref }}
+
