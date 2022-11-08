@@ -38,7 +38,7 @@ func GetTagVersion(versionKey, EnvKey string) (string, error) {
 	resultVersion := os.Getenv(EnvKey)
 	if resultVersion == "" {
 		if versionKey == "Nexus" {
-			return common.VERSION, nil
+			return common.GetVersion(), nil
 		}
 		yamlFile, err := common.TemplateFs.ReadFile("values.yaml")
 		if err != nil {

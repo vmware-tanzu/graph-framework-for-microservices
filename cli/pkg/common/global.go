@@ -134,3 +134,13 @@ type RuntimeInstaller struct {
 	Args    []string
 	Command []string
 }
+
+func GetVersion() string {
+	var versonStr string
+	if VERSION == "" {
+		versonStr = "unknown"
+	} else {
+		versonStr = VERSION
+	}
+	return versonStr
+}
