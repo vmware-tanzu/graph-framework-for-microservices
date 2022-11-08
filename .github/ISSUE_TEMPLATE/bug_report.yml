@@ -30,7 +30,6 @@ body:
       description: "Describe the bug"
       label: "What happened?"
       placeholder: "Tell us what you see!"
-      required: true
       value: "A bug happened!"
     validations: 
       required: true
@@ -119,7 +118,7 @@ body:
       options: 
         - Linux
         - MacOS
-    id: "operating system"
+    id: "operating-system"
     type: dropdown
   - 
     attributes: 
