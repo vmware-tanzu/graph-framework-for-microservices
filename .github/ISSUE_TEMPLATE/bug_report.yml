@@ -43,7 +43,6 @@ body:
       description: "What was the expected behavior?"
       label: "Describe the expected behavior"
       placeholder: "What was the expected behavior?"
-      value: " "
     validations: 
       required: false
     id: what-was-expected-behavior
@@ -53,7 +52,6 @@ body:
       description: "Output of command - nexus version"
       label: "What version are you running?"
       placeholder: "Output of command - nexus version"
-      value: " "
     validations: 
       required: false
     id: version
@@ -76,7 +74,6 @@ body:
       description: "Share with us, the steps to hit the bug"
       label: "How can we recreate the bug?"
       placeholder: "Share with us, the steps to hit the bug"
-      value: " "
     validations: 
       required: false
     id: how-can-we-recreate-the-bug
@@ -108,7 +105,6 @@ body:
       description: "Any debug data that you are able to share?"
       label: "Any debug data that you are able to share?"
       placeholder: "Any debug data that you are able to share?"
-      value: " "
     validations: 
       required: false
     id: debug
@@ -127,7 +123,6 @@ body:
     attributes: 
       description: "Any additional / relevant info."
       label: "Any additional / relevant info"
-      value: " "
     id: additional-info
     type: textarea
     validations: 
