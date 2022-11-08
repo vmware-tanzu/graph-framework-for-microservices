@@ -12,8 +12,6 @@ import (
 )
 
 type NexusValues struct {
-	NexusCli                versionFields `yaml:"nexusCli"`
-	NexusCompiler           versionFields `yaml:"nexusCompiler"`
 	NexusAppTemplates       versionFields `yaml:"nexusAppTemplates"`
 	NexusDatamodelTemplates versionFields `yaml:"nexusDatamodelTemplates"`
 	NexusRuntime            versionFields `yaml:"nexusRuntime"`
@@ -30,8 +28,7 @@ func Version(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	fmt.Printf("NexusCli: %s\n", values.NexusCli.Version)
-	fmt.Printf("NexusCompiler: %s\n", values.NexusCompiler.Version)
+	fmt.Printf("Nexus: %s\n", common.VERSION)
 	fmt.Printf("NexusAppTemplates: %s\n", values.NexusAppTemplates.Version)
 	fmt.Printf("NexusDatamodelTemplates: %s\n", values.NexusDatamodelTemplates.Version)
 	fmt.Printf("NexusRuntimeManifets: %s\n", values.NexusRuntime.Version)
@@ -55,7 +52,7 @@ func GetNexusValues(values *NexusValues) error {
 }
 
 func GetLatestNexusVersion() (string, error) {
-	const cliRepo = "git@github.com/vmware-tanzu/graph-framework-for-microservices/cli"
+	const cliRepo = "git@github.com:vmware-tanzu/graph-framework-for-microservices.git"
 	output, err := exec.Command("git", "ls-remote", "-t", "--sort", "-v:refname", cliRepo).Output()
 	if err != nil {
 		errMsg := fmt.Sprintf("Nexus CLI Upgrade check: failed to fetch remote tags from Nexus CLI repo. Please ensure you are able to clone this repo: `git clone %s`", cliRepo)
