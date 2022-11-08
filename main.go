@@ -213,20 +213,20 @@ func putEmployee() *http.Request {
 
 func gqlGetManagers(gclient graphql.Client) {
 	ctx := context.Background()
-	// span, ctx := tracer.StartSpanFromContext(ctx, GET_MANAGERS)
+	span, ctx := tracer.StartSpanFromContext(ctx, GET_MANAGERS)
 	_, err := gqlclient.Managers(ctx, gclient)
 	if err != nil {
 		log.Printf("Failed to build request %v", err)
 	}
-	// span.Finish()
+	span.Finish()
 }
 
 func gqlGetEmployeeRole(gclient graphql.Client) {
 	ctx := context.Background()
-	// span, ctx := tracer.StartSpanFromContext(ctx, GET_EMPLOYEE_ROLE)
+	span, ctx := tracer.StartSpanFromContext(ctx, GET_EMPLOYEE_ROLE)
 	_, err := gqlclient.Employees(ctx, gclient)
 	if err != nil {
 		log.Printf("Failed to build request %v", err)
 	}
-	// span.Finish()
+	span.Finish()
 }

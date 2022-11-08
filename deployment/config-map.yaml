@@ -9,5 +9,5 @@ data:
       zipkin: http://zipkin:9411
     concurrency: 5
     timeout: 60
-    rest:
-    - put_employee
+    graphql:
+    - get_managers
