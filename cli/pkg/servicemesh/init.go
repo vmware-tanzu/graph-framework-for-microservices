@@ -78,12 +78,6 @@ var VersionCmd = &cobra.Command{
 	RunE:  version.Version,
 }
 
-var TSMVersionCmd = &cobra.Command{
-	Use:   "version",
-	Short: "Provides TSM CLI version",
-	RunE:  version.TSMVersion,
-}
-
 var ConfigCmd = &cobra.Command{
 	Use:   "config",
 	Short: "set nexus CLI preferences",

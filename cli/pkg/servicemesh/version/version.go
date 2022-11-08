@@ -17,7 +17,6 @@ type NexusValues struct {
 	NexusAppTemplates       versionFields `yaml:"nexusAppTemplates"`
 	NexusDatamodelTemplates versionFields `yaml:"nexusDatamodelTemplates"`
 	NexusRuntime            versionFields `yaml:"nexusRuntime"`
-	TSMCli                  versionFields `yaml:"tsmCli"`
 }
 
 type versionFields struct {
@@ -36,18 +35,6 @@ func Version(cmd *cobra.Command, args []string) error {
 	fmt.Printf("NexusAppTemplates: %s\n", values.NexusAppTemplates.Version)
 	fmt.Printf("NexusDatamodelTemplates: %s\n", values.NexusDatamodelTemplates.Version)
 	fmt.Printf("NexusRuntimeManifets: %s\n", values.NexusRuntime.Version)
-	return nil
-
-}
-
-func TSMVersion(cmd *cobra.Command, args []string) error {
-	var values NexusValues
-
-	if err := GetNexusValues(&values); err != nil {
-		return err
-	}
-
-	fmt.Printf("TSMCli: %s\n", values.TSMCli.Version)
 	return nil
 
 }
