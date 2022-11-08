@@ -23,12 +23,16 @@ type versionFields struct {
 
 func Version(cmd *cobra.Command, args []string) error {
 	var values NexusValues
-
+	var VERSION string
 	if err := GetNexusValues(&values); err != nil {
 		return err
 	}
-
-	fmt.Printf("Nexus: %s\n", common.VERSION)
+	if common.VERSION == "" {
+		VERSION = "unknown"
+	} else {
+		VERSION = common.VERSION
+	}
+	fmt.Printf("Nexus: %s\n", VERSION)
 	fmt.Printf("NexusAppTemplates: %s\n", values.NexusAppTemplates.Version)
 	fmt.Printf("NexusDatamodelTemplates: %s\n", values.NexusDatamodelTemplates.Version)
 	fmt.Printf("NexusRuntimeManifets: %s\n", values.NexusRuntime.Version)

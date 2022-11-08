@@ -8,7 +8,7 @@ GIT_BRANCH := $(shell git show-ref | grep "$(GIT_REVISION)" | \
 	   sed 's|refs/remotes/origin/||' | \
 	   sed 's|refs/heads/||' | sort | head -n 1)
 
-BUILD_VERSION ?= $(GIT_REVISION)
+BUILD_VERSION ?= $(GIT_VERSION)
 
 PKG = gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/$(PACKAGE_NAME)
 COMMON_PACKAGE = $(PKG)/pkg/common

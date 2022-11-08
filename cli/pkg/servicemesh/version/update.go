@@ -25,9 +25,9 @@ func IsNexusCliUpdateAvailable() (bool, string) {
 		return false, ""
 	}
 
-	if latestNexusVersionStripped != common.VERSION {
+	if latestNexusVersionStripped != common.GetVersion() {
 		log.Debugf("Latest available Nexus CLI version: %s\n", latestNexusVersion)
-		log.Debugf("Current Nexus CLI version: %s\n", common.VERSION)
+		log.Debugf("Current Nexus CLI version: %s\n", common.GetVersion())
 	}
 	latestNexusVersionSemver, err := semver.NewVersion(latestNexusVersionStripped)
 	if err != nil {
@@ -35,14 +35,14 @@ func IsNexusCliUpdateAvailable() (bool, string) {
 		return false, ""
 	}
 	regexM := regexp.MustCompile(`(v?\d+.\d+.\d+$)`)
-	versionString := regexM.FindStringSubmatch(common.VERSION)
+	versionString := regexM.FindStringSubmatch(common.GetVersion())
 	if len(versionString) != 2 {
-		log.Debugf("Current Nexus Version is not official version: %s\n, Please use --version to force upgrade", common.VERSION)
+		log.Debugf("Current Nexus Version is not official version: %s\n, Please use --version to force upgrade", common.GetVersion())
 		return false, ""
 
 	}
 
-	currentNexusVersionSemver, err := semver.NewVersion(format(common.VERSION))
+	currentNexusVersionSemver, err := semver.NewVersion(format(common.GetVersion()))
 	if err != nil {
 		log.Debugf("Current Nexus version is incorrectly formatted: %v\n", err)
 		return false, ""

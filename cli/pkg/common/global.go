@@ -17,7 +17,7 @@ import (
 )
 
 // VERSION ...Version set at compile time.
-var VERSION string = "unknown"
+var VERSION string
 
 // OS ...OS set at compile time.
 var OS string
@@ -133,4 +133,14 @@ type RuntimeInstaller struct {
 	Name    string
 	Args    []string
 	Command []string
+}
+
+func GetVersion() string {
+	var versonStr string
+	if VERSION == "" {
+		versonStr = "unknown"
+	} else {
+		versonStr = VERSION
+	}
+	return versonStr
 }
