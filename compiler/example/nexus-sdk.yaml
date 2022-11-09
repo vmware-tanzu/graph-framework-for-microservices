@@ -1,1 +1,3 @@
 groupName: "tsm.tanzu.vmware.com"
+ignoredDirs:
+  - "ignored"
