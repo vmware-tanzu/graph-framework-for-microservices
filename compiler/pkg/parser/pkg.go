@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/compiler/pkg/util"
 	"go/ast"
 	"go/printer"
 	"go/token"
@@ -572,6 +573,29 @@ func GetFieldTags(f *ast.Field) *structtag.Tags {
 	}
 
 	return ParseFieldTags(f.Tag.Value)
+}
+
+func FillEmptyTag(ts *structtag.Tags, n, tag string) *structtag.Tags {
+
+	if ts == nil {
+		ts = &structtag.Tags{}
+	}
+	for _, t := range ts.Tags() {
+		if t.Key == tag {
+			return ts
+		}
+	}
+	if len(n) < 2 {
+		return ts
+	}
+	jt := structtag.Tag{
+		Key:     tag,
+		Name:    util.GetTag(n),
+		Options: nil,
+	}
+	ts.Set(&jt)
+
+	return ts
 }
 
 func GetFieldType(f *ast.Field) string {
