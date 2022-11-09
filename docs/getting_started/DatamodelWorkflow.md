@@ -1,3 +1,14 @@
+# Getting Started
+
+Start by creating your own extensible, distributed platform that:
+
+* Implements a datamodel as K8s CRDs.
+
+* Generates accessors that faciliate easy consumption of the datamodel.
+
+* Bootstrap a cloud native application that consumes that datamodel and is ready-to-go in no time.
+
+
 ## Datamodel Workflow
 
 Nexus Datamodel provides the framework, language, toolkit and runtime to implement state/data required by application, that is:
