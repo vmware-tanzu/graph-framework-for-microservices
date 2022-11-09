@@ -1,9 +1,11 @@
 package version
 
 import (
+	"regexp"
 	"strings"
 
 	"github.com/coreos/go-semver/semver"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/cli/pkg/common"
 	"github.com/vmware-tanzu/graph-framework-for-microservices/cli/pkg/log"
 )
 
@@ -23,18 +25,24 @@ func IsNexusCliUpdateAvailable() (bool, string) {
 		return false, ""
 	}
 
-	if latestNexusVersionStripped != currentValues.NexusCli.Version {
+	if latestNexusVersionStripped != common.GetVersion() {
 		log.Debugf("Latest available Nexus CLI version: %s\n", latestNexusVersion)
-		log.Debugf("Current Nexus CLI version: %s\n", currentValues.NexusCli.Version)
+		log.Debugf("Current Nexus CLI version: %s\n", common.GetVersion())
 	}
-
 	latestNexusVersionSemver, err := semver.NewVersion(latestNexusVersionStripped)
 	if err != nil {
 		log.Debugf("Latest Nexus version is incorrectly formatted: %v\n", err)
 		return false, ""
 	}
+	regexM := regexp.MustCompile(`(v?\d+.\d+.\d+$)`)
+	versionString := regexM.FindStringSubmatch(common.GetVersion())
+	if len(versionString) != 2 {
+		log.Debugf("Current Nexus Version is not official version: %s\n, Please use --version to force upgrade", common.GetVersion())
+		return false, ""
 
-	currentNexusVersionSemver, err := semver.NewVersion(format(currentValues.NexusCli.Version))
+	}
+
+	currentNexusVersionSemver, err := semver.NewVersion(format(common.GetVersion()))
 	if err != nil {
 		log.Debugf("Current Nexus version is incorrectly formatted: %v\n", err)
 		return false, ""
