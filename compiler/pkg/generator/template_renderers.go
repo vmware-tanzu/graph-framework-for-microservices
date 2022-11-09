@@ -12,7 +12,7 @@ import (
 	"text/template"
 
 	log "github.com/sirupsen/logrus"
-	"github.com/vmware-tanzu/graph-framework-for-microservices/common-library/pkg/nexus"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/nexus/nexus"
 	"golang.org/x/text/cases"
 	"golang.org/x/text/language"
 	"golang.org/x/tools/imports"

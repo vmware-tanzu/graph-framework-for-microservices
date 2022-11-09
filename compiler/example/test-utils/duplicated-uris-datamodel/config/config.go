@@ -1,7 +1,7 @@
 package config
 
 import (
-	"github.com/vmware-tanzu/graph-framework-for-microservices/common-library/pkg/nexus"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/nexus/nexus"
 )
 
 var ConfigRestAPISpec = nexus.RestAPISpec{
