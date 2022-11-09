@@ -1,4 +1,4 @@
-## App Datamodel Usuage Workflow
+## App Datamodel Usage Workflow
 
 This workflow will walk you through the steps to interact and work with your applocal datamodel.
 
@@ -8,7 +8,7 @@ This workflow will walk you through the steps to interact and work with your app
 
 
 ## Pre-requisites
-1. This workflow requires the Datamodel should be initialised and installed before proceeding to further steps. Please follow the below link to configure datamodel
+1. This workflow requires Datamodel to be initialised and installed before proceeding to further steps. Please follow the below link to configure datamodel
 
     #### [Datamodel Workflow](DatamodelWorkflow.md)
 
@@ -36,7 +36,7 @@ kubectl port-forward svc/nexus-api-gw 5000:80 -n default &
 
 ###  Create Leader Object via REST API
 
-**GraphQL query to verify there is no leader exists**
+**GraphQL query to verify that leader doesn't exist**
 
 ![Query1](../images/GqlP1.png)
 
