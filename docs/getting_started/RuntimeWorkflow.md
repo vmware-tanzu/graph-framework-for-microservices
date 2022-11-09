@@ -35,7 +35,7 @@ export DOCS_INTERNAL_DIR=$PWD/docs/_internal
 
 ## Install Nexus Admin Runtime
 
-:bulb: This step is optional, based on the user's requirement, this step shall be skipped or executed
+:bulb: This step is optional, its recommended only with the production environment. For non-productive environments we can skip this step
 
 An overview of the admin runtime and its design can be found [here](../design/Nexus-Runtime.md#nexus-admin-runtime)
 
