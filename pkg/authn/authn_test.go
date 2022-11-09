@@ -10,6 +10,9 @@ import (
 	"api-gw/pkg/server/echo_server"
 	"api-gw/pkg/utils"
 	"context"
+	"net/http"
+	"net/http/httptest"
+
 	"github.com/labstack/echo/v4"
 	log "github.com/sirupsen/logrus"
 	adminnexusv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/admin.nexus.org/v1"
@@ -17,8 +20,6 @@ import (
 	apigatewaynexusv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/apigateway.nexus.org/v1"
 	confignexusv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/config.nexus.org/v1"
 	nexus_client "golang-appnet.eng.vmware.com/nexus-sdk/api/build/nexus-client"
-	"net/http"
-	"net/http/httptest"
 
 	authnexusv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/authentication.nexus.org/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"

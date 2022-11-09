@@ -14,7 +14,7 @@ import (
 	"api-gw/pkg/config"
 	"api-gw/pkg/model"
 
-	"github.com/vmware-tanzu/graph-framework-for-microservices/common-library/pkg/nexus"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/nexus/nexus"
 )
 
 var _ = Describe("Echo server tests", func() {

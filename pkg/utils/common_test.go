@@ -4,8 +4,9 @@ import (
 	"api-gw/pkg/client"
 	"api-gw/pkg/config"
 	"api-gw/pkg/utils"
-	nexus_client "golang-appnet.eng.vmware.com/nexus-sdk/api/build/nexus-client"
 	"os"
+
+	nexus_client "golang-appnet.eng.vmware.com/nexus-sdk/api/build/nexus-client"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"

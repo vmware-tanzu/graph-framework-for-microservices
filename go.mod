@@ -26,6 +26,7 @@ require (
 	github.com/ghodss/yaml v1.0.0
 	github.com/golang/protobuf v1.5.2
 	github.com/vmware-tanzu/graph-framework-for-microservices/common-library v0.0.0-20221020140923-7deb4d75cfcf
+	github.com/vmware-tanzu/graph-framework-for-microservices/nexus v0.0.0-20221103132341-9ead3f67e8b4
 	golang-appnet.eng.vmware.com/nexus-sdk/api v0.0.14
 	golang.org/x/net v0.0.0-20220127200216-cd36cc0744dd
 	google.golang.org/grpc v1.45.0
