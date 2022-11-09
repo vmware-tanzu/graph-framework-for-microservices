@@ -69,6 +69,6 @@ body:
       required: false
 description: "File a feature request"
 labels: 
-  - feature
+  - "feature request"
 name: "Feature Request"
 title: "[Feature]: "
