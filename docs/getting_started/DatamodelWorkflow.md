@@ -150,7 +150,7 @@ To install datamodel we need to install nexus runtime as a pre-requisite
    ```
 
    ```
-   nexus datamodel install image orgchart:latest
+   nexus datamodel install image orgchart:latest --namespace <name>
    ```
 
 ## Datamodel Playground
