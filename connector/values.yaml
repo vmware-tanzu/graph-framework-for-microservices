@@ -7,6 +7,6 @@ global:
   remoteEndpointCert: ""
   remoteEndpointHost: ""
   remoteEndpointPort: ""
-  remoteEndpointUri: ""
+  remoteEndpointPath: ""
   imagepullsecret: ""
   token: ""
