@@ -45,7 +45,7 @@ kubectl port-forward svc/nexus-api-gw 5000:80 -n default &
  curl -X PUT -H 'Content-Type: application/json' -d '{"designation": "CTO","name": "Pere"}' http://localhost:5000/leader/Pere
 ```
 -->
-**Create a Leader object via REST API**
+**Create a Leader object via REST API using Swagger UI**
 
 ![CreateLeader](../images/RestP2.png)
 
