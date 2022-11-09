@@ -54,7 +54,7 @@ Verify nexus sdk pre-requisites are satisfied
 
 1. Start writing datamodel specification for your application.
    
-   **To understand the workflow we can use the below example datmodel. To write your own datamodel please refer** [here](docs/Datamodel/DSL/README.md)
+   **To understand the workflow we can use the below example datmodel. To write your own datamodel please refer** [here](../../docs/Datamodel/DSL/README.md)
    
 **Example Orgchart DSL**
 
@@ -123,11 +123,11 @@ This generates libraries, types, runtime and metadata required to implement the 
 
 ## Datamodel Install
 
-<details><summary>Pre-requisites</summary>
+### Pre-requisites
 To install datamodel we need to install nexus runtime as a pre-requisite
   
-  [Install Runtime](RuntimeWorkflow.md)
-</details>
+#### [Install Runtime](RuntimeWorkflow.md)
+
 
    ```
    DOCKER_REPO=orgchart VERSION=latest make docker_build
