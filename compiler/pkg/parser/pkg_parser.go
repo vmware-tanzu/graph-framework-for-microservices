@@ -2,7 +2,6 @@ package parser
 
 import (
 	"fmt"
-	"github.com/vmware-tanzu/graph-framework-for-microservices/compiler/pkg/config"
 	"go/ast"
 	"go/parser"
 	"go/token"
@@ -12,6 +11,7 @@ import (
 	"strings"
 
 	log "github.com/sirupsen/logrus"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/compiler/pkg/config"
 )
 
 // ParseDSLPkg walks recursively through given path and looks for structs types definitions to add them to a Package map
