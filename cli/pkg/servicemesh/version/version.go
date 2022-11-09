@@ -55,7 +55,7 @@ func GetNexusValues(values *NexusValues) error {
 }
 
 func GetLatestNexusVersion() (string, error) {
-	const cliRepo = "git@gitlab.eng.vmware.com:nsx-allspark_users/nexus-sdk/cli"
+	const cliRepo = "git@github.com/vmware-tanzu/graph-framework-for-microservices/cli"
 	output, err := exec.Command("git", "ls-remote", "-t", "--sort", "-v:refname", cliRepo).Output()
 	if err != nil {
 		errMsg := fmt.Sprintf("Nexus CLI Upgrade check: failed to fetch remote tags from Nexus CLI repo. Please ensure you are able to clone this repo: `git clone %s`", cliRepo)

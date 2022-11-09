@@ -212,7 +212,7 @@ var wellKnownErrors = map[ClientErrorCode]ClientError{
 		WhatNext: []string{
 			"run with --debug option to get verbose logs",
 			"check for app compilation errors",
-			"verify you have permissions to access the Nexus CLI repo (gitlab.eng.vmware.com:nsx-allspark_users/nexus-sdk/cli.git)",
+			"verify you have permissions to access the Nexus CLI repo (github.com/vmware-tanzu/graph-framework-for-microservices/cli)",
 		},
 		fatal: true,
 	},

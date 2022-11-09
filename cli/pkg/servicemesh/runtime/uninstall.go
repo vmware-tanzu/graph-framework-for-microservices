@@ -12,7 +12,6 @@ import (
 	"github.com/vmware-tanzu/graph-framework-for-microservices/cli/pkg/log"
 	"github.com/vmware-tanzu/graph-framework-for-microservices/cli/pkg/servicemesh/prereq"
 	"github.com/vmware-tanzu/graph-framework-for-microservices/cli/pkg/utils"
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus/golang/pkg/logging"
 )
 
 func Uninstall(cmd *cobra.Command, args []string) error {
@@ -91,6 +90,6 @@ func init() {
 		"r", common.HarborRepo, "Registry where helm-chart is located")
 	err := cobra.MarkFlagRequired(UninstallCmd.Flags(), "namespace")
 	if err != nil {
-		logging.Debugf("Runtime uninstall err: %v", err)
+		log.Debugf("Runtime uninstall err: %v", err)
 	}
 }

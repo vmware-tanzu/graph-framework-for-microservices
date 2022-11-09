@@ -17,7 +17,7 @@ var skipPrereqCheck = false
 var rootCmd = &cobra.Command{
 	Use:               "nexus",
 	Short:             "Nexus CLI",
-	Long:              "The Nexus CLI to create and deploy Nexus datamodels and applications. Learn about the Nexus platform here - https://gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/docs",
+	Long:              "The Nexus CLI to create and deploy Nexus datamodels and applications. Learn about the Nexus platform here - https://github.com/vmware-tanzu/graph-framework-for-microservices/docs",
 	PersistentPreRunE: RootPreRun,
 }
 
