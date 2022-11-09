@@ -1,6 +1,7 @@
 package parser_test
 
 import (
+	"github.com/fatih/structtag"
 	"go/ast"
 
 	. "github.com/onsi/ginkgo"
@@ -117,6 +118,26 @@ var _ = Describe("Pkg tests", func() {
 		childFields := parser.GetChildFields(nodes[0])
 		fieldType := parser.GetFieldType(childFields[0])
 		Expect(fieldType).To(Equal("config.Config"))
+	})
+
+	It("should fill empty tag", func() {
+		ts := structtag.Tags{}
+		ts = *parser.FillEmptyTag(&ts, "name", "tag")
+		tn, _ := ts.Get("tag")
+		Expect(tn.Name).To(Equal("name"))
+	})
+
+	It("should not modify existing tag", func() {
+		ts := structtag.Tags{}
+		t := structtag.Tag{
+			Key:     "tag",
+			Name:    "diff_name",
+			Options: nil,
+		}
+		ts.Set(&t)
+		parser.FillEmptyTag(&ts, "name", "tag")
+		tn, _ := ts.Get("tag")
+		Expect(tn.Name).To(Equal("diff_name"))
 	})
 
 	It("should get pointer field type", func() {
