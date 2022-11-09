@@ -17,7 +17,7 @@
 Install Nexus CLI
 
 ```
-go install github.com/vmware-tanzu/graph-framework-for-microservices/cli/cmd/plugin/nexus@NPT-604-Migrate-CLI-Repo
+curl -LJ https://github.com/vmware-tanzu/graph-framework-for-microservices/releases/download/v0.0.2-testversion-draft-v7/nexus-$(uname -s | awk '{print tolower($0)}')_$(go env GOARCH)  -o nexus && chmod +x nexus && mv nexus /usr/local/bin/nexus
 ```
 
 ## Nexus Pre-req Verify
