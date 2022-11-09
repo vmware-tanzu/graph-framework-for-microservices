@@ -55,8 +55,9 @@ Verify nexus sdk pre-requisites are satisfied
 
 1. Create and `cd` to your workspace directory to create, compile and install datamodel
     ```
-    mkdir -p $HOME/test-datamodel/orgchart && cd $HOME/test-datamodel/orgchart
+    mkdir -p <BaseDir>/test-datamodel/orgchart && cd <BaseDir>/test-datamodel/orgchart       
     ```
+   
      
 1. Initialize datamodel workspace
     ```
