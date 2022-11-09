@@ -134,9 +134,10 @@ var _ = Describe("Pkg tests", func() {
 			Name:    "diff_name",
 			Options: nil,
 		}
-		ts.Set(&t)
+		err := ts.Set(&t)
 		parser.FillEmptyTag(&ts, "name", "tag")
 		tn, _ := ts.Get("tag")
+		Expect(err).To(Not(HaveOccurred()))
 		Expect(tn.Name).To(Equal("diff_name"))
 	})
 

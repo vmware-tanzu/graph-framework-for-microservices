@@ -593,7 +593,10 @@ func FillEmptyTag(ts *structtag.Tags, n, tag string) *structtag.Tags {
 		Name:    util.GetTag(n),
 		Options: nil,
 	}
-	ts.Set(&jt)
+	err := ts.Set(&jt)
+	if err != nil {
+		log.Fatalf("Failed to set tag: %v", err)
+	}
 
 	return ts
 }
