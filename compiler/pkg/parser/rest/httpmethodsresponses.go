@@ -4,8 +4,8 @@ import (
 	"go/ast"
 	"go/types"
 
-	"github.com/vmware-tanzu/graph-framework-for-microservices/common-library/pkg/nexus"
 	"github.com/vmware-tanzu/graph-framework-for-microservices/compiler/pkg/parser"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/nexus/nexus"
 )
 
 var httpMethods = map[string]string{

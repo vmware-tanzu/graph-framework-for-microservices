@@ -36,6 +36,8 @@ type HTTPCodesResponse map[ResponseCode]HTTPResponse
 // HTTPMethodsResponses to response mapping.
 type HTTPMethodsResponses map[HTTPMethod]HTTPCodesResponse
 
+type SecretSpec struct{}
+
 // RestURIs and associated data.
 type RestURIs struct {
 	Uri         string               `json:"uri"`

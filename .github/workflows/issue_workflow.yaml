@@ -1,0 +1,24 @@
+name: Create JIRA on issue
+on:
+  issues:
+    types: [opened]
+jobs:
+  create_jira:
+    name: Create JIRA on NPT Project 
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+      - name: Create JIRA 
+        env:
+          EVENT_CONTEXT: ${{ toJSON(github.event) }}
+          JIRA_SERVER: ${{ secrets.JIRASERVER }}
+          JIRA_USER: ${{ secrets.JIRAUSER }}
+          JIRA_PWD: ${{ secrets.JIRAPASSWORD }}
+          GITHUBTOKEN: ${{ secrets.GITHUBTOKEN }}
+        run: |
+          set -x
+          pip install jira
+          python create_jira.py
