@@ -38,7 +38,7 @@ kubectl port-forward svc/nexus-api-gw 5000:80 -n default &
 
 **GraphQL query to verify there is no leader exists**
 
-![Query1](./images/GqlP1.png)
+![Query1](../images/GqlP1.png)
 
 <!--
 ```shell
@@ -47,11 +47,11 @@ kubectl port-forward svc/nexus-api-gw 5000:80 -n default &
 -->
 **Create a Leader object via REST API**
 
-![CreateLeader](./images/RestP2.png)
+![CreateLeader](../images/RestP2.png)
 
 **GraphQL query to verify the leader is created or not**
 
-![Query2](./images/GqlP2.png)
+![Query2](../images/GqlP2.png)
 
 <!--
 ```shell
@@ -66,7 +66,7 @@ curl -X POST -H 'Content-Type: application/json' -d '{"apiVersion":"root.orgchar
 ```
 
 **GraphQL query to verify the manager is created or not**
-![Query3](./images/GqlP3.png)
+![Query3](../images/GqlP3.png)
 
 
 
@@ -92,7 +92,7 @@ spec:
 
 **GraphQL query to verify the manager is created or not**
 
-![Query4](./images/GqlP4.png)
+![Query4](../images/GqlP4.png)
 
 <!--
 ```shell
@@ -133,7 +133,7 @@ nexus apply -f engineers.yaml
 
 **GraphQL query to verify the engineers is created or not**
 
-![Query5](./images/GqlP5.png)
+![Query5](../images/GqlP5.png)
 
 <!--
 ```shell
