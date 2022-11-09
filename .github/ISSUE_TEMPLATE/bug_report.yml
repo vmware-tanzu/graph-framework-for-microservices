@@ -61,10 +61,10 @@ body:
       label: "How critical is this bug to you?"
       multiple: false
       options: 
-        - "Blocker - solution is unusable without this feature"
-        - "Critical - solution is severely limited in value without this feature"
-        - "Major - important feature to be incorporated as there are no  known alternatives in the solution"
-        - "Minor - nice to have feature that adds value to the solution"
+        - "Blocker - solution is unusable"
+        - "Critical - solution is severely limited in value"
+        - "Major - important to fix"
+        - "Minor - non-functional bug"
     id: priority
     type: dropdown
     validations: 
