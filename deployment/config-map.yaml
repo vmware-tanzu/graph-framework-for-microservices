@@ -9,5 +9,8 @@ data:
       zipkin: http://zipkin:9411
     concurrency: 5
     timeout: 60
+    rest:
+    - get_hr
     graphql:
     - get_managers
+    - get_employee_role

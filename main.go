@@ -1,13 +1,8 @@
 package main
 
 import (
-	"context"
-	"fmt"
 	"io/ioutil"
 	"log"
-	"math/rand"
-	"net/http"
-	"strings"
 	"time"
 
 	"github.com/Khan/genqlient/graphql"
@@ -15,7 +10,8 @@ import (
 	zipkinhttp "github.com/openzipkin/zipkin-go/middleware/http"
 	"github.com/openzipkin/zipkin-go/model"
 	reporterhttp "github.com/openzipkin/zipkin-go/reporter/http"
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/nexus-calibration/gqlclient"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/nexus-calibration/graphqlcalls"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/nexus-calibration/rest"
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/nexus-calibration/workmanager"
 	"gopkg.in/yaml.v2"
 )
@@ -25,22 +21,6 @@ var endpointURL string
 // apiGateway         = "http://localhost:45192"
 var apiGateway string
 var gqlURL string
-
-// function keys
-const (
-	// rest function keys
-	PUT_EMPLOYEE = "put_employee"
-	GET_HR       = "get_hr"
-	// graphql function keys
-	GET_MANAGERS      = "get_managers"
-	GET_EMPLOYEE_ROLE = "get_employee_role"
-)
-
-type BuildReq func() *http.Request
-
-var funcMap map[string]func() *http.Request
-
-var graphqlFuncMap map[string]func(graphql.Client)
 
 var tracer *zipkin.Tracer
 
@@ -88,86 +68,67 @@ func main() {
 	endpointURL = c.Server.Zipkin + "/api/v2/spans"
 	gqlURL = apiGateway + "/apis/graphql/v1/query"
 
-	funcMap = make(map[string]func() *http.Request)
-	graphqlFuncMap = make(map[string]func(graphql.Client))
 	var err error
 	tracer, err = newTracer()
 	if err != nil {
 		log.Fatalf("error out %v", err)
 	}
 	log.Println("tracer added")
-	// tracer can now be used to create spans.
-	// create global zipkin traced http client
-	zipkinClient, err = zipkinhttp.NewClient(tracer, zipkinhttp.ClientTrace(true))
-	if err != nil {
-		log.Fatalf("unable to create client: %+v\n", err)
-	}
-
 	// add functions
-	funcMap[PUT_EMPLOYEE] = putEmployee
-	funcMap[GET_HR] = getHR
 
-	graphqlFuncMap[GET_MANAGERS] = gqlGetManagers
-	graphqlFuncMap[GET_EMPLOYEE_ROLE] = gqlGetEmployeeRole
 	//workManager(GET_HR, c.Concurrency, c.Timeout)
 	//time.Sleep(10 * time.Second)
+	zipkinClient, err := zipkinhttp.NewClient(tracer, zipkinhttp.ClientTrace(true))
+	if err != nil {
+		log.Fatalf("error out %v", err)
+	}
 	gclient = graphql.NewClient(gqlURL, zipkinClient)
 
+	restFuncs := rest.RestFuncs{
+		ApiGateway: apiGateway,
+	}
+	// initialize rest functions
+	restFuncs.Init()
 	// REST worker
 	// create regualr rest client to skip zipkin
 	w := workmanager.Worker{
-		ZipkinClient: zipkinClient,
-		WorkerType:   0,
-		FuncMap:      funcMap,
-		SampleRate:   0.15,
+		Tracer:     tracer,
+		WorkerType: 0,
+		FuncMap:    restFuncs.FuncMap,
+		SampleRate: 0.15,
 	}
 
 	for _, k := range c.Rest {
 		log.Println(k)
-		w.WorkManager(k, c.Concurrency)
+		w.WorkManagerInit(k, c.Concurrency)
 		w.StartWithAutoStop(c.Timeout)
-		w.WorkDuration.CalculateAverage()
-		log.Println(w.WorkDuration.Average, w.WorkDuration.Low, w.WorkDuration.High)
+		w.WorkData.CalculateAverage()
+		log.Println(w.WorkData.Average, w.WorkData.Low, w.WorkData.High)
+		log.Printf("Work data :- \n \tops count: %d \t err count: %d", w.WorkData.OpsCount, w.WorkData.ErrCount)
 	}
 
+	// Prepare and run graphql tests
+	graphqlFuncs := graphqlcalls.GraphqlFuncs{
+		Gclient: gclient,
+	}
+	graphqlFuncs.Init()
 	// GraphQL query worker
 	w2 := workmanager.Worker{
-		GraphqlFuncMap: graphqlFuncMap,
-		Gclient:        gclient,
+		Tracer:         tracer,
+		GraphqlFuncMap: graphqlFuncs.GraphqlFuncMap,
 		WorkerType:     1,
 		SampleRate:     0.2,
 	}
 	for _, k := range c.Graphql {
-		w2.WorkManager(k, c.Concurrency)
+		w2.WorkManagerInit(k, c.Concurrency)
 		w2.StartWithAutoStop(c.Timeout)
-		w2.WorkDuration.CalculateAverage()
-		log.Println(w2.WorkDuration.Average, w2.WorkDuration.Low, w2.WorkDuration.High)
+		w2.WorkData.CalculateAverage()
+		log.Println(w2.WorkData.Average, w2.WorkData.Low, w2.WorkData.High)
+		log.Printf("Work data :- \n \tops count: %d \t err count: %d", w2.WorkData.OpsCount, w2.WorkData.ErrCount)
 	}
 
 	time.Sleep(10 * time.Second)
 }
-
-func getHR() *http.Request {
-	//url := "http://localhost:45192/hr/test2"
-	url := fmt.Sprintf("%s/hr/test2", apiGateway)
-	method := "GET"
-
-	//client := &http.Client{}
-	req, err := http.NewRequest(method, url, nil)
-	if err != nil {
-		log.Fatalf("Failed to build request %v", err)
-	}
-	return req
-
-}
-
-func RandomString(length int) string {
-	rand.Seed(time.Now().UnixNano())
-	b := make([]byte, length)
-	rand.Read(b)
-	return fmt.Sprintf("%x", b)[:length]
-}
-
 func newTracer() (*zipkin.Tracer, error) {
 	// The reporter sends traces to zipkin server
 	reporter := reporterhttp.NewReporter(endpointURL)
@@ -191,42 +152,4 @@ func newTracer() (*zipkin.Tracer, error) {
 	}
 
 	return t, err
-}
-
-func putEmployee() *http.Request {
-	//empName := "e5"
-	empName := RandomString(10)
-	url := fmt.Sprintf("%s/root/default/employee/%s", apiGateway, empName)
-	method := "PUT"
-
-	payload := strings.NewReader(`{}`)
-
-	req, err := http.NewRequest(method, url, payload)
-
-	if err != nil {
-		log.Fatalf("Failed to build request %v", err)
-	}
-	req.Header.Add("accept", "application/json")
-	req.Header.Add("Content-Type", "application/json")
-	return req
-}
-
-func gqlGetManagers(gclient graphql.Client) {
-	ctx := context.Background()
-	span, ctx := tracer.StartSpanFromContext(ctx, GET_MANAGERS)
-	_, err := gqlclient.Managers(ctx, gclient)
-	if err != nil {
-		log.Printf("Failed to build request %v", err)
-	}
-	span.Finish()
-}
-
-func gqlGetEmployeeRole(gclient graphql.Client) {
-	ctx := context.Background()
-	span, ctx := tracer.StartSpanFromContext(ctx, GET_EMPLOYEE_ROLE)
-	_, err := gqlclient.Employees(ctx, gclient)
-	if err != nil {
-		log.Printf("Failed to build request %v", err)
-	}
-	span.Finish()
 }

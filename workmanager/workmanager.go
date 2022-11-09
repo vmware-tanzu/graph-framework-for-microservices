@@ -1,40 +1,51 @@
 package workmanager
 
 import (
+	"context"
 	"log"
 	"math"
 	"net/http"
 	"time"
 
-	"github.com/Khan/genqlient/graphql"
+	"github.com/openzipkin/zipkin-go"
 	zipkinhttp "github.com/openzipkin/zipkin-go/middleware/http"
 )
 
 type Worker struct {
 	WorkerType     int
-	ZipkinClient   *zipkinhttp.Client
-	HttpClient     *http.Client
-	Gclient        graphql.Client
+	zipkinClient   *zipkinhttp.Client
+	Tracer         *zipkin.Tracer
+	httpClient     *http.Client
 	FuncMap        map[string]func() *http.Request
-	GraphqlFuncMap map[string]func(graphql.Client)
+	GraphqlFuncMap map[string]func()
 	start          chan bool
 	stop           chan bool
 	started        bool
-	WorkDuration   WorkDuration
+	WorkData       WorkData
 	SampleRate     float32
 	moduloRate     int
 }
 
-type WorkDuration struct {
+type WorkData struct {
 	Duration []int64
 	Average  int64
 	High     int64
 	Low      int64
+	ErrCount int
+	OpsCount int
 }
 
 // workManager - starts and stops workers, manages concurrency and time
-func (w *Worker) WorkManager(job string, concurrency int) {
+func (w *Worker) WorkManagerInit(job string, concurrency int) {
 	// wait for start and stop singal for the job
+	w.WorkData = WorkData{}
+	var err error
+	if w.Tracer != nil {
+		w.zipkinClient, err = zipkinhttp.NewClient(w.Tracer, zipkinhttp.ClientTrace(true))
+		if err != nil {
+			log.Fatalf("unable to create client: %+v\n", err)
+		}
+	}
 	w.start = make(chan bool)
 	w.stop = make(chan bool)
 	go func() {
@@ -62,7 +73,6 @@ func (w *Worker) StartWithAutoStop(runFor int) {
 		log.Println("Worker already started")
 		return
 	}
-	w.WorkDuration = WorkDuration{}
 	w.start <- true
 	w.started = true
 	time.Sleep(time.Second * time.Duration(runFor))
@@ -85,6 +95,7 @@ func (w *Worker) Stop() {
 	w.stop <- true
 	w.started = false
 }
+
 func (w *Worker) startWorkers(concurrency int, job string) {
 	// concurrent work that can be done = no. of bool set in the channel
 	log.Printf("Starting workers for job %s \n", job)
@@ -92,53 +103,45 @@ func (w *Worker) startWorkers(concurrency int, job string) {
 	for i := 0; i < concurrency; i++ {
 		work <- true
 	}
+
+	var workerFunc func(string, chan bool)
+	// set workerFunc based on the workerType
 	switch w.WorkerType {
 	case 0:
-		// http worker
-		count := 0
-		for {
-			// consume work
-			count++
-			<-work
-			start := time.Now()
-			w.doWork(job, work)
-			elapsed := time.Since(start)
-			if (count % w.moduloRate) == 0 {
-				w.WorkDuration.Duration = append(w.WorkDuration.Duration, elapsed.Milliseconds())
-			}
-		}
+		workerFunc = w.doWork
 	case 1:
-		// graphql get worker
-		count := 0
-		for {
-			// consume work
-			count++
-			<-work
-			start := time.Now()
-			w.doGraphqlQuery(job, work)
-			elapsed := time.Since(start)
-			if (count % w.moduloRate) == 0 {
-				w.WorkDuration.Duration = append(w.WorkDuration.Duration, elapsed.Milliseconds())
-			}
+		workerFunc = w.doGraphqlQuery
+	}
+	// http worker
+	w.WorkData.OpsCount = 0
+	for {
+		//count the number of ops
+		w.WorkData.OpsCount++
+		// consume work
+		<-work
+		start := time.Now()
+		workerFunc(job, work)
+		elapsed := time.Since(start)
+		if (w.WorkData.OpsCount % w.moduloRate) == 0 {
+			w.WorkData.Duration = append(w.WorkData.Duration, elapsed.Milliseconds())
 		}
 	}
-
 }
 
-// async work
+// async rest client worker
 func (w *Worker) doWork(job string, work chan bool) {
 	// get work
 	req := w.FuncMap[job]()
 	req.Header.Add("accept", "application/json")
 	var res *http.Response
 	var err error
-	if w.ZipkinClient == nil {
-		res, err = w.HttpClient.Do(req)
+	if w.zipkinClient == nil {
+		res, err = w.httpClient.Do(req)
 		if err != nil {
 			log.Fatalf("unable to do http request: %+v\n", err)
 		}
 	} else {
-		res, err = w.ZipkinClient.DoWithAppSpan(req, job)
+		res, err = w.zipkinClient.DoWithAppSpan(req, job)
 		if err != nil {
 			log.Fatalf("unable to do http request: %+v\n", err)
 		}
@@ -146,19 +149,27 @@ func (w *Worker) doWork(job string, work chan bool) {
 	defer res.Body.Close()
 	// work done
 	work <- true
-
+	if res.StatusCode >= 400 {
+		w.WorkData.ErrCount++
+	}
 }
 
-// async work
+// async work graphql worker
 func (w *Worker) doGraphqlQuery(job string, work chan bool) {
-	// get work
 	gqlFunc := w.GraphqlFuncMap[job]
-	gqlFunc(w.Gclient)
+	ctx := context.Background()
+	if w.Tracer == nil {
+		gqlFunc()
+	} else {
+		span, _ := w.Tracer.StartSpanFromContext(ctx, job)
+		gqlFunc()
+		span.Finish()
+	}
 	// work done
 	work <- true
 }
 
-func (d *WorkDuration) CalculateAverage() {
+func (d *WorkData) CalculateAverage() {
 	d.Low = math.MaxInt64
 	d.High = 0
 	var sum int64 = 0
