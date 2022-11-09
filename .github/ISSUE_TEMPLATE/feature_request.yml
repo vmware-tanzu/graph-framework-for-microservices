@@ -1,0 +1,74 @@
+--- 
+assignees: 
+  - xmen4xp
+body: 
+  - 
+    attributes:
+      value: "Thanks for taking the time to fill out this feature request!\n"
+    type: markdown
+  - 
+    attributes: 
+      description: "How can we get in touch with you if we need more info?"
+      label: "Contact Details"
+      placeholder: "ex. email@example.com"
+    validations: 
+      required: false
+    id: contact
+    type: input
+  - 
+    attributes: 
+      description: "Tell us the project / group you are associated with"
+      label: "Tell us the project / group you are associated with"
+      options: 
+        - "Community (Default)"
+        - "Project ServiceMesh"
+        - "Project Mazinger"
+        - "Project Watch"
+    validations: 
+      required: true
+    id: associated-project
+    type: dropdown
+  - 
+    attributes: 
+      description: "Describe the feature request"
+      label: "What would you like to see implemented?"
+      placeholder: "What would you like to see implemented?"
+    validations:
+      required: true
+    id: what-feature
+    type: textarea
+  -
+    attributes:
+      description: "Illustrations"
+      label: "Are you able to share screenshots or illustrations that explains the feature?"
+      placeholder: "Are you able to share screenshots or illustrations that explains the feature?"
+    validations:
+      required: false
+    id: screenshots
+    type: textarea
+  -
+    attributes: 
+      label: "How critical is this feature to you?"
+      multiple: false
+      options: 
+        - "Blocker - solution is unusable without this feature"
+        - "Critical - solution is severely limited in value without this feature"
+        - "Major - important feature to be incorporated as there are no known alternatives in the solution"
+        - "Minor - nice to have feature that adds value to the solution"
+    id: priority
+    type: dropdown
+    validations: 
+      required: true
+  - 
+    attributes: 
+      description: "Any additional / relevant info."
+      label: "Any additional / relevant info"
+    id: additional-info
+    type: textarea
+    validations: 
+      required: false
+description: "File a feature request"
+labels: 
+  - "feature request"
+name: "Feature Request"
+title: "[Feature]: "
