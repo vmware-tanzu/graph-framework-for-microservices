@@ -9,7 +9,6 @@ require (
 	github.com/onsi/ginkgo v1.16.5
 	github.com/onsi/gomega v1.19.0
 	github.com/sirupsen/logrus v1.8.1
-	github.com/vmware-tanzu/graph-framework-for-microservices/common-library v0.0.0-20220909083510-01d43651301d
 	github.com/vmware-tanzu/graph-framework-for-microservices/gqlgen v0.0.0-00010101000000-000000000000
 	github.com/vmware-tanzu/graph-framework-for-microservices/kube-openapi v0.0.0-20220603123335-7416bd4754d3
 	github.com/vmware-tanzu/graph-framework-for-microservices/nexus v0.0.0-00010101000000-000000000000
@@ -58,8 +57,6 @@ require (
 	sigs.k8s.io/json v0.0.0-20211208200746-9f7c6b3444d2 // indirect
 	sigs.k8s.io/structured-merge-diff/v4 v4.2.1 // indirect
 )
-
-replace github.com/vmware-tanzu/graph-framework-for-microservices/common-library => ../common-library
 
 replace github.com/vmware-tanzu/graph-framework-for-microservices/kube-openapi => ../kube-openapi
 

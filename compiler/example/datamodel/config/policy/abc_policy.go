@@ -1,7 +1,7 @@
 package policypkg
 
 import (
-	"github.com/vmware-tanzu/graph-framework-for-microservices/compiler/example/datamodel/nexus"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/nexus/nexus"
 )
 
 type AdditionalPolicyData struct {
