@@ -31,10 +31,6 @@ This guided workflow will walk you through setting up a datamodel that is local 
 Install Nexus CLI
 
 ```
-go install github.com/vmware-tanzu/graph-framework-for-microservices/cli/cmd/plugin/nexus@npt-604
-
-(OR)
-
 curl -LJ https://github.com/vmware-tanzu/graph-framework-for-microservices/releases/download/v0.0.2-testversion-draft-v6/nexus-$(uname -s | awk '{print tolower($0)}')_$(go env GOARCH)  -o nexus
 
 chmod +x nexus
