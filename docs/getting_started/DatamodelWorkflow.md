@@ -54,7 +54,7 @@ Verify nexus sdk pre-requisites are satisfied
 
 1. Start writing datamodel specification for your application.
    
-   **To understand the workflow we can use the below example datmodel. To write your own datamodel please refer** [here](https://gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/docs/-/blob/master/Datamodel/DSL/README.md)
+   **To understand the workflow we can use the below example datmodel. To write your own datamodel please refer** [here](docs/Datamodel/DSL/README.md)
    
 **Example Orgchart DSL**
 
