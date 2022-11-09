@@ -5,7 +5,7 @@ import (
 
 	authnexusv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/authentication.nexus.org/v1"
 
-	"github.com/vmware-tanzu/graph-framework-for-microservices/common-library/pkg/nexus"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/nexus/nexus"
 	middlewarenexusv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/domain.nexus.org/v1"
 )
 

@@ -13,7 +13,7 @@ import (
 	"api-gw/pkg/model"
 	"api-gw/pkg/openapi/api"
 
-	"github.com/vmware-tanzu/graph-framework-for-microservices/common-library/pkg/nexus"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/nexus/nexus"
 )
 
 var _ = Describe("OpenAPI tests", func() {

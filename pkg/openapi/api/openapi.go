@@ -12,7 +12,7 @@ import (
 
 	"github.com/getkin/kin-openapi/openapi3"
 	log "github.com/sirupsen/logrus"
-	"github.com/vmware-tanzu/graph-framework-for-microservices/common-library/pkg/nexus"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/nexus/nexus"
 	v1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 )
 

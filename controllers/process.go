@@ -1,13 +1,15 @@
 package controllers
 
 import (
+	"net/http"
+
 	log "github.com/sirupsen/logrus"
 	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	"k8s.io/apimachinery/pkg/util/json"
-	"net/http"
 
 	"api-gw/pkg/model"
-	"github.com/vmware-tanzu/graph-framework-for-microservices/common-library/pkg/nexus"
+
+	"github.com/vmware-tanzu/graph-framework-for-microservices/nexus/nexus"
 )
 
 func (r *CustomResourceDefinitionReconciler) ProcessAnnotation(crdType string,
