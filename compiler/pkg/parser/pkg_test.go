@@ -1,13 +1,13 @@
 package parser_test
 
 import (
-	"github.com/fatih/structtag"
 	"go/ast"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	log "github.com/sirupsen/logrus"
 
+	"github.com/fatih/structtag"
 	"github.com/vmware-tanzu/graph-framework-for-microservices/compiler/pkg/config"
 	generator "github.com/vmware-tanzu/graph-framework-for-microservices/compiler/pkg/generator"
 	"github.com/vmware-tanzu/graph-framework-for-microservices/compiler/pkg/parser"
