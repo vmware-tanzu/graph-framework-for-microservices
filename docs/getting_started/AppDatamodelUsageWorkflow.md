@@ -49,7 +49,7 @@ kubectl port-forward svc/nexus-api-gw 5000:80 -n default &
 
 ![CreateLeader](../images/RestP2.png)
 
-**GraphQL query to verify the leader is created or not**
+**GraphQL query to verify the leader is properly**
 
 ![Query2](../images/GqlP2.png)
 
