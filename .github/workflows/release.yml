@@ -1,8 +1,7 @@
 name: Release compiler image and CLI Binaries
 on:
-  create:
-    tags:
-      - v*
+  release:
+    types: [created]
 jobs:
   release-compiler-image:
     name: Release compiler image
