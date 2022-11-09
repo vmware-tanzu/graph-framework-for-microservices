@@ -34,7 +34,7 @@ export DOCS_INTERNAL_DIR=$PWD/docs/_internal
 kubectl port-forward svc/nexus-api-gw 5000:80 -n default &
 ```
 
-###  Create Leader Object via REST API
+###  Create Leader Object via REST API using Swagger UI
 
 **GraphQL query to verify that leader doesn't exist**
 
@@ -59,13 +59,13 @@ curl -X POST -H 'Content-Type: application/json' -d '{"query":"{\nroot{\nName\n}
 ```
 -->
 
-### Create Manager Object via curl
+### Create Manager Object via REST API using curl
 
 ```shell
 curl -X POST -H 'Content-Type: application/json' -d '{"apiVersion":"root.orgchart.org/v1","kind":"Manager","metadata":{"labels":{"leaders.root.orgchart.org":"Pere"},"name":"Amit"},"spec":{"designation":"Manager","name":"Amit"}}'  http://localhost:5000/apis/root.orgchart.org/v1/managers -o /dev/null
 ```
 
-**GraphQL query to verify the manager is created or not**
+**GraphQL query to verify the manager is properly created**
 ![Query3](../images/GqlP3.png)
 
 
@@ -100,7 +100,7 @@ curl -X POST -H 'Content-Type: application/json' -d '{"query":"{root{Name \n Des
 ```
 -->
 
-### Create Engineer Objects via nexus
+### Create Engineer Objects via nexus cli
 
 ```shell
 echo 'apiVersion: root.orgchart.org/v1
