@@ -11,7 +11,11 @@ It provides an extensible, distributed software stack that:
 
 This framework represents the application's datamodel/state as a Graph, with emphasis on the event-driven propagation of data.
 
+<<<<<<< HEAD
 ### [Get Started](docs/getting_started/DatamodelWorkflow.md)
+=======
+### [Get Started](docs/demo-workflow/DatamodelWorkflow.md)
+>>>>>>> 52361bf3 (Update README.md)
 
 ## What problem does it solve ?
 
