@@ -1,0 +1,10 @@
+- name: nexusCli
+  repoName: git@github.com/vmware-tanzu/graph-framework-for-microservices/cli
+- name: nexusAppTemplates
+  repoName: git@gitlab.eng.vmware.com:nsx-allspark_users/nexus-sdk/app-templates.git
+- name: nexusDatamodelTemplates
+  repoName: git@gitlab.eng.vmware.com:nsx-allspark_users/nexus-sdk/datamodel-templates.git
+- name: nexusCompiler
+  repoName: git@github.com:vmware-tanzu/graph-framework-for-microservices/compiler
+- name: nexusValidation
+  repoName: git@gitlab.eng.vmware.com:nsx-allspark_users/nexus-sdk/nexus-validation.git

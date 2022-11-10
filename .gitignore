@@ -49,3 +49,5 @@ compiler/report.json
 compiler/cmd/debug
 compiler/coverage.json
 compiler/report.json
+artifacts/
+node_modules
