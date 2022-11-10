@@ -5,3 +5,5 @@ report.json
 *.coverprofile
 .vscode/
 cmd/connector/connector
+connector/values.yaml
+*.tgz
