@@ -1,6 +1,7 @@
 package parser
 
 import (
+	"fmt"
 	"go/ast"
 	"go/parser"
 	"go/token"
@@ -10,6 +11,7 @@ import (
 	"strings"
 
 	log "github.com/sirupsen/logrus"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/compiler/pkg/config"
 )
 
 // ParseDSLPkg walks recursively through given path and looks for structs types definitions to add them to a Package map
@@ -27,6 +29,14 @@ func ParseDSLPkg(startPath string) Packages {
 				log.Infof("Ignoring vendor directory...")
 				return filepath.SkipDir
 			}
+
+			for _, f := range config.ConfigInstance.IgnoredDirs {
+				if info.Name() == f {
+					log.Infof(fmt.Sprintf("Ignoring %v directory from config", f))
+					return filepath.SkipDir
+				}
+			}
+
 			fileset := token.NewFileSet()
 			pkgs, err := parser.ParseDir(fileset, path, nil, parser.ParseComments)
 			if err != nil {

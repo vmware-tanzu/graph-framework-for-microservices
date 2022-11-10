@@ -11,8 +11,9 @@ import (
 var ConfigInstance *Config
 
 type Config struct {
-	GroupName     string `yaml:"groupName"`
-	CrdModulePath string `yaml:"crdModulePath"`
+	GroupName     string   `yaml:"groupName"`
+	CrdModulePath string   `yaml:"crdModulePath"`
+	IgnoredDirs   []string `yaml:"ignoredDirs"`
 }
 
 func LoadConfig(configFile string) (*Config, error) {
