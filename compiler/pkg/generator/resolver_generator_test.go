@@ -4,7 +4,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-  "github.com/vmware-tanzu/graph-framework-for-microservices/compiler/pkg/config"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/compiler/pkg/config"
 	"github.com/vmware-tanzu/graph-framework-for-microservices/compiler/pkg/generator"
 	"github.com/vmware-tanzu/graph-framework-for-microservices/compiler/pkg/parser"
 	"github.com/vmware-tanzu/graph-framework-for-microservices/nexus/nexus"
