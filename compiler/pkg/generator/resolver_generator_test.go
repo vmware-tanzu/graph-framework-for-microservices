@@ -3,6 +3,8 @@ package generator_test
 import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+
+	"github.com/vmware-tanzu/graph-framework-for-microservices/compiler/pkg/config"
 	"github.com/vmware-tanzu/graph-framework-for-microservices/compiler/pkg/generator"
 	"github.com/vmware-tanzu/graph-framework-for-microservices/compiler/pkg/parser"
 	"github.com/vmware-tanzu/graph-framework-for-microservices/nexus/nexus"
@@ -16,6 +18,7 @@ var _ = Describe("Template renderers tests", func() {
 	)
 
 	BeforeEach(func() {
+		config.ConfigInstance.IgnoredDirs = []string{"ignored"}
 		pkgs = parser.ParseDSLPkg(exampleDSLPath)
 		graphqlQueries = parser.ParseGraphqlQuerySpecs(pkgs)
 		graph := parser.ParseDSLNodes(exampleDSLPath, baseGroupName, pkgs, graphqlQueries)
