@@ -156,6 +156,43 @@ var _ = Describe("Echo server tests", func() {
 		Expect(rec.Code).To(Equal(200))
 	})
 
+	It("should fail update in put query if query param update_if_exists=false", func() {
+		leaderJson := `{
+			"designation": "abc",
+			"employeeID": 100,
+			"name": "xyz"
+		}`
+
+		restUri := nexus.RestURIs{
+			Uri:     "/leader",
+			Methods: nexus.DefaultHTTPMethodsResponses,
+		}
+		e.RegisterRouter(restUri)
+		model.ConstructMapCRDTypeToNode(model.Upsert, "leaders.orgchart.vmware.org", "management.Leader",
+			[]string{}, nil, nil, true, "some description")
+		model.ConstructMapURIToCRDType(model.Upsert, "leaders.orgchart.vmware.org", []nexus.RestURIs{restUri})
+
+		req := httptest.NewRequest(http.MethodPost, "/:orgchart.Leader", strings.NewReader(leaderJson))
+		req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+		rec := httptest.NewRecorder()
+		c := e.Echo.NewContext(req, rec)
+		c.SetParamNames("orgchart.Leader")
+		c.SetParamValues("default")
+		c.QueryParams().Add("update_if_exists", "false")
+		nc := &NexusContext{
+			NexusURI: "/leader",
+			//Codes: nexus.DefaultHTTPMethodsResponses,
+			Context:   c,
+			CrdType:   "leaders.orgchart.vmware.org",
+			GroupName: "orgchart.vmware.org",
+			Resource:  "leaders",
+		}
+
+		err := putHandler(nc)
+		Expect(err).NotTo(HaveOccurred())
+		Expect(rec.Code).To(Equal(403))
+	})
+
 	It("shouldn't handle put query for singleton object with not default as name", func() {
 		leaderJson := `{
 			"designation": "abc",

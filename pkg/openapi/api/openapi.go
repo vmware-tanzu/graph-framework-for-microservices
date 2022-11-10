@@ -153,7 +153,6 @@ func AddPath(uri nexus.RestURIs, datamodel string) {
 			operation := &openapi3.Operation{
 				OperationID: opId,
 				Tags:        []string{nameParts[1]},
-				Parameters:  params,
 			}
 			if uriInfo, ok := model.GetUriInfo(uri.Uri); ok && uriInfo.TypeOfURI == model.StatusURI {
 				operation.RequestBody = &openapi3.RequestBodyRef{
@@ -164,7 +163,14 @@ func AddPath(uri nexus.RestURIs, datamodel string) {
 						Ref: "#/components/responses/DefaultResponse",
 					},
 				}
+				operation.Parameters = params
 			} else {
+				p := constructUpdateParam()
+				var putParams []*openapi3.ParameterRef
+				putParams = append(putParams, params...)
+				putParams = append(putParams, p)
+				operation.Parameters = putParams
+
 				operation.RequestBody = &openapi3.RequestBodyRef{
 					Ref: "#/components/requestBodies/Create" + crdInfo.Name,
 				}
@@ -385,6 +391,14 @@ func parseUriParams(uri string, hierarchy []string) (parameters []*openapi3.Para
 		}
 	}
 	return
+}
+func constructUpdateParam() *openapi3.ParameterRef {
+	return &openapi3.ParameterRef{
+		Value: openapi3.NewQueryParameter("update_if_exists").
+			WithRequired(false).
+			WithSchema(openapi3.NewBoolSchema()).
+			WithDescription("If set to false, disables update of preexisting object. Default value is true"),
+	}
 }
 
 func paramExist(param string, params [][]string) bool {

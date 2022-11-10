@@ -331,10 +331,11 @@ func putHandler(c echo.Context) error {
 	hashedName := nexus.GetHashedName(crdName, crdInfo.ParentHierarchy, labels, name)
 	obj, err := client.Client.Resource(gvr).Get(context.TODO(), hashedName, metav1.GetOptions{})
 	if err != nil {
-		if uriInfo, ok := model.GetUriInfo(nc.NexusURI); ok && uriInfo.TypeOfURI == model.StatusURI {
-			return c.JSON(http.StatusNotFound, DefaultResponse{Message: "Can't put status subresource as nexus object not found"})
-		}
 		if errors.IsNotFound(err) {
+			if uriInfo, ok := model.GetUriInfo(nc.NexusURI); ok && uriInfo.TypeOfURI == model.StatusURI {
+				return c.JSON(http.StatusNotFound, DefaultResponse{Message: "Can't put status subresource as nexus object not found"})
+			}
+
 			// Build object
 			err = client.CreateObject(gvr,
 				crdNameParts[1], hashedName, labels, body)
@@ -357,11 +358,7 @@ func putHandler(c echo.Context) error {
 	}
 
 	obj.SetLabels(labels)
-	err = updateResource(nc, gvr, obj, body)
-	if err != nil {
-		return handleClientError(nc, err)
-	}
-	return c.JSON(http.StatusOK, DefaultResponse{Message: name})
+	return updateResource(nc, gvr, obj, body)
 }
 
 // deleteHandler is used to process DELETE requests
@@ -507,7 +504,7 @@ func updateResource(nc *NexusContext, gvr schema.GroupVersionResource, obj *unst
 	uriInfo, ok := model.GetUriInfo(nc.NexusURI)
 	if ok && uriInfo.TypeOfURI == model.StatusURI {
 		if _, ok := body["nexus"]; ok {
-			return fmt.Errorf("can't update nexus status subresource, only user defined status subresource update is allowed")
+			return nc.JSON(http.StatusBadRequest, DefaultResponse{Message: "can't update nexus status subresource, only user defined status subresource update is allowed"})
 		}
 
 		// Make sure status field is present first
@@ -517,25 +514,35 @@ func updateResource(nc *NexusContext, gvr schema.GroupVersionResource, obj *unst
 			_, err = client.Client.Resource(gvr).Patch(context.TODO(), obj.GetName(), types.MergePatchType, m, metav1.PatchOptions{}, "status")
 		}
 		if err != nil {
-			return err
+			return handleClientError(nc, err)
 		}
 
 		patch := createStatusPatch(body)
 		var patchBytes []byte
 		patchBytes, err = json.Marshal(patch)
 		if err != nil {
-			return fmt.Errorf("error while marshaling json status subresource payload: %s", err.Error())
+			return nc.JSON(http.StatusBadRequest, DefaultResponse{Message: fmt.Sprintf("error while marshaling json status subresource payload: %s", err.Error())})
 		}
 
 		// Update status subresource
 		_, err = client.Client.Resource(gvr).Patch(context.TODO(), obj.GetName(), types.JSONPatchType, patchBytes, metav1.PatchOptions{}, "status")
-		return err
+		if err != nil {
+			return handleClientError(nc, err)
+		}
+		return nc.JSON(http.StatusOK, DefaultResponse{Message: "Status Updated successfully"})
+	}
+
+	if nc.QueryParam("update_if_exists") == "false" {
+		return nc.JSON(http.StatusForbidden, DefaultResponse{Message: "Already Exists."})
 	}
 
 	// Handle PUT nexus object spec
 	obj.Object["spec"] = body
 	_, err := client.Client.Resource(gvr).Update(context.TODO(), obj, metav1.UpdateOptions{})
-	return err
+	if err != nil {
+		return handleClientError(nc, err)
+	}
+	return nc.JSON(http.StatusOK, DefaultResponse{Message: "Updated successfully"})
 }
 
 func createStatusPatch(body map[string]interface{}) []PatchOp {
