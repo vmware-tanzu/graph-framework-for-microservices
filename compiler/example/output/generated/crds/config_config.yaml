@@ -60,29 +60,29 @@ spec:
               clusterNamespaces:
                 items:
                   properties:
-                    Cluster:
+                    cluster:
                       properties:
-                        Name:
+                        name:
                           type: string
-                        Type:
+                        type:
                           type: string
                       required:
-                      - Name
-                      - Type
+                      - name
+                      - type
                       type: object
-                    Namespace:
+                    namespace:
                       properties:
-                        Name:
+                        name:
                           type: string
-                        Type:
+                        type:
                           type: string
                       required:
-                      - Name
-                      - Type
+                      - name
+                      - type
                       type: object
                   required:
-                  - Cluster
-                  - Namespace
+                  - cluster
+                  - namespace
                   type: object
                 type: array
               dNSGvk:

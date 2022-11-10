@@ -40,42 +40,42 @@ spec:
             properties:
               description:
                 properties:
-                  Color:
+                  color:
                     type: string
-                  HostPort:
+                  hostPort:
                     properties:
-                      Host:
+                      host:
                         type: string
-                      Port:
+                      port:
                         format: int32
                         type: integer
                     required:
-                    - Host
-                    - Port
+                    - host
+                    - port
                     type: object
-                  Instance:
+                  instance:
                     format: float
                     type: number
-                  ProjectId:
+                  projectId:
                     type: string
-                  TestAns:
+                  testAns:
                     items:
                       properties:
-                        Name:
+                        name:
                           type: string
                       required:
-                      - Name
+                      - name
                       type: object
                     type: array
-                  Version:
+                  version:
                     type: string
                 required:
-                - Color
-                - Version
-                - ProjectId
-                - TestAns
-                - Instance
-                - HostPort
+                - color
+                - version
+                - projectId
+                - testAns
+                - instance
+                - hostPort
                 type: object
               differentSpec:
                 type: object
@@ -173,88 +173,88 @@ spec:
                 type: string
               otherDescription:
                 properties:
-                  Color:
+                  color:
                     type: string
-                  HostPort:
+                  hostPort:
                     properties:
-                      Host:
+                      host:
                         type: string
-                      Port:
+                      port:
                         format: int32
                         type: integer
                     required:
-                    - Host
-                    - Port
+                    - host
+                    - port
                     type: object
-                  Instance:
+                  instance:
                     format: float
                     type: number
-                  ProjectId:
+                  projectId:
                     type: string
-                  TestAns:
+                  testAns:
                     items:
                       properties:
-                        Name:
+                        name:
                           type: string
                       required:
-                      - Name
+                      - name
                       type: object
                     type: array
-                  Version:
+                  version:
                     type: string
                 required:
-                - Color
-                - Version
-                - ProjectId
-                - TestAns
-                - Instance
-                - HostPort
+                - color
+                - version
+                - projectId
+                - testAns
+                - instance
+                - hostPort
                 type: object
               port:
                 format: int32
                 type: integer
               serviceSegmentRef:
                 properties:
-                  Field1:
+                  field1:
                     type: string
-                  Field2:
+                  field2:
                     type: string
                 required:
-                - Field1
-                - Field2
+                - field1
+                - field2
                 type: object
               serviceSegmentRefMap:
                 additionalProperties:
                   properties:
-                    Field1:
+                    field1:
                       type: string
-                    Field2:
+                    field2:
                       type: string
                   required:
-                  - Field1
-                  - Field2
+                  - field1
+                  - field2
                   type: object
                 type: object
               serviceSegmentRefPointer:
                 properties:
-                  Field1:
+                  field1:
                     type: string
-                  Field2:
+                  field2:
                     type: string
                 required:
-                - Field1
-                - Field2
+                - field1
+                - field2
                 type: object
               serviceSegmentRefs:
                 items:
                   properties:
-                    Field1:
+                    field1:
                       type: string
-                    Field2:
+                    field2:
                       type: string
                   required:
-                  - Field1
-                  - Field2
+                  - field1
+                  - field2
                   type: object
                 type: array
               slicePointer:
@@ -294,14 +294,14 @@ spec:
                 type: object
               state:
                 properties:
-                  Temperature:
+                  temperature:
                     format: int32
                     type: integer
-                  Working:
+                  working:
                     type: boolean
                 required:
-                - Working
-                - Temperature
+                - working
+                - temperature
                 type: object
             type: object
         type: object

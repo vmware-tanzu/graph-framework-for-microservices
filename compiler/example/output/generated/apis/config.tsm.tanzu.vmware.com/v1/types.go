@@ -182,25 +182,25 @@ type DomainList struct {
 
 // +k8s:openapi-gen=true
 type ClusterNamespace struct {
-	Cluster   MatchCondition
-	Namespace MatchCondition
+	Cluster   MatchCondition `json:"cluster" yaml:"cluster"`
+	Namespace MatchCondition `json:"namespace" yaml:"namespace"`
 }
 
 // +k8s:openapi-gen=true
 type MatchCondition struct {
-	Name string
-	Type gnstsmtanzuvmwarecomv1.Host
+	Name string                      `json:"name" yaml:"name"`
+	Type gnstsmtanzuvmwarecomv1.Host `json:"type" yaml:"type"`
 }
 
 // +k8s:openapi-gen=true
 type Cluster struct {
-	Name string
-	MyID int
+	Name string `json:"name" yaml:"name"`
+	MyID int    `json:"myID" yaml:"myID"`
 }
 
 // +k8s:openapi-gen=true
 type CrossPackageTester struct {
-	Test gnstsmtanzuvmwarecomv1.MyStr
+	Test gnstsmtanzuvmwarecomv1.MyStr `json:"test" yaml:"test"`
 }
 
 // +k8s:openapi-gen=true

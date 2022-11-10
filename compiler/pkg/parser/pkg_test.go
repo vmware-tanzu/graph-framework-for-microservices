@@ -7,6 +7,7 @@ import (
 	. "github.com/onsi/gomega"
 	log "github.com/sirupsen/logrus"
 
+	"github.com/fatih/structtag"
 	"github.com/vmware-tanzu/graph-framework-for-microservices/compiler/pkg/config"
 	generator "github.com/vmware-tanzu/graph-framework-for-microservices/compiler/pkg/generator"
 	"github.com/vmware-tanzu/graph-framework-for-microservices/compiler/pkg/parser"
@@ -117,6 +118,27 @@ var _ = Describe("Pkg tests", func() {
 		childFields := parser.GetChildFields(nodes[0])
 		fieldType := parser.GetFieldType(childFields[0])
 		Expect(fieldType).To(Equal("config.Config"))
+	})
+
+	It("should fill empty tag", func() {
+		ts := structtag.Tags{}
+		ts = *parser.FillEmptyTag(&ts, "name", "tag")
+		tn, _ := ts.Get("tag")
+		Expect(tn.Name).To(Equal("name"))
+	})
+
+	It("should not modify existing tag", func() {
+		ts := structtag.Tags{}
+		t := structtag.Tag{
+			Key:     "tag",
+			Name:    "diff_name",
+			Options: nil,
+		}
+		err := ts.Set(&t)
+		parser.FillEmptyTag(&ts, "name", "tag")
+		tn, _ := ts.Get("tag")
+		Expect(err).To(Not(HaveOccurred()))
+		Expect(tn.Name).To(Equal("diff_name"))
 	})
 
 	It("should get pointer field type", func() {

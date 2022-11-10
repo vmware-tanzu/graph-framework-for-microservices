@@ -237,59 +237,59 @@ type RandomPolicyDataList struct {
 
 // +k8s:openapi-gen=true
 type AdditionalDescription struct {
-	DiscriptionA string
-	DiscriptionB string
-	DiscriptionC string
-	DiscriptionD string
+	DiscriptionA string `json:"discriptionA" yaml:"discriptionA"`
+	DiscriptionB string `json:"discriptionB" yaml:"discriptionB"`
+	DiscriptionC string `json:"discriptionC" yaml:"discriptionC"`
+	DiscriptionD string `json:"discriptionD" yaml:"discriptionD"`
 }
 
 // +k8s:openapi-gen=true
 type AdditionalStatus struct {
-	StatusX int
-	StatusY int
+	StatusX int `json:"statusX" yaml:"statusX"`
+	StatusY int `json:"statusY" yaml:"statusY"`
 }
 
 // +k8s:openapi-gen=true
 type ACPStatus struct {
-	StatusABC int
-	StatusXYZ int
+	StatusABC int `json:"statusABC" yaml:"statusABC"`
+	StatusXYZ int `json:"statusXYZ" yaml:"statusXYZ"`
 }
 
 // +k8s:openapi-gen=true
 type ResourceGroupRef struct {
-	Name string
-	Type string
+	Name string `json:"name" yaml:"name"`
+	Type string `json:"type" yaml:"type"`
 }
 
 // +k8s:openapi-gen=true
 type ACPSvcGroupLinkInfo struct {
-	ServiceName string
-	ServiceType string
+	ServiceName string `json:"serviceName" yaml:"serviceName"`
+	ServiceType string `json:"serviceType" yaml:"serviceType"`
 }
 
 // +k8s:openapi-gen=true
 type PolicyCfgAction struct {
-	Action PolicyActionType `json:"action" mapstructure:"action"`
+	Action PolicyActionType `json:"action" mapstructure:"action" yaml:"action"`
 }
 
 // +k8s:openapi-gen=true
 type ResourceGroupID struct {
-	Name string `json:"name" mapstruction:"name"`
-	Type string `json:"type" mapstruction:"type"`
+	Name string `json:"name" mapstruction:"name" yaml:"name"`
+	Type string `json:"type" mapstruction:"type" yaml:"type"`
 }
 
 // +k8s:openapi-gen=true
 type RandomDescription struct {
-	DiscriptionA string
-	DiscriptionB string
-	DiscriptionC string
-	DiscriptionD string
+	DiscriptionA string `json:"discriptionA" yaml:"discriptionA"`
+	DiscriptionB string `json:"discriptionB" yaml:"discriptionB"`
+	DiscriptionC string `json:"discriptionC" yaml:"discriptionC"`
+	DiscriptionD string `json:"discriptionD" yaml:"discriptionD"`
 }
 
 // +k8s:openapi-gen=true
 type RandomStatus struct {
-	StatusX int
-	StatusY int
+	StatusX int `json:"statusX" yaml:"statusX"`
+	StatusY int `json:"statusY" yaml:"statusY"`
 }
 
 type TempConst1 string

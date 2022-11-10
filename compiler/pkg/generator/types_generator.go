@@ -275,6 +275,9 @@ type {{.Name}} struct {
 		typeString := ConstructType(aliasNameMap, field)
 
 		currentTags := parser.GetFieldTags(field)
+		currentTags = parser.FillEmptyTag(currentTags, name, "json")
+		currentTags = parser.FillEmptyTag(currentTags, name, "yaml")
+
 		if currentTags != nil && currentTags.Len() > 0 {
 			specDef.Fields += typeString
 			specDef.Fields += " " + fmt.Sprintf("`%s`", currentTags.String()) + "\n"
