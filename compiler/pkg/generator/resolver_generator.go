@@ -321,25 +321,52 @@ func findTypeAndPkgForField(ptParts []string, importMap map[string]string, pkgs 
 	structPkg := ptParts[0]
 	structType := ptParts[1]
 
-	pkgPath, ok := importMap[structPkg]
+	// if the import path has alias name, it is resolved
+	importPath, ok := importMap[structPkg]
 	if !ok {
-		log.Errorf("Cannot find the package name %s for the type %s", structPkg, structType)
-		return "", nil
+		// when pkg and directory names are different and no alias name provided,
+		// try to resolve by package name
+		for _, path := range importMap {
+			pkgName := getPkgName(pkgs, path)
+			if pkgName == structPkg {
+				importPath = path
+			}
+		}
 	}
 
-	importPath, err := strconv.Unquote(pkgPath)
+	pkgPath, err := strconv.Unquote(importPath)
 	if err != nil {
 		log.Errorf("Failed to parse package %s for the type %s with error %v", pkgPath, structType, err)
 		return "", nil
 	}
 
-	p, ok := pkgs[importPath]
+	p, ok := pkgs[pkgPath]
 	if !ok {
 		log.Errorf("Cannot find the package details from the path %s for the type %s", importPath, structType)
 		return "", nil
 	}
 
 	return structType, &p
+}
+
+// SkipSecretSpecAnnotation checks if the field has nexus secrets annotated on them
+// If yes, the field is skipped in the response.
+func SkipSecretSpecAnnotation(fieldName, nfType string, pkg parser.Package, importMap map[string]string, pkgs map[string]parser.Package) bool {
+	fieldPkg := &pkg
+	structType := nfType
+
+	if ptParts := strings.Split(nfType, "."); len(ptParts) == 2 { //servicegroup.SvcGroup
+		structType, fieldPkg = findTypeAndPkgForField(ptParts, importMap, pkgs)
+	}
+
+	if len(structType) != 0 {
+		if _, ok := parser.GetNexusSecretSpecAnnotation(*fieldPkg, structType); ok {
+			log.Debugf("Ignoring the field %s since the node is annotated as nexus secret", fieldName)
+			return true
+		}
+	}
+
+	return false
 }
 
 // processNexusFields process and populates properties for each nexus fields
@@ -366,17 +393,8 @@ func processNexusFields(pkg parser.Package, aliasNameMap map[string]string, node
 		// If yes, the field is ignored in the response.
 		if !parser.IsNexusTypeField(nf) {
 			nfType := parser.GetFieldType(nf)
-			fieldPkg := &pkg
-			structType := nfType
-
-			if ptParts := strings.Split(nfType, "."); len(ptParts) == 2 { //service_group.SvcGroup
-				structType, fieldPkg = findTypeAndPkgForField(ptParts, importMap, pkgs)
-			}
-			if len(structType) != 0 {
-				if _, ok := parser.GetNexusSecretSpecAnnotation(*fieldPkg, structType); ok {
-					log.Debugf("Ignoring the field %s since the node is annotated as nexus secret", fieldProp.FieldName)
-					continue
-				}
+			if SkipSecretSpecAnnotation(fieldProp.FieldName, nfType, pkg, importMap, pkgs) {
+				continue
 			}
 		}
 
