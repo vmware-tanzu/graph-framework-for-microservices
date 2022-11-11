@@ -2,7 +2,7 @@ DEBUG ?= FALSE
 
 GO_PROJECT_NAME ?= connector.git
 BUCKET_NAME ?= nexus-template-downloads
-CHART_NAME ?= "connector"
+CHART_NAME ?= "nexus-connector"
 HELM_REGISTRY ?= oci://284299419820.dkr.ecr.us-west-2.amazonaws.com/nexus
 ECR_DOCKER_REGISTRY ?= 284299419820.dkr.ecr.us-west-2.amazonaws.com/nexus
 DOCKER_REGISTRY ?= harbor-repo.vmware.com/nexus
