@@ -36,12 +36,19 @@ type server struct {
 	Zipkin string `yaml:"zipkin"`
 }
 
-type conf struct {
-	Server      server   `yaml:"server"`
+type Test struct {
 	Concurrency int      `yaml:"concurrency"`
 	Timeout     int      `yaml:"timeout"`
+	OpsCount    int      `yaml:"ops_count"`
+	SampleRate  float32  `yaml:"sample_rate"`
 	Rest        []string `yaml:"rest"`
 	Graphql     []string `yaml:"graphql"`
+	Name        string   `yaml:"name"`
+}
+
+type conf struct {
+	Server server `yaml:"server"`
+	Tests  []Test `yaml:"tests"`
 }
 
 func (c *conf) getConf() *conf {
@@ -61,8 +68,6 @@ func main() {
 	// read conf
 	var c conf
 	c.getConf()
-	log.Println("con ", c.Concurrency, " timeout ", c.Timeout)
-	log.Println(c.Rest, c.Graphql)
 
 	apiGateway = c.Server.URL
 	endpointURL = c.Server.Zipkin + "/api/v2/spans"
@@ -83,52 +88,58 @@ func main() {
 		log.Fatalf("error out %v", err)
 	}
 	gclient = graphql.NewClient(gqlURL, zipkinClient)
-
 	restFuncs := rest.RestFuncs{
 		ApiGateway: apiGateway,
 	}
 	// initialize rest functions
 	restFuncs.Init()
 	// REST worker
-	// create regualr rest client to skip zipkin
-	w := workmanager.Worker{
-		Tracer:     tracer,
-		WorkerType: 0,
-		FuncMap:    restFuncs.FuncMap,
-		SampleRate: 0.15,
-	}
-
-	for _, k := range c.Rest {
-		log.Println(k)
-		w.WorkManagerInit(k, c.Concurrency)
-		w.StartWithAutoStop(c.Timeout)
-		w.WorkData.CalculateAverage()
-		log.Println(w.WorkData.Average, w.WorkData.Low, w.WorkData.High)
-		log.Printf("Work data :- \n \tops count: %d \t err count: %d", w.WorkData.OpsCount, w.WorkData.ErrCount)
-	}
-
 	// Prepare and run graphql tests
 	graphqlFuncs := graphqlcalls.GraphqlFuncs{
 		Gclient: gclient,
 	}
 	graphqlFuncs.Init()
 	// GraphQL query worker
-	w2 := workmanager.Worker{
+
+	w := workmanager.Worker{
 		Tracer:         tracer,
+		FuncMap:        restFuncs.FuncMap,
 		GraphqlFuncMap: graphqlFuncs.GraphqlFuncMap,
-		WorkerType:     1,
-		SampleRate:     0.2,
-	}
-	for _, k := range c.Graphql {
-		w2.WorkManagerInit(k, c.Concurrency)
-		w2.StartWithAutoStop(c.Timeout)
-		w2.WorkData.CalculateAverage()
-		log.Println(w2.WorkData.Average, w2.WorkData.Low, w2.WorkData.High)
-		log.Printf("Work data :- \n \tops count: %d \t err count: %d", w2.WorkData.OpsCount, w2.WorkData.ErrCount)
 	}
 
+	for _, test := range c.Tests {
+		// Default sample rate
+		log.Println("Test Name: ", test.Name)
+		var samplingRate float32 = 0.1
+		if test.SampleRate > 0 {
+			samplingRate = test.SampleRate
+		}
+		w.SampleRate = samplingRate
+		w.OpsIterations = test.OpsCount
+		if test.OpsCount == 0 && test.Timeout == 0 {
+			log.Printf("Connot run tests, One of ops count or timeout for tests have to be provided\n")
+		}
+		for _, funcKey := range test.Rest {
+			w.WorkerType = 0
+			testRunner(&w, funcKey, test.Concurrency, test.Timeout)
+		}
+		for _, funcKey := range test.Graphql {
+			w.WorkerType = 1
+			testRunner(&w, funcKey, test.Concurrency, test.Timeout)
+		}
+	}
 	time.Sleep(10 * time.Second)
 }
+
+func testRunner(w *workmanager.Worker, funcKey string, concurrency int, timeout int) {
+	log.Println(funcKey)
+	w.WorkerStart(funcKey, concurrency, timeout)
+	w.WorkData.CalculateAverage()
+	log.Println(w.WorkData.Average, w.WorkData.Low, w.WorkData.High)
+	log.Printf("Work data :- \n \tops count: %d \t err count: %d", w.WorkData.OpsCount, w.WorkData.ErrCount)
+
+}
+
 func newTracer() (*zipkin.Tracer, error) {
 	// The reporter sends traces to zipkin server
 	reporter := reporterhttp.NewReporter(endpointURL)

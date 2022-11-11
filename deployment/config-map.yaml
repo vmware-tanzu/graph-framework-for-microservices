@@ -7,10 +7,17 @@ data:
     server:
       url: http://nexus-api-gw.nexus
       zipkin: http://zipkin:9411
-    concurrency: 5
-    timeout: 60
-    rest:
-    - get_hr
-    graphql:
-    - get_managers
-    - get_employee_role
+    tests:
+    - name: concurrent_read_tests 
+      concurrency: 5
+      timeout: 60
+      rest:
+      - get_hr
+      graphql:
+      - get_managers
+      - get_employee_role
+    - name: write_n_objects 
+      concurrency: 1
+      ops_count: 1000
+      rest:
+      - put_employee

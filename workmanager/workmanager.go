@@ -5,6 +5,7 @@ import (
 	"log"
 	"math"
 	"net/http"
+	"sync"
 	"time"
 
 	"github.com/openzipkin/zipkin-go"
@@ -18,12 +19,12 @@ type Worker struct {
 	httpClient     *http.Client
 	FuncMap        map[string]func() *http.Request
 	GraphqlFuncMap map[string]func()
-	start          chan bool
 	stop           chan bool
-	started        bool
 	WorkData       WorkData
 	SampleRate     float32
 	moduloRate     int
+	OpsIterations  int
+	m              sync.Mutex
 }
 
 type WorkData struct {
@@ -36,8 +37,12 @@ type WorkData struct {
 }
 
 // workManager - starts and stops workers, manages concurrency and time
-func (w *Worker) WorkManagerInit(job string, concurrency int) {
+func (w *Worker) WorkerStart(job string, concurrency int, runFor int) {
 	// wait for start and stop singal for the job
+	// using buffered channels, keeps signal sender moving
+	w.m.Lock()
+	defer w.m.Unlock()
+	w.stop = make(chan bool, 1)
 	w.WorkData = WorkData{}
 	var err error
 	if w.Tracer != nil {
@@ -46,54 +51,18 @@ func (w *Worker) WorkManagerInit(job string, concurrency int) {
 			log.Fatalf("unable to create client: %+v\n", err)
 		}
 	}
-	w.start = make(chan bool)
-	w.stop = make(chan bool)
-	go func() {
-		for i := 0; i < 2; i++ {
-			select {
-			// start job on signal
-			case <-w.start:
-				go w.startWorkers(concurrency, job)
-			// stop job on signal
-			case <-w.stop:
-				log.Println("exiting worker ")
-			}
-		}
-	}()
 
-	// set moduloRate
+	// set moduloRats
 	w.moduloRate = int(1 / w.SampleRate)
 	log.Printf("Sampling rate %f, modulo no - %d\n", w.SampleRate, w.moduloRate)
-
-}
-
-// StartWithAutoStop : runFor - run for n seconds
-func (w *Worker) StartWithAutoStop(runFor int) {
-	if w.started {
-		log.Println("Worker already started")
-		return
+	go w.startWorkers(concurrency, job)
+	if w.OpsIterations == 0 && runFor > 0 {
+		time.Sleep(time.Second * time.Duration(runFor))
+		log.Println("Stopping worker after runFor : ", runFor)
+		w.stop <- true
+		log.Println("Work stopped, closing worker automatically...")
 	}
-	w.start <- true
-	w.started = true
-	time.Sleep(time.Second * time.Duration(runFor))
-	w.stop <- true
-	w.started = false
-	log.Println("Work stopped, closing worker...")
-}
-
-func (w *Worker) Start() {
-	if w.started {
-		log.Println("Worker already started")
-		return
-	}
-	log.Println("Starting worker")
-	w.start <- true
-}
-
-func (w *Worker) Stop() {
-	log.Println("Work stopped, closing worker...")
-	w.stop <- true
-	w.started = false
+	<-w.stop
 }
 
 func (w *Worker) startWorkers(concurrency int, job string) {
@@ -124,6 +93,10 @@ func (w *Worker) startWorkers(concurrency int, job string) {
 		elapsed := time.Since(start)
 		if (w.WorkData.OpsCount % w.moduloRate) == 0 {
 			w.WorkData.Duration = append(w.WorkData.Duration, elapsed.Milliseconds())
+		}
+		if w.OpsIterations > 0 && w.OpsIterations == w.WorkData.OpsCount {
+			w.stop <- true
+			break
 		}
 	}
 }
