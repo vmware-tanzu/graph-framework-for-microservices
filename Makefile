@@ -143,9 +143,9 @@ coverage:
 submodule:
 	git submodule update --init --recursive
 build_helm: submodule
-	mkdir -p connector/crds
-	cp -rf api/build/crds/* connector/crds/
-	sed "s|__CONNECTOR_TAG___|$(TAG)|g" ./values.yaml > connector/values.yaml
+	mkdir -p nexus-connector/crds
+	cp -rf api/build/crds/* nexus-connector/crds/
+	sed "s|__CONNECTOR_TAG___|$(TAG)|g" ./values.yaml > nexus-connector/values.yaml
 	helm package $(CHART_NAME) --version $(VERSION)
 
 publish.ecr.helm: build_helm

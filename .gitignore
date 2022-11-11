@@ -5,5 +5,5 @@ report.json
 *.coverprofile
 .vscode/
 cmd/connector/connector
-connector/values.yaml
+nexus-connector/values.yaml
 *.tgz
