@@ -55,6 +55,9 @@ var graphqlResolverTemplateFile []byte
 //go:embed template/graphql/server.go.tmpl
 var gqlserverTemplateFile []byte
 
+//go:embed template/tsm-graphql/schema.graphqls.tmpl
+var tsmGraphqlSchemaTemplateFile []byte
+
 func RenderCRDTemplate(baseGroupName, crdModulePath string,
 	pkgs parser.Packages, graph map[string]parser.Node, outputDir string,
 	httpMethods map[string]nexus.HTTPMethodsResponses, httpCodes map[string]nexus.HTTPCodesResponse) error {
@@ -585,6 +588,25 @@ func RenderGraphQL(baseGroupName, outputDir, crdModulePath string, pkgs parser.P
 		return err
 	}
 
+	//Render Graphql Schema Template (TSM)
+	vars.Nodes, err = GenerateTsmGraphqlSchemaVars(baseGroupName, crdModulePath, pkgs, parentsMap)
+	if err != nil {
+		return err
+	}
+	tsmGqlFolder := outputDir + "/tsm-nexus-gql/graph"
+	schemaTemplate, err := readTemplateFile(tsmGraphqlSchemaTemplateFile)
+	if err != nil {
+		return err
+	}
+	tsmFile, err := renderTemplate(schemaTemplate, vars)
+	if err != nil {
+		return err
+	}
+	log.Debugf("Rendered graphql schema template: %s", tsmFile)
+	err = createFile(tsmGqlFolder, "schema.graphqls", tsmFile, false)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
