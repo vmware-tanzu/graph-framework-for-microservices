@@ -2,11 +2,15 @@ DEBUG ?= FALSE
 
 GO_PROJECT_NAME ?= connector.git
 BUCKET_NAME ?= nexus-template-downloads
-
+CHART_NAME ?= "connector"
+HELM_REGISTRY ?= oci://284299419820.dkr.ecr.us-west-2.amazonaws.com/nexus
 ECR_DOCKER_REGISTRY ?= 284299419820.dkr.ecr.us-west-2.amazonaws.com/nexus
 DOCKER_REGISTRY ?= harbor-repo.vmware.com/nexus
 IMAGE_NAME ?= connector
 TAG ?= $(shell git rev-parse --verify HEAD)
+VERSION ?= "v0.0.0-$(TAG)"
+HARBOR_REPO_URL ?= "https://harbor-repo.vmware.com/chartrepo/nexus"
+HARBOR_REPO ?= "harbor-vmware"
 
 BUILDER_NAME ?= ${IMAGE_NAME}-builder
 BUILDER_TAG := $(shell md5sum builder/Dockerfile | awk '{ print $1 }' | head -c 8)
@@ -134,3 +138,22 @@ cred_setup:
 
 coverage:
 	go test -json -coverprofile=coverage.out -coverpkg=./... ./... | tee report.json ;
+
+
+submodule:
+	git submodule update --init --recursive
+build_helm: submodule
+	mkdir -p connector/crds
+	cp -rf api/build/crds/* connector/crds/
+	sed "s|__CONNECTOR_TAG___|$(TAG)|g" ./values.yaml > connector/values.yaml
+	helm package $(CHART_NAME) --version $(VERSION)
+
+publish.ecr.helm: build_helm
+	helm push $(CHART_NAME)-$(VERSION).tgz $(HELM_REGISTRY)
+
+harbor.login:
+	helm repo remove $(HARBOR_REPO) || echo "$(HARBOR_REPO) not present"; \
+	helm repo add $(HARBOR_REPO) $(HARBOR_REPO_URL) --username $(HARBOR_USERNAME) --password $(HARBOR_PASSWORD);
+
+publish.harbor.helm: build_helm
+	helm cm-push $(CHART_NAME)-$(VERSION).tgz $(HARBOR_REPO)

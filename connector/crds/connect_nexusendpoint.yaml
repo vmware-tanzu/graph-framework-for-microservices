@@ -1,0 +1,79 @@
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    nexus: |
+      {"name":"connect.NexusEndpoint","hierarchy":["nexuses.api.nexus.org","configs.config.nexus.org","connects.connect.nexus.org"],"is_singleton":false,"nexus-rest-api-gen":{"uris":null}}
+  creationTimestamp: null
+  name: nexusendpoints.connect.nexus.org
+spec:
+  conversion:
+    strategy: None
+  group: connect.nexus.org
+  names:
+    kind: NexusEndpoint
+    listKind: NexusEndpointList
+    plural: nexusendpoints
+    shortNames:
+    - nexusendpoint
+    singular: nexusendpoint
+  scope: Cluster
+  versions:
+  - name: v1
+    schema:
+      openAPIV3Schema:
+        properties:
+          apiVersion:
+            description: 'APIVersion defines the versioned schema of this representation
+              of an object. Servers should convert recognized schemas to the latest
+              internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+            type: string
+          kind:
+            description: 'Kind is a string value representing the REST resource this
+              object represents. Servers may infer this from the endpoint the client
+              submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+            type: string
+          metadata:
+            type: object
+          spec:
+            properties:
+              cert:
+                type: string
+              host:
+                type: string
+              path:
+                type: string
+              port:
+                type: string
+            required:
+            - host
+            - port
+            type: object
+          status:
+            properties:
+              nexus:
+                properties:
+                  remoteGeneration:
+                    format: int64
+                    type: integer
+                  sourceGeneration:
+                    format: int64
+                    type: integer
+                required:
+                - sourceGeneration
+                - remoteGeneration
+                type: object
+            type: object
+        type: object
+    served: true
+    storage: true
+    subresources:
+      status: {}
+status:
+  acceptedNames:
+    kind: ""
+    plural: ""
+  conditions: null
+  storedVersions:
+  - v1
