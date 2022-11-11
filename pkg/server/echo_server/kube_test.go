@@ -4,6 +4,7 @@ import (
 	"api-gw/pkg/client"
 	"api-gw/pkg/model"
 	"api-gw/pkg/server/echo_server"
+	"context"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
@@ -13,6 +14,8 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	log "github.com/sirupsen/logrus"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/client-go/dynamic/fake"
@@ -282,6 +285,109 @@ var _ = Describe("Kube tests", func() {
 		err := echo_server.KubePostHandler(nc)
 		Expect(err).To(BeNil())
 		expectedResponse := "{\"apiVersion\":\"gns.vmware.org/v1\",\"kind\":\"GlobalNamespace\",\"metadata\":{\"labels\":{\"nexus/display_name\":\"test\",\"nexus/is_name_hashed\":\"true\",\"roots.root.vmware.org\":\"root\"},\"name\":\"2587591c2e1023ff9498b1b70ac5cbcb84504352\"},\"spec\":{\"foo\":\"bar2\"}}\n"
+		Expect(rec.Body.String()).To(Equal(expectedResponse))
+	})
+
+	It("should not remove child/link Gvks while update by kubePost handler", func() {
+		gvr := schema.GroupVersionResource{
+			Group:    "orgchart.vmware.org",
+			Version:  "v1",
+			Resource: "foos",
+		}
+		obj := &unstructured.Unstructured{
+			Object: map[string]interface{}{
+				"apiVersion": "orgchart.vmware.org/v1",
+				"kind":       "Foo",
+				"metadata": map[string]interface{}{
+					"name": "bb2cbdf1b03e754cea2c9da8e9134c050bc0d547",
+				},
+				"spec": map[string]interface{}{
+					"childGvk": "value_one",
+					"linkGvk":  "value_two",
+					"name":     "bob",
+				},
+			},
+		}
+		_, err := client.Client.Resource(gvr).Create(context.TODO(), obj, metav1.CreateOptions{})
+		Expect(err).NotTo(HaveOccurred())
+
+		server := httptest.NewServer(http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+			res.WriteHeader(200)
+			res.Write([]byte(`[]`))
+		}))
+		defer server.Close()
+		e := echo.New()
+
+		// If the newspec contains new fields, updateResource should add them while retaining the Gvk fields.
+		gnsJson := `{
+			"apiVersion": "orgchart.vmware.org/v1",
+			"kind": "Foo",
+			"metadata": {
+				"name": "test",
+				"labels": {
+					"roots.root.vmware.org": "root"
+				}
+			},
+			"spec": {
+				"name": "bob",
+				"foo": "bar2"
+			}
+		}`
+		req := httptest.NewRequest(http.MethodPost, "/", strings.NewReader(gnsJson))
+		req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+		rec := httptest.NewRecorder()
+		c := e.NewContext(req, rec)
+
+		nc := &echo_server.NexusContext{
+			Context:   c,
+			CrdType:   "foos.orgchart.vmware.org",
+			GroupName: "orgchart.vmware.org",
+			Resource:  "foos",
+		}
+		model.CrdTypeToNodeInfo["foos.orgchart.vmware.org"] = model.NodeInfo{
+			Name:            "Foo.foo",
+			ParentHierarchy: []string{"roots.root.vmware.org"},
+			Children: map[string]model.NodeHelperChild{
+				"childGVK": {
+					FieldNameGvk: "childGvk",
+				},
+				"linkGVK": {
+					FieldNameGvk: "linkGvk",
+				},
+			},
+		}
+
+		err = echo_server.KubePostHandler(nc)
+		Expect(err).To(BeNil())
+		expectedResponse := "{\"apiVersion\":\"orgchart.vmware.org/v1\",\"kind\":\"Foo\",\"metadata\":{\"labels\":{\"nexus/display_name\":\"test\",\"nexus/is_name_hashed\":\"true\",\"roots.root.vmware.org\":\"root\"},\"name\":\"bb2cbdf1b03e754cea2c9da8e9134c050bc0d547\"},\"spec\":{\"childGvk\":\"value_one\",\"foo\":\"bar2\",\"linkGvk\":\"value_two\",\"name\":\"bob\"}}\n"
+		Expect(rec.Body.String()).To(Equal(expectedResponse))
+
+		// If the newspec has empty spec, updateResource should remove the existing spec fields while retaining the Gvk fields.
+		gnsJson = `{
+			"apiVersion": "orgchart.vmware.org/v1",
+			"kind": "Foo",
+			"metadata": {
+				"name": "test",
+				"labels": {
+					"roots.root.vmware.org": "root"
+				}
+			},
+			"spec": {}
+		}`
+		req = httptest.NewRequest(http.MethodPost, "/", strings.NewReader(gnsJson))
+		req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+		rec = httptest.NewRecorder()
+		c = e.NewContext(req, rec)
+		nc = &echo_server.NexusContext{
+			Context:   c,
+			CrdType:   "foos.orgchart.vmware.org",
+			GroupName: "orgchart.vmware.org",
+			Resource:  "foos",
+		}
+
+		err = echo_server.KubePostHandler(nc)
+		Expect(err).To(BeNil())
+		expectedResponse = "{\"apiVersion\":\"orgchart.vmware.org/v1\",\"kind\":\"Foo\",\"metadata\":{\"labels\":{\"nexus/display_name\":\"test\",\"nexus/is_name_hashed\":\"true\",\"roots.root.vmware.org\":\"root\"},\"name\":\"bb2cbdf1b03e754cea2c9da8e9134c050bc0d547\"},\"spec\":{\"childGvk\":\"value_one\",\"linkGvk\":\"value_two\"}}\n"
 		Expect(rec.Body.String()).To(Equal(expectedResponse))
 	})
 

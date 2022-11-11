@@ -158,6 +158,19 @@ func KubePostHandler(c echo.Context) error {
 	}
 
 	body.SetResourceVersion(obj.GetResourceVersion())
+	spec := obj.Object["spec"].(map[string]interface{})
+	newSpec := body.Object["spec"].(map[string]interface{})
+	for _, v := range crdInfo.Children {
+		if value, ok := spec[v.FieldNameGvk]; ok {
+			newSpec[v.FieldNameGvk] = value
+		}
+	}
+	for _, v := range crdInfo.Links {
+		if value, ok := spec[v.FieldNameGvk]; ok {
+			newSpec[v.FieldNameGvk] = value
+		}
+	}
+	body.Object["spec"] = newSpec
 	obj, err = client.Client.Resource(gvr).Update(context.TODO(), body, metav1.UpdateOptions{})
 	if err != nil {
 		if status := kerrors.APIStatus(nil); errors.As(err, &status) {

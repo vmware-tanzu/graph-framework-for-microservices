@@ -1,6 +1,7 @@
 package echo_server
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
@@ -9,8 +10,12 @@ import (
 	"github.com/labstack/echo/v4"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+	"k8s.io/apimachinery/pkg/runtime/schema"
 
 	"api-gw/controllers"
+	"api-gw/pkg/client"
 	"api-gw/pkg/config"
 	"api-gw/pkg/model"
 
@@ -154,6 +159,75 @@ var _ = Describe("Echo server tests", func() {
 		err := putHandler(nc)
 		Expect(err).NotTo(HaveOccurred())
 		Expect(rec.Code).To(Equal(200))
+	})
+
+	It("should not remove child/link GVKs while update by putHandler", func() {
+		req := httptest.NewRequest(http.MethodPost, "/:orgchart.Leader", strings.NewReader(""))
+		req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+		rec := httptest.NewRecorder()
+		nc := &NexusContext{
+			Context: e.Echo.NewContext(req, rec),
+		}
+		obj := &unstructured.Unstructured{
+			Object: map[string]interface{}{
+				"apiVersion": "orgchart.vmware.org/v1",
+				"kind":       "Foo",
+				"metadata": map[string]interface{}{
+					"name": "zoo",
+				},
+				"spec": map[string]interface{}{
+					"childGvk": "value_one",
+					"linkGvk":  "value_two",
+				},
+			},
+		}
+		gvr := schema.GroupVersionResource{
+			Group:    "orgchart.vmware.org",
+			Version:  "v1",
+			Resource: "foos",
+		}
+		_, err := client.Client.Resource(gvr).Create(context.TODO(), obj, metav1.CreateOptions{})
+		Expect(err).NotTo(HaveOccurred())
+
+		crdInfo := model.NodeInfo{
+			Children: map[string]model.NodeHelperChild{
+				"childGVK": {
+					FieldNameGvk: "childGvk",
+				},
+				"linkGVK": {
+					FieldNameGvk: "linkGvk",
+				},
+			},
+		}
+
+		// If the newspec contains new fields, updateResource should add them while retaining the Gvk fields.
+		body := map[string]interface{}{
+			"employeeID": "100",
+			"name":       "bob",
+		}
+		err = updateResource(nc, gvr, obj, body, crdInfo)
+		Expect(err).NotTo(HaveOccurred())
+
+		obj, err = client.Client.Resource(gvr).Get(context.TODO(), obj.GetName(), metav1.GetOptions{})
+		Expect(err).NotTo(HaveOccurred())
+
+		spec := obj.Object["spec"].(map[string]interface{})
+		Expect(spec).To(HaveKey("childGvk"))
+		Expect(spec).To(HaveKey("linkGvk"))
+		Expect(spec).To(HaveLen(4))
+
+		// If the newspec has empty spec, updateResource should remove the existing spec fields while retaining the Gvk fields.
+		body = map[string]interface{}{}
+		err = updateResource(nc, gvr, obj, body, crdInfo)
+		Expect(err).NotTo(HaveOccurred())
+
+		obj, err = client.Client.Resource(gvr).Get(context.TODO(), obj.GetName(), metav1.GetOptions{})
+		Expect(err).NotTo(HaveOccurred())
+
+		spec = obj.Object["spec"].(map[string]interface{})
+		Expect(spec).To(HaveKey("childGvk"))
+		Expect(spec).To(HaveKey("linkGvk"))
+		Expect(spec).To(HaveLen(2))
 	})
 
 	It("should fail update in put query if query param update_if_exists=false", func() {
@@ -784,11 +858,13 @@ var _ = Describe("Echo server tests", func() {
 		nc3, rec3 := initNode(e, "leaders.management.vmware.org", "management.vmware.org",
 			"leaders", "management.Leader", http.MethodGet, "",
 			"/root/:orgchart.Root/leader/:management.Leader", restUri)
+		n := constructTestAnnotation()
+		model.ConstructMapCRDTypeToNode(model.Upsert, "leaders.management.vmware.org", "management.Leader",
+			[]string{}, n.Children, n.Links, true, "some description")
 		err = getHandler(nc3)
 		Expect(err).NotTo(HaveOccurred())
 		Expect(rec3.Code).To(Equal(200))
 		Expect(rec3.Body.String()).Should(Equal("{\"spec\":{\"designation\":\"abc\",\"employeeID\":100,\"name\":\"xyz\"},\"status\":{\"status\":{\"DaysLeftToEndOfVacations\":139,\"IsOnVacations\":true}}}\n"))
-
 	})
 
 	It("shouldn't handle PUT status subresource if nexus native status subresource is presnet in status subresource payload", func() {
@@ -966,6 +1042,11 @@ func constructTestAnnotation() model.NexusAnnotation {
 			"mgrs.management.vmware.org": {
 				FieldName:    "EngManagers",
 				FieldNameGvk: "engManagersGvk",
+				IsNamed:      true,
+			},
+			"roles.management.vmware.org": {
+				FieldName:    "roles",
+				FieldNameGvk: "roleGvk",
 				IsNamed:      true,
 			},
 		},
