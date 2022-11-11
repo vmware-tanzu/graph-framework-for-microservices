@@ -133,6 +133,15 @@ generate_example_in_container:
 test_in_container: ${BUILDER_NAME}\:${BUILDER_TAG}.image.exists
 	$(call run_in_container, make test)
 
+.PHONY: preparser
+preparser:
+	@echo "Preparser Started ${TSM_DATAMODEL_PATH}"
+	rm -rf _tsm_temp
+	cp -R ${TSM_DATAMODEL_PATH} _tsm_temp
+	go run cmd/preparser/main.go -dsl _tsm_temp
+	cp _tsm_temp/go.mod _tsm_temp/global/go.mod
+	go run cmd/nexus-sdk/main.go -config-file example/nexus-sdk.yaml -dsl _tsm_temp/global -crd-output example/output/_tsm_rendered_templates
+
 .PHONY: generate_code
 generate_code:
 	@echo "Nexus Compiler: Running compiler code generation"

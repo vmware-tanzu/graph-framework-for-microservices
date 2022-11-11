@@ -12,8 +12,8 @@ import (
 	"github.com/vmware-tanzu/graph-framework-for-microservices/compiler/pkg/util"
 )
 
-// populateValuesForEachNode populates each node with required resolver properties
-func populateValuesForEachNode(nodes []*NodeProperty, linkAPI map[string]string, retMap map[string]ReturnStatement) []NodeProperty {
+// tsmPopulateValuesForEachNode populates each node with required resolver properties
+func tsmPopulateValuesForEachNode(nodes []*NodeProperty, linkAPI map[string]string, retMap map[string]ReturnStatement) []NodeProperty {
 	var nodeProperties []NodeProperty
 	for _, n := range nodes {
 		resNodeProp := NodeProperty{}
@@ -49,9 +49,9 @@ func populateValuesForEachNode(nodes []*NodeProperty, linkAPI map[string]string,
 			f.IsResolver = true
 			resNodeProp.ResolverCount = 1
 			if f.IsSingleton {
-				f.SchemaFieldName = fmt.Sprintf("%s: %s!", f.FieldName, f.SchemaTypeName)
+				f.SchemaFieldName = getGraphqlSchemaName("%s: %s!", f.FieldName, f.SchemaTypeName)
 			} else {
-				f.SchemaFieldName = fmt.Sprintf("%s(Id: ID): %s!", f.FieldName, f.SchemaTypeName)
+				f.SchemaFieldName = getGraphqlSchemaName("%s(Id: ID): %s!", f.FieldName, f.SchemaTypeName)
 			}
 			f.LinkAPI = linkAPI[f.PkgName+f.NodeName]
 			resNodeProp.ChildFields = append(resNodeProp.ChildFields, f)
@@ -100,7 +100,7 @@ func populateValuesForEachNode(nodes []*NodeProperty, linkAPI map[string]string,
 	return nodeProperties
 }
 
-func populateValuesForResolver(nodes []*NodeProperty, parentsMap map[string]parser.NodeHelper,
+func tsmPopulateValuesForResolver(nodes []*NodeProperty, parentsMap map[string]parser.NodeHelper,
 	crdNameMap, nonStructMap map[string]string) (map[string]string, map[string]ReturnStatement) {
 	linkAPI := make(map[string]string)
 	retMap := make(map[string]ReturnStatement)
@@ -190,9 +190,9 @@ func populateValuesForResolver(nodes []*NodeProperty, parentsMap map[string]pars
 	return linkAPI, retMap
 }
 
-// processNonNexusFields process and populates properties for each non nexus fields
+// tsmProcessNonNexusFields process and populates properties for each non nexus fields
 // <Domain  string>
-func processNonNexusFields(aliasNameMap map[string]string, node *ast.TypeSpec,
+func tsmProcessNonNexusFields(aliasNameMap map[string]string, node *ast.TypeSpec,
 	nodeProp *NodeProperty, simpleGroupTypeName string) {
 	resField := make(map[string][]FieldProperty)
 	for _, f := range parser.GetSpecFields(node) {
@@ -218,17 +218,17 @@ func processNonNexusFields(aliasNameMap map[string]string, node *ast.TypeSpec,
 
 		if parser.IsJsonStringField(f) {
 			fieldProp.IsStringType = true
-			fieldProp.SchemaFieldName = fmt.Sprintf("%s: %s", fieldProp.FieldName, "String")
+			fieldProp.SchemaFieldName = getGraphqlSchemaName("%s: %s", fieldProp.FieldName, "String")
 			resField[nodeProp.PkgName+nodeProp.NodeName] = append(resField[nodeProp.PkgName+nodeProp.NodeName], fieldProp)
 		} else {
 			stdType := convertGraphqlStdType(typeString)
 			// standard type
 			if len(stdType) != 0 {
 				fieldProp.IsStdTypeField = true
-				fieldProp.SchemaFieldName = fmt.Sprintf("%s: %s", fieldProp.FieldName, stdType)
+				fieldProp.SchemaFieldName = getGraphqlSchemaName("%s: %s", fieldProp.FieldName, stdType)
 				resField[nodeProp.PkgName+nodeProp.NodeName] = append(resField[nodeProp.PkgName+nodeProp.NodeName], fieldProp)
 			} else {
-				fieldProp.SchemaFieldName = fmt.Sprintf("%s: %s", fieldProp.FieldName, "String")
+				fieldProp.SchemaFieldName = getGraphqlSchemaName("%s: %s", fieldProp.FieldName, "String")
 				fieldProp.IsStringType = true
 				resField[nodeProp.PkgName+nodeProp.NodeName] = append(resField[nodeProp.PkgName+nodeProp.NodeName], fieldProp)
 			}
@@ -238,29 +238,9 @@ func processNonNexusFields(aliasNameMap map[string]string, node *ast.TypeSpec,
 	}
 }
 
-// SkipSecretSpecAnnotation checks if the field has nexus secrets annotated on them
-// If yes, the field is skipped in the response.
-func SkipSecretSpecAnnotation(fieldName, nfType string, pkg parser.Package, importMap map[string]string, pkgs map[string]parser.Package) bool {
-	fieldPkg := &pkg
-	structType := nfType
-
-	if ptParts := strings.Split(nfType, "."); len(ptParts) == 2 { //servicegroup.SvcGroup
-		structType, fieldPkg = findTypeAndPkgForField(ptParts, importMap, pkgs)
-	}
-
-	if len(structType) != 0 {
-		if _, ok := parser.GetNexusSecretSpecAnnotation(*fieldPkg, structType); ok {
-			log.Debugf("Ignoring the field %s since the node is annotated as nexus secret", fieldName)
-			return true
-		}
-	}
-
-	return false
-}
-
-// processNexusFields process and populates properties for each nexus fields
+// tsmProcessNexusFields process and populates properties for each nexus fields
 // <gns.Gns `nexus:"child"`>
-func processNexusFields(pkg parser.Package, aliasNameMap map[string]string, node *ast.TypeSpec,
+func tsmProcessNexusFields(pkg parser.Package, aliasNameMap map[string]string, node *ast.TypeSpec,
 	nodeProp *NodeProperty, simpleGroupTypeName string, pkgs map[string]parser.Package) {
 	importMap := pkg.GetImportMap()
 	for _, nf := range parser.GetNexusFields(node) {
@@ -282,9 +262,22 @@ func processNexusFields(pkg parser.Package, aliasNameMap map[string]string, node
 		// If yes, the field is ignored in the response.
 		if !parser.IsNexusTypeField(nf) {
 			nfType := parser.GetFieldType(nf)
-			if SkipSecretSpecAnnotation(fieldProp.FieldName, nfType, pkg, importMap, pkgs) {
-				continue
+			fieldPkg := &pkg
+			structType := nfType
+
+			if ptParts := strings.Split(nfType, "."); len(ptParts) == 2 { //service_group.SvcGroup
+				structType, fieldPkg = findTypeAndPkgForField(ptParts, importMap, pkgs)
 			}
+			if len(structType) != 0 {
+				if _, ok := parser.GetNexusSecretSpecAnnotation(*fieldPkg, structType); ok {
+					log.Debugf("Ignoring the field %s since the node is annotated as nexus secret", fieldProp.FieldName)
+					continue
+				}
+			}
+		}
+
+		if parser.IsNexusTypeField(nf) && (parser.IsJsonStringField(nf) || parser.IsNexusGraphqlNonNullField(nf)) {
+			fmt.Println("====>>>>>>FN:", fieldProp.FieldName, "Non-Null:", parser.IsNexusGraphqlNonNullField(nf), "type:string=", parser.IsJsonStringField(nf))
 		}
 
 		// `Ignore:true` annotation used to ignore the specific field `nexus-graphql:"ignore:true"`
@@ -294,14 +287,14 @@ func processNexusFields(pkg parser.Package, aliasNameMap map[string]string, node
 		// `type:string` annotation used to consider the type as string `nexus-graphql:"type:string"`
 		if parser.IsJsonStringField(nf) {
 			fieldProp.IsStringType = true
-			fieldProp.SchemaFieldName = fmt.Sprintf("%s: %s", fieldProp.FieldName, "String")
+			fieldProp.SchemaFieldName = getGraphqlSchemaName("%s: %s", fieldProp.FieldName, "String")
 		}
 
 		// denote field is nexus or singletonField type
 		if parser.IsNexusTypeField(nf) {
 			fieldProp.IsNexusOrSingletonField = true
 			// Add Custom Query + ID
-			fieldProp.SchemaFieldName = CustomQuerySchema
+			// fieldProp.SchemaFieldName = CustomQuerySchema --> Not Need for TSM
 			for _, customQuery := range nodeProp.CustomQueries {
 				fieldProp.SchemaFieldName += CustomQueryToGraphqlSchema(customQuery)
 				var customQueryFieldProp FieldProperty
@@ -317,7 +310,7 @@ func processNexusFields(pkg parser.Package, aliasNameMap map[string]string, node
 		if parser.IsOnlyLinkField(nf) {
 			schemaTypeName, resolverTypeName := ValidateImportPkg(nodeProp.PkgName, typeString, importMap, pkgs)
 			// `type:string` annotation used to consider the type as string `nexus-graphql:"type:string"`
-			fieldProp.SchemaFieldName = fmt.Sprintf("%s: %s!", fieldProp.FieldName, schemaTypeName)
+			fieldProp.SchemaFieldName = getGraphqlSchemaName("%s: %s!", fieldProp.FieldName, schemaTypeName)
 			fieldProp.IsResolver = true
 			fieldProp.IsNexusTypeField = true
 			fieldProp.FieldType = typeString
@@ -330,7 +323,7 @@ func processNexusFields(pkg parser.Package, aliasNameMap map[string]string, node
 		// nexus child field
 		if parser.IsOnlyChildField(nf) {
 			schemaTypeName, resolverTypeName := ValidateImportPkg(nodeProp.PkgName, typeString, importMap, pkgs)
-			fieldProp.SchemaFieldName = fmt.Sprintf("%s: %s!", fieldProp.FieldName, schemaTypeName)
+			fieldProp.SchemaFieldName = getGraphqlSchemaName("%s: %s!", fieldProp.FieldName, schemaTypeName)
 			fieldProp.SchemaTypeName = schemaTypeName
 			fieldProp.IsNexusTypeField = true
 			fieldProp.FieldType = typeString
@@ -343,12 +336,17 @@ func processNexusFields(pkg parser.Package, aliasNameMap map[string]string, node
 		if parser.IsNamedChildOrLink(nf) {
 			fieldProp.IsChildrenOrLinks = true
 			schemaTypeName, resolverTypeName := ValidateImportPkg(nodeProp.PkgName, typeString, importMap, pkgs)
-			fieldProp.SchemaFieldName = fmt.Sprintf("%s(Id: ID): [%s!]", fieldProp.FieldName, schemaTypeName)
+			fieldProp.SchemaFieldName = getGraphqlSchemaName("%s(Id: ID): [%s!]", fieldProp.FieldName, schemaTypeName)
 			fieldProp.IsResolver = true
 			fieldProp.IsNexusTypeField = true
 			fieldProp.FieldType = typeString
 			fieldProp.FieldTypePkgPath = resolverTypeName
-			fieldProp.SchemaTypeName = schemaTypeName
+			if parser.IsTsmGraphqlDirectivesField(nf) {
+				replacer := strings.NewReplacer("nexus-graphql-tsm-directive:", "", "\\", "")
+				out := replacer.Replace(parser.GetTsmGraphqlDirectives(nf))
+				fmt.Println("getDirectives:", schemaTypeName, out)
+				fieldProp.SchemaFieldName += out
+			}
 			fieldProp.BaseTypeName = getBaseNodeType(typeString)
 			if parser.IsOnlyChildrenField(nf) {
 				nodeProp.ChildrenFields = append(nodeProp.ChildrenFields, fieldProp)
@@ -366,8 +364,8 @@ func processNexusFields(pkg parser.Package, aliasNameMap map[string]string, node
 	}
 }
 
-// GenerateGraphqlResolverVars populates the node and its field properties required to generate graphql resolver
-func GenerateGraphqlResolverVars(baseGroupName, crdModulePath string, pkgs parser.Packages, parentsMap map[string]parser.NodeHelper) ([]NodeProperty, error) {
+// GenerateTsmGraphqlSchemaVars populates the node and its field properties required to generate graphql resolver
+func GenerateTsmGraphqlSchemaVars(baseGroupName, crdModulePath string, pkgs parser.Packages, parentsMap map[string]parser.NodeHelper) ([]NodeProperty, error) {
 	sortedKeys := make([]string, 0, len(pkgs))
 	for k := range pkgs {
 		sortedKeys = append(sortedKeys, k)
@@ -382,7 +380,7 @@ func GenerateGraphqlResolverVars(baseGroupName, crdModulePath string, pkgs parse
 	// set the node and field properties accordingly.
 	var nodes []*NodeProperty
 	aliasNameMap := make(map[string]string)
-	rootOfGraph := false
+	//rootOfGraph := false
 	for _, pkg := range sortedPackages {
 		simpleGroupTypeName := util.GetSimpleGroupTypeName(pkg.Name)
 		// Iterating struct type
@@ -408,22 +406,22 @@ func GenerateGraphqlResolverVars(baseGroupName, crdModulePath string, pkgs parse
 			nodeProp.IsParentNode = parser.IsNexusNode(node)
 			nodeProp.CustomQueries = nodeHelper.GraphqlSpec.Queries
 
-			if parser.IsNexusNode(node) && len(nodeHelper.Parents) == 0 && rootOfGraph {
-				log.Errorf("Can't allow multiple root of the graph, skipping Node:%s", nodeProp.NodeName)
-				continue
-			}
+			// if parser.IsNexusNode(node) && len(nodeHelper.Parents) == 0 && rootOfGraph {
+			// 	log.Errorf("Can't allow multiple root of the graph, skipping Node:%s", nodeProp.NodeName)
+			// 	continue
+			// }
 
-			if parser.IsNexusNode(node) {
-				rootOfGraph = isRootOfGraph(nodeHelper.Parents, rootOfGraph)
-			}
+			// if parser.IsNexusNode(node) {
+			// 	rootOfGraph = isRootOfGraph(nodeHelper.Parents, rootOfGraph)
+			// }
 			setNexusProperties(nodeHelper, node, nodeProp)
 			nodeProp.SchemaName = fmt.Sprintf("%s_%s", pkg.Name, parser.GetTypeName(node))
 
 			// Iterate each node's nexus fields and set its properties
-			processNexusFields(pkg, aliasNameMap, node, nodeProp, simpleGroupTypeName, pkgs)
+			tsmProcessNexusFields(pkg, aliasNameMap, node, nodeProp, simpleGroupTypeName, pkgs)
 
 			// Iterate each node's non-nexus fields and set its properties
-			processNonNexusFields(aliasNameMap, node, nodeProp, simpleGroupTypeName)
+			tsmProcessNonNexusFields(aliasNameMap, node, nodeProp, simpleGroupTypeName)
 			nodes = append(nodes, nodeProp)
 		}
 	}
@@ -431,10 +429,10 @@ func GenerateGraphqlResolverVars(baseGroupName, crdModulePath string, pkgs parse
 	crdNameMap := constructNexusTypeMap(nodes)
 	// populate return values of each Node for resolver
 	nonStructMap := constructAliasType(sortedPackages)
-	linkAPI, retMap := populateValuesForResolver(nodes, parentsMap, crdNameMap, nonStructMap)
+	linkAPI, retMap := tsmPopulateValuesForResolver(nodes, parentsMap, crdNameMap, nonStructMap)
 
 	// populate return values of each node
-	nodeProperties := populateValuesForEachNode(nodes, linkAPI, retMap)
+	nodeProperties := tsmPopulateValuesForEachNode(nodes, linkAPI, retMap)
 
 	return nodeProperties, nil
 }

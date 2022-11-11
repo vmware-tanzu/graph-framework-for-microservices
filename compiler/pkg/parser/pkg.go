@@ -411,6 +411,53 @@ func IgnoreField(f *ast.Field) bool {
 	return false
 }
 
+func IsNexusGraphqlNonNullField(f *ast.Field) bool {
+	if f == nil {
+		return false
+	}
+
+	if f.Tag != nil {
+		tags := ParseFieldTags(f.Tag.Value)
+		if val, err := tags.Get("nexus-graphql-non-nullable"); err == nil {
+			if strings.ToLower(val.Name) == "true" {
+				return true
+			}
+		}
+	}
+
+	return false
+}
+
+func GetTsmGraphqlDirectives(f *ast.Field) string {
+	if f == nil {
+		return ""
+	}
+
+	if f.Tag != nil {
+		tags := ParseFieldTags(f.Tag.Value)
+		if val, err := tags.Get("nexus-graphql-tsm-directive"); err == nil {
+			return val.String()
+		}
+	}
+
+	return ""
+}
+
+func IsTsmGraphqlDirectivesField(f *ast.Field) bool {
+	if f == nil {
+		return false
+	}
+
+	if f.Tag != nil {
+		tags := ParseFieldTags(f.Tag.Value)
+		if _, err := tags.Get("nexus-graphql-tsm-directive"); err == nil {
+			return true
+		}
+	}
+
+	return false
+}
+
 func IsJsonStringField(f *ast.Field) bool {
 	if f == nil {
 		return false

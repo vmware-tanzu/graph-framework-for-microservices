@@ -3,17 +3,18 @@ package preparser
 import (
 	"bytes"
 	"fmt"
-	log "github.com/sirupsen/logrus"
-	"github.com/vmware-tanzu/graph-framework-for-microservices/compiler/pkg/parser"
 	"go/ast"
 	goParser "go/parser"
 	"go/printer"
 	"go/token"
 	"go/types"
-	"golang.org/x/tools/imports"
 	"io/fs"
 	"os"
 	"path/filepath"
+
+	log "github.com/sirupsen/logrus"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/compiler/pkg/parser"
+	"golang.org/x/tools/imports"
 )
 
 func Parse(startPath string) map[string][]parser.Package {
@@ -102,6 +103,7 @@ func Render(dslDir string, packages map[string][]parser.Package) error {
 		if len(pkgs) == 1 {
 			continue
 		}
+		fmt.Println(dslDir, k)
 		pkgDir := filepath.Join(dslDir, k)
 		//TODO: create unique directory (e.g. global may already exist)
 		err := os.MkdirAll(pkgDir, os.ModePerm)

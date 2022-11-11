@@ -1,0 +1,28 @@
+schema {
+    query: Root
+}
+
+{{- range $key, $node := .Nodes }}
+{{- if $node.IsNexusNode }}
+{{ $length := len $node.GraphqlSchemaFields }}{{- if eq $length 0 }}{{- else }}
+type {{ $node.SchemaName }} {
+    {{- range $key, $field := $node.GraphqlSchemaFields }}
+    {{- if $field.SchemaFieldName }}
+    {{ $field.SchemaFieldName -}}
+    {{- end}}
+    {{- end }}
+}
+{{- end }}{{- end }}{{- end }}
+
+directive @jsonencoded(file: String, gofile: String, name: String) on FIELD_DEFINITION
+directive @relation(name: String, parameters: String, softlink: String, uuidkey: String) on FIELD_DEFINITION
+directive @timeseriesAPI(file: String!, handler: String!) on FIELD_DEFINITION
+directive @protobuf(file: String!, name: String!) on FIELD_DEFINITION
+
+type TimeSeriesData {
+  Code: Int
+  Message: String
+  Data: String
+  Last: String
+  TotalRecords: Int
+}
