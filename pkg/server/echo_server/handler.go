@@ -358,7 +358,7 @@ func putHandler(c echo.Context) error {
 	}
 
 	obj.SetLabels(labels)
-	return updateResource(nc, gvr, obj, body)
+	return updateResource(nc, gvr, obj, body, crdInfo)
 }
 
 // deleteHandler is used to process DELETE requests
@@ -500,7 +500,8 @@ type PatchOp struct {
 }
 
 // updateResource is used to create or update object resource or status subresource of nexus object
-func updateResource(nc *NexusContext, gvr schema.GroupVersionResource, obj *unstructured.Unstructured, body map[string]interface{}) error {
+func updateResource(nc *NexusContext, gvr schema.GroupVersionResource, obj *unstructured.Unstructured, body map[string]interface{},
+	crdInfo model.NodeInfo) error {
 	uriInfo, ok := model.GetUriInfo(nc.NexusURI)
 	if ok && uriInfo.TypeOfURI == model.StatusURI {
 		if _, ok := body["nexus"]; ok {
@@ -536,8 +537,19 @@ func updateResource(nc *NexusContext, gvr schema.GroupVersionResource, obj *unst
 		return nc.JSON(http.StatusForbidden, DefaultResponse{Message: "Already Exists."})
 	}
 
-	// Handle PUT nexus object spec
+	spec := obj.Object["spec"].(map[string]interface{})
+	for _, v := range crdInfo.Children {
+		if value, ok := spec[v.FieldNameGvk]; ok {
+			body[v.FieldNameGvk] = value
+		}
+	}
+	for _, v := range crdInfo.Links {
+		if value, ok := spec[v.FieldNameGvk]; ok {
+			body[v.FieldNameGvk] = value
+		}
+	}
 	obj.Object["spec"] = body
+
 	_, err := client.Client.Resource(gvr).Update(context.TODO(), obj, metav1.UpdateOptions{})
 	if err != nil {
 		return handleClientError(nc, err)
