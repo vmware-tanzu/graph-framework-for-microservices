@@ -1,23 +1,43 @@
 package rest
 
-import "net/http"
+import (
+	"io/ioutil"
+	"log"
+	"strings"
 
-type RestFuncs struct {
-	ApiGateway string
-	FuncMap    map[string]func() *http.Request
-}
-
-// function keys
-const (
-	// rest function keys
-	PUT_EMPLOYEE = "put_employee"
-	GET_HR       = "get_hr"
+	"gopkg.in/yaml.v2"
 )
 
-// add the map of function keys to function calls
-func (r *RestFuncs) Init() {
-	r.FuncMap = make(map[string]func() *http.Request)
-	funcMap := r.FuncMap
-	funcMap[PUT_EMPLOYEE] = r.PutEmployee
-	funcMap[GET_HR] = r.GetHR
+type RestData struct {
+	Spec    []SpecData `yaml:"spec"`
+	FuncMap map[string]SpecData
+}
+
+type SpecData struct {
+	Name   string `yaml:"name"`
+	Method string `yaml:"method"`
+	Path   string `yaml:"path"`
+	Data   string `yaml:"data"`
+}
+
+func (r *RestData) GetRestData(filePath string) {
+	yamlFile, err := ioutil.ReadFile(filePath)
+	if err != nil {
+		log.Printf("yamlFile.Get err   #%v ", err)
+	}
+	err = yaml.Unmarshal(yamlFile, r)
+	if err != nil {
+		log.Fatalf("Unmarshal: %v", err)
+	}
+}
+
+func (r *RestData) ProcessRestCalls(apiGateway string) {
+	r.FuncMap = make(map[string]SpecData)
+	for i := 0; i < len(r.Spec); i++ {
+		spec := &r.Spec[i]
+		url := apiGateway + spec.Path
+		spec.Path = url
+		spec.Data = strings.TrimSpace(spec.Data)
+		r.FuncMap[spec.Name] = *spec
+	}
 }

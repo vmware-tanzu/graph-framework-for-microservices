@@ -6,18 +6,13 @@ data:
   conf.yaml: |
     server:
       url: http://nexus-api-gw.nexus
+      #url: http://localhost:45192
       zipkin: http://zipkin:9411
+      #zipkin: http://localhost:9412
     tests:
-    - name: concurrent_read_tests 
-      concurrency: 5
-      timeout: 60
-      rest:
-      - get_hr
-      graphql:
-      - get_managers
-      - get_employee_role
     - name: write_n_objects 
       concurrency: 1
-      ops_count: 1000
+      ops_count: 100
       rest:
       - put_employee
+      - get_managers

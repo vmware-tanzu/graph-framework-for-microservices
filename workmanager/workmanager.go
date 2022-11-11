@@ -2,14 +2,18 @@ package workmanager
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"math"
+	"math/rand"
 	"net/http"
+	"strings"
 	"sync"
 	"time"
 
 	"github.com/openzipkin/zipkin-go"
 	zipkinhttp "github.com/openzipkin/zipkin-go/middleware/http"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/nexus-calibration/rest"
 )
 
 type Worker struct {
@@ -17,7 +21,7 @@ type Worker struct {
 	zipkinClient   *zipkinhttp.Client
 	Tracer         *zipkin.Tracer
 	httpClient     *http.Client
-	FuncMap        map[string]func() *http.Request
+	FuncMap        map[string]rest.SpecData
 	GraphqlFuncMap map[string]func()
 	stop           chan bool
 	WorkData       WorkData
@@ -104,11 +108,13 @@ func (w *Worker) startWorkers(concurrency int, job string) {
 // async rest client worker
 func (w *Worker) doWork(job string, work chan bool) {
 	// get work
-	req := w.FuncMap[job]()
-	req.Header.Add("accept", "application/json")
+	specData := w.FuncMap[job]
+	req := GetRestReq(specData)
 	var res *http.Response
 	var err error
 	if w.zipkinClient == nil {
+		log.Println(req)
+
 		res, err = w.httpClient.Do(req)
 		if err != nil {
 			log.Fatalf("unable to do http request: %+v\n", err)
@@ -116,12 +122,13 @@ func (w *Worker) doWork(job string, work chan bool) {
 	} else {
 		res, err = w.zipkinClient.DoWithAppSpan(req, job)
 		if err != nil {
-			log.Fatalf("unable to do http request: %+v\n", err)
+			log.Fatalf("zipkinclient : unable to do http request: %+v\n", err)
 		}
 	}
 	defer res.Body.Close()
 	// work done
 	work <- true
+	//log.Println("status : ", res.StatusCode)
 	if res.StatusCode >= 400 {
 		w.WorkData.ErrCount++
 	}
@@ -156,4 +163,25 @@ func (d *WorkData) CalculateAverage() {
 		sum += v
 	}
 	d.Average = sum / int64(len(d.Duration))
+}
+
+func GetRestReq(specData rest.SpecData) *http.Request {
+	randString := RandomString(10)
+	//newPath := strings.ReplaceAll(spec.Path, "{{random}}", randString)
+	url := strings.ReplaceAll(specData.Path, "{{random}}", randString)
+	payload := strings.NewReader(specData.Data)
+	req, err := http.NewRequest(specData.Method, url, payload)
+	if err != nil {
+		log.Fatalf("Failed to build request %v", err)
+	}
+	req.Header.Add("accept", "application/json")
+	req.Header.Add("Content-Type", "application/json")
+	return req
+}
+
+func RandomString(length int) string {
+	rand.Seed(time.Now().UnixNano())
+	b := make([]byte, length)
+	rand.Read(b)
+	return fmt.Sprintf("%x", b)[:length]
 }

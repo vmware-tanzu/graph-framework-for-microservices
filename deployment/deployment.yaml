@@ -8,11 +8,14 @@ spec:
     spec:
       containers:
       - name: nexus-calibrate
-        image: 284299419820.dkr.ecr.us-west-2.amazonaws.com/nexus/nexus-calib:tv0.0.10
+        image: 284299419820.dkr.ecr.us-west-2.amazonaws.com/nexus/nexus-calib:tv0.0.12
         command: ["/bin/calib"]
         volumeMounts:
         - name: config
           mountPath: "/root/config/"
+          readOnly: true
+        - name: rest-calls
+          mountPath: "/root/rest-calls/"
           readOnly: true
       restartPolicy: Never
       volumes:
@@ -22,3 +25,9 @@ spec:
             items:
             - key: "conf.yaml"
               path: "conf.yaml"
+        - name: rest-calls
+          configMap:
+            name: rest-calls
+            items:
+            - key: "rest_data.yaml"
+              path: "rest_data.yaml"

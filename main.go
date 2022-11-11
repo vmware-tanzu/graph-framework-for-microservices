@@ -52,6 +52,7 @@ type conf struct {
 }
 
 func (c *conf) getConf() *conf {
+	//yamlFile, err := ioutil.ReadFile("conf.yaml")
 	yamlFile, err := ioutil.ReadFile("/root/config/conf.yaml")
 	if err != nil {
 		log.Printf("yamlFile.Get err   #%v ", err)
@@ -60,7 +61,6 @@ func (c *conf) getConf() *conf {
 	if err != nil {
 		log.Fatalf("Unmarshal: %v", err)
 	}
-
 	return c
 }
 
@@ -69,7 +69,15 @@ func main() {
 	var c conf
 	c.getConf()
 
+	var r rest.RestData
+	restCallPath := "/root/rest-calls/rest_data.yaml"
+	//restCallPath := "rest_data.yaml"
 	apiGateway = c.Server.URL
+
+	// define rest calls
+	r.GetRestData(restCallPath)
+	r.ProcessRestCalls(apiGateway)
+
 	endpointURL = c.Server.Zipkin + "/api/v2/spans"
 	gqlURL = apiGateway + "/apis/graphql/v1/query"
 
@@ -81,6 +89,12 @@ func main() {
 	log.Println("tracer added")
 	// add functions
 
+	//client := http.Client{}
+	for _, v := range r.Spec {
+		log.Println(v.Name, v.Path, v.Data, v.Method)
+		log.Printf("key %s, req %v", v.Name, r.FuncMap[v.Name])
+	}
+
 	//workManager(GET_HR, c.Concurrency, c.Timeout)
 	//time.Sleep(10 * time.Second)
 	zipkinClient, err := zipkinhttp.NewClient(tracer, zipkinhttp.ClientTrace(true))
@@ -88,12 +102,6 @@ func main() {
 		log.Fatalf("error out %v", err)
 	}
 	gclient = graphql.NewClient(gqlURL, zipkinClient)
-	restFuncs := rest.RestFuncs{
-		ApiGateway: apiGateway,
-	}
-	// initialize rest functions
-	restFuncs.Init()
-	// REST worker
 	// Prepare and run graphql tests
 	graphqlFuncs := graphqlcalls.GraphqlFuncs{
 		Gclient: gclient,
@@ -103,7 +111,7 @@ func main() {
 
 	w := workmanager.Worker{
 		Tracer:         tracer,
-		FuncMap:        restFuncs.FuncMap,
+		FuncMap:        r.FuncMap,
 		GraphqlFuncMap: graphqlFuncs.GraphqlFuncMap,
 	}
 
