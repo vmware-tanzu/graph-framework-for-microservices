@@ -11,6 +11,7 @@ const (
 	NexusDescriptionAnnotation = "nexus-description"
 	NexusGraphqlAnnotation     = "nexus-graphql-query"
 	NexusSecretSpecAnnotation  = "nexus-secret-spec"
+	NexusGraphqlSpecAnnotation = "nexus-graphql-spec"
 )
 
 func GetNexusSecretSpecAnnotation(pkg Package, name string) (string, bool) {
@@ -27,6 +28,10 @@ func GetNexusDescriptionAnnotation(pkg Package, name string) (string, bool) {
 
 func GetNexusGraphqlAnnotation(pkg Package, name string) (string, bool) {
 	return getNexusAnnotation(pkg, name, NexusGraphqlAnnotation)
+}
+
+func GetNexusGraphqlSpecAnnotation(pkg Package, name string) (string, bool) {
+	return getNexusAnnotation(pkg, name, NexusGraphqlSpecAnnotation)
 }
 
 func getNexusAnnotation(pkg Package, name string, annotationName string) (string, bool) {

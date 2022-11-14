@@ -244,9 +244,25 @@ func getGraphqlSchemaName(pattern, fieldName, schemaType string) string {
 	return fmt.Sprintf(pattern, fieldName, schemaType)
 }
 
-func getGraphqlSchemaNameTsm(pattern, fieldName, schemaType string) string {
-	if fieldName != "" {
-		return fmt.Sprintf(pattern, util.GetTag(fieldName), schemaType)
+func getTsmGraphqlSchemaFieldName(sType GraphQLSchemaType, fieldName, schemaType string, f *ast.Field) string {
+	pattern := ""
+	nonNullable := parser.IsNexusGraphqlNonNullField(f)
+	switch sType {
+	case Standard, JsonMarshal, Child, Link:
+		if nonNullable {
+			pattern = "%s: %s!"
+		} else {
+			pattern = "%s: %s"
+		}
+	case NamedChild:
+		pattern = "%s(Id: ID): [%s!]"
 	}
-	return fmt.Sprintf(pattern, fieldName, schemaType)
+	schemaName := getGraphqlSchemaName(pattern, fieldName, schemaType)
+	if parser.IsTsmGraphqlDirectivesField(f) {
+		replacer := strings.NewReplacer("nexus-graphql-tsm-directive:", "", "\\", "")
+		out := replacer.Replace(parser.GetTsmGraphqlDirectives(f))
+		fmt.Println("getDirectives:", schemaName, strings.Trim(out, "\""))
+		schemaName += " " + strings.Trim(out, "\"")
+	}
+	return schemaName
 }

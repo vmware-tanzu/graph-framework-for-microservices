@@ -87,9 +87,9 @@ func ParseDSLNodes(startPath string, baseGroupName string, packages Packages,
 													// look for spec in current package
 													annotation = v.Name + "." + annotation
 												}
-												graphqlSpec, ok := graphqlQueries[annotation]
+												GraphqlQuerySpec, ok := graphqlQueries[annotation]
 												if ok {
-													node.GraphqlSpec = graphqlSpec
+													node.GraphqlQuerySpec = GraphqlQuerySpec
 												}
 											}
 											nodes[crdName] = node
@@ -200,13 +200,14 @@ func CreateParentsMap(graph map[string]Node) map[string]NodeHelper {
 			}
 
 			parents[node.CrdName] = NodeHelper{
-				Name:        node.Name,
-				RestName:    fmt.Sprintf("%s.%s", node.PkgName, node.Name),
-				Parents:     node.Parents,
-				Children:    children,
-				Links:       links,
-				IsSingleton: node.IsSingleton,
-				GraphqlSpec: node.GraphqlSpec,
+				Name:             node.Name,
+				RestName:         fmt.Sprintf("%s.%s", node.PkgName, node.Name),
+				Parents:          node.Parents,
+				Children:         children,
+				Links:            links,
+				IsSingleton:      node.IsSingleton,
+				GraphqlQuerySpec: node.GraphqlQuerySpec,
+				GraphqlSpec:      node.GraphqlSpec,
 			}
 		})
 	}
