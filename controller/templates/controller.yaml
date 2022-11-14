@@ -41,7 +41,7 @@ spec:
     spec:
       initContainers:
         - name: check-nexus-proxy-container
-          image: "gcr.io/mesh7-public-images/tools:latest"
+          image: "{{ .Values.global.registry}}/nexus/debugtools:latest"
           command:
             - /bin/bash
             - -c
@@ -63,7 +63,7 @@ spec:
               done
       containers:
         -
-          image: {{.Values.global.registry}}/controller:{{.Values.global.controller.tag}}
+          image: {{.Values.global.registry}}/nexus/controller:{{.Values.global.controller.tag}}
           name: nexus-controller
           env:
             - name: INNER_KUBECONFIG

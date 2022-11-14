@@ -108,10 +108,6 @@ publish:
 	docker tag ${IMAGE_NAME}:${TAG} ${DOCKER_REGISTRY}/${IMAGE_NAME}:${TAG}
 	docker push ${DOCKER_REGISTRY}/${IMAGE_NAME}:${TAG};
 
-.PHONY: publish.ecr
-publish.ecr:
-	docker tag ${IMAGE_NAME}:${TAG} ${ECR_DOCKER_REGISTRY}/${IMAGE_NAME}:${TAG}
-	docker push ${ECR_DOCKER_REGISTRY}/${IMAGE_NAME}:${TAG};
 
 .PHONY: download_builder_image
 download_builder_image:
