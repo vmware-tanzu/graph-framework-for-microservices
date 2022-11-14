@@ -78,3 +78,13 @@ require (
 	sigs.k8s.io/structured-merge-diff/v4 v4.2.3 // indirect
 	sigs.k8s.io/yaml v1.3.0 // indirect
 )
+
+replace golang.org/x/oauth2 => golang.org/x/oauth2 v0.0.0-20220411215720-9780585627b5
+
+replace golang.org/x/sys => golang.org/x/sys v0.2.0
+
+replace golang.org/x/term => golang.org/x/term v0.2.0
+
+replace golang.org/x/text => golang.org/x/text v0.4.0
+
+replace golang.org/x/net => golang.org/x/net v0.2.0
