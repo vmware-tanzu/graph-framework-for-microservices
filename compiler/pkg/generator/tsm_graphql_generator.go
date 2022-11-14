@@ -10,6 +10,7 @@ import (
 
 	"github.com/vmware-tanzu/graph-framework-for-microservices/compiler/pkg/parser"
 	"github.com/vmware-tanzu/graph-framework-for-microservices/compiler/pkg/util"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/nexus/nexus"
 )
 
 type GraphQLSchemaType int
@@ -296,7 +297,16 @@ func tsmProcessNexusFields(pkg parser.Package, aliasNameMap map[string]string, n
 		if parser.IsNexusTypeField(nf) {
 			fieldProp.IsNexusOrSingletonField = true
 			// Add Custom Query + ID
-			// fieldProp.SchemaFieldName = CustomQuerySchema --> Not Need for TSM
+
+			name := "id"
+			value := "ID"
+			if nodeProp.GraphQlSpec.IdName != "" {
+				name = nodeProp.GraphQlSpec.IdName
+			}
+			if !nodeProp.GraphQlSpec.IdNullable {
+				value = "ID!"
+			}
+			fieldProp.SchemaFieldName = fmt.Sprintf("%s: %s", name, value)
 			for _, customQuery := range nodeProp.CustomQueries {
 				fieldProp.SchemaFieldName += CustomQueryToGraphqlSchema(customQuery)
 				var customQueryFieldProp FieldProperty
@@ -362,6 +372,7 @@ func tsmProcessNexusFields(pkg parser.Package, aliasNameMap map[string]string, n
 // GenerateTsmGraphqlSchemaVars populates the node and its field properties required to generate graphql resolver
 func GenerateTsmGraphqlSchemaVars(baseGroupName, crdModulePath string, pkgs parser.Packages, parentsMap map[string]parser.NodeHelper) ([]NodeProperty, error) {
 	sortedKeys := make([]string, 0, len(pkgs))
+	gqlSpecMap := parser.ParseGraphqlSpecs(pkgs)
 	for k := range pkgs {
 		sortedKeys = append(sortedKeys, k)
 	}
@@ -378,8 +389,14 @@ func GenerateTsmGraphqlSchemaVars(baseGroupName, crdModulePath string, pkgs pars
 	//rootOfGraph := false
 	for _, pkg := range sortedPackages {
 		simpleGroupTypeName := util.GetSimpleGroupTypeName(pkg.Name)
+		fmt.Println("PKG:", pkg.Name, simpleGroupTypeName)
 		// Iterating struct type
 		for _, node := range pkg.GetStructs() {
+			// Nexus GraphQlSpec by default "IdNullable" value is true
+			gqlspec := nexus.GraphQLSpec{
+				IdName:     "",
+				IdNullable: true,
+			}
 			// Skip Empty struct type
 			if len(parser.GetNexusFields(node)) == 0 && len(parser.GetSpecFields(node)) == 0 {
 				continue
@@ -392,7 +409,8 @@ func GenerateTsmGraphqlSchemaVars(baseGroupName, crdModulePath string, pkgs pars
 			}
 
 			if val, ok := parser.GetNexusGraphqlSpecAnnotation(pkg, typeName); ok {
-				fmt.Println("GRAPHQL-SPEC", val)
+				gqlspec = gqlSpecMap[fmt.Sprintf("%s.%s", pkg.Name, val)]
+				fmt.Println("GRAPHQL-SPEC", pkg.Name, val, gqlspec)
 			}
 
 			nodeProp := &NodeProperty{}
@@ -404,6 +422,7 @@ func GenerateTsmGraphqlSchemaVars(baseGroupName, crdModulePath string, pkgs pars
 			nodeHelper := parentsMap[nodeProp.CrdName]
 			nodeProp.IsParentNode = parser.IsNexusNode(node)
 			nodeProp.CustomQueries = nodeHelper.GraphqlQuerySpec.Queries
+			nodeProp.GraphQlSpec = gqlspec
 
 			// if parser.IsNexusNode(node) && len(nodeHelper.Parents) == 0 && rootOfGraph {
 			// 	log.Errorf("Can't allow multiple root of the graph, skipping Node:%s", nodeProp.NodeName)
