@@ -164,7 +164,7 @@ generate_code:
 	cp -rf _generated/* ${GOPATH}/src/nexustempmodule/
 	cd ${GOPATH}/src/nexustempmodule && cd nexus-gql && go mod init && \
 	go mod edit -replace nexustempmodule=${GOPATH}/src/nexustempmodule && \
-	${COMPILER_SRC_DIRECTORY}/scripts/pin_graphql_deps.sh ${COMPILER_SRC_DIRECTORY} && \
+	${COMPILER_SRC_DIRECTORY}/scripts/pin_graphql_build_version.sh ${COMPILER_SRC_DIRECTORY} && \
 	go mod tidy -e && \
 	CGO_ENABLED=1 GOOS=linux \
 	go build --trimpath -o graphql.so -buildmode=plugin server.go
