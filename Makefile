@@ -5,7 +5,7 @@ BUCKET_NAME ?= nexus-template-downloads
 CHART_NAME ?= "nexus-connector"
 HELM_REGISTRY ?= oci://284299419820.dkr.ecr.us-west-2.amazonaws.com/nexus
 ECR_DOCKER_REGISTRY ?= 284299419820.dkr.ecr.us-west-2.amazonaws.com/nexus
-DOCKER_REGISTRY ?= harbor-repo.vmware.com/nexus
+DOCKER_REGISTRY ?= gcr.io/nsx-sm/nexus
 IMAGE_NAME ?= connector
 TAG ?= $(shell git rev-parse --verify HEAD)
 VERSION ?= "v0.0.0-$(TAG)"
@@ -104,10 +104,6 @@ publish:
 	docker tag ${IMAGE_NAME}:${TAG} ${DOCKER_REGISTRY}/${IMAGE_NAME}:${TAG}
 	docker push ${DOCKER_REGISTRY}/${IMAGE_NAME}:${TAG};
 
-.PHONY: publish.ecr
-publish.ecr:
-	docker tag ${IMAGE_NAME}:${TAG} ${ECR_DOCKER_REGISTRY}/${IMAGE_NAME}:${TAG}
-	docker push ${ECR_DOCKER_REGISTRY}/${IMAGE_NAME}:${TAG};
 
 .PHONY: download_builder_image
 download_builder_image:

@@ -40,7 +40,7 @@ spec:
         control-plane: connector
     spec:
       containers:
-        - image: {{.Values.global.registry}}/connector:{{.Values.global.connector.tag}}
+        - image: {{.Values.global.registry}}/nexus/connector:{{.Values.global.connector.tag}}
           name: connector
           env:
             - name: DEPLOYMENT_NAME
