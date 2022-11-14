@@ -93,6 +93,7 @@ type NodeProperty struct {
 	GraphqlSchemaFields    []FieldProperty
 	ResolverFields         map[string][]FieldProperty
 	CustomQueries          []nexus.GraphQLQuery
+	GraphQlSpec            nexus.GraphQLSpec
 }
 
 // Convert go standardType to GraphQL standardType
