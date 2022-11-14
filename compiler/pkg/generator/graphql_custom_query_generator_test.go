@@ -27,7 +27,7 @@ var _ = Describe("Graphql Custom query generator tests", func() {
 	})
 
 	It("should translate graphql query spec to schema", func() {
-		schema := generator.CustomQueryToGraphqlSchema(gns.GraphqlSpec.Queries[0])
+		schema := generator.CustomQueryToGraphqlSchema(gns.GraphqlQuerySpec.Queries[0])
 		Expect(schema).To(Equal(`    queryGns1(
         StartTime: String
         EndTime: String
@@ -36,7 +36,7 @@ var _ = Describe("Graphql Custom query generator tests", func() {
         StartVal: Int
     ): NexusGraphqlResponse
 `))
-		schema = generator.CustomQueryToGraphqlSchema(gns.GraphqlSpec.Queries[1])
+		schema = generator.CustomQueryToGraphqlSchema(gns.GraphqlQuerySpec.Queries[1])
 		Expect(schema).To(Equal(`    queryGnsQM1: TimeSeriesData
 `))
 	})

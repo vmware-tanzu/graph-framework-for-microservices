@@ -19,18 +19,20 @@ type Node struct {
 	MultipleChildren map[string]Node
 	SingleLink       map[string]Node
 	MultipleLink     map[string]Node
-	GraphqlSpec      nexus.GraphQLQuerySpec
+	GraphqlQuerySpec nexus.GraphQLQuerySpec
+	GraphqlSpec      nexus.GraphQLSpec
 }
 
 type NodeHelper struct {
-	Name         string
-	RestName     string
-	Parents      []string
-	Children     map[string]NodeHelperChild // CRD Name => NodeHelperChild
-	Links        map[string]NodeHelperChild // FieldName => NodeHelperChild
-	RestMappings map[string]string
-	IsSingleton  bool
-	GraphqlSpec  nexus.GraphQLQuerySpec
+	Name             string
+	RestName         string
+	Parents          []string
+	Children         map[string]NodeHelperChild // CRD Name => NodeHelperChild
+	Links            map[string]NodeHelperChild // FieldName => NodeHelperChild
+	RestMappings     map[string]string
+	IsSingleton      bool
+	GraphqlQuerySpec nexus.GraphQLQuerySpec
+	GraphqlSpec      nexus.GraphQLSpec
 }
 
 type NodeHelperChild struct {
