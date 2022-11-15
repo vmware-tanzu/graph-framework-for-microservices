@@ -267,18 +267,15 @@ func listHandler(c echo.Context) error {
 	return nc.JSON(http.StatusOK, resps)
 }
 
-// putHandler is used to process PUT requests
-func putHandler(c echo.Context) error {
-	nc := c.(*NexusContext)
-	crdName := model.UriToCRDType[nc.NexusURI]
-	crdInfo := model.CrdTypeToNodeInfo[crdName]
-	// Get name from the URI segment
+// getNameFromParam gets name from param if exists
+func getNameFromParam(nc *NexusContext, crdInfo model.NodeInfo) (string, string) {
 	var name string
 	for _, param := range nc.ParamNames() {
 		if param == crdInfo.Name {
 			name = nc.Param(param)
 		}
 	}
+
 	if crdInfo.IsSingleton {
 		if name == "" {
 			name = nexus.DEFAULT_KEY
@@ -288,7 +285,7 @@ func putHandler(c echo.Context) error {
 				crdInfo.Name, name, nc.Request().RequestURI, nexus.DEFAULT_KEY)
 			log.Debugf(msg)
 			log.Debugf("crdName: %s, nexusURI: %s, paramNames: %s, paramValues: %s", crdInfo.Name, nc.NexusURI, nc.ParamNames(), nc.ParamValues())
-			return nc.JSON(http.StatusBadRequest, DefaultResponse{Message: msg})
+			return "", msg
 		}
 	}
 
@@ -299,12 +296,27 @@ func putHandler(c echo.Context) error {
 
 	if name == "" {
 		if val, ok := nc.Codes[http.StatusBadRequest]; ok {
-			return nc.JSON(http.StatusBadRequest, DefaultResponse{Message: val.Description})
+			return "", val.Description
 		} else {
 			log.Debugf("Could not find required param %s for request %s", crdInfo.Name, nc.Request().RequestURI)
 			log.Debugf("crdName: %s, nexusURI: %s, paramNames: %s, paramValues: %s", crdInfo.Name, nc.NexusURI, nc.ParamNames(), nc.ParamValues())
-			return nc.JSON(http.StatusBadRequest, DefaultResponse{Message: fmt.Sprintf("Could not find required param: %s", crdInfo.Name)})
+			return "", fmt.Sprintf("Could not find required param: %s", crdInfo.Name)
 		}
+	}
+
+	return name, ""
+}
+
+// putHandler is used to process PUT requests
+func putHandler(c echo.Context) error {
+	nc := c.(*NexusContext)
+	crdName := model.UriToCRDType[nc.NexusURI]
+	crdInfo := model.CrdTypeToNodeInfo[crdName]
+
+	// Get name from the URI segment
+	name, msg := getNameFromParam(nc, crdInfo)
+	if len(name) == 0 {
+		return nc.JSON(http.StatusBadRequest, DefaultResponse{Message: msg})
 	}
 
 	// Parse body
@@ -359,6 +371,51 @@ func putHandler(c echo.Context) error {
 
 	obj.SetLabels(labels)
 	return updateResource(nc, gvr, obj, body, crdInfo)
+}
+
+// patchHandler is used to modify specific fields
+func patchHandler(c echo.Context) error {
+	nc := c.(*NexusContext)
+	crdName := model.UriToCRDType[nc.NexusURI]
+	crdInfo := model.CrdTypeToNodeInfo[crdName]
+
+	// Get name from the URI segment
+	name, msg := getNameFromParam(nc, crdInfo)
+	if len(name) == 0 {
+		return nc.JSON(http.StatusBadRequest, DefaultResponse{Message: msg})
+	}
+
+	// Construct GroupVersionResource
+	gvr := utils.ConstructGVR(crdName)
+
+	// Mangle name
+	hashedName := nexus.GetHashedName(crdName, crdInfo.ParentHierarchy, parseLabels(nc, crdInfo.ParentHierarchy), name)
+
+	// Parse body
+	body := make(map[string]interface{})
+	if err := (&echo.DefaultBinder{}).BindBody(nc, &body); err != nil {
+		return err
+	}
+
+	// prepare patch payload
+	payload := struct {
+		Spec map[string]interface{} `json:"spec"`
+	}{
+		body,
+	}
+
+	patchBytes, err := json.Marshal(payload)
+	if err != nil {
+		return nc.JSON(http.StatusBadRequest, DefaultResponse{Message: fmt.Sprintf("error while marshaling payload: %s", err.Error())})
+	}
+
+	log.Debugf("PatchBytes %+v for CR %q", string(patchBytes), name)
+	_, err = client.Client.Resource(gvr).Patch(context.TODO(), hashedName, types.MergePatchType, patchBytes, metav1.PatchOptions{})
+	if err != nil {
+		return handleClientError(nc, err)
+	}
+
+	return nc.JSON(http.StatusOK, DefaultResponse{Message: "Patch applied successfully"})
 }
 
 // deleteHandler is used to process DELETE requests

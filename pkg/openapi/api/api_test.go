@@ -104,6 +104,32 @@ var _ = Describe("OpenAPI tests", func() {
 		Expect(api.Schemas["vmware.org"].Paths[restUri.Uri].Get).To(Not(BeNil()))
 	})
 
+	It("should add PATCH endpoint", func() {
+		m := make(nexus.HTTPMethodsResponses)
+		m[http.MethodPatch] = nexus.HTTPCodesResponse{
+			http.StatusOK: nexus.HTTPResponse{Description: http.StatusText(http.StatusOK)},
+		}
+		restUri := nexus.RestURIs{
+			Uri:     "/leaders",
+			Methods: m,
+		}
+
+		crdJson, err := yamlv1.YAMLToJSON([]byte(crdExample))
+		Expect(err).NotTo(HaveOccurred())
+		var crd apiextensionsv1.CustomResourceDefinition
+		err = json.Unmarshal(crdJson, &crd)
+		Expect(err).NotTo(HaveOccurred())
+
+		model.ConstructMapCRDTypeToNode(model.Upsert, "leaders.orgchart.vmware.org", "orgchart.Leader",
+			[]string{}, nil, nil, false, "")
+		model.ConstructMapURIToCRDType(model.Upsert, "leaders.orgchart.vmware.org", []nexus.RestURIs{restUri})
+
+		model.ConstructMapCRDTypeToSpec(model.Upsert, "leaders.orgchart.vmware.org", crd.Spec)
+		api.New("vmware.org")
+		api.AddPath(restUri, "vmware.org")
+		Expect(api.Schemas["vmware.org"].Paths[restUri.Uri].Patch).To(Not(BeNil()))
+	})
+
 	It("should add GET and PUT status endpoints", func() {
 		statusUri := "/leader/status"
 		restUri := nexus.RestURIs{

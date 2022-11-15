@@ -60,6 +60,13 @@ func New(datamodel string) {
 							openapi3.NewSchema().WithProperty("message", openapi3.NewStringSchema())),
 						),
 				},
+				"NotFoundResponse": &openapi3.ResponseRef{
+					Value: openapi3.NewResponse().
+						WithDescription("Not Found").
+						WithContent(openapi3.NewContentWithJSONSchema(
+							openapi3.NewSchema().WithProperty("message", openapi3.NewStringSchema())),
+						),
+				},
 			},
 		},
 	}
@@ -181,6 +188,24 @@ func AddPath(uri nexus.RestURIs, datamodel string) {
 				}
 			}
 			pathItem.Put = operation
+		case http.MethodPatch:
+			operation := &openapi3.Operation{
+				OperationID: opId,
+				Tags:        []string{nameParts[1]},
+				Parameters:  params,
+			}
+			operation.RequestBody = &openapi3.RequestBodyRef{
+				Ref: "#/components/requestBodies/Create" + crdInfo.Name,
+			}
+			operation.Responses = openapi3.Responses{
+				"200": &openapi3.ResponseRef{
+					Ref: "#/components/responses/DefaultResponse",
+				},
+				"404": &openapi3.ResponseRef{
+					Ref: "#/components/responses/NotFoundResponse",
+				},
+			}
+			pathItem.Patch = operation
 		case http.MethodDelete:
 			operation := &openapi3.Operation{
 				OperationID: opId,

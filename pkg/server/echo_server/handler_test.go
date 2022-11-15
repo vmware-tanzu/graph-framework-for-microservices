@@ -301,6 +301,34 @@ var _ = Describe("Echo server tests", func() {
 		err := putHandler(nc)
 		Expect(err).NotTo(HaveOccurred())
 		Expect(rec.Code).To(Equal(400))
+
+		// should not handle put query for singleton object with not default as name
+		patchJson := `{
+			"designation": "CEO",
+			"new-field": "xyz"
+		}`
+
+		req = httptest.NewRequest(http.MethodPatch, "/", strings.NewReader(patchJson))
+		req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+		rec = httptest.NewRecorder()
+		c = e.Echo.NewContext(req, rec)
+		c.SetPath("/:orgchart.Leader")
+		c.SetParamNames("orgchart.Leader")
+		c.SetParamValues("notdefault")
+		nc = &NexusContext{
+			NexusURI:  "/leader/{orgchart.Leader}",
+			Context:   c,
+			CrdType:   "leaders.orgchart.vmware.org",
+			GroupName: "orgchart.vmware.org",
+			Resource:  "leaders",
+			Codes: map[nexus.ResponseCode]nexus.HTTPResponse{
+				http.StatusBadRequest: {Description: http.StatusText(http.StatusBadRequest)},
+			},
+		}
+
+		err = patchHandler(nc)
+		Expect(err).NotTo(HaveOccurred())
+		Expect(rec.Code).To(Equal(400))
 	})
 
 	It("shouldn't handle put query for object without a name", func() {
@@ -936,6 +964,116 @@ var _ = Describe("Echo server tests", func() {
 		Expect(err).NotTo(HaveOccurred())
 		Expect(rec1.Code).ToNot(Equal(200))
 
+	})
+
+	Context("should handle PATCH API", func() {
+		BeforeEach(func() {
+			// Create `Leader` object with below fields
+			leaderJson := `{
+          "designation": "NexusLead",
+          "employeeID": 1,
+          "description": "Hello World!"
+        } `
+
+			restUri := nexus.RestURIs{
+				Uri:     "/leader",
+				Methods: nexus.DefaultHTTPMethodsResponses,
+			}
+			e.RegisterRouter(restUri)
+			model.ConstructMapCRDTypeToNode(model.Upsert, "leaders.orgchart.vmware.org", "orgchart.Leader",
+				[]string{}, nil, nil, false, "some description")
+			model.ConstructMapURIToCRDType(model.Upsert, "leaders.orgchart.vmware.org", []nexus.RestURIs{restUri})
+
+			req := httptest.NewRequest(http.MethodPost, "/:orgchart.Leader", strings.NewReader(leaderJson))
+			req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+			rec := httptest.NewRecorder()
+			c := e.Echo.NewContext(req, rec)
+			c.SetParamNames("orgchart.Leader")
+			c.SetParamValues("leader1")
+			nc := &NexusContext{
+				NexusURI:  "/leader",
+				Context:   c,
+				CrdType:   "leaders.orgchart.vmware.org",
+				GroupName: "orgchart.vmware.org",
+				Resource:  "leaders",
+			}
+			err := putHandler(nc)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(rec.Code).To(Equal(200))
+		})
+
+		It("should handle PATCH request", func() {
+			// Modify `designation` value from `NexusLead` to `Manager`
+			patchJson := `{
+          "designation": "Manager",
+          "new-field": "new-value"
+        } `
+			req := httptest.NewRequest(http.MethodPatch, "/:orgchart.Leader", strings.NewReader(patchJson))
+			req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+			rec := httptest.NewRecorder()
+			c := e.Echo.NewContext(req, rec)
+			c.SetParamNames("orgchart.Leader")
+			c.SetParamValues("leader1")
+			nc := &NexusContext{
+				NexusURI:  "/leader",
+				Context:   c,
+				CrdType:   "leaders.orgchart.vmware.org",
+				GroupName: "orgchart.vmware.org",
+				Resource:  "leaders",
+			}
+
+			// patch should be applied successfully
+			err := patchHandler(nc)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(rec.Code).To(Equal(200))
+			Expect(rec.Body.String()).To(Equal("{\"message\":\"Patch applied successfully\"}\n"))
+
+			req = httptest.NewRequest(http.MethodGet, "/:orgchart.Leader", strings.NewReader(patchJson))
+			rec = httptest.NewRecorder()
+			c = e.Echo.NewContext(req, rec)
+			c.SetParamNames("orgchart.Leader")
+			c.SetParamValues("leader1")
+			nc = &NexusContext{
+				NexusURI:  "/leader",
+				Context:   c,
+				CrdType:   "leaders.orgchart.vmware.org",
+				GroupName: "orgchart.vmware.org",
+				Resource:  "leaders",
+			}
+
+			// `designation` field and new-field should only be modified,
+			err = getHandler(nc)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(rec.Body.String()).To(Equal("{\"spec\":{\"description\":\"Hello World!\",\"designation\":\"Manager\"," +
+				"\"employeeID\":1,\"new-field\":\"new-value\"},\"status\":{}}\n"))
+		})
+
+		It("should fail PATCH request when patch format is wrong", func() {
+			patchJson := `[{
+          "designation": "Manager",
+          "new-field": "new-value"
+        }]`
+			req := httptest.NewRequest(http.MethodPatch, "/:orgchart.Leader", strings.NewReader(patchJson))
+			req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+			rec := httptest.NewRecorder()
+			c := e.Echo.NewContext(req, rec)
+			c.SetParamNames("orgchart.Leader")
+			c.SetParamValues("leader1")
+			nc := &NexusContext{
+				NexusURI:  "/leader",
+				Context:   c,
+				CrdType:   "leaders.orgchart.vmware.org",
+				GroupName: "orgchart.vmware.org",
+				Resource:  "leaders",
+				Codes: map[nexus.ResponseCode]nexus.HTTPResponse{
+					http.StatusBadRequest: {Description: http.StatusText(http.StatusBadRequest)},
+				},
+			}
+
+			// patch should be failed when wrong format provided
+			err := patchHandler(nc)
+			Expect(err).To(HaveOccurred())
+		})
 	})
 })
 
