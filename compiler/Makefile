@@ -135,12 +135,12 @@ test_in_container: ${BUILDER_NAME}\:${BUILDER_TAG}.image.exists
 
 .PHONY: preparser
 preparser:
-	@echo "Preparser Started ${TSM_DATAMODEL_PATH}"
+	@echo "===>>> Preparser Started ${DATAMODEL_PATH}"
 	rm -rf _tsm_temp
-	cp -R ${TSM_DATAMODEL_PATH} _tsm_temp
+	cp -R ${DATAMODEL_PATH} _tsm_temp
 	go run cmd/preparser/main.go -dsl _tsm_temp
-	cp _tsm_temp/go.mod _tsm_temp/global/go.mod
-	go run cmd/nexus-sdk/main.go -config-file example/nexus-sdk.yaml -dsl _tsm_temp/global -crd-output example/output/_tsm_rendered_templates
+	@echo "===>>> generate_code Starts"
+	$(MAKE) generate_code DATAMODEL_PATH=_tsm_temp CONFIG_FILE=example/nexus-sdk.yaml CRD_MODULE_PATH="github.com/vmware-tanzu/graph-framework-for-microservices/compiler/example/output/generated/" GENERATED_OUTPUT_DIRECTORY=example/output/generated
 
 .PHONY: generate_code
 generate_code:
@@ -176,7 +176,7 @@ generate_code:
 	${COMPILER_SRC_DIRECTORY}/scripts/pin_graphql_deps.sh ${COMPILER_SRC_DIRECTORY} && \
 	go mod tidy -e && \
 	CGO_ENABLED=1 GOOS=linux \
-	go build --trimpath -o graphql.so -buildmode=plugin server.go
+	# go build --trimpath -o graphql.so -buildmode=plugin server.go
 	@echo "Updating module name"
 	./scripts/replace_mod_path.sh
 	find . -name "*.bak" -type f -delete
@@ -184,7 +184,7 @@ generate_code:
 	cd _generated && goimports -w .
 	@echo "Nexus Compiler: Moving files to output directory"
 	cp -r _generated/{client,apis,crds,common,nexus-client,helper,nexus-gql} ${GENERATED_OUTPUT_DIRECTORY}
-	cp -r ${GOPATH}/src/nexustempmodule/nexus-gql/graphql.so ${GENERATED_OUTPUT_DIRECTORY}/nexus-gql
+	# cp -r ${GOPATH}/src/nexustempmodule/nexus-gql/graphql.so ${GENERATED_OUTPUT_DIRECTORY}/nexus-gql
 	@echo "Nexus Compiler: Compiler code generation completed"
 
 .PHONY: test_generate_code_in_container
