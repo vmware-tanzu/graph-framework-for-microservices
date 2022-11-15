@@ -1,6 +1,6 @@
 # Getting Started
 
-Start by creating your own extensible, distributed platform that:
+With Nexus you can create your own extensible, distributed platform that:
 
 * Implements a datamodel as K8s CRDs.
 
@@ -55,7 +55,7 @@ Verify nexus sdk pre-requisites are satisfied
 
 1. Create and `cd` to your workspace directory to create, compile and install datamodel
     ```
-    mkdir -p <BaseDir>/test-datamodel/orgchart && cd <BaseDir>/test-datamodel/orgchart       
+    mkdir -p $HOME/test-datamodel/orgchart && cd $HOME/test-datamodel/orgchart       
     ```
    
      
@@ -76,7 +76,7 @@ Verify nexus sdk pre-requisites are satisfied
 echo 'package root
 
 import (
-	"golang-appnet.eng.vmware.com/nexus-sdk/nexus/nexus"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/nexus/nexus"
 )
 
 var LeaderRestAPISpec = nexus.RestAPISpec{
@@ -146,11 +146,11 @@ To install datamodel we need to install nexus runtime as a pre-requisite
    ```
 
    ```
-   kind load docker-image orgchart:latest --name kind
+   kind load docker-image orgchart:latest --name <kind cluster name>
    ```
 
    ```
-   nexus datamodel install image orgchart:latest
+   nexus datamodel install image orgchart:latest --namespace <name>
    ```
 
 ## Datamodel Playground

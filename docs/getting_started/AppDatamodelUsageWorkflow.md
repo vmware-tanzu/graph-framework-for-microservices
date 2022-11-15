@@ -1,4 +1,4 @@
-## App Datamodel Usuage Workflow
+## App Datamodel Usage Workflow
 
 This workflow will walk you through the steps to interact and work with your applocal datamodel.
 
@@ -8,7 +8,7 @@ This workflow will walk you through the steps to interact and work with your app
 
 
 ## Pre-requisites
-1. This workflow requires the Datamodel should be initialised and installed before proceeding to further steps. Please follow the below link to configure datamodel
+1. This workflow requires Datamodel to be initialised and installed before proceeding to further steps. Please follow the below link to configure datamodel
 
     #### [Datamodel Workflow](DatamodelWorkflow.md)
 
@@ -34,9 +34,9 @@ export DOCS_INTERNAL_DIR=$PWD/docs/_internal
 kubectl port-forward svc/nexus-api-gw 5000:80 -n default &
 ```
 
-###  Create Leader Object via REST API
+###  Create Leader Object via REST API using Swagger UI
 
-**GraphQL query to verify there is no leader exists**
+**GraphQL query to verify that leader doesn't exist**
 
 ![Query1](../images/GqlP1.png)
 
@@ -45,11 +45,11 @@ kubectl port-forward svc/nexus-api-gw 5000:80 -n default &
  curl -X PUT -H 'Content-Type: application/json' -d '{"designation": "CTO","name": "Pere"}' http://localhost:5000/leader/Pere
 ```
 -->
-**Create a Leader object via REST API**
+**Create a Leader object via REST API using Swagger UI**
 
 ![CreateLeader](../images/RestP2.png)
 
-**GraphQL query to verify the leader is created or not**
+**GraphQL query to verify the leader is properly**
 
 ![Query2](../images/GqlP2.png)
 
@@ -59,13 +59,13 @@ curl -X POST -H 'Content-Type: application/json' -d '{"query":"{\nroot{\nName\n}
 ```
 -->
 
-### Create Manager Object via curl
+### Create Manager Object via REST API using curl
 
 ```shell
 curl -X POST -H 'Content-Type: application/json' -d '{"apiVersion":"root.orgchart.org/v1","kind":"Manager","metadata":{"labels":{"leaders.root.orgchart.org":"Pere"},"name":"Amit"},"spec":{"designation":"Manager","name":"Amit"}}'  http://localhost:5000/apis/root.orgchart.org/v1/managers -o /dev/null
 ```
 
-**GraphQL query to verify the manager is created or not**
+**GraphQL query to verify the manager is properly created**
 ![Query3](../images/GqlP3.png)
 
 
@@ -100,7 +100,7 @@ curl -X POST -H 'Content-Type: application/json' -d '{"query":"{root{Name \n Des
 ```
 -->
 
-### Create Engineer Objects via nexus
+### Create Engineer Objects via nexus cli
 
 ```shell
 echo 'apiVersion: root.orgchart.org/v1
