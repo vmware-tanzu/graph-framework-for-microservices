@@ -1,4 +1,4 @@
-DOCKER_REPO ?= harbor-repo.vmware.com/nexus
+DOCKER_REPO ?= gcr.io/nsx-sm/nexus
 IMAGE_NAME ?= graphql-server
 IMAGE_TAG ?= $(shell git rev-parse --verify HEAD)
 BUILDER_NAME ?= ${IMAGE_NAME}-builder
