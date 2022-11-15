@@ -160,7 +160,7 @@ spec:
         - --cert-dir=/etc/kubernetes/certs
         - --endpoint-reconciler-type=none
         - --port=8080
-        image: gcr.io/nsx-sm/k8s.gcr.io/kube-apiserver:v1.19.0
+        image: gcr.io/nsx-sm/k8s.gcr.io/kube-apiserver:v1.19.16
         imagePullPolicy: IfNotPresent
         ports:
           - containerPort: 8080
