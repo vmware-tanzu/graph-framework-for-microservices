@@ -15,6 +15,7 @@ import (
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/net/publicsuffix"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime/schema"
 )
 
 const DISPLAY_NAME_LABEL = "nexus/display_name"
@@ -143,4 +144,22 @@ func GetParentHierarchy(parents []string, labels map[string]string) (hierarchy [
 		}
 	}
 	return
+}
+
+/*
+	ConstructGVR constructs group, version, resource for a CRD Type.
+
+Eg: For a given CRD type: roots.vmware.org and ApiVersion: vmware.org/v1,
+
+	      group => vmware.org
+		  resource => roots
+		  version => v1
+*/
+func ConstructGVR(crdType string) schema.GroupVersionResource {
+	parts := strings.Split(crdType, ".")
+	return schema.GroupVersionResource{
+		Group:    strings.Join(parts[1:], "."),
+		Version:  "v1",
+		Resource: parts[0],
+	}
 }

@@ -153,6 +153,12 @@ func (s *EchoServer) RegisterRouter(restURI nexus.RestURIs) {
 			} else {
 				s.Echo.PUT(urlPattern, putHandler, authn.VerifyAuthenticationMiddleware, nexusContext)
 			}
+		case http.MethodPatch:
+			if common.IsModeAdmin() {
+				s.Echo.PATCH(urlPattern, patchHandler, nexusContext)
+			} else {
+				s.Echo.PATCH(urlPattern, patchHandler, authn.VerifyAuthenticationMiddleware, nexusContext)
+			}
 		case http.MethodDelete:
 			if common.IsModeAdmin() {
 				s.Echo.DELETE(urlPattern, deleteHandler, nexusContext)
@@ -264,6 +270,12 @@ func (s *EchoServer) NodeUpdateNotifications(stopCh chan struct{}) error {
 		case restURIs := <-model.RestURIChan:
 			log.Debugln("Rest route notification received")
 			for _, v := range restURIs {
+				uriParts := strings.Split(v.Uri, "/")
+				httpCodesResponse, ok := v.Methods[http.MethodPut]
+				if ok && uriParts[len(uriParts)-1] != "status" {
+					v.Methods[http.MethodPatch] = httpCodesResponse
+
+				}
 				s.RegisterRouter(v)
 			}
 		case crdType := <-model.CrdTypeChan:
