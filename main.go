@@ -22,8 +22,6 @@ var endpointURL string
 var apiGateway string
 var gqlURL string
 
-var tracer *zipkin.Tracer
-
 var zipkinClient *zipkinhttp.Client
 
 var gclient graphql.Client
@@ -82,11 +80,11 @@ func main() {
 	gqlURL = apiGateway + "/apis/graphql/v1/query"
 
 	var err error
-	tracer, err = newTracer()
+	var tracer *zipkin.Tracer
+	tracer, err = newTracer(0.1)
 	if err != nil {
 		log.Fatalf("error out %v", err)
 	}
-	log.Println("tracer added")
 	// add functions
 
 	//client := http.Client{}
@@ -110,7 +108,6 @@ func main() {
 	// GraphQL query worker
 
 	w := workmanager.Worker{
-		Tracer:         tracer,
 		FuncMap:        r.FuncMap,
 		GraphqlFuncMap: graphqlFuncs.GraphqlFuncMap,
 	}
@@ -122,6 +119,11 @@ func main() {
 		if test.SampleRate > 0 {
 			samplingRate = test.SampleRate
 		}
+		tracer, err := newTracer(test.SampleRate)
+		if err != nil {
+			log.Fatalf("error out %v", err)
+		}
+		w.Tracer = tracer
 		w.SampleRate = samplingRate
 		w.OpsIterations = test.OpsCount
 		if test.OpsCount == 0 && test.Timeout == 0 {
@@ -148,7 +150,7 @@ func testRunner(w *workmanager.Worker, funcKey string, concurrency int, timeout 
 
 }
 
-func newTracer() (*zipkin.Tracer, error) {
+func newTracer(sampleRate float32) (*zipkin.Tracer, error) {
 	// The reporter sends traces to zipkin server
 	reporter := reporterhttp.NewReporter(endpointURL)
 
@@ -156,7 +158,7 @@ func newTracer() (*zipkin.Tracer, error) {
 	localEndpoint := &model.Endpoint{ServiceName: "http_client", Port: 8080}
 
 	// Sampler tells you which traces are going to be sampled or not. In this case we will record 100% (1.00) of traces.
-	sampler, err := zipkin.NewCountingSampler(0.1)
+	sampler, err := zipkin.NewCountingSampler(float64(sampleRate))
 	if err != nil {
 		return nil, err
 	}

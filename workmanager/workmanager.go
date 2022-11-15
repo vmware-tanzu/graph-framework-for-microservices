@@ -117,12 +117,12 @@ func (w *Worker) doWork(job string, work chan bool) {
 
 		res, err = w.httpClient.Do(req)
 		if err != nil {
-			log.Fatalf("unable to do http request: %+v\n", err)
+			log.Printf("err: unable to do http request: %+v\n", err)
 		}
 	} else {
 		res, err = w.zipkinClient.DoWithAppSpan(req, job)
 		if err != nil {
-			log.Fatalf("zipkinclient : unable to do http request: %+v\n", err)
+			log.Printf("Err: zipkinclient : unable to do http request: %+v\n", err)
 		}
 	}
 	defer res.Body.Close()
@@ -172,7 +172,7 @@ func GetRestReq(specData rest.SpecData) *http.Request {
 	payload := strings.NewReader(specData.Data)
 	req, err := http.NewRequest(specData.Method, url, payload)
 	if err != nil {
-		log.Fatalf("Failed to build request %v", err)
+		log.Printf("Error : Failed to build request %v", err)
 	}
 	req.Header.Add("accept", "application/json")
 	req.Header.Add("Content-Type", "application/json")
