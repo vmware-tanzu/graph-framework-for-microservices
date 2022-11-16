@@ -12,6 +12,7 @@ import (
 	reporterhttp "github.com/openzipkin/zipkin-go/reporter/http"
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/nexus-calibration/graphqlcalls"
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/nexus-calibration/rest"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/nexus-calibration/traceparser"
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/nexus-calibration/workmanager"
 	"gopkg.in/yaml.v2"
 )
@@ -29,9 +30,12 @@ var gclient graphql.Client
 // true for http, false for graphql
 var workerType bool
 
+var cf conf
+
 type server struct {
 	URL    string `yaml:"url"`
 	Zipkin string `yaml:"zipkin"`
+	Tsdb   string `yaml:"tsdb"`
 }
 
 type Test struct {
@@ -64,19 +68,18 @@ func (c *conf) getConf() *conf {
 
 func main() {
 	// read conf
-	var c conf
-	c.getConf()
+	cf.getConf()
 
 	var r rest.RestData
 	restCallPath := "/root/rest-calls/rest_data.yaml"
 	//restCallPath := "rest_data.yaml"
-	apiGateway = c.Server.URL
+	apiGateway = cf.Server.URL
 
 	// define rest calls
 	r.GetRestData(restCallPath)
 	r.ProcessRestCalls(apiGateway)
 
-	endpointURL = c.Server.Zipkin + "/api/v2/spans"
+	endpointURL = cf.Server.Zipkin + "/api/v2/spans"
 	gqlURL = apiGateway + "/apis/graphql/v1/query"
 
 	var err error
@@ -112,18 +115,14 @@ func main() {
 		GraphqlFuncMap: graphqlFuncs.GraphqlFuncMap,
 	}
 
-	for _, test := range c.Tests {
+	for _, test := range cf.Tests {
 		// Default sample rate
 		log.Println("Test Name: ", test.Name)
 		var samplingRate float32 = 0.1
 		if test.SampleRate > 0 {
 			samplingRate = test.SampleRate
 		}
-		tracer, err := newTracer(test.SampleRate)
-		if err != nil {
-			log.Fatalf("error out %v", err)
-		}
-		w.Tracer = tracer
+		w.ZipkinEndPoint = cf.Server.Zipkin
 		w.SampleRate = samplingRate
 		w.OpsIterations = test.OpsCount
 		if test.OpsCount == 0 && test.Timeout == 0 {
@@ -145,8 +144,19 @@ func testRunner(w *workmanager.Worker, funcKey string, concurrency int, timeout 
 	log.Println(funcKey)
 	w.WorkerStart(funcKey, concurrency, timeout)
 	w.WorkData.CalculateAverage()
+	time.Sleep(5 * time.Second)
+	content, err := w.GatherTestTraces()
+	if err != nil {
+		log.Fatalf("Error getting trace content %v", err)
+	}
 	log.Println(w.WorkData.Average, w.WorkData.Low, w.WorkData.High)
 	log.Printf("Work data :- \n \tops count: %d \t err count: %d", w.WorkData.OpsCount, w.WorkData.ErrCount)
+	tsData := traceparser.RetrieveData(funcKey, content)
+	for _, data := range tsData {
+		log.Printf("%d, %f, %d\n", data.Timestamp, data.Duration, data.Error)
+	}
+
+	traceparser.InsertData(cf.Server.Tsdb, tsData)
 
 }
 
