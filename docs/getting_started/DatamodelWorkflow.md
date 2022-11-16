@@ -39,17 +39,29 @@ This guided workflow will walk you through setting up a datamodel that is local 
 
 ## Nexus Install
 
-Install Nexus CLI
+1. Install Nexus CLI
+    ```
+    GOPRIVATE="gitlab.eng.vmware.com" go install gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/cmd/plugin/nexus@master
+    ```
 
-```
-curl -LJ https://github.com/vmware-tanzu/graph-framework-for-microservices/releases/latest/download/nexus-$(uname -s | awk '{print tolower($0)}')_$(go env GOARCH)  -o nexus && chmod +x nexus
-```
+<details><summary>FAQ</summary>
+1. The above commmand shows unable to connect to gitlab.eng.vmware.com ?
 
-## Nexus Pre-req Verify
+Verify that you have permissions to the repo
+            
+    git ls-remote git@gitlab.eng.vmware.com:nsx-allspark_users/nexus-sdk/cli.git
 
-Verify nexus sdk pre-requisites are satisfied
+Update gitconfig to use ssh instead of https
 
-    nexus prereq verify
+    git config --global url.git@gitlab.eng.vmware.com:.insteadOf https://gitlab.eng.vmware.com
+
+</details>
+
+2. Verify nexus sdk pre-requisites are satisfied
+
+   ```
+   nexus prereq verify
+   ```
 
 ## Setup Datamodel Workspace
 
@@ -66,7 +78,7 @@ Verify nexus sdk pre-requisites are satisfied
 
 1. Start writing datamodel specification for your application.
    
-   **To understand the workflow we can use the below example datmodel. To write your own datamodel please refer** [here](../../docs/Datamodel/DSL/README.md)
+   **To understand the workflow we can use the below example datmodel. To write your own datamodel please refer** [here](../../compiler/DSL.md)
    
 **Example Orgchart DSL**
 
