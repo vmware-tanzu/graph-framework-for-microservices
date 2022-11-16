@@ -23,6 +23,7 @@ build:
     - make docker.builder
     - CONTAINER_ID=$CONTAINER_ID PKG_NAME=$(realpath .) make publish IMAGE_TAG=$CI_COMMIT_SHA
     - CONTAINER_ID=$CONTAINER_ID PKG_NAME=$(realpath .) DOCKER_REPO="284299419820.dkr.ecr.us-west-2.amazonaws.com/nexus" make publish IMAGE_TAG=$CI_COMMIT_SHA
+    - flash docker scan image harbor-repo.vmware.com/nexus/nexus-graphql-server:$CI_COMMIT_SHA
 
 build_tag:
   stage: build
