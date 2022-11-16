@@ -411,21 +411,21 @@ func IgnoreField(f *ast.Field) bool {
 	return false
 }
 
-func IsNexusGraphqlNonNullField(f *ast.Field) bool {
+func IsNexusGraphqlNullField(f *ast.Field) bool {
 	if f == nil {
 		return false
 	}
 
 	if f.Tag != nil {
 		tags := ParseFieldTags(f.Tag.Value)
-		if val, err := tags.Get("nexus-graphql-non-nullable"); err == nil {
-			if strings.ToLower(val.Name) == "true" {
-				return true
+		if val, err := tags.Get("nexus-graphql-nullable"); err == nil {
+			if strings.ToLower(val.Name) == "false" {
+				return false
 			}
 		}
 	}
 
-	return false
+	return true
 }
 
 func GetTsmGraphqlDirectives(f *ast.Field) string {

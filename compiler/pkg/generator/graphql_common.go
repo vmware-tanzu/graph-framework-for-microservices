@@ -126,6 +126,14 @@ func getPkgName(pkgs parser.Packages, pkgPath string) string {
 	return pkgs[importPath].Name
 }
 
+func GetPkg(pkgs parser.Packages, pkgPath string) parser.Package {
+	importPath, err := strconv.Unquote(pkgPath)
+	if err != nil {
+		log.Errorf("Failed to parse the package path : %s: %v", pkgPath, err)
+	}
+	return pkgs[importPath]
+}
+
 func genSchemaResolverName(fn1, fn2 string) (string, string) {
 	return fmt.Sprintf("%s_%s", strings.ToLower(fn1), fn2), cases.Title(language.Und, cases.NoLower).String(fn1) + cases.Title(language.Und, cases.NoLower).String(fn2)
 }
@@ -149,6 +157,44 @@ func ValidateImportPkg(pkgName, typeString string, importMap map[string]string, 
 		return genSchemaResolverName(pkgName, part[1])
 	}
 	return genSchemaResolverName(pkgName, typeWithoutPointers)
+}
+
+func GetNexusSchemaFieldName(GraphQlSpec nexus.GraphQLSpec) string {
+	name := "id"
+	value := "ID"
+	if GraphQlSpec.IdName != "" {
+		name = GraphQlSpec.IdName
+	}
+	if !GraphQlSpec.IdNullable {
+		value = "ID!"
+	}
+	return fmt.Sprintf("%s: %s", name, value)
+}
+
+func GetNodeDetails(pkgName, typeString string, importMap map[string]string, pkgs parser.Packages, gqlSpecMap map[string]nexus.GraphQLSpec) string {
+	typeWithoutPointers := strings.ReplaceAll(typeString, "*", "")
+	if strings.Contains(typeWithoutPointers, ".") {
+		part := strings.Split(typeWithoutPointers, ".")
+		if val, ok := importMap[part[0]]; ok {
+			p := GetPkg(pkgs, val)
+			if val, ok := parser.GetNexusGraphqlSpecAnnotation(p, part[1]); ok {
+				gqlspec := gqlSpecMap[fmt.Sprintf("%s.%s", p.Name, val)]
+				return GetNexusSchemaFieldName(gqlspec)
+			}
+		}
+		for _, v := range importMap {
+			pkgName := getPkgName(pkgs, v)
+			if pkgName == part[0] {
+				p := GetPkg(pkgs, v)
+				if val, ok := parser.GetNexusGraphqlSpecAnnotation(p, part[1]); ok {
+					gqlspec := gqlSpecMap[fmt.Sprintf("%s.%s", p.Name, val)]
+					return GetNexusSchemaFieldName(gqlspec)
+				}
+			}
+		}
+		return fmt.Sprintf("id: ID")
+	}
+	return fmt.Sprintf("id: ID")
 }
 
 func getBaseNodeType(typeString string) string {
@@ -240,29 +286,30 @@ func isRootOfGraph(parents []string, rootOfGraph bool) bool {
 
 func getGraphqlSchemaName(pattern, fieldName, schemaType string) string {
 	if fieldName != "" {
+		// lowerCase fieldName using util.GetTag() #e.g ServiceGroup --> serviceGroup
 		return fmt.Sprintf(pattern, util.GetTag(fieldName), schemaType)
 	}
 	return fmt.Sprintf(pattern, fieldName, schemaType)
 }
 
-func getTsmGraphqlSchemaFieldName(sType GraphQLSchemaType, fieldName, schemaType string, f *ast.Field) string {
+// getTsmGraphqlSchemaFieldName process nexus annotation `nexus-graphql-nullable` and `nexus-graphql-tsm-directive`
+func getTsmGraphqlSchemaFieldName(sType GraphQLSchemaType, fieldName, schemaType, listArg string, f *ast.Field) string {
 	pattern := ""
-	nonNullable := parser.IsNexusGraphqlNonNullField(f)
+	nullable := parser.IsNexusGraphqlNullField(f)
 	switch sType {
 	case Standard, JsonMarshal, Child, Link:
-		if nonNullable {
-			pattern = "%s: %s!"
-		} else {
+		if nullable {
 			pattern = "%s: %s"
+		} else {
+			pattern = "%s: %s!"
 		}
 	case NamedChild:
-		pattern = "%s(Id: ID): [%s!]"
+		pattern = "%s(" + listArg + "): [%s!]"
 	}
 	schemaName := getGraphqlSchemaName(pattern, fieldName, schemaType)
 	if parser.IsTsmGraphqlDirectivesField(f) {
 		replacer := strings.NewReplacer("nexus-graphql-tsm-directive:", "", "\\", "")
 		out := replacer.Replace(parser.GetTsmGraphqlDirectives(f))
-		fmt.Println("getDirectives:", schemaName, strings.Trim(out, "\""))
 		schemaName += " " + strings.Trim(out, "\"")
 	}
 	return schemaName
