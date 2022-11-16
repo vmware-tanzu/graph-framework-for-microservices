@@ -221,17 +221,17 @@ func tsmProcessNonNexusFields(aliasNameMap map[string]string, node *ast.TypeSpec
 
 		if parser.IsJsonStringField(f) {
 			fieldProp.IsStringType = true
-			fieldProp.SchemaFieldName = getTsmGraphqlSchemaFieldName(JsonMarshal, fieldProp.FieldName, "String", f)
+			fieldProp.SchemaFieldName = getTsmGraphqlSchemaFieldName(JsonMarshal, fieldProp.FieldName, "String", "id: ID", f)
 			resField[nodeProp.PkgName+nodeProp.NodeName] = append(resField[nodeProp.PkgName+nodeProp.NodeName], fieldProp)
 		} else {
 			stdType := convertGraphqlStdType(typeString)
 			// standard type
 			if len(stdType) != 0 {
 				fieldProp.IsStdTypeField = true
-				fieldProp.SchemaFieldName = getTsmGraphqlSchemaFieldName(Standard, fieldProp.FieldName, stdType, f)
+				fieldProp.SchemaFieldName = getTsmGraphqlSchemaFieldName(Standard, fieldProp.FieldName, stdType, "id: ID", f)
 				resField[nodeProp.PkgName+nodeProp.NodeName] = append(resField[nodeProp.PkgName+nodeProp.NodeName], fieldProp)
 			} else {
-				fieldProp.SchemaFieldName = getTsmGraphqlSchemaFieldName(Standard, fieldProp.FieldName, "String", f)
+				fieldProp.SchemaFieldName = getTsmGraphqlSchemaFieldName(Standard, fieldProp.FieldName, "String", "id: ID", f)
 				fieldProp.IsStringType = true
 				resField[nodeProp.PkgName+nodeProp.NodeName] = append(resField[nodeProp.PkgName+nodeProp.NodeName], fieldProp)
 			}
@@ -244,7 +244,8 @@ func tsmProcessNonNexusFields(aliasNameMap map[string]string, node *ast.TypeSpec
 // tsmProcessNexusFields process and populates properties for each nexus fields
 // <gns.Gns `nexus:"child"`>
 func tsmProcessNexusFields(pkg parser.Package, aliasNameMap map[string]string, node *ast.TypeSpec,
-	nodeProp *NodeProperty, simpleGroupTypeName string, pkgs map[string]parser.Package) {
+	nodeProp *NodeProperty, simpleGroupTypeName string, pkgs map[string]parser.Package,
+	gqlSpecMap map[string]nexus.GraphQLSpec) {
 	importMap := pkg.GetImportMap()
 	for _, nf := range parser.GetNexusFields(node) {
 		var (
@@ -279,10 +280,6 @@ func tsmProcessNexusFields(pkg parser.Package, aliasNameMap map[string]string, n
 			}
 		}
 
-		if parser.IsNexusTypeField(nf) && (parser.IsJsonStringField(nf) || parser.IsNexusGraphqlNonNullField(nf)) {
-			fmt.Println("====>>>>>>FN:", fieldProp.FieldName, "Non-Null:", parser.IsNexusGraphqlNonNullField(nf), "type:string=", parser.IsJsonStringField(nf))
-		}
-
 		// `Ignore:true` annotation used to ignore the specific field `nexus-graphql:"ignore:true"`
 		if parser.IgnoreField(nf) {
 			continue
@@ -290,25 +287,18 @@ func tsmProcessNexusFields(pkg parser.Package, aliasNameMap map[string]string, n
 		// `type:string` annotation used to consider the type as string `nexus-graphql:"type:string"`
 		if parser.IsJsonStringField(nf) {
 			fieldProp.IsStringType = true
-			fieldProp.SchemaFieldName = getTsmGraphqlSchemaFieldName(JsonMarshal, fieldProp.FieldName, "String", nf)
+			fieldProp.SchemaFieldName = getTsmGraphqlSchemaFieldName(JsonMarshal, fieldProp.FieldName, "String", "id: ID", nf)
 		}
 
 		// denote field is nexus or singletonField type
 		if parser.IsNexusTypeField(nf) {
 			fieldProp.IsNexusOrSingletonField = true
-			// Add Custom Query + ID
-
-			name := "id"
-			value := "ID"
-			if nodeProp.GraphQlSpec.IdName != "" {
-				name = nodeProp.GraphQlSpec.IdName
-			}
-			if !nodeProp.GraphQlSpec.IdNullable {
-				value = "ID!"
-			}
-			fieldProp.SchemaFieldName = fmt.Sprintf("%s: %s", name, value)
+			// get nexus schemaFieldName from GraphQlSpec "IdName" & "IdNullable"
+			fieldProp.SchemaFieldName = GetNexusSchemaFieldName(nodeProp.GraphQlSpec)
 			for _, customQuery := range nodeProp.CustomQueries {
-				fieldProp.SchemaFieldName += CustomQueryToGraphqlSchema(customQuery)
+				cq := CustomQueryToGraphqlSchema(customQuery)
+				// In TSM DM "@timeseriesAPI" directives is need to added along with returnType "TimeSeriesData"
+				fieldProp.SchemaFieldName += strings.ReplaceAll(cq, "TimeSeriesData", fmt.Sprintf("TimeSeriesData @timeseriesAPI(file: \"../../tsquery/timeSeriesQuery\", handler: \"%s\")", customQuery.Name))
 				var customQueryFieldProp FieldProperty
 				customQueryFieldProp.IsResolver = true
 				customQueryFieldProp.FieldName = customQuery.Name
@@ -322,7 +312,7 @@ func tsmProcessNexusFields(pkg parser.Package, aliasNameMap map[string]string, n
 		if parser.IsOnlyLinkField(nf) {
 			schemaTypeName, resolverTypeName := ValidateImportPkg(nodeProp.PkgName, typeString, importMap, pkgs)
 			// `type:string` annotation used to consider the type as string `nexus-graphql:"type:string"`
-			fieldProp.SchemaFieldName = getTsmGraphqlSchemaFieldName(Link, fieldProp.FieldName, schemaTypeName, nf)
+			fieldProp.SchemaFieldName = getTsmGraphqlSchemaFieldName(Link, fieldProp.FieldName, schemaTypeName, "id: ID", nf)
 			fieldProp.IsResolver = true
 			fieldProp.IsNexusTypeField = true
 			fieldProp.FieldType = typeString
@@ -335,7 +325,7 @@ func tsmProcessNexusFields(pkg parser.Package, aliasNameMap map[string]string, n
 		// nexus child field
 		if parser.IsOnlyChildField(nf) {
 			schemaTypeName, resolverTypeName := ValidateImportPkg(nodeProp.PkgName, typeString, importMap, pkgs)
-			fieldProp.SchemaFieldName = getTsmGraphqlSchemaFieldName(Child, fieldProp.FieldName, schemaTypeName, nf)
+			fieldProp.SchemaFieldName = getTsmGraphqlSchemaFieldName(Child, fieldProp.FieldName, schemaTypeName, "id: ID", nf)
 			fieldProp.SchemaTypeName = schemaTypeName
 			fieldProp.IsResolver = true
 			fieldProp.IsNexusTypeField = true
@@ -347,9 +337,16 @@ func tsmProcessNexusFields(pkg parser.Package, aliasNameMap map[string]string, n
 
 		// nexus children or links field
 		if parser.IsNamedChildOrLink(nf) {
+			var listArg string
 			fieldProp.IsChildrenOrLinks = true
 			schemaTypeName, resolverTypeName := ValidateImportPkg(nodeProp.PkgName, typeString, importMap, pkgs)
-			fieldProp.SchemaFieldName = getTsmGraphqlSchemaFieldName(NamedChild, fieldProp.FieldName, schemaTypeName, nf)
+			if val, ok := parser.GetNexusGraphqlSpecAnnotation(pkg, typeString); ok {
+				gqlspec := gqlSpecMap[fmt.Sprintf("%s.%s", pkg.Name, val)]
+				listArg = GetNexusSchemaFieldName(gqlspec)
+			} else {
+				listArg = GetNodeDetails(nodeProp.PkgName, typeString, importMap, pkgs, gqlSpecMap)
+			}
+			fieldProp.SchemaFieldName = getTsmGraphqlSchemaFieldName(NamedChild, fieldProp.FieldName, schemaTypeName, listArg, nf)
 			fieldProp.IsResolver = true
 			fieldProp.IsNexusTypeField = true
 			fieldProp.FieldType = typeString
@@ -389,7 +386,6 @@ func GenerateTsmGraphqlSchemaVars(baseGroupName, crdModulePath string, pkgs pars
 	//rootOfGraph := false
 	for _, pkg := range sortedPackages {
 		simpleGroupTypeName := util.GetSimpleGroupTypeName(pkg.Name)
-		fmt.Println("PKG:", pkg.Name, simpleGroupTypeName)
 		// Iterating struct type
 		for _, node := range pkg.GetStructs() {
 			// Nexus GraphQlSpec by default "IdNullable" value is true
@@ -410,7 +406,6 @@ func GenerateTsmGraphqlSchemaVars(baseGroupName, crdModulePath string, pkgs pars
 
 			if val, ok := parser.GetNexusGraphqlSpecAnnotation(pkg, typeName); ok {
 				gqlspec = gqlSpecMap[fmt.Sprintf("%s.%s", pkg.Name, val)]
-				fmt.Println("GRAPHQL-SPEC", pkg.Name, val, gqlspec)
 			}
 
 			nodeProp := &NodeProperty{}
@@ -436,7 +431,7 @@ func GenerateTsmGraphqlSchemaVars(baseGroupName, crdModulePath string, pkgs pars
 			nodeProp.SchemaName = fmt.Sprintf("%s_%s", pkg.Name, parser.GetTypeName(node))
 
 			// Iterate each node's nexus fields and set its properties
-			tsmProcessNexusFields(pkg, aliasNameMap, node, nodeProp, simpleGroupTypeName, pkgs)
+			tsmProcessNexusFields(pkg, aliasNameMap, node, nodeProp, simpleGroupTypeName, pkgs, gqlSpecMap)
 
 			// Iterate each node's non-nexus fields and set its properties
 			tsmProcessNonNexusFields(aliasNameMap, node, nodeProp, simpleGroupTypeName)

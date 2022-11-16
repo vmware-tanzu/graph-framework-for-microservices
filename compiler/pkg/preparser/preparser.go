@@ -103,7 +103,6 @@ func Render(dslDir string, packages map[string][]parser.Package) error {
 		if len(pkgs) == 1 {
 			continue
 		}
-		fmt.Println(dslDir, k)
 		pkgDir := filepath.Join(dslDir, k)
 		//TODO: create unique directory (e.g. global may already exist)
 		err := os.MkdirAll(pkgDir, os.ModePerm)

@@ -1,7 +1,6 @@
 package parser
 
 import (
-	"fmt"
 	"go/ast"
 	"strconv"
 
@@ -35,7 +34,6 @@ func parseGqlSpec(v *ast.CompositeLit, p Package) nexus.GraphQLSpec {
 		}
 
 		gqlSpecFieldName := gqlSpecKv.Key.(*ast.Ident)
-		fmt.Println("1111****++++++>>>>KEY:", gqlSpecFieldName.String())
 		switch gqlSpecFieldName.String() {
 		case "IdName":
 			gqlSpecFieldValue := gqlSpecKv.Value.(*ast.BasicLit)
@@ -43,12 +41,10 @@ func parseGqlSpec(v *ast.CompositeLit, p Package) nexus.GraphQLSpec {
 			if err != nil {
 				log.Fatalf("Internal compiler error, failed to unqote name in graphql")
 			}
-			fmt.Println("*****VAL:", name)
 			spec.IdName = name
 		case "IdNullable":
 			gqlSpecFieldValue := gqlSpecKv.Value.(*ast.Ident)
 			val := gqlSpecFieldValue.String()
-			fmt.Println("*****VAL:", gqlSpecFieldValue.String())
 			if val == "false" {
 				spec.IdNullable = false
 			} else {
@@ -56,6 +52,5 @@ func parseGqlSpec(v *ast.CompositeLit, p Package) nexus.GraphQLSpec {
 			}
 		}
 	}
-	fmt.Println("SPEC", spec)
 	return spec
 }
