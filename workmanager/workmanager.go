@@ -26,7 +26,7 @@ type Worker struct {
 	ZipkinEndPoint string
 	httpClient     *http.Client
 	FuncMap        map[string]rest.SpecData
-	GraphqlFuncMap map[string]func()
+	GraphqlFuncMap map[string]func(context.Context)
 	stop           chan bool
 	WorkData       WorkData
 	SampleRate     float32
@@ -154,12 +154,14 @@ func (w *Worker) doWork(job string, work chan bool) {
 // async work graphql worker
 func (w *Worker) doGraphqlQuery(job string, work chan bool) {
 	gqlFunc := w.GraphqlFuncMap[job]
-	ctx := context.Background()
+	var ctx context.Context
+	ctx = context.Background()
 	if w.tracer == nil {
-		gqlFunc()
+		gqlFunc(ctx)
 	} else {
 		span, _ := w.tracer.StartSpanFromContext(ctx, job)
-		gqlFunc()
+		ctx = zipkin.NewContext(ctx, span)
+		gqlFunc(ctx)
 		span.Finish()
 	}
 	// work done

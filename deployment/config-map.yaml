@@ -17,3 +17,5 @@ data:
       sample_rate: 0.5
       rest:
       - put_employee
+      graphql:
+      - get_managers

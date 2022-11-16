@@ -1,6 +1,7 @@
 package graphqlcalls
 
 import (
+	"context"
 	"log"
 
 	"github.com/Khan/genqlient/graphql"
@@ -8,7 +9,7 @@ import (
 
 type GraphqlFuncs struct {
 	Gclient        graphql.Client
-	GraphqlFuncMap map[string]func()
+	GraphqlFuncMap map[string]func(context.Context)
 }
 
 // function keys
@@ -23,7 +24,7 @@ func (g *GraphqlFuncs) Init() {
 	if g.Gclient == nil {
 		log.Fatal("Graphql client initialization failed. Gclient is empty")
 	}
-	g.GraphqlFuncMap = make(map[string]func())
+	g.GraphqlFuncMap = make(map[string]func(context.Context))
 	funcMap := g.GraphqlFuncMap
 	funcMap[GET_MANAGERS] = g.GetManagers
 	funcMap[GET_EMPLOYEE_ROLE] = g.GetEmployeeRole
