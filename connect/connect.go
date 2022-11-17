@@ -13,6 +13,12 @@ type Connect struct {
 	ReplicationConfig ReplicationConfig `nexus:"children"`
 }
 
+type CloudType string
+
+const (
+	AWS CloudType = "AWS"
+)
+
 // NexusEndpoint identifies a Nexus Runtime endpoint.
 type NexusEndpoint struct {
 	nexus.Node
@@ -21,6 +27,11 @@ type NexusEndpoint struct {
 	Port string
 	Cert string `json:"cert,omitempty"`
 	Path string `json:"path,omitempty"`
+
+	Cloud              CloudType `json:"cloud,omitempty"`
+	ServiceAccountName string    `json:"serviceAccountName,omitempty"`
+	ClientName         string    `json:"clientName,omitempty"`
+	ClientRegion       string    `json:"clientRegion,omitempty"`
 }
 
 type ReplicationStatusEndpoint string
@@ -120,7 +131,7 @@ type ReplicationConfig struct {
 	RemoteEndpoint NexusEndpoint `nexus:"link"`
 
 	// Credentials to access the remote endpoint.
-	AccessToken string
+	AccessToken string `json:"accessToken,omitempty"`
 
 	// Source of the replication.
 	Source ReplicationSource

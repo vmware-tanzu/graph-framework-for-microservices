@@ -101,10 +101,14 @@ func (c *NexusEndpoint) DisplayName() string {
 
 // +k8s:openapi-gen=true
 type NexusEndpointSpec struct {
-	Host string `json:"host" yaml:"host"`
-	Port string `json:"port" yaml:"port"`
-	Cert string `json:"cert,omitempty"`
-	Path string `json:"path,omitempty"`
+	Host               string    `json:"host" yaml:"host"`
+	Port               string    `json:"port" yaml:"port"`
+	Cert               string    `json:"cert,omitempty"`
+	Path               string    `json:"path,omitempty"`
+	Cloud              CloudType `json:"cloud,omitempty"`
+	ServiceAccountName string    `json:"serviceAccountName,omitempty"`
+	ClientName         string    `json:"clientName,omitempty"`
+	ClientRegion       string    `json:"clientRegion,omitempty"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
@@ -144,7 +148,7 @@ func (c *ReplicationConfig) DisplayName() string {
 
 // +k8s:openapi-gen=true
 type ReplicationConfigSpec struct {
-	AccessToken       string                    `json:"accessToken" yaml:"accessToken"`
+	AccessToken       string                    `json:"accessToken,omitempty"`
 	Source            ReplicationSource         `json:"source" yaml:"source"`
 	Destination       ReplicationDestination    `json:"destination" yaml:"destination"`
 	StatusEndpoint    ReplicationStatusEndpoint `json:"statusEndpoint,omitempty"`
@@ -206,10 +210,12 @@ type ReplicationDestination struct {
 	ObjectType   `json:"objectType,omitempty"`
 }
 
+type CloudType string
 type ReplicationStatusEndpoint string
 type SourceKind string
 
 const (
+	AWS         CloudType                 = "AWS"
 	Source      ReplicationStatusEndpoint = "Source"
 	Destination ReplicationStatusEndpoint = "Destination"
 	Object      SourceKind                = "Object"

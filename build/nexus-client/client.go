@@ -2747,6 +2747,42 @@ func (group *ConnectNexusV1) UpdateNexusEndpointByName(ctx context.Context,
 	}
 	patch = append(patch, patchOpPath)
 
+	patchValueCloud :=
+		objToUpdate.Spec.Cloud
+	patchOpCloud := PatchOp{
+		Op:    "replace",
+		Path:  "/spec/cloud",
+		Value: patchValueCloud,
+	}
+	patch = append(patch, patchOpCloud)
+
+	patchValueServiceAccountName :=
+		objToUpdate.Spec.ServiceAccountName
+	patchOpServiceAccountName := PatchOp{
+		Op:    "replace",
+		Path:  "/spec/serviceAccountName",
+		Value: patchValueServiceAccountName,
+	}
+	patch = append(patch, patchOpServiceAccountName)
+
+	patchValueClientName :=
+		objToUpdate.Spec.ClientName
+	patchOpClientName := PatchOp{
+		Op:    "replace",
+		Path:  "/spec/clientName",
+		Value: patchValueClientName,
+	}
+	patch = append(patch, patchOpClientName)
+
+	patchValueClientRegion :=
+		objToUpdate.Spec.ClientRegion
+	patchOpClientRegion := PatchOp{
+		Op:    "replace",
+		Path:  "/spec/clientRegion",
+		Value: patchValueClientRegion,
+	}
+	patch = append(patch, patchOpClientRegion)
+
 	marshaled, err := patch.Marshal()
 	if err != nil {
 		return nil, err

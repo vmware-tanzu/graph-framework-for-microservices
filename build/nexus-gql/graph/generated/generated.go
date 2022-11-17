@@ -90,7 +90,7 @@ type ComplexityRoot struct {
 		ProxyRules   func(childComplexity int, id *string) int
 	}
 
-	Authn_OIDC struct {
+	Authentication_OIDC struct {
 		Config           func(childComplexity int) int
 		Id               func(childComplexity int) int
 		JwtClaimUsername func(childComplexity int) int
@@ -114,12 +114,16 @@ type ComplexityRoot struct {
 	}
 
 	Connect_NexusEndpoint struct {
-		Cert         func(childComplexity int) int
-		Host         func(childComplexity int) int
-		Id           func(childComplexity int) int
-		ParentLabels func(childComplexity int) int
-		Path         func(childComplexity int) int
-		Port         func(childComplexity int) int
+		Cert               func(childComplexity int) int
+		ClientName         func(childComplexity int) int
+		ClientRegion       func(childComplexity int) int
+		Cloud              func(childComplexity int) int
+		Host               func(childComplexity int) int
+		Id                 func(childComplexity int) int
+		ParentLabels       func(childComplexity int) int
+		Path               func(childComplexity int) int
+		Port               func(childComplexity int) int
+		ServiceAccountName func(childComplexity int) int
 	}
 
 	Connect_ReplicationConfig struct {
@@ -157,7 +161,7 @@ type Api_NexusResolver interface {
 type Apigateway_ApiGatewayResolver interface {
 	ProxyRules(ctx context.Context, obj *model.ApigatewayApiGateway, id *string) ([]*model.AdminProxyRule, error)
 	Cors(ctx context.Context, obj *model.ApigatewayApiGateway, id *string) ([]*model.DomainCORSConfig, error)
-	Authn(ctx context.Context, obj *model.ApigatewayApiGateway, id *string) (*model.AuthnOIDC, error)
+	Authn(ctx context.Context, obj *model.ApigatewayApiGateway, id *string) (*model.AuthenticationOIDC, error)
 }
 type Config_ConfigResolver interface {
 	Routes(ctx context.Context, obj *model.ConfigConfig, id *string) ([]*model.RouteRoute, error)
@@ -373,40 +377,40 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Apigateway_ApiGateway.ProxyRules(childComplexity, args["Id"].(*string)), true
 
-	case "authn_OIDC.Config":
-		if e.complexity.Authn_OIDC.Config == nil {
+	case "authentication_OIDC.Config":
+		if e.complexity.Authentication_OIDC.Config == nil {
 			break
 		}
 
-		return e.complexity.Authn_OIDC.Config(childComplexity), true
+		return e.complexity.Authentication_OIDC.Config(childComplexity), true
 
-	case "authn_OIDC.Id":
-		if e.complexity.Authn_OIDC.Id == nil {
+	case "authentication_OIDC.Id":
+		if e.complexity.Authentication_OIDC.Id == nil {
 			break
 		}
 
-		return e.complexity.Authn_OIDC.Id(childComplexity), true
+		return e.complexity.Authentication_OIDC.Id(childComplexity), true
 
-	case "authn_OIDC.JwtClaimUsername":
-		if e.complexity.Authn_OIDC.JwtClaimUsername == nil {
+	case "authentication_OIDC.JwtClaimUsername":
+		if e.complexity.Authentication_OIDC.JwtClaimUsername == nil {
 			break
 		}
 
-		return e.complexity.Authn_OIDC.JwtClaimUsername(childComplexity), true
+		return e.complexity.Authentication_OIDC.JwtClaimUsername(childComplexity), true
 
-	case "authn_OIDC.ParentLabels":
-		if e.complexity.Authn_OIDC.ParentLabels == nil {
+	case "authentication_OIDC.ParentLabels":
+		if e.complexity.Authentication_OIDC.ParentLabels == nil {
 			break
 		}
 
-		return e.complexity.Authn_OIDC.ParentLabels(childComplexity), true
+		return e.complexity.Authentication_OIDC.ParentLabels(childComplexity), true
 
-	case "authn_OIDC.ValidationProps":
-		if e.complexity.Authn_OIDC.ValidationProps == nil {
+	case "authentication_OIDC.ValidationProps":
+		if e.complexity.Authentication_OIDC.ValidationProps == nil {
 			break
 		}
 
-		return e.complexity.Authn_OIDC.ValidationProps(childComplexity), true
+		return e.complexity.Authentication_OIDC.ValidationProps(childComplexity), true
 
 	case "config_Config.ApiGateway":
 		if e.complexity.Config_Config.ApiGateway == nil {
@@ -503,6 +507,27 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Connect_NexusEndpoint.Cert(childComplexity), true
 
+	case "connect_NexusEndpoint.ClientName":
+		if e.complexity.Connect_NexusEndpoint.ClientName == nil {
+			break
+		}
+
+		return e.complexity.Connect_NexusEndpoint.ClientName(childComplexity), true
+
+	case "connect_NexusEndpoint.ClientRegion":
+		if e.complexity.Connect_NexusEndpoint.ClientRegion == nil {
+			break
+		}
+
+		return e.complexity.Connect_NexusEndpoint.ClientRegion(childComplexity), true
+
+	case "connect_NexusEndpoint.Cloud":
+		if e.complexity.Connect_NexusEndpoint.Cloud == nil {
+			break
+		}
+
+		return e.complexity.Connect_NexusEndpoint.Cloud(childComplexity), true
+
 	case "connect_NexusEndpoint.Host":
 		if e.complexity.Connect_NexusEndpoint.Host == nil {
 			break
@@ -537,6 +562,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Connect_NexusEndpoint.Port(childComplexity), true
+
+	case "connect_NexusEndpoint.ServiceAccountName":
+		if e.complexity.Connect_NexusEndpoint.ServiceAccountName == nil {
+			break
+		}
+
+		return e.complexity.Connect_NexusEndpoint.ServiceAccountName(childComplexity), true
 
 	case "connect_ReplicationConfig.AccessToken":
 		if e.complexity.Connect_ReplicationConfig.AccessToken == nil {
@@ -728,10 +760,10 @@ type apigateway_ApiGateway {
 
     ProxyRules(Id: ID): [admin_ProxyRule!]
     Cors(Id: ID): [domain_CORSConfig!]
-    Authn(Id: ID): authn_OIDC!
+    Authn(Id: ID): authentication_OIDC!
 }
 
-type authn_OIDC {
+type authentication_OIDC {
     Id: ID
 	ParentLabels: Map
 
@@ -765,6 +797,10 @@ type connect_NexusEndpoint {
     Port: String
     Cert: String
     Path: String
+    Cloud: String
+    ServiceAccountName: String
+    ClientName: String
+    ClientRegion: String
 }
 
 type connect_ReplicationConfig {
@@ -3934,9 +3970,9 @@ func (ec *executionContext) _apigateway_ApiGateway_Authn(ctx context.Context, fi
 		}
 		return graphql.Null
 	}
-	res := resTmp.(*model.AuthnOIDC)
+	res := resTmp.(*model.AuthenticationOIDC)
 	fc.Result = res
-	return ec.marshalNauthn_OIDC2ᚖnexustempmoduleᚋnexusᚑgqlᚋgraphᚋmodelᚐAuthnOIDC(ctx, field.Selections, res)
+	return ec.marshalNauthentication_OIDC2ᚖnexustempmoduleᚋnexusᚑgqlᚋgraphᚋmodelᚐAuthenticationOIDC(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_apigateway_ApiGateway_Authn(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -3948,17 +3984,17 @@ func (ec *executionContext) fieldContext_apigateway_ApiGateway_Authn(ctx context
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
 			case "Id":
-				return ec.fieldContext_authn_OIDC_Id(ctx, field)
+				return ec.fieldContext_authentication_OIDC_Id(ctx, field)
 			case "ParentLabels":
-				return ec.fieldContext_authn_OIDC_ParentLabels(ctx, field)
+				return ec.fieldContext_authentication_OIDC_ParentLabels(ctx, field)
 			case "Config":
-				return ec.fieldContext_authn_OIDC_Config(ctx, field)
+				return ec.fieldContext_authentication_OIDC_Config(ctx, field)
 			case "ValidationProps":
-				return ec.fieldContext_authn_OIDC_ValidationProps(ctx, field)
+				return ec.fieldContext_authentication_OIDC_ValidationProps(ctx, field)
 			case "JwtClaimUsername":
-				return ec.fieldContext_authn_OIDC_JwtClaimUsername(ctx, field)
+				return ec.fieldContext_authentication_OIDC_JwtClaimUsername(ctx, field)
 			}
-			return nil, fmt.Errorf("no field named %q was found under type authn_OIDC", field.Name)
+			return nil, fmt.Errorf("no field named %q was found under type authentication_OIDC", field.Name)
 		},
 	}
 	defer func() {
@@ -3975,8 +4011,8 @@ func (ec *executionContext) fieldContext_apigateway_ApiGateway_Authn(ctx context
 	return fc, nil
 }
 
-func (ec *executionContext) _authn_OIDC_Id(ctx context.Context, field graphql.CollectedField, obj *model.AuthnOIDC) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_authn_OIDC_Id(ctx, field)
+func (ec *executionContext) _authentication_OIDC_Id(ctx context.Context, field graphql.CollectedField, obj *model.AuthenticationOIDC) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_authentication_OIDC_Id(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -4003,9 +4039,9 @@ func (ec *executionContext) _authn_OIDC_Id(ctx context.Context, field graphql.Co
 	return ec.marshalOID2ᚖstring(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_authn_OIDC_Id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_authentication_OIDC_Id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
-		Object:     "authn_OIDC",
+		Object:     "authentication_OIDC",
 		Field:      field,
 		IsMethod:   false,
 		IsResolver: false,
@@ -4016,8 +4052,8 @@ func (ec *executionContext) fieldContext_authn_OIDC_Id(ctx context.Context, fiel
 	return fc, nil
 }
 
-func (ec *executionContext) _authn_OIDC_ParentLabels(ctx context.Context, field graphql.CollectedField, obj *model.AuthnOIDC) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_authn_OIDC_ParentLabels(ctx, field)
+func (ec *executionContext) _authentication_OIDC_ParentLabels(ctx context.Context, field graphql.CollectedField, obj *model.AuthenticationOIDC) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_authentication_OIDC_ParentLabels(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -4044,9 +4080,9 @@ func (ec *executionContext) _authn_OIDC_ParentLabels(ctx context.Context, field 
 	return ec.marshalOMap2map(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_authn_OIDC_ParentLabels(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_authentication_OIDC_ParentLabels(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
-		Object:     "authn_OIDC",
+		Object:     "authentication_OIDC",
 		Field:      field,
 		IsMethod:   false,
 		IsResolver: false,
@@ -4057,8 +4093,8 @@ func (ec *executionContext) fieldContext_authn_OIDC_ParentLabels(ctx context.Con
 	return fc, nil
 }
 
-func (ec *executionContext) _authn_OIDC_Config(ctx context.Context, field graphql.CollectedField, obj *model.AuthnOIDC) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_authn_OIDC_Config(ctx, field)
+func (ec *executionContext) _authentication_OIDC_Config(ctx context.Context, field graphql.CollectedField, obj *model.AuthenticationOIDC) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_authentication_OIDC_Config(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -4085,9 +4121,9 @@ func (ec *executionContext) _authn_OIDC_Config(ctx context.Context, field graphq
 	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_authn_OIDC_Config(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_authentication_OIDC_Config(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
-		Object:     "authn_OIDC",
+		Object:     "authentication_OIDC",
 		Field:      field,
 		IsMethod:   false,
 		IsResolver: false,
@@ -4098,8 +4134,8 @@ func (ec *executionContext) fieldContext_authn_OIDC_Config(ctx context.Context, 
 	return fc, nil
 }
 
-func (ec *executionContext) _authn_OIDC_ValidationProps(ctx context.Context, field graphql.CollectedField, obj *model.AuthnOIDC) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_authn_OIDC_ValidationProps(ctx, field)
+func (ec *executionContext) _authentication_OIDC_ValidationProps(ctx context.Context, field graphql.CollectedField, obj *model.AuthenticationOIDC) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_authentication_OIDC_ValidationProps(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -4126,9 +4162,9 @@ func (ec *executionContext) _authn_OIDC_ValidationProps(ctx context.Context, fie
 	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_authn_OIDC_ValidationProps(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_authentication_OIDC_ValidationProps(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
-		Object:     "authn_OIDC",
+		Object:     "authentication_OIDC",
 		Field:      field,
 		IsMethod:   false,
 		IsResolver: false,
@@ -4139,8 +4175,8 @@ func (ec *executionContext) fieldContext_authn_OIDC_ValidationProps(ctx context.
 	return fc, nil
 }
 
-func (ec *executionContext) _authn_OIDC_JwtClaimUsername(ctx context.Context, field graphql.CollectedField, obj *model.AuthnOIDC) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_authn_OIDC_JwtClaimUsername(ctx, field)
+func (ec *executionContext) _authentication_OIDC_JwtClaimUsername(ctx context.Context, field graphql.CollectedField, obj *model.AuthenticationOIDC) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_authentication_OIDC_JwtClaimUsername(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -4167,9 +4203,9 @@ func (ec *executionContext) _authn_OIDC_JwtClaimUsername(ctx context.Context, fi
 	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_authn_OIDC_JwtClaimUsername(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_authentication_OIDC_JwtClaimUsername(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
-		Object:     "authn_OIDC",
+		Object:     "authentication_OIDC",
 		Field:      field,
 		IsMethod:   false,
 		IsResolver: false,
@@ -4588,6 +4624,14 @@ func (ec *executionContext) fieldContext_connect_Connect_Endpoints(ctx context.C
 				return ec.fieldContext_connect_NexusEndpoint_Cert(ctx, field)
 			case "Path":
 				return ec.fieldContext_connect_NexusEndpoint_Path(ctx, field)
+			case "Cloud":
+				return ec.fieldContext_connect_NexusEndpoint_Cloud(ctx, field)
+			case "ServiceAccountName":
+				return ec.fieldContext_connect_NexusEndpoint_ServiceAccountName(ctx, field)
+			case "ClientName":
+				return ec.fieldContext_connect_NexusEndpoint_ClientName(ctx, field)
+			case "ClientRegion":
+				return ec.fieldContext_connect_NexusEndpoint_ClientRegion(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type connect_NexusEndpoint", field.Name)
 		},
@@ -4920,6 +4964,170 @@ func (ec *executionContext) fieldContext_connect_NexusEndpoint_Path(ctx context.
 	return fc, nil
 }
 
+func (ec *executionContext) _connect_NexusEndpoint_Cloud(ctx context.Context, field graphql.CollectedField, obj *model.ConnectNexusEndpoint) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_connect_NexusEndpoint_Cloud(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Cloud, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_connect_NexusEndpoint_Cloud(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "connect_NexusEndpoint",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _connect_NexusEndpoint_ServiceAccountName(ctx context.Context, field graphql.CollectedField, obj *model.ConnectNexusEndpoint) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_connect_NexusEndpoint_ServiceAccountName(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ServiceAccountName, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_connect_NexusEndpoint_ServiceAccountName(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "connect_NexusEndpoint",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _connect_NexusEndpoint_ClientName(ctx context.Context, field graphql.CollectedField, obj *model.ConnectNexusEndpoint) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_connect_NexusEndpoint_ClientName(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ClientName, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_connect_NexusEndpoint_ClientName(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "connect_NexusEndpoint",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _connect_NexusEndpoint_ClientRegion(ctx context.Context, field graphql.CollectedField, obj *model.ConnectNexusEndpoint) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_connect_NexusEndpoint_ClientRegion(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ClientRegion, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_connect_NexusEndpoint_ClientRegion(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "connect_NexusEndpoint",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _connect_ReplicationConfig_Id(ctx context.Context, field graphql.CollectedField, obj *model.ConnectReplicationConfig) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_connect_ReplicationConfig_Id(ctx, field)
 	if err != nil {
@@ -5053,6 +5261,14 @@ func (ec *executionContext) fieldContext_connect_ReplicationConfig_RemoteEndpoin
 				return ec.fieldContext_connect_NexusEndpoint_Cert(ctx, field)
 			case "Path":
 				return ec.fieldContext_connect_NexusEndpoint_Path(ctx, field)
+			case "Cloud":
+				return ec.fieldContext_connect_NexusEndpoint_Cloud(ctx, field)
+			case "ServiceAccountName":
+				return ec.fieldContext_connect_NexusEndpoint_ServiceAccountName(ctx, field)
+			case "ClientName":
+				return ec.fieldContext_connect_NexusEndpoint_ClientName(ctx, field)
+			case "ClientRegion":
+				return ec.fieldContext_connect_NexusEndpoint_ClientRegion(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type connect_NexusEndpoint", field.Name)
 		},
@@ -6232,35 +6448,35 @@ func (ec *executionContext) _apigateway_ApiGateway(ctx context.Context, sel ast.
 	return out
 }
 
-var authn_OIDCImplementors = []string{"authn_OIDC"}
+var authentication_OIDCImplementors = []string{"authentication_OIDC"}
 
-func (ec *executionContext) _authn_OIDC(ctx context.Context, sel ast.SelectionSet, obj *model.AuthnOIDC) graphql.Marshaler {
-	fields := graphql.CollectFields(ec.OperationContext, sel, authn_OIDCImplementors)
+func (ec *executionContext) _authentication_OIDC(ctx context.Context, sel ast.SelectionSet, obj *model.AuthenticationOIDC) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, authentication_OIDCImplementors)
 	out := graphql.NewFieldSet(fields)
 	var invalids uint32
 	for i, field := range fields {
 		switch field.Name {
 		case "__typename":
-			out.Values[i] = graphql.MarshalString("authn_OIDC")
+			out.Values[i] = graphql.MarshalString("authentication_OIDC")
 		case "Id":
 
-			out.Values[i] = ec._authn_OIDC_Id(ctx, field, obj)
+			out.Values[i] = ec._authentication_OIDC_Id(ctx, field, obj)
 
 		case "ParentLabels":
 
-			out.Values[i] = ec._authn_OIDC_ParentLabels(ctx, field, obj)
+			out.Values[i] = ec._authentication_OIDC_ParentLabels(ctx, field, obj)
 
 		case "Config":
 
-			out.Values[i] = ec._authn_OIDC_Config(ctx, field, obj)
+			out.Values[i] = ec._authentication_OIDC_Config(ctx, field, obj)
 
 		case "ValidationProps":
 
-			out.Values[i] = ec._authn_OIDC_ValidationProps(ctx, field, obj)
+			out.Values[i] = ec._authentication_OIDC_ValidationProps(ctx, field, obj)
 
 		case "JwtClaimUsername":
 
-			out.Values[i] = ec._authn_OIDC_JwtClaimUsername(ctx, field, obj)
+			out.Values[i] = ec._authentication_OIDC_JwtClaimUsername(ctx, field, obj)
 
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
@@ -6455,6 +6671,22 @@ func (ec *executionContext) _connect_NexusEndpoint(ctx context.Context, sel ast.
 		case "Path":
 
 			out.Values[i] = ec._connect_NexusEndpoint_Path(ctx, field, obj)
+
+		case "Cloud":
+
+			out.Values[i] = ec._connect_NexusEndpoint_Cloud(ctx, field, obj)
+
+		case "ServiceAccountName":
+
+			out.Values[i] = ec._connect_NexusEndpoint_ServiceAccountName(ctx, field, obj)
+
+		case "ClientName":
+
+			out.Values[i] = ec._connect_NexusEndpoint_ClientName(ctx, field, obj)
+
+		case "ClientRegion":
+
+			out.Values[i] = ec._connect_NexusEndpoint_ClientRegion(ctx, field, obj)
 
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
@@ -6931,18 +7163,18 @@ func (ec *executionContext) marshalNapigateway_ApiGateway2ᚖnexustempmoduleᚋn
 	return ec._apigateway_ApiGateway(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNauthn_OIDC2nexustempmoduleᚋnexusᚑgqlᚋgraphᚋmodelᚐAuthnOIDC(ctx context.Context, sel ast.SelectionSet, v model.AuthnOIDC) graphql.Marshaler {
-	return ec._authn_OIDC(ctx, sel, &v)
+func (ec *executionContext) marshalNauthentication_OIDC2nexustempmoduleᚋnexusᚑgqlᚋgraphᚋmodelᚐAuthenticationOIDC(ctx context.Context, sel ast.SelectionSet, v model.AuthenticationOIDC) graphql.Marshaler {
+	return ec._authentication_OIDC(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNauthn_OIDC2ᚖnexustempmoduleᚋnexusᚑgqlᚋgraphᚋmodelᚐAuthnOIDC(ctx context.Context, sel ast.SelectionSet, v *model.AuthnOIDC) graphql.Marshaler {
+func (ec *executionContext) marshalNauthentication_OIDC2ᚖnexustempmoduleᚋnexusᚑgqlᚋgraphᚋmodelᚐAuthenticationOIDC(ctx context.Context, sel ast.SelectionSet, v *model.AuthenticationOIDC) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
 		}
 		return graphql.Null
 	}
-	return ec._authn_OIDC(ctx, sel, v)
+	return ec._authentication_OIDC(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalNconfig_Config2nexustempmoduleᚋnexusᚑgqlᚋgraphᚋmodelᚐConfigConfig(ctx context.Context, sel ast.SelectionSet, v model.ConfigConfig) graphql.Marshaler {

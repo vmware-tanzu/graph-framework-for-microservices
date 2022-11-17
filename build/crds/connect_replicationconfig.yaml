@@ -173,7 +173,6 @@ spec:
               statusEndpoint:
                 type: string
             required:
-            - accessToken
             - source
             - destination
             type: object

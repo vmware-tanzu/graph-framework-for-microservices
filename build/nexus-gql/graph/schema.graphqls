@@ -24,10 +24,10 @@ type apigateway_ApiGateway {
 
     ProxyRules(Id: ID): [admin_ProxyRule!]
     Cors(Id: ID): [domain_CORSConfig!]
-    Authn(Id: ID): authn_OIDC!
+    Authn(Id: ID): authentication_OIDC!
 }
 
-type authn_OIDC {
+type authentication_OIDC {
     Id: ID
 	ParentLabels: Map
 
@@ -61,6 +61,10 @@ type connect_NexusEndpoint {
     Port: String
     Cert: String
     Path: String
+    Cloud: String
+    ServiceAccountName: String
+    ClientName: String
+    ClientRegion: String
 }
 
 type connect_ReplicationConfig {
