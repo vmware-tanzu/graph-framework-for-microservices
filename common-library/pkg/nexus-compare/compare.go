@@ -1,4 +1,4 @@
-package main
+package nexus_compare
 
 import (
 	"bytes"
