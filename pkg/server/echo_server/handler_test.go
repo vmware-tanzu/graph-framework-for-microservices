@@ -795,6 +795,100 @@ var _ = Describe("Echo server tests", func() {
 			Expect(rec.Body.String()).Should(Equal(
 				"{\"spec\":{\"designation\":\"NexusLead\",\"employeeID\":1},\"status\":{}}\n"))
 		})
+
+		It("shouldn't modify Child and Links GVK when doing object PATCH", func() {
+			gvr := schema.GroupVersionResource{
+				Group:    "management.vmware.org",
+				Version:  "v1",
+				Resource: "leaders",
+			}
+
+			obj, err := client.Client.Resource(gvr).Get(context.TODO(), "81f6106f691ad70377f1f402c8270d023a83801e", metav1.GetOptions{})
+			Expect(err).NotTo(HaveOccurred())
+			updatedSpec := obj.Object["spec"].(map[string]interface{})
+			// `designation` should be `NexusLead`
+			Expect(updatedSpec["designation"]).To(Equal("NexusLead"))
+
+			// Child GVK
+			hrChild := updatedSpec["hRGvk"].(map[string]interface{})
+			Expect(hrChild["kind"]).To(Equal("HumanResources"))
+			Expect(hrChild["name"]).Should(Equal("71d2f43510c62c8a4cc08ed4fffa58839d722608"))
+			Expect(hrChild["group"]).Should(Equal("hr.vmware.org"))
+
+			// Link GVK
+			engChild := updatedSpec["engManagersGvk"].(map[string]interface{})["default"].(map[string]interface{})
+			// EngManager Link GVK field shouldn't be modified
+			Expect(engChild["kind"]).To(Equal("Mgr"))
+			Expect(engChild["name"]).Should(Equal("eac9763b09291c96b4973c41036f841ba46aa502"))
+			Expect(engChild["group"]).Should(Equal("management.vmware.org"))
+
+			// `new-field` shouldn't be added in the object
+			_, ok := updatedSpec["new-field"]
+			Expect(ok).To(BeFalse())
+
+			// Modify `designation` value from `NexusLead` to `Manager`
+			patchLeaderJson := `{
+          "designation": "Manager",
+          "new-field": "new-value",
+          "hRGvk": {
+             "default": {
+               "group": "invalid-group",
+               "kind": "invalid-kind",
+               "name": "invalid-name"
+          }
+         },
+         "engManagersGvk": {
+             "default": {
+               "group": "management.vmware.org",
+               "kind": "eng-invalid-kind",
+               "name": "eac9763b09291c96b4973c41036f841ba46aa502"
+          }
+         }
+        } `
+
+			n := constructTestAnnotation()
+			model.ConstructMapCRDTypeToNode(model.Upsert, "leaders.management.vmware.org", "management.Leader",
+				n.Hierarchy, n.Children, n.Links, true, "some description")
+
+			req := httptest.NewRequest(http.MethodPatch, "/root/:orgchart.Root/leader/:management.Leader", strings.NewReader(patchLeaderJson))
+			req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+			rec := httptest.NewRecorder()
+			c := e.Echo.NewContext(req, rec)
+			c.SetParamNames("management.Leader")
+			c.SetParamValues("default")
+			nc := &NexusContext{
+				NexusURI:  "/root/{orgchart.Root}/leader/{management.Leader}",
+				Context:   c,
+				CrdType:   "leaders.management.vmware.org",
+				GroupName: "management.vmware.org",
+				Resource:  "leaders",
+			}
+
+			err = patchHandler(nc)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(rec.Code).To(Equal(200))
+
+			obj, err = client.Client.Resource(gvr).Get(context.TODO(), "81f6106f691ad70377f1f402c8270d023a83801e", metav1.GetOptions{})
+			Expect(err).NotTo(HaveOccurred())
+			updatedSpec = obj.Object["spec"].(map[string]interface{})
+			hrChild = updatedSpec["hRGvk"].(map[string]interface{})
+			engChild = updatedSpec["engManagersGvk"].(map[string]interface{})["default"].(map[string]interface{})
+
+			// EngManager Link GVK field shouldn't be modified
+			Expect(engChild["kind"]).To(Equal("Mgr"))
+			Expect(engChild["name"]).Should(Equal("eac9763b09291c96b4973c41036f841ba46aa502"))
+			Expect(engChild["group"]).Should(Equal("management.vmware.org"))
+
+			// should modify the field `designation` from `NexusLead` to `Manager` and
+			// add the new field
+			Expect(updatedSpec["designation"]).To(Equal("Manager"))
+			Expect(updatedSpec["new-field"]).To(Equal("new-value"))
+
+			// HR Child GVK field shouldn't be modified
+			Expect(hrChild["kind"]).To(Equal("HumanResources"))
+			Expect(hrChild["name"]).Should(Equal("71d2f43510c62c8a4cc08ed4fffa58839d722608"))
+			Expect(hrChild["group"]).Should(Equal("hr.vmware.org"))
+		})
 	})
 
 	It("should handle PUT and GET status subresource", func() {
