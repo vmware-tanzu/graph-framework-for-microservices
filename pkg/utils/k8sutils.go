@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"bufio"
 	"bytes"
 	"context"
 	"errors"
@@ -532,4 +533,60 @@ func GetLabels(input yaml.MapSlice) string {
 		}
 	}
 	return strings.Join(paramsList[:], ",")
+}
+
+func QueryRawAPI(api string) (bool, error) {
+	cmd := strings.Split(fmt.Sprintf("get --raw %s", api), " ")
+
+	queryCommand := exec.Command("kubectl", cmd...)
+
+	log.Debugf("Querying k8s APIServer for %s resource exists", api)
+	stdout, err := queryCommand.StdoutPipe()
+	if err != nil {
+		return false, err
+	}
+	stderr, err := queryCommand.StderrPipe()
+	if err != nil {
+		return false, err
+	}
+
+	scanner := bufio.NewScanner(stdout)
+	go func() {
+		for scanner.Scan() {
+			text := scanner.Text()
+			log.Debugf("\t > %s\n", text)
+		}
+	}()
+
+	errScanner := bufio.NewScanner(stderr)
+	go func() {
+		for errScanner.Scan() {
+			log.Debugf("\t > %s\n", errScanner.Text())
+		}
+	}()
+
+	err = queryCommand.Start()
+	if err != nil {
+		return false, err
+	}
+
+	err = queryCommand.Wait()
+	if err != nil {
+		return false, err
+	}
+
+	return true, nil
+}
+
+func GetAPIGVK(kind string) string {
+	for typeV, APIS := range common.ResourcesList {
+		if typeV == kind {
+			for key, value := range APIS.APIS {
+				if exists, err := QueryRawAPI(value); err == nil && exists == true {
+					return key
+				}
+			}
+		}
+	}
+	return ""
 }
