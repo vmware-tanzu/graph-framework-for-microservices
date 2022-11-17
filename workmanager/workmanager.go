@@ -133,28 +133,23 @@ func (w *Worker) doWork(job string, work chan bool) {
 	// get work
 	specData := w.FuncMap[job]
 	req := GetRestReq(specData)
-	var res *http.Response
 	var err error
 	if w.zipkinClient == nil {
 		log.Println(req)
 
-		res, err = w.httpClient.Do(req)
+		_, err = w.httpClient.Do(req)
 		if err != nil {
 			log.Printf("err: unable to do http request: %+v\n", err)
 		}
 	} else {
-		res, err = w.zipkinClient.DoWithAppSpan(req, job)
+		_, err = w.zipkinClient.DoWithAppSpan(req, job)
 		if err != nil {
 			log.Printf("Err: zipkinclient : unable to do http request: %+v\n", err)
 		}
 	}
-	defer res.Body.Close()
 	// work done
 	work <- true
 	//log.Println("status : ", res.StatusCode)
-	if res.StatusCode >= 400 {
-		w.WorkData.ErrCount++
-	}
 }
 
 // async work graphql worker
@@ -219,7 +214,7 @@ func (w *Worker) GatherTestTraces() ([]byte, error) {
 func GetRestReq(specData rest.SpecData) *http.Request {
 	randString := RandomString(10)
 	//newPath := strings.ReplaceAll(spec.Path, "{{random}}", randString)
-	url := strings.ReplaceAll(specData.Path, "{{random}}", randString)
+	url := strings.ReplaceAll(specData.Url, "{{random}}", randString)
 	payload := strings.NewReader(specData.Data)
 	req, err := http.NewRequest(specData.Method, url, payload)
 	if err != nil {

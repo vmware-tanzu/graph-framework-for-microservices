@@ -1,6 +1,8 @@
 package rest
 
 import (
+	"encoding/json"
+	"io"
 	"io/ioutil"
 	"log"
 	"strings"
@@ -9,15 +11,16 @@ import (
 )
 
 type RestData struct {
-	Spec    []SpecData `yaml:"spec"`
-	FuncMap map[string]SpecData
+	Spec    []SpecData          `yaml:"spec" json:"spec"`
+	FuncMap map[string]SpecData `json:"func_map"`
 }
 
 type SpecData struct {
-	Name   string `yaml:"name"`
-	Method string `yaml:"method"`
-	Path   string `yaml:"path"`
-	Data   string `yaml:"data"`
+	Name   string `yaml:"name" json:"name"`
+	Method string `yaml:"method" json:"method"`
+	Path   string `yaml:"path" json:"path"`
+	Url    string
+	Data   string `yaml:"data" json:"data"`
 }
 
 func (r *RestData) GetRestData(filePath string) {
@@ -31,12 +34,20 @@ func (r *RestData) GetRestData(filePath string) {
 	}
 }
 
+func (r *RestData) ReadRestData(data io.Reader) {
+	decoder := json.NewDecoder(data)
+	err := decoder.Decode(r)
+	if err != nil {
+		log.Printf("Read err   #%v ", err)
+	}
+}
+
 func (r *RestData) ProcessRestCalls(apiGateway string) {
 	r.FuncMap = make(map[string]SpecData)
 	for i := 0; i < len(r.Spec); i++ {
 		spec := &r.Spec[i]
 		url := apiGateway + spec.Path
-		spec.Path = url
+		spec.Url = url
 		spec.Data = strings.TrimSpace(spec.Data)
 		r.FuncMap[spec.Name] = *spec
 	}

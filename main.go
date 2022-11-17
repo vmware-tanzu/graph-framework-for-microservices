@@ -50,11 +50,46 @@ func (c *Conf) getConf() *Conf {
 	return c
 }
 
+type CallData struct {
+	Key    string `json:"key"`
+	Path   string `json:"path"`
+	Method string `json:"method"`
+}
+
+var restTests rest.RestData
+
 func httpServe() {
 	r := mux.NewRouter()
 	r.HandleFunc("/tests/{test}", TestHandler).Methods("POST")
+	r.HandleFunc("/rest/tests", ListRestTests).Methods("GET")
+	r.HandleFunc("/rest/tests", PostRestTests).Methods("POST")
 	log.Println("Starting http server to serve tests")
 	log.Fatal(http.ListenAndServe(":8000", r))
+}
+
+func PostRestTests(w http.ResponseWriter, r *http.Request) {
+	//restCallPath := "rest_data.yaml"
+	log.Println("Handling ", r.URL.Path)
+	// define rest calls
+	restTests.ReadRestData(r.Body)
+	restTests.ProcessRestCalls("")
+	var calls []CallData
+	for k, spec := range restTests.FuncMap {
+		calls = append(calls, CallData{Key: k, Path: spec.Path, Method: spec.Method})
+	}
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(calls)
+}
+
+func ListRestTests(w http.ResponseWriter, r *http.Request) {
+	//restCallPath := "rest_data.yaml"
+	log.Println("Handling ", r.URL.Path)
+	var calls []CallData
+	for k, spec := range restTests.FuncMap {
+		calls = append(calls, CallData{Key: k, Path: spec.Path, Method: spec.Method})
+	}
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(calls)
 }
 
 func TestHandler(w http.ResponseWriter, r *http.Request) {
@@ -67,20 +102,17 @@ func TestHandler(w http.ResponseWriter, r *http.Request) {
 	log.Println(conf)
 	go func() {
 
-		var r rest.RestData
-		restCallPath := "/root/rest-calls/rest_data.yaml"
 		//restCallPath := "rest_data.yaml"
 		apiGateway := conf.Server.URL
 
 		gqlURL := apiGateway + "/apis/graphql/v1/query"
 		// define rest calls
-		r.GetRestData(restCallPath)
-		r.ProcessRestCalls(apiGateway)
+		restTests.ProcessRestCalls(apiGateway)
 		// Prepare and run graphql tests
 		// GraphQL query worker
 
 		w := workmanager.Worker{
-			FuncMap: r.FuncMap,
+			FuncMap: restTests.FuncMap,
 		}
 		for _, test := range conf.Tests {
 			// Default sample rate
@@ -120,21 +152,18 @@ func main() {
 func testRunner(w *workmanager.Worker, funcKey string, concurrency int, timeout int, tsdbConnStr string) {
 	log.Println(funcKey)
 	w.WorkerStart(funcKey, concurrency, timeout)
-	w.WorkData.CalculateAverage()
 	time.Sleep(5 * time.Second)
 	content, err := w.GatherTestTraces()
 	if err != nil {
-		log.Fatalf("Error getting trace content %v", err)
-	}
-	log.Println(w.WorkData.Average, w.WorkData.Low, w.WorkData.High)
-	log.Printf("Work data :- \n \tops count: %d \t err count: %d", w.WorkData.OpsCount, w.WorkData.ErrCount)
+		log.Printf("Error getting trace content %v", err)
+	} else {
+		// retrieve data from zipkin backend
+		tsData := traceparser.RetrieveData(funcKey, content)
+		for _, data := range tsData {
+			log.Printf("%d, %f, %d\n", data.Timestamp, data.Duration, data.Error)
+		}
+		// insert data onto timescale db
+		traceparser.InsertData(tsdbConnStr, tsData)
 
-	// retrieve data from zipkin backend
-	tsData := traceparser.RetrieveData(funcKey, content)
-	for _, data := range tsData {
-		log.Printf("%d, %f, %d\n", data.Timestamp, data.Duration, data.Error)
 	}
-	// insert data onto timescale db
-	traceparser.InsertData(tsdbConnStr, tsData)
-
 }

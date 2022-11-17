@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"strconv"
 	"time"
 
 	"github.com/jackc/pgx/v4"
@@ -33,6 +32,7 @@ type TimeScaleData struct {
 	Duration  float32
 	Timestamp time.Time
 	Error     int
+	Message   string
 }
 
 func main2() {
@@ -45,7 +45,8 @@ func RetrieveData(spanName string, content []byte) []TimeScaleData {
 	var payload []Traces
 	err := json.Unmarshal(content, &payload)
 	if err != nil {
-		log.Fatal("Error during Unmarshal(): ", err)
+		log.Println("Error during Unmarshal(): ", err)
+		return traceDataList
 	}
 	for _, traces := range payload {
 		for _, trace := range traces {
@@ -56,14 +57,13 @@ func RetrieveData(spanName string, content []byte) []TimeScaleData {
 					Name:      spanName,
 					TraceId:   trace.TraceId,
 				}
-				errVal, err := strconv.Atoi(trace.Tags.Error)
-				if err == nil {
-					timeScaleData.Error = errVal
+				if trace.Tags.Error != "" {
+					timeScaleData.Error = 1
+					timeScaleData.Message = trace.Tags.Error
 				}
 				traceDataList = append(traceDataList, timeScaleData)
 				//fmt.Printf("Trace Name: %s\n", trace.Name)
 				//fmt.Printf("Trace Timestamp: %d\n\n", trace.Timestamp)
-
 			}
 		}
 	}
@@ -98,12 +98,12 @@ func InsertData(connStr string, traceData []TimeScaleData) {
 	numInserts := len(traceData)
 	//load insert statements into batch queue
 	queryInsertTimeseriesData := `
-   INSERT INTO trace_data (timestamp, duration, name, error, trace_id) VALUES ($1, $2, $3, $4, $5);
+   INSERT INTO trace_data (timestamp, duration, name, error, trace_id, message) VALUES ($1, $2, $3, $4, $5, $6);
    `
 
 	for i := range traceData {
 		var r = traceData[i]
-		batch.Queue(queryInsertTimeseriesData, r.Timestamp, r.Duration, r.Name, r.Error, r.TraceId)
+		batch.Queue(queryInsertTimeseriesData, r.Timestamp, r.Duration, r.Name, r.Error, r.TraceId, r.Message)
 	}
 	batch.Queue("select count(*) from trace_data")
 	fmt.Println("Num inserts : ", numInserts)
