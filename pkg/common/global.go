@@ -87,6 +87,10 @@ type Tags struct {
 	ImageName  string
 }
 
+type ResourceGVKs struct {
+	APIS map[string]string
+}
+
 var TagsList = map[string]Tags{
 	"controller": {
 		VersionEnv: "NEXUS_CONTROLLER_TEMPLATE_VERSION",
@@ -133,4 +137,17 @@ type RuntimeInstaller struct {
 	Name    string
 	Args    []string
 	Command []string
+}
+
+var ResourcesList = map[string]ResourceGVKs{
+	"cronjob": {
+		APIS: map[string]string{
+			"batch/v1":      "/apis/batch/v1/cronjobs",
+			"batch/v1beta1": "/apis/batch/v1beta1/cronjobs",
+		},
+	},
+}
+
+var Resources = map[string]string{
+	"cronjob": "cronApiVersion",
 }

@@ -24,6 +24,7 @@ const goMinVersion = "1.17"
 
 const (
 	k8sMinVersion  = "1.19"
+	k8sMaxVersion  = "1.26"
 	helmMinVersion = "3.4"
 )
 
@@ -131,12 +132,19 @@ var preReqs = map[Prerequiste]PrerequisteMeta{
 			if errMinVersion != nil {
 				return false, fmt.Errorf("verify version of kubernetes cluster is running failed with error on minVersion formation %v", errMinVersion)
 			}
+			v1max, errMaxVersion := version.NewVersion(k8sMaxVersion)
+			if errMaxVersion != nil {
+				return false, fmt.Errorf("verify version of kubernetes cluster is running failed with error on minVersion formation %v", errMinVersion)
+			}
 			v1, errVersion := version.NewVersion(strings.TrimPrefix(serverVersion[1], "v"))
 			if errVersion != nil {
 				return false, fmt.Errorf("verify version of kubernetes cluster is running failed with error current version formation %v", errVersion)
 			}
 			if v1.LessThan(v1min) {
 				return false, fmt.Errorf("K8s Version should be atleast %s, current Version is %s", k8sMinVersion, v1)
+			}
+			if v1.GreaterThan(v1max) {
+				return false, fmt.Errorf("K8s Version should not be more that %s, current Version is %s", k8sMaxVersion, v1)
 			}
 			return true, nil
 		},

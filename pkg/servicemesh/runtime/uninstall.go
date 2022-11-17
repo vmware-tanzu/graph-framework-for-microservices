@@ -17,6 +17,12 @@ import (
 
 func Uninstall(cmd *cobra.Command, args []string) error {
 	cmdlineArgs := fmt.Sprintf("--set=global.namespace=%s", Namespace)
+	for resource, valueVariable := range common.Resources {
+		apiVersion := utils.GetAPIGVK(resource)
+		if apiVersion != "" {
+			cmdlineArgs = fmt.Sprintf("%s,global.%s=%s", cmdlineArgs, valueVariable, apiVersion)
+		}
+	}
 	cmdlineArgs = fmt.Sprintf("%s,global.registry=%s", cmdlineArgs, Registry)
 	runtimeVersion, err := utils.GetTagVersion("NexusRuntime", "NEXUS_RUNTIME_MANIFESTS_VERSION")
 	if err != nil {
