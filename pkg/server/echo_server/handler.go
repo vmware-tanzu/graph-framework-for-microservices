@@ -397,6 +397,19 @@ func patchHandler(c echo.Context) error {
 		return err
 	}
 
+	// Do not patch child/link object; omit child/link from the request body
+	for _, v := range crdInfo.Children {
+		if _, ok := body[v.FieldNameGvk]; ok {
+			delete(body, v.FieldNameGvk)
+		}
+	}
+
+	for _, v := range crdInfo.Links {
+		if _, ok := body[v.FieldNameGvk]; ok {
+			delete(body, v.FieldNameGvk)
+		}
+	}
+
 	// prepare patch payload
 	payload := struct {
 		Spec map[string]interface{} `json:"spec"`
