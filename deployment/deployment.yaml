@@ -1,14 +1,22 @@
-apiVersion: batch/v1
-kind: Job
+apiVersion: apps/v1
+kind: Deployment
 metadata:
   name: nexus-calibrate
+  labels:
+    app: nexus-calibrate
 spec:
-  backoffLimit: 4
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nexus-calibrate
   template:
+    metadata:
+      labels:
+        app: nexus-calibrate
     spec:
       containers:
       - name: nexus-calibrate
-        image: 284299419820.dkr.ecr.us-west-2.amazonaws.com/nexus/nexus-calib:tv0.0.23
+        image: 284299419820.dkr.ecr.us-west-2.amazonaws.com/nexus/nexus-calib:tv0.0.27
         command: ["/bin/calib"]
         volumeMounts:
         - name: config
@@ -17,7 +25,6 @@ spec:
         - name: rest-calls
           mountPath: "/root/rest-calls/"
           readOnly: true
-      restartPolicy: Never
       volumes:
         - name: config
           configMap:
@@ -31,3 +38,15 @@ spec:
             items:
             - key: "rest_data.yaml"
               path: "rest_data.yaml"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nexus-calibrate
+spec:
+  selector:
+    app: nexus-calibrate
+  ports:
+    - protocol: TCP
+      port: 8000
+      targetPort: 8000

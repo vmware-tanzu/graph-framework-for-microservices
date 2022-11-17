@@ -4,6 +4,7 @@ go 1.18
 
 require (
 	github.com/Khan/genqlient v0.5.0
+	github.com/gorilla/mux v1.8.0
 	github.com/jackc/pgx/v4 v4.17.2
 	github.com/openzipkin/zipkin-go v0.4.1
 	gopkg.in/yaml.v2 v2.4.0

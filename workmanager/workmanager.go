@@ -12,6 +12,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/Khan/genqlient/graphql"
 	"github.com/openzipkin/zipkin-go"
 	zipkinhttp "github.com/openzipkin/zipkin-go/middleware/http"
 	"github.com/openzipkin/zipkin-go/model"
@@ -21,12 +22,14 @@ import (
 
 type Worker struct {
 	WorkerType     int
+	GqlURL         string
 	zipkinClient   *zipkinhttp.Client
 	tracer         *zipkin.Tracer
+	gclient        graphql.Client
 	ZipkinEndPoint string
 	httpClient     *http.Client
 	FuncMap        map[string]rest.SpecData
-	GraphqlFuncMap map[string]func(context.Context)
+	GraphqlFuncMap map[string]func(context.Context, graphql.Client)
 	stop           chan bool
 	WorkData       WorkData
 	SampleRate     float32
@@ -69,6 +72,9 @@ func (w *Worker) WorkerStart(job string, concurrency int, runFor int) {
 		if err != nil {
 			log.Fatalf("unable to create client: %+v\n", err)
 		}
+		w.gclient = graphql.NewClient(w.GqlURL, w.zipkinClient)
+	} else {
+		w.gclient = graphql.NewClient(w.GqlURL, http.DefaultClient)
 	}
 
 	// set moduloRats
@@ -157,11 +163,11 @@ func (w *Worker) doGraphqlQuery(job string, work chan bool) {
 	var ctx context.Context
 	ctx = context.Background()
 	if w.tracer == nil {
-		gqlFunc(ctx)
+		gqlFunc(ctx, w.gclient)
 	} else {
 		span, _ := w.tracer.StartSpanFromContext(ctx, job)
 		ctx = zipkin.NewContext(ctx, span)
-		gqlFunc(ctx)
+		gqlFunc(ctx, w.gclient)
 		span.Finish()
 	}
 	// work done

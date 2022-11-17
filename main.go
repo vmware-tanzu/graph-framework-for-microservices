@@ -1,15 +1,14 @@
 package main
 
 import (
+	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"log"
+	"net/http"
 	"time"
 
-	"github.com/Khan/genqlient/graphql"
-	"github.com/openzipkin/zipkin-go"
-	zipkinhttp "github.com/openzipkin/zipkin-go/middleware/http"
-	"github.com/openzipkin/zipkin-go/model"
-	reporterhttp "github.com/openzipkin/zipkin-go/reporter/http"
+	"github.com/gorilla/mux"
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/nexus-calibration/graphqlcalls"
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/nexus-calibration/rest"
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/nexus-calibration/traceparser"
@@ -17,43 +16,28 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-var endpointURL string
-
-// apiGateway         = "http://localhost:45192"
-var apiGateway string
-var gqlURL string
-
-var zipkinClient *zipkinhttp.Client
-
-var gclient graphql.Client
-
-// true for http, false for graphql
-var workerType bool
-
-var cf conf
-
-type server struct {
-	URL    string `yaml:"url"`
-	Zipkin string `yaml:"zipkin"`
-	Tsdb   string `yaml:"tsdb"`
+type Server struct {
+	URL    string `yaml:"url" json:"url"`
+	Zipkin string `yaml:"zipkin" json:"zipkin"`
+	Tsdb   string `yaml:"tsdb" json:"tsdb"`
 }
 
 type Test struct {
-	Concurrency int      `yaml:"concurrency"`
-	Timeout     int      `yaml:"timeout"`
-	OpsCount    int      `yaml:"ops_count"`
-	SampleRate  float32  `yaml:"sample_rate"`
-	Rest        []string `yaml:"rest"`
-	Graphql     []string `yaml:"graphql"`
-	Name        string   `yaml:"name"`
+	Concurrency int      `yaml:"concurrency" json:"concurrency"`
+	Timeout     int      `yaml:"timeout" json:"timeout"`
+	OpsCount    int      `yaml:"ops_count" json:"ops_count"`
+	SampleRate  float32  `yaml:"sample_rate" json:"sample_rate"`
+	Rest        []string `yaml:"rest" json:"rest"`
+	Graphql     []string `yaml:"graphql" json:"graphql"`
+	Name        string   `yaml:"name" json:"name"`
 }
 
-type conf struct {
-	Server server `yaml:"server"`
-	Tests  []Test `yaml:"tests"`
+type Conf struct {
+	Server Server `yaml:"server" json:"server"`
+	Tests  []Test `yaml:"tests" json:"tests"`
 }
 
-func (c *conf) getConf() *conf {
+func (c *Conf) getConf() *Conf {
 	//yamlFile, err := ioutil.ReadFile("conf.yaml")
 	yamlFile, err := ioutil.ReadFile("/root/config/conf.yaml")
 	if err != nil {
@@ -66,81 +50,74 @@ func (c *conf) getConf() *conf {
 	return c
 }
 
+func httpServe() {
+	r := mux.NewRouter()
+	r.HandleFunc("/tests/{test}", TestHandler).Methods("POST")
+	log.Println("Starting http server to serve tests")
+	log.Fatal(http.ListenAndServe(":8000", r))
+}
+
+func TestHandler(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	test := vars["test"]
+	fmt.Fprintf(w, "Monitor the log for status of the test, or the grafana dashboard %s \n", test)
+	decoder := json.NewDecoder(r.Body)
+	var conf Conf
+	decoder.Decode(&conf)
+	log.Println(conf)
+	go func() {
+
+		var r rest.RestData
+		restCallPath := "/root/rest-calls/rest_data.yaml"
+		//restCallPath := "rest_data.yaml"
+		apiGateway := conf.Server.URL
+
+		gqlURL := apiGateway + "/apis/graphql/v1/query"
+		// define rest calls
+		r.GetRestData(restCallPath)
+		r.ProcessRestCalls(apiGateway)
+		// Prepare and run graphql tests
+		// GraphQL query worker
+
+		w := workmanager.Worker{
+			FuncMap: r.FuncMap,
+		}
+		for _, test := range conf.Tests {
+			// Default sample rate
+			log.Println("Test Name: ", test.Name)
+			var samplingRate float32 = 0.1
+			if test.SampleRate > 0 {
+				samplingRate = test.SampleRate
+			}
+			w.ZipkinEndPoint = conf.Server.Zipkin
+			w.SampleRate = samplingRate
+			w.OpsIterations = test.OpsCount
+			w.GqlURL = gqlURL
+			// initialize graphql
+			w.GraphqlFuncMap = graphqlcalls.GraphqlFuncMap
+			if test.OpsCount == 0 && test.Timeout == 0 {
+				log.Printf("Connot run tests, One of ops count or timeout for tests have to be provided\n")
+			}
+			for _, funcKey := range test.Rest {
+				w.WorkerType = 0
+				testRunner(&w, funcKey, test.Concurrency, test.Timeout, conf.Server.Tsdb)
+			}
+			for _, funcKey := range test.Graphql {
+				w.WorkerType = 1
+				testRunner(&w, funcKey, test.Concurrency, test.Timeout, conf.Server.Tsdb)
+			}
+		}
+	}()
+	fmt.Println(conf.Tests)
+}
+
 func main() {
 	// read conf
-	cf.getConf()
-
-	var r rest.RestData
-	restCallPath := "/root/rest-calls/rest_data.yaml"
-	//restCallPath := "rest_data.yaml"
-	apiGateway = cf.Server.URL
-
-	// define rest calls
-	r.GetRestData(restCallPath)
-	r.ProcessRestCalls(apiGateway)
-
-	endpointURL = cf.Server.Zipkin + "/api/v2/spans"
-	gqlURL = apiGateway + "/apis/graphql/v1/query"
-
-	var err error
-	var tracer *zipkin.Tracer
-	tracer, err = newTracer(0.1)
-	if err != nil {
-		log.Fatalf("error out %v", err)
-	}
-	// add functions
-
-	//client := http.Client{}
-	for _, v := range r.Spec {
-		log.Println(v.Name, v.Path, v.Data, v.Method)
-		log.Printf("key %s, req %v", v.Name, r.FuncMap[v.Name])
-	}
-
-	//workManager(GET_HR, c.Concurrency, c.Timeout)
-	//time.Sleep(10 * time.Second)
-	zipkinClient, err := zipkinhttp.NewClient(tracer, zipkinhttp.ClientTrace(true))
-	if err != nil {
-		log.Fatalf("error out %v", err)
-	}
-	gclient = graphql.NewClient(gqlURL, zipkinClient)
-	// Prepare and run graphql tests
-	graphqlFuncs := graphqlcalls.GraphqlFuncs{
-		Gclient: gclient,
-	}
-	graphqlFuncs.Init()
-	// GraphQL query worker
-
-	w := workmanager.Worker{
-		FuncMap:        r.FuncMap,
-		GraphqlFuncMap: graphqlFuncs.GraphqlFuncMap,
-	}
-
-	for _, test := range cf.Tests {
-		// Default sample rate
-		log.Println("Test Name: ", test.Name)
-		var samplingRate float32 = 0.1
-		if test.SampleRate > 0 {
-			samplingRate = test.SampleRate
-		}
-		w.ZipkinEndPoint = cf.Server.Zipkin
-		w.SampleRate = samplingRate
-		w.OpsIterations = test.OpsCount
-		if test.OpsCount == 0 && test.Timeout == 0 {
-			log.Printf("Connot run tests, One of ops count or timeout for tests have to be provided\n")
-		}
-		for _, funcKey := range test.Rest {
-			w.WorkerType = 0
-			testRunner(&w, funcKey, test.Concurrency, test.Timeout)
-		}
-		for _, funcKey := range test.Graphql {
-			w.WorkerType = 1
-			testRunner(&w, funcKey, test.Concurrency, test.Timeout)
-		}
-	}
+	httpServe()
 	time.Sleep(10 * time.Second)
 }
 
-func testRunner(w *workmanager.Worker, funcKey string, concurrency int, timeout int) {
+func testRunner(w *workmanager.Worker, funcKey string, concurrency int, timeout int, tsdbConnStr string) {
 	log.Println(funcKey)
 	w.WorkerStart(funcKey, concurrency, timeout)
 	w.WorkData.CalculateAverage()
@@ -151,36 +128,13 @@ func testRunner(w *workmanager.Worker, funcKey string, concurrency int, timeout 
 	}
 	log.Println(w.WorkData.Average, w.WorkData.Low, w.WorkData.High)
 	log.Printf("Work data :- \n \tops count: %d \t err count: %d", w.WorkData.OpsCount, w.WorkData.ErrCount)
+
+	// retrieve data from zipkin backend
 	tsData := traceparser.RetrieveData(funcKey, content)
 	for _, data := range tsData {
 		log.Printf("%d, %f, %d\n", data.Timestamp, data.Duration, data.Error)
 	}
+	// insert data onto timescale db
+	traceparser.InsertData(tsdbConnStr, tsData)
 
-	traceparser.InsertData(cf.Server.Tsdb, tsData)
-
-}
-
-func newTracer(sampleRate float32) (*zipkin.Tracer, error) {
-	// The reporter sends traces to zipkin server
-	reporter := reporterhttp.NewReporter(endpointURL)
-
-	// Local endpoint represent the local service information
-	localEndpoint := &model.Endpoint{ServiceName: "http_client", Port: 8080}
-
-	// Sampler tells you which traces are going to be sampled or not. In this case we will record 100% (1.00) of traces.
-	sampler, err := zipkin.NewCountingSampler(float64(sampleRate))
-	if err != nil {
-		return nil, err
-	}
-
-	t, err := zipkin.NewTracer(
-		reporter,
-		zipkin.WithSampler(sampler),
-		zipkin.WithLocalEndpoint(localEndpoint),
-	)
-	if err != nil {
-		return nil, err
-	}
-
-	return t, err
 }

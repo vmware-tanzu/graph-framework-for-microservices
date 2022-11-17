@@ -20,6 +20,6 @@ data:
       path: /root/default/leader/default/mgr/{{random}}
       data: >
         { "employeeID": 0,"name": "string"}
-    - name: get_managers
+    - name: get_managers_rest
       method: GET
       path: /mgrs

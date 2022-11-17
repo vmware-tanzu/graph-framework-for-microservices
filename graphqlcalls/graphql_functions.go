@@ -4,18 +4,19 @@ import (
 	"context"
 	"log"
 
+	"github.com/Khan/genqlient/graphql"
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/nexus-calibration/gqlclient"
 )
 
-func (g *GraphqlFuncs) GetManagers(ctx context.Context) {
-	_, err := gqlclient.Managers(ctx, g.Gclient)
+func GetManagers(ctx context.Context, gclient graphql.Client) {
+	_, err := gqlclient.Managers(ctx, gclient)
 	if err != nil {
 		log.Printf("Failed to build request %v", err)
 	}
 }
 
-func (g *GraphqlFuncs) GetEmployeeRole(ctx context.Context) {
-	_, err := gqlclient.Employees(ctx, g.Gclient)
+func GetEmployeeRole(ctx context.Context, gclient graphql.Client) {
+	_, err := gqlclient.Employees(ctx, gclient)
 	if err != nil {
 		log.Printf("Failed to build request %v", err)
 	}
