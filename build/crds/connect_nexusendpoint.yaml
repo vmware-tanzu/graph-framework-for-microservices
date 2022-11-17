@@ -40,11 +40,19 @@ spec:
             properties:
               cert:
                 type: string
+              clientName:
+                type: string
+              clientRegion:
+                type: string
+              cloud:
+                type: string
               host:
                 type: string
               path:
                 type: string
               port:
+                type: string
+              serviceAccountName:
                 type: string
             required:
             - host

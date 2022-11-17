@@ -178,14 +178,14 @@ func getApiNexusConfigResolver(obj *model.ApiNexus, id *string) (*model.ConfigCo
 // CHILD RESOLVER (Non Singleton)
 // FieldName: Authn Node: ApiGateway PKG: Apigateway
 //////////////////////////////////////
-func getApigatewayApiGatewayAuthnResolver(obj *model.ApigatewayApiGateway, id *string) (*model.AuthnOIDC, error) {
+func getApigatewayApiGatewayAuthnResolver(obj *model.ApigatewayApiGateway, id *string) (*model.AuthenticationOIDC, error) {
 	log.Debugf("[getApigatewayApiGatewayAuthnResolver]Parent Object %+v", obj)
 	if id != nil && *id != "" {
 		log.Debugf("[getApigatewayApiGatewayAuthnResolver]Id %q", *id)
 		vOIDC, err := nc.ApiNexus(getParentName(obj.ParentLabels, "nexuses.api.nexus.org")).Config(getParentName(obj.ParentLabels, "configs.config.nexus.org")).ApiGateway(getParentName(obj.ParentLabels, "apigateways.apigateway.nexus.org")).GetAuthn(context.TODO(), *id)
 		if err != nil {
 			log.Errorf("[getApigatewayApiGatewayAuthnResolver]Error getting Authn node %q : %s", *id, err)
-			return &model.AuthnOIDC{}, nil
+			return &model.AuthenticationOIDC{}, nil
 		}
 		dn := vOIDC.DisplayName()
 		parentLabels := map[string]interface{}{"oidcs.authentication.nexus.org": dn}
@@ -198,7 +198,7 @@ func getApigatewayApiGatewayAuthnResolver(obj *model.ApigatewayApiGateway, id *s
 		for k, v := range obj.ParentLabels {
 			parentLabels[k] = v
 		}
-		ret := &model.AuthnOIDC{
+		ret := &model.AuthenticationOIDC{
 			Id:               &dn,
 			ParentLabels:     parentLabels,
 			Config:           &ConfigData,
@@ -213,12 +213,12 @@ func getApigatewayApiGatewayAuthnResolver(obj *model.ApigatewayApiGateway, id *s
 	vOIDCParent, err := nc.ApiNexus(getParentName(obj.ParentLabels, "nexuses.api.nexus.org")).Config(getParentName(obj.ParentLabels, "configs.config.nexus.org")).GetApiGateway(context.TODO(), getParentName(obj.ParentLabels, "apigateways.apigateway.nexus.org"))
 	if err != nil {
 		log.Errorf("[getApigatewayApiGatewayAuthnResolver]Failed to get parent node %s", err)
-		return &model.AuthnOIDC{}, nil
+		return &model.AuthenticationOIDC{}, nil
 	}
 	vOIDC, err := vOIDCParent.GetAuthn(context.TODO())
 	if err != nil {
 		log.Errorf("[getApigatewayApiGatewayAuthnResolver]Error getting Authn node %s", err)
-		return &model.AuthnOIDC{}, nil
+		return &model.AuthenticationOIDC{}, nil
 	}
 	dn := vOIDC.DisplayName()
 	parentLabels := map[string]interface{}{"oidcs.authentication.nexus.org": dn}
@@ -231,7 +231,7 @@ func getApigatewayApiGatewayAuthnResolver(obj *model.ApigatewayApiGateway, id *s
 	for k, v := range obj.ParentLabels {
 		parentLabels[k] = v
 	}
-	ret := &model.AuthnOIDC{
+	ret := &model.AuthenticationOIDC{
 		Id:               &dn,
 		ParentLabels:     parentLabels,
 		Config:           &ConfigData,
@@ -613,17 +613,26 @@ func getConnectConnectEndpointsResolver(obj *model.ConnectConnect, id *string) (
 		vPort := string(vNexusEndpoint.Spec.Port)
 		vCert := string(vNexusEndpoint.Spec.Cert)
 		vPath := string(vNexusEndpoint.Spec.Path)
+		Cloud, _ := json.Marshal(vNexusEndpoint.Spec.Cloud)
+		CloudData := string(Cloud)
+		vServiceAccountName := string(vNexusEndpoint.Spec.ServiceAccountName)
+		vClientName := string(vNexusEndpoint.Spec.ClientName)
+		vClientRegion := string(vNexusEndpoint.Spec.ClientRegion)
 
 		for k, v := range obj.ParentLabels {
 			parentLabels[k] = v
 		}
 		ret := &model.ConnectNexusEndpoint{
-			Id:           &dn,
-			ParentLabels: parentLabels,
-			Host:         &vHost,
-			Port:         &vPort,
-			Cert:         &vCert,
-			Path:         &vPath,
+			Id:                 &dn,
+			ParentLabels:       parentLabels,
+			Host:               &vHost,
+			Port:               &vPort,
+			Cert:               &vCert,
+			Path:               &vPath,
+			Cloud:              &CloudData,
+			ServiceAccountName: &vServiceAccountName,
+			ClientName:         &vClientName,
+			ClientRegion:       &vClientRegion,
 		}
 		vConnectNexusEndpointList = append(vConnectNexusEndpointList, ret)
 
@@ -656,17 +665,26 @@ func getConnectConnectEndpointsResolver(obj *model.ConnectConnect, id *string) (
 		vPort := string(vNexusEndpoint.Spec.Port)
 		vCert := string(vNexusEndpoint.Spec.Cert)
 		vPath := string(vNexusEndpoint.Spec.Path)
+		Cloud, _ := json.Marshal(vNexusEndpoint.Spec.Cloud)
+		CloudData := string(Cloud)
+		vServiceAccountName := string(vNexusEndpoint.Spec.ServiceAccountName)
+		vClientName := string(vNexusEndpoint.Spec.ClientName)
+		vClientRegion := string(vNexusEndpoint.Spec.ClientRegion)
 
 		for k, v := range obj.ParentLabels {
 			parentLabels[k] = v
 		}
 		ret := &model.ConnectNexusEndpoint{
-			Id:           &dn,
-			ParentLabels: parentLabels,
-			Host:         &vHost,
-			Port:         &vPort,
-			Cert:         &vCert,
-			Path:         &vPath,
+			Id:                 &dn,
+			ParentLabels:       parentLabels,
+			Host:               &vHost,
+			Port:               &vPort,
+			Cert:               &vCert,
+			Path:               &vPath,
+			Cloud:              &CloudData,
+			ServiceAccountName: &vServiceAccountName,
+			ClientName:         &vClientName,
+			ClientRegion:       &vClientRegion,
 		}
 		vConnectNexusEndpointList = append(vConnectNexusEndpointList, ret)
 	}
@@ -787,17 +805,26 @@ func getConnectReplicationConfigRemoteEndpointResolver(obj *model.ConnectReplica
 	vPort := string(vNexusEndpoint.Spec.Port)
 	vCert := string(vNexusEndpoint.Spec.Cert)
 	vPath := string(vNexusEndpoint.Spec.Path)
+	Cloud, _ := json.Marshal(vNexusEndpoint.Spec.Cloud)
+	CloudData := string(Cloud)
+	vServiceAccountName := string(vNexusEndpoint.Spec.ServiceAccountName)
+	vClientName := string(vNexusEndpoint.Spec.ClientName)
+	vClientRegion := string(vNexusEndpoint.Spec.ClientRegion)
 
 	for k, v := range obj.ParentLabels {
 		parentLabels[k] = v
 	}
 	ret := &model.ConnectNexusEndpoint{
-		Id:           &dn,
-		ParentLabels: parentLabels,
-		Host:         &vHost,
-		Port:         &vPort,
-		Cert:         &vCert,
-		Path:         &vPath,
+		Id:                 &dn,
+		ParentLabels:       parentLabels,
+		Host:               &vHost,
+		Port:               &vPort,
+		Cert:               &vCert,
+		Path:               &vPath,
+		Cloud:              &CloudData,
+		ServiceAccountName: &vServiceAccountName,
+		ClientName:         &vClientName,
+		ClientRegion:       &vClientRegion,
 	}
 	log.Debugf("[getConnectReplicationConfigRemoteEndpointResolver]Output object %v", ret)
 

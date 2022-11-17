@@ -36,10 +36,10 @@ type ApigatewayApiGateway struct {
 	ParentLabels map[string]interface{} `json:"ParentLabels"`
 	ProxyRules   []*AdminProxyRule      `json:"ProxyRules"`
 	Cors         []*DomainCORSConfig    `json:"Cors"`
-	Authn        *AuthnOIDC             `json:"Authn"`
+	Authn        *AuthenticationOIDC    `json:"Authn"`
 }
 
-type AuthnOIDC struct {
+type AuthenticationOIDC struct {
 	Id               *string                `json:"Id"`
 	ParentLabels     map[string]interface{} `json:"ParentLabels"`
 	Config           *string                `json:"Config"`
@@ -63,12 +63,16 @@ type ConnectConnect struct {
 }
 
 type ConnectNexusEndpoint struct {
-	Id           *string                `json:"Id"`
-	ParentLabels map[string]interface{} `json:"ParentLabels"`
-	Host         *string                `json:"Host"`
-	Port         *string                `json:"Port"`
-	Cert         *string                `json:"Cert"`
-	Path         *string                `json:"Path"`
+	Id                 *string                `json:"Id"`
+	ParentLabels       map[string]interface{} `json:"ParentLabels"`
+	Host               *string                `json:"Host"`
+	Port               *string                `json:"Port"`
+	Cert               *string                `json:"Cert"`
+	Path               *string                `json:"Path"`
+	Cloud              *string                `json:"Cloud"`
+	ServiceAccountName *string                `json:"ServiceAccountName"`
+	ClientName         *string                `json:"ClientName"`
+	ClientRegion       *string                `json:"ClientRegion"`
 }
 
 type ConnectReplicationConfig struct {

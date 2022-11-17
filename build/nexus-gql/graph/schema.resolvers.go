@@ -31,7 +31,7 @@ func (r *apigateway_ApiGatewayResolver) Cors(ctx context.Context, obj *model.Api
 }
 
 // Authn is the resolver for the Authn field.
-func (r *apigateway_ApiGatewayResolver) Authn(ctx context.Context, obj *model.ApigatewayApiGateway, id *string) (*model.AuthnOIDC, error) {
+func (r *apigateway_ApiGatewayResolver) Authn(ctx context.Context, obj *model.ApigatewayApiGateway, id *string) (*model.AuthenticationOIDC, error) {
 	return getApigatewayApiGatewayAuthnResolver(obj, id)
 }
 
