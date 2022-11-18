@@ -28,6 +28,8 @@ var oAuthRedirectUrl string
 var jwtClaim string
 var jwtClaimValue string
 var skipAdminBootstrap bool
+var cpuResources *[]string
+var memoryResources *[]string
 
 type RuntimeInstallerData struct {
 	RuntimeInstaller  common.RuntimeInstaller
@@ -116,7 +118,14 @@ func GetCustomTags(cmdlinArgs string) string {
 
 func HelmInstall(cmd *cobra.Command, args []string) error {
 	Registry = strings.TrimSuffix(strings.TrimSpace(Registry), "/")
-	cmdlineArgs := fmt.Sprintf("--set=global.namespace=%s", Namespace)
+	cmdlineArgs := "--set="
+	for _, value := range *cpuResources {
+		cmdlineArgs = fmt.Sprintf("%sglobal.resources.%s.cpu=%s,", cmdlineArgs, strings.Split(value, "=")[0], strings.Split(value, "=")[1])
+	}
+	for _, value := range *memoryResources {
+		cmdlineArgs = fmt.Sprintf("%sglobal.resources.%s.memory=%s,", cmdlineArgs, strings.Split(value, "=")[0], strings.Split(value, "=")[1])
+	}
+	cmdlineArgs = fmt.Sprintf("%sglobal.namespace=%s", cmdlineArgs, Namespace)
 	cmdlineArgs = fmt.Sprintf("%s,global.registry=%s", cmdlineArgs, Registry)
 	if ImagePullSecret != "" {
 		cmdlineArgs = fmt.Sprintf("%s,global.imagepullsecret=%s", cmdlineArgs, ImagePullSecret)
@@ -283,6 +292,10 @@ func init() {
 		"", "", "the JWT claim to be used as part of the admin match condition. ignored if not --admin runtime")
 	InstallCmd.Flags().BoolVarP(&skipAdminBootstrap, "skip-bootstrap",
 		"", false, "skips the bootstrap step (only relevant for admin-runtime)")
+	cpuResources = InstallCmd.Flags().StringArrayP("cpuResources", "",
+		[]string{}, "for configuring cpu resources")
+	memoryResources = InstallCmd.Flags().StringArrayP("memoryResources", "",
+		[]string{}, "for configuring memory resources")
 
 	err := cobra.MarkFlagRequired(InstallCmd.Flags(), "namespace")
 	if err != nil {
