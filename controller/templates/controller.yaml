@@ -41,7 +41,7 @@ spec:
     spec:
       initContainers:
         - name: check-nexus-proxy-container
-          image: "{{ .Values.global.registry}}/nexus/debugtools:latest"
+          image: "{{ .Values.global.registry}}/debugtools:latest"
           command:
             - /bin/bash
             - -c
@@ -63,13 +63,13 @@ spec:
               done
       containers:
         -
-          image: {{.Values.global.registry}}/nexus/controller:{{.Values.global.controller.tag}}
+          image: {{.Values.global.registry}}/nexus-controller:{{.Values.global.controller.tag}}
           name: nexus-controller
           env:
             - name: INNER_KUBECONFIG
               value: /config/kubeconfig
             - name: NEXUS_CONNECTOR_VERSION
-              value: {{.Values.global.registry}}/connector:{{.Values.global.connector.tag}}
+              value: {{.Values.global.registry}}/nexus-connector-svc:{{.Values.global.connector.tag}}
             - name: NAMESPACE
               valueFrom:
                 fieldRef:

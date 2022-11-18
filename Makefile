@@ -3,9 +3,8 @@ DEBUG ?= FALSE
 GO_PROJECT_NAME ?= controller.git
 BUCKET_NAME ?= nexus-template-downloads
 
-ECR_DOCKER_REGISTRY ?= 284299419820.dkr.ecr.us-west-2.amazonaws.com/nexus
-DOCKER_REGISTRY ?= harbor-repo.vmware.com/nexus
-IMAGE_NAME ?= controller
+DOCKER_REGISTRY ?= gcr.io/nsx-sm/nexus
+IMAGE_NAME ?= nexus-controller
 TAG ?= $(shell git rev-parse --verify HEAD)
 
 BUILDER_NAME ?= ${IMAGE_NAME}-builder
@@ -119,11 +118,6 @@ publish_builder_image:
 	docker tag ${BUILDER_NAME}:${BUILDER_TAG} ${ECR_DOCKER_REGISTRY}/${BUILDER_NAME}:${BUILDER_TAG}
 	docker push ${ECR_DOCKER_REGISTRY}/${BUILDER_NAME}:${BUILDER_TAG}
 
-build_template:
-	tar -czvf controller-manifests.tar manifests/*
-
-publish_template: build_template
-	gsutil cp controller-manifests.tar gs://${BUCKET_NAME}/${TAG}/
 
 cred_setup:
 	if [ -z ${CICD_TOKEN} ]	;then \
