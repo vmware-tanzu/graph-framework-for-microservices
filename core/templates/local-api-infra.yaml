@@ -180,10 +180,6 @@ spec:
         - name: GODEBUG
           value: x509ignoreCN=0
         name: kube-apiserver
-        resources:
-          requests:
-            cpu: 500m
-            memory: 500Mi
         terminationMessagePath: /dev/termination-log
         terminationMessagePolicy: File
         livenessProbe:
@@ -195,7 +191,8 @@ spec:
           initialDelaySeconds: 15
           periodSeconds: 10
           successThreshold: 1
-          timeoutSeconds: 15    
+          timeoutSeconds: 15
+        {{- template "kube_apiserver_resources" .}}
         volumeMounts:
             - name: nexus-customapi-ca
               mountPath: "/custom/k8s/certs"
@@ -287,16 +284,13 @@ spec:
           successThreshold: 1
           timeoutSeconds: 15
         name: kube-controllermanager
-        resources:
-          requests:
-            cpu: 500m
-            memory: 500Mi
         terminationMessagePath: /dev/termination-log
         terminationMessagePolicy: File
         volumeMounts:
             - name: nexus-customapi-ca
               mountPath: "/custom/k8s/certs"
               readOnly: true
+        {{- template "kube_controllermanager_resources" .}}
       restartPolicy: Always
       securityContext: {}
       volumes:
