@@ -83,7 +83,7 @@ spec:
     spec:
       containers:
         - name: envoy
-          image: "gcr.io/nsx-sm/envoyproxy/envoy:v1.22.2"
+          image: "{{.Values.global.registry}}/envoyproxy/envoy:v1.22.2"
           ports:
             - containerPort: 10000
             - containerPort: 19000

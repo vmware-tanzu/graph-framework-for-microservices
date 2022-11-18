@@ -25,7 +25,7 @@ spec:
           restartPolicy: OnFailure
           containers:
           - name: etcd-defrag
-            image: gcr.io/nsx-sm/etcd-kubectl:latest
+            image: {{.Values.global.registry}}/etcd-kubectl:latest
             imagePullPolicy: IfNotPresent
             command:
             - "/bin/bash"
@@ -80,7 +80,7 @@ metadata:
   name: nexus-k8scert-creation-job
   namespace: {{.Values.global.namespace}} 
 spec:
-  ttlSecondsAfterFinished: 30
+  ttlSecondsAfterFinished: 600
   template:
     metadata:
       annotations:
@@ -89,7 +89,7 @@ spec:
       serviceAccountName: nexus-k8scerts-service-account
       containers:
       - name: k8scert-creation
-        image: "gcr.io/nsx-sm/tools:latest"
+        image: "{{.Values.global.registry}}/debugtools:latest"
         imagePullPolicy: IfNotPresent
         command:
         - "/bin/bash"
@@ -133,7 +133,7 @@ spec:
     spec:
       initContainers:
       - name: check-etcd-server
-        image: "gcr.io/nsx-sm/tools:latest"
+        image: "{{.Values.global.registry}}/debugtools:latest"
         imagePullPolicy: IfNotPresent
         command:
             - /bin/bash
@@ -166,7 +166,7 @@ spec:
         - --cert-dir=/etc/kubernetes/certs
         - --endpoint-reconciler-type=none
         - --port=8080
-        image: gcr.io/nsx-sm/k8s.gcr.io/kube-apiserver:v1.19.16
+        image: {{.Values.global.registry}}/k8s.gcr.io/kube-apiserver:v1.19.16
         imagePullPolicy: IfNotPresent
         ports:
           - containerPort: 8080
@@ -240,7 +240,7 @@ spec:
     spec:
       initContainers:
       - name: check-etcd-server
-        image: "gcr.io/nsx-sm/tools:latest"
+        image: "{{.Values.global.registry}}/debugtools:latest"
         imagePullPolicy: IfNotPresent
         command:
             - /bin/bash
@@ -271,7 +271,7 @@ spec:
         - --master=nexus-apiserver:8080
         - --use-service-account-credentials=true
         - --authentication-skip-lookup=true
-        image: gcr.io/nsx-sm/k8s.gcr.io/kube-controller-manager:v1.19.0
+        image: {{.Values.global.registry}}/k8s.gcr.io/kube-controller-manager:v1.19.0
         imagePullPolicy: IfNotPresent
         livenessProbe:
           failureThreshold: 8
@@ -317,7 +317,7 @@ spec:
     spec:
       containers:
       - name: proxy-container
-        image: "gcr.io/nsx-sm/tools:latest"
+        image: "{{.Values.global.registry}}/debugtools:latest"
         command: [ "kubectl","--server=http://nexus-apiserver:8080","proxy","--address=0.0.0.0","--disable-filter=true","--v=1" ]
         ports:
           - containerPort: 8001
