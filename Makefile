@@ -1,10 +1,8 @@
 DEBUG ?= FALSE
 
 GO_PROJECT_NAME ?= validation.git
-BUCKET_NAME ?= nexus-template-downloads
 
-ECR_DOCKER_REGISTRY ?= 284299419820.dkr.ecr.us-west-2.amazonaws.com/nexus
-DOCKER_REGISTRY ?= harbor-repo.vmware.com/nexus
+DOCKER_REGISTRY ?= gcr.io/nsx-sm/nexus
 IMAGE_NAME ?= nexus-validation
 TAG ?= $(shell git rev-parse --verify HEAD)
 
@@ -96,20 +94,6 @@ publish:
 	docker tag ${IMAGE_NAME}:${TAG} ${DOCKER_REGISTRY}/${IMAGE_NAME}:${TAG}
 	docker push ${DOCKER_REGISTRY}/${IMAGE_NAME}:${TAG};
 
-.PHONY: publish.ecr
-publish.ecr:
-	docker tag ${IMAGE_NAME}:${TAG} ${ECR_DOCKER_REGISTRY}/${IMAGE_NAME}:${TAG}
-	docker push ${ECR_DOCKER_REGISTRY}/${IMAGE_NAME}:${TAG};
-
-.PHONY: download_builder_image
-download_builder_image:
-	docker pull ${ECR_DOCKER_REGISTRY}/${BUILDER_NAME}:${BUILDER_TAG}
-	docker tag ${ECR_DOCKER_REGISTRY}/${BUILDER_NAME}:${BUILDER_TAG} ${BUILDER_NAME}:${BUILDER_TAG}
-
-.PHONY: publish_builder_image
-publish_builder_image:
-	docker tag ${BUILDER_NAME}:${BUILDER_TAG} ${ECR_DOCKER_REGISTRY}/${BUILDER_NAME}:${BUILDER_TAG}
-	docker push ${ECR_DOCKER_REGISTRY}/${BUILDER_NAME}:${BUILDER_TAG}
 
 .PHONY: create_kind_cluster
 create_kind_cluster:
@@ -145,13 +129,6 @@ kind_deploy: kind_load_image kind_delete_deploy kind_deploy_config
 .PHONY: kind_logs
 kind_logs:
 	kubectl logs -l app=nexus-validation -f
-
-build_template:
-	tar -czvf validation-manifests.tar manifests/*
-
-publish_template: build_template
-	gsutil cp validation-manifests.tar gs://${BUCKET_NAME}/${TAG}/
-
 
 coverage:
 	go test -json -coverprofile=coverage.out ./... | tee report.json ;
