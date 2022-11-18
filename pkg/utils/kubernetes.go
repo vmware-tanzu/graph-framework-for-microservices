@@ -9,6 +9,10 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/service/eks"
+
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -19,7 +23,38 @@ import (
 	"k8s.io/client-go/tools/clientcmd"
 )
 
-func SetUpDynamicRemoteAPI(host, token, cert string) (dynamic.Interface, error) {
+func SetUpDynamicRemoteAPI(host, token, cert string, eObj *NexusEndpoint) (dynamic.Interface, error) {
+	if eObj != nil {
+		if eObj.Cloud == "AWS" {
+			sess := session.Must(session.NewSession(&aws.Config{
+				Region: aws.String(eObj.ClientRegion),
+			}))
+			eksSvc := eks.New(sess)
+			input := &eks.DescribeClusterInput{
+				Name: aws.String(eObj.ClientName),
+			}
+			result, err := eksSvc.DescribeCluster(input)
+			if err != nil {
+				return nil, fmt.Errorf("error calling DescribeCluster: %v", err)
+			}
+			dynamicRemoteAPI, err := NewClientset(result.Cluster)
+			if err != nil {
+				return nil, fmt.Errorf("error creating clientset: %v", err)
+			}
+			// Start refreshToken routine.
+			tokenRefresher := NewTokenRefresher()
+			go RefreshToken(context.Background(), tokenRefresher, result.Cluster.Name)
+			go func() {
+				for token := range tokenRefresher.TokenCh {
+					if err := writeAccessTokenToFile(token.Token); err != nil {
+						return
+					}
+				}
+			}()
+			return dynamicRemoteAPI, nil
+		}
+	}
+
 	rawDecodedText, err := base64.StdEncoding.DecodeString(cert)
 	if err != nil {
 		return nil, fmt.Errorf("could not decode cert: %v", err)
@@ -130,5 +165,5 @@ func BuildRemoteClientAPI(remoteEndpointHost, remoteEndpointPort, remoteEndpoint
 	if err != nil {
 		return nil, fmt.Errorf("error getting token %v", err)
 	}
-	return SetUpDynamicRemoteAPI(host, accessToken, remoteEndpointCert)
+	return SetUpDynamicRemoteAPI(host, accessToken, remoteEndpointCert, nil)
 }

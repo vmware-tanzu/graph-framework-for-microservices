@@ -184,9 +184,11 @@ func updateObject(gvr schema.GroupVersionResource, res *unstructured.Unstructure
 	}
 
 	spec, ok := res.UnstructuredContent()["spec"]
-	if rc.Source.Object.Hierarchical && !rc.Destination.Hierarchical && ok {
-		// Ignore relationships.
-		utils.DeleteChildGvkFields(spec.(map[string]interface{}), children)
+	if rc.Source.Object != nil {
+		if rc.Source.Object.Hierarchical && !rc.Destination.Hierarchical && ok {
+			// Ignore relationships.
+			utils.DeleteChildGvkFields(spec.(map[string]interface{}), children)
+		}
 	}
 	oldObject.UnstructuredContent()["spec"] = spec
 
@@ -326,8 +328,8 @@ func (h *RemoteHandler) Replicator(obj interface{}, eventType string) error {
 					return err
 				}
 			}
-			return nil
 		}
+		return nil
 	}
 
 	// Verify if obj's immediate parent matches replication object source.

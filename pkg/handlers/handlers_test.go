@@ -59,7 +59,7 @@ var _ = Describe("Create", func() {
 	When("Replication is enabled for CRD Type", func() {
 		It("Should replicate all the objects of that type to the destination endpoint", func() {
 			server := ghttp.NewServer()
-			remoteClient, err := utils.SetUpDynamicRemoteAPI(fmt.Sprintf("http://%s", server.Addr()), "", "")
+			remoteClient, err := utils.SetUpDynamicRemoteAPI(fmt.Sprintf("http://%s", server.Addr()), "", "", nil)
 			Expect(err).NotTo(HaveOccurred())
 
 			remoteHandler := h.NewRemoteHandler(apicollaborationspace, localClient, nil, conf)
@@ -106,7 +106,7 @@ var _ = Describe("Create", func() {
 	When("Replication is configured for CRD Type to be replicated from one type to another", func() {
 		It("Should replicate all the objects to the type configured in the replication config", func() {
 			server := ghttp.NewServer()
-			remoteClient, err := utils.SetUpDynamicRemoteAPI(fmt.Sprintf("http://%s", server.Addr()), "", "")
+			remoteClient, err := utils.SetUpDynamicRemoteAPI(fmt.Sprintf("http://%s", server.Addr()), "", "", nil)
 			Expect(err).NotTo(HaveOccurred())
 
 			remoteHandler := h.NewRemoteHandler(apicollaborationspace, localClient, nil, conf)
@@ -153,7 +153,7 @@ var _ = Describe("Create", func() {
 	When("Replication is enabled for an individual object and if source is non-hierarchical", func() {
 		It("Should replicate only that object to the destination endpoint", func() {
 			server := ghttp.NewServer()
-			remoteClient, err := utils.SetUpDynamicRemoteAPI(fmt.Sprintf("http://%s", server.Addr()), "", "")
+			remoteClient, err := utils.SetUpDynamicRemoteAPI(fmt.Sprintf("http://%s", server.Addr()), "", "", nil)
 			Expect(err).NotTo(HaveOccurred())
 
 			remoteHandler := h.NewRemoteHandler(apicollaborationspace, localClient, nil, conf)
@@ -196,7 +196,7 @@ var _ = Describe("Create", func() {
 		When("Replication is enabled for the object's parent", func() {
 			It("Should replicate that object to the destination endpoint", func() {
 				server := ghttp.NewServer()
-				remoteClient, err := utils.SetUpDynamicRemoteAPI(fmt.Sprintf("http://%s", server.Addr()), "", "")
+				remoteClient, err := utils.SetUpDynamicRemoteAPI(fmt.Sprintf("http://%s", server.Addr()), "", "", nil)
 				Expect(err).NotTo(HaveOccurred())
 
 				replicationConfigSpec := utils.ReplicationConfigSpec{LocalClient: localClient, RemoteClient: remoteClient,
@@ -235,7 +235,7 @@ var _ = Describe("Create", func() {
 		When("Replication is enabled for an object", func() {
 			It("Should replicate that object and its immediate children to the destination endpoint", func() {
 				server := ghttp.NewServer()
-				remoteClient, err := utils.SetUpDynamicRemoteAPI(fmt.Sprintf("http://%s", server.Addr()), "", "")
+				remoteClient, err := utils.SetUpDynamicRemoteAPI(fmt.Sprintf("http://%s", server.Addr()), "", "", nil)
 				Expect(err).NotTo(HaveOccurred())
 
 				replicationConfigSpec := utils.ReplicationConfigSpec{LocalClient: localClient, RemoteClient: remoteClient,
@@ -287,7 +287,7 @@ var _ = Describe("Create", func() {
 		When("There are two objects with same name under different hierarchy and replication is enabled for only one object", func() {
 			It("Should not replicate the other object to the destination endpoint", func() {
 				server := ghttp.NewServer()
-				remoteClient, err := utils.SetUpDynamicRemoteAPI(fmt.Sprintf("http://%s", server.Addr()), "", "")
+				remoteClient, err := utils.SetUpDynamicRemoteAPI(fmt.Sprintf("http://%s", server.Addr()), "", "", nil)
 				Expect(err).NotTo(HaveOccurred())
 
 				source := getHierarchicalSourceConfig("foo")
@@ -319,7 +319,7 @@ var _ = Describe("Create", func() {
 
 	Context("Non-hierarchical source and Hierarchical destination", func() {
 		server := ghttp.NewServer()
-		remoteClient, err := utils.SetUpDynamicRemoteAPI(fmt.Sprintf("http://%s", server.Addr()), "", "")
+		remoteClient, err := utils.SetUpDynamicRemoteAPI(fmt.Sprintf("http://%s", server.Addr()), "", "", nil)
 		Expect(err).NotTo(HaveOccurred())
 
 		BeforeEach(func() {
@@ -369,7 +369,7 @@ var _ = Describe("Create", func() {
 
 	Context("Default K8s Resource Types", func() {
 		server := ghttp.NewServer()
-		remoteClient, err := utils.SetUpDynamicRemoteAPI(fmt.Sprintf("http://%s", server.Addr()), "", "")
+		remoteClient, err := utils.SetUpDynamicRemoteAPI(fmt.Sprintf("http://%s", server.Addr()), "", "", nil)
 		Expect(err).NotTo(HaveOccurred())
 
 		BeforeEach(func() {
@@ -483,7 +483,7 @@ var _ = Describe("Create", func() {
 
 	It("Should fail when source object not found during resync.", func() {
 		server := ghttp.NewServer()
-		remoteClient, err := utils.SetUpDynamicRemoteAPI(fmt.Sprintf("http://%s", server.Addr()), "", "")
+		remoteClient, err := utils.SetUpDynamicRemoteAPI(fmt.Sprintf("http://%s", server.Addr()), "", "", nil)
 		Expect(err).NotTo(HaveOccurred())
 
 		destination := getHierarchicalDestConfig()
@@ -531,7 +531,7 @@ var _ = Describe("Create", func() {
 
 	It("Should retry when sync fails the first time.", func() {
 		server := ghttp.NewServer()
-		remoteClient, err := utils.SetUpDynamicRemoteAPI(fmt.Sprintf("http://%s", server.Addr()), "", "")
+		remoteClient, err := utils.SetUpDynamicRemoteAPI(fmt.Sprintf("http://%s", server.Addr()), "", "", nil)
 		Expect(err).NotTo(HaveOccurred())
 
 		replicationConfigSpec := utils.ReplicationConfigSpec{LocalClient: localClient, RemoteClient: remoteClient,
@@ -570,7 +570,7 @@ var _ = Describe("Create", func() {
 	When("Replication is filtered based on namespace", func() {
 		It("Should sync objects only from the namespace of interest.", func() {
 			server := ghttp.NewServer()
-			remoteClient, err := utils.SetUpDynamicRemoteAPI(fmt.Sprintf("http://%s", server.Addr()), "", "")
+			remoteClient, err := utils.SetUpDynamicRemoteAPI(fmt.Sprintf("http://%s", server.Addr()), "", "", nil)
 			Expect(err).NotTo(HaveOccurred())
 
 			source := getTypeConfig(Group, AcKind)
