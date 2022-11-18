@@ -47,7 +47,7 @@ spec:
       serviceAccountName: nexus-api-gw-sa
       initContainers:
         - name: check-nexus-proxy-container
-          image: "gcr.io/nsx-sm/tools:latest"
+          image: "{{.Values.global.registry}}/debugtools:latest"
           imagePullPolicy: IfNotPresent
           command:
             - /bin/bash
@@ -69,7 +69,7 @@ spec:
                     fi
               done
         - name: create-ingressclass
-          image: "gcr.io/nsx-sm/tools:latest"
+          image: "{{.Values.global.registry}}/debugtools:latest"
           imagePullPolicy: IfNotPresent
           env:
             - name: NAMESPACE
@@ -102,7 +102,7 @@ spec:
                 controller: k8s.io/ingress-nginx' | kubectl apply -f - -n $NAMESPACE      
       containers:
         -
-          image: {{.Values.global.registry}}/api-gateway:{{ required "Please provide global.api_gateway.tag value using --set-string option!" .Values.global.api_gateway.tag }}
+          image: {{.Values.global.registry}}/nexus-api-gateway:{{ required "Please provide global.api_gateway.tag value using --set-string option!" .Values.global.api_gateway.tag }}
           name: api-gw
           env:
             - name: KUBECONFIG

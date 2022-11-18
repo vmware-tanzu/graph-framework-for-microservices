@@ -45,7 +45,7 @@ COPY vendor/ vendor/
 RUN --mount=type=cache,target=/root/.cache/go-build \
     GOOS=linux GOARCH=amd64 go build -ldflags "-s -w -X gitlab.eng.vmware.com/nsx-allspark_users/lib-go/allspark/health.Sha=$GIT_HEAD -X gitlab.eng.vmware.com/nsx-allspark_users/lib-go/allspark/health.Tag=$GIT_TAG" -o bin/api-gw main.go
 
-FROM gcr.io/nsx-sm/photon:3.0
+FROM gcr.io/nsx-sm/photon:4.0
 WORKDIR /bin
 ARG APP_NAME
 COPY --from=builder /api-gw/bin/api-gw .
