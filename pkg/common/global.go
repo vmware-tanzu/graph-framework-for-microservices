@@ -33,7 +33,7 @@ var GIT_COMMIT string
 
 const NEXUS_DIR = "nexus"
 
-var HarborRepo = "harbor-repo.vmware.com/nexus"
+var ImageRegistry = "gcr.io/nsx-sm/nexus"
 
 const (
 	HELLOWORLD_URL         = "https://storage.googleapis.com/nexus-template-downloads/%s/helloworld-example.tar"
