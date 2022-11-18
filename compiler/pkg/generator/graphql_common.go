@@ -286,7 +286,7 @@ func isRootOfGraph(parents []string, rootOfGraph bool) bool {
 
 func getGraphqlSchemaName(pattern, fieldName, schemaType string) string {
 	if fieldName != "" {
-		// lowerCase fieldName using util.GetTag() #e.g ServiceGroup --> serviceGroup
+		// use camelCase for fieldName #e.g ServiceGroup --> serviceGroup
 		return fmt.Sprintf(pattern, util.GetTag(fieldName), schemaType)
 	}
 	return fmt.Sprintf(pattern, fieldName, schemaType)
@@ -304,7 +304,11 @@ func getTsmGraphqlSchemaFieldName(sType GraphQLSchemaType, fieldName, schemaType
 			pattern = "%s: %s!"
 		}
 	case NamedChild:
-		pattern = "%s(" + listArg + "): [%s!]"
+		if nullable {
+			pattern = "%s(" + listArg + "): [%s!]"
+		} else {
+			pattern = "%s(" + listArg + "): [%s]"
+		}
 	}
 	schemaName := getGraphqlSchemaName(pattern, fieldName, schemaType)
 	if parser.IsTsmGraphqlDirectivesField(f) {
