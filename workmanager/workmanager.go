@@ -134,17 +134,22 @@ func (w *Worker) doWork(job string, work chan bool) {
 	specData := w.FuncMap[job]
 	req := GetRestReq(specData)
 	var err error
+	var res *http.Response
 	if w.zipkinClient == nil {
 		log.Println(req)
 
-		_, err = w.httpClient.Do(req)
+		res, err = w.httpClient.Do(req)
 		if err != nil {
 			log.Printf("err: unable to do http request: %+v\n", err)
+		} else {
+			res.Body.Close()
 		}
 	} else {
-		_, err = w.zipkinClient.DoWithAppSpan(req, job)
+		res, err = w.zipkinClient.DoWithAppSpan(req, job)
 		if err != nil {
 			log.Printf("Err: zipkinclient : unable to do http request: %+v\n", err)
+		} else {
+			res.Body.Close()
 		}
 	}
 	// work done

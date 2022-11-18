@@ -138,6 +138,7 @@ func TestHandler(w http.ResponseWriter, r *http.Request) {
 				w.WorkerType = 1
 				testRunner(&w, funcKey, test.Concurrency, test.Timeout, conf.Server.Tsdb)
 			}
+
 		}
 	}()
 	fmt.Println(conf.Tests)
@@ -146,7 +147,6 @@ func TestHandler(w http.ResponseWriter, r *http.Request) {
 func main() {
 	// read conf
 	httpServe()
-	time.Sleep(10 * time.Second)
 }
 
 func testRunner(w *workmanager.Worker, funcKey string, concurrency int, timeout int, tsdbConnStr string) {
