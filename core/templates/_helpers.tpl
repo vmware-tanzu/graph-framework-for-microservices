@@ -1,0 +1,141 @@
+# dummy size option
+
+{{- define "default" }}
+              cpu: 500m
+              memory: 128Mi
+{{- end }}
+
+{{- define "k8s-api-server-default" }}
+              cpu: 500m
+              memory: 500Mi
+{{- end }}
+
+{{- define "small" }}
+              cpu: 500m
+              memory: 128Mi
+{{- end }}
+
+{{- define "etcd_resources" }}
+          resources:
+            limits:
+            # this is to check if the override value is present if not we will set it to default
+            {{- if .Values.global.resources }}
+              {{- if .Values.global.resources.etcd }}
+              cpu: {{ .Values.global.resources.etcd.cpu }}
+              memory: {{ .Values.global.resources.etcd.memory }}
+              {{- else }}
+                {{- if eq .Values.global.size "small" }}
+              {{- template "small" . }}
+                {{- end }}
+              {{- end }}
+            {{- else }}
+              {{- template "default" . }}
+            {{- end }}
+            requests:
+            {{- if .Values.global.resources }}
+              {{- if .Values.global.resources.etcd }}
+              cpu: {{  .Values.global.resources.etcd.cpu }}
+              memory: {{  .Values.global.resources.etcd.memory }}
+              {{- else }}
+                {{- if eq .Values.global.size "small" }}
+              {{- template "small" . }}
+                {{- end }}
+              {{- end }}
+            {{- else }}
+              {{- template "default" . }}
+            {{- end }}
+{{- end }}
+
+{{- define "kube_controllermanager_resources" }}
+        resources:
+          limits:
+          # this is to check if the override value is present if not we will set it to default
+          {{- if .Values.global.resources }}
+            {{- if .Values.global.resources.kubecontrollermanager }}
+            cpu: {{ .Values.global.resources.kubecontrollermanager.cpu }}
+            memory: {{ .Values.global.resources.kubecontrollermanager.memory }}
+            {{- else }}
+              {{- if eq .Values.global.size "small" }}
+          {{- template "small" . }}
+              {{- end }}
+            {{- end }}
+          {{- else }}
+          {{- template "k8s-api-server-default" . }}
+          {{- end }}
+          requests:
+          {{- if .Values.global.resources }}
+            {{- if .Values.global.resources.kubecontrollermanager }}
+            cpu: {{ .Values.global.resources.kubecontrollermanager.cpu }}
+            memory: {{  .Values.global.resources.kubecontrollermanager.memory }}
+            {{- else }}
+              {{- if eq .Values.global.size "small" }}
+            {{- template "small" . }}
+              {{- end }}
+            {{- end }}
+          {{- else }}
+            {{- template "k8s-api-server-default" . }}
+          {{- end }}
+{{- end }}
+
+{{- define "kube_apiserver_resources" }}
+        resources:
+          limits:
+          # this is to check if the override value is present if not we will set it to default
+          {{- if .Values.global.resources }}
+            {{- if .Values.global.resources.kubeapiserver }}
+            cpu: {{ .Values.global.resources.kubeapiserver.cpu }}
+            memory: {{ .Values.global.resources.kubeapiserver.memory }}
+            {{- else }}
+              {{- if eq .Values.global.size "small" }}
+          {{- template "small" . }}
+             {{- end }}
+            {{- end }}
+          {{- else }}
+          {{- template "k8s-api-server-default" . }}
+          {{- end }}
+          requests:
+          {{- if .Values.global.resources }}
+            {{- if .Values.global.resources.kubeapiserver }}
+            cpu: {{ .Values.global.resources.kubeapiserver.cpu }}
+            memory: {{  .Values.global.resources.kubeapiserver.memory }}
+            {{- else }}
+              {{- if eq .Values.global.size "small" }}
+            {{- template "small" . }}
+              {{- end }}
+            {{- end }}
+          {{- else }}
+            {{- template "k8s-api-server-default" . }}
+          {{- end }}
+{{- end }}
+
+
+{{- define "graphql_resources" }}
+                resources:
+                  limits:
+                  # this is to check if the override value is present if not we will set it to default
+                  {{- if .Values.global.resources }}
+                    {{- if .Values.global.resources.graphql }}
+                    cpu: {{ .Values.global.resources.graphql.cpu }}
+                    memory: {{ .Values.global.resources.graphql.memory }}
+                    {{- else }}
+                      {{- if eq .Values.global.size "small" }}
+                    {{- template "small" . }}
+                      {{- end }}
+                    {{- end }}
+                  {{- else }}
+                    {{- template "default" . }}
+                  {{- end }}
+                  requests:
+                  {{- if .Values.global.resources }}
+                    {{- if .Values.global.resources.graphql }}
+                    cpu: {{ .Values.global.resources.graphql.cpu }}
+                    memory: {{   .Values.global.resources.graphql.memory }}
+                    {{- else }}
+                      {{- if eq .Values.global.size "small" }}
+                    {{- template "small" . }}
+                      {{- end }}
+                    {{- end }}
+                  {{- else }}
+                    {{- template "default" . }}
+                  {{- end }}
+{{- end }}
