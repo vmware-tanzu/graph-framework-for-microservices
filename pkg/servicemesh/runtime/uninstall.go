@@ -94,7 +94,7 @@ func init() {
 	UninstallCmd.Flags().StringVarP(&Namespace, "namespace",
 		"n", "", "name of the namespace to be created")
 	UninstallCmd.Flags().StringVarP(&Registry, "registry",
-		"r", common.HarborRepo, "Registry where helm-chart is located")
+		"r", common.ImageRegistry, "Registry where helm-chart is located")
 	err := cobra.MarkFlagRequired(UninstallCmd.Flags(), "namespace")
 	if err != nil {
 		logging.Debugf("Runtime uninstall err: %v", err)

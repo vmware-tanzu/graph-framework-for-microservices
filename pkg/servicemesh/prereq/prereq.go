@@ -238,7 +238,7 @@ func PreReqImages(cmd *cobra.Command, args []string) error {
 	}
 	for _, manifest := range nexusCommon.TagsList {
 		if manifest.ImageName != "" {
-			Image := fmt.Sprintf("%s/%s", common.HarborRepo, manifest.ImageName)
+			Image := fmt.Sprintf("%s/nexus/%s", common.ImageRegistry, manifest.ImageName)
 			versionToStr := reflect.ValueOf(values).FieldByName(manifest.FieldName).Field(0).String()
 			if os.Getenv(versionToStr) != "" {
 				versionTo := os.Getenv(versionToStr)

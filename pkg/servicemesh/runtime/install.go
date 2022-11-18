@@ -273,7 +273,7 @@ func init() {
 	InstallCmd.Flags().StringVarP(&Namespace, "namespace",
 		"n", "", "name of the namespace to be created")
 	InstallCmd.Flags().StringVarP(&Registry, "registry",
-		"r", common.HarborRepo, "Registry where validation webhook and api-gw is located")
+		"r", common.ImageRegistry, "Registry where validation webhook and api-gw is located")
 	InstallCmd.Flags().StringVarP(&ImagePullSecret, "secretname",
 		"s", "", "Registry where validation webhook and api-gw is located")
 	InstallCmd.Flags().BoolVarP(&IsNexusAdmin, "admin",
