@@ -891,7 +891,7 @@ var _ = Describe("Echo server tests", func() {
 		})
 	})
 
-	It("should handle PUT and GET status subresource", func() {
+	It("should handle GET, PUT and PATCH status subresource", func() {
 		// Create `Leader` object
 		leaderJson := `{
 				"designation": "abc",
@@ -927,6 +927,10 @@ var _ = Describe("Echo server tests", func() {
 			Methods: nexus.HTTPMethodsResponses{
 				http.MethodGet: nexus.DefaultHTTPGETResponses,
 				http.MethodPut: nexus.DefaultHTTPPUTResponses,
+				http.MethodPatch: nexus.HTTPCodesResponse{
+					http.StatusOK:       nexus.HTTPResponse{Description: http.StatusText(http.StatusOK)},
+					http.StatusNotFound: nexus.HTTPResponse{Description: http.StatusText(http.StatusNotFound)},
+				},
 			},
 		}
 		urisMap := map[string]model.RestUriInfo{
@@ -935,13 +939,12 @@ var _ = Describe("Echo server tests", func() {
 			},
 		}
 		model.ConstructMapUriToUriInfo(model.Upsert, urisMap)
-
-		// =========== status PUT
 		e.RegisterRouter(restUri)
 		model.ConstructMapCRDTypeToNode(model.Upsert, "leaders.management.vmware.org", "management.Leader",
 			[]string{}, nil, nil, true, "some description")
 		model.ConstructMapURIToCRDType(model.Upsert, "leaders.management.vmware.org", []nexus.RestURIs{restUriForStatus})
 
+		// =========== status PUT
 		req1 := httptest.NewRequest(http.MethodPost, targetUri, strings.NewReader(leaderStatusJson))
 		req1.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 		rec1 := httptest.NewRecorder()
@@ -958,7 +961,7 @@ var _ = Describe("Echo server tests", func() {
 		Expect(rec1.Code).To(Equal(200))
 
 		// ============ status GET
-		req2 := httptest.NewRequest(http.MethodPost, targetUri, nil)
+		req2 := httptest.NewRequest(http.MethodGet, targetUri, nil)
 		req2.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 		rec2 := httptest.NewRecorder()
 		c2 := e.Echo.NewContext(req2, rec2)
@@ -987,6 +990,69 @@ var _ = Describe("Echo server tests", func() {
 		Expect(err).NotTo(HaveOccurred())
 		Expect(rec3.Code).To(Equal(200))
 		Expect(rec3.Body.String()).Should(Equal("{\"spec\":{\"designation\":\"abc\",\"employeeID\":100,\"name\":\"xyz\"},\"status\":{\"status\":{\"DaysLeftToEndOfVacations\":139,\"IsOnVacations\":true}}}\n"))
+
+		// =========== status PATCH
+		leaderStatusJsonPatch := `{
+			"status": {
+			  "DaysLeftToEndOfVacations": 200
+			}
+		  }`
+		req4 := httptest.NewRequest(http.MethodPatch, targetUri, strings.NewReader(leaderStatusJsonPatch))
+		req4.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+		rec4 := httptest.NewRecorder()
+		c4 := e.Echo.NewContext(req4, rec4)
+		nc4 := &NexusContext{
+			NexusURI:  statusUriPath,
+			Context:   c4,
+			CrdType:   "leaders.management.vmware.org",
+			GroupName: "management.vmware.org",
+			Resource:  "leaders",
+		}
+		err = patchHandler(nc4)
+		Expect(err).NotTo(HaveOccurred())
+		Expect(rec4.Code).To(Equal(200))
+
+		// ============ status GET
+		req5 := httptest.NewRequest(http.MethodGet, targetUri, nil)
+		req5.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+		rec5 := httptest.NewRecorder()
+		c5 := e.Echo.NewContext(req5, rec5)
+		nc5 := &NexusContext{
+			NexusURI: statusUriPath,
+			//Codes: nexus.DefaultHTTPMethodsResponses,
+			Context:   c5,
+			CrdType:   "leaders.management.vmware.org",
+			GroupName: "management.vmware.org",
+			Resource:  "leaders",
+		}
+
+		err = getHandler(nc5)
+		Expect(err).NotTo(HaveOccurred())
+		Expect(rec5.Code).To(Equal(200))
+		Expect(rec5.Body.String()).Should(Equal("{\"status\":{\"DaysLeftToEndOfVacations\":200,\"IsOnVacations\":true}}\n"))
+
+		// ============ status PUT should fail when nexus status provided in json
+		leaderStatusJsonPatch = `{
+			"status": {
+				"DaysLeftToEndOfVacations": 200,
+				"IsOnVacations": true
+			},
+			"nexus":{}
+		  }`
+		req7 := httptest.NewRequest(http.MethodPut, targetUri, strings.NewReader(leaderStatusJsonPatch))
+		req7.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+		rec7 := httptest.NewRecorder()
+		c7 := e.Echo.NewContext(req7, rec7)
+		nc7 := &NexusContext{
+			NexusURI:  statusUriPath,
+			Context:   c7,
+			CrdType:   "leaders.management.vmware.org",
+			GroupName: "management.vmware.org",
+			Resource:  "leaders",
+		}
+		err = putHandler(nc7)
+		Expect(err).NotTo(HaveOccurred())
+		Expect(rec7.Code).To(Equal(400))
 	})
 
 	It("shouldn't handle PUT status subresource if nexus native status subresource is presnet in status subresource payload", func() {
@@ -1070,8 +1136,14 @@ var _ = Describe("Echo server tests", func() {
         } `
 
 			restUri := nexus.RestURIs{
-				Uri:     "/leader",
-				Methods: nexus.DefaultHTTPMethodsResponses,
+				Uri: "/leader",
+				Methods: nexus.HTTPMethodsResponses{
+					http.MethodPut: nexus.DefaultHTTPPUTResponses,
+					http.MethodGet: nexus.DefaultHTTPGETResponses,
+					http.MethodPatch: nexus.HTTPCodesResponse{
+						http.StatusOK: nexus.HTTPResponse{Description: http.StatusText(http.StatusOK)},
+					},
+				},
 			}
 			e.RegisterRouter(restUri)
 			model.ConstructMapCRDTypeToNode(model.Upsert, "leaders.orgchart.vmware.org", "orgchart.Leader",

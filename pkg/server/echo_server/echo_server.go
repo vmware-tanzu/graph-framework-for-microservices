@@ -270,11 +270,8 @@ func (s *EchoServer) NodeUpdateNotifications(stopCh chan struct{}) error {
 		case restURIs := <-model.RestURIChan:
 			log.Debugln("Rest route notification received")
 			for _, v := range restURIs {
-				uriParts := strings.Split(v.Uri, "/")
-				httpCodesResponse, ok := v.Methods[http.MethodPut]
-				if ok && uriParts[len(uriParts)-1] != "status" {
+				if httpCodesResponse, ok := v.Methods[http.MethodPut]; ok {
 					v.Methods[http.MethodPatch] = httpCodesResponse
-
 				}
 				s.RegisterRouter(v)
 			}
