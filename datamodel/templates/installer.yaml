@@ -12,7 +12,7 @@ spec:
     spec:
       initContainers:
         - name: check-nexus-proxy-container
-          image: "gcr.io/nsx-sm/tools:latest"
+          image: "{{ .Values.global.registry }}/debugtools:latest"
           command:
             - /bin/bash
             - -c
@@ -44,7 +44,7 @@ spec:
           env:
             - name: KUBECONFIG
               value: /etc/config/kubeconfig
-          image: {{.Values.global.registry}}/api:{{.Values.global.api.tag}}
+          image: {{.Values.global.registry}}/nexus-api:{{.Values.global.api.tag}}
           imagePullPolicy: IfNotPresent
           name: datamodel-installer-job
           volumeMounts:

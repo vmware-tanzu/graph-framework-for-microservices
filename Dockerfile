@@ -1,4 +1,4 @@
-FROM gcr.io/nsx-sm/tools:latest
+FROM gcr.io/nsx-sm/nexus-datamodel-installer:v0.0.1
 ARG IMAGE_NAME
 ARG NAME
 COPY build/crds /crds
