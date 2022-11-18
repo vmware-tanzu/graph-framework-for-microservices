@@ -2,7 +2,7 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: controller-kubeconfig-local
+  name: nexus-controller-kubeconfig-local
   namespace: {{.Values.global.namespace}}
 data:
   kubeconfig: |
@@ -23,7 +23,7 @@ data:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: connect-controller
+  name: nexus-connect-controller
   namespace: {{.Values.global.namespace}}
   labels:
     control-plane: connect-controller
@@ -99,7 +99,7 @@ spec:
       volumes:
         - name: config
           configMap:
-            name: controller-kubeconfig-local
+            name: nexus-controller-kubeconfig-local
       {{- if ne .Values.global.imagepullsecret "" }}
       imagePullSecrets:
       - name: {{ .Values.global.imagepullsecret }}
