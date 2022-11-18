@@ -152,7 +152,7 @@ spec:
                 fieldRef:
                   apiVersion: v1
                   fieldPath: metadata.namespace
-          image: "gcr.io/nsx-sm/bitnami/kubectl:1.16"
+          image: "{{ .Values.global.registry }}/bitnami/kubectl:1.16"
           imagePullPolicy: IfNotPresent
           name: nexus-create-signed-cert-validation-webhook
           volumeMounts:
@@ -225,7 +225,7 @@ spec:
     spec:
       initContainers:
         - name: check-nexus-proxy-container
-          image: "gcr.io/nsx-sm/tools:latest"
+          image: "{{ .Values.global.registry }}/debugtools:latest"
           imagePullPolicy: IfNotPresent
           command:
             - /bin/bash
@@ -254,7 +254,7 @@ spec:
             - /opt/create_webhook_signed_cert/create_webhook_from_configmap.sh
             - --server
             - nexus-proxy-container
-          image: "gcr.io/nsx-sm/bitnami/kubectl:1.16"
+          image: "{{ .Values.global.registry }}/debugtools:latest"
           imagePullPolicy: IfNotPresent
           name: nexus-create-signed-cert-validation-webhook
           volumeMounts:

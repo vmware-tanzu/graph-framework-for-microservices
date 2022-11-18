@@ -12,22 +12,15 @@ before_script:
   - echo -e  "https://gitlab-ci-token:${CICD_TOKEN}@gitlab.eng.vmware.com/" >> ~/.git-credentials
   - echo $GCLOUD_SERVICE_KEY > key.json
   - gcloud auth activate-service-account --key-file key.json
+  - echo $GCLOUD_AUTH_SERVICE_KEY | docker login -u _json_key --password-stdin gcr.io
 
 .git_config: &git_config
   - git config --global user.name gitlab-tsm
   - git config --global user.email gitlab-tsm@vmware.com
 
-.setup_aws: &setup_aws
-  - aws configure set aws_secret_access_key $AWS_SECRET_ACCESS_KEY
-  - aws configure set aws_access_key_id $AWS_ACCESS_KEY_ID
-  - docker login --username AWS -p $(aws ecr get-login-password --region us-west-2) 284299419820.dkr.ecr.us-west-2.amazonaws.com
-
 .create_builder: &create_builder
   - export CONTAINER_ID=$(docker ps -q -f "label=com.gitlab.gitlab-runner.job.id=$CI_JOB_ID" -f "label=com.gitlab.gitlab-runner.type=build")
   - make docker.builder
-
-.harbor_login: &harbor_login
-  - docker login harbor-repo.vmware.com --username $DOCKER_USERNAME --password $DOCKER_PASSWORD
 
 build:
   stage: build
@@ -35,14 +28,11 @@ build:
     - merge_requests
     - master
   script:
-   - *setup_aws
    - *create_builder
-   - *harbor_login
    - CONTAINER_ID=$CONTAINER_ID PKG_NAME=$(realpath .) make build_in_container
    - PKG_NAME=$(realpath .) make docker
-   - make publish
-   - make publish.ecr
-   - make publish_template
+   - make publish TAG=$CI_COMMIT_SHA
+   - flash docker scan image gcr.io/nsx-sm/nexus/nexus-validation:$CI_COMMIT_SHA
 
 test:
   stage: test
@@ -50,7 +40,6 @@ test:
     - merge_requests
     - master
   script:
-   - *setup_aws
    - *create_builder
    - CONTAINER_ID=$CONTAINER_ID PKG_NAME=$(realpath .)  make test_in_container
 
@@ -60,14 +49,11 @@ build_tag:
   only:
     - tags
   script:
-   - *setup_aws
    - *create_builder
-   - *harbor_login
    - CONTAINER_ID=$CONTAINER_ID PKG_NAME=$(realpath .) make build_in_container
    - PKG_NAME=$(realpath .) make docker TAG=$CI_COMMIT_TAG
    - make publish TAG=$CI_COMMIT_TAG
-   - make publish.ecr TAG=$CI_COMMIT_TAG
-   - make publish_template TAG=$CI_COMMIT_TAG
+   - flash docker scan image gcr.io/nsx-sm/nexus/nexus-validation:$CI_COMMIT_TAG
 
 
 coverage:

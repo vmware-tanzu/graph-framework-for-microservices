@@ -17,7 +17,7 @@ spec:
     spec:
       initContainers:
         - name: check-nexus-proxy-container
-          image: "gcr.io/nsx-sm/tools:latest"
+          image: "{{ .Values.global.registry }}/debugtools:latest"
           imagePullPolicy: IfNotPresent
           command:
             - /bin/bash
