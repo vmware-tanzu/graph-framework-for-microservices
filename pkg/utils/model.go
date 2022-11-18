@@ -6,12 +6,16 @@ type SourceKind string
 
 type ReplicationStatusEndpoint string
 
+type CloudType string
+
 const (
 	Object SourceKind = "Object"
 	Type   SourceKind = "Type"
 
 	Source      ReplicationStatusEndpoint = "Source"
 	Destination ReplicationStatusEndpoint = "Destination"
+
+	AWS CloudType = "AWS"
 )
 
 type Link struct {
@@ -59,6 +63,10 @@ type NexusEndpoint struct {
 	Port string `json:"port"`
 	Path string `json:"path"`
 	Cert string `json:"cert"`
+
+	Cloud        CloudType `json:"cloud"`
+	ClientName   string    `json:"clientName"`
+	ClientRegion string    `json:"clientRegion"`
 }
 
 type SourceObject struct {

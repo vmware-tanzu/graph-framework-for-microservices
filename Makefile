@@ -49,7 +49,7 @@ docker.builder:
 .PHONY: build
 build:
 	cd cmd/connector && \
-		CGO_ENABLED=0 GOOS=linux go build .
+		CGO_ENABLED=0 GOOS=linux go build -ldflags "-X google.golang.org/protobuf/reflect/protoregistry.conflictPolicy=warn" .
 
 .PHONY: build_in_container
 build_in_container: ${BUILDER_NAME}\:${BUILDER_TAG}.image.exists
@@ -64,7 +64,7 @@ tools:
 
 .PHONY: unit-test
 unit-test:
-	set -o pipefail && CGO_ENABLED=0 go test -v -tags=unit -p=1 -count=1 -vet=off ./...
+	set -o pipefail && CGO_ENABLED=0 go test -ldflags "-X google.golang.org/protobuf/reflect/protoregistry.conflictPolicy=warn" -v -tags=unit -p=1 -count=1 -vet=off ./...
 
 .PHONY: race-unit-test
 race-unit-test:
@@ -133,7 +133,7 @@ cred_setup:
     fi
 
 coverage:
-	go test -json -coverprofile=coverage.out -coverpkg=./... ./... | tee report.json ;
+	go test -ldflags "-X google.golang.org/protobuf/reflect/protoregistry.conflictPolicy=warn" -json -coverprofile=coverage.out -coverpkg=./... ./... | tee report.json ;
 
 
 submodule:

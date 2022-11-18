@@ -59,7 +59,7 @@ func (h *ReplicationConfigHandler) Create(obj interface{}) error {
 	host := utils.ConstructURL(eObj.Host, eObj.Port, eObj.Path)
 
 	log.Infof("Connecting to the destination host: %v", host)
-	remoteClient, err := utils.SetUpDynamicRemoteAPI(host, repConf.AccessToken, eObj.Cert)
+	remoteClient, err := utils.SetUpDynamicRemoteAPI(host, repConf.AccessToken, eObj.Cert, eObj)
 	if err != nil {
 		return fmt.Errorf("error creating dynamic remote API: %v", err)
 	}
