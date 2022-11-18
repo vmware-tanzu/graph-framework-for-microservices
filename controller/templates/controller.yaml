@@ -2,7 +2,7 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: controller-kubeconfig-local
+  name: nexus-controller-kubeconfig-local
   namespace: {{.Values.global.namespace}}
 data:
   kubeconfig: |
@@ -23,7 +23,7 @@ data:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: connect-controller
+  name: nexus-connect-controller
   namespace: {{.Values.global.namespace}}
   labels:
     control-plane: connect-controller
@@ -41,7 +41,7 @@ spec:
     spec:
       initContainers:
         - name: check-nexus-proxy-container
-          image: "gcr.io/mesh7-public-images/tools:latest"
+          image: "{{ .Values.global.registry}}/debugtools:latest"
           command:
             - /bin/bash
             - -c
@@ -63,13 +63,13 @@ spec:
               done
       containers:
         -
-          image: {{.Values.global.registry}}/controller:{{.Values.global.controller.tag}}
+          image: {{.Values.global.registry}}/nexus-controller:{{.Values.global.controller.tag}}
           name: nexus-controller
           env:
             - name: INNER_KUBECONFIG
               value: /config/kubeconfig
             - name: NEXUS_CONNECTOR_VERSION
-              value: {{.Values.global.registry}}/connector:{{.Values.global.connector.tag}}
+              value: {{.Values.global.registry}}/nexus-connector-svc:{{.Values.global.connector.tag}}
             - name: NAMESPACE
               valueFrom:
                 fieldRef:
@@ -99,7 +99,7 @@ spec:
       volumes:
         - name: config
           configMap:
-            name: controller-kubeconfig-local
+            name: nexus-controller-kubeconfig-local
       {{- if ne .Values.global.imagepullsecret "" }}
       imagePullSecrets:
       - name: {{ .Values.global.imagepullsecret }}
