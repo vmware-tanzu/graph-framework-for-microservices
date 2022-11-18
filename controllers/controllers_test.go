@@ -116,6 +116,26 @@ var _ = Describe("Nexus Controller Tests", func() {
 			Expect(env).To(Equal("8081"))
 		})
 
+		It("should add deployment with serviceAccountName if it is configured in endpoint object", func() {
+			endPoint.Spec.Cloud = "AWS"
+			endPoint.Spec.ServiceAccountName = "test-sa"
+			_, err := r.Reconcile(ctx, controllerruntime.Request{
+				NamespacedName: types.NamespacedName{
+					Name: endPoint.Name,
+				},
+			})
+			Expect(err).NotTo(HaveOccurred())
+
+			deploymentList, err := r.K8sClient.AppsV1().Deployments("default").List(ctx, metav1.ListOptions{})
+			Expect(err).NotTo(HaveOccurred())
+			Expect(deploymentList.Items).To(HaveLen(1))
+			Expect(deploymentList.Items[0].Name).To(Equal("nexus-connector-9876611c09489e8c75cc3691066480420a010434"))
+
+			for _, item := range deploymentList.Items {
+				Expect(item.Spec.Template.Spec.ServiceAccountName).To(Equal(endPoint.Spec.ServiceAccountName))
+			}
+		})
+
 		It("should fail if endpoint port or host is empty", func() {
 			endPoint.Spec.Port = ""
 			_, err := r.Reconcile(ctx, controllerruntime.Request{

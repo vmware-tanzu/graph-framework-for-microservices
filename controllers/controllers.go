@@ -433,6 +433,10 @@ func (r *NexusConnectorReconciler) createDeployment(ctx context.Context, name, n
 		},
 	}
 
+	if endpoint.Spec.Cloud == nxv1.AWS && endpoint.Spec.ServiceAccountName != "" {
+		deploy.Spec.Template.Spec.ServiceAccountName = endpoint.Spec.ServiceAccountName
+	}
+
 	dep, err := r.K8sClient.AppsV1().Deployments(namespace).Get(ctx, name, metav1.GetOptions{})
 	if err != nil && errors.IsNotFound(err) {
 		_, err = r.K8sClient.AppsV1().Deployments(namespace).Create(ctx, deploy, metav1.CreateOptions{})

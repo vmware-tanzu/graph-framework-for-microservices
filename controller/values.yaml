@@ -1,2 +1,3 @@
 global:
-  registry: gcr.io/nsx-sm
+  registry: gcr.io/nsx-sm/nexus
+  resources: {}
