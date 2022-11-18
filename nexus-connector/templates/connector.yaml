@@ -48,14 +48,10 @@ spec:
             {{- if ne .Values.global.remoteEndpointHost "" }}
             - name: REMOTE_ENDPOINT_HOST
               value: {{ .Values.global.remoteEndpointHost }}
-            {{- else }}
-            {{- fail "Please provide valid remoteEndpointHost"}}
             {{- end }}
             {{- if ne .Values.global.remoteEndpointPort "" }}
             - name: REMOTE_ENDPOINT_PORT
               value: "{{ .Values.global.remoteEndpointPort }}"
-            {{- else }}
-            {{- fail "Please provide valid remoteEndpointPort"}}
             {{- end }}
             {{- if ne .Values.global.remoteEndpointCert "" }}
             - name: REMOTE_ENDPOINT_CERT

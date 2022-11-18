@@ -49,11 +49,14 @@ func (h *ReplicationConfigHandler) Create(obj interface{}) error {
 		return fmt.Errorf("failed to get endpoint object %v: %v", repConf.RemoteEndpoint.Name, err)
 	}
 
-	if !h.isValidReplicationConfig(eObj) {
-		return nil
+	// If the remote endpoint that is to be served by the this connector instance is not provided,
+	// then connector will infer remote endpoint from the available replication config.
+	if h.Config.RemoteEndpointHost != "" {
+		if !h.isValidReplicationConfig(eObj) {
+			return nil
+		}
 	}
-
-	host := utils.ConstructURL(h.Config.RemoteEndpointHost, h.Config.RemoteEndpointPort, h.Config.RemoteEndpointPath)
+	host := utils.ConstructURL(eObj.Host, eObj.Port, eObj.Path)
 
 	log.Infof("Connecting to the destination host: %v", host)
 	remoteClient, err := utils.SetUpDynamicRemoteAPI(host, repConf.AccessToken, eObj.Cert)
