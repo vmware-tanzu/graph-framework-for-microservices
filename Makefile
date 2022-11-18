@@ -1,5 +1,5 @@
-DOCKER_REPO ?= harbor-repo.vmware.com/nexus
-IMAGE_NAME ?= graphql-server
+DOCKER_REPO ?= gcr.io/nsx-sm/nexus
+IMAGE_NAME ?= nexus-graphql-server
 IMAGE_TAG ?= $(shell git rev-parse --verify HEAD)
 BUILDER_NAME ?= ${IMAGE_NAME}-builder
 BUILDER_TAG := $(shell md5sum builder/Dockerfile | awk '{ print $1 }' | head -c 8)
