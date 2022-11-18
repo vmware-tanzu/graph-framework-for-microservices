@@ -108,16 +108,6 @@ publish:
 	docker push ${DOCKER_REGISTRY}/${IMAGE_NAME}:${TAG};
 
 
-.PHONY: download_builder_image
-download_builder_image:
-	docker pull ${ECR_DOCKER_REGISTRY}/${BUILDER_NAME}:${BUILDER_TAG}
-	docker tag ${ECR_DOCKER_REGISTRY}/${BUILDER_NAME}:${BUILDER_TAG} ${BUILDER_NAME}:${BUILDER_TAG}
-
-.PHONY: publish_builder_image
-publish_builder_image:
-	docker tag ${BUILDER_NAME}:${BUILDER_TAG} ${ECR_DOCKER_REGISTRY}/${BUILDER_NAME}:${BUILDER_TAG}
-	docker push ${ECR_DOCKER_REGISTRY}/${BUILDER_NAME}:${BUILDER_TAG}
-
 
 cred_setup:
 	if [ -z ${CICD_TOKEN} ]	;then \
