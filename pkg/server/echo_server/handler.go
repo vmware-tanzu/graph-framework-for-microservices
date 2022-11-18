@@ -397,20 +397,41 @@ func patchHandler(c echo.Context) error {
 		return err
 	}
 
+	// Handle PATCH request for status subresource
+	uriInfo, ok := model.GetUriInfo(nc.NexusURI)
+	if ok && uriInfo.TypeOfURI == model.StatusURI {
+		// Do not patch "nexus" status subresource; only user defined status subresource can be patched. 
+		delete(body, "nexus")
+
+		// Prepare status patch payload
+		statusPayload := struct {
+			Status map[string]interface{} `json:"status"`
+		}{
+			body,
+		}
+		patchBytes, err := json.Marshal(statusPayload)
+		if err != nil {
+			return nc.JSON(http.StatusBadRequest, DefaultResponse{Message: fmt.Sprintf("error while marshaling status payload: %s", err.Error())})
+		}
+		log.Debugf("user defined status subresource PatchBytes %+v for CR %q", string(patchBytes), name)
+		_, err = client.Client.Resource(gvr).Patch(context.TODO(), hashedName, types.MergePatchType, patchBytes, metav1.PatchOptions{}, "status")
+		if err != nil {
+			return handleClientError(nc, err)
+		}
+		return nc.JSON(http.StatusOK, DefaultResponse{Message: "Status patch applied successfully"})
+	}
+
+	// Handle PATCH request for object spec
 	// Do not patch child/link object; omit child/link from the request body
 	for _, v := range crdInfo.Children {
-		if _, ok := body[v.FieldNameGvk]; ok {
-			delete(body, v.FieldNameGvk)
-		}
+		delete(body, v.FieldNameGvk)
 	}
 
 	for _, v := range crdInfo.Links {
-		if _, ok := body[v.FieldNameGvk]; ok {
-			delete(body, v.FieldNameGvk)
-		}
+		delete(body, v.FieldNameGvk)
 	}
 
-	// prepare patch payload
+	// Prepare patch payload
 	payload := struct {
 		Spec map[string]interface{} `json:"spec"`
 	}{

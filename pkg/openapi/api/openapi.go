@@ -194,9 +194,6 @@ func AddPath(uri nexus.RestURIs, datamodel string) {
 				Tags:        []string{nameParts[1]},
 				Parameters:  params,
 			}
-			operation.RequestBody = &openapi3.RequestBodyRef{
-				Ref: "#/components/requestBodies/Create" + crdInfo.Name,
-			}
 			operation.Responses = openapi3.Responses{
 				"200": &openapi3.ResponseRef{
 					Ref: "#/components/responses/DefaultResponse",
@@ -204,6 +201,15 @@ func AddPath(uri nexus.RestURIs, datamodel string) {
 				"404": &openapi3.ResponseRef{
 					Ref: "#/components/responses/NotFoundResponse",
 				},
+			}
+			if uriInfo, ok := model.GetUriInfo(uri.Uri); ok && uriInfo.TypeOfURI == model.StatusURI {
+				operation.RequestBody = &openapi3.RequestBodyRef{
+					Ref: "#/components/requestBodies/Create" + crdInfo.Name + ".Status",
+				}
+			} else {
+				operation.RequestBody = &openapi3.RequestBodyRef{
+					Ref: "#/components/requestBodies/Create" + crdInfo.Name,
+				}
 			}
 			pathItem.Patch = operation
 		case http.MethodDelete:
