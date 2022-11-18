@@ -92,7 +92,7 @@ data:
         metadata:
           name: {{`{{.DatamodelInstaller.Name}}`}}-dmi
         spec:
-          ttlSecondsAfterFinished: 30
+          ttlSecondsAfterFinished: 600
           backoffLimit: 6
           template:
             metadata:
@@ -101,7 +101,7 @@ data:
             spec:
               initContainers:
                 - name: check-nexus-proxy-container
-                  image: "gcr.io/nsx-sm/tools:latest"
+                  image: "{{.Values.global.registry}}/debugtools:latest"
                   imagePullPolicy: IfNotPresent
                   command:
                     - /bin/bash

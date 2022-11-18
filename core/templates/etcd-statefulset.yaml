@@ -90,7 +90,7 @@ spec:
       serviceAccountName: "default"
       containers:
         - name: etcd
-          image: gcr.io/nsx-sm/etcd:3.4.18-debian-10-r7
+          image: {{.Values.global.registry}}/etcd:3.4.18-debian-10-r7
           imagePullPolicy: "IfNotPresent"
           securityContext:
             runAsNonRoot: true

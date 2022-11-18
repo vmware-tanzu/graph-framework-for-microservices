@@ -4,7 +4,7 @@ kind: Job
 metadata:
   name: nexus-admin-runtime-bootstrapper
 spec:
-  ttlSecondsAfterFinished: 30
+  ttlSecondsAfterFinished: 600
   template:
     metadata:
       annotations:
@@ -13,7 +13,7 @@ spec:
       activeDeadlineSeconds: 300
       containers:
         - name: nexus-admin-runtime-bootstrapper
-          image: "gcr.io/nsx-sm/tools:latest"
+          image: "{{.Values.global.registry}}/debugtools:latest"
           imagePullPolicy: IfNotPresent
           command:
             - "/bin/bash"
