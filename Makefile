@@ -18,7 +18,7 @@ PROJECT_DIR ?= $(shell pwd)
 CI_COMMIT ?= $(shell git rev-parse --verify --short=8 HEAD 2> /dev/null || echo "00000000")
 IMAGE_TAG ?= ${CI_COMMIT}
 GIT_HEAD  ?= $(shell git rev-parse --verify HEAD 2> /dev/null || echo "0000000000000000")
-IMAGE_REGISTRY ?= harbor-repo.vmware.com/nexus/api-gateway
+IMAGE_REGISTRY ?= gcr.io/nsx-sm/nexus/nexus-api-gateway
 #
 # Platform
 #
