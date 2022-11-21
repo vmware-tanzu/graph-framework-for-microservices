@@ -19,6 +19,7 @@ DATAMODEL_PATH ?= datamodel
 CONFIG_FILE ?= ""
 GENERATED_OUTPUT_DIRECTORY ?= generated
 COMPILER_SRC_DIRECTORY ?= ""
+FORCE ?= false
 
 NEXUS_KUBEOPENAPI_VERSION ?= 7416bd4754d3c0dd8b3fa37fff53d36594f11607
 NEXUS_GRAPHQLGEN_VERSION ?= 32f028bce22efeb70b47a640195bd969dbb337f0
@@ -133,10 +134,17 @@ generate_example_in_container:
 test_in_container: ${BUILDER_NAME}\:${BUILDER_TAG}.image.exists
 	$(call run_in_container, make test)
 
-.PHONY: generate_code
+
 generate_code:
+	$(MAKE) run_generate_code || { $(MAKE) run_backup ; exit 1; }
+
+.PHONY: generate_code
+run_generate_code:
 	@echo "Nexus Compiler: Running compiler code generation"
 	@echo "Cleaning up workdir"
+	rm -rf /tmp/old_files ||  echo "Folder not present"
+	mkdir -p /tmp/old_files
+	cp -rf $(GENERATED_OUTPUT_DIRECTORY)/* /tmp/old_files
 	rm -rf _generated ${GOPATH}/src/nexustempmodule
 	@echo "Copying generated_base_structure to create directory structure"
 	@echo "COMPILER_SRC_DIRECTORY: ${COMPILER_SRC_DIRECTORY}"
@@ -155,7 +163,7 @@ generate_code:
 	@echo "Nexus Compiler: Generating openapi schema"
 	./scripts/generate_openapi_schema.sh
 	@echo "Nexus Compiler: Generating CRD yamls"
-	go run cmd/generate-openapischema/generate-openapischema.go -yamls-path _generated/crds
+	go run cmd/generate-openapischema/generate-openapischema.go -yamls-path _generated/crds -old-yamls-path /tmp/old_files/crds -force ${FORCE}
 	git checkout -- pkg/openapi_generator/openapi/openapi_generated.go
 	cp -r _generated/{client,apis,crds,common,nexus-client,helper,nexus-gql} ${GENERATED_OUTPUT_DIRECTORY}
 	@echo "Nexus Compiler: Generating GRAPHQL PKG"
@@ -177,6 +185,15 @@ generate_code:
 	cp -r _generated/{client,apis,crds,common,nexus-client,helper,nexus-gql} ${GENERATED_OUTPUT_DIRECTORY}
 	cp -r ${GOPATH}/src/nexustempmodule/nexus-gql/graphql.so ${GENERATED_OUTPUT_DIRECTORY}/nexus-gql
 	@echo "Nexus Compiler: Compiler code generation completed"
+
+
+run_backup:
+	echo  "Detected failure in build"
+	if find /tmp/old_files -mindepth 1 -maxdepth 1 | read; then \
+		cp -rf /tmp/old_files/* ${GENERATED_OUTPUT_DIRECTORY} ;\
+	else \
+		echo "No files present"; \
+	fi
 
 .PHONY: test_generate_code_in_container
 test_generate_code_in_container: ${BUILDER_NAME}\:${BUILDER_TAG}.image.exists init_submodules
