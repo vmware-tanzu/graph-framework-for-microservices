@@ -41,7 +41,7 @@ spec:
     spec:
       initContainers:
         - name: check-nexus-proxy-container
-          image: "gcr.io/mesh7-public-images/tools:latest"
+          image: "{{ .Values.global.registry }}/debugtools:latest"
           imagePullPolicy: IfNotPresent
           command:
             - /bin/bash
@@ -63,7 +63,7 @@ spec:
                     fi
               done
         - name: create-backend-route-object
-          image: "gcr.io/mesh7-public-images/tools:latest"
+          image: "{{ .Values.global.registry }}/debugtools:latest"
           imagePullPolicy: IfNotPresent
           command:
             - /bin/bash
