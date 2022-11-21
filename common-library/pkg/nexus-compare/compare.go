@@ -2,9 +2,10 @@ package nexus_compare
 
 import (
 	"bytes"
-	"gopkg.in/yaml.v3"
 	"os"
 	"regexp"
+
+	"gopkg.in/yaml.v3"
 
 	"github.com/gonvenience/bunt"
 	"github.com/gonvenience/ytbx"
