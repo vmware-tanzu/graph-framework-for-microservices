@@ -2,11 +2,9 @@ package nexus_compare
 
 import (
 	"bytes"
-	"log"
+	"gopkg.in/yaml.v3"
 	"os"
-	"path"
 	"regexp"
-	"strings"
 
 	"github.com/gonvenience/bunt"
 	"github.com/gonvenience/ytbx"
@@ -19,60 +17,37 @@ const (
 	StatusMatch = ".*properties\\/status.*"
 )
 
-func CompareDirs(dir1, dir2 string) (bool, *bytes.Buffer) {
-
-	ans := false
-	buffer := new(bytes.Buffer)
-	files1, err := os.ReadDir(dir1)
-	if err != nil {
-		log.Fatal(err)
-	}
-	files2, err := os.ReadDir(dir2)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	for _, f1 := range files1 {
-		for _, f2 := range files2 {
-			if f1.Name() == f2.Name() && f1.IsDir() {
-				a, b := CompareDirs(path.Join(dir1, f1.Name()), path.Join(dir2, f2.Name()))
-				a = ans || a
-				buffer.Write(b.Bytes())
-			} else if f1.Name() == f2.Name() && strings.HasSuffix(f1.Name(), ".yaml") {
-				p1 := path.Join(dir1, f1.Name())
-				p2 := path.Join(dir2, f2.Name())
-				a, b, e := CompareFiles(p1, p2)
-				if e != nil {
-					return false, nil
-				}
-				ans = ans || a
-				buffer.Write(b.Bytes())
-			}
-		}
-	}
-
-	if ans == false {
-		buffer.WriteString("no changes detected")
-	}
-
-	return ans, buffer
-}
-
-func CompareFiles(file1, file2 string) (bool, *bytes.Buffer, error) {
+func CompareFiles(data1, data2 []byte) (bool, *bytes.Buffer, error) {
 	buffer := new(bytes.Buffer)
 	headerColor, _ := colorful.Hex("#B9311B")
 	fileColor, _ := colorful.Hex("#088F8F")
 
-	spec, status, nexus, err := CompareReports(file1, file2)
+	name, err := getSpecName(data1)
 	if err != nil {
-		return false, nil, err
+		return true, nil, err
 	}
+
+	file1, err := writeTempFile(data1)
+	if err != nil {
+		return true, nil, err
+	}
+	file2, err := writeTempFile(data2)
+	if err != nil {
+		return true, nil, err
+	}
+	defer os.Remove(file1.Name())
+	defer os.Remove(file2.Name())
+
+	spec, status, nexus, err := CompareReports(file1.Name(), file2.Name())
+	if err != nil {
+		return true, nil, err
+	}
+
 	spd := len(spec.Diffs) > 0
 	std := len(status.Diffs) > 0
 	nd := len(nexus.Diffs) > 0
-
 	if !spd && !std && !nd {
-		return false, buffer, nil
+		return true, buffer, nil
 	}
 
 	_, _ = buffer.WriteString(bunt.Style(
@@ -81,23 +56,31 @@ func CompareFiles(file1, file2 string) (bool, *bytes.Buffer, error) {
 		bunt.Foreground(headerColor),
 	))
 	_, _ = buffer.WriteString(bunt.Style(
-		file1,
+		name,
 		bunt.EachLine(),
 		bunt.Foreground(fileColor),
 	))
 	_, _ = buffer.WriteString("\n\n")
-
 	if spd {
 		buffer.WriteString("spec changes: ")
-		PrintReportDiff(spec, buffer)
+		err := PrintReportDiff(spec, buffer)
+		if err != nil {
+			return true, nil, err
+		}
 	}
 	if spd {
 		buffer.WriteString("status changes: ")
-		PrintReportDiff(status, buffer)
+		err := PrintReportDiff(status, buffer)
+		if err != nil {
+			return true, nil, err
+		}
 	}
 	if spd {
 		buffer.WriteString("nexus annotation changes: ")
-		PrintReportDiff(nexus, buffer)
+		err := PrintReportDiff(nexus, buffer)
+		if err != nil {
+			return true, nil, err
+		}
 	}
 
 	return true, buffer, nil
@@ -163,25 +146,16 @@ func getAnnotationReport(r dyff.Report) (dyff.Report, error) {
 	aNexus := getNexusAnnotation(r.From)
 	bNexus := getNexusAnnotation(r.To)
 
-	aFile, err := os.CreateTemp("", "prefix")
+	aFile, err := writeTempFile([]byte(aNexus))
 	if err != nil {
 		return dyff.Report{}, err
 	}
-	bFile, err := os.CreateTemp("", "prefix")
+	bFile, err := writeTempFile([]byte(bNexus))
 	if err != nil {
 		return dyff.Report{}, err
 	}
 	defer os.Remove(aFile.Name())
 	defer os.Remove(bFile.Name())
-
-	_, err = aFile.Write([]byte(aNexus))
-	if err != nil {
-		return dyff.Report{}, err
-	}
-	_, err = bFile.Write([]byte(bNexus))
-	if err != nil {
-		return dyff.Report{}, err
-	}
 
 	from, to, err := ytbx.LoadFiles(aFile.Name(), bFile.Name())
 	if err != nil {
@@ -211,4 +185,19 @@ func PrintReportDiff(report dyff.Report, buffer *bytes.Buffer) error {
 		return err
 	}
 	return nil
+}
+
+func writeTempFile(data []byte) (*os.File, error) {
+	aFile, err := os.CreateTemp("", "compare")
+	_, err = aFile.Write(data)
+	return aFile, err
+}
+
+func getSpecName(data []byte) (string, error) {
+	t := make(map[string]interface{})
+	err := yaml.Unmarshal(data, &t)
+	if err != nil {
+		return "", err
+	}
+	return t["metadata"].(map[string]interface{})["name"].(string), nil
 }
