@@ -4,20 +4,20 @@ go 1.18
 
 require (
 	github.com/elliotchance/orderedmap v1.5.0
-	github.com/gonvenience/wrap v1.1.2
+	github.com/gonvenience/bunt v1.3.4
 	github.com/gonvenience/ytbx v1.4.4
 	github.com/homeport/dyff v1.5.6
+	github.com/lucasb-eyer/go-colorful v1.2.0
 )
 
 require (
 	github.com/BurntSushi/toml v1.2.1 // indirect
 	github.com/fsnotify/fsnotify v1.5.4 // indirect
-	github.com/gonvenience/bunt v1.3.4 // indirect
 	github.com/gonvenience/neat v1.3.11 // indirect
 	github.com/gonvenience/term v1.0.2 // indirect
 	github.com/gonvenience/text v1.0.7 // indirect
+	github.com/gonvenience/wrap v1.1.2 // indirect
 	github.com/google/go-cmp v0.5.9 // indirect
-	github.com/lucasb-eyer/go-colorful v1.2.0 // indirect
 	github.com/mattn/go-ciede2000 v0.0.0-20170301095244-782e8c62fec3 // indirect
 	github.com/mattn/go-isatty v0.0.16 // indirect
 	github.com/mitchellh/go-ps v1.0.0 // indirect
