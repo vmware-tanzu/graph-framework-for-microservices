@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"strconv"
 	"strings"
 
 	generator "github.com/vmware-tanzu/graph-framework-for-microservices/compiler/pkg/openapi_generator"
@@ -11,11 +12,22 @@ import (
 )
 
 func main() {
-	var yamlsPath string
+	var (
+		yamlsPath    string
+		oldYamlPath  string
+		forceUpgrade string // Used to denote the forced upgrade of a data model.
+	)
 	flag.StringVar(&yamlsPath, "yamls-path", "", "Path to directory containing CRD YAML definitions")
+	flag.StringVar(&oldYamlPath, "old-yamls-path", "", "Path to directory containing existing CRD YAML definitions")
+	flag.StringVar(&forceUpgrade, "force", "", "Set to true to force the nexus datamodel upgrade. \"+\n\t\t\t\"Defaults to `false`")
 	flag.Parse()
 	if yamlsPath == "" {
 		panic("yamls-path is empty. Run with -h for help")
+	}
+
+	force, err := strconv.ParseBool(forceUpgrade)
+	if err != nil {
+		panic("invalid flag for nexus datamodel upgrade")
 	}
 
 	ref := func(pkg string) spec.Ref {
@@ -44,7 +56,7 @@ func main() {
 			"Refer to %q for possible causes and solutions\n", readmePath)
 		panic("Missing schemas!")
 	}
-	err = g.UpdateYAMLs(yamlsPath)
+	err = g.UpdateYAMLs(yamlsPath, oldYamlPath, force)
 	if err != nil {
 		panic(err)
 	}

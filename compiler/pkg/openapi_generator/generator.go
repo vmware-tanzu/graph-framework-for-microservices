@@ -1,7 +1,9 @@
 package openapi_generator
 
 import (
+	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -9,6 +11,9 @@ import (
 	"strings"
 
 	"github.com/ghodss/yaml"
+	log "github.com/sirupsen/logrus"
+
+	"github.com/vmware-tanzu/graph-framework-for-microservices/common-library/pkg/nexus-compare"
 	"github.com/vmware-tanzu/graph-framework-for-microservices/kube-openapi/pkg/common"
 	extensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 )
@@ -334,8 +339,47 @@ func (g *Generator) resolveRefsInProperty(propSchema *extensionsv1.JSONSchemaPro
 	}
 }
 
-func (g *Generator) UpdateYAMLs(yamlsPath string) error {
-	return filepath.Walk(yamlsPath, func(path string, info os.FileInfo, err error) error {
+func splitCRDs(content []byte) []string {
+	return strings.Split(string(content), "---")
+}
+
+func CheckBackwardCompatibility(inCompatibleCRDs []*bytes.Buffer, crd extensionsv1.CustomResourceDefinition, oldCRDContent []byte) ([]*bytes.Buffer, error) {
+	oldCRDParts := splitCRDs(oldCRDContent)
+	for _, oldPart := range oldCRDParts {
+		if oldPart == "" {
+			continue
+		}
+		oldCRD := &extensionsv1.CustomResourceDefinition{}
+		err := yaml.Unmarshal([]byte(oldPart), oldCRD)
+		if err != nil {
+			return nil, fmt.Errorf("error unmarshaling existing crd: %v", err)
+		}
+
+		newCRDPart, err := yaml.Marshal(&crd)
+		if err != nil {
+			return nil, fmt.Errorf("error marshaling new crd: %v", err)
+		}
+
+		if oldCRD.Name != crd.Name {
+			continue
+		}
+
+		// When there is a backward incompatibility, we fail the build if we don't force an upgrade.
+		isInCompatible, message, err := nexus_compare.CompareFiles([]byte(oldPart), newCRDPart)
+		if err != nil {
+			log.Errorf("Error occurred while checking CRD's %q backward compatibility: %v", crd.Name, err)
+		}
+		if isInCompatible {
+			log.Warnf("CRD %q is incompatible with the previous version", crd.Name)
+			inCompatibleCRDs = append(inCompatibleCRDs, message)
+		}
+	}
+	return inCompatibleCRDs, nil
+}
+
+func (g *Generator) UpdateYAMLs(yamlsPath, oldYamlsPath string, force bool) error {
+	var inCompatibleCRDs []*bytes.Buffer
+	if err := filepath.Walk(yamlsPath, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return fmt.Errorf("walking files: %v", err)
 		}
@@ -350,7 +394,7 @@ func (g *Generator) UpdateYAMLs(yamlsPath string) error {
 			return fmt.Errorf("reading file %q: %v", path, err)
 		}
 
-		parts := strings.Split(string(content), "---")
+		parts := splitCRDs(content)
 		crds := make([]extensionsv1.CustomResourceDefinition, len(parts))
 		for _, part := range parts {
 			if part == "" {
@@ -372,6 +416,31 @@ func (g *Generator) UpdateYAMLs(yamlsPath string) error {
 			err = g.addCustomResourceValidation(&crd)
 			if err != nil {
 				return err
+			}
+
+			/*
+				yamlsPath - indicates the directory path of new crd yamls
+						Ex: the path will be `_generated/crds`
+
+				path - indicates the file path of node
+				        Ex: For the node `Config` the path will be `_generated/crds/config_config.yaml`
+
+				oldYamlsPath - indicates the directory path of the existing crd yamls
+						Ex: the path will be `tmp/old-files/old-crds`
+			*/
+			oldFilePath := oldYamlsPath + strings.TrimPrefix(path, yamlsPath)
+			oldCRDContent, err := os.ReadFile(oldFilePath)
+			if err != nil {
+				if !errors.Is(err, os.ErrNotExist) {
+					return fmt.Errorf("error reading the existing crd file on path %q: %v", oldFilePath, err)
+				}
+				log.Debugf("Can't find the existing crd file on path %s", oldFilePath)
+			}
+
+			if oldCRDContent != nil {
+				if inCompatibleCRDs, err = CheckBackwardCompatibility(inCompatibleCRDs, crd, oldCRDContent); err != nil {
+					return err
+				}
 			}
 			crds = append(crds, crd)
 		}
@@ -401,7 +470,18 @@ func (g *Generator) UpdateYAMLs(yamlsPath string) error {
 			}
 		}
 		return nil
-	})
+	}); err != nil {
+		return err
+	}
+
+	if inCompatibleCRDs != nil {
+		if !force {
+			// If the CRD are incompatible with the previous version, this will fail the build.
+			return fmt.Errorf("datamodel upgrade failed due to backward incompatible changes:\n %v", inCompatibleCRDs)
+		}
+		log.Warnf("Upgrading the data model that is incompatible with the previous version: %v", inCompatibleCRDs)
+	}
+	return nil
 }
 
 func (g *Generator) addCustomResourceValidation(crd *extensionsv1.CustomResourceDefinition) error {

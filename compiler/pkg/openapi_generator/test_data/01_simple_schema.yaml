@@ -2,6 +2,9 @@
 apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
+  annotations:
+    nexus: |
+      {"name":"foo","is_singleton":false,"nexus-rest-api-gen":{"uris":null}}
   creationTimestamp: null
   name: foos.test.it
 spec:
@@ -41,6 +44,9 @@ status:
 apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
+  annotations:
+    nexus: |
+      {"name":"fizzs","is_singleton":false,"nexus-rest-api-gen":{"uris":null}}  creationTimestamp: null
   creationTimestamp: null
   name: fizzs.test.it
 spec:
