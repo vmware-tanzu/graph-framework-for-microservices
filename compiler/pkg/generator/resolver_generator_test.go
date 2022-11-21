@@ -3,10 +3,11 @@ package generator_test
 import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"github.com/vmware-tanzu/graph-framework-for-microservices/nexus/nexus"
 
+	"github.com/vmware-tanzu/graph-framework-for-microservices/compiler/pkg/config"
 	"github.com/vmware-tanzu/graph-framework-for-microservices/compiler/pkg/generator"
 	"github.com/vmware-tanzu/graph-framework-for-microservices/compiler/pkg/parser"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/nexus/nexus"
 )
 
 var _ = Describe("Template renderers tests", func() {
@@ -17,6 +18,7 @@ var _ = Describe("Template renderers tests", func() {
 	)
 
 	BeforeEach(func() {
+		config.ConfigInstance.IgnoredDirs = []string{"ignored"}
 		pkgs = parser.ParseDSLPkg(exampleDSLPath)
 		graphqlQueries = parser.ParseGraphqlQuerySpecs(pkgs)
 		graph := parser.ParseDSLNodes(exampleDSLPath, baseGroupName, pkgs, graphqlQueries)
@@ -44,6 +46,9 @@ var _ = Describe("Template renderers tests", func() {
 
 		// Test that nexus-secret Node should not be present
 		Expect(vars).NotTo(ContainElement(HaveField("NodeName", "Foo")))
+		Expect(vars).NotTo(ContainElement(HaveField("NodeName", "GnsServiceGroups")))
+		Expect(vars).NotTo(ContainElement(HaveField("NodeName", "SourceSvcGroups")))
+		Expect(vars).NotTo(ContainElement(HaveField("NodeName", "DestSvcGroups")))
 	})
 
 	It("should resolve non-singleton root and singleton child node", func() {
@@ -75,5 +80,25 @@ var _ = Describe("Template renderers tests", func() {
 		Expect(pkg.Name).To(Equal("gns"))
 		Expect(schemaTypeName).To(Equal("servicegroup_SvcGroup"))
 		Expect(resolverTypeName).To(Equal("ServicegroupSvcGroup"))
+	})
+
+	It("should resolve secret spec annotation properly", func() {
+		// nexus-secret-spec annotated, different pkg and directory name with no alias name
+		pkg := pkgs["github.com/vmware-tanzu/graph-framework-for-microservices/compiler/example/datamodel/config/policy"]
+		nodeToSkip := generator.SkipSecretSpecAnnotation("DestSvcGroups", "servicegroup.SvcGroup", pkg, pkg.GetImportMap(), pkgs)
+		Expect(nodeToSkip).Should(BeTrue())
+
+		// nexus-secret-spec annotated, different pkg and directory name with alias name provided
+		pkg = pkgs["github.com/vmware-tanzu/graph-framework-for-microservices/compiler/example/datamodel/config/gns"]
+		nodeToSkip = generator.SkipSecretSpecAnnotation("GnsServiceGroups", "service_group.SvcGroup", pkg, pkg.GetImportMap(), pkgs)
+		Expect(nodeToSkip).Should(BeTrue())
+
+		// nexus-secret-spec annotated, same pkg and directory name
+		nodeToSkip = generator.SkipSecretSpecAnnotation("Foo", "Foo", pkg, pkg.GetImportMap(), pkgs)
+		Expect(nodeToSkip).Should(BeTrue())
+
+		// Node is not annotated with nexus-secret-spec, should not skip
+		nodeToSkip = generator.SkipSecretSpecAnnotation("GnsAccessControlPolicy", "policypkg.AccessControlPolicy", pkg, pkg.GetImportMap(), pkgs)
+		Expect(nodeToSkip).Should(BeFalse())
 	})
 })

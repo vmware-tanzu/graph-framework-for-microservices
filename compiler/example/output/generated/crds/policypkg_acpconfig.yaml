@@ -108,15 +108,15 @@ spec:
                 type: object
               status:
                 properties:
-                  StatusABC:
+                  statusABC:
                     format: int32
                     type: integer
-                  StatusXYZ:
+                  statusXYZ:
                     format: int32
                     type: integer
                 required:
-                - StatusABC
-                - StatusXYZ
+                - statusABC
+                - statusXYZ
                 type: object
             type: object
         type: object

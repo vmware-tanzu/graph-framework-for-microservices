@@ -332,87 +332,87 @@ type AdditionalGnsDataList struct {
 
 // +k8s:openapi-gen=true
 type RandomDescription struct {
-	DiscriptionA string
-	DiscriptionB string
-	DiscriptionC string
-	DiscriptionD string
+	DiscriptionA string `json:"discriptionA" yaml:"discriptionA"`
+	DiscriptionB string `json:"discriptionB" yaml:"discriptionB"`
+	DiscriptionC string `json:"discriptionC" yaml:"discriptionC"`
+	DiscriptionD string `json:"discriptionD" yaml:"discriptionD"`
 }
 
 // +k8s:openapi-gen=true
 type RandomStatus struct {
-	StatusX int
-	StatusY int
+	StatusX int `json:"statusX" yaml:"statusX"`
+	StatusY int `json:"statusY" yaml:"statusY"`
 }
 
 // +k8s:openapi-gen=true
 type HostPort struct {
-	Host Host
-	Port Port
+	Host Host `json:"host" yaml:"host"`
+	Port Port `json:"port" yaml:"port"`
 }
 
 // +k8s:openapi-gen=true
 type ReplicationSource struct {
-	Kind SourceKind
+	Kind SourceKind `json:"kind" yaml:"kind"`
 }
 
 // +k8s:openapi-gen=true
 type gnsQueryFilters struct {
-	StartTime           string
-	EndTime             string
-	Interval            string
-	IsServiceDeployment bool
-	StartVal            int
+	StartTime           string `json:"startTime" yaml:"startTime"`
+	EndTime             string `json:"endTime" yaml:"endTime"`
+	Interval            string `json:"interval" yaml:"interval"`
+	IsServiceDeployment bool   `json:"isServiceDeployment" yaml:"isServiceDeployment"`
+	StartVal            int    `json:"startVal" yaml:"startVal"`
 }
 
 // +k8s:openapi-gen=true
 type metricsFilers struct {
-	StartTime    string
-	EndTime      string
-	TimeInterval string
-	SomeUserArg1 string
-	SomeUserArg2 int
-	SomeUserArg3 bool
+	StartTime    string `json:"startTime" yaml:"startTime"`
+	EndTime      string `json:"endTime" yaml:"endTime"`
+	TimeInterval string `json:"timeInterval" yaml:"timeInterval"`
+	SomeUserArg1 string `json:"someUserArg1" yaml:"someUserArg1"`
+	SomeUserArg2 int    `json:"someUserArg2" yaml:"someUserArg2"`
+	SomeUserArg3 bool   `json:"someUserArg3" yaml:"someUserArg3"`
 }
 
 // +k8s:openapi-gen=true
 type ServiceSegmentRef struct {
-	Field1 string
-	Field2 string
+	Field1 string `json:"field1" yaml:"field1"`
+	Field2 string `json:"field2" yaml:"field2"`
 }
 
 // +k8s:openapi-gen=true
 type Description struct {
-	Color     string
-	Version   string
-	ProjectId string
-	TestAns   []Answer
-	Instance  Instance
-	HostPort  HostPort
+	Color     string   `json:"color" yaml:"color"`
+	Version   string   `json:"version" yaml:"version"`
+	ProjectId string   `json:"projectId" yaml:"projectId"`
+	TestAns   []Answer `json:"testAns" yaml:"testAns"`
+	Instance  Instance `json:"instance" yaml:"instance"`
+	HostPort  HostPort `json:"hostPort" yaml:"hostPort"`
 }
 
 // +k8s:openapi-gen=true
 type Answer struct {
-	Name string
+	Name string `json:"name" yaml:"name"`
 }
 
 // +k8s:openapi-gen=true
 type GnsState struct {
-	Working     bool
-	Temperature int
+	Working     bool `json:"working" yaml:"working"`
+	Temperature int  `json:"temperature" yaml:"temperature"`
 }
 
 // +k8s:openapi-gen=true
 type AdditionalDescription struct {
-	DiscriptionA string
-	DiscriptionB string
-	DiscriptionC string
-	DiscriptionD string
+	DiscriptionA string `json:"discriptionA" yaml:"discriptionA"`
+	DiscriptionB string `json:"discriptionB" yaml:"discriptionB"`
+	DiscriptionC string `json:"discriptionC" yaml:"discriptionC"`
+	DiscriptionD string `json:"discriptionD" yaml:"discriptionD"`
 }
 
 // +k8s:openapi-gen=true
 type AdditionalStatus struct {
-	StatusX int
-	StatusY int
+	StatusX int `json:"statusX" yaml:"statusX"`
+	StatusY int `json:"statusY" yaml:"statusY"`
 }
 
 type RandomConst1 string

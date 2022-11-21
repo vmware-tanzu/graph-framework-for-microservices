@@ -13,7 +13,7 @@ RUN make init_submodules
 WORKDIR /go/src/
 RUN mkdir nexustmp && cd nexustmp && go mod init && \
     /go/src/github.com/vmware-tanzu/graph-framework-for-microservices/compiler/scripts/pin_deps.sh && \
-    /go/src/github.com/vmware-tanzu/graph-framework-for-microservices/compiler/scripts/pin_graphql_deps.sh && \
+    /go/src/github.com/vmware-tanzu/graph-framework-for-microservices/compiler/scripts/pin_graphql_build_version.sh && \
     go mod download
 
 WORKDIR /go/src/github.com/vmware-tanzu/graph-framework-for-microservices/compiler/_deps/github.com/kubernetes/code-generator

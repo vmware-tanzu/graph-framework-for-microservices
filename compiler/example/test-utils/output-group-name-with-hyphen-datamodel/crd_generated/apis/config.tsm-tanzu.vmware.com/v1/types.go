@@ -74,6 +74,6 @@ type ConfigList struct {
 
 // +k8s:openapi-gen=true
 type MyStruct struct {
-	TempFiledA string
-	TempFiledB string
+	TempFiledA string `json:"tempFiledA" yaml:"tempFiledA"`
+	TempFiledB string `json:"tempFiledB" yaml:"tempFiledB"`
 }

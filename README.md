@@ -11,6 +11,8 @@ It provides an extensible, distributed software stack that:
 
 This framework represents the application's datamodel/state as a Graph, with emphasis on the event-driven propagation of data.
 
+### [Playground](docs/getting_started/Playground.md)
+
 ## What problem does it solve ?
 
 A plethora of tools and utilities have cropped up to address the challenge of writing and operating applications in distributed, cloud-native, SaaS environments.

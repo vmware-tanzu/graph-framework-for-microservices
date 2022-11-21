@@ -72,14 +72,14 @@ type RootList struct {
 
 // +k8s:openapi-gen=true
 type NonNexusType struct {
-	Test int
+	Test int `json:"test" yaml:"test"`
 }
 
 // +k8s:openapi-gen=true
 type queryFilters struct {
-	StartTime           string
-	EndTime             string
-	Interval            string
-	IsServiceDeployment bool
-	StartVal            int
+	StartTime           string `json:"startTime" yaml:"startTime"`
+	EndTime             string `json:"endTime" yaml:"endTime"`
+	Interval            string `json:"interval" yaml:"interval"`
+	IsServiceDeployment bool   `json:"isServiceDeployment" yaml:"isServiceDeployment"`
+	StartVal            int    `json:"startVal" yaml:"startVal"`
 }

@@ -13,6 +13,7 @@ import (
 
 	"github.com/fatih/structtag"
 	log "github.com/sirupsen/logrus"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/compiler/pkg/util"
 )
 
 type Packages map[string]Package
@@ -572,6 +573,32 @@ func GetFieldTags(f *ast.Field) *structtag.Tags {
 	}
 
 	return ParseFieldTags(f.Tag.Value)
+}
+
+func FillEmptyTag(ts *structtag.Tags, n, tag string) *structtag.Tags {
+
+	if ts == nil {
+		ts = &structtag.Tags{}
+	}
+	for _, t := range ts.Tags() {
+		if t.Key == tag {
+			return ts
+		}
+	}
+	if len(n) < 2 {
+		return ts
+	}
+	jt := structtag.Tag{
+		Key:     tag,
+		Name:    util.GetTag(n),
+		Options: nil,
+	}
+	err := ts.Set(&jt)
+	if err != nil {
+		log.Fatalf("Failed to set tag: %v", err)
+	}
+
+	return ts
 }
 
 func GetFieldType(f *ast.Field) string {

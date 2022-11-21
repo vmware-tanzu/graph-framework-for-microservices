@@ -40,19 +40,19 @@ spec:
             properties:
               description:
                 properties:
-                  DiscriptionA:
+                  discriptionA:
                     type: string
-                  DiscriptionB:
+                  discriptionB:
                     type: string
-                  DiscriptionC:
+                  discriptionC:
                     type: string
-                  DiscriptionD:
+                  discriptionD:
                     type: string
                 required:
-                - DiscriptionA
-                - DiscriptionB
-                - DiscriptionC
-                - DiscriptionD
+                - discriptionA
+                - discriptionB
+                - discriptionC
+                - discriptionD
                 type: object
             required:
             - description
@@ -73,15 +73,15 @@ spec:
                 type: object
               status:
                 properties:
-                  StatusX:
+                  statusX:
                     format: int32
                     type: integer
-                  StatusY:
+                  statusY:
                     format: int32
                     type: integer
                 required:
-                - StatusX
-                - StatusY
+                - statusX
+                - statusY
                 type: object
             type: object
         type: object
