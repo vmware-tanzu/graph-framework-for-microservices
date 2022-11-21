@@ -209,6 +209,15 @@ func updateObject(gvr schema.GroupVersionResource, res *unstructured.Unstructure
 	return err
 }
 
+func deleteObject(gvr schema.GroupVersionResource, res *unstructured.Unstructured, hierarchy string, rc utils.ReplicationConfigSpec) error {
+	destGvr, _ := utils.GetDestinationGvrAndKind(rc.Destination, gvr, "")
+	if err := rc.RemoteClient.Resource(destGvr).Namespace(rc.Destination.Namespace).Delete(context.TODO(), res.GetName(), metav1.DeleteOptions{}); err != nil && !errors.IsNotFound(err) {
+		return err
+	}
+	log.Infof("Deletion of %v is successful", hierarchy)
+	return nil
+}
+
 func patchStatusObject(rc utils.ReplicationConfigSpec, srcGvr, destGvr schema.GroupVersionResource,
 	ns, srcObj, destObj string, srcGeneration, destGeneration int64) (string, error) {
 
@@ -287,6 +296,12 @@ func (h *RemoteHandler) processEvents(eventType string, res *unstructured.Unstru
 			log.Errorf("Resource %v update failed with an error: %v", hierarchy, err)
 			return err
 		}
+	case utils.Del:
+		err := deleteObject(h.Gvr, res, hierarchy, spec)
+		if err != nil {
+			log.Errorf("Resource %v delete failed with an error: %v", hierarchy, err)
+			return err
+		}
 	}
 	return nil
 }
@@ -359,7 +374,7 @@ func (h *RemoteHandler) Replicator(obj interface{}, eventType string) error {
 		repObj := utils.GetReplicationObject(item.GroupVersionKind().Group, item.GetKind(), name)
 		if repInfoMap, replicationEnabledNode := utils.ReplicationEnabledNode[repObj]; replicationEnabledNode {
 			for _, spec = range repInfoMap {
-				if !isDesiredObject(spec, res) {
+				if !isDesiredObject(spec, &item) {
 					continue
 				}
 				replicate = true

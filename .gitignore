@@ -7,3 +7,4 @@ report.json
 cmd/connector/connector
 nexus-connector/values.yaml
 *.tgz
+pkg/utils/token

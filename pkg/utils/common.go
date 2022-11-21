@@ -38,6 +38,7 @@ const (
 
 	Update = "UPDATE"
 	Create = "CREATE"
+	Del    = "DELETE"
 )
 
 type EventType string

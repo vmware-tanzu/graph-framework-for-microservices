@@ -18,6 +18,7 @@ import (
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/client-go/dynamic"
 	fake_dynamic "k8s.io/client-go/dynamic/fake"
+	"k8s.io/client-go/testing"
 
 	"connector/pkg/config"
 	h "connector/pkg/handlers"
@@ -158,7 +159,7 @@ var _ = Describe("Create", func() {
 
 			remoteHandler := h.NewRemoteHandler(apicollaborationspace, localClient, nil, conf)
 			replicationConfigSpec := utils.ReplicationConfigSpec{LocalClient: localClient, RemoteClient: remoteClient,
-				Source: getNonHierarchicalSourceConfig(), Destination: getNonHierarchicalDestConfig()}
+				Source: getNonHierarchicalSourceConfig("C"), Destination: getNonHierarchicalDestConfig()}
 
 			// server receives only objC.
 			server.AppendHandlers(
@@ -323,7 +324,7 @@ var _ = Describe("Create", func() {
 		Expect(err).NotTo(HaveOccurred())
 
 		BeforeEach(func() {
-			source := getNonHierarchicalSourceConfig()
+			source := getNonHierarchicalSourceConfig("bar")
 			destination := getHierarchicalDestConfig()
 			replicationConfigSpec = utils.ReplicationConfigSpec{LocalClient: localClient, RemoteClient: remoteClient,
 				Source: source, Destination: destination, StatusEndpoint: utils.Source}
@@ -465,7 +466,7 @@ var _ = Describe("Create", func() {
 	})
 
 	It("Should skip creation if already exists", func() {
-		source := getNonHierarchicalSourceConfig()
+		source := getNonHierarchicalSourceConfig("C")
 		destination := getNonHierarchicalDestConfig()
 		remoteHandler = h.NewRemoteHandler(apicollaborationspace, localClient, nil, conf)
 
@@ -490,7 +491,7 @@ var _ = Describe("Create", func() {
 		destination.Hierarchy.Labels = append(destination.Hierarchy.Labels,
 			utils.KVP{Key: "invalid.config.mazinger.com", Value: "default"})
 
-		replicationConfigSpec := utils.ReplicationConfigSpec{LocalClient: localClient, RemoteClient: remoteClient, Source: getNonHierarchicalSourceConfig(), Destination: destination}
+		replicationConfigSpec := utils.ReplicationConfigSpec{LocalClient: localClient, RemoteClient: remoteClient, Source: getNonHierarchicalSourceConfig("new"), Destination: destination}
 
 		repObj := utils.GetReplicationObject(Group, AdKind, "new")
 		utils.ReplicationEnabledNode[repObj] = make(map[string]utils.ReplicationConfigSpec)
@@ -612,7 +613,114 @@ var _ = Describe("Create", func() {
 			Expect(err).NotTo(HaveOccurred())
 			Eventually(func() []*http.Request { return server.ReceivedRequests() }).Should(HaveLen(2))
 
-			delete(utils.ReplicationEnabledNode, repObj)
+			delete(utils.ReplicationEnabledGVR, apicollaborationspace)
+		})
+	})
+
+	Context("Delete", func() {
+		When("Delete event occurs for an object configured for replication from hierarchical-source to non-hierchical destination", func() {
+			It("Should delete the object from the destination endpoint", func() {
+				source := getHierarchicalSourceConfig("delete")
+				destination := getNonHierarchicalDestConfig()
+				remoteHandler := h.NewRemoteHandler(apicollaborationspace, localClient, nil, conf)
+				remoteClient := fake_dynamic.NewSimpleDynamicClient(runtime.NewScheme(), getObject("delete", AcKind, "example"))
+				replicationConfigSpec := utils.ReplicationConfigSpec{LocalClient: localClient, RemoteClient: remoteClient, Source: source, Destination: destination}
+
+				// Enable replication for object "delete" of type apicollaborationspaces.config.mazinger.com
+				repObj := utils.GetReplicationObject(Group, AcKind, "delete")
+				utils.ReplicationEnabledNode[repObj] = make(map[string]utils.ReplicationConfigSpec)
+				utils.ReplicationEnabledNode[repObj][repConfName] = replicationConfigSpec
+
+				gvr := schema.GroupVersionResource{
+					Group:    "config.mazinger.com",
+					Version:  "v1",
+					Resource: "apicollaborationspaces",
+				}
+				// Before delete, object is present.
+				obj, err := remoteClient.Resource(gvr).Get(context.TODO(), "delete", metav1.GetOptions{})
+				Expect(err).NotTo(HaveOccurred())
+				Expect(obj).NotTo(BeNil())
+
+				// Delete the object.
+				err = remoteHandler.Delete(getObject("delete", AcKind, "example"))
+				Expect(err).NotTo(HaveOccurred())
+
+				// After delete, object is removed.
+				_, err = remoteClient.Resource(gvr).Get(context.TODO(), "delete", metav1.GetOptions{})
+				Expect(err).To(HaveOccurred())
+				Expect(err).To(MatchError("apicollaborationspaces.config.mazinger.com \"delete\" not found"))
+
+				delete(utils.ReplicationEnabledNode, repObj)
+			})
+		})
+
+		When("Delete event occurs for an object configured for replication from non-hierarchical-source to hierchical destination", func() {
+			It("Should delete the object from the destination endpoint", func() {
+				source := getNonHierarchicalSourceConfig("delete")
+				destination := getHierarchicalDestConfig()
+				remoteHandler = h.NewRemoteHandler(apicollaborationspace, localClient, nil, conf)
+				remoteClient = fake_dynamic.NewSimpleDynamicClient(runtime.NewScheme(), getObject("delete", AcKind, "example"))
+				replicationConfigSpec = utils.ReplicationConfigSpec{LocalClient: localClient, RemoteClient: remoteClient, Source: source, Destination: destination}
+
+				// Enable replication for object "delete" of type apicollaborationspaces.config.mazinger.com
+				repObj := utils.GetReplicationObject(Group, AcKind, "delete")
+				utils.ReplicationEnabledNode[repObj] = make(map[string]utils.ReplicationConfigSpec)
+				utils.ReplicationEnabledNode[repObj][repConfName] = replicationConfigSpec
+
+				gvr := schema.GroupVersionResource{
+					Group:    "config.mazinger.com",
+					Version:  "v1",
+					Resource: "apicollaborationspaces",
+				}
+				// Before delete, object is present.
+				obj, err := remoteClient.Resource(gvr).Get(context.TODO(), "delete", metav1.GetOptions{})
+				Expect(err).NotTo(HaveOccurred())
+				Expect(obj).NotTo(BeNil())
+
+				// Delete the object.
+				err = remoteHandler.Delete(getObject("delete", AcKind, "example"))
+				Expect(err).NotTo(HaveOccurred())
+
+				// After delete, object is removed.
+				_, err = remoteClient.Resource(gvr).Get(context.TODO(), "delete", metav1.GetOptions{})
+				Expect(err).To(HaveOccurred())
+				Expect(err).To(MatchError("apicollaborationspaces.config.mazinger.com \"delete\" not found"))
+
+				delete(utils.ReplicationEnabledNode, repObj)
+			})
+
+			It("Should fail deleting the object from destination", func() {
+				source := getNonHierarchicalSourceConfig("delete")
+				destination := getHierarchicalDestConfig()
+				remoteHandler := h.NewRemoteHandler(apicollaborationspace, localClient, nil, conf)
+				remoteClient := fake_dynamic.NewSimpleDynamicClient(runtime.NewScheme(), getObject("delete", AcKind, "example"))
+				remoteClient.Fake.PrependReactor("delete", "apicollaborationspaces",
+					func(action testing.Action) (bool, runtime.Object, error) {
+						return true, nil, fmt.Errorf("Failed deleting apicollaborationspaces")
+					})
+				replicationConfigSpec = utils.ReplicationConfigSpec{LocalClient: localClient, RemoteClient: remoteClient, Source: source, Destination: destination}
+
+				// Enable replication for object "delete" of type apicollaborationspaces.config.mazinger.com
+				repObj := utils.GetReplicationObject(Group, AcKind, "delete")
+				utils.ReplicationEnabledNode[repObj] = make(map[string]utils.ReplicationConfigSpec)
+				utils.ReplicationEnabledNode[repObj][repConfName] = replicationConfigSpec
+
+				gvr := schema.GroupVersionResource{
+					Group:    "config.mazinger.com",
+					Version:  "v1",
+					Resource: "apicollaborationspaces",
+				}
+				// Before delete, object is present.
+				obj, err := remoteClient.Resource(gvr).Get(context.TODO(), "delete", metav1.GetOptions{})
+				Expect(err).NotTo(HaveOccurred())
+				Expect(obj).NotTo(BeNil())
+
+				// Delete the object.
+				err = remoteHandler.Delete(getObject("delete", AcKind, "example"))
+				Expect(err).To(HaveOccurred())
+
+				delete(utils.ReplicationEnabledNode, repObj)
+			})
 		})
 	})
 })

@@ -45,15 +45,15 @@ func NewClientset(cluster *eks.Cluster) (dynamic.Interface, error) {
 	if err := writeAccessTokenToFile(t.Token); err != nil {
 		return nil, fmt.Errorf("failed to write token to the file: %v", err)
 	}
-	clientset, err := dynamic.NewForConfig(
-		&rest.Config{
-			Host:            aws.StringValue(cluster.Endpoint),
-			BearerTokenFile: TokenFileName,
-			TLSClientConfig: rest.TLSClientConfig{
-				CAData: ca,
-			},
+	conf := &rest.Config{
+		Host:            aws.StringValue(cluster.Endpoint),
+		BearerTokenFile: TokenFileName,
+		TLSClientConfig: rest.TLSClientConfig{
+			CAData: ca,
 		},
-	)
+	}
+	CreateCustomHTTPRoundTripper(conf)
+	clientset, err := dynamic.NewForConfig(conf)
 	if err != nil {
 		return nil, fmt.Errorf("could not generate k8s dynamic remote client: %v", err)
 	}

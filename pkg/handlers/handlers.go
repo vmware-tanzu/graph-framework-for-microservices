@@ -71,7 +71,14 @@ func (h *RemoteHandler) Update(obj interface{}, oldObj interface{}) error {
 	return nil
 }
 
-// TODO: Need to be tracked in a separate JIRA
 func (h *RemoteHandler) Delete(obj interface{}) error {
+	currObj, ok := obj.(*unstructured.Unstructured)
+	if !ok {
+		return fmt.Errorf("unstructured client did not understand object during delete event: %T", obj)
+	}
+
+	if err := h.Replicator(currObj, utils.Del); err != nil {
+		return err
+	}
 	return nil
 }

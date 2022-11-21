@@ -128,10 +128,11 @@ func getNonHierarchicalDestConfig() utils.ReplicationDestination {
 	}
 }
 
-func getNonHierarchicalSourceConfig() utils.ReplicationSource {
+func getNonHierarchicalSourceConfig(name string) utils.ReplicationSource {
 	return utils.ReplicationSource{
 		Kind: utils.Object,
 		Object: &utils.SourceObject{
+			Name: name,
 			ObjectType: utils.ObjectType{
 				Group:   Group,
 				Version: "v1",
@@ -189,10 +190,6 @@ func getHierarchicalDestConfig() utils.ReplicationDestination {
 				{
 					Key:   Config,
 					Value: "config",
-				},
-				{
-					Key:   utils.DisplayNameKey,
-					Value: "bar",
 				},
 			},
 		},

@@ -23,6 +23,12 @@ import (
 	"k8s.io/client-go/tools/clientcmd"
 )
 
+// CustomHTTPRoundTripper adds additional headers to the request
+type CustomHTTPRoundTripper struct {
+	headers map[string][]string
+	rt      http.RoundTripper
+}
+
 func SetUpDynamicRemoteAPI(host, token, cert string, eObj *NexusEndpoint) (dynamic.Interface, error) {
 	if eObj != nil {
 		if eObj.Cloud == "AWS" {
@@ -77,6 +83,7 @@ func SetUpDynamicRemoteAPI(host, token, cert string, eObj *NexusEndpoint) (dynam
 		conf.Transport = nil
 		conf.TLSClientConfig.Insecure = true
 	}
+	CreateCustomHTTPRoundTripper(conf)
 	dynamicRemoteAPI, err := dynamic.NewForConfig(conf)
 	if err != nil {
 		return nil, fmt.Errorf("could not generate k8s dynamic remote client: %v", err)
@@ -166,4 +173,26 @@ func BuildRemoteClientAPI(remoteEndpointHost, remoteEndpointPort, remoteEndpoint
 		return nil, fmt.Errorf("error getting token %v", err)
 	}
 	return SetUpDynamicRemoteAPI(host, accessToken, remoteEndpointCert, nil)
+}
+
+func (h *CustomHTTPRoundTripper) RoundTrip(req *http.Request) (*http.Response, error) {
+	for k, vv := range h.headers {
+		for _, v := range vv {
+			req.Header.Add(k, v)
+		}
+	}
+	return h.rt.RoundTrip(req)
+}
+
+func CreateCustomHTTPRoundTripper(conf *rest.Config) {
+	wt := conf.WrapTransport
+	conf.WrapTransport = func(rt http.RoundTripper) http.RoundTripper {
+		if wt != nil {
+			rt = wt(rt)
+		}
+		return &CustomHTTPRoundTripper{
+			headers: map[string][]string{"Content-Type": {"application/json"}},
+			rt:      rt,
+		}
+	}
 }
