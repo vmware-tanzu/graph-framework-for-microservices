@@ -2,6 +2,8 @@ package nexus_compare
 
 import (
 	"bytes"
+	"errors"
+	"fmt"
 	"os"
 	"regexp"
 
@@ -28,18 +30,7 @@ func CompareFiles(data1, data2 []byte) (bool, *bytes.Buffer, error) {
 		return true, nil, err
 	}
 
-	file1, err := writeTempFile(data1)
-	if err != nil {
-		return true, nil, err
-	}
-	file2, err := writeTempFile(data2)
-	if err != nil {
-		return true, nil, err
-	}
-	defer os.Remove(file1.Name())
-	defer os.Remove(file2.Name())
-
-	spec, status, nexus, err := CompareReports(file1.Name(), file2.Name())
+	spec, status, nexus, err := CompareReports(data1, data2)
 	if err != nil {
 		return true, nil, err
 	}
@@ -87,8 +78,19 @@ func CompareFiles(data1, data2 []byte) (bool, *bytes.Buffer, error) {
 	return true, buffer, nil
 }
 
-func CompareReports(file1, file2 string) (dyff.Report, dyff.Report, dyff.Report, error) {
-	from, to, err := ytbx.LoadFiles(file1, file2)
+func CompareReports(data1, data2 []byte) (dyff.Report, dyff.Report, dyff.Report, error) {
+	file1, err := writeTempFile(data1)
+	if err != nil {
+		return dyff.Report{}, dyff.Report{}, dyff.Report{}, err
+	}
+	file2, err := writeTempFile(data2)
+	if err != nil {
+		return dyff.Report{}, dyff.Report{}, dyff.Report{}, err
+	}
+	defer os.Remove(file1.Name())
+	defer os.Remove(file2.Name())
+
+	from, to, err := ytbx.LoadFiles(file1.Name(), file2.Name())
 	if err != nil {
 		return dyff.Report{}, dyff.Report{}, dyff.Report{}, err
 	}
@@ -107,7 +109,11 @@ func CompareReports(file1, file2 string) (dyff.Report, dyff.Report, dyff.Report,
 	sd := getSpecificReport(report, StatusMatch)
 	specDiffs := filterReport(&sr)
 	statusDiffs := filterReport(&sd)
-	nexusDiffs, err := getAnnotationReport(report)
+
+	nexusDiffs, err := getAnnotationReport(data1, data2)
+	if err != nil {
+		return dyff.Report{}, dyff.Report{}, dyff.Report{}, err
+	}
 
 	return *specDiffs, *statusDiffs, nexusDiffs, err
 
@@ -139,19 +145,21 @@ func filterReport(r *dyff.Report) *dyff.Report {
 	return r
 }
 
-func getNexusAnnotation(file ytbx.InputFile) string {
-	return file.Documents[0].Content[0].Content[5].Content[1].Content[1].Value
-}
-
-func getAnnotationReport(r dyff.Report) (dyff.Report, error) {
-	aNexus := getNexusAnnotation(r.From)
-	bNexus := getNexusAnnotation(r.To)
-
-	aFile, err := writeTempFile([]byte(aNexus))
+func getAnnotationReport(data1, data2 []byte) (dyff.Report, error) {
+	aNexus, err := getMapNode(data1, []string{"metadata", "annotations", "nexus"})
 	if err != nil {
 		return dyff.Report{}, err
 	}
-	bFile, err := writeTempFile([]byte(bNexus))
+	bNexus, err := getMapNode(data2, []string{"metadata", "annotations", "nexus"})
+	if err != nil {
+		return dyff.Report{}, err
+	}
+
+	aFile, err := writeTempFile([]byte(aNexus.(string)))
+	if err != nil {
+		return dyff.Report{}, err
+	}
+	bFile, err := writeTempFile([]byte(bNexus.(string)))
 	if err != nil {
 		return dyff.Report{}, err
 	}
@@ -201,4 +209,22 @@ func getSpecName(data []byte) (string, error) {
 		return "", err
 	}
 	return t["metadata"].(map[string]interface{})["name"].(string), nil
+}
+
+func getMapNode(data []byte, path []string) (interface{}, error) {
+	var t interface{}
+	var ok bool
+	errPath := "root"
+	err := yaml.Unmarshal(data, &t)
+	if err != nil {
+		return map[string]interface{}{}, err
+	}
+	for _, p := range path {
+		errPath += fmt.Sprintf(".%s", p)
+		t, ok = t.(map[string]interface{})[p]
+		if !ok {
+			return map[string]interface{}{}, errors.New(fmt.Sprintf("%s not found while looking for nexus annotation", errPath))
+		}
+	}
+	return t, err
 }
