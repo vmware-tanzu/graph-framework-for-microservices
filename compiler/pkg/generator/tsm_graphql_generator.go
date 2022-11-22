@@ -428,7 +428,11 @@ func GenerateTsmGraphqlSchemaVars(baseGroupName, crdModulePath string, pkgs pars
 			// 	rootOfGraph = isRootOfGraph(nodeHelper.Parents, rootOfGraph)
 			// }
 			setNexusProperties(nodeHelper, node, nodeProp)
-			nodeProp.SchemaName = fmt.Sprintf("%s_%s", pkg.Name, parser.GetTypeName(node))
+			if pkg.Name == "global" {
+				nodeProp.SchemaName = parser.GetTypeName(node)
+			} else {
+				nodeProp.SchemaName = fmt.Sprintf("%s_%s", pkg.Name, parser.GetTypeName(node))
+			}
 
 			// Iterate each node's nexus fields and set its properties
 			tsmProcessNexusFields(pkg, aliasNameMap, node, nodeProp, simpleGroupTypeName, pkgs, gqlSpecMap)
