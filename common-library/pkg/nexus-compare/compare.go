@@ -20,6 +20,9 @@ const (
 	StatusMatch = ".*properties\\/status.*"
 )
 
+//func CompareFilesWithAnnotation(data1, data2 []byte) (bool, *bytes.Buffer, error) {
+//}
+
 func CompareFiles(data1, data2 []byte) (bool, *bytes.Buffer, error) {
 	buffer := new(bytes.Buffer)
 	headerColor, _ := colorful.Hex("#B9311B")
@@ -39,7 +42,7 @@ func CompareFiles(data1, data2 []byte) (bool, *bytes.Buffer, error) {
 	std := len(status.Diffs) > 0
 	nd := len(nexus.Diffs) > 0
 	if !spd && !std && !nd {
-		return true, buffer, nil
+		return false, buffer, nil
 	}
 
 	_, err = buffer.WriteString(bunt.Style(
@@ -133,10 +136,11 @@ func CompareReports(data1, data2 []byte) (dyff.Report, dyff.Report, dyff.Report,
 	specDiffs := filterReport(&sr)
 	statusDiffs := filterReport(&sd)
 
-	nexusDiffs, err := getAnnotationReport(data1, data2)
-	if err != nil {
-		return dyff.Report{}, dyff.Report{}, dyff.Report{}, err
-	}
+	//nexusDiffs, err := getAnnotationReport(data1, data2)
+	//if err != nil {
+	//	return dyff.Report{}, dyff.Report{}, dyff.Report{}, err
+	//}
+	nexusDiffs := dyff.Report{}
 
 	return *specDiffs, *statusDiffs, nexusDiffs, err
 
