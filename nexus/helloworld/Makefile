@@ -33,7 +33,7 @@ datamodel_build:
 			-e CONFIG_FILE=datamodel/nexus.yaml \
 			-e GOPRIVATE=*.eng.vmware.com \
 			-e GOINSECURE=*.eng.vmware.com \
-			gcr.io/nsx-sm/nexus/compiler:$(TAG); \
+			gcr.io/nsx-sm/nexus/compiler:$(TAG) /bin/bash -c 'make generate_code && chown -R $(shell id -u):$(shell id -g) .;'; \
 	else \
 		docker run --pull=missing\
 			--volumes-from=$(CONTAINER_ID) \
