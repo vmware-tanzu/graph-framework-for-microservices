@@ -19,19 +19,26 @@ The goal is to give you a taste on the most interesting and impactful aspects of
 ## Install Nexus CLI 
 
 1. Download Nexus CLI
+
     ```
-    GOPRIVATE="gitlab.eng.vmware.com" go install gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/cmd/plugin/nexus@master
+    curl -fsSL https://raw.githubusercontent.com/vmware-tanzu/graph-framework-for-microservices/main/cli/get-nexus-cli.sh -o get-nexus-cli.sh
+    bash get-nexus-cli.sh
     ```
-   <details><summary>FAQ</summary>
-   a. The above command shows unable to connect to gitlab.eng.vmware.com ?
-      Verify that you have permissions to the repo
+    <details><summary>FAQs</summary>
+      
+    To install the specific version
+    ```
+    bash get-nexus-cli.sh --version <version-tag> 
+    ``` 
+    
+    To install the specific version and the user given destination directory
+    ```
+    bash get-nexus-cli.sh --version <version-tag> --dst_dir <destination-directoy-path>
+    ``` 
+	
+    </details>
+    
 
-       git ls-remote git@gitlab.eng.vmware.com:nsx-allspark_users/nexus-sdk/cli.git
-
-   b. Update gitconfig to use ssh instead of https
-
-       git config --global url.git@gitlab.eng.vmware.com:.insteadOf https://gitlab.eng.vmware.com
-   </details>
 
 2. Verify your environment meets the expected pre-requisites
 
