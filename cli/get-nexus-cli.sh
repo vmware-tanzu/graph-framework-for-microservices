@@ -1,6 +1,17 @@
 #!/bin/bash
 set -e
 
+usage ()
+{
+   echo "======================================================================================================================"
+   echo "Download and install latest Nexus CLI: bash $0 "
+   echo "Download and install Specific Version of Nexus CLI: bash $0 --version v0.0.134"
+   echo "Download and install Specific Version of Nexus CLI in User Defined Path: bash $0 --version v0.0.134 --dst_dir /usr/local/bin"
+   echo "If --dst_dir is configured --> if the given path is required sudo persmission, please run the script with sudo bash $0"
+   echo "======================================================================================================================="
+}
+
+
 while [[ $# -gt 0 ]]; do
  case $1 in
     --repository)
@@ -19,7 +30,7 @@ while [[ $# -gt 0 ]]; do
        shift
        ;;
     --help)
-       help
+       usage
        exit 0
        ;;
     *)
