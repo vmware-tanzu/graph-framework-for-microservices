@@ -316,5 +316,7 @@ func getTsmGraphqlSchemaFieldName(sType GraphQLSchemaType, fieldName, schemaType
 		out := replacer.Replace(parser.GetTsmGraphqlDirectives(f))
 		schemaName += " " + strings.Trim(out, "\"")
 	}
+
+	schemaName = strings.ReplaceAll(schemaName, "global_", "")
 	return schemaName
 }
