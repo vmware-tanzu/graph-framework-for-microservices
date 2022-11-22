@@ -64,6 +64,7 @@ docker_name="nexus-cli"
 darwin_src_path="/nexus/darwin/nexus"
 linux_src_path="/nexus/linux/nexus"
 
+docker pull ${REPOSITORY}:${VERSION} 1> /dev/null
 docker create --name "$docker_name" ${REPOSITORY}:${VERSION} 1> /dev/null
 
 if [ "$OS" == "Darwin" ]; then
