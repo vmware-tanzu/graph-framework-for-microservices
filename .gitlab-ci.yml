@@ -15,6 +15,7 @@ before_script:
   - git config --global credential.helper store
   - echo -e  "https://gitlab-ci-token:${CICD_TOKEN}@gitlab.eng.vmware.com/" >> ~/.git-credentials
   - export GOPRIVATE=gitlab.eng.vmware.com
+  - echo $GCLOUD_AUTH_SERVICE_KEY | docker login -u _json_key --password-stdin gcr.io
 
 .setup_aws: &setup_aws
   - apt clean && apt update -y && apt install unzip -y
@@ -49,6 +50,14 @@ publish-common-api-docker-image:
     - docker login --username AWS -p $(aws ecr get-login-password --region us-west-2) 284299419820.dkr.ecr.us-west-2.amazonaws.com
   script:
     - ./publish-common-api-docker-image.sh
+
+publish-nexus-cli-docker-image:
+  stage: build
+  image: runner.servicemesh.biz:5000/allspark/runner:latest
+  only:
+    - tags
+  script:
+    - ./publish-nexus-cli-docker-image.sh
 
 test:
   stage: test
