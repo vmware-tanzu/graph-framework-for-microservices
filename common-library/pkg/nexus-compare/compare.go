@@ -20,9 +20,6 @@ const (
 	StatusMatch = ".*properties\\/status.*"
 )
 
-//func CompareFilesWithAnnotation(data1, data2 []byte) (bool, *bytes.Buffer, error) {
-//}
-
 func CompareFiles(data1, data2 []byte) (bool, *bytes.Buffer, error) {
 	buffer := new(bytes.Buffer)
 	headerColor, _ := colorful.Hex("#B9311B")
@@ -80,7 +77,7 @@ func CompareFiles(data1, data2 []byte) (bool, *bytes.Buffer, error) {
 		return true, nil, err
 	}
 
-	if spd {
+	if std {
 		_, err = buffer.WriteString("status changes: ")
 		if err != nil {
 			return true, nil, err
@@ -90,7 +87,7 @@ func CompareFiles(data1, data2 []byte) (bool, *bytes.Buffer, error) {
 			return true, nil, err
 		}
 	}
-	if spd {
+	if nd {
 		_, err = buffer.WriteString("nexus annotation changes: ")
 		if err != nil {
 			return true, nil, err
@@ -136,11 +133,10 @@ func CompareReports(data1, data2 []byte) (dyff.Report, dyff.Report, dyff.Report,
 	specDiffs := filterReport(&sr)
 	statusDiffs := filterReport(&sd)
 
-	//nexusDiffs, err := getAnnotationReport(data1, data2)
-	//if err != nil {
-	//	return dyff.Report{}, dyff.Report{}, dyff.Report{}, err
-	//}
-	nexusDiffs := dyff.Report{}
+	nexusDiffs, err := getAnnotationReport(data1, data2)
+	if err != nil {
+		return dyff.Report{}, dyff.Report{}, dyff.Report{}, err
+	}
 
 	return *specDiffs, *statusDiffs, nexusDiffs, err
 
@@ -159,16 +155,21 @@ func getSpecificReport(r dyff.Report, match string) dyff.Report {
 }
 
 func filterReport(r *dyff.Report) *dyff.Report {
-	for i, di := range r.Diffs {
+	var diffs []dyff.Diff
+	for _, di := range r.Diffs {
 		var ds []dyff.Detail
 		for _, d := range di.Details {
 			if d.From != nil || d.To == nil {
 				ds = append(ds, d)
 			}
 		}
+		if ds == nil {
+			continue
+		}
 		di.Details = ds
-		r.Diffs[i] = di
+		diffs = append(diffs, di)
 	}
+	r.Diffs = diffs
 	return r
 }
 
