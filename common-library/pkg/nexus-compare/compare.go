@@ -42,34 +42,57 @@ func CompareFiles(data1, data2 []byte) (bool, *bytes.Buffer, error) {
 		return true, buffer, nil
 	}
 
-	_, _ = buffer.WriteString(bunt.Style(
+	_, err = buffer.WriteString(bunt.Style(
 		"detected changes in model stored in ",
 		bunt.EachLine(),
 		bunt.Foreground(headerColor),
 	))
-	_, _ = buffer.WriteString(bunt.Style(
+	if err != nil {
+		return true, nil, err
+	}
+	_, err = buffer.WriteString(bunt.Style(
 		name,
 		bunt.EachLine(),
 		bunt.Foreground(fileColor),
 	))
-	_, _ = buffer.WriteString("\n\n")
+	if err != nil {
+		return true, nil, err
+	}
+	_, err = buffer.WriteString("\n\n")
+	if err != nil {
+		return true, nil, err
+	}
+
 	if spd {
-		buffer.WriteString("spec changes: ")
+		_, err = buffer.WriteString("spec changes: ")
+		if err != nil {
+			return true, nil, err
+		}
 		err := PrintReportDiff(spec, buffer)
 		if err != nil {
 			return true, nil, err
 		}
 	}
+	if err != nil {
+		return true, nil, err
+	}
+
 	if spd {
-		buffer.WriteString("status changes: ")
-		err := PrintReportDiff(status, buffer)
+		_, err = buffer.WriteString("status changes: ")
+		if err != nil {
+			return true, nil, err
+		}
+		err = PrintReportDiff(status, buffer)
 		if err != nil {
 			return true, nil, err
 		}
 	}
 	if spd {
-		buffer.WriteString("nexus annotation changes: ")
-		err := PrintReportDiff(nexus, buffer)
+		_, err = buffer.WriteString("nexus annotation changes: ")
+		if err != nil {
+			return true, nil, err
+		}
+		err = PrintReportDiff(nexus, buffer)
 		if err != nil {
 			return true, nil, err
 		}
