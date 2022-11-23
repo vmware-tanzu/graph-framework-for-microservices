@@ -46,6 +46,20 @@ var _ = Describe("Compare lib tests", func() {
 			Expect(text.String()).Should(ContainSubstring(v))
 		}
 	})
+	It("should report no changes in nexus annotation with added field, singleton to false and change in api", func() {
+		ans, _, err := CompareFiles([]byte(other), []byte(other2))
+		Expect(err).NotTo(HaveOccurred())
+		Expect(ans).To(BeFalse())
+	})
+	It("should report changes in nexus annotation with deleted field, singleton to true", func() {
+		ans, text, err := CompareFiles([]byte(other2), []byte(other))
+		Expect(err).NotTo(HaveOccurred())
+		Expect(ans).To(BeTrue())
+		changeCheck := []string{"nexus annotation changes", "/children", "accesscontrolpolicies.policypkg.tsm.tanzu.vmware.com:", "/is_singleton", "value change"}
+		for _, v := range changeCheck {
+			Expect(text.String()).Should(ContainSubstring(v))
+		}
+	})
 })
 
 var baseSpec = `
@@ -271,7 +285,7 @@ kind: CustomResourceDefinition
 metadata:
   annotations:
     nexus: |
-      {"name":"gns.Gns","hierarchy":["roots.root.tsm.tanzu.vmware.com","configs.config.tsm.tanzu.vmware.com"],"children":{"accesscontrolpolicies.policypkg.tsm.tanzu.vmware.com":{"fieldName":"GnsAccessControlPolicy","fieldNameGvk":"gnsAccessControlPolicyGvk","isNamed":false},"barchilds.gns.tsm.tanzu.vmware.com":{"fieldName":"FooChild","fieldNameGvk":"fooChildGvk","isNamed":false},"foos.gns.tsm.tanzu.vmware.com":{"fieldName":"Foo","fieldNameGvk":"fooGvk","isNamed":false},"ignorechilds.gns.tsm.tanzu.vmware.com":{"fieldName":"IgnoreChild","fieldNameGvk":"ignoreChildGvk","isNamed":false},"svcgroups.servicegroup.tsm.tanzu.vmware.com":{"fieldName":"GnsServiceGroups","fieldNameGvk":"gnsServiceGroupsGvk","isNamed":true}},"links":{"Dns":{"fieldName":"Dns","fieldNameGvk":"dnsGvk","isNamed":false}},"is_singleton":false,"nexus-rest-api-gen":{"uris":[{"uri":"/v1alpha2/global-namespace/{gns.Gns}","query_params":["config.Config"],"methods":{"DELETE":{"200":{"description":"OK"},"404":{"description":"Not Found"},"501":{"description":"Not Implemented"}},"GET":{"200":{"description":"OK"},"404":{"description":"Not Found"},"501":{"description":"Not Implemented"}},"PUT":{"200":{"description":"OK"},"201":{"description":"Created"},"501":{"description":"Not Implemented"}}}},{"uri":"/v1alpha2/global-namespaces","query_params":["config.Config"],"methods":{"LIST":{"200":{"description":"OK"},"404":{"description":"Not Found"},"501":{"description":"Not Implemented"}}}},{"uri":"/test-foo","query_params":["config.Config"],"methods":{"DELETE":{"200":{"description":"ok"},"404":{"description":"Not Found"},"501":{"description":"Not Implemented"}}}},{"uri":"/test-bar","query_params":["config.Config"],"methods":{"PATCH":{"400":{"description":"Bad Request"}}}}]},"description":"this is my awesome node"}
+      {"name":"gns.Gns","hierarchy":["roots.root.tsm.tanzu.vmware.com","configs.config.tsm.tanzu.vmware.com"],"children":{"barchilds.gns.tsm.tanzu.vmware.com":{"fieldName":"FooChild","fieldNameGvk":"fooChildGvk","isNamed":false},"foos.gns.tsm.tanzu.vmware.com":{"fieldName":"Foo","fieldNameGvk":"fooGvk","isNamed":false},"ignorechilds.gns.tsm.tanzu.vmware.com":{"fieldName":"IgnoreChild","fieldNameGvk":"ignoreChildGvk","isNamed":false},"svcgroups.servicegroup.tsm.tanzu.vmware.com":{"fieldName":"GnsServiceGroups","fieldNameGvk":"gnsServiceGroupsGvk","isNamed":true}},"links":{"Dns":{"fieldName":"Dns","fieldNameGvk":"dnsGvk","isNamed":false}},"is_singleton":true,"nexus-rest-api-gen":{"uris":[{"uri":"/v1alpha2/global-namespace/{gns.Gns}","query_params":["config.Config"],"methods":{"DELETE":{"200":{"description":"OK"},"404":{"description":"Not Found"},"501":{"description":"Not Implemented"}},"GET":{"200":{"description":"OK"},"404":{"description":"Not Found"},"501":{"description":"Not Implemented"}},"PUT":{"200":{"description":"OK"},"201":{"description":"Created"},"501":{"description":"Not Implemented"}}}},{"uri":"/v1alpha2/global-namespaces","query_params":["config.Config"],"methods":{"LIST":{"200":{"description":"OK"},"404":{"description":"Not Found"},"501":{"description":"Not Implemented"}}}},{"uri":"/test-foo","query_params":["config.Config"],"methods":{"DELETE":{"200":{"description":"ok"},"404":{"description":"Not Found"},"501":{"description":"Not Implemented"}}}},{"uri":"/test-bar","query_params":["config.Config"],"methods":{"PATCH":{"400":{"description":"Bad Request"}}}}]},"description":"this is my awesome node"}
   creationTimestamp: null
   name: gnses.gns.tsm.tanzu.vmware.com
 spec:

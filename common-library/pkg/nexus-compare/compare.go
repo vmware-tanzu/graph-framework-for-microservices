@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"os"
 	"regexp"
+	"strconv"
+	"strings"
 
 	"gopkg.in/yaml.v3"
 
@@ -16,8 +18,10 @@ import (
 )
 
 const (
-	SpecMatch   = ".*properties\\/spec.*"
-	StatusMatch = ".*properties\\/status.*"
+	SpecMatch     = ".*properties\\/spec.*"
+	StatusMatch   = ".*properties\\/status.*"
+	SingletonPath = "/is_singleton"
+	ApiGenPath    = "/nexus-rest-api-gen"
 )
 
 func CompareFiles(data1, data2 []byte) (bool, *bytes.Buffer, error) {
@@ -133,12 +137,13 @@ func CompareReports(data1, data2 []byte) (dyff.Report, dyff.Report, dyff.Report,
 	specDiffs := filterReport(&sr)
 	statusDiffs := filterReport(&sd)
 
-	nexusDiffs, err := getAnnotationReport(data1, data2)
+	nd, err := getAnnotationReport(data1, data2)
 	if err != nil {
 		return dyff.Report{}, dyff.Report{}, dyff.Report{}, err
 	}
+	nexusDiffs := filterReport(&nd)
 
-	return *specDiffs, *statusDiffs, nexusDiffs, err
+	return *specDiffs, *statusDiffs, *nexusDiffs, err
 
 }
 
@@ -159,9 +164,16 @@ func filterReport(r *dyff.Report) *dyff.Report {
 	for _, di := range r.Diffs {
 		var ds []dyff.Detail
 		for _, d := range di.Details {
-			if d.From != nil || d.To == nil {
-				ds = append(ds, d)
+			if d.From == nil && d.To != nil { // allow to add stuff
+				continue
 			}
+			if di.Path.String() == SingletonPath && d.From.Value == strconv.FormatBool(true) && d.To.Value == strconv.FormatBool(false) { // allow singleton change to false
+				continue
+			}
+			if strings.HasPrefix(di.Path.String(), ApiGenPath) { //allow changes in api
+				continue
+			}
+			ds = append(ds, d)
 		}
 		if ds == nil {
 			continue
@@ -171,6 +183,7 @@ func filterReport(r *dyff.Report) *dyff.Report {
 	}
 	r.Diffs = diffs
 	return r
+
 }
 
 func getAnnotationReport(data1, data2 []byte) (dyff.Report, error) {
