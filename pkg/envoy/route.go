@@ -170,8 +170,8 @@ func defaultRoute() *route.Route {
 func getLoginRoute() *route.Route {
 	return &route.Route{
 		Match: &route.RouteMatch{
-			PathSpecifier: &route.RouteMatch_Path{
-				Path: common.LoginEndpoint,
+			PathSpecifier: &route.RouteMatch_Prefix{
+				Prefix: common.LoginEndpoint,
 			},
 		},
 		Action: &route.Route_Route{

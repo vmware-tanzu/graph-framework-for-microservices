@@ -135,8 +135,8 @@ func getHttpFilters(jwtAuthnConfig *JwtAuthnConfig) ([]*hcm.HttpFilter, error) {
 		Rules: []*jwtauthnv3.RequirementRule{
 			{
 				Match: &route.RouteMatch{
-					PathSpecifier: &route.RouteMatch_Path{
-						Path: common.LoginEndpoint,
+					PathSpecifier: &route.RouteMatch_Prefix{
+						Prefix: common.LoginEndpoint,
 					},
 				},
 			},
@@ -189,7 +189,7 @@ function envoy_on_response(response_handle)
     if response_handle:headers():get(":status") == "401" then
         response_handle:logInfo("Got status 401, redirect to login...")
         response_handle:headers():replace(":status", "307")
-        response_handle:headers():add("location", "%s")
+        response_handle:headers():add("location", "%s?state="..response_handle:headers():get("www-authenticate"))
     end
 end
 `, common.LoginEndpoint),
