@@ -1,12 +1,22 @@
 # dummy size option
 
-{{- define "default" }}
+{{- define "etcd-default" }}
               cpu: 500m
               memory: 128Mi
 {{- end }}
 
 {{- define "k8s-api-server-default" }}
               cpu: 500m
+              memory: 500Mi
+{{- end }}
+
+{{- define "k8s-api-server-default-request" }}
+              cpu: 250m
+              memory: 500Mi
+{{- end }}
+
+{{- define "k8s-ctrl-mgr-default" }}
+              cpu: 100m
               memory: 500Mi
 {{- end }}
 
@@ -29,7 +39,7 @@
                 {{- end }}
               {{- end }}
             {{- else }}
-              {{- template "default" . }}
+              {{- template "etcd-default" . }}
             {{- end }}
             requests:
             {{- if .Values.global.resources }}
@@ -42,7 +52,7 @@
                 {{- end }}
               {{- end }}
             {{- else }}
-              {{- template "default" . }}
+              {{- template "etcd-default" . }}
             {{- end }}
 {{- end }}
 
@@ -60,7 +70,7 @@
               {{- end }}
             {{- end }}
           {{- else }}
-          {{- template "k8s-api-server-default" . }}
+          {{- template "k8s-ctrl-mgr-default" . }}
           {{- end }}
           requests:
           {{- if .Values.global.resources }}
@@ -73,7 +83,7 @@
               {{- end }}
             {{- end }}
           {{- else }}
-            {{- template "k8s-api-server-default" . }}
+            {{- template "k8s-ctrl-mgr-default" . }}
           {{- end }}
 {{- end }}
 
@@ -104,38 +114,6 @@
               {{- end }}
             {{- end }}
           {{- else }}
-            {{- template "k8s-api-server-default" . }}
+            {{- template "k8s-api-server-default-request" . }}
           {{- end }}
-{{- end }}
-
-
-{{- define "graphql_resources" }}
-                resources:
-                  limits:
-                  # this is to check if the override value is present if not we will set it to default
-                  {{- if .Values.global.resources }}
-                    {{- if .Values.global.resources.graphql }}
-                    cpu: {{ .Values.global.resources.graphql.cpu }}
-                    memory: {{ .Values.global.resources.graphql.memory }}
-                    {{- else }}
-                      {{- if eq .Values.global.size "small" }}
-                    {{- template "small" . }}
-                      {{- end }}
-                    {{- end }}
-                  {{- else }}
-                    {{- template "default" . }}
-                  {{- end }}
-                  requests:
-                  {{- if .Values.global.resources }}
-                    {{- if .Values.global.resources.graphql }}
-                    cpu: {{ .Values.global.resources.graphql.cpu }}
-                    memory: {{   .Values.global.resources.graphql.memory }}
-                    {{- else }}
-                      {{- if eq .Values.global.size "small" }}
-                    {{- template "small" . }}
-                      {{- end }}
-                    {{- end }}
-                  {{- else }}
-                    {{- template "default" . }}
-                  {{- end }}
 {{- end }}
