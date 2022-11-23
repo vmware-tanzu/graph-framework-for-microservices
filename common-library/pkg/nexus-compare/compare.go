@@ -210,7 +210,7 @@ func getAnnotationReport(data1, data2 []byte) (dyff.Report, error) {
 }
 
 func PrintReportDiff(report dyff.Report, buffer *bytes.Buffer) error {
-	h := &dyff.HumanReport{
+	h := CustomReport{
 		Report:               report,
 		DoNotInspectCerts:    true,
 		NoTableStyle:         true,
