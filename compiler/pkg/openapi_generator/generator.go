@@ -343,6 +343,40 @@ func splitCRDs(content []byte) []string {
 	return strings.Split(string(content), "---")
 }
 
+func checkBackwardCompatibility(inCompatibleCRDs []*bytes.Buffer, crd extensionsv1.CustomResourceDefinition, oldCRDContent []byte) ([]*bytes.Buffer, error) {
+	oldCRDParts := splitCRDs(oldCRDContent)
+	for _, oldPart := range oldCRDParts {
+		if oldPart == "" {
+			continue
+		}
+		oldCRD := &extensionsv1.CustomResourceDefinition{}
+		err := yaml.Unmarshal([]byte(oldPart), oldCRD)
+		if err != nil {
+			return nil, fmt.Errorf("error unmarshaling existing crd: %v", err)
+		}
+
+		newCRDPart, err := yaml.Marshal(&crd)
+		if err != nil {
+			return nil, fmt.Errorf("error marshaling new crd: %v", err)
+		}
+
+		if oldCRD.Name != crd.Name {
+			continue
+		}
+
+		// When there is a backward incompatibility, we fail the build if we don't force an upgrade.
+		isInCompatible, message, err := nexus_compare.CompareFiles([]byte(oldPart), newCRDPart)
+		if err != nil {
+			log.Errorf("Error occurred while checking CRD's %q backward compatibility: %v", crd.Name, err)
+		}
+		if isInCompatible {
+			log.Warnf("CRD %q is incompatible with the previous version", crd.Name)
+			inCompatibleCRDs = append(inCompatibleCRDs, message)
+		}
+	}
+	return inCompatibleCRDs, nil
+}
+
 func (g *Generator) UpdateYAMLs(yamlsPath, oldYamlsPath string, force bool) error {
 	var inCompatibleCRDs []*bytes.Buffer
 	if err := filepath.Walk(yamlsPath, func(path string, info os.FileInfo, err error) error {
@@ -401,35 +435,8 @@ func (g *Generator) UpdateYAMLs(yamlsPath, oldYamlsPath string, force bool) erro
 			}
 
 			if oldCRDContent != nil {
-				oldCRDParts := splitCRDs(oldCRDContent)
-				for _, oldPart := range oldCRDParts {
-					if oldPart == "" {
-						continue
-					}
-					oldCRD := &extensionsv1.CustomResourceDefinition{}
-					err = yaml.Unmarshal([]byte(oldPart), oldCRD)
-					if err != nil {
-						return fmt.Errorf("error unmarshaling existing crd: %v", err)
-					}
-
-					newCRDPart, err := yaml.Marshal(&crd)
-					if err != nil {
-						return fmt.Errorf("error marshaling new crd: %v", err)
-					}
-
-					if oldCRD.Name != crd.Name {
-						continue
-					}
-
-					// When there is a backward incompatibility, we fail the build if we don't force an upgrade.
-					isInCompatible, message, err := nexus_compare.CompareFiles([]byte(oldPart), newCRDPart)
-					if err != nil {
-						log.Errorf("Error occurred while checking CRD's %q backward compatibility: %v", crd.Name, err)
-					}
-					if isInCompatible {
-						log.Warnf("CRD %q is incompatible with the previous version", crd.Name)
-						inCompatibleCRDs = append(inCompatibleCRDs, message)
-					}
+				if inCompatibleCRDs, err = checkBackwardCompatibility(inCompatibleCRDs, crd, oldCRDContent); err != nil {
+					return err
 				}
 			}
 			crds = append(crds, crd)
