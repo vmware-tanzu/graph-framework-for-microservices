@@ -40,7 +40,6 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
-default_path=""
 
 if [ -z "$REPOSITORY" ]
 then
@@ -54,8 +53,7 @@ fi
 
 if [ -z "$DST_DIR" ]
 then
-   default_path="$PWD"
-   DST_DIR="$default_path"
+   DST_DIR="$PWD"
 fi
 
 OS=`uname -s`
@@ -77,11 +75,6 @@ fi
 
 docker rm -f ${docker_name} 1> /dev/null
 
-if [ -n "$default_path" ]
-then
-    echo -e "The nexus cli binary downloaded here: $default_path/nexus\nPlease place the nexus cli binary in the User PATH, hence it's accessible from anywhere in the shell"
-else
-    echo "The nexus cli binary downloaded here: $DST_DIR/nexus"
-fi
+echo "The nexus cli binary downloaded here: $DST_DIR/nexus"
 
 
