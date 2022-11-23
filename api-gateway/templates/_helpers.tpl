@@ -1,6 +1,11 @@
 # dummy size option
-{{- define "default" }}
-              cpu: 500m
+{{- define "api-gw-default" }}
+              cpu: 250m
+              memory: 128Mi
+{{- end }}
+
+{{- define "api-gw-default-request" }}
+              cpu: 100m
               memory: 128Mi
 {{- end }}
 
@@ -9,7 +14,7 @@
               memory: 128Mi
 {{- end }}
 
-{{- define "resources" }}
+{{- define "api_gw_resources" }}
           resources:
             limits:
             # this is to check if the override value is present if not we will set it to default
@@ -23,7 +28,7 @@
                 {{- end }}
               {{- end }}
             {{- else }}
-              {{- template "default" . }}
+              {{- template "api-gw-default" . }}
             {{- end }}
             requests:
             {{- if .Values.global.resources }}
@@ -36,6 +41,6 @@
                 {{- end }}
               {{- end }}
             {{- else }}
-              {{- template "default" . }}
+              {{- template "api-gw-default-request" . }}
             {{- end }}
 {{- end }}
