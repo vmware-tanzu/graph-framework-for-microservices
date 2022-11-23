@@ -1,6 +1,11 @@
 # dummy size option
-{{- define "default" }}
-              cpu: 500m
+{{- define "controller-default" }}
+              cpu: 100m
+              memory: 128Mi
+{{- end }}
+
+{{- define "controller-default-request" }}
+              cpu: 50m
               memory: 128Mi
 {{- end }}
 
@@ -9,7 +14,7 @@
               memory: 128Mi
 {{- end }}
 
-{{- define "resources" }}
+{{- define "controller_resources" }}
           resources:
             limits:
             # this is to check if the override value is present if not we will set it to default
@@ -23,12 +28,12 @@
                 {{- end }}
               {{- end }}
             {{- else }}
-              {{- template "default" . }}
+              {{- template "controller-default" . }}
             {{- end }}
             requests:
               {{- if .Values.global.resources }}
                 {{- if .Values.global.resources.nexus_controller }}
-              cpu: {{ .Values.global.resources.nexus_controller.cpu "500m" }}
+              cpu: {{ .Values.global.resources.nexus_controller.cpu }}
               memory: {{  .Values.global.resources.nexus_controller.memory }}
                 {{- else }}
                   {{- if eq .Values.global.size "small" }}
@@ -36,6 +41,6 @@
                   {{- end }}
                 {{- end }}
               {{- else }}
-              {{- template "default" . }}
+              {{- template "controller-default-request" . }}
               {{- end }}
 {{- end }}
