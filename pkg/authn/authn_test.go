@@ -10,6 +10,7 @@ import (
 	"api-gw/pkg/server/echo_server"
 	"api-gw/pkg/utils"
 	"context"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 
@@ -150,6 +151,15 @@ var _ = Describe("Authn tests", func() {
 				err = authn.LoginHandler(c)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(rec.Code).To(Equal(307))
+
+				req = httptest.NewRequest(http.MethodPost, fmt.Sprintf("%s?state=/test", common.LoginEndpoint), nil)
+				rec = httptest.NewRecorder()
+				c = e.Echo.NewContext(req, rec)
+
+				err = authn.LoginHandler(c)
+				Expect(err).NotTo(HaveOccurred())
+				Expect(rec.Code).To(Equal(307))
+
 			})
 
 			It("should return 200 for logout handler when when oidc is enabled but "+
