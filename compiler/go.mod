@@ -9,7 +9,7 @@ require (
 	github.com/onsi/ginkgo v1.16.5
 	github.com/onsi/gomega v1.20.2
 	github.com/sirupsen/logrus v1.8.1
-	github.com/vmware-tanzu/graph-framework-for-microservices/common-library v0.0.0-20221122145429-2519fcac1aab
+	github.com/vmware-tanzu/graph-framework-for-microservices/common-library v0.0.0-20221123153632-2855a32f9dfd
 	github.com/vmware-tanzu/graph-framework-for-microservices/kube-openapi v0.0.0-20220603123335-7416bd4754d3
 	github.com/vmware-tanzu/graph-framework-for-microservices/nexus v0.0.0-00010101000000-000000000000
 	golang.org/x/mod v0.6.0-dev.0.20220419223038-86c51ed26bb4

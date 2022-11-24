@@ -13,19 +13,19 @@ import (
 
 func main() {
 	var (
-		yamlsPath   string
-		oldYamlPath string
-		forceStr    string
+		yamlsPath    string
+		oldYamlPath  string
+		forceUpgrade string // Used to denote the forced upgrade of a data model.
 	)
 	flag.StringVar(&yamlsPath, "yamls-path", "", "Path to directory containing CRD YAML definitions")
 	flag.StringVar(&oldYamlPath, "old-yamls-path", "", "Path to directory containing existing CRD YAML definitions")
-	flag.StringVar(&forceStr, "force", "", "Set to true to force the nexus datamodel upgrade. \"+\n\t\t\t\"Defaults to `false`")
+	flag.StringVar(&forceUpgrade, "force", "", "Set to true to force the nexus datamodel upgrade. \"+\n\t\t\t\"Defaults to `false`")
 	flag.Parse()
 	if yamlsPath == "" {
 		panic("yamls-path is empty. Run with -h for help")
 	}
 
-	force, err := strconv.ParseBool(forceStr)
+	force, err := strconv.ParseBool(forceUpgrade)
 	if err != nil {
 		panic("invalid flag for nexus datamodel upgrade")
 	}
