@@ -131,6 +131,27 @@ spec:
               done
               echo 'Nexus CRD is installed'
 
+               echo 'waiting for Config CRD to be installed...'
+              until $(kubectl get crd/configs.config.nexus.org > /dev/null 2>&1); do
+                echo '.'
+                sleep 5
+              done
+              echo 'Config CRD is installed'
+
+              echo 'waiting for Connect CRD to be installed...'
+              until $(kubectl get crd/connects.connect.nexus.org > /dev/null 2>&1); do
+                echo '.'
+                sleep 5
+              done
+              echo 'Connect CRD is installed'
+
+              echo 'waiting for ApiGateway CRD to be installed...'
+              until $(kubectl get crd/apigateways.apigateway.nexus.org > /dev/null 2>&1); do
+                echo '.'
+                sleep 5
+              done
+              echo 'ApiGateway CRD is installed'
+
               if ! kubectl get nexuses.api.nexus.org -l nexus/display_name=default -o=jsonpath='{.items[0]}' > /dev/null 2>&1 ; then
                 echo 'creating Nexus node'
                 cat > /tmp/object <<EOF
@@ -142,12 +163,7 @@ spec:
                 create_object /tmp/object
               fi
 
-              echo 'waiting for Config CRD to be installed...'
-              until $(kubectl get crd/configs.config.nexus.org > /dev/null 2>&1); do
-                echo '.'
-                sleep 5
-              done
-              echo 'Config CRD is installed'
+
 
               if ! kubectl get configs.config.nexus.org -l nexus/display_name=default -o=jsonpath='{.items[0]}' > /dev/null 2>&1 ; then
                 echo 'creating Config node'
@@ -162,13 +178,6 @@ spec:
               create_object /tmp/object
               fi
 
-              echo 'waiting for Connect CRD to be installed...'
-              until $(kubectl get crd/connects.connect.nexus.org > /dev/null 2>&1); do
-                echo '.'
-                sleep 5
-              done
-              echo 'Connect CRD is installed'
-
               if ! kubectl get connects.connect.nexus.org -l nexus/display_name=default -o=jsonpath='{.items[0]}' > /dev/null 2>&1 ; then
                 echo 'creating Connect node'
                 cat > /tmp/object <<EOF
@@ -182,13 +191,6 @@ spec:
               EOF
               create_object /tmp/object
               fi
-
-              echo 'waiting for ApiGateway CRD to be installed...'
-              until $(kubectl get crd/apigateways.apigateway.nexus.org > /dev/null 2>&1); do
-                echo '.'
-                sleep 5
-              done
-              echo 'ApiGateway CRD is installed'
 
               if ! kubectl get apigateways.apigateway.nexus.org -l nexus/display_name=default -o=jsonpath='{.items[0]}' > /dev/null 2>&1 ; then
                 echo 'creating ApiGateway node'
