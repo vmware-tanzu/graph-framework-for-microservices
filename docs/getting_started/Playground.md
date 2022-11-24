@@ -131,11 +131,6 @@ type Engineer struct {
    ```
    nexus datamodel build --name orgchart
    ```
-5. Package datamodel as docker image
-
-   ```
-   DOCKER_REPO=orgchart VERSION=latest make docker_build
-   ```
 
 ## Install Datamodel
 
