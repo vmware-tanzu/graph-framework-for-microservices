@@ -30,6 +30,7 @@ var jwtClaimValue string
 var skipAdminBootstrap bool
 var cpuResources *[]string
 var memoryResources *[]string
+var additionalOptions *[]string
 
 type RuntimeInstallerData struct {
 	RuntimeInstaller  common.RuntimeInstaller
@@ -124,6 +125,9 @@ func HelmInstall(cmd *cobra.Command, args []string) error {
 	}
 	for _, value := range *memoryResources {
 		cmdlineArgs = fmt.Sprintf("%sglobal.resources.%s.memory=%s,", cmdlineArgs, strings.Split(value, "=")[0], strings.Split(value, "=")[1])
+	}
+	for _, value := range *additionalOptions {
+		cmdlineArgs = fmt.Sprintf("%sglobal.%s=\"%s\"", cmdlineArgs, strings.Split(value, "=")[0], strings.Split(value, "=")[1])
 	}
 	cmdlineArgs = fmt.Sprintf("%sglobal.namespace=%s", cmdlineArgs, Namespace)
 	cmdlineArgs = fmt.Sprintf("%s,global.registry=%s", cmdlineArgs, Registry)
@@ -296,6 +300,8 @@ func init() {
 		[]string{}, "for configuring cpu resources")
 	memoryResources = InstallCmd.Flags().StringArrayP("memoryResources", "",
 		[]string{}, "for configuring memory resources")
+	additionalOptions = InstallCmd.Flags().StringArrayP("options", "",
+		[]string{}, "for configuring additional helm values")
 
 	err := cobra.MarkFlagRequired(InstallCmd.Flags(), "namespace")
 	if err != nil {
