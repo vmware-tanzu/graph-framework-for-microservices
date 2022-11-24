@@ -67,7 +67,7 @@ spec:
           imagePullPolicy: IfNotPresent
           command:
             - /bin/bash
-            - -c 
+            - -c
             - |
                 #!/bin/bash
                 set -x
@@ -88,6 +88,27 @@ spec:
                   fi
                   done
                 }
+                echo 'waiting for Nexus CRD to be installed...'
+                until $(kubectl -s nexus-api-gw:80 get crd/nexuses.api.nexus.org > /dev/null 2>&1); do
+                  echo '.'
+                  sleep 5
+                done
+                echo 'NexusAPI CRD is installed'
+
+                echo 'waiting for Config CRD to be installed...'
+                until $(kubectl -s nexus-api-gw:80 get crd/configs.config.nexus.org > /dev/null 2>&1); do
+                  echo '.'
+                  sleep 5
+                done
+                echo 'Config CRD is installed'
+
+                echo 'waiting for Route CRD to be installed...'
+                until $(kubectl -s nexus-api-gw:80 get crd/routes.route.nexus.org > /dev/null 2>&1); do
+                  echo '.'
+                  sleep 5
+                done
+                echo 'Route CRD is installed'
+
                 echo "Creating custom route object"
                 cat > /tmp/object <<EOF
                 apiVersion: route.nexus.org/v1
