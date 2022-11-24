@@ -27,4 +27,4 @@ The workload can be re-run by creating a new job and reconfiguring the config ma
 ## Architecture of the tool
 
 Below image shows the high level architecture
-![Architecture image](images/nexus_calibration_tool.jpeg?raw=true "Tool Architecture")
+![Architecture image](images/nexus_calib_tool_image.jpeg?raw=true "Tool Architecture")
