@@ -184,7 +184,7 @@ func (e *Executor) parseQuery(ctx context.Context, stats *graphql.Stats, query s
 	stats.Validation.Start = graphql.Now()
 
 	if len(doc.Operations) == 0 {
-		err = gqlerror.Errorf("no operation provided")
+		err = gqlerror.Errorf("Please Provide Valid GraphQL Query")
 		gqlErr, _ := err.(*gqlerror.Error)
 		errcode.Set(err, errcode.ValidationFailed)
 		return nil, gqlerror.List{gqlErr}
