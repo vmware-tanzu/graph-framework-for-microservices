@@ -107,6 +107,33 @@ func SetDatamodelDockerRepo(repoName string) error {
 
 }
 
+func SetDatamodelName(dmName string) error {
+	_, err := os.Stat(common.NexusDMPropertiesFile)
+	if err != nil {
+		return fmt.Errorf("could not find nexus.yaml: %v", err)
+	}
+	data, err := ioutil.ReadFile(common.NexusDMPropertiesFile)
+	if err != nil {
+		return fmt.Errorf("could not read yamlfile: %v", err)
+	}
+	config := make(map[string]string)
+	err = yaml.Unmarshal(data, &config)
+	if err != nil {
+		return fmt.Errorf("could not unmarshal yamlfile")
+	}
+	config["datamodelName"] = dmName
+	outData, err := yaml.Marshal(config)
+	if err != nil {
+		return fmt.Errorf("could not marshal yamlfile: %v", err)
+	}
+	err = ioutil.WriteFile(common.NexusDMPropertiesFile, outData, os.ModePerm)
+	if err != nil {
+		return fmt.Errorf("could not write to yamlfile: %v", err)
+	}
+	return nil
+
+}
+
 func RunDatamodelInstaller(DatamodelJobSpecConfig, Namespace, DatamodelName string, data common.Datamodel) error {
 	fileContents, err := exec.Command("kubectl", "get", "cm", DatamodelJobSpecConfig, "-n", Namespace, "-ojsonpath={.data.jobSpec\\.yaml}").Output()
 	if err != nil {

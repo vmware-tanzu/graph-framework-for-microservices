@@ -40,6 +40,7 @@ const (
 	RUNTIME_PREREQUISITE_IMAGE_PREP_FAILED       ClientErrorCode = 28
 	RUNTIME_INSTALL_API_DATAMODEL_INSTALL_FAILED ClientErrorCode = 29
 	RUNTIME_INSTALL_API_DATAMODEL_INIT_FAILED    ClientErrorCode = 30
+	DATAMODEL_DOCKER_IMAGE_BUILD_FAILED          ClientErrorCode = 31
 )
 
 // ClientError defines error and information around it that are specific
@@ -257,6 +258,14 @@ var wellKnownErrors = map[ClientErrorCode]ClientError{
 			"verify that you have internet connectivity",
 			"verify that the kube context is set correctly",
 			"ensure that you have free ports to port-forward to the nexus-proxy-container",
+		},
+		fatal: true,
+	},
+	DATAMODEL_DOCKER_IMAGE_BUILD_FAILED: {
+		Description: "datamodel docker image build failed",
+		WhatNext: []string{
+			"run with --debug option to get detailed logging on the docker image build",
+			"ensure nexus datamodel build is executed and its successful ",
 		},
 		fatal: true,
 	},

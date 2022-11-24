@@ -25,6 +25,7 @@ var DatamodelName string
 var GroupName string
 var localDatamodel bool
 var dockerRepo string
+var BuildDockerImg bool
 
 func createDatamodel(dmName string, DatamodelTarballUrl string, Render bool, standalone bool) error {
 	var Directory string
