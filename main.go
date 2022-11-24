@@ -16,6 +16,8 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
+var testMap map[string]*workmanager.Worker
+
 type Server struct {
 	URL    string `yaml:"url" json:"url"`
 	Zipkin string `yaml:"zipkin" json:"zipkin"`
@@ -61,6 +63,7 @@ var restTests rest.RestData
 func httpServe() {
 	r := mux.NewRouter()
 	r.HandleFunc("/tests/{test}", TestHandler).Methods("POST")
+	r.HandleFunc("/tests/{test}", TestStopHandler).Methods("DELETE")
 	r.HandleFunc("/rest/tests", ListRestTests).Methods("GET")
 	r.HandleFunc("/rest/tests", PostRestTests).Methods("POST")
 	log.Println("Starting http server to serve tests")
@@ -94,12 +97,16 @@ func ListRestTests(w http.ResponseWriter, r *http.Request) {
 
 func TestHandler(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	test := vars["test"]
-	fmt.Fprintf(w, "Monitor the log for status of the test, or the grafana dashboard %s \n", test)
+	testKey := vars["test"]
 	decoder := json.NewDecoder(r.Body)
 	var conf Conf
 	decoder.Decode(&conf)
 	log.Println(conf)
+	if testMap[testKey] != nil {
+		fmt.Fprintf(w, "The test %s already exists, use a different tests name\n", testKey)
+		return
+	}
+	fmt.Fprintf(w, "Monitor the log for status of the test, or the grafana dashboard %s \n", testKey)
 	go func() {
 
 		//restCallPath := "rest_data.yaml"
@@ -111,9 +118,10 @@ func TestHandler(w http.ResponseWriter, r *http.Request) {
 		// Prepare and run graphql tests
 		// GraphQL query worker
 
-		w := workmanager.Worker{
+		worker := workmanager.Worker{
 			FuncMap: restTests.FuncMap,
 		}
+		testMap[testKey] = &worker
 		for _, test := range conf.Tests {
 			// Default sample rate
 			log.Println("Test Name: ", test.Name)
@@ -121,22 +129,22 @@ func TestHandler(w http.ResponseWriter, r *http.Request) {
 			if test.SampleRate > 0 {
 				samplingRate = test.SampleRate
 			}
-			w.ZipkinEndPoint = conf.Server.Zipkin
-			w.SampleRate = samplingRate
-			w.OpsIterations = test.OpsCount
-			w.GqlURL = gqlURL
+			worker.ZipkinEndPoint = conf.Server.Zipkin
+			worker.SampleRate = samplingRate
+			worker.OpsIterations = test.OpsCount
+			worker.GqlURL = gqlURL
 			// initialize graphql
-			w.GraphqlFuncMap = graphqlcalls.GraphqlFuncMap
+			worker.GraphqlFuncMap = graphqlcalls.GraphqlFuncMap
 			if test.OpsCount == 0 && test.Timeout == 0 {
 				log.Printf("Connot run tests, One of ops count or timeout for tests have to be provided\n")
 			}
 			for _, funcKey := range test.Rest {
-				w.WorkerType = 0
-				testRunner(&w, funcKey, test.Concurrency, test.Timeout, conf.Server.Tsdb)
+				worker.WorkerType = 0
+				testRunner(&worker, funcKey, test.Concurrency, test.Timeout, conf.Server.Tsdb, testKey)
 			}
 			for _, funcKey := range test.Graphql {
-				w.WorkerType = 1
-				testRunner(&w, funcKey, test.Concurrency, test.Timeout, conf.Server.Tsdb)
+				worker.WorkerType = 1
+				testRunner(&worker, funcKey, test.Concurrency, test.Timeout, conf.Server.Tsdb, testKey)
 			}
 
 		}
@@ -144,12 +152,25 @@ func TestHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Println(conf.Tests)
 }
 
+func TestStopHandler(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	testKey := vars["test"]
+	fmt.Fprintf(w, "Test %s is being stopped \n", testKey)
+	if testMap[testKey] != nil {
+		worker := testMap[testKey]
+		worker.WorkerStop()
+	} else {
+		fmt.Fprintf(w, "Test %s doesn't exist \n", testKey)
+	}
+}
+
 func main() {
 	// read conf
+	testMap = make(map[string]*workmanager.Worker)
 	httpServe()
 }
 
-func testRunner(w *workmanager.Worker, funcKey string, concurrency int, timeout int, tsdbConnStr string) {
+func testRunner(w *workmanager.Worker, funcKey string, concurrency int, timeout int, tsdbConnStr string, test string) {
 	log.Println(funcKey)
 	w.WorkerStart(funcKey, concurrency, timeout)
 	time.Sleep(5 * time.Second)
@@ -164,6 +185,6 @@ func testRunner(w *workmanager.Worker, funcKey string, concurrency int, timeout 
 		}
 		// insert data onto timescale db
 		traceparser.InsertData(tsdbConnStr, tsData)
-
 	}
+	delete(testMap, test)
 }

@@ -80,16 +80,24 @@ func (w *Worker) WorkerStart(job string, concurrency int, runFor int) {
 	// set moduloRats
 	w.moduloRate = int(1 / w.SampleRate)
 	log.Printf("Sampling rate %f, modulo no - %d\n", w.SampleRate, w.moduloRate)
-	go w.startWorkers(concurrency, job)
+	go w.StopOnTimeOut(runFor)
+	w.startWorkers(concurrency, job)
+	// channels have been used so that explicit stop can be added . (It has been removed for now )
+	w.WorkData.TestDuration = time.Since(w.WorkData.TestStart).Milliseconds()
+}
+
+func (w *Worker) StopOnTimeOut(runFor int) {
 	if w.OpsIterations == 0 && runFor > 0 {
 		time.Sleep(time.Second * time.Duration(runFor))
 		log.Println("Stopping worker after runFor : ", runFor)
 		w.stop <- true
 		log.Println("Work stopped, closing worker automatically...")
 	}
-	// channels have been used so that explicit stop can be added . (It has been removed for now )
-	<-w.stop
-	w.WorkData.TestDuration = time.Since(w.WorkData.TestStart).Milliseconds()
+}
+
+func (w *Worker) WorkerStop() {
+	log.Println("Stoppping worker on demand")
+	w.stop <- true
 }
 
 func (w *Worker) startWorkers(concurrency int, job string) {
@@ -110,20 +118,24 @@ func (w *Worker) startWorkers(concurrency int, job string) {
 	}
 	// http worker
 	w.WorkData.OpsCount = 0
-	for {
+	for loop := true; loop; {
 		//count the number of ops
-		w.WorkData.OpsCount++
-		// consume work
-		<-work
-		start := time.Now()
-		workerFunc(job, work)
-		elapsed := time.Since(start)
-		if (w.WorkData.OpsCount % w.moduloRate) == 0 {
-			w.WorkData.Duration = append(w.WorkData.Duration, elapsed.Milliseconds())
+		select {
+		case <-work:
+			w.WorkData.OpsCount++
+			// consume work
+			start := time.Now()
+			workerFunc(job, work)
+			elapsed := time.Since(start)
+			if (w.WorkData.OpsCount % w.moduloRate) == 0 {
+				w.WorkData.Duration = append(w.WorkData.Duration, elapsed.Milliseconds())
+			}
+		case <-w.stop:
+			loop = false
 		}
+		// stop on ops count
 		if w.OpsIterations > 0 && w.OpsIterations == w.WorkData.OpsCount {
 			w.stop <- true
-			break
 		}
 	}
 }
