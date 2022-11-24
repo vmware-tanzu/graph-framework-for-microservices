@@ -285,11 +285,16 @@ func isRootOfGraph(parents []string, rootOfGraph bool) bool {
 }
 
 func getGraphqlSchemaName(pattern, fieldName, schemaType string) string {
+	schemaName := fmt.Sprintf(pattern, fieldName, schemaType)
+
 	if fieldName != "" {
 		// use camelCase for fieldName #e.g ServiceGroup --> serviceGroup
-		return fmt.Sprintf(pattern, util.GetTag(fieldName), schemaType)
+		schemaName = fmt.Sprintf(pattern, util.GetTag(fieldName), schemaType)
 	}
-	return fmt.Sprintf(pattern, fieldName, schemaType)
+	
+	schemaName = strings.ReplaceAll(schemaName, "global_", "")
+
+	return schemaName
 }
 
 // getTsmGraphqlSchemaFieldName process nexus annotation `nexus-graphql-nullable` and `nexus-graphql-tsm-directive`
@@ -317,6 +322,5 @@ func getTsmGraphqlSchemaFieldName(sType GraphQLSchemaType, fieldName, schemaType
 		schemaName += " " + strings.Trim(out, "\"")
 	}
 
-	schemaName = strings.ReplaceAll(schemaName, "global_", "")
 	return schemaName
 }
