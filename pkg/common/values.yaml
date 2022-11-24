@@ -7,6 +7,6 @@ nexusAppTemplates:
 nexusDatamodelTemplates:
   version: v0.0.22
 nexusRuntime:
-  version: v0.2.54
+  version: v0.2.55
 tsmCli:
   version: v0.0.3
