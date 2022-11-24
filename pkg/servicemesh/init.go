@@ -154,6 +154,7 @@ func initCommands() {
 	DataModelCmd.AddCommand(servicemesh_datamodel.InstallCmd)
 	DataModelCmd.AddCommand(servicemesh_datamodel.BuildCmd)
 	DataModelCmd.AddCommand(servicemesh_datamodel.ConfigureCmd)
+	DataModelCmd.AddCommand(servicemesh_datamodel.BuildDockerImgCmd)
 
 	AppCmd.AddCommand(app.InitCmd)
 	AppCmd.AddCommand(app.PackageCmd)

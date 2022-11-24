@@ -51,15 +51,22 @@ func Build(cmd *cobra.Command, args []string) error {
 	if containerID != "" {
 		envList = append(envList, fmt.Sprintf("CONTAINER_ID=%s", containerID))
 	}
+
 	// hack for running datamodel build locally
 	err = utils.SystemCommand(cmd, utils.CHECK_CURRENT_DIRECTORY_IS_DATAMODEL, envList, "make", "datamodel_build", "--dry-run")
 	if err == nil {
-		fmt.Println("Runnig build from current directory as this is a common datamodel.")
+		fmt.Println("Running build from current directory as this is a common datamodel.")
 		err = utils.SystemCommand(cmd, utils.DATAMODEL_BUILD_FAILED, envList, "make", "datamodel_build")
 		if err != nil {
 			return fmt.Errorf("datamodel %s build failed with error %v", DatamodelName, err)
 		} else {
 			fmt.Println("\u2713 Datamodel build successful\n")
+
+			err = updateNexusYaml()
+			if err != nil {
+				return fmt.Errorf("could not write to nexus.yaml: %v", err)
+			}
+			publishDockerImage(cmd)
 			return nil
 		}
 	}
@@ -86,9 +93,42 @@ func Build(cmd *cobra.Command, args []string) error {
 
 	}
 	fmt.Printf("\u2713 Datamodel %s build successful\n", DatamodelName)
+	err = updateNexusYaml()
+	if err != nil {
+		return fmt.Errorf("could not write to nexus.yaml: %v", err)
+	}
+	publishDockerImage(cmd)
+	return nil
+}
+
+func publishDockerImage(cmd *cobra.Command) error {
+	if BuildDockerImg {
+		envList := common.GetEnvList()
+		envList = append(envList, fmt.Sprintf("DOCKER_REPO=%s", DatamodelName))
+		envList = append(envList, fmt.Sprintf("VERSION=%s", "latest"))
+
+		err := utils.SystemCommand(cmd, utils.DATAMODEL_DOCKER_IMAGE_BUILD_FAILED, envList, "make", "docker_build")
+		if err != nil {
+			return fmt.Errorf("docker image %s build failed with error %v", DatamodelName, err)
+
+		}
+		fmt.Printf("\u2713 Datamodel docker image %s:latest built successfully\n", DatamodelName)
+	}
+	return nil
+}
+
+// store the datamodel name in nexus.yaml and use it to figure out the datamodel name
+func updateNexusYaml() error {
+	if DatamodelName != "" {
+		err := utils.SetDatamodelName(DatamodelName)
+		if err != nil {
+			return err
+		}
+	}
 	return nil
 }
 
 func init() {
 	BuildCmd.Flags().StringVarP(&DatamodelName, "name", "n", "", "name of the datamodel to be build")
+	BuildCmd.Flags().BoolVarP(&BuildDockerImg, "dockerbuild", "b", true, "build docker image")
 }
