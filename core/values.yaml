@@ -1,4 +1,6 @@
 global:
   registry: gcr.io/nsx-sm/nexus
-  cronApiVersion: ""
+  cronApiVersion: "batch/v1"
   resources: {}
+  proxy:
+    loadbalancer: false

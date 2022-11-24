@@ -108,10 +108,18 @@ spec:
       port: 10000
       protocol: TCP
       targetPort: 10000
+    - name: exposelb
+      port: 80
+      protocol: TCP
+      targetPort: 10000
     - name: http-admin
       port: 19000
       protocol: TCP
       targetPort: 19000
   selector:
     app: nexus-proxy
+  {{- if eq .Values.global.proxy.loadbalancer true }}
+  type: LoadBalancer
+  {{- else }}
   type: ClusterIP
+  {{- end }}
