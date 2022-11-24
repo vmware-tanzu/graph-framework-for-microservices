@@ -10,10 +10,11 @@ import (
 	"encoding/hex"
 	"encoding/pem"
 	"fmt"
-	"github.com/homeport/dyff/pkg/dyff"
 	"io"
 	"strings"
 	"unicode/utf8"
+
+	"github.com/homeport/dyff/pkg/dyff"
 
 	"github.com/gonvenience/bunt"
 	"github.com/gonvenience/neat"
@@ -141,7 +142,7 @@ func (report *CustomReport) generateHumanDetailOutputAddition(detail dyff.Detail
 	case yamlv3.SequenceNode:
 		_, _ = output.WriteString(yellow("%c %s added:\n",
 			dyff.ADDITION,
-			text.Plural(len(detail.To.Content), "list entry", "list entries"),
+			text.Plural(len(detail.To.Content), "required field", "required fields"),
 		))
 
 	case yamlv3.MappingNode:
@@ -173,7 +174,7 @@ func (report *CustomReport) generateHumanDetailOutputRemoval(detail dyff.Detail)
 		))
 
 	case yamlv3.SequenceNode:
-		text := text.Plural(len(detail.From.Content), "list entry", "list entries")
+		text := text.Plural(len(detail.From.Content), "required field", "required fields")
 		_, _ = output.WriteString(yellow("%c %s removed:\n", dyff.REMOVAL, text))
 
 	case yamlv3.MappingNode:

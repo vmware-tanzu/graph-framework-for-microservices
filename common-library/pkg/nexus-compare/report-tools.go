@@ -4,6 +4,7 @@ package nexus_compare
 
 import (
 	"fmt"
+
 	"github.com/gonvenience/bunt"
 	"github.com/gonvenience/neat"
 	"github.com/gonvenience/ytbx"

@@ -14,7 +14,6 @@ var _ = Describe("Compare lib tests", func() {
 	})
 	It("should return true and report change type", func() {
 		ans, text, err := CompareFiles([]byte(baseSpec), []byte(changeType))
-
 		Expect(err).NotTo(HaveOccurred())
 		Expect(ans).To(BeTrue())
 		changeCheck := []string{"/spec/versions/name=v1/schema/openAPIV3Schema/properties/spec/properties/name/type", "value change", "- string", "+ int"}
@@ -142,7 +141,6 @@ spec:
                       format: int64
                       type: integer
                   required:
-                    - sourceGeneration
                     - remoteGeneration
                   type: object
               type: object
