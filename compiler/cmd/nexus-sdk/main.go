@@ -49,10 +49,10 @@ func main() {
 	config.ConfigInstance = conf
 	pkgs := parser.ParseDSLPkg(*dslDir)
 	graphlqQueries := parser.ParseGraphqlQuerySpecs(pkgs)
-	graph := parser.ParseDSLNodes(*dslDir, conf.GroupName, pkgs, graphlqQueries)
+	graph, nonNexusTypes, fileset := parser.ParseDSLNodes(*dslDir, conf.GroupName, pkgs, graphlqQueries)
 	methods, codes := rest.ParseResponses(pkgs)
 	if err = generator.RenderCRDTemplate(conf.GroupName, conf.CrdModulePath, pkgs, graph,
-		*crdDir, methods, codes); err != nil {
+		*crdDir, methods, codes, nonNexusTypes, fileset); err != nil {
 		log.Fatalf("Error rendering crd template: %v", err)
 	}
 }

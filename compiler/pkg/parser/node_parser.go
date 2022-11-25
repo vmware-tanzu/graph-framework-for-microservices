@@ -18,12 +18,14 @@ import (
 
 // ParseDSLNodes walks recursively through given path and looks for structs types definitions to add them to graph
 func ParseDSLNodes(startPath string, baseGroupName string, packages Packages,
-	graphqlQueries map[string]nexus.GraphQLQuerySpec) map[string]Node {
+	graphqlQueries map[string]nexus.GraphQLQuerySpec) (map[string]Node, []ast.Decl, *token.FileSet) {
 	modulePath := GetModulePath(startPath)
 
 	rootNodes := make([]string, 0)
 	nodes := make(map[string]Node)
 	pkgsMap := make(map[string]string)
+	nonNexusTypes := make([]ast.Decl, 0)
+	fileset := token.NewFileSet()
 	err := filepath.Walk(startPath, func(path string, info fs.FileInfo, err error) error {
 		if info.IsDir() {
 			if info.Name() == "build" {
@@ -34,7 +36,7 @@ func ParseDSLNodes(startPath string, baseGroupName string, packages Packages,
 				log.Infof("Ignoring vendor directory...")
 				return filepath.SkipDir
 			}
-			fileset := token.NewFileSet()
+			//fileset := token.NewFileSet()
 			pkgs, err := parser.ParseDir(fileset, path, nil, parser.ParseComments)
 			if err != nil {
 				log.Fatalf("Failed to parse directory %s: %v", path, err)
@@ -93,6 +95,8 @@ func ParseDSLNodes(startPath string, baseGroupName string, packages Packages,
 												}
 											}
 											nodes[crdName] = node
+										} else {
+											nonNexusTypes = append(nonNexusTypes, decl)
 										}
 									}
 								}
@@ -133,7 +137,7 @@ func ParseDSLNodes(startPath string, baseGroupName string, packages Packages,
 		})
 	}
 
-	return buildGraph(nodes, rootNodes, baseGroupName)
+	return buildGraph(nodes, rootNodes, baseGroupName), nonNexusTypes, fileset
 }
 
 func buildGraph(nodes map[string]Node, rootNodes []string, baseGroupName string) map[string]Node {

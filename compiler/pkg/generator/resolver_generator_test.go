@@ -21,7 +21,7 @@ var _ = Describe("Template renderers tests", func() {
 		config.ConfigInstance.IgnoredDirs = []string{"ignored"}
 		pkgs = parser.ParseDSLPkg(exampleDSLPath)
 		graphqlQueries = parser.ParseGraphqlQuerySpecs(pkgs)
-		graph := parser.ParseDSLNodes(exampleDSLPath, baseGroupName, pkgs, graphqlQueries)
+		graph, _, _ := parser.ParseDSLNodes(exampleDSLPath, baseGroupName, pkgs, graphqlQueries)
 		parentsMap = parser.CreateParentsMap(graph)
 	})
 
@@ -53,7 +53,7 @@ var _ = Describe("Template renderers tests", func() {
 
 	It("should resolve non-singleton root and singleton child node", func() {
 		pkgs = parser.ParseDSLPkg("../../example/test-utils/non-singleton-root")
-		graph := parser.ParseDSLNodes("../../example/test-utils/non-singleton-root", baseGroupName, pkgs, graphqlQueries)
+		graph, _, _ := parser.ParseDSLNodes("../../example/test-utils/non-singleton-root", baseGroupName, pkgs, graphqlQueries)
 		parentsMap = parser.CreateParentsMap(graph)
 
 		vars, err := generator.GenerateGraphqlResolverVars(baseGroupName, crdModulePath, pkgs, parentsMap)

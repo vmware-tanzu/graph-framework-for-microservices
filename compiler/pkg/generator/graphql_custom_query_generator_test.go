@@ -17,7 +17,7 @@ var _ = Describe("Graphql Custom query generator tests", func() {
 	BeforeEach(func() {
 		pkgs = parser.ParseDSLPkg(exampleDSLPath)
 		graphqlQueries := parser.ParseGraphqlQuerySpecs(pkgs)
-		graph := parser.ParseDSLNodes(exampleDSLPath, baseGroupName, pkgs, graphqlQueries)
+		graph, _, _ := parser.ParseDSLNodes(exampleDSLPath, baseGroupName, pkgs, graphqlQueries)
 		root, ok := graph["roots.root.tsm.tanzu.vmware.com"]
 		Expect(ok).To(BeTrue())
 		config, ok := root.SingleChildren["Config"]

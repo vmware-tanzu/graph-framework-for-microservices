@@ -52,7 +52,7 @@ var _ = Describe("Template renderers tests", func() {
 		pkg, ok = pkgs["github.com/vmware-tanzu/graph-framework-for-microservices/compiler/example/datamodel/config/gns"]
 		Expect(ok).To(BeTrue())
 		graphqlQueries := parser.ParseGraphqlQuerySpecs(pkgs)
-		graph := parser.ParseDSLNodes(exampleDSLPath, baseGroupName, pkgs, graphqlQueries)
+		graph, _, _ := parser.ParseDSLNodes(exampleDSLPath, baseGroupName, pkgs, graphqlQueries)
 		parentsMap = parser.CreateParentsMap(graph)
 		Expect(parentsMap).To(HaveLen(14))
 
@@ -203,10 +203,9 @@ var _ = Describe("Template renderers tests", func() {
 
 		pkgs := parser.ParseDSLPkg(datamodelPath)
 		graphlqQueries := parser.ParseGraphqlQuerySpecs(pkgs)
-		graph := parser.ParseDSLNodes(datamodelPath, groupName, pkgs, graphlqQueries)
+		graph, nonNexusTypes, fileset := parser.ParseDSLNodes(datamodelPath, groupName, pkgs, graphlqQueries)
 		methods, codes := rest.ParseResponses(pkgs)
-		err := generator.RenderCRDTemplate(groupName, crdModulePath, pkgs, graph,
-			outputDir, methods, codes)
+		err := generator.RenderCRDTemplate(groupName, crdModulePath, pkgs, graph, outputDir, methods, codes, nonNexusTypes, fileset)
 		Expect(err).NotTo(HaveOccurred())
 	})
 
