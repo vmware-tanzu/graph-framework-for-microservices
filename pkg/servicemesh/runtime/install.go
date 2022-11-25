@@ -127,7 +127,7 @@ func HelmInstall(cmd *cobra.Command, args []string) error {
 		cmdlineArgs = fmt.Sprintf("%sglobal.resources.%s.memory=%s,", cmdlineArgs, strings.Split(value, "=")[0], strings.Split(value, "=")[1])
 	}
 	for _, value := range *additionalOptions {
-		cmdlineArgs = fmt.Sprintf("%sglobal.%s=\"%s\"", cmdlineArgs, strings.Split(value, "=")[0], strings.Split(value, "=")[1])
+		cmdlineArgs = fmt.Sprintf("%sglobal.%s=%s,", cmdlineArgs, strings.Split(value, "=")[0], strings.Split(value, "=")[1])
 	}
 	cmdlineArgs = fmt.Sprintf("%sglobal.namespace=%s", cmdlineArgs, Namespace)
 	cmdlineArgs = fmt.Sprintf("%s,global.registry=%s", cmdlineArgs, Registry)
