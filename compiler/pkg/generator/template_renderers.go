@@ -5,7 +5,10 @@ import (
 	_ "embed"
 	"encoding/json"
 	"fmt"
+	"go/ast"
 	"go/format"
+	"go/printer"
+	"go/token"
 	"os"
 	"sort"
 	"strings"
@@ -58,9 +61,10 @@ var gqlserverTemplateFile []byte
 //go:embed template/tsm-graphql/schema.graphqls.tmpl
 var tsmGraphqlSchemaTemplateFile []byte
 
-func RenderCRDTemplate(baseGroupName, crdModulePath string,
-	pkgs parser.Packages, graph map[string]parser.Node, outputDir string,
-	httpMethods map[string]nexus.HTTPMethodsResponses, httpCodes map[string]nexus.HTTPCodesResponse) error {
+//go:embed template/common.go.tmpl
+var commonTemplateFile []byte
+
+func RenderCRDTemplate(baseGroupName, crdModulePath string, pkgs parser.Packages, graph map[string]parser.Node, outputDir string, httpMethods map[string]nexus.HTTPMethodsResponses, httpCodes map[string]nexus.HTTPCodesResponse, nonNexusTypes []ast.Decl, fileset *token.FileSet) error {
 	parentsMap := parser.CreateParentsMap(graph)
 
 	pkgNames := make([]string, len(pkgs))
@@ -146,6 +150,11 @@ func RenderCRDTemplate(baseGroupName, crdModulePath string,
 	}
 
 	err = RenderGqlserver(outputDir, crdModulePath)
+	if err != nil {
+		return err
+	}
+
+	err = RenderNonNexusTypes(outputDir, nonNexusTypes, fileset)
 	if err != nil {
 		return err
 	}
@@ -675,4 +684,40 @@ func RenderGqlServerTemplate(vars ServerVars) (*bytes.Buffer, error) {
 		return nil, err
 	}
 	return renderTemplate(registerGqlserverTemplate, vars)
+}
+
+type CommonVars struct {
+	Types string
+}
+
+func RenderNonNexusTypes(outputDir string, nonNexusTypes []ast.Decl, fileset *token.FileSet) error {
+	var output string
+	for _, decl := range nonNexusTypes {
+		var buf bytes.Buffer
+		err := printer.Fprint(&buf, fileset, decl)
+		if err != nil {
+			return err
+		}
+
+		output += fmt.Sprintf("%s\n\n", buf.String())
+	}
+
+	vars := CommonVars{Types: output}
+
+	tmpl, err := readTemplateFile(commonTemplateFile)
+	if err != nil {
+		return err
+	}
+
+	out, err := renderTemplate(tmpl, vars)
+	if err != nil {
+		return err
+	}
+
+	err = createFile(outputDir, "common.go", out, false)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

@@ -291,7 +291,7 @@ func getGraphqlSchemaName(pattern, fieldName, schemaType string) string {
 		// use camelCase for fieldName #e.g ServiceGroup --> serviceGroup
 		schemaName = fmt.Sprintf(pattern, util.GetTag(fieldName), schemaType)
 	}
-	
+
 	schemaName = strings.ReplaceAll(schemaName, "global_", "")
 
 	return schemaName
