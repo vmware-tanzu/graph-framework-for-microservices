@@ -3,6 +3,7 @@ package generator
 import (
 	"fmt"
 	"go/ast"
+	"regexp"
 	"sort"
 	"strings"
 
@@ -17,6 +18,7 @@ type GraphQLSchemaType int
 
 const (
 	Standard GraphQLSchemaType = iota
+	Array
 	JsonMarshal
 	Child
 	Link
@@ -223,6 +225,14 @@ func tsmProcessNonNexusFields(aliasNameMap map[string]string, node *ast.TypeSpec
 			fieldProp.IsStringType = true
 			fieldProp.SchemaFieldName = getTsmGraphqlSchemaFieldName(JsonMarshal, fieldProp.FieldName, "String", "id: ID", f)
 			resField[nodeProp.PkgName+nodeProp.NodeName] = append(resField[nodeProp.PkgName+nodeProp.NodeName], fieldProp)
+		}
+		if parser.IsArrayField(f) {
+			arr := regexp.MustCompile(`^(\[])`).ReplaceAllString(typeString, "")
+			if !strings.Contains(arr, ".") {
+				stdType := convertGraphqlStdType(arr)
+				fieldProp.SchemaFieldName = getTsmGraphqlSchemaFieldName(Array, fieldProp.FieldName, stdType, "id: ID", f)
+				resField[nodeProp.PkgName+nodeProp.NodeName] = append(resField[nodeProp.PkgName+nodeProp.NodeName], fieldProp)
+			}
 		} else {
 			stdType := convertGraphqlStdType(typeString)
 			// standard type

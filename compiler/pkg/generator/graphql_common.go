@@ -308,6 +308,12 @@ func getTsmGraphqlSchemaFieldName(sType GraphQLSchemaType, fieldName, schemaType
 		} else {
 			pattern = "%s: %s!"
 		}
+	case Array:
+		if nullable {
+			pattern = "%s: [%s]"
+		} else {
+			pattern = "%s: [%s!]"
+		}
 	case NamedChild:
 		if nullable {
 			pattern = "%s(" + listArg + "): [%s!]"
