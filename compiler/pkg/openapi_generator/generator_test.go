@@ -108,6 +108,7 @@ var _ = Describe("Generator", func() {
 		Expect(gen.ResolveRefs()).To(Succeed())
 
 		createFileWithEmptyYAMLDefinitions(tmpDir, []string{"bizz"})
+		// should fail as a result of the incompatibility between the old and new CDs
 		err = gen.UpdateYAMLs(tmpDir, oldDir, false)
 		Expect(err).To(Equal(""))
 	})
