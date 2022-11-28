@@ -343,7 +343,7 @@ func splitCRDs(content []byte) []string {
 	return strings.Split(string(content), "---")
 }
 
-func checkBackwardCompatibility(inCompatibleCRDs []*bytes.Buffer, crd extensionsv1.CustomResourceDefinition, oldCRDContent []byte) ([]*bytes.Buffer, error) {
+func CheckBackwardCompatibility(inCompatibleCRDs []*bytes.Buffer, crd extensionsv1.CustomResourceDefinition, oldCRDContent []byte) ([]*bytes.Buffer, error) {
 	oldCRDParts := splitCRDs(oldCRDContent)
 	for _, oldPart := range oldCRDParts {
 		if oldPart == "" {
@@ -363,6 +363,9 @@ func checkBackwardCompatibility(inCompatibleCRDs []*bytes.Buffer, crd extensions
 		if oldCRD.Name != crd.Name {
 			continue
 		}
+
+		fmt.Printf("OLDCR: %+v\n", oldPart)
+		fmt.Printf("NEWCR: %+v\n", string(newCRDPart))
 
 		// When there is a backward incompatibility, we fail the build if we don't force an upgrade.
 		isInCompatible, message, err := nexus_compare.CompareFiles([]byte(oldPart), newCRDPart)
@@ -428,14 +431,14 @@ func (g *Generator) UpdateYAMLs(yamlsPath, oldYamlsPath string, force bool) erro
 				oldYamlsPath - indicates the directory path of the existing crd yamls
 						Ex: the path will be `tmp/old-files/old-crds`
 			*/
-			oldFilePath := oldYamlsPath + "/" + strings.TrimPrefix(path, yamlsPath)
+			oldFilePath := oldYamlsPath + strings.TrimPrefix(path, yamlsPath)
 			oldCRDContent, err := os.ReadFile(oldFilePath)
 			if err != nil && !errors.Is(err, os.ErrNotExist) {
 				return fmt.Errorf("error reading existing crd file %q: %v", oldFilePath, err)
 			}
 
 			if oldCRDContent != nil {
-				if inCompatibleCRDs, err = checkBackwardCompatibility(inCompatibleCRDs, crd, oldCRDContent); err != nil {
+				if inCompatibleCRDs, err = CheckBackwardCompatibility(inCompatibleCRDs, crd, oldCRDContent); err != nil {
 					return err
 				}
 			}

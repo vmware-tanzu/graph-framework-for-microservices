@@ -29,10 +29,13 @@ func createFileWithEmptyYAMLDefinitions(tmpDir string, names []string) string {
 }
 
 func getEmptyYAMLDefinition(name string) string {
-	format := `---
+	format := fmt.Sprintf(`---
 apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
+  annotations:
+    nexus: |
+      {"name":%q,"is_singleton":false,"nexus-rest-api-gen":{"uris":null}}
   creationTimestamp: null
   name: NAMEs.test.it
 spec:
@@ -44,20 +47,21 @@ spec:
     listKind: CAPITAL_NAMEList
     plural: NAMEs
     shortNames:
-    - NAME
+      - NAME
     singular: NAME
   scope: Namespaced
   versions:
-  - name: v1
-    served: true
-    storage: true
+    - name: v1
+      served: true
+      storage: true
 status:
   acceptedNames:
-    kind: ""
-    plural: ""
+    kind: ''
+    plural: ''
   conditions: null
   storedVersions:
-  - v1`
+    - v1
+`, name)
 	capitalName := strings.ToUpper(name[:1]) + name[1:]
 	format = strings.ReplaceAll(format, "CAPITAL_NAME", capitalName)
 	return strings.ReplaceAll(format, "NAME", name)

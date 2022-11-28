@@ -17,6 +17,7 @@ require (
 	golang.org/x/tools v0.3.0
 	k8s.io/apiextensions-apiserver v0.24.0
 	k8s.io/gengo v0.0.0-20220307231824-4627b89bbf1b
+	sigs.k8s.io/yaml v1.3.0
 )
 
 require (
