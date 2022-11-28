@@ -134,6 +134,7 @@ func Crd(client dynamic.Interface, r admissionv1.AdmissionReview) (*admissionv1.
 		setResponseToNotAllowed(admRes, message)
 		return admRes, nil
 	}
+
 	for _, parent := range parents {
 		parts := strings.Split(parent, ".")
 		gvr := schema.GroupVersionResource{

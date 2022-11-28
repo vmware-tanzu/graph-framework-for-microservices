@@ -1,6 +1,6 @@
 module gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/validation.git
 
-go 1.17
+go 1.18
 
 require (
 	github.com/sirupsen/logrus v1.8.1
