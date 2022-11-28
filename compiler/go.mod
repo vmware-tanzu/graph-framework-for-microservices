@@ -17,7 +17,6 @@ require (
 	golang.org/x/tools v0.3.0
 	k8s.io/apiextensions-apiserver v0.24.0
 	k8s.io/gengo v0.0.0-20220307231824-4627b89bbf1b
-	sigs.k8s.io/yaml v1.3.0
 )
 
 require (
@@ -58,7 +57,7 @@ require (
 	github.com/urfave/cli/v2 v2.23.5 // indirect
 	github.com/vektah/gqlparser/v2 v2.5.1 // indirect
 	github.com/virtuald/go-ordered-json v0.0.0-20170621173500-b18e6e673d74 // indirect
-	github.com/vmware-tanzu/graph-framework-for-microservices/gqlgen v0.0.0-20221124095352-80ae679ee969 // indirect
+	github.com/vmware-tanzu/graph-framework-for-microservices/gqlgen v0.0.0-20221128132722-56c43eaab5c6 // indirect
 	github.com/xrash/smetrics v0.0.0-20201216005158-039620a65673 // indirect
 	golang.org/x/net v0.2.0 // indirect
 	golang.org/x/sync v0.1.0 // indirect
