@@ -23,15 +23,14 @@ const (
 	IS_NAME_HASHED_LABEL = "nexus/is_name_hashed"
 )
 
+var StopCh chan struct{}
+
 type CRDStates struct {
-	mtx            sync.Mutex
-	ParentsMap     map[string][]string
-	IsSingletonMap map[string]bool
+	ParentsMap     sync.Map
+	IsSingletonMap sync.Map
 }
 
 func (c *CRDStates) ProcessNewCRDType(crd v1.CustomResourceDefinition) error {
-	c.mtx.Lock()
-	defer c.mtx.Unlock()
 	nexusStr, ok := crd.Annotations["nexus"]
 	if !ok {
 		return nil
@@ -44,57 +43,52 @@ func (c *CRDStates) ProcessNewCRDType(crd v1.CustomResourceDefinition) error {
 		return errors.New("could not unmarshal nexus annotation")
 	}
 
-	c.ParentsMap[crd.Name] = annotation.Hierarchy
+	c.ParentsMap.Store(crd.Name, annotation.Hierarchy)
 	log.Infof("Added %s to parents map (%v)", crd.Name, annotation.Hierarchy)
 
-	c.IsSingletonMap[crd.Name] = annotation.IsSingleton
+	c.IsSingletonMap.Store(crd.Name, annotation.IsSingleton)
 	log.Infof("Added %s to IsSingleton map (%v)", crd.Name, annotation.IsSingleton)
 
 	return nil
 }
 
 func (c *CRDStates) GetApiGroups() (apiGroups []string) {
-	c.mtx.Lock()
-	defer c.mtx.Unlock()
-
-	for k := range c.ParentsMap {
-		parts := strings.Split(k, ".")
+	c.ParentsMap.Range(func(key, value any) bool {
+		parts := strings.Split(key.(string), ".")
 		apiGroups = append(apiGroups, strings.Join(parts[1:], "."))
-	}
-
+		return true
+	})
 	return
 }
 
 func (c *CRDStates) GetParents(crdName string, client dynamic.Interface) ([]string, error) {
-	c.mtx.Lock()
-	defer c.mtx.Unlock()
-
-	parents, ok := c.ParentsMap[crdName]
+	parents, ok := c.ParentsMap.Load(crdName)
 	if !ok {
 		log.Infof("Couldn't determine parents for %s, relisting CRDs to make sure CRD type definition wasn't"+
 			" added in the meantime", crdName)
 		ProcessCRDs(client)
-		parents, ok = c.ParentsMap[crdName]
+		parents, ok = c.ParentsMap.Load(crdName)
 		if !ok {
 			return nil, fmt.Errorf("parents info not present for crd %s", crdName)
 		}
 	}
-	copiedParents := make([]string, len(parents))
+	copiedParents := make([]string, len(parents.([]string)))
 
-	copy(copiedParents, parents)
+	copy(copiedParents, parents.([]string))
 	return copiedParents, nil
 }
 
 func (c *CRDStates) IsSingleton(crdName string) bool {
-	c.mtx.Lock()
-	defer c.mtx.Unlock()
-
-	return c.IsSingletonMap[crdName]
+	isSingleton, ok := c.IsSingletonMap.Load(crdName)
+	if ok {
+		return isSingleton.(bool)
+	}
+	return false
 }
 
 var CRDs = CRDStates{
-	ParentsMap:     make(map[string][]string),
-	IsSingletonMap: make(map[string]bool),
+	ParentsMap:     sync.Map{},
+	IsSingletonMap: sync.Map{},
 }
 
 type NexusAnnotation struct {
@@ -104,7 +98,6 @@ type NexusAnnotation struct {
 }
 
 func UpdateValidationWebhook(client kubernetes.Interface) {
-
 	webhookConf, err := client.AdmissionregistrationV1().ValidatingWebhookConfigurations().Get(context.TODO(), "nexus-validation.webhook.svc", metav1.GetOptions{})
 	if err != nil {
 		panic(err)
