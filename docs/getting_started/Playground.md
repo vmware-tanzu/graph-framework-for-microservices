@@ -263,6 +263,7 @@ Lets define a datamodel to implement well known facet in our work: Organization 
 3. Create the below-given replication-config to replicate `Manager1` to the destination endpoint (base K8s api-server).
 
     - **Note**: Fill in the `accessToken` spec field before creating the config.
+    
 
     ```
     kubectl get secret $(kubectl get sa default -o yaml | yq -r '.secrets[0].name') -oyaml | yq '.data.token' | base64 -d
