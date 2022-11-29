@@ -410,53 +410,6 @@ func IgnoreField(f *ast.Field) bool {
 	return false
 }
 
-func IsNexusGraphqlNullField(f *ast.Field) bool {
-	if f == nil {
-		return false
-	}
-
-	if f.Tag != nil {
-		tags := ParseFieldTags(f.Tag.Value)
-		if val, err := tags.Get("nexus-graphql-nullable"); err == nil {
-			if strings.ToLower(val.Name) == "false" {
-				return false
-			}
-		}
-	}
-
-	return true
-}
-
-func GetTsmGraphqlDirectives(f *ast.Field) string {
-	if f == nil {
-		return ""
-	}
-
-	if f.Tag != nil {
-		tags := ParseFieldTags(f.Tag.Value)
-		if val, err := tags.Get("nexus-graphql-tsm-directive"); err == nil {
-			return val.String()
-		}
-	}
-
-	return ""
-}
-
-func IsTsmGraphqlDirectivesField(f *ast.Field) bool {
-	if f == nil {
-		return false
-	}
-
-	if f.Tag != nil {
-		tags := ParseFieldTags(f.Tag.Value)
-		if _, err := tags.Get("nexus-graphql-tsm-directive"); err == nil {
-			return true
-		}
-	}
-
-	return false
-}
-
 func IsJsonStringField(f *ast.Field) bool {
 	if f == nil {
 		return false
@@ -730,4 +683,108 @@ func (p *Package) ValueSpecToString(t *ast.ValueSpec) (string, error) {
 		return "", err
 	}
 	return buf.String(), nil
+}
+
+func IsNexusGraphqlNullField(f *ast.Field) bool {
+	if f == nil {
+		return false
+	}
+
+	if f.Tag != nil {
+		tags := ParseFieldTags(f.Tag.Value)
+		if val, err := tags.Get("nexus-graphql-nullable"); err == nil {
+			if strings.ToLower(val.Name) == "false" {
+				return false
+			}
+		}
+	}
+
+	return true
+}
+
+// Parser for TSM Integration
+func GetTsmGraphqlDirectives(f *ast.Field) string {
+	if f == nil {
+		return ""
+	}
+
+	if f.Tag != nil {
+		tags := ParseFieldTags(f.Tag.Value)
+		if val, err := tags.Get("nexus-graphql-tsm-directive"); err == nil {
+			return val.String()
+		}
+	}
+
+	return ""
+}
+
+func IsTsmGraphqlDirectivesField(f *ast.Field) bool {
+	if f == nil {
+		return false
+	}
+
+	if f.Tag != nil {
+		tags := ParseFieldTags(f.Tag.Value)
+		if _, err := tags.Get("nexus-graphql-tsm-directive"); err == nil {
+			return true
+		}
+	}
+
+	return false
+}
+
+func GetGraphqlArgumentKey(f *ast.Field) string {
+	if f == nil {
+		return ""
+	}
+
+	if f.Tag != nil {
+		tags := ParseFieldTags(f.Tag.Value)
+		if val, err := tags.Get("nexus-graphql-arg-key"); err == nil {
+			return val.Value()
+		}
+	}
+	return ""
+}
+
+func GetGraphqlArgumentValue(f *ast.Field) string {
+	if f == nil {
+		return ""
+	}
+
+	if f.Tag != nil {
+		tags := ParseFieldTags(f.Tag.Value)
+		if val, err := tags.Get("nexus-graphql-arg-value"); err == nil {
+			return val.Value()
+		}
+	}
+	return ""
+}
+
+func IsGraphqlEnumField(f *ast.Field) bool {
+	if f == nil {
+		return false
+	}
+
+	if f.Tag != nil {
+		tags := ParseFieldTags(f.Tag.Value)
+		if _, err := tags.Get("nexus-alias-type"); err == nil {
+			return true
+		}
+	}
+	return false
+}
+
+func GetGraphqlEnumValue(f *ast.Field) string {
+	if f == nil {
+		return ""
+	}
+
+	if f.Tag != nil {
+		tags := ParseFieldTags(f.Tag.Value)
+		if val, err := tags.Get("nexus-alias-type"); err == nil {
+			return val.Value()
+		}
+	}
+	return ""
 }

@@ -297,9 +297,24 @@ func getGraphqlSchemaName(pattern, fieldName, schemaType string) string {
 	return schemaName
 }
 
+func getGraphQLArgs(f *ast.Field) string {
+	argKey := "id"
+	argVal := "ID"
+	k := parser.GetGraphqlArgumentKey(f)
+	if k != "" {
+		argKey = k
+	}
+	v := parser.GetGraphqlArgumentValue(f)
+	if v != "" {
+		argVal = v
+	}
+	return fmt.Sprintf("%s: %s", argKey, argVal)
+}
+
 // getTsmGraphqlSchemaFieldName process nexus annotation `nexus-graphql-nullable` and `nexus-graphql-tsm-directive`
 func getTsmGraphqlSchemaFieldName(sType GraphQLSchemaType, fieldName, schemaType, listArg string, f *ast.Field) string {
 	pattern := ""
+	listArg = getGraphQLArgs(f)
 	nullable := parser.IsNexusGraphqlNullField(f)
 	switch sType {
 	case Standard, JsonMarshal, Child, Link:
@@ -329,4 +344,13 @@ func getTsmGraphqlSchemaFieldName(sType GraphQLSchemaType, fieldName, schemaType
 	}
 
 	return schemaName
+}
+
+// getGraphQLEnumValue process nexus annotation  `nexus-alias-type:`
+func getGraphQLEnumValue(fieldName string, f *ast.Field) string {
+	e := parser.GetGraphqlEnumValue(f)
+	if e != "" {
+		return fmt.Sprintf("%s: %s", fieldName, e)
+	}
+	return fmt.Sprintf("%s: %s", fieldName, "String")
 }
