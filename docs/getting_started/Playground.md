@@ -274,27 +274,27 @@ Lets define a datamodel to implement well known facet in our work: Organization 
       labels: 
           nexus/is_name_hashed: "false"
           connects.connect.nexus.org: default 
-      spec:
-          accessToken: XXXXX
-          remoteEndpointGvk:
-            group: connect.nexus.org
-            kind: NexusEndpoint
-            name: 4187f4f8437a5f4b8f4535c26d70443591b56856
-          source:
-            kind: object
-            object:
-              name: Manager1
-              objectType:
-                  group: root.orgchart.org
-                  kind: Manager
-                  version: v1
-              hierarchical: true
-              hierarchy:
-                 labels:
-                - key: "leaders.root.orgchart.org"
-                  value: "MyLeader"
-              destination:
-              hierarchical: false' > $HOME/test-datamodel/orgchart/replication-config.yaml
+    spec:
+      accessToken: XXXXX
+      remoteEndpointGvk:
+        group: connect.nexus.org
+        kind: NexusEndpoint
+        name: 4187f4f8437a5f4b8f4535c26d70443591b56856
+      source:
+        kind: object
+        object:
+          name: Manager1
+          objectType:
+            group: root.orgchart.org
+            kind: Manager
+            version: v1
+          hierarchical: true
+          hierarchy:
+            labels:
+            - key: "leaders.root.orgchart.org"
+              value: "MyLeader"
+      destination:
+        hierarchical: false' > $HOME/test-datamodel/orgchart/replication-config.yaml && kubectl -s localhost:5000 apply -f $HOME/test-datamodel/orgchart/replication-config.yaml
     ```
 
 The manager object `Manager1` will now appear in base K8s api-server. Also, try update and delete on the manager object `Manager1` on the source and verify if it is reflected on the destination endpoint.
