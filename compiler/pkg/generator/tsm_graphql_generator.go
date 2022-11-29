@@ -225,8 +225,10 @@ func tsmProcessNonNexusFields(aliasNameMap map[string]string, node *ast.TypeSpec
 			fieldProp.IsStringType = true
 			fieldProp.SchemaFieldName = getTsmGraphqlSchemaFieldName(JsonMarshal, fieldProp.FieldName, "String", "id: ID", f)
 			resField[nodeProp.PkgName+nodeProp.NodeName] = append(resField[nodeProp.PkgName+nodeProp.NodeName], fieldProp)
-		}
-		if parser.IsArrayField(f) {
+		} else if parser.IsGraphqlEnumField(f) {
+			fieldProp.SchemaFieldName = getGraphQLEnumValue(fieldProp.FieldName, f)
+			resField[nodeProp.PkgName+nodeProp.NodeName] = append(resField[nodeProp.PkgName+nodeProp.NodeName], fieldProp)
+		} else if parser.IsArrayField(f) {
 			arr := regexp.MustCompile(`^(\[])`).ReplaceAllString(typeString, "")
 			if !strings.Contains(arr, ".") {
 				stdType := convertGraphqlStdType(arr)

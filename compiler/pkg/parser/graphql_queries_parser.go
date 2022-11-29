@@ -117,8 +117,9 @@ func parseQuery(queryComp *ast.CompositeLit, p Package) (newQuery nexus.GraphQLQ
 }
 
 type GraphQlArg struct {
-	Name string
-	Type string
+	Name      string
+	Type      string
+	AliasType string
 }
 
 func parseArgs(argsTypeName string, p Package) []GraphQlArg {
@@ -134,8 +135,9 @@ func parseArgs(argsTypeName string, p Package) []GraphQlArg {
 					log.Fatalf("Field in graphql args must be named, args %s", argsTypeName)
 				}
 				args = append(args, GraphQlArg{
-					Name: field.Names[0].Name,
-					Type: GetFieldType(field),
+					Name:      field.Names[0].Name,
+					Type:      GetFieldType(field),
+					AliasType: GetGraphqlEnumValue(field),
 				})
 			}
 		}
