@@ -205,7 +205,7 @@ var _ = Describe("Template renderers tests", func() {
 		graphlqQueries := parser.ParseGraphqlQuerySpecs(pkgs)
 		graph, nonNexusTypes, fileset := parser.ParseDSLNodes(datamodelPath, groupName, pkgs, graphlqQueries)
 		methods, codes := rest.ParseResponses(pkgs)
-		err := generator.RenderCRDTemplate(groupName, crdModulePath, pkgs, graph, outputDir, methods, codes, nonNexusTypes, fileset)
+		err := generator.RenderCRDTemplate(groupName, crdModulePath, pkgs, graph, outputDir, methods, codes, nonNexusTypes, fileset, nil)
 		Expect(err).NotTo(HaveOccurred())
 	})
 
