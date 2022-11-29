@@ -36,7 +36,6 @@ func ParseDSLNodes(startPath string, baseGroupName string, packages Packages,
 				log.Infof("Ignoring vendor directory...")
 				return filepath.SkipDir
 			}
-			//fileset := token.NewFileSet()
 			pkgs, err := parser.ParseDir(fileset, path, nil, parser.ParseComments)
 			if err != nil {
 				log.Fatalf("Failed to parse directory %s: %v", path, err)
