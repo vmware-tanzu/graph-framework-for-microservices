@@ -207,6 +207,7 @@ Lets define a datamodel to implement well known facet in our work: Organization 
 1. Create NexusEndpoint configuration with destination host and port details. This deploys one instance of nexus-connector that syncs objects to the desired destination endpoint.
 
     <details><summary>If your Kubernetes cluster is running on Kind, execute the following to get the destination host address.</summary>
+
     ```
     docker inspect <cluster-name>-control-plane | jq '.[].NetworkSettings.Networks["kind"].IPAddress'
     ```
@@ -236,8 +237,8 @@ Lets define a datamodel to implement well known facet in our work: Organization 
     kubectl apply -f .
     ```
 
-    ```yaml
-    apiVersion: rbac.authorization.k8s.io/v1
+    ```shell
+    echo 'apiVersion: rbac.authorization.k8s.io/v1
     kind: ClusterRole
     metadata:
         name: nexus-connector-cr
@@ -260,7 +261,7 @@ Lets define a datamodel to implement well known facet in our work: Organization 
     subjects:
       - kind: ServiceAccount
         name: default
-        namespace: default
+        namespace: default' > $HOME/test-datamodel/orgchart/endpoint.yaml
     ```
 
 3. Create the below-given replication-config to replicate `Manager1` to the destination endpoint (base K8s api-server).
