@@ -6,7 +6,12 @@ This tutorial will walk you through the fundamental aspects of Nexus.
 
 The goal is to give you a taste on the most interesting and impactful aspects of the framework in the shortest possible time.
 
-[TOC]
+  * [Install Nexus CLI](#install-nexus-cli)
+  * [Build a Datamodel](#build-a-datamodel)
+  * [Install Datamodel](#install-datamodel)
+  * [Access datamodel](#access-datamodel)
+  * [Play with datamodel](#play-with-datamodel)
+
 ## Install Nexus CLI 
 
 1. Download Nexus CLI
