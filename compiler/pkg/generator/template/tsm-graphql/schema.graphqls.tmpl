@@ -14,6 +14,10 @@ type {{ $node.SchemaName }} {
 }
 {{- end }}{{- end }}{{- end }}
 
+{{- range $key, $val := .GraphQlFiles}}
+    {{ $val }}
+{{- end }}
+
 directive @jsonencoded(file: String, gofile: String, name: String) on FIELD_DEFINITION
 directive @relation(name: String, parameters: String, softlink: String, uuidkey: String) on FIELD_DEFINITION
 directive @timeseriesAPI(file: String!, handler: String!) on FIELD_DEFINITION

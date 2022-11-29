@@ -64,7 +64,11 @@ var tsmGraphqlSchemaTemplateFile []byte
 //go:embed template/common.go.tmpl
 var commonTemplateFile []byte
 
-func RenderCRDTemplate(baseGroupName, crdModulePath string, pkgs parser.Packages, graph map[string]parser.Node, outputDir string, httpMethods map[string]nexus.HTTPMethodsResponses, httpCodes map[string]nexus.HTTPCodesResponse, nonNexusTypes []ast.Decl, fileset *token.FileSet) error {
+func RenderCRDTemplate(baseGroupName, crdModulePath string,
+	pkgs parser.Packages, graph map[string]parser.Node,
+	outputDir string, httpMethods map[string]nexus.HTTPMethodsResponses,
+	httpCodes map[string]nexus.HTTPCodesResponse, nonNexusTypes []ast.Decl,
+	fileset *token.FileSet, graphqlFiles map[string]string) error {
 	parentsMap := parser.CreateParentsMap(graph)
 
 	pkgNames := make([]string, len(pkgs))
@@ -144,7 +148,7 @@ func RenderCRDTemplate(baseGroupName, crdModulePath string, pkgs parser.Packages
 		return err
 	}
 
-	err = RenderGraphQL(baseGroupName, outputDir, crdModulePath, pkgs, parentsMap)
+	err = RenderGraphQL(baseGroupName, outputDir, crdModulePath, pkgs, parentsMap, graphqlFiles)
 	if err != nil {
 		return err
 	}
@@ -556,9 +560,11 @@ func RenderClientTemplate(baseGroupName, crdModulePath string, pkgs parser.Packa
 type GraphDetails struct {
 	BaseImportPath string
 	Nodes          []NodeProperty
+	GraphQlFiles   map[string]string
 }
 
-func RenderGraphQL(baseGroupName, outputDir, crdModulePath string, pkgs parser.Packages, parentsMap map[string]parser.NodeHelper) error {
+func RenderGraphQL(baseGroupName, outputDir, crdModulePath string, pkgs parser.Packages,
+	parentsMap map[string]parser.NodeHelper, graphqlFiles map[string]string) error {
 	gqlFolder := outputDir + "/nexus-gql/graph"
 	var (
 		vars GraphDetails
@@ -567,6 +573,7 @@ func RenderGraphQL(baseGroupName, outputDir, crdModulePath string, pkgs parser.P
 
 	vars.BaseImportPath = crdModulePath
 	vars.Nodes, err = GenerateGraphqlResolverVars(baseGroupName, crdModulePath, pkgs, parentsMap)
+	vars.GraphQlFiles = graphqlFiles
 	if err != nil {
 		return err
 	}
