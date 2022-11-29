@@ -223,11 +223,7 @@ Lets define a datamodel to implement well known facet in our work: Organization 
         connects.connect.nexus.org: default
     spec:
       host: XXX 
-      port: XXX' > $HOME/test-datamodel/orgchart/endpoint.yaml
-    ```
-
-    ```shell
-    kubectl -s localhost:5000 apply -f endpoint.yaml
+      port: XXX' > $HOME/test-datamodel/orgchart/endpoint.yaml && kubectl -s localhost:5000 apply -f $HOME/test-datamodel/orgchart/endpoint.yaml
     ```
 
 2. Install org-chart CRDs on the destination endpoint (base K8s api-server) and give cluster permissions for the API groups.
@@ -265,6 +261,12 @@ Lets define a datamodel to implement well known facet in our work: Organization 
     ```
 
 3. Create the below-given replication-config to replicate `Manager1` to the destination endpoint (base K8s api-server).
+
+Note: Fill in the `accessToken` spec field before creating the config.
+
+    ```
+    kubectl get secret $(kubectl get sa default -o yaml | yq -r '.secrets[0].name') -oyaml | yq '.data.token' | base64 -d
+    ```
 
     ```shell
     echo 'apiVersion: connect.nexus.org/v1
