@@ -206,7 +206,7 @@ Lets define a datamodel to implement well known facet in our work: Organization 
 
 1. Create NexusEndpoint configuration with destination host and port details. This deploys one instance of nexus-connector that syncs objects to the desired destination endpoint.
 
-    <details><summary>If your Kubernetes cluster is running on Kind, execute the following to get the destination IP and use https://<ip>:6443</summary>
+    <details><summary>If your Kubernetes cluster is running on Kind, execute the following to get the destination IP and use https://[IP]:6443</summary>
 
     ```
     docker inspect <cluster-name>-control-plane | jq '.[].NetworkSettings.Networks["kind"].IPAddress'
