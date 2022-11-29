@@ -6,8 +6,7 @@ This tutorial will walk you through the fundamental aspects of Nexus.
 
 The goal is to give you a taste on the most interesting and impactful aspects of the framework in the shortest possible time.
 
-[[TOC]]
-
+[TOC]
 ## Install Nexus CLI 
 
 1. Download Nexus CLI
@@ -124,7 +123,8 @@ Lets define a datamodel to implement well known facet in our work: Organization 
 
 ## Install Datamodel
 
-### Pre-requisites
+<!-- omit in toc -->
+### Pre-requisites 
 
 **The following steps requires a running Kubernetes cluster >= version 1.19**
 
