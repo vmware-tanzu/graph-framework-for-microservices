@@ -244,12 +244,12 @@ Lets define a datamodel to implement well known facet in our work: Organization 
         name: nexus-connector-cr
     rules:
     - apiGroups:
-        - '*'
+        - "*"
       resources:
-        - '*'
+        - "*"
       verbs:
-        - '*'
-     ---
+        - "*"
+    ---
     apiVersion: rbac.authorization.k8s.io/v1
     kind: ClusterRoleBinding
     metadata:
@@ -261,7 +261,7 @@ Lets define a datamodel to implement well known facet in our work: Organization 
     subjects:
       - kind: ServiceAccount
         name: default
-        namespace: default' > $HOME/test-datamodel/orgchart/permissions.yaml
+        namespace: default' > $HOME/test-datamodel/orgchart/permissions.yaml && kubectl apply -f $HOME/test-datamodel/orgchart/permissions.yaml
     ```
 
 3. Create the below-given replication-config to replicate `Manager1` to the destination endpoint (base K8s api-server).
