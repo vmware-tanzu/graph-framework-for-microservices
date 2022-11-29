@@ -6,15 +6,7 @@ This tutorial will walk you through the fundamental aspects of Nexus.
 
 The goal is to give you a taste on the most interesting and impactful aspects of the framework in the shortest possible time.
 
-[Install Nexus CLI](#install-nexus-cli)
-
-[Build a datamodel](#build-a-datamodel)
-
-[Install datamodel](#install-datamodel)
-
-[Access datamodel](#access-datamodel)
-
-[Play with datamodel](#play-with-datamodel)
+[[TOC]]
 
 ## Install Nexus CLI 
 
@@ -38,8 +30,6 @@ The goal is to give you a taste on the most interesting and impactful aspects of
 	
     </details>
     
-
-
 2. Verify your environment meets the expected pre-requisites
 
    ```
@@ -207,3 +197,4 @@ Lets define a datamodel to implement well known facet in our work: Organization 
 4. Access your organization chart through GraphQL [here](http://localhost:5000/apis/graphql/v1)
 
 5. Access your organization chart through REST API Explorer [here](http://localhost:5000/orgchart.org/docs#/)
+
