@@ -264,6 +264,7 @@ Lets define a datamodel to implement well known facet in our work: Organization 
 
 Note: Fill in the `accessToken` spec field before creating the config.
 
+
     ```
     kubectl get secret $(kubectl get sa default -o yaml | yq -r '.secrets[0].name') -oyaml | yq '.data.token' | base64 -d
     ```
