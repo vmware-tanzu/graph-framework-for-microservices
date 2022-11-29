@@ -50,14 +50,14 @@ The goal is to give you a taste on the most interesting and impactful aspects of
 
 ## Build a Datamodel
 
-Lets define a datamodel to implement well known facet in our work: Organization Chart
+Lets define a datamodel to implement well known facet in our work: Organization Chart.
 
-1. Create a workspace directory
+1. Create a workspace directory.
     ```
     mkdir -p $HOME/test-datamodel/orgchart && cd $HOME/test-datamodel/orgchart       
     ```
 
-2. Initialize workspace to specify datamodel
+2. Initialize workspace to specify datamodel.
     ```
     nexus datamodel init --name orgchart --group orgchart.org
     ```
@@ -120,7 +120,7 @@ Lets define a datamodel to implement well known facet in our work: Organization 
     ' > $HOME/test-datamodel/orgchart/root.go
     ```
 
-4. Compile datamodel
+4. Compile datamodel.
 
    ```
    nexus datamodel build --name orgchart
@@ -128,18 +128,17 @@ Lets define a datamodel to implement well known facet in our work: Organization 
 
 ## Install Datamodel
 
-<!-- omit in toc -->
 ### Pre-requisites 
 
 **The following steps requires a running Kubernetes cluster >= version 1.19**
 
-1. Install Nexus Runtime
+1. Install Nexus Runtime.
 
     ```
     nexus runtime install --namespace default
     ```
 
-2. Install datamodel
+2. Install datamodel.
 
    <details><summary>If your Kubernetes cluster is running on Kind, execute the following </summary>
 
@@ -202,4 +201,103 @@ Lets define a datamodel to implement well known facet in our work: Organization 
 4. Access your organization chart through GraphQL [here](http://localhost:5000/apis/graphql/v1)
 
 5. Access your organization chart through REST API Explorer [here](http://localhost:5000/orgchart.org/docs#/)
+
+## Replicate datamodel from Nexus api-server to base K8s api-server
+
+1. Create NexusEndpoint configuration with destination host and port details. This deploys one instance of nexus-connector that syncs objects to the desired destination endpoint.
+
+    <details><summary>If your Kubernetes cluster is running on Kind, execute the following to get the destination host address.</summary>
+    ```
+    docker inspect <cluster-name>-control-plane | jq '.[].NetworkSettings.Networks["kind"].IPAddress'
+    ```
+    </details>
+
+    ```shell
+    echo 'apiVersion: connect.nexus.org/v1
+    kind: NexusEndpoint
+    metadata:
+      name: default
+      labels:
+        nexus/is_name_hashed: "false"
+        connects.connect.nexus.org: default
+    spec:
+      host: XXX 
+      port: XXX' > $HOME/test-datamodel/orgchart/endpoint.yaml
+    ```
+
+    ```shell
+    kubectl -s localhost:5000 apply -f endpoint.yaml
+    ```
+
+2. Install org-chart CRDs on the destination endpoint (base K8s api-server) and give cluster permissions for the API groups.
+
+    ```
+    cd $HOME/test-datamodel/orgchart/build/crds
+    kubectl apply -f .
+    ```
+
+    ```yaml
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: ClusterRole
+    metadata:
+        name: nexus-connector-cr
+    rules:
+    - apiGroups:
+        - '*'
+      resources:
+        - '*'
+      verbs:
+        - '*'
+     ---
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: ClusterRoleBinding
+    metadata:
+        name: nexus-connector-crb
+    roleRef:
+        apiGroup: rbac.authorization.k8s.io
+        kind: ClusterRole
+        name: nexus-connector-cr
+    subjects:
+      - kind: ServiceAccount
+        name: default
+        namespace: default
+    ```
+
+3. Create the below-given replication-config to replicate `Manager1` to the destination endpoint (base K8s api-server).
+
+    ```shell
+    echo 'apiVersion: connect.nexus.org/v1
+    kind: ReplicationConfig
+    metadata:
+      name: one
+      labels: 
+          nexus/is_name_hashed: "false"
+          connects.connect.nexus.org: default 
+      spec:
+          accessToken: XXXXX
+          remoteEndpointGvk:
+            group: connect.nexus.org
+            kind: NexusEndpoint
+            name: 4187f4f8437a5f4b8f4535c26d70443591b56856
+          source:
+            kind: object
+            object:
+              name: Manager1
+              objectType:
+                  group: root.orgchart.org
+                  kind: Manager
+                  version: v1
+              hierarchical: true
+              hierarchy:
+                 labels:
+                - key: "leaders.root.orgchart.org"
+                  value: "MyLeader"
+              destination:
+              hierarchical: false' > $HOME/test-datamodel/orgchart/replication-config.yaml
+    ```
+
+The manager object `Manager1` will now appear in base K8s api-server. Also, try update and delete on the manager object `Manager1` on the source and verify if it is reflected on the destination endpoint.
+
+## Replicate datamodel from base K8s api-server to Nexus api-server
+
 
