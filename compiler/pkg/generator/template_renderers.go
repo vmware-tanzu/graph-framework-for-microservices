@@ -692,6 +692,12 @@ type CommonVars struct {
 }
 
 func RenderNonNexusTypes(outputDir string, nonNexusTypes []ast.Decl, fileset *token.FileSet) error {
+	outputCommonFolder := outputDir + "/common"
+	err := createFolder(outputCommonFolder)
+	if err != nil {
+		return err
+	}
+
 	var output string
 	for _, decl := range nonNexusTypes {
 		var buf bytes.Buffer
@@ -704,7 +710,6 @@ func RenderNonNexusTypes(outputDir string, nonNexusTypes []ast.Decl, fileset *to
 	}
 
 	vars := CommonVars{Types: output}
-
 	tmpl, err := readTemplateFile(commonTemplateFile)
 	if err != nil {
 		return err
@@ -715,7 +720,7 @@ func RenderNonNexusTypes(outputDir string, nonNexusTypes []ast.Decl, fileset *to
 		return err
 	}
 
-	err = createFile(outputDir, "common.go", out, false)
+	err = createFile(outputDir+"/common", "common.go", out, false)
 	if err != nil {
 		return err
 	}
