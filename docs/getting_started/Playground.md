@@ -263,7 +263,7 @@ Lets define a datamodel to implement well known facet in our work: Organization 
 3. Create the below-given replication-config to replicate `Manager1` to the destination endpoint (base K8s api-server).
 
     - **Note**: Fill in the `accessToken` spec field before creating the config.
-    
+
 
     ```
     kubectl get secret $(kubectl get sa default -o yaml | yq -r '.secrets[0].name') -oyaml | yq '.data.token' | base64 -d
@@ -284,7 +284,7 @@ Lets define a datamodel to implement well known facet in our work: Organization 
         kind: NexusEndpoint
         name: 4187f4f8437a5f4b8f4535c26d70443591b56856
       source:
-        kind: object
+        kind: Object
         object:
           name: Manager1
           objectType:
@@ -304,4 +304,68 @@ The manager object `Manager1` will now appear in base K8s api-server. Also, try 
 
 ## Replicate datamodel from base K8s api-server to Nexus api-server
 
+Step 1: Clone the latest connector.
 
+git clone https://gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/connector.git
+
+
+Step 2: Install standalone connector using the below command:
+
+helm install -g nexus-connector/ --set-string global.namespace=default \
+--set-string global.connector.tag=v0.0.14 \
+--set-string global.statusReplication=DISABLE \
+--set-string global.token=<token> --wait --debug
+
+
+where:
+
+connector.tag -> Latest working connector tag.
+Token -> Tenant namespace token fetched from secret.
+
+Step 3: Create NexusEndpoint CR. Click Sample NexusEndpoint CR
+
+conn
+Step 4: Create leader object.
+
+apiVersion: management.vmware.org/v1
+kind: Leader
+metadata:
+  name: default
+spec:
+    designation: CEO
+    employeeID: 1
+    name: Alice
+
+
+Step 5: Create the below-given replication-config to replicate leader object to the destination endpoint.
+Note: Refer here for the steps to fetch access token.
+
+ apiVersion: connect.nexus.org/v1
+  kind: ReplicationConfig
+  metadata:
+    name: one
+  spec:
+    accessToken: <token>
+    destination:
+      hierarchical: true
+      hierarchy:
+        labels:
+        - key: "roots.orgchart.vmware.org"
+          value: "default"
+      objectType:
+        group: management.vmware.org
+        kind: Leader
+        version: v1
+    remoteEndpointGvk:
+      group: connect.nexus.org
+      kind: NexusEndpoint
+      name: default
+    source:
+      kind: Type
+      type:
+        group: management.vmware.org
+        kind: Leader
+        version: v1
+
+
+The leader object "default" will now appear on the destination endpoint. Also, try update and delete on the leader object "default" on the source and verify if it is reflected on the destination endpoint.
