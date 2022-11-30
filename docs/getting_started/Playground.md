@@ -314,7 +314,7 @@ The manager object `Manager1` will now appear in base K8s API server. Also, try 
 
     helm repo add public-harbor-vmware "https://projects.registry.vmware.com/chartrepo/nexus"
 
-    helm install -g public-harbor-vmware/nexus-connector --version v0.0.0-628a38936e454a61d25c2f9742d2cd484da4cab1 --namespace=client \
+    helm install -g public-harbor-vmware/nexus-connector --version v0.0.0-bc276d2ac7fb973900f62d1a4a0980d77c773f63 --namespace=client \
     --set-string global.statusReplication=DISABLE --wait --debug
     ```
 
