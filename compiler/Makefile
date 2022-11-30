@@ -144,7 +144,9 @@ run_generate_code:
 	@echo "Cleaning up workdir"
 	rm -rf /tmp/old_files ||  echo "Folder not present"
 	mkdir -p /tmp/old_files
-	cp -rf $(GENERATED_OUTPUT_DIRECTORY)/* /tmp/old_files
+	if find $(GENERATED_OUTPUT_DIRECTORY) -mindepth 1 | read; then \
+		cp -rf $(GENERATED_OUTPUT_DIRECTORY)/* /tmp/old_files ;\
+	fi
 	rm -rf _generated ${GOPATH}/src/nexustempmodule
 	@echo "Copying generated_base_structure to create directory structure"
 	@echo "COMPILER_SRC_DIRECTORY: ${COMPILER_SRC_DIRECTORY}"

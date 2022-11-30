@@ -13,7 +13,6 @@ import (
 	"github.com/ghodss/yaml"
 	log "github.com/sirupsen/logrus"
 
-	nexus_compare "github.com/vmware-tanzu/graph-framework-for-microservices/common-library/pkg/nexus-compare"
 	"github.com/vmware-tanzu/graph-framework-for-microservices/kube-openapi/pkg/common"
 	extensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 )
@@ -343,40 +342,6 @@ func splitCRDs(content []byte) []string {
 	return strings.Split(string(content), "---")
 }
 
-func CheckBackwardCompatibility(inCompatibleCRDs []*bytes.Buffer, crd extensionsv1.CustomResourceDefinition, oldCRDContent []byte) ([]*bytes.Buffer, error) {
-	oldCRDParts := splitCRDs(oldCRDContent)
-	for _, oldPart := range oldCRDParts {
-		if oldPart == "" {
-			continue
-		}
-		oldCRD := &extensionsv1.CustomResourceDefinition{}
-		err := yaml.Unmarshal([]byte(oldPart), oldCRD)
-		if err != nil {
-			return nil, fmt.Errorf("error unmarshaling existing crd: %v", err)
-		}
-
-		newCRDPart, err := yaml.Marshal(&crd)
-		if err != nil {
-			return nil, fmt.Errorf("error marshaling new crd: %v", err)
-		}
-
-		if oldCRD.Name != crd.Name {
-			continue
-		}
-
-		// When there is a backward incompatibility, we fail the build if we don't force an upgrade.
-		isInCompatible, message, err := nexus_compare.CompareFiles([]byte(oldPart), newCRDPart)
-		if err != nil {
-			log.Errorf("Error occurred while checking CRD's %q backward compatibility: %v", crd.Name, err)
-		}
-		if isInCompatible {
-			log.Warnf("CRD %q is incompatible with the previous version", crd.Name)
-			inCompatibleCRDs = append(inCompatibleCRDs, message)
-		}
-	}
-	return inCompatibleCRDs, nil
-}
-
 func (g *Generator) UpdateYAMLs(yamlsPath, oldYamlsPath string, force bool) error {
 	var inCompatibleCRDs []*bytes.Buffer
 	if err := filepath.Walk(yamlsPath, func(path string, info os.FileInfo, err error) error {
@@ -419,14 +384,15 @@ func (g *Generator) UpdateYAMLs(yamlsPath, oldYamlsPath string, force bool) erro
 			}
 
 			/*
-				yamlsPath - indicates the directory path of new crd yamls
-						Ex: the path will be `_generated/crds`
+				Find the old CRD for the file with the same name as the new CRD file and compare it to the new CRD spec provided.
+					yamlsPath - indicates the directory path of new crd yamls
+								Ex: the path will be `_generated/crds`
 
-				path - indicates the file path of node
-				        Ex: For the node `Config` the path will be `_generated/crds/config_config.yaml`
+					path - indicates the file path of node
+						        Ex: For the node `Config` the path will be `_generated/crds/config_config.yaml`
 
-				oldYamlsPath - indicates the directory path of the existing crd yamls
-						Ex: the path will be `tmp/old-files/old-crds`
+					oldYamlsPath - indicates the directory path of the existing crd yamls
+								Ex: the path will be `tmp/old-files/old-crds`
 			*/
 			oldFilePath := oldYamlsPath + strings.TrimPrefix(path, yamlsPath)
 			oldCRDContent, err := os.ReadFile(oldFilePath)
