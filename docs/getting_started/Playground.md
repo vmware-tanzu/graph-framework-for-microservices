@@ -202,9 +202,12 @@ Lets define a datamodel to implement well known facet in our work: Organization 
 
 5. Access your organization chart through REST API Explorer [here](http://localhost:5000/orgchart.org/docs#/)
 
-## Replicate datamodel from Nexus api-server to base K8s api-server
+## Replicate datamodel objects between two endpoints
 
-1. Create NexusEndpoint configuration with destination host and port details. This deploys one instance of nexus-connector that syncs objects to the desired destination endpoint.
+Get started with this simple org-chart example to understand the nexus-connector workflow. In this case, the datamodel installed on the Nexus API server is hierarchical, while the K8s API server is non-hierarchical.
+## Sync from hierarchical source (Nexus API server) to non-hierarchical destination (Base API Server)
+
+1. Create NexusEndpoint configuration with destination host and port details that is to be served by a nexus-connector instance. This deploys one instance of nexus-connector that syncs objects to that destination.
 
     <details><summary>If your Kubernetes cluster is running on Kind, execute the following to get the destination IP and use https://[IP]:6443</summary>
 
@@ -222,8 +225,8 @@ Lets define a datamodel to implement well known facet in our work: Organization 
         nexus/is_name_hashed: "false"
         connects.connect.nexus.org: default
     spec:
-      host: XXX 
-      port: XXX' > $HOME/test-datamodel/orgchart/endpoint.yaml && kubectl -s localhost:5000 apply -f $HOME/test-datamodel/orgchart/endpoint.yaml
+      host: "XXX"
+      port: "XXX"' > $HOME/test-datamodel/orgchart/endpoint.yaml && kubectl -s localhost:5000 apply -f $HOME/test-datamodel/orgchart/endpoint.yaml
     ```
 
 2. Install org-chart CRDs on the destination endpoint (base K8s api-server) and give cluster permissions for the API groups.
@@ -297,75 +300,80 @@ Lets define a datamodel to implement well known facet in our work: Organization 
             - key: "leaders.root.orgchart.org"
               value: "MyLeader"
       destination:
-        hierarchical: false' > $HOME/test-datamodel/orgchart/replication-config.yaml && kubectl -s localhost:5000 apply -f $HOME/test-datamodel/orgchart/replication-config.yaml
+        hierarchical: false' > $HOME/test-datamodel/orgchart/rconfig.yaml && kubectl -s localhost:5000 apply -f $HOME/test-datamodel/orgchart/rconfig.yaml
     ```
 
 The manager object `Manager1` will now appear in base K8s api-server. Also, try update and delete on the manager object `Manager1` on the source and verify if it is reflected on the destination endpoint.
 
-## Replicate datamodel from base K8s api-server to Nexus api-server
+## Sync from non-hierarchical source (Base API Server) to hierarchical destination (Nexus API server)
 
-Step 1: Clone the latest connector.
+1. Install a standalone connector in a new namespace.
 
-git clone https://gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/connector.git
+```shell
+kubectl create ns client
 
+helm repo add public-harbor-vmware "https://projects.registry.vmware.com/chartrepo/nexus"
 
-Step 2: Install standalone connector using the below command:
-
-helm install -g nexus-connector/ --set-string global.namespace=default \
---set-string global.connector.tag=v0.0.14 \
+helm install -g public-harbor-vmware/nexus-connector --version v0.0.0-628a38936e454a61d25c2f9742d2cd484da4cab1 --namespace=client \
 --set-string global.statusReplication=DISABLE \
---set-string global.token=<token> --wait --debug
+--set-string global.token="abc" --wait --debug
+```
 
+2. Create NexusEndpoint CR. 
 
-where:
-
-connector.tag -> Latest working connector tag.
-Token -> Tenant namespace token fetched from secret.
-
-Step 3: Create NexusEndpoint CR. Click Sample NexusEndpoint CR
-
-conn
-Step 4: Create leader object.
-
-apiVersion: management.vmware.org/v1
-kind: Leader
-metadata:
-  name: default
-spec:
-    designation: CEO
-    employeeID: 1
-    name: Alice
-
-
-Step 5: Create the below-given replication-config to replicate leader object to the destination endpoint.
-Note: Refer here for the steps to fetch access token.
-
- apiVersion: connect.nexus.org/v1
-  kind: ReplicationConfig
-  metadata:
-    name: one
-  spec:
-    accessToken: <token>
-    destination:
-      hierarchical: true
-      hierarchy:
-        labels:
-        - key: "roots.orgchart.vmware.org"
-          value: "default"
-      objectType:
-        group: management.vmware.org
-        kind: Leader
-        version: v1
-    remoteEndpointGvk:
-      group: connect.nexus.org
-      kind: NexusEndpoint
+    ```shell
+    echo 'apiVersion: connect.nexus.org/v1
+    kind: NexusEndpoint
+    metadata:
       name: default
-    source:
-      kind: Type
-      type:
-        group: management.vmware.org
-        kind: Leader
-        version: v1
+      labels:
+        nexus/is_name_hashed: "false"
+        connects.connect.nexus.org: default
+    spec:
+      host: "http://nexus-api-gw.default"
+      port: "80"' > $HOME/test-datamodel/orgchart/endpoint.yaml && kubectl apply -f $HOME/test-datamodel/orgchart/endpoint.yaml
+    ```
 
+3. Create a manager object.
 
-The leader object "default" will now appear on the destination endpoint. Also, try update and delete on the leader object "default" on the source and verify if it is reflected on the destination endpoint.
+    ```shell
+    echo 'apiVersion: root.orgchart.org/v1
+    kind: Manager
+    metadata:
+      name: Manager2
+    spec:
+      designation: EngineeringManager
+      name: Alice' > $HOME/test-datamodel/orgchart/endpoint.yaml && kubectl apply -f $HOME/test-datamodel/orgchart/leader.yaml
+    ```
+
+4. Create the below-given replication-config to replicate leader object to the destination endpoint.
+
+    ```shell
+    echo 'apiVersion: connect.nexus.org/v1
+    kind: ReplicationConfig
+    metadata:
+      name: one
+    spec:
+      destination:
+        hierarchical: true
+        hierarchy:
+          labels:
+          - key: "roots.orgchart.vmware.org"
+            value: "default"
+        objectType:
+          group: management.vmware.org
+          kind: Leader
+          version: v1
+      remoteEndpointGvk:
+        group: connect.nexus.org
+        kind: NexusEndpoint
+        name: default
+      source:
+        kind: Type
+        type:
+          group: management.vmware.org
+          kind: Leader
+          version: v1' >  $HOME/test-datamodel/orgchart/rconfig1.yaml && kubectl apply -f $HOME/test-datamodel/orgchart/rconfig1.yaml
+    ```
+
+The manager object `Manager2` will now appear on the destination endpoint. Also, try update and delete on `Manager2` on the source and verify if it is reflected on the destination endpoint.
