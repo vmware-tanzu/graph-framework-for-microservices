@@ -297,25 +297,25 @@ func getGraphqlSchemaName(pattern, fieldName, schemaType string) string {
 	return schemaName
 }
 
-func getGraphQLArgs(f *ast.Field) string {
-	argKey := "id"
-	argVal := "ID"
-	k := parser.GetGraphqlArgumentKey(f)
-	if k != "" {
-		argKey = k
-	}
-	v := parser.GetGraphqlArgumentValue(f)
-	if v != "" {
-		argVal = v
-	}
-	return fmt.Sprintf("%s: %s", argKey, argVal)
-}
+// func getGraphQLArgs(f *ast.Field) string {
+// 	argKey := "id"
+// 	argVal := "ID"
+// 	k := parser.GetGraphqlArgumentKey(f)
+// 	if k != "" {
+// 		argKey = k
+// 	}
+// 	v := parser.GetGraphqlArgumentValue(f)
+// 	if v != "" {
+// 		argVal = v
+// 	}
+// 	return fmt.Sprintf("%s: %s", argKey, argVal)
+// }
 
 // getTsmGraphqlSchemaFieldName process nexus annotation `nexus-graphql-nullable` and `nexus-graphql-tsm-directive`
 func getTsmGraphqlSchemaFieldName(sType GraphQLSchemaType, fieldName, schemaType, listArg string, f *ast.Field) string {
 	pattern := ""
-	listArg = getGraphQLArgs(f)
 	nullable := parser.IsNexusGraphqlNullField(f)
+	jsonEncoded := parser.IsJsonStringField(f)
 	switch sType {
 	case Standard, JsonMarshal, Child, Link:
 		if nullable {
@@ -323,17 +323,29 @@ func getTsmGraphqlSchemaFieldName(sType GraphQLSchemaType, fieldName, schemaType
 		} else {
 			pattern = "%s: %s!"
 		}
+		if jsonEncoded {
+			pattern = "%s: %s"
+			schemaType = "String"
+		}
 	case Array:
 		if nullable {
 			pattern = "%s: [%s]"
 		} else {
 			pattern = "%s: [%s!]"
 		}
+		if jsonEncoded {
+			pattern = "%s: %s"
+			schemaType = "String"
+		}
 	case NamedChild:
 		if nullable {
 			pattern = "%s(" + listArg + "): [%s!]"
 		} else {
 			pattern = "%s(" + listArg + "): [%s]"
+		}
+		if jsonEncoded {
+			pattern = "%s(" + listArg + "): %s"
+			schemaType = "String"
 		}
 	}
 	schemaName := getGraphqlSchemaName(pattern, fieldName, schemaType)
