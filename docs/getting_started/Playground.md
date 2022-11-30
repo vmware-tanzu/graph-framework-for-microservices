@@ -205,7 +205,7 @@ Lets define a datamodel to implement well known facet in our work: Organization 
 ## Replicate datamodel objects between two endpoints
 
 Get started with this simple org-chart example to understand the nexus-connector workflow. In this case, the datamodel installed on the Nexus API server is hierarchical, while the K8s API server is non-hierarchical.
-## Sync from hierarchical source (Nexus API server) to non-hierarchical destination (Base API Server)
+### Sync from hierarchical source (Nexus API server) to non-hierarchical destination (Base API Server)
 
 1. Create NexusEndpoint configuration with destination host and port details that is to be served by a nexus-connector instance. This deploys one instance of nexus-connector that syncs objects to that destination.
 
@@ -305,19 +305,19 @@ Get started with this simple org-chart example to understand the nexus-connector
 
 The manager object `Manager1` will now appear in base K8s api-server. Also, try update and delete on the manager object `Manager1` on the source and verify if it is reflected on the destination endpoint.
 
-## Sync from non-hierarchical source (Base API Server) to hierarchical destination (Nexus API server)
+### Sync from non-hierarchical source (Base API Server) to hierarchical destination (Nexus API server)
 
 1. Install a standalone connector in a new namespace.
 
-```shell
-kubectl create ns client
+    ```shell
+    kubectl create ns client
 
-helm repo add public-harbor-vmware "https://projects.registry.vmware.com/chartrepo/nexus"
+    helm repo add public-harbor-vmware "https://projects.registry.vmware.com/chartrepo/nexus"
 
-helm install -g public-harbor-vmware/nexus-connector --version v0.0.0-628a38936e454a61d25c2f9742d2cd484da4cab1 --namespace=client \
---set-string global.statusReplication=DISABLE \
---set-string global.token="abc" --wait --debug
-```
+    helm install -g public-harbor-vmware/nexus-connector --version v0.0.0-628a38936e454a61d25c2f9742d2cd484da4cab1 --namespace=client \
+    --set-string global.statusReplication=DISABLE \
+    --set-string global.token="abc" --wait --debug
+    ```
 
 2. Create NexusEndpoint CR. 
 
@@ -358,11 +358,11 @@ helm install -g public-harbor-vmware/nexus-connector --version v0.0.0-628a38936e
         hierarchical: true
         hierarchy:
           labels:
-          - key: "roots.orgchart.vmware.org"
-            value: "default"
+          - key: "leaders.root.orgchart.org"
+            value: "MyLeader"
         objectType:
-          group: management.vmware.org
-          kind: Leader
+          group: root.orgchart.org
+          kind: Manager
           version: v1
       remoteEndpointGvk:
         group: connect.nexus.org
@@ -371,8 +371,8 @@ helm install -g public-harbor-vmware/nexus-connector --version v0.0.0-628a38936e
       source:
         kind: Type
         type:
-          group: management.vmware.org
-          kind: Leader
+          group: root.orgchart.org
+          kind: Manager
           version: v1' >  $HOME/test-datamodel/orgchart/rconfig1.yaml && kubectl apply -f $HOME/test-datamodel/orgchart/rconfig1.yaml
     ```
 
