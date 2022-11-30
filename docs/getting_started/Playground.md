@@ -8,6 +8,8 @@ The goal is to give you a taste on the most interesting and impactful aspects of
 
 [Install Nexus CLI](#install-nexus-cli)
 
+[Setup Workspace](#setup-workspace)
+
 [Build a datamodel](#build-a-datamodel)
 
 [Install datamodel](#install-datamodel)
@@ -83,13 +85,18 @@ The goal is to give you a taste on the most interesting and impactful aspects of
 
     </details>
 
+## Setup Workspace
+   ```
+	export WORKDIR=$HOME/work/graph-test
+   ```
+
 ## Build a Datamodel
 
 Lets define a datamodel to implement well known facet in our work: Organization Chart
 
 1. Create a workspace directory
     ```
-    mkdir -p $HOME/test-datamodel/orgchart && cd $HOME/test-datamodel/orgchart       
+    mkdir -p $WORKDIR/test-datamodel/orgchart && cd $WORKDIR/test-datamodel/orgchart       
     ```
 
 2. Initialize workspace to specify datamodel
