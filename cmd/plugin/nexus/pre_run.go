@@ -49,7 +49,6 @@ func RootPreRun(cmd *cobra.Command, args []string) error {
 						}
 						os.Exit(1)
 					} else {
-						fmt.Printf("Successfully upgraded Nexus CLI to %s\n", latestVersion)
 						os.Exit(0)
 					}
 				}
