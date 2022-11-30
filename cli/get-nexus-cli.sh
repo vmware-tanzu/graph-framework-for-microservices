@@ -62,6 +62,8 @@ docker_name="nexus-cli"
 darwin_src_path="/nexus/darwin/nexus"
 linux_src_path="/nexus/linux/nexus"
 
+docker rm -f ${docker_name} &> /dev/null
+
 docker pull ${REPOSITORY}:${VERSION} 1> /dev/null
 docker create --name "$docker_name" ${REPOSITORY}:${VERSION} 1> /dev/null
 
@@ -74,6 +76,7 @@ else
 fi
 
 docker rm -f ${docker_name} 1> /dev/null
+docker rmi "${REPOSITORY}" &> /dev/null
 
 echo "The nexus cli binary downloaded here: $DST_DIR/nexus"
 
