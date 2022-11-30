@@ -323,7 +323,6 @@ func tsmProcessNexusFields(pkg parser.Package, aliasNameMap map[string]string, n
 		typeString := ConstructType(aliasNameMap, nf)
 		if parser.IsOnlyLinkField(nf) {
 			schemaTypeName, resolverTypeName := ValidateImportPkg(nodeProp.PkgName, typeString, importMap, pkgs)
-			// `type:string` annotation used to consider the type as string `nexus-graphql:"type:string"`
 			fieldProp.SchemaFieldName = getTsmGraphqlSchemaFieldName(Link, fieldProp.FieldName, schemaTypeName, "id: ID", nf)
 			fieldProp.IsResolver = true
 			fieldProp.IsNexusTypeField = true
@@ -352,11 +351,17 @@ func tsmProcessNexusFields(pkg parser.Package, aliasNameMap map[string]string, n
 			var listArg string
 			fieldProp.IsChildrenOrLinks = true
 			schemaTypeName, resolverTypeName := ValidateImportPkg(nodeProp.PkgName, typeString, importMap, pkgs)
-			if val, ok := parser.GetNexusGraphqlSpecAnnotation(pkg, typeString); ok {
-				gqlspec := gqlSpecMap[fmt.Sprintf("%s.%s", pkg.Name, val)]
-				listArg = GetNexusSchemaFieldName(gqlspec)
+			// Annotation `nexus-graphql-args:"name: String"` use to specify graphql arguments
+			AnnotatedGqlArgs := parser.GetGraphqlArgs(nf)
+			if AnnotatedGqlArgs != "" {
+				listArg = AnnotatedGqlArgs
 			} else {
-				listArg = GetNodeDetails(nodeProp.PkgName, typeString, importMap, pkgs, gqlSpecMap)
+				if val, ok := parser.GetNexusGraphqlSpecAnnotation(pkg, typeString); ok {
+					gqlspec := gqlSpecMap[fmt.Sprintf("%s.%s", pkg.Name, val)]
+					listArg = GetNexusSchemaFieldName(gqlspec)
+				} else {
+					listArg = GetNodeDetails(nodeProp.PkgName, typeString, importMap, pkgs, gqlSpecMap)
+				}
 			}
 			fieldProp.SchemaFieldName = getTsmGraphqlSchemaFieldName(NamedChild, fieldProp.FieldName, schemaTypeName, listArg, nf)
 			fieldProp.IsResolver = true
