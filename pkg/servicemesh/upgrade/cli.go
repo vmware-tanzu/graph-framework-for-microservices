@@ -4,14 +4,11 @@ import (
 	"fmt"
 
 	"github.com/spf13/cobra"
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/common"
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/servicemesh/version"
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/utils"
 )
 
 var (
 	upgradeToVersion string
-	nexusCliRepo     string = "gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/cmd/plugin/nexus"
 )
 
 func upgradeCli(cmd *cobra.Command, args []string) error {
@@ -22,7 +19,6 @@ func upgradeCli(cmd *cobra.Command, args []string) error {
 		needUpgrade = true
 	}
 	if needUpgrade {
-		fmt.Printf("Upgrading to version: %s\n", upgradeToVersion)
 		return DoUpgradeCli(upgradeToVersion, cmd)
 	} else {
 		return nil
@@ -30,16 +26,12 @@ func upgradeCli(cmd *cobra.Command, args []string) error {
 }
 
 func DoUpgradeCli(version string, cmd *cobra.Command) error {
+	const nexusInstallScriptUrl = "https://raw.githubusercontent.com/vmware-tanzu/graph-framework-for-microservices/main/cli/get-nexus-cli.sh"
 	if version == "" {
-		version = "master"
+		version = "latest"
 	}
-	envList := common.GetEnvList()
-	err := utils.SystemCommand(cmd, utils.CLI_UPGRADE_FAILED, envList, "go", "install", fmt.Sprintf("%s@%s", nexusCliRepo, version))
-	if err == nil {
-		fmt.Printf("\u2713 CLI successfully upgraded to version %s\n", version)
-	} else {
-		fmt.Printf("\u274C CLI upgrade to version %s failed with error %v\n", version, err)
-	}
+	fmt.Printf("\u2713 Please upgrade nexus CLI version to %s with below steps\n", version)
+	fmt.Printf("\u2794 curl -fsSL %s -o get-nexus-cli.sh \n\u2794 bash get-nexus-cli.sh --version %s\n", nexusInstallScriptUrl, version)
 	return nil
 }
 
