@@ -2,6 +2,29 @@ from jira import ( JIRA,JIRAError )
 import json
 import requests
 import os, sys
+import re
+
+patterns = {
+    "Bug":"How critical is this bug to you([\n\s\d\w\-?]*)-",
+    "Task": "How critical is this feature to you([\n\s\d\w\-?]*)-",
+}
+
+IssuePriorityMap = {
+    "Blocker": "Blocker - P0",
+    "Critical": "Critical - P1",
+    "Major": "Major - P2",
+    "Minor": "Minor - P3"
+}
+
+def get_issue_priority(issue_body, issue_type):
+    '''
+    currently issue body has a segment which user can provide the bug/task priority'''
+    priorityKey = re.findall(patterns[issue_type], issue_body)[0].replace('?','').replace('\n','').strip()
+    for k, v in IssuePriorityMap.items():
+        if k == priorityKey:
+           return v
+    return "None"
+
 
 issue_types = [{"Bug":"bug"},{"Task":"feature request"}]
 def parse_event_context():
@@ -46,12 +69,15 @@ def run_create_issue(issue_body, issue_type, issue_title, issue_url):
     except Exception as e:
         print("Could not connect to JIRA due to : {}".format(e))
         sys.exit(1)
+    issue_priority = get_issue_priority(issue_body, issue_type)
+
     Body = "Github Issue: "+issue_url + "\n" + issue_body
     Issue = {
         'project': {'key': 'NPT'},
         'summary': issue_title ,
         'description': Body,
         'issuetype': {'name': issue_type },
+        'priority': {'name': issue_priority},
     }
     try:
         new_issue = jira.create_issue(fields=Issue)
