@@ -343,10 +343,16 @@ The manager object `Manager1` will now appear in base K8s api-server. Also, try 
       name: Manager2
     spec:
       designation: EngineeringManager
-      name: Alice' > $HOME/test-datamodel/orgchart/endpoint.yaml && kubectl apply -f $HOME/test-datamodel/orgchart/leader.yaml
+      name: Alice' > $HOME/test-datamodel/orgchart/manager.yaml && kubectl apply -f $HOME/test-datamodel/orgchart/manager.yaml
     ```
 
 4. Create the below-given replication-config to replicate leader object to the destination endpoint.
+
+    - **Note**: Fill in the `accessToken` spec field before creating the config.
+
+    ```
+    kubectl get secret $(kubectl get sa default -o yaml | yq -r '.secrets[0].name') -oyaml | yq '.data.token' | base64 -d
+    ```
 
     ```shell
     echo 'apiVersion: connect.nexus.org/v1
@@ -354,6 +360,7 @@ The manager object `Manager1` will now appear in base K8s api-server. Also, try 
     metadata:
       name: one
     spec:
+      accessToken: XXXX
       destination:
         hierarchical: true
         hierarchy:
