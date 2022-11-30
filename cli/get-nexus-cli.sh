@@ -76,6 +76,7 @@ else
 fi
 
 docker rm -f ${docker_name} 1> /dev/null
+docker rmi "${REPOSITORY}" &> /dev/null
 
 echo "The nexus cli binary downloaded here: $DST_DIR/nexus"
 
