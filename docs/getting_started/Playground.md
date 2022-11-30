@@ -303,7 +303,7 @@ Get started with this simple org-chart example to understand the nexus-connector
         hierarchical: false' > $HOME/test-datamodel/orgchart/rconfig.yaml && kubectl -s localhost:5000 apply -f $HOME/test-datamodel/orgchart/rconfig.yaml
     ```
 
-The manager object `Manager1` will now appear in base K8s api-server. Also, try update and delete on the manager object `Manager1` on the source and verify if it is reflected on the destination endpoint.
+The manager object `Manager1` will now appear in base K8s API server. Also, try update and delete on the manager object `Manager1` on the source and verify if it is reflected on the destination endpoint.
 
 ### Sync from non-hierarchical source (Base API Server) to hierarchical destination (Nexus API server)
 
@@ -315,8 +315,7 @@ The manager object `Manager1` will now appear in base K8s api-server. Also, try 
     helm repo add public-harbor-vmware "https://projects.registry.vmware.com/chartrepo/nexus"
 
     helm install -g public-harbor-vmware/nexus-connector --version v0.0.0-628a38936e454a61d25c2f9742d2cd484da4cab1 --namespace=client \
-    --set-string global.statusReplication=DISABLE \
-    --set-string global.token="abc" --wait --debug
+    --set-string global.statusReplication=DISABLE --wait --debug
     ```
 
 2. Create NexusEndpoint CR. 
@@ -348,19 +347,12 @@ The manager object `Manager1` will now appear in base K8s api-server. Also, try 
 
 4. Create the below-given replication-config to replicate leader object to the destination endpoint.
 
-    - **Note**: Fill in the `accessToken` spec field before creating the config.
-
-    ```
-    kubectl get secret $(kubectl get sa default -o yaml | yq -r '.secrets[0].name') -oyaml | yq '.data.token' | base64 -d
-    ```
-
     ```shell
     echo 'apiVersion: connect.nexus.org/v1
     kind: ReplicationConfig
     metadata:
       name: one
     spec:
-      accessToken: XXXX
       destination:
         hierarchical: true
         hierarchy:
@@ -383,4 +375,4 @@ The manager object `Manager1` will now appear in base K8s api-server. Also, try 
           version: v1' >  $HOME/test-datamodel/orgchart/rconfig1.yaml && kubectl apply -f $HOME/test-datamodel/orgchart/rconfig1.yaml
     ```
 
-The manager object `Manager2` will now appear on the destination endpoint. Also, try update and delete on `Manager2` on the source and verify if it is reflected on the destination endpoint.
+The manager object `Manager2` will now appear in Nexus API server. Also, try update and delete on `Manager2` on the source and verify if it is reflected on the destination endpoint.
