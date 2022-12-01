@@ -92,15 +92,19 @@ spec:
           volumeMounts:
             - mountPath: /config
               name: config
+            {{- if eq .Values.global.statusReplication "ENABLED"}}
             - mountPath: /etc/secret-volume
               name: secret-volume
+            {{- end }}
       volumes:
         - name: config
           configMap:
             name: connector-kubeconfig-local
+        {{- if eq .Values.global.statusReplication "ENABLED"}}
         - name: secret-volume
           secret:
             secretName: controller-secret
+        {{- end }}
       {{if ne .Values.global.imagepullsecret "" }}
       imagePullSecrets:
       - name: {{ .Values.global.imagepullsecret }}
@@ -128,6 +132,7 @@ spec:
   selector:
     control-plane: connector
 ---
+{{- if eq .Values.global.statusReplication "ENABLED"}}
 apiVersion: v1
 data:
   namespace: {{ .Release.Namespace | b64enc }}
@@ -140,6 +145,7 @@ kind: Secret
 metadata:
   name: controller-secret
   namespace: {{.Release.Namespace}}
+{{- end }}
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
