@@ -10,7 +10,10 @@ IMAGE_NAME ?= nexus-connector-svc
 TAG ?= $(shell git rev-parse --verify HEAD)
 VERSION ?= "v0.0.0-$(TAG)"
 HARBOR_REPO_URL ?= "https://harbor-repo.vmware.com/chartrepo/nexus"
+PUBLIC_HARBOR_REPO_URL ?= https://projects.registry.vmware.com/chartrepo/nexus
 HARBOR_REPO ?= "harbor-vmware"
+PUBLIC_HARBOR_REPO ?= public-harbor-vmware
+
 
 BUILDER_NAME ?= ${IMAGE_NAME}-builder
 BUILDER_TAG := $(shell md5sum builder/Dockerfile | awk '{ print $1 }' | head -c 8)
@@ -128,7 +131,7 @@ coverage:
 
 
 submodule:
-	git submodule update --init --recursive
+	git submodule update --init --recursive --remote
 build_helm: submodule
 	mkdir -p nexus-connector/crds
 	cp -rf api/build/crds/* nexus-connector/crds/
@@ -142,5 +145,12 @@ harbor.login:
 	helm repo remove $(HARBOR_REPO) || echo "$(HARBOR_REPO) not present"; \
 	helm repo add $(HARBOR_REPO) $(HARBOR_REPO_URL) --username $(HARBOR_USERNAME) --password $(HARBOR_PASSWORD);
 
+public.harbor.login:
+	helm repo remove $(PUBLIC_HARBOR_REPO) || echo "$(PUBLIC_HARBOR_REPO) not present"; \
+	helm repo add $(PUBLIC_HARBOR_REPO) $(PUBLIC_HARBOR_REPO_URL) --username '$(PUBLIC_HARBOR_USERNAME)' --password $(PUBLIC_HARBOR_PASSWORD);
+
 publish.harbor.helm: build_helm
 	helm cm-push $(CHART_NAME)-$(VERSION).tgz $(HARBOR_REPO)
+
+publish.harbor.public.helm: build_helm
+	helm cm-push $(CHART_NAME)-$(VERSION).tgz $(PUBLIC_HARBOR_REPO)
