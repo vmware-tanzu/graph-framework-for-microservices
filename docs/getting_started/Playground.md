@@ -217,13 +217,13 @@ Get started with this simple org-chart example to understand the nexus-connector
     </details>
 
     ```shell
-    echo 'apiVersion: connect.nexus.org/v1
+    echo 'apiVersion: connect.nexus.vmware.com/v1
     kind: NexusEndpoint
     metadata:
       name: default
       labels:
         nexus/is_name_hashed: "false"
-        connects.connect.nexus.org: default
+        connects.connect.nexus.vmware.com: default
     spec:
       host: "XXX"
       port: "XXX"' > $HOME/test-datamodel/orgchart/endpoint.yaml && kubectl -s localhost:5000 apply -f $HOME/test-datamodel/orgchart/endpoint.yaml
@@ -273,17 +273,17 @@ Get started with this simple org-chart example to understand the nexus-connector
     ```
 
     ```shell
-    echo 'apiVersion: connect.nexus.org/v1
+    echo 'apiVersion: connect.nexus.vmware.com/v1
     kind: ReplicationConfig
     metadata:
       name: one
       labels: 
           nexus/is_name_hashed: "false"
-          connects.connect.nexus.org: default 
+          connects.connect.nexus.vmware.com: default 
     spec:
       accessToken: XXXXX
       remoteEndpointGvk:
-        group: connect.nexus.org
+        group: connect.nexus.vmware.com
         kind: NexusEndpoint
         name: 4187f4f8437a5f4b8f4535c26d70443591b56856
       source:
@@ -321,13 +321,13 @@ The manager object `Manager1` will now appear in base K8s API server. Also, try 
 2. Create NexusEndpoint CR. 
 
     ```shell
-    echo 'apiVersion: connect.nexus.org/v1
+    echo 'apiVersion: connect.nexus.vmware.com/v1
     kind: NexusEndpoint
     metadata:
       name: default
       labels:
         nexus/is_name_hashed: "false"
-        connects.connect.nexus.org: default
+        connects.connect.nexus.vmware.com: default
     spec:
       host: "http://nexus-api-gw.default"
       port: "80"' > $HOME/test-datamodel/orgchart/endpoint.yaml && kubectl apply -f $HOME/test-datamodel/orgchart/endpoint.yaml
@@ -348,7 +348,7 @@ The manager object `Manager1` will now appear in base K8s API server. Also, try 
 4. Create the below-given replication-config to replicate leader object to the destination endpoint.
 
     ```shell
-    echo 'apiVersion: connect.nexus.org/v1
+    echo 'apiVersion: connect.nexus.vmware.com/v1
     kind: ReplicationConfig
     metadata:
       name: one
@@ -364,7 +364,7 @@ The manager object `Manager1` will now appear in base K8s API server. Also, try 
           kind: Manager
           version: v1
       remoteEndpointGvk:
-        group: connect.nexus.org
+        group: connect.nexus.vmware.com
         kind: NexusEndpoint
         name: default
       source:
