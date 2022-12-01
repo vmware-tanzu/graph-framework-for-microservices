@@ -1,9 +1,20 @@
 #!/usr/bin/env bash
 set -e 
 
+
 REPOSITORY="gcr.io/nsx-sm/nexus/nexus-cli"
-VERSION="latest"
 DST_DIR="/usr/local/bin"
+VERSION=""
+
+SEMVER_REGEX_MASTER="v[0-9]+\.[0-9]+\.[0-9]+$"
+json_resp=$(curl -s https://gcr.io/v2/nsx-sm/nexus/nexus-cli/tags/list | jq  -r '.manifest[] | .tag | select(.[]=="latest") | .[]')
+declare -a tags_array=($(echo "${json_resp}" | tr "\n" " "))
+for version in "${tags_array[@]}"; do
+       if [[ "${version}" =~ ${SEMVER_REGEX_MASTER} ]]; then
+                VERSION="${version}"
+                break
+       fi
+done
 
 usage() { echo "Usage: $0 [-r <repository-name>] [-v <version>] [-d <destination-path>] " 1>&2; exit 1; }
 
