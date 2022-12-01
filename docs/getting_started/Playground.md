@@ -285,7 +285,7 @@ Get started with this simple org-chart example to understand the nexus-connector
       remoteEndpointGvk:
         group: connect.nexus.vmware.com
         kind: NexusEndpoint
-        name: 4187f4f8437a5f4b8f4535c26d70443591b56856
+        name: 227d04a46fd6e335668c28b5e32097aac363f1bb
       source:
         kind: Object
         object:
