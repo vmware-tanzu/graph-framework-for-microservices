@@ -314,7 +314,7 @@ The manager object `Manager1` will now appear in base K8s API server. Also, try 
 
     helm repo add public-harbor-vmware "https://projects.registry.vmware.com/chartrepo/nexus"
 
-    helm install -g public-harbor-vmware/nexus-connector --version v0.0.0-bc276d2ac7fb973900f62d1a4a0980d77c773f63 --namespace=client \
+    helm install -g public-harbor-vmware/nexus-connector --version v0.0.0-f0be543628915951f780285380d88781e4d3f34c --namespace=client \
     --set-string global.statusReplication=DISABLE --wait --debug
     ```
 
@@ -339,7 +339,7 @@ The manager object `Manager1` will now appear in base K8s API server. Also, try 
     echo 'apiVersion: root.orgchart.org/v1
     kind: Manager
     metadata:
-      name: Manager2
+      name: manager2
     spec:
       designation: EngineeringManager
       name: Alice' > $HOME/test-datamodel/orgchart/manager.yaml && kubectl apply -f $HOME/test-datamodel/orgchart/manager.yaml
