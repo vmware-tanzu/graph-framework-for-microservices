@@ -20,6 +20,8 @@ if [[ $# == 0 ]]; then
         echo -n "Directory [/usr/local/bin]:"
         read -r dest_path
     fi
+elif [[ "$1" == "--no-prompt" ]]; then
+    echo -e "Downloading Nexus ...\nVersion: ${VERSION}\nImage repository: ${REPOSITORY}\nDirectory: ${DST_DIR}\n"
 else
     while getopts ":r:v:d:" o; do
         case "${o}" in
