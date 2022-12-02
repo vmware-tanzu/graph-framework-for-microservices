@@ -135,14 +135,23 @@ test_in_container: ${BUILDER_NAME}\:${BUILDER_TAG}.image.exists
 
 .PHONY: preparser
 preparser:
-	@echo "===>>> Preparser Started ${DATAMODEL_PATH}"
+	@echo "Nexus Compiler: Start Preparser"
+	@echo "Cleaning up temp dir"
 	rm -rf _tsm_temp
+	@echo "Copying Datamodel to temp directory"
 	cp -R ${DATAMODEL_PATH} _tsm_temp
+	@echo "Nexus Compiler: Running Preparser"
 	go run cmd/preparser/main.go -dsl _tsm_temp
-	@echo "===>>> generate_code Starts"
-	cp -R _generated_base_structure ${DATAMODEL_PATH}/build
-	go run cmd/nexus-sdk/main.go -config-file example/nexus-sdk.yaml -dsl _tsm_temp -crd-output ${DATAMODEL_PATH}/build
-	# $(MAKE) generate_code DATAMODEL_PATH=_tsm_temp CONFIG_FILE=example/nexus-sdk.yaml CRD_MODULE_PATH="github.com/vmware-tanzu/graph-framework-for-microservices/compiler/example/output/generated/" GENERATED_OUTPUT_DIRECTORY=example/output/generated
+	@if [ -d "_tsm_temp/global" ]; then \
+		echo "Global Dir exists"; \
+		mv _tsm_temp/go.mod _tsm_temp/global; \
+		cp -R _generated_base_structure ${DATAMODEL_PATH}/build; \
+		go run cmd/nexus-sdk/main.go -config-file example/nexus-sdk.yaml -dsl _tsm_temp/global -crd-output ${DATAMODEL_PATH}/build; \
+	else \
+		cp -R _generated_base_structure ${DATAMODEL_PATH}/build; \
+		go run cmd/nexus-sdk/main.go -config-file example/nexus-sdk.yaml -dsl _tsm_temp -crd-output ${DATAMODEL_PATH}/build; \
+	fi
+	# $(MAKE) generate_code DATAMODEL_PATH=_tsm_temp CONFIG_FILE=example/nexus-sdk.yaml CRD_MODULE_PATH="github.com/vmware-tanzu/graph-framework-for-microservices/compiler/example/output/generated/" GENERATED_OUTPUT_DIRECTORY=example/output/generated;
 
 .PHONY: generate_code
 generate_code:

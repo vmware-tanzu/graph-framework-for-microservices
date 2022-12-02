@@ -42,5 +42,5 @@ func CustomQueryToGraphqlSchema(query nexus.GraphQLQuery) string {
 		log.Fatalf("Wrong Api Type of Graphql custom query")
 	}
 
-	return fmt.Sprintf("    %s"+args+": "+returnType+"\n", query.Name)
+	return fmt.Sprintf("    %s"+args+": "+returnType, query.Name)
 }
