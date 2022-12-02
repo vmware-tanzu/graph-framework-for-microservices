@@ -42,7 +42,7 @@ var _ = Describe("ReplicationConfig Tests", func() {
 			os.Setenv(utils.RemoteEndpointHost, fmt.Sprintf("http://%s", parts[0]))
 			os.Setenv(utils.RemoteEndpointPort, parts[1])
 
-			endpointGvr := schema.GroupVersionResource{Group: "connect.nexus.org", Version: "v1", Resource: "nexusendpoints"}
+			endpointGvr := schema.GroupVersionResource{Group: "connect.nexus.vmware.com", Version: "v1", Resource: "nexusendpoints"}
 			acGvr := schema.GroupVersionResource{Group: "config.mazinger.com", Version: "v1", Resource: "apicollaborationspaces"}
 			adGvr := schema.GroupVersionResource{Group: "config.mazinger.com", Version: "v1", Resource: "apidevspaces"}
 			gvrToListKind[acGvr] = "ApiCollaborationSpaceList"
@@ -151,7 +151,7 @@ var _ = Describe("ReplicationConfig Tests", func() {
 							"hierarchical": false,
 						},
 						"remoteEndpointGvk": map[string]interface{}{
-							"group": "connect.nexus.org",
+							"group": "connect.nexus.vmware.com",
 							"kind":  "NexusEndpoint",
 							"name":  "default",
 						},
@@ -208,7 +208,7 @@ var _ = Describe("ReplicationConfig Tests", func() {
 							"hierarchical": false,
 						},
 						"remoteEndpointGvk": map[string]interface{}{
-							"group": "connect.nexus.org",
+							"group": "connect.nexus.vmware.com",
 							"kind":  "NexusEndpoint",
 							"name":  "default",
 						},
@@ -226,7 +226,7 @@ var _ = Describe("ReplicationConfig Tests", func() {
 				Object: map[string]interface{}{
 					"spec": map[string]interface{}{
 						"remoteEndpointGvk": map[string]interface{}{
-							"group": "connect.nexus.org",
+							"group": "connect.nexus.vmware.com",
 							"kind":  "NexusEndpoint",
 							"name":  "default",
 						},
@@ -270,7 +270,7 @@ var _ = Describe("ReplicationConfig Tests", func() {
 				Object: map[string]interface{}{
 					"spec": map[string]interface{}{
 						"remoteEndpointGvk": map[string]interface{}{
-							"group": "connect.nexus.org",
+							"group": "connect.nexus.vmware.com",
 							"kind":  "NexusEndpoint",
 							"name":  "defaultNew",
 						},
@@ -298,7 +298,7 @@ var _ = Describe("ReplicationConfig Tests", func() {
 				Object: map[string]interface{}{
 					"spec": map[string]interface{}{
 						"remoteEndpointGvk": map[string]interface{}{
-							"group": "connect.nexus.org",
+							"group": "connect.nexus.vmware.com",
 							"kind":  "NexusEndpoint",
 							"name":  "wrongType",
 						},
@@ -314,7 +314,7 @@ var _ = Describe("ReplicationConfig Tests", func() {
 				Object: map[string]interface{}{
 					"spec": map[string]interface{}{
 						"remoteEndpointGvk": map[string]interface{}{
-							"group": "connect.nexus.org",
+							"group": "connect.nexus.vmware.com",
 							"kind":  "NexusEndpoint",
 							"name":  "wrongCert",
 						},

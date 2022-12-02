@@ -249,7 +249,7 @@ func getReplicationConfigObject() *unstructured.Unstructured {
 					"hierarchical": false,
 				},
 				"remoteEndpointGvk": map[string]interface{}{
-					"group": "connect.nexus.org",
+					"group": "connect.nexus.vmware.com",
 					"kind":  "NexusEndpoint",
 					"name":  "default",
 				},

@@ -30,8 +30,8 @@ const (
 	secretName               = "SECRET_NAME"
 
 	// Nexus-Connect DM CRDs.
-	ReplicationConfigCRD = "replicationconfigs.connect.nexus.org"
-	NexusEndpointCRD     = "nexusendpoints.connect.nexus.org"
+	ReplicationConfigCRD = "replicationconfigs.connect.nexus.vmware.com"
+	NexusEndpointCRD     = "nexusendpoints.connect.nexus.vmware.com"
 
 	// CRD Version.
 	V1Version = "v1"
@@ -141,7 +141,7 @@ func DeleteChildGvkFields(fields map[string]interface{}, children map[string]Nod
 }
 
 func NexusDatamodelCRDs(group string) bool {
-	return strings.Contains(group, "nexus.org")
+	return strings.Contains(group, "nexus.vmware.com")
 }
 
 func GenerateAnnotations(annotations map[string]string, gvr schema.GroupVersionResource, name string) map[string]string {
