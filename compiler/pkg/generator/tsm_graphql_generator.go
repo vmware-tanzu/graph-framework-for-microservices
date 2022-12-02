@@ -310,7 +310,7 @@ func tsmProcessNexusFields(pkg parser.Package, aliasNameMap map[string]string, n
 			for _, customQuery := range nodeProp.CustomQueries {
 				cq := CustomQueryToGraphqlSchema(customQuery)
 				// In TSM DM "@timeseriesAPI" directives is need to added along with returnType "TimeSeriesData"
-				fieldProp.SchemaFieldName += strings.ReplaceAll(cq, "TimeSeriesData", fmt.Sprintf("TimeSeriesData @timeseriesAPI(file: \"../../tsquery/timeSeriesQuery\", handler: \"%s\")", customQuery.Name))
+				fieldProp.SchemaFieldName += "\n" + strings.ReplaceAll(cq, "TimeSeriesData", fmt.Sprintf("TimeSeriesData @timeseriesAPI(file: \"../../tsquery/timeSeriesQuery\", handler: \"%s\")", customQuery.Name))
 				var customQueryFieldProp FieldProperty
 				customQueryFieldProp.IsResolver = true
 				customQueryFieldProp.FieldName = customQuery.Name
@@ -436,14 +436,6 @@ func GenerateTsmGraphqlSchemaVars(baseGroupName, crdModulePath string, pkgs pars
 			nodeProp.CustomQueries = nodeHelper.GraphqlQuerySpec.Queries
 			nodeProp.GraphQlSpec = gqlspec
 
-			// if parser.IsNexusNode(node) && len(nodeHelper.Parents) == 0 && rootOfGraph {
-			// 	log.Errorf("Can't allow multiple root of the graph, skipping Node:%s", nodeProp.NodeName)
-			// 	continue
-			// }
-
-			// if parser.IsNexusNode(node) {
-			// 	rootOfGraph = isRootOfGraph(nodeHelper.Parents, rootOfGraph)
-			// }
 			setNexusProperties(nodeHelper, node, nodeProp)
 			if pkg.Name == "global" {
 				nodeProp.SchemaName = parser.GetTypeName(node)
