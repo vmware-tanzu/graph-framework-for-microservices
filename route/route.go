@@ -6,7 +6,7 @@ import (
 
 type Service struct {
 	Name   string
-	Port   int32 `yaml:"omitempty"`
+	Port   int32 `json:"port,omitempty"`
 	Scheme string
 }
 

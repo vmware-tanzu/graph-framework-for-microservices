@@ -24,15 +24,15 @@ import (
 	time "time"
 
 	versioned "golang-appnet.eng.vmware.com/nexus-sdk/api/build/client/clientset/versioned"
-	adminnexusorg "golang-appnet.eng.vmware.com/nexus-sdk/api/build/client/informers/externalversions/admin.nexus.org"
-	apinexusorg "golang-appnet.eng.vmware.com/nexus-sdk/api/build/client/informers/externalversions/api.nexus.org"
-	apigatewaynexusorg "golang-appnet.eng.vmware.com/nexus-sdk/api/build/client/informers/externalversions/apigateway.nexus.org"
-	authenticationnexusorg "golang-appnet.eng.vmware.com/nexus-sdk/api/build/client/informers/externalversions/authentication.nexus.org"
-	confignexusorg "golang-appnet.eng.vmware.com/nexus-sdk/api/build/client/informers/externalversions/config.nexus.org"
-	connectnexusorg "golang-appnet.eng.vmware.com/nexus-sdk/api/build/client/informers/externalversions/connect.nexus.org"
-	domainnexusorg "golang-appnet.eng.vmware.com/nexus-sdk/api/build/client/informers/externalversions/domain.nexus.org"
+	adminnexusvmwarecom "golang-appnet.eng.vmware.com/nexus-sdk/api/build/client/informers/externalversions/admin.nexus.vmware.com"
+	apinexusvmwarecom "golang-appnet.eng.vmware.com/nexus-sdk/api/build/client/informers/externalversions/api.nexus.vmware.com"
+	apigatewaynexusvmwarecom "golang-appnet.eng.vmware.com/nexus-sdk/api/build/client/informers/externalversions/apigateway.nexus.vmware.com"
+	authenticationnexusvmwarecom "golang-appnet.eng.vmware.com/nexus-sdk/api/build/client/informers/externalversions/authentication.nexus.vmware.com"
+	confignexusvmwarecom "golang-appnet.eng.vmware.com/nexus-sdk/api/build/client/informers/externalversions/config.nexus.vmware.com"
+	connectnexusvmwarecom "golang-appnet.eng.vmware.com/nexus-sdk/api/build/client/informers/externalversions/connect.nexus.vmware.com"
+	domainnexusvmwarecom "golang-appnet.eng.vmware.com/nexus-sdk/api/build/client/informers/externalversions/domain.nexus.vmware.com"
 	internalinterfaces "golang-appnet.eng.vmware.com/nexus-sdk/api/build/client/informers/externalversions/internalinterfaces"
-	routenexusorg "golang-appnet.eng.vmware.com/nexus-sdk/api/build/client/informers/externalversions/route.nexus.org"
+	routenexusvmwarecom "golang-appnet.eng.vmware.com/nexus-sdk/api/build/client/informers/externalversions/route.nexus.vmware.com"
 
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	runtime "k8s.io/apimachinery/pkg/runtime"
@@ -180,44 +180,44 @@ type SharedInformerFactory interface {
 	ForResource(resource schema.GroupVersionResource) (GenericInformer, error)
 	WaitForCacheSync(stopCh <-chan struct{}) map[reflect.Type]bool
 
-	AdminNexus() adminnexusorg.Interface
-	ApiNexus() apinexusorg.Interface
-	ApigatewayNexus() apigatewaynexusorg.Interface
-	AuthenticationNexus() authenticationnexusorg.Interface
-	ConfigNexus() confignexusorg.Interface
-	ConnectNexus() connectnexusorg.Interface
-	DomainNexus() domainnexusorg.Interface
-	RouteNexus() routenexusorg.Interface
+	AdminNexus() adminnexusvmwarecom.Interface
+	ApiNexus() apinexusvmwarecom.Interface
+	ApigatewayNexus() apigatewaynexusvmwarecom.Interface
+	AuthenticationNexus() authenticationnexusvmwarecom.Interface
+	ConfigNexus() confignexusvmwarecom.Interface
+	ConnectNexus() connectnexusvmwarecom.Interface
+	DomainNexus() domainnexusvmwarecom.Interface
+	RouteNexus() routenexusvmwarecom.Interface
 }
 
-func (f *sharedInformerFactory) AdminNexus() adminnexusorg.Interface {
-	return adminnexusorg.New(f, f.namespace, f.tweakListOptions)
+func (f *sharedInformerFactory) AdminNexus() adminnexusvmwarecom.Interface {
+	return adminnexusvmwarecom.New(f, f.namespace, f.tweakListOptions)
 }
 
-func (f *sharedInformerFactory) ApiNexus() apinexusorg.Interface {
-	return apinexusorg.New(f, f.namespace, f.tweakListOptions)
+func (f *sharedInformerFactory) ApiNexus() apinexusvmwarecom.Interface {
+	return apinexusvmwarecom.New(f, f.namespace, f.tweakListOptions)
 }
 
-func (f *sharedInformerFactory) ApigatewayNexus() apigatewaynexusorg.Interface {
-	return apigatewaynexusorg.New(f, f.namespace, f.tweakListOptions)
+func (f *sharedInformerFactory) ApigatewayNexus() apigatewaynexusvmwarecom.Interface {
+	return apigatewaynexusvmwarecom.New(f, f.namespace, f.tweakListOptions)
 }
 
-func (f *sharedInformerFactory) AuthenticationNexus() authenticationnexusorg.Interface {
-	return authenticationnexusorg.New(f, f.namespace, f.tweakListOptions)
+func (f *sharedInformerFactory) AuthenticationNexus() authenticationnexusvmwarecom.Interface {
+	return authenticationnexusvmwarecom.New(f, f.namespace, f.tweakListOptions)
 }
 
-func (f *sharedInformerFactory) ConfigNexus() confignexusorg.Interface {
-	return confignexusorg.New(f, f.namespace, f.tweakListOptions)
+func (f *sharedInformerFactory) ConfigNexus() confignexusvmwarecom.Interface {
+	return confignexusvmwarecom.New(f, f.namespace, f.tweakListOptions)
 }
 
-func (f *sharedInformerFactory) ConnectNexus() connectnexusorg.Interface {
-	return connectnexusorg.New(f, f.namespace, f.tweakListOptions)
+func (f *sharedInformerFactory) ConnectNexus() connectnexusvmwarecom.Interface {
+	return connectnexusvmwarecom.New(f, f.namespace, f.tweakListOptions)
 }
 
-func (f *sharedInformerFactory) DomainNexus() domainnexusorg.Interface {
-	return domainnexusorg.New(f, f.namespace, f.tweakListOptions)
+func (f *sharedInformerFactory) DomainNexus() domainnexusvmwarecom.Interface {
+	return domainnexusvmwarecom.New(f, f.namespace, f.tweakListOptions)
 }
 
-func (f *sharedInformerFactory) RouteNexus() routenexusorg.Interface {
-	return routenexusorg.New(f, f.namespace, f.tweakListOptions)
+func (f *sharedInformerFactory) RouteNexus() routenexusvmwarecom.Interface {
+	return routenexusvmwarecom.New(f, f.namespace, f.tweakListOptions)
 }

@@ -21,14 +21,14 @@ package externalversions
 import (
 	"fmt"
 
-	v1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/admin.nexus.org/v1"
-	apinexusorgv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/api.nexus.org/v1"
-	apigatewaynexusorgv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/apigateway.nexus.org/v1"
-	authenticationnexusorgv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/authentication.nexus.org/v1"
-	confignexusorgv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/config.nexus.org/v1"
-	connectnexusorgv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/connect.nexus.org/v1"
-	domainnexusorgv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/domain.nexus.org/v1"
-	routenexusorgv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/route.nexus.org/v1"
+	v1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/admin.nexus.vmware.com/v1"
+	apinexusvmwarecomv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/api.nexus.vmware.com/v1"
+	apigatewaynexusvmwarecomv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/apigateway.nexus.vmware.com/v1"
+	authenticationnexusvmwarecomv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/authentication.nexus.vmware.com/v1"
+	confignexusvmwarecomv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/config.nexus.vmware.com/v1"
+	connectnexusvmwarecomv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/connect.nexus.vmware.com/v1"
+	domainnexusvmwarecomv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/domain.nexus.vmware.com/v1"
+	routenexusvmwarecomv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/route.nexus.vmware.com/v1"
 
 	schema "k8s.io/apimachinery/pkg/runtime/schema"
 	cache "k8s.io/client-go/tools/cache"
@@ -60,40 +60,40 @@ func (f *genericInformer) Lister() cache.GenericLister {
 // TODO extend this to unknown resources with a client pool
 func (f *sharedInformerFactory) ForResource(resource schema.GroupVersionResource) (GenericInformer, error) {
 	switch resource {
-	// Group=admin.nexus.org, Version=v1
+	// Group=admin.nexus.vmware.com, Version=v1
 	case v1.SchemeGroupVersion.WithResource("proxyrules"):
 		return &genericInformer{resource: resource.GroupResource(), informer: f.AdminNexus().V1().ProxyRules().Informer()}, nil
 
-		// Group=api.nexus.org, Version=v1
-	case apinexusorgv1.SchemeGroupVersion.WithResource("nexuses"):
+		// Group=api.nexus.vmware.com, Version=v1
+	case apinexusvmwarecomv1.SchemeGroupVersion.WithResource("nexuses"):
 		return &genericInformer{resource: resource.GroupResource(), informer: f.ApiNexus().V1().Nexuses().Informer()}, nil
 
-		// Group=apigateway.nexus.org, Version=v1
-	case apigatewaynexusorgv1.SchemeGroupVersion.WithResource("apigateways"):
+		// Group=apigateway.nexus.vmware.com, Version=v1
+	case apigatewaynexusvmwarecomv1.SchemeGroupVersion.WithResource("apigateways"):
 		return &genericInformer{resource: resource.GroupResource(), informer: f.ApigatewayNexus().V1().ApiGateways().Informer()}, nil
 
-		// Group=authentication.nexus.org, Version=v1
-	case authenticationnexusorgv1.SchemeGroupVersion.WithResource("oidcs"):
+		// Group=authentication.nexus.vmware.com, Version=v1
+	case authenticationnexusvmwarecomv1.SchemeGroupVersion.WithResource("oidcs"):
 		return &genericInformer{resource: resource.GroupResource(), informer: f.AuthenticationNexus().V1().OIDCs().Informer()}, nil
 
-		// Group=config.nexus.org, Version=v1
-	case confignexusorgv1.SchemeGroupVersion.WithResource("configs"):
+		// Group=config.nexus.vmware.com, Version=v1
+	case confignexusvmwarecomv1.SchemeGroupVersion.WithResource("configs"):
 		return &genericInformer{resource: resource.GroupResource(), informer: f.ConfigNexus().V1().Configs().Informer()}, nil
 
-		// Group=connect.nexus.org, Version=v1
-	case connectnexusorgv1.SchemeGroupVersion.WithResource("connects"):
+		// Group=connect.nexus.vmware.com, Version=v1
+	case connectnexusvmwarecomv1.SchemeGroupVersion.WithResource("connects"):
 		return &genericInformer{resource: resource.GroupResource(), informer: f.ConnectNexus().V1().Connects().Informer()}, nil
-	case connectnexusorgv1.SchemeGroupVersion.WithResource("nexusendpoints"):
+	case connectnexusvmwarecomv1.SchemeGroupVersion.WithResource("nexusendpoints"):
 		return &genericInformer{resource: resource.GroupResource(), informer: f.ConnectNexus().V1().NexusEndpoints().Informer()}, nil
-	case connectnexusorgv1.SchemeGroupVersion.WithResource("replicationconfigs"):
+	case connectnexusvmwarecomv1.SchemeGroupVersion.WithResource("replicationconfigs"):
 		return &genericInformer{resource: resource.GroupResource(), informer: f.ConnectNexus().V1().ReplicationConfigs().Informer()}, nil
 
-		// Group=domain.nexus.org, Version=v1
-	case domainnexusorgv1.SchemeGroupVersion.WithResource("corsconfigs"):
+		// Group=domain.nexus.vmware.com, Version=v1
+	case domainnexusvmwarecomv1.SchemeGroupVersion.WithResource("corsconfigs"):
 		return &genericInformer{resource: resource.GroupResource(), informer: f.DomainNexus().V1().CORSConfigs().Informer()}, nil
 
-		// Group=route.nexus.org, Version=v1
-	case routenexusorgv1.SchemeGroupVersion.WithResource("routes"):
+		// Group=route.nexus.vmware.com, Version=v1
+	case routenexusvmwarecomv1.SchemeGroupVersion.WithResource("routes"):
 		return &genericInformer{resource: resource.GroupResource(), informer: f.RouteNexus().V1().Routes().Informer()}, nil
 
 	}
