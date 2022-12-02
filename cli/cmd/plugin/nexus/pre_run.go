@@ -13,7 +13,10 @@ import (
 )
 
 func RootPreRun(cmd *cobra.Command, args []string) error {
-	nexusConfig := config.LoadNexusConfig()
+	nexusConfig, err := config.LoadNexusConfig()
+	if err != nil {
+		return err
+	}
 
 	if nexusConfig.DebugAlways {
 		cmd.Flags().Lookup("debug").Changed = true
@@ -36,6 +39,10 @@ func RootPreRun(cmd *cobra.Command, args []string) error {
 				if input == "y" || input == "Y" || input == "yes" || input == "YES" {
 					fmt.Println("Please specify the Nexus CLI version you'd like to upgrade to (press RETURN to upgrade to latest): ")
 					n, err := fmt.Scanln(&input)
+					if err != nil {
+						return err
+					}
+
 					if n == 0 {
 						input = "latest"
 					}

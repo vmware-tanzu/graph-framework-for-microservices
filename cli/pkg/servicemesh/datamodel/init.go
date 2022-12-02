@@ -45,7 +45,10 @@ func createDatamodel(dmName string, DatamodelTarballUrl string, Render bool, sta
 		if err != nil {
 			return err
 		}
-		os.Chdir(dmName)
+		err = os.Chdir(dmName)
+		if err != nil {
+			return err
+		}
 	}
 
 	err := utils.DownloadFile(DatamodelTarballUrl, "datamodel.tar")
@@ -73,7 +76,10 @@ func createDatamodel(dmName string, DatamodelTarballUrl string, Render bool, sta
 				return err
 			}
 		} else {
-			os.Chdir("..")
+			err = os.Chdir("..")
+			if err != nil {
+				return err
+			}
 		}
 		Directory = dmName
 	} else {
@@ -162,7 +168,10 @@ func InitOperation(cmd *cobra.Command, args []string) error {
 	}
 	if dockerRepo != "" {
 		if localDatamodel {
-			os.Chdir(dmName)
+			err = os.Chdir(dmName)
+			if err != nil {
+				return err
+			}
 		}
 		err := utils.SetDatamodelDockerRepo(dockerRepo)
 		if err != nil {
@@ -184,11 +193,20 @@ var InitCmd = &cobra.Command{
 }
 
 func init() {
-	InitCmd.Flags().StringVarP(&DatamodelName, "name", "n", "", "name of the datamodel")
-	InitCmd.Flags().StringVarP(&GroupName, "group", "g", "", "subdomain for the datamodel resources")
+	name := "name"
+	group := "group"
+	InitCmd.Flags().StringVarP(&DatamodelName, name, "n", "", "name of the datamodel")
+	InitCmd.Flags().StringVarP(&GroupName, group, "g", "", "subdomain for the datamodel resources")
 	InitCmd.Flags().BoolVarP(&localDatamodel, localDatamodelFlag, "", false, "initializes a app local datamodel")
 	InitCmd.Flags().StringVarP(&dockerRepo, "docker-repo", "d", "", "docker repo to publish image")
 
-	InitCmd.MarkFlagRequired("name")
-	InitCmd.MarkFlagRequired("group")
+	err := InitCmd.MarkFlagRequired(name)
+	if err != nil {
+		fmt.Printf("Failed to mark flag %s required: %v", name, err)
+	}
+
+	err = InitCmd.MarkFlagRequired(group)
+	if err != nil {
+		fmt.Printf("Failed to mark flag %s required: %v", group, err)
+	}
 }

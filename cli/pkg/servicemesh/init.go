@@ -1,6 +1,8 @@
 package servicemesh
 
 import (
+	"fmt"
+
 	"github.com/spf13/cobra"
 	"github.com/vmware-tanzu/graph-framework-for-microservices/cli/pkg/log"
 	"github.com/vmware-tanzu/graph-framework-for-microservices/cli/pkg/servicemesh/app"
@@ -46,7 +48,11 @@ var LoginCmd = &cobra.Command{
 	PreRun: func(cmd *cobra.Command, args []string) {
 		insecure, _ := cmd.Flags().GetBool("in-secure")
 		if !insecure {
-			cmd.MarkFlagRequired("token")
+			token := "token"
+			err := cmd.MarkFlagRequired(token)
+			if err != nil {
+				fmt.Printf("Failed to mark flag %s as required: %v", token, err)
+			}
 		}
 	},
 	RunE: login.Login,
