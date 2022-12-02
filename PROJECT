@@ -12,13 +12,13 @@ resources:
 - controller: true
   datamodelImport: gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/api.git
   domain: api-gw.com
-  group: authentication.nexus.org
+  group: authentication.nexus.vmware.com
   kind: OidcConfig
   version: v1
 - controller: true
   datamodelImport: golang-appnet.eng.vmware.com/nexus-sdk/api
   domain: api-gw.com
-  group: route.nexus.org
+  group: route.nexus.vmware.com
   kind: Route
   version: v1
 version: "3"

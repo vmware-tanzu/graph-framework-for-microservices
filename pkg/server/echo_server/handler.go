@@ -400,7 +400,7 @@ func patchHandler(c echo.Context) error {
 	// Handle PATCH request for status subresource
 	uriInfo, ok := model.GetUriInfo(nc.NexusURI)
 	if ok && uriInfo.TypeOfURI == model.StatusURI {
-		// Do not patch "nexus" status subresource; only user defined status subresource can be patched. 
+		// Do not patch "nexus" status subresource; only user defined status subresource can be patched.
 		delete(body, "nexus")
 
 		// Prepare status patch payload

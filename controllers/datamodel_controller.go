@@ -19,6 +19,7 @@ package controllers
 import (
 	"api-gw/pkg/model"
 	"context"
+
 	logger "github.com/sirupsen/logrus"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
@@ -53,7 +54,7 @@ func (r *DatamodelReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 	eventType := model.Upsert
 
 	obj, err := r.Dynamic.Resource(schema.GroupVersionResource{
-		Group:    "nexus.org",
+		Group:    "nexus.vmware.com",
 		Version:  "v1",
 		Resource: "datamodels",
 	}).Get(ctx, req.Name, metav1.GetOptions{})
@@ -65,6 +66,7 @@ func (r *DatamodelReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 	}
 
 	logger.Infof("Received Datamodel notification for Name %s Type %s", req.Name, eventType)
+	logger.Infof("Datamodel Object: %s", obj)
 	model.ConstructDatamodel(eventType, req.Name, obj)
 
 	return ctrl.Result{}, nil
@@ -75,7 +77,7 @@ func (r *DatamodelReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	u := &unstructured.Unstructured{}
 	u.SetGroupVersionKind(schema.GroupVersionKind{
 		Kind:    "Datamodel",
-		Group:   "nexus.org",
+		Group:   "nexus.vmware.com",
 		Version: "v1",
 	})
 

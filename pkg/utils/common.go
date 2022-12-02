@@ -13,7 +13,6 @@ import (
 	"strings"
 
 	log "github.com/sirupsen/logrus"
-	"golang.org/x/net/publicsuffix"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 )
@@ -122,8 +121,7 @@ func GetEnvoyInitParams() (*envoy.JwtAuthnConfig, map[string]*envoy.UpstreamConf
 }
 
 func GetDatamodelName(crdType string) string {
-	p, _ := publicsuffix.EffectiveTLDPlusOne(crdType)
-	return p
+	return strings.Join(strings.Split(crdType, ".")[2:], ".")
 }
 
 func GetCrdType(kind, groupName string) string {

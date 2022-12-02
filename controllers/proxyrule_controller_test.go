@@ -4,11 +4,12 @@ import (
 	"api-gw/pkg/envoy"
 	"context"
 	"encoding/json"
+
 	yamlv1 "github.com/ghodss/yaml"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	log "github.com/sirupsen/logrus"
-	adminv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/admin.nexus.org/v1"
+	adminv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/admin.nexus.vmware.com/v1"
 )
 
 var _ = Describe("ProxyRule controller", func() {

@@ -1,14 +1,14 @@
 package controllers
 
 var oidcCrdObjectExample = `
-apiVersion: authentication.nexus.org/v1
+apiVersion: authentication.nexus.vmware.com/v1
 kind: OIDC
 metadata:
   name: okta
   labels:
-    nexuses.api.nexus.org: default
-    configs.config.nexus.org: default
-    apigateways.apigateway.nexus.org: default
+    nexuses.api.nexus.vmware.com: default
+    configs.config.nexus.vmware.com: default
+    apigateways.apigateway.nexus.vmware.com: default
 spec:
   config:
     clientId: "XXX"
@@ -28,7 +28,7 @@ spec:
 
 var corsConfigExample = `
 kind: CORSConfig
-apiVersion: domain.nexus.org/v1
+apiVersion: domain.nexus.vmware.com/v1
 metadata:
   name: default
 spec:
@@ -41,14 +41,14 @@ spec:
 `
 
 var proxyRuleHeaderExample = `
-apiVersion: admin.nexus.org/v1
+apiVersion: admin.nexus.vmware.com/v1
 kind: ProxyRule
 metadata:
   name: header-based
   labels:
-    nexuses.api.nexus.org: default
-    configs.config.nexus.org: default
-    apigateways.apigateway.nexus.org: default
+    nexuses.api.nexus.vmware.com: default
+    configs.config.nexus.vmware.com: default
+    apigateways.apigateway.nexus.vmware.com: default
 spec:
   matchCondition:
     type: header
@@ -61,14 +61,14 @@ spec:
 `
 
 var proxyRuleJwtExample = `
-apiVersion: admin.nexus.org/v1
+apiVersion: admin.nexus.vmware.com/v1
 kind: ProxyRule
 metadata:
   name: csp
   labels:
-    nexuses.api.nexus.org: default
-    configs.config.nexus.org: default
-    apigateways.apigateway.nexus.org: default
+    nexuses.api.nexus.vmware.com: default
+    configs.config.nexus.vmware.com: default
+    apigateways.apigateway.nexus.vmware.com: default
 spec:
   matchCondition:
     type: jwt
@@ -83,30 +83,30 @@ spec:
 `
 
 var nexusExample = `
-apiVersion: apis.nexus.org/v1
+apiVersion: api.nexus.vmware.com/v1
 kind: Nexus
 metadata:
   name: default
 `
 
 var configExample = `
-apiVersion: config.nexus.org/v1
+apiVersion: config.nexus.vmware.com/v1
 kind: Config
 metadata:
   name: default
 `
 
 var routeExample = `
-apiVersion: Routes.nexus.org/v1
+apiVersion: route.nexus.vmware.com/v1
 kind: Route
 metadata:
   name: custom
 spec:
   service:
-    Name: testappserver
-    Port: 80
-    Scheme: Http
+    name: testappserver
+    port: 80
+    scheme: Http
   resource:
-    Name: custom
+    name: custom
   uri: "/*"
 `

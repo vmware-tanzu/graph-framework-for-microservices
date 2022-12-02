@@ -3,6 +3,7 @@ package controllers
 import (
 	"api-gw/pkg/model"
 	"context"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -13,20 +14,20 @@ import (
 var _ = Describe("Datamodel controller", func() {
 	It("should create datamodel crd", func() {
 		gvr := schema.GroupVersionResource{
-			Group:    "nexus.org",
+			Group:    "nexus.vmware.com",
 			Version:  "v1",
 			Resource: "datamodels",
 		}
 
 		unstructuredObject := unstructured.Unstructured{
 			Object: map[string]interface{}{
-				"apiVersion": "nexus.org/v1",
+				"apiVersion": "nexus.vmware.com/v1",
 				"kind":       "Datamodel",
 				"metadata": map[string]interface{}{
-					"name": "nexus.org",
+					"name": "nexus.vmware.com",
 				},
 				"spec": map[string]interface{}{
-					"name":  "nexus.org",
+					"name":  "nexus.vmware.com",
 					"title": "Example title",
 				},
 			},
@@ -35,7 +36,7 @@ var _ = Describe("Datamodel controller", func() {
 		Expect(err).ToNot(HaveOccurred())
 
 		Eventually(func() bool {
-			if _, ok := model.DatamodelToDatamodelInfo["nexus.org"]; ok {
+		if _, ok := model.DatamodelToDatamodelInfo["nexus.vmware.com"]; ok {
 				return true
 			}
 			return false

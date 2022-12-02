@@ -4,13 +4,13 @@ kind: CustomResourceDefinition
 metadata:
   annotations:
     nexus: |
-      {"name":"admin.ProxyRule","hierarchy":["nexuses.api.nexus.org","configs.config.nexus.org","apigateways.apigateway.nexus.org"],"is_singleton":false,"nexus-rest-api-gen":{"uris":null}}
+      {"name":"admin.ProxyRule","hierarchy":["nexuses.api.nexus.vmware.com","configs.config.nexus.vmware.com","apigateways.apigateway.nexus.vmware.com"],"is_singleton":false,"nexus-rest-api-gen":{"uris":null}}
   creationTimestamp: null
-  name: proxyrules.admin.nexus.org
+  name: proxyrules.admin.nexus.vmware.com
 spec:
   conversion:
     strategy: None
-  group: admin.nexus.org
+  group: admin.nexus.vmware.com
   names:
     kind: ProxyRule
     listKind: ProxyRuleList
