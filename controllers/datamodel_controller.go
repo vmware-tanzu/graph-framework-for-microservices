@@ -134,7 +134,7 @@ func (r *DatamodelReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 	eventType := "Update"
 
 	wholeObject, err := r.Dynamic.Resource(schema.GroupVersionResource{
-		Group:    "nexus.org",
+		Group:    "nexus.vmware.com",
 		Version:  "v1",
 		Resource: "datamodels",
 	}).Get(ctx, req.Name, metav1.GetOptions{})
@@ -170,7 +170,7 @@ func (r *DatamodelReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	u := &unstructured.Unstructured{}
 	u.SetGroupVersionKind(schema.GroupVersionKind{
 		Kind:    "Datamodel",
-		Group:   "nexus.org",
+		Group:   "nexus.vmware.com",
 		Version: "v1",
 	})
 
