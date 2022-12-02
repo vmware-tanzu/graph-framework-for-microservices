@@ -31,7 +31,7 @@ func DoUpgradeCli(version string, cmd *cobra.Command) error {
 		version = "latest"
 	}
 	fmt.Printf("\u2713 Please upgrade nexus CLI version to %s with below steps\n", version)
-	fmt.Printf("\u2794 curl -fsSL %s -o get-nexus-cli.sh \n\u2794 bash get-nexus-cli.sh --version %s\n", nexusInstallScriptUrl, version)
+	fmt.Printf("\u2794 curl -fsSL %s -o get-nexus-cli.sh \n\u2794 sudo bash get-nexus-cli.sh -v %s\n", nexusInstallScriptUrl, version)
 	return nil
 }
 
