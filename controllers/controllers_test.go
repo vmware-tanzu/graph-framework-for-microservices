@@ -9,7 +9,7 @@ import (
 	. "github.com/onsi/gomega"
 
 	nxcontroller "gitlab.eng.vmware.com/nexus/controller/controllers"
-	nexusv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/connect.nexus.org/v1"
+	nexusv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/connect.nexus.vmware.com/v1"
 	nexus_client "golang-appnet.eng.vmware.com/nexus-sdk/api/build/nexus-client"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -84,12 +84,12 @@ var _ = Describe("Nexus Controller Tests", func() {
 			deploymentList, err := r.K8sClient.AppsV1().Deployments("default").List(ctx, metav1.ListOptions{})
 			Expect(err).NotTo(HaveOccurred())
 			Expect(deploymentList.Items).To(HaveLen(1))
-			Expect(deploymentList.Items[0].Name).To(Equal("nexus-connector-9876611c09489e8c75cc3691066480420a010434"))
+			Expect(deploymentList.Items[0].Name).To(Equal("nexus-connector-3c78861451658075b93f8d9adb897a5e7c21a601"))
 
 			serviceList, err := r.K8sClient.CoreV1().Services("default").List(ctx, metav1.ListOptions{})
 			Expect(err).NotTo(HaveOccurred())
 			Expect(serviceList.Items).To(HaveLen(1))
-			Expect(serviceList.Items[0].Name).To(Equal("nexus-connector-9876611c09489e8c75cc3691066480420a010434"))
+			Expect(serviceList.Items[0].Name).To(Equal("nexus-connector-3c78861451658075b93f8d9adb897a5e7c21a601"))
 
 			configMapList, err := r.K8sClient.CoreV1().ConfigMaps("default").List(ctx, metav1.ListOptions{})
 			Expect(err).NotTo(HaveOccurred())
@@ -110,7 +110,7 @@ var _ = Describe("Nexus Controller Tests", func() {
 			deploymentList, err := r.K8sClient.AppsV1().Deployments("default").List(ctx, metav1.ListOptions{})
 			Expect(err).NotTo(HaveOccurred())
 			Expect(deploymentList.Items).To(HaveLen(1))
-			Expect(deploymentList.Items[0].Name).To(Equal("nexus-connector-9876611c09489e8c75cc3691066480420a010434"))
+			Expect(deploymentList.Items[0].Name).To(Equal("nexus-connector-3c78861451658075b93f8d9adb897a5e7c21a601"))
 
 			env := getEnv(deploymentList)
 			Expect(env).To(Equal("8081"))
@@ -129,7 +129,8 @@ var _ = Describe("Nexus Controller Tests", func() {
 			deploymentList, err := r.K8sClient.AppsV1().Deployments("default").List(ctx, metav1.ListOptions{})
 			Expect(err).NotTo(HaveOccurred())
 			Expect(deploymentList.Items).To(HaveLen(1))
-			Expect(deploymentList.Items[0].Name).To(Equal("nexus-connector-9876611c09489e8c75cc3691066480420a010434"))
+			fmt.Println(deploymentList.Items[0].Name)
+			Expect(deploymentList.Items[0].Name).To(Equal("nexus-connector-3c78861451658075b93f8d9adb897a5e7c21a601"))
 
 			for _, item := range deploymentList.Items {
 				Expect(item.Spec.Template.Spec.ServiceAccountName).To(Equal(endPoint.Spec.ServiceAccountName))
