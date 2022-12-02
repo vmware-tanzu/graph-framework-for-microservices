@@ -89,21 +89,21 @@ spec:
                   done
                 }
                 echo 'waiting for Nexus CRD to be installed...'
-                until $(kubectl -s nexus-api-gw:80 get crd/nexuses.api.nexus.org > /dev/null 2>&1); do
+                until $(kubectl -s nexus-api-gw:80 get crd/nexuses.api.nexus.vmware.com > /dev/null 2>&1); do
                   echo '.'
                   sleep 5
                 done
                 echo 'NexusAPI CRD is installed'
 
                 echo 'waiting for Config CRD to be installed...'
-                until $(kubectl -s nexus-api-gw:80 get crd/configs.config.nexus.org > /dev/null 2>&1); do
+                until $(kubectl -s nexus-api-gw:80 get crd/configs.config.nexus.vmware.com > /dev/null 2>&1); do
                   echo '.'
                   sleep 5
                 done
                 echo 'Config CRD is installed'
 
                 echo 'waiting for Route CRD to be installed...'
-                until $(kubectl -s nexus-api-gw:80 get crd/routes.route.nexus.org > /dev/null 2>&1); do
+                until $(kubectl -s nexus-api-gw:80 get crd/routes.route.nexus.vmware.com > /dev/null 2>&1); do
                   echo '.'
                   sleep 5
                 done
@@ -111,17 +111,17 @@ spec:
 
                 echo "Creating custom route object"
                 cat > /tmp/object <<EOF
-                apiVersion: route.nexus.org/v1
+                apiVersion: route.nexus.vmware.com/v1
                 kind: Route
                 metadata:
                   name: graphqlv2
                 spec:
                   service:
-                    Name: nexus-graphql
-                    Port: 8080
-                    Scheme: Http
+                    name: nexus-graphql
+                    port: 8080
+                    scheme: Http
                   resource:
-                    Name: graphql
+                    name: graphql
                   uri: /
                 EOF
                 create_object /tmp/object
