@@ -26,7 +26,7 @@ import (
 	flag "github.com/spf13/pflag"
 	nxcontrollers "gitlab.eng.vmware.com/nexus/controller/controllers"
 	"gitlab.eng.vmware.com/nexus/controller/helpers"
-	nxv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/connect.nexus.org/v1"
+	nxv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/connect.nexus.vmware.com/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	"k8s.io/client-go/kubernetes"
