@@ -31,6 +31,9 @@ func CheckDir(dir string) (bool, *bytes.Buffer, error) {
 			return nil
 		}
 		newData, err := os.ReadFile(path)
+		if err != nil {
+			return err
+		}
 		name, err := nexuscompare.GetSpecName(newData)
 		if err != nil {
 			return err
@@ -43,9 +46,9 @@ func CheckDir(dir string) (bool, *bytes.Buffer, error) {
 		if err != nil {
 			return err
 		}
-		incompatible = incompatible || inc
-		if inc {
-			changes = append(changes, text)
+		incompatible = incompatible || inc // incompatible var is true if any of datamodel is not compatible
+		if inc {                           // if this is true, then there are some incompatible changes
+			changes = append(changes, text) // sums up the buffers with what was changed
 		}
 		return nil
 	})
@@ -94,9 +97,7 @@ func getCrdConfig(name string, clientset ext.Clientset) (string, error) {
 	case err != nil:
 		return "", err
 	}
-	crd, ok := res.ObjectMeta.Annotations["kubectl.kubernetes.io/last-applied-configuration"]
-	if !ok {
-		return "", errors.NewBadRequest("config not found")
-	}
+	crd := res.ObjectMeta.Annotations["kubectl.kubernetes.io/last-applied-configuration"]
+
 	return crd, nil
 }
