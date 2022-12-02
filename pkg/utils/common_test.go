@@ -15,8 +15,8 @@ import (
 var _ = Describe("Common tests", func() {
 
 	It("should get correct datamodel name from crd", func() {
-		datamodelName := utils.GetDatamodelName("datamodels.nexus.org")
-		Expect(datamodelName).To(Equal("nexus.org"))
+		datamodelName := utils.GetDatamodelName("route.route.nexus.vmware.com")
+		Expect(datamodelName).To(Equal("nexus.vmware.com"))
 	})
 
 	It("should check if file exist", func() {

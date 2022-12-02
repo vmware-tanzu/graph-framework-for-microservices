@@ -3,10 +3,10 @@ package model
 import (
 	"strings"
 
-	authnexusv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/authentication.nexus.org/v1"
+	authnexusv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/authentication.nexus.vmware.com/v1"
 
 	"github.com/vmware-tanzu/graph-framework-for-microservices/nexus/nexus"
-	middlewarenexusv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/domain.nexus.org/v1"
+	middlewarenexusv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/domain.nexus.vmware.com/v1"
 )
 
 // adding this global variables for CORS to support multiple domain and header configuration

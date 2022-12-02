@@ -4,13 +4,13 @@ kind: CustomResourceDefinition
 metadata:
   annotations:
     nexus: |
-      {"name":"api.Nexus","children":{"configs.config.nexus.org":{"fieldName":"Config","fieldNameGvk":"configGvk","isNamed":false}},"is_singleton":false,"nexus-rest-api-gen":{"uris":null}}
+      {"name":"api.Nexus","children":{"configs.config.nexus.vmware.com":{"fieldName":"Config","fieldNameGvk":"configGvk","isNamed":false}},"is_singleton":false,"nexus-rest-api-gen":{"uris":null}}
   creationTimestamp: null
-  name: nexuses.api.nexus.org
+  name: nexuses.api.nexus.vmware.com
 spec:
   conversion:
     strategy: None
-  group: api.nexus.org
+  group: api.nexus.vmware.com
   names:
     kind: Nexus
     listKind: NexusList

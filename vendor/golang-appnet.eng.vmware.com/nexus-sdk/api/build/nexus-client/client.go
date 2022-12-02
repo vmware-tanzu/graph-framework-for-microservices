@@ -25,14 +25,14 @@ import (
 	"golang-appnet.eng.vmware.com/nexus-sdk/api/build/common"
 	"golang-appnet.eng.vmware.com/nexus-sdk/api/build/helper"
 
-	baseadminnexusorgv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/admin.nexus.org/v1"
-	baseapinexusorgv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/api.nexus.org/v1"
-	baseapigatewaynexusorgv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/apigateway.nexus.org/v1"
-	baseauthenticationnexusorgv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/authentication.nexus.org/v1"
-	baseconfignexusorgv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/config.nexus.org/v1"
-	baseconnectnexusorgv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/connect.nexus.org/v1"
-	basedomainnexusorgv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/domain.nexus.org/v1"
-	baseroutenexusorgv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/route.nexus.org/v1"
+	baseadminnexusvmwarecomv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/admin.nexus.vmware.com/v1"
+	baseapinexusvmwarecomv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/api.nexus.vmware.com/v1"
+	baseapigatewaynexusvmwarecomv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/apigateway.nexus.vmware.com/v1"
+	baseauthenticationnexusvmwarecomv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/authentication.nexus.vmware.com/v1"
+	baseconfignexusvmwarecomv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/config.nexus.vmware.com/v1"
+	baseconnectnexusvmwarecomv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/connect.nexus.vmware.com/v1"
+	basedomainnexusvmwarecomv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/domain.nexus.vmware.com/v1"
+	baseroutenexusvmwarecomv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/route.nexus.vmware.com/v1"
 )
 
 type Clientset struct {
@@ -249,7 +249,7 @@ func (group *ApiNexusV1) DeleteNexusByName(ctx context.Context, hashedName strin
 // CreateNexusByName creates object in the database without hashing the name.
 // Use it directly ONLY when objToCreate.Name is hashed name of the object.
 func (group *ApiNexusV1) CreateNexusByName(ctx context.Context,
-	objToCreate *baseapinexusorgv1.Nexus) (*ApiNexus, error) {
+	objToCreate *baseapinexusvmwarecomv1.Nexus) (*ApiNexus, error) {
 	if objToCreate.GetLabels() == nil {
 		objToCreate.Labels = make(map[string]string)
 	}
@@ -275,7 +275,7 @@ func (group *ApiNexusV1) CreateNexusByName(ctx context.Context,
 // UpdateNexusByName updates object stored in the database under the hashedName which is a hash of
 // display name and parents names.
 func (group *ApiNexusV1) UpdateNexusByName(ctx context.Context,
-	objToUpdate *baseapinexusorgv1.Nexus) (*ApiNexus, error) {
+	objToUpdate *baseapinexusvmwarecomv1.Nexus) (*ApiNexus, error) {
 
 	// ResourceVersion must be set for update
 	if objToUpdate.ResourceVersion == "" {
@@ -333,7 +333,7 @@ func (group *ApiNexusV1) ListNexuses(ctx context.Context,
 
 type ApiNexus struct {
 	client *Clientset
-	*baseapinexusorgv1.Nexus
+	*baseapinexusvmwarecomv1.Nexus
 }
 
 // Delete removes obj and all it's children from the database.
@@ -359,13 +359,13 @@ func (obj *ApiNexus) Update(ctx context.Context) error {
 // GetApiNexus calculates the hashed name based on parents and displayName and
 // returns given object
 func (c *Clientset) GetApiNexus(ctx context.Context, displayName string) (result *ApiNexus, err error) {
-	hashedName := helper.GetHashedName("nexuses.api.nexus.org", nil, displayName)
+	hashedName := helper.GetHashedName("nexuses.api.nexus.vmware.com", nil, displayName)
 	return c.Api().GetNexusByName(ctx, hashedName)
 }
 
 func (c *Clientset) ApiNexus(displayName string) *nexusApiNexusV1Chainer {
 	parentLabels := make(map[string]string)
-	parentLabels["nexuses.api.nexus.org"] = displayName
+	parentLabels["nexuses.api.nexus.vmware.com"] = displayName
 	return &nexusApiNexusV1Chainer{
 		client:       c,
 		name:         displayName,
@@ -377,7 +377,7 @@ func (c *Clientset) ApiNexus(displayName string) *nexusApiNexusV1Chainer {
 // and parents names and creates it. objToCreate.Name is changed to the hashed name. Original name is preserved in
 // nexus/display_name label and can be obtained using DisplayName() method.
 func (c *Clientset) AddApiNexus(ctx context.Context,
-	objToCreate *baseapinexusorgv1.Nexus) (result *ApiNexus, err error) {
+	objToCreate *baseapinexusvmwarecomv1.Nexus) (result *ApiNexus, err error) {
 	if objToCreate.Labels == nil {
 		objToCreate.Labels = map[string]string{}
 	}
@@ -393,7 +393,7 @@ func (c *Clientset) AddApiNexus(ctx context.Context,
 // DeleteApiNexus calculates hashedName of object based on displayName and
 // parents and deletes given object
 func (c *Clientset) DeleteApiNexus(ctx context.Context, displayName string) (err error) {
-	hashedName := helper.GetHashedName("nexuses.api.nexus.org", nil, displayName)
+	hashedName := helper.GetHashedName("nexuses.api.nexus.vmware.com", nil, displayName)
 	return c.Api().DeleteNexusByName(ctx, hashedName)
 }
 
@@ -410,14 +410,14 @@ func (obj *ApiNexus) GetConfig(ctx context.Context) (
 // and parents names and creates it. objToCreate.Name is changed to the hashed name. Original name is preserved in
 // nexus/display_name label and can be obtained using DisplayName() method.
 func (obj *ApiNexus) AddConfig(ctx context.Context,
-	objToCreate *baseconfignexusorgv1.Config) (result *ConfigConfig, err error) {
+	objToCreate *baseconfignexusvmwarecomv1.Config) (result *ConfigConfig, err error) {
 	if objToCreate.Labels == nil {
 		objToCreate.Labels = map[string]string{}
 	}
-	for _, v := range helper.GetCRDParentsMap()["nexuses.api.nexus.org"] {
+	for _, v := range helper.GetCRDParentsMap()["nexuses.api.nexus.vmware.com"] {
 		objToCreate.Labels[v] = obj.Labels[v]
 	}
-	objToCreate.Labels["nexuses.api.nexus.org"] = obj.DisplayName()
+	objToCreate.Labels["nexuses.api.nexus.vmware.com"] = obj.DisplayName()
 	if objToCreate.Labels[common.IS_NAME_HASHED_LABEL] != "true" {
 		objToCreate.Labels[common.DISPLAY_NAME_LABEL] = objToCreate.GetName()
 		objToCreate.Labels[common.IS_NAME_HASHED_LABEL] = "true"
@@ -459,7 +459,7 @@ type nexusApiNexusV1Chainer struct {
 
 func (c *nexusApiNexusV1Chainer) Config(name string) *configConfigNexusV1Chainer {
 	parentLabels := c.parentLabels
-	parentLabels["configs.config.nexus.org"] = name
+	parentLabels["configs.config.nexus.vmware.com"] = name
 	return &configConfigNexusV1Chainer{
 		client:       c.client,
 		name:         name,
@@ -469,7 +469,7 @@ func (c *nexusApiNexusV1Chainer) Config(name string) *configConfigNexusV1Chainer
 
 // GetConfig calculates hashed name of the object based on displayName and it's parents and returns the object
 func (c *nexusApiNexusV1Chainer) GetConfig(ctx context.Context, displayName string) (result *ConfigConfig, err error) {
-	hashedName := helper.GetHashedName("configs.config.nexus.org", c.parentLabels, displayName)
+	hashedName := helper.GetHashedName("configs.config.nexus.vmware.com", c.parentLabels, displayName)
 	return c.client.Config().GetConfigByName(ctx, hashedName)
 }
 
@@ -477,7 +477,7 @@ func (c *nexusApiNexusV1Chainer) GetConfig(ctx context.Context, displayName stri
 // and parents names and creates it. objToCreate.Name is changed to the hashed name. Original name is preserved in
 // nexus/display_name label and can be obtained using DisplayName() method.
 func (c *nexusApiNexusV1Chainer) AddConfig(ctx context.Context,
-	objToCreate *baseconfignexusorgv1.Config) (result *ConfigConfig, err error) {
+	objToCreate *baseconfignexusvmwarecomv1.Config) (result *ConfigConfig, err error) {
 	if objToCreate.Labels == nil {
 		objToCreate.Labels = map[string]string{}
 	}
@@ -487,7 +487,7 @@ func (c *nexusApiNexusV1Chainer) AddConfig(ctx context.Context,
 	if objToCreate.Labels[common.IS_NAME_HASHED_LABEL] != "true" {
 		objToCreate.Labels[common.DISPLAY_NAME_LABEL] = objToCreate.GetName()
 		objToCreate.Labels[common.IS_NAME_HASHED_LABEL] = "true"
-		hashedName := helper.GetHashedName("configs.config.nexus.org", c.parentLabels, objToCreate.GetName())
+		hashedName := helper.GetHashedName("configs.config.nexus.vmware.com", c.parentLabels, objToCreate.GetName())
 		objToCreate.Name = hashedName
 	}
 	return c.client.Config().CreateConfigByName(ctx, objToCreate)
@@ -500,7 +500,7 @@ func (c *nexusApiNexusV1Chainer) DeleteConfig(ctx context.Context, name string) 
 		c.parentLabels = map[string]string{}
 	}
 	c.parentLabels[common.IS_NAME_HASHED_LABEL] = "true"
-	hashedName := helper.GetHashedName("configs.config.nexus.org", c.parentLabels, name)
+	hashedName := helper.GetHashedName("configs.config.nexus.vmware.com", c.parentLabels, name)
 	return c.client.Config().DeleteConfigByName(ctx, hashedName)
 }
 
@@ -554,12 +554,12 @@ func (group *AdminNexusV1) DeleteProxyRuleByName(ctx context.Context, hashedName
 	if parents == nil {
 		parents = make(map[string]string)
 	}
-	parentName, ok := parents["apigateways.apigateway.nexus.org"]
+	parentName, ok := parents["apigateways.apigateway.nexus.vmware.com"]
 	if !ok {
 		parentName = helper.DEFAULT_KEY
 	}
 	if parents[common.IS_NAME_HASHED_LABEL] == "true" {
-		parentName = helper.GetHashedName("apigateways.apigateway.nexus.org", parents, parentName)
+		parentName = helper.GetHashedName("apigateways.apigateway.nexus.vmware.com", parents, parentName)
 	}
 	_, err = group.client.baseClient.
 		ApigatewayNexusV1().
@@ -574,7 +574,7 @@ func (group *AdminNexusV1) DeleteProxyRuleByName(ctx context.Context, hashedName
 // CreateProxyRuleByName creates object in the database without hashing the name.
 // Use it directly ONLY when objToCreate.Name is hashed name of the object.
 func (group *AdminNexusV1) CreateProxyRuleByName(ctx context.Context,
-	objToCreate *baseadminnexusorgv1.ProxyRule) (*AdminProxyRule, error) {
+	objToCreate *baseadminnexusvmwarecomv1.ProxyRule) (*AdminProxyRule, error) {
 	if objToCreate.GetLabels() == nil {
 		objToCreate.Labels = make(map[string]string)
 	}
@@ -589,15 +589,15 @@ func (group *AdminNexusV1) CreateProxyRuleByName(ctx context.Context,
 		return nil, err
 	}
 
-	parentName, ok := objToCreate.GetLabels()["apigateways.apigateway.nexus.org"]
+	parentName, ok := objToCreate.GetLabels()["apigateways.apigateway.nexus.vmware.com"]
 	if !ok {
 		parentName = helper.DEFAULT_KEY
 	}
 	if objToCreate.Labels[common.IS_NAME_HASHED_LABEL] == "true" {
-		parentName = helper.GetHashedName("apigateways.apigateway.nexus.org", objToCreate.GetLabels(), parentName)
+		parentName = helper.GetHashedName("apigateways.apigateway.nexus.vmware.com", objToCreate.GetLabels(), parentName)
 	}
 
-	payload := "{\"spec\": {\"proxyRulesGvk\": {\"" + objToCreate.DisplayName() + "\": {\"name\": \"" + objToCreate.Name + "\",\"kind\": \"ProxyRule\", \"group\": \"admin.nexus.org\"}}}}"
+	payload := "{\"spec\": {\"proxyRulesGvk\": {\"" + objToCreate.DisplayName() + "\": {\"name\": \"" + objToCreate.Name + "\",\"kind\": \"ProxyRule\", \"group\": \"admin.nexus.vmware.com\"}}}}"
 	_, err = group.client.baseClient.
 		ApigatewayNexusV1().
 		ApiGateways().Patch(ctx, parentName, types.MergePatchType, []byte(payload), metav1.PatchOptions{})
@@ -614,7 +614,7 @@ func (group *AdminNexusV1) CreateProxyRuleByName(ctx context.Context,
 // UpdateProxyRuleByName updates object stored in the database under the hashedName which is a hash of
 // display name and parents names.
 func (group *AdminNexusV1) UpdateProxyRuleByName(ctx context.Context,
-	objToUpdate *baseadminnexusorgv1.ProxyRule) (*AdminProxyRule, error) {
+	objToUpdate *baseadminnexusvmwarecomv1.ProxyRule) (*AdminProxyRule, error) {
 
 	// ResourceVersion must be set for update
 	if objToUpdate.ResourceVersion == "" {
@@ -690,7 +690,7 @@ func (group *AdminNexusV1) ListProxyRules(ctx context.Context,
 
 type AdminProxyRule struct {
 	client *Clientset
-	*baseadminnexusorgv1.ProxyRule
+	*baseadminnexusvmwarecomv1.ProxyRule
 }
 
 // Delete removes obj and all it's children from the database.
@@ -714,7 +714,7 @@ func (obj *AdminProxyRule) Update(ctx context.Context) error {
 }
 
 func (obj *AdminProxyRule) GetParent(ctx context.Context) (result *ApigatewayApiGateway, err error) {
-	hashedName := helper.GetHashedName("apigateways.apigateway.nexus.org", obj.Labels, obj.Labels["apigateways.apigateway.nexus.org"])
+	hashedName := helper.GetHashedName("apigateways.apigateway.nexus.vmware.com", obj.Labels, obj.Labels["apigateways.apigateway.nexus.vmware.com"])
 	return obj.client.Apigateway().GetApiGatewayByName(ctx, hashedName)
 }
 
@@ -799,12 +799,12 @@ func (group *ApigatewayNexusV1) DeleteApiGatewayByName(ctx context.Context, hash
 	if parents == nil {
 		parents = make(map[string]string)
 	}
-	parentName, ok := parents["configs.config.nexus.org"]
+	parentName, ok := parents["configs.config.nexus.vmware.com"]
 	if !ok {
 		parentName = helper.DEFAULT_KEY
 	}
 	if parents[common.IS_NAME_HASHED_LABEL] == "true" {
-		parentName = helper.GetHashedName("configs.config.nexus.org", parents, parentName)
+		parentName = helper.GetHashedName("configs.config.nexus.vmware.com", parents, parentName)
 	}
 	_, err = group.client.baseClient.
 		ConfigNexusV1().
@@ -819,7 +819,7 @@ func (group *ApigatewayNexusV1) DeleteApiGatewayByName(ctx context.Context, hash
 // CreateApiGatewayByName creates object in the database without hashing the name.
 // Use it directly ONLY when objToCreate.Name is hashed name of the object.
 func (group *ApigatewayNexusV1) CreateApiGatewayByName(ctx context.Context,
-	objToCreate *baseapigatewaynexusorgv1.ApiGateway) (*ApigatewayApiGateway, error) {
+	objToCreate *baseapigatewaynexusvmwarecomv1.ApiGateway) (*ApigatewayApiGateway, error) {
 	if objToCreate.GetLabels() == nil {
 		objToCreate.Labels = make(map[string]string)
 	}
@@ -838,20 +838,20 @@ func (group *ApigatewayNexusV1) CreateApiGatewayByName(ctx context.Context,
 		return nil, err
 	}
 
-	parentName, ok := objToCreate.GetLabels()["configs.config.nexus.org"]
+	parentName, ok := objToCreate.GetLabels()["configs.config.nexus.vmware.com"]
 	if !ok {
 		parentName = helper.DEFAULT_KEY
 	}
 	if objToCreate.Labels[common.IS_NAME_HASHED_LABEL] == "true" {
-		parentName = helper.GetHashedName("configs.config.nexus.org", objToCreate.GetLabels(), parentName)
+		parentName = helper.GetHashedName("configs.config.nexus.vmware.com", objToCreate.GetLabels(), parentName)
 	}
 
 	var patch Patch
 	patchOp := PatchOp{
 		Op:   "replace",
 		Path: "/spec/apiGatewayGvk",
-		Value: baseapigatewaynexusorgv1.Child{
-			Group: "apigateway.nexus.org",
+		Value: baseapigatewaynexusvmwarecomv1.Child{
+			Group: "apigateway.nexus.vmware.com",
 			Kind:  "ApiGateway",
 			Name:  objToCreate.Name,
 		},
@@ -877,7 +877,7 @@ func (group *ApigatewayNexusV1) CreateApiGatewayByName(ctx context.Context,
 // UpdateApiGatewayByName updates object stored in the database under the hashedName which is a hash of
 // display name and parents names.
 func (group *ApigatewayNexusV1) UpdateApiGatewayByName(ctx context.Context,
-	objToUpdate *baseapigatewaynexusorgv1.ApiGateway) (*ApigatewayApiGateway, error) {
+	objToUpdate *baseapigatewaynexusvmwarecomv1.ApiGateway) (*ApigatewayApiGateway, error) {
 
 	// ResourceVersion must be set for update
 	if objToUpdate.ResourceVersion == "" {
@@ -935,7 +935,7 @@ func (group *ApigatewayNexusV1) ListApiGateways(ctx context.Context,
 
 type ApigatewayApiGateway struct {
 	client *Clientset
-	*baseapigatewaynexusorgv1.ApiGateway
+	*baseapigatewaynexusvmwarecomv1.ApiGateway
 }
 
 // Delete removes obj and all it's children from the database.
@@ -959,7 +959,7 @@ func (obj *ApigatewayApiGateway) Update(ctx context.Context) error {
 }
 
 func (obj *ApigatewayApiGateway) GetParent(ctx context.Context) (result *ConfigConfig, err error) {
-	hashedName := helper.GetHashedName("configs.config.nexus.org", obj.Labels, obj.Labels["configs.config.nexus.org"])
+	hashedName := helper.GetHashedName("configs.config.nexus.vmware.com", obj.Labels, obj.Labels["configs.config.nexus.vmware.com"])
 	return obj.client.Config().GetConfigByName(ctx, hashedName)
 }
 
@@ -992,14 +992,14 @@ func (obj *ApigatewayApiGateway) GetProxyRules(ctx context.Context,
 // and parents names and creates it. objToCreate.Name is changed to the hashed name. Original name is preserved in
 // nexus/display_name label and can be obtained using DisplayName() method.
 func (obj *ApigatewayApiGateway) AddProxyRules(ctx context.Context,
-	objToCreate *baseadminnexusorgv1.ProxyRule) (result *AdminProxyRule, err error) {
+	objToCreate *baseadminnexusvmwarecomv1.ProxyRule) (result *AdminProxyRule, err error) {
 	if objToCreate.Labels == nil {
 		objToCreate.Labels = map[string]string{}
 	}
-	for _, v := range helper.GetCRDParentsMap()["apigateways.apigateway.nexus.org"] {
+	for _, v := range helper.GetCRDParentsMap()["apigateways.apigateway.nexus.vmware.com"] {
 		objToCreate.Labels[v] = obj.Labels[v]
 	}
-	objToCreate.Labels["apigateways.apigateway.nexus.org"] = obj.DisplayName()
+	objToCreate.Labels["apigateways.apigateway.nexus.vmware.com"] = obj.DisplayName()
 	if objToCreate.Labels[common.IS_NAME_HASHED_LABEL] != "true" {
 		objToCreate.Labels[common.DISPLAY_NAME_LABEL] = objToCreate.GetName()
 		objToCreate.Labels[common.IS_NAME_HASHED_LABEL] = "true"
@@ -1046,14 +1046,14 @@ func (obj *ApigatewayApiGateway) GetAuthn(ctx context.Context) (
 // and parents names and creates it. objToCreate.Name is changed to the hashed name. Original name is preserved in
 // nexus/display_name label and can be obtained using DisplayName() method.
 func (obj *ApigatewayApiGateway) AddAuthn(ctx context.Context,
-	objToCreate *baseauthenticationnexusorgv1.OIDC) (result *AuthenticationOIDC, err error) {
+	objToCreate *baseauthenticationnexusvmwarecomv1.OIDC) (result *AuthenticationOIDC, err error) {
 	if objToCreate.Labels == nil {
 		objToCreate.Labels = map[string]string{}
 	}
-	for _, v := range helper.GetCRDParentsMap()["apigateways.apigateway.nexus.org"] {
+	for _, v := range helper.GetCRDParentsMap()["apigateways.apigateway.nexus.vmware.com"] {
 		objToCreate.Labels[v] = obj.Labels[v]
 	}
-	objToCreate.Labels["apigateways.apigateway.nexus.org"] = obj.DisplayName()
+	objToCreate.Labels["apigateways.apigateway.nexus.vmware.com"] = obj.DisplayName()
 	if objToCreate.Labels[common.IS_NAME_HASHED_LABEL] != "true" {
 		objToCreate.Labels[common.DISPLAY_NAME_LABEL] = objToCreate.GetName()
 		objToCreate.Labels[common.IS_NAME_HASHED_LABEL] = "true"
@@ -1116,14 +1116,14 @@ func (obj *ApigatewayApiGateway) GetCors(ctx context.Context,
 // and parents names and creates it. objToCreate.Name is changed to the hashed name. Original name is preserved in
 // nexus/display_name label and can be obtained using DisplayName() method.
 func (obj *ApigatewayApiGateway) AddCors(ctx context.Context,
-	objToCreate *basedomainnexusorgv1.CORSConfig) (result *DomainCORSConfig, err error) {
+	objToCreate *basedomainnexusvmwarecomv1.CORSConfig) (result *DomainCORSConfig, err error) {
 	if objToCreate.Labels == nil {
 		objToCreate.Labels = map[string]string{}
 	}
-	for _, v := range helper.GetCRDParentsMap()["apigateways.apigateway.nexus.org"] {
+	for _, v := range helper.GetCRDParentsMap()["apigateways.apigateway.nexus.vmware.com"] {
 		objToCreate.Labels[v] = obj.Labels[v]
 	}
-	objToCreate.Labels["apigateways.apigateway.nexus.org"] = obj.DisplayName()
+	objToCreate.Labels["apigateways.apigateway.nexus.vmware.com"] = obj.DisplayName()
 	if objToCreate.Labels[common.IS_NAME_HASHED_LABEL] != "true" {
 		objToCreate.Labels[common.DISPLAY_NAME_LABEL] = objToCreate.GetName()
 		objToCreate.Labels[common.IS_NAME_HASHED_LABEL] = "true"
@@ -1165,7 +1165,7 @@ type apigatewayApigatewayNexusV1Chainer struct {
 
 func (c *apigatewayApigatewayNexusV1Chainer) ProxyRules(name string) *proxyruleAdminNexusV1Chainer {
 	parentLabels := c.parentLabels
-	parentLabels["proxyrules.admin.nexus.org"] = name
+	parentLabels["proxyrules.admin.nexus.vmware.com"] = name
 	return &proxyruleAdminNexusV1Chainer{
 		client:       c.client,
 		name:         name,
@@ -1175,7 +1175,7 @@ func (c *apigatewayApigatewayNexusV1Chainer) ProxyRules(name string) *proxyruleA
 
 // GetProxyRules calculates hashed name of the object based on displayName and it's parents and returns the object
 func (c *apigatewayApigatewayNexusV1Chainer) GetProxyRules(ctx context.Context, displayName string) (result *AdminProxyRule, err error) {
-	hashedName := helper.GetHashedName("proxyrules.admin.nexus.org", c.parentLabels, displayName)
+	hashedName := helper.GetHashedName("proxyrules.admin.nexus.vmware.com", c.parentLabels, displayName)
 	return c.client.Admin().GetProxyRuleByName(ctx, hashedName)
 }
 
@@ -1183,7 +1183,7 @@ func (c *apigatewayApigatewayNexusV1Chainer) GetProxyRules(ctx context.Context, 
 // and parents names and creates it. objToCreate.Name is changed to the hashed name. Original name is preserved in
 // nexus/display_name label and can be obtained using DisplayName() method.
 func (c *apigatewayApigatewayNexusV1Chainer) AddProxyRules(ctx context.Context,
-	objToCreate *baseadminnexusorgv1.ProxyRule) (result *AdminProxyRule, err error) {
+	objToCreate *baseadminnexusvmwarecomv1.ProxyRule) (result *AdminProxyRule, err error) {
 	if objToCreate.Labels == nil {
 		objToCreate.Labels = map[string]string{}
 	}
@@ -1193,7 +1193,7 @@ func (c *apigatewayApigatewayNexusV1Chainer) AddProxyRules(ctx context.Context,
 	if objToCreate.Labels[common.IS_NAME_HASHED_LABEL] != "true" {
 		objToCreate.Labels[common.DISPLAY_NAME_LABEL] = objToCreate.GetName()
 		objToCreate.Labels[common.IS_NAME_HASHED_LABEL] = "true"
-		hashedName := helper.GetHashedName("proxyrules.admin.nexus.org", c.parentLabels, objToCreate.GetName())
+		hashedName := helper.GetHashedName("proxyrules.admin.nexus.vmware.com", c.parentLabels, objToCreate.GetName())
 		objToCreate.Name = hashedName
 	}
 	return c.client.Admin().CreateProxyRuleByName(ctx, objToCreate)
@@ -1206,13 +1206,13 @@ func (c *apigatewayApigatewayNexusV1Chainer) DeleteProxyRules(ctx context.Contex
 		c.parentLabels = map[string]string{}
 	}
 	c.parentLabels[common.IS_NAME_HASHED_LABEL] = "true"
-	hashedName := helper.GetHashedName("proxyrules.admin.nexus.org", c.parentLabels, name)
+	hashedName := helper.GetHashedName("proxyrules.admin.nexus.vmware.com", c.parentLabels, name)
 	return c.client.Admin().DeleteProxyRuleByName(ctx, hashedName)
 }
 
 func (c *apigatewayApigatewayNexusV1Chainer) Authn(name string) *oidcAuthenticationNexusV1Chainer {
 	parentLabels := c.parentLabels
-	parentLabels["oidcs.authentication.nexus.org"] = name
+	parentLabels["oidcs.authentication.nexus.vmware.com"] = name
 	return &oidcAuthenticationNexusV1Chainer{
 		client:       c.client,
 		name:         name,
@@ -1222,7 +1222,7 @@ func (c *apigatewayApigatewayNexusV1Chainer) Authn(name string) *oidcAuthenticat
 
 // GetAuthn calculates hashed name of the object based on displayName and it's parents and returns the object
 func (c *apigatewayApigatewayNexusV1Chainer) GetAuthn(ctx context.Context, displayName string) (result *AuthenticationOIDC, err error) {
-	hashedName := helper.GetHashedName("oidcs.authentication.nexus.org", c.parentLabels, displayName)
+	hashedName := helper.GetHashedName("oidcs.authentication.nexus.vmware.com", c.parentLabels, displayName)
 	return c.client.Authentication().GetOIDCByName(ctx, hashedName)
 }
 
@@ -1230,7 +1230,7 @@ func (c *apigatewayApigatewayNexusV1Chainer) GetAuthn(ctx context.Context, displ
 // and parents names and creates it. objToCreate.Name is changed to the hashed name. Original name is preserved in
 // nexus/display_name label and can be obtained using DisplayName() method.
 func (c *apigatewayApigatewayNexusV1Chainer) AddAuthn(ctx context.Context,
-	objToCreate *baseauthenticationnexusorgv1.OIDC) (result *AuthenticationOIDC, err error) {
+	objToCreate *baseauthenticationnexusvmwarecomv1.OIDC) (result *AuthenticationOIDC, err error) {
 	if objToCreate.Labels == nil {
 		objToCreate.Labels = map[string]string{}
 	}
@@ -1240,7 +1240,7 @@ func (c *apigatewayApigatewayNexusV1Chainer) AddAuthn(ctx context.Context,
 	if objToCreate.Labels[common.IS_NAME_HASHED_LABEL] != "true" {
 		objToCreate.Labels[common.DISPLAY_NAME_LABEL] = objToCreate.GetName()
 		objToCreate.Labels[common.IS_NAME_HASHED_LABEL] = "true"
-		hashedName := helper.GetHashedName("oidcs.authentication.nexus.org", c.parentLabels, objToCreate.GetName())
+		hashedName := helper.GetHashedName("oidcs.authentication.nexus.vmware.com", c.parentLabels, objToCreate.GetName())
 		objToCreate.Name = hashedName
 	}
 	return c.client.Authentication().CreateOIDCByName(ctx, objToCreate)
@@ -1253,13 +1253,13 @@ func (c *apigatewayApigatewayNexusV1Chainer) DeleteAuthn(ctx context.Context, na
 		c.parentLabels = map[string]string{}
 	}
 	c.parentLabels[common.IS_NAME_HASHED_LABEL] = "true"
-	hashedName := helper.GetHashedName("oidcs.authentication.nexus.org", c.parentLabels, name)
+	hashedName := helper.GetHashedName("oidcs.authentication.nexus.vmware.com", c.parentLabels, name)
 	return c.client.Authentication().DeleteOIDCByName(ctx, hashedName)
 }
 
 func (c *apigatewayApigatewayNexusV1Chainer) Cors(name string) *corsconfigDomainNexusV1Chainer {
 	parentLabels := c.parentLabels
-	parentLabels["corsconfigs.domain.nexus.org"] = name
+	parentLabels["corsconfigs.domain.nexus.vmware.com"] = name
 	return &corsconfigDomainNexusV1Chainer{
 		client:       c.client,
 		name:         name,
@@ -1269,7 +1269,7 @@ func (c *apigatewayApigatewayNexusV1Chainer) Cors(name string) *corsconfigDomain
 
 // GetCors calculates hashed name of the object based on displayName and it's parents and returns the object
 func (c *apigatewayApigatewayNexusV1Chainer) GetCors(ctx context.Context, displayName string) (result *DomainCORSConfig, err error) {
-	hashedName := helper.GetHashedName("corsconfigs.domain.nexus.org", c.parentLabels, displayName)
+	hashedName := helper.GetHashedName("corsconfigs.domain.nexus.vmware.com", c.parentLabels, displayName)
 	return c.client.Domain().GetCORSConfigByName(ctx, hashedName)
 }
 
@@ -1277,7 +1277,7 @@ func (c *apigatewayApigatewayNexusV1Chainer) GetCors(ctx context.Context, displa
 // and parents names and creates it. objToCreate.Name is changed to the hashed name. Original name is preserved in
 // nexus/display_name label and can be obtained using DisplayName() method.
 func (c *apigatewayApigatewayNexusV1Chainer) AddCors(ctx context.Context,
-	objToCreate *basedomainnexusorgv1.CORSConfig) (result *DomainCORSConfig, err error) {
+	objToCreate *basedomainnexusvmwarecomv1.CORSConfig) (result *DomainCORSConfig, err error) {
 	if objToCreate.Labels == nil {
 		objToCreate.Labels = map[string]string{}
 	}
@@ -1287,7 +1287,7 @@ func (c *apigatewayApigatewayNexusV1Chainer) AddCors(ctx context.Context,
 	if objToCreate.Labels[common.IS_NAME_HASHED_LABEL] != "true" {
 		objToCreate.Labels[common.DISPLAY_NAME_LABEL] = objToCreate.GetName()
 		objToCreate.Labels[common.IS_NAME_HASHED_LABEL] = "true"
-		hashedName := helper.GetHashedName("corsconfigs.domain.nexus.org", c.parentLabels, objToCreate.GetName())
+		hashedName := helper.GetHashedName("corsconfigs.domain.nexus.vmware.com", c.parentLabels, objToCreate.GetName())
 		objToCreate.Name = hashedName
 	}
 	return c.client.Domain().CreateCORSConfigByName(ctx, objToCreate)
@@ -1300,7 +1300,7 @@ func (c *apigatewayApigatewayNexusV1Chainer) DeleteCors(ctx context.Context, nam
 		c.parentLabels = map[string]string{}
 	}
 	c.parentLabels[common.IS_NAME_HASHED_LABEL] = "true"
-	hashedName := helper.GetHashedName("corsconfigs.domain.nexus.org", c.parentLabels, name)
+	hashedName := helper.GetHashedName("corsconfigs.domain.nexus.vmware.com", c.parentLabels, name)
 	return c.client.Domain().DeleteCORSConfigByName(ctx, hashedName)
 }
 
@@ -1354,12 +1354,12 @@ func (group *AuthenticationNexusV1) DeleteOIDCByName(ctx context.Context, hashed
 	if parents == nil {
 		parents = make(map[string]string)
 	}
-	parentName, ok := parents["apigateways.apigateway.nexus.org"]
+	parentName, ok := parents["apigateways.apigateway.nexus.vmware.com"]
 	if !ok {
 		parentName = helper.DEFAULT_KEY
 	}
 	if parents[common.IS_NAME_HASHED_LABEL] == "true" {
-		parentName = helper.GetHashedName("apigateways.apigateway.nexus.org", parents, parentName)
+		parentName = helper.GetHashedName("apigateways.apigateway.nexus.vmware.com", parents, parentName)
 	}
 	_, err = group.client.baseClient.
 		ApigatewayNexusV1().
@@ -1374,7 +1374,7 @@ func (group *AuthenticationNexusV1) DeleteOIDCByName(ctx context.Context, hashed
 // CreateOIDCByName creates object in the database without hashing the name.
 // Use it directly ONLY when objToCreate.Name is hashed name of the object.
 func (group *AuthenticationNexusV1) CreateOIDCByName(ctx context.Context,
-	objToCreate *baseauthenticationnexusorgv1.OIDC) (*AuthenticationOIDC, error) {
+	objToCreate *baseauthenticationnexusvmwarecomv1.OIDC) (*AuthenticationOIDC, error) {
 	if objToCreate.GetLabels() == nil {
 		objToCreate.Labels = make(map[string]string)
 	}
@@ -1389,20 +1389,20 @@ func (group *AuthenticationNexusV1) CreateOIDCByName(ctx context.Context,
 		return nil, err
 	}
 
-	parentName, ok := objToCreate.GetLabels()["apigateways.apigateway.nexus.org"]
+	parentName, ok := objToCreate.GetLabels()["apigateways.apigateway.nexus.vmware.com"]
 	if !ok {
 		parentName = helper.DEFAULT_KEY
 	}
 	if objToCreate.Labels[common.IS_NAME_HASHED_LABEL] == "true" {
-		parentName = helper.GetHashedName("apigateways.apigateway.nexus.org", objToCreate.GetLabels(), parentName)
+		parentName = helper.GetHashedName("apigateways.apigateway.nexus.vmware.com", objToCreate.GetLabels(), parentName)
 	}
 
 	var patch Patch
 	patchOp := PatchOp{
 		Op:   "replace",
 		Path: "/spec/authnGvk",
-		Value: baseauthenticationnexusorgv1.Child{
-			Group: "authentication.nexus.org",
+		Value: baseauthenticationnexusvmwarecomv1.Child{
+			Group: "authentication.nexus.vmware.com",
 			Kind:  "OIDC",
 			Name:  objToCreate.Name,
 		},
@@ -1428,7 +1428,7 @@ func (group *AuthenticationNexusV1) CreateOIDCByName(ctx context.Context,
 // UpdateOIDCByName updates object stored in the database under the hashedName which is a hash of
 // display name and parents names.
 func (group *AuthenticationNexusV1) UpdateOIDCByName(ctx context.Context,
-	objToUpdate *baseauthenticationnexusorgv1.OIDC) (*AuthenticationOIDC, error) {
+	objToUpdate *baseauthenticationnexusvmwarecomv1.OIDC) (*AuthenticationOIDC, error) {
 
 	// ResourceVersion must be set for update
 	if objToUpdate.ResourceVersion == "" {
@@ -1513,7 +1513,7 @@ func (group *AuthenticationNexusV1) ListOIDCs(ctx context.Context,
 
 type AuthenticationOIDC struct {
 	client *Clientset
-	*baseauthenticationnexusorgv1.OIDC
+	*baseauthenticationnexusvmwarecomv1.OIDC
 }
 
 // Delete removes obj and all it's children from the database.
@@ -1537,7 +1537,7 @@ func (obj *AuthenticationOIDC) Update(ctx context.Context) error {
 }
 
 func (obj *AuthenticationOIDC) GetParent(ctx context.Context) (result *ApigatewayApiGateway, err error) {
-	hashedName := helper.GetHashedName("apigateways.apigateway.nexus.org", obj.Labels, obj.Labels["apigateways.apigateway.nexus.org"])
+	hashedName := helper.GetHashedName("apigateways.apigateway.nexus.vmware.com", obj.Labels, obj.Labels["apigateways.apigateway.nexus.vmware.com"])
 	return obj.client.Apigateway().GetApiGatewayByName(ctx, hashedName)
 }
 
@@ -1623,12 +1623,12 @@ func (group *ConfigNexusV1) DeleteConfigByName(ctx context.Context, hashedName s
 	if parents == nil {
 		parents = make(map[string]string)
 	}
-	parentName, ok := parents["nexuses.api.nexus.org"]
+	parentName, ok := parents["nexuses.api.nexus.vmware.com"]
 	if !ok {
 		parentName = helper.DEFAULT_KEY
 	}
 	if parents[common.IS_NAME_HASHED_LABEL] == "true" {
-		parentName = helper.GetHashedName("nexuses.api.nexus.org", parents, parentName)
+		parentName = helper.GetHashedName("nexuses.api.nexus.vmware.com", parents, parentName)
 	}
 	_, err = group.client.baseClient.
 		ApiNexusV1().
@@ -1643,7 +1643,7 @@ func (group *ConfigNexusV1) DeleteConfigByName(ctx context.Context, hashedName s
 // CreateConfigByName creates object in the database without hashing the name.
 // Use it directly ONLY when objToCreate.Name is hashed name of the object.
 func (group *ConfigNexusV1) CreateConfigByName(ctx context.Context,
-	objToCreate *baseconfignexusorgv1.Config) (*ConfigConfig, error) {
+	objToCreate *baseconfignexusvmwarecomv1.Config) (*ConfigConfig, error) {
 	if objToCreate.GetLabels() == nil {
 		objToCreate.Labels = make(map[string]string)
 	}
@@ -1662,20 +1662,20 @@ func (group *ConfigNexusV1) CreateConfigByName(ctx context.Context,
 		return nil, err
 	}
 
-	parentName, ok := objToCreate.GetLabels()["nexuses.api.nexus.org"]
+	parentName, ok := objToCreate.GetLabels()["nexuses.api.nexus.vmware.com"]
 	if !ok {
 		parentName = helper.DEFAULT_KEY
 	}
 	if objToCreate.Labels[common.IS_NAME_HASHED_LABEL] == "true" {
-		parentName = helper.GetHashedName("nexuses.api.nexus.org", objToCreate.GetLabels(), parentName)
+		parentName = helper.GetHashedName("nexuses.api.nexus.vmware.com", objToCreate.GetLabels(), parentName)
 	}
 
 	var patch Patch
 	patchOp := PatchOp{
 		Op:   "replace",
 		Path: "/spec/configGvk",
-		Value: baseconfignexusorgv1.Child{
-			Group: "config.nexus.org",
+		Value: baseconfignexusvmwarecomv1.Child{
+			Group: "config.nexus.vmware.com",
 			Kind:  "Config",
 			Name:  objToCreate.Name,
 		},
@@ -1701,7 +1701,7 @@ func (group *ConfigNexusV1) CreateConfigByName(ctx context.Context,
 // UpdateConfigByName updates object stored in the database under the hashedName which is a hash of
 // display name and parents names.
 func (group *ConfigNexusV1) UpdateConfigByName(ctx context.Context,
-	objToUpdate *baseconfignexusorgv1.Config) (*ConfigConfig, error) {
+	objToUpdate *baseconfignexusvmwarecomv1.Config) (*ConfigConfig, error) {
 
 	// ResourceVersion must be set for update
 	if objToUpdate.ResourceVersion == "" {
@@ -1759,7 +1759,7 @@ func (group *ConfigNexusV1) ListConfigs(ctx context.Context,
 
 type ConfigConfig struct {
 	client *Clientset
-	*baseconfignexusorgv1.Config
+	*baseconfignexusvmwarecomv1.Config
 }
 
 // Delete removes obj and all it's children from the database.
@@ -1783,7 +1783,7 @@ func (obj *ConfigConfig) Update(ctx context.Context) error {
 }
 
 func (obj *ConfigConfig) GetParent(ctx context.Context) (result *ApiNexus, err error) {
-	hashedName := helper.GetHashedName("nexuses.api.nexus.org", obj.Labels, obj.Labels["nexuses.api.nexus.org"])
+	hashedName := helper.GetHashedName("nexuses.api.nexus.vmware.com", obj.Labels, obj.Labels["nexuses.api.nexus.vmware.com"])
 	return obj.client.Api().GetNexusByName(ctx, hashedName)
 }
 
@@ -1800,14 +1800,14 @@ func (obj *ConfigConfig) GetApiGateway(ctx context.Context) (
 // and parents names and creates it. objToCreate.Name is changed to the hashed name. Original name is preserved in
 // nexus/display_name label and can be obtained using DisplayName() method.
 func (obj *ConfigConfig) AddApiGateway(ctx context.Context,
-	objToCreate *baseapigatewaynexusorgv1.ApiGateway) (result *ApigatewayApiGateway, err error) {
+	objToCreate *baseapigatewaynexusvmwarecomv1.ApiGateway) (result *ApigatewayApiGateway, err error) {
 	if objToCreate.Labels == nil {
 		objToCreate.Labels = map[string]string{}
 	}
-	for _, v := range helper.GetCRDParentsMap()["configs.config.nexus.org"] {
+	for _, v := range helper.GetCRDParentsMap()["configs.config.nexus.vmware.com"] {
 		objToCreate.Labels[v] = obj.Labels[v]
 	}
-	objToCreate.Labels["configs.config.nexus.org"] = obj.DisplayName()
+	objToCreate.Labels["configs.config.nexus.vmware.com"] = obj.DisplayName()
 	if objToCreate.Labels[common.IS_NAME_HASHED_LABEL] != "true" {
 		objToCreate.Labels[common.DISPLAY_NAME_LABEL] = objToCreate.GetName()
 		objToCreate.Labels[common.IS_NAME_HASHED_LABEL] = "true"
@@ -1870,14 +1870,14 @@ func (obj *ConfigConfig) GetRoutes(ctx context.Context,
 // and parents names and creates it. objToCreate.Name is changed to the hashed name. Original name is preserved in
 // nexus/display_name label and can be obtained using DisplayName() method.
 func (obj *ConfigConfig) AddRoutes(ctx context.Context,
-	objToCreate *baseroutenexusorgv1.Route) (result *RouteRoute, err error) {
+	objToCreate *baseroutenexusvmwarecomv1.Route) (result *RouteRoute, err error) {
 	if objToCreate.Labels == nil {
 		objToCreate.Labels = map[string]string{}
 	}
-	for _, v := range helper.GetCRDParentsMap()["configs.config.nexus.org"] {
+	for _, v := range helper.GetCRDParentsMap()["configs.config.nexus.vmware.com"] {
 		objToCreate.Labels[v] = obj.Labels[v]
 	}
-	objToCreate.Labels["configs.config.nexus.org"] = obj.DisplayName()
+	objToCreate.Labels["configs.config.nexus.vmware.com"] = obj.DisplayName()
 	if objToCreate.Labels[common.IS_NAME_HASHED_LABEL] != "true" {
 		objToCreate.Labels[common.DISPLAY_NAME_LABEL] = objToCreate.GetName()
 		objToCreate.Labels[common.IS_NAME_HASHED_LABEL] = "true"
@@ -1924,14 +1924,14 @@ func (obj *ConfigConfig) GetConnect(ctx context.Context) (
 // and parents names and creates it. objToCreate.Name is changed to the hashed name. Original name is preserved in
 // nexus/display_name label and can be obtained using DisplayName() method.
 func (obj *ConfigConfig) AddConnect(ctx context.Context,
-	objToCreate *baseconnectnexusorgv1.Connect) (result *ConnectConnect, err error) {
+	objToCreate *baseconnectnexusvmwarecomv1.Connect) (result *ConnectConnect, err error) {
 	if objToCreate.Labels == nil {
 		objToCreate.Labels = map[string]string{}
 	}
-	for _, v := range helper.GetCRDParentsMap()["configs.config.nexus.org"] {
+	for _, v := range helper.GetCRDParentsMap()["configs.config.nexus.vmware.com"] {
 		objToCreate.Labels[v] = obj.Labels[v]
 	}
-	objToCreate.Labels["configs.config.nexus.org"] = obj.DisplayName()
+	objToCreate.Labels["configs.config.nexus.vmware.com"] = obj.DisplayName()
 	if objToCreate.Labels[common.IS_NAME_HASHED_LABEL] != "true" {
 		objToCreate.Labels[common.DISPLAY_NAME_LABEL] = objToCreate.GetName()
 		objToCreate.Labels[common.IS_NAME_HASHED_LABEL] = "true"
@@ -1973,7 +1973,7 @@ type configConfigNexusV1Chainer struct {
 
 func (c *configConfigNexusV1Chainer) ApiGateway(name string) *apigatewayApigatewayNexusV1Chainer {
 	parentLabels := c.parentLabels
-	parentLabels["apigateways.apigateway.nexus.org"] = name
+	parentLabels["apigateways.apigateway.nexus.vmware.com"] = name
 	return &apigatewayApigatewayNexusV1Chainer{
 		client:       c.client,
 		name:         name,
@@ -1983,7 +1983,7 @@ func (c *configConfigNexusV1Chainer) ApiGateway(name string) *apigatewayApigatew
 
 // GetApiGateway calculates hashed name of the object based on displayName and it's parents and returns the object
 func (c *configConfigNexusV1Chainer) GetApiGateway(ctx context.Context, displayName string) (result *ApigatewayApiGateway, err error) {
-	hashedName := helper.GetHashedName("apigateways.apigateway.nexus.org", c.parentLabels, displayName)
+	hashedName := helper.GetHashedName("apigateways.apigateway.nexus.vmware.com", c.parentLabels, displayName)
 	return c.client.Apigateway().GetApiGatewayByName(ctx, hashedName)
 }
 
@@ -1991,7 +1991,7 @@ func (c *configConfigNexusV1Chainer) GetApiGateway(ctx context.Context, displayN
 // and parents names and creates it. objToCreate.Name is changed to the hashed name. Original name is preserved in
 // nexus/display_name label and can be obtained using DisplayName() method.
 func (c *configConfigNexusV1Chainer) AddApiGateway(ctx context.Context,
-	objToCreate *baseapigatewaynexusorgv1.ApiGateway) (result *ApigatewayApiGateway, err error) {
+	objToCreate *baseapigatewaynexusvmwarecomv1.ApiGateway) (result *ApigatewayApiGateway, err error) {
 	if objToCreate.Labels == nil {
 		objToCreate.Labels = map[string]string{}
 	}
@@ -2001,7 +2001,7 @@ func (c *configConfigNexusV1Chainer) AddApiGateway(ctx context.Context,
 	if objToCreate.Labels[common.IS_NAME_HASHED_LABEL] != "true" {
 		objToCreate.Labels[common.DISPLAY_NAME_LABEL] = objToCreate.GetName()
 		objToCreate.Labels[common.IS_NAME_HASHED_LABEL] = "true"
-		hashedName := helper.GetHashedName("apigateways.apigateway.nexus.org", c.parentLabels, objToCreate.GetName())
+		hashedName := helper.GetHashedName("apigateways.apigateway.nexus.vmware.com", c.parentLabels, objToCreate.GetName())
 		objToCreate.Name = hashedName
 	}
 	return c.client.Apigateway().CreateApiGatewayByName(ctx, objToCreate)
@@ -2014,13 +2014,13 @@ func (c *configConfigNexusV1Chainer) DeleteApiGateway(ctx context.Context, name 
 		c.parentLabels = map[string]string{}
 	}
 	c.parentLabels[common.IS_NAME_HASHED_LABEL] = "true"
-	hashedName := helper.GetHashedName("apigateways.apigateway.nexus.org", c.parentLabels, name)
+	hashedName := helper.GetHashedName("apigateways.apigateway.nexus.vmware.com", c.parentLabels, name)
 	return c.client.Apigateway().DeleteApiGatewayByName(ctx, hashedName)
 }
 
 func (c *configConfigNexusV1Chainer) Routes(name string) *routeRouteNexusV1Chainer {
 	parentLabels := c.parentLabels
-	parentLabels["routes.route.nexus.org"] = name
+	parentLabels["routes.route.nexus.vmware.com"] = name
 	return &routeRouteNexusV1Chainer{
 		client:       c.client,
 		name:         name,
@@ -2030,7 +2030,7 @@ func (c *configConfigNexusV1Chainer) Routes(name string) *routeRouteNexusV1Chain
 
 // GetRoutes calculates hashed name of the object based on displayName and it's parents and returns the object
 func (c *configConfigNexusV1Chainer) GetRoutes(ctx context.Context, displayName string) (result *RouteRoute, err error) {
-	hashedName := helper.GetHashedName("routes.route.nexus.org", c.parentLabels, displayName)
+	hashedName := helper.GetHashedName("routes.route.nexus.vmware.com", c.parentLabels, displayName)
 	return c.client.Route().GetRouteByName(ctx, hashedName)
 }
 
@@ -2038,7 +2038,7 @@ func (c *configConfigNexusV1Chainer) GetRoutes(ctx context.Context, displayName 
 // and parents names and creates it. objToCreate.Name is changed to the hashed name. Original name is preserved in
 // nexus/display_name label and can be obtained using DisplayName() method.
 func (c *configConfigNexusV1Chainer) AddRoutes(ctx context.Context,
-	objToCreate *baseroutenexusorgv1.Route) (result *RouteRoute, err error) {
+	objToCreate *baseroutenexusvmwarecomv1.Route) (result *RouteRoute, err error) {
 	if objToCreate.Labels == nil {
 		objToCreate.Labels = map[string]string{}
 	}
@@ -2048,7 +2048,7 @@ func (c *configConfigNexusV1Chainer) AddRoutes(ctx context.Context,
 	if objToCreate.Labels[common.IS_NAME_HASHED_LABEL] != "true" {
 		objToCreate.Labels[common.DISPLAY_NAME_LABEL] = objToCreate.GetName()
 		objToCreate.Labels[common.IS_NAME_HASHED_LABEL] = "true"
-		hashedName := helper.GetHashedName("routes.route.nexus.org", c.parentLabels, objToCreate.GetName())
+		hashedName := helper.GetHashedName("routes.route.nexus.vmware.com", c.parentLabels, objToCreate.GetName())
 		objToCreate.Name = hashedName
 	}
 	return c.client.Route().CreateRouteByName(ctx, objToCreate)
@@ -2061,13 +2061,13 @@ func (c *configConfigNexusV1Chainer) DeleteRoutes(ctx context.Context, name stri
 		c.parentLabels = map[string]string{}
 	}
 	c.parentLabels[common.IS_NAME_HASHED_LABEL] = "true"
-	hashedName := helper.GetHashedName("routes.route.nexus.org", c.parentLabels, name)
+	hashedName := helper.GetHashedName("routes.route.nexus.vmware.com", c.parentLabels, name)
 	return c.client.Route().DeleteRouteByName(ctx, hashedName)
 }
 
 func (c *configConfigNexusV1Chainer) Connect(name string) *connectConnectNexusV1Chainer {
 	parentLabels := c.parentLabels
-	parentLabels["connects.connect.nexus.org"] = name
+	parentLabels["connects.connect.nexus.vmware.com"] = name
 	return &connectConnectNexusV1Chainer{
 		client:       c.client,
 		name:         name,
@@ -2077,7 +2077,7 @@ func (c *configConfigNexusV1Chainer) Connect(name string) *connectConnectNexusV1
 
 // GetConnect calculates hashed name of the object based on displayName and it's parents and returns the object
 func (c *configConfigNexusV1Chainer) GetConnect(ctx context.Context, displayName string) (result *ConnectConnect, err error) {
-	hashedName := helper.GetHashedName("connects.connect.nexus.org", c.parentLabels, displayName)
+	hashedName := helper.GetHashedName("connects.connect.nexus.vmware.com", c.parentLabels, displayName)
 	return c.client.Connect().GetConnectByName(ctx, hashedName)
 }
 
@@ -2085,7 +2085,7 @@ func (c *configConfigNexusV1Chainer) GetConnect(ctx context.Context, displayName
 // and parents names and creates it. objToCreate.Name is changed to the hashed name. Original name is preserved in
 // nexus/display_name label and can be obtained using DisplayName() method.
 func (c *configConfigNexusV1Chainer) AddConnect(ctx context.Context,
-	objToCreate *baseconnectnexusorgv1.Connect) (result *ConnectConnect, err error) {
+	objToCreate *baseconnectnexusvmwarecomv1.Connect) (result *ConnectConnect, err error) {
 	if objToCreate.Labels == nil {
 		objToCreate.Labels = map[string]string{}
 	}
@@ -2095,7 +2095,7 @@ func (c *configConfigNexusV1Chainer) AddConnect(ctx context.Context,
 	if objToCreate.Labels[common.IS_NAME_HASHED_LABEL] != "true" {
 		objToCreate.Labels[common.DISPLAY_NAME_LABEL] = objToCreate.GetName()
 		objToCreate.Labels[common.IS_NAME_HASHED_LABEL] = "true"
-		hashedName := helper.GetHashedName("connects.connect.nexus.org", c.parentLabels, objToCreate.GetName())
+		hashedName := helper.GetHashedName("connects.connect.nexus.vmware.com", c.parentLabels, objToCreate.GetName())
 		objToCreate.Name = hashedName
 	}
 	return c.client.Connect().CreateConnectByName(ctx, objToCreate)
@@ -2108,7 +2108,7 @@ func (c *configConfigNexusV1Chainer) DeleteConnect(ctx context.Context, name str
 		c.parentLabels = map[string]string{}
 	}
 	c.parentLabels[common.IS_NAME_HASHED_LABEL] = "true"
-	hashedName := helper.GetHashedName("connects.connect.nexus.org", c.parentLabels, name)
+	hashedName := helper.GetHashedName("connects.connect.nexus.vmware.com", c.parentLabels, name)
 	return c.client.Connect().DeleteConnectByName(ctx, hashedName)
 }
 
@@ -2178,12 +2178,12 @@ func (group *ConnectNexusV1) DeleteConnectByName(ctx context.Context, hashedName
 	if parents == nil {
 		parents = make(map[string]string)
 	}
-	parentName, ok := parents["configs.config.nexus.org"]
+	parentName, ok := parents["configs.config.nexus.vmware.com"]
 	if !ok {
 		parentName = helper.DEFAULT_KEY
 	}
 	if parents[common.IS_NAME_HASHED_LABEL] == "true" {
-		parentName = helper.GetHashedName("configs.config.nexus.org", parents, parentName)
+		parentName = helper.GetHashedName("configs.config.nexus.vmware.com", parents, parentName)
 	}
 	_, err = group.client.baseClient.
 		ConfigNexusV1().
@@ -2198,7 +2198,7 @@ func (group *ConnectNexusV1) DeleteConnectByName(ctx context.Context, hashedName
 // CreateConnectByName creates object in the database without hashing the name.
 // Use it directly ONLY when objToCreate.Name is hashed name of the object.
 func (group *ConnectNexusV1) CreateConnectByName(ctx context.Context,
-	objToCreate *baseconnectnexusorgv1.Connect) (*ConnectConnect, error) {
+	objToCreate *baseconnectnexusvmwarecomv1.Connect) (*ConnectConnect, error) {
 	if objToCreate.GetLabels() == nil {
 		objToCreate.Labels = make(map[string]string)
 	}
@@ -2216,20 +2216,20 @@ func (group *ConnectNexusV1) CreateConnectByName(ctx context.Context,
 		return nil, err
 	}
 
-	parentName, ok := objToCreate.GetLabels()["configs.config.nexus.org"]
+	parentName, ok := objToCreate.GetLabels()["configs.config.nexus.vmware.com"]
 	if !ok {
 		parentName = helper.DEFAULT_KEY
 	}
 	if objToCreate.Labels[common.IS_NAME_HASHED_LABEL] == "true" {
-		parentName = helper.GetHashedName("configs.config.nexus.org", objToCreate.GetLabels(), parentName)
+		parentName = helper.GetHashedName("configs.config.nexus.vmware.com", objToCreate.GetLabels(), parentName)
 	}
 
 	var patch Patch
 	patchOp := PatchOp{
 		Op:   "replace",
 		Path: "/spec/connectGvk",
-		Value: baseconnectnexusorgv1.Child{
-			Group: "connect.nexus.org",
+		Value: baseconnectnexusvmwarecomv1.Child{
+			Group: "connect.nexus.vmware.com",
 			Kind:  "Connect",
 			Name:  objToCreate.Name,
 		},
@@ -2255,7 +2255,7 @@ func (group *ConnectNexusV1) CreateConnectByName(ctx context.Context,
 // UpdateConnectByName updates object stored in the database under the hashedName which is a hash of
 // display name and parents names.
 func (group *ConnectNexusV1) UpdateConnectByName(ctx context.Context,
-	objToUpdate *baseconnectnexusorgv1.Connect) (*ConnectConnect, error) {
+	objToUpdate *baseconnectnexusvmwarecomv1.Connect) (*ConnectConnect, error) {
 
 	// ResourceVersion must be set for update
 	if objToUpdate.ResourceVersion == "" {
@@ -2313,7 +2313,7 @@ func (group *ConnectNexusV1) ListConnects(ctx context.Context,
 
 type ConnectConnect struct {
 	client *Clientset
-	*baseconnectnexusorgv1.Connect
+	*baseconnectnexusvmwarecomv1.Connect
 }
 
 // Delete removes obj and all it's children from the database.
@@ -2337,7 +2337,7 @@ func (obj *ConnectConnect) Update(ctx context.Context) error {
 }
 
 func (obj *ConnectConnect) GetParent(ctx context.Context) (result *ConfigConfig, err error) {
-	hashedName := helper.GetHashedName("configs.config.nexus.org", obj.Labels, obj.Labels["configs.config.nexus.org"])
+	hashedName := helper.GetHashedName("configs.config.nexus.vmware.com", obj.Labels, obj.Labels["configs.config.nexus.vmware.com"])
 	return obj.client.Config().GetConfigByName(ctx, hashedName)
 }
 
@@ -2370,14 +2370,14 @@ func (obj *ConnectConnect) GetEndpoints(ctx context.Context,
 // and parents names and creates it. objToCreate.Name is changed to the hashed name. Original name is preserved in
 // nexus/display_name label and can be obtained using DisplayName() method.
 func (obj *ConnectConnect) AddEndpoints(ctx context.Context,
-	objToCreate *baseconnectnexusorgv1.NexusEndpoint) (result *ConnectNexusEndpoint, err error) {
+	objToCreate *baseconnectnexusvmwarecomv1.NexusEndpoint) (result *ConnectNexusEndpoint, err error) {
 	if objToCreate.Labels == nil {
 		objToCreate.Labels = map[string]string{}
 	}
-	for _, v := range helper.GetCRDParentsMap()["connects.connect.nexus.org"] {
+	for _, v := range helper.GetCRDParentsMap()["connects.connect.nexus.vmware.com"] {
 		objToCreate.Labels[v] = obj.Labels[v]
 	}
-	objToCreate.Labels["connects.connect.nexus.org"] = obj.DisplayName()
+	objToCreate.Labels["connects.connect.nexus.vmware.com"] = obj.DisplayName()
 	if objToCreate.Labels[common.IS_NAME_HASHED_LABEL] != "true" {
 		objToCreate.Labels[common.DISPLAY_NAME_LABEL] = objToCreate.GetName()
 		objToCreate.Labels[common.IS_NAME_HASHED_LABEL] = "true"
@@ -2440,14 +2440,14 @@ func (obj *ConnectConnect) GetReplicationConfig(ctx context.Context,
 // and parents names and creates it. objToCreate.Name is changed to the hashed name. Original name is preserved in
 // nexus/display_name label and can be obtained using DisplayName() method.
 func (obj *ConnectConnect) AddReplicationConfig(ctx context.Context,
-	objToCreate *baseconnectnexusorgv1.ReplicationConfig) (result *ConnectReplicationConfig, err error) {
+	objToCreate *baseconnectnexusvmwarecomv1.ReplicationConfig) (result *ConnectReplicationConfig, err error) {
 	if objToCreate.Labels == nil {
 		objToCreate.Labels = map[string]string{}
 	}
-	for _, v := range helper.GetCRDParentsMap()["connects.connect.nexus.org"] {
+	for _, v := range helper.GetCRDParentsMap()["connects.connect.nexus.vmware.com"] {
 		objToCreate.Labels[v] = obj.Labels[v]
 	}
-	objToCreate.Labels["connects.connect.nexus.org"] = obj.DisplayName()
+	objToCreate.Labels["connects.connect.nexus.vmware.com"] = obj.DisplayName()
 	if objToCreate.Labels[common.IS_NAME_HASHED_LABEL] != "true" {
 		objToCreate.Labels[common.DISPLAY_NAME_LABEL] = objToCreate.GetName()
 		objToCreate.Labels[common.IS_NAME_HASHED_LABEL] = "true"
@@ -2489,7 +2489,7 @@ type connectConnectNexusV1Chainer struct {
 
 func (c *connectConnectNexusV1Chainer) Endpoints(name string) *nexusendpointConnectNexusV1Chainer {
 	parentLabels := c.parentLabels
-	parentLabels["nexusendpoints.connect.nexus.org"] = name
+	parentLabels["nexusendpoints.connect.nexus.vmware.com"] = name
 	return &nexusendpointConnectNexusV1Chainer{
 		client:       c.client,
 		name:         name,
@@ -2499,7 +2499,7 @@ func (c *connectConnectNexusV1Chainer) Endpoints(name string) *nexusendpointConn
 
 // GetEndpoints calculates hashed name of the object based on displayName and it's parents and returns the object
 func (c *connectConnectNexusV1Chainer) GetEndpoints(ctx context.Context, displayName string) (result *ConnectNexusEndpoint, err error) {
-	hashedName := helper.GetHashedName("nexusendpoints.connect.nexus.org", c.parentLabels, displayName)
+	hashedName := helper.GetHashedName("nexusendpoints.connect.nexus.vmware.com", c.parentLabels, displayName)
 	return c.client.Connect().GetNexusEndpointByName(ctx, hashedName)
 }
 
@@ -2507,7 +2507,7 @@ func (c *connectConnectNexusV1Chainer) GetEndpoints(ctx context.Context, display
 // and parents names and creates it. objToCreate.Name is changed to the hashed name. Original name is preserved in
 // nexus/display_name label and can be obtained using DisplayName() method.
 func (c *connectConnectNexusV1Chainer) AddEndpoints(ctx context.Context,
-	objToCreate *baseconnectnexusorgv1.NexusEndpoint) (result *ConnectNexusEndpoint, err error) {
+	objToCreate *baseconnectnexusvmwarecomv1.NexusEndpoint) (result *ConnectNexusEndpoint, err error) {
 	if objToCreate.Labels == nil {
 		objToCreate.Labels = map[string]string{}
 	}
@@ -2517,7 +2517,7 @@ func (c *connectConnectNexusV1Chainer) AddEndpoints(ctx context.Context,
 	if objToCreate.Labels[common.IS_NAME_HASHED_LABEL] != "true" {
 		objToCreate.Labels[common.DISPLAY_NAME_LABEL] = objToCreate.GetName()
 		objToCreate.Labels[common.IS_NAME_HASHED_LABEL] = "true"
-		hashedName := helper.GetHashedName("nexusendpoints.connect.nexus.org", c.parentLabels, objToCreate.GetName())
+		hashedName := helper.GetHashedName("nexusendpoints.connect.nexus.vmware.com", c.parentLabels, objToCreate.GetName())
 		objToCreate.Name = hashedName
 	}
 	return c.client.Connect().CreateNexusEndpointByName(ctx, objToCreate)
@@ -2530,13 +2530,13 @@ func (c *connectConnectNexusV1Chainer) DeleteEndpoints(ctx context.Context, name
 		c.parentLabels = map[string]string{}
 	}
 	c.parentLabels[common.IS_NAME_HASHED_LABEL] = "true"
-	hashedName := helper.GetHashedName("nexusendpoints.connect.nexus.org", c.parentLabels, name)
+	hashedName := helper.GetHashedName("nexusendpoints.connect.nexus.vmware.com", c.parentLabels, name)
 	return c.client.Connect().DeleteNexusEndpointByName(ctx, hashedName)
 }
 
 func (c *connectConnectNexusV1Chainer) ReplicationConfig(name string) *replicationconfigConnectNexusV1Chainer {
 	parentLabels := c.parentLabels
-	parentLabels["replicationconfigs.connect.nexus.org"] = name
+	parentLabels["replicationconfigs.connect.nexus.vmware.com"] = name
 	return &replicationconfigConnectNexusV1Chainer{
 		client:       c.client,
 		name:         name,
@@ -2546,7 +2546,7 @@ func (c *connectConnectNexusV1Chainer) ReplicationConfig(name string) *replicati
 
 // GetReplicationConfig calculates hashed name of the object based on displayName and it's parents and returns the object
 func (c *connectConnectNexusV1Chainer) GetReplicationConfig(ctx context.Context, displayName string) (result *ConnectReplicationConfig, err error) {
-	hashedName := helper.GetHashedName("replicationconfigs.connect.nexus.org", c.parentLabels, displayName)
+	hashedName := helper.GetHashedName("replicationconfigs.connect.nexus.vmware.com", c.parentLabels, displayName)
 	return c.client.Connect().GetReplicationConfigByName(ctx, hashedName)
 }
 
@@ -2554,7 +2554,7 @@ func (c *connectConnectNexusV1Chainer) GetReplicationConfig(ctx context.Context,
 // and parents names and creates it. objToCreate.Name is changed to the hashed name. Original name is preserved in
 // nexus/display_name label and can be obtained using DisplayName() method.
 func (c *connectConnectNexusV1Chainer) AddReplicationConfig(ctx context.Context,
-	objToCreate *baseconnectnexusorgv1.ReplicationConfig) (result *ConnectReplicationConfig, err error) {
+	objToCreate *baseconnectnexusvmwarecomv1.ReplicationConfig) (result *ConnectReplicationConfig, err error) {
 	if objToCreate.Labels == nil {
 		objToCreate.Labels = map[string]string{}
 	}
@@ -2564,7 +2564,7 @@ func (c *connectConnectNexusV1Chainer) AddReplicationConfig(ctx context.Context,
 	if objToCreate.Labels[common.IS_NAME_HASHED_LABEL] != "true" {
 		objToCreate.Labels[common.DISPLAY_NAME_LABEL] = objToCreate.GetName()
 		objToCreate.Labels[common.IS_NAME_HASHED_LABEL] = "true"
-		hashedName := helper.GetHashedName("replicationconfigs.connect.nexus.org", c.parentLabels, objToCreate.GetName())
+		hashedName := helper.GetHashedName("replicationconfigs.connect.nexus.vmware.com", c.parentLabels, objToCreate.GetName())
 		objToCreate.Name = hashedName
 	}
 	return c.client.Connect().CreateReplicationConfigByName(ctx, objToCreate)
@@ -2577,7 +2577,7 @@ func (c *connectConnectNexusV1Chainer) DeleteReplicationConfig(ctx context.Conte
 		c.parentLabels = map[string]string{}
 	}
 	c.parentLabels[common.IS_NAME_HASHED_LABEL] = "true"
-	hashedName := helper.GetHashedName("replicationconfigs.connect.nexus.org", c.parentLabels, name)
+	hashedName := helper.GetHashedName("replicationconfigs.connect.nexus.vmware.com", c.parentLabels, name)
 	return c.client.Connect().DeleteReplicationConfigByName(ctx, hashedName)
 }
 
@@ -2631,12 +2631,12 @@ func (group *ConnectNexusV1) DeleteNexusEndpointByName(ctx context.Context, hash
 	if parents == nil {
 		parents = make(map[string]string)
 	}
-	parentName, ok := parents["connects.connect.nexus.org"]
+	parentName, ok := parents["connects.connect.nexus.vmware.com"]
 	if !ok {
 		parentName = helper.DEFAULT_KEY
 	}
 	if parents[common.IS_NAME_HASHED_LABEL] == "true" {
-		parentName = helper.GetHashedName("connects.connect.nexus.org", parents, parentName)
+		parentName = helper.GetHashedName("connects.connect.nexus.vmware.com", parents, parentName)
 	}
 	_, err = group.client.baseClient.
 		ConnectNexusV1().
@@ -2651,7 +2651,7 @@ func (group *ConnectNexusV1) DeleteNexusEndpointByName(ctx context.Context, hash
 // CreateNexusEndpointByName creates object in the database without hashing the name.
 // Use it directly ONLY when objToCreate.Name is hashed name of the object.
 func (group *ConnectNexusV1) CreateNexusEndpointByName(ctx context.Context,
-	objToCreate *baseconnectnexusorgv1.NexusEndpoint) (*ConnectNexusEndpoint, error) {
+	objToCreate *baseconnectnexusvmwarecomv1.NexusEndpoint) (*ConnectNexusEndpoint, error) {
 	if objToCreate.GetLabels() == nil {
 		objToCreate.Labels = make(map[string]string)
 	}
@@ -2666,15 +2666,15 @@ func (group *ConnectNexusV1) CreateNexusEndpointByName(ctx context.Context,
 		return nil, err
 	}
 
-	parentName, ok := objToCreate.GetLabels()["connects.connect.nexus.org"]
+	parentName, ok := objToCreate.GetLabels()["connects.connect.nexus.vmware.com"]
 	if !ok {
 		parentName = helper.DEFAULT_KEY
 	}
 	if objToCreate.Labels[common.IS_NAME_HASHED_LABEL] == "true" {
-		parentName = helper.GetHashedName("connects.connect.nexus.org", objToCreate.GetLabels(), parentName)
+		parentName = helper.GetHashedName("connects.connect.nexus.vmware.com", objToCreate.GetLabels(), parentName)
 	}
 
-	payload := "{\"spec\": {\"endpointsGvk\": {\"" + objToCreate.DisplayName() + "\": {\"name\": \"" + objToCreate.Name + "\",\"kind\": \"NexusEndpoint\", \"group\": \"connect.nexus.org\"}}}}"
+	payload := "{\"spec\": {\"endpointsGvk\": {\"" + objToCreate.DisplayName() + "\": {\"name\": \"" + objToCreate.Name + "\",\"kind\": \"NexusEndpoint\", \"group\": \"connect.nexus.vmware.com\"}}}}"
 	_, err = group.client.baseClient.
 		ConnectNexusV1().
 		Connects().Patch(ctx, parentName, types.MergePatchType, []byte(payload), metav1.PatchOptions{})
@@ -2691,7 +2691,7 @@ func (group *ConnectNexusV1) CreateNexusEndpointByName(ctx context.Context,
 // UpdateNexusEndpointByName updates object stored in the database under the hashedName which is a hash of
 // display name and parents names.
 func (group *ConnectNexusV1) UpdateNexusEndpointByName(ctx context.Context,
-	objToUpdate *baseconnectnexusorgv1.NexusEndpoint) (*ConnectNexusEndpoint, error) {
+	objToUpdate *baseconnectnexusvmwarecomv1.NexusEndpoint) (*ConnectNexusEndpoint, error) {
 
 	// ResourceVersion must be set for update
 	if objToUpdate.ResourceVersion == "" {
@@ -2738,6 +2738,51 @@ func (group *ConnectNexusV1) UpdateNexusEndpointByName(ctx context.Context,
 	}
 	patch = append(patch, patchOpCert)
 
+	patchValuePath :=
+		objToUpdate.Spec.Path
+	patchOpPath := PatchOp{
+		Op:    "replace",
+		Path:  "/spec/path",
+		Value: patchValuePath,
+	}
+	patch = append(patch, patchOpPath)
+
+	patchValueCloud :=
+		objToUpdate.Spec.Cloud
+	patchOpCloud := PatchOp{
+		Op:    "replace",
+		Path:  "/spec/cloud",
+		Value: patchValueCloud,
+	}
+	patch = append(patch, patchOpCloud)
+
+	patchValueServiceAccountName :=
+		objToUpdate.Spec.ServiceAccountName
+	patchOpServiceAccountName := PatchOp{
+		Op:    "replace",
+		Path:  "/spec/serviceAccountName",
+		Value: patchValueServiceAccountName,
+	}
+	patch = append(patch, patchOpServiceAccountName)
+
+	patchValueClientName :=
+		objToUpdate.Spec.ClientName
+	patchOpClientName := PatchOp{
+		Op:    "replace",
+		Path:  "/spec/clientName",
+		Value: patchValueClientName,
+	}
+	patch = append(patch, patchOpClientName)
+
+	patchValueClientRegion :=
+		objToUpdate.Spec.ClientRegion
+	patchOpClientRegion := PatchOp{
+		Op:    "replace",
+		Path:  "/spec/clientRegion",
+		Value: patchValueClientRegion,
+	}
+	patch = append(patch, patchOpClientRegion)
+
 	marshaled, err := patch.Marshal()
 	if err != nil {
 		return nil, err
@@ -2776,7 +2821,7 @@ func (group *ConnectNexusV1) ListNexusEndpoints(ctx context.Context,
 
 type ConnectNexusEndpoint struct {
 	client *Clientset
-	*baseconnectnexusorgv1.NexusEndpoint
+	*baseconnectnexusvmwarecomv1.NexusEndpoint
 }
 
 // Delete removes obj and all it's children from the database.
@@ -2800,7 +2845,7 @@ func (obj *ConnectNexusEndpoint) Update(ctx context.Context) error {
 }
 
 func (obj *ConnectNexusEndpoint) GetParent(ctx context.Context) (result *ConnectConnect, err error) {
-	hashedName := helper.GetHashedName("connects.connect.nexus.org", obj.Labels, obj.Labels["connects.connect.nexus.org"])
+	hashedName := helper.GetHashedName("connects.connect.nexus.vmware.com", obj.Labels, obj.Labels["connects.connect.nexus.vmware.com"])
 	return obj.client.Connect().GetConnectByName(ctx, hashedName)
 }
 
@@ -2860,12 +2905,12 @@ func (group *ConnectNexusV1) DeleteReplicationConfigByName(ctx context.Context, 
 	if parents == nil {
 		parents = make(map[string]string)
 	}
-	parentName, ok := parents["connects.connect.nexus.org"]
+	parentName, ok := parents["connects.connect.nexus.vmware.com"]
 	if !ok {
 		parentName = helper.DEFAULT_KEY
 	}
 	if parents[common.IS_NAME_HASHED_LABEL] == "true" {
-		parentName = helper.GetHashedName("connects.connect.nexus.org", parents, parentName)
+		parentName = helper.GetHashedName("connects.connect.nexus.vmware.com", parents, parentName)
 	}
 	_, err = group.client.baseClient.
 		ConnectNexusV1().
@@ -2880,7 +2925,7 @@ func (group *ConnectNexusV1) DeleteReplicationConfigByName(ctx context.Context, 
 // CreateReplicationConfigByName creates object in the database without hashing the name.
 // Use it directly ONLY when objToCreate.Name is hashed name of the object.
 func (group *ConnectNexusV1) CreateReplicationConfigByName(ctx context.Context,
-	objToCreate *baseconnectnexusorgv1.ReplicationConfig) (*ConnectReplicationConfig, error) {
+	objToCreate *baseconnectnexusvmwarecomv1.ReplicationConfig) (*ConnectReplicationConfig, error) {
 	if objToCreate.GetLabels() == nil {
 		objToCreate.Labels = make(map[string]string)
 	}
@@ -2897,15 +2942,15 @@ func (group *ConnectNexusV1) CreateReplicationConfigByName(ctx context.Context,
 		return nil, err
 	}
 
-	parentName, ok := objToCreate.GetLabels()["connects.connect.nexus.org"]
+	parentName, ok := objToCreate.GetLabels()["connects.connect.nexus.vmware.com"]
 	if !ok {
 		parentName = helper.DEFAULT_KEY
 	}
 	if objToCreate.Labels[common.IS_NAME_HASHED_LABEL] == "true" {
-		parentName = helper.GetHashedName("connects.connect.nexus.org", objToCreate.GetLabels(), parentName)
+		parentName = helper.GetHashedName("connects.connect.nexus.vmware.com", objToCreate.GetLabels(), parentName)
 	}
 
-	payload := "{\"spec\": {\"replicationConfigGvk\": {\"" + objToCreate.DisplayName() + "\": {\"name\": \"" + objToCreate.Name + "\",\"kind\": \"ReplicationConfig\", \"group\": \"connect.nexus.org\"}}}}"
+	payload := "{\"spec\": {\"replicationConfigGvk\": {\"" + objToCreate.DisplayName() + "\": {\"name\": \"" + objToCreate.Name + "\",\"kind\": \"ReplicationConfig\", \"group\": \"connect.nexus.vmware.com\"}}}}"
 	_, err = group.client.baseClient.
 		ConnectNexusV1().
 		Connects().Patch(ctx, parentName, types.MergePatchType, []byte(payload), metav1.PatchOptions{})
@@ -2922,7 +2967,7 @@ func (group *ConnectNexusV1) CreateReplicationConfigByName(ctx context.Context,
 // UpdateReplicationConfigByName updates object stored in the database under the hashedName which is a hash of
 // display name and parents names.
 func (group *ConnectNexusV1) UpdateReplicationConfigByName(ctx context.Context,
-	objToUpdate *baseconnectnexusorgv1.ReplicationConfig) (*ConnectReplicationConfig, error) {
+	objToUpdate *baseconnectnexusvmwarecomv1.ReplicationConfig) (*ConnectReplicationConfig, error) {
 
 	// ResourceVersion must be set for update
 	if objToUpdate.ResourceVersion == "" {
@@ -3016,7 +3061,7 @@ func (group *ConnectNexusV1) ListReplicationConfigs(ctx context.Context,
 
 type ConnectReplicationConfig struct {
 	client *Clientset
-	*baseconnectnexusorgv1.ReplicationConfig
+	*baseconnectnexusvmwarecomv1.ReplicationConfig
 }
 
 // Delete removes obj and all it's children from the database.
@@ -3040,7 +3085,7 @@ func (obj *ConnectReplicationConfig) Update(ctx context.Context) error {
 }
 
 func (obj *ConnectReplicationConfig) GetParent(ctx context.Context) (result *ConnectConnect, err error) {
-	hashedName := helper.GetHashedName("connects.connect.nexus.org", obj.Labels, obj.Labels["connects.connect.nexus.org"])
+	hashedName := helper.GetHashedName("connects.connect.nexus.vmware.com", obj.Labels, obj.Labels["connects.connect.nexus.vmware.com"])
 	return obj.client.Connect().GetConnectByName(ctx, hashedName)
 }
 
@@ -3062,8 +3107,8 @@ func (obj *ConnectReplicationConfig) LinkRemoteEndpoint(ctx context.Context,
 	patchOp := PatchOp{
 		Op:   "replace",
 		Path: "/spec/remoteEndpointGvk",
-		Value: baseconnectnexusorgv1.Child{
-			Group: "connect.nexus.org",
+		Value: baseconnectnexusvmwarecomv1.Child{
+			Group: "connect.nexus.vmware.com",
 			Kind:  "NexusEndpoint",
 			Name:  linkToAdd.Name,
 		},
@@ -3161,12 +3206,12 @@ func (group *DomainNexusV1) DeleteCORSConfigByName(ctx context.Context, hashedNa
 	if parents == nil {
 		parents = make(map[string]string)
 	}
-	parentName, ok := parents["apigateways.apigateway.nexus.org"]
+	parentName, ok := parents["apigateways.apigateway.nexus.vmware.com"]
 	if !ok {
 		parentName = helper.DEFAULT_KEY
 	}
 	if parents[common.IS_NAME_HASHED_LABEL] == "true" {
-		parentName = helper.GetHashedName("apigateways.apigateway.nexus.org", parents, parentName)
+		parentName = helper.GetHashedName("apigateways.apigateway.nexus.vmware.com", parents, parentName)
 	}
 	_, err = group.client.baseClient.
 		ApigatewayNexusV1().
@@ -3181,7 +3226,7 @@ func (group *DomainNexusV1) DeleteCORSConfigByName(ctx context.Context, hashedNa
 // CreateCORSConfigByName creates object in the database without hashing the name.
 // Use it directly ONLY when objToCreate.Name is hashed name of the object.
 func (group *DomainNexusV1) CreateCORSConfigByName(ctx context.Context,
-	objToCreate *basedomainnexusorgv1.CORSConfig) (*DomainCORSConfig, error) {
+	objToCreate *basedomainnexusvmwarecomv1.CORSConfig) (*DomainCORSConfig, error) {
 	if objToCreate.GetLabels() == nil {
 		objToCreate.Labels = make(map[string]string)
 	}
@@ -3196,15 +3241,15 @@ func (group *DomainNexusV1) CreateCORSConfigByName(ctx context.Context,
 		return nil, err
 	}
 
-	parentName, ok := objToCreate.GetLabels()["apigateways.apigateway.nexus.org"]
+	parentName, ok := objToCreate.GetLabels()["apigateways.apigateway.nexus.vmware.com"]
 	if !ok {
 		parentName = helper.DEFAULT_KEY
 	}
 	if objToCreate.Labels[common.IS_NAME_HASHED_LABEL] == "true" {
-		parentName = helper.GetHashedName("apigateways.apigateway.nexus.org", objToCreate.GetLabels(), parentName)
+		parentName = helper.GetHashedName("apigateways.apigateway.nexus.vmware.com", objToCreate.GetLabels(), parentName)
 	}
 
-	payload := "{\"spec\": {\"corsGvk\": {\"" + objToCreate.DisplayName() + "\": {\"name\": \"" + objToCreate.Name + "\",\"kind\": \"CORSConfig\", \"group\": \"domain.nexus.org\"}}}}"
+	payload := "{\"spec\": {\"corsGvk\": {\"" + objToCreate.DisplayName() + "\": {\"name\": \"" + objToCreate.Name + "\",\"kind\": \"CORSConfig\", \"group\": \"domain.nexus.vmware.com\"}}}}"
 	_, err = group.client.baseClient.
 		ApigatewayNexusV1().
 		ApiGateways().Patch(ctx, parentName, types.MergePatchType, []byte(payload), metav1.PatchOptions{})
@@ -3221,7 +3266,7 @@ func (group *DomainNexusV1) CreateCORSConfigByName(ctx context.Context,
 // UpdateCORSConfigByName updates object stored in the database under the hashedName which is a hash of
 // display name and parents names.
 func (group *DomainNexusV1) UpdateCORSConfigByName(ctx context.Context,
-	objToUpdate *basedomainnexusorgv1.CORSConfig) (*DomainCORSConfig, error) {
+	objToUpdate *basedomainnexusvmwarecomv1.CORSConfig) (*DomainCORSConfig, error) {
 
 	// ResourceVersion must be set for update
 	if objToUpdate.ResourceVersion == "" {
@@ -3241,23 +3286,27 @@ func (group *DomainNexusV1) UpdateCORSConfigByName(ctx context.Context,
 		Value: objToUpdate.ObjectMeta,
 	})
 
-	patchValueOrigins :=
-		objToUpdate.Spec.Origins
-	patchOpOrigins := PatchOp{
-		Op:    "replace",
-		Path:  "/spec/origins",
-		Value: patchValueOrigins,
+	if objToUpdate.Spec.Origins != nil {
+		patchValueOrigins :=
+			objToUpdate.Spec.Origins
+		patchOpOrigins := PatchOp{
+			Op:    "replace",
+			Path:  "/spec/origins",
+			Value: patchValueOrigins,
+		}
+		patch = append(patch, patchOpOrigins)
 	}
-	patch = append(patch, patchOpOrigins)
 
-	patchValueHeaders :=
-		objToUpdate.Spec.Headers
-	patchOpHeaders := PatchOp{
-		Op:    "replace",
-		Path:  "/spec/headers",
-		Value: patchValueHeaders,
+	if objToUpdate.Spec.Headers != nil {
+		patchValueHeaders :=
+			objToUpdate.Spec.Headers
+		patchOpHeaders := PatchOp{
+			Op:    "replace",
+			Path:  "/spec/headers",
+			Value: patchValueHeaders,
+		}
+		patch = append(patch, patchOpHeaders)
 	}
-	patch = append(patch, patchOpHeaders)
 
 	marshaled, err := patch.Marshal()
 	if err != nil {
@@ -3297,7 +3346,7 @@ func (group *DomainNexusV1) ListCORSConfigs(ctx context.Context,
 
 type DomainCORSConfig struct {
 	client *Clientset
-	*basedomainnexusorgv1.CORSConfig
+	*basedomainnexusvmwarecomv1.CORSConfig
 }
 
 // Delete removes obj and all it's children from the database.
@@ -3321,7 +3370,7 @@ func (obj *DomainCORSConfig) Update(ctx context.Context) error {
 }
 
 func (obj *DomainCORSConfig) GetParent(ctx context.Context) (result *ApigatewayApiGateway, err error) {
-	hashedName := helper.GetHashedName("apigateways.apigateway.nexus.org", obj.Labels, obj.Labels["apigateways.apigateway.nexus.org"])
+	hashedName := helper.GetHashedName("apigateways.apigateway.nexus.vmware.com", obj.Labels, obj.Labels["apigateways.apigateway.nexus.vmware.com"])
 	return obj.client.Apigateway().GetApiGatewayByName(ctx, hashedName)
 }
 
@@ -3381,12 +3430,12 @@ func (group *RouteNexusV1) DeleteRouteByName(ctx context.Context, hashedName str
 	if parents == nil {
 		parents = make(map[string]string)
 	}
-	parentName, ok := parents["configs.config.nexus.org"]
+	parentName, ok := parents["configs.config.nexus.vmware.com"]
 	if !ok {
 		parentName = helper.DEFAULT_KEY
 	}
 	if parents[common.IS_NAME_HASHED_LABEL] == "true" {
-		parentName = helper.GetHashedName("configs.config.nexus.org", parents, parentName)
+		parentName = helper.GetHashedName("configs.config.nexus.vmware.com", parents, parentName)
 	}
 	_, err = group.client.baseClient.
 		ConfigNexusV1().
@@ -3401,7 +3450,7 @@ func (group *RouteNexusV1) DeleteRouteByName(ctx context.Context, hashedName str
 // CreateRouteByName creates object in the database without hashing the name.
 // Use it directly ONLY when objToCreate.Name is hashed name of the object.
 func (group *RouteNexusV1) CreateRouteByName(ctx context.Context,
-	objToCreate *baseroutenexusorgv1.Route) (*RouteRoute, error) {
+	objToCreate *baseroutenexusvmwarecomv1.Route) (*RouteRoute, error) {
 	if objToCreate.GetLabels() == nil {
 		objToCreate.Labels = make(map[string]string)
 	}
@@ -3416,15 +3465,15 @@ func (group *RouteNexusV1) CreateRouteByName(ctx context.Context,
 		return nil, err
 	}
 
-	parentName, ok := objToCreate.GetLabels()["configs.config.nexus.org"]
+	parentName, ok := objToCreate.GetLabels()["configs.config.nexus.vmware.com"]
 	if !ok {
 		parentName = helper.DEFAULT_KEY
 	}
 	if objToCreate.Labels[common.IS_NAME_HASHED_LABEL] == "true" {
-		parentName = helper.GetHashedName("configs.config.nexus.org", objToCreate.GetLabels(), parentName)
+		parentName = helper.GetHashedName("configs.config.nexus.vmware.com", objToCreate.GetLabels(), parentName)
 	}
 
-	payload := "{\"spec\": {\"routesGvk\": {\"" + objToCreate.DisplayName() + "\": {\"name\": \"" + objToCreate.Name + "\",\"kind\": \"Route\", \"group\": \"route.nexus.org\"}}}}"
+	payload := "{\"spec\": {\"routesGvk\": {\"" + objToCreate.DisplayName() + "\": {\"name\": \"" + objToCreate.Name + "\",\"kind\": \"Route\", \"group\": \"route.nexus.vmware.com\"}}}}"
 	_, err = group.client.baseClient.
 		ConfigNexusV1().
 		Configs().Patch(ctx, parentName, types.MergePatchType, []byte(payload), metav1.PatchOptions{})
@@ -3441,7 +3490,7 @@ func (group *RouteNexusV1) CreateRouteByName(ctx context.Context,
 // UpdateRouteByName updates object stored in the database under the hashedName which is a hash of
 // display name and parents names.
 func (group *RouteNexusV1) UpdateRouteByName(ctx context.Context,
-	objToUpdate *baseroutenexusorgv1.Route) (*RouteRoute, error) {
+	objToUpdate *baseroutenexusvmwarecomv1.Route) (*RouteRoute, error) {
 
 	// ResourceVersion must be set for update
 	if objToUpdate.ResourceVersion == "" {
@@ -3526,7 +3575,7 @@ func (group *RouteNexusV1) ListRoutes(ctx context.Context,
 
 type RouteRoute struct {
 	client *Clientset
-	*baseroutenexusorgv1.Route
+	*baseroutenexusvmwarecomv1.Route
 }
 
 // Delete removes obj and all it's children from the database.
@@ -3550,7 +3599,7 @@ func (obj *RouteRoute) Update(ctx context.Context) error {
 }
 
 func (obj *RouteRoute) GetParent(ctx context.Context) (result *ConfigConfig, err error) {
-	hashedName := helper.GetHashedName("configs.config.nexus.org", obj.Labels, obj.Labels["configs.config.nexus.org"])
+	hashedName := helper.GetHashedName("configs.config.nexus.vmware.com", obj.Labels, obj.Labels["configs.config.nexus.vmware.com"])
 	return obj.client.Config().GetConfigByName(ctx, hashedName)
 }
 

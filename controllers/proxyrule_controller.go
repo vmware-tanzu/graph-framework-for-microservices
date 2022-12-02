@@ -23,7 +23,7 @@ import (
 	"fmt"
 
 	log "github.com/sirupsen/logrus"
-	adminnexusorgv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/admin.nexus.org/v1"
+	adminnexusorgv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/admin.nexus.vmware.com/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -35,9 +35,9 @@ type ProxyRuleReconciler struct {
 	Scheme *runtime.Scheme
 }
 
-//+kubebuilder:rbac:groups=admin.nexus.org.api-gw.com,resources=proxyrules,verbs=get;list;watch;create;update;patch;delete
-//+kubebuilder:rbac:groups=admin.nexus.org.api-gw.com,resources=proxyrules/status,verbs=get;update;patch
-//+kubebuilder:rbac:groups=admin.nexus.org.api-gw.com,resources=proxyrules/finalizers,verbs=update
+//+kubebuilder:rbac:groups=admin.nexus.vmware.com.api-gw.com,resources=proxyrules,verbs=get;list;watch;create;update;patch;delete
+//+kubebuilder:rbac:groups=admin.nexus.vmware.com.api-gw.com,resources=proxyrules/status,verbs=get;update;patch
+//+kubebuilder:rbac:groups=admin.nexus.vmware.com.api-gw.com,resources=proxyrules/finalizers,verbs=update
 
 // Reconcile is part of the main kubernetes reconciliation loop which aims to
 // move the current state of the cluster closer to the desired state.

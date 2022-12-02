@@ -21,14 +21,14 @@ package versioned
 import (
 	"fmt"
 
-	adminnexusv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/client/clientset/versioned/typed/admin.nexus.org/v1"
-	apinexusv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/client/clientset/versioned/typed/api.nexus.org/v1"
-	apigatewaynexusv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/client/clientset/versioned/typed/apigateway.nexus.org/v1"
-	authenticationnexusv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/client/clientset/versioned/typed/authentication.nexus.org/v1"
-	confignexusv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/client/clientset/versioned/typed/config.nexus.org/v1"
-	connectnexusv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/client/clientset/versioned/typed/connect.nexus.org/v1"
-	domainnexusv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/client/clientset/versioned/typed/domain.nexus.org/v1"
-	routenexusv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/client/clientset/versioned/typed/route.nexus.org/v1"
+	adminnexusv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/client/clientset/versioned/typed/admin.nexus.vmware.com/v1"
+	apinexusv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/client/clientset/versioned/typed/api.nexus.vmware.com/v1"
+	apigatewaynexusv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/client/clientset/versioned/typed/apigateway.nexus.vmware.com/v1"
+	authenticationnexusv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/client/clientset/versioned/typed/authentication.nexus.vmware.com/v1"
+	confignexusv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/client/clientset/versioned/typed/config.nexus.vmware.com/v1"
+	connectnexusv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/client/clientset/versioned/typed/connect.nexus.vmware.com/v1"
+	domainnexusv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/client/clientset/versioned/typed/domain.nexus.vmware.com/v1"
+	routenexusv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/client/clientset/versioned/typed/route.nexus.vmware.com/v1"
 
 	discovery "k8s.io/client-go/discovery"
 	rest "k8s.io/client-go/rest"

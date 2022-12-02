@@ -4,7 +4,6 @@ import (
 	"sync"
 
 	"github.com/vmware-tanzu/graph-framework-for-microservices/nexus/nexus"
-	"golang.org/x/net/publicsuffix"
 	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 )
@@ -52,10 +51,9 @@ func ConstructDatamodel(eventType EventType, name string, unstructuredObj *unstr
 	obj := unstructuredObj.Object
 
 	spec := obj["spec"].(map[string]interface{})
-
 	if title, ok := spec["title"]; ok {
 		//FIXME: data race
-		datamodelName, _ := publicsuffix.EffectiveTLDPlusOne(name)
+		datamodelName := name
 		DatamodelToDatamodelInfo[datamodelName] = DatamodelInfo{
 			Title: title.(string),
 		}

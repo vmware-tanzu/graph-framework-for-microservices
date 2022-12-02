@@ -19,7 +19,7 @@ import (
 	"github.com/golang-jwt/jwt/v4"
 	"github.com/labstack/echo/v4"
 	log "github.com/sirupsen/logrus"
-	authnexusv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/authentication.nexus.org/v1"
+	authnexusv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/authentication.nexus.vmware.com/v1"
 	nexus_client "golang-appnet.eng.vmware.com/nexus-sdk/api/build/nexus-client"
 	"golang.org/x/oauth2"
 )

@@ -4,10 +4,11 @@ import (
 	"api-gw/pkg/model"
 	"context"
 	"encoding/json"
+
 	yamlv1 "github.com/ghodss/yaml"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	authenticationnexusv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/authentication.nexus.org/v1"
+	authenticationnexusv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/authentication.nexus.vmware.com/v1"
 )
 
 var _ = Describe("OidcConfig controller", func() {

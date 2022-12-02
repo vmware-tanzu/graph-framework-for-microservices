@@ -366,46 +366,48 @@ go.uber.org/zap/internal/bufferpool
 go.uber.org/zap/internal/color
 go.uber.org/zap/internal/exit
 go.uber.org/zap/zapcore
-# golang-appnet.eng.vmware.com/nexus-sdk/api v0.0.14
+# golang-appnet.eng.vmware.com/nexus-sdk/api v0.0.20-0.20221202070436-3fd8f1ca430d
 ## explicit; go 1.17
-golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/admin.nexus.org
-golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/admin.nexus.org/v1
-golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/api.nexus.org
-golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/api.nexus.org/v1
-golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/apigateway.nexus.org
-golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/apigateway.nexus.org/v1
-golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/authentication.nexus.org
-golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/authentication.nexus.org/v1
-golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/config.nexus.org
-golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/config.nexus.org/v1
-golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/connect.nexus.org
-golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/connect.nexus.org/v1
-golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/domain.nexus.org
-golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/domain.nexus.org/v1
-golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/route.nexus.org
-golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/route.nexus.org/v1
+golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/admin.nexus.vmware.com
+golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/admin.nexus.vmware.com/v1
+golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/api.nexus.vmware.com
+golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/api.nexus.vmware.com/v1
+golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/apigateway.nexus.vmware.com
+golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/apigateway.nexus.vmware.com/v1
+golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/authentication.nexus.vmware.com
+golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/authentication.nexus.vmware.com/v1
+golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/config.nexus.vmware.com
+golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/config.nexus.vmware.com/v1
+golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/connect.nexus.vmware.com
+golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/connect.nexus.vmware.com/v1
+golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/domain.nexus.vmware.com
+golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/domain.nexus.vmware.com/v1
+golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/route.nexus.vmware.com
+golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/route.nexus.vmware.com/v1
 golang-appnet.eng.vmware.com/nexus-sdk/api/build/client/clientset/versioned
 golang-appnet.eng.vmware.com/nexus-sdk/api/build/client/clientset/versioned/fake
 golang-appnet.eng.vmware.com/nexus-sdk/api/build/client/clientset/versioned/scheme
-golang-appnet.eng.vmware.com/nexus-sdk/api/build/client/clientset/versioned/typed/admin.nexus.org/v1
-golang-appnet.eng.vmware.com/nexus-sdk/api/build/client/clientset/versioned/typed/admin.nexus.org/v1/fake
-golang-appnet.eng.vmware.com/nexus-sdk/api/build/client/clientset/versioned/typed/api.nexus.org/v1
-golang-appnet.eng.vmware.com/nexus-sdk/api/build/client/clientset/versioned/typed/api.nexus.org/v1/fake
-golang-appnet.eng.vmware.com/nexus-sdk/api/build/client/clientset/versioned/typed/apigateway.nexus.org/v1
-golang-appnet.eng.vmware.com/nexus-sdk/api/build/client/clientset/versioned/typed/apigateway.nexus.org/v1/fake
-golang-appnet.eng.vmware.com/nexus-sdk/api/build/client/clientset/versioned/typed/authentication.nexus.org/v1
-golang-appnet.eng.vmware.com/nexus-sdk/api/build/client/clientset/versioned/typed/authentication.nexus.org/v1/fake
-golang-appnet.eng.vmware.com/nexus-sdk/api/build/client/clientset/versioned/typed/config.nexus.org/v1
-golang-appnet.eng.vmware.com/nexus-sdk/api/build/client/clientset/versioned/typed/config.nexus.org/v1/fake
-golang-appnet.eng.vmware.com/nexus-sdk/api/build/client/clientset/versioned/typed/connect.nexus.org/v1
-golang-appnet.eng.vmware.com/nexus-sdk/api/build/client/clientset/versioned/typed/connect.nexus.org/v1/fake
-golang-appnet.eng.vmware.com/nexus-sdk/api/build/client/clientset/versioned/typed/domain.nexus.org/v1
-golang-appnet.eng.vmware.com/nexus-sdk/api/build/client/clientset/versioned/typed/domain.nexus.org/v1/fake
-golang-appnet.eng.vmware.com/nexus-sdk/api/build/client/clientset/versioned/typed/route.nexus.org/v1
-golang-appnet.eng.vmware.com/nexus-sdk/api/build/client/clientset/versioned/typed/route.nexus.org/v1/fake
+golang-appnet.eng.vmware.com/nexus-sdk/api/build/client/clientset/versioned/typed/admin.nexus.vmware.com/v1
+golang-appnet.eng.vmware.com/nexus-sdk/api/build/client/clientset/versioned/typed/admin.nexus.vmware.com/v1/fake
+golang-appnet.eng.vmware.com/nexus-sdk/api/build/client/clientset/versioned/typed/api.nexus.vmware.com/v1
+golang-appnet.eng.vmware.com/nexus-sdk/api/build/client/clientset/versioned/typed/api.nexus.vmware.com/v1/fake
+golang-appnet.eng.vmware.com/nexus-sdk/api/build/client/clientset/versioned/typed/apigateway.nexus.vmware.com/v1
+golang-appnet.eng.vmware.com/nexus-sdk/api/build/client/clientset/versioned/typed/apigateway.nexus.vmware.com/v1/fake
+golang-appnet.eng.vmware.com/nexus-sdk/api/build/client/clientset/versioned/typed/authentication.nexus.vmware.com/v1
+golang-appnet.eng.vmware.com/nexus-sdk/api/build/client/clientset/versioned/typed/authentication.nexus.vmware.com/v1/fake
+golang-appnet.eng.vmware.com/nexus-sdk/api/build/client/clientset/versioned/typed/config.nexus.vmware.com/v1
+golang-appnet.eng.vmware.com/nexus-sdk/api/build/client/clientset/versioned/typed/config.nexus.vmware.com/v1/fake
+golang-appnet.eng.vmware.com/nexus-sdk/api/build/client/clientset/versioned/typed/connect.nexus.vmware.com/v1
+golang-appnet.eng.vmware.com/nexus-sdk/api/build/client/clientset/versioned/typed/connect.nexus.vmware.com/v1/fake
+golang-appnet.eng.vmware.com/nexus-sdk/api/build/client/clientset/versioned/typed/domain.nexus.vmware.com/v1
+golang-appnet.eng.vmware.com/nexus-sdk/api/build/client/clientset/versioned/typed/domain.nexus.vmware.com/v1/fake
+golang-appnet.eng.vmware.com/nexus-sdk/api/build/client/clientset/versioned/typed/route.nexus.vmware.com/v1
+golang-appnet.eng.vmware.com/nexus-sdk/api/build/client/clientset/versioned/typed/route.nexus.vmware.com/v1/fake
 golang-appnet.eng.vmware.com/nexus-sdk/api/build/common
 golang-appnet.eng.vmware.com/nexus-sdk/api/build/helper
 golang-appnet.eng.vmware.com/nexus-sdk/api/build/nexus-client
+# golang-appnet.eng.vmware.com/nexus-sdk/nexus v0.2.57
+## explicit; go 1.17
 # golang.org/x/crypto v0.0.0-20220214200702-86341886e292
 ## explicit; go 1.17
 golang.org/x/crypto/acme
@@ -427,7 +429,6 @@ golang.org/x/net/http2/h2c
 golang.org/x/net/http2/hpack
 golang.org/x/net/idna
 golang.org/x/net/internal/timeseries
-golang.org/x/net/publicsuffix
 golang.org/x/net/trace
 # golang.org/x/oauth2 v0.0.0-20220524215830-622c5d57e401
 ## explicit; go 1.11
