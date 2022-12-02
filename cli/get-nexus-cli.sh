@@ -3,7 +3,7 @@ set -e
 
 
 REPOSITORY="gcr.io/nsx-sm/nexus/nexus-cli"
-DST_DIR="/usr/local/bin"
+INSTALL_DIRECTORY="/usr/local/bin"
 VERSION=""
 
 SEMVER_REGEX_MASTER="v[0-9]+\.[0-9]+\.[0-9]+$"
@@ -16,10 +16,10 @@ for version in "${tags_array[@]}"; do
        fi
 done
 
-usage() { echo "Usage: $0 [-r <repository-name>] [-v <version>] [-d <destination-path>] " 1>&2; exit 1; }
+usage() { echo "Usage: $0 [-r <repository-name>] [-v <version>] [-d <install-directory>] " 1>&2; exit 1; }
 
 if [[ $# == 0 ]]; then
-    echo -e "Downloading Nexus ...\nVersion: ${VERSION}\nImage repository: ${REPOSITORY}\nDirectory: ${DST_DIR}\n"
+    echo -e "Downloading Nexus ...\nVersion: ${VERSION}\nImage repository: ${REPOSITORY}\nDirectory: ${INSTALL_DIRECTORY}\n"
     echo -e "Would you like to customize installation [y/n]:"
     read -r customize
 
@@ -29,10 +29,10 @@ if [[ $# == 0 ]]; then
         echo -n "Version [${VERSION}]:"
         read -r version
         echo -n "Directory [/usr/local/bin]:"
-        read -r dest_path
+        read -r install_directory
     fi
 elif [[ "$1" == "--no-prompt" ]]; then
-    echo -e "Downloading Nexus ...\nVersion: ${VERSION}\nImage repository: ${REPOSITORY}\nDirectory: ${DST_DIR}\n"
+    echo -e "Downloading Nexus ...\nVersion: ${VERSION}\nImage repository: ${REPOSITORY}\nDirectory: ${INSTALL_DIRECTORY}\n"
 else
     while getopts ":r:v:d:" o; do
         case "${o}" in
@@ -43,7 +43,7 @@ else
                 version=${OPTARG}
                 ;;
             d)
-                dest_path=${OPTARG}
+                install_directory=${OPTARG}
                 ;;
             *)
                 usage
@@ -62,8 +62,8 @@ if [[ -n "${version}" ]]; then
     VERSION="${version}"
 fi
 
-if [[ -n "${dest_path}" ]]; then
-    DST_DIR="${dest_path}"
+if [[ -n "${install_directory}" ]]; then
+    INSTALL_DIRECTORY="${install_directory}"
 fi
 
 OS=`uname -s`
@@ -77,9 +77,9 @@ docker pull ${REPOSITORY}:${VERSION} 1> /dev/null
 docker create --name "$docker_name" ${REPOSITORY}:${VERSION} 1> /dev/null
 
 if [ "$OS" == "Darwin" ]; then
-   docker cp "${docker_name}:${darwin_src_path}" "$DST_DIR" 
+   docker cp "${docker_name}:${darwin_src_path}" "$INSTALL_DIRECTORY" 
 elif [ "$OS" == "Linux" ]; then
-   docker cp "${docker_name}:${linux_src_path}" "$DST_DIR"
+   docker cp "${docker_name}:${linux_src_path}" "$INSTALL_DIRECTORY"
 else
    echo "Unsupported OS type: ${OS}, nexus supported OS types are : 1) Linux and 2) Darwin"
 fi
@@ -87,5 +87,5 @@ fi
 docker rm -f ${docker_name} 1> /dev/null
 docker rmi "${REPOSITORY}":"${VERSION}" &> /dev/null 
 
-echo -e "Nexus (${VERSION}) installed in $DST_DIR/nexus\nRun \"nexus help\" to get started"
+echo -e "Nexus (${VERSION}) installed in $INSTALL_DIRECTORY/nexus\nRun \"nexus help\" to get started"
 
