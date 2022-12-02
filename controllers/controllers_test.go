@@ -21,7 +21,7 @@ import (
 	"connector/pkg/utils"
 )
 
-const nexuscrd = "nexuses.api.nexus.org"
+const nexuscrd = "nexuses.api.nexus.vmware.com"
 
 var (
 	ctx        context.Context
