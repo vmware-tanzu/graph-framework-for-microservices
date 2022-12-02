@@ -55,7 +55,7 @@ data:
       if [[ -n $NAME ]] && [[ -n $IMAGE ]]; then
         if [[ -n $TITLE ]]; then
           echo '
-            apiVersion: nexus.org/v1
+            apiVersion: nexus.vmware.com/v1
             kind: Datamodel
             metadata:
               name: '"$NAME"'
@@ -67,7 +67,7 @@ data:
               graphqlPath: '"$GRAPHQL_PATH"'' | kubectl apply -f -
         else
           echo '
-          apiVersion: nexus.org/v1
+          apiVersion: nexus.vmware.com/v1
           kind: Datamodel
           metadata:
             name: '"$NAME"'
