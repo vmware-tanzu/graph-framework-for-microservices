@@ -29,50 +29,50 @@ spec:
               echo 'api-gw is now ready'
               
               echo 'waiting for Nexus "default" object to be created...'
-              until $(kubectl get nexuses.api.nexus.org -l nexus/display_name=default -o=jsonpath='{.items[0]}' > /dev/null 2>&1); do
+              until $(kubectl get nexuses.api.nexus.vmware.com -l nexus/display_name=default -o=jsonpath='{.items[0]}' > /dev/null 2>&1); do
                 echo '.'
                 sleep 5
               done
               echo 'Nexus "default" object found'
 
               echo 'waiting for Config "default" object to be created...'
-              until $(kubectl get configs.config.nexus.org -l nexus/display_name=default -o=jsonpath='{.items[0]}' > /dev/null 2>&1); do
+              until $(kubectl get configs.config.nexus.vmware.com -l nexus/display_name=default -o=jsonpath='{.items[0]}' > /dev/null 2>&1); do
                 echo '.'
                 sleep 5
               done
               echo 'Config "default" object found'
 
               echo 'waiting for ApiGateway "default" object to be created...'
-              until $(kubectl get apigateways.apigateway.nexus.org -l nexus/display_name=default > /dev/null 2>&1); do
+              until $(kubectl get apigateways.apigateway.nexus.vmware.com -l nexus/display_name=default > /dev/null 2>&1); do
                 echo '.'
                 sleep 5
               done
               echo 'ApiGateway "default" object found'
               
               echo 'waiting for OIDC CRD to be installed...'
-              until $(kubectl get crd/oidcs.authentication.nexus.org > /dev/null 2>&1); do
+              until $(kubectl get crd/oidcs.authentication.nexus.vmware.com > /dev/null 2>&1); do
                 echo '.'
                 sleep 5
               done
               echo 'OIDC CRD installed'
 
               echo 'waiting for ProxyRule CRD to be installed...'
-              until $(kubectl get crd/proxyrules.admin.nexus.org > /dev/null 2>&1); do
+              until $(kubectl get crd/proxyrules.admin.nexus.vmware.com > /dev/null 2>&1); do
                 echo '.'
                 sleep 5
               done
               echo 'ProxyRule CRD installed'
               
-              if ! kubectl get oidcs.authentication.nexus.org -l nexus/display_name=admin -o=jsonpath='{.items[0]}' > /dev/null 2>&1 ; then
+              if ! kubectl get oidcs.authentication.nexus.vmware.com -l nexus/display_name=admin -o=jsonpath='{.items[0]}' > /dev/null 2>&1 ; then
                   echo 'creating OIDC object...'
                   kubectl apply -f -<<EOF
-                  apiVersion: authentication.nexus.org/v1
+                  apiVersion: authentication.nexus.vmware.com/v1
                   kind: OIDC
                   metadata:
                     labels:
-                      nexuses.api.nexus.org: default
-                      configs.config.nexus.org: default
-                      apigateways.apigateway.nexus.org: default
+                      nexuses.api.nexus.vmware.com: default
+                      configs.config.nexus.vmware.com: default
+                      apigateways.apigateway.nexus.vmware.com: default
                     name: admin
                   spec:
                     config:
@@ -92,17 +92,17 @@ spec:
               EOF
               fi
 
-              if ! kubectl get proxyrules.admin.nexus.org -l nexus/display_name=admin -o=jsonpath='{.items[0]}' > /dev/null 2>&1 ; then
+              if ! kubectl get proxyrules.admin.nexus.vmware.com -l nexus/display_name=admin -o=jsonpath='{.items[0]}' > /dev/null 2>&1 ; then
                 echo 'creating admin ProxyRule object...'
                 kubectl apply -f -<<EOF
-                apiVersion: admin.nexus.org/v1
+                apiVersion: admin.nexus.vmware.com/v1
                 kind: ProxyRule
                 metadata:
                   name: admin
                   labels:
-                    nexuses.api.nexus.org: default
-                    configs.config.nexus.org: default
-                    apigateways.apigateway.nexus.org: default
+                    nexuses.api.nexus.vmware.com: default
+                    configs.config.nexus.vmware.com: default
+                    apigateways.apigateway.nexus.vmware.com: default
                 spec:
                   matchCondition:
                     type: jwt
