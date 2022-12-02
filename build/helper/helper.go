@@ -19,84 +19,84 @@ const IS_NAME_HASHED_LABEL = "nexus/is_name_hashed"
 
 func GetCRDParentsMap() map[string][]string {
 	return map[string][]string{
-		"apigateways.apigateway.nexus.org":     {"nexuses.api.nexus.org", "configs.config.nexus.org"},
-		"configs.config.nexus.org":             {"nexuses.api.nexus.org"},
-		"connects.connect.nexus.org":           {"nexuses.api.nexus.org", "configs.config.nexus.org"},
-		"corsconfigs.domain.nexus.org":         {"nexuses.api.nexus.org", "configs.config.nexus.org", "apigateways.apigateway.nexus.org"},
-		"nexusendpoints.connect.nexus.org":     {"nexuses.api.nexus.org", "configs.config.nexus.org", "connects.connect.nexus.org"},
-		"nexuses.api.nexus.org":                {},
-		"oidcs.authentication.nexus.org":       {"nexuses.api.nexus.org", "configs.config.nexus.org", "apigateways.apigateway.nexus.org"},
-		"proxyrules.admin.nexus.org":           {"nexuses.api.nexus.org", "configs.config.nexus.org", "apigateways.apigateway.nexus.org"},
-		"replicationconfigs.connect.nexus.org": {"nexuses.api.nexus.org", "configs.config.nexus.org", "connects.connect.nexus.org"},
-		"routes.route.nexus.org":               {"nexuses.api.nexus.org", "configs.config.nexus.org"},
+		"apigateways.apigateway.nexus.vmware.com":     {"nexuses.api.nexus.vmware.com", "configs.config.nexus.vmware.com"},
+		"configs.config.nexus.vmware.com":             {"nexuses.api.nexus.vmware.com"},
+		"connects.connect.nexus.vmware.com":           {"nexuses.api.nexus.vmware.com", "configs.config.nexus.vmware.com"},
+		"corsconfigs.domain.nexus.vmware.com":         {"nexuses.api.nexus.vmware.com", "configs.config.nexus.vmware.com", "apigateways.apigateway.nexus.vmware.com"},
+		"nexusendpoints.connect.nexus.vmware.com":     {"nexuses.api.nexus.vmware.com", "configs.config.nexus.vmware.com", "connects.connect.nexus.vmware.com"},
+		"nexuses.api.nexus.vmware.com":                {},
+		"oidcs.authentication.nexus.vmware.com":       {"nexuses.api.nexus.vmware.com", "configs.config.nexus.vmware.com", "apigateways.apigateway.nexus.vmware.com"},
+		"proxyrules.admin.nexus.vmware.com":           {"nexuses.api.nexus.vmware.com", "configs.config.nexus.vmware.com", "apigateways.apigateway.nexus.vmware.com"},
+		"replicationconfigs.connect.nexus.vmware.com": {"nexuses.api.nexus.vmware.com", "configs.config.nexus.vmware.com", "connects.connect.nexus.vmware.com"},
+		"routes.route.nexus.vmware.com":               {"nexuses.api.nexus.vmware.com", "configs.config.nexus.vmware.com"},
 	}
 }
 
 func GetObjectByCRDName(dmClient *datamodel.Clientset, crdName string, name string) interface{} {
-	if crdName == "apigateways.apigateway.nexus.org" {
+	if crdName == "apigateways.apigateway.nexus.vmware.com" {
 		obj, err := dmClient.ApigatewayNexusV1().ApiGateways().Get(context.TODO(), name, metav1.GetOptions{})
 		if err != nil {
 			return nil
 		}
 		return obj
 	}
-	if crdName == "configs.config.nexus.org" {
+	if crdName == "configs.config.nexus.vmware.com" {
 		obj, err := dmClient.ConfigNexusV1().Configs().Get(context.TODO(), name, metav1.GetOptions{})
 		if err != nil {
 			return nil
 		}
 		return obj
 	}
-	if crdName == "connects.connect.nexus.org" {
+	if crdName == "connects.connect.nexus.vmware.com" {
 		obj, err := dmClient.ConnectNexusV1().Connects().Get(context.TODO(), name, metav1.GetOptions{})
 		if err != nil {
 			return nil
 		}
 		return obj
 	}
-	if crdName == "corsconfigs.domain.nexus.org" {
+	if crdName == "corsconfigs.domain.nexus.vmware.com" {
 		obj, err := dmClient.DomainNexusV1().CORSConfigs().Get(context.TODO(), name, metav1.GetOptions{})
 		if err != nil {
 			return nil
 		}
 		return obj
 	}
-	if crdName == "nexusendpoints.connect.nexus.org" {
+	if crdName == "nexusendpoints.connect.nexus.vmware.com" {
 		obj, err := dmClient.ConnectNexusV1().NexusEndpoints().Get(context.TODO(), name, metav1.GetOptions{})
 		if err != nil {
 			return nil
 		}
 		return obj
 	}
-	if crdName == "nexuses.api.nexus.org" {
+	if crdName == "nexuses.api.nexus.vmware.com" {
 		obj, err := dmClient.ApiNexusV1().Nexuses().Get(context.TODO(), name, metav1.GetOptions{})
 		if err != nil {
 			return nil
 		}
 		return obj
 	}
-	if crdName == "oidcs.authentication.nexus.org" {
+	if crdName == "oidcs.authentication.nexus.vmware.com" {
 		obj, err := dmClient.AuthenticationNexusV1().OIDCs().Get(context.TODO(), name, metav1.GetOptions{})
 		if err != nil {
 			return nil
 		}
 		return obj
 	}
-	if crdName == "proxyrules.admin.nexus.org" {
+	if crdName == "proxyrules.admin.nexus.vmware.com" {
 		obj, err := dmClient.AdminNexusV1().ProxyRules().Get(context.TODO(), name, metav1.GetOptions{})
 		if err != nil {
 			return nil
 		}
 		return obj
 	}
-	if crdName == "replicationconfigs.connect.nexus.org" {
+	if crdName == "replicationconfigs.connect.nexus.vmware.com" {
 		obj, err := dmClient.ConnectNexusV1().ReplicationConfigs().Get(context.TODO(), name, metav1.GetOptions{})
 		if err != nil {
 			return nil
 		}
 		return obj
 	}
-	if crdName == "routes.route.nexus.org" {
+	if crdName == "routes.route.nexus.vmware.com" {
 		obj, err := dmClient.RouteNexusV1().Routes().Get(context.TODO(), name, metav1.GetOptions{})
 		if err != nil {
 			return nil

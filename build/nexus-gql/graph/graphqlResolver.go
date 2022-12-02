@@ -82,7 +82,7 @@ func getRootResolver(id *string) ([]*model.ApiNexus, error) {
 			return nil, nil
 		}
 		dn := vNexus.DisplayName()
-		parentLabels := map[string]interface{}{"nexuses.api.nexus.org": dn}
+		parentLabels := map[string]interface{}{"nexuses.api.nexus.vmware.com": dn}
 
 		ret := &model.ApiNexus{
 			Id:           &dn,
@@ -107,7 +107,7 @@ func getRootResolver(id *string) ([]*model.ApiNexus, error) {
 			continue
 		}
 		dn := vNexus.DisplayName()
-		parentLabels := map[string]interface{}{"nexuses.api.nexus.org": dn}
+		parentLabels := map[string]interface{}{"nexuses.api.nexus.vmware.com": dn}
 
 		ret := &model.ApiNexus{
 			Id:           &dn,
@@ -128,13 +128,13 @@ func getApiNexusConfigResolver(obj *model.ApiNexus, id *string) (*model.ConfigCo
 	log.Debugf("[getApiNexusConfigResolver]Parent Object %+v", obj)
 	if id != nil && *id != "" {
 		log.Debugf("[getApiNexusConfigResolver]Id %q", *id)
-		vConfig, err := nc.ApiNexus(getParentName(obj.ParentLabels, "nexuses.api.nexus.org")).GetConfig(context.TODO(), *id)
+		vConfig, err := nc.ApiNexus(getParentName(obj.ParentLabels, "nexuses.api.nexus.vmware.com")).GetConfig(context.TODO(), *id)
 		if err != nil {
 			log.Errorf("[getApiNexusConfigResolver]Error getting Config node %q : %s", *id, err)
 			return &model.ConfigConfig{}, nil
 		}
 		dn := vConfig.DisplayName()
-		parentLabels := map[string]interface{}{"configs.config.nexus.org": dn}
+		parentLabels := map[string]interface{}{"configs.config.nexus.vmware.com": dn}
 
 		for k, v := range obj.ParentLabels {
 			parentLabels[k] = v
@@ -148,7 +148,7 @@ func getApiNexusConfigResolver(obj *model.ApiNexus, id *string) (*model.ConfigCo
 		return ret, nil
 	}
 	log.Debug("[getApiNexusConfigResolver]Id is empty, process all Configs")
-	vConfigParent, err := nc.GetApiNexus(context.TODO(), getParentName(obj.ParentLabels, "nexuses.api.nexus.org"))
+	vConfigParent, err := nc.GetApiNexus(context.TODO(), getParentName(obj.ParentLabels, "nexuses.api.nexus.vmware.com"))
 	if err != nil {
 		log.Errorf("[getApiNexusConfigResolver]Failed to get parent node %s", err)
 		return &model.ConfigConfig{}, nil
@@ -159,7 +159,7 @@ func getApiNexusConfigResolver(obj *model.ApiNexus, id *string) (*model.ConfigCo
 		return &model.ConfigConfig{}, nil
 	}
 	dn := vConfig.DisplayName()
-	parentLabels := map[string]interface{}{"configs.config.nexus.org": dn}
+	parentLabels := map[string]interface{}{"configs.config.nexus.vmware.com": dn}
 
 	for k, v := range obj.ParentLabels {
 		parentLabels[k] = v
@@ -182,13 +182,13 @@ func getApigatewayApiGatewayAuthnResolver(obj *model.ApigatewayApiGateway, id *s
 	log.Debugf("[getApigatewayApiGatewayAuthnResolver]Parent Object %+v", obj)
 	if id != nil && *id != "" {
 		log.Debugf("[getApigatewayApiGatewayAuthnResolver]Id %q", *id)
-		vOIDC, err := nc.ApiNexus(getParentName(obj.ParentLabels, "nexuses.api.nexus.org")).Config(getParentName(obj.ParentLabels, "configs.config.nexus.org")).ApiGateway(getParentName(obj.ParentLabels, "apigateways.apigateway.nexus.org")).GetAuthn(context.TODO(), *id)
+		vOIDC, err := nc.ApiNexus(getParentName(obj.ParentLabels, "nexuses.api.nexus.vmware.com")).Config(getParentName(obj.ParentLabels, "configs.config.nexus.vmware.com")).ApiGateway(getParentName(obj.ParentLabels, "apigateways.apigateway.nexus.vmware.com")).GetAuthn(context.TODO(), *id)
 		if err != nil {
 			log.Errorf("[getApigatewayApiGatewayAuthnResolver]Error getting Authn node %q : %s", *id, err)
 			return &model.AuthenticationOIDC{}, nil
 		}
 		dn := vOIDC.DisplayName()
-		parentLabels := map[string]interface{}{"oidcs.authentication.nexus.org": dn}
+		parentLabels := map[string]interface{}{"oidcs.authentication.nexus.vmware.com": dn}
 		Config, _ := json.Marshal(vOIDC.Spec.Config)
 		ConfigData := string(Config)
 		ValidationProps, _ := json.Marshal(vOIDC.Spec.ValidationProps)
@@ -210,7 +210,7 @@ func getApigatewayApiGatewayAuthnResolver(obj *model.ApigatewayApiGateway, id *s
 		return ret, nil
 	}
 	log.Debug("[getApigatewayApiGatewayAuthnResolver]Id is empty, process all Authns")
-	vOIDCParent, err := nc.ApiNexus(getParentName(obj.ParentLabels, "nexuses.api.nexus.org")).Config(getParentName(obj.ParentLabels, "configs.config.nexus.org")).GetApiGateway(context.TODO(), getParentName(obj.ParentLabels, "apigateways.apigateway.nexus.org"))
+	vOIDCParent, err := nc.ApiNexus(getParentName(obj.ParentLabels, "nexuses.api.nexus.vmware.com")).Config(getParentName(obj.ParentLabels, "configs.config.nexus.vmware.com")).GetApiGateway(context.TODO(), getParentName(obj.ParentLabels, "apigateways.apigateway.nexus.vmware.com"))
 	if err != nil {
 		log.Errorf("[getApigatewayApiGatewayAuthnResolver]Failed to get parent node %s", err)
 		return &model.AuthenticationOIDC{}, nil
@@ -221,7 +221,7 @@ func getApigatewayApiGatewayAuthnResolver(obj *model.ApigatewayApiGateway, id *s
 		return &model.AuthenticationOIDC{}, nil
 	}
 	dn := vOIDC.DisplayName()
-	parentLabels := map[string]interface{}{"oidcs.authentication.nexus.org": dn}
+	parentLabels := map[string]interface{}{"oidcs.authentication.nexus.vmware.com": dn}
 	Config, _ := json.Marshal(vOIDC.Spec.Config)
 	ConfigData := string(Config)
 	ValidationProps, _ := json.Marshal(vOIDC.Spec.ValidationProps)
@@ -253,13 +253,13 @@ func getApigatewayApiGatewayProxyRulesResolver(obj *model.ApigatewayApiGateway, 
 	var vAdminProxyRuleList []*model.AdminProxyRule
 	if id != nil && *id != "" {
 		log.Debugf("[getApigatewayApiGatewayProxyRulesResolver]Id %q", *id)
-		vProxyRule, err := nc.ApiNexus(getParentName(obj.ParentLabels, "nexuses.api.nexus.org")).Config(getParentName(obj.ParentLabels, "configs.config.nexus.org")).ApiGateway(getParentName(obj.ParentLabels, "apigateways.apigateway.nexus.org")).GetProxyRules(context.TODO(), *id)
+		vProxyRule, err := nc.ApiNexus(getParentName(obj.ParentLabels, "nexuses.api.nexus.vmware.com")).Config(getParentName(obj.ParentLabels, "configs.config.nexus.vmware.com")).ApiGateway(getParentName(obj.ParentLabels, "apigateways.apigateway.nexus.vmware.com")).GetProxyRules(context.TODO(), *id)
 		if err != nil {
 			log.Errorf("[getApigatewayApiGatewayProxyRulesResolver]Error getting ProxyRules node %q : %s", *id, err)
 			return vAdminProxyRuleList, nil
 		}
 		dn := vProxyRule.DisplayName()
-		parentLabels := map[string]interface{}{"proxyrules.admin.nexus.org": dn}
+		parentLabels := map[string]interface{}{"proxyrules.admin.nexus.vmware.com": dn}
 		MatchCondition, _ := json.Marshal(vProxyRule.Spec.MatchCondition)
 		MatchConditionData := string(MatchCondition)
 		Upstream, _ := json.Marshal(vProxyRule.Spec.Upstream)
@@ -283,7 +283,7 @@ func getApigatewayApiGatewayProxyRulesResolver(obj *model.ApigatewayApiGateway, 
 
 	log.Debug("[getApigatewayApiGatewayProxyRulesResolver]Id is empty, process all ProxyRuless")
 
-	vProxyRuleParent, err := nc.ApiNexus(getParentName(obj.ParentLabels, "nexuses.api.nexus.org")).Config(getParentName(obj.ParentLabels, "configs.config.nexus.org")).GetApiGateway(context.TODO(), getParentName(obj.ParentLabels, "apigateways.apigateway.nexus.org"))
+	vProxyRuleParent, err := nc.ApiNexus(getParentName(obj.ParentLabels, "nexuses.api.nexus.vmware.com")).Config(getParentName(obj.ParentLabels, "configs.config.nexus.vmware.com")).GetApiGateway(context.TODO(), getParentName(obj.ParentLabels, "apigateways.apigateway.nexus.vmware.com"))
 	if err != nil {
 		log.Errorf("[getApigatewayApiGatewayProxyRulesResolver]Error getting parent node %s", err)
 		return vAdminProxyRuleList, nil
@@ -294,13 +294,13 @@ func getApigatewayApiGatewayProxyRulesResolver(obj *model.ApigatewayApiGateway, 
 		return vAdminProxyRuleList, nil
 	}
 	for _, i := range vProxyRuleAllObj {
-		vProxyRule, err := nc.ApiNexus(getParentName(obj.ParentLabels, "nexuses.api.nexus.org")).Config(getParentName(obj.ParentLabels, "configs.config.nexus.org")).ApiGateway(getParentName(obj.ParentLabels, "apigateways.apigateway.nexus.org")).GetProxyRules(context.TODO(), i.DisplayName())
+		vProxyRule, err := nc.ApiNexus(getParentName(obj.ParentLabels, "nexuses.api.nexus.vmware.com")).Config(getParentName(obj.ParentLabels, "configs.config.nexus.vmware.com")).ApiGateway(getParentName(obj.ParentLabels, "apigateways.apigateway.nexus.vmware.com")).GetProxyRules(context.TODO(), i.DisplayName())
 		if err != nil {
 			log.Errorf("[getApigatewayApiGatewayProxyRulesResolver]Error getting ProxyRules node %q : %s", i.DisplayName(), err)
 			continue
 		}
 		dn := vProxyRule.DisplayName()
-		parentLabels := map[string]interface{}{"proxyrules.admin.nexus.org": dn}
+		parentLabels := map[string]interface{}{"proxyrules.admin.nexus.vmware.com": dn}
 		MatchCondition, _ := json.Marshal(vProxyRule.Spec.MatchCondition)
 		MatchConditionData := string(MatchCondition)
 		Upstream, _ := json.Marshal(vProxyRule.Spec.Upstream)
@@ -332,13 +332,13 @@ func getApigatewayApiGatewayCorsResolver(obj *model.ApigatewayApiGateway, id *st
 	var vDomainCORSConfigList []*model.DomainCORSConfig
 	if id != nil && *id != "" {
 		log.Debugf("[getApigatewayApiGatewayCorsResolver]Id %q", *id)
-		vCORSConfig, err := nc.ApiNexus(getParentName(obj.ParentLabels, "nexuses.api.nexus.org")).Config(getParentName(obj.ParentLabels, "configs.config.nexus.org")).ApiGateway(getParentName(obj.ParentLabels, "apigateways.apigateway.nexus.org")).GetCors(context.TODO(), *id)
+		vCORSConfig, err := nc.ApiNexus(getParentName(obj.ParentLabels, "nexuses.api.nexus.vmware.com")).Config(getParentName(obj.ParentLabels, "configs.config.nexus.vmware.com")).ApiGateway(getParentName(obj.ParentLabels, "apigateways.apigateway.nexus.vmware.com")).GetCors(context.TODO(), *id)
 		if err != nil {
 			log.Errorf("[getApigatewayApiGatewayCorsResolver]Error getting Cors node %q : %s", *id, err)
 			return vDomainCORSConfigList, nil
 		}
 		dn := vCORSConfig.DisplayName()
-		parentLabels := map[string]interface{}{"corsconfigs.domain.nexus.org": dn}
+		parentLabels := map[string]interface{}{"corsconfigs.domain.nexus.vmware.com": dn}
 		Origins, _ := json.Marshal(vCORSConfig.Spec.Origins)
 		OriginsData := string(Origins)
 		Headers, _ := json.Marshal(vCORSConfig.Spec.Headers)
@@ -362,7 +362,7 @@ func getApigatewayApiGatewayCorsResolver(obj *model.ApigatewayApiGateway, id *st
 
 	log.Debug("[getApigatewayApiGatewayCorsResolver]Id is empty, process all Corss")
 
-	vCORSConfigParent, err := nc.ApiNexus(getParentName(obj.ParentLabels, "nexuses.api.nexus.org")).Config(getParentName(obj.ParentLabels, "configs.config.nexus.org")).GetApiGateway(context.TODO(), getParentName(obj.ParentLabels, "apigateways.apigateway.nexus.org"))
+	vCORSConfigParent, err := nc.ApiNexus(getParentName(obj.ParentLabels, "nexuses.api.nexus.vmware.com")).Config(getParentName(obj.ParentLabels, "configs.config.nexus.vmware.com")).GetApiGateway(context.TODO(), getParentName(obj.ParentLabels, "apigateways.apigateway.nexus.vmware.com"))
 	if err != nil {
 		log.Errorf("[getApigatewayApiGatewayCorsResolver]Error getting parent node %s", err)
 		return vDomainCORSConfigList, nil
@@ -373,13 +373,13 @@ func getApigatewayApiGatewayCorsResolver(obj *model.ApigatewayApiGateway, id *st
 		return vDomainCORSConfigList, nil
 	}
 	for _, i := range vCORSConfigAllObj {
-		vCORSConfig, err := nc.ApiNexus(getParentName(obj.ParentLabels, "nexuses.api.nexus.org")).Config(getParentName(obj.ParentLabels, "configs.config.nexus.org")).ApiGateway(getParentName(obj.ParentLabels, "apigateways.apigateway.nexus.org")).GetCors(context.TODO(), i.DisplayName())
+		vCORSConfig, err := nc.ApiNexus(getParentName(obj.ParentLabels, "nexuses.api.nexus.vmware.com")).Config(getParentName(obj.ParentLabels, "configs.config.nexus.vmware.com")).ApiGateway(getParentName(obj.ParentLabels, "apigateways.apigateway.nexus.vmware.com")).GetCors(context.TODO(), i.DisplayName())
 		if err != nil {
 			log.Errorf("[getApigatewayApiGatewayCorsResolver]Error getting Cors node %q : %s", i.DisplayName(), err)
 			continue
 		}
 		dn := vCORSConfig.DisplayName()
-		parentLabels := map[string]interface{}{"corsconfigs.domain.nexus.org": dn}
+		parentLabels := map[string]interface{}{"corsconfigs.domain.nexus.vmware.com": dn}
 		Origins, _ := json.Marshal(vCORSConfig.Spec.Origins)
 		OriginsData := string(Origins)
 		Headers, _ := json.Marshal(vCORSConfig.Spec.Headers)
@@ -410,13 +410,13 @@ func getConfigConfigApiGatewayResolver(obj *model.ConfigConfig, id *string) (*mo
 	log.Debugf("[getConfigConfigApiGatewayResolver]Parent Object %+v", obj)
 	if id != nil && *id != "" {
 		log.Debugf("[getConfigConfigApiGatewayResolver]Id %q", *id)
-		vApiGateway, err := nc.ApiNexus(getParentName(obj.ParentLabels, "nexuses.api.nexus.org")).Config(getParentName(obj.ParentLabels, "configs.config.nexus.org")).GetApiGateway(context.TODO(), *id)
+		vApiGateway, err := nc.ApiNexus(getParentName(obj.ParentLabels, "nexuses.api.nexus.vmware.com")).Config(getParentName(obj.ParentLabels, "configs.config.nexus.vmware.com")).GetApiGateway(context.TODO(), *id)
 		if err != nil {
 			log.Errorf("[getConfigConfigApiGatewayResolver]Error getting ApiGateway node %q : %s", *id, err)
 			return &model.ApigatewayApiGateway{}, nil
 		}
 		dn := vApiGateway.DisplayName()
-		parentLabels := map[string]interface{}{"apigateways.apigateway.nexus.org": dn}
+		parentLabels := map[string]interface{}{"apigateways.apigateway.nexus.vmware.com": dn}
 
 		for k, v := range obj.ParentLabels {
 			parentLabels[k] = v
@@ -430,7 +430,7 @@ func getConfigConfigApiGatewayResolver(obj *model.ConfigConfig, id *string) (*mo
 		return ret, nil
 	}
 	log.Debug("[getConfigConfigApiGatewayResolver]Id is empty, process all ApiGateways")
-	vApiGatewayParent, err := nc.ApiNexus(getParentName(obj.ParentLabels, "nexuses.api.nexus.org")).GetConfig(context.TODO(), getParentName(obj.ParentLabels, "configs.config.nexus.org"))
+	vApiGatewayParent, err := nc.ApiNexus(getParentName(obj.ParentLabels, "nexuses.api.nexus.vmware.com")).GetConfig(context.TODO(), getParentName(obj.ParentLabels, "configs.config.nexus.vmware.com"))
 	if err != nil {
 		log.Errorf("[getConfigConfigApiGatewayResolver]Failed to get parent node %s", err)
 		return &model.ApigatewayApiGateway{}, nil
@@ -441,7 +441,7 @@ func getConfigConfigApiGatewayResolver(obj *model.ConfigConfig, id *string) (*mo
 		return &model.ApigatewayApiGateway{}, nil
 	}
 	dn := vApiGateway.DisplayName()
-	parentLabels := map[string]interface{}{"apigateways.apigateway.nexus.org": dn}
+	parentLabels := map[string]interface{}{"apigateways.apigateway.nexus.vmware.com": dn}
 
 	for k, v := range obj.ParentLabels {
 		parentLabels[k] = v
@@ -464,13 +464,13 @@ func getConfigConfigConnectResolver(obj *model.ConfigConfig, id *string) (*model
 	log.Debugf("[getConfigConfigConnectResolver]Parent Object %+v", obj)
 	if id != nil && *id != "" {
 		log.Debugf("[getConfigConfigConnectResolver]Id %q", *id)
-		vConnect, err := nc.ApiNexus(getParentName(obj.ParentLabels, "nexuses.api.nexus.org")).Config(getParentName(obj.ParentLabels, "configs.config.nexus.org")).GetConnect(context.TODO(), *id)
+		vConnect, err := nc.ApiNexus(getParentName(obj.ParentLabels, "nexuses.api.nexus.vmware.com")).Config(getParentName(obj.ParentLabels, "configs.config.nexus.vmware.com")).GetConnect(context.TODO(), *id)
 		if err != nil {
 			log.Errorf("[getConfigConfigConnectResolver]Error getting Connect node %q : %s", *id, err)
 			return &model.ConnectConnect{}, nil
 		}
 		dn := vConnect.DisplayName()
-		parentLabels := map[string]interface{}{"connects.connect.nexus.org": dn}
+		parentLabels := map[string]interface{}{"connects.connect.nexus.vmware.com": dn}
 
 		for k, v := range obj.ParentLabels {
 			parentLabels[k] = v
@@ -484,7 +484,7 @@ func getConfigConfigConnectResolver(obj *model.ConfigConfig, id *string) (*model
 		return ret, nil
 	}
 	log.Debug("[getConfigConfigConnectResolver]Id is empty, process all Connects")
-	vConnectParent, err := nc.ApiNexus(getParentName(obj.ParentLabels, "nexuses.api.nexus.org")).GetConfig(context.TODO(), getParentName(obj.ParentLabels, "configs.config.nexus.org"))
+	vConnectParent, err := nc.ApiNexus(getParentName(obj.ParentLabels, "nexuses.api.nexus.vmware.com")).GetConfig(context.TODO(), getParentName(obj.ParentLabels, "configs.config.nexus.vmware.com"))
 	if err != nil {
 		log.Errorf("[getConfigConfigConnectResolver]Failed to get parent node %s", err)
 		return &model.ConnectConnect{}, nil
@@ -495,7 +495,7 @@ func getConfigConfigConnectResolver(obj *model.ConfigConfig, id *string) (*model
 		return &model.ConnectConnect{}, nil
 	}
 	dn := vConnect.DisplayName()
-	parentLabels := map[string]interface{}{"connects.connect.nexus.org": dn}
+	parentLabels := map[string]interface{}{"connects.connect.nexus.vmware.com": dn}
 
 	for k, v := range obj.ParentLabels {
 		parentLabels[k] = v
@@ -519,13 +519,13 @@ func getConfigConfigRoutesResolver(obj *model.ConfigConfig, id *string) ([]*mode
 	var vRouteRouteList []*model.RouteRoute
 	if id != nil && *id != "" {
 		log.Debugf("[getConfigConfigRoutesResolver]Id %q", *id)
-		vRoute, err := nc.ApiNexus(getParentName(obj.ParentLabels, "nexuses.api.nexus.org")).Config(getParentName(obj.ParentLabels, "configs.config.nexus.org")).GetRoutes(context.TODO(), *id)
+		vRoute, err := nc.ApiNexus(getParentName(obj.ParentLabels, "nexuses.api.nexus.vmware.com")).Config(getParentName(obj.ParentLabels, "configs.config.nexus.vmware.com")).GetRoutes(context.TODO(), *id)
 		if err != nil {
 			log.Errorf("[getConfigConfigRoutesResolver]Error getting Routes node %q : %s", *id, err)
 			return vRouteRouteList, nil
 		}
 		dn := vRoute.DisplayName()
-		parentLabels := map[string]interface{}{"routes.route.nexus.org": dn}
+		parentLabels := map[string]interface{}{"routes.route.nexus.vmware.com": dn}
 		vUri := string(vRoute.Spec.Uri)
 		Service, _ := json.Marshal(vRoute.Spec.Service)
 		ServiceData := string(Service)
@@ -551,7 +551,7 @@ func getConfigConfigRoutesResolver(obj *model.ConfigConfig, id *string) ([]*mode
 
 	log.Debug("[getConfigConfigRoutesResolver]Id is empty, process all Routess")
 
-	vRouteParent, err := nc.ApiNexus(getParentName(obj.ParentLabels, "nexuses.api.nexus.org")).GetConfig(context.TODO(), getParentName(obj.ParentLabels, "configs.config.nexus.org"))
+	vRouteParent, err := nc.ApiNexus(getParentName(obj.ParentLabels, "nexuses.api.nexus.vmware.com")).GetConfig(context.TODO(), getParentName(obj.ParentLabels, "configs.config.nexus.vmware.com"))
 	if err != nil {
 		log.Errorf("[getConfigConfigRoutesResolver]Error getting parent node %s", err)
 		return vRouteRouteList, nil
@@ -562,13 +562,13 @@ func getConfigConfigRoutesResolver(obj *model.ConfigConfig, id *string) ([]*mode
 		return vRouteRouteList, nil
 	}
 	for _, i := range vRouteAllObj {
-		vRoute, err := nc.ApiNexus(getParentName(obj.ParentLabels, "nexuses.api.nexus.org")).Config(getParentName(obj.ParentLabels, "configs.config.nexus.org")).GetRoutes(context.TODO(), i.DisplayName())
+		vRoute, err := nc.ApiNexus(getParentName(obj.ParentLabels, "nexuses.api.nexus.vmware.com")).Config(getParentName(obj.ParentLabels, "configs.config.nexus.vmware.com")).GetRoutes(context.TODO(), i.DisplayName())
 		if err != nil {
 			log.Errorf("[getConfigConfigRoutesResolver]Error getting Routes node %q : %s", i.DisplayName(), err)
 			continue
 		}
 		dn := vRoute.DisplayName()
-		parentLabels := map[string]interface{}{"routes.route.nexus.org": dn}
+		parentLabels := map[string]interface{}{"routes.route.nexus.vmware.com": dn}
 		vUri := string(vRoute.Spec.Uri)
 		Service, _ := json.Marshal(vRoute.Spec.Service)
 		ServiceData := string(Service)
@@ -602,13 +602,13 @@ func getConnectConnectEndpointsResolver(obj *model.ConnectConnect, id *string) (
 	var vConnectNexusEndpointList []*model.ConnectNexusEndpoint
 	if id != nil && *id != "" {
 		log.Debugf("[getConnectConnectEndpointsResolver]Id %q", *id)
-		vNexusEndpoint, err := nc.ApiNexus(getParentName(obj.ParentLabels, "nexuses.api.nexus.org")).Config(getParentName(obj.ParentLabels, "configs.config.nexus.org")).Connect(getParentName(obj.ParentLabels, "connects.connect.nexus.org")).GetEndpoints(context.TODO(), *id)
+		vNexusEndpoint, err := nc.ApiNexus(getParentName(obj.ParentLabels, "nexuses.api.nexus.vmware.com")).Config(getParentName(obj.ParentLabels, "configs.config.nexus.vmware.com")).Connect(getParentName(obj.ParentLabels, "connects.connect.nexus.vmware.com")).GetEndpoints(context.TODO(), *id)
 		if err != nil {
 			log.Errorf("[getConnectConnectEndpointsResolver]Error getting Endpoints node %q : %s", *id, err)
 			return vConnectNexusEndpointList, nil
 		}
 		dn := vNexusEndpoint.DisplayName()
-		parentLabels := map[string]interface{}{"nexusendpoints.connect.nexus.org": dn}
+		parentLabels := map[string]interface{}{"nexusendpoints.connect.nexus.vmware.com": dn}
 		vHost := string(vNexusEndpoint.Spec.Host)
 		vPort := string(vNexusEndpoint.Spec.Port)
 		vCert := string(vNexusEndpoint.Spec.Cert)
@@ -643,7 +643,7 @@ func getConnectConnectEndpointsResolver(obj *model.ConnectConnect, id *string) (
 
 	log.Debug("[getConnectConnectEndpointsResolver]Id is empty, process all Endpointss")
 
-	vNexusEndpointParent, err := nc.ApiNexus(getParentName(obj.ParentLabels, "nexuses.api.nexus.org")).Config(getParentName(obj.ParentLabels, "configs.config.nexus.org")).GetConnect(context.TODO(), getParentName(obj.ParentLabels, "connects.connect.nexus.org"))
+	vNexusEndpointParent, err := nc.ApiNexus(getParentName(obj.ParentLabels, "nexuses.api.nexus.vmware.com")).Config(getParentName(obj.ParentLabels, "configs.config.nexus.vmware.com")).GetConnect(context.TODO(), getParentName(obj.ParentLabels, "connects.connect.nexus.vmware.com"))
 	if err != nil {
 		log.Errorf("[getConnectConnectEndpointsResolver]Error getting parent node %s", err)
 		return vConnectNexusEndpointList, nil
@@ -654,13 +654,13 @@ func getConnectConnectEndpointsResolver(obj *model.ConnectConnect, id *string) (
 		return vConnectNexusEndpointList, nil
 	}
 	for _, i := range vNexusEndpointAllObj {
-		vNexusEndpoint, err := nc.ApiNexus(getParentName(obj.ParentLabels, "nexuses.api.nexus.org")).Config(getParentName(obj.ParentLabels, "configs.config.nexus.org")).Connect(getParentName(obj.ParentLabels, "connects.connect.nexus.org")).GetEndpoints(context.TODO(), i.DisplayName())
+		vNexusEndpoint, err := nc.ApiNexus(getParentName(obj.ParentLabels, "nexuses.api.nexus.vmware.com")).Config(getParentName(obj.ParentLabels, "configs.config.nexus.vmware.com")).Connect(getParentName(obj.ParentLabels, "connects.connect.nexus.vmware.com")).GetEndpoints(context.TODO(), i.DisplayName())
 		if err != nil {
 			log.Errorf("[getConnectConnectEndpointsResolver]Error getting Endpoints node %q : %s", i.DisplayName(), err)
 			continue
 		}
 		dn := vNexusEndpoint.DisplayName()
-		parentLabels := map[string]interface{}{"nexusendpoints.connect.nexus.org": dn}
+		parentLabels := map[string]interface{}{"nexusendpoints.connect.nexus.vmware.com": dn}
 		vHost := string(vNexusEndpoint.Spec.Host)
 		vPort := string(vNexusEndpoint.Spec.Port)
 		vCert := string(vNexusEndpoint.Spec.Cert)
@@ -703,13 +703,13 @@ func getConnectConnectReplicationConfigResolver(obj *model.ConnectConnect, id *s
 	var vConnectReplicationConfigList []*model.ConnectReplicationConfig
 	if id != nil && *id != "" {
 		log.Debugf("[getConnectConnectReplicationConfigResolver]Id %q", *id)
-		vReplicationConfig, err := nc.ApiNexus(getParentName(obj.ParentLabels, "nexuses.api.nexus.org")).Config(getParentName(obj.ParentLabels, "configs.config.nexus.org")).Connect(getParentName(obj.ParentLabels, "connects.connect.nexus.org")).GetReplicationConfig(context.TODO(), *id)
+		vReplicationConfig, err := nc.ApiNexus(getParentName(obj.ParentLabels, "nexuses.api.nexus.vmware.com")).Config(getParentName(obj.ParentLabels, "configs.config.nexus.vmware.com")).Connect(getParentName(obj.ParentLabels, "connects.connect.nexus.vmware.com")).GetReplicationConfig(context.TODO(), *id)
 		if err != nil {
 			log.Errorf("[getConnectConnectReplicationConfigResolver]Error getting ReplicationConfig node %q : %s", *id, err)
 			return vConnectReplicationConfigList, nil
 		}
 		dn := vReplicationConfig.DisplayName()
-		parentLabels := map[string]interface{}{"replicationconfigs.connect.nexus.org": dn}
+		parentLabels := map[string]interface{}{"replicationconfigs.connect.nexus.vmware.com": dn}
 		vAccessToken := string(vReplicationConfig.Spec.AccessToken)
 		Source, _ := json.Marshal(vReplicationConfig.Spec.Source)
 		SourceData := string(Source)
@@ -738,7 +738,7 @@ func getConnectConnectReplicationConfigResolver(obj *model.ConnectConnect, id *s
 
 	log.Debug("[getConnectConnectReplicationConfigResolver]Id is empty, process all ReplicationConfigs")
 
-	vReplicationConfigParent, err := nc.ApiNexus(getParentName(obj.ParentLabels, "nexuses.api.nexus.org")).Config(getParentName(obj.ParentLabels, "configs.config.nexus.org")).GetConnect(context.TODO(), getParentName(obj.ParentLabels, "connects.connect.nexus.org"))
+	vReplicationConfigParent, err := nc.ApiNexus(getParentName(obj.ParentLabels, "nexuses.api.nexus.vmware.com")).Config(getParentName(obj.ParentLabels, "configs.config.nexus.vmware.com")).GetConnect(context.TODO(), getParentName(obj.ParentLabels, "connects.connect.nexus.vmware.com"))
 	if err != nil {
 		log.Errorf("[getConnectConnectReplicationConfigResolver]Error getting parent node %s", err)
 		return vConnectReplicationConfigList, nil
@@ -749,13 +749,13 @@ func getConnectConnectReplicationConfigResolver(obj *model.ConnectConnect, id *s
 		return vConnectReplicationConfigList, nil
 	}
 	for _, i := range vReplicationConfigAllObj {
-		vReplicationConfig, err := nc.ApiNexus(getParentName(obj.ParentLabels, "nexuses.api.nexus.org")).Config(getParentName(obj.ParentLabels, "configs.config.nexus.org")).Connect(getParentName(obj.ParentLabels, "connects.connect.nexus.org")).GetReplicationConfig(context.TODO(), i.DisplayName())
+		vReplicationConfig, err := nc.ApiNexus(getParentName(obj.ParentLabels, "nexuses.api.nexus.vmware.com")).Config(getParentName(obj.ParentLabels, "configs.config.nexus.vmware.com")).Connect(getParentName(obj.ParentLabels, "connects.connect.nexus.vmware.com")).GetReplicationConfig(context.TODO(), i.DisplayName())
 		if err != nil {
 			log.Errorf("[getConnectConnectReplicationConfigResolver]Error getting ReplicationConfig node %q : %s", i.DisplayName(), err)
 			continue
 		}
 		dn := vReplicationConfig.DisplayName()
-		parentLabels := map[string]interface{}{"replicationconfigs.connect.nexus.org": dn}
+		parentLabels := map[string]interface{}{"replicationconfigs.connect.nexus.vmware.com": dn}
 		vAccessToken := string(vReplicationConfig.Spec.AccessToken)
 		Source, _ := json.Marshal(vReplicationConfig.Spec.Source)
 		SourceData := string(Source)
@@ -789,7 +789,7 @@ func getConnectConnectReplicationConfigResolver(obj *model.ConnectConnect, id *s
 //////////////////////////////////////
 func getConnectReplicationConfigRemoteEndpointResolver(obj *model.ConnectReplicationConfig) (*model.ConnectNexusEndpoint, error) {
 	log.Debugf("[getConnectReplicationConfigRemoteEndpointResolver]Parent Object %+v", obj)
-	vNexusEndpointParent, err := nc.ApiNexus(getParentName(obj.ParentLabels, "nexuses.api.nexus.org")).Config(getParentName(obj.ParentLabels, "configs.config.nexus.org")).Connect(getParentName(obj.ParentLabels, "connects.connect.nexus.org")).GetReplicationConfig(context.TODO(), getParentName(obj.ParentLabels, "replicationconfigs.connect.nexus.org"))
+	vNexusEndpointParent, err := nc.ApiNexus(getParentName(obj.ParentLabels, "nexuses.api.nexus.vmware.com")).Config(getParentName(obj.ParentLabels, "configs.config.nexus.vmware.com")).Connect(getParentName(obj.ParentLabels, "connects.connect.nexus.vmware.com")).GetReplicationConfig(context.TODO(), getParentName(obj.ParentLabels, "replicationconfigs.connect.nexus.vmware.com"))
 	if err != nil {
 		log.Errorf("[getConnectReplicationConfigRemoteEndpointResolver]Error getting parent node %s", err)
 		return &model.ConnectNexusEndpoint{}, nil
@@ -800,7 +800,7 @@ func getConnectReplicationConfigRemoteEndpointResolver(obj *model.ConnectReplica
 		return &model.ConnectNexusEndpoint{}, nil
 	}
 	dn := vNexusEndpoint.DisplayName()
-	parentLabels := map[string]interface{}{"nexusendpoints.connect.nexus.org": dn}
+	parentLabels := map[string]interface{}{"nexusendpoints.connect.nexus.vmware.com": dn}
 	vHost := string(vNexusEndpoint.Spec.Host)
 	vPort := string(vNexusEndpoint.Spec.Port)
 	vCert := string(vNexusEndpoint.Spec.Cert)
