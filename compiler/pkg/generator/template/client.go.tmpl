@@ -124,7 +124,7 @@ func new{{$group.GroupTypeName}}(client *Clientset) *{{$group.GroupTypeName}} {
 // name and parents names. Use it when you know hashed name of object.
 func (group *{{$node.GroupTypeName}}) Get{{$node.BaseNodeName}}ByName(ctx context.Context, hashedName string) (*{{$node.SimpleGroupTypeName}}{{$node.BaseNodeName}}, error) {
 	key := "{{$node.CrdName}}"
-	if s,ok := subscriptionMap.Load(key); ok {
+	if s, ok := subscriptionMap.Load(key); ok {
 		item, exists,err := s.(subscription).informer.GetStore().GetByKey(hashedName)
 		if !exists {
 			return nil, err
