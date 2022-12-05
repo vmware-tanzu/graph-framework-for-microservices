@@ -506,6 +506,7 @@ type clientVars struct {
 	BaseClientsetImport    string
 	FakeBaseCliensetImport string
 	BaseImports            string
+	InformerImports        string
 	ApiGroupsClient        string
 	Nodes                  []apiGroupsClientVars
 }
