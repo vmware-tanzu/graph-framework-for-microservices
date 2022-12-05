@@ -25,7 +25,7 @@ spec:
           restartPolicy: OnFailure
           containers:
           - name: etcd-defrag
-            image: {{.Values.global.registry}}/etcd-kubectl:latest
+            image: {{.Values.global.registry}}/nexus-etcd-kubectl:latest
             imagePullPolicy: IfNotPresent
             command:
             - "/bin/bash"
