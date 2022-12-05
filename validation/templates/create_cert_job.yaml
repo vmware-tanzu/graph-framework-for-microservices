@@ -107,7 +107,7 @@ data:
         openssl genrsa -out ${tmpdir}/server-key.pem 2048
         openssl req -new -x509 -nodes -days 365000 -key  ${tmpdir}/server-key.pem -out ${tmpdir}/ca-cert.pem -subj "/C=US/ST=Denial/L=PaloAlto/O=Dis/CN=nexus"
         openssl req -new -key ${tmpdir}/server-key.pem -config ${tmpdir}/csr.conf -subj "/CN=${service}" -out ${tmpdir}/server.csr
-        openssl x509 -req -days 365 -in ${tmpdir}/server.csr -CAcreateserial -signkey ${tmpdir}/server-key.pem -sha256 -out ${tmpdir}/server.crt -CA ${tmpdir}/ca-cert.pem -CAkey ${tmpdir}/server-key.pem
+        openssl x509 -req -days 365 -in ${tmpdir}/server.csr -CAcreateserial -sha256 -out ${tmpdir}/server.crt -CA ${tmpdir}/ca-cert.pem -CAkey ${tmpdir}/server-key.pem
         openssl x509 -in ${tmpdir}/server.crt -out ${tmpdir}/server-cert.pem -outform PEM
 
         # create the secret with CA cert and server cert/key
@@ -152,7 +152,7 @@ spec:
                 fieldRef:
                   apiVersion: v1
                   fieldPath: metadata.namespace
-          image: "{{ .Values.global.registry }}/bitnami/kubectl:1.16"
+          image: "{{ .Values.global.registry }}/nexus-kubectl:1.16"
           imagePullPolicy: IfNotPresent
           name: nexus-create-signed-cert-validation-webhook
           volumeMounts:
