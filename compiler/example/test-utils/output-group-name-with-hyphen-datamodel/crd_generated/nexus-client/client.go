@@ -15,10 +15,12 @@ package nexus_client
 import (
 	"context"
 	"encoding/json"
+	"sync"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	types "k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/rest"
+	cache "k8s.io/client-go/tools/cache"
 
 	baseClientset "../../example/test-utils/output-group-name-with-hyphen-datamodel/crd_generated/client/clientset/versioned"
 	fakeBaseClienset "../../example/test-utils/output-group-name-with-hyphen-datamodel/crd_generated/client/clientset/versioned/fake"
@@ -28,6 +30,10 @@ import (
 	baseconfigtsmtanzuvmwarecomv1 "../../example/test-utils/output-group-name-with-hyphen-datamodel/crd_generated/apis/config.tsm-tanzu.vmware.com/v1"
 	baseprojecttsmtanzuvmwarecomv1 "../../example/test-utils/output-group-name-with-hyphen-datamodel/crd_generated/apis/project.tsm-tanzu.vmware.com/v1"
 	baseroottsmtanzuvmwarecomv1 "../../example/test-utils/output-group-name-with-hyphen-datamodel/crd_generated/apis/root.tsm-tanzu.vmware.com/v1"
+
+	informerconfigtsmtanzuvmwarecomv1 "../../example/test-utils/output-group-name-with-hyphen-datamodel/crd_generated/client/informers/externalversions/config.tsm-tanzu.vmware.com/v1"
+	informerprojecttsmtanzuvmwarecomv1 "../../example/test-utils/output-group-name-with-hyphen-datamodel/crd_generated/client/informers/externalversions/project.tsm-tanzu.vmware.com/v1"
+	informerroottsmtanzuvmwarecomv1 "../../example/test-utils/output-group-name-with-hyphen-datamodel/crd_generated/client/informers/externalversions/root.tsm-tanzu.vmware.com/v1"
 )
 
 type Clientset struct {
@@ -35,6 +41,54 @@ type Clientset struct {
 	configTsmV1  *ConfigTsmV1
 	projectTsmV1 *ProjectTsmV1
 	rootTsmV1    *RootTsmV1
+}
+
+type subscription struct {
+	informer cache.SharedIndexInformer
+	stopper  chan struct{}
+}
+
+// subscriptionMap will store crd string as key and value as subscription type, for example key="roots.orgchart.vmware.org" and value=subscription{}
+var subscriptionMap = sync.Map{}
+
+func subscribe(key string, informer cache.SharedIndexInformer) {
+	s := subscription{
+		informer: informer,
+		stopper:  make(chan struct{}),
+	}
+	go s.informer.Run(s.stopper)
+	subscriptionMap.Store(key, s)
+}
+
+func (c *Clientset) SubscribeAll() {
+	var key string
+
+	key = "configs.config.tsm-tanzu.vmware.com"
+	if _, ok := subscriptionMap.Load(key); !ok {
+		informer := informerconfigtsmtanzuvmwarecomv1.NewConfigInformer(c.baseClient, 0, cache.Indexers{})
+		subscribe(key, informer)
+	}
+
+	key = "projects.project.tsm-tanzu.vmware.com"
+	if _, ok := subscriptionMap.Load(key); !ok {
+		informer := informerprojecttsmtanzuvmwarecomv1.NewProjectInformer(c.baseClient, 0, cache.Indexers{})
+		subscribe(key, informer)
+	}
+
+	key = "roots.root.tsm-tanzu.vmware.com"
+	if _, ok := subscriptionMap.Load(key); !ok {
+		informer := informerroottsmtanzuvmwarecomv1.NewRootInformer(c.baseClient, 0, cache.Indexers{})
+		subscribe(key, informer)
+	}
+
+}
+
+func (c *Clientset) UnsubscribeAll() {
+	subscriptionMap.Range(func(key, s interface{}) bool {
+		close(s.(subscription).stopper)
+		subscriptionMap.Delete(key)
+		return true
+	})
 }
 
 // NewForConfig returns Client which can be which can be used to connect to database
@@ -118,17 +172,31 @@ func newRootTsmV1(client *Clientset) *RootTsmV1 {
 // GetConfigByName returns object stored in the database under the hashedName which is a hash of display
 // name and parents names. Use it when you know hashed name of object.
 func (group *ConfigTsmV1) GetConfigByName(ctx context.Context, hashedName string) (*ConfigConfig, error) {
-	result, err := group.client.baseClient.
-		ConfigTsmV1().
-		Configs().Get(ctx, hashedName, metav1.GetOptions{})
-	if err != nil {
-		return nil, err
-	}
+	key := "configs.config.tsm-tanzu.vmware.com"
+	if s, ok := subscriptionMap.Load(key); ok {
+		item, exists, err := s.(subscription).informer.GetStore().GetByKey(hashedName)
+		if !exists {
+			return nil, err
+		}
 
-	return &ConfigConfig{
-		client: group.client,
-		Config: result,
-	}, nil
+		result, _ := item.(*baseconfigtsmtanzuvmwarecomv1.Config)
+		return &ConfigConfig{
+			client: group.client,
+			Config: result,
+		}, nil
+	} else {
+		result, err := group.client.baseClient.
+			ConfigTsmV1().
+			Configs().Get(ctx, hashedName, metav1.GetOptions{})
+		if err != nil {
+			return nil, err
+		}
+
+		return &ConfigConfig{
+			client: group.client,
+			Config: result,
+		}, nil
+	}
 }
 
 // DeleteConfigByName deletes object stored in the database under the hashedName which is a hash of
@@ -247,17 +315,30 @@ func (group *ConfigTsmV1) UpdateConfigByName(ctx context.Context,
 // ListConfigs returns slice of all existing objects of this type. Selectors can be provided in opts parameter.
 func (group *ConfigTsmV1) ListConfigs(ctx context.Context,
 	opts metav1.ListOptions) (result []*ConfigConfig, err error) {
-	list, err := group.client.baseClient.ConfigTsmV1().
-		Configs().List(ctx, opts)
-	if err != nil {
-		return nil, err
-	}
-	result = make([]*ConfigConfig, len(list.Items))
-	for k, v := range list.Items {
-		item := v
-		result[k] = &ConfigConfig{
-			client: group.client,
-			Config: &item,
+	key := "configs.config.tsm-tanzu.vmware.com"
+	if s, ok := subscriptionMap.Load(key); ok {
+		items := s.(subscription).informer.GetStore().List()
+		result = make([]*ConfigConfig, len(items))
+		for k, v := range items {
+			item, _ := v.(*baseconfigtsmtanzuvmwarecomv1.Config)
+			result[k] = &ConfigConfig{
+				client: group.client,
+				Config: item,
+			}
+		}
+	} else {
+		list, err := group.client.baseClient.ConfigTsmV1().
+			Configs().List(ctx, opts)
+		if err != nil {
+			return nil, err
+		}
+		result = make([]*ConfigConfig, len(list.Items))
+		for k, v := range list.Items {
+			item := v
+			result[k] = &ConfigConfig{
+				client: group.client,
+				Config: &item,
+			}
 		}
 	}
 	return
@@ -341,20 +422,50 @@ type configConfigTsmV1Chainer struct {
 	parentLabels map[string]string
 }
 
+func (c *configConfigTsmV1Chainer) Subscribe() {
+	key := "configs.config.tsm-tanzu.vmware.com"
+	if _, ok := subscriptionMap.Load(key); !ok {
+		informer := informerconfigtsmtanzuvmwarecomv1.NewConfigInformer(c.client.baseClient, 0, cache.Indexers{})
+		subscribe(key, informer)
+	}
+}
+
+func (c *configConfigTsmV1Chainer) Unsubscribe() {
+	key := "configs.config.tsm-tanzu.vmware.com"
+	if s, ok := subscriptionMap.Load(key); ok {
+		close(s.(subscription).stopper)
+		subscriptionMap.Delete(key)
+	}
+}
+
 // GetProjectByName returns object stored in the database under the hashedName which is a hash of display
 // name and parents names. Use it when you know hashed name of object.
 func (group *ProjectTsmV1) GetProjectByName(ctx context.Context, hashedName string) (*ProjectProject, error) {
-	result, err := group.client.baseClient.
-		ProjectTsmV1().
-		Projects().Get(ctx, hashedName, metav1.GetOptions{})
-	if err != nil {
-		return nil, err
-	}
+	key := "projects.project.tsm-tanzu.vmware.com"
+	if s, ok := subscriptionMap.Load(key); ok {
+		item, exists, err := s.(subscription).informer.GetStore().GetByKey(hashedName)
+		if !exists {
+			return nil, err
+		}
 
-	return &ProjectProject{
-		client:  group.client,
-		Project: result,
-	}, nil
+		result, _ := item.(*baseprojecttsmtanzuvmwarecomv1.Project)
+		return &ProjectProject{
+			client:  group.client,
+			Project: result,
+		}, nil
+	} else {
+		result, err := group.client.baseClient.
+			ProjectTsmV1().
+			Projects().Get(ctx, hashedName, metav1.GetOptions{})
+		if err != nil {
+			return nil, err
+		}
+
+		return &ProjectProject{
+			client:  group.client,
+			Project: result,
+		}, nil
+	}
 }
 
 // DeleteProjectByName deletes object stored in the database under the hashedName which is a hash of
@@ -491,17 +602,30 @@ func (group *ProjectTsmV1) UpdateProjectByName(ctx context.Context,
 // ListProjects returns slice of all existing objects of this type. Selectors can be provided in opts parameter.
 func (group *ProjectTsmV1) ListProjects(ctx context.Context,
 	opts metav1.ListOptions) (result []*ProjectProject, err error) {
-	list, err := group.client.baseClient.ProjectTsmV1().
-		Projects().List(ctx, opts)
-	if err != nil {
-		return nil, err
-	}
-	result = make([]*ProjectProject, len(list.Items))
-	for k, v := range list.Items {
-		item := v
-		result[k] = &ProjectProject{
-			client:  group.client,
-			Project: &item,
+	key := "projects.project.tsm-tanzu.vmware.com"
+	if s, ok := subscriptionMap.Load(key); ok {
+		items := s.(subscription).informer.GetStore().List()
+		result = make([]*ProjectProject, len(items))
+		for k, v := range items {
+			item, _ := v.(*baseprojecttsmtanzuvmwarecomv1.Project)
+			result[k] = &ProjectProject{
+				client:  group.client,
+				Project: item,
+			}
+		}
+	} else {
+		list, err := group.client.baseClient.ProjectTsmV1().
+			Projects().List(ctx, opts)
+		if err != nil {
+			return nil, err
+		}
+		result = make([]*ProjectProject, len(list.Items))
+		for k, v := range list.Items {
+			item := v
+			result[k] = &ProjectProject{
+				client:  group.client,
+				Project: &item,
+			}
 		}
 	}
 	return
@@ -639,6 +763,22 @@ type projectProjectTsmV1Chainer struct {
 	parentLabels map[string]string
 }
 
+func (c *projectProjectTsmV1Chainer) Subscribe() {
+	key := "projects.project.tsm-tanzu.vmware.com"
+	if _, ok := subscriptionMap.Load(key); !ok {
+		informer := informerprojecttsmtanzuvmwarecomv1.NewProjectInformer(c.client.baseClient, 0, cache.Indexers{})
+		subscribe(key, informer)
+	}
+}
+
+func (c *projectProjectTsmV1Chainer) Unsubscribe() {
+	key := "projects.project.tsm-tanzu.vmware.com"
+	if s, ok := subscriptionMap.Load(key); ok {
+		close(s.(subscription).stopper)
+		subscriptionMap.Delete(key)
+	}
+}
+
 func (c *projectProjectTsmV1Chainer) Config(name string) *configConfigTsmV1Chainer {
 	parentLabels := c.parentLabels
 	parentLabels["configs.config.tsm-tanzu.vmware.com"] = name
@@ -689,17 +829,31 @@ func (c *projectProjectTsmV1Chainer) DeleteConfig(ctx context.Context, name stri
 // GetRootByName returns object stored in the database under the hashedName which is a hash of display
 // name and parents names. Use it when you know hashed name of object.
 func (group *RootTsmV1) GetRootByName(ctx context.Context, hashedName string) (*RootRoot, error) {
-	result, err := group.client.baseClient.
-		RootTsmV1().
-		Roots().Get(ctx, hashedName, metav1.GetOptions{})
-	if err != nil {
-		return nil, err
-	}
+	key := "roots.root.tsm-tanzu.vmware.com"
+	if s, ok := subscriptionMap.Load(key); ok {
+		item, exists, err := s.(subscription).informer.GetStore().GetByKey(hashedName)
+		if !exists {
+			return nil, err
+		}
 
-	return &RootRoot{
-		client: group.client,
-		Root:   result,
-	}, nil
+		result, _ := item.(*baseroottsmtanzuvmwarecomv1.Root)
+		return &RootRoot{
+			client: group.client,
+			Root:   result,
+		}, nil
+	} else {
+		result, err := group.client.baseClient.
+			RootTsmV1().
+			Roots().Get(ctx, hashedName, metav1.GetOptions{})
+		if err != nil {
+			return nil, err
+		}
+
+		return &RootRoot{
+			client: group.client,
+			Root:   result,
+		}, nil
+	}
 }
 
 // DeleteRootByName deletes object stored in the database under the hashedName which is a hash of
@@ -810,17 +964,30 @@ func (group *RootTsmV1) UpdateRootByName(ctx context.Context,
 // ListRoots returns slice of all existing objects of this type. Selectors can be provided in opts parameter.
 func (group *RootTsmV1) ListRoots(ctx context.Context,
 	opts metav1.ListOptions) (result []*RootRoot, err error) {
-	list, err := group.client.baseClient.RootTsmV1().
-		Roots().List(ctx, opts)
-	if err != nil {
-		return nil, err
-	}
-	result = make([]*RootRoot, len(list.Items))
-	for k, v := range list.Items {
-		item := v
-		result[k] = &RootRoot{
-			client: group.client,
-			Root:   &item,
+	key := "roots.root.tsm-tanzu.vmware.com"
+	if s, ok := subscriptionMap.Load(key); ok {
+		items := s.(subscription).informer.GetStore().List()
+		result = make([]*RootRoot, len(items))
+		for k, v := range items {
+			item, _ := v.(*baseroottsmtanzuvmwarecomv1.Root)
+			result[k] = &RootRoot{
+				client: group.client,
+				Root:   item,
+			}
+		}
+	} else {
+		list, err := group.client.baseClient.RootTsmV1().
+			Roots().List(ctx, opts)
+		if err != nil {
+			return nil, err
+		}
+		result = make([]*RootRoot, len(list.Items))
+		for k, v := range list.Items {
+			item := v
+			result[k] = &RootRoot{
+				client: group.client,
+				Root:   &item,
+			}
 		}
 	}
 	return
@@ -950,6 +1117,22 @@ type rootRootTsmV1Chainer struct {
 	client       *Clientset
 	name         string
 	parentLabels map[string]string
+}
+
+func (c *rootRootTsmV1Chainer) Subscribe() {
+	key := "roots.root.tsm-tanzu.vmware.com"
+	if _, ok := subscriptionMap.Load(key); !ok {
+		informer := informerroottsmtanzuvmwarecomv1.NewRootInformer(c.client.baseClient, 0, cache.Indexers{})
+		subscribe(key, informer)
+	}
+}
+
+func (c *rootRootTsmV1Chainer) Unsubscribe() {
+	key := "roots.root.tsm-tanzu.vmware.com"
+	if s, ok := subscriptionMap.Load(key); ok {
+		close(s.(subscription).stopper)
+		subscriptionMap.Delete(key)
+	}
 }
 
 func (c *rootRootTsmV1Chainer) Project(name string) *projectProjectTsmV1Chainer {
