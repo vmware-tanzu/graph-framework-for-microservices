@@ -2,9 +2,10 @@ package main
 
 import (
 	"flag"
-	"fmt"
-	"graph-framework-for-microservices/install-validator/internal/dir"
-	"graph-framework-for-microservices/install-validator/internal/kubernetes"
+
+	nexuscompare "github.com/vmware-tanzu/graph-framework-for-microservices/common-library/pkg/nexus-compare"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/install-validator/internal/dir"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/install-validator/internal/kubernetes"
 )
 
 func main() {
@@ -23,34 +24,7 @@ func main() {
 		panic(err)
 	}
 
-	// check for incompatible models and not installed. Panic if any and force != true
-	incNames, _, text, err := dir.CheckDir(*directory, c)
-	if err != nil {
-		panic(err)
-	}
-	if len(incNames) > 0 && *force == false {
-		fmt.Println("Changes detected. If you want to install models anyway, run with -force=true")
-		panic(text)
-	}
-
-	// check if any data for incompatible models and panic if so
-	var dataExist []string
-	for _, n := range incNames {
-		res, err := c.ListResources(*c.GetCrd(n))
-		fmt.Println(res)
-		if err != nil {
-			panic(err)
-		}
-		if len(res) > 0 {
-			dataExist = append(dataExist, n)
-		}
-	}
-	if len(dataExist) > 0 {
-		panic(fmt.Sprintf("There are some data that exist in datamodels that are backward incompatible: %v. Please remove them manually to force upgrade CRDs", dataExist))
-	}
-
-	// upsert all the models
-	err = dir.InstallDir(*directory, c)
+	err = dir.ApplyDir(*directory, *force, &c, nexuscompare.CompareFiles)
 	if err != nil {
 		panic(err)
 	}

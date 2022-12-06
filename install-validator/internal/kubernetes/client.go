@@ -3,26 +3,28 @@ package kubernetes
 import (
 	"context"
 	"fmt"
-
-	v1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
-
-	ext "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset"
-
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-
 	"os"
 	"path/filepath"
 
+	v1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
+	ext "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 	"sigs.k8s.io/yaml"
 )
 
+type ClientInt interface {
+	GetCrd(name string) *v1.CustomResourceDefinition
+	ApplyCrd(crd v1.CustomResourceDefinition) error
+	ListCrds() error
+	ListResources(crd v1.CustomResourceDefinition) ([]interface{}, error)
+}
+
 type Client struct {
-	clientset  *ext.Clientset
-	clientset2 *rest.RESTClient
-	config     *rest.Config
-	crds       []v1.CustomResourceDefinition
+	clientset *ext.Clientset
+	config    *rest.Config
+	crds      []v1.CustomResourceDefinition
 }
 
 func NewClient() (Client, error) {

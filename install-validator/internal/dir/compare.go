@@ -2,17 +2,21 @@ package dir
 
 import (
 	"bytes"
-	"graph-framework-for-microservices/install-validator/internal/kubernetes"
+	"errors"
 	"os"
 	"path/filepath"
 	"strings"
+
+	"github.com/vmware-tanzu/graph-framework-for-microservices/install-validator/internal/kubernetes"
 
 	"sigs.k8s.io/yaml"
 
 	nexuscompare "github.com/vmware-tanzu/graph-framework-for-microservices/common-library/pkg/nexus-compare"
 )
 
-func CheckDir(dir string, c kubernetes.Client) ([]string, []string, *bytes.Buffer, error) {
+type compareFunc func([]byte, []byte) (bool, *bytes.Buffer, error)
+
+func CheckDir(dir string, c kubernetes.ClientInt, cFunc compareFunc) ([]string, []string, *bytes.Buffer, error) {
 	var changes []*bytes.Buffer
 	var incNames []string
 	var notInstalled []string
@@ -38,8 +42,11 @@ func CheckDir(dir string, c kubernetes.Client) ([]string, []string, *bytes.Buffe
 			return nil
 		}
 
+		if cFunc == nil {
+			return errors.New("nil compare func passed")
+		}
 		actData, err := yaml.Marshal(crd)
-		inc, text, err := nexuscompare.CompareFiles(actData, newData)
+		inc, text, err := cFunc(actData, newData)
 		if err != nil {
 			return err
 		}

@@ -1,16 +1,17 @@
 package dir
 
 import (
-	"graph-framework-for-microservices/install-validator/internal/kubernetes"
 	"os"
 	"path/filepath"
 	"strings"
+
+	"github.com/vmware-tanzu/graph-framework-for-microservices/install-validator/internal/kubernetes"
 
 	v1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	"sigs.k8s.io/yaml"
 )
 
-func InstallDir(dir string, c kubernetes.Client) error {
+func InstallDir(dir string, c kubernetes.ClientInt) error {
 	err := filepath.Walk(dir, func(path string, info os.FileInfo, err error) error {
 		if info.IsDir() {
 			return nil

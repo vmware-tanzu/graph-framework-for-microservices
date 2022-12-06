@@ -1,8 +1,9 @@
-module graph-framework-for-microservices/install-validator
+module github.com/vmware-tanzu/graph-framework-for-microservices/install-validator
 
 go 1.19
 
 require (
+	github.com/golang/mock v1.4.4
 	github.com/vmware-tanzu/graph-framework-for-microservices/common-library v0.0.0-20221130051552-34fc418458a3
 	k8s.io/apiextensions-apiserver v0.25.4
 	k8s.io/apimachinery v0.25.4
