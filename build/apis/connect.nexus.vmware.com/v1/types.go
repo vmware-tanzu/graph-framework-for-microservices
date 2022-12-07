@@ -207,7 +207,7 @@ type ReplicationDestination struct {
 	Hierarchical bool      `json:"hierarchical" yaml:"hierarchical"`
 	Hierarchy    Hierarchy `json:"hierarchy,omitempty" yaml:"hierarchy"`
 	Namespace    string    `json:"namespace,omitempty" yaml:"namespace"`
-	ObjectType   `json:"objectType,omitempty"`
+	*ObjectType  `json:"objectType,omitempty"`
 }
 
 type CloudType string

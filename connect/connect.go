@@ -120,7 +120,7 @@ type ReplicationDestination struct {
 	Namespace string `json:"namespace,omitempty"`
 
 	// If specified, the object will be replicated to this type.
-	ObjectType `json:"objectType,omitempty"`
+	*ObjectType `json:"objectType,omitempty"`
 }
 
 // ReplicationConfig defines a replication request/instance.
