@@ -7,16 +7,14 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/vmware-tanzu/graph-framework-for-microservices/install-validator/internal/kubernetes"
-
-	"sigs.k8s.io/yaml"
-
 	nexuscompare "github.com/vmware-tanzu/graph-framework-for-microservices/common-library/pkg/nexus-compare"
+	kubewrapper "github.com/vmware-tanzu/graph-framework-for-microservices/install-validator/pkg/kube-wrapper"
+	"sigs.k8s.io/yaml"
 )
 
 type compareFunc func([]byte, []byte) (bool, *bytes.Buffer, error)
 
-func CheckDir(dir string, c kubernetes.ClientInt, cFunc compareFunc) ([]string, []string, *bytes.Buffer, error) {
+func CheckDir(dir string, c kubewrapper.ClientInt, cFunc compareFunc) ([]string, []string, *bytes.Buffer, error) {
 	var changes []*bytes.Buffer
 	var incNames []string
 	var notInstalled []string

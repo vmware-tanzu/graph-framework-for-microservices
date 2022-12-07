@@ -1,30 +1,49 @@
 package main
 
 import (
-	"flag"
+	"os"
+	"strings"
+
+	"github.com/sirupsen/logrus"
+	ext "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset"
+	"k8s.io/client-go/rest"
 
 	nexuscompare "github.com/vmware-tanzu/graph-framework-for-microservices/common-library/pkg/nexus-compare"
-	"github.com/vmware-tanzu/graph-framework-for-microservices/install-validator/internal/dir"
-	"github.com/vmware-tanzu/graph-framework-for-microservices/install-validator/internal/kubernetes"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/install-validator/pkg/dir"
+	kubewrapper "github.com/vmware-tanzu/graph-framework-for-microservices/install-validator/pkg/kube-wrapper"
+)
+
+const (
+	dirEnv   = "CRD_SPEC_DIR"
+	forceEnv = "CRD_FORCE"
 )
 
 func main() {
-	// get flags from cmd
-	directory := flag.String("dir", "", "Directory with crds to install")
-	force := flag.Bool("force", false, "Force install crds")
-	flag.Parse()
-	if *directory == "" {
-		panic("No directory with crds to install. Provide it with -dir=$DIRECTORY ")
+	directory := ""
+	if directory = os.Getenv(dirEnv); directory == "" {
+		directory = "/crds"
+	}
+	force := false
+	if crdForceStr := os.Getenv(forceEnv); strings.ToLower(crdForceStr) == "true" {
+		force = true
 	}
 
 	// setup k8s client
-	c, _ := kubernetes.NewClient()
-	err := c.ListCrds()
+	config, err := rest.InClusterConfig()
+	if err != nil {
+		logrus.Error(err)
+	}
+	clientset, err := ext.NewForConfig(config)
+	if err != nil {
+		logrus.Error(err)
+	}
+	c := kubewrapper.Client{Clientset: clientset}
+	err = c.ListCrds()
 	if err != nil {
 		panic(err)
 	}
 
-	err = dir.ApplyDir(*directory, *force, &c, nexuscompare.CompareFiles)
+	err = dir.ApplyDir(directory, force, &c, nexuscompare.CompareFiles)
 	if err != nil {
 		panic(err)
 	}

@@ -6,8 +6,8 @@ import (
 	"testing"
 
 	"github.com/golang/mock/gomock"
-	"github.com/vmware-tanzu/graph-framework-for-microservices/install-validator/internal/kubernetes"
-	mockkubernetes "github.com/vmware-tanzu/graph-framework-for-microservices/install-validator/internal/kubernetes/mocks"
+	kubewrapper "github.com/vmware-tanzu/graph-framework-for-microservices/install-validator/pkg/kube-wrapper"
+	mockkubernetes "github.com/vmware-tanzu/graph-framework-for-microservices/install-validator/pkg/kube-wrapper/mocks"
 	v1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	"k8s.io/apimachinery/pkg/util/yaml"
 )
@@ -16,7 +16,7 @@ func TestApplyDir(t *testing.T) {
 	type args struct {
 		directory string
 		force     bool
-		c         kubernetes.ClientInt
+		c         kubewrapper.ClientInt
 		cFunc     compareFunc
 	}
 	ctrl := gomock.NewController(t)

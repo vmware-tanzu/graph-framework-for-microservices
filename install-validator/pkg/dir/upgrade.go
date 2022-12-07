@@ -4,10 +4,10 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/vmware-tanzu/graph-framework-for-microservices/install-validator/internal/kubernetes"
+	kubewrapper "github.com/vmware-tanzu/graph-framework-for-microservices/install-validator/pkg/kube-wrapper"
 )
 
-func ApplyDir(directory string, force bool, c kubernetes.ClientInt, cFunc compareFunc) error {
+func ApplyDir(directory string, force bool, c kubewrapper.ClientInt, cFunc compareFunc) error {
 	// check for incompatible models and not installed. Return  if any and force != true
 	incNames, _, text, err := CheckDir(directory, c, cFunc)
 	if err != nil {
