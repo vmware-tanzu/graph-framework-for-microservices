@@ -13,12 +13,12 @@ import (
 
 func main() {
 	var (
-		yamlsPath    string
-		oldYamlPath  string
-		forceUpgrade string // Used to denote the forced upgrade of a data model.
+		yamlsPath        string
+		existingCRDsPath string
+		forceUpgrade     string // Used to denote the forced upgrade of a data model.
 	)
 	flag.StringVar(&yamlsPath, "yamls-path", "", "Path to directory containing CRD YAML definitions")
-	flag.StringVar(&oldYamlPath, "old-yamls-path", "", "Path to directory containing existing CRD YAML definitions")
+	flag.StringVar(&existingCRDsPath, "existing-CRDs-Path", "", "Path to directory containing existing CRD YAML definitions")
 	flag.StringVar(&forceUpgrade, "force", "", "Set to true to force the nexus datamodel upgrade. \"+\n\t\t\t\"Defaults to `false`")
 	flag.Parse()
 	if yamlsPath == "" {
@@ -27,7 +27,7 @@ func main() {
 
 	force, err := strconv.ParseBool(forceUpgrade)
 	if err != nil {
-		panic("invalid flag for nexus datamodel upgrade")
+		panic(fmt.Sprintf("invalid flag for nexus datamodel upgrade %v", err))
 	}
 
 	ref := func(pkg string) spec.Ref {
@@ -56,8 +56,12 @@ func main() {
 			"Refer to %q for possible causes and solutions\n", readmePath)
 		panic("Missing schemas!")
 	}
-	err = g.UpdateYAMLs(yamlsPath, oldYamlPath, force)
+	err = g.UpdateYAMLs(yamlsPath)
 	if err != nil {
 		panic(err)
+	}
+
+	if err = generator.CheckBackwardCompatibility(existingCRDsPath, yamlsPath, force); err != nil {
+		panic(fmt.Sprintf("Error occurred when checking datamodel compatibility: %v", err))
 	}
 }

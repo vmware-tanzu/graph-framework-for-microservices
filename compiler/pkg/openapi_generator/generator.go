@@ -1,9 +1,7 @@
 package openapi_generator
 
 import (
-	"bytes"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -11,8 +9,6 @@ import (
 	"strings"
 
 	"github.com/ghodss/yaml"
-	log "github.com/sirupsen/logrus"
-
 	"github.com/vmware-tanzu/graph-framework-for-microservices/kube-openapi/pkg/common"
 	extensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 )
@@ -342,9 +338,8 @@ func splitCRDs(content []byte) []string {
 	return strings.Split(string(content), "---")
 }
 
-func (g *Generator) UpdateYAMLs(yamlsPath, oldYamlsPath string, force bool) error {
-	var inCompatibleCRDs []*bytes.Buffer
-	if err := filepath.Walk(yamlsPath, func(path string, info os.FileInfo, err error) error {
+func (g *Generator) UpdateYAMLs(yamlsPath string) error {
+	return filepath.Walk(yamlsPath, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return fmt.Errorf("walking files: %v", err)
 		}
@@ -382,32 +377,6 @@ func (g *Generator) UpdateYAMLs(yamlsPath, oldYamlsPath string, force bool) erro
 			if err != nil {
 				return err
 			}
-
-			/*
-				Find the old CRD for the file with the same name as the new CRD file and compare it to the new CRD spec provided.
-					yamlsPath - indicates the directory path of new crd yamls
-								Ex: the path will be `_generated/crds`
-
-					path - indicates the file path of node
-						        Ex: For the node `Config` the path will be `_generated/crds/config_config.yaml`
-
-					oldYamlsPath - indicates the directory path of the existing crd yamls
-								Ex: the path will be `tmp/old-files/old-crds`
-			*/
-			oldFilePath := oldYamlsPath + strings.TrimPrefix(path, yamlsPath)
-			oldCRDContent, err := os.ReadFile(oldFilePath)
-			if err != nil {
-				if !errors.Is(err, os.ErrNotExist) {
-					return fmt.Errorf("error reading the existing crd file on path %q: %v", oldFilePath, err)
-				}
-				log.Debugf("Can't find the existing crd file on path %s", oldFilePath)
-			}
-
-			if oldCRDContent != nil {
-				if inCompatibleCRDs, err = CheckBackwardCompatibility(inCompatibleCRDs, crd, oldCRDContent); err != nil {
-					return err
-				}
-			}
 			crds = append(crds, crd)
 		}
 
@@ -436,18 +405,7 @@ func (g *Generator) UpdateYAMLs(yamlsPath, oldYamlsPath string, force bool) erro
 			}
 		}
 		return nil
-	}); err != nil {
-		return err
-	}
-
-	if inCompatibleCRDs != nil {
-		if !force {
-			// If the CRD are incompatible with the previous version, this will fail the build.
-			return fmt.Errorf("datamodel upgrade failed due to backward incompatible changes:\n %v", inCompatibleCRDs)
-		}
-		log.Warnf("Upgrading the data model that is incompatible with the previous version: %v", inCompatibleCRDs)
-	}
-	return nil
+	})
 }
 
 func (g *Generator) addCustomResourceValidation(crd *extensionsv1.CustomResourceDefinition) error {
