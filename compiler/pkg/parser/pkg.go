@@ -186,7 +186,7 @@ func IsNexusNode(n *ast.TypeSpec) bool {
 	if val, ok := n.Type.(*ast.StructType); ok {
 		for _, field := range val.Fields.List {
 			typeString := types.ExprString(field.Type)
-			if typeString == "nexus.Node" || typeString == "nexus.SingletonNode" {
+			if typeString == "nexus.Node" || typeString == "nexus.SingletonNode" || typeString == "NexusNode" {
 				return true
 			}
 		}
@@ -233,7 +233,7 @@ func IsNexusTypeField(f *ast.Field) bool {
 	}
 
 	typeString := types.ExprString(f.Type)
-	if typeString == "nexus.Node" || typeString == "nexus.SingletonNode" || typeString == "nexus.ID" {
+	if typeString == "nexus.Node" || typeString == "nexus.SingletonNode" || typeString == "nexus.ID" || typeString == "NexusNode" {
 		return true
 	}
 
