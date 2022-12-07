@@ -51,18 +51,19 @@ type Clientset struct {
 
 type subscription struct {
 	informer cache.SharedIndexInformer
-	stopper  chan struct{}
+	stop     chan struct{}
 }
 
-// subscriptionMap will store crd string as key and value as subscription type, for example key="roots.orgchart.vmware.org" and value=subscription{}
+// subscriptionMap will store crd string as key and value as subscription type,
+// for example key="roots.orgchart.vmware.org" and value=subscription{}
 var subscriptionMap = sync.Map{}
 
 func subscribe(key string, informer cache.SharedIndexInformer) {
 	s := subscription{
 		informer: informer,
-		stopper:  make(chan struct{}),
+		stop:     make(chan struct{}),
 	}
-	go s.informer.Run(s.stopper)
+	go s.informer.Run(s.stop)
 	subscriptionMap.Store(key, s)
 }
 
@@ -181,7 +182,7 @@ func (c *Clientset) SubscribeAll() {
 
 func (c *Clientset) UnsubscribeAll() {
 	subscriptionMap.Range(func(key, s interface{}) bool {
-		close(s.(subscription).stopper)
+		close(s.(subscription).stop)
 		subscriptionMap.Delete(key)
 		return true
 	})
@@ -604,7 +605,7 @@ func (c *rootRootTsmV1Chainer) Subscribe() {
 func (c *rootRootTsmV1Chainer) Unsubscribe() {
 	key := "roots.root.tsm.tanzu.vmware.com"
 	if s, ok := subscriptionMap.Load(key); ok {
-		close(s.(subscription).stopper)
+		close(s.(subscription).stop)
 		subscriptionMap.Delete(key)
 	}
 }
@@ -1476,7 +1477,7 @@ func (c *configConfigTsmV1Chainer) Subscribe() {
 func (c *configConfigTsmV1Chainer) Unsubscribe() {
 	key := "configs.config.tsm.tanzu.vmware.com"
 	if s, ok := subscriptionMap.Load(key); ok {
-		close(s.(subscription).stopper)
+		close(s.(subscription).stop)
 		subscriptionMap.Delete(key)
 	}
 }
@@ -2069,7 +2070,7 @@ func (c *footypeabcConfigTsmV1Chainer) Subscribe() {
 func (c *footypeabcConfigTsmV1Chainer) Unsubscribe() {
 	key := "footypeabcs.config.tsm.tanzu.vmware.com"
 	if s, ok := subscriptionMap.Load(key); ok {
-		close(s.(subscription).stopper)
+		close(s.(subscription).stop)
 		subscriptionMap.Delete(key)
 	}
 }
@@ -2423,7 +2424,7 @@ func (c *domainConfigTsmV1Chainer) Subscribe() {
 func (c *domainConfigTsmV1Chainer) Unsubscribe() {
 	key := "domains.config.tsm.tanzu.vmware.com"
 	if s, ok := subscriptionMap.Load(key); ok {
-		close(s.(subscription).stopper)
+		close(s.(subscription).stop)
 		subscriptionMap.Delete(key)
 	}
 }
@@ -2731,7 +2732,7 @@ func (c *randomgnsdataGnsTsmV1Chainer) Subscribe() {
 func (c *randomgnsdataGnsTsmV1Chainer) Unsubscribe() {
 	key := "randomgnsdatas.gns.tsm.tanzu.vmware.com"
 	if s, ok := subscriptionMap.Load(key); ok {
-		close(s.(subscription).stopper)
+		close(s.(subscription).stop)
 		subscriptionMap.Delete(key)
 	}
 }
@@ -3037,7 +3038,7 @@ func (c *fooGnsTsmV1Chainer) Subscribe() {
 func (c *fooGnsTsmV1Chainer) Unsubscribe() {
 	key := "foos.gns.tsm.tanzu.vmware.com"
 	if s, ok := subscriptionMap.Load(key); ok {
-		close(s.(subscription).stopper)
+		close(s.(subscription).stop)
 		subscriptionMap.Delete(key)
 	}
 }
@@ -3903,7 +3904,7 @@ func (c *gnsGnsTsmV1Chainer) Subscribe() {
 func (c *gnsGnsTsmV1Chainer) Unsubscribe() {
 	key := "gnses.gns.tsm.tanzu.vmware.com"
 	if s, ok := subscriptionMap.Load(key); ok {
-		close(s.(subscription).stopper)
+		close(s.(subscription).stop)
 		subscriptionMap.Delete(key)
 	}
 }
@@ -4458,7 +4459,7 @@ func (c *barchildGnsTsmV1Chainer) Subscribe() {
 func (c *barchildGnsTsmV1Chainer) Unsubscribe() {
 	key := "barchilds.gns.tsm.tanzu.vmware.com"
 	if s, ok := subscriptionMap.Load(key); ok {
-		close(s.(subscription).stopper)
+		close(s.(subscription).stop)
 		subscriptionMap.Delete(key)
 	}
 }
@@ -4732,7 +4733,7 @@ func (c *ignorechildGnsTsmV1Chainer) Subscribe() {
 func (c *ignorechildGnsTsmV1Chainer) Unsubscribe() {
 	key := "ignorechilds.gns.tsm.tanzu.vmware.com"
 	if s, ok := subscriptionMap.Load(key); ok {
-		close(s.(subscription).stopper)
+		close(s.(subscription).stop)
 		subscriptionMap.Delete(key)
 	}
 }
@@ -5005,7 +5006,7 @@ func (c *dnsGnsTsmV1Chainer) Subscribe() {
 func (c *dnsGnsTsmV1Chainer) Unsubscribe() {
 	key := "dnses.gns.tsm.tanzu.vmware.com"
 	if s, ok := subscriptionMap.Load(key); ok {
-		close(s.(subscription).stopper)
+		close(s.(subscription).stop)
 		subscriptionMap.Delete(key)
 	}
 }
@@ -5313,7 +5314,7 @@ func (c *additionalgnsdataGnsTsmV1Chainer) Subscribe() {
 func (c *additionalgnsdataGnsTsmV1Chainer) Unsubscribe() {
 	key := "additionalgnsdatas.gns.tsm.tanzu.vmware.com"
 	if s, ok := subscriptionMap.Load(key); ok {
-		close(s.(subscription).stopper)
+		close(s.(subscription).stop)
 		subscriptionMap.Delete(key)
 	}
 }
@@ -5623,7 +5624,7 @@ func (c *svcgroupServicegroupTsmV1Chainer) Subscribe() {
 func (c *svcgroupServicegroupTsmV1Chainer) Unsubscribe() {
 	key := "svcgroups.servicegroup.tsm.tanzu.vmware.com"
 	if s, ok := subscriptionMap.Load(key); ok {
-		close(s.(subscription).stopper)
+		close(s.(subscription).stop)
 		subscriptionMap.Delete(key)
 	}
 }
@@ -5924,7 +5925,7 @@ func (c *svcgrouplinkinfoServicegroupTsmV1Chainer) Subscribe() {
 func (c *svcgrouplinkinfoServicegroupTsmV1Chainer) Unsubscribe() {
 	key := "svcgrouplinkinfos.servicegroup.tsm.tanzu.vmware.com"
 	if s, ok := subscriptionMap.Load(key); ok {
-		close(s.(subscription).stopper)
+		close(s.(subscription).stop)
 		subscriptionMap.Delete(key)
 	}
 }
@@ -6232,7 +6233,7 @@ func (c *additionalpolicydataPolicypkgTsmV1Chainer) Subscribe() {
 func (c *additionalpolicydataPolicypkgTsmV1Chainer) Unsubscribe() {
 	key := "additionalpolicydatas.policypkg.tsm.tanzu.vmware.com"
 	if s, ok := subscriptionMap.Load(key); ok {
-		close(s.(subscription).stopper)
+		close(s.(subscription).stop)
 		subscriptionMap.Delete(key)
 	}
 }
@@ -6609,7 +6610,7 @@ func (c *accesscontrolpolicyPolicypkgTsmV1Chainer) Subscribe() {
 func (c *accesscontrolpolicyPolicypkgTsmV1Chainer) Unsubscribe() {
 	key := "accesscontrolpolicies.policypkg.tsm.tanzu.vmware.com"
 	if s, ok := subscriptionMap.Load(key); ok {
-		close(s.(subscription).stopper)
+		close(s.(subscription).stop)
 		subscriptionMap.Delete(key)
 	}
 }
@@ -7161,7 +7162,7 @@ func (c *acpconfigPolicypkgTsmV1Chainer) Subscribe() {
 func (c *acpconfigPolicypkgTsmV1Chainer) Unsubscribe() {
 	key := "acpconfigs.policypkg.tsm.tanzu.vmware.com"
 	if s, ok := subscriptionMap.Load(key); ok {
-		close(s.(subscription).stopper)
+		close(s.(subscription).stop)
 		subscriptionMap.Delete(key)
 	}
 }
@@ -7458,7 +7459,7 @@ func (c *vmpolicyPolicypkgTsmV1Chainer) Subscribe() {
 func (c *vmpolicyPolicypkgTsmV1Chainer) Unsubscribe() {
 	key := "vmpolicies.policypkg.tsm.tanzu.vmware.com"
 	if s, ok := subscriptionMap.Load(key); ok {
-		close(s.(subscription).stopper)
+		close(s.(subscription).stop)
 		subscriptionMap.Delete(key)
 	}
 }
@@ -7766,7 +7767,7 @@ func (c *randompolicydataPolicypkgTsmV1Chainer) Subscribe() {
 func (c *randompolicydataPolicypkgTsmV1Chainer) Unsubscribe() {
 	key := "randompolicydatas.policypkg.tsm.tanzu.vmware.com"
 	if s, ok := subscriptionMap.Load(key); ok {
-		close(s.(subscription).stopper)
+		close(s.(subscription).stop)
 		subscriptionMap.Delete(key)
 	}
 }
