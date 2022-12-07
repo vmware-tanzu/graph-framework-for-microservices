@@ -362,7 +362,7 @@ func getTsmGraphqlSchemaFieldName(sType GraphQLSchemaType, fieldName, schemaType
 func getGraphQLEnumValue(fieldName string, f *ast.Field) string {
 	e := parser.GetGraphqlEnumValue(f)
 	if e != "" {
-		return fmt.Sprintf("%s: %s", fieldName, e)
+		return fmt.Sprintf("%s: %s", util.GetTag(fieldName), e)
 	}
-	return fmt.Sprintf("%s: %s", fieldName, "String")
+	return fmt.Sprintf("%s: %s", util.GetTag(fieldName), "String")
 }

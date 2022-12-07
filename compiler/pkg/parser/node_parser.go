@@ -97,7 +97,12 @@ func ParseDSLNodes(startPath string, baseGroupName string, packages Packages,
 										} else {
 											nonNexusTypes = append(nonNexusTypes, decl)
 										}
+									} else {
+										nonNexusTypes = append(nonNexusTypes, decl)
 									}
+								}
+								if _, ok := spec.(*ast.ValueSpec); ok {
+									nonNexusTypes = append(nonNexusTypes, decl)
 								}
 							}
 						}
