@@ -45,18 +45,19 @@ type Clientset struct {
 
 type subscription struct {
 	informer cache.SharedIndexInformer
-	stopper  chan struct{}
+	stop     chan struct{}
 }
 
-// subscriptionMap will store crd string as key and value as subscription type, for example key="roots.orgchart.vmware.org" and value=subscription{}
+// subscriptionMap will store crd string as key and value as subscription type,
+// for example key="roots.orgchart.vmware.org" and value=subscription{}
 var subscriptionMap = sync.Map{}
 
 func subscribe(key string, informer cache.SharedIndexInformer) {
 	s := subscription{
 		informer: informer,
-		stopper:  make(chan struct{}),
+		stop:     make(chan struct{}),
 	}
-	go s.informer.Run(s.stopper)
+	go s.informer.Run(s.stop)
 	subscriptionMap.Store(key, s)
 }
 
@@ -85,7 +86,7 @@ func (c *Clientset) SubscribeAll() {
 
 func (c *Clientset) UnsubscribeAll() {
 	subscriptionMap.Range(func(key, s interface{}) bool {
-		close(s.(subscription).stopper)
+		close(s.(subscription).stop)
 		subscriptionMap.Delete(key)
 		return true
 	})
@@ -433,7 +434,7 @@ func (c *configConfigTsmV1Chainer) Subscribe() {
 func (c *configConfigTsmV1Chainer) Unsubscribe() {
 	key := "configs.config.tsm-tanzu.vmware.com"
 	if s, ok := subscriptionMap.Load(key); ok {
-		close(s.(subscription).stopper)
+		close(s.(subscription).stop)
 		subscriptionMap.Delete(key)
 	}
 }
@@ -780,7 +781,7 @@ func (c *projectProjectTsmV1Chainer) Subscribe() {
 func (c *projectProjectTsmV1Chainer) Unsubscribe() {
 	key := "projects.project.tsm-tanzu.vmware.com"
 	if s, ok := subscriptionMap.Load(key); ok {
-		close(s.(subscription).stopper)
+		close(s.(subscription).stop)
 		subscriptionMap.Delete(key)
 	}
 }
@@ -1142,7 +1143,7 @@ func (c *rootRootTsmV1Chainer) Subscribe() {
 func (c *rootRootTsmV1Chainer) Unsubscribe() {
 	key := "roots.root.tsm-tanzu.vmware.com"
 	if s, ok := subscriptionMap.Load(key); ok {
-		close(s.(subscription).stopper)
+		close(s.(subscription).stop)
 		subscriptionMap.Delete(key)
 	}
 }
