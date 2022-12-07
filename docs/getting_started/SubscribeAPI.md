@@ -1,6 +1,6 @@
 # Subscribe API
 
-Subscribe API feature is to provide a way to create cache for the nexus nodes. If GET and LIST calls will be made fequently for the nexus node then creating cache for the nexus node will be the best thing to avoid making a lots of calls to the api-server and hence to reduce the load to the api-server.
+Subscribe API feature is to provide a way to create cache for the nexus nodes. If GET and LIST calls will be made fequently for the nexus node then creating cache for the nexus node will be the best thing to avoid making a lot of calls to the api-server and hence to reduce the load to the api-server.
 
 Subscribe API feature in nexus-client library is implemeted using informers from k8s generated code.
 Link to see the example of k8s informers generated code https://github.com/vmware-tanzu/graph-framework-for-microservices/tree/main/compiler/example/output/generated/client/informers/externalversions
@@ -18,7 +18,7 @@ Link to see the example of k8s informers generated code https://github.com/vmwar
 5. IsSubscribed() to check if node is subscribed or not.
 
 
-### Demo code to use Subscribe API Feature:
+### Demo code For Subscribe API Feature:
 
 ```
 func main.go(){
@@ -28,12 +28,12 @@ func main.go(){
         Host: "nexus-apiserver:8080",
     }
     nexusClient, _ := nexus_client.NewForConfig(config)
-        UseSubscribeAPIFeatue(nexusClient)
-
+    
+    UseSubscribeAPIFeatue(nexusClient)
 }
 
+// UseSubscribeAPIFeature method is show the subsribe API Feature demo
 func UseSubscribeAPIFeature(nexusClient *nexus_client.Clientset) {
-	cleanup(nexusClient)
 
 	// create root
 	rootDef := &orgchartv1.Root{
@@ -42,6 +42,7 @@ func UseSubscribeAPIFeature(nexusClient *nexus_client.Clientset) {
 		},
 	}
 	nexusClient.AddOrgchartRoot(context.TODO(), rootDef)
+
 	// create leader
 	leaderDef := &managementvmwareorgv1.Leader{
 		ObjectMeta: metav1.ObjectMeta{
@@ -53,27 +54,36 @@ func UseSubscribeAPIFeature(nexusClient *nexus_client.Clientset) {
 			EmployeeID:  1,
 		},
 	}
-
 	root, _ := nexusClient.GetOrgchartRoot(context.TODO())
 	root.AddCEO(context.TODO(), leaderDef)
 
+    // subscribe all nodes
 	nexusClient.SubscribeAll()
 	fmt.Println("---------subscribed all nodes-------------")
 	time.Sleep(5 * time.Second) // because cache is eventually consistent, may need some time to update cache
 	GetList(nexusClient)
 
-	// unsubscribe for particular node
+	// unsubscribe for particular node(Root node)
 	nexusClient.OrgchartRoot().Unsubscribe()
 	fmt.Println("---------unsubscribed root-------------")
 	GetList(nexusClient)
 
-	nexusClient.UnsubscribeAll()
+    // check if a node is subscirbed
+    if !nexusClient.OrgchartRoot().IsSubscribed(){
+        fmt.Prinln("Root is not subscribed.")
+    }else{
+        fmt.Prinln("Root is subscribed.")
+    }
+
+    // unsubscribe all nodes
+    nexusClient.UnsubscribeAll()
 	fmt.Println("---------unsubscribed all nodes-------------")
 	GetList(nexusClient)
 
-	nexusClient.SubscribeAll()
-	fmt.Println("---------subscribed all nodes-------------")
-	time.Sleep(5 * time.Second) // because cache is eventually consistent, may need some time to update cache
+    // subscribe for particular node(Leader node)
+	nexusClient.OrgchartRoot().CEO().Subscribe()
+    fmt.Println("---------subscribed Leader-------------")
+    time.Sleep(5 * time.Second) // because cache is eventually consistent, may need some time to update cache
 	GetList(nexusClient)
 
 }
