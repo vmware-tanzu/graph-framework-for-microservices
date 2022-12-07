@@ -38,10 +38,6 @@ func main() {
 		logrus.Error(err)
 	}
 	c := kubewrapper.Client{Clientset: clientset}
-	err = c.ListCrds()
-	if err != nil {
-		logrus.Error(err)
-	}
 
 	err = dir.ApplyDir(directory, force, &c, nexuscompare.CompareFiles)
 	if err != nil {

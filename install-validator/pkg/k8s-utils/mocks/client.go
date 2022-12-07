@@ -63,17 +63,17 @@ func (mr *MockClientIntMockRecorder) GetCrd(name interface{}) *gomock.Call {
 }
 
 // ListCrds mocks base method.
-func (m *MockClientInt) ListCrds() error {
+func (m *MockClientInt) FetchCrds() error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ListCrds")
+	ret := m.ctrl.Call(m, "FetchCrds")
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // ListCrds indicates an expected call of ListCrds.
-func (mr *MockClientIntMockRecorder) ListCrds() *gomock.Call {
+func (mr *MockClientIntMockRecorder) FetchCrds() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListCrds", reflect.TypeOf((*MockClientInt)(nil).ListCrds))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FetchCrds", reflect.TypeOf((*MockClientInt)(nil).FetchCrds))
 }
 
 // ListResources mocks base method.

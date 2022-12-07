@@ -12,6 +12,11 @@ import (
 
 // ApplyDir checks if there are any incompatible crds and data for them. Applies them based on force flag.
 func ApplyDir(directory string, force bool, c kubewrapper.ClientInt, cFunc compareFunc) error {
+	err := c.FetchCrds()
+	if err != nil {
+		logrus.Error(err)
+	}
+
 	// check for incompatible models and not installed. Return  if any and force != true
 	inCompatibleCRDs, err := CheckDir(directory, c, cFunc)
 	if err != nil {

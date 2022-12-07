@@ -13,7 +13,7 @@ import (
 type ClientInt interface {
 	GetCrd(name string) *v1.CustomResourceDefinition
 	ApplyCrd(crd v1.CustomResourceDefinition) error
-	ListCrds() error
+	FetchCrds() error
 	ListResources(crd v1.CustomResourceDefinition) ([]interface{}, error)
 }
 
@@ -43,7 +43,7 @@ func (c *Client) ApplyCrd(crd v1.CustomResourceDefinition) error {
 	return err
 }
 
-func (c *Client) ListCrds() error {
+func (c *Client) FetchCrds() error {
 	l, err := c.Clientset.ApiextensionsV1().CustomResourceDefinitions().List(context.TODO(), metav1.ListOptions{})
 	c.crds = l.Items
 	return err

@@ -41,6 +41,8 @@ func TestApplyDir(t *testing.T) {
 		t.Fatal("error while init", err)
 	}
 
+	cc.EXPECT().FetchCrds().Return(nil).AnyTimes()
+
 	cc.EXPECT().ApplyCrd(patt1).Return(nil).AnyTimes()
 	cc.EXPECT().ApplyCrd(rootRoot).Return(nil).AnyTimes()
 
