@@ -10,7 +10,7 @@ import (
 
 	nexuscompare "github.com/vmware-tanzu/graph-framework-for-microservices/common-library/pkg/nexus-compare"
 	"github.com/vmware-tanzu/graph-framework-for-microservices/install-validator/pkg/dir"
-	kubewrapper "github.com/vmware-tanzu/graph-framework-for-microservices/install-validator/pkg/kube-wrapper"
+	kubewrapper "github.com/vmware-tanzu/graph-framework-for-microservices/install-validator/pkg/k8s-utils"
 )
 
 const (

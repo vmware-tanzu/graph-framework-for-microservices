@@ -6,8 +6,8 @@ import (
 	"testing"
 
 	"github.com/golang/mock/gomock"
-	kubewrapper "github.com/vmware-tanzu/graph-framework-for-microservices/install-validator/pkg/kube-wrapper"
-	mockkubernetes "github.com/vmware-tanzu/graph-framework-for-microservices/install-validator/pkg/kube-wrapper/mocks"
+	kubewrapper "github.com/vmware-tanzu/graph-framework-for-microservices/install-validator/pkg/k8s-utils"
+	mockkubernetes "github.com/vmware-tanzu/graph-framework-for-microservices/install-validator/pkg/k8s-utils/mocks"
 	v1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	"k8s.io/apimachinery/pkg/util/yaml"
 )

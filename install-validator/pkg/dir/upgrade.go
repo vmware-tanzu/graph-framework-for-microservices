@@ -1,37 +1,44 @@
 package dir
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
 
-	kubewrapper "github.com/vmware-tanzu/graph-framework-for-microservices/install-validator/pkg/kube-wrapper"
+	"github.com/sirupsen/logrus"
+
+	kubewrapper "github.com/vmware-tanzu/graph-framework-for-microservices/install-validator/pkg/k8s-utils"
 )
 
+// ApplyDir checks if there are any incompatible crds and data for them. Applies them based on force flag.
 func ApplyDir(directory string, force bool, c kubewrapper.ClientInt, cFunc compareFunc) error {
 	// check for incompatible models and not installed. Return  if any and force != true
-	incNames, _, text, err := CheckDir(directory, c, cFunc)
+	inCompatibleCRDs, err := CheckDir(directory, c, cFunc)
 	if err != nil {
 		return err
 	}
-	if len(incNames) > 0 && force == false {
-		fmt.Println(text)
-		return errors.New("changes detected. If you want to install models anyway, run with -force=true")
+	if len(inCompatibleCRDs) > 0 && force == false {
+		textChanges := new(bytes.Buffer)
+		for _, txt := range inCompatibleCRDs {
+			textChanges.Write(txt.Bytes())
+		}
+		logrus.Warn(textChanges)
+		return errors.New("incompatible datamodel changes detected")
 	}
 
 	// check if any data for incompatible models and return if so
-	var dataExist []string
-	for _, n := range incNames {
-		res, err := c.ListResources(*c.GetCrd(n))
-		fmt.Println(res)
+	var cr []string
+	for crd, _ := range inCompatibleCRDs {
+		res, err := c.ListResources(*c.GetCrd(crd))
 		if err != nil {
 			return err
 		}
 		if len(res) > 0 {
-			dataExist = append(dataExist, n)
+			cr = append(cr, crd)
 		}
 	}
-	if len(dataExist) > 0 {
-		return errors.New(fmt.Sprintf("There are some data that exist in datamodels that are backward incompatible: %v. Please remove them manually to force upgrade CRDs", dataExist))
+	if len(cr) > 0 {
+		return errors.New(fmt.Sprintf("validation failed as objects exists in the system for the incompatible nodes: %v", cr))
 	}
 
 	// upsert all the models

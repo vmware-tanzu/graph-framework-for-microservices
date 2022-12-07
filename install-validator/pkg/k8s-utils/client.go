@@ -1,4 +1,4 @@
-package kube_wrapper
+package k8s_utils
 
 import (
 	"context"

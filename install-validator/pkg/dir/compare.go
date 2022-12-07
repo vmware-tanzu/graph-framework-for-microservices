@@ -8,16 +8,14 @@ import (
 	"strings"
 
 	nexuscompare "github.com/vmware-tanzu/graph-framework-for-microservices/common-library/pkg/nexus-compare"
-	kubewrapper "github.com/vmware-tanzu/graph-framework-for-microservices/install-validator/pkg/kube-wrapper"
+	kubewrapper "github.com/vmware-tanzu/graph-framework-for-microservices/install-validator/pkg/k8s-utils"
 	"sigs.k8s.io/yaml"
 )
 
 type compareFunc func([]byte, []byte) (bool, *bytes.Buffer, error)
 
-func CheckDir(dir string, c kubewrapper.ClientInt, cFunc compareFunc) ([]string, []string, *bytes.Buffer, error) {
-	var changes []*bytes.Buffer
-	var incNames []string
-	var notInstalled []string
+func CheckDir(dir string, c kubewrapper.ClientInt, cFunc compareFunc) (map[string]*bytes.Buffer, error) {
+	changes := make(map[string]*bytes.Buffer)
 	err := filepath.Walk(dir, func(path string, info os.FileInfo, err error) error {
 		if info.IsDir() {
 			return nil
@@ -36,7 +34,6 @@ func CheckDir(dir string, c kubewrapper.ClientInt, cFunc compareFunc) ([]string,
 		}
 		crd := c.GetCrd(name)
 		if crd == nil {
-			notInstalled = append(notInstalled, name)
 			return nil
 		}
 
@@ -50,19 +47,14 @@ func CheckDir(dir string, c kubewrapper.ClientInt, cFunc compareFunc) ([]string,
 		}
 
 		if inc { // if this is true, then there are some incompatible changes
-			changes = append(changes, text)
-			incNames = append(incNames, name)
+			changes[name] = text
 		}
 		return nil
 	})
 
 	if err != nil {
-		return []string{}, []string{}, nil, err
+		return changes, err
 	}
 
-	change := new(bytes.Buffer)
-	for _, cc := range changes {
-		change.Write(cc.Bytes())
-	}
-	return incNames, notInstalled, change, err
+	return changes, err
 }
