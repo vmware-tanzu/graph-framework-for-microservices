@@ -4,6 +4,7 @@ go 1.19
 
 require (
 	github.com/golang/mock v1.4.4
+	github.com/sirupsen/logrus v1.8.1
 	github.com/vmware-tanzu/graph-framework-for-microservices/common-library v0.0.0-20221130051552-34fc418458a3
 	k8s.io/apiextensions-apiserver v0.25.4
 	k8s.io/apimachinery v0.25.4
@@ -30,7 +31,6 @@ require (
 	github.com/google/gnostic v0.6.9 // indirect
 	github.com/google/gofuzz v1.2.0 // indirect
 	github.com/homeport/dyff v1.5.6 // indirect
-	github.com/imdario/mergo v0.3.6 // indirect
 	github.com/josharian/intern v1.0.0 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/lucasb-eyer/go-colorful v1.2.0 // indirect
@@ -43,7 +43,6 @@ require (
 	github.com/modern-go/reflect2 v1.0.2 // indirect
 	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect
 	github.com/sergi/go-diff v1.2.0 // indirect
-	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/texttheater/golang-levenshtein v1.0.1 // indirect
 	github.com/virtuald/go-ordered-json v0.0.0-20170621173500-b18e6e673d74 // indirect
 	golang.org/x/net v0.0.0-20220722155237-a158d28d115b // indirect

@@ -40,12 +40,12 @@ func main() {
 	c := kubewrapper.Client{Clientset: clientset}
 	err = c.ListCrds()
 	if err != nil {
-		panic(err)
+		logrus.Error(err)
 	}
 
 	err = dir.ApplyDir(directory, force, &c, nexuscompare.CompareFiles)
 	if err != nil {
-		panic(err)
+		logrus.Error(err)
 	}
 
 }

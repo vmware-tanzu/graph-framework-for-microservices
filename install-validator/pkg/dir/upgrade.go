@@ -17,7 +17,7 @@ func ApplyDir(directory string, force bool, c kubewrapper.ClientInt, cFunc compa
 	if err != nil {
 		return err
 	}
-	if len(inCompatibleCRDs) > 0 && force == false {
+	if len(inCompatibleCRDs) > 0 && !force {
 		textChanges := new(bytes.Buffer)
 		for _, txt := range inCompatibleCRDs {
 			textChanges.Write(txt.Bytes())
@@ -28,7 +28,7 @@ func ApplyDir(directory string, force bool, c kubewrapper.ClientInt, cFunc compa
 
 	// check if any data for incompatible models and return if so
 	var cr []string
-	for crd, _ := range inCompatibleCRDs {
+	for crd := range inCompatibleCRDs {
 		res, err := c.ListResources(*c.GetCrd(crd))
 		if err != nil {
 			return err
@@ -38,7 +38,7 @@ func ApplyDir(directory string, force bool, c kubewrapper.ClientInt, cFunc compa
 		}
 	}
 	if len(cr) > 0 {
-		return errors.New(fmt.Sprintf("validation failed as objects exists in the system for the incompatible nodes: %v", cr))
+		return fmt.Errorf("validation failed as objects exists in the system for the incompatible nodes: %v", cr)
 	}
 
 	// upsert all the models

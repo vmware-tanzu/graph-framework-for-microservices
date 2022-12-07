@@ -51,9 +51,11 @@ func (c *Client) ListCrds() error {
 
 func (c *Client) ListResources(crd v1.CustomResourceDefinition) ([]interface{}, error) {
 	data, err := c.Clientset.ApiextensionsV1beta1().RESTClient().Get().RequestURI(createURI(crd)).DoRaw(context.TODO())
+	if err != nil {
+		return nil, err
+	}
 	var obj map[string]interface{}
-	if err := yaml.Unmarshal(data, &obj); err != nil {
-		fmt.Println(err)
+	if err = yaml.Unmarshal(data, &obj); err != nil {
 		return nil, err
 	}
 	return obj["items"].([]interface{}), err

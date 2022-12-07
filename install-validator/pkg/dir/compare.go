@@ -17,6 +17,9 @@ type compareFunc func([]byte, []byte) (bool, *bytes.Buffer, error)
 func CheckDir(dir string, c kubewrapper.ClientInt, cFunc compareFunc) (map[string]*bytes.Buffer, error) {
 	changes := make(map[string]*bytes.Buffer)
 	err := filepath.Walk(dir, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
 		if info.IsDir() {
 			return nil
 		}
@@ -41,6 +44,10 @@ func CheckDir(dir string, c kubewrapper.ClientInt, cFunc compareFunc) (map[strin
 			return errors.New("nil compare func passed")
 		}
 		actData, err := yaml.Marshal(crd)
+		if err != nil {
+			return err
+		}
+
 		inc, text, err := cFunc(actData, newData)
 		if err != nil {
 			return err
