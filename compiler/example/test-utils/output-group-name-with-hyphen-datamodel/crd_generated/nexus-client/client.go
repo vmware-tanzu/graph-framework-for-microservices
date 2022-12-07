@@ -438,6 +438,12 @@ func (c *configConfigTsmV1Chainer) Unsubscribe() {
 	}
 }
 
+func (c *configConfigTsmV1Chainer) IsSubscribed() bool {
+	key := "configs.config.tsm-tanzu.vmware.com"
+	_, ok := subscriptionMap.Load(key)
+	return ok
+}
+
 // GetProjectByName returns object stored in the database under the hashedName which is a hash of display
 // name and parents names. Use it when you know hashed name of object.
 func (group *ProjectTsmV1) GetProjectByName(ctx context.Context, hashedName string) (*ProjectProject, error) {
@@ -777,6 +783,12 @@ func (c *projectProjectTsmV1Chainer) Unsubscribe() {
 		close(s.(subscription).stopper)
 		subscriptionMap.Delete(key)
 	}
+}
+
+func (c *projectProjectTsmV1Chainer) IsSubscribed() bool {
+	key := "projects.project.tsm-tanzu.vmware.com"
+	_, ok := subscriptionMap.Load(key)
+	return ok
 }
 
 func (c *projectProjectTsmV1Chainer) Config(name string) *configConfigTsmV1Chainer {
@@ -1133,6 +1145,12 @@ func (c *rootRootTsmV1Chainer) Unsubscribe() {
 		close(s.(subscription).stopper)
 		subscriptionMap.Delete(key)
 	}
+}
+
+func (c *rootRootTsmV1Chainer) IsSubscribed() bool {
+	key := "roots.root.tsm-tanzu.vmware.com"
+	_, ok := subscriptionMap.Load(key)
+	return ok
 }
 
 func (c *rootRootTsmV1Chainer) Project(name string) *projectProjectTsmV1Chainer {

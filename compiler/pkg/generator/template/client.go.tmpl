@@ -823,6 +823,12 @@ func (c *{{$node.GroupResourceType}}Chainer) Unsubscribe(){
 	}
 }
 
+func (c *{{$node.GroupResourceType}}Chainer) IsSubscribed() bool {
+	key := "{{$node.CrdName}}"
+	 _, ok := subscriptionMap.Load(key)
+	 return ok
+}
+
 {{if .HasStatus}}
 // Clear{{$node.StatusName}} to clear user defined status
 func (c *{{$node.GroupResourceType}}Chainer) Clear{{$node.StatusName}}(ctx context.Context) (err error) {

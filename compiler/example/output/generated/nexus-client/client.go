@@ -609,6 +609,12 @@ func (c *rootRootTsmV1Chainer) Unsubscribe() {
 	}
 }
 
+func (c *rootRootTsmV1Chainer) IsSubscribed() bool {
+	key := "roots.root.tsm.tanzu.vmware.com"
+	_, ok := subscriptionMap.Load(key)
+	return ok
+}
+
 func (c *rootRootTsmV1Chainer) Config(name string) *configConfigTsmV1Chainer {
 	parentLabels := c.parentLabels
 	parentLabels["configs.config.tsm.tanzu.vmware.com"] = name
@@ -1475,6 +1481,12 @@ func (c *configConfigTsmV1Chainer) Unsubscribe() {
 	}
 }
 
+func (c *configConfigTsmV1Chainer) IsSubscribed() bool {
+	key := "configs.config.tsm.tanzu.vmware.com"
+	_, ok := subscriptionMap.Load(key)
+	return ok
+}
+
 func (c *configConfigTsmV1Chainer) GNS(name string) *gnsGnsTsmV1Chainer {
 	parentLabels := c.parentLabels
 	parentLabels["gnses.gns.tsm.tanzu.vmware.com"] = name
@@ -2062,6 +2074,12 @@ func (c *footypeabcConfigTsmV1Chainer) Unsubscribe() {
 	}
 }
 
+func (c *footypeabcConfigTsmV1Chainer) IsSubscribed() bool {
+	key := "footypeabcs.config.tsm.tanzu.vmware.com"
+	_, ok := subscriptionMap.Load(key)
+	return ok
+}
+
 // GetDomainByName returns object stored in the database under the hashedName which is a hash of display
 // name and parents names. Use it when you know hashed name of object.
 func (group *ConfigTsmV1) GetDomainByName(ctx context.Context, hashedName string) (*ConfigDomain, error) {
@@ -2410,6 +2428,12 @@ func (c *domainConfigTsmV1Chainer) Unsubscribe() {
 	}
 }
 
+func (c *domainConfigTsmV1Chainer) IsSubscribed() bool {
+	key := "domains.config.tsm.tanzu.vmware.com"
+	_, ok := subscriptionMap.Load(key)
+	return ok
+}
+
 // GetRandomGnsDataByName returns object stored in the database under the hashedName which is a hash of display
 // name and parents names. Use it when you know hashed name of object.
 func (group *GnsTsmV1) GetRandomGnsDataByName(ctx context.Context, hashedName string) (*GnsRandomGnsData, error) {
@@ -2712,6 +2736,12 @@ func (c *randomgnsdataGnsTsmV1Chainer) Unsubscribe() {
 	}
 }
 
+func (c *randomgnsdataGnsTsmV1Chainer) IsSubscribed() bool {
+	key := "randomgnsdatas.gns.tsm.tanzu.vmware.com"
+	_, ok := subscriptionMap.Load(key)
+	return ok
+}
+
 // ClearStatus to clear user defined status
 func (c *randomgnsdataGnsTsmV1Chainer) ClearStatus(ctx context.Context) (err error) {
 	hashedName := helper.GetHashedName("randomgnsdatas.gns.tsm.tanzu.vmware.com", c.parentLabels, c.name)
@@ -3010,6 +3040,12 @@ func (c *fooGnsTsmV1Chainer) Unsubscribe() {
 		close(s.(subscription).stopper)
 		subscriptionMap.Delete(key)
 	}
+}
+
+func (c *fooGnsTsmV1Chainer) IsSubscribed() bool {
+	key := "foos.gns.tsm.tanzu.vmware.com"
+	_, ok := subscriptionMap.Load(key)
+	return ok
 }
 
 // GetGnsByName returns object stored in the database under the hashedName which is a hash of display
@@ -3872,6 +3908,12 @@ func (c *gnsGnsTsmV1Chainer) Unsubscribe() {
 	}
 }
 
+func (c *gnsGnsTsmV1Chainer) IsSubscribed() bool {
+	key := "gnses.gns.tsm.tanzu.vmware.com"
+	_, ok := subscriptionMap.Load(key)
+	return ok
+}
+
 // ClearState to clear user defined status
 func (c *gnsGnsTsmV1Chainer) ClearState(ctx context.Context) (err error) {
 	hashedName := helper.GetHashedName("gnses.gns.tsm.tanzu.vmware.com", c.parentLabels, c.name)
@@ -4421,6 +4463,12 @@ func (c *barchildGnsTsmV1Chainer) Unsubscribe() {
 	}
 }
 
+func (c *barchildGnsTsmV1Chainer) IsSubscribed() bool {
+	key := "barchilds.gns.tsm.tanzu.vmware.com"
+	_, ok := subscriptionMap.Load(key)
+	return ok
+}
+
 // GetIgnoreChildByName returns object stored in the database under the hashedName which is a hash of display
 // name and parents names. Use it when you know hashed name of object.
 func (group *GnsTsmV1) GetIgnoreChildByName(ctx context.Context, hashedName string) (*GnsIgnoreChild, error) {
@@ -4689,6 +4737,12 @@ func (c *ignorechildGnsTsmV1Chainer) Unsubscribe() {
 	}
 }
 
+func (c *ignorechildGnsTsmV1Chainer) IsSubscribed() bool {
+	key := "ignorechilds.gns.tsm.tanzu.vmware.com"
+	_, ok := subscriptionMap.Load(key)
+	return ok
+}
+
 // GetDnsByName returns object stored in the database under the hashedName which is a hash of display
 // name and parents names. Use it when you know hashed name of object.
 func (group *GnsTsmV1) GetDnsByName(ctx context.Context, hashedName string) (*GnsDns, error) {
@@ -4954,6 +5008,12 @@ func (c *dnsGnsTsmV1Chainer) Unsubscribe() {
 		close(s.(subscription).stopper)
 		subscriptionMap.Delete(key)
 	}
+}
+
+func (c *dnsGnsTsmV1Chainer) IsSubscribed() bool {
+	key := "dnses.gns.tsm.tanzu.vmware.com"
+	_, ok := subscriptionMap.Load(key)
+	return ok
 }
 
 // GetAdditionalGnsDataByName returns object stored in the database under the hashedName which is a hash of display
@@ -5256,6 +5316,12 @@ func (c *additionalgnsdataGnsTsmV1Chainer) Unsubscribe() {
 		close(s.(subscription).stopper)
 		subscriptionMap.Delete(key)
 	}
+}
+
+func (c *additionalgnsdataGnsTsmV1Chainer) IsSubscribed() bool {
+	key := "additionalgnsdatas.gns.tsm.tanzu.vmware.com"
+	_, ok := subscriptionMap.Load(key)
+	return ok
 }
 
 // ClearStatus to clear user defined status
@@ -5562,6 +5628,12 @@ func (c *svcgroupServicegroupTsmV1Chainer) Unsubscribe() {
 	}
 }
 
+func (c *svcgroupServicegroupTsmV1Chainer) IsSubscribed() bool {
+	key := "svcgroups.servicegroup.tsm.tanzu.vmware.com"
+	_, ok := subscriptionMap.Load(key)
+	return ok
+}
+
 // GetSvcGroupLinkInfoByName returns object stored in the database under the hashedName which is a hash of display
 // name and parents names. Use it when you know hashed name of object.
 func (group *ServicegroupTsmV1) GetSvcGroupLinkInfoByName(ctx context.Context, hashedName string) (*ServicegroupSvcGroupLinkInfo, error) {
@@ -5855,6 +5927,12 @@ func (c *svcgrouplinkinfoServicegroupTsmV1Chainer) Unsubscribe() {
 		close(s.(subscription).stopper)
 		subscriptionMap.Delete(key)
 	}
+}
+
+func (c *svcgrouplinkinfoServicegroupTsmV1Chainer) IsSubscribed() bool {
+	key := "svcgrouplinkinfos.servicegroup.tsm.tanzu.vmware.com"
+	_, ok := subscriptionMap.Load(key)
+	return ok
 }
 
 // GetAdditionalPolicyDataByName returns object stored in the database under the hashedName which is a hash of display
@@ -6157,6 +6235,12 @@ func (c *additionalpolicydataPolicypkgTsmV1Chainer) Unsubscribe() {
 		close(s.(subscription).stopper)
 		subscriptionMap.Delete(key)
 	}
+}
+
+func (c *additionalpolicydataPolicypkgTsmV1Chainer) IsSubscribed() bool {
+	key := "additionalpolicydatas.policypkg.tsm.tanzu.vmware.com"
+	_, ok := subscriptionMap.Load(key)
+	return ok
 }
 
 // ClearStatus to clear user defined status
@@ -6528,6 +6612,12 @@ func (c *accesscontrolpolicyPolicypkgTsmV1Chainer) Unsubscribe() {
 		close(s.(subscription).stopper)
 		subscriptionMap.Delete(key)
 	}
+}
+
+func (c *accesscontrolpolicyPolicypkgTsmV1Chainer) IsSubscribed() bool {
+	key := "accesscontrolpolicies.policypkg.tsm.tanzu.vmware.com"
+	_, ok := subscriptionMap.Load(key)
+	return ok
 }
 
 func (c *accesscontrolpolicyPolicypkgTsmV1Chainer) PolicyConfigs(name string) *acpconfigPolicypkgTsmV1Chainer {
@@ -7076,6 +7166,12 @@ func (c *acpconfigPolicypkgTsmV1Chainer) Unsubscribe() {
 	}
 }
 
+func (c *acpconfigPolicypkgTsmV1Chainer) IsSubscribed() bool {
+	key := "acpconfigs.policypkg.tsm.tanzu.vmware.com"
+	_, ok := subscriptionMap.Load(key)
+	return ok
+}
+
 // ClearStatus to clear user defined status
 func (c *acpconfigPolicypkgTsmV1Chainer) ClearStatus(ctx context.Context) (err error) {
 	hashedName := helper.GetHashedName("acpconfigs.policypkg.tsm.tanzu.vmware.com", c.parentLabels, c.name)
@@ -7365,6 +7461,12 @@ func (c *vmpolicyPolicypkgTsmV1Chainer) Unsubscribe() {
 		close(s.(subscription).stopper)
 		subscriptionMap.Delete(key)
 	}
+}
+
+func (c *vmpolicyPolicypkgTsmV1Chainer) IsSubscribed() bool {
+	key := "vmpolicies.policypkg.tsm.tanzu.vmware.com"
+	_, ok := subscriptionMap.Load(key)
+	return ok
 }
 
 // GetRandomPolicyDataByName returns object stored in the database under the hashedName which is a hash of display
@@ -7667,6 +7769,12 @@ func (c *randompolicydataPolicypkgTsmV1Chainer) Unsubscribe() {
 		close(s.(subscription).stopper)
 		subscriptionMap.Delete(key)
 	}
+}
+
+func (c *randompolicydataPolicypkgTsmV1Chainer) IsSubscribed() bool {
+	key := "randompolicydatas.policypkg.tsm.tanzu.vmware.com"
+	_, ok := subscriptionMap.Load(key)
+	return ok
 }
 
 // ClearStatus to clear user defined status
