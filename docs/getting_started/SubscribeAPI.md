@@ -70,9 +70,9 @@ func UseSubscribeAPIFeature(nexusClient *nexus_client.Clientset) {
 
     // check if a node is subscirbed
     if !nexusClient.OrgchartRoot().IsSubscribed(){
-        fmt.Prinln("Root is not subscribed.")
+        fmt.Println("Root is not subscribed.")
     }else{
-        fmt.Prinln("Root is subscribed.")
+        fmt.Println("Root is subscribed.")
     }
 
     // unsubscribe all nodes
