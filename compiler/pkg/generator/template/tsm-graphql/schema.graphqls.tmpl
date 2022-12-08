@@ -24,9 +24,9 @@ directive @timeseriesAPI(file: String!, handler: String!) on FIELD_DEFINITION
 directive @protobuf(file: String!, name: String!) on FIELD_DEFINITION
 
 type TimeSeriesData {
-  Code: Int
-  Message: String
-  Data: String
-  Last: String
-  TotalRecords: Int
+    code: Int
+    message: String
+    data: String @jsonencoded
+    last: String
+    totalRecords: Int
 }
