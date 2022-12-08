@@ -15,9 +15,11 @@ package nexus_client
 import (
 	"context"
 	"encoding/json"
+	"sync"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	types "k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/rest"
+	cache "k8s.io/client-go/tools/cache"
 
 {{.HelperImport}}
 {{.CommonImport}}
@@ -25,12 +27,50 @@ baseClientset {{.BaseClientsetImport}}
 fakeBaseClienset {{.FakeBaseCliensetImport}}
 
 {{.BaseImports}}
+{{.InformerImports}}
 )
+
 type Clientset struct {
 	baseClient baseClientset.Interface
 	{{ range $key, $group := .ApiGroups }}{{$group.ClientsetApiGroups}}{{ end }}
 }
 
+type subscription struct {
+	informer cache.SharedIndexInformer
+	stop chan struct{}
+}
+
+// subscriptionMap will store crd string as key and value as subscription type,
+// for example key="roots.orgchart.vmware.org" and value=subscription{}
+var subscriptionMap = sync.Map{}
+
+func subscribe(key string, informer cache.SharedIndexInformer){
+	s:=subscription{
+		informer: informer,
+		stop: make(chan struct{}),
+	}
+	go s.informer.Run(s.stop)
+	subscriptionMap.Store(key,s)
+}
+
+func (c *Clientset) SubscribeAll() {	
+	var key string
+	{{ range $key, $node := .Nodes }}
+	key = "{{$node.CrdName}}"
+	if _,ok := subscriptionMap.Load(key); !ok {
+		informer := {{$node.GroupInformerImport}}.New{{$node.BaseNodeName}}Informer(c.baseClient, 0, cache.Indexers{})
+		subscribe(key, informer)
+	}
+	{{end}}
+}
+
+func (c *Clientset) UnsubscribeAll() {
+    subscriptionMap.Range(func(key, s interface{})bool{
+		close(s.(subscription).stop)
+		subscriptionMap.Delete(key)
+		return true
+	})
+}
 // NewForConfig returns Client which can be which can be used to connect to database
 func NewForConfig(config *rest.Config) (*Clientset, error) {
 	baseClient, err := baseClientset.NewForConfig(config)
@@ -84,17 +124,32 @@ func new{{$group.GroupTypeName}}(client *Clientset) *{{$group.GroupTypeName}} {
 // Get{{$node.BaseNodeName}}ByName returns object stored in the database under the hashedName which is a hash of display
 // name and parents names. Use it when you know hashed name of object.
 func (group *{{$node.GroupTypeName}}) Get{{$node.BaseNodeName}}ByName(ctx context.Context, hashedName string) (*{{$node.SimpleGroupTypeName}}{{$node.BaseNodeName}}, error) {
-	result, err := group.client.baseClient.
-	{{$node.GroupTypeName}}().
-	{{$node.GroupResourceNameTitle}}().Get(ctx, hashedName, metav1.GetOptions{})
-	if err != nil {
-		return nil, err
-	}
+	key := "{{$node.CrdName}}"
+	if s, ok := subscriptionMap.Load(key); ok {
+		item, exists,err := s.(subscription).informer.GetStore().GetByKey(hashedName)
+		if !exists {
+			return nil, err
+		}
 
-	return &{{$node.SimpleGroupTypeName}}{{$node.BaseNodeName}}{
-		client: group.client,
-		{{$node.BaseNodeName}}: result,
-	}, nil
+        
+		result, _ := item.(*{{$node.GroupBaseImport}})
+		return &{{$node.SimpleGroupTypeName}}{{$node.BaseNodeName}}{
+			client: group.client,
+			{{$node.BaseNodeName}}: result,
+		}, nil
+	}else{
+		result, err := group.client.baseClient.
+		{{$node.GroupTypeName}}().
+		{{$node.GroupResourceNameTitle}}().Get(ctx, hashedName, metav1.GetOptions{})
+		if err != nil {
+			return nil, err
+		}
+
+		return &{{$node.SimpleGroupTypeName}}{{$node.BaseNodeName}}{
+			client: group.client,
+			{{$node.BaseNodeName}}: result,
+		}, nil
+	}
 }
 
 // Delete{{$node.BaseNodeName}}ByName deletes object stored in the database under the hashedName which is a hash of
@@ -356,17 +411,30 @@ func (group *{{$node.GroupTypeName}}) Update{{$node.BaseNodeName}}ByName(ctx con
 // List{{$node.GroupResourceNameTitle}} returns slice of all existing objects of this type. Selectors can be provided in opts parameter.
 func (group *{{$node.GroupTypeName}}) List{{$node.GroupResourceNameTitle}}(ctx context.Context,
 	opts metav1.ListOptions) (result []*{{$node.SimpleGroupTypeName}}{{$node.BaseNodeName}}, err error) {
-	list, err := group.client.baseClient.{{$node.GroupTypeName}}().
-	{{$node.GroupResourceNameTitle}}().List(ctx, opts)
-	if err != nil {
-		return nil, err
-	}
-	result = make([]*{{$node.SimpleGroupTypeName}}{{$node.BaseNodeName}}, len(list.Items))
-	for k, v := range list.Items {
-		item := v
-		result[k] = &{{$node.SimpleGroupTypeName}}{{$node.BaseNodeName}}{
-			client: group.client,
-			{{$node.BaseNodeName}}: &item,
+	key := "{{$node.CrdName}}"
+	if s,ok := subscriptionMap.Load(key); ok {
+		items := s.(subscription).informer.GetStore().List()
+		result = make([]*{{$node.SimpleGroupTypeName}}{{$node.BaseNodeName}}, len(items))
+		for k, v := range items {
+			item, _ := v.(*{{$node.GroupBaseImport}})
+			result[k] = &{{$node.SimpleGroupTypeName}}{{$node.BaseNodeName}}{
+				client: group.client,
+				{{$node.BaseNodeName}}: item,
+			}
+		}
+	} else {
+		list, err := group.client.baseClient.{{$node.GroupTypeName}}().
+		{{$node.GroupResourceNameTitle}}().List(ctx, opts)
+		if err != nil {
+			return nil, err
+		}
+		result = make([]*{{$node.SimpleGroupTypeName}}{{$node.BaseNodeName}}, len(list.Items))
+		for k, v := range list.Items {
+			item := v
+			result[k] = &{{$node.SimpleGroupTypeName}}{{$node.BaseNodeName}}{
+				client: group.client,
+				{{$node.BaseNodeName}}: &item,
+			}
 		}
 	}
 	return
@@ -738,6 +806,28 @@ type {{$node.GroupResourceType}}Chainer struct {
 	client       *Clientset
 	name         string
 	parentLabels map[string]string
+}
+
+func (c *{{$node.GroupResourceType}}Chainer) Subscribe(){
+    key := "{{$node.CrdName}}"
+	if _, ok := subscriptionMap.Load(key); !ok {
+		informer := {{$node.GroupInformerImport}}.New{{$node.BaseNodeName}}Informer(c.client.baseClient, 0, cache.Indexers{})
+		subscribe(key, informer)
+	}
+}
+
+func (c *{{$node.GroupResourceType}}Chainer) Unsubscribe(){
+	key := "{{$node.CrdName}}"
+	if s, ok := subscriptionMap.Load(key); ok {
+		close(s.(subscription).stop)
+		subscriptionMap.Delete(key)
+	}
+}
+
+func (c *{{$node.GroupResourceType}}Chainer) IsSubscribed() bool {
+	key := "{{$node.CrdName}}"
+	 _, ok := subscriptionMap.Load(key)
+	 return ok
 }
 
 {{if .HasStatus}}
