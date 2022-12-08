@@ -802,7 +802,7 @@ func GetGraphqlArgs(f *ast.Field) string {
 	return ""
 }
 
-func IsGraphqlEnumField(f *ast.Field) bool {
+func IsGraphqlAliasType(f *ast.Field) bool {
 	if f == nil {
 		return false
 	}
@@ -816,7 +816,7 @@ func IsGraphqlEnumField(f *ast.Field) bool {
 	return false
 }
 
-func GetGraphqlEnumValue(f *ast.Field) string {
+func GetGraphqlAliasType(f *ast.Field) string {
 	if f == nil {
 		return ""
 	}
@@ -824,6 +824,34 @@ func GetGraphqlEnumValue(f *ast.Field) string {
 	if f.Tag != nil {
 		tags := ParseFieldTags(f.Tag.Value)
 		if val, err := tags.Get("nexus-alias-type"); err == nil {
+			return val.Value()
+		}
+	}
+	return ""
+}
+
+func IsGraphqlAliasFieldName(f *ast.Field) bool {
+	if f == nil {
+		return false
+	}
+
+	if f.Tag != nil {
+		tags := ParseFieldTags(f.Tag.Value)
+		if _, err := tags.Get("nexus-alias-name"); err == nil {
+			return true
+		}
+	}
+	return false
+}
+
+func GetGraphqlAliasFieldName(f *ast.Field) string {
+	if f == nil {
+		return ""
+	}
+
+	if f.Tag != nil {
+		tags := ParseFieldTags(f.Tag.Value)
+		if val, err := tags.Get("nexus-alias-name"); err == nil {
 			return val.Value()
 		}
 	}
