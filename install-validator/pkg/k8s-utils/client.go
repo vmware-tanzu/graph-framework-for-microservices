@@ -3,6 +3,7 @@ package k8s_utils
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	v1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	ext "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset"
@@ -11,17 +12,19 @@ import (
 )
 
 type ClientInt interface {
-	GetCrd(name string) *v1.CustomResourceDefinition
 	ApplyCrd(crd v1.CustomResourceDefinition) error
-	FetchCrds() error
-	ListResources(crd v1.CustomResourceDefinition) ([]interface{}, error)
-	GetCrds() []v1.CustomResourceDefinition
 	DeleteCrd(name string) error
+	FetchCrds() error
+	GetCrds() []v1.CustomResourceDefinition
+	GetGroup() string
+	GetCrd(name string) *v1.CustomResourceDefinition
+	ListResources(crd v1.CustomResourceDefinition) ([]interface{}, error)
 }
 
 type Client struct {
 	Clientset ext.Interface
 	crds      []v1.CustomResourceDefinition
+	group     string
 }
 
 func (c *Client) GetCrd(name string) *v1.CustomResourceDefinition {
@@ -35,6 +38,9 @@ func (c *Client) GetCrd(name string) *v1.CustomResourceDefinition {
 
 func (c *Client) GetCrds() []v1.CustomResourceDefinition {
 	return c.crds
+}
+func (c *Client) GetGroup() string {
+	return c.group
 }
 
 func (c *Client) DeleteCrd(name string) error {
@@ -56,6 +62,10 @@ func (c *Client) ApplyCrd(crd v1.CustomResourceDefinition) error {
 func (c *Client) FetchCrds() error {
 	l, err := c.Clientset.ApiextensionsV1().CustomResourceDefinitions().List(context.TODO(), metav1.ListOptions{})
 	c.crds = l.Items
+	if len(l.Items) > 0 {
+		parts := strings.Split(l.Items[0].Spec.Group, ".")
+		c.group = strings.Join(parts[1:], ".")
+	}
 	return err
 }
 

@@ -30,8 +30,13 @@ func TestApplyDir(t *testing.T) {
 	if err != nil {
 		t.Fatal("error while init", err)
 	}
+	rootOutdatedf, _ := os.ReadFile("./test_dir/root_root_outdated.yaml")
+	if err != nil {
+		t.Fatal("error while init", err)
+	}
 	var patt1 v1.CustomResourceDefinition
 	var rootRoot v1.CustomResourceDefinition
+	var rootOutdated v1.CustomResourceDefinition
 	err = yaml.Unmarshal(patt1f, &patt1)
 	if err != nil {
 		t.Fatal("error while init", err)
@@ -40,13 +45,19 @@ func TestApplyDir(t *testing.T) {
 	if err != nil {
 		t.Fatal("error while init", err)
 	}
+	err = yaml.Unmarshal(rootOutdatedf, &rootOutdated)
+	if err != nil {
+		t.Fatal("error while init", err)
+	}
 
 	cc.EXPECT().FetchCrds().Return(nil).AnyTimes()
 
 	cc.EXPECT().ApplyCrd(patt1).Return(nil).AnyTimes()
 	cc.EXPECT().ApplyCrd(rootRoot).Return(nil).AnyTimes()
+	cc.EXPECT().ApplyCrd(rootOutdated).Return(nil).AnyTimes()
 
 	cc.EXPECT().GetCrd("my-crds.com.example").Return(&patt1).AnyTimes()
+	cc.EXPECT().GetCrd("roots.rootoutdated.tsm.tanzu.vmware.com").Return(&patt1).AnyTimes()
 	cc.EXPECT().GetCrd("roots.root.tsm.tanzu.vmware.com").Return(&rootRoot).AnyTimes()
 
 	cc.EXPECT().ListResources(patt1).Return([]interface{}{"aa"}, nil).AnyTimes()

@@ -102,7 +102,7 @@ func GetOutdated(dir string, c kubewrapper.ClientInt) ([]string, error) {
 				break
 			}
 		}
-		if !found {
+		if !found && !strings.HasSuffix(crd.Spec.Group, c.GetGroup()) {
 			toDelete = append(toDelete, crd.Name)
 		}
 	}

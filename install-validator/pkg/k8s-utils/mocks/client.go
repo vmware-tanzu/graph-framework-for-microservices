@@ -104,6 +104,20 @@ func (mr *MockClientIntMockRecorder) GetCrds() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetCrds", reflect.TypeOf((*MockClientInt)(nil).GetCrds))
 }
 
+// GetGroup mocks base method.
+func (m *MockClientInt) GetGroup() string {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetGroup")
+	ret0, _ := ret[0].(string)
+	return ret0
+}
+
+// GetGroup indicates an expected call of GetGroup.
+func (mr *MockClientIntMockRecorder) GetGroup() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetGroup", reflect.TypeOf((*MockClientInt)(nil).GetGroup))
+}
+
 // ListResources mocks base method.
 func (m *MockClientInt) ListResources(crd v1.CustomResourceDefinition) ([]interface{}, error) {
 	m.ctrl.T.Helper()
