@@ -137,7 +137,7 @@ func parseArgs(argsTypeName string, p Package) []GraphQlArg {
 				args = append(args, GraphQlArg{
 					Name:      field.Names[0].Name,
 					Type:      GetFieldType(field),
-					AliasType: GetGraphqlEnumValue(field),
+					AliasType: GetGraphqlAliasType(field),
 				})
 			}
 		}

@@ -284,12 +284,14 @@ func isRootOfGraph(parents []string, rootOfGraph bool) bool {
 	return rootOfGraph
 }
 
-func getGraphqlSchemaName(pattern, fieldName, schemaType string) string {
+func getGraphqlSchemaName(pattern, fieldName, schemaType string,f *ast.Field) string {
 	schemaName := fmt.Sprintf(pattern, fieldName, schemaType)
-
+	if parser.IsGraphqlAliasType(f){
+		schemaType = parser.GetGraphqlAliasType(f)
+	}
 	if fieldName != "" {
 		// use camelCase for fieldName #e.g ServiceGroup --> serviceGroup
-		schemaName = fmt.Sprintf(pattern, util.GetTag(fieldName), schemaType)
+		schemaName = fmt.Sprintf(pattern, getAliasFieldValue(fieldName, f), schemaType)
 	}
 
 	schemaName = strings.ReplaceAll(schemaName, "global_", "")
@@ -348,7 +350,7 @@ func getTsmGraphqlSchemaFieldName(sType GraphQLSchemaType, fieldName, schemaType
 			schemaType = "String"
 		}
 	}
-	schemaName := getGraphqlSchemaName(pattern, fieldName, schemaType)
+	schemaName := getGraphqlSchemaName(pattern, fieldName, schemaType,f)
 	if parser.IsTsmGraphqlDirectivesField(f) {
 		replacer := strings.NewReplacer("nexus-graphql-tsm-directive:", "", "\\", "")
 		out := replacer.Replace(parser.GetTsmGraphqlDirectives(f))
@@ -358,11 +360,20 @@ func getTsmGraphqlSchemaFieldName(sType GraphQLSchemaType, fieldName, schemaType
 	return schemaName
 }
 
-// getGraphQLEnumValue process nexus annotation  `nexus-alias-type:`
-func getGraphQLEnumValue(fieldName string, f *ast.Field) string {
-	e := parser.GetGraphqlEnumValue(f)
+// getAliasFieldValue process nexus annotation  `nexus-alias-value:`
+func getAliasFieldValue(fieldName string, f *ast.Field) string {
+	e := parser.GetGraphqlAliasFieldName(f)
 	if e != "" {
-		return fmt.Sprintf("%s: %s", util.GetTag(fieldName), e)
+		return e
 	}
-	return fmt.Sprintf("%s: %s", util.GetTag(fieldName), "String")
+	return util.GetTag(fieldName)
+}
+
+// getGraphQLAliasValue process nexus annotation  `nexus-alias-type:`
+func GetGraphQLAliasValue(fieldName string, f *ast.Field) string {
+	e := parser.GetGraphqlAliasType(f)
+	if e != "" {
+		return fmt.Sprintf("%s: %s", getAliasFieldValue(fieldName, f), e)
+	}
+	return fmt.Sprintf("%s: %s", getAliasFieldValue(fieldName, f), "String")
 }
