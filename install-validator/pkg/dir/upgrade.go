@@ -46,6 +46,18 @@ func ApplyDir(directory string, force bool, c kubewrapper.ClientInt, cFunc compa
 		return fmt.Errorf("validation failed as objects exists in the system for the incompatible nodes: %v", cr)
 	}
 
+	//delete outdated models
+	outdated, err := GetOutdated(directory, c)
+	if err != nil {
+		return err
+	}
+	for _, o := range outdated {
+		err = c.DeleteCrd(o)
+		if err != nil {
+			return err
+		}
+	}
+
 	// upsert all the models
 	err = InstallDir(directory, c)
 	if err != nil {

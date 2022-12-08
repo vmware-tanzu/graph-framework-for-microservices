@@ -15,6 +15,8 @@ type ClientInt interface {
 	ApplyCrd(crd v1.CustomResourceDefinition) error
 	FetchCrds() error
 	ListResources(crd v1.CustomResourceDefinition) ([]interface{}, error)
+	GetCrds() []v1.CustomResourceDefinition
+	DeleteCrd(name string) error
 }
 
 type Client struct {
@@ -29,6 +31,14 @@ func (c *Client) GetCrd(name string) *v1.CustomResourceDefinition {
 		}
 	}
 	return nil
+}
+
+func (c *Client) GetCrds() []v1.CustomResourceDefinition {
+	return c.crds
+}
+
+func (c *Client) DeleteCrd(name string) error {
+	return c.Clientset.ApiextensionsV1().CustomResourceDefinitions().Delete(context.TODO(), name, metav1.DeleteOptions{})
 }
 
 func (c *Client) ApplyCrd(crd v1.CustomResourceDefinition) error {

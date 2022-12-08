@@ -52,6 +52,8 @@ func TestApplyDir(t *testing.T) {
 	cc.EXPECT().ListResources(patt1).Return([]interface{}{"aa"}, nil).AnyTimes()
 	cc.EXPECT().ListResources(rootRoot).Return([]interface{}{}, nil).AnyTimes()
 
+	cc.EXPECT().GetCrds().Return([]v1.CustomResourceDefinition{}).AnyTimes()
+
 	tests := []struct {
 		name    string
 		args    args

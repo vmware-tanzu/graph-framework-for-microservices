@@ -65,3 +65,46 @@ func CheckDir(dir string, c kubewrapper.ClientInt, cFunc compareFunc) (map[strin
 
 	return changes, err
 }
+
+func GetOutdated(dir string, c kubewrapper.ClientInt) ([]string, error) {
+	var toDelete []string
+	var toInstall []string
+	err := filepath.Walk(dir, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+		if info.IsDir() {
+			return nil
+		}
+		if !strings.HasSuffix(info.Name(), ".yaml") {
+			return nil
+		}
+		newData, err := os.ReadFile(path)
+		if err != nil {
+			return err
+		}
+		name, err := nexuscompare.GetSpecName(newData)
+		if err != nil {
+			return err
+		}
+		toInstall = append(toInstall, name)
+		return nil
+	})
+	if err != nil {
+		return toDelete, err
+	}
+
+	for _, crd := range c.GetCrds() {
+		found := false
+		for _, nameToInstall := range toInstall {
+			if crd.Name == nameToInstall {
+				found = true
+				break
+			}
+		}
+		if !found {
+			toDelete = append(toDelete, crd.Name)
+		}
+	}
+	return toDelete, nil
+}
