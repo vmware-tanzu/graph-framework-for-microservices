@@ -26,6 +26,10 @@ func GetBaseImportName(pkgName, baseGroupName, version string) string {
 	return "base" + RemoveSpecialChars(GetImportPath(pkgName, baseGroupName, version)) // eg baseroothelloworldv1
 }
 
+func GetInformerImportName(pkgName, baseGroupName, version string) string {
+	return "informer" + RemoveSpecialChars(GetImportPath(pkgName, baseGroupName, version)) // eg informerroothelloworldv1
+}
+
 func GetGroupGoName(baseGroupName string) string {
 	baseGroupName = strings.Replace(baseGroupName, "-", ".", 1)
 	return namer.IC(strings.Split(baseGroupName, ".")[0]) // eg Helloworld

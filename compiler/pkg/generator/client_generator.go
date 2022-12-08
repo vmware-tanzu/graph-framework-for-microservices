@@ -38,10 +38,11 @@ func generateNexusClientVars(baseGroupName, crdModulePath string, pkgs parser.Pa
 
 			importPath := util.GetImportPath(pkg.Name, baseGroupName, version)
 			baseImportName := util.GetBaseImportName(pkg.Name, baseGroupName, version)
-
+			informerImportName := util.GetInformerImportName(pkg.Name, baseGroupName, version)
 			vars.BaseImports += baseImportName + ` "` + crdModulePath + "apis/" + importPath + `"` +
 				"\n" // eg baseroothelloworldv1 "helloworld/nexus/generated/apis/root.helloworld.com/v1"
-
+			vars.InformerImports += informerImportName + ` "` + crdModulePath + "client/informers/externalversions/" + importPath + `"` +
+				"\n" // eg informerroothelloworldv1 "helloworld/nexus/generated/client/informers/externalversions/root.helloworld.com/v1"
 			groupVarName := util.GetGroupVarName(pkg.Name, baseGroupName, version)
 			groupTypeName := util.GetGroupTypeName(pkg.Name, baseGroupName, version)
 			simpleGroupTypeName := util.GetSimpleGroupTypeName(pkg.Name)
@@ -66,7 +67,7 @@ func generateNexusClientVars(baseGroupName, crdModulePath string, pkgs parser.Pa
 				clientGroupVars.ApiGroupsVars = groupVars
 				clientGroupVars.GroupTypeName = groupTypeName
 				clientGroupVars.CrdName = util.GetCrdName(node.Name.String(), pkg.Name, baseGroupName)
-				err := resolveNode(baseImportName, pkg, pkgs, baseGroupName, version, &clientGroupVars, node, parentsMap)
+				err := resolveNode(baseImportName, informerImportName, pkg, pkgs, baseGroupName, version, &clientGroupVars, node, parentsMap)
 				if err != nil {
 					return clientVars{}, err
 				}
@@ -80,7 +81,7 @@ func generateNexusClientVars(baseGroupName, crdModulePath string, pkgs parser.Pa
 	return vars, nil
 }
 
-func resolveNode(baseImportName string, pkg parser.Package, allPkgs parser.Packages, baseGroupName, version string,
+func resolveNode(baseImportName, informerImportName string, pkg parser.Package, allPkgs parser.Packages, baseGroupName, version string,
 	clientGroupVars *apiGroupsClientVars, node *ast.TypeSpec, parentsMap map[string]parser.NodeHelper) error {
 	pkgName := pkg.Name
 	baseNodeName := node.Name.Name // eg Root
@@ -91,6 +92,7 @@ func resolveNode(baseImportName string, pkg parser.Package, allPkgs parser.Packa
 	clientGroupVars.BaseImportName = baseImportName
 	clientGroupVars.IsSingleton = parser.IsSingletonNode(node)
 	clientGroupVars.GroupBaseImport = baseImportName + "." + baseNodeName
+	clientGroupVars.GroupInformerImport = informerImportName
 	clientGroupVars.GroupResourceType = groupResourceType
 	clientGroupVars.GroupResourceNameTitle = groupResourceNameTitle
 
@@ -299,6 +301,7 @@ type apiGroupsClientVars struct {
 	GroupResourceType      string
 	GroupResourceNameTitle string
 	GroupBaseImport        string
+	GroupInformerImport    string
 	Group                  string
 	Kind                   string
 
