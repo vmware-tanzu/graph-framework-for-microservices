@@ -71,8 +71,8 @@ func getRootResolver() (*model.{{$node.PkgName}}{{$node.NodeName}}, error) {
 
 	v{{$node.NodeName}}, err := nc.Get{{$node.PkgName}}{{$node.NodeName}}(context.TODO())
 	if err != nil {
-	    log.Errorf("[getRootResolver]Error getting {{$node.NodeName}} node %s", err)
-        return nil, nil
+		log.Errorf("[getRootResolver]Error getting {{$node.NodeName}} node %s", err)
+		return nil, nil
 	}
 	{{ $node.Alias }}
 	{{ $node.ReturnType }}
@@ -98,7 +98,7 @@ func getRootResolver(id *string) ([]*model.{{$node.PkgName}}{{$node.NodeName}}, 
 
 	var v{{$node.NodeName}}List []*model.{{$node.PkgName}}{{$node.NodeName}}
 	if id != nil && *id != "" {
-	    log.Debugf("[getRootResolver]Id: %q", *id)
+		log.Debugf("[getRootResolver]Id: %q", *id)
 		v{{$node.NodeName}}, err := nc.Get{{$node.PkgName}}{{$node.NodeName}}(context.TODO(), *id)
 		if err != nil {
 			log.Errorf("[getRootResolver]Error getting {{$node.NodeName}} node %q: %s", *id, err)
@@ -115,9 +115,9 @@ func getRootResolver(id *string) ([]*model.{{$node.PkgName}}{{$node.NodeName}}, 
 
 	v{{$node.NodeName}}ListObj, err := nc.{{$node.PkgName}}().List{{$node.GroupResourceNameTitle}}(context.TODO(), metav1.ListOptions{})
 	if err != nil {
-        log.Errorf("[getRootResolver]Error getting {{$node.NodeName}} node %s", err)
-        return nil, nil
-    }
+		log.Errorf("[getRootResolver]Error getting {{$node.NodeName}} node %s", err)
+		return nil, nil
+	}
 	for _,i := range v{{$node.NodeName}}ListObj{
 		v{{$node.NodeName}}, err := nc.Get{{$node.PkgName}}{{$node.NodeName}}(context.TODO(), i.DisplayName())
 		if err != nil {

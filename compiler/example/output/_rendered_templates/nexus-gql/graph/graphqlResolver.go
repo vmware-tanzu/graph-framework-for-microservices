@@ -68,8 +68,8 @@ func getRootResolver() (*model.RootRoot, error) {
 
 	vRoot, err := nc.GetRootRoot(context.TODO())
 	if err != nil {
-	    log.Errorf("[getRootResolver]Error getting Root node %s", err)
-        return nil, nil
+		log.Errorf("[getRootResolver]Error getting Root node %s", err)
+		return nil, nil
 	}
 	dn := vRoot.DisplayName()
 parentLabels := map[string]interface{}{"roots.root.tsm.tanzu.vmware.com":dn}
