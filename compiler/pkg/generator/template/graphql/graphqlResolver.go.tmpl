@@ -64,10 +64,10 @@ func getRootResolver() (*model.{{$node.PkgName}}{{$node.NodeName}}, error) {
 	    if err != nil {
             return nil, fmt.Errorf("failed to get k8s client config: %s", err)
 	    }
-	nc = nexusClient
-	nc.SubscribeAll()
-	log.Debugf("Subscribe api is called for all the nodes.")
-}
+		nc = nexusClient
+		nc.SubscribeAll()
+		log.Debugf("Subscribed to all nodes in datamodel")
+    }
 
 	v{{$node.NodeName}}, err := nc.Get{{$node.PkgName}}{{$node.NodeName}}(context.TODO())
 	if err != nil {
@@ -91,8 +91,11 @@ func getRootResolver(id *string) ([]*model.{{$node.PkgName}}{{$node.NodeName}}, 
 	    if err != nil {
             return nil, fmt.Errorf("failed to get k8s client config: %s", err)
 	    }
-	nc = nexusClient
-}
+		nc = nexusClient
+		nc.SubscribeAll()
+		log.Debugf("Subscribed to all nodes in datamodel")
+	}
+
 	k8sApiConfig := getK8sAPIEndpointConfig()
 	nexusClient, err := nexus_client.NewForConfig(k8sApiConfig)
 	if err != nil {

@@ -70,7 +70,7 @@ func getRootResolver() (*model.RootRoot, error) {
 		}
 		nc = nexusClient
 		nc.SubscribeAll()
-		log.Debugf("Subscribe api is called for all the nodes.")
+		log.Debugf("Subscribed to all nodes in datamodel")
 	}
 
 	vRoot, err := nc.GetRootRoot(context.TODO())

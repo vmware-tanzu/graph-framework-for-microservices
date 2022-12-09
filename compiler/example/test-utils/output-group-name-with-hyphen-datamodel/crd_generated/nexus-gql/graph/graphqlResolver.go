@@ -61,10 +61,10 @@ func getRootResolver() (*model.ConfigConfig, error) {
 	    if err != nil {
             return nil, fmt.Errorf("failed to get k8s client config: %s", err)
 	    }
-	nc = nexusClient
-	nc.SubscribeAll()
-	log.Debugf("Subscribe api is called for all the nodes.")
-}
+		nc = nexusClient
+		nc.SubscribeAll()
+		log.Debugf("Subscribed to all nodes in datamodel")
+    }
 
 	vConfig, err := nc.GetConfigConfig(context.TODO())
 	if err != nil {
