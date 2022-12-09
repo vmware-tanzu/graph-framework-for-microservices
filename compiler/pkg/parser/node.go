@@ -41,6 +41,11 @@ type NodeHelperChild struct {
 	IsNamed      bool   `json:"isNamed"`
 }
 
+type NonNexusTypes struct {
+	Types  map[string]ast.Decl
+	Values []string
+}
+
 func (node *Node) Walk(fn func(node *Node)) {
 	fn(node)
 

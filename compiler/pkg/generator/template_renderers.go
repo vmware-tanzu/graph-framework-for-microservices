@@ -5,7 +5,6 @@ import (
 	_ "embed"
 	"encoding/json"
 	"fmt"
-	"go/ast"
 	"go/format"
 	"go/printer"
 	"go/token"
@@ -67,7 +66,7 @@ var commonTemplateFile []byte
 func RenderCRDTemplate(baseGroupName, crdModulePath string,
 	pkgs parser.Packages, graph map[string]parser.Node,
 	outputDir string, httpMethods map[string]nexus.HTTPMethodsResponses,
-	httpCodes map[string]nexus.HTTPCodesResponse, nonNexusTypes []ast.Decl,
+	httpCodes map[string]nexus.HTTPCodesResponse, nonNexusTypes parser.NonNexusTypes,
 	fileset *token.FileSet, graphqlFiles map[string]string) error {
 	parentsMap := parser.CreateParentsMap(graph)
 
@@ -698,7 +697,7 @@ type CommonVars struct {
 	Types string
 }
 
-func RenderNonNexusTypes(outputDir string, nonNexusTypes []ast.Decl, fileset *token.FileSet) error {
+func RenderNonNexusTypes(outputDir string, nonNexusTypes parser.NonNexusTypes, fileset *token.FileSet) error {
 	outputCommonFolder := outputDir + "/common"
 	err := createFolder(outputCommonFolder)
 	if err != nil {
@@ -706,7 +705,7 @@ func RenderNonNexusTypes(outputDir string, nonNexusTypes []ast.Decl, fileset *to
 	}
 
 	var output string
-	for _, decl := range nonNexusTypes {
+	for _, decl := range nonNexusTypes.Types {
 		var buf bytes.Buffer
 		err := printer.Fprint(&buf, fileset, decl)
 		if err != nil {
@@ -714,6 +713,10 @@ func RenderNonNexusTypes(outputDir string, nonNexusTypes []ast.Decl, fileset *to
 		}
 
 		output += fmt.Sprintf("%s\n\n", buf.String())
+	}
+
+	for _, val := range nonNexusTypes.Values {
+		output += fmt.Sprintf("%s\n\n", val)
 	}
 
 	vars := CommonVars{Types: output}
