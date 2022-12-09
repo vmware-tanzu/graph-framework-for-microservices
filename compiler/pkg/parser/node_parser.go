@@ -6,6 +6,7 @@ import (
 	"go/parser"
 	"go/token"
 	"io/fs"
+	"k8s.io/utils/strings/slices"
 	"path/filepath"
 	"strconv"
 	"strings"
@@ -18,13 +19,16 @@ import (
 
 // ParseDSLNodes walks recursively through given path and looks for structs types definitions to add them to graph
 func ParseDSLNodes(startPath string, baseGroupName string, packages Packages,
-	graphqlQueries map[string]nexus.GraphQLQuerySpec) (map[string]Node, []ast.Decl, *token.FileSet) {
+	graphqlQueries map[string]nexus.GraphQLQuerySpec) (map[string]Node, NonNexusTypes, *token.FileSet) {
 	modulePath := GetModulePath(startPath)
 
 	rootNodes := make([]string, 0)
 	nodes := make(map[string]Node)
 	pkgsMap := make(map[string]string)
-	nonNexusTypes := make([]ast.Decl, 0)
+	nonNexusTypes := NonNexusTypes{
+		Types:  map[string]ast.Decl{},
+		Values: nil,
+	}
 	fileset := token.NewFileSet()
 	err := filepath.Walk(startPath, func(path string, info fs.FileInfo, err error) error {
 		if info.IsDir() {
@@ -95,14 +99,22 @@ func ParseDSLNodes(startPath string, baseGroupName string, packages Packages,
 											}
 											nodes[crdName] = node
 										} else {
-											nonNexusTypes = append(nonNexusTypes, decl)
+											nonNexusTypes.Types[typeSpec.Name.Name] = decl
 										}
 									} else {
-										nonNexusTypes = append(nonNexusTypes, decl)
+										nonNexusTypes.Types[typeSpec.Name.Name] = decl
 									}
 								}
 								if _, ok := spec.(*ast.ValueSpec); ok {
-									nonNexusTypes = append(nonNexusTypes, decl)
+									out, err := util.RenderDecl(decl, fileset)
+									if err != nil {
+										return err
+									}
+									outStr := out.String()
+
+									if !slices.Contains(nonNexusTypes.Values, outStr) {
+										nonNexusTypes.Values = append(nonNexusTypes.Values, outStr)
+									}
 								}
 							}
 						}
