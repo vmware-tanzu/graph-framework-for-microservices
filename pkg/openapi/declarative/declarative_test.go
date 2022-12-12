@@ -108,6 +108,7 @@ spec:
     namespace:
       match: string
       type: string
+    service: object
   mtls_enforced: true
   name: string
   use_shared_gateway: true

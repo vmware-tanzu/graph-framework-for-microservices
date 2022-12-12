@@ -186,9 +186,13 @@ func parseSchema(schemaName string, wg *sync.WaitGroup) {
 		case "array":
 			if val.Value.Items.Ref != "" {
 				ref := openapi3.DefaultRefNameResolver(val.Value.Items.Ref)
-				spec[field] = map[string]interface{}{
-					"ref":  ref,
-					"type": "array",
+				if ref == schemaName {
+					spec[field] = "object"
+				} else {
+					spec[field] = map[string]interface{}{
+						"ref":  ref,
+						"type": "array",
+					}
 				}
 			}
 		case "object":
@@ -197,8 +201,12 @@ func parseSchema(schemaName string, wg *sync.WaitGroup) {
 
 		if val.Ref != "" {
 			ref := openapi3.DefaultRefNameResolver(val.Ref)
-			spec[field] = map[string]interface{}{
-				"ref": ref,
+			if ref == schemaName {
+				spec[field] = "object"
+			} else {
+				spec[field] = map[string]interface{}{
+					"ref": ref,
+				}
 			}
 		}
 	}
@@ -222,7 +230,7 @@ func parseSchemaRefs(schemaName string, wg *sync.WaitGroup) {
 		ref := fv["ref"]
 		refType := fv["type"]
 
-		if ref == nil {
+		if ref == nil || ref == schemaName {
 			continue
 		}
 
