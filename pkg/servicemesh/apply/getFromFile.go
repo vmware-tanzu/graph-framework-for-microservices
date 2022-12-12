@@ -253,6 +253,9 @@ func GetApisRequest(token string, serverInfo *auth.Server) (map[string]interface
 		log.Errorf("error while get request is sent to saas server %v", err)
 		return nil, err
 	}
+	if resp.IsError() {
+		return nil, fmt.Errorf("%v", string(resp.Body()))
+	}
 
 	var data map[string]interface{}
 	err = json.Unmarshal(resp.Body(), &data)
@@ -266,7 +269,7 @@ func GetApisRequest(token string, serverInfo *auth.Server) (map[string]interface
 func GetApisList(token string, serverInfo *auth.Server) error {
 	data, err := GetApisRequest(token, serverInfo)
 	if err != nil {
-		return fmt.Errorf("error while executing get apis request %v", err)
+		return err
 	}
 
 	var apis []string
@@ -359,7 +362,7 @@ func GetHelp(cmd *cobra.Command, args []string) {
 
 	err = GetApisList(token, serverInfo)
 	if err != nil {
-		log.Errorf("Get apis request failed with error %v", err)
+		log.Errorf("Get apis request failed with error: %v", err)
 	}
 }
 
