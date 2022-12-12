@@ -3,7 +3,7 @@ package k8s_utils
 import (
 	"context"
 	"fmt"
-	"strings"
+	"os"
 
 	v1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	ext "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset"
@@ -19,6 +19,7 @@ type ClientInt interface {
 	GetGroup() string
 	GetCrd(name string) *v1.CustomResourceDefinition
 	ListResources(crd v1.CustomResourceDefinition) ([]interface{}, error)
+	FetchGroup(groupPath string) error
 }
 
 type Client struct {
@@ -61,12 +62,11 @@ func (c *Client) ApplyCrd(crd v1.CustomResourceDefinition) error {
 
 func (c *Client) FetchCrds() error {
 	l, err := c.Clientset.ApiextensionsV1().CustomResourceDefinitions().List(context.TODO(), metav1.ListOptions{})
-	c.crds = l.Items
-	if len(l.Items) > 0 {
-		parts := strings.Split(l.Items[0].Spec.Group, ".")
-		c.group = strings.Join(parts[1:], ".")
+	if err != nil {
+		return err
 	}
-	return err
+	c.crds = l.Items
+	return nil
 }
 
 func (c *Client) ListResources(crd v1.CustomResourceDefinition) ([]interface{}, error) {
@@ -79,6 +79,15 @@ func (c *Client) ListResources(crd v1.CustomResourceDefinition) ([]interface{}, 
 		return nil, err
 	}
 	return obj["items"].([]interface{}), err
+}
+
+func (c *Client) FetchGroup(groupPath string) error {
+	file, err := os.ReadFile(fmt.Sprintf("%s", groupPath))
+	if err != nil {
+		return err
+	}
+	c.group = string(file)
+	return nil
 }
 
 func createURI(crd v1.CustomResourceDefinition) string {

@@ -14,8 +14,9 @@ import (
 )
 
 const (
-	dirEnv   = "CRD_SPEC_DIR"
-	forceEnv = "CRD_FORCE"
+	dirEnv        = "CRD_SPEC_DIR"
+	forceEnv      = "CRD_FORCE"
+	groupNamePath = "/NAME"
 )
 
 func main() {
@@ -38,6 +39,10 @@ func main() {
 		logrus.Error(err)
 	}
 	c := kubewrapper.Client{Clientset: clientset}
+	err = c.FetchGroup(groupNamePath)
+	if err != nil {
+		logrus.Error(err)
+	}
 
 	err = dir.ApplyDir(directory, force, &c, nexuscompare.CompareFiles)
 	if err != nil {

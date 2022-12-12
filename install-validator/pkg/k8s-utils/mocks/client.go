@@ -132,3 +132,17 @@ func (mr *MockClientIntMockRecorder) ListResources(crd interface{}) *gomock.Call
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListResources", reflect.TypeOf((*MockClientInt)(nil).ListResources), crd)
 }
+
+// ListResources mocks base method.
+func (m *MockClientInt) FetchGroup(groupPath string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "FetchGroup", groupPath)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// ListResources indicates an expected call of ListResources.
+func (mr *MockClientIntMockRecorder) FetchGroup(crd interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FetchGroup", reflect.TypeOf((*MockClientInt)(nil).ListResources), crd)
+}
