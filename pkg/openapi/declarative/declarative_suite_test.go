@@ -245,6 +245,8 @@ components:
           $ref: '#/components/schemas/Condition'
         cluster:
           $ref: '#/components/schemas/Condition'
+        service: 
+          $ref: '#/components/schemas/MatchCondition'
       required:
         - namespace
       additionalProperties: false
