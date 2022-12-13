@@ -14,8 +14,10 @@ import (
 
 type compareFunc func([]byte, []byte) (bool, *bytes.Buffer, error)
 
-func CheckDir(dir string, c kubewrapper.ClientInt, cFunc compareFunc) (map[string]*bytes.Buffer, error) {
+func CheckDir(dir string, c kubewrapper.ClientInt, cFunc compareFunc) (map[string]*bytes.Buffer, []string, error) {
 	changes := make(map[string]*bytes.Buffer)
+	var toDelete []string
+	var toInstall []string
 	err := filepath.Walk(dir, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
@@ -39,6 +41,7 @@ func CheckDir(dir string, c kubewrapper.ClientInt, cFunc compareFunc) (map[strin
 		if crd == nil {
 			return nil
 		}
+		toInstall = append(toInstall, name)
 
 		if cFunc == nil {
 			return errors.New("nil compare func passed")
@@ -60,38 +63,7 @@ func CheckDir(dir string, c kubewrapper.ClientInt, cFunc compareFunc) (map[strin
 	})
 
 	if err != nil {
-		return changes, err
-	}
-
-	return changes, err
-}
-
-func GetOutdated(dir string, c kubewrapper.ClientInt) ([]string, error) {
-	var toDelete []string
-	var toInstall []string
-	err := filepath.Walk(dir, func(path string, info os.FileInfo, err error) error {
-		if err != nil {
-			return err
-		}
-		if info.IsDir() {
-			return nil
-		}
-		if !strings.HasSuffix(info.Name(), ".yaml") {
-			return nil
-		}
-		newData, err := os.ReadFile(path)
-		if err != nil {
-			return err
-		}
-		name, err := nexuscompare.GetSpecName(newData)
-		if err != nil {
-			return err
-		}
-		toInstall = append(toInstall, name)
-		return nil
-	})
-	if err != nil {
-		return toDelete, err
+		return changes, []string{}, err
 	}
 
 	for _, crd := range c.GetCrds() {
@@ -106,5 +78,6 @@ func GetOutdated(dir string, c kubewrapper.ClientInt) ([]string, error) {
 			toDelete = append(toDelete, crd.Name)
 		}
 	}
-	return toDelete, nil
+
+	return changes, toDelete, err
 }

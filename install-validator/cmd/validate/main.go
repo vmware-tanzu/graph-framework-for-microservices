@@ -32,21 +32,21 @@ func main() {
 	// setup k8s client
 	config, err := rest.InClusterConfig()
 	if err != nil {
-		logrus.Error(err)
+		logrus.Fatal(err)
 	}
 	clientset, err := ext.NewForConfig(config)
 	if err != nil {
-		logrus.Error(err)
+		logrus.Fatal(err)
 	}
 	c := kubewrapper.Client{Clientset: clientset}
 	err = c.FetchGroup(groupNamePath)
 	if err != nil {
-		logrus.Error(err)
+		logrus.Fatal(err)
 	}
 
 	err = dir.ApplyDir(directory, force, &c, nexuscompare.CompareFiles)
 	if err != nil {
-		logrus.Error(err)
+		logrus.Fatal(err)
 	}
 
 }

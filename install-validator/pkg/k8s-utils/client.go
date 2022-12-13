@@ -40,6 +40,7 @@ func (c *Client) GetCrd(name string) *v1.CustomResourceDefinition {
 func (c *Client) GetCrds() []v1.CustomResourceDefinition {
 	return c.crds
 }
+
 func (c *Client) GetGroup() string {
 	return c.group
 }

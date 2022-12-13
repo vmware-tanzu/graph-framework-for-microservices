@@ -14,11 +14,11 @@ import (
 func ApplyDir(directory string, force bool, c kubewrapper.ClientInt, cFunc compareFunc) error {
 	err := c.FetchCrds()
 	if err != nil {
-		logrus.Error(err)
+		return err
 	}
 
-	// check for incompatible models and not installed. Return  if any and force != true
-	inCompatibleCRDs, err := CheckDir(directory, c, cFunc)
+	// check for incompatible and outdated models. Return if there are any incompatibilities and force != true
+	inCompatibleCRDs, outdated, err := CheckDir(directory, c, cFunc)
 	if err != nil {
 		return err
 	}
@@ -31,7 +31,7 @@ func ApplyDir(directory string, force bool, c kubewrapper.ClientInt, cFunc compa
 		return errors.New("incompatible datamodel changes detected")
 	}
 
-	// check if any data for incompatible models and return if so
+	// check if there are any resources for incompatible crds and return if so
 	var cr []string
 	for crd := range inCompatibleCRDs {
 		res, err := c.ListResources(*c.GetCrd(crd))
@@ -47,10 +47,6 @@ func ApplyDir(directory string, force bool, c kubewrapper.ClientInt, cFunc compa
 	}
 
 	//delete outdated models
-	outdated, err := GetOutdated(directory, c)
-	if err != nil {
-		return err
-	}
 	for _, o := range outdated {
 		err = c.DeleteCrd(o)
 		if err != nil {
