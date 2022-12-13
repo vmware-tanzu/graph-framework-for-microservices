@@ -119,7 +119,7 @@ func parseQuery(queryComp *ast.CompositeLit, p Package) (newQuery nexus.GraphQLQ
 type GraphQlArg struct {
 	Name      string
 	Type      string
-	AliasType string
+	AliasType bool
 }
 
 func parseArgs(argsTypeName string, p Package) []GraphQlArg {
@@ -134,10 +134,25 @@ func parseArgs(argsTypeName string, p Package) []GraphQlArg {
 				if len(field.Names) == 0 {
 					log.Fatalf("Field in graphql args must be named, args %s", argsTypeName)
 				}
+				// AliasName Annotation
+				var fName, fType string
+				var aType bool
+				if GetGraphqlAliasFieldName(field) != "" {
+					fName = GetGraphqlAliasFieldName(field)
+				} else {
+					fName = field.Names[0].Name
+				}
+				// AliasType Annotation
+				if GetGraphqlAliasType(field) != "" {
+					fType = GetGraphqlAliasType(field)
+					aType = true
+				} else {
+					fType = GetFieldType(field)
+				}
 				args = append(args, GraphQlArg{
-					Name:      field.Names[0].Name,
-					Type:      GetFieldType(field),
-					AliasType: GetGraphqlAliasType(field),
+					Name:      fName,
+					Type:      fType,
+					AliasType: aType,
 				})
 			}
 		}

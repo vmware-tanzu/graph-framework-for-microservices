@@ -18,8 +18,8 @@ func CustomQueryToGraphqlSchema(query nexus.GraphQLQuery) string {
 		for _, arg := range argsList {
 			graphqlType := convertGraphqlStdType(arg.Type)
 			// AliasType is to over write arg type with annotation `nexus-alias-type:""`
-			if arg.AliasType != "" {
-				graphqlType = arg.AliasType
+			if arg.AliasType {
+				graphqlType = arg.Type
 			}
 			if graphqlType == "" {
 				log.Fatalf("Failed to convert type %s to graphql types, supported types are: "+
