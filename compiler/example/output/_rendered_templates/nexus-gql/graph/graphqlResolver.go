@@ -55,19 +55,21 @@ func getK8sAPIEndpointConfig() *rest.Config {
 // PKG: Root, NODE: Root
 //////////////////////////////////////
 func getRootResolver() (*model.RootRoot, error) {
-    if nc == nil {
-       k8sApiConfig := getK8sAPIEndpointConfig()
-	    nexusClient, err := nexus_client.NewForConfig(k8sApiConfig)
-	    if err != nil {
-            return nil, fmt.Errorf("failed to get k8s client config: %s", err)
-	    }
-	nc = nexusClient
-}
+	if nc == nil {
+		k8sApiConfig := getK8sAPIEndpointConfig()
+		nexusClient, err := nexus_client.NewForConfig(k8sApiConfig)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get k8s client config: %s", err)
+		}
+		nc = nexusClient
+		nc.SubscribeAll()
+		log.Debugf("Subscribed to all nodes in datamodel")
+	}
 
 	vRoot, err := nc.GetRootRoot(context.TODO())
 	if err != nil {
-	    log.Errorf("[getRootResolver]Error getting Root node %s", err)
-        return nil, nil
+		log.Errorf("[getRootResolver]Error getting Root node %s", err)
+		return nil, nil
 	}
 	dn := vRoot.DisplayName()
 parentLabels := map[string]interface{}{"roots.root.tsm.tanzu.vmware.com":dn}

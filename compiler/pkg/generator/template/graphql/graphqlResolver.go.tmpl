@@ -58,19 +58,21 @@ func getK8sAPIEndpointConfig() *rest.Config {
 // PKG: {{$node.PkgName}}, NODE: {{$node.PkgName}}
 //////////////////////////////////////
 func getRootResolver() (*model.{{$node.PkgName}}{{$node.NodeName}}, error) {
-    if nc == nil {
-       k8sApiConfig := getK8sAPIEndpointConfig()
-	    nexusClient, err := nexus_client.NewForConfig(k8sApiConfig)
-	    if err != nil {
-            return nil, fmt.Errorf("failed to get k8s client config: %s", err)
-	    }
-	nc = nexusClient
-}
+	if nc == nil {
+		k8sApiConfig := getK8sAPIEndpointConfig()
+		nexusClient, err := nexus_client.NewForConfig(k8sApiConfig)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get k8s client config: %s", err)
+		}
+		nc = nexusClient
+		nc.SubscribeAll()
+		log.Debugf("Subscribed to all nodes in datamodel")
+	}
 
 	v{{$node.NodeName}}, err := nc.Get{{$node.PkgName}}{{$node.NodeName}}(context.TODO())
 	if err != nil {
-	    log.Errorf("[getRootResolver]Error getting {{$node.NodeName}} node %s", err)
-        return nil, nil
+		log.Errorf("[getRootResolver]Error getting {{$node.NodeName}} node %s", err)
+		return nil, nil
 	}
 	{{ $node.Alias }}
 	{{ $node.ReturnType }}
@@ -83,23 +85,20 @@ func getRootResolver() (*model.{{$node.PkgName}}{{$node.NodeName}}, error) {
 // PKG: {{$node.PkgName}}, NODE: {{$node.PkgName}}
 //////////////////////////////////////
 func getRootResolver(id *string) ([]*model.{{$node.PkgName}}{{$node.NodeName}}, error) {
-    if nc == nil {
-        k8sApiConfig := getK8sAPIEndpointConfig()
-	    nexusClient, err := nexus_client.NewForConfig(k8sApiConfig)
-	    if err != nil {
-            return nil, fmt.Errorf("failed to get k8s client config: %s", err)
-	    }
-	nc = nexusClient
-}
-	k8sApiConfig := getK8sAPIEndpointConfig()
-	nexusClient, err := nexus_client.NewForConfig(k8sApiConfig)
-	if err != nil {
-		return nil, fmt.Errorf("failed to get k8s client config: %s", err)
+	if nc == nil {
+		k8sApiConfig := getK8sAPIEndpointConfig()
+		nexusClient, err := nexus_client.NewForConfig(k8sApiConfig)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get k8s client config: %s", err)
+		}
+		nc = nexusClient
+		nc.SubscribeAll()
+		log.Debugf("Subscribed to all nodes in datamodel")
 	}
-	nc = nexusClient
+
 	var v{{$node.NodeName}}List []*model.{{$node.PkgName}}{{$node.NodeName}}
 	if id != nil && *id != "" {
-	    log.Debugf("[getRootResolver]Id: %q", *id)
+		log.Debugf("[getRootResolver]Id: %q", *id)
 		v{{$node.NodeName}}, err := nc.Get{{$node.PkgName}}{{$node.NodeName}}(context.TODO(), *id)
 		if err != nil {
 			log.Errorf("[getRootResolver]Error getting {{$node.NodeName}} node %q: %s", *id, err)
@@ -116,9 +115,9 @@ func getRootResolver(id *string) ([]*model.{{$node.PkgName}}{{$node.NodeName}}, 
 
 	v{{$node.NodeName}}ListObj, err := nc.{{$node.PkgName}}().List{{$node.GroupResourceNameTitle}}(context.TODO(), metav1.ListOptions{})
 	if err != nil {
-        log.Errorf("[getRootResolver]Error getting {{$node.NodeName}} node %s", err)
-        return nil, nil
-    }
+		log.Errorf("[getRootResolver]Error getting {{$node.NodeName}} node %s", err)
+		return nil, nil
+	}
 	for _,i := range v{{$node.NodeName}}ListObj{
 		v{{$node.NodeName}}, err := nc.Get{{$node.PkgName}}{{$node.NodeName}}(context.TODO(), i.DisplayName())
 		if err != nil {
