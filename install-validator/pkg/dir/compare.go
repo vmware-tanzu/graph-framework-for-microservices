@@ -39,7 +39,7 @@ func CheckDir(dir string, c kubewrapper.ClientInt, cFunc compareFunc) (map[strin
 		}
 		crd := c.GetCrd(name)
 		toInstall = append(toInstall, name)
-		if crd == nil {
+		if crd == nil { //the crd is New, so no incompatible changes
 			return nil
 		}
 
