@@ -1,7 +1,3 @@
-schema {
-    query: Root
-}
-
 {{- range $key, $node := .Nodes }}
 {{- if $node.IsNexusNode }}
 {{ $length := len $node.GraphqlSchemaFields }}{{- if eq $length 0 }}{{- else }}
@@ -17,16 +13,3 @@ type {{ $node.SchemaName }} {
 {{- range $key, $val := .GraphQlFiles}}
     {{ $val }}
 {{- end }}
-
-directive @jsonencoded(file: String, gofile: String, name: String) on FIELD_DEFINITION
-directive @relation(name: String, parameters: String, softlink: String, uuidkey: String) on FIELD_DEFINITION
-directive @timeseriesAPI(file: String!, handler: String!) on FIELD_DEFINITION
-directive @protobuf(file: String!, name: String!) on FIELD_DEFINITION
-
-type TimeSeriesData {
-    code: Int
-    message: String
-    data: String @jsonencoded
-    last: String
-    totalRecords: Int
-}

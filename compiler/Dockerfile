@@ -23,4 +23,4 @@ RUN go mod download
 WORKDIR /go/src/github.com/vmware-tanzu/graph-framework-for-microservices/compiler
 RUN go mod download
 
-CMD make docker.gitlab_credentials && make preparser
+CMD make docker.gitlab_credentials && make gen_tsm_graphql
