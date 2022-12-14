@@ -6,6 +6,7 @@ import (
 
 	"github.com/sirupsen/logrus"
 	ext "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset"
+	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/rest"
 
 	nexuscompare "github.com/vmware-tanzu/graph-framework-for-microservices/common-library/pkg/nexus-compare"
@@ -38,7 +39,11 @@ func main() {
 	if err != nil {
 		logrus.Fatal(err)
 	}
-	c := kubewrapper.Client{Clientset: clientset}
+	dynamicClient, err := dynamic.NewForConfig(config)
+	if err != nil {
+		logrus.Fatal(err)
+	}
+	c := kubewrapper.Client{Clientset: clientset, DynamicClient: dynamicClient}
 	err = c.FetchGroup(groupNamePath)
 	if err != nil {
 		logrus.Fatal(err)

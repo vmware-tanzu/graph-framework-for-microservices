@@ -38,10 +38,10 @@ func CheckDir(dir string, c kubewrapper.ClientInt, cFunc compareFunc) (map[strin
 			return err
 		}
 		crd := c.GetCrd(name)
+		toInstall = append(toInstall, name)
 		if crd == nil {
 			return nil
 		}
-		toInstall = append(toInstall, name)
 
 		if cFunc == nil {
 			return errors.New("nil compare func passed")

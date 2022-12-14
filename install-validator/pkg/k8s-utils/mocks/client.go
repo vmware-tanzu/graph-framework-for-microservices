@@ -7,6 +7,8 @@ package mock_k8s_utils
 import (
 	reflect "reflect"
 
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+
 	gomock "github.com/golang/mock/gomock"
 	v1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 )
@@ -119,10 +121,10 @@ func (mr *MockClientIntMockRecorder) GetGroup() *gomock.Call {
 }
 
 // ListResources mocks base method.
-func (m *MockClientInt) ListResources(crd v1.CustomResourceDefinition) ([]interface{}, error) {
+func (m *MockClientInt) ListResources(crd v1.CustomResourceDefinition) ([]unstructured.Unstructured, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ListResources", crd)
-	ret0, _ := ret[0].([]interface{})
+	ret0, _ := ret[0].([]unstructured.Unstructured)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }

@@ -5,10 +5,14 @@ import (
 	"fmt"
 	"os"
 
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+
+	"k8s.io/apimachinery/pkg/runtime/schema"
+	"k8s.io/client-go/dynamic"
+
 	v1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	ext "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"sigs.k8s.io/yaml"
 )
 
 type ClientInt interface {
@@ -18,14 +22,15 @@ type ClientInt interface {
 	GetCrds() []v1.CustomResourceDefinition
 	GetGroup() string
 	GetCrd(name string) *v1.CustomResourceDefinition
-	ListResources(crd v1.CustomResourceDefinition) ([]interface{}, error)
+	ListResources(crd v1.CustomResourceDefinition) ([]unstructured.Unstructured, error)
 	FetchGroup(groupPath string) error
 }
 
 type Client struct {
-	Clientset ext.Interface
-	crds      []v1.CustomResourceDefinition
-	group     string
+	Clientset     ext.Interface
+	DynamicClient dynamic.Interface
+	crds          []v1.CustomResourceDefinition
+	group         string
 }
 
 func (c *Client) GetCrd(name string) *v1.CustomResourceDefinition {
@@ -70,16 +75,17 @@ func (c *Client) FetchCrds() error {
 	return nil
 }
 
-func (c *Client) ListResources(crd v1.CustomResourceDefinition) ([]interface{}, error) {
-	data, err := c.Clientset.ApiextensionsV1beta1().RESTClient().Get().RequestURI(createURI(crd)).DoRaw(context.TODO())
+func (c *Client) ListResources(crd v1.CustomResourceDefinition) ([]unstructured.Unstructured, error) {
+	data, err := c.DynamicClient.Resource(
+		schema.GroupVersionResource{
+			Group:    crd.Spec.Group,
+			Version:  crd.Spec.Versions[0].Name,
+			Resource: crd.Spec.Names.Plural,
+		}).List(context.TODO(), metav1.ListOptions{})
 	if err != nil {
 		return nil, err
 	}
-	var obj map[string]interface{}
-	if err = yaml.Unmarshal(data, &obj); err != nil {
-		return nil, err
-	}
-	return obj["items"].([]interface{}), err
+	return data.Items, err
 }
 
 func (c *Client) FetchGroup(groupPath string) error {

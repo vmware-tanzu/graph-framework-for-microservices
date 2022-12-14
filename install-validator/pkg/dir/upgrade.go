@@ -22,18 +22,26 @@ func ApplyDir(directory string, force bool, c kubewrapper.ClientInt, cFunc compa
 	if err != nil {
 		return err
 	}
-	if len(inCompatibleCRDs) > 0 && !force {
+	if (len(inCompatibleCRDs) > 0 || len(outdated) > 0) && !force {
 		textChanges := new(bytes.Buffer)
 		for _, txt := range inCompatibleCRDs {
 			textChanges.Write(txt.Bytes())
+		}
+		for _, txt := range outdated {
+			textChanges.WriteString(fmt.Sprintf("%s is deleted\n", txt))
 		}
 		logrus.Warn(textChanges)
 		return errors.New("incompatible datamodel changes detected")
 	}
 
 	// check if there are any resources for incompatible crds and return if so
-	var cr []string
+	var incompatibleAll []string //changed and deleted crds should both be checked
 	for crd := range inCompatibleCRDs {
+		incompatibleAll = append(incompatibleAll, crd)
+	}
+	incompatibleAll = append(incompatibleAll, outdated...)
+	var cr []string
+	for _, crd := range incompatibleAll {
 		res, err := c.ListResources(*c.GetCrd(crd))
 		if err != nil {
 			return err
@@ -43,7 +51,7 @@ func ApplyDir(directory string, force bool, c kubewrapper.ClientInt, cFunc compa
 		}
 	}
 	if len(cr) > 0 {
-		return fmt.Errorf("validation failed as objects exists in the system for the incompatible nodes: %v", cr)
+		return fmt.Errorf("validation failed as objects exists in the system for the incompatibly changed nodes: %v", cr)
 	}
 
 	//delete outdated models

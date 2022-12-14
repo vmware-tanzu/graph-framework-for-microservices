@@ -6,15 +6,15 @@ metadata:
     nexus: |
       {"name":"root.Root","children":{"configs.config.tsm.tanzu.vmware.com":{"fieldName":"Config","fieldNameGvk":"configGvk","isNamed":false}},"is_singleton":true,"nexus-rest-api-gen":{"uris":null}}
   creationTimestamp: null
-  name: roots.rootoutdated.tsm.tanzu.vmware.com
+  name: roots.outdated.tsm.tanzu.vmware.com
 spec:
   conversion:
     strategy: None
   group: outdated.tsm.tanzu.vmware.com
   names:
-    kind: RootOutdated
-    listKind: RootListOutdated
-    plural: rootsOutdated
+    kind: root
+    listKind: rootlist
+    plural: roots
     shortNames:
     - root
     singular: root
