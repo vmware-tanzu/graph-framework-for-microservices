@@ -51,13 +51,13 @@ func CheckDir(dir string, c kubewrapper.ClientInt, cFunc compareFunc) (map[strin
 			return err
 		}
 
-		inc, text, err := cFunc(actData, newData)
+		hasAnyIncChanges, incChangesBuffer, err := cFunc(actData, newData)
 		if err != nil {
 			return err
 		}
 
-		if inc { // if this is true, then there are some incompatible changes
-			changes[name] = text
+		if hasAnyIncChanges {
+			changes[name] = incChangesBuffer
 		}
 		return nil
 	})

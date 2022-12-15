@@ -5,6 +5,9 @@ import (
 	"fmt"
 	"os"
 
+	"k8s.io/client-go/rest"
+	"k8s.io/client-go/tools/clientcmd"
+
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 
 	"k8s.io/apimachinery/pkg/runtime/schema"
@@ -97,6 +100,18 @@ func (c *Client) FetchGroup(groupPath string) error {
 	return nil
 }
 
-func createURI(crd v1.CustomResourceDefinition) string {
-	return fmt.Sprintf("apis/%s/v1/%s", crd.Spec.Group, crd.Spec.Names.Plural)
+func GetRestConfig() (*rest.Config, error) {
+	filePath := os.Getenv("KUBECONFIG")
+	if filePath != "" {
+		config, err := clientcmd.BuildConfigFromFlags("", filePath)
+		if err != nil {
+			return nil, err
+		}
+		return config, nil
+	}
+	config, err := rest.InClusterConfig()
+	if err != nil {
+		return nil, err
+	}
+	return config, nil
 }

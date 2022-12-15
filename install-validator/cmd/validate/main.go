@@ -7,7 +7,6 @@ import (
 	"github.com/sirupsen/logrus"
 	ext "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset"
 	"k8s.io/client-go/dynamic"
-	"k8s.io/client-go/rest"
 
 	nexuscompare "github.com/vmware-tanzu/graph-framework-for-microservices/common-library/pkg/nexus-compare"
 	"github.com/vmware-tanzu/graph-framework-for-microservices/install-validator/pkg/dir"
@@ -31,7 +30,7 @@ func main() {
 	}
 
 	// setup k8s client
-	config, err := rest.InClusterConfig()
+	config, err := kubewrapper.GetRestConfig()
 	if err != nil {
 		logrus.Fatal(err)
 	}
