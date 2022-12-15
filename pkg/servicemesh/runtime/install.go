@@ -120,16 +120,24 @@ func GetCustomTags(cmdlinArgs string) string {
 func HelmInstall(cmd *cobra.Command, args []string) error {
 	Registry = strings.TrimSuffix(strings.TrimSpace(Registry), "/")
 	cmdlineArgs := "--set="
-	for _, value := range *cpuResources {
-		cmdlineArgs = fmt.Sprintf("%sglobal.resources.%s.cpu=%s,", cmdlineArgs, strings.Split(value, "=")[0], strings.Split(value, "=")[1])
+	cmdlineArgs = fmt.Sprintf("%sglobal.namespace=%s", cmdlineArgs, Namespace)
+	for resource, valueVariable := range common.Resources {
+		apiVersion := utils.GetAPIGVK(resource)
+		if apiVersion != "" {
+			cmdlineArgs = fmt.Sprintf("%s,global.%s=%s", cmdlineArgs, valueVariable, apiVersion)
+		}
 	}
+	for _, value := range *cpuResources {
+		cmdlineArgs = fmt.Sprintf("%s,global.resources.%s.cpu=%s", cmdlineArgs, strings.Split(value, "=")[0], strings.Split(value, "=")[1])
+	}
+
 	for _, value := range *memoryResources {
-		cmdlineArgs = fmt.Sprintf("%sglobal.resources.%s.memory=%s,", cmdlineArgs, strings.Split(value, "=")[0], strings.Split(value, "=")[1])
+		cmdlineArgs = fmt.Sprintf("%s,global.resources.%s.memory=%s", cmdlineArgs, strings.Split(value, "=")[0], strings.Split(value, "=")[1])
 	}
 	for _, value := range *additionalOptions {
-		cmdlineArgs = fmt.Sprintf("%sglobal.%s=%s,", cmdlineArgs, strings.Split(value, "=")[0], strings.Split(value, "=")[1])
+		cmdlineArgs = fmt.Sprintf("%s,global.%s=%s", cmdlineArgs, strings.Split(value, "=")[0], strings.Split(value, "=")[1])
 	}
-	cmdlineArgs = fmt.Sprintf("%sglobal.namespace=%s", cmdlineArgs, Namespace)
+
 	cmdlineArgs = fmt.Sprintf("%s,global.registry=%s", cmdlineArgs, Registry)
 	if ImagePullSecret != "" {
 		cmdlineArgs = fmt.Sprintf("%s,global.imagepullsecret=%s", cmdlineArgs, ImagePullSecret)
