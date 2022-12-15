@@ -57,9 +57,10 @@ docker.builder:
 	docker build --no-cache -t ${BUILDER_NAME}:${BUILDER_TAG} builder/
 
 .PHONY: docker
-docker: init_submodules ${BUILDER_NAME}\:${BUILDER_TAG}.image.exists build_openapigen_in_container build_gqlgen_in_container
+docker: init_submodules ${BUILDER_NAME}\:${BUILDER_TAG}.image.exists build_openapigen_in_container build_gqlgen_in_container build_install_validator_in_container
 	git archive -o compiler.tar --format=tar HEAD
-	tar -rf compiler.tar ../.git ../.gitmodules ../gqlgen ../kube-openapi ../nexus
+	ls ..
+	tar -rf compiler.tar ../.git ../.gitmodules ../gqlgen ../kube-openapi ../nexus ../install-validator ../common-library
 	docker build --no-cache \
 		--build-arg BUILDER_TAG=${BUILDER_TAG} \
 		-t ${IMAGE_NAME}:${TAG} .
@@ -96,6 +97,12 @@ build_gqlgen_in_container:
 
 build_gqlgen:
 	GOBIN=${PKG_NAME}/cmd go install ../gqlgen
+
+build_install_validator_in_container:
+	$(call run_in_container,make build_install_validator)
+
+build_install_validator:
+	cd ../install-validator && GOBIN=${PKG_NAME}/cmd go install ./cmd/validate
 
 .PHONY: unit-test
 unit-test:
@@ -176,6 +183,7 @@ generate_code:
 	@echo "Nexus Compiler: Moving files to output directory"
 	cp -r _generated/{client,apis,crds,common,nexus-client,helper,nexus-gql} ${GENERATED_OUTPUT_DIRECTORY}
 	cp -r ${GOPATH}/src/nexustempmodule/nexus-gql/graphql.so ${GENERATED_OUTPUT_DIRECTORY}/nexus-gql
+	cp -r ${GOPATH}/src/github.com/vmware-tanzu/graph-framework-for-microservices/install-validator/install.so ${GENERATED_OUTPUT_DIRECTORY}/install-validator || echo "Could not find install.so file, skipping"
 	@echo "Nexus Compiler: Compiler code generation completed"
 
 .PHONY: test_generate_code_in_container

@@ -6,7 +6,7 @@ ADD cmd/nexus-openapi-gen /go/bin/nexus-openapi-gen
 ADD cmd/gqlgen /go/bin/gqlgen
 
 WORKDIR /go/src/github.com/vmware-tanzu/graph-framework-for-microservices/compiler
-RUN mv .git .gitmodules kube-openapi gqlgen nexus ..
+RUN mv .git .gitmodules kube-openapi gqlgen nexus install-validator common-library  ..
 RUN git config --global --add safe.directory '*' && git config --global --add url."https://github.com/".insteadOf "git@github.com:"
 RUN make init_submodules
 
@@ -22,5 +22,8 @@ RUN go mod download
 
 WORKDIR /go/src/github.com/vmware-tanzu/graph-framework-for-microservices/compiler
 RUN go mod download
+
+WORKDIR /go/src/github.com/vmware-tanzu/graph-framework-for-microservices/install-validator
+RUN go build --trimpath -o install.so ./cmd/validate
 
 CMD make docker.gitlab_credentials && make generate_code
