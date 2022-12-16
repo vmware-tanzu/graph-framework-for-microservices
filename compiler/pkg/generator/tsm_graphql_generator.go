@@ -225,7 +225,7 @@ func tsmProcessNonNexusFields(aliasNameMap map[string]string, node *ast.TypeSpec
 			fieldProp.IsStringType = true
 			fieldProp.SchemaFieldName = getTsmGraphqlSchemaFieldName(JsonMarshal, fieldProp.FieldName, "String", "id: ID", f)
 			resField[nodeProp.PkgName+nodeProp.NodeName] = append(resField[nodeProp.PkgName+nodeProp.NodeName], fieldProp)
-		} else if (parser.IsGraphqlAliasType(f) || parser.IsGraphqlAliasFieldName(f)) {
+		} else if parser.IsGraphqlAliasType(f) || parser.IsGraphqlAliasFieldName(f) {
 			fieldProp.SchemaFieldName = GetGraphQLAliasValue(fieldProp.FieldName, f)
 			resField[nodeProp.PkgName+nodeProp.NodeName] = append(resField[nodeProp.PkgName+nodeProp.NodeName], fieldProp)
 		} else if parser.IsArrayField(f) {
@@ -439,6 +439,8 @@ func GenerateTsmGraphqlSchemaVars(baseGroupName, crdModulePath string, pkgs pars
 			setNexusProperties(nodeHelper, node, nodeProp)
 			if pkg.Name == "global" {
 				nodeProp.SchemaName = parser.GetTypeName(node)
+			} else if pkg.Name == "tsm" {
+				continue
 			} else {
 				nodeProp.SchemaName = fmt.Sprintf("%s_%s", pkg.Name, parser.GetTypeName(node))
 			}
