@@ -220,15 +220,21 @@ func processNode(node *Node, nodes map[string]Node, baseGroupName string) {
 	processField := func(f *ast.Field, isChild bool, isLink bool) {
 		if isChild || isLink {
 			if IsArrayField(f) {
-				log.Fatalf(`"Invalid Type for %v. Nexus Child or Link can't be an array. Please represent it in the form of a map.`+"\n"+
-					`For example: `+
-					`myStr []string should be represented in the form of myStr map[string]string`, f.Names)
+				log.Fatalf(`Invalid Type for %v. Nexus Child or Link can't be an array.`+"\n"+
+					`Please use nexus:"children" tag to create children or links(named child or link)`, f.Names)
 				return
 			}
 		}
 
 		if IsFieldPointer(f) {
-			log.Fatalf("Pointer type is not allowed. Field <%v> is a pointer. Please make sure nexus child/link types are not pointers.", f.Names)
+			log.Fatalf("Invalid Type for %v. Please make sure nexus child/link types are not pointers.", f.Names)
+			return
+		}
+
+		if IsMapField(f) {
+			log.Fatalf(`Invalid Type for %v. Please make sure nexus child/link types are not map.`+"\n"+
+				`Please use  nexus:"children" tag to create children or links(named child or links)`, f.Names)
+			return
 		}
 
 		isNamed := IsNamedChildOrLink(f)
