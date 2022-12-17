@@ -334,10 +334,6 @@ func (g *Generator) resolveRefsInProperty(propSchema *extensionsv1.JSONSchemaPro
 	}
 }
 
-func splitCRDs(content []byte) []string {
-	return strings.Split(string(content), "---")
-}
-
 func (g *Generator) UpdateYAMLs(yamlsPath string) error {
 	return filepath.Walk(yamlsPath, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
@@ -354,7 +350,7 @@ func (g *Generator) UpdateYAMLs(yamlsPath string) error {
 			return fmt.Errorf("reading file %q: %v", path, err)
 		}
 
-		parts := splitCRDs(content)
+		parts := strings.Split(string(content), "---")
 		crds := make([]extensionsv1.CustomResourceDefinition, len(parts))
 		for _, part := range parts {
 			if part == "" {

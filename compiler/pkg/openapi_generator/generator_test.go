@@ -543,16 +543,16 @@ var _ = Describe("Generator", func() {
 			_, err = f.Write(serialized)
 			Expect(err).To(BeNil())
 
-			oldCRDDir := exampleTempTestDir("test_data/foos.yaml")
-
 			// should be unsuccessful due to the incompatibility of the new and old CDs + forcing an upgrade=false
 			err = gen.UpdateYAMLs(tmpDir)
 			Expect(err).To(BeNil())
 
+			oldCRDDir := exampleTempTestDir("foos.yaml")
 			err = generator.CheckBackwardCompatibility(oldCRDDir, tmpDir, false)
-			Expect(err.Error()).To(Equal("datamodel upgrade failed due to incompatible datamodel changes:\n " +
-				"[detected changes in model stored in foos\n\nspec changes: " +
-				"\n/spec/versions/name=v1/schema/openAPIV3Schema/properties/spec/properties\n  " +
+			cleanTempTestDir(oldCRDDir)
+			Expect(err.Error()).To(Equal("datamodel upgrade failed due to incompatible datamodel changes: \n " +
+				"detected changes in model stored in foos\n\n" +
+				"spec changes: \n/spec/versions/name=v1/schema/openAPIV3Schema/properties/spec/properties\n  " +
 				"- one field removed:\n    " +
 				"password:\n      " +
 				"type: string\n      " +
@@ -569,33 +569,40 @@ var _ = Describe("Generator", func() {
 				"± value change\n    " +
 				"- password\n    " +
 				"+ changePassword\n  \n\n" +
-				"nexus annotation changes: \n/is_singleton\n  ± value change\n    - false\n    + true\n  \n\n]"))
+				"nexus annotation changes: \n/is_singleton\n  ± value change\n    - false\n    + true\n  \n\n"))
 
 			// should fail when CRD is removed in the new list
-			oldCRDDir = exampleTempTestDir("test_data/zoos.yaml")
+			oldCRDDir = exampleTempTestDir("zoos.yaml")
 			err = generator.CheckBackwardCompatibility(oldCRDDir, tmpDir, false)
-			Expect(err.Error()).Should(ContainSubstring("error reading the crd file on the path, appears CRD is removed"))
+			Expect(err.Error()).To(Equal("datamodel upgrade failed due to incompatible datamodel changes: \n \"foos\" is deleted"))
+			cleanTempTestDir(oldCRDDir)
 		})
 	})
 })
 
-func exampleTempTestDir(path string) string {
+func exampleTempTestDir(fileName string) string {
 	dir, err := os.MkdirTemp("", "compatibility-test-")
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	data, err := os.ReadFile(path)
+	data, err := os.ReadFile("test_data/foos.yaml")
 	if err != nil {
 		fmt.Println(err)
 	}
 
-	fileName := filepath.Base(path)
 	file := filepath.Join(dir, fileName)
 	if err := os.WriteFile(file, data, 0666); err != nil {
 		log.Fatal(err)
 	}
 	return dir
+}
+
+func cleanTempTestDir(dir string) {
+	err := os.RemoveAll(dir)
+	if err != nil {
+		fmt.Println(err)
+	}
 }
 
 var newFooCRD = `

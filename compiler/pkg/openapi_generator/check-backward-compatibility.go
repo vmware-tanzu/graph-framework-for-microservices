@@ -2,6 +2,7 @@ package openapi_generator
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -14,7 +15,11 @@ import (
 	extensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 )
 
-func compareCRDs(inCompatibleCRDs []*bytes.Buffer, existingCRDContent string, newCRDContent []byte) ([]*bytes.Buffer, error) {
+func splitCRDs(content []byte) []string {
+	return strings.Split(string(content), "---")
+}
+
+func compareCRDs(inCompatibleCRDs []*bytes.Buffer, existingCRDName, existingCRDContent string, newCRDContent []byte) ([]*bytes.Buffer, error) {
 	newCRDParts := splitCRDs(newCRDContent)
 	for _, newCRDPart := range newCRDParts {
 		if newCRDPart == "" {
@@ -27,23 +32,17 @@ func compareCRDs(inCompatibleCRDs []*bytes.Buffer, existingCRDContent string, ne
 			return nil, fmt.Errorf("error unmarshaling new CRD: %v", err)
 		}
 
-		existingCRD := &extensionsv1.CustomResourceDefinition{}
-		err = yaml.Unmarshal([]byte(existingCRDContent), existingCRD)
-		if err != nil {
-			return nil, fmt.Errorf("error unmarshaling existing CRD: %v", err)
-		}
-
-		if newCRD.Name != existingCRD.Name {
+		if newCRD.Name != existingCRDName {
 			continue
 		}
 
 		// When there is a backward incompatibility, we fail the build if we don't force an upgrade.
 		isInCompatible, message, err := nexus_compare.CompareFiles([]byte(existingCRDContent), []byte(newCRDPart))
 		if err != nil {
-			panic(fmt.Sprintf("Error occurred while checking CRD's %q backward compatibility: %v", existingCRD.Name, err))
+			panic(fmt.Sprintf("Error occurred while checking CRD's %q backward compatibility: %v", existingCRDName, err))
 		}
 		if isInCompatible {
-			log.Warnf("CRD %q is incompatible with the previous version", existingCRD.Name)
+			log.Warnf("CRD %q is incompatible with the previous version", existingCRDName)
 			inCompatibleCRDs = append(inCompatibleCRDs, message)
 		}
 	}
@@ -51,18 +50,22 @@ func compareCRDs(inCompatibleCRDs []*bytes.Buffer, existingCRDContent string, ne
 }
 
 func CheckBackwardCompatibility(existingCRDsPath, yamlsPath string, force bool) error {
-	var inCompatibleCRDs []*bytes.Buffer
+	var (
+		removedCRDs      []string
+		inCompatibleCRDs []*bytes.Buffer
+	)
+
 	if err := filepath.Walk(existingCRDsPath, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return fmt.Errorf("walking existing CRD files: %v", err)
 		}
 
-		if !strings.HasSuffix(info.Name(), ".yaml") {
+		if info.IsDir() {
+			fmt.Printf("Skipping dir %q\n", path)
 			return nil
 		}
 
-		if info.IsDir() {
-			fmt.Printf("Skipping dir %q\n", path)
+		if !strings.HasSuffix(info.Name(), ".yaml") {
 			return nil
 		}
 
@@ -85,8 +88,8 @@ func CheckBackwardCompatibility(existingCRDsPath, yamlsPath string, force bool) 
 
 		newFilePath := yamlsPath + strings.TrimPrefix(path, existingCRDsPath)
 		newCRDContent, err := os.ReadFile(newFilePath)
-		if err != nil || len(newCRDContent) == 0 {
-			return fmt.Errorf("error reading the crd file on the path, appears CRD is removed %q: %v", newFilePath, err)
+		if err != nil && !errors.Is(err, os.ErrNotExist) {
+			return fmt.Errorf("error reading the crd file on the path %q: %v", newFilePath, err)
 		}
 
 		existingCRDParts := splitCRDs(existingCRDContent)
@@ -95,7 +98,19 @@ func CheckBackwardCompatibility(existingCRDsPath, yamlsPath string, force bool) 
 				continue
 			}
 
-			if inCompatibleCRDs, err = compareCRDs(inCompatibleCRDs, existingCRDPart, newCRDContent); err != nil {
+			existingCRD := &extensionsv1.CustomResourceDefinition{}
+			err := yaml.Unmarshal([]byte(existingCRDPart), existingCRD)
+			if err != nil {
+				return fmt.Errorf("error unmarshaling existing CRD: %v", err)
+			}
+
+			// Appears node is removed in the latest version
+			if len(newCRDContent) == 0 {
+				removedCRDs = append(removedCRDs, existingCRD.Name)
+				continue
+			}
+
+			if inCompatibleCRDs, err = compareCRDs(inCompatibleCRDs, existingCRD.Name, existingCRDPart, newCRDContent); err != nil {
 				return err
 			}
 		}
@@ -104,12 +119,20 @@ func CheckBackwardCompatibility(existingCRDsPath, yamlsPath string, force bool) 
 		return err
 	}
 
-	if inCompatibleCRDs != nil {
-		if !force {
-			// If the CRD are incompatible with the previous version, this will fail the build.
-			return fmt.Errorf("datamodel upgrade failed due to incompatible datamodel changes:\n %v", inCompatibleCRDs)
+	if len(inCompatibleCRDs) > 0 || len(removedCRDs) > 0 {
+		inCompatibleCRDsChanges := &bytes.Buffer{}
+		for _, crd := range inCompatibleCRDs {
+			inCompatibleCRDsChanges.Write(crd.Bytes())
 		}
-		log.Warnf("Upgrading the data model that is incompatible with the previous version: %v", inCompatibleCRDs)
+		for _, crd := range removedCRDs {
+			inCompatibleCRDsChanges.WriteString(fmt.Sprintf("%q is deleted", crd))
+		}
+		// If the CRD are incompatible with the previous version, this will fail the build.
+		if !force {
+			return fmt.Errorf("datamodel upgrade failed due to incompatible datamodel changes: \n %v", inCompatibleCRDsChanges)
+		}
+		log.Warnf("Upgrading the data model that is incompatible with the previous version: %v", inCompatibleCRDsChanges)
 	}
+
 	return nil
 }
