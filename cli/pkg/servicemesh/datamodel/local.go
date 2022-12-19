@@ -39,7 +39,7 @@ func InstallLocal(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	if err := InstallJob(ToolsImage, DatamodelName, "", Namespace, "true", Title); err != nil {
+	if err := InstallJob(ToolsImage, DatamodelName, "", Namespace, "true", Title, Force); err != nil {
 		return err
 	}
 	return nil

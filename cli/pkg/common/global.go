@@ -126,6 +126,7 @@ type Datamodel struct {
 type DatamodelInstaller struct {
 	Image string
 	Name  string
+	Force bool
 }
 
 type RuntimeInstaller struct {
