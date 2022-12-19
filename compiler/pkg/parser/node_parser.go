@@ -218,22 +218,9 @@ func processNode(node *Node, nodes map[string]Node, baseGroupName string) {
 	linkFields := GetLinkFields(node.TypeSpec)
 
 	processField := func(f *ast.Field, isChild bool, isLink bool) {
-		if isChild || isLink {
-			if IsArrayField(f) {
-				log.Fatalf(`Invalid Type for %v. Nexus Child or Link can't be an array.`+"\n"+
-					`Please use nexus:"children" tag to create children or links(named child or link)`, f.Names)
-				return
-			}
-		}
-
-		if IsFieldPointer(f) {
-			log.Fatalf("Invalid Type for %v. Please make sure nexus child/link types are not pointers.", f.Names)
-			return
-		}
-
-		if IsMapField(f) {
-			log.Fatalf(`Invalid Type for %v. Nexus Child or Link cannot be a map.`+"\n"+
-				`Please use  nexus:"children" tag to create children or links(named child or links)`, f.Names)
+		if IsArrayField(f) || IsFieldPointer(f) || IsMapField(f) {
+			log.Fatalf(`Invalid Type for %v. Nexus Child or Link can not be an array or a pointer or a map`+"\n"+
+				`Please use nexus:"children" tag to create children or links(named child or link)`, f.Names)
 			return
 		}
 
