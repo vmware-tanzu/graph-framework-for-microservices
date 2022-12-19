@@ -574,7 +574,7 @@ var _ = Describe("Generator", func() {
 			// should fail when CRD is removed in the new list
 			oldCRDDir = exampleTempTestDir("zoos.yaml")
 			err = generator.CheckBackwardCompatibility(oldCRDDir, tmpDir, false)
-			Expect(err.Error()).To(Equal("datamodel upgrade failed due to incompatible datamodel changes: \n \"foos\" is deleted"))
+			Expect(err.Error()).To(Equal("datamodel upgrade failed due to incompatible datamodel changes: \n \"foos\" is deleted\n"))
 			cleanTempTestDir(oldCRDDir)
 		})
 	})

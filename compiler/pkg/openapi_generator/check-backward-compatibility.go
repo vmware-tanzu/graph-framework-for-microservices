@@ -125,13 +125,13 @@ func CheckBackwardCompatibility(existingCRDsPath, yamlsPath string, force bool) 
 			inCompatibleCRDsChanges.Write(crd.Bytes())
 		}
 		for _, crd := range removedCRDs {
-			inCompatibleCRDsChanges.WriteString(fmt.Sprintf("%q is deleted", crd))
+			inCompatibleCRDsChanges.WriteString(fmt.Sprintf("%q is deleted\n", crd))
 		}
 		// If the CRD are incompatible with the previous version, this will fail the build.
 		if !force {
 			return fmt.Errorf("datamodel upgrade failed due to incompatible datamodel changes: \n %v", inCompatibleCRDsChanges)
 		}
-		log.Warnf("Upgrading the data model that is incompatible with the previous version: %v", inCompatibleCRDsChanges)
+		log.Warnf("Upgrading the data model that is incompatible with the previous version: \n %v", inCompatibleCRDsChanges)
 	}
 
 	return nil
