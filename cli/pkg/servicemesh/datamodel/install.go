@@ -16,7 +16,6 @@ var Namespace string
 var DatamodelImage string
 var Title string
 var GraphqlPath string
-var Force bool
 var installPrerequisites []prereq.Prerequiste = []prereq.Prerequiste{
 	prereq.KUBERNETES,
 	prereq.KUBERNETES_VERSION,
@@ -27,7 +26,6 @@ const (
 	DatamodelJobSpecConfig string = "datamodel-job-spec"
 	ToolsImage             string = "gcr.io/nsx-sm/tools:latest"
 	NamespaceFlag          string = "namespace"
-	ForceFlag              string = "force"
 )
 
 func CheckSpecAvailable(JobSpecConfigmap, namespace string) error {
@@ -39,7 +37,7 @@ func CheckSpecAvailable(JobSpecConfigmap, namespace string) error {
 	return nil
 }
 
-func InstallJob(DatamodelImage, DatamodelName, ImagePullsecret, Namespace, skipCRDInstallation, Title string, forceInstall bool) error {
+func InstallJob(DatamodelImage, DatamodelName, ImagePullsecret, Namespace, skipCRDInstallation, Title string) error {
 	if DatamodelName == "" {
 		ImageName := strings.Split(DatamodelImage, ":")[0]
 		Name := strings.Split(ImageName, "/")
@@ -60,7 +58,6 @@ func InstallJob(DatamodelImage, DatamodelName, ImagePullsecret, Namespace, skipC
 		DatamodelInstaller: common.DatamodelInstaller{
 			Image: DatamodelImage,
 			Name:  DatamodelName,
-			Force: forceInstall,
 		},
 		IsImagePullSecret:   IsImagePullSecret,
 		ImagePullSecret:     ImagePullSecret,
@@ -95,8 +92,6 @@ func init() {
 		"", "", "Url where graphql plugin is available if any custom storage is used")
 	InstallCmd.PersistentFlags().StringVarP(&Namespace, "namespace",
 		"r", "", "name of the namespace to install to")
-	InstallCmd.PersistentFlags().BoolVarP(&Force, ForceFlag,
-		"f", false, "forcefully install backward incompatible changes")
 	err := cobra.MarkFlagRequired(InstallCmd.Flags(), "namespace")
 	if err != nil {
 		log.Debugf("please provide namespace: %v", err)
