@@ -2,12 +2,10 @@
 
 {{- define "etcd-default" }}
               cpu: 500m
-              memory: 128Mi
 {{- end }}
 
 {{- define "k8s-api-server-default" }}
               cpu: 500m
-              memory: 500Mi
 {{- end }}
 
 {{- define "k8s-api-server-default-request" }}
@@ -32,7 +30,6 @@
             {{- if .Values.global.resources }}
               {{- if .Values.global.resources.etcd }}
               cpu: {{ .Values.global.resources.etcd.cpu }}
-              memory: {{ .Values.global.resources.etcd.memory }}
               {{- else }}
                 {{- if eq .Values.global.size "small" }}
               {{- template "small" . }}
@@ -45,7 +42,6 @@
             {{- if .Values.global.resources }}
               {{- if .Values.global.resources.etcd }}
               cpu: {{  .Values.global.resources.etcd.cpu }}
-              memory: {{  .Values.global.resources.etcd.memory }}
               {{- else }}
                 {{- if eq .Values.global.size "small" }}
               {{- template "small" . }}
@@ -94,7 +90,6 @@
           {{- if .Values.global.resources }}
             {{- if .Values.global.resources.kubeapiserver }}
             cpu: {{ .Values.global.resources.kubeapiserver.cpu }}
-            memory: {{ .Values.global.resources.kubeapiserver.memory }}
             {{- else }}
               {{- if eq .Values.global.size "small" }}
           {{- template "small" . }}
@@ -107,7 +102,6 @@
           {{- if .Values.global.resources }}
             {{- if .Values.global.resources.kubeapiserver }}
             cpu: {{ .Values.global.resources.kubeapiserver.cpu }}
-            memory: {{  .Values.global.resources.kubeapiserver.memory }}
             {{- else }}
               {{- if eq .Values.global.size "small" }}
             {{- template "small" . }}
