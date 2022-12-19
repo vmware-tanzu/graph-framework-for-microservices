@@ -57,6 +57,10 @@ func CheckBackwardCompatibility(existingCRDsPath, yamlsPath string, force bool) 
 
 	if err := filepath.Walk(existingCRDsPath, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
+			if errors.Is(err, os.ErrNotExist) {
+				fmt.Printf("No files exists on the path %q: %v", existingCRDsPath, err)
+				return nil
+			}
 			return fmt.Errorf("walking existing CRD files: %v", err)
 		}
 

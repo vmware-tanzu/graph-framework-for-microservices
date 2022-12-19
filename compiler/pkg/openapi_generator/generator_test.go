@@ -11,8 +11,6 @@ import (
 	"github.com/ghodss/yaml"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	log "github.com/sirupsen/logrus"
-
 	extensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 
 	pkg_generator "github.com/vmware-tanzu/graph-framework-for-microservices/compiler/pkg/generator"
@@ -547,7 +545,9 @@ var _ = Describe("Generator", func() {
 			err = gen.UpdateYAMLs(tmpDir)
 			Expect(err).To(BeNil())
 
-			oldCRDDir := exampleTempTestDir("foos.yaml")
+			oldCRDDir, err := exampleFileTempTestDir("foos.yaml")
+			Expect(err).NotTo(HaveOccurred())
+
 			err = generator.CheckBackwardCompatibility(oldCRDDir, tmpDir, false)
 			cleanTempTestDir(oldCRDDir)
 			Expect(err.Error()).To(Equal("datamodel upgrade failed due to incompatible datamodel changes: \n " +
@@ -572,30 +572,47 @@ var _ = Describe("Generator", func() {
 				"nexus annotation changes: \n/is_singleton\n  ± value change\n    - false\n    + true\n  \n\n"))
 
 			// should fail when CRD is removed in the new list
-			oldCRDDir = exampleTempTestDir("zoos.yaml")
+			oldCRDDir, err = exampleFileTempTestDir("zoos.yaml")
+			Expect(err).NotTo(HaveOccurred())
+
 			err = generator.CheckBackwardCompatibility(oldCRDDir, tmpDir, false)
 			Expect(err.Error()).To(Equal("datamodel upgrade failed due to incompatible datamodel changes: \n \"foos\" is deleted\n"))
 			cleanTempTestDir(oldCRDDir)
+
+			// shouldn't fail when no crds exists
+			emptyDir, err := exampleTestDir()
+			Expect(err).NotTo(HaveOccurred())
+			err = generator.CheckBackwardCompatibility(emptyDir, tmpDir, false)
+			Expect(err).ToNot(HaveOccurred())
 		})
 	})
 })
 
-func exampleTempTestDir(fileName string) string {
+func exampleTestDir() (string, error) {
 	dir, err := os.MkdirTemp("", "compatibility-test-")
 	if err != nil {
-		log.Fatal(err)
+		return "", err
 	}
 
+	return dir, nil
+}
+
+func exampleFileTempTestDir(fileName string) (string, error) {
+	dir, err := exampleTestDir()
+	if err != nil {
+		return "", err
+	}
 	data, err := os.ReadFile("test_data/foos.yaml")
 	if err != nil {
-		fmt.Println(err)
+		return "", err
 	}
 
 	file := filepath.Join(dir, fileName)
-	if err := os.WriteFile(file, data, 0666); err != nil {
-		log.Fatal(err)
+	err = os.WriteFile(file, data, 0666)
+	if err != nil {
+		return "", err
 	}
-	return dir
+	return dir, err
 }
 
 func cleanTempTestDir(dir string) {
