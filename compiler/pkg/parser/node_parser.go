@@ -232,7 +232,7 @@ func processNode(node *Node, nodes map[string]Node, baseGroupName string) {
 		}
 
 		if IsMapField(f) {
-			log.Fatalf(`Invalid Type for %v. Please make sure nexus child/link types are not map.`+"\n"+
+			log.Fatalf(`Invalid Type for %v. Nexus Child or Link cannot be a map.`+"\n"+
 				`Please use  nexus:"children" tag to create children or links(named child or links)`, f.Names)
 			return
 		}
