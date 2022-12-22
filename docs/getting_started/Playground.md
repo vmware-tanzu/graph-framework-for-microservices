@@ -159,7 +159,7 @@ type Engineer struct {
 	Name        string
 	Designation string
 }
-' > $HOME/test-datamodel/orgchart/root.go
+' > $WORKDIR/test-datamodel/orgchart/root.go
 ```
 
 4. Compile datamodel
