@@ -60,8 +60,8 @@ var gqlserverTemplateFile []byte
 //go:embed template/tsm-graphql/schema.graphqls.tmpl
 var tsmGraphqlSchemaTemplateFile []byte
 
-//go:embed template/common.go.tmpl
-var commonTemplateFile []byte
+//go:embed template/model.go.tmpl
+var modelTemplateFile []byte
 
 func RenderCRDTemplate(baseGroupName, crdModulePath string,
 	pkgs parser.Packages, graph map[string]parser.Node,
@@ -698,7 +698,7 @@ type CommonVars struct {
 }
 
 func RenderNonNexusTypes(outputDir string, nonNexusTypes parser.NonNexusTypes, fileset *token.FileSet) error {
-	outputCommonFolder := outputDir + "/common"
+	outputCommonFolder := outputDir + "/model"
 	err := createFolder(outputCommonFolder)
 	if err != nil {
 		return err
@@ -720,7 +720,7 @@ func RenderNonNexusTypes(outputDir string, nonNexusTypes parser.NonNexusTypes, f
 	}
 
 	vars := CommonVars{Types: output}
-	tmpl, err := readTemplateFile(commonTemplateFile)
+	tmpl, err := readTemplateFile(modelTemplateFile)
 	if err != nil {
 		return err
 	}
@@ -730,7 +730,7 @@ func RenderNonNexusTypes(outputDir string, nonNexusTypes parser.NonNexusTypes, f
 		return err
 	}
 
-	err = createFile(outputDir+"/common", "common.go", out, false)
+	err = createFile(outputCommonFolder, "model.go", out, false)
 	if err != nil {
 		return err
 	}
