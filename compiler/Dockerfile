@@ -24,7 +24,7 @@ WORKDIR /go/src/github.com/vmware-tanzu/graph-framework-for-microservices/compil
 RUN go mod download
 
 WORKDIR /go/src/github.com/vmware-tanzu/graph-framework-for-microservices/install-validator
-RUN go build --trimpath -o install.so ./cmd/validate
+RUN CGO_ENABLED=0 go build --trimpath -o install.so ./cmd/validate
 
 WORKDIR /go/src/github.com/vmware-tanzu/graph-framework-for-microservices/compiler
 
