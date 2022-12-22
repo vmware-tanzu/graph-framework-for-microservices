@@ -5,6 +5,7 @@ import (
 	"go/ast"
 	"go/parser"
 	"go/token"
+	"go/types"
 	"io/fs"
 	"k8s.io/utils/strings/slices"
 	"path/filepath"
@@ -99,23 +100,52 @@ func ParseDSLNodes(startPath string, baseGroupName string, packages Packages,
 											}
 											nodes[crdName] = node
 										} else {
-											nonNexusTypes.Types[typeSpec.Name.Name] = decl
+											//fmt.Println(typeSpec.Type)
+											if !strings.Contains(types.ExprString(typeSpec.Type), "nexus.") {
+												nonNexusTypes.Types[typeSpec.Name.Name] = decl
+											}
 										}
 									} else {
-										nonNexusTypes.Types[typeSpec.Name.Name] = decl
+										//fmt.Println(typeSpec.Type)
+										if !strings.Contains(types.ExprString(typeSpec.Type), "nexus.") {
+											nonNexusTypes.Types[typeSpec.Name.Name] = decl
+										}
 									}
 								}
-								if _, ok := spec.(*ast.ValueSpec); ok {
+								if valueSpec, ok := spec.(*ast.ValueSpec); ok {
 									out, err := util.RenderDecl(decl, fileset)
 									if err != nil {
 										return err
 									}
 									outStr := out.String()
 
+									// ignore nexus vars
+									if len(valueSpec.Values) > 0 {
+										value := valueSpec.Values[0]
+										if val, ok := value.(*ast.CompositeLit); ok {
+											if sel, ok := val.Type.(*ast.SelectorExpr); ok {
+												if types.ExprString(sel.X) == "nexus" {
+													continue
+												}
+											}
+										}
+									}
 									if !slices.Contains(nonNexusTypes.Values, outStr) {
 										nonNexusTypes.Values = append(nonNexusTypes.Values, outStr)
 									}
 								}
+							}
+						}
+
+						if _, ok := decl.(*ast.FuncDecl); ok {
+							out, err := util.RenderDecl(decl, fileset)
+							if err != nil {
+								return err
+							}
+							outStr := out.String()
+
+							if !slices.Contains(nonNexusTypes.Values, outStr) {
+								nonNexusTypes.Values = append(nonNexusTypes.Values, outStr)
 							}
 						}
 					}
