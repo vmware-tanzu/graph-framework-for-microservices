@@ -1,7 +1,6 @@
 package login
 
 import (
-	"crypto/tls"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -79,8 +78,7 @@ func Login(cmd *cobra.Command, args []string) error {
 		return nil
 	}
 
-	cspClient := resty.New().
-		SetTLSClientConfig(&tls.Config{InsecureSkipVerify: true}).SetHeaders(map[string]string{
+	cspClient := resty.New().SetHeaders(map[string]string{
 		"Content-Type": "application/x-www-form-urlencoded",
 		"accept":       "application/json",
 	})
