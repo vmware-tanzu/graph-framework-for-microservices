@@ -6,6 +6,7 @@ REPOSITORY="gcr.io/nsx-sm/nexus/nexus-cli"
 INSTALL_DIRECTORY="/usr/local/bin"
 VERSION=""
 SEMVER_REGEX_MASTER="v[0-9]+\.[0-9]+\.[0-9]+$"
+CLI_UTILS_DOCKER_NAME="cli-utils"
 
 usage() { echo "Usage: $0 [-r <repository-name>] [-v <version>] [-d <install-directory>] " 1>&2; exit 1; }
 
@@ -20,13 +21,15 @@ must_exist() {
 msg="docker is needed by this script, please install the docker to use this script to download the nexus"
 must_exist "docker" "${msg}"
 
-version_tag=$(docker run -it gcr.io/nsx-sm/nexus/cli-utils)
+version_tag=$(docker run --name ${CLI_UTILS_DOCKER_NAME} -it gcr.io/nsx-sm/nexus/cli-utils)
 if [[ "${version_tag}" =~ ${SEMVER_REGEX_MASTER} ]]; then
 	VERSION="${version_tag}"
 else
 	echo "Unable to find latest nexus version"
 	exit 1
 fi
+docker rm ${CLI_UTILS_DOCKER_NAME} &> /dev/null
+docker rmi "gcr.io/nsx-sm/nexus/cli-utils:latest" &> /dev/null 
 
 
 if [[ $# == 0 ]]; then
