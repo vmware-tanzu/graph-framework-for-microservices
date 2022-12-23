@@ -97,7 +97,10 @@ func GetResource(cmd *cobra.Command, args []string) error {
 		if len(apiVersion) == 0 || len(resourceName) == 0 || len(kindName) == 0 || len(objName) == 0 {
 			return fmt.Errorf("the given custom resource file is not a standard k8s YAML, apiVersion or kind may be missing ")
 		}
-		GetRequest(token, apiVersion, resourceName, objName, kindName, labels, serverInfo)
+		err = GetRequest(token, apiVersion, resourceName, objName, kindName, labels, serverInfo)
+		if err != nil {
+			return err
+		}
 	}
 	return nil
 }

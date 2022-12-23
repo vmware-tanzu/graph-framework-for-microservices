@@ -104,8 +104,8 @@ func CreateNs(Namespace string) error {
 	if err != nil {
 		return err
 	}
-	io.Copy(os.Stdout, &b2)
-	return nil
+	_, err = io.Copy(os.Stdout, &b2)
+	return err
 }
 
 func GetCustomTags(cmdlinArgs string) string {
@@ -208,7 +208,10 @@ func HelmInstall(cmd *cobra.Command, args []string) error {
 		return err
 	}
 	var applyString bytes.Buffer
-	tmpl.Execute(&applyString, InstallerData)
+	err = tmpl.Execute(&applyString, InstallerData)
+	if err != nil {
+		return err
+	}
 
 	fmt.Printf("Install job starting at %s\n", time.Now())
 	err = RunJob(Namespace, InstallerData.RuntimeInstaller.Name, applyString)

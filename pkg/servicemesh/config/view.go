@@ -2,12 +2,17 @@ package config
 
 import (
 	"fmt"
+
 	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v2"
 )
 
 func View(cmd *cobra.Command, args []string) error {
-	nexusConfig := LoadNexusConfig()
+	nexusConfig, err := LoadNexusConfig()
+	if err != nil {
+		return err
+	}
+
 	data, _ := yaml.Marshal(&nexusConfig)
 	fmt.Println(string(data))
 	return nil

@@ -26,7 +26,10 @@ func Set(cmd *cobra.Command, args []string) error {
 			fmt.Errorf("`nexus config set` expects at least one flag to be set")).
 			Print().ExitIfFatalOrReturn()
 	}
-	config := LoadNexusConfig()
+	config, err := LoadNexusConfig()
+	if err != nil {
+		return err
+	}
 
 	if cmd.Flags().Lookup(flagDisableUpgradePrompt).Changed {
 		config.UpgradePromptDisable = disableUpgradePrompt
@@ -40,7 +43,7 @@ func Set(cmd *cobra.Command, args []string) error {
 		config.SkipUpgradeCheck = skipUpgradeCheck
 	}
 
-	err := writeNexusConfig(config)
+	err = writeNexusConfig(config)
 	if err != nil {
 		return utils.GetCustomError(utils.CONFIG_SET_FAILED,
 			fmt.Errorf("writing nexus config failed with error %v", err)).

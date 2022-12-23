@@ -60,19 +60,33 @@ func Uninstall(cmd *cobra.Command, args []string) error {
 		return err
 	}
 	var applyString bytes.Buffer
-	tmpl.Execute(&applyString, InstallerData)
+	err = tmpl.Execute(&applyString, InstallerData)
+	if err != nil {
+		return err
+	}
 
 	err = RunJob(Namespace, InstallerData.RuntimeInstaller.Name, applyString)
 	if err != nil {
 		return err
 	}
 
-	utils.SystemCommand(cmd, utils.RUNTIME_UNINSTALL_FAILED, []string{}, "kubectl", "delete", "pvc", "-n", Namespace, "-lapp=nexus-etcd")
-	utils.SystemCommand(cmd, utils.RUNTIME_UNINSTALL_FAILED, []string{}, "kubectl", "delete", "pvc", "-n", Namespace, "-lcreated-by=nexus")
-	//adding additional job cleanup after uninstallation...
-	utils.SystemCommand(cmd, utils.RUNTIME_UNINSTALL_FAILED, []string{}, "kubectl", "delete", "jobs", "-n", Namespace, "--all", "--ignore-not-found=true")
-	fmt.Printf("\u2713 Runtime %s uninstallation successful\n", Namespace)
+	err = utils.SystemCommand(cmd, utils.RUNTIME_UNINSTALL_FAILED, []string{}, "kubectl", "delete", "pvc", "-n", Namespace, "-lapp=nexus-etcd")
+	if err != nil {
+		return err
+	}
 
+	err = utils.SystemCommand(cmd, utils.RUNTIME_UNINSTALL_FAILED, []string{}, "kubectl", "delete", "pvc", "-n", Namespace, "-lcreated-by=nexus")
+	if err != nil {
+		return err
+	}
+
+	//adding additional job cleanup after uninstallation...
+	err = utils.SystemCommand(cmd, utils.RUNTIME_UNINSTALL_FAILED, []string{}, "kubectl", "delete", "jobs", "-n", Namespace, "--all", "--ignore-not-found=true")
+	if err != nil {
+		return err
+	}
+
+	fmt.Printf("\u2713 Runtime %s uninstallation successful\n", Namespace)
 	return nil
 }
 
