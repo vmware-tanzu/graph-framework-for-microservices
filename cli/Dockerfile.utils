@@ -1,0 +1,6 @@
+FROM gcr.io/nsx-sm/photon:4.0
+
+RUN tdnf install --refresh -y jq coreutils 
+ADD get-latest-version.sh /
+ENTRYPOINT ["/usr/bin/bash", "/get-latest-version.sh"]
+

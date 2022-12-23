@@ -5,18 +5,29 @@ set -e
 REPOSITORY="gcr.io/nsx-sm/nexus/nexus-cli"
 INSTALL_DIRECTORY="/usr/local/bin"
 VERSION=""
-
 SEMVER_REGEX_MASTER="v[0-9]+\.[0-9]+\.[0-9]+$"
-json_resp=$(curl -s https://gcr.io/v2/nsx-sm/nexus/nexus-cli/tags/list | jq  -r '.manifest[] | .tag | select(.[]=="latest") | .[]')
-declare -a tags_array=($(echo "${json_resp}" | tr "\n" " "))
-for version in "${tags_array[@]}"; do
-       if [[ "${version}" =~ ${SEMVER_REGEX_MASTER} ]]; then
-                VERSION="${version}"
-                break
-       fi
-done
 
 usage() { echo "Usage: $0 [-r <repository-name>] [-v <version>] [-d <install-directory>] " 1>&2; exit 1; }
+
+must_exist() {
+        export PATH=$PATH:$HOME/.local/bin
+        if ! command -v "$1" >/dev/null 2>&1; then
+                echo -e "$1" is not installed! "\n$2" >&2
+                return 1
+        fi
+}
+
+msg="docker is needed by this script, please install the docker to use this script to download the nexus"
+must_exist "docker" "${msg}"
+
+version_tag=$(docker run -it gcr.io/nsx-sm/nexus/cli-utils)
+if [[ "${version_tag}" =~ ${SEMVER_REGEX_MASTER} ]]; then
+	VERSION="${version_tag}"
+else
+	echo "Unable to find latest nexus version"
+	exit 1
+fi
+
 
 if [[ $# == 0 ]]; then
     echo -e "Downloading Nexus ...\nVersion: ${VERSION}\nImage repository: ${REPOSITORY}\nDirectory: ${INSTALL_DIRECTORY}\n"
