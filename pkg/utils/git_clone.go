@@ -22,11 +22,7 @@ import (
 
 func GoModInit(path string, current bool) error {
 	if path != "" {
-		fmt.Printf("Intializing gomodule\n")
-		if current == false {
-			os.Chdir(path)
-		}
-		fmt.Printf("Go mod init name: %s\n", path)
+		fmt.Printf("Intializing gomodule\nGo mod init name: %s\n", path)
 		cmd := exec.Command("go", "mod", "init", path)
 		out, err := cmd.Output()
 		fmt.Printf("output: %s", out)
@@ -34,7 +30,10 @@ func GoModInit(path string, current bool) error {
 			return err
 		}
 		if current == false {
-			os.Chdir("..")
+			err := os.Chdir("..")
+			if err != nil {
+				return err
+			}
 		}
 	} else {
 		fmt.Printf("Intializing gomodule\n")
@@ -50,7 +49,10 @@ func GoModInit(path string, current bool) error {
 func GetModuleName(path string) (string, error) {
 	fmt.Println("getting the current modulename")
 	if path != "" {
-		os.Chdir(path)
+		err := os.Chdir(path)
+		if err != nil {
+			return "", err
+		}
 	}
 	cmd := exec.Command("go", "list", "-m")
 	stdout, err := cmd.Output()
@@ -58,7 +60,10 @@ func GetModuleName(path string) (string, error) {
 		return "", err
 	}
 	if path != "" {
-		os.Chdir("..")
+		err := os.Chdir("..")
+		if err != nil {
+			return "", err
+		}
 	}
 	return string(stdout), nil
 }
@@ -131,7 +136,6 @@ func RenderTemplateFiles(data interface{}, directory string, skipdirectory strin
 }
 
 func DownloadFile(url string, filename string) error {
-	url = fmt.Sprintf("%s", url)
 	resp, err := net_http.Get(url)
 	if err != nil {
 		return err
@@ -184,8 +188,10 @@ func Untar(targetdir string, reader io.ReadCloser) error {
 				return err
 			}
 
-			setAttrs(target, header)
-			break
+			err = setAttrs(target, header)
+			if err != nil {
+				return err
+			}
 
 		case tar.TypeReg:
 			w, err := os.Create(target)
@@ -198,29 +204,42 @@ func Untar(targetdir string, reader io.ReadCloser) error {
 			}
 			w.Close()
 
-			setAttrs(target, header)
-			break
+			err = setAttrs(target, header)
+			if err != nil {
+				return err
+			}
 
 		default:
 			log.Printf("unsupported type: %v", header.Typeflag)
-			break
 		}
 	}
 
 	return nil
 }
 
-func setAttrs(target string, header *tar.Header) {
-	os.Chmod(target, os.FileMode(header.Mode))
-	os.Chtimes(target, header.AccessTime, header.ModTime)
+func setAttrs(target string, header *tar.Header) error {
+	err := os.Chmod(target, os.FileMode(header.Mode))
+	if err != nil {
+		return err
+	}
+
+	return os.Chtimes(target, header.AccessTime, header.ModTime)
 }
 
 func CreateNexusDirectory(NEXUS_DIR string, NEXUS_TEMPLATE_URL string) error {
 	if _, err := os.Stat(NEXUS_DIR); os.IsNotExist(err) {
 		fmt.Printf("creating nexus home directory\n")
-		os.Mkdir(NEXUS_DIR, 0755)
-		os.Chdir(NEXUS_DIR)
-		err := DownloadFile(NEXUS_TEMPLATE_URL, "nexus.tar")
+		err := os.Mkdir(NEXUS_DIR, 0755)
+		if err != nil {
+			return err
+		}
+
+		err = os.Chdir(NEXUS_DIR)
+		if err != nil {
+			return err
+		}
+
+		err = DownloadFile(NEXUS_TEMPLATE_URL, "nexus.tar")
 		if err != nil {
 			return fmt.Errorf("could not download template files due to %s\n", err)
 		}
@@ -236,7 +255,10 @@ func CreateNexusDirectory(NEXUS_DIR string, NEXUS_TEMPLATE_URL string) error {
 			return fmt.Errorf("could not unarchive template files due to %s", err)
 		}
 		os.Remove("nexus.tar")
-		os.Chdir("..")
+		err = os.Chdir("..")
+		if err != nil {
+			return err
+		}
 	}
 	return nil
 }

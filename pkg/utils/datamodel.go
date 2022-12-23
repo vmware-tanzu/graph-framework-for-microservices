@@ -160,8 +160,16 @@ func RunDatamodelInstaller(DatamodelJobSpecConfig, Namespace, DatamodelName stri
 	k8sDeletecmd.Stdin = &DeleteStream
 	k8sApplycmd.Stdin = &ApplyStream
 	go func() {
-		io.WriteString(&DeleteStream, renderedObject)
-		io.WriteString(&ApplyStream, renderedObject)
+		// TODO: don't swallow these errors in the goroutine.
+		_, err := io.WriteString(&DeleteStream, renderedObject)
+		if err != nil {
+			fmt.Printf("Failed to write rendered object to delete stream: %v", err)
+		}
+
+		_, err = io.WriteString(&ApplyStream, renderedObject)
+		if err != nil {
+			fmt.Printf("Failed to write rendered object to apply stream: %v", err)
+		}
 	}()
 
 	var deleteOut bytes.Buffer

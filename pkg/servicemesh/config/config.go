@@ -2,9 +2,10 @@ package config
 
 import (
 	"fmt"
-	"gopkg.in/yaml.v2"
 	"io/ioutil"
 	"os"
+
+	"gopkg.in/yaml.v2"
 )
 
 type NexusConfig struct {
@@ -24,16 +25,22 @@ func getDefaultNexusConfig() NexusConfig {
 const nexusDir = ".nexus"
 const nexusConfigFile = "config"
 
-func initNexusConfig() {
+func initNexusConfig() error {
 	home, err := os.UserHomeDir()
-	if err == nil {
-		nexusDir := fmt.Sprintf("%s/%s", home, nexusDir)
-		_, err := os.Stat(nexusDir)
-		if os.IsNotExist(err) {
-			_ = os.Mkdir(nexusDir, 0755)
-		}
-		writeNexusConfig(getDefaultNexusConfig())
+	if err != nil {
+		return err
 	}
+
+	nexusDir := fmt.Sprintf("%s/%s", home, nexusDir)
+	_, err = os.Stat(nexusDir)
+	if os.IsNotExist(err) {
+		err = os.Mkdir(nexusDir, 0755)
+		if err != nil {
+			return err
+		}
+	}
+
+	return writeNexusConfig(getDefaultNexusConfig())
 }
 
 // writeNexusConfig writes the provided nexus config to $HOME/.nexus/config
@@ -62,22 +69,25 @@ func writeNexusConfig(nexusConfig NexusConfig) error {
 
 // LoadNexusConfig returns the current nexus config (i.e., contents of $HOME/.nexus/config)
 // if the nexus config file doesn't exist, initialize it to default values and return it
-func LoadNexusConfig() NexusConfig {
+func LoadNexusConfig() (NexusConfig, error) {
 	home, err := os.UserHomeDir()
 	if err != nil {
 		fmt.Println("Error fetching user's home directory. Using default Nexus config...")
-		return getDefaultNexusConfig()
+		return getDefaultNexusConfig(), nil
 	}
 	configFilePath := fmt.Sprintf("%s/%s/%s", home, nexusDir, nexusConfigFile)
 	data, err := ioutil.ReadFile(configFilePath)
 	if os.IsNotExist(err) {
-		initNexusConfig()
+		err = initNexusConfig()
+		if err != nil {
+			return NexusConfig{}, err
+		}
 	}
 	var nexusConfig = getDefaultNexusConfig()
 	err = yaml.Unmarshal(data, &nexusConfig)
 	if err != nil {
 		fmt.Printf("Failed to read contents of %s due to error: %s\n", configFilePath, err)
-		return getDefaultNexusConfig()
+		return getDefaultNexusConfig(), nil
 	}
-	return nexusConfig
+	return nexusConfig, nil
 }

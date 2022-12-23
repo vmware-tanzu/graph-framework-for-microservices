@@ -8,7 +8,10 @@ import (
 )
 
 func RootPreRun(cmd *cobra.Command, args []string) error {
-	nexusConfig := config.LoadNexusConfig()
+	nexusConfig, err := config.LoadNexusConfig()
+	if err != nil {
+		return err
+	}
 
 	if nexusConfig.DebugAlways {
 		cmd.Flags().Lookup("debug").Changed = true
