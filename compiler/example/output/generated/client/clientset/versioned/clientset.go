@@ -20,12 +20,8 @@ package versioned
 
 import (
 	"fmt"
-
-	configtsmv1 "github.com/vmware-tanzu/graph-framework-for-microservices/compiler/example/output/generated/client/clientset/versioned/typed/config.tsm.tanzu.vmware.com/v1"
-	gnstsmv1 "github.com/vmware-tanzu/graph-framework-for-microservices/compiler/example/output/generated/client/clientset/versioned/typed/gns.tsm.tanzu.vmware.com/v1"
-	policypkgtsmv1 "github.com/vmware-tanzu/graph-framework-for-microservices/compiler/example/output/generated/client/clientset/versioned/typed/policypkg.tsm.tanzu.vmware.com/v1"
-	roottsmv1 "github.com/vmware-tanzu/graph-framework-for-microservices/compiler/example/output/generated/client/clientset/versioned/typed/root.tsm.tanzu.vmware.com/v1"
-	servicegrouptsmv1 "github.com/vmware-tanzu/graph-framework-for-microservices/compiler/example/output/generated/client/clientset/versioned/typed/servicegroup.tsm.tanzu.vmware.com/v1"
+	customtsmv1 "nexustempmodule/client/clientset/versioned/typed/custom.tsm.tanzu.vmware.com/v1"
+	globaltsmv1 "nexustempmodule/client/clientset/versioned/typed/global.tsm.tanzu.vmware.com/v1"
 
 	discovery "k8s.io/client-go/discovery"
 	rest "k8s.io/client-go/rest"
@@ -34,47 +30,26 @@ import (
 
 type Interface interface {
 	Discovery() discovery.DiscoveryInterface
-	ConfigTsmV1() configtsmv1.ConfigTsmV1Interface
-	GnsTsmV1() gnstsmv1.GnsTsmV1Interface
-	PolicypkgTsmV1() policypkgtsmv1.PolicypkgTsmV1Interface
-	RootTsmV1() roottsmv1.RootTsmV1Interface
-	ServicegroupTsmV1() servicegrouptsmv1.ServicegroupTsmV1Interface
+	CustomTsmV1() customtsmv1.CustomTsmV1Interface
+	GlobalTsmV1() globaltsmv1.GlobalTsmV1Interface
 }
 
 // Clientset contains the clients for groups. Each group has exactly one
 // version included in a Clientset.
 type Clientset struct {
 	*discovery.DiscoveryClient
-	configTsmV1       *configtsmv1.ConfigTsmV1Client
-	gnsTsmV1          *gnstsmv1.GnsTsmV1Client
-	policypkgTsmV1    *policypkgtsmv1.PolicypkgTsmV1Client
-	rootTsmV1         *roottsmv1.RootTsmV1Client
-	servicegroupTsmV1 *servicegrouptsmv1.ServicegroupTsmV1Client
+	customTsmV1 *customtsmv1.CustomTsmV1Client
+	globalTsmV1 *globaltsmv1.GlobalTsmV1Client
 }
 
-// ConfigTsmV1 retrieves the ConfigTsmV1Client
-func (c *Clientset) ConfigTsmV1() configtsmv1.ConfigTsmV1Interface {
-	return c.configTsmV1
+// CustomTsmV1 retrieves the CustomTsmV1Client
+func (c *Clientset) CustomTsmV1() customtsmv1.CustomTsmV1Interface {
+	return c.customTsmV1
 }
 
-// GnsTsmV1 retrieves the GnsTsmV1Client
-func (c *Clientset) GnsTsmV1() gnstsmv1.GnsTsmV1Interface {
-	return c.gnsTsmV1
-}
-
-// PolicypkgTsmV1 retrieves the PolicypkgTsmV1Client
-func (c *Clientset) PolicypkgTsmV1() policypkgtsmv1.PolicypkgTsmV1Interface {
-	return c.policypkgTsmV1
-}
-
-// RootTsmV1 retrieves the RootTsmV1Client
-func (c *Clientset) RootTsmV1() roottsmv1.RootTsmV1Interface {
-	return c.rootTsmV1
-}
-
-// ServicegroupTsmV1 retrieves the ServicegroupTsmV1Client
-func (c *Clientset) ServicegroupTsmV1() servicegrouptsmv1.ServicegroupTsmV1Interface {
-	return c.servicegroupTsmV1
+// GlobalTsmV1 retrieves the GlobalTsmV1Client
+func (c *Clientset) GlobalTsmV1() globaltsmv1.GlobalTsmV1Interface {
+	return c.globalTsmV1
 }
 
 // Discovery retrieves the DiscoveryClient
@@ -98,23 +73,11 @@ func NewForConfig(c *rest.Config) (*Clientset, error) {
 	}
 	var cs Clientset
 	var err error
-	cs.configTsmV1, err = configtsmv1.NewForConfig(&configShallowCopy)
+	cs.customTsmV1, err = customtsmv1.NewForConfig(&configShallowCopy)
 	if err != nil {
 		return nil, err
 	}
-	cs.gnsTsmV1, err = gnstsmv1.NewForConfig(&configShallowCopy)
-	if err != nil {
-		return nil, err
-	}
-	cs.policypkgTsmV1, err = policypkgtsmv1.NewForConfig(&configShallowCopy)
-	if err != nil {
-		return nil, err
-	}
-	cs.rootTsmV1, err = roottsmv1.NewForConfig(&configShallowCopy)
-	if err != nil {
-		return nil, err
-	}
-	cs.servicegroupTsmV1, err = servicegrouptsmv1.NewForConfig(&configShallowCopy)
+	cs.globalTsmV1, err = globaltsmv1.NewForConfig(&configShallowCopy)
 	if err != nil {
 		return nil, err
 	}
@@ -130,11 +93,8 @@ func NewForConfig(c *rest.Config) (*Clientset, error) {
 // panics if there is an error in the config.
 func NewForConfigOrDie(c *rest.Config) *Clientset {
 	var cs Clientset
-	cs.configTsmV1 = configtsmv1.NewForConfigOrDie(c)
-	cs.gnsTsmV1 = gnstsmv1.NewForConfigOrDie(c)
-	cs.policypkgTsmV1 = policypkgtsmv1.NewForConfigOrDie(c)
-	cs.rootTsmV1 = roottsmv1.NewForConfigOrDie(c)
-	cs.servicegroupTsmV1 = servicegrouptsmv1.NewForConfigOrDie(c)
+	cs.customTsmV1 = customtsmv1.NewForConfigOrDie(c)
+	cs.globalTsmV1 = globaltsmv1.NewForConfigOrDie(c)
 
 	cs.DiscoveryClient = discovery.NewDiscoveryClientForConfigOrDie(c)
 	return &cs
@@ -143,11 +103,8 @@ func NewForConfigOrDie(c *rest.Config) *Clientset {
 // New creates a new Clientset for the given RESTClient.
 func New(c rest.Interface) *Clientset {
 	var cs Clientset
-	cs.configTsmV1 = configtsmv1.New(c)
-	cs.gnsTsmV1 = gnstsmv1.New(c)
-	cs.policypkgTsmV1 = policypkgtsmv1.New(c)
-	cs.rootTsmV1 = roottsmv1.New(c)
-	cs.servicegroupTsmV1 = servicegrouptsmv1.New(c)
+	cs.customTsmV1 = customtsmv1.New(c)
+	cs.globalTsmV1 = globaltsmv1.New(c)
 
 	cs.DiscoveryClient = discovery.NewDiscoveryClient(c)
 	return &cs

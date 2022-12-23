@@ -16,7 +16,7 @@ package util
 var consonants = "bcdfghjklmnpqrstvwxyz"
 var exceptions = map[string]string{
 	// The type name is already in the plural form
-	"Endpoints": "endpoints",
+	"Endpoints": "Endpoints",
 }
 
 // ToPlural returns the plural form of the type's name. If the type's name is found

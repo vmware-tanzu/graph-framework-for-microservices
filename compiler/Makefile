@@ -157,8 +157,12 @@ preparser:
 	@echo "Nexus Compiler: Running Preparser"
 	go run cmd/preparser/main.go -dsl _tsm_temp
 	cp -R _generated_base_structure/* ${DATAMODEL_PATH}/build
-	go run cmd/nexus-sdk/main.go -config-file example/nexus-sdk.yaml -dsl _tsm_temp -crd-output ${DATAMODEL_PATH}/build
-	# $(MAKE) generate_code DATAMODEL_PATH=_tsm_temp CONFIG_FILE=example/nexus-sdk.yaml CRD_MODULE_PATH="github.com/vmware-tanzu/graph-framework-for-microservices/compiler/example/output/generated/" GENERATED_OUTPUT_DIRECTORY=example/output/generated
+	@if [ -d "_tsm_temp/global" ]; then \
+		mv _tsm_temp/go.mod _tsm_temp/global/go.mod; \
+		$(MAKE) generate_code DATAMODEL_PATH=_tsm_temp/global CONFIG_FILE=example/nexus-sdk.yaml CRD_MODULE_PATH="github.com/vmware-tanzu/graph-framework-for-microservices/compiler/example/output/generated/" GENERATED_OUTPUT_DIRECTORY=example/output/generated; \
+	else \
+		$(MAKE) generate_code DATAMODEL_PATH=_tsm_temp CONFIG_FILE=example/nexus-sdk.yaml CRD_MODULE_PATH="github.com/vmware-tanzu/graph-framework-for-microservices/compiler/example/output/generated/" GENERATED_OUTPUT_DIRECTORY=example/output/generated; \
+	fi
 
 .PHONY: generate_code
 generate_code:
@@ -184,7 +188,7 @@ generate_code:
 	@echo "Nexus Compiler: Generating CRD yamls"
 	go run cmd/generate-openapischema/generate-openapischema.go -yamls-path _generated/crds
 	git checkout -- pkg/openapi_generator/openapi/openapi_generated.go
-	cp -r _generated/{client,apis,crds,common,nexus-client,helper,nexus-gql} ${GENERATED_OUTPUT_DIRECTORY}
+	cp -r _generated/{client,apis,crds,common,nexus-client,helper,nexus-gql,tsm-nexus-gql} ${GENERATED_OUTPUT_DIRECTORY}
 	@echo "Nexus Compiler: Generating GRAPHQL PKG"
 	cd _generated && goimports -w .
 	cd _generated/nexus-gql && gqlgen generate
@@ -194,7 +198,7 @@ generate_code:
 	${COMPILER_SRC_DIRECTORY}/scripts/pin_graphql_build_version.sh ${COMPILER_SRC_DIRECTORY} && \
 	go mod tidy -e && \
 	CGO_ENABLED=1 GOOS=linux \
-	# go build --trimpath -o graphql.so -buildmode=plugin server.go
+	go build --trimpath -o graphql.so -buildmode=plugin server.go
 	@echo "Updating module name"
 	./scripts/replace_mod_path.sh
 	find . -name "*.bak" -type f -delete
@@ -202,7 +206,7 @@ generate_code:
 	cd _generated && goimports -w .
 	@echo "Nexus Compiler: Moving files to output directory"
 	cp -r _generated/{client,apis,crds,common,nexus-client,helper,nexus-gql} ${GENERATED_OUTPUT_DIRECTORY}
-	# cp -r ${GOPATH}/src/nexustempmodule/nexus-gql/graphql.so ${GENERATED_OUTPUT_DIRECTORY}/nexus-gql
+	cp -r ${GOPATH}/src/nexustempmodule/nexus-gql/graphql.so ${GENERATED_OUTPUT_DIRECTORY}/nexus-gql
 	@echo "Nexus Compiler: Compiler code generation completed"
 
 .PHONY: test_generate_code_in_container

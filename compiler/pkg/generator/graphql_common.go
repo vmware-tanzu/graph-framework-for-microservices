@@ -284,9 +284,9 @@ func isRootOfGraph(parents []string, rootOfGraph bool) bool {
 	return rootOfGraph
 }
 
-func getGraphqlSchemaName(pattern, fieldName, schemaType string,f *ast.Field) string {
+func getGraphqlSchemaName(pattern, fieldName, schemaType string, f *ast.Field) string {
 	schemaName := fmt.Sprintf(pattern, fieldName, schemaType)
-	if parser.IsGraphqlAliasType(f){
+	if parser.IsGraphqlAliasType(f) {
 		schemaType = parser.GetGraphqlAliasType(f)
 	}
 	if fieldName != "" {
@@ -350,7 +350,7 @@ func getTsmGraphqlSchemaFieldName(sType GraphQLSchemaType, fieldName, schemaType
 			schemaType = "String"
 		}
 	}
-	schemaName := getGraphqlSchemaName(pattern, fieldName, schemaType,f)
+	schemaName := getGraphqlSchemaName(pattern, fieldName, schemaType, f)
 	if parser.IsTsmGraphqlDirectivesField(f) {
 		replacer := strings.NewReplacer("nexus-graphql-tsm-directive:", "", "\\", "")
 		out := replacer.Replace(parser.GetTsmGraphqlDirectives(f))

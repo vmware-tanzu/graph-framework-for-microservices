@@ -20,12 +20,7 @@ package externalversions
 
 import (
 	"fmt"
-
-	v1 "github.com/vmware-tanzu/graph-framework-for-microservices/compiler/example/output/generated/apis/config.tsm.tanzu.vmware.com/v1"
-	gnstsmtanzuvmwarecomv1 "github.com/vmware-tanzu/graph-framework-for-microservices/compiler/example/output/generated/apis/gns.tsm.tanzu.vmware.com/v1"
-	policypkgtsmtanzuvmwarecomv1 "github.com/vmware-tanzu/graph-framework-for-microservices/compiler/example/output/generated/apis/policypkg.tsm.tanzu.vmware.com/v1"
-	roottsmtanzuvmwarecomv1 "github.com/vmware-tanzu/graph-framework-for-microservices/compiler/example/output/generated/apis/root.tsm.tanzu.vmware.com/v1"
-	servicegrouptsmtanzuvmwarecomv1 "github.com/vmware-tanzu/graph-framework-for-microservices/compiler/example/output/generated/apis/servicegroup.tsm.tanzu.vmware.com/v1"
+	v1 "nexustempmodule/apis/global.tsm.tanzu.vmware.com/v1"
 
 	schema "k8s.io/apimachinery/pkg/runtime/schema"
 	cache "k8s.io/client-go/tools/cache"
@@ -57,51 +52,423 @@ func (f *genericInformer) Lister() cache.GenericLister {
 // TODO extend this to unknown resources with a client pool
 func (f *sharedInformerFactory) ForResource(resource schema.GroupVersionResource) (GenericInformer, error) {
 	switch resource {
-	// Group=config.tsm.tanzu.vmware.com, Version=v1
+	// Group=global.tsm.tanzu.vmware.com, Version=v1
+	case v1.SchemeGroupVersion.WithResource("acpconfigs"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.GlobalTsm().V1().ACPConfigs().Informer()}, nil
+	case v1.SchemeGroupVersion.WithResource("accesscontrolpolicies"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.GlobalTsm().V1().AccessControlPolicies().Informer()}, nil
+	case v1.SchemeGroupVersion.WithResource("accesstokens"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.GlobalTsm().V1().AccessTokens().Informer()}, nil
+	case v1.SchemeGroupVersion.WithResource("additionalattributeses"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.GlobalTsm().V1().AdditionalAttributeses().Informer()}, nil
+	case v1.SchemeGroupVersion.WithResource("allsparkserviceses"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.GlobalTsm().V1().AllSparkServiceses().Informer()}, nil
+	case v1.SchemeGroupVersion.WithResource("annotations"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.GlobalTsm().V1().Annotations().Informer()}, nil
+	case v1.SchemeGroupVersion.WithResource("apidiscoveries"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.GlobalTsm().V1().ApiDiscoveries().Informer()}, nil
+	case v1.SchemeGroupVersion.WithResource("apidiscoveryrts"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.GlobalTsm().V1().ApiDiscoveryRTs().Informer()}, nil
+	case v1.SchemeGroupVersion.WithResource("apps"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.GlobalTsm().V1().Apps().Informer()}, nil
+	case v1.SchemeGroupVersion.WithResource("appfolders"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.GlobalTsm().V1().AppFolders().Informer()}, nil
+	case v1.SchemeGroupVersion.WithResource("appgroups"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.GlobalTsm().V1().AppGroups().Informer()}, nil
+	case v1.SchemeGroupVersion.WithResource("apptemplates"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.GlobalTsm().V1().AppTemplates().Informer()}, nil
+	case v1.SchemeGroupVersion.WithResource("apptemplateservicedefinitions"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.GlobalTsm().V1().AppTemplateServiceDefinitions().Informer()}, nil
+	case v1.SchemeGroupVersion.WithResource("appusers"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.GlobalTsm().V1().AppUsers().Informer()}, nil
+	case v1.SchemeGroupVersion.WithResource("appversions"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.GlobalTsm().V1().AppVersions().Informer()}, nil
+	case v1.SchemeGroupVersion.WithResource("applicationinfos"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.GlobalTsm().V1().ApplicationInfos().Informer()}, nil
+	case v1.SchemeGroupVersion.WithResource("attackdiscoveries"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.GlobalTsm().V1().AttackDiscoveries().Informer()}, nil
+	case v1.SchemeGroupVersion.WithResource("attackdiscoveryrts"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.GlobalTsm().V1().AttackDiscoveryRTs().Informer()}, nil
+	case v1.SchemeGroupVersion.WithResource("authenticationpolicies"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.GlobalTsm().V1().AuthenticationPolicies().Informer()}, nil
+	case v1.SchemeGroupVersion.WithResource("autoscalers"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.GlobalTsm().V1().Autoscalers().Informer()}, nil
+	case v1.SchemeGroupVersion.WithResource("autoscalercrs"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.GlobalTsm().V1().AutoscalerCRs().Informer()}, nil
+	case v1.SchemeGroupVersion.WithResource("autoscalerconfigs"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.GlobalTsm().V1().AutoscalerConfigs().Informer()}, nil
+	case v1.SchemeGroupVersion.WithResource("autoscalerfolders"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.GlobalTsm().V1().AutoscalerFolders().Informer()}, nil
+	case v1.SchemeGroupVersion.WithResource("autoscalingpolicies"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.GlobalTsm().V1().AutoscalingPolicies().Informer()}, nil
+	case v1.SchemeGroupVersion.WithResource("awsconnectors"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.GlobalTsm().V1().AwsConnectors().Informer()}, nil
+	case v1.SchemeGroupVersion.WithResource("buckets"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.GlobalTsm().V1().Buckets().Informer()}, nil
+	case v1.SchemeGroupVersion.WithResource("certificates"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.GlobalTsm().V1().Certificates().Informer()}, nil
+	case v1.SchemeGroupVersion.WithResource("certificateauthorityconfigns"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.GlobalTsm().V1().CertificateAuthorityConfigNs().Informer()}, nil
+	case v1.SchemeGroupVersion.WithResource("certificateauthorityrts"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.GlobalTsm().V1().CertificateAuthorityRTs().Informer()}, nil
+	case v1.SchemeGroupVersion.WithResource("certificateconfigns"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.GlobalTsm().V1().CertificateConfigNs().Informer()}, nil
+	case v1.SchemeGroupVersion.WithResource("certificaterequests"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.GlobalTsm().V1().CertificateRequests().Informer()}, nil
+	case v1.SchemeGroupVersion.WithResource("clusters"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.GlobalTsm().V1().Clusters().Informer()}, nil
+	case v1.SchemeGroupVersion.WithResource("clusterconfigs"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.GlobalTsm().V1().ClusterConfigs().Informer()}, nil
+	case v1.SchemeGroupVersion.WithResource("clusterconfigfolders"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.GlobalTsm().V1().ClusterConfigFolders().Informer()}, nil
+	case v1.SchemeGroupVersion.WithResource("clusterfolders"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.GlobalTsm().V1().ClusterFolders().Informer()}, nil
+	case v1.SchemeGroupVersion.WithResource("clustersettingses"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.GlobalTsm().V1().ClusterSettingses().Informer()}, nil
 	case v1.SchemeGroupVersion.WithResource("configs"):
-		return &genericInformer{resource: resource.GroupResource(), informer: f.ConfigTsm().V1().Configs().Informer()}, nil
+		return &genericInformer{resource: resource.GroupResource(), informer: f.GlobalTsm().V1().Configs().Informer()}, nil
+	case v1.SchemeGroupVersion.WithResource("configmaps"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.GlobalTsm().V1().ConfigMaps().Informer()}, nil
+	case v1.SchemeGroupVersion.WithResource("connectionstatuses"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.GlobalTsm().V1().ConnectionStatuses().Informer()}, nil
+	case v1.SchemeGroupVersion.WithResource("dcregions"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.GlobalTsm().V1().DCRegions().Informer()}, nil
+	case v1.SchemeGroupVersion.WithResource("dczones"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.GlobalTsm().V1().DCZones().Informer()}, nil
+	case v1.SchemeGroupVersion.WithResource("dnsconfigs"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.GlobalTsm().V1().DNSConfigs().Informer()}, nil
+	case v1.SchemeGroupVersion.WithResource("dnsconfigfolders"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.GlobalTsm().V1().DNSConfigFolders().Informer()}, nil
+	case v1.SchemeGroupVersion.WithResource("dnsprobeconfigs"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.GlobalTsm().V1().DNSProbeConfigs().Informer()}, nil
+	case v1.SchemeGroupVersion.WithResource("dnsprobestatuses"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.GlobalTsm().V1().DNSProbeStatuses().Informer()}, nil
+	case v1.SchemeGroupVersion.WithResource("dnsprobesconfigfolders"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.GlobalTsm().V1().DNSProbesConfigFolders().Informer()}, nil
+	case v1.SchemeGroupVersion.WithResource("datafolders"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.GlobalTsm().V1().DataFolders().Informer()}, nil
+	case v1.SchemeGroupVersion.WithResource("datafolderdomains"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.GlobalTsm().V1().DataFolderDomains().Informer()}, nil
+	case v1.SchemeGroupVersion.WithResource("datafolderdomainclusters"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.GlobalTsm().V1().DataFolderDomainClusters().Informer()}, nil
+	case v1.SchemeGroupVersion.WithResource("datafolderdomainservices"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.GlobalTsm().V1().DataFolderDomainServices().Informer()}, nil
+	case v1.SchemeGroupVersion.WithResource("datafolderdomainserviceversions"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.GlobalTsm().V1().DataFolderDomainServiceVersions().Informer()}, nil
+	case v1.SchemeGroupVersion.WithResource("datagroups"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.GlobalTsm().V1().DataGroups().Informer()}, nil
+	case v1.SchemeGroupVersion.WithResource("datatemplates"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.GlobalTsm().V1().DataTemplates().Informer()}, nil
+	case v1.SchemeGroupVersion.WithResource("databases"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.GlobalTsm().V1().Databases().Informer()}, nil
+	case v1.SchemeGroupVersion.WithResource("destinationrules"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.GlobalTsm().V1().DestinationRules().Informer()}, nil
+	case v1.SchemeGroupVersion.WithResource("directories"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.GlobalTsm().V1().Directories().Informer()}, nil
 	case v1.SchemeGroupVersion.WithResource("domains"):
-		return &genericInformer{resource: resource.GroupResource(), informer: f.ConfigTsm().V1().Domains().Informer()}, nil
-	case v1.SchemeGroupVersion.WithResource("footypeabcs"):
-		return &genericInformer{resource: resource.GroupResource(), informer: f.ConfigTsm().V1().FooTypeABCs().Informer()}, nil
-
-		// Group=gns.tsm.tanzu.vmware.com, Version=v1
-	case gnstsmtanzuvmwarecomv1.SchemeGroupVersion.WithResource("additionalgnsdatas"):
-		return &genericInformer{resource: resource.GroupResource(), informer: f.GnsTsm().V1().AdditionalGnsDatas().Informer()}, nil
-	case gnstsmtanzuvmwarecomv1.SchemeGroupVersion.WithResource("barchilds"):
-		return &genericInformer{resource: resource.GroupResource(), informer: f.GnsTsm().V1().BarChilds().Informer()}, nil
-	case gnstsmtanzuvmwarecomv1.SchemeGroupVersion.WithResource("dnses"):
-		return &genericInformer{resource: resource.GroupResource(), informer: f.GnsTsm().V1().Dnses().Informer()}, nil
-	case gnstsmtanzuvmwarecomv1.SchemeGroupVersion.WithResource("foos"):
-		return &genericInformer{resource: resource.GroupResource(), informer: f.GnsTsm().V1().Foos().Informer()}, nil
-	case gnstsmtanzuvmwarecomv1.SchemeGroupVersion.WithResource("gnses"):
-		return &genericInformer{resource: resource.GroupResource(), informer: f.GnsTsm().V1().Gnses().Informer()}, nil
-	case gnstsmtanzuvmwarecomv1.SchemeGroupVersion.WithResource("ignorechilds"):
-		return &genericInformer{resource: resource.GroupResource(), informer: f.GnsTsm().V1().IgnoreChilds().Informer()}, nil
-	case gnstsmtanzuvmwarecomv1.SchemeGroupVersion.WithResource("randomgnsdatas"):
-		return &genericInformer{resource: resource.GroupResource(), informer: f.GnsTsm().V1().RandomGnsDatas().Informer()}, nil
-
-		// Group=policypkg.tsm.tanzu.vmware.com, Version=v1
-	case policypkgtsmtanzuvmwarecomv1.SchemeGroupVersion.WithResource("acpconfigs"):
-		return &genericInformer{resource: resource.GroupResource(), informer: f.PolicypkgTsm().V1().ACPConfigs().Informer()}, nil
-	case policypkgtsmtanzuvmwarecomv1.SchemeGroupVersion.WithResource("accesscontrolpolicies"):
-		return &genericInformer{resource: resource.GroupResource(), informer: f.PolicypkgTsm().V1().AccessControlPolicies().Informer()}, nil
-	case policypkgtsmtanzuvmwarecomv1.SchemeGroupVersion.WithResource("additionalpolicydatas"):
-		return &genericInformer{resource: resource.GroupResource(), informer: f.PolicypkgTsm().V1().AdditionalPolicyDatas().Informer()}, nil
-	case policypkgtsmtanzuvmwarecomv1.SchemeGroupVersion.WithResource("randompolicydatas"):
-		return &genericInformer{resource: resource.GroupResource(), informer: f.PolicypkgTsm().V1().RandomPolicyDatas().Informer()}, nil
-	case policypkgtsmtanzuvmwarecomv1.SchemeGroupVersion.WithResource("vmpolicies"):
-		return &genericInformer{resource: resource.GroupResource(), informer: f.PolicypkgTsm().V1().VMpolicies().Informer()}, nil
-
-		// Group=root.tsm.tanzu.vmware.com, Version=v1
-	case roottsmtanzuvmwarecomv1.SchemeGroupVersion.WithResource("roots"):
-		return &genericInformer{resource: resource.GroupResource(), informer: f.RootTsm().V1().Roots().Informer()}, nil
-
-		// Group=servicegroup.tsm.tanzu.vmware.com, Version=v1
-	case servicegrouptsmtanzuvmwarecomv1.SchemeGroupVersion.WithResource("svcgroups"):
-		return &genericInformer{resource: resource.GroupResource(), informer: f.ServicegroupTsm().V1().SvcGroups().Informer()}, nil
-	case servicegrouptsmtanzuvmwarecomv1.SchemeGroupVersion.WithResource("svcgrouplinkinfos"):
-		return &genericInformer{resource: resource.GroupResource(), informer: f.ServicegroupTsm().V1().SvcGroupLinkInfos().Informer()}, nil
+		return &genericInformer{resource: resource.GroupResource(), informer: f.GlobalTsm().V1().Domains().Informer()}, nil
+	case v1.SchemeGroupVersion.WithResource("domainconfigs"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.GlobalTsm().V1().DomainConfigs().Informer()}, nil
+	case v1.SchemeGroupVersion.WithResource("endpoints"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.GlobalTsm().V1().Endpoints().Informer()}, nil
+	case v1.SchemeGroupVersion.WithResource("envoyfilters"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.GlobalTsm().V1().EnvoyFilters().Informer()}, nil
+	case v1.SchemeGroupVersion.WithResource("externalaccountconfigns"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.GlobalTsm().V1().ExternalAccountConfigNs().Informer()}, nil
+	case v1.SchemeGroupVersion.WithResource("externalauditstorages"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.GlobalTsm().V1().ExternalAuditStorages().Informer()}, nil
+	case v1.SchemeGroupVersion.WithResource("externaldnsconfigns"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.GlobalTsm().V1().ExternalDNSConfigNs().Informer()}, nil
+	case v1.SchemeGroupVersion.WithResource("externaldnsinventories"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.GlobalTsm().V1().ExternalDNSInventories().Informer()}, nil
+	case v1.SchemeGroupVersion.WithResource("externaldnsinventoryhealthchecks"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.GlobalTsm().V1().ExternalDNSInventoryHealthChecks().Informer()}, nil
+	case v1.SchemeGroupVersion.WithResource("externaldnsinventoryprimarydomains"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.GlobalTsm().V1().ExternalDNSInventoryPrimaryDomains().Informer()}, nil
+	case v1.SchemeGroupVersion.WithResource("externaldnsinventoryrecords"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.GlobalTsm().V1().ExternalDNSInventoryRecords().Informer()}, nil
+	case v1.SchemeGroupVersion.WithResource("externaldnsinventoryzones"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.GlobalTsm().V1().ExternalDNSInventoryZones().Informer()}, nil
+	case v1.SchemeGroupVersion.WithResource("externaldnsruntimes"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.GlobalTsm().V1().ExternalDNSRuntimes().Informer()}, nil
+	case v1.SchemeGroupVersion.WithResource("externaldnsruntimeendpoints"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.GlobalTsm().V1().ExternalDNSRuntimeEndpoints().Informer()}, nil
+	case v1.SchemeGroupVersion.WithResource("externaldnsruntimeprimarydomains"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.GlobalTsm().V1().ExternalDNSRuntimePrimaryDomains().Informer()}, nil
+	case v1.SchemeGroupVersion.WithResource("externaldnsruntimesubdomains"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.GlobalTsm().V1().ExternalDNSRuntimeSubdomains().Informer()}, nil
+	case v1.SchemeGroupVersion.WithResource("externallbconfigns"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.GlobalTsm().V1().ExternalLBConfigNs().Informer()}, nil
+	case v1.SchemeGroupVersion.WithResource("externalplugincapabilities"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.GlobalTsm().V1().ExternalPluginCapabilities().Informer()}, nil
+	case v1.SchemeGroupVersion.WithResource("externalpluginconfigs"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.GlobalTsm().V1().ExternalPluginConfigs().Informer()}, nil
+	case v1.SchemeGroupVersion.WithResource("externalpluginconfigfolders"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.GlobalTsm().V1().ExternalPluginConfigFolders().Informer()}, nil
+	case v1.SchemeGroupVersion.WithResource("externalplugininstanceconfigs"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.GlobalTsm().V1().ExternalPluginInstanceConfigs().Informer()}, nil
+	case v1.SchemeGroupVersion.WithResource("externalpluginmonitors"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.GlobalTsm().V1().ExternalPluginMonitors().Informer()}, nil
+	case v1.SchemeGroupVersion.WithResource("externalserviceconfigs"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.GlobalTsm().V1().ExternalServiceConfigs().Informer()}, nil
+	case v1.SchemeGroupVersion.WithResource("externalservicesrts"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.GlobalTsm().V1().ExternalServicesRTs().Informer()}, nil
+	case v1.SchemeGroupVersion.WithResource("featureflags"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.GlobalTsm().V1().FeatureFlags().Informer()}, nil
+	case v1.SchemeGroupVersion.WithResource("federatedsloconfigs"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.GlobalTsm().V1().FederatedSloConfigs().Informer()}, nil
+	case v1.SchemeGroupVersion.WithResource("federatedsloserviceconfigs"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.GlobalTsm().V1().FederatedSloServiceConfigs().Informer()}, nil
+	case v1.SchemeGroupVersion.WithResource("gnss"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.GlobalTsm().V1().GNSs().Informer()}, nil
+	case v1.SchemeGroupVersion.WithResource("gnsroutingconfigs"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.GlobalTsm().V1().GNSRoutingConfigs().Informer()}, nil
+	case v1.SchemeGroupVersion.WithResource("gnssvcgroups"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.GlobalTsm().V1().GNSSvcGroups().Informer()}, nil
+	case v1.SchemeGroupVersion.WithResource("gateways"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.GlobalTsm().V1().Gateways().Informer()}, nil
+	case v1.SchemeGroupVersion.WithResource("gatewayconfigs"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.GlobalTsm().V1().GatewayConfigs().Informer()}, nil
+	case v1.SchemeGroupVersion.WithResource("gatewayconfigadditionallistenerses"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.GlobalTsm().V1().GatewayConfigAdditionalListenerses().Informer()}, nil
+	case v1.SchemeGroupVersion.WithResource("gatewayconfiglistenercertificates"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.GlobalTsm().V1().GatewayConfigListenerCertificates().Informer()}, nil
+	case v1.SchemeGroupVersion.WithResource("gatewayconfiglistenerdestinationroutes"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.GlobalTsm().V1().GatewayConfigListenerDestinationRoutes().Informer()}, nil
+	case v1.SchemeGroupVersion.WithResource("geodiscoveries"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.GlobalTsm().V1().GeoDiscoveries().Informer()}, nil
+	case v1.SchemeGroupVersion.WithResource("geodiscoveryrts"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.GlobalTsm().V1().GeoDiscoveryRTs().Informer()}, nil
+	case v1.SchemeGroupVersion.WithResource("globalnamespaces"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.GlobalTsm().V1().GlobalNamespaces().Informer()}, nil
+	case v1.SchemeGroupVersion.WithResource("globalnses"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.GlobalTsm().V1().GlobalNses().Informer()}, nil
+	case v1.SchemeGroupVersion.WithResource("globalregistrationservices"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.GlobalTsm().V1().GlobalRegistrationServices().Informer()}, nil
+	case v1.SchemeGroupVersion.WithResource("gnsaccesscontrolpolicies"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.GlobalTsm().V1().GnsAccessControlPolicies().Informer()}, nil
+	case v1.SchemeGroupVersion.WithResource("gnsaccesscontrolpolicyrts"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.GlobalTsm().V1().GnsAccessControlPolicyRTs().Informer()}, nil
+	case v1.SchemeGroupVersion.WithResource("gnsbindingrts"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.GlobalTsm().V1().GnsBindingRTs().Informer()}, nil
+	case v1.SchemeGroupVersion.WithResource("gnsendpointsconfigs"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.GlobalTsm().V1().GnsEndpointsConfigs().Informer()}, nil
+	case v1.SchemeGroupVersion.WithResource("gnsroutingruleconfigs"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.GlobalTsm().V1().GnsRoutingRuleConfigs().Informer()}, nil
+	case v1.SchemeGroupVersion.WithResource("gnsschemaviolationdiscoveries"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.GlobalTsm().V1().GnsSchemaViolationDiscoveries().Informer()}, nil
+	case v1.SchemeGroupVersion.WithResource("gnssegmentationpolicies"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.GlobalTsm().V1().GnsSegmentationPolicies().Informer()}, nil
+	case v1.SchemeGroupVersion.WithResource("gnssegmentationpolicyrts"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.GlobalTsm().V1().GnsSegmentationPolicyRTs().Informer()}, nil
+	case v1.SchemeGroupVersion.WithResource("gnsserviceentryconfigs"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.GlobalTsm().V1().GnsServiceEntryConfigs().Informer()}, nil
+	case v1.SchemeGroupVersion.WithResource("gnssvcgrouprts"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.GlobalTsm().V1().GnsSvcGroupRTs().Informer()}, nil
+	case v1.SchemeGroupVersion.WithResource("haconfigs"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.GlobalTsm().V1().HaConfigs().Informer()}, nil
+	case v1.SchemeGroupVersion.WithResource("haconfigv2s"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.GlobalTsm().V1().HaConfigV2s().Informer()}, nil
+	case v1.SchemeGroupVersion.WithResource("healthcheckconfigns"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.GlobalTsm().V1().HealthCheckConfigNs().Informer()}, nil
+	case v1.SchemeGroupVersion.WithResource("hostconfigs"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.GlobalTsm().V1().HostConfigs().Informer()}, nil
+	case v1.SchemeGroupVersion.WithResource("hostconfigv2s"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.GlobalTsm().V1().HostConfigV2s().Informer()}, nil
+	case v1.SchemeGroupVersion.WithResource("inboundauthenticationconfigs"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.GlobalTsm().V1().InboundAuthenticationConfigs().Informer()}, nil
+	case v1.SchemeGroupVersion.WithResource("inventories"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.GlobalTsm().V1().Inventories().Informer()}, nil
+	case v1.SchemeGroupVersion.WithResource("issuers"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.GlobalTsm().V1().Issuers().Informer()}, nil
+	case v1.SchemeGroupVersion.WithResource("jobs"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.GlobalTsm().V1().Jobs().Informer()}, nil
+	case v1.SchemeGroupVersion.WithResource("jobconfigs"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.GlobalTsm().V1().JobConfigs().Informer()}, nil
+	case v1.SchemeGroupVersion.WithResource("jobconfigfolders"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.GlobalTsm().V1().JobConfigFolders().Informer()}, nil
+	case v1.SchemeGroupVersion.WithResource("jobfolders"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.GlobalTsm().V1().JobFolders().Informer()}, nil
+	case v1.SchemeGroupVersion.WithResource("knativeingresses"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.GlobalTsm().V1().KnativeIngresses().Informer()}, nil
+	case v1.SchemeGroupVersion.WithResource("labelconfigs"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.GlobalTsm().V1().LabelConfigs().Informer()}, nil
+	case v1.SchemeGroupVersion.WithResource("localregistrationservices"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.GlobalTsm().V1().LocalRegistrationServices().Informer()}, nil
+	case v1.SchemeGroupVersion.WithResource("localregistrationserviceclusters"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.GlobalTsm().V1().LocalRegistrationServiceClusters().Informer()}, nil
+	case v1.SchemeGroupVersion.WithResource("localregistrationserviceresources"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.GlobalTsm().V1().LocalRegistrationServiceResources().Informer()}, nil
+	case v1.SchemeGroupVersion.WithResource("logs"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.GlobalTsm().V1().Logs().Informer()}, nil
+	case v1.SchemeGroupVersion.WithResource("logfolders"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.GlobalTsm().V1().LogFolders().Informer()}, nil
+	case v1.SchemeGroupVersion.WithResource("metricmonitors"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.GlobalTsm().V1().MetricMonitors().Informer()}, nil
+	case v1.SchemeGroupVersion.WithResource("networkattachmentdefinitions"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.GlobalTsm().V1().NetworkAttachmentDefinitions().Informer()}, nil
+	case v1.SchemeGroupVersion.WithResource("networkattachmentdefinitionconfigs"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.GlobalTsm().V1().NetworkAttachmentDefinitionConfigs().Informer()}, nil
+	case v1.SchemeGroupVersion.WithResource("nodes"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.GlobalTsm().V1().Nodes().Informer()}, nil
+	case v1.SchemeGroupVersion.WithResource("nodedefinitions"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.GlobalTsm().V1().NodeDefinitions().Informer()}, nil
+	case v1.SchemeGroupVersion.WithResource("nodefolders"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.GlobalTsm().V1().NodeFolders().Informer()}, nil
+	case v1.SchemeGroupVersion.WithResource("nodefolderclusters"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.GlobalTsm().V1().NodeFolderClusters().Informer()}, nil
+	case v1.SchemeGroupVersion.WithResource("nodegroups"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.GlobalTsm().V1().NodeGroups().Informer()}, nil
+	case v1.SchemeGroupVersion.WithResource("nodestatuses"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.GlobalTsm().V1().NodeStatuses().Informer()}, nil
+	case v1.SchemeGroupVersion.WithResource("nodetemplates"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.GlobalTsm().V1().NodeTemplates().Informer()}, nil
+	case v1.SchemeGroupVersion.WithResource("outboundauthenticationmodes"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.GlobalTsm().V1().OutboundAuthenticationModes().Informer()}, nil
+	case v1.SchemeGroupVersion.WithResource("peerauthentications"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.GlobalTsm().V1().PeerAuthentications().Informer()}, nil
+	case v1.SchemeGroupVersion.WithResource("piidiscoveries"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.GlobalTsm().V1().PiiDiscoveries().Informer()}, nil
+	case v1.SchemeGroupVersion.WithResource("piidiscoveryrts"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.GlobalTsm().V1().PiiDiscoveryRTs().Informer()}, nil
+	case v1.SchemeGroupVersion.WithResource("policyconfigs"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.GlobalTsm().V1().PolicyConfigs().Informer()}, nil
+	case v1.SchemeGroupVersion.WithResource("policytemplates"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.GlobalTsm().V1().PolicyTemplates().Informer()}, nil
+	case v1.SchemeGroupVersion.WithResource("progressiveupgrades"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.GlobalTsm().V1().ProgressiveUpgrades().Informer()}, nil
+	case v1.SchemeGroupVersion.WithResource("progressiveupgradeconfigs"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.GlobalTsm().V1().ProgressiveUpgradeConfigs().Informer()}, nil
+	case v1.SchemeGroupVersion.WithResource("progressiveupgradefolders"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.GlobalTsm().V1().ProgressiveUpgradeFolders().Informer()}, nil
+	case v1.SchemeGroupVersion.WithResource("progressiveupgraderuntimes"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.GlobalTsm().V1().ProgressiveUpgradeRuntimes().Informer()}, nil
+	case v1.SchemeGroupVersion.WithResource("projects"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.GlobalTsm().V1().Projects().Informer()}, nil
+	case v1.SchemeGroupVersion.WithResource("projectconfigs"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.GlobalTsm().V1().ProjectConfigs().Informer()}, nil
+	case v1.SchemeGroupVersion.WithResource("projectinventories"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.GlobalTsm().V1().ProjectInventories().Informer()}, nil
+	case v1.SchemeGroupVersion.WithResource("projectqueries"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.GlobalTsm().V1().ProjectQueries().Informer()}, nil
+	case v1.SchemeGroupVersion.WithResource("publicserviceconfigs"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.GlobalTsm().V1().PublicServiceConfigs().Informer()}, nil
+	case v1.SchemeGroupVersion.WithResource("publicservicerts"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.GlobalTsm().V1().PublicServiceRTs().Informer()}, nil
+	case v1.SchemeGroupVersion.WithResource("publicservicerouteconfigs"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.GlobalTsm().V1().PublicServiceRouteConfigs().Informer()}, nil
+	case v1.SchemeGroupVersion.WithResource("rpolicies"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.GlobalTsm().V1().RPolicies().Informer()}, nil
+	case v1.SchemeGroupVersion.WithResource("remotegatewayserviceconfigs"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.GlobalTsm().V1().RemoteGatewayServiceConfigs().Informer()}, nil
+	case v1.SchemeGroupVersion.WithResource("resourcegroups"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.GlobalTsm().V1().ResourceGroups().Informer()}, nil
+	case v1.SchemeGroupVersion.WithResource("resourcegrouprts"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.GlobalTsm().V1().ResourceGroupRTs().Informer()}, nil
+	case v1.SchemeGroupVersion.WithResource("roots"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.GlobalTsm().V1().Roots().Informer()}, nil
+	case v1.SchemeGroupVersion.WithResource("runtimes"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.GlobalTsm().V1().Runtimes().Informer()}, nil
+	case v1.SchemeGroupVersion.WithResource("slofolders"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.GlobalTsm().V1().SLOFolders().Informer()}, nil
+	case v1.SchemeGroupVersion.WithResource("slopolicies"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.GlobalTsm().V1().SLOPolicies().Informer()}, nil
+	case v1.SchemeGroupVersion.WithResource("schemaviolationdiscoveryrts"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.GlobalTsm().V1().SchemaViolationDiscoveryRTs().Informer()}, nil
+	case v1.SchemeGroupVersion.WithResource("secrethashes"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.GlobalTsm().V1().SecretHashes().Informer()}, nil
+	case v1.SchemeGroupVersion.WithResource("secretrtconfigs"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.GlobalTsm().V1().SecretRTConfigs().Informer()}, nil
+	case v1.SchemeGroupVersion.WithResource("securitycontextconstraintses"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.GlobalTsm().V1().SecurityContextConstraintses().Informer()}, nil
+	case v1.SchemeGroupVersion.WithResource("securitycontextconstraintsconfigs"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.GlobalTsm().V1().SecurityContextConstraintsConfigs().Informer()}, nil
+	case v1.SchemeGroupVersion.WithResource("services"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.GlobalTsm().V1().Services().Informer()}, nil
+	case v1.SchemeGroupVersion.WithResource("serviceconfigs"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.GlobalTsm().V1().ServiceConfigs().Informer()}, nil
+	case v1.SchemeGroupVersion.WithResource("servicecronjobs"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.GlobalTsm().V1().ServiceCronJobs().Informer()}, nil
+	case v1.SchemeGroupVersion.WithResource("servicedaemonsets"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.GlobalTsm().V1().ServiceDaemonSets().Informer()}, nil
+	case v1.SchemeGroupVersion.WithResource("servicedeployments"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.GlobalTsm().V1().ServiceDeployments().Informer()}, nil
+	case v1.SchemeGroupVersion.WithResource("servicedeploymentcontainers"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.GlobalTsm().V1().ServiceDeploymentContainers().Informer()}, nil
+	case v1.SchemeGroupVersion.WithResource("servicedirectoryentryconfigs"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.GlobalTsm().V1().ServiceDirectoryEntryConfigs().Informer()}, nil
+	case v1.SchemeGroupVersion.WithResource("servicedirectoryns"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.GlobalTsm().V1().ServiceDirectoryNs().Informer()}, nil
+	case v1.SchemeGroupVersion.WithResource("servicedirectoryrts"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.GlobalTsm().V1().ServiceDirectoryRTs().Informer()}, nil
+	case v1.SchemeGroupVersion.WithResource("servicedirectoryrtfolders"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.GlobalTsm().V1().ServiceDirectoryRTFolders().Informer()}, nil
+	case v1.SchemeGroupVersion.WithResource("servicedirectoryrtfolderentries"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.GlobalTsm().V1().ServiceDirectoryRTFolderEntries().Informer()}, nil
+	case v1.SchemeGroupVersion.WithResource("serviceentries"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.GlobalTsm().V1().ServiceEntries().Informer()}, nil
+	case v1.SchemeGroupVersion.WithResource("serviceentryconfigs"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.GlobalTsm().V1().ServiceEntryConfigs().Informer()}, nil
+	case v1.SchemeGroupVersion.WithResource("serviceinstances"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.GlobalTsm().V1().ServiceInstances().Informer()}, nil
+	case v1.SchemeGroupVersion.WithResource("serviceinstancecontainers"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.GlobalTsm().V1().ServiceInstanceContainers().Informer()}, nil
+	case v1.SchemeGroupVersion.WithResource("servicejobs"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.GlobalTsm().V1().ServiceJobs().Informer()}, nil
+	case v1.SchemeGroupVersion.WithResource("servicelevelobjectives"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.GlobalTsm().V1().ServiceLevelObjectives().Informer()}, nil
+	case v1.SchemeGroupVersion.WithResource("servicelevelobjectivefolders"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.GlobalTsm().V1().ServiceLevelObjectiveFolders().Informer()}, nil
+	case v1.SchemeGroupVersion.WithResource("servicereplicasets"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.GlobalTsm().V1().ServiceReplicaSets().Informer()}, nil
+	case v1.SchemeGroupVersion.WithResource("servicestatefulsets"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.GlobalTsm().V1().ServiceStatefulSets().Informer()}, nil
+	case v1.SchemeGroupVersion.WithResource("servicetemplates"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.GlobalTsm().V1().ServiceTemplates().Informer()}, nil
+	case v1.SchemeGroupVersion.WithResource("servicetemplateservicedefinitions"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.GlobalTsm().V1().ServiceTemplateServiceDefinitions().Informer()}, nil
+	case v1.SchemeGroupVersion.WithResource("serviceversions"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.GlobalTsm().V1().ServiceVersions().Informer()}, nil
+	case v1.SchemeGroupVersion.WithResource("serviceversionconfigs"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.GlobalTsm().V1().ServiceVersionConfigs().Informer()}, nil
+	case v1.SchemeGroupVersion.WithResource("sharedserviceconfigs"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.GlobalTsm().V1().SharedServiceConfigs().Informer()}, nil
+	case v1.SchemeGroupVersion.WithResource("sloconfigs"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.GlobalTsm().V1().SloConfigs().Informer()}, nil
+	case v1.SchemeGroupVersion.WithResource("sloserviceconfigs"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.GlobalTsm().V1().SloServiceConfigs().Informer()}, nil
+	case v1.SchemeGroupVersion.WithResource("svcgroups"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.GlobalTsm().V1().SvcGroups().Informer()}, nil
+	case v1.SchemeGroupVersion.WithResource("svcgrouprts"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.GlobalTsm().V1().SvcGroupRTs().Informer()}, nil
+	case v1.SchemeGroupVersion.WithResource("tables"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.GlobalTsm().V1().Tables().Informer()}, nil
+	case v1.SchemeGroupVersion.WithResource("templates"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.GlobalTsm().V1().Templates().Informer()}, nil
+	case v1.SchemeGroupVersion.WithResource("templategroups"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.GlobalTsm().V1().TemplateGroups().Informer()}, nil
+	case v1.SchemeGroupVersion.WithResource("tenants"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.GlobalTsm().V1().Tenants().Informer()}, nil
+	case v1.SchemeGroupVersion.WithResource("tenantresources"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.GlobalTsm().V1().TenantResources().Informer()}, nil
+	case v1.SchemeGroupVersion.WithResource("tenanttokens"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.GlobalTsm().V1().TenantTokens().Informer()}, nil
+	case v1.SchemeGroupVersion.WithResource("users"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.GlobalTsm().V1().Users().Informer()}, nil
+	case v1.SchemeGroupVersion.WithResource("userdiscoveries"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.GlobalTsm().V1().UserDiscoveries().Informer()}, nil
+	case v1.SchemeGroupVersion.WithResource("userdiscoveryrts"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.GlobalTsm().V1().UserDiscoveryRTs().Informer()}, nil
+	case v1.SchemeGroupVersion.WithResource("userfolders"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.GlobalTsm().V1().UserFolders().Informer()}, nil
+	case v1.SchemeGroupVersion.WithResource("usergroups"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.GlobalTsm().V1().UserGroups().Informer()}, nil
+	case v1.SchemeGroupVersion.WithResource("userpreferences"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.GlobalTsm().V1().UserPreferences().Informer()}, nil
+	case v1.SchemeGroupVersion.WithResource("virtualservices"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.GlobalTsm().V1().VirtualServices().Informer()}, nil
+	case v1.SchemeGroupVersion.WithResource("workloadentries"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.GlobalTsm().V1().WorkloadEntries().Informer()}, nil
 
 	}
 

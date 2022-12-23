@@ -30,49 +30,1037 @@ models:
       - github.com/vmware-tanzu/graph-framework-for-microservices/gqlgen/graphql.Int
       - github.com/vmware-tanzu/graph-framework-for-microservices/gqlgen/graphql.Int64
       - github.com/vmware-tanzu/graph-framework-for-microservices/gqlgen/graphql.Int32
-  root_Root:
+  global_ACPConfig:
     fields:
-      Config:
+      DestSvcGroups:
         resolver: true
-  config_Config:
+      SourceSvcGroups:
+        resolver: true
+  global_AllSparkServices:
     fields:
-      QueryExample:
+      GlobalRegistrationService:
         resolver: true
-      ACPPolicies:
+      LocalRegistrationService:
         resolver: true
-      FooExample:
+      AwsConnector:
         resolver: true
-      GNS:
+  global_AppFolder:
+    fields:
+      App:
         resolver: true
-      DNS:
+  global_AppGroup:
+    fields:
+      Services:
         resolver: true
-      VMPPolicies:
+  global_AppTemplate:
+    fields:
+      ServiceDefinitions:
         resolver: true
+  global_AppVersion:
+    fields:
+      Template:
+        resolver: true
+      Inventory:
+        resolver: true
+  global_App:
+    fields:
+      Version:
+        resolver: true
+  global_AutoscalerFolder:
+    fields:
+      Autoscalers:
+        resolver: true
+  global_Autoscaler:
+    fields:
+      Autoscaler:
+        resolver: true
+  global_AwsConnector:
+    fields:
+      Gns:
+        resolver: true
+  global_Bucket:
+    fields:
+      Template:
+        resolver: true
+      Inventory:
+        resolver: true
+  global_ClusterConfigFolder:
+    fields:
+      Clusters:
+        resolver: true
+  global_ClusterConfig:
+    fields:
+      Domains:
+        resolver: true
+      HostConfig:
+        resolver: true
+      GnsBinding:
+        resolver: true
+      SecurityContextConstraints:
+        resolver: true
+      DnsConfigFolder:
+        resolver: true
+      DnsProbesConfigFolder:
+        resolver: true
+      LogFolder:
+        resolver: true
+      ResourceGroup:
+        resolver: true
+  global_ClusterFolder:
+    fields:
+      Clusters:
+        resolver: true
+      RemoteGatewayServiceConfigs:
+        resolver: true
+  global_Cluster:
+    fields:
+      queryNodeTS:
+        resolver: true
+      queryServiceTS:
+        resolver: true
+      queryServiceTable:
+        resolver: true
+      queryServiceVersionTable:
+        resolver: true
+      queryServiceInstanceTable:
+        resolver: true
+      queryServiceTopology:
+        resolver: true
+      queryClusterTable:
+        resolver: true
+      queryNodeTable:
+        resolver: true
+      queryServiceNodeMapGroupedByNode:
+        resolver: true
+      queryServiceNodeMapGroupedByService:
+        resolver: true
+      queryServiceNodeMapGroupedByServiceVersion:
+        resolver: true
+      queryStats:
+        resolver: true
+      queryLogs:
+        resolver: true
+      queryList:
+        resolver: true
+      queryLinechart:
+        resolver: true
+      queryTopN:
+        resolver: true
+      queryDetail:
+        resolver: true
+      Apps:
+        resolver: true
+      DnsProbeStatus:
+        resolver: true
+      SecurityContextConstraints:
+        resolver: true
+      Domains:
+        resolver: true
+      Nodes:
+        resolver: true
+      ConnectionStatus:
+        resolver: true
+  global_Config:
+    fields:
+      Certificates:
+        resolver: true
+      ExternalAccounts:
+        resolver: true
+      ExternalDNS:
+        resolver: true
+      ExternalLB:
+        resolver: true
+      FeatureFlags:
+        resolver: true
+      Projects:
+        resolver: true
+      ServiceDirectory:
+        resolver: true
+      ResourceGroups:
+        resolver: true
+      GlobalNamespace:
+        resolver: true
+      Policy:
+        resolver: true
+      Templates:
+        resolver: true
+      ProgressiveUpgrade:
+        resolver: true
+      ExternalPlugins:
+        resolver: true
+      ExternalAuditStorage:
+        resolver: true
+      AutoscalerFolder:
+        resolver: true
+      Clusters:
+        resolver: true
+      ServiceLevelObjective:
+        resolver: true
+  global_DataFolderDomainService:
+    fields:
+      Versions:
+        resolver: true
+  global_DataFolderDomain:
+    fields:
+      Service:
+        resolver: true
+      Cluster:
+        resolver: true
+      Database:
+        resolver: true
+  global_DataFolder:
+    fields:
       Domain:
         resolver: true
-      SvcGrpInfo:
-        resolver: true
-  gns_Gns:
+  global_Database:
     fields:
-      queryGns1:
+      Tables:
         resolver: true
-      queryGnsQM1:
+      Directories:
         resolver: true
-      queryGnsQM:
+      Buckets:
+        resolver: true
+  global_DCRegion:
+    fields:
+      Zones:
+        resolver: true
+  global_DCZone:
+    fields:
+      Clusters:
+        resolver: true
+  global_DestinationRule:
+    fields:
+      Service:
+        resolver: true
+      ServiceDeployments:
+        resolver: true
+      ServiceReplicaSets:
+        resolver: true
+      ServiceStatefulSets:
+        resolver: true
+      ServiceDaemonSets:
+        resolver: true
+      ServiceJobs:
+        resolver: true
+  global_Directory:
+    fields:
+      Template:
+        resolver: true
+      Inventory:
+        resolver: true
+  global_DNSConfigFolder:
+    fields:
+      DnsConfig:
+        resolver: true
+  global_DNSProbesConfigFolder:
+    fields:
+      DnsProbeConfigs:
+        resolver: true
+  global_DomainConfig:
+    fields:
+      Policy:
+        resolver: true
+      NetworkAttachmentDefinition:
+        resolver: true
+      Services:
+        resolver: true
+      ServiceEntries:
+        resolver: true
+      GatewayConfig:
+        resolver: true
+      Autoscalers:
+        resolver: true
+      HostConfigV2:
+        resolver: true
+      InboundAuthenticationConfig:
+        resolver: true
+      Slos:
+        resolver: true
+      Secrets:
+        resolver: true
+      ExternalServices:
+        resolver: true
+      ApiDiscovery:
+        resolver: true
+      GeoDiscovery:
+        resolver: true
+      PiiDiscovery:
+        resolver: true
+      AttackDiscovery:
+        resolver: true
+      UserDiscovery:
+        resolver: true
+      PublicService:
         resolver: true
       GnsAccessControlPolicy:
         resolver: true
-      FooChild:
+      GnsSchemaViolationDiscovery:
         resolver: true
-  policypkg_AccessControlPolicy:
+      GnsSegmentationPolicy:
+        resolver: true
+      CertificateAuthority:
+        resolver: true
+      GnsEndpointsConfig:
+        resolver: true
+      LabelConfig:
+        resolver: true
+  global_Domain:
+    fields:
+      queryServiceTS:
+        resolver: true
+      queryServiceTable:
+        resolver: true
+      queryServiceVersionTable:
+        resolver: true
+      queryServiceInstanceTable:
+        resolver: true
+      queryServiceNodeMapGroupedByNode:
+        resolver: true
+      queryServiceNodeMapGroupedByService:
+        resolver: true
+      queryServiceNodeMapGroupedByServiceVersion:
+        resolver: true
+      queryStats:
+        resolver: true
+      queryLogs:
+        resolver: true
+      queryList:
+        resolver: true
+      queryLinechart:
+        resolver: true
+      queryTopN:
+        resolver: true
+      queryDetail:
+        resolver: true
+      SecretHashes:
+        resolver: true
+      ServiceInstances:
+        resolver: true
+      ServiceDeployments:
+        resolver: true
+      ServiceStatefulSets:
+        resolver: true
+      ServiceDaemonSets:
+        resolver: true
+      ServiceReplicaSets:
+        resolver: true
+      ServiceCronJobs:
+        resolver: true
+      ServiceJobs:
+        resolver: true
+      VirtualServices:
+        resolver: true
+      ServiceEntry:
+        resolver: true
+      WorkloadEntry:
+        resolver: true
+      DestinationRules:
+        resolver: true
+      Services:
+        resolver: true
+      Endpoints:
+        resolver: true
+      Gateways:
+        resolver: true
+      AuthenticationPolicies:
+        resolver: true
+      Configmap:
+        resolver: true
+      Envoyfilter:
+        resolver: true
+      Autoscalers:
+        resolver: true
+      PeerAuthentication:
+        resolver: true
+      KnativeIngresses:
+        resolver: true
+      NetworkAttachmentDefinition:
+        resolver: true
+      Issuers:
+        resolver: true
+      Certificates:
+        resolver: true
+      CertificateRequests:
+        resolver: true
+  global_ExternalDNSConfigN:
+    fields:
+      Account:
+        resolver: true
+  global_ExternalDNSInventoryPrimaryDomain:
+    fields:
+      DnsRecords:
+        resolver: true
+  global_ExternalDNSInventoryRecord:
+    fields:
+      HealthCheck:
+        resolver: true
+  global_ExternalDNSInventoryZone:
+    fields:
+      PrimaryDomains:
+        resolver: true
+  global_ExternalDNSInventory:
+    fields:
+      Zones:
+        resolver: true
+      PrimaryDomains:
+        resolver: true
+      HealthChecks:
+        resolver: true
+  global_ExternalDNSRuntimePrimaryDomain:
+    fields:
+      Subdomains:
+        resolver: true
+  global_ExternalDNSRuntime:
+    fields:
+      PrimaryDomains:
+        resolver: true
+  global_ExternalDNSRuntimeSubdomain:
+    fields:
+      Endpoints:
+        resolver: true
+  global_ExternalPluginConfigFolder:
+    fields:
+      Plugins:
+        resolver: true
+  global_ExternalPluginConfig:
+    fields:
+      PluginInstances:
+        resolver: true
+  global_ExternalPluginInstanceConfig:
+    fields:
+      Clusters:
+        resolver: true
+      Monitors:
+        resolver: true
+      Capabilitiy:
+        resolver: true
+  global_GatewayConfigAdditionalListeners:
+    fields:
+      ListenerRoutes:
+        resolver: true
+      Certificate:
+        resolver: true
+  global_GatewayConfig:
+    fields:
+      AdditionalListeners:
+        resolver: true
+  global_Gateway:
+    fields:
+      Services:
+        resolver: true
+  global_GlobalNs:
+    fields:
+      RoutingPolicies:
+        resolver: true
+  global_GlobalRegistrationService:
+    fields:
+      Tenants:
+        resolver: true
+      TenantToken:
+        resolver: true
+  global_GlobalNamespace:
+    fields:
+      Gns:
+        resolver: true
+  global_GnsBindingRT:
+    fields:
+      GnsSvcGroupRT:
+        resolver: true
+      GnsRoutingRules:
+        resolver: true
+      GnsServiceEntryConfig:
+        resolver: true
+  global_ExternalServiceConfig:
+    fields:
+      queryServiceTS:
+        resolver: true
+  global_PublicServiceConfig:
+    fields:
+      RoutingConfigs:
+        resolver: true
+      ExternalDNS:
+        resolver: true
+      Certificates:
+        resolver: true
+      HealthChecks:
+        resolver: true
+  global_GNSSvcGroup:
+    fields:
+      queryServiceTS:
+        resolver: true
+      queryServiceInstanceTable:
+        resolver: true
+      queryServiceTable:
+        resolver: true
+      queryServiceVersionTable:
+        resolver: true
+      queryServiceNodeMapGroupedByNode:
+        resolver: true
+      queryServiceNodeMapGroupedByService:
+        resolver: true
+      queryClusterTable:
+        resolver: true
+      Services:
+        resolver: true
+  global_GNS:
+    fields:
+      queryServiceTS:
+        resolver: true
+      queryServiceInstanceTable:
+        resolver: true
+      queryServiceTable:
+        resolver: true
+      queryServiceVersionTable:
+        resolver: true
+      queryServiceTopology:
+        resolver: true
+      queryClusterTable:
+        resolver: true
+      queryNodeTable:
+        resolver: true
+      queryServiceNodeMapGroupedByNode:
+        resolver: true
+      queryServiceNodeMapGroupedByService:
+        resolver: true
+      queryAccessControlPolicyStats:
+        resolver: true
+      queryGNSServiceAPI:
+        resolver: true
+      queryStats:
+        resolver: true
+      queryLogs:
+        resolver: true
+      queryList:
+        resolver: true
+      queryLinechart:
+        resolver: true
+      queryTopN:
+        resolver: true
+      queryDetail:
+        resolver: true
+      queryIncomingAPIs:
+        resolver: true
+      queryOutgoingAPIs:
+        resolver: true
+      queryIncomingTCP:
+        resolver: true
+      queryOutgoingTCP:
+        resolver: true
+      MemberGroups:
+        resolver: true
+      GnsServiceGroups:
+        resolver: true
+      Members:
+        resolver: true
+      PublicServices:
+        resolver: true
+      SharedServices:
+        resolver: true
+      SloPolicies:
+        resolver: true
+      ExternalServices:
+        resolver: true
+      AutoscalingPolicies:
+        resolver: true
+      RoutingPolicies:
+        resolver: true
+      ApiDiscovery:
+        resolver: true
+      GeoDiscovery:
+        resolver: true
+      PiiDiscovery:
+        resolver: true
+      AttackDiscovery:
+        resolver: true
+      UserDiscovery:
+        resolver: true
+      GnsAccessControlPolicy:
+        resolver: true
+      GnsSchemaViolationDiscovery:
+        resolver: true
+      GnsSegmentationPolicy:
+        resolver: true
+      RoutingConfig:
+        resolver: true
+  global_HostConfigV2:
+    fields:
+      HaConfigV2:
+        resolver: true
+      OutboundAuthenticationMode:
+        resolver: true
+  global_HostConfig:
+    fields:
+      HaConfig:
+        resolver: true
+  global_Inventory:
+    fields:
+      queryClusterTable:
+        resolver: true
+      queryNodeTS:
+        resolver: true
+      queryNodeTable:
+        resolver: true
+      queryServiceTS:
+        resolver: true
+      querySloCounts:
+        resolver: true
+      querySloTable:
+        resolver: true
+      queryClusterInventoryCount:
+        resolver: true
+      queryServiceInstanceTable:
+        resolver: true
+      queryServiceTable:
+        resolver: true
+      queryServiceVersionTable:
+        resolver: true
+      queryServiceAPIs:
+        resolver: true
+      queryStats:
+        resolver: true
+      queryLogs:
+        resolver: true
+      queryList:
+        resolver: true
+      queryLinechart:
+        resolver: true
+      queryTopN:
+        resolver: true
+      queryDetail:
+        resolver: true
+      queryRiskTracker:
+        resolver: true
+      queryRiskTrackerDetail:
+        resolver: true
+      Regions:
+        resolver: true
+      Clusters:
+        resolver: true
+      ExternalDNS:
+        resolver: true
+      JobFolder:
+        resolver: true
+  global_JobConfigFolder:
+    fields:
+      JobConfig:
+        resolver: true
+  global_JobFolder:
+    fields:
+      Jobs:
+        resolver: true
+  global_LocalRegistrationServiceCluster:
+    fields:
+      Resources:
+        resolver: true
+  global_LocalRegistrationService:
+    fields:
+      Clusters:
+        resolver: true
+      Template:
+        resolver: true
+  global_LogFolder:
+    fields:
+      Log:
+        resolver: true
+  global_NodeFolder:
+    fields:
+      Clusters:
+        resolver: true
+  global_NodeTemplate:
+    fields:
+      DefinitionVersions:
+        resolver: true
+  global_Node:
+    fields:
+      queryNodeTS:
+        resolver: true
+      queryNodeTable:
+        resolver: true
+      Status:
+        resolver: true
+  global_AccessControlPolicy:
     fields:
       PolicyConfigs:
         resolver: true
-  policypkg_VMpolicy:
+  global_ProgressiveUpgrade:
     fields:
-      queryGns1:
+      Upgrade:
         resolver: true
-      queryGnsQM1:
+  global_ProgressiveUpgradeFolder:
+    fields:
+      Upgrades:
         resolver: true
-      queryGnsQM:
+  global_ProjectConfig:
+    fields:
+      SvcGroups:
+        resolver: true
+      Gns:
+        resolver: true
+      PolicyConfigs:
+        resolver: true
+      TemplateGroups:
+        resolver: true
+      Certificates:
+        resolver: true
+      ExternalAccounts:
+        resolver: true
+      ExternalDNS:
+        resolver: true
+      Autoscalers:
+        resolver: true
+      Clusters:
+        resolver: true
+      ServiceLevelObjectives:
+        resolver: true
+      CertificateAuthorities:
+        resolver: true
+  global_ProjectInventory:
+    fields:
+      Clusters:
+        resolver: true
+      ExternalDNS:
+        resolver: true
+      Jobs:
+        resolver: true
+  global_ProjectQuery:
+    fields:
+      queryClusterTable:
+        resolver: true
+      queryNodeTS:
+        resolver: true
+      queryNodeTable:
+        resolver: true
+      queryServiceTS:
+        resolver: true
+      queryClusterInventoryCount:
+        resolver: true
+      queryServiceTable:
+        resolver: true
+      queryServiceVersionTable:
+        resolver: true
+      queryStats:
+        resolver: true
+      queryLogs:
+        resolver: true
+      queryList:
+        resolver: true
+      queryLinechart:
+        resolver: true
+      queryTopN:
+        resolver: true
+      queryDetail:
+        resolver: true
+      queryRiskTracker:
+        resolver: true
+      queryRiskTrackerDetail:
+        resolver: true
+  global_Project:
+    fields:
+      Config:
+        resolver: true
+      Inventory:
+        resolver: true
+      Query:
+        resolver: true
+  global_ResourceGroupRT:
+    fields:
+      SvcGroupRT:
+        resolver: true
+  global_ResourceGroup:
+    fields:
+      AppGroups:
+        resolver: true
+      SvcGroups:
+        resolver: true
+      NodeGroups:
+        resolver: true
+      DataGroups:
+        resolver: true
+      UserGroups:
+        resolver: true
+  global_Root:
+    fields:
+      Config:
+        resolver: true
+      Inventory:
+        resolver: true
+      Runtime:
+        resolver: true
+  global_Runtime:
+    fields:
+      AllsparkServices:
+        resolver: true
+      UserFolder:
+        resolver: true
+      DataFolder:
+        resolver: true
+      AppFolder:
+        resolver: true
+      NodeFolder:
+        resolver: true
+      ClusterFolder:
+        resolver: true
+      ProgressiveUpgrade:
+        resolver: true
+      JobConfigFolder:
+        resolver: true
+      ExternalDNS:
+        resolver: true
+      SloFolder:
+        resolver: true
+      ServiceDirectoryRT:
+        resolver: true
+  global_ServiceConfig:
+    fields:
+      ServiceVersion:
+        resolver: true
+  global_ServiceCronJob:
+    fields:
+      ServiceInstances:
+        resolver: true
+      ServiceJobs:
+        resolver: true
+  global_ServiceDaemonSet:
+    fields:
+      queryWorkloadVersionAPI:
+        resolver: true
+      ServiceInstances:
+        resolver: true
+  global_ServiceDeployment:
+    fields:
+      queryServiceTS:
+        resolver: true
+      queryServiceInstanceTable:
+        resolver: true
+      queryWorkloadVersionAPI:
+        resolver: true
+      Containers:
+        resolver: true
+      ServiceInstances:
+        resolver: true
+      ServiceReplicaSet:
+        resolver: true
+  global_ServiceDirectoryRTFolder:
+    fields:
+      ServiceDirectoryRTFolderEntry:
+        resolver: true
+  global_ServiceDirectoryRT:
+    fields:
+      ServiceDirectoryRTFolder:
+        resolver: true
+  global_ServiceDirectoryN:
+    fields:
+      Entries:
+        resolver: true
+  global_ServiceInstance:
+    fields:
+      queryServiceTS:
+        resolver: true
+      queryServiceInstanceTable:
+        resolver: true
+      Containers:
+        resolver: true
+      Node:
+        resolver: true
+  global_ServiceJob:
+    fields:
+      ServiceInstances:
+        resolver: true
+  global_ServiceLevelObjectiveFolder:
+    fields:
+      ServiceLevelObjectives:
+        resolver: true
+  global_ServiceReplicaSet:
+    fields:
+      ServiceInstances:
+        resolver: true
+  global_ServiceStatefulSet:
+    fields:
+      queryWorkloadVersionAPI:
+        resolver: true
+      ServiceInstances:
+        resolver: true
+  global_ServiceTemplate:
+    fields:
+      ServiceDefinitions:
+        resolver: true
+  global_ServiceVersionConfig:
+    fields:
+      MetricMonitors:
+        resolver: true
+  global_ServiceVersion:
+    fields:
+      queryStats:
+        resolver: true
+      queryLogs:
+        resolver: true
+      queryList:
+        resolver: true
+      queryLinechart:
+        resolver: true
+      queryTopN:
+        resolver: true
+      queryDetail:
+        resolver: true
+      queryIncomingAPIs:
+        resolver: true
+      queryOutgoingAPIs:
+        resolver: true
+      queryIncomingTCP:
+        resolver: true
+      queryOutgoingTCP:
+        resolver: true
+      ServiceDeployments:
+        resolver: true
+      ServiceDaemonSets:
+        resolver: true
+      ServiceStatefulSets:
+        resolver: true
+  global_Service:
+    fields:
+      queryServiceAPIs:
+        resolver: true
+      queryServiceTS:
+        resolver: true
+      querySloDetails:
+        resolver: true
+      querySloCounts:
+        resolver: true
+      querySloTable:
+        resolver: true
+      queryServiceInstanceTable:
+        resolver: true
+      queryServiceTopology:
+        resolver: true
+      queryServiceNodeMapGroupedByService:
+        resolver: true
+      queryServiceTable:
+        resolver: true
+      queryServiceVersionTable:
+        resolver: true
+      queryStats:
+        resolver: true
+      queryLogs:
+        resolver: true
+      queryList:
+        resolver: true
+      queryLinechart:
+        resolver: true
+      queryTopN:
+        resolver: true
+      queryDetail:
+        resolver: true
+      queryIncomingAPIs:
+        resolver: true
+      queryOutgoingAPIs:
+        resolver: true
+      queryIncomingTCP:
+        resolver: true
+      queryOutgoingTCP:
+        resolver: true
+      AdditionalAttributes:
+        resolver: true
+      ServiceDeployments:
+        resolver: true
+      ServiceStatefulSets:
+        resolver: true
+      ServiceDaemonSets:
+        resolver: true
+      Endpoints:
+        resolver: true
+      ServiceVersions:
+        resolver: true
+      ServiceReplicaSets:
+        resolver: true
+      ServiceJobs:
+        resolver: true
+  global_SloConfig:
+    fields:
+      SloServices:
+        resolver: true
+  global_SLOFolder:
+    fields:
+      Slos:
+        resolver: true
+  global_FederatedSloConfig:
+    fields:
+      SloServices:
+        resolver: true
+  global_SvcGroup:
+    fields:
+      queryServiceTS:
+        resolver: true
+      queryServiceInstanceTable:
+        resolver: true
+      queryServiceTable:
+        resolver: true
+      queryServiceVersionTable:
+        resolver: true
+      queryServiceNodeMapGroupedByNode:
+        resolver: true
+      queryServiceNodeMapGroupedByService:
+        resolver: true
+      queryClusterTable:
+        resolver: true
+      Services:
+        resolver: true
+      Deployments:
+        resolver: true
+      Daemonsets:
+        resolver: true
+      Statefulsets:
+        resolver: true
+      Jobs:
+        resolver: true
+  global_Table:
+    fields:
+      Template:
+        resolver: true
+      Inventory:
+        resolver: true
+  global_TemplateGroup:
+    fields:
+      DataTemplates:
+        resolver: true
+      NodeTemplates:
+        resolver: true
+      AppTemplates:
+        resolver: true
+      ServiceTemplates:
+        resolver: true
+      PolicyTemplates:
+        resolver: true
+  global_Template:
+    fields:
+      TemplateGroups:
+        resolver: true
+      HealthChecks:
+        resolver: true
+  global_Tenant:
+    fields:
+      Resources:
+        resolver: true
+      Template:
+        resolver: true
+      Annotations:
+        resolver: true
+  global_UserFolder:
+    fields:
+      Users:
+        resolver: true
+      AppUsers:
+        resolver: true
+      AccessToken:
+        resolver: true
+  global_User:
+    fields:
+      Preferences:
+        resolver: true
+  global_VirtualService:
+    fields:
+      DestinationRules:
+        resolver: true
+      Services:
+        resolver: true
+      Gateways:
         resolver: true
