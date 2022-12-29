@@ -698,8 +698,8 @@ type CommonVars struct {
 }
 
 func RenderNonNexusTypes(outputDir string, nonNexusTypes parser.NonNexusTypes, fileset *token.FileSet) error {
-	outputCommonFolder := outputDir + "/model"
-	err := createFolder(outputCommonFolder)
+	outputModelFolder := outputDir + "/model"
+	err := createFolder(outputModelFolder)
 	if err != nil {
 		return err
 	}
@@ -730,7 +730,7 @@ func RenderNonNexusTypes(outputDir string, nonNexusTypes parser.NonNexusTypes, f
 		return err
 	}
 
-	err = createFile(outputCommonFolder, "model.go", out, false)
+	err = createFile(outputModelFolder, "model.go", out, false)
 	if err != nil {
 		return err
 	}

@@ -145,7 +145,7 @@ gen_tsm_graphql:
 	go run cmd/preparser/main.go -dsl _tsm_temp
 	@echo "Nexus Compiler: Running GRAPHQL Generating"
 	go run cmd/nexus-sdk/main.go -config-file example/nexus-sdk.yaml -dsl _tsm_temp -crd-output _generated
-	cp -r _generated/{apis,crds,common,nexus-client,nexus-gql,tsm-nexus-gql} ${GENERATED_OUTPUT_DIRECTORY}
+	cp -r _generated/{apis,crds,common,nexus-client,nexus-gql,tsm-nexus-gql,model} ${GENERATED_OUTPUT_DIRECTORY}
 
 .PHONY: preparser
 preparser:
@@ -188,7 +188,7 @@ generate_code:
 	@echo "Nexus Compiler: Generating CRD yamls"
 	go run cmd/generate-openapischema/generate-openapischema.go -yamls-path _generated/crds
 	git checkout -- pkg/openapi_generator/openapi/openapi_generated.go
-	cp -r _generated/{client,apis,crds,common,nexus-client,helper,nexus-gql,tsm-nexus-gql} ${GENERATED_OUTPUT_DIRECTORY}
+	cp -r _generated/{client,apis,crds,common,nexus-client,helper,nexus-gql,tsm-nexus-gql,model} ${GENERATED_OUTPUT_DIRECTORY}
 	@echo "Nexus Compiler: Generating GRAPHQL PKG"
 	cd _generated && goimports -w .
 	cd _generated/nexus-gql && gqlgen generate
@@ -205,7 +205,7 @@ generate_code:
 	@echo "Sorting imports"
 	cd _generated && goimports -w .
 	@echo "Nexus Compiler: Moving files to output directory"
-	cp -r _generated/{client,apis,crds,common,nexus-client,helper,nexus-gql} ${GENERATED_OUTPUT_DIRECTORY}
+	cp -r _generated/{client,apis,crds,common,nexus-client,helper,nexus-gql,model} ${GENERATED_OUTPUT_DIRECTORY}
 	cp -r ${GOPATH}/src/nexustempmodule/nexus-gql/graphql.so ${GENERATED_OUTPUT_DIRECTORY}/nexus-gql
 	@echo "Nexus Compiler: Compiler code generation completed"
 
