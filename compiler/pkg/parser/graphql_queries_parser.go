@@ -137,14 +137,14 @@ func parseArgs(argsTypeName string, p Package) []GraphQlArg {
 				// AliasName Annotation
 				var fName, fType string
 				var aType bool
-				if GetGraphqlAliasFieldName(field) != "" {
-					fName = GetGraphqlAliasFieldName(field)
+				if val := GetFieldAnnotationVal(field, GRAPHQL_ALIAS_NAME_ANNOTATION); val != "" {
+					fName = val
 				} else {
 					fName = field.Names[0].Name
 				}
 				// AliasType Annotation
-				if GetGraphqlAliasType(field) != "" {
-					fType = GetGraphqlAliasType(field)
+				if val := GetFieldAnnotationVal(field, GRAPHQL_ALIAS_TYPE_ANNOTATION); val != "" {
+					fType = val
 					aType = true
 				} else {
 					fType = GetFieldType(field)

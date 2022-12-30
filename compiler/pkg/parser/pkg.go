@@ -35,6 +35,18 @@ type Package struct {
 	FileSet  *token.FileSet
 }
 
+type FieldAnnotation string
+
+const (
+	GRAPHQL_ARGS_ANNOTATION          = FieldAnnotation("nexus-graphql-args")
+	GRAPHQL_ALIAS_NAME_ANNOTATION    = FieldAnnotation("nexus-alias-name")
+	GRAPHQL_ALIAS_TYPE_ANNOTATION    = FieldAnnotation("nexus-alias-type")
+	GRAPHQL_TSM_DIRECTIVE_ANNOTATION = FieldAnnotation("nexus-graphql-tsm-directive")
+	GRAPHQL_NULLABLE_ANNOTATION      = FieldAnnotation("nexus-graphql-nullable")
+	GRAPHQL_TS_TYPE_ANNOTATION       = FieldAnnotation("nexus-graphql-ts-type")
+	GRAPHQL_JSONENCODED_ANNOTATION   = FieldAnnotation("nexus-graphql-jsonencoded")
+)
+
 // func (p *Package) GetImports() []*ast.ImportSpec
 // func (p *Package) GetNodes() []*ast.StructType
 // func (p *Package) GetNexusNodes []*ast.StructType
@@ -719,7 +731,7 @@ func IsNexusGraphqlNullField(f *ast.Field) bool {
 
 	if f.Tag != nil {
 		tags := ParseFieldTags(f.Tag.Value)
-		if val, err := tags.Get("nexus-graphql-nullable"); err == nil {
+		if val, err := tags.Get(string(GRAPHQL_NULLABLE_ANNOTATION)); err == nil {
 			if strings.ToLower(val.Name) == "false" {
 				return false
 			}
@@ -730,36 +742,6 @@ func IsNexusGraphqlNullField(f *ast.Field) bool {
 }
 
 // Parser for TSM Integration
-func GetTsmGraphqlDirectives(f *ast.Field) string {
-	if f == nil {
-		return ""
-	}
-
-	if f.Tag != nil {
-		tags := ParseFieldTags(f.Tag.Value)
-		if val, err := tags.Get("nexus-graphql-tsm-directive"); err == nil {
-			return val.String()
-		}
-	}
-
-	return ""
-}
-
-func IsTsmGraphqlDirectivesField(f *ast.Field) bool {
-	if f == nil {
-		return false
-	}
-
-	if f.Tag != nil {
-		tags := ParseFieldTags(f.Tag.Value)
-		if _, err := tags.Get("nexus-graphql-tsm-directive"); err == nil {
-			return true
-		}
-	}
-
-	return false
-}
-
 // func GetGraphqlArgumentKey(f *ast.Field) string {
 // 	if f == nil {
 // 		return ""
@@ -788,72 +770,44 @@ func IsTsmGraphqlDirectivesField(f *ast.Field) bool {
 // 	return ""
 // }
 
-func GetGraphqlArgs(f *ast.Field) string {
+func GetFieldAnnotationString(f *ast.Field, annotation FieldAnnotation) string {
 	if f == nil {
 		return ""
 	}
 
 	if f.Tag != nil {
 		tags := ParseFieldTags(f.Tag.Value)
-		if val, err := tags.Get("nexus-graphql-args"); err == nil {
+		if val, err := tags.Get(string(annotation)); err == nil {
+			return val.String()
+		}
+	}
+	return ""
+}
+
+func GetFieldAnnotationVal(f *ast.Field, annotation FieldAnnotation) string {
+	if f == nil {
+		return ""
+	}
+
+	if f.Tag != nil {
+		tags := ParseFieldTags(f.Tag.Value)
+		if val, err := tags.Get(string(annotation)); err == nil {
 			return val.Value()
 		}
 	}
 	return ""
 }
 
-func IsGraphqlAliasType(f *ast.Field) bool {
+func IsFieldAnnotationPresent(f *ast.Field, annotation FieldAnnotation) bool {
 	if f == nil {
 		return false
 	}
 
 	if f.Tag != nil {
 		tags := ParseFieldTags(f.Tag.Value)
-		if _, err := tags.Get("nexus-alias-type"); err == nil {
+		if _, err := tags.Get(string(annotation)); err == nil {
 			return true
 		}
 	}
 	return false
-}
-
-func GetGraphqlAliasType(f *ast.Field) string {
-	if f == nil {
-		return ""
-	}
-
-	if f.Tag != nil {
-		tags := ParseFieldTags(f.Tag.Value)
-		if val, err := tags.Get("nexus-alias-type"); err == nil {
-			return val.Value()
-		}
-	}
-	return ""
-}
-
-func IsGraphqlAliasFieldName(f *ast.Field) bool {
-	if f == nil {
-		return false
-	}
-
-	if f.Tag != nil {
-		tags := ParseFieldTags(f.Tag.Value)
-		if _, err := tags.Get("nexus-alias-name"); err == nil {
-			return true
-		}
-	}
-	return false
-}
-
-func GetGraphqlAliasFieldName(f *ast.Field) string {
-	if f == nil {
-		return ""
-	}
-
-	if f.Tag != nil {
-		tags := ParseFieldTags(f.Tag.Value)
-		if val, err := tags.Get("nexus-alias-name"); err == nil {
-			return val.Value()
-		}
-	}
-	return ""
 }

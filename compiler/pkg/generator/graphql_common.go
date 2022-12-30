@@ -286,8 +286,8 @@ func isRootOfGraph(parents []string, rootOfGraph bool) bool {
 
 func getGraphqlSchemaName(pattern, fieldName, schemaType string, f *ast.Field) string {
 	schemaName := fmt.Sprintf(pattern, fieldName, schemaType)
-	if parser.IsGraphqlAliasType(f) {
-		schemaType = parser.GetGraphqlAliasType(f)
+	if parser.IsFieldAnnotationPresent(f, parser.GRAPHQL_ALIAS_TYPE_ANNOTATION) {
+		schemaType = parser.GetFieldAnnotationVal(f, parser.GRAPHQL_ALIAS_TYPE_ANNOTATION)
 	}
 	if fieldName != "" {
 		// use camelCase for fieldName #e.g ServiceGroup --> serviceGroup
@@ -351,10 +351,17 @@ func getTsmGraphqlSchemaFieldName(sType GraphQLSchemaType, fieldName, schemaType
 		}
 	}
 	schemaName := getGraphqlSchemaName(pattern, fieldName, schemaType, f)
-	if parser.IsTsmGraphqlDirectivesField(f) {
-		replacer := strings.NewReplacer("nexus-graphql-tsm-directive:", "", "\\", "")
-		out := replacer.Replace(parser.GetTsmGraphqlDirectives(f))
-		schemaName += " " + strings.Trim(out, "\"")
+
+	// add jsonencoded annotation
+	if val, ok := f.Type.(*ast.SelectorExpr); ok {
+		if parser.IsFieldAnnotationPresent(f, parser.GRAPHQL_TS_TYPE_ANNOTATION) {
+			schemaName += fmt.Sprintf(` @jsonencoded(file:"%s" gofile:"model.go" name:"%s")`,
+				parser.GetFieldAnnotationVal(f, parser.GRAPHQL_TS_TYPE_ANNOTATION), val.Sel.Name)
+		} else {
+			schemaName += fmt.Sprintf(` @jsonencoded(gofile:"model.go" name:"%s")`, val.Sel.Name)
+		}
+	} else if parser.IsFieldAnnotationPresent(f, parser.GRAPHQL_JSONENCODED_ANNOTATION) {
+		schemaName += " @jsonencoded"
 	}
 
 	return schemaName
@@ -362,7 +369,7 @@ func getTsmGraphqlSchemaFieldName(sType GraphQLSchemaType, fieldName, schemaType
 
 // getAliasFieldValue process nexus annotation  `nexus-alias-value:`
 func getAliasFieldValue(fieldName string, f *ast.Field) string {
-	e := parser.GetGraphqlAliasFieldName(f)
+	e := parser.GetFieldAnnotationVal(f, parser.GRAPHQL_ALIAS_NAME_ANNOTATION)
 	if e != "" {
 		return e
 	}
@@ -371,7 +378,7 @@ func getAliasFieldValue(fieldName string, f *ast.Field) string {
 
 // getGraphQLAliasValue process nexus annotation  `nexus-alias-type:`
 func GetGraphQLAliasValue(fieldName string, f *ast.Field) string {
-	e := parser.GetGraphqlAliasType(f)
+	e := parser.GetFieldAnnotationVal(f, parser.GRAPHQL_ALIAS_TYPE_ANNOTATION)
 	if e != "" {
 		return fmt.Sprintf("%s: %s", getAliasFieldValue(fieldName, f), e)
 	}
