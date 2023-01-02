@@ -52,5 +52,4 @@ func main() {
 	if err != nil {
 		logrus.Fatal(err)
 	}
-
 }

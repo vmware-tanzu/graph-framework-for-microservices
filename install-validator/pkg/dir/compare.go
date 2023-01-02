@@ -16,8 +16,10 @@ type compareFunc func([]byte, []byte) (bool, *bytes.Buffer, error)
 
 func CheckDir(dir string, c kubewrapper.ClientInt, cFunc compareFunc) (map[string]*bytes.Buffer, []string, error) {
 	changes := make(map[string]*bytes.Buffer)
-	var toDelete []string
-	var toInstall []string
+	var (
+		toDelete  []string
+		toInstall []string
+	)
 	err := filepath.Walk(dir, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
