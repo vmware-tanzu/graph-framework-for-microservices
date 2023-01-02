@@ -2,7 +2,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: nexus-api-gw-kubeconfig-local
-  namespace: {{.Namespace}}
+  namespace: '{{.Namespace}}'
 data:
   kubeconfig: |
     current-context: localapiserver
@@ -30,7 +30,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: nexus-api-gw
-  namespace: {{.Namespace}}
+  namespace: '{{.Namespace}}'
   labels:
     control-plane: nexus-api-gw
 spec:
@@ -103,7 +103,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: nexus-api-gw-create-signed-cert
-  namespace: {{.Namespace}}
+  namespace: '{{.Namespace}}'
 data:
   create_certificate_as_secret.sh: |
         #!/usr/bin/env bash
@@ -190,7 +190,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: nexus-api-gw
-  namespace: {{.Namespace}}
+  namespace: '{{.Namespace}}'
 spec:
   ports:
   - protocol: TCP
@@ -211,8 +211,8 @@ spec:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-  name: nexus-agw-cr-{{.Namespace}}
-  namespace: {{.Namespace}}
+  name: nexus-agw-cr-'{{.Namespace}}'
+  namespace: '{{.Namespace}}'
 rules:
 - apiGroups:
   - "networking.k8s.io"
@@ -232,18 +232,18 @@ apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: nexus-api-gw-sa
-  namespace: {{.Namespace}}
+  namespace: '{{.Namespace}}'
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
-  name: nexus-agw-crb-{{.Namespace}}
-  namespace: {{.Namespace}}
+  name: nexus-agw-crb-'{{.Namespace}}'
+  namespace: '{{.Namespace}}'
 subjects:
 - kind: ServiceAccount
   name: nexus-api-gw-sa
-  namespace: {{.Namespace}}
+  namespace: '{{.Namespace}}'
 roleRef:
   kind: ClusterRole
-  name: nexus-agw-cr-{{.Namespace}}
+  name: nexus-agw-cr-'{{.Namespace}}'
   apiGroup: rbac.authorization.k8s.io
