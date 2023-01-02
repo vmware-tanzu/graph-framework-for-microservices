@@ -2,7 +2,6 @@ package nexus_compare
 
 import (
 	"bytes"
-	"errors"
 	"fmt"
 	"os"
 	"regexp"
@@ -239,6 +238,10 @@ func PrintReportDiff(report dyff.Report, buffer *bytes.Buffer) error {
 
 func writeTempFile(data []byte) (*os.File, error) {
 	aFile, err := os.CreateTemp("", "compare")
+	if err != nil {
+		return nil, err
+	}
+
 	_, err = aFile.Write(data)
 	return aFile, err
 }
@@ -264,7 +267,7 @@ func GetMapNode(data []byte, path []string) (interface{}, error) {
 		errPath += fmt.Sprintf(".%s", p)
 		t, ok = t.(map[string]interface{})[p]
 		if !ok {
-			return map[string]interface{}{}, errors.New(fmt.Sprintf("%s not found while looking for nexus annotation", errPath))
+			return map[string]interface{}{}, fmt.Errorf("%s not found while looking for nexus annotation", errPath)
 		}
 	}
 	return t, err
