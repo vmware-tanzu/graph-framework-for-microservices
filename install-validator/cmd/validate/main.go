@@ -15,7 +15,7 @@ import (
 
 const (
 	dirEnv        = "CRD_SPEC_DIR"
-	forceEnv      = "CRD_FORCE"
+	forceEnv      = "FORCE"
 	groupNamePath = "/NAME"
 )
 
