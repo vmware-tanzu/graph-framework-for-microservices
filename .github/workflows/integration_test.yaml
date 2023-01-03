@@ -1,0 +1,38 @@
+name: Run integration test
+on:
+  pull_request:
+    branches: [ main ]
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout github repository
+        uses: actions/checkout@v2
+      - name: Setup Golang
+        uses: actions/setup-go@v3
+        with:
+          go-version: '>=1.17.0'
+      - name: setup-docker
+        uses: docker-practice/actions-setup-docker@1.0.11
+      - name: 'Set up Cloud SDK'
+        uses: 'google-github-actions/setup-gcloud@v0'
+      - name: Create Kind k8s cluster
+        uses: helm/kind-action@v1.4.0
+        with:
+          cluster_name: nexus
+          wait: 120s
+          node_image: gcr.io/nsx-sm/nexus/kind/node:v1.23.0
+      - name: Install kubectl 
+        uses: azure/setup-kubectl@v3
+        with:
+          version: v1.23.0
+      - name: Create kind cluster and run integration test
+        run: |
+            set -x
+            kind get clusters
+            docker ps
+            kubectl get pods -A
+            
+            
+  
