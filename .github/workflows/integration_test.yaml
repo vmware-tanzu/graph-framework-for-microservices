@@ -35,6 +35,4 @@ jobs:
             curl -fsSL https://raw.githubusercontent.com/vmware-tanzu/graph-framework-for-microservices/main/cli/get-nexus-cli.sh -o get-nexus-cli.sh
             bash get-nexus-cli.sh -d /usr/local/bin
             nexus version
-            pushd integration-tests
-            go run . workflows.yaml
-            popd
+            cd integration-tests && go run . workflows.yaml
