@@ -23,16 +23,17 @@ jobs:
           cluster_name: nexus
           wait: 120s
           node_image: gcr.io/nsx-sm/nexus/kind/node:v1.23.0
-      - name: Install kubectl 
+      - name: Install kubectl
         uses: azure/setup-kubectl@v3
         with:
           version: v1.23.0
       - name: Create kind cluster and run integration test
         run: |
             set -x
-            kind get clusters
-            docker ps
-            kubectl get pods -A
-            
-            
-  
+            kubectl wait pods -lcomponent=kube-apiserver -n kube-system --for=condition=ready --timeout=240s || { echo "k8s-apiserver pod could not be started" && exit 1; }
+            kubectl wait pods -lcomponent=kube-controller-manager -n kube-system --for=condition=ready --timeout=240s || { echo "k8s-controller-manager pod could not be started" && exit 1; }
+            curl -fsSL https://raw.githubusercontent.com/vmware-tanzu/graph-framework-for-microservices/main/cli/get-nexus-cli.sh -o get-nexus-cli.sh
+            bash get-nexus-cli.sh -d /usr/bin
+            nexus version
+            cd integration-tests
+            go run . workflows.yaml
