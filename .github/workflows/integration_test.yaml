@@ -35,6 +35,8 @@ jobs:
             curl -fsSL https://raw.githubusercontent.com/vmware-tanzu/graph-framework-for-microservices/main/cli/get-nexus-cli.sh -o get-nexus-cli.sh
             bash get-nexus-cli.sh -d /usr/local/bin
             nexus version
+            lscpu
+            free -mh
             export GOPATH=$(go env GOPATH)
             echo $GOPATH
             cd integration-tests && ls && go run . workflows.yaml
