@@ -33,7 +33,7 @@ jobs:
             kubectl wait pods -lcomponent=kube-apiserver -n kube-system --for=condition=ready --timeout=240s || { echo "k8s-apiserver pod could not be started" && exit 1; }
             kubectl wait pods -lcomponent=kube-controller-manager -n kube-system --for=condition=ready --timeout=240s || { echo "k8s-controller-manager pod could not be started" && exit 1; }
             curl -fsSL https://raw.githubusercontent.com/vmware-tanzu/graph-framework-for-microservices/main/cli/get-nexus-cli.sh -o get-nexus-cli.sh
-            bash get-nexus-cli.sh -d /usr/bin
+            bash get-nexus-cli.sh -d /usr/local/bin
             nexus version
             cd integration-tests
             go run . workflows.yaml
