@@ -98,16 +98,24 @@ func removeImportIdentifierFromFields(file *ast.File, pkg string) *ast.File {
 					continue
 				}
 
+				var modify bool
 				for _, imp := range file.Imports {
 					pkgImport, _ := strconv.Unquote(imp.Path.Value)
 					if types.ExprString(selectorExpr.X) == imp.Name.String() {
-						if val, ok := pkgImportToPkg[pkgImport]; ok {
-							if val == pkg {
-								field.Type = selectorExpr.Sel
-							}
+						if val := pkgImportToPkg[pkgImport]; val == pkg {
+							modify = true
 						}
 					}
 				}
+
+				if types.ExprString(selectorExpr.X) == pkg {
+					modify = true
+				}
+
+				if modify {
+					field.Type = selectorExpr.Sel
+				}
+
 			}
 		}
 	}
