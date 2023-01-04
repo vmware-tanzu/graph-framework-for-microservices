@@ -1,0 +1,167 @@
+
+
+type root_Root {
+    id: ID
+    config: config_Config @jsonencoded(gofile:"model.go" name:"Config")
+}
+
+type config_Config {
+    id: ID
+    QueryExample(
+        StartTime: String
+        EndTime: String
+        Interval: String
+        IsServiceDeployment: Boolean
+        StartVal: Int
+    ): NexusGraphqlResponse
+    gNS: gns_Gns @jsonencoded(gofile:"model.go" name:"Gns")
+    dNS: gns_Dns @jsonencoded(gofile:"model.go" name:"Dns")
+    vMPPolicies: policypkg_VMpolicy @jsonencoded(gofile:"model.go" name:"VMpolicy")
+    aCPPolicies(id: ID): [policypkg_AccessControlPolicy!] @jsonencoded(gofile:"model.go" name:"AccessControlPolicy")
+    domain: config_Domain @jsonencoded(gofile:"model.go" name:"Domain")
+    fooExample(id: ID): [config_FooTypeABC!] @jsonencoded(gofile:"model.go" name:"FooTypeABC")
+    svcGrpInfo: servicegroup_SvcGroupLinkInfo @jsonencoded(gofile:"model.go" name:"SvcGroupLinkInfo")
+    myStr0: String
+    myStr2: String
+    xYZPort: String @jsonencoded(gofile:"model.go" name:"Port")
+    clusterNamespaces: []
+    testValMarkers: String @jsonencoded(gofile:"model.go" name:"TestValMarkers")
+    instance: Float
+    cuOption: String
+}
+
+type config_FooTypeABC {
+    id: ID
+    fooA: String @jsonencoded(gofile:"model.go" name:"AMap")
+    fooB: String @jsonencoded(gofile:"model.go" name:"BArray")
+    fooD: String @jsonencoded(gofile:"model.go" name:"DFloat")
+    fooF: String @jsonencoded(gofile:"model.go" name:"DFloat")
+}
+
+type config_Domain {
+    id: ID
+    pointPort: String
+    pointString: String
+    pointInt: Int
+    pointMap: String
+    pointSlice: String
+    sliceOfPoints: [String]
+    sliceOfArrPoints: []
+    mapOfArrsPoints: String
+    pointStruct: String
+}
+
+type gns_RandomGnsData {
+    id: ID
+    description: String @jsonencoded(gofile:"model.go" name:"RandomDescription")
+}
+
+type gns_Gns {
+    id: ID
+    queryGns1(
+        StartTime: String
+        EndTime: String
+        Interval: String
+        IsServiceDeployment: Boolean
+        StartVal: Int
+    ): NexusGraphqlResponse
+    queryGnsQM1: TimeSeriesData @timeseriesAPI(file: "../../tsquery/timeSeriesQuery", handler: "queryGnsQM1")
+    queryGnsQM(
+        StartTime: String
+        EndTime: String
+        TimeInterval: String
+        SomeUserArg1: String
+        SomeUserArg2: Int
+        SomeUserArg3: Boolean
+    ): TimeSeriesData @timeseriesAPI(file: "../../tsquery/timeSeriesQuery", handler: "queryGnsQM")
+    gnsAccessControlPolicy: String @jsonencoded(gofile:"model.go" name:"AccessControlPolicy")
+    fooChild: String @jsonencoded(gofile:"model.go" name:"BarChild")
+    domain: String
+    useSharedGateway: Boolean
+    description: String @jsonencoded(gofile:"model.go" name:"Description")
+    meta: String
+    port: Int
+    otherDescription: String
+    mapPointer: String
+    slicePointer: String
+    workloadSpec: String @jsonencoded(gofile:"model.go" name:"WorkloadSpec")
+    differentSpec: String
+    serviceSegmentRef: String @jsonencoded(gofile:"model.go" name:"ServiceSegmentRef")
+    serviceSegmentRefPointer: String
+    serviceSegmentRefs: []
+    serviceSegmentRefMap: String
+}
+
+type gns_BarChild {
+    id: ID
+    name: String
+}
+
+type gns_IgnoreChild {
+    id: ID
+    name: String
+}
+
+type gns_Dns {
+    id: ID
+}
+
+type gns_AdditionalGnsData {
+    id: ID
+    description: String @jsonencoded(gofile:"model.go" name:"AdditionalDescription")
+}
+
+type servicegroup_SvcGroupLinkInfo {
+    id: ID
+    clusterName: String
+    domainName: String
+    serviceName: String
+    serviceType: String
+}
+
+type policypkg_AdditionalPolicyData {
+    id: ID
+    description: String @jsonencoded(gofile:"model.go" name:"AdditionalDescription")
+}
+
+type policypkg_AccessControlPolicy {
+    id: ID
+    policyConfigs(id: ID): [policypkg_ACPConfig!] @jsonencoded(gofile:"model.go" name:"ACPConfig")
+}
+
+type policypkg_ACPConfig {
+    id: ID
+    destSvcGroups(id: ID): [servicegroup_SvcGroup!] @jsonencoded(gofile:"model.go" name:"SvcGroup")
+    sourceSvcGroups(id: ID): [servicegroup_SvcGroup!] @jsonencoded(gofile:"model.go" name:"SvcGroup")
+    displayName: String
+    gns: String
+    description: String
+    tags: [String]
+    projectId: String
+    conditions: [String]
+}
+
+type policypkg_VMpolicy {
+    id: ID
+    queryGns1(
+        StartTime: String
+        EndTime: String
+        Interval: String
+        IsServiceDeployment: Boolean
+        StartVal: Int
+    ): NexusGraphqlResponse
+    queryGnsQM1: TimeSeriesData @timeseriesAPI(file: "../../tsquery/timeSeriesQuery", handler: "queryGnsQM1")
+    queryGnsQM(
+        StartTime: String
+        EndTime: String
+        TimeInterval: String
+        SomeUserArg1: String
+        SomeUserArg2: Int
+        SomeUserArg3: Boolean
+    ): TimeSeriesData @timeseriesAPI(file: "../../tsquery/timeSeriesQuery", handler: "queryGnsQM")
+}
+
+type policypkg_RandomPolicyData {
+    id: ID
+    description: String @jsonencoded(gofile:"model.go" name:"RandomDescription")
+}
