@@ -342,10 +342,6 @@ func IsNamedChildOrLink(f *ast.Field) bool {
 		return false
 	}
 
-	if IsMapField(f) {
-		return true
-	}
-
 	if f.Tag != nil {
 		tags := ParseFieldTags(f.Tag.Value)
 		if val, err := tags.Get("nexus"); err == nil {

@@ -71,6 +71,8 @@ docker_name="nexus-cli"
 darwin_src_path="/nexus/darwin/nexus"
 linux_src_path="/nexus/linux/nexus"
 
+docker ps > /dev/null || echo "Unable to run docker command"
+
 docker rm -f ${docker_name} &> /dev/null
 
 docker pull ${REPOSITORY}:${VERSION} 1> /dev/null

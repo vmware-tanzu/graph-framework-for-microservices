@@ -88,6 +88,30 @@ var _ = Describe("Node parser tests", func() {
 		Expect(fail).To(BeTrue())
 	})
 
+	It("should fail when nexus child/link/children/links field is an array.", func() {
+		defer func() { log.StandardLogger().ExitFunc = nil }()
+
+		fail := false
+		log.StandardLogger().ExitFunc = func(int) {
+			fail = true
+		}
+
+		parser.ParseDSLNodes("../../example/test-utils/array-type-child", baseGroupName, nil, nil)
+		Expect(fail).To(BeTrue())
+	})
+
+	It("should fail when nexus child/link/children/links field is a map.", func() {
+		defer func() { log.StandardLogger().ExitFunc = nil }()
+
+		fail := false
+		log.StandardLogger().ExitFunc = func(int) {
+			fail = true
+		}
+
+		parser.ParseDSLNodes("../../example/test-utils/map-type-child", baseGroupName, nil, nil)
+		Expect(fail).To(BeTrue())
+	})
+
 	It("should fail when nexus child is singleton node and is named", func() {
 		defer func() { log.StandardLogger().ExitFunc = nil }()
 
