@@ -11,14 +11,19 @@ import (
 	"io/fs"
 	"os"
 	"path/filepath"
+	"strconv"
+	"strings"
 
 	log "github.com/sirupsen/logrus"
 	"github.com/vmware-tanzu/graph-framework-for-microservices/compiler/pkg/parser"
 	"golang.org/x/tools/imports"
 )
 
+var pkgImportToPkg = make(map[string]string, 0)
+
 func Parse(startPath string) map[string][]parser.Package {
 	packages := map[string][]parser.Package{}
+	modulePath := parser.GetModulePath(startPath)
 	err := filepath.Walk(startPath, func(path string, info fs.FileInfo, err error) error {
 		if info.IsDir() {
 			if info.Name() == "build" {
@@ -35,6 +40,7 @@ func Parse(startPath string) map[string][]parser.Package {
 			if err != nil {
 				log.Fatalf("failed to parse directory %s: %v", path, err)
 			}
+			pkgImport := strings.TrimSuffix(strings.ReplaceAll(path, startPath, modulePath), "/")
 			for _, v := range pkgs {
 				if v.Name == "nexus" {
 					log.Infof("Ignoring nexus package...")
@@ -44,11 +50,13 @@ func Parse(startPath string) map[string][]parser.Package {
 				if parser.SpecialCharsPresent(v.Name) {
 					log.Fatalf("Invalid package-name <%v>, special characters are not allowed. Please use only lowercase alphanumeric characters.", v.Name)
 				}
+				pkgImportToPkg[pkgImport] = v.Name
 
 				pkg := parser.Package{
-					Name:    v.Name,
-					FileSet: fileset,
-					Pkg:     *v,
+					Name:     v.Name,
+					FullName: pkgImport,
+					FileSet:  fileset,
+					Pkg:      *v,
 				}
 				packages[pkg.Name] = append(packages[pkg.Name], pkg)
 			}
@@ -62,7 +70,7 @@ func Parse(startPath string) map[string][]parser.Package {
 	return packages
 }
 
-func removeImportIdentifierFromFields(file *ast.File) *ast.File {
+func removeImportIdentifierFromFields(file *ast.File, pkg string) *ast.File {
 	for _, decl := range file.Decls {
 		genDecl, ok := decl.(*ast.GenDecl)
 		if !ok {
@@ -90,8 +98,16 @@ func removeImportIdentifierFromFields(file *ast.File) *ast.File {
 					continue
 				}
 
-				//TODO: replace only internal imports
-				field.Type = selectorExpr.Sel
+				for _, imp := range file.Imports {
+					pkgImport, _ := strconv.Unquote(imp.Path.Value)
+					if types.ExprString(selectorExpr.X) == imp.Name.String() {
+						if val, ok := pkgImportToPkg[pkgImport]; ok {
+							if val == pkg {
+								field.Type = selectorExpr.Sel
+							}
+						}
+					}
+				}
 			}
 		}
 	}
@@ -113,7 +129,7 @@ func Render(dslDir string, packages map[string][]parser.Package) error {
 		created := map[string]int{}
 		for _, pkg := range pkgs {
 			for _, file := range pkg.Pkg.Files {
-				file = removeImportIdentifierFromFields(file)
+				file = removeImportIdentifierFromFields(file, pkg.Name)
 
 				// remove src file
 				srcFile := pkg.FileSet.Position(file.Package).Filename
