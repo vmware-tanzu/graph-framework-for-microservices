@@ -159,9 +159,9 @@ preparser:
 	cp -R _generated_base_structure/* ${DATAMODEL_PATH}/build
 	@if [ -d "_tsm_temp/global" ]; then \
 		mv _tsm_temp/go.mod _tsm_temp/global/go.mod; \
-		$(MAKE) generate_code DATAMODEL_PATH=_tsm_temp/global CONFIG_FILE=example/nexus-sdk.yaml CRD_MODULE_PATH="github.com/vmware-tanzu/graph-framework-for-microservices/compiler/example/output/generated/" GENERATED_OUTPUT_DIRECTORY=example/output/generated; \
+		$(MAKE) generate_code DATAMODEL_PATH=_tsm_temp/global; \
 	else \
-		$(MAKE) generate_code DATAMODEL_PATH=_tsm_temp CONFIG_FILE=example/nexus-sdk.yaml CRD_MODULE_PATH="github.com/vmware-tanzu/graph-framework-for-microservices/compiler/example/output/generated/" GENERATED_OUTPUT_DIRECTORY=example/output/generated; \
+		$(MAKE) generate_code DATAMODEL_PATH=_tsm_temp; \
 	fi
 
 .PHONY: generate_code
