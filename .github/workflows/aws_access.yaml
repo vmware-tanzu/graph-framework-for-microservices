@@ -21,3 +21,4 @@ jobs:
       - name:  Copy index.html to s3
         run: |
           aws sts get-caller-identity
+          aws s3 ls
