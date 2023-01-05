@@ -45,6 +45,8 @@ const (
 	GRAPHQL_NULLABLE_ANNOTATION      = FieldAnnotation("nexus-graphql-nullable")
 	GRAPHQL_TS_TYPE_ANNOTATION       = FieldAnnotation("nexus-graphql-ts-type")
 	GRAPHQL_JSONENCODED_ANNOTATION   = FieldAnnotation("nexus-graphql-jsonencoded")
+	GRAPHQL_RELATION_NAME            = FieldAnnotation("nexus-graphql-relation-name")
+	GRAPHQL_RELATION_PARAMETERS      = FieldAnnotation("nexus-graphql-relation-parameters")
 )
 
 // func (p *Package) GetImports() []*ast.ImportSpec

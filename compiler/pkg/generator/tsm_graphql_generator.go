@@ -23,6 +23,7 @@ const (
 	Child
 	Link
 	NamedChild
+	NamedLink
 )
 
 // tsmPopulateValuesForEachNode populates each node with required resolver properties
@@ -363,7 +364,12 @@ func tsmProcessNexusFields(pkg parser.Package, aliasNameMap map[string]string, n
 					listArg = GetNodeDetails(nodeProp.PkgName, typeString, importMap, pkgs, gqlSpecMap)
 				}
 			}
-			fieldProp.SchemaFieldName = getTsmGraphqlSchemaFieldName(NamedChild, fieldProp.FieldName, schemaTypeName, listArg, nf)
+
+			sType := NamedChild
+			if parser.IsLinkField(nf) {
+				sType = NamedLink
+			}
+			fieldProp.SchemaFieldName = getTsmGraphqlSchemaFieldName(sType, fieldProp.FieldName, schemaTypeName, listArg, nf)
 			fieldProp.IsResolver = true
 			fieldProp.IsNexusTypeField = true
 			fieldProp.FieldType = typeString

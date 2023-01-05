@@ -339,7 +339,7 @@ func getTsmGraphqlSchemaFieldName(sType GraphQLSchemaType, fieldName, schemaType
 			pattern = "%s: %s"
 			schemaType = "String"
 		}
-	case NamedChild:
+	case NamedChild, NamedLink:
 		if nullable {
 			pattern = "%s(" + listArg + "): [%s!]"
 		} else {
@@ -358,7 +358,7 @@ func getTsmGraphqlSchemaFieldName(sType GraphQLSchemaType, fieldName, schemaType
 		out := replacer.Replace(parser.GetFieldAnnotationString(f, parser.GRAPHQL_TSM_DIRECTIVE_ANNOTATION))
 		schemaName += " " + strings.Trim(out, "\"")
 	} else {
-		if sType != Link && sType != Child && sType != NamedChild {
+		if sType != Link && sType != Child && sType != NamedChild && sType != NamedLink {
 			if val, ok := f.Type.(*ast.SelectorExpr); ok {
 				schemaName = addJsonencodedAnnotation(f, parser.GRAPHQL_TS_TYPE_ANNOTATION, val.Sel.Name, schemaName)
 			} else if val, ok := f.Type.(*ast.Ident); ok && convertGraphqlStdType(val.Name) == "" {
@@ -366,6 +366,10 @@ func getTsmGraphqlSchemaFieldName(sType GraphQLSchemaType, fieldName, schemaType
 			} else if parser.IsFieldAnnotationPresent(f, parser.GRAPHQL_JSONENCODED_ANNOTATION) {
 				schemaName += " @jsonencoded"
 			}
+		}
+
+		if sType == Link || sType == NamedLink {
+			schemaName = addRelationAnnotation(f, schemaName)
 		}
 	}
 
@@ -379,6 +383,20 @@ func addJsonencodedAnnotation(f *ast.Field, annotation parser.FieldAnnotation, n
 	} else {
 		schemaName += fmt.Sprintf(` @jsonencoded(gofile:"model.go" name:"%s")`, name)
 	}
+	return schemaName
+}
+
+func addRelationAnnotation(f *ast.Field, schemaName string) string {
+	args := []string{`softlink: "true"`}
+	if parser.IsFieldAnnotationPresent(f, parser.GRAPHQL_RELATION_NAME) {
+		args = append(args, fmt.Sprintf(`name: "%s"`, parser.GetFieldAnnotationVal(f, parser.GRAPHQL_RELATION_NAME)))
+	}
+
+	if parser.IsFieldAnnotationPresent(f, parser.GRAPHQL_RELATION_PARAMETERS) {
+		args = append(args, fmt.Sprintf("parameters: %s", parser.GetFieldAnnotationVal(f, parser.GRAPHQL_RELATION_PARAMETERS)))
+	}
+
+	schemaName += fmt.Sprintf(" @relation(%s)", strings.Join(args, ", "))
 	return schemaName
 }
 
