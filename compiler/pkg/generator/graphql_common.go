@@ -358,31 +358,27 @@ func getTsmGraphqlSchemaFieldName(sType GraphQLSchemaType, fieldName, schemaType
 		out := replacer.Replace(parser.GetFieldAnnotationString(f, parser.GRAPHQL_TSM_DIRECTIVE_ANNOTATION))
 		schemaName += " " + strings.Trim(out, "\"")
 	} else {
-		if val, ok := f.Type.(*ast.SelectorExpr); ok {
-			if parser.IsFieldAnnotationPresent(f, parser.GRAPHQL_TS_TYPE_ANNOTATION) {
-				schemaName += fmt.Sprintf(` @jsonencoded(file:"%s" gofile:"model.go" name:"%s")`,
-					parser.GetFieldAnnotationVal(f, parser.GRAPHQL_TS_TYPE_ANNOTATION), val.Sel.Name)
-			} else {
-				schemaName += fmt.Sprintf(` @jsonencoded(gofile:"model.go" name:"%s")`, val.Sel.Name)
+		if sType != Link && sType != Child && sType != NamedChild {
+			if val, ok := f.Type.(*ast.SelectorExpr); ok {
+				schemaName = addJsonencodedAnnotation(f, parser.GRAPHQL_TS_TYPE_ANNOTATION, val.Sel.Name, schemaName)
+			} else if val, ok := f.Type.(*ast.Ident); ok && convertGraphqlStdType(val.Name) == "" {
+				schemaName = addJsonencodedAnnotation(f, parser.GRAPHQL_TS_TYPE_ANNOTATION, val.Name, schemaName)
+			} else if parser.IsFieldAnnotationPresent(f, parser.GRAPHQL_JSONENCODED_ANNOTATION) {
+				schemaName += " @jsonencoded"
 			}
-		} else if val, ok := f.Type.(*ast.Ident); ok {
-			if convertGraphqlStdType(val.Name) == "" {
-				if parser.IsFieldAnnotationPresent(f, parser.GRAPHQL_TS_TYPE_ANNOTATION) {
-					schemaName += fmt.Sprintf(` @jsonencoded(file:"%s" gofile:"model.go" name:"%s")`,
-						parser.GetFieldAnnotationVal(f, parser.GRAPHQL_TS_TYPE_ANNOTATION), val.Name)
-				} else {
-					schemaName += fmt.Sprintf(` @jsonencoded(gofile:"model.go" name:"%s")`, val.Name)
-				}
-			}
-		} else if parser.IsFieldAnnotationPresent(f, parser.GRAPHQL_JSONENCODED_ANNOTATION) {
-			schemaName += " @jsonencoded"
-		} else if parser.IsFieldAnnotationPresent(f, parser.GRAPHQL_TSM_DIRECTIVE_ANNOTATION) {
-			replacer := strings.NewReplacer("nexus-graphql-tsm-directive:", "", "\\", "")
-			out := replacer.Replace(parser.GetFieldAnnotationString(f, parser.GRAPHQL_TSM_DIRECTIVE_ANNOTATION))
-			schemaName += " " + strings.Trim(out, "\"")
 		}
 	}
 
+	return schemaName
+}
+
+func addJsonencodedAnnotation(f *ast.Field, annotation parser.FieldAnnotation, name string, schemaName string) string {
+	if parser.IsFieldAnnotationPresent(f, annotation) {
+		schemaName += fmt.Sprintf(` @jsonencoded(file:"%s" gofile:"model.go" name:"%s")`,
+			parser.GetFieldAnnotationVal(f, annotation), name)
+	} else {
+		schemaName += fmt.Sprintf(` @jsonencoded(gofile:"model.go" name:"%s")`, name)
+	}
 	return schemaName
 }
 
