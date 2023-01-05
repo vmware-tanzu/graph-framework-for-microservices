@@ -21,6 +21,7 @@ const (
 	StatusMatch   = ".*properties\\/status.*"
 	SingletonPath = "/is_singleton"
 	ApiGenPath    = "/nexus-rest-api-gen"
+	RequiredPath  = "/required"
 )
 
 func CompareFiles(data1, data2 []byte) (bool, *bytes.Buffer, error) {
@@ -163,7 +164,7 @@ func filterReport(r *dyff.Report) *dyff.Report {
 	for _, di := range r.Diffs {
 		var ds []dyff.Detail
 		for _, d := range di.Details {
-			if d.From == nil && d.To != nil { // allow to add stuff
+			if d.From == nil && d.To != nil && !strings.HasPrefix(di.Path.String(), RequiredPath) { // allow to add stuff, but not in required list
 				continue
 			}
 			if di.Path.String() == SingletonPath && d.From.Value == strconv.FormatBool(true) && d.To.Value == strconv.FormatBool(false) { // allow singleton change to false

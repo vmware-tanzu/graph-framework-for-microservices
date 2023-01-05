@@ -228,6 +228,7 @@ spec:
                   required:
                     - sourceGeneration
                     - remoteGeneration
+                    - testaddrequire
                   type: object
               type: object
           type: object
