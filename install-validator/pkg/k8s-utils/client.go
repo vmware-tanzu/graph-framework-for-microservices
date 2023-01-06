@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"strings"
 
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
@@ -96,7 +97,7 @@ func (c *Client) FetchGroup(groupPath string) error {
 	if err != nil {
 		return err
 	}
-	c.group = string(file)
+	c.group = strings.TrimSpace(string(file))
 	return nil
 }
 
