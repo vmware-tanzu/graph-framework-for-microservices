@@ -7,7 +7,8 @@ permissions:
       contents: read    # This is required for actions/checkout
 jobs:
   S3PackageUpload:
-    runs-on: ubuntu-latest
+    runs-on:
+      group: ubuntu-latest-4-cores
     steps:
       - name: Git clone the repository
         uses: actions/checkout@v3
