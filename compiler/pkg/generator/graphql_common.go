@@ -368,9 +368,7 @@ func getTsmGraphqlSchemaFieldName(sType GraphQLSchemaType, fieldName, schemaType
 			}
 		}
 
-		if sType == Link || sType == NamedLink {
-			schemaName = addRelationAnnotation(f, schemaName)
-		}
+		schemaName = addRelationAnnotation(sType, f, schemaName)
 	}
 
 	return schemaName
@@ -386,8 +384,11 @@ func addJsonencodedAnnotation(f *ast.Field, annotation parser.FieldAnnotation, n
 	return schemaName
 }
 
-func addRelationAnnotation(f *ast.Field, schemaName string) string {
-	args := []string{`softlink: "true"`}
+func addRelationAnnotation(sType GraphQLSchemaType, f *ast.Field, schemaName string) string {
+	var args []string
+	if sType == Link || sType == NamedLink {
+		args = append(args, `softlink: "true"`)
+	}
 	if parser.IsFieldAnnotationPresent(f, parser.GRAPHQL_RELATION_NAME) {
 		args = append(args, fmt.Sprintf(`name: "%s"`, parser.GetFieldAnnotationVal(f, parser.GRAPHQL_RELATION_NAME)))
 	}
@@ -396,7 +397,14 @@ func addRelationAnnotation(f *ast.Field, schemaName string) string {
 		args = append(args, fmt.Sprintf("parameters: %s", parser.GetFieldAnnotationVal(f, parser.GRAPHQL_RELATION_PARAMETERS)))
 	}
 
-	schemaName += fmt.Sprintf(" @relation(%s)", strings.Join(args, ", "))
+	if parser.IsFieldAnnotationPresent(f, parser.GRAPHQL_RELATION_UUIDKEY) {
+		args = append(args, fmt.Sprintf(`uuidkey: "%s"`, parser.GetFieldAnnotationVal(f, parser.GRAPHQL_RELATION_UUIDKEY)))
+	}
+
+	if len(args) > 0 {
+		schemaName += fmt.Sprintf(" @relation(%s)", strings.Join(args, ", "))
+	}
+
 	return schemaName
 }
 

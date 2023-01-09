@@ -47,6 +47,7 @@ const (
 	GRAPHQL_JSONENCODED_ANNOTATION   = FieldAnnotation("nexus-graphql-jsonencoded")
 	GRAPHQL_RELATION_NAME            = FieldAnnotation("nexus-graphql-relation-name")
 	GRAPHQL_RELATION_PARAMETERS      = FieldAnnotation("nexus-graphql-relation-parameters")
+	GRAPHQL_RELATION_UUIDKEY         = FieldAnnotation("nexus-graphql-relation-uuidkey")
 )
 
 // func (p *Package) GetImports() []*ast.ImportSpec
