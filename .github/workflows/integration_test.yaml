@@ -1,7 +1,7 @@
 name: Run integration test
 on:
   pull_request:
-    branches: [ master ]
+    branches: [ main ]
 jobs:
   integration-test:
     name: Build
