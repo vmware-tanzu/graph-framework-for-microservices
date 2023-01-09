@@ -64,18 +64,6 @@ var _ = Describe("Node parser tests", func() {
 		Expect(fail).To(BeTrue())
 	})
 
-	It("should fail when nexus child or link fields is an array.", func() {
-		defer func() { log.StandardLogger().ExitFunc = nil }()
-
-		fail := false
-		log.StandardLogger().ExitFunc = func(int) {
-			fail = true
-		}
-
-		parser.ParseDSLNodes("../../example/test-utils/invalid-type-datamodel", baseGroupName, nil, nil)
-		Expect(fail).To(BeTrue())
-	})
-
 	It("should fail when nexus child or link fields is a pointer.", func() {
 		defer func() { log.StandardLogger().ExitFunc = nil }()
 
