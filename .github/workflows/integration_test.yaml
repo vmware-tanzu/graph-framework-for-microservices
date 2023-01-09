@@ -5,7 +5,8 @@ on:
 jobs:
   integration-test:
     name: Build
-    runs-on: ubuntu-latest-4-cores
+    runs-on:
+      group: Default Larger Runners
     steps:
       - name: Checkout github repository
         uses: actions/checkout@v2
