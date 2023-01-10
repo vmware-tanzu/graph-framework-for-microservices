@@ -1,6 +1,8 @@
 package nexus_compare
 
 import (
+	"fmt"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 )
@@ -30,11 +32,19 @@ var _ = Describe("Compare lib tests", func() {
 			Expect(text.String()).Should(ContainSubstring(v))
 		}
 	})
-	It("should return false when adding field", func() {
+	It("should return false and only notice change in required", func() {
 		ans, text, err := CompareFiles([]byte(baseSpec), []byte(addedField))
 		Expect(err).NotTo(HaveOccurred())
-		Expect(ans).To(BeFalse())
-		Expect(text.String()).To(BeEmpty())
+		Expect(ans).To(BeTrue())
+		fmt.Println(text)
+		changeCheck := []string{"/spec/versions/name=v1/schema/openAPIV3Schema/properties/status/properties/nexus/required", "one required field added", "- testaddrequire"}
+		changeCheckNot := []string{"/spec/versions/name=v1/schema/openAPIV3Schema/properties/status/properties/nexus/properties/addedField"}
+		for _, v := range changeCheck {
+			Expect(text.String()).Should(ContainSubstring(v))
+		}
+		for _, v := range changeCheckNot {
+			Expect(text.String()).ShouldNot(ContainSubstring(v))
+		}
 	})
 	It("should report change in nexus annotation", func() {
 		ans, text, err := CompareFiles([]byte(baseSpec), []byte(changeAnnotation))
