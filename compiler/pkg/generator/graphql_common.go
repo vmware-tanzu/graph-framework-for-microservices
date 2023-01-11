@@ -314,7 +314,7 @@ func getGraphqlSchemaName(pattern, fieldName, schemaType string, f *ast.Field) s
 // }
 
 // getTsmGraphqlSchemaFieldName process nexus annotation `nexus-graphql-nullable` and `nexus-graphql-tsm-directive`
-func getTsmGraphqlSchemaFieldName(sType GraphQLSchemaType, fieldName, schemaType, listArg string, f *ast.Field) string {
+func getTsmGraphqlSchemaFieldName(sType GraphQLSchemaType, fieldName, schemaType, listArg string, f *ast.Field, pkg parser.Package) string {
 	pattern := ""
 	nullable := parser.IsNexusGraphqlNullField(f)
 	jsonEncoded := parser.IsJsonStringField(f)
@@ -352,6 +352,7 @@ func getTsmGraphqlSchemaFieldName(sType GraphQLSchemaType, fieldName, schemaType
 	}
 	schemaName := getGraphqlSchemaName(pattern, fieldName, schemaType, f)
 
+	importMap := pkg.GetImportMap()
 	// add jsonencoded annotation
 	if parser.IsFieldAnnotationPresent(f, parser.GRAPHQL_TSM_DIRECTIVE_ANNOTATION) {
 		replacer := strings.NewReplacer("nexus-graphql-tsm-directive:", "", "\\", "")
@@ -360,7 +361,14 @@ func getTsmGraphqlSchemaFieldName(sType GraphQLSchemaType, fieldName, schemaType
 	} else {
 		if sType != Link && sType != Child && sType != NamedChild && sType != NamedLink {
 			if val, ok := f.Type.(*ast.SelectorExpr); ok {
-				schemaName = addJsonencodedAnnotation(f, parser.GRAPHQL_TS_TYPE_ANNOTATION, val.Sel.Name, schemaName)
+				x := types.ExprString(val.X)
+				if imp, ok := importMap[x]; ok {
+					if strings.HasPrefix(imp, fmt.Sprintf(`"%s`, pkg.ModPath)) {
+						schemaName = addJsonencodedAnnotation(f, parser.GRAPHQL_TS_TYPE_ANNOTATION, val.Sel.Name, schemaName)
+					} else {
+						schemaName = addJsonencodedAnnotation(f, parser.GRAPHQL_TS_TYPE_ANNOTATION, fmt.Sprintf("%s.%s", x, val.Sel.Name), schemaName)
+					}
+				}
 			} else if val, ok := f.Type.(*ast.Ident); ok && convertGraphqlStdType(val.Name) == "" {
 				schemaName = addJsonencodedAnnotation(f, parser.GRAPHQL_TS_TYPE_ANNOTATION, val.Name, schemaName)
 			} else if parser.IsFieldAnnotationPresent(f, parser.GRAPHQL_JSONENCODED_ANNOTATION) {
