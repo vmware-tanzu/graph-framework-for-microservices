@@ -19,17 +19,12 @@ limitations under the License.
 package externalversions
 
 import (
+	versioned "nexustempmodule/client/clientset/versioned"
+	globaltsmtanzuvmwarecom "nexustempmodule/client/informers/externalversions/global.tsm.tanzu.vmware.com"
+	internalinterfaces "nexustempmodule/client/informers/externalversions/internalinterfaces"
 	reflect "reflect"
 	sync "sync"
 	time "time"
-
-	versioned "github.com/vmware-tanzu/graph-framework-for-microservices/compiler/example/output/generated/client/clientset/versioned"
-	configtsmtanzuvmwarecom "github.com/vmware-tanzu/graph-framework-for-microservices/compiler/example/output/generated/client/informers/externalversions/config.tsm.tanzu.vmware.com"
-	gnstsmtanzuvmwarecom "github.com/vmware-tanzu/graph-framework-for-microservices/compiler/example/output/generated/client/informers/externalversions/gns.tsm.tanzu.vmware.com"
-	internalinterfaces "github.com/vmware-tanzu/graph-framework-for-microservices/compiler/example/output/generated/client/informers/externalversions/internalinterfaces"
-	policypkgtsmtanzuvmwarecom "github.com/vmware-tanzu/graph-framework-for-microservices/compiler/example/output/generated/client/informers/externalversions/policypkg.tsm.tanzu.vmware.com"
-	roottsmtanzuvmwarecom "github.com/vmware-tanzu/graph-framework-for-microservices/compiler/example/output/generated/client/informers/externalversions/root.tsm.tanzu.vmware.com"
-	servicegrouptsmtanzuvmwarecom "github.com/vmware-tanzu/graph-framework-for-microservices/compiler/example/output/generated/client/informers/externalversions/servicegroup.tsm.tanzu.vmware.com"
 
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	runtime "k8s.io/apimachinery/pkg/runtime"
@@ -177,29 +172,9 @@ type SharedInformerFactory interface {
 	ForResource(resource schema.GroupVersionResource) (GenericInformer, error)
 	WaitForCacheSync(stopCh <-chan struct{}) map[reflect.Type]bool
 
-	ConfigTsm() configtsmtanzuvmwarecom.Interface
-	GnsTsm() gnstsmtanzuvmwarecom.Interface
-	PolicypkgTsm() policypkgtsmtanzuvmwarecom.Interface
-	RootTsm() roottsmtanzuvmwarecom.Interface
-	ServicegroupTsm() servicegrouptsmtanzuvmwarecom.Interface
+	GlobalTsm() globaltsmtanzuvmwarecom.Interface
 }
 
-func (f *sharedInformerFactory) ConfigTsm() configtsmtanzuvmwarecom.Interface {
-	return configtsmtanzuvmwarecom.New(f, f.namespace, f.tweakListOptions)
-}
-
-func (f *sharedInformerFactory) GnsTsm() gnstsmtanzuvmwarecom.Interface {
-	return gnstsmtanzuvmwarecom.New(f, f.namespace, f.tweakListOptions)
-}
-
-func (f *sharedInformerFactory) PolicypkgTsm() policypkgtsmtanzuvmwarecom.Interface {
-	return policypkgtsmtanzuvmwarecom.New(f, f.namespace, f.tweakListOptions)
-}
-
-func (f *sharedInformerFactory) RootTsm() roottsmtanzuvmwarecom.Interface {
-	return roottsmtanzuvmwarecom.New(f, f.namespace, f.tweakListOptions)
-}
-
-func (f *sharedInformerFactory) ServicegroupTsm() servicegrouptsmtanzuvmwarecom.Interface {
-	return servicegrouptsmtanzuvmwarecom.New(f, f.namespace, f.tweakListOptions)
+func (f *sharedInformerFactory) GlobalTsm() globaltsmtanzuvmwarecom.Interface {
+	return globaltsmtanzuvmwarecom.New(f, f.namespace, f.tweakListOptions)
 }

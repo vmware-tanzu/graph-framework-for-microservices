@@ -17,6 +17,10 @@ func CustomQueryToGraphqlSchema(query nexus.GraphQLQuery) string {
 		args = "(\n"
 		for _, arg := range argsList {
 			graphqlType := convertGraphqlStdType(arg.Type)
+			// AliasType is to over write arg type with annotation `nexus-alias-type:""`
+			if arg.AliasType {
+				graphqlType = arg.Type
+			}
 			if graphqlType == "" {
 				log.Fatalf("Failed to convert type %s to graphql types, supported types are: "+
 					"string, bool, int, int8, int16, int32, int64, uint, uint8, uint16, uint32, uint64, "+
@@ -38,5 +42,5 @@ func CustomQueryToGraphqlSchema(query nexus.GraphQLQuery) string {
 		log.Fatalf("Wrong Api Type of Graphql custom query")
 	}
 
-	return fmt.Sprintf("    %s"+args+": "+returnType+"\n", query.Name)
+	return fmt.Sprintf("    %s"+args+": "+returnType, query.Name)
 }

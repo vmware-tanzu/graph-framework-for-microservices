@@ -19,17 +19,11 @@ limitations under the License.
 package fake
 
 import (
-	clientset "github.com/vmware-tanzu/graph-framework-for-microservices/compiler/example/output/generated/client/clientset/versioned"
-	configtsmv1 "github.com/vmware-tanzu/graph-framework-for-microservices/compiler/example/output/generated/client/clientset/versioned/typed/config.tsm.tanzu.vmware.com/v1"
-	fakeconfigtsmv1 "github.com/vmware-tanzu/graph-framework-for-microservices/compiler/example/output/generated/client/clientset/versioned/typed/config.tsm.tanzu.vmware.com/v1/fake"
-	gnstsmv1 "github.com/vmware-tanzu/graph-framework-for-microservices/compiler/example/output/generated/client/clientset/versioned/typed/gns.tsm.tanzu.vmware.com/v1"
-	fakegnstsmv1 "github.com/vmware-tanzu/graph-framework-for-microservices/compiler/example/output/generated/client/clientset/versioned/typed/gns.tsm.tanzu.vmware.com/v1/fake"
-	policypkgtsmv1 "github.com/vmware-tanzu/graph-framework-for-microservices/compiler/example/output/generated/client/clientset/versioned/typed/policypkg.tsm.tanzu.vmware.com/v1"
-	fakepolicypkgtsmv1 "github.com/vmware-tanzu/graph-framework-for-microservices/compiler/example/output/generated/client/clientset/versioned/typed/policypkg.tsm.tanzu.vmware.com/v1/fake"
-	roottsmv1 "github.com/vmware-tanzu/graph-framework-for-microservices/compiler/example/output/generated/client/clientset/versioned/typed/root.tsm.tanzu.vmware.com/v1"
-	fakeroottsmv1 "github.com/vmware-tanzu/graph-framework-for-microservices/compiler/example/output/generated/client/clientset/versioned/typed/root.tsm.tanzu.vmware.com/v1/fake"
-	servicegrouptsmv1 "github.com/vmware-tanzu/graph-framework-for-microservices/compiler/example/output/generated/client/clientset/versioned/typed/servicegroup.tsm.tanzu.vmware.com/v1"
-	fakeservicegrouptsmv1 "github.com/vmware-tanzu/graph-framework-for-microservices/compiler/example/output/generated/client/clientset/versioned/typed/servicegroup.tsm.tanzu.vmware.com/v1/fake"
+	clientset "nexustempmodule/client/clientset/versioned"
+	customtsmv1 "nexustempmodule/client/clientset/versioned/typed/custom.tsm.tanzu.vmware.com/v1"
+	fakecustomtsmv1 "nexustempmodule/client/clientset/versioned/typed/custom.tsm.tanzu.vmware.com/v1/fake"
+	globaltsmv1 "nexustempmodule/client/clientset/versioned/typed/global.tsm.tanzu.vmware.com/v1"
+	fakeglobaltsmv1 "nexustempmodule/client/clientset/versioned/typed/global.tsm.tanzu.vmware.com/v1/fake"
 
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/watch"
@@ -88,27 +82,12 @@ var (
 	_ testing.FakeClient  = &Clientset{}
 )
 
-// ConfigTsmV1 retrieves the ConfigTsmV1Client
-func (c *Clientset) ConfigTsmV1() configtsmv1.ConfigTsmV1Interface {
-	return &fakeconfigtsmv1.FakeConfigTsmV1{Fake: &c.Fake}
+// CustomTsmV1 retrieves the CustomTsmV1Client
+func (c *Clientset) CustomTsmV1() customtsmv1.CustomTsmV1Interface {
+	return &fakecustomtsmv1.FakeCustomTsmV1{Fake: &c.Fake}
 }
 
-// GnsTsmV1 retrieves the GnsTsmV1Client
-func (c *Clientset) GnsTsmV1() gnstsmv1.GnsTsmV1Interface {
-	return &fakegnstsmv1.FakeGnsTsmV1{Fake: &c.Fake}
-}
-
-// PolicypkgTsmV1 retrieves the PolicypkgTsmV1Client
-func (c *Clientset) PolicypkgTsmV1() policypkgtsmv1.PolicypkgTsmV1Interface {
-	return &fakepolicypkgtsmv1.FakePolicypkgTsmV1{Fake: &c.Fake}
-}
-
-// RootTsmV1 retrieves the RootTsmV1Client
-func (c *Clientset) RootTsmV1() roottsmv1.RootTsmV1Interface {
-	return &fakeroottsmv1.FakeRootTsmV1{Fake: &c.Fake}
-}
-
-// ServicegroupTsmV1 retrieves the ServicegroupTsmV1Client
-func (c *Clientset) ServicegroupTsmV1() servicegrouptsmv1.ServicegroupTsmV1Interface {
-	return &fakeservicegrouptsmv1.FakeServicegroupTsmV1{Fake: &c.Fake}
+// GlobalTsmV1 retrieves the GlobalTsmV1Client
+func (c *Clientset) GlobalTsmV1() globaltsmv1.GlobalTsmV1Interface {
+	return &fakeglobaltsmv1.FakeGlobalTsmV1{Fake: &c.Fake}
 }

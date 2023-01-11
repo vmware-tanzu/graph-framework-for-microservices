@@ -27,7 +27,7 @@ var _ = Describe("Rest tests", func() {
 		pkgs = parser.ParseDSLPkg(exampleDSLPath)
 		pkg, ok = pkgs["github.com/vmware-tanzu/graph-framework-for-microservices/compiler/example/datamodel/config/gns"]
 		graphqlQueries := parser.ParseGraphqlQuerySpecs(pkgs)
-		graph := parser.ParseDSLNodes(exampleDSLPath, baseGroupName, pkgs, graphqlQueries)
+		graph, _, _ := parser.ParseDSLNodes(exampleDSLPath, baseGroupName, pkgs, graphqlQueries)
 		parentsMap = parser.CreateParentsMap(graph)
 		Expect(ok).To(BeTrue())
 	})
@@ -134,7 +134,7 @@ var _ = Describe("Rest tests", func() {
 		}
 
 		pkgs := parser.ParseDSLPkg("../../../example/test-utils/duplicated-uris-datamodel")
-		g := parser.ParseDSLNodes("../../../example/test-utils/duplicated-uris-datamodel", baseGroupName, pkgs, nil)
+		g, _, _ := parser.ParseDSLNodes("../../../example/test-utils/duplicated-uris-datamodel", baseGroupName, pkgs, nil)
 		parents := parser.CreateParentsMap(g)
 
 		for _, p := range pkgs {

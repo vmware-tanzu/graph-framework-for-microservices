@@ -116,3 +116,9 @@ const (
 	GraphQLQueryApi GraphQlApiType = iota
 	GetMetricsApi
 )
+
+// A GraphQLSpec
+type GraphQLSpec struct {
+	IdName     string
+	IdNullable bool
+}

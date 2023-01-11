@@ -1,176 +1,3107 @@
 scalar Map
-type Query {
-    root: root_Root
-}
 
-type root_Root {
+type global_AccessToken {
     Id: ID
 	ParentLabels: Map
 
-    Config(Id: ID): config_Config!
+    Ttl: Int
+    Created: String
+    UserId: String
 }
 
-type config_Config {
-    Id: ID
-	ParentLabels: Map
-    QueryExample(
-        StartTime: String
-        EndTime: String
-        Interval: String
-        IsServiceDeployment: Boolean
-        StartVal: Int
-    ): NexusGraphqlResponse
-
-    ACPPolicies(Id: ID): [policypkg_AccessControlPolicy!]
-    FooExample(Id: ID): [config_FooTypeABC!]
-    MyStr0: String
-    MyStr1: String
-    MyStr2: String
-    XYZPort: String
-    ABCHost: String
-    ClusterNamespaces: String
-    TestValMarkers: String
-    Instance: Float
-    CuOption: String
-    GNS(Id: ID): gns_Gns!
-    DNS: gns_Dns!
-    VMPPolicies(Id: ID): policypkg_VMpolicy!
-    Domain(Id: ID): config_Domain!
-    SvcGrpInfo(Id: ID): servicegroup_SvcGroupLinkInfo!
-}
-
-type config_FooTypeABC {
+type global_ACPConfig {
     Id: ID
 	ParentLabels: Map
 
-    FooA: String
-    FooB: String
-    FooD: String
-    FooF: String
-}
-
-type config_Domain {
-    Id: ID
-	ParentLabels: Map
-
-    PointPort: String
-    PointString: String
-    PointInt: Int
-    PointMap: String
-    PointSlice: String
-    SliceOfPoints: String
-    SliceOfArrPoints: String
-    MapOfArrsPoints: String
-    PointStruct: String
-}
-
-type gns_Gns {
-    Id: ID
-	ParentLabels: Map
-    queryGns1(
-        StartTime: String
-        EndTime: String
-        Interval: String
-        IsServiceDeployment: Boolean
-        StartVal: Int
-    ): NexusGraphqlResponse
-    queryGnsQM1: TimeSeriesData
-    queryGnsQM(
-        StartTime: String
-        EndTime: String
-        TimeInterval: String
-        SomeUserArg1: String
-        SomeUserArg2: Int
-        SomeUserArg3: Boolean
-    ): TimeSeriesData
-
-    Domain: String
-    UseSharedGateway: Boolean
-    Description: String
-    Meta: String
-    Port: Int
-    OtherDescription: String
-    MapPointer: String
-    SlicePointer: String
-    WorkloadSpec: String
-    DifferentSpec: String
-    ServiceSegmentRef: String
-    ServiceSegmentRefPointer: String
-    ServiceSegmentRefs: String
-    ServiceSegmentRefMap: String
-    GnsAccessControlPolicy(Id: ID): policypkg_AccessControlPolicy!
-    FooChild: gns_BarChild!
-}
-
-type gns_BarChild {
-    Id: ID
-	ParentLabels: Map
-
-    Name: String
-}
-
-type gns_IgnoreChild {
-    Id: ID
-	ParentLabels: Map
-
-    Name: String
-}
-
-type gns_Dns {
-    Id: ID
-	ParentLabels: Map
-
-}
-
-type servicegroup_SvcGroupLinkInfo {
-    Id: ID
-	ParentLabels: Map
-
-    ClusterName: String
-    DomainName: String
-    ServiceName: String
-    ServiceType: String
-}
-
-type policypkg_AccessControlPolicy {
-    Id: ID
-	ParentLabels: Map
-
-    PolicyConfigs(Id: ID): [policypkg_ACPConfig!]
-}
-
-type policypkg_ACPConfig {
-    Id: ID
-	ParentLabels: Map
-
+    DestSvcGroups(Id: ID): [global_SvcGroup!]
+    SourceSvcGroups(Id: ID): [global_SvcGroup!]
     DisplayName: String
     Gns: String
     Description: String
     Tags: String
     ProjectId: String
+    DestGroups: String
+    SourceGroups: String
+    Conditions: String
+    Actions: String
+}
+
+type global_AdditionalAttributes {
+    Id: ID
+	ParentLabels: Map
+
+    Name: String
+    Value: String
+    Context: String
+}
+
+type global_AllSparkServices {
+    Id: ID
+	ParentLabels: Map
+
+    GlobalRegistrationService(Id: ID): global_GlobalRegistrationService!
+    LocalRegistrationService(Id: ID): global_LocalRegistrationService!
+    AwsConnector: global_AwsConnector!
+}
+
+type global_Annotation {
+    Id: ID
+	ParentLabels: Map
+
+    Name: String
+    Data: String
+}
+
+type global_ApiDiscoveryRT {
+    Id: ID
+	ParentLabels: Map
+
+    Gnsid: String
+    Selectors: String
+    Spec: String
+    CompressionEnabled: Boolean
+    IsEndpointApiPrechecks: String
+    ProcessingToggles: String
+}
+
+type global_ApiDiscovery {
+    Id: ID
+	ParentLabels: Map
+
+    Description: String
+    Labels: String
+    Spec: String
+}
+
+type global_AppFolder {
+    Id: ID
+	ParentLabels: Map
+
+    App(Id: ID): [global_App!]
+}
+
+type global_AppGroup {
+    Id: ID
+	ParentLabels: Map
+
+    Services(Id: ID): [global_Service!]
+    Rules: String
+}
+
+type global_AppTemplateServiceDefinition {
+    Id: ID
+	ParentLabels: Map
+
+    Type: String
+    Version: String
+    Template: String
+    TemplateArgs: String
+}
+
+type global_AppTemplate {
+    Id: ID
+	ParentLabels: Map
+
+    ServiceDefinitions(Id: ID): [global_AppTemplateServiceDefinition!]
+    Version: String
+}
+
+type global_AppUser {
+    Id: ID
+	ParentLabels: Map
+
+}
+
+type global_AppVersion {
+    Id: ID
+	ParentLabels: Map
+
+    Template: global_Template!
+    Inventory: global_Inventory!
+}
+
+type global_App {
+    Id: ID
+	ParentLabels: Map
+
+    Version(Id: ID): global_AppVersion!
+}
+
+type global_ApplicationInfo {
+    Id: ID
+	ParentLabels: Map
+
+    App: String
+}
+
+type global_AttackDiscoveryRT {
+    Id: ID
+	ParentLabels: Map
+
+    Gnsid: String
+    Selectors: String
+    Spec: String
+}
+
+type global_AttackDiscovery {
+    Id: ID
+	ParentLabels: Map
+
+    Description: String
+    Labels: String
+    Spec: String
+}
+
+type global_AuthenticationPolicy {
+    Id: ID
+	ParentLabels: Map
+
+    Name: String
+    Labels: String
+    Annotations: String
+    Spec: String
+}
+
+type global_AutoscalerFolder {
+    Id: ID
+	ParentLabels: Map
+
+    Autoscalers(Id: ID): [global_Autoscaler!]
+}
+
+type global_AutoscalerConfig {
+    Id: ID
+	ParentLabels: Map
+
+    Name: String
+    ConfigSource: String
+    DesiredState: String
+}
+
+type global_Autoscaler {
+    Id: ID
+	ParentLabels: Map
+
+    Autoscaler: global_AutoscalerCR!
+    Name: String
+    ProjectId: String
+}
+
+type global_AutoscalerCR {
+    Id: ID
+	ParentLabels: Map
+
+    Name: String
+    AutoscalingDefinition: String
+}
+
+type global_AutoscalingPolicy {
+    Id: ID
+	ParentLabels: Map
+
+    Name: String
+    Description: String
+    Labels: String
+    ServiceName: String
+    AutoscalerSpec: String
+}
+
+type global_AwsConnector {
+    Id: ID
+	ParentLabels: Map
+
+    Gns(Id: ID): [global_GlobalNs!]
+}
+
+type global_Bucket {
+    Id: ID
+	ParentLabels: Map
+
+    Template: global_Template!
+    Inventory: global_Inventory!
+}
+
+type global_CertificateAuthorityRT {
+    Id: ID
+	ParentLabels: Map
+
+    Url: String
+    Type: String
+    TemplatePath: String
+    SecretRef: String
+}
+
+type global_CertificateAuthorityConfigN {
+    Id: ID
+	ParentLabels: Map
+
+    Config: String
+}
+
+type global_CertificateConfigN {
+    Id: ID
+	ParentLabels: Map
+
+    ProjectId: String
+    BeginsOn: String
+    ExpiresOn: String
+    IssuedToCN: String
+    Config: String
+}
+
+type global_CertificateRequest {
+    Id: ID
+	ParentLabels: Map
+
+    Name: String
+    Metadata: String
+    IssuerRef: String
+    Request: String
+    Duration: String
+    Uid: String
+    IsCA: Boolean
+    Username: String
+    Usages: String
+    Groups: String
+    Extra: String
+    Status: String
+}
+
+type global_Certificate {
+    Id: ID
+	ParentLabels: Map
+
+    Name: String
+    Metadata: String
+    IssuerRef: String
+    PrivateKey: String
+    Subject: String
+    CommonName: String
+    Duration: String
+    DnsNames: String
+    IpAddresses: String
+    SecretName: String
+    RenewBefore: String
+    EmailAddresses: String
+    Uris: String
+    SecretTemplate: String
+    KeyStores: String
+    IsCA: Boolean
+    EncodeUsagesInRequest: String
+    Usages: String
+    RevisionHistoryLimit: Int
+    AdditionalOutputFormats: String
+    Status: String
+}
+
+type global_ClusterConfigFolder {
+    Id: ID
+	ParentLabels: Map
+
+    Clusters(Id: ID): [global_ClusterSettings!]
+}
+
+type global_ClusterConfig {
+    Id: ID
+	ParentLabels: Map
+
+    Domains(Id: ID): [global_DomainConfig!]
+    HostConfig(Id: ID): [global_HostConfig!]
+    GnsBinding(Id: ID): [global_GnsBindingRT!]
+    SecurityContextConstraints(Id: ID): [global_SecurityContextConstraintsConfig!]
+    Name: String
+    DnsConfigFolder(Id: ID): global_DNSConfigFolder!
+    DnsProbesConfigFolder: global_DNSProbesConfigFolder!
+    LogFolder(Id: ID): global_LogFolder!
+    ResourceGroup(Id: ID): global_ResourceGroupRT!
+}
+
+type global_ClusterFolder {
+    Id: ID
+	ParentLabels: Map
+
+    Clusters(Id: ID): [global_ClusterConfig!]
+    RemoteGatewayServiceConfigs(Id: ID): [global_RemoteGatewayServiceConfig!]
+    Name: String
+}
+
+type global_ClusterSettings {
+    Id: ID
+	ParentLabels: Map
+
+    ProjectId: String
+    DisplayName: String
+    Description: String
+    Tags: String
+    Labels: String
+    AutoInstallServiceMesh: Boolean
+    EnableNamespaceExclusions: Boolean
+    NamespaceExclusions: String
+    SystemNamespaceExclusions: String
+    AgentDomain: String
+    ProxyConfig: String
+    AutoInstallServiceMeshConfig: String
+    RegistryAccount: String
+    CaLabels: String
+    EnableInternalGateway: Boolean
+}
+
+type global_Cluster {
+    Id: ID
+	ParentLabels: Map
+    queryNodeTS(
+        nodeMetric: NodeMetricTypeEnum
+        startTime: String
+        endTime: String
+        timeInterval: String
+    ): TimeSeriesData    queryServiceTS(
+        svcMetric: ServiceMetricTypeEnum
+        startTime: String
+        endTime: String
+        timeInterval: String
+    ): TimeSeriesData    queryServiceTable(
+        startTime: String
+        endTime: String
+        SystemServices: Boolean
+        ShowGateways: Boolean
+        Groupby: ServiceGroupByEnum
+        noMetrics: Boolean
+        limit: Int
+        last: String
+    ): TimeSeriesData    queryServiceVersionTable(
+        startTime: String
+        endTime: String
+        SystemServices: Boolean
+        ShowGateways: Boolean
+        noMetrics: Boolean
+    ): TimeSeriesData    queryServiceInstanceTable(
+        startTime: String
+        endTime: String
+        limit: Int
+        last: String
+    ): TimeSeriesData    queryServiceTopology(
+        metricStringArray: String
+        startTime: String
+        endTime: String
+    ): TimeSeriesData    queryClusterTable(
+        startTime: String
+        endTime: String
+        timeInterval: String
+        noMetrics: Boolean
+    ): TimeSeriesData    queryNodeTable(
+        startTime: String
+        endTime: String
+    ): TimeSeriesData    queryServiceNodeMapGroupedByNode(
+        startTime: String
+        endTime: String
+    ): TimeSeriesData    queryServiceNodeMapGroupedByService(
+        startTime: String
+        endTime: String
+    ): TimeSeriesData    queryServiceNodeMapGroupedByServiceVersion(
+        startTime: String
+        endTime: String
+    ): TimeSeriesData    queryStats(
+        metricStringArray: String
+        api: String
+        method: HTTPMethodEnum
+        sourceWorkloadDN: String
+        severity: EventSeverityEnum
+        startTime: String
+        endTime: String
+    ): TimeSeriesData    queryLogs(
+        metric: AnalyticsMetricEnum
+        startTime: String
+        endTime: String
+        sourceWorkloadDN: String
+        severity: EventSeverityEnum
+        api: String
+        method: HTTPMethodEnum
+        from: Int
+        size: Int
+    ): TimeSeriesData    queryList(
+        metric: AnalyticsMetricEnum
+        startTime: String
+        endTime: String
+        api: String
+        method: HTTPMethodEnum
+        limit: Int
+    ): TimeSeriesData    queryLinechart(
+        metric: AnalyticsMetricEnum
+        subMetric: AnalyticsSubMetricEnum
+        startTime: String
+        endTime: String
+        sourceWorkloadDN: String
+        severity: EventSeverityEnum
+        api: String
+        method: HTTPMethodEnum
+        timeInterval: String
+        timeZone: String
+    ): TimeSeriesData    queryTopN(
+        metric: AnalyticsMetricEnum
+        startTime: String
+        endTime: String
+        api: String
+        method: HTTPMethodEnum
+        direction: TrafficDirectionEnum
+        limit: Int
+    ): TimeSeriesData    queryDetail(
+        metric: AnalyticsMetricEnum
+        subMetric: AnalyticsSubMetricEnum
+        startTime: String
+        endTime: String
+        api: String
+        method: HTTPMethodEnum
+        direction: TrafficDirectionEnum
+        timeInterval: String
+        timeZone: String
+    ): TimeSeriesData
+    Apps(Id: ID): [global_ApplicationInfo!]
+    DnsProbeStatus(Id: ID): [global_DNSProbeStatus!]
+    SecurityContextConstraints(Id: ID): [global_SecurityContextConstraints!]
+    Domains(Id: ID): [global_Domain!]
+    Nodes(Id: ID): [global_Node!]
+    Name: String
+    Uuid: String
+    Connected: Boolean
+    IstioState: String
+    Status: String
+    StatusHistory: String
+    Castatus: String
+    CaStatusHistory: String
+    ComponentStatuses: String
+    ComponentStatusesHistory: String
+    Type: String
+    ProjectId: String
+    ConnectionStatus(Id: ID): global_ConnectionStatus!
+}
+
+type global_ConfigMap {
+    Id: ID
+	ParentLabels: Map
+
+    Name: String
+    Annotations: String
+    Labels: String
+    Metadata: String
+    Data: String
+}
+
+type global_Config {
+    Id: ID
+	ParentLabels: Map
+
+    Certificates(Id: ID): [global_CertificateConfigN!]
+    ExternalAccounts(Id: ID): [global_ExternalAccountConfigN!]
+    ExternalDNS(Id: ID): [global_ExternalDNSConfigN!]
+    ExternalLB(Id: ID): [global_ExternalLBConfigN!]
+    FeatureFlags(Id: ID): [global_FeatureFlag!]
+    Projects(Id: ID): [global_Project!]
+    ServiceDirectory(Id: ID): [global_ServiceDirectoryN!]
+    ResourceGroups(Id: ID): global_ResourceGroup!
+    GlobalNamespace(Id: ID): global_GlobalNamespace!
+    Policy(Id: ID): global_AccessControlPolicy!
+    Templates(Id: ID): global_Template!
+    ProgressiveUpgrade(Id: ID): global_ProgressiveUpgrade!
+    ExternalPlugins(Id: ID): global_ExternalPluginConfigFolder!
+    ExternalAuditStorage(Id: ID): global_ExternalAuditStorage!
+    AutoscalerFolder(Id: ID): global_AutoscalerFolder!
+    Clusters(Id: ID): global_ClusterConfigFolder!
+    ServiceLevelObjective(Id: ID): global_ServiceLevelObjectiveFolder!
+}
+
+type global_ConnectionStatus {
+    Id: ID
+	ParentLabels: Map
+
+    Connected: Boolean
+    Message: String
+    Code: Int
+}
+
+type global_DataFolderDomainCluster {
+    Id: ID
+	ParentLabels: Map
+
+}
+
+type global_DataFolderDomainServiceVersion {
+    Id: ID
+	ParentLabels: Map
+
+}
+
+type global_DataFolderDomainService {
+    Id: ID
+	ParentLabels: Map
+
+    Versions(Id: ID): [global_DataFolderDomainServiceVersion!]
+}
+
+type global_DataFolderDomain {
+    Id: ID
+	ParentLabels: Map
+
+    Service(Id: ID): [global_DataFolderDomainService!]
+    Cluster(Id: ID): global_DataFolderDomainCluster!
+    Database: global_Database!
+}
+
+type global_DataFolder {
+    Id: ID
+	ParentLabels: Map
+
+    Domain(Id: ID): global_DataFolderDomain!
+}
+
+type global_DataGroup {
+    Id: ID
+	ParentLabels: Map
+
+    DisplayName: String
+    Description: String
+    Scope: String
+    Color: String
+    Rules: String
+}
+
+type global_DataTemplate {
+    Id: ID
+	ParentLabels: Map
+
+}
+
+type global_Database {
+    Id: ID
+	ParentLabels: Map
+
+    Tables(Id: ID): [global_Table!]
+    Directories(Id: ID): [global_Directory!]
+    Buckets(Id: ID): [global_Bucket!]
+}
+
+type global_DCRegion {
+    Id: ID
+	ParentLabels: Map
+
+    Zones(Id: ID): [global_DCZone!]
+    Name: String
+}
+
+type global_DCZone {
+    Id: ID
+	ParentLabels: Map
+
+    Clusters(Id: ID): [global_Cluster!]
+    Name: String
+}
+
+type global_DestinationRule {
+    Id: ID
+	ParentLabels: Map
+
+    Service: global_Service!
+    ServiceDeployments(Id: ID): [global_ServiceDeployment!]
+    ServiceReplicaSets(Id: ID): [global_ServiceReplicaSet!]
+    ServiceStatefulSets(Id: ID): [global_ServiceStatefulSet!]
+    ServiceDaemonSets(Id: ID): [global_ServiceDaemonSet!]
+    ServiceJobs(Id: ID): [global_ServiceJob!]
+    Name: String
+    Annotations: String
+    Labels: String
+    CreationTimestamp: String
+    ApiLink: String
+    Uid: String
+    Host: String
+    TrafficPolicy: String
+    Subsets: String
+    ExportTo: String
+}
+
+type global_Directory {
+    Id: ID
+	ParentLabels: Map
+
+    Template: global_Template!
+    Inventory: global_Inventory!
+}
+
+type global_DNSConfigFolder {
+    Id: ID
+	ParentLabels: Map
+
+    DnsConfig(Id: ID): [global_DNSConfig!]
+}
+
+type global_DNSConfig {
+    Id: ID
+	ParentLabels: Map
+
+    OwnedBy: String
+    DnsSuffix: String
+}
+
+type global_DNSProbeConfig {
+    Id: ID
+	ParentLabels: Map
+
+    Domain: String
+    CreateTimestamp: String
+}
+
+type global_DNSProbeStatus {
+    Id: ID
+	ParentLabels: Map
+
+    Name: String
+    Domain: String
+    Success: Boolean
+    UpdateTimestamp: String
+}
+
+type global_DNSProbesConfigFolder {
+    Id: ID
+	ParentLabels: Map
+
+    DnsProbeConfigs(Id: ID): [global_DNSProbeConfig!]
+}
+
+type global_DomainConfig {
+    Id: ID
+	ParentLabels: Map
+
+    Policy(Id: ID): [global_PolicyConfig!]
+    NetworkAttachmentDefinition(Id: ID): [global_NetworkAttachmentDefinitionConfig!]
+    Services(Id: ID): [global_ServiceConfig!]
+    ServiceEntries(Id: ID): [global_ServiceEntryConfig!]
+    GatewayConfig(Id: ID): [global_GatewayConfig!]
+    Autoscalers(Id: ID): [global_AutoscalerConfig!]
+    HostConfigV2(Id: ID): [global_HostConfigV2!]
+    InboundAuthenticationConfig(Id: ID): [global_InboundAuthenticationConfig!]
+    Slos(Id: ID): [global_SloConfig!]
+    Secrets(Id: ID): [global_SecretRTConfig!]
+    ExternalServices(Id: ID): [global_ExternalServicesRT!]
+    ApiDiscovery(Id: ID): [global_ApiDiscoveryRT!]
+    GeoDiscovery(Id: ID): [global_GeoDiscoveryRT!]
+    PiiDiscovery(Id: ID): [global_PiiDiscoveryRT!]
+    AttackDiscovery(Id: ID): [global_AttackDiscoveryRT!]
+    UserDiscovery(Id: ID): [global_UserDiscoveryRT!]
+    PublicService(Id: ID): [global_PublicServiceRT!]
+    GnsAccessControlPolicy(Id: ID): [global_GnsAccessControlPolicyRT!]
+    GnsSchemaViolationDiscovery(Id: ID): [global_SchemaViolationDiscoveryRT!]
+    GnsSegmentationPolicy(Id: ID): [global_GnsSegmentationPolicyRT!]
+    CertificateAuthority(Id: ID): [global_CertificateAuthorityRT!]
+    GnsEndpointsConfig(Id: ID): [global_GnsEndpointsConfig!]
+    Name: String
+    OwnedBy: String
+    Labels: String
+    LabelConfig(Id: ID): global_LabelConfig!
+}
+
+type global_Domain {
+    Id: ID
+	ParentLabels: Map
+    queryServiceTS(
+        svcMetric: ServiceMetricTypeEnum
+        startTime: String
+        endTime: String
+        timeInterval: String
+    ): TimeSeriesData    queryServiceTable(
+        startTime: String
+        endTime: String
+        SystemServices: Boolean
+        ShowGateways: Boolean
+        Groupby: ServiceGroupByEnum
+        noMetrics: Boolean
+        limit: Int
+        last: String
+    ): TimeSeriesData    queryServiceVersionTable(
+        startTime: String
+        endTime: String
+        SystemServices: Boolean
+        ShowGateways: Boolean
+        noMetrics: Boolean
+    ): TimeSeriesData    queryServiceInstanceTable(
+        startTime: String
+        endTime: String
+        limit: Int
+        last: String
+    ): TimeSeriesData    queryServiceNodeMapGroupedByNode(
+        startTime: String
+        endTime: String
+    ): TimeSeriesData    queryServiceNodeMapGroupedByService(
+        startTime: String
+        endTime: String
+    ): TimeSeriesData    queryServiceNodeMapGroupedByServiceVersion(
+        startTime: String
+        endTime: String
+    ): TimeSeriesData    queryStats(
+        metricStringArray: String
+        api: String
+        method: HTTPMethodEnum
+        sourceWorkloadDN: String
+        severity: EventSeverityEnum
+        startTime: String
+        endTime: String
+    ): TimeSeriesData    queryLogs(
+        metric: AnalyticsMetricEnum
+        startTime: String
+        endTime: String
+        sourceWorkloadDN: String
+        severity: EventSeverityEnum
+        api: String
+        method: HTTPMethodEnum
+        from: Int
+        size: Int
+        gns: String
+    ): TimeSeriesData    queryList(
+        metric: AnalyticsMetricEnum
+        startTime: String
+        endTime: String
+        api: String
+        method: HTTPMethodEnum
+        limit: Int
+    ): TimeSeriesData    queryLinechart(
+        metric: AnalyticsMetricEnum
+        subMetric: AnalyticsSubMetricEnum
+        startTime: String
+        endTime: String
+        sourceWorkloadDN: String
+        severity: EventSeverityEnum
+        api: String
+        method: HTTPMethodEnum
+        timeInterval: String
+        timeZone: String
+    ): TimeSeriesData    queryTopN(
+        metric: AnalyticsMetricEnum
+        startTime: String
+        endTime: String
+        api: String
+        method: HTTPMethodEnum
+        direction: TrafficDirectionEnum
+        limit: Int
+    ): TimeSeriesData    queryDetail(
+        metric: AnalyticsMetricEnum
+        subMetric: AnalyticsSubMetricEnum
+        startTime: String
+        endTime: String
+        api: String
+        method: HTTPMethodEnum
+        direction: TrafficDirectionEnum
+        timeInterval: String
+        timeZone: String
+    ): TimeSeriesData
+    SecretHashes(Id: ID): [global_SecretHash!]
+    ServiceInstances(Id: ID): [global_ServiceInstance!]
+    ServiceDeployments(Id: ID): [global_ServiceDeployment!]
+    ServiceStatefulSets(Id: ID): [global_ServiceStatefulSet!]
+    ServiceDaemonSets(Id: ID): [global_ServiceDaemonSet!]
+    ServiceReplicaSets(Id: ID): [global_ServiceReplicaSet!]
+    ServiceCronJobs(Id: ID): [global_ServiceCronJob!]
+    ServiceJobs(Id: ID): [global_ServiceJob!]
+    VirtualServices(Id: ID): [global_VirtualService!]
+    ServiceEntry(Id: ID): [global_ServiceEntry!]
+    WorkloadEntry(Id: ID): [global_WorkloadEntry!]
+    DestinationRules(Id: ID): [global_DestinationRule!]
+    Services(Id: ID): [global_Service!]
+    Endpoints(Id: ID): [global_Endpoints!]
+    Gateways(Id: ID): [global_Gateway!]
+    AuthenticationPolicies(Id: ID): [global_AuthenticationPolicy!]
+    Configmap(Id: ID): [global_ConfigMap!]
+    Envoyfilter(Id: ID): [global_EnvoyFilter!]
+    Autoscalers(Id: ID): [global_AutoscalerCR!]
+    PeerAuthentication(Id: ID): [global_PeerAuthentication!]
+    KnativeIngresses(Id: ID): [global_KnativeIngress!]
+    NetworkAttachmentDefinition(Id: ID): [global_NetworkAttachmentDefinition!]
+    Issuers(Id: ID): [global_Issuer!]
+    Certificates(Id: ID): [global_Certificate!]
+    CertificateRequests(Id: ID): [global_CertificateRequest!]
+    Name: String
+    EnviornmentType: String
+    ApiLink: String
+    Annotations: String
+    Labels: String
+    Metadata: String
+}
+
+type global_Endpoints {
+    Id: ID
+	ParentLabels: Map
+
+    Name: String
+    Metadata: String
+    Subsets: String
+    GnsId: String
+}
+
+type global_EnvoyFilter {
+    Id: ID
+	ParentLabels: Map
+
+    Name: String
+    Labels: String
+    Annotations: String
+    Spec: String
+}
+
+type global_ExternalAccountConfigN {
+    Id: ID
+	ParentLabels: Map
+
+    Config: String
+    ProxyConfig: String
+}
+
+type global_ExternalAuditStorage {
+    Id: ID
+	ParentLabels: Map
+
+    Config: String
+}
+
+type global_ExternalDNSConfigN {
+    Id: ID
+	ParentLabels: Map
+
+    Account: global_ExternalAccountConfigN!
+    Config: String
+}
+
+type global_ExternalDNSInventoryHealthCheck {
+    Id: ID
+	ParentLabels: Map
+
+    Name: String
+    Protocol: String
+    Port: Int
+    Path: String
+    HealthThreshold: Int
+}
+
+type global_ExternalDNSInventoryPrimaryDomain {
+    Id: ID
+	ParentLabels: Map
+
+    DnsRecords(Id: ID): [global_ExternalDNSInventoryRecord!]
+    Region: String
+}
+
+type global_ExternalDNSInventoryRecord {
+    Id: ID
+	ParentLabels: Map
+
+    HealthCheck: global_ExternalDNSInventoryHealthCheck!
+    DnsRecordType: String
+    Ttl: Int
+    Value: String
+    Weight: Int
+}
+
+type global_ExternalDNSInventoryZone {
+    Id: ID
+	ParentLabels: Map
+
+    PrimaryDomains(Id: ID): [global_ExternalDNSInventoryPrimaryDomain!]
+    Records: Int
+}
+
+type global_ExternalDNSInventory {
+    Id: ID
+	ParentLabels: Map
+
+    Zones(Id: ID): [global_ExternalDNSInventoryZone!]
+    PrimaryDomains(Id: ID): [global_ExternalDNSInventoryPrimaryDomain!]
+    HealthChecks(Id: ID): [global_ExternalDNSInventoryHealthCheck!]
+    EnabledForProjects: String
+}
+
+type global_ExternalDNSRuntimeEndpoint {
+    Id: ID
+	ParentLabels: Map
+
+    Weight: Int
+    Active: Boolean
+    GnsVersion: String
+}
+
+type global_ExternalDNSRuntimePrimaryDomain {
+    Id: ID
+	ParentLabels: Map
+
+    Subdomains(Id: ID): [global_ExternalDNSRuntimeSubdomain!]
+    PrimaryDomain: String
+    DnsServerID: String
+}
+
+type global_ExternalDNSRuntime {
+    Id: ID
+	ParentLabels: Map
+
+    PrimaryDomains(Id: ID): [global_ExternalDNSRuntimePrimaryDomain!]
+}
+
+type global_ExternalDNSRuntimeSubdomain {
+    Id: ID
+	ParentLabels: Map
+
+    Endpoints(Id: ID): [global_ExternalDNSRuntimeEndpoint!]
+    RecordType: String
+    Ttl: Int
+    HealthCheckDomain: String
+    HealthCheckExternalPort: Int
+    HealthCheckPort: Int
+    HealthCheckPath: String
+    HealthCheckThreshold: Int
+    HealthCheckInterval: Int
+    HealthCheckProtocol: String
+    GnsVersion: String
+}
+
+type global_ExternalLBConfigN {
+    Id: ID
+	ParentLabels: Map
+
+    Config: String
+}
+
+type global_ExternalPluginCapability {
+    Id: ID
+	ParentLabels: Map
+
+    Capability: String
+}
+
+type global_ExternalPluginConfigFolder {
+    Id: ID
+	ParentLabels: Map
+
+    Plugins(Id: ID): [global_ExternalPluginConfig!]
+}
+
+type global_ExternalPluginConfig {
+    Id: ID
+	ParentLabels: Map
+
+    PluginInstances(Id: ID): [global_ExternalPluginInstanceConfig!]
+    Name: String
+    ProviderName: String
+    InstallConfig: String
+    Type: String
+}
+
+type global_ExternalPluginInstanceConfig {
+    Id: ID
+	ParentLabels: Map
+
+    Clusters(Id: ID): [global_Cluster!]
+    Monitors(Id: ID): [global_ExternalPluginMonitor!]
+    Name: String
+    SecurityToken: String
+    Capabilitiy(Id: ID): global_ExternalPluginCapability!
+}
+
+type global_ExternalPluginMonitor {
+    Id: ID
+	ParentLabels: Map
+
+    ObjType: String
+    PluginCapability: String
+    Fn: String
+    Arg1: String
+}
+
+type global_ExternalServicesRT {
+    Id: ID
+	ParentLabels: Map
+
+    OwnedBy: String
+    CreatedByGNS: String
+    CreatedByESName: String
+    CreatedBySDFolder: String
+    CreatedBySDEntry: String
+    ServicePort: Int
+    Protocol: String
+    Hostname: String
+    Port: Int
+    ServerCertificate: String
+    HostnameAlias: String
+    EndpointList: String
+    EgressGateways: String
+    ClientCertificate: String
+    ClientKey: String
+}
+
+type global_FeatureFlag {
+    Id: ID
+	ParentLabels: Map
+
+    Name: String
+    Description: String
+    Enable: Boolean
+}
+
+type global_GatewayConfigListenerCertificate {
+    Id: ID
+	ParentLabels: Map
+
+    EncryptedCertificate: String
+    EncryptedPrivateKey: String
+    EncryptedCertChain: String
+}
+
+type global_GatewayConfigAdditionalListeners {
+    Id: ID
+	ParentLabels: Map
+
+    ListenerRoutes(Id: ID): [global_GatewayConfigListenerDestinationRoute!]
+    Name: String
+    Port: Int
+    Protocol: String
+    TlsMode: String
+    OwnedBy: String
+    Hosts: String
+    Certificate(Id: ID): global_GatewayConfigListenerCertificate!
+}
+
+type global_GatewayConfigListenerDestinationRoute {
+    Id: ID
+	ParentLabels: Map
+
+    Host: String
+    Target: String
+    Paths: String
+    Port: Int
+}
+
+type global_GatewayConfig {
+    Id: ID
+	ParentLabels: Map
+
+    AdditionalListeners(Id: ID): [global_GatewayConfigAdditionalListeners!]
+    Name: String
+    OwnedBy: String
+    Labels: String
+    Listeners: String
+}
+
+type global_Gateway {
+    Id: ID
+	ParentLabels: Map
+
+    Services(Id: ID): [global_Service!]
+    Name: String
+    Labels: String
+    Annotations: String
+    Spec: String
+}
+
+type global_GeoDiscoveryRT {
+    Id: ID
+	ParentLabels: Map
+
+    Gnsid: String
+    Selectors: String
+    Spec: String
+}
+
+type global_GeoDiscovery {
+    Id: ID
+	ParentLabels: Map
+
+    Description: String
+    Labels: String
+    Spec: String
+}
+
+type global_GlobalNs {
+    Id: ID
+	ParentLabels: Map
+
+    RoutingPolicies(Id: ID): [global_RPolicy!]
+    GnsName: String
+}
+
+type global_GlobalRegistrationService {
+    Id: ID
+	ParentLabels: Map
+
+    Tenants(Id: ID): [global_Tenant!]
+    TenantToken(Id: ID): [global_TenantToken!]
+    BuildID: String
+    Version: String
+    ErrorCount: Int
+}
+
+type global_GlobalNamespace {
+    Id: ID
+	ParentLabels: Map
+
+    Gns(Id: ID): [global_GNS!]
+}
+
+type global_GnsAccessControlPolicyRT {
+    Id: ID
+	ParentLabels: Map
+
+    Gnsid: String
+    Spec: String
+}
+
+type global_GnsAccessControlPolicy {
+    Id: ID
+	ParentLabels: Map
+
+    Description: String
+    Labels: String
+    Spec: String
+}
+
+type global_GnsBindingRT {
+    Id: ID
+	ParentLabels: Map
+
+    GnsSvcGroupRT(Id: ID): [global_GnsSvcGroupRT!]
+    GnsRoutingRules(Id: ID): [global_GnsRoutingRuleConfig!]
+    GnsServiceEntryConfig(Id: ID): [global_GnsServiceEntryConfig!]
+    Name: String
+    Domain: String
+    Namespaces: String
+    ApiDiscoveryEnabled: Boolean
+}
+
+type global_GnsEndpointsConfig {
+    Id: ID
+	ParentLabels: Map
+
+    Endpoints: String
+    GnsId: String
+    EndpointServices: String
+    ServicePortList: String
+    Selector: String
+}
+
+type global_ExternalServiceConfig {
+    Id: ID
+	ParentLabels: Map
+    queryServiceTS(
+        svcMetric: ServiceMetricTypeEnum
+        startTime: String
+        endTime: String
+        timeInterval: String
+    ): TimeSeriesData
+    Spec: String
+    System: Boolean
+}
+
+type global_PublicServiceRouteConfig {
+    Id: ID
+	ParentLabels: Map
+
+    Type: String
+    Routes: String
+}
+
+type global_PublicServiceConfig {
+    Id: ID
+	ParentLabels: Map
+
+    RoutingConfigs(Id: ID): [global_PublicServiceRouteConfig!]
+    ExternalDNS(Id: ID): [global_ExternalDNSConfigN!]
+    Certificates(Id: ID): [global_CertificateConfigN!]
+    HealthChecks(Id: ID): [global_HealthCheckConfigN!]
+    Fqdn: String
+    Config: String
+}
+
+type global_GNSRoutingConfig {
+    Id: ID
+	ParentLabels: Map
+
+    Name: String
+    Spec: String
+}
+
+type global_GnsRoutingRuleConfig {
+    Id: ID
+	ParentLabels: Map
+
+    Name: String
+    OwnedBy: String
+    ServiceFQDN: String
+    PortName: String
+    Port: Int
+    HttpRouteRules: String
+}
+
+type global_GnsSegmentationPolicyRT {
+    Id: ID
+	ParentLabels: Map
+
+    Gnsid: String
+    Spec: String
+}
+
+type global_GnsSegmentationPolicy {
+    Id: ID
+	ParentLabels: Map
+
+    Description: String
+    Labels: String
+    Spec: String
+}
+
+type global_GnsServiceEntryConfig {
+    Id: ID
+	ParentLabels: Map
+
+    Service: String
+    Ports: String
+    Versions: String
+}
+
+type global_GnsSvcGroupRT {
+    Id: ID
+	ParentLabels: Map
+
+    Name: String
+    DisplayName: String
+    Description: String
+    Services: String
+}
+
+type global_GNSSvcGroup {
+    Id: ID
+	ParentLabels: Map
+    queryServiceTS(
+        svcMetric: ServiceMetricTypeEnum
+        startTime: String
+        endTime: String
+        timeInterval: String
+    ): TimeSeriesData    queryServiceInstanceTable(
+        startTime: String
+        endTime: String
+        limit: Int
+        last: String
+    ): TimeSeriesData    queryServiceTable(
+        startTime: String
+        endTime: String
+        SystemServices: Boolean
+        ExternalServices: Boolean
+        ShowGateways: Boolean
+        Groupby: ServiceGroupByEnum
+        noMetrics: Boolean
+        limit: Int
+        last: String
+    ): TimeSeriesData    queryServiceVersionTable(
+        startTime: String
+        endTime: String
+        SystemServices: Boolean
+        ExternalServices: Boolean
+        ShowGateways: Boolean
+        noMetrics: Boolean
+    ): TimeSeriesData    queryServiceNodeMapGroupedByNode(
+        startTime: String
+        endTime: String
+    ): TimeSeriesData    queryServiceNodeMapGroupedByService(
+        startTime: String
+        endTime: String
+    ): TimeSeriesData    queryClusterTable(
+        startTime: String
+        endTime: String
+        timeInterval: String
+        noMetrics: Boolean
+    ): TimeSeriesData
+    Services(Id: ID): [global_Service!]
+    DisplayName: String
+    Description: String
+    Color: String
+    Rules: String
+}
+
+type global_SharedServiceConfig {
+    Id: ID
+	ParentLabels: Map
+
+    Spec: String
+}
+
+type global_GNS {
+    Id: ID
+	ParentLabels: Map
+    queryServiceTS(
+        svcMetric: ServiceMetricTypeEnum
+        startTime: String
+        endTime: String
+        timeInterval: String
+    ): TimeSeriesData    queryServiceInstanceTable(
+        startTime: String
+        endTime: String
+        limit: Int
+        last: String
+    ): TimeSeriesData    queryServiceTable(
+        startTime: String
+        endTime: String
+        SystemServices: Boolean
+        ExternalServices: Boolean
+        ShowGateways: Boolean
+        Groupby: ServiceGroupByEnum
+        noMetrics: Boolean
+        limit: Int
+        last: String
+    ): TimeSeriesData    queryServiceVersionTable(
+        startTime: String
+        endTime: String
+        SystemServices: Boolean
+        ExternalServices: Boolean
+        ShowGateways: Boolean
+        noMetrics: Boolean
+    ): TimeSeriesData    queryServiceTopology(
+        metricStringArray: String
+        startTime: String
+        endTime: String
+    ): TimeSeriesData    queryClusterTable(
+        startTime: String
+        endTime: String
+        timeInterval: String
+        noMetrics: Boolean
+    ): TimeSeriesData    queryNodeTable(
+        startTime: String
+        endTime: String
+    ): TimeSeriesData    queryServiceNodeMapGroupedByNode(
+        startTime: String
+        endTime: String
+    ): TimeSeriesData    queryServiceNodeMapGroupedByService(
+        startTime: String
+        endTime: String
+    ): TimeSeriesData    queryAccessControlPolicyStats(
+        sourceServiceDN: String
+        destinationServiceDN: String
+        policy: String
+        startTime: String
+        endTime: String
+    ): TimeSeriesData    queryGNSServiceAPI(
+        service: String
+        version: String
+        showLabels: Boolean
+        openapiFormatting: Boolean
+    ): TimeSeriesData    queryStats(
+        metricStringArray: String
+        destinationService: String
+        destinationServiceVersion: String
+        api: String
+        method: HTTPMethodEnum
+        sourceWorkloadDN: String
+        severity: EventSeverityEnum
+        startTime: String
+        endTime: String
+    ): TimeSeriesData    queryLogs(
+        metric: AnalyticsMetricEnum
+        startTime: String
+        endTime: String
+        sourceWorkloadDN: String
+        severity: EventSeverityEnum
+        destinationService: String
+        destinationServiceVersion: String
+        api: String
+        method: HTTPMethodEnum
+        from: Int
+        size: Int
+    ): TimeSeriesData    queryList(
+        metric: AnalyticsMetricEnum
+        startTime: String
+        endTime: String
+        destinationService: String
+        destinationServiceVersion: String
+        api: String
+        method: HTTPMethodEnum
+        limit: Int
+    ): TimeSeriesData    queryLinechart(
+        metric: AnalyticsMetricEnum
+        subMetric: AnalyticsSubMetricEnum
+        startTime: String
+        endTime: String
+        sourceWorkloadDN: String
+        severity: EventSeverityEnum
+        destinationService: String
+        destinationServiceVersion: String
+        api: String
+        method: HTTPMethodEnum
+        timeInterval: String
+        timeZone: String
+    ): TimeSeriesData    queryTopN(
+        metric: AnalyticsMetricEnum
+        startTime: String
+        endTime: String
+        destinationService: String
+        destinationServiceVersion: String
+        api: String
+        method: HTTPMethodEnum
+        direction: TrafficDirectionEnum
+        limit: Int
+    ): TimeSeriesData    queryDetail(
+        metric: AnalyticsMetricEnum
+        subMetric: AnalyticsSubMetricEnum
+        startTime: String
+        endTime: String
+        destinationService: String
+        destinationServiceVersion: String
+        api: String
+        method: HTTPMethodEnum
+        direction: TrafficDirectionEnum
+        timeInterval: String
+        timeZone: String
+    ): TimeSeriesData    queryIncomingAPIs(
+        startTime: String
+        endTime: String
+        destinationService: String
+        destinationServiceVersion: String
+        timeInterval: String
+        timeZone: String
+    ): TimeSeriesData    queryOutgoingAPIs(
+        startTime: String
+        endTime: String
+        destinationService: String
+        destinationServiceVersion: String
+        timeInterval: String
+        timeZone: String
+    ): TimeSeriesData    queryIncomingTCP(
+        startTime: String
+        endTime: String
+        destinationService: String
+        destinationServiceVersion: String
+    ): TimeSeriesData    queryOutgoingTCP(
+        startTime: String
+        endTime: String
+        destinationService: String
+        destinationServiceVersion: String
+    ): TimeSeriesData
+    MemberGroups(Id: ID): [global_SvcGroup!]
+    GnsServiceGroups(Id: ID): [global_GNSSvcGroup!]
+    Members(Id: ID): [global_Domain!]
+    PublicServices(Id: ID): [global_PublicServiceConfig!]
+    SharedServices(Id: ID): [global_SharedServiceConfig!]
+    SloPolicies(Id: ID): [global_SLOPolicy!]
+    ExternalServices(Id: ID): [global_ExternalServiceConfig!]
+    AutoscalingPolicies(Id: ID): [global_AutoscalingPolicy!]
+    RoutingPolicies(Id: ID): [global_GNSRoutingConfig!]
+    ApiDiscovery(Id: ID): [global_ApiDiscovery!]
+    GeoDiscovery(Id: ID): [global_GeoDiscovery!]
+    PiiDiscovery(Id: ID): [global_PiiDiscovery!]
+    AttackDiscovery(Id: ID): [global_AttackDiscovery!]
+    UserDiscovery(Id: ID): [global_UserDiscovery!]
+    GnsAccessControlPolicy(Id: ID): [global_GnsAccessControlPolicy!]
+    GnsSchemaViolationDiscovery(Id: ID): [global_GnsSchemaViolationDiscovery!]
+    GnsSegmentationPolicy(Id: ID): [global_GnsSegmentationPolicy!]
+    Domain: String
+    UseSharedGateway: Boolean
+    MTLSEnforced: Boolean
+    MTLSPermissive: Boolean
+    ApiDiscoveryEnabled: Boolean
+    MTLSExceptions: String
+    CaType: String
+    Ca: String
+    Description: String
+    Color: String
+    Version: String
+    ProjectId: String
+    MemberDomains: String
+    MatchingConditions: String
+    RoutingConfig(Id: ID): global_GNSRoutingConfig!
+}
+
+type global_HaConfigV2 {
+    Id: ID
+	ParentLabels: Map
+
+    ConfigType: String
+}
+
+type global_HaConfig {
+    Id: ID
+	ParentLabels: Map
+
+    ConfigType: String
+}
+
+type global_HealthCheckConfigN {
+    Id: ID
+	ParentLabels: Map
+
+    ProjectId: String
+    Config: String
+}
+
+type global_HostConfigV2 {
+    Id: ID
+	ParentLabels: Map
+
+    Name: String
+    Host: String
+    HaConfigV2(Id: ID): global_HaConfigV2!
+    OutboundAuthenticationMode(Id: ID): global_OutboundAuthenticationMode!
+}
+
+type global_HostConfig {
+    Id: ID
+	ParentLabels: Map
+
+    Name: String
+    Host: String
+    OwnedBy: String
+    HaConfig(Id: ID): global_HaConfig!
+}
+
+type global_InboundAuthenticationConfig {
+    Id: ID
+	ParentLabels: Map
+
+    Name: String
+    OwnedBy: String
+    Mode: String
+    Ports: String
+}
+
+type global_Inventory {
+    Id: ID
+	ParentLabels: Map
+    queryClusterTable(
+        startTime: String
+        endTime: String
+        timeInterval: String
+        noMetrics: Boolean
+    ): TimeSeriesData    queryNodeTS(
+        nodeMetric: NodeMetricTypeEnum
+        startTime: String
+        endTime: String
+        timeInterval: String
+    ): TimeSeriesData    queryNodeTable(
+        startTime: String
+        endTime: String
+    ): TimeSeriesData    queryServiceTS(
+        svcMetric: ServiceMetricTypeEnum
+        startTime: String
+        endTime: String
+        timeInterval: String
+    ): TimeSeriesData    querySloCounts(
+        svcMetric: SloDetailsEnum
+        startTime: String
+        endTime: String
+        timeInterval: String
+    ): TimeSeriesData    querySloTable(
+        svcMetric: SloDetailsEnum
+        startTime: String
+        endTime: String
+        timeInterval: String
+    ): TimeSeriesData    queryClusterInventoryCount(
+        startTime: String
+        endTime: String
+        timeInterval: String
+    ): TimeSeriesData    queryServiceInstanceTable(
+        startTime: String
+        endTime: String
+        limit: Int
+        last: String
+    ): TimeSeriesData    queryServiceTable(
+        startTime: String
+        endTime: String
+        SystemServices: Boolean
+        ShowGateways: Boolean
+        Groupby: ServiceGroupByEnum
+        noMetrics: Boolean
+        limit: Int
+        last: String
+    ): TimeSeriesData    queryServiceVersionTable(
+        startTime: String
+        endTime: String
+        SystemServices: Boolean
+        ShowGateways: Boolean
+        noMetrics: Boolean
+    ): TimeSeriesData    queryServiceAPIs(
+        startTime: String
+        endTime: String
+        Continue: String
+        limit: Int
+    ): TimeSeriesData    queryStats(
+        metricStringArray: String
+        api: String
+        method: HTTPMethodEnum
+        sourceWorkloadDN: String
+        severity: EventSeverityEnum
+        startTime: String
+        endTime: String
+    ): TimeSeriesData    queryLogs(
+        metric: AnalyticsMetricEnum
+        startTime: String
+        endTime: String
+        sourceWorkloadDN: String
+        severity: EventSeverityEnum
+        api: String
+        method: HTTPMethodEnum
+        from: Int
+        size: Int
+    ): TimeSeriesData    queryList(
+        metric: AnalyticsMetricEnum
+        startTime: String
+        endTime: String
+        api: String
+        method: HTTPMethodEnum
+        limit: Int
+    ): TimeSeriesData    queryLinechart(
+        metric: AnalyticsMetricEnum
+        subMetric: AnalyticsSubMetricEnum
+        startTime: String
+        endTime: String
+        sourceWorkloadDN: String
+        severity: EventSeverityEnum
+        api: String
+        method: HTTPMethodEnum
+        timeInterval: String
+        timeZone: String
+    ): TimeSeriesData    queryTopN(
+        metric: AnalyticsMetricEnum
+        startTime: String
+        endTime: String
+        api: String
+        method: HTTPMethodEnum
+        direction: TrafficDirectionEnum
+        limit: Int
+    ): TimeSeriesData    queryDetail(
+        metric: AnalyticsMetricEnum
+        subMetric: AnalyticsSubMetricEnum
+        startTime: String
+        endTime: String
+        api: String
+        method: HTTPMethodEnum
+        direction: TrafficDirectionEnum
+        timeInterval: String
+        timeZone: String
+    ): TimeSeriesData    queryRiskTracker(
+        startTime: String
+        endTime: String
+        metric: AnalyticsMetricEnum
+        direction: TrafficDirectionEnum
+    ): TimeSeriesData    queryRiskTrackerDetail(
+        startTime: String
+        endTime: String
+        metric: AnalyticsMetricEnum
+        subCategory: String
+        direction: TrafficDirectionEnum
+        from: Int
+        size: Int
+    ): TimeSeriesData
+    Regions(Id: ID): [global_DCRegion!]
+    Clusters(Id: ID): [global_Cluster!]
+    ExternalDNS(Id: ID): [global_ExternalDNSInventory!]
+    JobFolder(Id: ID): global_JobFolder!
+}
+
+type global_Issuer {
+    Id: ID
+	ParentLabels: Map
+
+    Name: String
+    Metadata: String
+    Venafi: String
+    Status: String
+}
+
+type global_JobConfigFolder {
+    Id: ID
+	ParentLabels: Map
+
+    JobConfig(Id: ID): [global_JobConfig!]
+}
+
+type global_JobConfig {
+    Id: ID
+	ParentLabels: Map
+
+    Config: String
+}
+
+type global_JobFolder {
+    Id: ID
+	ParentLabels: Map
+
+    Jobs(Id: ID): [global_Job!]
+}
+
+type global_Job {
+    Id: ID
+	ParentLabels: Map
+
+    Status: String
+    ProjectId: String
+}
+
+type global_KnativeIngress {
+    Id: ID
+	ParentLabels: Map
+
+    Name: String
+    CreationTimestamp: String
+    ApiLink: String
+    Labels: String
+    Annotations: String
+    Spec: String
+}
+
+type global_LabelConfig {
+    Id: ID
+	ParentLabels: Map
+
+    Labels: String
+}
+
+type global_LocalRegistrationServiceCluster {
+    Id: ID
+	ParentLabels: Map
+
+    Resources(Id: ID): [global_LocalRegistrationServiceResource!]
+    Tenant: String
+    Type: String
+    Version: String
+    ErrorCount: Int
+    RestartCount: Int
+}
+
+type global_LocalRegistrationServiceResource {
+    Id: ID
+	ParentLabels: Map
+
+    Type: String
+    Location: String
+}
+
+type global_LocalRegistrationService {
+    Id: ID
+	ParentLabels: Map
+
+    Clusters(Id: ID): [global_LocalRegistrationServiceCluster!]
+    Template: global_ServiceTemplate!
+    BuildID: String
+    Version: String
+    ErrorCount: Int
+}
+
+type global_LogFolder {
+    Id: ID
+	ParentLabels: Map
+
+    Log(Id: ID): [global_Log!]
+}
+
+type global_Log {
+    Id: ID
+	ParentLabels: Map
+
+    Request: String
+}
+
+type global_NetworkAttachmentDefinitionConfig {
+    Id: ID
+	ParentLabels: Map
+
+    Metadata: String
+    Name: String
+    Namespace: String
+}
+
+type global_NetworkAttachmentDefinition {
+    Id: ID
+	ParentLabels: Map
+
+    Metadata: String
+    Name: String
+    Namespace: String
+}
+
+type global_NodeDefinition {
+    Id: ID
+	ParentLabels: Map
+
+    Type: String
+    Version: String
+    Provider: String
+    ImageInfo: String
+}
+
+type global_NodeFolderCluster {
+    Id: ID
+	ParentLabels: Map
+
+}
+
+type global_NodeFolder {
+    Id: ID
+	ParentLabels: Map
+
+    Clusters(Id: ID): [global_NodeFolderCluster!]
+}
+
+type global_NodeGroup {
+    Id: ID
+	ParentLabels: Map
+
+    DisplayName: String
+    Description: String
+    Scope: String
+    Color: String
+    Rules: String
+}
+
+type global_NodeStatus {
+    Id: ID
+	ParentLabels: Map
+
+    Addresses: String
+    Allocatable: String
+    Capacity: String
+    DaemonEndpoints: String
+    Conditions: String
+    Images: String
+}
+
+type global_NodeTemplate {
+    Id: ID
+	ParentLabels: Map
+
+    DefinitionVersions(Id: ID): [global_NodeDefinition!]
+}
+
+type global_Node {
+    Id: ID
+	ParentLabels: Map
+    queryNodeTS(
+        nodeMetric: NodeMetricTypeEnum
+        startTime: String
+        endTime: String
+        timeInterval: String
+    ): TimeSeriesData    queryNodeTable(
+        startTime: String
+        endTime: String
+    ): TimeSeriesData
+    Name: String
+    ExternalID: String
+    ProviderID: String
+    Architecture: String
+    ContainerRuntimeVersion: String
+    KernelVersion: String
+    OperatingSystem: String
+    OsImage: String
+    SystemUUID: String
+    HostName: String
+    ApiLink: String
+    BootID: String
+    KubeletVersion: String
+    MachineID: String
+    CreationTimestamp: String
+    Annotations: String
+    Labels: String
+    Uid: String
+    Spec: String
+    KStatus: String
+    Status(Id: ID): global_NodeStatus!
+}
+
+type global_OutboundAuthenticationMode {
+    Id: ID
+	ParentLabels: Map
+
+    Mode: String
+}
+
+type global_PeerAuthentication {
+    Id: ID
+	ParentLabels: Map
+
+    Name: String
+    Labels: String
+    Annotations: String
+    Spec: String
+}
+
+type global_PiiDiscoveryRT {
+    Id: ID
+	ParentLabels: Map
+
+    Gnsid: String
+    Selectors: String
+    Spec: String
+}
+
+type global_PiiDiscovery {
+    Id: ID
+	ParentLabels: Map
+
+    Description: String
+    Labels: String
+    Spec: String
+}
+
+type global_PolicyConfig {
+    Id: ID
+	ParentLabels: Map
+
+    Src: String
+    Dst: String
+    Action: String
+}
+
+type global_PolicyTemplate {
+    Id: ID
+	ParentLabels: Map
+
+}
+
+type global_AccessControlPolicy {
+    Id: ID
+	ParentLabels: Map
+
+    PolicyConfigs(Id: ID): [global_ACPConfig!]
+}
+
+type global_ProgressiveUpgrade {
+    Id: ID
+	ParentLabels: Map
+
+    Upgrade(Id: ID): [global_ProgressiveUpgradeConfig!]
+}
+
+type global_ProgressiveUpgradeConfig {
+    Id: ID
+	ParentLabels: Map
+
+    Name: String
+    Services: String
+    UpgradeStrategy: String
+}
+
+type global_ProgressiveUpgradeFolder {
+    Id: ID
+	ParentLabels: Map
+
+    Upgrades(Id: ID): [global_ProgressiveUpgradeRuntime!]
+}
+
+type global_ProgressiveUpgradeRuntime {
+    Id: ID
+	ParentLabels: Map
+
+    UpgradeName: String
+    Status: String
+    Step: String
+}
+
+type global_ProjectConfig {
+    Id: ID
+	ParentLabels: Map
+
+    SvcGroups(Id: ID): [global_SvcGroup!]
+    Gns(Id: ID): [global_GNS!]
+    PolicyConfigs(Id: ID): [global_ACPConfig!]
+    TemplateGroups(Id: ID): [global_TemplateGroup!]
+    Certificates(Id: ID): [global_CertificateConfigN!]
+    ExternalAccounts(Id: ID): [global_ExternalAccountConfigN!]
+    ExternalDNS(Id: ID): [global_ExternalDNSConfigN!]
+    Autoscalers(Id: ID): [global_Autoscaler!]
+    Clusters(Id: ID): [global_ClusterSettings!]
+    ServiceLevelObjectives(Id: ID): [global_ServiceLevelObjective!]
+    CertificateAuthorities(Id: ID): [global_CertificateAuthorityConfigN!]
+    Name: String
+}
+
+type global_ProjectInventory {
+    Id: ID
+	ParentLabels: Map
+
+    Clusters(Id: ID): [global_Cluster!]
+    ExternalDNS(Id: ID): [global_ExternalDNSInventory!]
+    Jobs(Id: ID): [global_Job!]
+}
+
+type global_ProjectQuery {
+    Id: ID
+	ParentLabels: Map
+    queryClusterTable(
+        startTime: String
+        endTime: String
+        timeInterval: String
+        noMetrics: Boolean
+    ): TimeSeriesData    queryNodeTS(
+        nodeMetric: NodeMetricTypeEnum
+        startTime: String
+        endTime: String
+        timeInterval: String
+    ): TimeSeriesData    queryNodeTable(
+        startTime: String
+        endTime: String
+    ): TimeSeriesData    queryServiceTS(
+        svcMetric: ServiceMetricTypeEnum
+        startTime: String
+        endTime: String
+        timeInterval: String
+    ): TimeSeriesData    queryClusterInventoryCount(
+        startTime: String
+        endTime: String
+        timeInterval: String
+    ): TimeSeriesData    queryServiceTable(
+        startTime: String
+        endTime: String
+        SystemServices: Boolean
+        ShowGateways: Boolean
+        Groupby: ServiceGroupByEnum
+        noMetrics: Boolean
+        limit: Int
+        last: String
+    ): TimeSeriesData    queryServiceVersionTable(
+        startTime: String
+        endTime: String
+        SystemServices: Boolean
+        ShowGateways: Boolean
+        noMetrics: Boolean
+    ): TimeSeriesData    queryStats(
+        metricStringArray: String
+        api: String
+        method: HTTPMethodEnum
+        sourceWorkloadDN: String
+        severity: EventSeverityEnum
+        startTime: String
+        endTime: String
+    ): TimeSeriesData    queryLogs(
+        metric: AnalyticsMetricEnum
+        startTime: String
+        endTime: String
+        sourceWorkloadDN: String
+        severity: EventSeverityEnum
+        api: String
+        method: HTTPMethodEnum
+        from: Int
+        size: Int
+    ): TimeSeriesData    queryList(
+        metric: AnalyticsMetricEnum
+        startTime: String
+        endTime: String
+        api: String
+        method: HTTPMethodEnum
+        limit: Int
+    ): TimeSeriesData    queryLinechart(
+        metric: AnalyticsMetricEnum
+        subMetric: AnalyticsSubMetricEnum
+        startTime: String
+        endTime: String
+        sourceWorkloadDN: String
+        severity: EventSeverityEnum
+        api: String
+        method: HTTPMethodEnum
+        timeInterval: String
+        timeZone: String
+    ): TimeSeriesData    queryTopN(
+        metric: AnalyticsMetricEnum
+        startTime: String
+        endTime: String
+        api: String
+        method: HTTPMethodEnum
+        direction: TrafficDirectionEnum
+        limit: Int
+    ): TimeSeriesData    queryDetail(
+        metric: AnalyticsMetricEnum
+        subMetric: AnalyticsSubMetricEnum
+        startTime: String
+        endTime: String
+        api: String
+        method: HTTPMethodEnum
+        direction: TrafficDirectionEnum
+        timeInterval: String
+        timeZone: String
+    ): TimeSeriesData    queryRiskTracker(
+        startTime: String
+        endTime: String
+        metric: AnalyticsMetricEnum
+        direction: TrafficDirectionEnum
+    ): TimeSeriesData    queryRiskTrackerDetail(
+        startTime: String
+        endTime: String
+        metric: AnalyticsMetricEnum
+        subCategory: String
+        direction: TrafficDirectionEnum
+        from: Int
+        size: Int
+    ): TimeSeriesData
+}
+
+type global_Project {
+    Id: ID
+	ParentLabels: Map
+
+    Spec: String
+    Config(Id: ID): global_ProjectConfig!
+    Inventory(Id: ID): global_ProjectInventory!
+    Query(Id: ID): global_ProjectQuery!
+}
+
+type global_PublicServiceRT {
+    Id: ID
+	ParentLabels: Map
+
+    OwnedBy: String
+    FqdnList: String
+}
+
+type global_RemoteGatewayServiceConfig {
+    Id: ID
+	ParentLabels: Map
+
+    OwnedBy: String
+    Labels: String
+    NodeIPs: String
+    Ports: String
+}
+
+type global_ResourceGroupRT {
+    Id: ID
+	ParentLabels: Map
+
+    SvcGroupRT(Id: ID): [global_SvcGroupRT!]
+}
+
+type global_ResourceGroup {
+    Id: ID
+	ParentLabels: Map
+
+    AppGroups(Id: ID): [global_AppGroup!]
+    SvcGroups(Id: ID): [global_SvcGroup!]
+    NodeGroups(Id: ID): [global_NodeGroup!]
+    DataGroups(Id: ID): [global_DataGroup!]
+    UserGroups(Id: ID): [global_UserGroup!]
+}
+type Query {
+    root: global_Root
+}
+
+type global_Root {
+    Id: ID
+	ParentLabels: Map
+
+    Name: String
+    Config: global_Config!
+    Inventory: global_Inventory!
+    Runtime: global_Runtime!
+}
+
+type global_RPolicy {
+    Id: ID
+	ParentLabels: Map
+
+    HealthCheckId: String
+}
+
+type global_Runtime {
+    Id: ID
+	ParentLabels: Map
+
+    AllsparkServices: global_AllSparkServices!
+    UserFolder: global_UserFolder!
+    DataFolder: global_DataFolder!
+    AppFolder(Id: ID): global_AppFolder!
+    NodeFolder: global_NodeFolder!
+    ClusterFolder(Id: ID): global_ClusterFolder!
+    ProgressiveUpgrade: global_ProgressiveUpgradeFolder!
+    JobConfigFolder: global_JobConfigFolder!
+    ExternalDNS: global_ExternalDNSRuntime!
+    SloFolder(Id: ID): global_SLOFolder!
+    ServiceDirectoryRT: global_ServiceDirectoryRT!
+}
+
+type global_SchemaViolationDiscoveryRT {
+    Id: ID
+	ParentLabels: Map
+
+    Gnsid: String
+    Selectors: String
+    Spec: String
+}
+
+type global_GnsSchemaViolationDiscovery {
+    Id: ID
+	ParentLabels: Map
+
+    Description: String
+    Labels: String
+    Spec: String
+}
+
+type global_SecretRTConfig {
+    Id: ID
+	ParentLabels: Map
+
+    Type: String
+    Data: String
+    IsBase64Encoded: Boolean
+    OwnedBy: String
+}
+
+type global_SecretHash {
+    Id: ID
+	ParentLabels: Map
+
+    Name: String
+    Type: String
+    Metadata: String
+    DataHash: String
+}
+
+type global_SecurityContextConstraintsConfig {
+    Id: ID
+	ParentLabels: Map
+
+    Metadata: String
+    Name: String
+    Groups: String
+}
+
+type global_SecurityContextConstraints {
+    Id: ID
+	ParentLabels: Map
+
+    Metadata: String
+    Name: String
+    Groups: String
+}
+
+type global_ServiceConfig {
+    Id: ID
+	ParentLabels: Map
+
+    ServiceVersion(Id: ID): [global_ServiceVersionConfig!]
+    Name: String
+    OwnedBy: String
+}
+
+type global_ServiceCronJob {
+    Id: ID
+	ParentLabels: Map
+
+    ServiceInstances(Id: ID): [global_ServiceInstance!]
+    ServiceJobs(Id: ID): [global_ServiceJob!]
+    Name: String
+    Metadata: String
+    Spec: String
+    Status: String
+}
+
+type global_ServiceDaemonSet {
+    Id: ID
+	ParentLabels: Map
+    queryWorkloadVersionAPI(
+        version: String
+        showLabels: Boolean
+        openapiFormatting: Boolean
+    ): TimeSeriesData
+    ServiceInstances(Id: ID): [global_ServiceInstance!]
+    Name: String
+    Metadata: String
+    Spec: String
+    Status: String
+}
+
+type global_ServiceDeploymentContainer {
+    Id: ID
+	ParentLabels: Map
+
+    Name: String
+    Image: String
+    ImagePullPolicy: String
+    TerminationMessagePath: String
+    TerminationMessagePolicy: String
+    Args: String
+    Env: String
+    LivenessProbe: String
+    ReadinessProbe: String
+    Ports: String
+    Resources: String
+    VolumeMounts: String
+}
+
+type global_ServiceDeployment {
+    Id: ID
+	ParentLabels: Map
+    queryServiceTS(
+        svcMetric: ServiceMetricTypeEnum
+        startTime: String
+        endTime: String
+        timeInterval: String
+    ): TimeSeriesData    queryServiceInstanceTable(
+        startTime: String
+        endTime: String
+        limit: Int
+        last: String
+    ): TimeSeriesData    queryWorkloadVersionAPI(
+        version: String
+        showLabels: Boolean
+        openapiFormatting: Boolean
+    ): TimeSeriesData
+    Containers(Id: ID): [global_ServiceDeploymentContainer!]
+    ServiceInstances(Id: ID): [global_ServiceInstance!]
+    ServiceReplicaSet(Id: ID): [global_ServiceReplicaSet!]
+    Metadata: String
+    Spec: String
+    Status: String
+    Namespace: String
+    Annotations: String
+    CreationTimestamp: String
+    Labels: String
+    Name: String
+    ApiLink: String
+    Uid: String
+    Generation: Int
+    Selector: String
+    Replicas: Int
+    DnsPolicy: String
+    RestartPolicy: String
+    SchedulerName: String
+    SecurityContext: String
+    ServiceAccount: String
+    ServiceAccountName: String
+    TerminationGracePeriodSeconds: Int
+    Volumes: String
+    TemplateLabels: String
+    StatusReplicas: Int
+    AvailableReplicas: Int
+    UpdatedReplicas: Int
+    ReadyReplicas: Int
+    ObservedGeneration: Int
     Conditions: String
 }
 
-type policypkg_VMpolicy {
+type global_ServiceDirectoryEntryConfig {
     Id: ID
 	ParentLabels: Map
-    queryGns1(
-        StartTime: String
-        EndTime: String
-        Interval: String
-        IsServiceDeployment: Boolean
-        StartVal: Int
-    ): NexusGraphqlResponse
-    queryGnsQM1: TimeSeriesData
-    queryGnsQM(
-        StartTime: String
-        EndTime: String
-        TimeInterval: String
-        SomeUserArg1: String
-        SomeUserArg2: Int
-        SomeUserArg3: Boolean
-    ): TimeSeriesData
 
+    Spec: String
+}
+
+type global_ServiceDirectoryRTFolderEntry {
+    Id: ID
+	ParentLabels: Map
+
+    Spec: String
+    Spec_type: String
+}
+
+type global_ServiceDirectoryRTFolder {
+    Id: ID
+	ParentLabels: Map
+
+    ServiceDirectoryRTFolderEntry(Id: ID): [global_ServiceDirectoryRTFolderEntry!]
+    Name: String
+}
+
+type global_ServiceDirectoryRT {
+    Id: ID
+	ParentLabels: Map
+
+    ServiceDirectoryRTFolder(Id: ID): [global_ServiceDirectoryRTFolder!]
+}
+
+type global_ServiceDirectoryN {
+    Id: ID
+	ParentLabels: Map
+
+    Entries(Id: ID): [global_ServiceDirectoryEntryConfig!]
+    Spec: String
+}
+
+type global_ServiceEntryConfig {
+    Id: ID
+	ParentLabels: Map
+
+    Name: String
+    OwnedBy: String
+    Service: String
+    ServiceFQDN: String
+    Description: String
+    ServicePortList: String
+    Tags: String
+    Labels: String
+    Endpoints: String
+    EndpointList: String
+}
+
+type global_ServiceEntry {
+    Id: ID
+	ParentLabels: Map
+
+    Name: String
+    Annotations: String
+    Labels: String
+    CreationTimestamp: String
+    ApiLink: String
+    Uid: String
+    Hosts: String
+    Addresses: String
+    Ports: String
+    Location: String
+    Resolution: String
+    Endpoints: String
+    ExportTo: String
+    WorkloadSelectorLabels: String
+}
+
+type global_SvcGroupRT {
+    Id: ID
+	ParentLabels: Map
+
+    Name: String
+    DisplayName: String
+    Description: String
+    Services: String
+}
+
+type global_ServiceInstanceContainer {
+    Id: ID
+	ParentLabels: Map
+
+    Name: String
+    Image: String
+    ImagePullPolicy: String
+    TerminationMessagePath: String
+    TerminationMessagePolicy: String
+    Resources: String
+    VolumeMounts: String
+    Command: String
+    SecurityContext: String
+}
+
+type global_ServiceInstance {
+    Id: ID
+	ParentLabels: Map
+    queryServiceTS(
+        svcMetric: ServiceMetricTypeEnum
+        startTime: String
+        endTime: String
+        timeInterval: String
+    ): TimeSeriesData    queryServiceInstanceTable(
+        startTime: String
+        endTime: String
+        limit: Int
+        last: String
+    ): TimeSeriesData
+    Containers(Id: ID): [global_ServiceInstanceContainer!]
+    Node: global_Node!
+    Metadata: String
+    Spec: String
+    Status: String
+    Name: String
+    Namespace: String
+    Annotations: String
+    Labels: String
+    ApiLink: String
+    Uid: String
+    RestartPolicy: String
+    DnsPolicy: String
+    HostNetwork: Boolean
+    SecurityContext: String
+    TerminationGracePeriodSeconds: Int
+    Tolerations: String
+    StatusConditions: String
+    StatusContainer: String
+    PodIP: String
+    QosClass: String
+    Phase: String
+    StartTime: String
+    NodeName: String
+}
+
+type global_ServiceJob {
+    Id: ID
+	ParentLabels: Map
+
+    ServiceInstances(Id: ID): [global_ServiceInstance!]
+    Name: String
+    Metadata: String
+    Spec: String
+    Status: String
+}
+
+type global_ServiceLevelObjectiveFolder {
+    Id: ID
+	ParentLabels: Map
+
+    ServiceLevelObjectives(Id: ID): [global_ServiceLevelObjective!]
+}
+
+type global_ServiceLevelObjective {
+    Id: ID
+	ParentLabels: Map
+
+    ProjectId: String
+    Disabled: Boolean
+    Description: String
+    Labels: String
+    Slis: String
+    SloServices: String
+    SloTargetValue: String
+    SloPeriod: String
+    SloCreationTime: String
+}
+
+type global_ServiceReplicaSet {
+    Id: ID
+	ParentLabels: Map
+
+    ServiceInstances(Id: ID): [global_ServiceInstance!]
+    Name: String
+    Metadata: String
+    Spec: String
+    Status: String
+}
+
+type global_ServiceStatefulSet {
+    Id: ID
+	ParentLabels: Map
+    queryWorkloadVersionAPI(
+        version: String
+        showLabels: Boolean
+        openapiFormatting: Boolean
+    ): TimeSeriesData
+    ServiceInstances(Id: ID): [global_ServiceInstance!]
+    Name: String
+    Metadata: String
+    Spec: String
+    Status: String
+}
+
+type global_ServiceTemplateServiceDefinition {
+    Id: ID
+	ParentLabels: Map
+
+    Type: String
+    Version: String
+    Template: String
+    TemplateArgs: String
+}
+
+type global_ServiceTemplate {
+    Id: ID
+	ParentLabels: Map
+
+    ServiceDefinitions(Id: ID): [global_ServiceTemplateServiceDefinition!]
+    Version: String
+}
+
+type global_ServiceVersionConfig {
+    Id: ID
+	ParentLabels: Map
+
+    MetricMonitors(Id: ID): [global_MetricMonitor!]
+    Name: String
+    Version: String
+}
+
+type global_MetricMonitor {
+    Id: ID
+	ParentLabels: Map
+
+    OwnedBy: String
+    SvcMetric: String
+    FunctionType: String
+    FunctionArgs: String
+}
+
+type global_ServiceVersion {
+    Id: ID
+	ParentLabels: Map
+    queryStats(
+        metricStringArray: String
+        api: String
+        method: HTTPMethodEnum
+        sourceWorkloadDN: String
+        severity: EventSeverityEnum
+        startTime: String
+        endTime: String
+    ): TimeSeriesData    queryLogs(
+        metric: AnalyticsMetricEnum
+        startTime: String
+        endTime: String
+        sourceWorkloadDN: String
+        severity: EventSeverityEnum
+        api: String
+        method: HTTPMethodEnum
+        from: Int
+        size: Int
+    ): TimeSeriesData    queryList(
+        metric: AnalyticsMetricEnum
+        startTime: String
+        endTime: String
+        api: String
+        method: HTTPMethodEnum
+        limit: Int
+    ): TimeSeriesData    queryLinechart(
+        metric: AnalyticsMetricEnum
+        subMetric: AnalyticsSubMetricEnum
+        startTime: String
+        endTime: String
+        sourceWorkloadDN: String
+        severity: EventSeverityEnum
+        api: String
+        method: HTTPMethodEnum
+        timeInterval: String
+        timeZone: String
+    ): TimeSeriesData    queryTopN(
+        metric: AnalyticsMetricEnum
+        startTime: String
+        endTime: String
+        api: String
+        method: HTTPMethodEnum
+        limit: Int
+    ): TimeSeriesData    queryDetail(
+        metric: AnalyticsMetricEnum
+        subMetric: AnalyticsSubMetricEnum
+        startTime: String
+        endTime: String
+        api: String
+        method: HTTPMethodEnum
+        timeInterval: String
+        timeZone: String
+    ): TimeSeriesData    queryIncomingAPIs(
+        startTime: String
+        endTime: String
+        timeInterval: String
+        timeZone: String
+    ): TimeSeriesData    queryOutgoingAPIs(
+        startTime: String
+        endTime: String
+        timeInterval: String
+        timeZone: String
+    ): TimeSeriesData    queryIncomingTCP(
+        startTime: String
+        endTime: String
+    ): TimeSeriesData    queryOutgoingTCP(
+        startTime: String
+        endTime: String
+    ): TimeSeriesData
+    ServiceDeployments(Id: ID): [global_ServiceDeployment!]
+    ServiceDaemonSets(Id: ID): [global_ServiceDaemonSet!]
+    ServiceStatefulSets(Id: ID): [global_ServiceStatefulSet!]
+    Name: String
+}
+
+type global_Service {
+    Id: ID
+	ParentLabels: Map
+    queryServiceAPIs(
+        startTime: String
+        endTime: String
+        version: String
+        showLabels: Boolean
+        openapiFormatting: Boolean
+    ): TimeSeriesData    queryServiceTS(
+        svcMetric: ServiceMetricTypeEnum
+        startTime: String
+        endTime: String
+        timeInterval: String
+    ): TimeSeriesData    querySloDetails(
+        svcMetric: SloDetailsEnum
+        startTime: String
+        endTime: String
+        timeInterval: String
+    ): TimeSeriesData    querySloCounts(
+        svcMetric: SloDetailsEnum
+        startTime: String
+        endTime: String
+        timeInterval: String
+    ): TimeSeriesData    querySloTable(
+        svcMetric: SloDetailsEnum
+        startTime: String
+        endTime: String
+        timeInterval: String
+    ): TimeSeriesData    queryServiceInstanceTable(
+        startTime: String
+        endTime: String
+        limit: Int
+        last: String
+    ): TimeSeriesData    queryServiceTopology(
+        metricStringArray: String
+        startTime: String
+        endTime: String
+    ): TimeSeriesData    queryServiceNodeMapGroupedByService(
+        startTime: String
+        endTime: String
+    ): TimeSeriesData    queryServiceTable(
+        startTime: String
+        endTime: String
+        SystemServices: Boolean
+        ShowGateways: Boolean
+        Groupby: ServiceGroupByEnum
+        noMetrics: Boolean
+        limit: Int
+        last: String
+    ): TimeSeriesData    queryServiceVersionTable(
+        startTime: String
+        endTime: String
+        ShowGateways: Boolean
+        noMetrics: Boolean
+    ): TimeSeriesData    queryStats(
+        metricStringArray: String
+        api: String
+        method: HTTPMethodEnum
+        sourceWorkloadDN: String
+        severity: EventSeverityEnum
+        startTime: String
+        endTime: String
+    ): TimeSeriesData    queryLogs(
+        metric: AnalyticsMetricEnum
+        startTime: String
+        endTime: String
+        sourceWorkloadDN: String
+        severity: EventSeverityEnum
+        api: String
+        method: HTTPMethodEnum
+        from: Int
+        size: Int
+    ): TimeSeriesData    queryList(
+        metric: AnalyticsMetricEnum
+        startTime: String
+        endTime: String
+        api: String
+        method: HTTPMethodEnum
+        limit: Int
+    ): TimeSeriesData    queryLinechart(
+        metric: AnalyticsMetricEnum
+        subMetric: AnalyticsSubMetricEnum
+        startTime: String
+        endTime: String
+        sourceWorkloadDN: String
+        severity: EventSeverityEnum
+        api: String
+        method: HTTPMethodEnum
+        timeInterval: String
+        timeZone: String
+    ): TimeSeriesData    queryTopN(
+        metric: AnalyticsMetricEnum
+        startTime: String
+        endTime: String
+        api: String
+        method: HTTPMethodEnum
+        limit: Int
+    ): TimeSeriesData    queryDetail(
+        metric: AnalyticsMetricEnum
+        subMetric: AnalyticsSubMetricEnum
+        startTime: String
+        endTime: String
+        api: String
+        method: HTTPMethodEnum
+        timeInterval: String
+        timeZone: String
+    ): TimeSeriesData    queryIncomingAPIs(
+        startTime: String
+        endTime: String
+        timeInterval: String
+        timeZone: String
+    ): TimeSeriesData    queryOutgoingAPIs(
+        startTime: String
+        endTime: String
+        timeInterval: String
+        timeZone: String
+    ): TimeSeriesData    queryIncomingTCP(
+        startTime: String
+        endTime: String
+    ): TimeSeriesData    queryOutgoingTCP(
+        startTime: String
+        endTime: String
+    ): TimeSeriesData
+    AdditionalAttributes(Id: ID): [global_AdditionalAttributes!]
+    ServiceDeployments(Id: ID): [global_ServiceDeployment!]
+    ServiceStatefulSets(Id: ID): [global_ServiceStatefulSet!]
+    ServiceDaemonSets(Id: ID): [global_ServiceDaemonSet!]
+    Endpoints(Id: ID): [global_Endpoints!]
+    ServiceVersions(Id: ID): [global_ServiceVersion!]
+    ServiceReplicaSets(Id: ID): [global_ServiceReplicaSet!]
+    ServiceJobs(Id: ID): [global_ServiceJob!]
+    Metadata: String
+    Spec: String
+    Name: String
+    Namespace: String
+    ApiLink: String
+    IpAddress: String
+    Annotations: String
+    CreationTimestamp: String
+    Labels: String
+    Uid: String
+    Ports: String
+    Selector: String
+    Type: String
+    Status: String
+}
+
+type global_SloConfig {
+    Id: ID
+	ParentLabels: Map
+
+    SloServices(Id: ID): [global_SloServiceConfig!]
+    Name: String
+}
+
+type global_SloServiceConfig {
+    Id: ID
+	ParentLabels: Map
+
+    Name: String
+    RemainingBudget: Int
+    LastUpdateTime: String
+}
+
+type global_SLOFolder {
+    Id: ID
+	ParentLabels: Map
+
+    Slos(Id: ID): [global_FederatedSloConfig!]
+}
+
+type global_FederatedSloConfig {
+    Id: ID
+	ParentLabels: Map
+
+    SloServices(Id: ID): [global_FederatedSloServiceConfig!]
+    Name: String
+}
+
+type global_FederatedSloServiceConfig {
+    Id: ID
+	ParentLabels: Map
+
+    Name: String
+    RemainingBudget: Int
+    LastUpdateTime: String
+}
+
+type global_SLOPolicy {
+    Id: ID
+	ParentLabels: Map
+
+    Name: String
+    Disabled: Boolean
+    Description: String
+    Labels: String
+    Slis: String
+    ServiceNames: String
+    SloTargetValue: String
+    SloPeriod: String
+    SloKind: String
+    Actions: String
+    SloCreationTime: String
+}
+
+type global_SvcGroup {
+    Id: ID
+	ParentLabels: Map
+    queryServiceTS(
+        svcMetric: ServiceMetricTypeEnum
+        startTime: String
+        endTime: String
+        timeInterval: String
+    ): TimeSeriesData    queryServiceInstanceTable(
+        startTime: String
+        endTime: String
+        limit: Int
+        last: String
+    ): TimeSeriesData    queryServiceTable(
+        startTime: String
+        endTime: String
+        SystemServices: Boolean
+        ExternalServices: Boolean
+        ShowGateways: Boolean
+        Groupby: ServiceGroupByEnum
+        noMetrics: Boolean
+        limit: Int
+        last: String
+    ): TimeSeriesData    queryServiceVersionTable(
+        startTime: String
+        endTime: String
+        SystemServices: Boolean
+        ExternalServices: Boolean
+        ShowGateways: Boolean
+        noMetrics: Boolean
+    ): TimeSeriesData    queryServiceNodeMapGroupedByNode(
+        startTime: String
+        endTime: String
+    ): TimeSeriesData    queryServiceNodeMapGroupedByService(
+        startTime: String
+        endTime: String
+    ): TimeSeriesData    queryClusterTable(
+        startTime: String
+        endTime: String
+        timeInterval: String
+        noMetrics: Boolean
+    ): TimeSeriesData
+    Services(Id: ID): [global_Service!]
+    Deployments(Id: ID): [global_ServiceDeployment!]
+    Daemonsets(Id: ID): [global_ServiceDaemonSet!]
+    Statefulsets(Id: ID): [global_ServiceStatefulSet!]
+    Jobs(Id: ID): [global_ServiceJob!]
+    DisplayName: String
+    InternalPredefinedGroup: Boolean
+    Description: String
+    Color: String
+    ProjectId: String
+    Rules: String
+}
+
+type global_Table {
+    Id: ID
+	ParentLabels: Map
+
+    Template: global_Template!
+    Inventory: global_Inventory!
+}
+
+type global_TemplateGroup {
+    Id: ID
+	ParentLabels: Map
+
+    DataTemplates(Id: ID): [global_DataTemplate!]
+    NodeTemplates(Id: ID): [global_NodeTemplate!]
+    AppTemplates(Id: ID): [global_AppTemplate!]
+    ServiceTemplates(Id: ID): [global_ServiceTemplate!]
+    PolicyTemplates(Id: ID): [global_PolicyTemplate!]
+    ProjectId: String
+}
+
+type global_Template {
+    Id: ID
+	ParentLabels: Map
+
+    TemplateGroups(Id: ID): [global_TemplateGroup!]
+    HealthChecks(Id: ID): [global_HealthCheckConfigN!]
+}
+
+type global_TenantResource {
+    Id: ID
+	ParentLabels: Map
+
+    Type: String
+    Location: String
+}
+
+type global_TenantToken {
+    Id: ID
+	ParentLabels: Map
+
+    Ttl: Int
+    Created: String
+    TenantId: String
+}
+
+type global_Tenant {
+    Id: ID
+	ParentLabels: Map
+
+    Resources(Id: ID): [global_TenantResource!]
+    Template: global_ServiceTemplate!
+    Annotations(Id: ID): [global_Annotation!]
+    Name: String
+    TenantName: String
+    ContactEmail: String
+    Yaml: String
+    Lb: String
+    CompanySize: String
+    Address: String
+}
+
+type global_UserDiscoveryRT {
+    Id: ID
+	ParentLabels: Map
+
+    Gnsid: String
+    Selectors: String
+    Spec: String
+}
+
+type global_UserDiscovery {
+    Id: ID
+	ParentLabels: Map
+
+    Description: String
+    Labels: String
+    Spec: String
+}
+
+type global_UserFolder {
+    Id: ID
+	ParentLabels: Map
+
+    Users(Id: ID): [global_User!]
+    AppUsers(Id: ID): [global_AppUser!]
+    AccessToken(Id: ID): [global_AccessToken!]
+}
+
+type global_UserGroup {
+    Id: ID
+	ParentLabels: Map
+
+    DisplayName: String
+    Description: String
+    Scope: String
+    Color: String
+    Rules: String
+}
+
+type global_UserPreference {
+    Id: ID
+	ParentLabels: Map
+
+    Name: String
+    Data: String
+    UserId: String
+}
+
+type global_User {
+    Id: ID
+	ParentLabels: Map
+
+    Preferences(Id: ID): [global_UserPreference!]
+    Username: String
+    Password: String
+    Email: String
+    AccessTokens: String
+    LastActionDate: String
+}
+
+type global_VirtualService {
+    Id: ID
+	ParentLabels: Map
+
+    DestinationRules(Id: ID): [global_DestinationRule!]
+    Services(Id: ID): [global_Service!]
+    Gateways(Id: ID): [global_Gateway!]
+    Name: String
+    CreationTimestamp: String
+    ApiLink: String
+    Uid: String
+    Annotations: String
+    Labels: String
+    Hosts: String
+    Http: String
+    Tls: String
+    Tcp: String
+    GatewayNames: String
+    ExportTo: String
+}
+
+type global_WorkloadEntry {
+    Id: ID
+	ParentLabels: Map
+
+    Name: String
+    Annotations: String
+    Labels: String
+    CreationTimestamp: String
+    ApiLink: String
+    Uid: String
+    Address: String
+    WorkloadLabels: String
+    Ports: String
+    Locality: String
 }
 
 type NexusGraphqlResponse {
@@ -188,3 +3119,241 @@ type TimeSeriesData {
   Last: String
   TotalRecords: Int
 }
+
+enum ExternalDNSRecordType {
+    A
+    AAAA
+    AFSDB
+    APL
+    CAA
+    CDNSKEY
+    CDS
+    CERT
+    CNAME
+    CSYNC
+    DHCID
+    DLV
+    DNAME
+    DNSKEY
+    DS
+    EUI48
+    EUI64
+    HINFO
+    HIP
+    IPSECKEY
+    KEY
+    KX
+    LOC
+    MX
+    NAPTR
+    NS
+    NSEC
+    NSEC3
+    NSEC3PARAM
+    OPENPGPKEY
+    PTR
+    RRSIG
+    RP
+    SIG
+    SMIMEA
+    SOA
+    SRV
+    SSHFP
+    TA
+    TKEY
+    TLSA
+    TSIG
+    TXT
+    URI
+    ZONEMD
+}
+
+enum ServiceMetricTypeEnum {
+    RequestPS
+    Requests
+    Latency
+    p50Latency
+    p90Latency
+    p99Latency
+    ErrorRate
+    ErrorPS
+    ClusterCount
+    NodeCount
+    ServiceCount
+    ServiceInstanceCount
+    Response2xx
+    Response3xx
+    Response4xx
+    Response5xx
+    SuccessRate
+    CPUUsageMillicores
+    MemoryUsageBytes
+    RequestResponse
+    DesiredInstanceCount
+    TotalErrorBudget
+    RemainingErrorBudget
+    RemainingErrorBudgetPercentage
+    IsViolated
+    ViolatedSlis
+}
+
+enum SloDetailsEnum {
+    TotalErrorBudget
+    RemainingErrorBudget
+    RemainingErrorBudgetPercentage
+    IsViolated
+    ViolatedSlis
+    SloSummary
+    SloStatus
+    GnsSloStatus
+    BurnRate
+    SloPerformanceTable
+}
+
+enum NodeMetricTypeEnum {
+    CPUCapacity
+    CPUUsage
+    DiskCapacity
+    DiskUsages
+    DiskIO
+    DiskWait
+    MemoryCapacity
+    MemoryUsages
+    MemoryUsagesBytes
+    IOWait
+    NetworkIO
+    ServiceCount
+    ServiceInstanceCount
+}
+
+enum ServiceGroupByEnum {
+    serviceversions
+}
+
+enum AnalyticsMetricEnum {
+    Endpoint
+    PII
+    Compliance
+    Error
+    Attack
+    Event
+    Geo
+    User
+    EgressDomain
+    GlobalNamespace
+    ResponseCode
+    Workload
+    Service
+    RequestRate
+    RequestSize
+    ResponseSize
+    Latency
+    ConnectionDuration
+    ConnectionRate
+    BytesSent
+    BytesReceived
+    GeoWithPII
+    GeoUnderAttack
+    AuthError
+}
+
+enum AnalyticsSubMetricEnum {
+    RequestRate
+    RequestSize
+    ResponseSize
+    Latency
+    ConnectionDuration
+    ConnectionRate
+    BytesSent
+    BytesReceived
+}
+
+enum HTTPMethodEnum {
+    GET
+    POST
+    PUT
+    DELETE
+    HEAD
+    PATCH
+}
+
+enum EventSeverityEnum {
+    Info
+    Warning
+    Critical
+}
+
+enum TrafficDirectionEnum {
+    Ingress
+    Internal
+    Egress
+}
+
+enum GNSPluginState {
+    IDLE
+    PROCESSING
+    SYNCING
+    SYNCED
+    ERROR
+}
+
+enum SLOKind {
+    Monitored
+    Actionable
+}
+
+enum OperationType {
+    SERVICE
+    NODE
+    USER
+    API
+    DATA
+}
+
+enum Action {
+    FEDERATE
+}
+
+enum SloPeriodFrequency {
+    Unknown
+    Monthly
+}
+
+enum ConfigChangeState {
+    APPLIED
+    INSYNC
+    INERROR
+}
+
+enum ExternalServicesRTProtocols {
+    HTTP
+    HTTPS
+    TCP
+    TLS
+}
+
+enum MetricMonitorFunction {
+    Aggregate # Exampe arg to this fn: {windowSeconds: 600}
+    CheckThreshold # Example arg to this fn: {windowSeconds: 600, threshold: 300}
+}
+
+enum HaType {
+    BASIC
+}
+
+enum LogState {
+    NOT_FETCHED
+    FETCHING
+    COMPLETED
+    FAILED
+}
+
+enum ServiceDirectoryRTFolderEntryType {
+    FromGNS
+    DirectAdd
+}
+
+directive @jsonencoded(file: String, gofile: String, name: String) on FIELD_DEFINITION
+directive @relation(name: String, parameters: String, softlink: String, uuidkey: String) on FIELD_DEFINITION
+directive @timeseriesAPI(file: String!, handler: String!) on FIELD_DEFINITION
+directive @protobuf(file: String!, name: String!) on FIELD_DEFINITION

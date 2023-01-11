@@ -1,0 +1,3158 @@
+
+
+type AccessToken {
+    id: ID!
+    ttl: Int
+    created: String
+    userId: String
+}
+
+type ACPConfig {
+    id: ID
+    destSvcGroups(name: String): [SvcGroup!] @relation(softlink: "true", parameters: ACPSvcGroupLinkInfo, uuidkey: "true")
+    sourceSvcGroups(name: String): [SvcGroup!] @relation(softlink: "true", parameters: ACPSvcGroupLinkInfo, uuidkey: "true")
+    displayName: String
+    gns: String
+    description: String
+    tags: [String]
+    projectId: String
+    destGroups: String @jsonencoded(file:"./root/config/policy/policy-config/policy-config.ts", gofile:"policy-config.go", name: "ResourceGroupIDs")
+    sourceGroups: String @jsonencoded(file:"./root/config/policy/policy-config/policy-config.ts", gofile:"policy-config.go", name: "ResourceGroupIDs")
+    conditions: [String]
+    actions: String @jsonencoded(file:"./root/config/policy/policy-config/policy-config.ts", gofile:"policy-config.go", name: "PolicyCfgActions")
+}
+
+type AdditionalAttributes {
+    id: ID
+    name: String
+    value: String @jsonencoded(file:"./common/ts/common.d.ts", gofile:"common.go", name:"AttributeValue")
+    context: String
+}
+
+type AllSparkServices {
+    id: ID
+    globalRegistrationService: GlobalRegistrationService
+    localRegistrationService: LocalRegistrationService
+    awsConnector: AwsConnector
+}
+
+type Annotation {
+    id: ID
+    name: String!
+    data: String @jsonencoded
+}
+
+type ApiDiscoveryRT {
+    id: ID
+    gnsid: String
+    selectors: String @jsonencoded(file:"../common-apis/api/tenant/models/common", gofile:"gns_api_discovery.go", name:"ApiDiscoveryClusterResourceSelectorRT")
+    spec: String @jsonencoded(file:"../common-apis/api/tenant/models/gnsApiDiscovery", gofile:"gns_api_discovery.go", name:"ApiDiscoveryApplicationConfigList")
+    compressionEnabled: Boolean
+    isEndpointApiPrechecks: String @jsonencoded(file:"../common-apis/api/tenant/models/gnsApiDiscovery", gofile:"gns_api_discovery.go", name:"APIDiscoveryIsEndpointApiPrechecks")
+    processingToggles: String @jsonencoded(file:"../common-apis/api/tenant/models/gnsApiDiscovery", gofile:"gns_api_discovery.go", name:"APIDiscoveryProcessingToggles")
+}
+
+type ApiDiscovery {
+    id: ID
+    description: String
+    labels: String @jsonencoded(file:"../common-apis/api/tenant/models/common", gofile:"common.go", name:"LabelsList")
+    spec: String @jsonencoded(file:"../common-apis/api/tenant/models/gnsApiDiscovery", name:"ApiDiscoveryConfig")
+}
+
+type AppFolder {
+    id: ID
+    app(name: ID): [App!]
+}
+
+type AppGroup {
+    name: ID
+    services(name: String): [Service!] @relation(softlink: "true", uuidkey: "true")
+    rules: String @jsonencoded(file:"../common-apis/api/tenant/models/resourceGroup", gofile:"resource_group.go", name:"Rules")
+}
+
+type AppTemplateServiceDefinition {
+    name: ID!
+    type: String!
+    version: String!
+    template: String!
+    templateArgs: [String!]
+}
+
+type AppTemplate {
+    name: ID!
+    serviceDefinitions(name: ID): [AppTemplateServiceDefinition!]
+    version: String
+}
+
+type AppUser {
+    name: ID!
+}
+
+type AppVersion {
+    id: ID
+    template: Template @relation(softlink: "true")
+    inventory: Inventory @relation(softlink: "true")
+}
+
+type App {
+    name: ID!
+    version: AppVersion
+}
+
+type ApplicationInfo {
+    name: ID
+    app: String @jsonencoded(file:"../common-apis/api/tenant/models/clusterLifecycle.ts", gofile:"cluster_lifecycle.go", name:"ApplicationInstance")
+}
+
+type AttackDiscoveryRT {
+    id: ID
+    gnsid: String
+    selectors: String @jsonencoded(file:"../common-apis/api/tenant/models/common", gofile:"gns_attack_discovery.go", name:"AttackDiscoveryClusterResourceSelectorRT")
+    spec: String @jsonencoded(file:"../common-apis/api/tenant/models/gnsAttackDiscovery", gofile:"gns_attack_discovery.go", name:"AttackDiscoveryApplicationConfigList")
+}
+
+type AttackDiscovery {
+    id: ID
+    description: String
+    labels: String @jsonencoded(file:"../common-apis/api/tenant/models/common", gofile:"common.go", name:"LabelsList")
+    spec: String @jsonencoded(file:"../common-apis/api/tenant/models/gnsAttackDiscovery", gofile:"gns_attack_discovery.go", name:"AttackDiscoveryConfig")
+}
+
+type AuthenticationPolicy {
+    id: ID
+    name: String
+    labels: String @jsonencoded(file:"./common/ts/common.d.ts", gofile:"common.go", name:"Labels")
+    annotations: String @jsonencoded
+    spec: String @jsonencoded(file:"./root/inventory/cluster/domain/authentication-policy/istio.d.ts", gofile:"istio.go", name:"PolicySpec")
+}
+
+type AutoscalerFolder {
+    name: ID
+    autoscalers(name: String): [Autoscaler!]
+}
+
+type AutoscalerConfig {
+    id: ID
+    name: String
+    configSource: String
+    desiredState: String @protobuf(file:"./common-apis/protos/autoscaling/autoscaling.proto", name:"AutoscalingDefinition")
+}
+
+type Autoscaler {
+    id: ID
+    autoscaler: AutoscalerCR! @relation(name: "HAS", softlink: "true")
+    name: String
+    projectId: String
+}
+
+type AutoscalerCR {
+    id: ID
+    name: String
+    autoscalingDefinition: String @protobuf(file:"./common-apis/protos/autoscaling/autoscaling.proto", name:"AutoscalingDefinition")
+}
+
+type AutoscalingPolicy {
+    id: ID
+    name: String
+    description: String
+    labels: String @jsonencoded(file:"./common/ts/common.d.ts", gofile:"common.go", name:"Labels")
+    serviceName: String
+    autoscalerSpec: String @protobuf(file:"./common-apis/protos/autoscaling/autoscaling.proto" name:"AutoscalingDefinition")
+}
+
+type AwsConnector {
+    id: ID
+    gns(gnsName: ID): [GlobalNs!]
+}
+
+type Bucket {
+    name: ID
+    template: Template @relation(softlink: "true")
+    inventory: Inventory @relation(softlink: "true")
+}
+
+type CertificateAuthorityRT {
+    name: ID
+    url: String
+    type: String
+    templatePath: String
+    secretRef: String
+}
+
+type CertificateAuthorityConfigN {
+    id: ID
+    config: String @jsonencoded(file:"../common-apis/api/tenant/models/certificateAuthority", gofile:"certificate_authority.go", name: "CertificateAuthorityConfig")
+}
+
+type CertificateConfigN {
+    id: ID
+    projectId: String
+    beginsOn: String
+    expiresOn: String
+    issuedToCN: String
+    config: String @jsonencoded(file:"../common-apis/api/tenant/models/certificate", gofile:"certificate.go", name: "CertificateConfig")
+}
+
+type CertificateRequest {
+    id: ID
+    name: String
+    metadata: String @jsonencoded(file:"./common/ts/kubernetes.d.ts", gofile:"kubernetes.go", name:"Metadata")
+    issuerRef: String @jsonencoded
+    request: String
+    duration: String
+    uid: String
+    isCA: Boolean
+    username: String
+    usages: String @jsonencoded
+    groups: String @jsonencoded
+    extra: String @jsonencoded
+    status: String @jsonencoded
+}
+
+type Certificate {
+    id: ID
+    name: String
+    metadata: String @jsonencoded(file:"./common/ts/kubernetes.d.ts", gofile:"kubernetes.go", name:"Metadata")
+    issuerRef: String @jsonencoded
+    privateKey: String @jsonencoded
+    subject: String @jsonencoded
+    commonName: String
+    duration: String
+    dnsNames: [String]
+    ipAddresses: [String]
+    secretName: String
+    renewBefore: String
+    emailAddresses: [String]
+    uris: [String]
+    secretTemplate: String @jsonencoded
+    keyStores: String @jsonencoded
+    isCA: Boolean
+    encodeUsagesInRequest: String @jsonencoded
+    usages: String @jsonencoded
+    revisionHistoryLimit: Int
+    additionalOutputFormats: String @jsonencoded
+    status: String @jsonencoded
+}
+
+type ClusterConfigFolder {
+    id: ID
+    clusters(name: ID): [ClusterSettings!] @relation(name: "HAS", parameters: ClusterSettingsStatus)
+}
+
+type ClusterConfig {
+    id: ID
+    domains(name: String): [DomainConfig!] @relation(name: "HAS", parameters: ConfigChangeStatus)
+    hostConfig(name: String): [HostConfig!] @relation(name: "HAS", parameters: ConfigChangeStatus) @deprecated(reason: "Moved under Domain-Config")
+    dnsConfigFolder: DNSConfigFolder
+    dnsProbesConfigFolder: DNSProbesConfigFolder
+    logFolder: LogFolder
+    gnsBinding(id: ID): [GnsBindingRT!] @relation(name: "HAS", parameters: ConfigChangeStatus)
+    securityContextConstraints(name: String): [SecurityContextConstraintsConfig!] @relation(name: "HAS", parameters: ConfigChangeStatus)
+    resourceGroup: ResourceGroupRT!
+    name: String
+}
+
+type ClusterFolder {
+    id: ID
+    clusters(name: String): [ClusterConfig!] @relation(name: "HAS", parameters: ConfigChangeStatus)
+    remoteGatewayServiceConfigs(name: ID): [RemoteGatewayServiceConfig!] @relation(name: "HAS", parameters: ConfigChangeStatus)
+    name: String
+}
+
+type ClusterSettings {
+    name: ID
+    projectId: String
+    displayName: String
+    description: String
+    tags: String @jsonencoded(file:"./common/ts/common.d.ts", gofile:"common.go", name: "StringList")
+    labels: String @jsonencoded(file:"./common/ts/common.d.ts", gofile:"common.go", name:"Labels")
+    autoInstallServiceMesh: Boolean
+    enableNamespaceExclusions: Boolean
+    namespaceExclusions: String @jsonencoded(file:"../common-apis/api/tenant/models/common", gofile:"common.go", name:"Conditions")
+    systemNamespaceExclusions: String @jsonencoded(file:"../common-apis/api/tenant/models/common", gofile:"common.go", name:"Conditions")
+    agentDomain: String
+    proxyConfig: String @jsonencoded(file:"../common-apis/api/tenant/models/clusterLifecycle", gofile:"cluster_lifecycle.go", name: "ProxyConfigRequest")
+    autoInstallServiceMeshConfig: String @jsonencoded(file:"../common-apis/api/tenant/models/clusterLifecycle", gofile:"cluster_lifecycle.go", name: "AutoInstallServiceMeshConfig")
+    registryAccount: String
+    caLabels: String @jsonencoded(file:"./common/ts/common.d.ts", gofile:"common.go", name:"CaLabels")
+    enableInternalGateway: Boolean
+}
+
+type Cluster {
+    id: ID
+    queryNodeTS(
+        nodeMetric: NodeMetricTypeEnum
+        startTime: String
+        endTime: String
+        timeInterval: String
+    ): TimeSeriesData @timeseriesAPI(file: "../../tsquery/timeSeriesQuery", handler: "queryNodeTS")
+    queryServiceTS(
+        svcMetric: ServiceMetricTypeEnum
+        startTime: String
+        endTime: String
+        timeInterval: String
+    ): TimeSeriesData @timeseriesAPI(file: "../../tsquery/timeSeriesQuery", handler: "queryServiceTS")
+    queryServiceTable(
+        startTime: String
+        endTime: String
+        SystemServices: Boolean
+        ShowGateways: Boolean
+        Groupby: ServiceGroupByEnum
+        noMetrics: Boolean
+        limit: Int
+        last: String
+    ): TimeSeriesData @timeseriesAPI(file: "../../tsquery/timeSeriesQuery", handler: "queryServiceTable")
+    queryServiceVersionTable(
+        startTime: String
+        endTime: String
+        SystemServices: Boolean
+        ShowGateways: Boolean
+        noMetrics: Boolean
+    ): TimeSeriesData @timeseriesAPI(file: "../../tsquery/timeSeriesQuery", handler: "queryServiceVersionTable")
+    queryServiceInstanceTable(
+        startTime: String
+        endTime: String
+        limit: Int
+        last: String
+    ): TimeSeriesData @timeseriesAPI(file: "../../tsquery/timeSeriesQuery", handler: "queryServiceInstanceTable")
+    queryServiceTopology(
+        metricStringArray: String
+        startTime: String
+        endTime: String
+    ): TimeSeriesData @timeseriesAPI(file: "../../tsquery/timeSeriesQuery", handler: "queryServiceTopology")
+    queryClusterTable(
+        startTime: String
+        endTime: String
+        timeInterval: String
+        noMetrics: Boolean
+    ): TimeSeriesData @timeseriesAPI(file: "../../tsquery/timeSeriesQuery", handler: "queryClusterTable")
+    queryNodeTable(
+        startTime: String
+        endTime: String
+    ): TimeSeriesData @timeseriesAPI(file: "../../tsquery/timeSeriesQuery", handler: "queryNodeTable")
+    queryServiceNodeMapGroupedByNode(
+        startTime: String
+        endTime: String
+    ): TimeSeriesData @timeseriesAPI(file: "../../tsquery/timeSeriesQuery", handler: "queryServiceNodeMapGroupedByNode")
+    queryServiceNodeMapGroupedByService(
+        startTime: String
+        endTime: String
+    ): TimeSeriesData @timeseriesAPI(file: "../../tsquery/timeSeriesQuery", handler: "queryServiceNodeMapGroupedByService")
+    queryServiceNodeMapGroupedByServiceVersion(
+        startTime: String
+        endTime: String
+    ): TimeSeriesData @timeseriesAPI(file: "../../tsquery/timeSeriesQuery", handler: "queryServiceNodeMapGroupedByServiceVersion")
+    queryStats(
+        metricStringArray: String
+        api: String
+        method: HTTPMethodEnum
+        sourceWorkloadDN: String
+        severity: EventSeverityEnum
+        startTime: String
+        endTime: String
+    ): TimeSeriesData @timeseriesAPI(file: "../../tsquery/timeSeriesQuery", handler: "queryStats")
+    queryLogs(
+        metric: AnalyticsMetricEnum
+        startTime: String
+        endTime: String
+        sourceWorkloadDN: String
+        severity: EventSeverityEnum
+        api: String
+        method: HTTPMethodEnum
+        from: Int
+        size: Int
+    ): TimeSeriesData @timeseriesAPI(file: "../../tsquery/timeSeriesQuery", handler: "queryLogs")
+    queryList(
+        metric: AnalyticsMetricEnum
+        startTime: String
+        endTime: String
+        api: String
+        method: HTTPMethodEnum
+        limit: Int
+    ): TimeSeriesData @timeseriesAPI(file: "../../tsquery/timeSeriesQuery", handler: "queryList")
+    queryLinechart(
+        metric: AnalyticsMetricEnum
+        subMetric: AnalyticsSubMetricEnum
+        startTime: String
+        endTime: String
+        sourceWorkloadDN: String
+        severity: EventSeverityEnum
+        api: String
+        method: HTTPMethodEnum
+        timeInterval: String
+        timeZone: String
+    ): TimeSeriesData @timeseriesAPI(file: "../../tsquery/timeSeriesQuery", handler: "queryLinechart")
+    queryTopN(
+        metric: AnalyticsMetricEnum
+        startTime: String
+        endTime: String
+        api: String
+        method: HTTPMethodEnum
+        direction: TrafficDirectionEnum
+        limit: Int
+    ): TimeSeriesData @timeseriesAPI(file: "../../tsquery/timeSeriesQuery", handler: "queryTopN")
+    queryDetail(
+        metric: AnalyticsMetricEnum
+        subMetric: AnalyticsSubMetricEnum
+        startTime: String
+        endTime: String
+        api: String
+        method: HTTPMethodEnum
+        direction: TrafficDirectionEnum
+        timeInterval: String
+        timeZone: String
+    ): TimeSeriesData @timeseriesAPI(file: "../../tsquery/timeSeriesQuery", handler: "queryDetail")
+    connectionStatus: ConnectionStatus
+    apps(name: String): [ApplicationInfo!]
+    dnsProbeStatus(name: String): [DNSProbeStatus!]
+    securityContextConstraints(name: String): [SecurityContextConstraints!]
+    domains(name: String): [Domain!]
+    nodes(name: String): [Node!]
+    name: String
+    uuid: String
+    connected: Boolean
+    istioState: String
+    status: String @jsonencoded(file:"../common-apis/api/tenant/models/clusterLifecycle.ts", gofile:"cluster_lifecycle.go", name:"ClusterStatus")
+    statusHistory: String @jsonencoded(file:"../common-apis/api/tenant/models/clusterLifecycle.ts", gofile:"cluster_lifecycle.go", name:"ClusterStatusHistory")
+    castatus: String @jsonencoded(file:"../common-apis/api/tenant/models/clusterLifecycle.ts", gofile:"cluster_lifecycle.go", name:"CaStatus")
+    caStatusHistory: String @jsonencoded(file:"../common-apis/api/tenant/models/clusterLifecycle.ts", gofile:"cluster_lifecycle.go", name:"CaStatusHistory")
+    componentStatuses: String @jsonencoded(file:"../common-apis/api/tenant/models/clusterLifecycle.ts", gofile:"cluster_lifecycle.go", name:"ComponentStatuses")
+    componentStatusesHistory: String @jsonencoded(file:"../common-apis/api/tenant/models/clusterLifecycle.ts", gofile:"cluster_lifecycle.go", name:"ComponentStatusesHistory")
+    type: String
+    projectId: String
+}
+
+type ConfigMap {
+    id: ID
+    name: String
+    annotations: String @jsonencoded
+    labels: String @jsonencoded(file:"./common/ts/common.d.ts", gofile:"common.go", name:"Labels")
+    metadata: String @jsonencoded(file:"./common/ts/kubernetes.d.ts", gofile:"kubernetes.go", name:"Metadata")
+    data: String @jsonencoded(file:"./root/inventory/cluster/domain/config-map/configmap.d.ts", gofile:"configmap.go", name:"ConfigMapData")
+}
+
+type Config {
+    id: ID
+    resourceGroups: ResourceGroup!
+    globalNamespace: GlobalNamespace!
+    policy: AccessControlPolicy!
+    templates: Template
+    progressiveUpgrade: ProgressiveUpgrade!
+    externalPlugins: ExternalPluginConfigFolder!
+    certificates(id: ID): [CertificateConfigN!]
+    externalAccounts(id: ID): [ExternalAccountConfigN!] @relation(name: "HAS", parameters: ExternalAccountConfigStatus)
+    externalAuditStorage: ExternalAuditStorage
+    externalDNS(id: ID): [ExternalDNSConfigN!]
+    externalLB(id: ID): [ExternalLBConfigN!]
+    autoscalerFolder: AutoscalerFolder
+    clusters: ClusterConfigFolder!
+    serviceLevelObjective: ServiceLevelObjectiveFolder
+    featureFlags(name: String): [FeatureFlag!]
+    projects(id: ID): [Project!]
+    serviceDirectory(id: ID): [ServiceDirectoryN!]
+}
+
+type ConnectionStatus {
+    id: ID
+    connected: Boolean
+    message: String
+    code: Int
+}
+
+type DataFolderDomainCluster {
+    name: ID!
+}
+
+type DataFolderDomainServiceVersion {
+    name: ID
+}
+
+type DataFolderDomainService {
+    name: ID!
+    versions(name: ID): [DataFolderDomainServiceVersion!]
+}
+
+type DataFolderDomain {
+    name: ID!
+    cluster: DataFolderDomainCluster
+    service(name: ID): [DataFolderDomainService!]
+    database: Database
+}
+
+type DataFolder {
+    id: ID
+    domain: DataFolderDomain
+}
+
+type DataGroup {
+    name: ID
+    displayName: String
+    description: String
+    scope: String
+    color: String
+    rules: String @jsonencoded(file:"../common-apis/api/tenant/models/resourceGroup", gofile:"resource_group.go", name:"Rules")
+}
+
+type DataTemplate {
+    name: ID!
+}
+
+type Database {
+    id: ID
+    tables(name: ID): [Table]
+    directories(name: ID): [Directory]
+    buckets(name: ID): [Bucket]
+}
+
+type DCRegion {
+    id: ID
+    zones(name: String): [DCZone!]
+    name: String
+}
+
+type DCZone {
+    id: ID
+    clusters(uuid: String): [Cluster!] @relation(name: "HAS", softlink: "true")
+    name: String
+}
+
+type DestinationRule {
+    id: ID
+    service: Service! @relation(name: "pointsTo", softlink: "true")
+    serviceDeployments(name: String): [ServiceDeployment!] @relation(name: "pointsTo", parameters: SVToControllerLinkParam, softlink: "true")
+    serviceReplicaSets(name: String): [ServiceReplicaSet!] @relation(name: "pointsTo", parameters: SVToControllerLinkParam, softlink: "true")
+    serviceStatefulSets(name: String): [ServiceStatefulSet!] @relation(name: "pointsTo", parameters: SVToControllerLinkParam, softlink: "true")
+    serviceDaemonSets(name: String): [ServiceDaemonSet!] @relation(name: "pointsTo", parameters: SVToControllerLinkParam, softlink: "true")
+    serviceJobs(name: String): [ServiceJob!] @relation(name: "pointsTo", parameters: SVToControllerLinkParam, softlink: "true")
+    name: String
+    annotations: String @jsonencoded
+    labels: String @jsonencoded
+    creationTimestamp: String
+    apiLink: String
+    uid: String
+    host: String
+    trafficPolicy: String @jsonencoded
+    subsets: String @jsonencoded
+    exportTo: [String!]
+}
+
+type Directory {
+    name: ID
+    template: Template @relation(softlink: "true")
+    inventory: Inventory @relation(softlink: "true")
+}
+
+type DNSConfigFolder {
+    id: ID
+    dnsConfig(name: ID): [DNSConfig!] @relation(name: "HAS", parameters: ConfigChangeStatus)
+}
+
+type DNSConfig {
+    name: ID
+    ownedBy: String
+    dnsSuffix: String @jsonencoded(file:"./root/runtime/runtime.ts", gofile:"runtime.go", name:"DNSList")
+}
+
+type DNSProbeConfig {
+    name: ID
+    domain: String
+    createTimestamp: String
+}
+
+type DNSProbeStatus {
+    id: ID
+    name: String
+    domain: String
+    success: Boolean
+    updateTimestamp: String
+}
+
+type DNSProbesConfigFolder {
+    id: ID
+    dnsProbeConfigs(name: ID): [DNSProbeConfig!] @relation(name: "HAS", parameters: ConfigChangeStatus)
+}
+
+type DomainConfig {
+    id: ID
+    policy(id: ID): [PolicyConfig!]
+    labelConfig: LabelConfig
+    networkAttachmentDefinition(name: String): [NetworkAttachmentDefinitionConfig!] @relation(name: "HAS", parameters: ConfigChangeStatus)
+    services(name: String): [ServiceConfig!] @relation(name: "HAS", parameters: ConfigChangeStatus)
+    serviceEntries(name: String): [ServiceEntryConfig!] @relation(name: "HAS", parameters: ConfigChangeStatus)
+    gatewayConfig(name: String): [GatewayConfig!] @relation(name: "HAS", parameters: ConfigChangeStatus)
+    autoscalers(name: String): [AutoscalerConfig!] @relation(name: "HAS", parameters: ConfigChangeStatus)
+    hostConfigV2(name: String): [HostConfigV2!] @relation(name: "HAS", parameters: ConfigChangeStatus)
+    inboundAuthenticationConfig(name: String): [InboundAuthenticationConfig!] @relation(name: "HAS", parameters: ConfigChangeStatus)
+    slos(name: String): [SloConfig!]
+    secrets(id: ID): [SecretRTConfig!] @relation(name: "HAS", parameters: ConfigChangeStatus)
+    externalServices(name: ID): [ExternalServicesRT!] @relation(name: "HAS", parameters: ConfigChangeStatus)
+    apiDiscovery(id: ID): [ApiDiscoveryRT!] @relation(name: "HAS", parameters: ConfigChangeStatus)
+    geoDiscovery(id: ID): [GeoDiscoveryRT!] @relation(name: "HAS", parameters: ConfigChangeStatus)
+    piiDiscovery(id: ID): [PiiDiscoveryRT!] @relation(name: "HAS", parameters: ConfigChangeStatus)
+    attackDiscovery(id: ID): [AttackDiscoveryRT!] @relation(name: "HAS", parameters: ConfigChangeStatus)
+    userDiscovery(id: ID): [UserDiscoveryRT!] @relation(name: "HAS", parameters: ConfigChangeStatus)
+    publicService(name: ID): [PublicServiceRT!] @relation(name: "HAS", parameters: ConfigChangeStatus)
+    gnsAccessControlPolicy(name: ID): [GnsAccessControlPolicyRT!] @relation(name: "HAS", parameters: ConfigChangeStatus)
+    gnsSchemaViolationDiscovery(id: ID): [SchemaViolationDiscoveryRT!] @relation(name: "HAS", parameters: ConfigChangeStatus)
+    gnsSegmentationPolicy(name: ID): [GnsSegmentationPolicyRT!] @relation(name: "HAS", parameters: ConfigChangeStatus)
+    certificateAuthority(name: ID): [CertificateAuthorityRT!] @relation(name: "HAS", parameters: ConfigChangeStatus)
+    gnsEndpointsConfig(endpoints: String): [GnsEndpointsConfig!] @relation(name: "HAS", parameters: ConfigChangeStatus)
+    name: String
+    ownedBy: String
+    labels: String @jsonencoded(file:"./common/ts/common.d.ts", gofile:"common.go", name:"Labels")
+}
+
+type Domain {
+    id: ID
+    queryServiceTS(
+        svcMetric: ServiceMetricTypeEnum
+        startTime: String
+        endTime: String
+        timeInterval: String
+    ): TimeSeriesData @timeseriesAPI(file: "../../tsquery/timeSeriesQuery", handler: "queryServiceTS")
+    queryServiceTable(
+        startTime: String
+        endTime: String
+        SystemServices: Boolean
+        ShowGateways: Boolean
+        Groupby: ServiceGroupByEnum
+        noMetrics: Boolean
+        limit: Int
+        last: String
+    ): TimeSeriesData @timeseriesAPI(file: "../../tsquery/timeSeriesQuery", handler: "queryServiceTable")
+    queryServiceVersionTable(
+        startTime: String
+        endTime: String
+        SystemServices: Boolean
+        ShowGateways: Boolean
+        noMetrics: Boolean
+    ): TimeSeriesData @timeseriesAPI(file: "../../tsquery/timeSeriesQuery", handler: "queryServiceVersionTable")
+    queryServiceInstanceTable(
+        startTime: String
+        endTime: String
+        limit: Int
+        last: String
+    ): TimeSeriesData @timeseriesAPI(file: "../../tsquery/timeSeriesQuery", handler: "queryServiceInstanceTable")
+    queryServiceNodeMapGroupedByNode(
+        startTime: String
+        endTime: String
+    ): TimeSeriesData @timeseriesAPI(file: "../../tsquery/timeSeriesQuery", handler: "queryServiceNodeMapGroupedByNode")
+    queryServiceNodeMapGroupedByService(
+        startTime: String
+        endTime: String
+    ): TimeSeriesData @timeseriesAPI(file: "../../tsquery/timeSeriesQuery", handler: "queryServiceNodeMapGroupedByService")
+    queryServiceNodeMapGroupedByServiceVersion(
+        startTime: String
+        endTime: String
+    ): TimeSeriesData @timeseriesAPI(file: "../../tsquery/timeSeriesQuery", handler: "queryServiceNodeMapGroupedByServiceVersion")
+    queryStats(
+        metricStringArray: String
+        api: String
+        method: HTTPMethodEnum
+        sourceWorkloadDN: String
+        severity: EventSeverityEnum
+        startTime: String
+        endTime: String
+    ): TimeSeriesData @timeseriesAPI(file: "../../tsquery/timeSeriesQuery", handler: "queryStats")
+    queryLogs(
+        metric: AnalyticsMetricEnum
+        startTime: String
+        endTime: String
+        sourceWorkloadDN: String
+        severity: EventSeverityEnum
+        api: String
+        method: HTTPMethodEnum
+        from: Int
+        size: Int
+        gns: String
+    ): TimeSeriesData @timeseriesAPI(file: "../../tsquery/timeSeriesQuery", handler: "queryLogs")
+    queryList(
+        metric: AnalyticsMetricEnum
+        startTime: String
+        endTime: String
+        api: String
+        method: HTTPMethodEnum
+        limit: Int
+    ): TimeSeriesData @timeseriesAPI(file: "../../tsquery/timeSeriesQuery", handler: "queryList")
+    queryLinechart(
+        metric: AnalyticsMetricEnum
+        subMetric: AnalyticsSubMetricEnum
+        startTime: String
+        endTime: String
+        sourceWorkloadDN: String
+        severity: EventSeverityEnum
+        api: String
+        method: HTTPMethodEnum
+        timeInterval: String
+        timeZone: String
+    ): TimeSeriesData @timeseriesAPI(file: "../../tsquery/timeSeriesQuery", handler: "queryLinechart")
+    queryTopN(
+        metric: AnalyticsMetricEnum
+        startTime: String
+        endTime: String
+        api: String
+        method: HTTPMethodEnum
+        direction: TrafficDirectionEnum
+        limit: Int
+    ): TimeSeriesData @timeseriesAPI(file: "../../tsquery/timeSeriesQuery", handler: "queryTopN")
+    queryDetail(
+        metric: AnalyticsMetricEnum
+        subMetric: AnalyticsSubMetricEnum
+        startTime: String
+        endTime: String
+        api: String
+        method: HTTPMethodEnum
+        direction: TrafficDirectionEnum
+        timeInterval: String
+        timeZone: String
+    ): TimeSeriesData @timeseriesAPI(file: "../../tsquery/timeSeriesQuery", handler: "queryDetail")
+    secretHashes(name: String): [SecretHash!]
+    serviceInstances(name: String): [ServiceInstance!]
+    serviceDeployments(name: String): [ServiceDeployment!]
+    serviceStatefulSets(name: String): [ServiceStatefulSet!]
+    serviceDaemonSets(name: String): [ServiceDaemonSet!]
+    serviceReplicaSets(name: String): [ServiceReplicaSet!]
+    serviceCronJobs(name: String): [ServiceCronJob!]
+    serviceJobs(name: String): [ServiceJob!]
+    virtualServices(name: String): [VirtualService!]
+    serviceEntry(name: String): [ServiceEntry!]
+    workloadEntry(name: String): [WorkloadEntry!]
+    destinationRules(name: String): [DestinationRule!]
+    services(name: String): [Service!]
+    endpoints(name: String): [Endpoints!]
+    gateways(name: String): [Gateway!]
+    authenticationPolicies(name: String): [AuthenticationPolicy!]
+    configmap(name: String): [ConfigMap!]
+    envoyfilter(name: String): [EnvoyFilter!]
+    autoscalers(name: String): [AutoscalerCR]
+    peerAuthentication(name: String): [PeerAuthentication!]
+    knativeIngresses(name: String): [KnativeIngress!]
+    networkAttachmentDefinition(name: String): [NetworkAttachmentDefinition!]
+    issuers(name: String): [Issuer]
+    certificates(name: String): [Certificate]
+    certificateRequests(name: String): [CertificateRequest]
+    name: String
+    enviornmentType: String!
+    apiLink: String
+    annotations: String @jsonencoded
+    labels: String @jsonencoded
+    metadata: String @jsonencoded(file:"./common/ts/kubernetes.d.ts", gofile:"kubernetes.go", name:"Metadata")
+}
+
+type Endpoints {
+    id: ID
+    name: String
+    metadata: String @jsonencoded(file:"./common/ts/kubernetes.d.ts", gofile:"kubernetes.go", name:"Metadata")
+    subsets: String @jsonencoded(file:"./common/ts/kubernetes.d.ts", gofile:"kubernetes.go", name:"EndpointSubsets")
+    gnsId: String
+}
+
+type EnvoyFilter {
+    id: ID
+    name: String
+    labels: String @jsonencoded(file:"./common/ts/common.d.ts", gofile:"common.go", name:"Labels")
+    annotations: String @jsonencoded
+    spec: String @jsonencoded(file:"./root/inventory/cluster/domain/envoy-filter/envoyfilter.d.ts", gofile:"envoyfilter.go", name:"EnvoyFilterSpec")
+}
+
+type ExternalAccountConfigN {
+    id: ID
+    config: String @jsonencoded(file:"../common-apis/api/tenant/models/externalAccount", gofile:"external_account.go", name: "ExternalAccountConfig")
+    proxyConfig: String @jsonencoded(file:"../common-apis/api/tenant/models/externalAccount", gofile:"external_account.go", name: "ExternalAccountProxyConfig")
+}
+
+type ExternalAuditStorage {
+    id: ID
+    config: String! @jsonencoded(file:"../common-apis/api/tenant/models/externalAuditStorage", gofile:"external-audit-storage.go", name: "ExternalAuditStorageConfig")
+}
+
+type ExternalDNSConfigN {
+    id: ID
+    account: ExternalAccountConfigN @relation(softlink: "true")
+    config: String @jsonencoded(file:"../common-apis/api/tenant/models/externalDNS", gofile:"external_dns.go", name: "ExternalDNSConfig")
+}
+
+type ExternalDNSInventoryHealthCheck {
+    id: ID
+    name: String
+    protocol: String @jsonencoded(file:"../common-apis/api/tenant/models/template.ts", gofile:"health_check_config.go", name:"HealthCheckConfigProtocol")
+    port: Int
+    path: String
+    healthThreshold: Int
+}
+
+type ExternalDNSInventoryPrimaryDomain {
+    name: ID
+    dnsRecords(id: ID): [ExternalDNSInventoryRecord!]
+    region: String
+}
+
+type ExternalDNSInventoryRecord {
+    id: ID
+    healthCheck: ExternalDNSInventoryHealthCheck! @relation(softlink: "true")
+    dnsRecordType: ExternalDNSRecordType
+    ttl: Int
+    value: String
+    weight: Int
+}
+
+type ExternalDNSInventoryZone {
+    name: ID
+    primaryDomains(name: ID): [ExternalDNSInventoryPrimaryDomain] @relation(softlink: "true")
+    records: Int
+}
+
+type ExternalDNSInventory {
+    id: ID
+    zones(name: ID): [ExternalDNSInventoryZone]
+    primaryDomains(name: ID): [ExternalDNSInventoryPrimaryDomain!]
+    healthChecks(id: ID): [ExternalDNSInventoryHealthCheck!]
+    enabledForProjects: [String]
+}
+
+type ExternalDNSRuntimeEndpoint {
+    endpointAddress: ID
+    weight: Int
+    active: Boolean
+    gnsVersion: String
+}
+
+type ExternalDNSRuntimePrimaryDomain {
+    name: ID
+    subdomains(name: ID): [ExternalDNSRuntimeSubdomain!]
+    primaryDomain: String
+    dnsServerID: ID
+}
+
+type ExternalDNSRuntime {
+    id: ID
+    primaryDomains(name: ID): [ExternalDNSRuntimePrimaryDomain!]
+}
+
+type ExternalDNSRuntimeSubdomain {
+    name: ID
+    endpoints(endpointAddress: ID): [ExternalDNSRuntimeEndpoint!] @relation(parameters: ExternalDNSEndpointRuntimeStatus)
+    recordType: ExternalDNSRecordType
+    ttl: Int
+    healthCheckDomain: String
+    healthCheckExternalPort: Int
+    healthCheckPort: Int
+    healthCheckPath: String
+    healthCheckThreshold: Int
+    healthCheckInterval: Int
+    healthCheckProtocol: String
+    gnsVersion: String
+}
+
+type ExternalLBConfigN {
+    id: ID
+    config: String @jsonencoded(file:"../common-apis/api/tenant/models/externalLB", gofile:"external_lb.go", name: "ExternalLBConfig")
+}
+
+type ExternalPluginCapability {
+    id: ID
+    capability: String @protobuf(file:"./common-apis/protos/external-plugin/ep-server.proto", name:"RegisterCapabilityArguments")
+}
+
+type ExternalPluginConfigFolder {
+    id: ID
+    plugins(id: ID): [ExternalPluginConfig!]
+}
+
+type ExternalPluginConfig {
+    id: ID
+    pluginInstances(pluginInstanceId: ID): [ExternalPluginInstanceConfig!]
+    name: String
+    providerName: String
+    installConfig: String
+    type: String
+}
+
+type ExternalPluginInstanceConfig {
+    pluginInstanceId: ID
+    capabilitiy: ExternalPluginCapability
+    clusters(name: String): [Cluster!] @relation(name: "DeployedOn", softlink: "true")
+    monitors(id: ID): [ExternalPluginMonitor!]
+    name: String
+    securityToken: String @jsonencoded(file: "./root/config/external-plugin-config-folder/external-plugin-config/external-plugin-instance-config/external-plugins.ts", gofile:"external_plugins.go", name: "ExternalPluginSecurityToken")
+}
+
+type ExternalPluginMonitor {
+    id: ID
+    objType: String @protobuf(file:"./common-apis/protos/external-plugin/ep-server.proto", name:"ObjectTypes")
+    pluginCapability: String @protobuf(file:"./common-apis/protos/external-plugin/ep-server.proto", name:"PluginCapability")
+    fn: String @jsonencoded(file: "./root/config/external-plugin-config-folder/external-plugin-config/external-plugin-instance-config/external-plugins.ts", gofile:"external_plugins.go", name: "ExternalPluginFn")
+    arg1: String @jsonencoded(file: "./root/config/external-plugin-config-folder/external-plugin-config/external-plugin-instance-config/external-plugins.ts", gofile:"external_plugins.go", name: "ExternalPluginFnArg")
+}
+
+type ExternalServicesRT {
+    name: ID
+    ownedBy: String
+    createdByGNS: String
+    createdByESName: String
+    createdBySDFolder: String
+    createdBySDEntry: String
+    servicePort: Int
+    protocol: ExternalServicesRTProtocols
+    hostname: String
+    port: Int
+    serverCertificate: String
+    hostnameAlias: String
+    endpointList: [String!]
+    egressGateways: [String!]
+    clientCertificate: String
+    clientKey: String
+}
+
+type FeatureFlag {
+    id: ID
+    name: String
+    description: String
+    enable: Boolean
+}
+
+type GatewayConfigListenerCertificate {
+    id: ID
+    encryptedCertificate: String
+    encryptedPrivateKey: String
+    encryptedCertChain: String
+}
+
+type GatewayConfigAdditionalListeners {
+    id: ID
+    certificate: GatewayConfigListenerCertificate
+    listenerRoutes(id: ID): [GatewayConfigListenerDestinationRoute]
+    name: String
+    port: Int
+    protocol: String
+    tlsMode: String
+    ownedBy: String
+    hosts: [String]
+}
+
+type GatewayConfigListenerDestinationRoute {
+    id: ID
+    host: String
+    target: String
+    paths: [String]
+    port: Int
+}
+
+type GatewayConfig {
+    id: ID
+    additionalListeners(id: ID): [GatewayConfigAdditionalListeners]
+    name: String
+    ownedBy: String
+    labels: String @jsonencoded(file:"./common/ts/common.d.ts", gofile:"common.go", name:"Labels")
+    listeners: String @jsonencoded(file:"./common/ts/gateway.d.ts", gofile:"gateway.go", name:"GatewayConfigListeners")
+}
+
+type Gateway {
+    id: ID
+    services(name: String): [Service!] @relation(name: "pointsTo", softlink: "true")
+    name: String
+    labels: String @jsonencoded(file:"./common/ts/common.d.ts", gofile:"common.go", name:"Labels")
+    annotations: String @jsonencoded
+    spec: String @jsonencoded(file:"./common/ts/gateway.d.ts", gofile:"gateway.go", name:"GatewaySpec")
+}
+
+type GeoDiscoveryRT {
+    id: ID
+    gnsid: String
+    selectors: String @jsonencoded(file:"../common-apis/api/tenant/models/common", gofile:"gns_geo_discovery.go", name:"GeoDiscoveryClusterResourceSelectorRT")
+    spec: String @jsonencoded(file:"../common-apis/api/tenant/models/gnsGeoDiscovery", gofile:"gns_geo_discovery.go", name:"GeoDiscoveryGeoFencesConfigList")
+}
+
+type GeoDiscovery {
+    id: ID
+    description: String
+    labels: String @jsonencoded(file:"../common-apis/api/tenant/models/common", gofile:"common.go", name:"LabelsList")
+    spec: String @jsonencoded(file:"../common-apis/api/tenant/models/gnsGeoDiscovery", gofile:"gns_geo_discovery.go", name:"GeoDiscoveryConfig")
+}
+
+type GlobalNs {
+    id: ID
+    routingPolicies(policyName: ID): [RPolicy!]
+    gnsName: String!
+}
+
+type GlobalRegistrationService {
+    id: ID
+    tenants(tenantID: ID): [Tenant!]
+    tenantToken(id: String): [TenantToken!]
+    buildID: String!
+    version: String!
+    errorCount: Int
+}
+
+type GlobalNamespace {
+    id: ID
+    gns(name: ID): [GNS!]
+}
+
+type GnsAccessControlPolicyRT {
+    id: ID
+    gnsid: String
+    spec: String @jsonencoded(file:"../common-apis/api/tenant/models/gnsAccessControlPolicy", gofile:"gns_access_control_policy.go", name:"GnsAccessControlPolicySpec")
+}
+
+type GnsAccessControlPolicy {
+    id: ID
+    description: String
+    labels: String @jsonencoded(file:"../common-apis/api/tenant/models/common", gofile:"common.go", name:"LabelsList")
+    spec: String @jsonencoded(file:"../common-apis/api/tenant/models/gnsAccessControlPolicy", gofile:"gns_access_control_policy.go", name:"GnsAccessControlPolicySpec")
+}
+
+type GnsBindingRT {
+    id: ID
+    GnsSvcGroupRT(id: ID): [GnsSvcGroupRT!] @relation(name: "HAS", parameters: ConfigChangeStatus)
+    gnsRoutingRules(name: String): [GnsRoutingRuleConfig!] @relation(name: "HAS", parameters: ConfigChangeStatus)
+    gnsServiceEntryConfig(name: String): [GnsServiceEntryConfig!] @relation(name: "HAS", parameters: ConfigChangeStatus)
+    name: String
+    domain: String
+    namespaces: [String]
+    apiDiscoveryEnabled: Boolean
+}
+
+type GnsEndpointsConfig {
+    id: ID
+    endpoints: String!
+    gnsId: String!
+    endpointServices: [String]
+    servicePortList: String! @jsonencoded(file:"./root/runtime/runtime.ts", gofile:"runtime.go", name:"ServicePortList")
+    selector: String! @jsonencoded
+}
+
+type ExternalServiceConfig {
+    id: ID
+    queryServiceTS(
+        svcMetric: ServiceMetricTypeEnum
+        startTime: String
+        endTime: String
+        timeInterval: String
+    ): TimeSeriesData @timeseriesAPI(file: "../../tsquery/timeSeriesQuery", handler: "queryServiceTS")
+    spec: String @jsonencoded(file:"../common-apis/api/tenant/models/gnsExternalService", gofile:"gns_external_service.go", name:"GnsExternalServiceConfig")
+    system: Boolean
+}
+
+type PublicServiceRouteConfig {
+    id: ID
+    type: String
+    routes: String @jsonencoded(file:"../common-apis/api/tenant/models/gnsPublicService", gofile:"gns_public_service_route_config.go", name: "GnsPublicServiceRouteConfig")
+}
+
+type PublicServiceConfig {
+    id: ID
+    routingConfigs(id: ID): [PublicServiceRouteConfig!] @relation(parameters: PublicServiceRouteConfigStatus)
+    externalDNS(id: ID): [ExternalDNSConfigN!] @relation(softlink: "true")
+    certificates(id: ID): [CertificateConfigN!] @relation(softlink: "true")
+    healthChecks(id: ID): [HealthCheckConfigN!] @relation(softlink: "true")
+    fqdn: String
+    config: String @jsonencoded(file:"../common-apis/api/tenant/models/gnsPublicService", gofile:"gns_public_service.go", name: "GnsPublicServiceConfig")
+}
+
+type GNSRoutingConfig {
+    id: ID
+    name: String!
+    spec: String @jsonencoded(file:"../common-apis/api/tenant/models/gnsTrafficManagement", gofile:"common.go", name:"TrafficRoutingPolicy")
+}
+
+type GnsRoutingRuleConfig {
+    id: ID
+    name: String!
+    ownedBy: String
+    serviceFQDN: String!
+    portName: String
+    port: Int
+    httpRouteRules: String @jsonencoded(file:"../common-apis/api/tenant/models/gnsTrafficManagement", gofile:"common.go", name:"HTTPRoutingRules")
+}
+
+type GnsSegmentationPolicyRT {
+    id: ID
+    gnsid: String
+    spec: String @jsonencoded(file: "../common-apis/api/tenant/models/gnsSegmentationPolicy", gofile:"gns_segmentation_policy.go", name:"GnsSegmentationPolicySpec")
+}
+
+type GnsSegmentationPolicy {
+    id: ID
+    description: String
+    labels: String @jsonencoded(file:"../common-apis/api/tenant/models/common", gofile:"common.go", name:"LabelsList")
+    spec: String @jsonencoded(file:"../common-apis/api/tenant/models/gnsSegmentationPolicy", gofile: "gns_segmentation_policy.go", name:"GnsSegmentationPolicySpec")
+}
+
+type GnsServiceEntryConfig {
+    id: ID
+    service: String!
+    ports: String @jsonencoded(file:"./root/runtime/runtime.ts", gofile:"runtime.go", name:"ServicePortList")
+    versions: String @jsonencoded(file:"./root/runtime/runtime.ts", gofile:"runtime.go", name:"ServiceVersionList")
+}
+
+type GnsSvcGroupRT {
+    id: ID
+    name: String
+    displayName: String
+    description: String
+    services: String @jsonencoded(file:"../common-apis/api/tenant/models/gnsServiceGroup", gofile:"gns_service_group.go", name:"ServiceGroupServiceList")
+}
+
+type GNSSvcGroup {
+    name: ID
+    queryServiceTS(
+        svcMetric: ServiceMetricTypeEnum
+        startTime: String
+        endTime: String
+        timeInterval: String
+    ): TimeSeriesData @timeseriesAPI(file: "../../tsquery/timeSeriesQuery", handler: "queryServiceTS")
+    queryServiceInstanceTable(
+        startTime: String
+        endTime: String
+        limit: Int
+        last: String
+    ): TimeSeriesData @timeseriesAPI(file: "../../tsquery/timeSeriesQuery", handler: "queryServiceInstanceTable")
+    queryServiceTable(
+        startTime: String
+        endTime: String
+        SystemServices: Boolean
+        ExternalServices: Boolean
+        ShowGateways: Boolean
+        Groupby: ServiceGroupByEnum
+        noMetrics: Boolean
+        limit: Int
+        last: String
+    ): TimeSeriesData @timeseriesAPI(file: "../../tsquery/timeSeriesQuery", handler: "queryServiceTable")
+    queryServiceVersionTable(
+        startTime: String
+        endTime: String
+        SystemServices: Boolean
+        ExternalServices: Boolean
+        ShowGateways: Boolean
+        noMetrics: Boolean
+    ): TimeSeriesData @timeseriesAPI(file: "../../tsquery/timeSeriesQuery", handler: "queryServiceVersionTable")
+    queryServiceNodeMapGroupedByNode(
+        startTime: String
+        endTime: String
+    ): TimeSeriesData @timeseriesAPI(file: "../../tsquery/timeSeriesQuery", handler: "queryServiceNodeMapGroupedByNode")
+    queryServiceNodeMapGroupedByService(
+        startTime: String
+        endTime: String
+    ): TimeSeriesData @timeseriesAPI(file: "../../tsquery/timeSeriesQuery", handler: "queryServiceNodeMapGroupedByService")
+    queryClusterTable(
+        startTime: String
+        endTime: String
+        timeInterval: String
+        noMetrics: Boolean
+    ): TimeSeriesData @timeseriesAPI(file: "../../tsquery/timeSeriesQuery", handler: "queryClusterTable")
+    services(name: String): [Service!] @relation(softlink: "true", parameters: SvcGroupLinkInfo, uuidkey: "true")
+    displayName: String
+    description: String
+    color: String
+    rules: String @jsonencoded(file:"../common-apis/api/tenant/models/resourceGroup", gofile:"resource_group.go", name:"Rules")
+}
+
+type SharedServiceConfig {
+    id: ID
+    spec: String @jsonencoded(file:"../common-apis/api/tenant/models/gnsPublicService", gofile:"gns_shared_service.go", name: "GnsSharedServiceConfig")
+}
+
+type GNS {
+    name: ID
+    queryServiceTS(
+        svcMetric: ServiceMetricTypeEnum
+        startTime: String
+        endTime: String
+        timeInterval: String
+    ): TimeSeriesData @timeseriesAPI(file: "../../tsquery/timeSeriesQuery", handler: "queryServiceTS")
+    queryServiceInstanceTable(
+        startTime: String
+        endTime: String
+        limit: Int
+        last: String
+    ): TimeSeriesData @timeseriesAPI(file: "../../tsquery/timeSeriesQuery", handler: "queryServiceInstanceTable")
+    queryServiceTable(
+        startTime: String
+        endTime: String
+        SystemServices: Boolean
+        ExternalServices: Boolean
+        ShowGateways: Boolean
+        Groupby: ServiceGroupByEnum
+        noMetrics: Boolean
+        limit: Int
+        last: String
+    ): TimeSeriesData @timeseriesAPI(file: "../../tsquery/timeSeriesQuery", handler: "queryServiceTable")
+    queryServiceVersionTable(
+        startTime: String
+        endTime: String
+        SystemServices: Boolean
+        ExternalServices: Boolean
+        ShowGateways: Boolean
+        noMetrics: Boolean
+    ): TimeSeriesData @timeseriesAPI(file: "../../tsquery/timeSeriesQuery", handler: "queryServiceVersionTable")
+    queryServiceTopology(
+        metricStringArray: String
+        startTime: String
+        endTime: String
+    ): TimeSeriesData @timeseriesAPI(file: "../../tsquery/timeSeriesQuery", handler: "queryServiceTopology")
+    queryClusterTable(
+        startTime: String
+        endTime: String
+        timeInterval: String
+        noMetrics: Boolean
+    ): TimeSeriesData @timeseriesAPI(file: "../../tsquery/timeSeriesQuery", handler: "queryClusterTable")
+    queryNodeTable(
+        startTime: String
+        endTime: String
+    ): TimeSeriesData @timeseriesAPI(file: "../../tsquery/timeSeriesQuery", handler: "queryNodeTable")
+    queryServiceNodeMapGroupedByNode(
+        startTime: String
+        endTime: String
+    ): TimeSeriesData @timeseriesAPI(file: "../../tsquery/timeSeriesQuery", handler: "queryServiceNodeMapGroupedByNode")
+    queryServiceNodeMapGroupedByService(
+        startTime: String
+        endTime: String
+    ): TimeSeriesData @timeseriesAPI(file: "../../tsquery/timeSeriesQuery", handler: "queryServiceNodeMapGroupedByService")
+    queryAccessControlPolicyStats(
+        sourceServiceDN: String
+        destinationServiceDN: String
+        policy: String
+        startTime: String
+        endTime: String
+    ): TimeSeriesData @timeseriesAPI(file: "../../tsquery/timeSeriesQuery", handler: "queryAccessControlPolicyStats")
+    queryGNSServiceAPI(
+        service: String
+        version: String
+        showLabels: Boolean
+        openapiFormatting: Boolean
+    ): TimeSeriesData @timeseriesAPI(file: "../../tsquery/timeSeriesQuery", handler: "queryGNSServiceAPI")
+    queryStats(
+        metricStringArray: String
+        destinationService: String
+        destinationServiceVersion: String
+        api: String
+        method: HTTPMethodEnum
+        sourceWorkloadDN: String
+        severity: EventSeverityEnum
+        startTime: String
+        endTime: String
+    ): TimeSeriesData @timeseriesAPI(file: "../../tsquery/timeSeriesQuery", handler: "queryStats")
+    queryLogs(
+        metric: AnalyticsMetricEnum
+        startTime: String
+        endTime: String
+        sourceWorkloadDN: String
+        severity: EventSeverityEnum
+        destinationService: String
+        destinationServiceVersion: String
+        api: String
+        method: HTTPMethodEnum
+        from: Int
+        size: Int
+    ): TimeSeriesData @timeseriesAPI(file: "../../tsquery/timeSeriesQuery", handler: "queryLogs")
+    queryList(
+        metric: AnalyticsMetricEnum
+        startTime: String
+        endTime: String
+        destinationService: String
+        destinationServiceVersion: String
+        api: String
+        method: HTTPMethodEnum
+        limit: Int
+    ): TimeSeriesData @timeseriesAPI(file: "../../tsquery/timeSeriesQuery", handler: "queryList")
+    queryLinechart(
+        metric: AnalyticsMetricEnum
+        subMetric: AnalyticsSubMetricEnum
+        startTime: String
+        endTime: String
+        sourceWorkloadDN: String
+        severity: EventSeverityEnum
+        destinationService: String
+        destinationServiceVersion: String
+        api: String
+        method: HTTPMethodEnum
+        timeInterval: String
+        timeZone: String
+    ): TimeSeriesData @timeseriesAPI(file: "../../tsquery/timeSeriesQuery", handler: "queryLinechart")
+    queryTopN(
+        metric: AnalyticsMetricEnum
+        startTime: String
+        endTime: String
+        destinationService: String
+        destinationServiceVersion: String
+        api: String
+        method: HTTPMethodEnum
+        direction: TrafficDirectionEnum
+        limit: Int
+    ): TimeSeriesData @timeseriesAPI(file: "../../tsquery/timeSeriesQuery", handler: "queryTopN")
+    queryDetail(
+        metric: AnalyticsMetricEnum
+        subMetric: AnalyticsSubMetricEnum
+        startTime: String
+        endTime: String
+        destinationService: String
+        destinationServiceVersion: String
+        api: String
+        method: HTTPMethodEnum
+        direction: TrafficDirectionEnum
+        timeInterval: String
+        timeZone: String
+    ): TimeSeriesData @timeseriesAPI(file: "../../tsquery/timeSeriesQuery", handler: "queryDetail")
+    queryIncomingAPIs(
+        startTime: String
+        endTime: String
+        destinationService: String
+        destinationServiceVersion: String
+        timeInterval: String
+        timeZone: String
+    ): TimeSeriesData @timeseriesAPI(file: "../../tsquery/timeSeriesQuery", handler: "queryIncomingAPIs")
+    queryOutgoingAPIs(
+        startTime: String
+        endTime: String
+        destinationService: String
+        destinationServiceVersion: String
+        timeInterval: String
+        timeZone: String
+    ): TimeSeriesData @timeseriesAPI(file: "../../tsquery/timeSeriesQuery", handler: "queryOutgoingAPIs")
+    queryIncomingTCP(
+        startTime: String
+        endTime: String
+        destinationService: String
+        destinationServiceVersion: String
+    ): TimeSeriesData @timeseriesAPI(file: "../../tsquery/timeSeriesQuery", handler: "queryIncomingTCP")
+    queryOutgoingTCP(
+        startTime: String
+        endTime: String
+        destinationService: String
+        destinationServiceVersion: String
+    ): TimeSeriesData @timeseriesAPI(file: "../../tsquery/timeSeriesQuery", handler: "queryOutgoingTCP")
+    routingConfig: GNSRoutingConfig @relation(parameters: GNSConfigStatus) @deprecated(reason: "Field is deprecated, use routingPolicies for Traffic Routing Policies!")
+    memberGroups(name: ID): [SvcGroup!] @relation(softlink: "true") # to be deprecated
+    gnsServiceGroups(name: ID): [GNSSvcGroup!]
+    members(name: ID): [Domain!] @relation(softlink: "true", uuidkey: "true", parameters: GNSToDomainLinkInfo)
+    publicServices(id: ID): [PublicServiceConfig!] @relation(parameters: PublicServiceConfigStatus)
+    sharedServices(id: ID): [SharedServiceConfig!]
+    sloPolicies(name: ID): [SLOPolicy!]
+    externalServices(id: ID): [ExternalServiceConfig!]
+    autoscalingPolicies(name: ID): [AutoscalingPolicy!]
+    routingPolicies(name: ID): [GNSRoutingConfig!] @relation(parameters: GNSConfigStatus) # List of GNS Traffic Routing Policies
+    apiDiscovery(id: ID): [ApiDiscovery!]
+    GeoDiscovery(id: ID): [GeoDiscovery!]
+    PiiDiscovery(id: ID): [PiiDiscovery!]
+    AttackDiscovery(id: ID): [AttackDiscovery!]
+    UserDiscovery(id: ID): [UserDiscovery!]
+    gnsAccessControlPolicy(id: ID): [GnsAccessControlPolicy!]
+    gnsSchemaViolationDiscovery(id: ID): [GnsSchemaViolationDiscovery!]
+    gnsSegmentationPolicy(id: ID): [GnsSegmentationPolicy!]
+    domain: String
+    useSharedGateway: Boolean
+    mTLSEnforced: Boolean
+    mTLSPermissive: Boolean
+    apiDiscoveryEnabled: Boolean
+    mTLSExceptions: String @jsonencoded(file:"./common/ts/common.d.ts", gofile:"common.go", name:"MtlsExceptions")
+    caType: String
+    ca: String
+    description: String
+    color: String
+    version: String
+    projectId: String
+    memberDomains: String @jsonencoded(file:"./common/ts/common.d.ts", gofile:"common.go", name: "StringList") # to be deprecated
+    matchingConditions: String @jsonencoded(file:"../common-apis/api/tenant/models/globalNamespace", gofile:"global_namespace.go", name:"MatchConditions")
+}
+
+type HaConfigV2 {
+    id: ID
+    configType: String @jsonencoded(file:"./root/runtime/runtime.ts", gofile:"runtime.go", name:"HAType")
+}
+
+type HaConfig {
+    id: ID
+    configType: HaType
+}
+
+type HealthCheckConfigN {
+    id: ID
+    projectId: String
+    config: String @jsonencoded(file:"../common-apis/api/tenant/models/template.ts", gofile:"health_check_config.go", name: "HealthCheckConfig")
+}
+
+type HostConfigV2 {
+    id: ID
+    haConfigV2: HaConfigV2! @relation(name: "HAS", parameters: ConfigChangeStatus)
+    outboundAuthenticationMode: OutboundAuthenticationMode! @relation(name: "HAS", parameters: ConfigChangeStatus)
+    name: String!
+    host: String!
+}
+
+type HostConfig {
+    id: ID
+    haConfig: HaConfig! @relation(name: "HAS", parameters: ConfigChangeStatus)
+    name: String!
+    host: String!
+    ownedBy: String
+}
+
+type InboundAuthenticationConfig {
+    id: ID
+    name: String
+    ownedBy: String
+    mode: String @jsonencoded(file:"./root/runtime/runtime.ts", gofile:"runtime.go", name:"InboundMode")
+    ports: String @jsonencoded(file:"./root/runtime/runtime.ts", gofile:"runtime.go", name:"PortLevelAuthenticationMap")
+}
+
+type Inventory {
+    id: ID
+    queryClusterTable(
+        startTime: String
+        endTime: String
+        timeInterval: String
+        noMetrics: Boolean
+    ): TimeSeriesData @timeseriesAPI(file: "../../tsquery/timeSeriesQuery", handler: "queryClusterTable")
+    queryNodeTS(
+        nodeMetric: NodeMetricTypeEnum
+        startTime: String
+        endTime: String
+        timeInterval: String
+    ): TimeSeriesData @timeseriesAPI(file: "../../tsquery/timeSeriesQuery", handler: "queryNodeTS")
+    queryNodeTable(
+        startTime: String
+        endTime: String
+    ): TimeSeriesData @timeseriesAPI(file: "../../tsquery/timeSeriesQuery", handler: "queryNodeTable")
+    queryServiceTS(
+        svcMetric: ServiceMetricTypeEnum
+        startTime: String
+        endTime: String
+        timeInterval: String
+    ): TimeSeriesData @timeseriesAPI(file: "../../tsquery/timeSeriesQuery", handler: "queryServiceTS")
+    querySloCounts(
+        svcMetric: SloDetailsEnum
+        startTime: String
+        endTime: String
+        timeInterval: String
+    ): TimeSeriesData @timeseriesAPI(file: "../../tsquery/timeSeriesQuery", handler: "querySloCounts")
+    querySloTable(
+        svcMetric: SloDetailsEnum
+        startTime: String
+        endTime: String
+        timeInterval: String
+    ): TimeSeriesData @timeseriesAPI(file: "../../tsquery/timeSeriesQuery", handler: "querySloTable")
+    queryClusterInventoryCount(
+        startTime: String
+        endTime: String
+        timeInterval: String
+    ): TimeSeriesData @timeseriesAPI(file: "../../tsquery/timeSeriesQuery", handler: "queryClusterInventoryCount")
+    queryServiceInstanceTable(
+        startTime: String
+        endTime: String
+        limit: Int
+        last: String
+    ): TimeSeriesData @timeseriesAPI(file: "../../tsquery/timeSeriesQuery", handler: "queryServiceInstanceTable")
+    queryServiceTable(
+        startTime: String
+        endTime: String
+        SystemServices: Boolean
+        ShowGateways: Boolean
+        Groupby: ServiceGroupByEnum
+        noMetrics: Boolean
+        limit: Int
+        last: String
+    ): TimeSeriesData @timeseriesAPI(file: "../../tsquery/timeSeriesQuery", handler: "queryServiceTable")
+    queryServiceVersionTable(
+        startTime: String
+        endTime: String
+        SystemServices: Boolean
+        ShowGateways: Boolean
+        noMetrics: Boolean
+    ): TimeSeriesData @timeseriesAPI(file: "../../tsquery/timeSeriesQuery", handler: "queryServiceVersionTable")
+    queryServiceAPIs(
+        startTime: String
+        endTime: String
+        Continue: String
+        limit: Int
+    ): TimeSeriesData @timeseriesAPI(file: "../../tsquery/timeSeriesQuery", handler: "queryServiceAPIs")
+    queryStats(
+        metricStringArray: String
+        api: String
+        method: HTTPMethodEnum
+        sourceWorkloadDN: String
+        severity: EventSeverityEnum
+        startTime: String
+        endTime: String
+    ): TimeSeriesData @timeseriesAPI(file: "../../tsquery/timeSeriesQuery", handler: "queryStats")
+    queryLogs(
+        metric: AnalyticsMetricEnum
+        startTime: String
+        endTime: String
+        sourceWorkloadDN: String
+        severity: EventSeverityEnum
+        api: String
+        method: HTTPMethodEnum
+        from: Int
+        size: Int
+    ): TimeSeriesData @timeseriesAPI(file: "../../tsquery/timeSeriesQuery", handler: "queryLogs")
+    queryList(
+        metric: AnalyticsMetricEnum
+        startTime: String
+        endTime: String
+        api: String
+        method: HTTPMethodEnum
+        limit: Int
+    ): TimeSeriesData @timeseriesAPI(file: "../../tsquery/timeSeriesQuery", handler: "queryList")
+    queryLinechart(
+        metric: AnalyticsMetricEnum
+        subMetric: AnalyticsSubMetricEnum
+        startTime: String
+        endTime: String
+        sourceWorkloadDN: String
+        severity: EventSeverityEnum
+        api: String
+        method: HTTPMethodEnum
+        timeInterval: String
+        timeZone: String
+    ): TimeSeriesData @timeseriesAPI(file: "../../tsquery/timeSeriesQuery", handler: "queryLinechart")
+    queryTopN(
+        metric: AnalyticsMetricEnum
+        startTime: String
+        endTime: String
+        api: String
+        method: HTTPMethodEnum
+        direction: TrafficDirectionEnum
+        limit: Int
+    ): TimeSeriesData @timeseriesAPI(file: "../../tsquery/timeSeriesQuery", handler: "queryTopN")
+    queryDetail(
+        metric: AnalyticsMetricEnum
+        subMetric: AnalyticsSubMetricEnum
+        startTime: String
+        endTime: String
+        api: String
+        method: HTTPMethodEnum
+        direction: TrafficDirectionEnum
+        timeInterval: String
+        timeZone: String
+    ): TimeSeriesData @timeseriesAPI(file: "../../tsquery/timeSeriesQuery", handler: "queryDetail")
+    queryRiskTracker(
+        startTime: String
+        endTime: String
+        metric: AnalyticsMetricEnum
+        direction: TrafficDirectionEnum
+    ): TimeSeriesData @timeseriesAPI(file: "../../tsquery/timeSeriesQuery", handler: "queryRiskTracker")
+    queryRiskTrackerDetail(
+        startTime: String
+        endTime: String
+        metric: AnalyticsMetricEnum
+        subCategory: String
+        direction: TrafficDirectionEnum
+        from: Int
+        size: Int
+    ): TimeSeriesData @timeseriesAPI(file: "../../tsquery/timeSeriesQuery", handler: "queryRiskTrackerDetail")
+    regions(name: String): [DCRegion!]
+    clusters(name: String): [Cluster!]
+    jobFolder: JobFolder
+    externalDNS(id: ID): [ExternalDNSInventory!]
+}
+
+type Issuer {
+    id: ID
+    name: String
+    metadata: String @jsonencoded(file:"./common/ts/kubernetes.d.ts", gofile:"kubernetes.go", name:"Metadata")
+    venafi: String @jsonencoded
+    status: String @jsonencoded
+}
+
+type JobConfigFolder {
+    id: ID
+    jobConfig(name: ID): [JobConfig!]
+}
+
+type JobConfig {
+    name: ID
+    config: String @jsonencoded(file:"../common-apis/api/tenant/models/job.ts", gofile:"job.go", name:"JobInfo")
+}
+
+type JobFolder {
+    id: ID
+    jobs(name: String): [Job!]
+}
+
+type Job {
+    name: ID
+    status: String @jsonencoded(file:"../common-apis/api/tenant/models/job.ts", gofile:"job.go", name:"JobStatusInfo")
+    projectId: String
+}
+
+type KnativeIngress {
+    id: ID
+    name: String
+    creationTimestamp: String
+    apiLink: String
+    labels: String @jsonencoded(file:"./common/ts/common.d.ts", gofile:"common.go", name:"Labels")
+    annotations: String @jsonencoded
+    spec: String @jsonencoded
+}
+
+type LabelConfig {
+    id: ID
+    labels: String @jsonencoded(file:"./common/ts/common.d.ts", gofile:"common.go", name:"Labels")
+}
+
+type LocalRegistrationServiceCluster {
+    name: ID!
+    resources(name: ID): [LocalRegistrationServiceResource!]
+    tenant: String!
+    type: String
+    version: String!
+    errorCount: Int
+    restartCount: Int
+}
+
+type LocalRegistrationServiceResource {
+    name: ID!
+    type: String
+    location: String
+}
+
+type LocalRegistrationService {
+    id: ID
+    clusters(name: ID): [LocalRegistrationServiceCluster!]
+    template: ServiceTemplate! @relation(softlink: "true", name: "uses")
+    buildID: String!
+    version: String!
+    errorCount: Int
+}
+
+type LogFolder {
+    id: ID
+    log(name: ID): [Log!] @relation(name: "HAS", parameters: LogStatus)
+}
+
+type Log {
+    name: ID
+    request: String @jsonencoded(file:"../common-apis/api/tenant/models/clusterLifecycle.ts", gofile:"cluster_lifecycle.go", name:"LogRequest")
+}
+
+type NetworkAttachmentDefinitionConfig {
+    id: ID
+    metadata: String @jsonencoded(file:"./common/ts/kubernetes.d.ts", gofile:"kubernetes.go", name:"Metadata")
+    name: String!
+    namespace: String
+}
+
+type NetworkAttachmentDefinition {
+    id: ID
+    metadata: String @jsonencoded(file:"./common/ts/kubernetes.d.ts", gofile:"kubernetes.go", name:"Metadata")
+    name: String!
+    namespace: String
+}
+
+type NodeDefinition {
+    name: ID!
+    type: String!
+    version: String!
+    provider: String
+    imageInfo: String
+}
+
+type NodeFolderCluster {
+    name: ID!
+}
+
+type NodeFolder {
+    id: ID
+    clusters(name: ID): [NodeFolderCluster!]
+}
+
+type NodeGroup {
+    name: ID
+    displayName: String
+    description: String
+    scope: String
+    color: String
+    rules: String @jsonencoded(file:"../common-apis/api/tenant/models/resourceGroup", gofile:"resource_group.go", name:"Rules")
+}
+
+type NodeStatus {
+    id: ID
+    addresses: String @jsonencoded
+    allocatable: String @jsonencoded
+    capacity: String @jsonencoded
+    daemonEndpoints: String @jsonencoded
+    conditions: String @jsonencoded
+    images: String @jsonencoded
+}
+
+type NodeTemplate {
+    name: ID!
+    definitionVersions(name: ID): [NodeDefinition!]
+}
+
+type Node {
+    id: ID
+    queryNodeTS(
+        nodeMetric: NodeMetricTypeEnum
+        startTime: String
+        endTime: String
+        timeInterval: String
+    ): TimeSeriesData @timeseriesAPI(file: "../../tsquery/timeSeriesQuery", handler: "queryNodeTS")
+    queryNodeTable(
+        startTime: String
+        endTime: String
+    ): TimeSeriesData @timeseriesAPI(file: "../../tsquery/timeSeriesQuery", handler: "queryNodeTable")
+    status: NodeStatus
+    name: String
+    externalID: String
+    providerID: String
+    architecture: String
+    containerRuntimeVersion: String
+    kernelVersion: String
+    operatingSystem: String
+    osImage: String
+    systemUUID: String
+    hostName: String
+    apiLink: String
+    bootID: String
+    kubeletVersion: String
+    machineID: String
+    creationTimestamp: String
+    annotations: String @jsonencoded
+    labels: String @jsonencoded
+    uid: String
+    spec: String @jsonencoded(file:"./common/ts/kubernetes.d.ts", gofile:"kubernetes.go", name:"NodeSpec")
+    kStatus: String @jsonencoded(file:"./common/ts/kubernetes.d.ts", gofile:"kubernetes.go", name:"KNodeStatus")
+}
+
+type OutboundAuthenticationMode {
+    id: ID
+    mode: String @jsonencoded(file:"./root/runtime/runtime.ts", gofile:"runtime.go", name:"OutboundMode")
+}
+
+type PeerAuthentication {
+    id: ID
+    name: String
+    labels: String @jsonencoded(file:"./common/ts/common.d.ts", gofile:"common.go", name:"Labels")
+    annotations: String @jsonencoded
+    spec: String @jsonencoded(file:"./root/inventory/inventory.d.ts", gofile:"inventory.go", name:"PeerAuthenticationSpec")
+}
+
+type PiiDiscoveryRT {
+    id: ID
+    gnsid: String
+    selectors: String @jsonencoded(file:"../common-apis/api/tenant/models/common", gofile:"gns_pii_discovery.go", name:"PiiDiscoveryClusterResourceSelectorRT")
+    spec: String @jsonencoded(file:"../common-apis/api/tenant/models/gnsPiiDiscovery", gofile:"gns_pii_discovery.go", name:"PiiDiscoveryApplicationConfigList")
+}
+
+type PiiDiscovery {
+    id: ID
+    description: String
+    labels: String @jsonencoded(file:"../common-apis/api/tenant/models/common", gofile:"common.go", name:"LabelsList")
+    spec: String @jsonencoded(file:"../common-apis/api/tenant/models/gnsPiiDiscovery", gofile:"gns_pii_discovery.go", name:"PiiDiscoveryConfig")
+}
+
+type PolicyConfig {
+    id: ID
+    src: String
+    dst: String
+    action: String @jsonencoded(file:"./root/runtime/cluster-folder/cluster-config/domain-config/policy-config/runtime-policy.ts", gofile:"runtime-policy.go", name:"PolicyActions")
+}
+
+type PolicyTemplate {
+    name: ID
+}
+
+type AccessControlPolicy {
+    id: ID
+    policyConfigs(name: ID): [ACPConfig!]
+}
+
+type ProgressiveUpgrade {
+    id: ID
+    upgrade(id: ID): [ProgressiveUpgradeConfig!]
+}
+
+type ProgressiveUpgradeConfig {
+    id: ID!
+    name: String
+    services: String @jsonencoded(file:"./root/config/progressive-upgrade/progressive-upgrade-config/progressive-upgrade.ts", gofile:"progressive_upgrade.go", name: "UpgradeServices")
+    upgradeStrategy: String @jsonencoded(file:"./root/config/progressive-upgrade/progressive-upgrade-config/progressive-upgrade.ts", gofile:"progressive_upgrade.go", name:"ProgressiveUpgradeStrategy")
+}
+
+type ProgressiveUpgradeFolder {
+    id: ID
+    upgrades(id: ID): [ProgressiveUpgradeRuntime!]
+}
+
+type ProgressiveUpgradeRuntime {
+    id: ID
+    upgradeName: String
+    status: String @jsonencoded(file:"./root/config/progressive-upgrade/progressive-upgrade-config/progressive-upgrade.ts", gofile:"progressive_upgrade.go", name:"ProgressiveUpgradeStatus")
+    step: String @jsonencoded(file:"./root/config/progressive-upgrade/progressive-upgrade-config/progressive-upgrade.ts", gofile:"progressive_upgrade.go", name:"ProgressiveUpgradeStep")
+}
+
+type ProjectConfig {
+    id: ID
+    svcGroups(name: ID): [SvcGroup!] @relation(name: "HAS", softlink: "true")
+    gns(name: ID): [GNS!] @relation(name: "HAS", softlink: "true")
+    policyConfigs(name: ID): [ACPConfig!] @relation(name: "HAS", softlink: "true")
+    templateGroups(name: ID): [TemplateGroup!] @relation(name: "HAS", softlink: "true")
+    certificates(id: ID): [CertificateConfigN!] @relation(name: "HAS", softlink: "true")
+    externalAccounts(id: ID): [ExternalAccountConfigN!] @relation(name: "HAS", softlink: "true")
+    externalDNS(id: ID): [ExternalDNSConfigN!] @relation(name: "HAS", softlink: "true")
+    autoscalers(name: String): [Autoscaler!] @relation(name: "HAS", softlink: "true")
+    clusters(name: ID): [ClusterSettings!] @relation(name: "HAS", softlink: "true")
+    serviceLevelObjectives(name: ID): [ServiceLevelObjective!] @relation(name: "HAS", softlink: "true")
+    certificateAuthorities(id: ID): [CertificateAuthorityConfigN!]
+    name: String
+}
+
+type ProjectInventory {
+    id: ID
+    clusters(name: String): [Cluster!] @relation(name: "HAS", softlink: "true")
+    externalDNS(id: ID): [ExternalDNSInventory!] @relation(name: "HAS", softlink: "true")
+    jobs(name: String): [Job!] @relation(name: "HAS", softlink: "true")
+}
+
+type ProjectQuery {
+    id: ID
+    queryClusterTable(
+        startTime: String
+        endTime: String
+        timeInterval: String
+        noMetrics: Boolean
+    ): TimeSeriesData @timeseriesAPI(file: "../../tsquery/timeSeriesQuery", handler: "queryClusterTable")
+    queryNodeTS(
+        nodeMetric: NodeMetricTypeEnum
+        startTime: String
+        endTime: String
+        timeInterval: String
+    ): TimeSeriesData @timeseriesAPI(file: "../../tsquery/timeSeriesQuery", handler: "queryNodeTS")
+    queryNodeTable(
+        startTime: String
+        endTime: String
+    ): TimeSeriesData @timeseriesAPI(file: "../../tsquery/timeSeriesQuery", handler: "queryNodeTable")
+    queryServiceTS(
+        svcMetric: ServiceMetricTypeEnum
+        startTime: String
+        endTime: String
+        timeInterval: String
+    ): TimeSeriesData @timeseriesAPI(file: "../../tsquery/timeSeriesQuery", handler: "queryServiceTS")
+    queryClusterInventoryCount(
+        startTime: String
+        endTime: String
+        timeInterval: String
+    ): TimeSeriesData @timeseriesAPI(file: "../../tsquery/timeSeriesQuery", handler: "queryClusterInventoryCount")
+    queryServiceTable(
+        startTime: String
+        endTime: String
+        SystemServices: Boolean
+        ShowGateways: Boolean
+        Groupby: ServiceGroupByEnum
+        noMetrics: Boolean
+        limit: Int
+        last: String
+    ): TimeSeriesData @timeseriesAPI(file: "../../tsquery/timeSeriesQuery", handler: "queryServiceTable")
+    queryServiceVersionTable(
+        startTime: String
+        endTime: String
+        SystemServices: Boolean
+        ShowGateways: Boolean
+        noMetrics: Boolean
+    ): TimeSeriesData @timeseriesAPI(file: "../../tsquery/timeSeriesQuery", handler: "queryServiceVersionTable")
+    queryStats(
+        metricStringArray: String
+        api: String
+        method: HTTPMethodEnum
+        sourceWorkloadDN: String
+        severity: EventSeverityEnum
+        startTime: String
+        endTime: String
+    ): TimeSeriesData @timeseriesAPI(file: "../../tsquery/timeSeriesQuery", handler: "queryStats")
+    queryLogs(
+        metric: AnalyticsMetricEnum
+        startTime: String
+        endTime: String
+        sourceWorkloadDN: String
+        severity: EventSeverityEnum
+        api: String
+        method: HTTPMethodEnum
+        from: Int
+        size: Int
+    ): TimeSeriesData @timeseriesAPI(file: "../../tsquery/timeSeriesQuery", handler: "queryLogs")
+    queryList(
+        metric: AnalyticsMetricEnum
+        startTime: String
+        endTime: String
+        api: String
+        method: HTTPMethodEnum
+        limit: Int
+    ): TimeSeriesData @timeseriesAPI(file: "../../tsquery/timeSeriesQuery", handler: "queryList")
+    queryLinechart(
+        metric: AnalyticsMetricEnum
+        subMetric: AnalyticsSubMetricEnum
+        startTime: String
+        endTime: String
+        sourceWorkloadDN: String
+        severity: EventSeverityEnum
+        api: String
+        method: HTTPMethodEnum
+        timeInterval: String
+        timeZone: String
+    ): TimeSeriesData @timeseriesAPI(file: "../../tsquery/timeSeriesQuery", handler: "queryLinechart")
+    queryTopN(
+        metric: AnalyticsMetricEnum
+        startTime: String
+        endTime: String
+        api: String
+        method: HTTPMethodEnum
+        direction: TrafficDirectionEnum
+        limit: Int
+    ): TimeSeriesData @timeseriesAPI(file: "../../tsquery/timeSeriesQuery", handler: "queryTopN")
+    queryDetail(
+        metric: AnalyticsMetricEnum
+        subMetric: AnalyticsSubMetricEnum
+        startTime: String
+        endTime: String
+        api: String
+        method: HTTPMethodEnum
+        direction: TrafficDirectionEnum
+        timeInterval: String
+        timeZone: String
+    ): TimeSeriesData @timeseriesAPI(file: "../../tsquery/timeSeriesQuery", handler: "queryDetail")
+    queryRiskTracker(
+        startTime: String
+        endTime: String
+        metric: AnalyticsMetricEnum
+        direction: TrafficDirectionEnum
+    ): TimeSeriesData @timeseriesAPI(file: "../../tsquery/timeSeriesQuery", handler: "queryRiskTracker")
+    queryRiskTrackerDetail(
+        startTime: String
+        endTime: String
+        metric: AnalyticsMetricEnum
+        subCategory: String
+        direction: TrafficDirectionEnum
+        from: Int
+        size: Int
+    ): TimeSeriesData @timeseriesAPI(file: "../../tsquery/timeSeriesQuery", handler: "queryRiskTrackerDetail")
+}
+
+type Project {
+    id: ID
+    config: ProjectConfig
+    inventory: ProjectInventory
+    query: ProjectQuery
+    spec: String @jsonencoded(file: "../common-apis/api/tenant/models/project", gofile: "project.go", name: "ProjectSpec")
+}
+
+type PublicServiceRT {
+    name: ID
+    ownedBy: String
+    fqdnList: [String]
+}
+
+type RemoteGatewayServiceConfig {
+    name: ID
+    ownedBy: String
+    labels: String @jsonencoded(file:"./common/ts/common.d.ts", gofile:"common.go", name:"Labels")
+    nodeIPs: String @jsonencoded(file:"./common/ts/common.d.ts", gofile:"common.go", name:"DMSet")
+    ports: String @jsonencoded(file:"./root/runtime/runtime.ts", gofile:"runtime.go", name:"ServicePortList")
+}
+
+type ResourceGroupRT {
+    id: ID
+    SvcGroupRT(id: ID): [SvcGroupRT!] @relation(name: "HAS", parameters: ConfigChangeStatus)
+}
+
+type ResourceGroup {
+    id: ID
+    appGroups(name: ID): [AppGroup!]
+    svcGroups(name: ID): [SvcGroup!]
+    nodeGroups(name: ID): [NodeGroup!]
+    dataGroups(name: ID): [DataGroup!]
+    userGroups(name: ID): [UserGroup!]
+}
+
+type Root {
+    id: ID
+    config: Config
+    inventory: Inventory
+    runtime: Runtime
+    name: String!
+}
+
+type RPolicy {
+    id: ID
+    healthCheckId: String
+}
+
+type Runtime {
+    id: ID
+    allsparkServices: AllSparkServices
+    userFolder: UserFolder
+    dataFolder: DataFolder
+    appFolder: AppFolder
+    nodeFolder: NodeFolder
+    clusterFolder: ClusterFolder
+    progressiveUpgrade: ProgressiveUpgradeFolder
+    jobConfigFolder: JobConfigFolder
+    externalDNS: ExternalDNSRuntime
+    sloFolder: SLOFolder
+    serviceDirectoryRT: ServiceDirectoryRT
+}
+
+type SchemaViolationDiscoveryRT {
+    id: ID
+    gnsid: String
+    selectors: String @jsonencoded(file: "../common-apis/api/tenant/models/common", gofile:"gns_schema_violation_discovery.go", name:"GnsSchemaViolationDiscoveryClusterResourceSelectorRT")
+    spec: String @jsonencoded(file: "../common-apis/api/tenant/models/gnsSchemaViolationDiscovery", gofile:"gns_schema_violation_discovery.go", name:"GnsSchemaViolationDiscoveryConfig")
+}
+
+type GnsSchemaViolationDiscovery {
+    id: ID
+    description: String
+    labels: String @jsonencoded(file:"../common-apis/api/tenant/models/common", gofile:"common.go", name:"LabelsList")
+    spec: String @jsonencoded(file:"../common-apis/api/tenant/models/gnsSchemaViolationDiscovery", gofile:"gns_schema_violation_discovery.go", name:"GnsSchemaViolationDiscoveryConfig")
+}
+
+type SecretRTConfig {
+    id: ID
+    type: String
+    data: String
+    isBase64Encoded: Boolean
+    ownedBy: String
+}
+
+type SecretHash {
+    id: ID
+    name: String
+    type: String
+    metadata: String @jsonencoded(file:"./common/ts/kubernetes.d.ts", gofile:"kubernetes.go", name:"Metadata")
+    dataHash: String
+}
+
+type SecurityContextConstraintsConfig {
+    id: ID
+    metadata: String @jsonencoded(file:"./common/ts/kubernetes.d.ts", gofile:"kubernetes.go", name:"Metadata")
+    name: String!
+    groups: [String]
+}
+
+type SecurityContextConstraints {
+    id: ID
+    metadata: String @jsonencoded(file:"./common/ts/kubernetes.d.ts", gofile:"kubernetes.go", name:"Metadata")
+    name: String!
+    groups: [String]
+}
+
+type ServiceConfig {
+    id: ID
+    serviceVersion(name: String): [ServiceVersionConfig] @relation(name:"HAS", parameters: ServiceVersionLinkConfig)
+    name: String
+    ownedBy: String
+}
+
+type ServiceCronJob {
+    id: ID
+    serviceInstances(name: String): [ServiceInstance!] @relation(name: "HAS", softlink: "true")
+    serviceJobs(name: String): [ServiceJob!] @relation(name: "HAS", softlink: "true")
+    name: String
+    metadata: String @jsonencoded(file:"./common/ts/kubernetes.d.ts", gofile:"kubernetes.go", name:"Metadata")
+    spec: String @jsonencoded(file:"./common/ts/kubernetes.d.ts", gofile:"kubernetes.go", name:"CronJobSpec")
+    status: String @jsonencoded(file:"./common/ts/kubernetes.d.ts", gofile:"kubernetes.go", name:"CronJobStatus")
+}
+
+type ServiceDaemonSet {
+    id: ID
+    queryWorkloadVersionAPI(
+        version: String
+        showLabels: Boolean
+        openapiFormatting: Boolean
+    ): TimeSeriesData @timeseriesAPI(file: "../../tsquery/timeSeriesQuery", handler: "queryWorkloadVersionAPI")
+    serviceInstances(name: String): [ServiceInstance!] @relation(name: "HAS", softlink: "true")
+    name: String
+    metadata: String @jsonencoded(file:"./common/ts/kubernetes.d.ts", gofile:"kubernetes.go", name:"Metadata")
+    spec: String @jsonencoded(file:"./common/ts/kubernetes.d.ts", gofile:"kubernetes.go", name:"DaemonSetSpec")
+    status: String @jsonencoded(file:"./common/ts/kubernetes.d.ts", gofile:"kubernetes.go", name:"DaemonSetStatus")
+}
+
+type ServiceDeploymentContainer {
+    id: ID
+    name: String
+    image: String
+    imagePullPolicy: String
+    terminationMessagePath: String
+    terminationMessagePolicy: String
+    args: String @jsonencoded
+    env: String @jsonencoded
+    livenessProbe: String @jsonencoded
+    readinessProbe: String @jsonencoded
+    ports: String @jsonencoded
+    resources: String @jsonencoded
+    volumeMounts: String @jsonencoded
+}
+
+type ServiceDeployment {
+    id: ID
+    queryServiceTS(
+        svcMetric: ServiceMetricTypeEnum
+        startTime: String
+        endTime: String
+        timeInterval: String
+    ): TimeSeriesData @timeseriesAPI(file: "../../tsquery/timeSeriesQuery", handler: "queryServiceTS")
+    queryServiceInstanceTable(
+        startTime: String
+        endTime: String
+        limit: Int
+        last: String
+    ): TimeSeriesData @timeseriesAPI(file: "../../tsquery/timeSeriesQuery", handler: "queryServiceInstanceTable")
+    queryWorkloadVersionAPI(
+        version: String
+        showLabels: Boolean
+        openapiFormatting: Boolean
+    ): TimeSeriesData @timeseriesAPI(file: "../../tsquery/timeSeriesQuery", handler: "queryWorkloadVersionAPI")
+    containers(name: String): [ServiceDeploymentContainer]
+    serviceInstances(name: String): [ServiceInstance!] @relation(name: "HAS", softlink: "true")
+    serviceReplicaSet(name: String): [ServiceReplicaSet!] @relation(name: "HAS", softlink: "true")
+    metadata: String @jsonencoded(file:"./common/ts/kubernetes.d.ts", gofile:"kubernetes.go", name:"Metadata")
+    spec: String @jsonencoded(file:"./common/ts/kubernetes.d.ts", gofile:"kubernetes.go", name:"DeploymentSpec")
+    status: String @jsonencoded(file:"./common/ts/kubernetes.d.ts", gofile:"kubernetes.go", name:"DeploymentStatus")
+    namespace: String
+    annotations: String @jsonencoded
+    creationTimestamp: String
+    labels: String @jsonencoded
+    name: String
+    apiLink: String
+    uid: String
+    generation: Int
+    selector: String @jsonencoded
+    replicas: Int
+    dnsPolicy: String
+    restartPolicy: String
+    schedulerName: String
+    securityContext: String @jsonencoded
+    serviceAccount: String
+    serviceAccountName: String
+    terminationGracePeriodSeconds: Int
+    volumes: String @jsonencoded
+    templateLabels: String @jsonencoded
+    statusReplicas: Int
+    availableReplicas: Int
+    updatedReplicas: Int
+    readyReplicas: Int
+    observedGeneration: Int
+    conditions: String @jsonencoded
+}
+
+type ServiceDirectoryEntryConfig {
+    id: ID
+    spec: String @jsonencoded(file:"../common-apis/api/tenant/models/serviceDirectory", gofile:"service_directory_entry.go", name:"ServiceDirectoryEntry")
+}
+
+type ServiceDirectoryRTFolderEntry {
+    id: ID
+    spec: String @jsonencoded(file:"../common-apis/api/tenant/models/serviceDirectory", gofile:"service_directory_entry.go", name:"ServiceDirectoryEntry")
+    spec_type: ServiceDirectoryRTFolderEntryType
+}
+
+type ServiceDirectoryRTFolder {
+    id: ID
+    serviceDirectoryRTFolderEntry(id: ID): [ServiceDirectoryRTFolderEntry!]
+    name: String
+}
+
+type ServiceDirectoryRT {
+    id: ID
+    serviceDirectoryRTFolder(id: ID): [ServiceDirectoryRTFolder!]
+}
+
+type ServiceDirectoryN {
+    id: ID
+    entries(id: ID): [ServiceDirectoryEntryConfig!]
+    spec: String @jsonencoded(file:"../common-apis/api/tenant/models/serviceDirectory", gofile:"service_directory.go", name:"ServiceDirectorySpec")
+}
+
+type ServiceEntryConfig {
+    id: ID
+    name: String
+    ownedBy: String
+    service: String
+    serviceFQDN: String
+    description: String
+    servicePortList: String @jsonencoded(file:"./root/runtime/runtime.ts", gofile:"runtime.go", name:"ServicePortList")
+    tags: [String]
+    labels: String @jsonencoded(file:"./common/ts/common.d.ts", gofile:"common.go", name:"Labels")
+    endpoints: [String]
+    endpointList: String @jsonencoded(file:"./root/runtime/runtime.ts", gofile:"runtime.go", name:"ServiceEndpointList")
+}
+
+type ServiceEntry {
+    id: ID
+    name: String
+    annotations: String @jsonencoded
+    labels: String @jsonencoded
+    creationTimestamp: String
+    apiLink: String
+    uid: String
+    hosts: String @jsonencoded
+    addresses: String @jsonencoded
+    ports: String @jsonencoded
+    location: String
+    resolution: String
+    endpoints: String @jsonencoded
+    exportTo: [String!]
+    workloadSelectorLabels: String @jsonencoded(file:"./common/ts/common.d.ts", gofile:"common.go", name:"Labels")
+}
+
+type SvcGroupRT {
+    id: ID
+    name: String
+    displayName: String
+    description: String
+    services: String @jsonencoded(file:"../common-apis/api/tenant/models/serviceGroup", gofile:"service_group.go", name:"ServiceGroupSvcList")
+}
+
+type ServiceInstanceContainer {
+    id: ID
+    name: String
+    image: String
+    imagePullPolicy: String
+    terminationMessagePath: String
+    terminationMessagePolicy: String
+    resources: String @jsonencoded
+    volumeMounts: String @jsonencoded
+    command: String @jsonencoded
+    securityContext: String @jsonencoded
+}
+
+type ServiceInstance {
+    id: ID
+    queryServiceTS(
+        svcMetric: ServiceMetricTypeEnum
+        startTime: String
+        endTime: String
+        timeInterval: String
+    ): TimeSeriesData @timeseriesAPI(file: "../../tsquery/timeSeriesQuery", handler: "queryServiceTS")
+    queryServiceInstanceTable(
+        startTime: String
+        endTime: String
+        limit: Int
+        last: String
+    ): TimeSeriesData @timeseriesAPI(file: "../../tsquery/timeSeriesQuery", handler: "queryServiceInstanceTable")
+    containers(name: String): [ServiceInstanceContainer]
+    node: Node! @relation(name: "isLocatedOn", softlink: "true")
+    metadata: String @jsonencoded(file:"./common/ts/kubernetes.d.ts", gofile:"kubernetes.go", name:"Metadata")
+    spec: String @jsonencoded(file:"./common/ts/kubernetes.d.ts", gofile:"kubernetes.go", name:"ServiceInstanceSpec")
+    status: String @jsonencoded(file:"./common/ts/kubernetes.d.ts", gofile:"kubernetes.go", name:"ServiceInstanceStatus")
+    name: String
+    namespace: String
+    annotations: String @jsonencoded
+    labels: String @jsonencoded
+    apiLink: String
+    uid: String
+    restartPolicy: String
+    dnsPolicy: String
+    hostNetwork: Boolean
+    securityContext: String @jsonencoded
+    terminationGracePeriodSeconds: Int
+    tolerations: String @jsonencoded
+    statusConditions: String @jsonencoded
+    statusContainer: String @jsonencoded
+    podIP: String
+    qosClass: String
+    phase: String
+    startTime: String
+    nodeName: String
+}
+
+type ServiceJob {
+    id: ID
+    serviceInstances(name: String): [ServiceInstance!] @relation(name: "HAS", softlink: "true")
+    name: String
+    metadata: String @jsonencoded(file:"./common/ts/kubernetes.d.ts", gofile:"kubernetes.go", name:"Metadata")
+    spec: String @jsonencoded(file:"./common/ts/kubernetes.d.ts", gofile:"kubernetes.go", name:"JobSpec")
+    status: String @jsonencoded(file:"./common/ts/kubernetes.d.ts", gofile:"kubernetes.go", name:"JobStatus")
+}
+
+type ServiceLevelObjectiveFolder {
+    id: ID
+    ServiceLevelObjectives(name: ID): [ServiceLevelObjective!]
+}
+
+type ServiceLevelObjective {
+    name: ID!
+    projectId: String
+    disabled: Boolean
+    description: String
+    labels: String @jsonencoded(file:"./common/ts/common.d.ts", gofile:"common.go", name:"Labels")
+    slis: String! @jsonencoded(file: "./root/config/service-level-objective/slo.ts" gofile: "slo.go" name: "ServiceLevelIndicationGroup")
+    sloServices: String! @jsonencoded(file: "./root/config/service-level-objective/slo.ts" gofile: "slo.go" name: "SloServices")
+    sloTargetValue: String! @jsonencoded(file: "./root/config/service-level-objective/slo.ts" gofile: "slo.go" name: "SloTargetValue")
+    sloPeriod: SloPeriodFrequency
+    sloCreationTime: String!
+}
+
+type ServiceReplicaSet {
+    id: ID
+    serviceInstances(name: String): [ServiceInstance!] @relation(name: "HAS", softlink: "true")
+    name: String
+    metadata: String @jsonencoded(file:"./common/ts/kubernetes.d.ts", gofile:"kubernetes.go", name:"Metadata")
+    spec: String @jsonencoded(file:"./common/ts/kubernetes.d.ts", gofile:"kubernetes.go", name:"ReplicaSetSpec")
+    status: String @jsonencoded(file:"./common/ts/kubernetes.d.ts", gofile:"kubernetes.go", name:"ReplicaSetStatus")
+}
+
+type ServiceStatefulSet {
+    id: ID
+    queryWorkloadVersionAPI(
+        version: String
+        showLabels: Boolean
+        openapiFormatting: Boolean
+    ): TimeSeriesData @timeseriesAPI(file: "../../tsquery/timeSeriesQuery", handler: "queryWorkloadVersionAPI")
+    serviceInstances(name: String): [ServiceInstance!] @relation(name: "HAS", softlink: "true")
+    name: String
+    metadata: String @jsonencoded(file:"./common/ts/kubernetes.d.ts", gofile:"kubernetes.go", name:"Metadata")
+    spec: String @jsonencoded(file:"./common/ts/kubernetes.d.ts", gofile:"kubernetes.go", name:"StatefulSetSpec")
+    status: String @jsonencoded(file:"./common/ts/kubernetes.d.ts", gofile:"kubernetes.go", name:"StatefulSetStatus")
+}
+
+type ServiceTemplateServiceDefinition {
+    name: ID!
+    type: String!
+    version: String!
+    template: String!
+    templateArgs: [String!]
+}
+
+type ServiceTemplate {
+    name: ID!
+    serviceDefinitions(name: ID): [ServiceTemplateServiceDefinition!]
+    version: String
+}
+
+type ServiceVersionConfig {
+    id: ID
+    metricMonitors(name: ID): [MetricMonitor]
+    name: String
+    version: String
+}
+
+type MetricMonitor {
+    name: ID
+    ownedBy: String
+    svcMetric: ServiceMetricTypeEnum
+    functionType: MetricMonitorFunction
+    functionArgs: String @jsonencoded(file:"./root/runtime/cluster-folder/cluster-config/domain-config/service-config/service-version-config/metric-monitor.ts", gofile:"metric-monitor.go", name:"FnArgs")
+}
+
+type ServiceVersion {
+    id: ID
+    queryStats(
+        metricStringArray: String
+        api: String
+        method: HTTPMethodEnum
+        sourceWorkloadDN: String
+        severity: EventSeverityEnum
+        startTime: String
+        endTime: String
+    ): TimeSeriesData @timeseriesAPI(file: "../../tsquery/timeSeriesQuery", handler: "queryStats")
+    queryLogs(
+        metric: AnalyticsMetricEnum
+        startTime: String
+        endTime: String
+        sourceWorkloadDN: String
+        severity: EventSeverityEnum
+        api: String
+        method: HTTPMethodEnum
+        from: Int
+        size: Int
+    ): TimeSeriesData @timeseriesAPI(file: "../../tsquery/timeSeriesQuery", handler: "queryLogs")
+    queryList(
+        metric: AnalyticsMetricEnum
+        startTime: String
+        endTime: String
+        api: String
+        method: HTTPMethodEnum
+        limit: Int
+    ): TimeSeriesData @timeseriesAPI(file: "../../tsquery/timeSeriesQuery", handler: "queryList")
+    queryLinechart(
+        metric: AnalyticsMetricEnum
+        subMetric: AnalyticsSubMetricEnum
+        startTime: String
+        endTime: String
+        sourceWorkloadDN: String
+        severity: EventSeverityEnum
+        api: String
+        method: HTTPMethodEnum
+        timeInterval: String
+        timeZone: String
+    ): TimeSeriesData @timeseriesAPI(file: "../../tsquery/timeSeriesQuery", handler: "queryLinechart")
+    queryTopN(
+        metric: AnalyticsMetricEnum
+        startTime: String
+        endTime: String
+        api: String
+        method: HTTPMethodEnum
+        limit: Int
+    ): TimeSeriesData @timeseriesAPI(file: "../../tsquery/timeSeriesQuery", handler: "queryTopN")
+    queryDetail(
+        metric: AnalyticsMetricEnum
+        subMetric: AnalyticsSubMetricEnum
+        startTime: String
+        endTime: String
+        api: String
+        method: HTTPMethodEnum
+        timeInterval: String
+        timeZone: String
+    ): TimeSeriesData @timeseriesAPI(file: "../../tsquery/timeSeriesQuery", handler: "queryDetail")
+    queryIncomingAPIs(
+        startTime: String
+        endTime: String
+        timeInterval: String
+        timeZone: String
+    ): TimeSeriesData @timeseriesAPI(file: "../../tsquery/timeSeriesQuery", handler: "queryIncomingAPIs")
+    queryOutgoingAPIs(
+        startTime: String
+        endTime: String
+        timeInterval: String
+        timeZone: String
+    ): TimeSeriesData @timeseriesAPI(file: "../../tsquery/timeSeriesQuery", handler: "queryOutgoingAPIs")
+    queryIncomingTCP(
+        startTime: String
+        endTime: String
+    ): TimeSeriesData @timeseriesAPI(file: "../../tsquery/timeSeriesQuery", handler: "queryIncomingTCP")
+    queryOutgoingTCP(
+        startTime: String
+        endTime: String
+    ): TimeSeriesData @timeseriesAPI(file: "../../tsquery/timeSeriesQuery", handler: "queryOutgoingTCP")
+    serviceDeployments(name: String): [ServiceDeployment!] @relation(name: "HAS", softlink: "true")
+    serviceDaemonSets(name: String): [ServiceDaemonSet!] @relation(name: "HAS", softlink: "true")
+    serviceStatefulSets(name: String): [ServiceStatefulSet!] @relation(name: "HAS", softlink: "true")
+    name: String!
+}
+
+type Service {
+    id: ID
+    queryServiceAPIs(
+        startTime: String
+        endTime: String
+        version: String
+        showLabels: Boolean
+        openapiFormatting: Boolean
+    ): TimeSeriesData @timeseriesAPI(file: "../../tsquery/timeSeriesQuery", handler: "queryServiceAPIs")
+    queryServiceTS(
+        svcMetric: ServiceMetricTypeEnum
+        startTime: String
+        endTime: String
+        timeInterval: String
+    ): TimeSeriesData @timeseriesAPI(file: "../../tsquery/timeSeriesQuery", handler: "queryServiceTS")
+    querySloDetails(
+        svcMetric: SloDetailsEnum
+        startTime: String
+        endTime: String
+        timeInterval: String
+    ): TimeSeriesData @timeseriesAPI(file: "../../tsquery/timeSeriesQuery", handler: "querySloDetails")
+    querySloCounts(
+        svcMetric: SloDetailsEnum
+        startTime: String
+        endTime: String
+        timeInterval: String
+    ): TimeSeriesData @timeseriesAPI(file: "../../tsquery/timeSeriesQuery", handler: "querySloCounts")
+    querySloTable(
+        svcMetric: SloDetailsEnum
+        startTime: String
+        endTime: String
+        timeInterval: String
+    ): TimeSeriesData @timeseriesAPI(file: "../../tsquery/timeSeriesQuery", handler: "querySloTable")
+    queryServiceInstanceTable(
+        startTime: String
+        endTime: String
+        limit: Int
+        last: String
+    ): TimeSeriesData @timeseriesAPI(file: "../../tsquery/timeSeriesQuery", handler: "queryServiceInstanceTable")
+    queryServiceTopology(
+        metricStringArray: String
+        startTime: String
+        endTime: String
+    ): TimeSeriesData @timeseriesAPI(file: "../../tsquery/timeSeriesQuery", handler: "queryServiceTopology")
+    queryServiceNodeMapGroupedByService(
+        startTime: String
+        endTime: String
+    ): TimeSeriesData @timeseriesAPI(file: "../../tsquery/timeSeriesQuery", handler: "queryServiceNodeMapGroupedByService")
+    queryServiceTable(
+        startTime: String
+        endTime: String
+        SystemServices: Boolean
+        ShowGateways: Boolean
+        Groupby: ServiceGroupByEnum
+        noMetrics: Boolean
+        limit: Int
+        last: String
+    ): TimeSeriesData @timeseriesAPI(file: "../../tsquery/timeSeriesQuery", handler: "queryServiceTable")
+    queryServiceVersionTable(
+        startTime: String
+        endTime: String
+        ShowGateways: Boolean
+        noMetrics: Boolean
+    ): TimeSeriesData @timeseriesAPI(file: "../../tsquery/timeSeriesQuery", handler: "queryServiceVersionTable")
+    queryStats(
+        metricStringArray: String
+        api: String
+        method: HTTPMethodEnum
+        sourceWorkloadDN: String
+        severity: EventSeverityEnum
+        startTime: String
+        endTime: String
+    ): TimeSeriesData @timeseriesAPI(file: "../../tsquery/timeSeriesQuery", handler: "queryStats")
+    queryLogs(
+        metric: AnalyticsMetricEnum
+        startTime: String
+        endTime: String
+        sourceWorkloadDN: String
+        severity: EventSeverityEnum
+        api: String
+        method: HTTPMethodEnum
+        from: Int
+        size: Int
+    ): TimeSeriesData @timeseriesAPI(file: "../../tsquery/timeSeriesQuery", handler: "queryLogs")
+    queryList(
+        metric: AnalyticsMetricEnum
+        startTime: String
+        endTime: String
+        api: String
+        method: HTTPMethodEnum
+        limit: Int
+    ): TimeSeriesData @timeseriesAPI(file: "../../tsquery/timeSeriesQuery", handler: "queryList")
+    queryLinechart(
+        metric: AnalyticsMetricEnum
+        subMetric: AnalyticsSubMetricEnum
+        startTime: String
+        endTime: String
+        sourceWorkloadDN: String
+        severity: EventSeverityEnum
+        api: String
+        method: HTTPMethodEnum
+        timeInterval: String
+        timeZone: String
+    ): TimeSeriesData @timeseriesAPI(file: "../../tsquery/timeSeriesQuery", handler: "queryLinechart")
+    queryTopN(
+        metric: AnalyticsMetricEnum
+        startTime: String
+        endTime: String
+        api: String
+        method: HTTPMethodEnum
+        limit: Int
+    ): TimeSeriesData @timeseriesAPI(file: "../../tsquery/timeSeriesQuery", handler: "queryTopN")
+    queryDetail(
+        metric: AnalyticsMetricEnum
+        subMetric: AnalyticsSubMetricEnum
+        startTime: String
+        endTime: String
+        api: String
+        method: HTTPMethodEnum
+        timeInterval: String
+        timeZone: String
+    ): TimeSeriesData @timeseriesAPI(file: "../../tsquery/timeSeriesQuery", handler: "queryDetail")
+    queryIncomingAPIs(
+        startTime: String
+        endTime: String
+        timeInterval: String
+        timeZone: String
+    ): TimeSeriesData @timeseriesAPI(file: "../../tsquery/timeSeriesQuery", handler: "queryIncomingAPIs")
+    queryOutgoingAPIs(
+        startTime: String
+        endTime: String
+        timeInterval: String
+        timeZone: String
+    ): TimeSeriesData @timeseriesAPI(file: "../../tsquery/timeSeriesQuery", handler: "queryOutgoingAPIs")
+    queryIncomingTCP(
+        startTime: String
+        endTime: String
+    ): TimeSeriesData @timeseriesAPI(file: "../../tsquery/timeSeriesQuery", handler: "queryIncomingTCP")
+    queryOutgoingTCP(
+        startTime: String
+        endTime: String
+    ): TimeSeriesData @timeseriesAPI(file: "../../tsquery/timeSeriesQuery", handler: "queryOutgoingTCP")
+    additionalAttributes(name: String): [AdditionalAttributes!]
+    serviceDeployments(name: String): [ServiceDeployment!] @relation(name: "HAS", softlink: "true")
+    serviceStatefulSets(name: String): [ServiceStatefulSet!] @relation(name: "HAS", softlink: "true")
+    serviceDaemonSets(name: String): [ServiceDaemonSet!] @relation(name: "HAS", softlink: "true")
+    endpoints(name: String): [Endpoints!] @relation(name: "HAS", softlink: "true")
+    serviceVersions(name: String): [ServiceVersion!]
+    serviceReplicaSets(name: String): [ServiceReplicaSet!] @relation(name: "HAS", softlink: "true") @deprecated(reason: "link not maintained")
+    serviceJobs(name: String): [ServiceJob!] @relation(name: "HAS", softlink: "true") @deprecated(reason: "link not maintained")
+    metadata: String @jsonencoded(file:"./common/ts/kubernetes.d.ts", gofile:"kubernetes.go", name:"Metadata")
+    spec: String @jsonencoded(file:"./common/ts/kubernetes.d.ts", gofile:"kubernetes.go", name:"ServiceSpec")
+    name: String
+    namespace: String
+    apiLink: String
+    ipAddress: String
+    annotations: String @jsonencoded
+    creationTimestamp: String
+    labels: String @jsonencoded
+    uid: String
+    ports: String @jsonencoded
+    selector: String @jsonencoded
+    type: String
+    status: String @jsonencoded
+}
+
+type SloConfig {
+    id: ID
+    sloServices(name: String): [SloServiceConfig!]
+    name: String
+}
+
+type SloServiceConfig {
+    id: ID
+    name: String
+    remainingBudget: Int
+    lastUpdateTime: String
+}
+
+type SLOFolder {
+    name: ID
+    slos(name: String): [FederatedSloConfig!]
+}
+
+type FederatedSloConfig {
+    id: ID
+    sloServices(name: String): [FederatedSloServiceConfig!]
+    name: String
+}
+
+type FederatedSloServiceConfig {
+    id: ID
+    name: String
+    remainingBudget: Int
+    lastUpdateTime: String
+}
+
+type SLOPolicy {
+    id: ID
+    name: String!
+    disabled: Boolean
+    description: String
+    labels: String @jsonencoded(file:"./common/ts/common.d.ts", gofile:"common.go", name:"Labels")
+    slis: String! @jsonencoded(file:"./root/config/service-level-objective/slo.ts", gofile:"slo.go", name:"ServiceLevelIndicationGroup")
+    serviceNames: [String!]
+    sloTargetValue: String! @jsonencoded(file:"./root/config/service-level-objective/slo.ts", gofile:"slo.go", name:"SloTargetValue")
+    sloPeriod: SloPeriodFrequency!
+    sloKind: SLOKind!
+    actions: [String]
+    sloCreationTime: String!
+}
+
+type SvcGroup {
+    name: ID
+    queryServiceTS(
+        svcMetric: ServiceMetricTypeEnum
+        startTime: String
+        endTime: String
+        timeInterval: String
+    ): TimeSeriesData @timeseriesAPI(file: "../../tsquery/timeSeriesQuery", handler: "queryServiceTS")
+    queryServiceInstanceTable(
+        startTime: String
+        endTime: String
+        limit: Int
+        last: String
+    ): TimeSeriesData @timeseriesAPI(file: "../../tsquery/timeSeriesQuery", handler: "queryServiceInstanceTable")
+    queryServiceTable(
+        startTime: String
+        endTime: String
+        SystemServices: Boolean
+        ExternalServices: Boolean
+        ShowGateways: Boolean
+        Groupby: ServiceGroupByEnum
+        noMetrics: Boolean
+        limit: Int
+        last: String
+    ): TimeSeriesData @timeseriesAPI(file: "../../tsquery/timeSeriesQuery", handler: "queryServiceTable")
+    queryServiceVersionTable(
+        startTime: String
+        endTime: String
+        SystemServices: Boolean
+        ExternalServices: Boolean
+        ShowGateways: Boolean
+        noMetrics: Boolean
+    ): TimeSeriesData @timeseriesAPI(file: "../../tsquery/timeSeriesQuery", handler: "queryServiceVersionTable")
+    queryServiceNodeMapGroupedByNode(
+        startTime: String
+        endTime: String
+    ): TimeSeriesData @timeseriesAPI(file: "../../tsquery/timeSeriesQuery", handler: "queryServiceNodeMapGroupedByNode")
+    queryServiceNodeMapGroupedByService(
+        startTime: String
+        endTime: String
+    ): TimeSeriesData @timeseriesAPI(file: "../../tsquery/timeSeriesQuery", handler: "queryServiceNodeMapGroupedByService")
+    queryClusterTable(
+        startTime: String
+        endTime: String
+        timeInterval: String
+        noMetrics: Boolean
+    ): TimeSeriesData @timeseriesAPI(file: "../../tsquery/timeSeriesQuery", handler: "queryClusterTable")
+    services(name: String): [Service!] @relation(softlink: "true", parameters: SvcGroupLinkInfo, uuidkey: "true")
+    deployments(name: String): [ServiceDeployment!] @relation(softlink: "true", parameters: SvcGroupLinkInfo, uuidkey: "true")
+    daemonsets(name: String): [ServiceDaemonSet!] @relation(softlink: "true", parameters: SvcGroupLinkInfo, uuidkey: "true")
+    statefulsets(name: String): [ServiceStatefulSet!] @relation(softlink: "true", parameters: SvcGroupLinkInfo, uuidkey: "true")
+    jobs(name: String): [ServiceJob!] @relation(softlink: "true", parameters: SvcGroupLinkInfo, uuidkey: "true")
+    displayName: String
+    internalPredefinedGroup: Boolean
+    description: String
+    color: String
+    projectId: String
+    rules: String @jsonencoded(file:"../common-apis/api/tenant/models/resourceGroup", gofile:"resource_group.go", name:"Rules")
+}
+
+type Table {
+    name: ID!
+    template: Template @relation(softlink: "true")
+    inventory: Inventory @relation(softlink: "true")
+}
+
+type TemplateGroup {
+    name: ID!
+    dataTemplates(name: ID): [DataTemplate!]
+    nodeTemplates(name: ID): [NodeTemplate!]
+    appTemplates(name: ID): [AppTemplate!]
+    serviceTemplates(name: ID): [ServiceTemplate!]
+    policyTemplates(name: ID): [PolicyTemplate!]
+    projectId: String
+}
+
+type Template {
+    id: ID
+    templateGroups(name: ID): [TemplateGroup!]
+    healthChecks(id: ID): [HealthCheckConfigN!]
+}
+
+type TenantResource {
+    name: ID!
+    type: String
+    location: String
+}
+
+type TenantToken {
+    id: ID!
+    ttl: Int
+    created: String
+    tenantId: String
+}
+
+type Tenant {
+    tenantID: ID!
+    resources(name: ID): [TenantResource!]
+    template: ServiceTemplate! @relation(softlink: "true", name: "uses")
+    annotations(name: String): [Annotation]
+    name: String!
+    tenantName: String!
+    contactEmail: String!
+    yaml: String
+    lb: String
+    companySize: String
+    address: String
+}
+
+type UserDiscoveryRT {
+    id: ID
+    gnsid: String
+    selectors: String @jsonencoded(file:"../common-apis/api/tenant/models/common", gofile:"gns_user_discovery.go", name:"UserDiscoveryClusterResourceSelectorRT")
+    spec: String @jsonencoded(file:"../common-apis/api/tenant/models/gnsUserDiscovery", gofile:"gns_user_discovery.go", name:"UserDiscoveryApplicationConfigList")
+}
+
+type UserDiscovery {
+    id: ID
+    description: String
+    labels: String @jsonencoded(file:"../common-apis/api/tenant/models/common", gofile:"common.go", name:"LabelsList")
+    spec: String @jsonencoded(file:"../common-apis/api/tenant/models/gnsUserDiscovery", gofile:"gns_user_discovery.go", name:"UserDiscoveryConfig")
+}
+
+type UserFolder {
+    id: ID
+    users(name: ID): [User!]
+    appUsers(name: ID): [AppUser!]
+    AccessToken(id: String): [AccessToken!]
+}
+
+type UserGroup {
+    name: ID
+    displayName: String
+    description: String
+    scope: String
+    color: String
+    rules: String @jsonencoded(file:"../common-apis/api/tenant/models/resourceGroup", gofile:"resource_group.go", name:"Rules")
+}
+
+type UserPreference {
+    id: ID
+    name: String
+    data: String
+    userId: ID
+}
+
+type User {
+    id: ID
+    preferences(id: ID): [UserPreference]
+    username: String
+    password: String
+    email: String
+    accessTokens: [String]
+    lastActionDate: String
+}
+
+type VirtualService {
+    id: ID
+    destinationRules(name: String): [DestinationRule!] @relation(name: "pointsTo", softlink: "true")
+    services(name: String): [Service!] @relation(name: "pointsTo", softlink: "true")
+    gateways(name: String): [Gateway!] @relation(name: "pointsTo", softlink: "true")
+    name: String
+    creationTimestamp: String
+    apiLink: String
+    uid: String
+    annotations: String @jsonencoded
+    labels: String @jsonencoded
+    hosts: String @jsonencoded
+    http: String @jsonencoded
+    tls: String @jsonencoded
+    tcp: String @jsonencoded
+    gatewayNames: String @jsonencoded
+    exportTo: [String!]
+}
+
+type WorkloadEntry {
+    id: ID
+    name: String
+    annotations: String @jsonencoded
+    labels: String @jsonencoded
+    creationTimestamp: String
+    apiLink: String
+    uid: String
+    address: String
+    workloadLabels: String @jsonencoded
+    ports: String @jsonencoded
+    locality: String
+}
+    enum ExternalDNSRecordType {
+    A
+    AAAA
+    AFSDB
+    APL
+    CAA
+    CDNSKEY
+    CDS
+    CERT
+    CNAME
+    CSYNC
+    DHCID
+    DLV
+    DNAME
+    DNSKEY
+    DS
+    EUI48
+    EUI64
+    HINFO
+    HIP
+    IPSECKEY
+    KEY
+    KX
+    LOC
+    MX
+    NAPTR
+    NS
+    NSEC
+    NSEC3
+    NSEC3PARAM
+    OPENPGPKEY
+    PTR
+    RRSIG
+    RP
+    SIG
+    SMIMEA
+    SOA
+    SRV
+    SSHFP
+    TA
+    TKEY
+    TLSA
+    TSIG
+    TXT
+    URI
+    ZONEMD
+}
+
+enum ServiceMetricTypeEnum {
+    RequestPS
+    Requests
+    Latency
+    p50Latency
+    p90Latency
+    p99Latency
+    ErrorRate
+    ErrorPS
+    ClusterCount
+    NodeCount
+    ServiceCount
+    ServiceInstanceCount
+    Response2xx
+    Response3xx
+    Response4xx
+    Response5xx
+    SuccessRate
+    CPUUsageMillicores
+    MemoryUsageBytes
+    RequestResponse
+    DesiredInstanceCount
+    TotalErrorBudget
+    RemainingErrorBudget
+    RemainingErrorBudgetPercentage
+    IsViolated
+    ViolatedSlis
+}
+
+enum SloDetailsEnum {
+    TotalErrorBudget
+    RemainingErrorBudget
+    RemainingErrorBudgetPercentage
+    IsViolated
+    ViolatedSlis
+    SloSummary
+    SloStatus
+    GnsSloStatus
+    BurnRate
+    SloPerformanceTable
+}
+
+enum NodeMetricTypeEnum {
+    CPUCapacity
+    CPUUsage
+    DiskCapacity
+    DiskUsages
+    DiskIO
+    DiskWait
+    MemoryCapacity
+    MemoryUsages
+    MemoryUsagesBytes
+    IOWait
+    NetworkIO
+    ServiceCount
+    ServiceInstanceCount
+}
+
+enum ServiceGroupByEnum {
+    serviceversions
+}
+
+enum AnalyticsMetricEnum {
+    Endpoint
+    PII
+    Compliance
+    Error
+    Attack
+    Event
+    Geo
+    User
+    EgressDomain
+    GlobalNamespace
+    ResponseCode
+    Workload
+    Service
+    RequestRate
+    RequestSize
+    ResponseSize
+    Latency
+    ConnectionDuration
+    ConnectionRate
+    BytesSent
+    BytesReceived
+    GeoWithPII
+    GeoUnderAttack
+    AuthError
+}
+
+enum AnalyticsSubMetricEnum {
+    RequestRate
+    RequestSize
+    ResponseSize
+    Latency
+    ConnectionDuration
+    ConnectionRate
+    BytesSent
+    BytesReceived
+}
+
+enum HTTPMethodEnum {
+    GET
+    POST
+    PUT
+    DELETE
+    HEAD
+    PATCH
+}
+
+enum EventSeverityEnum {
+    Info
+    Warning
+    Critical
+}
+
+enum TrafficDirectionEnum {
+    Ingress
+    Internal
+    Egress
+}
+
+enum GNSPluginState {
+    IDLE,
+    PROCESSING,
+    SYNCING,
+    SYNCED,
+    ERROR
+}
+
+enum SLOKind {
+    Monitored
+    Actionable
+}
+
+enum OperationType {
+    SERVICE
+    NODE
+    USER
+    API
+    DATA
+}
+
+enum Action {
+    FEDERATE
+}
+
+enum SloPeriodFrequency {
+    Unknown
+    Monthly
+}
+
+enum ConfigChangeState {
+    APPLIED,
+    INSYNC,
+    INERROR
+}
+
+enum ExternalServicesRTProtocols {
+    HTTP,
+    HTTPS,
+    TCP,
+    TLS
+}
+
+enum MetricMonitorFunction {
+    Aggregate # Exampe arg to this fn: {windowSeconds: 600}
+    CheckThreshold # Example arg to this fn: {windowSeconds: 600, threshold: 300}
+}
+
+enum HaType {
+    BASIC
+}
+
+enum LogState {
+    NOT_FETCHED,
+    FETCHING,
+    COMPLETED,
+    FAILED
+}
+
+enum ServiceDirectoryRTFolderEntryType {
+    FromGNS,
+    DirectAdd
+}
+
+    type ExternalAccountConfigStatus {
+    status: String @jsonencoded(file:"../common-apis/api/tenant/models/externalAccount", gofile:"external_account.go", name: "ExternalAccountStatus")
+}
+
+type PublicServiceConfigStatus {
+    status: String @jsonencoded(file:"../common-apis/api/tenant/models/gnsPublicService.ts", gofile:"gns_public_service.go", name: "GnsPublicServiceStatus")
+}
+
+type GNSToDomainLinkInfo {
+    clusterName: String
+    domainName: String
+}
+
+type GNSConfigStatus {
+    state: GNSPluginState
+    configsSynced: Int
+    timestamp: Int
+    warnings: String @jsonencoded(file:"./root/config/global-namespace/gns/gns-config-status.ts", gofile:"gns_config_status.go", name:"GNSConfigStatusWarnings")
+    errors: String @jsonencoded(file:"./root/config/global-namespace/gns/gns-config-status.ts", gofile:"gns_config_status.go", name:"GNSConfigStatusErrors")
+    history: String @jsonencoded(file:"./root/config/global-namespace/gns/gns-config-status.ts", gofile:"gns_config_status.go", name:"GNSConfigStatusHistory")
+}
+
+type PublicServiceRouteConfigStatus {
+    status: String @jsonencoded(file:"../common-apis/api/tenant/models/gnsPublicService.ts", gofile:"gns_public_service.go", name: "GnsPublicServiceRouteStatus")
+}
+
+type ACPSvcGroupLinkInfo {
+    serviceName: String
+    serviceType: String
+}
+
+type SvcGroupLinkInfo {
+    clusterName: String
+    domainName: String
+    serviceName: String
+    serviceType: String
+}
+
+type SVToControllerLinkParam {
+    subsetName: String
+    trafficWeight: Int
+}
+
+type ServiceVersionLinkConfig {
+    weight: Int
+    currentChangeId: String
+    currentState: ConfigChangeState
+    errorStatus: String
+}
+
+type LogStatus {
+    state: LogState
+    path: String
+    message: String
+}
+
+type ExternalDNSEndpointRuntimeStatus {
+    currentChangeId: String
+    currentState: ConfigChangeState
+    lastUpdateTime: Int
+    retryCnt: Int
+    errors: String @jsonencoded(file:"./root/runtime/config-change-status.ts", gofile:"config_change_status.go", name:"ConfigChangeStatusErrors")
+    warnings: String @jsonencoded(file:"./root/runtime/config-change-status.ts", gofile:"config_change_status.go", name:"ConfigChangeStatusWarnings")
+    history: String @jsonencoded(file:"./root/runtime/config-change-status.ts", gofile:"config_change_status.go", name:"ConfigChangeStatusHistory")
+    healthStatus: String @jsonencoded(file:"../common-apis/api/tenant/models/gnsPublicService", gofile:"health_check_status.go", name:"HealthCheckStatus")
+}
+
+# This link property type is used by many types across the runtime tree.
+type ConfigChangeStatus {
+    currentChangeId: String
+    currentState: ConfigChangeState
+    lastUpdateTime: Int
+    retryCnt: Int
+    errors: String @jsonencoded(file:"./root/runtime/config-change-status.ts", gofile:"config_change_status.go", name:"ConfigChangeStatusErrors")
+    warnings: String @jsonencoded(file:"./root/runtime/config-change-status.ts", gofile:"config_change_status.go", name:"ConfigChangeStatusWarnings")
+    history: String @jsonencoded(file:"./root/runtime/config-change-status.ts", gofile:"config_change_status.go", name:"ConfigChangeStatusHistory")
+}
+
+type ClusterSettingsStatus {
+    syncStatus: String @jsonencoded(file:"../common-apis/api/tenant/models/clusterLifecycle.ts", gofile:"cluster_lifecycle.go", name:"ClusterSyncStatus")
+    caSyncStatus: String @jsonencoded(file:"../common-apis/api/tenant/models/clusterLifecycle.ts", gofile:"cluster_lifecycle.go", name:"CaSyncStatus")
+    processedNamespaces: [String]
+    onboardURL: String
+    token: String
+    tokenId: String
+    tokenCreationTs: String
+}
+
+type ResourceGroupRef {
+    name: String
+    type: String
+}
+    type TimeSeriesData {
+  code: Int
+  data: String @jsonencoded
+  last: String
+  message: String
+  totalRecords: Int
+}
+
