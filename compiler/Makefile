@@ -19,6 +19,7 @@ DATAMODEL_PATH ?= datamodel
 CONFIG_FILE ?= ""
 GENERATED_OUTPUT_DIRECTORY ?= generated
 COMPILER_SRC_DIRECTORY ?= ""
+FORCE ?= false
 
 NEXUS_KUBEOPENAPI_VERSION ?= 7416bd4754d3c0dd8b3fa37fff53d36594f11607
 NEXUS_GRAPHQLGEN_VERSION ?= 32f028bce22efeb70b47a640195bd969dbb337f0
@@ -57,9 +58,10 @@ docker.builder:
 	docker build --no-cache -t ${BUILDER_NAME}:${BUILDER_TAG} builder/
 
 .PHONY: docker
-docker: init_submodules ${BUILDER_NAME}\:${BUILDER_TAG}.image.exists build_openapigen_in_container build_gqlgen_in_container
+docker: init_submodules ${BUILDER_NAME}\:${BUILDER_TAG}.image.exists build_openapigen_in_container build_gqlgen_in_container build_install_validator_in_container
 	git archive -o compiler.tar --format=tar HEAD
-	tar -rf compiler.tar ../.git ../.gitmodules ../gqlgen ../kube-openapi ../nexus
+	ls ..
+	tar -rf compiler.tar ../.git ../.gitmodules ../gqlgen ../kube-openapi ../nexus ../install-validator ../common-library
 	docker build --no-cache \
 		--build-arg BUILDER_TAG=${BUILDER_TAG} \
 		-t ${IMAGE_NAME}:${TAG} .
@@ -96,6 +98,12 @@ build_gqlgen_in_container:
 
 build_gqlgen:
 	GOBIN=${PKG_NAME}/cmd go install ../gqlgen
+
+build_install_validator_in_container:
+	$(call run_in_container,make build_install_validator)
+
+build_install_validator:
+	cd ../install-validator && GOBIN=${PKG_NAME}/cmd go install ./cmd/validate
 
 .PHONY: unit-test
 unit-test:
@@ -149,14 +157,15 @@ generate_code:
 	CRD_MODULE_PATH=${CRD_MODULE_PATH} go run cmd/nexus-sdk/main.go -config-file ${CONFIG_FILE} -dsl ${DATAMODEL_PATH} -crd-output _generated -log-level ${LOG_LEVEL}
 	mv _generated/api_names.sh scripts/
 	@echo "Nexus Compiler: Resolving datamodel dependencies"
-	cd _generated && ../scripts/pin_deps.sh ${COMPILER_SRC_DIRECTORY} && go mod tidy -e
+	cd _generated && ../scripts/pin_deps.sh ${COMPILER_SRC_DIRECTORY} && go mod tidy -e 2>/dev/null
 	@echo "Nexus Compiler: Generating kuberenetes APIs"
 	./scripts/generate_k8s_api.sh
 	@echo "Nexus Compiler: Generating openapi schema"
 	./scripts/generate_openapi_schema.sh
 	@echo "Nexus Compiler: Generating CRD yamls"
-	go run cmd/generate-openapischema/generate-openapischema.go -yamls-path _generated/crds
+	go run cmd/generate-openapischema/generate-openapischema.go -yamls-path _generated/crds -existing-CRDs-Path ${GENERATED_OUTPUT_DIRECTORY}/crds -force ${FORCE}
 	git checkout -- pkg/openapi_generator/openapi/openapi_generated.go
+	rm -rf ${GENERATED_OUTPUT_DIRECTORY}/{client,apis,crds,common,nexus-client,helper,nexus-gql}
 	cp -r _generated/{client,apis,crds,common,nexus-client,helper,nexus-gql} ${GENERATED_OUTPUT_DIRECTORY}
 	@echo "Nexus Compiler: Generating GRAPHQL PKG"
 	cd _generated && goimports -w .
@@ -165,7 +174,7 @@ generate_code:
 	cd ${GOPATH}/src/nexustempmodule && cd nexus-gql && go mod init && \
 	go mod edit -replace nexustempmodule=${GOPATH}/src/nexustempmodule && \
 	${COMPILER_SRC_DIRECTORY}/scripts/pin_graphql_build_version.sh ${COMPILER_SRC_DIRECTORY} && \
-	go mod tidy -e && \
+	go mod tidy -e 2>/dev/null && \
 	CGO_ENABLED=1 GOOS=linux \
 	go build --trimpath -o graphql.so -buildmode=plugin server.go
 	@echo "Updating module name"
@@ -176,6 +185,8 @@ generate_code:
 	@echo "Nexus Compiler: Moving files to output directory"
 	cp -r _generated/{client,apis,crds,common,nexus-client,helper,nexus-gql} ${GENERATED_OUTPUT_DIRECTORY}
 	cp -r ${GOPATH}/src/nexustempmodule/nexus-gql/graphql.so ${GENERATED_OUTPUT_DIRECTORY}/nexus-gql
+	mkdir -p ${GENERATED_OUTPUT_DIRECTORY}/install-validator
+	cp -r ${GOPATH}/src/github.com/vmware-tanzu/graph-framework-for-microservices/install-validator/install.so ${GENERATED_OUTPUT_DIRECTORY}/install-validator/install.so || echo "Could not find install.so file, skipping"
 	@echo "Nexus Compiler: Compiler code generation completed"
 
 .PHONY: test_generate_code_in_container

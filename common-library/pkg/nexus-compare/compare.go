@@ -21,6 +21,7 @@ const (
 	StatusMatch   = ".*properties\\/status.*"
 	SingletonPath = "/is_singleton"
 	ApiGenPath    = "/nexus-rest-api-gen"
+	RequiredPath  = "/required"
 )
 
 func CompareFiles(data1, data2 []byte) (bool, *bytes.Buffer, error) {
@@ -28,7 +29,7 @@ func CompareFiles(data1, data2 []byte) (bool, *bytes.Buffer, error) {
 	headerColor, _ := colorful.Hex("#B9311B")
 	fileColor, _ := colorful.Hex("#088F8F")
 
-	name, err := getSpecName(data1)
+	name, err := GetSpecName(data1)
 	if err != nil {
 		return true, nil, err
 	}
@@ -163,7 +164,7 @@ func filterReport(r *dyff.Report) *dyff.Report {
 	for _, di := range r.Diffs {
 		var ds []dyff.Detail
 		for _, d := range di.Details {
-			if d.From == nil && d.To != nil { // allow to add stuff
+			if d.From == nil && d.To != nil && !strings.HasSuffix(di.Path.String(), RequiredPath) { // allow to add stuff, but not in required list
 				continue
 			}
 			if di.Path.String() == SingletonPath && d.From.Value == strconv.FormatBool(true) && d.To.Value == strconv.FormatBool(false) { // allow singleton change to false
@@ -186,11 +187,11 @@ func filterReport(r *dyff.Report) *dyff.Report {
 }
 
 func getAnnotationReport(data1, data2 []byte) (dyff.Report, error) {
-	aNexus, err := getMapNode(data1, []string{"metadata", "annotations", "nexus"})
+	aNexus, err := GetMapNode(data1, []string{"metadata", "annotations", "nexus"})
 	if err != nil {
 		return dyff.Report{}, err
 	}
-	bNexus, err := getMapNode(data2, []string{"metadata", "annotations", "nexus"})
+	bNexus, err := GetMapNode(data2, []string{"metadata", "annotations", "nexus"})
 	if err != nil {
 		return dyff.Report{}, err
 	}
@@ -246,7 +247,7 @@ func writeTempFile(data []byte) (*os.File, error) {
 	return aFile, err
 }
 
-func getSpecName(data []byte) (string, error) {
+func GetSpecName(data []byte) (string, error) {
 	t := make(map[string]interface{})
 	err := yaml.Unmarshal(data, &t)
 	if err != nil {
@@ -255,7 +256,7 @@ func getSpecName(data []byte) (string, error) {
 	return t["metadata"].(map[string]interface{})["name"].(string), nil
 }
 
-func getMapNode(data []byte, path []string) (interface{}, error) {
+func GetMapNode(data []byte, path []string) (interface{}, error) {
 	var t interface{}
 	var ok bool
 	errPath := "root"
