@@ -384,10 +384,10 @@ func getTsmGraphqlSchemaFieldName(sType GraphQLSchemaType, fieldName, schemaType
 
 func addJsonencodedAnnotation(f *ast.Field, annotation parser.FieldAnnotation, name string, schemaName string) string {
 	if parser.IsFieldAnnotationPresent(f, annotation) {
-		schemaName += fmt.Sprintf(` @jsonencoded(file:"%s" gofile:"model.go" name:"%s")`,
+		schemaName += fmt.Sprintf(` @jsonencoded(file:"%s", gofile:"model.go", name:"%s")`,
 			parser.GetFieldAnnotationVal(f, annotation), name)
 	} else {
-		schemaName += fmt.Sprintf(` @jsonencoded(gofile:"model.go" name:"%s")`, name)
+		schemaName += fmt.Sprintf(` @jsonencoded(gofile:"model.go", name:"%s")`, name)
 	}
 	return schemaName
 }
