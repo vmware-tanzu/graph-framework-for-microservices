@@ -17,11 +17,11 @@ import (
 )
 
 const (
-	SpecMatch     = ".*properties\\/spec.*"
-	StatusMatch   = ".*properties\\/status.*"
-	SingletonPath = "/is_singleton"
-	ApiGenPath    = "/nexus-rest-api-gen"
-	RequiredPath  = "/required"
+	SpecMatch      = ".*properties\\/spec.*"
+	StatusMatch    = ".*properties\\/status.*"
+	SingletonPath  = "/is_singleton"
+	ApiGenPath     = "/nexus-rest-api-gen"
+	RequiredString = "required"
 )
 
 func CompareFiles(data1, data2 []byte) (bool, *bytes.Buffer, error) {
@@ -164,8 +164,10 @@ func filterReport(r *dyff.Report) *dyff.Report {
 	for _, di := range r.Diffs {
 		var ds []dyff.Detail
 		for _, d := range di.Details {
-			if d.From == nil && d.To != nil && !strings.HasSuffix(di.Path.String(), RequiredPath) { // allow to add stuff, but not in required list
-				continue
+			if d.From == nil && d.To != nil && !strings.HasSuffix(di.Path.String(), fmt.Sprintf("/%s", RequiredString)) { // allow to add stuff, but not in required list
+				if len(d.To.Content) == 0 || d.To.Content[0].Value != RequiredString { //allow to add required map field
+					continue
+				}
 			}
 			if di.Path.String() == SingletonPath && d.From.Value == strconv.FormatBool(true) && d.To.Value == strconv.FormatBool(false) { // allow singleton change to false
 				continue
