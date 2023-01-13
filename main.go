@@ -121,7 +121,6 @@ func TestHandler(w http.ResponseWriter, r *http.Request) {
 		worker := workmanager.Worker{
 			FuncMap: restTests.FuncMap,
 		}
-		testMap[testKey] = &worker
 		for _, test := range conf.Tests {
 			// Default sample rate
 			log.Println("Test Name: ", test.Name)
@@ -172,6 +171,12 @@ func main() {
 
 func testRunner(w *workmanager.Worker, funcKey string, concurrency int, timeout int, tsdbConnStr string, test string) {
 	log.Println(funcKey)
+	testMap[test] = w
+	defer delete(testMap, test)
+	_, ok := w.FuncMap[funcKey]
+	if !ok {
+		log.Printf("test doesn't exist %s", funcKey)
+	}
 	w.WorkerStart(funcKey, concurrency, timeout)
 	time.Sleep(5 * time.Second)
 	content, err := w.GatherTestTraces(funcKey)
@@ -186,5 +191,4 @@ func testRunner(w *workmanager.Worker, funcKey string, concurrency int, timeout 
 		// insert data onto timescale db
 		traceparser.InsertData(tsdbConnStr, tsData)
 	}
-	delete(testMap, test)
 }
