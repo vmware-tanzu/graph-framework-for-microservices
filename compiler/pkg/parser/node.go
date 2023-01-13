@@ -42,8 +42,9 @@ type NodeHelperChild struct {
 }
 
 type NonNexusTypes struct {
-	Types  map[string]ast.Decl
-	Values []string
+	Types         map[string]ast.Decl
+	Values        []string
+	ExternalTypes []string
 }
 
 func (node *Node) Walk(fn func(node *Node)) {

@@ -66,7 +66,7 @@ var modelTemplateFile []byte
 func RenderCRDTemplate(baseGroupName, crdModulePath string,
 	pkgs parser.Packages, graph map[string]parser.Node,
 	outputDir string, httpMethods map[string]nexus.HTTPMethodsResponses,
-	httpCodes map[string]nexus.HTTPCodesResponse, nonNexusTypes parser.NonNexusTypes,
+	httpCodes map[string]nexus.HTTPCodesResponse, nonNexusTypes *parser.NonNexusTypes,
 	fileset *token.FileSet, graphqlFiles map[string]string) error {
 	parentsMap := parser.CreateParentsMap(graph)
 
@@ -147,7 +147,7 @@ func RenderCRDTemplate(baseGroupName, crdModulePath string,
 		return err
 	}
 
-	err = RenderGraphQL(baseGroupName, outputDir, crdModulePath, pkgs, parentsMap, graphqlFiles)
+	err = RenderGraphQL(baseGroupName, outputDir, crdModulePath, pkgs, parentsMap, graphqlFiles, nonNexusTypes)
 	if err != nil {
 		return err
 	}
@@ -562,8 +562,7 @@ type GraphDetails struct {
 	GraphQlFiles   map[string]string
 }
 
-func RenderGraphQL(baseGroupName, outputDir, crdModulePath string, pkgs parser.Packages,
-	parentsMap map[string]parser.NodeHelper, graphqlFiles map[string]string) error {
+func RenderGraphQL(baseGroupName, outputDir, crdModulePath string, pkgs parser.Packages, parentsMap map[string]parser.NodeHelper, graphqlFiles map[string]string, nonNexusTypes *parser.NonNexusTypes) error {
 	gqlFolder := outputDir + "/nexus-gql/graph"
 	var (
 		vars GraphDetails
@@ -611,7 +610,7 @@ func RenderGraphQL(baseGroupName, outputDir, crdModulePath string, pkgs parser.P
 	}
 
 	//Render Graphql Schema Template (TSM)
-	vars.Nodes, err = GenerateTsmGraphqlSchemaVars(baseGroupName, crdModulePath, pkgs, parentsMap)
+	vars.Nodes, err = GenerateTsmGraphqlSchemaVars(baseGroupName, crdModulePath, pkgs, parentsMap, nonNexusTypes)
 	if err != nil {
 		return err
 	}
@@ -697,7 +696,7 @@ type CommonVars struct {
 	Types string
 }
 
-func RenderNonNexusTypes(outputDir string, nonNexusTypes parser.NonNexusTypes, fileset *token.FileSet) error {
+func RenderNonNexusTypes(outputDir string, nonNexusTypes *parser.NonNexusTypes, fileset *token.FileSet) error {
 	outputModelFolder := outputDir + "/model"
 	err := createFolder(outputModelFolder)
 	if err != nil {
@@ -716,6 +715,10 @@ func RenderNonNexusTypes(outputDir string, nonNexusTypes parser.NonNexusTypes, f
 	}
 
 	for _, val := range nonNexusTypes.Values {
+		output += fmt.Sprintf("%s\n\n", val)
+	}
+
+	for _, val := range nonNexusTypes.ExternalTypes {
 		output += fmt.Sprintf("%s\n\n", val)
 	}
 

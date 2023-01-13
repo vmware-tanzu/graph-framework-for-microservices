@@ -19,12 +19,12 @@ var _ = Describe("Template renderers tests", func() {
 	BeforeEach(func() {
 		pkgs = parser.ParseDSLPkg(exampleDSLPath)
 		graphqlQueries = parser.ParseGraphqlQuerySpecs(pkgs)
-		graph := parser.ParseDSLNodes(exampleDSLPath, baseGroupName, pkgs, graphqlQueries)
+		graph, _, _ := parser.ParseDSLNodes(exampleDSLPath, baseGroupName, pkgs, graphqlQueries)
 		parentsMap = parser.CreateParentsMap(graph)
 	})
 
 	FIt("should resolve graphql vars", func() {
-		vars, err := generator.GenerateTsmGraphqlSchemaVars(baseGroupName, crdModulePath, pkgs, parentsMap)
+		vars, err := generator.GenerateTsmGraphqlSchemaVars(baseGroupName, crdModulePath, pkgs, parentsMap, nil)
 		Expect(err).NotTo(HaveOccurred())
 
 		Expect(len(vars)).To(Equal(45))
@@ -48,7 +48,7 @@ var _ = Describe("Template renderers tests", func() {
 
 	It("should resolve non-singleton root and singleton child node", func() {
 		pkgs = parser.ParseDSLPkg("../../example/test-utils/non-singleton-root")
-		graph := parser.ParseDSLNodes("../../example/test-utils/non-singleton-root", baseGroupName, pkgs, graphqlQueries)
+		graph, _, _ := parser.ParseDSLNodes("../../example/test-utils/non-singleton-root", baseGroupName, pkgs, graphqlQueries)
 		parentsMap = parser.CreateParentsMap(graph)
 
 		vars, err := generator.GenerateGraphqlResolverVars(baseGroupName, crdModulePath, pkgs, parentsMap)

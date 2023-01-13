@@ -20,7 +20,7 @@ import (
 
 // ParseDSLNodes walks recursively through given path and looks for structs types definitions to add them to graph
 func ParseDSLNodes(startPath string, baseGroupName string, packages Packages,
-	graphqlQueries map[string]nexus.GraphQLQuerySpec) (map[string]Node, NonNexusTypes, *token.FileSet) {
+	graphqlQueries map[string]nexus.GraphQLQuerySpec) (map[string]Node, *NonNexusTypes, *token.FileSet) {
 	modulePath := GetModulePath(startPath)
 
 	rootNodes := make([]string, 0)
@@ -183,7 +183,7 @@ func ParseDSLNodes(startPath string, baseGroupName string, packages Packages,
 		})
 	}
 
-	return buildGraph(nodes, rootNodes, baseGroupName), nonNexusTypes, fileset
+	return buildGraph(nodes, rootNodes, baseGroupName), &nonNexusTypes, fileset
 }
 
 func buildGraph(nodes map[string]Node, rootNodes []string, baseGroupName string) map[string]Node {
