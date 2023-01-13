@@ -1,4 +1,4 @@
-for i in {1..1} 
+for i in {2..2} 
 do
 var1='{
     "server": {

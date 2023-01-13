@@ -174,7 +174,7 @@ func testRunner(w *workmanager.Worker, funcKey string, concurrency int, timeout 
 	log.Println(funcKey)
 	w.WorkerStart(funcKey, concurrency, timeout)
 	time.Sleep(5 * time.Second)
-	content, err := w.GatherTestTraces(test)
+	content, err := w.GatherTestTraces(funcKey)
 	if err != nil {
 		log.Printf("Error getting trace content %v", err)
 	} else {
