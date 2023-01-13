@@ -202,8 +202,8 @@ func (d *WorkData) CalculateAverage() {
 	d.Average = sum / int64(len(d.Duration))
 }
 
-func (w *Worker) GatherTestTraces() ([]byte, error) {
-	url := fmt.Sprintf("%s/zipkin/api/v2/traces?serviceName=http_client&endTs=%d&limit=1000&lookback=%d", w.ZipkinEndPoint, w.WorkData.TestStart.UnixMilli()+w.WorkData.TestDuration, w.WorkData.TestDuration)
+func (w *Worker) GatherTestTraces(test string) ([]byte, error) {
+	url := fmt.Sprintf("%s/zipkin/api/v2/traces?serviceName=http_client&spanName=%s&endTs=%d&limit=2000&lookback=%d", w.ZipkinEndPoint, test, w.WorkData.TestStart.UnixMilli()+w.WorkData.TestDuration, w.WorkData.TestDuration)
 	log.Println("tarce URL ", url)
 	method := "GET"
 

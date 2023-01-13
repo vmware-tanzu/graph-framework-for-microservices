@@ -1,7 +1,6 @@
 #!/bin/sh
 for i in {1..100}
 do
-	echo m$i
 	echo 'http://localhost:45192/root/default/leader/default/mgr/m'$i 
 	curl -X 'PUT' \
   'http://localhost:45192/root/default/leader/default/mgr/m'$i \

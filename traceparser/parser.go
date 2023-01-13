@@ -35,10 +35,6 @@ type TimeScaleData struct {
 	Message   string
 }
 
-func main2() {
-	//insert_data(timeSeriesData)
-}
-
 func RetrieveData(spanName string, content []byte) []TimeScaleData {
 	// Let's first read the `config.json` file
 	var traceDataList []TimeScaleData

@@ -1,0 +1,76 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: zipkin-deployment
+  labels:
+    app: zipkin
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: zipkin
+  template:
+    metadata:
+      labels:
+        app: zipkin
+    spec:
+      containers:
+      - name: zipkin
+        env:
+        - name: STORAGE_TYPE
+          value: mysql
+        - name: MYSQL_HOST
+          value: zipkin-mysql
+        - name: MYSQL_USER
+          value: zipkin
+        - name: MYSQL_PASS
+          value: zipkin
+        image: "openzipkin/zipkin"
+        ports:
+        - containerPort: 9411
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: zipkin-mysql-deployment
+  labels:
+    app: zipkin-mysql
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: zipkin-mysql
+  template:
+    metadata:
+      labels:
+        app: zipkin-mysql
+    spec:
+      containers:
+      - name: zipkin-mysql
+        image: "ghcr.io/openzipkin/zipkin-mysql:latest"
+        ports:
+        - containerPort: 3306
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: zipkin
+spec:
+  selector:
+    app: zipkin
+  ports:
+    - protocol: TCP
+      port: 9411
+      targetPort: 9411
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: zipkin-mysql
+spec:
+  selector:
+    app: zipkin-mysql
+  ports:
+    - protocol: TCP
+      port: 3306
+      targetPort: 3306

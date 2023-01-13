@@ -174,14 +174,14 @@ func testRunner(w *workmanager.Worker, funcKey string, concurrency int, timeout 
 	log.Println(funcKey)
 	w.WorkerStart(funcKey, concurrency, timeout)
 	time.Sleep(5 * time.Second)
-	content, err := w.GatherTestTraces()
+	content, err := w.GatherTestTraces(test)
 	if err != nil {
 		log.Printf("Error getting trace content %v", err)
 	} else {
 		// retrieve data from zipkin backend
 		tsData := traceparser.RetrieveData(funcKey, content)
 		for _, data := range tsData {
-			log.Printf("%d, %f, %d\n", data.Timestamp, data.Duration, data.Error)
+			log.Printf("%v, %f, %d\n", data.Timestamp, data.Duration, data.Error)
 		}
 		// insert data onto timescale db
 		traceparser.InsertData(tsdbConnStr, tsData)

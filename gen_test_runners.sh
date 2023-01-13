@@ -1,8 +1,8 @@
-for i in {71..100} 
+for i in {1..1} 
 do
 var1='{
     "server": {
-        "url": "http://nexus-api-gw.nexus3",
+        "url": "http://nexus-api-gw.nexus5",
         "zipkin": "http://zipkin:9411",
         "tsdb": "postgres://postgres:dXmrYXVfwgD2JZvl@tsdb.timescale:5432/testdb"
     },
@@ -18,7 +18,7 @@ var1='{
         }
     ]
 }'
-
+ 
 echo curl --location --request POST 'localhost:8000/tests/t'$i \
 --header \'Content-Type: application/json\' \
 --data-raw \'$var1\'
