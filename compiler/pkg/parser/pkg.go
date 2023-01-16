@@ -49,6 +49,8 @@ const (
 	GRAPHQL_RELATION_PARAMETERS      = FieldAnnotation("nexus-graphql-relation-parameters")
 	GRAPHQL_RELATION_UUIDKEY         = FieldAnnotation("nexus-graphql-relation-uuidkey")
 	GRAPHQL_TYPE_NAME                = FieldAnnotation("nexus-graphql-type-name")
+	GRAPHQL_PROTOBUF_NAME            = FieldAnnotation("nexus-graphql-protobuf-name")
+	GRAPHQL_PROTOBUF_FILE            = FieldAnnotation("nexus-graphql-protobuf-file")
 )
 
 // func (p *Package) GetImports() []*ast.ImportSpec

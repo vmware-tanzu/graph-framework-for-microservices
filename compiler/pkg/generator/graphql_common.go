@@ -358,6 +358,9 @@ func getTsmGraphqlSchemaFieldName(sType GraphQLSchemaType, fieldName, schemaType
 		replacer := strings.NewReplacer("nexus-graphql-tsm-directive:", "", "\\", "")
 		out := replacer.Replace(parser.GetFieldAnnotationString(f, parser.GRAPHQL_TSM_DIRECTIVE_ANNOTATION))
 		schemaName += " " + strings.Trim(out, "\"")
+	} else if parser.IsFieldAnnotationPresent(f, parser.GRAPHQL_PROTOBUF_NAME) ||
+		parser.IsFieldAnnotationPresent(f, parser.GRAPHQL_PROTOBUF_FILE) {
+		schemaName = addProtobufAnnotation(f, schemaName)
 	} else {
 		if sType != Link && sType != Child && sType != NamedChild && sType != NamedLink {
 			if val, ok := f.Type.(*ast.SelectorExpr); ok {
@@ -403,19 +406,37 @@ func addRelationAnnotation(sType GraphQLSchemaType, f *ast.Field, schemaName str
 		args = append(args, `softlink: "true"`)
 	}
 	if parser.IsFieldAnnotationPresent(f, parser.GRAPHQL_RELATION_NAME) {
-		args = append(args, fmt.Sprintf(`name: "%s"`, parser.GetFieldAnnotationVal(f, parser.GRAPHQL_RELATION_NAME)))
+		args = append(args, fmt.Sprintf(`name:"%s"`, parser.GetFieldAnnotationVal(f, parser.GRAPHQL_RELATION_NAME)))
 	}
 
 	if parser.IsFieldAnnotationPresent(f, parser.GRAPHQL_RELATION_PARAMETERS) {
-		args = append(args, fmt.Sprintf("parameters: %s", parser.GetFieldAnnotationVal(f, parser.GRAPHQL_RELATION_PARAMETERS)))
+		args = append(args, fmt.Sprintf("parameters:%s", parser.GetFieldAnnotationVal(f, parser.GRAPHQL_RELATION_PARAMETERS)))
 	}
 
 	if parser.IsFieldAnnotationPresent(f, parser.GRAPHQL_RELATION_UUIDKEY) {
-		args = append(args, fmt.Sprintf(`uuidkey: "%s"`, parser.GetFieldAnnotationVal(f, parser.GRAPHQL_RELATION_UUIDKEY)))
+		args = append(args, fmt.Sprintf(`uuidkey:"%s"`, parser.GetFieldAnnotationVal(f, parser.GRAPHQL_RELATION_UUIDKEY)))
 	}
 
 	if len(args) > 0 {
 		schemaName += fmt.Sprintf(" @relation(%s)", strings.Join(args, ", "))
+	}
+
+	return schemaName
+}
+
+func addProtobufAnnotation(f *ast.Field, schemaName string) string {
+	var args []string
+
+	if parser.IsFieldAnnotationPresent(f, parser.GRAPHQL_PROTOBUF_NAME) {
+		args = append(args, fmt.Sprintf(`name:"%s"`, parser.GetFieldAnnotationVal(f, parser.GRAPHQL_PROTOBUF_NAME)))
+	}
+
+	if parser.IsFieldAnnotationPresent(f, parser.GRAPHQL_PROTOBUF_FILE) {
+		args = append(args, fmt.Sprintf(`file:"%s"`, parser.GetFieldAnnotationVal(f, parser.GRAPHQL_PROTOBUF_FILE)))
+	}
+
+	if len(args) > 0 {
+		schemaName += fmt.Sprintf(" @protobuf(%s)", strings.Join(args, ", "))
 	}
 
 	return schemaName
