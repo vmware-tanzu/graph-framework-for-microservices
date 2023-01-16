@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"go/ast"
 	"go/types"
+	"k8s.io/utils/strings/slices"
 	"strconv"
 	"strings"
 
@@ -372,7 +373,10 @@ func getTsmGraphqlSchemaFieldName(sType GraphQLSchemaType, fieldName, schemaType
 						if parser.IsFieldAnnotationPresent(f, parser.GRAPHQL_TYPE_NAME) {
 							typeName := parser.GetFieldAnnotationVal(f, parser.GRAPHQL_TYPE_NAME)
 							externalType := fmt.Sprintf("%s.%s", x, val.Sel.Name)
-							nonNexusTypes.ExternalTypes = append(nonNexusTypes.ExternalTypes, fmt.Sprintf("type %s %s", typeName, externalType))
+							aliasType := fmt.Sprintf("type %s %s", typeName, externalType)
+							if !slices.Contains(nonNexusTypes.ExternalTypes, aliasType) {
+								nonNexusTypes.ExternalTypes = append(nonNexusTypes.ExternalTypes, aliasType)
+							}
 							schemaName = addJsonencodedAnnotation(f, parser.GRAPHQL_TS_TYPE_ANNOTATION, typeName, schemaName)
 						}
 					}
