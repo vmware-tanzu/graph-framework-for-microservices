@@ -119,20 +119,27 @@ func ConstructMapCRDTypeToSpec(eventType EventType, crdType string, spec apiexte
 	CrdTypeToSpec[crdType] = spec
 }
 
+func GetRestUris(crdType string) ([]nexus.RestURIs, bool) {
+	crdTypeToRestUrisMutex.Lock()
+	defer crdTypeToRestUrisMutex.Unlock()
+
+	uris, ok := CrdTypeToRestUris[crdType]
+	return uris, ok
+}
+
 func ConstructMapCRDTypeToRestUris(eventType EventType, crdType string, restSpec nexus.RestAPISpec) {
 	crdTypeToRestUrisMutex.Lock()
 	defer crdTypeToRestUrisMutex.Unlock()
 
 	if eventType == Delete {
 		delete(CrdTypeToRestUris, crdType)
+		return
 	}
 
-	uris := CrdTypeToRestUris[crdType]
-	uris = append(uris, restSpec.Uris...)
-	CrdTypeToRestUris[crdType] = uris
+	CrdTypeToRestUris[crdType] = restSpec.Uris
 
 	// Push new uris to chan
-	RestURIChan <- uris
+	RestURIChan <- restSpec.Uris
 }
 
 func ConstructMapUriToUriInfo(eventType EventType, m map[string]RestUriInfo) {
