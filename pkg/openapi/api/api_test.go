@@ -212,11 +212,29 @@ var _ = Describe("OpenAPI tests", func() {
 		model.ConstructMapURIToCRDType(model.Upsert, "leaders.orgchart.vmware.org", []nexus.RestURIs{restUri})
 
 		model.ConstructMapCRDTypeToSpec(model.Upsert, "leaders.orgchart.vmware.org", crd.Spec)
+
+		// uri `/oldLeaders` added to the cache on add/update request
+		model.ConstructMapCRDTypeToRestUris(model.Upsert, "leaders.orgchart.vmware.org", nexus.RestAPISpec{
+			Uris: []nexus.RestURIs{
+				{
+					Uri:     "/oldLeaders",
+					Methods: nexus.HTTPListResponse,
+				},
+			},
+		})
+
+		// On the subsequent request, modified to `/leaders` in the nexus annotation and the cache will be updated with the new URI's
 		model.ConstructMapCRDTypeToRestUris(model.Upsert, "leaders.orgchart.vmware.org", nexus.RestAPISpec{
 			Uris: []nexus.RestURIs{
 				restUri,
 			},
 		})
+
+		// should contain only updated URI's not the older URI's
+		uris, ok := model.GetRestUris("leaders.orgchart.vmware.org")
+		Expect(ok).Should(BeTrue())
+		Expect(len(uris)).To(Equal(1))
+		Expect(uris[0].Uri).To(Equal("/leaders"))
 
 		api.Recreate()
 
