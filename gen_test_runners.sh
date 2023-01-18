@@ -1,4 +1,4 @@
-for i in {1..1} 
+for i in {4..10} 
 do
 var1='{
     "server": {
@@ -11,7 +11,7 @@ var1='{
             "name": "write_n_objects",
             "concurrency": 1,
             "ops_count": 1000,
-            "sample_rate": 1,
+            "sample_rate": 0.1,
             "rest": [
                 "put_operations'$i'"
             ]
