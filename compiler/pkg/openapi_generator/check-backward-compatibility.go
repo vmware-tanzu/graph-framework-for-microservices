@@ -19,36 +19,6 @@ func splitCRDs(content []byte) []string {
 	return strings.Split(string(content), "---")
 }
 
-func compareCRDs(inCompatibleCRDs []*bytes.Buffer, existingCRDName, existingCRDContent string, newCRDContent []byte) ([]*bytes.Buffer, error) {
-	newCRDParts := splitCRDs(newCRDContent)
-	for _, newCRDPart := range newCRDParts {
-		if newCRDPart == "" {
-			continue
-		}
-
-		newCRD := &extensionsv1.CustomResourceDefinition{}
-		err := yaml.Unmarshal([]byte(newCRDPart), newCRD)
-		if err != nil {
-			return nil, fmt.Errorf("error unmarshaling new CRD: %v", err)
-		}
-
-		if newCRD.Name != existingCRDName {
-			continue
-		}
-
-		// When there is a backward incompatibility, we fail the build if we don't force an upgrade.
-		isInCompatible, message, err := nexus_compare.CompareFiles([]byte(existingCRDContent), []byte(newCRDPart))
-		if err != nil {
-			panic(fmt.Sprintf("Error occurred while checking CRD's %q backward compatibility: %v", existingCRDName, err))
-		}
-		if isInCompatible {
-			log.Warnf("CRD %q is incompatible with the previous version", existingCRDName)
-			inCompatibleCRDs = append(inCompatibleCRDs, message)
-		}
-	}
-	return inCompatibleCRDs, nil
-}
-
 func CheckBackwardCompatibility(existingCRDsPath, yamlsPath string, force bool) error {
 	var (
 		removedCRDs      []string
@@ -108,14 +78,37 @@ func CheckBackwardCompatibility(existingCRDsPath, yamlsPath string, force bool) 
 				return fmt.Errorf("error unmarshaling existing CRD: %v", err)
 			}
 
-			// Appears node is removed in the latest version
-			if len(newCRDContent) == 0 {
-				removedCRDs = append(removedCRDs, existingCRD.Name)
-				continue
+			found := false
+			for _, newCRDPart := range splitCRDs(newCRDContent) {
+				if newCRDPart == "" {
+					continue
+				}
+
+				newCRD := &extensionsv1.CustomResourceDefinition{}
+				err := yaml.Unmarshal([]byte(newCRDPart), newCRD)
+				if err != nil {
+					return fmt.Errorf("error unmarshaling new CRD: %v", err)
+				}
+
+				if newCRD.Name != existingCRD.Name {
+					continue
+				}
+
+				found = true
+				isInCompatible, message, err := nexus_compare.CompareFiles([]byte(existingCRDPart), []byte(newCRDPart))
+				if err != nil {
+					return err
+				}
+				if isInCompatible {
+					log.Warnf("CRD %q is incompatible with the previous version", existingCRD.Name)
+					inCompatibleCRDs = append(inCompatibleCRDs, message)
+				}
 			}
 
-			if inCompatibleCRDs, err = compareCRDs(inCompatibleCRDs, existingCRD.Name, existingCRDPart, newCRDContent); err != nil {
-				return err
+			// Appears node is removed in the latest version
+			if !found {
+				removedCRDs = append(removedCRDs, existingCRD.Name)
+				continue
 			}
 		}
 		return nil
