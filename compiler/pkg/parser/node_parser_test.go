@@ -9,7 +9,9 @@ import (
 
 	log "github.com/sirupsen/logrus"
 
+	generator "github.com/vmware-tanzu/graph-framework-for-microservices/compiler/pkg/generator"
 	"github.com/vmware-tanzu/graph-framework-for-microservices/compiler/pkg/parser"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/compiler/pkg/parser/rest"
 )
 
 var _ = Describe("Node parser tests", func() {
@@ -109,6 +111,25 @@ var _ = Describe("Node parser tests", func() {
 		}
 
 		parser.ParseDSLNodes("../../example/test-utils/invalid-singleton-child", baseGroupName, nil, nil)
+		Expect(fail).To(BeTrue())
+	})
+
+	It("should fail when nexus-rest-api-gen var name doesn't exist or when var name is wrong", func() {
+		defer func() { log.StandardLogger().ExitFunc = nil }()
+
+		fail := false
+		log.StandardLogger().ExitFunc = func(int) {
+			fail = true
+		}
+
+		pkgs := parser.ParseDSLPkg("../../example/test-utils/nexus-rest-api-gen-wrong-name")
+		pkg, ok := pkgs["github.com/vmware-tanzu/graph-framework-for-microservices/compiler/example/test-utils/nexus-rest-api-gen-wrong-name"]
+		Expect(ok).To(BeTrue())
+		graphqlQueries := parser.ParseGraphqlQuerySpecs(pkgs)
+		graph := parser.ParseDSLNodes("../../example/test-utils/nexus-rest-api-gen-wrong-name", baseGroupName, pkgs, graphqlQueries)
+		parentsMap := parser.CreateParentsMap(graph)
+		methods, codes := rest.ParseResponses(pkgs)
+		generator.RenderCRDBaseTemplate(baseGroupName, pkg, parentsMap, methods, codes)
 		Expect(fail).To(BeTrue())
 	})
 
