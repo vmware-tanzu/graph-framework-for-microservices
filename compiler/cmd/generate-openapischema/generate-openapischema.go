@@ -27,7 +27,7 @@ func main() {
 
 	force, err := strconv.ParseBool(forceUpgrade)
 	if err != nil {
-		panic(fmt.Sprintf("invalid flag for nexus datamodel upgrade %v", err))
+		panic(fmt.Sprintf("parsing command line argument: force, failed with error: %v", err))
 	}
 
 	ref := func(pkg string) spec.Ref {
@@ -62,6 +62,6 @@ func main() {
 	}
 
 	if err = generator.CheckBackwardCompatibility(existingCRDsPath, yamlsPath, force); err != nil {
-		panic(fmt.Sprintf("Error occurred when checking datamodel compatibility: %v", err))
+		panic(fmt.Sprintf("Datamodel backward compatibility check failed with error: %v", err))
 	}
 }

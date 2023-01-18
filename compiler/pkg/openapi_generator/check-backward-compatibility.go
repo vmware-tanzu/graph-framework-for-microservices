@@ -61,15 +61,16 @@ func CheckBackwardCompatibility(existingCRDsPath, yamlsPath string, force bool) 
 				fmt.Printf("No files exists on the path %q: %v", path, err)
 				return nil
 			}
-			return fmt.Errorf("walking existing CRD files: %v", err)
+			return fmt.Errorf("walking existing CRD's failed with error: %v", err)
 		}
 
 		if info.IsDir() {
-			fmt.Printf("Skipping dir %q\n", path)
+			log.Debugf("Skipping dir %q\n", path)
 			return nil
 		}
 
 		if !strings.HasSuffix(info.Name(), ".yaml") {
+			log.Debugf("Expected filename with suffix %v but got %v", ".yaml", info.Name())
 			return nil
 		}
 
@@ -96,8 +97,7 @@ func CheckBackwardCompatibility(existingCRDsPath, yamlsPath string, force bool) 
 			return fmt.Errorf("error reading the crd file on the path %q: %v", newFilePath, err)
 		}
 
-		existingCRDParts := splitCRDs(existingCRDContent)
-		for _, existingCRDPart := range existingCRDParts {
+		for _, existingCRDPart := range splitCRDs(existingCRDContent) {
 			if existingCRDPart == "" {
 				continue
 			}
