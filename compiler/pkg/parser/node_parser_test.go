@@ -129,7 +129,8 @@ var _ = Describe("Node parser tests", func() {
 		graph := parser.ParseDSLNodes("../../example/test-utils/nexus-rest-api-gen-wrong-name", baseGroupName, pkgs, graphqlQueries)
 		parentsMap := parser.CreateParentsMap(graph)
 		methods, codes := rest.ParseResponses(pkgs)
-		generator.RenderCRDBaseTemplate(baseGroupName, pkg, parentsMap, methods, codes)
+		_, err := generator.RenderCRDBaseTemplate(baseGroupName, pkg, parentsMap, methods, codes)
+		Expect(err).NotTo(HaveOccurred())
 		Expect(fail).To(BeTrue())
 	})
 
