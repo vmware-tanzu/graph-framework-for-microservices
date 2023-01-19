@@ -4,20 +4,20 @@ kind: CustomResourceDefinition
 metadata:
   annotations:
     nexus: |
-      {"name":"config.FooType","hierarchy":["roots.root.tsm.tanzu.vmware.com","configs.config.tsm.tanzu.vmware.com"],"is_singleton":false,"nexus-rest-api-gen":{"uris":null}}
+      {"name":"root.Root","children":{"configs.config.tsm.tanzu.vmware.com":{"fieldName":"Config","fieldNameGvk":"configGvk","isNamed":false}},"is_singleton":true,"nexus-rest-api-gen":{"uris":null}}
   creationTimestamp: null
-  name: footypes.config.tsm.tanzu.vmware.com
+  name: roots.root.tsm.tanzu.vmware.com
 spec:
   conversion:
     strategy: None
-  group: config.tsm.tanzu.vmware.com
+  group: root.tsm.tanzu.vmware.com
   names:
-    kind: FooType
-    listKind: FooTypeList
-    plural: footypes
+    kind: Root
+    listKind: RootList
+    plural: roots
     shortNames:
-    - footype
-    singular: footype
+    - root
+    singular: root
   scope: Cluster
   versions:
   - name: v1
@@ -38,33 +38,19 @@ spec:
             type: object
           spec:
             properties:
-              FooC:
-                format: byte
-                type: integer
-              FooD:
-                format: float
-                type: number
-              fooA:
-                additionalProperties:
-                  type: string
+              configGvk:
+                properties:
+                  group:
+                    type: string
+                  kind:
+                    type: string
+                  name:
+                    type: string
+                required:
+                - group
+                - kind
+                - name
                 type: object
-              fooB:
-                items:
-                  type: string
-                type: array
-              fooE:
-                format: byte
-                type: integer
-              fooF:
-                format: float
-                type: number
-            required:
-            - fooA
-            - fooB
-            - FooC
-            - FooD
-            - fooE
-            - fooF
             type: object
           status:
             properties:
