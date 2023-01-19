@@ -149,6 +149,7 @@ generate_code:
 	@echo "Copying generated_base_structure to create directory structure"
 	@echo "COMPILER_SRC_DIRECTORY: ${COMPILER_SRC_DIRECTORY}"
 	cp -R _generated_base_structure _generated
+	chmod -R 0775 _generated
 	@echo "Copying go.mod file of datamodel"
 	cp ${DATAMODEL_PATH}/go.mod _generated/go.mod
 	sed -i'.bak' -e "1s|.*|module nexustempmodule|" _generated/go.mod
@@ -185,7 +186,6 @@ generate_code:
 	@echo "Nexus Compiler: Moving files to output directory"
 	cp -r _generated/{client,apis,crds,common,nexus-client,helper,nexus-gql} ${GENERATED_OUTPUT_DIRECTORY}
 	cp -r ${GOPATH}/src/nexustempmodule/nexus-gql/graphql.so ${GENERATED_OUTPUT_DIRECTORY}/nexus-gql
-	chmod -R 0777 ${GENERATED_OUTPUT_DIRECTORY}
 	mkdir -p ${GENERATED_OUTPUT_DIRECTORY}/install-validator
 	cp -r ${GOPATH}/src/github.com/vmware-tanzu/graph-framework-for-microservices/install-validator/install.so ${GENERATED_OUTPUT_DIRECTORY}/install-validator/install.so || echo "Could not find install.so file, skipping"
 	@echo "Nexus Compiler: Compiler code generation completed"
