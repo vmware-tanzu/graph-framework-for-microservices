@@ -21,8 +21,8 @@ import (
 
 var pkgImportToPkg = make(map[string]string, 0)
 
-func Parse(startPath string) map[string][]parser.Package {
-	packages := map[string][]parser.Package{}
+func Parse(startPath string) map[string][]*parser.Package {
+	packages := map[string][]*parser.Package{}
 	modulePath := parser.GetModulePath(startPath)
 	err := filepath.Walk(startPath, func(path string, info fs.FileInfo, err error) error {
 		if info.IsDir() {
@@ -58,7 +58,8 @@ func Parse(startPath string) map[string][]parser.Package {
 					FileSet:  fileset,
 					Pkg:      *v,
 				}
-				packages[pkg.Name] = append(packages[pkg.Name], pkg)
+				parser.ParseGenDecls(v, &pkg)
+				packages[pkg.Name] = append(packages[pkg.Name], &pkg)
 			}
 		}
 		return nil
@@ -67,7 +68,29 @@ func Parse(startPath string) map[string][]parser.Package {
 		log.Fatalf("Failed to parse DSL: %v", err)
 	}
 
+	detectDuplicates(packages)
+
 	return packages
+}
+
+func detectDuplicates(packages map[string][]*parser.Package) {
+	for _, v := range packages {
+		for _, pkg := range v {
+			nodes := pkg.GetNodes()
+			nexusNodes := pkg.GetNexusNodes()
+
+			nodes = append(nodes, pkg.GetNonStructTypes()...)
+
+			for _, nexusNode := range nexusNodes {
+				for _, node := range nodes {
+					if node.Name.String() == fmt.Sprintf("%sSpec", nexusNode.Name) ||
+						node.Name.String() == fmt.Sprintf("%sList", nexusNode.Name) {
+						log.Fatalf(`Duplicated type (%s) found in package %s ("%s" is already used by node "%s")`, node.Name, pkg.Name, node.Name, nexusNode.Name)
+					}
+				}
+			}
+		}
+	}
 }
 
 func removeImportIdentifierFromFields(file *ast.File, pkg string) *ast.File {
@@ -122,7 +145,7 @@ func removeImportIdentifierFromFields(file *ast.File, pkg string) *ast.File {
 	return file
 }
 
-func Render(dslDir string, packages map[string][]parser.Package) error {
+func Render(dslDir string, packages map[string][]*parser.Package) error {
 	for k, pkgs := range packages {
 		if len(pkgs) == 1 {
 			continue
