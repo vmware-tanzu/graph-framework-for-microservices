@@ -12,11 +12,14 @@ import (
 	"sync"
 	"time"
 
+	simplegql "github.com/machinebox/graphql"
+
 	"github.com/Khan/genqlient/graphql"
 	"github.com/openzipkin/zipkin-go"
 	zipkinhttp "github.com/openzipkin/zipkin-go/middleware/http"
 	"github.com/openzipkin/zipkin-go/model"
 	reporterhttp "github.com/openzipkin/zipkin-go/reporter/http"
+	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/nexus-calibration/graphqlcalls"
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/nexus-calibration/rest"
 )
 
@@ -29,7 +32,7 @@ type Worker struct {
 	ZipkinEndPoint string
 	httpClient     *http.Client
 	FuncMap        map[string]rest.SpecData
-	GraphqlFuncMap map[string]func(context.Context, graphql.Client)
+	GQLFuncMap     map[string]graphqlcalls.QueryData
 	stop           chan bool
 	WorkData       WorkData
 	SampleRate     float32
@@ -171,19 +174,28 @@ func (w *Worker) doWork(job string, work chan bool) {
 
 // async work graphql worker
 func (w *Worker) doGraphqlQuery(job string, work chan bool) {
-	gqlFunc := w.GraphqlFuncMap[job]
-	var ctx context.Context
-	ctx = context.Background()
+	queryData := w.GQLFuncMap[job]
+	ctx := context.Background()
 	if w.tracer == nil {
-		gqlFunc(ctx, w.gclient)
+		doGqlQuery(ctx, queryData.Query, w.GqlURL)
 	} else {
-		span, _ := w.tracer.StartSpanFromContext(ctx, job)
+		span, ctx := w.tracer.StartSpanFromContext(ctx, job)
 		ctx = zipkin.NewContext(ctx, span)
-		gqlFunc(ctx, w.gclient)
+		doGqlQuery(ctx, queryData.Query, w.GqlURL)
 		span.Finish()
 	}
 	// work done
 	work <- true
+}
+
+func doGqlQuery(ctx context.Context, queryString string, gqlURL string) {
+	graphqlClient := simplegql.NewClient(gqlURL)
+	graphqlRequest := simplegql.NewRequest(queryString)
+	var graphqlResponse interface{}
+	if err := graphqlClient.Run(ctx, graphqlRequest, &graphqlResponse); err != nil {
+		fmt.Println("Errored out ", err)
+	}
+	log.Println(graphqlResponse)
 }
 
 func (d *WorkData) CalculateAverage() {

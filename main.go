@@ -58,7 +58,13 @@ type CallData struct {
 	Method string `json:"method"`
 }
 
+type QueryData struct {
+	Key   string `json:"key"`
+	Query string `json:"query"`
+}
+
 var restTests rest.RestData
+var gqlTests graphqlcalls.GQLData
 
 func httpServe() {
 	r := mux.NewRouter()
@@ -66,6 +72,8 @@ func httpServe() {
 	r.HandleFunc("/tests/{test}", TestStopHandler).Methods("DELETE")
 	r.HandleFunc("/rest/tests", ListRestTests).Methods("GET")
 	r.HandleFunc("/rest/tests", PostRestTests).Methods("POST")
+	r.HandleFunc("/gql/tests", ListGQLTests).Methods("GET")
+	r.HandleFunc("/gql/tests", PostGQLTests).Methods("POST")
 	log.Println("Starting http server to serve tests")
 	log.Fatal(http.ListenAndServe(":8000", r))
 }
@@ -81,7 +89,7 @@ func PostRestTests(w http.ResponseWriter, r *http.Request) {
 		calls = append(calls, CallData{Key: k, Path: spec.Path, Method: spec.Method})
 	}
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(calls)
+	_ = json.NewEncoder(w).Encode(calls)
 }
 
 func ListRestTests(w http.ResponseWriter, r *http.Request) {
@@ -92,7 +100,32 @@ func ListRestTests(w http.ResponseWriter, r *http.Request) {
 		calls = append(calls, CallData{Key: k, Path: spec.Path, Method: spec.Method})
 	}
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(calls)
+	_ = json.NewEncoder(w).Encode(calls)
+}
+
+func PostGQLTests(w http.ResponseWriter, r *http.Request) {
+	//restCallPath := "rest_data.yaml"
+	log.Println("Handling ", r.URL.Path)
+	// define rest calls
+	gqlTests.ReadQueryData(r.Body)
+	gqlTests.ProcessGQLCalls()
+	var calls []QueryData
+	for k, spec := range gqlTests.GQLFuncMap {
+		calls = append(calls, QueryData{Key: k, Query: spec.Query})
+	}
+	w.Header().Set("Content-Type", "application/json")
+	_ = json.NewEncoder(w).Encode(calls)
+}
+
+func ListGQLTests(w http.ResponseWriter, r *http.Request) {
+	//restCallPath := "rest_data.yaml"
+	log.Println("Handling ", r.URL.Path)
+	var calls []QueryData
+	for k, spec := range gqlTests.GQLFuncMap {
+		calls = append(calls, QueryData{Key: k, Query: spec.Query})
+	}
+	w.Header().Set("Content-Type", "application/json")
+	_ = json.NewEncoder(w).Encode(calls)
 }
 
 func TestHandler(w http.ResponseWriter, r *http.Request) {
@@ -115,11 +148,13 @@ func TestHandler(w http.ResponseWriter, r *http.Request) {
 		gqlURL := apiGateway + "/apis/graphql/v1/query"
 		// define rest calls
 		restTests.ProcessRestCalls(apiGateway)
+		gqlTests.ProcessGQLCalls()
 		// Prepare and run graphql tests
 		// GraphQL query worker
 
 		worker := workmanager.Worker{
-			FuncMap: restTests.FuncMap,
+			FuncMap:    restTests.FuncMap,
+			GQLFuncMap: gqlTests.GQLFuncMap,
 		}
 		for _, test := range conf.Tests {
 			// Default sample rate
@@ -133,7 +168,6 @@ func TestHandler(w http.ResponseWriter, r *http.Request) {
 			worker.OpsIterations = test.OpsCount
 			worker.GqlURL = gqlURL
 			// initialize graphql
-			worker.GraphqlFuncMap = graphqlcalls.GraphqlFuncMap
 			if test.OpsCount == 0 && test.Timeout == 0 {
 				log.Printf("Connot run tests, One of ops count or timeout for tests have to be provided\n")
 			}
@@ -173,10 +207,12 @@ func testRunner(w *workmanager.Worker, funcKey string, concurrency int, timeout 
 	log.Println(funcKey)
 	testMap[test] = w
 	defer delete(testMap, test)
-	_, ok := w.FuncMap[funcKey]
-	if !ok {
-		log.Printf("test doesn't exist %s", funcKey)
-	}
+	/*
+		_, ok := w.FuncMap[funcKey]
+		if !ok {
+			log.Printf("test doesn't exist %s", funcKey)
+		}
+	*/
 	w.WorkerStart(funcKey, concurrency, timeout)
 	time.Sleep(5 * time.Second)
 	content, err := w.GatherTestTraces(funcKey)
