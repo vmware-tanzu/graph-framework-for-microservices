@@ -37,13 +37,13 @@ Scale database to have 100K objects
 
 ### Resource Configuration Per Service
 
-| Service | CPU | Memory | Replicas |
-|---------|-----|--------|----------|
-|Nexus API Gateway|490m|512Mi  |1|
-|Nexus Kube API Server|480m|No Limit|1|
-|Nexus Kube Ctrl Mgr|490m|512Mi|1|
+| Service | CPU | Memory | Replicas | Resource Usage at peak |
+|---------|-----|--------|----------|------------------------|
+|Nexus API Gateway|490m|512Mi  |1| ![](images/api-gw.png?raw=true)|
+|Nexus Kube API Server|480m|No Limit|1|![](images/apiserver.png?raw=true)|
+|Nexus Kube Ctrl Mgr|490m|512Mi|1| ![](images/kcm.png?raw=true)|
 |Nexus ETCD|480m|No Limit|1|
-|Nexus GraphQL|490m|2Gi|1|
+|Nexus GraphQL|490m|2Gi|1| ![](images/graphql.png?raw=true)|
 |Nexus Validation|490m|480Mi|1|
 |Nexus Controller|480m|480Mi|1|
 
@@ -51,11 +51,3 @@ Scale database to have 100K objects
 
 1. GraphQL responds within ~ 8 seconds to query 100K objects
 2. On GraphQL Server restart, it takes ~ 4 Minutes to respond first successful query  
-
-
-### Resource Usage Statistics at Peak 
-
-
-
-
-
