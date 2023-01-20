@@ -32,7 +32,7 @@ Scale database to have 100K objects
 
 100 Managers (parent)
 
-1000 Ops (child)
+1000 Ops (children)
 ```
 
 ### Resource Configuration Per Service
@@ -46,6 +46,14 @@ Scale database to have 100K objects
 |Nexus GraphQL|490m|2Gi|1|
 |Nexus Validation|490m|480Mi|1|
 |Nexus Controller|480m|480Mi|1|
+
+### Key Stats With 100K objects in the system
+
+1. GraphQL responds within ~ 8 seconds to query 100K objects
+2. On GraphQL Server restart, it takes ~ 4 Minutes to respond first successful query  
+
+
+### Resource Usage Statistics at Peak 
 
 
 
