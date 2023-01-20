@@ -76,10 +76,10 @@ helm install nexus-etcd bitnami/etcd \
 
 7. Update the caBundle value in validatingwebhookconfigurations
 ```shell
-kubectl port-forward svc/nexus-api-gw 5000:80 -n <Namespace>
-kubectl get secrets nexus-validation-tls -n <Namspace> -o yaml | yq '.data.["ca.crt"]'
-kubectl -s localhost:5000 edit validatingwebhookconfigurations
-Update `caBundle` value from above step1 output
+a. kubectl port-forward svc/nexus-api-gw 5000:80 -n <Namespace>
+b. kubectl get secrets nexus-validation-tls -n <Namspace> -o yaml | yq '.data.["ca.crt"]'
+c. kubectl -s localhost:5000 edit validatingwebhookconfigurations
+Update `caBundle` value from above step 7b output
 ```
 
 8. Update the nginx-ingress service in api-gateway
