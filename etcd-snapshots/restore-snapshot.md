@@ -4,7 +4,6 @@
 ```shell
 kubectl port-forward svc/nexus-etcd 2379:2379 -n <Namespace> 
 ETCDCTL_API=3 etcdctl --endpoints http://localhost:2379 snapshot save <snapshot-name>
-kubectl cp <snapshot-name> test4/etcd-backup-pod-2:/backup/<snapshot-name>
 ```
 
 2. Create a Backup PVC and etcd-backup-pod manifest
