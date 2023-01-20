@@ -1,6 +1,6 @@
 # Steps to restore etcd snapshot
 
-1. Take a etcd backup
+1. Take a etcd backup if dont't find required snapshots [here](https://gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/nexus-calibration/-/tree/master/etcd-snapshots)
 ```shell
 kubectl port-forward svc/nexus-etcd 2379:2379 -n <Namespace> 
 ETCDCTL_API=3 etcdctl --endpoints http://localhost:2379 snapshot save <snapshot-name>
