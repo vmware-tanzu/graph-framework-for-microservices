@@ -195,7 +195,7 @@ func doGqlQuery(ctx context.Context, queryString string, gqlURL string) {
 	if err := graphqlClient.Run(ctx, graphqlRequest, &graphqlResponse); err != nil {
 		fmt.Println("Errored out ", err)
 	}
-	log.Println(graphqlResponse)
+	// log.Println(graphqlResponse)
 }
 
 func (d *WorkData) CalculateAverage() {
