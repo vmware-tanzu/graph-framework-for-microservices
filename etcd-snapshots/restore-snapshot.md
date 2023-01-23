@@ -12,7 +12,14 @@ kubectl port-forward svc/nexus-etcd 2379:2379 -n "$NAMESPACE"
 ETCDCTL_API=3 etcdctl --endpoints http://localhost:2379 snapshot save "$SNAPSHOT_NAME"
 ```
 
-2. Create a Backup PVC and etcd-backup-pod manifest
+2. Install NFS provisioner 
+```shell
+helm repo add stable https://charts.helm.sh/stable
+helm install nfs stable/nfs-server-provisioner \
+  --set persistence.enabled=true,persistence.size=5Gi --namespace "$NAMESPACE"
+```
+
+3. Create a Backup PVC and etcd-backup-pod manifest
 ```shell
 echo 'kind: PersistentVolumeClaim
 apiVersion: v1
@@ -48,26 +55,29 @@ spec:
   kubectl apply -f etcd-mount.yaml -n "$NAMESPACE"
 ```
 
-3. Copy the snapshot to etcd-backup-pod
+4. Copy the snapshot to etcd-backup-pod
 ```shell
 kubectl cp "$SNAPSHOT_NAME" "$NAMESPACE"/etcd-backup-pod-2:/backup/"$SNAPSHOT_NAME"
 ```
 
-4. Change backup file permissions
+5. Change backup file permissions
 ```shell
+export SNAPSHOT_NAME=snapshotdb-100k
 kubectl exec -it etcd-backup-pod-2 -n "$NAMESPACE" -- sh
 chown -R 1001 /backup/"$SNAPSHOT_NAME"
 chmod -R 700 /backup/"$SNAPSHOT_NAME"
 ```
+exit the shell
 
-5. Delete the current etcd statefulsets and services
+
+6. Delete the current etcd statefulsets and services
 ```shell
 kubectl delete statefulset nexus-etcd  -n "$NAMESPACE"
 kubectl delete svc nexus-etcd nexus-etcd-headless -n "$NAMESPACE"
 kubectl delete pvc -n "$NAMESPACE" data-nexus-etcd-0
 ```
 
-6. Start etcd with snapshot
+7. Start etcd with snapshot
 ```shell
 helm repo add bitnami https://charts.bitnami.com/bitnami
 helm install nexus-etcd bitnami/etcd \
@@ -82,15 +92,15 @@ helm install nexus-etcd bitnami/etcd \
   --set statefulset.replicaCount=1 --namespace "$NAMESPACE"
 ```
 
-7. Update the caBundle value in validatingwebhookconfigurations
+8. Update the caBundle value in validatingwebhookconfigurations
 ```shell
 a. kubectl port-forward svc/nexus-api-gw 5000:80 -n "$NAMESPACE"
-b. kubectl get secrets nexus-validation-tls -n <Namspace> -o yaml | yq '.data.["ca.crt"]'
+b. kubectl get secrets nexus-validation-tls -n "$NAMESPACE" -o yaml | yq '.data.["ca.crt"]'
 c. kubectl -s localhost:5000 edit validatingwebhookconfigurations
-Update `caBundle` value from above step 7b output
+Update `caBundle` value from above step 8b output
 ```
 
-8. Update the nginx-ingress service in api-gateway
+9. Update the nginx-ingress service in api-gateway
 ```shell
 kubectl -s localhost:5000 edit svc nginx-ingress
 Change this value to --> externalName: nexus-ingress-nginx-controller."$NAMESPACE".svc
