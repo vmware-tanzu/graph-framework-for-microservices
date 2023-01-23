@@ -56,22 +56,11 @@ func CrdType(client kubernetes.Interface, r admissionv1.AdmissionReview) *admiss
 	}
 
 	if r.Request.Operation == admissionv1.Update {
-		oldCrd := v1.CustomResourceDefinition{}
-		_, _, err := deserializer.Decode(r.Request.OldObject.Raw, nil, &oldCrd)
+		err = CRDs.ProcessNewCRDType(crd)
 		if err != nil {
 			admRes.Response.Allowed = false
-			admRes.Response.Result.Message = "could not unmarshal old crd type"
+			admRes.Response.Result.Message = err.Error()
 			return admRes
-		}
-
-		if newNexus, ok := crd.Annotations["nexus"]; ok {
-			if oldNexus, oldOk := oldCrd.Annotations["nexus"]; oldOk {
-				if strings.Compare(newNexus, oldNexus) != 0 {
-					admRes.Response.Allowed = false
-					admRes.Response.Result.Message = "You are not allowed to change nexus annotation for this CRD"
-					return admRes
-				}
-			}
 		}
 	}
 

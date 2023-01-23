@@ -2,11 +2,14 @@ package validate_test
 
 import (
 	"context"
+	"encoding/json"
+	"strings"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	admissionv1 "k8s.io/api/admission/v1"
 	admissionregistrationv1 "k8s.io/api/admissionregistration/v1"
+	v1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
@@ -260,5 +263,83 @@ var _ = Describe("Validation tests", func() {
 		Expect(admResCrd.Response.Allowed).To(BeFalse())
 		Expect(admResCrd.Response.Result.Message).To(
 			Equal("required parent roots.orgchart.vmware.org with display name par not found"))
+	})
+
+	It("should allow updating the crd type", func() {
+		// should allow updating the crd type
+		crdDefJson, err := yaml.YAMLToJSON([]byte(getEmployeeCRDDef()))
+		Expect(err).NotTo(HaveOccurred())
+
+		admReq := admissionv1.AdmissionReview{
+			Request: &admissionv1.AdmissionRequest{
+				Operation: admissionv1.Create,
+				Kind:      metav1.GroupVersionKind{Kind: "CustomResourceDefinition"},
+				Object: runtime.RawExtension{
+					Raw: crdDefJson,
+				},
+			},
+		}
+		admRes := validate.CrdType(fakeClient, admReq)
+		Expect(admRes.Response.Allowed).To(BeTrue())
+
+		parents, err := validate.CRDs.GetParents("employees.role.vmware.org", dynamicClient)
+		Expect(err).NotTo(HaveOccurred())
+		Expect(parents).To(Equal([]string{"roots.orgchart.vmware.org"}))
+
+		// update crd's parent
+		parts := strings.Split(string(crdDefJson), "---")
+		crd := v1.CustomResourceDefinition{}
+		err = json.Unmarshal([]byte(parts[0]), &crd)
+		Expect(err).NotTo(HaveOccurred())
+
+		annotation, ok := crd.Annotations["nexus"]
+		Expect(ok).To(BeTrue())
+		nexusAnnotation := &validate.NexusAnnotation{}
+		err = json.Unmarshal([]byte(annotation), &nexusAnnotation)
+		Expect(err).To(BeNil())
+
+		// update crd annotation with new parent
+		nexusAnnotation.Hierarchy = []string{"newroot.orgchart.vmware.org"}
+
+		annotationInByte, err := json.Marshal(nexusAnnotation)
+		Expect(err).To(BeNil())
+
+		crd.Annotations["nexus"] = string(annotationInByte)
+		serialized, err := json.Marshal(crd)
+		Expect(err).To(BeNil())
+
+		req := admissionv1.AdmissionReview{
+			Request: &admissionv1.AdmissionRequest{
+				Operation: admissionv1.Update,
+				Kind:      metav1.GroupVersionKind{Kind: "CustomResourceDefinition"},
+				Object: runtime.RawExtension{
+					Raw: serialized,
+				},
+			},
+		}
+		admRes = validate.CrdType(fakeClient, req)
+		Expect(admRes.Response.Allowed).To(BeTrue())
+
+		parents, err = validate.CRDs.GetParents("employees.role.vmware.org", dynamicClient)
+		Expect(err).NotTo(HaveOccurred())
+		Expect(parents).To(Equal([]string{"newroot.orgchart.vmware.org"}))
+
+		// should fail due to unmarshall error
+		annotationStr := `{"name":"role.Employee","hierarchy":["roots.orgchart.vmware.org"],"is_singleton":1"`
+		crd.Annotations["nexus"] = annotationStr
+		serialized, err = json.Marshal(crd)
+		Expect(err).To(BeNil())
+
+		req = admissionv1.AdmissionReview{
+			Request: &admissionv1.AdmissionRequest{
+				Operation: admissionv1.Update,
+				Kind:      metav1.GroupVersionKind{Kind: "CustomResourceDefinition"},
+				Object: runtime.RawExtension{
+					Raw: serialized,
+				},
+			},
+		}
+		admRes = validate.CrdType(fakeClient, req)
+		Expect(admRes.Response.Allowed).To(BeFalse())
 	})
 })
