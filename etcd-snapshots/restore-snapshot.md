@@ -62,10 +62,13 @@ kubectl cp "$SNAPSHOT_NAME" "$NAMESPACE"/etcd-backup-pod-2:/backup/"$SNAPSHOT_NA
 
 5. Change backup file permissions
 ```shell
+export SNAPSHOT_NAME=snapshotdb-100k
 kubectl exec -it etcd-backup-pod-2 -n "$NAMESPACE" -- sh
 chown -R 1001 /backup/"$SNAPSHOT_NAME"
 chmod -R 700 /backup/"$SNAPSHOT_NAME"
 ```
+exit the shell
+
 
 6. Delete the current etcd statefulsets and services
 ```shell
@@ -92,7 +95,7 @@ helm install nexus-etcd bitnami/etcd \
 8. Update the caBundle value in validatingwebhookconfigurations
 ```shell
 a. kubectl port-forward svc/nexus-api-gw 5000:80 -n "$NAMESPACE"
-b. kubectl get secrets nexus-validation-tls -n <Namspace> -o yaml | yq '.data.["ca.crt"]'
+b. kubectl get secrets nexus-validation-tls -n "$NAMESPACE" -o yaml | yq '.data.["ca.crt"]'
 c. kubectl -s localhost:5000 edit validatingwebhookconfigurations
 Update `caBundle` value from above step 8b output
 ```
