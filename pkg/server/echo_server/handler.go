@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strconv"
 	"strings"
 
 	"github.com/labstack/echo/v4"
@@ -228,11 +229,26 @@ func listHandler(c echo.Context) error {
 		Version:  "v1",
 		Resource: parts[0],
 	}
+	opts := metav1.ListOptions{
+		LabelSelector: labels.AsSelector().String(),
+	}
+
+	if c.QueryParams().Has("limit") {
+		i, err := strconv.ParseInt(c.QueryParams().Get("limit"), 10, 64)
+		if err != nil {
+			return err
+		}
+		opts.Limit = i
+	} else {
+		opts.Limit = 500
+	}
+
+	if c.QueryParams().Has("continue") {
+		opts.Continue = c.QueryParams().Get("continue")
+	}
 
 	resps := make([]map[string]interface{}, 0)
-	objs, err := client.Client.Resource(gvr).List(context.TODO(), metav1.ListOptions{
-		LabelSelector: labels.AsSelector().String(),
-	})
+	objs, err := client.Client.Resource(gvr).List(context.TODO(), opts)
 	if err != nil {
 		return handleClientError(nc, err)
 	}

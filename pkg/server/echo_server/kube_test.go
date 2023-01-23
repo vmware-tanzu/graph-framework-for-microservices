@@ -227,7 +227,7 @@ var _ = Describe("Kube tests", func() {
 		req := httptest.NewRequest(http.MethodGet, "/", nil)
 		rec := httptest.NewRecorder()
 		c := e.NewContext(req, rec)
-
+		c.QueryParams().Add("limit", "1")
 		nc := &echo_server.NexusContext{
 			Context:   c,
 			CrdType:   "globalnamespaces.gns.vmware.org",
