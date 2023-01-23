@@ -393,6 +393,34 @@ var _ = Describe("Echo server tests", func() {
 		Expect(rec.Body.String()).Should(Equal("[{\"name\":\"default\",\"spec\":{\"designation\":\"abc\",\"employeeID\":100,\"name\":\"xyz\"},\"status\":{}}]\n"))
 	})
 
+	It("should handle list query with pagination parameter", func() {
+		restUri := nexus.RestURIs{
+			Uri:     "/leaders",
+			Methods: nexus.HTTPListResponse,
+		}
+		e.RegisterRouter(restUri)
+		model.ConstructMapCRDTypeToNode(model.Upsert, "leaders.orgchart.vmware.org", "management.Leader",
+			[]string{}, nil, nil, true, "some description")
+		model.ConstructMapURIToCRDType(model.Upsert, "leaders.orgchart.vmware.org", []nexus.RestURIs{restUri})
+
+		req := httptest.NewRequest(http.MethodGet, "/:orgchart.Leader/?limit=1", nil)
+		rec := httptest.NewRecorder()
+		c := e.Echo.NewContext(req, rec)
+		nc := &NexusContext{
+			NexusURI: "/leaders",
+			//Codes: nexus.DefaultHTTPMethodsResponses,
+			Context:   c,
+			CrdType:   "leaders.orgchart.vmware.org",
+			GroupName: "orgchart.vmware.org",
+			Resource:  "leaders",
+		}
+
+		err := listHandler(nc)
+		Expect(err).NotTo(HaveOccurred())
+		Expect(rec.Code).To(Equal(200))
+		Expect(rec.Body.String()).Should(Equal("[{\"name\":\"default\",\"spec\":{\"designation\":\"abc\",\"employeeID\":100,\"name\":\"xyz\"},\"status\":{}}]\n"))
+	})
+
 	It("should handle get query", func() {
 		restUri := nexus.RestURIs{
 			Uri:     "/leader/{management.Leader}",

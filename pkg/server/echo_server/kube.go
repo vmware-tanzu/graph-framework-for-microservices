@@ -7,6 +7,7 @@ import (
 	"errors"
 	"net/http/httputil"
 	"net/url"
+	"strconv"
 	"strings"
 
 	labelSelector "k8s.io/apimachinery/pkg/labels"
@@ -57,6 +58,18 @@ func KubeGetHandler(c echo.Context) error {
 	opts := metav1.ListOptions{}
 	if c.QueryParams().Has("labelSelector") {
 		opts.LabelSelector = c.QueryParams().Get("labelSelector")
+	}
+
+	if c.QueryParams().Has("limit") {
+		i, err := strconv.ParseInt(c.QueryParams().Get("limit"), 10, 64)
+		if err != nil {
+			return err
+		}
+		opts.Limit = i
+	}
+
+	if c.QueryParams().Has("continue") {
+		opts.Continue = c.QueryParams().Get("continue")
 	}
 
 	gvr := schema.GroupVersionResource{
