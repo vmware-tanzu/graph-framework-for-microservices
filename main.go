@@ -3,7 +3,6 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"net/http"
 	"time"
@@ -13,7 +12,6 @@ import (
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/nexus-calibration/rest"
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/nexus-calibration/traceparser"
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/nexus-calibration/workmanager"
-	"gopkg.in/yaml.v2"
 )
 
 var testMap map[string]*workmanager.Worker
@@ -37,19 +35,6 @@ type Test struct {
 type Conf struct {
 	Server Server `yaml:"server" json:"server"`
 	Tests  []Test `yaml:"tests" json:"tests"`
-}
-
-func (c *Conf) getConf() *Conf {
-	//yamlFile, err := ioutil.ReadFile("conf.yaml")
-	yamlFile, err := ioutil.ReadFile("/root/config/conf.yaml")
-	if err != nil {
-		log.Printf("yamlFile.Get err   #%v ", err)
-	}
-	err = yaml.Unmarshal(yamlFile, c)
-	if err != nil {
-		log.Fatalf("Unmarshal: %v", err)
-	}
-	return c
 }
 
 type CallData struct {
@@ -133,7 +118,11 @@ func TestHandler(w http.ResponseWriter, r *http.Request) {
 	testKey := vars["test"]
 	decoder := json.NewDecoder(r.Body)
 	var conf Conf
-	decoder.Decode(&conf)
+	err := decoder.Decode(&conf)
+	if err != nil {
+		fmt.Fprintf(w, "Error reading the test conf\n")
+		return
+	}
 	log.Println(conf)
 	if testMap[testKey] != nil {
 		fmt.Fprintf(w, "The test %s already exists, use a different tests name\n", testKey)
