@@ -1,13 +1,20 @@
 package openapi_generator_test
 
 import (
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"os"
+	"path/filepath"
 	"strings"
 
+	"github.com/ghodss/yaml"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
+	extensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
+
+	pkg_generator "github.com/vmware-tanzu/graph-framework-for-microservices/compiler/pkg/generator"
 	generator "github.com/vmware-tanzu/graph-framework-for-microservices/compiler/pkg/openapi_generator"
 	"github.com/vmware-tanzu/graph-framework-for-microservices/compiler/pkg/openapi_generator/test_data/openapi"
 	"github.com/vmware-tanzu/graph-framework-for-microservices/kube-openapi/pkg/common"
@@ -460,4 +467,245 @@ var _ = Describe("Generator", func() {
 		Expect(gen.UpdateYAMLs(tmpDir)).To(Succeed())
 		compareTmpFileWithExpectedFile(tmpFile, "test_data/08_kubernetes_flags.yaml")
 	})
+
+	Context("checks backward compatibility", func() {
+		It("should fail when the spec is changed", func() {
+			rawDefs := map[string]common.OpenAPIDefinition{
+				getSchemaName("foo"): {
+					Schema: spec.Schema{
+						SchemaProps: spec.SchemaProps{
+							Type: []string{"object"},
+							Properties: map[string]spec.Schema{
+								"spec": {
+									SchemaProps: spec.SchemaProps{
+										Type: []string{"object"},
+										Properties: map[string]spec.Schema{
+											"changePassword": {
+												SchemaProps: spec.SchemaProps{
+													Type:   []string{"string"},
+													Format: "string",
+												},
+											},
+											"name": {
+												SchemaProps: spec.SchemaProps{
+													Type:   []string{"integer"},
+													Format: "int32",
+												},
+											},
+										},
+										Required: []string{"changePassword"},
+									},
+								},
+							},
+						},
+					},
+				},
+			}
+			gen, err := generator.NewGenerator(rawDefs)
+			Expect(err).NotTo(HaveOccurred())
+
+			Expect(gen.ResolveRefs()).To(Succeed())
+
+			tmpFile := fmt.Sprintf("%s/%s.yaml", tmpDir, "foos")
+			err = os.WriteFile(tmpFile, []byte(newFooCRD), 0665)
+			Expect(err).NotTo(HaveOccurred())
+
+			// should be unsuccessful due to the incompatibility of the new and old CDs + forcing an upgrade=false
+			err = gen.UpdateYAMLs(tmpDir)
+			Expect(err).To(BeNil())
+
+			oldCRDDir, err := exampleFileTempTestDir("foos.yaml")
+			Expect(err).NotTo(HaveOccurred())
+
+			err = generator.CheckBackwardCompatibility(oldCRDDir, tmpDir, false)
+			cleanTempTestDir(oldCRDDir)
+			Expect(err.Error()).To(Equal("datamodel upgrade failed due to incompatible datamodel changes: \n " +
+				"detected changes in model stored in foos\n\n" +
+				"spec changes: \n" +
+				"/spec/versions/name=v1/schema/openAPIV3Schema/properties/spec/properties\n  - " +
+				"one field removed:\n    password:\n      " +
+				"type: string\n      " +
+				"format: string\n    \n  \n\n" +
+				"/spec/versions/name=v1/schema/openAPIV3Schema/properties/spec/properties/name/format\n  " +
+				"± value change\n    " +
+				"- string\n    " +
+				"+ int32\n  \n\n" +
+				"/spec/versions/name=v1/schema/openAPIV3Schema/properties/spec/properties/name/type\n  " +
+				"± value change\n    " +
+				"- string\n    " +
+				"+ integer\n  \n\n" +
+				"/spec/versions/name=v1/schema/openAPIV3Schema/properties/spec/required/0\n  " +
+				"± value change\n    " +
+				"- password\n    " +
+				"+ changePassword\n  \n\n"))
+		})
+
+		Context("should check nexus annotation and crd name compatibility", func() {
+			var (
+				crd extensionsv1.CustomResourceDefinition
+				f   *os.File
+				err error
+			)
+
+			AfterEach(func() {
+				f.Close()
+			})
+
+			BeforeEach(func() {
+				tmpFile := fmt.Sprintf("%s/%s.yaml", tmpDir, "foos")
+				err := os.WriteFile(tmpFile, []byte(newFooCRD), 0665)
+				Expect(err).NotTo(HaveOccurred())
+
+				fooContent, err := os.ReadFile(tmpFile)
+				Expect(err).To(BeNil())
+
+				err = yaml.Unmarshal(fooContent, &crd)
+				Expect(err).To(BeNil())
+
+				f, err = os.OpenFile(tmpFile, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0755)
+				Expect(err).To(BeNil())
+			})
+
+			It("should fail when the nexus annotation is changed", func() {
+				ann := crd.Annotations["nexus"]
+				nexusAnnotation := &pkg_generator.NexusAnnotation{}
+				err = json.Unmarshal([]byte(ann), &nexusAnnotation)
+				Expect(err).To(BeNil())
+
+				// modify singleton field to `true` which leads to DM incompatible with previous version
+				nexusAnnotation.IsSingleton = true
+				annotationInByte, err := yaml.Marshal(nexusAnnotation)
+				Expect(err).To(BeNil())
+
+				crd.Annotations["nexus"] = string(annotationInByte)
+				serialized, err := yaml.Marshal(crd)
+				Expect(err).To(BeNil())
+
+				_, err = f.Write(serialized)
+				Expect(err).To(BeNil())
+
+				// should be unsuccessful due to the incompatibility of the new and old CDs + forcing an upgrade=false
+				oldCRDDir, err := exampleFileTempTestDir("foos.yaml")
+				Expect(err).NotTo(HaveOccurred())
+
+				err = generator.CheckBackwardCompatibility(oldCRDDir, tmpDir, false)
+				cleanTempTestDir(oldCRDDir)
+				Expect(err.Error()).To(Equal("datamodel upgrade failed due to incompatible datamodel changes: \n " +
+					"detected changes in model stored in foos\n\n" +
+					"nexus annotation changes: \n" +
+					"/is_singleton\n  " +
+					"± value change\n    " +
+					"- false\n    " +
+					"+ true\n  \n\n"))
+			})
+
+			It("should fail when the CRD name is not matched", func() {
+				crd.Name = "foos.new_test.it"
+				serialized, err := yaml.Marshal(crd)
+				Expect(err).To(BeNil())
+
+				_, err = f.Write(serialized)
+				Expect(err).To(BeNil())
+
+				// should be unsuccessful due to the incompatibility of the new and old CDs + forcing an upgrade=false
+				oldCRDDir, err := exampleFileTempTestDir("foos.yaml")
+				Expect(err).NotTo(HaveOccurred())
+
+				err = generator.CheckBackwardCompatibility(oldCRDDir, tmpDir, false)
+				cleanTempTestDir(oldCRDDir)
+				Expect(err.Error()).To(Equal("datamodel upgrade failed due to incompatible datamodel changes: \n \"foos\" is deleted\n"))
+			})
+		})
+
+		It("should check for incompatible changes if a node is not found in the new CRDs directory", func() {
+			oldCRDDir, err := exampleFileTempTestDir("zoos.yaml")
+			Expect(err).NotTo(HaveOccurred())
+
+			// should fail when CRD/Node is removed in the new list on force=false
+			err = generator.CheckBackwardCompatibility(oldCRDDir, tmpDir, false)
+			Expect(err.Error()).To(Equal("datamodel upgrade failed due to incompatible datamodel changes: \n \"foos\" is deleted\n"))
+			cleanTempTestDir(oldCRDDir)
+
+			// should not fail when CRD/Node is removed in the new list on force=true
+			err = generator.CheckBackwardCompatibility(oldCRDDir, tmpDir, true)
+			Expect(err).To(BeNil())
+			cleanTempTestDir(oldCRDDir)
+		})
+
+		It("should not fail when the existing CRDs directory is empty", func() {
+			// shouldn't fail when no crds exists
+			emptyDir, err := exampleTestDir()
+			Expect(err).NotTo(HaveOccurred())
+			err = generator.CheckBackwardCompatibility(emptyDir, tmpDir, false)
+			Expect(err).ToNot(HaveOccurred())
+		})
+	})
 })
+
+func exampleTestDir() (string, error) {
+	dir, err := os.MkdirTemp("", "compatibility-test-")
+	if err != nil {
+		return "", err
+	}
+
+	return dir, nil
+}
+
+func exampleFileTempTestDir(fileName string) (string, error) {
+	dir, err := exampleTestDir()
+	if err != nil {
+		return "", err
+	}
+	data, err := os.ReadFile("test_data/foos.yaml")
+	if err != nil {
+		return "", err
+	}
+
+	file := filepath.Join(dir, fileName)
+	err = os.WriteFile(file, data, 0666)
+	if err != nil {
+		return "", err
+	}
+	return dir, err
+}
+
+func cleanTempTestDir(dir string) {
+	err := os.RemoveAll(dir)
+	if err != nil {
+		fmt.Println(err)
+	}
+}
+
+var newFooCRD = `
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    nexus: |
+      {"name":"gns.Foo","hierarchy":["roots.root.tsm.tanzu.vmware.com","configs.config.tsm.tanzu.vmware.com","gnses.gns.tsm.tanzu.vmware.com"],"is_singleton":false,"nexus-rest-api-gen":{"uris":null}}
+  creationTimestamp: null
+  name: foos
+spec:
+  conversion:
+    strategy: None
+  group: test.it
+  names:
+    kind: Foo
+    listKind: FooList
+    plural: foos
+    shortNames:
+    - foo
+    singular: foo
+  scope: Cluster
+  versions:
+  - name: v1
+    served: true
+    storage: true
+status:
+  acceptedNames:
+    kind: ""
+    plural: ""
+  conditions: null
+  storedVersions:
+  - v1
+`
