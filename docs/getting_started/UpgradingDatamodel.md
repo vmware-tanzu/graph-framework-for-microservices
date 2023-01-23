@@ -32,15 +32,15 @@ $ nexus datamodel build --name orgchart --force=false --prev-spec-dir=<build/crd
 
 The above command builds the new datamodel against the master branch of the build/crds directory.
 
-## Ensure Backwards Compatibility
+## What is considered a non-breaking and backward incompatible change?
 
-Please read the following scenarios to learn more about backwards compatibility.
+The following cases are considered non-breaking and backward incompatible changes:
 
 | Use Cases                                             | force=false | force=true |
 |-------------------------------------------------------|:-----------:|:----------:|
 | Add/Remove a field in the nexus node                  |   &cross;   |  &check;   |
-| Add a field with "omitempty" tag                      |   &check;   |  &check;   |
-| Remove a field with "omitempty" tag 	                 |   &cross;   |  &check;   |
+| Add a optional field ("omitempty" tag )               |   &check;   |  &check;   |
+| Remove a optional field ("omitempty" tag )            |   &cross;   |  &check;   |
 | Add/Remove a child/link                               |   &cross;   |  &check;   |
 | Modify the type of a field                            |   &cross;   |  &check;   |
 | Modify the field name                                 |   &cross;   |  &check;   |
