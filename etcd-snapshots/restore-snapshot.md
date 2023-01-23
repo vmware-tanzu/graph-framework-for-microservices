@@ -16,7 +16,7 @@ ETCDCTL_API=3 etcdctl --endpoints http://localhost:2379 snapshot save "$SNAPSHOT
 ```shell
 helm repo add stable https://charts.helm.sh/stable
 helm install nfs stable/nfs-server-provisioner \
-  --set persistence.enabled=true,persistence.size=5Gi
+  --set persistence.enabled=true,persistence.size=5Gi --namespace "$NAMESPACE"
 ```
 
 3. Create a Backup PVC and etcd-backup-pod manifest
