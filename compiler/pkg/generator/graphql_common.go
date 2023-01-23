@@ -368,7 +368,7 @@ func getTsmGraphqlSchemaFieldName(sType GraphQLSchemaType, fieldName, schemaType
 				x := types.ExprString(val.X)
 				if imp, ok := importMap[x]; ok {
 					if strings.HasPrefix(imp, fmt.Sprintf(`"%s`, pkg.ModPath)) {
-						schemaName = addJsonencodedAnnotation(f, parser.GRAPHQL_TS_TYPE_ANNOTATION, val.Sel.Name, schemaName)
+						schemaName = addJsonencodedAnnotation(f, parser.GRAPHQL_TS_TYPE_ANNOTATION, x, val.Sel.Name, schemaName, false)
 					} else {
 						if parser.IsFieldAnnotationPresent(f, parser.GRAPHQL_TYPE_NAME) {
 							typeName := parser.GetFieldAnnotationVal(f, parser.GRAPHQL_TYPE_NAME)
@@ -377,12 +377,12 @@ func getTsmGraphqlSchemaFieldName(sType GraphQLSchemaType, fieldName, schemaType
 							if !slices.Contains(nonNexusTypes.ExternalTypes, aliasType) {
 								nonNexusTypes.ExternalTypes = append(nonNexusTypes.ExternalTypes, aliasType)
 							}
-							schemaName = addJsonencodedAnnotation(f, parser.GRAPHQL_TS_TYPE_ANNOTATION, typeName, schemaName)
+							schemaName = addJsonencodedAnnotation(f, parser.GRAPHQL_TS_TYPE_ANNOTATION, x, typeName, schemaName, true)
 						}
 					}
 				}
 			} else if val, ok := f.Type.(*ast.Ident); ok && convertGraphqlStdType(val.Name) == "" {
-				schemaName = addJsonencodedAnnotation(f, parser.GRAPHQL_TS_TYPE_ANNOTATION, val.Name, schemaName)
+				schemaName = addJsonencodedAnnotation(f, parser.GRAPHQL_TS_TYPE_ANNOTATION, "", val.Name, schemaName, false)
 			} else if parser.IsFieldAnnotationPresent(f, parser.GRAPHQL_JSONENCODED_ANNOTATION) {
 				schemaName += " @jsonencoded"
 			}
@@ -394,13 +394,19 @@ func getTsmGraphqlSchemaFieldName(sType GraphQLSchemaType, fieldName, schemaType
 	return schemaName
 }
 
-func addJsonencodedAnnotation(f *ast.Field, annotation parser.FieldAnnotation, name string, schemaName string) string {
+func addJsonencodedAnnotation(f *ast.Field, annotation parser.FieldAnnotation, x string, name string, schemaName string, external bool) string {
+	args := []string{`gofile:"model.go"`, fmt.Sprintf(`name:"%s"`, name)}
+
 	if parser.IsFieldAnnotationPresent(f, annotation) {
-		schemaName += fmt.Sprintf(` @jsonencoded(file:"%s", gofile:"model.go", name:"%s")`,
-			parser.GetFieldAnnotationVal(f, annotation), name)
-	} else {
-		schemaName += fmt.Sprintf(` @jsonencoded(gofile:"model.go", name:"%s")`, name)
+		args = append(args, fmt.Sprintf(`file:"%s"`, parser.GetFieldAnnotationVal(f, annotation)))
 	}
+
+	if !external && x != "" {
+		args = append(args, fmt.Sprintf(`goname:"%s.%s"`, x, name))
+	}
+
+	schemaName += fmt.Sprintf(" @jsonencoded(%s)", strings.Join(args, ", "))
+
 	return schemaName
 }
 
