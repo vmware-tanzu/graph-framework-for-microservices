@@ -9,6 +9,32 @@ VERSION ?= $(shell git rev-parse --verify HEAD 2>/dev/null)
 NAME ?= $(shell cat nexus.yaml | grep groupName | awk '{print $$2}' | tr -d '"')
 NAMESPACE ?= ""
 
+# values for nexus datamodel upgrade
+FORCE ?= false
+DEFAULT_PREV_SPEC_BRANCH ?= $(shell git rev-parse --abbrev-ref HEAD 2>/dev/null)
+PREV_SPEC_BRANCH ?= ""
+DEFAULT_PREV_SPEC_DIR ?= ${BUILD_DIR}/crds
+PREV_SPEC_DIR ?= ""
+ABSOLUTE_PATH_SPEC_DIR ?= $(shell realpath ${PREV_SPEC_DIR})
+ABSOLUTE_PATH_BUILD_DIR ?= $(shell realpath .)/${BUILD_DIR}/crds
+USER_DEFINED_BRANCH ?= ""
+USER_DEFINED_DIRECTORY ?= ""
+
+ifeq (,$(shell echo ${PREV_SPEC_BRANCH}))
+USER_DEFINED_BRANCH=false
+PREV_SPEC_BRANCH=${DEFAULT_PREV_SPEC_BRANCH}
+else
+USER_DEFINED_BRANCH=true
+endif
+
+ifeq (,$(shell echo ${PREV_SPEC_DIR}))
+USER_DEFINED_DIRECTORY=false
+PREV_SPEC_DIR=${DEFAULT_PREV_SPEC_DIR}
+ABSOLUTE_PATH_SPEC_DIR ?= $(shell realpath ${PREV_SPEC_DIR})
+else
+USER_DEFINED_DIRECTORY=true
+endif
+
 ifeq ($(DOCKER_REPO),)
 DOCKER_REPO=$(NAME)
 endif
@@ -19,10 +45,30 @@ endif
 
 .PHONY: datamodel_build
 datamodel_build:
+	@echo "USER_DEFINED_BRANCH: ${USER_DEFINED_BRANCH} , USER_DEFINED_DIRECTORY: ${USER_DEFINED_DIRECTORY}"
 	@echo "CRD and API Generated Output Directory: ${BUILD_DIR}"
 	@echo "OPENAPISpec Generated Output Directory: ${BUILD_DIR}/crds/"
-	rm -rf ${DATAMODEL_LOCAL_PATH}/build
+	@echo "PREV_SPEC_DIR of Generated Output Directory: ${PREV_SPEC_DIR}"
+	@echo "PREV_SPEC_BRANCH of Generated Output Directory: ${PREV_SPEC_BRANCH}"
 	mkdir -p ${BUILD_DIR}
+	if find "${ABSOLUTE_PATH_SPEC_DIR}" -mindepth 1 -maxdepth 1 ; then \
+		cd ${ABSOLUTE_PATH_SPEC_DIR}/.. &&\
+		if git ls-tree ${PREV_SPEC_BRANCH} ${ABSOLUTE_PATH_SPEC_DIR} --name-only 2>/dev/null ; then \
+			cd ${ABSOLUTE_PATH_SPEC_DIR} && git checkout ${PREV_SPEC_BRANCH} . ;\
+		elif  [ ${USER_DEFINED_BRANCH} = true ] ; then \
+			echo "Failed to checkout Directory: ${PREV_SPEC_DIR} from ${PREV_SPEC_BRANCH} ";\
+			exit 1; \
+		fi ;\
+		if [ ${ABSOLUTE_PATH_SPEC_DIR} = ${ABSOLUTE_PATH_BUILD_DIR} ] ; then \
+			echo "Skipping copy of ${ABSOLUTE_PATH_SPEC_DIR} to ${ABSOLUTE_PATH_BUILD_DIR} directory since both are the same"; \
+		else \
+			cp -rf ${ABSOLUTE_PATH_SPEC_DIR}/ ${ABSOLUTE_PATH_BUILD_DIR} ;\
+			echo "Copying of ${ABSOLUTE_PATH_SPEC_DIR} to the destination directory ${ABSOLUTE_PATH_BUILD_DIR}"; \
+		fi ;\
+	elif [ ${USER_DEFINED_DIRECTORY} = true ]; then \
+		echo "Please provide a valid artifact directory "; \
+		exit 1; \
+	fi
 	if [ -z $(CONTAINER_ID) ]; then \
 		docker run --pull=missing\
 			--volume $(realpath .):/go/src/github.com/vmware-tanzu/graph-framework-for-microservices/compiler/datamodel/ \
@@ -33,7 +79,8 @@ datamodel_build:
 			-e CONFIG_FILE=datamodel/nexus.yaml \
 			-e GOPRIVATE=*.eng.vmware.com \
 			-e GOINSECURE=*.eng.vmware.com \
-			gcr.io/nsx-sm/nexus/compiler:$(TAG); \
+			-e FORCE=$(FORCE) \
+			gcr.io/nsx-sm/nexus/compiler:$(TAG) /bin/bash -c 'make generate_code && chown -R $(shell id -u):$(shell id -g) .;'; \
 	else \
 		docker run --pull=missing\
 			--volumes-from=$(CONTAINER_ID) \
@@ -45,6 +92,7 @@ datamodel_build:
 			-e GOINSECURE=*.eng.vmware.com \
 			-e CICD_TOKEN=${CICD_TOKEN} \
 			--user root:root \
+			-e FORCE=$(FORCE) \
 			gcr.io/nsx-sm/nexus/compiler:$(TAG); \
 	fi
 
