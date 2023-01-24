@@ -158,7 +158,8 @@ preparser:
 	go run cmd/preparser/main.go -dsl _tsm_temp
 	cp -R _generated_base_structure/* ${DATAMODEL_PATH}/build
 	@if [ -d "_tsm_temp/global" ]; then \
-		mv _tsm_temp/go.mod _tsm_temp/global/go.mod; \
+		cp _tsm_temp/go.mod _tsm_temp/global/go.mod; \
+		cp -R _tsm_temp/common _tsm_temp/global/common; \
 		$(MAKE) generate_code DATAMODEL_PATH=_tsm_temp/global; \
 	else \
 		$(MAKE) generate_code DATAMODEL_PATH=_tsm_temp; \

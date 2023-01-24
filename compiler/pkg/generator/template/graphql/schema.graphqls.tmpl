@@ -37,7 +37,7 @@ type TimeSeriesData {
 }
 
 {{- range $key, $val := .GraphQlFiles}}
-    {{- if eq $key "_tsm_temp/global/enums.graphql" }}
+    {{- if eq $key "_tsm_temp/global/common/enums.graphql" }}
     {{ $val }}
     {{- else}}{{ end }}
 {{- end }}
