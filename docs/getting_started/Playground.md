@@ -226,7 +226,6 @@ curl -X POST -H 'Content-Type: application/json' -d '{"apiVersion":"root.orgchar
 
 ```shell
 echo 'apiVersion: root.orgchart.org/v1
-apiVersion: root.orgchart.org/v1
 kind: Engineer
 metadata:
   name: Engineer1

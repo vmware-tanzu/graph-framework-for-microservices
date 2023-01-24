@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"strconv"
 	"strings"
 
 	generator "github.com/vmware-tanzu/graph-framework-for-microservices/compiler/pkg/openapi_generator"
@@ -11,11 +12,22 @@ import (
 )
 
 func main() {
-	var yamlsPath string
+	var (
+		yamlsPath        string
+		existingCRDsPath string
+		forceUpgrade     string // Used to denote the forced upgrade of a data model.
+	)
 	flag.StringVar(&yamlsPath, "yamls-path", "", "Path to directory containing CRD YAML definitions")
+	flag.StringVar(&existingCRDsPath, "existing-CRDs-Path", "", "Path to directory containing existing CRD YAML definitions")
+	flag.StringVar(&forceUpgrade, "force", "", "Set to true to force the nexus datamodel upgrade. \"+\n\t\t\t\"Defaults to `false`")
 	flag.Parse()
 	if yamlsPath == "" {
 		panic("yamls-path is empty. Run with -h for help")
+	}
+
+	force, err := strconv.ParseBool(forceUpgrade)
+	if err != nil {
+		panic(fmt.Sprintf("parsing command line argument: force, failed with error: %v", err))
 	}
 
 	ref := func(pkg string) spec.Ref {
@@ -47,5 +59,9 @@ func main() {
 	err = g.UpdateYAMLs(yamlsPath)
 	if err != nil {
 		panic(err)
+	}
+
+	if err = generator.CheckBackwardCompatibility(existingCRDsPath, yamlsPath, force); err != nil {
+		panic(fmt.Sprintf("Datamodel backward compatibility check failed with error: %v", err))
 	}
 }
