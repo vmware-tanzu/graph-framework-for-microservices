@@ -4,6 +4,8 @@ import (
 	"go/doc"
 	"regexp"
 	"strings"
+
+	log "github.com/sirupsen/logrus"
 )
 
 const (
@@ -19,7 +21,11 @@ func GetNexusSecretSpecAnnotation(pkg Package, name string) (string, bool) {
 }
 
 func GetNexusRestAPIGenAnnotation(pkg Package, name string) (string, bool) {
-	return getNexusAnnotation(pkg, name, NexusRestApiGenAnnotation)
+	anno, ok := getNexusAnnotation(pkg, name, NexusRestApiGenAnnotation)
+	if ok && !pkg.IsVarPresent(anno) {
+		log.Fatalf("Error: var %+s is not present", anno)
+	}
+	return anno, ok
 }
 
 func GetNexusDescriptionAnnotation(pkg Package, name string) (string, bool) {

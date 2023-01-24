@@ -13,6 +13,7 @@ require (
 	github.com/onsi/gomega v1.23.0
 	github.com/rs/cors v1.8.3
 	github.com/sirupsen/logrus v1.8.1
+	github.com/vmware-tanzu/graph-framework-for-microservices/common-library v0.0.0-20221129104902-06818e531062
 	github.com/vmware-tanzu/graph-framework-for-microservices/gqlgen v0.0.0-00010101000000-000000000000
 	github.com/vmware-tanzu/graph-framework-for-microservices/kube-openapi v0.0.0-20220603123335-7416bd4754d3
 	github.com/vmware-tanzu/graph-framework-for-microservices/nexus v0.0.0-20221114103953-d31f6492d7fc
@@ -30,6 +31,7 @@ require (
 )
 
 require (
+	github.com/BurntSushi/toml v1.2.1 // indirect
 	github.com/agnivade/levenshtein v1.1.1 // indirect
 	github.com/cpuguy83/go-md2man/v2 v2.0.1 // indirect
 	github.com/emicklei/go-restful v2.15.0+incompatible // indirect
@@ -47,6 +49,7 @@ require (
 	github.com/hashicorp/golang-lru v0.5.4 // indirect
 	github.com/josharian/intern v1.0.0 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
+	github.com/lucasb-eyer/go-colorful v1.2.0 // indirect
 	github.com/mailru/easyjson v0.7.6 // indirect
 	github.com/mitchellh/mapstructure v1.5.0 // indirect
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
@@ -55,8 +58,11 @@ require (
 	github.com/nxadm/tail v1.4.8 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/russross/blackfriday/v2 v2.1.0 // indirect
+	github.com/sergi/go-diff v1.2.0 // indirect
+	github.com/texttheater/golang-levenshtein v1.0.1 // indirect
 	github.com/urfave/cli/v2 v2.8.1 // indirect
 	github.com/vektah/gqlparser/v2 v2.5.0 // indirect
+	github.com/virtuald/go-ordered-json v0.0.0-20170621173500-b18e6e673d74 // indirect
 	github.com/xrash/smetrics v0.0.0-20201216005158-039620a65673 // indirect
 	golang.org/x/net v0.3.1-0.20221206200815-1e63c2f08a10 // indirect
 	golang.org/x/oauth2 v0.0.0-20211104180415-d3ed0bb246c8 // indirect
@@ -83,3 +89,5 @@ replace github.com/vmware-tanzu/graph-framework-for-microservices/kube-openapi =
 replace github.com/vmware-tanzu/graph-framework-for-microservices/gqlgen => ../gqlgen
 
 replace github.com/vmware-tanzu/graph-framework-for-microservices/nexus => ../nexus
+
+replace github.com/vmware-tanzu/graph-framework-for-microservices/common-library => ../common-library
