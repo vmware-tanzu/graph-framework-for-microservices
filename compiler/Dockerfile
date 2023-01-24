@@ -19,13 +19,10 @@ RUN mkdir nexustmp && cd nexustmp && go mod init && \
 WORKDIR /go/src/github.com/vmware-tanzu/graph-framework-for-microservices/compiler/_deps/github.com/kubernetes/code-generator
 RUN go mod download
 
-
-WORKDIR /go/src/github.com/vmware-tanzu/graph-framework-for-microservices/compiler
-RUN go mod download
-
 WORKDIR /go/src/github.com/vmware-tanzu/graph-framework-for-microservices/install-validator
 RUN CGO_ENABLED=0 go build --trimpath -o install.so ./cmd/validate
 
 WORKDIR /go/src/github.com/vmware-tanzu/graph-framework-for-microservices/compiler
+RUN go mod download
 
 CMD make docker.gitlab_credentials && make generate_code

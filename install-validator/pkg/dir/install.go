@@ -28,7 +28,7 @@ func InstallDir(dir string, c kubewrapper.ClientInt) error {
 		}
 		data, err := os.ReadFile(path)
 		if err != nil {
-			logrus.Debugf("error while reading file %s", info.Name())
+			logrus.Debugf("Error while reading file %s", info.Name())
 			return err
 		}
 
