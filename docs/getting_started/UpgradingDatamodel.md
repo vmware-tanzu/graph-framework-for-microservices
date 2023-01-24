@@ -34,23 +34,329 @@ The above command builds the new datamodel against the master branch of the buil
 
 ## What is considered a non-breaking and backward incompatible change?
 
-The following cases are considered non-breaking and backward incompatible changes:
+#### To try the example
 
-| Use Cases                                             | force=false | force=true |
-|-------------------------------------------------------|:-----------:|:----------:|
-| Add/Remove a field in the nexus node                  |   &cross;   |  &check;   |
-| Add a optional field ("omitempty" tag )               |   &check;   |  &check;   |
-| Remove a optional field ("omitempty" tag )            |   &cross;   |  &check;   |
-| Add/Remove a child/link                               |   &cross;   |  &check;   |
-| Modify the type of a field                            |   &cross;   |  &check;   |
-| Modify the field name                                 |   &cross;   |  &check;   |
-| Modify the REST API URIs                              |   &check;   |  &check;   |
-| Add a field in status sub-resource of a nexus node    |   &check;   |  &check;   |
-| Remove a field in status sub-resource of a nexus node |   &cross;   |  &check;   |
-| Modify the field in status sub-resource               |   &cross;   |  &check;   |
+1. It requires the Datamodel to be initialised and installed before proceeding to further steps. Please follow the below link to configure datamodel.
+
+   #### [Playground](docs/getting_started/Playground.md)
+
+These are considered non-breaking or backward compatible changes:
+
+#####  1. Add an optional field in the nexus node (field with "omitempty" tag )
+
+<details>
+<summary>:eyes: Show example</summary>
+
+1. Edit the root.go file in your datamodel.
+2. Add an optional field called `AdditionalField` (field with `omitempty` tag) in the node
+    ```shell
+   cat <<< '--- root.go.orig	2023-01-05 04:22:07.475996737 -0800
+   +++ root.go	2023-01-17 05:41:07.993795597 -0800
+   @@ -25,7 +25,8 @@
+    type Leader struct {
+        // Tags "Root" as a node in datamodel graph
+        nexus.Node
+
+   -    Name          string
+   -    Designation   string
+   -    DirectReports Manager `nexus:"children"`
+   +    Name          string
+   +    Designation   string
+   +    DirectReports Manager `nexus:"children"`
+   +    AdditionalField string `json:"additionalField,omitempty"`
+    }
+   ' | patch root.go --ignore-whitespace
+      ```
+
+      <!--
+      ```
+      cp $DOCS_INTERNAL_DIR/root.go.patched root.go
+      ```
+      -->
+
+3. Rebuild your datamodel
+   ```
+   nexus datamodel build --name orgchart
+   ```
+
+   Now, the build would succeed
+
+</details>
+
+#####  2. Modify the existing REST API URIs
+
+<details>
+<summary>:eyes: Show example</summary>
+
+1. Edit the root.go file in your datamodel.
+2. Remove the GET URI from the spec
+    ```shell
+   var LeaderRestAPISpec = nexus.RestAPISpec{
+    Uris: []nexus.RestURIs{
+        {
+            Uri:     "/leaders",
+            Methods: nexus.HTTPListResponse,
+        },
+    },
+   }
+
+   // nexus-rest-api-gen:LeaderRestAPISpec
+   type Leader struct {
+      nexus.Node    Name          string
+      Designation   string
+      DirectReports Manager `nexus:"children"`
+   }
+   ' | patch root.go --ignore-whitespace
+      ```
+
+      <!--
+      ```
+      cp $DOCS_INTERNAL_DIR/root.go.patched root.go
+      ```
+      -->
+
+3. Rebuild your datamodel
+   ```
+   nexus datamodel build --name orgchart
+   ```
+
+   Now, the build would succeed
+
+</details>
+
+#####  3. Modify the existing REST APIs annotation
+
+<details>
+<summary>:eyes: Show example</summary>
+
+1. Edit the root.go file and modify the nexus-rest-api-gen annotation spec 
+    
+   ```shell
+   var NewLeaderRestAPISpec = nexus.RestAPISpec{
+    Uris: []nexus.RestURIs{
+        {
+            Uri:     "/leaders",
+            Methods: nexus.HTTPListResponse,
+        },
+    },
+   }
+
+   // nexus-rest-api-gen:NewLeaderRestAPISpec    <====
+   type Leader struct {    
+      nexus.Node    Name          string
+      Designation   string
+      DirectReports Manager `nexus:"children"`
+   }
+   ' | patch root.go --ignore-whitespace
+      ```
+
+      <!--
+      ```
+      cp $DOCS_INTERNAL_DIR/root.go.patched root.go
+      ```
+      -->
+
+2. Rebuild your datamodel
+   ```
+   nexus datamodel build --name orgchart 
+   ```
+
+   Now, the build would succeed
+
+</details>
+
+And these would be considered breaking changes:
+
+#####  1. Add a new field in the nexus node
+
+<details>
+<summary>:eyes: Show example</summary>
+
+1. Edit the root.go file in your datamodel. 
+2. Add a new field called `AdditionalField` in the nexus node 
+   ```shell
+   cat <<< '--- root.go.orig	2023-01-05 04:22:07.475996737 -0800
+   +++ root.go	2023-01-17 05:41:07.993795597 -0800
+   @@ -25,7 +25,8 @@
+    type Leader struct {
+        // Tags "Root" as a node in datamodel graph
+        nexus.Node
+
+   -    Name          string
+   -    Designation   string
+   -    DirectReports Manager `nexus:"children"`
+   +    Name          string
+   +    Designation   int
+   +    DirectReports Manager `nexus:"children"`
+   +    AdditionalField string
+    }
+   ' | patch root.go --ignore-whitespace
+      ```
+
+      <!--
+      ```
+      cp $DOCS_INTERNAL_DIR/root.go.patched root.go
+      ```
+      -->
+
+3. Build your datamodel again
+   ```
+   nexus datamodel build --name orgchart 
+   ```
+
+   Now, the build would fail and display the incompatible changes as shown below.
+   ```
+   panic: Error occurred when checking datamodel compatibility: datamodel upgrade failed due to incompatible datamodel changes: \n"
+   time="2023-01-24T12:21:56+05:30" level=error msg="\t >  detected changes in model stored in leaders.root.orgchart.org\n"
+   time="2023-01-24T12:21:56+05:30" level=error msg="\t > \n"
+   time="2023-01-24T12:21:56+05:30" level=error msg="\t > spec changes: \n"
+   time="2023-01-24T12:21:56+05:30" level=error msg="\t > /spec/versions/name=v1/schema/openAPIV3Schema/properties/spec/required\n"
+   time="2023-01-24T12:21:56+05:30" level=error msg="\t >   + one required field added:\n"
+   time="2023-01-24T12:21:56+05:30" level=error msg="\t >     - additionalField\n"
+   time="2023-01-24T12:21:56+05:30" level=error msg="\t >     \n"
+   time="2023-01-24T12:21:56+05:30" level=error msg="\t >   \n"
+   time="2023-01-24T12:21:56+05:30" level=error msg="\t > \n"
+   time="2023-01-24T12:21:56+05:30" level=error msg="\t > \n"
+   time="2023-01-24T12:21:56+05:30" level=error msg="\t > \n"
+   
+4. Use the `—force=true` flag to ignore any build failures and obtain successful code generation.
+   ```
+   nexus datamodel build --name orgchart --force=true
+   ```
+   
+</details>
+
+#####  2. Remove a field from the nexus node
+
+<details>
+<summary>:eyes: Show example</summary>
+
+1. Edit the root.go file in your datamodel.
+2. Remove a field called `Designation` from the `Leader` node  
+   ```shell
+   cat <<< '--- root.go.orig	2023-01-05 04:22:07.475996737 -0800
+   +++ root.go	2023-01-17 05:41:07.993795597 -0800
+   @@ -25,7 +25,8 @@
+    type Leader struct {
+        // Tags "Root" as a node in datamodel graph
+        nexus.Node
+
+   -    Name          string
+   -    Designation   string
+   -    DirectReports Manager `nexus:"children"`
+   +    Name          string
+   +    DirectReports Manager `nexus:"children"`
+    }
+   ' | patch root.go --ignore-whitespace
+      ```
+
+      <!--
+      ```
+      cp $DOCS_INTERNAL_DIR/root.go.patched root.go
+      ```
+      -->
+
+3. Build your datamodel again
+   ```
+   nexus datamodel build --name orgchart 
+   ```
+
+   Now, the build would fail and display the incompatible changes as shown below.
+
+   ```
+   panic: Error occurred when checking datamodel compatibility: datamodel upgrade failed due to incompatible datamodel changes: \n"
+   time="2023-01-24T14:08:00+05:30" level=error msg="\t >  detected changes in model stored in leaders.root.orgchart.org\n"
+   time="2023-01-24T14:08:00+05:30" level=error msg="\t > \n"
+   time="2023-01-24T14:08:00+05:30" level=error msg="\t > spec changes: \n"
+   time="2023-01-24T14:08:00+05:30" level=error msg="\t > /spec/versions/name=v1/schema/openAPIV3Schema/properties/spec/properties\n"
+   time="2023-01-24T14:08:00+05:30" level=error msg="\t >   - one field removed:\n"
+   time="2023-01-24T14:08:00+05:30" level=error msg="\t >     designation:\n"
+   time="2023-01-24T14:08:00+05:30" level=error msg="\t >       type: string\n"
+   time="2023-01-24T14:08:00+05:30" level=error msg="\t >     \n"
+   time="2023-01-24T14:08:00+05:30" level=error msg="\t >   \n"
+   time="2023-01-24T14:08:00+05:30" level=error msg="\t > \n"
+   time="2023-01-24T14:08:00+05:30" level=error msg="\t > /spec/versions/name=v1/schema/openAPIV3Schema/properties/spec/required\n"
+   time="2023-01-24T14:08:00+05:30" level=error msg="\t >   - one required field removed:\n"
+   time="2023-01-24T14:08:00+05:30" level=error msg="\t >     - designation\n"
+   time="2023-01-24T14:08:00+05:30" level=error msg="\t >     \n"
+   time="2023-01-24T14:08:00+05:30" level=error msg="\t >   \n"
+   time="2023-01-24T14:08:00+05:30" level=error msg="\t > \n"
+   time="2023-01-24T14:08:00+05:30" level=error msg="\t > \n"
+   time="2023-01-24T14:08:00+05:30" level=error msg="\t > \n"
+
+4. Use the `—force=true` flag to ignore any build failures and obtain successful code generation.
+   ```
+   nexus datamodel build --name orgchart --force=true
+   ```
+
+</details>
+
+#####  3. Remove an optional field from the nexus node (field with "omitempty" tag )
+
+<details>
+<summary>:eyes: Show example</summary>
+
+1. Edit the root.go file in your datamodel.
+2. Remove an optional field called `Designation` from the `Leader` node
+   ```shell
+   cat <<< '--- root.go.orig	2023-01-05 04:22:07.475996737 -0800
+   +++ root.go	2023-01-17 05:41:07.993795597 -0800
+   @@ -25,7 +25,8 @@
+    type Leader struct {
+        // Tags "Root" as a node in datamodel graph
+        nexus.Node
+
+   -    Name          string
+   -    Designation   string  `json:"additionalField,omitempty"`
+   -    DirectReports Manager `nexus:"children"`
+   +    Name          string
+   +    DirectReports Manager `nexus:"children"`
+    }
+   ' | patch root.go --ignore-whitespace
+      ```
+
+      <!--
+      ```
+      cp $DOCS_INTERNAL_DIR/root.go.patched root.go
+      ```
+      -->
+
+3. Build your datamodel again
+   ```
+   nexus datamodel build --name orgchart 
+   ```
+
+   Now, the build would fail and display the incompatible changes as shown below.
+
+   ```
+   panic: Error occurred when checking datamodel compatibility: datamodel upgrade failed due to incompatible datamodel changes: \n"
+   time="2023-01-24T14:08:00+05:30" level=error msg="\t >  detected changes in model stored in leaders.root.orgchart.org\n"
+   time="2023-01-24T14:08:00+05:30" level=error msg="\t > \n"
+   time="2023-01-24T14:08:00+05:30" level=error msg="\t > spec changes: \n"
+   time="2023-01-24T14:08:00+05:30" level=error msg="\t > /spec/versions/name=v1/schema/openAPIV3Schema/properties/spec/properties\n"
+   time="2023-01-24T14:08:00+05:30" level=error msg="\t >   - one field removed:\n"
+   time="2023-01-24T14:08:00+05:30" level=error msg="\t >     designation:\n"
+   time="2023-01-24T14:08:00+05:30" level=error msg="\t >       type: string\n"
+   time="2023-01-24T14:08:00+05:30" level=error msg="\t >     \n"
+   time="2023-01-24T14:08:00+05:30" level=error msg="\t >   \n"
+   time="2023-01-24T14:08:00+05:30" level=error msg="\t > \n"
+   time="2023-01-24T14:08:00+05:30" level=error msg="\t > /spec/versions/name=v1/schema/openAPIV3Schema/properties/spec/required\n"
+   time="2023-01-24T14:08:00+05:30" level=error msg="\t >   - one required field removed:\n"
+   time="2023-01-24T14:08:00+05:30" level=error msg="\t >     - designation\n"
+   time="2023-01-24T14:08:00+05:30" level=error msg="\t >     \n"
+   time="2023-01-24T14:08:00+05:30" level=error msg="\t >   \n"
+   time="2023-01-24T14:08:00+05:30" level=error msg="\t > \n"
+   time="2023-01-24T14:08:00+05:30" level=error msg="\t > \n"
+   time="2023-01-24T14:08:00+05:30" level=error msg="\t > \n"
+
+4. Use the `—force=true` flag to ignore any build failures and obtain successful code generation.
+   ```
+   nexus datamodel build --name orgchart --force=true
+   ```
+
+</details>
 
 
-* To achieve a successful installation with force=true, you must manually delete any CR objects that are already in the system.
 
 
 ## Trying the example
