@@ -1,0 +1,43 @@
+name: Run integration test
+on:
+  pull_request:
+    branches: [ main ]
+jobs:
+  integration-test:
+    name: Build
+    runs-on:
+      labels: ubuntu-latest-4-cores
+    steps:
+      - name: Checkout github repository
+        uses: actions/checkout@v2
+      - name: Setup Golang
+        uses: actions/setup-go@v3
+        with:
+          go-version: '>=1.17.0'
+      - name: setup-docker
+        uses: docker-practice/actions-setup-docker@1.0.11
+      - name: 'Set up Cloud SDK'
+        uses: 'google-github-actions/setup-gcloud@v0'
+      - name: Create Kind k8s cluster
+        uses: helm/kind-action@v1.4.0
+        with:
+          cluster_name: nexus
+          wait: 120s
+          node_image: gcr.io/nsx-sm/nexus/kind/node:v1.23.0
+      - name: Install kubectl
+        uses: azure/setup-kubectl@v3
+        with:
+          version: v1.23.0
+      - name: Create kind cluster and run integration test
+        run: |
+            set -x
+            kubectl wait pods -lcomponent=kube-apiserver -n kube-system --for=condition=ready --timeout=240s || { echo "k8s-apiserver pod could not be started" && exit 1; }
+            kubectl wait pods -lcomponent=kube-controller-manager -n kube-system --for=condition=ready --timeout=240s || { echo "k8s-controller-manager pod could not be started" && exit 1; }
+            curl -fsSL https://raw.githubusercontent.com/vmware-tanzu/graph-framework-for-microservices/main/cli/get-nexus-cli.sh -o get-nexus-cli.sh
+            bash get-nexus-cli.sh -d /usr/local/bin
+            nexus version
+            lscpu
+            free -mh
+            export GOPATH=$(go env GOPATH)
+            echo $GOPATH
+            cd integration-tests && ls && go run . workflows.yaml

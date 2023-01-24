@@ -1,0 +1,14 @@
+domain: test-app-local.com
+layout:
+- go.kubebuilder.io/v3
+multigroup: true
+projectName: test-app-local
+repo: test-app-local
+resources:
+- controller: true
+  datamodelImport: vmware
+  domain: test-app-local.com
+  group: management.vmware.org
+  kind: Leader
+  version: v1
+version: "3"
