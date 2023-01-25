@@ -65,16 +65,90 @@ kubectl apply -f deployment/deployment.yaml
 
 
 ### Run the workload
-Use the configmap provided in the deployment folder to set the configuration to requirements
-The available functions can be called by adding the keys to the configMap
-The workload data is captured locally by calculating the time taken to run each call. Low, High and average times are provided ( rudimentary calculation ).
-More information can be accessed by configuring with zipkin end point. ( Currently, it is mandatory to configure.) 
-- Apply grafana dashboad yaml
-- Apply the zipkin deployment file to add zipkin backend services. 
-- create timescale ns and install tsdb.  ``` helm install tsdb timescale/timescaledb-single -n timescale ```
-- Now apply the config map yaml and then the deployment yaml to run the workload
+Once the installation is complete, the tool can be accessed via port forwarding the service to locahost
 
-The workload can be re-run by creating a new job and reconfiguring the config map
+#### Steps to add tests 
+- To add rest test 
+  Use postman or a similar http client
+  Do a POST operation - localhost:8000/rest/tests
+  with the below body. 
+```
+{
+    "spec": [
+        {
+            "name": "put_manager",
+            "method": "PUT",
+            "path": "/root/default/leader/default/mgr/m1",
+            "data": "{ \"employeeID\": 0,\"name\": \"string\"}"
+        },
+        {
+            "name": "put_employee",
+            "method": "PUT",
+            "path": "/root/default/employee/{{random}}",
+            "data": "{}"
+        },
+        {
+            "name": "put_manager2",
+            "method": "PUT",
+            "path": "/root/default/leader/default/mgr/{{random}}",
+            "data": "{ \"employeeID\": 0,\"name\": \"string\"}"
+        },
+        {
+            "name": "get_one_manager",
+            "method": "GET",
+            "path": "/root/default/leader/default/mgr/m1"
+        },
+        {
+            "name": "get_managers_rest",
+            "method": "GET",
+            "path": "/mgrs"
+        }
+    ]
+}
+```
+- To add graphql query tests
+  POST call to - localhost:8000/gql/tests
+  This will add the below tests to the tool
+```
+{
+    "spec": [
+        {
+            "name": "get_mgrs",
+            "method": "{root {    Id, ParentLabels, CEO { EngManagers { Id }}}}"
+    }, {
+            "name": "get_leaders",
+            "method": "{root { Id, ParentLabels, CEO {Id}}}"
+    }
+]
+}
+```
+The tests that have been added can now be accessed/run by using the "name" keyword that was supplied while adding them
+
+#### To run a particular test
+Do a POST call to - localhost:8000/tests/t1
+```
+{
+    "server": {
+        "url": "http://nexus-api-gw.nexus5",
+        "zipkin": "http://zipkin:9411",
+        "tsdb": "postgres://postgres:dXmrYXVfwgD2JZvl@tsdb.timescale:5432/testdb"
+    },
+    "tests": [
+        {
+            "name": "write_n_objects",
+            "concurrency": 10,
+            "ops_count": 5,
+            "sample_rate": 1.0,
+            "graphql": [
+                "get_mgrs",
+                "get_leaders"
+            ]
+        }
+    ]
+}
+```
+
+The workload can be re-run by creating a new job
 
 ## Architecture of the tool
 
