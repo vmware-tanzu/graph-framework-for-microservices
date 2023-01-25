@@ -300,7 +300,9 @@ func processNode(node *Node, nodes map[string]Node, baseGroupName string) {
 			if !ok {
 				log.Fatalf("Internal compiler failure: couldn't find node for key %v", key)
 			}
-			n.Parents = node.Parents
+			p := make([]string, len(node.Parents))
+			copy(p, node.Parents)
+
 			n.Parents = append(n.Parents, node.CrdName)
 			processNode(&n, nodes, baseGroupName)
 
