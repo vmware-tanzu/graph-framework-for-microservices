@@ -303,7 +303,7 @@ func processNode(node *Node, nodes map[string]Node, baseGroupName string) {
 			p := make([]string, len(node.Parents))
 			copy(p, node.Parents)
 
-			n.Parents = append(n.Parents, node.CrdName)
+			n.Parents = append(p, node.CrdName)
 			processNode(&n, nodes, baseGroupName)
 
 			if isNamed {
