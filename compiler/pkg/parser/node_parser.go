@@ -170,13 +170,21 @@ func ParseDSLNodes(startPath string, baseGroupName string, packages Packages,
 				for _, child := range node.SingleChildren {
 					// if rootNode is a child then remove it from the slice
 					if child.CrdName == rootNode {
-						rootNodes = append(rootNodes[:i], rootNodes[i+1:]...)
+						if i+1 >= len(rootNodes) {
+							rootNodes = rootNodes[:i]
+						} else {
+							rootNodes = append(rootNodes[:i], rootNodes[i+1:]...)
+						}
 					}
 				}
 				for _, child := range node.MultipleChildren {
 					// if rootNode is a named child then remove it from the slice
 					if child.CrdName == rootNode {
-						rootNodes = append(rootNodes[:i], rootNodes[i+1:]...)
+						if i+1 >= len(rootNodes) {
+							rootNodes = rootNodes[:i]
+						} else {
+							rootNodes = append(rootNodes[:i], rootNodes[i+1:]...)
+						}
 					}
 				}
 			}
