@@ -120,13 +120,21 @@ func ParseDSLNodes(startPath string, baseGroupName string, packages Packages,
 				for _, child := range node.SingleChildren {
 					// if rootNode is a child then remove it from the slice
 					if child.CrdName == rootNode {
-						rootNodes = append(rootNodes[:i], rootNodes[i+1:]...)
+						if i+1 >= len(rootNodes) {
+							rootNodes = rootNodes[:i]
+						} else {
+							rootNodes = append(rootNodes[:i], rootNodes[i+1:]...)
+						}
 					}
 				}
 				for _, child := range node.MultipleChildren {
 					// if rootNode is a named child then remove it from the slice
 					if child.CrdName == rootNode {
-						rootNodes = append(rootNodes[:i], rootNodes[i+1:]...)
+						if i+1 >= len(rootNodes) {
+							rootNodes = rootNodes[:i]
+						} else {
+							rootNodes = append(rootNodes[:i], rootNodes[i+1:]...)
+						}
 					}
 				}
 			}
@@ -249,8 +257,10 @@ func processNode(node *Node, nodes map[string]Node, baseGroupName string) {
 			if !ok {
 				log.Fatalf("Internal compiler failure: couldn't find node for key %v", key)
 			}
-			n.Parents = node.Parents
-			n.Parents = append(n.Parents, node.CrdName)
+			p := make([]string, len(node.Parents))
+			copy(p, node.Parents)
+
+			n.Parents = append(p, node.CrdName)
 			processNode(&n, nodes, baseGroupName)
 
 			if isNamed {
