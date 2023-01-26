@@ -9,11 +9,13 @@ import (
 	"go/token"
 	"go/types"
 	"io/fs"
+	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strconv"
 	"strings"
 
+	cp "github.com/otiai10/copy"
 	log "github.com/sirupsen/logrus"
 	"github.com/vmware-tanzu/graph-framework-for-microservices/compiler/pkg/parser"
 	"golang.org/x/tools/imports"
@@ -207,6 +209,32 @@ func Render(dslDir string, packages map[string][]*parser.Package) error {
 			}
 		}
 
+	}
+
+	return nil
+}
+
+func CopyPkgsToBuild(dslDir string) error {
+	dir, err := ioutil.ReadDir(dslDir)
+	if err != nil {
+		return err
+	}
+
+	for _, f := range dir {
+		if !f.IsDir() || f.Name() == "build" || f.Name() == "vendor" || strings.HasPrefix(f.Name(), ".") {
+			continue
+		}
+
+		opt := cp.Options{
+			Skip: func(srcinfo os.FileInfo, src, dest string) (bool, error) {
+				return !strings.HasSuffix(src, ".go"), nil
+			},
+		}
+
+		err := cp.Copy(filepath.Join(dslDir, f.Name()), filepath.Join(dslDir, "build", "pkgs", f.Name()), opt)
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil

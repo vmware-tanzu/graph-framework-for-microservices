@@ -23,4 +23,9 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	err = preparser.CopyPkgsToBuild(*dslDir)
+	if err != nil {
+		log.Fatal(err)
+	}
 }

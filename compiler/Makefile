@@ -155,9 +155,9 @@ preparser:
 	rm -rf _tsm_temp
 	@echo "Copying Datamodel to temp directory"
 	cp -R ${DATAMODEL_PATH} _tsm_temp
+	cp -R _generated_base_structure/* ${DATAMODEL_PATH}/build
 	@echo "Nexus Compiler: Running Preparser"
 	go run cmd/preparser/main.go -dsl _tsm_temp
-	cp -R _generated_base_structure/* ${DATAMODEL_PATH}/build
 	@if [ -d "_tsm_temp/global" ]; then \
 		cp _tsm_temp/go.mod _tsm_temp/global/go.mod; \
 		cp -R _tsm_temp/common _tsm_temp/global/common; \
