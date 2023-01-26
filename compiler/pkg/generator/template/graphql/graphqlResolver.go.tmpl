@@ -102,14 +102,12 @@ func getRootResolver() (*model.{{$node.PkgName}}{{$node.NodeName}}, error) {
 //////////////////////////////////////
 func getRootResolver(id *string) ([]*model.{{$node.PkgName}}{{$node.NodeName}}, error) {
 	if nc == nil {
-		k8sApiConfig := getK8sAPIEndpointConfig()
-		nexusClient, err := nexus_client.NewForConfig(k8sApiConfig)
-		if err != nil {
-			return nil, fmt.Errorf("failed to get k8s client config: %s", err)
-		}
-		nc = nexusClient
-		nc.SubscribeAll()
-		log.Debugf("Subscribed to all nodes in datamodel")
+		log.Debugf("nc is nil in getRootResolver calling initNexusClientSet")
+        initNCErr := InitNexusClientSet()
+        if initNCErr != nil{
+            log.Errorf("[getRootResolver]Error initializing nexus client: %s", initNCErr)
+            return nil, nil
+        }
 	}
 
 	var v{{$node.NodeName}}List []*model.{{$node.PkgName}}{{$node.NodeName}}
@@ -120,6 +118,10 @@ func getRootResolver(id *string) ([]*model.{{$node.PkgName}}{{$node.NodeName}}, 
 			log.Errorf("[getRootResolver]Error getting {{$node.NodeName}} node %q: %s", *id, err)
 			return nil, nil
 		}
+		if v{{$node.NodeName}} == nil{
+            log.Errorf("[getRootResolver]Error getting Root node %s", err)
+            return nil, nil
+        }
 		{{ $node.Alias }}
 		{{ $node.ReturnType }}
 		v{{$node.NodeName}}List = append(v{{$node.NodeName}}List, ret)
