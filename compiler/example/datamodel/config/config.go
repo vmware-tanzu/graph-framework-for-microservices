@@ -109,7 +109,14 @@ type TestValMarkers struct {
 
 type SomeStruct struct{}
 
+type AliasedField gns.MyStr
+type AliasedFieldMap map[string]gns.MyStr
+type AliasedFieldList []gns.MyStr
+
 type StructWithEmbeddedField struct {
 	SomeStruct
 	gns.MyStr
+	ExplicitField    gns.MyStr
+	AliasedFieldMap  AliasedFieldMap
+	AliasedFieldList AliasedFieldList
 }

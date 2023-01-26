@@ -297,17 +297,31 @@ type {{.Name}} struct {
 	return b.String()
 }
 
-func parsePackageTypes(pkg parser.Package) string {
+func parsePackageTypes(pkg parser.Package, aliasNameMap map[string]string) string {
 	var output string
 	for _, node := range pkg.GetTypes() {
 		t, err := pkg.GenDeclToString(&node)
 		if err != nil {
 			log.Fatalf("failed to translate type gen decl to string: %v", err)
 		}
+		t = constructPackageType(t, aliasNameMap)
 		output += t + "\n"
 	}
 
 	return output
+}
+
+func constructPackageType(t string, aliasNameMap map[string]string) string {
+	lastInd := strings.LastIndex(t, " ")
+	name := t[:lastInd]
+	typee := t[lastInd+1:]
+	parts := strings.Split(typee, ".")
+
+	if len(parts) > 1 {
+		parts = ConstructTypeParts(aliasNameMap, parts)
+		t = fmt.Sprintf("%s %s.%s", name, parts[0], parts[1])
+	}
+	return t
 }
 
 func parsePackageConsts(pkg parser.Package) string {
