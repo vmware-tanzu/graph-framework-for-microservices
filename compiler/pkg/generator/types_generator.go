@@ -304,8 +304,9 @@ func parsePackageTypes(pkg parser.Package, aliasNameMap map[string]string) strin
 		if err != nil {
 			log.Fatalf("failed to translate type gen decl to string: %v", err)
 		}
-		isMap := strings.Contains(t, "map[")
-		isArray := strings.Contains(t, "[]")
+
+		isMap := parser.IsDeclMapField(&node)
+		isArray := parser.IsDeclArrayField(&node)
 
 		lastSpace := strings.LastIndex(t, " ")
 		name := t[:lastSpace]
