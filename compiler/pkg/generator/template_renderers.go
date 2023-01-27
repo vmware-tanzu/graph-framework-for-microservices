@@ -384,9 +384,6 @@ func RenderCRDBaseTemplate(baseGroupName string, pkg parser.Package, parentsMap 
 	for _, node := range pkg.GetNexusNodes() {
 		typeName := parser.GetTypeName(node)
 		groupName := pkg.Name + "." + baseGroupName
-		if pkg.Name == "global" {
-			groupName = baseGroupName
-		}
 		singular := strings.ToLower(typeName)
 		kind := cases.Title(language.Und, cases.NoLower).String(typeName)
 		plural := util.ToPlural(singular)
@@ -448,9 +445,6 @@ func RenderCRDBaseTemplate(baseGroupName string, pkg parser.Package, parentsMap 
 		crd := CrdBaseFile{
 			Name: pkg.Name + "_" + singular + ".yaml",
 			File: file,
-		}
-		if pkg.Name == "global" {
-			crd.Name = singular + ".yaml"
 		}
 		crds = append(crds, crd)
 	}
