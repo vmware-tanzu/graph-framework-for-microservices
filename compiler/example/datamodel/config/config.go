@@ -117,6 +117,7 @@ type StructWithEmbeddedField struct {
 	SomeStruct
 	gns.MyStr
 	ExplicitField    gns.MyStr
+	AliasedField     AliasedField
 	AliasedFieldMap  AliasedFieldMap
 	AliasedFieldList AliasedFieldList
 }
