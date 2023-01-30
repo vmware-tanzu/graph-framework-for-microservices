@@ -134,20 +134,6 @@ generate_example_in_container:
 test_in_container: ${BUILDER_NAME}\:${BUILDER_TAG}.image.exists
 	$(call run_in_container, make test)
 
-.PHONY: gen_tsm_graphql
-gen_tsm_graphql:
-	@echo "Nexus Compiler: Start Generate"
-	@echo "Cleaning up temp dir"
-	rm -rf _tsm_temp && rm -rf _generated
-	@echo "Copying Datamodel to temp directory"
-	cp -R ${DATAMODEL_PATH} _tsm_temp
-	cp -R _generated_base_structure _generated
-	@echo "Nexus Compiler: Running Preparser"
-	go run cmd/preparser/main.go -dsl _tsm_temp
-	@echo "Nexus Compiler: Running GRAPHQL Generating"
-	go run cmd/nexus-sdk/main.go -config-file example/nexus-sdk.yaml -dsl _tsm_temp -crd-output _generated
-	cp -r _generated/{apis,crds,common,nexus-client,nexus-gql,tsm-nexus-gql,model} ${GENERATED_OUTPUT_DIRECTORY}
-
 .PHONY: preparser
 preparser:
 	@echo "Nexus Compiler: Start Preparser"
@@ -163,7 +149,7 @@ preparser:
 		cp -R _tsm_temp/common _tsm_temp/global/common; \
 		$(MAKE) generate_code DATAMODEL_PATH=_tsm_temp/global; \
 	else \
-		$(MAKE) generate_code DATAMODEL_PATH=_tsm_temp; \
+		$(MAKE) generate_code; \
 	fi
 
 .PHONY: generate_code
@@ -190,8 +176,8 @@ generate_code:
 	@echo "Nexus Compiler: Generating CRD yamls"
 	go run cmd/generate-openapischema/generate-openapischema.go -yamls-path _generated/crds -existing-CRDs-Path ${GENERATED_OUTPUT_DIRECTORY}/crds -force ${FORCE}
 	git checkout -- pkg/openapi_generator/openapi/openapi_generated.go
-	rm -rf ${GENERATED_OUTPUT_DIRECTORY}/{client,apis,crds,common,nexus-client,helper,nexus-gql,tsm-nexus-gql}
-	cp -r _generated/{client,apis,crds,common,nexus-client,helper,nexus-gql,tsm-nexus-gql} ${GENERATED_OUTPUT_DIRECTORY}
+	rm -rf ${GENERATED_OUTPUT_DIRECTORY}/{client,apis,crds,common,nexus-client,helper,nexus-gql,tsm-nexus-gql,model}
+	cp -r _generated/{client,apis,crds,common,nexus-client,helper,nexus-gql,tsm-nexus-gql,model} ${GENERATED_OUTPUT_DIRECTORY}
 	@echo "Nexus Compiler: Generating GRAPHQL PKG"
 	cd _generated && goimports -w .
 	cd _generated/nexus-gql && gqlgen generate

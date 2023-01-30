@@ -1,6 +1,14 @@
+type Root {
+  config: Config
+  inventory: Inventory
+  name: String!
+  runtime: Runtime
+  query: ProjectQuery
+}
 {{- range $key, $node := .Nodes }}
 {{- if $node.IsNexusNode }}
 {{ $length := len $node.GraphqlSchemaFields }}{{- if eq $length 0 }}{{- else }}
+{{- if eq $node.SchemaName "Org" }}{{- else if eq $node.SchemaName "Project"}}{{- else }}
 type {{ $node.SchemaName }} {
     {{- range $key, $field := $node.GraphqlSchemaFields }}
     {{- if $field.SchemaFieldName }}
@@ -8,7 +16,7 @@ type {{ $node.SchemaName }} {
     {{- end}}
     {{- end }}
 }
-{{- end }}{{- end }}{{- end }}
+{{- end }}{{- end }}{{- end }}{{- end }}
 
 {{- range $key, $val := .GraphQlFiles}}
     {{ $val }}
