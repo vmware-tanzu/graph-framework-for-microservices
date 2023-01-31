@@ -179,7 +179,7 @@ generate_code:
 	rm -rf ${GENERATED_OUTPUT_DIRECTORY}/{client,apis,crds,common,nexus-client,helper,nexus-gql,tsm-nexus-gql,model}
 	cp -r _generated/{client,apis,crds,common,nexus-client,helper,nexus-gql,tsm-nexus-gql,model} ${GENERATED_OUTPUT_DIRECTORY}
 	@echo "Nexus Compiler: Generating GRAPHQL PKG"
-	cd _generated && goimports -w .
+	cd _generated && mv model/model.go model/model.tmp && goimports -w . && mv model/model.tmp model/model.go
 	cd _generated/nexus-gql && gqlgen generate
 	@echo "Nexus Compiler: GRAPHQL Generating completed"
 	cp -rf _generated/* ${GOPATH}/src/nexustempmodule/
