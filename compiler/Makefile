@@ -193,7 +193,7 @@ generate_code:
 	./scripts/replace_mod_path.sh
 	find . -name "*.bak" -type f -delete
 	@echo "Sorting imports"
-	cd _generated && goimports -w .
+	cd _generated && mv model/model.go model/model.tmp && goimports -w . && mv model/model.tmp model/model.go
 	@echo "Nexus Compiler: Moving files to output directory"
 	cp -r _generated/{client,apis,crds,common,nexus-client,helper,nexus-gql,tsm-nexus-gql,model} ${GENERATED_OUTPUT_DIRECTORY}
 	cp -r ${GOPATH}/src/nexustempmodule/nexus-gql/graphql.so ${GENERATED_OUTPUT_DIRECTORY}/nexus-gql
