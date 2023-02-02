@@ -357,8 +357,9 @@ func getTsmGraphqlSchemaFieldName(sType GraphQLSchemaType, fieldName, schemaType
 		e := parser.GetFieldAnnotationVal(f, parser.GRAPHQL_ALIAS_TYPE_ANNOTATION)
 		if e != "" {
 			schemaName = fmt.Sprintf("%s: %s", getAliasFieldValue(fieldName, f), e)
+		} else {
+			schemaName = fmt.Sprintf("%s: %s", getAliasFieldValue(fieldName, f), "String")
 		}
-		schemaName = fmt.Sprintf("%s: %s", getAliasFieldValue(fieldName, f), "String")
 	}
 
 	schemaName = addFieldAnnotations(pkg, f, schemaName, sType, nonNexusTypes)
