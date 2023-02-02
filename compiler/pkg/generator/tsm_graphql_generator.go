@@ -24,6 +24,7 @@ const (
 	Link
 	NamedChild
 	NamedLink
+	AliasType
 )
 
 // tsmPopulateValuesForEachNode populates each node with required resolver properties
@@ -226,7 +227,7 @@ func tsmProcessNonNexusFields(pkg parser.Package, aliasNameMap map[string]string
 			fieldProp.SchemaFieldName = getTsmGraphqlSchemaFieldName(JsonMarshal, fieldProp.FieldName, "String", "id: ID", f, pkg, nonNexusTypes)
 			resField[nodeProp.PkgName+nodeProp.NodeName] = append(resField[nodeProp.PkgName+nodeProp.NodeName], fieldProp)
 		} else if parser.IsFieldAnnotationPresent(f, parser.GRAPHQL_ALIAS_TYPE_ANNOTATION) || parser.IsFieldAnnotationPresent(f, parser.GRAPHQL_ALIAS_NAME_ANNOTATION) {
-			fieldProp.SchemaFieldName = GetGraphQLAliasValue(fieldProp.FieldName, f)
+			fieldProp.SchemaFieldName = getTsmGraphqlSchemaFieldName(AliasType, fieldProp.FieldName, "", "", f, pkg, nonNexusTypes)
 			resField[nodeProp.PkgName+nodeProp.NodeName] = append(resField[nodeProp.PkgName+nodeProp.NodeName], fieldProp)
 		} else if parser.IsArrayField(f) {
 			arr := regexp.MustCompile(`^(\[])`).ReplaceAllString(typeString, "")

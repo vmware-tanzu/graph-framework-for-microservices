@@ -353,6 +353,20 @@ func getTsmGraphqlSchemaFieldName(sType GraphQLSchemaType, fieldName, schemaType
 	}
 	schemaName := getGraphqlSchemaName(pattern, fieldName, schemaType, f)
 
+	if sType == AliasType {
+		e := parser.GetFieldAnnotationVal(f, parser.GRAPHQL_ALIAS_TYPE_ANNOTATION)
+		if e != "" {
+			schemaName = fmt.Sprintf("%s: %s", getAliasFieldValue(fieldName, f), e)
+		}
+		schemaName = fmt.Sprintf("%s: %s", getAliasFieldValue(fieldName, f), "String")
+	}
+
+	schemaName = addFieldAnnotations(pkg, f, schemaName, sType, nonNexusTypes)
+
+	return schemaName
+}
+
+func addFieldAnnotations(pkg parser.Package, f *ast.Field, schemaName string, sType GraphQLSchemaType, nonNexusTypes *parser.NonNexusTypes) string {
 	importMap := pkg.GetImportMap()
 	// add jsonencoded annotation
 	if parser.IsFieldAnnotationPresent(f, parser.GRAPHQL_TSM_DIRECTIVE_ANNOTATION) {
@@ -461,13 +475,4 @@ func getAliasFieldValue(fieldName string, f *ast.Field) string {
 		return e
 	}
 	return util.GetTag(fieldName)
-}
-
-// getGraphQLAliasValue process nexus annotation  `nexus-alias-type:`
-func GetGraphQLAliasValue(fieldName string, f *ast.Field) string {
-	e := parser.GetFieldAnnotationVal(f, parser.GRAPHQL_ALIAS_TYPE_ANNOTATION)
-	if e != "" {
-		return fmt.Sprintf("%s: %s", getAliasFieldValue(fieldName, f), e)
-	}
-	return fmt.Sprintf("%s: %s", getAliasFieldValue(fieldName, f), "String")
 }
