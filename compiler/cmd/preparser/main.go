@@ -9,6 +9,7 @@ import (
 
 func main() {
 	dslDir := flag.String("dsl", "datamodel", "DSL file location.")
+	modPath := flag.String("modpath", "datamodel", "ModPath for rendered imports")
 	logLevel := flag.String("log-level", "ERROR", "Log level")
 	flag.Parse()
 
@@ -25,6 +26,12 @@ func main() {
 	}
 
 	err = preparser.CopyPkgsToBuild(*dslDir)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	packages = preparser.Parse(*dslDir)
+	err = preparser.RenderImports(packages, *dslDir, *modPath)
 	if err != nil {
 		log.Fatal(err)
 	}

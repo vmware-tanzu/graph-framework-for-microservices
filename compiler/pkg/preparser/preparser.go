@@ -14,6 +14,7 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+	"text/template"
 
 	cp "github.com/otiai10/copy"
 	log "github.com/sirupsen/logrus"
@@ -56,6 +57,7 @@ func Parse(startPath string) map[string][]*parser.Package {
 
 				pkg := parser.Package{
 					Name:     v.Name,
+					ModPath:  modulePath,
 					FullName: pkgImport,
 					FileSet:  fileset,
 					Pkg:      *v,
@@ -221,7 +223,8 @@ func CopyPkgsToBuild(dslDir string) error {
 	}
 
 	for _, f := range dir {
-		if !f.IsDir() || f.Name() == "build" || f.Name() == "vendor" || strings.HasPrefix(f.Name(), ".") {
+		if !f.IsDir() || f.Name() == "build" || f.Name() == "vendor" ||
+			f.Name() == "global" || strings.HasPrefix(f.Name(), ".") {
 			continue
 		}
 
@@ -231,10 +234,59 @@ func CopyPkgsToBuild(dslDir string) error {
 			},
 		}
 
-		err := cp.Copy(filepath.Join(dslDir, f.Name()), filepath.Join(dslDir, "build", "pkgs", f.Name()), opt)
+		err := cp.Copy(filepath.Join(dslDir, f.Name()), filepath.Join(dslDir, "build", "model", f.Name()), opt)
 		if err != nil {
 			return err
 		}
+	}
+
+	return nil
+}
+
+var importsTemplate = `{{range .ImportsToRender}}{{.}}{{end}}`
+
+type ImportsTemplateVars struct {
+	ImportsToRender []string
+}
+
+func RenderImports(packages map[string][]*parser.Package, dslDir string, modPath string) error {
+	importsTemplateVars := ImportsTemplateVars{
+		ImportsToRender: []string{},
+	}
+
+	for k, pkgs := range packages {
+		if k != "global" {
+			continue
+		}
+
+		for _, v := range pkgs {
+			for _, importExpr := range v.GetImportMap() {
+				importStr := strings.Trim(importExpr, "\"")
+				if strings.HasPrefix(importStr, v.ModPath+"/global") ||
+					!strings.HasPrefix(importStr, v.ModPath) {
+					continue
+				}
+
+				namedImport := "nexus_" + importStr[strings.LastIndex(importStr, "/")+1:]
+				importsTemplateVars.ImportsToRender = append(importsTemplateVars.ImportsToRender,
+					fmt.Sprintf("%s %s", namedImport, strings.ReplaceAll(importExpr, v.ModPath, modPath)))
+			}
+		}
+	}
+
+	t, err := template.New("tmpl").Parse(importsTemplate)
+	if err != nil {
+		return err
+	}
+
+	b := bytes.Buffer{}
+	if err = t.Execute(&b, importsTemplateVars); err != nil {
+		return err
+	}
+
+	err = os.WriteFile(filepath.Join(dslDir, "build", "model", "nexus-dm-imports"), b.Bytes(), 0644)
+	if err != nil {
+		return err
 	}
 
 	return nil
