@@ -216,7 +216,7 @@ func Render(dslDir string, packages map[string][]*parser.Package) error {
 	return nil
 }
 
-func CopyPkgsToBuild(dslDir string) error {
+func CopyPkgsToBuild(dslDir string, outputDir string) error {
 	dir, err := ioutil.ReadDir(dslDir)
 	if err != nil {
 		return err
@@ -234,7 +234,10 @@ func CopyPkgsToBuild(dslDir string) error {
 			},
 		}
 
-		err := cp.Copy(filepath.Join(dslDir, f.Name()), filepath.Join(dslDir, "build", "model", f.Name()), opt)
+		fmt.Println(outputDir)
+		fmt.Println(filepath.Join(outputDir, "model", f.Name()))
+
+		err := cp.Copy(filepath.Join(dslDir, f.Name()), filepath.Join(outputDir, "model", f.Name()), opt)
 		if err != nil {
 			return err
 		}
@@ -249,7 +252,7 @@ type ImportsTemplateVars struct {
 	ImportsToRender []string
 }
 
-func RenderImports(packages map[string][]*parser.Package, dslDir string, modPath string) error {
+func RenderImports(packages map[string][]*parser.Package, outputDir string, modPath string) error {
 	importsTemplateVars := ImportsTemplateVars{
 		ImportsToRender: []string{},
 	}
@@ -284,7 +287,7 @@ func RenderImports(packages map[string][]*parser.Package, dslDir string, modPath
 		return err
 	}
 
-	err = os.WriteFile(filepath.Join(dslDir, "build", "model", "nexus-dm-imports"), b.Bytes(), 0644)
+	err = os.WriteFile(filepath.Join(outputDir, "model", "nexus-dm-imports"), b.Bytes(), 0644)
 	if err != nil {
 		return err
 	}

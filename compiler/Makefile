@@ -137,13 +137,18 @@ test_in_container: ${BUILDER_NAME}\:${BUILDER_TAG}.image.exists
 .PHONY: preparser
 preparser:
 	@echo "Nexus Compiler: Start Preparser"
+	@echo "Cleaning up workdir"
+	rm -rf _generated
+	@echo "Copying generated_base_structure to create directory structure"
+	@echo "COMPILER_SRC_DIRECTORY: ${COMPILER_SRC_DIRECTORY}"
+	cp -R _generated_base_structure _generated
 	@echo "Cleaning up temp dir"
 	rm -rf _tsm_temp
 	@echo "Copying Datamodel to temp directory"
 	cp -R ${DATAMODEL_PATH} _tsm_temp
 	cp -R _generated_base_structure/* ${DATAMODEL_PATH}/build
 	@echo "Nexus Compiler: Running Preparser"
-	go run cmd/preparser/main.go -dsl _tsm_temp
+	go run cmd/preparser/main.go -dsl _tsm_temp -output _generated
 	@if [ -d "_tsm_temp/global" ]; then \
 		cp _tsm_temp/go.mod _tsm_temp/global/go.mod; \
 		cp -R _tsm_temp/common _tsm_temp/global/common; \
@@ -156,7 +161,7 @@ preparser:
 generate_code:
 	@echo "Nexus Compiler: Running compiler code generation"
 	@echo "Cleaning up workdir"
-	rm -rf _generated ${GOPATH}/src/nexustempmodule
+	rm -rf ${GOPATH}/src/nexustempmodule
 	@echo "Copying generated_base_structure to create directory structure"
 	@echo "COMPILER_SRC_DIRECTORY: ${COMPILER_SRC_DIRECTORY}"
 	cp -R _generated_base_structure _generated
