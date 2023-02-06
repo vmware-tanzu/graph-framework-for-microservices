@@ -20,6 +20,7 @@ CONFIG_FILE ?= ""
 GENERATED_OUTPUT_DIRECTORY ?= generated
 COMPILER_SRC_DIRECTORY ?= ""
 FORCE ?= false
+PREPARSER_MODPATH ?= model
 
 NEXUS_KUBEOPENAPI_VERSION ?= 7416bd4754d3c0dd8b3fa37fff53d36594f11607
 NEXUS_GRAPHQLGEN_VERSION ?= 32f028bce22efeb70b47a640195bd969dbb337f0
@@ -148,7 +149,7 @@ preparser:
 	cp -R ${DATAMODEL_PATH} _tsm_temp
 	cp -R _generated_base_structure/* ${DATAMODEL_PATH}/build
 	@echo "Nexus Compiler: Running Preparser"
-	go run cmd/preparser/main.go -dsl _tsm_temp -output _generated
+	go run cmd/preparser/main.go -dsl _tsm_temp -output _generated -modpath ${PREPARSER_MODPATH}
 	@if [ -d "_tsm_temp/global" ]; then \
 		cp _tsm_temp/go.mod _tsm_temp/global/go.mod; \
 		cp -R _tsm_temp/common _tsm_temp/global/common; \
