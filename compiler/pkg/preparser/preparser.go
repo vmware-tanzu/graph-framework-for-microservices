@@ -246,8 +246,8 @@ func CopyPkgsToBuild(dslDir string, outputDir string) error {
 	return nil
 }
 
-var importsTemplate = `{{range .ImportsToRender}}{{.}}{{end}}
-`
+var importsTemplate = `{{range .ImportsToRender}}{{.}}
+{{end}}`
 
 type ImportsTemplateVars struct {
 	ImportsToRender []string
