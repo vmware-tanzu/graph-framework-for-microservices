@@ -194,6 +194,10 @@ func parseSchema(schemaName string, wg *sync.WaitGroup) {
 						"type": "array",
 					}
 				}
+			} else {
+				if val.Value.Items.Value.Type == "string" {
+					spec[field] = []string{val.Value.Items.Value.Type}
+				}
 			}
 		case "object":
 			spec[field] = "object"
