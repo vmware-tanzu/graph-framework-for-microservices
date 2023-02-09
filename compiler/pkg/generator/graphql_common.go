@@ -399,7 +399,13 @@ func addFieldAnnotations(pkg parser.Package, f *ast.Field, schemaName string, sT
 					}
 				}
 			} else if val, ok := f.Type.(*ast.Ident); ok && convertGraphqlStdType(val.Name) == "" {
-				schemaName = addJsonencodedAnnotation(f, parser.GRAPHQL_TS_TYPE_ANNOTATION, "", val.Name, schemaName, false, "")
+				x := ""
+				importExpr := ""
+				if pkg.Name != "global" {
+					x = pkg.Name
+					importExpr = fmt.Sprintf(`"%s"`, pkg.FullName)
+				}
+				schemaName = addJsonencodedAnnotation(f, parser.GRAPHQL_TS_TYPE_ANNOTATION, x, val.Name, schemaName, false, importExpr)
 			} else if parser.IsFieldAnnotationPresent(f, parser.GRAPHQL_JSONENCODED_ANNOTATION) {
 				schemaName += " @jsonencoded"
 			}

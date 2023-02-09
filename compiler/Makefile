@@ -155,7 +155,11 @@ preparser:
 
 	@if [ -d "_tsm_temp/global" ]; then \
 		cp _tsm_temp/go.mod _tsm_temp/global/go.mod; \
-		cp -R _tsm_temp/common _tsm_temp/global/common; \
+		for d in _tsm_temp/*/; do \
+			if [[ ! "$$d" == "_tsm_temp/global/" && ! "$$d" == "_tsm_temp/build/" ]]; then \
+			  cp -r "$$d" "_tsm_temp/global/"; \
+  			fi; \
+  		done; \
 		$(MAKE) generate_code DATAMODEL_PATH=_tsm_temp/global; \
 	else \
 		$(MAKE) generate_code; \

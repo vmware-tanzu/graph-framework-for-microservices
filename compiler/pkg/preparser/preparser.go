@@ -234,9 +234,6 @@ func CopyPkgsToBuild(dslDir string, outputDir string) error {
 			},
 		}
 
-		fmt.Println(outputDir)
-		fmt.Println(filepath.Join(outputDir, "model", f.Name()))
-
 		err := cp.Copy(filepath.Join(dslDir, f.Name()), filepath.Join(outputDir, "model", f.Name()), opt)
 		if err != nil {
 			return err
