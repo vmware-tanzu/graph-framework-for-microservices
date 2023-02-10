@@ -15,7 +15,7 @@ RUN tdnf -y --refresh install \
   make=4.3-2.ph4 \
   coreutils=8.32-3.ph4 \
   build-essential=0.1-3.ph4 \
-  openssh-clients=8.8p1-3.ph4 \
+  openssh-clients \
   jq=1.6-2.ph4 \
   && go install github.com/onsi/ginkgo/ginkgo@v1.16.0 \
   && go install github.com/onsi/gomega/...@v1.18.0 \
