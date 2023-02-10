@@ -100,14 +100,12 @@ func ParseDSLNodes(startPath string, baseGroupName string, packages Packages,
 											}
 											nodes[crdName] = node
 										} else {
-											//fmt.Println(typeSpec.Type)
-											if !strings.Contains(types.ExprString(typeSpec.Type), "nexus.") {
+											if !strings.Contains(types.ExprString(typeSpec.Type), "nexus.") && v.Name == "global" {
 												nonNexusTypes.Types[typeSpec.Name.Name] = decl
 											}
 										}
 									} else {
-										//fmt.Println(typeSpec.Type)
-										if !strings.Contains(types.ExprString(typeSpec.Type), "nexus.") {
+										if !strings.Contains(types.ExprString(typeSpec.Type), "nexus.") && v.Name == "global" {
 											nonNexusTypes.Types[typeSpec.Name.Name] = decl
 										}
 									}
@@ -130,7 +128,7 @@ func ParseDSLNodes(startPath string, baseGroupName string, packages Packages,
 											}
 										}
 									}
-									if !slices.Contains(nonNexusTypes.Values, outStr) {
+									if !slices.Contains(nonNexusTypes.Values, outStr) && v.Name == "global" {
 										nonNexusTypes.Values = append(nonNexusTypes.Values, outStr)
 									}
 								}
