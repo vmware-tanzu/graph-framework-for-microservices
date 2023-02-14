@@ -146,25 +146,25 @@ type GnsSpec struct {
 	//nexus-validation: MaxLength=8, MinLength=2
 	//nexus-validation: Pattern=abc
 	Domain                    string                       `json:"domain" yaml:"domain"`
-	UseSharedGateway          bool                         `json:"useSharedGateway" yaml:"useSharedGateway"`
+	UseSharedGateway          bool                         `json:"use_shared_gateway" yaml:"use_shared_gateway"`
 	Description               Description                  `json:"description" yaml:"description"`
 	Meta                      string                       `json:"meta" yaml:"meta"`
 	Port                      *int                         `json:"port" yaml:"port"`
-	OtherDescription          *Description                 `json:"otherDescription" yaml:"otherDescription"`
-	MapPointer                *map[string]string           `json:"mapPointer" yaml:"mapPointer"`
-	SlicePointer              *[]string                    `json:"slicePointer" yaml:"slicePointer"`
-	WorkloadSpec              cartv1.WorkloadSpec          `json:"workloadSpec" yaml:"workloadSpec"`
-	DifferentSpec             *cartv1.WorkloadSpec         `json:"differentSpec" yaml:"differentSpec"`
+	OtherDescription          *Description                 `json:"other_description" yaml:"other_description"`
+	MapPointer                *map[string]string           `json:"map_pointer" yaml:"map_pointer"`
+	SlicePointer              *[]string                    `json:"slice_pointer" yaml:"slice_pointer"`
+	WorkloadSpec              cartv1.WorkloadSpec          `json:"workload_spec" yaml:"workload_spec"`
+	DifferentSpec             *cartv1.WorkloadSpec         `json:"different_spec" yaml:"different_spec"`
 	ServiceSegmentRef         ServiceSegmentRef            `json:"serviceSegmentRef,omitempty"`
 	ServiceSegmentRefPointer  *ServiceSegmentRef           `json:"serviceSegmentRefPointer,omitempty"`
 	ServiceSegmentRefs        []ServiceSegmentRef          `json:"serviceSegmentRefs,omitempty"`
 	ServiceSegmentRefMap      map[string]ServiceSegmentRef `json:"serviceSegmentRefMap,omitempty"`
-	GnsServiceGroupsGvk       map[string]Child             `json:"gnsServiceGroupsGvk,omitempty" yaml:"gnsServiceGroupsGvk,omitempty" nexus:"children"`
-	GnsAccessControlPolicyGvk *Child                       `json:"gnsAccessControlPolicyGvk,omitempty" yaml:"gnsAccessControlPolicyGvk,omitempty" nexus:"child"`
-	FooChildGvk               *Child                       `json:"fooChildGvk,omitempty" yaml:"fooChildGvk,omitempty" nexus:"child"`
-	IgnoreChildGvk            *Child                       `json:"ignoreChildGvk,omitempty" yaml:"ignoreChildGvk,omitempty" nexus:"child"`
-	FooGvk                    *Child                       `json:"fooGvk,omitempty" yaml:"fooGvk,omitempty" nexus:"child"`
-	DnsGvk                    *Link                        `json:"dnsGvk,omitempty" yaml:"dnsGvk,omitempty" nexus:"link"`
+	GnsServiceGroupsGvk       map[string]Child             `json:"gns_service_groups_gvk,omitempty" yaml:"gns_service_groups_gvk,omitempty" nexus:"children"`
+	GnsAccessControlPolicyGvk *Child                       `json:"gns_access_control_policy_gvk,omitempty" yaml:"gns_access_control_policy_gvk,omitempty" nexus:"child"`
+	FooChildGvk               *Child                       `json:"foo_child_gvk,omitempty" yaml:"foo_child_gvk,omitempty" nexus:"child"`
+	IgnoreChildGvk            *Child                       `json:"ignore_child_gvk,omitempty" yaml:"ignore_child_gvk,omitempty" nexus:"child"`
+	FooGvk                    *Child                       `json:"foo_gvk,omitempty" yaml:"foo_gvk,omitempty" nexus:"child"`
+	DnsGvk                    *Link                        `json:"dns_gvk,omitempty" yaml:"dns_gvk,omitempty" nexus:"link"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
@@ -332,16 +332,16 @@ type AdditionalGnsDataList struct {
 
 // +k8s:openapi-gen=true
 type RandomDescription struct {
-	DiscriptionA string `json:"discriptionA" yaml:"discriptionA"`
-	DiscriptionB string `json:"discriptionB" yaml:"discriptionB"`
-	DiscriptionC string `json:"discriptionC" yaml:"discriptionC"`
-	DiscriptionD string `json:"discriptionD" yaml:"discriptionD"`
+	DiscriptionA string `json:"discription_a" yaml:"discription_a"`
+	DiscriptionB string `json:"discription_b" yaml:"discription_b"`
+	DiscriptionC string `json:"discription_c" yaml:"discription_c"`
+	DiscriptionD string `json:"discription_d" yaml:"discription_d"`
 }
 
 // +k8s:openapi-gen=true
 type RandomStatus struct {
-	StatusX int `json:"statusX" yaml:"statusX"`
-	StatusY int `json:"statusY" yaml:"statusY"`
+	StatusX int `json:"status_x" yaml:"status_x"`
+	StatusY int `json:"status_y" yaml:"status_y"`
 }
 
 // +k8s:openapi-gen=true
@@ -357,37 +357,37 @@ type ReplicationSource struct {
 
 // +k8s:openapi-gen=true
 type gnsQueryFilters struct {
-	StartTime           string `json:"startTime" yaml:"startTime"`
-	EndTime             string `json:"endTime" yaml:"endTime"`
+	StartTime           string `json:"start_time" yaml:"start_time"`
+	EndTime             string `json:"end_time" yaml:"end_time"`
 	Interval            string `json:"interval" yaml:"interval"`
-	IsServiceDeployment bool   `json:"isServiceDeployment" yaml:"isServiceDeployment"`
-	StartVal            int    `json:"startVal" yaml:"startVal"`
+	IsServiceDeployment bool   `json:"is_service_deployment" yaml:"is_service_deployment"`
+	StartVal            int    `json:"start_val" yaml:"start_val"`
 }
 
 // +k8s:openapi-gen=true
 type metricsFilers struct {
-	StartTime    string `json:"startTime" yaml:"startTime"`
-	EndTime      string `json:"endTime" yaml:"endTime"`
-	TimeInterval string `json:"timeInterval" yaml:"timeInterval"`
-	SomeUserArg1 string `json:"someUserArg1" yaml:"someUserArg1"`
-	SomeUserArg2 int    `json:"someUserArg2" yaml:"someUserArg2"`
-	SomeUserArg3 bool   `json:"someUserArg3" yaml:"someUserArg3"`
+	StartTime    string `json:"start_time" yaml:"start_time"`
+	EndTime      string `json:"end_time" yaml:"end_time"`
+	TimeInterval string `json:"time_interval" yaml:"time_interval"`
+	SomeUserArg1 string `json:"some_user_arg_1" yaml:"some_user_arg_1"`
+	SomeUserArg2 int    `json:"some_user_arg_2" yaml:"some_user_arg_2"`
+	SomeUserArg3 bool   `json:"some_user_arg_3" yaml:"some_user_arg_3"`
 }
 
 // +k8s:openapi-gen=true
 type ServiceSegmentRef struct {
-	Field1 string `json:"field1" yaml:"field1"`
-	Field2 string `json:"field2" yaml:"field2"`
+	Field1 string `json:"field_1" yaml:"field_1"`
+	Field2 string `json:"field_2" yaml:"field_2"`
 }
 
 // +k8s:openapi-gen=true
 type Description struct {
 	Color     string   `json:"color" yaml:"color"`
 	Version   string   `json:"version" yaml:"version"`
-	ProjectId string   `json:"projectId" yaml:"projectId"`
-	TestAns   []Answer `json:"testAns" yaml:"testAns"`
+	ProjectId string   `json:"project_id" yaml:"project_id"`
+	TestAns   []Answer `json:"test_ans" yaml:"test_ans"`
 	Instance  Instance `json:"instance" yaml:"instance"`
-	HostPort  HostPort `json:"hostPort" yaml:"hostPort"`
+	HostPort  HostPort `json:"host_port" yaml:"host_port"`
 }
 
 // +k8s:openapi-gen=true
@@ -403,16 +403,16 @@ type GnsState struct {
 
 // +k8s:openapi-gen=true
 type AdditionalDescription struct {
-	DiscriptionA string `json:"discriptionA" yaml:"discriptionA"`
-	DiscriptionB string `json:"discriptionB" yaml:"discriptionB"`
-	DiscriptionC string `json:"discriptionC" yaml:"discriptionC"`
-	DiscriptionD string `json:"discriptionD" yaml:"discriptionD"`
+	DiscriptionA string `json:"discription_a" yaml:"discription_a"`
+	DiscriptionB string `json:"discription_b" yaml:"discription_b"`
+	DiscriptionC string `json:"discription_c" yaml:"discription_c"`
+	DiscriptionD string `json:"discription_d" yaml:"discription_d"`
 }
 
 // +k8s:openapi-gen=true
 type AdditionalStatus struct {
-	StatusX int `json:"statusX" yaml:"statusX"`
-	StatusY int `json:"statusY" yaml:"statusY"`
+	StatusX int `json:"status_x" yaml:"status_x"`
+	StatusY int `json:"status_y" yaml:"status_y"`
 }
 
 type RandomConst1 string

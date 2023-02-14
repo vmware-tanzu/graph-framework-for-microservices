@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/ghodss/yaml"
+	"github.com/iancoleman/strcase"
 	"github.com/vmware-tanzu/graph-framework-for-microservices/kube-openapi/pkg/common"
 	extensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 )
@@ -185,13 +186,14 @@ func (g *Generator) resolveRefsForPackage(pkg string) error {
 	fmt.Printf("Resolving refs for %v\n", pkg)
 	// We are forcing camelCase in all field names for consistency
 	for property, propSchema := range pkgSchema.schema.Properties {
-		if strings.Contains(property, "_") {
-			pkgSchema.schema.Properties[convertToCamelCase(property)] = propSchema
+		// if strings.Contains(property, "_") {
+		if property != strcase.ToSnake(property) {
+			pkgSchema.schema.Properties[strcase.ToSnake(property)] = propSchema
 			delete(pkgSchema.schema.Properties, property)
 		}
 		toReplace := make([]string, len(pkgSchema.schema.Required))
 		for i, required := range pkgSchema.schema.Required {
-			toReplace[i] = convertToCamelCase(required)
+			toReplace[i] = strcase.ToSnake(required)
 		}
 		pkgSchema.schema.Required = toReplace
 	}
@@ -436,15 +438,16 @@ func (g *Generator) createName(group, apiVersion, name string) string {
 	return strings.ToLower(fmt.Sprintf("%s/%s/%s.%s", g.namePrefix, group, apiVersion, name))
 }
 
-func convertToCamelCase(input string) string {
-	if !strings.Contains(input, "_") {
-		return input
-	}
-	parts := strings.Split(input, "_")
-	camelCaseName := parts[0]
-	for _, p := range parts[1:] {
-		camelCaseName += strings.ToUpper(string(p[0]))
-		camelCaseName += p[1:]
-	}
-	return camelCaseName
-}
+// func convertToCamelCase(input string) string {
+
+// 	if !strings.Contains(input, "_") {
+// 		return input
+// 	}
+// 	parts := strings.Split(input, "_")
+// 	camelCaseName := parts[0]
+// 	for _, p := range parts[1:] {
+// 		camelCaseName += strings.ToUpper(string(p[0]))
+// 		camelCaseName += p[1:]
+// 	}
+// 	return camelCaseName
+// }

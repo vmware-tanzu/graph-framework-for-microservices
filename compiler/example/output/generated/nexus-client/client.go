@@ -886,7 +886,7 @@ func (group *ConfigTsmV1) UpdateConfigByName(ctx context.Context,
 		objToUpdate.Spec.MyStr0
 	patchOpMyStr0 := PatchOp{
 		Op:    "replace",
-		Path:  "/spec/myStr0",
+		Path:  "/spec/my_str_0",
 		Value: patchValueMyStr0,
 	}
 	patch = append(patch, patchOpMyStr0)
@@ -896,7 +896,7 @@ func (group *ConfigTsmV1) UpdateConfigByName(ctx context.Context,
 			objToUpdate.Spec.MyStr1
 		patchOpMyStr1 := PatchOp{
 			Op:    "replace",
-			Path:  "/spec/myStr1",
+			Path:  "/spec/my_str_1",
 			Value: patchValueMyStr1,
 		}
 		patch = append(patch, patchOpMyStr1)
@@ -907,7 +907,7 @@ func (group *ConfigTsmV1) UpdateConfigByName(ctx context.Context,
 			objToUpdate.Spec.MyStr2
 		patchOpMyStr2 := PatchOp{
 			Op:    "replace",
-			Path:  "/spec/myStr2",
+			Path:  "/spec/my_str_2",
 			Value: patchValueMyStr2,
 		}
 		patch = append(patch, patchOpMyStr2)
@@ -917,7 +917,7 @@ func (group *ConfigTsmV1) UpdateConfigByName(ctx context.Context,
 		objToUpdate.Spec.XYZPort
 	patchOpXYZPort := PatchOp{
 		Op:    "replace",
-		Path:  "/spec/xYZPort",
+		Path:  "/spec/xyz_port",
 		Value: patchValueXYZPort,
 	}
 	patch = append(patch, patchOpXYZPort)
@@ -927,7 +927,7 @@ func (group *ConfigTsmV1) UpdateConfigByName(ctx context.Context,
 			objToUpdate.Spec.ABCHost
 		patchOpABCHost := PatchOp{
 			Op:    "replace",
-			Path:  "/spec/aBCHost",
+			Path:  "/spec/abc_host",
 			Value: patchValueABCHost,
 		}
 		patch = append(patch, patchOpABCHost)
@@ -938,7 +938,7 @@ func (group *ConfigTsmV1) UpdateConfigByName(ctx context.Context,
 			objToUpdate.Spec.ClusterNamespaces
 		patchOpClusterNamespaces := PatchOp{
 			Op:    "replace",
-			Path:  "/spec/clusterNamespaces",
+			Path:  "/spec/cluster_namespaces",
 			Value: patchValueClusterNamespaces,
 		}
 		patch = append(patch, patchOpClusterNamespaces)
@@ -1426,7 +1426,7 @@ func (obj *ConfigConfig) GetACPPolicies(ctx context.Context,
 func (obj *ConfigConfig) LinkACPPolicies(ctx context.Context,
 	linkToAdd *PolicypkgAccessControlPolicy) error {
 
-	payload := "{\"spec\": {\"aCPPoliciesGvk\": {\"" + linkToAdd.DisplayName() + "\": {\"name\": \"" + linkToAdd.Name + "\",\"kind\": \"AccessControlPolicy\", \"group\": \"policypkg.tsm.tanzu.vmware.com\"}}}}"
+	payload := "{\"spec\": {\"acp_policiesGvk\": {\"" + linkToAdd.DisplayName() + "\": {\"name\": \"" + linkToAdd.Name + "\",\"kind\": \"AccessControlPolicy\", \"group\": \"policypkg.tsm.tanzu.vmware.com\"}}}}"
 	result, err := obj.client.baseClient.ConfigTsmV1().Configs().Patch(ctx, obj.Name, types.MergePatchType, []byte(payload), metav1.PatchOptions{})
 	if err != nil {
 		return err
@@ -1443,7 +1443,7 @@ func (obj *ConfigConfig) UnlinkACPPolicies(ctx context.Context,
 
 	patchOp := PatchOp{
 		Op:   "remove",
-		Path: "/spec/aCPPoliciesGvk/" + linkToRemove.DisplayName(),
+		Path: "/spec/acp_policiesGvk/" + linkToRemove.DisplayName(),
 	}
 
 	patch = append(patch, patchOp)
@@ -1828,7 +1828,7 @@ func (group *ConfigTsmV1) DeleteFooTypeABCByName(ctx context.Context, hashedName
 
 	patchOp := PatchOp{
 		Op:   "remove",
-		Path: "/spec/fooExampleGvk/" + result.DisplayName(),
+		Path: "/spec/foo_exampleGvk/" + result.DisplayName(),
 	}
 
 	patch = append(patch, patchOp)
@@ -1883,7 +1883,7 @@ func (group *ConfigTsmV1) CreateFooTypeABCByName(ctx context.Context,
 		parentName = helper.GetHashedName("configs.config.tsm.tanzu.vmware.com", objToCreate.GetLabels(), parentName)
 	}
 
-	payload := "{\"spec\": {\"fooExampleGvk\": {\"" + objToCreate.DisplayName() + "\": {\"name\": \"" + objToCreate.Name + "\",\"kind\": \"FooTypeABC\", \"group\": \"config.tsm.tanzu.vmware.com\"}}}}"
+	payload := "{\"spec\": {\"foo_exampleGvk\": {\"" + objToCreate.DisplayName() + "\": {\"name\": \"" + objToCreate.Name + "\",\"kind\": \"FooTypeABC\", \"group\": \"config.tsm.tanzu.vmware.com\"}}}}"
 	_, err = group.client.baseClient.
 		ConfigTsmV1().
 		Configs().Patch(ctx, parentName, types.MergePatchType, []byte(payload), metav1.PatchOptions{})
@@ -1924,7 +1924,7 @@ func (group *ConfigTsmV1) UpdateFooTypeABCByName(ctx context.Context,
 		objToUpdate.Spec.FooA
 	patchOpFooA := PatchOp{
 		Op:    "replace",
-		Path:  "/spec/fooA",
+		Path:  "/spec/foo_a",
 		Value: patchValueFooA,
 	}
 	patch = append(patch, patchOpFooA)
@@ -1933,7 +1933,7 @@ func (group *ConfigTsmV1) UpdateFooTypeABCByName(ctx context.Context,
 		objToUpdate.Spec.FooB
 	patchOpFooB := PatchOp{
 		Op:    "replace",
-		Path:  "/spec/fooB",
+		Path:  "/spec/foo_b",
 		Value: patchValueFooB,
 	}
 	patch = append(patch, patchOpFooB)
@@ -1942,7 +1942,7 @@ func (group *ConfigTsmV1) UpdateFooTypeABCByName(ctx context.Context,
 		objToUpdate.Spec.FooC
 	patchOpFooC := PatchOp{
 		Op:    "replace",
-		Path:  "/spec/fooC",
+		Path:  "/spec/foo_c",
 		Value: patchValueFooC,
 	}
 	patch = append(patch, patchOpFooC)
@@ -1951,7 +1951,7 @@ func (group *ConfigTsmV1) UpdateFooTypeABCByName(ctx context.Context,
 		objToUpdate.Spec.FooD
 	patchOpFooD := PatchOp{
 		Op:    "replace",
-		Path:  "/spec/fooD",
+		Path:  "/spec/foo_d",
 		Value: patchValueFooD,
 	}
 	patch = append(patch, patchOpFooD)
@@ -2243,7 +2243,7 @@ func (group *ConfigTsmV1) UpdateDomainByName(ctx context.Context,
 		objToUpdate.Spec.PointPort
 	patchOpPointPort := PatchOp{
 		Op:    "replace",
-		Path:  "/spec/pointPort",
+		Path:  "/spec/point_port",
 		Value: patchValuePointPort,
 	}
 	patch = append(patch, patchOpPointPort)
@@ -2252,7 +2252,7 @@ func (group *ConfigTsmV1) UpdateDomainByName(ctx context.Context,
 		objToUpdate.Spec.PointString
 	patchOpPointString := PatchOp{
 		Op:    "replace",
-		Path:  "/spec/pointString",
+		Path:  "/spec/point_string",
 		Value: patchValuePointString,
 	}
 	patch = append(patch, patchOpPointString)
@@ -2261,7 +2261,7 @@ func (group *ConfigTsmV1) UpdateDomainByName(ctx context.Context,
 		objToUpdate.Spec.PointInt
 	patchOpPointInt := PatchOp{
 		Op:    "replace",
-		Path:  "/spec/pointInt",
+		Path:  "/spec/point_int",
 		Value: patchValuePointInt,
 	}
 	patch = append(patch, patchOpPointInt)
@@ -2271,7 +2271,7 @@ func (group *ConfigTsmV1) UpdateDomainByName(ctx context.Context,
 			objToUpdate.Spec.PointMap
 		patchOpPointMap := PatchOp{
 			Op:    "replace",
-			Path:  "/spec/pointMap",
+			Path:  "/spec/point_map",
 			Value: patchValuePointMap,
 		}
 		patch = append(patch, patchOpPointMap)
@@ -2281,7 +2281,7 @@ func (group *ConfigTsmV1) UpdateDomainByName(ctx context.Context,
 		objToUpdate.Spec.PointSlice
 	patchOpPointSlice := PatchOp{
 		Op:    "replace",
-		Path:  "/spec/pointSlice",
+		Path:  "/spec/point_slice",
 		Value: patchValuePointSlice,
 	}
 	patch = append(patch, patchOpPointSlice)
@@ -2291,7 +2291,7 @@ func (group *ConfigTsmV1) UpdateDomainByName(ctx context.Context,
 			objToUpdate.Spec.SliceOfPoints
 		patchOpSliceOfPoints := PatchOp{
 			Op:    "replace",
-			Path:  "/spec/sliceOfPoints",
+			Path:  "/spec/slice_of_points",
 			Value: patchValueSliceOfPoints,
 		}
 		patch = append(patch, patchOpSliceOfPoints)
@@ -2302,7 +2302,7 @@ func (group *ConfigTsmV1) UpdateDomainByName(ctx context.Context,
 			objToUpdate.Spec.SliceOfArrPoints
 		patchOpSliceOfArrPoints := PatchOp{
 			Op:    "replace",
-			Path:  "/spec/sliceOfArrPoints",
+			Path:  "/spec/slice_of_arr_points",
 			Value: patchValueSliceOfArrPoints,
 		}
 		patch = append(patch, patchOpSliceOfArrPoints)
@@ -2313,7 +2313,7 @@ func (group *ConfigTsmV1) UpdateDomainByName(ctx context.Context,
 			objToUpdate.Spec.MapOfArrsPoints
 		patchOpMapOfArrsPoints := PatchOp{
 			Op:    "replace",
-			Path:  "/spec/mapOfArrsPoints",
+			Path:  "/spec/map_of_arrs_points",
 			Value: patchValueMapOfArrsPoints,
 		}
 		patch = append(patch, patchOpMapOfArrsPoints)
@@ -2323,7 +2323,7 @@ func (group *ConfigTsmV1) UpdateDomainByName(ctx context.Context,
 		objToUpdate.Spec.PointStruct
 	patchOpPointStruct := PatchOp{
 		Op:    "replace",
-		Path:  "/spec/pointStruct",
+		Path:  "/spec/point_struct",
 		Value: patchValuePointStruct,
 	}
 	patch = append(patch, patchOpPointStruct)
@@ -3145,7 +3145,7 @@ func (group *GnsTsmV1) DeleteGnsByName(ctx context.Context, hashedName string) (
 
 	patchOp := PatchOp{
 		Op:   "remove",
-		Path: "/spec/gNSGvk",
+		Path: "/spec/gnsGvk",
 	}
 
 	patch = append(patch, patchOp)
@@ -3210,7 +3210,7 @@ func (group *GnsTsmV1) CreateGnsByName(ctx context.Context,
 	var patch Patch
 	patchOp := PatchOp{
 		Op:   "replace",
-		Path: "/spec/gNSGvk",
+		Path: "/spec/gnsGvk",
 		Value: basegnstsmtanzuvmwarecomv1.Child{
 			Group: "gns.tsm.tanzu.vmware.com",
 			Kind:  "Gns",
@@ -3307,7 +3307,7 @@ func (group *GnsTsmV1) UpdateGnsByName(ctx context.Context,
 		objToUpdate.Spec.UseSharedGateway
 	patchOpUseSharedGateway := PatchOp{
 		Op:    "replace",
-		Path:  "/spec/useSharedGateway",
+		Path:  "/spec/use_shared_gateway",
 		Value: patchValueUseSharedGateway,
 	}
 	patch = append(patch, patchOpUseSharedGateway)
@@ -3343,7 +3343,7 @@ func (group *GnsTsmV1) UpdateGnsByName(ctx context.Context,
 		objToUpdate.Spec.OtherDescription
 	patchOpOtherDescription := PatchOp{
 		Op:    "replace",
-		Path:  "/spec/otherDescription",
+		Path:  "/spec/other_description",
 		Value: patchValueOtherDescription,
 	}
 	patch = append(patch, patchOpOtherDescription)
@@ -3353,7 +3353,7 @@ func (group *GnsTsmV1) UpdateGnsByName(ctx context.Context,
 			objToUpdate.Spec.MapPointer
 		patchOpMapPointer := PatchOp{
 			Op:    "replace",
-			Path:  "/spec/mapPointer",
+			Path:  "/spec/map_pointer",
 			Value: patchValueMapPointer,
 		}
 		patch = append(patch, patchOpMapPointer)
@@ -3363,7 +3363,7 @@ func (group *GnsTsmV1) UpdateGnsByName(ctx context.Context,
 		objToUpdate.Spec.SlicePointer
 	patchOpSlicePointer := PatchOp{
 		Op:    "replace",
-		Path:  "/spec/slicePointer",
+		Path:  "/spec/slice_pointer",
 		Value: patchValueSlicePointer,
 	}
 	patch = append(patch, patchOpSlicePointer)
@@ -3372,7 +3372,7 @@ func (group *GnsTsmV1) UpdateGnsByName(ctx context.Context,
 		objToUpdate.Spec.WorkloadSpec
 	patchOpWorkloadSpec := PatchOp{
 		Op:    "replace",
-		Path:  "/spec/workloadSpec",
+		Path:  "/spec/workload_spec",
 		Value: patchValueWorkloadSpec,
 	}
 	patch = append(patch, patchOpWorkloadSpec)
@@ -3381,7 +3381,7 @@ func (group *GnsTsmV1) UpdateGnsByName(ctx context.Context,
 		objToUpdate.Spec.DifferentSpec
 	patchOpDifferentSpec := PatchOp{
 		Op:    "replace",
-		Path:  "/spec/differentSpec",
+		Path:  "/spec/different_spec",
 		Value: patchValueDifferentSpec,
 	}
 	patch = append(patch, patchOpDifferentSpec)
@@ -4240,7 +4240,7 @@ func (group *GnsTsmV1) DeleteBarChildByName(ctx context.Context, hashedName stri
 
 	patchOp := PatchOp{
 		Op:   "remove",
-		Path: "/spec/fooChildGvk",
+		Path: "/spec/foo_childGvk",
 	}
 
 	patch = append(patch, patchOp)
@@ -4304,7 +4304,7 @@ func (group *GnsTsmV1) CreateBarChildByName(ctx context.Context,
 	var patch Patch
 	patchOp := PatchOp{
 		Op:   "replace",
-		Path: "/spec/fooChildGvk",
+		Path: "/spec/foo_childGvk",
 		Value: basegnstsmtanzuvmwarecomv1.Child{
 			Group: "gns.tsm.tanzu.vmware.com",
 			Kind:  "BarChild",
@@ -4522,7 +4522,7 @@ func (group *GnsTsmV1) DeleteIgnoreChildByName(ctx context.Context, hashedName s
 
 	patchOp := PatchOp{
 		Op:   "remove",
-		Path: "/spec/ignoreChildGvk",
+		Path: "/spec/ignore_childGvk",
 	}
 
 	patch = append(patch, patchOp)
@@ -4580,7 +4580,7 @@ func (group *GnsTsmV1) CreateIgnoreChildByName(ctx context.Context,
 	var patch Patch
 	patchOp := PatchOp{
 		Op:   "replace",
-		Path: "/spec/ignoreChildGvk",
+		Path: "/spec/ignore_childGvk",
 		Value: basegnstsmtanzuvmwarecomv1.Child{
 			Group: "gns.tsm.tanzu.vmware.com",
 			Kind:  "IgnoreChild",
@@ -4796,7 +4796,7 @@ func (group *GnsTsmV1) DeleteDnsByName(ctx context.Context, hashedName string) (
 
 	patchOp := PatchOp{
 		Op:   "remove",
-		Path: "/spec/dNSGvk",
+		Path: "/spec/dnsGvk",
 	}
 
 	patch = append(patch, patchOp)
@@ -4860,7 +4860,7 @@ func (group *GnsTsmV1) CreateDnsByName(ctx context.Context,
 	var patch Patch
 	patchOp := PatchOp{
 		Op:   "replace",
-		Path: "/spec/dNSGvk",
+		Path: "/spec/dnsGvk",
 		Value: basegnstsmtanzuvmwarecomv1.Child{
 			Group: "gns.tsm.tanzu.vmware.com",
 			Kind:  "Dns",
@@ -5409,7 +5409,7 @@ func (group *ServicegroupTsmV1) DeleteSvcGroupByName(ctx context.Context, hashed
 
 	patchOp := PatchOp{
 		Op:   "remove",
-		Path: "/spec/gnsServiceGroupsGvk/" + result.DisplayName(),
+		Path: "/spec/gns_service_groupsGvk/" + result.DisplayName(),
 	}
 
 	patch = append(patch, patchOp)
@@ -5464,7 +5464,7 @@ func (group *ServicegroupTsmV1) CreateSvcGroupByName(ctx context.Context,
 		parentName = helper.GetHashedName("gnses.gns.tsm.tanzu.vmware.com", objToCreate.GetLabels(), parentName)
 	}
 
-	payload := "{\"spec\": {\"gnsServiceGroupsGvk\": {\"" + objToCreate.DisplayName() + "\": {\"name\": \"" + objToCreate.Name + "\",\"kind\": \"SvcGroup\", \"group\": \"servicegroup.tsm.tanzu.vmware.com\"}}}}"
+	payload := "{\"spec\": {\"gns_service_groupsGvk\": {\"" + objToCreate.DisplayName() + "\": {\"name\": \"" + objToCreate.Name + "\",\"kind\": \"SvcGroup\", \"group\": \"servicegroup.tsm.tanzu.vmware.com\"}}}}"
 	_, err = group.client.baseClient.
 		GnsTsmV1().
 		Gnses().Patch(ctx, parentName, types.MergePatchType, []byte(payload), metav1.PatchOptions{})
@@ -5505,7 +5505,7 @@ func (group *ServicegroupTsmV1) UpdateSvcGroupByName(ctx context.Context,
 		objToUpdate.Spec.DisplayName
 	patchOpDisplayName := PatchOp{
 		Op:    "replace",
-		Path:  "/spec/displayName",
+		Path:  "/spec/display_name",
 		Value: patchValueDisplayName,
 	}
 	patch = append(patch, patchOpDisplayName)
@@ -5687,7 +5687,7 @@ func (group *ServicegroupTsmV1) DeleteSvcGroupLinkInfoByName(ctx context.Context
 
 	patchOp := PatchOp{
 		Op:   "remove",
-		Path: "/spec/svcGrpInfoGvk",
+		Path: "/spec/svc_grp_infoGvk",
 	}
 
 	patch = append(patch, patchOp)
@@ -5745,7 +5745,7 @@ func (group *ServicegroupTsmV1) CreateSvcGroupLinkInfoByName(ctx context.Context
 	var patch Patch
 	patchOp := PatchOp{
 		Op:   "replace",
-		Path: "/spec/svcGrpInfoGvk",
+		Path: "/spec/svc_grp_infoGvk",
 		Value: baseservicegrouptsmtanzuvmwarecomv1.Child{
 			Group: "servicegroup.tsm.tanzu.vmware.com",
 			Kind:  "SvcGroupLinkInfo",
@@ -5797,7 +5797,7 @@ func (group *ServicegroupTsmV1) UpdateSvcGroupLinkInfoByName(ctx context.Context
 		objToUpdate.Spec.ClusterName
 	patchOpClusterName := PatchOp{
 		Op:    "replace",
-		Path:  "/spec/clusterName",
+		Path:  "/spec/cluster_name",
 		Value: patchValueClusterName,
 	}
 	patch = append(patch, patchOpClusterName)
@@ -5806,7 +5806,7 @@ func (group *ServicegroupTsmV1) UpdateSvcGroupLinkInfoByName(ctx context.Context
 		objToUpdate.Spec.DomainName
 	patchOpDomainName := PatchOp{
 		Op:    "replace",
-		Path:  "/spec/domainName",
+		Path:  "/spec/domain_name",
 		Value: patchValueDomainName,
 	}
 	patch = append(patch, patchOpDomainName)
@@ -5815,7 +5815,7 @@ func (group *ServicegroupTsmV1) UpdateSvcGroupLinkInfoByName(ctx context.Context
 		objToUpdate.Spec.ServiceName
 	patchOpServiceName := PatchOp{
 		Op:    "replace",
-		Path:  "/spec/serviceName",
+		Path:  "/spec/service_name",
 		Value: patchValueServiceName,
 	}
 	patch = append(patch, patchOpServiceName)
@@ -5824,7 +5824,7 @@ func (group *ServicegroupTsmV1) UpdateSvcGroupLinkInfoByName(ctx context.Context
 		objToUpdate.Spec.ServiceType
 	patchOpServiceType := PatchOp{
 		Op:    "replace",
-		Path:  "/spec/serviceType",
+		Path:  "/spec/service_type",
 		Value: patchValueServiceType,
 	}
 	patch = append(patch, patchOpServiceType)
@@ -6336,7 +6336,7 @@ func (group *PolicypkgTsmV1) DeleteAccessControlPolicyByName(ctx context.Context
 
 	patchOp := PatchOp{
 		Op:   "remove",
-		Path: "/spec/gnsAccessControlPolicyGvk",
+		Path: "/spec/gns_access_control_policyGvk",
 	}
 
 	patch = append(patch, patchOp)
@@ -6396,7 +6396,7 @@ func (group *PolicypkgTsmV1) CreateAccessControlPolicyByName(ctx context.Context
 	var patch Patch
 	patchOp := PatchOp{
 		Op:   "replace",
-		Path: "/spec/gnsAccessControlPolicyGvk",
+		Path: "/spec/gns_access_control_policyGvk",
 		Value: basepolicypkgtsmtanzuvmwarecomv1.Child{
 			Group: "policypkg.tsm.tanzu.vmware.com",
 			Kind:  "AccessControlPolicy",
@@ -6720,7 +6720,7 @@ func (group *PolicypkgTsmV1) DeleteACPConfigByName(ctx context.Context, hashedNa
 
 	patchOp := PatchOp{
 		Op:   "remove",
-		Path: "/spec/policyConfigsGvk/" + result.DisplayName(),
+		Path: "/spec/policy_configsGvk/" + result.DisplayName(),
 	}
 
 	patch = append(patch, patchOp)
@@ -6778,7 +6778,7 @@ func (group *PolicypkgTsmV1) CreateACPConfigByName(ctx context.Context,
 		parentName = helper.GetHashedName("accesscontrolpolicies.policypkg.tsm.tanzu.vmware.com", objToCreate.GetLabels(), parentName)
 	}
 
-	payload := "{\"spec\": {\"policyConfigsGvk\": {\"" + objToCreate.DisplayName() + "\": {\"name\": \"" + objToCreate.Name + "\",\"kind\": \"ACPConfig\", \"group\": \"policypkg.tsm.tanzu.vmware.com\"}}}}"
+	payload := "{\"spec\": {\"policy_configsGvk\": {\"" + objToCreate.DisplayName() + "\": {\"name\": \"" + objToCreate.Name + "\",\"kind\": \"ACPConfig\", \"group\": \"policypkg.tsm.tanzu.vmware.com\"}}}}"
 	_, err = group.client.baseClient.
 		PolicypkgTsmV1().
 		AccessControlPolicies().Patch(ctx, parentName, types.MergePatchType, []byte(payload), metav1.PatchOptions{})
@@ -6855,7 +6855,7 @@ func (group *PolicypkgTsmV1) UpdateACPConfigByName(ctx context.Context,
 		objToUpdate.Spec.DisplayName
 	patchOpDisplayName := PatchOp{
 		Op:    "replace",
-		Path:  "/spec/displayName",
+		Path:  "/spec/display_name",
 		Value: patchValueDisplayName,
 	}
 	patch = append(patch, patchOpDisplayName)
@@ -6893,7 +6893,7 @@ func (group *PolicypkgTsmV1) UpdateACPConfigByName(ctx context.Context,
 		objToUpdate.Spec.ProjectId
 	patchOpProjectId := PatchOp{
 		Op:    "replace",
-		Path:  "/spec/projectId",
+		Path:  "/spec/project_id",
 		Value: patchValueProjectId,
 	}
 	patch = append(patch, patchOpProjectId)
@@ -7047,7 +7047,7 @@ func (obj *PolicypkgACPConfig) GetDestSvcGroups(ctx context.Context,
 func (obj *PolicypkgACPConfig) LinkDestSvcGroups(ctx context.Context,
 	linkToAdd *ServicegroupSvcGroup) error {
 
-	payload := "{\"spec\": {\"destSvcGroupsGvk\": {\"" + linkToAdd.DisplayName() + "\": {\"name\": \"" + linkToAdd.Name + "\",\"kind\": \"SvcGroup\", \"group\": \"servicegroup.tsm.tanzu.vmware.com\"}}}}"
+	payload := "{\"spec\": {\"dest_svc_groupsGvk\": {\"" + linkToAdd.DisplayName() + "\": {\"name\": \"" + linkToAdd.Name + "\",\"kind\": \"SvcGroup\", \"group\": \"servicegroup.tsm.tanzu.vmware.com\"}}}}"
 	result, err := obj.client.baseClient.PolicypkgTsmV1().ACPConfigs().Patch(ctx, obj.Name, types.MergePatchType, []byte(payload), metav1.PatchOptions{})
 	if err != nil {
 		return err
@@ -7064,7 +7064,7 @@ func (obj *PolicypkgACPConfig) UnlinkDestSvcGroups(ctx context.Context,
 
 	patchOp := PatchOp{
 		Op:   "remove",
-		Path: "/spec/destSvcGroupsGvk/" + linkToRemove.DisplayName(),
+		Path: "/spec/dest_svc_groupsGvk/" + linkToRemove.DisplayName(),
 	}
 
 	patch = append(patch, patchOp)
@@ -7111,7 +7111,7 @@ func (obj *PolicypkgACPConfig) GetSourceSvcGroups(ctx context.Context,
 func (obj *PolicypkgACPConfig) LinkSourceSvcGroups(ctx context.Context,
 	linkToAdd *ServicegroupSvcGroup) error {
 
-	payload := "{\"spec\": {\"sourceSvcGroupsGvk\": {\"" + linkToAdd.DisplayName() + "\": {\"name\": \"" + linkToAdd.Name + "\",\"kind\": \"SvcGroup\", \"group\": \"servicegroup.tsm.tanzu.vmware.com\"}}}}"
+	payload := "{\"spec\": {\"source_svc_groupsGvk\": {\"" + linkToAdd.DisplayName() + "\": {\"name\": \"" + linkToAdd.Name + "\",\"kind\": \"SvcGroup\", \"group\": \"servicegroup.tsm.tanzu.vmware.com\"}}}}"
 	result, err := obj.client.baseClient.PolicypkgTsmV1().ACPConfigs().Patch(ctx, obj.Name, types.MergePatchType, []byte(payload), metav1.PatchOptions{})
 	if err != nil {
 		return err
@@ -7128,7 +7128,7 @@ func (obj *PolicypkgACPConfig) UnlinkSourceSvcGroups(ctx context.Context,
 
 	patchOp := PatchOp{
 		Op:   "remove",
-		Path: "/spec/sourceSvcGroupsGvk/" + linkToRemove.DisplayName(),
+		Path: "/spec/source_svc_groupsGvk/" + linkToRemove.DisplayName(),
 	}
 
 	patch = append(patch, patchOp)
@@ -7257,7 +7257,7 @@ func (group *PolicypkgTsmV1) DeleteVMpolicyByName(ctx context.Context, hashedNam
 
 	patchOp := PatchOp{
 		Op:   "remove",
-		Path: "/spec/vMPPoliciesGvk",
+		Path: "/spec/vmp_policiesGvk",
 	}
 
 	patch = append(patch, patchOp)
@@ -7315,7 +7315,7 @@ func (group *PolicypkgTsmV1) CreateVMpolicyByName(ctx context.Context,
 	var patch Patch
 	patchOp := PatchOp{
 		Op:   "replace",
-		Path: "/spec/vMPPoliciesGvk",
+		Path: "/spec/vmp_policiesGvk",
 		Value: basepolicypkgtsmtanzuvmwarecomv1.Child{
 			Group: "policypkg.tsm.tanzu.vmware.com",
 			Kind:  "VMpolicy",

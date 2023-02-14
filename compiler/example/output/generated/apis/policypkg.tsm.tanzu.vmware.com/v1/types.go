@@ -101,7 +101,7 @@ func (c *AccessControlPolicy) DisplayName() string {
 
 // +k8s:openapi-gen=true
 type AccessControlPolicySpec struct {
-	PolicyConfigsGvk map[string]Child `json:"policyConfigsGvk,omitempty" yaml:"policyConfigsGvk,omitempty" nexus:"children"`
+	PolicyConfigsGvk map[string]Child `json:"policy_configs_gvk,omitempty" yaml:"policy_configs_gvk,omitempty" nexus:"children"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
@@ -142,14 +142,14 @@ func (c *ACPConfig) DisplayName() string {
 
 // +k8s:openapi-gen=true
 type ACPConfigSpec struct {
-	DisplayName        string          `json:"displayName" yaml:"displayName"`
+	DisplayName        string          `json:"display_name" yaml:"display_name"`
 	Gns                string          `json:"gns" yaml:"gns"`
 	Description        string          `json:"description" yaml:"description"`
 	Tags               []string        `json:"tags" yaml:"tags"`
-	ProjectId          string          `json:"projectId" yaml:"projectId"`
+	ProjectId          string          `json:"project_id" yaml:"project_id"`
 	Conditions         []string        `json:"conditions" yaml:"conditions"`
-	DestSvcGroupsGvk   map[string]Link `json:"destSvcGroupsGvk,omitempty" yaml:"destSvcGroupsGvk,omitempty" nexus:"links"`
-	SourceSvcGroupsGvk map[string]Link `json:"sourceSvcGroupsGvk,omitempty" yaml:"sourceSvcGroupsGvk,omitempty" nexus:"links"`
+	DestSvcGroupsGvk   map[string]Link `json:"dest_svc_groups_gvk,omitempty" yaml:"dest_svc_groups_gvk,omitempty" nexus:"links"`
+	SourceSvcGroupsGvk map[string]Link `json:"source_svc_groups_gvk,omitempty" yaml:"source_svc_groups_gvk,omitempty" nexus:"links"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
@@ -237,22 +237,22 @@ type RandomPolicyDataList struct {
 
 // +k8s:openapi-gen=true
 type AdditionalDescription struct {
-	DiscriptionA string `json:"discriptionA" yaml:"discriptionA"`
-	DiscriptionB string `json:"discriptionB" yaml:"discriptionB"`
-	DiscriptionC string `json:"discriptionC" yaml:"discriptionC"`
-	DiscriptionD string `json:"discriptionD" yaml:"discriptionD"`
+	DiscriptionA string `json:"discription_a" yaml:"discription_a"`
+	DiscriptionB string `json:"discription_b" yaml:"discription_b"`
+	DiscriptionC string `json:"discription_c" yaml:"discription_c"`
+	DiscriptionD string `json:"discription_d" yaml:"discription_d"`
 }
 
 // +k8s:openapi-gen=true
 type AdditionalStatus struct {
-	StatusX int `json:"statusX" yaml:"statusX"`
-	StatusY int `json:"statusY" yaml:"statusY"`
+	StatusX int `json:"status_x" yaml:"status_x"`
+	StatusY int `json:"status_y" yaml:"status_y"`
 }
 
 // +k8s:openapi-gen=true
 type ACPStatus struct {
-	StatusABC int `json:"statusABC" yaml:"statusABC"`
-	StatusXYZ int `json:"statusXYZ" yaml:"statusXYZ"`
+	StatusABC int `json:"status_abc" yaml:"status_abc"`
+	StatusXYZ int `json:"status_xyz" yaml:"status_xyz"`
 }
 
 // +k8s:openapi-gen=true
@@ -263,8 +263,8 @@ type ResourceGroupRef struct {
 
 // +k8s:openapi-gen=true
 type ACPSvcGroupLinkInfo struct {
-	ServiceName string `json:"serviceName" yaml:"serviceName"`
-	ServiceType string `json:"serviceType" yaml:"serviceType"`
+	ServiceName string `json:"service_name" yaml:"service_name"`
+	ServiceType string `json:"service_type" yaml:"service_type"`
 }
 
 // +k8s:openapi-gen=true
@@ -280,16 +280,16 @@ type ResourceGroupID struct {
 
 // +k8s:openapi-gen=true
 type RandomDescription struct {
-	DiscriptionA string `json:"discriptionA" yaml:"discriptionA"`
-	DiscriptionB string `json:"discriptionB" yaml:"discriptionB"`
-	DiscriptionC string `json:"discriptionC" yaml:"discriptionC"`
-	DiscriptionD string `json:"discriptionD" yaml:"discriptionD"`
+	DiscriptionA string `json:"discription_a" yaml:"discription_a"`
+	DiscriptionB string `json:"discription_b" yaml:"discription_b"`
+	DiscriptionC string `json:"discription_c" yaml:"discription_c"`
+	DiscriptionD string `json:"discription_d" yaml:"discription_d"`
 }
 
 // +k8s:openapi-gen=true
 type RandomStatus struct {
-	StatusX int `json:"statusX" yaml:"statusX"`
-	StatusY int `json:"statusY" yaml:"statusY"`
+	StatusX int `json:"status_x" yaml:"status_x"`
+	StatusY int `json:"status_y" yaml:"status_y"`
 }
 
 type TempConst1 string

@@ -62,22 +62,22 @@ func (c *Config) DisplayName() string {
 
 // +k8s:openapi-gen=true
 type ConfigSpec struct {
-	MyStr0            *gnstsmtanzuvmwarecomv1.MyStr           `json:"myStr0" yaml:"myStr0"`
-	MyStr1            []gnstsmtanzuvmwarecomv1.MyStr          `json:"myStr1" yaml:"myStr1"`
-	MyStr2            map[string]gnstsmtanzuvmwarecomv1.MyStr `json:"myStr2" yaml:"myStr2"`
-	XYZPort           gnstsmtanzuvmwarecomv1.Port             `json:"xYZPort" yaml:"xYZPort"`
-	ABCHost           []gnstsmtanzuvmwarecomv1.Host           `json:"aBCHost" yaml:"aBCHost"`
-	ClusterNamespaces []ClusterNamespace                      `json:"clusterNamespaces" yaml:"clusterNamespaces"`
+	MyStr0            *gnstsmtanzuvmwarecomv1.MyStr           `json:"my_str_0" yaml:"my_str_0"`
+	MyStr1            []gnstsmtanzuvmwarecomv1.MyStr          `json:"my_str_1" yaml:"my_str_1"`
+	MyStr2            map[string]gnstsmtanzuvmwarecomv1.MyStr `json:"my_str_2" yaml:"my_str_2"`
+	XYZPort           gnstsmtanzuvmwarecomv1.Port             `json:"xyz_port" yaml:"xyz_port"`
+	ABCHost           []gnstsmtanzuvmwarecomv1.Host           `json:"abc_host" yaml:"abc_host"`
+	ClusterNamespaces []ClusterNamespace                      `json:"cluster_namespaces" yaml:"cluster_namespaces"`
 	TestValMarkers    TestValMarkers                          `json:"testValMarkers" yaml:"testValMarkers"`
 	Instance          float32                                 `json:"instance" yaml:"instance"`
 	CuOption          string                                  `json:"option_cu"`
-	GNSGvk            *Child                                  `json:"gNSGvk,omitempty" yaml:"gNSGvk,omitempty" nexus:"child"`
-	DNSGvk            *Child                                  `json:"dNSGvk,omitempty" yaml:"dNSGvk,omitempty" nexus:"child"`
-	VMPPoliciesGvk    *Child                                  `json:"vMPPoliciesGvk,omitempty" yaml:"vMPPoliciesGvk,omitempty" nexus:"child"`
-	DomainGvk         *Child                                  `json:"domainGvk,omitempty" yaml:"domainGvk,omitempty" nexus:"child"`
-	FooExampleGvk     map[string]Child                        `json:"fooExampleGvk,omitempty" yaml:"fooExampleGvk,omitempty" nexus:"children"`
-	SvcGrpInfoGvk     *Child                                  `json:"svcGrpInfoGvk,omitempty" yaml:"svcGrpInfoGvk,omitempty" nexus:"child"`
-	ACPPoliciesGvk    map[string]Link                         `json:"aCPPoliciesGvk,omitempty" yaml:"aCPPoliciesGvk,omitempty" nexus:"links"`
+	GNSGvk            *Child                                  `json:"gns_gvk,omitempty" yaml:"gns_gvk,omitempty" nexus:"child"`
+	DNSGvk            *Child                                  `json:"dns_gvk,omitempty" yaml:"dns_gvk,omitempty" nexus:"child"`
+	VMPPoliciesGvk    *Child                                  `json:"vmp_policies_gvk,omitempty" yaml:"vmp_policies_gvk,omitempty" nexus:"child"`
+	DomainGvk         *Child                                  `json:"domain_gvk,omitempty" yaml:"domain_gvk,omitempty" nexus:"child"`
+	FooExampleGvk     map[string]Child                        `json:"foo_example_gvk,omitempty" yaml:"foo_example_gvk,omitempty" nexus:"children"`
+	SvcGrpInfoGvk     *Child                                  `json:"svc_grp_info_gvk,omitempty" yaml:"svc_grp_info_gvk,omitempty" nexus:"child"`
+	ACPPoliciesGvk    map[string]Link                         `json:"acp_policies_gvk,omitempty" yaml:"acp_policies_gvk,omitempty" nexus:"links"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
@@ -117,8 +117,8 @@ func (c *FooTypeABC) DisplayName() string {
 
 // +k8s:openapi-gen=true
 type FooTypeABCSpec struct {
-	FooA AMap   `json:"fooA" yaml:"fooA"`
-	FooB BArray `json:"fooB" yaml:"fooB"`
+	FooA AMap   `json:"foo_a" yaml:"foo_a"`
+	FooB BArray `json:"foo_b" yaml:"foo_b"`
 	FooC CInt   `nexus-graphql:"ignore:true"`
 	FooD DFloat `nexus-graphql:"type:string"`
 	FooE CInt   `json:"foo_e" nexus-graphql:"ignore:true"`
@@ -162,15 +162,15 @@ func (c *Domain) DisplayName() string {
 
 // +k8s:openapi-gen=true
 type DomainSpec struct {
-	PointPort        *gnstsmtanzuvmwarecomv1.Port `json:"pointPort" yaml:"pointPort"`
-	PointString      *string                      `json:"pointString" yaml:"pointString"`
-	PointInt         *int                         `json:"pointInt" yaml:"pointInt"`
-	PointMap         *map[string]string           `json:"pointMap" yaml:"pointMap"`
-	PointSlice       *[]string                    `json:"pointSlice" yaml:"pointSlice"`
-	SliceOfPoints    []*string                    `json:"sliceOfPoints" yaml:"sliceOfPoints"`
-	SliceOfArrPoints []*BArray                    `json:"sliceOfArrPoints" yaml:"sliceOfArrPoints"`
-	MapOfArrsPoints  map[string]*BArray           `json:"mapOfArrsPoints" yaml:"mapOfArrsPoints"`
-	PointStruct      *Cluster                     `json:"pointStruct" yaml:"pointStruct"`
+	PointPort        *gnstsmtanzuvmwarecomv1.Port `json:"point_port" yaml:"point_port"`
+	PointString      *string                      `json:"point_string" yaml:"point_string"`
+	PointInt         *int                         `json:"point_int" yaml:"point_int"`
+	PointMap         *map[string]string           `json:"point_map" yaml:"point_map"`
+	PointSlice       *[]string                    `json:"point_slice" yaml:"point_slice"`
+	SliceOfPoints    []*string                    `json:"slice_of_points" yaml:"slice_of_points"`
+	SliceOfArrPoints []*BArray                    `json:"slice_of_arr_points" yaml:"slice_of_arr_points"`
+	MapOfArrsPoints  map[string]*BArray           `json:"map_of_arrs_points" yaml:"map_of_arrs_points"`
+	PointStruct      *Cluster                     `json:"point_struct" yaml:"point_struct"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
@@ -195,7 +195,7 @@ type MatchCondition struct {
 // +k8s:openapi-gen=true
 type Cluster struct {
 	Name string `json:"name" yaml:"name"`
-	MyID int    `json:"myID" yaml:"myID"`
+	MyID int    `json:"my_id" yaml:"my_id"`
 }
 
 // +k8s:openapi-gen=true

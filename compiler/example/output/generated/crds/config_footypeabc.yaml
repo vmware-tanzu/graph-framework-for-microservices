@@ -24,7 +24,7 @@ spec:
     schema:
       openAPIV3Schema:
         properties:
-          apiVersion:
+          api_version:
             description: 'APIVersion defines the versioned schema of this representation
               of an object. Servers should convert recognized schemas to the latest
               internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
@@ -38,47 +38,47 @@ spec:
             type: object
           spec:
             properties:
-              FooC:
-                format: byte
-                type: integer
-              FooD:
-                format: float
-                type: number
-              fooA:
+              foo_a:
                 additionalProperties:
                   type: string
                 type: object
-              fooB:
+              foo_b:
                 items:
                   type: string
                 type: array
-              fooE:
+              foo_c:
                 format: byte
                 type: integer
-              fooF:
+              foo_d:
+                format: float
+                type: number
+              foo_e:
+                format: byte
+                type: integer
+              foo_f:
                 format: float
                 type: number
             required:
-            - fooA
-            - fooB
-            - FooC
-            - FooD
-            - fooE
-            - fooF
+            - foo_a
+            - foo_b
+            - foo_c
+            - foo_d
+            - foo_e
+            - foo_f
             type: object
           status:
             properties:
               nexus:
                 properties:
-                  remoteGeneration:
+                  remote_generation:
                     format: int64
                     type: integer
-                  sourceGeneration:
+                  source_generation:
                     format: int64
                     type: integer
                 required:
-                - sourceGeneration
-                - remoteGeneration
+                - source_generation
+                - remote_generation
                 type: object
             type: object
         type: object

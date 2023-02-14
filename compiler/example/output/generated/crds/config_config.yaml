@@ -4,7 +4,7 @@ kind: CustomResourceDefinition
 metadata:
   annotations:
     nexus: |
-      {"name":"config.Config","hierarchy":["roots.root.tsm.tanzu.vmware.com"],"children":{"dnses.gns.tsm.tanzu.vmware.com":{"fieldName":"DNS","fieldNameGvk":"dNSGvk","isNamed":false},"domains.config.tsm.tanzu.vmware.com":{"fieldName":"Domain","fieldNameGvk":"domainGvk","isNamed":false},"footypeabcs.config.tsm.tanzu.vmware.com":{"fieldName":"FooExample","fieldNameGvk":"fooExampleGvk","isNamed":true},"gnses.gns.tsm.tanzu.vmware.com":{"fieldName":"GNS","fieldNameGvk":"gNSGvk","isNamed":false},"svcgrouplinkinfos.servicegroup.tsm.tanzu.vmware.com":{"fieldName":"SvcGrpInfo","fieldNameGvk":"svcGrpInfoGvk","isNamed":false},"vmpolicies.policypkg.tsm.tanzu.vmware.com":{"fieldName":"VMPPolicies","fieldNameGvk":"vMPPoliciesGvk","isNamed":false}},"links":{"ACPPolicies":{"fieldName":"ACPPolicies","fieldNameGvk":"aCPPoliciesGvk","isNamed":true}},"is_singleton":false,"nexus-rest-api-gen":{"uris":null}}
+      {"name":"config.Config","hierarchy":["roots.root.tsm.tanzu.vmware.com"],"children":{"dnses.gns.tsm.tanzu.vmware.com":{"fieldName":"DNS","fieldNameGvk":"dnsGvk","isNamed":false},"domains.config.tsm.tanzu.vmware.com":{"fieldName":"Domain","fieldNameGvk":"domainGvk","isNamed":false},"footypeabcs.config.tsm.tanzu.vmware.com":{"fieldName":"FooExample","fieldNameGvk":"foo_exampleGvk","isNamed":true},"gnses.gns.tsm.tanzu.vmware.com":{"fieldName":"GNS","fieldNameGvk":"gnsGvk","isNamed":false},"svcgrouplinkinfos.servicegroup.tsm.tanzu.vmware.com":{"fieldName":"SvcGrpInfo","fieldNameGvk":"svc_grp_infoGvk","isNamed":false},"vmpolicies.policypkg.tsm.tanzu.vmware.com":{"fieldName":"VMPPolicies","fieldNameGvk":"vmp_policiesGvk","isNamed":false}},"links":{"ACPPolicies":{"fieldName":"ACPPolicies","fieldNameGvk":"acp_policiesGvk","isNamed":true}},"is_singleton":false,"nexus-rest-api-gen":{"uris":null}}
   creationTimestamp: null
   name: configs.config.tsm.tanzu.vmware.com
 spec:
@@ -24,7 +24,7 @@ spec:
     schema:
       openAPIV3Schema:
         properties:
-          apiVersion:
+          api_version:
             description: 'APIVersion defines the versioned schema of this representation
               of an object. Servers should convert recognized schemas to the latest
               internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
@@ -38,11 +38,11 @@ spec:
             type: object
           spec:
             properties:
-              aBCHost:
+              abc_host:
                 items:
                   type: string
                 type: array
-              aCPPoliciesGvk:
+              acp_policies_gvk:
                 additionalProperties:
                   properties:
                     group:
@@ -57,7 +57,7 @@ spec:
                   - name
                   type: object
                 type: object
-              clusterNamespaces:
+              cluster_namespaces:
                 items:
                   properties:
                     cluster:
@@ -85,7 +85,7 @@ spec:
                   - namespace
                   type: object
                 type: array
-              dNSGvk:
+              dns_gvk:
                 properties:
                   group:
                     type: string
@@ -98,7 +98,7 @@ spec:
                 - kind
                 - name
                 type: object
-              domainGvk:
+              domain_gvk:
                 properties:
                   group:
                     type: string
@@ -111,7 +111,7 @@ spec:
                 - kind
                 - name
                 type: object
-              fooExampleGvk:
+              foo_example_gvk:
                 additionalProperties:
                   properties:
                     group:
@@ -126,7 +126,7 @@ spec:
                   - name
                   type: object
                 type: object
-              gNSGvk:
+              gns_gvk:
                 properties:
                   group:
                     type: string
@@ -142,19 +142,19 @@ spec:
               instance:
                 format: float
                 type: number
-              myStr0:
+              my_str_0:
                 type: string
-              myStr1:
+              my_str_1:
                 items:
                   type: string
                 type: array
-              myStr2:
+              my_str_2:
                 additionalProperties:
                   type: string
                 type: object
-              optionCu:
+              option_cu:
                 type: string
-              svcGrpInfoGvk:
+              svc_grp_info_gvk:
                 properties:
                   group:
                     type: string
@@ -167,32 +167,32 @@ spec:
                 - kind
                 - name
                 type: object
-              testValMarkers:
+              test_val_markers:
                 properties:
-                  myInt:
+                  my_int:
                     exclusiveMaximum: true
                     format: int32
                     maximum: 8
                     minimum: 2
                     type: integer
-                  mySlice:
+                  my_slice:
                     items:
                       type: string
                     maxItems: 3
                     minItems: 2
                     type: array
                     uniqueItems: true
-                  myStr:
+                  my_str:
                     maxLength: 8
                     minLength: 2
                     pattern: ab
                     type: string
                 required:
-                - myStr
-                - myInt
-                - mySlice
+                - my_str
+                - my_int
+                - my_slice
                 type: object
-              vMPPoliciesGvk:
+              vmp_policies_gvk:
                 properties:
                   group:
                     type: string
@@ -205,33 +205,33 @@ spec:
                 - kind
                 - name
                 type: object
-              xYZPort:
+              xyz_port:
                 format: int32
                 type: integer
             required:
-            - myStr0
-            - myStr1
-            - myStr2
-            - xYZPort
-            - aBCHost
-            - clusterNamespaces
-            - testValMarkers
+            - my_str_0
+            - my_str_1
+            - my_str_2
+            - xyz_port
+            - abc_host
+            - cluster_namespaces
+            - test_val_markers
             - instance
-            - optionCu
+            - option_cu
             type: object
           status:
             properties:
               nexus:
                 properties:
-                  remoteGeneration:
+                  remote_generation:
                     format: int64
                     type: integer
-                  sourceGeneration:
+                  source_generation:
                     format: int64
                     type: integer
                 required:
-                - sourceGeneration
-                - remoteGeneration
+                - source_generation
+                - remote_generation
                 type: object
             type: object
         type: object

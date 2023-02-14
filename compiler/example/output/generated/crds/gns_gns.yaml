@@ -4,7 +4,7 @@ kind: CustomResourceDefinition
 metadata:
   annotations:
     nexus: |
-      {"name":"gns.Gns","hierarchy":["roots.root.tsm.tanzu.vmware.com","configs.config.tsm.tanzu.vmware.com"],"children":{"accesscontrolpolicies.policypkg.tsm.tanzu.vmware.com":{"fieldName":"GnsAccessControlPolicy","fieldNameGvk":"gnsAccessControlPolicyGvk","isNamed":false},"barchilds.gns.tsm.tanzu.vmware.com":{"fieldName":"FooChild","fieldNameGvk":"fooChildGvk","isNamed":false},"foos.gns.tsm.tanzu.vmware.com":{"fieldName":"Foo","fieldNameGvk":"fooGvk","isNamed":false},"ignorechilds.gns.tsm.tanzu.vmware.com":{"fieldName":"IgnoreChild","fieldNameGvk":"ignoreChildGvk","isNamed":false},"svcgroups.servicegroup.tsm.tanzu.vmware.com":{"fieldName":"GnsServiceGroups","fieldNameGvk":"gnsServiceGroupsGvk","isNamed":true}},"links":{"Dns":{"fieldName":"Dns","fieldNameGvk":"dnsGvk","isNamed":false}},"is_singleton":false,"nexus-rest-api-gen":{"uris":[{"uri":"/v1alpha2/global-namespace/{gns.Gns}","query_params":["config.Config"],"methods":{"DELETE":{"200":{"description":"OK"},"404":{"description":"Not Found"},"501":{"description":"Not Implemented"}},"GET":{"200":{"description":"OK"},"404":{"description":"Not Found"},"501":{"description":"Not Implemented"}},"PUT":{"200":{"description":"OK"},"201":{"description":"Created"},"501":{"description":"Not Implemented"}}}},{"uri":"/v1alpha2/global-namespaces","query_params":["config.Config"],"methods":{"LIST":{"200":{"description":"OK"},"404":{"description":"Not Found"},"501":{"description":"Not Implemented"}}}},{"uri":"/test-foo","query_params":["config.Config"],"methods":{"DELETE":{"200":{"description":"ok"},"404":{"description":"Not Found"},"501":{"description":"Not Implemented"}}}},{"uri":"/test-bar","query_params":["config.Config"],"methods":{"PATCH":{"400":{"description":"Bad Request"}}}}]},"description":"this is my awesome node"}
+      {"name":"gns.Gns","hierarchy":["roots.root.tsm.tanzu.vmware.com","configs.config.tsm.tanzu.vmware.com"],"children":{"accesscontrolpolicies.policypkg.tsm.tanzu.vmware.com":{"fieldName":"GnsAccessControlPolicy","fieldNameGvk":"gns_access_control_policyGvk","isNamed":false},"barchilds.gns.tsm.tanzu.vmware.com":{"fieldName":"FooChild","fieldNameGvk":"foo_childGvk","isNamed":false},"foos.gns.tsm.tanzu.vmware.com":{"fieldName":"Foo","fieldNameGvk":"fooGvk","isNamed":false},"ignorechilds.gns.tsm.tanzu.vmware.com":{"fieldName":"IgnoreChild","fieldNameGvk":"ignore_childGvk","isNamed":false},"svcgroups.servicegroup.tsm.tanzu.vmware.com":{"fieldName":"GnsServiceGroups","fieldNameGvk":"gns_service_groupsGvk","isNamed":true}},"links":{"Dns":{"fieldName":"Dns","fieldNameGvk":"dnsGvk","isNamed":false}},"is_singleton":false,"nexus-rest-api-gen":{"uris":[{"uri":"/v1alpha2/global-namespace/{gns.Gns}","query_params":["config.Config"],"methods":{"DELETE":{"200":{"description":"OK"},"404":{"description":"Not Found"},"501":{"description":"Not Implemented"}},"GET":{"200":{"description":"OK"},"404":{"description":"Not Found"},"501":{"description":"Not Implemented"}},"PUT":{"200":{"description":"OK"},"201":{"description":"Created"},"501":{"description":"Not Implemented"}}}},{"uri":"/v1alpha2/global-namespaces","query_params":["config.Config"],"methods":{"LIST":{"200":{"description":"OK"},"404":{"description":"Not Found"},"501":{"description":"Not Implemented"}}}},{"uri":"/test-foo","query_params":["config.Config"],"methods":{"DELETE":{"200":{"description":"ok"},"404":{"description":"Not Found"},"501":{"description":"Not Implemented"}}}},{"uri":"/test-bar","query_params":["config.Config"],"methods":{"PATCH":{"400":{"description":"Bad Request"}}}}]},"description":"this is my awesome node"}
   creationTimestamp: null
   name: gnses.gns.tsm.tanzu.vmware.com
 spec:
@@ -24,7 +24,7 @@ spec:
     schema:
       openAPIV3Schema:
         properties:
-          apiVersion:
+          api_version:
             description: 'APIVersion defines the versioned schema of this representation
               of an object. Servers should convert recognized schemas to the latest
               internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
@@ -42,7 +42,7 @@ spec:
                 properties:
                   color:
                     type: string
-                  hostPort:
+                  host_port:
                     properties:
                       host:
                         type: string
@@ -56,9 +56,9 @@ spec:
                   instance:
                     format: float
                     type: number
-                  projectId:
+                  project_id:
                     type: string
-                  testAns:
+                  test_ans:
                     items:
                       properties:
                         name:
@@ -72,15 +72,15 @@ spec:
                 required:
                 - color
                 - version
-                - projectId
-                - testAns
+                - project_id
+                - test_ans
                 - instance
-                - hostPort
+                - host_port
                 type: object
-              differentSpec:
+              different_spec:
                 type: object
                 x-kubernetes-preserve-unknown-fields: true
-              dnsGvk:
+              dns_gvk:
                 properties:
                   group:
                     type: string
@@ -98,7 +98,7 @@ spec:
                 minLength: 2
                 pattern: abc
                 type: string
-              fooChildGvk:
+              foo_child_gvk:
                 properties:
                   group:
                     type: string
@@ -111,7 +111,7 @@ spec:
                 - kind
                 - name
                 type: object
-              fooGvk:
+              foo_gvk:
                 properties:
                   group:
                     type: string
@@ -124,7 +124,7 @@ spec:
                 - kind
                 - name
                 type: object
-              gnsAccessControlPolicyGvk:
+              gns_access_control_policy_gvk:
                 properties:
                   group:
                     type: string
@@ -137,7 +137,7 @@ spec:
                 - kind
                 - name
                 type: object
-              gnsServiceGroupsGvk:
+              gns_service_groups_gvk:
                 additionalProperties:
                   properties:
                     group:
@@ -152,7 +152,7 @@ spec:
                   - name
                   type: object
                 type: object
-              ignoreChildGvk:
+              ignore_child_gvk:
                 properties:
                   group:
                     type: string
@@ -165,17 +165,17 @@ spec:
                 - kind
                 - name
                 type: object
-              mapPointer:
+              map_pointer:
                 additionalProperties:
                   type: string
                 type: object
               meta:
                 type: string
-              otherDescription:
+              other_description:
                 properties:
                   color:
                     type: string
-                  hostPort:
+                  host_port:
                     properties:
                       host:
                         type: string
@@ -189,9 +189,9 @@ spec:
                   instance:
                     format: float
                     type: number
-                  projectId:
+                  project_id:
                     type: string
-                  testAns:
+                  test_ans:
                     items:
                       properties:
                         name:
@@ -205,92 +205,92 @@ spec:
                 required:
                 - color
                 - version
-                - projectId
-                - testAns
+                - project_id
+                - test_ans
                 - instance
-                - hostPort
+                - host_port
                 type: object
               port:
                 format: int32
                 type: integer
-              serviceSegmentRef:
+              service_segment_ref:
                 properties:
-                  field1:
+                  field_1:
                     type: string
-                  field2:
+                  field_2:
                     type: string
                 required:
-                - field1
-                - field2
+                - field_1
+                - field_2
                 type: object
-              serviceSegmentRefMap:
+              service_segment_ref_map:
                 additionalProperties:
                   properties:
-                    field1:
+                    field_1:
                       type: string
-                    field2:
+                    field_2:
                       type: string
                   required:
-                  - field1
-                  - field2
+                  - field_1
+                  - field_2
                   type: object
                 type: object
-              serviceSegmentRefPointer:
+              service_segment_ref_pointer:
                 properties:
-                  field1:
+                  field_1:
                     type: string
-                  field2:
+                  field_2:
                     type: string
                 required:
-                - field1
-                - field2
+                - field_1
+                - field_2
                 type: object
-              serviceSegmentRefs:
+              service_segment_refs:
                 items:
                   properties:
-                    field1:
+                    field_1:
                       type: string
-                    field2:
+                    field_2:
                       type: string
                   required:
-                  - field1
-                  - field2
+                  - field_1
+                  - field_2
                   type: object
                 type: array
-              slicePointer:
+              slice_pointer:
                 items:
                   type: string
                 type: array
-              useSharedGateway:
+              use_shared_gateway:
                 type: boolean
-              workloadSpec:
+              workload_spec:
                 type: object
                 x-kubernetes-preserve-unknown-fields: true
             required:
             - domain
-            - useSharedGateway
+            - use_shared_gateway
             - description
             - meta
             - port
-            - otherDescription
-            - mapPointer
-            - slicePointer
-            - workloadSpec
-            - differentSpec
+            - other_description
+            - map_pointer
+            - slice_pointer
+            - workload_spec
+            - different_spec
             type: object
           status:
             properties:
               nexus:
                 properties:
-                  remoteGeneration:
+                  remote_generation:
                     format: int64
                     type: integer
-                  sourceGeneration:
+                  source_generation:
                     format: int64
                     type: integer
                 required:
-                - sourceGeneration
-                - remoteGeneration
+                - source_generation
+                - remote_generation
                 type: object
               state:
                 properties:

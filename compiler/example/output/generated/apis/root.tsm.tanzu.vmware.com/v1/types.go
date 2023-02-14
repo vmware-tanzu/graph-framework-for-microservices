@@ -60,7 +60,7 @@ func (c *Root) DisplayName() string {
 
 // +k8s:openapi-gen=true
 type RootSpec struct {
-	ConfigGvk *Child `json:"configGvk,omitempty" yaml:"configGvk,omitempty" nexus:"child"`
+	ConfigGvk *Child `json:"config_gvk,omitempty" yaml:"config_gvk,omitempty" nexus:"child"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
@@ -77,9 +77,9 @@ type NonNexusType struct {
 
 // +k8s:openapi-gen=true
 type queryFilters struct {
-	StartTime           string `json:"startTime" yaml:"startTime"`
-	EndTime             string `json:"endTime" yaml:"endTime"`
+	StartTime           string `json:"start_time" yaml:"start_time"`
+	EndTime             string `json:"end_time" yaml:"end_time"`
 	Interval            string `json:"interval" yaml:"interval"`
-	IsServiceDeployment bool   `json:"isServiceDeployment" yaml:"isServiceDeployment"`
-	StartVal            int    `json:"startVal" yaml:"startVal"`
+	IsServiceDeployment bool   `json:"is_service_deployment" yaml:"is_service_deployment"`
+	StartVal            int    `json:"start_val" yaml:"start_val"`
 }

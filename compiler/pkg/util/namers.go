@@ -2,8 +2,8 @@ package util
 
 import (
 	"strings"
-	"unicode"
 
+	"github.com/iancoleman/strcase"
 	"golang.org/x/text/cases"
 
 	"golang.org/x/text/language"
@@ -64,7 +64,8 @@ func GetGroupResourceType(baseNodeName, pkgName, baseGroupName, version string) 
 }
 
 func GetTag(name string) string {
-	return string(unicode.ToLower(rune(name[0]))) + name[1:] // eg serviceGroup
+	return strcase.ToSnake(name)
+	// return string(unicode.ToLower(rune(name[0]))) + name[1:] // eg serviceGroup
 }
 
 func GetGvkFieldName(fieldName string) string {

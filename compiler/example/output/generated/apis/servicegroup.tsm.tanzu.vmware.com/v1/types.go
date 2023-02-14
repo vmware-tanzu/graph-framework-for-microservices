@@ -60,7 +60,7 @@ func (c *SvcGroup) DisplayName() string {
 
 // +k8s:openapi-gen=true
 type SvcGroupSpec struct {
-	DisplayName string `json:"displayName" yaml:"displayName"`
+	DisplayName string `json:"display_name" yaml:"display_name"`
 	Description string `json:"description" yaml:"description"`
 	Color       string `json:"color" yaml:"color"`
 }
@@ -102,10 +102,10 @@ func (c *SvcGroupLinkInfo) DisplayName() string {
 
 // +k8s:openapi-gen=true
 type SvcGroupLinkInfoSpec struct {
-	ClusterName string `json:"clusterName" yaml:"clusterName"`
-	DomainName  string `json:"domainName" yaml:"domainName"`
-	ServiceName string `json:"serviceName" yaml:"serviceName"`
-	ServiceType string `json:"serviceType" yaml:"serviceType"`
+	ClusterName string `json:"cluster_name" yaml:"cluster_name"`
+	DomainName  string `json:"domain_name" yaml:"domain_name"`
+	ServiceName string `json:"service_name" yaml:"service_name"`
+	ServiceType string `json:"service_type" yaml:"service_type"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object

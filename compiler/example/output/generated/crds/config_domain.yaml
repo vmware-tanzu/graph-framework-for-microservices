@@ -24,7 +24,7 @@ spec:
     schema:
       openAPIV3Schema:
         properties:
-          apiVersion:
+          api_version:
             description: 'APIVersion defines the versioned schema of this representation
               of an object. Servers should convert recognized schemas to the latest
               internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
@@ -38,73 +38,73 @@ spec:
             type: object
           spec:
             properties:
-              mapOfArrsPoints:
+              map_of_arrs_points:
                 additionalProperties:
                   items:
                     type: string
                   type: array
                 type: object
-              pointInt:
+              point_int:
                 format: int32
                 type: integer
-              pointMap:
+              point_map:
                 additionalProperties:
                   type: string
                 type: object
-              pointPort:
+              point_port:
                 format: int32
                 type: integer
-              pointSlice:
+              point_slice:
                 items:
                   type: string
                 type: array
-              pointString:
+              point_string:
                 type: string
-              pointStruct:
+              point_struct:
                 properties:
-                  myID:
+                  my_id:
                     format: int32
                     type: integer
                   name:
                     type: string
                 required:
                 - name
-                - myID
+                - my_id
                 type: object
-              sliceOfArrPoints:
+              slice_of_arr_points:
                 items:
                   items:
                     type: string
                   type: array
                 type: array
-              sliceOfPoints:
+              slice_of_points:
                 items:
                   type: string
                 type: array
             required:
-            - pointPort
-            - pointString
-            - pointInt
-            - pointMap
-            - pointSlice
-            - sliceOfPoints
-            - sliceOfArrPoints
-            - mapOfArrsPoints
-            - pointStruct
+            - point_port
+            - point_string
+            - point_int
+            - point_map
+            - point_slice
+            - slice_of_points
+            - slice_of_arr_points
+            - map_of_arrs_points
+            - point_struct
             type: object
           status:
             properties:
               nexus:
                 properties:
-                  remoteGeneration:
+                  remote_generation:
                     format: int64
                     type: integer
-                  sourceGeneration:
+                  source_generation:
                     format: int64
                     type: integer
                 required:
-                - sourceGeneration
-                - remoteGeneration
+                - source_generation
+                - remote_generation
                 type: object
             type: object
         type: object
