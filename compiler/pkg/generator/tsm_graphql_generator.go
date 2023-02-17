@@ -47,6 +47,12 @@ func tsmPopulateValuesForEachNode(nodes []*NodeProperty, linkAPI map[string]stri
 		resNodeProp.PkgName = n.PkgName
 		resNodeProp.NodeName = n.NodeName
 		resNodeProp.SchemaName = n.SchemaName
+		resNodeProp.GroupName = n.GroupName
+		resNodeProp.Singular = n.Singular
+		resNodeProp.Kind = n.Kind
+		resNodeProp.ResourceName = n.ResourceName
+		resNodeProp.ResourceVersion = n.ResourceVersion
+		resNodeProp.CrdName = n.CrdName
 
 		// populate return values for root of the graph
 		if !n.HasParent && n.IsParentNode {
