@@ -8,6 +8,8 @@ import (
 	"strings"
 
 	log "github.com/sirupsen/logrus"
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
 
 	"github.com/vmware-tanzu/graph-framework-for-microservices/compiler/pkg/parser"
 	"github.com/vmware-tanzu/graph-framework-for-microservices/compiler/pkg/util"
@@ -441,6 +443,12 @@ func GenerateTsmGraphqlSchemaVars(baseGroupName, crdModulePath string, pkgs pars
 			nodeProp.IsParentNode = parser.IsNexusNode(node)
 			nodeProp.CustomQueries = nodeHelper.GraphqlQuerySpec.Queries
 			nodeProp.GraphQlSpec = gqlspec
+			nodeProp.GroupName = pkg.Name + "." + baseGroupName
+			nodeProp.Singular = strings.ToLower(typeName)
+			nodeProp.Kind = cases.Title(language.Und, cases.NoLower).String(typeName)
+			nodeProp.ResourceName = util.ToPlural(nodeProp.Singular)
+			nodeProp.ResourceVersion = "v1"
+			// crdName := fmt.Sprintf("%s.%s", plural, groupName)
 
 			setNexusProperties(nodeHelper, node, nodeProp)
 			if pkg.Name == "global" {

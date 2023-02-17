@@ -4,9 +4,10 @@ import (
 	"fmt"
 	"go/ast"
 	"go/types"
-	"k8s.io/utils/strings/slices"
 	"strconv"
 	"strings"
+
+	"k8s.io/utils/strings/slices"
 
 	"golang.org/x/text/cases"
 	"golang.org/x/text/language"
@@ -84,6 +85,11 @@ type NodeProperty struct {
 	Alias                  string
 	ReturnType             string
 	GroupResourceNameTitle string
+	GroupName              string
+	Singular               string
+	Kind                   string
+	ResourceName           string
+	ResourceVersion        string
 	ChildFields            []FieldProperty
 	LinkFields             []FieldProperty
 	ChildrenFields         []FieldProperty
