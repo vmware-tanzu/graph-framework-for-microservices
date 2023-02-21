@@ -30,11 +30,18 @@ var _ = Describe("Compare lib tests", func() {
 			Expect(text.String()).Should(ContainSubstring(v))
 		}
 	})
-	It("should return false when adding field", func() {
+	It("should return false and only notice change in required", func() {
 		ans, text, err := CompareFiles([]byte(baseSpec), []byte(addedField))
 		Expect(err).NotTo(HaveOccurred())
-		Expect(ans).To(BeFalse())
-		Expect(text.String()).To(BeEmpty())
+		Expect(ans).To(BeTrue())
+		changeCheck := []string{"/spec/versions/name=v1/schema/openAPIV3Schema/properties/status/properties/nexus/required", "one required field added", "- testaddrequire"}
+		changeCheckNot := []string{"/spec/versions/name=v1/schema/openAPIV3Schema/properties/status/properties/nexus/properties/addedField"}
+		for _, v := range changeCheck {
+			Expect(text.String()).Should(ContainSubstring(v))
+		}
+		for _, v := range changeCheckNot {
+			Expect(text.String()).ShouldNot(ContainSubstring(v))
+		}
 	})
 	It("should report change in nexus annotation", func() {
 		ans, text, err := CompareFiles([]byte(baseSpec), []byte(changeAnnotation))
@@ -55,6 +62,15 @@ var _ = Describe("Compare lib tests", func() {
 		Expect(err).NotTo(HaveOccurred())
 		Expect(ans).To(BeTrue())
 		changeCheck := []string{"nexus annotation changes", "/children", "accesscontrolpolicies.policypkg.tsm.tanzu.vmware.com:", "/is_singleton", "value change"}
+		for _, v := range changeCheck {
+			Expect(text.String()).Should(ContainSubstring(v))
+		}
+	})
+	It("it shouldn't filter out added required field", func() {
+		ans, text, err := CompareFiles([]byte(removeRequired), []byte(baseSpec))
+		Expect(err).ToNot(HaveOccurred())
+		Expect(ans).To(BeTrue())
+		changeCheck := []string{"spec changes", "/spec/versions/name=v1/schema/openAPIV3Schema/properties/spec", "one field added", "required", "name"}
 		for _, v := range changeCheck {
 			Expect(text.String()).Should(ContainSubstring(v))
 		}
@@ -228,6 +244,7 @@ spec:
                   required:
                     - sourceGeneration
                     - remoteGeneration
+                    - testaddrequire
                   type: object
               type: object
           type: object
@@ -919,3 +936,43 @@ status:
   - v1
 
 `
+
+var removeRequired = `
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    nexus: |
+      {"name":"gns.IgnoreChild","hierarchy":["roots.root.tsm.tanzu.vmware.com","configs.config.tsm.tanzu.vmware.com","gnses.gns.tsm.tanzu.vmware.com"],"is_singleton":false,"nexus-rest-api-gen":{"uris":null}}
+  creationTimestamp: null
+  name: ignorechilds.gns.tsm.tanzu.vmware.com
+spec:
+  conversion:
+    strategy: None
+  group: gns.tsm.tanzu.vmware.com
+  versions:
+    - name: v1
+      schema:
+        openAPIV3Schema:
+          properties:
+            spec:
+              properties:
+                name:
+                  type: string
+              type: object
+            status:
+              properties:
+                nexus:
+                  properties:
+                    remoteGeneration:
+                      format: int64
+                      type: integer
+                    sourceGeneration:
+                      format: int64
+                      type: integer
+                  required:
+                    - sourceGeneration
+                    - remoteGeneration
+                  type: object
+              type: object
+          type: object`
