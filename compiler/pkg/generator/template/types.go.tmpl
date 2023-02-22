@@ -23,9 +23,16 @@ type Link struct {
 }
 
 // +k8s:openapi-gen=true
+type NexusSyncerStatus struct {
+    EtcdVersion    int64 `json:"etcdVersion" yaml:"etcdVersion"`
+    CRGenerationId int64 `json:"cRGenerationId" yaml:"cRGenerationId"`
+}
+
+// +k8s:openapi-gen=true
 type NexusStatus struct {
 	SourceGeneration int64 `json:"sourceGeneration" yaml:"sourceGeneration"`
 	RemoteGeneration int64 `json:"remoteGeneration" yaml:"remoteGeneration"`
+	NexusSyncerStatus NexusSyncerStatus `json:"nexusSyncerStatus, omitempty" yaml:"nexusSyncerStatus"`
 }
 
 /* ------------------- CRDs definitions ------------------- */
