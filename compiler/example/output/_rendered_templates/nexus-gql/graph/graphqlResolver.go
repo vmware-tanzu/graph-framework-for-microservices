@@ -20,6 +20,20 @@ var c = GrpcClients{
 }
 var nc *nexus_client.Clientset
 
+func InitNexusClientSet() error {
+	if nc == nil {
+		k8sApiConfig := getK8sAPIEndpointConfig()
+		nexusClient, err := nexus_client.NewForConfig(k8sApiConfig)
+		if err != nil {
+			return fmt.Errorf("failed to get k8s client config: %s", err)
+		}
+		nc = nexusClient
+		nc.SubscribeAll()
+		log.Debugf("Subscribed to all nodes in datamodel")
+	}
+	return nil
+}
+
 func getParentName(parentLabels map[string]interface{}, key string) string {
     if v, ok := parentLabels[key]; ok && v != nil {
 	    return v.(string)
@@ -56,14 +70,12 @@ func getK8sAPIEndpointConfig() *rest.Config {
 //////////////////////////////////////
 func getRootResolver() (*model.RootRoot, error) {
 	if nc == nil {
-		k8sApiConfig := getK8sAPIEndpointConfig()
-		nexusClient, err := nexus_client.NewForConfig(k8sApiConfig)
-		if err != nil {
-			return nil, fmt.Errorf("failed to get k8s client config: %s", err)
-		}
-		nc = nexusClient
-		nc.SubscribeAll()
-		log.Debugf("Subscribed to all nodes in datamodel")
+		log.Debugf("nc is nil in getRootResolver calling initNexusClientSet")
+        initNCErr := InitNexusClientSet()
+        if initNCErr != nil{
+            log.Errorf("[getRootResolver]Error initializing nexus client: %s", initNCErr)
+            return nil, nil
+        }
 	}
 
 	vRoot, err := nc.GetRootRoot(context.TODO())
@@ -71,6 +83,10 @@ func getRootResolver() (*model.RootRoot, error) {
 		log.Errorf("[getRootResolver]Error getting Root node %s", err)
 		return nil, nil
 	}
+	if vRoot == nil{
+        log.Errorf("[getRootResolver]Error getting Root node %s", err)
+        return nil, nil
+    }
 	dn := vRoot.DisplayName()
 parentLabels := map[string]interface{}{"roots.root.tsm.tanzu.vmware.com":dn}
 
