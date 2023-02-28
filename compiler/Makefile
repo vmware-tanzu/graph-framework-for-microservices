@@ -81,7 +81,7 @@ tools:
 	go install golang.org/x/tools/cmd/goimports@latest
 	go install github.com/mikefarah/yq/v4@latest
 	go install ../kube-openapi/cmd/nexus-openapi-gen
-	go install ../gqlgen
+	cd ../gqlgen && go install && cd -
 	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b "$$(go env GOPATH)"/bin v1.49.0
 
 .PHONY: build_openapigen_in_container
@@ -96,7 +96,7 @@ build_gqlgen_in_container:
 	$(call run_in_container,make build_gqlgen)
 
 build_gqlgen:
-	GOBIN=${PKG_NAME}/cmd go install ../gqlgen
+	cd ../gqlgen && GOBIN=${PKG_NAME}/cmd go install
 
 build_install_validator_in_container:
 	$(call run_in_container,make build_install_validator)
@@ -191,7 +191,7 @@ generate_code:
 .PHONY: test_generate_code_in_container
 test_generate_code_in_container: ${BUILDER_NAME}\:${BUILDER_TAG}.image.exists init_submodules
 	$(call run_in_container, go install ../kube-openapi/cmd/nexus-openapi-gen && \
-	go install ../gqlgen && \
+	cd ../gqlgen && go install && cd - && \
 	make generate_code DATAMODEL_PATH=example/datamodel \
 	CONFIG_FILE=example/nexus-sdk.yaml \
 	CRD_MODULE_PATH="github.com/vmware-tanzu/graph-framework-for-microservices/compiler/example/output/generated/" \
