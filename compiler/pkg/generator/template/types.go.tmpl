@@ -23,9 +23,17 @@ type Link struct {
 }
 
 // +k8s:openapi-gen=true
+type HealthAndSyncStatus struct {
+    Sync    string `json:"sync, omitempty" yaml:"sync, omitempty"`
+    Health  string `json:"health, omitempty" yaml:"health, omitempty"`
+}
+
+
+// +k8s:openapi-gen=true
 type NexusStatus struct {
 	SourceGeneration int64 `json:"sourceGeneration" yaml:"sourceGeneration"`
 	RemoteGeneration int64 `json:"remoteGeneration" yaml:"remoteGeneration"`
+    ComponentStatus  map[string]HealthAndSyncStatus `json:"componentStatus, omitempty" yaml:"componentStatus, omitempty"`
 }
 
 /* ------------------- CRDs definitions ------------------- */
