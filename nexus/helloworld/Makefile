@@ -8,6 +8,7 @@ DOCKER_REPO ?= $(shell cat nexus.yaml | grep dockerRepo | awk '{print $$2}' | tr
 VERSION ?= $(shell git rev-parse --verify HEAD 2>/dev/null)
 NAME ?= $(shell cat nexus.yaml | grep groupName | awk '{print $$2}' | tr -d '"')
 NAMESPACE ?= ""
+FORCE ?= false
 
 # values for nexus datamodel upgrade
 FORCE ?= false
@@ -92,7 +93,7 @@ datamodel_build:
 			-e GOINSECURE=*.eng.vmware.com \
 			-e CICD_TOKEN=${CICD_TOKEN} \
 			--user root:root \
-			-e FORCE=$(FORCE) \
+			-e FORCE=${FORCE} \
 			gcr.io/nsx-sm/nexus/compiler:$(TAG); \
 	fi
 
