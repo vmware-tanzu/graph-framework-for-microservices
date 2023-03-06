@@ -21,14 +21,14 @@ import (
 
 var pkgImportToPkg = make(map[string]string, 0)
 
-func main(){
+func main() {
 	dslDir := flag.String("dsl", "datamodel", "DSL file location.")
 	flag.Parse()
 	parse(*dslDir)
 }
 
-func parse(startPath string){
-	fmt.Println("startPath",startPath)
+func parse(startPath string) {
+	fmt.Println("startPath", startPath)
 	packages := map[string][]*parser.Package{}
 	modulePath := parser.GetModulePath(startPath)
 	err := filepath.Walk(startPath, func(path string, info fs.FileInfo, err error) error {
@@ -107,7 +107,7 @@ func detectJsonTag(packages map[string][]*parser.Package) {
 				// 	addJSONTags(tt)
 				// }
 				for _, nf := range parser.GetSpecFields(t) {
-					log.Error("******",t.Name.Name,nf.Names,nf.Tag)
+					// log.Error("******", t.Name.Name, nf.Names, nf.Tag)
 					addJSONTags(nf)
 				}
 			}
@@ -126,28 +126,28 @@ func detectJsonTag(packages map[string][]*parser.Package) {
 			panic(err)
 		}
 	}
-	for _, v := range packages {
-		for _, pkg := range v {
-			nodes := pkg.GetNodes()
-			nexusNodes := pkg.GetNexusNodes()
+	// for _, v := range packages {
+	// 	for _, pkg := range v {
+	// 		nodes := pkg.GetNodes()
+	// 		nexusNodes := pkg.GetNexusNodes()
 
-			nodes = append(nodes, pkg.GetNonStructTypes()...)
-			for _, nexusNode := range nexusNodes {
-				for _, nf := range parser.GetSpecFields(nexusNode) {
-					log.Error("******",nexusNode.Name.Name,nf.Names,nf.Tag)
-					addJSONTags(nf)
-				}
-			}
-			// for _, nexusNode := range nexusNodes {
-			// 	for _, node := range nodes {
-			// 		if node.Name.String() == fmt.Sprintf("%sSpec", nexusNode.Name) ||
-			// 			node.Name.String() == fmt.Sprintf("%sList", nexusNode.Name) {
-			// 			log.Fatalf(`Duplicated type (%s) found in package %s ("%s" is already used by node "%s")`, node.Name, pkg.Name, node.Name, nexusNode.Name)
-			// 		}
-			// 	}
-			// }
-		}
-	}
+	// 		nodes = append(nodes, pkg.GetNonStructTypes()...)
+	// 		for _, nexusNode := range nexusNodes {
+	// 			for _, nf := range parser.GetSpecFields(nexusNode) {
+	// 				// log.Error("******",nexusNode.Name.Name,nf.Names,nf.Tag)
+	// 				addJSONTags(nf)
+	// 			}
+	// 		}
+	// 		// for _, nexusNode := range nexusNodes {
+	// 		// 	for _, node := range nodes {
+	// 		// 		if node.Name.String() == fmt.Sprintf("%sSpec", nexusNode.Name) ||
+	// 		// 			node.Name.String() == fmt.Sprintf("%sList", nexusNode.Name) {
+	// 		// 			log.Fatalf(`Duplicated type (%s) found in package %s ("%s" is already used by node "%s")`, node.Name, pkg.Name, node.Name, nexusNode.Name)
+	// 		// 		}
+	// 		// 	}
+	// 		// }
+	// 	}
+	// }
 }
 
 func parsePackageDir(pkgPath string) ([]string, error) {
@@ -169,15 +169,61 @@ func parsePackageDir(pkgPath string) ([]string, error) {
 }
 
 func addJSONTags(field *ast.Field) {
-	
-		if field.Tag == nil {
-			field.Tag = &ast.BasicLit{}
+
+	if field.Tag == nil {
+		field.Tag = &ast.BasicLit{}
+	}
+	// if strings.Contains(field.Tag.Value, "json:") {
+	// 	tagValue := field.Tag.Value
+	// 	if !strings.Contains(field.Tag.Value, ",omitempty\" ") {
+	// 		tagValue = strings.Replace(tagValue, "\" ", ",omitempty\" ", 1)
+	// 	}
+	// 	if !strings.Contains(tagValue, ",omitempty\"`") {
+	// 		tagValue = strings.Replace(tagValue, "\"`", ",omitempty\"`", 1)
+	// 	}
+	// 	log.Error(tagValue)
+	// 	field.Tag.Value = tagValue
+	// }
+
+	// if strings.Contains(field.Tag.Value, "mapstructure:") {
+	// 	if !strings.Contains(field.Tag.Value, "nexus") && !strings.Contains(field.Tag.Value, "json:") {
+	// 		log.Error("mapstructure:", field.Tag.Value)
+	// 		tagValue := `mapstructure:"` + strcase.ToLowerCamel(field.Names[0].Name) + `,omitempty"`
+	// 		field.Tag.Value = "`" + tagValue + "`"
+	// 	}
+	// }
+
+	// if strings.Contains(field.Tag.Value, "nexus-alias-type:") {
+	// 	if strings.Contains(field.Tag.Value, "mapstructure:") {
+	// 		if !strings.Contains(field.Tag.Value, "omitempty") {
+	// 			if !strings.Contains(field.Tag.Value, ",omitempty\"`") {
+	// 				log.Error("tagValue:==>", field.Tag.Value)
+	// 				tagValue := strings.Replace(field.Tag.Value, "\"`", ",omitempty\"`", 1)
+	// 				field.Tag.Value = tagValue
+	// 			}
+	// 		}
+	// 	}
+	// }
+
+	// if strings.Contains(field.Tag.Value, "mapstructure:") {
+	// 	if !strings.Contains(field.Tag.Value, "omitempty") {
+	// 		log.Error("tagValue:==>", field.Tag.Value)
+	// 	}
+
+	// }
+
+	// if !strings.Contains(field.Tag.Value, "omitempty") {
+	// 	tagValue := strings.Trim(field.Tag.Value, "`")
+	// 	tagValue += ` mapstructure:"` + strcase.ToLowerCamel(field.Names[0].Name) + `,omitempty"`
+	// 	field.Tag.Value = "`" + tagValue + "`"
+	// 	log.Error(tagValue)
+	// }
+
+	if strings.Contains(field.Tag.Value, "mapstructure:") && strings.Contains(field.Tag.Value, "omitempty") {
+		if !strings.Contains(field.Tag.Value, "json:") {
+			tagValue := strings.Replace(field.Tag.Value, "mapstructure:", "json:\""+ strcase.ToLowerCamel(field.Names[0].Name) +",omitempty\" mapstructure:", 1)
+			log.Error("tagValue:==>", tagValue)
 		}
-		
-		if !strings.Contains(field.Tag.Value, "json") {
-			tagValue := strings.Trim(field.Tag.Value, "`")
-			tagValue += ` json:"` + strcase.ToLowerCamel(field.Names[0].Name) + `,omitempty"`
-			field.Tag.Value = "`" + tagValue + "`"
-		}
-	
+	}
+
 }
