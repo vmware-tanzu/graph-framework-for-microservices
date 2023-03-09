@@ -200,6 +200,7 @@ generate_code:
 	go mod edit -replace nexustempmodule=${GOPATH}/src/nexustempmodule && \
 	${COMPILER_SRC_DIRECTORY}/scripts/pin_graphql_build_version.sh ${COMPILER_SRC_DIRECTORY} && \
 	go mod tidy -e 2>/dev/null && \
+	cat go.mod && cat go.sum && \
 	CGO_ENABLED=1 GOOS=linux \
 	go build --trimpath -o graphql.so -buildmode=plugin server.go
 	@echo "Updating module name"
@@ -209,7 +210,7 @@ generate_code:
 	cd _generated && mv model/model.go model/model.tmp && goimports -w . && mv model/model.tmp model/model.go
 	@echo "Nexus Compiler: Moving files to output directory"
 	cp -r _generated/{client,apis,crds,common,nexus-client,helper,nexus-gql,tsm-nexus-gql,model} ${GENERATED_OUTPUT_DIRECTORY}
-	cp -r ${GOPATH}/src/nexustempmodule/nexus-gql/graphql.so ${GENERATED_OUTPUT_DIRECTORY}/nexus-gql
+	cp -r ${GOPATH}/src/nexustempmodule/nexus-gql/* ${GENERATED_OUTPUT_DIRECTORY}/nexus-gql/
 	@echo "Nexus Compiler: Compiler code generation completed"
 
 .PHONY: test_generate_code_in_container
