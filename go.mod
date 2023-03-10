@@ -5,8 +5,8 @@ go 1.18
 require (
 	github.com/sirupsen/logrus v1.9.0
 	k8s.io/apimachinery v0.26.0
-	k8s.io/client-go v1.5.2
-	sigs.k8s.io/controller-runtime v0.14.1
+	k8s.io/client-go v0.26.0
+	sigs.k8s.io/controller-runtime v0.0.0-00010101000000-000000000000
 )
 
 require (
@@ -72,4 +72,4 @@ replace k8s.io/apimachinery => k8s.io/apimachinery v0.26.0
 
 replace k8s.io/client-go => k8s.io/client-go v0.26.0
 
-replace k8s.io/utils => k8s.io/utils v0.0.0-20221107191617-1a15be271d1d
+replace sigs.k8s.io/controller-runtime => sigs.k8s.io/controller-runtime v0.14.1
