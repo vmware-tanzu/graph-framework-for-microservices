@@ -44,4 +44,4 @@ go mod edit -require golang.org/x/oauth2@v0.0.0-20220411215720-9780585627b5
 go mod edit -require k8s.io/klog/v2@v2.70.1
 go mod edit -require golang.org/x/net@v0.2.0
 go mod edit -require google.golang.org/grpc@v1.51.0
-
+go mod edit -require k8s.io/utils@v0.0.0-20221128185143-99ec85e7a448
