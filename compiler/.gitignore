@@ -7,6 +7,7 @@ cmd/nexus-openapi-gen
 cmd/gqlgen
 compiler.tar
 _generated
+_tsm_temp
 
 ### GoLand ###
 .idea
