@@ -25,4 +25,4 @@ RUN CGO_ENABLED=0 go build --trimpath -o install.so ./cmd/validate
 WORKDIR /go/src/github.com/vmware-tanzu/graph-framework-for-microservices/compiler
 RUN go mod download
 
-CMD make docker.gitlab_credentials && make generate_code
+CMD make docker.gitlab_credentials && make preparser

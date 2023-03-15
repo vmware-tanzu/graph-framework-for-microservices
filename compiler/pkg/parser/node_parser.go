@@ -5,7 +5,9 @@ import (
 	"go/ast"
 	"go/parser"
 	"go/token"
+	"go/types"
 	"io/fs"
+	"k8s.io/utils/strings/slices"
 	"path/filepath"
 	"strconv"
 	"strings"
@@ -18,12 +20,17 @@ import (
 
 // ParseDSLNodes walks recursively through given path and looks for structs types definitions to add them to graph
 func ParseDSLNodes(startPath string, baseGroupName string, packages Packages,
-	graphqlQueries map[string]nexus.GraphQLQuerySpec) map[string]Node {
+	graphqlQueries map[string]nexus.GraphQLQuerySpec) (map[string]Node, *NonNexusTypes, *token.FileSet) {
 	modulePath := GetModulePath(startPath)
 
 	rootNodes := make([]string, 0)
 	nodes := make(map[string]Node)
 	pkgsMap := make(map[string]string)
+	nonNexusTypes := NonNexusTypes{
+		Types:  map[string]ast.Decl{},
+		Values: nil,
+	}
+	fileset := token.NewFileSet()
 	err := filepath.Walk(startPath, func(path string, info fs.FileInfo, err error) error {
 		if info.IsDir() {
 			if info.Name() == "build" {
@@ -34,7 +41,6 @@ func ParseDSLNodes(startPath string, baseGroupName string, packages Packages,
 				log.Infof("Ignoring vendor directory...")
 				return filepath.SkipDir
 			}
-			fileset := token.NewFileSet()
 			pkgs, err := parser.ParseDir(fileset, path, nil, parser.ParseComments)
 			if err != nil {
 				log.Fatalf("Failed to parse directory %s: %v", path, err)
@@ -87,15 +93,57 @@ func ParseDSLNodes(startPath string, baseGroupName string, packages Packages,
 													// look for spec in current package
 													annotation = v.Name + "." + annotation
 												}
-												graphqlSpec, ok := graphqlQueries[annotation]
+												GraphqlQuerySpec, ok := graphqlQueries[annotation]
 												if ok {
-													node.GraphqlSpec = graphqlSpec
+													node.GraphqlQuerySpec = GraphqlQuerySpec
 												}
 											}
 											nodes[crdName] = node
+										} else {
+											if !strings.Contains(types.ExprString(typeSpec.Type), "nexus.") && v.Name == "global" {
+												nonNexusTypes.Types[typeSpec.Name.Name] = decl
+											}
+										}
+									} else {
+										if !strings.Contains(types.ExprString(typeSpec.Type), "nexus.") && v.Name == "global" {
+											nonNexusTypes.Types[typeSpec.Name.Name] = decl
 										}
 									}
 								}
+								if valueSpec, ok := spec.(*ast.ValueSpec); ok {
+									out, err := util.RenderDecl(decl, fileset)
+									if err != nil {
+										return err
+									}
+									outStr := out.String()
+
+									// ignore nexus vars
+									if len(valueSpec.Values) > 0 {
+										value := valueSpec.Values[0]
+										if val, ok := value.(*ast.CompositeLit); ok {
+											if sel, ok := val.Type.(*ast.SelectorExpr); ok {
+												if types.ExprString(sel.X) == "nexus" {
+													continue
+												}
+											}
+										}
+									}
+									if !slices.Contains(nonNexusTypes.Values, outStr) && v.Name == "global" {
+										nonNexusTypes.Values = append(nonNexusTypes.Values, outStr)
+									}
+								}
+							}
+						}
+
+						if _, ok := decl.(*ast.FuncDecl); ok {
+							out, err := util.RenderDecl(decl, fileset)
+							if err != nil {
+								return err
+							}
+							outStr := out.String()
+
+							if !slices.Contains(nonNexusTypes.Values, outStr) {
+								nonNexusTypes.Values = append(nonNexusTypes.Values, outStr)
 							}
 						}
 					}
@@ -120,20 +168,28 @@ func ParseDSLNodes(startPath string, baseGroupName string, packages Packages,
 				for _, child := range node.SingleChildren {
 					// if rootNode is a child then remove it from the slice
 					if child.CrdName == rootNode {
-						rootNodes = append(rootNodes[:i], rootNodes[i+1:]...)
+						if i+1 >= len(rootNodes) {
+							rootNodes = rootNodes[:i]
+						} else {
+							rootNodes = append(rootNodes[:i], rootNodes[i+1:]...)
+						}
 					}
 				}
 				for _, child := range node.MultipleChildren {
 					// if rootNode is a named child then remove it from the slice
 					if child.CrdName == rootNode {
-						rootNodes = append(rootNodes[:i], rootNodes[i+1:]...)
+						if i+1 >= len(rootNodes) {
+							rootNodes = rootNodes[:i]
+						} else {
+							rootNodes = append(rootNodes[:i], rootNodes[i+1:]...)
+						}
 					}
 				}
 			}
 		})
 	}
 
-	return buildGraph(nodes, rootNodes, baseGroupName)
+	return buildGraph(nodes, rootNodes, baseGroupName), &nonNexusTypes, fileset
 }
 
 func buildGraph(nodes map[string]Node, rootNodes []string, baseGroupName string) map[string]Node {
@@ -200,13 +256,14 @@ func CreateParentsMap(graph map[string]Node) map[string]NodeHelper {
 			}
 
 			parents[node.CrdName] = NodeHelper{
-				Name:        node.Name,
-				RestName:    fmt.Sprintf("%s.%s", node.PkgName, node.Name),
-				Parents:     node.Parents,
-				Children:    children,
-				Links:       links,
-				IsSingleton: node.IsSingleton,
-				GraphqlSpec: node.GraphqlSpec,
+				Name:             node.Name,
+				RestName:         fmt.Sprintf("%s.%s", node.PkgName, node.Name),
+				Parents:          node.Parents,
+				Children:         children,
+				Links:            links,
+				IsSingleton:      node.IsSingleton,
+				GraphqlQuerySpec: node.GraphqlQuerySpec,
+				GraphqlSpec:      node.GraphqlSpec,
 			}
 		})
 	}
@@ -249,8 +306,10 @@ func processNode(node *Node, nodes map[string]Node, baseGroupName string) {
 			if !ok {
 				log.Fatalf("Internal compiler failure: couldn't find node for key %v", key)
 			}
-			n.Parents = node.Parents
-			n.Parents = append(n.Parents, node.CrdName)
+			p := make([]string, len(node.Parents))
+			copy(p, node.Parents)
+
+			n.Parents = append(p, node.CrdName)
 			processNode(&n, nodes, baseGroupName)
 
 			if isNamed {
