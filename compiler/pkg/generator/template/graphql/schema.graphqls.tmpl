@@ -35,3 +35,14 @@ type TimeSeriesData {
   Last: String
   TotalRecords: Int
 }
+
+{{- range $key, $val := .GraphQlFiles}}
+    {{- if eq $key "_tsm_temp/global/common/enums.graphql" }}
+    {{ $val }}
+    {{- else}}{{ end }}
+{{- end }}
+
+directive @jsonencoded(file: String, gofile: String, name: String) on FIELD_DEFINITION
+directive @relation(name: String, parameters: String, softlink: String, uuidkey: String) on FIELD_DEFINITION
+directive @timeseriesAPI(file: String!, handler: String!) on FIELD_DEFINITION
+directive @protobuf(file: String!, name: String!) on FIELD_DEFINITION
