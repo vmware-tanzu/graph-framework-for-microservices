@@ -36,7 +36,7 @@ func GetGroupGoName(baseGroupName string) string {
 }
 
 func GetGroupResourceName(nodeName string) string {
-	return strings.ToLower(ToPlural(nodeName)) // eg roots
+	return ToPlural(strings.ToLower(nodeName)) // eg roots
 }
 
 func GetNodeNameTitle(nodeName string) string {
