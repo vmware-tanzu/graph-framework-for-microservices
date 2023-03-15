@@ -19,21 +19,34 @@ Graph datamodel is composed of two types of elements: nodes and relationships
 - relationships representing how any two nodes are associated
 
 Nexus DSL represent your application data as a Graph Datamodel.
+
+# Nexus Graph
+
+A graph in Nexus datamodel is a collection of Nexus nodes and their relationships.
+
+![NexusGraph](../docs/images/NexusGraph.png)
+
+Graph built using Nexus DSL will have the following attributes:
+
+* Graph will be directed and acyclic.
+* Graph is rooted by a Nexus node. A root node in the graph is a node which is not claimed as child by any other nexus node.
+* Nexus compiler only allows one root node per datamodel. There can be no disjoined node. Each Nexus node, expect for root node, should have a parent.
+
 ## Graph Syntax
 
- #### TL;DR [here](#Nexus-DSL-syntax-shortcut)
+### TL;DR [here](#Nexus-DSL-syntax-shortcut)
 
-### Nodes: Go Structs
+# Nodes: Go Structs
 
-Nexus node is a Go struct annotated as a graph node in Nexus DSL.
+Nexus node is a Go struct/type annotated as a graph node.
 
-It is a Go struct, and so can hold fields of all valid Go types.
+As it is a Go struct, it can hold fields of all valid Go types.
 
-A struct can be annotated as a Nexus node by including `nexus.Node` (defined [here](https://github.com/vmware-tanzu/graph-framework-for-microservices/blob/main/nexus/nexus/nexus.go))as an embedded field in the struct. A struct without this annotation is not a Nexus node, but just a valid Go struct.
+In a datamodel, _not all Go structs are Nexus nodes, but all Nexus nodes are Go structs._
 
-In essence, not all Go structs are Nexus nodes, but all Nexus nodes are Go structs.
+A Go struct can be declared as a node in the graph by including `nexus.Node` (defined [here](https://github.com/vmware-tanzu/graph-framework-for-microservices/blob/main/nexus/nexus/nexus.go)) as an embedded field in the struct.
 
-Here is a sample Nexus node:
+<details><summary>Example</summary>
 
 ```Go
 package role
@@ -42,39 +55,99 @@ import (
 	"github.com/vmware-tanzu/graph-framework-for-microservices/nexus/nexus"
 )
 
+// FullName is NOT a graph node.
+// It is just a Go type.
+type FullName struct {
+  FirstName string
+  LastName  string
+}
+
+// Leader is a graph node and a Go type.
 type Leader struct {
 	nexus.Node
 	EmployeeID int
+	Name       FullName
 }
 ```
-### Relationships
+</details>
 
-Nexus nodes can be associated with other Nexus nodes through Relationships.
+### Structure
+
+![NexusNode](../docs/images/NexusNode.png)
+
+### Attributes of a Nexus Node
+
+* A Nexus node is a _Type_. At runtime, the graph can have one or more objects for a Nexus node.
+* Name of the Nexus node is scoped (and as such should be unique) within a Go package.
+* A Nexus node can referenced in another Nexus node only in the context of Relationships. So the implied corollary is that nexus nodes types cannot be referenced as type in any non-relationship fields.
+
+## Singleton Nexus Node
+
+Singleton Nodes are special Nexus nodes that can have only one object instance in the graph.
+
+While there is no limit on the number of objects of a nexus node at runtime, a singleton nexus node can only have a single object instance in the graph at any time.
+
+A Go struct can be declared as a singleton Nexus node in the graph by including `nexus.SingletonNode` (defined [here](https://github.com/vmware-tanzu/graph-framework-for-microservices/blob/main/nexus/nexus/nexus.go)) as an embedded field in the nexus node Go struct.
+
+<details><summary>Example</summary>
+
+```Go
+package role
+
+import (
+	"github.com/vmware-tanzu/graph-framework-for-microservices/nexus/nexus"
+)
+
+type SingleLeader struct {
+	nexus.SingletonNode
+
+	EmployeeID int
+}
+```
+
+</details>
+
+### Usecase
+
+In cases where there is no need for more than one instance of a node, the name of the node becomes irrelevant. In those cases, singleton node provide a convenient way to interace with datamodel as application code and API does not need to reference the node by name. The runtime is capable of identifying that a node is singleton and assume the name to be "default".
+
+### Attributes of a Singleton Nexus Node
+* A singleton Nexus node is a _Type_. At runtime, the graph can have one object with name "default"
+* A singleton Nexus node has a special meaning at runtime, in that, the runtime will assume the name "default" for singleton nodes.
+
+# Relationships
+
+Nexus nodes can be associated with other Nexus nodes only through _Relationships_.
 
 Nexus DSL supports two types of relations between Nexus nodes:
 
 - child / children
 - link / links
 
-#### Child / Children
+## Child / Children
 
-A Child relationship provides a way to designate one Nexus node as a "parent" or as a hierarchical root to other Nexus node/s in the graph. The Nexus nodes that are associated with the Parent node are referred to has "children" or "child" nodes.
+A _Child_ or _Parent-Child_ relationship provides a way to designate one Nexus node as a "parent" or as a hierarchical root to other Nexus node/s in the graph.
 
-Parent-child relationships in Nexus DSL have the following attributes:
+A node that claims child relationship to another node is referred to as _Parent._
 
-* a Nexus node cannot be claimed by more than one Nexus node as a child. So, each Nexus node can have at most one parent
-* object for child Nexus node can only be created if the object of its parent Nexus node exists in the graph
-* the lifecycle of the child objects are strictly tied to the lifecycle of the parent object. If the parent object is deleted, all children are deleted as well
-* lifecycle of the parent object is independent of the lifecycle of the children object. So parent can exist even if the child object does not exist
-* circular relationships are prohibited; i.e a parent node cannot be claimed as a child by any of the Nexus nodes in the parent's hierarchy
+A node that is claimed as a child is referred to as a _Child._
 
+A child relationship can be claimed by declaring a field with following syntax:
 
-Child relationship can be created by annotating a field of the parent Nexus node with one of the following:
+![ChildRelationship](../docs/images/ChildRelationship.png)
 
- * `nexus:"child"` if the parent can only claim a specific object of a Nexus Node, as a child
- * `nexus:"children` if the parent can claim multiple child objects of a Nexus node, as children
+**Alias reference to the child**: a name by which this parent will reference this child
 
-Example datamodel with Child relationship:
+**Nexus Node Type**: the node to be claimed as child
+
+**Child relationship annotation**:
+
+Child relationship annotation can be expressed in one of the following formats:
+
+* `nexus:"child"` if the parent can only claim a specific object of a Nexus Node, as a child
+* `nexus:"children` if the parent can claim multiple child objects of a Nexus node, as children
+
+<details><summary>Example</summary>
 
 ```Go
 package role
@@ -83,124 +156,435 @@ import (
 	"github.com/vmware-tanzu/graph-framework-for-microservices/nexus/nexus"
 )
 
+// FullName is NOT a graph node.
+// It is just a Go type.
+type FullName struct {
+  FirstName string
+  LastName  string
+}
+
+// Leader is a graph node and a Go type.
 type Leader struct {
 	nexus.Node
-	HR         HR        `nexus:"child"`
-	Devs       Developer `nexus:"children"`
+	
 	EmployeeID int
+	Name       FullName
+
+    Office     OfficeSpace `nexus:"child"`
+    Employees  Employee    `nexus:"children"`
 }
 
-type HR struct {
-	nexus.Node
-	EmployeeID int
+// Employee is a graph node and a Go type.
+type Employee struct {
+  nexus.Node
+
+  EmployeeID int
+  Name       FullName
 }
 
-type Developer struct {
-	nexus.Node
-	EmployeeID int
+// OfficeSpace is a graph node and a Go type.
+type OfficeSpace struct {
+  nexus.Node
+  
+  Id int
 }
 ```
+</details>
 
-So in this example parent node Leader can have one child object HR and multiple child objects Developer.
+### Attributes of a Child Relationship
 
-#### Link / Links
+* A Nexus node cannot be claimed by more than one Nexus node as a child. In other words, each Nexus node can have at most one parent.
+* Object for child Nexus node can only be created if the object of its parent Nexus node exists in the graph.
+* Lifecycle of the child objects are tied to the lifecycle of the parent object. If the parent object is deleted, all children are deleted as well.
+* Lifecycle of the parent object is independent of the lifecycle of the children object. Parent can exist even if the child object does not exist.
+* Circular relationships are prohibited; i.e a parent node cannot be claimed as a child by any of the Nexus nodes in the parent's hierarchy
 
-A Link relationship provides a way to designate one Nexus node "linked" to other Nexus node/s in the graph. Link relationships are useful to provide a soft or non-hierarchical construct to associate nodes in the graph.
 
-Links can be across hierarchy and so provide a loose coupling between nodes of the graph. As such, Links come with very little riders or restrictions.
+## Link / Links
 
-Link relationships in Nexus DSL have the following attributes:
+A Link relationship provides a way to designate one Nexus node as related or relevant to another Nexus node/s in the graph. Link relationships provide a soft or non-hierarchical construct to associate nodes in the graph.
 
-* an node can be linked by any other Nexus node in the graph, without restrictions
-* lifecycle of the linked nodes are independent of each other
+A node that claims the link relationship to another node is referred to as _Source_.
 
-Link relationship can be created by annotating a field of the Nexus node with one of the following:
+A node that is claimed as a linked node is referred to as a _Destination_.
 
- * `nexus:"link"` if the node would like to link to a specific object of a Nexus node
- * `nexus:"links` if the node would like to link to multiple objects of a Nexus node
+A link relationship can be claimed by declaring a field with following syntax:
 
-For example to link `Developer` to `Location` you can use follow syntax:
+![LinkRelationship](../docs/images/LinkRelationship.png)
+
+**Alias reference to the linked node**: a name by which this parent will reference this linked node
+
+**Nexus Node Type**: the node to be claimed as linked node
+
+**Link relationship annotation**:
+
+Link relationship annotation can be expressed in one of the following formats:
+* `nexus:"link"` if the Source node should link to a specific object of a Destination Nexus node
+* `nexus:"links` if the Source node should like to multiple objects of a Destination Nexus node
+
+<details><summary>Example</summary>
 
 ```Go
-package geo
+package role
 
 import (
 	"github.com/vmware-tanzu/graph-framework-for-microservices/nexus/nexus"
-	"yourdatamodel/role"
 )
 
-type Location struct {
+// FullName is NOT a graph node.
+// It is just a Go type.
+type FullName struct {
+    FirstName string
+    LastName  string
+}
+
+type Organization struct {
 	nexus.Node
-	Devs    role.Developer `nexus:"links"`
-	Address Address
+	
+	CEO             Leader  `nexus:"child"`
+	GLobalLocations Address `nexus:"children"`
+}
+// Leader is a graph node and a Go type.
+type Leader struct {
+	nexus.Node
+	
+	EmployeeID     int
+	Name           FullName
+
+    Office         OfficeSpace `nexus:"child"`
+    Employees      Employee    `nexus:"children"`
+	
+	BaseLocation   Address `nexus:"link"`
+	TeamLocations  Address `nexus:"links"`
+}
+
+// Employee is a graph node and a Go type.
+type Employee struct {
+    nexus.Node
+
+    EmployeeID     int
+    Name           FullName
+
+    BaseLocation   Address `nexus:"link"`
+}
+
+// OfficeSpace is a graph node and a Go type.
+type OfficeSpace struct {
+    nexus.Node
+  
+    Id int
 }
 
 type Address struct {
-	Country    string
-	PostalCode string
-	Street     string
-	No         int
+    nexus.Node
+	
+    Country    string
+    PostalCode string
+    Street     string
+}
+```
+</details>
+
+### Attributes of a Link Relationship
+
+* A Nexus node can be linked by any other Nexus node in the graph, without restrictions.
+* A link can only be created to objects that exist in the graph.
+* Lifecycle of the link is tied to the lifecycle of the Source node. If the Source node is deleted, the link is deleted.
+
+
+# Spec
+
+Nexus node spec is list of all fields that constitute data associated with the node.
+
+The fields are standard Go types and as such are generic.
+
+However the fields can be annotated with annotations and markers so as to influence and enhance its treatment at both compilation and runtime.
+
+## Annotations
+
+### Encoding Tags
+
+Tags provide transformation info on how a struct field is encoded to or decoded from another format.
+
+Spec fields support two types of tagging:
+
+| Tag  | Format    | Description                          |
+|------|-----------|--------------------------------------|
+| json | `json:"startTime,omitempty"`     | interpreted by encoding/json package |
+| mapstructure  | `mapstructure:"startTime,omitempty"`      | interpreted by mitchellh/mapstructure package |
+
+**_NOTE:_**
+* We recommend both json and mapstructure tags for compiler and tooling will encode the field as explicitly stated
+* The keyword "omitempty" can be skipped if the field is a mandatory field in the spec
+
+<details><summary>Example</summary>
+
+```Go
+type GNS struct {
+    nexus.Node
+    Domain                      string          `json:"domain,omitempty" mapstructure:"domain,omitempty"`
+    UseSharedGateway            bool            `json:"useSharedGateway,omitempty" mapstructure:"useSharedGateway,omitempty"`
+    MTLSEnforced                bool            `json:"mTLSEnforced,omitempty" mapstructure:"mTLSEnforced,omitempty"`
+    MTLSPermissive              bool            `json:"mTLSPermissive,omitempty" mapstructure:"mTLSPermissive,omitempty"`
+    ApiDiscoveryEnabled         bool            `json:"apiDiscoveryEnabled,omitempty" mapstructure:"apiDiscoveryEnabled,omitempty"`
+    MTLSExceptions              MtlsExceptions  `json:"mTLSExceptions,omitempty" mapstructure:"mTLSExceptions,omitempty"`
+    CaType                      string          `json:"caType,omitempty" mapstructure:"caType,omitempty"`
+    Ca                          string          `json:"ca,omitempty" mapstructure:"ca,omitempty"`
+    Description                 string          `json:"description,omitempty" mapstructure:"description,omitempty"`
+    Color                       string          `json:"color,omitempty" mapstructure:"color,omitempty"`
+}
+```
+</details>
+
+### GraphQL Generation Tags
+
+Nexus compiler generates GraphQL schema for Nexus nodes.
+
+GraphQl schema is syntax and option rich.
+
+Spec fields support a collection of GraphQL specific annotations that provide directives to the Nexus compiler so it can generate GraphQL schema appropriately.
+
+| Tag  | Format                                | Description                                                                                                                                                                                                                                                                       |
+|------|---------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| nexus-alias-name | `nexus-alias-name:"value"`            | Name to override the default name of the field in GraphQL spec.                                                                                                                                                                                                                   |
+| nexus-alias-type  | `nexus-alias-type:"value"`            | Type name to override the Type of the field in GraphQL spec.                                                                                                                                                                                                                      |
+| nexus-graphql-args | `nexus-graphql-args:"key: value"`     | Filter parameters. Filter parameters are only supported for fields with object types that are lists, and if no annotation is provided, the default value is set to (id: ID)                                                                                                       |
+| nexus-graphql-ts-type | `nexus-graphql-ts-type:"value"` | Location of the typescript spec where the type definition for this field is declared                                                                                                                                                                                              |
+| nexus-graphql-type-name | `nexus-graphql-type-name:"value"` | Used to create new Go alias type for external types.                                                                                                                                                                                                                              |
+| nexus-graphql-nullable  | `nexus-graphql-nullable:"false"` | Specified if the field is nullable. In GraphQL, a non-nullable field is one that must always have a value and it is represented using an exclamation mark (`!`) after the field type. Compiler will use this annotation to mark the field appropriately as nullable or otherwise. |
+| nexus-graphql-jsonencoded | `nexus-graphql-jsonencoded:""` | Adds empty jsonencoded annotation to generated GraphQL schema.                                                                                                                                                                                                                    |
+| nexus-graphql-relation-name | `nexus-graphql-relation-name:"value"` | Adds a @relation directive with a name parameter to generated GraphQL schema.                                                                                                                                                                                                     |
+| nexus-graphql-relation-parameters | `nexus-graphql-relation-parameters:"value"` | Adds `parameter` parameter to existing @relation directive or to create a new one in generated GraphQL schema.                                                                                                                                                                    |
+| nexus-graphql-relation-uuidkey  |  `nexus-graphql-uuidkey:"value"` | Adds `uuidkey` parameter to existing @relation directive or to create a new one in generated GraphQL schema                                                                                                                                                                       |
+| nexus-graphql-protobuf-name | `nexus-graphql-protobuf-name:"value"` | Adds @protobuf directive with a `name` parameter to generated graphql schema.                                                                                                                                                                                                     |
+| nexus-graphql-protobuf-file | `nexus-graphql-protobuf-file:"value"` | Adds `file` parameter to existing @protobuf directive or to create a new one in generated graphql schema.                                                                                                                                                                         |
+
+<details><summary>Example</summary>
+
+```Go
+type GNS struct {
+    nexus.Node
+
+    GeoDiscovery  gns_geo_disc.GeoDiscovery `nexus:"children" nexus-alias-name:"GeoDiscovery"`
+
+    SvcMetric    string `nexus-alias-type:"ServiceMetricTypeEnum"`
+
+    ServiceVersions global_service_version.ServiceVersion `nexus:"children" nexus-graphql-args:"name: String"`
+
+    Name string `nexus-graphql-nullable:"false"`
+
+    Value   AttributeValue `nexus-graphql-ts-type:"./common/ts/common.d.ts"`
+
+    Data string `nexus-graphql-jsonencoded:""`
+
+    Clusters ClusterSettings `nexus:"children" nexus-graphql-relation-name:"HAS"`
+
+    Domains DomainSettings `nexus:"children" nexus-graphql-relation-name:"HAS" nexus-graphql-relation-parameters:"DomainSettingsStatus"`
+
+    Services Service      `nexus:"links" nexus-graphql-relation-uuidkey:"true"`
+
+    Capability string `nexus-graphql-protobuf-name:"RegisterCapabilityArguments"`
+
+    Capability string `nexus-graphql-protobuf-name:"RegisterCapabilityArguments" nexus-graphql-protobuf-file:"./common-apis/protos/external-plugin/ep-server.proto"`
+
 }
 ```
 
-TBR: As you can see you can use Go imports for adding nodes from different package. Structs which
-don't have `nexus.Node` field can be used for defining spec.
+**Generated GraphQL Schema**
 
-### Node Status
+```graphql
+type GNS {
+    
+    GeoDiscovery(id: ID): [GeoDiscovery!]
+      
+    svcMetric: ServiceMetricTypeEnum
 
-Nexus DSL provides the ability to capture "status" data on a Nexus node.
+    serviceVersions(name: String): [ServiceVersion!]
 
-While the spec fields and relationships of a Nexus node capture its user specified configuration and state, a Status, on the other hand captures runtime state / data that are relevant, as deemed by the user / application.
+    name: String!
 
-A custom status can be associated with the Nexus node, by annotating a field in the node struct annotation:
+    value: String @jsonencoded(gofile:"model.go", name:"AttributeValue", file:"./common/ts/common.d.ts")
 
+    data: String @jsonencoded
+
+    clusters(name: ID): [ClusterSettings!] @relation(name:"HAS")
+
+    domains(name: ID): [DomainSettings!] @relation(name:"HAS", parameters:DomainSettingsStatus)
+
+    services(name: String): [Service!] @relation(softlink: "true", uuidkey:"true")
+
+    capability: String @protobuf(name:"RegisterCapabilityArguments")
+
+    capability: String @protobuf(name:"RegisterCapabilityArguments", file:"./common-apis/protos/external-plugin/ep-server.proto")
+
+}
 ```
- `nexus:"status"`
+</details>
+
+### Inferences/Assumptions
+
+**1) Arguments**
+
+Every field on a GraphQL object type can have zero or more arguments.
+
+But in Nexus we support filter params for only GraphQL field with list object type (children,links) can have arguments.
+
+### Example:
+**CHILDREN**
+
+```go
+type AppFolder struct {
+    nexus.Node
+    App global.App `nexus:"children" nexus-graphql-args:"name: ID"`
+}
 ```
 
-The below example associates status of type "LeaderStatus" with Nexus node "Leader"
+```graphql
+type AppFolder {
+    id: ID
+    app(name: ID): [App!]
+}
+```
+
+**LINKS**
+
+```go
+type AppGroup struct {
+    nexus.Node
+    Services global.Service `nexus:"links" nexus-graphql-args:"name: String" nexus-graphql-tsm-directive:"@relation(softlink: \"true\", uuidkey: \"true\")"`
+}
+```
+
+```graphql
+type AppGroup {
+    name: ID
+    services(name: String): [Service!]
+        @relation(softlink: "true", uuidkey: "true")
+}
+```
+
+#### Limitations
+
+**Enums**
+
+Nexus DSL doesn't support enums, so all enums should be defined in file `cosmos-datamodel/common/enums.graphql`
+
+**Link property schema**
+
+Soft links/ Hard links property are Non nexus nodes.
+
+They are defined in file `cosmos-datamodel/common/parameters.graphql`
+
+## OpenAPI validation
+
+Spec fields of nexus nodes can be extended with additional validation.
+
+For field which should be validated you can add the following comment above a field with format 
+
+`//nexus-validation: Validation pattern`.
+
+<details><summary>Example</summary>
 
 ```Go
 package role
 
 import (
-	"github.com/vmware-tanzu/graph-framework-for-microservices/nexus/nexus"
+  "github.com/vmware-tanzu/graph-framework-for-microservices/nexus/nexus"
 )
 
 type Leader struct {
-	nexus.Node
-	EmployeeID int
-	State      LeaderStatus `nexus:"status"`
+  nexus.Node
+  //nexus-validation: MaxLength=8, MinLength=2
+  //nexus-validation: Pattern=abc
+  Department string
+  EmployeeID int
 }
+```
+</details>
 
-type LeaderStatus struct {
-	IsOnVacations            bool
-	DaysLeftToEndOfVacations int
+More details here: https://confluence.eng.vmware.com/pages/editpage.action?pageId=1367787440
+
+**TBD: Move to github.**
+
+# Markers
+
+## GraphQL
+
+### GraphQLSpec
+
+Nexus GraphQl spec is to specify a node level attribute: ie. what is the name of the ID field and is the ID field nullable.
+
+```go
+type GraphQLSpec struct {
+   IdName     string.       <--- default is empty string. In which case we assume "id"
+   IdNullable bool          <--- default is true. In which case is will be nullable.
 }
 ```
 
-### Nexus Graph
+#### Example-1:
+**Default behavior**
 
-A graph in Nexus datamodel is a collection of Nexus nodes and their relationships.
+Nexus Node will be annotate as `nexus.Node` and it is generated as `id: ID` in GraphQL schema
 
-Graph built using Nexus DSL will have the following attributes:
+**Nexus DSL**
 
-* graph will be directed and acyclic
-* graph is rooted by a Nexus node. A root node in the graph is a node which is not claimed as child by any other nexus node. Nexus datamodel only allows one root node
-* an instance of a graph is identified by a name and domain in Nexus runtime
+```go
+type Foo1 struct {
+    nexus.Node
+}
+```
 
-## API Syntax
+**GraphQL Schema**
 
-Nexus Graph is a collection of Nexus Nodes and Relationships.
+```graphql
+type Foo1 {
+    id: ID
+}
+```
 
-Nexus DSL provides the following API schemes to interact with the graph datamodel:
+#### Example-2:
+Here is an example of Nexus DSL with support of Nexus GraphQL spec
 
-* REST API
-* GraphQL
+Nexus GraphQl Spec is used to modify the default behavior
 
-The Nexus node is the unit at which API's are defined and exposed. Through these API's, the user can CRUD the node spec, status, its relationships etc. 
+**Nexus DSL**
 
-### REST API
+```go
+var Foo1GraphqlSpec = GraphQLSpec{
+    IdName: "name",
+    IdNullable: false,
+}
+// nexus-graphql-spec:Foo1GraphqlSpec
+type Foo1 struct {
+    nexus.Node
+}
+```
+
+**GraphQL Schema**
+
+```graphql
+type Foo1 {
+    name: ID!
+}
+```
+
+## Secrets
+
+To define nexus secret node, add `nexus-secret-spec` annotation on nexus node, and compiler will not generate graphql code for nexus secret node.
+
+DSL can be defined as below to add secret in a nexus node
+
+```
+var ApiKeySecretSpec = nexus.SecretSpec{}
+
+// nexus-secret-spec:ApiKeySecretSpec
+type Foo struct {
+   nexus.Node
+   Password  string
+}
+```
+
+## REST API
 
 Nexus DSL provides the syntax to access a Nexus node through one or more REST API's. 
 
@@ -228,7 +612,7 @@ The association of an instance/variable of type nexus.RestAPISpec to a Nexus nod
 
 The keyword `nexus-rest-api-gen` is an instruction in Nexus DSL to the Nexus Compiler that the referenced REST API's should be associated with the Nexus Node.
 
-As an example:
+<details><summary>Example</summary>
 
 ```Go
 package role
@@ -268,10 +652,11 @@ type Leader struct {
   EmployeeID int
 }
 ```
+</details>
 
 The above example, defined a variable LeaderRestAPISpec of type nexus.RestAPISpec. This variable is then referenced in the code comment on Nexus node using the keyword: `nexus-rest-api-gen`
 
-### Custom GraphQL query spec
+## Custom GraphQL Query spec
 
 Custom GraphQl query spec is a way of extending GraphQl server with queries to external GRPC servers. 
 
@@ -303,7 +688,8 @@ arguments (`Metric`, `StartTime`, `EndTime`, `TimeInterval`) or additional custo
 
 GraphQlQuerySpec can be attached to a Nexus Node using comment above a Node.
 
-Example custom query:
+<details><summary>Example</summary>
+
 ```Go
 package role
 
@@ -361,34 +747,22 @@ type metricsFilers struct {
 }
 ```
 
-### OpenAPI validation
+</details>
 
-Spec fields of nexus nodes can be extended with additional validation, for field which should be validated you can add
-comments above a field with format `//nexus-validation: Validation pattern`.
+## Node Status
 
-Example:
-```Go
-package role
+Nexus DSL provides the ability to capture "status" data on a Nexus node.
 
-import (
-  "github.com/vmware-tanzu/graph-framework-for-microservices/nexus/nexus"
-)
+While the spec fields and relationships of a Nexus node capture its user specified configuration and state, a Status, on the other hand captures runtime state / data that are relevant, as deemed by the user / application.
 
-type Leader struct {
-  nexus.Node
-  //nexus-validation: MaxLength=8, MinLength=2
-  //nexus-validation: Pattern=abc
-  Department string
-  EmployeeID int
-}
+A custom status can be associated with the Nexus node, by annotating a field in the node struct annotation:
+
+```
+ `nexus:"status"`
 ```
 
-### Singleton nodes
+The below example associates status of type "LeaderStatus" with Nexus node "Leader"
 
-Singleton Nodes are Nexus Nodes for which we are enforcing that in a given hierarchy there will be only one node of a
-given type. To specify node to be a singleton use `nexus.SingletonNode` as a field, instead of `nexus.Node`.
-
-Example:
 ```Go
 package role
 
@@ -397,19 +771,16 @@ import (
 )
 
 type Leader struct {
-	nexus.SingletonNode
+	nexus.Node
 	EmployeeID int
+	State      LeaderStatus `nexus:"status"`
+}
+
+type LeaderStatus struct {
+	IsOnVacations            bool
+	DaysLeftToEndOfVacations int
 }
 ```
-
-## Data model structure
-
-Here are the restrictions which you should follow when defining data model.
-
-- your data model should have go.mod file in main directory (you can add it by running `go mod init`)
-- in main directory of your data model should be a package with root node of graph,
-  there can be only one root node in data model
-- there can be no disjoined node, so each node expect for root should have a parent.
 
 # Nexus DSL syntax shortcut
 
@@ -515,27 +886,7 @@ type Gns struct {
 
 
 
-# Support for Secrets in Nexus Platform
 
-To define nexus secret node, add `nexus-secret-spec` annotation on nexus node, and compiler will not generate graphql code for nexus secret node.
-
-
-DSL can be defined as below to add secret in a nexus node
-
-```
-// nexus-rest-api-gen:IntegrationRestApiSpec
-type Integration struct {
-   nexus.Node
-   IntegrationType string
-   status          IntegrationStatus `nexus:"status"`
-   Foo             Foo               `nexus:"child"`
-}
-
-var ApiKeySecretSpec = nexus.SecretSpec{}
-
-// nexus-secret-spec:ApiKeySecretSpec
-type Foo struct {
-   nexus.Node
-   Password  string
-}
-```
+# TBD
+* Package structure
+* Move validation doc to github
