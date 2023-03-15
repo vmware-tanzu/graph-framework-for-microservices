@@ -1,0 +1,37 @@
+schema {
+    query: Root
+}
+
+type config_Config {
+    id: ID
+    fieldX: String
+    fieldY: Int
+    myStructField: String
+}
+
+type project_Project {
+    id: ID
+    config: _Config
+    key: String
+    field1: String
+    field2: Int
+}
+
+type root_Root {
+    id: ID
+    project: _Project
+    someRootData: String
+}
+
+directive @jsonencoded(file: String, gofile: String, name: String) on FIELD_DEFINITION
+directive @relation(name: String, parameters: String, softlink: String, uuidkey: String) on FIELD_DEFINITION
+directive @timeseriesAPI(file: String!, handler: String!) on FIELD_DEFINITION
+directive @protobuf(file: String!, name: String!) on FIELD_DEFINITION
+
+type TimeSeriesData {
+  Code: Int
+  Message: String
+  Data: String
+  Last: String
+  TotalRecords: Int
+}
