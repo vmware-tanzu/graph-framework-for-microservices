@@ -9,8 +9,8 @@ go mod edit -replace github.com/vmware-tanzu/graph-framework-for-microservices/n
 go mod edit -require github.com/cespare/xxhash/v2@v2.1.2
 go mod edit -require github.com/google/gofuzz@v1.1.0
 go mod edit -require github.com/imdario/mergo@v0.3.12
-go mod edit -require k8s.io/apimachinery@v0.26.3
-go mod edit -require k8s.io/client-go@v0.26.3
+go mod edit -require k8s.io/apimachinery@v0.26.0
+go mod edit -require k8s.io/client-go@v0.26.0
 go mod edit -require golang.org/x/sys@v0.2.0
 go mod edit -require golang.org/x/time@v0.3.0
 go mod edit -require golang.org/x/term@v0.2.0
