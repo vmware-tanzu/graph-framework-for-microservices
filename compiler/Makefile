@@ -207,8 +207,7 @@ generate_code:
 	${COMPILER_SRC_DIRECTORY}/scripts/pin_graphql_build_version.sh ${COMPILER_SRC_DIRECTORY} && \
 	go mod edit -go=1.18 && \
 	go mod tidy && \
-	CGO_ENABLED=1 GOOS=linux \
-	go build -trimpath -o graphql.so -buildmode=plugin server.go
+	CGO_ENABLED=1 GOARCH=amd64 GOOS=linux go build -ldflags="-w -s" server.go
 	@echo "Updating module name"
 	./scripts/replace_mod_path.sh
 	find . -name "*.bak" -type f -delete
