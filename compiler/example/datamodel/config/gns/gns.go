@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	cartv1 "github.com/vmware-tanzu/cartographer/pkg/apis/v1alpha1"
+	"k8s.io/apimachinery/pkg/util/intstr"
 
 	service_group "github.com/vmware-tanzu/graph-framework-for-microservices/compiler/example/datamodel/config/gns/service-group"
 	policypkg "github.com/vmware-tanzu/graph-framework-for-microservices/compiler/example/datamodel/config/policy"
@@ -171,6 +172,8 @@ type Gns struct {
 	//nexus-validation: Pattern=abc
 	Domain                 string
 	UseSharedGateway       bool
+	Annotations            string             `nexus-graphql-jsonencoded:""`
+	TargetPort             intstr.IntOrString `json:"targetPort,omitempty" mapstructure:"targetPort,omitempty"`
 	Description            Description
 	GnsServiceGroups       service_group.SvcGroup        `nexus:"children"`
 	GnsAccessControlPolicy policypkg.AccessControlPolicy `nexus:"child" nexus-graphql:"type:string"`
