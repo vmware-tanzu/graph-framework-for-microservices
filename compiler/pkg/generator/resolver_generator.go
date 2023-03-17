@@ -216,7 +216,7 @@ func processNonNexusFields(aliasNameMap map[string]string, node *ast.TypeSpec,
 			continue
 		}
 
-		if parser.IsJsonStringField(f) {
+		if parser.IsJsonStringField(f) || parser.IsFieldAnnotationPresent(f, parser.GRAPHQL_JSONENCODED_ANNOTATION) {
 			fieldProp.IsStringType = true
 			fieldProp.SchemaFieldName = fmt.Sprintf("%s: %s", fieldProp.FieldName, "String")
 			resField[nodeProp.PkgName+nodeProp.NodeName] = append(resField[nodeProp.PkgName+nodeProp.NodeName], fieldProp)
