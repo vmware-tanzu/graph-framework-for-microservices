@@ -215,6 +215,13 @@ func (g *Generator) addKubernetesExtensionsFlags(schema *extensionsv1.JSONSchema
 		t := true
 		schema.XPreserveUnknownFields = &t
 	}
+	// any is an alias for interface{}
+	if schema.Title == "any" {
+		t := true
+		schema.XPreserveUnknownFields = &t
+		schema.Title = "" // reset Title
+	}
+
 	if len(schema.AnyOf) > 0 {
 		schema.XIntOrString = true
 	}
