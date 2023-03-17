@@ -173,7 +173,7 @@ type {{.Name}}Spec struct {
 		typeString := ConstructType(aliasNameMap, field)
 		// Type is set to "any" for field with annotation "nexus-graphql-jsonencoded"
 		if parser.IsFieldAnnotationPresent(field, parser.GRAPHQL_JSONENCODED_ANNOTATION) {
-			specDef.Fields += "any"
+			specDef.Fields += "nexus.NexusType"
 		} else {
 			specDef.Fields += typeString
 		}
