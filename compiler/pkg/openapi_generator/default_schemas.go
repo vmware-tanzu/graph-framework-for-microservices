@@ -322,8 +322,8 @@ func defaultSchemas() map[string]common.OpenAPIDefinition {
 		envoyTypeName("extensions/access_loggers/grpc/v3.commongrpcaccesslogconfig"): schemaForTypeAndFormat("object", noFormat),
 
 		// any is an alias for interface{}
-		"any": schemaForAnyTypeAndFormat("any", noFormat),
-
+		// "nexusType":                      schemaForAnyTypeAndFormat("any", noFormat),
+		nexusTypeName("nexus.NexusType"): schemaForAnyTypeAndFormat("any", noFormat),
 		// The `openapi-gen` cannot generate Go schema for struct builtin. We mark is
 		// as an object which allows any properties inside
 		"struct{}":     schemaForTypeAndFormat("object", noFormat),
@@ -355,6 +355,10 @@ func kavachTypeName(name string) string { //nolint:deadcode,unused
 
 func envoyTypeName(name string) string {
 	return fmt.Sprintf("github.com/envoyproxy/go-control-plane/envoy/%v", name)
+}
+
+func nexusTypeName(name string) string {
+	return fmt.Sprintf("github.com/vmware-tanzu/graph-framework-for-microservices/nexus/%v", name)
 }
 
 func schemaForOneOf(schemas ...common.OpenAPIDefinition) common.OpenAPIDefinition {
@@ -389,6 +393,7 @@ func schemaForTypeAndFormat(schemaType, schemaFormat string) common.OpenAPIDefin
 }
 
 func schemaForAnyTypeAndFormat(schemaTitle, schemaFormat string) common.OpenAPIDefinition {
+	fmt.Println("1111111>>>>>>>>>", schemaTitle)
 	s := common.OpenAPIDefinition{
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{

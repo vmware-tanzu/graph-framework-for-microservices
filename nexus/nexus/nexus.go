@@ -20,6 +20,11 @@ type SingletonNode struct {
 }
 
 // HTTPMethod type.
+type NexusType struct {
+	Name string
+}
+
+// HTTPMethod type.
 type HTTPMethod string
 
 // ResponseCode type.
