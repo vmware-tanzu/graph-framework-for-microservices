@@ -19,6 +19,9 @@ type SingletonNode struct {
 	ID
 }
 
+// NexusGenericObject  type.
+type NexusGenericObject struct{}
+
 // HTTPMethod type.
 type HTTPMethod string
 
