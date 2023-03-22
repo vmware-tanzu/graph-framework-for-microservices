@@ -23,11 +23,6 @@ type SingletonNode struct {
 type NexusGenericObject struct{}
 
 // HTTPMethod type.
-type NexusType struct {
-	Name string
-}
-
-// HTTPMethod type.
 type HTTPMethod string
 
 // ResponseCode type.

@@ -323,7 +323,7 @@ func defaultSchemas() map[string]common.OpenAPIDefinition {
 
 		// any is an alias for interface{}
 		// "nexusType":                      schemaForAnyTypeAndFormat("any", noFormat),
-		nexusTypeName("nexus.NexusType"): schemaForAnyTypeAndFormat("any", noFormat),
+		nexusTypeName("nexus.NexusGenericObject"): schemaForAnyTypeAndFormat("any", noFormat),
 		// The `openapi-gen` cannot generate Go schema for struct builtin. We mark is
 		// as an object which allows any properties inside
 		"struct{}":     schemaForTypeAndFormat("object", noFormat),
@@ -393,7 +393,6 @@ func schemaForTypeAndFormat(schemaType, schemaFormat string) common.OpenAPIDefin
 }
 
 func schemaForAnyTypeAndFormat(schemaTitle, schemaFormat string) common.OpenAPIDefinition {
-	fmt.Println("1111111>>>>>>>>>", schemaTitle)
 	s := common.OpenAPIDefinition{
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{
