@@ -1,7 +1,9 @@
 package main
 
 import (
+	"fmt"
 	"net/http"
+	"os"
 
 	"github.com/vmware-tanzu/graph-framework-for-microservices/compiler/example/output/generated/nexus-gql/graph"
 	"github.com/vmware-tanzu/graph-framework-for-microservices/compiler/example/output/generated/nexus-gql/graph/generated"
@@ -23,4 +25,16 @@ func StartHttpServer() {
 	HttpHandlerFunc := playground.Handler("GraphQL playground", "/apis/graphql/v1/query")
 	http.Handle("/", HttpHandlerFunc)
 	http.Handle("/query", c.Handler(Hander_server))
+}
+
+func main() {
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8080"
+	}
+	StartHttpServer()
+	srv := &http.Server{Addr: fmt.Sprintf(":%s", port)}
+	if err := srv.ListenAndServe(); err != nil {
+		fmt.Printf("Error in starting graphql server")
+	}
 }
