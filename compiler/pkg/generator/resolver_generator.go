@@ -279,7 +279,7 @@ func processNonNexusFields(aliasNameMap map[string]string, node *ast.TypeSpec,
 			fieldProp FieldProperty
 			err       error
 		)
-		typeString := ConstructType(aliasNameMap, f)
+		typeString := ConstructTypeWrapper(aliasNameMap, f)
 		// populate each field properties
 		if len(f.Names) > 0 {
 			fieldProp.FieldName, err = parser.GetNodeFieldName(f)
@@ -424,7 +424,7 @@ func processNexusFields(pkg parser.Package, aliasNameMap map[string]string, node
 		}
 
 		// nexus link field
-		typeString := ConstructType(aliasNameMap, nf)
+		typeString := ConstructTypeWrapper(aliasNameMap, nf)
 		if parser.IsOnlyLinkField(nf) {
 			schemaTypeName, resolverTypeName := ValidateImportPkg(nodeProp.PkgName, typeString, importMap, pkgs)
 			// `type:string` annotation used to consider the type as string `nexus-graphql:"type:string"`

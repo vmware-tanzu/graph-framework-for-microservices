@@ -169,7 +169,7 @@ type {{.Name}}Spec struct {
 			}
 		}
 		specDef.Fields += "\t" + name + " "
-		typeString := ConstructType(aliasNameMap, field)
+		typeString := ConstructTypeWrapper(aliasNameMap, field)
 		specDef.Fields += typeString
 		specDef.Fields += " " + getTag(field, name, false) + "\n"
 	}
@@ -272,7 +272,7 @@ type {{.Name}} struct {
 			}
 		}
 		specDef.Fields += "\t" + name + " "
-		typeString := ConstructType(aliasNameMap, field)
+		typeString := ConstructTypeWrapper(aliasNameMap, field)
 
 		currentTags := parser.GetFieldTags(field)
 		currentTags = parser.FillEmptyTag(currentTags, name, "json")
@@ -297,13 +297,23 @@ type {{.Name}} struct {
 	return b.String()
 }
 
-func parsePackageTypes(pkg parser.Package) string {
+func parsePackageTypes(pkg parser.Package, aliasNameMap map[string]string) string {
 	var output string
 	for _, node := range pkg.GetTypes() {
 		t, err := pkg.GenDeclToString(&node)
 		if err != nil {
 			log.Fatalf("failed to translate type gen decl to string: %v", err)
 		}
+
+		isMap := parser.IsDeclMapField(&node)
+		isArray := parser.IsDeclArrayField(&node)
+
+		lastSpace := strings.LastIndex(t, " ")
+		name := t[:lastSpace]
+		typeT := t[lastSpace+1:]
+
+		t = fmt.Sprintf("%s %s", name, ConstructType(aliasNameMap, typeT, isMap, isArray))
+
 		output += t + "\n"
 	}
 
@@ -407,14 +417,20 @@ func constructImports(inputAlias, inputImportPath string) (string, string) {
 	return aliasName, importPath
 }
 
+func ConstructTypeWrapper(aliasNameMap map[string]string, field *ast.Field) string {
+	typeString := types.ExprString(field.Type)
+	isArray := parser.IsArrayField(field)
+	isMap := parser.IsMapField(field)
+	return ConstructType(aliasNameMap, typeString, isMap, isArray)
+}
+
 // TODO: https://jira.eng.vmware.com/browse/NPT-296
 // Support cross-package imports for the following additional types:
 // 1. map[gns.MyStr][]gns.MyStr
 // 2. map[string]map[string]gns.MyStr
 // 3. []map[string]gns.MyStr
 // 4. **gns.MyStr
-func ConstructType(aliasNameMap map[string]string, field *ast.Field) string {
-	typeString := types.ExprString(field.Type)
+func ConstructType(aliasNameMap map[string]string, typeString string, isMap, isArray bool) string {
 
 	// Check if the field is imported from a different package.
 	if !strings.Contains(typeString, ".") {
@@ -422,7 +438,7 @@ func ConstructType(aliasNameMap map[string]string, field *ast.Field) string {
 	}
 
 	switch {
-	case parser.IsMapField(field):
+	case isMap:
 		// TODO: Check if the function GetFieldType(field) can be reused for cases other than:
 		// map[string]gns.MyStr
 		// https://jira.eng.vmware.com/browse/NPT-296
@@ -438,7 +454,7 @@ func ConstructType(aliasNameMap map[string]string, field *ast.Field) string {
 			types = append(types, val)
 		}
 		typeString = fmt.Sprintf("map[%s]%s", types[0], types[1])
-	case parser.IsArrayField(field):
+	case isArray:
 		arr := regexp.MustCompile(`^(\[])`).ReplaceAllString(typeString, "")
 		parts := strings.Split(arr, ".")
 		if len(parts) > 1 {

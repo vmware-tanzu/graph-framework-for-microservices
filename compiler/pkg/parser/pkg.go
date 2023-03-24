@@ -517,6 +517,34 @@ func IsArrayField(f *ast.Field) bool {
 	return false
 }
 
+func IsDeclArrayField(f *ast.GenDecl) bool {
+	if f == nil {
+		return false
+	}
+	ts, ok := f.Specs[0].(*ast.TypeSpec)
+	if !ok {
+		return false
+	}
+	if _, ok = ts.Type.(*ast.ArrayType); ok {
+		return true
+	}
+	return false
+}
+
+func IsDeclMapField(f *ast.GenDecl) bool {
+	if f == nil {
+		return false
+	}
+	ts, ok := f.Specs[0].(*ast.TypeSpec)
+	if !ok {
+		return false
+	}
+	if _, ok = ts.Type.(*ast.MapType); ok {
+		return true
+	}
+	return false
+}
+
 func IsAggregateKind(f *ast.Field) bool {
 	return IsArrayField(f) || IsMapField(f)
 }

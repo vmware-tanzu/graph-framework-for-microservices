@@ -227,9 +227,16 @@ type SomeStruct struct {
 type StructWithEmbeddedField struct {
 	SomeStruct
 	gnstsmtanzuvmwarecomv1.MyStr
+	ExplicitField    gnstsmtanzuvmwarecomv1.MyStr `json:"explicitField" yaml:"explicitField"`
+	AliasedField     AliasedField                 `json:"aliasedField" yaml:"aliasedField"`
+	AliasedFieldMap  AliasedFieldMap              `json:"aliasedFieldMap" yaml:"aliasedFieldMap"`
+	AliasedFieldList AliasedFieldList             `json:"aliasedFieldList" yaml:"aliasedFieldList"`
 }
 
 type AMap map[string]string
 type BArray []string
 type CInt uint8
 type DFloat float32
+type AliasedField gnstsmtanzuvmwarecomv1.MyStr
+type AliasedFieldMap map[string]gnstsmtanzuvmwarecomv1.MyStr
+type AliasedFieldList []gnstsmtanzuvmwarecomv1.MyStr
