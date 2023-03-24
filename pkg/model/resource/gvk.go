@@ -57,7 +57,7 @@ func (gvk GVK) Validate() error {
 	}
 	if err := validation.IsDNS1123Subdomain(gvk.QualifiedGroup()); err != nil {
 		// NOTE: IsDNS1123Subdomain returns a slice of strings instead of an error, so no wrapping
-		return fmt.Errorf("either Group or Domain is invalid: %s", err)
+		return fmt.Errorf("%s either Group or Domain is invalid: %s", gvk.QualifiedGroup(), err)
 	}
 
 	// Check if the version follows the valid pattern
