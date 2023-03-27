@@ -178,6 +178,21 @@ func (p *Package) GetConsts() []*ast.ValueSpec {
 	return consts
 }
 
+func (p *Package) IsVarPresent(varName string) bool {
+	for _, genDecl := range p.GenDecls {
+		if genDecl.Tok == token.VAR {
+			for _, spec := range genDecl.Specs {
+				if valueSpec, ok := spec.(*ast.ValueSpec); ok {
+					if varName == valueSpec.Names[0].Name {
+						return true
+					}
+				}
+			}
+		}
+	}
+	return false
+}
+
 func IsNexusNode(n *ast.TypeSpec) bool {
 	if n == nil {
 		return false
