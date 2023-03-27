@@ -170,7 +170,11 @@ func (group *{{$node.GroupTypeName}}) Delete{{$node.BaseNodeName}}ByName(ctx con
 		err := group.client.
 		{{$link.SimpleGroupTypeName}}().Delete{{$link.BaseNodeName}}ByName(ctx, v.Name)
 		if err != nil {
-			return err
+			if errors.IsNotFound(err) {
+				continue
+			}else{
+				return err
+			}
 		}
 	}
 	{{ else }}
@@ -178,7 +182,7 @@ func (group *{{$node.GroupTypeName}}) Delete{{$node.BaseNodeName}}ByName(ctx con
 		err := group.client.
 		{{$link.SimpleGroupTypeName}}().
 		Delete{{$link.BaseNodeName}}ByName(ctx, result.Spec.{{$link.FieldName}}Gvk.Name)
-		if err != nil {
+		if err != nil && !errors.IsNotFound(err) {
 			return err
 		}
 	}
