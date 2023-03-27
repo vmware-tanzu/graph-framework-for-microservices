@@ -302,7 +302,7 @@ func getGraphqlSchemaName(pattern, fieldName, schemaType string, f *ast.Field) s
 		schemaName = fmt.Sprintf(pattern, getAliasFieldValue(fieldName, f), schemaType)
 	}
 
-	schemaName = strings.TrimPrefix(schemaName, "global_")
+	schemaName = strings.Title(strings.TrimPrefix(schemaName, "global_"))
 
 	return schemaName
 }
