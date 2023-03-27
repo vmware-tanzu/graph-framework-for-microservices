@@ -16,6 +16,7 @@ import (
 	"context"
 	"encoding/json"
 	"sync"
+	"fmt"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	types "k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/rest"
@@ -71,6 +72,7 @@ func (c *Clientset) UnsubscribeAll() {
 		return true
 	})
 }
+
 // NewForConfig returns Client which can be which can be used to connect to database
 func NewForConfig(config *rest.Config) (*Clientset, error) {
 	baseClient, err := baseClientset.NewForConfig(config)
@@ -828,6 +830,36 @@ func (c *{{$node.GroupResourceType}}Chainer) IsSubscribed() bool {
 	key := "{{$node.CrdName}}"
 	 _, ok := subscriptionMap.Load(key)
 	 return ok
+}
+
+func (c *{{$node.GroupResourceType}}Chainer) NotifyOnAdd(cbfn func(obj interface{})) {
+	fmt.Println("{{$node.SimpleGroupTypeName}}{{$node.BaseNodeName}} -->  NotifyOnAdd!")
+	stopper := make(chan struct{})
+	informer := {{$node.GroupInformerImport}}.New{{$node.BaseNodeName}}Informer(c.client.baseClient, 0, cache.Indexers{})
+	informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
+		AddFunc: cbfn,
+	})
+	go informer.Run(stopper)
+}
+
+func (c *{{$node.GroupResourceType}}Chainer) NotifyOnUpdate(cbfn func(oldObj interface{}, newObj interface{})) {
+	fmt.Println("{{$node.SimpleGroupTypeName}}{{$node.BaseNodeName}} -->  NotifyOnUpdate!")
+	stopper := make(chan struct{})
+	informer := {{$node.GroupInformerImport}}.New{{$node.BaseNodeName}}Informer(c.client.baseClient, 0, cache.Indexers{})
+	informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
+		UpdateFunc: cbfn,
+	})
+	go informer.Run(stopper)
+}
+
+func (c *{{$node.GroupResourceType}}Chainer) NotifyOnDelete(cbfn func(obj interface{})) {
+	fmt.Println("{{$node.SimpleGroupTypeName}}{{$node.BaseNodeName}} --> NotifyOnDelete!")
+	stopper := make(chan struct{})
+	informer := {{$node.GroupInformerImport}}.New{{$node.BaseNodeName}}Informer(c.client.baseClient, 0, cache.Indexers{})
+	informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
+		DeleteFunc: cbfn,
+	})
+	go informer.Run(stopper)
 }
 
 {{if .HasStatus}}
