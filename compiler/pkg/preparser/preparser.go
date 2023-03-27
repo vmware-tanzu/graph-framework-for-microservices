@@ -37,6 +37,10 @@ func Parse(startPath string) map[string][]*parser.Package {
 				log.Infof("Ignoring vendor directory...")
 				return filepath.SkipDir
 			}
+			if info.Name() == "cosmos-datamodel" {
+				log.Infof("Ignoring cosmos-datamodel directory...")
+				return filepath.SkipDir
+			}
 
 			fileset := token.NewFileSet()
 			pkgs, err := goParser.ParseDir(fileset, path, nil, goParser.ParseComments)
@@ -47,10 +51,6 @@ func Parse(startPath string) map[string][]*parser.Package {
 			for _, v := range pkgs {
 				if v.Name == "nexus" {
 					log.Infof("Ignoring nexus package...")
-					continue
-				}
-				if v.Name == "cosmos-datamodel" {
-					log.Infof("Ignoring cosmos-datamodel package...")
 					continue
 				}
 
