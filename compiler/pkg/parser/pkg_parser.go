@@ -30,7 +30,7 @@ func ParseDSLPkg(startPath string) Packages {
 				return filepath.SkipDir
 			}
 			if info.Name() == "cosmos-datamodel" {
-				log.Infof("Ignoring vendor directory...")
+				log.Infof("Ignoring cosmos-datamodel directory...")
 				return filepath.SkipDir
 			}
 

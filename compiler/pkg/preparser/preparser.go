@@ -49,6 +49,10 @@ func Parse(startPath string) map[string][]*parser.Package {
 					log.Infof("Ignoring nexus package...")
 					continue
 				}
+				if v.Name == "cosmos-datamodel" {
+					log.Infof("Ignoring cosmos-datamodel package...")
+					continue
+				}
 
 				if parser.SpecialCharsPresent(v.Name) {
 					log.Fatalf("Invalid package-name <%v>, special characters are not allowed. Please use only lowercase alphanumeric characters.", v.Name)
