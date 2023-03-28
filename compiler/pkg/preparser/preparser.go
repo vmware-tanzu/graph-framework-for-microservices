@@ -9,14 +9,12 @@ import (
 	"go/token"
 	"go/types"
 	"io/fs"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strconv"
 	"strings"
 	"text/template"
 
-	cp "github.com/otiai10/copy"
 	log "github.com/sirupsen/logrus"
 	"github.com/vmware-tanzu/graph-framework-for-microservices/compiler/pkg/parser"
 	"golang.org/x/tools/imports"
@@ -60,6 +58,7 @@ func Parse(startPath string) map[string][]*parser.Package {
 					ModPath:  modulePath,
 					FullName: pkgImport,
 					FileSet:  fileset,
+					Dir:      info.Name(),
 					Pkg:      *v,
 				}
 				parser.ParseGenDecls(v, &pkg)
@@ -216,33 +215,6 @@ func Render(dslDir string, packages map[string][]*parser.Package) error {
 	return nil
 }
 
-func CopyPkgsToBuild(dslDir string, outputDir string) error {
-	dir, err := ioutil.ReadDir(dslDir)
-	if err != nil {
-		return err
-	}
-
-	for _, f := range dir {
-		if !f.IsDir() || f.Name() == "build" || f.Name() == "vendor" ||
-			f.Name() == "global" || strings.HasPrefix(f.Name(), ".") {
-			continue
-		}
-
-		opt := cp.Options{
-			Skip: func(srcinfo os.FileInfo, src, dest string) (bool, error) {
-				return !strings.HasSuffix(src, ".go"), nil
-			},
-		}
-
-		err := cp.Copy(filepath.Join(dslDir, f.Name()), filepath.Join(outputDir, "model", f.Name()), opt)
-		if err != nil {
-			return err
-		}
-	}
-
-	return nil
-}
-
 var importsTemplate = `{{range .ImportsToRender}}{{.}}
 {{end}}`
 
@@ -288,6 +260,75 @@ func RenderImports(packages map[string][]*parser.Package, outputDir string, modP
 	err = os.WriteFile(filepath.Join(outputDir, "model", "nexus-dm-imports"), b.Bytes(), 0644)
 	if err != nil {
 		return err
+	}
+
+	return nil
+}
+
+func CopyPkgsToBuild(packages map[string][]*parser.Package, outputDir string) error {
+	for k, pkgs := range packages {
+		if k == "global" {
+			continue
+		}
+
+		for _, v := range pkgs {
+
+			for path, f := range v.Pkg.Files {
+				var output = fmt.Sprintf(`package %s
+`, v.Name)
+				filename := filepath.Base(path)
+
+			declLoop:
+				for _, decl := range f.Decls {
+					switch decl.(type) {
+					case *ast.GenDecl:
+						genDecl := decl.(*ast.GenDecl)
+						for _, spec := range genDecl.Specs {
+							if typeSpec, ok := spec.(*ast.TypeSpec); ok {
+								if parser.IsNexusNode(typeSpec) {
+									continue declLoop
+								}
+							}
+						}
+
+						str, err := v.GenDeclToString(genDecl)
+						if err != nil {
+							return err
+						}
+
+						output += fmt.Sprintf("%s\n\n", str)
+					}
+				}
+
+				// format file & organize imports using imports package
+				out, err := imports.Process(filename, []byte(output), nil)
+				if err != nil {
+					return err
+				}
+
+				modelDir := filepath.Join(outputDir, "model", v.Dir)
+
+				err = os.MkdirAll(modelDir, os.ModePerm)
+				if err != nil {
+					return err
+				}
+
+				// create file and write output
+				f, err := os.Create(filepath.Join(modelDir, filename))
+				if err != nil {
+					return err
+				}
+				_, err = f.Write(out)
+				if err != nil {
+					return err
+				}
+
+				err = f.Close()
+				if err != nil {
+					return err
+				}
+			}
+		}
 	}
 
 	return nil
