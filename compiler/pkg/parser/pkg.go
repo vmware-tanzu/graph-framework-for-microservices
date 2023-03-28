@@ -27,6 +27,7 @@ type PackageNodeRelation struct {
 type Package struct {
 	Name     string
 	FullName string
+	Dir      string
 
 	//new fields
 	ModPath  string
