@@ -26,13 +26,13 @@ func main() {
 		log.Fatal(err)
 	}
 
-	err = preparser.CopyPkgsToBuild(*dslDir, *outputDir)
+	packages = preparser.Parse(*dslDir)
+	err = preparser.RenderImports(packages, *outputDir, *modPath)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	packages = preparser.Parse(*dslDir)
-	err = preparser.RenderImports(packages, *outputDir, *modPath)
+	err = preparser.CopyPkgsToBuild(packages, *outputDir)
 	if err != nil {
 		log.Fatal(err)
 	}
