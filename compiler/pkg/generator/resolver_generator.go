@@ -3,83 +3,14 @@ package generator
 import (
 	"fmt"
 	"go/ast"
-	"go/types"
 	"sort"
-	"strconv"
 	"strings"
 
 	log "github.com/sirupsen/logrus"
 
 	"github.com/vmware-tanzu/graph-framework-for-microservices/compiler/pkg/parser"
 	"github.com/vmware-tanzu/graph-framework-for-microservices/compiler/pkg/util"
-	"github.com/vmware-tanzu/graph-framework-for-microservices/nexus/nexus"
 )
-
-type ReturnStatement struct {
-	Alias       string
-	ReturnType  string
-	FieldCount  int
-	CRDName     string
-	ChainAPI    string
-	IsSingleton bool
-}
-
-type FieldProperty struct {
-	IsResolver              bool
-	IsNexusTypeField        bool
-	IsNexusOrSingletonField bool
-	IsChildOrLink           bool
-	IsChildrenOrLinks       bool
-	IsMapTypeField          bool
-	IsArrayTypeField        bool
-	IsStdTypeField          bool
-	IsCustomTypeField       bool
-	IsPointerTypeField      bool
-	IsStringType            bool
-	IsArrayStdType          bool
-	IsSingleton             bool
-	PkgName                 string
-	NodeName                string
-	FieldName               string
-	FieldType               string
-	FieldTypePkgPath        string
-	ModelType               string
-	SchemaFieldName         string
-	SchemaTypeName          string
-	BaseTypeName            string
-	Alias                   string
-	ReturnType              string
-	FieldCount              int
-	CRDName                 string
-	ChainAPI                string
-	LinkAPI                 string
-}
-
-type NodeProperty struct {
-	IsParentNode           bool
-	HasParent              bool
-	IsSingletonNode        bool
-	IsNexusNode            bool
-	BaseImportPath         string
-	CrdName                string
-	ResolverCount          int
-	PkgName                string
-	NodeName               string
-	SchemaName             string
-	Alias                  string
-	ReturnType             string
-	GroupResourceNameTitle string
-	ChildFields            []FieldProperty
-	LinkFields             []FieldProperty
-	ChildrenFields         []FieldProperty
-	LinksFields            []FieldProperty
-	ArrayFields            []FieldProperty
-	CustomFields           []FieldProperty
-	NonStructFields        []FieldProperty
-	GraphqlSchemaFields    []FieldProperty
-	ResolverFields         map[string][]FieldProperty
-	CustomQueries          []nexus.GraphQLQuery
-}
 
 // populateValuesForEachNode populates each node with required resolver properties
 func populateValuesForEachNode(nodes []*NodeProperty, linkAPI map[string]string, retMap map[string]ReturnStatement) []NodeProperty {
@@ -259,16 +190,6 @@ func populateValuesForResolver(nodes []*NodeProperty, parentsMap map[string]pars
 	return linkAPI, retMap
 }
 
-func constructNexusTypeMap(nodes []*NodeProperty) map[string]string {
-	crdNameMap := make(map[string]string)
-	for _, n := range nodes {
-		if n.IsNexusNode || n.IsSingletonNode {
-			crdNameMap[n.CrdName] = n.PkgName + n.NodeName
-		}
-	}
-	return crdNameMap
-}
-
 // processNonNexusFields process and populates properties for each non nexus fields
 // <Domain  string>
 func processNonNexusFields(aliasNameMap map[string]string, node *ast.TypeSpec,
@@ -295,7 +216,7 @@ func processNonNexusFields(aliasNameMap map[string]string, node *ast.TypeSpec,
 			continue
 		}
 
-		if parser.IsJsonStringField(f) {
+		if parser.IsJsonStringField(f) || parser.IsFieldAnnotationPresent(f, parser.GRAPHQL_JSONENCODED_ANNOTATION) {
 			fieldProp.IsStringType = true
 			fieldProp.SchemaFieldName = fmt.Sprintf("%s: %s", fieldProp.FieldName, "String")
 			resField[nodeProp.PkgName+nodeProp.NodeName] = append(resField[nodeProp.PkgName+nodeProp.NodeName], fieldProp)
@@ -315,38 +236,6 @@ func processNonNexusFields(aliasNameMap map[string]string, node *ast.TypeSpec,
 		nodeProp.GraphqlSchemaFields = append(nodeProp.GraphqlSchemaFields, fieldProp)
 		nodeProp.ResolverFields = resField
 	}
-}
-
-func findTypeAndPkgForField(ptParts []string, importMap map[string]string, pkgs map[string]parser.Package) (string, *parser.Package) {
-	structPkg := ptParts[0]
-	structType := ptParts[1]
-
-	// if the import path has alias name, it is resolved
-	importPath, ok := importMap[structPkg]
-	if !ok {
-		// when pkg and directory names are different and no alias name provided,
-		// try to resolve by package name
-		for _, path := range importMap {
-			pkgName := getPkgName(pkgs, path)
-			if pkgName == structPkg {
-				importPath = path
-			}
-		}
-	}
-
-	pkgPath, err := strconv.Unquote(importPath)
-	if err != nil {
-		log.Errorf("Failed to parse package %s for the type %s with error %v", pkgPath, structType, err)
-		return "", nil
-	}
-
-	p, ok := pkgs[pkgPath]
-	if !ok {
-		log.Errorf("Cannot find the package details from the path %s for the type %s", importPath, structType)
-		return "", nil
-	}
-
-	return structType, &p
 }
 
 // SkipSecretSpecAnnotation checks if the field has nexus secrets annotated on them
@@ -477,50 +366,6 @@ func processNexusFields(pkg parser.Package, aliasNameMap map[string]string, node
 	}
 }
 
-/*
-collect and construct type alias field into map recursively before
-populating the nexus node and custom struct type
-ex. nonStructMap[pkgName] = nodeType  -->  nonStructMap["root"] = "AliasTypeFoo"
-*/
-func constructAliasType(sortedPackages []parser.Package) map[string]string {
-	nonStructMap := make(map[string]string)
-	for _, pkg := range sortedPackages {
-		for _, node := range pkg.GetNonStructTypes() {
-			pkgName := fmt.Sprintf("%s_%s", pkg.Name, parser.GetTypeName(node))
-			// NonStruct Map
-			nonStructType := types.ExprString(node.Type)
-			nonStructMap[pkgName] = nonStructType
-		}
-	}
-
-	return nonStructMap
-}
-
-func setNexusProperties(nodeHelper parser.NodeHelper, node *ast.TypeSpec, nodeProp *NodeProperty) {
-	if len(nodeHelper.Parents) > 0 {
-		nodeProp.HasParent = true
-	}
-
-	if parser.IsSingletonNode(node) {
-		nodeProp.IsSingletonNode = true
-	}
-
-	if parser.IsNexusNode(node) {
-		nodeProp.IsNexusNode = true
-	}
-}
-
-// isRootOfGraph intended to allow only one root of the graph,
-// if we receive multiple node in such behaviour, then we allow the first node and the rest will be skipped with error
-// arg: `parents` indicates the node's parents, `rootOfGraph` indicates if the received node is the root of the graph or not.
-func isRootOfGraph(parents []string, rootOfGraph bool) bool {
-	if len(parents) == 0 && !rootOfGraph {
-		return true
-	}
-
-	return rootOfGraph
-}
-
 // GenerateGraphqlResolverVars populates the node and its field properties required to generate graphql resolver
 func GenerateGraphqlResolverVars(baseGroupName, crdModulePath string, pkgs parser.Packages, parentsMap map[string]parser.NodeHelper) ([]NodeProperty, error) {
 	sortedKeys := make([]string, 0, len(pkgs))
@@ -561,7 +406,7 @@ func GenerateGraphqlResolverVars(baseGroupName, crdModulePath string, pkgs parse
 			nodeProp.CrdName = util.GetCrdName(node.Name.String(), pkg.Name, baseGroupName)
 			nodeHelper := parentsMap[nodeProp.CrdName]
 			nodeProp.IsParentNode = parser.IsNexusNode(node)
-			nodeProp.CustomQueries = nodeHelper.GraphqlSpec.Queries
+			nodeProp.CustomQueries = nodeHelper.GraphqlQuerySpec.Queries
 
 			if parser.IsNexusNode(node) && len(nodeHelper.Parents) == 0 && rootOfGraph {
 				log.Errorf("Can't allow multiple root of the graph, skipping Node:%s", nodeProp.NodeName)
