@@ -1,7 +1,7 @@
 package policypkg
 
 import (
-	"github.com/vmware-tanzu/graph-framework-for-microservices/compiler/example/datamodel/config/gns/service-group"
+	servicegroup "github.com/vmware-tanzu/graph-framework-for-microservices/compiler/example/datamodel/config/gns/service-group"
 	"github.com/vmware-tanzu/graph-framework-for-microservices/nexus/nexus"
 )
 
