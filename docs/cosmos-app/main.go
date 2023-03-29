@@ -10,7 +10,7 @@ import (
 	"path/filepath"
 	"sync"
 
-	orgv2 "golang-appnet.eng.vmware.com/cosmos-datamodel/apis/global.cosmos.tanzu.vmware.org/v1"
+	v2 "golang-appnet.eng.vmware.com/cosmos-datamodel/apis/global.cosmos.tanzu.vmware.org/v1"
 	nexus_client "golang-appnet.eng.vmware.com/cosmos-datamodel/nexus-client"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/rest"
@@ -26,7 +26,7 @@ func main() {
 		panic(err)
 	}
 	app.App(nexusClient)
-	// crudWithNexusClient(nexusClient)
+	crudWithNexusClient(nexusClient)
 	var wg sync.WaitGroup
 	wg.Add(1)
 	wg.Wait()
@@ -39,52 +39,96 @@ func crudWithNexusClient(nexusClient *nexus_client.Clientset) {
 		"             | \n" +
 		"             |  \n" +
 		"          Project \n" +
-		"       /     |     \\___                            |\n" +
-		"      /      |          \\                          |\n" +
-		"   Config   Inventory    Runtime \n" +
+		"       /     |     \\\n" +
+		"      /      |      \\\n" +
+		"  Config Inventory  Runtime\n" +
+		"     | \n" +
+		"     | \n" +
+		"  Globalnamespace \n" +
+		"     | \n" +
+		"     | \n" +
+		"   GNS \n" +
 		"\n\n")
-	// Node: Org
-	orgDef := &orgv2.Org{
+
+	// Org Node Definition
+	orgDef := &v2.Org{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: "default",
 		},
 	}
 	fmt.Println("Creating Org object...")
-	// CREATE: Org
+	// CREATE: --> Org
 	org, err := nexusClient.AddGlobalOrg(context.TODO(), orgDef)
 	if err != nil {
 		panic(err)
 	}
 	fmt.Println("... checking if Org is created properly, name should be hashed, original name is preserved in "+
 		"nexus/display_name label", org.DisplayName())
+	// GET: -->  Org
 	getOrg, err := nexusClient.GetGlobalOrg(context.TODO(), "default")
 	if err != nil {
 		panic(err)
 	}
-	printdata("Org hased name", getOrg.Name)
-	// PROJECT
+	printdata("Org hash name:", getOrg.Name)
+	// Project Node Definition
 	fmt.Println("Creating Project object...")
-	projDef := &orgv2.Project{
+	projDef := &v2.Project{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: "default",
 		},
 	}
-	// Add Project
+	// CREATE: --> Project
 	proj, err := getOrg.AddProject(context.TODO(), projDef)
 	if err != nil {
 		panic(err)
 	}
-	fmt.Printf("Project: %s created \n", proj.DisplayName())
-	// Get Project
+	fmt.Printf("Project: %s ----> Created \n", proj.DisplayName())
+	// GET: --> Project
 	getProj, err := getOrg.GetProject(context.TODO(), "default")
 	if err != nil {
 		panic(err)
 	}
-	printdata("Get Project hashed name", getProj.Name)
-
-	// Config
-
+	printdata("Get Project hash name:", getProj.Name)
+	// Config Node Definition
+	fmt.Println("Creating Config object...")
+	configDef := &v2.Config{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: "default",
+		},
+	}
+	// CREATE: -->  Config
+	conf, err := getProj.AddConfig(context.TODO(), configDef)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Printf("Config: %s ----> Created \n", conf.DisplayName())
+	// GET: -->  Config [Singleton]
+	getConfig, err := getProj.GetConfig(context.TODO())
+	if err != nil {
+		panic(err)
+	}
+	printdata("Get Config hash name:", getConfig.Name)
+	// GlobalNamespace Node Definition
+	fmt.Println("Creating Globalnamespace object...")
+	gDef := &v2.GlobalNamespace{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: "default",
+		},
+	}
+	// CREATE: --> GlobalNamespace
+	globalN, err := getConfig.AddGlobalNamespace(context.TODO(), gDef)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Printf("GlobalNamespace: %s ----> Created \n", globalN.DisplayName())
+	// GET: --> GlobalNamespace
+	getGlobalNamespace, err := getConfig.GetGlobalNamespace(context.TODO())
+	if err != nil {
+		panic(err)
+	}
+	printdata("Get GlobalNamespace hash name:", getGlobalNamespace.Name)
 }
+
 func getK8sAPIEndpointConfig() *rest.Config {
 	var (
 		host, kubeconfig *string

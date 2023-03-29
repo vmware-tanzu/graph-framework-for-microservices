@@ -3,7 +3,7 @@ module cosmos-app
 go 1.19
 
 require (
-	golang-appnet.eng.vmware.com/cosmos-datamodel v0.0.0-20230327144508-6ba0bb8c7327
+	golang-appnet.eng.vmware.com/cosmos-datamodel v0.0.0-20230329100120-e23efd8a598c
 	k8s.io/client-go v0.26.3
 )
 
@@ -43,7 +43,7 @@ require (
 	gopkg.in/inf.v0 v0.9.1 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
-	istio.io/api v0.0.0-20230324132200-e5c70bb8f38e // indirect
+	istio.io/api v0.0.0-20230327210753-eb5bfad7b73b // indirect
 	k8s.io/api v0.26.3 // indirect
 	k8s.io/apimachinery v0.26.3 // indirect
 	k8s.io/klog/v2 v2.80.1 // indirect

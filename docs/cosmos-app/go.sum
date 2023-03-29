@@ -192,6 +192,8 @@ golang-appnet.eng.vmware.com/cosmos-datamodel v0.0.0-20230322171736-29eaef278c76
 golang-appnet.eng.vmware.com/cosmos-datamodel v0.0.0-20230322171736-29eaef278c76/go.mod h1:PyXbMc7XWu+IyqHtLXPGx+Zm09c07UrNXvXnKEd+kb0=
 golang-appnet.eng.vmware.com/cosmos-datamodel v0.0.0-20230327144508-6ba0bb8c7327 h1:R+C/oQANJXFLcCoEIPD5eBbpFvhOutmMCKX2s2HQaJA=
 golang-appnet.eng.vmware.com/cosmos-datamodel v0.0.0-20230327144508-6ba0bb8c7327/go.mod h1:0GFnJwummzlO40Ueuy7xMfhfJOc56KpYY0EzaeV6k/U=
+golang-appnet.eng.vmware.com/cosmos-datamodel v0.0.0-20230329100120-e23efd8a598c h1:m7RAuiVOsEqtR+k9rXtmIBUqjt2uVNyWP5c1qoAxI8M=
+golang-appnet.eng.vmware.com/cosmos-datamodel v0.0.0-20230329100120-e23efd8a598c/go.mod h1:YM+gclk4CDCtcY2v5Rl7WIarRkGPzlJWAaEbF+jXbcU=
 golang.org/x/crypto v0.0.0-20190308221718-c2843e01d9a2/go.mod h1:djNgcEr1/C05ACkg1iLfiJU5Ep61QUkGW8qpdssI0+w=
 golang.org/x/crypto v0.0.0-20190510104115-cbcb75029529/go.mod h1:yigFU9vqHzYiE8UmvKecakEJjdnWj3jj499lnFckfCI=
 golang.org/x/crypto v0.0.0-20190605123033-f99c8df09eb5/go.mod h1:yigFU9vqHzYiE8UmvKecakEJjdnWj3jj499lnFckfCI=
@@ -474,6 +476,8 @@ istio.io/api v0.0.0-20230322024321-49a8f67e977a h1:rCvVDSbEXdVsDkUgI7aE25KxWr4JP
 istio.io/api v0.0.0-20230322024321-49a8f67e977a/go.mod h1:q3bvmBQjuI+OKNn9693bhGq3Pk+rECjfs3OpPWInHY0=
 istio.io/api v0.0.0-20230324132200-e5c70bb8f38e h1:qAIYNms7qO5GRZbyzSd2vGn7KD9kQ0bTf4J8VnBhoXI=
 istio.io/api v0.0.0-20230324132200-e5c70bb8f38e/go.mod h1:q3bvmBQjuI+OKNn9693bhGq3Pk+rECjfs3OpPWInHY0=
+istio.io/api v0.0.0-20230327210753-eb5bfad7b73b h1:KtfbkM3Nreh88Cdl2GDajphI+q+bgM0VUQY9sZoWsts=
+istio.io/api v0.0.0-20230327210753-eb5bfad7b73b/go.mod h1:q3bvmBQjuI+OKNn9693bhGq3Pk+rECjfs3OpPWInHY0=
 k8s.io/api v0.26.3 h1:emf74GIQMTik01Aum9dPP0gAypL8JTLl/lHa4V9RFSU=
 k8s.io/api v0.26.3/go.mod h1:PXsqwPMXBSBcL1lJ9CYDKy7kIReUydukS5JiRlxC3qE=
 k8s.io/apimachinery v0.26.3 h1:dQx6PNETJ7nODU3XPtrwkfuubs6w7sX0M8n61zHIV/k=
