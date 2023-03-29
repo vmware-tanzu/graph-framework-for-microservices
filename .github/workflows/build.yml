@@ -1,5 +1,9 @@
 name: Build Compiler image
 on:
+  push:
+    branches:
+    - 'npt-632'
+    - 'main'
   pull_request:
     branches: [ main ]
 jobs:
