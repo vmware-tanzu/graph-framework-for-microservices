@@ -3,6 +3,7 @@ package preparser
 import (
 	"bytes"
 	"fmt"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/compiler/pkg/config"
 	"go/ast"
 	goParser "go/parser"
 	"go/printer"
@@ -37,9 +38,15 @@ func Parse(startPath string) map[string][]*parser.Package {
 				log.Infof("Ignoring vendor directory...")
 				return filepath.SkipDir
 			}
-			if info.Name() == "cosmos-datamodel" {
-				log.Infof("Ignoring cosmos-datamodel directory...")
-				return filepath.SkipDir
+			//if info.Name() == "cosmos-datamodel" {
+			//	log.Infof("Ignoring cosmos-datamodel directory...")
+			//	return filepath.SkipDir
+			//}
+			for _, f := range config.ConfigInstance.IgnoredDirs {
+				if info.Name() == f {
+					log.Infof(fmt.Sprintf("Ignoring %v directory from config", f))
+					return filepath.SkipDir
+				}
 			}
 
 			fileset := token.NewFileSet()
