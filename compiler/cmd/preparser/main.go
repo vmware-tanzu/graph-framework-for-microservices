@@ -2,12 +2,15 @@ package main
 
 import (
 	"flag"
+	"fmt"
 
 	log "github.com/sirupsen/logrus"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/compiler/pkg/config"
 	"github.com/vmware-tanzu/graph-framework-for-microservices/compiler/pkg/preparser"
 )
 
 func main() {
+	configFile := flag.String("config-file", "", "Config file location.")
 	dslDir := flag.String("dsl", "datamodel", "DSL file location.")
 	outputDir := flag.String("output", "_generated", "output dir location.")
 	modPath := flag.String("modpath", "datamodel", "ModPath for rendered imports")
@@ -19,7 +22,15 @@ func main() {
 		log.Fatalf("Failed to configure logging: %v\n", err)
 	}
 	log.SetLevel(lvl)
-
+	fmt.Printf("Inside main and config file value is: %s\n", *configFile)
+	conf := &config.Config{}
+	if *configFile != "" {
+		conf, err = config.LoadConfig(*configFile)
+		if err != nil {
+			log.Fatalf("Error loading config: %v", err)
+		}
+	}
+	config.ConfigInstance = conf
 	packages := preparser.Parse(*dslDir)
 	err = preparser.Render(*dslDir, packages)
 	if err != nil {
