@@ -36,6 +36,7 @@ go mod edit -require github.com/google/gofuzz@v1.1.0
 go mod edit -require github.com/imdario/mergo@v0.3.12
 go mod edit -require k8s.io/apimachinery@v0.26.3
 go mod edit -require k8s.io/client-go@v0.26.3
+go mod edit -require k8s.io/apiextensions-apiserver@v0.26.3
 go mod edit -require golang.org/x/sys@v0.2.0
 go mod edit -require golang.org/x/time@v0.0.0-20220210224613-90d013bbcef8
 go mod edit -require golang.org/x/term@v0.2.0
