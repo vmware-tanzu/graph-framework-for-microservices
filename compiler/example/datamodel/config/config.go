@@ -4,7 +4,7 @@ import (
 	"net/http"
 
 	"github.com/vmware-tanzu/graph-framework-for-microservices/compiler/example/datamodel/config/gns"
-	"github.com/vmware-tanzu/graph-framework-for-microservices/compiler/example/datamodel/config/gns/service-group"
+	servicegroup "github.com/vmware-tanzu/graph-framework-for-microservices/compiler/example/datamodel/config/gns/service-group"
 	py "github.com/vmware-tanzu/graph-framework-for-microservices/compiler/example/datamodel/config/policy"
 	"github.com/vmware-tanzu/graph-framework-for-microservices/nexus/nexus"
 )
