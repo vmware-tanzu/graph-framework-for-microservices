@@ -408,9 +408,12 @@ func GenerateGraphqlResolverVars(baseGroupName, crdModulePath string, pkgs parse
 			nodeProp.IsParentNode = parser.IsNexusNode(node)
 			nodeProp.CustomQueries = nodeHelper.GraphqlQuerySpec.Queries
 
+			if parser.IsNexusNode(node) && len(nodeHelper.Parents) == 0 && !rootOfGraph {
+				log.Debugf("Root of the graph, [Node: %s]", nodeProp.NodeName)
+			}
+
 			if parser.IsNexusNode(node) && len(nodeHelper.Parents) == 0 && rootOfGraph {
-				log.Errorf("Can't allow multiple root of the graph, skipping Node:%s", nodeProp.NodeName)
-				continue
+				log.Fatalf("[Node: %s] doesn't have parent", nodeProp.NodeName)
 			}
 
 			if parser.IsNexusNode(node) {
