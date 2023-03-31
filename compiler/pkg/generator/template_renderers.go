@@ -386,7 +386,9 @@ func RenderCRDBaseTemplate(baseGroupName string, pkg parser.Package, parentsMap 
 		groupName := pkg.Name + "." + baseGroupName
 		singular := strings.ToLower(typeName)
 		kind := cases.Title(language.Und, cases.NoLower).String(typeName)
-		plural := util.ToPlural(singular)
+		// plural := util.ToPlural(singular)
+		plural := strings.ToLower(util.ToPlural(typeName))
+		fmt.Printf("TypeName: %s, Plural:%s, singular: %s\n",typeName,plural,singular)
 		crdName := fmt.Sprintf("%s.%s", plural, groupName)
 
 		nexusAnnotation := &NexusAnnotation{}
