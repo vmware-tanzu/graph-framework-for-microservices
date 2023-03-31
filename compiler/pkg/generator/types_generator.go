@@ -76,6 +76,7 @@ func generateCRDStructType(pkg parser.Package, node *ast.TypeSpec) string {
 	}
 
 	s.CrdName = fmt.Sprintf("%s.%s.%s", util.ToPlural(strings.ToLower(s.Name)), strings.ToLower(pkg.Name), config.ConfigInstance.GroupName)
+	// s.CrdName = fmt.Sprintf("%s.%s.%s", strings.ToLower(util.ToPlural(s.Name)), strings.ToLower(pkg.Name), config.ConfigInstance.GroupName)
 
 	var crdTemplate = clientgen + "\n" + deepcopygen + "\n" + openapigen + `
 type {{.Name}} struct {
