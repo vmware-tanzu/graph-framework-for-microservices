@@ -452,8 +452,8 @@ func GenerateTsmGraphqlSchemaVars(baseGroupName, crdModulePath string, pkgs pars
 			nodeProp.GroupName = pkg.Name + "." + baseGroupName
 			nodeProp.Singular = strings.ToLower(typeName)
 			nodeProp.Kind = cases.Title(language.Und, cases.NoLower).String(typeName)
-			nodeProp.ResourceName = util.ToPlural(nodeProp.Singular)
-			// nodeProp.ResourceName = strings.ToLower(util.ToPlural(typeName))
+			// nodeProp.ResourceName = util.ToPlural(nodeProp.Singular)
+			nodeProp.ResourceName = strings.ToLower(util.ToPlural(typeName))
 			nodeProp.ResourceVersion = "v1"
 			// crdName := fmt.Sprintf("%s.%s", plural, groupName)
 
