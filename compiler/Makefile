@@ -155,7 +155,7 @@ preparser:
 	cp -R ${DATAMODEL_PATH} _tsm_temp
 	cp -R _generated_base_structure/* ${DATAMODEL_PATH}/build
 	@echo "Nexus Compiler: Running Preparser"
-	go run cmd/preparser/main.go -dsl _tsm_temp -output _generated -modpath ${PREPARSER_MODPATH}
+	go run cmd/preparser/main.go -config-file ${CONFIG_FILE} -dsl _tsm_temp -output _generated -modpath ${PREPARSER_MODPATH}
 	@echo "Nexus Compiler: Remove empty directories from model directory"
 	@find _generated/model -depth -type d -empty -delete
 
