@@ -2,6 +2,7 @@ package parser
 
 import (
 	"fmt"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/compiler/pkg/config"
 	"go/ast"
 	"go/parser"
 	"go/token"
@@ -40,6 +41,12 @@ func ParseDSLNodes(startPath string, baseGroupName string, packages Packages,
 			if info.Name() == "vendor" {
 				log.Infof("Ignoring vendor directory...")
 				return filepath.SkipDir
+			}
+			for _, f := range config.ConfigInstance.IgnoredDirs {
+				if info.Name() == f {
+					log.Infof(fmt.Sprintf("Ignoring %v directory from config", f))
+					return filepath.SkipDir
+				}
 			}
 			pkgs, err := parser.ParseDir(fileset, path, nil, parser.ParseComments)
 			if err != nil {
