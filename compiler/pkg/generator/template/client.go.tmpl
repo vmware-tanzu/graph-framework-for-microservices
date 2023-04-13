@@ -852,7 +852,7 @@ func (c *{{$node.GroupResourceType}}Chainer) RegisterAddCallback(cbfn func(obj *
             AddFunc: func(obj interface{}){
 				cbfn(&{{$node.SimpleGroupTypeName}}{{$node.BaseNodeName}}{
 					client: c.client,
-					Project: obj.(*{{$node.GroupBaseImport}}),
+					{{$node.BaseNodeName}}: obj.(*{{$node.GroupBaseImport}}),
 				})
             },
         })
@@ -863,7 +863,7 @@ func (c *{{$node.GroupResourceType}}Chainer) RegisterAddCallback(cbfn func(obj *
             AddFunc: func(obj interface{}){
 				cbfn(&{{$node.SimpleGroupTypeName}}{{$node.BaseNodeName}}{
 					client: c.client,
-					Project: obj.(*{{$node.GroupBaseImport}}),
+					{{$node.BaseNodeName}}: obj.(*{{$node.GroupBaseImport}}),
 				})
             },
 		})
@@ -885,7 +885,15 @@ func (c *{{$node.GroupResourceType}}Chainer) RegisterUpdateCallback(cbfn func(ol
         sub := s.(subscription)
         registrationId,err = sub.informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
             UpdateFunc: func(oldObj,newObj interface{}){
-                cbfn(oldObj.(*{{$node.GroupBaseImport}}),newObj.(*{{$node.GroupBaseImport}}))
+				oldData := &{{$node.SimpleGroupTypeName}}{{$node.BaseNodeName}}{
+					client: c.client,
+					{{$node.BaseNodeName}}: oldObj.(*{{$node.GroupBaseImport}}),
+				}
+				newData := &{{$node.SimpleGroupTypeName}}{{$node.BaseNodeName}}{
+					client: c.client,
+					{{$node.BaseNodeName}}: newObj.(*{{$node.GroupBaseImport}}),
+				}
+				cbfn(oldData,newData)
             },
         })
     } else {
@@ -895,11 +903,11 @@ func (c *{{$node.GroupResourceType}}Chainer) RegisterUpdateCallback(cbfn func(ol
             UpdateFunc: func(oldObj,newObj interface{}){
 				oldData := &{{$node.SimpleGroupTypeName}}{{$node.BaseNodeName}}{
 					client: c.client,
-					Project: oldObj.(*{{$node.GroupBaseImport}}),
+					{{$node.BaseNodeName}}: oldObj.(*{{$node.GroupBaseImport}}),
 				}
 				newData := &{{$node.SimpleGroupTypeName}}{{$node.BaseNodeName}}{
 					client: c.client,
-					Project: newObj.(*{{$node.GroupBaseImport}}),
+					{{$node.BaseNodeName}}: newObj.(*{{$node.GroupBaseImport}}),
 				}
 				cbfn(oldData,newData)
             },
@@ -924,7 +932,7 @@ func (c *{{$node.GroupResourceType}}Chainer) RegisterDeleteCallback(cbfn func(ob
             DeleteFunc: func(obj interface{}){
 				cbfn(&{{$node.SimpleGroupTypeName}}{{$node.BaseNodeName}}{
 					client: c.client,
-					Project: obj.(*{{$node.GroupBaseImport}}),
+					{{$node.BaseNodeName}}: obj.(*{{$node.GroupBaseImport}}),
 				})
 			},
         })
@@ -935,7 +943,7 @@ func (c *{{$node.GroupResourceType}}Chainer) RegisterDeleteCallback(cbfn func(ob
             DeleteFunc: func(obj interface{}){
 				cbfn(&{{$node.SimpleGroupTypeName}}{{$node.BaseNodeName}}{
 					client: c.client,
-					Project: obj.(*{{$node.GroupBaseImport}}),
+					{{$node.BaseNodeName}}: obj.(*{{$node.GroupBaseImport}}),
 				})
 			},
 		})
