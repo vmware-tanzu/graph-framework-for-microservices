@@ -17,6 +17,7 @@ import (
 	"encoding/json"
 	"sync"
 	"fmt"
+	"time"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	types "k8s.io/apimachinery/pkg/types"
@@ -850,10 +851,23 @@ func (c *{{$node.GroupResourceType}}Chainer) RegisterAddCallback(cbfn func(obj *
         sub := s.(subscription)
         registrationId,err = sub.informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
             AddFunc: func(obj interface{}){
-				cbfn(&{{$node.SimpleGroupTypeName}}{{$node.BaseNodeName}}{
-					client: c.client,
-					{{$node.BaseNodeName}}: obj.(*{{$node.GroupBaseImport}}),
-				})
+				nc := &{{$node.SimpleGroupTypeName}}{{$node.BaseNodeName}}{
+                    client: c.client,
+                    {{$node.BaseNodeName}}: obj.(*{{$node.GroupBaseImport}}),
+                }
+
+                {{if .Parent.HasParent}}
+                for i := 0; i < 3; i++ {
+                    parent, err := nc.GetParent(context.TODO())
+                    if err != nil || parent == nil {
+                        time.Sleep(500 * time.Millisecond)
+                        continue
+                    }
+                    break
+                }
+                {{end}}
+
+                cbfn(nc)
             },
         })
     } else {
@@ -861,10 +875,23 @@ func (c *{{$node.GroupResourceType}}Chainer) RegisterAddCallback(cbfn func(obj *
 		informer := {{$node.GroupInformerImport}}.New{{$node.BaseNodeName}}Informer(c.client.baseClient, 0, cache.Indexers{})
 		registrationId,err = informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
             AddFunc: func(obj interface{}){
-				cbfn(&{{$node.SimpleGroupTypeName}}{{$node.BaseNodeName}}{
-					client: c.client,
-					{{$node.BaseNodeName}}: obj.(*{{$node.GroupBaseImport}}),
-				})
+                nc := &{{$node.SimpleGroupTypeName}}{{$node.BaseNodeName}}{
+                    client: c.client,
+                    {{$node.BaseNodeName}}: obj.(*{{$node.GroupBaseImport}}),
+                }
+
+                {{if .Parent.HasParent}}
+                for i := 0; i < 3; i++ {
+                    parent, err := nc.GetParent(context.TODO())
+                    if err != nil || parent == nil {
+                        time.Sleep(500 * time.Millisecond)
+                        continue
+                    }
+                    break
+                }
+                {{end}}
+
+				cbfn(nc)
             },
 		})
 		go informer.Run(stopper)
