@@ -463,7 +463,8 @@ func GenerateTsmGraphqlSchemaVars(baseGroupName, crdModulePath string, pkgs pars
 			} else if pkg.Name == "tsm" {
 				continue
 			} else {
-				nodeProp.SchemaName = fmt.Sprintf("%s_%s", pkg.Name, parser.GetTypeName(node))
+				nodeProp.SchemaName = fmt.Sprintf("%s_%s",
+					cases.Title(language.Und, cases.NoLower).String(pkg.Name), parser.GetTypeName(node))
 			}
 			// Iterate each node's nexus fields and set its properties
 			tsmProcessNexusFields(pkg, aliasNameMap, node, nodeProp, simpleGroupTypeName, pkgs, gqlSpecMap)

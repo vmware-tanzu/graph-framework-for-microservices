@@ -292,6 +292,10 @@ func isRootOfGraph(parents []string, rootOfGraph bool) bool {
 }
 
 func getGraphqlSchemaName(pattern, fieldName, schemaType string, f *ast.Field) string {
+	if !strings.HasPrefix(schemaType, "global_") {
+		schemaType = cases.Title(language.Und, cases.NoLower).String(schemaType)
+	}
+
 	schemaName := fmt.Sprintf(pattern, fieldName, schemaType)
 	schemaType = strings.TrimPrefix(schemaType, "global_")
 	if parser.IsFieldAnnotationPresent(f, parser.GRAPHQL_ALIAS_TYPE_ANNOTATION) {
@@ -302,7 +306,9 @@ func getGraphqlSchemaName(pattern, fieldName, schemaType string, f *ast.Field) s
 		schemaName = fmt.Sprintf(pattern, getAliasFieldValue(fieldName, f), schemaType)
 	}
 
-	schemaName = strings.TrimPrefix(schemaName, "global_")
+	if strings.HasPrefix(schemaName, "global_") {
+		schemaName = strings.TrimPrefix(schemaName, "global_")
+	}
 
 	return schemaName
 }
