@@ -161,15 +161,22 @@ preparser:
 
 	@if [ -d "_tsm_temp/global" ]; then \
 		cp _tsm_temp/go.mod _tsm_temp/global/go.mod; \
-		for d in _tsm_temp/*/; do \
-			if [[ ! "$$d" == "_tsm_temp/global/" && ! "$$d" == "_tsm_temp/build/" ]]; then \
-			  cp -r "$$d" "_tsm_temp/global/"; \
-  			fi; \
-  		done; \
+		for dir in _tsm_temp/*; do \
+		  if [[ -d "$$dir" && "$$dir" != "_tsm_temp/global" && "$$dir" != "_tsm_temp/build" ]]; then \
+			cp -r "$$dir" _tsm_temp/global/; \
+		  fi; \
+		done; \
 		$(MAKE) generate_code DATAMODEL_PATH=_tsm_temp/global; \
 	else \
 		$(MAKE) generate_code; \
 	fi
+
+test_if:
+	for dir in _tsm_temp/*; do \
+	  if [[ -d "$$dir" && "$$dir" != "_tsm_temp/global" && "$$dir" != "_tsm_temp/build" ]]; then \
+		cp -r "$$dir" _tsm_temp/global/; \
+	  fi; \
+	done
 
 .PHONY: generate_code
 generate_code:
