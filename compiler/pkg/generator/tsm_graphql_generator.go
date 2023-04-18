@@ -237,17 +237,20 @@ func tsmProcessNonNexusFields(pkg parser.Package, aliasNameMap map[string]string
 		} else if parser.IsFieldAnnotationPresent(f, parser.GRAPHQL_ALIAS_TYPE_ANNOTATION) || parser.IsFieldAnnotationPresent(f, parser.GRAPHQL_ALIAS_NAME_ANNOTATION) {
 			fieldProp.SchemaFieldName = getTsmGraphqlSchemaFieldName(AliasType, fieldProp.FieldName, "", "", f, pkg, nonNexusTypes)
 			resField[nodeProp.PkgName+nodeProp.NodeName] = append(resField[nodeProp.PkgName+nodeProp.NodeName], fieldProp)
-		} else if parser.IsArrayField(f) {
-			arr := regexp.MustCompile(`^(\[])`).ReplaceAllString(typeString, "")
-			if !strings.Contains(arr, ".") {
-				stdType := convertGraphqlStdType(arr)
+		} else {
+			var stdType string
+			if parser.IsArrayField(f) {
+				stdType = convertGraphqlStdType(regexp.MustCompile(`^(\[])`).ReplaceAllString(typeString, ""))
+			} else {
+				stdType = convertGraphqlStdType(typeString)
+			}
+
+			// standard type with array
+			if len(stdType) != 0 && parser.IsArrayField(f) {
 				fieldProp.SchemaFieldName = getTsmGraphqlSchemaFieldName(Array, fieldProp.FieldName, stdType, "id: ID", f, pkg, nonNexusTypes)
 				resField[nodeProp.PkgName+nodeProp.NodeName] = append(resField[nodeProp.PkgName+nodeProp.NodeName], fieldProp)
-			}
-		} else {
-			stdType := convertGraphqlStdType(typeString)
-			// standard type
-			if len(stdType) != 0 {
+			} else if len(stdType) != 0 {
+				// standard type
 				fieldProp.IsStdTypeField = true
 				fieldProp.SchemaFieldName = getTsmGraphqlSchemaFieldName(Standard, fieldProp.FieldName, stdType, "id: ID", f, pkg, nonNexusTypes)
 				resField[nodeProp.PkgName+nodeProp.NodeName] = append(resField[nodeProp.PkgName+nodeProp.NodeName], fieldProp)
