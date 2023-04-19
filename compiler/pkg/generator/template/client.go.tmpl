@@ -156,6 +156,22 @@ func (group *{{$node.GroupTypeName}}) Get{{$node.BaseNodeName}}ByName(ctx contex
 	}
 }
 
+// ForceRead{{$node.BaseNodeName}}ByName read object directly from the database under the hashedName which is a hash of display
+// name and parents names. Use it when you know hashed name of object.
+func (group *{{$node.GroupTypeName}}) ForceRead{{$node.BaseNodeName}}ByName(ctx context.Context, hashedName string) (*{{$node.SimpleGroupTypeName}}{{$node.BaseNodeName}}, error) {
+	result, err := group.client.baseClient.
+	{{$node.GroupTypeName}}().
+	{{$node.GroupResourceNameTitle}}().Get(ctx, hashedName, metav1.GetOptions{})
+	if err != nil {
+		return nil, err
+	}
+
+	return &{{$node.SimpleGroupTypeName}}{{$node.BaseNodeName}}{
+		client: group.client,
+		{{$node.BaseNodeName}}: result,
+	}, nil
+}
+
 // Delete{{$node.BaseNodeName}}ByName deletes object stored in the database under the hashedName which is a hash of
 // display name and parents names. Use it when you know hashed name of object.
 func (group *{{$node.GroupTypeName}}) Delete{{$node.BaseNodeName}}ByName(ctx context.Context, hashedName string) (err error) {
