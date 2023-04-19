@@ -873,14 +873,52 @@ func (c *{{$node.GroupResourceType}}Chainer) RegisterAddCallback(cbfn func(obj *
                 }
 
                 {{if .Parent.HasParent}}
-                for i := 0; i < 3; i++ {
+				gvkExist := false
+                for i := 0; i < 600; i++ {
+                    // Check if parent exists
                     parent, err := nc.GetParent(context.TODO())
                     if err != nil || parent == nil {
                         time.Sleep(500 * time.Millisecond)
                         continue
                     }
+
+                    // Check GVK
+                    {{if .Parent.IsNamed}}
+					if _, ok := parent.Spec.{{.Parent.GoGvkFieldName}}[nc.DisplayName()]; !ok {
+						time.Sleep(500 * time.Millisecond)
+						continue
+					}
+                    {{else}}
+					if parent.Spec.{{.Parent.GoGvkFieldName}} == nil {
+						time.Sleep(500 * time.Millisecond)
+						continue
+					}
+                    {{end}}
+
+					gvkExist = true
+
                     break
                 }
+
+				if !gvkExist {
+					hashedName := helper.GetHashedName("{{.Parent.CrdName}}", nc.Labels, nc.Labels["{{.Parent.CrdName}}"])
+					parent, err := c.client.Global().ForceRead{{.Parent.BaseNodeName}}ByName(context.TODO(), hashedName)
+					if err != nil {
+						panic(fmt.Sprintf("parent not found for " + nc.DisplayName()))
+					}
+
+					// Check GVK
+					{{if .Parent.IsNamed}}
+					if _, ok := parent.Spec.{{.Parent.GoGvkFieldName}}[nc.DisplayName()]; !ok {
+						panic(fmt.Sprintf("gvk not found for " + nc.DisplayName()))
+					}
+					{{else}}
+					if parent.Spec.{{.Parent.GoGvkFieldName}} == nil {
+						panic(fmt.Sprintf("gvk not found for " + nc.DisplayName()))
+					}
+					{{end}}
+				}
+
                 {{end}}
 
                 cbfn(nc)
@@ -891,21 +929,59 @@ func (c *{{$node.GroupResourceType}}Chainer) RegisterAddCallback(cbfn func(obj *
 		informer := {{$node.GroupInformerImport}}.New{{$node.BaseNodeName}}Informer(c.client.baseClient, 0, cache.Indexers{})
 		registrationId,err = informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
             AddFunc: func(obj interface{}){
-                nc := &{{$node.SimpleGroupTypeName}}{{$node.BaseNodeName}}{
-                    client: c.client,
-                    {{$node.BaseNodeName}}: obj.(*{{$node.GroupBaseImport}}),
-                }
+				nc := &{{$node.SimpleGroupTypeName}}{{$node.BaseNodeName}}{
+					client: c.client,
+					{{$node.BaseNodeName}}: obj.(*{{$node.GroupBaseImport}}),
+				}
 
-                {{if .Parent.HasParent}}
-                for i := 0; i < 3; i++ {
-                    parent, err := nc.GetParent(context.TODO())
-                    if err != nil || parent == nil {
-                        time.Sleep(500 * time.Millisecond)
-                        continue
-                    }
-                    break
-                }
-                {{end}}
+				{{if .Parent.HasParent}}
+				gvkExist := false
+				for i := 0; i < 600; i++ {
+					// Check if parent exists
+					parent, err := nc.GetParent(context.TODO())
+					if err != nil || parent == nil {
+						time.Sleep(500 * time.Millisecond)
+						continue
+					}
+
+					// Check GVK
+					{{if .Parent.IsNamed}}
+					if _, ok := parent.Spec.{{.Parent.GoGvkFieldName}}[nc.DisplayName()]; !ok {
+						time.Sleep(500 * time.Millisecond)
+						continue
+					}
+					{{else}}
+					if parent.Spec.{{.Parent.GoGvkFieldName}} == nil {
+						time.Sleep(500 * time.Millisecond)
+						continue
+					}
+					{{end}}
+
+					gvkExist = true
+
+					break
+				}
+
+				if !gvkExist {
+					hashedName := helper.GetHashedName("{{.Parent.CrdName}}", nc.Labels, nc.Labels["{{.Parent.CrdName}}"])
+					parent, err := c.client.Global().ForceRead{{.Parent.BaseNodeName}}ByName(context.TODO(), hashedName)
+					if err != nil {
+						panic(fmt.Sprintf("parent not found for " + nc.DisplayName()))
+					}
+
+					// Check GVK
+					{{if .Parent.IsNamed}}
+					if _, ok := parent.Spec.{{.Parent.GoGvkFieldName}}[nc.DisplayName()]; !ok {
+						panic(fmt.Sprintf("gvk not found for " + nc.DisplayName()))
+					}
+					{{else}}
+					if parent.Spec.{{.Parent.GoGvkFieldName}} == nil {
+						panic(fmt.Sprintf("gvk not found for " + nc.DisplayName()))
+					}
+					{{end}}
+				}
+
+				{{end}}
 
 				cbfn(nc)
             },
