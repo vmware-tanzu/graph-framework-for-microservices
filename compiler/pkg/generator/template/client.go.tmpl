@@ -873,6 +873,7 @@ func (c *{{$node.GroupResourceType}}Chainer) RegisterAddCallback(cbfn func(obj *
                 }
 
                 {{if .Parent.HasParent}}
+				parentExist := false
 				gvkExist := false
                 for i := 0; i < 600; i++ {
                     // Check if parent exists
@@ -881,6 +882,7 @@ func (c *{{$node.GroupResourceType}}Chainer) RegisterAddCallback(cbfn func(obj *
                         time.Sleep(500 * time.Millisecond)
                         continue
                     }
+					parentExist = true
 
                     // Check GVK
                     {{if .Parent.IsNamed}}
@@ -900,23 +902,35 @@ func (c *{{$node.GroupResourceType}}Chainer) RegisterAddCallback(cbfn func(obj *
                     break
                 }
 
+				if !parentExist {
+					hashedName := helper.GetHashedName("{{.Parent.CrdName}}", nc.Labels, nc.Labels["{{.Parent.CrdName}}"])
+					_, err := c.client.Global().ForceRead{{.Parent.BaseNodeName}}ByName(context.TODO(), hashedName)
+					if err != nil {
+						return
+					}
+
+					panic(fmt.Sprintf("parent found (event loop is stalled) " + nc.DisplayName()))
+				}
+
 				if !gvkExist {
 					hashedName := helper.GetHashedName("{{.Parent.CrdName}}", nc.Labels, nc.Labels["{{.Parent.CrdName}}"])
 					parent, err := c.client.Global().ForceRead{{.Parent.BaseNodeName}}ByName(context.TODO(), hashedName)
 					if err != nil {
-						panic(fmt.Sprintf("parent not found for " + nc.DisplayName()))
+						return
 					}
 
 					// Check GVK
 					{{if .Parent.IsNamed}}
 					if _, ok := parent.Spec.{{.Parent.GoGvkFieldName}}[nc.DisplayName()]; !ok {
-						panic(fmt.Sprintf("gvk not found for " + nc.DisplayName()))
+						return
 					}
 					{{else}}
 					if parent.Spec.{{.Parent.GoGvkFieldName}} == nil {
-						panic(fmt.Sprintf("gvk not found for " + nc.DisplayName()))
+						return
 					}
 					{{end}}
+
+					panic(fmt.Sprintf("gvk found (event loop is stalled) " + nc.DisplayName()))
 				}
 
                 {{end}}
@@ -935,6 +949,7 @@ func (c *{{$node.GroupResourceType}}Chainer) RegisterAddCallback(cbfn func(obj *
 				}
 
 				{{if .Parent.HasParent}}
+				parentExist := false
 				gvkExist := false
 				for i := 0; i < 600; i++ {
 					// Check if parent exists
@@ -943,12 +958,13 @@ func (c *{{$node.GroupResourceType}}Chainer) RegisterAddCallback(cbfn func(obj *
 						time.Sleep(500 * time.Millisecond)
 						continue
 					}
+					parentExist = true
 
 					// Check GVK
 					{{if .Parent.IsNamed}}
-					if _, ok := parent.Spec.{{.Parent.GoGvkFieldName}}[nc.DisplayName()]; !ok {
+						if _, ok := parent.Spec.{{.Parent.GoGvkFieldName}}[nc.DisplayName()]; !ok {
 						time.Sleep(500 * time.Millisecond)
-						continue
+					continue
 					}
 					{{else}}
 					if parent.Spec.{{.Parent.GoGvkFieldName}} == nil {
@@ -962,25 +978,36 @@ func (c *{{$node.GroupResourceType}}Chainer) RegisterAddCallback(cbfn func(obj *
 					break
 				}
 
+				if !parentExist {
+					hashedName := helper.GetHashedName("{{.Parent.CrdName}}", nc.Labels, nc.Labels["{{.Parent.CrdName}}"])
+					_, err := c.client.Global().ForceRead{{.Parent.BaseNodeName}}ByName(context.TODO(), hashedName)
+					if err != nil {
+						return
+					}
+
+					panic(fmt.Sprintf("parent found (event loop is stalled) " + nc.DisplayName()))
+				}
+
 				if !gvkExist {
 					hashedName := helper.GetHashedName("{{.Parent.CrdName}}", nc.Labels, nc.Labels["{{.Parent.CrdName}}"])
 					parent, err := c.client.Global().ForceRead{{.Parent.BaseNodeName}}ByName(context.TODO(), hashedName)
 					if err != nil {
-						panic(fmt.Sprintf("parent not found for " + nc.DisplayName()))
+						return
 					}
 
 					// Check GVK
 					{{if .Parent.IsNamed}}
 					if _, ok := parent.Spec.{{.Parent.GoGvkFieldName}}[nc.DisplayName()]; !ok {
-						panic(fmt.Sprintf("gvk not found for " + nc.DisplayName()))
+						return
 					}
 					{{else}}
 					if parent.Spec.{{.Parent.GoGvkFieldName}} == nil {
-						panic(fmt.Sprintf("gvk not found for " + nc.DisplayName()))
+						return
 					}
 					{{end}}
-				}
 
+					panic(fmt.Sprintf("gvk found (event loop is stalled) " + nc.DisplayName()))
+				}
 				{{end}}
 
 				cbfn(nc)
