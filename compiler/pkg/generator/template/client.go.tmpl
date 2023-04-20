@@ -868,57 +868,53 @@ func (c *{{$node.GroupResourceType}}Chainer) RegisterAddCallback(cbfn func(obj *
         registrationId,err = sub.informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
             AddFunc: func(obj interface{}){
 				nc := &{{$node.SimpleGroupTypeName}}{{$node.BaseNodeName}}{
-                    client: c.client,
-                    {{$node.BaseNodeName}}: obj.(*{{$node.GroupBaseImport}}),
-                }
+				client: c.client,
+					{{$node.BaseNodeName}}: obj.(*{{$node.GroupBaseImport}}),
+				}
 
-                {{if .Parent.HasParent}}
-				parentExist := false
+				{{if .Parent.HasParent}}
+				var parent *{{.Parent.SimpleGroupTypeName}}{{.Parent.BaseNodeName}}
 				gvkExist := false
-                for i := 0; i < 600; i++ {
-                    // Check if parent exists
-                    parent, err := nc.GetParent(context.TODO())
-                    if err != nil || parent == nil {
-                        time.Sleep(500 * time.Millisecond)
-                        continue
-                    }
-					parentExist = true
+				for i := 0; i < 600; i++ {
+					// Check if parent exists
+					parent, err := nc.GetParent(context.TODO())
+					if err != nil || parent == nil {
+						time.Sleep(500 * time.Millisecond)
+						continue
+					}
 
-                    // Check GVK
-                    {{if .Parent.IsNamed}}
+					// Check GVK
+					{{if .Parent.IsNamed}}
 					if _, ok := parent.Spec.{{.Parent.GoGvkFieldName}}[nc.DisplayName()]; !ok {
 						time.Sleep(500 * time.Millisecond)
 						continue
 					}
-                    {{else}}
+					{{else}}
 					if parent.Spec.{{.Parent.GoGvkFieldName}} == nil {
 						time.Sleep(500 * time.Millisecond)
 						continue
 					}
-                    {{end}}
+					{{end}}
 
 					gvkExist = true
 
-                    break
-                }
+					break
+				}
 
-				if !parentExist {
+				if parent == nil {
 					hashedName := helper.GetHashedName("{{.Parent.CrdName}}", nc.Labels, nc.Labels["{{.Parent.CrdName}}"])
-					_, err := c.client.Global().ForceRead{{.Parent.BaseNodeName}}ByName(context.TODO(), hashedName)
+					parent, err = c.client.Global().ForceRead{{.Parent.BaseNodeName}}ByName(context.TODO(), hashedName)
 					if err != nil {
-						return
-					}
+						if errors.IsNotFound(err) {
+							return
+						}
 
+						panic("error occurred while fetching parent " + err.Error())
+					}
 					panic(fmt.Sprintf("parent found (event loop is stalled) " + nc.DisplayName()))
 				}
 
 				if !gvkExist {
-					hashedName := helper.GetHashedName("{{.Parent.CrdName}}", nc.Labels, nc.Labels["{{.Parent.CrdName}}"])
-					parent, err := c.client.Global().ForceRead{{.Parent.BaseNodeName}}ByName(context.TODO(), hashedName)
-					if err != nil {
-						return
-					}
-
 					// Check GVK
 					{{if .Parent.IsNamed}}
 					if _, ok := parent.Spec.{{.Parent.GoGvkFieldName}}[nc.DisplayName()]; !ok {
@@ -929,13 +925,11 @@ func (c *{{$node.GroupResourceType}}Chainer) RegisterAddCallback(cbfn func(obj *
 						return
 					}
 					{{end}}
-
 					panic(fmt.Sprintf("gvk found (event loop is stalled) " + nc.DisplayName()))
 				}
+				{{end}}
 
-                {{end}}
-
-                cbfn(nc)
+				cbfn(nc)
             },
         })
     } else {
@@ -949,7 +943,7 @@ func (c *{{$node.GroupResourceType}}Chainer) RegisterAddCallback(cbfn func(obj *
 				}
 
 				{{if .Parent.HasParent}}
-				parentExist := false
+				var parent *{{.Parent.SimpleGroupTypeName}}{{.Parent.BaseNodeName}}
 				gvkExist := false
 				for i := 0; i < 600; i++ {
 					// Check if parent exists
@@ -958,7 +952,6 @@ func (c *{{$node.GroupResourceType}}Chainer) RegisterAddCallback(cbfn func(obj *
 						time.Sleep(500 * time.Millisecond)
 						continue
 					}
-					parentExist = true
 
 					// Check GVK
 					{{if .Parent.IsNamed}}
@@ -978,23 +971,20 @@ func (c *{{$node.GroupResourceType}}Chainer) RegisterAddCallback(cbfn func(obj *
 					break
 				}
 
-				if !parentExist {
+				if parent == nil {
 					hashedName := helper.GetHashedName("{{.Parent.CrdName}}", nc.Labels, nc.Labels["{{.Parent.CrdName}}"])
-					_, err := c.client.Global().ForceRead{{.Parent.BaseNodeName}}ByName(context.TODO(), hashedName)
+					parent, err = c.client.Global().ForceRead{{.Parent.BaseNodeName}}ByName(context.TODO(), hashedName)
 					if err != nil {
-						return
-					}
+						if errors.IsNotFound(err) {
+							return
+						}
 
+						panic("error occurred while fetching parent " + err.Error())
+					}
 					panic(fmt.Sprintf("parent found (event loop is stalled) " + nc.DisplayName()))
 				}
 
 				if !gvkExist {
-					hashedName := helper.GetHashedName("{{.Parent.CrdName}}", nc.Labels, nc.Labels["{{.Parent.CrdName}}"])
-					parent, err := c.client.Global().ForceRead{{.Parent.BaseNodeName}}ByName(context.TODO(), hashedName)
-					if err != nil {
-						return
-					}
-
 					// Check GVK
 					{{if .Parent.IsNamed}}
 					if _, ok := parent.Spec.{{.Parent.GoGvkFieldName}}[nc.DisplayName()]; !ok {
