@@ -36,9 +36,10 @@ type NodeHelper struct {
 }
 
 type NodeHelperChild struct {
-	FieldName    string `json:"fieldName"`
-	FieldNameGvk string `json:"fieldNameGvk"`
-	IsNamed      bool   `json:"isNamed"`
+	FieldName      string `json:"fieldName"`
+	FieldNameGvk   string `json:"fieldNameGvk"`
+	GoFieldNameGvk string `json:"goFieldNameGvk"`
+	IsNamed        bool   `json:"isNamed"`
 }
 
 type NonNexusTypes struct {
