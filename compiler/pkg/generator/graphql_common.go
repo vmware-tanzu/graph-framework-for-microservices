@@ -90,6 +90,7 @@ type NodeProperty struct {
 	Kind                   string
 	ResourceName           string
 	ResourceVersion        string
+	Singleton              string
 	ChildFields            []FieldProperty
 	LinkFields             []FieldProperty
 	ChildrenFields         []FieldProperty
