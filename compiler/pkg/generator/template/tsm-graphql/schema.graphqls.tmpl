@@ -1,7 +1,7 @@
 {{- range $key, $node := .Nodes }}
 {{- if $node.IsNexusNode }}
 {{ $length := len $node.GraphqlSchemaFields }}{{- if eq $length 0 }}{{- else }}
-type {{ $node.SchemaName }} @nexus(group:"{{ $node.GroupName}}",version:"{{ $node.ResourceVersion}}",kind:"{{ $node.Kind}}",resource:"{{ $node.ResourceName}}",name:"{{ $node.NodeName}}",crdName:"{{ $node.CrdName}}"){
+type {{ $node.SchemaName }} @nexus(group:"{{ $node.GroupName}}",version:"{{ $node.ResourceVersion}}",kind:"{{ $node.Kind}}",resource:"{{ $node.ResourceName}}",name:"{{ $node.NodeName}}",crdName:"{{ $node.CrdName}}",singleton:"{{ $node.Singleton}}"){
     {{- range $key, $field := $node.GraphqlSchemaFields }}
     {{- if $field.SchemaFieldName }}
     {{ $field.SchemaFieldName -}}
