@@ -53,6 +53,7 @@ func tsmPopulateValuesForEachNode(nodes []*NodeProperty, linkAPI map[string]stri
 		resNodeProp.ResourceName = n.ResourceName
 		resNodeProp.ResourceVersion = n.ResourceVersion
 		resNodeProp.CrdName = n.CrdName
+		resNodeProp.Singleton = n.Singleton
 
 		// populate return values for root of the graph
 		if !n.HasParent && n.IsParentNode {
@@ -459,6 +460,12 @@ func GenerateTsmGraphqlSchemaVars(baseGroupName, crdModulePath string, pkgs pars
 			nodeProp.ResourceName = strings.ToLower(util.ToPlural(typeName))
 			nodeProp.ResourceVersion = "v1"
 			// crdName := fmt.Sprintf("%s.%s", plural, groupName)
+			if parser.IsSingletonNode(node) {
+				nodeProp.IsSingletonNode = true
+				nodeProp.Singleton = "true"
+			} else {
+				nodeProp.Singleton = "false"
+			}
 
 			setNexusProperties(nodeHelper, node, nodeProp)
 			if pkg.Name == "global" {
