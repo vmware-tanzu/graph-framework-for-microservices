@@ -877,11 +877,12 @@ func (c *{{$node.GroupResourceType}}Chainer) RegisterAddCallback(cbfn func(obj *
 				gvkExist := false
 				for i := 0; i < 600; i++ {
 					// Check if parent exists
-					parent, err = nc.GetParent(context.TODO())
-					if err != nil || parent == nil {
+					p, err := nc.GetParent(context.TODO())
+					if err != nil || p == nil {
 						time.Sleep(500 * time.Millisecond)
 						continue
 					}
+					parent = p
 
 					// Check GVK
 					{{if .Parent.IsNamed}}
@@ -947,11 +948,12 @@ func (c *{{$node.GroupResourceType}}Chainer) RegisterAddCallback(cbfn func(obj *
 				gvkExist := false
 				for i := 0; i < 600; i++ {
 					// Check if parent exists
-					parent, err = nc.GetParent(context.TODO())
-					if err != nil || parent == nil {
+					p, err := nc.GetParent(context.TODO())
+					if err != nil || p == nil {
 						time.Sleep(500 * time.Millisecond)
 						continue
 					}
+					parent = p
 
 					// Check GVK
 					{{if .Parent.IsNamed}}
@@ -1076,11 +1078,12 @@ func (c *{{$node.GroupResourceType}}Chainer) RegisterDeleteCallback(cbfn func(ob
 				gvkExist := true
 				for i := 0; i < 600; i++ {
 					// Check if parent exists
-					parent, err = nc.GetParent(context.TODO())
-					if err != nil || parent == nil {
+					p, err := nc.GetParent(context.TODO())
+					if err != nil || p == nil {
 						time.Sleep(500 * time.Millisecond)
 						continue
 					}
+					parent = p
 
 					// Check GVK
 					{{if .Parent.IsNamed}}
@@ -1144,11 +1147,12 @@ func (c *{{$node.GroupResourceType}}Chainer) RegisterDeleteCallback(cbfn func(ob
 				gvkExist := true
 				for i := 0; i < 600; i++ {
 					// Check if parent exists
-					parent, err = nc.GetParent(context.TODO())
-					if err != nil || parent == nil {
+					p, err := nc.GetParent(context.TODO())
+					if err != nil || p == nil {
 						time.Sleep(500 * time.Millisecond)
 						continue
 					}
+					parent = p
 
 					// Check GVK
 					{{if .Parent.IsNamed}}
