@@ -11,29 +11,30 @@ NAMESPACE ?= ""
 FORCE ?= false
 
 # values for nexus datamodel upgrade
-FORCE ?= false
-DEFAULT_PREV_SPEC_BRANCH ?= $(shell git rev-parse --abbrev-ref HEAD 2>/dev/null)
-PREV_SPEC_BRANCH ?= ""
-DEFAULT_PREV_SPEC_DIR ?= ${BUILD_DIR}/crds
-PREV_SPEC_DIR ?= ""
-ABSOLUTE_PATH_SPEC_DIR ?= $(shell realpath ${PREV_SPEC_DIR})
-ABSOLUTE_PATH_BUILD_DIR ?= $(shell realpath .)/${BUILD_DIR}/crds
-USER_DEFINED_BRANCH ?= ""
-USER_DEFINED_DIRECTORY ?= ""
+FORCE ?= true
 
-ifeq (,$(shell echo ${PREV_SPEC_BRANCH}))
-USER_DEFINED_BRANCH=false
-PREV_SPEC_BRANCH=${DEFAULT_PREV_SPEC_BRANCH}
-else
-USER_DEFINED_BRANCH=true
+ifeq (,$(shell echo ${ARTIFACT_REPO}))
+ARTIFACT_REPO = $(shell cat nexus.yaml | grep artifactRepo | awk '{print $$2}' | tr -d '"')
 endif
 
-ifeq (,$(shell echo ${PREV_SPEC_DIR}))
-USER_DEFINED_DIRECTORY=false
-PREV_SPEC_DIR=${DEFAULT_PREV_SPEC_DIR}
-ABSOLUTE_PATH_SPEC_DIR ?= $(shell realpath ${PREV_SPEC_DIR})
+ifneq (,$(shell echo ${PREV_SPEC_BRANCH}))
+# backward compatability check is required.
+FORCE=false
+
+# check if ARTIFACT_REPO is configured
+ifeq (,$(shell echo ${ARTIFACT_REPO}))
+# Error and exit because user provided the branch and artifact repo details are not available
+$(error Unable to determine ARTIFACT_REPO to validate backward compatibility with ${PREV_SPEC_BRANCH} branch)
+endif
+
+TARGET_REPO_NAME = $(shell echo ${ARTIFACT_REPO} | awk -F'/' '{print $$2}' | tr -d '"'| awk -F'.git' '{print $$1}')
+
+ifeq (,$(shell echo $(shell realpath ${TARGET_REPO_NAME}/crds)))
+ARTIFACT_REPO_GITCMD=$(shell echo git clone $(shell echo ${ARTIFACT_REPO}) --branch $(shell echo ${PREV_SPEC_BRANCH}) --single-branch $(shell echo ${TARGET_REPO_NAME}))
 else
-USER_DEFINED_DIRECTORY=true
+ARTIFACT_REPO_GITCMD=$(shell echo git -C $(shell realpath ${TARGET_REPO_NAME}) pull origin $(shell echo ${PREV_SPEC_BRANCH}))
+endif
+
 endif
 
 ifeq ($(DOCKER_REPO),)
@@ -46,30 +47,19 @@ endif
 
 .PHONY: datamodel_build
 datamodel_build:
-	@echo "USER_DEFINED_BRANCH: ${USER_DEFINED_BRANCH} , USER_DEFINED_DIRECTORY: ${USER_DEFINED_DIRECTORY}"
-	@echo "CRD and API Generated Output Directory: ${BUILD_DIR}"
-	@echo "OPENAPISpec Generated Output Directory: ${BUILD_DIR}/crds/"
-	@echo "PREV_SPEC_DIR of Generated Output Directory: ${PREV_SPEC_DIR}"
-	@echo "PREV_SPEC_BRANCH of Generated Output Directory: ${PREV_SPEC_BRANCH}"
 	mkdir -p ${BUILD_DIR}
-	if find "${ABSOLUTE_PATH_SPEC_DIR}" -mindepth 1 -maxdepth 1 ; then \
-		cd ${ABSOLUTE_PATH_SPEC_DIR}/.. &&\
-		if git ls-tree ${PREV_SPEC_BRANCH} ${ABSOLUTE_PATH_SPEC_DIR} --name-only 2>/dev/null ; then \
-			cd ${ABSOLUTE_PATH_SPEC_DIR} && git checkout ${PREV_SPEC_BRANCH} . ;\
-		elif  [ ${USER_DEFINED_BRANCH} = true ] ; then \
-			echo "Failed to checkout Directory: ${PREV_SPEC_DIR} from ${PREV_SPEC_BRANCH} ";\
-			exit 1; \
-		fi ;\
-		if [ ${ABSOLUTE_PATH_SPEC_DIR} = ${ABSOLUTE_PATH_BUILD_DIR} ] ; then \
-			echo "Skipping copy of ${ABSOLUTE_PATH_SPEC_DIR} to ${ABSOLUTE_PATH_BUILD_DIR} directory since both are the same"; \
-		else \
-			cp -rf ${ABSOLUTE_PATH_SPEC_DIR}/ ${ABSOLUTE_PATH_BUILD_DIR} ;\
-			echo "Copying of ${ABSOLUTE_PATH_SPEC_DIR} to the destination directory ${ABSOLUTE_PATH_BUILD_DIR}"; \
-		fi ;\
-	elif [ ${USER_DEFINED_DIRECTORY} = true ]; then \
-		echo "Please provide a valid artifact directory "; \
-		exit 1; \
-	fi
+	@echo "FORCE: ${FORCE}"
+	@echo "PREV_SPEC_BRANCH: ${PREV_SPEC_BRANCH}"
+	@echo "ARTIFACT_REPO: ${ARTIFACT_REPO}"
+	@echo "TARGET_REPO_NAME: ${TARGET_REPO_NAME}"
+	@echo "ARTIFACT_REPO_GITCMD: ${ARTIFACT_REPO_GITCMD}"
+
+	if [ ${FORCE} = false ] ; then \
+        		bash -c "${ARTIFACT_REPO_GITCMD}";\
+          		cp -rf ${TARGET_REPO_NAME}/crds ${BUILD_DIR} ;\
+            	echo "Copying of ${TARGET_REPO_NAME}/crds to the destination directory ${BUILD_DIR}/crds"; \
+    fi ;\
+
 	if [ -z $(CONTAINER_ID) ]; then \
 		docker run --pull=missing\
 			--volume $(realpath .):/go/src/github.com/vmware-tanzu/graph-framework-for-microservices/compiler/datamodel/ \
