@@ -24,6 +24,7 @@ data:
       certPath: "/etc/cert/cert.pem"
       keyPath: "/etc/cert/key.pem"
     enable_nexus_runtime: {{.Values.global.runtimeEnabled}}
+    backend_service: "http://tenant-api-gw:3000"
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -150,6 +151,8 @@ spec:
             - mountPath: /etc/cert
               name: cert-volume
               readOnly: false
+            - mountPath: /openapi
+              name: nexus-openapi
       volumes:
         - name: config
           configMap:
@@ -157,6 +160,11 @@ spec:
         - name: cert-volume
           secret:
             secretName: api-gw-server-cert
+            optional: true
+        - name: nexus-openapi
+          configMap:
+            defaultMode: 420
+            name: nexus-openapi
             optional: true
       {{- if ne .Values.global.imagepullsecret "" }}
       imagePullSecrets:
