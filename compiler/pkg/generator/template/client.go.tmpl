@@ -854,6 +854,159 @@ func (c *{{$node.GroupResourceType}}Chainer) IsSubscribed() bool {
 	 return ok
 }
 
+func (c *{{$node.GroupResourceType}}Chainer) RegisterEventHandler(addCB func(obj *{{$node.SimpleGroupTypeName}}{{$node.BaseNodeName}}), updateCB func(oldObj, newObj *{{$node.SimpleGroupTypeName}}{{$node.BaseNodeName}}), deleteCB func(obj *{{$node.SimpleGroupTypeName}}{{$node.BaseNodeName}})) (cache.ResourceEventHandlerRegistration, error) {
+	fmt.Println("RegisterEventHandler for {{$node.SimpleGroupTypeName}}{{$node.BaseNodeName}}")
+	var (
+		registrationId cache.ResourceEventHandlerRegistration
+		err            error
+	    informer cache.SharedIndexInformer
+	)
+	key := "{{$node.CrdName}}"
+	stopper := make(chan struct{})
+	if s, ok := subscriptionMap.Load(key); ok {
+		fmt.Println("Informer exists for {{$node.SimpleGroupTypeName}}{{$node.BaseNodeName}}")
+		sub := s.(subscription)
+		informer = sub.informer
+	} else {
+		fmt.Println("Informer doesn't exists for {{$node.SimpleGroupTypeName}}{{$node.BaseNodeName}}, so creating a new one")
+		informer = {{$node.GroupInformerImport}}.New{{$node.BaseNodeName}}Informer(c.client.baseClient, 0, cache.Indexers{})
+		go informer.Run(stopper)
+		subscribe(key, informer)
+	}
+	registrationId, err = informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
+		AddFunc: func(obj interface{}){
+			nc := &{{$node.SimpleGroupTypeName}}{{$node.BaseNodeName}}{
+			client: c.client,
+				{{$node.BaseNodeName}}: obj.(*{{$node.GroupBaseImport}}),
+			}
+			{{if .Parent.HasParent}}
+			var parent *{{.Parent.SimpleGroupTypeName}}{{.Parent.BaseNodeName}}
+			gvkExist := false
+			for i := 0; i < 600; i++ {
+				// Check if parent exists
+				p, err := nc.GetParent(context.TODO())
+				if err != nil || p == nil {
+					time.Sleep(500 * time.Millisecond)
+					continue
+				}
+				parent = p
+				// Check GVK
+				{{if .Parent.IsNamed}}
+				if _, ok := parent.Spec.{{.Parent.GoGvkFieldName}}[nc.DisplayName()]; !ok {
+					time.Sleep(500 * time.Millisecond)
+					continue
+				}
+				{{else}}
+				if parent.Spec.{{.Parent.GoGvkFieldName}} == nil {
+					time.Sleep(500 * time.Millisecond)
+					continue
+				}
+				{{end}}
+				gvkExist = true
+				break
+			}
+			if parent == nil {
+				hashedName := helper.GetHashedName("{{.Parent.CrdName}}", nc.Labels, nc.Labels["{{.Parent.CrdName}}"])
+				parent, err = c.client.Global().ForceRead{{.Parent.BaseNodeName}}ByName(context.TODO(), hashedName)
+				if err != nil {
+					if errors.IsNotFound(err) {
+						return
+					}
+					panic("error occurred while fetching parent " + err.Error())
+				}
+				panic(fmt.Sprintf("parent found (event loop is stalled) " + nc.DisplayName()))
+			}
+			if !gvkExist {
+				// Check GVK
+				{{if .Parent.IsNamed}}
+				if _, ok := parent.Spec.{{.Parent.GoGvkFieldName}}[nc.DisplayName()]; !ok {
+					return
+				}
+				{{else}}
+				if parent.Spec.{{.Parent.GoGvkFieldName}} == nil {
+					return
+				}
+				{{end}}
+				panic(fmt.Sprintf("gvk found (event loop is stalled) " + nc.DisplayName()))
+			}
+			{{end}}
+			addCB(nc)
+		},
+
+		UpdateFunc: func(oldObj,newObj interface{}){
+			oldData := &{{$node.SimpleGroupTypeName}}{{$node.BaseNodeName}}{
+				client: c.client,
+				{{$node.BaseNodeName}}: oldObj.(*{{$node.GroupBaseImport}}),
+			}
+			newData := &{{$node.SimpleGroupTypeName}}{{$node.BaseNodeName}}{
+				client: c.client,
+				{{$node.BaseNodeName}}: newObj.(*{{$node.GroupBaseImport}}),
+			}
+			updateCB(oldData,newData)
+        },
+
+		DeleteFunc: func(obj interface{}){
+			nc := &{{$node.SimpleGroupTypeName}}{{$node.BaseNodeName}}{
+			client: c.client,
+				{{$node.BaseNodeName}}: obj.(*{{$node.GroupBaseImport}}),
+			}
+			{{if .Parent.HasParent}}
+			var parent *{{.Parent.SimpleGroupTypeName}}{{.Parent.BaseNodeName}}
+			gvkExist := true
+			for i := 0; i < 600; i++ {
+				// Check if parent exists
+				p, err := nc.GetParent(context.TODO())
+				if err != nil || p == nil {
+					time.Sleep(500 * time.Millisecond)
+					continue
+				}
+				parent = p
+				// Check GVK
+				{{if .Parent.IsNamed}}
+				if _, ok := parent.Spec.{{.Parent.GoGvkFieldName}}[nc.DisplayName()]; ok {
+					time.Sleep(500 * time.Millisecond)
+					continue
+				}
+				{{else}}
+				if parent.Spec.{{.Parent.GoGvkFieldName}} != nil {
+					time.Sleep(500 * time.Millisecond)
+					continue
+				}
+				{{end}}
+				gvkExist = false
+				break
+			}
+			if parent == nil {
+				hashedName := helper.GetHashedName("{{.Parent.CrdName}}", nc.Labels, nc.Labels["{{.Parent.CrdName}}"])
+				parent, err = c.client.Global().ForceRead{{.Parent.BaseNodeName}}ByName(context.TODO(), hashedName)
+				if err != nil {
+					if errors.IsNotFound(err) {
+						return
+					}
+					panic("error occurred while fetching parent " + err.Error())
+				}
+				panic(fmt.Sprintf("parent found (event loop is stalled) " + nc.DisplayName()))
+			}
+			if gvkExist {
+				// Check GVK
+				{{if .Parent.IsNamed}}
+				if _, ok := parent.Spec.{{.Parent.GoGvkFieldName}}[nc.DisplayName()]; ok {
+					return
+				}
+				{{else}}
+				if parent.Spec.{{.Parent.GoGvkFieldName}} != nil {
+					return
+				}
+				{{end}}
+				panic(fmt.Sprintf("gvk not found (event loop is stalled) " + nc.DisplayName()))
+			}
+			{{end}}
+			deleteCB(nc)
+		},
+	})
+	return registrationId, err
+}
+
 func (c *{{$node.GroupResourceType}}Chainer) RegisterAddCallback(cbfn func(obj *{{$node.SimpleGroupTypeName}}{{$node.BaseNodeName}})) (cache.ResourceEventHandlerRegistration, error){
 	fmt.Println("{{$node.SimpleGroupTypeName}}{{$node.BaseNodeName}} -->  RegisterAddCallback!")
 	var (
