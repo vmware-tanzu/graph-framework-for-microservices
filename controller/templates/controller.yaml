@@ -3,7 +3,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: nexus-controller-kubeconfig-local
-  namespace: {{.Values.global.namespace}}
+  namespace: {{default  .Release.Namespace .Values.global.namespace}}
 data:
   kubeconfig: |
     current-context: localapiserver
@@ -24,7 +24,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: nexus-connect-controller
-  namespace: {{.Values.global.namespace}}
+  namespace: {{default  .Release.Namespace .Values.global.namespace}}
   labels:
     control-plane: connect-controller
 spec:
@@ -112,8 +112,8 @@ spec:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
-  name: nexus-controller-role-{{.Values.global.namespace}}
-  namespace: {{.Values.global.namespace}}
+  name: nexus-controller-role-{{default  .Release.Namespace .Values.global.namespace}}
+  namespace: {{default  .Release.Namespace .Values.global.namespace}}
 rules:
 - apiGroups:
   - "apps"
@@ -132,14 +132,14 @@ rules:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
-  name: nexus-controller-rb-{{.Values.global.namespace}}
-  namespace: {{.Values.global.namespace}}
+  name: nexus-controller-rb-{{default  .Release.Namespace .Values.global.namespace}}
+  namespace: {{default  .Release.Namespace .Values.global.namespace}}
 subjects:
 - kind: ServiceAccount
   name: default 
-  namespace: {{.Values.global.namespace}}
+  namespace: {{default  .Release.Namespace .Values.global.namespace}}
 roleRef:
   kind: Role
-  name: nexus-controller-role-{{.Values.global.namespace}}
+  name: nexus-controller-role-{{default  .Release.Namespace .Values.global.namespace}}
   apiGroup: rbac.authorization.k8s.io
 {{end}}

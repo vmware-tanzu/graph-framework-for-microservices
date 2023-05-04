@@ -1,4 +1,4 @@
-FROM harbor-repo.vmware.com/nexus/golang:1.18
+FROM harbor-repo.vmware.com/nexus/golang:1.19
 
 ENV GOPATH /go
 ENV PATH $PATH:/usr/local/go/bin:/go/bin
