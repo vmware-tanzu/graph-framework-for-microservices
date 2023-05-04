@@ -2,7 +2,7 @@ apiVersion: batch/v1
 kind: Job
 metadata:
   name: nexus-api-dmi
-  namespace: {{.Values.global.namespace}}
+  namespace: {{ default .Release.Namespace .Values.global.namespace }}
 spec:
   backoffLimit: 10
   template:

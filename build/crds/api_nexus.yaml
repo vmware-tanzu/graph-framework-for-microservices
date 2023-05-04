@@ -4,7 +4,7 @@ kind: CustomResourceDefinition
 metadata:
   annotations:
     nexus: |
-      {"name":"api.Nexus","children":{"configs.config.nexus.vmware.com":{"fieldName":"Config","fieldNameGvk":"configGvk","isNamed":false}},"is_singleton":false,"nexus-rest-api-gen":{"uris":null}}
+      {"name":"api.Nexus","children":{"configs.config.nexus.vmware.com":{"fieldName":"Config","fieldNameGvk":"configGvk","isNamed":false},"runtimes.runtime.nexus.vmware.com":{"fieldName":"Runtime","fieldNameGvk":"runtimeGvk","isNamed":false}},"is_singleton":false,"nexus-rest-api-gen":{"uris":null}}
   creationTimestamp: null
   name: nexuses.api.nexus.vmware.com
 spec:
@@ -39,6 +39,19 @@ spec:
           spec:
             properties:
               configGvk:
+                properties:
+                  group:
+                    type: string
+                  kind:
+                    type: string
+                  name:
+                    type: string
+                required:
+                - group
+                - kind
+                - name
+                type: object
+              runtimeGvk:
                 properties:
                   group:
                     type: string

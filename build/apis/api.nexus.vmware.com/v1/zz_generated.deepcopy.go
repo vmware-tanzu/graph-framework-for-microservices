@@ -143,6 +143,11 @@ func (in *NexusSpec) DeepCopyInto(out *NexusSpec) {
 		*out = new(Child)
 		**out = **in
 	}
+	if in.RuntimeGvk != nil {
+		in, out := &in.RuntimeGvk, &out.RuntimeGvk
+		*out = new(Child)
+		**out = **in
+	}
 	return
 }
 

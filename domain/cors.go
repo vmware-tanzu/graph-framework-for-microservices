@@ -1,7 +1,7 @@
 package domain
 
 import (
-	"golang-appnet.eng.vmware.com/nexus-sdk/nexus/nexus"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/nexus/nexus"
 )
 
 // CORSConfig contains the properties of an CORS Domain configuration

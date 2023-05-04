@@ -5,7 +5,7 @@ import (
 	authentication "golang-appnet.eng.vmware.com/nexus-sdk/api/authn"
 	domain "golang-appnet.eng.vmware.com/nexus-sdk/api/domain"
 
-	"golang-appnet.eng.vmware.com/nexus-sdk/nexus/nexus"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/nexus/nexus"
 )
 
 // ApiGateway holds all configuration relevant to a gateway in Nexus runtime.

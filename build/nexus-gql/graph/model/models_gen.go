@@ -29,6 +29,7 @@ type ApiNexus struct {
 	Id           *string                `json:"Id"`
 	ParentLabels map[string]interface{} `json:"ParentLabels"`
 	Config       *ConfigConfig          `json:"Config"`
+	Runtime      *RuntimeRuntime        `json:"Runtime"`
 }
 
 type ApigatewayApiGateway struct {
@@ -51,6 +52,9 @@ type ConfigConfig struct {
 	Id           *string                `json:"Id"`
 	ParentLabels map[string]interface{} `json:"ParentLabels"`
 	Routes       []*RouteRoute          `json:"Routes"`
+	Tenant       []*TenantconfigTenant  `json:"Tenant"`
+	TenantPolicy []*TenantconfigPolicy  `json:"TenantPolicy"`
+	User         []*UserUser            `json:"User"`
 	ApiGateway   *ApigatewayApiGateway  `json:"ApiGateway"`
 	Connect      *ConnectConnect        `json:"Connect"`
 }
@@ -98,4 +102,67 @@ type RouteRoute struct {
 	Uri          *string                `json:"Uri"`
 	Service      *string                `json:"Service"`
 	Resource     *string                `json:"Resource"`
+}
+
+type RuntimeRuntime struct {
+	Id           *string                `json:"Id"`
+	ParentLabels map[string]interface{} `json:"ParentLabels"`
+	Tenant       []*TenantruntimeTenant `json:"Tenant"`
+}
+
+type TenantconfigPolicy struct {
+	Id                          *string                `json:"Id"`
+	ParentLabels                map[string]interface{} `json:"ParentLabels"`
+	StaticApplications          *string                `json:"StaticApplications"`
+	PinApplications             *string                `json:"PinApplications"`
+	DynamicAppSchedulingDisable *bool                  `json:"DynamicAppSchedulingDisable"`
+	DisableProvisioning         *bool                  `json:"DisableProvisioning"`
+	DisableAutoScaling          *bool                  `json:"DisableAutoScaling"`
+	DisableAppClusterOnboarding *bool                  `json:"DisableAppClusterOnboarding"`
+	DisableUpgrade              *bool                  `json:"DisableUpgrade"`
+	OnFailureDowngrade          *bool                  `json:"OnFailureDowngrade"`
+}
+
+type TenantconfigTenant struct {
+	Id                *string                `json:"Id"`
+	ParentLabels      map[string]interface{} `json:"ParentLabels"`
+	Name              *string                `json:"Name"`
+	DNSSuffix         *string                `json:"DNSSuffix"`
+	SkipSaasTlsVerify *bool                  `json:"SkipSaasTlsVerify"`
+	InstallTenant     *bool                  `json:"InstallTenant"`
+	InstallClient     *bool                  `json:"InstallClient"`
+	OrderId           *string                `json:"OrderId"`
+	Skus              *string                `json:"Skus"`
+	FeatureFlags      *string                `json:"FeatureFlags"`
+	Labels            *string                `json:"Labels"`
+}
+
+type TenantruntimeTenant struct {
+	Id                      *string                `json:"Id"`
+	ParentLabels            map[string]interface{} `json:"ParentLabels"`
+	Namespace               *string                `json:"Namespace"`
+	TenantName              *string                `json:"TenantName"`
+	Attributes              *string                `json:"Attributes"`
+	SaasDomainName          *string                `json:"SaasDomainName"`
+	SaasApiDomainName       *string                `json:"SaasApiDomainName"`
+	M7Enabled               *string                `json:"M7Enabled"`
+	LicenseType             *string                `json:"LicenseType"`
+	StreamName              *string                `json:"StreamName"`
+	AwsS3Bucket             *string                `json:"AwsS3Bucket"`
+	AwsKmsKeyId             *string                `json:"AwsKmsKeyId"`
+	M7InstallationScheduled *string                `json:"M7InstallationScheduled"`
+	ReleaseVersion          *string                `json:"ReleaseVersion"`
+}
+
+type UserUser struct {
+	Id           *string                `json:"Id"`
+	ParentLabels map[string]interface{} `json:"ParentLabels"`
+	Tenant       *TenantconfigTenant    `json:"Tenant"`
+	Username     *string                `json:"Username"`
+	Mail         *string                `json:"Mail"`
+	FirstName    *string                `json:"FirstName"`
+	LastName     *string                `json:"LastName"`
+	Password     *string                `json:"Password"`
+	TenantId     *string                `json:"TenantId"`
+	Realm        *string                `json:"Realm"`
 }

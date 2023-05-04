@@ -43,6 +43,8 @@ type ResolverRoot interface {
 	Config_Config() Config_ConfigResolver
 	Connect_Connect() Connect_ConnectResolver
 	Connect_ReplicationConfig() Connect_ReplicationConfigResolver
+	Runtime_Runtime() Runtime_RuntimeResolver
+	User_User() User_UserResolver
 }
 
 type DirectiveRoot struct {
@@ -80,6 +82,7 @@ type ComplexityRoot struct {
 		Config       func(childComplexity int, id *string) int
 		Id           func(childComplexity int) int
 		ParentLabels func(childComplexity int) int
+		Runtime      func(childComplexity int) int
 	}
 
 	Apigateway_ApiGateway struct {
@@ -104,6 +107,9 @@ type ComplexityRoot struct {
 		Id           func(childComplexity int) int
 		ParentLabels func(childComplexity int) int
 		Routes       func(childComplexity int, id *string) int
+		Tenant       func(childComplexity int, id *string) int
+		TenantPolicy func(childComplexity int, id *string) int
+		User         func(childComplexity int, id *string) int
 	}
 
 	Connect_Connect struct {
@@ -150,6 +156,69 @@ type ComplexityRoot struct {
 		Service      func(childComplexity int) int
 		Uri          func(childComplexity int) int
 	}
+
+	Runtime_Runtime struct {
+		Id           func(childComplexity int) int
+		ParentLabels func(childComplexity int) int
+		Tenant       func(childComplexity int, id *string) int
+	}
+
+	Tenantconfig_Policy struct {
+		DisableAppClusterOnboarding func(childComplexity int) int
+		DisableAutoScaling          func(childComplexity int) int
+		DisableProvisioning         func(childComplexity int) int
+		DisableUpgrade              func(childComplexity int) int
+		DynamicAppSchedulingDisable func(childComplexity int) int
+		Id                          func(childComplexity int) int
+		OnFailureDowngrade          func(childComplexity int) int
+		ParentLabels                func(childComplexity int) int
+		PinApplications             func(childComplexity int) int
+		StaticApplications          func(childComplexity int) int
+	}
+
+	Tenantconfig_Tenant struct {
+		DNSSuffix         func(childComplexity int) int
+		FeatureFlags      func(childComplexity int) int
+		Id                func(childComplexity int) int
+		InstallClient     func(childComplexity int) int
+		InstallTenant     func(childComplexity int) int
+		Labels            func(childComplexity int) int
+		Name              func(childComplexity int) int
+		OrderId           func(childComplexity int) int
+		ParentLabels      func(childComplexity int) int
+		SkipSaasTlsVerify func(childComplexity int) int
+		Skus              func(childComplexity int) int
+	}
+
+	Tenantruntime_Tenant struct {
+		Attributes              func(childComplexity int) int
+		AwsKmsKeyId             func(childComplexity int) int
+		AwsS3Bucket             func(childComplexity int) int
+		Id                      func(childComplexity int) int
+		LicenseType             func(childComplexity int) int
+		M7Enabled               func(childComplexity int) int
+		M7InstallationScheduled func(childComplexity int) int
+		Namespace               func(childComplexity int) int
+		ParentLabels            func(childComplexity int) int
+		ReleaseVersion          func(childComplexity int) int
+		SaasApiDomainName       func(childComplexity int) int
+		SaasDomainName          func(childComplexity int) int
+		StreamName              func(childComplexity int) int
+		TenantName              func(childComplexity int) int
+	}
+
+	User_User struct {
+		FirstName    func(childComplexity int) int
+		Id           func(childComplexity int) int
+		LastName     func(childComplexity int) int
+		Mail         func(childComplexity int) int
+		ParentLabels func(childComplexity int) int
+		Password     func(childComplexity int) int
+		Realm        func(childComplexity int) int
+		Tenant       func(childComplexity int) int
+		TenantId     func(childComplexity int) int
+		Username     func(childComplexity int) int
+	}
 }
 
 type QueryResolver interface {
@@ -157,6 +226,7 @@ type QueryResolver interface {
 }
 type Api_NexusResolver interface {
 	Config(ctx context.Context, obj *model.ApiNexus, id *string) (*model.ConfigConfig, error)
+	Runtime(ctx context.Context, obj *model.ApiNexus) (*model.RuntimeRuntime, error)
 }
 type Apigateway_ApiGatewayResolver interface {
 	ProxyRules(ctx context.Context, obj *model.ApigatewayApiGateway, id *string) ([]*model.AdminProxyRule, error)
@@ -165,6 +235,9 @@ type Apigateway_ApiGatewayResolver interface {
 }
 type Config_ConfigResolver interface {
 	Routes(ctx context.Context, obj *model.ConfigConfig, id *string) ([]*model.RouteRoute, error)
+	Tenant(ctx context.Context, obj *model.ConfigConfig, id *string) ([]*model.TenantconfigTenant, error)
+	TenantPolicy(ctx context.Context, obj *model.ConfigConfig, id *string) ([]*model.TenantconfigPolicy, error)
+	User(ctx context.Context, obj *model.ConfigConfig, id *string) ([]*model.UserUser, error)
 	ApiGateway(ctx context.Context, obj *model.ConfigConfig, id *string) (*model.ApigatewayApiGateway, error)
 	Connect(ctx context.Context, obj *model.ConfigConfig, id *string) (*model.ConnectConnect, error)
 }
@@ -174,6 +247,12 @@ type Connect_ConnectResolver interface {
 }
 type Connect_ReplicationConfigResolver interface {
 	RemoteEndpoint(ctx context.Context, obj *model.ConnectReplicationConfig) (*model.ConnectNexusEndpoint, error)
+}
+type Runtime_RuntimeResolver interface {
+	Tenant(ctx context.Context, obj *model.RuntimeRuntime, id *string) ([]*model.TenantruntimeTenant, error)
+}
+type User_UserResolver interface {
+	Tenant(ctx context.Context, obj *model.UserUser) (*model.TenantconfigTenant, error)
 }
 
 type executableSchema struct {
@@ -327,6 +406,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Api_Nexus.ParentLabels(childComplexity), true
 
+	case "api_Nexus.Runtime":
+		if e.complexity.Api_Nexus.Runtime == nil {
+			break
+		}
+
+		return e.complexity.Api_Nexus.Runtime(childComplexity), true
+
 	case "apigateway_ApiGateway.Authn":
 		if e.complexity.Apigateway_ApiGateway.Authn == nil {
 			break
@@ -461,6 +547,42 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Config_Config.Routes(childComplexity, args["Id"].(*string)), true
+
+	case "config_Config.Tenant":
+		if e.complexity.Config_Config.Tenant == nil {
+			break
+		}
+
+		args, err := ec.field_config_Config_Tenant_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Config_Config.Tenant(childComplexity, args["Id"].(*string)), true
+
+	case "config_Config.TenantPolicy":
+		if e.complexity.Config_Config.TenantPolicy == nil {
+			break
+		}
+
+		args, err := ec.field_config_Config_TenantPolicy_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Config_Config.TenantPolicy(childComplexity, args["Id"].(*string)), true
+
+	case "config_Config.User":
+		if e.complexity.Config_Config.User == nil {
+			break
+		}
+
+		args, err := ec.field_config_Config_User_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Config_Config.User(childComplexity, args["Id"].(*string)), true
 
 	case "connect_Connect.Endpoints":
 		if e.complexity.Connect_Connect.Endpoints == nil {
@@ -682,6 +804,347 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Route_Route.Uri(childComplexity), true
 
+	case "runtime_Runtime.Id":
+		if e.complexity.Runtime_Runtime.Id == nil {
+			break
+		}
+
+		return e.complexity.Runtime_Runtime.Id(childComplexity), true
+
+	case "runtime_Runtime.ParentLabels":
+		if e.complexity.Runtime_Runtime.ParentLabels == nil {
+			break
+		}
+
+		return e.complexity.Runtime_Runtime.ParentLabels(childComplexity), true
+
+	case "runtime_Runtime.Tenant":
+		if e.complexity.Runtime_Runtime.Tenant == nil {
+			break
+		}
+
+		args, err := ec.field_runtime_Runtime_Tenant_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Runtime_Runtime.Tenant(childComplexity, args["Id"].(*string)), true
+
+	case "tenantconfig_Policy.DisableAppClusterOnboarding":
+		if e.complexity.Tenantconfig_Policy.DisableAppClusterOnboarding == nil {
+			break
+		}
+
+		return e.complexity.Tenantconfig_Policy.DisableAppClusterOnboarding(childComplexity), true
+
+	case "tenantconfig_Policy.DisableAutoScaling":
+		if e.complexity.Tenantconfig_Policy.DisableAutoScaling == nil {
+			break
+		}
+
+		return e.complexity.Tenantconfig_Policy.DisableAutoScaling(childComplexity), true
+
+	case "tenantconfig_Policy.DisableProvisioning":
+		if e.complexity.Tenantconfig_Policy.DisableProvisioning == nil {
+			break
+		}
+
+		return e.complexity.Tenantconfig_Policy.DisableProvisioning(childComplexity), true
+
+	case "tenantconfig_Policy.DisableUpgrade":
+		if e.complexity.Tenantconfig_Policy.DisableUpgrade == nil {
+			break
+		}
+
+		return e.complexity.Tenantconfig_Policy.DisableUpgrade(childComplexity), true
+
+	case "tenantconfig_Policy.DynamicAppSchedulingDisable":
+		if e.complexity.Tenantconfig_Policy.DynamicAppSchedulingDisable == nil {
+			break
+		}
+
+		return e.complexity.Tenantconfig_Policy.DynamicAppSchedulingDisable(childComplexity), true
+
+	case "tenantconfig_Policy.Id":
+		if e.complexity.Tenantconfig_Policy.Id == nil {
+			break
+		}
+
+		return e.complexity.Tenantconfig_Policy.Id(childComplexity), true
+
+	case "tenantconfig_Policy.OnFailureDowngrade":
+		if e.complexity.Tenantconfig_Policy.OnFailureDowngrade == nil {
+			break
+		}
+
+		return e.complexity.Tenantconfig_Policy.OnFailureDowngrade(childComplexity), true
+
+	case "tenantconfig_Policy.ParentLabels":
+		if e.complexity.Tenantconfig_Policy.ParentLabels == nil {
+			break
+		}
+
+		return e.complexity.Tenantconfig_Policy.ParentLabels(childComplexity), true
+
+	case "tenantconfig_Policy.PinApplications":
+		if e.complexity.Tenantconfig_Policy.PinApplications == nil {
+			break
+		}
+
+		return e.complexity.Tenantconfig_Policy.PinApplications(childComplexity), true
+
+	case "tenantconfig_Policy.StaticApplications":
+		if e.complexity.Tenantconfig_Policy.StaticApplications == nil {
+			break
+		}
+
+		return e.complexity.Tenantconfig_Policy.StaticApplications(childComplexity), true
+
+	case "tenantconfig_Tenant.DNSSuffix":
+		if e.complexity.Tenantconfig_Tenant.DNSSuffix == nil {
+			break
+		}
+
+		return e.complexity.Tenantconfig_Tenant.DNSSuffix(childComplexity), true
+
+	case "tenantconfig_Tenant.FeatureFlags":
+		if e.complexity.Tenantconfig_Tenant.FeatureFlags == nil {
+			break
+		}
+
+		return e.complexity.Tenantconfig_Tenant.FeatureFlags(childComplexity), true
+
+	case "tenantconfig_Tenant.Id":
+		if e.complexity.Tenantconfig_Tenant.Id == nil {
+			break
+		}
+
+		return e.complexity.Tenantconfig_Tenant.Id(childComplexity), true
+
+	case "tenantconfig_Tenant.InstallClient":
+		if e.complexity.Tenantconfig_Tenant.InstallClient == nil {
+			break
+		}
+
+		return e.complexity.Tenantconfig_Tenant.InstallClient(childComplexity), true
+
+	case "tenantconfig_Tenant.InstallTenant":
+		if e.complexity.Tenantconfig_Tenant.InstallTenant == nil {
+			break
+		}
+
+		return e.complexity.Tenantconfig_Tenant.InstallTenant(childComplexity), true
+
+	case "tenantconfig_Tenant.Labels":
+		if e.complexity.Tenantconfig_Tenant.Labels == nil {
+			break
+		}
+
+		return e.complexity.Tenantconfig_Tenant.Labels(childComplexity), true
+
+	case "tenantconfig_Tenant.Name":
+		if e.complexity.Tenantconfig_Tenant.Name == nil {
+			break
+		}
+
+		return e.complexity.Tenantconfig_Tenant.Name(childComplexity), true
+
+	case "tenantconfig_Tenant.OrderId":
+		if e.complexity.Tenantconfig_Tenant.OrderId == nil {
+			break
+		}
+
+		return e.complexity.Tenantconfig_Tenant.OrderId(childComplexity), true
+
+	case "tenantconfig_Tenant.ParentLabels":
+		if e.complexity.Tenantconfig_Tenant.ParentLabels == nil {
+			break
+		}
+
+		return e.complexity.Tenantconfig_Tenant.ParentLabels(childComplexity), true
+
+	case "tenantconfig_Tenant.SkipSaasTlsVerify":
+		if e.complexity.Tenantconfig_Tenant.SkipSaasTlsVerify == nil {
+			break
+		}
+
+		return e.complexity.Tenantconfig_Tenant.SkipSaasTlsVerify(childComplexity), true
+
+	case "tenantconfig_Tenant.Skus":
+		if e.complexity.Tenantconfig_Tenant.Skus == nil {
+			break
+		}
+
+		return e.complexity.Tenantconfig_Tenant.Skus(childComplexity), true
+
+	case "tenantruntime_Tenant.Attributes":
+		if e.complexity.Tenantruntime_Tenant.Attributes == nil {
+			break
+		}
+
+		return e.complexity.Tenantruntime_Tenant.Attributes(childComplexity), true
+
+	case "tenantruntime_Tenant.AwsKmsKeyId":
+		if e.complexity.Tenantruntime_Tenant.AwsKmsKeyId == nil {
+			break
+		}
+
+		return e.complexity.Tenantruntime_Tenant.AwsKmsKeyId(childComplexity), true
+
+	case "tenantruntime_Tenant.AwsS3Bucket":
+		if e.complexity.Tenantruntime_Tenant.AwsS3Bucket == nil {
+			break
+		}
+
+		return e.complexity.Tenantruntime_Tenant.AwsS3Bucket(childComplexity), true
+
+	case "tenantruntime_Tenant.Id":
+		if e.complexity.Tenantruntime_Tenant.Id == nil {
+			break
+		}
+
+		return e.complexity.Tenantruntime_Tenant.Id(childComplexity), true
+
+	case "tenantruntime_Tenant.LicenseType":
+		if e.complexity.Tenantruntime_Tenant.LicenseType == nil {
+			break
+		}
+
+		return e.complexity.Tenantruntime_Tenant.LicenseType(childComplexity), true
+
+	case "tenantruntime_Tenant.M7Enabled":
+		if e.complexity.Tenantruntime_Tenant.M7Enabled == nil {
+			break
+		}
+
+		return e.complexity.Tenantruntime_Tenant.M7Enabled(childComplexity), true
+
+	case "tenantruntime_Tenant.M7InstallationScheduled":
+		if e.complexity.Tenantruntime_Tenant.M7InstallationScheduled == nil {
+			break
+		}
+
+		return e.complexity.Tenantruntime_Tenant.M7InstallationScheduled(childComplexity), true
+
+	case "tenantruntime_Tenant.Namespace":
+		if e.complexity.Tenantruntime_Tenant.Namespace == nil {
+			break
+		}
+
+		return e.complexity.Tenantruntime_Tenant.Namespace(childComplexity), true
+
+	case "tenantruntime_Tenant.ParentLabels":
+		if e.complexity.Tenantruntime_Tenant.ParentLabels == nil {
+			break
+		}
+
+		return e.complexity.Tenantruntime_Tenant.ParentLabels(childComplexity), true
+
+	case "tenantruntime_Tenant.ReleaseVersion":
+		if e.complexity.Tenantruntime_Tenant.ReleaseVersion == nil {
+			break
+		}
+
+		return e.complexity.Tenantruntime_Tenant.ReleaseVersion(childComplexity), true
+
+	case "tenantruntime_Tenant.SaasApiDomainName":
+		if e.complexity.Tenantruntime_Tenant.SaasApiDomainName == nil {
+			break
+		}
+
+		return e.complexity.Tenantruntime_Tenant.SaasApiDomainName(childComplexity), true
+
+	case "tenantruntime_Tenant.SaasDomainName":
+		if e.complexity.Tenantruntime_Tenant.SaasDomainName == nil {
+			break
+		}
+
+		return e.complexity.Tenantruntime_Tenant.SaasDomainName(childComplexity), true
+
+	case "tenantruntime_Tenant.StreamName":
+		if e.complexity.Tenantruntime_Tenant.StreamName == nil {
+			break
+		}
+
+		return e.complexity.Tenantruntime_Tenant.StreamName(childComplexity), true
+
+	case "tenantruntime_Tenant.TenantName":
+		if e.complexity.Tenantruntime_Tenant.TenantName == nil {
+			break
+		}
+
+		return e.complexity.Tenantruntime_Tenant.TenantName(childComplexity), true
+
+	case "user_User.FirstName":
+		if e.complexity.User_User.FirstName == nil {
+			break
+		}
+
+		return e.complexity.User_User.FirstName(childComplexity), true
+
+	case "user_User.Id":
+		if e.complexity.User_User.Id == nil {
+			break
+		}
+
+		return e.complexity.User_User.Id(childComplexity), true
+
+	case "user_User.LastName":
+		if e.complexity.User_User.LastName == nil {
+			break
+		}
+
+		return e.complexity.User_User.LastName(childComplexity), true
+
+	case "user_User.Mail":
+		if e.complexity.User_User.Mail == nil {
+			break
+		}
+
+		return e.complexity.User_User.Mail(childComplexity), true
+
+	case "user_User.ParentLabels":
+		if e.complexity.User_User.ParentLabels == nil {
+			break
+		}
+
+		return e.complexity.User_User.ParentLabels(childComplexity), true
+
+	case "user_User.Password":
+		if e.complexity.User_User.Password == nil {
+			break
+		}
+
+		return e.complexity.User_User.Password(childComplexity), true
+
+	case "user_User.Realm":
+		if e.complexity.User_User.Realm == nil {
+			break
+		}
+
+		return e.complexity.User_User.Realm(childComplexity), true
+
+	case "user_User.Tenant":
+		if e.complexity.User_User.Tenant == nil {
+			break
+		}
+
+		return e.complexity.User_User.Tenant(childComplexity), true
+
+	case "user_User.TenantId":
+		if e.complexity.User_User.TenantId == nil {
+			break
+		}
+
+		return e.complexity.User_User.TenantId(childComplexity), true
+
+	case "user_User.Username":
+		if e.complexity.User_User.Username == nil {
+			break
+		}
+
+		return e.complexity.User_User.Username(childComplexity), true
+
 	}
 	return 0, false
 }
@@ -744,6 +1207,7 @@ type api_Nexus {
 	ParentLabels: Map
 
     Config(Id: ID): config_Config!
+    Runtime: runtime_Runtime!
 }
 
 type admin_ProxyRule {
@@ -777,8 +1241,54 @@ type config_Config {
 	ParentLabels: Map
 
     Routes(Id: ID): [route_Route!]
+    Tenant(Id: ID): [tenantconfig_Tenant!]
+    TenantPolicy(Id: ID): [tenantconfig_Policy!]
+    User(Id: ID): [user_User!]
     ApiGateway(Id: ID): apigateway_ApiGateway!
     Connect(Id: ID): connect_Connect!
+}
+
+type tenantconfig_Tenant {
+    Id: ID
+	ParentLabels: Map
+
+    Name: String
+    DNSSuffix: String
+    SkipSaasTlsVerify: Boolean
+    InstallTenant: Boolean
+    InstallClient: Boolean
+    OrderId: String
+    Skus: String
+    FeatureFlags: String
+    Labels: String
+}
+
+type tenantconfig_Policy {
+    Id: ID
+	ParentLabels: Map
+
+    StaticApplications: String
+    PinApplications: String
+    DynamicAppSchedulingDisable: Boolean
+    DisableProvisioning: Boolean
+    DisableAutoScaling: Boolean
+    DisableAppClusterOnboarding: Boolean
+    DisableUpgrade: Boolean
+    OnFailureDowngrade: Boolean
+}
+
+type user_User {
+    Id: ID
+	ParentLabels: Map
+
+    Tenant: tenantconfig_Tenant!
+    Username: String
+    Mail: String
+    FirstName: String
+    LastName: String
+    Password: String
+    TenantId: String
+    Realm: String
 }
 
 type connect_Connect {
@@ -829,6 +1339,31 @@ type route_Route {
     Uri: String
     Service: String
     Resource: String
+}
+
+type runtime_Runtime {
+    Id: ID
+	ParentLabels: Map
+
+    Tenant(Id: ID): [tenantruntime_Tenant!]
+}
+
+type tenantruntime_Tenant {
+    Id: ID
+	ParentLabels: Map
+
+    Namespace: String
+    TenantName: String
+    Attributes: String
+    SaasDomainName: String
+    SaasApiDomainName: String
+    M7Enabled: String
+    LicenseType: String
+    StreamName: String
+    AwsS3Bucket: String
+    AwsKmsKeyId: String
+    M7InstallationScheduled: String
+    ReleaseVersion: String
 }
 
 type NexusGraphqlResponse {
@@ -1019,6 +1554,51 @@ func (ec *executionContext) field_config_Config_Routes_args(ctx context.Context,
 	return args, nil
 }
 
+func (ec *executionContext) field_config_Config_TenantPolicy_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *string
+	if tmp, ok := rawArgs["Id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("Id"))
+		arg0, err = ec.unmarshalOID2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["Id"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_config_Config_Tenant_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *string
+	if tmp, ok := rawArgs["Id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("Id"))
+		arg0, err = ec.unmarshalOID2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["Id"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_config_Config_User_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *string
+	if tmp, ok := rawArgs["Id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("Id"))
+		arg0, err = ec.unmarshalOID2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["Id"] = arg0
+	return args, nil
+}
+
 func (ec *executionContext) field_connect_Connect_Endpoints_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -1035,6 +1615,21 @@ func (ec *executionContext) field_connect_Connect_Endpoints_args(ctx context.Con
 }
 
 func (ec *executionContext) field_connect_Connect_ReplicationConfig_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *string
+	if tmp, ok := rawArgs["Id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("Id"))
+		arg0, err = ec.unmarshalOID2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["Id"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_runtime_Runtime_Tenant_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
 	var arg0 *string
@@ -1304,6 +1899,8 @@ func (ec *executionContext) fieldContext_Query_root(ctx context.Context, field g
 				return ec.fieldContext_api_Nexus_ParentLabels(ctx, field)
 			case "Config":
 				return ec.fieldContext_api_Nexus_Config(ctx, field)
+			case "Runtime":
+				return ec.fieldContext_api_Nexus_Runtime(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type api_Nexus", field.Name)
 		},
@@ -3716,6 +4313,12 @@ func (ec *executionContext) fieldContext_api_Nexus_Config(ctx context.Context, f
 				return ec.fieldContext_config_Config_ParentLabels(ctx, field)
 			case "Routes":
 				return ec.fieldContext_config_Config_Routes(ctx, field)
+			case "Tenant":
+				return ec.fieldContext_config_Config_Tenant(ctx, field)
+			case "TenantPolicy":
+				return ec.fieldContext_config_Config_TenantPolicy(ctx, field)
+			case "User":
+				return ec.fieldContext_config_Config_User(ctx, field)
 			case "ApiGateway":
 				return ec.fieldContext_config_Config_ApiGateway(ctx, field)
 			case "Connect":
@@ -3734,6 +4337,58 @@ func (ec *executionContext) fieldContext_api_Nexus_Config(ctx context.Context, f
 	if fc.Args, err = ec.field_api_Nexus_Config_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _api_Nexus_Runtime(ctx context.Context, field graphql.CollectedField, obj *model.ApiNexus) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_api_Nexus_Runtime(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Api_Nexus().Runtime(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.RuntimeRuntime)
+	fc.Result = res
+	return ec.marshalNruntime_Runtime2ᚖnexustempmoduleᚋnexusᚑgqlᚋgraphᚋmodelᚐRuntimeRuntime(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_api_Nexus_Runtime(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "api_Nexus",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "Id":
+				return ec.fieldContext_runtime_Runtime_Id(ctx, field)
+			case "ParentLabels":
+				return ec.fieldContext_runtime_Runtime_ParentLabels(ctx, field)
+			case "Tenant":
+				return ec.fieldContext_runtime_Runtime_Tenant(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type runtime_Runtime", field.Name)
+		},
 	}
 	return fc, nil
 }
@@ -4356,6 +5011,230 @@ func (ec *executionContext) fieldContext_config_Config_Routes(ctx context.Contex
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_config_Config_Routes_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _config_Config_Tenant(ctx context.Context, field graphql.CollectedField, obj *model.ConfigConfig) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_config_Config_Tenant(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Config_Config().Tenant(rctx, obj, fc.Args["Id"].(*string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*model.TenantconfigTenant)
+	fc.Result = res
+	return ec.marshalOtenantconfig_Tenant2ᚕᚖnexustempmoduleᚋnexusᚑgqlᚋgraphᚋmodelᚐTenantconfigTenantᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_config_Config_Tenant(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "config_Config",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "Id":
+				return ec.fieldContext_tenantconfig_Tenant_Id(ctx, field)
+			case "ParentLabels":
+				return ec.fieldContext_tenantconfig_Tenant_ParentLabels(ctx, field)
+			case "Name":
+				return ec.fieldContext_tenantconfig_Tenant_Name(ctx, field)
+			case "DNSSuffix":
+				return ec.fieldContext_tenantconfig_Tenant_DNSSuffix(ctx, field)
+			case "SkipSaasTlsVerify":
+				return ec.fieldContext_tenantconfig_Tenant_SkipSaasTlsVerify(ctx, field)
+			case "InstallTenant":
+				return ec.fieldContext_tenantconfig_Tenant_InstallTenant(ctx, field)
+			case "InstallClient":
+				return ec.fieldContext_tenantconfig_Tenant_InstallClient(ctx, field)
+			case "OrderId":
+				return ec.fieldContext_tenantconfig_Tenant_OrderId(ctx, field)
+			case "Skus":
+				return ec.fieldContext_tenantconfig_Tenant_Skus(ctx, field)
+			case "FeatureFlags":
+				return ec.fieldContext_tenantconfig_Tenant_FeatureFlags(ctx, field)
+			case "Labels":
+				return ec.fieldContext_tenantconfig_Tenant_Labels(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type tenantconfig_Tenant", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_config_Config_Tenant_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _config_Config_TenantPolicy(ctx context.Context, field graphql.CollectedField, obj *model.ConfigConfig) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_config_Config_TenantPolicy(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Config_Config().TenantPolicy(rctx, obj, fc.Args["Id"].(*string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*model.TenantconfigPolicy)
+	fc.Result = res
+	return ec.marshalOtenantconfig_Policy2ᚕᚖnexustempmoduleᚋnexusᚑgqlᚋgraphᚋmodelᚐTenantconfigPolicyᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_config_Config_TenantPolicy(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "config_Config",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "Id":
+				return ec.fieldContext_tenantconfig_Policy_Id(ctx, field)
+			case "ParentLabels":
+				return ec.fieldContext_tenantconfig_Policy_ParentLabels(ctx, field)
+			case "StaticApplications":
+				return ec.fieldContext_tenantconfig_Policy_StaticApplications(ctx, field)
+			case "PinApplications":
+				return ec.fieldContext_tenantconfig_Policy_PinApplications(ctx, field)
+			case "DynamicAppSchedulingDisable":
+				return ec.fieldContext_tenantconfig_Policy_DynamicAppSchedulingDisable(ctx, field)
+			case "DisableProvisioning":
+				return ec.fieldContext_tenantconfig_Policy_DisableProvisioning(ctx, field)
+			case "DisableAutoScaling":
+				return ec.fieldContext_tenantconfig_Policy_DisableAutoScaling(ctx, field)
+			case "DisableAppClusterOnboarding":
+				return ec.fieldContext_tenantconfig_Policy_DisableAppClusterOnboarding(ctx, field)
+			case "DisableUpgrade":
+				return ec.fieldContext_tenantconfig_Policy_DisableUpgrade(ctx, field)
+			case "OnFailureDowngrade":
+				return ec.fieldContext_tenantconfig_Policy_OnFailureDowngrade(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type tenantconfig_Policy", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_config_Config_TenantPolicy_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _config_Config_User(ctx context.Context, field graphql.CollectedField, obj *model.ConfigConfig) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_config_Config_User(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Config_Config().User(rctx, obj, fc.Args["Id"].(*string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*model.UserUser)
+	fc.Result = res
+	return ec.marshalOuser_User2ᚕᚖnexustempmoduleᚋnexusᚑgqlᚋgraphᚋmodelᚐUserUserᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_config_Config_User(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "config_Config",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "Id":
+				return ec.fieldContext_user_User_Id(ctx, field)
+			case "ParentLabels":
+				return ec.fieldContext_user_User_ParentLabels(ctx, field)
+			case "Tenant":
+				return ec.fieldContext_user_User_Tenant(ctx, field)
+			case "Username":
+				return ec.fieldContext_user_User_Username(ctx, field)
+			case "Mail":
+				return ec.fieldContext_user_User_Mail(ctx, field)
+			case "FirstName":
+				return ec.fieldContext_user_User_FirstName(ctx, field)
+			case "LastName":
+				return ec.fieldContext_user_User_LastName(ctx, field)
+			case "Password":
+				return ec.fieldContext_user_User_Password(ctx, field)
+			case "TenantId":
+				return ec.fieldContext_user_User_TenantId(ctx, field)
+			case "Realm":
+				return ec.fieldContext_user_User_Realm(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type user_User", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_config_Config_User_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return
 	}
@@ -5809,6 +6688,2042 @@ func (ec *executionContext) fieldContext_route_Route_Resource(ctx context.Contex
 	return fc, nil
 }
 
+func (ec *executionContext) _runtime_Runtime_Id(ctx context.Context, field graphql.CollectedField, obj *model.RuntimeRuntime) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_runtime_Runtime_Id(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Id, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOID2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_runtime_Runtime_Id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "runtime_Runtime",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _runtime_Runtime_ParentLabels(ctx context.Context, field graphql.CollectedField, obj *model.RuntimeRuntime) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_runtime_Runtime_ParentLabels(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ParentLabels, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(map[string]interface{})
+	fc.Result = res
+	return ec.marshalOMap2map(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_runtime_Runtime_ParentLabels(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "runtime_Runtime",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Map does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _runtime_Runtime_Tenant(ctx context.Context, field graphql.CollectedField, obj *model.RuntimeRuntime) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_runtime_Runtime_Tenant(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Runtime_Runtime().Tenant(rctx, obj, fc.Args["Id"].(*string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*model.TenantruntimeTenant)
+	fc.Result = res
+	return ec.marshalOtenantruntime_Tenant2ᚕᚖnexustempmoduleᚋnexusᚑgqlᚋgraphᚋmodelᚐTenantruntimeTenantᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_runtime_Runtime_Tenant(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "runtime_Runtime",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "Id":
+				return ec.fieldContext_tenantruntime_Tenant_Id(ctx, field)
+			case "ParentLabels":
+				return ec.fieldContext_tenantruntime_Tenant_ParentLabels(ctx, field)
+			case "Namespace":
+				return ec.fieldContext_tenantruntime_Tenant_Namespace(ctx, field)
+			case "TenantName":
+				return ec.fieldContext_tenantruntime_Tenant_TenantName(ctx, field)
+			case "Attributes":
+				return ec.fieldContext_tenantruntime_Tenant_Attributes(ctx, field)
+			case "SaasDomainName":
+				return ec.fieldContext_tenantruntime_Tenant_SaasDomainName(ctx, field)
+			case "SaasApiDomainName":
+				return ec.fieldContext_tenantruntime_Tenant_SaasApiDomainName(ctx, field)
+			case "M7Enabled":
+				return ec.fieldContext_tenantruntime_Tenant_M7Enabled(ctx, field)
+			case "LicenseType":
+				return ec.fieldContext_tenantruntime_Tenant_LicenseType(ctx, field)
+			case "StreamName":
+				return ec.fieldContext_tenantruntime_Tenant_StreamName(ctx, field)
+			case "AwsS3Bucket":
+				return ec.fieldContext_tenantruntime_Tenant_AwsS3Bucket(ctx, field)
+			case "AwsKmsKeyId":
+				return ec.fieldContext_tenantruntime_Tenant_AwsKmsKeyId(ctx, field)
+			case "M7InstallationScheduled":
+				return ec.fieldContext_tenantruntime_Tenant_M7InstallationScheduled(ctx, field)
+			case "ReleaseVersion":
+				return ec.fieldContext_tenantruntime_Tenant_ReleaseVersion(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type tenantruntime_Tenant", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_runtime_Runtime_Tenant_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _tenantconfig_Policy_Id(ctx context.Context, field graphql.CollectedField, obj *model.TenantconfigPolicy) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_tenantconfig_Policy_Id(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Id, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOID2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_tenantconfig_Policy_Id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "tenantconfig_Policy",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _tenantconfig_Policy_ParentLabels(ctx context.Context, field graphql.CollectedField, obj *model.TenantconfigPolicy) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_tenantconfig_Policy_ParentLabels(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ParentLabels, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(map[string]interface{})
+	fc.Result = res
+	return ec.marshalOMap2map(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_tenantconfig_Policy_ParentLabels(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "tenantconfig_Policy",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Map does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _tenantconfig_Policy_StaticApplications(ctx context.Context, field graphql.CollectedField, obj *model.TenantconfigPolicy) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_tenantconfig_Policy_StaticApplications(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.StaticApplications, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_tenantconfig_Policy_StaticApplications(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "tenantconfig_Policy",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _tenantconfig_Policy_PinApplications(ctx context.Context, field graphql.CollectedField, obj *model.TenantconfigPolicy) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_tenantconfig_Policy_PinApplications(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.PinApplications, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_tenantconfig_Policy_PinApplications(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "tenantconfig_Policy",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _tenantconfig_Policy_DynamicAppSchedulingDisable(ctx context.Context, field graphql.CollectedField, obj *model.TenantconfigPolicy) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_tenantconfig_Policy_DynamicAppSchedulingDisable(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.DynamicAppSchedulingDisable, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*bool)
+	fc.Result = res
+	return ec.marshalOBoolean2ᚖbool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_tenantconfig_Policy_DynamicAppSchedulingDisable(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "tenantconfig_Policy",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _tenantconfig_Policy_DisableProvisioning(ctx context.Context, field graphql.CollectedField, obj *model.TenantconfigPolicy) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_tenantconfig_Policy_DisableProvisioning(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.DisableProvisioning, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*bool)
+	fc.Result = res
+	return ec.marshalOBoolean2ᚖbool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_tenantconfig_Policy_DisableProvisioning(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "tenantconfig_Policy",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _tenantconfig_Policy_DisableAutoScaling(ctx context.Context, field graphql.CollectedField, obj *model.TenantconfigPolicy) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_tenantconfig_Policy_DisableAutoScaling(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.DisableAutoScaling, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*bool)
+	fc.Result = res
+	return ec.marshalOBoolean2ᚖbool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_tenantconfig_Policy_DisableAutoScaling(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "tenantconfig_Policy",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _tenantconfig_Policy_DisableAppClusterOnboarding(ctx context.Context, field graphql.CollectedField, obj *model.TenantconfigPolicy) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_tenantconfig_Policy_DisableAppClusterOnboarding(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.DisableAppClusterOnboarding, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*bool)
+	fc.Result = res
+	return ec.marshalOBoolean2ᚖbool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_tenantconfig_Policy_DisableAppClusterOnboarding(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "tenantconfig_Policy",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _tenantconfig_Policy_DisableUpgrade(ctx context.Context, field graphql.CollectedField, obj *model.TenantconfigPolicy) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_tenantconfig_Policy_DisableUpgrade(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.DisableUpgrade, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*bool)
+	fc.Result = res
+	return ec.marshalOBoolean2ᚖbool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_tenantconfig_Policy_DisableUpgrade(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "tenantconfig_Policy",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _tenantconfig_Policy_OnFailureDowngrade(ctx context.Context, field graphql.CollectedField, obj *model.TenantconfigPolicy) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_tenantconfig_Policy_OnFailureDowngrade(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.OnFailureDowngrade, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*bool)
+	fc.Result = res
+	return ec.marshalOBoolean2ᚖbool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_tenantconfig_Policy_OnFailureDowngrade(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "tenantconfig_Policy",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _tenantconfig_Tenant_Id(ctx context.Context, field graphql.CollectedField, obj *model.TenantconfigTenant) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_tenantconfig_Tenant_Id(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Id, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOID2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_tenantconfig_Tenant_Id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "tenantconfig_Tenant",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _tenantconfig_Tenant_ParentLabels(ctx context.Context, field graphql.CollectedField, obj *model.TenantconfigTenant) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_tenantconfig_Tenant_ParentLabels(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ParentLabels, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(map[string]interface{})
+	fc.Result = res
+	return ec.marshalOMap2map(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_tenantconfig_Tenant_ParentLabels(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "tenantconfig_Tenant",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Map does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _tenantconfig_Tenant_Name(ctx context.Context, field graphql.CollectedField, obj *model.TenantconfigTenant) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_tenantconfig_Tenant_Name(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Name, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_tenantconfig_Tenant_Name(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "tenantconfig_Tenant",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _tenantconfig_Tenant_DNSSuffix(ctx context.Context, field graphql.CollectedField, obj *model.TenantconfigTenant) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_tenantconfig_Tenant_DNSSuffix(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.DNSSuffix, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_tenantconfig_Tenant_DNSSuffix(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "tenantconfig_Tenant",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _tenantconfig_Tenant_SkipSaasTlsVerify(ctx context.Context, field graphql.CollectedField, obj *model.TenantconfigTenant) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_tenantconfig_Tenant_SkipSaasTlsVerify(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.SkipSaasTlsVerify, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*bool)
+	fc.Result = res
+	return ec.marshalOBoolean2ᚖbool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_tenantconfig_Tenant_SkipSaasTlsVerify(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "tenantconfig_Tenant",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _tenantconfig_Tenant_InstallTenant(ctx context.Context, field graphql.CollectedField, obj *model.TenantconfigTenant) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_tenantconfig_Tenant_InstallTenant(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.InstallTenant, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*bool)
+	fc.Result = res
+	return ec.marshalOBoolean2ᚖbool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_tenantconfig_Tenant_InstallTenant(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "tenantconfig_Tenant",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _tenantconfig_Tenant_InstallClient(ctx context.Context, field graphql.CollectedField, obj *model.TenantconfigTenant) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_tenantconfig_Tenant_InstallClient(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.InstallClient, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*bool)
+	fc.Result = res
+	return ec.marshalOBoolean2ᚖbool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_tenantconfig_Tenant_InstallClient(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "tenantconfig_Tenant",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _tenantconfig_Tenant_OrderId(ctx context.Context, field graphql.CollectedField, obj *model.TenantconfigTenant) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_tenantconfig_Tenant_OrderId(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.OrderId, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_tenantconfig_Tenant_OrderId(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "tenantconfig_Tenant",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _tenantconfig_Tenant_Skus(ctx context.Context, field graphql.CollectedField, obj *model.TenantconfigTenant) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_tenantconfig_Tenant_Skus(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Skus, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_tenantconfig_Tenant_Skus(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "tenantconfig_Tenant",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _tenantconfig_Tenant_FeatureFlags(ctx context.Context, field graphql.CollectedField, obj *model.TenantconfigTenant) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_tenantconfig_Tenant_FeatureFlags(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.FeatureFlags, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_tenantconfig_Tenant_FeatureFlags(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "tenantconfig_Tenant",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _tenantconfig_Tenant_Labels(ctx context.Context, field graphql.CollectedField, obj *model.TenantconfigTenant) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_tenantconfig_Tenant_Labels(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Labels, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_tenantconfig_Tenant_Labels(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "tenantconfig_Tenant",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _tenantruntime_Tenant_Id(ctx context.Context, field graphql.CollectedField, obj *model.TenantruntimeTenant) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_tenantruntime_Tenant_Id(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Id, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOID2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_tenantruntime_Tenant_Id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "tenantruntime_Tenant",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _tenantruntime_Tenant_ParentLabels(ctx context.Context, field graphql.CollectedField, obj *model.TenantruntimeTenant) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_tenantruntime_Tenant_ParentLabels(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ParentLabels, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(map[string]interface{})
+	fc.Result = res
+	return ec.marshalOMap2map(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_tenantruntime_Tenant_ParentLabels(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "tenantruntime_Tenant",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Map does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _tenantruntime_Tenant_Namespace(ctx context.Context, field graphql.CollectedField, obj *model.TenantruntimeTenant) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_tenantruntime_Tenant_Namespace(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Namespace, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_tenantruntime_Tenant_Namespace(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "tenantruntime_Tenant",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _tenantruntime_Tenant_TenantName(ctx context.Context, field graphql.CollectedField, obj *model.TenantruntimeTenant) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_tenantruntime_Tenant_TenantName(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.TenantName, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_tenantruntime_Tenant_TenantName(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "tenantruntime_Tenant",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _tenantruntime_Tenant_Attributes(ctx context.Context, field graphql.CollectedField, obj *model.TenantruntimeTenant) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_tenantruntime_Tenant_Attributes(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Attributes, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_tenantruntime_Tenant_Attributes(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "tenantruntime_Tenant",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _tenantruntime_Tenant_SaasDomainName(ctx context.Context, field graphql.CollectedField, obj *model.TenantruntimeTenant) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_tenantruntime_Tenant_SaasDomainName(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.SaasDomainName, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_tenantruntime_Tenant_SaasDomainName(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "tenantruntime_Tenant",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _tenantruntime_Tenant_SaasApiDomainName(ctx context.Context, field graphql.CollectedField, obj *model.TenantruntimeTenant) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_tenantruntime_Tenant_SaasApiDomainName(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.SaasApiDomainName, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_tenantruntime_Tenant_SaasApiDomainName(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "tenantruntime_Tenant",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _tenantruntime_Tenant_M7Enabled(ctx context.Context, field graphql.CollectedField, obj *model.TenantruntimeTenant) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_tenantruntime_Tenant_M7Enabled(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.M7Enabled, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_tenantruntime_Tenant_M7Enabled(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "tenantruntime_Tenant",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _tenantruntime_Tenant_LicenseType(ctx context.Context, field graphql.CollectedField, obj *model.TenantruntimeTenant) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_tenantruntime_Tenant_LicenseType(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.LicenseType, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_tenantruntime_Tenant_LicenseType(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "tenantruntime_Tenant",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _tenantruntime_Tenant_StreamName(ctx context.Context, field graphql.CollectedField, obj *model.TenantruntimeTenant) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_tenantruntime_Tenant_StreamName(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.StreamName, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_tenantruntime_Tenant_StreamName(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "tenantruntime_Tenant",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _tenantruntime_Tenant_AwsS3Bucket(ctx context.Context, field graphql.CollectedField, obj *model.TenantruntimeTenant) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_tenantruntime_Tenant_AwsS3Bucket(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.AwsS3Bucket, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_tenantruntime_Tenant_AwsS3Bucket(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "tenantruntime_Tenant",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _tenantruntime_Tenant_AwsKmsKeyId(ctx context.Context, field graphql.CollectedField, obj *model.TenantruntimeTenant) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_tenantruntime_Tenant_AwsKmsKeyId(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.AwsKmsKeyId, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_tenantruntime_Tenant_AwsKmsKeyId(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "tenantruntime_Tenant",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _tenantruntime_Tenant_M7InstallationScheduled(ctx context.Context, field graphql.CollectedField, obj *model.TenantruntimeTenant) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_tenantruntime_Tenant_M7InstallationScheduled(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.M7InstallationScheduled, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_tenantruntime_Tenant_M7InstallationScheduled(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "tenantruntime_Tenant",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _tenantruntime_Tenant_ReleaseVersion(ctx context.Context, field graphql.CollectedField, obj *model.TenantruntimeTenant) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_tenantruntime_Tenant_ReleaseVersion(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ReleaseVersion, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_tenantruntime_Tenant_ReleaseVersion(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "tenantruntime_Tenant",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _user_User_Id(ctx context.Context, field graphql.CollectedField, obj *model.UserUser) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_user_User_Id(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Id, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOID2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_user_User_Id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "user_User",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _user_User_ParentLabels(ctx context.Context, field graphql.CollectedField, obj *model.UserUser) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_user_User_ParentLabels(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ParentLabels, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(map[string]interface{})
+	fc.Result = res
+	return ec.marshalOMap2map(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_user_User_ParentLabels(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "user_User",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Map does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _user_User_Tenant(ctx context.Context, field graphql.CollectedField, obj *model.UserUser) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_user_User_Tenant(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.User_User().Tenant(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.TenantconfigTenant)
+	fc.Result = res
+	return ec.marshalNtenantconfig_Tenant2ᚖnexustempmoduleᚋnexusᚑgqlᚋgraphᚋmodelᚐTenantconfigTenant(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_user_User_Tenant(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "user_User",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "Id":
+				return ec.fieldContext_tenantconfig_Tenant_Id(ctx, field)
+			case "ParentLabels":
+				return ec.fieldContext_tenantconfig_Tenant_ParentLabels(ctx, field)
+			case "Name":
+				return ec.fieldContext_tenantconfig_Tenant_Name(ctx, field)
+			case "DNSSuffix":
+				return ec.fieldContext_tenantconfig_Tenant_DNSSuffix(ctx, field)
+			case "SkipSaasTlsVerify":
+				return ec.fieldContext_tenantconfig_Tenant_SkipSaasTlsVerify(ctx, field)
+			case "InstallTenant":
+				return ec.fieldContext_tenantconfig_Tenant_InstallTenant(ctx, field)
+			case "InstallClient":
+				return ec.fieldContext_tenantconfig_Tenant_InstallClient(ctx, field)
+			case "OrderId":
+				return ec.fieldContext_tenantconfig_Tenant_OrderId(ctx, field)
+			case "Skus":
+				return ec.fieldContext_tenantconfig_Tenant_Skus(ctx, field)
+			case "FeatureFlags":
+				return ec.fieldContext_tenantconfig_Tenant_FeatureFlags(ctx, field)
+			case "Labels":
+				return ec.fieldContext_tenantconfig_Tenant_Labels(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type tenantconfig_Tenant", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _user_User_Username(ctx context.Context, field graphql.CollectedField, obj *model.UserUser) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_user_User_Username(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Username, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_user_User_Username(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "user_User",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _user_User_Mail(ctx context.Context, field graphql.CollectedField, obj *model.UserUser) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_user_User_Mail(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Mail, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_user_User_Mail(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "user_User",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _user_User_FirstName(ctx context.Context, field graphql.CollectedField, obj *model.UserUser) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_user_User_FirstName(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.FirstName, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_user_User_FirstName(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "user_User",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _user_User_LastName(ctx context.Context, field graphql.CollectedField, obj *model.UserUser) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_user_User_LastName(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.LastName, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_user_User_LastName(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "user_User",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _user_User_Password(ctx context.Context, field graphql.CollectedField, obj *model.UserUser) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_user_User_Password(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Password, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_user_User_Password(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "user_User",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _user_User_TenantId(ctx context.Context, field graphql.CollectedField, obj *model.UserUser) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_user_User_TenantId(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.TenantId, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_user_User_TenantId(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "user_User",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _user_User_Realm(ctx context.Context, field graphql.CollectedField, obj *model.UserUser) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_user_User_Realm(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Realm, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_user_User_Realm(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "user_User",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 // endregion **************************** field.gotpl *****************************
 
 // region    **************************** input.gotpl *****************************
@@ -6354,6 +9269,26 @@ func (ec *executionContext) _api_Nexus(ctx context.Context, sel ast.SelectionSet
 				return innerFunc(ctx)
 
 			})
+		case "Runtime":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._api_Nexus_Runtime(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -6517,6 +9452,57 @@ func (ec *executionContext) _config_Config(ctx context.Context, sel ast.Selectio
 					}
 				}()
 				res = ec._config_Config_Routes(ctx, field, obj)
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
+		case "Tenant":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._config_Config_Tenant(ctx, field, obj)
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
+		case "TenantPolicy":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._config_Config_TenantPolicy(ctx, field, obj)
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
+		case "User":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._config_Config_User(ctx, field, obj)
 				return res
 			}
 
@@ -6830,6 +9816,332 @@ func (ec *executionContext) _route_Route(ctx context.Context, sel ast.SelectionS
 		case "Resource":
 
 			out.Values[i] = ec._route_Route_Resource(ctx, field, obj)
+
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var runtime_RuntimeImplementors = []string{"runtime_Runtime"}
+
+func (ec *executionContext) _runtime_Runtime(ctx context.Context, sel ast.SelectionSet, obj *model.RuntimeRuntime) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, runtime_RuntimeImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("runtime_Runtime")
+		case "Id":
+
+			out.Values[i] = ec._runtime_Runtime_Id(ctx, field, obj)
+
+		case "ParentLabels":
+
+			out.Values[i] = ec._runtime_Runtime_ParentLabels(ctx, field, obj)
+
+		case "Tenant":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._runtime_Runtime_Tenant(ctx, field, obj)
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var tenantconfig_PolicyImplementors = []string{"tenantconfig_Policy"}
+
+func (ec *executionContext) _tenantconfig_Policy(ctx context.Context, sel ast.SelectionSet, obj *model.TenantconfigPolicy) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, tenantconfig_PolicyImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("tenantconfig_Policy")
+		case "Id":
+
+			out.Values[i] = ec._tenantconfig_Policy_Id(ctx, field, obj)
+
+		case "ParentLabels":
+
+			out.Values[i] = ec._tenantconfig_Policy_ParentLabels(ctx, field, obj)
+
+		case "StaticApplications":
+
+			out.Values[i] = ec._tenantconfig_Policy_StaticApplications(ctx, field, obj)
+
+		case "PinApplications":
+
+			out.Values[i] = ec._tenantconfig_Policy_PinApplications(ctx, field, obj)
+
+		case "DynamicAppSchedulingDisable":
+
+			out.Values[i] = ec._tenantconfig_Policy_DynamicAppSchedulingDisable(ctx, field, obj)
+
+		case "DisableProvisioning":
+
+			out.Values[i] = ec._tenantconfig_Policy_DisableProvisioning(ctx, field, obj)
+
+		case "DisableAutoScaling":
+
+			out.Values[i] = ec._tenantconfig_Policy_DisableAutoScaling(ctx, field, obj)
+
+		case "DisableAppClusterOnboarding":
+
+			out.Values[i] = ec._tenantconfig_Policy_DisableAppClusterOnboarding(ctx, field, obj)
+
+		case "DisableUpgrade":
+
+			out.Values[i] = ec._tenantconfig_Policy_DisableUpgrade(ctx, field, obj)
+
+		case "OnFailureDowngrade":
+
+			out.Values[i] = ec._tenantconfig_Policy_OnFailureDowngrade(ctx, field, obj)
+
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var tenantconfig_TenantImplementors = []string{"tenantconfig_Tenant"}
+
+func (ec *executionContext) _tenantconfig_Tenant(ctx context.Context, sel ast.SelectionSet, obj *model.TenantconfigTenant) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, tenantconfig_TenantImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("tenantconfig_Tenant")
+		case "Id":
+
+			out.Values[i] = ec._tenantconfig_Tenant_Id(ctx, field, obj)
+
+		case "ParentLabels":
+
+			out.Values[i] = ec._tenantconfig_Tenant_ParentLabels(ctx, field, obj)
+
+		case "Name":
+
+			out.Values[i] = ec._tenantconfig_Tenant_Name(ctx, field, obj)
+
+		case "DNSSuffix":
+
+			out.Values[i] = ec._tenantconfig_Tenant_DNSSuffix(ctx, field, obj)
+
+		case "SkipSaasTlsVerify":
+
+			out.Values[i] = ec._tenantconfig_Tenant_SkipSaasTlsVerify(ctx, field, obj)
+
+		case "InstallTenant":
+
+			out.Values[i] = ec._tenantconfig_Tenant_InstallTenant(ctx, field, obj)
+
+		case "InstallClient":
+
+			out.Values[i] = ec._tenantconfig_Tenant_InstallClient(ctx, field, obj)
+
+		case "OrderId":
+
+			out.Values[i] = ec._tenantconfig_Tenant_OrderId(ctx, field, obj)
+
+		case "Skus":
+
+			out.Values[i] = ec._tenantconfig_Tenant_Skus(ctx, field, obj)
+
+		case "FeatureFlags":
+
+			out.Values[i] = ec._tenantconfig_Tenant_FeatureFlags(ctx, field, obj)
+
+		case "Labels":
+
+			out.Values[i] = ec._tenantconfig_Tenant_Labels(ctx, field, obj)
+
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var tenantruntime_TenantImplementors = []string{"tenantruntime_Tenant"}
+
+func (ec *executionContext) _tenantruntime_Tenant(ctx context.Context, sel ast.SelectionSet, obj *model.TenantruntimeTenant) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, tenantruntime_TenantImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("tenantruntime_Tenant")
+		case "Id":
+
+			out.Values[i] = ec._tenantruntime_Tenant_Id(ctx, field, obj)
+
+		case "ParentLabels":
+
+			out.Values[i] = ec._tenantruntime_Tenant_ParentLabels(ctx, field, obj)
+
+		case "Namespace":
+
+			out.Values[i] = ec._tenantruntime_Tenant_Namespace(ctx, field, obj)
+
+		case "TenantName":
+
+			out.Values[i] = ec._tenantruntime_Tenant_TenantName(ctx, field, obj)
+
+		case "Attributes":
+
+			out.Values[i] = ec._tenantruntime_Tenant_Attributes(ctx, field, obj)
+
+		case "SaasDomainName":
+
+			out.Values[i] = ec._tenantruntime_Tenant_SaasDomainName(ctx, field, obj)
+
+		case "SaasApiDomainName":
+
+			out.Values[i] = ec._tenantruntime_Tenant_SaasApiDomainName(ctx, field, obj)
+
+		case "M7Enabled":
+
+			out.Values[i] = ec._tenantruntime_Tenant_M7Enabled(ctx, field, obj)
+
+		case "LicenseType":
+
+			out.Values[i] = ec._tenantruntime_Tenant_LicenseType(ctx, field, obj)
+
+		case "StreamName":
+
+			out.Values[i] = ec._tenantruntime_Tenant_StreamName(ctx, field, obj)
+
+		case "AwsS3Bucket":
+
+			out.Values[i] = ec._tenantruntime_Tenant_AwsS3Bucket(ctx, field, obj)
+
+		case "AwsKmsKeyId":
+
+			out.Values[i] = ec._tenantruntime_Tenant_AwsKmsKeyId(ctx, field, obj)
+
+		case "M7InstallationScheduled":
+
+			out.Values[i] = ec._tenantruntime_Tenant_M7InstallationScheduled(ctx, field, obj)
+
+		case "ReleaseVersion":
+
+			out.Values[i] = ec._tenantruntime_Tenant_ReleaseVersion(ctx, field, obj)
+
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var user_UserImplementors = []string{"user_User"}
+
+func (ec *executionContext) _user_User(ctx context.Context, sel ast.SelectionSet, obj *model.UserUser) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, user_UserImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("user_User")
+		case "Id":
+
+			out.Values[i] = ec._user_User_Id(ctx, field, obj)
+
+		case "ParentLabels":
+
+			out.Values[i] = ec._user_User_ParentLabels(ctx, field, obj)
+
+		case "Tenant":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._user_User_Tenant(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
+		case "Username":
+
+			out.Values[i] = ec._user_User_Username(ctx, field, obj)
+
+		case "Mail":
+
+			out.Values[i] = ec._user_User_Mail(ctx, field, obj)
+
+		case "FirstName":
+
+			out.Values[i] = ec._user_User_FirstName(ctx, field, obj)
+
+		case "LastName":
+
+			out.Values[i] = ec._user_User_LastName(ctx, field, obj)
+
+		case "Password":
+
+			out.Values[i] = ec._user_User_Password(ctx, field, obj)
+
+		case "TenantId":
+
+			out.Values[i] = ec._user_User_TenantId(ctx, field, obj)
+
+		case "Realm":
+
+			out.Values[i] = ec._user_User_Realm(ctx, field, obj)
 
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
@@ -7247,6 +10559,64 @@ func (ec *executionContext) marshalNroute_Route2ᚖnexustempmoduleᚋnexusᚑgql
 		return graphql.Null
 	}
 	return ec._route_Route(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNruntime_Runtime2nexustempmoduleᚋnexusᚑgqlᚋgraphᚋmodelᚐRuntimeRuntime(ctx context.Context, sel ast.SelectionSet, v model.RuntimeRuntime) graphql.Marshaler {
+	return ec._runtime_Runtime(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNruntime_Runtime2ᚖnexustempmoduleᚋnexusᚑgqlᚋgraphᚋmodelᚐRuntimeRuntime(ctx context.Context, sel ast.SelectionSet, v *model.RuntimeRuntime) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._runtime_Runtime(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNtenantconfig_Policy2ᚖnexustempmoduleᚋnexusᚑgqlᚋgraphᚋmodelᚐTenantconfigPolicy(ctx context.Context, sel ast.SelectionSet, v *model.TenantconfigPolicy) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._tenantconfig_Policy(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNtenantconfig_Tenant2nexustempmoduleᚋnexusᚑgqlᚋgraphᚋmodelᚐTenantconfigTenant(ctx context.Context, sel ast.SelectionSet, v model.TenantconfigTenant) graphql.Marshaler {
+	return ec._tenantconfig_Tenant(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNtenantconfig_Tenant2ᚖnexustempmoduleᚋnexusᚑgqlᚋgraphᚋmodelᚐTenantconfigTenant(ctx context.Context, sel ast.SelectionSet, v *model.TenantconfigTenant) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._tenantconfig_Tenant(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNtenantruntime_Tenant2ᚖnexustempmoduleᚋnexusᚑgqlᚋgraphᚋmodelᚐTenantruntimeTenant(ctx context.Context, sel ast.SelectionSet, v *model.TenantruntimeTenant) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._tenantruntime_Tenant(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNuser_User2ᚖnexustempmoduleᚋnexusᚑgqlᚋgraphᚋmodelᚐUserUser(ctx context.Context, sel ast.SelectionSet, v *model.UserUser) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._user_User(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalOBoolean2bool(ctx context.Context, v interface{}) (bool, error) {
@@ -7804,6 +11174,194 @@ func (ec *executionContext) marshalOroute_Route2ᚕᚖnexustempmoduleᚋnexusᚑ
 				defer wg.Done()
 			}
 			ret[i] = ec.marshalNroute_Route2ᚖnexustempmoduleᚋnexusᚑgqlᚋgraphᚋmodelᚐRouteRoute(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalOtenantconfig_Policy2ᚕᚖnexustempmoduleᚋnexusᚑgqlᚋgraphᚋmodelᚐTenantconfigPolicyᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.TenantconfigPolicy) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNtenantconfig_Policy2ᚖnexustempmoduleᚋnexusᚑgqlᚋgraphᚋmodelᚐTenantconfigPolicy(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalOtenantconfig_Tenant2ᚕᚖnexustempmoduleᚋnexusᚑgqlᚋgraphᚋmodelᚐTenantconfigTenantᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.TenantconfigTenant) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNtenantconfig_Tenant2ᚖnexustempmoduleᚋnexusᚑgqlᚋgraphᚋmodelᚐTenantconfigTenant(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalOtenantruntime_Tenant2ᚕᚖnexustempmoduleᚋnexusᚑgqlᚋgraphᚋmodelᚐTenantruntimeTenantᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.TenantruntimeTenant) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNtenantruntime_Tenant2ᚖnexustempmoduleᚋnexusᚑgqlᚋgraphᚋmodelᚐTenantruntimeTenant(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalOuser_User2ᚕᚖnexustempmoduleᚋnexusᚑgqlᚋgraphᚋmodelᚐUserUserᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.UserUser) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNuser_User2ᚖnexustempmoduleᚋnexusᚑgqlᚋgraphᚋmodelᚐUserUser(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)

@@ -34,6 +34,8 @@ models:
     fields:
       Config:
         resolver: true
+      Runtime:
+        resolver: true
   apigateway_ApiGateway:
     fields:
       ProxyRules:
@@ -46,9 +48,19 @@ models:
     fields:
       Routes:
         resolver: true
+      Tenant:
+        resolver: true
+      TenantPolicy:
+        resolver: true
+      User:
+        resolver: true
       ApiGateway:
         resolver: true
       Connect:
+        resolver: true
+  user_User:
+    fields:
+      Tenant:
         resolver: true
   connect_Connect:
     fields:
@@ -59,4 +71,8 @@ models:
   connect_ReplicationConfig:
     fields:
       RemoteEndpoint:
+        resolver: true
+  runtime_Runtime:
+    fields:
+      Tenant:
         resolver: true

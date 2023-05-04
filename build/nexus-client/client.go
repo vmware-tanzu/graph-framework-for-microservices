@@ -15,10 +15,12 @@ package nexus_client
 import (
 	"context"
 	"encoding/json"
+	"sync"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	types "k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/rest"
+	cache "k8s.io/client-go/tools/cache"
 
 	baseClientset "golang-appnet.eng.vmware.com/nexus-sdk/api/build/client/clientset/versioned"
 	fakeBaseClienset "golang-appnet.eng.vmware.com/nexus-sdk/api/build/client/clientset/versioned/fake"
@@ -33,6 +35,23 @@ import (
 	baseconnectnexusvmwarecomv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/connect.nexus.vmware.com/v1"
 	basedomainnexusvmwarecomv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/domain.nexus.vmware.com/v1"
 	baseroutenexusvmwarecomv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/route.nexus.vmware.com/v1"
+	baseruntimenexusvmwarecomv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/runtime.nexus.vmware.com/v1"
+	basetenantconfignexusvmwarecomv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/tenantconfig.nexus.vmware.com/v1"
+	basetenantruntimenexusvmwarecomv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/tenantruntime.nexus.vmware.com/v1"
+	baseusernexusvmwarecomv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/user.nexus.vmware.com/v1"
+
+	informeradminnexusvmwarecomv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/client/informers/externalversions/admin.nexus.vmware.com/v1"
+	informerapinexusvmwarecomv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/client/informers/externalversions/api.nexus.vmware.com/v1"
+	informerapigatewaynexusvmwarecomv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/client/informers/externalversions/apigateway.nexus.vmware.com/v1"
+	informerauthenticationnexusvmwarecomv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/client/informers/externalversions/authentication.nexus.vmware.com/v1"
+	informerconfignexusvmwarecomv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/client/informers/externalversions/config.nexus.vmware.com/v1"
+	informerconnectnexusvmwarecomv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/client/informers/externalversions/connect.nexus.vmware.com/v1"
+	informerdomainnexusvmwarecomv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/client/informers/externalversions/domain.nexus.vmware.com/v1"
+	informerroutenexusvmwarecomv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/client/informers/externalversions/route.nexus.vmware.com/v1"
+	informerruntimenexusvmwarecomv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/client/informers/externalversions/runtime.nexus.vmware.com/v1"
+	informertenantconfignexusvmwarecomv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/client/informers/externalversions/tenantconfig.nexus.vmware.com/v1"
+	informertenantruntimenexusvmwarecomv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/client/informers/externalversions/tenantruntime.nexus.vmware.com/v1"
+	informerusernexusvmwarecomv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/client/informers/externalversions/user.nexus.vmware.com/v1"
 )
 
 type Clientset struct {
@@ -42,9 +61,134 @@ type Clientset struct {
 	apigatewayNexusV1     *ApigatewayNexusV1
 	authenticationNexusV1 *AuthenticationNexusV1
 	configNexusV1         *ConfigNexusV1
+	tenantconfigNexusV1   *TenantconfigNexusV1
+	userNexusV1           *UserNexusV1
 	connectNexusV1        *ConnectNexusV1
 	domainNexusV1         *DomainNexusV1
 	routeNexusV1          *RouteNexusV1
+	runtimeNexusV1        *RuntimeNexusV1
+	tenantruntimeNexusV1  *TenantruntimeNexusV1
+}
+
+type subscription struct {
+	informer cache.SharedIndexInformer
+	stop     chan struct{}
+}
+
+// subscriptionMap will store crd string as key and value as subscription type,
+// for example key="roots.orgchart.vmware.org" and value=subscription{}
+var subscriptionMap = sync.Map{}
+
+func subscribe(key string, informer cache.SharedIndexInformer) {
+	s := subscription{
+		informer: informer,
+		stop:     make(chan struct{}),
+	}
+	go s.informer.Run(s.stop)
+	subscriptionMap.Store(key, s)
+}
+
+func (c *Clientset) SubscribeAll() {
+	var key string
+
+	key = "nexuses.api.nexus.vmware.com"
+	if _, ok := subscriptionMap.Load(key); !ok {
+		informer := informerapinexusvmwarecomv1.NewNexusInformer(c.baseClient, 0, cache.Indexers{})
+		subscribe(key, informer)
+	}
+
+	key = "proxyrules.admin.nexus.vmware.com"
+	if _, ok := subscriptionMap.Load(key); !ok {
+		informer := informeradminnexusvmwarecomv1.NewProxyRuleInformer(c.baseClient, 0, cache.Indexers{})
+		subscribe(key, informer)
+	}
+
+	key = "apigateways.apigateway.nexus.vmware.com"
+	if _, ok := subscriptionMap.Load(key); !ok {
+		informer := informerapigatewaynexusvmwarecomv1.NewApiGatewayInformer(c.baseClient, 0, cache.Indexers{})
+		subscribe(key, informer)
+	}
+
+	key = "oidcs.authentication.nexus.vmware.com"
+	if _, ok := subscriptionMap.Load(key); !ok {
+		informer := informerauthenticationnexusvmwarecomv1.NewOIDCInformer(c.baseClient, 0, cache.Indexers{})
+		subscribe(key, informer)
+	}
+
+	key = "configs.config.nexus.vmware.com"
+	if _, ok := subscriptionMap.Load(key); !ok {
+		informer := informerconfignexusvmwarecomv1.NewConfigInformer(c.baseClient, 0, cache.Indexers{})
+		subscribe(key, informer)
+	}
+
+	key = "tenants.tenantconfig.nexus.vmware.com"
+	if _, ok := subscriptionMap.Load(key); !ok {
+		informer := informertenantconfignexusvmwarecomv1.NewTenantInformer(c.baseClient, 0, cache.Indexers{})
+		subscribe(key, informer)
+	}
+
+	key = "policies.tenantconfig.nexus.vmware.com"
+	if _, ok := subscriptionMap.Load(key); !ok {
+		informer := informertenantconfignexusvmwarecomv1.NewPolicyInformer(c.baseClient, 0, cache.Indexers{})
+		subscribe(key, informer)
+	}
+
+	key = "users.user.nexus.vmware.com"
+	if _, ok := subscriptionMap.Load(key); !ok {
+		informer := informerusernexusvmwarecomv1.NewUserInformer(c.baseClient, 0, cache.Indexers{})
+		subscribe(key, informer)
+	}
+
+	key = "connects.connect.nexus.vmware.com"
+	if _, ok := subscriptionMap.Load(key); !ok {
+		informer := informerconnectnexusvmwarecomv1.NewConnectInformer(c.baseClient, 0, cache.Indexers{})
+		subscribe(key, informer)
+	}
+
+	key = "nexusendpoints.connect.nexus.vmware.com"
+	if _, ok := subscriptionMap.Load(key); !ok {
+		informer := informerconnectnexusvmwarecomv1.NewNexusEndpointInformer(c.baseClient, 0, cache.Indexers{})
+		subscribe(key, informer)
+	}
+
+	key = "replicationconfigs.connect.nexus.vmware.com"
+	if _, ok := subscriptionMap.Load(key); !ok {
+		informer := informerconnectnexusvmwarecomv1.NewReplicationConfigInformer(c.baseClient, 0, cache.Indexers{})
+		subscribe(key, informer)
+	}
+
+	key = "corsconfigs.domain.nexus.vmware.com"
+	if _, ok := subscriptionMap.Load(key); !ok {
+		informer := informerdomainnexusvmwarecomv1.NewCORSConfigInformer(c.baseClient, 0, cache.Indexers{})
+		subscribe(key, informer)
+	}
+
+	key = "routes.route.nexus.vmware.com"
+	if _, ok := subscriptionMap.Load(key); !ok {
+		informer := informerroutenexusvmwarecomv1.NewRouteInformer(c.baseClient, 0, cache.Indexers{})
+		subscribe(key, informer)
+	}
+
+	key = "runtimes.runtime.nexus.vmware.com"
+	if _, ok := subscriptionMap.Load(key); !ok {
+		informer := informerruntimenexusvmwarecomv1.NewRuntimeInformer(c.baseClient, 0, cache.Indexers{})
+		subscribe(key, informer)
+	}
+
+	key = "tenants.tenantruntime.nexus.vmware.com"
+	if _, ok := subscriptionMap.Load(key); !ok {
+		informer := informertenantruntimenexusvmwarecomv1.NewTenantInformer(c.baseClient, 0, cache.Indexers{})
+		subscribe(key, informer)
+	}
+
+}
+
+func (c *Clientset) UnsubscribeAll() {
+	subscriptionMap.Range(func(key, s interface{}) bool {
+		close(s.(subscription).stop)
+		subscriptionMap.Delete(key)
+		return true
+	})
 }
 
 // NewForConfig returns Client which can be which can be used to connect to database
@@ -60,9 +204,13 @@ func NewForConfig(config *rest.Config) (*Clientset, error) {
 	client.apigatewayNexusV1 = newApigatewayNexusV1(client)
 	client.authenticationNexusV1 = newAuthenticationNexusV1(client)
 	client.configNexusV1 = newConfigNexusV1(client)
+	client.tenantconfigNexusV1 = newTenantconfigNexusV1(client)
+	client.userNexusV1 = newUserNexusV1(client)
 	client.connectNexusV1 = newConnectNexusV1(client)
 	client.domainNexusV1 = newDomainNexusV1(client)
 	client.routeNexusV1 = newRouteNexusV1(client)
+	client.runtimeNexusV1 = newRuntimeNexusV1(client)
+	client.tenantruntimeNexusV1 = newTenantruntimeNexusV1(client)
 
 	return client, nil
 }
@@ -76,9 +224,13 @@ func NewFakeClient() *Clientset {
 	client.apigatewayNexusV1 = newApigatewayNexusV1(client)
 	client.authenticationNexusV1 = newAuthenticationNexusV1(client)
 	client.configNexusV1 = newConfigNexusV1(client)
+	client.tenantconfigNexusV1 = newTenantconfigNexusV1(client)
+	client.userNexusV1 = newUserNexusV1(client)
 	client.connectNexusV1 = newConnectNexusV1(client)
 	client.domainNexusV1 = newDomainNexusV1(client)
 	client.routeNexusV1 = newRouteNexusV1(client)
+	client.runtimeNexusV1 = newRuntimeNexusV1(client)
+	client.tenantruntimeNexusV1 = newTenantruntimeNexusV1(client)
 
 	return client
 }
@@ -110,6 +262,12 @@ func (c *Clientset) Authentication() *AuthenticationNexusV1 {
 func (c *Clientset) Config() *ConfigNexusV1 {
 	return c.configNexusV1
 }
+func (c *Clientset) Tenantconfig() *TenantconfigNexusV1 {
+	return c.tenantconfigNexusV1
+}
+func (c *Clientset) User() *UserNexusV1 {
+	return c.userNexusV1
+}
 func (c *Clientset) Connect() *ConnectNexusV1 {
 	return c.connectNexusV1
 }
@@ -118,6 +276,12 @@ func (c *Clientset) Domain() *DomainNexusV1 {
 }
 func (c *Clientset) Route() *RouteNexusV1 {
 	return c.routeNexusV1
+}
+func (c *Clientset) Runtime() *RuntimeNexusV1 {
+	return c.runtimeNexusV1
+}
+func (c *Clientset) Tenantruntime() *TenantruntimeNexusV1 {
+	return c.tenantruntimeNexusV1
 }
 
 type ApiNexusV1 struct {
@@ -170,6 +334,26 @@ func newConfigNexusV1(client *Clientset) *ConfigNexusV1 {
 	}
 }
 
+type TenantconfigNexusV1 struct {
+	client *Clientset
+}
+
+func newTenantconfigNexusV1(client *Clientset) *TenantconfigNexusV1 {
+	return &TenantconfigNexusV1{
+		client: client,
+	}
+}
+
+type UserNexusV1 struct {
+	client *Clientset
+}
+
+func newUserNexusV1(client *Clientset) *UserNexusV1 {
+	return &UserNexusV1{
+		client: client,
+	}
+}
+
 type ConnectNexusV1 struct {
 	client *Clientset
 }
@@ -200,20 +384,54 @@ func newRouteNexusV1(client *Clientset) *RouteNexusV1 {
 	}
 }
 
+type RuntimeNexusV1 struct {
+	client *Clientset
+}
+
+func newRuntimeNexusV1(client *Clientset) *RuntimeNexusV1 {
+	return &RuntimeNexusV1{
+		client: client,
+	}
+}
+
+type TenantruntimeNexusV1 struct {
+	client *Clientset
+}
+
+func newTenantruntimeNexusV1(client *Clientset) *TenantruntimeNexusV1 {
+	return &TenantruntimeNexusV1{
+		client: client,
+	}
+}
+
 // GetNexusByName returns object stored in the database under the hashedName which is a hash of display
 // name and parents names. Use it when you know hashed name of object.
 func (group *ApiNexusV1) GetNexusByName(ctx context.Context, hashedName string) (*ApiNexus, error) {
-	result, err := group.client.baseClient.
-		ApiNexusV1().
-		Nexuses().Get(ctx, hashedName, metav1.GetOptions{})
-	if err != nil {
-		return nil, err
-	}
+	key := "nexuses.api.nexus.vmware.com"
+	if s, ok := subscriptionMap.Load(key); ok {
+		item, exists, err := s.(subscription).informer.GetStore().GetByKey(hashedName)
+		if !exists {
+			return nil, err
+		}
 
-	return &ApiNexus{
-		client: group.client,
-		Nexus:  result,
-	}, nil
+		result, _ := item.(*baseapinexusvmwarecomv1.Nexus)
+		return &ApiNexus{
+			client: group.client,
+			Nexus:  result,
+		}, nil
+	} else {
+		result, err := group.client.baseClient.
+			ApiNexusV1().
+			Nexuses().Get(ctx, hashedName, metav1.GetOptions{})
+		if err != nil {
+			return nil, err
+		}
+
+		return &ApiNexus{
+			client: group.client,
+			Nexus:  result,
+		}, nil
+	}
 }
 
 // DeleteNexusByName deletes object stored in the database under the hashedName which is a hash of
@@ -231,6 +449,15 @@ func (group *ApiNexusV1) DeleteNexusByName(ctx context.Context, hashedName strin
 		err := group.client.
 			Config().
 			DeleteConfigByName(ctx, result.Spec.ConfigGvk.Name)
+		if err != nil {
+			return err
+		}
+	}
+
+	if result.Spec.RuntimeGvk != nil {
+		err := group.client.
+			Runtime().
+			DeleteRuntimeByName(ctx, result.Spec.RuntimeGvk.Name)
 		if err != nil {
 			return err
 		}
@@ -258,6 +485,7 @@ func (group *ApiNexusV1) CreateNexusByName(ctx context.Context,
 	}
 
 	objToCreate.Spec.ConfigGvk = nil
+	objToCreate.Spec.RuntimeGvk = nil
 
 	result, err := group.client.baseClient.
 		ApiNexusV1().
@@ -315,17 +543,30 @@ func (group *ApiNexusV1) UpdateNexusByName(ctx context.Context,
 // ListNexuses returns slice of all existing objects of this type. Selectors can be provided in opts parameter.
 func (group *ApiNexusV1) ListNexuses(ctx context.Context,
 	opts metav1.ListOptions) (result []*ApiNexus, err error) {
-	list, err := group.client.baseClient.ApiNexusV1().
-		Nexuses().List(ctx, opts)
-	if err != nil {
-		return nil, err
-	}
-	result = make([]*ApiNexus, len(list.Items))
-	for k, v := range list.Items {
-		item := v
-		result[k] = &ApiNexus{
-			client: group.client,
-			Nexus:  &item,
+	key := "nexuses.api.nexus.vmware.com"
+	if s, ok := subscriptionMap.Load(key); ok {
+		items := s.(subscription).informer.GetStore().List()
+		result = make([]*ApiNexus, len(items))
+		for k, v := range items {
+			item, _ := v.(*baseapinexusvmwarecomv1.Nexus)
+			result[k] = &ApiNexus{
+				client: group.client,
+				Nexus:  item,
+			}
+		}
+	} else {
+		list, err := group.client.baseClient.ApiNexusV1().
+			Nexuses().List(ctx, opts)
+		if err != nil {
+			return nil, err
+		}
+		result = make([]*ApiNexus, len(list.Items))
+		for k, v := range list.Items {
+			item := v
+			result[k] = &ApiNexus{
+				client: group.client,
+				Nexus:  &item,
+			}
 		}
 	}
 	return
@@ -451,10 +692,92 @@ func (obj *ApiNexus) DeleteConfig(ctx context.Context) (err error) {
 	return
 }
 
+// GetRuntime returns child of given type
+func (obj *ApiNexus) GetRuntime(ctx context.Context) (
+	result *RuntimeRuntime, err error) {
+	if obj.Spec.RuntimeGvk == nil {
+		return nil, NewChildNotFound(obj.DisplayName(), "Api.Nexus", "Runtime")
+	}
+	return obj.client.Runtime().GetRuntimeByName(ctx, obj.Spec.RuntimeGvk.Name)
+}
+
+// AddRuntime calculates hashed name of the child to create based on objToCreate.Name
+// and parents names and creates it. objToCreate.Name is changed to the hashed name. Original name is preserved in
+// nexus/display_name label and can be obtained using DisplayName() method.
+func (obj *ApiNexus) AddRuntime(ctx context.Context,
+	objToCreate *baseruntimenexusvmwarecomv1.Runtime) (result *RuntimeRuntime, err error) {
+	if objToCreate.Labels == nil {
+		objToCreate.Labels = map[string]string{}
+	}
+	for _, v := range helper.GetCRDParentsMap()["nexuses.api.nexus.vmware.com"] {
+		objToCreate.Labels[v] = obj.Labels[v]
+	}
+	objToCreate.Labels["nexuses.api.nexus.vmware.com"] = obj.DisplayName()
+	if objToCreate.Labels[common.IS_NAME_HASHED_LABEL] != "true" {
+		if objToCreate.GetName() == "" {
+			objToCreate.SetName(helper.DEFAULT_KEY)
+		}
+		if objToCreate.GetName() != helper.DEFAULT_KEY {
+			return nil, NewSingletonNameError(objToCreate.GetName())
+		}
+		objToCreate.Labels[common.DISPLAY_NAME_LABEL] = objToCreate.GetName()
+		objToCreate.Labels[common.IS_NAME_HASHED_LABEL] = "true"
+		hashedName := helper.GetHashedName(objToCreate.CRDName(), objToCreate.Labels, objToCreate.GetName())
+		objToCreate.Name = hashedName
+	}
+	result, err = obj.client.Runtime().CreateRuntimeByName(ctx, objToCreate)
+	updatedObj, getErr := obj.client.Api().GetNexusByName(ctx, obj.GetName())
+	if getErr == nil {
+		obj.Nexus = updatedObj.Nexus
+	}
+	return
+}
+
+// DeleteRuntime calculates hashed name of the child to delete based on displayName
+// and parents names and deletes it.
+
+func (obj *ApiNexus) DeleteRuntime(ctx context.Context) (err error) {
+	if obj.Spec.RuntimeGvk != nil {
+		err = obj.client.
+			Runtime().DeleteRuntimeByName(ctx, obj.Spec.RuntimeGvk.Name)
+		if err != nil {
+			return err
+		}
+	}
+	updatedObj, err := obj.client.
+		Api().GetNexusByName(ctx, obj.GetName())
+	if err == nil {
+		obj.Nexus = updatedObj.Nexus
+	}
+	return
+}
+
 type nexusApiNexusV1Chainer struct {
 	client       *Clientset
 	name         string
 	parentLabels map[string]string
+}
+
+func (c *nexusApiNexusV1Chainer) Subscribe() {
+	key := "nexuses.api.nexus.vmware.com"
+	if _, ok := subscriptionMap.Load(key); !ok {
+		informer := informerapinexusvmwarecomv1.NewNexusInformer(c.client.baseClient, 0, cache.Indexers{})
+		subscribe(key, informer)
+	}
+}
+
+func (c *nexusApiNexusV1Chainer) Unsubscribe() {
+	key := "nexuses.api.nexus.vmware.com"
+	if s, ok := subscriptionMap.Load(key); ok {
+		close(s.(subscription).stop)
+		subscriptionMap.Delete(key)
+	}
+}
+
+func (c *nexusApiNexusV1Chainer) IsSubscribed() bool {
+	key := "nexuses.api.nexus.vmware.com"
+	_, ok := subscriptionMap.Load(key)
+	return ok
 }
 
 func (c *nexusApiNexusV1Chainer) Config(name string) *configConfigNexusV1Chainer {
@@ -504,20 +827,87 @@ func (c *nexusApiNexusV1Chainer) DeleteConfig(ctx context.Context, name string) 
 	return c.client.Config().DeleteConfigByName(ctx, hashedName)
 }
 
+func (c *nexusApiNexusV1Chainer) Runtime() *runtimeRuntimeNexusV1Chainer {
+	parentLabels := c.parentLabels
+	parentLabels["runtimes.runtime.nexus.vmware.com"] = helper.DEFAULT_KEY
+	return &runtimeRuntimeNexusV1Chainer{
+		client:       c.client,
+		name:         helper.DEFAULT_KEY,
+		parentLabels: parentLabels,
+	}
+}
+
+// GetRuntime calculates hashed name of the object based on it's parents and returns the object
+func (c *nexusApiNexusV1Chainer) GetRuntime(ctx context.Context) (result *RuntimeRuntime, err error) {
+	hashedName := helper.GetHashedName("runtimes.runtime.nexus.vmware.com", c.parentLabels, helper.DEFAULT_KEY)
+	return c.client.Runtime().GetRuntimeByName(ctx, hashedName)
+}
+
+// AddRuntime calculates hashed name of the child to create based on parents names and creates it.
+// objToCreate.Name is changed to the hashed name. Original name ('default') is preserved in
+// nexus/display_name label and can be obtained using DisplayName() method.
+func (c *nexusApiNexusV1Chainer) AddRuntime(ctx context.Context,
+	objToCreate *baseruntimenexusvmwarecomv1.Runtime) (result *RuntimeRuntime, err error) {
+	if objToCreate.GetName() == "" {
+		objToCreate.SetName(helper.DEFAULT_KEY)
+	}
+	if objToCreate.GetName() != helper.DEFAULT_KEY {
+		return nil, NewSingletonNameError(objToCreate.GetName())
+	}
+	if objToCreate.Labels == nil {
+		objToCreate.Labels = map[string]string{}
+	}
+	for k, v := range c.parentLabels {
+		objToCreate.Labels[k] = v
+	}
+	if objToCreate.Labels[common.IS_NAME_HASHED_LABEL] != "true" {
+		objToCreate.Labels[common.DISPLAY_NAME_LABEL] = objToCreate.GetName()
+		objToCreate.Labels[common.IS_NAME_HASHED_LABEL] = "true"
+		hashedName := helper.GetHashedName("runtimes.runtime.nexus.vmware.com", c.parentLabels, objToCreate.GetName())
+		objToCreate.Name = hashedName
+	}
+	return c.client.Runtime().CreateRuntimeByName(ctx, objToCreate)
+}
+
+// DeleteRuntime calculates hashed name of the child to delete based on displayName
+// and parents names and deletes it.
+func (c *nexusApiNexusV1Chainer) DeleteRuntime(ctx context.Context, name string) (err error) {
+	if c.parentLabels == nil {
+		c.parentLabels = map[string]string{}
+	}
+	c.parentLabels[common.IS_NAME_HASHED_LABEL] = "true"
+	hashedName := helper.GetHashedName("runtimes.runtime.nexus.vmware.com", c.parentLabels, name)
+	return c.client.Runtime().DeleteRuntimeByName(ctx, hashedName)
+}
+
 // GetProxyRuleByName returns object stored in the database under the hashedName which is a hash of display
 // name and parents names. Use it when you know hashed name of object.
 func (group *AdminNexusV1) GetProxyRuleByName(ctx context.Context, hashedName string) (*AdminProxyRule, error) {
-	result, err := group.client.baseClient.
-		AdminNexusV1().
-		ProxyRules().Get(ctx, hashedName, metav1.GetOptions{})
-	if err != nil {
-		return nil, err
-	}
+	key := "proxyrules.admin.nexus.vmware.com"
+	if s, ok := subscriptionMap.Load(key); ok {
+		item, exists, err := s.(subscription).informer.GetStore().GetByKey(hashedName)
+		if !exists {
+			return nil, err
+		}
 
-	return &AdminProxyRule{
-		client:    group.client,
-		ProxyRule: result,
-	}, nil
+		result, _ := item.(*baseadminnexusvmwarecomv1.ProxyRule)
+		return &AdminProxyRule{
+			client:    group.client,
+			ProxyRule: result,
+		}, nil
+	} else {
+		result, err := group.client.baseClient.
+			AdminNexusV1().
+			ProxyRules().Get(ctx, hashedName, metav1.GetOptions{})
+		if err != nil {
+			return nil, err
+		}
+
+		return &AdminProxyRule{
+			client:    group.client,
+			ProxyRule: result,
+		}, nil
+	}
 }
 
 // DeleteProxyRuleByName deletes object stored in the database under the hashedName which is a hash of
@@ -672,17 +1062,30 @@ func (group *AdminNexusV1) UpdateProxyRuleByName(ctx context.Context,
 // ListProxyRules returns slice of all existing objects of this type. Selectors can be provided in opts parameter.
 func (group *AdminNexusV1) ListProxyRules(ctx context.Context,
 	opts metav1.ListOptions) (result []*AdminProxyRule, err error) {
-	list, err := group.client.baseClient.AdminNexusV1().
-		ProxyRules().List(ctx, opts)
-	if err != nil {
-		return nil, err
-	}
-	result = make([]*AdminProxyRule, len(list.Items))
-	for k, v := range list.Items {
-		item := v
-		result[k] = &AdminProxyRule{
-			client:    group.client,
-			ProxyRule: &item,
+	key := "proxyrules.admin.nexus.vmware.com"
+	if s, ok := subscriptionMap.Load(key); ok {
+		items := s.(subscription).informer.GetStore().List()
+		result = make([]*AdminProxyRule, len(items))
+		for k, v := range items {
+			item, _ := v.(*baseadminnexusvmwarecomv1.ProxyRule)
+			result[k] = &AdminProxyRule{
+				client:    group.client,
+				ProxyRule: item,
+			}
+		}
+	} else {
+		list, err := group.client.baseClient.AdminNexusV1().
+			ProxyRules().List(ctx, opts)
+		if err != nil {
+			return nil, err
+		}
+		result = make([]*AdminProxyRule, len(list.Items))
+		for k, v := range list.Items {
+			item := v
+			result[k] = &AdminProxyRule{
+				client:    group.client,
+				ProxyRule: &item,
+			}
 		}
 	}
 	return
@@ -724,20 +1127,56 @@ type proxyruleAdminNexusV1Chainer struct {
 	parentLabels map[string]string
 }
 
+func (c *proxyruleAdminNexusV1Chainer) Subscribe() {
+	key := "proxyrules.admin.nexus.vmware.com"
+	if _, ok := subscriptionMap.Load(key); !ok {
+		informer := informeradminnexusvmwarecomv1.NewProxyRuleInformer(c.client.baseClient, 0, cache.Indexers{})
+		subscribe(key, informer)
+	}
+}
+
+func (c *proxyruleAdminNexusV1Chainer) Unsubscribe() {
+	key := "proxyrules.admin.nexus.vmware.com"
+	if s, ok := subscriptionMap.Load(key); ok {
+		close(s.(subscription).stop)
+		subscriptionMap.Delete(key)
+	}
+}
+
+func (c *proxyruleAdminNexusV1Chainer) IsSubscribed() bool {
+	key := "proxyrules.admin.nexus.vmware.com"
+	_, ok := subscriptionMap.Load(key)
+	return ok
+}
+
 // GetApiGatewayByName returns object stored in the database under the hashedName which is a hash of display
 // name and parents names. Use it when you know hashed name of object.
 func (group *ApigatewayNexusV1) GetApiGatewayByName(ctx context.Context, hashedName string) (*ApigatewayApiGateway, error) {
-	result, err := group.client.baseClient.
-		ApigatewayNexusV1().
-		ApiGateways().Get(ctx, hashedName, metav1.GetOptions{})
-	if err != nil {
-		return nil, err
-	}
+	key := "apigateways.apigateway.nexus.vmware.com"
+	if s, ok := subscriptionMap.Load(key); ok {
+		item, exists, err := s.(subscription).informer.GetStore().GetByKey(hashedName)
+		if !exists {
+			return nil, err
+		}
 
-	return &ApigatewayApiGateway{
-		client:     group.client,
-		ApiGateway: result,
-	}, nil
+		result, _ := item.(*baseapigatewaynexusvmwarecomv1.ApiGateway)
+		return &ApigatewayApiGateway{
+			client:     group.client,
+			ApiGateway: result,
+		}, nil
+	} else {
+		result, err := group.client.baseClient.
+			ApigatewayNexusV1().
+			ApiGateways().Get(ctx, hashedName, metav1.GetOptions{})
+		if err != nil {
+			return nil, err
+		}
+
+		return &ApigatewayApiGateway{
+			client:     group.client,
+			ApiGateway: result,
+		}, nil
+	}
 }
 
 // DeleteApiGatewayByName deletes object stored in the database under the hashedName which is a hash of
@@ -917,17 +1356,30 @@ func (group *ApigatewayNexusV1) UpdateApiGatewayByName(ctx context.Context,
 // ListApiGateways returns slice of all existing objects of this type. Selectors can be provided in opts parameter.
 func (group *ApigatewayNexusV1) ListApiGateways(ctx context.Context,
 	opts metav1.ListOptions) (result []*ApigatewayApiGateway, err error) {
-	list, err := group.client.baseClient.ApigatewayNexusV1().
-		ApiGateways().List(ctx, opts)
-	if err != nil {
-		return nil, err
-	}
-	result = make([]*ApigatewayApiGateway, len(list.Items))
-	for k, v := range list.Items {
-		item := v
-		result[k] = &ApigatewayApiGateway{
-			client:     group.client,
-			ApiGateway: &item,
+	key := "apigateways.apigateway.nexus.vmware.com"
+	if s, ok := subscriptionMap.Load(key); ok {
+		items := s.(subscription).informer.GetStore().List()
+		result = make([]*ApigatewayApiGateway, len(items))
+		for k, v := range items {
+			item, _ := v.(*baseapigatewaynexusvmwarecomv1.ApiGateway)
+			result[k] = &ApigatewayApiGateway{
+				client:     group.client,
+				ApiGateway: item,
+			}
+		}
+	} else {
+		list, err := group.client.baseClient.ApigatewayNexusV1().
+			ApiGateways().List(ctx, opts)
+		if err != nil {
+			return nil, err
+		}
+		result = make([]*ApigatewayApiGateway, len(list.Items))
+		for k, v := range list.Items {
+			item := v
+			result[k] = &ApigatewayApiGateway{
+				client:     group.client,
+				ApiGateway: &item,
+			}
 		}
 	}
 	return
@@ -1163,6 +1615,28 @@ type apigatewayApigatewayNexusV1Chainer struct {
 	parentLabels map[string]string
 }
 
+func (c *apigatewayApigatewayNexusV1Chainer) Subscribe() {
+	key := "apigateways.apigateway.nexus.vmware.com"
+	if _, ok := subscriptionMap.Load(key); !ok {
+		informer := informerapigatewaynexusvmwarecomv1.NewApiGatewayInformer(c.client.baseClient, 0, cache.Indexers{})
+		subscribe(key, informer)
+	}
+}
+
+func (c *apigatewayApigatewayNexusV1Chainer) Unsubscribe() {
+	key := "apigateways.apigateway.nexus.vmware.com"
+	if s, ok := subscriptionMap.Load(key); ok {
+		close(s.(subscription).stop)
+		subscriptionMap.Delete(key)
+	}
+}
+
+func (c *apigatewayApigatewayNexusV1Chainer) IsSubscribed() bool {
+	key := "apigateways.apigateway.nexus.vmware.com"
+	_, ok := subscriptionMap.Load(key)
+	return ok
+}
+
 func (c *apigatewayApigatewayNexusV1Chainer) ProxyRules(name string) *proxyruleAdminNexusV1Chainer {
 	parentLabels := c.parentLabels
 	parentLabels["proxyrules.admin.nexus.vmware.com"] = name
@@ -1307,17 +1781,31 @@ func (c *apigatewayApigatewayNexusV1Chainer) DeleteCors(ctx context.Context, nam
 // GetOIDCByName returns object stored in the database under the hashedName which is a hash of display
 // name and parents names. Use it when you know hashed name of object.
 func (group *AuthenticationNexusV1) GetOIDCByName(ctx context.Context, hashedName string) (*AuthenticationOIDC, error) {
-	result, err := group.client.baseClient.
-		AuthenticationNexusV1().
-		OIDCs().Get(ctx, hashedName, metav1.GetOptions{})
-	if err != nil {
-		return nil, err
-	}
+	key := "oidcs.authentication.nexus.vmware.com"
+	if s, ok := subscriptionMap.Load(key); ok {
+		item, exists, err := s.(subscription).informer.GetStore().GetByKey(hashedName)
+		if !exists {
+			return nil, err
+		}
 
-	return &AuthenticationOIDC{
-		client: group.client,
-		OIDC:   result,
-	}, nil
+		result, _ := item.(*baseauthenticationnexusvmwarecomv1.OIDC)
+		return &AuthenticationOIDC{
+			client: group.client,
+			OIDC:   result,
+		}, nil
+	} else {
+		result, err := group.client.baseClient.
+			AuthenticationNexusV1().
+			OIDCs().Get(ctx, hashedName, metav1.GetOptions{})
+		if err != nil {
+			return nil, err
+		}
+
+		return &AuthenticationOIDC{
+			client: group.client,
+			OIDC:   result,
+		}, nil
+	}
 }
 
 // DeleteOIDCByName deletes object stored in the database under the hashedName which is a hash of
@@ -1495,17 +1983,30 @@ func (group *AuthenticationNexusV1) UpdateOIDCByName(ctx context.Context,
 // ListOIDCs returns slice of all existing objects of this type. Selectors can be provided in opts parameter.
 func (group *AuthenticationNexusV1) ListOIDCs(ctx context.Context,
 	opts metav1.ListOptions) (result []*AuthenticationOIDC, err error) {
-	list, err := group.client.baseClient.AuthenticationNexusV1().
-		OIDCs().List(ctx, opts)
-	if err != nil {
-		return nil, err
-	}
-	result = make([]*AuthenticationOIDC, len(list.Items))
-	for k, v := range list.Items {
-		item := v
-		result[k] = &AuthenticationOIDC{
-			client: group.client,
-			OIDC:   &item,
+	key := "oidcs.authentication.nexus.vmware.com"
+	if s, ok := subscriptionMap.Load(key); ok {
+		items := s.(subscription).informer.GetStore().List()
+		result = make([]*AuthenticationOIDC, len(items))
+		for k, v := range items {
+			item, _ := v.(*baseauthenticationnexusvmwarecomv1.OIDC)
+			result[k] = &AuthenticationOIDC{
+				client: group.client,
+				OIDC:   item,
+			}
+		}
+	} else {
+		list, err := group.client.baseClient.AuthenticationNexusV1().
+			OIDCs().List(ctx, opts)
+		if err != nil {
+			return nil, err
+		}
+		result = make([]*AuthenticationOIDC, len(list.Items))
+		for k, v := range list.Items {
+			item := v
+			result[k] = &AuthenticationOIDC{
+				client: group.client,
+				OIDC:   &item,
+			}
 		}
 	}
 	return
@@ -1547,20 +2048,56 @@ type oidcAuthenticationNexusV1Chainer struct {
 	parentLabels map[string]string
 }
 
+func (c *oidcAuthenticationNexusV1Chainer) Subscribe() {
+	key := "oidcs.authentication.nexus.vmware.com"
+	if _, ok := subscriptionMap.Load(key); !ok {
+		informer := informerauthenticationnexusvmwarecomv1.NewOIDCInformer(c.client.baseClient, 0, cache.Indexers{})
+		subscribe(key, informer)
+	}
+}
+
+func (c *oidcAuthenticationNexusV1Chainer) Unsubscribe() {
+	key := "oidcs.authentication.nexus.vmware.com"
+	if s, ok := subscriptionMap.Load(key); ok {
+		close(s.(subscription).stop)
+		subscriptionMap.Delete(key)
+	}
+}
+
+func (c *oidcAuthenticationNexusV1Chainer) IsSubscribed() bool {
+	key := "oidcs.authentication.nexus.vmware.com"
+	_, ok := subscriptionMap.Load(key)
+	return ok
+}
+
 // GetConfigByName returns object stored in the database under the hashedName which is a hash of display
 // name and parents names. Use it when you know hashed name of object.
 func (group *ConfigNexusV1) GetConfigByName(ctx context.Context, hashedName string) (*ConfigConfig, error) {
-	result, err := group.client.baseClient.
-		ConfigNexusV1().
-		Configs().Get(ctx, hashedName, metav1.GetOptions{})
-	if err != nil {
-		return nil, err
-	}
+	key := "configs.config.nexus.vmware.com"
+	if s, ok := subscriptionMap.Load(key); ok {
+		item, exists, err := s.(subscription).informer.GetStore().GetByKey(hashedName)
+		if !exists {
+			return nil, err
+		}
 
-	return &ConfigConfig{
-		client: group.client,
-		Config: result,
-	}, nil
+		result, _ := item.(*baseconfignexusvmwarecomv1.Config)
+		return &ConfigConfig{
+			client: group.client,
+			Config: result,
+		}, nil
+	} else {
+		result, err := group.client.baseClient.
+			ConfigNexusV1().
+			Configs().Get(ctx, hashedName, metav1.GetOptions{})
+		if err != nil {
+			return nil, err
+		}
+
+		return &ConfigConfig{
+			client: group.client,
+			Config: result,
+		}, nil
+	}
 }
 
 // DeleteConfigByName deletes object stored in the database under the hashedName which is a hash of
@@ -1595,6 +2132,30 @@ func (group *ConfigNexusV1) DeleteConfigByName(ctx context.Context, hashedName s
 		err := group.client.
 			Connect().
 			DeleteConnectByName(ctx, result.Spec.ConnectGvk.Name)
+		if err != nil {
+			return err
+		}
+	}
+
+	for _, v := range result.Spec.TenantGvk {
+		err := group.client.
+			Tenantconfig().DeleteTenantByName(ctx, v.Name)
+		if err != nil {
+			return err
+		}
+	}
+
+	for _, v := range result.Spec.TenantPolicyGvk {
+		err := group.client.
+			Tenantconfig().DeletePolicyByName(ctx, v.Name)
+		if err != nil {
+			return err
+		}
+	}
+
+	for _, v := range result.Spec.UserGvk {
+		err := group.client.
+			User().DeleteUserByName(ctx, v.Name)
 		if err != nil {
 			return err
 		}
@@ -1654,6 +2215,9 @@ func (group *ConfigNexusV1) CreateConfigByName(ctx context.Context,
 	objToCreate.Spec.ApiGatewayGvk = nil
 	objToCreate.Spec.RoutesGvk = nil
 	objToCreate.Spec.ConnectGvk = nil
+	objToCreate.Spec.TenantGvk = nil
+	objToCreate.Spec.TenantPolicyGvk = nil
+	objToCreate.Spec.UserGvk = nil
 
 	result, err := group.client.baseClient.
 		ConfigNexusV1().
@@ -1741,17 +2305,30 @@ func (group *ConfigNexusV1) UpdateConfigByName(ctx context.Context,
 // ListConfigs returns slice of all existing objects of this type. Selectors can be provided in opts parameter.
 func (group *ConfigNexusV1) ListConfigs(ctx context.Context,
 	opts metav1.ListOptions) (result []*ConfigConfig, err error) {
-	list, err := group.client.baseClient.ConfigNexusV1().
-		Configs().List(ctx, opts)
-	if err != nil {
-		return nil, err
-	}
-	result = make([]*ConfigConfig, len(list.Items))
-	for k, v := range list.Items {
-		item := v
-		result[k] = &ConfigConfig{
-			client: group.client,
-			Config: &item,
+	key := "configs.config.nexus.vmware.com"
+	if s, ok := subscriptionMap.Load(key); ok {
+		items := s.(subscription).informer.GetStore().List()
+		result = make([]*ConfigConfig, len(items))
+		for k, v := range items {
+			item, _ := v.(*baseconfignexusvmwarecomv1.Config)
+			result[k] = &ConfigConfig{
+				client: group.client,
+				Config: item,
+			}
+		}
+	} else {
+		list, err := group.client.baseClient.ConfigNexusV1().
+			Configs().List(ctx, opts)
+		if err != nil {
+			return nil, err
+		}
+		result = make([]*ConfigConfig, len(list.Items))
+		for k, v := range list.Items {
+			item := v
+			result[k] = &ConfigConfig{
+				client: group.client,
+				Config: &item,
+			}
 		}
 	}
 	return
@@ -1965,10 +2542,242 @@ func (obj *ConfigConfig) DeleteConnect(ctx context.Context) (err error) {
 	return
 }
 
+// GetAllTenant returns all children of given type
+func (obj *ConfigConfig) GetAllTenant(ctx context.Context) (
+	result []*TenantconfigTenant, err error) {
+	result = make([]*TenantconfigTenant, 0, len(obj.Spec.TenantGvk))
+	for _, v := range obj.Spec.TenantGvk {
+		l, err := obj.client.Tenantconfig().GetTenantByName(ctx, v.Name)
+		if err != nil {
+			return nil, err
+		}
+		result = append(result, l)
+	}
+	return
+}
+
+// GetTenant returns child which has given displayName
+func (obj *ConfigConfig) GetTenant(ctx context.Context,
+	displayName string) (result *TenantconfigTenant, err error) {
+	l, ok := obj.Spec.TenantGvk[displayName]
+	if !ok {
+		return nil, NewChildNotFound(obj.DisplayName(), "Config.Config", "Tenant", displayName)
+	}
+	result, err = obj.client.Tenantconfig().GetTenantByName(ctx, l.Name)
+	return
+}
+
+// AddTenant calculates hashed name of the child to create based on objToCreate.Name
+// and parents names and creates it. objToCreate.Name is changed to the hashed name. Original name is preserved in
+// nexus/display_name label and can be obtained using DisplayName() method.
+func (obj *ConfigConfig) AddTenant(ctx context.Context,
+	objToCreate *basetenantconfignexusvmwarecomv1.Tenant) (result *TenantconfigTenant, err error) {
+	if objToCreate.Labels == nil {
+		objToCreate.Labels = map[string]string{}
+	}
+	for _, v := range helper.GetCRDParentsMap()["configs.config.nexus.vmware.com"] {
+		objToCreate.Labels[v] = obj.Labels[v]
+	}
+	objToCreate.Labels["configs.config.nexus.vmware.com"] = obj.DisplayName()
+	if objToCreate.Labels[common.IS_NAME_HASHED_LABEL] != "true" {
+		objToCreate.Labels[common.DISPLAY_NAME_LABEL] = objToCreate.GetName()
+		objToCreate.Labels[common.IS_NAME_HASHED_LABEL] = "true"
+		hashedName := helper.GetHashedName(objToCreate.CRDName(), objToCreate.Labels, objToCreate.GetName())
+		objToCreate.Name = hashedName
+	}
+	result, err = obj.client.Tenantconfig().CreateTenantByName(ctx, objToCreate)
+	updatedObj, getErr := obj.client.Config().GetConfigByName(ctx, obj.GetName())
+	if getErr == nil {
+		obj.Config = updatedObj.Config
+	}
+	return
+}
+
+// DeleteTenant calculates hashed name of the child to delete based on displayName
+// and parents names and deletes it.
+
+func (obj *ConfigConfig) DeleteTenant(ctx context.Context, displayName string) (err error) {
+	l, ok := obj.Spec.TenantGvk[displayName]
+	if !ok {
+		return NewChildNotFound(obj.DisplayName(), "Config.Config", "Tenant", displayName)
+	}
+	err = obj.client.Tenantconfig().DeleteTenantByName(ctx, l.Name)
+	if err != nil {
+		return err
+	}
+	updatedObj, err := obj.client.Config().GetConfigByName(ctx, obj.GetName())
+	if err == nil {
+		obj.Config = updatedObj.Config
+	}
+	return
+}
+
+// GetAllTenantPolicy returns all children of given type
+func (obj *ConfigConfig) GetAllTenantPolicy(ctx context.Context) (
+	result []*TenantconfigPolicy, err error) {
+	result = make([]*TenantconfigPolicy, 0, len(obj.Spec.TenantPolicyGvk))
+	for _, v := range obj.Spec.TenantPolicyGvk {
+		l, err := obj.client.Tenantconfig().GetPolicyByName(ctx, v.Name)
+		if err != nil {
+			return nil, err
+		}
+		result = append(result, l)
+	}
+	return
+}
+
+// GetTenantPolicy returns child which has given displayName
+func (obj *ConfigConfig) GetTenantPolicy(ctx context.Context,
+	displayName string) (result *TenantconfigPolicy, err error) {
+	l, ok := obj.Spec.TenantPolicyGvk[displayName]
+	if !ok {
+		return nil, NewChildNotFound(obj.DisplayName(), "Config.Config", "TenantPolicy", displayName)
+	}
+	result, err = obj.client.Tenantconfig().GetPolicyByName(ctx, l.Name)
+	return
+}
+
+// AddTenantPolicy calculates hashed name of the child to create based on objToCreate.Name
+// and parents names and creates it. objToCreate.Name is changed to the hashed name. Original name is preserved in
+// nexus/display_name label and can be obtained using DisplayName() method.
+func (obj *ConfigConfig) AddTenantPolicy(ctx context.Context,
+	objToCreate *basetenantconfignexusvmwarecomv1.Policy) (result *TenantconfigPolicy, err error) {
+	if objToCreate.Labels == nil {
+		objToCreate.Labels = map[string]string{}
+	}
+	for _, v := range helper.GetCRDParentsMap()["configs.config.nexus.vmware.com"] {
+		objToCreate.Labels[v] = obj.Labels[v]
+	}
+	objToCreate.Labels["configs.config.nexus.vmware.com"] = obj.DisplayName()
+	if objToCreate.Labels[common.IS_NAME_HASHED_LABEL] != "true" {
+		objToCreate.Labels[common.DISPLAY_NAME_LABEL] = objToCreate.GetName()
+		objToCreate.Labels[common.IS_NAME_HASHED_LABEL] = "true"
+		hashedName := helper.GetHashedName(objToCreate.CRDName(), objToCreate.Labels, objToCreate.GetName())
+		objToCreate.Name = hashedName
+	}
+	result, err = obj.client.Tenantconfig().CreatePolicyByName(ctx, objToCreate)
+	updatedObj, getErr := obj.client.Config().GetConfigByName(ctx, obj.GetName())
+	if getErr == nil {
+		obj.Config = updatedObj.Config
+	}
+	return
+}
+
+// DeleteTenantPolicy calculates hashed name of the child to delete based on displayName
+// and parents names and deletes it.
+
+func (obj *ConfigConfig) DeleteTenantPolicy(ctx context.Context, displayName string) (err error) {
+	l, ok := obj.Spec.TenantPolicyGvk[displayName]
+	if !ok {
+		return NewChildNotFound(obj.DisplayName(), "Config.Config", "TenantPolicy", displayName)
+	}
+	err = obj.client.Tenantconfig().DeletePolicyByName(ctx, l.Name)
+	if err != nil {
+		return err
+	}
+	updatedObj, err := obj.client.Config().GetConfigByName(ctx, obj.GetName())
+	if err == nil {
+		obj.Config = updatedObj.Config
+	}
+	return
+}
+
+// GetAllUser returns all children of given type
+func (obj *ConfigConfig) GetAllUser(ctx context.Context) (
+	result []*UserUser, err error) {
+	result = make([]*UserUser, 0, len(obj.Spec.UserGvk))
+	for _, v := range obj.Spec.UserGvk {
+		l, err := obj.client.User().GetUserByName(ctx, v.Name)
+		if err != nil {
+			return nil, err
+		}
+		result = append(result, l)
+	}
+	return
+}
+
+// GetUser returns child which has given displayName
+func (obj *ConfigConfig) GetUser(ctx context.Context,
+	displayName string) (result *UserUser, err error) {
+	l, ok := obj.Spec.UserGvk[displayName]
+	if !ok {
+		return nil, NewChildNotFound(obj.DisplayName(), "Config.Config", "User", displayName)
+	}
+	result, err = obj.client.User().GetUserByName(ctx, l.Name)
+	return
+}
+
+// AddUser calculates hashed name of the child to create based on objToCreate.Name
+// and parents names and creates it. objToCreate.Name is changed to the hashed name. Original name is preserved in
+// nexus/display_name label and can be obtained using DisplayName() method.
+func (obj *ConfigConfig) AddUser(ctx context.Context,
+	objToCreate *baseusernexusvmwarecomv1.User) (result *UserUser, err error) {
+	if objToCreate.Labels == nil {
+		objToCreate.Labels = map[string]string{}
+	}
+	for _, v := range helper.GetCRDParentsMap()["configs.config.nexus.vmware.com"] {
+		objToCreate.Labels[v] = obj.Labels[v]
+	}
+	objToCreate.Labels["configs.config.nexus.vmware.com"] = obj.DisplayName()
+	if objToCreate.Labels[common.IS_NAME_HASHED_LABEL] != "true" {
+		objToCreate.Labels[common.DISPLAY_NAME_LABEL] = objToCreate.GetName()
+		objToCreate.Labels[common.IS_NAME_HASHED_LABEL] = "true"
+		hashedName := helper.GetHashedName(objToCreate.CRDName(), objToCreate.Labels, objToCreate.GetName())
+		objToCreate.Name = hashedName
+	}
+	result, err = obj.client.User().CreateUserByName(ctx, objToCreate)
+	updatedObj, getErr := obj.client.Config().GetConfigByName(ctx, obj.GetName())
+	if getErr == nil {
+		obj.Config = updatedObj.Config
+	}
+	return
+}
+
+// DeleteUser calculates hashed name of the child to delete based on displayName
+// and parents names and deletes it.
+
+func (obj *ConfigConfig) DeleteUser(ctx context.Context, displayName string) (err error) {
+	l, ok := obj.Spec.UserGvk[displayName]
+	if !ok {
+		return NewChildNotFound(obj.DisplayName(), "Config.Config", "User", displayName)
+	}
+	err = obj.client.User().DeleteUserByName(ctx, l.Name)
+	if err != nil {
+		return err
+	}
+	updatedObj, err := obj.client.Config().GetConfigByName(ctx, obj.GetName())
+	if err == nil {
+		obj.Config = updatedObj.Config
+	}
+	return
+}
+
 type configConfigNexusV1Chainer struct {
 	client       *Clientset
 	name         string
 	parentLabels map[string]string
+}
+
+func (c *configConfigNexusV1Chainer) Subscribe() {
+	key := "configs.config.nexus.vmware.com"
+	if _, ok := subscriptionMap.Load(key); !ok {
+		informer := informerconfignexusvmwarecomv1.NewConfigInformer(c.client.baseClient, 0, cache.Indexers{})
+		subscribe(key, informer)
+	}
+}
+
+func (c *configConfigNexusV1Chainer) Unsubscribe() {
+	key := "configs.config.nexus.vmware.com"
+	if s, ok := subscriptionMap.Load(key); ok {
+		close(s.(subscription).stop)
+		subscriptionMap.Delete(key)
+	}
+}
+
+func (c *configConfigNexusV1Chainer) IsSubscribed() bool {
+	key := "configs.config.nexus.vmware.com"
+	_, ok := subscriptionMap.Load(key)
+	return ok
 }
 
 func (c *configConfigNexusV1Chainer) ApiGateway(name string) *apigatewayApigatewayNexusV1Chainer {
@@ -2112,20 +2921,1314 @@ func (c *configConfigNexusV1Chainer) DeleteConnect(ctx context.Context, name str
 	return c.client.Connect().DeleteConnectByName(ctx, hashedName)
 }
 
-// GetConnectByName returns object stored in the database under the hashedName which is a hash of display
+func (c *configConfigNexusV1Chainer) Tenant(name string) *tenantTenantconfigNexusV1Chainer {
+	parentLabels := c.parentLabels
+	parentLabels["tenants.tenantconfig.nexus.vmware.com"] = name
+	return &tenantTenantconfigNexusV1Chainer{
+		client:       c.client,
+		name:         name,
+		parentLabels: parentLabels,
+	}
+}
+
+// GetTenant calculates hashed name of the object based on displayName and it's parents and returns the object
+func (c *configConfigNexusV1Chainer) GetTenant(ctx context.Context, displayName string) (result *TenantconfigTenant, err error) {
+	hashedName := helper.GetHashedName("tenants.tenantconfig.nexus.vmware.com", c.parentLabels, displayName)
+	return c.client.Tenantconfig().GetTenantByName(ctx, hashedName)
+}
+
+// AddTenant calculates hashed name of the child to create based on objToCreate.Name
+// and parents names and creates it. objToCreate.Name is changed to the hashed name. Original name is preserved in
+// nexus/display_name label and can be obtained using DisplayName() method.
+func (c *configConfigNexusV1Chainer) AddTenant(ctx context.Context,
+	objToCreate *basetenantconfignexusvmwarecomv1.Tenant) (result *TenantconfigTenant, err error) {
+	if objToCreate.Labels == nil {
+		objToCreate.Labels = map[string]string{}
+	}
+	for k, v := range c.parentLabels {
+		objToCreate.Labels[k] = v
+	}
+	if objToCreate.Labels[common.IS_NAME_HASHED_LABEL] != "true" {
+		objToCreate.Labels[common.DISPLAY_NAME_LABEL] = objToCreate.GetName()
+		objToCreate.Labels[common.IS_NAME_HASHED_LABEL] = "true"
+		hashedName := helper.GetHashedName("tenants.tenantconfig.nexus.vmware.com", c.parentLabels, objToCreate.GetName())
+		objToCreate.Name = hashedName
+	}
+	return c.client.Tenantconfig().CreateTenantByName(ctx, objToCreate)
+}
+
+// DeleteTenant calculates hashed name of the child to delete based on displayName
+// and parents names and deletes it.
+func (c *configConfigNexusV1Chainer) DeleteTenant(ctx context.Context, name string) (err error) {
+	if c.parentLabels == nil {
+		c.parentLabels = map[string]string{}
+	}
+	c.parentLabels[common.IS_NAME_HASHED_LABEL] = "true"
+	hashedName := helper.GetHashedName("tenants.tenantconfig.nexus.vmware.com", c.parentLabels, name)
+	return c.client.Tenantconfig().DeleteTenantByName(ctx, hashedName)
+}
+
+func (c *configConfigNexusV1Chainer) TenantPolicy(name string) *policyTenantconfigNexusV1Chainer {
+	parentLabels := c.parentLabels
+	parentLabels["policies.tenantconfig.nexus.vmware.com"] = name
+	return &policyTenantconfigNexusV1Chainer{
+		client:       c.client,
+		name:         name,
+		parentLabels: parentLabels,
+	}
+}
+
+// GetTenantPolicy calculates hashed name of the object based on displayName and it's parents and returns the object
+func (c *configConfigNexusV1Chainer) GetTenantPolicy(ctx context.Context, displayName string) (result *TenantconfigPolicy, err error) {
+	hashedName := helper.GetHashedName("policies.tenantconfig.nexus.vmware.com", c.parentLabels, displayName)
+	return c.client.Tenantconfig().GetPolicyByName(ctx, hashedName)
+}
+
+// AddTenantPolicy calculates hashed name of the child to create based on objToCreate.Name
+// and parents names and creates it. objToCreate.Name is changed to the hashed name. Original name is preserved in
+// nexus/display_name label and can be obtained using DisplayName() method.
+func (c *configConfigNexusV1Chainer) AddTenantPolicy(ctx context.Context,
+	objToCreate *basetenantconfignexusvmwarecomv1.Policy) (result *TenantconfigPolicy, err error) {
+	if objToCreate.Labels == nil {
+		objToCreate.Labels = map[string]string{}
+	}
+	for k, v := range c.parentLabels {
+		objToCreate.Labels[k] = v
+	}
+	if objToCreate.Labels[common.IS_NAME_HASHED_LABEL] != "true" {
+		objToCreate.Labels[common.DISPLAY_NAME_LABEL] = objToCreate.GetName()
+		objToCreate.Labels[common.IS_NAME_HASHED_LABEL] = "true"
+		hashedName := helper.GetHashedName("policies.tenantconfig.nexus.vmware.com", c.parentLabels, objToCreate.GetName())
+		objToCreate.Name = hashedName
+	}
+	return c.client.Tenantconfig().CreatePolicyByName(ctx, objToCreate)
+}
+
+// DeleteTenantPolicy calculates hashed name of the child to delete based on displayName
+// and parents names and deletes it.
+func (c *configConfigNexusV1Chainer) DeleteTenantPolicy(ctx context.Context, name string) (err error) {
+	if c.parentLabels == nil {
+		c.parentLabels = map[string]string{}
+	}
+	c.parentLabels[common.IS_NAME_HASHED_LABEL] = "true"
+	hashedName := helper.GetHashedName("policies.tenantconfig.nexus.vmware.com", c.parentLabels, name)
+	return c.client.Tenantconfig().DeletePolicyByName(ctx, hashedName)
+}
+
+func (c *configConfigNexusV1Chainer) User(name string) *userUserNexusV1Chainer {
+	parentLabels := c.parentLabels
+	parentLabels["users.user.nexus.vmware.com"] = name
+	return &userUserNexusV1Chainer{
+		client:       c.client,
+		name:         name,
+		parentLabels: parentLabels,
+	}
+}
+
+// GetUser calculates hashed name of the object based on displayName and it's parents and returns the object
+func (c *configConfigNexusV1Chainer) GetUser(ctx context.Context, displayName string) (result *UserUser, err error) {
+	hashedName := helper.GetHashedName("users.user.nexus.vmware.com", c.parentLabels, displayName)
+	return c.client.User().GetUserByName(ctx, hashedName)
+}
+
+// AddUser calculates hashed name of the child to create based on objToCreate.Name
+// and parents names and creates it. objToCreate.Name is changed to the hashed name. Original name is preserved in
+// nexus/display_name label and can be obtained using DisplayName() method.
+func (c *configConfigNexusV1Chainer) AddUser(ctx context.Context,
+	objToCreate *baseusernexusvmwarecomv1.User) (result *UserUser, err error) {
+	if objToCreate.Labels == nil {
+		objToCreate.Labels = map[string]string{}
+	}
+	for k, v := range c.parentLabels {
+		objToCreate.Labels[k] = v
+	}
+	if objToCreate.Labels[common.IS_NAME_HASHED_LABEL] != "true" {
+		objToCreate.Labels[common.DISPLAY_NAME_LABEL] = objToCreate.GetName()
+		objToCreate.Labels[common.IS_NAME_HASHED_LABEL] = "true"
+		hashedName := helper.GetHashedName("users.user.nexus.vmware.com", c.parentLabels, objToCreate.GetName())
+		objToCreate.Name = hashedName
+	}
+	return c.client.User().CreateUserByName(ctx, objToCreate)
+}
+
+// DeleteUser calculates hashed name of the child to delete based on displayName
+// and parents names and deletes it.
+func (c *configConfigNexusV1Chainer) DeleteUser(ctx context.Context, name string) (err error) {
+	if c.parentLabels == nil {
+		c.parentLabels = map[string]string{}
+	}
+	c.parentLabels[common.IS_NAME_HASHED_LABEL] = "true"
+	hashedName := helper.GetHashedName("users.user.nexus.vmware.com", c.parentLabels, name)
+	return c.client.User().DeleteUserByName(ctx, hashedName)
+}
+
+// GetTenantByName returns object stored in the database under the hashedName which is a hash of display
 // name and parents names. Use it when you know hashed name of object.
-func (group *ConnectNexusV1) GetConnectByName(ctx context.Context, hashedName string) (*ConnectConnect, error) {
+func (group *TenantconfigNexusV1) GetTenantByName(ctx context.Context, hashedName string) (*TenantconfigTenant, error) {
+	key := "tenants.tenantconfig.nexus.vmware.com"
+	if s, ok := subscriptionMap.Load(key); ok {
+		item, exists, err := s.(subscription).informer.GetStore().GetByKey(hashedName)
+		if !exists {
+			return nil, err
+		}
+
+		result, _ := item.(*basetenantconfignexusvmwarecomv1.Tenant)
+		return &TenantconfigTenant{
+			client: group.client,
+			Tenant: result,
+		}, nil
+	} else {
+		result, err := group.client.baseClient.
+			TenantconfigNexusV1().
+			Tenants().Get(ctx, hashedName, metav1.GetOptions{})
+		if err != nil {
+			return nil, err
+		}
+
+		return &TenantconfigTenant{
+			client: group.client,
+			Tenant: result,
+		}, nil
+	}
+}
+
+// DeleteTenantByName deletes object stored in the database under the hashedName which is a hash of
+// display name and parents names. Use it when you know hashed name of object.
+func (group *TenantconfigNexusV1) DeleteTenantByName(ctx context.Context, hashedName string) (err error) {
+
 	result, err := group.client.baseClient.
-		ConnectNexusV1().
-		Connects().Get(ctx, hashedName, metav1.GetOptions{})
+		TenantconfigNexusV1().
+		Tenants().Get(ctx, hashedName, metav1.GetOptions{})
+	if err != nil {
+		return err
+	}
+
+	err = group.client.baseClient.
+		TenantconfigNexusV1().
+		Tenants().Delete(ctx, hashedName, metav1.DeleteOptions{})
+	if err != nil {
+		return err
+	}
+
+	var patch Patch
+
+	patchOp := PatchOp{
+		Op:   "remove",
+		Path: "/spec/tenantGvk/" + result.DisplayName(),
+	}
+
+	patch = append(patch, patchOp)
+	marshaled, err := patch.Marshal()
+	if err != nil {
+		return err
+	}
+	parents := result.GetLabels()
+	if parents == nil {
+		parents = make(map[string]string)
+	}
+	parentName, ok := parents["configs.config.nexus.vmware.com"]
+	if !ok {
+		parentName = helper.DEFAULT_KEY
+	}
+	if parents[common.IS_NAME_HASHED_LABEL] == "true" {
+		parentName = helper.GetHashedName("configs.config.nexus.vmware.com", parents, parentName)
+	}
+	_, err = group.client.baseClient.
+		ConfigNexusV1().
+		Configs().Patch(ctx, parentName, types.JSONPatchType, marshaled, metav1.PatchOptions{})
+	if err != nil {
+		return err
+	}
+
+	return
+}
+
+// CreateTenantByName creates object in the database without hashing the name.
+// Use it directly ONLY when objToCreate.Name is hashed name of the object.
+func (group *TenantconfigNexusV1) CreateTenantByName(ctx context.Context,
+	objToCreate *basetenantconfignexusvmwarecomv1.Tenant) (*TenantconfigTenant, error) {
+	if objToCreate.GetLabels() == nil {
+		objToCreate.Labels = make(map[string]string)
+	}
+	if _, ok := objToCreate.Labels[common.DISPLAY_NAME_LABEL]; !ok {
+		objToCreate.Labels[common.DISPLAY_NAME_LABEL] = objToCreate.GetName()
+	}
+
+	result, err := group.client.baseClient.
+		TenantconfigNexusV1().
+		Tenants().Create(ctx, objToCreate, metav1.CreateOptions{})
 	if err != nil {
 		return nil, err
 	}
 
-	return &ConnectConnect{
-		client:  group.client,
-		Connect: result,
+	parentName, ok := objToCreate.GetLabels()["configs.config.nexus.vmware.com"]
+	if !ok {
+		parentName = helper.DEFAULT_KEY
+	}
+	if objToCreate.Labels[common.IS_NAME_HASHED_LABEL] == "true" {
+		parentName = helper.GetHashedName("configs.config.nexus.vmware.com", objToCreate.GetLabels(), parentName)
+	}
+
+	payload := "{\"spec\": {\"tenantGvk\": {\"" + objToCreate.DisplayName() + "\": {\"name\": \"" + objToCreate.Name + "\",\"kind\": \"Tenant\", \"group\": \"tenantconfig.nexus.vmware.com\"}}}}"
+	_, err = group.client.baseClient.
+		ConfigNexusV1().
+		Configs().Patch(ctx, parentName, types.MergePatchType, []byte(payload), metav1.PatchOptions{})
+	if err != nil {
+		return nil, err
+	}
+
+	return &TenantconfigTenant{
+		client: group.client,
+		Tenant: result,
 	}, nil
+}
+
+// SetTenantStatusByName sets user defined status
+func (group *TenantconfigNexusV1) SetTenantStatusByName(ctx context.Context,
+	objToUpdate *basetenantconfignexusvmwarecomv1.Tenant, status *basetenantconfignexusvmwarecomv1.TenantStatus) (*TenantconfigTenant, error) {
+
+	// Make sure status field is present first
+	m := []byte("{\"status\":{}}")
+	result, err := group.client.baseClient.
+		TenantconfigNexusV1().
+		Tenants().Patch(ctx, objToUpdate.GetName(), types.MergePatchType, m, metav1.PatchOptions{}, "status")
+	if err != nil {
+		return nil, err
+	}
+
+	patch := Patch{
+		PatchOp{
+			Op:    "replace",
+			Path:  "/status/status",
+			Value: status,
+		},
+	}
+	marshaled, err := patch.Marshal()
+	if err != nil {
+		return nil, err
+	}
+	result, err = group.client.baseClient.
+		TenantconfigNexusV1().
+		Tenants().Patch(ctx, objToUpdate.GetName(), types.JSONPatchType, marshaled, metav1.PatchOptions{}, "status")
+	if err != nil {
+		return nil, err
+	}
+	return &TenantconfigTenant{
+		client: group.client,
+		Tenant: result,
+	}, nil
+}
+
+// UpdateTenantByName updates object stored in the database under the hashedName which is a hash of
+// display name and parents names.
+func (group *TenantconfigNexusV1) UpdateTenantByName(ctx context.Context,
+	objToUpdate *basetenantconfignexusvmwarecomv1.Tenant) (*TenantconfigTenant, error) {
+
+	// ResourceVersion must be set for update
+	if objToUpdate.ResourceVersion == "" {
+		current, err := group.client.baseClient.
+			TenantconfigNexusV1().
+			Tenants().Get(ctx, objToUpdate.GetName(), metav1.GetOptions{})
+		if err != nil {
+			return nil, err
+		}
+		objToUpdate.ResourceVersion = current.ResourceVersion
+	}
+
+	var patch Patch
+	patch = append(patch, PatchOp{
+		Op:    "replace",
+		Path:  "/metadata",
+		Value: objToUpdate.ObjectMeta,
+	})
+
+	patchValueName :=
+		objToUpdate.Spec.Name
+	patchOpName := PatchOp{
+		Op:    "replace",
+		Path:  "/spec/name",
+		Value: patchValueName,
+	}
+	patch = append(patch, patchOpName)
+
+	patchValueDNSSuffix :=
+		objToUpdate.Spec.DNSSuffix
+	patchOpDNSSuffix := PatchOp{
+		Op:    "replace",
+		Path:  "/spec/dns_suffix",
+		Value: patchValueDNSSuffix,
+	}
+	patch = append(patch, patchOpDNSSuffix)
+
+	patchValueSkipSaasTlsVerify :=
+		objToUpdate.Spec.SkipSaasTlsVerify
+	patchOpSkipSaasTlsVerify := PatchOp{
+		Op:    "replace",
+		Path:  "/spec/skip_saas_tls_verify",
+		Value: patchValueSkipSaasTlsVerify,
+	}
+	patch = append(patch, patchOpSkipSaasTlsVerify)
+
+	patchValueInstallTenant :=
+		objToUpdate.Spec.InstallTenant
+	patchOpInstallTenant := PatchOp{
+		Op:    "replace",
+		Path:  "/spec/install_tenant",
+		Value: patchValueInstallTenant,
+	}
+	patch = append(patch, patchOpInstallTenant)
+
+	patchValueInstallClient :=
+		objToUpdate.Spec.InstallClient
+	patchOpInstallClient := PatchOp{
+		Op:    "replace",
+		Path:  "/spec/install_client",
+		Value: patchValueInstallClient,
+	}
+	patch = append(patch, patchOpInstallClient)
+
+	patchValueOrderId :=
+		objToUpdate.Spec.OrderId
+	patchOpOrderId := PatchOp{
+		Op:    "replace",
+		Path:  "/spec/order_id",
+		Value: patchValueOrderId,
+	}
+	patch = append(patch, patchOpOrderId)
+
+	if objToUpdate.Spec.Skus != nil {
+		patchValueSkus :=
+			objToUpdate.Spec.Skus
+		patchOpSkus := PatchOp{
+			Op:    "replace",
+			Path:  "/spec/skus",
+			Value: patchValueSkus,
+		}
+		patch = append(patch, patchOpSkus)
+	}
+
+	if objToUpdate.Spec.FeatureFlags != nil {
+		patchValueFeatureFlags :=
+			objToUpdate.Spec.FeatureFlags
+		patchOpFeatureFlags := PatchOp{
+			Op:    "replace",
+			Path:  "/spec/feature_flags",
+			Value: patchValueFeatureFlags,
+		}
+		patch = append(patch, patchOpFeatureFlags)
+	}
+
+	if objToUpdate.Spec.Labels != nil {
+		patchValueLabels :=
+			objToUpdate.Spec.Labels
+		patchOpLabels := PatchOp{
+			Op:    "replace",
+			Path:  "/spec/labels",
+			Value: patchValueLabels,
+		}
+		patch = append(patch, patchOpLabels)
+	}
+
+	marshaled, err := patch.Marshal()
+	if err != nil {
+		return nil, err
+	}
+	result, err := group.client.baseClient.
+		TenantconfigNexusV1().
+		Tenants().Patch(ctx, objToUpdate.GetName(), types.JSONPatchType, marshaled, metav1.PatchOptions{}, "")
+	if err != nil {
+		return nil, err
+	}
+
+	return &TenantconfigTenant{
+		client: group.client,
+		Tenant: result,
+	}, nil
+}
+
+// ListTenants returns slice of all existing objects of this type. Selectors can be provided in opts parameter.
+func (group *TenantconfigNexusV1) ListTenants(ctx context.Context,
+	opts metav1.ListOptions) (result []*TenantconfigTenant, err error) {
+	key := "tenants.tenantconfig.nexus.vmware.com"
+	if s, ok := subscriptionMap.Load(key); ok {
+		items := s.(subscription).informer.GetStore().List()
+		result = make([]*TenantconfigTenant, len(items))
+		for k, v := range items {
+			item, _ := v.(*basetenantconfignexusvmwarecomv1.Tenant)
+			result[k] = &TenantconfigTenant{
+				client: group.client,
+				Tenant: item,
+			}
+		}
+	} else {
+		list, err := group.client.baseClient.TenantconfigNexusV1().
+			Tenants().List(ctx, opts)
+		if err != nil {
+			return nil, err
+		}
+		result = make([]*TenantconfigTenant, len(list.Items))
+		for k, v := range list.Items {
+			item := v
+			result[k] = &TenantconfigTenant{
+				client: group.client,
+				Tenant: &item,
+			}
+		}
+	}
+	return
+}
+
+type TenantconfigTenant struct {
+	client *Clientset
+	*basetenantconfignexusvmwarecomv1.Tenant
+}
+
+// Delete removes obj and all it's children from the database.
+func (obj *TenantconfigTenant) Delete(ctx context.Context) error {
+	err := obj.client.Tenantconfig().DeleteTenantByName(ctx, obj.GetName())
+	if err != nil {
+		return err
+	}
+	obj.Tenant = nil
+	return nil
+}
+
+// Update updates spec of object in database. Children and Link can not be updated using this function.
+func (obj *TenantconfigTenant) Update(ctx context.Context) error {
+	result, err := obj.client.Tenantconfig().UpdateTenantByName(ctx, obj.Tenant)
+	if err != nil {
+		return err
+	}
+	obj.Tenant = result.Tenant
+	return nil
+}
+
+// SetStatus sets user defined status
+func (obj *TenantconfigTenant) SetStatus(ctx context.Context, status *basetenantconfignexusvmwarecomv1.TenantStatus) error {
+	result, err := obj.client.Tenantconfig().SetTenantStatusByName(ctx, obj.Tenant, status)
+	if err != nil {
+		return err
+	}
+	obj.Tenant = result.Tenant
+	return nil
+}
+
+// GetStatus to get user defined status
+func (obj *TenantconfigTenant) GetStatus(ctx context.Context) (*basetenantconfignexusvmwarecomv1.TenantStatus, error) {
+	getObj, err := obj.client.Tenantconfig().GetTenantByName(ctx, obj.GetName())
+	if err != nil {
+		return nil, err
+	}
+	return &getObj.Status.Status, nil
+}
+
+// ClearStatus to clear user defined status
+func (obj *TenantconfigTenant) ClearStatus(ctx context.Context) error {
+	result, err := obj.client.Tenantconfig().SetTenantStatusByName(ctx, obj.Tenant, &basetenantconfignexusvmwarecomv1.TenantStatus{})
+	if err != nil {
+		return err
+	}
+	obj.Tenant = result.Tenant
+	return nil
+}
+
+func (obj *TenantconfigTenant) GetParent(ctx context.Context) (result *ConfigConfig, err error) {
+	hashedName := helper.GetHashedName("configs.config.nexus.vmware.com", obj.Labels, obj.Labels["configs.config.nexus.vmware.com"])
+	return obj.client.Config().GetConfigByName(ctx, hashedName)
+}
+
+type tenantTenantconfigNexusV1Chainer struct {
+	client       *Clientset
+	name         string
+	parentLabels map[string]string
+}
+
+func (c *tenantTenantconfigNexusV1Chainer) Subscribe() {
+	key := "tenants.tenantconfig.nexus.vmware.com"
+	if _, ok := subscriptionMap.Load(key); !ok {
+		informer := informertenantconfignexusvmwarecomv1.NewTenantInformer(c.client.baseClient, 0, cache.Indexers{})
+		subscribe(key, informer)
+	}
+}
+
+func (c *tenantTenantconfigNexusV1Chainer) Unsubscribe() {
+	key := "tenants.tenantconfig.nexus.vmware.com"
+	if s, ok := subscriptionMap.Load(key); ok {
+		close(s.(subscription).stop)
+		subscriptionMap.Delete(key)
+	}
+}
+
+func (c *tenantTenantconfigNexusV1Chainer) IsSubscribed() bool {
+	key := "tenants.tenantconfig.nexus.vmware.com"
+	_, ok := subscriptionMap.Load(key)
+	return ok
+}
+
+// ClearStatus to clear user defined status
+func (c *tenantTenantconfigNexusV1Chainer) ClearStatus(ctx context.Context) (err error) {
+	hashedName := helper.GetHashedName("tenants.tenantconfig.nexus.vmware.com", c.parentLabels, c.name)
+	obj, err := c.client.Tenantconfig().GetTenantByName(ctx, hashedName)
+	if err != nil {
+		return err
+	}
+	_, err = c.client.Tenantconfig().SetTenantStatusByName(ctx, obj.Tenant, nil)
+	return err
+}
+
+// GetStatus to get user defined status
+func (c *tenantTenantconfigNexusV1Chainer) GetStatus(ctx context.Context) (result *basetenantconfignexusvmwarecomv1.TenantStatus, err error) {
+	hashedName := helper.GetHashedName("tenants.tenantconfig.nexus.vmware.com", c.parentLabels, c.name)
+	obj, err := c.client.Tenantconfig().GetTenantByName(ctx, hashedName)
+	if err != nil {
+		return nil, err
+	}
+	return &obj.Status.Status, nil
+}
+
+// SetStatus sets user defined status
+func (c *tenantTenantconfigNexusV1Chainer) SetStatus(ctx context.Context, status *basetenantconfignexusvmwarecomv1.TenantStatus) (err error) {
+	hashedName := helper.GetHashedName("tenants.tenantconfig.nexus.vmware.com", c.parentLabels, c.name)
+	obj, err := c.client.Tenantconfig().GetTenantByName(ctx, hashedName)
+	if err != nil {
+		return err
+	}
+	_, err = c.client.Tenantconfig().SetTenantStatusByName(ctx, obj.Tenant, status)
+	return err
+}
+
+// GetPolicyByName returns object stored in the database under the hashedName which is a hash of display
+// name and parents names. Use it when you know hashed name of object.
+func (group *TenantconfigNexusV1) GetPolicyByName(ctx context.Context, hashedName string) (*TenantconfigPolicy, error) {
+	key := "policies.tenantconfig.nexus.vmware.com"
+	if s, ok := subscriptionMap.Load(key); ok {
+		item, exists, err := s.(subscription).informer.GetStore().GetByKey(hashedName)
+		if !exists {
+			return nil, err
+		}
+
+		result, _ := item.(*basetenantconfignexusvmwarecomv1.Policy)
+		return &TenantconfigPolicy{
+			client: group.client,
+			Policy: result,
+		}, nil
+	} else {
+		result, err := group.client.baseClient.
+			TenantconfigNexusV1().
+			Policies().Get(ctx, hashedName, metav1.GetOptions{})
+		if err != nil {
+			return nil, err
+		}
+
+		return &TenantconfigPolicy{
+			client: group.client,
+			Policy: result,
+		}, nil
+	}
+}
+
+// DeletePolicyByName deletes object stored in the database under the hashedName which is a hash of
+// display name and parents names. Use it when you know hashed name of object.
+func (group *TenantconfigNexusV1) DeletePolicyByName(ctx context.Context, hashedName string) (err error) {
+
+	result, err := group.client.baseClient.
+		TenantconfigNexusV1().
+		Policies().Get(ctx, hashedName, metav1.GetOptions{})
+	if err != nil {
+		return err
+	}
+
+	err = group.client.baseClient.
+		TenantconfigNexusV1().
+		Policies().Delete(ctx, hashedName, metav1.DeleteOptions{})
+	if err != nil {
+		return err
+	}
+
+	var patch Patch
+
+	patchOp := PatchOp{
+		Op:   "remove",
+		Path: "/spec/tenantPolicyGvk/" + result.DisplayName(),
+	}
+
+	patch = append(patch, patchOp)
+	marshaled, err := patch.Marshal()
+	if err != nil {
+		return err
+	}
+	parents := result.GetLabels()
+	if parents == nil {
+		parents = make(map[string]string)
+	}
+	parentName, ok := parents["configs.config.nexus.vmware.com"]
+	if !ok {
+		parentName = helper.DEFAULT_KEY
+	}
+	if parents[common.IS_NAME_HASHED_LABEL] == "true" {
+		parentName = helper.GetHashedName("configs.config.nexus.vmware.com", parents, parentName)
+	}
+	_, err = group.client.baseClient.
+		ConfigNexusV1().
+		Configs().Patch(ctx, parentName, types.JSONPatchType, marshaled, metav1.PatchOptions{})
+	if err != nil {
+		return err
+	}
+
+	return
+}
+
+// CreatePolicyByName creates object in the database without hashing the name.
+// Use it directly ONLY when objToCreate.Name is hashed name of the object.
+func (group *TenantconfigNexusV1) CreatePolicyByName(ctx context.Context,
+	objToCreate *basetenantconfignexusvmwarecomv1.Policy) (*TenantconfigPolicy, error) {
+	if objToCreate.GetLabels() == nil {
+		objToCreate.Labels = make(map[string]string)
+	}
+	if _, ok := objToCreate.Labels[common.DISPLAY_NAME_LABEL]; !ok {
+		objToCreate.Labels[common.DISPLAY_NAME_LABEL] = objToCreate.GetName()
+	}
+
+	result, err := group.client.baseClient.
+		TenantconfigNexusV1().
+		Policies().Create(ctx, objToCreate, metav1.CreateOptions{})
+	if err != nil {
+		return nil, err
+	}
+
+	parentName, ok := objToCreate.GetLabels()["configs.config.nexus.vmware.com"]
+	if !ok {
+		parentName = helper.DEFAULT_KEY
+	}
+	if objToCreate.Labels[common.IS_NAME_HASHED_LABEL] == "true" {
+		parentName = helper.GetHashedName("configs.config.nexus.vmware.com", objToCreate.GetLabels(), parentName)
+	}
+
+	payload := "{\"spec\": {\"tenantPolicyGvk\": {\"" + objToCreate.DisplayName() + "\": {\"name\": \"" + objToCreate.Name + "\",\"kind\": \"Policy\", \"group\": \"tenantconfig.nexus.vmware.com\"}}}}"
+	_, err = group.client.baseClient.
+		ConfigNexusV1().
+		Configs().Patch(ctx, parentName, types.MergePatchType, []byte(payload), metav1.PatchOptions{})
+	if err != nil {
+		return nil, err
+	}
+
+	return &TenantconfigPolicy{
+		client: group.client,
+		Policy: result,
+	}, nil
+}
+
+// UpdatePolicyByName updates object stored in the database under the hashedName which is a hash of
+// display name and parents names.
+func (group *TenantconfigNexusV1) UpdatePolicyByName(ctx context.Context,
+	objToUpdate *basetenantconfignexusvmwarecomv1.Policy) (*TenantconfigPolicy, error) {
+
+	// ResourceVersion must be set for update
+	if objToUpdate.ResourceVersion == "" {
+		current, err := group.client.baseClient.
+			TenantconfigNexusV1().
+			Policies().Get(ctx, objToUpdate.GetName(), metav1.GetOptions{})
+		if err != nil {
+			return nil, err
+		}
+		objToUpdate.ResourceVersion = current.ResourceVersion
+	}
+
+	var patch Patch
+	patch = append(patch, PatchOp{
+		Op:    "replace",
+		Path:  "/metadata",
+		Value: objToUpdate.ObjectMeta,
+	})
+
+	if objToUpdate.Spec.StaticApplications != nil {
+		patchValueStaticApplications :=
+			objToUpdate.Spec.StaticApplications
+		patchOpStaticApplications := PatchOp{
+			Op:    "replace",
+			Path:  "/spec/static_applications",
+			Value: patchValueStaticApplications,
+		}
+		patch = append(patch, patchOpStaticApplications)
+	}
+
+	if objToUpdate.Spec.PinApplications != nil {
+		patchValuePinApplications :=
+			objToUpdate.Spec.PinApplications
+		patchOpPinApplications := PatchOp{
+			Op:    "replace",
+			Path:  "/spec/pin_applications",
+			Value: patchValuePinApplications,
+		}
+		patch = append(patch, patchOpPinApplications)
+	}
+
+	patchValueDynamicAppSchedulingDisable :=
+		objToUpdate.Spec.DynamicAppSchedulingDisable
+	patchOpDynamicAppSchedulingDisable := PatchOp{
+		Op:    "replace",
+		Path:  "/spec/dynamic_app_scheduling_disable",
+		Value: patchValueDynamicAppSchedulingDisable,
+	}
+	patch = append(patch, patchOpDynamicAppSchedulingDisable)
+
+	patchValueDisableProvisioning :=
+		objToUpdate.Spec.DisableProvisioning
+	patchOpDisableProvisioning := PatchOp{
+		Op:    "replace",
+		Path:  "/spec/disable_provisioning",
+		Value: patchValueDisableProvisioning,
+	}
+	patch = append(patch, patchOpDisableProvisioning)
+
+	patchValueDisableAutoScaling :=
+		objToUpdate.Spec.DisableAutoScaling
+	patchOpDisableAutoScaling := PatchOp{
+		Op:    "replace",
+		Path:  "/spec/disable_auto_scaling",
+		Value: patchValueDisableAutoScaling,
+	}
+	patch = append(patch, patchOpDisableAutoScaling)
+
+	patchValueDisableAppClusterOnboarding :=
+		objToUpdate.Spec.DisableAppClusterOnboarding
+	patchOpDisableAppClusterOnboarding := PatchOp{
+		Op:    "replace",
+		Path:  "/spec/disable_app_cluster_onboarding",
+		Value: patchValueDisableAppClusterOnboarding,
+	}
+	patch = append(patch, patchOpDisableAppClusterOnboarding)
+
+	patchValueDisableUpgrade :=
+		objToUpdate.Spec.DisableUpgrade
+	patchOpDisableUpgrade := PatchOp{
+		Op:    "replace",
+		Path:  "/spec/disable_upgrade",
+		Value: patchValueDisableUpgrade,
+	}
+	patch = append(patch, patchOpDisableUpgrade)
+
+	patchValueOnFailureDowngrade :=
+		objToUpdate.Spec.OnFailureDowngrade
+	patchOpOnFailureDowngrade := PatchOp{
+		Op:    "replace",
+		Path:  "/spec/on_failure_downgrade",
+		Value: patchValueOnFailureDowngrade,
+	}
+	patch = append(patch, patchOpOnFailureDowngrade)
+
+	marshaled, err := patch.Marshal()
+	if err != nil {
+		return nil, err
+	}
+	result, err := group.client.baseClient.
+		TenantconfigNexusV1().
+		Policies().Patch(ctx, objToUpdate.GetName(), types.JSONPatchType, marshaled, metav1.PatchOptions{}, "")
+	if err != nil {
+		return nil, err
+	}
+
+	return &TenantconfigPolicy{
+		client: group.client,
+		Policy: result,
+	}, nil
+}
+
+// ListPolicies returns slice of all existing objects of this type. Selectors can be provided in opts parameter.
+func (group *TenantconfigNexusV1) ListPolicies(ctx context.Context,
+	opts metav1.ListOptions) (result []*TenantconfigPolicy, err error) {
+	key := "policies.tenantconfig.nexus.vmware.com"
+	if s, ok := subscriptionMap.Load(key); ok {
+		items := s.(subscription).informer.GetStore().List()
+		result = make([]*TenantconfigPolicy, len(items))
+		for k, v := range items {
+			item, _ := v.(*basetenantconfignexusvmwarecomv1.Policy)
+			result[k] = &TenantconfigPolicy{
+				client: group.client,
+				Policy: item,
+			}
+		}
+	} else {
+		list, err := group.client.baseClient.TenantconfigNexusV1().
+			Policies().List(ctx, opts)
+		if err != nil {
+			return nil, err
+		}
+		result = make([]*TenantconfigPolicy, len(list.Items))
+		for k, v := range list.Items {
+			item := v
+			result[k] = &TenantconfigPolicy{
+				client: group.client,
+				Policy: &item,
+			}
+		}
+	}
+	return
+}
+
+type TenantconfigPolicy struct {
+	client *Clientset
+	*basetenantconfignexusvmwarecomv1.Policy
+}
+
+// Delete removes obj and all it's children from the database.
+func (obj *TenantconfigPolicy) Delete(ctx context.Context) error {
+	err := obj.client.Tenantconfig().DeletePolicyByName(ctx, obj.GetName())
+	if err != nil {
+		return err
+	}
+	obj.Policy = nil
+	return nil
+}
+
+// Update updates spec of object in database. Children and Link can not be updated using this function.
+func (obj *TenantconfigPolicy) Update(ctx context.Context) error {
+	result, err := obj.client.Tenantconfig().UpdatePolicyByName(ctx, obj.Policy)
+	if err != nil {
+		return err
+	}
+	obj.Policy = result.Policy
+	return nil
+}
+
+func (obj *TenantconfigPolicy) GetParent(ctx context.Context) (result *ConfigConfig, err error) {
+	hashedName := helper.GetHashedName("configs.config.nexus.vmware.com", obj.Labels, obj.Labels["configs.config.nexus.vmware.com"])
+	return obj.client.Config().GetConfigByName(ctx, hashedName)
+}
+
+type policyTenantconfigNexusV1Chainer struct {
+	client       *Clientset
+	name         string
+	parentLabels map[string]string
+}
+
+func (c *policyTenantconfigNexusV1Chainer) Subscribe() {
+	key := "policies.tenantconfig.nexus.vmware.com"
+	if _, ok := subscriptionMap.Load(key); !ok {
+		informer := informertenantconfignexusvmwarecomv1.NewPolicyInformer(c.client.baseClient, 0, cache.Indexers{})
+		subscribe(key, informer)
+	}
+}
+
+func (c *policyTenantconfigNexusV1Chainer) Unsubscribe() {
+	key := "policies.tenantconfig.nexus.vmware.com"
+	if s, ok := subscriptionMap.Load(key); ok {
+		close(s.(subscription).stop)
+		subscriptionMap.Delete(key)
+	}
+}
+
+func (c *policyTenantconfigNexusV1Chainer) IsSubscribed() bool {
+	key := "policies.tenantconfig.nexus.vmware.com"
+	_, ok := subscriptionMap.Load(key)
+	return ok
+}
+
+// GetUserByName returns object stored in the database under the hashedName which is a hash of display
+// name and parents names. Use it when you know hashed name of object.
+func (group *UserNexusV1) GetUserByName(ctx context.Context, hashedName string) (*UserUser, error) {
+	key := "users.user.nexus.vmware.com"
+	if s, ok := subscriptionMap.Load(key); ok {
+		item, exists, err := s.(subscription).informer.GetStore().GetByKey(hashedName)
+		if !exists {
+			return nil, err
+		}
+
+		result, _ := item.(*baseusernexusvmwarecomv1.User)
+		return &UserUser{
+			client: group.client,
+			User:   result,
+		}, nil
+	} else {
+		result, err := group.client.baseClient.
+			UserNexusV1().
+			Users().Get(ctx, hashedName, metav1.GetOptions{})
+		if err != nil {
+			return nil, err
+		}
+
+		return &UserUser{
+			client: group.client,
+			User:   result,
+		}, nil
+	}
+}
+
+// DeleteUserByName deletes object stored in the database under the hashedName which is a hash of
+// display name and parents names. Use it when you know hashed name of object.
+func (group *UserNexusV1) DeleteUserByName(ctx context.Context, hashedName string) (err error) {
+
+	result, err := group.client.baseClient.
+		UserNexusV1().
+		Users().Get(ctx, hashedName, metav1.GetOptions{})
+	if err != nil {
+		return err
+	}
+
+	err = group.client.baseClient.
+		UserNexusV1().
+		Users().Delete(ctx, hashedName, metav1.DeleteOptions{})
+	if err != nil {
+		return err
+	}
+
+	var patch Patch
+
+	patchOp := PatchOp{
+		Op:   "remove",
+		Path: "/spec/userGvk/" + result.DisplayName(),
+	}
+
+	patch = append(patch, patchOp)
+	marshaled, err := patch.Marshal()
+	if err != nil {
+		return err
+	}
+	parents := result.GetLabels()
+	if parents == nil {
+		parents = make(map[string]string)
+	}
+	parentName, ok := parents["configs.config.nexus.vmware.com"]
+	if !ok {
+		parentName = helper.DEFAULT_KEY
+	}
+	if parents[common.IS_NAME_HASHED_LABEL] == "true" {
+		parentName = helper.GetHashedName("configs.config.nexus.vmware.com", parents, parentName)
+	}
+	_, err = group.client.baseClient.
+		ConfigNexusV1().
+		Configs().Patch(ctx, parentName, types.JSONPatchType, marshaled, metav1.PatchOptions{})
+	if err != nil {
+		return err
+	}
+
+	return
+}
+
+// CreateUserByName creates object in the database without hashing the name.
+// Use it directly ONLY when objToCreate.Name is hashed name of the object.
+func (group *UserNexusV1) CreateUserByName(ctx context.Context,
+	objToCreate *baseusernexusvmwarecomv1.User) (*UserUser, error) {
+	if objToCreate.GetLabels() == nil {
+		objToCreate.Labels = make(map[string]string)
+	}
+	if _, ok := objToCreate.Labels[common.DISPLAY_NAME_LABEL]; !ok {
+		objToCreate.Labels[common.DISPLAY_NAME_LABEL] = objToCreate.GetName()
+	}
+
+	objToCreate.Spec.TenantGvk = nil
+
+	result, err := group.client.baseClient.
+		UserNexusV1().
+		Users().Create(ctx, objToCreate, metav1.CreateOptions{})
+	if err != nil {
+		return nil, err
+	}
+
+	parentName, ok := objToCreate.GetLabels()["configs.config.nexus.vmware.com"]
+	if !ok {
+		parentName = helper.DEFAULT_KEY
+	}
+	if objToCreate.Labels[common.IS_NAME_HASHED_LABEL] == "true" {
+		parentName = helper.GetHashedName("configs.config.nexus.vmware.com", objToCreate.GetLabels(), parentName)
+	}
+
+	payload := "{\"spec\": {\"userGvk\": {\"" + objToCreate.DisplayName() + "\": {\"name\": \"" + objToCreate.Name + "\",\"kind\": \"User\", \"group\": \"user.nexus.vmware.com\"}}}}"
+	_, err = group.client.baseClient.
+		ConfigNexusV1().
+		Configs().Patch(ctx, parentName, types.MergePatchType, []byte(payload), metav1.PatchOptions{})
+	if err != nil {
+		return nil, err
+	}
+
+	return &UserUser{
+		client: group.client,
+		User:   result,
+	}, nil
+}
+
+// UpdateUserByName updates object stored in the database under the hashedName which is a hash of
+// display name and parents names.
+func (group *UserNexusV1) UpdateUserByName(ctx context.Context,
+	objToUpdate *baseusernexusvmwarecomv1.User) (*UserUser, error) {
+
+	// ResourceVersion must be set for update
+	if objToUpdate.ResourceVersion == "" {
+		current, err := group.client.baseClient.
+			UserNexusV1().
+			Users().Get(ctx, objToUpdate.GetName(), metav1.GetOptions{})
+		if err != nil {
+			return nil, err
+		}
+		objToUpdate.ResourceVersion = current.ResourceVersion
+	}
+
+	var patch Patch
+	patch = append(patch, PatchOp{
+		Op:    "replace",
+		Path:  "/metadata",
+		Value: objToUpdate.ObjectMeta,
+	})
+
+	patchValueUsername :=
+		objToUpdate.Spec.Username
+	patchOpUsername := PatchOp{
+		Op:    "replace",
+		Path:  "/spec/username",
+		Value: patchValueUsername,
+	}
+	patch = append(patch, patchOpUsername)
+
+	patchValueMail :=
+		objToUpdate.Spec.Mail
+	patchOpMail := PatchOp{
+		Op:    "replace",
+		Path:  "/spec/email",
+		Value: patchValueMail,
+	}
+	patch = append(patch, patchOpMail)
+
+	patchValueFirstName :=
+		objToUpdate.Spec.FirstName
+	patchOpFirstName := PatchOp{
+		Op:    "replace",
+		Path:  "/spec/firstName",
+		Value: patchValueFirstName,
+	}
+	patch = append(patch, patchOpFirstName)
+
+	patchValueLastName :=
+		objToUpdate.Spec.LastName
+	patchOpLastName := PatchOp{
+		Op:    "replace",
+		Path:  "/spec/lastName",
+		Value: patchValueLastName,
+	}
+	patch = append(patch, patchOpLastName)
+
+	patchValuePassword :=
+		objToUpdate.Spec.Password
+	patchOpPassword := PatchOp{
+		Op:    "replace",
+		Path:  "/spec/password",
+		Value: patchValuePassword,
+	}
+	patch = append(patch, patchOpPassword)
+
+	patchValueTenantId :=
+		objToUpdate.Spec.TenantId
+	patchOpTenantId := PatchOp{
+		Op:    "replace",
+		Path:  "/spec/tenantId",
+		Value: patchValueTenantId,
+	}
+	patch = append(patch, patchOpTenantId)
+
+	patchValueRealm :=
+		objToUpdate.Spec.Realm
+	patchOpRealm := PatchOp{
+		Op:    "replace",
+		Path:  "/spec/realm",
+		Value: patchValueRealm,
+	}
+	patch = append(patch, patchOpRealm)
+
+	marshaled, err := patch.Marshal()
+	if err != nil {
+		return nil, err
+	}
+	result, err := group.client.baseClient.
+		UserNexusV1().
+		Users().Patch(ctx, objToUpdate.GetName(), types.JSONPatchType, marshaled, metav1.PatchOptions{}, "")
+	if err != nil {
+		return nil, err
+	}
+
+	return &UserUser{
+		client: group.client,
+		User:   result,
+	}, nil
+}
+
+// ListUsers returns slice of all existing objects of this type. Selectors can be provided in opts parameter.
+func (group *UserNexusV1) ListUsers(ctx context.Context,
+	opts metav1.ListOptions) (result []*UserUser, err error) {
+	key := "users.user.nexus.vmware.com"
+	if s, ok := subscriptionMap.Load(key); ok {
+		items := s.(subscription).informer.GetStore().List()
+		result = make([]*UserUser, len(items))
+		for k, v := range items {
+			item, _ := v.(*baseusernexusvmwarecomv1.User)
+			result[k] = &UserUser{
+				client: group.client,
+				User:   item,
+			}
+		}
+	} else {
+		list, err := group.client.baseClient.UserNexusV1().
+			Users().List(ctx, opts)
+		if err != nil {
+			return nil, err
+		}
+		result = make([]*UserUser, len(list.Items))
+		for k, v := range list.Items {
+			item := v
+			result[k] = &UserUser{
+				client: group.client,
+				User:   &item,
+			}
+		}
+	}
+	return
+}
+
+type UserUser struct {
+	client *Clientset
+	*baseusernexusvmwarecomv1.User
+}
+
+// Delete removes obj and all it's children from the database.
+func (obj *UserUser) Delete(ctx context.Context) error {
+	err := obj.client.User().DeleteUserByName(ctx, obj.GetName())
+	if err != nil {
+		return err
+	}
+	obj.User = nil
+	return nil
+}
+
+// Update updates spec of object in database. Children and Link can not be updated using this function.
+func (obj *UserUser) Update(ctx context.Context) error {
+	result, err := obj.client.User().UpdateUserByName(ctx, obj.User)
+	if err != nil {
+		return err
+	}
+	obj.User = result.User
+	return nil
+}
+
+func (obj *UserUser) GetParent(ctx context.Context) (result *ConfigConfig, err error) {
+	hashedName := helper.GetHashedName("configs.config.nexus.vmware.com", obj.Labels, obj.Labels["configs.config.nexus.vmware.com"])
+	return obj.client.Config().GetConfigByName(ctx, hashedName)
+}
+
+// GetTenant returns link of given type
+func (obj *UserUser) GetTenant(ctx context.Context) (
+	result *TenantconfigTenant, err error) {
+	if obj.Spec.TenantGvk == nil {
+		return nil, NewLinkNotFound(obj.DisplayName(), "User.User", "Tenant")
+	}
+	return obj.client.Tenantconfig().GetTenantByName(ctx, obj.Spec.TenantGvk.Name)
+}
+
+// LinkTenant links obj with linkToAdd object. This function doesn't create linked object, it must be
+// already created.
+func (obj *UserUser) LinkTenant(ctx context.Context,
+	linkToAdd *TenantconfigTenant) error {
+
+	var patch Patch
+	patchOp := PatchOp{
+		Op:   "replace",
+		Path: "/spec/tenantGvk",
+		Value: baseusernexusvmwarecomv1.Child{
+			Group: "tenantconfig.nexus.vmware.com",
+			Kind:  "Tenant",
+			Name:  linkToAdd.Name,
+		},
+	}
+	patch = append(patch, patchOp)
+	marshaled, err := patch.Marshal()
+	if err != nil {
+		return err
+	}
+	result, err := obj.client.baseClient.UserNexusV1().Users().Patch(ctx, obj.Name, types.JSONPatchType, marshaled, metav1.PatchOptions{})
+	if err != nil {
+		return err
+	}
+
+	obj.User = result
+	return nil
+}
+
+// UnlinkTenant unlinks linkToRemove object from obj. This function doesn't delete linked object.
+func (obj *UserUser) UnlinkTenant(ctx context.Context) (err error) {
+	var patch Patch
+
+	patchOp := PatchOp{
+		Op:   "remove",
+		Path: "/spec/tenantGvk",
+	}
+
+	patch = append(patch, patchOp)
+	marshaled, err := patch.Marshal()
+	if err != nil {
+		return err
+	}
+	result, err := obj.client.baseClient.UserNexusV1().Users().Patch(ctx, obj.Name, types.JSONPatchType, marshaled, metav1.PatchOptions{})
+	if err != nil {
+		return err
+	}
+	obj.User = result
+	return nil
+
+}
+
+type userUserNexusV1Chainer struct {
+	client       *Clientset
+	name         string
+	parentLabels map[string]string
+}
+
+func (c *userUserNexusV1Chainer) Subscribe() {
+	key := "users.user.nexus.vmware.com"
+	if _, ok := subscriptionMap.Load(key); !ok {
+		informer := informerusernexusvmwarecomv1.NewUserInformer(c.client.baseClient, 0, cache.Indexers{})
+		subscribe(key, informer)
+	}
+}
+
+func (c *userUserNexusV1Chainer) Unsubscribe() {
+	key := "users.user.nexus.vmware.com"
+	if s, ok := subscriptionMap.Load(key); ok {
+		close(s.(subscription).stop)
+		subscriptionMap.Delete(key)
+	}
+}
+
+func (c *userUserNexusV1Chainer) IsSubscribed() bool {
+	key := "users.user.nexus.vmware.com"
+	_, ok := subscriptionMap.Load(key)
+	return ok
+}
+
+// GetConnectByName returns object stored in the database under the hashedName which is a hash of display
+// name and parents names. Use it when you know hashed name of object.
+func (group *ConnectNexusV1) GetConnectByName(ctx context.Context, hashedName string) (*ConnectConnect, error) {
+	key := "connects.connect.nexus.vmware.com"
+	if s, ok := subscriptionMap.Load(key); ok {
+		item, exists, err := s.(subscription).informer.GetStore().GetByKey(hashedName)
+		if !exists {
+			return nil, err
+		}
+
+		result, _ := item.(*baseconnectnexusvmwarecomv1.Connect)
+		return &ConnectConnect{
+			client:  group.client,
+			Connect: result,
+		}, nil
+	} else {
+		result, err := group.client.baseClient.
+			ConnectNexusV1().
+			Connects().Get(ctx, hashedName, metav1.GetOptions{})
+		if err != nil {
+			return nil, err
+		}
+
+		return &ConnectConnect{
+			client:  group.client,
+			Connect: result,
+		}, nil
+	}
 }
 
 // DeleteConnectByName deletes object stored in the database under the hashedName which is a hash of
@@ -2295,17 +4398,30 @@ func (group *ConnectNexusV1) UpdateConnectByName(ctx context.Context,
 // ListConnects returns slice of all existing objects of this type. Selectors can be provided in opts parameter.
 func (group *ConnectNexusV1) ListConnects(ctx context.Context,
 	opts metav1.ListOptions) (result []*ConnectConnect, err error) {
-	list, err := group.client.baseClient.ConnectNexusV1().
-		Connects().List(ctx, opts)
-	if err != nil {
-		return nil, err
-	}
-	result = make([]*ConnectConnect, len(list.Items))
-	for k, v := range list.Items {
-		item := v
-		result[k] = &ConnectConnect{
-			client:  group.client,
-			Connect: &item,
+	key := "connects.connect.nexus.vmware.com"
+	if s, ok := subscriptionMap.Load(key); ok {
+		items := s.(subscription).informer.GetStore().List()
+		result = make([]*ConnectConnect, len(items))
+		for k, v := range items {
+			item, _ := v.(*baseconnectnexusvmwarecomv1.Connect)
+			result[k] = &ConnectConnect{
+				client:  group.client,
+				Connect: item,
+			}
+		}
+	} else {
+		list, err := group.client.baseClient.ConnectNexusV1().
+			Connects().List(ctx, opts)
+		if err != nil {
+			return nil, err
+		}
+		result = make([]*ConnectConnect, len(list.Items))
+		for k, v := range list.Items {
+			item := v
+			result[k] = &ConnectConnect{
+				client:  group.client,
+				Connect: &item,
+			}
 		}
 	}
 	return
@@ -2487,6 +4603,28 @@ type connectConnectNexusV1Chainer struct {
 	parentLabels map[string]string
 }
 
+func (c *connectConnectNexusV1Chainer) Subscribe() {
+	key := "connects.connect.nexus.vmware.com"
+	if _, ok := subscriptionMap.Load(key); !ok {
+		informer := informerconnectnexusvmwarecomv1.NewConnectInformer(c.client.baseClient, 0, cache.Indexers{})
+		subscribe(key, informer)
+	}
+}
+
+func (c *connectConnectNexusV1Chainer) Unsubscribe() {
+	key := "connects.connect.nexus.vmware.com"
+	if s, ok := subscriptionMap.Load(key); ok {
+		close(s.(subscription).stop)
+		subscriptionMap.Delete(key)
+	}
+}
+
+func (c *connectConnectNexusV1Chainer) IsSubscribed() bool {
+	key := "connects.connect.nexus.vmware.com"
+	_, ok := subscriptionMap.Load(key)
+	return ok
+}
+
 func (c *connectConnectNexusV1Chainer) Endpoints(name string) *nexusendpointConnectNexusV1Chainer {
 	parentLabels := c.parentLabels
 	parentLabels["nexusendpoints.connect.nexus.vmware.com"] = name
@@ -2584,17 +4722,31 @@ func (c *connectConnectNexusV1Chainer) DeleteReplicationConfig(ctx context.Conte
 // GetNexusEndpointByName returns object stored in the database under the hashedName which is a hash of display
 // name and parents names. Use it when you know hashed name of object.
 func (group *ConnectNexusV1) GetNexusEndpointByName(ctx context.Context, hashedName string) (*ConnectNexusEndpoint, error) {
-	result, err := group.client.baseClient.
-		ConnectNexusV1().
-		NexusEndpoints().Get(ctx, hashedName, metav1.GetOptions{})
-	if err != nil {
-		return nil, err
-	}
+	key := "nexusendpoints.connect.nexus.vmware.com"
+	if s, ok := subscriptionMap.Load(key); ok {
+		item, exists, err := s.(subscription).informer.GetStore().GetByKey(hashedName)
+		if !exists {
+			return nil, err
+		}
 
-	return &ConnectNexusEndpoint{
-		client:        group.client,
-		NexusEndpoint: result,
-	}, nil
+		result, _ := item.(*baseconnectnexusvmwarecomv1.NexusEndpoint)
+		return &ConnectNexusEndpoint{
+			client:        group.client,
+			NexusEndpoint: result,
+		}, nil
+	} else {
+		result, err := group.client.baseClient.
+			ConnectNexusV1().
+			NexusEndpoints().Get(ctx, hashedName, metav1.GetOptions{})
+		if err != nil {
+			return nil, err
+		}
+
+		return &ConnectNexusEndpoint{
+			client:        group.client,
+			NexusEndpoint: result,
+		}, nil
+	}
 }
 
 // DeleteNexusEndpointByName deletes object stored in the database under the hashedName which is a hash of
@@ -2803,17 +4955,30 @@ func (group *ConnectNexusV1) UpdateNexusEndpointByName(ctx context.Context,
 // ListNexusEndpoints returns slice of all existing objects of this type. Selectors can be provided in opts parameter.
 func (group *ConnectNexusV1) ListNexusEndpoints(ctx context.Context,
 	opts metav1.ListOptions) (result []*ConnectNexusEndpoint, err error) {
-	list, err := group.client.baseClient.ConnectNexusV1().
-		NexusEndpoints().List(ctx, opts)
-	if err != nil {
-		return nil, err
-	}
-	result = make([]*ConnectNexusEndpoint, len(list.Items))
-	for k, v := range list.Items {
-		item := v
-		result[k] = &ConnectNexusEndpoint{
-			client:        group.client,
-			NexusEndpoint: &item,
+	key := "nexusendpoints.connect.nexus.vmware.com"
+	if s, ok := subscriptionMap.Load(key); ok {
+		items := s.(subscription).informer.GetStore().List()
+		result = make([]*ConnectNexusEndpoint, len(items))
+		for k, v := range items {
+			item, _ := v.(*baseconnectnexusvmwarecomv1.NexusEndpoint)
+			result[k] = &ConnectNexusEndpoint{
+				client:        group.client,
+				NexusEndpoint: item,
+			}
+		}
+	} else {
+		list, err := group.client.baseClient.ConnectNexusV1().
+			NexusEndpoints().List(ctx, opts)
+		if err != nil {
+			return nil, err
+		}
+		result = make([]*ConnectNexusEndpoint, len(list.Items))
+		for k, v := range list.Items {
+			item := v
+			result[k] = &ConnectNexusEndpoint{
+				client:        group.client,
+				NexusEndpoint: &item,
+			}
 		}
 	}
 	return
@@ -2855,20 +5020,56 @@ type nexusendpointConnectNexusV1Chainer struct {
 	parentLabels map[string]string
 }
 
+func (c *nexusendpointConnectNexusV1Chainer) Subscribe() {
+	key := "nexusendpoints.connect.nexus.vmware.com"
+	if _, ok := subscriptionMap.Load(key); !ok {
+		informer := informerconnectnexusvmwarecomv1.NewNexusEndpointInformer(c.client.baseClient, 0, cache.Indexers{})
+		subscribe(key, informer)
+	}
+}
+
+func (c *nexusendpointConnectNexusV1Chainer) Unsubscribe() {
+	key := "nexusendpoints.connect.nexus.vmware.com"
+	if s, ok := subscriptionMap.Load(key); ok {
+		close(s.(subscription).stop)
+		subscriptionMap.Delete(key)
+	}
+}
+
+func (c *nexusendpointConnectNexusV1Chainer) IsSubscribed() bool {
+	key := "nexusendpoints.connect.nexus.vmware.com"
+	_, ok := subscriptionMap.Load(key)
+	return ok
+}
+
 // GetReplicationConfigByName returns object stored in the database under the hashedName which is a hash of display
 // name and parents names. Use it when you know hashed name of object.
 func (group *ConnectNexusV1) GetReplicationConfigByName(ctx context.Context, hashedName string) (*ConnectReplicationConfig, error) {
-	result, err := group.client.baseClient.
-		ConnectNexusV1().
-		ReplicationConfigs().Get(ctx, hashedName, metav1.GetOptions{})
-	if err != nil {
-		return nil, err
-	}
+	key := "replicationconfigs.connect.nexus.vmware.com"
+	if s, ok := subscriptionMap.Load(key); ok {
+		item, exists, err := s.(subscription).informer.GetStore().GetByKey(hashedName)
+		if !exists {
+			return nil, err
+		}
 
-	return &ConnectReplicationConfig{
-		client:            group.client,
-		ReplicationConfig: result,
-	}, nil
+		result, _ := item.(*baseconnectnexusvmwarecomv1.ReplicationConfig)
+		return &ConnectReplicationConfig{
+			client:            group.client,
+			ReplicationConfig: result,
+		}, nil
+	} else {
+		result, err := group.client.baseClient.
+			ConnectNexusV1().
+			ReplicationConfigs().Get(ctx, hashedName, metav1.GetOptions{})
+		if err != nil {
+			return nil, err
+		}
+
+		return &ConnectReplicationConfig{
+			client:            group.client,
+			ReplicationConfig: result,
+		}, nil
+	}
 }
 
 // DeleteReplicationConfigByName deletes object stored in the database under the hashedName which is a hash of
@@ -3043,17 +5244,30 @@ func (group *ConnectNexusV1) UpdateReplicationConfigByName(ctx context.Context,
 // ListReplicationConfigs returns slice of all existing objects of this type. Selectors can be provided in opts parameter.
 func (group *ConnectNexusV1) ListReplicationConfigs(ctx context.Context,
 	opts metav1.ListOptions) (result []*ConnectReplicationConfig, err error) {
-	list, err := group.client.baseClient.ConnectNexusV1().
-		ReplicationConfigs().List(ctx, opts)
-	if err != nil {
-		return nil, err
-	}
-	result = make([]*ConnectReplicationConfig, len(list.Items))
-	for k, v := range list.Items {
-		item := v
-		result[k] = &ConnectReplicationConfig{
-			client:            group.client,
-			ReplicationConfig: &item,
+	key := "replicationconfigs.connect.nexus.vmware.com"
+	if s, ok := subscriptionMap.Load(key); ok {
+		items := s.(subscription).informer.GetStore().List()
+		result = make([]*ConnectReplicationConfig, len(items))
+		for k, v := range items {
+			item, _ := v.(*baseconnectnexusvmwarecomv1.ReplicationConfig)
+			result[k] = &ConnectReplicationConfig{
+				client:            group.client,
+				ReplicationConfig: item,
+			}
+		}
+	} else {
+		list, err := group.client.baseClient.ConnectNexusV1().
+			ReplicationConfigs().List(ctx, opts)
+		if err != nil {
+			return nil, err
+		}
+		result = make([]*ConnectReplicationConfig, len(list.Items))
+		for k, v := range list.Items {
+			item := v
+			result[k] = &ConnectReplicationConfig{
+				client:            group.client,
+				ReplicationConfig: &item,
+			}
 		}
 	}
 	return
@@ -3156,20 +5370,56 @@ type replicationconfigConnectNexusV1Chainer struct {
 	parentLabels map[string]string
 }
 
+func (c *replicationconfigConnectNexusV1Chainer) Subscribe() {
+	key := "replicationconfigs.connect.nexus.vmware.com"
+	if _, ok := subscriptionMap.Load(key); !ok {
+		informer := informerconnectnexusvmwarecomv1.NewReplicationConfigInformer(c.client.baseClient, 0, cache.Indexers{})
+		subscribe(key, informer)
+	}
+}
+
+func (c *replicationconfigConnectNexusV1Chainer) Unsubscribe() {
+	key := "replicationconfigs.connect.nexus.vmware.com"
+	if s, ok := subscriptionMap.Load(key); ok {
+		close(s.(subscription).stop)
+		subscriptionMap.Delete(key)
+	}
+}
+
+func (c *replicationconfigConnectNexusV1Chainer) IsSubscribed() bool {
+	key := "replicationconfigs.connect.nexus.vmware.com"
+	_, ok := subscriptionMap.Load(key)
+	return ok
+}
+
 // GetCORSConfigByName returns object stored in the database under the hashedName which is a hash of display
 // name and parents names. Use it when you know hashed name of object.
 func (group *DomainNexusV1) GetCORSConfigByName(ctx context.Context, hashedName string) (*DomainCORSConfig, error) {
-	result, err := group.client.baseClient.
-		DomainNexusV1().
-		CORSConfigs().Get(ctx, hashedName, metav1.GetOptions{})
-	if err != nil {
-		return nil, err
-	}
+	key := "corsconfigs.domain.nexus.vmware.com"
+	if s, ok := subscriptionMap.Load(key); ok {
+		item, exists, err := s.(subscription).informer.GetStore().GetByKey(hashedName)
+		if !exists {
+			return nil, err
+		}
 
-	return &DomainCORSConfig{
-		client:     group.client,
-		CORSConfig: result,
-	}, nil
+		result, _ := item.(*basedomainnexusvmwarecomv1.CORSConfig)
+		return &DomainCORSConfig{
+			client:     group.client,
+			CORSConfig: result,
+		}, nil
+	} else {
+		result, err := group.client.baseClient.
+			DomainNexusV1().
+			CORSConfigs().Get(ctx, hashedName, metav1.GetOptions{})
+		if err != nil {
+			return nil, err
+		}
+
+		return &DomainCORSConfig{
+			client:     group.client,
+			CORSConfig: result,
+		}, nil
+	}
 }
 
 // DeleteCORSConfigByName deletes object stored in the database under the hashedName which is a hash of
@@ -3328,17 +5578,30 @@ func (group *DomainNexusV1) UpdateCORSConfigByName(ctx context.Context,
 // ListCORSConfigs returns slice of all existing objects of this type. Selectors can be provided in opts parameter.
 func (group *DomainNexusV1) ListCORSConfigs(ctx context.Context,
 	opts metav1.ListOptions) (result []*DomainCORSConfig, err error) {
-	list, err := group.client.baseClient.DomainNexusV1().
-		CORSConfigs().List(ctx, opts)
-	if err != nil {
-		return nil, err
-	}
-	result = make([]*DomainCORSConfig, len(list.Items))
-	for k, v := range list.Items {
-		item := v
-		result[k] = &DomainCORSConfig{
-			client:     group.client,
-			CORSConfig: &item,
+	key := "corsconfigs.domain.nexus.vmware.com"
+	if s, ok := subscriptionMap.Load(key); ok {
+		items := s.(subscription).informer.GetStore().List()
+		result = make([]*DomainCORSConfig, len(items))
+		for k, v := range items {
+			item, _ := v.(*basedomainnexusvmwarecomv1.CORSConfig)
+			result[k] = &DomainCORSConfig{
+				client:     group.client,
+				CORSConfig: item,
+			}
+		}
+	} else {
+		list, err := group.client.baseClient.DomainNexusV1().
+			CORSConfigs().List(ctx, opts)
+		if err != nil {
+			return nil, err
+		}
+		result = make([]*DomainCORSConfig, len(list.Items))
+		for k, v := range list.Items {
+			item := v
+			result[k] = &DomainCORSConfig{
+				client:     group.client,
+				CORSConfig: &item,
+			}
 		}
 	}
 	return
@@ -3380,20 +5643,56 @@ type corsconfigDomainNexusV1Chainer struct {
 	parentLabels map[string]string
 }
 
+func (c *corsconfigDomainNexusV1Chainer) Subscribe() {
+	key := "corsconfigs.domain.nexus.vmware.com"
+	if _, ok := subscriptionMap.Load(key); !ok {
+		informer := informerdomainnexusvmwarecomv1.NewCORSConfigInformer(c.client.baseClient, 0, cache.Indexers{})
+		subscribe(key, informer)
+	}
+}
+
+func (c *corsconfigDomainNexusV1Chainer) Unsubscribe() {
+	key := "corsconfigs.domain.nexus.vmware.com"
+	if s, ok := subscriptionMap.Load(key); ok {
+		close(s.(subscription).stop)
+		subscriptionMap.Delete(key)
+	}
+}
+
+func (c *corsconfigDomainNexusV1Chainer) IsSubscribed() bool {
+	key := "corsconfigs.domain.nexus.vmware.com"
+	_, ok := subscriptionMap.Load(key)
+	return ok
+}
+
 // GetRouteByName returns object stored in the database under the hashedName which is a hash of display
 // name and parents names. Use it when you know hashed name of object.
 func (group *RouteNexusV1) GetRouteByName(ctx context.Context, hashedName string) (*RouteRoute, error) {
-	result, err := group.client.baseClient.
-		RouteNexusV1().
-		Routes().Get(ctx, hashedName, metav1.GetOptions{})
-	if err != nil {
-		return nil, err
-	}
+	key := "routes.route.nexus.vmware.com"
+	if s, ok := subscriptionMap.Load(key); ok {
+		item, exists, err := s.(subscription).informer.GetStore().GetByKey(hashedName)
+		if !exists {
+			return nil, err
+		}
 
-	return &RouteRoute{
-		client: group.client,
-		Route:  result,
-	}, nil
+		result, _ := item.(*baseroutenexusvmwarecomv1.Route)
+		return &RouteRoute{
+			client: group.client,
+			Route:  result,
+		}, nil
+	} else {
+		result, err := group.client.baseClient.
+			RouteNexusV1().
+			Routes().Get(ctx, hashedName, metav1.GetOptions{})
+		if err != nil {
+			return nil, err
+		}
+
+		return &RouteRoute{
+			client: group.client,
+			Route:  result,
+		}, nil
+	}
 }
 
 // DeleteRouteByName deletes object stored in the database under the hashedName which is a hash of
@@ -3557,17 +5856,30 @@ func (group *RouteNexusV1) UpdateRouteByName(ctx context.Context,
 // ListRoutes returns slice of all existing objects of this type. Selectors can be provided in opts parameter.
 func (group *RouteNexusV1) ListRoutes(ctx context.Context,
 	opts metav1.ListOptions) (result []*RouteRoute, err error) {
-	list, err := group.client.baseClient.RouteNexusV1().
-		Routes().List(ctx, opts)
-	if err != nil {
-		return nil, err
-	}
-	result = make([]*RouteRoute, len(list.Items))
-	for k, v := range list.Items {
-		item := v
-		result[k] = &RouteRoute{
-			client: group.client,
-			Route:  &item,
+	key := "routes.route.nexus.vmware.com"
+	if s, ok := subscriptionMap.Load(key); ok {
+		items := s.(subscription).informer.GetStore().List()
+		result = make([]*RouteRoute, len(items))
+		for k, v := range items {
+			item, _ := v.(*baseroutenexusvmwarecomv1.Route)
+			result[k] = &RouteRoute{
+				client: group.client,
+				Route:  item,
+			}
+		}
+	} else {
+		list, err := group.client.baseClient.RouteNexusV1().
+			Routes().List(ctx, opts)
+		if err != nil {
+			return nil, err
+		}
+		result = make([]*RouteRoute, len(list.Items))
+		for k, v := range list.Items {
+			item := v
+			result[k] = &RouteRoute{
+				client: group.client,
+				Route:  &item,
+			}
 		}
 	}
 	return
@@ -3607,4 +5919,882 @@ type routeRouteNexusV1Chainer struct {
 	client       *Clientset
 	name         string
 	parentLabels map[string]string
+}
+
+func (c *routeRouteNexusV1Chainer) Subscribe() {
+	key := "routes.route.nexus.vmware.com"
+	if _, ok := subscriptionMap.Load(key); !ok {
+		informer := informerroutenexusvmwarecomv1.NewRouteInformer(c.client.baseClient, 0, cache.Indexers{})
+		subscribe(key, informer)
+	}
+}
+
+func (c *routeRouteNexusV1Chainer) Unsubscribe() {
+	key := "routes.route.nexus.vmware.com"
+	if s, ok := subscriptionMap.Load(key); ok {
+		close(s.(subscription).stop)
+		subscriptionMap.Delete(key)
+	}
+}
+
+func (c *routeRouteNexusV1Chainer) IsSubscribed() bool {
+	key := "routes.route.nexus.vmware.com"
+	_, ok := subscriptionMap.Load(key)
+	return ok
+}
+
+// GetRuntimeByName returns object stored in the database under the hashedName which is a hash of display
+// name and parents names. Use it when you know hashed name of object.
+func (group *RuntimeNexusV1) GetRuntimeByName(ctx context.Context, hashedName string) (*RuntimeRuntime, error) {
+	key := "runtimes.runtime.nexus.vmware.com"
+	if s, ok := subscriptionMap.Load(key); ok {
+		item, exists, err := s.(subscription).informer.GetStore().GetByKey(hashedName)
+		if !exists {
+			return nil, err
+		}
+
+		result, _ := item.(*baseruntimenexusvmwarecomv1.Runtime)
+		return &RuntimeRuntime{
+			client:  group.client,
+			Runtime: result,
+		}, nil
+	} else {
+		result, err := group.client.baseClient.
+			RuntimeNexusV1().
+			Runtimes().Get(ctx, hashedName, metav1.GetOptions{})
+		if err != nil {
+			return nil, err
+		}
+
+		return &RuntimeRuntime{
+			client:  group.client,
+			Runtime: result,
+		}, nil
+	}
+}
+
+// DeleteRuntimeByName deletes object stored in the database under the hashedName which is a hash of
+// display name and parents names. Use it when you know hashed name of object.
+func (group *RuntimeNexusV1) DeleteRuntimeByName(ctx context.Context, hashedName string) (err error) {
+
+	result, err := group.client.baseClient.
+		RuntimeNexusV1().
+		Runtimes().Get(ctx, hashedName, metav1.GetOptions{})
+	if err != nil {
+		return err
+	}
+
+	for _, v := range result.Spec.TenantGvk {
+		err := group.client.
+			Tenantruntime().DeleteTenantByName(ctx, v.Name)
+		if err != nil {
+			return err
+		}
+	}
+
+	err = group.client.baseClient.
+		RuntimeNexusV1().
+		Runtimes().Delete(ctx, hashedName, metav1.DeleteOptions{})
+	if err != nil {
+		return err
+	}
+
+	var patch Patch
+
+	patchOp := PatchOp{
+		Op:   "remove",
+		Path: "/spec/runtimeGvk",
+	}
+
+	patch = append(patch, patchOp)
+	marshaled, err := patch.Marshal()
+	if err != nil {
+		return err
+	}
+	parents := result.GetLabels()
+	if parents == nil {
+		parents = make(map[string]string)
+	}
+	parentName, ok := parents["nexuses.api.nexus.vmware.com"]
+	if !ok {
+		parentName = helper.DEFAULT_KEY
+	}
+	if parents[common.IS_NAME_HASHED_LABEL] == "true" {
+		parentName = helper.GetHashedName("nexuses.api.nexus.vmware.com", parents, parentName)
+	}
+	_, err = group.client.baseClient.
+		ApiNexusV1().
+		Nexuses().Patch(ctx, parentName, types.JSONPatchType, marshaled, metav1.PatchOptions{})
+	if err != nil {
+		return err
+	}
+
+	return
+}
+
+// CreateRuntimeByName creates object in the database without hashing the name.
+// Use it directly ONLY when objToCreate.Name is hashed name of the object.
+func (group *RuntimeNexusV1) CreateRuntimeByName(ctx context.Context,
+	objToCreate *baseruntimenexusvmwarecomv1.Runtime) (*RuntimeRuntime, error) {
+	if objToCreate.GetLabels() == nil {
+		objToCreate.Labels = make(map[string]string)
+	}
+	if _, ok := objToCreate.Labels[common.DISPLAY_NAME_LABEL]; !ok {
+		objToCreate.Labels[common.DISPLAY_NAME_LABEL] = objToCreate.GetName()
+	}
+	if objToCreate.Labels[common.DISPLAY_NAME_LABEL] == "" {
+		objToCreate.Labels[common.DISPLAY_NAME_LABEL] = helper.DEFAULT_KEY
+	}
+	if objToCreate.Labels[common.DISPLAY_NAME_LABEL] != helper.DEFAULT_KEY {
+		return nil, NewSingletonNameError(objToCreate.Labels[common.DISPLAY_NAME_LABEL])
+	}
+
+	objToCreate.Spec.TenantGvk = nil
+
+	result, err := group.client.baseClient.
+		RuntimeNexusV1().
+		Runtimes().Create(ctx, objToCreate, metav1.CreateOptions{})
+	if err != nil {
+		return nil, err
+	}
+
+	parentName, ok := objToCreate.GetLabels()["nexuses.api.nexus.vmware.com"]
+	if !ok {
+		parentName = helper.DEFAULT_KEY
+	}
+	if objToCreate.Labels[common.IS_NAME_HASHED_LABEL] == "true" {
+		parentName = helper.GetHashedName("nexuses.api.nexus.vmware.com", objToCreate.GetLabels(), parentName)
+	}
+
+	var patch Patch
+	patchOp := PatchOp{
+		Op:   "replace",
+		Path: "/spec/runtimeGvk",
+		Value: baseruntimenexusvmwarecomv1.Child{
+			Group: "runtime.nexus.vmware.com",
+			Kind:  "Runtime",
+			Name:  objToCreate.Name,
+		},
+	}
+	patch = append(patch, patchOp)
+	marshaled, err := patch.Marshal()
+	if err != nil {
+		return nil, err
+	}
+	_, err = group.client.baseClient.
+		ApiNexusV1().
+		Nexuses().Patch(ctx, parentName, types.JSONPatchType, marshaled, metav1.PatchOptions{})
+	if err != nil {
+		return nil, err
+	}
+
+	return &RuntimeRuntime{
+		client:  group.client,
+		Runtime: result,
+	}, nil
+}
+
+// UpdateRuntimeByName updates object stored in the database under the hashedName which is a hash of
+// display name and parents names.
+func (group *RuntimeNexusV1) UpdateRuntimeByName(ctx context.Context,
+	objToUpdate *baseruntimenexusvmwarecomv1.Runtime) (*RuntimeRuntime, error) {
+	if objToUpdate.Labels[common.DISPLAY_NAME_LABEL] != helper.DEFAULT_KEY {
+		return nil, NewSingletonNameError(objToUpdate.Labels[common.DISPLAY_NAME_LABEL])
+	}
+	// ResourceVersion must be set for update
+	if objToUpdate.ResourceVersion == "" {
+		current, err := group.client.baseClient.
+			RuntimeNexusV1().
+			Runtimes().Get(ctx, objToUpdate.GetName(), metav1.GetOptions{})
+		if err != nil {
+			return nil, err
+		}
+		objToUpdate.ResourceVersion = current.ResourceVersion
+	}
+
+	var patch Patch
+	patch = append(patch, PatchOp{
+		Op:    "replace",
+		Path:  "/metadata",
+		Value: objToUpdate.ObjectMeta,
+	})
+
+	marshaled, err := patch.Marshal()
+	if err != nil {
+		return nil, err
+	}
+	result, err := group.client.baseClient.
+		RuntimeNexusV1().
+		Runtimes().Patch(ctx, objToUpdate.GetName(), types.JSONPatchType, marshaled, metav1.PatchOptions{}, "")
+	if err != nil {
+		return nil, err
+	}
+
+	return &RuntimeRuntime{
+		client:  group.client,
+		Runtime: result,
+	}, nil
+}
+
+// ListRuntimes returns slice of all existing objects of this type. Selectors can be provided in opts parameter.
+func (group *RuntimeNexusV1) ListRuntimes(ctx context.Context,
+	opts metav1.ListOptions) (result []*RuntimeRuntime, err error) {
+	key := "runtimes.runtime.nexus.vmware.com"
+	if s, ok := subscriptionMap.Load(key); ok {
+		items := s.(subscription).informer.GetStore().List()
+		result = make([]*RuntimeRuntime, len(items))
+		for k, v := range items {
+			item, _ := v.(*baseruntimenexusvmwarecomv1.Runtime)
+			result[k] = &RuntimeRuntime{
+				client:  group.client,
+				Runtime: item,
+			}
+		}
+	} else {
+		list, err := group.client.baseClient.RuntimeNexusV1().
+			Runtimes().List(ctx, opts)
+		if err != nil {
+			return nil, err
+		}
+		result = make([]*RuntimeRuntime, len(list.Items))
+		for k, v := range list.Items {
+			item := v
+			result[k] = &RuntimeRuntime{
+				client:  group.client,
+				Runtime: &item,
+			}
+		}
+	}
+	return
+}
+
+type RuntimeRuntime struct {
+	client *Clientset
+	*baseruntimenexusvmwarecomv1.Runtime
+}
+
+// Delete removes obj and all it's children from the database.
+func (obj *RuntimeRuntime) Delete(ctx context.Context) error {
+	err := obj.client.Runtime().DeleteRuntimeByName(ctx, obj.GetName())
+	if err != nil {
+		return err
+	}
+	obj.Runtime = nil
+	return nil
+}
+
+// Update updates spec of object in database. Children and Link can not be updated using this function.
+func (obj *RuntimeRuntime) Update(ctx context.Context) error {
+	result, err := obj.client.Runtime().UpdateRuntimeByName(ctx, obj.Runtime)
+	if err != nil {
+		return err
+	}
+	obj.Runtime = result.Runtime
+	return nil
+}
+
+func (obj *RuntimeRuntime) GetParent(ctx context.Context) (result *ApiNexus, err error) {
+	hashedName := helper.GetHashedName("nexuses.api.nexus.vmware.com", obj.Labels, obj.Labels["nexuses.api.nexus.vmware.com"])
+	return obj.client.Api().GetNexusByName(ctx, hashedName)
+}
+
+// GetAllTenant returns all children of given type
+func (obj *RuntimeRuntime) GetAllTenant(ctx context.Context) (
+	result []*TenantruntimeTenant, err error) {
+	result = make([]*TenantruntimeTenant, 0, len(obj.Spec.TenantGvk))
+	for _, v := range obj.Spec.TenantGvk {
+		l, err := obj.client.Tenantruntime().GetTenantByName(ctx, v.Name)
+		if err != nil {
+			return nil, err
+		}
+		result = append(result, l)
+	}
+	return
+}
+
+// GetTenant returns child which has given displayName
+func (obj *RuntimeRuntime) GetTenant(ctx context.Context,
+	displayName string) (result *TenantruntimeTenant, err error) {
+	l, ok := obj.Spec.TenantGvk[displayName]
+	if !ok {
+		return nil, NewChildNotFound(obj.DisplayName(), "Runtime.Runtime", "Tenant", displayName)
+	}
+	result, err = obj.client.Tenantruntime().GetTenantByName(ctx, l.Name)
+	return
+}
+
+// AddTenant calculates hashed name of the child to create based on objToCreate.Name
+// and parents names and creates it. objToCreate.Name is changed to the hashed name. Original name is preserved in
+// nexus/display_name label and can be obtained using DisplayName() method.
+func (obj *RuntimeRuntime) AddTenant(ctx context.Context,
+	objToCreate *basetenantruntimenexusvmwarecomv1.Tenant) (result *TenantruntimeTenant, err error) {
+	if objToCreate.Labels == nil {
+		objToCreate.Labels = map[string]string{}
+	}
+	for _, v := range helper.GetCRDParentsMap()["runtimes.runtime.nexus.vmware.com"] {
+		objToCreate.Labels[v] = obj.Labels[v]
+	}
+	objToCreate.Labels["runtimes.runtime.nexus.vmware.com"] = obj.DisplayName()
+	if objToCreate.Labels[common.IS_NAME_HASHED_LABEL] != "true" {
+		objToCreate.Labels[common.DISPLAY_NAME_LABEL] = objToCreate.GetName()
+		objToCreate.Labels[common.IS_NAME_HASHED_LABEL] = "true"
+		hashedName := helper.GetHashedName(objToCreate.CRDName(), objToCreate.Labels, objToCreate.GetName())
+		objToCreate.Name = hashedName
+	}
+	result, err = obj.client.Tenantruntime().CreateTenantByName(ctx, objToCreate)
+	updatedObj, getErr := obj.client.Runtime().GetRuntimeByName(ctx, obj.GetName())
+	if getErr == nil {
+		obj.Runtime = updatedObj.Runtime
+	}
+	return
+}
+
+// DeleteTenant calculates hashed name of the child to delete based on displayName
+// and parents names and deletes it.
+
+func (obj *RuntimeRuntime) DeleteTenant(ctx context.Context, displayName string) (err error) {
+	l, ok := obj.Spec.TenantGvk[displayName]
+	if !ok {
+		return NewChildNotFound(obj.DisplayName(), "Runtime.Runtime", "Tenant", displayName)
+	}
+	err = obj.client.Tenantruntime().DeleteTenantByName(ctx, l.Name)
+	if err != nil {
+		return err
+	}
+	updatedObj, err := obj.client.Runtime().GetRuntimeByName(ctx, obj.GetName())
+	if err == nil {
+		obj.Runtime = updatedObj.Runtime
+	}
+	return
+}
+
+type runtimeRuntimeNexusV1Chainer struct {
+	client       *Clientset
+	name         string
+	parentLabels map[string]string
+}
+
+func (c *runtimeRuntimeNexusV1Chainer) Subscribe() {
+	key := "runtimes.runtime.nexus.vmware.com"
+	if _, ok := subscriptionMap.Load(key); !ok {
+		informer := informerruntimenexusvmwarecomv1.NewRuntimeInformer(c.client.baseClient, 0, cache.Indexers{})
+		subscribe(key, informer)
+	}
+}
+
+func (c *runtimeRuntimeNexusV1Chainer) Unsubscribe() {
+	key := "runtimes.runtime.nexus.vmware.com"
+	if s, ok := subscriptionMap.Load(key); ok {
+		close(s.(subscription).stop)
+		subscriptionMap.Delete(key)
+	}
+}
+
+func (c *runtimeRuntimeNexusV1Chainer) IsSubscribed() bool {
+	key := "runtimes.runtime.nexus.vmware.com"
+	_, ok := subscriptionMap.Load(key)
+	return ok
+}
+
+func (c *runtimeRuntimeNexusV1Chainer) Tenant(name string) *tenantTenantruntimeNexusV1Chainer {
+	parentLabels := c.parentLabels
+	parentLabels["tenants.tenantruntime.nexus.vmware.com"] = name
+	return &tenantTenantruntimeNexusV1Chainer{
+		client:       c.client,
+		name:         name,
+		parentLabels: parentLabels,
+	}
+}
+
+// GetTenant calculates hashed name of the object based on displayName and it's parents and returns the object
+func (c *runtimeRuntimeNexusV1Chainer) GetTenant(ctx context.Context, displayName string) (result *TenantruntimeTenant, err error) {
+	hashedName := helper.GetHashedName("tenants.tenantruntime.nexus.vmware.com", c.parentLabels, displayName)
+	return c.client.Tenantruntime().GetTenantByName(ctx, hashedName)
+}
+
+// AddTenant calculates hashed name of the child to create based on objToCreate.Name
+// and parents names and creates it. objToCreate.Name is changed to the hashed name. Original name is preserved in
+// nexus/display_name label and can be obtained using DisplayName() method.
+func (c *runtimeRuntimeNexusV1Chainer) AddTenant(ctx context.Context,
+	objToCreate *basetenantruntimenexusvmwarecomv1.Tenant) (result *TenantruntimeTenant, err error) {
+	if objToCreate.Labels == nil {
+		objToCreate.Labels = map[string]string{}
+	}
+	for k, v := range c.parentLabels {
+		objToCreate.Labels[k] = v
+	}
+	if objToCreate.Labels[common.IS_NAME_HASHED_LABEL] != "true" {
+		objToCreate.Labels[common.DISPLAY_NAME_LABEL] = objToCreate.GetName()
+		objToCreate.Labels[common.IS_NAME_HASHED_LABEL] = "true"
+		hashedName := helper.GetHashedName("tenants.tenantruntime.nexus.vmware.com", c.parentLabels, objToCreate.GetName())
+		objToCreate.Name = hashedName
+	}
+	return c.client.Tenantruntime().CreateTenantByName(ctx, objToCreate)
+}
+
+// DeleteTenant calculates hashed name of the child to delete based on displayName
+// and parents names and deletes it.
+func (c *runtimeRuntimeNexusV1Chainer) DeleteTenant(ctx context.Context, name string) (err error) {
+	if c.parentLabels == nil {
+		c.parentLabels = map[string]string{}
+	}
+	c.parentLabels[common.IS_NAME_HASHED_LABEL] = "true"
+	hashedName := helper.GetHashedName("tenants.tenantruntime.nexus.vmware.com", c.parentLabels, name)
+	return c.client.Tenantruntime().DeleteTenantByName(ctx, hashedName)
+}
+
+// GetTenantByName returns object stored in the database under the hashedName which is a hash of display
+// name and parents names. Use it when you know hashed name of object.
+func (group *TenantruntimeNexusV1) GetTenantByName(ctx context.Context, hashedName string) (*TenantruntimeTenant, error) {
+	key := "tenants.tenantruntime.nexus.vmware.com"
+	if s, ok := subscriptionMap.Load(key); ok {
+		item, exists, err := s.(subscription).informer.GetStore().GetByKey(hashedName)
+		if !exists {
+			return nil, err
+		}
+
+		result, _ := item.(*basetenantruntimenexusvmwarecomv1.Tenant)
+		return &TenantruntimeTenant{
+			client: group.client,
+			Tenant: result,
+		}, nil
+	} else {
+		result, err := group.client.baseClient.
+			TenantruntimeNexusV1().
+			Tenants().Get(ctx, hashedName, metav1.GetOptions{})
+		if err != nil {
+			return nil, err
+		}
+
+		return &TenantruntimeTenant{
+			client: group.client,
+			Tenant: result,
+		}, nil
+	}
+}
+
+// DeleteTenantByName deletes object stored in the database under the hashedName which is a hash of
+// display name and parents names. Use it when you know hashed name of object.
+func (group *TenantruntimeNexusV1) DeleteTenantByName(ctx context.Context, hashedName string) (err error) {
+
+	result, err := group.client.baseClient.
+		TenantruntimeNexusV1().
+		Tenants().Get(ctx, hashedName, metav1.GetOptions{})
+	if err != nil {
+		return err
+	}
+
+	err = group.client.baseClient.
+		TenantruntimeNexusV1().
+		Tenants().Delete(ctx, hashedName, metav1.DeleteOptions{})
+	if err != nil {
+		return err
+	}
+
+	var patch Patch
+
+	patchOp := PatchOp{
+		Op:   "remove",
+		Path: "/spec/tenantGvk/" + result.DisplayName(),
+	}
+
+	patch = append(patch, patchOp)
+	marshaled, err := patch.Marshal()
+	if err != nil {
+		return err
+	}
+	parents := result.GetLabels()
+	if parents == nil {
+		parents = make(map[string]string)
+	}
+	parentName, ok := parents["runtimes.runtime.nexus.vmware.com"]
+	if !ok {
+		parentName = helper.DEFAULT_KEY
+	}
+	if parents[common.IS_NAME_HASHED_LABEL] == "true" {
+		parentName = helper.GetHashedName("runtimes.runtime.nexus.vmware.com", parents, parentName)
+	}
+	_, err = group.client.baseClient.
+		RuntimeNexusV1().
+		Runtimes().Patch(ctx, parentName, types.JSONPatchType, marshaled, metav1.PatchOptions{})
+	if err != nil {
+		return err
+	}
+
+	return
+}
+
+// CreateTenantByName creates object in the database without hashing the name.
+// Use it directly ONLY when objToCreate.Name is hashed name of the object.
+func (group *TenantruntimeNexusV1) CreateTenantByName(ctx context.Context,
+	objToCreate *basetenantruntimenexusvmwarecomv1.Tenant) (*TenantruntimeTenant, error) {
+	if objToCreate.GetLabels() == nil {
+		objToCreate.Labels = make(map[string]string)
+	}
+	if _, ok := objToCreate.Labels[common.DISPLAY_NAME_LABEL]; !ok {
+		objToCreate.Labels[common.DISPLAY_NAME_LABEL] = objToCreate.GetName()
+	}
+
+	result, err := group.client.baseClient.
+		TenantruntimeNexusV1().
+		Tenants().Create(ctx, objToCreate, metav1.CreateOptions{})
+	if err != nil {
+		return nil, err
+	}
+
+	parentName, ok := objToCreate.GetLabels()["runtimes.runtime.nexus.vmware.com"]
+	if !ok {
+		parentName = helper.DEFAULT_KEY
+	}
+	if objToCreate.Labels[common.IS_NAME_HASHED_LABEL] == "true" {
+		parentName = helper.GetHashedName("runtimes.runtime.nexus.vmware.com", objToCreate.GetLabels(), parentName)
+	}
+
+	payload := "{\"spec\": {\"tenantGvk\": {\"" + objToCreate.DisplayName() + "\": {\"name\": \"" + objToCreate.Name + "\",\"kind\": \"Tenant\", \"group\": \"tenantruntime.nexus.vmware.com\"}}}}"
+	_, err = group.client.baseClient.
+		RuntimeNexusV1().
+		Runtimes().Patch(ctx, parentName, types.MergePatchType, []byte(payload), metav1.PatchOptions{})
+	if err != nil {
+		return nil, err
+	}
+
+	return &TenantruntimeTenant{
+		client: group.client,
+		Tenant: result,
+	}, nil
+}
+
+// SetTenantAppStatusByName sets user defined status
+func (group *TenantruntimeNexusV1) SetTenantAppStatusByName(ctx context.Context,
+	objToUpdate *basetenantruntimenexusvmwarecomv1.Tenant, status *basetenantruntimenexusvmwarecomv1.TenantStatus) (*TenantruntimeTenant, error) {
+
+	// Make sure status field is present first
+	m := []byte("{\"status\":{}}")
+	result, err := group.client.baseClient.
+		TenantruntimeNexusV1().
+		Tenants().Patch(ctx, objToUpdate.GetName(), types.MergePatchType, m, metav1.PatchOptions{}, "status")
+	if err != nil {
+		return nil, err
+	}
+
+	patch := Patch{
+		PatchOp{
+			Op:    "replace",
+			Path:  "/status/appStatus",
+			Value: status,
+		},
+	}
+	marshaled, err := patch.Marshal()
+	if err != nil {
+		return nil, err
+	}
+	result, err = group.client.baseClient.
+		TenantruntimeNexusV1().
+		Tenants().Patch(ctx, objToUpdate.GetName(), types.JSONPatchType, marshaled, metav1.PatchOptions{}, "status")
+	if err != nil {
+		return nil, err
+	}
+	return &TenantruntimeTenant{
+		client: group.client,
+		Tenant: result,
+	}, nil
+}
+
+// UpdateTenantByName updates object stored in the database under the hashedName which is a hash of
+// display name and parents names.
+func (group *TenantruntimeNexusV1) UpdateTenantByName(ctx context.Context,
+	objToUpdate *basetenantruntimenexusvmwarecomv1.Tenant) (*TenantruntimeTenant, error) {
+
+	// ResourceVersion must be set for update
+	if objToUpdate.ResourceVersion == "" {
+		current, err := group.client.baseClient.
+			TenantruntimeNexusV1().
+			Tenants().Get(ctx, objToUpdate.GetName(), metav1.GetOptions{})
+		if err != nil {
+			return nil, err
+		}
+		objToUpdate.ResourceVersion = current.ResourceVersion
+	}
+
+	var patch Patch
+	patch = append(patch, PatchOp{
+		Op:    "replace",
+		Path:  "/metadata",
+		Value: objToUpdate.ObjectMeta,
+	})
+
+	patchValueNamespace :=
+		objToUpdate.Spec.Namespace
+	patchOpNamespace := PatchOp{
+		Op:    "replace",
+		Path:  "/spec/namespace",
+		Value: patchValueNamespace,
+	}
+	patch = append(patch, patchOpNamespace)
+
+	patchValueTenantName :=
+		objToUpdate.Spec.TenantName
+	patchOpTenantName := PatchOp{
+		Op:    "replace",
+		Path:  "/spec/tenantName",
+		Value: patchValueTenantName,
+	}
+	patch = append(patch, patchOpTenantName)
+
+	patchValueAttributes :=
+		objToUpdate.Spec.Attributes
+	patchOpAttributes := PatchOp{
+		Op:    "replace",
+		Path:  "/spec/attributes",
+		Value: patchValueAttributes,
+	}
+	patch = append(patch, patchOpAttributes)
+
+	patchValueSaasDomainName :=
+		objToUpdate.Spec.SaasDomainName
+	patchOpSaasDomainName := PatchOp{
+		Op:    "replace",
+		Path:  "/spec/saasDomainName",
+		Value: patchValueSaasDomainName,
+	}
+	patch = append(patch, patchOpSaasDomainName)
+
+	patchValueSaasApiDomainName :=
+		objToUpdate.Spec.SaasApiDomainName
+	patchOpSaasApiDomainName := PatchOp{
+		Op:    "replace",
+		Path:  "/spec/saasApiDomainName",
+		Value: patchValueSaasApiDomainName,
+	}
+	patch = append(patch, patchOpSaasApiDomainName)
+
+	patchValueM7Enabled :=
+		objToUpdate.Spec.M7Enabled
+	patchOpM7Enabled := PatchOp{
+		Op:    "replace",
+		Path:  "/spec/m7Enabled",
+		Value: patchValueM7Enabled,
+	}
+	patch = append(patch, patchOpM7Enabled)
+
+	patchValueLicenseType :=
+		objToUpdate.Spec.LicenseType
+	patchOpLicenseType := PatchOp{
+		Op:    "replace",
+		Path:  "/spec/licenseType",
+		Value: patchValueLicenseType,
+	}
+	patch = append(patch, patchOpLicenseType)
+
+	patchValueStreamName :=
+		objToUpdate.Spec.StreamName
+	patchOpStreamName := PatchOp{
+		Op:    "replace",
+		Path:  "/spec/streamName",
+		Value: patchValueStreamName,
+	}
+	patch = append(patch, patchOpStreamName)
+
+	patchValueAwsS3Bucket :=
+		objToUpdate.Spec.AwsS3Bucket
+	patchOpAwsS3Bucket := PatchOp{
+		Op:    "replace",
+		Path:  "/spec/awsS3Bucket",
+		Value: patchValueAwsS3Bucket,
+	}
+	patch = append(patch, patchOpAwsS3Bucket)
+
+	patchValueAwsKmsKeyId :=
+		objToUpdate.Spec.AwsKmsKeyId
+	patchOpAwsKmsKeyId := PatchOp{
+		Op:    "replace",
+		Path:  "/spec/awsKmsKeyId",
+		Value: patchValueAwsKmsKeyId,
+	}
+	patch = append(patch, patchOpAwsKmsKeyId)
+
+	patchValueM7InstallationScheduled :=
+		objToUpdate.Spec.M7InstallationScheduled
+	patchOpM7InstallationScheduled := PatchOp{
+		Op:    "replace",
+		Path:  "/spec/m7InstallationScheduled",
+		Value: patchValueM7InstallationScheduled,
+	}
+	patch = append(patch, patchOpM7InstallationScheduled)
+
+	patchValueReleaseVersion :=
+		objToUpdate.Spec.ReleaseVersion
+	patchOpReleaseVersion := PatchOp{
+		Op:    "replace",
+		Path:  "/spec/releaseVersion",
+		Value: patchValueReleaseVersion,
+	}
+	patch = append(patch, patchOpReleaseVersion)
+
+	marshaled, err := patch.Marshal()
+	if err != nil {
+		return nil, err
+	}
+	result, err := group.client.baseClient.
+		TenantruntimeNexusV1().
+		Tenants().Patch(ctx, objToUpdate.GetName(), types.JSONPatchType, marshaled, metav1.PatchOptions{}, "")
+	if err != nil {
+		return nil, err
+	}
+
+	return &TenantruntimeTenant{
+		client: group.client,
+		Tenant: result,
+	}, nil
+}
+
+// ListTenants returns slice of all existing objects of this type. Selectors can be provided in opts parameter.
+func (group *TenantruntimeNexusV1) ListTenants(ctx context.Context,
+	opts metav1.ListOptions) (result []*TenantruntimeTenant, err error) {
+	key := "tenants.tenantruntime.nexus.vmware.com"
+	if s, ok := subscriptionMap.Load(key); ok {
+		items := s.(subscription).informer.GetStore().List()
+		result = make([]*TenantruntimeTenant, len(items))
+		for k, v := range items {
+			item, _ := v.(*basetenantruntimenexusvmwarecomv1.Tenant)
+			result[k] = &TenantruntimeTenant{
+				client: group.client,
+				Tenant: item,
+			}
+		}
+	} else {
+		list, err := group.client.baseClient.TenantruntimeNexusV1().
+			Tenants().List(ctx, opts)
+		if err != nil {
+			return nil, err
+		}
+		result = make([]*TenantruntimeTenant, len(list.Items))
+		for k, v := range list.Items {
+			item := v
+			result[k] = &TenantruntimeTenant{
+				client: group.client,
+				Tenant: &item,
+			}
+		}
+	}
+	return
+}
+
+type TenantruntimeTenant struct {
+	client *Clientset
+	*basetenantruntimenexusvmwarecomv1.Tenant
+}
+
+// Delete removes obj and all it's children from the database.
+func (obj *TenantruntimeTenant) Delete(ctx context.Context) error {
+	err := obj.client.Tenantruntime().DeleteTenantByName(ctx, obj.GetName())
+	if err != nil {
+		return err
+	}
+	obj.Tenant = nil
+	return nil
+}
+
+// Update updates spec of object in database. Children and Link can not be updated using this function.
+func (obj *TenantruntimeTenant) Update(ctx context.Context) error {
+	result, err := obj.client.Tenantruntime().UpdateTenantByName(ctx, obj.Tenant)
+	if err != nil {
+		return err
+	}
+	obj.Tenant = result.Tenant
+	return nil
+}
+
+// SetAppStatus sets user defined status
+func (obj *TenantruntimeTenant) SetAppStatus(ctx context.Context, status *basetenantruntimenexusvmwarecomv1.TenantStatus) error {
+	result, err := obj.client.Tenantruntime().SetTenantAppStatusByName(ctx, obj.Tenant, status)
+	if err != nil {
+		return err
+	}
+	obj.Tenant = result.Tenant
+	return nil
+}
+
+// GetAppStatus to get user defined status
+func (obj *TenantruntimeTenant) GetAppStatus(ctx context.Context) (*basetenantruntimenexusvmwarecomv1.TenantStatus, error) {
+	getObj, err := obj.client.Tenantruntime().GetTenantByName(ctx, obj.GetName())
+	if err != nil {
+		return nil, err
+	}
+	return &getObj.Status.AppStatus, nil
+}
+
+// ClearAppStatus to clear user defined status
+func (obj *TenantruntimeTenant) ClearAppStatus(ctx context.Context) error {
+	result, err := obj.client.Tenantruntime().SetTenantAppStatusByName(ctx, obj.Tenant, &basetenantruntimenexusvmwarecomv1.TenantStatus{})
+	if err != nil {
+		return err
+	}
+	obj.Tenant = result.Tenant
+	return nil
+}
+
+func (obj *TenantruntimeTenant) GetParent(ctx context.Context) (result *RuntimeRuntime, err error) {
+	hashedName := helper.GetHashedName("runtimes.runtime.nexus.vmware.com", obj.Labels, obj.Labels["runtimes.runtime.nexus.vmware.com"])
+	return obj.client.Runtime().GetRuntimeByName(ctx, hashedName)
+}
+
+type tenantTenantruntimeNexusV1Chainer struct {
+	client       *Clientset
+	name         string
+	parentLabels map[string]string
+}
+
+func (c *tenantTenantruntimeNexusV1Chainer) Subscribe() {
+	key := "tenants.tenantruntime.nexus.vmware.com"
+	if _, ok := subscriptionMap.Load(key); !ok {
+		informer := informertenantruntimenexusvmwarecomv1.NewTenantInformer(c.client.baseClient, 0, cache.Indexers{})
+		subscribe(key, informer)
+	}
+}
+
+func (c *tenantTenantruntimeNexusV1Chainer) Unsubscribe() {
+	key := "tenants.tenantruntime.nexus.vmware.com"
+	if s, ok := subscriptionMap.Load(key); ok {
+		close(s.(subscription).stop)
+		subscriptionMap.Delete(key)
+	}
+}
+
+func (c *tenantTenantruntimeNexusV1Chainer) IsSubscribed() bool {
+	key := "tenants.tenantruntime.nexus.vmware.com"
+	_, ok := subscriptionMap.Load(key)
+	return ok
+}
+
+// ClearAppStatus to clear user defined status
+func (c *tenantTenantruntimeNexusV1Chainer) ClearAppStatus(ctx context.Context) (err error) {
+	hashedName := helper.GetHashedName("tenants.tenantruntime.nexus.vmware.com", c.parentLabels, c.name)
+	obj, err := c.client.Tenantruntime().GetTenantByName(ctx, hashedName)
+	if err != nil {
+		return err
+	}
+	_, err = c.client.Tenantruntime().SetTenantAppStatusByName(ctx, obj.Tenant, nil)
+	return err
+}
+
+// GetAppStatus to get user defined status
+func (c *tenantTenantruntimeNexusV1Chainer) GetAppStatus(ctx context.Context) (result *basetenantruntimenexusvmwarecomv1.TenantStatus, err error) {
+	hashedName := helper.GetHashedName("tenants.tenantruntime.nexus.vmware.com", c.parentLabels, c.name)
+	obj, err := c.client.Tenantruntime().GetTenantByName(ctx, hashedName)
+	if err != nil {
+		return nil, err
+	}
+	return &obj.Status.AppStatus, nil
+}
+
+// SetAppStatus sets user defined status
+func (c *tenantTenantruntimeNexusV1Chainer) SetAppStatus(ctx context.Context, status *basetenantruntimenexusvmwarecomv1.TenantStatus) (err error) {
+	hashedName := helper.GetHashedName("tenants.tenantruntime.nexus.vmware.com", c.parentLabels, c.name)
+	obj, err := c.client.Tenantruntime().GetTenantByName(ctx, hashedName)
+	if err != nil {
+		return err
+	}
+	_, err = c.client.Tenantruntime().SetTenantAppStatusByName(ctx, obj.Tenant, status)
+	return err
 }

@@ -33,6 +33,10 @@ import (
 	domainnexusvmwarecom "golang-appnet.eng.vmware.com/nexus-sdk/api/build/client/informers/externalversions/domain.nexus.vmware.com"
 	internalinterfaces "golang-appnet.eng.vmware.com/nexus-sdk/api/build/client/informers/externalversions/internalinterfaces"
 	routenexusvmwarecom "golang-appnet.eng.vmware.com/nexus-sdk/api/build/client/informers/externalversions/route.nexus.vmware.com"
+	runtimenexusvmwarecom "golang-appnet.eng.vmware.com/nexus-sdk/api/build/client/informers/externalversions/runtime.nexus.vmware.com"
+	tenantconfignexusvmwarecom "golang-appnet.eng.vmware.com/nexus-sdk/api/build/client/informers/externalversions/tenantconfig.nexus.vmware.com"
+	tenantruntimenexusvmwarecom "golang-appnet.eng.vmware.com/nexus-sdk/api/build/client/informers/externalversions/tenantruntime.nexus.vmware.com"
+	usernexusvmwarecom "golang-appnet.eng.vmware.com/nexus-sdk/api/build/client/informers/externalversions/user.nexus.vmware.com"
 
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	runtime "k8s.io/apimachinery/pkg/runtime"
@@ -188,6 +192,10 @@ type SharedInformerFactory interface {
 	ConnectNexus() connectnexusvmwarecom.Interface
 	DomainNexus() domainnexusvmwarecom.Interface
 	RouteNexus() routenexusvmwarecom.Interface
+	RuntimeNexus() runtimenexusvmwarecom.Interface
+	TenantconfigNexus() tenantconfignexusvmwarecom.Interface
+	TenantruntimeNexus() tenantruntimenexusvmwarecom.Interface
+	UserNexus() usernexusvmwarecom.Interface
 }
 
 func (f *sharedInformerFactory) AdminNexus() adminnexusvmwarecom.Interface {
@@ -220,4 +228,20 @@ func (f *sharedInformerFactory) DomainNexus() domainnexusvmwarecom.Interface {
 
 func (f *sharedInformerFactory) RouteNexus() routenexusvmwarecom.Interface {
 	return routenexusvmwarecom.New(f, f.namespace, f.tweakListOptions)
+}
+
+func (f *sharedInformerFactory) RuntimeNexus() runtimenexusvmwarecom.Interface {
+	return runtimenexusvmwarecom.New(f, f.namespace, f.tweakListOptions)
+}
+
+func (f *sharedInformerFactory) TenantconfigNexus() tenantconfignexusvmwarecom.Interface {
+	return tenantconfignexusvmwarecom.New(f, f.namespace, f.tweakListOptions)
+}
+
+func (f *sharedInformerFactory) TenantruntimeNexus() tenantruntimenexusvmwarecom.Interface {
+	return tenantruntimenexusvmwarecom.New(f, f.namespace, f.tweakListOptions)
+}
+
+func (f *sharedInformerFactory) UserNexus() usernexusvmwarecom.Interface {
+	return usernexusvmwarecom.New(f, f.namespace, f.tweakListOptions)
 }
