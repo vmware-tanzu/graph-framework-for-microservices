@@ -4,7 +4,7 @@ metadata:
   labels:
     app: nexus-validation
   name: nexus-validation
-  namespace: {{.Values.global.namespace}}
+  namespace: {{ default  .Release.Namespace .Values.global.namespace }}
 spec:
   replicas: 1
   selector:
