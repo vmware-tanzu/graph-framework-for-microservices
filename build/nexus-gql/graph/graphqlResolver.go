@@ -66,13 +66,10 @@ func getRootResolver(id *string) ([]*model.ApiNexus, error) {
 			return nil, fmt.Errorf("failed to get k8s client config: %s", err)
 		}
 		nc = nexusClient
+		nc.SubscribeAll()
+		log.Debugf("Subscribed to all nodes in datamodel")
 	}
-	k8sApiConfig := getK8sAPIEndpointConfig()
-	nexusClient, err := nexus_client.NewForConfig(k8sApiConfig)
-	if err != nil {
-		return nil, fmt.Errorf("failed to get k8s client config: %s", err)
-	}
-	nc = nexusClient
+
 	var vNexusList []*model.ApiNexus
 	if id != nil && *id != "" {
 		log.Debugf("[getRootResolver]Id: %q", *id)
@@ -171,6 +168,32 @@ func getApiNexusConfigResolver(obj *model.ApiNexus, id *string) (*model.ConfigCo
 
 	log.Debugf("[getApiNexusConfigResolver]Output object %v", ret)
 
+	return ret, nil
+}
+
+//////////////////////////////////////
+// CHILD RESOLVER (Singleton)
+// FieldName: Runtime Node: Nexus PKG: Api
+//////////////////////////////////////
+func getApiNexusRuntimeResolver(obj *model.ApiNexus) (*model.RuntimeRuntime, error) {
+	log.Debugf("[getApiNexusRuntimeResolver]Parent Object %+v", obj)
+	vRuntime, err := nc.ApiNexus(getParentName(obj.ParentLabels, "nexuses.api.nexus.vmware.com")).GetRuntime(context.TODO())
+	if err != nil {
+		log.Errorf("[getApiNexusRuntimeResolver]Error getting Nexus node %s", err)
+		return &model.RuntimeRuntime{}, nil
+	}
+	dn := vRuntime.DisplayName()
+	parentLabels := map[string]interface{}{"runtimes.runtime.nexus.vmware.com": dn}
+
+	for k, v := range obj.ParentLabels {
+		parentLabels[k] = v
+	}
+	ret := &model.RuntimeRuntime{
+		Id:           &dn,
+		ParentLabels: parentLabels,
+	}
+
+	log.Debugf("[getApiNexusRuntimeResolver]Output object %+v", ret)
 	return ret, nil
 }
 
@@ -595,6 +618,365 @@ func getConfigConfigRoutesResolver(obj *model.ConfigConfig, id *string) ([]*mode
 
 //////////////////////////////////////
 // CHILDREN RESOLVER
+// FieldName: Tenant Node: Config PKG: Config
+//////////////////////////////////////
+func getConfigConfigTenantResolver(obj *model.ConfigConfig, id *string) ([]*model.TenantconfigTenant, error) {
+	log.Debugf("[getConfigConfigTenantResolver]Parent Object %+v", obj)
+	var vTenantconfigTenantList []*model.TenantconfigTenant
+	if id != nil && *id != "" {
+		log.Debugf("[getConfigConfigTenantResolver]Id %q", *id)
+		vTenant, err := nc.ApiNexus(getParentName(obj.ParentLabels, "nexuses.api.nexus.vmware.com")).Config(getParentName(obj.ParentLabels, "configs.config.nexus.vmware.com")).GetTenant(context.TODO(), *id)
+		if err != nil {
+			log.Errorf("[getConfigConfigTenantResolver]Error getting Tenant node %q : %s", *id, err)
+			return vTenantconfigTenantList, nil
+		}
+		dn := vTenant.DisplayName()
+		parentLabels := map[string]interface{}{"tenants.tenantconfig.nexus.vmware.com": dn}
+		vName := string(vTenant.Spec.Name)
+		vDNSSuffix := string(vTenant.Spec.DNSSuffix)
+		vSkipSaasTlsVerify := bool(vTenant.Spec.SkipSaasTlsVerify)
+		vInstallTenant := bool(vTenant.Spec.InstallTenant)
+		vInstallClient := bool(vTenant.Spec.InstallClient)
+		vOrderId := string(vTenant.Spec.OrderId)
+		Skus, _ := json.Marshal(vTenant.Spec.Skus)
+		SkusData := string(Skus)
+		FeatureFlags, _ := json.Marshal(vTenant.Spec.FeatureFlags)
+		FeatureFlagsData := string(FeatureFlags)
+		Labels, _ := json.Marshal(vTenant.Spec.Labels)
+		LabelsData := string(Labels)
+
+		for k, v := range obj.ParentLabels {
+			parentLabels[k] = v
+		}
+		ret := &model.TenantconfigTenant{
+			Id:                &dn,
+			ParentLabels:      parentLabels,
+			Name:              &vName,
+			DNSSuffix:         &vDNSSuffix,
+			SkipSaasTlsVerify: &vSkipSaasTlsVerify,
+			InstallTenant:     &vInstallTenant,
+			InstallClient:     &vInstallClient,
+			OrderId:           &vOrderId,
+			Skus:              &SkusData,
+			FeatureFlags:      &FeatureFlagsData,
+			Labels:            &LabelsData,
+		}
+		vTenantconfigTenantList = append(vTenantconfigTenantList, ret)
+
+		log.Debugf("[getConfigConfigTenantResolver]Output Tenant objects %v", vTenantconfigTenantList)
+
+		return vTenantconfigTenantList, nil
+	}
+
+	log.Debug("[getConfigConfigTenantResolver]Id is empty, process all Tenants")
+
+	vTenantParent, err := nc.ApiNexus(getParentName(obj.ParentLabels, "nexuses.api.nexus.vmware.com")).GetConfig(context.TODO(), getParentName(obj.ParentLabels, "configs.config.nexus.vmware.com"))
+	if err != nil {
+		log.Errorf("[getConfigConfigTenantResolver]Error getting parent node %s", err)
+		return vTenantconfigTenantList, nil
+	}
+	vTenantAllObj, err := vTenantParent.GetAllTenant(context.TODO())
+	if err != nil {
+		log.Errorf("[getConfigConfigTenantResolver]Error getting Tenant objects %s", err)
+		return vTenantconfigTenantList, nil
+	}
+	for _, i := range vTenantAllObj {
+		vTenant, err := nc.ApiNexus(getParentName(obj.ParentLabels, "nexuses.api.nexus.vmware.com")).Config(getParentName(obj.ParentLabels, "configs.config.nexus.vmware.com")).GetTenant(context.TODO(), i.DisplayName())
+		if err != nil {
+			log.Errorf("[getConfigConfigTenantResolver]Error getting Tenant node %q : %s", i.DisplayName(), err)
+			continue
+		}
+		dn := vTenant.DisplayName()
+		parentLabels := map[string]interface{}{"tenants.tenantconfig.nexus.vmware.com": dn}
+		vName := string(vTenant.Spec.Name)
+		vDNSSuffix := string(vTenant.Spec.DNSSuffix)
+		vSkipSaasTlsVerify := bool(vTenant.Spec.SkipSaasTlsVerify)
+		vInstallTenant := bool(vTenant.Spec.InstallTenant)
+		vInstallClient := bool(vTenant.Spec.InstallClient)
+		vOrderId := string(vTenant.Spec.OrderId)
+		Skus, _ := json.Marshal(vTenant.Spec.Skus)
+		SkusData := string(Skus)
+		FeatureFlags, _ := json.Marshal(vTenant.Spec.FeatureFlags)
+		FeatureFlagsData := string(FeatureFlags)
+		Labels, _ := json.Marshal(vTenant.Spec.Labels)
+		LabelsData := string(Labels)
+
+		for k, v := range obj.ParentLabels {
+			parentLabels[k] = v
+		}
+		ret := &model.TenantconfigTenant{
+			Id:                &dn,
+			ParentLabels:      parentLabels,
+			Name:              &vName,
+			DNSSuffix:         &vDNSSuffix,
+			SkipSaasTlsVerify: &vSkipSaasTlsVerify,
+			InstallTenant:     &vInstallTenant,
+			InstallClient:     &vInstallClient,
+			OrderId:           &vOrderId,
+			Skus:              &SkusData,
+			FeatureFlags:      &FeatureFlagsData,
+			Labels:            &LabelsData,
+		}
+		vTenantconfigTenantList = append(vTenantconfigTenantList, ret)
+	}
+
+	log.Debugf("[getConfigConfigTenantResolver]Output Tenant objects %v", vTenantconfigTenantList)
+
+	return vTenantconfigTenantList, nil
+}
+
+//////////////////////////////////////
+// CHILDREN RESOLVER
+// FieldName: TenantPolicy Node: Config PKG: Config
+//////////////////////////////////////
+func getConfigConfigTenantPolicyResolver(obj *model.ConfigConfig, id *string) ([]*model.TenantconfigPolicy, error) {
+	log.Debugf("[getConfigConfigTenantPolicyResolver]Parent Object %+v", obj)
+	var vTenantconfigPolicyList []*model.TenantconfigPolicy
+	if id != nil && *id != "" {
+		log.Debugf("[getConfigConfigTenantPolicyResolver]Id %q", *id)
+		vPolicy, err := nc.ApiNexus(getParentName(obj.ParentLabels, "nexuses.api.nexus.vmware.com")).Config(getParentName(obj.ParentLabels, "configs.config.nexus.vmware.com")).GetTenantPolicy(context.TODO(), *id)
+		if err != nil {
+			log.Errorf("[getConfigConfigTenantPolicyResolver]Error getting TenantPolicy node %q : %s", *id, err)
+			return vTenantconfigPolicyList, nil
+		}
+		dn := vPolicy.DisplayName()
+		parentLabels := map[string]interface{}{"policies.tenantconfig.nexus.vmware.com": dn}
+		StaticApplications, _ := json.Marshal(vPolicy.Spec.StaticApplications)
+		StaticApplicationsData := string(StaticApplications)
+		PinApplications, _ := json.Marshal(vPolicy.Spec.PinApplications)
+		PinApplicationsData := string(PinApplications)
+		vDynamicAppSchedulingDisable := bool(vPolicy.Spec.DynamicAppSchedulingDisable)
+		vDisableProvisioning := bool(vPolicy.Spec.DisableProvisioning)
+		vDisableAutoScaling := bool(vPolicy.Spec.DisableAutoScaling)
+		vDisableAppClusterOnboarding := bool(vPolicy.Spec.DisableAppClusterOnboarding)
+		vDisableUpgrade := bool(vPolicy.Spec.DisableUpgrade)
+		vOnFailureDowngrade := bool(vPolicy.Spec.OnFailureDowngrade)
+
+		for k, v := range obj.ParentLabels {
+			parentLabels[k] = v
+		}
+		ret := &model.TenantconfigPolicy{
+			Id:                          &dn,
+			ParentLabels:                parentLabels,
+			StaticApplications:          &StaticApplicationsData,
+			PinApplications:             &PinApplicationsData,
+			DynamicAppSchedulingDisable: &vDynamicAppSchedulingDisable,
+			DisableProvisioning:         &vDisableProvisioning,
+			DisableAutoScaling:          &vDisableAutoScaling,
+			DisableAppClusterOnboarding: &vDisableAppClusterOnboarding,
+			DisableUpgrade:              &vDisableUpgrade,
+			OnFailureDowngrade:          &vOnFailureDowngrade,
+		}
+		vTenantconfigPolicyList = append(vTenantconfigPolicyList, ret)
+
+		log.Debugf("[getConfigConfigTenantPolicyResolver]Output TenantPolicy objects %v", vTenantconfigPolicyList)
+
+		return vTenantconfigPolicyList, nil
+	}
+
+	log.Debug("[getConfigConfigTenantPolicyResolver]Id is empty, process all TenantPolicys")
+
+	vPolicyParent, err := nc.ApiNexus(getParentName(obj.ParentLabels, "nexuses.api.nexus.vmware.com")).GetConfig(context.TODO(), getParentName(obj.ParentLabels, "configs.config.nexus.vmware.com"))
+	if err != nil {
+		log.Errorf("[getConfigConfigTenantPolicyResolver]Error getting parent node %s", err)
+		return vTenantconfigPolicyList, nil
+	}
+	vPolicyAllObj, err := vPolicyParent.GetAllTenantPolicy(context.TODO())
+	if err != nil {
+		log.Errorf("[getConfigConfigTenantPolicyResolver]Error getting TenantPolicy objects %s", err)
+		return vTenantconfigPolicyList, nil
+	}
+	for _, i := range vPolicyAllObj {
+		vPolicy, err := nc.ApiNexus(getParentName(obj.ParentLabels, "nexuses.api.nexus.vmware.com")).Config(getParentName(obj.ParentLabels, "configs.config.nexus.vmware.com")).GetTenantPolicy(context.TODO(), i.DisplayName())
+		if err != nil {
+			log.Errorf("[getConfigConfigTenantPolicyResolver]Error getting TenantPolicy node %q : %s", i.DisplayName(), err)
+			continue
+		}
+		dn := vPolicy.DisplayName()
+		parentLabels := map[string]interface{}{"policies.tenantconfig.nexus.vmware.com": dn}
+		StaticApplications, _ := json.Marshal(vPolicy.Spec.StaticApplications)
+		StaticApplicationsData := string(StaticApplications)
+		PinApplications, _ := json.Marshal(vPolicy.Spec.PinApplications)
+		PinApplicationsData := string(PinApplications)
+		vDynamicAppSchedulingDisable := bool(vPolicy.Spec.DynamicAppSchedulingDisable)
+		vDisableProvisioning := bool(vPolicy.Spec.DisableProvisioning)
+		vDisableAutoScaling := bool(vPolicy.Spec.DisableAutoScaling)
+		vDisableAppClusterOnboarding := bool(vPolicy.Spec.DisableAppClusterOnboarding)
+		vDisableUpgrade := bool(vPolicy.Spec.DisableUpgrade)
+		vOnFailureDowngrade := bool(vPolicy.Spec.OnFailureDowngrade)
+
+		for k, v := range obj.ParentLabels {
+			parentLabels[k] = v
+		}
+		ret := &model.TenantconfigPolicy{
+			Id:                          &dn,
+			ParentLabels:                parentLabels,
+			StaticApplications:          &StaticApplicationsData,
+			PinApplications:             &PinApplicationsData,
+			DynamicAppSchedulingDisable: &vDynamicAppSchedulingDisable,
+			DisableProvisioning:         &vDisableProvisioning,
+			DisableAutoScaling:          &vDisableAutoScaling,
+			DisableAppClusterOnboarding: &vDisableAppClusterOnboarding,
+			DisableUpgrade:              &vDisableUpgrade,
+			OnFailureDowngrade:          &vOnFailureDowngrade,
+		}
+		vTenantconfigPolicyList = append(vTenantconfigPolicyList, ret)
+	}
+
+	log.Debugf("[getConfigConfigTenantPolicyResolver]Output TenantPolicy objects %v", vTenantconfigPolicyList)
+
+	return vTenantconfigPolicyList, nil
+}
+
+//////////////////////////////////////
+// CHILDREN RESOLVER
+// FieldName: User Node: Config PKG: Config
+//////////////////////////////////////
+func getConfigConfigUserResolver(obj *model.ConfigConfig, id *string) ([]*model.UserUser, error) {
+	log.Debugf("[getConfigConfigUserResolver]Parent Object %+v", obj)
+	var vUserUserList []*model.UserUser
+	if id != nil && *id != "" {
+		log.Debugf("[getConfigConfigUserResolver]Id %q", *id)
+		vUser, err := nc.ApiNexus(getParentName(obj.ParentLabels, "nexuses.api.nexus.vmware.com")).Config(getParentName(obj.ParentLabels, "configs.config.nexus.vmware.com")).GetUser(context.TODO(), *id)
+		if err != nil {
+			log.Errorf("[getConfigConfigUserResolver]Error getting User node %q : %s", *id, err)
+			return vUserUserList, nil
+		}
+		dn := vUser.DisplayName()
+		parentLabels := map[string]interface{}{"users.user.nexus.vmware.com": dn}
+		vUsername := string(vUser.Spec.Username)
+		vMail := string(vUser.Spec.Mail)
+		vFirstName := string(vUser.Spec.FirstName)
+		vLastName := string(vUser.Spec.LastName)
+		vPassword := string(vUser.Spec.Password)
+		vTenantId := string(vUser.Spec.TenantId)
+		vRealm := string(vUser.Spec.Realm)
+
+		for k, v := range obj.ParentLabels {
+			parentLabels[k] = v
+		}
+		ret := &model.UserUser{
+			Id:           &dn,
+			ParentLabels: parentLabels,
+			Username:     &vUsername,
+			Mail:         &vMail,
+			FirstName:    &vFirstName,
+			LastName:     &vLastName,
+			Password:     &vPassword,
+			TenantId:     &vTenantId,
+			Realm:        &vRealm,
+		}
+		vUserUserList = append(vUserUserList, ret)
+
+		log.Debugf("[getConfigConfigUserResolver]Output User objects %v", vUserUserList)
+
+		return vUserUserList, nil
+	}
+
+	log.Debug("[getConfigConfigUserResolver]Id is empty, process all Users")
+
+	vUserParent, err := nc.ApiNexus(getParentName(obj.ParentLabels, "nexuses.api.nexus.vmware.com")).GetConfig(context.TODO(), getParentName(obj.ParentLabels, "configs.config.nexus.vmware.com"))
+	if err != nil {
+		log.Errorf("[getConfigConfigUserResolver]Error getting parent node %s", err)
+		return vUserUserList, nil
+	}
+	vUserAllObj, err := vUserParent.GetAllUser(context.TODO())
+	if err != nil {
+		log.Errorf("[getConfigConfigUserResolver]Error getting User objects %s", err)
+		return vUserUserList, nil
+	}
+	for _, i := range vUserAllObj {
+		vUser, err := nc.ApiNexus(getParentName(obj.ParentLabels, "nexuses.api.nexus.vmware.com")).Config(getParentName(obj.ParentLabels, "configs.config.nexus.vmware.com")).GetUser(context.TODO(), i.DisplayName())
+		if err != nil {
+			log.Errorf("[getConfigConfigUserResolver]Error getting User node %q : %s", i.DisplayName(), err)
+			continue
+		}
+		dn := vUser.DisplayName()
+		parentLabels := map[string]interface{}{"users.user.nexus.vmware.com": dn}
+		vUsername := string(vUser.Spec.Username)
+		vMail := string(vUser.Spec.Mail)
+		vFirstName := string(vUser.Spec.FirstName)
+		vLastName := string(vUser.Spec.LastName)
+		vPassword := string(vUser.Spec.Password)
+		vTenantId := string(vUser.Spec.TenantId)
+		vRealm := string(vUser.Spec.Realm)
+
+		for k, v := range obj.ParentLabels {
+			parentLabels[k] = v
+		}
+		ret := &model.UserUser{
+			Id:           &dn,
+			ParentLabels: parentLabels,
+			Username:     &vUsername,
+			Mail:         &vMail,
+			FirstName:    &vFirstName,
+			LastName:     &vLastName,
+			Password:     &vPassword,
+			TenantId:     &vTenantId,
+			Realm:        &vRealm,
+		}
+		vUserUserList = append(vUserUserList, ret)
+	}
+
+	log.Debugf("[getConfigConfigUserResolver]Output User objects %v", vUserUserList)
+
+	return vUserUserList, nil
+}
+
+//////////////////////////////////////
+// LINK RESOLVER
+// FieldName: Tenant Node: User PKG: User
+//////////////////////////////////////
+func getUserUserTenantResolver(obj *model.UserUser) (*model.TenantconfigTenant, error) {
+	log.Debugf("[getUserUserTenantResolver]Parent Object %+v", obj)
+	vTenantParent, err := nc.ApiNexus(getParentName(obj.ParentLabels, "nexuses.api.nexus.vmware.com")).Config(getParentName(obj.ParentLabels, "configs.config.nexus.vmware.com")).GetUser(context.TODO(), getParentName(obj.ParentLabels, "users.user.nexus.vmware.com"))
+	if err != nil {
+		log.Errorf("[getUserUserTenantResolver]Error getting parent node %s", err)
+		return &model.TenantconfigTenant{}, nil
+	}
+	vTenant, err := vTenantParent.GetTenant(context.TODO())
+	if err != nil {
+		log.Errorf("[getUserUserTenantResolver]Error getting Tenant object %s", err)
+		return &model.TenantconfigTenant{}, nil
+	}
+	dn := vTenant.DisplayName()
+	parentLabels := map[string]interface{}{"tenants.tenantconfig.nexus.vmware.com": dn}
+	vName := string(vTenant.Spec.Name)
+	vDNSSuffix := string(vTenant.Spec.DNSSuffix)
+	vSkipSaasTlsVerify := bool(vTenant.Spec.SkipSaasTlsVerify)
+	vInstallTenant := bool(vTenant.Spec.InstallTenant)
+	vInstallClient := bool(vTenant.Spec.InstallClient)
+	vOrderId := string(vTenant.Spec.OrderId)
+	Skus, _ := json.Marshal(vTenant.Spec.Skus)
+	SkusData := string(Skus)
+	FeatureFlags, _ := json.Marshal(vTenant.Spec.FeatureFlags)
+	FeatureFlagsData := string(FeatureFlags)
+	Labels, _ := json.Marshal(vTenant.Spec.Labels)
+	LabelsData := string(Labels)
+
+	for k, v := range obj.ParentLabels {
+		parentLabels[k] = v
+	}
+	ret := &model.TenantconfigTenant{
+		Id:                &dn,
+		ParentLabels:      parentLabels,
+		Name:              &vName,
+		DNSSuffix:         &vDNSSuffix,
+		SkipSaasTlsVerify: &vSkipSaasTlsVerify,
+		InstallTenant:     &vInstallTenant,
+		InstallClient:     &vInstallClient,
+		OrderId:           &vOrderId,
+		Skus:              &SkusData,
+		FeatureFlags:      &FeatureFlagsData,
+		Labels:            &LabelsData,
+	}
+	log.Debugf("[getUserUserTenantResolver]Output object %v", ret)
+
+	return ret, nil
+}
+
+//////////////////////////////////////
+// CHILDREN RESOLVER
 // FieldName: Endpoints Node: Connect PKG: Connect
 //////////////////////////////////////
 func getConnectConnectEndpointsResolver(obj *model.ConnectConnect, id *string) ([]*model.ConnectNexusEndpoint, error) {
@@ -829,4 +1211,121 @@ func getConnectReplicationConfigRemoteEndpointResolver(obj *model.ConnectReplica
 	log.Debugf("[getConnectReplicationConfigRemoteEndpointResolver]Output object %v", ret)
 
 	return ret, nil
+}
+
+//////////////////////////////////////
+// CHILDREN RESOLVER
+// FieldName: Tenant Node: Runtime PKG: Runtime
+//////////////////////////////////////
+func getRuntimeRuntimeTenantResolver(obj *model.RuntimeRuntime, id *string) ([]*model.TenantruntimeTenant, error) {
+	log.Debugf("[getRuntimeRuntimeTenantResolver]Parent Object %+v", obj)
+	var vTenantruntimeTenantList []*model.TenantruntimeTenant
+	if id != nil && *id != "" {
+		log.Debugf("[getRuntimeRuntimeTenantResolver]Id %q", *id)
+		vTenant, err := nc.ApiNexus(getParentName(obj.ParentLabels, "nexuses.api.nexus.vmware.com")).Runtime().GetTenant(context.TODO(), *id)
+		if err != nil {
+			log.Errorf("[getRuntimeRuntimeTenantResolver]Error getting Tenant node %q : %s", *id, err)
+			return vTenantruntimeTenantList, nil
+		}
+		dn := vTenant.DisplayName()
+		parentLabels := map[string]interface{}{"tenants.tenantruntime.nexus.vmware.com": dn}
+		vNamespace := string(vTenant.Spec.Namespace)
+		vTenantName := string(vTenant.Spec.TenantName)
+		Attributes, _ := json.Marshal(vTenant.Spec.Attributes)
+		AttributesData := string(Attributes)
+		vSaasDomainName := string(vTenant.Spec.SaasDomainName)
+		vSaasApiDomainName := string(vTenant.Spec.SaasApiDomainName)
+		vM7Enabled := string(vTenant.Spec.M7Enabled)
+		vLicenseType := string(vTenant.Spec.LicenseType)
+		vStreamName := string(vTenant.Spec.StreamName)
+		vAwsS3Bucket := string(vTenant.Spec.AwsS3Bucket)
+		vAwsKmsKeyId := string(vTenant.Spec.AwsKmsKeyId)
+		vM7InstallationScheduled := string(vTenant.Spec.M7InstallationScheduled)
+		vReleaseVersion := string(vTenant.Spec.ReleaseVersion)
+
+		for k, v := range obj.ParentLabels {
+			parentLabels[k] = v
+		}
+		ret := &model.TenantruntimeTenant{
+			Id:                      &dn,
+			ParentLabels:            parentLabels,
+			Namespace:               &vNamespace,
+			TenantName:              &vTenantName,
+			Attributes:              &AttributesData,
+			SaasDomainName:          &vSaasDomainName,
+			SaasApiDomainName:       &vSaasApiDomainName,
+			M7Enabled:               &vM7Enabled,
+			LicenseType:             &vLicenseType,
+			StreamName:              &vStreamName,
+			AwsS3Bucket:             &vAwsS3Bucket,
+			AwsKmsKeyId:             &vAwsKmsKeyId,
+			M7InstallationScheduled: &vM7InstallationScheduled,
+			ReleaseVersion:          &vReleaseVersion,
+		}
+		vTenantruntimeTenantList = append(vTenantruntimeTenantList, ret)
+
+		log.Debugf("[getRuntimeRuntimeTenantResolver]Output Tenant objects %v", vTenantruntimeTenantList)
+
+		return vTenantruntimeTenantList, nil
+	}
+
+	log.Debug("[getRuntimeRuntimeTenantResolver]Id is empty, process all Tenants")
+
+	vTenantParent, err := nc.ApiNexus(getParentName(obj.ParentLabels, "nexuses.api.nexus.vmware.com")).GetRuntime(context.TODO())
+	if err != nil {
+		log.Errorf("[getRuntimeRuntimeTenantResolver]Error getting parent node %s", err)
+		return vTenantruntimeTenantList, nil
+	}
+	vTenantAllObj, err := vTenantParent.GetAllTenant(context.TODO())
+	if err != nil {
+		log.Errorf("[getRuntimeRuntimeTenantResolver]Error getting Tenant objects %s", err)
+		return vTenantruntimeTenantList, nil
+	}
+	for _, i := range vTenantAllObj {
+		vTenant, err := nc.ApiNexus(getParentName(obj.ParentLabels, "nexuses.api.nexus.vmware.com")).Runtime().GetTenant(context.TODO(), i.DisplayName())
+		if err != nil {
+			log.Errorf("[getRuntimeRuntimeTenantResolver]Error getting Tenant node %q : %s", i.DisplayName(), err)
+			continue
+		}
+		dn := vTenant.DisplayName()
+		parentLabels := map[string]interface{}{"tenants.tenantruntime.nexus.vmware.com": dn}
+		vNamespace := string(vTenant.Spec.Namespace)
+		vTenantName := string(vTenant.Spec.TenantName)
+		Attributes, _ := json.Marshal(vTenant.Spec.Attributes)
+		AttributesData := string(Attributes)
+		vSaasDomainName := string(vTenant.Spec.SaasDomainName)
+		vSaasApiDomainName := string(vTenant.Spec.SaasApiDomainName)
+		vM7Enabled := string(vTenant.Spec.M7Enabled)
+		vLicenseType := string(vTenant.Spec.LicenseType)
+		vStreamName := string(vTenant.Spec.StreamName)
+		vAwsS3Bucket := string(vTenant.Spec.AwsS3Bucket)
+		vAwsKmsKeyId := string(vTenant.Spec.AwsKmsKeyId)
+		vM7InstallationScheduled := string(vTenant.Spec.M7InstallationScheduled)
+		vReleaseVersion := string(vTenant.Spec.ReleaseVersion)
+
+		for k, v := range obj.ParentLabels {
+			parentLabels[k] = v
+		}
+		ret := &model.TenantruntimeTenant{
+			Id:                      &dn,
+			ParentLabels:            parentLabels,
+			Namespace:               &vNamespace,
+			TenantName:              &vTenantName,
+			Attributes:              &AttributesData,
+			SaasDomainName:          &vSaasDomainName,
+			SaasApiDomainName:       &vSaasApiDomainName,
+			M7Enabled:               &vM7Enabled,
+			LicenseType:             &vLicenseType,
+			StreamName:              &vStreamName,
+			AwsS3Bucket:             &vAwsS3Bucket,
+			AwsKmsKeyId:             &vAwsKmsKeyId,
+			M7InstallationScheduled: &vM7InstallationScheduled,
+			ReleaseVersion:          &vReleaseVersion,
+		}
+		vTenantruntimeTenantList = append(vTenantruntimeTenantList, ret)
+	}
+
+	log.Debugf("[getRuntimeRuntimeTenantResolver]Output Tenant objects %v", vTenantruntimeTenantList)
+
+	return vTenantruntimeTenantList, nil
 }

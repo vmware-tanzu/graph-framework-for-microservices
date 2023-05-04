@@ -29,6 +29,10 @@ import (
 	connectnexusvmwarecomv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/connect.nexus.vmware.com/v1"
 	domainnexusvmwarecomv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/domain.nexus.vmware.com/v1"
 	routenexusvmwarecomv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/route.nexus.vmware.com/v1"
+	runtimenexusvmwarecomv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/runtime.nexus.vmware.com/v1"
+	tenantconfignexusvmwarecomv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/tenantconfig.nexus.vmware.com/v1"
+	tenantruntimenexusvmwarecomv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/tenantruntime.nexus.vmware.com/v1"
+	usernexusvmwarecomv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/user.nexus.vmware.com/v1"
 
 	schema "k8s.io/apimachinery/pkg/runtime/schema"
 	cache "k8s.io/client-go/tools/cache"
@@ -95,6 +99,24 @@ func (f *sharedInformerFactory) ForResource(resource schema.GroupVersionResource
 		// Group=route.nexus.vmware.com, Version=v1
 	case routenexusvmwarecomv1.SchemeGroupVersion.WithResource("routes"):
 		return &genericInformer{resource: resource.GroupResource(), informer: f.RouteNexus().V1().Routes().Informer()}, nil
+
+		// Group=runtime.nexus.vmware.com, Version=v1
+	case runtimenexusvmwarecomv1.SchemeGroupVersion.WithResource("runtimes"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.RuntimeNexus().V1().Runtimes().Informer()}, nil
+
+		// Group=tenantconfig.nexus.vmware.com, Version=v1
+	case tenantconfignexusvmwarecomv1.SchemeGroupVersion.WithResource("policies"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.TenantconfigNexus().V1().Policies().Informer()}, nil
+	case tenantconfignexusvmwarecomv1.SchemeGroupVersion.WithResource("tenants"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.TenantconfigNexus().V1().Tenants().Informer()}, nil
+
+		// Group=tenantruntime.nexus.vmware.com, Version=v1
+	case tenantruntimenexusvmwarecomv1.SchemeGroupVersion.WithResource("tenants"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.TenantruntimeNexus().V1().Tenants().Informer()}, nil
+
+		// Group=user.nexus.vmware.com, Version=v1
+	case usernexusvmwarecomv1.SchemeGroupVersion.WithResource("users"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.UserNexus().V1().Users().Informer()}, nil
 
 	}
 

@@ -1,6 +1,6 @@
 package admin
 
-import "golang-appnet.eng.vmware.com/nexus-sdk/nexus/nexus"
+import "github.com/vmware-tanzu/graph-framework-for-microservices/nexus/nexus"
 
 // Upstream defines an address to proxy the request to
 type Upstream struct {

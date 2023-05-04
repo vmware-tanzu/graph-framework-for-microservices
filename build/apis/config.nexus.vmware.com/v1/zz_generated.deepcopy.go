@@ -139,6 +139,27 @@ func (in *ConfigSpec) DeepCopyInto(out *ConfigSpec) {
 		*out = new(Child)
 		**out = **in
 	}
+	if in.TenantGvk != nil {
+		in, out := &in.TenantGvk, &out.TenantGvk
+		*out = make(map[string]Child, len(*in))
+		for key, val := range *in {
+			(*out)[key] = val
+		}
+	}
+	if in.TenantPolicyGvk != nil {
+		in, out := &in.TenantPolicyGvk, &out.TenantPolicyGvk
+		*out = make(map[string]Child, len(*in))
+		for key, val := range *in {
+			(*out)[key] = val
+		}
+	}
+	if in.UserGvk != nil {
+		in, out := &in.UserGvk, &out.UserGvk
+		*out = make(map[string]Child, len(*in))
+		for key, val := range *in {
+			(*out)[key] = val
+		}
+	}
 	return
 }
 

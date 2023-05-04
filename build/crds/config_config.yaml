@@ -4,7 +4,7 @@ kind: CustomResourceDefinition
 metadata:
   annotations:
     nexus: |
-      {"name":"config.Config","hierarchy":["nexuses.api.nexus.vmware.com"],"children":{"apigateways.apigateway.nexus.vmware.com":{"fieldName":"ApiGateway","fieldNameGvk":"apiGatewayGvk","isNamed":false},"connects.connect.nexus.vmware.com":{"fieldName":"Connect","fieldNameGvk":"connectGvk","isNamed":false},"routes.route.nexus.vmware.com":{"fieldName":"Routes","fieldNameGvk":"routesGvk","isNamed":true}},"is_singleton":false,"nexus-rest-api-gen":{"uris":null}}
+      {"name":"config.Config","hierarchy":["nexuses.api.nexus.vmware.com"],"children":{"apigateways.apigateway.nexus.vmware.com":{"fieldName":"ApiGateway","fieldNameGvk":"apiGatewayGvk","isNamed":false},"connects.connect.nexus.vmware.com":{"fieldName":"Connect","fieldNameGvk":"connectGvk","isNamed":false},"policies.tenantconfig.nexus.vmware.com":{"fieldName":"TenantPolicy","fieldNameGvk":"tenantPolicyGvk","isNamed":true},"routes.route.nexus.vmware.com":{"fieldName":"Routes","fieldNameGvk":"routesGvk","isNamed":true},"tenants.tenantconfig.nexus.vmware.com":{"fieldName":"Tenant","fieldNameGvk":"tenantGvk","isNamed":true},"users.user.nexus.vmware.com":{"fieldName":"User","fieldNameGvk":"userGvk","isNamed":true}},"is_singleton":false,"nexus-rest-api-gen":{"uris":null}}
   creationTimestamp: null
   name: configs.config.nexus.vmware.com
 spec:
@@ -65,6 +65,51 @@ spec:
                 - name
                 type: object
               routesGvk:
+                additionalProperties:
+                  properties:
+                    group:
+                      type: string
+                    kind:
+                      type: string
+                    name:
+                      type: string
+                  required:
+                  - group
+                  - kind
+                  - name
+                  type: object
+                type: object
+              tenantGvk:
+                additionalProperties:
+                  properties:
+                    group:
+                      type: string
+                    kind:
+                      type: string
+                    name:
+                      type: string
+                  required:
+                  - group
+                  - kind
+                  - name
+                  type: object
+                type: object
+              tenantPolicyGvk:
+                additionalProperties:
+                  properties:
+                    group:
+                      type: string
+                    kind:
+                      type: string
+                    name:
+                      type: string
+                  required:
+                  - group
+                  - kind
+                  - name
+                  type: object
+                type: object
+              userGvk:
                 additionalProperties:
                   properties:
                     group:

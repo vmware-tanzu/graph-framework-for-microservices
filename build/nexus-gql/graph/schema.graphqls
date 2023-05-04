@@ -8,6 +8,7 @@ type api_Nexus {
 	ParentLabels: Map
 
     Config(Id: ID): config_Config!
+    Runtime: runtime_Runtime!
 }
 
 type admin_ProxyRule {
@@ -41,8 +42,54 @@ type config_Config {
 	ParentLabels: Map
 
     Routes(Id: ID): [route_Route!]
+    Tenant(Id: ID): [tenantconfig_Tenant!]
+    TenantPolicy(Id: ID): [tenantconfig_Policy!]
+    User(Id: ID): [user_User!]
     ApiGateway(Id: ID): apigateway_ApiGateway!
     Connect(Id: ID): connect_Connect!
+}
+
+type tenantconfig_Tenant {
+    Id: ID
+	ParentLabels: Map
+
+    Name: String
+    DNSSuffix: String
+    SkipSaasTlsVerify: Boolean
+    InstallTenant: Boolean
+    InstallClient: Boolean
+    OrderId: String
+    Skus: String
+    FeatureFlags: String
+    Labels: String
+}
+
+type tenantconfig_Policy {
+    Id: ID
+	ParentLabels: Map
+
+    StaticApplications: String
+    PinApplications: String
+    DynamicAppSchedulingDisable: Boolean
+    DisableProvisioning: Boolean
+    DisableAutoScaling: Boolean
+    DisableAppClusterOnboarding: Boolean
+    DisableUpgrade: Boolean
+    OnFailureDowngrade: Boolean
+}
+
+type user_User {
+    Id: ID
+	ParentLabels: Map
+
+    Tenant: tenantconfig_Tenant!
+    Username: String
+    Mail: String
+    FirstName: String
+    LastName: String
+    Password: String
+    TenantId: String
+    Realm: String
 }
 
 type connect_Connect {
@@ -93,6 +140,31 @@ type route_Route {
     Uri: String
     Service: String
     Resource: String
+}
+
+type runtime_Runtime {
+    Id: ID
+	ParentLabels: Map
+
+    Tenant(Id: ID): [tenantruntime_Tenant!]
+}
+
+type tenantruntime_Tenant {
+    Id: ID
+	ParentLabels: Map
+
+    Namespace: String
+    TenantName: String
+    Attributes: String
+    SaasDomainName: String
+    SaasApiDomainName: String
+    M7Enabled: String
+    LicenseType: String
+    StreamName: String
+    AwsS3Bucket: String
+    AwsKmsKeyId: String
+    M7InstallationScheduled: String
+    ReleaseVersion: String
 }
 
 type NexusGraphqlResponse {

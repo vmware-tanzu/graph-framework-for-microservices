@@ -23,10 +23,15 @@ import (
 	apinexusv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/api.nexus.vmware.com/v1"
 	apigatewaynexusv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/apigateway.nexus.vmware.com/v1"
 	authenticationnexusv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/authentication.nexus.vmware.com/v1"
+	commonnexusv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/common.nexus.vmware.com/v1"
 	confignexusv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/config.nexus.vmware.com/v1"
 	connectnexusv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/connect.nexus.vmware.com/v1"
 	domainnexusv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/domain.nexus.vmware.com/v1"
 	routenexusv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/route.nexus.vmware.com/v1"
+	runtimenexusv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/runtime.nexus.vmware.com/v1"
+	tenantconfignexusv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/tenantconfig.nexus.vmware.com/v1"
+	tenantruntimenexusv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/tenantruntime.nexus.vmware.com/v1"
+	usernexusv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/user.nexus.vmware.com/v1"
 
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	runtime "k8s.io/apimachinery/pkg/runtime"
@@ -43,10 +48,15 @@ var localSchemeBuilder = runtime.SchemeBuilder{
 	apinexusv1.AddToScheme,
 	apigatewaynexusv1.AddToScheme,
 	authenticationnexusv1.AddToScheme,
+	commonnexusv1.AddToScheme,
 	confignexusv1.AddToScheme,
 	connectnexusv1.AddToScheme,
 	domainnexusv1.AddToScheme,
 	routenexusv1.AddToScheme,
+	runtimenexusv1.AddToScheme,
+	tenantconfignexusv1.AddToScheme,
+	tenantruntimenexusv1.AddToScheme,
+	usernexusv1.AddToScheme,
 }
 
 // AddToScheme adds all types of this clientset into the given scheme. This allows composition

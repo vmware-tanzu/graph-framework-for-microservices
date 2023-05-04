@@ -1,7 +1,7 @@
 package authentication
 
 import (
-	"golang-appnet.eng.vmware.com/nexus-sdk/nexus/nexus"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/nexus/nexus"
 )
 
 // IDPConfig contains the properties of an OIDC app
@@ -16,6 +16,8 @@ type IDPConfig struct {
 	Scopes []string `json:"scopes"`
 	// the URL to which the auth server must redirect to post-authentication
 	OAuthRedirectUrl string `json:"oAuthRedirectUrl"`
+	//Check if it is CSP or other generic OIDC Provider
+	IsCSP bool `json:"isCsp,omitempty"`
 }
 
 type ValidationProperties struct {

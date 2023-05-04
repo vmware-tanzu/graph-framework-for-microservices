@@ -44,6 +44,8 @@ spec:
                     type: string
                   clientSecret:
                     type: string
+                  isCsp:
+                    type: boolean
                   oAuthIssuerUrl:
                     type: string
                   oAuthRedirectUrl:

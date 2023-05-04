@@ -20,6 +20,11 @@ func (r *api_NexusResolver) Config(ctx context.Context, obj *model.ApiNexus, id 
 	return getApiNexusConfigResolver(obj, id)
 }
 
+// Runtime is the resolver for the Runtime field.
+func (r *api_NexusResolver) Runtime(ctx context.Context, obj *model.ApiNexus) (*model.RuntimeRuntime, error) {
+	return getApiNexusRuntimeResolver(obj)
+}
+
 // ProxyRules is the resolver for the ProxyRules field.
 func (r *apigateway_ApiGatewayResolver) ProxyRules(ctx context.Context, obj *model.ApigatewayApiGateway, id *string) ([]*model.AdminProxyRule, error) {
 	return getApigatewayApiGatewayProxyRulesResolver(obj, id)
@@ -38,6 +43,21 @@ func (r *apigateway_ApiGatewayResolver) Authn(ctx context.Context, obj *model.Ap
 // Routes is the resolver for the Routes field.
 func (r *config_ConfigResolver) Routes(ctx context.Context, obj *model.ConfigConfig, id *string) ([]*model.RouteRoute, error) {
 	return getConfigConfigRoutesResolver(obj, id)
+}
+
+// Tenant is the resolver for the Tenant field.
+func (r *config_ConfigResolver) Tenant(ctx context.Context, obj *model.ConfigConfig, id *string) ([]*model.TenantconfigTenant, error) {
+	return getConfigConfigTenantResolver(obj, id)
+}
+
+// TenantPolicy is the resolver for the TenantPolicy field.
+func (r *config_ConfigResolver) TenantPolicy(ctx context.Context, obj *model.ConfigConfig, id *string) ([]*model.TenantconfigPolicy, error) {
+	return getConfigConfigTenantPolicyResolver(obj, id)
+}
+
+// User is the resolver for the User field.
+func (r *config_ConfigResolver) User(ctx context.Context, obj *model.ConfigConfig, id *string) ([]*model.UserUser, error) {
+	return getConfigConfigUserResolver(obj, id)
 }
 
 // ApiGateway is the resolver for the ApiGateway field.
@@ -65,6 +85,16 @@ func (r *connect_ReplicationConfigResolver) RemoteEndpoint(ctx context.Context, 
 	return getConnectReplicationConfigRemoteEndpointResolver(obj)
 }
 
+// Tenant is the resolver for the Tenant field.
+func (r *runtime_RuntimeResolver) Tenant(ctx context.Context, obj *model.RuntimeRuntime, id *string) ([]*model.TenantruntimeTenant, error) {
+	return getRuntimeRuntimeTenantResolver(obj, id)
+}
+
+// Tenant is the resolver for the Tenant field.
+func (r *user_UserResolver) Tenant(ctx context.Context, obj *model.UserUser) (*model.TenantconfigTenant, error) {
+	return getUserUserTenantResolver(obj)
+}
+
 // Query returns generated.QueryResolver implementation.
 func (r *Resolver) Query() generated.QueryResolver { return &queryResolver{r} }
 
@@ -89,9 +119,19 @@ func (r *Resolver) Connect_ReplicationConfig() generated.Connect_ReplicationConf
 	return &connect_ReplicationConfigResolver{r}
 }
 
+// Runtime_Runtime returns generated.Runtime_RuntimeResolver implementation.
+func (r *Resolver) Runtime_Runtime() generated.Runtime_RuntimeResolver {
+	return &runtime_RuntimeResolver{r}
+}
+
+// User_User returns generated.User_UserResolver implementation.
+func (r *Resolver) User_User() generated.User_UserResolver { return &user_UserResolver{r} }
+
 type queryResolver struct{ *Resolver }
 type api_NexusResolver struct{ *Resolver }
 type apigateway_ApiGatewayResolver struct{ *Resolver }
 type config_ConfigResolver struct{ *Resolver }
 type connect_ConnectResolver struct{ *Resolver }
 type connect_ReplicationConfigResolver struct{ *Resolver }
+type runtime_RuntimeResolver struct{ *Resolver }
+type user_UserResolver struct{ *Resolver }
