@@ -1,6 +1,6 @@
 module github.com/vmware-tanzu/graph-framework-for-microservices/compiler
 
-go 1.17
+go 1.19
 
 require (
 	github.com/elliotchance/orderedmap v1.5.0
