@@ -1,4 +1,4 @@
-# Graph Framework for Microservices
+# Nexus; The Graph Framework for Microservices
 
 Graph Framework for Microservices is a platform software stack that bootstraps and accelerates cloud-native microservice development, that is out-of-the-box ready to thrive in the ever challenging world of distributed systems and SaaS.
 
@@ -10,6 +10,8 @@ It provides an extensible, distributed software stack that:
 * provides a plug-and-play runtime for core platform functions
 
 This framework represents the application's datamodel/state as a Graph, with emphasis on the event-driven propagation of data.
+
+https://user-images.githubusercontent.com/49454273/236585215-d2e92955-d3d3-47d5-b701-61dc97a90078.mov
 
 ### [Playground](docs/getting_started/Playground.md)
 
