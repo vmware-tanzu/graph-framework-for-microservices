@@ -11,7 +11,7 @@ It provides an extensible, distributed software stack that:
 
 This framework represents the application's datamodel/state as a Graph, with emphasis on the event-driven propagation of data.
 
-https://user-images.githubusercontent.com/49454273/236585215-d2e92955-d3d3-47d5-b701-61dc97a90078.mov
+https://user-images.githubusercontent.com/49454273/236900473-216421d5-c9da-456c-8ebe-6e219aed2535.mp4
 
 ### [Playground](docs/getting_started/Playground.md)
 
