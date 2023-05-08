@@ -907,7 +907,7 @@ func (c *{{$node.GroupResourceType}}Chainer) RegisterEventHandler(addCB func(obj
 			}
 			if parent == nil {
 				hashedName := helper.GetHashedName("{{.Parent.CrdName}}", nc.Labels, nc.Labels["{{.Parent.CrdName}}"])
-				parent, err = c.client.{{$node.SimpleGroupTypeName}}().ForceRead{{.Parent.BaseNodeName}}ByName(context.TODO(), hashedName)
+				parent, err = c.client.{{.Parent.SimpleGroupTypeName}}().ForceRead{{.Parent.BaseNodeName}}ByName(context.TODO(), hashedName)
 				if err != nil {
 					if errors.IsNotFound(err) {
 						return
@@ -978,7 +978,7 @@ func (c *{{$node.GroupResourceType}}Chainer) RegisterEventHandler(addCB func(obj
 			}
 			if parent == nil {
 				hashedName := helper.GetHashedName("{{.Parent.CrdName}}", nc.Labels, nc.Labels["{{.Parent.CrdName}}"])
-				parent, err = c.client.{{$node.SimpleGroupTypeName}}().ForceRead{{.Parent.BaseNodeName}}ByName(context.TODO(), hashedName)
+				parent, err = c.client.{{.Parent.SimpleGroupTypeName}}().ForceRead{{.Parent.BaseNodeName}}ByName(context.TODO(), hashedName)
 				if err != nil {
 					if errors.IsNotFound(err) {
 						return
@@ -1057,7 +1057,7 @@ func (c *{{$node.GroupResourceType}}Chainer) RegisterAddCallback(cbfn func(obj *
 
 				if parent == nil {
 					hashedName := helper.GetHashedName("{{.Parent.CrdName}}", nc.Labels, nc.Labels["{{.Parent.CrdName}}"])
-					parent, err = c.client.{{$node.SimpleGroupTypeName}}().ForceRead{{.Parent.BaseNodeName}}ByName(context.TODO(), hashedName)
+					parent, err = c.client.{{.Parent.SimpleGroupTypeName}}().ForceRead{{.Parent.BaseNodeName}}ByName(context.TODO(), hashedName)
 					if err != nil {
 						if errors.IsNotFound(err) {
 							return
@@ -1128,7 +1128,7 @@ func (c *{{$node.GroupResourceType}}Chainer) RegisterAddCallback(cbfn func(obj *
 
 				if parent == nil {
 					hashedName := helper.GetHashedName("{{.Parent.CrdName}}", nc.Labels, nc.Labels["{{.Parent.CrdName}}"])
-					parent, err = c.client.{{$node.SimpleGroupTypeName}}().ForceRead{{.Parent.BaseNodeName}}ByName(context.TODO(), hashedName)
+					parent, err = c.client.{{.Parent.SimpleGroupTypeName}}().ForceRead{{.Parent.BaseNodeName}}ByName(context.TODO(), hashedName)
 					if err != nil {
 						if errors.IsNotFound(err) {
 							return
@@ -1256,7 +1256,7 @@ func (c *{{$node.GroupResourceType}}Chainer) RegisterDeleteCallback(cbfn func(ob
 
 				if parent == nil {
 					hashedName := helper.GetHashedName("{{.Parent.CrdName}}", nc.Labels, nc.Labels["{{.Parent.CrdName}}"])
-					parent, err = c.client.{{$node.SimpleGroupTypeName}}().ForceRead{{.Parent.BaseNodeName}}ByName(context.TODO(), hashedName)
+					parent, err = c.client.{{.Parent.SimpleGroupTypeName}}().ForceRead{{.Parent.BaseNodeName}}ByName(context.TODO(), hashedName)
 					if err != nil {
 						if errors.IsNotFound(err) {
 							return
@@ -1327,7 +1327,7 @@ func (c *{{$node.GroupResourceType}}Chainer) RegisterDeleteCallback(cbfn func(ob
 
 				if parent == nil {
 					hashedName := helper.GetHashedName("{{.Parent.CrdName}}", nc.Labels, nc.Labels["{{.Parent.CrdName}}"])
-					parent, err = c.client.{{$node.SimpleGroupTypeName}}().ForceRead{{.Parent.BaseNodeName}}ByName(context.TODO(), hashedName)
+					parent, err = c.client.{{.Parent.SimpleGroupTypeName}}().ForceRead{{.Parent.BaseNodeName}}ByName(context.TODO(), hashedName)
 					if err != nil {
 						if errors.IsNotFound(err) {
 							return
