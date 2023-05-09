@@ -4,6 +4,9 @@ import (
 	"api-gw/pkg/config"
 	"api-gw/pkg/model"
 	"api-gw/pkg/server/echo_server"
+	"fmt"
+	log "github.com/sirupsen/logrus"
+	"net"
 	"net/http"
 	"net/http/httptest"
 
@@ -185,6 +188,29 @@ var _ = Describe("Echo server tests", func() {
 
 		Expect(actualContext.NexusURI).To(Equal("/test"))
 		Expect(actualContext.Codes[http.StatusOK].Description).To(Equal("description"))
+	})
+
+	It("should start echo server and timeout on port checking", func() {
+		log.StandardLogger().ExitFunc = func(i int) {
+			Expect(i).To(Equal(1))
+		}
+
+		stopCh := make(chan struct{})
+		e := echo_server.InitEcho(stopCh, &config.Config{
+			Server: config.ServerConfig{
+				HttpPort: "0",
+			},
+			EnableNexusRuntime: true,
+			BackendService:     "http://localhost",
+		})
+
+		listen, err := net.Listen("tcp", ":0")
+		Expect(err).To(BeNil())
+		e.Config.Server.HttpPort = fmt.Sprintf("%d", listen.Addr().(*net.TCPAddr).Port)
+		e.StopServer()
+
+		err = listen.Close()
+		Expect(err).To(BeNil())
 	})
 
 })

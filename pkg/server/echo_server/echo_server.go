@@ -8,10 +8,12 @@ import (
 	"api-gw/pkg/openapi/declarative"
 	"context"
 	"fmt"
+	"net"
 	"net/http"
 	"os"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
@@ -300,10 +302,43 @@ func (s *EchoServer) NodeUpdateNotifications(stopCh chan struct{}) error {
 }
 
 func (s *EchoServer) StopServer() {
-	if err := s.Echo.Shutdown(context.Background()); err != nil {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	if err := s.Echo.Shutdown(ctx); err != nil {
 		log.Fatalf("Shutdown signal received")
 	} else {
 		log.Debugln("Server exiting")
+	}
+
+	address := ":80"
+	if s.Config.Server.HttpPort != "" {
+		address = ":" + s.Config.Server.HttpPort
+	}
+
+	if utils.IsServerConfigValid(s.Config) && utils.IsFileExists(s.Config.Server.CertPath) && utils.IsFileExists(s.Config.Server.KeyPath) {
+		address = s.Config.Server.Address
+	}
+
+	ok := false
+	timeout := time.Now().Add(30 * time.Second)
+	for time.Now().Before(timeout) {
+		conn, err := net.DialTimeout("tcp", address, 100*time.Millisecond)
+		if err != nil {
+			//informative log. When port is free then error will occur
+			log.Debugf("StopServer: DialTimeout err: %v\n", err)
+		}
+
+		if conn == nil {
+			ok = true
+			break
+		} else {
+			conn.Close()
+			time.Sleep(100 * time.Millisecond)
+		}
+	}
+	if !ok {
+		log.Fatalf("Error occured while stopping echo server. TCP port is busy")
 	}
 }
 

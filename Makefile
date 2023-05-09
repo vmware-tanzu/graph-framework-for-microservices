@@ -225,5 +225,5 @@ deploy_kind:
 CURRENT_TIMESTAMP = $(shell date +%s)
 .PHONY: build_deploy_kind
 build_deploy_kind:
-	make build IMAGE_TAG=${CURRENT_TIMESTAMP} && make deploy_kind NAMESPACE=default KIND_NAME=kind IMAGE_TAG=${CURRENT_TIMESTAMP}
+	make build IMAGE_TAG=${CURRENT_TIMESTAMP} && make deploy_kind NAMESPACE=${NAMESPACE} KIND_NAME=kind IMAGE_TAG=${CURRENT_TIMESTAMP}
 
