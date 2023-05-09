@@ -26,6 +26,7 @@ var (
 	Paths              = make(map[string]*openapi3.PathItem)
 	ApisList           = make(map[string]map[string]interface{})
 	apisListMutex      = sync.Mutex{}
+	Schema             = openapi3.T{}
 	Schemas            openapi3.Schemas
 	parsedSchemas      = make(map[string]interface{})
 	parsedSchemasMutex = sync.Mutex{}
@@ -53,6 +54,7 @@ func Load(data []byte) error {
 	}
 
 	Schemas = doc.Components.Schemas
+	Schema = *doc
 
 	for uri, pathInfo := range doc.Paths {
 		if !ValidateNexusAnnotations(pathInfo) {
