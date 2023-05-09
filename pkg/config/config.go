@@ -13,6 +13,7 @@ type Config struct {
 	Server             ServerConfig `json:"server" yaml:"server"`
 	EnableNexusRuntime bool         `json:"enable_nexus_runtime" yaml:"enable_nexus_runtime,omitempty"`
 	BackendService     string       `json:"backend_service" yaml:"backend_service,omitempty"`
+	TenantApiGwDomain  string       `json:"tenant_api_gw_domain" yaml:"tenant_api_gw_domain,omitempty"`
 }
 
 type ServerConfig struct {

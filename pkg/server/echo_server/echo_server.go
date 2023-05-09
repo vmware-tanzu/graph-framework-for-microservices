@@ -4,6 +4,7 @@ import (
 	"api-gw/pkg/authn"
 	"api-gw/pkg/common"
 	"api-gw/pkg/openapi/api"
+	"api-gw/pkg/openapi/combined"
 	"api-gw/pkg/openapi/declarative"
 	"context"
 	"fmt"
@@ -106,6 +107,10 @@ func (s *EchoServer) RegisterNexusRoutes() {
 	// OpenAPI route
 	s.Echo.GET("/:datamodel/openapi.json", func(c echo.Context) error {
 		return c.JSON(http.StatusOK, api.Schemas[c.Param("datamodel")])
+	})
+
+	s.Echo.GET("/explorer/openapi.json", func(c echo.Context) error {
+		return c.JSON(http.StatusOK, combined.CombinedSpecs())
 	})
 
 	// Swagger-UI

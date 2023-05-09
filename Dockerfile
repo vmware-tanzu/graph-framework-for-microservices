@@ -1,5 +1,5 @@
 # syntax = harbor-repo.vmware.com/dockerhub-proxy-cache/docker/dockerfile:1.3
-FROM gcr.io/nsx-sm/nexus/golang:1.18 AS builder
+FROM harbor-repo.vmware.com/nexus/golang:1.19.8 AS builder
 ARG GIT_TAG
 ARG GIT_HEAD
 ARG CICD_TOKEN
