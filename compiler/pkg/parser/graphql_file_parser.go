@@ -1,10 +1,11 @@
 package parser
 
 import (
-	log "github.com/sirupsen/logrus"
 	"io/fs"
 	"os"
 	"path/filepath"
+
+	log "github.com/sirupsen/logrus"
 )
 
 // ParseDSLNodes walks recursively through given path and looks for structs types definitions to add them to graph
