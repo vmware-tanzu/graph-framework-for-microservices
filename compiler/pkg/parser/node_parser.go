@@ -2,16 +2,17 @@ package parser
 
 import (
 	"fmt"
-	"github.com/vmware-tanzu/graph-framework-for-microservices/compiler/pkg/config"
 	"go/ast"
 	"go/parser"
 	"go/token"
 	"go/types"
 	"io/fs"
-	"k8s.io/utils/strings/slices"
 	"path/filepath"
 	"strconv"
 	"strings"
+
+	"github.com/vmware-tanzu/graph-framework-for-microservices/compiler/pkg/config"
+	"k8s.io/utils/strings/slices"
 
 	"github.com/vmware-tanzu/graph-framework-for-microservices/compiler/pkg/util"
 	"github.com/vmware-tanzu/graph-framework-for-microservices/nexus/nexus"

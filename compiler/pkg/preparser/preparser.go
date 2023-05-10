@@ -3,7 +3,6 @@ package preparser
 import (
 	"bytes"
 	"fmt"
-	"github.com/vmware-tanzu/graph-framework-for-microservices/compiler/pkg/config"
 	"go/ast"
 	goParser "go/parser"
 	"go/printer"
@@ -15,6 +14,8 @@ import (
 	"strconv"
 	"strings"
 	"text/template"
+
+	"github.com/vmware-tanzu/graph-framework-for-microservices/compiler/pkg/config"
 
 	log "github.com/sirupsen/logrus"
 	"github.com/vmware-tanzu/graph-framework-for-microservices/compiler/pkg/parser"

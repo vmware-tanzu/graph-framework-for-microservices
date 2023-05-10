@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+
 	"github.com/vmware-tanzu/graph-framework-for-microservices/compiler/pkg/config"
 
 	log "github.com/sirupsen/logrus"
