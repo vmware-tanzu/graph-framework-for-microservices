@@ -1,7 +1,0 @@
-*.tar
-*/*.tar
-coverage.out
-report.json
-*.coverprofile
-.vscode/
-cmd/controller/controller
