@@ -1,0 +1,10 @@
+*.tar
+*/*.tar
+coverage.out
+report.json
+*.coverprofile
+.vscode/
+cmd/connector/connector
+nexus-connector/values.yaml
+*.tgz
+pkg/utils/token
