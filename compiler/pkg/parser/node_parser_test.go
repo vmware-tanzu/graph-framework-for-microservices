@@ -126,7 +126,7 @@ var _ = Describe("Node parser tests", func() {
 		pkg, ok := pkgs["github.com/vmware-tanzu/graph-framework-for-microservices/compiler/example/test-utils/nexus-rest-api-gen-wrong-name"]
 		Expect(ok).To(BeTrue())
 		graphqlQueries := parser.ParseGraphqlQuerySpecs(pkgs)
-		graph := parser.ParseDSLNodes("../../example/test-utils/nexus-rest-api-gen-wrong-name", baseGroupName, pkgs, graphqlQueries)
+		graph, _, _ := parser.ParseDSLNodes("../../example/test-utils/nexus-rest-api-gen-wrong-name", baseGroupName, pkgs, graphqlQueries)
 		parentsMap := parser.CreateParentsMap(graph)
 		methods, codes := rest.ParseResponses(pkgs)
 		_, err := generator.RenderCRDBaseTemplate(baseGroupName, pkg, parentsMap, methods, codes)

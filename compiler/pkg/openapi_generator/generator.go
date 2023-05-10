@@ -3,7 +3,6 @@ package openapi_generator
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
@@ -341,7 +340,7 @@ func (g *Generator) UpdateYAMLs(yamlsPath string) error {
 			return nil
 		}
 
-		content, err := ioutil.ReadFile(path)
+		content, err := os.ReadFile(path)
 		if err != nil {
 			return fmt.Errorf("reading file %q: %v", path, err)
 		}
@@ -432,15 +431,15 @@ func (g *Generator) createName(group, apiVersion, name string) string {
 	return strings.ToLower(fmt.Sprintf("%s/%s/%s.%s", g.namePrefix, group, apiVersion, name))
 }
 
-func convertToCamelCase(input string) string {
-	if !strings.Contains(input, "_") {
-		return input
-	}
-	parts := strings.Split(input, "_")
-	camelCaseName := parts[0]
-	for _, p := range parts[1:] {
-		camelCaseName += strings.ToUpper(string(p[0]))
-		camelCaseName += p[1:]
-	}
-	return camelCaseName
-}
+//func convertToCamelCase(input string) string {
+//	if !strings.Contains(input, "_") {
+//		return input
+//	}
+//	parts := strings.Split(input, "_")
+//	camelCaseName := parts[0]
+//	for _, p := range parts[1:] {
+//		camelCaseName += strings.ToUpper(string(p[0]))
+//		camelCaseName += p[1:]
+//	}
+//	return camelCaseName
+//}
