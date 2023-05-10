@@ -1,0 +1,14 @@
+dispatcher:
+    workerTTL: "15s"
+    maxWorkerCount: 100
+    closeRequestsQueueSize: 15
+    eventProcessedQueueSize: 100
+ignoredNamespaces:
+    matchNames:
+      - "kube-public"
+      - "kube-system"
+      - "kube-node-lease"
+      - "istio-system"
+      - "ibm-system"
+      - "ibm-operators"
+      - "ibm-cert-store"
