@@ -3,7 +3,6 @@ package openapi_generator_test
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
@@ -28,7 +27,7 @@ var _ = Describe("Generator", func() {
 
 	BeforeEach(func() {
 		var err error
-		tmpDir, err = ioutil.TempDir("", "generator-test-")
+		tmpDir, err = os.MkdirTemp("", "generator-test-")
 		Expect(err).NotTo(HaveOccurred())
 	})
 

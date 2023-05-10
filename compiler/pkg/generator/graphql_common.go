@@ -200,9 +200,9 @@ func GetNodeDetails(pkgName, typeString string, importMap map[string]string, pkg
 				}
 			}
 		}
-		return fmt.Sprintf("id: ID")
+		return "id: ID"
 	}
-	return fmt.Sprintf("id: ID")
+	return "id: ID"
 }
 
 func getBaseNodeType(typeString string) string {
@@ -307,9 +307,7 @@ func getGraphqlSchemaName(pattern, fieldName, schemaType string, f *ast.Field) s
 		schemaName = fmt.Sprintf(pattern, getAliasFieldValue(fieldName, f), schemaType)
 	}
 
-	if strings.HasPrefix(schemaName, "global_") {
-		schemaName = strings.TrimPrefix(schemaName, "global_")
-	}
+	schemaName = strings.TrimPrefix(schemaName, "global_")
 
 	return schemaName
 }

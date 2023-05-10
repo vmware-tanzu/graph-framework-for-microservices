@@ -27,11 +27,11 @@ var _ = Describe("Template renderers tests", func() {
 		vars, err := generator.GenerateTsmGraphqlSchemaVars(baseGroupName, crdModulePath, pkgs, parentsMap, nil)
 		Expect(err).NotTo(HaveOccurred())
 
-		Expect(len(vars)).To(Equal(45))
+		Expect(len(vars)).To(Equal(46))
 		Expect(vars[0].NodeName).To(Equal("Root"))
 		Expect(vars[3].PkgName).To(Equal("Config"))
 		Expect(vars[3].NodeName).To(Equal("Config"))
-		Expect(vars[3].SchemaName).To(Equal("config_Config"))
+		Expect(vars[3].SchemaName).To(Equal("Config_Config"))
 		Expect(vars[3].Alias).To(Equal(""))
 		Expect(vars[3].ReturnType).To(Equal(""))
 
@@ -40,7 +40,7 @@ var _ = Describe("Template renderers tests", func() {
 		Expect(vars[2].IsSingletonNode).To(BeFalse())
 		Expect(vars[2].IsNexusNode).To(BeFalse())
 		Expect(vars[2].BaseImportPath).To(Equal("nexustempmodule/"))
-		Expect(vars[2].CrdName).To(Equal(""))
+		Expect(vars[2].CrdName).To(Equal("queryfilterses.root.tsm.tanzu.vmware.com"))
 
 		// Test that nexus-secret Node should not be present
 		Expect(vars).NotTo(ContainElement(HaveField("NodeName", "Foo")))

@@ -2,7 +2,7 @@ package openapi_generator_test
 
 import (
 	"fmt"
-	"io/ioutil"
+	"os"
 	"strings"
 	"testing"
 
@@ -23,7 +23,7 @@ func createFileWithEmptyYAMLDefinitions(tmpDir string, names []string) string {
 		content += getEmptyYAMLDefinition(name)
 	}
 	tmpFile := fmt.Sprintf("%s/%s.yaml", tmpDir, strings.Join(names, "_"))
-	err := ioutil.WriteFile(tmpFile, []byte(content), 0665)
+	err := os.WriteFile(tmpFile, []byte(content), 0665)
 	Expect(err).NotTo(HaveOccurred())
 	return tmpFile
 }
@@ -68,10 +68,10 @@ func getSchemaName(name string) string {
 }
 
 func compareTmpFileWithExpectedFile(actualFile, expectedFile string) {
-	actual, err := ioutil.ReadFile(actualFile)
+	actual, err := os.ReadFile(actualFile)
 	Expect(err).NotTo(HaveOccurred())
 
-	expected, err := ioutil.ReadFile(expectedFile)
+	expected, err := os.ReadFile(expectedFile)
 	Expect(err).NotTo(HaveOccurred())
 
 	Expect(actual).To(MatchYAML(string(expected)))
