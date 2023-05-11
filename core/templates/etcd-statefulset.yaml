@@ -4,7 +4,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: nexus-etcd-headless
-  namespace: {{.Values.global.namespace}}
+  namespace: {{ default  .Release.Namespace .Values.global.namespace }}
   labels:
     app: nexus-etcd
     nexus: nexus-etcd
@@ -20,15 +20,14 @@ spec:
       port: 2380
       targetPort: peer
   selector:
-    app: nexus-etcd
-    nexus: nexus-etcd
+    {{- .Values.global.etcd.selectors | nindent 4}}
 ---
 # Source: etcd/templates/svc.yaml
 apiVersion: v1
 kind: Service
 metadata:
   name: nexus-etcd
-  namespace: {{.Values.global.namespace}}
+  namespace: {{ default  .Release.Namespace .Values.global.namespace }}
   labels:
     app: nexus-etcd
     nexus: nexus-etcd
@@ -46,15 +45,15 @@ spec:
       targetPort: peer
       nodePort: null
   selector:
-    app: nexus-etcd
-    nexus: nexus-etcd
+    {{- .Values.global.etcd.selectors | nindent 4}}
 ---
+{{- if .Values.global.createEtcd }}
 # Source: etcd/templates/statefulset.yaml
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
   name: nexus-etcd
-  namespace: {{.Values.global.namespace}}
+  namespace: {{ default  .Release.Namespace .Values.global.namespace }}
   labels:
     app: nexus-etcd
     nexus: nexus-etcd
@@ -75,7 +74,7 @@ spec:
         nexus: nexus-etcd
       annotations:
     spec:
-      affinity:          
+      affinity:
         podAntiAffinity:
           preferredDuringSchedulingIgnoredDuringExecution:
             - podAffinityTerm:
@@ -175,9 +174,10 @@ spec:
   volumeClaimTemplates:
     - metadata:
         name: data
-      spec:       
+      spec:
         accessModes:
           - "ReadWriteOnce"
         resources:
           requests:
             storage: "8Gi"
+{{- end }}

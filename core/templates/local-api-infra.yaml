@@ -9,7 +9,7 @@ apiVersion: batch/v1
 kind: CronJob
 metadata:
   name: nexus-etcd-defrag 
-  namespace: {{.Values.global.namespace}}
+  namespace: {{ default  .Release.Namespace .Values.global.namespace }}
 spec:
   successfulJobsHistoryLimit: 1
   failedJobsHistoryLimit: 1
@@ -41,7 +41,7 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
   name: nexus-k8scert-secret-permission
-  namespace: {{.Values.global.namespace}}
+  namespace: {{ default  .Release.Namespace .Values.global.namespace }}
 rules:
 - apiGroups:
   - ""
@@ -59,13 +59,13 @@ apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: nexus-k8scerts-service-account
-  namespace: {{.Values.global.namespace}}
+  namespace: {{ default  .Release.Namespace .Values.global.namespace }}
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
   name: nexus-k8scert-create-secret-rbac
-  namespace: {{.Values.global.namespace}}
+  namespace: {{ default  .Release.Namespace .Values.global.namespace }}
 subjects:
 - kind: ServiceAccount
   name: nexus-k8scerts-service-account
@@ -78,9 +78,8 @@ apiVersion: batch/v1
 kind: Job
 metadata:
   name: nexus-k8scert-creation-job
-  namespace: {{.Values.global.namespace}} 
+  namespace: {{ default  .Release.Namespace .Values.global.namespace }} 
 spec:
-  ttlSecondsAfterFinished: 600
   template:
     metadata:
       annotations:
@@ -118,7 +117,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: nexus-kube-apiserver
-  namespace: {{.Values.global.namespace}}
+  namespace: {{ default  .Release.Namespace .Values.global.namespace }}
   labels:
     app: nexus-kube-apiserver
 spec:
@@ -166,7 +165,7 @@ spec:
         - --cert-dir=/etc/kubernetes/certs
         - --endpoint-reconciler-type=none
         - --port=8080
-        - --runtime-config=api/all=false,admissionregistration.k8s.io/v1=true,apiregistration.k8s.io/v1=true,v1=true,apiextensions.k8s.io/v1=true,coordination.k8s.io/v1=true
+        - --runtime-config=api/all=false,admissionregistration.k8s.io/v1=true,apiregistration.k8s.io/v1=true,v1=true,apiextensions.k8s.io/v1=true
         - --disable-admission-plugins=RuntimeClass,DefaultIngressClass,DefaultStorageClass,StorageObjectInUseProtection,Priority,ResourceQuota,PersistentVolumeClaimResize
         image: {{.Values.global.registry}}/k8s.gcr.io/kube-apiserver:v1.19.16
         imagePullPolicy: IfNotPresent
@@ -210,7 +209,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: nexus-apiserver
-  namespace: {{.Values.global.namespace}}
+  namespace: {{ default  .Release.Namespace .Values.global.namespace }}
 spec:
   type: ClusterIP
   ports:
@@ -229,7 +228,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: nexus-kube-controllermanager
-  namespace: {{.Values.global.namespace}}
+  namespace: {{ default  .Release.Namespace .Values.global.namespace }}
 spec:
   replicas: 1
   selector:
@@ -304,7 +303,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: nexus-proxy-container
-  namespace: {{.Values.global.namespace}} 
+  namespace: {{ default  .Release.Namespace .Values.global.namespace }} 
   labels:
     app: nexus-proxy-container
 spec:
@@ -336,7 +335,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: nexus-proxy-container
-  namespace: {{.Values.global.namespace}}
+  namespace: {{ default  .Release.Namespace .Values.global.namespace }}
 spec:
   ports:
     - protocol: TCP

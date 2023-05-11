@@ -10,7 +10,7 @@ metadata:
     app.kubernetes.io/version: 1.2.0
     component: nexus
   name: nexus-ingress-nginx
-  namespace: {{.Values.global.namespace}}
+  namespace: {{ default  .Release.Namespace .Values.global.namespace  }}
 ---
 apiVersion: v1
 kind: ServiceAccount
@@ -22,8 +22,8 @@ metadata:
     app.kubernetes.io/part-of: ingress-nginx
     app.kubernetes.io/version: 1.2.0
     component: nexus
-  name: nexus-nginx-admsn-{{.Values.global.namespace}}
-  namespace: {{.Values.global.namespace}}
+  name: nexus-nginx-admsn-{{ default  .Release.Namespace .Values.global.namespace | replace "-" "" |  trunc 18  }}
+  namespace: {{ default  .Release.Namespace .Values.global.namespace  }}
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
@@ -36,7 +36,7 @@ metadata:
     app.kubernetes.io/version: 1.2.0
     component: nexus
   name: nexus-ingress-nginx
-  namespace: {{.Values.global.namespace}}
+  namespace: {{ default  .Release.Namespace .Values.global.namespace  }}
 rules:
 - apiGroups:
   - ""
@@ -118,8 +118,8 @@ metadata:
     app.kubernetes.io/part-of: ingress-nginx
     app.kubernetes.io/version: 1.2.0
     component: nexus
-  name: nexus-nginx-admsn-{{.Values.global.namespace}}
-  namespace: {{.Values.global.namespace}}
+  name: nexus-nginx-admsn-{{ default  .Release.Namespace .Values.global.namespace | replace "-" "" |  trunc 18  }}
+  namespace: {{ default  .Release.Namespace .Values.global.namespace  }}
 rules:
 - apiGroups:
   - ""
@@ -138,7 +138,7 @@ metadata:
     app.kubernetes.io/part-of: ingress-nginx
     app.kubernetes.io/version: 1.2.0
     component: nexus
-  name: nexus-nginx-{{.Values.global.namespace}}
+  name: nexus-nginx-{{ default  .Release.Namespace .Values.global.namespace | replace "-" "" |  trunc 18  }}
 rules:
 - apiGroups:
   - ""
@@ -206,8 +206,8 @@ metadata:
     app.kubernetes.io/part-of: ingress-nginx
     app.kubernetes.io/version: 1.2.0
     component: nexus
-  name: nexus-nginx-admsn-{{.Values.global.namespace}}
-  namespace: {{.Values.global.namespace}}
+  name: nexus-nginx-admsn-{{ default  .Release.Namespace .Values.global.namespace | replace "-" "" |  trunc 18  }}
+  namespace: {{ default  .Release.Namespace .Values.global.namespace  }}
 rules:
 - apiGroups:
   - admissionregistration.k8s.io
@@ -228,7 +228,7 @@ metadata:
     app.kubernetes.io/version: 1.2.0
     component: nexus
   name: nexus-ingress-nginx
-  namespace: {{.Values.global.namespace}}
+  namespace: {{ default  .Release.Namespace .Values.global.namespace  }}
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role
@@ -236,7 +236,7 @@ roleRef:
 subjects:
 - kind: ServiceAccount
   name: nexus-ingress-nginx
-  namespace: {{.Values.global.namespace}}
+  namespace: {{ default  .Release.Namespace .Values.global.namespace  }}
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
@@ -248,16 +248,16 @@ metadata:
     app.kubernetes.io/part-of: ingress-nginx
     app.kubernetes.io/version: 1.2.0
     component: nexus
-  name: nexus-nginx-admsn-{{.Values.global.namespace}}
-  namespace: {{.Values.global.namespace}}
+  name: nexus-nginx-admsn-{{ default  .Release.Namespace .Values.global.namespace | replace "-" "" |  trunc 18  }}
+  namespace: {{ default  .Release.Namespace .Values.global.namespace  }}
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role
-  name: nexus-nginx-admsn-{{.Values.global.namespace}}
+  name: nexus-nginx-admsn-{{ default  .Release.Namespace .Values.global.namespace | replace "-" "" |  trunc 18  }}
 subjects:
 - kind: ServiceAccount
-  name: nexus-nginx-admsn-{{.Values.global.namespace}}
-  namespace: {{.Values.global.namespace}}
+  name: nexus-nginx-admsn-{{ default  .Release.Namespace .Values.global.namespace | replace "-" "" |  trunc 18  }}
+  namespace: {{ default  .Release.Namespace .Values.global.namespace  }}
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
@@ -268,15 +268,15 @@ metadata:
     app.kubernetes.io/part-of: ingress-nginx
     app.kubernetes.io/version: 1.2.0
     component: nexus
-  name: nexus-nginx-{{.Values.global.namespace}}
+  name: nexus-nginx-{{ default  .Release.Namespace .Values.global.namespace | replace "-" "" |  trunc 18  }}
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
-  name: nexus-nginx-{{.Values.global.namespace}}
+  name: nexus-nginx-{{ default  .Release.Namespace .Values.global.namespace | replace "-" "" |  trunc 18  }}
 subjects:
 - kind: ServiceAccount
   name: nexus-ingress-nginx
-  namespace: {{.Values.global.namespace}}
+  namespace: {{ default  .Release.Namespace .Values.global.namespace  }}
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
@@ -288,15 +288,15 @@ metadata:
     app.kubernetes.io/part-of: ingress-nginx
     app.kubernetes.io/version: 1.2.0
     component: nexus
-  name: nginx-admsn-{{.Values.global.namespace}}
+  name: nginx-admsn-{{ default  .Release.Namespace .Values.global.namespace | replace "-" "" |  trunc 18  }}
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
-  name: nexus-nginx-admsn-{{.Values.global.namespace}}
+  name: nexus-nginx-admsn-{{ default  .Release.Namespace .Values.global.namespace | replace "-" "" |  trunc 18  }}
 subjects:
 - kind: ServiceAccount
-  name: nexus-nginx-admsn-{{.Values.global.namespace}}
-  namespace: {{.Values.global.namespace}}
+  name: nexus-nginx-admsn-{{ default  .Release.Namespace .Values.global.namespace | replace "-" "" |  trunc 18  }}
+  namespace: {{ default  .Release.Namespace .Values.global.namespace  }}
 ---
 apiVersion: v1
 data:
@@ -313,7 +313,7 @@ metadata:
     app.kubernetes.io/version: 1.2.0
     component: nexus
   name: nexus-ingress-nginx-controller
-  namespace: {{.Values.global.namespace}}
+  namespace: {{ default  .Release.Namespace .Values.global.namespace  }}
 ---
 apiVersion: v1
 kind: Service
@@ -326,7 +326,7 @@ metadata:
     app.kubernetes.io/version: 1.2.0
     component: nexus
   name: nexus-ingress-nginx-controller
-  namespace: {{.Values.global.namespace}}
+  namespace: {{ default  .Release.Namespace .Values.global.namespace  }}
 spec:
   ports:
   - name: http
@@ -355,7 +355,7 @@ metadata:
     app.kubernetes.io/version: 1.2.0
     component: nexus
   name: nexus-ingress-nginx-controller-admission
-  namespace: {{.Values.global.namespace}}
+  namespace: {{ default  .Release.Namespace .Values.global.namespace  }}
 spec:
   ports:
   - name: https-webhook
@@ -379,7 +379,7 @@ metadata:
     app.kubernetes.io/version: 1.2.0
     component: nexus
   name: nexus-ingress-nginx-controller
-  namespace: {{.Values.global.namespace}}
+  namespace: {{ default  .Release.Namespace .Values.global.namespace  }}
 spec:
   minReadySeconds: 0
   revisionHistoryLimit: 10
@@ -403,7 +403,7 @@ spec:
         - --publish-service=$(POD_NAMESPACE)/nexus-ingress-nginx-controller
         - --election-id=ingress-controller-leader
         - --controller-class=k8s.io/ingress-nginx
-        - --ingress-class=nginx-{{.Values.global.namespace}}
+        - --ingress-class=nginx-{{ default  .Release.Namespace .Values.global.namespace  }}
         - --configmap=$(POD_NAMESPACE)/nexus-ingress-nginx-controller
         - --validating-webhook=:8443
         - --validating-webhook-certificate=/usr/local/certificates/cert
@@ -482,7 +482,7 @@ spec:
       volumes:
       - name: webhook-cert
         secret:
-          secretName: nexus-nginx-admsn-{{.Values.global.namespace}}
+          secretName: nexus-nginx-admsn-{{ default  .Release.Namespace .Values.global.namespace  }}
 ---
 apiVersion: batch/v1
 kind: Job
@@ -494,10 +494,9 @@ metadata:
     app.kubernetes.io/part-of: ingress-nginx
     app.kubernetes.io/version: 1.2.0
     component: nexus
-  name: nexus-nginx-admsn-{{.Values.global.namespace}}-create
-  namespace: {{.Values.global.namespace}}
+  name: nexus-nginx-admsn-{{ default  .Release.Namespace .Values.global.namespace  }}-create
+  namespace: {{ default  .Release.Namespace .Values.global.namespace  }}
 spec:
-  ttlSecondsAfterFinished: 600
   template:
     metadata:
       annotations:
@@ -509,14 +508,14 @@ spec:
         app.kubernetes.io/part-of: ingress-nginx
         app.kubernetes.io/version: 1.2.0
         component: nexus
-      name: nexus-nginx-admsn-{{.Values.global.namespace}}-create
+      name: nexus-nginx-admsn-{{ default  .Release.Namespace .Values.global.namespace  }}-create
     spec:
       containers:
       - args:
         - create
         - --host=nexus-ingress-nginx-controller-admission,nexus-ingress-nginx-controller-admission.$(POD_NAMESPACE).svc
         - --namespace=$(POD_NAMESPACE)
-        - --secret-name=nexus-nginx-admsn-{{.Values.global.namespace}}
+        - --secret-name=nexus-nginx-admsn-{{ default  .Release.Namespace .Values.global.namespace  }}
         env:
         - name: POD_NAMESPACE
           valueFrom:
@@ -534,7 +533,7 @@ spec:
         fsGroup: 2000
         runAsNonRoot: true
         runAsUser: 2000
-      serviceAccountName: nexus-nginx-admsn-{{.Values.global.namespace}}
+      serviceAccountName: nexus-nginx-admsn-{{ default  .Release.Namespace .Values.global.namespace | replace "-" "" |  trunc 18  }}
 ---
 apiVersion: batch/v1
 kind: Job
@@ -546,10 +545,9 @@ metadata:
     app.kubernetes.io/part-of: ingress-nginx
     app.kubernetes.io/version: 1.2.0
     component: nexus
-  name: nexus-nginx-admsn-{{.Values.global.namespace}}-patch
-  namespace: {{.Values.global.namespace}}
+  name: nexus-nginx-admsn-{{ default  .Release.Namespace .Values.global.namespace  }}-patch
+  namespace: {{ default  .Release.Namespace .Values.global.namespace  }}
 spec:
-  ttlSecondsAfterFinished: 600
   template:
     metadata:
       annotations:
@@ -560,15 +558,15 @@ spec:
         app.kubernetes.io/name: ingress-nginx
         app.kubernetes.io/part-of: ingress-nginx
         app.kubernetes.io/version: 1.2.0
-      name: nginx-admsn-{{.Values.global.namespace}}-patch
+      name: nginx-admsn-{{ default  .Release.Namespace .Values.global.namespace  }}-patch
     spec:
       containers:
       - args:
         - patch
-        - --webhook-name=nexus-nginx-{{.Values.global.namespace}}
+        - --webhook-name=nexus-nginx-{{ default  .Release.Namespace .Values.global.namespace  }}
         - --namespace=$(POD_NAMESPACE)
         - --patch-mutating=false
-        - --secret-name=nexus-nginx-admsn-{{.Values.global.namespace}}
+        - --secret-name=nexus-nginx-admsn-{{ default  .Release.Namespace .Values.global.namespace  }}
         - --patch-failure-policy=Fail
         env:
         - name: POD_NAMESPACE
@@ -587,7 +585,7 @@ spec:
         fsGroup: 2000
         runAsNonRoot: true
         runAsUser: 2000
-      serviceAccountName: nexus-nginx-admsn-{{.Values.global.namespace}}
+      serviceAccountName: nexus-nginx-admsn-{{ default  .Release.Namespace .Values.global.namespace | replace "-" "" |  trunc 18  }}
 ---
 apiVersion: admissionregistration.k8s.io/v1
 kind: ValidatingWebhookConfiguration
@@ -599,15 +597,15 @@ metadata:
     app.kubernetes.io/part-of: ingress-nginx
     app.kubernetes.io/version: 1.2.0
     component: nexus
-  name: nexus-nginx-{{.Values.global.namespace}}
-  namespace: {{.Values.global.namespace}}
+  name: nexus-nginx-{{ default  .Release.Namespace .Values.global.namespace  }}
+  namespace: {{ default  .Release.Namespace .Values.global.namespace  }}
 webhooks:
 - admissionReviewVersions:
   - v1
   clientConfig:
     service:
       name: nexus-ingress-nginx-controller-admission
-      namespace: {{.Values.global.namespace}}
+      namespace: {{ default  .Release.Namespace .Values.global.namespace  }}
       path: /networking/v1/ingresses
   failurePolicy: Fail
   matchPolicy: Equivalent
@@ -628,13 +626,13 @@ webhooks:
     - key: name
       operator: In
       values:
-      - {{.Values.global.namespace}}
+      - {{ default  .Release.Namespace .Values.global.namespace  }}
 ---
 apiVersion: apps/v1 # for versions before 1.9.0 use apps/v1beta2
 kind: Deployment
 metadata:
   name: nexus-nginx
-  namespace: {{.Values.global.namespace}}
+  namespace: {{ default  .Release.Namespace .Values.global.namespace  }}
 spec:
   strategy:
     type: Recreate
@@ -672,7 +670,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: nexus-nginx
-  namespace: {{.Values.global.namespace}}
+  namespace: {{ default  .Release.Namespace .Values.global.namespace  }}
   labels:
     app: nexus-nginx
 spec:
@@ -689,7 +687,7 @@ apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: nexus-nginx-data
-  namespace: {{.Values.global.namespace}}
+  namespace: {{ default  .Release.Namespace .Values.global.namespace  }}
   labels:
     created-by: nexus
 spec:
