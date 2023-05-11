@@ -1,0 +1,4 @@
+global:
+  authz:
+    tag: ""
+  regitry: 284299419820.dkr.ecr.us-west-2.amazonaws.com/nexus
