@@ -23,6 +23,7 @@ import (
 	types "k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/rest"
 	cache "k8s.io/client-go/tools/cache"
+	"github.com/sirupsen/logrus"
 
 {{.HelperImport}}
 {{.CommonImport}}
@@ -32,6 +33,8 @@ fakeBaseClienset {{.FakeBaseCliensetImport}}
 {{.BaseImports}}
 {{.InformerImports}}
 )
+
+var log = logrus.New()
 
 type Clientset struct {
 	baseClient baseClientset.Interface
@@ -142,34 +145,54 @@ func (group *{{$node.GroupTypeName}}) Get{{$node.BaseNodeName}}ByName(ctx contex
 			{{$node.BaseNodeName}}: result,
 		}, nil
 	}else{
-		result, err := group.client.baseClient.
-		{{$node.GroupTypeName}}().
-		{{$node.GroupResourceNameTitle}}().Get(ctx, hashedName, metav1.GetOptions{})
-		if err != nil {
-			return nil, err
+		retryCount := 12
+		for {
+			result, err := group.client.baseClient.
+			{{$node.GroupTypeName}}().
+			{{$node.GroupResourceNameTitle}}().Get(ctx, hashedName, metav1.GetOptions{})
+			if err != nil {
+				if errors.IsTimeout(err) {
+					if retryCount == 0 {
+						return nil, err
+					}
+					retryCount-=1
+					time.Sleep(5 * time.Second)
+				}else {
+					return nil, err
+				}
+			}
+			return &{{$node.SimpleGroupTypeName}}{{$node.BaseNodeName}}{
+				client: group.client,
+				{{$node.BaseNodeName}}: result,
+			}, nil
 		}
-
-		return &{{$node.SimpleGroupTypeName}}{{$node.BaseNodeName}}{
-			client: group.client,
-			{{$node.BaseNodeName}}: result,
-		}, nil
 	}
 }
 
 // ForceRead{{$node.BaseNodeName}}ByName read object directly from the database under the hashedName which is a hash of display
 // name and parents names. Use it when you know hashed name of object.
 func (group *{{$node.GroupTypeName}}) ForceRead{{$node.BaseNodeName}}ByName(ctx context.Context, hashedName string) (*{{$node.SimpleGroupTypeName}}{{$node.BaseNodeName}}, error) {
-	result, err := group.client.baseClient.
-	{{$node.GroupTypeName}}().
-	{{$node.GroupResourceNameTitle}}().Get(ctx, hashedName, metav1.GetOptions{})
-	if err != nil {
-		return nil, err
+	retryCount := 12
+	for {
+		result, err := group.client.baseClient.
+		{{$node.GroupTypeName}}().
+		{{$node.GroupResourceNameTitle}}().Get(ctx, hashedName, metav1.GetOptions{})
+		if err != nil {
+			if errors.IsTimeout(err) {
+				if retryCount == 0 {
+					return nil, err
+				}
+				retryCount-=1
+				time.Sleep(5 * time.Second)
+			}else {
+				return nil, err
+			}
+		}
+		return &{{$node.SimpleGroupTypeName}}{{$node.BaseNodeName}}{
+			client: group.client,
+			{{$node.BaseNodeName}}: result,
+		}, nil
 	}
-
-	return &{{$node.SimpleGroupTypeName}}{{$node.BaseNodeName}}{
-		client: group.client,
-		{{$node.BaseNodeName}}: result,
-	}, nil
 }
 
 // Delete{{$node.BaseNodeName}}ByName deletes object stored in the database under the hashedName which is a hash of
@@ -377,13 +400,24 @@ func (group *{{$node.GroupTypeName}}) Update{{$node.BaseNodeName}}ByName(ctx con
 	}{{end}}
 	// ResourceVersion must be set for update
 	if objToUpdate.ResourceVersion == "" {
-		current, err := group.client.baseClient.
-		{{$node.GroupTypeName}}().
-		{{$node.GroupResourceNameTitle}}().Get(ctx, objToUpdate.GetName(), metav1.GetOptions{})
-		if err != nil {
-			return nil, err
+		retryCount := 12
+		for {
+			current, err := group.client.baseClient.
+			{{$node.GroupTypeName}}().
+			{{$node.GroupResourceNameTitle}}().Get(ctx, objToUpdate.GetName(), metav1.GetOptions{})
+			if err != nil {
+				if errors.IsTimeout(err) {
+					if retryCount == 0 {
+						return nil, err
+					}
+					retryCount-=1
+					time.Sleep(5 * time.Second)
+				}else {
+					return nil, err
+				}
+			}
+			objToUpdate.ResourceVersion = current.ResourceVersion
 		}
-		objToUpdate.ResourceVersion = current.ResourceVersion
 	}
 
 	var patch Patch
