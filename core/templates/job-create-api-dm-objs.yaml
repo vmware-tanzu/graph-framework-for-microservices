@@ -1,8 +1,9 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
+  # insecure-skip-tls-verify: true is added as the apiserver is internally exposed between microservices
   name: nexus-dmb-kubeconfig-api-gw
-  namespace: {{.Values.global.namespace}}
+  namespace: {{ default  .Release.Namespace .Values.global.namespace }}
 data:
   config: |
     current-context: api-gw
@@ -23,9 +24,8 @@ apiVersion: batch/v1
 kind: Job
 metadata:
   name: nexus-api-dm-obj-installer
-  namespace: {{.Values.global.namespace}}
+  namespace: {{ default  .Release.Namespace .Values.global.namespace }}
 spec:
-  ttlSecondsAfterFinished: 600
   template:
     metadata:
       annotations:
@@ -118,7 +118,7 @@ spec:
                 kubectl -s nexus-apiserver:8080 apply -f /tmp/object
               fi
               echo 'waiting for api-gw to be ready'
-              until $(curl --output /dev/null --silent --head --fail http://nexus-api-gw/readyz); do
+              until $(curl -k --output /dev/null --silent --head --fail $SERVER); do
                 echo '.'
                 sleep 5
               done
@@ -178,6 +178,19 @@ spec:
               create_object /tmp/object
               fi
 
+              if ! kubectl get runtimes.runtime.nexus.vmware.com -l nexus/display_name=default -o=jsonpath='{.items[0]}' > /dev/null 2>&1 ; then
+                echo 'creating Runtime node'
+                cat > /tmp/object <<EOF
+                apiVersion: runtime.nexus.vmware.com/v1
+                kind: Runtime
+                metadata:
+                  name: default
+                  labels:
+                    nexuses.api.nexus.vmware.com: default
+              EOF
+              create_object /tmp/object
+              fi
+
               if ! kubectl get connects.connect.nexus.vmware.com -l nexus/display_name=default -o=jsonpath='{.items[0]}' > /dev/null 2>&1 ; then
                 echo 'creating Connect node'
                 cat > /tmp/object <<EOF
@@ -205,11 +218,11 @@ spec:
               EOF
               create_object /tmp/object
               fi
-
-
           env:
             - name: KUBECONFIG
               value: /kube/config
+            - name: SERVER
+              value: "http://nexus-api-gw/readyz"
           volumeMounts:
             - mountPath: /kube
               name: kubeconfig

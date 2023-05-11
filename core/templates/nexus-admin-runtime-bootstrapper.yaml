@@ -4,7 +4,6 @@ kind: Job
 metadata:
   name: nexus-admin-runtime-bootstrapper
 spec:
-  ttlSecondsAfterFinished: 600
   template:
     metadata:
       annotations:
@@ -110,7 +109,7 @@ spec:
                     value: {{.Values.global.jwtClaimValue}}
                   upstream:
                     scheme: http
-                    host: nexus-api-gw.{{.Values.global.namespace}}
+                    host: nexus-api-gw.{{ default  .Release.Namespace .Values.global.namespace }}
                     port: 80
               EOF
               fi

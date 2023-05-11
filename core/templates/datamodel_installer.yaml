@@ -2,7 +2,9 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: dmi-kubeconfig
-  namespace: {{.Values.global.namespace}}
+  #Added this change to support both passing global.namespace also use Release namespace if not passed
+  #insecure-skip-tls-verify: true is added as the apiserver is internally exposed between microservices
+  namespace: {{ default  .Release.Namespace .Values.global.namespace }}
 data:
   kubeconfig: |
     current-context: nexus-api-server
@@ -23,11 +25,19 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: dmi-script
-  namespace: {{.Values.global.namespace}}
+  namespace: {{ default  .Release.Namespace .Values.global.namespace }}
 data:
+  patch_graphql_server.sh: |
+      set -ex
+      DATAMODEL_IMAGE=${IMAGE}
+      if  test -f /build/server; then
+              echo "Datamodel IMAGE: $DATAMODEL_IMAGE"
+              kubectl get cm nexus-graphql-server-deployment -n {{ default  .Release.Namespace .Values.global.namespace }} -o yaml | sed "s|__DATAMODEL_IMAGE__|$DATAMODEL_IMAGE|g" | yq e '.data.["graphqlServer.yaml"]' - | kubectl apply -f -
+      fi
   create_datamodel_cm.sh: |
       set -ex
       NAME=${NAME:-}
+      DATAMODEL_IMAGE=${IMAGE}
       IMAGE="file://${NAME}"
       TITLE=${TITLE:-}
       SKIP_CRD_INSTALLATION=${SKIP_CRD_INSTALLATION:-false}
@@ -40,15 +50,8 @@ data:
           NAME=$(cat /NAME)
           IMAGE=$(cat /IMAGE)
           [[ $GRAPHQL_PATH != NA ]] && GRAPHQL_ENABLED=true
-          if test -f /build/graphql.so; then
+          if  test -f /build/server; then
               GRAPHQL_ENABLED=true
-              if [[ $GRAPHQL_PATH == NA ]]; then
-                  if curl --retry 10 --max-time 10  -T /build/graphql.so http://nexus-nginx/datamodel/plugin ; then
-                      GRAPHQL_PATH="http://nexus-nginx/datamodel/plugin"
-                  else
-                      exit 1
-                  fi
-              fi
           fi
       fi
       ### We will create datamodel object
@@ -63,8 +66,7 @@ data:
               name: '"$NAME"'
               url: '"$IMAGE"'
               title: '"$TITLE"'
-              enableGraphql: '"$GRAPHQL_ENABLED"'
-              graphqlPath: '"$GRAPHQL_PATH"'' | kubectl apply -f -
+              enableGraphql: '"$GRAPHQL_ENABLED"'' | kubectl apply -f -
         else
           echo '
           apiVersion: nexus.vmware.com/v1
@@ -74,8 +76,7 @@ data:
           spec:
             name: '"$NAME"'
             url: '"$IMAGE"'
-            enableGraphql: '"$GRAPHQL_ENABLED"'
-            graphqlPath: '"$GRAPHQL_PATH"'' | kubectl apply -f -
+            enableGraphql: '"$GRAPHQL_ENABLED"'' | kubectl apply -f -
         fi
       fi
 ---
@@ -83,7 +84,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: datamodel-job-spec
-  namespace: {{.Values.global.namespace}}
+  namespace: {{ default  .Release.Namespace .Values.global.namespace }}
 data:
     jobSpec.yaml: |
       ---
@@ -154,6 +155,20 @@ data:
                       readOnly: false
                     - mountPath: /etc/config
                       name: dmi-kubeconfig
+                      readOnly: false
+                - command:
+                    - /bin/bash
+                    - -c
+                    - opt/datamodel-installer-job-cm/patch_graphql_server.sh
+                  env:
+                    - name: IMAGE
+                      value: {{`{{.DatamodelInstaller.Image}}`}}
+                  image: {{`{{.DatamodelInstaller.Image}}`}}
+                  imagePullPolicy: IfNotPresent
+                  name: datamodel-installer-job-graphql-patch
+                  volumeMounts:
+                    - mountPath: /opt/datamodel-installer-job-cm/
+                      name: dmi-script
                       readOnly: false
               restartPolicy: Never
               volumes:
