@@ -16,6 +16,7 @@ import (
 	"context"
 	"encoding/json"
 	"sync"
+	"fmt"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	types "k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/rest"
@@ -71,6 +72,7 @@ func (c *Clientset) UnsubscribeAll() {
 		return true
 	})
 }
+
 // NewForConfig returns Client which can be which can be used to connect to database
 func NewForConfig(config *rest.Config) (*Clientset, error) {
 	baseClient, err := baseClientset.NewForConfig(config)
@@ -828,6 +830,123 @@ func (c *{{$node.GroupResourceType}}Chainer) IsSubscribed() bool {
 	key := "{{$node.CrdName}}"
 	 _, ok := subscriptionMap.Load(key)
 	 return ok
+}
+
+func (c *{{$node.GroupResourceType}}Chainer) NotifyOnAdd(cbfn func(obj interface{})) {
+	fmt.Println("{{$node.SimpleGroupTypeName}}{{$node.BaseNodeName}} -->  NotifyOnAdd!")
+	stopper := make(chan struct{})
+	informer := {{$node.GroupInformerImport}}.New{{$node.BaseNodeName}}Informer(c.client.baseClient, 0, cache.Indexers{})
+	informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
+		AddFunc: cbfn,
+	})
+	go informer.Run(stopper)
+}
+
+func (c *{{$node.GroupResourceType}}Chainer) NotifyOnUpdate(cbfn func(oldObj interface{}, newObj interface{})) {
+	fmt.Println("{{$node.SimpleGroupTypeName}}{{$node.BaseNodeName}} -->  NotifyOnUpdate!")
+	stopper := make(chan struct{})
+	informer := {{$node.GroupInformerImport}}.New{{$node.BaseNodeName}}Informer(c.client.baseClient, 0, cache.Indexers{})
+	informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
+		UpdateFunc: cbfn,
+	})
+	go informer.Run(stopper)
+}
+
+func (c *{{$node.GroupResourceType}}Chainer) NotifyOnDelete(cbfn func(obj interface{})) {
+	fmt.Println("{{$node.SimpleGroupTypeName}}{{$node.BaseNodeName}} --> NotifyOnDelete!")
+	stopper := make(chan struct{})
+	informer := {{$node.GroupInformerImport}}.New{{$node.BaseNodeName}}Informer(c.client.baseClient, 0, cache.Indexers{})
+	informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
+		DeleteFunc: cbfn,
+	})
+	go informer.Run(stopper)
+}
+
+func (c *{{$node.GroupResourceType}}Chainer) RegisterAddCallback(cbfn func(obj *{{$node.GroupBaseImport}})) (cache.ResourceEventHandlerRegistration, error){
+	fmt.Println("{{$node.SimpleGroupTypeName}}{{$node.BaseNodeName}} -->  RegisterAddCallback!")
+	var (
+		registrationId cache.ResourceEventHandlerRegistration
+		err error
+	)
+	key := "{{$node.CrdName}}"
+	stopper := make(chan struct{})
+	if s, ok := subscriptionMap.Load(key); ok {
+		fmt.Println("[{{$node.SimpleGroupTypeName}}{{$node.BaseNodeName}}] ---SUBSCRIBE-INFORMER---->")
+        sub := s.(subscription)
+        registrationId,err = sub.informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
+            AddFunc: func(obj interface{}){
+                cbfn(obj.(*{{$node.GroupBaseImport}}))
+            },
+        })
+    } else {
+		fmt.Println("[{{$node.SimpleGroupTypeName}}{{$node.BaseNodeName}}] ---NEW-INFORMER---->")
+		informer := {{$node.GroupInformerImport}}.New{{$node.BaseNodeName}}Informer(c.client.baseClient, 0, cache.Indexers{})
+		registrationId,err = informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
+            AddFunc: func(obj interface{}){
+                cbfn(obj.(*{{$node.GroupBaseImport}}))
+            },
+		})
+		go informer.Run(stopper)
+	}
+	return registrationId,err
+}
+
+func (c *{{$node.GroupResourceType}}Chainer) RegisterUpdateCallback(cbfn func(oldObj,newObj *{{$node.GroupBaseImport}})) (cache.ResourceEventHandlerRegistration, error){
+	fmt.Println("{{$node.SimpleGroupTypeName}}{{$node.BaseNodeName}} -->  RegisterUpdateCallback!")
+	var (
+		registrationId cache.ResourceEventHandlerRegistration
+		err error
+	)
+	key := "{{$node.CrdName}}"
+	stopper := make(chan struct{})
+	if s, ok := subscriptionMap.Load(key); ok {
+		fmt.Println("[{{$node.SimpleGroupTypeName}}{{$node.BaseNodeName}}] ---SUBSCRIBE-INFORMER---->")
+        sub := s.(subscription)
+        registrationId,err = sub.informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
+            UpdateFunc: func(oldObj,newObj interface{}){
+                cbfn(oldObj.(*{{$node.GroupBaseImport}}),newObj.(*{{$node.GroupBaseImport}}))
+            },
+        })
+    } else {
+		fmt.Println("[{{$node.SimpleGroupTypeName}}{{$node.BaseNodeName}}] ---NEW-INFORMER---->")
+		informer := {{$node.GroupInformerImport}}.New{{$node.BaseNodeName}}Informer(c.client.baseClient, 0, cache.Indexers{})
+		registrationId,err = informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
+            UpdateFunc: func(oldObj,newObj interface{}){
+                cbfn(oldObj.(*{{$node.GroupBaseImport}}),newObj.(*{{$node.GroupBaseImport}}))
+            },
+        })
+		go informer.Run(stopper)
+	}
+	return registrationId,err
+}
+
+func (c *{{$node.GroupResourceType}}Chainer) RegisterDeleteCallback(cbfn func(obj *{{$node.GroupBaseImport}})) (cache.ResourceEventHandlerRegistration, error){
+	fmt.Println("{{$node.SimpleGroupTypeName}}{{$node.BaseNodeName}} -->  RegisterDeleteCallback!")
+	var (
+		registrationId cache.ResourceEventHandlerRegistration
+		err error
+	)
+	key := "{{$node.CrdName}}"
+	stopper := make(chan struct{})
+	if s, ok := subscriptionMap.Load(key); ok {
+        fmt.Println("[{{$node.SimpleGroupTypeName}}{{$node.BaseNodeName}}] ---SUBSCRIBE-INFORMER---->")
+        sub := s.(subscription)
+        registrationId,err = sub.informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
+            DeleteFunc: func(obj interface{}){
+                cbfn(obj.(*{{$node.GroupBaseImport}}))
+			},
+        })
+    } else {
+		fmt.Println("[{{$node.SimpleGroupTypeName}}{{$node.BaseNodeName}}] ---NEW-INFORMER---->")
+		informer := {{$node.GroupInformerImport}}.New{{$node.BaseNodeName}}Informer(c.client.baseClient, 0, cache.Indexers{})
+		registrationId,err = informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
+            DeleteFunc: func(obj interface{}){
+                cbfn(obj.(*{{$node.GroupBaseImport}}))
+			},
+		})
+		go informer.Run(stopper)
+	}
+	return registrationId,err
 }
 
 {{if .HasStatus}}

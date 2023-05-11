@@ -183,18 +183,6 @@ func (g *Generator) resolveRefsForPackage(pkg string) error {
 	}
 
 	fmt.Printf("Resolving refs for %v\n", pkg)
-	// We are forcing camelCase in all field names for consistency
-	for property, propSchema := range pkgSchema.schema.Properties {
-		if strings.Contains(property, "_") {
-			pkgSchema.schema.Properties[convertToCamelCase(property)] = propSchema
-			delete(pkgSchema.schema.Properties, property)
-		}
-		toReplace := make([]string, len(pkgSchema.schema.Required))
-		for i, required := range pkgSchema.schema.Required {
-			toReplace[i] = convertToCamelCase(required)
-		}
-		pkgSchema.schema.Required = toReplace
-	}
 
 	g.resolveRefsInProperty(pkgSchema.schema)
 	g.resolveRefsInProperties(pkgSchema.schema)
@@ -227,6 +215,14 @@ func (g *Generator) addKubernetesExtensionsFlags(schema *extensionsv1.JSONSchema
 		t := true
 		schema.XPreserveUnknownFields = &t
 	}
+	// any is an alias for struct{}
+	// - x-kubernetes-preserve-unknown-fields: true
+	if schema.Title == "any" {
+		t := true
+		schema.XPreserveUnknownFields = &t
+		schema.Title = "" // reset Title
+	}
+
 	if len(schema.AnyOf) > 0 {
 		schema.XIntOrString = true
 	}
