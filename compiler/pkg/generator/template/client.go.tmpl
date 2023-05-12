@@ -299,21 +299,7 @@ func (group *{{$node.GroupTypeName}}) Create{{$node.BaseNodeName}}ByName(ctx con
 
 	{{ range $key, $link := .LinksAndChildren }}objToCreate.Spec.{{$link.FieldName}}Gvk = nil
 	{{ end }}
-	result, err := group.client.baseClient.
-	{{$node.GroupTypeName}}().
-	{{$node.GroupResourceNameTitle}}().Create(ctx, objToCreate, metav1.CreateOptions{})
-	if err != nil {
-		return nil, err
-	}
 
-	{{if .Parent.HasParent}}
-	parentName, ok := objToCreate.GetLabels()["{{$node.Parent.CrdName}}"]
-	if !ok {
-		parentName = helper.DEFAULT_KEY
-	}
-	if objToCreate.Labels[common.IS_NAME_HASHED_LABEL] == "true" {
-		parentName = helper.GetHashedName("{{$node.Parent.CrdName}}", objToCreate.GetLabels(), parentName)
-	}
 	{{if .Parent.IsNamed}}
 	payload := "{\"spec\": {\"{{$node.Parent.GvkFieldName}}\": {\"" + objToCreate.DisplayName() + "\": {\"name\": \"" + objToCreate.Name + "\",\"kind\": \"{{$node.Kind}}\", \"group\": \"{{$node.Group}}\"}}}}"
 	_, err = group.client.baseClient.
@@ -338,13 +324,35 @@ func (group *{{$node.GroupTypeName}}) Create{{$node.BaseNodeName}}ByName(ctx con
 	if err != nil {
 		return nil, err
 	}
+	{{ end }}
+	result, err := group.client.baseClient.
+	{{$node.GroupTypeName}}().
+	{{$node.GroupResourceNameTitle}}().Create(ctx, objToCreate, metav1.CreateOptions{})
+	if err != nil {
+		return nil, err
+	}
+
+	{{if .Parent.HasParent}}
+	parentName, ok := objToCreate.GetLabels()["{{$node.Parent.CrdName}}"]
+	if !ok {
+		parentName = helper.DEFAULT_KEY
+	}
+	if objToCreate.Labels[common.IS_NAME_HASHED_LABEL] == "true" {
+		parentName = helper.GetHashedName("{{$node.Parent.CrdName}}", objToCreate.GetLabels(), parentName)
+	}
+
 	_, err = group.client.baseClient.
 	{{$node.Parent.GroupTypeName}}().
 	{{$node.Parent.GroupResourceNameTitle}}().Patch(ctx, parentName, types.JSONPatchType, marshaled, metav1.PatchOptions{})
 	if err != nil {
+		err = group.client.baseClient.
+		{{$node.GroupTypeName}}().
+		{{$node.GroupResourceNameTitle}}().Delete(ctx, objToCreate.Name, metav1.DeleteOptions{})
+		if err != nil {
+			return nil, derr
+		}
 		return nil, err
 	}
-	{{ end }}
 	{{ end }}
 
 	return &{{$node.SimpleGroupTypeName}}{{$node.BaseNodeName}}{
