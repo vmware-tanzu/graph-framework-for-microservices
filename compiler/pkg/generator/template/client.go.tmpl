@@ -23,6 +23,7 @@ import (
 	types "k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/rest"
 	cache "k8s.io/client-go/tools/cache"
+	"github.com/sirupsen/logrus"
 
 {{.HelperImport}}
 {{.CommonImport}}
@@ -32,6 +33,8 @@ fakeBaseClienset {{.FakeBaseCliensetImport}}
 {{.BaseImports}}
 {{.InformerImports}}
 )
+
+var log = logrus.New()
 
 type Clientset struct {
 	baseClient baseClientset.Interface
@@ -142,17 +145,27 @@ func (group *{{$node.GroupTypeName}}) Get{{$node.BaseNodeName}}ByName(ctx contex
 			{{$node.BaseNodeName}}: result,
 		}, nil
 	}else{
-		result, err := group.client.baseClient.
-		{{$node.GroupTypeName}}().
-		{{$node.GroupResourceNameTitle}}().Get(ctx, hashedName, metav1.GetOptions{})
-		if err != nil {
-			return nil, err
+		retryCount := 12
+		for {
+			result, err := group.client.baseClient.
+			{{$node.GroupTypeName}}().
+			{{$node.GroupResourceNameTitle}}().Get(ctx, hashedName, metav1.GetOptions{})
+			if err != nil {
+				if errors.IsTimeout(err) {
+					if retryCount == 0 {
+						return nil, err
+					}
+					retryCount-=1
+					time.Sleep(5 * time.Second)
+				}else {
+					return nil, err
+				}
+			}
+			return &{{$node.SimpleGroupTypeName}}{{$node.BaseNodeName}}{
+				client: group.client,
+				{{$node.BaseNodeName}}: result,
+			}, nil
 		}
-
-		return &{{$node.SimpleGroupTypeName}}{{$node.BaseNodeName}}{
-			client: group.client,
-			{{$node.BaseNodeName}}: result,
-		}, nil
 	}
 }
 
