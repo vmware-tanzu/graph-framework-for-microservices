@@ -21,29 +21,6 @@ type Server struct {
 	InSecure   bool   `json:"in_secure"`
 }
 
-/*
-curl -X 'POST' \
-  'https://console-stg.cloud.vmware.com/csp/gateway/am/api/auth/api-tokens/authorize' \
-  -H 'accept: application/json' \
-  -H 'Authorization: Basic LU5sA2IOTtVvRtF0NBB2tIl2QxuUB2c0EDXcWC5nRq2OuSk0hZ58zpaO9KsYjGmx' \
-  -H 'Content-Type: application/x-www-form-urlencoded' \
-  -d 'api_token=&passcode=&refresh_token=8R9ZiBscnPQRSx7V9sjoSLy4ktXeH8iRIJKS9rLc5oFE4KMBdw0G2rXFNTvqAl1Y'
-
-
-  curl -X 'POST'   'https://console-stg.cloud.vmware.com/csp/gateway/am/api/auth/api-tokens/authorize'   -H 'accept: application/json'   -H 'Content-Type: application/x-www-form-urlencoded'   -d 'api_token=&passcode=&refresh_token=8R9ZiBscnPQRSx7V9sjoSLy4ktXeH8iRIJKS9rLc5oFE4KMBdw0G2rXFNTvqAl1Y'
-
-
-
-curl -v 'https://staging-1.servicemesh.biz/tsm/v1alpha1/certificates' --header "csp-auth-token: $TOKEN"
-
-Step 1; From API token, get csp auth token
-
-Step 2: store response in a file
-
-Step 3: Read from file and use csp-auth-token
-
-*/
-
 var (
 	tokenFile  string = ".servicemesh.config"
 	serverFile string = ".servicemesh.server"
