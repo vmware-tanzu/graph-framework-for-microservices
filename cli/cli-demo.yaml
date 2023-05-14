@@ -1,0 +1,601 @@
+apiVersion: gns.tsm.vmware.com/v1
+kind: GlobalNamespace
+metadata:
+  labels:
+    projectId: default
+  name : cli-demo
+spec:
+  domain_name: cli-demo.lab 
+  name: cli-demo
+  use_shared_gateway: true
+  ca: default
+  ca_type: PreExistingCA
+  match_conditions:
+  - namespace:
+      match: default
+      type: EXACT
+    cluster:
+      match: sdk-clnt
+      type: EXACT
+  api_discovery_enabled: true
+---
+apiVersion: templates.tsm.vmware.com/v1
+kind: HealthCheck
+metadata:
+  labels:
+    projectId: default
+  name : health-cli-demo
+spec:
+  name: health-cli-demo 
+  protocol: HTTP
+  domain: cli-demo.tanzu-sm.net
+  port: 3000
+  path: "/"
+  healthThreshold: 3
+  certificate_id: ''
+  external_port: 80
+  interval: 10
+---
+apiVersion: externalaccounts.tsm.vmware.com/v1
+kind: ExternalAccount
+metadata:
+  name: aws-cli-demo
+spec:
+  name: aws-cli-demo
+  description: ""
+  provider: AWS
+  provider_url: "PROVIDERURL"
+  authentication_type: "TOKEN"
+  authentication:
+    auth_password:
+      username: ""
+      password: ""
+      tenantname: ""
+    auth_token:
+      access_key: ""
+      secret_access_key: ""
+      session_token: ""
+    auth_secret: ""
+  insecure: false
+  certificate_id: ""
+---
+apiVersion: externaldns.tsm.vmware.com/v1
+kind: ExternalDNS
+metadata:
+  name : dns-cli-demo
+spec:
+  name: dns-cli-demo
+  description: ""
+  infrastructure_account_id: aws-cli-demo
+  dns_type: GLOBAL
+  dns_region: "us-west-2"
+  enabled_for_projects: []
+---
+apiVersion: gns.tsm.vmware.com/v1
+kind: PublicService
+metadata:
+  labels:
+    projectId: default
+    gnsId: cli-demo
+  name : cli-demo.tanzu-sm.net
+spec:
+  fqdn: cli-demo.tanzu-sm.net
+  name: ''
+  external_port: 80
+  external_protocol: HTTP
+  ttl: 300
+  public_domain:
+    external_dns_id: dns-cli-demo
+    primary_domain: tanzu-sm.net
+    sub_domain: cli-demo
+    certificate_id: ''
+  ha_policy: ''
+  gslb:
+    type: ROUND_ROBIN
+  wildcard_certificate_id: ''
+  healthcheck_ids:
+  - health-cli-demo
+---
+apiVersion: gns.tsm.vmware.com/v1
+kind: PublicServiceRoute
+metadata:
+  labels:
+    projectId: default
+    gnsId: cli-demo
+    fqdn: cli-demo.tanzu-sm.net
+  name : shopping.3000
+spec:
+  paths:
+  - "/"
+  target: shopping
+  target_port: 3000
+---
+apiVersion: gns.tsm.vmware.com/v1
+kind: ApiDiscovery
+metadata:
+  labels:
+    projectId: default
+    gnsId: cli-demo
+  name : apidisc
+spec:
+  selectors:
+    services:
+    - "*"
+    all_services: true
+    all_public_services: true
+  application:
+  - mime_config: {}
+    use_default_response_codes_whitelist: 'true'
+---
+apiVersion: gns.tsm.vmware.com/v1
+kind: PiiDiscovery
+metadata:
+  labels:
+    projectId: default
+    gnsId: cli-demo
+  name : datadisc
+spec:
+  selectors:
+    services:
+    - "*"
+    all_services: true
+    all_public_services: true
+  application:
+  - rule:
+      enable_offline: 'true'
+      dlp_config:
+        matching_policy:
+          pattern_groups:
+          - Default
+          - US PII Data
+          - PCI DSS
+          - Default
+          - US SSN Confidentiality Law
+      mime_config: {}
+---
+apiVersion: gns.tsm.vmware.com/v1
+kind: GNSServiceGroup
+metadata:
+  labels:
+    projectId: default
+    gnsId: cli-demo
+  name: sg-catalog
+spec:
+  id: sg-catalog
+  display_name: sg-catalog
+  rules:
+    fn: OR
+    match:
+    - fn: EXACT
+      key: name
+      type: NAME
+      value: catalog
+    rules: []
+  description: ''
+  color: ''
+  ---
+apiVersion: gns.tsm.vmware.com/v1
+kind: GNSServiceGroup
+metadata:
+  labels:
+    projectId: default
+    gnsId: cli-demo
+  name: sg-shopping
+spec:
+  id: sg-shopping
+  display_name: sg-shopping
+  rules:
+    fn: OR
+    match:
+    - fn: EXACT
+      key: name
+      type: NAME
+      value: shopping
+    rules: []
+  description: ''
+  color: ''
+---
+apiVersion: gns.tsm.vmware.com/v1
+kind: GNSServiceGroup
+metadata:
+  labels:
+    projectId: default
+    gnsId: cli-demo
+  name: sg-order
+spec:
+  id: sg-order
+  display_name: sg-order
+  rules:
+    fn: OR
+    match:
+    - fn: EXACT
+      key: name
+      type: NAME
+      value: order
+    rules: []
+  description: ''
+  color: ''
+  ---
+apiVersion: gns.tsm.vmware.com/v1
+kind: GNSServiceGroup
+metadata:
+  labels:
+    projectId: default
+    gnsId: cli-demo
+  name: sg-order-mongo
+spec:
+  id: sg-order-mongo
+  display_name: sg-order-mongo
+  rules:
+    fn: OR
+    match:
+    - fn: EXACT
+      key: name
+      type: NAME
+      value: order-mongo
+    rules: []
+  description: ''
+  color: ''
+  ---
+apiVersion: gns.tsm.vmware.com/v1
+kind: GNSServiceGroup
+metadata:
+  labels:
+    projectId: default
+    gnsId: cli-demo
+  name: sg-users
+spec:
+  id: sg-users
+  display_name: sg-users
+  rules:
+    fn: OR
+    match:
+    - fn: EXACT
+      key: name
+      type: NAME
+      value: users
+    rules: []
+  description: ''
+  color: ''
+  ---
+apiVersion: gns.tsm.vmware.com/v1
+kind: GNSServiceGroup
+metadata:
+  labels:
+    projectId: default
+    gnsId: cli-demo
+  name: sg-users-mongo
+spec:
+  id: sg-users-mongo
+  display_name: sg-users-mongo
+  rules:
+    fn: OR
+    match:
+    - fn: EXACT
+      key: name
+      type: NAME
+      value: users-mongo
+    rules: []
+  description: ''
+  color: ''
+  ---
+apiVersion: gns.tsm.vmware.com/v1
+kind: GNSServiceGroup
+metadata:
+  labels:
+    projectId: default
+    gnsId: cli-demo
+  name: sg-cart
+spec:
+  id: sg-cart
+  display_name: sg-cart
+  rules:
+    fn: OR
+    match:
+    - fn: EXACT
+      key: name
+      type: NAME
+      value: cart
+    rules: []
+  description: ''
+  color: ''
+  ---
+apiVersion: gns.tsm.vmware.com/v1
+kind: GNSServiceGroup
+metadata:
+  labels:
+    projectId: default
+    gnsId: cli-demo
+  name: sg-payment
+spec:
+  id: sg-payment
+  display_name: sg-payment
+  rules:
+    fn: OR
+    match:
+    - fn: EXACT
+      key: name
+      type: NAME
+      value: payment
+    rules: []
+  description: ''
+  color: ''
+---
+apiVersion: gns.tsm.vmware.com/v1
+kind: GNSServiceGroup
+metadata:
+  labels:
+    projectId: default
+    gnsId: cli-demo
+  name: sg-catalog-mongo
+spec:
+  id: sg-catalog
+  display_name: sg-catalog-mongo
+  rules:
+    fn: OR
+    match:
+    - fn: EXACT
+      key: name
+      type: NAME
+      value: catalog-mongo
+    rules: []
+  description: ''
+  color: ''
+---
+apiVersion: gns.tsm.vmware.com/v1
+kind: GNSServiceGroup
+metadata:
+  labels:
+    projectId: default
+    gnsId: cli-demo
+  name: sg-cart-redis
+spec:
+  id: sg-catalog
+  display_name: sg-cart-redis
+  rules:
+    fn: OR
+    match:
+    - fn: EXACT
+      key: name
+      type: NAME
+      value: cart-redis
+    rules: []
+  description: ''
+  color: ''
+---
+apiVersion: gns.tsm.vmware.com/v1
+kind: GNSServiceGroup
+metadata:
+  labels:
+    projectId: default
+    gnsId: cli-demo
+  name: sg-user-redis
+spec:
+  id: sg-catalog
+  display_name: sg-user-redis
+  rules:
+    fn: OR
+    match:
+    - fn: EXACT
+      key: name
+      type: NAME
+      value: user-redis
+    rules: []
+  description: ''
+  color: ''
+---
+apiVersion: gns.tsm.vmware.com/v1
+kind: AccessControlPolicy
+metadata:
+  labels:
+    projectId: default
+    gnsId: cli-demo
+  name: allow-shopping-catalog
+spec:
+  destination:
+    service_group:
+    - name: sg-catalog
+  source: 
+    service_group:
+    - name: sg-shopping
+  action: ALLOW
+  match:
+  - {}
+---
+apiVersion: gns.tsm.vmware.com/v1
+kind: AccessControlPolicy
+metadata:
+  labels:
+    projectId: default
+    gnsId: cli-demo
+  name: allow-shopping-users
+spec:
+  destination:
+    service_group:
+    - name: sg-users
+  source:
+    service_group:
+    - name: sg-shopping
+  action: ALLOW
+  match:
+  - {}
+---
+apiVersion: gns.tsm.vmware.com/v1
+kind: AccessControlPolicy
+metadata:
+  labels:
+    projectId: default
+    gnsId: cli-demo
+  name: allow-shopping-order
+spec:
+  destination:
+    service_group:
+    - name: sg-order
+  source:
+    service_group:
+    - name: sg-shopping
+  action: ALLOW
+  match:
+  - {}
+---  
+apiVersion: gns.tsm.vmware.com/v1
+kind: AccessControlPolicy
+metadata:
+  labels:
+    projectId: default
+    gnsId: cli-demo
+  name: allow-shopping-cart
+spec:
+  destination:
+    service_group:
+    - name: sg-cart
+  source:
+    service_group:
+    - name: sg-shopping
+  action: ALLOW
+  match:
+  - {}
+---
+apiVersion: gns.tsm.vmware.com/v1
+kind: AccessControlPolicy
+metadata:
+  labels:
+    projectId: default
+    gnsId: cli-demo
+  name: allow-order-ordermongo
+spec:
+  destination:
+    service_group:
+    - name: sg-order-mongo
+  source:
+    service_group:
+    - name: sg-order
+  action: ALLOW
+  match:
+  - {}
+---
+apiVersion: gns.tsm.vmware.com/v1
+kind: AccessControlPolicy
+metadata:
+  labels:
+    projectId: default
+    gnsId: cli-demo
+  name: allow-order-payment
+spec:
+  destination:
+    service_group:
+    - name: sg-payment
+  source:
+    service_group:
+    - name: sg-order
+  action: ALLOW
+  match:
+  - {}
+---
+apiVersion: gns.tsm.vmware.com/v1
+kind: AccessControlPolicy
+metadata:
+  labels:
+    projectId: default
+    gnsId: cli-demo
+  name: allow-catalog-catalogmongo
+spec:
+  destination:
+    service_group:
+    - name: sg-catalog-mongo
+  source:
+    service_group:
+    - name: sg-catalog
+  action: ALLOW
+  match:
+  - {}
+---
+apiVersion: gns.tsm.vmware.com/v1
+kind: AccessControlPolicy
+metadata:
+  labels:
+    projectId: default
+    gnsId: cli-demo
+  name: allow-users-usersmongo
+spec:
+  destination:
+    service_group:
+    - name: sg-users-mongo
+  source:
+    service_group:
+    - name: sg-users
+  action: ALLOW
+  match:
+  - {}
+---
+apiVersion: gns.tsm.vmware.com/v1
+kind: AccessControlPolicy
+metadata:
+  labels:
+    projectId: default
+    gnsId: cli-demo
+  name: allow-cart-cartredis
+spec:
+  destination:
+    service_group:
+    - name: sg-cart-redis
+  source:
+    service_group:
+    - name: sg-cart
+  action: ALLOW
+  match:
+  - {}
+---
+apiVersion: gns.tsm.vmware.com/v1
+kind: AccessControlPolicy
+metadata:
+  labels:
+    projectId: default
+    gnsId: cli-demo
+  name: allow-users-userredis
+spec:
+  destination:
+    service_group:
+    - name: sg-user-redis
+  source:
+    service_group:
+    - name: sg-users
+  action: ALLOW
+  match:
+  - {}
+---
+apiVersion: gns.tsm.vmware.com/v1
+kind: AccessControlPolicy
+metadata:
+  labels:
+    projectId: default
+    gnsId: cli-demo
+  name: allow-cart-users
+spec:
+  destination:
+    service_group:
+    - name: sg-users
+  source:
+    service_group:
+    - name: sg-cart
+  action: ALLOW
+  match:
+  - {}
+---
+apiVersion: gns.tsm.vmware.com/v1
+kind: AccessControlPolicy
+metadata:
+  labels:
+    projectId: default
+    gnsId: cli-demo
+  name: allow-payment-users
+spec:
+  destination:
+    service_group:
+    - name: sg-users
+  source:
+    service_group:
+    - name: sg-payment
+  action: ALLOW
+  match:
+  - {}
