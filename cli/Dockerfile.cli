@@ -1,0 +1,5 @@
+FROM gcr.io/nsx-sm/photon:4.0
+
+COPY ./artifacts/nexus/nexus-linux_amd64  /usr/local/bin/nexus
+COPY ./artifacts/nexus/nexus-linux_amd64  /nexus/linux/nexus
+COPY ./artifacts/nexus/nexus-darwin_amd64  /nexus/darwin/nexus
