@@ -1,0 +1,10 @@
+- name: nexusCli
+  repoName: git@gitlab.eng.vmware.com:nsx-allspark_users/nexus-sdk/cli.git
+- name: nexusAppTemplates
+  repoName: git@gitlab.eng.vmware.com:nsx-allspark_users/nexus-sdk/app-templates.git
+- name: nexusDatamodelTemplates
+  repoName: git@gitlab.eng.vmware.com:nsx-allspark_users/nexus-sdk/datamodel-templates.git
+- name: nexusCompiler
+  repoName: git@gitlab.eng.vmware.com:nsx-allspark_users/nexus-sdk/compiler.git
+- name: nexusValidation
+  repoName: git@gitlab.eng.vmware.com:nsx-allspark_users/nexus-sdk/nexus-validation.git
