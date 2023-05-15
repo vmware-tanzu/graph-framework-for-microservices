@@ -1,0 +1,67 @@
+#  Copyright 2020 The Kubernetes Authors.
+#
+#  Licensed under the Apache License, Version 2.0 (the "License");
+#  you may not use this file except in compliance with the License.
+#  You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+#  Unless required by applicable law or agreed to in writing, software
+#  distributed under the License is distributed on an "AS IS" BASIS,
+#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#  See the License for the specific language governing permissions and
+#  limitations under the License.
+
+# This is a GoReleaser configuration file for Kubebuilder release.
+# Make sure to check the documentation at http://goreleaser.com
+
+# Global environment variables that are needed for hooks and builds.
+env:
+  - GO111MODULE=on
+
+# Hooks to run before any build is run.
+before:
+  hooks:
+    - go mod download
+
+# Build a binary for each target in targets.
+builds:
+  - id: kubebuilder
+    main: ./cmd
+    binary: kubebuilder
+    mod_timestamp: "{{ .CommitTimestamp }}"
+    ldflags:
+      - -X main.kubeBuilderVersion={{ .Version }}
+      - -X main.goos={{ .Os }}
+      - -X main.goarch={{ .Arch }}
+      - -X main.gitCommit={{ .Commit }}
+      - -X main.buildDate={{ .Date }}
+      - -X main.kubernetesVendorVersion={{ .Env.KUBERNETES_VERSION }}
+    targets:
+      - linux_amd64
+      - linux_arm64
+      - linux_ppc64le
+      - darwin_amd64
+      - darwin_arm64
+    env:
+      - KUBERNETES_VERSION=1.23.5
+      - CGO_ENABLED=0
+
+# Only binaries of the form "kubebuilder_${goos}_${goarch}" will be released.
+archives:
+  - format: binary
+    # Setting name_template correctly maps checksums to binary names.
+    name_template: "{{ .Binary }}_{{ .Os }}_{{ .Arch }}{{ if .Arm }}v{{ .Arm }}{{ end }}{{ if .Mips }}_{{ .Mips }}{{ end }}"
+
+# Checksum all binaries.
+checksum:
+  name_template: "checksums.txt"
+
+# kubebuilder uses a custom changelog, so leave this empty.
+changelog:
+
+# github.com/kubernetes-sigs/kubebuilder
+release:
+  github:
+    owner: kubernetes-sigs
+    name: kubebuilder
