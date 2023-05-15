@@ -1,0 +1,16 @@
+componentConfig: true
+domain: tutorial.kubebuilder.io
+layout:
+- go.kubebuilder.io/v3
+projectName: project
+repo: tutorial.kubebuilder.io/project
+resources:
+- api:
+    crdVersion: v1
+    namespaced: true
+  domain: tutorial.kubebuilder.io
+  group: config
+  kind: ProjectConfig
+  path: tutorial.kubebuilder.io/project/api/v2
+  version: v2
+version: "3"

@@ -1,0 +1,6 @@
+apiVersion: config.tutorial.kubebuilder.io/v2
+kind: ProjectConfig
+metadata:
+  name: projectconfig-sample
+spec:
+  # TODO(user): Add fields here
