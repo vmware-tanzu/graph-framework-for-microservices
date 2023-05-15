@@ -1,0 +1,4 @@
+global:
+  registry: "gcr.io/nsx-sm/nexus"
+  graphql:
+    tag: ""
