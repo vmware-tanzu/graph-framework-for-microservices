@@ -1,3 +1,5 @@
+# Removing the nexus proxy for tenant 
+{{- if eq .Values.global.nexusAdmin true }}
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -128,6 +130,12 @@ metadata:
     app: nexus-proxy
 spec:
   ports:
+    {{- if eq .Values.global.useHttps true}}
+    - name: exposehttps
+      port: 443
+      protocol: TCP
+      targetPort: 10001
+    {{- else }}
     - name: exposelb
       port: 80
       protocol: TCP
@@ -136,16 +144,7 @@ spec:
       port: 10000
       protocol: TCP
       targetPort: 10000
-    {{- if eq .Values.global.useHttps true}}
-    - name: exposehttps
-      port: 443
-      protocol: TCP
-      targetPort: 10001
     {{- end }}
-    - name: http-admin
-      port: 19000
-      protocol: TCP
-      targetPort: 19000
   selector:
     app: nexus-proxy
   {{- if eq .Values.global.proxy.loadbalancer true }}
@@ -293,5 +292,6 @@ data:
                 --dry-run -o yaml |
             kubectl -n ${namespace} apply -f -
 ---
+{{- end }}
 {{- end }}
 {{- end }}
