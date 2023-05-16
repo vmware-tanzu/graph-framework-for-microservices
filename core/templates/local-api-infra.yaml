@@ -299,38 +299,8 @@ spec:
         secret:
             secretName: nexus-customapi-ca
 ---
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: nexus-proxy-container
-  namespace: {{ default  .Release.Namespace .Values.global.namespace }} 
-  labels:
-    app: nexus-proxy-container
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      app: nexus-proxy-container
-  template:
-    metadata:
-      labels:
-        app: nexus-proxy-container
-    spec:
-      containers:
-      - name: proxy-container
-        image: "{{.Values.global.registry}}/debugtools:latest"
-        command: [ "kubectl","--server=http://nexus-apiserver:8080","proxy","--address=0.0.0.0","--disable-filter=true","--v=1" ]
-        ports:
-          - containerPort: 8001
-        resources:
-          requests:
-            cpu: 100m
-            memory: 200Mi
-          limits:
-            cpu: 100m
-            memory: 200Mi
-        imagePullPolicy: IfNotPresent
----
+# removing the nexus proxy container deployment and keeping the service as it is
+# retaining this due to the reason that multiple existing jobs refer to proxy container service
 apiVersion: v1
 kind: Service
 metadata:
@@ -341,6 +311,6 @@ spec:
     - protocol: TCP
       name: http
       port: 80
-      targetPort: 8001
+      targetPort: 8080
   selector:
-      app: nexus-proxy-container
+      app: nexus-kube-apiserver
