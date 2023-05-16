@@ -2,7 +2,7 @@
 
 ![SockShop](../images/Playground-5-Relationships.png)
 
-[[Prev]](Playground-SockShop.md) [[Exit]](../../README.md) [[Next]](Playground-SockShop-API.md)
+[[Prev]](Playground-SockShop-Datamodel.md) [[Exit]](../../README.md) [[Next]](Playground-SockShop-API.md)
 
 Lets specify relationship between the different node types in the model.
 
@@ -41,4 +41,4 @@ type Orders struct {
 }
 ```
 
-[[Prev]](Playground-SockShop.md) [[Exit]](../../README.md) [[Next]](Playground-SockShop-API.md)
+[[Prev]](Playground-SockShop-Datamodel.md) [[Exit]](../../README.md) [[Next]](Playground-SockShop-API.md)
