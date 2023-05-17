@@ -102,7 +102,11 @@ spec:
                           type: object
                         type: object
                     type: object
-                  releaseVersionStatus:
+                  previousRelease:
+                    type: string
+                  releaseStatus:
+                    type: string
+                  releaseVersion:
                     type: string
                 type: object
               nexus:
