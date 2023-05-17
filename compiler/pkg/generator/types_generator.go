@@ -75,7 +75,8 @@ func generateCRDStructType(pkg parser.Package, node *ast.TypeSpec) string {
 		log.Fatalf("name of type can't be empty")
 	}
 
-	s.CrdName = fmt.Sprintf("%s.%s.%s", util.ToPlural(strings.ToLower(s.Name)), strings.ToLower(pkg.Name), config.ConfigInstance.GroupName)
+	// s.CrdName = fmt.Sprintf("%s.%s.%s", util.ToPlural(strings.ToLower(s.Name)), strings.ToLower(pkg.Name), config.ConfigInstance.GroupName)
+	s.CrdName = fmt.Sprintf("%s.%s.%s", strings.ToLower(util.ToPlural(s.Name)), strings.ToLower(pkg.Name), config.ConfigInstance.GroupName)
 
 	var crdTemplate = clientgen + "\n" + deepcopygen + "\n" + openapigen + `
 type {{.Name}} struct {
@@ -150,6 +151,7 @@ type {{.Name}}Spec struct {
 		Name   string
 		Fields string
 	}
+
 	specDef.Name = parser.GetTypeName(node)
 
 	for _, field := range parser.GetSpecFields(node) {
@@ -170,8 +172,14 @@ type {{.Name}}Spec struct {
 		}
 		specDef.Fields += "\t" + name + " "
 		typeString := ConstructType(aliasNameMap, field)
-		specDef.Fields += typeString
+		// Type is set to "any" for field with annotation "nexus-graphql-jsonencoded"
+		if parser.IsFieldAnnotationPresent(field, parser.GRAPHQL_JSONENCODED_ANNOTATION) {
+			specDef.Fields += "nexus.NexusGenericObject"
+		} else {
+			specDef.Fields += typeString
+		}
 		specDef.Fields += " " + getTag(field, name, false) + "\n"
+
 	}
 
 	for _, child := range parser.GetChildFields(node) {

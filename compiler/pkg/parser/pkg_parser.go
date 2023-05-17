@@ -59,7 +59,7 @@ func ParseDSLPkg(startPath string) Packages {
 					FileSet:  fileset,
 					Pkg:      *v,
 				}
-				parseGenDecls(v, &pkg)
+				ParseGenDecls(v, &pkg)
 				packages[pkgImport] = pkg
 			}
 		}
@@ -72,7 +72,7 @@ func ParseDSLPkg(startPath string) Packages {
 	return packages
 }
 
-func parseGenDecls(v *ast.Package, pkg *Package) {
+func ParseGenDecls(v *ast.Package, pkg *Package) {
 	sortedKeys := make([]string, 0, len(v.Files))
 	for k := range v.Files {
 		sortedKeys = append(sortedKeys, k)

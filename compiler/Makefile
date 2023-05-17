@@ -20,6 +20,7 @@ CONFIG_FILE ?= ""
 GENERATED_OUTPUT_DIRECTORY ?= generated
 COMPILER_SRC_DIRECTORY ?= ""
 FORCE ?= false
+PREPARSER_MODPATH ?= model
 
 NEXUS_KUBEOPENAPI_VERSION ?= 7416bd4754d3c0dd8b3fa37fff53d36594f11607
 NEXUS_GRAPHQLGEN_VERSION ?= 32f028bce22efeb70b47a640195bd969dbb337f0
@@ -140,11 +141,48 @@ generate_example_in_container:
 test_in_container: ${BUILDER_NAME}\:${BUILDER_TAG}.image.exists
 	$(call run_in_container, make test)
 
+.PHONY: preparser
+preparser:
+	@echo "Nexus Compiler: Start Preparser"
+	@echo "Cleaning up workdir"
+	rm -rf _generated
+	@echo "Copying generated_base_structure to create directory structure"
+	@echo "COMPILER_SRC_DIRECTORY: ${COMPILER_SRC_DIRECTORY}"
+	cp -R _generated_base_structure _generated
+	@echo "Cleaning up temp dir"
+	rm -rf _tsm_temp
+	@echo "Copying Datamodel to temp directory"
+	cp -R ${DATAMODEL_PATH} _tsm_temp
+	cp -R _generated_base_structure/* ${DATAMODEL_PATH}/build
+	@echo "Nexus Compiler: Running Preparser"
+	go run cmd/preparser/main.go -config-file ${CONFIG_FILE} -dsl _tsm_temp -output _generated -modpath ${PREPARSER_MODPATH}
+	@echo "Nexus Compiler: Remove empty directories from model directory"
+	@find _generated/model -depth -type d -empty -delete
+
+	@if [ -d "_tsm_temp/global" ]; then \
+		cp _tsm_temp/go.mod _tsm_temp/global/go.mod; \
+		for dir in _tsm_temp/*; do \
+		  if [[ -d "$$dir" && "$$dir" != "_tsm_temp/global" && "$$dir" != "_tsm_temp/build" ]]; then \
+			cp -r "$$dir" _tsm_temp/global/; \
+		  fi; \
+		done; \
+		$(MAKE) generate_code DATAMODEL_PATH=_tsm_temp/global; \
+	else \
+		$(MAKE) generate_code; \
+	fi
+
+test_if:
+	for dir in _tsm_temp/*; do \
+	  if [[ -d "$$dir" && "$$dir" != "_tsm_temp/global" && "$$dir" != "_tsm_temp/build" ]]; then \
+		cp -r "$$dir" _tsm_temp/global/; \
+	  fi; \
+	done
+
 .PHONY: generate_code
 generate_code:
 	@echo "Nexus Compiler: Running compiler code generation"
 	@echo "Cleaning up workdir"
-	rm -rf _generated ${GOPATH}/src/nexustempmodule
+	rm -rf ${GOPATH}/src/nexustempmodule
 	@echo "Copying generated_base_structure to create directory structure"
 	@echo "COMPILER_SRC_DIRECTORY: ${COMPILER_SRC_DIRECTORY}"
 	cp -R _generated_base_structure _generated
@@ -164,28 +202,29 @@ generate_code:
 	@echo "Nexus Compiler: Generating CRD yamls"
 	go run cmd/generate-openapischema/generate-openapischema.go -yamls-path _generated/crds -existing-CRDs-Path ${GENERATED_OUTPUT_DIRECTORY}/crds -force ${FORCE}
 	git checkout -- pkg/openapi_generator/openapi/openapi_generated.go
-	rm -rf ${GENERATED_OUTPUT_DIRECTORY}/{client,apis,crds,common,nexus-client,helper,nexus-gql}
-	cp -r _generated/{client,apis,crds,common,nexus-client,helper,nexus-gql} ${GENERATED_OUTPUT_DIRECTORY}
+	rm -rf ${GENERATED_OUTPUT_DIRECTORY}/{client,apis,crds,common,nexus-client,helper,nexus-gql,tsm-nexus-gql,model}
+	cp -r _generated/{client,apis,crds,common,nexus-client,helper,nexus-gql,tsm-nexus-gql,model} ${GENERATED_OUTPUT_DIRECTORY}
 	@echo "Nexus Compiler: Generating GRAPHQL PKG"
-	cd _generated && goimports -w .
+	cd _generated && mv model/model.go model/model.tmp && goimports -w . && mv model/model.tmp model/model.go
 	cd _generated/nexus-gql && gqlgen generate
+	@echo "Nexus Compiler: GRAPHQL Generating completed"
 	cp -rf _generated/* ${GOPATH}/src/nexustempmodule/
 	cd ${GOPATH}/src/nexustempmodule && cd nexus-gql && go mod init && \
 	go mod edit -replace nexustempmodule=${GOPATH}/src/nexustempmodule && \
 	${COMPILER_SRC_DIRECTORY}/scripts/pin_graphql_build_version.sh ${COMPILER_SRC_DIRECTORY} && \
-	go mod tidy -e 2>/dev/null && \
-	CGO_ENABLED=1 GOOS=linux \
-	go build --trimpath -o graphql.so -buildmode=plugin server.go
+	go mod edit -go=1.18 && \
+	go mod tidy && \
+	CGO_ENABLED=1 GOARCH=amd64 GOOS=linux go build -ldflags="-w -s" server.go
 	@echo "Updating module name"
 	./scripts/replace_mod_path.sh
 	find . -name "*.bak" -type f -delete
 	@echo "Sorting imports"
-	cd _generated && goimports -w .
+	cd _generated && mv model/model.go model/model.tmp && goimports -w . && mv model/model.tmp model/model.go
 	@echo "Nexus Compiler: Moving files to output directory"
-	cp -r _generated/{client,apis,crds,common,nexus-client,helper,nexus-gql} ${GENERATED_OUTPUT_DIRECTORY}
-	cp -r ${GOPATH}/src/nexustempmodule/nexus-gql/graphql.so ${GENERATED_OUTPUT_DIRECTORY}/nexus-gql
 	mkdir -p ${GENERATED_OUTPUT_DIRECTORY}/install-validator
 	cp -r ${GOPATH}/src/github.com/vmware-tanzu/graph-framework-for-microservices/install-validator/install.so ${GENERATED_OUTPUT_DIRECTORY}/install-validator/install.so || echo "Could not find install.so file, skipping"
+	cp -r _generated/{client,apis,crds,common,nexus-client,helper,nexus-gql,tsm-nexus-gql,model} ${GENERATED_OUTPUT_DIRECTORY}
+	cp -r ${GOPATH}/src/nexustempmodule/nexus-gql/* ${GENERATED_OUTPUT_DIRECTORY}/nexus-gql/
 	@echo "Nexus Compiler: Compiler code generation completed"
 
 .PHONY: test_generate_code_in_container

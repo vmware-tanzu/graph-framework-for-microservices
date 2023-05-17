@@ -27,6 +27,16 @@ func getParentName(parentLabels map[string]interface{}, key string) string {
 	return ""
 }
 
+type NodeMetricTypeEnum string
+type ServiceMetricTypeEnum string
+type ServiceGroupByEnum string
+type HTTPMethodEnum string
+type EventSeverityEnum string
+type AnalyticsMetricEnum string
+type AnalyticsSubMetricEnum string
+type TrafficDirectionEnum string
+type SloDetailsEnum string
+
 //////////////////////////////////////
 // Nexus K8sAPIEndpointConfig
 //////////////////////////////////////
@@ -135,7 +145,7 @@ func getRootResolver(id *string) ([]*model.{{$node.PkgName}}{{$node.NodeName}}, 
 {{ end }}{{end}}
 {{- range $key, $query := $node.CustomQueries }}
 // Custom query
-func get{{$node.PkgName}}{{$node.NodeName}}{{$query.Name}}Resolver(obj *model.{{$node.PkgName}}{{$node.NodeName}}, {{ range $key, $arg := $query.Args }} {{$arg.Name}} *{{$arg.Type}}, {{ end }}) ({{- if eq $query.ApiType 0 }}*model.NexusGraphqlResponse{{- else if eq $query.ApiType 1 }}*model.TimeSeriesData {{- end}}, error) {
+func get{{$node.PkgName}}{{$node.NodeName}}{{$query.Name}}Resolver(obj *model.{{$node.PkgName}}{{$node.NodeName}}, {{ range $key, $arg := $query.Args }} {{- if $arg.AliasType }} {{$arg.Name}} *model.{{$arg.Type}}, {{- else }} {{$arg.Name}} *{{$arg.Type}}, {{- end}}{{ end }}) ({{- if eq $query.ApiType 0 }}*model.NexusGraphqlResponse{{- else if eq $query.ApiType 1 }}*model.TimeSeriesData {{- end}}, error) {
 	parentLabels := make(map[string]string)
 	if obj != nil {
 		for k, v := range obj.ParentLabels {

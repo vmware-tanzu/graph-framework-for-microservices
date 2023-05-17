@@ -23,7 +23,7 @@ var _ = Describe("Node parser tests", func() {
 	)
 
 	BeforeEach(func() {
-		graph = parser.ParseDSLNodes(exampleDSLPath, baseGroupName, nil, nil)
+		graph, _, _ = parser.ParseDSLNodes(exampleDSLPath, baseGroupName, nil, nil)
 		root, ok = graph["roots.root.tsm.tanzu.vmware.com"]
 		Expect(ok).To(BeTrue())
 	})
@@ -147,7 +147,7 @@ var _ = Describe("Node parser tests", func() {
 	})
 
 	It("should be able to get graphql info from a field", func() {
-		graph = parser.ParseDSLNodes(exampleDSLPath, baseGroupName, nil, nil)
+		graph, _, _ = parser.ParseDSLNodes(exampleDSLPath, baseGroupName, nil, nil)
 		config, ok := graph["roots.root.tsm.tanzu.vmware.com"].SingleChildren["Config"]
 		Expect(ok).To(BeTrue())
 

@@ -6,6 +6,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"go/format"
+	"go/printer"
+	"go/token"
 	"os"
 	"sort"
 	"strings"
@@ -55,9 +57,17 @@ var graphqlResolverTemplateFile []byte
 //go:embed template/graphql/server.go.tmpl
 var gqlserverTemplateFile []byte
 
+//go:embed template/tsm-graphql/schema.graphqls.tmpl
+var tsmGraphqlSchemaTemplateFile []byte
+
+//go:embed template/model.go.tmpl
+var modelTemplateFile []byte
+
 func RenderCRDTemplate(baseGroupName, crdModulePath string,
-	pkgs parser.Packages, graph map[string]parser.Node, outputDir string,
-	httpMethods map[string]nexus.HTTPMethodsResponses, httpCodes map[string]nexus.HTTPCodesResponse) error {
+	pkgs parser.Packages, graph map[string]parser.Node,
+	outputDir string, httpMethods map[string]nexus.HTTPMethodsResponses,
+	httpCodes map[string]nexus.HTTPCodesResponse, nonNexusTypes *parser.NonNexusTypes,
+	fileset *token.FileSet, graphqlFiles map[string]string) error {
 	parentsMap := parser.CreateParentsMap(graph)
 
 	pkgNames := make([]string, len(pkgs))
@@ -137,12 +147,17 @@ func RenderCRDTemplate(baseGroupName, crdModulePath string,
 		return err
 	}
 
-	err = RenderGraphQL(baseGroupName, outputDir, crdModulePath, pkgs, parentsMap)
+	err = RenderGraphQL(baseGroupName, outputDir, crdModulePath, pkgs, parentsMap, graphqlFiles, nonNexusTypes)
 	if err != nil {
 		return err
 	}
 
 	err = RenderGqlserver(outputDir, crdModulePath)
+	if err != nil {
+		return err
+	}
+
+	err = RenderNonNexusTypes(outputDir, nonNexusTypes, fileset)
 	if err != nil {
 		return err
 	}
@@ -371,7 +386,8 @@ func RenderCRDBaseTemplate(baseGroupName string, pkg parser.Package, parentsMap 
 		groupName := pkg.Name + "." + baseGroupName
 		singular := strings.ToLower(typeName)
 		kind := cases.Title(language.Und, cases.NoLower).String(typeName)
-		plural := util.ToPlural(singular)
+		// plural := util.ToPlural(singular)
+		plural := strings.ToLower(util.ToPlural(typeName))
 		crdName := fmt.Sprintf("%s.%s", plural, groupName)
 
 		nexusAnnotation := &NexusAnnotation{}
@@ -538,9 +554,10 @@ func RenderClientTemplate(baseGroupName, crdModulePath string, pkgs parser.Packa
 type GraphDetails struct {
 	BaseImportPath string
 	Nodes          []NodeProperty
+	GraphQlFiles   map[string]string
 }
 
-func RenderGraphQL(baseGroupName, outputDir, crdModulePath string, pkgs parser.Packages, parentsMap map[string]parser.NodeHelper) error {
+func RenderGraphQL(baseGroupName, outputDir, crdModulePath string, pkgs parser.Packages, parentsMap map[string]parser.NodeHelper, graphqlFiles map[string]string, nonNexusTypes *parser.NonNexusTypes) error {
 	gqlFolder := outputDir + "/nexus-gql/graph"
 	var (
 		vars GraphDetails
@@ -549,6 +566,7 @@ func RenderGraphQL(baseGroupName, outputDir, crdModulePath string, pkgs parser.P
 
 	vars.BaseImportPath = crdModulePath
 	vars.Nodes, err = GenerateGraphqlResolverVars(baseGroupName, crdModulePath, pkgs, parentsMap)
+	vars.GraphQlFiles = graphqlFiles
 	if err != nil {
 		return err
 	}
@@ -586,6 +604,25 @@ func RenderGraphQL(baseGroupName, outputDir, crdModulePath string, pkgs parser.P
 		return err
 	}
 
+	//Render Graphql Schema Template (TSM)
+	vars.Nodes, err = GenerateTsmGraphqlSchemaVars(baseGroupName, crdModulePath, pkgs, parentsMap, nonNexusTypes)
+	if err != nil {
+		return err
+	}
+	tsmGqlFolder := outputDir + "/tsm-nexus-gql/graph"
+	schemaTemplate, err := readTemplateFile(tsmGraphqlSchemaTemplateFile)
+	if err != nil {
+		return err
+	}
+	tsmFile, err := renderTemplate(schemaTemplate, vars)
+	if err != nil {
+		return err
+	}
+	log.Debugf("Rendered graphql schema template: %s", tsmFile)
+	err = createFile(tsmGqlFolder, "schema.graphqls", tsmFile, false)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -648,4 +685,53 @@ func RenderGqlServerTemplate(vars ServerVars) (*bytes.Buffer, error) {
 		return nil, err
 	}
 	return renderTemplate(registerGqlserverTemplate, vars)
+}
+
+type CommonVars struct {
+	Types string
+}
+
+func RenderNonNexusTypes(outputDir string, nonNexusTypes *parser.NonNexusTypes, fileset *token.FileSet) error {
+	outputModelFolder := outputDir + "/model"
+	err := createFolder(outputModelFolder)
+	if err != nil {
+		return err
+	}
+
+	var output string
+	for _, decl := range nonNexusTypes.Types {
+		var buf bytes.Buffer
+		err := printer.Fprint(&buf, fileset, decl)
+		if err != nil {
+			return err
+		}
+
+		output += fmt.Sprintf("%s\n\n", buf.String())
+	}
+
+	for _, val := range nonNexusTypes.Values {
+		output += fmt.Sprintf("%s\n\n", val)
+	}
+
+	for _, val := range nonNexusTypes.ExternalTypes {
+		output += fmt.Sprintf("%s\n\n", val)
+	}
+
+	vars := CommonVars{Types: output}
+	tmpl, err := readTemplateFile(modelTemplateFile)
+	if err != nil {
+		return err
+	}
+
+	out, err := renderTemplate(tmpl, vars)
+	if err != nil {
+		return err
+	}
+
+	err = createFile(outputModelFolder, "model.go", out, false)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

@@ -313,10 +313,17 @@ func defaultSchemas() map[string]common.OpenAPIDefinition {
 		k8sAPIMachineryTypeName("apis/meta/v1.ListMeta"):   schemaForTypeAndFormat("object", noFormat),
 		k8sAPIMachineryTypeName("apis/meta/v1.ObjectMeta"): schemaForTypeAndFormat("object", noFormat),
 		k8sAPIMachineryTypeName("apis/meta/v1.Time"):       schemaForTypeAndFormat("string", noFormat),
+		k8sAPIMachineryTypeName("util/intstr.IntOrString"): schemaForOneOf(
+			schemaForTypeAndFormat("integer", noFormat),
+			schemaForTypeAndFormat("string", noFormat),
+		),
 
 		envoyTypeName("config/core/v3.grpcservice"):                                  schemaForTypeAndFormat("object", noFormat),
 		envoyTypeName("extensions/access_loggers/grpc/v3.commongrpcaccesslogconfig"): schemaForTypeAndFormat("object", noFormat),
 
+		// any is an alias for interface{}
+		// "nexusType":                      schemaForAnyTypeAndFormat("any", noFormat),
+		nexusTypeName("nexus.NexusGenericObject"): schemaForAnyTypeAndFormat("any", noFormat),
 		// The `openapi-gen` cannot generate Go schema for struct builtin. We mark is
 		// as an object which allows any properties inside
 		"struct{}":     schemaForTypeAndFormat("object", noFormat),
@@ -325,6 +332,7 @@ func defaultSchemas() map[string]common.OpenAPIDefinition {
 		// defaultSchema is used when YAML generator can't find a schema for given key.
 		// It will also add the missing schema to `missingDefinitions` which can be accessed
 		// with `MissingDefinitions()`.
+		// defaultSchema: schemaForNonTypeAndFormat("empty", noFormat),
 		defaultSchema: schemaForTypeAndFormat("object", noFormat),
 	}
 }
@@ -349,6 +357,10 @@ func envoyTypeName(name string) string {
 	return fmt.Sprintf("github.com/envoyproxy/go-control-plane/envoy/%v", name)
 }
 
+func nexusTypeName(name string) string {
+	return fmt.Sprintf("github.com/vmware-tanzu/graph-framework-for-microservices/nexus/%v", name)
+}
+
 func schemaForOneOf(schemas ...common.OpenAPIDefinition) common.OpenAPIDefinition {
 	s := common.OpenAPIDefinition{
 		Schema: spec.Schema{
@@ -371,6 +383,20 @@ func schemaForTypeAndFormat(schemaType, schemaFormat string) common.OpenAPIDefin
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{
 				Type: []string{schemaType},
+			},
+		},
+	}
+	if schemaFormat != noFormat {
+		s.Schema.SchemaProps.Format = schemaFormat
+	}
+	return s
+}
+
+func schemaForAnyTypeAndFormat(schemaTitle, schemaFormat string) common.OpenAPIDefinition {
+	s := common.OpenAPIDefinition{
+		Schema: spec.Schema{
+			SchemaProps: spec.SchemaProps{
+				Title: schemaTitle,
 			},
 		},
 	}

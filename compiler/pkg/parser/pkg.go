@@ -27,6 +27,7 @@ type PackageNodeRelation struct {
 type Package struct {
 	Name     string
 	FullName string
+	Dir      string
 
 	//new fields
 	ModPath  string
@@ -34,6 +35,24 @@ type Package struct {
 	GenDecls []ast.GenDecl
 	FileSet  *token.FileSet
 }
+
+type FieldAnnotation string
+
+const (
+	GRAPHQL_ARGS_ANNOTATION          = FieldAnnotation("nexus-graphql-args")
+	GRAPHQL_ALIAS_NAME_ANNOTATION    = FieldAnnotation("nexus-alias-name")
+	GRAPHQL_ALIAS_TYPE_ANNOTATION    = FieldAnnotation("nexus-alias-type")
+	GRAPHQL_TSM_DIRECTIVE_ANNOTATION = FieldAnnotation("nexus-graphql-tsm-directive")
+	GRAPHQL_NULLABLE_ANNOTATION      = FieldAnnotation("nexus-graphql-nullable")
+	GRAPHQL_TS_TYPE_ANNOTATION       = FieldAnnotation("nexus-graphql-ts-type")
+	GRAPHQL_JSONENCODED_ANNOTATION   = FieldAnnotation("nexus-graphql-jsonencoded")
+	GRAPHQL_RELATION_NAME            = FieldAnnotation("nexus-graphql-relation-name")
+	GRAPHQL_RELATION_PARAMETERS      = FieldAnnotation("nexus-graphql-relation-parameters")
+	GRAPHQL_RELATION_UUIDKEY         = FieldAnnotation("nexus-graphql-relation-uuidkey")
+	GRAPHQL_TYPE_NAME                = FieldAnnotation("nexus-graphql-type-name")
+	GRAPHQL_PROTOBUF_NAME            = FieldAnnotation("nexus-graphql-protobuf-name")
+	GRAPHQL_PROTOBUF_FILE            = FieldAnnotation("nexus-graphql-protobuf-file")
+)
 
 // func (p *Package) GetImports() []*ast.ImportSpec
 // func (p *Package) GetNodes() []*ast.StructType
@@ -201,7 +220,7 @@ func IsNexusNode(n *ast.TypeSpec) bool {
 	if val, ok := n.Type.(*ast.StructType); ok {
 		for _, field := range val.Fields.List {
 			typeString := types.ExprString(field.Type)
-			if typeString == "nexus.Node" || typeString == "nexus.SingletonNode" {
+			if typeString == "nexus.Node" || typeString == "nexus.SingletonNode" || typeString == "NexusNode" {
 				return true
 			}
 		}
@@ -248,7 +267,7 @@ func IsNexusTypeField(f *ast.Field) bool {
 	}
 
 	typeString := types.ExprString(f.Type)
-	if typeString == "nexus.Node" || typeString == "nexus.SingletonNode" || typeString == "nexus.ID" {
+	if typeString == "nexus.Node" || typeString == "nexus.SingletonNode" || typeString == "nexus.ID" || typeString == "NexusNode" {
 		return true
 	}
 
@@ -721,4 +740,92 @@ func (p *Package) ValueSpecToString(t *ast.ValueSpec) (string, error) {
 		return "", err
 	}
 	return buf.String(), nil
+}
+
+func IsNexusGraphqlNullField(f *ast.Field) bool {
+	if f == nil {
+		return false
+	}
+
+	if f.Tag != nil {
+		tags := ParseFieldTags(f.Tag.Value)
+		if val, err := tags.Get(string(GRAPHQL_NULLABLE_ANNOTATION)); err == nil {
+			if strings.ToLower(val.Name) == "false" {
+				return false
+			}
+		}
+	}
+
+	return true
+}
+
+// Parser for TSM Integration
+// func GetGraphqlArgumentKey(f *ast.Field) string {
+// 	if f == nil {
+// 		return ""
+// 	}
+
+// 	if f.Tag != nil {
+// 		tags := ParseFieldTags(f.Tag.Value)
+// 		if val, err := tags.Get("nexus-graphql-arg-key"); err == nil {
+// 			return val.Value()
+// 		}
+// 	}
+// 	return ""
+// }
+
+// func GetGraphqlArgumentValue(f *ast.Field) string {
+// 	if f == nil {
+// 		return ""
+// 	}
+
+// 	if f.Tag != nil {
+// 		tags := ParseFieldTags(f.Tag.Value)
+// 		if val, err := tags.Get("nexus-graphql-arg-value"); err == nil {
+// 			return val.Value()
+// 		}
+// 	}
+// 	return ""
+// }
+
+func GetFieldAnnotationString(f *ast.Field, annotation FieldAnnotation) string {
+	if f == nil {
+		return ""
+	}
+
+	if f.Tag != nil {
+		tags := ParseFieldTags(f.Tag.Value)
+		if val, err := tags.Get(string(annotation)); err == nil {
+			return val.String()
+		}
+	}
+	return ""
+}
+
+func GetFieldAnnotationVal(f *ast.Field, annotation FieldAnnotation) string {
+	if f == nil {
+		return ""
+	}
+
+	if f.Tag != nil {
+		tags := ParseFieldTags(f.Tag.Value)
+		if val, err := tags.Get(string(annotation)); err == nil {
+			return val.Value()
+		}
+	}
+	return ""
+}
+
+func IsFieldAnnotationPresent(f *ast.Field, annotation FieldAnnotation) bool {
+	if f == nil {
+		return false
+	}
+
+	if f.Tag != nil {
+		tags := ParseFieldTags(f.Tag.Value)
+		if _, err := tags.Get(string(annotation)); err == nil {
+			return true
+		}
+	}
+	return false
 }

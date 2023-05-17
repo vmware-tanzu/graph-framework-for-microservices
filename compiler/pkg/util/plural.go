@@ -14,12 +14,20 @@ limitations under the License.
 package util
 
 var consonants = "bcdfghjklmnpqrstvwxyz"
+var exceptions = map[string]string{
+	// The type name is already in the plural form
+	"Endpoints": "Endpoints",
+}
 
 // ToPlural returns the plural form of the type's name. If the type's name is found
 // in the exceptions map, the map value is returned.
 func ToPlural(t string) string {
 	singular := t
 	var plural string
+
+	if plural, ok := exceptions[singular]; ok {
+		return plural
+	}
 
 	if len(singular) < 2 {
 		return singular
