@@ -61,5 +61,7 @@ type TenantStatus struct {
 
 	// Applications currently installed in the Tenant.
 	InstalledApplications common.ApplicationStatus `json:"installedApplications,omitempty"`
-	ReleaseVersionStatus  string                   `json:"releaseVersionStatus,omitempty"`
+	ReleaseVersion        string                   `json:"releaseVersion,omitempty"`
+	ReleaseStatus         string                   `json:"releaseStatus,omitempty"`
+	PreviousRelease       string                   `json:"previousRelease,omitempty"`
 }

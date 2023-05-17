@@ -107,5 +107,7 @@ type Health struct {
 // +k8s:openapi-gen=true
 type TenantStatus struct {
 	InstalledApplications commonnexusvmwarecomv1.ApplicationStatus `json:"installedApplications,omitempty" yaml:"installedApplications"`
-	ReleaseVersionStatus  string                                   `json:"releaseVersionStatus,omitempty" yaml:"releaseVersionStatus"`
+	ReleaseVersion        string                                   `json:"releaseVersion,omitempty" yaml:"releaseVersion"`
+	ReleaseStatus         string                                   `json:"releaseStatus,omitempty" yaml:"releaseStatus"`
+	PreviousRelease       string                                   `json:"previousRelease,omitempty" yaml:"previousRelease"`
 }
