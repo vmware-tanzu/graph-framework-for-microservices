@@ -1,19 +1,28 @@
-# Graph Framework for Microservices
+# Nexus; The Graph Framework for Microservices
 
-Graph Framework for Microservices is a platform software stack that bootstraps and accelerates cloud-native microservice development, that is out-of-the-box ready to thrive in the ever challenging world of distributed systems and SaaS.
+Nexus is a software stack and toolkit that accelerates cloud-native microservice development:
 
-It provides an extensible, distributed software stack that:
+* through a robust development, build and code generation toolkit, that simplifies the definition of "application state" (a.k.a data model)
+* by simplifying consumption and production of distributed application state through a plethora of widely used API formats and SDK
+* through a plug-and-play runtime for core platform functions
 
-* accelerates cloud native application development
-* simplifies consumption
-* provides a out-of-the-box platform that is distributed, consistent, stable and feature rich
-* provides a plug-and-play runtime for core platform functions
+Applications built on Nexus are out-the-box ready to thrive in the ever challenging world of distributed systems and SaaS.
 
-This framework represents the application's datamodel/state as a Graph, with emphasis on the event-driven propagation of data.
+Nexus represents the application's datamodel/state as a Graph, with emphasis on the event-driven propagation of data.
 
-### [Playground](docs/getting_started/Playground.md)
+<br>
 
-## What problem does it solve ?
+## Nexus TL;DR
+
+https://user-images.githubusercontent.com/49454273/236900473-216421d5-c9da-456c-8ebe-6e219aed2535.mp4
+
+<br>
+
+## [Playground](docs/getting_started/Playground.md)
+
+<br>
+
+## What problem does Nexus solve ?
 
 A plethora of tools and utilities have cropped up to address the challenge of writing and operating applications in distributed, cloud-native, SaaS environments.
 This is particularly true in the realm of [Kubernetes](https://collabnix.github.io/kubetools/).

@@ -1,0 +1,16 @@
+[book]
+authors = ["The Kubebuilder Maintainers"]
+multilingual = false
+src = "src"
+title = "The Kubebuilder Book"
+
+[output.html]
+google-analytics = "UA-119864590-1"
+curly-quotes = true
+additional-css = ["theme/css/markers.css", "theme/css/custom.css"]
+
+[preprocessor.literatego]
+command = "./litgo.sh"
+
+[preprocessor.markerdocs]
+command = "./markerdocs.sh"

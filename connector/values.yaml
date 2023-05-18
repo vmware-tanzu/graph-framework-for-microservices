@@ -1,0 +1,12 @@
+global:
+  registry: gcr.io/nsx-sm/nexus
+  connector:
+    tag: __CONNECTOR_TAG___
+  statusReplication: ENABLED
+  secretName: ""
+  remoteEndpointCert: ""
+  remoteEndpointHost: ""
+  remoteEndpointPort: ""
+  remoteEndpointPath: ""
+  imagepullsecret: ""
+  token: ""

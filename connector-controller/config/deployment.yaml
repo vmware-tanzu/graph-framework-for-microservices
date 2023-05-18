@@ -1,0 +1,82 @@
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nexus-controller
+  namespace: nexus
+  labels:
+    control-plane: nexus-controller
+spec:
+  selector:
+    matchLabels:
+      control-plane: nexus-controller
+  replicas: 1
+  template:
+    metadata:
+      annotations:
+        kubectl.kubernetes.io/default-container: manager
+      labels:
+        control-plane: nexus-controller
+    spec:
+      containers:
+        - image: nexus-controller:v1
+          name: nexus-controller
+          env:
+            - name: INNER_KUBECONFIG
+              value: /config/kubeconfig
+            - name: NEXUS_CONNECTOR_VERSION
+              value: 284299419820.dkr.ecr.us-west-2.amazonaws.com/nexus/connector:1cae9251381d4eb299daa05899a134fae6ffaa79
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            allowPrivilegeEscalation: false
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 8081
+            initialDelaySeconds: 15
+            periodSeconds: 20
+          readinessProbe:
+            httpGet:
+              path: /readyz
+              port: 8081
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          # TODO(user): Configure the resources accordingly based on the project requirements.
+          # More info: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/
+          resources:
+            limits:
+              cpu: 500m
+              memory: 128Mi
+            requests:
+              cpu: 10m
+              memory: 64Mi
+          volumeMounts:
+            - mountPath: /config
+              name: config
+      volumes:
+        - name: config
+          configMap:
+            name: kubeconfig-local
+      terminationGracePeriodSeconds: 10
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: kubeconfig-local
+data:
+  kubeconfig: |
+    current-context: localapiserver
+    apiVersion: v1
+    kind: Config
+    clusters:
+    - cluster:
+        api-version: v1
+        server: http://nexus-proxy-container:80
+        insecure-skip-tls-verify: true
+      name: localapiserver 
+    contexts:
+    - context:
+        cluster: localapiserver
+      name: localapiserver
+---
