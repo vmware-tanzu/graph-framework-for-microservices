@@ -13,6 +13,8 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	log "github.com/sirupsen/logrus"
+	nexus_client "golang-appnet.eng.vmware.com/nexus-sdk/api/build/nexus-client"
+	"k8s.io/client-go/kubernetes"
 )
 
 var _ = Describe("Handler tests", func() {
@@ -248,7 +250,7 @@ var _ = Describe("Handler tests", func() {
 	})
 
 	It("should test Apis handler", func() {
-		echoServer := echo_server.NewEchoServer(config.Cfg)
+		echoServer := echo_server.NewEchoServer(config.Cfg, &kubernetes.Clientset{}, &nexus_client.Clientset{})
 		echoServer.RegisterDeclarativeRouter()
 
 		// setup echo test
@@ -267,7 +269,7 @@ var _ = Describe("Handler tests", func() {
 	})
 
 	It("should test Apis handler with globalnamespaces.gns.vmware.org crd", func() {
-		echoServer := echo_server.NewEchoServer(config.Cfg)
+		echoServer := echo_server.NewEchoServer(config.Cfg, &kubernetes.Clientset{}, &nexus_client.Clientset{})
 		echoServer.RegisterDeclarativeRouter()
 
 		// setup echo test
@@ -311,7 +313,7 @@ spec:
 	})
 
 	It("should test Apis handler with non-existent crd", func() {
-		echoServer := echo_server.NewEchoServer(config.Cfg)
+		echoServer := echo_server.NewEchoServer(config.Cfg, &kubernetes.Clientset{}, &nexus_client.Clientset{})
 		echoServer.RegisterDeclarativeRouter()
 
 		// setup echo test

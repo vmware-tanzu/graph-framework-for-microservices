@@ -79,6 +79,7 @@ type IDPConfig struct {
 	OAuthIssuerUrl   string   `json:"oAuthIssuerUrl" yaml:"oAuthIssuerUrl"`
 	Scopes           []string `json:"scopes" yaml:"scopes"`
 	OAuthRedirectUrl string   `json:"oAuthRedirectUrl" yaml:"oAuthRedirectUrl"`
+	IsCSP            bool     `json:"isCsp,omitempty" yaml:"isCSP"`
 }
 
 // +k8s:openapi-gen=true

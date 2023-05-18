@@ -14,16 +14,22 @@ import (
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/dynamic"
+	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 )
 
 var Client dynamic.Interface
+var CoreClient kubernetes.Interface
 var Host string
 var NexusClient *nexus_client.Clientset
 
 func New(config *rest.Config) (err error) {
 	Host = config.Host
 	Client, err = dynamic.NewForConfig(config)
+	if err != nil {
+		return err
+	}
+	CoreClient, err = kubernetes.NewForConfig(config)
 	if err != nil {
 		return err
 	}

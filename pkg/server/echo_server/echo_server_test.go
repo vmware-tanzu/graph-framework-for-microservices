@@ -1,34 +1,62 @@
 package echo_server_test
 
 import (
+	"api-gw/pkg/client"
 	"api-gw/pkg/config"
 	"api-gw/pkg/model"
 	"api-gw/pkg/server/echo_server"
+	"context"
 	"fmt"
-	log "github.com/sirupsen/logrus"
 	"net"
 	"net/http"
 	"net/http/httptest"
+
+	log "github.com/sirupsen/logrus"
 
 	"github.com/labstack/echo/v4"
 	"github.com/vmware-tanzu/graph-framework-for-microservices/nexus/nexus"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	apinexusv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/api.nexus.vmware.com/v1"
+	confignexusv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/config.nexus.vmware.com/v1"
 	domain_nexus_org "golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/domain.nexus.vmware.com/v1"
+	nexus_client "golang-appnet.eng.vmware.com/nexus-sdk/api/build/nexus-client"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/client-go/kubernetes"
 )
 
 var _ = Describe("Echo server tests", func() {
 	var e *echo_server.EchoServer
 
 	It("should init echo server", func() {
+
+		client.NexusClient = nexus_client.NewFakeClient()
+		_, err := client.NexusClient.Api().CreateNexusByName(context.TODO(), &apinexusv1.Nexus{
+			ObjectMeta: metav1.ObjectMeta{
+				Name: "default",
+			},
+		})
+		Expect(err).NotTo(HaveOccurred())
+
+		_, err = client.NexusClient.Config().CreateConfigByName(context.TODO(), &confignexusv1.Config{
+			ObjectMeta: metav1.ObjectMeta{
+				Name: "943ea6107388dc0d02a4c4d861295cd2ce24d551",
+				Labels: map[string]string{
+					"nexus/display_name": "default",
+				},
+			},
+		})
+		Expect(err).NotTo(HaveOccurred())
+
 		config.Cfg = &config.Config{
 			Server:             config.ServerConfig{},
 			EnableNexusRuntime: true,
 			BackendService:     "",
 		}
-		e = echo_server.NewEchoServer(config.Cfg)
+		e = echo_server.NewEchoServer(config.Cfg, &kubernetes.Clientset{}, &nexus_client.Clientset{})
+
 	})
 
 	It("should register CrdRouter for globalnamespaces.gns.vmware.org", func() {
@@ -117,7 +145,8 @@ var _ = Describe("Echo server tests", func() {
 			},
 			EnableNexusRuntime: true,
 			BackendService:     "http://localhost",
-		})
+		}, &kubernetes.Clientset{},
+			&nexus_client.Clientset{})
 		e.StopServer()
 	})
 
@@ -129,7 +158,8 @@ var _ = Describe("Echo server tests", func() {
 			},
 			EnableNexusRuntime: true,
 			BackendService:     "http://localhost",
-		})
+		}, &kubernetes.Clientset{},
+			&nexus_client.Clientset{})
 
 		stopCh <- struct{}{}
 
@@ -190,6 +220,22 @@ var _ = Describe("Echo server tests", func() {
 		Expect(actualContext.Codes[http.StatusOK].Description).To(Equal("description"))
 	})
 
+	It("should register TSM Routes", func() {
+		e.RegisterCosmosAdminRoutes()
+
+		c := e.Echo.NewContext(nil, nil)
+		e.Echo.Router().Find(http.MethodPut, "/v0/tenants/instance", c)
+		Expect(c.Path()).To(Equal("/v0/tenants/instance"))
+
+		c = e.Echo.NewContext(nil, nil)
+		e.Echo.Router().Find(http.MethodGet, "/v0/version", c)
+		Expect(c.Path()).To(Equal("/v0/version"))
+
+		c = e.Echo.NewContext(nil, nil)
+		e.Echo.Router().Find(http.MethodPost, "/v0/users/login", c)
+		Expect(c.Path()).To(Equal("/v0/users/login"))
+	})
+
 	It("should start echo server and timeout on port checking", func() {
 		log.StandardLogger().ExitFunc = func(i int) {
 			Expect(i).To(Equal(1))
@@ -202,7 +248,7 @@ var _ = Describe("Echo server tests", func() {
 			},
 			EnableNexusRuntime: true,
 			BackendService:     "http://localhost",
-		})
+		}, &kubernetes.Clientset{}, &nexus_client.Clientset{})
 
 		listen, err := net.Listen("tcp", ":0")
 		Expect(err).To(BeNil())

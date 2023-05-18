@@ -1,5 +1,75 @@
 package controllers
 
+var tenantRuntimeExample = `
+apiVersion: tenantruntime.nexus.vmware.com/v1
+kind: Tenant
+metadata:
+  annotations:
+    tenant-registration-status: '{\"State\":\"STATE_REGISTRATION\",\"Status\":\"STATUS_COMPLETED\",\"Message\":\"Registration
+      Completed. 5 out of 5 steps completed.\"}'
+  creationTimestamp: "2023-05-02T07:30:38Z"
+  labels:
+    nexus/display_name: 831a06ab-9781-487c-a9da-6c73973e540a
+    nexus/is_name_hashed: "true"
+    nexuses.api.nexus.vmware.com: default
+    runtimes.runtime.nexus.vmware.com: default
+  name: 43e32e8f86ba4a5e90e44049f19ab8f73b77cc7f
+spec:
+  attributes:
+    skus:
+    - LICENSE_ADVANCE
+  awsKmsKeyId: alias/rootca-01-4pydxsym-zay6xfru-uk3fvv6z
+  awsS3Bucket: rootca-01-4pydxsym-zay6xfru-uk3fvv6z
+  licenseType: classic
+  m7Enabled: "false"
+  m7InstallationScheduled: InstallationDisabled
+  namespace: 831a06ab-9781-487c-a9da-6c73973e540a
+  releaseVersion: cosmos-v2
+  saasApiDomainName: jrentcl.tsm-dev-07.com
+  saasDomainName: jrentcl-internal.tsm-dev-07.com
+  streamName: 01-4pydxsym-zay6xfru-uk3fvv6z
+  tenantName: 831a06ab-9781-487c-a9da-6c73973e540a
+status:
+  appStatus:
+    installedApplications:
+      nexusApps:
+        nexus-tenant-runtime:
+          oamApp:
+            components:
+              831a06ab-9781-487c-a9da-6c73973e540a.nexus-tenant-runtime:
+                health: Healthy
+                name: 831a06ab-9781-487c-a9da-6c73973e540a.nexus-tenant-runtime
+                sync: Synced
+          state: Running
+          stateReason: All components installed
+        tsm-tenant:
+          oamApp:
+            components:
+              831a06ab-9781-487c-a9da-6c73973e540a.tsm-tenant-runtime:
+                health: Healthy
+                name: 831a06ab-9781-487c-a9da-6c73973e540a.tsm-tenant-runtime
+                sync: Synced
+          state: Running
+          stateReason: All components installed
+    releaseVersionStatus: Installed version cosmos-v2 successfully
+  nexus:
+    remoteGeneration: 0
+    sourceGeneration: 0
+`
+var tenantConfigExample = `
+apiVersion: tenantconfig.nexus.vmware.com/v1
+kind: Tenant
+metadata:
+  name: tenant1
+  labels:
+    nexuses.api.nexus.vmware.com: default
+    configs.config.nexus.vmware.com: default
+    apigateways.apigateway.nexus.vmware.com: default
+spec:
+  name: tenant1
+  skus:
+    - advance`
+
 var oidcCrdObjectExample = `
 apiVersion: authentication.nexus.vmware.com/v1
 kind: OIDC

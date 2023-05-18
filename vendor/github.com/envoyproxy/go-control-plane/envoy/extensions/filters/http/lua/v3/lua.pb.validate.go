@@ -56,16 +56,7 @@ func (m *Lua) validate(all bool) error {
 
 	var errors []error
 
-	if utf8.RuneCountInString(m.GetInlineCode()) < 1 {
-		err := LuaValidationError{
-			field:  "InlineCode",
-			reason: "value length must be at least 1 runes",
-		}
-		if !all {
-			return err
-		}
-		errors = append(errors, err)
-	}
+	// no validation rules for InlineCode
 
 	{
 		sorted_keys := make([]string, len(m.GetSourceCodes()))
@@ -112,6 +103,37 @@ func (m *Lua) validate(all bool) error {
 
 		}
 	}
+
+	if all {
+		switch v := interface{}(m.GetDefaultSourceCode()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, LuaValidationError{
+					field:  "DefaultSourceCode",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, LuaValidationError{
+					field:  "DefaultSourceCode",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetDefaultSourceCode()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return LuaValidationError{
+				field:  "DefaultSourceCode",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	// no validation rules for StatPrefix
 
 	if len(errors) > 0 {
 		return LuaMultiError(errors)
@@ -212,9 +234,20 @@ func (m *LuaPerRoute) validate(all bool) error {
 
 	var errors []error
 
-	switch m.Override.(type) {
-
+	oneofOverridePresent := false
+	switch v := m.Override.(type) {
 	case *LuaPerRoute_Disabled:
+		if v == nil {
+			err := LuaPerRouteValidationError{
+				field:  "Override",
+				reason: "oneof value cannot be a typed-nil",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+		oneofOverridePresent = true
 
 		if m.GetDisabled() != true {
 			err := LuaPerRouteValidationError{
@@ -228,6 +261,17 @@ func (m *LuaPerRoute) validate(all bool) error {
 		}
 
 	case *LuaPerRoute_Name:
+		if v == nil {
+			err := LuaPerRouteValidationError{
+				field:  "Override",
+				reason: "oneof value cannot be a typed-nil",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+		oneofOverridePresent = true
 
 		if utf8.RuneCountInString(m.GetName()) < 1 {
 			err := LuaPerRouteValidationError{
@@ -241,6 +285,17 @@ func (m *LuaPerRoute) validate(all bool) error {
 		}
 
 	case *LuaPerRoute_SourceCode:
+		if v == nil {
+			err := LuaPerRouteValidationError{
+				field:  "Override",
+				reason: "oneof value cannot be a typed-nil",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+		oneofOverridePresent = true
 
 		if all {
 			switch v := interface{}(m.GetSourceCode()).(type) {
@@ -272,6 +327,9 @@ func (m *LuaPerRoute) validate(all bool) error {
 		}
 
 	default:
+		_ = v // ensures v is used
+	}
+	if !oneofOverridePresent {
 		err := LuaPerRouteValidationError{
 			field:  "Override",
 			reason: "value is required",
@@ -280,7 +338,6 @@ func (m *LuaPerRoute) validate(all bool) error {
 			return err
 		}
 		errors = append(errors, err)
-
 	}
 
 	if len(errors) > 0 {

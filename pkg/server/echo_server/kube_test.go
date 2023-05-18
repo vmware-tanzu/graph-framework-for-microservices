@@ -5,7 +5,6 @@ import (
 	"api-gw/pkg/model"
 	"api-gw/pkg/server/echo_server"
 	"context"
-	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -587,7 +586,7 @@ var _ = Describe("Kube tests", func() {
 			err := echo_server.KubeDeleteHandler(nc)
 			Expect(err).To(BeNil())
 			expectedResponse := "{\"apiVersion\":\"v1\",\"details\":{\"group\":\"root.vmware.org\",\"kind\":\"roots\",\"name\":\"root\"},\"kind\":\"Status\",\"metadata\":{},\"status\":\"Success\"}\n"
-			fmt.Println(rec.Body.String())
+			log.Debugf(rec.Body.String())
 			Expect(rec.Body.String()).To(Equal(expectedResponse))
 		})
 	})

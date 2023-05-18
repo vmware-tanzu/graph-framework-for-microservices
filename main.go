@@ -17,26 +17,34 @@ limitations under the License.
 package main
 
 import (
+	"api-gw/internal/tenant/registration"
+	"api-gw/pkg/common"
 	"api-gw/pkg/envoy"
+	"api-gw/pkg/model"
 	"api-gw/pkg/openapi/api"
 	"api-gw/pkg/openapi/declarative"
 	"api-gw/pkg/utils"
 	"flag"
+	"fmt"
 	"os"
 	"strconv"
 
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
 
 	log "github.com/sirupsen/logrus"
+	reg_svc "gitlab.eng.vmware.com/nsx-allspark_users/go-protos/pkg/registration-service/global"
 
 	runtimeclient "sigs.k8s.io/controller-runtime/pkg/client"
 
 	"api-gw/pkg/client"
 	"api-gw/pkg/config"
 
+	nexus_client "golang-appnet.eng.vmware.com/nexus-sdk/api/build/nexus-client"
+
 	// Import all Kubernetes client auth plugins (e.g. Azure, GCP, OIDC, etc.)
 	// to ensure that exec-entrypoint and run can make use of them.
 
+	"k8s.io/client-go/kubernetes"
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
 	"k8s.io/client-go/rest"
 
@@ -59,6 +67,8 @@ import (
 
 	middleware_nexus_org_v1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/domain.nexus.vmware.com/v1"
 	routenexusorgv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/route.nexus.vmware.com/v1"
+	tenantv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/tenantconfig.nexus.vmware.com/v1"
+	tenantruntimev1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/tenantruntime.nexus.vmware.com/v1"
 
 	//+kubebuilder:scaffold:imports
 
@@ -80,6 +90,8 @@ func init() {
 	apigatewaynexusorgv1.AddToScheme(scheme)
 	adminnexusorgv1.AddToScheme(scheme)
 	middleware_nexus_org_v1.AddToScheme(scheme)
+	tenantv1.AddToScheme(scheme)
+	tenantruntimev1.AddToScheme(scheme)
 	//+kubebuilder:scaffold:scheme
 }
 
@@ -99,7 +111,23 @@ func main() {
 	flag.Parse()
 
 	ctrl.SetLogger(zap.New(zap.UseFlagOptions(&opts)))
+	k8sConfig := ctrl.GetConfigOrDie()
+	k8sClientSet, err := kubernetes.NewForConfig(k8sConfig)
 
+	if err != nil {
+		log.Fatalf("Failed to create K8sclient: %v", err)
+	}
+
+	gsRoutes, err := config.LoadStaticUrlsConfig("/config/staticRoutes.yaml")
+	if err != nil {
+		log.Warnf("Error loading config: %v\n", err)
+	}
+	config.GlobalStaticRouteConfig = gsRoutes
+
+	nexusClientSet, err := nexus_client.NewForConfig(k8sConfig)
+	if err != nil {
+		log.Fatalf("Failed to create nexusclient: %v", err)
+	}
 	// Setup log level
 	logLevel := os.Getenv("LOG_LEVEL")
 	if logLevel == "" {
@@ -110,6 +138,9 @@ func main() {
 		log.Fatalf("Failed to configure logging: %v\n", err)
 	}
 	log.SetLevel(lvl)
+
+	common.Mode = os.Getenv("GATEWAY_MODE")
+	log.Infof("Gateway Mode: %s", common.Mode)
 
 	customFormatter := new(log.TextFormatter)
 	customFormatter.TimestampFormat = "2006-01-02T15:04:05Z07:00"
@@ -122,6 +153,15 @@ func main() {
 	}
 	config.Cfg = conf
 
+	if common.IsModeAdmin() {
+		skuConfig, err := config.LoadSKUConfig("/config/skuconfigmap")
+		if err != nil {
+			log.Warnf("Error loading  skuconfig: %v\n", err)
+		}
+		config.SKUConfig = skuConfig
+
+	}
+
 	stopCh := make(chan struct{})
 
 	if conf.BackendService != "" {
@@ -132,9 +172,30 @@ func main() {
 		}
 	}
 
+	if common.IsModeAdmin() {
+		utils.VersionCalls = []*model.ConnectorObject{
+			{
+				Service:    "global-registration-service:60000",
+				Protocol:   "grpc",
+				Connection: nil,
+			},
+			{
+				Service:    fmt.Sprintf("%s:60000/ui/version", common.GlobalUISvcName),
+				Protocol:   "http",
+				Connection: nil,
+			},
+		}
+		for _, v := range utils.VersionCalls {
+			err := v.InitConnection()
+			if err != nil {
+				log.Errorf("could not create connection for : %s", v.Service)
+			}
+		}
+	}
+
 	log.Infoln("Init Echo Server")
 	// Start server
-	echo_server.InitEcho(stopCh, conf)
+	echo_server.InitEcho(stopCh, conf, k8sClientSet, nexusClientSet)
 
 	if conf.EnableNexusRuntime {
 		InitManager(metricsAddr, probeAddr, enableLeaderElection, stopCh, lvl)
@@ -174,6 +235,7 @@ func InitManager(metricsAddr string, probeAddr string, enableLeaderElection bool
 		setupLog.Error(err, "unable to create controller", "controller", "CustomResourceDefinition")
 		os.Exit(1)
 	}
+
 	if err = (&controllers.OidcConfigReconciler{
 		Client: mgr.GetClient(),
 		Scheme: mgr.GetScheme(),
@@ -252,6 +314,9 @@ func InitManager(metricsAddr string, probeAddr string, enableLeaderElection bool
 	api.Recreate()
 	go api.DatamodelUpdateNotification()
 
+	common.SSLEnabled = os.Getenv("SSL_ENABLED")
+	log.Infof("SSL CertsEnabled: %s", common.SSLEnabled)
+
 	log.Infoln("Init xDS server")
 	if jwt, upstreams, headerUpstreams, err := utils.GetEnvoyInitParams(); err != nil {
 		log.Errorf("error getting envoy init params: %s\n", err)
@@ -265,6 +330,57 @@ func InitManager(metricsAddr string, probeAddr string, enableLeaderElection bool
 		}
 	}
 	log.Infoln("successfully initialized xDS server")
+
+	if common.IsModeAdmin() {
+		//Fetch CSPPermissionName and CSP ServiceID
+		err := common.SetCSPVariables()
+		if err != nil {
+			setupLog.Info("CSPVariables passed as empty")
+		} else {
+			setupLog.Info(fmt.Sprintf("CSPVariables set as %s=%s , %s=%s", common.CSPPermissionName, common.CSP_PERMISSION_NAME, common.CSPServiceID, common.CSP_SERVICE_ID))
+		}
+		common.SetCSPPermissionOrg()
+		grpcConnector := model.ConnectorObject{
+			Service:  "global-registration-service:30031",
+			Protocol: "grpc",
+		}
+		err = grpcConnector.InitConnection()
+		if err != nil {
+			setupLog.Error(err, "unable to reconcile TenantConfig")
+			os.Exit(1)
+		}
+
+		reg_client := reg_svc.NewGlobalRegistrationClient(grpcConnector.Connection)
+
+		if err := registration.InitTenantConfig(reg_client); err != nil {
+			setupLog.Error(err, "unable to reconcile TenantConfig")
+		}
+		if err := registration.InitTenantRuntimeCache(reg_client); err != nil {
+			setupLog.Error(err, "unable to start Tenant Cache")
+		}
+		if err := common.InitAdminDatamodelCache(); err != nil {
+			setupLog.Error(err, "unable to start User Cache")
+			os.Exit(1)
+		}
+		if err = (&controllers.TenantReconciler{
+			Client:        mgr.GetClient(),
+			Scheme:        mgr.GetScheme(),
+			K8sclient:     client.CoreClient,
+			GrpcConnector: &grpcConnector,
+		}).SetupWithManager(mgr); err != nil {
+			setupLog.Error(err, "unable to create controller", "controller", "Tenant Config")
+			os.Exit(1)
+		}
+		if err = (&controllers.TenantRuntimeReconciler{
+			Client:        mgr.GetClient(),
+			Scheme:        mgr.GetScheme(),
+			K8sclient:     client.CoreClient,
+			GrpcConnector: &grpcConnector,
+		}).SetupWithManager(mgr); err != nil {
+			setupLog.Error(err, "unable to create controller", "controller", "Tenant runtime")
+			os.Exit(1)
+		}
+	}
 
 	setupLog.Info("starting manager")
 	if err := mgr.Start(ctrl.SetupSignalHandler()); err != nil {

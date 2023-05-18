@@ -2,22 +2,35 @@ package echo_server
 
 import (
 	"context"
+	"encoding/base64"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"strings"
 
+	"github.com/jarcoal/httpmock"
 	"github.com/labstack/echo/v4"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	log "github.com/sirupsen/logrus"
+	apinexusv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/api.nexus.vmware.com/v1"
+	confignexusv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/config.nexus.vmware.com/v1"
+	runtimenexusv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/runtime.nexus.vmware.com/v1"
+	v1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/user.nexus.vmware.com/v1"
+	nexus_client "golang-appnet.eng.vmware.com/nexus-sdk/api/build/nexus-client"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime/schema"
+	"k8s.io/client-go/kubernetes"
 
 	"api-gw/controllers"
 	"api-gw/pkg/client"
+	"api-gw/pkg/common"
 	"api-gw/pkg/config"
 	"api-gw/pkg/model"
+	"api-gw/pkg/utils"
 
 	"github.com/vmware-tanzu/graph-framework-for-microservices/nexus/nexus"
 )
@@ -26,12 +39,277 @@ var _ = Describe("Echo server tests", func() {
 	var e *EchoServer
 
 	BeforeEach(func() {
+
+		common.UserMap = make(map[string]v1.UserSpec)
+		utils.VersionCalls = []*model.ConnectorObject{
+			{
+				Service:    "http://localhost/version",
+				Protocol:   "http",
+				Connection: nil,
+			},
+		}
+		for _, v := range utils.VersionCalls {
+			err := v.InitConnection()
+			if err != nil {
+				log.Errorf("could not create connection for : %s", v.Service)
+			}
+		}
+		client.NexusClient = nexus_client.NewFakeClient()
+		_, err := client.NexusClient.Api().CreateNexusByName(context.TODO(), &apinexusv1.Nexus{
+			ObjectMeta: metav1.ObjectMeta{
+				Name: "default",
+			},
+		})
+		Expect(err).NotTo(HaveOccurred())
+
+		_, err = common.GetConfigNode(client.NexusClient, "default")
+		Expect(err).NotTo(BeNil())
+
+		_, err = client.NexusClient.Config().CreateConfigByName(context.TODO(), &confignexusv1.Config{
+			ObjectMeta: metav1.ObjectMeta{
+				Name: "943ea6107388dc0d02a4c4d861295cd2ce24d551",
+				Labels: map[string]string{
+					common.DISPLAY_NAME: "default",
+				},
+			},
+		})
+		Expect(err).NotTo(HaveOccurred())
+
+		_, err = client.NexusClient.Runtime().CreateRuntimeByName(context.TODO(), &runtimenexusv1.Runtime{
+			ObjectMeta: metav1.ObjectMeta{
+				Name: "e817339e4e7bf29fa47ca62dd272b44282d271b8",
+				Labels: map[string]string{
+					common.DISPLAY_NAME: "default",
+				},
+			},
+		})
+		Expect(err).NotTo(HaveOccurred())
+
 		config.Cfg = &config.Config{
 			Server:             config.ServerConfig{},
 			EnableNexusRuntime: true,
 			BackendService:     "",
 		}
-		e = NewEchoServer(config.Cfg)
+		err = os.Setenv("GATEWAY_MODE", "admin")
+		Expect(err).To(BeNil())
+		e = NewEchoServer(config.Cfg, &kubernetes.Clientset{}, client.NexusClient)
+	})
+
+	It("should handle Login for user", func() {
+		userJson := `{
+			"username": "test",
+			"password": "test",
+			"tenantId": "test",
+			"realm":"admin",
+			"firstName" : "test",
+			"lastName": "test",
+			"email": "test@email.com"
+		}`
+		req := httptest.NewRequest(http.MethodPost, "/v0/users/", strings.NewReader(userJson))
+		rec := httptest.NewRecorder()
+		c := e.Echo.NewContext(req, rec)
+		h := e.CreateUserHandler(c)
+		Expect(h.Error()).NotTo(BeNil())
+		Expect(rec.Code).To(Equal(502))
+
+		// create Tenant and user
+		err := common.CreateTenantIfNotExists(e.NexusClient, "test", "advance")
+		Expect(err).To(BeNil())
+
+		userJson = `{
+			"username": "test",
+			"password": "test",
+			"tenantId": "test",
+			"realm":"admin",
+			"firstName" : "test",
+			"lastName": "test",
+			"email": "test@email.com"
+		}`
+		usercreatereq := httptest.NewRequest(http.MethodPost, "/v0/users/", strings.NewReader(userJson))
+		usercreaterec := httptest.NewRecorder()
+		c = e.Echo.NewContext(usercreatereq, usercreaterec)
+		h = e.CreateUserHandler(c)
+		Expect(usercreaterec.Code).To(Equal(201))
+
+		usergetafreq := httptest.NewRequest(http.MethodGet, "/v0/users/", nil)
+		usergetafrec := httptest.NewRecorder()
+		newc := e.Echo.NewContext(usergetafreq, usergetafrec)
+		newc.SetParamNames("userid")
+		newc.SetParamValues("test")
+		newh := e.GetUserHandler(newc)
+		Expect(newh).To(BeNil())
+		Expect(usergetafrec.Code).To(Equal(200))
+
+		token := base64.StdEncoding.EncodeToString([]byte("test:test"))
+		uservalafreq := httptest.NewRequest(http.MethodGet, "/v0/users/validate", nil)
+		uservalafrec := httptest.NewRecorder()
+		newc = e.Echo.NewContext(uservalafreq, uservalafrec)
+		newc.QueryParams().Add("token", token)
+		newh = e.ValidateUserHandler(newc)
+		Expect(newh).To(BeNil())
+		Expect(uservalafrec.Code).To(Equal(200))
+
+		token = base64.StdEncoding.EncodeToString([]byte("testing:test"))
+		uservalafreq = httptest.NewRequest(http.MethodGet, "/v0/users/validate", nil)
+		uservalafrec = httptest.NewRecorder()
+		newc = e.Echo.NewContext(uservalafreq, uservalafrec)
+		newc.QueryParams().Add("token", token)
+		newh = e.ValidateUserHandler(newc)
+		Expect(newh).To(BeNil())
+		Expect(uservalafrec.Code).To(Equal(403))
+
+		token = base64.StdEncoding.EncodeToString([]byte("test:test"))
+		uservalafreq = httptest.NewRequest(http.MethodGet, "/v0/users/validate", nil)
+		uservalafrec = httptest.NewRecorder()
+		newc = e.Echo.NewContext(uservalafreq, uservalafrec)
+		newc.Request().AddCookie(&http.Cookie{
+			Name:  "token",
+			Value: token,
+		})
+		newh = e.ValidateUserHandler(newc)
+		Expect(newh).To(BeNil())
+		Expect(uservalafrec.Code).To(Equal(200))
+
+		loginData := UserLogin{
+			Username: "test",
+			Password: "test",
+		}
+		data, err := json.Marshal(loginData)
+		userloginafreq := httptest.NewRequest(http.MethodPost, "/v0/users/login", strings.NewReader(string(data)))
+		userloginafrec := httptest.NewRecorder()
+		userloginafreq.Header.Set("Content-Type", "application/json")
+		newc = e.Echo.NewContext(userloginafreq, userloginafrec)
+		newh = e.UserLoginHandler(newc)
+		Expect(newh).To(BeNil())
+		Expect(userloginafrec.Code).To(Equal(200))
+
+		loginData = UserLogin{
+			Username: "test",
+			Password: "testing",
+		}
+		data, err = json.Marshal(loginData)
+		userloginafreq = httptest.NewRequest(http.MethodPost, "/v0/users/login", strings.NewReader(string(data)))
+		userloginafrec = httptest.NewRecorder()
+		userloginafreq.Header.Set("Content-Type", "application/json")
+		newc = e.Echo.NewContext(userloginafreq, userloginafrec)
+		newh = e.UserLoginHandler(newc)
+		Expect(newh).To(BeNil())
+		Expect(userloginafrec.Code).To(Equal(403))
+
+		usergetafreq = httptest.NewRequest(http.MethodGet, "/v0/users/", nil)
+		usergetafrec = httptest.NewRecorder()
+		newc = e.Echo.NewContext(usergetafreq, usergetafrec)
+		newc.SetParamNames("userid")
+		newc.SetParamValues("test2")
+		newh = e.GetUserHandler(newc)
+		Expect(newh).To(BeNil())
+		Expect(usergetafrec.Code).To(Equal(403))
+
+		userprefafreq := httptest.NewRequest(http.MethodGet, "/v0/user/preferences", nil)
+		userprefafrec := httptest.NewRecorder()
+		newc = e.Echo.NewContext(userprefafreq, userprefafrec)
+		newh = e.GetUserPreferencesHandler(newc)
+		Expect(newh).To(BeNil())
+		Expect(userprefafrec.Code).To(Equal(200))
+
+		userdeleteafreq := httptest.NewRequest(http.MethodDelete, "/v0/users/", nil)
+		userdeleteafrec := httptest.NewRecorder()
+		newc = e.Echo.NewContext(userdeleteafreq, userdeleteafrec)
+		newc.SetParamNames("userid")
+		newc.SetParamValues("test")
+		newh = e.DeleteUserHandler(newc)
+		Expect(newh).To(BeNil())
+		Expect(userdeleteafrec.Code).To(Equal(200))
+
+		// Get Tenant handler
+		tenantgetafreq := httptest.NewRequest(http.MethodDelete, "/v0/tenants/status", nil)
+		newrec := httptest.NewRecorder()
+		getC := e.Echo.NewContext(tenantgetafreq, newrec)
+		getC.Request().Header.Add("org-id", "test")
+		h = e.GetTenantStatusHandler(getC)
+		Expect(h).To(BeNil())
+		Expect(newrec.Code).To(Equal(503))
+		Expect(newrec.Body.String()).To(Equal("{\"details\":{\"creationStart\":\"NA\",\"message\":\"Tenant not available\",\"state\":\"STATE_REGISTRATION\",\"status\":\"STATUS_FAILED\"},\"error\":\"Tenant not available\",\"featureFlag\":\"firstTimeExperience\"}\n"))
+
+		common.AddTenantState("test", common.TenantState{
+			Status:        common.CREATED,
+			Message:       "Apps are started",
+			CreationStart: "2023-05-02T07:30:38Z",
+			SKU:           "advance",
+		})
+
+		tenantgetafreq = httptest.NewRequest(http.MethodDelete, "/v0/tenants/status", nil)
+		newrec = httptest.NewRecorder()
+		getC = e.Echo.NewContext(tenantgetafreq, newrec)
+		getC.Request().Header.Add("org-id", "test")
+		h = e.GetTenantStatusHandler(getC)
+		Expect(h).To(BeNil())
+		Expect(newrec.Code).To(Equal(200))
+		Expect(newrec.Body.String()).To(Equal("{\"lifecycle\":{\"state\":\"LIVE\"}}\n"))
+
+		// Delete Tenant handler
+		tenantdeleteafreq := httptest.NewRequest(http.MethodDelete, "/v0/tenants/instance", nil)
+		newrec = httptest.NewRecorder()
+		deleteC := e.Echo.NewContext(tenantdeleteafreq, newrec)
+		deleteC.SetParamNames("tenantid")
+		deleteC.SetParamValues("test")
+		h = e.DeleteTenantHander(deleteC)
+		Expect(h).To(BeNil())
+		Expect(newrec.Code).To(Equal(200))
+
+		tenantdeleteafreq = httptest.NewRequest(http.MethodDelete, "/v0/tenants/instance", nil)
+		newrec = httptest.NewRecorder()
+		deleteC = e.Echo.NewContext(req, newrec)
+		deleteC.SetParamNames("tenantid")
+		deleteC.SetParamValues("test")
+		h = e.DeleteTenantHander(deleteC)
+		Expect(h).To(BeNil())
+		Expect(newrec.Code).To(Equal(200))
+
+		//Create Tenant handler
+		tenantJson := TenantData{
+			TenantName: "testing",
+			Sku:        "advance",
+		}
+		data, err = json.Marshal(tenantJson)
+		tenantcrereq := httptest.NewRequest(http.MethodPut, "/v0/tenants/instance", strings.NewReader(string(data)))
+		tenantcrereq.Header.Set("Content-Type", "application/json")
+		tenantcrerec := httptest.NewRecorder()
+		c = e.Echo.NewContext(tenantcrereq, tenantcrerec)
+		h = e.TenantCreateHandler(c)
+		Expect(h).To(BeNil())
+		Expect(tenantcrerec.Code).To(Equal(201))
+
+		tenantcrereq = httptest.NewRequest(http.MethodPut, "/v0/tenants/instance", strings.NewReader(string(data)))
+		tenantcrerec = httptest.NewRecorder()
+		c = e.Echo.NewContext(tenantcrereq, tenantcrerec)
+		h = e.TenantCreateHandler(c)
+		Expect(h).To(BeNil())
+		Expect(tenantcrerec.Code).To(Equal(400))
+
+		getAuthmodereq := httptest.NewRequest(http.MethodGet, "/v0/temp/authmode", nil)
+		getAuthmoderec := httptest.NewRecorder()
+		c = e.Echo.NewContext(getAuthmodereq, getAuthmoderec)
+		h = e.GetAuthmode(c)
+		Expect(getAuthmoderec.Body.String()).To(Equal("{\"csp\":false}\n"))
+
+		httpmock.Activate()
+		defer httpmock.DeactivateAndReset()
+
+		httpmock.RegisterResponder(http.MethodGet, "http://localhost/version", func(r *http.Request) (*http.Response, error) {
+
+			return &http.Response{
+				Status:     "OK",
+				StatusCode: 200,
+			}, nil
+		})
+
+		getVersionMockreq := httptest.NewRequest(http.MethodGet, "/v0/version", nil)
+		getVersionMockrec := httptest.NewRecorder()
+		c = e.Echo.NewContext(getVersionMockreq, getVersionMockrec)
+		h = e.VersionHandler(c)
+		Expect(getVersionMockrec.Code).To(Equal(200))
+
 	})
 
 	It("should handle list query for empty list", func() {

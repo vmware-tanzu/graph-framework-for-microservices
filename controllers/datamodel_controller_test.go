@@ -36,7 +36,7 @@ var _ = Describe("Datamodel controller", func() {
 		Expect(err).ToNot(HaveOccurred())
 
 		Eventually(func() bool {
-		if _, ok := model.DatamodelToDatamodelInfo["nexus.vmware.com"]; ok {
+			if _, ok := model.DatamodelToDatamodelInfo["nexus.vmware.com"]; ok {
 				return true
 			}
 			return false

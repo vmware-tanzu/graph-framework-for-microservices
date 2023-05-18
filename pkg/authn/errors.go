@@ -41,6 +41,6 @@ var (
 	// ErrCallbackEndpointCreation indicates a failure in registering the specified OIDC callback endpoint
 	ErrCallbackEndpointCreation = errors.New("failed to register the callback endpoint with the Echo server")
 
-	// ErrAuthenticatorInit indicates a failure in initializing the OIDC authenticator
-	ErrAuthenticatorInit = errors.New("failed to initialize OIDC authenticator")
+	// ErrAuthenticatorInit indicates a failure in initializing the OIDC AuthenticatorObject
+	ErrAuthenticatorInit = errors.New("failed to initialize OIDC AuthenticatorObject")
 )

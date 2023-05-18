@@ -8,6 +8,8 @@ import (
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	nexus_client "golang-appnet.eng.vmware.com/nexus-sdk/api/build/nexus-client"
+	"k8s.io/client-go/kubernetes"
 )
 
 var _ = Describe("OpenAPI tests", func() {
@@ -40,7 +42,7 @@ var _ = Describe("OpenAPI tests", func() {
 			EnableNexusRuntime: true,
 			BackendService:     "",
 		}
-		e := echo_server.NewEchoServer(config.Cfg)
+		e := echo_server.NewEchoServer(config.Cfg, &kubernetes.Clientset{}, &nexus_client.Clientset{})
 		e.RegisterDeclarativeRouter()
 
 		c := e.Echo.NewContext(nil, nil)

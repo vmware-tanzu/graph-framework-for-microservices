@@ -15,24 +15,11 @@ func RegisterLogoutEndpoint(e *echo.Echo) {
 }
 
 func LogoutHandler(c echo.Context) error {
-	if isOidcEnabled() {
-		accessTokenCookie := new(http.Cookie)
-		accessTokenCookie.Name = common.AccessTokenStr
-		accessTokenCookie.Value = ""
-		accessTokenCookie.Expires = time.Unix(0, 0)
-		c.SetCookie(accessTokenCookie)
+	if IsOidcEnabled() {
 
-		refreshTokenCookie := new(http.Cookie)
-		refreshTokenCookie.Name = common.RefreshTokenStr
-		refreshTokenCookie.Value = ""
-		refreshTokenCookie.Expires = time.Unix(0, 0)
-		c.SetCookie(refreshTokenCookie)
-
-		idTokenCookie := new(http.Cookie)
-		idTokenCookie.Name = common.IdTokenStr
-		idTokenCookie.Value = ""
-		idTokenCookie.Expires = time.Unix(0, 0)
-		c.SetCookie(idTokenCookie)
+		c.SetCookie(common.CreateCookie(AuthenticatorObject.AccessToken, "", time.Unix(0, 0)))
+		c.SetCookie(common.CreateCookie(AuthenticatorObject.RefreshToken, "", time.Unix(0, 0)))
+		c.SetCookie(common.CreateCookie(AuthenticatorObject.IdToken, "", time.Unix(0, 0)))
 
 		c.String(http.StatusOK, "")
 	} else {

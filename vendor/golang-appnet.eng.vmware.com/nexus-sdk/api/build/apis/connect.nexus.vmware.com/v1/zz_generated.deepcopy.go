@@ -433,7 +433,11 @@ func (in *ReplicationConfigSpec) DeepCopy() *ReplicationConfigSpec {
 func (in *ReplicationDestination) DeepCopyInto(out *ReplicationDestination) {
 	*out = *in
 	in.Hierarchy.DeepCopyInto(&out.Hierarchy)
-	out.ObjectType = in.ObjectType
+	if in.ObjectType != nil {
+		in, out := &in.ObjectType, &out.ObjectType
+		*out = new(ObjectType)
+		**out = **in
+	}
 	return
 }
 

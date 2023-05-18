@@ -60,9 +60,12 @@ func (c *Config) DisplayName() string {
 
 // +k8s:openapi-gen=true
 type ConfigSpec struct {
-	ApiGatewayGvk *Child           `json:"apiGatewayGvk,omitempty" yaml:"apiGatewayGvk,omitempty" nexus:"child"`
-	RoutesGvk     map[string]Child `json:"routesGvk,omitempty" yaml:"routesGvk,omitempty" nexus:"children"`
-	ConnectGvk    *Child           `json:"connectGvk,omitempty" yaml:"connectGvk,omitempty" nexus:"child"`
+	ApiGatewayGvk   *Child           `json:"apiGatewayGvk,omitempty" yaml:"apiGatewayGvk,omitempty" nexus:"child"`
+	RoutesGvk       map[string]Child `json:"routesGvk,omitempty" yaml:"routesGvk,omitempty" nexus:"children"`
+	ConnectGvk      *Child           `json:"connectGvk,omitempty" yaml:"connectGvk,omitempty" nexus:"child"`
+	TenantGvk       map[string]Child `json:"tenantGvk,omitempty" yaml:"tenantGvk,omitempty" nexus:"children"`
+	TenantPolicyGvk map[string]Child `json:"tenantPolicyGvk,omitempty" yaml:"tenantPolicyGvk,omitempty" nexus:"children"`
+	UserGvk         map[string]Child `json:"userGvk,omitempty" yaml:"userGvk,omitempty" nexus:"children"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object

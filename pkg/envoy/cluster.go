@@ -1,6 +1,7 @@
 package envoy
 
 import (
+	"api-gw/pkg/common"
 	"fmt"
 	"net/url"
 	"time"
@@ -16,15 +17,49 @@ import (
 	"google.golang.org/protobuf/types/known/durationpb"
 )
 
-func makeClusters(jwtAuthnConfig *JwtAuthnConfig, upstreams map[string]*UpstreamConfig, headerUpstreams map[string]*HeaderMatchedUpstream) ([]types.Resource, error) {
+func makeTSMTenantClusters(tenantconfigs []*TenantConfig) (clusters []types.Resource, err error) {
+	if tenantconfigs == nil {
+		return nil, nil
+	}
+	for _, tenant := range tenantconfigs {
+		for _, svc := range cosmosServices {
+			if !svc.Global {
+				clusterRoute, err := makeCluster(fmt.Sprintf("%s-%s", svc.Name, tenant.Name), fmt.Sprintf("%s.%s", svc.Name, tenant.Name), svc.Port, nil)
+				if err != nil {
+					return nil, fmt.Errorf("failed to create %s cluster :%s", fmt.Sprintf("%s-%s", svc.Name, tenant.Name), err)
+				}
+				clusters = append(clusters, clusterRoute)
+			}
+		}
+	}
+	return clusters, nil
+}
+
+func makeClusters(tenantConfigs []*TenantConfig, jwtAuthnConfig *JwtAuthnConfig, upstreams map[string]*UpstreamConfig, headerUpstreams map[string]*HeaderMatchedUpstream) ([]types.Resource, error) {
 	var clusters []types.Resource
 
-	adminCluster, err := makeAdminCluster()
-	if err != nil {
-		return nil, fmt.Errorf("failed to create admin cluster :%s", err)
+	if common.IsModeAdmin() {
+		adminCluster, err := makeAdminCluster()
+		if err != nil {
+			return nil, fmt.Errorf("failed to create admin cluster :%s", err)
+		}
+		if adminCluster != nil {
+			clusters = append(clusters, adminCluster)
+		}
 	}
-	if adminCluster != nil {
-		clusters = append(clusters, adminCluster)
+
+	uiCluster, err := makeCluster(globalUI, globalUIsvcname, globalUIPort, nil)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create globalUI cluster: %s", err)
+	}
+	clusters = append(clusters, uiCluster)
+
+	if tenantConfigs != nil {
+		tenantRoutes, err := makeTSMTenantClusters(tenantConfigs)
+		if err != nil {
+			return nil, fmt.Errorf("failed to create tenantroutes cluster: %s", err)
+		}
+		clusters = append(clusters, tenantRoutes...)
 	}
 
 	var jwksCluster types.Resource
@@ -97,11 +132,14 @@ func makeCluster(name, host string, port uint32, tlsTransport *core.TransportSoc
 	return &cluster.Cluster{
 		Name:                 name,
 		DnsLookupFamily:      cluster.Cluster_V4_PREFERRED,
-		ConnectTimeout:       durationpb.New(5 * time.Second),
+		ConnectTimeout:       durationpb.New(30 * time.Second),
 		ClusterDiscoveryType: &cluster.Cluster_Type{Type: cluster.Cluster_LOGICAL_DNS},
 		LbPolicy:             cluster.Cluster_ROUND_ROBIN,
 		LoadAssignment:       makeEndpoint(name, host, port),
 		TransportSocket:      tlsTransport,
+		HttpProtocolOptions: &core.Http1ProtocolOptions{
+			AllowChunkedLength: true,
+		},
 	}, nil
 }
 

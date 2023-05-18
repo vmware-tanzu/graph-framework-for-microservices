@@ -26,9 +26,14 @@ func GetCRDParentsMap() map[string][]string {
 		"nexusendpoints.connect.nexus.vmware.com":     {"nexuses.api.nexus.vmware.com", "configs.config.nexus.vmware.com", "connects.connect.nexus.vmware.com"},
 		"nexuses.api.nexus.vmware.com":                {},
 		"oidcs.authentication.nexus.vmware.com":       {"nexuses.api.nexus.vmware.com", "configs.config.nexus.vmware.com", "apigateways.apigateway.nexus.vmware.com"},
+		"policies.tenantconfig.nexus.vmware.com":      {"nexuses.api.nexus.vmware.com", "configs.config.nexus.vmware.com"},
 		"proxyrules.admin.nexus.vmware.com":           {"nexuses.api.nexus.vmware.com", "configs.config.nexus.vmware.com", "apigateways.apigateway.nexus.vmware.com"},
 		"replicationconfigs.connect.nexus.vmware.com": {"nexuses.api.nexus.vmware.com", "configs.config.nexus.vmware.com", "connects.connect.nexus.vmware.com"},
 		"routes.route.nexus.vmware.com":               {"nexuses.api.nexus.vmware.com", "configs.config.nexus.vmware.com"},
+		"runtimes.runtime.nexus.vmware.com":           {"nexuses.api.nexus.vmware.com"},
+		"tenants.tenantconfig.nexus.vmware.com":       {"nexuses.api.nexus.vmware.com", "configs.config.nexus.vmware.com"},
+		"tenants.tenantruntime.nexus.vmware.com":      {"nexuses.api.nexus.vmware.com", "runtimes.runtime.nexus.vmware.com"},
+		"users.user.nexus.vmware.com":                 {"nexuses.api.nexus.vmware.com", "configs.config.nexus.vmware.com"},
 	}
 }
 
@@ -82,6 +87,13 @@ func GetObjectByCRDName(dmClient *datamodel.Clientset, crdName string, name stri
 		}
 		return obj
 	}
+	if crdName == "policies.tenantconfig.nexus.vmware.com" {
+		obj, err := dmClient.TenantconfigNexusV1().Policies().Get(context.TODO(), name, metav1.GetOptions{})
+		if err != nil {
+			return nil
+		}
+		return obj
+	}
 	if crdName == "proxyrules.admin.nexus.vmware.com" {
 		obj, err := dmClient.AdminNexusV1().ProxyRules().Get(context.TODO(), name, metav1.GetOptions{})
 		if err != nil {
@@ -98,6 +110,34 @@ func GetObjectByCRDName(dmClient *datamodel.Clientset, crdName string, name stri
 	}
 	if crdName == "routes.route.nexus.vmware.com" {
 		obj, err := dmClient.RouteNexusV1().Routes().Get(context.TODO(), name, metav1.GetOptions{})
+		if err != nil {
+			return nil
+		}
+		return obj
+	}
+	if crdName == "runtimes.runtime.nexus.vmware.com" {
+		obj, err := dmClient.RuntimeNexusV1().Runtimes().Get(context.TODO(), name, metav1.GetOptions{})
+		if err != nil {
+			return nil
+		}
+		return obj
+	}
+	if crdName == "tenants.tenantconfig.nexus.vmware.com" {
+		obj, err := dmClient.TenantconfigNexusV1().Tenants().Get(context.TODO(), name, metav1.GetOptions{})
+		if err != nil {
+			return nil
+		}
+		return obj
+	}
+	if crdName == "tenants.tenantruntime.nexus.vmware.com" {
+		obj, err := dmClient.TenantruntimeNexusV1().Tenants().Get(context.TODO(), name, metav1.GetOptions{})
+		if err != nil {
+			return nil
+		}
+		return obj
+	}
+	if crdName == "users.user.nexus.vmware.com" {
+		obj, err := dmClient.UserNexusV1().Users().Get(context.TODO(), name, metav1.GetOptions{})
 		if err != nil {
 			return nil
 		}

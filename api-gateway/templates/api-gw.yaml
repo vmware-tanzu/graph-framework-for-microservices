@@ -2,8 +2,18 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: nexus-api-gw-kubeconfig-local
-  namespace: {{.Values.global.namespace}}
+  namespace: {{ default .Release.Namespace .Values.global.Namespace }}
+# fill the configmap for Sku with PM input
 data:
+  skuconfigmap: |
+    sku:
+        advance:
+          - TSMCADV_TS
+          - NSM_STD_CORE_CP
+        enterprise:
+          - TSMCENT_TS
+          - CMCMSC_TS
+          - NSM_ENT_CORE_CP
   kubeconfig: |
     current-context: localapiserver
     apiVersion: v1
@@ -18,6 +28,45 @@ data:
     - context:
         cluster: localapiserver
       name: localapiserver
+  staticRoutes.yaml: |
+    Prefix:
+      - "/home"
+      - "/api-explorer"
+      - "/allspark-static"
+      - "/cluster-registration"
+      - "/release-manifests"
+      - "/configuration"
+      - "/no-service-access"
+      - "/resiliency"
+      - "/inventory"
+      - "/admin/management"
+      - "/login"
+      - "/security"
+      - "/api-management"
+      - "/user-detail"
+      - "/cluster-detail"
+      - "/node-detail"
+      - "/data-detail"
+      - "/service-detail"
+      - "/service-instance-detail"
+      - "/global-namespaces-detail"
+      - "/service-group-detail"
+      - "/public-service-detail"
+      - "/slo-detail"
+      - "/api-detail"
+      - "/external-service-detail"
+      - "/not-found"
+      - "/no-content"
+      - "/dev-space-wizard"
+      - "/collaborationspace"
+      - "/security"
+    Suffix:
+      - "js"
+      - "css"
+      - "png"
+      - "svg"
+      - "jpg"
+      - "ttf"
   api-gw-config: |
     server:
       address: ":443"
@@ -30,7 +79,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: nexus-api-gw
-  namespace: {{.Values.global.namespace}}
+  namespace: {{ default .Release.Namespace .Values.global.Namespace }}
   labels:
     control-plane: api-gw
 spec:
@@ -100,7 +149,7 @@ spec:
                   app.kubernetes.io/instance: ingress-nginx
                 name: nginx-'"$NAMESPACE"'
               spec:
-                controller: k8s.io/ingress-nginx' | kubectl apply -f - -n $NAMESPACE      
+                controller: k8s.io/ingress-nginx' | kubectl apply -f - -n $NAMESPACE
       containers:
         -
           image: {{.Values.global.registry}}/nexus-api-gateway:{{ required "Please provide global.api_gateway.tag value using --set-string option!" .Values.global.api_gateway.tag }}
@@ -122,6 +171,22 @@ spec:
               {{- else }}
               value: "tenant"
               {{- end }}
+            {{- if eq .Values.global.nexusAdmin true }}
+            - name: SSL_ENABLED
+              value: {{ .Values.global.useHttps | quote }}
+            - name: DEFAULT_SKU
+              value: {{.Values.global.DefaultSKU}}
+            - name: CSP_PERMISSION_NAME
+              value: {{ .Values.global.csp.PermissionName }}
+            - name: CSP_SERVICE_OWNER_ORG
+              value: {{ .Values.global.csp.ServiceOwnerOrg}}
+            - name: CSP_SERVICE_OWNER_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  key: token
+                  name: csp-service-owner
+                  optional: true
+            {{- end }}
             - name: NAMESPACE
               valueFrom:
                 fieldRef:
@@ -159,7 +224,7 @@ spec:
             name: nexus-api-gw-kubeconfig-local
         - name: cert-volume
           secret:
-            secretName: api-gw-server-cert
+            secretName: nexus-api-gw-tls
             optional: true
         - name: nexus-openapi
           configMap:
@@ -175,101 +240,13 @@ spec:
         runAsUser: 0
         runAsGroup: 0
 ---
-{{- if eq .Values.global.certEnabled true }}
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: nexus-api-gw-create-signed-cert
-  namespace: {{.Values.global.namespace}}
-data:
-  create_certificate_as_secret.sh: |
-        #!/usr/bin/env bash
-        set -ex
-        namespace=$POD_NAMESPACE
-        usage() {
-            cat <<EOF
-        Generate certificate suitable for use with an webhook service.
-
-        This script uses k8s' CertificateSigningRequest API to a generate a
-        certificate signed by k8s CA suitable for use with sidecar-injector webhook
-        services. This requires permissions to create and approve CSR. See
-        https://kubernetes.io/docs/tasks/tls/managing-tls-in-a-cluster for
-        detailed explantion and additional instructions.
-
-        The server key/cert k8s CA cert are stored in a k8s secret.
-
-        usage: ${0} [OPTIONS]
-
-        The following flags are required.
-
-                --service          Service name of webhook.
-                --namespace        Namespace where webhook service and secret reside.
-                --secret           Secret name for CA certificate and server certificate/key pair.
-        EOF
-            exit 1
-        }
-
-        while [[ $# -gt 0 ]]; do
-            case ${1} in
-                --service)
-                    service="$2"
-                    shift
-                    ;;
-                --secret)
-                    secret="$2"
-                    shift
-                    ;;
-                *)
-                    usage
-                    ;;
-            esac
-            shift
-        done
-
-        if [ ! -x "$(command -v openssl)" ]; then
-            echo "openssl not found"
-            exit 1
-        fi
-
-        csrName=${service}
-        tmpdir=$(mktemp -d)
-        echo "creating certs in tmpdir ${tmpdir} "
-
-        cat <<EOF >> ${tmpdir}/csr.conf
-        [req]
-        req_extensions = v3_req
-        distinguished_name = req_distinguished_name
-        [req_distinguished_name]
-        [ v3_req ]
-        basicConstraints = CA:FALSE
-        keyUsage = digitalSignature, keyEncipherment
-        extendedKeyUsage = serverAuth
-        subjectAltName = @alt_names
-        [alt_names]
-        DNS.1 = ${service}
-        DNS.2 = ${service}.${namespace}
-        DNS.3 = ${service}.${namespace}.svc
-        EOF
-
-        openssl genrsa -out ${tmpdir}/server-key.pem 2048
-        openssl req -new -key ${tmpdir}/server-key.pem -subj "/CN=${service}" -out ${tmpdir}/server.csr -config ${tmpdir}/csr.conf
-        openssl x509 -req -days 365 -in ${tmpdir}/server.csr -signkey ${tmpdir}/server-key.pem -sha256 -out ${tmpdir}/server.crt
-        openssl x509 -in ${tmpdir}/server.crt -out ${tmpdir}/server-cert.pem -outform PEM
-
-        # create the secret with CA cert and server cert/key
-        kubectl create secret generic ${secret} \
-                --from-file=key.pem=${tmpdir}/server-key.pem \
-                --from-file=cert.pem=${tmpdir}/server-cert.pem \
-                --dry-run -o yaml |
-            kubectl -n ${namespace} apply -f -
----
-{{- end }}
 apiVersion: v1
 kind: Service
 metadata:
   name: nexus-api-gw
-  namespace: {{.Values.global.namespace}}
+  namespace: {{ default .Release.Namespace .Values.global.Namespace }}
 spec:
+  type: {{ .Values.global.apiGWsvcType | default "ClusterIP" }}
   ports:
   - protocol: TCP
     name: http
@@ -289,8 +266,8 @@ spec:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-  name: nexus-agw-cr-{{.Values.global.namespace}}
-  namespace: {{.Values.global.namespace}}
+  name: nexus-agw-cr-{{ default .Release.Namespace .Values.global.Namespace }}
+  namespace: {{ default .Release.Namespace .Values.global.Namespace }}
 rules:
 - apiGroups:
   - "networking.k8s.io"
@@ -310,18 +287,19 @@ apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: nexus-api-gw-sa
-  namespace: {{.Values.global.namespace}}
+  namespace: {{ default .Release.Namespace .Values.global.Namespace }}
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
-  name: nexus-agw-crb-{{.Values.global.namespace}}
-  namespace: {{.Values.global.namespace}}
+  name: nexus-agw-crb-{{ default .Release.Namespace .Values.global.Namespace }}
+  namespace: {{ default .Release.Namespace .Values.global.Namespace }}
 subjects:
 - kind: ServiceAccount
   name: nexus-api-gw-sa
-  namespace: {{.Values.global.namespace}}
+  namespace: {{ default .Release.Namespace .Values.global.Namespace }}
 roleRef:
   kind: ClusterRole
-  name: nexus-agw-cr-{{.Values.global.namespace}}
+  name: nexus-agw-cr-{{ default .Release.Namespace .Values.global.Namespace }}
   apiGroup: rbac.authorization.k8s.io
+---

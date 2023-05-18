@@ -11,19 +11,23 @@ import (
 )
 
 func RegisterRefreshAccessTokenEndpoint(e *echo.Echo) {
-	e.POST(common.RefreshAccessTokenEndpoint, RefreshTokenHandler)
+	if IsOidcEnabled() {
+		e.Any(AuthenticatorObject.RefreshAccessTokenEndpoint, RefreshTokenHandler)
+	} else {
+		e.Any(common.RefreshAccessTokenEndpoint, RefreshTokenHandler)
+	}
 	log.Debugf("successfully registered refresh access token endpoint at %s", common.RefreshAccessTokenEndpoint)
 }
 
 func RefreshTokenHandler(c echo.Context) error {
-	if isOidcEnabled() {
-		refreshToken, authError := getTokenInRequest(c, common.RefreshTokenStr)
+	if IsOidcEnabled() {
+		refreshToken, authError := getTokenInRequest(c, AuthenticatorObject.RefreshToken)
 		if authError != nil {
 			return fmt.Errorf("error getting refresh_token cookie: %s", authError)
 		}
 
 		// use the refresh token to fetch a new set of tokens
-		updatedToken, err := authenticator.Config.TokenSource(c.Request().Context(), &oauth2.Token{
+		updatedToken, err := AuthenticatorObject.Config.TokenSource(c.Request().Context(), &oauth2.Token{
 			RefreshToken: refreshToken,
 		}).Token()
 		if err != nil {
