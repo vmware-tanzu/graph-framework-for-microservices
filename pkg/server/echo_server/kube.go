@@ -2,6 +2,7 @@ package echo_server
 
 import (
 	"api-gw/pkg/client"
+	"api-gw/pkg/common"
 	"api-gw/pkg/model"
 	"context"
 	"errors"
@@ -22,13 +23,26 @@ import (
 )
 
 // kubeSetupProxy is used to set up reverse proxy to an API server
-func kubeSetupProxy(e *echo.Echo) {
+func kubeSetupProxy(e *echo.Echo) *httputil.ReverseProxy {
 	proxyUrl, err := url.Parse(client.Host)
 	if err != nil {
 		log.Warnf("Could not parse proxy URL: %v", err)
 	}
 	proxy := httputil.NewSingleHostReverseProxy(proxyUrl)
-	e.Any("*", echo.WrapHandler(proxy))
+	if common.IsModeAdmin() {
+		e.Any("/api/*", echo.WrapHandler(proxy))
+		e.Any("/apis/*", echo.WrapHandler(proxy))
+		e.Any("/api", echo.WrapHandler(proxy))
+		e.Any("/apis", echo.WrapHandler(proxy))
+		e.Any("/readyz", echo.WrapHandler(proxy))
+		e.Any("/openapi/*", echo.WrapHandler(proxy))
+		e.Any("/openapi", echo.WrapHandler(proxy))
+		e.Any("/healthz", echo.WrapHandler(proxy))
+		e.Any("/readyz", echo.WrapHandler(proxy))
+	} else {
+		e.Any("/*", echo.WrapHandler(proxy))
+	}
+	return proxy
 }
 
 // kubeGetByNameHandler is used to process 'kubectl get <resource> <name>' requests

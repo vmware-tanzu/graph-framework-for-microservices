@@ -254,7 +254,7 @@ func listHandler(c echo.Context) error {
 	}
 	for _, item := range objs.Items {
 		itemName := item.GetName()
-		if val, ok := item.GetLabels()["nexus/display_name"]; ok {
+		if val, ok := item.GetLabels()[utils.DISPLAY_NAME_LABEL]; ok {
 			itemName = val
 		}
 		status := make(map[string]interface{})

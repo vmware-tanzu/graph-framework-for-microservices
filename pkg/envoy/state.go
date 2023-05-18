@@ -15,6 +15,7 @@ var (
 	jwt             *JwtAuthnConfig
 	upstreams       map[string]*UpstreamConfig
 	headerUpstreams map[string]*HeaderMatchedUpstream
+	TenantConfigs   []*TenantConfig
 )
 
 const (
@@ -49,7 +50,7 @@ func Init(j *JwtAuthnConfig, u map[string]*UpstreamConfig, hu map[string]*Header
 	cache = cachev3.NewSnapshotCache(false, cachev3.IDHash{}, logger)
 
 	// Create the snapshot that we'll serve to Envoy
-	snapshot, err := GenerateNewSnapshot(nil, nil, nil)
+	snapshot, err := GenerateNewSnapshot(nil, nil, nil, nil)
 	if err != nil {
 		log.Errorf("failed to generate a new snapshot: %s", err)
 		return err
@@ -79,7 +80,7 @@ func RefreshEnvoyConfiguration() error {
 	defer refreshEnvoyMutex.Unlock()
 
 	log.Debugf("refreshing envoy configuration...")
-	snapshot, err := GenerateNewSnapshot(jwt, upstreams, headerUpstreams)
+	snapshot, err := GenerateNewSnapshot(TenantConfigs, jwt, upstreams, headerUpstreams)
 	if err != nil {
 		log.Errorf("failed to generate a new snapshot: %s", err)
 		return err
@@ -98,6 +99,44 @@ func RefreshEnvoyConfiguration() error {
 	}
 	log.Debugf("successfully refreshed envoy configuration")
 	return nil
+}
+
+func AddTenantConfig(tenantConfig *TenantConfig) error {
+	for _, tenantconfig_ := range TenantConfigs {
+		if tenantconfig_.Name == tenantConfig.Name {
+			err := RefreshEnvoyConfiguration()
+			if err != nil {
+				return err
+			}
+			return nil
+		}
+	}
+	TenantConfigs = append(TenantConfigs, tenantConfig)
+	err := RefreshEnvoyConfiguration()
+	if err != nil {
+		return fmt.Errorf("AddTenantConfig: error while refreshing envoy configuration: %s", err)
+	}
+	return nil
+}
+
+func RemoveIndex(s []*TenantConfig, index int) []*TenantConfig {
+	return append(s[:index], s[index+1:]...)
+}
+
+func DeleteTenantConfig(tenantname string) error {
+	var index int
+	for i, object := range TenantConfigs {
+		if object.Name == tenantname {
+			index = i
+		}
+	}
+	TenantConfigs = RemoveIndex(TenantConfigs, index)
+	err := RefreshEnvoyConfiguration()
+	if err != nil {
+		return fmt.Errorf("DeleteTenantConfig: error while refreshing envoy configuration: %s", err)
+	}
+	return nil
+
 }
 
 func AddJwtAuthnConfig(jwtAuthnConfig *JwtAuthnConfig) error {

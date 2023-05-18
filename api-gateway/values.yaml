@@ -1,5 +1,11 @@
 global:
+  csp:
+    PermissionName: ""
+    ServiceOwnerOrg: ""
+  DefaultSKU: enterprise
   api_gateway:
     tag: ""
-  regitry: gcr.io/nsx-sm/nexus
+  registry: gcr.io/nsx-sm/nexus
+  imagepullsecret: ""
   resources: {}
+    

@@ -28,6 +28,8 @@ import (
 	fakeapigatewaynexusv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/client/clientset/versioned/typed/apigateway.nexus.vmware.com/v1/fake"
 	authenticationnexusv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/client/clientset/versioned/typed/authentication.nexus.vmware.com/v1"
 	fakeauthenticationnexusv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/client/clientset/versioned/typed/authentication.nexus.vmware.com/v1/fake"
+	commonnexusv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/client/clientset/versioned/typed/common.nexus.vmware.com/v1"
+	fakecommonnexusv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/client/clientset/versioned/typed/common.nexus.vmware.com/v1/fake"
 	confignexusv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/client/clientset/versioned/typed/config.nexus.vmware.com/v1"
 	fakeconfignexusv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/client/clientset/versioned/typed/config.nexus.vmware.com/v1/fake"
 	connectnexusv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/client/clientset/versioned/typed/connect.nexus.vmware.com/v1"
@@ -36,6 +38,14 @@ import (
 	fakedomainnexusv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/client/clientset/versioned/typed/domain.nexus.vmware.com/v1/fake"
 	routenexusv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/client/clientset/versioned/typed/route.nexus.vmware.com/v1"
 	fakeroutenexusv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/client/clientset/versioned/typed/route.nexus.vmware.com/v1/fake"
+	runtimenexusv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/client/clientset/versioned/typed/runtime.nexus.vmware.com/v1"
+	fakeruntimenexusv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/client/clientset/versioned/typed/runtime.nexus.vmware.com/v1/fake"
+	tenantconfignexusv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/client/clientset/versioned/typed/tenantconfig.nexus.vmware.com/v1"
+	faketenantconfignexusv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/client/clientset/versioned/typed/tenantconfig.nexus.vmware.com/v1/fake"
+	tenantruntimenexusv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/client/clientset/versioned/typed/tenantruntime.nexus.vmware.com/v1"
+	faketenantruntimenexusv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/client/clientset/versioned/typed/tenantruntime.nexus.vmware.com/v1/fake"
+	usernexusv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/client/clientset/versioned/typed/user.nexus.vmware.com/v1"
+	fakeusernexusv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/client/clientset/versioned/typed/user.nexus.vmware.com/v1/fake"
 
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/watch"
@@ -114,6 +124,11 @@ func (c *Clientset) AuthenticationNexusV1() authenticationnexusv1.Authentication
 	return &fakeauthenticationnexusv1.FakeAuthenticationNexusV1{Fake: &c.Fake}
 }
 
+// CommonNexusV1 retrieves the CommonNexusV1Client
+func (c *Clientset) CommonNexusV1() commonnexusv1.CommonNexusV1Interface {
+	return &fakecommonnexusv1.FakeCommonNexusV1{Fake: &c.Fake}
+}
+
 // ConfigNexusV1 retrieves the ConfigNexusV1Client
 func (c *Clientset) ConfigNexusV1() confignexusv1.ConfigNexusV1Interface {
 	return &fakeconfignexusv1.FakeConfigNexusV1{Fake: &c.Fake}
@@ -132,4 +147,24 @@ func (c *Clientset) DomainNexusV1() domainnexusv1.DomainNexusV1Interface {
 // RouteNexusV1 retrieves the RouteNexusV1Client
 func (c *Clientset) RouteNexusV1() routenexusv1.RouteNexusV1Interface {
 	return &fakeroutenexusv1.FakeRouteNexusV1{Fake: &c.Fake}
+}
+
+// RuntimeNexusV1 retrieves the RuntimeNexusV1Client
+func (c *Clientset) RuntimeNexusV1() runtimenexusv1.RuntimeNexusV1Interface {
+	return &fakeruntimenexusv1.FakeRuntimeNexusV1{Fake: &c.Fake}
+}
+
+// TenantconfigNexusV1 retrieves the TenantconfigNexusV1Client
+func (c *Clientset) TenantconfigNexusV1() tenantconfignexusv1.TenantconfigNexusV1Interface {
+	return &faketenantconfignexusv1.FakeTenantconfigNexusV1{Fake: &c.Fake}
+}
+
+// TenantruntimeNexusV1 retrieves the TenantruntimeNexusV1Client
+func (c *Clientset) TenantruntimeNexusV1() tenantruntimenexusv1.TenantruntimeNexusV1Interface {
+	return &faketenantruntimenexusv1.FakeTenantruntimeNexusV1{Fake: &c.Fake}
+}
+
+// UserNexusV1 retrieves the UserNexusV1Client
+func (c *Clientset) UserNexusV1() usernexusv1.UserNexusV1Interface {
+	return &fakeusernexusv1.FakeUserNexusV1{Fake: &c.Fake}
 }

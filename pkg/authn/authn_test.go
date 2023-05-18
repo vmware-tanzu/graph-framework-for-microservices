@@ -10,20 +10,28 @@ import (
 	"api-gw/pkg/server/echo_server"
 	"api-gw/pkg/utils"
 	"context"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
 
+	"github.com/golang/mock/gomock"
+	"github.com/jarcoal/httpmock"
 	"github.com/labstack/echo/v4"
 	log "github.com/sirupsen/logrus"
+	reg_svc_mock "gitlab.eng.vmware.com/nsx-allspark_users/go-protos/mocks/pkg/registration-service/global"
+	reg_svc "gitlab.eng.vmware.com/nsx-allspark_users/go-protos/pkg/registration-service/global"
 	adminnexusv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/admin.nexus.vmware.com/v1"
 	apinexusv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/api.nexus.vmware.com/v1"
 	apigatewaynexusv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/apigateway.nexus.vmware.com/v1"
 	confignexusv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/config.nexus.vmware.com/v1"
+	runtimenexusv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/runtime.nexus.vmware.com/v1"
+	v1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/tenantconfig.nexus.vmware.com/v1"
 	nexus_client "golang-appnet.eng.vmware.com/nexus-sdk/api/build/nexus-client"
 
 	authnexusv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/authentication.nexus.vmware.com/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/client-go/kubernetes"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -40,7 +48,37 @@ var _ = Describe("Authn tests", func() {
 			EnableNexusRuntime: true,
 			BackendService:     "",
 		}
-		e = echo_server.NewEchoServer(config.Cfg)
+		e = echo_server.NewEchoServer(config.Cfg, &kubernetes.Clientset{}, &nexus_client.Clientset{})
+		client.NexusClient = nexus_client.NewFakeClient()
+		_, err := client.NexusClient.Api().CreateNexusByName(context.TODO(), &apinexusv1.Nexus{
+			ObjectMeta: metav1.ObjectMeta{
+				Name: "default",
+			},
+		})
+		Expect(err).NotTo(HaveOccurred())
+
+		_, err = common.GetConfigNode(client.NexusClient, "default")
+		Expect(err).NotTo(BeNil())
+
+		_, err = client.NexusClient.Config().CreateConfigByName(context.TODO(), &confignexusv1.Config{
+			ObjectMeta: metav1.ObjectMeta{
+				Name: "943ea6107388dc0d02a4c4d861295cd2ce24d551",
+				Labels: map[string]string{
+					common.DISPLAY_NAME: "default",
+				},
+			},
+		})
+		Expect(err).NotTo(HaveOccurred())
+
+		_, err = client.NexusClient.Runtime().CreateRuntimeByName(context.TODO(), &runtimenexusv1.Runtime{
+			ObjectMeta: metav1.ObjectMeta{
+				Name: "e817339e4e7bf29fa47ca62dd272b44282d271b8",
+				Labels: map[string]string{
+					common.DISPLAY_NAME: "default",
+				},
+			},
+		})
+		Expect(err).NotTo(HaveOccurred())
 
 		serverURL = server.run()
 	})
@@ -53,6 +91,74 @@ var _ = Describe("Authn tests", func() {
 			Type: model.Delete,
 		}, e.Echo)
 		Expect(err).NotTo(HaveOccurred())
+	})
+
+	It("should handle tenantconfig Events", func() {
+
+		config.GlobalStaticRouteConfig = &config.GlobalStaticRoutes{
+			Suffix: []string{"js", "css", "png"},
+			Prefix: []string{"/home", "/allspark-static"},
+		}
+
+		envoy.Init(nil, nil, nil, log.DebugLevel)
+		snap, err := envoy.GenerateNewSnapshot(nil, nil, nil, nil)
+		Expect(snap).NotTo(BeNil())
+		Expect(err).To(BeNil())
+
+		ctrl := gomock.NewController(GinkgoT())
+		regClient := reg_svc_mock.NewMockGlobalRegistrationClient(ctrl)
+
+		gomock.InOrder(
+			regClient.EXPECT().RegisterTenant(gomock.Any(), gomock.Any()).Return(&reg_svc.TenantResponse{
+				Code: 0,
+			}, nil),
+		)
+
+		eventCreate := &model.TenantNodeEvent{
+			Tenant: v1.Tenant{
+				ObjectMeta: metav1.ObjectMeta{
+					Name: "test",
+					Labels: map[string]string{
+						common.DISPLAY_NAME: "test",
+					},
+				},
+				Spec: v1.TenantSpec{
+					Name: "test",
+					Skus: []string{"advance"},
+				},
+			},
+			Type:      model.Upsert,
+			RegClient: regClient,
+		}
+		err = authn.HandlerTenantNodeUpdate(eventCreate, e.Echo)
+		Expect(err).To(BeNil())
+
+		gomock.InOrder(
+			regClient.EXPECT().UnregisterTenant(gomock.Any(), gomock.Any()).Return(&reg_svc.TenantResponse{
+				Code: 0,
+			}, nil),
+		)
+
+		eventDelete := &model.TenantNodeEvent{
+			Tenant: v1.Tenant{
+				ObjectMeta: metav1.ObjectMeta{
+					Name: "test",
+					Labels: map[string]string{
+						common.DISPLAY_NAME: "test",
+					},
+				},
+				Spec: v1.TenantSpec{
+					Name: "test",
+					Skus: []string{"advance"},
+				},
+			},
+			Type:      model.Delete,
+			RegClient: regClient,
+		}
+
+		err = authn.HandlerTenantNodeUpdate(eventDelete, e.Echo)
+		Expect(err).To(BeNil())
+
 	})
 
 	It("should register endpoints", func() {
@@ -107,7 +213,7 @@ var _ = Describe("Authn tests", func() {
 			Expect(rec.Code).To(Equal(200))
 		})
 
-		It("should register callback endpoint when authenticator is nil", func() {
+		It("should register callback endpoint when AuthenticatorObject is nil", func() {
 			s, err := authn.RegisterCallbackHandler(e.Echo)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(s).To(Equal(""))
@@ -116,9 +222,6 @@ var _ = Describe("Authn tests", func() {
 
 	Context("oidc enabled", func() {
 		Context("blank envoy config", func() {
-
-			err := envoy.Init(nil, nil, nil, 1)
-			Expect(err).NotTo(HaveOccurred())
 
 			It("should return 307 for login handler when when oidc is enabled but "+
 				"envoy config is not initialized yet", func() {
@@ -141,7 +244,7 @@ var _ = Describe("Authn tests", func() {
 					Type: model.Upsert,
 				}
 
-				err = authn.HandleOidcNodeUpdate(oidcEvent, e.Echo)
+				err := authn.HandleOidcNodeUpdate(oidcEvent, e.Echo)
 				Expect(err).NotTo(HaveOccurred())
 
 				req := httptest.NewRequest(http.MethodPost, common.LoginEndpoint, nil)
@@ -376,6 +479,18 @@ var _ = Describe("Authn tests", func() {
 				Expect(rec.Code).To(Equal(200))
 				Expect(rec.Header().Get("Access_token")).To(Equal("test"))
 			})
+
+			It("should return 200 when state param is set to login endpoint along with org_link", func() {
+				req := httptest.NewRequest(http.MethodGet, "/?org_link=test&code=123&state="+common.LoginEndpoint, nil)
+				rec := httptest.NewRecorder()
+				c := e.Echo.NewContext(req, rec)
+				c.SetPath("?org_link=test&code=123&state=" + common.LoginEndpoint)
+
+				err := authn.CallbackHandler(c)
+				Expect(err).NotTo(HaveOccurred())
+				Expect(rec.Code).To(Equal(200))
+				Expect(rec.Header().Get("Access_token")).To(Equal("test"))
+			})
 		})
 
 		It("should return 200 when token is successfully refreshed", func() {
@@ -388,6 +503,48 @@ var _ = Describe("Authn tests", func() {
 			Expect(err).NotTo(HaveOccurred())
 
 			Expect(rec.Code).To(Equal(200))
+
+			authn.AuthenticatorObject = &authn.Authenticator{
+				OAuthIssuerURLRoot: "http://localhost:80",
+				RedirectURLRoot:    "http://servicemesh.biz",
+			}
+			common.CSP_SERVICE_ID = "test"
+			httpmock.Activate()
+			defer httpmock.DeactivateAndReset()
+
+			//Mock test for http endpoint
+			httpmock.RegisterResponder("GET", "http://localhost:80/csp/gateway/slc/api/v2/orgs/test/services?includeSubOrgServices=false&serviceDefinitionId=test", func(req *http.Request) (*http.Response, error) {
+				jsonString := `{
+					"results": [
+					  {
+					"orgId": "d7337558-7d8e-48c2-87b7-6b03800b2366",
+					"services": [
+					  {
+					"allOrgInstances": [
+					  {
+					"displayName": "http://servicemesh.biz",
+					"instanceId": "72aab42e-7a4c-4845-b5db-1fef61b93813",
+					"default": true,
+					"url": "http://servicemesh.biz"
+					}
+					],
+				}
+			}
+					]}
+					]}
+		}`
+				var jsonMap map[string]interface{}
+				_ = json.Unmarshal([]byte(jsonString), &jsonMap)
+				resp, err := httpmock.NewJsonResponse(200, jsonMap)
+				if err != nil {
+					return &http.Response{}, err
+				}
+				return resp, nil
+			})
+
+			_, access := authn.GetAssignedInstance("testToken", "test")
+			Expect(access).To(BeTrue())
+
 		})
 	})
 })

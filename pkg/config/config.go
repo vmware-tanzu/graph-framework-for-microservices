@@ -25,6 +25,13 @@ type ServerConfig struct {
 
 var Cfg *Config
 
+type GlobalStaticRoutes struct {
+	Prefix []string `json:"Prefix" yaml:"Prefix"`
+	Suffix []string `json:"Suffix" yaml:"Suffix"`
+}
+
+var GlobalStaticRouteConfig *GlobalStaticRoutes
+
 func LoadConfig(configFile string) (*Config, error) {
 	var config *Config
 	file, err := os.Open(configFile)
@@ -55,4 +62,44 @@ func LoadConfig(configFile string) (*Config, error) {
 	}
 
 	return config, nil
+}
+
+type SKUMap struct {
+	SKU map[string][]string `json:"sku"`
+}
+
+var SKUConfig *SKUMap
+
+func LoadSKUConfig(configFile string) (*SKUMap, error) {
+	var config *SKUMap
+	file, err := os.Open(configFile)
+	if err != nil {
+		return nil, fmt.Errorf("failed to open config file: %s", err)
+	}
+	configStr, err := ioutil.ReadAll(file)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read config file: %s", err)
+	}
+	err = yaml.Unmarshal(configStr, &config)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse config file: %s", err)
+	}
+	return config, nil
+}
+
+func LoadStaticUrlsConfig(configFile string) (*GlobalStaticRoutes, error) {
+	var gsRoutes *GlobalStaticRoutes
+	file, err := os.Open(configFile)
+	if err != nil {
+		return nil, fmt.Errorf("failed to open config file: %s", err)
+	}
+	configStr, err := ioutil.ReadAll(file)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read config file: %s", err)
+	}
+	err = yaml.Unmarshal(configStr, &gsRoutes)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse config file: %s", err)
+	}
+	return gsRoutes, nil
 }

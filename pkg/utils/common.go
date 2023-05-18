@@ -5,6 +5,7 @@ import (
 	"api-gw/pkg/client"
 	"api-gw/pkg/config"
 	"api-gw/pkg/envoy"
+	"api-gw/pkg/model"
 	"context"
 	"fmt"
 	"net/http"
@@ -14,8 +15,18 @@ import (
 
 	log "github.com/sirupsen/logrus"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 )
+
+var VersionCalls []*model.ConnectorObject
+
+const DEFAULT_NAMESPACE = "default"
+
+type EnvoyCluster struct {
+	name string
+	host string
+}
 
 const DISPLAY_NAME_LABEL = "nexus/display_name"
 
@@ -41,7 +52,7 @@ func DumpReq(req *http.Request) {
 	if err != nil {
 		log.Warn(err)
 	}
-	fmt.Println(string(requestDump))
+	log.Debugf(string(requestDump))
 }
 
 func GetEnvoyInitParams() (*envoy.JwtAuthnConfig, map[string]*envoy.UpstreamConfig, map[string]*envoy.HeaderMatchedUpstream, error) {
@@ -84,6 +95,18 @@ func GetEnvoyInitParams() (*envoy.JwtAuthnConfig, map[string]*envoy.UpstreamConf
 				JwtClaimUsername: jwts[0].Spec.JwtClaimUsername,
 			}
 		}
+	}
+
+	tenantConfigs, err := client.NexusClient.Tenantconfig().ListTenants(context.TODO(), v1.ListOptions{})
+	if err != nil {
+		log.Errorln(err)
+		return nil, nil, nil, fmt.Errorf("failed to get tenantConfigs: %s", err)
+	}
+	for _, tenantConfig := range tenantConfigs {
+		envoy.TenantConfigs = append(envoy.TenantConfigs, &envoy.TenantConfig{
+			Name:   tenantConfig.Spec.Name,
+			Status: false,
+		})
 	}
 
 	var upstreams = make(map[string]*envoy.UpstreamConfig)

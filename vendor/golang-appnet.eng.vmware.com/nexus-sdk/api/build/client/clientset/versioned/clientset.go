@@ -25,10 +25,15 @@ import (
 	apinexusv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/client/clientset/versioned/typed/api.nexus.vmware.com/v1"
 	apigatewaynexusv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/client/clientset/versioned/typed/apigateway.nexus.vmware.com/v1"
 	authenticationnexusv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/client/clientset/versioned/typed/authentication.nexus.vmware.com/v1"
+	commonnexusv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/client/clientset/versioned/typed/common.nexus.vmware.com/v1"
 	confignexusv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/client/clientset/versioned/typed/config.nexus.vmware.com/v1"
 	connectnexusv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/client/clientset/versioned/typed/connect.nexus.vmware.com/v1"
 	domainnexusv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/client/clientset/versioned/typed/domain.nexus.vmware.com/v1"
 	routenexusv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/client/clientset/versioned/typed/route.nexus.vmware.com/v1"
+	runtimenexusv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/client/clientset/versioned/typed/runtime.nexus.vmware.com/v1"
+	tenantconfignexusv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/client/clientset/versioned/typed/tenantconfig.nexus.vmware.com/v1"
+	tenantruntimenexusv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/client/clientset/versioned/typed/tenantruntime.nexus.vmware.com/v1"
+	usernexusv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/client/clientset/versioned/typed/user.nexus.vmware.com/v1"
 
 	discovery "k8s.io/client-go/discovery"
 	rest "k8s.io/client-go/rest"
@@ -41,10 +46,15 @@ type Interface interface {
 	ApiNexusV1() apinexusv1.ApiNexusV1Interface
 	ApigatewayNexusV1() apigatewaynexusv1.ApigatewayNexusV1Interface
 	AuthenticationNexusV1() authenticationnexusv1.AuthenticationNexusV1Interface
+	CommonNexusV1() commonnexusv1.CommonNexusV1Interface
 	ConfigNexusV1() confignexusv1.ConfigNexusV1Interface
 	ConnectNexusV1() connectnexusv1.ConnectNexusV1Interface
 	DomainNexusV1() domainnexusv1.DomainNexusV1Interface
 	RouteNexusV1() routenexusv1.RouteNexusV1Interface
+	RuntimeNexusV1() runtimenexusv1.RuntimeNexusV1Interface
+	TenantconfigNexusV1() tenantconfignexusv1.TenantconfigNexusV1Interface
+	TenantruntimeNexusV1() tenantruntimenexusv1.TenantruntimeNexusV1Interface
+	UserNexusV1() usernexusv1.UserNexusV1Interface
 }
 
 // Clientset contains the clients for groups. Each group has exactly one
@@ -55,10 +65,15 @@ type Clientset struct {
 	apiNexusV1            *apinexusv1.ApiNexusV1Client
 	apigatewayNexusV1     *apigatewaynexusv1.ApigatewayNexusV1Client
 	authenticationNexusV1 *authenticationnexusv1.AuthenticationNexusV1Client
+	commonNexusV1         *commonnexusv1.CommonNexusV1Client
 	configNexusV1         *confignexusv1.ConfigNexusV1Client
 	connectNexusV1        *connectnexusv1.ConnectNexusV1Client
 	domainNexusV1         *domainnexusv1.DomainNexusV1Client
 	routeNexusV1          *routenexusv1.RouteNexusV1Client
+	runtimeNexusV1        *runtimenexusv1.RuntimeNexusV1Client
+	tenantconfigNexusV1   *tenantconfignexusv1.TenantconfigNexusV1Client
+	tenantruntimeNexusV1  *tenantruntimenexusv1.TenantruntimeNexusV1Client
+	userNexusV1           *usernexusv1.UserNexusV1Client
 }
 
 // AdminNexusV1 retrieves the AdminNexusV1Client
@@ -81,6 +96,11 @@ func (c *Clientset) AuthenticationNexusV1() authenticationnexusv1.Authentication
 	return c.authenticationNexusV1
 }
 
+// CommonNexusV1 retrieves the CommonNexusV1Client
+func (c *Clientset) CommonNexusV1() commonnexusv1.CommonNexusV1Interface {
+	return c.commonNexusV1
+}
+
 // ConfigNexusV1 retrieves the ConfigNexusV1Client
 func (c *Clientset) ConfigNexusV1() confignexusv1.ConfigNexusV1Interface {
 	return c.configNexusV1
@@ -99,6 +119,26 @@ func (c *Clientset) DomainNexusV1() domainnexusv1.DomainNexusV1Interface {
 // RouteNexusV1 retrieves the RouteNexusV1Client
 func (c *Clientset) RouteNexusV1() routenexusv1.RouteNexusV1Interface {
 	return c.routeNexusV1
+}
+
+// RuntimeNexusV1 retrieves the RuntimeNexusV1Client
+func (c *Clientset) RuntimeNexusV1() runtimenexusv1.RuntimeNexusV1Interface {
+	return c.runtimeNexusV1
+}
+
+// TenantconfigNexusV1 retrieves the TenantconfigNexusV1Client
+func (c *Clientset) TenantconfigNexusV1() tenantconfignexusv1.TenantconfigNexusV1Interface {
+	return c.tenantconfigNexusV1
+}
+
+// TenantruntimeNexusV1 retrieves the TenantruntimeNexusV1Client
+func (c *Clientset) TenantruntimeNexusV1() tenantruntimenexusv1.TenantruntimeNexusV1Interface {
+	return c.tenantruntimeNexusV1
+}
+
+// UserNexusV1 retrieves the UserNexusV1Client
+func (c *Clientset) UserNexusV1() usernexusv1.UserNexusV1Interface {
+	return c.userNexusV1
 }
 
 // Discovery retrieves the DiscoveryClient
@@ -138,6 +178,10 @@ func NewForConfig(c *rest.Config) (*Clientset, error) {
 	if err != nil {
 		return nil, err
 	}
+	cs.commonNexusV1, err = commonnexusv1.NewForConfig(&configShallowCopy)
+	if err != nil {
+		return nil, err
+	}
 	cs.configNexusV1, err = confignexusv1.NewForConfig(&configShallowCopy)
 	if err != nil {
 		return nil, err
@@ -151,6 +195,22 @@ func NewForConfig(c *rest.Config) (*Clientset, error) {
 		return nil, err
 	}
 	cs.routeNexusV1, err = routenexusv1.NewForConfig(&configShallowCopy)
+	if err != nil {
+		return nil, err
+	}
+	cs.runtimeNexusV1, err = runtimenexusv1.NewForConfig(&configShallowCopy)
+	if err != nil {
+		return nil, err
+	}
+	cs.tenantconfigNexusV1, err = tenantconfignexusv1.NewForConfig(&configShallowCopy)
+	if err != nil {
+		return nil, err
+	}
+	cs.tenantruntimeNexusV1, err = tenantruntimenexusv1.NewForConfig(&configShallowCopy)
+	if err != nil {
+		return nil, err
+	}
+	cs.userNexusV1, err = usernexusv1.NewForConfig(&configShallowCopy)
 	if err != nil {
 		return nil, err
 	}
@@ -170,10 +230,15 @@ func NewForConfigOrDie(c *rest.Config) *Clientset {
 	cs.apiNexusV1 = apinexusv1.NewForConfigOrDie(c)
 	cs.apigatewayNexusV1 = apigatewaynexusv1.NewForConfigOrDie(c)
 	cs.authenticationNexusV1 = authenticationnexusv1.NewForConfigOrDie(c)
+	cs.commonNexusV1 = commonnexusv1.NewForConfigOrDie(c)
 	cs.configNexusV1 = confignexusv1.NewForConfigOrDie(c)
 	cs.connectNexusV1 = connectnexusv1.NewForConfigOrDie(c)
 	cs.domainNexusV1 = domainnexusv1.NewForConfigOrDie(c)
 	cs.routeNexusV1 = routenexusv1.NewForConfigOrDie(c)
+	cs.runtimeNexusV1 = runtimenexusv1.NewForConfigOrDie(c)
+	cs.tenantconfigNexusV1 = tenantconfignexusv1.NewForConfigOrDie(c)
+	cs.tenantruntimeNexusV1 = tenantruntimenexusv1.NewForConfigOrDie(c)
+	cs.userNexusV1 = usernexusv1.NewForConfigOrDie(c)
 
 	cs.DiscoveryClient = discovery.NewDiscoveryClientForConfigOrDie(c)
 	return &cs
@@ -186,10 +251,15 @@ func New(c rest.Interface) *Clientset {
 	cs.apiNexusV1 = apinexusv1.New(c)
 	cs.apigatewayNexusV1 = apigatewaynexusv1.New(c)
 	cs.authenticationNexusV1 = authenticationnexusv1.New(c)
+	cs.commonNexusV1 = commonnexusv1.New(c)
 	cs.configNexusV1 = confignexusv1.New(c)
 	cs.connectNexusV1 = connectnexusv1.New(c)
 	cs.domainNexusV1 = domainnexusv1.New(c)
 	cs.routeNexusV1 = routenexusv1.New(c)
+	cs.runtimeNexusV1 = runtimenexusv1.New(c)
+	cs.tenantconfigNexusV1 = tenantconfignexusv1.New(c)
+	cs.tenantruntimeNexusV1 = tenantruntimenexusv1.New(c)
+	cs.userNexusV1 = usernexusv1.New(c)
 
 	cs.DiscoveryClient = discovery.NewDiscoveryClient(c)
 	return &cs

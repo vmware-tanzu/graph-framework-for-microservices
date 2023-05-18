@@ -60,7 +60,8 @@ func (c *Nexus) DisplayName() string {
 
 // +k8s:openapi-gen=true
 type NexusSpec struct {
-	ConfigGvk *Child `json:"configGvk,omitempty" yaml:"configGvk,omitempty" nexus:"child"`
+	ConfigGvk  *Child `json:"configGvk,omitempty" yaml:"configGvk,omitempty" nexus:"child"`
+	RuntimeGvk *Child `json:"runtimeGvk,omitempty" yaml:"runtimeGvk,omitempty" nexus:"child"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object

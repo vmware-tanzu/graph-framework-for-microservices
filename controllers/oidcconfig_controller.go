@@ -56,7 +56,7 @@ func (r *OidcConfigReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 	}
 	log.Debugf("Received event %s for oidcNode node: Name %s", eventType, oidcNode.Name)
 
-	// Pass on the event to the authenticator so that it can reconfigure itself
+	// Pass on the event to the AuthenticatorObject so that it can reconfigure itself
 	model.OidcChan <- model.OidcNodeEvent{Oidc: oidcNode, Type: eventType}
 
 	return ctrl.Result{}, nil
