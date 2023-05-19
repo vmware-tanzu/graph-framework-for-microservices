@@ -3,6 +3,8 @@ kind: Job
 metadata:
   name: nexus-api-dmi
   namespace: {{ default .Release.Namespace .Values.global.namespace }}
+  annotations:
+    {{- template "argoJobHook" .}}
 spec:
   backoffLimit: 10
   template:
