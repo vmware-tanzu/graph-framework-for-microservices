@@ -496,6 +496,8 @@ metadata:
     component: nexus
   name: nexus-nginx-admsn-{{ default  .Release.Namespace .Values.global.namespace  }}-create
   namespace: {{ default  .Release.Namespace .Values.global.namespace  }}
+  annotations:
+    {{- template "argoJobHook" .}}
 spec:
   template:
     metadata:
@@ -538,6 +540,8 @@ spec:
 apiVersion: batch/v1
 kind: Job
 metadata:
+  annotations:
+    {{- template "argoJobHook" .}}
   labels:
     app.kubernetes.io/component: admission-webhook
     app.kubernetes.io/instance: ingress-nginx

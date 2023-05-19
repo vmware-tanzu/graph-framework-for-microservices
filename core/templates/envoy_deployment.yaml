@@ -162,6 +162,7 @@ metadata:
   namespace: {{ default  .Release.Namespace .Values.global.namespace }}
   annotations:
     "nexus-upgrade": "false"
+    {{- template "argoJobHook" .}}
 spec:
   backoffLimit: 6
   template:
