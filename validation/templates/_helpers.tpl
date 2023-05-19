@@ -14,6 +14,11 @@
               memory: 128Mi
 {{- end }}
 
+{{- define "argoJobHook" }}
+    argocd.argoproj.io/hook: Sync
+    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+{{- end }}
+
 {{- define "validation_resources" }}
           resources:
             limits:
