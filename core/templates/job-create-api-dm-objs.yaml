@@ -25,6 +25,8 @@ kind: Job
 metadata:
   name: nexus-api-dm-obj-installer
   namespace: {{ default  .Release.Namespace .Values.global.namespace }}
+  annotations:
+    {{- template "argoJobHook" .}}
 spec:
   template:
     metadata:

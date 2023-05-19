@@ -3,6 +3,8 @@ apiVersion: batch/v1
 kind: Job
 metadata:
   name: nexus-admin-runtime-bootstrapper
+  annotations:
+    {{- template "argoJobHook" .}}
 spec:
   template:
     metadata:
