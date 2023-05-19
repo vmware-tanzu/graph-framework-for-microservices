@@ -16,6 +16,11 @@ for version in "${tags_array[@]}"; do
        fi
 done
 
+if [[ -z "${VERSION}" ]]; then
+   echo "Unable to get the nexus image tag, Please contact Nexus Support"
+   exit 1
+fi
+
 usage() { echo "Usage: $0 [-r <repository-name>] [-v <version>] [-d <install-directory>] " 1>&2; exit 1; }
 
 if [[ $# == 0 ]]; then
@@ -75,6 +80,7 @@ docker ps > /dev/null || echo "Unable to run docker command"
 
 docker rm -f ${docker_name} &> /dev/null
 
+echo "Installing Nexus..."
 docker pull ${REPOSITORY}:${VERSION} 1> /dev/null
 docker create --name "$docker_name" ${REPOSITORY}:${VERSION} 1> /dev/null
 
