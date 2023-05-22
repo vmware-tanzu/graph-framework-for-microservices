@@ -95,6 +95,9 @@ spec:
         control-plane: api-gw
     spec:
       serviceAccountName: nexus-api-gw-sa
+      {{- if eq .Values.global.tainted true }}
+      {{- template "tolerations" .}}
+      {{- end }}
       initContainers:
         - name: check-nexus-proxy-container
           image: "{{.Values.global.registry}}/debugtools:latest"
