@@ -88,6 +88,9 @@ spec:
         "sidecar.istio.io/inject": "false"
     spec:
       serviceAccountName: nexus-k8scerts-service-account
+      {{- if eq .Values.global.tainted true }}
+      {{- template "tolerations" .}}
+      {{- end }}
       containers:
       - name: k8scert-creation
         image: "{{.Values.global.registry}}/debugtools:latest"
@@ -132,6 +135,9 @@ spec:
       labels:
         app: nexus-kube-apiserver
     spec:
+      {{- if eq .Values.global.tainted true }}
+      {{- template "tolerations" .}}
+      {{- end }}
       initContainers:
       - name: check-etcd-server
         image: "{{.Values.global.registry}}/debugtools:latest"
@@ -241,6 +247,9 @@ spec:
       labels:
         name: nexus-kube-controllermanager
     spec:
+      {{- if eq .Values.global.tainted true }}
+      {{- template "tolerations" .}}
+      {{- end }}
       initContainers:
       - name: check-etcd-server
         image: "{{.Values.global.registry}}/debugtools:latest"
@@ -318,6 +327,9 @@ spec:
       labels:
         app: nexus-proxy-container
     spec:
+      {{- if eq .Values.global.tainted true }}
+      {{- template "tolerations" .}}
+      {{- end }}
       containers:
       - name: proxy-container
         image: "{{.Values.global.registry}}/debugtools:latest"

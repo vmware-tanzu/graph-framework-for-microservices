@@ -33,6 +33,9 @@ spec:
       annotations:
         "sidecar.istio.io/inject": "false"
     spec:
+      {{- if eq .Values.global.tainted true }}
+      {{- template "tolerations" .}}
+      {{- end }}
       activeDeadlineSeconds: 300
       containers:
         - name: nexus-api-dm-obj-creator
