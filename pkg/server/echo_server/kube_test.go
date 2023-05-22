@@ -2,9 +2,11 @@ package echo_server_test
 
 import (
 	"api-gw/pkg/client"
+	"api-gw/pkg/config"
 	"api-gw/pkg/model"
 	"api-gw/pkg/server/echo_server"
 	"context"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -620,5 +622,40 @@ var _ = Describe("Kube tests", func() {
 		Expect(err).To(BeNil())
 		expectedResponse := "{\"metadata\":{},\"status\":\"Failure\",\"message\":\"globalnamespaces.gns.vmware.org \\\"non-existent-id\\\" not found\",\"reason\":\"NotFound\",\"details\":{\"name\":\"non-existent-id\",\"group\":\"gns.vmware.org\",\"kind\":\"globalnamespaces\"},\"code\":404}\n"
 		Expect(rec.Body.String()).To(Equal(expectedResponse))
+	})
+
+	It("should test updateProxyResponse method when custom not found page cfg is not set", func() {
+		if config.Cfg == nil {
+			config.Cfg = &config.Config{}
+		}
+		config.Cfg.CustomNotFoundPage = ""
+		err := echo_server.UpdateProxyResponse(&http.Response{})
+		Expect(err).To(BeNil())
+	})
+
+	It("should test updateProxyResponse method when custom not found page cfg is set", func() {
+		if config.Cfg == nil {
+			config.Cfg = &config.Config{}
+		}
+
+		body := []byte(`404 page`)
+		server := httptest.NewServer(http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+			res.WriteHeader(200)
+			res.Write(body)
+		}))
+		defer server.Close()
+
+		config.Cfg.CustomNotFoundPage = server.URL
+		response := &http.Response{
+			StatusCode: http.StatusNotFound,
+		}
+		err := echo_server.UpdateProxyResponse(response)
+		Expect(err).To(BeNil())
+
+		bodyRes, err := io.ReadAll(response.Body)
+		Expect(err).To(BeNil())
+
+		Expect(bodyRes).To(Equal(body))
+
 	})
 })
