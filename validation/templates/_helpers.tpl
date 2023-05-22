@@ -9,9 +9,9 @@
               memory: 128Mi
 {{- end }}
 
-{{- define "small" }}
-              cpu: 500m
-              memory: 128Mi
+{{- define "validation-prod" }}
+              cpu: 490m
+              memory: 480Mi
 {{- end }}
 
 {{- define "argoJobHook" }}
@@ -27,10 +27,10 @@
               {{- if .Values.global.resources.validation }}
               cpu: {{ .Values.global.resources.validation.cpu }}
               memory: {{ .Values.global.resources.validation.memory }}
+              {{- else if eq .Values.global.resources.nexussizing "prod" }}
+                {{- template "validation-prod" . }}
               {{- else }}
-                {{- if eq .Values.global.size "small" }}
-              {{- template "small" . }}
-                {{- end }}
+                {{- template "validation-default" . }}
               {{- end }}
             {{- else }}
               {{- template "validation-default" . }}
@@ -40,10 +40,10 @@
               {{- if .Values.global.resources.validation }}
               cpu: {{ .Values.global.resources.validation.cpu }}
               memory: {{  .Values.global.resources.validation.memory }}
+              {{- else if eq .Values.global.resources.nexussizing "prod" }}
+                {{- template "validation-prod" . }}
               {{- else }}
-                {{- if eq .Values.global.size "small" }}
-              {{- template "small" . }}
-                {{- end }}
+                {{- template "validation-default-request" . }}
               {{- end }}
             {{- else }}
               {{- template "validation-default-request" . }}
