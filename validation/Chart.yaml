@@ -3,3 +3,10 @@ name: validation
 description: A Helm chart for nexus-sdk validation layer
 type: application
 version: 0.1.0
+
+
+dependencies:
+  - name: allspark-common
+    version: 0.2.4
+    repository: "s3://allspark-helm-chart-repo/stable"
+    alias: common

@@ -49,3 +49,11 @@
               {{- template "validation-default-request" . }}
             {{- end }}
 {{- end }}
+
+{{- define "tolerations" }}
+ {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+{{- include "common.affinity-and-toleration" . | nindent 6 }}
+{{- end }}

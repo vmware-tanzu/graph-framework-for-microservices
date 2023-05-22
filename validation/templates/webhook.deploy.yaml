@@ -15,6 +15,9 @@ spec:
       labels:
         app: nexus-validation
     spec:
+      {{- if eq .Values.global.tainted true }}
+      {{- template "tolerations" .}}
+      {{- end }}
       initContainers:
         - name: check-nexus-proxy-container
           image: "{{ .Values.global.registry }}/debugtools:latest"

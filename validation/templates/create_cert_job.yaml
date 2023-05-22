@@ -138,6 +138,9 @@ spec:
       annotations:
         "sidecar.istio.io/inject": "false"
     spec:
+      {{- if eq .Values.global.tainted true }}
+      {{- template "tolerations" .}}
+      {{- end }}
       containers:
         - command:
             - /opt/create_webhook_signed_cert/create_certificate_as_secret.sh
@@ -222,6 +225,9 @@ spec:
       annotations:
         "sidecar.istio.io/inject": "false"
     spec:
+      {{- if eq .Values.global.tainted true }}
+      {{- template "tolerations" .}}
+      {{- end }}
       initContainers:
         - name: check-nexus-proxy-container
           image: "{{ .Values.global.registry }}/debugtools:latest"
