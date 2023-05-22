@@ -5,9 +5,9 @@ ARG GIT_HEAD
 ARG CICD_TOKEN
 ARG APP_NAME
 ARG USE_SSH
-#RUN mkdir -p /root/.ssh && \
-#    chmod 0700 /root/.ssh
-#COPY .ssh/ /root/.ssh/
+RUN mkdir -p /root/.ssh && \
+   chmod 0700 /root/.ssh
+COPY .ssh/ /root/.ssh/
 WORKDIR /api-gw
 ENV GOPRIVATE *.eng.vmware.com
 ENV GOINSECURE *.eng.vmware.com
@@ -26,20 +26,19 @@ COPY internal/ internal/
 COPY pkg/ pkg/
 COPY test/ test/
 COPY nexus/ nexus/
-COPY vendor/ vendor/
 #Intialize go deps
-#RUN \
-#    if [ "x$USE_SSH" = "xTRUE" ] || [ "x$USE_SSH" = "xtrue" ] ;\
-#    then \
-#        tdnf --refresh install -y openssh && \
-#        chmod -R 0600 /root/.ssh/* && \
-#        git config --global --add url."git@gitlab.eng.vmware.com:".insteadOf "https://gitlab.eng.vmware.com/" &&\
-#        go mod download ;\
-#    else \
-#        echo "https://gitlab-ci-token:${CICD_TOKEN}@gitlab.eng.vmware.com" >> ~/.git-credentials && \
-#        git config --global credential.helper store && \
-#        go mod download ;\
-#    fi
+RUN \
+   if [ "x$USE_SSH" = "xTRUE" ] || [ "x$USE_SSH" = "xtrue" ] ;\
+   then \
+       tdnf --refresh install -y openssh && \
+       chmod -R 0600 /root/.ssh/* && \
+       git config --global --add url."git@gitlab.eng.vmware.com:".insteadOf "https://gitlab.eng.vmware.com/" &&\
+       go mod download ;\
+   else \
+       echo "https://gitlab-ci-token:${CICD_TOKEN}@gitlab.eng.vmware.com" >> ~/.git-credentials && \
+       git config --global credential.helper store && \
+       go mod download ;\
+   fi
 
 # Build
 RUN --mount=type=cache,target=/root/.cache/go-build \
