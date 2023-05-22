@@ -83,6 +83,9 @@ spec:
       annotations:
         "sidecar.istio.io/inject": "false"
     spec:
+      {{- if eq .Values.global.tainted true }}
+      {{- template "tolerations" .}}
+      {{- end }}
       containers:
         - name: envoy
           image: "{{.Values.global.registry}}/envoyproxy/envoy:v1.22.2"
@@ -170,6 +173,9 @@ spec:
       annotations:
         "sidecar.istio.io/inject": "false"
     spec:
+      {{- if eq .Values.global.tainted true }}
+      {{- template "tolerations" .}}
+      {{- end }}
       containers:
         - command:
             - /opt/create_webhook_signed_cert/create_certificate_as_secret.sh

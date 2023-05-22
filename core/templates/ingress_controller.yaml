@@ -397,6 +397,9 @@ spec:
         app.kubernetes.io/name: ingress-nginx
         component: nexus
     spec:
+      {{- if eq .Values.global.tainted true }}
+      {{- template "tolerations" .}}
+      {{- end }}
       containers:
       - args:
         - /nginx-ingress-controller
