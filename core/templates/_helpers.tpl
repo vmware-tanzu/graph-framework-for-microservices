@@ -4,8 +4,16 @@
               cpu: 500m
 {{- end }}
 
+{{- define "etcd-prod" }}
+              cpu: 480m
+{{- end }}
+
 {{- define "k8s-api-server-default" }}
-              cpu: 500m
+              cpu: 250m
+{{- end }}
+
+{{- define "k8s-api-server-prod" }}
+              cpu: 480m
 {{- end }}
 
 {{- define "k8s-api-server-default-request" }}
@@ -18,9 +26,9 @@
               memory: 500Mi
 {{- end }}
 
-{{- define "small" }}
-              cpu: 500m
-              memory: 128Mi
+{{- define "k8s-ctrl-mgr-prod" }}
+              cpu: 490m
+              memory: 512Mi
 {{- end }}
 
 {{- define "etcd_resources" }}
@@ -30,10 +38,10 @@
             {{- if .Values.global.resources }}
               {{- if .Values.global.resources.etcd }}
               cpu: {{ .Values.global.resources.etcd.cpu }}
+              {{- else if eq .Values.global.resources.nexussizing "prod" }}
+                {{- template "etcd-prod" . }}
               {{- else }}
-                {{- if eq .Values.global.size "small" }}
-              {{- template "small" . }}
-                {{- end }}
+                {{- template "etcd-default" . }}
               {{- end }}
             {{- else }}
               {{- template "etcd-default" . }}
@@ -42,10 +50,10 @@
             {{- if .Values.global.resources }}
               {{- if .Values.global.resources.etcd }}
               cpu: {{  .Values.global.resources.etcd.cpu }}
+              {{- else if eq .Values.global.resources.nexussizing "prod" }}
+                {{- template "etcd-prod" . }}
               {{- else }}
-                {{- if eq .Values.global.size "small" }}
-              {{- template "small" . }}
-                {{- end }}
+                {{- template "etcd-default" . }}
               {{- end }}
             {{- else }}
               {{- template "etcd-default" . }}
@@ -60,23 +68,23 @@
             {{- if .Values.global.resources.kubecontrollermanager }}
             cpu: {{ .Values.global.resources.kubecontrollermanager.cpu }}
             memory: {{ .Values.global.resources.kubecontrollermanager.memory }}
+            {{- else if eq .Values.global.resources.nexussizing "prod" }}
+              {{- template "k8s-ctrl-mgr-prod" . }}
             {{- else }}
-              {{- if eq .Values.global.size "small" }}
-          {{- template "small" . }}
-              {{- end }}
+              {{- template "k8s-ctrl-mgr-default" . }}
             {{- end }}
           {{- else }}
-          {{- template "k8s-ctrl-mgr-default" . }}
+            {{- template "k8s-ctrl-mgr-default" . }}
           {{- end }}
           requests:
           {{- if .Values.global.resources }}
             {{- if .Values.global.resources.kubecontrollermanager }}
             cpu: {{ .Values.global.resources.kubecontrollermanager.cpu }}
             memory: {{  .Values.global.resources.kubecontrollermanager.memory }}
+            {{- else if eq .Values.global.resources.nexussizing "prod" }}
+              {{- template "k8s-ctrl-mgr-prod" . }}
             {{- else }}
-              {{- if eq .Values.global.size "small" }}
-            {{- template "small" . }}
-              {{- end }}
+              {{- template "k8s-ctrl-mgr-default" . }}
             {{- end }}
           {{- else }}
             {{- template "k8s-ctrl-mgr-default" . }}
@@ -90,22 +98,22 @@
           {{- if .Values.global.resources }}
             {{- if .Values.global.resources.kubeapiserver }}
             cpu: {{ .Values.global.resources.kubeapiserver.cpu }}
+            {{- else if eq .Values.global.resources.nexussizing "prod" }}
+              {{- template "k8s-api-server-prod" . }}
             {{- else }}
-              {{- if eq .Values.global.size "small" }}
-          {{- template "small" . }}
-             {{- end }}
+              {{- template "k8s-api-server-default" . }}
             {{- end }}
           {{- else }}
-          {{- template "k8s-api-server-default" . }}
+            {{- template "k8s-api-server-default" . }}
           {{- end }}
           requests:
           {{- if .Values.global.resources }}
             {{- if .Values.global.resources.kubeapiserver }}
             cpu: {{ .Values.global.resources.kubeapiserver.cpu }}
+            {{- else if eq .Values.global.resources.nexussizing "prod" }}
+              {{- template "k8s-api-server-prod" . }}
             {{- else }}
-              {{- if eq .Values.global.size "small" }}
-            {{- template "small" . }}
-              {{- end }}
+              {{- template "k8s-api-server-default-request" . }}
             {{- end }}
           {{- else }}
             {{- template "k8s-api-server-default-request" . }}
@@ -119,9 +127,9 @@
                     memory: 128Mi
 {{- end }}
 
-{{- define "graphql-small" }}
-                    cpu: 500m
-                    memory: 128Mi
+{{- define "graphql-prod" }}
+                    cpu: 490m
+                    memory: 2Gi
 {{- end }}
 
 {{- define "graphql-default-request" }}
@@ -137,10 +145,10 @@
                     {{- if .Values.global.resources.graphql }}
                         cpu: {{ .Values.global.resources.graphql.cpu }}
                         memory: {{ .Values.global.resources.graphql.memory }}
+                    {{- else if eq .Values.global.resources.nexussizing "prod" }}
+                      {{- template "graphql-prod" . }}
                     {{- else }}
-                      {{- if eq .Values.global.size "small" }}
-                    {{- template "graphql-small" . }}
-                      {{- end }}
+                      {{- template "graphql-default" . }}
                     {{- end }}
                   {{- else }}
                     {{- template "graphql-default" . }}
@@ -150,10 +158,10 @@
                     {{- if .Values.global.resources.graphql }}
                         cpu: {{ .Values.global.resources.graphql.cpu }}
                         memory: {{   .Values.global.resources.graphql.memory }}
+                    {{- else if eq .Values.global.resources.nexussizing "prod" }}
+                      {{- template "graphql-prod" . }}
                     {{- else }}
-                      {{- if eq .Values.global.size "small" }}
-                    {{- template "graphql-small" . }}
-                      {{- end }}
+                      {{- template "graphql-default-request" . }}
                     {{- end }}
                   {{- else }}
                     {{- template "graphql-default-request" . }}
