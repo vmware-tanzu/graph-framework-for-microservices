@@ -9,9 +9,9 @@
               memory: 128Mi
 {{- end }}
 
-{{- define "small" }}
-              cpu: 500m
-              memory: 128Mi
+{{- define "api-gw-prod" }}
+              cpu: 490m
+              memory: 512Mi
 {{- end }}
 
 {{- define "api_gw_resources" }}
@@ -22,10 +22,10 @@
               {{- if .Values.global.resources.api_gateway }}
               cpu: {{ .Values.global.resources.api_gateway.cpu }}
               memory: {{ .Values.global.resources.api_gateway.memory }}
+              {{- else if eq .Values.global.resources.nexussizing "prod" }}
+                {{- template "api-gw-prod" . }}
               {{- else }}
-                {{- if eq .Values.global.size "small" }}
-              {{- template "small" . }}
-                {{- end }}
+                {{- template "api-gw-default" . }}
               {{- end }}
             {{- else }}
               {{- template "api-gw-default" . }}
@@ -35,10 +35,10 @@
               {{- if .Values.global.resources.api_gateway }}
               cpu: {{ .Values.global.resources.api_gateway.cpu }}
               memory: {{  .Values.global.resources.api_gateway.memory }}
+              {{- else if eq .Values.global.resources.nexussizing "prod" }}
+                {{- template "api-gw-prod" . }}
               {{- else }}
-                {{- if eq .Values.global.size "small" }}
-              {{- template "small" . }}
-                {{- end }}
+                {{- template "api-gw-default-request" . }}
               {{- end }}
             {{- else }}
               {{- template "api-gw-default-request" . }}
