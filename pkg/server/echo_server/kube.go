@@ -2,10 +2,12 @@ package echo_server
 
 import (
 	"api-gw/pkg/client"
+	"api-gw/pkg/config"
 	"api-gw/pkg/common"
 	"api-gw/pkg/model"
 	"context"
 	"errors"
+	"net/http"
 	"net/http/httputil"
 	"net/url"
 	"strconv"
@@ -29,6 +31,7 @@ func kubeSetupProxy(e *echo.Echo) *httputil.ReverseProxy {
 		log.Warnf("Could not parse proxy URL: %v", err)
 	}
 	proxy := httputil.NewSingleHostReverseProxy(proxyUrl)
+	proxy.ModifyResponse = UpdateProxyResponse
 	if common.IsModeAdmin() {
 		e.Any("/api/*", echo.WrapHandler(proxy))
 		e.Any("/apis/*", echo.WrapHandler(proxy))
@@ -43,6 +46,23 @@ func kubeSetupProxy(e *echo.Echo) *httputil.ReverseProxy {
 		e.Any("/*", echo.WrapHandler(proxy))
 	}
 	return proxy
+}
+
+func UpdateProxyResponse(response *http.Response) error {
+	if config.Cfg.CustomNotFoundPage != "" &&
+		(response.StatusCode == http.StatusNotFound || response.StatusCode == http.StatusMovedPermanently) {
+		resp, err := http.Get(config.Cfg.CustomNotFoundPage)
+		if err != nil {
+			log.Errorf("Proxy modify response error: %v", err)
+			return nil
+		}
+
+		response.Body = resp.Body
+		response.Header = resp.Header
+		response.StatusCode = resp.StatusCode
+		return nil
+	}
+	return nil
 }
 
 // kubeGetByNameHandler is used to process 'kubectl get <resource> <name>' requests
