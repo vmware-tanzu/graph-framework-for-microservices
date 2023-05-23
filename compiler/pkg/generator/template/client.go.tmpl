@@ -162,7 +162,7 @@ func (group *{{$node.GroupTypeName}}) Get{{$node.BaseNodeName}}ByName(ctx contex
 					retryCount-=1
 					time.Sleep(5 * time.Second)
 				}else {
-					log.Errorf("Unexpected Error: %+v",err)
+					log.Errorf("Unexpected Error-1[GET {{$node.BaseNodeName}}]: %+v",err)
 					return nil, err
 				}
 			}
@@ -199,13 +199,13 @@ func (group *{{$node.GroupTypeName}}) Delete{{$node.BaseNodeName}}ByName(ctx con
 	{{$node.GroupResourceNameTitle}}().Get(ctx, hashedName, metav1.GetOptions{})
 	if err != nil {
 		if customerrors.Is(err, context.DeadlineExceeded){
-			log.Errorf("context deadline exceeded, on creating GNS: %+v",hashedName)
+			log.Errorf("context deadline exceeded, on creating {{$node.BaseNodeName}}: %+v",hashedName)
 			return context.DeadlineExceeded
 		} else if customerrors.Is(err, context.Canceled){
-			log.Errorf("context cancelled, on creating GNS: %+v",hashedName)
+			log.Errorf("context cancelled, on creating {{$node.BaseNodeName}}: %+v",hashedName)
 			return context.Canceled
 		} else {
-			log.Errorf("Unexpected Error: %+v",err)
+			log.Errorf("Unexpected Error-2[DELETE {{$node.BaseNodeName}}]: %+v",err)
 			return err
 		}
 	}
@@ -297,7 +297,7 @@ func (group *{{$node.GroupTypeName}}) Delete{{$node.BaseNodeName}}ByName(ctx con
 				retryCount -= 1
 				time.Sleep(5 * time.Second)
 			} else {
-				log.Errorf("Unexpected Error: %+v",err)
+				log.Errorf("Unexpected Error-3[PATCH {{$node.BaseNodeName}}]: %+v",err)
 				log.Errorf("Trigger {{$node.BaseNodeName}} Delete: %s",hashedName)
 				err = group.Delete{{$node.BaseNodeName}}ByName(newCtx, hashedName)
 				if err != nil {
@@ -341,13 +341,13 @@ func (group *{{$node.GroupTypeName}}) Create{{$node.BaseNodeName}}ByName(ctx con
 	{{$node.GroupResourceNameTitle}}().Create(ctx, objToCreate, metav1.CreateOptions{})
 	if err != nil {
 		if customerrors.Is(err, context.DeadlineExceeded){
-			log.Errorf("context deadline exceeded, on creating GNS: %+v",objToCreate)
+			log.Errorf("context deadline exceeded, on creating {{$node.BaseNodeName}}: %+v",objToCreate)
 			return nil, context.DeadlineExceeded
 		} else if customerrors.Is(err, context.Canceled){
-			log.Errorf("context cancelled, on creating GNS: %+v",objToCreate)
+			log.Errorf("context cancelled, on creating {{$node.BaseNodeName}}: %+v",objToCreate)
 			return nil, context.Canceled
 		} else {
-			log.Errorf("Unexpected Error: %+v",err)
+			log.Errorf("Unexpected Error-4[CREATE {{$node.BaseNodeName}}]: %+v",err)
 			return nil, err
 		}
 	}
@@ -387,7 +387,7 @@ func (group *{{$node.GroupTypeName}}) Create{{$node.BaseNodeName}}ByName(ctx con
 				retryCount -= 1
 				time.Sleep(5 * time.Second)
 			} else {
-				log.Errorf("Unexpected Error: %+v",err)
+				log.Errorf("Unexpected Error-5[PATCH {{$node.BaseNodeName}}]: %+v",err)
 				log.Errorf("Trigger {{$node.BaseNodeName}} Delete: %s",objToCreate.GetName())
 				err = group.Delete{{$node.BaseNodeName}}ByName(newCtx, objToCreate.GetName())
 				if err != nil {
@@ -441,7 +441,7 @@ func (group *{{$node.GroupTypeName}}) Create{{$node.BaseNodeName}}ByName(ctx con
 				retryCount -= 1
 				time.Sleep(5 * time.Second)
 			} else {
-				log.Errorf("Unexpected Error: %+v",err)
+				log.Errorf("Unexpected Error-6[PATCH {{$node.BaseNodeName}}]: %+v",err)
 				log.Errorf("Trigger {{$node.BaseNodeName}} Delete: %s",objToCreate.GetName())
 				err = group.Delete{{$node.BaseNodeName}}ByName(newCtx, objToCreate.GetName())
 				if err != nil {
@@ -515,13 +515,13 @@ func (group *{{$node.GroupTypeName}}) Update{{$node.BaseNodeName}}ByName(ctx con
 		{{$node.GroupResourceNameTitle}}().Get(ctx, objToUpdate.GetName(), metav1.GetOptions{})
 		if err != nil {
 			if customerrors.Is(err, context.DeadlineExceeded){
-				log.Errorf("context deadline exceeded, on creating GNS: %+v",objToUpdate)
+				log.Errorf("context deadline exceeded, on creating {{$node.BaseNodeName}}: %+v",objToUpdate)
 				return nil, context.DeadlineExceeded
 			} else if customerrors.Is(err, context.Canceled){
-				log.Errorf("context cancelled, on creating GNS: %+v",objToUpdate)
+				log.Errorf("context cancelled, on creating {{$node.BaseNodeName}}: %+v",objToUpdate)
 				return nil, context.Canceled
 			} else {
-				log.Errorf("Unexpected Error: %+v",err)
+				log.Errorf("Unexpected Error-7[UPDATE {{$node.BaseNodeName}}]: %+v",err)
 				return nil, err
 			}
 		}
