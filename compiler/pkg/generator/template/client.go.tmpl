@@ -204,6 +204,8 @@ func (group *{{$node.GroupTypeName}}) Delete{{$node.BaseNodeName}}ByName(ctx con
 		} else if customerrors.Is(err, context.Canceled){
 			log.Errorf("context cancelled, on creating {{$node.BaseNodeName}}: %+v",hashedName)
 			return context.Canceled
+		} else if errors.IsAlreadyExists(err){
+			log.Errorf("Already Exists: %+v",err)
 		} else {
 			log.Errorf("Unexpected Error-2[DELETE {{$node.BaseNodeName}}]: %+v",err)
 			return err
@@ -346,6 +348,8 @@ func (group *{{$node.GroupTypeName}}) Create{{$node.BaseNodeName}}ByName(ctx con
 		} else if customerrors.Is(err, context.Canceled){
 			log.Errorf("context cancelled, on creating {{$node.BaseNodeName}}: %+v",objToCreate)
 			return nil, context.Canceled
+		} else if errors.IsAlreadyExists(err){
+			log.Errorf("Already Exists: %+v",err)
 		} else {
 			log.Errorf("Unexpected Error-4[CREATE {{$node.BaseNodeName}}]: %+v",err)
 			return nil, err
@@ -520,6 +524,8 @@ func (group *{{$node.GroupTypeName}}) Update{{$node.BaseNodeName}}ByName(ctx con
 			} else if customerrors.Is(err, context.Canceled){
 				log.Errorf("context cancelled, on creating {{$node.BaseNodeName}}: %+v",objToUpdate)
 				return nil, context.Canceled
+			} else if errors.IsAlreadyExists(err){
+				log.Errorf("Already Exists: %+v",err)
 			} else {
 				log.Errorf("Unexpected Error-7[UPDATE {{$node.BaseNodeName}}]: %+v",err)
 				return nil, err
