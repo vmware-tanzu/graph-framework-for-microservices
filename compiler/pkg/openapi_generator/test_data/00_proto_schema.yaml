@@ -23,84 +23,84 @@ spec:
         properties:
           foo:
             properties:
-              doubleValue:
-                format: double
-                type: number
-              floatValue:
-                format: float
-                type: number
-              int32Value:
-                format: int32
-                type: integer
-              int64Value:
-                format: int64
-                type: integer
-              uint32Value:
-                format: int64
-                type: integer
-              uint64Value:
-                format: int64
-                type: integer
-              sint32Value:
-                format: int32
-                type: integer
-              sint64Value:
-                format: int64
-                type: integer
-              fixed32Value:
-                format: int64
-                type: integer
-              fixed64Value:
-                format: int64
-                type: integer
-              sfixed32Value:
-                format: int32
-                type: integer
-              sfixed64Value:
-                format: int64
-                type: integer
-              boolValue:
-                type: boolean
-              stringValue:
-                type: string
-              bytesValue:
-                format: byte
-                type: string
-              enumValue:
-                type: string
-              nestedEnumValue:
-                type: string
-              nestedMessage:
+              bar_value:
                 properties:
-                  nestedMessageValue:
+                  enum_value:
+                    type: string
+                  oneof_value_int:
+                    format: int32
+                    type: integer
+                  oneof_value_string:
                     type: string
                 type: object
-              oneofValueInt:
+              bool_value:
+                type: boolean
+              bytes_value:
+                format: byte
+                type: string
+              double_value:
+                format: double
+                type: number
+              enum_value:
+                type: string
+              fixed32_value:
+                format: int64
+                type: integer
+              fixed64_value:
+                format: int64
+                type: integer
+              float_value:
+                format: float
+                type: number
+              int32_value:
                 format: int32
                 type: integer
-              oneofValueString:
-                type: string
-              mapValue:
+              int64_value:
+                format: int64
+                type: integer
+              map_value:
                 additionalProperties:
                   default: ""
                   type: string
                 type: object
-              repeatedValue:
+              nested_enum_value:
+                type: string
+              nested_message:
+                properties:
+                  nested_message_value:
+                    type: string
+                type: object
+              oneof_value_int:
+                format: int32
+                type: integer
+              oneof_value_string:
+                type: string
+              repeated_value:
                 items:
                   default: 0
                   format: int32
                   type: integer
                 type: array
-              barValue:
-                properties:
-                  enumValue:
-                    type: string
-                  oneofValueInt:
-                    format: int32
-                    type: integer
-                  oneofValueString:
-                    type: string
-                type: object
+              sfixed32_value:
+                format: int32
+                type: integer
+              sfixed64_value:
+                format: int64
+                type: integer
+              sint32_value:
+                format: int32
+                type: integer
+              sint64_value:
+                format: int64
+                type: integer
+              string_value:
+                type: string
+              uint32_value:
+                format: int64
+                type: integer
+              uint64_value:
+                format: int64
+                type: integer
             type: object
           metadata:
             type: object
