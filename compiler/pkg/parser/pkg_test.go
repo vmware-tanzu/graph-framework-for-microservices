@@ -96,7 +96,7 @@ var _ = Describe("Pkg tests", func() {
 	It("should get link fields for gns", func() {
 		nodes := gnsPkg.GetNexusNodes()
 		linkFields := parser.GetChildFields(nodes[2])
-		Expect(linkFields).To(HaveLen(5))
+		Expect(linkFields).To(HaveLen(6))
 	})
 
 	It("should get spec fields for gns", func() {

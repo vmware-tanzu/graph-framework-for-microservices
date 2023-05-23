@@ -32,6 +32,8 @@ var _ = Describe("Node parser tests", func() {
 		expectedNodes := []string{
 			"ACPConfig",
 			"AccessControlPolicy",
+			"AdditionalGnsData",
+			"AdditionalPolicyData",
 			"BarChild",
 			"Config",
 			"Dns",
@@ -40,6 +42,8 @@ var _ = Describe("Node parser tests", func() {
 			"FooTypeABC",
 			"Gns",
 			"IgnoreChild",
+			"RandomGnsData",
+			"RandomPolicyData",
 			"Root",
 			"SvcGroup",
 			"SvcGroupLinkInfo",
@@ -50,7 +54,7 @@ var _ = Describe("Node parser tests", func() {
 			nodes = append(nodes, node.Name)
 		})
 		sort.Strings(nodes)
-		Expect(nodes).To(HaveLen(14))
+		Expect(nodes).To(HaveLen(18))
 		Expect(nodes).To(Equal(expectedNodes))
 	})
 
