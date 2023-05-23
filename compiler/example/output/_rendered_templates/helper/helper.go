@@ -21,6 +21,8 @@ func GetCRDParentsMap() map[string][]string {
 	return map[string][]string{
 		"accesscontrolpolicies.policypkg.tsm.tanzu.vmware.com": {"roots.root.tsm.tanzu.vmware.com", "configs.config.tsm.tanzu.vmware.com", "gnses.gns.tsm.tanzu.vmware.com"},
 		"acpconfigs.policypkg.tsm.tanzu.vmware.com":            {"roots.root.tsm.tanzu.vmware.com", "configs.config.tsm.tanzu.vmware.com", "gnses.gns.tsm.tanzu.vmware.com", "accesscontrolpolicies.policypkg.tsm.tanzu.vmware.com"},
+		"additionalgnsdatas.gns.tsm.tanzu.vmware.com":          {"roots.root.tsm.tanzu.vmware.com", "configs.config.tsm.tanzu.vmware.com", "gnses.gns.tsm.tanzu.vmware.com"},
+		"additionalpolicydatas.policypkg.tsm.tanzu.vmware.com": {"roots.root.tsm.tanzu.vmware.com", "configs.config.tsm.tanzu.vmware.com", "gnses.gns.tsm.tanzu.vmware.com", "accesscontrolpolicies.policypkg.tsm.tanzu.vmware.com", "acpconfigs.policypkg.tsm.tanzu.vmware.com"},
 		"barchilds.gns.tsm.tanzu.vmware.com":                   {"roots.root.tsm.tanzu.vmware.com", "configs.config.tsm.tanzu.vmware.com", "gnses.gns.tsm.tanzu.vmware.com"},
 		"configs.config.tsm.tanzu.vmware.com":                  {"roots.root.tsm.tanzu.vmware.com"},
 		"dnses.gns.tsm.tanzu.vmware.com":                       {"roots.root.tsm.tanzu.vmware.com", "configs.config.tsm.tanzu.vmware.com"},
@@ -29,6 +31,8 @@ func GetCRDParentsMap() map[string][]string {
 		"footypeabcs.config.tsm.tanzu.vmware.com":              {"roots.root.tsm.tanzu.vmware.com", "configs.config.tsm.tanzu.vmware.com"},
 		"gnses.gns.tsm.tanzu.vmware.com":                       {"roots.root.tsm.tanzu.vmware.com", "configs.config.tsm.tanzu.vmware.com"},
 		"ignorechilds.gns.tsm.tanzu.vmware.com":                {"roots.root.tsm.tanzu.vmware.com", "configs.config.tsm.tanzu.vmware.com", "gnses.gns.tsm.tanzu.vmware.com"},
+		"randomgnsdatas.gns.tsm.tanzu.vmware.com":              {"roots.root.tsm.tanzu.vmware.com", "configs.config.tsm.tanzu.vmware.com", "gnses.gns.tsm.tanzu.vmware.com", "barchilds.gns.tsm.tanzu.vmware.com"},
+		"randompolicydatas.policypkg.tsm.tanzu.vmware.com":     {"roots.root.tsm.tanzu.vmware.com", "configs.config.tsm.tanzu.vmware.com", "gnses.gns.tsm.tanzu.vmware.com", "accesscontrolpolicies.policypkg.tsm.tanzu.vmware.com", "acpconfigs.policypkg.tsm.tanzu.vmware.com"},
 		"roots.root.tsm.tanzu.vmware.com":                      {},
 		"svcgrouplinkinfos.servicegroup.tsm.tanzu.vmware.com":  {"roots.root.tsm.tanzu.vmware.com", "configs.config.tsm.tanzu.vmware.com"},
 		"svcgroups.servicegroup.tsm.tanzu.vmware.com":          {"roots.root.tsm.tanzu.vmware.com", "configs.config.tsm.tanzu.vmware.com", "gnses.gns.tsm.tanzu.vmware.com"},
@@ -46,6 +50,20 @@ func GetObjectByCRDName(dmClient *datamodel.Clientset, crdName string, name stri
 	}
 	if crdName == "acpconfigs.policypkg.tsm.tanzu.vmware.com" {
 		obj, err := dmClient.PolicypkgTsmV1().ACPConfigs().Get(context.TODO(), name, metav1.GetOptions{})
+		if err != nil {
+			return nil
+		}
+		return obj
+	}
+	if crdName == "additionalgnsdatas.gns.tsm.tanzu.vmware.com" {
+		obj, err := dmClient.GnsTsmV1().AdditionalGnsDatas().Get(context.TODO(), name, metav1.GetOptions{})
+		if err != nil {
+			return nil
+		}
+		return obj
+	}
+	if crdName == "additionalpolicydatas.policypkg.tsm.tanzu.vmware.com" {
+		obj, err := dmClient.PolicypkgTsmV1().AdditionalPolicyDatas().Get(context.TODO(), name, metav1.GetOptions{})
 		if err != nil {
 			return nil
 		}
@@ -102,6 +120,20 @@ func GetObjectByCRDName(dmClient *datamodel.Clientset, crdName string, name stri
 	}
 	if crdName == "ignorechilds.gns.tsm.tanzu.vmware.com" {
 		obj, err := dmClient.GnsTsmV1().IgnoreChilds().Get(context.TODO(), name, metav1.GetOptions{})
+		if err != nil {
+			return nil
+		}
+		return obj
+	}
+	if crdName == "randomgnsdatas.gns.tsm.tanzu.vmware.com" {
+		obj, err := dmClient.GnsTsmV1().RandomGnsDatas().Get(context.TODO(), name, metav1.GetOptions{})
+		if err != nil {
+			return nil
+		}
+		return obj
+	}
+	if crdName == "randompolicydatas.policypkg.tsm.tanzu.vmware.com" {
+		obj, err := dmClient.PolicypkgTsmV1().RandomPolicyDatas().Get(context.TODO(), name, metav1.GetOptions{})
 		if err != nil {
 			return nil
 		}

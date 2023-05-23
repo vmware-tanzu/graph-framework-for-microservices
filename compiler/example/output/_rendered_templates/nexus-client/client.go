@@ -15,8 +15,13 @@ package nexus_client
 import (
 	"context"
 	"encoding/json"
+	customerrors "errors"
+	"fmt"
 	"sync"
+	"time"
 
+	"github.com/sirupsen/logrus"
+	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	types "k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/rest"
@@ -39,6 +44,8 @@ import (
 	informerroottsmtanzuvmwarecomv1 "nexustempmodule/client/informers/externalversions/root.tsm.tanzu.vmware.com/v1"
 	informerservicegrouptsmtanzuvmwarecomv1 "nexustempmodule/client/informers/externalversions/servicegroup.tsm.tanzu.vmware.com/v1"
 )
+
+var log = logrus.New()
 
 type Clientset struct {
 	baseClient        baseClientset.Interface
@@ -312,18 +319,48 @@ func (group *RootTsmV1) GetRootByName(ctx context.Context, hashedName string) (*
 			Root:   result,
 		}, nil
 	} else {
-		result, err := group.client.baseClient.
-			RootTsmV1().
-			Roots().Get(ctx, hashedName, metav1.GetOptions{})
-		if err != nil {
-			return nil, err
+		retryCount := 12
+		for {
+			result, err := group.client.baseClient.
+				RootTsmV1().
+				Roots().Get(ctx, hashedName, metav1.GetOptions{})
+			if err != nil {
+				log.Errorf("Failed to Get Roots: %+v", err)
+				if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded) {
+					log.Errorf("[Retry Count: %d ] %+v", retryCount, err)
+					if retryCount == 0 {
+						log.Error("Max Retry exceed on Get Roots")
+						return nil, err
+					}
+					retryCount -= 1
+					time.Sleep(5 * time.Second)
+				} else {
+					log.Errorf("Unexpected Error: %+v", err)
+					return nil, err
+				}
+			}
+			return &RootRoot{
+				client: group.client,
+				Root:   result,
+			}, nil
 		}
-
-		return &RootRoot{
-			client: group.client,
-			Root:   result,
-		}, nil
 	}
+}
+
+// ForceReadRootByName read object directly from the database under the hashedName which is a hash of display
+// name and parents names. Use it when you know hashed name of object.
+func (group *RootTsmV1) ForceReadRootByName(ctx context.Context, hashedName string) (*RootRoot, error) {
+	result, err := group.client.baseClient.
+		RootTsmV1().
+		Roots().Get(ctx, hashedName, metav1.GetOptions{})
+	if err != nil {
+		return nil, err
+	}
+
+	return &RootRoot{
+		client: group.client,
+		Root:   result,
+	}, nil
 }
 
 // DeleteRootByName deletes object stored in the database under the hashedName which is a hash of
@@ -334,14 +371,23 @@ func (group *RootTsmV1) DeleteRootByName(ctx context.Context, hashedName string)
 		RootTsmV1().
 		Roots().Get(ctx, hashedName, metav1.GetOptions{})
 	if err != nil {
-		return err
+		if customerrors.Is(err, context.DeadlineExceeded) {
+			log.Errorf("context deadline exceeded, on creating GNS: %+v", hashedName)
+			return context.DeadlineExceeded
+		} else if customerrors.Is(err, context.Canceled) {
+			log.Errorf("context cancelled, on creating GNS: %+v", hashedName)
+			return context.Canceled
+		} else {
+			log.Errorf("Unexpected Error: %+v", err)
+			return err
+		}
 	}
 
 	if result.Spec.ConfigGvk != nil {
 		err := group.client.
 			Config().
 			DeleteConfigByName(ctx, result.Spec.ConfigGvk.Name)
-		if err != nil {
+		if err != nil && !errors.IsNotFound(err) {
 			return err
 		}
 	}
@@ -379,7 +425,16 @@ func (group *RootTsmV1) CreateRootByName(ctx context.Context,
 		RootTsmV1().
 		Roots().Create(ctx, objToCreate, metav1.CreateOptions{})
 	if err != nil {
-		return nil, err
+		if customerrors.Is(err, context.DeadlineExceeded) {
+			log.Errorf("context deadline exceeded, on creating GNS: %+v", objToCreate)
+			return nil, context.DeadlineExceeded
+		} else if customerrors.Is(err, context.Canceled) {
+			log.Errorf("context cancelled, on creating GNS: %+v", objToCreate)
+			return nil, context.Canceled
+		} else {
+			log.Errorf("Unexpected Error: %+v", err)
+			return nil, err
+		}
 	}
 
 	return &RootRoot{
@@ -401,7 +456,16 @@ func (group *RootTsmV1) UpdateRootByName(ctx context.Context,
 			RootTsmV1().
 			Roots().Get(ctx, objToUpdate.GetName(), metav1.GetOptions{})
 		if err != nil {
-			return nil, err
+			if customerrors.Is(err, context.DeadlineExceeded) {
+				log.Errorf("context deadline exceeded, on creating GNS: %+v", objToUpdate)
+				return nil, context.DeadlineExceeded
+			} else if customerrors.Is(err, context.Canceled) {
+				log.Errorf("context cancelled, on creating GNS: %+v", objToUpdate)
+				return nil, context.Canceled
+			} else {
+				log.Errorf("Unexpected Error: %+v", err)
+				return nil, err
+			}
 		}
 		objToUpdate.ResourceVersion = current.ResourceVersion
 	}
@@ -616,6 +680,182 @@ func (c *rootRootTsmV1Chainer) IsSubscribed() bool {
 	return ok
 }
 
+func (c *rootRootTsmV1Chainer) RegisterEventHandler(addCB func(obj *RootRoot), updateCB func(oldObj, newObj *RootRoot), deleteCB func(obj *RootRoot)) (cache.ResourceEventHandlerRegistration, error) {
+	fmt.Println("RegisterEventHandler for RootRoot")
+	var (
+		registrationId cache.ResourceEventHandlerRegistration
+		err            error
+		informer       cache.SharedIndexInformer
+	)
+	key := "roots.root.tsm.tanzu.vmware.com"
+	stopper := make(chan struct{})
+	if s, ok := subscriptionMap.Load(key); ok {
+		fmt.Println("Informer exists for RootRoot")
+		sub := s.(subscription)
+		informer = sub.informer
+	} else {
+		fmt.Println("Informer doesn't exists for RootRoot, so creating a new one")
+		informer = informerroottsmtanzuvmwarecomv1.NewRootInformer(c.client.baseClient, 0, cache.Indexers{})
+		go informer.Run(stopper)
+		subscribe(key, informer)
+	}
+	registrationId, err = informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
+		AddFunc: func(obj interface{}) {
+			nc := &RootRoot{
+				client: c.client,
+				Root:   obj.(*baseroottsmtanzuvmwarecomv1.Root),
+			}
+
+			addCB(nc)
+		},
+
+		UpdateFunc: func(oldObj, newObj interface{}) {
+			oldData := &RootRoot{
+				client: c.client,
+				Root:   oldObj.(*baseroottsmtanzuvmwarecomv1.Root),
+			}
+			newData := &RootRoot{
+				client: c.client,
+				Root:   newObj.(*baseroottsmtanzuvmwarecomv1.Root),
+			}
+			updateCB(oldData, newData)
+		},
+
+		DeleteFunc: func(obj interface{}) {
+			nc := &RootRoot{
+				client: c.client,
+				Root:   obj.(*baseroottsmtanzuvmwarecomv1.Root),
+			}
+
+			deleteCB(nc)
+		},
+	})
+	return registrationId, err
+}
+
+func (c *rootRootTsmV1Chainer) RegisterAddCallback(cbfn func(obj *RootRoot)) (cache.ResourceEventHandlerRegistration, error) {
+	fmt.Println("RootRoot -->  RegisterAddCallback!")
+	var (
+		registrationId cache.ResourceEventHandlerRegistration
+		err            error
+	)
+	key := "roots.root.tsm.tanzu.vmware.com"
+	stopper := make(chan struct{})
+	if s, ok := subscriptionMap.Load(key); ok {
+		fmt.Println("[RootRoot] ---SUBSCRIBE-INFORMER---->")
+		sub := s.(subscription)
+		registrationId, err = sub.informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
+			AddFunc: func(obj interface{}) {
+				nc := &RootRoot{
+					client: c.client,
+					Root:   obj.(*baseroottsmtanzuvmwarecomv1.Root),
+				}
+
+				cbfn(nc)
+			},
+		})
+	} else {
+		fmt.Println("[RootRoot] ---NEW-INFORMER---->")
+		informer := informerroottsmtanzuvmwarecomv1.NewRootInformer(c.client.baseClient, 0, cache.Indexers{})
+		registrationId, err = informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
+			AddFunc: func(obj interface{}) {
+				nc := &RootRoot{
+					client: c.client,
+					Root:   obj.(*baseroottsmtanzuvmwarecomv1.Root),
+				}
+
+				cbfn(nc)
+			},
+		})
+		go informer.Run(stopper)
+	}
+	return registrationId, err
+}
+
+func (c *rootRootTsmV1Chainer) RegisterUpdateCallback(cbfn func(oldObj, newObj *RootRoot)) (cache.ResourceEventHandlerRegistration, error) {
+	fmt.Println("RootRoot -->  RegisterUpdateCallback!")
+	var (
+		registrationId cache.ResourceEventHandlerRegistration
+		err            error
+	)
+	key := "roots.root.tsm.tanzu.vmware.com"
+	stopper := make(chan struct{})
+	if s, ok := subscriptionMap.Load(key); ok {
+		fmt.Println("[RootRoot] ---SUBSCRIBE-INFORMER---->")
+		sub := s.(subscription)
+		registrationId, err = sub.informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
+			UpdateFunc: func(oldObj, newObj interface{}) {
+				oldData := &RootRoot{
+					client: c.client,
+					Root:   oldObj.(*baseroottsmtanzuvmwarecomv1.Root),
+				}
+				newData := &RootRoot{
+					client: c.client,
+					Root:   newObj.(*baseroottsmtanzuvmwarecomv1.Root),
+				}
+				cbfn(oldData, newData)
+			},
+		})
+	} else {
+		fmt.Println("[RootRoot] ---NEW-INFORMER---->")
+		informer := informerroottsmtanzuvmwarecomv1.NewRootInformer(c.client.baseClient, 0, cache.Indexers{})
+		registrationId, err = informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
+			UpdateFunc: func(oldObj, newObj interface{}) {
+				oldData := &RootRoot{
+					client: c.client,
+					Root:   oldObj.(*baseroottsmtanzuvmwarecomv1.Root),
+				}
+				newData := &RootRoot{
+					client: c.client,
+					Root:   newObj.(*baseroottsmtanzuvmwarecomv1.Root),
+				}
+				cbfn(oldData, newData)
+			},
+		})
+		go informer.Run(stopper)
+	}
+	return registrationId, err
+}
+
+func (c *rootRootTsmV1Chainer) RegisterDeleteCallback(cbfn func(obj *RootRoot)) (cache.ResourceEventHandlerRegistration, error) {
+	fmt.Println("RootRoot -->  RegisterDeleteCallback!")
+	var (
+		registrationId cache.ResourceEventHandlerRegistration
+		err            error
+	)
+	key := "roots.root.tsm.tanzu.vmware.com"
+	stopper := make(chan struct{})
+	if s, ok := subscriptionMap.Load(key); ok {
+		fmt.Println("[RootRoot] ---SUBSCRIBE-INFORMER---->")
+		sub := s.(subscription)
+		registrationId, err = sub.informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
+			DeleteFunc: func(obj interface{}) {
+				nc := &RootRoot{
+					client: c.client,
+					Root:   obj.(*baseroottsmtanzuvmwarecomv1.Root),
+				}
+
+				cbfn(nc)
+			},
+		})
+	} else {
+		fmt.Println("[RootRoot] ---NEW-INFORMER---->")
+		informer := informerroottsmtanzuvmwarecomv1.NewRootInformer(c.client.baseClient, 0, cache.Indexers{})
+		registrationId, err = informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
+			DeleteFunc: func(obj interface{}) {
+				nc := &RootRoot{
+					client: c.client,
+					Root:   obj.(*baseroottsmtanzuvmwarecomv1.Root),
+				}
+
+				cbfn(nc)
+			},
+		})
+		go informer.Run(stopper)
+	}
+	return registrationId, err
+}
+
 func (c *rootRootTsmV1Chainer) Config(name string) *configConfigTsmV1Chainer {
 	parentLabels := c.parentLabels
 	parentLabels["configs.config.tsm.tanzu.vmware.com"] = name
@@ -679,18 +919,48 @@ func (group *ConfigTsmV1) GetConfigByName(ctx context.Context, hashedName string
 			Config: result,
 		}, nil
 	} else {
-		result, err := group.client.baseClient.
-			ConfigTsmV1().
-			Configs().Get(ctx, hashedName, metav1.GetOptions{})
-		if err != nil {
-			return nil, err
+		retryCount := 12
+		for {
+			result, err := group.client.baseClient.
+				ConfigTsmV1().
+				Configs().Get(ctx, hashedName, metav1.GetOptions{})
+			if err != nil {
+				log.Errorf("Failed to Get Configs: %+v", err)
+				if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded) {
+					log.Errorf("[Retry Count: %d ] %+v", retryCount, err)
+					if retryCount == 0 {
+						log.Error("Max Retry exceed on Get Configs")
+						return nil, err
+					}
+					retryCount -= 1
+					time.Sleep(5 * time.Second)
+				} else {
+					log.Errorf("Unexpected Error: %+v", err)
+					return nil, err
+				}
+			}
+			return &ConfigConfig{
+				client: group.client,
+				Config: result,
+			}, nil
 		}
-
-		return &ConfigConfig{
-			client: group.client,
-			Config: result,
-		}, nil
 	}
+}
+
+// ForceReadConfigByName read object directly from the database under the hashedName which is a hash of display
+// name and parents names. Use it when you know hashed name of object.
+func (group *ConfigTsmV1) ForceReadConfigByName(ctx context.Context, hashedName string) (*ConfigConfig, error) {
+	result, err := group.client.baseClient.
+		ConfigTsmV1().
+		Configs().Get(ctx, hashedName, metav1.GetOptions{})
+	if err != nil {
+		return nil, err
+	}
+
+	return &ConfigConfig{
+		client: group.client,
+		Config: result,
+	}, nil
 }
 
 // DeleteConfigByName deletes object stored in the database under the hashedName which is a hash of
@@ -701,14 +971,23 @@ func (group *ConfigTsmV1) DeleteConfigByName(ctx context.Context, hashedName str
 		ConfigTsmV1().
 		Configs().Get(ctx, hashedName, metav1.GetOptions{})
 	if err != nil {
-		return err
+		if customerrors.Is(err, context.DeadlineExceeded) {
+			log.Errorf("context deadline exceeded, on creating GNS: %+v", hashedName)
+			return context.DeadlineExceeded
+		} else if customerrors.Is(err, context.Canceled) {
+			log.Errorf("context cancelled, on creating GNS: %+v", hashedName)
+			return context.Canceled
+		} else {
+			log.Errorf("Unexpected Error: %+v", err)
+			return err
+		}
 	}
 
 	if result.Spec.GNSGvk != nil {
 		err := group.client.
 			Gns().
 			DeleteGnsByName(ctx, result.Spec.GNSGvk.Name)
-		if err != nil {
+		if err != nil && !errors.IsNotFound(err) {
 			return err
 		}
 	}
@@ -717,7 +996,7 @@ func (group *ConfigTsmV1) DeleteConfigByName(ctx context.Context, hashedName str
 		err := group.client.
 			Gns().
 			DeleteDnsByName(ctx, result.Spec.DNSGvk.Name)
-		if err != nil {
+		if err != nil && !errors.IsNotFound(err) {
 			return err
 		}
 	}
@@ -726,7 +1005,7 @@ func (group *ConfigTsmV1) DeleteConfigByName(ctx context.Context, hashedName str
 		err := group.client.
 			Policypkg().
 			DeleteVMpolicyByName(ctx, result.Spec.VMPPoliciesGvk.Name)
-		if err != nil {
+		if err != nil && !errors.IsNotFound(err) {
 			return err
 		}
 	}
@@ -735,7 +1014,7 @@ func (group *ConfigTsmV1) DeleteConfigByName(ctx context.Context, hashedName str
 		err := group.client.
 			Config().
 			DeleteDomainByName(ctx, result.Spec.DomainGvk.Name)
-		if err != nil {
+		if err != nil && !errors.IsNotFound(err) {
 			return err
 		}
 	}
@@ -744,7 +1023,11 @@ func (group *ConfigTsmV1) DeleteConfigByName(ctx context.Context, hashedName str
 		err := group.client.
 			Config().DeleteFooTypeABCByName(ctx, v.Name)
 		if err != nil {
-			return err
+			if errors.IsNotFound(err) {
+				continue
+			} else {
+				return err
+			}
 		}
 	}
 
@@ -752,7 +1035,7 @@ func (group *ConfigTsmV1) DeleteConfigByName(ctx context.Context, hashedName str
 		err := group.client.
 			Servicegroup().
 			DeleteSvcGroupLinkInfoByName(ctx, result.Spec.SvcGrpInfoGvk.Name)
-		if err != nil {
+		if err != nil && !errors.IsNotFound(err) {
 			return err
 		}
 	}
@@ -787,11 +1070,44 @@ func (group *ConfigTsmV1) DeleteConfigByName(ctx context.Context, hashedName str
 	if parents[common.IS_NAME_HASHED_LABEL] == "true" {
 		parentName = helper.GetHashedName("roots.root.tsm.tanzu.vmware.com", parents, parentName)
 	}
-	_, err = group.client.baseClient.
-		RootTsmV1().
-		Roots().Patch(ctx, parentName, types.JSONPatchType, marshaled, metav1.PatchOptions{})
-	if err != nil {
-		return err
+
+	retryCount := 12
+	newCtx := context.TODO()
+	for {
+		_, err = group.client.baseClient.
+			RootTsmV1().
+			Roots().Patch(newCtx, parentName, types.JSONPatchType, marshaled, metav1.PatchOptions{})
+		if err != nil {
+			log.Errorf("Failed to patch Config gvk in parent node[Roots]: %+v", err)
+			if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded) {
+				log.Errorf("[Retry Count: %d ] %+v", retryCount, err)
+				if retryCount == 0 {
+					log.Error("Max Retry exceed on patching gvk")
+					log.Errorf("Trigger Config Delete: %s", hashedName)
+					err = group.DeleteConfigByName(newCtx, hashedName)
+					if err != nil {
+						log.Errorf("Error occur while deleting Config: %s", hashedName)
+						return err
+					}
+					log.Errorf("Config Deleted: %s", hashedName)
+					return err
+				}
+				retryCount -= 1
+				time.Sleep(5 * time.Second)
+			} else {
+				log.Errorf("Unexpected Error: %+v", err)
+				log.Errorf("Trigger Config Delete: %s", hashedName)
+				err = group.DeleteConfigByName(newCtx, hashedName)
+				if err != nil {
+					log.Errorf("Error occur while deleting Config: %+v", hashedName)
+					return err
+				}
+				log.Errorf("Config Deleted: %s", hashedName)
+				return err
+			}
+		} else {
+			break
+		}
 	}
 
 	return
@@ -820,7 +1136,16 @@ func (group *ConfigTsmV1) CreateConfigByName(ctx context.Context,
 		ConfigTsmV1().
 		Configs().Create(ctx, objToCreate, metav1.CreateOptions{})
 	if err != nil {
-		return nil, err
+		if customerrors.Is(err, context.DeadlineExceeded) {
+			log.Errorf("context deadline exceeded, on creating GNS: %+v", objToCreate)
+			return nil, context.DeadlineExceeded
+		} else if customerrors.Is(err, context.Canceled) {
+			log.Errorf("context cancelled, on creating GNS: %+v", objToCreate)
+			return nil, context.Canceled
+		} else {
+			log.Errorf("Unexpected Error: %+v", err)
+			return nil, err
+		}
 	}
 
 	parentName, ok := objToCreate.GetLabels()["roots.root.tsm.tanzu.vmware.com"]
@@ -846,11 +1171,43 @@ func (group *ConfigTsmV1) CreateConfigByName(ctx context.Context,
 	if err != nil {
 		return nil, err
 	}
-	_, err = group.client.baseClient.
-		RootTsmV1().
-		Roots().Patch(ctx, parentName, types.JSONPatchType, marshaled, metav1.PatchOptions{})
-	if err != nil {
-		return nil, err
+	retryCount := 12
+	newCtx := context.TODO()
+	for {
+		_, err = group.client.baseClient.
+			RootTsmV1().
+			Roots().Patch(newCtx, parentName, types.JSONPatchType, marshaled, metav1.PatchOptions{})
+		if err != nil {
+			log.Errorf("Failed to patch Config gvk in parent node[Roots]: %+v", err)
+			if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded) {
+				log.Errorf("[Retry Count: %d ] %+v", retryCount, err)
+				if retryCount == 0 {
+					log.Error("Max Retry exceed on patching gvk")
+					log.Errorf("Trigger Config Delete: %s", objToCreate.GetName())
+					err = group.DeleteConfigByName(newCtx, objToCreate.GetName())
+					if err != nil {
+						log.Errorf("Error occur while deleting Config: %s", objToCreate.GetName())
+						return nil, err
+					}
+					log.Errorf("Config Deleted: %s", objToCreate.GetName())
+					return nil, err
+				}
+				retryCount -= 1
+				time.Sleep(5 * time.Second)
+			} else {
+				log.Errorf("Unexpected Error: %+v", err)
+				log.Errorf("Trigger Config Delete: %s", objToCreate.GetName())
+				err = group.DeleteConfigByName(newCtx, objToCreate.GetName())
+				if err != nil {
+					log.Errorf("Error occur while deleting Config: %+v", objToCreate.GetName())
+					return nil, err
+				}
+				log.Errorf("Config Deleted: %s", objToCreate.GetName())
+				return nil, err
+			}
+		} else {
+			break
+		}
 	}
 
 	return &ConfigConfig{
@@ -870,7 +1227,16 @@ func (group *ConfigTsmV1) UpdateConfigByName(ctx context.Context,
 			ConfigTsmV1().
 			Configs().Get(ctx, objToUpdate.GetName(), metav1.GetOptions{})
 		if err != nil {
-			return nil, err
+			if customerrors.Is(err, context.DeadlineExceeded) {
+				log.Errorf("context deadline exceeded, on creating GNS: %+v", objToUpdate)
+				return nil, context.DeadlineExceeded
+			} else if customerrors.Is(err, context.Canceled) {
+				log.Errorf("context cancelled, on creating GNS: %+v", objToUpdate)
+				return nil, context.Canceled
+			} else {
+				log.Errorf("Unexpected Error: %+v", err)
+				return nil, err
+			}
 		}
 		objToUpdate.ResourceVersion = current.ResourceVersion
 	}
@@ -1488,6 +1854,447 @@ func (c *configConfigTsmV1Chainer) IsSubscribed() bool {
 	return ok
 }
 
+func (c *configConfigTsmV1Chainer) RegisterEventHandler(addCB func(obj *ConfigConfig), updateCB func(oldObj, newObj *ConfigConfig), deleteCB func(obj *ConfigConfig)) (cache.ResourceEventHandlerRegistration, error) {
+	fmt.Println("RegisterEventHandler for ConfigConfig")
+	var (
+		registrationId cache.ResourceEventHandlerRegistration
+		err            error
+		informer       cache.SharedIndexInformer
+	)
+	key := "configs.config.tsm.tanzu.vmware.com"
+	stopper := make(chan struct{})
+	if s, ok := subscriptionMap.Load(key); ok {
+		fmt.Println("Informer exists for ConfigConfig")
+		sub := s.(subscription)
+		informer = sub.informer
+	} else {
+		fmt.Println("Informer doesn't exists for ConfigConfig, so creating a new one")
+		informer = informerconfigtsmtanzuvmwarecomv1.NewConfigInformer(c.client.baseClient, 0, cache.Indexers{})
+		go informer.Run(stopper)
+		subscribe(key, informer)
+	}
+	registrationId, err = informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
+		AddFunc: func(obj interface{}) {
+			nc := &ConfigConfig{
+				client: c.client,
+				Config: obj.(*baseconfigtsmtanzuvmwarecomv1.Config),
+			}
+
+			var parent *RootRoot
+			gvkExist := false
+			for i := 0; i < 600; i++ {
+				// Check if parent exists
+				p, err := nc.GetParent(context.TODO())
+				if err != nil || p == nil {
+					time.Sleep(500 * time.Millisecond)
+					continue
+				}
+				parent = p
+				// Check GVK
+
+				if parent.Spec.ConfigGvk == nil {
+					time.Sleep(500 * time.Millisecond)
+					continue
+				}
+
+				gvkExist = true
+				break
+			}
+			if parent == nil {
+				hashedName := helper.GetHashedName("roots.root.tsm.tanzu.vmware.com", nc.Labels, nc.Labels["roots.root.tsm.tanzu.vmware.com"])
+				parent, err = c.client.Root().ForceReadRootByName(context.TODO(), hashedName)
+				if err != nil {
+					if errors.IsNotFound(err) {
+						return
+					}
+					panic("error occurred while fetching parent " + err.Error())
+				}
+				panic(fmt.Sprintf("parent found (event loop is stalled) " + nc.DisplayName()))
+			}
+			if !gvkExist {
+				// Check GVK
+
+				if parent.Spec.ConfigGvk == nil {
+					return
+				}
+
+				panic(fmt.Sprintf("gvk found (event loop is stalled) " + nc.DisplayName()))
+			}
+
+			addCB(nc)
+		},
+
+		UpdateFunc: func(oldObj, newObj interface{}) {
+			oldData := &ConfigConfig{
+				client: c.client,
+				Config: oldObj.(*baseconfigtsmtanzuvmwarecomv1.Config),
+			}
+			newData := &ConfigConfig{
+				client: c.client,
+				Config: newObj.(*baseconfigtsmtanzuvmwarecomv1.Config),
+			}
+			updateCB(oldData, newData)
+		},
+
+		DeleteFunc: func(obj interface{}) {
+			nc := &ConfigConfig{
+				client: c.client,
+				Config: obj.(*baseconfigtsmtanzuvmwarecomv1.Config),
+			}
+
+			var parent *RootRoot
+			gvkExist := true
+			for i := 0; i < 600; i++ {
+				// Check if parent exists
+				p, err := nc.GetParent(context.TODO())
+				if err != nil || p == nil {
+					time.Sleep(500 * time.Millisecond)
+					continue
+				}
+				parent = p
+				// Check GVK
+
+				if parent.Spec.ConfigGvk != nil {
+					time.Sleep(500 * time.Millisecond)
+					continue
+				}
+
+				gvkExist = false
+				break
+			}
+			if parent == nil {
+				hashedName := helper.GetHashedName("roots.root.tsm.tanzu.vmware.com", nc.Labels, nc.Labels["roots.root.tsm.tanzu.vmware.com"])
+				parent, err = c.client.Root().ForceReadRootByName(context.TODO(), hashedName)
+				if err != nil {
+					if errors.IsNotFound(err) {
+						return
+					}
+					panic("error occurred while fetching parent " + err.Error())
+				}
+				panic(fmt.Sprintf("parent found (event loop is stalled) " + nc.DisplayName()))
+			}
+			if gvkExist {
+				// Check GVK
+
+				if parent.Spec.ConfigGvk != nil {
+					return
+				}
+
+				panic(fmt.Sprintf("gvk not found (event loop is stalled) " + nc.DisplayName()))
+			}
+
+			deleteCB(nc)
+		},
+	})
+	return registrationId, err
+}
+
+func (c *configConfigTsmV1Chainer) RegisterAddCallback(cbfn func(obj *ConfigConfig)) (cache.ResourceEventHandlerRegistration, error) {
+	fmt.Println("ConfigConfig -->  RegisterAddCallback!")
+	var (
+		registrationId cache.ResourceEventHandlerRegistration
+		err            error
+	)
+	key := "configs.config.tsm.tanzu.vmware.com"
+	stopper := make(chan struct{})
+	if s, ok := subscriptionMap.Load(key); ok {
+		fmt.Println("[ConfigConfig] ---SUBSCRIBE-INFORMER---->")
+		sub := s.(subscription)
+		registrationId, err = sub.informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
+			AddFunc: func(obj interface{}) {
+				nc := &ConfigConfig{
+					client: c.client,
+					Config: obj.(*baseconfigtsmtanzuvmwarecomv1.Config),
+				}
+
+				var parent *RootRoot
+				gvkExist := false
+				for i := 0; i < 600; i++ {
+					// Check if parent exists
+					p, err := nc.GetParent(context.TODO())
+					if err != nil || p == nil {
+						time.Sleep(500 * time.Millisecond)
+						continue
+					}
+					parent = p
+
+					// Check GVK
+
+					if parent.Spec.ConfigGvk == nil {
+						time.Sleep(500 * time.Millisecond)
+						continue
+					}
+
+					gvkExist = true
+
+					break
+				}
+
+				if parent == nil {
+					hashedName := helper.GetHashedName("roots.root.tsm.tanzu.vmware.com", nc.Labels, nc.Labels["roots.root.tsm.tanzu.vmware.com"])
+					parent, err = c.client.Root().ForceReadRootByName(context.TODO(), hashedName)
+					if err != nil {
+						if errors.IsNotFound(err) {
+							return
+						}
+
+						panic("error occurred while fetching parent " + err.Error())
+					}
+					panic(fmt.Sprintf("parent found (event loop is stalled) " + nc.DisplayName()))
+				}
+
+				if !gvkExist {
+					// Check GVK
+
+					if parent.Spec.ConfigGvk == nil {
+						return
+					}
+
+					panic(fmt.Sprintf("gvk found (event loop is stalled) " + nc.DisplayName()))
+				}
+
+				cbfn(nc)
+			},
+		})
+	} else {
+		fmt.Println("[ConfigConfig] ---NEW-INFORMER---->")
+		informer := informerconfigtsmtanzuvmwarecomv1.NewConfigInformer(c.client.baseClient, 0, cache.Indexers{})
+		registrationId, err = informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
+			AddFunc: func(obj interface{}) {
+				nc := &ConfigConfig{
+					client: c.client,
+					Config: obj.(*baseconfigtsmtanzuvmwarecomv1.Config),
+				}
+
+				var parent *RootRoot
+				gvkExist := false
+				for i := 0; i < 600; i++ {
+					// Check if parent exists
+					p, err := nc.GetParent(context.TODO())
+					if err != nil || p == nil {
+						time.Sleep(500 * time.Millisecond)
+						continue
+					}
+					parent = p
+
+					// Check GVK
+
+					if parent.Spec.ConfigGvk == nil {
+						time.Sleep(500 * time.Millisecond)
+						continue
+					}
+
+					gvkExist = true
+
+					break
+				}
+
+				if parent == nil {
+					hashedName := helper.GetHashedName("roots.root.tsm.tanzu.vmware.com", nc.Labels, nc.Labels["roots.root.tsm.tanzu.vmware.com"])
+					parent, err = c.client.Root().ForceReadRootByName(context.TODO(), hashedName)
+					if err != nil {
+						if errors.IsNotFound(err) {
+							return
+						}
+
+						panic("error occurred while fetching parent " + err.Error())
+					}
+					panic(fmt.Sprintf("parent found (event loop is stalled) " + nc.DisplayName()))
+				}
+
+				if !gvkExist {
+					// Check GVK
+
+					if parent.Spec.ConfigGvk == nil {
+						return
+					}
+
+					panic(fmt.Sprintf("gvk found (event loop is stalled) " + nc.DisplayName()))
+				}
+
+				cbfn(nc)
+			},
+		})
+		go informer.Run(stopper)
+	}
+	return registrationId, err
+}
+
+func (c *configConfigTsmV1Chainer) RegisterUpdateCallback(cbfn func(oldObj, newObj *ConfigConfig)) (cache.ResourceEventHandlerRegistration, error) {
+	fmt.Println("ConfigConfig -->  RegisterUpdateCallback!")
+	var (
+		registrationId cache.ResourceEventHandlerRegistration
+		err            error
+	)
+	key := "configs.config.tsm.tanzu.vmware.com"
+	stopper := make(chan struct{})
+	if s, ok := subscriptionMap.Load(key); ok {
+		fmt.Println("[ConfigConfig] ---SUBSCRIBE-INFORMER---->")
+		sub := s.(subscription)
+		registrationId, err = sub.informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
+			UpdateFunc: func(oldObj, newObj interface{}) {
+				oldData := &ConfigConfig{
+					client: c.client,
+					Config: oldObj.(*baseconfigtsmtanzuvmwarecomv1.Config),
+				}
+				newData := &ConfigConfig{
+					client: c.client,
+					Config: newObj.(*baseconfigtsmtanzuvmwarecomv1.Config),
+				}
+				cbfn(oldData, newData)
+			},
+		})
+	} else {
+		fmt.Println("[ConfigConfig] ---NEW-INFORMER---->")
+		informer := informerconfigtsmtanzuvmwarecomv1.NewConfigInformer(c.client.baseClient, 0, cache.Indexers{})
+		registrationId, err = informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
+			UpdateFunc: func(oldObj, newObj interface{}) {
+				oldData := &ConfigConfig{
+					client: c.client,
+					Config: oldObj.(*baseconfigtsmtanzuvmwarecomv1.Config),
+				}
+				newData := &ConfigConfig{
+					client: c.client,
+					Config: newObj.(*baseconfigtsmtanzuvmwarecomv1.Config),
+				}
+				cbfn(oldData, newData)
+			},
+		})
+		go informer.Run(stopper)
+	}
+	return registrationId, err
+}
+
+func (c *configConfigTsmV1Chainer) RegisterDeleteCallback(cbfn func(obj *ConfigConfig)) (cache.ResourceEventHandlerRegistration, error) {
+	fmt.Println("ConfigConfig -->  RegisterDeleteCallback!")
+	var (
+		registrationId cache.ResourceEventHandlerRegistration
+		err            error
+	)
+	key := "configs.config.tsm.tanzu.vmware.com"
+	stopper := make(chan struct{})
+	if s, ok := subscriptionMap.Load(key); ok {
+		fmt.Println("[ConfigConfig] ---SUBSCRIBE-INFORMER---->")
+		sub := s.(subscription)
+		registrationId, err = sub.informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
+			DeleteFunc: func(obj interface{}) {
+				nc := &ConfigConfig{
+					client: c.client,
+					Config: obj.(*baseconfigtsmtanzuvmwarecomv1.Config),
+				}
+
+				var parent *RootRoot
+				gvkExist := true
+				for i := 0; i < 600; i++ {
+					// Check if parent exists
+					p, err := nc.GetParent(context.TODO())
+					if err != nil || p == nil {
+						time.Sleep(500 * time.Millisecond)
+						continue
+					}
+					parent = p
+
+					// Check GVK
+
+					if parent.Spec.ConfigGvk != nil {
+						time.Sleep(500 * time.Millisecond)
+						continue
+					}
+
+					gvkExist = false
+					break
+				}
+
+				if parent == nil {
+					hashedName := helper.GetHashedName("roots.root.tsm.tanzu.vmware.com", nc.Labels, nc.Labels["roots.root.tsm.tanzu.vmware.com"])
+					parent, err = c.client.Root().ForceReadRootByName(context.TODO(), hashedName)
+					if err != nil {
+						if errors.IsNotFound(err) {
+							return
+						}
+
+						panic("error occurred while fetching parent " + err.Error())
+					}
+					panic(fmt.Sprintf("parent found (event loop is stalled) " + nc.DisplayName()))
+				}
+
+				if gvkExist {
+					// Check GVK
+
+					if parent.Spec.ConfigGvk != nil {
+						return
+					}
+
+					panic(fmt.Sprintf("gvk not found (event loop is stalled) " + nc.DisplayName()))
+				}
+
+				cbfn(nc)
+			},
+		})
+	} else {
+		fmt.Println("[ConfigConfig] ---NEW-INFORMER---->")
+		informer := informerconfigtsmtanzuvmwarecomv1.NewConfigInformer(c.client.baseClient, 0, cache.Indexers{})
+		registrationId, err = informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
+			DeleteFunc: func(obj interface{}) {
+				nc := &ConfigConfig{
+					client: c.client,
+					Config: obj.(*baseconfigtsmtanzuvmwarecomv1.Config),
+				}
+
+				var parent *RootRoot
+				gvkExist := true
+				for i := 0; i < 600; i++ {
+					// Check if parent exists
+					p, err := nc.GetParent(context.TODO())
+					if err != nil || p == nil {
+						time.Sleep(500 * time.Millisecond)
+						continue
+					}
+					parent = p
+
+					// Check GVK
+
+					if parent.Spec.ConfigGvk != nil {
+						time.Sleep(500 * time.Millisecond)
+						continue
+					}
+
+					gvkExist = false
+
+					break
+				}
+
+				if parent == nil {
+					hashedName := helper.GetHashedName("roots.root.tsm.tanzu.vmware.com", nc.Labels, nc.Labels["roots.root.tsm.tanzu.vmware.com"])
+					parent, err = c.client.Root().ForceReadRootByName(context.TODO(), hashedName)
+					if err != nil {
+						if errors.IsNotFound(err) {
+							return
+						}
+
+						panic("error occurred while fetching parent " + err.Error())
+					}
+					panic(fmt.Sprintf("parent found (event loop is stalled) " + nc.DisplayName()))
+				}
+
+				if gvkExist {
+					// Check GVK
+
+					if parent.Spec.ConfigGvk != nil {
+						return
+					}
+
+					panic(fmt.Sprintf("gvk not found (event loop is stalled) " + nc.DisplayName()))
+				}
+
+				cbfn(nc)
+			},
+		})
+		go informer.Run(stopper)
+	}
+	return registrationId, err
+}
+
 func (c *configConfigTsmV1Chainer) GNS(name string) *gnsGnsTsmV1Chainer {
 	parentLabels := c.parentLabels
 	parentLabels["gnses.gns.tsm.tanzu.vmware.com"] = name
@@ -1792,18 +2599,48 @@ func (group *ConfigTsmV1) GetFooTypeABCByName(ctx context.Context, hashedName st
 			FooTypeABC: result,
 		}, nil
 	} else {
-		result, err := group.client.baseClient.
-			ConfigTsmV1().
-			FooTypeABCs().Get(ctx, hashedName, metav1.GetOptions{})
-		if err != nil {
-			return nil, err
+		retryCount := 12
+		for {
+			result, err := group.client.baseClient.
+				ConfigTsmV1().
+				FooTypeABCs().Get(ctx, hashedName, metav1.GetOptions{})
+			if err != nil {
+				log.Errorf("Failed to Get FooTypeABCs: %+v", err)
+				if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded) {
+					log.Errorf("[Retry Count: %d ] %+v", retryCount, err)
+					if retryCount == 0 {
+						log.Error("Max Retry exceed on Get FooTypeABCs")
+						return nil, err
+					}
+					retryCount -= 1
+					time.Sleep(5 * time.Second)
+				} else {
+					log.Errorf("Unexpected Error: %+v", err)
+					return nil, err
+				}
+			}
+			return &ConfigFooTypeABC{
+				client:     group.client,
+				FooTypeABC: result,
+			}, nil
 		}
-
-		return &ConfigFooTypeABC{
-			client:     group.client,
-			FooTypeABC: result,
-		}, nil
 	}
+}
+
+// ForceReadFooTypeABCByName read object directly from the database under the hashedName which is a hash of display
+// name and parents names. Use it when you know hashed name of object.
+func (group *ConfigTsmV1) ForceReadFooTypeABCByName(ctx context.Context, hashedName string) (*ConfigFooTypeABC, error) {
+	result, err := group.client.baseClient.
+		ConfigTsmV1().
+		FooTypeABCs().Get(ctx, hashedName, metav1.GetOptions{})
+	if err != nil {
+		return nil, err
+	}
+
+	return &ConfigFooTypeABC{
+		client:     group.client,
+		FooTypeABC: result,
+	}, nil
 }
 
 // DeleteFooTypeABCByName deletes object stored in the database under the hashedName which is a hash of
@@ -1814,7 +2651,16 @@ func (group *ConfigTsmV1) DeleteFooTypeABCByName(ctx context.Context, hashedName
 		ConfigTsmV1().
 		FooTypeABCs().Get(ctx, hashedName, metav1.GetOptions{})
 	if err != nil {
-		return err
+		if customerrors.Is(err, context.DeadlineExceeded) {
+			log.Errorf("context deadline exceeded, on creating GNS: %+v", hashedName)
+			return context.DeadlineExceeded
+		} else if customerrors.Is(err, context.Canceled) {
+			log.Errorf("context cancelled, on creating GNS: %+v", hashedName)
+			return context.Canceled
+		} else {
+			log.Errorf("Unexpected Error: %+v", err)
+			return err
+		}
 	}
 
 	err = group.client.baseClient.
@@ -1847,11 +2693,44 @@ func (group *ConfigTsmV1) DeleteFooTypeABCByName(ctx context.Context, hashedName
 	if parents[common.IS_NAME_HASHED_LABEL] == "true" {
 		parentName = helper.GetHashedName("configs.config.tsm.tanzu.vmware.com", parents, parentName)
 	}
-	_, err = group.client.baseClient.
-		ConfigTsmV1().
-		Configs().Patch(ctx, parentName, types.JSONPatchType, marshaled, metav1.PatchOptions{})
-	if err != nil {
-		return err
+
+	retryCount := 12
+	newCtx := context.TODO()
+	for {
+		_, err = group.client.baseClient.
+			ConfigTsmV1().
+			Configs().Patch(newCtx, parentName, types.JSONPatchType, marshaled, metav1.PatchOptions{})
+		if err != nil {
+			log.Errorf("Failed to patch FooTypeABC gvk in parent node[Configs]: %+v", err)
+			if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded) {
+				log.Errorf("[Retry Count: %d ] %+v", retryCount, err)
+				if retryCount == 0 {
+					log.Error("Max Retry exceed on patching gvk")
+					log.Errorf("Trigger FooTypeABC Delete: %s", hashedName)
+					err = group.DeleteFooTypeABCByName(newCtx, hashedName)
+					if err != nil {
+						log.Errorf("Error occur while deleting FooTypeABC: %s", hashedName)
+						return err
+					}
+					log.Errorf("FooTypeABC Deleted: %s", hashedName)
+					return err
+				}
+				retryCount -= 1
+				time.Sleep(5 * time.Second)
+			} else {
+				log.Errorf("Unexpected Error: %+v", err)
+				log.Errorf("Trigger FooTypeABC Delete: %s", hashedName)
+				err = group.DeleteFooTypeABCByName(newCtx, hashedName)
+				if err != nil {
+					log.Errorf("Error occur while deleting FooTypeABC: %+v", hashedName)
+					return err
+				}
+				log.Errorf("FooTypeABC Deleted: %s", hashedName)
+				return err
+			}
+		} else {
+			break
+		}
 	}
 
 	return
@@ -1872,7 +2751,16 @@ func (group *ConfigTsmV1) CreateFooTypeABCByName(ctx context.Context,
 		ConfigTsmV1().
 		FooTypeABCs().Create(ctx, objToCreate, metav1.CreateOptions{})
 	if err != nil {
-		return nil, err
+		if customerrors.Is(err, context.DeadlineExceeded) {
+			log.Errorf("context deadline exceeded, on creating GNS: %+v", objToCreate)
+			return nil, context.DeadlineExceeded
+		} else if customerrors.Is(err, context.Canceled) {
+			log.Errorf("context cancelled, on creating GNS: %+v", objToCreate)
+			return nil, context.Canceled
+		} else {
+			log.Errorf("Unexpected Error: %+v", err)
+			return nil, err
+		}
 	}
 
 	parentName, ok := objToCreate.GetLabels()["configs.config.tsm.tanzu.vmware.com"]
@@ -1884,11 +2772,44 @@ func (group *ConfigTsmV1) CreateFooTypeABCByName(ctx context.Context,
 	}
 
 	payload := "{\"spec\": {\"fooExampleGvk\": {\"" + objToCreate.DisplayName() + "\": {\"name\": \"" + objToCreate.Name + "\",\"kind\": \"FooTypeABC\", \"group\": \"config.tsm.tanzu.vmware.com\"}}}}"
-	_, err = group.client.baseClient.
-		ConfigTsmV1().
-		Configs().Patch(ctx, parentName, types.MergePatchType, []byte(payload), metav1.PatchOptions{})
-	if err != nil {
-		return nil, err
+
+	retryCount := 12
+	newCtx := context.TODO()
+	for {
+		_, err = group.client.baseClient.
+			ConfigTsmV1().
+			Configs().Patch(newCtx, parentName, types.MergePatchType, []byte(payload), metav1.PatchOptions{})
+		if err != nil {
+			log.Errorf("Failed to patch FooTypeABC gvk in parent node[Configs]: %+v", err)
+			if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded) {
+				log.Errorf("[Retry Count: %d ] %+v", retryCount, err)
+				if retryCount == 0 {
+					log.Error("Max Retry exceed on patching gvk")
+					log.Errorf("Trigger FooTypeABC Delete: %s", objToCreate.GetName())
+					err = group.DeleteFooTypeABCByName(newCtx, objToCreate.GetName())
+					if err != nil {
+						log.Errorf("Error occur while deleting FooTypeABC: %s", objToCreate.GetName())
+						return nil, err
+					}
+					log.Errorf("FooTypeABC Deleted: %s", objToCreate.GetName())
+					return nil, err
+				}
+				retryCount -= 1
+				time.Sleep(5 * time.Second)
+			} else {
+				log.Errorf("Unexpected Error: %+v", err)
+				log.Errorf("Trigger FooTypeABC Delete: %s", objToCreate.GetName())
+				err = group.DeleteFooTypeABCByName(newCtx, objToCreate.GetName())
+				if err != nil {
+					log.Errorf("Error occur while deleting FooTypeABC: %+v", objToCreate.GetName())
+					return nil, err
+				}
+				log.Errorf("FooTypeABC Deleted: %s", objToCreate.GetName())
+				return nil, err
+			}
+		} else {
+			break
+		}
 	}
 
 	return &ConfigFooTypeABC{
@@ -1908,7 +2829,16 @@ func (group *ConfigTsmV1) UpdateFooTypeABCByName(ctx context.Context,
 			ConfigTsmV1().
 			FooTypeABCs().Get(ctx, objToUpdate.GetName(), metav1.GetOptions{})
 		if err != nil {
-			return nil, err
+			if customerrors.Is(err, context.DeadlineExceeded) {
+				log.Errorf("context deadline exceeded, on creating GNS: %+v", objToUpdate)
+				return nil, context.DeadlineExceeded
+			} else if customerrors.Is(err, context.Canceled) {
+				log.Errorf("context cancelled, on creating GNS: %+v", objToUpdate)
+				return nil, context.Canceled
+			} else {
+				log.Errorf("Unexpected Error: %+v", err)
+				return nil, err
+			}
 		}
 		objToUpdate.ResourceVersion = current.ResourceVersion
 	}
@@ -2081,6 +3011,447 @@ func (c *footypeabcConfigTsmV1Chainer) IsSubscribed() bool {
 	return ok
 }
 
+func (c *footypeabcConfigTsmV1Chainer) RegisterEventHandler(addCB func(obj *ConfigFooTypeABC), updateCB func(oldObj, newObj *ConfigFooTypeABC), deleteCB func(obj *ConfigFooTypeABC)) (cache.ResourceEventHandlerRegistration, error) {
+	fmt.Println("RegisterEventHandler for ConfigFooTypeABC")
+	var (
+		registrationId cache.ResourceEventHandlerRegistration
+		err            error
+		informer       cache.SharedIndexInformer
+	)
+	key := "footypeabcs.config.tsm.tanzu.vmware.com"
+	stopper := make(chan struct{})
+	if s, ok := subscriptionMap.Load(key); ok {
+		fmt.Println("Informer exists for ConfigFooTypeABC")
+		sub := s.(subscription)
+		informer = sub.informer
+	} else {
+		fmt.Println("Informer doesn't exists for ConfigFooTypeABC, so creating a new one")
+		informer = informerconfigtsmtanzuvmwarecomv1.NewFooTypeABCInformer(c.client.baseClient, 0, cache.Indexers{})
+		go informer.Run(stopper)
+		subscribe(key, informer)
+	}
+	registrationId, err = informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
+		AddFunc: func(obj interface{}) {
+			nc := &ConfigFooTypeABC{
+				client:     c.client,
+				FooTypeABC: obj.(*baseconfigtsmtanzuvmwarecomv1.FooTypeABC),
+			}
+
+			var parent *ConfigConfig
+			gvkExist := false
+			for i := 0; i < 600; i++ {
+				// Check if parent exists
+				p, err := nc.GetParent(context.TODO())
+				if err != nil || p == nil {
+					time.Sleep(500 * time.Millisecond)
+					continue
+				}
+				parent = p
+				// Check GVK
+
+				if _, ok := parent.Spec.FooExampleGvk[nc.DisplayName()]; !ok {
+					time.Sleep(500 * time.Millisecond)
+					continue
+				}
+
+				gvkExist = true
+				break
+			}
+			if parent == nil {
+				hashedName := helper.GetHashedName("configs.config.tsm.tanzu.vmware.com", nc.Labels, nc.Labels["configs.config.tsm.tanzu.vmware.com"])
+				parent, err = c.client.Config().ForceReadConfigByName(context.TODO(), hashedName)
+				if err != nil {
+					if errors.IsNotFound(err) {
+						return
+					}
+					panic("error occurred while fetching parent " + err.Error())
+				}
+				panic(fmt.Sprintf("parent found (event loop is stalled) " + nc.DisplayName()))
+			}
+			if !gvkExist {
+				// Check GVK
+
+				if _, ok := parent.Spec.FooExampleGvk[nc.DisplayName()]; !ok {
+					return
+				}
+
+				panic(fmt.Sprintf("gvk found (event loop is stalled) " + nc.DisplayName()))
+			}
+
+			addCB(nc)
+		},
+
+		UpdateFunc: func(oldObj, newObj interface{}) {
+			oldData := &ConfigFooTypeABC{
+				client:     c.client,
+				FooTypeABC: oldObj.(*baseconfigtsmtanzuvmwarecomv1.FooTypeABC),
+			}
+			newData := &ConfigFooTypeABC{
+				client:     c.client,
+				FooTypeABC: newObj.(*baseconfigtsmtanzuvmwarecomv1.FooTypeABC),
+			}
+			updateCB(oldData, newData)
+		},
+
+		DeleteFunc: func(obj interface{}) {
+			nc := &ConfigFooTypeABC{
+				client:     c.client,
+				FooTypeABC: obj.(*baseconfigtsmtanzuvmwarecomv1.FooTypeABC),
+			}
+
+			var parent *ConfigConfig
+			gvkExist := true
+			for i := 0; i < 600; i++ {
+				// Check if parent exists
+				p, err := nc.GetParent(context.TODO())
+				if err != nil || p == nil {
+					time.Sleep(500 * time.Millisecond)
+					continue
+				}
+				parent = p
+				// Check GVK
+
+				if _, ok := parent.Spec.FooExampleGvk[nc.DisplayName()]; ok {
+					time.Sleep(500 * time.Millisecond)
+					continue
+				}
+
+				gvkExist = false
+				break
+			}
+			if parent == nil {
+				hashedName := helper.GetHashedName("configs.config.tsm.tanzu.vmware.com", nc.Labels, nc.Labels["configs.config.tsm.tanzu.vmware.com"])
+				parent, err = c.client.Config().ForceReadConfigByName(context.TODO(), hashedName)
+				if err != nil {
+					if errors.IsNotFound(err) {
+						return
+					}
+					panic("error occurred while fetching parent " + err.Error())
+				}
+				panic(fmt.Sprintf("parent found (event loop is stalled) " + nc.DisplayName()))
+			}
+			if gvkExist {
+				// Check GVK
+
+				if _, ok := parent.Spec.FooExampleGvk[nc.DisplayName()]; ok {
+					return
+				}
+
+				panic(fmt.Sprintf("gvk not found (event loop is stalled) " + nc.DisplayName()))
+			}
+
+			deleteCB(nc)
+		},
+	})
+	return registrationId, err
+}
+
+func (c *footypeabcConfigTsmV1Chainer) RegisterAddCallback(cbfn func(obj *ConfigFooTypeABC)) (cache.ResourceEventHandlerRegistration, error) {
+	fmt.Println("ConfigFooTypeABC -->  RegisterAddCallback!")
+	var (
+		registrationId cache.ResourceEventHandlerRegistration
+		err            error
+	)
+	key := "footypeabcs.config.tsm.tanzu.vmware.com"
+	stopper := make(chan struct{})
+	if s, ok := subscriptionMap.Load(key); ok {
+		fmt.Println("[ConfigFooTypeABC] ---SUBSCRIBE-INFORMER---->")
+		sub := s.(subscription)
+		registrationId, err = sub.informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
+			AddFunc: func(obj interface{}) {
+				nc := &ConfigFooTypeABC{
+					client:     c.client,
+					FooTypeABC: obj.(*baseconfigtsmtanzuvmwarecomv1.FooTypeABC),
+				}
+
+				var parent *ConfigConfig
+				gvkExist := false
+				for i := 0; i < 600; i++ {
+					// Check if parent exists
+					p, err := nc.GetParent(context.TODO())
+					if err != nil || p == nil {
+						time.Sleep(500 * time.Millisecond)
+						continue
+					}
+					parent = p
+
+					// Check GVK
+
+					if _, ok := parent.Spec.FooExampleGvk[nc.DisplayName()]; !ok {
+						time.Sleep(500 * time.Millisecond)
+						continue
+					}
+
+					gvkExist = true
+
+					break
+				}
+
+				if parent == nil {
+					hashedName := helper.GetHashedName("configs.config.tsm.tanzu.vmware.com", nc.Labels, nc.Labels["configs.config.tsm.tanzu.vmware.com"])
+					parent, err = c.client.Config().ForceReadConfigByName(context.TODO(), hashedName)
+					if err != nil {
+						if errors.IsNotFound(err) {
+							return
+						}
+
+						panic("error occurred while fetching parent " + err.Error())
+					}
+					panic(fmt.Sprintf("parent found (event loop is stalled) " + nc.DisplayName()))
+				}
+
+				if !gvkExist {
+					// Check GVK
+
+					if _, ok := parent.Spec.FooExampleGvk[nc.DisplayName()]; !ok {
+						return
+					}
+
+					panic(fmt.Sprintf("gvk found (event loop is stalled) " + nc.DisplayName()))
+				}
+
+				cbfn(nc)
+			},
+		})
+	} else {
+		fmt.Println("[ConfigFooTypeABC] ---NEW-INFORMER---->")
+		informer := informerconfigtsmtanzuvmwarecomv1.NewFooTypeABCInformer(c.client.baseClient, 0, cache.Indexers{})
+		registrationId, err = informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
+			AddFunc: func(obj interface{}) {
+				nc := &ConfigFooTypeABC{
+					client:     c.client,
+					FooTypeABC: obj.(*baseconfigtsmtanzuvmwarecomv1.FooTypeABC),
+				}
+
+				var parent *ConfigConfig
+				gvkExist := false
+				for i := 0; i < 600; i++ {
+					// Check if parent exists
+					p, err := nc.GetParent(context.TODO())
+					if err != nil || p == nil {
+						time.Sleep(500 * time.Millisecond)
+						continue
+					}
+					parent = p
+
+					// Check GVK
+
+					if _, ok := parent.Spec.FooExampleGvk[nc.DisplayName()]; !ok {
+						time.Sleep(500 * time.Millisecond)
+						continue
+					}
+
+					gvkExist = true
+
+					break
+				}
+
+				if parent == nil {
+					hashedName := helper.GetHashedName("configs.config.tsm.tanzu.vmware.com", nc.Labels, nc.Labels["configs.config.tsm.tanzu.vmware.com"])
+					parent, err = c.client.Config().ForceReadConfigByName(context.TODO(), hashedName)
+					if err != nil {
+						if errors.IsNotFound(err) {
+							return
+						}
+
+						panic("error occurred while fetching parent " + err.Error())
+					}
+					panic(fmt.Sprintf("parent found (event loop is stalled) " + nc.DisplayName()))
+				}
+
+				if !gvkExist {
+					// Check GVK
+
+					if _, ok := parent.Spec.FooExampleGvk[nc.DisplayName()]; !ok {
+						return
+					}
+
+					panic(fmt.Sprintf("gvk found (event loop is stalled) " + nc.DisplayName()))
+				}
+
+				cbfn(nc)
+			},
+		})
+		go informer.Run(stopper)
+	}
+	return registrationId, err
+}
+
+func (c *footypeabcConfigTsmV1Chainer) RegisterUpdateCallback(cbfn func(oldObj, newObj *ConfigFooTypeABC)) (cache.ResourceEventHandlerRegistration, error) {
+	fmt.Println("ConfigFooTypeABC -->  RegisterUpdateCallback!")
+	var (
+		registrationId cache.ResourceEventHandlerRegistration
+		err            error
+	)
+	key := "footypeabcs.config.tsm.tanzu.vmware.com"
+	stopper := make(chan struct{})
+	if s, ok := subscriptionMap.Load(key); ok {
+		fmt.Println("[ConfigFooTypeABC] ---SUBSCRIBE-INFORMER---->")
+		sub := s.(subscription)
+		registrationId, err = sub.informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
+			UpdateFunc: func(oldObj, newObj interface{}) {
+				oldData := &ConfigFooTypeABC{
+					client:     c.client,
+					FooTypeABC: oldObj.(*baseconfigtsmtanzuvmwarecomv1.FooTypeABC),
+				}
+				newData := &ConfigFooTypeABC{
+					client:     c.client,
+					FooTypeABC: newObj.(*baseconfigtsmtanzuvmwarecomv1.FooTypeABC),
+				}
+				cbfn(oldData, newData)
+			},
+		})
+	} else {
+		fmt.Println("[ConfigFooTypeABC] ---NEW-INFORMER---->")
+		informer := informerconfigtsmtanzuvmwarecomv1.NewFooTypeABCInformer(c.client.baseClient, 0, cache.Indexers{})
+		registrationId, err = informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
+			UpdateFunc: func(oldObj, newObj interface{}) {
+				oldData := &ConfigFooTypeABC{
+					client:     c.client,
+					FooTypeABC: oldObj.(*baseconfigtsmtanzuvmwarecomv1.FooTypeABC),
+				}
+				newData := &ConfigFooTypeABC{
+					client:     c.client,
+					FooTypeABC: newObj.(*baseconfigtsmtanzuvmwarecomv1.FooTypeABC),
+				}
+				cbfn(oldData, newData)
+			},
+		})
+		go informer.Run(stopper)
+	}
+	return registrationId, err
+}
+
+func (c *footypeabcConfigTsmV1Chainer) RegisterDeleteCallback(cbfn func(obj *ConfigFooTypeABC)) (cache.ResourceEventHandlerRegistration, error) {
+	fmt.Println("ConfigFooTypeABC -->  RegisterDeleteCallback!")
+	var (
+		registrationId cache.ResourceEventHandlerRegistration
+		err            error
+	)
+	key := "footypeabcs.config.tsm.tanzu.vmware.com"
+	stopper := make(chan struct{})
+	if s, ok := subscriptionMap.Load(key); ok {
+		fmt.Println("[ConfigFooTypeABC] ---SUBSCRIBE-INFORMER---->")
+		sub := s.(subscription)
+		registrationId, err = sub.informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
+			DeleteFunc: func(obj interface{}) {
+				nc := &ConfigFooTypeABC{
+					client:     c.client,
+					FooTypeABC: obj.(*baseconfigtsmtanzuvmwarecomv1.FooTypeABC),
+				}
+
+				var parent *ConfigConfig
+				gvkExist := true
+				for i := 0; i < 600; i++ {
+					// Check if parent exists
+					p, err := nc.GetParent(context.TODO())
+					if err != nil || p == nil {
+						time.Sleep(500 * time.Millisecond)
+						continue
+					}
+					parent = p
+
+					// Check GVK
+
+					if _, ok := parent.Spec.FooExampleGvk[nc.DisplayName()]; ok {
+						time.Sleep(500 * time.Millisecond)
+						continue
+					}
+
+					gvkExist = false
+					break
+				}
+
+				if parent == nil {
+					hashedName := helper.GetHashedName("configs.config.tsm.tanzu.vmware.com", nc.Labels, nc.Labels["configs.config.tsm.tanzu.vmware.com"])
+					parent, err = c.client.Config().ForceReadConfigByName(context.TODO(), hashedName)
+					if err != nil {
+						if errors.IsNotFound(err) {
+							return
+						}
+
+						panic("error occurred while fetching parent " + err.Error())
+					}
+					panic(fmt.Sprintf("parent found (event loop is stalled) " + nc.DisplayName()))
+				}
+
+				if gvkExist {
+					// Check GVK
+
+					if _, ok := parent.Spec.FooExampleGvk[nc.DisplayName()]; ok {
+						return
+					}
+
+					panic(fmt.Sprintf("gvk not found (event loop is stalled) " + nc.DisplayName()))
+				}
+
+				cbfn(nc)
+			},
+		})
+	} else {
+		fmt.Println("[ConfigFooTypeABC] ---NEW-INFORMER---->")
+		informer := informerconfigtsmtanzuvmwarecomv1.NewFooTypeABCInformer(c.client.baseClient, 0, cache.Indexers{})
+		registrationId, err = informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
+			DeleteFunc: func(obj interface{}) {
+				nc := &ConfigFooTypeABC{
+					client:     c.client,
+					FooTypeABC: obj.(*baseconfigtsmtanzuvmwarecomv1.FooTypeABC),
+				}
+
+				var parent *ConfigConfig
+				gvkExist := true
+				for i := 0; i < 600; i++ {
+					// Check if parent exists
+					p, err := nc.GetParent(context.TODO())
+					if err != nil || p == nil {
+						time.Sleep(500 * time.Millisecond)
+						continue
+					}
+					parent = p
+
+					// Check GVK
+
+					if _, ok := parent.Spec.FooExampleGvk[nc.DisplayName()]; ok {
+						time.Sleep(500 * time.Millisecond)
+						continue
+					}
+
+					gvkExist = false
+
+					break
+				}
+
+				if parent == nil {
+					hashedName := helper.GetHashedName("configs.config.tsm.tanzu.vmware.com", nc.Labels, nc.Labels["configs.config.tsm.tanzu.vmware.com"])
+					parent, err = c.client.Config().ForceReadConfigByName(context.TODO(), hashedName)
+					if err != nil {
+						if errors.IsNotFound(err) {
+							return
+						}
+
+						panic("error occurred while fetching parent " + err.Error())
+					}
+					panic(fmt.Sprintf("parent found (event loop is stalled) " + nc.DisplayName()))
+				}
+
+				if gvkExist {
+					// Check GVK
+
+					if _, ok := parent.Spec.FooExampleGvk[nc.DisplayName()]; ok {
+						return
+					}
+
+					panic(fmt.Sprintf("gvk not found (event loop is stalled) " + nc.DisplayName()))
+				}
+
+				cbfn(nc)
+			},
+		})
+		go informer.Run(stopper)
+	}
+	return registrationId, err
+}
+
 // GetDomainByName returns object stored in the database under the hashedName which is a hash of display
 // name and parents names. Use it when you know hashed name of object.
 func (group *ConfigTsmV1) GetDomainByName(ctx context.Context, hashedName string) (*ConfigDomain, error) {
@@ -2097,18 +3468,48 @@ func (group *ConfigTsmV1) GetDomainByName(ctx context.Context, hashedName string
 			Domain: result,
 		}, nil
 	} else {
-		result, err := group.client.baseClient.
-			ConfigTsmV1().
-			Domains().Get(ctx, hashedName, metav1.GetOptions{})
-		if err != nil {
-			return nil, err
+		retryCount := 12
+		for {
+			result, err := group.client.baseClient.
+				ConfigTsmV1().
+				Domains().Get(ctx, hashedName, metav1.GetOptions{})
+			if err != nil {
+				log.Errorf("Failed to Get Domains: %+v", err)
+				if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded) {
+					log.Errorf("[Retry Count: %d ] %+v", retryCount, err)
+					if retryCount == 0 {
+						log.Error("Max Retry exceed on Get Domains")
+						return nil, err
+					}
+					retryCount -= 1
+					time.Sleep(5 * time.Second)
+				} else {
+					log.Errorf("Unexpected Error: %+v", err)
+					return nil, err
+				}
+			}
+			return &ConfigDomain{
+				client: group.client,
+				Domain: result,
+			}, nil
 		}
-
-		return &ConfigDomain{
-			client: group.client,
-			Domain: result,
-		}, nil
 	}
+}
+
+// ForceReadDomainByName read object directly from the database under the hashedName which is a hash of display
+// name and parents names. Use it when you know hashed name of object.
+func (group *ConfigTsmV1) ForceReadDomainByName(ctx context.Context, hashedName string) (*ConfigDomain, error) {
+	result, err := group.client.baseClient.
+		ConfigTsmV1().
+		Domains().Get(ctx, hashedName, metav1.GetOptions{})
+	if err != nil {
+		return nil, err
+	}
+
+	return &ConfigDomain{
+		client: group.client,
+		Domain: result,
+	}, nil
 }
 
 // DeleteDomainByName deletes object stored in the database under the hashedName which is a hash of
@@ -2119,7 +3520,16 @@ func (group *ConfigTsmV1) DeleteDomainByName(ctx context.Context, hashedName str
 		ConfigTsmV1().
 		Domains().Get(ctx, hashedName, metav1.GetOptions{})
 	if err != nil {
-		return err
+		if customerrors.Is(err, context.DeadlineExceeded) {
+			log.Errorf("context deadline exceeded, on creating GNS: %+v", hashedName)
+			return context.DeadlineExceeded
+		} else if customerrors.Is(err, context.Canceled) {
+			log.Errorf("context cancelled, on creating GNS: %+v", hashedName)
+			return context.Canceled
+		} else {
+			log.Errorf("Unexpected Error: %+v", err)
+			return err
+		}
 	}
 
 	err = group.client.baseClient.
@@ -2152,11 +3562,44 @@ func (group *ConfigTsmV1) DeleteDomainByName(ctx context.Context, hashedName str
 	if parents[common.IS_NAME_HASHED_LABEL] == "true" {
 		parentName = helper.GetHashedName("configs.config.tsm.tanzu.vmware.com", parents, parentName)
 	}
-	_, err = group.client.baseClient.
-		ConfigTsmV1().
-		Configs().Patch(ctx, parentName, types.JSONPatchType, marshaled, metav1.PatchOptions{})
-	if err != nil {
-		return err
+
+	retryCount := 12
+	newCtx := context.TODO()
+	for {
+		_, err = group.client.baseClient.
+			ConfigTsmV1().
+			Configs().Patch(newCtx, parentName, types.JSONPatchType, marshaled, metav1.PatchOptions{})
+		if err != nil {
+			log.Errorf("Failed to patch Domain gvk in parent node[Configs]: %+v", err)
+			if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded) {
+				log.Errorf("[Retry Count: %d ] %+v", retryCount, err)
+				if retryCount == 0 {
+					log.Error("Max Retry exceed on patching gvk")
+					log.Errorf("Trigger Domain Delete: %s", hashedName)
+					err = group.DeleteDomainByName(newCtx, hashedName)
+					if err != nil {
+						log.Errorf("Error occur while deleting Domain: %s", hashedName)
+						return err
+					}
+					log.Errorf("Domain Deleted: %s", hashedName)
+					return err
+				}
+				retryCount -= 1
+				time.Sleep(5 * time.Second)
+			} else {
+				log.Errorf("Unexpected Error: %+v", err)
+				log.Errorf("Trigger Domain Delete: %s", hashedName)
+				err = group.DeleteDomainByName(newCtx, hashedName)
+				if err != nil {
+					log.Errorf("Error occur while deleting Domain: %+v", hashedName)
+					return err
+				}
+				log.Errorf("Domain Deleted: %s", hashedName)
+				return err
+			}
+		} else {
+			break
+		}
 	}
 
 	return
@@ -2177,7 +3620,16 @@ func (group *ConfigTsmV1) CreateDomainByName(ctx context.Context,
 		ConfigTsmV1().
 		Domains().Create(ctx, objToCreate, metav1.CreateOptions{})
 	if err != nil {
-		return nil, err
+		if customerrors.Is(err, context.DeadlineExceeded) {
+			log.Errorf("context deadline exceeded, on creating GNS: %+v", objToCreate)
+			return nil, context.DeadlineExceeded
+		} else if customerrors.Is(err, context.Canceled) {
+			log.Errorf("context cancelled, on creating GNS: %+v", objToCreate)
+			return nil, context.Canceled
+		} else {
+			log.Errorf("Unexpected Error: %+v", err)
+			return nil, err
+		}
 	}
 
 	parentName, ok := objToCreate.GetLabels()["configs.config.tsm.tanzu.vmware.com"]
@@ -2203,11 +3655,43 @@ func (group *ConfigTsmV1) CreateDomainByName(ctx context.Context,
 	if err != nil {
 		return nil, err
 	}
-	_, err = group.client.baseClient.
-		ConfigTsmV1().
-		Configs().Patch(ctx, parentName, types.JSONPatchType, marshaled, metav1.PatchOptions{})
-	if err != nil {
-		return nil, err
+	retryCount := 12
+	newCtx := context.TODO()
+	for {
+		_, err = group.client.baseClient.
+			ConfigTsmV1().
+			Configs().Patch(newCtx, parentName, types.JSONPatchType, marshaled, metav1.PatchOptions{})
+		if err != nil {
+			log.Errorf("Failed to patch Domain gvk in parent node[Configs]: %+v", err)
+			if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded) {
+				log.Errorf("[Retry Count: %d ] %+v", retryCount, err)
+				if retryCount == 0 {
+					log.Error("Max Retry exceed on patching gvk")
+					log.Errorf("Trigger Domain Delete: %s", objToCreate.GetName())
+					err = group.DeleteDomainByName(newCtx, objToCreate.GetName())
+					if err != nil {
+						log.Errorf("Error occur while deleting Domain: %s", objToCreate.GetName())
+						return nil, err
+					}
+					log.Errorf("Domain Deleted: %s", objToCreate.GetName())
+					return nil, err
+				}
+				retryCount -= 1
+				time.Sleep(5 * time.Second)
+			} else {
+				log.Errorf("Unexpected Error: %+v", err)
+				log.Errorf("Trigger Domain Delete: %s", objToCreate.GetName())
+				err = group.DeleteDomainByName(newCtx, objToCreate.GetName())
+				if err != nil {
+					log.Errorf("Error occur while deleting Domain: %+v", objToCreate.GetName())
+					return nil, err
+				}
+				log.Errorf("Domain Deleted: %s", objToCreate.GetName())
+				return nil, err
+			}
+		} else {
+			break
+		}
 	}
 
 	return &ConfigDomain{
@@ -2227,7 +3711,16 @@ func (group *ConfigTsmV1) UpdateDomainByName(ctx context.Context,
 			ConfigTsmV1().
 			Domains().Get(ctx, objToUpdate.GetName(), metav1.GetOptions{})
 		if err != nil {
-			return nil, err
+			if customerrors.Is(err, context.DeadlineExceeded) {
+				log.Errorf("context deadline exceeded, on creating GNS: %+v", objToUpdate)
+				return nil, context.DeadlineExceeded
+			} else if customerrors.Is(err, context.Canceled) {
+				log.Errorf("context cancelled, on creating GNS: %+v", objToUpdate)
+				return nil, context.Canceled
+			} else {
+				log.Errorf("Unexpected Error: %+v", err)
+				return nil, err
+			}
 		}
 		objToUpdate.ResourceVersion = current.ResourceVersion
 	}
@@ -2435,6 +3928,447 @@ func (c *domainConfigTsmV1Chainer) IsSubscribed() bool {
 	return ok
 }
 
+func (c *domainConfigTsmV1Chainer) RegisterEventHandler(addCB func(obj *ConfigDomain), updateCB func(oldObj, newObj *ConfigDomain), deleteCB func(obj *ConfigDomain)) (cache.ResourceEventHandlerRegistration, error) {
+	fmt.Println("RegisterEventHandler for ConfigDomain")
+	var (
+		registrationId cache.ResourceEventHandlerRegistration
+		err            error
+		informer       cache.SharedIndexInformer
+	)
+	key := "domains.config.tsm.tanzu.vmware.com"
+	stopper := make(chan struct{})
+	if s, ok := subscriptionMap.Load(key); ok {
+		fmt.Println("Informer exists for ConfigDomain")
+		sub := s.(subscription)
+		informer = sub.informer
+	} else {
+		fmt.Println("Informer doesn't exists for ConfigDomain, so creating a new one")
+		informer = informerconfigtsmtanzuvmwarecomv1.NewDomainInformer(c.client.baseClient, 0, cache.Indexers{})
+		go informer.Run(stopper)
+		subscribe(key, informer)
+	}
+	registrationId, err = informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
+		AddFunc: func(obj interface{}) {
+			nc := &ConfigDomain{
+				client: c.client,
+				Domain: obj.(*baseconfigtsmtanzuvmwarecomv1.Domain),
+			}
+
+			var parent *ConfigConfig
+			gvkExist := false
+			for i := 0; i < 600; i++ {
+				// Check if parent exists
+				p, err := nc.GetParent(context.TODO())
+				if err != nil || p == nil {
+					time.Sleep(500 * time.Millisecond)
+					continue
+				}
+				parent = p
+				// Check GVK
+
+				if parent.Spec.DomainGvk == nil {
+					time.Sleep(500 * time.Millisecond)
+					continue
+				}
+
+				gvkExist = true
+				break
+			}
+			if parent == nil {
+				hashedName := helper.GetHashedName("configs.config.tsm.tanzu.vmware.com", nc.Labels, nc.Labels["configs.config.tsm.tanzu.vmware.com"])
+				parent, err = c.client.Config().ForceReadConfigByName(context.TODO(), hashedName)
+				if err != nil {
+					if errors.IsNotFound(err) {
+						return
+					}
+					panic("error occurred while fetching parent " + err.Error())
+				}
+				panic(fmt.Sprintf("parent found (event loop is stalled) " + nc.DisplayName()))
+			}
+			if !gvkExist {
+				// Check GVK
+
+				if parent.Spec.DomainGvk == nil {
+					return
+				}
+
+				panic(fmt.Sprintf("gvk found (event loop is stalled) " + nc.DisplayName()))
+			}
+
+			addCB(nc)
+		},
+
+		UpdateFunc: func(oldObj, newObj interface{}) {
+			oldData := &ConfigDomain{
+				client: c.client,
+				Domain: oldObj.(*baseconfigtsmtanzuvmwarecomv1.Domain),
+			}
+			newData := &ConfigDomain{
+				client: c.client,
+				Domain: newObj.(*baseconfigtsmtanzuvmwarecomv1.Domain),
+			}
+			updateCB(oldData, newData)
+		},
+
+		DeleteFunc: func(obj interface{}) {
+			nc := &ConfigDomain{
+				client: c.client,
+				Domain: obj.(*baseconfigtsmtanzuvmwarecomv1.Domain),
+			}
+
+			var parent *ConfigConfig
+			gvkExist := true
+			for i := 0; i < 600; i++ {
+				// Check if parent exists
+				p, err := nc.GetParent(context.TODO())
+				if err != nil || p == nil {
+					time.Sleep(500 * time.Millisecond)
+					continue
+				}
+				parent = p
+				// Check GVK
+
+				if parent.Spec.DomainGvk != nil {
+					time.Sleep(500 * time.Millisecond)
+					continue
+				}
+
+				gvkExist = false
+				break
+			}
+			if parent == nil {
+				hashedName := helper.GetHashedName("configs.config.tsm.tanzu.vmware.com", nc.Labels, nc.Labels["configs.config.tsm.tanzu.vmware.com"])
+				parent, err = c.client.Config().ForceReadConfigByName(context.TODO(), hashedName)
+				if err != nil {
+					if errors.IsNotFound(err) {
+						return
+					}
+					panic("error occurred while fetching parent " + err.Error())
+				}
+				panic(fmt.Sprintf("parent found (event loop is stalled) " + nc.DisplayName()))
+			}
+			if gvkExist {
+				// Check GVK
+
+				if parent.Spec.DomainGvk != nil {
+					return
+				}
+
+				panic(fmt.Sprintf("gvk not found (event loop is stalled) " + nc.DisplayName()))
+			}
+
+			deleteCB(nc)
+		},
+	})
+	return registrationId, err
+}
+
+func (c *domainConfigTsmV1Chainer) RegisterAddCallback(cbfn func(obj *ConfigDomain)) (cache.ResourceEventHandlerRegistration, error) {
+	fmt.Println("ConfigDomain -->  RegisterAddCallback!")
+	var (
+		registrationId cache.ResourceEventHandlerRegistration
+		err            error
+	)
+	key := "domains.config.tsm.tanzu.vmware.com"
+	stopper := make(chan struct{})
+	if s, ok := subscriptionMap.Load(key); ok {
+		fmt.Println("[ConfigDomain] ---SUBSCRIBE-INFORMER---->")
+		sub := s.(subscription)
+		registrationId, err = sub.informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
+			AddFunc: func(obj interface{}) {
+				nc := &ConfigDomain{
+					client: c.client,
+					Domain: obj.(*baseconfigtsmtanzuvmwarecomv1.Domain),
+				}
+
+				var parent *ConfigConfig
+				gvkExist := false
+				for i := 0; i < 600; i++ {
+					// Check if parent exists
+					p, err := nc.GetParent(context.TODO())
+					if err != nil || p == nil {
+						time.Sleep(500 * time.Millisecond)
+						continue
+					}
+					parent = p
+
+					// Check GVK
+
+					if parent.Spec.DomainGvk == nil {
+						time.Sleep(500 * time.Millisecond)
+						continue
+					}
+
+					gvkExist = true
+
+					break
+				}
+
+				if parent == nil {
+					hashedName := helper.GetHashedName("configs.config.tsm.tanzu.vmware.com", nc.Labels, nc.Labels["configs.config.tsm.tanzu.vmware.com"])
+					parent, err = c.client.Config().ForceReadConfigByName(context.TODO(), hashedName)
+					if err != nil {
+						if errors.IsNotFound(err) {
+							return
+						}
+
+						panic("error occurred while fetching parent " + err.Error())
+					}
+					panic(fmt.Sprintf("parent found (event loop is stalled) " + nc.DisplayName()))
+				}
+
+				if !gvkExist {
+					// Check GVK
+
+					if parent.Spec.DomainGvk == nil {
+						return
+					}
+
+					panic(fmt.Sprintf("gvk found (event loop is stalled) " + nc.DisplayName()))
+				}
+
+				cbfn(nc)
+			},
+		})
+	} else {
+		fmt.Println("[ConfigDomain] ---NEW-INFORMER---->")
+		informer := informerconfigtsmtanzuvmwarecomv1.NewDomainInformer(c.client.baseClient, 0, cache.Indexers{})
+		registrationId, err = informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
+			AddFunc: func(obj interface{}) {
+				nc := &ConfigDomain{
+					client: c.client,
+					Domain: obj.(*baseconfigtsmtanzuvmwarecomv1.Domain),
+				}
+
+				var parent *ConfigConfig
+				gvkExist := false
+				for i := 0; i < 600; i++ {
+					// Check if parent exists
+					p, err := nc.GetParent(context.TODO())
+					if err != nil || p == nil {
+						time.Sleep(500 * time.Millisecond)
+						continue
+					}
+					parent = p
+
+					// Check GVK
+
+					if parent.Spec.DomainGvk == nil {
+						time.Sleep(500 * time.Millisecond)
+						continue
+					}
+
+					gvkExist = true
+
+					break
+				}
+
+				if parent == nil {
+					hashedName := helper.GetHashedName("configs.config.tsm.tanzu.vmware.com", nc.Labels, nc.Labels["configs.config.tsm.tanzu.vmware.com"])
+					parent, err = c.client.Config().ForceReadConfigByName(context.TODO(), hashedName)
+					if err != nil {
+						if errors.IsNotFound(err) {
+							return
+						}
+
+						panic("error occurred while fetching parent " + err.Error())
+					}
+					panic(fmt.Sprintf("parent found (event loop is stalled) " + nc.DisplayName()))
+				}
+
+				if !gvkExist {
+					// Check GVK
+
+					if parent.Spec.DomainGvk == nil {
+						return
+					}
+
+					panic(fmt.Sprintf("gvk found (event loop is stalled) " + nc.DisplayName()))
+				}
+
+				cbfn(nc)
+			},
+		})
+		go informer.Run(stopper)
+	}
+	return registrationId, err
+}
+
+func (c *domainConfigTsmV1Chainer) RegisterUpdateCallback(cbfn func(oldObj, newObj *ConfigDomain)) (cache.ResourceEventHandlerRegistration, error) {
+	fmt.Println("ConfigDomain -->  RegisterUpdateCallback!")
+	var (
+		registrationId cache.ResourceEventHandlerRegistration
+		err            error
+	)
+	key := "domains.config.tsm.tanzu.vmware.com"
+	stopper := make(chan struct{})
+	if s, ok := subscriptionMap.Load(key); ok {
+		fmt.Println("[ConfigDomain] ---SUBSCRIBE-INFORMER---->")
+		sub := s.(subscription)
+		registrationId, err = sub.informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
+			UpdateFunc: func(oldObj, newObj interface{}) {
+				oldData := &ConfigDomain{
+					client: c.client,
+					Domain: oldObj.(*baseconfigtsmtanzuvmwarecomv1.Domain),
+				}
+				newData := &ConfigDomain{
+					client: c.client,
+					Domain: newObj.(*baseconfigtsmtanzuvmwarecomv1.Domain),
+				}
+				cbfn(oldData, newData)
+			},
+		})
+	} else {
+		fmt.Println("[ConfigDomain] ---NEW-INFORMER---->")
+		informer := informerconfigtsmtanzuvmwarecomv1.NewDomainInformer(c.client.baseClient, 0, cache.Indexers{})
+		registrationId, err = informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
+			UpdateFunc: func(oldObj, newObj interface{}) {
+				oldData := &ConfigDomain{
+					client: c.client,
+					Domain: oldObj.(*baseconfigtsmtanzuvmwarecomv1.Domain),
+				}
+				newData := &ConfigDomain{
+					client: c.client,
+					Domain: newObj.(*baseconfigtsmtanzuvmwarecomv1.Domain),
+				}
+				cbfn(oldData, newData)
+			},
+		})
+		go informer.Run(stopper)
+	}
+	return registrationId, err
+}
+
+func (c *domainConfigTsmV1Chainer) RegisterDeleteCallback(cbfn func(obj *ConfigDomain)) (cache.ResourceEventHandlerRegistration, error) {
+	fmt.Println("ConfigDomain -->  RegisterDeleteCallback!")
+	var (
+		registrationId cache.ResourceEventHandlerRegistration
+		err            error
+	)
+	key := "domains.config.tsm.tanzu.vmware.com"
+	stopper := make(chan struct{})
+	if s, ok := subscriptionMap.Load(key); ok {
+		fmt.Println("[ConfigDomain] ---SUBSCRIBE-INFORMER---->")
+		sub := s.(subscription)
+		registrationId, err = sub.informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
+			DeleteFunc: func(obj interface{}) {
+				nc := &ConfigDomain{
+					client: c.client,
+					Domain: obj.(*baseconfigtsmtanzuvmwarecomv1.Domain),
+				}
+
+				var parent *ConfigConfig
+				gvkExist := true
+				for i := 0; i < 600; i++ {
+					// Check if parent exists
+					p, err := nc.GetParent(context.TODO())
+					if err != nil || p == nil {
+						time.Sleep(500 * time.Millisecond)
+						continue
+					}
+					parent = p
+
+					// Check GVK
+
+					if parent.Spec.DomainGvk != nil {
+						time.Sleep(500 * time.Millisecond)
+						continue
+					}
+
+					gvkExist = false
+					break
+				}
+
+				if parent == nil {
+					hashedName := helper.GetHashedName("configs.config.tsm.tanzu.vmware.com", nc.Labels, nc.Labels["configs.config.tsm.tanzu.vmware.com"])
+					parent, err = c.client.Config().ForceReadConfigByName(context.TODO(), hashedName)
+					if err != nil {
+						if errors.IsNotFound(err) {
+							return
+						}
+
+						panic("error occurred while fetching parent " + err.Error())
+					}
+					panic(fmt.Sprintf("parent found (event loop is stalled) " + nc.DisplayName()))
+				}
+
+				if gvkExist {
+					// Check GVK
+
+					if parent.Spec.DomainGvk != nil {
+						return
+					}
+
+					panic(fmt.Sprintf("gvk not found (event loop is stalled) " + nc.DisplayName()))
+				}
+
+				cbfn(nc)
+			},
+		})
+	} else {
+		fmt.Println("[ConfigDomain] ---NEW-INFORMER---->")
+		informer := informerconfigtsmtanzuvmwarecomv1.NewDomainInformer(c.client.baseClient, 0, cache.Indexers{})
+		registrationId, err = informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
+			DeleteFunc: func(obj interface{}) {
+				nc := &ConfigDomain{
+					client: c.client,
+					Domain: obj.(*baseconfigtsmtanzuvmwarecomv1.Domain),
+				}
+
+				var parent *ConfigConfig
+				gvkExist := true
+				for i := 0; i < 600; i++ {
+					// Check if parent exists
+					p, err := nc.GetParent(context.TODO())
+					if err != nil || p == nil {
+						time.Sleep(500 * time.Millisecond)
+						continue
+					}
+					parent = p
+
+					// Check GVK
+
+					if parent.Spec.DomainGvk != nil {
+						time.Sleep(500 * time.Millisecond)
+						continue
+					}
+
+					gvkExist = false
+
+					break
+				}
+
+				if parent == nil {
+					hashedName := helper.GetHashedName("configs.config.tsm.tanzu.vmware.com", nc.Labels, nc.Labels["configs.config.tsm.tanzu.vmware.com"])
+					parent, err = c.client.Config().ForceReadConfigByName(context.TODO(), hashedName)
+					if err != nil {
+						if errors.IsNotFound(err) {
+							return
+						}
+
+						panic("error occurred while fetching parent " + err.Error())
+					}
+					panic(fmt.Sprintf("parent found (event loop is stalled) " + nc.DisplayName()))
+				}
+
+				if gvkExist {
+					// Check GVK
+
+					if parent.Spec.DomainGvk != nil {
+						return
+					}
+
+					panic(fmt.Sprintf("gvk not found (event loop is stalled) " + nc.DisplayName()))
+				}
+
+				cbfn(nc)
+			},
+		})
+		go informer.Run(stopper)
+	}
+	return registrationId, err
+}
+
 // GetRandomGnsDataByName returns object stored in the database under the hashedName which is a hash of display
 // name and parents names. Use it when you know hashed name of object.
 func (group *GnsTsmV1) GetRandomGnsDataByName(ctx context.Context, hashedName string) (*GnsRandomGnsData, error) {
@@ -2451,29 +4385,138 @@ func (group *GnsTsmV1) GetRandomGnsDataByName(ctx context.Context, hashedName st
 			RandomGnsData: result,
 		}, nil
 	} else {
-		result, err := group.client.baseClient.
-			GnsTsmV1().
-			RandomGnsDatas().Get(ctx, hashedName, metav1.GetOptions{})
-		if err != nil {
-			return nil, err
+		retryCount := 12
+		for {
+			result, err := group.client.baseClient.
+				GnsTsmV1().
+				RandomGnsDatas().Get(ctx, hashedName, metav1.GetOptions{})
+			if err != nil {
+				log.Errorf("Failed to Get RandomGnsDatas: %+v", err)
+				if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded) {
+					log.Errorf("[Retry Count: %d ] %+v", retryCount, err)
+					if retryCount == 0 {
+						log.Error("Max Retry exceed on Get RandomGnsDatas")
+						return nil, err
+					}
+					retryCount -= 1
+					time.Sleep(5 * time.Second)
+				} else {
+					log.Errorf("Unexpected Error: %+v", err)
+					return nil, err
+				}
+			}
+			return &GnsRandomGnsData{
+				client:        group.client,
+				RandomGnsData: result,
+			}, nil
 		}
-
-		return &GnsRandomGnsData{
-			client:        group.client,
-			RandomGnsData: result,
-		}, nil
 	}
+}
+
+// ForceReadRandomGnsDataByName read object directly from the database under the hashedName which is a hash of display
+// name and parents names. Use it when you know hashed name of object.
+func (group *GnsTsmV1) ForceReadRandomGnsDataByName(ctx context.Context, hashedName string) (*GnsRandomGnsData, error) {
+	result, err := group.client.baseClient.
+		GnsTsmV1().
+		RandomGnsDatas().Get(ctx, hashedName, metav1.GetOptions{})
+	if err != nil {
+		return nil, err
+	}
+
+	return &GnsRandomGnsData{
+		client:        group.client,
+		RandomGnsData: result,
+	}, nil
 }
 
 // DeleteRandomGnsDataByName deletes object stored in the database under the hashedName which is a hash of
 // display name and parents names. Use it when you know hashed name of object.
 func (group *GnsTsmV1) DeleteRandomGnsDataByName(ctx context.Context, hashedName string) (err error) {
 
+	result, err := group.client.baseClient.
+		GnsTsmV1().
+		RandomGnsDatas().Get(ctx, hashedName, metav1.GetOptions{})
+	if err != nil {
+		if customerrors.Is(err, context.DeadlineExceeded) {
+			log.Errorf("context deadline exceeded, on creating GNS: %+v", hashedName)
+			return context.DeadlineExceeded
+		} else if customerrors.Is(err, context.Canceled) {
+			log.Errorf("context cancelled, on creating GNS: %+v", hashedName)
+			return context.Canceled
+		} else {
+			log.Errorf("Unexpected Error: %+v", err)
+			return err
+		}
+	}
+
 	err = group.client.baseClient.
 		GnsTsmV1().
 		RandomGnsDatas().Delete(ctx, hashedName, metav1.DeleteOptions{})
 	if err != nil {
 		return err
+	}
+
+	var patch Patch
+
+	patchOp := PatchOp{
+		Op:   "remove",
+		Path: "/spec/randomGnsDataGvk",
+	}
+
+	patch = append(patch, patchOp)
+	marshaled, err := patch.Marshal()
+	if err != nil {
+		return err
+	}
+	parents := result.GetLabels()
+	if parents == nil {
+		parents = make(map[string]string)
+	}
+	parentName, ok := parents["barchilds.gns.tsm.tanzu.vmware.com"]
+	if !ok {
+		parentName = helper.DEFAULT_KEY
+	}
+	if parents[common.IS_NAME_HASHED_LABEL] == "true" {
+		parentName = helper.GetHashedName("barchilds.gns.tsm.tanzu.vmware.com", parents, parentName)
+	}
+
+	retryCount := 12
+	newCtx := context.TODO()
+	for {
+		_, err = group.client.baseClient.
+			GnsTsmV1().
+			BarChilds().Patch(newCtx, parentName, types.JSONPatchType, marshaled, metav1.PatchOptions{})
+		if err != nil {
+			log.Errorf("Failed to patch RandomGnsData gvk in parent node[BarChilds]: %+v", err)
+			if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded) {
+				log.Errorf("[Retry Count: %d ] %+v", retryCount, err)
+				if retryCount == 0 {
+					log.Error("Max Retry exceed on patching gvk")
+					log.Errorf("Trigger RandomGnsData Delete: %s", hashedName)
+					err = group.DeleteRandomGnsDataByName(newCtx, hashedName)
+					if err != nil {
+						log.Errorf("Error occur while deleting RandomGnsData: %s", hashedName)
+						return err
+					}
+					log.Errorf("RandomGnsData Deleted: %s", hashedName)
+					return err
+				}
+				retryCount -= 1
+				time.Sleep(5 * time.Second)
+			} else {
+				log.Errorf("Unexpected Error: %+v", err)
+				log.Errorf("Trigger RandomGnsData Delete: %s", hashedName)
+				err = group.DeleteRandomGnsDataByName(newCtx, hashedName)
+				if err != nil {
+					log.Errorf("Error occur while deleting RandomGnsData: %+v", hashedName)
+					return err
+				}
+				log.Errorf("RandomGnsData Deleted: %s", hashedName)
+				return err
+			}
+		} else {
+			break
+		}
 	}
 
 	return
@@ -2494,7 +4537,78 @@ func (group *GnsTsmV1) CreateRandomGnsDataByName(ctx context.Context,
 		GnsTsmV1().
 		RandomGnsDatas().Create(ctx, objToCreate, metav1.CreateOptions{})
 	if err != nil {
+		if customerrors.Is(err, context.DeadlineExceeded) {
+			log.Errorf("context deadline exceeded, on creating GNS: %+v", objToCreate)
+			return nil, context.DeadlineExceeded
+		} else if customerrors.Is(err, context.Canceled) {
+			log.Errorf("context cancelled, on creating GNS: %+v", objToCreate)
+			return nil, context.Canceled
+		} else {
+			log.Errorf("Unexpected Error: %+v", err)
+			return nil, err
+		}
+	}
+
+	parentName, ok := objToCreate.GetLabels()["barchilds.gns.tsm.tanzu.vmware.com"]
+	if !ok {
+		parentName = helper.DEFAULT_KEY
+	}
+	if objToCreate.Labels[common.IS_NAME_HASHED_LABEL] == "true" {
+		parentName = helper.GetHashedName("barchilds.gns.tsm.tanzu.vmware.com", objToCreate.GetLabels(), parentName)
+	}
+
+	var patch Patch
+	patchOp := PatchOp{
+		Op:   "replace",
+		Path: "/spec/randomGnsDataGvk",
+		Value: basegnstsmtanzuvmwarecomv1.Child{
+			Group: "gns.tsm.tanzu.vmware.com",
+			Kind:  "RandomGnsData",
+			Name:  objToCreate.Name,
+		},
+	}
+	patch = append(patch, patchOp)
+	marshaled, err := patch.Marshal()
+	if err != nil {
 		return nil, err
+	}
+	retryCount := 12
+	newCtx := context.TODO()
+	for {
+		_, err = group.client.baseClient.
+			GnsTsmV1().
+			BarChilds().Patch(newCtx, parentName, types.JSONPatchType, marshaled, metav1.PatchOptions{})
+		if err != nil {
+			log.Errorf("Failed to patch RandomGnsData gvk in parent node[BarChilds]: %+v", err)
+			if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded) {
+				log.Errorf("[Retry Count: %d ] %+v", retryCount, err)
+				if retryCount == 0 {
+					log.Error("Max Retry exceed on patching gvk")
+					log.Errorf("Trigger RandomGnsData Delete: %s", objToCreate.GetName())
+					err = group.DeleteRandomGnsDataByName(newCtx, objToCreate.GetName())
+					if err != nil {
+						log.Errorf("Error occur while deleting RandomGnsData: %s", objToCreate.GetName())
+						return nil, err
+					}
+					log.Errorf("RandomGnsData Deleted: %s", objToCreate.GetName())
+					return nil, err
+				}
+				retryCount -= 1
+				time.Sleep(5 * time.Second)
+			} else {
+				log.Errorf("Unexpected Error: %+v", err)
+				log.Errorf("Trigger RandomGnsData Delete: %s", objToCreate.GetName())
+				err = group.DeleteRandomGnsDataByName(newCtx, objToCreate.GetName())
+				if err != nil {
+					log.Errorf("Error occur while deleting RandomGnsData: %+v", objToCreate.GetName())
+					return nil, err
+				}
+				log.Errorf("RandomGnsData Deleted: %s", objToCreate.GetName())
+				return nil, err
+			}
+		} else {
+			break
+		}
 	}
 
 	return &GnsRandomGnsData{
@@ -2550,7 +4664,16 @@ func (group *GnsTsmV1) UpdateRandomGnsDataByName(ctx context.Context,
 			GnsTsmV1().
 			RandomGnsDatas().Get(ctx, objToUpdate.GetName(), metav1.GetOptions{})
 		if err != nil {
-			return nil, err
+			if customerrors.Is(err, context.DeadlineExceeded) {
+				log.Errorf("context deadline exceeded, on creating GNS: %+v", objToUpdate)
+				return nil, context.DeadlineExceeded
+			} else if customerrors.Is(err, context.Canceled) {
+				log.Errorf("context cancelled, on creating GNS: %+v", objToUpdate)
+				return nil, context.Canceled
+			} else {
+				log.Errorf("Unexpected Error: %+v", err)
+				return nil, err
+			}
 		}
 		objToUpdate.ResourceVersion = current.ResourceVersion
 	}
@@ -2674,45 +4797,9 @@ func (obj *GnsRandomGnsData) ClearStatus(ctx context.Context) error {
 	return nil
 }
 
-// GetGnsRandomGnsData calculates the hashed name based on parents and displayName and
-// returns given object
-func (c *Clientset) GetGnsRandomGnsData(ctx context.Context, displayName string) (result *GnsRandomGnsData, err error) {
-	hashedName := helper.GetHashedName("randomgnsdatas.gns.tsm.tanzu.vmware.com", nil, displayName)
-	return c.Gns().GetRandomGnsDataByName(ctx, hashedName)
-}
-
-func (c *Clientset) GnsRandomGnsData(displayName string) *randomgnsdataGnsTsmV1Chainer {
-	parentLabels := make(map[string]string)
-	parentLabels["randomgnsdatas.gns.tsm.tanzu.vmware.com"] = displayName
-	return &randomgnsdataGnsTsmV1Chainer{
-		client:       c,
-		name:         displayName,
-		parentLabels: parentLabels,
-	}
-}
-
-// AddGnsRandomGnsData calculates hashed name of the object based on objToCreate.Name
-// and parents names and creates it. objToCreate.Name is changed to the hashed name. Original name is preserved in
-// nexus/display_name label and can be obtained using DisplayName() method.
-func (c *Clientset) AddGnsRandomGnsData(ctx context.Context,
-	objToCreate *basegnstsmtanzuvmwarecomv1.RandomGnsData) (result *GnsRandomGnsData, err error) {
-	if objToCreate.Labels == nil {
-		objToCreate.Labels = map[string]string{}
-	}
-	if objToCreate.Labels[common.IS_NAME_HASHED_LABEL] != "true" {
-		objToCreate.Labels[common.DISPLAY_NAME_LABEL] = objToCreate.GetName()
-		objToCreate.Labels[common.IS_NAME_HASHED_LABEL] = "true"
-		hashedName := helper.GetHashedName(objToCreate.CRDName(), nil, objToCreate.GetName())
-		objToCreate.Name = hashedName
-	}
-	return c.Gns().CreateRandomGnsDataByName(ctx, objToCreate)
-}
-
-// DeleteGnsRandomGnsData calculates hashedName of object based on displayName and
-// parents and deletes given object
-func (c *Clientset) DeleteGnsRandomGnsData(ctx context.Context, displayName string) (err error) {
-	hashedName := helper.GetHashedName("randomgnsdatas.gns.tsm.tanzu.vmware.com", nil, displayName)
-	return c.Gns().DeleteRandomGnsDataByName(ctx, hashedName)
+func (obj *GnsRandomGnsData) GetParent(ctx context.Context) (result *GnsBarChild, err error) {
+	hashedName := helper.GetHashedName("barchilds.gns.tsm.tanzu.vmware.com", obj.Labels, obj.Labels["barchilds.gns.tsm.tanzu.vmware.com"])
+	return obj.client.Gns().GetBarChildByName(ctx, hashedName)
 }
 
 type randomgnsdataGnsTsmV1Chainer struct {
@@ -2741,6 +4828,447 @@ func (c *randomgnsdataGnsTsmV1Chainer) IsSubscribed() bool {
 	key := "randomgnsdatas.gns.tsm.tanzu.vmware.com"
 	_, ok := subscriptionMap.Load(key)
 	return ok
+}
+
+func (c *randomgnsdataGnsTsmV1Chainer) RegisterEventHandler(addCB func(obj *GnsRandomGnsData), updateCB func(oldObj, newObj *GnsRandomGnsData), deleteCB func(obj *GnsRandomGnsData)) (cache.ResourceEventHandlerRegistration, error) {
+	fmt.Println("RegisterEventHandler for GnsRandomGnsData")
+	var (
+		registrationId cache.ResourceEventHandlerRegistration
+		err            error
+		informer       cache.SharedIndexInformer
+	)
+	key := "randomgnsdatas.gns.tsm.tanzu.vmware.com"
+	stopper := make(chan struct{})
+	if s, ok := subscriptionMap.Load(key); ok {
+		fmt.Println("Informer exists for GnsRandomGnsData")
+		sub := s.(subscription)
+		informer = sub.informer
+	} else {
+		fmt.Println("Informer doesn't exists for GnsRandomGnsData, so creating a new one")
+		informer = informergnstsmtanzuvmwarecomv1.NewRandomGnsDataInformer(c.client.baseClient, 0, cache.Indexers{})
+		go informer.Run(stopper)
+		subscribe(key, informer)
+	}
+	registrationId, err = informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
+		AddFunc: func(obj interface{}) {
+			nc := &GnsRandomGnsData{
+				client:        c.client,
+				RandomGnsData: obj.(*basegnstsmtanzuvmwarecomv1.RandomGnsData),
+			}
+
+			var parent *GnsBarChild
+			gvkExist := false
+			for i := 0; i < 600; i++ {
+				// Check if parent exists
+				p, err := nc.GetParent(context.TODO())
+				if err != nil || p == nil {
+					time.Sleep(500 * time.Millisecond)
+					continue
+				}
+				parent = p
+				// Check GVK
+
+				if parent.Spec.RandomGnsDataGvk == nil {
+					time.Sleep(500 * time.Millisecond)
+					continue
+				}
+
+				gvkExist = true
+				break
+			}
+			if parent == nil {
+				hashedName := helper.GetHashedName("barchilds.gns.tsm.tanzu.vmware.com", nc.Labels, nc.Labels["barchilds.gns.tsm.tanzu.vmware.com"])
+				parent, err = c.client.Gns().ForceReadBarChildByName(context.TODO(), hashedName)
+				if err != nil {
+					if errors.IsNotFound(err) {
+						return
+					}
+					panic("error occurred while fetching parent " + err.Error())
+				}
+				panic(fmt.Sprintf("parent found (event loop is stalled) " + nc.DisplayName()))
+			}
+			if !gvkExist {
+				// Check GVK
+
+				if parent.Spec.RandomGnsDataGvk == nil {
+					return
+				}
+
+				panic(fmt.Sprintf("gvk found (event loop is stalled) " + nc.DisplayName()))
+			}
+
+			addCB(nc)
+		},
+
+		UpdateFunc: func(oldObj, newObj interface{}) {
+			oldData := &GnsRandomGnsData{
+				client:        c.client,
+				RandomGnsData: oldObj.(*basegnstsmtanzuvmwarecomv1.RandomGnsData),
+			}
+			newData := &GnsRandomGnsData{
+				client:        c.client,
+				RandomGnsData: newObj.(*basegnstsmtanzuvmwarecomv1.RandomGnsData),
+			}
+			updateCB(oldData, newData)
+		},
+
+		DeleteFunc: func(obj interface{}) {
+			nc := &GnsRandomGnsData{
+				client:        c.client,
+				RandomGnsData: obj.(*basegnstsmtanzuvmwarecomv1.RandomGnsData),
+			}
+
+			var parent *GnsBarChild
+			gvkExist := true
+			for i := 0; i < 600; i++ {
+				// Check if parent exists
+				p, err := nc.GetParent(context.TODO())
+				if err != nil || p == nil {
+					time.Sleep(500 * time.Millisecond)
+					continue
+				}
+				parent = p
+				// Check GVK
+
+				if parent.Spec.RandomGnsDataGvk != nil {
+					time.Sleep(500 * time.Millisecond)
+					continue
+				}
+
+				gvkExist = false
+				break
+			}
+			if parent == nil {
+				hashedName := helper.GetHashedName("barchilds.gns.tsm.tanzu.vmware.com", nc.Labels, nc.Labels["barchilds.gns.tsm.tanzu.vmware.com"])
+				parent, err = c.client.Gns().ForceReadBarChildByName(context.TODO(), hashedName)
+				if err != nil {
+					if errors.IsNotFound(err) {
+						return
+					}
+					panic("error occurred while fetching parent " + err.Error())
+				}
+				panic(fmt.Sprintf("parent found (event loop is stalled) " + nc.DisplayName()))
+			}
+			if gvkExist {
+				// Check GVK
+
+				if parent.Spec.RandomGnsDataGvk != nil {
+					return
+				}
+
+				panic(fmt.Sprintf("gvk not found (event loop is stalled) " + nc.DisplayName()))
+			}
+
+			deleteCB(nc)
+		},
+	})
+	return registrationId, err
+}
+
+func (c *randomgnsdataGnsTsmV1Chainer) RegisterAddCallback(cbfn func(obj *GnsRandomGnsData)) (cache.ResourceEventHandlerRegistration, error) {
+	fmt.Println("GnsRandomGnsData -->  RegisterAddCallback!")
+	var (
+		registrationId cache.ResourceEventHandlerRegistration
+		err            error
+	)
+	key := "randomgnsdatas.gns.tsm.tanzu.vmware.com"
+	stopper := make(chan struct{})
+	if s, ok := subscriptionMap.Load(key); ok {
+		fmt.Println("[GnsRandomGnsData] ---SUBSCRIBE-INFORMER---->")
+		sub := s.(subscription)
+		registrationId, err = sub.informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
+			AddFunc: func(obj interface{}) {
+				nc := &GnsRandomGnsData{
+					client:        c.client,
+					RandomGnsData: obj.(*basegnstsmtanzuvmwarecomv1.RandomGnsData),
+				}
+
+				var parent *GnsBarChild
+				gvkExist := false
+				for i := 0; i < 600; i++ {
+					// Check if parent exists
+					p, err := nc.GetParent(context.TODO())
+					if err != nil || p == nil {
+						time.Sleep(500 * time.Millisecond)
+						continue
+					}
+					parent = p
+
+					// Check GVK
+
+					if parent.Spec.RandomGnsDataGvk == nil {
+						time.Sleep(500 * time.Millisecond)
+						continue
+					}
+
+					gvkExist = true
+
+					break
+				}
+
+				if parent == nil {
+					hashedName := helper.GetHashedName("barchilds.gns.tsm.tanzu.vmware.com", nc.Labels, nc.Labels["barchilds.gns.tsm.tanzu.vmware.com"])
+					parent, err = c.client.Gns().ForceReadBarChildByName(context.TODO(), hashedName)
+					if err != nil {
+						if errors.IsNotFound(err) {
+							return
+						}
+
+						panic("error occurred while fetching parent " + err.Error())
+					}
+					panic(fmt.Sprintf("parent found (event loop is stalled) " + nc.DisplayName()))
+				}
+
+				if !gvkExist {
+					// Check GVK
+
+					if parent.Spec.RandomGnsDataGvk == nil {
+						return
+					}
+
+					panic(fmt.Sprintf("gvk found (event loop is stalled) " + nc.DisplayName()))
+				}
+
+				cbfn(nc)
+			},
+		})
+	} else {
+		fmt.Println("[GnsRandomGnsData] ---NEW-INFORMER---->")
+		informer := informergnstsmtanzuvmwarecomv1.NewRandomGnsDataInformer(c.client.baseClient, 0, cache.Indexers{})
+		registrationId, err = informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
+			AddFunc: func(obj interface{}) {
+				nc := &GnsRandomGnsData{
+					client:        c.client,
+					RandomGnsData: obj.(*basegnstsmtanzuvmwarecomv1.RandomGnsData),
+				}
+
+				var parent *GnsBarChild
+				gvkExist := false
+				for i := 0; i < 600; i++ {
+					// Check if parent exists
+					p, err := nc.GetParent(context.TODO())
+					if err != nil || p == nil {
+						time.Sleep(500 * time.Millisecond)
+						continue
+					}
+					parent = p
+
+					// Check GVK
+
+					if parent.Spec.RandomGnsDataGvk == nil {
+						time.Sleep(500 * time.Millisecond)
+						continue
+					}
+
+					gvkExist = true
+
+					break
+				}
+
+				if parent == nil {
+					hashedName := helper.GetHashedName("barchilds.gns.tsm.tanzu.vmware.com", nc.Labels, nc.Labels["barchilds.gns.tsm.tanzu.vmware.com"])
+					parent, err = c.client.Gns().ForceReadBarChildByName(context.TODO(), hashedName)
+					if err != nil {
+						if errors.IsNotFound(err) {
+							return
+						}
+
+						panic("error occurred while fetching parent " + err.Error())
+					}
+					panic(fmt.Sprintf("parent found (event loop is stalled) " + nc.DisplayName()))
+				}
+
+				if !gvkExist {
+					// Check GVK
+
+					if parent.Spec.RandomGnsDataGvk == nil {
+						return
+					}
+
+					panic(fmt.Sprintf("gvk found (event loop is stalled) " + nc.DisplayName()))
+				}
+
+				cbfn(nc)
+			},
+		})
+		go informer.Run(stopper)
+	}
+	return registrationId, err
+}
+
+func (c *randomgnsdataGnsTsmV1Chainer) RegisterUpdateCallback(cbfn func(oldObj, newObj *GnsRandomGnsData)) (cache.ResourceEventHandlerRegistration, error) {
+	fmt.Println("GnsRandomGnsData -->  RegisterUpdateCallback!")
+	var (
+		registrationId cache.ResourceEventHandlerRegistration
+		err            error
+	)
+	key := "randomgnsdatas.gns.tsm.tanzu.vmware.com"
+	stopper := make(chan struct{})
+	if s, ok := subscriptionMap.Load(key); ok {
+		fmt.Println("[GnsRandomGnsData] ---SUBSCRIBE-INFORMER---->")
+		sub := s.(subscription)
+		registrationId, err = sub.informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
+			UpdateFunc: func(oldObj, newObj interface{}) {
+				oldData := &GnsRandomGnsData{
+					client:        c.client,
+					RandomGnsData: oldObj.(*basegnstsmtanzuvmwarecomv1.RandomGnsData),
+				}
+				newData := &GnsRandomGnsData{
+					client:        c.client,
+					RandomGnsData: newObj.(*basegnstsmtanzuvmwarecomv1.RandomGnsData),
+				}
+				cbfn(oldData, newData)
+			},
+		})
+	} else {
+		fmt.Println("[GnsRandomGnsData] ---NEW-INFORMER---->")
+		informer := informergnstsmtanzuvmwarecomv1.NewRandomGnsDataInformer(c.client.baseClient, 0, cache.Indexers{})
+		registrationId, err = informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
+			UpdateFunc: func(oldObj, newObj interface{}) {
+				oldData := &GnsRandomGnsData{
+					client:        c.client,
+					RandomGnsData: oldObj.(*basegnstsmtanzuvmwarecomv1.RandomGnsData),
+				}
+				newData := &GnsRandomGnsData{
+					client:        c.client,
+					RandomGnsData: newObj.(*basegnstsmtanzuvmwarecomv1.RandomGnsData),
+				}
+				cbfn(oldData, newData)
+			},
+		})
+		go informer.Run(stopper)
+	}
+	return registrationId, err
+}
+
+func (c *randomgnsdataGnsTsmV1Chainer) RegisterDeleteCallback(cbfn func(obj *GnsRandomGnsData)) (cache.ResourceEventHandlerRegistration, error) {
+	fmt.Println("GnsRandomGnsData -->  RegisterDeleteCallback!")
+	var (
+		registrationId cache.ResourceEventHandlerRegistration
+		err            error
+	)
+	key := "randomgnsdatas.gns.tsm.tanzu.vmware.com"
+	stopper := make(chan struct{})
+	if s, ok := subscriptionMap.Load(key); ok {
+		fmt.Println("[GnsRandomGnsData] ---SUBSCRIBE-INFORMER---->")
+		sub := s.(subscription)
+		registrationId, err = sub.informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
+			DeleteFunc: func(obj interface{}) {
+				nc := &GnsRandomGnsData{
+					client:        c.client,
+					RandomGnsData: obj.(*basegnstsmtanzuvmwarecomv1.RandomGnsData),
+				}
+
+				var parent *GnsBarChild
+				gvkExist := true
+				for i := 0; i < 600; i++ {
+					// Check if parent exists
+					p, err := nc.GetParent(context.TODO())
+					if err != nil || p == nil {
+						time.Sleep(500 * time.Millisecond)
+						continue
+					}
+					parent = p
+
+					// Check GVK
+
+					if parent.Spec.RandomGnsDataGvk != nil {
+						time.Sleep(500 * time.Millisecond)
+						continue
+					}
+
+					gvkExist = false
+					break
+				}
+
+				if parent == nil {
+					hashedName := helper.GetHashedName("barchilds.gns.tsm.tanzu.vmware.com", nc.Labels, nc.Labels["barchilds.gns.tsm.tanzu.vmware.com"])
+					parent, err = c.client.Gns().ForceReadBarChildByName(context.TODO(), hashedName)
+					if err != nil {
+						if errors.IsNotFound(err) {
+							return
+						}
+
+						panic("error occurred while fetching parent " + err.Error())
+					}
+					panic(fmt.Sprintf("parent found (event loop is stalled) " + nc.DisplayName()))
+				}
+
+				if gvkExist {
+					// Check GVK
+
+					if parent.Spec.RandomGnsDataGvk != nil {
+						return
+					}
+
+					panic(fmt.Sprintf("gvk not found (event loop is stalled) " + nc.DisplayName()))
+				}
+
+				cbfn(nc)
+			},
+		})
+	} else {
+		fmt.Println("[GnsRandomGnsData] ---NEW-INFORMER---->")
+		informer := informergnstsmtanzuvmwarecomv1.NewRandomGnsDataInformer(c.client.baseClient, 0, cache.Indexers{})
+		registrationId, err = informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
+			DeleteFunc: func(obj interface{}) {
+				nc := &GnsRandomGnsData{
+					client:        c.client,
+					RandomGnsData: obj.(*basegnstsmtanzuvmwarecomv1.RandomGnsData),
+				}
+
+				var parent *GnsBarChild
+				gvkExist := true
+				for i := 0; i < 600; i++ {
+					// Check if parent exists
+					p, err := nc.GetParent(context.TODO())
+					if err != nil || p == nil {
+						time.Sleep(500 * time.Millisecond)
+						continue
+					}
+					parent = p
+
+					// Check GVK
+
+					if parent.Spec.RandomGnsDataGvk != nil {
+						time.Sleep(500 * time.Millisecond)
+						continue
+					}
+
+					gvkExist = false
+
+					break
+				}
+
+				if parent == nil {
+					hashedName := helper.GetHashedName("barchilds.gns.tsm.tanzu.vmware.com", nc.Labels, nc.Labels["barchilds.gns.tsm.tanzu.vmware.com"])
+					parent, err = c.client.Gns().ForceReadBarChildByName(context.TODO(), hashedName)
+					if err != nil {
+						if errors.IsNotFound(err) {
+							return
+						}
+
+						panic("error occurred while fetching parent " + err.Error())
+					}
+					panic(fmt.Sprintf("parent found (event loop is stalled) " + nc.DisplayName()))
+				}
+
+				if gvkExist {
+					// Check GVK
+
+					if parent.Spec.RandomGnsDataGvk != nil {
+						return
+					}
+
+					panic(fmt.Sprintf("gvk not found (event loop is stalled) " + nc.DisplayName()))
+				}
+
+				cbfn(nc)
+			},
+		})
+		go informer.Run(stopper)
+	}
+	return registrationId, err
 }
 
 // ClearStatus to clear user defined status
@@ -2791,18 +5319,48 @@ func (group *GnsTsmV1) GetFooByName(ctx context.Context, hashedName string) (*Gn
 			Foo:    result,
 		}, nil
 	} else {
-		result, err := group.client.baseClient.
-			GnsTsmV1().
-			Foos().Get(ctx, hashedName, metav1.GetOptions{})
-		if err != nil {
-			return nil, err
+		retryCount := 12
+		for {
+			result, err := group.client.baseClient.
+				GnsTsmV1().
+				Foos().Get(ctx, hashedName, metav1.GetOptions{})
+			if err != nil {
+				log.Errorf("Failed to Get Foos: %+v", err)
+				if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded) {
+					log.Errorf("[Retry Count: %d ] %+v", retryCount, err)
+					if retryCount == 0 {
+						log.Error("Max Retry exceed on Get Foos")
+						return nil, err
+					}
+					retryCount -= 1
+					time.Sleep(5 * time.Second)
+				} else {
+					log.Errorf("Unexpected Error: %+v", err)
+					return nil, err
+				}
+			}
+			return &GnsFoo{
+				client: group.client,
+				Foo:    result,
+			}, nil
 		}
-
-		return &GnsFoo{
-			client: group.client,
-			Foo:    result,
-		}, nil
 	}
+}
+
+// ForceReadFooByName read object directly from the database under the hashedName which is a hash of display
+// name and parents names. Use it when you know hashed name of object.
+func (group *GnsTsmV1) ForceReadFooByName(ctx context.Context, hashedName string) (*GnsFoo, error) {
+	result, err := group.client.baseClient.
+		GnsTsmV1().
+		Foos().Get(ctx, hashedName, metav1.GetOptions{})
+	if err != nil {
+		return nil, err
+	}
+
+	return &GnsFoo{
+		client: group.client,
+		Foo:    result,
+	}, nil
 }
 
 // DeleteFooByName deletes object stored in the database under the hashedName which is a hash of
@@ -2813,7 +5371,16 @@ func (group *GnsTsmV1) DeleteFooByName(ctx context.Context, hashedName string) (
 		GnsTsmV1().
 		Foos().Get(ctx, hashedName, metav1.GetOptions{})
 	if err != nil {
-		return err
+		if customerrors.Is(err, context.DeadlineExceeded) {
+			log.Errorf("context deadline exceeded, on creating GNS: %+v", hashedName)
+			return context.DeadlineExceeded
+		} else if customerrors.Is(err, context.Canceled) {
+			log.Errorf("context cancelled, on creating GNS: %+v", hashedName)
+			return context.Canceled
+		} else {
+			log.Errorf("Unexpected Error: %+v", err)
+			return err
+		}
 	}
 
 	err = group.client.baseClient.
@@ -2846,11 +5413,44 @@ func (group *GnsTsmV1) DeleteFooByName(ctx context.Context, hashedName string) (
 	if parents[common.IS_NAME_HASHED_LABEL] == "true" {
 		parentName = helper.GetHashedName("gnses.gns.tsm.tanzu.vmware.com", parents, parentName)
 	}
-	_, err = group.client.baseClient.
-		GnsTsmV1().
-		Gnses().Patch(ctx, parentName, types.JSONPatchType, marshaled, metav1.PatchOptions{})
-	if err != nil {
-		return err
+
+	retryCount := 12
+	newCtx := context.TODO()
+	for {
+		_, err = group.client.baseClient.
+			GnsTsmV1().
+			Gnses().Patch(newCtx, parentName, types.JSONPatchType, marshaled, metav1.PatchOptions{})
+		if err != nil {
+			log.Errorf("Failed to patch Foo gvk in parent node[Gnses]: %+v", err)
+			if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded) {
+				log.Errorf("[Retry Count: %d ] %+v", retryCount, err)
+				if retryCount == 0 {
+					log.Error("Max Retry exceed on patching gvk")
+					log.Errorf("Trigger Foo Delete: %s", hashedName)
+					err = group.DeleteFooByName(newCtx, hashedName)
+					if err != nil {
+						log.Errorf("Error occur while deleting Foo: %s", hashedName)
+						return err
+					}
+					log.Errorf("Foo Deleted: %s", hashedName)
+					return err
+				}
+				retryCount -= 1
+				time.Sleep(5 * time.Second)
+			} else {
+				log.Errorf("Unexpected Error: %+v", err)
+				log.Errorf("Trigger Foo Delete: %s", hashedName)
+				err = group.DeleteFooByName(newCtx, hashedName)
+				if err != nil {
+					log.Errorf("Error occur while deleting Foo: %+v", hashedName)
+					return err
+				}
+				log.Errorf("Foo Deleted: %s", hashedName)
+				return err
+			}
+		} else {
+			break
+		}
 	}
 
 	return
@@ -2871,7 +5471,16 @@ func (group *GnsTsmV1) CreateFooByName(ctx context.Context,
 		GnsTsmV1().
 		Foos().Create(ctx, objToCreate, metav1.CreateOptions{})
 	if err != nil {
-		return nil, err
+		if customerrors.Is(err, context.DeadlineExceeded) {
+			log.Errorf("context deadline exceeded, on creating GNS: %+v", objToCreate)
+			return nil, context.DeadlineExceeded
+		} else if customerrors.Is(err, context.Canceled) {
+			log.Errorf("context cancelled, on creating GNS: %+v", objToCreate)
+			return nil, context.Canceled
+		} else {
+			log.Errorf("Unexpected Error: %+v", err)
+			return nil, err
+		}
 	}
 
 	parentName, ok := objToCreate.GetLabels()["gnses.gns.tsm.tanzu.vmware.com"]
@@ -2897,11 +5506,43 @@ func (group *GnsTsmV1) CreateFooByName(ctx context.Context,
 	if err != nil {
 		return nil, err
 	}
-	_, err = group.client.baseClient.
-		GnsTsmV1().
-		Gnses().Patch(ctx, parentName, types.JSONPatchType, marshaled, metav1.PatchOptions{})
-	if err != nil {
-		return nil, err
+	retryCount := 12
+	newCtx := context.TODO()
+	for {
+		_, err = group.client.baseClient.
+			GnsTsmV1().
+			Gnses().Patch(newCtx, parentName, types.JSONPatchType, marshaled, metav1.PatchOptions{})
+		if err != nil {
+			log.Errorf("Failed to patch Foo gvk in parent node[Gnses]: %+v", err)
+			if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded) {
+				log.Errorf("[Retry Count: %d ] %+v", retryCount, err)
+				if retryCount == 0 {
+					log.Error("Max Retry exceed on patching gvk")
+					log.Errorf("Trigger Foo Delete: %s", objToCreate.GetName())
+					err = group.DeleteFooByName(newCtx, objToCreate.GetName())
+					if err != nil {
+						log.Errorf("Error occur while deleting Foo: %s", objToCreate.GetName())
+						return nil, err
+					}
+					log.Errorf("Foo Deleted: %s", objToCreate.GetName())
+					return nil, err
+				}
+				retryCount -= 1
+				time.Sleep(5 * time.Second)
+			} else {
+				log.Errorf("Unexpected Error: %+v", err)
+				log.Errorf("Trigger Foo Delete: %s", objToCreate.GetName())
+				err = group.DeleteFooByName(newCtx, objToCreate.GetName())
+				if err != nil {
+					log.Errorf("Error occur while deleting Foo: %+v", objToCreate.GetName())
+					return nil, err
+				}
+				log.Errorf("Foo Deleted: %s", objToCreate.GetName())
+				return nil, err
+			}
+		} else {
+			break
+		}
 	}
 
 	return &GnsFoo{
@@ -2921,7 +5562,16 @@ func (group *GnsTsmV1) UpdateFooByName(ctx context.Context,
 			GnsTsmV1().
 			Foos().Get(ctx, objToUpdate.GetName(), metav1.GetOptions{})
 		if err != nil {
-			return nil, err
+			if customerrors.Is(err, context.DeadlineExceeded) {
+				log.Errorf("context deadline exceeded, on creating GNS: %+v", objToUpdate)
+				return nil, context.DeadlineExceeded
+			} else if customerrors.Is(err, context.Canceled) {
+				log.Errorf("context cancelled, on creating GNS: %+v", objToUpdate)
+				return nil, context.Canceled
+			} else {
+				log.Errorf("Unexpected Error: %+v", err)
+				return nil, err
+			}
 		}
 		objToUpdate.ResourceVersion = current.ResourceVersion
 	}
@@ -3049,6 +5699,447 @@ func (c *fooGnsTsmV1Chainer) IsSubscribed() bool {
 	return ok
 }
 
+func (c *fooGnsTsmV1Chainer) RegisterEventHandler(addCB func(obj *GnsFoo), updateCB func(oldObj, newObj *GnsFoo), deleteCB func(obj *GnsFoo)) (cache.ResourceEventHandlerRegistration, error) {
+	fmt.Println("RegisterEventHandler for GnsFoo")
+	var (
+		registrationId cache.ResourceEventHandlerRegistration
+		err            error
+		informer       cache.SharedIndexInformer
+	)
+	key := "foos.gns.tsm.tanzu.vmware.com"
+	stopper := make(chan struct{})
+	if s, ok := subscriptionMap.Load(key); ok {
+		fmt.Println("Informer exists for GnsFoo")
+		sub := s.(subscription)
+		informer = sub.informer
+	} else {
+		fmt.Println("Informer doesn't exists for GnsFoo, so creating a new one")
+		informer = informergnstsmtanzuvmwarecomv1.NewFooInformer(c.client.baseClient, 0, cache.Indexers{})
+		go informer.Run(stopper)
+		subscribe(key, informer)
+	}
+	registrationId, err = informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
+		AddFunc: func(obj interface{}) {
+			nc := &GnsFoo{
+				client: c.client,
+				Foo:    obj.(*basegnstsmtanzuvmwarecomv1.Foo),
+			}
+
+			var parent *GnsGns
+			gvkExist := false
+			for i := 0; i < 600; i++ {
+				// Check if parent exists
+				p, err := nc.GetParent(context.TODO())
+				if err != nil || p == nil {
+					time.Sleep(500 * time.Millisecond)
+					continue
+				}
+				parent = p
+				// Check GVK
+
+				if parent.Spec.FooGvk == nil {
+					time.Sleep(500 * time.Millisecond)
+					continue
+				}
+
+				gvkExist = true
+				break
+			}
+			if parent == nil {
+				hashedName := helper.GetHashedName("gnses.gns.tsm.tanzu.vmware.com", nc.Labels, nc.Labels["gnses.gns.tsm.tanzu.vmware.com"])
+				parent, err = c.client.Gns().ForceReadGnsByName(context.TODO(), hashedName)
+				if err != nil {
+					if errors.IsNotFound(err) {
+						return
+					}
+					panic("error occurred while fetching parent " + err.Error())
+				}
+				panic(fmt.Sprintf("parent found (event loop is stalled) " + nc.DisplayName()))
+			}
+			if !gvkExist {
+				// Check GVK
+
+				if parent.Spec.FooGvk == nil {
+					return
+				}
+
+				panic(fmt.Sprintf("gvk found (event loop is stalled) " + nc.DisplayName()))
+			}
+
+			addCB(nc)
+		},
+
+		UpdateFunc: func(oldObj, newObj interface{}) {
+			oldData := &GnsFoo{
+				client: c.client,
+				Foo:    oldObj.(*basegnstsmtanzuvmwarecomv1.Foo),
+			}
+			newData := &GnsFoo{
+				client: c.client,
+				Foo:    newObj.(*basegnstsmtanzuvmwarecomv1.Foo),
+			}
+			updateCB(oldData, newData)
+		},
+
+		DeleteFunc: func(obj interface{}) {
+			nc := &GnsFoo{
+				client: c.client,
+				Foo:    obj.(*basegnstsmtanzuvmwarecomv1.Foo),
+			}
+
+			var parent *GnsGns
+			gvkExist := true
+			for i := 0; i < 600; i++ {
+				// Check if parent exists
+				p, err := nc.GetParent(context.TODO())
+				if err != nil || p == nil {
+					time.Sleep(500 * time.Millisecond)
+					continue
+				}
+				parent = p
+				// Check GVK
+
+				if parent.Spec.FooGvk != nil {
+					time.Sleep(500 * time.Millisecond)
+					continue
+				}
+
+				gvkExist = false
+				break
+			}
+			if parent == nil {
+				hashedName := helper.GetHashedName("gnses.gns.tsm.tanzu.vmware.com", nc.Labels, nc.Labels["gnses.gns.tsm.tanzu.vmware.com"])
+				parent, err = c.client.Gns().ForceReadGnsByName(context.TODO(), hashedName)
+				if err != nil {
+					if errors.IsNotFound(err) {
+						return
+					}
+					panic("error occurred while fetching parent " + err.Error())
+				}
+				panic(fmt.Sprintf("parent found (event loop is stalled) " + nc.DisplayName()))
+			}
+			if gvkExist {
+				// Check GVK
+
+				if parent.Spec.FooGvk != nil {
+					return
+				}
+
+				panic(fmt.Sprintf("gvk not found (event loop is stalled) " + nc.DisplayName()))
+			}
+
+			deleteCB(nc)
+		},
+	})
+	return registrationId, err
+}
+
+func (c *fooGnsTsmV1Chainer) RegisterAddCallback(cbfn func(obj *GnsFoo)) (cache.ResourceEventHandlerRegistration, error) {
+	fmt.Println("GnsFoo -->  RegisterAddCallback!")
+	var (
+		registrationId cache.ResourceEventHandlerRegistration
+		err            error
+	)
+	key := "foos.gns.tsm.tanzu.vmware.com"
+	stopper := make(chan struct{})
+	if s, ok := subscriptionMap.Load(key); ok {
+		fmt.Println("[GnsFoo] ---SUBSCRIBE-INFORMER---->")
+		sub := s.(subscription)
+		registrationId, err = sub.informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
+			AddFunc: func(obj interface{}) {
+				nc := &GnsFoo{
+					client: c.client,
+					Foo:    obj.(*basegnstsmtanzuvmwarecomv1.Foo),
+				}
+
+				var parent *GnsGns
+				gvkExist := false
+				for i := 0; i < 600; i++ {
+					// Check if parent exists
+					p, err := nc.GetParent(context.TODO())
+					if err != nil || p == nil {
+						time.Sleep(500 * time.Millisecond)
+						continue
+					}
+					parent = p
+
+					// Check GVK
+
+					if parent.Spec.FooGvk == nil {
+						time.Sleep(500 * time.Millisecond)
+						continue
+					}
+
+					gvkExist = true
+
+					break
+				}
+
+				if parent == nil {
+					hashedName := helper.GetHashedName("gnses.gns.tsm.tanzu.vmware.com", nc.Labels, nc.Labels["gnses.gns.tsm.tanzu.vmware.com"])
+					parent, err = c.client.Gns().ForceReadGnsByName(context.TODO(), hashedName)
+					if err != nil {
+						if errors.IsNotFound(err) {
+							return
+						}
+
+						panic("error occurred while fetching parent " + err.Error())
+					}
+					panic(fmt.Sprintf("parent found (event loop is stalled) " + nc.DisplayName()))
+				}
+
+				if !gvkExist {
+					// Check GVK
+
+					if parent.Spec.FooGvk == nil {
+						return
+					}
+
+					panic(fmt.Sprintf("gvk found (event loop is stalled) " + nc.DisplayName()))
+				}
+
+				cbfn(nc)
+			},
+		})
+	} else {
+		fmt.Println("[GnsFoo] ---NEW-INFORMER---->")
+		informer := informergnstsmtanzuvmwarecomv1.NewFooInformer(c.client.baseClient, 0, cache.Indexers{})
+		registrationId, err = informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
+			AddFunc: func(obj interface{}) {
+				nc := &GnsFoo{
+					client: c.client,
+					Foo:    obj.(*basegnstsmtanzuvmwarecomv1.Foo),
+				}
+
+				var parent *GnsGns
+				gvkExist := false
+				for i := 0; i < 600; i++ {
+					// Check if parent exists
+					p, err := nc.GetParent(context.TODO())
+					if err != nil || p == nil {
+						time.Sleep(500 * time.Millisecond)
+						continue
+					}
+					parent = p
+
+					// Check GVK
+
+					if parent.Spec.FooGvk == nil {
+						time.Sleep(500 * time.Millisecond)
+						continue
+					}
+
+					gvkExist = true
+
+					break
+				}
+
+				if parent == nil {
+					hashedName := helper.GetHashedName("gnses.gns.tsm.tanzu.vmware.com", nc.Labels, nc.Labels["gnses.gns.tsm.tanzu.vmware.com"])
+					parent, err = c.client.Gns().ForceReadGnsByName(context.TODO(), hashedName)
+					if err != nil {
+						if errors.IsNotFound(err) {
+							return
+						}
+
+						panic("error occurred while fetching parent " + err.Error())
+					}
+					panic(fmt.Sprintf("parent found (event loop is stalled) " + nc.DisplayName()))
+				}
+
+				if !gvkExist {
+					// Check GVK
+
+					if parent.Spec.FooGvk == nil {
+						return
+					}
+
+					panic(fmt.Sprintf("gvk found (event loop is stalled) " + nc.DisplayName()))
+				}
+
+				cbfn(nc)
+			},
+		})
+		go informer.Run(stopper)
+	}
+	return registrationId, err
+}
+
+func (c *fooGnsTsmV1Chainer) RegisterUpdateCallback(cbfn func(oldObj, newObj *GnsFoo)) (cache.ResourceEventHandlerRegistration, error) {
+	fmt.Println("GnsFoo -->  RegisterUpdateCallback!")
+	var (
+		registrationId cache.ResourceEventHandlerRegistration
+		err            error
+	)
+	key := "foos.gns.tsm.tanzu.vmware.com"
+	stopper := make(chan struct{})
+	if s, ok := subscriptionMap.Load(key); ok {
+		fmt.Println("[GnsFoo] ---SUBSCRIBE-INFORMER---->")
+		sub := s.(subscription)
+		registrationId, err = sub.informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
+			UpdateFunc: func(oldObj, newObj interface{}) {
+				oldData := &GnsFoo{
+					client: c.client,
+					Foo:    oldObj.(*basegnstsmtanzuvmwarecomv1.Foo),
+				}
+				newData := &GnsFoo{
+					client: c.client,
+					Foo:    newObj.(*basegnstsmtanzuvmwarecomv1.Foo),
+				}
+				cbfn(oldData, newData)
+			},
+		})
+	} else {
+		fmt.Println("[GnsFoo] ---NEW-INFORMER---->")
+		informer := informergnstsmtanzuvmwarecomv1.NewFooInformer(c.client.baseClient, 0, cache.Indexers{})
+		registrationId, err = informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
+			UpdateFunc: func(oldObj, newObj interface{}) {
+				oldData := &GnsFoo{
+					client: c.client,
+					Foo:    oldObj.(*basegnstsmtanzuvmwarecomv1.Foo),
+				}
+				newData := &GnsFoo{
+					client: c.client,
+					Foo:    newObj.(*basegnstsmtanzuvmwarecomv1.Foo),
+				}
+				cbfn(oldData, newData)
+			},
+		})
+		go informer.Run(stopper)
+	}
+	return registrationId, err
+}
+
+func (c *fooGnsTsmV1Chainer) RegisterDeleteCallback(cbfn func(obj *GnsFoo)) (cache.ResourceEventHandlerRegistration, error) {
+	fmt.Println("GnsFoo -->  RegisterDeleteCallback!")
+	var (
+		registrationId cache.ResourceEventHandlerRegistration
+		err            error
+	)
+	key := "foos.gns.tsm.tanzu.vmware.com"
+	stopper := make(chan struct{})
+	if s, ok := subscriptionMap.Load(key); ok {
+		fmt.Println("[GnsFoo] ---SUBSCRIBE-INFORMER---->")
+		sub := s.(subscription)
+		registrationId, err = sub.informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
+			DeleteFunc: func(obj interface{}) {
+				nc := &GnsFoo{
+					client: c.client,
+					Foo:    obj.(*basegnstsmtanzuvmwarecomv1.Foo),
+				}
+
+				var parent *GnsGns
+				gvkExist := true
+				for i := 0; i < 600; i++ {
+					// Check if parent exists
+					p, err := nc.GetParent(context.TODO())
+					if err != nil || p == nil {
+						time.Sleep(500 * time.Millisecond)
+						continue
+					}
+					parent = p
+
+					// Check GVK
+
+					if parent.Spec.FooGvk != nil {
+						time.Sleep(500 * time.Millisecond)
+						continue
+					}
+
+					gvkExist = false
+					break
+				}
+
+				if parent == nil {
+					hashedName := helper.GetHashedName("gnses.gns.tsm.tanzu.vmware.com", nc.Labels, nc.Labels["gnses.gns.tsm.tanzu.vmware.com"])
+					parent, err = c.client.Gns().ForceReadGnsByName(context.TODO(), hashedName)
+					if err != nil {
+						if errors.IsNotFound(err) {
+							return
+						}
+
+						panic("error occurred while fetching parent " + err.Error())
+					}
+					panic(fmt.Sprintf("parent found (event loop is stalled) " + nc.DisplayName()))
+				}
+
+				if gvkExist {
+					// Check GVK
+
+					if parent.Spec.FooGvk != nil {
+						return
+					}
+
+					panic(fmt.Sprintf("gvk not found (event loop is stalled) " + nc.DisplayName()))
+				}
+
+				cbfn(nc)
+			},
+		})
+	} else {
+		fmt.Println("[GnsFoo] ---NEW-INFORMER---->")
+		informer := informergnstsmtanzuvmwarecomv1.NewFooInformer(c.client.baseClient, 0, cache.Indexers{})
+		registrationId, err = informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
+			DeleteFunc: func(obj interface{}) {
+				nc := &GnsFoo{
+					client: c.client,
+					Foo:    obj.(*basegnstsmtanzuvmwarecomv1.Foo),
+				}
+
+				var parent *GnsGns
+				gvkExist := true
+				for i := 0; i < 600; i++ {
+					// Check if parent exists
+					p, err := nc.GetParent(context.TODO())
+					if err != nil || p == nil {
+						time.Sleep(500 * time.Millisecond)
+						continue
+					}
+					parent = p
+
+					// Check GVK
+
+					if parent.Spec.FooGvk != nil {
+						time.Sleep(500 * time.Millisecond)
+						continue
+					}
+
+					gvkExist = false
+
+					break
+				}
+
+				if parent == nil {
+					hashedName := helper.GetHashedName("gnses.gns.tsm.tanzu.vmware.com", nc.Labels, nc.Labels["gnses.gns.tsm.tanzu.vmware.com"])
+					parent, err = c.client.Gns().ForceReadGnsByName(context.TODO(), hashedName)
+					if err != nil {
+						if errors.IsNotFound(err) {
+							return
+						}
+
+						panic("error occurred while fetching parent " + err.Error())
+					}
+					panic(fmt.Sprintf("parent found (event loop is stalled) " + nc.DisplayName()))
+				}
+
+				if gvkExist {
+					// Check GVK
+
+					if parent.Spec.FooGvk != nil {
+						return
+					}
+
+					panic(fmt.Sprintf("gvk not found (event loop is stalled) " + nc.DisplayName()))
+				}
+
+				cbfn(nc)
+			},
+		})
+		go informer.Run(stopper)
+	}
+	return registrationId, err
+}
+
 // GetGnsByName returns object stored in the database under the hashedName which is a hash of display
 // name and parents names. Use it when you know hashed name of object.
 func (group *GnsTsmV1) GetGnsByName(ctx context.Context, hashedName string) (*GnsGns, error) {
@@ -3065,18 +6156,48 @@ func (group *GnsTsmV1) GetGnsByName(ctx context.Context, hashedName string) (*Gn
 			Gns:    result,
 		}, nil
 	} else {
-		result, err := group.client.baseClient.
-			GnsTsmV1().
-			Gnses().Get(ctx, hashedName, metav1.GetOptions{})
-		if err != nil {
-			return nil, err
+		retryCount := 12
+		for {
+			result, err := group.client.baseClient.
+				GnsTsmV1().
+				Gnses().Get(ctx, hashedName, metav1.GetOptions{})
+			if err != nil {
+				log.Errorf("Failed to Get Gnses: %+v", err)
+				if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded) {
+					log.Errorf("[Retry Count: %d ] %+v", retryCount, err)
+					if retryCount == 0 {
+						log.Error("Max Retry exceed on Get Gnses")
+						return nil, err
+					}
+					retryCount -= 1
+					time.Sleep(5 * time.Second)
+				} else {
+					log.Errorf("Unexpected Error: %+v", err)
+					return nil, err
+				}
+			}
+			return &GnsGns{
+				client: group.client,
+				Gns:    result,
+			}, nil
 		}
-
-		return &GnsGns{
-			client: group.client,
-			Gns:    result,
-		}, nil
 	}
+}
+
+// ForceReadGnsByName read object directly from the database under the hashedName which is a hash of display
+// name and parents names. Use it when you know hashed name of object.
+func (group *GnsTsmV1) ForceReadGnsByName(ctx context.Context, hashedName string) (*GnsGns, error) {
+	result, err := group.client.baseClient.
+		GnsTsmV1().
+		Gnses().Get(ctx, hashedName, metav1.GetOptions{})
+	if err != nil {
+		return nil, err
+	}
+
+	return &GnsGns{
+		client: group.client,
+		Gns:    result,
+	}, nil
 }
 
 // DeleteGnsByName deletes object stored in the database under the hashedName which is a hash of
@@ -3087,14 +6208,27 @@ func (group *GnsTsmV1) DeleteGnsByName(ctx context.Context, hashedName string) (
 		GnsTsmV1().
 		Gnses().Get(ctx, hashedName, metav1.GetOptions{})
 	if err != nil {
-		return err
+		if customerrors.Is(err, context.DeadlineExceeded) {
+			log.Errorf("context deadline exceeded, on creating GNS: %+v", hashedName)
+			return context.DeadlineExceeded
+		} else if customerrors.Is(err, context.Canceled) {
+			log.Errorf("context cancelled, on creating GNS: %+v", hashedName)
+			return context.Canceled
+		} else {
+			log.Errorf("Unexpected Error: %+v", err)
+			return err
+		}
 	}
 
 	for _, v := range result.Spec.GnsServiceGroupsGvk {
 		err := group.client.
 			Servicegroup().DeleteSvcGroupByName(ctx, v.Name)
 		if err != nil {
-			return err
+			if errors.IsNotFound(err) {
+				continue
+			} else {
+				return err
+			}
 		}
 	}
 
@@ -3102,7 +6236,7 @@ func (group *GnsTsmV1) DeleteGnsByName(ctx context.Context, hashedName string) (
 		err := group.client.
 			Policypkg().
 			DeleteAccessControlPolicyByName(ctx, result.Spec.GnsAccessControlPolicyGvk.Name)
-		if err != nil {
+		if err != nil && !errors.IsNotFound(err) {
 			return err
 		}
 	}
@@ -3111,7 +6245,7 @@ func (group *GnsTsmV1) DeleteGnsByName(ctx context.Context, hashedName string) (
 		err := group.client.
 			Gns().
 			DeleteBarChildByName(ctx, result.Spec.FooChildGvk.Name)
-		if err != nil {
+		if err != nil && !errors.IsNotFound(err) {
 			return err
 		}
 	}
@@ -3120,7 +6254,7 @@ func (group *GnsTsmV1) DeleteGnsByName(ctx context.Context, hashedName string) (
 		err := group.client.
 			Gns().
 			DeleteIgnoreChildByName(ctx, result.Spec.IgnoreChildGvk.Name)
-		if err != nil {
+		if err != nil && !errors.IsNotFound(err) {
 			return err
 		}
 	}
@@ -3129,7 +6263,16 @@ func (group *GnsTsmV1) DeleteGnsByName(ctx context.Context, hashedName string) (
 		err := group.client.
 			Gns().
 			DeleteFooByName(ctx, result.Spec.FooGvk.Name)
-		if err != nil {
+		if err != nil && !errors.IsNotFound(err) {
+			return err
+		}
+	}
+
+	if result.Spec.AdditionalGnsDataGvk != nil {
+		err := group.client.
+			Gns().
+			DeleteAdditionalGnsDataByName(ctx, result.Spec.AdditionalGnsDataGvk.Name)
+		if err != nil && !errors.IsNotFound(err) {
 			return err
 		}
 	}
@@ -3164,11 +6307,44 @@ func (group *GnsTsmV1) DeleteGnsByName(ctx context.Context, hashedName string) (
 	if parents[common.IS_NAME_HASHED_LABEL] == "true" {
 		parentName = helper.GetHashedName("configs.config.tsm.tanzu.vmware.com", parents, parentName)
 	}
-	_, err = group.client.baseClient.
-		ConfigTsmV1().
-		Configs().Patch(ctx, parentName, types.JSONPatchType, marshaled, metav1.PatchOptions{})
-	if err != nil {
-		return err
+
+	retryCount := 12
+	newCtx := context.TODO()
+	for {
+		_, err = group.client.baseClient.
+			ConfigTsmV1().
+			Configs().Patch(newCtx, parentName, types.JSONPatchType, marshaled, metav1.PatchOptions{})
+		if err != nil {
+			log.Errorf("Failed to patch Gns gvk in parent node[Configs]: %+v", err)
+			if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded) {
+				log.Errorf("[Retry Count: %d ] %+v", retryCount, err)
+				if retryCount == 0 {
+					log.Error("Max Retry exceed on patching gvk")
+					log.Errorf("Trigger Gns Delete: %s", hashedName)
+					err = group.DeleteGnsByName(newCtx, hashedName)
+					if err != nil {
+						log.Errorf("Error occur while deleting Gns: %s", hashedName)
+						return err
+					}
+					log.Errorf("Gns Deleted: %s", hashedName)
+					return err
+				}
+				retryCount -= 1
+				time.Sleep(5 * time.Second)
+			} else {
+				log.Errorf("Unexpected Error: %+v", err)
+				log.Errorf("Trigger Gns Delete: %s", hashedName)
+				err = group.DeleteGnsByName(newCtx, hashedName)
+				if err != nil {
+					log.Errorf("Error occur while deleting Gns: %+v", hashedName)
+					return err
+				}
+				log.Errorf("Gns Deleted: %s", hashedName)
+				return err
+			}
+		} else {
+			break
+		}
 	}
 
 	return
@@ -3190,13 +6366,23 @@ func (group *GnsTsmV1) CreateGnsByName(ctx context.Context,
 	objToCreate.Spec.FooChildGvk = nil
 	objToCreate.Spec.IgnoreChildGvk = nil
 	objToCreate.Spec.FooGvk = nil
+	objToCreate.Spec.AdditionalGnsDataGvk = nil
 	objToCreate.Spec.DnsGvk = nil
 
 	result, err := group.client.baseClient.
 		GnsTsmV1().
 		Gnses().Create(ctx, objToCreate, metav1.CreateOptions{})
 	if err != nil {
-		return nil, err
+		if customerrors.Is(err, context.DeadlineExceeded) {
+			log.Errorf("context deadline exceeded, on creating GNS: %+v", objToCreate)
+			return nil, context.DeadlineExceeded
+		} else if customerrors.Is(err, context.Canceled) {
+			log.Errorf("context cancelled, on creating GNS: %+v", objToCreate)
+			return nil, context.Canceled
+		} else {
+			log.Errorf("Unexpected Error: %+v", err)
+			return nil, err
+		}
 	}
 
 	parentName, ok := objToCreate.GetLabels()["configs.config.tsm.tanzu.vmware.com"]
@@ -3222,11 +6408,43 @@ func (group *GnsTsmV1) CreateGnsByName(ctx context.Context,
 	if err != nil {
 		return nil, err
 	}
-	_, err = group.client.baseClient.
-		ConfigTsmV1().
-		Configs().Patch(ctx, parentName, types.JSONPatchType, marshaled, metav1.PatchOptions{})
-	if err != nil {
-		return nil, err
+	retryCount := 12
+	newCtx := context.TODO()
+	for {
+		_, err = group.client.baseClient.
+			ConfigTsmV1().
+			Configs().Patch(newCtx, parentName, types.JSONPatchType, marshaled, metav1.PatchOptions{})
+		if err != nil {
+			log.Errorf("Failed to patch Gns gvk in parent node[Configs]: %+v", err)
+			if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded) {
+				log.Errorf("[Retry Count: %d ] %+v", retryCount, err)
+				if retryCount == 0 {
+					log.Error("Max Retry exceed on patching gvk")
+					log.Errorf("Trigger Gns Delete: %s", objToCreate.GetName())
+					err = group.DeleteGnsByName(newCtx, objToCreate.GetName())
+					if err != nil {
+						log.Errorf("Error occur while deleting Gns: %s", objToCreate.GetName())
+						return nil, err
+					}
+					log.Errorf("Gns Deleted: %s", objToCreate.GetName())
+					return nil, err
+				}
+				retryCount -= 1
+				time.Sleep(5 * time.Second)
+			} else {
+				log.Errorf("Unexpected Error: %+v", err)
+				log.Errorf("Trigger Gns Delete: %s", objToCreate.GetName())
+				err = group.DeleteGnsByName(newCtx, objToCreate.GetName())
+				if err != nil {
+					log.Errorf("Error occur while deleting Gns: %+v", objToCreate.GetName())
+					return nil, err
+				}
+				log.Errorf("Gns Deleted: %s", objToCreate.GetName())
+				return nil, err
+			}
+		} else {
+			break
+		}
 	}
 
 	return &GnsGns{
@@ -3282,7 +6500,16 @@ func (group *GnsTsmV1) UpdateGnsByName(ctx context.Context,
 			GnsTsmV1().
 			Gnses().Get(ctx, objToUpdate.GetName(), metav1.GetOptions{})
 		if err != nil {
-			return nil, err
+			if customerrors.Is(err, context.DeadlineExceeded) {
+				log.Errorf("context deadline exceeded, on creating GNS: %+v", objToUpdate)
+				return nil, context.DeadlineExceeded
+			} else if customerrors.Is(err, context.Canceled) {
+				log.Errorf("context cancelled, on creating GNS: %+v", objToUpdate)
+				return nil, context.Canceled
+			} else {
+				log.Errorf("Unexpected Error: %+v", err)
+				return nil, err
+			}
 		}
 		objToUpdate.ResourceVersion = current.ResourceVersion
 	}
@@ -3311,6 +6538,24 @@ func (group *GnsTsmV1) UpdateGnsByName(ctx context.Context,
 		Value: patchValueUseSharedGateway,
 	}
 	patch = append(patch, patchOpUseSharedGateway)
+
+	patchValueAnnotations :=
+		objToUpdate.Spec.Annotations
+	patchOpAnnotations := PatchOp{
+		Op:    "replace",
+		Path:  "/spec/annotations",
+		Value: patchValueAnnotations,
+	}
+	patch = append(patch, patchOpAnnotations)
+
+	patchValueTargetPort :=
+		objToUpdate.Spec.TargetPort
+	patchOpTargetPort := PatchOp{
+		Op:    "replace",
+		Path:  "/spec/targetPort",
+		Value: patchValueTargetPort,
+	}
+	patch = append(patch, patchOpTargetPort)
 
 	patchValueDescription :=
 		objToUpdate.Spec.Description
@@ -3826,6 +7071,60 @@ func (obj *GnsGns) DeleteFoo(ctx context.Context) (err error) {
 	return
 }
 
+// GetAdditionalGnsData returns child of given type
+func (obj *GnsGns) GetAdditionalGnsData(ctx context.Context) (
+	result *GnsAdditionalGnsData, err error) {
+	if obj.Spec.AdditionalGnsDataGvk == nil {
+		return nil, NewChildNotFound(obj.DisplayName(), "Gns.Gns", "AdditionalGnsData")
+	}
+	return obj.client.Gns().GetAdditionalGnsDataByName(ctx, obj.Spec.AdditionalGnsDataGvk.Name)
+}
+
+// AddAdditionalGnsData calculates hashed name of the child to create based on objToCreate.Name
+// and parents names and creates it. objToCreate.Name is changed to the hashed name. Original name is preserved in
+// nexus/display_name label and can be obtained using DisplayName() method.
+func (obj *GnsGns) AddAdditionalGnsData(ctx context.Context,
+	objToCreate *basegnstsmtanzuvmwarecomv1.AdditionalGnsData) (result *GnsAdditionalGnsData, err error) {
+	if objToCreate.Labels == nil {
+		objToCreate.Labels = map[string]string{}
+	}
+	for _, v := range helper.GetCRDParentsMap()["gnses.gns.tsm.tanzu.vmware.com"] {
+		objToCreate.Labels[v] = obj.Labels[v]
+	}
+	objToCreate.Labels["gnses.gns.tsm.tanzu.vmware.com"] = obj.DisplayName()
+	if objToCreate.Labels[common.IS_NAME_HASHED_LABEL] != "true" {
+		objToCreate.Labels[common.DISPLAY_NAME_LABEL] = objToCreate.GetName()
+		objToCreate.Labels[common.IS_NAME_HASHED_LABEL] = "true"
+		hashedName := helper.GetHashedName(objToCreate.CRDName(), objToCreate.Labels, objToCreate.GetName())
+		objToCreate.Name = hashedName
+	}
+	result, err = obj.client.Gns().CreateAdditionalGnsDataByName(ctx, objToCreate)
+	updatedObj, getErr := obj.client.Gns().GetGnsByName(ctx, obj.GetName())
+	if getErr == nil {
+		obj.Gns = updatedObj.Gns
+	}
+	return
+}
+
+// DeleteAdditionalGnsData calculates hashed name of the child to delete based on displayName
+// and parents names and deletes it.
+
+func (obj *GnsGns) DeleteAdditionalGnsData(ctx context.Context) (err error) {
+	if obj.Spec.AdditionalGnsDataGvk != nil {
+		err = obj.client.
+			Gns().DeleteAdditionalGnsDataByName(ctx, obj.Spec.AdditionalGnsDataGvk.Name)
+		if err != nil {
+			return err
+		}
+	}
+	updatedObj, err := obj.client.
+		Gns().GetGnsByName(ctx, obj.GetName())
+	if err == nil {
+		obj.Gns = updatedObj.Gns
+	}
+	return
+}
+
 // GetDns returns link of given type
 func (obj *GnsGns) GetDns(ctx context.Context) (
 	result *GnsDns, err error) {
@@ -3913,6 +7212,447 @@ func (c *gnsGnsTsmV1Chainer) IsSubscribed() bool {
 	key := "gnses.gns.tsm.tanzu.vmware.com"
 	_, ok := subscriptionMap.Load(key)
 	return ok
+}
+
+func (c *gnsGnsTsmV1Chainer) RegisterEventHandler(addCB func(obj *GnsGns), updateCB func(oldObj, newObj *GnsGns), deleteCB func(obj *GnsGns)) (cache.ResourceEventHandlerRegistration, error) {
+	fmt.Println("RegisterEventHandler for GnsGns")
+	var (
+		registrationId cache.ResourceEventHandlerRegistration
+		err            error
+		informer       cache.SharedIndexInformer
+	)
+	key := "gnses.gns.tsm.tanzu.vmware.com"
+	stopper := make(chan struct{})
+	if s, ok := subscriptionMap.Load(key); ok {
+		fmt.Println("Informer exists for GnsGns")
+		sub := s.(subscription)
+		informer = sub.informer
+	} else {
+		fmt.Println("Informer doesn't exists for GnsGns, so creating a new one")
+		informer = informergnstsmtanzuvmwarecomv1.NewGnsInformer(c.client.baseClient, 0, cache.Indexers{})
+		go informer.Run(stopper)
+		subscribe(key, informer)
+	}
+	registrationId, err = informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
+		AddFunc: func(obj interface{}) {
+			nc := &GnsGns{
+				client: c.client,
+				Gns:    obj.(*basegnstsmtanzuvmwarecomv1.Gns),
+			}
+
+			var parent *ConfigConfig
+			gvkExist := false
+			for i := 0; i < 600; i++ {
+				// Check if parent exists
+				p, err := nc.GetParent(context.TODO())
+				if err != nil || p == nil {
+					time.Sleep(500 * time.Millisecond)
+					continue
+				}
+				parent = p
+				// Check GVK
+
+				if parent.Spec.GNSGvk == nil {
+					time.Sleep(500 * time.Millisecond)
+					continue
+				}
+
+				gvkExist = true
+				break
+			}
+			if parent == nil {
+				hashedName := helper.GetHashedName("configs.config.tsm.tanzu.vmware.com", nc.Labels, nc.Labels["configs.config.tsm.tanzu.vmware.com"])
+				parent, err = c.client.Config().ForceReadConfigByName(context.TODO(), hashedName)
+				if err != nil {
+					if errors.IsNotFound(err) {
+						return
+					}
+					panic("error occurred while fetching parent " + err.Error())
+				}
+				panic(fmt.Sprintf("parent found (event loop is stalled) " + nc.DisplayName()))
+			}
+			if !gvkExist {
+				// Check GVK
+
+				if parent.Spec.GNSGvk == nil {
+					return
+				}
+
+				panic(fmt.Sprintf("gvk found (event loop is stalled) " + nc.DisplayName()))
+			}
+
+			addCB(nc)
+		},
+
+		UpdateFunc: func(oldObj, newObj interface{}) {
+			oldData := &GnsGns{
+				client: c.client,
+				Gns:    oldObj.(*basegnstsmtanzuvmwarecomv1.Gns),
+			}
+			newData := &GnsGns{
+				client: c.client,
+				Gns:    newObj.(*basegnstsmtanzuvmwarecomv1.Gns),
+			}
+			updateCB(oldData, newData)
+		},
+
+		DeleteFunc: func(obj interface{}) {
+			nc := &GnsGns{
+				client: c.client,
+				Gns:    obj.(*basegnstsmtanzuvmwarecomv1.Gns),
+			}
+
+			var parent *ConfigConfig
+			gvkExist := true
+			for i := 0; i < 600; i++ {
+				// Check if parent exists
+				p, err := nc.GetParent(context.TODO())
+				if err != nil || p == nil {
+					time.Sleep(500 * time.Millisecond)
+					continue
+				}
+				parent = p
+				// Check GVK
+
+				if parent.Spec.GNSGvk != nil {
+					time.Sleep(500 * time.Millisecond)
+					continue
+				}
+
+				gvkExist = false
+				break
+			}
+			if parent == nil {
+				hashedName := helper.GetHashedName("configs.config.tsm.tanzu.vmware.com", nc.Labels, nc.Labels["configs.config.tsm.tanzu.vmware.com"])
+				parent, err = c.client.Config().ForceReadConfigByName(context.TODO(), hashedName)
+				if err != nil {
+					if errors.IsNotFound(err) {
+						return
+					}
+					panic("error occurred while fetching parent " + err.Error())
+				}
+				panic(fmt.Sprintf("parent found (event loop is stalled) " + nc.DisplayName()))
+			}
+			if gvkExist {
+				// Check GVK
+
+				if parent.Spec.GNSGvk != nil {
+					return
+				}
+
+				panic(fmt.Sprintf("gvk not found (event loop is stalled) " + nc.DisplayName()))
+			}
+
+			deleteCB(nc)
+		},
+	})
+	return registrationId, err
+}
+
+func (c *gnsGnsTsmV1Chainer) RegisterAddCallback(cbfn func(obj *GnsGns)) (cache.ResourceEventHandlerRegistration, error) {
+	fmt.Println("GnsGns -->  RegisterAddCallback!")
+	var (
+		registrationId cache.ResourceEventHandlerRegistration
+		err            error
+	)
+	key := "gnses.gns.tsm.tanzu.vmware.com"
+	stopper := make(chan struct{})
+	if s, ok := subscriptionMap.Load(key); ok {
+		fmt.Println("[GnsGns] ---SUBSCRIBE-INFORMER---->")
+		sub := s.(subscription)
+		registrationId, err = sub.informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
+			AddFunc: func(obj interface{}) {
+				nc := &GnsGns{
+					client: c.client,
+					Gns:    obj.(*basegnstsmtanzuvmwarecomv1.Gns),
+				}
+
+				var parent *ConfigConfig
+				gvkExist := false
+				for i := 0; i < 600; i++ {
+					// Check if parent exists
+					p, err := nc.GetParent(context.TODO())
+					if err != nil || p == nil {
+						time.Sleep(500 * time.Millisecond)
+						continue
+					}
+					parent = p
+
+					// Check GVK
+
+					if parent.Spec.GNSGvk == nil {
+						time.Sleep(500 * time.Millisecond)
+						continue
+					}
+
+					gvkExist = true
+
+					break
+				}
+
+				if parent == nil {
+					hashedName := helper.GetHashedName("configs.config.tsm.tanzu.vmware.com", nc.Labels, nc.Labels["configs.config.tsm.tanzu.vmware.com"])
+					parent, err = c.client.Config().ForceReadConfigByName(context.TODO(), hashedName)
+					if err != nil {
+						if errors.IsNotFound(err) {
+							return
+						}
+
+						panic("error occurred while fetching parent " + err.Error())
+					}
+					panic(fmt.Sprintf("parent found (event loop is stalled) " + nc.DisplayName()))
+				}
+
+				if !gvkExist {
+					// Check GVK
+
+					if parent.Spec.GNSGvk == nil {
+						return
+					}
+
+					panic(fmt.Sprintf("gvk found (event loop is stalled) " + nc.DisplayName()))
+				}
+
+				cbfn(nc)
+			},
+		})
+	} else {
+		fmt.Println("[GnsGns] ---NEW-INFORMER---->")
+		informer := informergnstsmtanzuvmwarecomv1.NewGnsInformer(c.client.baseClient, 0, cache.Indexers{})
+		registrationId, err = informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
+			AddFunc: func(obj interface{}) {
+				nc := &GnsGns{
+					client: c.client,
+					Gns:    obj.(*basegnstsmtanzuvmwarecomv1.Gns),
+				}
+
+				var parent *ConfigConfig
+				gvkExist := false
+				for i := 0; i < 600; i++ {
+					// Check if parent exists
+					p, err := nc.GetParent(context.TODO())
+					if err != nil || p == nil {
+						time.Sleep(500 * time.Millisecond)
+						continue
+					}
+					parent = p
+
+					// Check GVK
+
+					if parent.Spec.GNSGvk == nil {
+						time.Sleep(500 * time.Millisecond)
+						continue
+					}
+
+					gvkExist = true
+
+					break
+				}
+
+				if parent == nil {
+					hashedName := helper.GetHashedName("configs.config.tsm.tanzu.vmware.com", nc.Labels, nc.Labels["configs.config.tsm.tanzu.vmware.com"])
+					parent, err = c.client.Config().ForceReadConfigByName(context.TODO(), hashedName)
+					if err != nil {
+						if errors.IsNotFound(err) {
+							return
+						}
+
+						panic("error occurred while fetching parent " + err.Error())
+					}
+					panic(fmt.Sprintf("parent found (event loop is stalled) " + nc.DisplayName()))
+				}
+
+				if !gvkExist {
+					// Check GVK
+
+					if parent.Spec.GNSGvk == nil {
+						return
+					}
+
+					panic(fmt.Sprintf("gvk found (event loop is stalled) " + nc.DisplayName()))
+				}
+
+				cbfn(nc)
+			},
+		})
+		go informer.Run(stopper)
+	}
+	return registrationId, err
+}
+
+func (c *gnsGnsTsmV1Chainer) RegisterUpdateCallback(cbfn func(oldObj, newObj *GnsGns)) (cache.ResourceEventHandlerRegistration, error) {
+	fmt.Println("GnsGns -->  RegisterUpdateCallback!")
+	var (
+		registrationId cache.ResourceEventHandlerRegistration
+		err            error
+	)
+	key := "gnses.gns.tsm.tanzu.vmware.com"
+	stopper := make(chan struct{})
+	if s, ok := subscriptionMap.Load(key); ok {
+		fmt.Println("[GnsGns] ---SUBSCRIBE-INFORMER---->")
+		sub := s.(subscription)
+		registrationId, err = sub.informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
+			UpdateFunc: func(oldObj, newObj interface{}) {
+				oldData := &GnsGns{
+					client: c.client,
+					Gns:    oldObj.(*basegnstsmtanzuvmwarecomv1.Gns),
+				}
+				newData := &GnsGns{
+					client: c.client,
+					Gns:    newObj.(*basegnstsmtanzuvmwarecomv1.Gns),
+				}
+				cbfn(oldData, newData)
+			},
+		})
+	} else {
+		fmt.Println("[GnsGns] ---NEW-INFORMER---->")
+		informer := informergnstsmtanzuvmwarecomv1.NewGnsInformer(c.client.baseClient, 0, cache.Indexers{})
+		registrationId, err = informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
+			UpdateFunc: func(oldObj, newObj interface{}) {
+				oldData := &GnsGns{
+					client: c.client,
+					Gns:    oldObj.(*basegnstsmtanzuvmwarecomv1.Gns),
+				}
+				newData := &GnsGns{
+					client: c.client,
+					Gns:    newObj.(*basegnstsmtanzuvmwarecomv1.Gns),
+				}
+				cbfn(oldData, newData)
+			},
+		})
+		go informer.Run(stopper)
+	}
+	return registrationId, err
+}
+
+func (c *gnsGnsTsmV1Chainer) RegisterDeleteCallback(cbfn func(obj *GnsGns)) (cache.ResourceEventHandlerRegistration, error) {
+	fmt.Println("GnsGns -->  RegisterDeleteCallback!")
+	var (
+		registrationId cache.ResourceEventHandlerRegistration
+		err            error
+	)
+	key := "gnses.gns.tsm.tanzu.vmware.com"
+	stopper := make(chan struct{})
+	if s, ok := subscriptionMap.Load(key); ok {
+		fmt.Println("[GnsGns] ---SUBSCRIBE-INFORMER---->")
+		sub := s.(subscription)
+		registrationId, err = sub.informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
+			DeleteFunc: func(obj interface{}) {
+				nc := &GnsGns{
+					client: c.client,
+					Gns:    obj.(*basegnstsmtanzuvmwarecomv1.Gns),
+				}
+
+				var parent *ConfigConfig
+				gvkExist := true
+				for i := 0; i < 600; i++ {
+					// Check if parent exists
+					p, err := nc.GetParent(context.TODO())
+					if err != nil || p == nil {
+						time.Sleep(500 * time.Millisecond)
+						continue
+					}
+					parent = p
+
+					// Check GVK
+
+					if parent.Spec.GNSGvk != nil {
+						time.Sleep(500 * time.Millisecond)
+						continue
+					}
+
+					gvkExist = false
+					break
+				}
+
+				if parent == nil {
+					hashedName := helper.GetHashedName("configs.config.tsm.tanzu.vmware.com", nc.Labels, nc.Labels["configs.config.tsm.tanzu.vmware.com"])
+					parent, err = c.client.Config().ForceReadConfigByName(context.TODO(), hashedName)
+					if err != nil {
+						if errors.IsNotFound(err) {
+							return
+						}
+
+						panic("error occurred while fetching parent " + err.Error())
+					}
+					panic(fmt.Sprintf("parent found (event loop is stalled) " + nc.DisplayName()))
+				}
+
+				if gvkExist {
+					// Check GVK
+
+					if parent.Spec.GNSGvk != nil {
+						return
+					}
+
+					panic(fmt.Sprintf("gvk not found (event loop is stalled) " + nc.DisplayName()))
+				}
+
+				cbfn(nc)
+			},
+		})
+	} else {
+		fmt.Println("[GnsGns] ---NEW-INFORMER---->")
+		informer := informergnstsmtanzuvmwarecomv1.NewGnsInformer(c.client.baseClient, 0, cache.Indexers{})
+		registrationId, err = informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
+			DeleteFunc: func(obj interface{}) {
+				nc := &GnsGns{
+					client: c.client,
+					Gns:    obj.(*basegnstsmtanzuvmwarecomv1.Gns),
+				}
+
+				var parent *ConfigConfig
+				gvkExist := true
+				for i := 0; i < 600; i++ {
+					// Check if parent exists
+					p, err := nc.GetParent(context.TODO())
+					if err != nil || p == nil {
+						time.Sleep(500 * time.Millisecond)
+						continue
+					}
+					parent = p
+
+					// Check GVK
+
+					if parent.Spec.GNSGvk != nil {
+						time.Sleep(500 * time.Millisecond)
+						continue
+					}
+
+					gvkExist = false
+
+					break
+				}
+
+				if parent == nil {
+					hashedName := helper.GetHashedName("configs.config.tsm.tanzu.vmware.com", nc.Labels, nc.Labels["configs.config.tsm.tanzu.vmware.com"])
+					parent, err = c.client.Config().ForceReadConfigByName(context.TODO(), hashedName)
+					if err != nil {
+						if errors.IsNotFound(err) {
+							return
+						}
+
+						panic("error occurred while fetching parent " + err.Error())
+					}
+					panic(fmt.Sprintf("parent found (event loop is stalled) " + nc.DisplayName()))
+				}
+
+				if gvkExist {
+					// Check GVK
+
+					if parent.Spec.GNSGvk != nil {
+						return
+					}
+
+					panic(fmt.Sprintf("gvk not found (event loop is stalled) " + nc.DisplayName()))
+				}
+
+				cbfn(nc)
+			},
+		})
+		go informer.Run(stopper)
+	}
+	return registrationId, err
 }
 
 // ClearState to clear user defined status
@@ -4188,6 +7928,53 @@ func (c *gnsGnsTsmV1Chainer) DeleteFoo(ctx context.Context, name string) (err er
 	return c.client.Gns().DeleteFooByName(ctx, hashedName)
 }
 
+func (c *gnsGnsTsmV1Chainer) AdditionalGnsData(name string) *additionalgnsdataGnsTsmV1Chainer {
+	parentLabels := c.parentLabels
+	parentLabels["additionalgnsdatas.gns.tsm.tanzu.vmware.com"] = name
+	return &additionalgnsdataGnsTsmV1Chainer{
+		client:       c.client,
+		name:         name,
+		parentLabels: parentLabels,
+	}
+}
+
+// GetAdditionalGnsData calculates hashed name of the object based on displayName and it's parents and returns the object
+func (c *gnsGnsTsmV1Chainer) GetAdditionalGnsData(ctx context.Context, displayName string) (result *GnsAdditionalGnsData, err error) {
+	hashedName := helper.GetHashedName("additionalgnsdatas.gns.tsm.tanzu.vmware.com", c.parentLabels, displayName)
+	return c.client.Gns().GetAdditionalGnsDataByName(ctx, hashedName)
+}
+
+// AddAdditionalGnsData calculates hashed name of the child to create based on objToCreate.Name
+// and parents names and creates it. objToCreate.Name is changed to the hashed name. Original name is preserved in
+// nexus/display_name label and can be obtained using DisplayName() method.
+func (c *gnsGnsTsmV1Chainer) AddAdditionalGnsData(ctx context.Context,
+	objToCreate *basegnstsmtanzuvmwarecomv1.AdditionalGnsData) (result *GnsAdditionalGnsData, err error) {
+	if objToCreate.Labels == nil {
+		objToCreate.Labels = map[string]string{}
+	}
+	for k, v := range c.parentLabels {
+		objToCreate.Labels[k] = v
+	}
+	if objToCreate.Labels[common.IS_NAME_HASHED_LABEL] != "true" {
+		objToCreate.Labels[common.DISPLAY_NAME_LABEL] = objToCreate.GetName()
+		objToCreate.Labels[common.IS_NAME_HASHED_LABEL] = "true"
+		hashedName := helper.GetHashedName("additionalgnsdatas.gns.tsm.tanzu.vmware.com", c.parentLabels, objToCreate.GetName())
+		objToCreate.Name = hashedName
+	}
+	return c.client.Gns().CreateAdditionalGnsDataByName(ctx, objToCreate)
+}
+
+// DeleteAdditionalGnsData calculates hashed name of the child to delete based on displayName
+// and parents names and deletes it.
+func (c *gnsGnsTsmV1Chainer) DeleteAdditionalGnsData(ctx context.Context, name string) (err error) {
+	if c.parentLabels == nil {
+		c.parentLabels = map[string]string{}
+	}
+	c.parentLabels[common.IS_NAME_HASHED_LABEL] = "true"
+	hashedName := helper.GetHashedName("additionalgnsdatas.gns.tsm.tanzu.vmware.com", c.parentLabels, name)
+	return c.client.Gns().DeleteAdditionalGnsDataByName(ctx, hashedName)
+}
+
 // GetBarChildByName returns object stored in the database under the hashedName which is a hash of display
 // name and parents names. Use it when you know hashed name of object.
 func (group *GnsTsmV1) GetBarChildByName(ctx context.Context, hashedName string) (*GnsBarChild, error) {
@@ -4204,18 +7991,48 @@ func (group *GnsTsmV1) GetBarChildByName(ctx context.Context, hashedName string)
 			BarChild: result,
 		}, nil
 	} else {
-		result, err := group.client.baseClient.
-			GnsTsmV1().
-			BarChilds().Get(ctx, hashedName, metav1.GetOptions{})
-		if err != nil {
-			return nil, err
+		retryCount := 12
+		for {
+			result, err := group.client.baseClient.
+				GnsTsmV1().
+				BarChilds().Get(ctx, hashedName, metav1.GetOptions{})
+			if err != nil {
+				log.Errorf("Failed to Get BarChilds: %+v", err)
+				if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded) {
+					log.Errorf("[Retry Count: %d ] %+v", retryCount, err)
+					if retryCount == 0 {
+						log.Error("Max Retry exceed on Get BarChilds")
+						return nil, err
+					}
+					retryCount -= 1
+					time.Sleep(5 * time.Second)
+				} else {
+					log.Errorf("Unexpected Error: %+v", err)
+					return nil, err
+				}
+			}
+			return &GnsBarChild{
+				client:   group.client,
+				BarChild: result,
+			}, nil
 		}
-
-		return &GnsBarChild{
-			client:   group.client,
-			BarChild: result,
-		}, nil
 	}
+}
+
+// ForceReadBarChildByName read object directly from the database under the hashedName which is a hash of display
+// name and parents names. Use it when you know hashed name of object.
+func (group *GnsTsmV1) ForceReadBarChildByName(ctx context.Context, hashedName string) (*GnsBarChild, error) {
+	result, err := group.client.baseClient.
+		GnsTsmV1().
+		BarChilds().Get(ctx, hashedName, metav1.GetOptions{})
+	if err != nil {
+		return nil, err
+	}
+
+	return &GnsBarChild{
+		client:   group.client,
+		BarChild: result,
+	}, nil
 }
 
 // DeleteBarChildByName deletes object stored in the database under the hashedName which is a hash of
@@ -4226,7 +8043,25 @@ func (group *GnsTsmV1) DeleteBarChildByName(ctx context.Context, hashedName stri
 		GnsTsmV1().
 		BarChilds().Get(ctx, hashedName, metav1.GetOptions{})
 	if err != nil {
-		return err
+		if customerrors.Is(err, context.DeadlineExceeded) {
+			log.Errorf("context deadline exceeded, on creating GNS: %+v", hashedName)
+			return context.DeadlineExceeded
+		} else if customerrors.Is(err, context.Canceled) {
+			log.Errorf("context cancelled, on creating GNS: %+v", hashedName)
+			return context.Canceled
+		} else {
+			log.Errorf("Unexpected Error: %+v", err)
+			return err
+		}
+	}
+
+	if result.Spec.RandomGnsDataGvk != nil {
+		err := group.client.
+			Gns().
+			DeleteRandomGnsDataByName(ctx, result.Spec.RandomGnsDataGvk.Name)
+		if err != nil && !errors.IsNotFound(err) {
+			return err
+		}
 	}
 
 	err = group.client.baseClient.
@@ -4259,11 +8094,44 @@ func (group *GnsTsmV1) DeleteBarChildByName(ctx context.Context, hashedName stri
 	if parents[common.IS_NAME_HASHED_LABEL] == "true" {
 		parentName = helper.GetHashedName("gnses.gns.tsm.tanzu.vmware.com", parents, parentName)
 	}
-	_, err = group.client.baseClient.
-		GnsTsmV1().
-		Gnses().Patch(ctx, parentName, types.JSONPatchType, marshaled, metav1.PatchOptions{})
-	if err != nil {
-		return err
+
+	retryCount := 12
+	newCtx := context.TODO()
+	for {
+		_, err = group.client.baseClient.
+			GnsTsmV1().
+			Gnses().Patch(newCtx, parentName, types.JSONPatchType, marshaled, metav1.PatchOptions{})
+		if err != nil {
+			log.Errorf("Failed to patch BarChild gvk in parent node[Gnses]: %+v", err)
+			if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded) {
+				log.Errorf("[Retry Count: %d ] %+v", retryCount, err)
+				if retryCount == 0 {
+					log.Error("Max Retry exceed on patching gvk")
+					log.Errorf("Trigger BarChild Delete: %s", hashedName)
+					err = group.DeleteBarChildByName(newCtx, hashedName)
+					if err != nil {
+						log.Errorf("Error occur while deleting BarChild: %s", hashedName)
+						return err
+					}
+					log.Errorf("BarChild Deleted: %s", hashedName)
+					return err
+				}
+				retryCount -= 1
+				time.Sleep(5 * time.Second)
+			} else {
+				log.Errorf("Unexpected Error: %+v", err)
+				log.Errorf("Trigger BarChild Delete: %s", hashedName)
+				err = group.DeleteBarChildByName(newCtx, hashedName)
+				if err != nil {
+					log.Errorf("Error occur while deleting BarChild: %+v", hashedName)
+					return err
+				}
+				log.Errorf("BarChild Deleted: %s", hashedName)
+				return err
+			}
+		} else {
+			break
+		}
 	}
 
 	return
@@ -4286,11 +8154,22 @@ func (group *GnsTsmV1) CreateBarChildByName(ctx context.Context,
 		return nil, NewSingletonNameError(objToCreate.Labels[common.DISPLAY_NAME_LABEL])
 	}
 
+	objToCreate.Spec.RandomGnsDataGvk = nil
+
 	result, err := group.client.baseClient.
 		GnsTsmV1().
 		BarChilds().Create(ctx, objToCreate, metav1.CreateOptions{})
 	if err != nil {
-		return nil, err
+		if customerrors.Is(err, context.DeadlineExceeded) {
+			log.Errorf("context deadline exceeded, on creating GNS: %+v", objToCreate)
+			return nil, context.DeadlineExceeded
+		} else if customerrors.Is(err, context.Canceled) {
+			log.Errorf("context cancelled, on creating GNS: %+v", objToCreate)
+			return nil, context.Canceled
+		} else {
+			log.Errorf("Unexpected Error: %+v", err)
+			return nil, err
+		}
 	}
 
 	parentName, ok := objToCreate.GetLabels()["gnses.gns.tsm.tanzu.vmware.com"]
@@ -4316,11 +8195,43 @@ func (group *GnsTsmV1) CreateBarChildByName(ctx context.Context,
 	if err != nil {
 		return nil, err
 	}
-	_, err = group.client.baseClient.
-		GnsTsmV1().
-		Gnses().Patch(ctx, parentName, types.JSONPatchType, marshaled, metav1.PatchOptions{})
-	if err != nil {
-		return nil, err
+	retryCount := 12
+	newCtx := context.TODO()
+	for {
+		_, err = group.client.baseClient.
+			GnsTsmV1().
+			Gnses().Patch(newCtx, parentName, types.JSONPatchType, marshaled, metav1.PatchOptions{})
+		if err != nil {
+			log.Errorf("Failed to patch BarChild gvk in parent node[Gnses]: %+v", err)
+			if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded) {
+				log.Errorf("[Retry Count: %d ] %+v", retryCount, err)
+				if retryCount == 0 {
+					log.Error("Max Retry exceed on patching gvk")
+					log.Errorf("Trigger BarChild Delete: %s", objToCreate.GetName())
+					err = group.DeleteBarChildByName(newCtx, objToCreate.GetName())
+					if err != nil {
+						log.Errorf("Error occur while deleting BarChild: %s", objToCreate.GetName())
+						return nil, err
+					}
+					log.Errorf("BarChild Deleted: %s", objToCreate.GetName())
+					return nil, err
+				}
+				retryCount -= 1
+				time.Sleep(5 * time.Second)
+			} else {
+				log.Errorf("Unexpected Error: %+v", err)
+				log.Errorf("Trigger BarChild Delete: %s", objToCreate.GetName())
+				err = group.DeleteBarChildByName(newCtx, objToCreate.GetName())
+				if err != nil {
+					log.Errorf("Error occur while deleting BarChild: %+v", objToCreate.GetName())
+					return nil, err
+				}
+				log.Errorf("BarChild Deleted: %s", objToCreate.GetName())
+				return nil, err
+			}
+		} else {
+			break
+		}
 	}
 
 	return &GnsBarChild{
@@ -4342,7 +8253,16 @@ func (group *GnsTsmV1) UpdateBarChildByName(ctx context.Context,
 			GnsTsmV1().
 			BarChilds().Get(ctx, objToUpdate.GetName(), metav1.GetOptions{})
 		if err != nil {
-			return nil, err
+			if customerrors.Is(err, context.DeadlineExceeded) {
+				log.Errorf("context deadline exceeded, on creating GNS: %+v", objToUpdate)
+				return nil, context.DeadlineExceeded
+			} else if customerrors.Is(err, context.Canceled) {
+				log.Errorf("context cancelled, on creating GNS: %+v", objToUpdate)
+				return nil, context.Canceled
+			} else {
+				log.Errorf("Unexpected Error: %+v", err)
+				return nil, err
+			}
 		}
 		objToUpdate.ResourceVersion = current.ResourceVersion
 	}
@@ -4442,6 +8362,60 @@ func (obj *GnsBarChild) GetParent(ctx context.Context) (result *GnsGns, err erro
 	return obj.client.Gns().GetGnsByName(ctx, hashedName)
 }
 
+// GetRandomGnsData returns child of given type
+func (obj *GnsBarChild) GetRandomGnsData(ctx context.Context) (
+	result *GnsRandomGnsData, err error) {
+	if obj.Spec.RandomGnsDataGvk == nil {
+		return nil, NewChildNotFound(obj.DisplayName(), "Gns.BarChild", "RandomGnsData")
+	}
+	return obj.client.Gns().GetRandomGnsDataByName(ctx, obj.Spec.RandomGnsDataGvk.Name)
+}
+
+// AddRandomGnsData calculates hashed name of the child to create based on objToCreate.Name
+// and parents names and creates it. objToCreate.Name is changed to the hashed name. Original name is preserved in
+// nexus/display_name label and can be obtained using DisplayName() method.
+func (obj *GnsBarChild) AddRandomGnsData(ctx context.Context,
+	objToCreate *basegnstsmtanzuvmwarecomv1.RandomGnsData) (result *GnsRandomGnsData, err error) {
+	if objToCreate.Labels == nil {
+		objToCreate.Labels = map[string]string{}
+	}
+	for _, v := range helper.GetCRDParentsMap()["barchilds.gns.tsm.tanzu.vmware.com"] {
+		objToCreate.Labels[v] = obj.Labels[v]
+	}
+	objToCreate.Labels["barchilds.gns.tsm.tanzu.vmware.com"] = obj.DisplayName()
+	if objToCreate.Labels[common.IS_NAME_HASHED_LABEL] != "true" {
+		objToCreate.Labels[common.DISPLAY_NAME_LABEL] = objToCreate.GetName()
+		objToCreate.Labels[common.IS_NAME_HASHED_LABEL] = "true"
+		hashedName := helper.GetHashedName(objToCreate.CRDName(), objToCreate.Labels, objToCreate.GetName())
+		objToCreate.Name = hashedName
+	}
+	result, err = obj.client.Gns().CreateRandomGnsDataByName(ctx, objToCreate)
+	updatedObj, getErr := obj.client.Gns().GetBarChildByName(ctx, obj.GetName())
+	if getErr == nil {
+		obj.BarChild = updatedObj.BarChild
+	}
+	return
+}
+
+// DeleteRandomGnsData calculates hashed name of the child to delete based on displayName
+// and parents names and deletes it.
+
+func (obj *GnsBarChild) DeleteRandomGnsData(ctx context.Context) (err error) {
+	if obj.Spec.RandomGnsDataGvk != nil {
+		err = obj.client.
+			Gns().DeleteRandomGnsDataByName(ctx, obj.Spec.RandomGnsDataGvk.Name)
+		if err != nil {
+			return err
+		}
+	}
+	updatedObj, err := obj.client.
+		Gns().GetBarChildByName(ctx, obj.GetName())
+	if err == nil {
+		obj.BarChild = updatedObj.BarChild
+	}
+	return
+}
+
 type barchildGnsTsmV1Chainer struct {
 	client       *Clientset
 	name         string
@@ -4470,6 +8444,494 @@ func (c *barchildGnsTsmV1Chainer) IsSubscribed() bool {
 	return ok
 }
 
+func (c *barchildGnsTsmV1Chainer) RegisterEventHandler(addCB func(obj *GnsBarChild), updateCB func(oldObj, newObj *GnsBarChild), deleteCB func(obj *GnsBarChild)) (cache.ResourceEventHandlerRegistration, error) {
+	fmt.Println("RegisterEventHandler for GnsBarChild")
+	var (
+		registrationId cache.ResourceEventHandlerRegistration
+		err            error
+		informer       cache.SharedIndexInformer
+	)
+	key := "barchilds.gns.tsm.tanzu.vmware.com"
+	stopper := make(chan struct{})
+	if s, ok := subscriptionMap.Load(key); ok {
+		fmt.Println("Informer exists for GnsBarChild")
+		sub := s.(subscription)
+		informer = sub.informer
+	} else {
+		fmt.Println("Informer doesn't exists for GnsBarChild, so creating a new one")
+		informer = informergnstsmtanzuvmwarecomv1.NewBarChildInformer(c.client.baseClient, 0, cache.Indexers{})
+		go informer.Run(stopper)
+		subscribe(key, informer)
+	}
+	registrationId, err = informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
+		AddFunc: func(obj interface{}) {
+			nc := &GnsBarChild{
+				client:   c.client,
+				BarChild: obj.(*basegnstsmtanzuvmwarecomv1.BarChild),
+			}
+
+			var parent *GnsGns
+			gvkExist := false
+			for i := 0; i < 600; i++ {
+				// Check if parent exists
+				p, err := nc.GetParent(context.TODO())
+				if err != nil || p == nil {
+					time.Sleep(500 * time.Millisecond)
+					continue
+				}
+				parent = p
+				// Check GVK
+
+				if parent.Spec.FooChildGvk == nil {
+					time.Sleep(500 * time.Millisecond)
+					continue
+				}
+
+				gvkExist = true
+				break
+			}
+			if parent == nil {
+				hashedName := helper.GetHashedName("gnses.gns.tsm.tanzu.vmware.com", nc.Labels, nc.Labels["gnses.gns.tsm.tanzu.vmware.com"])
+				parent, err = c.client.Gns().ForceReadGnsByName(context.TODO(), hashedName)
+				if err != nil {
+					if errors.IsNotFound(err) {
+						return
+					}
+					panic("error occurred while fetching parent " + err.Error())
+				}
+				panic(fmt.Sprintf("parent found (event loop is stalled) " + nc.DisplayName()))
+			}
+			if !gvkExist {
+				// Check GVK
+
+				if parent.Spec.FooChildGvk == nil {
+					return
+				}
+
+				panic(fmt.Sprintf("gvk found (event loop is stalled) " + nc.DisplayName()))
+			}
+
+			addCB(nc)
+		},
+
+		UpdateFunc: func(oldObj, newObj interface{}) {
+			oldData := &GnsBarChild{
+				client:   c.client,
+				BarChild: oldObj.(*basegnstsmtanzuvmwarecomv1.BarChild),
+			}
+			newData := &GnsBarChild{
+				client:   c.client,
+				BarChild: newObj.(*basegnstsmtanzuvmwarecomv1.BarChild),
+			}
+			updateCB(oldData, newData)
+		},
+
+		DeleteFunc: func(obj interface{}) {
+			nc := &GnsBarChild{
+				client:   c.client,
+				BarChild: obj.(*basegnstsmtanzuvmwarecomv1.BarChild),
+			}
+
+			var parent *GnsGns
+			gvkExist := true
+			for i := 0; i < 600; i++ {
+				// Check if parent exists
+				p, err := nc.GetParent(context.TODO())
+				if err != nil || p == nil {
+					time.Sleep(500 * time.Millisecond)
+					continue
+				}
+				parent = p
+				// Check GVK
+
+				if parent.Spec.FooChildGvk != nil {
+					time.Sleep(500 * time.Millisecond)
+					continue
+				}
+
+				gvkExist = false
+				break
+			}
+			if parent == nil {
+				hashedName := helper.GetHashedName("gnses.gns.tsm.tanzu.vmware.com", nc.Labels, nc.Labels["gnses.gns.tsm.tanzu.vmware.com"])
+				parent, err = c.client.Gns().ForceReadGnsByName(context.TODO(), hashedName)
+				if err != nil {
+					if errors.IsNotFound(err) {
+						return
+					}
+					panic("error occurred while fetching parent " + err.Error())
+				}
+				panic(fmt.Sprintf("parent found (event loop is stalled) " + nc.DisplayName()))
+			}
+			if gvkExist {
+				// Check GVK
+
+				if parent.Spec.FooChildGvk != nil {
+					return
+				}
+
+				panic(fmt.Sprintf("gvk not found (event loop is stalled) " + nc.DisplayName()))
+			}
+
+			deleteCB(nc)
+		},
+	})
+	return registrationId, err
+}
+
+func (c *barchildGnsTsmV1Chainer) RegisterAddCallback(cbfn func(obj *GnsBarChild)) (cache.ResourceEventHandlerRegistration, error) {
+	fmt.Println("GnsBarChild -->  RegisterAddCallback!")
+	var (
+		registrationId cache.ResourceEventHandlerRegistration
+		err            error
+	)
+	key := "barchilds.gns.tsm.tanzu.vmware.com"
+	stopper := make(chan struct{})
+	if s, ok := subscriptionMap.Load(key); ok {
+		fmt.Println("[GnsBarChild] ---SUBSCRIBE-INFORMER---->")
+		sub := s.(subscription)
+		registrationId, err = sub.informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
+			AddFunc: func(obj interface{}) {
+				nc := &GnsBarChild{
+					client:   c.client,
+					BarChild: obj.(*basegnstsmtanzuvmwarecomv1.BarChild),
+				}
+
+				var parent *GnsGns
+				gvkExist := false
+				for i := 0; i < 600; i++ {
+					// Check if parent exists
+					p, err := nc.GetParent(context.TODO())
+					if err != nil || p == nil {
+						time.Sleep(500 * time.Millisecond)
+						continue
+					}
+					parent = p
+
+					// Check GVK
+
+					if parent.Spec.FooChildGvk == nil {
+						time.Sleep(500 * time.Millisecond)
+						continue
+					}
+
+					gvkExist = true
+
+					break
+				}
+
+				if parent == nil {
+					hashedName := helper.GetHashedName("gnses.gns.tsm.tanzu.vmware.com", nc.Labels, nc.Labels["gnses.gns.tsm.tanzu.vmware.com"])
+					parent, err = c.client.Gns().ForceReadGnsByName(context.TODO(), hashedName)
+					if err != nil {
+						if errors.IsNotFound(err) {
+							return
+						}
+
+						panic("error occurred while fetching parent " + err.Error())
+					}
+					panic(fmt.Sprintf("parent found (event loop is stalled) " + nc.DisplayName()))
+				}
+
+				if !gvkExist {
+					// Check GVK
+
+					if parent.Spec.FooChildGvk == nil {
+						return
+					}
+
+					panic(fmt.Sprintf("gvk found (event loop is stalled) " + nc.DisplayName()))
+				}
+
+				cbfn(nc)
+			},
+		})
+	} else {
+		fmt.Println("[GnsBarChild] ---NEW-INFORMER---->")
+		informer := informergnstsmtanzuvmwarecomv1.NewBarChildInformer(c.client.baseClient, 0, cache.Indexers{})
+		registrationId, err = informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
+			AddFunc: func(obj interface{}) {
+				nc := &GnsBarChild{
+					client:   c.client,
+					BarChild: obj.(*basegnstsmtanzuvmwarecomv1.BarChild),
+				}
+
+				var parent *GnsGns
+				gvkExist := false
+				for i := 0; i < 600; i++ {
+					// Check if parent exists
+					p, err := nc.GetParent(context.TODO())
+					if err != nil || p == nil {
+						time.Sleep(500 * time.Millisecond)
+						continue
+					}
+					parent = p
+
+					// Check GVK
+
+					if parent.Spec.FooChildGvk == nil {
+						time.Sleep(500 * time.Millisecond)
+						continue
+					}
+
+					gvkExist = true
+
+					break
+				}
+
+				if parent == nil {
+					hashedName := helper.GetHashedName("gnses.gns.tsm.tanzu.vmware.com", nc.Labels, nc.Labels["gnses.gns.tsm.tanzu.vmware.com"])
+					parent, err = c.client.Gns().ForceReadGnsByName(context.TODO(), hashedName)
+					if err != nil {
+						if errors.IsNotFound(err) {
+							return
+						}
+
+						panic("error occurred while fetching parent " + err.Error())
+					}
+					panic(fmt.Sprintf("parent found (event loop is stalled) " + nc.DisplayName()))
+				}
+
+				if !gvkExist {
+					// Check GVK
+
+					if parent.Spec.FooChildGvk == nil {
+						return
+					}
+
+					panic(fmt.Sprintf("gvk found (event loop is stalled) " + nc.DisplayName()))
+				}
+
+				cbfn(nc)
+			},
+		})
+		go informer.Run(stopper)
+	}
+	return registrationId, err
+}
+
+func (c *barchildGnsTsmV1Chainer) RegisterUpdateCallback(cbfn func(oldObj, newObj *GnsBarChild)) (cache.ResourceEventHandlerRegistration, error) {
+	fmt.Println("GnsBarChild -->  RegisterUpdateCallback!")
+	var (
+		registrationId cache.ResourceEventHandlerRegistration
+		err            error
+	)
+	key := "barchilds.gns.tsm.tanzu.vmware.com"
+	stopper := make(chan struct{})
+	if s, ok := subscriptionMap.Load(key); ok {
+		fmt.Println("[GnsBarChild] ---SUBSCRIBE-INFORMER---->")
+		sub := s.(subscription)
+		registrationId, err = sub.informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
+			UpdateFunc: func(oldObj, newObj interface{}) {
+				oldData := &GnsBarChild{
+					client:   c.client,
+					BarChild: oldObj.(*basegnstsmtanzuvmwarecomv1.BarChild),
+				}
+				newData := &GnsBarChild{
+					client:   c.client,
+					BarChild: newObj.(*basegnstsmtanzuvmwarecomv1.BarChild),
+				}
+				cbfn(oldData, newData)
+			},
+		})
+	} else {
+		fmt.Println("[GnsBarChild] ---NEW-INFORMER---->")
+		informer := informergnstsmtanzuvmwarecomv1.NewBarChildInformer(c.client.baseClient, 0, cache.Indexers{})
+		registrationId, err = informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
+			UpdateFunc: func(oldObj, newObj interface{}) {
+				oldData := &GnsBarChild{
+					client:   c.client,
+					BarChild: oldObj.(*basegnstsmtanzuvmwarecomv1.BarChild),
+				}
+				newData := &GnsBarChild{
+					client:   c.client,
+					BarChild: newObj.(*basegnstsmtanzuvmwarecomv1.BarChild),
+				}
+				cbfn(oldData, newData)
+			},
+		})
+		go informer.Run(stopper)
+	}
+	return registrationId, err
+}
+
+func (c *barchildGnsTsmV1Chainer) RegisterDeleteCallback(cbfn func(obj *GnsBarChild)) (cache.ResourceEventHandlerRegistration, error) {
+	fmt.Println("GnsBarChild -->  RegisterDeleteCallback!")
+	var (
+		registrationId cache.ResourceEventHandlerRegistration
+		err            error
+	)
+	key := "barchilds.gns.tsm.tanzu.vmware.com"
+	stopper := make(chan struct{})
+	if s, ok := subscriptionMap.Load(key); ok {
+		fmt.Println("[GnsBarChild] ---SUBSCRIBE-INFORMER---->")
+		sub := s.(subscription)
+		registrationId, err = sub.informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
+			DeleteFunc: func(obj interface{}) {
+				nc := &GnsBarChild{
+					client:   c.client,
+					BarChild: obj.(*basegnstsmtanzuvmwarecomv1.BarChild),
+				}
+
+				var parent *GnsGns
+				gvkExist := true
+				for i := 0; i < 600; i++ {
+					// Check if parent exists
+					p, err := nc.GetParent(context.TODO())
+					if err != nil || p == nil {
+						time.Sleep(500 * time.Millisecond)
+						continue
+					}
+					parent = p
+
+					// Check GVK
+
+					if parent.Spec.FooChildGvk != nil {
+						time.Sleep(500 * time.Millisecond)
+						continue
+					}
+
+					gvkExist = false
+					break
+				}
+
+				if parent == nil {
+					hashedName := helper.GetHashedName("gnses.gns.tsm.tanzu.vmware.com", nc.Labels, nc.Labels["gnses.gns.tsm.tanzu.vmware.com"])
+					parent, err = c.client.Gns().ForceReadGnsByName(context.TODO(), hashedName)
+					if err != nil {
+						if errors.IsNotFound(err) {
+							return
+						}
+
+						panic("error occurred while fetching parent " + err.Error())
+					}
+					panic(fmt.Sprintf("parent found (event loop is stalled) " + nc.DisplayName()))
+				}
+
+				if gvkExist {
+					// Check GVK
+
+					if parent.Spec.FooChildGvk != nil {
+						return
+					}
+
+					panic(fmt.Sprintf("gvk not found (event loop is stalled) " + nc.DisplayName()))
+				}
+
+				cbfn(nc)
+			},
+		})
+	} else {
+		fmt.Println("[GnsBarChild] ---NEW-INFORMER---->")
+		informer := informergnstsmtanzuvmwarecomv1.NewBarChildInformer(c.client.baseClient, 0, cache.Indexers{})
+		registrationId, err = informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
+			DeleteFunc: func(obj interface{}) {
+				nc := &GnsBarChild{
+					client:   c.client,
+					BarChild: obj.(*basegnstsmtanzuvmwarecomv1.BarChild),
+				}
+
+				var parent *GnsGns
+				gvkExist := true
+				for i := 0; i < 600; i++ {
+					// Check if parent exists
+					p, err := nc.GetParent(context.TODO())
+					if err != nil || p == nil {
+						time.Sleep(500 * time.Millisecond)
+						continue
+					}
+					parent = p
+
+					// Check GVK
+
+					if parent.Spec.FooChildGvk != nil {
+						time.Sleep(500 * time.Millisecond)
+						continue
+					}
+
+					gvkExist = false
+
+					break
+				}
+
+				if parent == nil {
+					hashedName := helper.GetHashedName("gnses.gns.tsm.tanzu.vmware.com", nc.Labels, nc.Labels["gnses.gns.tsm.tanzu.vmware.com"])
+					parent, err = c.client.Gns().ForceReadGnsByName(context.TODO(), hashedName)
+					if err != nil {
+						if errors.IsNotFound(err) {
+							return
+						}
+
+						panic("error occurred while fetching parent " + err.Error())
+					}
+					panic(fmt.Sprintf("parent found (event loop is stalled) " + nc.DisplayName()))
+				}
+
+				if gvkExist {
+					// Check GVK
+
+					if parent.Spec.FooChildGvk != nil {
+						return
+					}
+
+					panic(fmt.Sprintf("gvk not found (event loop is stalled) " + nc.DisplayName()))
+				}
+
+				cbfn(nc)
+			},
+		})
+		go informer.Run(stopper)
+	}
+	return registrationId, err
+}
+
+func (c *barchildGnsTsmV1Chainer) RandomGnsData(name string) *randomgnsdataGnsTsmV1Chainer {
+	parentLabels := c.parentLabels
+	parentLabels["randomgnsdatas.gns.tsm.tanzu.vmware.com"] = name
+	return &randomgnsdataGnsTsmV1Chainer{
+		client:       c.client,
+		name:         name,
+		parentLabels: parentLabels,
+	}
+}
+
+// GetRandomGnsData calculates hashed name of the object based on displayName and it's parents and returns the object
+func (c *barchildGnsTsmV1Chainer) GetRandomGnsData(ctx context.Context, displayName string) (result *GnsRandomGnsData, err error) {
+	hashedName := helper.GetHashedName("randomgnsdatas.gns.tsm.tanzu.vmware.com", c.parentLabels, displayName)
+	return c.client.Gns().GetRandomGnsDataByName(ctx, hashedName)
+}
+
+// AddRandomGnsData calculates hashed name of the child to create based on objToCreate.Name
+// and parents names and creates it. objToCreate.Name is changed to the hashed name. Original name is preserved in
+// nexus/display_name label and can be obtained using DisplayName() method.
+func (c *barchildGnsTsmV1Chainer) AddRandomGnsData(ctx context.Context,
+	objToCreate *basegnstsmtanzuvmwarecomv1.RandomGnsData) (result *GnsRandomGnsData, err error) {
+	if objToCreate.Labels == nil {
+		objToCreate.Labels = map[string]string{}
+	}
+	for k, v := range c.parentLabels {
+		objToCreate.Labels[k] = v
+	}
+	if objToCreate.Labels[common.IS_NAME_HASHED_LABEL] != "true" {
+		objToCreate.Labels[common.DISPLAY_NAME_LABEL] = objToCreate.GetName()
+		objToCreate.Labels[common.IS_NAME_HASHED_LABEL] = "true"
+		hashedName := helper.GetHashedName("randomgnsdatas.gns.tsm.tanzu.vmware.com", c.parentLabels, objToCreate.GetName())
+		objToCreate.Name = hashedName
+	}
+	return c.client.Gns().CreateRandomGnsDataByName(ctx, objToCreate)
+}
+
+// DeleteRandomGnsData calculates hashed name of the child to delete based on displayName
+// and parents names and deletes it.
+func (c *barchildGnsTsmV1Chainer) DeleteRandomGnsData(ctx context.Context, name string) (err error) {
+	if c.parentLabels == nil {
+		c.parentLabels = map[string]string{}
+	}
+	c.parentLabels[common.IS_NAME_HASHED_LABEL] = "true"
+	hashedName := helper.GetHashedName("randomgnsdatas.gns.tsm.tanzu.vmware.com", c.parentLabels, name)
+	return c.client.Gns().DeleteRandomGnsDataByName(ctx, hashedName)
+}
+
 // GetIgnoreChildByName returns object stored in the database under the hashedName which is a hash of display
 // name and parents names. Use it when you know hashed name of object.
 func (group *GnsTsmV1) GetIgnoreChildByName(ctx context.Context, hashedName string) (*GnsIgnoreChild, error) {
@@ -4486,18 +8948,48 @@ func (group *GnsTsmV1) GetIgnoreChildByName(ctx context.Context, hashedName stri
 			IgnoreChild: result,
 		}, nil
 	} else {
-		result, err := group.client.baseClient.
-			GnsTsmV1().
-			IgnoreChilds().Get(ctx, hashedName, metav1.GetOptions{})
-		if err != nil {
-			return nil, err
+		retryCount := 12
+		for {
+			result, err := group.client.baseClient.
+				GnsTsmV1().
+				IgnoreChilds().Get(ctx, hashedName, metav1.GetOptions{})
+			if err != nil {
+				log.Errorf("Failed to Get IgnoreChilds: %+v", err)
+				if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded) {
+					log.Errorf("[Retry Count: %d ] %+v", retryCount, err)
+					if retryCount == 0 {
+						log.Error("Max Retry exceed on Get IgnoreChilds")
+						return nil, err
+					}
+					retryCount -= 1
+					time.Sleep(5 * time.Second)
+				} else {
+					log.Errorf("Unexpected Error: %+v", err)
+					return nil, err
+				}
+			}
+			return &GnsIgnoreChild{
+				client:      group.client,
+				IgnoreChild: result,
+			}, nil
 		}
-
-		return &GnsIgnoreChild{
-			client:      group.client,
-			IgnoreChild: result,
-		}, nil
 	}
+}
+
+// ForceReadIgnoreChildByName read object directly from the database under the hashedName which is a hash of display
+// name and parents names. Use it when you know hashed name of object.
+func (group *GnsTsmV1) ForceReadIgnoreChildByName(ctx context.Context, hashedName string) (*GnsIgnoreChild, error) {
+	result, err := group.client.baseClient.
+		GnsTsmV1().
+		IgnoreChilds().Get(ctx, hashedName, metav1.GetOptions{})
+	if err != nil {
+		return nil, err
+	}
+
+	return &GnsIgnoreChild{
+		client:      group.client,
+		IgnoreChild: result,
+	}, nil
 }
 
 // DeleteIgnoreChildByName deletes object stored in the database under the hashedName which is a hash of
@@ -4508,7 +9000,16 @@ func (group *GnsTsmV1) DeleteIgnoreChildByName(ctx context.Context, hashedName s
 		GnsTsmV1().
 		IgnoreChilds().Get(ctx, hashedName, metav1.GetOptions{})
 	if err != nil {
-		return err
+		if customerrors.Is(err, context.DeadlineExceeded) {
+			log.Errorf("context deadline exceeded, on creating GNS: %+v", hashedName)
+			return context.DeadlineExceeded
+		} else if customerrors.Is(err, context.Canceled) {
+			log.Errorf("context cancelled, on creating GNS: %+v", hashedName)
+			return context.Canceled
+		} else {
+			log.Errorf("Unexpected Error: %+v", err)
+			return err
+		}
 	}
 
 	err = group.client.baseClient.
@@ -4541,11 +9042,44 @@ func (group *GnsTsmV1) DeleteIgnoreChildByName(ctx context.Context, hashedName s
 	if parents[common.IS_NAME_HASHED_LABEL] == "true" {
 		parentName = helper.GetHashedName("gnses.gns.tsm.tanzu.vmware.com", parents, parentName)
 	}
-	_, err = group.client.baseClient.
-		GnsTsmV1().
-		Gnses().Patch(ctx, parentName, types.JSONPatchType, marshaled, metav1.PatchOptions{})
-	if err != nil {
-		return err
+
+	retryCount := 12
+	newCtx := context.TODO()
+	for {
+		_, err = group.client.baseClient.
+			GnsTsmV1().
+			Gnses().Patch(newCtx, parentName, types.JSONPatchType, marshaled, metav1.PatchOptions{})
+		if err != nil {
+			log.Errorf("Failed to patch IgnoreChild gvk in parent node[Gnses]: %+v", err)
+			if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded) {
+				log.Errorf("[Retry Count: %d ] %+v", retryCount, err)
+				if retryCount == 0 {
+					log.Error("Max Retry exceed on patching gvk")
+					log.Errorf("Trigger IgnoreChild Delete: %s", hashedName)
+					err = group.DeleteIgnoreChildByName(newCtx, hashedName)
+					if err != nil {
+						log.Errorf("Error occur while deleting IgnoreChild: %s", hashedName)
+						return err
+					}
+					log.Errorf("IgnoreChild Deleted: %s", hashedName)
+					return err
+				}
+				retryCount -= 1
+				time.Sleep(5 * time.Second)
+			} else {
+				log.Errorf("Unexpected Error: %+v", err)
+				log.Errorf("Trigger IgnoreChild Delete: %s", hashedName)
+				err = group.DeleteIgnoreChildByName(newCtx, hashedName)
+				if err != nil {
+					log.Errorf("Error occur while deleting IgnoreChild: %+v", hashedName)
+					return err
+				}
+				log.Errorf("IgnoreChild Deleted: %s", hashedName)
+				return err
+			}
+		} else {
+			break
+		}
 	}
 
 	return
@@ -4566,7 +9100,16 @@ func (group *GnsTsmV1) CreateIgnoreChildByName(ctx context.Context,
 		GnsTsmV1().
 		IgnoreChilds().Create(ctx, objToCreate, metav1.CreateOptions{})
 	if err != nil {
-		return nil, err
+		if customerrors.Is(err, context.DeadlineExceeded) {
+			log.Errorf("context deadline exceeded, on creating GNS: %+v", objToCreate)
+			return nil, context.DeadlineExceeded
+		} else if customerrors.Is(err, context.Canceled) {
+			log.Errorf("context cancelled, on creating GNS: %+v", objToCreate)
+			return nil, context.Canceled
+		} else {
+			log.Errorf("Unexpected Error: %+v", err)
+			return nil, err
+		}
 	}
 
 	parentName, ok := objToCreate.GetLabels()["gnses.gns.tsm.tanzu.vmware.com"]
@@ -4592,11 +9135,43 @@ func (group *GnsTsmV1) CreateIgnoreChildByName(ctx context.Context,
 	if err != nil {
 		return nil, err
 	}
-	_, err = group.client.baseClient.
-		GnsTsmV1().
-		Gnses().Patch(ctx, parentName, types.JSONPatchType, marshaled, metav1.PatchOptions{})
-	if err != nil {
-		return nil, err
+	retryCount := 12
+	newCtx := context.TODO()
+	for {
+		_, err = group.client.baseClient.
+			GnsTsmV1().
+			Gnses().Patch(newCtx, parentName, types.JSONPatchType, marshaled, metav1.PatchOptions{})
+		if err != nil {
+			log.Errorf("Failed to patch IgnoreChild gvk in parent node[Gnses]: %+v", err)
+			if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded) {
+				log.Errorf("[Retry Count: %d ] %+v", retryCount, err)
+				if retryCount == 0 {
+					log.Error("Max Retry exceed on patching gvk")
+					log.Errorf("Trigger IgnoreChild Delete: %s", objToCreate.GetName())
+					err = group.DeleteIgnoreChildByName(newCtx, objToCreate.GetName())
+					if err != nil {
+						log.Errorf("Error occur while deleting IgnoreChild: %s", objToCreate.GetName())
+						return nil, err
+					}
+					log.Errorf("IgnoreChild Deleted: %s", objToCreate.GetName())
+					return nil, err
+				}
+				retryCount -= 1
+				time.Sleep(5 * time.Second)
+			} else {
+				log.Errorf("Unexpected Error: %+v", err)
+				log.Errorf("Trigger IgnoreChild Delete: %s", objToCreate.GetName())
+				err = group.DeleteIgnoreChildByName(newCtx, objToCreate.GetName())
+				if err != nil {
+					log.Errorf("Error occur while deleting IgnoreChild: %+v", objToCreate.GetName())
+					return nil, err
+				}
+				log.Errorf("IgnoreChild Deleted: %s", objToCreate.GetName())
+				return nil, err
+			}
+		} else {
+			break
+		}
 	}
 
 	return &GnsIgnoreChild{
@@ -4616,7 +9191,16 @@ func (group *GnsTsmV1) UpdateIgnoreChildByName(ctx context.Context,
 			GnsTsmV1().
 			IgnoreChilds().Get(ctx, objToUpdate.GetName(), metav1.GetOptions{})
 		if err != nil {
-			return nil, err
+			if customerrors.Is(err, context.DeadlineExceeded) {
+				log.Errorf("context deadline exceeded, on creating GNS: %+v", objToUpdate)
+				return nil, context.DeadlineExceeded
+			} else if customerrors.Is(err, context.Canceled) {
+				log.Errorf("context cancelled, on creating GNS: %+v", objToUpdate)
+				return nil, context.Canceled
+			} else {
+				log.Errorf("Unexpected Error: %+v", err)
+				return nil, err
+			}
 		}
 		objToUpdate.ResourceVersion = current.ResourceVersion
 	}
@@ -4744,6 +9328,447 @@ func (c *ignorechildGnsTsmV1Chainer) IsSubscribed() bool {
 	return ok
 }
 
+func (c *ignorechildGnsTsmV1Chainer) RegisterEventHandler(addCB func(obj *GnsIgnoreChild), updateCB func(oldObj, newObj *GnsIgnoreChild), deleteCB func(obj *GnsIgnoreChild)) (cache.ResourceEventHandlerRegistration, error) {
+	fmt.Println("RegisterEventHandler for GnsIgnoreChild")
+	var (
+		registrationId cache.ResourceEventHandlerRegistration
+		err            error
+		informer       cache.SharedIndexInformer
+	)
+	key := "ignorechilds.gns.tsm.tanzu.vmware.com"
+	stopper := make(chan struct{})
+	if s, ok := subscriptionMap.Load(key); ok {
+		fmt.Println("Informer exists for GnsIgnoreChild")
+		sub := s.(subscription)
+		informer = sub.informer
+	} else {
+		fmt.Println("Informer doesn't exists for GnsIgnoreChild, so creating a new one")
+		informer = informergnstsmtanzuvmwarecomv1.NewIgnoreChildInformer(c.client.baseClient, 0, cache.Indexers{})
+		go informer.Run(stopper)
+		subscribe(key, informer)
+	}
+	registrationId, err = informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
+		AddFunc: func(obj interface{}) {
+			nc := &GnsIgnoreChild{
+				client:      c.client,
+				IgnoreChild: obj.(*basegnstsmtanzuvmwarecomv1.IgnoreChild),
+			}
+
+			var parent *GnsGns
+			gvkExist := false
+			for i := 0; i < 600; i++ {
+				// Check if parent exists
+				p, err := nc.GetParent(context.TODO())
+				if err != nil || p == nil {
+					time.Sleep(500 * time.Millisecond)
+					continue
+				}
+				parent = p
+				// Check GVK
+
+				if parent.Spec.IgnoreChildGvk == nil {
+					time.Sleep(500 * time.Millisecond)
+					continue
+				}
+
+				gvkExist = true
+				break
+			}
+			if parent == nil {
+				hashedName := helper.GetHashedName("gnses.gns.tsm.tanzu.vmware.com", nc.Labels, nc.Labels["gnses.gns.tsm.tanzu.vmware.com"])
+				parent, err = c.client.Gns().ForceReadGnsByName(context.TODO(), hashedName)
+				if err != nil {
+					if errors.IsNotFound(err) {
+						return
+					}
+					panic("error occurred while fetching parent " + err.Error())
+				}
+				panic(fmt.Sprintf("parent found (event loop is stalled) " + nc.DisplayName()))
+			}
+			if !gvkExist {
+				// Check GVK
+
+				if parent.Spec.IgnoreChildGvk == nil {
+					return
+				}
+
+				panic(fmt.Sprintf("gvk found (event loop is stalled) " + nc.DisplayName()))
+			}
+
+			addCB(nc)
+		},
+
+		UpdateFunc: func(oldObj, newObj interface{}) {
+			oldData := &GnsIgnoreChild{
+				client:      c.client,
+				IgnoreChild: oldObj.(*basegnstsmtanzuvmwarecomv1.IgnoreChild),
+			}
+			newData := &GnsIgnoreChild{
+				client:      c.client,
+				IgnoreChild: newObj.(*basegnstsmtanzuvmwarecomv1.IgnoreChild),
+			}
+			updateCB(oldData, newData)
+		},
+
+		DeleteFunc: func(obj interface{}) {
+			nc := &GnsIgnoreChild{
+				client:      c.client,
+				IgnoreChild: obj.(*basegnstsmtanzuvmwarecomv1.IgnoreChild),
+			}
+
+			var parent *GnsGns
+			gvkExist := true
+			for i := 0; i < 600; i++ {
+				// Check if parent exists
+				p, err := nc.GetParent(context.TODO())
+				if err != nil || p == nil {
+					time.Sleep(500 * time.Millisecond)
+					continue
+				}
+				parent = p
+				// Check GVK
+
+				if parent.Spec.IgnoreChildGvk != nil {
+					time.Sleep(500 * time.Millisecond)
+					continue
+				}
+
+				gvkExist = false
+				break
+			}
+			if parent == nil {
+				hashedName := helper.GetHashedName("gnses.gns.tsm.tanzu.vmware.com", nc.Labels, nc.Labels["gnses.gns.tsm.tanzu.vmware.com"])
+				parent, err = c.client.Gns().ForceReadGnsByName(context.TODO(), hashedName)
+				if err != nil {
+					if errors.IsNotFound(err) {
+						return
+					}
+					panic("error occurred while fetching parent " + err.Error())
+				}
+				panic(fmt.Sprintf("parent found (event loop is stalled) " + nc.DisplayName()))
+			}
+			if gvkExist {
+				// Check GVK
+
+				if parent.Spec.IgnoreChildGvk != nil {
+					return
+				}
+
+				panic(fmt.Sprintf("gvk not found (event loop is stalled) " + nc.DisplayName()))
+			}
+
+			deleteCB(nc)
+		},
+	})
+	return registrationId, err
+}
+
+func (c *ignorechildGnsTsmV1Chainer) RegisterAddCallback(cbfn func(obj *GnsIgnoreChild)) (cache.ResourceEventHandlerRegistration, error) {
+	fmt.Println("GnsIgnoreChild -->  RegisterAddCallback!")
+	var (
+		registrationId cache.ResourceEventHandlerRegistration
+		err            error
+	)
+	key := "ignorechilds.gns.tsm.tanzu.vmware.com"
+	stopper := make(chan struct{})
+	if s, ok := subscriptionMap.Load(key); ok {
+		fmt.Println("[GnsIgnoreChild] ---SUBSCRIBE-INFORMER---->")
+		sub := s.(subscription)
+		registrationId, err = sub.informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
+			AddFunc: func(obj interface{}) {
+				nc := &GnsIgnoreChild{
+					client:      c.client,
+					IgnoreChild: obj.(*basegnstsmtanzuvmwarecomv1.IgnoreChild),
+				}
+
+				var parent *GnsGns
+				gvkExist := false
+				for i := 0; i < 600; i++ {
+					// Check if parent exists
+					p, err := nc.GetParent(context.TODO())
+					if err != nil || p == nil {
+						time.Sleep(500 * time.Millisecond)
+						continue
+					}
+					parent = p
+
+					// Check GVK
+
+					if parent.Spec.IgnoreChildGvk == nil {
+						time.Sleep(500 * time.Millisecond)
+						continue
+					}
+
+					gvkExist = true
+
+					break
+				}
+
+				if parent == nil {
+					hashedName := helper.GetHashedName("gnses.gns.tsm.tanzu.vmware.com", nc.Labels, nc.Labels["gnses.gns.tsm.tanzu.vmware.com"])
+					parent, err = c.client.Gns().ForceReadGnsByName(context.TODO(), hashedName)
+					if err != nil {
+						if errors.IsNotFound(err) {
+							return
+						}
+
+						panic("error occurred while fetching parent " + err.Error())
+					}
+					panic(fmt.Sprintf("parent found (event loop is stalled) " + nc.DisplayName()))
+				}
+
+				if !gvkExist {
+					// Check GVK
+
+					if parent.Spec.IgnoreChildGvk == nil {
+						return
+					}
+
+					panic(fmt.Sprintf("gvk found (event loop is stalled) " + nc.DisplayName()))
+				}
+
+				cbfn(nc)
+			},
+		})
+	} else {
+		fmt.Println("[GnsIgnoreChild] ---NEW-INFORMER---->")
+		informer := informergnstsmtanzuvmwarecomv1.NewIgnoreChildInformer(c.client.baseClient, 0, cache.Indexers{})
+		registrationId, err = informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
+			AddFunc: func(obj interface{}) {
+				nc := &GnsIgnoreChild{
+					client:      c.client,
+					IgnoreChild: obj.(*basegnstsmtanzuvmwarecomv1.IgnoreChild),
+				}
+
+				var parent *GnsGns
+				gvkExist := false
+				for i := 0; i < 600; i++ {
+					// Check if parent exists
+					p, err := nc.GetParent(context.TODO())
+					if err != nil || p == nil {
+						time.Sleep(500 * time.Millisecond)
+						continue
+					}
+					parent = p
+
+					// Check GVK
+
+					if parent.Spec.IgnoreChildGvk == nil {
+						time.Sleep(500 * time.Millisecond)
+						continue
+					}
+
+					gvkExist = true
+
+					break
+				}
+
+				if parent == nil {
+					hashedName := helper.GetHashedName("gnses.gns.tsm.tanzu.vmware.com", nc.Labels, nc.Labels["gnses.gns.tsm.tanzu.vmware.com"])
+					parent, err = c.client.Gns().ForceReadGnsByName(context.TODO(), hashedName)
+					if err != nil {
+						if errors.IsNotFound(err) {
+							return
+						}
+
+						panic("error occurred while fetching parent " + err.Error())
+					}
+					panic(fmt.Sprintf("parent found (event loop is stalled) " + nc.DisplayName()))
+				}
+
+				if !gvkExist {
+					// Check GVK
+
+					if parent.Spec.IgnoreChildGvk == nil {
+						return
+					}
+
+					panic(fmt.Sprintf("gvk found (event loop is stalled) " + nc.DisplayName()))
+				}
+
+				cbfn(nc)
+			},
+		})
+		go informer.Run(stopper)
+	}
+	return registrationId, err
+}
+
+func (c *ignorechildGnsTsmV1Chainer) RegisterUpdateCallback(cbfn func(oldObj, newObj *GnsIgnoreChild)) (cache.ResourceEventHandlerRegistration, error) {
+	fmt.Println("GnsIgnoreChild -->  RegisterUpdateCallback!")
+	var (
+		registrationId cache.ResourceEventHandlerRegistration
+		err            error
+	)
+	key := "ignorechilds.gns.tsm.tanzu.vmware.com"
+	stopper := make(chan struct{})
+	if s, ok := subscriptionMap.Load(key); ok {
+		fmt.Println("[GnsIgnoreChild] ---SUBSCRIBE-INFORMER---->")
+		sub := s.(subscription)
+		registrationId, err = sub.informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
+			UpdateFunc: func(oldObj, newObj interface{}) {
+				oldData := &GnsIgnoreChild{
+					client:      c.client,
+					IgnoreChild: oldObj.(*basegnstsmtanzuvmwarecomv1.IgnoreChild),
+				}
+				newData := &GnsIgnoreChild{
+					client:      c.client,
+					IgnoreChild: newObj.(*basegnstsmtanzuvmwarecomv1.IgnoreChild),
+				}
+				cbfn(oldData, newData)
+			},
+		})
+	} else {
+		fmt.Println("[GnsIgnoreChild] ---NEW-INFORMER---->")
+		informer := informergnstsmtanzuvmwarecomv1.NewIgnoreChildInformer(c.client.baseClient, 0, cache.Indexers{})
+		registrationId, err = informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
+			UpdateFunc: func(oldObj, newObj interface{}) {
+				oldData := &GnsIgnoreChild{
+					client:      c.client,
+					IgnoreChild: oldObj.(*basegnstsmtanzuvmwarecomv1.IgnoreChild),
+				}
+				newData := &GnsIgnoreChild{
+					client:      c.client,
+					IgnoreChild: newObj.(*basegnstsmtanzuvmwarecomv1.IgnoreChild),
+				}
+				cbfn(oldData, newData)
+			},
+		})
+		go informer.Run(stopper)
+	}
+	return registrationId, err
+}
+
+func (c *ignorechildGnsTsmV1Chainer) RegisterDeleteCallback(cbfn func(obj *GnsIgnoreChild)) (cache.ResourceEventHandlerRegistration, error) {
+	fmt.Println("GnsIgnoreChild -->  RegisterDeleteCallback!")
+	var (
+		registrationId cache.ResourceEventHandlerRegistration
+		err            error
+	)
+	key := "ignorechilds.gns.tsm.tanzu.vmware.com"
+	stopper := make(chan struct{})
+	if s, ok := subscriptionMap.Load(key); ok {
+		fmt.Println("[GnsIgnoreChild] ---SUBSCRIBE-INFORMER---->")
+		sub := s.(subscription)
+		registrationId, err = sub.informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
+			DeleteFunc: func(obj interface{}) {
+				nc := &GnsIgnoreChild{
+					client:      c.client,
+					IgnoreChild: obj.(*basegnstsmtanzuvmwarecomv1.IgnoreChild),
+				}
+
+				var parent *GnsGns
+				gvkExist := true
+				for i := 0; i < 600; i++ {
+					// Check if parent exists
+					p, err := nc.GetParent(context.TODO())
+					if err != nil || p == nil {
+						time.Sleep(500 * time.Millisecond)
+						continue
+					}
+					parent = p
+
+					// Check GVK
+
+					if parent.Spec.IgnoreChildGvk != nil {
+						time.Sleep(500 * time.Millisecond)
+						continue
+					}
+
+					gvkExist = false
+					break
+				}
+
+				if parent == nil {
+					hashedName := helper.GetHashedName("gnses.gns.tsm.tanzu.vmware.com", nc.Labels, nc.Labels["gnses.gns.tsm.tanzu.vmware.com"])
+					parent, err = c.client.Gns().ForceReadGnsByName(context.TODO(), hashedName)
+					if err != nil {
+						if errors.IsNotFound(err) {
+							return
+						}
+
+						panic("error occurred while fetching parent " + err.Error())
+					}
+					panic(fmt.Sprintf("parent found (event loop is stalled) " + nc.DisplayName()))
+				}
+
+				if gvkExist {
+					// Check GVK
+
+					if parent.Spec.IgnoreChildGvk != nil {
+						return
+					}
+
+					panic(fmt.Sprintf("gvk not found (event loop is stalled) " + nc.DisplayName()))
+				}
+
+				cbfn(nc)
+			},
+		})
+	} else {
+		fmt.Println("[GnsIgnoreChild] ---NEW-INFORMER---->")
+		informer := informergnstsmtanzuvmwarecomv1.NewIgnoreChildInformer(c.client.baseClient, 0, cache.Indexers{})
+		registrationId, err = informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
+			DeleteFunc: func(obj interface{}) {
+				nc := &GnsIgnoreChild{
+					client:      c.client,
+					IgnoreChild: obj.(*basegnstsmtanzuvmwarecomv1.IgnoreChild),
+				}
+
+				var parent *GnsGns
+				gvkExist := true
+				for i := 0; i < 600; i++ {
+					// Check if parent exists
+					p, err := nc.GetParent(context.TODO())
+					if err != nil || p == nil {
+						time.Sleep(500 * time.Millisecond)
+						continue
+					}
+					parent = p
+
+					// Check GVK
+
+					if parent.Spec.IgnoreChildGvk != nil {
+						time.Sleep(500 * time.Millisecond)
+						continue
+					}
+
+					gvkExist = false
+
+					break
+				}
+
+				if parent == nil {
+					hashedName := helper.GetHashedName("gnses.gns.tsm.tanzu.vmware.com", nc.Labels, nc.Labels["gnses.gns.tsm.tanzu.vmware.com"])
+					parent, err = c.client.Gns().ForceReadGnsByName(context.TODO(), hashedName)
+					if err != nil {
+						if errors.IsNotFound(err) {
+							return
+						}
+
+						panic("error occurred while fetching parent " + err.Error())
+					}
+					panic(fmt.Sprintf("parent found (event loop is stalled) " + nc.DisplayName()))
+				}
+
+				if gvkExist {
+					// Check GVK
+
+					if parent.Spec.IgnoreChildGvk != nil {
+						return
+					}
+
+					panic(fmt.Sprintf("gvk not found (event loop is stalled) " + nc.DisplayName()))
+				}
+
+				cbfn(nc)
+			},
+		})
+		go informer.Run(stopper)
+	}
+	return registrationId, err
+}
+
 // GetDnsByName returns object stored in the database under the hashedName which is a hash of display
 // name and parents names. Use it when you know hashed name of object.
 func (group *GnsTsmV1) GetDnsByName(ctx context.Context, hashedName string) (*GnsDns, error) {
@@ -4760,18 +9785,48 @@ func (group *GnsTsmV1) GetDnsByName(ctx context.Context, hashedName string) (*Gn
 			Dns:    result,
 		}, nil
 	} else {
-		result, err := group.client.baseClient.
-			GnsTsmV1().
-			Dnses().Get(ctx, hashedName, metav1.GetOptions{})
-		if err != nil {
-			return nil, err
+		retryCount := 12
+		for {
+			result, err := group.client.baseClient.
+				GnsTsmV1().
+				Dnses().Get(ctx, hashedName, metav1.GetOptions{})
+			if err != nil {
+				log.Errorf("Failed to Get Dnses: %+v", err)
+				if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded) {
+					log.Errorf("[Retry Count: %d ] %+v", retryCount, err)
+					if retryCount == 0 {
+						log.Error("Max Retry exceed on Get Dnses")
+						return nil, err
+					}
+					retryCount -= 1
+					time.Sleep(5 * time.Second)
+				} else {
+					log.Errorf("Unexpected Error: %+v", err)
+					return nil, err
+				}
+			}
+			return &GnsDns{
+				client: group.client,
+				Dns:    result,
+			}, nil
 		}
-
-		return &GnsDns{
-			client: group.client,
-			Dns:    result,
-		}, nil
 	}
+}
+
+// ForceReadDnsByName read object directly from the database under the hashedName which is a hash of display
+// name and parents names. Use it when you know hashed name of object.
+func (group *GnsTsmV1) ForceReadDnsByName(ctx context.Context, hashedName string) (*GnsDns, error) {
+	result, err := group.client.baseClient.
+		GnsTsmV1().
+		Dnses().Get(ctx, hashedName, metav1.GetOptions{})
+	if err != nil {
+		return nil, err
+	}
+
+	return &GnsDns{
+		client: group.client,
+		Dns:    result,
+	}, nil
 }
 
 // DeleteDnsByName deletes object stored in the database under the hashedName which is a hash of
@@ -4782,7 +9837,16 @@ func (group *GnsTsmV1) DeleteDnsByName(ctx context.Context, hashedName string) (
 		GnsTsmV1().
 		Dnses().Get(ctx, hashedName, metav1.GetOptions{})
 	if err != nil {
-		return err
+		if customerrors.Is(err, context.DeadlineExceeded) {
+			log.Errorf("context deadline exceeded, on creating GNS: %+v", hashedName)
+			return context.DeadlineExceeded
+		} else if customerrors.Is(err, context.Canceled) {
+			log.Errorf("context cancelled, on creating GNS: %+v", hashedName)
+			return context.Canceled
+		} else {
+			log.Errorf("Unexpected Error: %+v", err)
+			return err
+		}
 	}
 
 	err = group.client.baseClient.
@@ -4815,11 +9879,44 @@ func (group *GnsTsmV1) DeleteDnsByName(ctx context.Context, hashedName string) (
 	if parents[common.IS_NAME_HASHED_LABEL] == "true" {
 		parentName = helper.GetHashedName("configs.config.tsm.tanzu.vmware.com", parents, parentName)
 	}
-	_, err = group.client.baseClient.
-		ConfigTsmV1().
-		Configs().Patch(ctx, parentName, types.JSONPatchType, marshaled, metav1.PatchOptions{})
-	if err != nil {
-		return err
+
+	retryCount := 12
+	newCtx := context.TODO()
+	for {
+		_, err = group.client.baseClient.
+			ConfigTsmV1().
+			Configs().Patch(newCtx, parentName, types.JSONPatchType, marshaled, metav1.PatchOptions{})
+		if err != nil {
+			log.Errorf("Failed to patch Dns gvk in parent node[Configs]: %+v", err)
+			if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded) {
+				log.Errorf("[Retry Count: %d ] %+v", retryCount, err)
+				if retryCount == 0 {
+					log.Error("Max Retry exceed on patching gvk")
+					log.Errorf("Trigger Dns Delete: %s", hashedName)
+					err = group.DeleteDnsByName(newCtx, hashedName)
+					if err != nil {
+						log.Errorf("Error occur while deleting Dns: %s", hashedName)
+						return err
+					}
+					log.Errorf("Dns Deleted: %s", hashedName)
+					return err
+				}
+				retryCount -= 1
+				time.Sleep(5 * time.Second)
+			} else {
+				log.Errorf("Unexpected Error: %+v", err)
+				log.Errorf("Trigger Dns Delete: %s", hashedName)
+				err = group.DeleteDnsByName(newCtx, hashedName)
+				if err != nil {
+					log.Errorf("Error occur while deleting Dns: %+v", hashedName)
+					return err
+				}
+				log.Errorf("Dns Deleted: %s", hashedName)
+				return err
+			}
+		} else {
+			break
+		}
 	}
 
 	return
@@ -4846,7 +9943,16 @@ func (group *GnsTsmV1) CreateDnsByName(ctx context.Context,
 		GnsTsmV1().
 		Dnses().Create(ctx, objToCreate, metav1.CreateOptions{})
 	if err != nil {
-		return nil, err
+		if customerrors.Is(err, context.DeadlineExceeded) {
+			log.Errorf("context deadline exceeded, on creating GNS: %+v", objToCreate)
+			return nil, context.DeadlineExceeded
+		} else if customerrors.Is(err, context.Canceled) {
+			log.Errorf("context cancelled, on creating GNS: %+v", objToCreate)
+			return nil, context.Canceled
+		} else {
+			log.Errorf("Unexpected Error: %+v", err)
+			return nil, err
+		}
 	}
 
 	parentName, ok := objToCreate.GetLabels()["configs.config.tsm.tanzu.vmware.com"]
@@ -4872,11 +9978,43 @@ func (group *GnsTsmV1) CreateDnsByName(ctx context.Context,
 	if err != nil {
 		return nil, err
 	}
-	_, err = group.client.baseClient.
-		ConfigTsmV1().
-		Configs().Patch(ctx, parentName, types.JSONPatchType, marshaled, metav1.PatchOptions{})
-	if err != nil {
-		return nil, err
+	retryCount := 12
+	newCtx := context.TODO()
+	for {
+		_, err = group.client.baseClient.
+			ConfigTsmV1().
+			Configs().Patch(newCtx, parentName, types.JSONPatchType, marshaled, metav1.PatchOptions{})
+		if err != nil {
+			log.Errorf("Failed to patch Dns gvk in parent node[Configs]: %+v", err)
+			if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded) {
+				log.Errorf("[Retry Count: %d ] %+v", retryCount, err)
+				if retryCount == 0 {
+					log.Error("Max Retry exceed on patching gvk")
+					log.Errorf("Trigger Dns Delete: %s", objToCreate.GetName())
+					err = group.DeleteDnsByName(newCtx, objToCreate.GetName())
+					if err != nil {
+						log.Errorf("Error occur while deleting Dns: %s", objToCreate.GetName())
+						return nil, err
+					}
+					log.Errorf("Dns Deleted: %s", objToCreate.GetName())
+					return nil, err
+				}
+				retryCount -= 1
+				time.Sleep(5 * time.Second)
+			} else {
+				log.Errorf("Unexpected Error: %+v", err)
+				log.Errorf("Trigger Dns Delete: %s", objToCreate.GetName())
+				err = group.DeleteDnsByName(newCtx, objToCreate.GetName())
+				if err != nil {
+					log.Errorf("Error occur while deleting Dns: %+v", objToCreate.GetName())
+					return nil, err
+				}
+				log.Errorf("Dns Deleted: %s", objToCreate.GetName())
+				return nil, err
+			}
+		} else {
+			break
+		}
 	}
 
 	return &GnsDns{
@@ -4898,7 +10036,16 @@ func (group *GnsTsmV1) UpdateDnsByName(ctx context.Context,
 			GnsTsmV1().
 			Dnses().Get(ctx, objToUpdate.GetName(), metav1.GetOptions{})
 		if err != nil {
-			return nil, err
+			if customerrors.Is(err, context.DeadlineExceeded) {
+				log.Errorf("context deadline exceeded, on creating GNS: %+v", objToUpdate)
+				return nil, context.DeadlineExceeded
+			} else if customerrors.Is(err, context.Canceled) {
+				log.Errorf("context cancelled, on creating GNS: %+v", objToUpdate)
+				return nil, context.Canceled
+			} else {
+				log.Errorf("Unexpected Error: %+v", err)
+				return nil, err
+			}
 		}
 		objToUpdate.ResourceVersion = current.ResourceVersion
 	}
@@ -5017,6 +10164,447 @@ func (c *dnsGnsTsmV1Chainer) IsSubscribed() bool {
 	return ok
 }
 
+func (c *dnsGnsTsmV1Chainer) RegisterEventHandler(addCB func(obj *GnsDns), updateCB func(oldObj, newObj *GnsDns), deleteCB func(obj *GnsDns)) (cache.ResourceEventHandlerRegistration, error) {
+	fmt.Println("RegisterEventHandler for GnsDns")
+	var (
+		registrationId cache.ResourceEventHandlerRegistration
+		err            error
+		informer       cache.SharedIndexInformer
+	)
+	key := "dnses.gns.tsm.tanzu.vmware.com"
+	stopper := make(chan struct{})
+	if s, ok := subscriptionMap.Load(key); ok {
+		fmt.Println("Informer exists for GnsDns")
+		sub := s.(subscription)
+		informer = sub.informer
+	} else {
+		fmt.Println("Informer doesn't exists for GnsDns, so creating a new one")
+		informer = informergnstsmtanzuvmwarecomv1.NewDnsInformer(c.client.baseClient, 0, cache.Indexers{})
+		go informer.Run(stopper)
+		subscribe(key, informer)
+	}
+	registrationId, err = informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
+		AddFunc: func(obj interface{}) {
+			nc := &GnsDns{
+				client: c.client,
+				Dns:    obj.(*basegnstsmtanzuvmwarecomv1.Dns),
+			}
+
+			var parent *ConfigConfig
+			gvkExist := false
+			for i := 0; i < 600; i++ {
+				// Check if parent exists
+				p, err := nc.GetParent(context.TODO())
+				if err != nil || p == nil {
+					time.Sleep(500 * time.Millisecond)
+					continue
+				}
+				parent = p
+				// Check GVK
+
+				if parent.Spec.DNSGvk == nil {
+					time.Sleep(500 * time.Millisecond)
+					continue
+				}
+
+				gvkExist = true
+				break
+			}
+			if parent == nil {
+				hashedName := helper.GetHashedName("configs.config.tsm.tanzu.vmware.com", nc.Labels, nc.Labels["configs.config.tsm.tanzu.vmware.com"])
+				parent, err = c.client.Config().ForceReadConfigByName(context.TODO(), hashedName)
+				if err != nil {
+					if errors.IsNotFound(err) {
+						return
+					}
+					panic("error occurred while fetching parent " + err.Error())
+				}
+				panic(fmt.Sprintf("parent found (event loop is stalled) " + nc.DisplayName()))
+			}
+			if !gvkExist {
+				// Check GVK
+
+				if parent.Spec.DNSGvk == nil {
+					return
+				}
+
+				panic(fmt.Sprintf("gvk found (event loop is stalled) " + nc.DisplayName()))
+			}
+
+			addCB(nc)
+		},
+
+		UpdateFunc: func(oldObj, newObj interface{}) {
+			oldData := &GnsDns{
+				client: c.client,
+				Dns:    oldObj.(*basegnstsmtanzuvmwarecomv1.Dns),
+			}
+			newData := &GnsDns{
+				client: c.client,
+				Dns:    newObj.(*basegnstsmtanzuvmwarecomv1.Dns),
+			}
+			updateCB(oldData, newData)
+		},
+
+		DeleteFunc: func(obj interface{}) {
+			nc := &GnsDns{
+				client: c.client,
+				Dns:    obj.(*basegnstsmtanzuvmwarecomv1.Dns),
+			}
+
+			var parent *ConfigConfig
+			gvkExist := true
+			for i := 0; i < 600; i++ {
+				// Check if parent exists
+				p, err := nc.GetParent(context.TODO())
+				if err != nil || p == nil {
+					time.Sleep(500 * time.Millisecond)
+					continue
+				}
+				parent = p
+				// Check GVK
+
+				if parent.Spec.DNSGvk != nil {
+					time.Sleep(500 * time.Millisecond)
+					continue
+				}
+
+				gvkExist = false
+				break
+			}
+			if parent == nil {
+				hashedName := helper.GetHashedName("configs.config.tsm.tanzu.vmware.com", nc.Labels, nc.Labels["configs.config.tsm.tanzu.vmware.com"])
+				parent, err = c.client.Config().ForceReadConfigByName(context.TODO(), hashedName)
+				if err != nil {
+					if errors.IsNotFound(err) {
+						return
+					}
+					panic("error occurred while fetching parent " + err.Error())
+				}
+				panic(fmt.Sprintf("parent found (event loop is stalled) " + nc.DisplayName()))
+			}
+			if gvkExist {
+				// Check GVK
+
+				if parent.Spec.DNSGvk != nil {
+					return
+				}
+
+				panic(fmt.Sprintf("gvk not found (event loop is stalled) " + nc.DisplayName()))
+			}
+
+			deleteCB(nc)
+		},
+	})
+	return registrationId, err
+}
+
+func (c *dnsGnsTsmV1Chainer) RegisterAddCallback(cbfn func(obj *GnsDns)) (cache.ResourceEventHandlerRegistration, error) {
+	fmt.Println("GnsDns -->  RegisterAddCallback!")
+	var (
+		registrationId cache.ResourceEventHandlerRegistration
+		err            error
+	)
+	key := "dnses.gns.tsm.tanzu.vmware.com"
+	stopper := make(chan struct{})
+	if s, ok := subscriptionMap.Load(key); ok {
+		fmt.Println("[GnsDns] ---SUBSCRIBE-INFORMER---->")
+		sub := s.(subscription)
+		registrationId, err = sub.informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
+			AddFunc: func(obj interface{}) {
+				nc := &GnsDns{
+					client: c.client,
+					Dns:    obj.(*basegnstsmtanzuvmwarecomv1.Dns),
+				}
+
+				var parent *ConfigConfig
+				gvkExist := false
+				for i := 0; i < 600; i++ {
+					// Check if parent exists
+					p, err := nc.GetParent(context.TODO())
+					if err != nil || p == nil {
+						time.Sleep(500 * time.Millisecond)
+						continue
+					}
+					parent = p
+
+					// Check GVK
+
+					if parent.Spec.DNSGvk == nil {
+						time.Sleep(500 * time.Millisecond)
+						continue
+					}
+
+					gvkExist = true
+
+					break
+				}
+
+				if parent == nil {
+					hashedName := helper.GetHashedName("configs.config.tsm.tanzu.vmware.com", nc.Labels, nc.Labels["configs.config.tsm.tanzu.vmware.com"])
+					parent, err = c.client.Config().ForceReadConfigByName(context.TODO(), hashedName)
+					if err != nil {
+						if errors.IsNotFound(err) {
+							return
+						}
+
+						panic("error occurred while fetching parent " + err.Error())
+					}
+					panic(fmt.Sprintf("parent found (event loop is stalled) " + nc.DisplayName()))
+				}
+
+				if !gvkExist {
+					// Check GVK
+
+					if parent.Spec.DNSGvk == nil {
+						return
+					}
+
+					panic(fmt.Sprintf("gvk found (event loop is stalled) " + nc.DisplayName()))
+				}
+
+				cbfn(nc)
+			},
+		})
+	} else {
+		fmt.Println("[GnsDns] ---NEW-INFORMER---->")
+		informer := informergnstsmtanzuvmwarecomv1.NewDnsInformer(c.client.baseClient, 0, cache.Indexers{})
+		registrationId, err = informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
+			AddFunc: func(obj interface{}) {
+				nc := &GnsDns{
+					client: c.client,
+					Dns:    obj.(*basegnstsmtanzuvmwarecomv1.Dns),
+				}
+
+				var parent *ConfigConfig
+				gvkExist := false
+				for i := 0; i < 600; i++ {
+					// Check if parent exists
+					p, err := nc.GetParent(context.TODO())
+					if err != nil || p == nil {
+						time.Sleep(500 * time.Millisecond)
+						continue
+					}
+					parent = p
+
+					// Check GVK
+
+					if parent.Spec.DNSGvk == nil {
+						time.Sleep(500 * time.Millisecond)
+						continue
+					}
+
+					gvkExist = true
+
+					break
+				}
+
+				if parent == nil {
+					hashedName := helper.GetHashedName("configs.config.tsm.tanzu.vmware.com", nc.Labels, nc.Labels["configs.config.tsm.tanzu.vmware.com"])
+					parent, err = c.client.Config().ForceReadConfigByName(context.TODO(), hashedName)
+					if err != nil {
+						if errors.IsNotFound(err) {
+							return
+						}
+
+						panic("error occurred while fetching parent " + err.Error())
+					}
+					panic(fmt.Sprintf("parent found (event loop is stalled) " + nc.DisplayName()))
+				}
+
+				if !gvkExist {
+					// Check GVK
+
+					if parent.Spec.DNSGvk == nil {
+						return
+					}
+
+					panic(fmt.Sprintf("gvk found (event loop is stalled) " + nc.DisplayName()))
+				}
+
+				cbfn(nc)
+			},
+		})
+		go informer.Run(stopper)
+	}
+	return registrationId, err
+}
+
+func (c *dnsGnsTsmV1Chainer) RegisterUpdateCallback(cbfn func(oldObj, newObj *GnsDns)) (cache.ResourceEventHandlerRegistration, error) {
+	fmt.Println("GnsDns -->  RegisterUpdateCallback!")
+	var (
+		registrationId cache.ResourceEventHandlerRegistration
+		err            error
+	)
+	key := "dnses.gns.tsm.tanzu.vmware.com"
+	stopper := make(chan struct{})
+	if s, ok := subscriptionMap.Load(key); ok {
+		fmt.Println("[GnsDns] ---SUBSCRIBE-INFORMER---->")
+		sub := s.(subscription)
+		registrationId, err = sub.informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
+			UpdateFunc: func(oldObj, newObj interface{}) {
+				oldData := &GnsDns{
+					client: c.client,
+					Dns:    oldObj.(*basegnstsmtanzuvmwarecomv1.Dns),
+				}
+				newData := &GnsDns{
+					client: c.client,
+					Dns:    newObj.(*basegnstsmtanzuvmwarecomv1.Dns),
+				}
+				cbfn(oldData, newData)
+			},
+		})
+	} else {
+		fmt.Println("[GnsDns] ---NEW-INFORMER---->")
+		informer := informergnstsmtanzuvmwarecomv1.NewDnsInformer(c.client.baseClient, 0, cache.Indexers{})
+		registrationId, err = informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
+			UpdateFunc: func(oldObj, newObj interface{}) {
+				oldData := &GnsDns{
+					client: c.client,
+					Dns:    oldObj.(*basegnstsmtanzuvmwarecomv1.Dns),
+				}
+				newData := &GnsDns{
+					client: c.client,
+					Dns:    newObj.(*basegnstsmtanzuvmwarecomv1.Dns),
+				}
+				cbfn(oldData, newData)
+			},
+		})
+		go informer.Run(stopper)
+	}
+	return registrationId, err
+}
+
+func (c *dnsGnsTsmV1Chainer) RegisterDeleteCallback(cbfn func(obj *GnsDns)) (cache.ResourceEventHandlerRegistration, error) {
+	fmt.Println("GnsDns -->  RegisterDeleteCallback!")
+	var (
+		registrationId cache.ResourceEventHandlerRegistration
+		err            error
+	)
+	key := "dnses.gns.tsm.tanzu.vmware.com"
+	stopper := make(chan struct{})
+	if s, ok := subscriptionMap.Load(key); ok {
+		fmt.Println("[GnsDns] ---SUBSCRIBE-INFORMER---->")
+		sub := s.(subscription)
+		registrationId, err = sub.informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
+			DeleteFunc: func(obj interface{}) {
+				nc := &GnsDns{
+					client: c.client,
+					Dns:    obj.(*basegnstsmtanzuvmwarecomv1.Dns),
+				}
+
+				var parent *ConfigConfig
+				gvkExist := true
+				for i := 0; i < 600; i++ {
+					// Check if parent exists
+					p, err := nc.GetParent(context.TODO())
+					if err != nil || p == nil {
+						time.Sleep(500 * time.Millisecond)
+						continue
+					}
+					parent = p
+
+					// Check GVK
+
+					if parent.Spec.DNSGvk != nil {
+						time.Sleep(500 * time.Millisecond)
+						continue
+					}
+
+					gvkExist = false
+					break
+				}
+
+				if parent == nil {
+					hashedName := helper.GetHashedName("configs.config.tsm.tanzu.vmware.com", nc.Labels, nc.Labels["configs.config.tsm.tanzu.vmware.com"])
+					parent, err = c.client.Config().ForceReadConfigByName(context.TODO(), hashedName)
+					if err != nil {
+						if errors.IsNotFound(err) {
+							return
+						}
+
+						panic("error occurred while fetching parent " + err.Error())
+					}
+					panic(fmt.Sprintf("parent found (event loop is stalled) " + nc.DisplayName()))
+				}
+
+				if gvkExist {
+					// Check GVK
+
+					if parent.Spec.DNSGvk != nil {
+						return
+					}
+
+					panic(fmt.Sprintf("gvk not found (event loop is stalled) " + nc.DisplayName()))
+				}
+
+				cbfn(nc)
+			},
+		})
+	} else {
+		fmt.Println("[GnsDns] ---NEW-INFORMER---->")
+		informer := informergnstsmtanzuvmwarecomv1.NewDnsInformer(c.client.baseClient, 0, cache.Indexers{})
+		registrationId, err = informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
+			DeleteFunc: func(obj interface{}) {
+				nc := &GnsDns{
+					client: c.client,
+					Dns:    obj.(*basegnstsmtanzuvmwarecomv1.Dns),
+				}
+
+				var parent *ConfigConfig
+				gvkExist := true
+				for i := 0; i < 600; i++ {
+					// Check if parent exists
+					p, err := nc.GetParent(context.TODO())
+					if err != nil || p == nil {
+						time.Sleep(500 * time.Millisecond)
+						continue
+					}
+					parent = p
+
+					// Check GVK
+
+					if parent.Spec.DNSGvk != nil {
+						time.Sleep(500 * time.Millisecond)
+						continue
+					}
+
+					gvkExist = false
+
+					break
+				}
+
+				if parent == nil {
+					hashedName := helper.GetHashedName("configs.config.tsm.tanzu.vmware.com", nc.Labels, nc.Labels["configs.config.tsm.tanzu.vmware.com"])
+					parent, err = c.client.Config().ForceReadConfigByName(context.TODO(), hashedName)
+					if err != nil {
+						if errors.IsNotFound(err) {
+							return
+						}
+
+						panic("error occurred while fetching parent " + err.Error())
+					}
+					panic(fmt.Sprintf("parent found (event loop is stalled) " + nc.DisplayName()))
+				}
+
+				if gvkExist {
+					// Check GVK
+
+					if parent.Spec.DNSGvk != nil {
+						return
+					}
+
+					panic(fmt.Sprintf("gvk not found (event loop is stalled) " + nc.DisplayName()))
+				}
+
+				cbfn(nc)
+			},
+		})
+		go informer.Run(stopper)
+	}
+	return registrationId, err
+}
+
 // GetAdditionalGnsDataByName returns object stored in the database under the hashedName which is a hash of display
 // name and parents names. Use it when you know hashed name of object.
 func (group *GnsTsmV1) GetAdditionalGnsDataByName(ctx context.Context, hashedName string) (*GnsAdditionalGnsData, error) {
@@ -5033,29 +10621,138 @@ func (group *GnsTsmV1) GetAdditionalGnsDataByName(ctx context.Context, hashedNam
 			AdditionalGnsData: result,
 		}, nil
 	} else {
-		result, err := group.client.baseClient.
-			GnsTsmV1().
-			AdditionalGnsDatas().Get(ctx, hashedName, metav1.GetOptions{})
-		if err != nil {
-			return nil, err
+		retryCount := 12
+		for {
+			result, err := group.client.baseClient.
+				GnsTsmV1().
+				AdditionalGnsDatas().Get(ctx, hashedName, metav1.GetOptions{})
+			if err != nil {
+				log.Errorf("Failed to Get AdditionalGnsDatas: %+v", err)
+				if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded) {
+					log.Errorf("[Retry Count: %d ] %+v", retryCount, err)
+					if retryCount == 0 {
+						log.Error("Max Retry exceed on Get AdditionalGnsDatas")
+						return nil, err
+					}
+					retryCount -= 1
+					time.Sleep(5 * time.Second)
+				} else {
+					log.Errorf("Unexpected Error: %+v", err)
+					return nil, err
+				}
+			}
+			return &GnsAdditionalGnsData{
+				client:            group.client,
+				AdditionalGnsData: result,
+			}, nil
 		}
-
-		return &GnsAdditionalGnsData{
-			client:            group.client,
-			AdditionalGnsData: result,
-		}, nil
 	}
+}
+
+// ForceReadAdditionalGnsDataByName read object directly from the database under the hashedName which is a hash of display
+// name and parents names. Use it when you know hashed name of object.
+func (group *GnsTsmV1) ForceReadAdditionalGnsDataByName(ctx context.Context, hashedName string) (*GnsAdditionalGnsData, error) {
+	result, err := group.client.baseClient.
+		GnsTsmV1().
+		AdditionalGnsDatas().Get(ctx, hashedName, metav1.GetOptions{})
+	if err != nil {
+		return nil, err
+	}
+
+	return &GnsAdditionalGnsData{
+		client:            group.client,
+		AdditionalGnsData: result,
+	}, nil
 }
 
 // DeleteAdditionalGnsDataByName deletes object stored in the database under the hashedName which is a hash of
 // display name and parents names. Use it when you know hashed name of object.
 func (group *GnsTsmV1) DeleteAdditionalGnsDataByName(ctx context.Context, hashedName string) (err error) {
 
+	result, err := group.client.baseClient.
+		GnsTsmV1().
+		AdditionalGnsDatas().Get(ctx, hashedName, metav1.GetOptions{})
+	if err != nil {
+		if customerrors.Is(err, context.DeadlineExceeded) {
+			log.Errorf("context deadline exceeded, on creating GNS: %+v", hashedName)
+			return context.DeadlineExceeded
+		} else if customerrors.Is(err, context.Canceled) {
+			log.Errorf("context cancelled, on creating GNS: %+v", hashedName)
+			return context.Canceled
+		} else {
+			log.Errorf("Unexpected Error: %+v", err)
+			return err
+		}
+	}
+
 	err = group.client.baseClient.
 		GnsTsmV1().
 		AdditionalGnsDatas().Delete(ctx, hashedName, metav1.DeleteOptions{})
 	if err != nil {
 		return err
+	}
+
+	var patch Patch
+
+	patchOp := PatchOp{
+		Op:   "remove",
+		Path: "/spec/additionalGnsDataGvk",
+	}
+
+	patch = append(patch, patchOp)
+	marshaled, err := patch.Marshal()
+	if err != nil {
+		return err
+	}
+	parents := result.GetLabels()
+	if parents == nil {
+		parents = make(map[string]string)
+	}
+	parentName, ok := parents["gnses.gns.tsm.tanzu.vmware.com"]
+	if !ok {
+		parentName = helper.DEFAULT_KEY
+	}
+	if parents[common.IS_NAME_HASHED_LABEL] == "true" {
+		parentName = helper.GetHashedName("gnses.gns.tsm.tanzu.vmware.com", parents, parentName)
+	}
+
+	retryCount := 12
+	newCtx := context.TODO()
+	for {
+		_, err = group.client.baseClient.
+			GnsTsmV1().
+			Gnses().Patch(newCtx, parentName, types.JSONPatchType, marshaled, metav1.PatchOptions{})
+		if err != nil {
+			log.Errorf("Failed to patch AdditionalGnsData gvk in parent node[Gnses]: %+v", err)
+			if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded) {
+				log.Errorf("[Retry Count: %d ] %+v", retryCount, err)
+				if retryCount == 0 {
+					log.Error("Max Retry exceed on patching gvk")
+					log.Errorf("Trigger AdditionalGnsData Delete: %s", hashedName)
+					err = group.DeleteAdditionalGnsDataByName(newCtx, hashedName)
+					if err != nil {
+						log.Errorf("Error occur while deleting AdditionalGnsData: %s", hashedName)
+						return err
+					}
+					log.Errorf("AdditionalGnsData Deleted: %s", hashedName)
+					return err
+				}
+				retryCount -= 1
+				time.Sleep(5 * time.Second)
+			} else {
+				log.Errorf("Unexpected Error: %+v", err)
+				log.Errorf("Trigger AdditionalGnsData Delete: %s", hashedName)
+				err = group.DeleteAdditionalGnsDataByName(newCtx, hashedName)
+				if err != nil {
+					log.Errorf("Error occur while deleting AdditionalGnsData: %+v", hashedName)
+					return err
+				}
+				log.Errorf("AdditionalGnsData Deleted: %s", hashedName)
+				return err
+			}
+		} else {
+			break
+		}
 	}
 
 	return
@@ -5076,7 +10773,78 @@ func (group *GnsTsmV1) CreateAdditionalGnsDataByName(ctx context.Context,
 		GnsTsmV1().
 		AdditionalGnsDatas().Create(ctx, objToCreate, metav1.CreateOptions{})
 	if err != nil {
+		if customerrors.Is(err, context.DeadlineExceeded) {
+			log.Errorf("context deadline exceeded, on creating GNS: %+v", objToCreate)
+			return nil, context.DeadlineExceeded
+		} else if customerrors.Is(err, context.Canceled) {
+			log.Errorf("context cancelled, on creating GNS: %+v", objToCreate)
+			return nil, context.Canceled
+		} else {
+			log.Errorf("Unexpected Error: %+v", err)
+			return nil, err
+		}
+	}
+
+	parentName, ok := objToCreate.GetLabels()["gnses.gns.tsm.tanzu.vmware.com"]
+	if !ok {
+		parentName = helper.DEFAULT_KEY
+	}
+	if objToCreate.Labels[common.IS_NAME_HASHED_LABEL] == "true" {
+		parentName = helper.GetHashedName("gnses.gns.tsm.tanzu.vmware.com", objToCreate.GetLabels(), parentName)
+	}
+
+	var patch Patch
+	patchOp := PatchOp{
+		Op:   "replace",
+		Path: "/spec/additionalGnsDataGvk",
+		Value: basegnstsmtanzuvmwarecomv1.Child{
+			Group: "gns.tsm.tanzu.vmware.com",
+			Kind:  "AdditionalGnsData",
+			Name:  objToCreate.Name,
+		},
+	}
+	patch = append(patch, patchOp)
+	marshaled, err := patch.Marshal()
+	if err != nil {
 		return nil, err
+	}
+	retryCount := 12
+	newCtx := context.TODO()
+	for {
+		_, err = group.client.baseClient.
+			GnsTsmV1().
+			Gnses().Patch(newCtx, parentName, types.JSONPatchType, marshaled, metav1.PatchOptions{})
+		if err != nil {
+			log.Errorf("Failed to patch AdditionalGnsData gvk in parent node[Gnses]: %+v", err)
+			if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded) {
+				log.Errorf("[Retry Count: %d ] %+v", retryCount, err)
+				if retryCount == 0 {
+					log.Error("Max Retry exceed on patching gvk")
+					log.Errorf("Trigger AdditionalGnsData Delete: %s", objToCreate.GetName())
+					err = group.DeleteAdditionalGnsDataByName(newCtx, objToCreate.GetName())
+					if err != nil {
+						log.Errorf("Error occur while deleting AdditionalGnsData: %s", objToCreate.GetName())
+						return nil, err
+					}
+					log.Errorf("AdditionalGnsData Deleted: %s", objToCreate.GetName())
+					return nil, err
+				}
+				retryCount -= 1
+				time.Sleep(5 * time.Second)
+			} else {
+				log.Errorf("Unexpected Error: %+v", err)
+				log.Errorf("Trigger AdditionalGnsData Delete: %s", objToCreate.GetName())
+				err = group.DeleteAdditionalGnsDataByName(newCtx, objToCreate.GetName())
+				if err != nil {
+					log.Errorf("Error occur while deleting AdditionalGnsData: %+v", objToCreate.GetName())
+					return nil, err
+				}
+				log.Errorf("AdditionalGnsData Deleted: %s", objToCreate.GetName())
+				return nil, err
+			}
+		} else {
+			break
+		}
 	}
 
 	return &GnsAdditionalGnsData{
@@ -5132,7 +10900,16 @@ func (group *GnsTsmV1) UpdateAdditionalGnsDataByName(ctx context.Context,
 			GnsTsmV1().
 			AdditionalGnsDatas().Get(ctx, objToUpdate.GetName(), metav1.GetOptions{})
 		if err != nil {
-			return nil, err
+			if customerrors.Is(err, context.DeadlineExceeded) {
+				log.Errorf("context deadline exceeded, on creating GNS: %+v", objToUpdate)
+				return nil, context.DeadlineExceeded
+			} else if customerrors.Is(err, context.Canceled) {
+				log.Errorf("context cancelled, on creating GNS: %+v", objToUpdate)
+				return nil, context.Canceled
+			} else {
+				log.Errorf("Unexpected Error: %+v", err)
+				return nil, err
+			}
 		}
 		objToUpdate.ResourceVersion = current.ResourceVersion
 	}
@@ -5256,45 +11033,9 @@ func (obj *GnsAdditionalGnsData) ClearStatus(ctx context.Context) error {
 	return nil
 }
 
-// GetGnsAdditionalGnsData calculates the hashed name based on parents and displayName and
-// returns given object
-func (c *Clientset) GetGnsAdditionalGnsData(ctx context.Context, displayName string) (result *GnsAdditionalGnsData, err error) {
-	hashedName := helper.GetHashedName("additionalgnsdatas.gns.tsm.tanzu.vmware.com", nil, displayName)
-	return c.Gns().GetAdditionalGnsDataByName(ctx, hashedName)
-}
-
-func (c *Clientset) GnsAdditionalGnsData(displayName string) *additionalgnsdataGnsTsmV1Chainer {
-	parentLabels := make(map[string]string)
-	parentLabels["additionalgnsdatas.gns.tsm.tanzu.vmware.com"] = displayName
-	return &additionalgnsdataGnsTsmV1Chainer{
-		client:       c,
-		name:         displayName,
-		parentLabels: parentLabels,
-	}
-}
-
-// AddGnsAdditionalGnsData calculates hashed name of the object based on objToCreate.Name
-// and parents names and creates it. objToCreate.Name is changed to the hashed name. Original name is preserved in
-// nexus/display_name label and can be obtained using DisplayName() method.
-func (c *Clientset) AddGnsAdditionalGnsData(ctx context.Context,
-	objToCreate *basegnstsmtanzuvmwarecomv1.AdditionalGnsData) (result *GnsAdditionalGnsData, err error) {
-	if objToCreate.Labels == nil {
-		objToCreate.Labels = map[string]string{}
-	}
-	if objToCreate.Labels[common.IS_NAME_HASHED_LABEL] != "true" {
-		objToCreate.Labels[common.DISPLAY_NAME_LABEL] = objToCreate.GetName()
-		objToCreate.Labels[common.IS_NAME_HASHED_LABEL] = "true"
-		hashedName := helper.GetHashedName(objToCreate.CRDName(), nil, objToCreate.GetName())
-		objToCreate.Name = hashedName
-	}
-	return c.Gns().CreateAdditionalGnsDataByName(ctx, objToCreate)
-}
-
-// DeleteGnsAdditionalGnsData calculates hashedName of object based on displayName and
-// parents and deletes given object
-func (c *Clientset) DeleteGnsAdditionalGnsData(ctx context.Context, displayName string) (err error) {
-	hashedName := helper.GetHashedName("additionalgnsdatas.gns.tsm.tanzu.vmware.com", nil, displayName)
-	return c.Gns().DeleteAdditionalGnsDataByName(ctx, hashedName)
+func (obj *GnsAdditionalGnsData) GetParent(ctx context.Context) (result *GnsGns, err error) {
+	hashedName := helper.GetHashedName("gnses.gns.tsm.tanzu.vmware.com", obj.Labels, obj.Labels["gnses.gns.tsm.tanzu.vmware.com"])
+	return obj.client.Gns().GetGnsByName(ctx, hashedName)
 }
 
 type additionalgnsdataGnsTsmV1Chainer struct {
@@ -5323,6 +11064,447 @@ func (c *additionalgnsdataGnsTsmV1Chainer) IsSubscribed() bool {
 	key := "additionalgnsdatas.gns.tsm.tanzu.vmware.com"
 	_, ok := subscriptionMap.Load(key)
 	return ok
+}
+
+func (c *additionalgnsdataGnsTsmV1Chainer) RegisterEventHandler(addCB func(obj *GnsAdditionalGnsData), updateCB func(oldObj, newObj *GnsAdditionalGnsData), deleteCB func(obj *GnsAdditionalGnsData)) (cache.ResourceEventHandlerRegistration, error) {
+	fmt.Println("RegisterEventHandler for GnsAdditionalGnsData")
+	var (
+		registrationId cache.ResourceEventHandlerRegistration
+		err            error
+		informer       cache.SharedIndexInformer
+	)
+	key := "additionalgnsdatas.gns.tsm.tanzu.vmware.com"
+	stopper := make(chan struct{})
+	if s, ok := subscriptionMap.Load(key); ok {
+		fmt.Println("Informer exists for GnsAdditionalGnsData")
+		sub := s.(subscription)
+		informer = sub.informer
+	} else {
+		fmt.Println("Informer doesn't exists for GnsAdditionalGnsData, so creating a new one")
+		informer = informergnstsmtanzuvmwarecomv1.NewAdditionalGnsDataInformer(c.client.baseClient, 0, cache.Indexers{})
+		go informer.Run(stopper)
+		subscribe(key, informer)
+	}
+	registrationId, err = informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
+		AddFunc: func(obj interface{}) {
+			nc := &GnsAdditionalGnsData{
+				client:            c.client,
+				AdditionalGnsData: obj.(*basegnstsmtanzuvmwarecomv1.AdditionalGnsData),
+			}
+
+			var parent *GnsGns
+			gvkExist := false
+			for i := 0; i < 600; i++ {
+				// Check if parent exists
+				p, err := nc.GetParent(context.TODO())
+				if err != nil || p == nil {
+					time.Sleep(500 * time.Millisecond)
+					continue
+				}
+				parent = p
+				// Check GVK
+
+				if parent.Spec.AdditionalGnsDataGvk == nil {
+					time.Sleep(500 * time.Millisecond)
+					continue
+				}
+
+				gvkExist = true
+				break
+			}
+			if parent == nil {
+				hashedName := helper.GetHashedName("gnses.gns.tsm.tanzu.vmware.com", nc.Labels, nc.Labels["gnses.gns.tsm.tanzu.vmware.com"])
+				parent, err = c.client.Gns().ForceReadGnsByName(context.TODO(), hashedName)
+				if err != nil {
+					if errors.IsNotFound(err) {
+						return
+					}
+					panic("error occurred while fetching parent " + err.Error())
+				}
+				panic(fmt.Sprintf("parent found (event loop is stalled) " + nc.DisplayName()))
+			}
+			if !gvkExist {
+				// Check GVK
+
+				if parent.Spec.AdditionalGnsDataGvk == nil {
+					return
+				}
+
+				panic(fmt.Sprintf("gvk found (event loop is stalled) " + nc.DisplayName()))
+			}
+
+			addCB(nc)
+		},
+
+		UpdateFunc: func(oldObj, newObj interface{}) {
+			oldData := &GnsAdditionalGnsData{
+				client:            c.client,
+				AdditionalGnsData: oldObj.(*basegnstsmtanzuvmwarecomv1.AdditionalGnsData),
+			}
+			newData := &GnsAdditionalGnsData{
+				client:            c.client,
+				AdditionalGnsData: newObj.(*basegnstsmtanzuvmwarecomv1.AdditionalGnsData),
+			}
+			updateCB(oldData, newData)
+		},
+
+		DeleteFunc: func(obj interface{}) {
+			nc := &GnsAdditionalGnsData{
+				client:            c.client,
+				AdditionalGnsData: obj.(*basegnstsmtanzuvmwarecomv1.AdditionalGnsData),
+			}
+
+			var parent *GnsGns
+			gvkExist := true
+			for i := 0; i < 600; i++ {
+				// Check if parent exists
+				p, err := nc.GetParent(context.TODO())
+				if err != nil || p == nil {
+					time.Sleep(500 * time.Millisecond)
+					continue
+				}
+				parent = p
+				// Check GVK
+
+				if parent.Spec.AdditionalGnsDataGvk != nil {
+					time.Sleep(500 * time.Millisecond)
+					continue
+				}
+
+				gvkExist = false
+				break
+			}
+			if parent == nil {
+				hashedName := helper.GetHashedName("gnses.gns.tsm.tanzu.vmware.com", nc.Labels, nc.Labels["gnses.gns.tsm.tanzu.vmware.com"])
+				parent, err = c.client.Gns().ForceReadGnsByName(context.TODO(), hashedName)
+				if err != nil {
+					if errors.IsNotFound(err) {
+						return
+					}
+					panic("error occurred while fetching parent " + err.Error())
+				}
+				panic(fmt.Sprintf("parent found (event loop is stalled) " + nc.DisplayName()))
+			}
+			if gvkExist {
+				// Check GVK
+
+				if parent.Spec.AdditionalGnsDataGvk != nil {
+					return
+				}
+
+				panic(fmt.Sprintf("gvk not found (event loop is stalled) " + nc.DisplayName()))
+			}
+
+			deleteCB(nc)
+		},
+	})
+	return registrationId, err
+}
+
+func (c *additionalgnsdataGnsTsmV1Chainer) RegisterAddCallback(cbfn func(obj *GnsAdditionalGnsData)) (cache.ResourceEventHandlerRegistration, error) {
+	fmt.Println("GnsAdditionalGnsData -->  RegisterAddCallback!")
+	var (
+		registrationId cache.ResourceEventHandlerRegistration
+		err            error
+	)
+	key := "additionalgnsdatas.gns.tsm.tanzu.vmware.com"
+	stopper := make(chan struct{})
+	if s, ok := subscriptionMap.Load(key); ok {
+		fmt.Println("[GnsAdditionalGnsData] ---SUBSCRIBE-INFORMER---->")
+		sub := s.(subscription)
+		registrationId, err = sub.informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
+			AddFunc: func(obj interface{}) {
+				nc := &GnsAdditionalGnsData{
+					client:            c.client,
+					AdditionalGnsData: obj.(*basegnstsmtanzuvmwarecomv1.AdditionalGnsData),
+				}
+
+				var parent *GnsGns
+				gvkExist := false
+				for i := 0; i < 600; i++ {
+					// Check if parent exists
+					p, err := nc.GetParent(context.TODO())
+					if err != nil || p == nil {
+						time.Sleep(500 * time.Millisecond)
+						continue
+					}
+					parent = p
+
+					// Check GVK
+
+					if parent.Spec.AdditionalGnsDataGvk == nil {
+						time.Sleep(500 * time.Millisecond)
+						continue
+					}
+
+					gvkExist = true
+
+					break
+				}
+
+				if parent == nil {
+					hashedName := helper.GetHashedName("gnses.gns.tsm.tanzu.vmware.com", nc.Labels, nc.Labels["gnses.gns.tsm.tanzu.vmware.com"])
+					parent, err = c.client.Gns().ForceReadGnsByName(context.TODO(), hashedName)
+					if err != nil {
+						if errors.IsNotFound(err) {
+							return
+						}
+
+						panic("error occurred while fetching parent " + err.Error())
+					}
+					panic(fmt.Sprintf("parent found (event loop is stalled) " + nc.DisplayName()))
+				}
+
+				if !gvkExist {
+					// Check GVK
+
+					if parent.Spec.AdditionalGnsDataGvk == nil {
+						return
+					}
+
+					panic(fmt.Sprintf("gvk found (event loop is stalled) " + nc.DisplayName()))
+				}
+
+				cbfn(nc)
+			},
+		})
+	} else {
+		fmt.Println("[GnsAdditionalGnsData] ---NEW-INFORMER---->")
+		informer := informergnstsmtanzuvmwarecomv1.NewAdditionalGnsDataInformer(c.client.baseClient, 0, cache.Indexers{})
+		registrationId, err = informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
+			AddFunc: func(obj interface{}) {
+				nc := &GnsAdditionalGnsData{
+					client:            c.client,
+					AdditionalGnsData: obj.(*basegnstsmtanzuvmwarecomv1.AdditionalGnsData),
+				}
+
+				var parent *GnsGns
+				gvkExist := false
+				for i := 0; i < 600; i++ {
+					// Check if parent exists
+					p, err := nc.GetParent(context.TODO())
+					if err != nil || p == nil {
+						time.Sleep(500 * time.Millisecond)
+						continue
+					}
+					parent = p
+
+					// Check GVK
+
+					if parent.Spec.AdditionalGnsDataGvk == nil {
+						time.Sleep(500 * time.Millisecond)
+						continue
+					}
+
+					gvkExist = true
+
+					break
+				}
+
+				if parent == nil {
+					hashedName := helper.GetHashedName("gnses.gns.tsm.tanzu.vmware.com", nc.Labels, nc.Labels["gnses.gns.tsm.tanzu.vmware.com"])
+					parent, err = c.client.Gns().ForceReadGnsByName(context.TODO(), hashedName)
+					if err != nil {
+						if errors.IsNotFound(err) {
+							return
+						}
+
+						panic("error occurred while fetching parent " + err.Error())
+					}
+					panic(fmt.Sprintf("parent found (event loop is stalled) " + nc.DisplayName()))
+				}
+
+				if !gvkExist {
+					// Check GVK
+
+					if parent.Spec.AdditionalGnsDataGvk == nil {
+						return
+					}
+
+					panic(fmt.Sprintf("gvk found (event loop is stalled) " + nc.DisplayName()))
+				}
+
+				cbfn(nc)
+			},
+		})
+		go informer.Run(stopper)
+	}
+	return registrationId, err
+}
+
+func (c *additionalgnsdataGnsTsmV1Chainer) RegisterUpdateCallback(cbfn func(oldObj, newObj *GnsAdditionalGnsData)) (cache.ResourceEventHandlerRegistration, error) {
+	fmt.Println("GnsAdditionalGnsData -->  RegisterUpdateCallback!")
+	var (
+		registrationId cache.ResourceEventHandlerRegistration
+		err            error
+	)
+	key := "additionalgnsdatas.gns.tsm.tanzu.vmware.com"
+	stopper := make(chan struct{})
+	if s, ok := subscriptionMap.Load(key); ok {
+		fmt.Println("[GnsAdditionalGnsData] ---SUBSCRIBE-INFORMER---->")
+		sub := s.(subscription)
+		registrationId, err = sub.informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
+			UpdateFunc: func(oldObj, newObj interface{}) {
+				oldData := &GnsAdditionalGnsData{
+					client:            c.client,
+					AdditionalGnsData: oldObj.(*basegnstsmtanzuvmwarecomv1.AdditionalGnsData),
+				}
+				newData := &GnsAdditionalGnsData{
+					client:            c.client,
+					AdditionalGnsData: newObj.(*basegnstsmtanzuvmwarecomv1.AdditionalGnsData),
+				}
+				cbfn(oldData, newData)
+			},
+		})
+	} else {
+		fmt.Println("[GnsAdditionalGnsData] ---NEW-INFORMER---->")
+		informer := informergnstsmtanzuvmwarecomv1.NewAdditionalGnsDataInformer(c.client.baseClient, 0, cache.Indexers{})
+		registrationId, err = informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
+			UpdateFunc: func(oldObj, newObj interface{}) {
+				oldData := &GnsAdditionalGnsData{
+					client:            c.client,
+					AdditionalGnsData: oldObj.(*basegnstsmtanzuvmwarecomv1.AdditionalGnsData),
+				}
+				newData := &GnsAdditionalGnsData{
+					client:            c.client,
+					AdditionalGnsData: newObj.(*basegnstsmtanzuvmwarecomv1.AdditionalGnsData),
+				}
+				cbfn(oldData, newData)
+			},
+		})
+		go informer.Run(stopper)
+	}
+	return registrationId, err
+}
+
+func (c *additionalgnsdataGnsTsmV1Chainer) RegisterDeleteCallback(cbfn func(obj *GnsAdditionalGnsData)) (cache.ResourceEventHandlerRegistration, error) {
+	fmt.Println("GnsAdditionalGnsData -->  RegisterDeleteCallback!")
+	var (
+		registrationId cache.ResourceEventHandlerRegistration
+		err            error
+	)
+	key := "additionalgnsdatas.gns.tsm.tanzu.vmware.com"
+	stopper := make(chan struct{})
+	if s, ok := subscriptionMap.Load(key); ok {
+		fmt.Println("[GnsAdditionalGnsData] ---SUBSCRIBE-INFORMER---->")
+		sub := s.(subscription)
+		registrationId, err = sub.informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
+			DeleteFunc: func(obj interface{}) {
+				nc := &GnsAdditionalGnsData{
+					client:            c.client,
+					AdditionalGnsData: obj.(*basegnstsmtanzuvmwarecomv1.AdditionalGnsData),
+				}
+
+				var parent *GnsGns
+				gvkExist := true
+				for i := 0; i < 600; i++ {
+					// Check if parent exists
+					p, err := nc.GetParent(context.TODO())
+					if err != nil || p == nil {
+						time.Sleep(500 * time.Millisecond)
+						continue
+					}
+					parent = p
+
+					// Check GVK
+
+					if parent.Spec.AdditionalGnsDataGvk != nil {
+						time.Sleep(500 * time.Millisecond)
+						continue
+					}
+
+					gvkExist = false
+					break
+				}
+
+				if parent == nil {
+					hashedName := helper.GetHashedName("gnses.gns.tsm.tanzu.vmware.com", nc.Labels, nc.Labels["gnses.gns.tsm.tanzu.vmware.com"])
+					parent, err = c.client.Gns().ForceReadGnsByName(context.TODO(), hashedName)
+					if err != nil {
+						if errors.IsNotFound(err) {
+							return
+						}
+
+						panic("error occurred while fetching parent " + err.Error())
+					}
+					panic(fmt.Sprintf("parent found (event loop is stalled) " + nc.DisplayName()))
+				}
+
+				if gvkExist {
+					// Check GVK
+
+					if parent.Spec.AdditionalGnsDataGvk != nil {
+						return
+					}
+
+					panic(fmt.Sprintf("gvk not found (event loop is stalled) " + nc.DisplayName()))
+				}
+
+				cbfn(nc)
+			},
+		})
+	} else {
+		fmt.Println("[GnsAdditionalGnsData] ---NEW-INFORMER---->")
+		informer := informergnstsmtanzuvmwarecomv1.NewAdditionalGnsDataInformer(c.client.baseClient, 0, cache.Indexers{})
+		registrationId, err = informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
+			DeleteFunc: func(obj interface{}) {
+				nc := &GnsAdditionalGnsData{
+					client:            c.client,
+					AdditionalGnsData: obj.(*basegnstsmtanzuvmwarecomv1.AdditionalGnsData),
+				}
+
+				var parent *GnsGns
+				gvkExist := true
+				for i := 0; i < 600; i++ {
+					// Check if parent exists
+					p, err := nc.GetParent(context.TODO())
+					if err != nil || p == nil {
+						time.Sleep(500 * time.Millisecond)
+						continue
+					}
+					parent = p
+
+					// Check GVK
+
+					if parent.Spec.AdditionalGnsDataGvk != nil {
+						time.Sleep(500 * time.Millisecond)
+						continue
+					}
+
+					gvkExist = false
+
+					break
+				}
+
+				if parent == nil {
+					hashedName := helper.GetHashedName("gnses.gns.tsm.tanzu.vmware.com", nc.Labels, nc.Labels["gnses.gns.tsm.tanzu.vmware.com"])
+					parent, err = c.client.Gns().ForceReadGnsByName(context.TODO(), hashedName)
+					if err != nil {
+						if errors.IsNotFound(err) {
+							return
+						}
+
+						panic("error occurred while fetching parent " + err.Error())
+					}
+					panic(fmt.Sprintf("parent found (event loop is stalled) " + nc.DisplayName()))
+				}
+
+				if gvkExist {
+					// Check GVK
+
+					if parent.Spec.AdditionalGnsDataGvk != nil {
+						return
+					}
+
+					panic(fmt.Sprintf("gvk not found (event loop is stalled) " + nc.DisplayName()))
+				}
+
+				cbfn(nc)
+			},
+		})
+		go informer.Run(stopper)
+	}
+	return registrationId, err
 }
 
 // ClearStatus to clear user defined status
@@ -5373,18 +11555,48 @@ func (group *ServicegroupTsmV1) GetSvcGroupByName(ctx context.Context, hashedNam
 			SvcGroup: result,
 		}, nil
 	} else {
-		result, err := group.client.baseClient.
-			ServicegroupTsmV1().
-			SvcGroups().Get(ctx, hashedName, metav1.GetOptions{})
-		if err != nil {
-			return nil, err
+		retryCount := 12
+		for {
+			result, err := group.client.baseClient.
+				ServicegroupTsmV1().
+				SvcGroups().Get(ctx, hashedName, metav1.GetOptions{})
+			if err != nil {
+				log.Errorf("Failed to Get SvcGroups: %+v", err)
+				if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded) {
+					log.Errorf("[Retry Count: %d ] %+v", retryCount, err)
+					if retryCount == 0 {
+						log.Error("Max Retry exceed on Get SvcGroups")
+						return nil, err
+					}
+					retryCount -= 1
+					time.Sleep(5 * time.Second)
+				} else {
+					log.Errorf("Unexpected Error: %+v", err)
+					return nil, err
+				}
+			}
+			return &ServicegroupSvcGroup{
+				client:   group.client,
+				SvcGroup: result,
+			}, nil
 		}
-
-		return &ServicegroupSvcGroup{
-			client:   group.client,
-			SvcGroup: result,
-		}, nil
 	}
+}
+
+// ForceReadSvcGroupByName read object directly from the database under the hashedName which is a hash of display
+// name and parents names. Use it when you know hashed name of object.
+func (group *ServicegroupTsmV1) ForceReadSvcGroupByName(ctx context.Context, hashedName string) (*ServicegroupSvcGroup, error) {
+	result, err := group.client.baseClient.
+		ServicegroupTsmV1().
+		SvcGroups().Get(ctx, hashedName, metav1.GetOptions{})
+	if err != nil {
+		return nil, err
+	}
+
+	return &ServicegroupSvcGroup{
+		client:   group.client,
+		SvcGroup: result,
+	}, nil
 }
 
 // DeleteSvcGroupByName deletes object stored in the database under the hashedName which is a hash of
@@ -5395,7 +11607,16 @@ func (group *ServicegroupTsmV1) DeleteSvcGroupByName(ctx context.Context, hashed
 		ServicegroupTsmV1().
 		SvcGroups().Get(ctx, hashedName, metav1.GetOptions{})
 	if err != nil {
-		return err
+		if customerrors.Is(err, context.DeadlineExceeded) {
+			log.Errorf("context deadline exceeded, on creating GNS: %+v", hashedName)
+			return context.DeadlineExceeded
+		} else if customerrors.Is(err, context.Canceled) {
+			log.Errorf("context cancelled, on creating GNS: %+v", hashedName)
+			return context.Canceled
+		} else {
+			log.Errorf("Unexpected Error: %+v", err)
+			return err
+		}
 	}
 
 	err = group.client.baseClient.
@@ -5428,11 +11649,44 @@ func (group *ServicegroupTsmV1) DeleteSvcGroupByName(ctx context.Context, hashed
 	if parents[common.IS_NAME_HASHED_LABEL] == "true" {
 		parentName = helper.GetHashedName("gnses.gns.tsm.tanzu.vmware.com", parents, parentName)
 	}
-	_, err = group.client.baseClient.
-		GnsTsmV1().
-		Gnses().Patch(ctx, parentName, types.JSONPatchType, marshaled, metav1.PatchOptions{})
-	if err != nil {
-		return err
+
+	retryCount := 12
+	newCtx := context.TODO()
+	for {
+		_, err = group.client.baseClient.
+			GnsTsmV1().
+			Gnses().Patch(newCtx, parentName, types.JSONPatchType, marshaled, metav1.PatchOptions{})
+		if err != nil {
+			log.Errorf("Failed to patch SvcGroup gvk in parent node[Gnses]: %+v", err)
+			if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded) {
+				log.Errorf("[Retry Count: %d ] %+v", retryCount, err)
+				if retryCount == 0 {
+					log.Error("Max Retry exceed on patching gvk")
+					log.Errorf("Trigger SvcGroup Delete: %s", hashedName)
+					err = group.DeleteSvcGroupByName(newCtx, hashedName)
+					if err != nil {
+						log.Errorf("Error occur while deleting SvcGroup: %s", hashedName)
+						return err
+					}
+					log.Errorf("SvcGroup Deleted: %s", hashedName)
+					return err
+				}
+				retryCount -= 1
+				time.Sleep(5 * time.Second)
+			} else {
+				log.Errorf("Unexpected Error: %+v", err)
+				log.Errorf("Trigger SvcGroup Delete: %s", hashedName)
+				err = group.DeleteSvcGroupByName(newCtx, hashedName)
+				if err != nil {
+					log.Errorf("Error occur while deleting SvcGroup: %+v", hashedName)
+					return err
+				}
+				log.Errorf("SvcGroup Deleted: %s", hashedName)
+				return err
+			}
+		} else {
+			break
+		}
 	}
 
 	return
@@ -5453,7 +11707,16 @@ func (group *ServicegroupTsmV1) CreateSvcGroupByName(ctx context.Context,
 		ServicegroupTsmV1().
 		SvcGroups().Create(ctx, objToCreate, metav1.CreateOptions{})
 	if err != nil {
-		return nil, err
+		if customerrors.Is(err, context.DeadlineExceeded) {
+			log.Errorf("context deadline exceeded, on creating GNS: %+v", objToCreate)
+			return nil, context.DeadlineExceeded
+		} else if customerrors.Is(err, context.Canceled) {
+			log.Errorf("context cancelled, on creating GNS: %+v", objToCreate)
+			return nil, context.Canceled
+		} else {
+			log.Errorf("Unexpected Error: %+v", err)
+			return nil, err
+		}
 	}
 
 	parentName, ok := objToCreate.GetLabels()["gnses.gns.tsm.tanzu.vmware.com"]
@@ -5465,11 +11728,44 @@ func (group *ServicegroupTsmV1) CreateSvcGroupByName(ctx context.Context,
 	}
 
 	payload := "{\"spec\": {\"gnsServiceGroupsGvk\": {\"" + objToCreate.DisplayName() + "\": {\"name\": \"" + objToCreate.Name + "\",\"kind\": \"SvcGroup\", \"group\": \"servicegroup.tsm.tanzu.vmware.com\"}}}}"
-	_, err = group.client.baseClient.
-		GnsTsmV1().
-		Gnses().Patch(ctx, parentName, types.MergePatchType, []byte(payload), metav1.PatchOptions{})
-	if err != nil {
-		return nil, err
+
+	retryCount := 12
+	newCtx := context.TODO()
+	for {
+		_, err = group.client.baseClient.
+			GnsTsmV1().
+			Gnses().Patch(newCtx, parentName, types.MergePatchType, []byte(payload), metav1.PatchOptions{})
+		if err != nil {
+			log.Errorf("Failed to patch SvcGroup gvk in parent node[Gnses]: %+v", err)
+			if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded) {
+				log.Errorf("[Retry Count: %d ] %+v", retryCount, err)
+				if retryCount == 0 {
+					log.Error("Max Retry exceed on patching gvk")
+					log.Errorf("Trigger SvcGroup Delete: %s", objToCreate.GetName())
+					err = group.DeleteSvcGroupByName(newCtx, objToCreate.GetName())
+					if err != nil {
+						log.Errorf("Error occur while deleting SvcGroup: %s", objToCreate.GetName())
+						return nil, err
+					}
+					log.Errorf("SvcGroup Deleted: %s", objToCreate.GetName())
+					return nil, err
+				}
+				retryCount -= 1
+				time.Sleep(5 * time.Second)
+			} else {
+				log.Errorf("Unexpected Error: %+v", err)
+				log.Errorf("Trigger SvcGroup Delete: %s", objToCreate.GetName())
+				err = group.DeleteSvcGroupByName(newCtx, objToCreate.GetName())
+				if err != nil {
+					log.Errorf("Error occur while deleting SvcGroup: %+v", objToCreate.GetName())
+					return nil, err
+				}
+				log.Errorf("SvcGroup Deleted: %s", objToCreate.GetName())
+				return nil, err
+			}
+		} else {
+			break
+		}
 	}
 
 	return &ServicegroupSvcGroup{
@@ -5489,7 +11785,16 @@ func (group *ServicegroupTsmV1) UpdateSvcGroupByName(ctx context.Context,
 			ServicegroupTsmV1().
 			SvcGroups().Get(ctx, objToUpdate.GetName(), metav1.GetOptions{})
 		if err != nil {
-			return nil, err
+			if customerrors.Is(err, context.DeadlineExceeded) {
+				log.Errorf("context deadline exceeded, on creating GNS: %+v", objToUpdate)
+				return nil, context.DeadlineExceeded
+			} else if customerrors.Is(err, context.Canceled) {
+				log.Errorf("context cancelled, on creating GNS: %+v", objToUpdate)
+				return nil, context.Canceled
+			} else {
+				log.Errorf("Unexpected Error: %+v", err)
+				return nil, err
+			}
 		}
 		objToUpdate.ResourceVersion = current.ResourceVersion
 	}
@@ -5635,6 +11940,447 @@ func (c *svcgroupServicegroupTsmV1Chainer) IsSubscribed() bool {
 	return ok
 }
 
+func (c *svcgroupServicegroupTsmV1Chainer) RegisterEventHandler(addCB func(obj *ServicegroupSvcGroup), updateCB func(oldObj, newObj *ServicegroupSvcGroup), deleteCB func(obj *ServicegroupSvcGroup)) (cache.ResourceEventHandlerRegistration, error) {
+	fmt.Println("RegisterEventHandler for ServicegroupSvcGroup")
+	var (
+		registrationId cache.ResourceEventHandlerRegistration
+		err            error
+		informer       cache.SharedIndexInformer
+	)
+	key := "svcgroups.servicegroup.tsm.tanzu.vmware.com"
+	stopper := make(chan struct{})
+	if s, ok := subscriptionMap.Load(key); ok {
+		fmt.Println("Informer exists for ServicegroupSvcGroup")
+		sub := s.(subscription)
+		informer = sub.informer
+	} else {
+		fmt.Println("Informer doesn't exists for ServicegroupSvcGroup, so creating a new one")
+		informer = informerservicegrouptsmtanzuvmwarecomv1.NewSvcGroupInformer(c.client.baseClient, 0, cache.Indexers{})
+		go informer.Run(stopper)
+		subscribe(key, informer)
+	}
+	registrationId, err = informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
+		AddFunc: func(obj interface{}) {
+			nc := &ServicegroupSvcGroup{
+				client:   c.client,
+				SvcGroup: obj.(*baseservicegrouptsmtanzuvmwarecomv1.SvcGroup),
+			}
+
+			var parent *GnsGns
+			gvkExist := false
+			for i := 0; i < 600; i++ {
+				// Check if parent exists
+				p, err := nc.GetParent(context.TODO())
+				if err != nil || p == nil {
+					time.Sleep(500 * time.Millisecond)
+					continue
+				}
+				parent = p
+				// Check GVK
+
+				if _, ok := parent.Spec.GnsServiceGroupsGvk[nc.DisplayName()]; !ok {
+					time.Sleep(500 * time.Millisecond)
+					continue
+				}
+
+				gvkExist = true
+				break
+			}
+			if parent == nil {
+				hashedName := helper.GetHashedName("gnses.gns.tsm.tanzu.vmware.com", nc.Labels, nc.Labels["gnses.gns.tsm.tanzu.vmware.com"])
+				parent, err = c.client.Gns().ForceReadGnsByName(context.TODO(), hashedName)
+				if err != nil {
+					if errors.IsNotFound(err) {
+						return
+					}
+					panic("error occurred while fetching parent " + err.Error())
+				}
+				panic(fmt.Sprintf("parent found (event loop is stalled) " + nc.DisplayName()))
+			}
+			if !gvkExist {
+				// Check GVK
+
+				if _, ok := parent.Spec.GnsServiceGroupsGvk[nc.DisplayName()]; !ok {
+					return
+				}
+
+				panic(fmt.Sprintf("gvk found (event loop is stalled) " + nc.DisplayName()))
+			}
+
+			addCB(nc)
+		},
+
+		UpdateFunc: func(oldObj, newObj interface{}) {
+			oldData := &ServicegroupSvcGroup{
+				client:   c.client,
+				SvcGroup: oldObj.(*baseservicegrouptsmtanzuvmwarecomv1.SvcGroup),
+			}
+			newData := &ServicegroupSvcGroup{
+				client:   c.client,
+				SvcGroup: newObj.(*baseservicegrouptsmtanzuvmwarecomv1.SvcGroup),
+			}
+			updateCB(oldData, newData)
+		},
+
+		DeleteFunc: func(obj interface{}) {
+			nc := &ServicegroupSvcGroup{
+				client:   c.client,
+				SvcGroup: obj.(*baseservicegrouptsmtanzuvmwarecomv1.SvcGroup),
+			}
+
+			var parent *GnsGns
+			gvkExist := true
+			for i := 0; i < 600; i++ {
+				// Check if parent exists
+				p, err := nc.GetParent(context.TODO())
+				if err != nil || p == nil {
+					time.Sleep(500 * time.Millisecond)
+					continue
+				}
+				parent = p
+				// Check GVK
+
+				if _, ok := parent.Spec.GnsServiceGroupsGvk[nc.DisplayName()]; ok {
+					time.Sleep(500 * time.Millisecond)
+					continue
+				}
+
+				gvkExist = false
+				break
+			}
+			if parent == nil {
+				hashedName := helper.GetHashedName("gnses.gns.tsm.tanzu.vmware.com", nc.Labels, nc.Labels["gnses.gns.tsm.tanzu.vmware.com"])
+				parent, err = c.client.Gns().ForceReadGnsByName(context.TODO(), hashedName)
+				if err != nil {
+					if errors.IsNotFound(err) {
+						return
+					}
+					panic("error occurred while fetching parent " + err.Error())
+				}
+				panic(fmt.Sprintf("parent found (event loop is stalled) " + nc.DisplayName()))
+			}
+			if gvkExist {
+				// Check GVK
+
+				if _, ok := parent.Spec.GnsServiceGroupsGvk[nc.DisplayName()]; ok {
+					return
+				}
+
+				panic(fmt.Sprintf("gvk not found (event loop is stalled) " + nc.DisplayName()))
+			}
+
+			deleteCB(nc)
+		},
+	})
+	return registrationId, err
+}
+
+func (c *svcgroupServicegroupTsmV1Chainer) RegisterAddCallback(cbfn func(obj *ServicegroupSvcGroup)) (cache.ResourceEventHandlerRegistration, error) {
+	fmt.Println("ServicegroupSvcGroup -->  RegisterAddCallback!")
+	var (
+		registrationId cache.ResourceEventHandlerRegistration
+		err            error
+	)
+	key := "svcgroups.servicegroup.tsm.tanzu.vmware.com"
+	stopper := make(chan struct{})
+	if s, ok := subscriptionMap.Load(key); ok {
+		fmt.Println("[ServicegroupSvcGroup] ---SUBSCRIBE-INFORMER---->")
+		sub := s.(subscription)
+		registrationId, err = sub.informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
+			AddFunc: func(obj interface{}) {
+				nc := &ServicegroupSvcGroup{
+					client:   c.client,
+					SvcGroup: obj.(*baseservicegrouptsmtanzuvmwarecomv1.SvcGroup),
+				}
+
+				var parent *GnsGns
+				gvkExist := false
+				for i := 0; i < 600; i++ {
+					// Check if parent exists
+					p, err := nc.GetParent(context.TODO())
+					if err != nil || p == nil {
+						time.Sleep(500 * time.Millisecond)
+						continue
+					}
+					parent = p
+
+					// Check GVK
+
+					if _, ok := parent.Spec.GnsServiceGroupsGvk[nc.DisplayName()]; !ok {
+						time.Sleep(500 * time.Millisecond)
+						continue
+					}
+
+					gvkExist = true
+
+					break
+				}
+
+				if parent == nil {
+					hashedName := helper.GetHashedName("gnses.gns.tsm.tanzu.vmware.com", nc.Labels, nc.Labels["gnses.gns.tsm.tanzu.vmware.com"])
+					parent, err = c.client.Gns().ForceReadGnsByName(context.TODO(), hashedName)
+					if err != nil {
+						if errors.IsNotFound(err) {
+							return
+						}
+
+						panic("error occurred while fetching parent " + err.Error())
+					}
+					panic(fmt.Sprintf("parent found (event loop is stalled) " + nc.DisplayName()))
+				}
+
+				if !gvkExist {
+					// Check GVK
+
+					if _, ok := parent.Spec.GnsServiceGroupsGvk[nc.DisplayName()]; !ok {
+						return
+					}
+
+					panic(fmt.Sprintf("gvk found (event loop is stalled) " + nc.DisplayName()))
+				}
+
+				cbfn(nc)
+			},
+		})
+	} else {
+		fmt.Println("[ServicegroupSvcGroup] ---NEW-INFORMER---->")
+		informer := informerservicegrouptsmtanzuvmwarecomv1.NewSvcGroupInformer(c.client.baseClient, 0, cache.Indexers{})
+		registrationId, err = informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
+			AddFunc: func(obj interface{}) {
+				nc := &ServicegroupSvcGroup{
+					client:   c.client,
+					SvcGroup: obj.(*baseservicegrouptsmtanzuvmwarecomv1.SvcGroup),
+				}
+
+				var parent *GnsGns
+				gvkExist := false
+				for i := 0; i < 600; i++ {
+					// Check if parent exists
+					p, err := nc.GetParent(context.TODO())
+					if err != nil || p == nil {
+						time.Sleep(500 * time.Millisecond)
+						continue
+					}
+					parent = p
+
+					// Check GVK
+
+					if _, ok := parent.Spec.GnsServiceGroupsGvk[nc.DisplayName()]; !ok {
+						time.Sleep(500 * time.Millisecond)
+						continue
+					}
+
+					gvkExist = true
+
+					break
+				}
+
+				if parent == nil {
+					hashedName := helper.GetHashedName("gnses.gns.tsm.tanzu.vmware.com", nc.Labels, nc.Labels["gnses.gns.tsm.tanzu.vmware.com"])
+					parent, err = c.client.Gns().ForceReadGnsByName(context.TODO(), hashedName)
+					if err != nil {
+						if errors.IsNotFound(err) {
+							return
+						}
+
+						panic("error occurred while fetching parent " + err.Error())
+					}
+					panic(fmt.Sprintf("parent found (event loop is stalled) " + nc.DisplayName()))
+				}
+
+				if !gvkExist {
+					// Check GVK
+
+					if _, ok := parent.Spec.GnsServiceGroupsGvk[nc.DisplayName()]; !ok {
+						return
+					}
+
+					panic(fmt.Sprintf("gvk found (event loop is stalled) " + nc.DisplayName()))
+				}
+
+				cbfn(nc)
+			},
+		})
+		go informer.Run(stopper)
+	}
+	return registrationId, err
+}
+
+func (c *svcgroupServicegroupTsmV1Chainer) RegisterUpdateCallback(cbfn func(oldObj, newObj *ServicegroupSvcGroup)) (cache.ResourceEventHandlerRegistration, error) {
+	fmt.Println("ServicegroupSvcGroup -->  RegisterUpdateCallback!")
+	var (
+		registrationId cache.ResourceEventHandlerRegistration
+		err            error
+	)
+	key := "svcgroups.servicegroup.tsm.tanzu.vmware.com"
+	stopper := make(chan struct{})
+	if s, ok := subscriptionMap.Load(key); ok {
+		fmt.Println("[ServicegroupSvcGroup] ---SUBSCRIBE-INFORMER---->")
+		sub := s.(subscription)
+		registrationId, err = sub.informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
+			UpdateFunc: func(oldObj, newObj interface{}) {
+				oldData := &ServicegroupSvcGroup{
+					client:   c.client,
+					SvcGroup: oldObj.(*baseservicegrouptsmtanzuvmwarecomv1.SvcGroup),
+				}
+				newData := &ServicegroupSvcGroup{
+					client:   c.client,
+					SvcGroup: newObj.(*baseservicegrouptsmtanzuvmwarecomv1.SvcGroup),
+				}
+				cbfn(oldData, newData)
+			},
+		})
+	} else {
+		fmt.Println("[ServicegroupSvcGroup] ---NEW-INFORMER---->")
+		informer := informerservicegrouptsmtanzuvmwarecomv1.NewSvcGroupInformer(c.client.baseClient, 0, cache.Indexers{})
+		registrationId, err = informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
+			UpdateFunc: func(oldObj, newObj interface{}) {
+				oldData := &ServicegroupSvcGroup{
+					client:   c.client,
+					SvcGroup: oldObj.(*baseservicegrouptsmtanzuvmwarecomv1.SvcGroup),
+				}
+				newData := &ServicegroupSvcGroup{
+					client:   c.client,
+					SvcGroup: newObj.(*baseservicegrouptsmtanzuvmwarecomv1.SvcGroup),
+				}
+				cbfn(oldData, newData)
+			},
+		})
+		go informer.Run(stopper)
+	}
+	return registrationId, err
+}
+
+func (c *svcgroupServicegroupTsmV1Chainer) RegisterDeleteCallback(cbfn func(obj *ServicegroupSvcGroup)) (cache.ResourceEventHandlerRegistration, error) {
+	fmt.Println("ServicegroupSvcGroup -->  RegisterDeleteCallback!")
+	var (
+		registrationId cache.ResourceEventHandlerRegistration
+		err            error
+	)
+	key := "svcgroups.servicegroup.tsm.tanzu.vmware.com"
+	stopper := make(chan struct{})
+	if s, ok := subscriptionMap.Load(key); ok {
+		fmt.Println("[ServicegroupSvcGroup] ---SUBSCRIBE-INFORMER---->")
+		sub := s.(subscription)
+		registrationId, err = sub.informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
+			DeleteFunc: func(obj interface{}) {
+				nc := &ServicegroupSvcGroup{
+					client:   c.client,
+					SvcGroup: obj.(*baseservicegrouptsmtanzuvmwarecomv1.SvcGroup),
+				}
+
+				var parent *GnsGns
+				gvkExist := true
+				for i := 0; i < 600; i++ {
+					// Check if parent exists
+					p, err := nc.GetParent(context.TODO())
+					if err != nil || p == nil {
+						time.Sleep(500 * time.Millisecond)
+						continue
+					}
+					parent = p
+
+					// Check GVK
+
+					if _, ok := parent.Spec.GnsServiceGroupsGvk[nc.DisplayName()]; ok {
+						time.Sleep(500 * time.Millisecond)
+						continue
+					}
+
+					gvkExist = false
+					break
+				}
+
+				if parent == nil {
+					hashedName := helper.GetHashedName("gnses.gns.tsm.tanzu.vmware.com", nc.Labels, nc.Labels["gnses.gns.tsm.tanzu.vmware.com"])
+					parent, err = c.client.Gns().ForceReadGnsByName(context.TODO(), hashedName)
+					if err != nil {
+						if errors.IsNotFound(err) {
+							return
+						}
+
+						panic("error occurred while fetching parent " + err.Error())
+					}
+					panic(fmt.Sprintf("parent found (event loop is stalled) " + nc.DisplayName()))
+				}
+
+				if gvkExist {
+					// Check GVK
+
+					if _, ok := parent.Spec.GnsServiceGroupsGvk[nc.DisplayName()]; ok {
+						return
+					}
+
+					panic(fmt.Sprintf("gvk not found (event loop is stalled) " + nc.DisplayName()))
+				}
+
+				cbfn(nc)
+			},
+		})
+	} else {
+		fmt.Println("[ServicegroupSvcGroup] ---NEW-INFORMER---->")
+		informer := informerservicegrouptsmtanzuvmwarecomv1.NewSvcGroupInformer(c.client.baseClient, 0, cache.Indexers{})
+		registrationId, err = informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
+			DeleteFunc: func(obj interface{}) {
+				nc := &ServicegroupSvcGroup{
+					client:   c.client,
+					SvcGroup: obj.(*baseservicegrouptsmtanzuvmwarecomv1.SvcGroup),
+				}
+
+				var parent *GnsGns
+				gvkExist := true
+				for i := 0; i < 600; i++ {
+					// Check if parent exists
+					p, err := nc.GetParent(context.TODO())
+					if err != nil || p == nil {
+						time.Sleep(500 * time.Millisecond)
+						continue
+					}
+					parent = p
+
+					// Check GVK
+
+					if _, ok := parent.Spec.GnsServiceGroupsGvk[nc.DisplayName()]; ok {
+						time.Sleep(500 * time.Millisecond)
+						continue
+					}
+
+					gvkExist = false
+
+					break
+				}
+
+				if parent == nil {
+					hashedName := helper.GetHashedName("gnses.gns.tsm.tanzu.vmware.com", nc.Labels, nc.Labels["gnses.gns.tsm.tanzu.vmware.com"])
+					parent, err = c.client.Gns().ForceReadGnsByName(context.TODO(), hashedName)
+					if err != nil {
+						if errors.IsNotFound(err) {
+							return
+						}
+
+						panic("error occurred while fetching parent " + err.Error())
+					}
+					panic(fmt.Sprintf("parent found (event loop is stalled) " + nc.DisplayName()))
+				}
+
+				if gvkExist {
+					// Check GVK
+
+					if _, ok := parent.Spec.GnsServiceGroupsGvk[nc.DisplayName()]; ok {
+						return
+					}
+
+					panic(fmt.Sprintf("gvk not found (event loop is stalled) " + nc.DisplayName()))
+				}
+
+				cbfn(nc)
+			},
+		})
+		go informer.Run(stopper)
+	}
+	return registrationId, err
+}
+
 // GetSvcGroupLinkInfoByName returns object stored in the database under the hashedName which is a hash of display
 // name and parents names. Use it when you know hashed name of object.
 func (group *ServicegroupTsmV1) GetSvcGroupLinkInfoByName(ctx context.Context, hashedName string) (*ServicegroupSvcGroupLinkInfo, error) {
@@ -5651,18 +12397,48 @@ func (group *ServicegroupTsmV1) GetSvcGroupLinkInfoByName(ctx context.Context, h
 			SvcGroupLinkInfo: result,
 		}, nil
 	} else {
-		result, err := group.client.baseClient.
-			ServicegroupTsmV1().
-			SvcGroupLinkInfos().Get(ctx, hashedName, metav1.GetOptions{})
-		if err != nil {
-			return nil, err
+		retryCount := 12
+		for {
+			result, err := group.client.baseClient.
+				ServicegroupTsmV1().
+				SvcGroupLinkInfos().Get(ctx, hashedName, metav1.GetOptions{})
+			if err != nil {
+				log.Errorf("Failed to Get SvcGroupLinkInfos: %+v", err)
+				if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded) {
+					log.Errorf("[Retry Count: %d ] %+v", retryCount, err)
+					if retryCount == 0 {
+						log.Error("Max Retry exceed on Get SvcGroupLinkInfos")
+						return nil, err
+					}
+					retryCount -= 1
+					time.Sleep(5 * time.Second)
+				} else {
+					log.Errorf("Unexpected Error: %+v", err)
+					return nil, err
+				}
+			}
+			return &ServicegroupSvcGroupLinkInfo{
+				client:           group.client,
+				SvcGroupLinkInfo: result,
+			}, nil
 		}
-
-		return &ServicegroupSvcGroupLinkInfo{
-			client:           group.client,
-			SvcGroupLinkInfo: result,
-		}, nil
 	}
+}
+
+// ForceReadSvcGroupLinkInfoByName read object directly from the database under the hashedName which is a hash of display
+// name and parents names. Use it when you know hashed name of object.
+func (group *ServicegroupTsmV1) ForceReadSvcGroupLinkInfoByName(ctx context.Context, hashedName string) (*ServicegroupSvcGroupLinkInfo, error) {
+	result, err := group.client.baseClient.
+		ServicegroupTsmV1().
+		SvcGroupLinkInfos().Get(ctx, hashedName, metav1.GetOptions{})
+	if err != nil {
+		return nil, err
+	}
+
+	return &ServicegroupSvcGroupLinkInfo{
+		client:           group.client,
+		SvcGroupLinkInfo: result,
+	}, nil
 }
 
 // DeleteSvcGroupLinkInfoByName deletes object stored in the database under the hashedName which is a hash of
@@ -5673,7 +12449,16 @@ func (group *ServicegroupTsmV1) DeleteSvcGroupLinkInfoByName(ctx context.Context
 		ServicegroupTsmV1().
 		SvcGroupLinkInfos().Get(ctx, hashedName, metav1.GetOptions{})
 	if err != nil {
-		return err
+		if customerrors.Is(err, context.DeadlineExceeded) {
+			log.Errorf("context deadline exceeded, on creating GNS: %+v", hashedName)
+			return context.DeadlineExceeded
+		} else if customerrors.Is(err, context.Canceled) {
+			log.Errorf("context cancelled, on creating GNS: %+v", hashedName)
+			return context.Canceled
+		} else {
+			log.Errorf("Unexpected Error: %+v", err)
+			return err
+		}
 	}
 
 	err = group.client.baseClient.
@@ -5706,11 +12491,44 @@ func (group *ServicegroupTsmV1) DeleteSvcGroupLinkInfoByName(ctx context.Context
 	if parents[common.IS_NAME_HASHED_LABEL] == "true" {
 		parentName = helper.GetHashedName("configs.config.tsm.tanzu.vmware.com", parents, parentName)
 	}
-	_, err = group.client.baseClient.
-		ConfigTsmV1().
-		Configs().Patch(ctx, parentName, types.JSONPatchType, marshaled, metav1.PatchOptions{})
-	if err != nil {
-		return err
+
+	retryCount := 12
+	newCtx := context.TODO()
+	for {
+		_, err = group.client.baseClient.
+			ConfigTsmV1().
+			Configs().Patch(newCtx, parentName, types.JSONPatchType, marshaled, metav1.PatchOptions{})
+		if err != nil {
+			log.Errorf("Failed to patch SvcGroupLinkInfo gvk in parent node[Configs]: %+v", err)
+			if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded) {
+				log.Errorf("[Retry Count: %d ] %+v", retryCount, err)
+				if retryCount == 0 {
+					log.Error("Max Retry exceed on patching gvk")
+					log.Errorf("Trigger SvcGroupLinkInfo Delete: %s", hashedName)
+					err = group.DeleteSvcGroupLinkInfoByName(newCtx, hashedName)
+					if err != nil {
+						log.Errorf("Error occur while deleting SvcGroupLinkInfo: %s", hashedName)
+						return err
+					}
+					log.Errorf("SvcGroupLinkInfo Deleted: %s", hashedName)
+					return err
+				}
+				retryCount -= 1
+				time.Sleep(5 * time.Second)
+			} else {
+				log.Errorf("Unexpected Error: %+v", err)
+				log.Errorf("Trigger SvcGroupLinkInfo Delete: %s", hashedName)
+				err = group.DeleteSvcGroupLinkInfoByName(newCtx, hashedName)
+				if err != nil {
+					log.Errorf("Error occur while deleting SvcGroupLinkInfo: %+v", hashedName)
+					return err
+				}
+				log.Errorf("SvcGroupLinkInfo Deleted: %s", hashedName)
+				return err
+			}
+		} else {
+			break
+		}
 	}
 
 	return
@@ -5731,7 +12549,16 @@ func (group *ServicegroupTsmV1) CreateSvcGroupLinkInfoByName(ctx context.Context
 		ServicegroupTsmV1().
 		SvcGroupLinkInfos().Create(ctx, objToCreate, metav1.CreateOptions{})
 	if err != nil {
-		return nil, err
+		if customerrors.Is(err, context.DeadlineExceeded) {
+			log.Errorf("context deadline exceeded, on creating GNS: %+v", objToCreate)
+			return nil, context.DeadlineExceeded
+		} else if customerrors.Is(err, context.Canceled) {
+			log.Errorf("context cancelled, on creating GNS: %+v", objToCreate)
+			return nil, context.Canceled
+		} else {
+			log.Errorf("Unexpected Error: %+v", err)
+			return nil, err
+		}
 	}
 
 	parentName, ok := objToCreate.GetLabels()["configs.config.tsm.tanzu.vmware.com"]
@@ -5757,11 +12584,43 @@ func (group *ServicegroupTsmV1) CreateSvcGroupLinkInfoByName(ctx context.Context
 	if err != nil {
 		return nil, err
 	}
-	_, err = group.client.baseClient.
-		ConfigTsmV1().
-		Configs().Patch(ctx, parentName, types.JSONPatchType, marshaled, metav1.PatchOptions{})
-	if err != nil {
-		return nil, err
+	retryCount := 12
+	newCtx := context.TODO()
+	for {
+		_, err = group.client.baseClient.
+			ConfigTsmV1().
+			Configs().Patch(newCtx, parentName, types.JSONPatchType, marshaled, metav1.PatchOptions{})
+		if err != nil {
+			log.Errorf("Failed to patch SvcGroupLinkInfo gvk in parent node[Configs]: %+v", err)
+			if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded) {
+				log.Errorf("[Retry Count: %d ] %+v", retryCount, err)
+				if retryCount == 0 {
+					log.Error("Max Retry exceed on patching gvk")
+					log.Errorf("Trigger SvcGroupLinkInfo Delete: %s", objToCreate.GetName())
+					err = group.DeleteSvcGroupLinkInfoByName(newCtx, objToCreate.GetName())
+					if err != nil {
+						log.Errorf("Error occur while deleting SvcGroupLinkInfo: %s", objToCreate.GetName())
+						return nil, err
+					}
+					log.Errorf("SvcGroupLinkInfo Deleted: %s", objToCreate.GetName())
+					return nil, err
+				}
+				retryCount -= 1
+				time.Sleep(5 * time.Second)
+			} else {
+				log.Errorf("Unexpected Error: %+v", err)
+				log.Errorf("Trigger SvcGroupLinkInfo Delete: %s", objToCreate.GetName())
+				err = group.DeleteSvcGroupLinkInfoByName(newCtx, objToCreate.GetName())
+				if err != nil {
+					log.Errorf("Error occur while deleting SvcGroupLinkInfo: %+v", objToCreate.GetName())
+					return nil, err
+				}
+				log.Errorf("SvcGroupLinkInfo Deleted: %s", objToCreate.GetName())
+				return nil, err
+			}
+		} else {
+			break
+		}
 	}
 
 	return &ServicegroupSvcGroupLinkInfo{
@@ -5781,7 +12640,16 @@ func (group *ServicegroupTsmV1) UpdateSvcGroupLinkInfoByName(ctx context.Context
 			ServicegroupTsmV1().
 			SvcGroupLinkInfos().Get(ctx, objToUpdate.GetName(), metav1.GetOptions{})
 		if err != nil {
-			return nil, err
+			if customerrors.Is(err, context.DeadlineExceeded) {
+				log.Errorf("context deadline exceeded, on creating GNS: %+v", objToUpdate)
+				return nil, context.DeadlineExceeded
+			} else if customerrors.Is(err, context.Canceled) {
+				log.Errorf("context cancelled, on creating GNS: %+v", objToUpdate)
+				return nil, context.Canceled
+			} else {
+				log.Errorf("Unexpected Error: %+v", err)
+				return nil, err
+			}
 		}
 		objToUpdate.ResourceVersion = current.ResourceVersion
 	}
@@ -5936,6 +12804,447 @@ func (c *svcgrouplinkinfoServicegroupTsmV1Chainer) IsSubscribed() bool {
 	return ok
 }
 
+func (c *svcgrouplinkinfoServicegroupTsmV1Chainer) RegisterEventHandler(addCB func(obj *ServicegroupSvcGroupLinkInfo), updateCB func(oldObj, newObj *ServicegroupSvcGroupLinkInfo), deleteCB func(obj *ServicegroupSvcGroupLinkInfo)) (cache.ResourceEventHandlerRegistration, error) {
+	fmt.Println("RegisterEventHandler for ServicegroupSvcGroupLinkInfo")
+	var (
+		registrationId cache.ResourceEventHandlerRegistration
+		err            error
+		informer       cache.SharedIndexInformer
+	)
+	key := "svcgrouplinkinfos.servicegroup.tsm.tanzu.vmware.com"
+	stopper := make(chan struct{})
+	if s, ok := subscriptionMap.Load(key); ok {
+		fmt.Println("Informer exists for ServicegroupSvcGroupLinkInfo")
+		sub := s.(subscription)
+		informer = sub.informer
+	} else {
+		fmt.Println("Informer doesn't exists for ServicegroupSvcGroupLinkInfo, so creating a new one")
+		informer = informerservicegrouptsmtanzuvmwarecomv1.NewSvcGroupLinkInfoInformer(c.client.baseClient, 0, cache.Indexers{})
+		go informer.Run(stopper)
+		subscribe(key, informer)
+	}
+	registrationId, err = informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
+		AddFunc: func(obj interface{}) {
+			nc := &ServicegroupSvcGroupLinkInfo{
+				client:           c.client,
+				SvcGroupLinkInfo: obj.(*baseservicegrouptsmtanzuvmwarecomv1.SvcGroupLinkInfo),
+			}
+
+			var parent *ConfigConfig
+			gvkExist := false
+			for i := 0; i < 600; i++ {
+				// Check if parent exists
+				p, err := nc.GetParent(context.TODO())
+				if err != nil || p == nil {
+					time.Sleep(500 * time.Millisecond)
+					continue
+				}
+				parent = p
+				// Check GVK
+
+				if parent.Spec.SvcGrpInfoGvk == nil {
+					time.Sleep(500 * time.Millisecond)
+					continue
+				}
+
+				gvkExist = true
+				break
+			}
+			if parent == nil {
+				hashedName := helper.GetHashedName("configs.config.tsm.tanzu.vmware.com", nc.Labels, nc.Labels["configs.config.tsm.tanzu.vmware.com"])
+				parent, err = c.client.Config().ForceReadConfigByName(context.TODO(), hashedName)
+				if err != nil {
+					if errors.IsNotFound(err) {
+						return
+					}
+					panic("error occurred while fetching parent " + err.Error())
+				}
+				panic(fmt.Sprintf("parent found (event loop is stalled) " + nc.DisplayName()))
+			}
+			if !gvkExist {
+				// Check GVK
+
+				if parent.Spec.SvcGrpInfoGvk == nil {
+					return
+				}
+
+				panic(fmt.Sprintf("gvk found (event loop is stalled) " + nc.DisplayName()))
+			}
+
+			addCB(nc)
+		},
+
+		UpdateFunc: func(oldObj, newObj interface{}) {
+			oldData := &ServicegroupSvcGroupLinkInfo{
+				client:           c.client,
+				SvcGroupLinkInfo: oldObj.(*baseservicegrouptsmtanzuvmwarecomv1.SvcGroupLinkInfo),
+			}
+			newData := &ServicegroupSvcGroupLinkInfo{
+				client:           c.client,
+				SvcGroupLinkInfo: newObj.(*baseservicegrouptsmtanzuvmwarecomv1.SvcGroupLinkInfo),
+			}
+			updateCB(oldData, newData)
+		},
+
+		DeleteFunc: func(obj interface{}) {
+			nc := &ServicegroupSvcGroupLinkInfo{
+				client:           c.client,
+				SvcGroupLinkInfo: obj.(*baseservicegrouptsmtanzuvmwarecomv1.SvcGroupLinkInfo),
+			}
+
+			var parent *ConfigConfig
+			gvkExist := true
+			for i := 0; i < 600; i++ {
+				// Check if parent exists
+				p, err := nc.GetParent(context.TODO())
+				if err != nil || p == nil {
+					time.Sleep(500 * time.Millisecond)
+					continue
+				}
+				parent = p
+				// Check GVK
+
+				if parent.Spec.SvcGrpInfoGvk != nil {
+					time.Sleep(500 * time.Millisecond)
+					continue
+				}
+
+				gvkExist = false
+				break
+			}
+			if parent == nil {
+				hashedName := helper.GetHashedName("configs.config.tsm.tanzu.vmware.com", nc.Labels, nc.Labels["configs.config.tsm.tanzu.vmware.com"])
+				parent, err = c.client.Config().ForceReadConfigByName(context.TODO(), hashedName)
+				if err != nil {
+					if errors.IsNotFound(err) {
+						return
+					}
+					panic("error occurred while fetching parent " + err.Error())
+				}
+				panic(fmt.Sprintf("parent found (event loop is stalled) " + nc.DisplayName()))
+			}
+			if gvkExist {
+				// Check GVK
+
+				if parent.Spec.SvcGrpInfoGvk != nil {
+					return
+				}
+
+				panic(fmt.Sprintf("gvk not found (event loop is stalled) " + nc.DisplayName()))
+			}
+
+			deleteCB(nc)
+		},
+	})
+	return registrationId, err
+}
+
+func (c *svcgrouplinkinfoServicegroupTsmV1Chainer) RegisterAddCallback(cbfn func(obj *ServicegroupSvcGroupLinkInfo)) (cache.ResourceEventHandlerRegistration, error) {
+	fmt.Println("ServicegroupSvcGroupLinkInfo -->  RegisterAddCallback!")
+	var (
+		registrationId cache.ResourceEventHandlerRegistration
+		err            error
+	)
+	key := "svcgrouplinkinfos.servicegroup.tsm.tanzu.vmware.com"
+	stopper := make(chan struct{})
+	if s, ok := subscriptionMap.Load(key); ok {
+		fmt.Println("[ServicegroupSvcGroupLinkInfo] ---SUBSCRIBE-INFORMER---->")
+		sub := s.(subscription)
+		registrationId, err = sub.informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
+			AddFunc: func(obj interface{}) {
+				nc := &ServicegroupSvcGroupLinkInfo{
+					client:           c.client,
+					SvcGroupLinkInfo: obj.(*baseservicegrouptsmtanzuvmwarecomv1.SvcGroupLinkInfo),
+				}
+
+				var parent *ConfigConfig
+				gvkExist := false
+				for i := 0; i < 600; i++ {
+					// Check if parent exists
+					p, err := nc.GetParent(context.TODO())
+					if err != nil || p == nil {
+						time.Sleep(500 * time.Millisecond)
+						continue
+					}
+					parent = p
+
+					// Check GVK
+
+					if parent.Spec.SvcGrpInfoGvk == nil {
+						time.Sleep(500 * time.Millisecond)
+						continue
+					}
+
+					gvkExist = true
+
+					break
+				}
+
+				if parent == nil {
+					hashedName := helper.GetHashedName("configs.config.tsm.tanzu.vmware.com", nc.Labels, nc.Labels["configs.config.tsm.tanzu.vmware.com"])
+					parent, err = c.client.Config().ForceReadConfigByName(context.TODO(), hashedName)
+					if err != nil {
+						if errors.IsNotFound(err) {
+							return
+						}
+
+						panic("error occurred while fetching parent " + err.Error())
+					}
+					panic(fmt.Sprintf("parent found (event loop is stalled) " + nc.DisplayName()))
+				}
+
+				if !gvkExist {
+					// Check GVK
+
+					if parent.Spec.SvcGrpInfoGvk == nil {
+						return
+					}
+
+					panic(fmt.Sprintf("gvk found (event loop is stalled) " + nc.DisplayName()))
+				}
+
+				cbfn(nc)
+			},
+		})
+	} else {
+		fmt.Println("[ServicegroupSvcGroupLinkInfo] ---NEW-INFORMER---->")
+		informer := informerservicegrouptsmtanzuvmwarecomv1.NewSvcGroupLinkInfoInformer(c.client.baseClient, 0, cache.Indexers{})
+		registrationId, err = informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
+			AddFunc: func(obj interface{}) {
+				nc := &ServicegroupSvcGroupLinkInfo{
+					client:           c.client,
+					SvcGroupLinkInfo: obj.(*baseservicegrouptsmtanzuvmwarecomv1.SvcGroupLinkInfo),
+				}
+
+				var parent *ConfigConfig
+				gvkExist := false
+				for i := 0; i < 600; i++ {
+					// Check if parent exists
+					p, err := nc.GetParent(context.TODO())
+					if err != nil || p == nil {
+						time.Sleep(500 * time.Millisecond)
+						continue
+					}
+					parent = p
+
+					// Check GVK
+
+					if parent.Spec.SvcGrpInfoGvk == nil {
+						time.Sleep(500 * time.Millisecond)
+						continue
+					}
+
+					gvkExist = true
+
+					break
+				}
+
+				if parent == nil {
+					hashedName := helper.GetHashedName("configs.config.tsm.tanzu.vmware.com", nc.Labels, nc.Labels["configs.config.tsm.tanzu.vmware.com"])
+					parent, err = c.client.Config().ForceReadConfigByName(context.TODO(), hashedName)
+					if err != nil {
+						if errors.IsNotFound(err) {
+							return
+						}
+
+						panic("error occurred while fetching parent " + err.Error())
+					}
+					panic(fmt.Sprintf("parent found (event loop is stalled) " + nc.DisplayName()))
+				}
+
+				if !gvkExist {
+					// Check GVK
+
+					if parent.Spec.SvcGrpInfoGvk == nil {
+						return
+					}
+
+					panic(fmt.Sprintf("gvk found (event loop is stalled) " + nc.DisplayName()))
+				}
+
+				cbfn(nc)
+			},
+		})
+		go informer.Run(stopper)
+	}
+	return registrationId, err
+}
+
+func (c *svcgrouplinkinfoServicegroupTsmV1Chainer) RegisterUpdateCallback(cbfn func(oldObj, newObj *ServicegroupSvcGroupLinkInfo)) (cache.ResourceEventHandlerRegistration, error) {
+	fmt.Println("ServicegroupSvcGroupLinkInfo -->  RegisterUpdateCallback!")
+	var (
+		registrationId cache.ResourceEventHandlerRegistration
+		err            error
+	)
+	key := "svcgrouplinkinfos.servicegroup.tsm.tanzu.vmware.com"
+	stopper := make(chan struct{})
+	if s, ok := subscriptionMap.Load(key); ok {
+		fmt.Println("[ServicegroupSvcGroupLinkInfo] ---SUBSCRIBE-INFORMER---->")
+		sub := s.(subscription)
+		registrationId, err = sub.informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
+			UpdateFunc: func(oldObj, newObj interface{}) {
+				oldData := &ServicegroupSvcGroupLinkInfo{
+					client:           c.client,
+					SvcGroupLinkInfo: oldObj.(*baseservicegrouptsmtanzuvmwarecomv1.SvcGroupLinkInfo),
+				}
+				newData := &ServicegroupSvcGroupLinkInfo{
+					client:           c.client,
+					SvcGroupLinkInfo: newObj.(*baseservicegrouptsmtanzuvmwarecomv1.SvcGroupLinkInfo),
+				}
+				cbfn(oldData, newData)
+			},
+		})
+	} else {
+		fmt.Println("[ServicegroupSvcGroupLinkInfo] ---NEW-INFORMER---->")
+		informer := informerservicegrouptsmtanzuvmwarecomv1.NewSvcGroupLinkInfoInformer(c.client.baseClient, 0, cache.Indexers{})
+		registrationId, err = informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
+			UpdateFunc: func(oldObj, newObj interface{}) {
+				oldData := &ServicegroupSvcGroupLinkInfo{
+					client:           c.client,
+					SvcGroupLinkInfo: oldObj.(*baseservicegrouptsmtanzuvmwarecomv1.SvcGroupLinkInfo),
+				}
+				newData := &ServicegroupSvcGroupLinkInfo{
+					client:           c.client,
+					SvcGroupLinkInfo: newObj.(*baseservicegrouptsmtanzuvmwarecomv1.SvcGroupLinkInfo),
+				}
+				cbfn(oldData, newData)
+			},
+		})
+		go informer.Run(stopper)
+	}
+	return registrationId, err
+}
+
+func (c *svcgrouplinkinfoServicegroupTsmV1Chainer) RegisterDeleteCallback(cbfn func(obj *ServicegroupSvcGroupLinkInfo)) (cache.ResourceEventHandlerRegistration, error) {
+	fmt.Println("ServicegroupSvcGroupLinkInfo -->  RegisterDeleteCallback!")
+	var (
+		registrationId cache.ResourceEventHandlerRegistration
+		err            error
+	)
+	key := "svcgrouplinkinfos.servicegroup.tsm.tanzu.vmware.com"
+	stopper := make(chan struct{})
+	if s, ok := subscriptionMap.Load(key); ok {
+		fmt.Println("[ServicegroupSvcGroupLinkInfo] ---SUBSCRIBE-INFORMER---->")
+		sub := s.(subscription)
+		registrationId, err = sub.informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
+			DeleteFunc: func(obj interface{}) {
+				nc := &ServicegroupSvcGroupLinkInfo{
+					client:           c.client,
+					SvcGroupLinkInfo: obj.(*baseservicegrouptsmtanzuvmwarecomv1.SvcGroupLinkInfo),
+				}
+
+				var parent *ConfigConfig
+				gvkExist := true
+				for i := 0; i < 600; i++ {
+					// Check if parent exists
+					p, err := nc.GetParent(context.TODO())
+					if err != nil || p == nil {
+						time.Sleep(500 * time.Millisecond)
+						continue
+					}
+					parent = p
+
+					// Check GVK
+
+					if parent.Spec.SvcGrpInfoGvk != nil {
+						time.Sleep(500 * time.Millisecond)
+						continue
+					}
+
+					gvkExist = false
+					break
+				}
+
+				if parent == nil {
+					hashedName := helper.GetHashedName("configs.config.tsm.tanzu.vmware.com", nc.Labels, nc.Labels["configs.config.tsm.tanzu.vmware.com"])
+					parent, err = c.client.Config().ForceReadConfigByName(context.TODO(), hashedName)
+					if err != nil {
+						if errors.IsNotFound(err) {
+							return
+						}
+
+						panic("error occurred while fetching parent " + err.Error())
+					}
+					panic(fmt.Sprintf("parent found (event loop is stalled) " + nc.DisplayName()))
+				}
+
+				if gvkExist {
+					// Check GVK
+
+					if parent.Spec.SvcGrpInfoGvk != nil {
+						return
+					}
+
+					panic(fmt.Sprintf("gvk not found (event loop is stalled) " + nc.DisplayName()))
+				}
+
+				cbfn(nc)
+			},
+		})
+	} else {
+		fmt.Println("[ServicegroupSvcGroupLinkInfo] ---NEW-INFORMER---->")
+		informer := informerservicegrouptsmtanzuvmwarecomv1.NewSvcGroupLinkInfoInformer(c.client.baseClient, 0, cache.Indexers{})
+		registrationId, err = informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
+			DeleteFunc: func(obj interface{}) {
+				nc := &ServicegroupSvcGroupLinkInfo{
+					client:           c.client,
+					SvcGroupLinkInfo: obj.(*baseservicegrouptsmtanzuvmwarecomv1.SvcGroupLinkInfo),
+				}
+
+				var parent *ConfigConfig
+				gvkExist := true
+				for i := 0; i < 600; i++ {
+					// Check if parent exists
+					p, err := nc.GetParent(context.TODO())
+					if err != nil || p == nil {
+						time.Sleep(500 * time.Millisecond)
+						continue
+					}
+					parent = p
+
+					// Check GVK
+
+					if parent.Spec.SvcGrpInfoGvk != nil {
+						time.Sleep(500 * time.Millisecond)
+						continue
+					}
+
+					gvkExist = false
+
+					break
+				}
+
+				if parent == nil {
+					hashedName := helper.GetHashedName("configs.config.tsm.tanzu.vmware.com", nc.Labels, nc.Labels["configs.config.tsm.tanzu.vmware.com"])
+					parent, err = c.client.Config().ForceReadConfigByName(context.TODO(), hashedName)
+					if err != nil {
+						if errors.IsNotFound(err) {
+							return
+						}
+
+						panic("error occurred while fetching parent " + err.Error())
+					}
+					panic(fmt.Sprintf("parent found (event loop is stalled) " + nc.DisplayName()))
+				}
+
+				if gvkExist {
+					// Check GVK
+
+					if parent.Spec.SvcGrpInfoGvk != nil {
+						return
+					}
+
+					panic(fmt.Sprintf("gvk not found (event loop is stalled) " + nc.DisplayName()))
+				}
+
+				cbfn(nc)
+			},
+		})
+		go informer.Run(stopper)
+	}
+	return registrationId, err
+}
+
 // GetAdditionalPolicyDataByName returns object stored in the database under the hashedName which is a hash of display
 // name and parents names. Use it when you know hashed name of object.
 func (group *PolicypkgTsmV1) GetAdditionalPolicyDataByName(ctx context.Context, hashedName string) (*PolicypkgAdditionalPolicyData, error) {
@@ -5952,29 +13261,138 @@ func (group *PolicypkgTsmV1) GetAdditionalPolicyDataByName(ctx context.Context, 
 			AdditionalPolicyData: result,
 		}, nil
 	} else {
-		result, err := group.client.baseClient.
-			PolicypkgTsmV1().
-			AdditionalPolicyDatas().Get(ctx, hashedName, metav1.GetOptions{})
-		if err != nil {
-			return nil, err
+		retryCount := 12
+		for {
+			result, err := group.client.baseClient.
+				PolicypkgTsmV1().
+				AdditionalPolicyDatas().Get(ctx, hashedName, metav1.GetOptions{})
+			if err != nil {
+				log.Errorf("Failed to Get AdditionalPolicyDatas: %+v", err)
+				if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded) {
+					log.Errorf("[Retry Count: %d ] %+v", retryCount, err)
+					if retryCount == 0 {
+						log.Error("Max Retry exceed on Get AdditionalPolicyDatas")
+						return nil, err
+					}
+					retryCount -= 1
+					time.Sleep(5 * time.Second)
+				} else {
+					log.Errorf("Unexpected Error: %+v", err)
+					return nil, err
+				}
+			}
+			return &PolicypkgAdditionalPolicyData{
+				client:               group.client,
+				AdditionalPolicyData: result,
+			}, nil
 		}
-
-		return &PolicypkgAdditionalPolicyData{
-			client:               group.client,
-			AdditionalPolicyData: result,
-		}, nil
 	}
+}
+
+// ForceReadAdditionalPolicyDataByName read object directly from the database under the hashedName which is a hash of display
+// name and parents names. Use it when you know hashed name of object.
+func (group *PolicypkgTsmV1) ForceReadAdditionalPolicyDataByName(ctx context.Context, hashedName string) (*PolicypkgAdditionalPolicyData, error) {
+	result, err := group.client.baseClient.
+		PolicypkgTsmV1().
+		AdditionalPolicyDatas().Get(ctx, hashedName, metav1.GetOptions{})
+	if err != nil {
+		return nil, err
+	}
+
+	return &PolicypkgAdditionalPolicyData{
+		client:               group.client,
+		AdditionalPolicyData: result,
+	}, nil
 }
 
 // DeleteAdditionalPolicyDataByName deletes object stored in the database under the hashedName which is a hash of
 // display name and parents names. Use it when you know hashed name of object.
 func (group *PolicypkgTsmV1) DeleteAdditionalPolicyDataByName(ctx context.Context, hashedName string) (err error) {
 
+	result, err := group.client.baseClient.
+		PolicypkgTsmV1().
+		AdditionalPolicyDatas().Get(ctx, hashedName, metav1.GetOptions{})
+	if err != nil {
+		if customerrors.Is(err, context.DeadlineExceeded) {
+			log.Errorf("context deadline exceeded, on creating GNS: %+v", hashedName)
+			return context.DeadlineExceeded
+		} else if customerrors.Is(err, context.Canceled) {
+			log.Errorf("context cancelled, on creating GNS: %+v", hashedName)
+			return context.Canceled
+		} else {
+			log.Errorf("Unexpected Error: %+v", err)
+			return err
+		}
+	}
+
 	err = group.client.baseClient.
 		PolicypkgTsmV1().
 		AdditionalPolicyDatas().Delete(ctx, hashedName, metav1.DeleteOptions{})
 	if err != nil {
 		return err
+	}
+
+	var patch Patch
+
+	patchOp := PatchOp{
+		Op:   "remove",
+		Path: "/spec/additionalPolicyDataGvk",
+	}
+
+	patch = append(patch, patchOp)
+	marshaled, err := patch.Marshal()
+	if err != nil {
+		return err
+	}
+	parents := result.GetLabels()
+	if parents == nil {
+		parents = make(map[string]string)
+	}
+	parentName, ok := parents["acpconfigs.policypkg.tsm.tanzu.vmware.com"]
+	if !ok {
+		parentName = helper.DEFAULT_KEY
+	}
+	if parents[common.IS_NAME_HASHED_LABEL] == "true" {
+		parentName = helper.GetHashedName("acpconfigs.policypkg.tsm.tanzu.vmware.com", parents, parentName)
+	}
+
+	retryCount := 12
+	newCtx := context.TODO()
+	for {
+		_, err = group.client.baseClient.
+			PolicypkgTsmV1().
+			ACPConfigs().Patch(newCtx, parentName, types.JSONPatchType, marshaled, metav1.PatchOptions{})
+		if err != nil {
+			log.Errorf("Failed to patch AdditionalPolicyData gvk in parent node[ACPConfigs]: %+v", err)
+			if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded) {
+				log.Errorf("[Retry Count: %d ] %+v", retryCount, err)
+				if retryCount == 0 {
+					log.Error("Max Retry exceed on patching gvk")
+					log.Errorf("Trigger AdditionalPolicyData Delete: %s", hashedName)
+					err = group.DeleteAdditionalPolicyDataByName(newCtx, hashedName)
+					if err != nil {
+						log.Errorf("Error occur while deleting AdditionalPolicyData: %s", hashedName)
+						return err
+					}
+					log.Errorf("AdditionalPolicyData Deleted: %s", hashedName)
+					return err
+				}
+				retryCount -= 1
+				time.Sleep(5 * time.Second)
+			} else {
+				log.Errorf("Unexpected Error: %+v", err)
+				log.Errorf("Trigger AdditionalPolicyData Delete: %s", hashedName)
+				err = group.DeleteAdditionalPolicyDataByName(newCtx, hashedName)
+				if err != nil {
+					log.Errorf("Error occur while deleting AdditionalPolicyData: %+v", hashedName)
+					return err
+				}
+				log.Errorf("AdditionalPolicyData Deleted: %s", hashedName)
+				return err
+			}
+		} else {
+			break
+		}
 	}
 
 	return
@@ -5995,7 +13413,78 @@ func (group *PolicypkgTsmV1) CreateAdditionalPolicyDataByName(ctx context.Contex
 		PolicypkgTsmV1().
 		AdditionalPolicyDatas().Create(ctx, objToCreate, metav1.CreateOptions{})
 	if err != nil {
+		if customerrors.Is(err, context.DeadlineExceeded) {
+			log.Errorf("context deadline exceeded, on creating GNS: %+v", objToCreate)
+			return nil, context.DeadlineExceeded
+		} else if customerrors.Is(err, context.Canceled) {
+			log.Errorf("context cancelled, on creating GNS: %+v", objToCreate)
+			return nil, context.Canceled
+		} else {
+			log.Errorf("Unexpected Error: %+v", err)
+			return nil, err
+		}
+	}
+
+	parentName, ok := objToCreate.GetLabels()["acpconfigs.policypkg.tsm.tanzu.vmware.com"]
+	if !ok {
+		parentName = helper.DEFAULT_KEY
+	}
+	if objToCreate.Labels[common.IS_NAME_HASHED_LABEL] == "true" {
+		parentName = helper.GetHashedName("acpconfigs.policypkg.tsm.tanzu.vmware.com", objToCreate.GetLabels(), parentName)
+	}
+
+	var patch Patch
+	patchOp := PatchOp{
+		Op:   "replace",
+		Path: "/spec/additionalPolicyDataGvk",
+		Value: basepolicypkgtsmtanzuvmwarecomv1.Child{
+			Group: "policypkg.tsm.tanzu.vmware.com",
+			Kind:  "AdditionalPolicyData",
+			Name:  objToCreate.Name,
+		},
+	}
+	patch = append(patch, patchOp)
+	marshaled, err := patch.Marshal()
+	if err != nil {
 		return nil, err
+	}
+	retryCount := 12
+	newCtx := context.TODO()
+	for {
+		_, err = group.client.baseClient.
+			PolicypkgTsmV1().
+			ACPConfigs().Patch(newCtx, parentName, types.JSONPatchType, marshaled, metav1.PatchOptions{})
+		if err != nil {
+			log.Errorf("Failed to patch AdditionalPolicyData gvk in parent node[ACPConfigs]: %+v", err)
+			if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded) {
+				log.Errorf("[Retry Count: %d ] %+v", retryCount, err)
+				if retryCount == 0 {
+					log.Error("Max Retry exceed on patching gvk")
+					log.Errorf("Trigger AdditionalPolicyData Delete: %s", objToCreate.GetName())
+					err = group.DeleteAdditionalPolicyDataByName(newCtx, objToCreate.GetName())
+					if err != nil {
+						log.Errorf("Error occur while deleting AdditionalPolicyData: %s", objToCreate.GetName())
+						return nil, err
+					}
+					log.Errorf("AdditionalPolicyData Deleted: %s", objToCreate.GetName())
+					return nil, err
+				}
+				retryCount -= 1
+				time.Sleep(5 * time.Second)
+			} else {
+				log.Errorf("Unexpected Error: %+v", err)
+				log.Errorf("Trigger AdditionalPolicyData Delete: %s", objToCreate.GetName())
+				err = group.DeleteAdditionalPolicyDataByName(newCtx, objToCreate.GetName())
+				if err != nil {
+					log.Errorf("Error occur while deleting AdditionalPolicyData: %+v", objToCreate.GetName())
+					return nil, err
+				}
+				log.Errorf("AdditionalPolicyData Deleted: %s", objToCreate.GetName())
+				return nil, err
+			}
+		} else {
+			break
+		}
 	}
 
 	return &PolicypkgAdditionalPolicyData{
@@ -6051,7 +13540,16 @@ func (group *PolicypkgTsmV1) UpdateAdditionalPolicyDataByName(ctx context.Contex
 			PolicypkgTsmV1().
 			AdditionalPolicyDatas().Get(ctx, objToUpdate.GetName(), metav1.GetOptions{})
 		if err != nil {
-			return nil, err
+			if customerrors.Is(err, context.DeadlineExceeded) {
+				log.Errorf("context deadline exceeded, on creating GNS: %+v", objToUpdate)
+				return nil, context.DeadlineExceeded
+			} else if customerrors.Is(err, context.Canceled) {
+				log.Errorf("context cancelled, on creating GNS: %+v", objToUpdate)
+				return nil, context.Canceled
+			} else {
+				log.Errorf("Unexpected Error: %+v", err)
+				return nil, err
+			}
 		}
 		objToUpdate.ResourceVersion = current.ResourceVersion
 	}
@@ -6175,45 +13673,9 @@ func (obj *PolicypkgAdditionalPolicyData) ClearStatus(ctx context.Context) error
 	return nil
 }
 
-// GetPolicypkgAdditionalPolicyData calculates the hashed name based on parents and displayName and
-// returns given object
-func (c *Clientset) GetPolicypkgAdditionalPolicyData(ctx context.Context, displayName string) (result *PolicypkgAdditionalPolicyData, err error) {
-	hashedName := helper.GetHashedName("additionalpolicydatas.policypkg.tsm.tanzu.vmware.com", nil, displayName)
-	return c.Policypkg().GetAdditionalPolicyDataByName(ctx, hashedName)
-}
-
-func (c *Clientset) PolicypkgAdditionalPolicyData(displayName string) *additionalpolicydataPolicypkgTsmV1Chainer {
-	parentLabels := make(map[string]string)
-	parentLabels["additionalpolicydatas.policypkg.tsm.tanzu.vmware.com"] = displayName
-	return &additionalpolicydataPolicypkgTsmV1Chainer{
-		client:       c,
-		name:         displayName,
-		parentLabels: parentLabels,
-	}
-}
-
-// AddPolicypkgAdditionalPolicyData calculates hashed name of the object based on objToCreate.Name
-// and parents names and creates it. objToCreate.Name is changed to the hashed name. Original name is preserved in
-// nexus/display_name label and can be obtained using DisplayName() method.
-func (c *Clientset) AddPolicypkgAdditionalPolicyData(ctx context.Context,
-	objToCreate *basepolicypkgtsmtanzuvmwarecomv1.AdditionalPolicyData) (result *PolicypkgAdditionalPolicyData, err error) {
-	if objToCreate.Labels == nil {
-		objToCreate.Labels = map[string]string{}
-	}
-	if objToCreate.Labels[common.IS_NAME_HASHED_LABEL] != "true" {
-		objToCreate.Labels[common.DISPLAY_NAME_LABEL] = objToCreate.GetName()
-		objToCreate.Labels[common.IS_NAME_HASHED_LABEL] = "true"
-		hashedName := helper.GetHashedName(objToCreate.CRDName(), nil, objToCreate.GetName())
-		objToCreate.Name = hashedName
-	}
-	return c.Policypkg().CreateAdditionalPolicyDataByName(ctx, objToCreate)
-}
-
-// DeletePolicypkgAdditionalPolicyData calculates hashedName of object based on displayName and
-// parents and deletes given object
-func (c *Clientset) DeletePolicypkgAdditionalPolicyData(ctx context.Context, displayName string) (err error) {
-	hashedName := helper.GetHashedName("additionalpolicydatas.policypkg.tsm.tanzu.vmware.com", nil, displayName)
-	return c.Policypkg().DeleteAdditionalPolicyDataByName(ctx, hashedName)
+func (obj *PolicypkgAdditionalPolicyData) GetParent(ctx context.Context) (result *PolicypkgACPConfig, err error) {
+	hashedName := helper.GetHashedName("acpconfigs.policypkg.tsm.tanzu.vmware.com", obj.Labels, obj.Labels["acpconfigs.policypkg.tsm.tanzu.vmware.com"])
+	return obj.client.Policypkg().GetACPConfigByName(ctx, hashedName)
 }
 
 type additionalpolicydataPolicypkgTsmV1Chainer struct {
@@ -6242,6 +13704,447 @@ func (c *additionalpolicydataPolicypkgTsmV1Chainer) IsSubscribed() bool {
 	key := "additionalpolicydatas.policypkg.tsm.tanzu.vmware.com"
 	_, ok := subscriptionMap.Load(key)
 	return ok
+}
+
+func (c *additionalpolicydataPolicypkgTsmV1Chainer) RegisterEventHandler(addCB func(obj *PolicypkgAdditionalPolicyData), updateCB func(oldObj, newObj *PolicypkgAdditionalPolicyData), deleteCB func(obj *PolicypkgAdditionalPolicyData)) (cache.ResourceEventHandlerRegistration, error) {
+	fmt.Println("RegisterEventHandler for PolicypkgAdditionalPolicyData")
+	var (
+		registrationId cache.ResourceEventHandlerRegistration
+		err            error
+		informer       cache.SharedIndexInformer
+	)
+	key := "additionalpolicydatas.policypkg.tsm.tanzu.vmware.com"
+	stopper := make(chan struct{})
+	if s, ok := subscriptionMap.Load(key); ok {
+		fmt.Println("Informer exists for PolicypkgAdditionalPolicyData")
+		sub := s.(subscription)
+		informer = sub.informer
+	} else {
+		fmt.Println("Informer doesn't exists for PolicypkgAdditionalPolicyData, so creating a new one")
+		informer = informerpolicypkgtsmtanzuvmwarecomv1.NewAdditionalPolicyDataInformer(c.client.baseClient, 0, cache.Indexers{})
+		go informer.Run(stopper)
+		subscribe(key, informer)
+	}
+	registrationId, err = informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
+		AddFunc: func(obj interface{}) {
+			nc := &PolicypkgAdditionalPolicyData{
+				client:               c.client,
+				AdditionalPolicyData: obj.(*basepolicypkgtsmtanzuvmwarecomv1.AdditionalPolicyData),
+			}
+
+			var parent *PolicypkgACPConfig
+			gvkExist := false
+			for i := 0; i < 600; i++ {
+				// Check if parent exists
+				p, err := nc.GetParent(context.TODO())
+				if err != nil || p == nil {
+					time.Sleep(500 * time.Millisecond)
+					continue
+				}
+				parent = p
+				// Check GVK
+
+				if parent.Spec.AdditionalPolicyDataGvk == nil {
+					time.Sleep(500 * time.Millisecond)
+					continue
+				}
+
+				gvkExist = true
+				break
+			}
+			if parent == nil {
+				hashedName := helper.GetHashedName("acpconfigs.policypkg.tsm.tanzu.vmware.com", nc.Labels, nc.Labels["acpconfigs.policypkg.tsm.tanzu.vmware.com"])
+				parent, err = c.client.Policypkg().ForceReadACPConfigByName(context.TODO(), hashedName)
+				if err != nil {
+					if errors.IsNotFound(err) {
+						return
+					}
+					panic("error occurred while fetching parent " + err.Error())
+				}
+				panic(fmt.Sprintf("parent found (event loop is stalled) " + nc.DisplayName()))
+			}
+			if !gvkExist {
+				// Check GVK
+
+				if parent.Spec.AdditionalPolicyDataGvk == nil {
+					return
+				}
+
+				panic(fmt.Sprintf("gvk found (event loop is stalled) " + nc.DisplayName()))
+			}
+
+			addCB(nc)
+		},
+
+		UpdateFunc: func(oldObj, newObj interface{}) {
+			oldData := &PolicypkgAdditionalPolicyData{
+				client:               c.client,
+				AdditionalPolicyData: oldObj.(*basepolicypkgtsmtanzuvmwarecomv1.AdditionalPolicyData),
+			}
+			newData := &PolicypkgAdditionalPolicyData{
+				client:               c.client,
+				AdditionalPolicyData: newObj.(*basepolicypkgtsmtanzuvmwarecomv1.AdditionalPolicyData),
+			}
+			updateCB(oldData, newData)
+		},
+
+		DeleteFunc: func(obj interface{}) {
+			nc := &PolicypkgAdditionalPolicyData{
+				client:               c.client,
+				AdditionalPolicyData: obj.(*basepolicypkgtsmtanzuvmwarecomv1.AdditionalPolicyData),
+			}
+
+			var parent *PolicypkgACPConfig
+			gvkExist := true
+			for i := 0; i < 600; i++ {
+				// Check if parent exists
+				p, err := nc.GetParent(context.TODO())
+				if err != nil || p == nil {
+					time.Sleep(500 * time.Millisecond)
+					continue
+				}
+				parent = p
+				// Check GVK
+
+				if parent.Spec.AdditionalPolicyDataGvk != nil {
+					time.Sleep(500 * time.Millisecond)
+					continue
+				}
+
+				gvkExist = false
+				break
+			}
+			if parent == nil {
+				hashedName := helper.GetHashedName("acpconfigs.policypkg.tsm.tanzu.vmware.com", nc.Labels, nc.Labels["acpconfigs.policypkg.tsm.tanzu.vmware.com"])
+				parent, err = c.client.Policypkg().ForceReadACPConfigByName(context.TODO(), hashedName)
+				if err != nil {
+					if errors.IsNotFound(err) {
+						return
+					}
+					panic("error occurred while fetching parent " + err.Error())
+				}
+				panic(fmt.Sprintf("parent found (event loop is stalled) " + nc.DisplayName()))
+			}
+			if gvkExist {
+				// Check GVK
+
+				if parent.Spec.AdditionalPolicyDataGvk != nil {
+					return
+				}
+
+				panic(fmt.Sprintf("gvk not found (event loop is stalled) " + nc.DisplayName()))
+			}
+
+			deleteCB(nc)
+		},
+	})
+	return registrationId, err
+}
+
+func (c *additionalpolicydataPolicypkgTsmV1Chainer) RegisterAddCallback(cbfn func(obj *PolicypkgAdditionalPolicyData)) (cache.ResourceEventHandlerRegistration, error) {
+	fmt.Println("PolicypkgAdditionalPolicyData -->  RegisterAddCallback!")
+	var (
+		registrationId cache.ResourceEventHandlerRegistration
+		err            error
+	)
+	key := "additionalpolicydatas.policypkg.tsm.tanzu.vmware.com"
+	stopper := make(chan struct{})
+	if s, ok := subscriptionMap.Load(key); ok {
+		fmt.Println("[PolicypkgAdditionalPolicyData] ---SUBSCRIBE-INFORMER---->")
+		sub := s.(subscription)
+		registrationId, err = sub.informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
+			AddFunc: func(obj interface{}) {
+				nc := &PolicypkgAdditionalPolicyData{
+					client:               c.client,
+					AdditionalPolicyData: obj.(*basepolicypkgtsmtanzuvmwarecomv1.AdditionalPolicyData),
+				}
+
+				var parent *PolicypkgACPConfig
+				gvkExist := false
+				for i := 0; i < 600; i++ {
+					// Check if parent exists
+					p, err := nc.GetParent(context.TODO())
+					if err != nil || p == nil {
+						time.Sleep(500 * time.Millisecond)
+						continue
+					}
+					parent = p
+
+					// Check GVK
+
+					if parent.Spec.AdditionalPolicyDataGvk == nil {
+						time.Sleep(500 * time.Millisecond)
+						continue
+					}
+
+					gvkExist = true
+
+					break
+				}
+
+				if parent == nil {
+					hashedName := helper.GetHashedName("acpconfigs.policypkg.tsm.tanzu.vmware.com", nc.Labels, nc.Labels["acpconfigs.policypkg.tsm.tanzu.vmware.com"])
+					parent, err = c.client.Policypkg().ForceReadACPConfigByName(context.TODO(), hashedName)
+					if err != nil {
+						if errors.IsNotFound(err) {
+							return
+						}
+
+						panic("error occurred while fetching parent " + err.Error())
+					}
+					panic(fmt.Sprintf("parent found (event loop is stalled) " + nc.DisplayName()))
+				}
+
+				if !gvkExist {
+					// Check GVK
+
+					if parent.Spec.AdditionalPolicyDataGvk == nil {
+						return
+					}
+
+					panic(fmt.Sprintf("gvk found (event loop is stalled) " + nc.DisplayName()))
+				}
+
+				cbfn(nc)
+			},
+		})
+	} else {
+		fmt.Println("[PolicypkgAdditionalPolicyData] ---NEW-INFORMER---->")
+		informer := informerpolicypkgtsmtanzuvmwarecomv1.NewAdditionalPolicyDataInformer(c.client.baseClient, 0, cache.Indexers{})
+		registrationId, err = informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
+			AddFunc: func(obj interface{}) {
+				nc := &PolicypkgAdditionalPolicyData{
+					client:               c.client,
+					AdditionalPolicyData: obj.(*basepolicypkgtsmtanzuvmwarecomv1.AdditionalPolicyData),
+				}
+
+				var parent *PolicypkgACPConfig
+				gvkExist := false
+				for i := 0; i < 600; i++ {
+					// Check if parent exists
+					p, err := nc.GetParent(context.TODO())
+					if err != nil || p == nil {
+						time.Sleep(500 * time.Millisecond)
+						continue
+					}
+					parent = p
+
+					// Check GVK
+
+					if parent.Spec.AdditionalPolicyDataGvk == nil {
+						time.Sleep(500 * time.Millisecond)
+						continue
+					}
+
+					gvkExist = true
+
+					break
+				}
+
+				if parent == nil {
+					hashedName := helper.GetHashedName("acpconfigs.policypkg.tsm.tanzu.vmware.com", nc.Labels, nc.Labels["acpconfigs.policypkg.tsm.tanzu.vmware.com"])
+					parent, err = c.client.Policypkg().ForceReadACPConfigByName(context.TODO(), hashedName)
+					if err != nil {
+						if errors.IsNotFound(err) {
+							return
+						}
+
+						panic("error occurred while fetching parent " + err.Error())
+					}
+					panic(fmt.Sprintf("parent found (event loop is stalled) " + nc.DisplayName()))
+				}
+
+				if !gvkExist {
+					// Check GVK
+
+					if parent.Spec.AdditionalPolicyDataGvk == nil {
+						return
+					}
+
+					panic(fmt.Sprintf("gvk found (event loop is stalled) " + nc.DisplayName()))
+				}
+
+				cbfn(nc)
+			},
+		})
+		go informer.Run(stopper)
+	}
+	return registrationId, err
+}
+
+func (c *additionalpolicydataPolicypkgTsmV1Chainer) RegisterUpdateCallback(cbfn func(oldObj, newObj *PolicypkgAdditionalPolicyData)) (cache.ResourceEventHandlerRegistration, error) {
+	fmt.Println("PolicypkgAdditionalPolicyData -->  RegisterUpdateCallback!")
+	var (
+		registrationId cache.ResourceEventHandlerRegistration
+		err            error
+	)
+	key := "additionalpolicydatas.policypkg.tsm.tanzu.vmware.com"
+	stopper := make(chan struct{})
+	if s, ok := subscriptionMap.Load(key); ok {
+		fmt.Println("[PolicypkgAdditionalPolicyData] ---SUBSCRIBE-INFORMER---->")
+		sub := s.(subscription)
+		registrationId, err = sub.informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
+			UpdateFunc: func(oldObj, newObj interface{}) {
+				oldData := &PolicypkgAdditionalPolicyData{
+					client:               c.client,
+					AdditionalPolicyData: oldObj.(*basepolicypkgtsmtanzuvmwarecomv1.AdditionalPolicyData),
+				}
+				newData := &PolicypkgAdditionalPolicyData{
+					client:               c.client,
+					AdditionalPolicyData: newObj.(*basepolicypkgtsmtanzuvmwarecomv1.AdditionalPolicyData),
+				}
+				cbfn(oldData, newData)
+			},
+		})
+	} else {
+		fmt.Println("[PolicypkgAdditionalPolicyData] ---NEW-INFORMER---->")
+		informer := informerpolicypkgtsmtanzuvmwarecomv1.NewAdditionalPolicyDataInformer(c.client.baseClient, 0, cache.Indexers{})
+		registrationId, err = informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
+			UpdateFunc: func(oldObj, newObj interface{}) {
+				oldData := &PolicypkgAdditionalPolicyData{
+					client:               c.client,
+					AdditionalPolicyData: oldObj.(*basepolicypkgtsmtanzuvmwarecomv1.AdditionalPolicyData),
+				}
+				newData := &PolicypkgAdditionalPolicyData{
+					client:               c.client,
+					AdditionalPolicyData: newObj.(*basepolicypkgtsmtanzuvmwarecomv1.AdditionalPolicyData),
+				}
+				cbfn(oldData, newData)
+			},
+		})
+		go informer.Run(stopper)
+	}
+	return registrationId, err
+}
+
+func (c *additionalpolicydataPolicypkgTsmV1Chainer) RegisterDeleteCallback(cbfn func(obj *PolicypkgAdditionalPolicyData)) (cache.ResourceEventHandlerRegistration, error) {
+	fmt.Println("PolicypkgAdditionalPolicyData -->  RegisterDeleteCallback!")
+	var (
+		registrationId cache.ResourceEventHandlerRegistration
+		err            error
+	)
+	key := "additionalpolicydatas.policypkg.tsm.tanzu.vmware.com"
+	stopper := make(chan struct{})
+	if s, ok := subscriptionMap.Load(key); ok {
+		fmt.Println("[PolicypkgAdditionalPolicyData] ---SUBSCRIBE-INFORMER---->")
+		sub := s.(subscription)
+		registrationId, err = sub.informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
+			DeleteFunc: func(obj interface{}) {
+				nc := &PolicypkgAdditionalPolicyData{
+					client:               c.client,
+					AdditionalPolicyData: obj.(*basepolicypkgtsmtanzuvmwarecomv1.AdditionalPolicyData),
+				}
+
+				var parent *PolicypkgACPConfig
+				gvkExist := true
+				for i := 0; i < 600; i++ {
+					// Check if parent exists
+					p, err := nc.GetParent(context.TODO())
+					if err != nil || p == nil {
+						time.Sleep(500 * time.Millisecond)
+						continue
+					}
+					parent = p
+
+					// Check GVK
+
+					if parent.Spec.AdditionalPolicyDataGvk != nil {
+						time.Sleep(500 * time.Millisecond)
+						continue
+					}
+
+					gvkExist = false
+					break
+				}
+
+				if parent == nil {
+					hashedName := helper.GetHashedName("acpconfigs.policypkg.tsm.tanzu.vmware.com", nc.Labels, nc.Labels["acpconfigs.policypkg.tsm.tanzu.vmware.com"])
+					parent, err = c.client.Policypkg().ForceReadACPConfigByName(context.TODO(), hashedName)
+					if err != nil {
+						if errors.IsNotFound(err) {
+							return
+						}
+
+						panic("error occurred while fetching parent " + err.Error())
+					}
+					panic(fmt.Sprintf("parent found (event loop is stalled) " + nc.DisplayName()))
+				}
+
+				if gvkExist {
+					// Check GVK
+
+					if parent.Spec.AdditionalPolicyDataGvk != nil {
+						return
+					}
+
+					panic(fmt.Sprintf("gvk not found (event loop is stalled) " + nc.DisplayName()))
+				}
+
+				cbfn(nc)
+			},
+		})
+	} else {
+		fmt.Println("[PolicypkgAdditionalPolicyData] ---NEW-INFORMER---->")
+		informer := informerpolicypkgtsmtanzuvmwarecomv1.NewAdditionalPolicyDataInformer(c.client.baseClient, 0, cache.Indexers{})
+		registrationId, err = informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
+			DeleteFunc: func(obj interface{}) {
+				nc := &PolicypkgAdditionalPolicyData{
+					client:               c.client,
+					AdditionalPolicyData: obj.(*basepolicypkgtsmtanzuvmwarecomv1.AdditionalPolicyData),
+				}
+
+				var parent *PolicypkgACPConfig
+				gvkExist := true
+				for i := 0; i < 600; i++ {
+					// Check if parent exists
+					p, err := nc.GetParent(context.TODO())
+					if err != nil || p == nil {
+						time.Sleep(500 * time.Millisecond)
+						continue
+					}
+					parent = p
+
+					// Check GVK
+
+					if parent.Spec.AdditionalPolicyDataGvk != nil {
+						time.Sleep(500 * time.Millisecond)
+						continue
+					}
+
+					gvkExist = false
+
+					break
+				}
+
+				if parent == nil {
+					hashedName := helper.GetHashedName("acpconfigs.policypkg.tsm.tanzu.vmware.com", nc.Labels, nc.Labels["acpconfigs.policypkg.tsm.tanzu.vmware.com"])
+					parent, err = c.client.Policypkg().ForceReadACPConfigByName(context.TODO(), hashedName)
+					if err != nil {
+						if errors.IsNotFound(err) {
+							return
+						}
+
+						panic("error occurred while fetching parent " + err.Error())
+					}
+					panic(fmt.Sprintf("parent found (event loop is stalled) " + nc.DisplayName()))
+				}
+
+				if gvkExist {
+					// Check GVK
+
+					if parent.Spec.AdditionalPolicyDataGvk != nil {
+						return
+					}
+
+					panic(fmt.Sprintf("gvk not found (event loop is stalled) " + nc.DisplayName()))
+				}
+
+				cbfn(nc)
+			},
+		})
+		go informer.Run(stopper)
+	}
+	return registrationId, err
 }
 
 // ClearStatus to clear user defined status
@@ -6292,18 +14195,48 @@ func (group *PolicypkgTsmV1) GetAccessControlPolicyByName(ctx context.Context, h
 			AccessControlPolicy: result,
 		}, nil
 	} else {
-		result, err := group.client.baseClient.
-			PolicypkgTsmV1().
-			AccessControlPolicies().Get(ctx, hashedName, metav1.GetOptions{})
-		if err != nil {
-			return nil, err
+		retryCount := 12
+		for {
+			result, err := group.client.baseClient.
+				PolicypkgTsmV1().
+				AccessControlPolicies().Get(ctx, hashedName, metav1.GetOptions{})
+			if err != nil {
+				log.Errorf("Failed to Get AccessControlPolicies: %+v", err)
+				if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded) {
+					log.Errorf("[Retry Count: %d ] %+v", retryCount, err)
+					if retryCount == 0 {
+						log.Error("Max Retry exceed on Get AccessControlPolicies")
+						return nil, err
+					}
+					retryCount -= 1
+					time.Sleep(5 * time.Second)
+				} else {
+					log.Errorf("Unexpected Error: %+v", err)
+					return nil, err
+				}
+			}
+			return &PolicypkgAccessControlPolicy{
+				client:              group.client,
+				AccessControlPolicy: result,
+			}, nil
 		}
-
-		return &PolicypkgAccessControlPolicy{
-			client:              group.client,
-			AccessControlPolicy: result,
-		}, nil
 	}
+}
+
+// ForceReadAccessControlPolicyByName read object directly from the database under the hashedName which is a hash of display
+// name and parents names. Use it when you know hashed name of object.
+func (group *PolicypkgTsmV1) ForceReadAccessControlPolicyByName(ctx context.Context, hashedName string) (*PolicypkgAccessControlPolicy, error) {
+	result, err := group.client.baseClient.
+		PolicypkgTsmV1().
+		AccessControlPolicies().Get(ctx, hashedName, metav1.GetOptions{})
+	if err != nil {
+		return nil, err
+	}
+
+	return &PolicypkgAccessControlPolicy{
+		client:              group.client,
+		AccessControlPolicy: result,
+	}, nil
 }
 
 // DeleteAccessControlPolicyByName deletes object stored in the database under the hashedName which is a hash of
@@ -6314,14 +14247,27 @@ func (group *PolicypkgTsmV1) DeleteAccessControlPolicyByName(ctx context.Context
 		PolicypkgTsmV1().
 		AccessControlPolicies().Get(ctx, hashedName, metav1.GetOptions{})
 	if err != nil {
-		return err
+		if customerrors.Is(err, context.DeadlineExceeded) {
+			log.Errorf("context deadline exceeded, on creating GNS: %+v", hashedName)
+			return context.DeadlineExceeded
+		} else if customerrors.Is(err, context.Canceled) {
+			log.Errorf("context cancelled, on creating GNS: %+v", hashedName)
+			return context.Canceled
+		} else {
+			log.Errorf("Unexpected Error: %+v", err)
+			return err
+		}
 	}
 
 	for _, v := range result.Spec.PolicyConfigsGvk {
 		err := group.client.
 			Policypkg().DeleteACPConfigByName(ctx, v.Name)
 		if err != nil {
-			return err
+			if errors.IsNotFound(err) {
+				continue
+			} else {
+				return err
+			}
 		}
 	}
 
@@ -6355,11 +14301,44 @@ func (group *PolicypkgTsmV1) DeleteAccessControlPolicyByName(ctx context.Context
 	if parents[common.IS_NAME_HASHED_LABEL] == "true" {
 		parentName = helper.GetHashedName("gnses.gns.tsm.tanzu.vmware.com", parents, parentName)
 	}
-	_, err = group.client.baseClient.
-		GnsTsmV1().
-		Gnses().Patch(ctx, parentName, types.JSONPatchType, marshaled, metav1.PatchOptions{})
-	if err != nil {
-		return err
+
+	retryCount := 12
+	newCtx := context.TODO()
+	for {
+		_, err = group.client.baseClient.
+			GnsTsmV1().
+			Gnses().Patch(newCtx, parentName, types.JSONPatchType, marshaled, metav1.PatchOptions{})
+		if err != nil {
+			log.Errorf("Failed to patch AccessControlPolicy gvk in parent node[Gnses]: %+v", err)
+			if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded) {
+				log.Errorf("[Retry Count: %d ] %+v", retryCount, err)
+				if retryCount == 0 {
+					log.Error("Max Retry exceed on patching gvk")
+					log.Errorf("Trigger AccessControlPolicy Delete: %s", hashedName)
+					err = group.DeleteAccessControlPolicyByName(newCtx, hashedName)
+					if err != nil {
+						log.Errorf("Error occur while deleting AccessControlPolicy: %s", hashedName)
+						return err
+					}
+					log.Errorf("AccessControlPolicy Deleted: %s", hashedName)
+					return err
+				}
+				retryCount -= 1
+				time.Sleep(5 * time.Second)
+			} else {
+				log.Errorf("Unexpected Error: %+v", err)
+				log.Errorf("Trigger AccessControlPolicy Delete: %s", hashedName)
+				err = group.DeleteAccessControlPolicyByName(newCtx, hashedName)
+				if err != nil {
+					log.Errorf("Error occur while deleting AccessControlPolicy: %+v", hashedName)
+					return err
+				}
+				log.Errorf("AccessControlPolicy Deleted: %s", hashedName)
+				return err
+			}
+		} else {
+			break
+		}
 	}
 
 	return
@@ -6382,7 +14361,16 @@ func (group *PolicypkgTsmV1) CreateAccessControlPolicyByName(ctx context.Context
 		PolicypkgTsmV1().
 		AccessControlPolicies().Create(ctx, objToCreate, metav1.CreateOptions{})
 	if err != nil {
-		return nil, err
+		if customerrors.Is(err, context.DeadlineExceeded) {
+			log.Errorf("context deadline exceeded, on creating GNS: %+v", objToCreate)
+			return nil, context.DeadlineExceeded
+		} else if customerrors.Is(err, context.Canceled) {
+			log.Errorf("context cancelled, on creating GNS: %+v", objToCreate)
+			return nil, context.Canceled
+		} else {
+			log.Errorf("Unexpected Error: %+v", err)
+			return nil, err
+		}
 	}
 
 	parentName, ok := objToCreate.GetLabels()["gnses.gns.tsm.tanzu.vmware.com"]
@@ -6408,11 +14396,43 @@ func (group *PolicypkgTsmV1) CreateAccessControlPolicyByName(ctx context.Context
 	if err != nil {
 		return nil, err
 	}
-	_, err = group.client.baseClient.
-		GnsTsmV1().
-		Gnses().Patch(ctx, parentName, types.JSONPatchType, marshaled, metav1.PatchOptions{})
-	if err != nil {
-		return nil, err
+	retryCount := 12
+	newCtx := context.TODO()
+	for {
+		_, err = group.client.baseClient.
+			GnsTsmV1().
+			Gnses().Patch(newCtx, parentName, types.JSONPatchType, marshaled, metav1.PatchOptions{})
+		if err != nil {
+			log.Errorf("Failed to patch AccessControlPolicy gvk in parent node[Gnses]: %+v", err)
+			if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded) {
+				log.Errorf("[Retry Count: %d ] %+v", retryCount, err)
+				if retryCount == 0 {
+					log.Error("Max Retry exceed on patching gvk")
+					log.Errorf("Trigger AccessControlPolicy Delete: %s", objToCreate.GetName())
+					err = group.DeleteAccessControlPolicyByName(newCtx, objToCreate.GetName())
+					if err != nil {
+						log.Errorf("Error occur while deleting AccessControlPolicy: %s", objToCreate.GetName())
+						return nil, err
+					}
+					log.Errorf("AccessControlPolicy Deleted: %s", objToCreate.GetName())
+					return nil, err
+				}
+				retryCount -= 1
+				time.Sleep(5 * time.Second)
+			} else {
+				log.Errorf("Unexpected Error: %+v", err)
+				log.Errorf("Trigger AccessControlPolicy Delete: %s", objToCreate.GetName())
+				err = group.DeleteAccessControlPolicyByName(newCtx, objToCreate.GetName())
+				if err != nil {
+					log.Errorf("Error occur while deleting AccessControlPolicy: %+v", objToCreate.GetName())
+					return nil, err
+				}
+				log.Errorf("AccessControlPolicy Deleted: %s", objToCreate.GetName())
+				return nil, err
+			}
+		} else {
+			break
+		}
 	}
 
 	return &PolicypkgAccessControlPolicy{
@@ -6432,7 +14452,16 @@ func (group *PolicypkgTsmV1) UpdateAccessControlPolicyByName(ctx context.Context
 			PolicypkgTsmV1().
 			AccessControlPolicies().Get(ctx, objToUpdate.GetName(), metav1.GetOptions{})
 		if err != nil {
-			return nil, err
+			if customerrors.Is(err, context.DeadlineExceeded) {
+				log.Errorf("context deadline exceeded, on creating GNS: %+v", objToUpdate)
+				return nil, context.DeadlineExceeded
+			} else if customerrors.Is(err, context.Canceled) {
+				log.Errorf("context cancelled, on creating GNS: %+v", objToUpdate)
+				return nil, context.Canceled
+			} else {
+				log.Errorf("Unexpected Error: %+v", err)
+				return nil, err
+			}
 		}
 		objToUpdate.ResourceVersion = current.ResourceVersion
 	}
@@ -6621,6 +14650,447 @@ func (c *accesscontrolpolicyPolicypkgTsmV1Chainer) IsSubscribed() bool {
 	return ok
 }
 
+func (c *accesscontrolpolicyPolicypkgTsmV1Chainer) RegisterEventHandler(addCB func(obj *PolicypkgAccessControlPolicy), updateCB func(oldObj, newObj *PolicypkgAccessControlPolicy), deleteCB func(obj *PolicypkgAccessControlPolicy)) (cache.ResourceEventHandlerRegistration, error) {
+	fmt.Println("RegisterEventHandler for PolicypkgAccessControlPolicy")
+	var (
+		registrationId cache.ResourceEventHandlerRegistration
+		err            error
+		informer       cache.SharedIndexInformer
+	)
+	key := "accesscontrolpolicies.policypkg.tsm.tanzu.vmware.com"
+	stopper := make(chan struct{})
+	if s, ok := subscriptionMap.Load(key); ok {
+		fmt.Println("Informer exists for PolicypkgAccessControlPolicy")
+		sub := s.(subscription)
+		informer = sub.informer
+	} else {
+		fmt.Println("Informer doesn't exists for PolicypkgAccessControlPolicy, so creating a new one")
+		informer = informerpolicypkgtsmtanzuvmwarecomv1.NewAccessControlPolicyInformer(c.client.baseClient, 0, cache.Indexers{})
+		go informer.Run(stopper)
+		subscribe(key, informer)
+	}
+	registrationId, err = informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
+		AddFunc: func(obj interface{}) {
+			nc := &PolicypkgAccessControlPolicy{
+				client:              c.client,
+				AccessControlPolicy: obj.(*basepolicypkgtsmtanzuvmwarecomv1.AccessControlPolicy),
+			}
+
+			var parent *GnsGns
+			gvkExist := false
+			for i := 0; i < 600; i++ {
+				// Check if parent exists
+				p, err := nc.GetParent(context.TODO())
+				if err != nil || p == nil {
+					time.Sleep(500 * time.Millisecond)
+					continue
+				}
+				parent = p
+				// Check GVK
+
+				if parent.Spec.GnsAccessControlPolicyGvk == nil {
+					time.Sleep(500 * time.Millisecond)
+					continue
+				}
+
+				gvkExist = true
+				break
+			}
+			if parent == nil {
+				hashedName := helper.GetHashedName("gnses.gns.tsm.tanzu.vmware.com", nc.Labels, nc.Labels["gnses.gns.tsm.tanzu.vmware.com"])
+				parent, err = c.client.Gns().ForceReadGnsByName(context.TODO(), hashedName)
+				if err != nil {
+					if errors.IsNotFound(err) {
+						return
+					}
+					panic("error occurred while fetching parent " + err.Error())
+				}
+				panic(fmt.Sprintf("parent found (event loop is stalled) " + nc.DisplayName()))
+			}
+			if !gvkExist {
+				// Check GVK
+
+				if parent.Spec.GnsAccessControlPolicyGvk == nil {
+					return
+				}
+
+				panic(fmt.Sprintf("gvk found (event loop is stalled) " + nc.DisplayName()))
+			}
+
+			addCB(nc)
+		},
+
+		UpdateFunc: func(oldObj, newObj interface{}) {
+			oldData := &PolicypkgAccessControlPolicy{
+				client:              c.client,
+				AccessControlPolicy: oldObj.(*basepolicypkgtsmtanzuvmwarecomv1.AccessControlPolicy),
+			}
+			newData := &PolicypkgAccessControlPolicy{
+				client:              c.client,
+				AccessControlPolicy: newObj.(*basepolicypkgtsmtanzuvmwarecomv1.AccessControlPolicy),
+			}
+			updateCB(oldData, newData)
+		},
+
+		DeleteFunc: func(obj interface{}) {
+			nc := &PolicypkgAccessControlPolicy{
+				client:              c.client,
+				AccessControlPolicy: obj.(*basepolicypkgtsmtanzuvmwarecomv1.AccessControlPolicy),
+			}
+
+			var parent *GnsGns
+			gvkExist := true
+			for i := 0; i < 600; i++ {
+				// Check if parent exists
+				p, err := nc.GetParent(context.TODO())
+				if err != nil || p == nil {
+					time.Sleep(500 * time.Millisecond)
+					continue
+				}
+				parent = p
+				// Check GVK
+
+				if parent.Spec.GnsAccessControlPolicyGvk != nil {
+					time.Sleep(500 * time.Millisecond)
+					continue
+				}
+
+				gvkExist = false
+				break
+			}
+			if parent == nil {
+				hashedName := helper.GetHashedName("gnses.gns.tsm.tanzu.vmware.com", nc.Labels, nc.Labels["gnses.gns.tsm.tanzu.vmware.com"])
+				parent, err = c.client.Gns().ForceReadGnsByName(context.TODO(), hashedName)
+				if err != nil {
+					if errors.IsNotFound(err) {
+						return
+					}
+					panic("error occurred while fetching parent " + err.Error())
+				}
+				panic(fmt.Sprintf("parent found (event loop is stalled) " + nc.DisplayName()))
+			}
+			if gvkExist {
+				// Check GVK
+
+				if parent.Spec.GnsAccessControlPolicyGvk != nil {
+					return
+				}
+
+				panic(fmt.Sprintf("gvk not found (event loop is stalled) " + nc.DisplayName()))
+			}
+
+			deleteCB(nc)
+		},
+	})
+	return registrationId, err
+}
+
+func (c *accesscontrolpolicyPolicypkgTsmV1Chainer) RegisterAddCallback(cbfn func(obj *PolicypkgAccessControlPolicy)) (cache.ResourceEventHandlerRegistration, error) {
+	fmt.Println("PolicypkgAccessControlPolicy -->  RegisterAddCallback!")
+	var (
+		registrationId cache.ResourceEventHandlerRegistration
+		err            error
+	)
+	key := "accesscontrolpolicies.policypkg.tsm.tanzu.vmware.com"
+	stopper := make(chan struct{})
+	if s, ok := subscriptionMap.Load(key); ok {
+		fmt.Println("[PolicypkgAccessControlPolicy] ---SUBSCRIBE-INFORMER---->")
+		sub := s.(subscription)
+		registrationId, err = sub.informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
+			AddFunc: func(obj interface{}) {
+				nc := &PolicypkgAccessControlPolicy{
+					client:              c.client,
+					AccessControlPolicy: obj.(*basepolicypkgtsmtanzuvmwarecomv1.AccessControlPolicy),
+				}
+
+				var parent *GnsGns
+				gvkExist := false
+				for i := 0; i < 600; i++ {
+					// Check if parent exists
+					p, err := nc.GetParent(context.TODO())
+					if err != nil || p == nil {
+						time.Sleep(500 * time.Millisecond)
+						continue
+					}
+					parent = p
+
+					// Check GVK
+
+					if parent.Spec.GnsAccessControlPolicyGvk == nil {
+						time.Sleep(500 * time.Millisecond)
+						continue
+					}
+
+					gvkExist = true
+
+					break
+				}
+
+				if parent == nil {
+					hashedName := helper.GetHashedName("gnses.gns.tsm.tanzu.vmware.com", nc.Labels, nc.Labels["gnses.gns.tsm.tanzu.vmware.com"])
+					parent, err = c.client.Gns().ForceReadGnsByName(context.TODO(), hashedName)
+					if err != nil {
+						if errors.IsNotFound(err) {
+							return
+						}
+
+						panic("error occurred while fetching parent " + err.Error())
+					}
+					panic(fmt.Sprintf("parent found (event loop is stalled) " + nc.DisplayName()))
+				}
+
+				if !gvkExist {
+					// Check GVK
+
+					if parent.Spec.GnsAccessControlPolicyGvk == nil {
+						return
+					}
+
+					panic(fmt.Sprintf("gvk found (event loop is stalled) " + nc.DisplayName()))
+				}
+
+				cbfn(nc)
+			},
+		})
+	} else {
+		fmt.Println("[PolicypkgAccessControlPolicy] ---NEW-INFORMER---->")
+		informer := informerpolicypkgtsmtanzuvmwarecomv1.NewAccessControlPolicyInformer(c.client.baseClient, 0, cache.Indexers{})
+		registrationId, err = informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
+			AddFunc: func(obj interface{}) {
+				nc := &PolicypkgAccessControlPolicy{
+					client:              c.client,
+					AccessControlPolicy: obj.(*basepolicypkgtsmtanzuvmwarecomv1.AccessControlPolicy),
+				}
+
+				var parent *GnsGns
+				gvkExist := false
+				for i := 0; i < 600; i++ {
+					// Check if parent exists
+					p, err := nc.GetParent(context.TODO())
+					if err != nil || p == nil {
+						time.Sleep(500 * time.Millisecond)
+						continue
+					}
+					parent = p
+
+					// Check GVK
+
+					if parent.Spec.GnsAccessControlPolicyGvk == nil {
+						time.Sleep(500 * time.Millisecond)
+						continue
+					}
+
+					gvkExist = true
+
+					break
+				}
+
+				if parent == nil {
+					hashedName := helper.GetHashedName("gnses.gns.tsm.tanzu.vmware.com", nc.Labels, nc.Labels["gnses.gns.tsm.tanzu.vmware.com"])
+					parent, err = c.client.Gns().ForceReadGnsByName(context.TODO(), hashedName)
+					if err != nil {
+						if errors.IsNotFound(err) {
+							return
+						}
+
+						panic("error occurred while fetching parent " + err.Error())
+					}
+					panic(fmt.Sprintf("parent found (event loop is stalled) " + nc.DisplayName()))
+				}
+
+				if !gvkExist {
+					// Check GVK
+
+					if parent.Spec.GnsAccessControlPolicyGvk == nil {
+						return
+					}
+
+					panic(fmt.Sprintf("gvk found (event loop is stalled) " + nc.DisplayName()))
+				}
+
+				cbfn(nc)
+			},
+		})
+		go informer.Run(stopper)
+	}
+	return registrationId, err
+}
+
+func (c *accesscontrolpolicyPolicypkgTsmV1Chainer) RegisterUpdateCallback(cbfn func(oldObj, newObj *PolicypkgAccessControlPolicy)) (cache.ResourceEventHandlerRegistration, error) {
+	fmt.Println("PolicypkgAccessControlPolicy -->  RegisterUpdateCallback!")
+	var (
+		registrationId cache.ResourceEventHandlerRegistration
+		err            error
+	)
+	key := "accesscontrolpolicies.policypkg.tsm.tanzu.vmware.com"
+	stopper := make(chan struct{})
+	if s, ok := subscriptionMap.Load(key); ok {
+		fmt.Println("[PolicypkgAccessControlPolicy] ---SUBSCRIBE-INFORMER---->")
+		sub := s.(subscription)
+		registrationId, err = sub.informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
+			UpdateFunc: func(oldObj, newObj interface{}) {
+				oldData := &PolicypkgAccessControlPolicy{
+					client:              c.client,
+					AccessControlPolicy: oldObj.(*basepolicypkgtsmtanzuvmwarecomv1.AccessControlPolicy),
+				}
+				newData := &PolicypkgAccessControlPolicy{
+					client:              c.client,
+					AccessControlPolicy: newObj.(*basepolicypkgtsmtanzuvmwarecomv1.AccessControlPolicy),
+				}
+				cbfn(oldData, newData)
+			},
+		})
+	} else {
+		fmt.Println("[PolicypkgAccessControlPolicy] ---NEW-INFORMER---->")
+		informer := informerpolicypkgtsmtanzuvmwarecomv1.NewAccessControlPolicyInformer(c.client.baseClient, 0, cache.Indexers{})
+		registrationId, err = informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
+			UpdateFunc: func(oldObj, newObj interface{}) {
+				oldData := &PolicypkgAccessControlPolicy{
+					client:              c.client,
+					AccessControlPolicy: oldObj.(*basepolicypkgtsmtanzuvmwarecomv1.AccessControlPolicy),
+				}
+				newData := &PolicypkgAccessControlPolicy{
+					client:              c.client,
+					AccessControlPolicy: newObj.(*basepolicypkgtsmtanzuvmwarecomv1.AccessControlPolicy),
+				}
+				cbfn(oldData, newData)
+			},
+		})
+		go informer.Run(stopper)
+	}
+	return registrationId, err
+}
+
+func (c *accesscontrolpolicyPolicypkgTsmV1Chainer) RegisterDeleteCallback(cbfn func(obj *PolicypkgAccessControlPolicy)) (cache.ResourceEventHandlerRegistration, error) {
+	fmt.Println("PolicypkgAccessControlPolicy -->  RegisterDeleteCallback!")
+	var (
+		registrationId cache.ResourceEventHandlerRegistration
+		err            error
+	)
+	key := "accesscontrolpolicies.policypkg.tsm.tanzu.vmware.com"
+	stopper := make(chan struct{})
+	if s, ok := subscriptionMap.Load(key); ok {
+		fmt.Println("[PolicypkgAccessControlPolicy] ---SUBSCRIBE-INFORMER---->")
+		sub := s.(subscription)
+		registrationId, err = sub.informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
+			DeleteFunc: func(obj interface{}) {
+				nc := &PolicypkgAccessControlPolicy{
+					client:              c.client,
+					AccessControlPolicy: obj.(*basepolicypkgtsmtanzuvmwarecomv1.AccessControlPolicy),
+				}
+
+				var parent *GnsGns
+				gvkExist := true
+				for i := 0; i < 600; i++ {
+					// Check if parent exists
+					p, err := nc.GetParent(context.TODO())
+					if err != nil || p == nil {
+						time.Sleep(500 * time.Millisecond)
+						continue
+					}
+					parent = p
+
+					// Check GVK
+
+					if parent.Spec.GnsAccessControlPolicyGvk != nil {
+						time.Sleep(500 * time.Millisecond)
+						continue
+					}
+
+					gvkExist = false
+					break
+				}
+
+				if parent == nil {
+					hashedName := helper.GetHashedName("gnses.gns.tsm.tanzu.vmware.com", nc.Labels, nc.Labels["gnses.gns.tsm.tanzu.vmware.com"])
+					parent, err = c.client.Gns().ForceReadGnsByName(context.TODO(), hashedName)
+					if err != nil {
+						if errors.IsNotFound(err) {
+							return
+						}
+
+						panic("error occurred while fetching parent " + err.Error())
+					}
+					panic(fmt.Sprintf("parent found (event loop is stalled) " + nc.DisplayName()))
+				}
+
+				if gvkExist {
+					// Check GVK
+
+					if parent.Spec.GnsAccessControlPolicyGvk != nil {
+						return
+					}
+
+					panic(fmt.Sprintf("gvk not found (event loop is stalled) " + nc.DisplayName()))
+				}
+
+				cbfn(nc)
+			},
+		})
+	} else {
+		fmt.Println("[PolicypkgAccessControlPolicy] ---NEW-INFORMER---->")
+		informer := informerpolicypkgtsmtanzuvmwarecomv1.NewAccessControlPolicyInformer(c.client.baseClient, 0, cache.Indexers{})
+		registrationId, err = informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
+			DeleteFunc: func(obj interface{}) {
+				nc := &PolicypkgAccessControlPolicy{
+					client:              c.client,
+					AccessControlPolicy: obj.(*basepolicypkgtsmtanzuvmwarecomv1.AccessControlPolicy),
+				}
+
+				var parent *GnsGns
+				gvkExist := true
+				for i := 0; i < 600; i++ {
+					// Check if parent exists
+					p, err := nc.GetParent(context.TODO())
+					if err != nil || p == nil {
+						time.Sleep(500 * time.Millisecond)
+						continue
+					}
+					parent = p
+
+					// Check GVK
+
+					if parent.Spec.GnsAccessControlPolicyGvk != nil {
+						time.Sleep(500 * time.Millisecond)
+						continue
+					}
+
+					gvkExist = false
+
+					break
+				}
+
+				if parent == nil {
+					hashedName := helper.GetHashedName("gnses.gns.tsm.tanzu.vmware.com", nc.Labels, nc.Labels["gnses.gns.tsm.tanzu.vmware.com"])
+					parent, err = c.client.Gns().ForceReadGnsByName(context.TODO(), hashedName)
+					if err != nil {
+						if errors.IsNotFound(err) {
+							return
+						}
+
+						panic("error occurred while fetching parent " + err.Error())
+					}
+					panic(fmt.Sprintf("parent found (event loop is stalled) " + nc.DisplayName()))
+				}
+
+				if gvkExist {
+					// Check GVK
+
+					if parent.Spec.GnsAccessControlPolicyGvk != nil {
+						return
+					}
+
+					panic(fmt.Sprintf("gvk not found (event loop is stalled) " + nc.DisplayName()))
+				}
+
+				cbfn(nc)
+			},
+		})
+		go informer.Run(stopper)
+	}
+	return registrationId, err
+}
+
 func (c *accesscontrolpolicyPolicypkgTsmV1Chainer) PolicyConfigs(name string) *acpconfigPolicypkgTsmV1Chainer {
 	parentLabels := c.parentLabels
 	parentLabels["acpconfigs.policypkg.tsm.tanzu.vmware.com"] = name
@@ -6684,18 +15154,48 @@ func (group *PolicypkgTsmV1) GetACPConfigByName(ctx context.Context, hashedName 
 			ACPConfig: result,
 		}, nil
 	} else {
-		result, err := group.client.baseClient.
-			PolicypkgTsmV1().
-			ACPConfigs().Get(ctx, hashedName, metav1.GetOptions{})
-		if err != nil {
-			return nil, err
+		retryCount := 12
+		for {
+			result, err := group.client.baseClient.
+				PolicypkgTsmV1().
+				ACPConfigs().Get(ctx, hashedName, metav1.GetOptions{})
+			if err != nil {
+				log.Errorf("Failed to Get ACPConfigs: %+v", err)
+				if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded) {
+					log.Errorf("[Retry Count: %d ] %+v", retryCount, err)
+					if retryCount == 0 {
+						log.Error("Max Retry exceed on Get ACPConfigs")
+						return nil, err
+					}
+					retryCount -= 1
+					time.Sleep(5 * time.Second)
+				} else {
+					log.Errorf("Unexpected Error: %+v", err)
+					return nil, err
+				}
+			}
+			return &PolicypkgACPConfig{
+				client:    group.client,
+				ACPConfig: result,
+			}, nil
 		}
-
-		return &PolicypkgACPConfig{
-			client:    group.client,
-			ACPConfig: result,
-		}, nil
 	}
+}
+
+// ForceReadACPConfigByName read object directly from the database under the hashedName which is a hash of display
+// name and parents names. Use it when you know hashed name of object.
+func (group *PolicypkgTsmV1) ForceReadACPConfigByName(ctx context.Context, hashedName string) (*PolicypkgACPConfig, error) {
+	result, err := group.client.baseClient.
+		PolicypkgTsmV1().
+		ACPConfigs().Get(ctx, hashedName, metav1.GetOptions{})
+	if err != nil {
+		return nil, err
+	}
+
+	return &PolicypkgACPConfig{
+		client:    group.client,
+		ACPConfig: result,
+	}, nil
 }
 
 // DeleteACPConfigByName deletes object stored in the database under the hashedName which is a hash of
@@ -6706,7 +15206,34 @@ func (group *PolicypkgTsmV1) DeleteACPConfigByName(ctx context.Context, hashedNa
 		PolicypkgTsmV1().
 		ACPConfigs().Get(ctx, hashedName, metav1.GetOptions{})
 	if err != nil {
-		return err
+		if customerrors.Is(err, context.DeadlineExceeded) {
+			log.Errorf("context deadline exceeded, on creating GNS: %+v", hashedName)
+			return context.DeadlineExceeded
+		} else if customerrors.Is(err, context.Canceled) {
+			log.Errorf("context cancelled, on creating GNS: %+v", hashedName)
+			return context.Canceled
+		} else {
+			log.Errorf("Unexpected Error: %+v", err)
+			return err
+		}
+	}
+
+	if result.Spec.AdditionalPolicyDataGvk != nil {
+		err := group.client.
+			Policypkg().
+			DeleteAdditionalPolicyDataByName(ctx, result.Spec.AdditionalPolicyDataGvk.Name)
+		if err != nil && !errors.IsNotFound(err) {
+			return err
+		}
+	}
+
+	if result.Spec.RandomPolicyDataGvk != nil {
+		err := group.client.
+			Policypkg().
+			DeleteRandomPolicyDataByName(ctx, result.Spec.RandomPolicyDataGvk.Name)
+		if err != nil && !errors.IsNotFound(err) {
+			return err
+		}
 	}
 
 	err = group.client.baseClient.
@@ -6739,11 +15266,44 @@ func (group *PolicypkgTsmV1) DeleteACPConfigByName(ctx context.Context, hashedNa
 	if parents[common.IS_NAME_HASHED_LABEL] == "true" {
 		parentName = helper.GetHashedName("accesscontrolpolicies.policypkg.tsm.tanzu.vmware.com", parents, parentName)
 	}
-	_, err = group.client.baseClient.
-		PolicypkgTsmV1().
-		AccessControlPolicies().Patch(ctx, parentName, types.JSONPatchType, marshaled, metav1.PatchOptions{})
-	if err != nil {
-		return err
+
+	retryCount := 12
+	newCtx := context.TODO()
+	for {
+		_, err = group.client.baseClient.
+			PolicypkgTsmV1().
+			AccessControlPolicies().Patch(newCtx, parentName, types.JSONPatchType, marshaled, metav1.PatchOptions{})
+		if err != nil {
+			log.Errorf("Failed to patch ACPConfig gvk in parent node[AccessControlPolicies]: %+v", err)
+			if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded) {
+				log.Errorf("[Retry Count: %d ] %+v", retryCount, err)
+				if retryCount == 0 {
+					log.Error("Max Retry exceed on patching gvk")
+					log.Errorf("Trigger ACPConfig Delete: %s", hashedName)
+					err = group.DeleteACPConfigByName(newCtx, hashedName)
+					if err != nil {
+						log.Errorf("Error occur while deleting ACPConfig: %s", hashedName)
+						return err
+					}
+					log.Errorf("ACPConfig Deleted: %s", hashedName)
+					return err
+				}
+				retryCount -= 1
+				time.Sleep(5 * time.Second)
+			} else {
+				log.Errorf("Unexpected Error: %+v", err)
+				log.Errorf("Trigger ACPConfig Delete: %s", hashedName)
+				err = group.DeleteACPConfigByName(newCtx, hashedName)
+				if err != nil {
+					log.Errorf("Error occur while deleting ACPConfig: %+v", hashedName)
+					return err
+				}
+				log.Errorf("ACPConfig Deleted: %s", hashedName)
+				return err
+			}
+		} else {
+			break
+		}
 	}
 
 	return
@@ -6760,6 +15320,8 @@ func (group *PolicypkgTsmV1) CreateACPConfigByName(ctx context.Context,
 		objToCreate.Labels[common.DISPLAY_NAME_LABEL] = objToCreate.GetName()
 	}
 
+	objToCreate.Spec.AdditionalPolicyDataGvk = nil
+	objToCreate.Spec.RandomPolicyDataGvk = nil
 	objToCreate.Spec.DestSvcGroupsGvk = nil
 	objToCreate.Spec.SourceSvcGroupsGvk = nil
 
@@ -6767,7 +15329,16 @@ func (group *PolicypkgTsmV1) CreateACPConfigByName(ctx context.Context,
 		PolicypkgTsmV1().
 		ACPConfigs().Create(ctx, objToCreate, metav1.CreateOptions{})
 	if err != nil {
-		return nil, err
+		if customerrors.Is(err, context.DeadlineExceeded) {
+			log.Errorf("context deadline exceeded, on creating GNS: %+v", objToCreate)
+			return nil, context.DeadlineExceeded
+		} else if customerrors.Is(err, context.Canceled) {
+			log.Errorf("context cancelled, on creating GNS: %+v", objToCreate)
+			return nil, context.Canceled
+		} else {
+			log.Errorf("Unexpected Error: %+v", err)
+			return nil, err
+		}
 	}
 
 	parentName, ok := objToCreate.GetLabels()["accesscontrolpolicies.policypkg.tsm.tanzu.vmware.com"]
@@ -6779,11 +15350,44 @@ func (group *PolicypkgTsmV1) CreateACPConfigByName(ctx context.Context,
 	}
 
 	payload := "{\"spec\": {\"policyConfigsGvk\": {\"" + objToCreate.DisplayName() + "\": {\"name\": \"" + objToCreate.Name + "\",\"kind\": \"ACPConfig\", \"group\": \"policypkg.tsm.tanzu.vmware.com\"}}}}"
-	_, err = group.client.baseClient.
-		PolicypkgTsmV1().
-		AccessControlPolicies().Patch(ctx, parentName, types.MergePatchType, []byte(payload), metav1.PatchOptions{})
-	if err != nil {
-		return nil, err
+
+	retryCount := 12
+	newCtx := context.TODO()
+	for {
+		_, err = group.client.baseClient.
+			PolicypkgTsmV1().
+			AccessControlPolicies().Patch(newCtx, parentName, types.MergePatchType, []byte(payload), metav1.PatchOptions{})
+		if err != nil {
+			log.Errorf("Failed to patch ACPConfig gvk in parent node[AccessControlPolicies]: %+v", err)
+			if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded) {
+				log.Errorf("[Retry Count: %d ] %+v", retryCount, err)
+				if retryCount == 0 {
+					log.Error("Max Retry exceed on patching gvk")
+					log.Errorf("Trigger ACPConfig Delete: %s", objToCreate.GetName())
+					err = group.DeleteACPConfigByName(newCtx, objToCreate.GetName())
+					if err != nil {
+						log.Errorf("Error occur while deleting ACPConfig: %s", objToCreate.GetName())
+						return nil, err
+					}
+					log.Errorf("ACPConfig Deleted: %s", objToCreate.GetName())
+					return nil, err
+				}
+				retryCount -= 1
+				time.Sleep(5 * time.Second)
+			} else {
+				log.Errorf("Unexpected Error: %+v", err)
+				log.Errorf("Trigger ACPConfig Delete: %s", objToCreate.GetName())
+				err = group.DeleteACPConfigByName(newCtx, objToCreate.GetName())
+				if err != nil {
+					log.Errorf("Error occur while deleting ACPConfig: %+v", objToCreate.GetName())
+					return nil, err
+				}
+				log.Errorf("ACPConfig Deleted: %s", objToCreate.GetName())
+				return nil, err
+			}
+		} else {
+			break
+		}
 	}
 
 	return &PolicypkgACPConfig{
@@ -6839,7 +15443,16 @@ func (group *PolicypkgTsmV1) UpdateACPConfigByName(ctx context.Context,
 			PolicypkgTsmV1().
 			ACPConfigs().Get(ctx, objToUpdate.GetName(), metav1.GetOptions{})
 		if err != nil {
-			return nil, err
+			if customerrors.Is(err, context.DeadlineExceeded) {
+				log.Errorf("context deadline exceeded, on creating GNS: %+v", objToUpdate)
+				return nil, context.DeadlineExceeded
+			} else if customerrors.Is(err, context.Canceled) {
+				log.Errorf("context cancelled, on creating GNS: %+v", objToUpdate)
+				return nil, context.Canceled
+			} else {
+				log.Errorf("Unexpected Error: %+v", err)
+				return nil, err
+			}
 		}
 		objToUpdate.ResourceVersion = current.ResourceVersion
 	}
@@ -7017,6 +15630,114 @@ func (obj *PolicypkgACPConfig) GetParent(ctx context.Context) (result *Policypkg
 	return obj.client.Policypkg().GetAccessControlPolicyByName(ctx, hashedName)
 }
 
+// GetAdditionalPolicyData returns child of given type
+func (obj *PolicypkgACPConfig) GetAdditionalPolicyData(ctx context.Context) (
+	result *PolicypkgAdditionalPolicyData, err error) {
+	if obj.Spec.AdditionalPolicyDataGvk == nil {
+		return nil, NewChildNotFound(obj.DisplayName(), "Policypkg.ACPConfig", "AdditionalPolicyData")
+	}
+	return obj.client.Policypkg().GetAdditionalPolicyDataByName(ctx, obj.Spec.AdditionalPolicyDataGvk.Name)
+}
+
+// AddAdditionalPolicyData calculates hashed name of the child to create based on objToCreate.Name
+// and parents names and creates it. objToCreate.Name is changed to the hashed name. Original name is preserved in
+// nexus/display_name label and can be obtained using DisplayName() method.
+func (obj *PolicypkgACPConfig) AddAdditionalPolicyData(ctx context.Context,
+	objToCreate *basepolicypkgtsmtanzuvmwarecomv1.AdditionalPolicyData) (result *PolicypkgAdditionalPolicyData, err error) {
+	if objToCreate.Labels == nil {
+		objToCreate.Labels = map[string]string{}
+	}
+	for _, v := range helper.GetCRDParentsMap()["acpconfigs.policypkg.tsm.tanzu.vmware.com"] {
+		objToCreate.Labels[v] = obj.Labels[v]
+	}
+	objToCreate.Labels["acpconfigs.policypkg.tsm.tanzu.vmware.com"] = obj.DisplayName()
+	if objToCreate.Labels[common.IS_NAME_HASHED_LABEL] != "true" {
+		objToCreate.Labels[common.DISPLAY_NAME_LABEL] = objToCreate.GetName()
+		objToCreate.Labels[common.IS_NAME_HASHED_LABEL] = "true"
+		hashedName := helper.GetHashedName(objToCreate.CRDName(), objToCreate.Labels, objToCreate.GetName())
+		objToCreate.Name = hashedName
+	}
+	result, err = obj.client.Policypkg().CreateAdditionalPolicyDataByName(ctx, objToCreate)
+	updatedObj, getErr := obj.client.Policypkg().GetACPConfigByName(ctx, obj.GetName())
+	if getErr == nil {
+		obj.ACPConfig = updatedObj.ACPConfig
+	}
+	return
+}
+
+// DeleteAdditionalPolicyData calculates hashed name of the child to delete based on displayName
+// and parents names and deletes it.
+
+func (obj *PolicypkgACPConfig) DeleteAdditionalPolicyData(ctx context.Context) (err error) {
+	if obj.Spec.AdditionalPolicyDataGvk != nil {
+		err = obj.client.
+			Policypkg().DeleteAdditionalPolicyDataByName(ctx, obj.Spec.AdditionalPolicyDataGvk.Name)
+		if err != nil {
+			return err
+		}
+	}
+	updatedObj, err := obj.client.
+		Policypkg().GetACPConfigByName(ctx, obj.GetName())
+	if err == nil {
+		obj.ACPConfig = updatedObj.ACPConfig
+	}
+	return
+}
+
+// GetRandomPolicyData returns child of given type
+func (obj *PolicypkgACPConfig) GetRandomPolicyData(ctx context.Context) (
+	result *PolicypkgRandomPolicyData, err error) {
+	if obj.Spec.RandomPolicyDataGvk == nil {
+		return nil, NewChildNotFound(obj.DisplayName(), "Policypkg.ACPConfig", "RandomPolicyData")
+	}
+	return obj.client.Policypkg().GetRandomPolicyDataByName(ctx, obj.Spec.RandomPolicyDataGvk.Name)
+}
+
+// AddRandomPolicyData calculates hashed name of the child to create based on objToCreate.Name
+// and parents names and creates it. objToCreate.Name is changed to the hashed name. Original name is preserved in
+// nexus/display_name label and can be obtained using DisplayName() method.
+func (obj *PolicypkgACPConfig) AddRandomPolicyData(ctx context.Context,
+	objToCreate *basepolicypkgtsmtanzuvmwarecomv1.RandomPolicyData) (result *PolicypkgRandomPolicyData, err error) {
+	if objToCreate.Labels == nil {
+		objToCreate.Labels = map[string]string{}
+	}
+	for _, v := range helper.GetCRDParentsMap()["acpconfigs.policypkg.tsm.tanzu.vmware.com"] {
+		objToCreate.Labels[v] = obj.Labels[v]
+	}
+	objToCreate.Labels["acpconfigs.policypkg.tsm.tanzu.vmware.com"] = obj.DisplayName()
+	if objToCreate.Labels[common.IS_NAME_HASHED_LABEL] != "true" {
+		objToCreate.Labels[common.DISPLAY_NAME_LABEL] = objToCreate.GetName()
+		objToCreate.Labels[common.IS_NAME_HASHED_LABEL] = "true"
+		hashedName := helper.GetHashedName(objToCreate.CRDName(), objToCreate.Labels, objToCreate.GetName())
+		objToCreate.Name = hashedName
+	}
+	result, err = obj.client.Policypkg().CreateRandomPolicyDataByName(ctx, objToCreate)
+	updatedObj, getErr := obj.client.Policypkg().GetACPConfigByName(ctx, obj.GetName())
+	if getErr == nil {
+		obj.ACPConfig = updatedObj.ACPConfig
+	}
+	return
+}
+
+// DeleteRandomPolicyData calculates hashed name of the child to delete based on displayName
+// and parents names and deletes it.
+
+func (obj *PolicypkgACPConfig) DeleteRandomPolicyData(ctx context.Context) (err error) {
+	if obj.Spec.RandomPolicyDataGvk != nil {
+		err = obj.client.
+			Policypkg().DeleteRandomPolicyDataByName(ctx, obj.Spec.RandomPolicyDataGvk.Name)
+		if err != nil {
+			return err
+		}
+	}
+	updatedObj, err := obj.client.
+		Policypkg().GetACPConfigByName(ctx, obj.GetName())
+	if err == nil {
+		obj.ACPConfig = updatedObj.ACPConfig
+	}
+	return
+}
+
 // GetAllDestSvcGroups returns all links of given type
 func (obj *PolicypkgACPConfig) GetAllDestSvcGroups(ctx context.Context) (
 	result []*ServicegroupSvcGroup, err error) {
@@ -7173,6 +15894,447 @@ func (c *acpconfigPolicypkgTsmV1Chainer) IsSubscribed() bool {
 	return ok
 }
 
+func (c *acpconfigPolicypkgTsmV1Chainer) RegisterEventHandler(addCB func(obj *PolicypkgACPConfig), updateCB func(oldObj, newObj *PolicypkgACPConfig), deleteCB func(obj *PolicypkgACPConfig)) (cache.ResourceEventHandlerRegistration, error) {
+	fmt.Println("RegisterEventHandler for PolicypkgACPConfig")
+	var (
+		registrationId cache.ResourceEventHandlerRegistration
+		err            error
+		informer       cache.SharedIndexInformer
+	)
+	key := "acpconfigs.policypkg.tsm.tanzu.vmware.com"
+	stopper := make(chan struct{})
+	if s, ok := subscriptionMap.Load(key); ok {
+		fmt.Println("Informer exists for PolicypkgACPConfig")
+		sub := s.(subscription)
+		informer = sub.informer
+	} else {
+		fmt.Println("Informer doesn't exists for PolicypkgACPConfig, so creating a new one")
+		informer = informerpolicypkgtsmtanzuvmwarecomv1.NewACPConfigInformer(c.client.baseClient, 0, cache.Indexers{})
+		go informer.Run(stopper)
+		subscribe(key, informer)
+	}
+	registrationId, err = informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
+		AddFunc: func(obj interface{}) {
+			nc := &PolicypkgACPConfig{
+				client:    c.client,
+				ACPConfig: obj.(*basepolicypkgtsmtanzuvmwarecomv1.ACPConfig),
+			}
+
+			var parent *PolicypkgAccessControlPolicy
+			gvkExist := false
+			for i := 0; i < 600; i++ {
+				// Check if parent exists
+				p, err := nc.GetParent(context.TODO())
+				if err != nil || p == nil {
+					time.Sleep(500 * time.Millisecond)
+					continue
+				}
+				parent = p
+				// Check GVK
+
+				if _, ok := parent.Spec.PolicyConfigsGvk[nc.DisplayName()]; !ok {
+					time.Sleep(500 * time.Millisecond)
+					continue
+				}
+
+				gvkExist = true
+				break
+			}
+			if parent == nil {
+				hashedName := helper.GetHashedName("accesscontrolpolicies.policypkg.tsm.tanzu.vmware.com", nc.Labels, nc.Labels["accesscontrolpolicies.policypkg.tsm.tanzu.vmware.com"])
+				parent, err = c.client.Policypkg().ForceReadAccessControlPolicyByName(context.TODO(), hashedName)
+				if err != nil {
+					if errors.IsNotFound(err) {
+						return
+					}
+					panic("error occurred while fetching parent " + err.Error())
+				}
+				panic(fmt.Sprintf("parent found (event loop is stalled) " + nc.DisplayName()))
+			}
+			if !gvkExist {
+				// Check GVK
+
+				if _, ok := parent.Spec.PolicyConfigsGvk[nc.DisplayName()]; !ok {
+					return
+				}
+
+				panic(fmt.Sprintf("gvk found (event loop is stalled) " + nc.DisplayName()))
+			}
+
+			addCB(nc)
+		},
+
+		UpdateFunc: func(oldObj, newObj interface{}) {
+			oldData := &PolicypkgACPConfig{
+				client:    c.client,
+				ACPConfig: oldObj.(*basepolicypkgtsmtanzuvmwarecomv1.ACPConfig),
+			}
+			newData := &PolicypkgACPConfig{
+				client:    c.client,
+				ACPConfig: newObj.(*basepolicypkgtsmtanzuvmwarecomv1.ACPConfig),
+			}
+			updateCB(oldData, newData)
+		},
+
+		DeleteFunc: func(obj interface{}) {
+			nc := &PolicypkgACPConfig{
+				client:    c.client,
+				ACPConfig: obj.(*basepolicypkgtsmtanzuvmwarecomv1.ACPConfig),
+			}
+
+			var parent *PolicypkgAccessControlPolicy
+			gvkExist := true
+			for i := 0; i < 600; i++ {
+				// Check if parent exists
+				p, err := nc.GetParent(context.TODO())
+				if err != nil || p == nil {
+					time.Sleep(500 * time.Millisecond)
+					continue
+				}
+				parent = p
+				// Check GVK
+
+				if _, ok := parent.Spec.PolicyConfigsGvk[nc.DisplayName()]; ok {
+					time.Sleep(500 * time.Millisecond)
+					continue
+				}
+
+				gvkExist = false
+				break
+			}
+			if parent == nil {
+				hashedName := helper.GetHashedName("accesscontrolpolicies.policypkg.tsm.tanzu.vmware.com", nc.Labels, nc.Labels["accesscontrolpolicies.policypkg.tsm.tanzu.vmware.com"])
+				parent, err = c.client.Policypkg().ForceReadAccessControlPolicyByName(context.TODO(), hashedName)
+				if err != nil {
+					if errors.IsNotFound(err) {
+						return
+					}
+					panic("error occurred while fetching parent " + err.Error())
+				}
+				panic(fmt.Sprintf("parent found (event loop is stalled) " + nc.DisplayName()))
+			}
+			if gvkExist {
+				// Check GVK
+
+				if _, ok := parent.Spec.PolicyConfigsGvk[nc.DisplayName()]; ok {
+					return
+				}
+
+				panic(fmt.Sprintf("gvk not found (event loop is stalled) " + nc.DisplayName()))
+			}
+
+			deleteCB(nc)
+		},
+	})
+	return registrationId, err
+}
+
+func (c *acpconfigPolicypkgTsmV1Chainer) RegisterAddCallback(cbfn func(obj *PolicypkgACPConfig)) (cache.ResourceEventHandlerRegistration, error) {
+	fmt.Println("PolicypkgACPConfig -->  RegisterAddCallback!")
+	var (
+		registrationId cache.ResourceEventHandlerRegistration
+		err            error
+	)
+	key := "acpconfigs.policypkg.tsm.tanzu.vmware.com"
+	stopper := make(chan struct{})
+	if s, ok := subscriptionMap.Load(key); ok {
+		fmt.Println("[PolicypkgACPConfig] ---SUBSCRIBE-INFORMER---->")
+		sub := s.(subscription)
+		registrationId, err = sub.informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
+			AddFunc: func(obj interface{}) {
+				nc := &PolicypkgACPConfig{
+					client:    c.client,
+					ACPConfig: obj.(*basepolicypkgtsmtanzuvmwarecomv1.ACPConfig),
+				}
+
+				var parent *PolicypkgAccessControlPolicy
+				gvkExist := false
+				for i := 0; i < 600; i++ {
+					// Check if parent exists
+					p, err := nc.GetParent(context.TODO())
+					if err != nil || p == nil {
+						time.Sleep(500 * time.Millisecond)
+						continue
+					}
+					parent = p
+
+					// Check GVK
+
+					if _, ok := parent.Spec.PolicyConfigsGvk[nc.DisplayName()]; !ok {
+						time.Sleep(500 * time.Millisecond)
+						continue
+					}
+
+					gvkExist = true
+
+					break
+				}
+
+				if parent == nil {
+					hashedName := helper.GetHashedName("accesscontrolpolicies.policypkg.tsm.tanzu.vmware.com", nc.Labels, nc.Labels["accesscontrolpolicies.policypkg.tsm.tanzu.vmware.com"])
+					parent, err = c.client.Policypkg().ForceReadAccessControlPolicyByName(context.TODO(), hashedName)
+					if err != nil {
+						if errors.IsNotFound(err) {
+							return
+						}
+
+						panic("error occurred while fetching parent " + err.Error())
+					}
+					panic(fmt.Sprintf("parent found (event loop is stalled) " + nc.DisplayName()))
+				}
+
+				if !gvkExist {
+					// Check GVK
+
+					if _, ok := parent.Spec.PolicyConfigsGvk[nc.DisplayName()]; !ok {
+						return
+					}
+
+					panic(fmt.Sprintf("gvk found (event loop is stalled) " + nc.DisplayName()))
+				}
+
+				cbfn(nc)
+			},
+		})
+	} else {
+		fmt.Println("[PolicypkgACPConfig] ---NEW-INFORMER---->")
+		informer := informerpolicypkgtsmtanzuvmwarecomv1.NewACPConfigInformer(c.client.baseClient, 0, cache.Indexers{})
+		registrationId, err = informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
+			AddFunc: func(obj interface{}) {
+				nc := &PolicypkgACPConfig{
+					client:    c.client,
+					ACPConfig: obj.(*basepolicypkgtsmtanzuvmwarecomv1.ACPConfig),
+				}
+
+				var parent *PolicypkgAccessControlPolicy
+				gvkExist := false
+				for i := 0; i < 600; i++ {
+					// Check if parent exists
+					p, err := nc.GetParent(context.TODO())
+					if err != nil || p == nil {
+						time.Sleep(500 * time.Millisecond)
+						continue
+					}
+					parent = p
+
+					// Check GVK
+
+					if _, ok := parent.Spec.PolicyConfigsGvk[nc.DisplayName()]; !ok {
+						time.Sleep(500 * time.Millisecond)
+						continue
+					}
+
+					gvkExist = true
+
+					break
+				}
+
+				if parent == nil {
+					hashedName := helper.GetHashedName("accesscontrolpolicies.policypkg.tsm.tanzu.vmware.com", nc.Labels, nc.Labels["accesscontrolpolicies.policypkg.tsm.tanzu.vmware.com"])
+					parent, err = c.client.Policypkg().ForceReadAccessControlPolicyByName(context.TODO(), hashedName)
+					if err != nil {
+						if errors.IsNotFound(err) {
+							return
+						}
+
+						panic("error occurred while fetching parent " + err.Error())
+					}
+					panic(fmt.Sprintf("parent found (event loop is stalled) " + nc.DisplayName()))
+				}
+
+				if !gvkExist {
+					// Check GVK
+
+					if _, ok := parent.Spec.PolicyConfigsGvk[nc.DisplayName()]; !ok {
+						return
+					}
+
+					panic(fmt.Sprintf("gvk found (event loop is stalled) " + nc.DisplayName()))
+				}
+
+				cbfn(nc)
+			},
+		})
+		go informer.Run(stopper)
+	}
+	return registrationId, err
+}
+
+func (c *acpconfigPolicypkgTsmV1Chainer) RegisterUpdateCallback(cbfn func(oldObj, newObj *PolicypkgACPConfig)) (cache.ResourceEventHandlerRegistration, error) {
+	fmt.Println("PolicypkgACPConfig -->  RegisterUpdateCallback!")
+	var (
+		registrationId cache.ResourceEventHandlerRegistration
+		err            error
+	)
+	key := "acpconfigs.policypkg.tsm.tanzu.vmware.com"
+	stopper := make(chan struct{})
+	if s, ok := subscriptionMap.Load(key); ok {
+		fmt.Println("[PolicypkgACPConfig] ---SUBSCRIBE-INFORMER---->")
+		sub := s.(subscription)
+		registrationId, err = sub.informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
+			UpdateFunc: func(oldObj, newObj interface{}) {
+				oldData := &PolicypkgACPConfig{
+					client:    c.client,
+					ACPConfig: oldObj.(*basepolicypkgtsmtanzuvmwarecomv1.ACPConfig),
+				}
+				newData := &PolicypkgACPConfig{
+					client:    c.client,
+					ACPConfig: newObj.(*basepolicypkgtsmtanzuvmwarecomv1.ACPConfig),
+				}
+				cbfn(oldData, newData)
+			},
+		})
+	} else {
+		fmt.Println("[PolicypkgACPConfig] ---NEW-INFORMER---->")
+		informer := informerpolicypkgtsmtanzuvmwarecomv1.NewACPConfigInformer(c.client.baseClient, 0, cache.Indexers{})
+		registrationId, err = informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
+			UpdateFunc: func(oldObj, newObj interface{}) {
+				oldData := &PolicypkgACPConfig{
+					client:    c.client,
+					ACPConfig: oldObj.(*basepolicypkgtsmtanzuvmwarecomv1.ACPConfig),
+				}
+				newData := &PolicypkgACPConfig{
+					client:    c.client,
+					ACPConfig: newObj.(*basepolicypkgtsmtanzuvmwarecomv1.ACPConfig),
+				}
+				cbfn(oldData, newData)
+			},
+		})
+		go informer.Run(stopper)
+	}
+	return registrationId, err
+}
+
+func (c *acpconfigPolicypkgTsmV1Chainer) RegisterDeleteCallback(cbfn func(obj *PolicypkgACPConfig)) (cache.ResourceEventHandlerRegistration, error) {
+	fmt.Println("PolicypkgACPConfig -->  RegisterDeleteCallback!")
+	var (
+		registrationId cache.ResourceEventHandlerRegistration
+		err            error
+	)
+	key := "acpconfigs.policypkg.tsm.tanzu.vmware.com"
+	stopper := make(chan struct{})
+	if s, ok := subscriptionMap.Load(key); ok {
+		fmt.Println("[PolicypkgACPConfig] ---SUBSCRIBE-INFORMER---->")
+		sub := s.(subscription)
+		registrationId, err = sub.informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
+			DeleteFunc: func(obj interface{}) {
+				nc := &PolicypkgACPConfig{
+					client:    c.client,
+					ACPConfig: obj.(*basepolicypkgtsmtanzuvmwarecomv1.ACPConfig),
+				}
+
+				var parent *PolicypkgAccessControlPolicy
+				gvkExist := true
+				for i := 0; i < 600; i++ {
+					// Check if parent exists
+					p, err := nc.GetParent(context.TODO())
+					if err != nil || p == nil {
+						time.Sleep(500 * time.Millisecond)
+						continue
+					}
+					parent = p
+
+					// Check GVK
+
+					if _, ok := parent.Spec.PolicyConfigsGvk[nc.DisplayName()]; ok {
+						time.Sleep(500 * time.Millisecond)
+						continue
+					}
+
+					gvkExist = false
+					break
+				}
+
+				if parent == nil {
+					hashedName := helper.GetHashedName("accesscontrolpolicies.policypkg.tsm.tanzu.vmware.com", nc.Labels, nc.Labels["accesscontrolpolicies.policypkg.tsm.tanzu.vmware.com"])
+					parent, err = c.client.Policypkg().ForceReadAccessControlPolicyByName(context.TODO(), hashedName)
+					if err != nil {
+						if errors.IsNotFound(err) {
+							return
+						}
+
+						panic("error occurred while fetching parent " + err.Error())
+					}
+					panic(fmt.Sprintf("parent found (event loop is stalled) " + nc.DisplayName()))
+				}
+
+				if gvkExist {
+					// Check GVK
+
+					if _, ok := parent.Spec.PolicyConfigsGvk[nc.DisplayName()]; ok {
+						return
+					}
+
+					panic(fmt.Sprintf("gvk not found (event loop is stalled) " + nc.DisplayName()))
+				}
+
+				cbfn(nc)
+			},
+		})
+	} else {
+		fmt.Println("[PolicypkgACPConfig] ---NEW-INFORMER---->")
+		informer := informerpolicypkgtsmtanzuvmwarecomv1.NewACPConfigInformer(c.client.baseClient, 0, cache.Indexers{})
+		registrationId, err = informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
+			DeleteFunc: func(obj interface{}) {
+				nc := &PolicypkgACPConfig{
+					client:    c.client,
+					ACPConfig: obj.(*basepolicypkgtsmtanzuvmwarecomv1.ACPConfig),
+				}
+
+				var parent *PolicypkgAccessControlPolicy
+				gvkExist := true
+				for i := 0; i < 600; i++ {
+					// Check if parent exists
+					p, err := nc.GetParent(context.TODO())
+					if err != nil || p == nil {
+						time.Sleep(500 * time.Millisecond)
+						continue
+					}
+					parent = p
+
+					// Check GVK
+
+					if _, ok := parent.Spec.PolicyConfigsGvk[nc.DisplayName()]; ok {
+						time.Sleep(500 * time.Millisecond)
+						continue
+					}
+
+					gvkExist = false
+
+					break
+				}
+
+				if parent == nil {
+					hashedName := helper.GetHashedName("accesscontrolpolicies.policypkg.tsm.tanzu.vmware.com", nc.Labels, nc.Labels["accesscontrolpolicies.policypkg.tsm.tanzu.vmware.com"])
+					parent, err = c.client.Policypkg().ForceReadAccessControlPolicyByName(context.TODO(), hashedName)
+					if err != nil {
+						if errors.IsNotFound(err) {
+							return
+						}
+
+						panic("error occurred while fetching parent " + err.Error())
+					}
+					panic(fmt.Sprintf("parent found (event loop is stalled) " + nc.DisplayName()))
+				}
+
+				if gvkExist {
+					// Check GVK
+
+					if _, ok := parent.Spec.PolicyConfigsGvk[nc.DisplayName()]; ok {
+						return
+					}
+
+					panic(fmt.Sprintf("gvk not found (event loop is stalled) " + nc.DisplayName()))
+				}
+
+				cbfn(nc)
+			},
+		})
+		go informer.Run(stopper)
+	}
+	return registrationId, err
+}
+
 // ClearStatus to clear user defined status
 func (c *acpconfigPolicypkgTsmV1Chainer) ClearStatus(ctx context.Context) (err error) {
 	hashedName := helper.GetHashedName("acpconfigs.policypkg.tsm.tanzu.vmware.com", c.parentLabels, c.name)
@@ -7205,6 +16367,100 @@ func (c *acpconfigPolicypkgTsmV1Chainer) SetStatus(ctx context.Context, status *
 	return err
 }
 
+func (c *acpconfigPolicypkgTsmV1Chainer) AdditionalPolicyData(name string) *additionalpolicydataPolicypkgTsmV1Chainer {
+	parentLabels := c.parentLabels
+	parentLabels["additionalpolicydatas.policypkg.tsm.tanzu.vmware.com"] = name
+	return &additionalpolicydataPolicypkgTsmV1Chainer{
+		client:       c.client,
+		name:         name,
+		parentLabels: parentLabels,
+	}
+}
+
+// GetAdditionalPolicyData calculates hashed name of the object based on displayName and it's parents and returns the object
+func (c *acpconfigPolicypkgTsmV1Chainer) GetAdditionalPolicyData(ctx context.Context, displayName string) (result *PolicypkgAdditionalPolicyData, err error) {
+	hashedName := helper.GetHashedName("additionalpolicydatas.policypkg.tsm.tanzu.vmware.com", c.parentLabels, displayName)
+	return c.client.Policypkg().GetAdditionalPolicyDataByName(ctx, hashedName)
+}
+
+// AddAdditionalPolicyData calculates hashed name of the child to create based on objToCreate.Name
+// and parents names and creates it. objToCreate.Name is changed to the hashed name. Original name is preserved in
+// nexus/display_name label and can be obtained using DisplayName() method.
+func (c *acpconfigPolicypkgTsmV1Chainer) AddAdditionalPolicyData(ctx context.Context,
+	objToCreate *basepolicypkgtsmtanzuvmwarecomv1.AdditionalPolicyData) (result *PolicypkgAdditionalPolicyData, err error) {
+	if objToCreate.Labels == nil {
+		objToCreate.Labels = map[string]string{}
+	}
+	for k, v := range c.parentLabels {
+		objToCreate.Labels[k] = v
+	}
+	if objToCreate.Labels[common.IS_NAME_HASHED_LABEL] != "true" {
+		objToCreate.Labels[common.DISPLAY_NAME_LABEL] = objToCreate.GetName()
+		objToCreate.Labels[common.IS_NAME_HASHED_LABEL] = "true"
+		hashedName := helper.GetHashedName("additionalpolicydatas.policypkg.tsm.tanzu.vmware.com", c.parentLabels, objToCreate.GetName())
+		objToCreate.Name = hashedName
+	}
+	return c.client.Policypkg().CreateAdditionalPolicyDataByName(ctx, objToCreate)
+}
+
+// DeleteAdditionalPolicyData calculates hashed name of the child to delete based on displayName
+// and parents names and deletes it.
+func (c *acpconfigPolicypkgTsmV1Chainer) DeleteAdditionalPolicyData(ctx context.Context, name string) (err error) {
+	if c.parentLabels == nil {
+		c.parentLabels = map[string]string{}
+	}
+	c.parentLabels[common.IS_NAME_HASHED_LABEL] = "true"
+	hashedName := helper.GetHashedName("additionalpolicydatas.policypkg.tsm.tanzu.vmware.com", c.parentLabels, name)
+	return c.client.Policypkg().DeleteAdditionalPolicyDataByName(ctx, hashedName)
+}
+
+func (c *acpconfigPolicypkgTsmV1Chainer) RandomPolicyData(name string) *randompolicydataPolicypkgTsmV1Chainer {
+	parentLabels := c.parentLabels
+	parentLabels["randompolicydatas.policypkg.tsm.tanzu.vmware.com"] = name
+	return &randompolicydataPolicypkgTsmV1Chainer{
+		client:       c.client,
+		name:         name,
+		parentLabels: parentLabels,
+	}
+}
+
+// GetRandomPolicyData calculates hashed name of the object based on displayName and it's parents and returns the object
+func (c *acpconfigPolicypkgTsmV1Chainer) GetRandomPolicyData(ctx context.Context, displayName string) (result *PolicypkgRandomPolicyData, err error) {
+	hashedName := helper.GetHashedName("randompolicydatas.policypkg.tsm.tanzu.vmware.com", c.parentLabels, displayName)
+	return c.client.Policypkg().GetRandomPolicyDataByName(ctx, hashedName)
+}
+
+// AddRandomPolicyData calculates hashed name of the child to create based on objToCreate.Name
+// and parents names and creates it. objToCreate.Name is changed to the hashed name. Original name is preserved in
+// nexus/display_name label and can be obtained using DisplayName() method.
+func (c *acpconfigPolicypkgTsmV1Chainer) AddRandomPolicyData(ctx context.Context,
+	objToCreate *basepolicypkgtsmtanzuvmwarecomv1.RandomPolicyData) (result *PolicypkgRandomPolicyData, err error) {
+	if objToCreate.Labels == nil {
+		objToCreate.Labels = map[string]string{}
+	}
+	for k, v := range c.parentLabels {
+		objToCreate.Labels[k] = v
+	}
+	if objToCreate.Labels[common.IS_NAME_HASHED_LABEL] != "true" {
+		objToCreate.Labels[common.DISPLAY_NAME_LABEL] = objToCreate.GetName()
+		objToCreate.Labels[common.IS_NAME_HASHED_LABEL] = "true"
+		hashedName := helper.GetHashedName("randompolicydatas.policypkg.tsm.tanzu.vmware.com", c.parentLabels, objToCreate.GetName())
+		objToCreate.Name = hashedName
+	}
+	return c.client.Policypkg().CreateRandomPolicyDataByName(ctx, objToCreate)
+}
+
+// DeleteRandomPolicyData calculates hashed name of the child to delete based on displayName
+// and parents names and deletes it.
+func (c *acpconfigPolicypkgTsmV1Chainer) DeleteRandomPolicyData(ctx context.Context, name string) (err error) {
+	if c.parentLabels == nil {
+		c.parentLabels = map[string]string{}
+	}
+	c.parentLabels[common.IS_NAME_HASHED_LABEL] = "true"
+	hashedName := helper.GetHashedName("randompolicydatas.policypkg.tsm.tanzu.vmware.com", c.parentLabels, name)
+	return c.client.Policypkg().DeleteRandomPolicyDataByName(ctx, hashedName)
+}
+
 // GetVMpolicyByName returns object stored in the database under the hashedName which is a hash of display
 // name and parents names. Use it when you know hashed name of object.
 func (group *PolicypkgTsmV1) GetVMpolicyByName(ctx context.Context, hashedName string) (*PolicypkgVMpolicy, error) {
@@ -7221,18 +16477,48 @@ func (group *PolicypkgTsmV1) GetVMpolicyByName(ctx context.Context, hashedName s
 			VMpolicy: result,
 		}, nil
 	} else {
-		result, err := group.client.baseClient.
-			PolicypkgTsmV1().
-			VMpolicies().Get(ctx, hashedName, metav1.GetOptions{})
-		if err != nil {
-			return nil, err
+		retryCount := 12
+		for {
+			result, err := group.client.baseClient.
+				PolicypkgTsmV1().
+				VMpolicies().Get(ctx, hashedName, metav1.GetOptions{})
+			if err != nil {
+				log.Errorf("Failed to Get VMpolicies: %+v", err)
+				if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded) {
+					log.Errorf("[Retry Count: %d ] %+v", retryCount, err)
+					if retryCount == 0 {
+						log.Error("Max Retry exceed on Get VMpolicies")
+						return nil, err
+					}
+					retryCount -= 1
+					time.Sleep(5 * time.Second)
+				} else {
+					log.Errorf("Unexpected Error: %+v", err)
+					return nil, err
+				}
+			}
+			return &PolicypkgVMpolicy{
+				client:   group.client,
+				VMpolicy: result,
+			}, nil
 		}
-
-		return &PolicypkgVMpolicy{
-			client:   group.client,
-			VMpolicy: result,
-		}, nil
 	}
+}
+
+// ForceReadVMpolicyByName read object directly from the database under the hashedName which is a hash of display
+// name and parents names. Use it when you know hashed name of object.
+func (group *PolicypkgTsmV1) ForceReadVMpolicyByName(ctx context.Context, hashedName string) (*PolicypkgVMpolicy, error) {
+	result, err := group.client.baseClient.
+		PolicypkgTsmV1().
+		VMpolicies().Get(ctx, hashedName, metav1.GetOptions{})
+	if err != nil {
+		return nil, err
+	}
+
+	return &PolicypkgVMpolicy{
+		client:   group.client,
+		VMpolicy: result,
+	}, nil
 }
 
 // DeleteVMpolicyByName deletes object stored in the database under the hashedName which is a hash of
@@ -7243,7 +16529,16 @@ func (group *PolicypkgTsmV1) DeleteVMpolicyByName(ctx context.Context, hashedNam
 		PolicypkgTsmV1().
 		VMpolicies().Get(ctx, hashedName, metav1.GetOptions{})
 	if err != nil {
-		return err
+		if customerrors.Is(err, context.DeadlineExceeded) {
+			log.Errorf("context deadline exceeded, on creating GNS: %+v", hashedName)
+			return context.DeadlineExceeded
+		} else if customerrors.Is(err, context.Canceled) {
+			log.Errorf("context cancelled, on creating GNS: %+v", hashedName)
+			return context.Canceled
+		} else {
+			log.Errorf("Unexpected Error: %+v", err)
+			return err
+		}
 	}
 
 	err = group.client.baseClient.
@@ -7276,11 +16571,44 @@ func (group *PolicypkgTsmV1) DeleteVMpolicyByName(ctx context.Context, hashedNam
 	if parents[common.IS_NAME_HASHED_LABEL] == "true" {
 		parentName = helper.GetHashedName("configs.config.tsm.tanzu.vmware.com", parents, parentName)
 	}
-	_, err = group.client.baseClient.
-		ConfigTsmV1().
-		Configs().Patch(ctx, parentName, types.JSONPatchType, marshaled, metav1.PatchOptions{})
-	if err != nil {
-		return err
+
+	retryCount := 12
+	newCtx := context.TODO()
+	for {
+		_, err = group.client.baseClient.
+			ConfigTsmV1().
+			Configs().Patch(newCtx, parentName, types.JSONPatchType, marshaled, metav1.PatchOptions{})
+		if err != nil {
+			log.Errorf("Failed to patch VMpolicy gvk in parent node[Configs]: %+v", err)
+			if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded) {
+				log.Errorf("[Retry Count: %d ] %+v", retryCount, err)
+				if retryCount == 0 {
+					log.Error("Max Retry exceed on patching gvk")
+					log.Errorf("Trigger VMpolicy Delete: %s", hashedName)
+					err = group.DeleteVMpolicyByName(newCtx, hashedName)
+					if err != nil {
+						log.Errorf("Error occur while deleting VMpolicy: %s", hashedName)
+						return err
+					}
+					log.Errorf("VMpolicy Deleted: %s", hashedName)
+					return err
+				}
+				retryCount -= 1
+				time.Sleep(5 * time.Second)
+			} else {
+				log.Errorf("Unexpected Error: %+v", err)
+				log.Errorf("Trigger VMpolicy Delete: %s", hashedName)
+				err = group.DeleteVMpolicyByName(newCtx, hashedName)
+				if err != nil {
+					log.Errorf("Error occur while deleting VMpolicy: %+v", hashedName)
+					return err
+				}
+				log.Errorf("VMpolicy Deleted: %s", hashedName)
+				return err
+			}
+		} else {
+			break
+		}
 	}
 
 	return
@@ -7301,7 +16629,16 @@ func (group *PolicypkgTsmV1) CreateVMpolicyByName(ctx context.Context,
 		PolicypkgTsmV1().
 		VMpolicies().Create(ctx, objToCreate, metav1.CreateOptions{})
 	if err != nil {
-		return nil, err
+		if customerrors.Is(err, context.DeadlineExceeded) {
+			log.Errorf("context deadline exceeded, on creating GNS: %+v", objToCreate)
+			return nil, context.DeadlineExceeded
+		} else if customerrors.Is(err, context.Canceled) {
+			log.Errorf("context cancelled, on creating GNS: %+v", objToCreate)
+			return nil, context.Canceled
+		} else {
+			log.Errorf("Unexpected Error: %+v", err)
+			return nil, err
+		}
 	}
 
 	parentName, ok := objToCreate.GetLabels()["configs.config.tsm.tanzu.vmware.com"]
@@ -7327,11 +16664,43 @@ func (group *PolicypkgTsmV1) CreateVMpolicyByName(ctx context.Context,
 	if err != nil {
 		return nil, err
 	}
-	_, err = group.client.baseClient.
-		ConfigTsmV1().
-		Configs().Patch(ctx, parentName, types.JSONPatchType, marshaled, metav1.PatchOptions{})
-	if err != nil {
-		return nil, err
+	retryCount := 12
+	newCtx := context.TODO()
+	for {
+		_, err = group.client.baseClient.
+			ConfigTsmV1().
+			Configs().Patch(newCtx, parentName, types.JSONPatchType, marshaled, metav1.PatchOptions{})
+		if err != nil {
+			log.Errorf("Failed to patch VMpolicy gvk in parent node[Configs]: %+v", err)
+			if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded) {
+				log.Errorf("[Retry Count: %d ] %+v", retryCount, err)
+				if retryCount == 0 {
+					log.Error("Max Retry exceed on patching gvk")
+					log.Errorf("Trigger VMpolicy Delete: %s", objToCreate.GetName())
+					err = group.DeleteVMpolicyByName(newCtx, objToCreate.GetName())
+					if err != nil {
+						log.Errorf("Error occur while deleting VMpolicy: %s", objToCreate.GetName())
+						return nil, err
+					}
+					log.Errorf("VMpolicy Deleted: %s", objToCreate.GetName())
+					return nil, err
+				}
+				retryCount -= 1
+				time.Sleep(5 * time.Second)
+			} else {
+				log.Errorf("Unexpected Error: %+v", err)
+				log.Errorf("Trigger VMpolicy Delete: %s", objToCreate.GetName())
+				err = group.DeleteVMpolicyByName(newCtx, objToCreate.GetName())
+				if err != nil {
+					log.Errorf("Error occur while deleting VMpolicy: %+v", objToCreate.GetName())
+					return nil, err
+				}
+				log.Errorf("VMpolicy Deleted: %s", objToCreate.GetName())
+				return nil, err
+			}
+		} else {
+			break
+		}
 	}
 
 	return &PolicypkgVMpolicy{
@@ -7351,7 +16720,16 @@ func (group *PolicypkgTsmV1) UpdateVMpolicyByName(ctx context.Context,
 			PolicypkgTsmV1().
 			VMpolicies().Get(ctx, objToUpdate.GetName(), metav1.GetOptions{})
 		if err != nil {
-			return nil, err
+			if customerrors.Is(err, context.DeadlineExceeded) {
+				log.Errorf("context deadline exceeded, on creating GNS: %+v", objToUpdate)
+				return nil, context.DeadlineExceeded
+			} else if customerrors.Is(err, context.Canceled) {
+				log.Errorf("context cancelled, on creating GNS: %+v", objToUpdate)
+				return nil, context.Canceled
+			} else {
+				log.Errorf("Unexpected Error: %+v", err)
+				return nil, err
+			}
 		}
 		objToUpdate.ResourceVersion = current.ResourceVersion
 	}
@@ -7470,6 +16848,447 @@ func (c *vmpolicyPolicypkgTsmV1Chainer) IsSubscribed() bool {
 	return ok
 }
 
+func (c *vmpolicyPolicypkgTsmV1Chainer) RegisterEventHandler(addCB func(obj *PolicypkgVMpolicy), updateCB func(oldObj, newObj *PolicypkgVMpolicy), deleteCB func(obj *PolicypkgVMpolicy)) (cache.ResourceEventHandlerRegistration, error) {
+	fmt.Println("RegisterEventHandler for PolicypkgVMpolicy")
+	var (
+		registrationId cache.ResourceEventHandlerRegistration
+		err            error
+		informer       cache.SharedIndexInformer
+	)
+	key := "vmpolicies.policypkg.tsm.tanzu.vmware.com"
+	stopper := make(chan struct{})
+	if s, ok := subscriptionMap.Load(key); ok {
+		fmt.Println("Informer exists for PolicypkgVMpolicy")
+		sub := s.(subscription)
+		informer = sub.informer
+	} else {
+		fmt.Println("Informer doesn't exists for PolicypkgVMpolicy, so creating a new one")
+		informer = informerpolicypkgtsmtanzuvmwarecomv1.NewVMpolicyInformer(c.client.baseClient, 0, cache.Indexers{})
+		go informer.Run(stopper)
+		subscribe(key, informer)
+	}
+	registrationId, err = informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
+		AddFunc: func(obj interface{}) {
+			nc := &PolicypkgVMpolicy{
+				client:   c.client,
+				VMpolicy: obj.(*basepolicypkgtsmtanzuvmwarecomv1.VMpolicy),
+			}
+
+			var parent *ConfigConfig
+			gvkExist := false
+			for i := 0; i < 600; i++ {
+				// Check if parent exists
+				p, err := nc.GetParent(context.TODO())
+				if err != nil || p == nil {
+					time.Sleep(500 * time.Millisecond)
+					continue
+				}
+				parent = p
+				// Check GVK
+
+				if parent.Spec.VMPPoliciesGvk == nil {
+					time.Sleep(500 * time.Millisecond)
+					continue
+				}
+
+				gvkExist = true
+				break
+			}
+			if parent == nil {
+				hashedName := helper.GetHashedName("configs.config.tsm.tanzu.vmware.com", nc.Labels, nc.Labels["configs.config.tsm.tanzu.vmware.com"])
+				parent, err = c.client.Config().ForceReadConfigByName(context.TODO(), hashedName)
+				if err != nil {
+					if errors.IsNotFound(err) {
+						return
+					}
+					panic("error occurred while fetching parent " + err.Error())
+				}
+				panic(fmt.Sprintf("parent found (event loop is stalled) " + nc.DisplayName()))
+			}
+			if !gvkExist {
+				// Check GVK
+
+				if parent.Spec.VMPPoliciesGvk == nil {
+					return
+				}
+
+				panic(fmt.Sprintf("gvk found (event loop is stalled) " + nc.DisplayName()))
+			}
+
+			addCB(nc)
+		},
+
+		UpdateFunc: func(oldObj, newObj interface{}) {
+			oldData := &PolicypkgVMpolicy{
+				client:   c.client,
+				VMpolicy: oldObj.(*basepolicypkgtsmtanzuvmwarecomv1.VMpolicy),
+			}
+			newData := &PolicypkgVMpolicy{
+				client:   c.client,
+				VMpolicy: newObj.(*basepolicypkgtsmtanzuvmwarecomv1.VMpolicy),
+			}
+			updateCB(oldData, newData)
+		},
+
+		DeleteFunc: func(obj interface{}) {
+			nc := &PolicypkgVMpolicy{
+				client:   c.client,
+				VMpolicy: obj.(*basepolicypkgtsmtanzuvmwarecomv1.VMpolicy),
+			}
+
+			var parent *ConfigConfig
+			gvkExist := true
+			for i := 0; i < 600; i++ {
+				// Check if parent exists
+				p, err := nc.GetParent(context.TODO())
+				if err != nil || p == nil {
+					time.Sleep(500 * time.Millisecond)
+					continue
+				}
+				parent = p
+				// Check GVK
+
+				if parent.Spec.VMPPoliciesGvk != nil {
+					time.Sleep(500 * time.Millisecond)
+					continue
+				}
+
+				gvkExist = false
+				break
+			}
+			if parent == nil {
+				hashedName := helper.GetHashedName("configs.config.tsm.tanzu.vmware.com", nc.Labels, nc.Labels["configs.config.tsm.tanzu.vmware.com"])
+				parent, err = c.client.Config().ForceReadConfigByName(context.TODO(), hashedName)
+				if err != nil {
+					if errors.IsNotFound(err) {
+						return
+					}
+					panic("error occurred while fetching parent " + err.Error())
+				}
+				panic(fmt.Sprintf("parent found (event loop is stalled) " + nc.DisplayName()))
+			}
+			if gvkExist {
+				// Check GVK
+
+				if parent.Spec.VMPPoliciesGvk != nil {
+					return
+				}
+
+				panic(fmt.Sprintf("gvk not found (event loop is stalled) " + nc.DisplayName()))
+			}
+
+			deleteCB(nc)
+		},
+	})
+	return registrationId, err
+}
+
+func (c *vmpolicyPolicypkgTsmV1Chainer) RegisterAddCallback(cbfn func(obj *PolicypkgVMpolicy)) (cache.ResourceEventHandlerRegistration, error) {
+	fmt.Println("PolicypkgVMpolicy -->  RegisterAddCallback!")
+	var (
+		registrationId cache.ResourceEventHandlerRegistration
+		err            error
+	)
+	key := "vmpolicies.policypkg.tsm.tanzu.vmware.com"
+	stopper := make(chan struct{})
+	if s, ok := subscriptionMap.Load(key); ok {
+		fmt.Println("[PolicypkgVMpolicy] ---SUBSCRIBE-INFORMER---->")
+		sub := s.(subscription)
+		registrationId, err = sub.informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
+			AddFunc: func(obj interface{}) {
+				nc := &PolicypkgVMpolicy{
+					client:   c.client,
+					VMpolicy: obj.(*basepolicypkgtsmtanzuvmwarecomv1.VMpolicy),
+				}
+
+				var parent *ConfigConfig
+				gvkExist := false
+				for i := 0; i < 600; i++ {
+					// Check if parent exists
+					p, err := nc.GetParent(context.TODO())
+					if err != nil || p == nil {
+						time.Sleep(500 * time.Millisecond)
+						continue
+					}
+					parent = p
+
+					// Check GVK
+
+					if parent.Spec.VMPPoliciesGvk == nil {
+						time.Sleep(500 * time.Millisecond)
+						continue
+					}
+
+					gvkExist = true
+
+					break
+				}
+
+				if parent == nil {
+					hashedName := helper.GetHashedName("configs.config.tsm.tanzu.vmware.com", nc.Labels, nc.Labels["configs.config.tsm.tanzu.vmware.com"])
+					parent, err = c.client.Config().ForceReadConfigByName(context.TODO(), hashedName)
+					if err != nil {
+						if errors.IsNotFound(err) {
+							return
+						}
+
+						panic("error occurred while fetching parent " + err.Error())
+					}
+					panic(fmt.Sprintf("parent found (event loop is stalled) " + nc.DisplayName()))
+				}
+
+				if !gvkExist {
+					// Check GVK
+
+					if parent.Spec.VMPPoliciesGvk == nil {
+						return
+					}
+
+					panic(fmt.Sprintf("gvk found (event loop is stalled) " + nc.DisplayName()))
+				}
+
+				cbfn(nc)
+			},
+		})
+	} else {
+		fmt.Println("[PolicypkgVMpolicy] ---NEW-INFORMER---->")
+		informer := informerpolicypkgtsmtanzuvmwarecomv1.NewVMpolicyInformer(c.client.baseClient, 0, cache.Indexers{})
+		registrationId, err = informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
+			AddFunc: func(obj interface{}) {
+				nc := &PolicypkgVMpolicy{
+					client:   c.client,
+					VMpolicy: obj.(*basepolicypkgtsmtanzuvmwarecomv1.VMpolicy),
+				}
+
+				var parent *ConfigConfig
+				gvkExist := false
+				for i := 0; i < 600; i++ {
+					// Check if parent exists
+					p, err := nc.GetParent(context.TODO())
+					if err != nil || p == nil {
+						time.Sleep(500 * time.Millisecond)
+						continue
+					}
+					parent = p
+
+					// Check GVK
+
+					if parent.Spec.VMPPoliciesGvk == nil {
+						time.Sleep(500 * time.Millisecond)
+						continue
+					}
+
+					gvkExist = true
+
+					break
+				}
+
+				if parent == nil {
+					hashedName := helper.GetHashedName("configs.config.tsm.tanzu.vmware.com", nc.Labels, nc.Labels["configs.config.tsm.tanzu.vmware.com"])
+					parent, err = c.client.Config().ForceReadConfigByName(context.TODO(), hashedName)
+					if err != nil {
+						if errors.IsNotFound(err) {
+							return
+						}
+
+						panic("error occurred while fetching parent " + err.Error())
+					}
+					panic(fmt.Sprintf("parent found (event loop is stalled) " + nc.DisplayName()))
+				}
+
+				if !gvkExist {
+					// Check GVK
+
+					if parent.Spec.VMPPoliciesGvk == nil {
+						return
+					}
+
+					panic(fmt.Sprintf("gvk found (event loop is stalled) " + nc.DisplayName()))
+				}
+
+				cbfn(nc)
+			},
+		})
+		go informer.Run(stopper)
+	}
+	return registrationId, err
+}
+
+func (c *vmpolicyPolicypkgTsmV1Chainer) RegisterUpdateCallback(cbfn func(oldObj, newObj *PolicypkgVMpolicy)) (cache.ResourceEventHandlerRegistration, error) {
+	fmt.Println("PolicypkgVMpolicy -->  RegisterUpdateCallback!")
+	var (
+		registrationId cache.ResourceEventHandlerRegistration
+		err            error
+	)
+	key := "vmpolicies.policypkg.tsm.tanzu.vmware.com"
+	stopper := make(chan struct{})
+	if s, ok := subscriptionMap.Load(key); ok {
+		fmt.Println("[PolicypkgVMpolicy] ---SUBSCRIBE-INFORMER---->")
+		sub := s.(subscription)
+		registrationId, err = sub.informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
+			UpdateFunc: func(oldObj, newObj interface{}) {
+				oldData := &PolicypkgVMpolicy{
+					client:   c.client,
+					VMpolicy: oldObj.(*basepolicypkgtsmtanzuvmwarecomv1.VMpolicy),
+				}
+				newData := &PolicypkgVMpolicy{
+					client:   c.client,
+					VMpolicy: newObj.(*basepolicypkgtsmtanzuvmwarecomv1.VMpolicy),
+				}
+				cbfn(oldData, newData)
+			},
+		})
+	} else {
+		fmt.Println("[PolicypkgVMpolicy] ---NEW-INFORMER---->")
+		informer := informerpolicypkgtsmtanzuvmwarecomv1.NewVMpolicyInformer(c.client.baseClient, 0, cache.Indexers{})
+		registrationId, err = informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
+			UpdateFunc: func(oldObj, newObj interface{}) {
+				oldData := &PolicypkgVMpolicy{
+					client:   c.client,
+					VMpolicy: oldObj.(*basepolicypkgtsmtanzuvmwarecomv1.VMpolicy),
+				}
+				newData := &PolicypkgVMpolicy{
+					client:   c.client,
+					VMpolicy: newObj.(*basepolicypkgtsmtanzuvmwarecomv1.VMpolicy),
+				}
+				cbfn(oldData, newData)
+			},
+		})
+		go informer.Run(stopper)
+	}
+	return registrationId, err
+}
+
+func (c *vmpolicyPolicypkgTsmV1Chainer) RegisterDeleteCallback(cbfn func(obj *PolicypkgVMpolicy)) (cache.ResourceEventHandlerRegistration, error) {
+	fmt.Println("PolicypkgVMpolicy -->  RegisterDeleteCallback!")
+	var (
+		registrationId cache.ResourceEventHandlerRegistration
+		err            error
+	)
+	key := "vmpolicies.policypkg.tsm.tanzu.vmware.com"
+	stopper := make(chan struct{})
+	if s, ok := subscriptionMap.Load(key); ok {
+		fmt.Println("[PolicypkgVMpolicy] ---SUBSCRIBE-INFORMER---->")
+		sub := s.(subscription)
+		registrationId, err = sub.informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
+			DeleteFunc: func(obj interface{}) {
+				nc := &PolicypkgVMpolicy{
+					client:   c.client,
+					VMpolicy: obj.(*basepolicypkgtsmtanzuvmwarecomv1.VMpolicy),
+				}
+
+				var parent *ConfigConfig
+				gvkExist := true
+				for i := 0; i < 600; i++ {
+					// Check if parent exists
+					p, err := nc.GetParent(context.TODO())
+					if err != nil || p == nil {
+						time.Sleep(500 * time.Millisecond)
+						continue
+					}
+					parent = p
+
+					// Check GVK
+
+					if parent.Spec.VMPPoliciesGvk != nil {
+						time.Sleep(500 * time.Millisecond)
+						continue
+					}
+
+					gvkExist = false
+					break
+				}
+
+				if parent == nil {
+					hashedName := helper.GetHashedName("configs.config.tsm.tanzu.vmware.com", nc.Labels, nc.Labels["configs.config.tsm.tanzu.vmware.com"])
+					parent, err = c.client.Config().ForceReadConfigByName(context.TODO(), hashedName)
+					if err != nil {
+						if errors.IsNotFound(err) {
+							return
+						}
+
+						panic("error occurred while fetching parent " + err.Error())
+					}
+					panic(fmt.Sprintf("parent found (event loop is stalled) " + nc.DisplayName()))
+				}
+
+				if gvkExist {
+					// Check GVK
+
+					if parent.Spec.VMPPoliciesGvk != nil {
+						return
+					}
+
+					panic(fmt.Sprintf("gvk not found (event loop is stalled) " + nc.DisplayName()))
+				}
+
+				cbfn(nc)
+			},
+		})
+	} else {
+		fmt.Println("[PolicypkgVMpolicy] ---NEW-INFORMER---->")
+		informer := informerpolicypkgtsmtanzuvmwarecomv1.NewVMpolicyInformer(c.client.baseClient, 0, cache.Indexers{})
+		registrationId, err = informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
+			DeleteFunc: func(obj interface{}) {
+				nc := &PolicypkgVMpolicy{
+					client:   c.client,
+					VMpolicy: obj.(*basepolicypkgtsmtanzuvmwarecomv1.VMpolicy),
+				}
+
+				var parent *ConfigConfig
+				gvkExist := true
+				for i := 0; i < 600; i++ {
+					// Check if parent exists
+					p, err := nc.GetParent(context.TODO())
+					if err != nil || p == nil {
+						time.Sleep(500 * time.Millisecond)
+						continue
+					}
+					parent = p
+
+					// Check GVK
+
+					if parent.Spec.VMPPoliciesGvk != nil {
+						time.Sleep(500 * time.Millisecond)
+						continue
+					}
+
+					gvkExist = false
+
+					break
+				}
+
+				if parent == nil {
+					hashedName := helper.GetHashedName("configs.config.tsm.tanzu.vmware.com", nc.Labels, nc.Labels["configs.config.tsm.tanzu.vmware.com"])
+					parent, err = c.client.Config().ForceReadConfigByName(context.TODO(), hashedName)
+					if err != nil {
+						if errors.IsNotFound(err) {
+							return
+						}
+
+						panic("error occurred while fetching parent " + err.Error())
+					}
+					panic(fmt.Sprintf("parent found (event loop is stalled) " + nc.DisplayName()))
+				}
+
+				if gvkExist {
+					// Check GVK
+
+					if parent.Spec.VMPPoliciesGvk != nil {
+						return
+					}
+
+					panic(fmt.Sprintf("gvk not found (event loop is stalled) " + nc.DisplayName()))
+				}
+
+				cbfn(nc)
+			},
+		})
+		go informer.Run(stopper)
+	}
+	return registrationId, err
+}
+
 // GetRandomPolicyDataByName returns object stored in the database under the hashedName which is a hash of display
 // name and parents names. Use it when you know hashed name of object.
 func (group *PolicypkgTsmV1) GetRandomPolicyDataByName(ctx context.Context, hashedName string) (*PolicypkgRandomPolicyData, error) {
@@ -7486,29 +17305,138 @@ func (group *PolicypkgTsmV1) GetRandomPolicyDataByName(ctx context.Context, hash
 			RandomPolicyData: result,
 		}, nil
 	} else {
-		result, err := group.client.baseClient.
-			PolicypkgTsmV1().
-			RandomPolicyDatas().Get(ctx, hashedName, metav1.GetOptions{})
-		if err != nil {
-			return nil, err
+		retryCount := 12
+		for {
+			result, err := group.client.baseClient.
+				PolicypkgTsmV1().
+				RandomPolicyDatas().Get(ctx, hashedName, metav1.GetOptions{})
+			if err != nil {
+				log.Errorf("Failed to Get RandomPolicyDatas: %+v", err)
+				if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded) {
+					log.Errorf("[Retry Count: %d ] %+v", retryCount, err)
+					if retryCount == 0 {
+						log.Error("Max Retry exceed on Get RandomPolicyDatas")
+						return nil, err
+					}
+					retryCount -= 1
+					time.Sleep(5 * time.Second)
+				} else {
+					log.Errorf("Unexpected Error: %+v", err)
+					return nil, err
+				}
+			}
+			return &PolicypkgRandomPolicyData{
+				client:           group.client,
+				RandomPolicyData: result,
+			}, nil
 		}
-
-		return &PolicypkgRandomPolicyData{
-			client:           group.client,
-			RandomPolicyData: result,
-		}, nil
 	}
+}
+
+// ForceReadRandomPolicyDataByName read object directly from the database under the hashedName which is a hash of display
+// name and parents names. Use it when you know hashed name of object.
+func (group *PolicypkgTsmV1) ForceReadRandomPolicyDataByName(ctx context.Context, hashedName string) (*PolicypkgRandomPolicyData, error) {
+	result, err := group.client.baseClient.
+		PolicypkgTsmV1().
+		RandomPolicyDatas().Get(ctx, hashedName, metav1.GetOptions{})
+	if err != nil {
+		return nil, err
+	}
+
+	return &PolicypkgRandomPolicyData{
+		client:           group.client,
+		RandomPolicyData: result,
+	}, nil
 }
 
 // DeleteRandomPolicyDataByName deletes object stored in the database under the hashedName which is a hash of
 // display name and parents names. Use it when you know hashed name of object.
 func (group *PolicypkgTsmV1) DeleteRandomPolicyDataByName(ctx context.Context, hashedName string) (err error) {
 
+	result, err := group.client.baseClient.
+		PolicypkgTsmV1().
+		RandomPolicyDatas().Get(ctx, hashedName, metav1.GetOptions{})
+	if err != nil {
+		if customerrors.Is(err, context.DeadlineExceeded) {
+			log.Errorf("context deadline exceeded, on creating GNS: %+v", hashedName)
+			return context.DeadlineExceeded
+		} else if customerrors.Is(err, context.Canceled) {
+			log.Errorf("context cancelled, on creating GNS: %+v", hashedName)
+			return context.Canceled
+		} else {
+			log.Errorf("Unexpected Error: %+v", err)
+			return err
+		}
+	}
+
 	err = group.client.baseClient.
 		PolicypkgTsmV1().
 		RandomPolicyDatas().Delete(ctx, hashedName, metav1.DeleteOptions{})
 	if err != nil {
 		return err
+	}
+
+	var patch Patch
+
+	patchOp := PatchOp{
+		Op:   "remove",
+		Path: "/spec/randomPolicyDataGvk",
+	}
+
+	patch = append(patch, patchOp)
+	marshaled, err := patch.Marshal()
+	if err != nil {
+		return err
+	}
+	parents := result.GetLabels()
+	if parents == nil {
+		parents = make(map[string]string)
+	}
+	parentName, ok := parents["acpconfigs.policypkg.tsm.tanzu.vmware.com"]
+	if !ok {
+		parentName = helper.DEFAULT_KEY
+	}
+	if parents[common.IS_NAME_HASHED_LABEL] == "true" {
+		parentName = helper.GetHashedName("acpconfigs.policypkg.tsm.tanzu.vmware.com", parents, parentName)
+	}
+
+	retryCount := 12
+	newCtx := context.TODO()
+	for {
+		_, err = group.client.baseClient.
+			PolicypkgTsmV1().
+			ACPConfigs().Patch(newCtx, parentName, types.JSONPatchType, marshaled, metav1.PatchOptions{})
+		if err != nil {
+			log.Errorf("Failed to patch RandomPolicyData gvk in parent node[ACPConfigs]: %+v", err)
+			if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded) {
+				log.Errorf("[Retry Count: %d ] %+v", retryCount, err)
+				if retryCount == 0 {
+					log.Error("Max Retry exceed on patching gvk")
+					log.Errorf("Trigger RandomPolicyData Delete: %s", hashedName)
+					err = group.DeleteRandomPolicyDataByName(newCtx, hashedName)
+					if err != nil {
+						log.Errorf("Error occur while deleting RandomPolicyData: %s", hashedName)
+						return err
+					}
+					log.Errorf("RandomPolicyData Deleted: %s", hashedName)
+					return err
+				}
+				retryCount -= 1
+				time.Sleep(5 * time.Second)
+			} else {
+				log.Errorf("Unexpected Error: %+v", err)
+				log.Errorf("Trigger RandomPolicyData Delete: %s", hashedName)
+				err = group.DeleteRandomPolicyDataByName(newCtx, hashedName)
+				if err != nil {
+					log.Errorf("Error occur while deleting RandomPolicyData: %+v", hashedName)
+					return err
+				}
+				log.Errorf("RandomPolicyData Deleted: %s", hashedName)
+				return err
+			}
+		} else {
+			break
+		}
 	}
 
 	return
@@ -7529,7 +17457,78 @@ func (group *PolicypkgTsmV1) CreateRandomPolicyDataByName(ctx context.Context,
 		PolicypkgTsmV1().
 		RandomPolicyDatas().Create(ctx, objToCreate, metav1.CreateOptions{})
 	if err != nil {
+		if customerrors.Is(err, context.DeadlineExceeded) {
+			log.Errorf("context deadline exceeded, on creating GNS: %+v", objToCreate)
+			return nil, context.DeadlineExceeded
+		} else if customerrors.Is(err, context.Canceled) {
+			log.Errorf("context cancelled, on creating GNS: %+v", objToCreate)
+			return nil, context.Canceled
+		} else {
+			log.Errorf("Unexpected Error: %+v", err)
+			return nil, err
+		}
+	}
+
+	parentName, ok := objToCreate.GetLabels()["acpconfigs.policypkg.tsm.tanzu.vmware.com"]
+	if !ok {
+		parentName = helper.DEFAULT_KEY
+	}
+	if objToCreate.Labels[common.IS_NAME_HASHED_LABEL] == "true" {
+		parentName = helper.GetHashedName("acpconfigs.policypkg.tsm.tanzu.vmware.com", objToCreate.GetLabels(), parentName)
+	}
+
+	var patch Patch
+	patchOp := PatchOp{
+		Op:   "replace",
+		Path: "/spec/randomPolicyDataGvk",
+		Value: basepolicypkgtsmtanzuvmwarecomv1.Child{
+			Group: "policypkg.tsm.tanzu.vmware.com",
+			Kind:  "RandomPolicyData",
+			Name:  objToCreate.Name,
+		},
+	}
+	patch = append(patch, patchOp)
+	marshaled, err := patch.Marshal()
+	if err != nil {
 		return nil, err
+	}
+	retryCount := 12
+	newCtx := context.TODO()
+	for {
+		_, err = group.client.baseClient.
+			PolicypkgTsmV1().
+			ACPConfigs().Patch(newCtx, parentName, types.JSONPatchType, marshaled, metav1.PatchOptions{})
+		if err != nil {
+			log.Errorf("Failed to patch RandomPolicyData gvk in parent node[ACPConfigs]: %+v", err)
+			if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded) {
+				log.Errorf("[Retry Count: %d ] %+v", retryCount, err)
+				if retryCount == 0 {
+					log.Error("Max Retry exceed on patching gvk")
+					log.Errorf("Trigger RandomPolicyData Delete: %s", objToCreate.GetName())
+					err = group.DeleteRandomPolicyDataByName(newCtx, objToCreate.GetName())
+					if err != nil {
+						log.Errorf("Error occur while deleting RandomPolicyData: %s", objToCreate.GetName())
+						return nil, err
+					}
+					log.Errorf("RandomPolicyData Deleted: %s", objToCreate.GetName())
+					return nil, err
+				}
+				retryCount -= 1
+				time.Sleep(5 * time.Second)
+			} else {
+				log.Errorf("Unexpected Error: %+v", err)
+				log.Errorf("Trigger RandomPolicyData Delete: %s", objToCreate.GetName())
+				err = group.DeleteRandomPolicyDataByName(newCtx, objToCreate.GetName())
+				if err != nil {
+					log.Errorf("Error occur while deleting RandomPolicyData: %+v", objToCreate.GetName())
+					return nil, err
+				}
+				log.Errorf("RandomPolicyData Deleted: %s", objToCreate.GetName())
+				return nil, err
+			}
+		} else {
+			break
+		}
 	}
 
 	return &PolicypkgRandomPolicyData{
@@ -7585,7 +17584,16 @@ func (group *PolicypkgTsmV1) UpdateRandomPolicyDataByName(ctx context.Context,
 			PolicypkgTsmV1().
 			RandomPolicyDatas().Get(ctx, objToUpdate.GetName(), metav1.GetOptions{})
 		if err != nil {
-			return nil, err
+			if customerrors.Is(err, context.DeadlineExceeded) {
+				log.Errorf("context deadline exceeded, on creating GNS: %+v", objToUpdate)
+				return nil, context.DeadlineExceeded
+			} else if customerrors.Is(err, context.Canceled) {
+				log.Errorf("context cancelled, on creating GNS: %+v", objToUpdate)
+				return nil, context.Canceled
+			} else {
+				log.Errorf("Unexpected Error: %+v", err)
+				return nil, err
+			}
 		}
 		objToUpdate.ResourceVersion = current.ResourceVersion
 	}
@@ -7709,45 +17717,9 @@ func (obj *PolicypkgRandomPolicyData) ClearStatus(ctx context.Context) error {
 	return nil
 }
 
-// GetPolicypkgRandomPolicyData calculates the hashed name based on parents and displayName and
-// returns given object
-func (c *Clientset) GetPolicypkgRandomPolicyData(ctx context.Context, displayName string) (result *PolicypkgRandomPolicyData, err error) {
-	hashedName := helper.GetHashedName("randompolicydatas.policypkg.tsm.tanzu.vmware.com", nil, displayName)
-	return c.Policypkg().GetRandomPolicyDataByName(ctx, hashedName)
-}
-
-func (c *Clientset) PolicypkgRandomPolicyData(displayName string) *randompolicydataPolicypkgTsmV1Chainer {
-	parentLabels := make(map[string]string)
-	parentLabels["randompolicydatas.policypkg.tsm.tanzu.vmware.com"] = displayName
-	return &randompolicydataPolicypkgTsmV1Chainer{
-		client:       c,
-		name:         displayName,
-		parentLabels: parentLabels,
-	}
-}
-
-// AddPolicypkgRandomPolicyData calculates hashed name of the object based on objToCreate.Name
-// and parents names and creates it. objToCreate.Name is changed to the hashed name. Original name is preserved in
-// nexus/display_name label and can be obtained using DisplayName() method.
-func (c *Clientset) AddPolicypkgRandomPolicyData(ctx context.Context,
-	objToCreate *basepolicypkgtsmtanzuvmwarecomv1.RandomPolicyData) (result *PolicypkgRandomPolicyData, err error) {
-	if objToCreate.Labels == nil {
-		objToCreate.Labels = map[string]string{}
-	}
-	if objToCreate.Labels[common.IS_NAME_HASHED_LABEL] != "true" {
-		objToCreate.Labels[common.DISPLAY_NAME_LABEL] = objToCreate.GetName()
-		objToCreate.Labels[common.IS_NAME_HASHED_LABEL] = "true"
-		hashedName := helper.GetHashedName(objToCreate.CRDName(), nil, objToCreate.GetName())
-		objToCreate.Name = hashedName
-	}
-	return c.Policypkg().CreateRandomPolicyDataByName(ctx, objToCreate)
-}
-
-// DeletePolicypkgRandomPolicyData calculates hashedName of object based on displayName and
-// parents and deletes given object
-func (c *Clientset) DeletePolicypkgRandomPolicyData(ctx context.Context, displayName string) (err error) {
-	hashedName := helper.GetHashedName("randompolicydatas.policypkg.tsm.tanzu.vmware.com", nil, displayName)
-	return c.Policypkg().DeleteRandomPolicyDataByName(ctx, hashedName)
+func (obj *PolicypkgRandomPolicyData) GetParent(ctx context.Context) (result *PolicypkgACPConfig, err error) {
+	hashedName := helper.GetHashedName("acpconfigs.policypkg.tsm.tanzu.vmware.com", obj.Labels, obj.Labels["acpconfigs.policypkg.tsm.tanzu.vmware.com"])
+	return obj.client.Policypkg().GetACPConfigByName(ctx, hashedName)
 }
 
 type randompolicydataPolicypkgTsmV1Chainer struct {
@@ -7776,6 +17748,447 @@ func (c *randompolicydataPolicypkgTsmV1Chainer) IsSubscribed() bool {
 	key := "randompolicydatas.policypkg.tsm.tanzu.vmware.com"
 	_, ok := subscriptionMap.Load(key)
 	return ok
+}
+
+func (c *randompolicydataPolicypkgTsmV1Chainer) RegisterEventHandler(addCB func(obj *PolicypkgRandomPolicyData), updateCB func(oldObj, newObj *PolicypkgRandomPolicyData), deleteCB func(obj *PolicypkgRandomPolicyData)) (cache.ResourceEventHandlerRegistration, error) {
+	fmt.Println("RegisterEventHandler for PolicypkgRandomPolicyData")
+	var (
+		registrationId cache.ResourceEventHandlerRegistration
+		err            error
+		informer       cache.SharedIndexInformer
+	)
+	key := "randompolicydatas.policypkg.tsm.tanzu.vmware.com"
+	stopper := make(chan struct{})
+	if s, ok := subscriptionMap.Load(key); ok {
+		fmt.Println("Informer exists for PolicypkgRandomPolicyData")
+		sub := s.(subscription)
+		informer = sub.informer
+	} else {
+		fmt.Println("Informer doesn't exists for PolicypkgRandomPolicyData, so creating a new one")
+		informer = informerpolicypkgtsmtanzuvmwarecomv1.NewRandomPolicyDataInformer(c.client.baseClient, 0, cache.Indexers{})
+		go informer.Run(stopper)
+		subscribe(key, informer)
+	}
+	registrationId, err = informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
+		AddFunc: func(obj interface{}) {
+			nc := &PolicypkgRandomPolicyData{
+				client:           c.client,
+				RandomPolicyData: obj.(*basepolicypkgtsmtanzuvmwarecomv1.RandomPolicyData),
+			}
+
+			var parent *PolicypkgACPConfig
+			gvkExist := false
+			for i := 0; i < 600; i++ {
+				// Check if parent exists
+				p, err := nc.GetParent(context.TODO())
+				if err != nil || p == nil {
+					time.Sleep(500 * time.Millisecond)
+					continue
+				}
+				parent = p
+				// Check GVK
+
+				if parent.Spec.RandomPolicyDataGvk == nil {
+					time.Sleep(500 * time.Millisecond)
+					continue
+				}
+
+				gvkExist = true
+				break
+			}
+			if parent == nil {
+				hashedName := helper.GetHashedName("acpconfigs.policypkg.tsm.tanzu.vmware.com", nc.Labels, nc.Labels["acpconfigs.policypkg.tsm.tanzu.vmware.com"])
+				parent, err = c.client.Policypkg().ForceReadACPConfigByName(context.TODO(), hashedName)
+				if err != nil {
+					if errors.IsNotFound(err) {
+						return
+					}
+					panic("error occurred while fetching parent " + err.Error())
+				}
+				panic(fmt.Sprintf("parent found (event loop is stalled) " + nc.DisplayName()))
+			}
+			if !gvkExist {
+				// Check GVK
+
+				if parent.Spec.RandomPolicyDataGvk == nil {
+					return
+				}
+
+				panic(fmt.Sprintf("gvk found (event loop is stalled) " + nc.DisplayName()))
+			}
+
+			addCB(nc)
+		},
+
+		UpdateFunc: func(oldObj, newObj interface{}) {
+			oldData := &PolicypkgRandomPolicyData{
+				client:           c.client,
+				RandomPolicyData: oldObj.(*basepolicypkgtsmtanzuvmwarecomv1.RandomPolicyData),
+			}
+			newData := &PolicypkgRandomPolicyData{
+				client:           c.client,
+				RandomPolicyData: newObj.(*basepolicypkgtsmtanzuvmwarecomv1.RandomPolicyData),
+			}
+			updateCB(oldData, newData)
+		},
+
+		DeleteFunc: func(obj interface{}) {
+			nc := &PolicypkgRandomPolicyData{
+				client:           c.client,
+				RandomPolicyData: obj.(*basepolicypkgtsmtanzuvmwarecomv1.RandomPolicyData),
+			}
+
+			var parent *PolicypkgACPConfig
+			gvkExist := true
+			for i := 0; i < 600; i++ {
+				// Check if parent exists
+				p, err := nc.GetParent(context.TODO())
+				if err != nil || p == nil {
+					time.Sleep(500 * time.Millisecond)
+					continue
+				}
+				parent = p
+				// Check GVK
+
+				if parent.Spec.RandomPolicyDataGvk != nil {
+					time.Sleep(500 * time.Millisecond)
+					continue
+				}
+
+				gvkExist = false
+				break
+			}
+			if parent == nil {
+				hashedName := helper.GetHashedName("acpconfigs.policypkg.tsm.tanzu.vmware.com", nc.Labels, nc.Labels["acpconfigs.policypkg.tsm.tanzu.vmware.com"])
+				parent, err = c.client.Policypkg().ForceReadACPConfigByName(context.TODO(), hashedName)
+				if err != nil {
+					if errors.IsNotFound(err) {
+						return
+					}
+					panic("error occurred while fetching parent " + err.Error())
+				}
+				panic(fmt.Sprintf("parent found (event loop is stalled) " + nc.DisplayName()))
+			}
+			if gvkExist {
+				// Check GVK
+
+				if parent.Spec.RandomPolicyDataGvk != nil {
+					return
+				}
+
+				panic(fmt.Sprintf("gvk not found (event loop is stalled) " + nc.DisplayName()))
+			}
+
+			deleteCB(nc)
+		},
+	})
+	return registrationId, err
+}
+
+func (c *randompolicydataPolicypkgTsmV1Chainer) RegisterAddCallback(cbfn func(obj *PolicypkgRandomPolicyData)) (cache.ResourceEventHandlerRegistration, error) {
+	fmt.Println("PolicypkgRandomPolicyData -->  RegisterAddCallback!")
+	var (
+		registrationId cache.ResourceEventHandlerRegistration
+		err            error
+	)
+	key := "randompolicydatas.policypkg.tsm.tanzu.vmware.com"
+	stopper := make(chan struct{})
+	if s, ok := subscriptionMap.Load(key); ok {
+		fmt.Println("[PolicypkgRandomPolicyData] ---SUBSCRIBE-INFORMER---->")
+		sub := s.(subscription)
+		registrationId, err = sub.informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
+			AddFunc: func(obj interface{}) {
+				nc := &PolicypkgRandomPolicyData{
+					client:           c.client,
+					RandomPolicyData: obj.(*basepolicypkgtsmtanzuvmwarecomv1.RandomPolicyData),
+				}
+
+				var parent *PolicypkgACPConfig
+				gvkExist := false
+				for i := 0; i < 600; i++ {
+					// Check if parent exists
+					p, err := nc.GetParent(context.TODO())
+					if err != nil || p == nil {
+						time.Sleep(500 * time.Millisecond)
+						continue
+					}
+					parent = p
+
+					// Check GVK
+
+					if parent.Spec.RandomPolicyDataGvk == nil {
+						time.Sleep(500 * time.Millisecond)
+						continue
+					}
+
+					gvkExist = true
+
+					break
+				}
+
+				if parent == nil {
+					hashedName := helper.GetHashedName("acpconfigs.policypkg.tsm.tanzu.vmware.com", nc.Labels, nc.Labels["acpconfigs.policypkg.tsm.tanzu.vmware.com"])
+					parent, err = c.client.Policypkg().ForceReadACPConfigByName(context.TODO(), hashedName)
+					if err != nil {
+						if errors.IsNotFound(err) {
+							return
+						}
+
+						panic("error occurred while fetching parent " + err.Error())
+					}
+					panic(fmt.Sprintf("parent found (event loop is stalled) " + nc.DisplayName()))
+				}
+
+				if !gvkExist {
+					// Check GVK
+
+					if parent.Spec.RandomPolicyDataGvk == nil {
+						return
+					}
+
+					panic(fmt.Sprintf("gvk found (event loop is stalled) " + nc.DisplayName()))
+				}
+
+				cbfn(nc)
+			},
+		})
+	} else {
+		fmt.Println("[PolicypkgRandomPolicyData] ---NEW-INFORMER---->")
+		informer := informerpolicypkgtsmtanzuvmwarecomv1.NewRandomPolicyDataInformer(c.client.baseClient, 0, cache.Indexers{})
+		registrationId, err = informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
+			AddFunc: func(obj interface{}) {
+				nc := &PolicypkgRandomPolicyData{
+					client:           c.client,
+					RandomPolicyData: obj.(*basepolicypkgtsmtanzuvmwarecomv1.RandomPolicyData),
+				}
+
+				var parent *PolicypkgACPConfig
+				gvkExist := false
+				for i := 0; i < 600; i++ {
+					// Check if parent exists
+					p, err := nc.GetParent(context.TODO())
+					if err != nil || p == nil {
+						time.Sleep(500 * time.Millisecond)
+						continue
+					}
+					parent = p
+
+					// Check GVK
+
+					if parent.Spec.RandomPolicyDataGvk == nil {
+						time.Sleep(500 * time.Millisecond)
+						continue
+					}
+
+					gvkExist = true
+
+					break
+				}
+
+				if parent == nil {
+					hashedName := helper.GetHashedName("acpconfigs.policypkg.tsm.tanzu.vmware.com", nc.Labels, nc.Labels["acpconfigs.policypkg.tsm.tanzu.vmware.com"])
+					parent, err = c.client.Policypkg().ForceReadACPConfigByName(context.TODO(), hashedName)
+					if err != nil {
+						if errors.IsNotFound(err) {
+							return
+						}
+
+						panic("error occurred while fetching parent " + err.Error())
+					}
+					panic(fmt.Sprintf("parent found (event loop is stalled) " + nc.DisplayName()))
+				}
+
+				if !gvkExist {
+					// Check GVK
+
+					if parent.Spec.RandomPolicyDataGvk == nil {
+						return
+					}
+
+					panic(fmt.Sprintf("gvk found (event loop is stalled) " + nc.DisplayName()))
+				}
+
+				cbfn(nc)
+			},
+		})
+		go informer.Run(stopper)
+	}
+	return registrationId, err
+}
+
+func (c *randompolicydataPolicypkgTsmV1Chainer) RegisterUpdateCallback(cbfn func(oldObj, newObj *PolicypkgRandomPolicyData)) (cache.ResourceEventHandlerRegistration, error) {
+	fmt.Println("PolicypkgRandomPolicyData -->  RegisterUpdateCallback!")
+	var (
+		registrationId cache.ResourceEventHandlerRegistration
+		err            error
+	)
+	key := "randompolicydatas.policypkg.tsm.tanzu.vmware.com"
+	stopper := make(chan struct{})
+	if s, ok := subscriptionMap.Load(key); ok {
+		fmt.Println("[PolicypkgRandomPolicyData] ---SUBSCRIBE-INFORMER---->")
+		sub := s.(subscription)
+		registrationId, err = sub.informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
+			UpdateFunc: func(oldObj, newObj interface{}) {
+				oldData := &PolicypkgRandomPolicyData{
+					client:           c.client,
+					RandomPolicyData: oldObj.(*basepolicypkgtsmtanzuvmwarecomv1.RandomPolicyData),
+				}
+				newData := &PolicypkgRandomPolicyData{
+					client:           c.client,
+					RandomPolicyData: newObj.(*basepolicypkgtsmtanzuvmwarecomv1.RandomPolicyData),
+				}
+				cbfn(oldData, newData)
+			},
+		})
+	} else {
+		fmt.Println("[PolicypkgRandomPolicyData] ---NEW-INFORMER---->")
+		informer := informerpolicypkgtsmtanzuvmwarecomv1.NewRandomPolicyDataInformer(c.client.baseClient, 0, cache.Indexers{})
+		registrationId, err = informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
+			UpdateFunc: func(oldObj, newObj interface{}) {
+				oldData := &PolicypkgRandomPolicyData{
+					client:           c.client,
+					RandomPolicyData: oldObj.(*basepolicypkgtsmtanzuvmwarecomv1.RandomPolicyData),
+				}
+				newData := &PolicypkgRandomPolicyData{
+					client:           c.client,
+					RandomPolicyData: newObj.(*basepolicypkgtsmtanzuvmwarecomv1.RandomPolicyData),
+				}
+				cbfn(oldData, newData)
+			},
+		})
+		go informer.Run(stopper)
+	}
+	return registrationId, err
+}
+
+func (c *randompolicydataPolicypkgTsmV1Chainer) RegisterDeleteCallback(cbfn func(obj *PolicypkgRandomPolicyData)) (cache.ResourceEventHandlerRegistration, error) {
+	fmt.Println("PolicypkgRandomPolicyData -->  RegisterDeleteCallback!")
+	var (
+		registrationId cache.ResourceEventHandlerRegistration
+		err            error
+	)
+	key := "randompolicydatas.policypkg.tsm.tanzu.vmware.com"
+	stopper := make(chan struct{})
+	if s, ok := subscriptionMap.Load(key); ok {
+		fmt.Println("[PolicypkgRandomPolicyData] ---SUBSCRIBE-INFORMER---->")
+		sub := s.(subscription)
+		registrationId, err = sub.informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
+			DeleteFunc: func(obj interface{}) {
+				nc := &PolicypkgRandomPolicyData{
+					client:           c.client,
+					RandomPolicyData: obj.(*basepolicypkgtsmtanzuvmwarecomv1.RandomPolicyData),
+				}
+
+				var parent *PolicypkgACPConfig
+				gvkExist := true
+				for i := 0; i < 600; i++ {
+					// Check if parent exists
+					p, err := nc.GetParent(context.TODO())
+					if err != nil || p == nil {
+						time.Sleep(500 * time.Millisecond)
+						continue
+					}
+					parent = p
+
+					// Check GVK
+
+					if parent.Spec.RandomPolicyDataGvk != nil {
+						time.Sleep(500 * time.Millisecond)
+						continue
+					}
+
+					gvkExist = false
+					break
+				}
+
+				if parent == nil {
+					hashedName := helper.GetHashedName("acpconfigs.policypkg.tsm.tanzu.vmware.com", nc.Labels, nc.Labels["acpconfigs.policypkg.tsm.tanzu.vmware.com"])
+					parent, err = c.client.Policypkg().ForceReadACPConfigByName(context.TODO(), hashedName)
+					if err != nil {
+						if errors.IsNotFound(err) {
+							return
+						}
+
+						panic("error occurred while fetching parent " + err.Error())
+					}
+					panic(fmt.Sprintf("parent found (event loop is stalled) " + nc.DisplayName()))
+				}
+
+				if gvkExist {
+					// Check GVK
+
+					if parent.Spec.RandomPolicyDataGvk != nil {
+						return
+					}
+
+					panic(fmt.Sprintf("gvk not found (event loop is stalled) " + nc.DisplayName()))
+				}
+
+				cbfn(nc)
+			},
+		})
+	} else {
+		fmt.Println("[PolicypkgRandomPolicyData] ---NEW-INFORMER---->")
+		informer := informerpolicypkgtsmtanzuvmwarecomv1.NewRandomPolicyDataInformer(c.client.baseClient, 0, cache.Indexers{})
+		registrationId, err = informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
+			DeleteFunc: func(obj interface{}) {
+				nc := &PolicypkgRandomPolicyData{
+					client:           c.client,
+					RandomPolicyData: obj.(*basepolicypkgtsmtanzuvmwarecomv1.RandomPolicyData),
+				}
+
+				var parent *PolicypkgACPConfig
+				gvkExist := true
+				for i := 0; i < 600; i++ {
+					// Check if parent exists
+					p, err := nc.GetParent(context.TODO())
+					if err != nil || p == nil {
+						time.Sleep(500 * time.Millisecond)
+						continue
+					}
+					parent = p
+
+					// Check GVK
+
+					if parent.Spec.RandomPolicyDataGvk != nil {
+						time.Sleep(500 * time.Millisecond)
+						continue
+					}
+
+					gvkExist = false
+
+					break
+				}
+
+				if parent == nil {
+					hashedName := helper.GetHashedName("acpconfigs.policypkg.tsm.tanzu.vmware.com", nc.Labels, nc.Labels["acpconfigs.policypkg.tsm.tanzu.vmware.com"])
+					parent, err = c.client.Policypkg().ForceReadACPConfigByName(context.TODO(), hashedName)
+					if err != nil {
+						if errors.IsNotFound(err) {
+							return
+						}
+
+						panic("error occurred while fetching parent " + err.Error())
+					}
+					panic(fmt.Sprintf("parent found (event loop is stalled) " + nc.DisplayName()))
+				}
+
+				if gvkExist {
+					// Check GVK
+
+					if parent.Spec.RandomPolicyDataGvk != nil {
+						return
+					}
+
+					panic(fmt.Sprintf("gvk not found (event loop is stalled) " + nc.DisplayName()))
+				}
+
+				cbfn(nc)
+			},
+		})
+		go informer.Run(stopper)
+	}
+	return registrationId, err
 }
 
 // ClearStatus to clear user defined status

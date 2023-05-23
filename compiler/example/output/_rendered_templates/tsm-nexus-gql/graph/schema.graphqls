@@ -1,11 +1,11 @@
 
 
-type root_Root @nexus(group:"root.tsm.tanzu.vmware.com",version:"v1",kind:"Root",resource:"roots",name:"Root",crdName:"roots.root.tsm.tanzu.vmware.com"){
+type Root_Root @nexus(group:"root.tsm.tanzu.vmware.com",version:"v1",kind:"Root",resource:"roots",name:"Root",crdName:"roots.root.tsm.tanzu.vmware.com",singleton:"true"){
     id: ID
-    config: config_Config
+    config: Config_Config
 }
 
-type config_Config @nexus(group:"config.tsm.tanzu.vmware.com",version:"v1",kind:"Config",resource:"configs",name:"Config",crdName:"configs.config.tsm.tanzu.vmware.com"){
+type Config_Config @nexus(group:"config.tsm.tanzu.vmware.com",version:"v1",kind:"Config",resource:"configs",name:"Config",crdName:"configs.config.tsm.tanzu.vmware.com",singleton:"false"){
     id: ID
     QueryExample(
         StartTime: String
@@ -14,23 +14,25 @@ type config_Config @nexus(group:"config.tsm.tanzu.vmware.com",version:"v1",kind:
         IsServiceDeployment: Boolean
         StartVal: Int
     ): NexusGraphqlResponse
-    gNS: gns_Gns
-    dNS: gns_Dns
-    vMPPolicies: policypkg_VMpolicy
-    aCPPolicies(id: ID): [policypkg_AccessControlPolicy!] @relation(softlink: "true")
-    domain: config_Domain
-    fooExample(id: ID): [config_FooTypeABC!]
-    svcGrpInfo: servicegroup_SvcGroupLinkInfo
+    gNS: Gns_Gns
+    dNS: Gns_Dns
+    vMPPolicies: Policypkg_VMpolicy
+    aCPPolicies(id: ID): [Policypkg_AccessControlPolicy!] @relation(softlink: "true")
+    domain: Config_Domain
+    fooExample(id: ID): [Config_FooTypeABC!]
+    svcGrpInfo: Servicegroup_SvcGroupLinkInfo
     myStr0: String
+    myStr1: String
     myStr2: String
     xYZPort: String @jsonencoded(gofile:"model.go", name:"Port", goname:"nexus_gns.Port")
-    clusterNamespaces: []
+    aBCHost: String
+    clusterNamespaces: String
     testValMarkers: String @jsonencoded(gofile:"model.go", name:"TestValMarkers", goname:"nexus_config.TestValMarkers")
     instance: Float
     cuOption: String
 }
 
-type config_FooTypeABC @nexus(group:"config.tsm.tanzu.vmware.com",version:"v1",kind:"FooTypeABC",resource:"footypeabcs",name:"FooTypeABC",crdName:"footypeabcs.config.tsm.tanzu.vmware.com"){
+type Config_FooTypeABC @nexus(group:"config.tsm.tanzu.vmware.com",version:"v1",kind:"FooTypeABC",resource:"footypeabcs",name:"FooTypeABC",crdName:"footypeabcs.config.tsm.tanzu.vmware.com",singleton:"false"){
     id: ID
     fooA: String @jsonencoded(gofile:"model.go", name:"AMap", goname:"nexus_config.AMap")
     fooB: String @jsonencoded(gofile:"model.go", name:"BArray", goname:"nexus_config.BArray")
@@ -38,7 +40,7 @@ type config_FooTypeABC @nexus(group:"config.tsm.tanzu.vmware.com",version:"v1",k
     fooF: String @jsonencoded(gofile:"model.go", name:"DFloat", goname:"nexus_config.DFloat")
 }
 
-type config_Domain @nexus(group:"config.tsm.tanzu.vmware.com",version:"v1",kind:"Domain",resource:"domains",name:"Domain",crdName:"domains.config.tsm.tanzu.vmware.com"){
+type Config_Domain @nexus(group:"config.tsm.tanzu.vmware.com",version:"v1",kind:"Domain",resource:"domains",name:"Domain",crdName:"domains.config.tsm.tanzu.vmware.com",singleton:"false"){
     id: ID
     pointPort: String
     pointString: String
@@ -46,17 +48,17 @@ type config_Domain @nexus(group:"config.tsm.tanzu.vmware.com",version:"v1",kind:
     pointMap: String
     pointSlice: String
     sliceOfPoints: [String]
-    sliceOfArrPoints: []
+    sliceOfArrPoints: String
     mapOfArrsPoints: String
     pointStruct: String
 }
 
-type gns_RandomGnsData @nexus(group:"gns.tsm.tanzu.vmware.com",version:"v1",kind:"RandomGnsData",resource:"randomgnsdatas",name:"RandomGnsData",crdName:"randomgnsdatas.gns.tsm.tanzu.vmware.com"){
+type Gns_RandomGnsData @nexus(group:"gns.tsm.tanzu.vmware.com",version:"v1",kind:"RandomGnsData",resource:"randomgnsdatas",name:"RandomGnsData",crdName:"randomgnsdatas.gns.tsm.tanzu.vmware.com",singleton:"false"){
     id: ID
     description: String @jsonencoded(gofile:"model.go", name:"RandomDescription", goname:"nexus_gns.RandomDescription")
 }
 
-type gns_Gns @nexus(group:"gns.tsm.tanzu.vmware.com",version:"v1",kind:"Gns",resource:"gnses",name:"Gns",crdName:"gnses.gns.tsm.tanzu.vmware.com"){
+type Gns_Gns @nexus(group:"gns.tsm.tanzu.vmware.com",version:"v1",kind:"Gns",resource:"gnses",name:"Gns",crdName:"gnses.gns.tsm.tanzu.vmware.com",singleton:"false"){
     id: ID
     queryGns1(
         StartTime: String
@@ -76,8 +78,11 @@ type gns_Gns @nexus(group:"gns.tsm.tanzu.vmware.com",version:"v1",kind:"Gns",res
     ): TimeSeriesData @timeseriesAPI(file: "../../tsquery/timeSeriesQuery", handler: "queryGnsQM")
     gnsAccessControlPolicy: String
     fooChild: String
+    additionalGnsData: Gns_AdditionalGnsData
     domain: String
     useSharedGateway: Boolean
+    annotations: String @jsonencoded
+    targetPort: String @jsonencoded(gofile:"model.go", name:"IntOrString")
     description: String @jsonencoded(gofile:"model.go", name:"Description", goname:"nexus_gns.Description")
     meta: String
     port: Int
@@ -88,30 +93,31 @@ type gns_Gns @nexus(group:"gns.tsm.tanzu.vmware.com",version:"v1",kind:"Gns",res
     differentSpec: String
     serviceSegmentRef: String @jsonencoded(gofile:"model.go", name:"ServiceSegmentRef", goname:"nexus_gns.ServiceSegmentRef")
     serviceSegmentRefPointer: String
-    serviceSegmentRefs: []
+    serviceSegmentRefs: String
     serviceSegmentRefMap: String
 }
 
-type gns_BarChild @nexus(group:"gns.tsm.tanzu.vmware.com",version:"v1",kind:"BarChild",resource:"barchilds",name:"BarChild",crdName:"barchilds.gns.tsm.tanzu.vmware.com"){
+type Gns_BarChild @nexus(group:"gns.tsm.tanzu.vmware.com",version:"v1",kind:"BarChild",resource:"barchilds",name:"BarChild",crdName:"barchilds.gns.tsm.tanzu.vmware.com",singleton:"true"){
+    id: ID
+    randomGnsData: Gns_RandomGnsData
+    name: String
+}
+
+type Gns_IgnoreChild @nexus(group:"gns.tsm.tanzu.vmware.com",version:"v1",kind:"IgnoreChild",resource:"ignorechilds",name:"IgnoreChild",crdName:"ignorechilds.gns.tsm.tanzu.vmware.com",singleton:"false"){
     id: ID
     name: String
 }
 
-type gns_IgnoreChild @nexus(group:"gns.tsm.tanzu.vmware.com",version:"v1",kind:"IgnoreChild",resource:"ignorechilds",name:"IgnoreChild",crdName:"ignorechilds.gns.tsm.tanzu.vmware.com"){
-    id: ID
-    name: String
-}
-
-type gns_Dns @nexus(group:"gns.tsm.tanzu.vmware.com",version:"v1",kind:"Dns",resource:"dnses",name:"Dns",crdName:"dnses.gns.tsm.tanzu.vmware.com"){
+type Gns_Dns @nexus(group:"gns.tsm.tanzu.vmware.com",version:"v1",kind:"Dns",resource:"dnses",name:"Dns",crdName:"dnses.gns.tsm.tanzu.vmware.com",singleton:"true"){
     id: ID
 }
 
-type gns_AdditionalGnsData @nexus(group:"gns.tsm.tanzu.vmware.com",version:"v1",kind:"AdditionalGnsData",resource:"additionalgnsdatas",name:"AdditionalGnsData",crdName:"additionalgnsdatas.gns.tsm.tanzu.vmware.com"){
+type Gns_AdditionalGnsData @nexus(group:"gns.tsm.tanzu.vmware.com",version:"v1",kind:"AdditionalGnsData",resource:"additionalgnsdatas",name:"AdditionalGnsData",crdName:"additionalgnsdatas.gns.tsm.tanzu.vmware.com",singleton:"false"){
     id: ID
     description: String @jsonencoded(gofile:"model.go", name:"AdditionalDescription", goname:"nexus_gns.AdditionalDescription")
 }
 
-type servicegroup_SvcGroupLinkInfo @nexus(group:"servicegroup.tsm.tanzu.vmware.com",version:"v1",kind:"SvcGroupLinkInfo",resource:"svcgrouplinkinfos",name:"SvcGroupLinkInfo",crdName:"svcgrouplinkinfos.servicegroup.tsm.tanzu.vmware.com"){
+type Servicegroup_SvcGroupLinkInfo @nexus(group:"servicegroup.tsm.tanzu.vmware.com",version:"v1",kind:"SvcGroupLinkInfo",resource:"svcgrouplinkinfos",name:"SvcGroupLinkInfo",crdName:"svcgrouplinkinfos.servicegroup.tsm.tanzu.vmware.com",singleton:"false"){
     id: ID
     clusterName: String
     domainName: String
@@ -119,20 +125,20 @@ type servicegroup_SvcGroupLinkInfo @nexus(group:"servicegroup.tsm.tanzu.vmware.c
     serviceType: String
 }
 
-type policypkg_AdditionalPolicyData @nexus(group:"policypkg.tsm.tanzu.vmware.com",version:"v1",kind:"AdditionalPolicyData",resource:"additionalpolicydatas",name:"AdditionalPolicyData",crdName:"additionalpolicydatas.policypkg.tsm.tanzu.vmware.com"){
+type Policypkg_AdditionalPolicyData @nexus(group:"policypkg.tsm.tanzu.vmware.com",version:"v1",kind:"AdditionalPolicyData",resource:"additionalpolicydatas",name:"AdditionalPolicyData",crdName:"additionalpolicydatas.policypkg.tsm.tanzu.vmware.com",singleton:"false"){
     id: ID
     description: String @jsonencoded(gofile:"model.go", name:"AdditionalDescription", goname:"nexus_policy.AdditionalDescription")
 }
 
-type policypkg_AccessControlPolicy @nexus(group:"policypkg.tsm.tanzu.vmware.com",version:"v1",kind:"AccessControlPolicy",resource:"accesscontrolpolicies",name:"AccessControlPolicy",crdName:"accesscontrolpolicies.policypkg.tsm.tanzu.vmware.com"){
+type Policypkg_AccessControlPolicy @nexus(group:"policypkg.tsm.tanzu.vmware.com",version:"v1",kind:"AccessControlPolicy",resource:"accesscontrolpolicies",name:"AccessControlPolicy",crdName:"accesscontrolpolicies.policypkg.tsm.tanzu.vmware.com",singleton:"false"){
     id: ID
-    policyConfigs(id: ID): [policypkg_ACPConfig!]
+    policyConfigs(id: ID): [Policypkg_ACPConfig!]
 }
 
-type policypkg_ACPConfig @nexus(group:"policypkg.tsm.tanzu.vmware.com",version:"v1",kind:"ACPConfig",resource:"acpconfigs",name:"ACPConfig",crdName:"acpconfigs.policypkg.tsm.tanzu.vmware.com"){
+type Policypkg_ACPConfig @nexus(group:"policypkg.tsm.tanzu.vmware.com",version:"v1",kind:"ACPConfig",resource:"acpconfigs",name:"ACPConfig",crdName:"acpconfigs.policypkg.tsm.tanzu.vmware.com",singleton:"false"){
     id: ID
-    destSvcGroups(id: ID): [servicegroup_SvcGroup!] @relation(softlink: "true")
-    sourceSvcGroups(id: ID): [servicegroup_SvcGroup!] @relation(softlink: "true")
+    additionalPolicyData: Policypkg_AdditionalPolicyData
+    randomPolicyData: Policypkg_RandomPolicyData
     displayName: String
     gns: String
     description: String
@@ -141,7 +147,7 @@ type policypkg_ACPConfig @nexus(group:"policypkg.tsm.tanzu.vmware.com",version:"
     conditions: [String]
 }
 
-type policypkg_VMpolicy @nexus(group:"policypkg.tsm.tanzu.vmware.com",version:"v1",kind:"VMpolicy",resource:"vmpolicies",name:"VMpolicy",crdName:"vmpolicies.policypkg.tsm.tanzu.vmware.com"){
+type Policypkg_VMpolicy @nexus(group:"policypkg.tsm.tanzu.vmware.com",version:"v1",kind:"VMpolicy",resource:"vmpolicies",name:"VMpolicy",crdName:"vmpolicies.policypkg.tsm.tanzu.vmware.com",singleton:"false"){
     id: ID
     queryGns1(
         StartTime: String
@@ -161,7 +167,7 @@ type policypkg_VMpolicy @nexus(group:"policypkg.tsm.tanzu.vmware.com",version:"v
     ): TimeSeriesData @timeseriesAPI(file: "../../tsquery/timeSeriesQuery", handler: "queryGnsQM")
 }
 
-type policypkg_RandomPolicyData @nexus(group:"policypkg.tsm.tanzu.vmware.com",version:"v1",kind:"RandomPolicyData",resource:"randompolicydatas",name:"RandomPolicyData",crdName:"randompolicydatas.policypkg.tsm.tanzu.vmware.com"){
+type Policypkg_RandomPolicyData @nexus(group:"policypkg.tsm.tanzu.vmware.com",version:"v1",kind:"RandomPolicyData",resource:"randompolicydatas",name:"RandomPolicyData",crdName:"randompolicydatas.policypkg.tsm.tanzu.vmware.com",singleton:"false"){
     id: ID
     description: String @jsonencoded(gofile:"model.go", name:"RandomDescription", goname:"nexus_policy.RandomDescription")
 }

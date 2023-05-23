@@ -149,14 +149,16 @@ func (c *ACPConfig) DisplayName() string {
 
 // +k8s:openapi-gen=true
 type ACPConfigSpec struct {
-	DisplayName        string          `json:"displayName" yaml:"displayName"`
-	Gns                string          `json:"gns" yaml:"gns"`
-	Description        string          `json:"description" yaml:"description"`
-	Tags               []string        `json:"tags" yaml:"tags"`
-	ProjectId          string          `json:"projectId" yaml:"projectId"`
-	Conditions         []string        `json:"conditions" yaml:"conditions"`
-	DestSvcGroupsGvk   map[string]Link `json:"destSvcGroupsGvk,omitempty" yaml:"destSvcGroupsGvk,omitempty" nexus:"links"`
-	SourceSvcGroupsGvk map[string]Link `json:"sourceSvcGroupsGvk,omitempty" yaml:"sourceSvcGroupsGvk,omitempty" nexus:"links"`
+	DisplayName             string          `json:"displayName" yaml:"displayName"`
+	Gns                     string          `json:"gns" yaml:"gns"`
+	Description             string          `json:"description" yaml:"description"`
+	Tags                    []string        `json:"tags" yaml:"tags"`
+	ProjectId               string          `json:"projectId" yaml:"projectId"`
+	Conditions              []string        `json:"conditions" yaml:"conditions"`
+	AdditionalPolicyDataGvk *Child          `json:"additionalPolicyDataGvk,omitempty" yaml:"additionalPolicyDataGvk,omitempty" nexus:"child"`
+	RandomPolicyDataGvk     *Child          `json:"randomPolicyDataGvk,omitempty" yaml:"randomPolicyDataGvk,omitempty" nexus:"child"`
+	DestSvcGroupsGvk        map[string]Link `json:"destSvcGroupsGvk,omitempty" yaml:"destSvcGroupsGvk,omitempty" nexus:"links"`
+	SourceSvcGroupsGvk      map[string]Link `json:"sourceSvcGroupsGvk,omitempty" yaml:"sourceSvcGroupsGvk,omitempty" nexus:"links"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object

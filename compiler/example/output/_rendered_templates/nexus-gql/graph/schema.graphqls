@@ -63,6 +63,13 @@ type config_Domain {
     PointStruct: String
 }
 
+type gns_RandomGnsData {
+    Id: ID
+	ParentLabels: Map
+
+    Description: String
+}
+
 type gns_Gns {
     Id: ID
 	ParentLabels: Map
@@ -82,6 +89,8 @@ type gns_Gns {
     ): TimeSeriesData
     Domain: String
     UseSharedGateway: Boolean
+    Annotations: String
+    TargetPort: String
     Description: String
     Meta: String
     Port: Int
@@ -96,6 +105,7 @@ type gns_Gns {
     ServiceSegmentRefMap: String
     GnsAccessControlPolicy(Id: ID): policypkg_AccessControlPolicy!
     FooChild: gns_BarChild!
+    AdditionalGnsData(Id: ID): gns_AdditionalGnsData!
 }
 
 type gns_BarChild {
@@ -103,6 +113,7 @@ type gns_BarChild {
 	ParentLabels: Map
 
     Name: String
+    RandomGnsData(Id: ID): gns_RandomGnsData!
 }
 
 type gns_IgnoreChild {
@@ -118,6 +129,13 @@ type gns_Dns {
 
 }
 
+type gns_AdditionalGnsData {
+    Id: ID
+	ParentLabels: Map
+
+    Description: String
+}
+
 type servicegroup_SvcGroupLinkInfo {
     Id: ID
 	ParentLabels: Map
@@ -126,6 +144,13 @@ type servicegroup_SvcGroupLinkInfo {
     DomainName: String
     ServiceName: String
     ServiceType: String
+}
+
+type policypkg_AdditionalPolicyData {
+    Id: ID
+	ParentLabels: Map
+
+    Description: String
 }
 
 type policypkg_AccessControlPolicy {
@@ -139,14 +164,14 @@ type policypkg_ACPConfig {
     Id: ID
 	ParentLabels: Map
 
-    DestSvcGroups(Id: ID): [servicegroup_SvcGroup!]
-    SourceSvcGroups(Id: ID): [servicegroup_SvcGroup!]
     DisplayName: String
     Gns: String
     Description: String
     Tags: String
     ProjectId: String
     Conditions: String
+    AdditionalPolicyData(Id: ID): policypkg_AdditionalPolicyData!
+    RandomPolicyData(Id: ID): policypkg_RandomPolicyData!
 }
 
 type policypkg_VMpolicy {
@@ -166,6 +191,13 @@ type policypkg_VMpolicy {
         SomeUserArg2: Int
         SomeUserArg3: Boolean
     ): TimeSeriesData
+}
+
+type policypkg_RandomPolicyData {
+    Id: ID
+	ParentLabels: Map
+
+    Description: String
 }
 
 type NexusGraphqlResponse {

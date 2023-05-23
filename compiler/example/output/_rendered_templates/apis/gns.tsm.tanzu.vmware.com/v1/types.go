@@ -4,7 +4,9 @@ package v1
 
 import (
 	cartv1 "github.com/vmware-tanzu/cartographer/pkg/apis/v1alpha1"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/nexus/nexus"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/util/intstr"
 
 	"nexustempmodule/common"
 )
@@ -154,6 +156,8 @@ type GnsSpec struct {
 	//nexus-validation: Pattern=abc
 	Domain                    string                       `json:"domain" yaml:"domain"`
 	UseSharedGateway          bool                         `json:"useSharedGateway" yaml:"useSharedGateway"`
+	Annotations               nexus.NexusGenericObject     `nexus-graphql-jsonencoded:""`
+	TargetPort                intstr.IntOrString           `json:"targetPort,omitempty" mapstructure:"targetPort,omitempty"`
 	Description               Description                  `json:"description" yaml:"description"`
 	Meta                      string                       `json:"meta" yaml:"meta"`
 	Port                      *int                         `json:"port" yaml:"port"`
@@ -171,6 +175,7 @@ type GnsSpec struct {
 	FooChildGvk               *Child                       `json:"fooChildGvk,omitempty" yaml:"fooChildGvk,omitempty" nexus:"child"`
 	IgnoreChildGvk            *Child                       `json:"ignoreChildGvk,omitempty" yaml:"ignoreChildGvk,omitempty" nexus:"child"`
 	FooGvk                    *Child                       `json:"fooGvk,omitempty" yaml:"fooGvk,omitempty" nexus:"child"`
+	AdditionalGnsDataGvk      *Child                       `json:"additionalGnsDataGvk,omitempty" yaml:"additionalGnsDataGvk,omitempty" nexus:"child"`
 	DnsGvk                    *Link                        `json:"dnsGvk,omitempty" yaml:"dnsGvk,omitempty" nexus:"link"`
 }
 
@@ -211,7 +216,8 @@ func (c *BarChild) DisplayName() string {
 
 // +k8s:openapi-gen=true
 type BarChildSpec struct {
-	Name string `json:"name" yaml:"name"`
+	Name             string `json:"name" yaml:"name"`
+	RandomGnsDataGvk *Child `json:"randomGnsDataGvk,omitempty" yaml:"randomGnsDataGvk,omitempty" nexus:"child"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
