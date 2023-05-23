@@ -6,7 +6,7 @@ on:
     - 'main'
     - 'npt-632-ut'
   pull_request:
-    branches: [ main ]
+    branches: [ main, npt-632-ut ]
 jobs:
   build:
     name: Build
