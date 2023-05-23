@@ -64,21 +64,9 @@ models:
         resolver: true
       FooChild:
         resolver: true
-      AdditionalGnsData:
-        resolver: true
-  gns_BarChild:
-    fields:
-      RandomGnsData:
-        resolver: true
   policypkg_AccessControlPolicy:
     fields:
       PolicyConfigs:
-        resolver: true
-  policypkg_ACPConfig:
-    fields:
-      AdditionalPolicyData:
-        resolver: true
-      RandomPolicyData:
         resolver: true
   policypkg_VMpolicy:
     fields:

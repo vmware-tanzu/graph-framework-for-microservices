@@ -53,11 +53,6 @@ type Config_Domain @nexus(group:"config.tsm.tanzu.vmware.com",version:"v1",kind:
     pointStruct: String
 }
 
-type Gns_RandomGnsData @nexus(group:"gns.tsm.tanzu.vmware.com",version:"v1",kind:"RandomGnsData",resource:"randomgnsdatas",name:"RandomGnsData",crdName:"randomgnsdatas.gns.tsm.tanzu.vmware.com",singleton:"false"){
-    id: ID
-    description: String @jsonencoded(gofile:"model.go", name:"RandomDescription", goname:"nexus_gns.RandomDescription")
-}
-
 type Gns_Gns @nexus(group:"gns.tsm.tanzu.vmware.com",version:"v1",kind:"Gns",resource:"gnses",name:"Gns",crdName:"gnses.gns.tsm.tanzu.vmware.com",singleton:"false"){
     id: ID
     queryGns1(
@@ -78,7 +73,6 @@ type Gns_Gns @nexus(group:"gns.tsm.tanzu.vmware.com",version:"v1",kind:"Gns",res
     ): TimeSeriesData @timeseriesAPI(file: "../../tsquery/timeSeriesQuery", handler: "queryGnsQM")
     gnsAccessControlPolicy: String
     fooChild: String
-    additionalGnsData: Gns_AdditionalGnsData
     domain: String
     useSharedGateway: Boolean
     annotations: String @jsonencoded
@@ -99,7 +93,6 @@ type Gns_Gns @nexus(group:"gns.tsm.tanzu.vmware.com",version:"v1",kind:"Gns",res
 
 type Gns_BarChild @nexus(group:"gns.tsm.tanzu.vmware.com",version:"v1",kind:"BarChild",resource:"barchilds",name:"BarChild",crdName:"barchilds.gns.tsm.tanzu.vmware.com",singleton:"true"){
     id: ID
-    randomGnsData: Gns_RandomGnsData
     name: String
 }
 
@@ -112,22 +105,12 @@ type Gns_Dns @nexus(group:"gns.tsm.tanzu.vmware.com",version:"v1",kind:"Dns",res
     id: ID
 }
 
-type Gns_AdditionalGnsData @nexus(group:"gns.tsm.tanzu.vmware.com",version:"v1",kind:"AdditionalGnsData",resource:"additionalgnsdatas",name:"AdditionalGnsData",crdName:"additionalgnsdatas.gns.tsm.tanzu.vmware.com",singleton:"false"){
-    id: ID
-    description: String @jsonencoded(gofile:"model.go", name:"AdditionalDescription", goname:"nexus_gns.AdditionalDescription")
-}
-
 type Servicegroup_SvcGroupLinkInfo @nexus(group:"servicegroup.tsm.tanzu.vmware.com",version:"v1",kind:"SvcGroupLinkInfo",resource:"svcgrouplinkinfos",name:"SvcGroupLinkInfo",crdName:"svcgrouplinkinfos.servicegroup.tsm.tanzu.vmware.com",singleton:"false"){
     id: ID
     clusterName: String
     domainName: String
     serviceName: String
     serviceType: String
-}
-
-type Policypkg_AdditionalPolicyData @nexus(group:"policypkg.tsm.tanzu.vmware.com",version:"v1",kind:"AdditionalPolicyData",resource:"additionalpolicydatas",name:"AdditionalPolicyData",crdName:"additionalpolicydatas.policypkg.tsm.tanzu.vmware.com",singleton:"false"){
-    id: ID
-    description: String @jsonencoded(gofile:"model.go", name:"AdditionalDescription", goname:"nexus_policy.AdditionalDescription")
 }
 
 type Policypkg_AccessControlPolicy @nexus(group:"policypkg.tsm.tanzu.vmware.com",version:"v1",kind:"AccessControlPolicy",resource:"accesscontrolpolicies",name:"AccessControlPolicy",crdName:"accesscontrolpolicies.policypkg.tsm.tanzu.vmware.com",singleton:"false"){
@@ -137,8 +120,6 @@ type Policypkg_AccessControlPolicy @nexus(group:"policypkg.tsm.tanzu.vmware.com"
 
 type Policypkg_ACPConfig @nexus(group:"policypkg.tsm.tanzu.vmware.com",version:"v1",kind:"ACPConfig",resource:"acpconfigs",name:"ACPConfig",crdName:"acpconfigs.policypkg.tsm.tanzu.vmware.com",singleton:"false"){
     id: ID
-    additionalPolicyData: Policypkg_AdditionalPolicyData
-    randomPolicyData: Policypkg_RandomPolicyData
     displayName: String
     gns: String
     description: String
@@ -165,9 +146,4 @@ type Policypkg_VMpolicy @nexus(group:"policypkg.tsm.tanzu.vmware.com",version:"v
         SomeUserArg2: Int
         SomeUserArg3: Boolean
     ): TimeSeriesData @timeseriesAPI(file: "../../tsquery/timeSeriesQuery", handler: "queryGnsQM")
-}
-
-type Policypkg_RandomPolicyData @nexus(group:"policypkg.tsm.tanzu.vmware.com",version:"v1",kind:"RandomPolicyData",resource:"randompolicydatas",name:"RandomPolicyData",crdName:"randompolicydatas.policypkg.tsm.tanzu.vmware.com",singleton:"false"){
-    id: ID
-    description: String @jsonencoded(gofile:"model.go", name:"RandomDescription", goname:"nexus_policy.RandomDescription")
 }

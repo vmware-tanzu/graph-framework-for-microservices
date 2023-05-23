@@ -15,8 +15,13 @@ package nexus_client
 import (
 	"context"
 	"encoding/json"
+	customerrors "errors"
+	"fmt"
 	"sync"
+	"time"
 
+	"github.com/sirupsen/logrus"
+	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	types "k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/rest"
@@ -35,6 +40,8 @@ import (
 	informerprojecttsmtanzuvmwarecomv1 "../../example/test-utils/output-group-name-with-hyphen-datamodel/crd_generated/client/informers/externalversions/project.tsm-tanzu.vmware.com/v1"
 	informerroottsmtanzuvmwarecomv1 "../../example/test-utils/output-group-name-with-hyphen-datamodel/crd_generated/client/informers/externalversions/root.tsm-tanzu.vmware.com/v1"
 )
+
+var log = logrus.New()
 
 type Clientset struct {
 	baseClient   baseClientset.Interface
@@ -186,18 +193,48 @@ func (group *ConfigTsmV1) GetConfigByName(ctx context.Context, hashedName string
 			Config: result,
 		}, nil
 	} else {
-		result, err := group.client.baseClient.
-			ConfigTsmV1().
-			Configs().Get(ctx, hashedName, metav1.GetOptions{})
-		if err != nil {
-			return nil, err
+		retryCount := 12
+		for {
+			result, err := group.client.baseClient.
+				ConfigTsmV1().
+				Configs().Get(ctx, hashedName, metav1.GetOptions{})
+			if err != nil {
+				log.Errorf("Failed to Get Configs: %+v", err)
+				if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded) {
+					log.Errorf("[Retry Count: %d ] %+v", retryCount, err)
+					if retryCount == 0 {
+						log.Error("Max Retry exceed on Get Configs")
+						return nil, err
+					}
+					retryCount -= 1
+					time.Sleep(5 * time.Second)
+				} else {
+					log.Errorf("Unexpected Error: %+v", err)
+					return nil, err
+				}
+			}
+			return &ConfigConfig{
+				client: group.client,
+				Config: result,
+			}, nil
 		}
-
-		return &ConfigConfig{
-			client: group.client,
-			Config: result,
-		}, nil
 	}
+}
+
+// ForceReadConfigByName read object directly from the database under the hashedName which is a hash of display
+// name and parents names. Use it when you know hashed name of object.
+func (group *ConfigTsmV1) ForceReadConfigByName(ctx context.Context, hashedName string) (*ConfigConfig, error) {
+	result, err := group.client.baseClient.
+		ConfigTsmV1().
+		Configs().Get(ctx, hashedName, metav1.GetOptions{})
+	if err != nil {
+		return nil, err
+	}
+
+	return &ConfigConfig{
+		client: group.client,
+		Config: result,
+	}, nil
 }
 
 // DeleteConfigByName deletes object stored in the database under the hashedName which is a hash of
@@ -235,7 +272,16 @@ func (group *ConfigTsmV1) CreateConfigByName(ctx context.Context,
 		ConfigTsmV1().
 		Configs().Create(ctx, objToCreate, metav1.CreateOptions{})
 	if err != nil {
-		return nil, err
+		if customerrors.Is(err, context.DeadlineExceeded) {
+			log.Errorf("context deadline exceeded, on creating GNS: %+v", objToCreate)
+			return nil, context.DeadlineExceeded
+		} else if customerrors.Is(err, context.Canceled) {
+			log.Errorf("context cancelled, on creating GNS: %+v", objToCreate)
+			return nil, context.Canceled
+		} else {
+			log.Errorf("Unexpected Error: %+v", err)
+			return nil, err
+		}
 	}
 
 	return &ConfigConfig{
@@ -257,7 +303,16 @@ func (group *ConfigTsmV1) UpdateConfigByName(ctx context.Context,
 			ConfigTsmV1().
 			Configs().Get(ctx, objToUpdate.GetName(), metav1.GetOptions{})
 		if err != nil {
-			return nil, err
+			if customerrors.Is(err, context.DeadlineExceeded) {
+				log.Errorf("context deadline exceeded, on creating GNS: %+v", objToUpdate)
+				return nil, context.DeadlineExceeded
+			} else if customerrors.Is(err, context.Canceled) {
+				log.Errorf("context cancelled, on creating GNS: %+v", objToUpdate)
+				return nil, context.Canceled
+			} else {
+				log.Errorf("Unexpected Error: %+v", err)
+				return nil, err
+			}
 		}
 		objToUpdate.ResourceVersion = current.ResourceVersion
 	}
@@ -445,6 +500,182 @@ func (c *configConfigTsmV1Chainer) IsSubscribed() bool {
 	return ok
 }
 
+func (c *configConfigTsmV1Chainer) RegisterEventHandler(addCB func(obj *ConfigConfig), updateCB func(oldObj, newObj *ConfigConfig), deleteCB func(obj *ConfigConfig)) (cache.ResourceEventHandlerRegistration, error) {
+	fmt.Println("RegisterEventHandler for ConfigConfig")
+	var (
+		registrationId cache.ResourceEventHandlerRegistration
+		err            error
+		informer       cache.SharedIndexInformer
+	)
+	key := "configs.config.tsm-tanzu.vmware.com"
+	stopper := make(chan struct{})
+	if s, ok := subscriptionMap.Load(key); ok {
+		fmt.Println("Informer exists for ConfigConfig")
+		sub := s.(subscription)
+		informer = sub.informer
+	} else {
+		fmt.Println("Informer doesn't exists for ConfigConfig, so creating a new one")
+		informer = informerconfigtsmtanzuvmwarecomv1.NewConfigInformer(c.client.baseClient, 0, cache.Indexers{})
+		go informer.Run(stopper)
+		subscribe(key, informer)
+	}
+	registrationId, err = informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
+		AddFunc: func(obj interface{}) {
+			nc := &ConfigConfig{
+				client: c.client,
+				Config: obj.(*baseconfigtsmtanzuvmwarecomv1.Config),
+			}
+
+			addCB(nc)
+		},
+
+		UpdateFunc: func(oldObj, newObj interface{}) {
+			oldData := &ConfigConfig{
+				client: c.client,
+				Config: oldObj.(*baseconfigtsmtanzuvmwarecomv1.Config),
+			}
+			newData := &ConfigConfig{
+				client: c.client,
+				Config: newObj.(*baseconfigtsmtanzuvmwarecomv1.Config),
+			}
+			updateCB(oldData, newData)
+		},
+
+		DeleteFunc: func(obj interface{}) {
+			nc := &ConfigConfig{
+				client: c.client,
+				Config: obj.(*baseconfigtsmtanzuvmwarecomv1.Config),
+			}
+
+			deleteCB(nc)
+		},
+	})
+	return registrationId, err
+}
+
+func (c *configConfigTsmV1Chainer) RegisterAddCallback(cbfn func(obj *ConfigConfig)) (cache.ResourceEventHandlerRegistration, error) {
+	fmt.Println("ConfigConfig -->  RegisterAddCallback!")
+	var (
+		registrationId cache.ResourceEventHandlerRegistration
+		err            error
+	)
+	key := "configs.config.tsm-tanzu.vmware.com"
+	stopper := make(chan struct{})
+	if s, ok := subscriptionMap.Load(key); ok {
+		fmt.Println("[ConfigConfig] ---SUBSCRIBE-INFORMER---->")
+		sub := s.(subscription)
+		registrationId, err = sub.informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
+			AddFunc: func(obj interface{}) {
+				nc := &ConfigConfig{
+					client: c.client,
+					Config: obj.(*baseconfigtsmtanzuvmwarecomv1.Config),
+				}
+
+				cbfn(nc)
+			},
+		})
+	} else {
+		fmt.Println("[ConfigConfig] ---NEW-INFORMER---->")
+		informer := informerconfigtsmtanzuvmwarecomv1.NewConfigInformer(c.client.baseClient, 0, cache.Indexers{})
+		registrationId, err = informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
+			AddFunc: func(obj interface{}) {
+				nc := &ConfigConfig{
+					client: c.client,
+					Config: obj.(*baseconfigtsmtanzuvmwarecomv1.Config),
+				}
+
+				cbfn(nc)
+			},
+		})
+		go informer.Run(stopper)
+	}
+	return registrationId, err
+}
+
+func (c *configConfigTsmV1Chainer) RegisterUpdateCallback(cbfn func(oldObj, newObj *ConfigConfig)) (cache.ResourceEventHandlerRegistration, error) {
+	fmt.Println("ConfigConfig -->  RegisterUpdateCallback!")
+	var (
+		registrationId cache.ResourceEventHandlerRegistration
+		err            error
+	)
+	key := "configs.config.tsm-tanzu.vmware.com"
+	stopper := make(chan struct{})
+	if s, ok := subscriptionMap.Load(key); ok {
+		fmt.Println("[ConfigConfig] ---SUBSCRIBE-INFORMER---->")
+		sub := s.(subscription)
+		registrationId, err = sub.informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
+			UpdateFunc: func(oldObj, newObj interface{}) {
+				oldData := &ConfigConfig{
+					client: c.client,
+					Config: oldObj.(*baseconfigtsmtanzuvmwarecomv1.Config),
+				}
+				newData := &ConfigConfig{
+					client: c.client,
+					Config: newObj.(*baseconfigtsmtanzuvmwarecomv1.Config),
+				}
+				cbfn(oldData, newData)
+			},
+		})
+	} else {
+		fmt.Println("[ConfigConfig] ---NEW-INFORMER---->")
+		informer := informerconfigtsmtanzuvmwarecomv1.NewConfigInformer(c.client.baseClient, 0, cache.Indexers{})
+		registrationId, err = informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
+			UpdateFunc: func(oldObj, newObj interface{}) {
+				oldData := &ConfigConfig{
+					client: c.client,
+					Config: oldObj.(*baseconfigtsmtanzuvmwarecomv1.Config),
+				}
+				newData := &ConfigConfig{
+					client: c.client,
+					Config: newObj.(*baseconfigtsmtanzuvmwarecomv1.Config),
+				}
+				cbfn(oldData, newData)
+			},
+		})
+		go informer.Run(stopper)
+	}
+	return registrationId, err
+}
+
+func (c *configConfigTsmV1Chainer) RegisterDeleteCallback(cbfn func(obj *ConfigConfig)) (cache.ResourceEventHandlerRegistration, error) {
+	fmt.Println("ConfigConfig -->  RegisterDeleteCallback!")
+	var (
+		registrationId cache.ResourceEventHandlerRegistration
+		err            error
+	)
+	key := "configs.config.tsm-tanzu.vmware.com"
+	stopper := make(chan struct{})
+	if s, ok := subscriptionMap.Load(key); ok {
+		fmt.Println("[ConfigConfig] ---SUBSCRIBE-INFORMER---->")
+		sub := s.(subscription)
+		registrationId, err = sub.informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
+			DeleteFunc: func(obj interface{}) {
+				nc := &ConfigConfig{
+					client: c.client,
+					Config: obj.(*baseconfigtsmtanzuvmwarecomv1.Config),
+				}
+
+				cbfn(nc)
+			},
+		})
+	} else {
+		fmt.Println("[ConfigConfig] ---NEW-INFORMER---->")
+		informer := informerconfigtsmtanzuvmwarecomv1.NewConfigInformer(c.client.baseClient, 0, cache.Indexers{})
+		registrationId, err = informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
+			DeleteFunc: func(obj interface{}) {
+				nc := &ConfigConfig{
+					client: c.client,
+					Config: obj.(*baseconfigtsmtanzuvmwarecomv1.Config),
+				}
+
+				cbfn(nc)
+			},
+		})
+		go informer.Run(stopper)
+	}
+	return registrationId, err
+}
+
 // GetProjectByName returns object stored in the database under the hashedName which is a hash of display
 // name and parents names. Use it when you know hashed name of object.
 func (group *ProjectTsmV1) GetProjectByName(ctx context.Context, hashedName string) (*ProjectProject, error) {
@@ -461,18 +692,48 @@ func (group *ProjectTsmV1) GetProjectByName(ctx context.Context, hashedName stri
 			Project: result,
 		}, nil
 	} else {
-		result, err := group.client.baseClient.
-			ProjectTsmV1().
-			Projects().Get(ctx, hashedName, metav1.GetOptions{})
-		if err != nil {
-			return nil, err
+		retryCount := 12
+		for {
+			result, err := group.client.baseClient.
+				ProjectTsmV1().
+				Projects().Get(ctx, hashedName, metav1.GetOptions{})
+			if err != nil {
+				log.Errorf("Failed to Get Projects: %+v", err)
+				if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded) {
+					log.Errorf("[Retry Count: %d ] %+v", retryCount, err)
+					if retryCount == 0 {
+						log.Error("Max Retry exceed on Get Projects")
+						return nil, err
+					}
+					retryCount -= 1
+					time.Sleep(5 * time.Second)
+				} else {
+					log.Errorf("Unexpected Error: %+v", err)
+					return nil, err
+				}
+			}
+			return &ProjectProject{
+				client:  group.client,
+				Project: result,
+			}, nil
 		}
-
-		return &ProjectProject{
-			client:  group.client,
-			Project: result,
-		}, nil
 	}
+}
+
+// ForceReadProjectByName read object directly from the database under the hashedName which is a hash of display
+// name and parents names. Use it when you know hashed name of object.
+func (group *ProjectTsmV1) ForceReadProjectByName(ctx context.Context, hashedName string) (*ProjectProject, error) {
+	result, err := group.client.baseClient.
+		ProjectTsmV1().
+		Projects().Get(ctx, hashedName, metav1.GetOptions{})
+	if err != nil {
+		return nil, err
+	}
+
+	return &ProjectProject{
+		client:  group.client,
+		Project: result,
+	}, nil
 }
 
 // DeleteProjectByName deletes object stored in the database under the hashedName which is a hash of
@@ -483,14 +744,23 @@ func (group *ProjectTsmV1) DeleteProjectByName(ctx context.Context, hashedName s
 		ProjectTsmV1().
 		Projects().Get(ctx, hashedName, metav1.GetOptions{})
 	if err != nil {
-		return err
+		if customerrors.Is(err, context.DeadlineExceeded) {
+			log.Errorf("context deadline exceeded, on creating GNS: %+v", hashedName)
+			return context.DeadlineExceeded
+		} else if customerrors.Is(err, context.Canceled) {
+			log.Errorf("context cancelled, on creating GNS: %+v", hashedName)
+			return context.Canceled
+		} else {
+			log.Errorf("Unexpected Error: %+v", err)
+			return err
+		}
 	}
 
 	if result.Spec.ConfigGvk != nil {
 		err := group.client.
 			Config().
 			DeleteConfigByName(ctx, result.Spec.ConfigGvk.Name)
-		if err != nil {
+		if err != nil && !errors.IsNotFound(err) {
 			return err
 		}
 	}
@@ -528,7 +798,16 @@ func (group *ProjectTsmV1) CreateProjectByName(ctx context.Context,
 		ProjectTsmV1().
 		Projects().Create(ctx, objToCreate, metav1.CreateOptions{})
 	if err != nil {
-		return nil, err
+		if customerrors.Is(err, context.DeadlineExceeded) {
+			log.Errorf("context deadline exceeded, on creating GNS: %+v", objToCreate)
+			return nil, context.DeadlineExceeded
+		} else if customerrors.Is(err, context.Canceled) {
+			log.Errorf("context cancelled, on creating GNS: %+v", objToCreate)
+			return nil, context.Canceled
+		} else {
+			log.Errorf("Unexpected Error: %+v", err)
+			return nil, err
+		}
 	}
 
 	return &ProjectProject{
@@ -550,7 +829,16 @@ func (group *ProjectTsmV1) UpdateProjectByName(ctx context.Context,
 			ProjectTsmV1().
 			Projects().Get(ctx, objToUpdate.GetName(), metav1.GetOptions{})
 		if err != nil {
-			return nil, err
+			if customerrors.Is(err, context.DeadlineExceeded) {
+				log.Errorf("context deadline exceeded, on creating GNS: %+v", objToUpdate)
+				return nil, context.DeadlineExceeded
+			} else if customerrors.Is(err, context.Canceled) {
+				log.Errorf("context cancelled, on creating GNS: %+v", objToUpdate)
+				return nil, context.Canceled
+			} else {
+				log.Errorf("Unexpected Error: %+v", err)
+				return nil, err
+			}
 		}
 		objToUpdate.ResourceVersion = current.ResourceVersion
 	}
@@ -732,6 +1020,12 @@ func (obj *ProjectProject) AddConfig(ctx context.Context,
 	}
 	objToCreate.Labels["projects.project.tsm-tanzu.vmware.com"] = obj.DisplayName()
 	if objToCreate.Labels[common.IS_NAME_HASHED_LABEL] != "true" {
+		if objToCreate.GetName() == "" {
+			objToCreate.SetName(helper.DEFAULT_KEY)
+		}
+		if objToCreate.GetName() != helper.DEFAULT_KEY {
+			return nil, NewSingletonNameError(objToCreate.GetName())
+		}
 		objToCreate.Labels[common.DISPLAY_NAME_LABEL] = objToCreate.GetName()
 		objToCreate.Labels[common.IS_NAME_HASHED_LABEL] = "true"
 		hashedName := helper.GetHashedName(objToCreate.CRDName(), objToCreate.Labels, objToCreate.GetName())
@@ -792,27 +1086,209 @@ func (c *projectProjectTsmV1Chainer) IsSubscribed() bool {
 	return ok
 }
 
-func (c *projectProjectTsmV1Chainer) Config(name string) *configConfigTsmV1Chainer {
+func (c *projectProjectTsmV1Chainer) RegisterEventHandler(addCB func(obj *ProjectProject), updateCB func(oldObj, newObj *ProjectProject), deleteCB func(obj *ProjectProject)) (cache.ResourceEventHandlerRegistration, error) {
+	fmt.Println("RegisterEventHandler for ProjectProject")
+	var (
+		registrationId cache.ResourceEventHandlerRegistration
+		err            error
+		informer       cache.SharedIndexInformer
+	)
+	key := "projects.project.tsm-tanzu.vmware.com"
+	stopper := make(chan struct{})
+	if s, ok := subscriptionMap.Load(key); ok {
+		fmt.Println("Informer exists for ProjectProject")
+		sub := s.(subscription)
+		informer = sub.informer
+	} else {
+		fmt.Println("Informer doesn't exists for ProjectProject, so creating a new one")
+		informer = informerprojecttsmtanzuvmwarecomv1.NewProjectInformer(c.client.baseClient, 0, cache.Indexers{})
+		go informer.Run(stopper)
+		subscribe(key, informer)
+	}
+	registrationId, err = informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
+		AddFunc: func(obj interface{}) {
+			nc := &ProjectProject{
+				client:  c.client,
+				Project: obj.(*baseprojecttsmtanzuvmwarecomv1.Project),
+			}
+
+			addCB(nc)
+		},
+
+		UpdateFunc: func(oldObj, newObj interface{}) {
+			oldData := &ProjectProject{
+				client:  c.client,
+				Project: oldObj.(*baseprojecttsmtanzuvmwarecomv1.Project),
+			}
+			newData := &ProjectProject{
+				client:  c.client,
+				Project: newObj.(*baseprojecttsmtanzuvmwarecomv1.Project),
+			}
+			updateCB(oldData, newData)
+		},
+
+		DeleteFunc: func(obj interface{}) {
+			nc := &ProjectProject{
+				client:  c.client,
+				Project: obj.(*baseprojecttsmtanzuvmwarecomv1.Project),
+			}
+
+			deleteCB(nc)
+		},
+	})
+	return registrationId, err
+}
+
+func (c *projectProjectTsmV1Chainer) RegisterAddCallback(cbfn func(obj *ProjectProject)) (cache.ResourceEventHandlerRegistration, error) {
+	fmt.Println("ProjectProject -->  RegisterAddCallback!")
+	var (
+		registrationId cache.ResourceEventHandlerRegistration
+		err            error
+	)
+	key := "projects.project.tsm-tanzu.vmware.com"
+	stopper := make(chan struct{})
+	if s, ok := subscriptionMap.Load(key); ok {
+		fmt.Println("[ProjectProject] ---SUBSCRIBE-INFORMER---->")
+		sub := s.(subscription)
+		registrationId, err = sub.informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
+			AddFunc: func(obj interface{}) {
+				nc := &ProjectProject{
+					client:  c.client,
+					Project: obj.(*baseprojecttsmtanzuvmwarecomv1.Project),
+				}
+
+				cbfn(nc)
+			},
+		})
+	} else {
+		fmt.Println("[ProjectProject] ---NEW-INFORMER---->")
+		informer := informerprojecttsmtanzuvmwarecomv1.NewProjectInformer(c.client.baseClient, 0, cache.Indexers{})
+		registrationId, err = informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
+			AddFunc: func(obj interface{}) {
+				nc := &ProjectProject{
+					client:  c.client,
+					Project: obj.(*baseprojecttsmtanzuvmwarecomv1.Project),
+				}
+
+				cbfn(nc)
+			},
+		})
+		go informer.Run(stopper)
+	}
+	return registrationId, err
+}
+
+func (c *projectProjectTsmV1Chainer) RegisterUpdateCallback(cbfn func(oldObj, newObj *ProjectProject)) (cache.ResourceEventHandlerRegistration, error) {
+	fmt.Println("ProjectProject -->  RegisterUpdateCallback!")
+	var (
+		registrationId cache.ResourceEventHandlerRegistration
+		err            error
+	)
+	key := "projects.project.tsm-tanzu.vmware.com"
+	stopper := make(chan struct{})
+	if s, ok := subscriptionMap.Load(key); ok {
+		fmt.Println("[ProjectProject] ---SUBSCRIBE-INFORMER---->")
+		sub := s.(subscription)
+		registrationId, err = sub.informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
+			UpdateFunc: func(oldObj, newObj interface{}) {
+				oldData := &ProjectProject{
+					client:  c.client,
+					Project: oldObj.(*baseprojecttsmtanzuvmwarecomv1.Project),
+				}
+				newData := &ProjectProject{
+					client:  c.client,
+					Project: newObj.(*baseprojecttsmtanzuvmwarecomv1.Project),
+				}
+				cbfn(oldData, newData)
+			},
+		})
+	} else {
+		fmt.Println("[ProjectProject] ---NEW-INFORMER---->")
+		informer := informerprojecttsmtanzuvmwarecomv1.NewProjectInformer(c.client.baseClient, 0, cache.Indexers{})
+		registrationId, err = informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
+			UpdateFunc: func(oldObj, newObj interface{}) {
+				oldData := &ProjectProject{
+					client:  c.client,
+					Project: oldObj.(*baseprojecttsmtanzuvmwarecomv1.Project),
+				}
+				newData := &ProjectProject{
+					client:  c.client,
+					Project: newObj.(*baseprojecttsmtanzuvmwarecomv1.Project),
+				}
+				cbfn(oldData, newData)
+			},
+		})
+		go informer.Run(stopper)
+	}
+	return registrationId, err
+}
+
+func (c *projectProjectTsmV1Chainer) RegisterDeleteCallback(cbfn func(obj *ProjectProject)) (cache.ResourceEventHandlerRegistration, error) {
+	fmt.Println("ProjectProject -->  RegisterDeleteCallback!")
+	var (
+		registrationId cache.ResourceEventHandlerRegistration
+		err            error
+	)
+	key := "projects.project.tsm-tanzu.vmware.com"
+	stopper := make(chan struct{})
+	if s, ok := subscriptionMap.Load(key); ok {
+		fmt.Println("[ProjectProject] ---SUBSCRIBE-INFORMER---->")
+		sub := s.(subscription)
+		registrationId, err = sub.informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
+			DeleteFunc: func(obj interface{}) {
+				nc := &ProjectProject{
+					client:  c.client,
+					Project: obj.(*baseprojecttsmtanzuvmwarecomv1.Project),
+				}
+
+				cbfn(nc)
+			},
+		})
+	} else {
+		fmt.Println("[ProjectProject] ---NEW-INFORMER---->")
+		informer := informerprojecttsmtanzuvmwarecomv1.NewProjectInformer(c.client.baseClient, 0, cache.Indexers{})
+		registrationId, err = informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
+			DeleteFunc: func(obj interface{}) {
+				nc := &ProjectProject{
+					client:  c.client,
+					Project: obj.(*baseprojecttsmtanzuvmwarecomv1.Project),
+				}
+
+				cbfn(nc)
+			},
+		})
+		go informer.Run(stopper)
+	}
+	return registrationId, err
+}
+
+func (c *projectProjectTsmV1Chainer) Config() *configConfigTsmV1Chainer {
 	parentLabels := c.parentLabels
-	parentLabels["configs.config.tsm-tanzu.vmware.com"] = name
+	parentLabels["configs.config.tsm-tanzu.vmware.com"] = helper.DEFAULT_KEY
 	return &configConfigTsmV1Chainer{
 		client:       c.client,
-		name:         name,
+		name:         helper.DEFAULT_KEY,
 		parentLabels: parentLabels,
 	}
 }
 
-// GetConfig calculates hashed name of the object based on displayName and it's parents and returns the object
-func (c *projectProjectTsmV1Chainer) GetConfig(ctx context.Context, displayName string) (result *ConfigConfig, err error) {
-	hashedName := helper.GetHashedName("configs.config.tsm-tanzu.vmware.com", c.parentLabels, displayName)
+// GetConfig calculates hashed name of the object based on it's parents and returns the object
+func (c *projectProjectTsmV1Chainer) GetConfig(ctx context.Context) (result *ConfigConfig, err error) {
+	hashedName := helper.GetHashedName("configs.config.tsm-tanzu.vmware.com", c.parentLabels, helper.DEFAULT_KEY)
 	return c.client.Config().GetConfigByName(ctx, hashedName)
 }
 
-// AddConfig calculates hashed name of the child to create based on objToCreate.Name
-// and parents names and creates it. objToCreate.Name is changed to the hashed name. Original name is preserved in
+// AddConfig calculates hashed name of the child to create based on parents names and creates it.
+// objToCreate.Name is changed to the hashed name. Original name ('default') is preserved in
 // nexus/display_name label and can be obtained using DisplayName() method.
 func (c *projectProjectTsmV1Chainer) AddConfig(ctx context.Context,
 	objToCreate *baseconfigtsmtanzuvmwarecomv1.Config) (result *ConfigConfig, err error) {
+	if objToCreate.GetName() == "" {
+		objToCreate.SetName(helper.DEFAULT_KEY)
+	}
+	if objToCreate.GetName() != helper.DEFAULT_KEY {
+		return nil, NewSingletonNameError(objToCreate.GetName())
+	}
 	if objToCreate.Labels == nil {
 		objToCreate.Labels = map[string]string{}
 	}
@@ -855,18 +1331,48 @@ func (group *RootTsmV1) GetRootByName(ctx context.Context, hashedName string) (*
 			Root:   result,
 		}, nil
 	} else {
-		result, err := group.client.baseClient.
-			RootTsmV1().
-			Roots().Get(ctx, hashedName, metav1.GetOptions{})
-		if err != nil {
-			return nil, err
+		retryCount := 12
+		for {
+			result, err := group.client.baseClient.
+				RootTsmV1().
+				Roots().Get(ctx, hashedName, metav1.GetOptions{})
+			if err != nil {
+				log.Errorf("Failed to Get Roots: %+v", err)
+				if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded) {
+					log.Errorf("[Retry Count: %d ] %+v", retryCount, err)
+					if retryCount == 0 {
+						log.Error("Max Retry exceed on Get Roots")
+						return nil, err
+					}
+					retryCount -= 1
+					time.Sleep(5 * time.Second)
+				} else {
+					log.Errorf("Unexpected Error: %+v", err)
+					return nil, err
+				}
+			}
+			return &RootRoot{
+				client: group.client,
+				Root:   result,
+			}, nil
 		}
-
-		return &RootRoot{
-			client: group.client,
-			Root:   result,
-		}, nil
 	}
+}
+
+// ForceReadRootByName read object directly from the database under the hashedName which is a hash of display
+// name and parents names. Use it when you know hashed name of object.
+func (group *RootTsmV1) ForceReadRootByName(ctx context.Context, hashedName string) (*RootRoot, error) {
+	result, err := group.client.baseClient.
+		RootTsmV1().
+		Roots().Get(ctx, hashedName, metav1.GetOptions{})
+	if err != nil {
+		return nil, err
+	}
+
+	return &RootRoot{
+		client: group.client,
+		Root:   result,
+	}, nil
 }
 
 // DeleteRootByName deletes object stored in the database under the hashedName which is a hash of
@@ -877,14 +1383,23 @@ func (group *RootTsmV1) DeleteRootByName(ctx context.Context, hashedName string)
 		RootTsmV1().
 		Roots().Get(ctx, hashedName, metav1.GetOptions{})
 	if err != nil {
-		return err
+		if customerrors.Is(err, context.DeadlineExceeded) {
+			log.Errorf("context deadline exceeded, on creating GNS: %+v", hashedName)
+			return context.DeadlineExceeded
+		} else if customerrors.Is(err, context.Canceled) {
+			log.Errorf("context cancelled, on creating GNS: %+v", hashedName)
+			return context.Canceled
+		} else {
+			log.Errorf("Unexpected Error: %+v", err)
+			return err
+		}
 	}
 
 	if result.Spec.ProjectGvk != nil {
 		err := group.client.
 			Project().
 			DeleteProjectByName(ctx, result.Spec.ProjectGvk.Name)
-		if err != nil {
+		if err != nil && !errors.IsNotFound(err) {
 			return err
 		}
 	}
@@ -916,7 +1431,16 @@ func (group *RootTsmV1) CreateRootByName(ctx context.Context,
 		RootTsmV1().
 		Roots().Create(ctx, objToCreate, metav1.CreateOptions{})
 	if err != nil {
-		return nil, err
+		if customerrors.Is(err, context.DeadlineExceeded) {
+			log.Errorf("context deadline exceeded, on creating GNS: %+v", objToCreate)
+			return nil, context.DeadlineExceeded
+		} else if customerrors.Is(err, context.Canceled) {
+			log.Errorf("context cancelled, on creating GNS: %+v", objToCreate)
+			return nil, context.Canceled
+		} else {
+			log.Errorf("Unexpected Error: %+v", err)
+			return nil, err
+		}
 	}
 
 	return &RootRoot{
@@ -936,7 +1460,16 @@ func (group *RootTsmV1) UpdateRootByName(ctx context.Context,
 			RootTsmV1().
 			Roots().Get(ctx, objToUpdate.GetName(), metav1.GetOptions{})
 		if err != nil {
-			return nil, err
+			if customerrors.Is(err, context.DeadlineExceeded) {
+				log.Errorf("context deadline exceeded, on creating GNS: %+v", objToUpdate)
+				return nil, context.DeadlineExceeded
+			} else if customerrors.Is(err, context.Canceled) {
+				log.Errorf("context cancelled, on creating GNS: %+v", objToUpdate)
+				return nil, context.Canceled
+			} else {
+				log.Errorf("Unexpected Error: %+v", err)
+				return nil, err
+			}
 		}
 		objToUpdate.ResourceVersion = current.ResourceVersion
 	}
@@ -1094,6 +1627,12 @@ func (obj *RootRoot) AddProject(ctx context.Context,
 	}
 	objToCreate.Labels["roots.root.tsm-tanzu.vmware.com"] = obj.DisplayName()
 	if objToCreate.Labels[common.IS_NAME_HASHED_LABEL] != "true" {
+		if objToCreate.GetName() == "" {
+			objToCreate.SetName(helper.DEFAULT_KEY)
+		}
+		if objToCreate.GetName() != helper.DEFAULT_KEY {
+			return nil, NewSingletonNameError(objToCreate.GetName())
+		}
 		objToCreate.Labels[common.DISPLAY_NAME_LABEL] = objToCreate.GetName()
 		objToCreate.Labels[common.IS_NAME_HASHED_LABEL] = "true"
 		hashedName := helper.GetHashedName(objToCreate.CRDName(), objToCreate.Labels, objToCreate.GetName())
@@ -1154,27 +1693,209 @@ func (c *rootRootTsmV1Chainer) IsSubscribed() bool {
 	return ok
 }
 
-func (c *rootRootTsmV1Chainer) Project(name string) *projectProjectTsmV1Chainer {
+func (c *rootRootTsmV1Chainer) RegisterEventHandler(addCB func(obj *RootRoot), updateCB func(oldObj, newObj *RootRoot), deleteCB func(obj *RootRoot)) (cache.ResourceEventHandlerRegistration, error) {
+	fmt.Println("RegisterEventHandler for RootRoot")
+	var (
+		registrationId cache.ResourceEventHandlerRegistration
+		err            error
+		informer       cache.SharedIndexInformer
+	)
+	key := "roots.root.tsm-tanzu.vmware.com"
+	stopper := make(chan struct{})
+	if s, ok := subscriptionMap.Load(key); ok {
+		fmt.Println("Informer exists for RootRoot")
+		sub := s.(subscription)
+		informer = sub.informer
+	} else {
+		fmt.Println("Informer doesn't exists for RootRoot, so creating a new one")
+		informer = informerroottsmtanzuvmwarecomv1.NewRootInformer(c.client.baseClient, 0, cache.Indexers{})
+		go informer.Run(stopper)
+		subscribe(key, informer)
+	}
+	registrationId, err = informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
+		AddFunc: func(obj interface{}) {
+			nc := &RootRoot{
+				client: c.client,
+				Root:   obj.(*baseroottsmtanzuvmwarecomv1.Root),
+			}
+
+			addCB(nc)
+		},
+
+		UpdateFunc: func(oldObj, newObj interface{}) {
+			oldData := &RootRoot{
+				client: c.client,
+				Root:   oldObj.(*baseroottsmtanzuvmwarecomv1.Root),
+			}
+			newData := &RootRoot{
+				client: c.client,
+				Root:   newObj.(*baseroottsmtanzuvmwarecomv1.Root),
+			}
+			updateCB(oldData, newData)
+		},
+
+		DeleteFunc: func(obj interface{}) {
+			nc := &RootRoot{
+				client: c.client,
+				Root:   obj.(*baseroottsmtanzuvmwarecomv1.Root),
+			}
+
+			deleteCB(nc)
+		},
+	})
+	return registrationId, err
+}
+
+func (c *rootRootTsmV1Chainer) RegisterAddCallback(cbfn func(obj *RootRoot)) (cache.ResourceEventHandlerRegistration, error) {
+	fmt.Println("RootRoot -->  RegisterAddCallback!")
+	var (
+		registrationId cache.ResourceEventHandlerRegistration
+		err            error
+	)
+	key := "roots.root.tsm-tanzu.vmware.com"
+	stopper := make(chan struct{})
+	if s, ok := subscriptionMap.Load(key); ok {
+		fmt.Println("[RootRoot] ---SUBSCRIBE-INFORMER---->")
+		sub := s.(subscription)
+		registrationId, err = sub.informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
+			AddFunc: func(obj interface{}) {
+				nc := &RootRoot{
+					client: c.client,
+					Root:   obj.(*baseroottsmtanzuvmwarecomv1.Root),
+				}
+
+				cbfn(nc)
+			},
+		})
+	} else {
+		fmt.Println("[RootRoot] ---NEW-INFORMER---->")
+		informer := informerroottsmtanzuvmwarecomv1.NewRootInformer(c.client.baseClient, 0, cache.Indexers{})
+		registrationId, err = informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
+			AddFunc: func(obj interface{}) {
+				nc := &RootRoot{
+					client: c.client,
+					Root:   obj.(*baseroottsmtanzuvmwarecomv1.Root),
+				}
+
+				cbfn(nc)
+			},
+		})
+		go informer.Run(stopper)
+	}
+	return registrationId, err
+}
+
+func (c *rootRootTsmV1Chainer) RegisterUpdateCallback(cbfn func(oldObj, newObj *RootRoot)) (cache.ResourceEventHandlerRegistration, error) {
+	fmt.Println("RootRoot -->  RegisterUpdateCallback!")
+	var (
+		registrationId cache.ResourceEventHandlerRegistration
+		err            error
+	)
+	key := "roots.root.tsm-tanzu.vmware.com"
+	stopper := make(chan struct{})
+	if s, ok := subscriptionMap.Load(key); ok {
+		fmt.Println("[RootRoot] ---SUBSCRIBE-INFORMER---->")
+		sub := s.(subscription)
+		registrationId, err = sub.informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
+			UpdateFunc: func(oldObj, newObj interface{}) {
+				oldData := &RootRoot{
+					client: c.client,
+					Root:   oldObj.(*baseroottsmtanzuvmwarecomv1.Root),
+				}
+				newData := &RootRoot{
+					client: c.client,
+					Root:   newObj.(*baseroottsmtanzuvmwarecomv1.Root),
+				}
+				cbfn(oldData, newData)
+			},
+		})
+	} else {
+		fmt.Println("[RootRoot] ---NEW-INFORMER---->")
+		informer := informerroottsmtanzuvmwarecomv1.NewRootInformer(c.client.baseClient, 0, cache.Indexers{})
+		registrationId, err = informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
+			UpdateFunc: func(oldObj, newObj interface{}) {
+				oldData := &RootRoot{
+					client: c.client,
+					Root:   oldObj.(*baseroottsmtanzuvmwarecomv1.Root),
+				}
+				newData := &RootRoot{
+					client: c.client,
+					Root:   newObj.(*baseroottsmtanzuvmwarecomv1.Root),
+				}
+				cbfn(oldData, newData)
+			},
+		})
+		go informer.Run(stopper)
+	}
+	return registrationId, err
+}
+
+func (c *rootRootTsmV1Chainer) RegisterDeleteCallback(cbfn func(obj *RootRoot)) (cache.ResourceEventHandlerRegistration, error) {
+	fmt.Println("RootRoot -->  RegisterDeleteCallback!")
+	var (
+		registrationId cache.ResourceEventHandlerRegistration
+		err            error
+	)
+	key := "roots.root.tsm-tanzu.vmware.com"
+	stopper := make(chan struct{})
+	if s, ok := subscriptionMap.Load(key); ok {
+		fmt.Println("[RootRoot] ---SUBSCRIBE-INFORMER---->")
+		sub := s.(subscription)
+		registrationId, err = sub.informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
+			DeleteFunc: func(obj interface{}) {
+				nc := &RootRoot{
+					client: c.client,
+					Root:   obj.(*baseroottsmtanzuvmwarecomv1.Root),
+				}
+
+				cbfn(nc)
+			},
+		})
+	} else {
+		fmt.Println("[RootRoot] ---NEW-INFORMER---->")
+		informer := informerroottsmtanzuvmwarecomv1.NewRootInformer(c.client.baseClient, 0, cache.Indexers{})
+		registrationId, err = informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
+			DeleteFunc: func(obj interface{}) {
+				nc := &RootRoot{
+					client: c.client,
+					Root:   obj.(*baseroottsmtanzuvmwarecomv1.Root),
+				}
+
+				cbfn(nc)
+			},
+		})
+		go informer.Run(stopper)
+	}
+	return registrationId, err
+}
+
+func (c *rootRootTsmV1Chainer) Project() *projectProjectTsmV1Chainer {
 	parentLabels := c.parentLabels
-	parentLabels["projects.project.tsm-tanzu.vmware.com"] = name
+	parentLabels["projects.project.tsm-tanzu.vmware.com"] = helper.DEFAULT_KEY
 	return &projectProjectTsmV1Chainer{
 		client:       c.client,
-		name:         name,
+		name:         helper.DEFAULT_KEY,
 		parentLabels: parentLabels,
 	}
 }
 
-// GetProject calculates hashed name of the object based on displayName and it's parents and returns the object
-func (c *rootRootTsmV1Chainer) GetProject(ctx context.Context, displayName string) (result *ProjectProject, err error) {
-	hashedName := helper.GetHashedName("projects.project.tsm-tanzu.vmware.com", c.parentLabels, displayName)
+// GetProject calculates hashed name of the object based on it's parents and returns the object
+func (c *rootRootTsmV1Chainer) GetProject(ctx context.Context) (result *ProjectProject, err error) {
+	hashedName := helper.GetHashedName("projects.project.tsm-tanzu.vmware.com", c.parentLabels, helper.DEFAULT_KEY)
 	return c.client.Project().GetProjectByName(ctx, hashedName)
 }
 
-// AddProject calculates hashed name of the child to create based on objToCreate.Name
-// and parents names and creates it. objToCreate.Name is changed to the hashed name. Original name is preserved in
+// AddProject calculates hashed name of the child to create based on parents names and creates it.
+// objToCreate.Name is changed to the hashed name. Original name ('default') is preserved in
 // nexus/display_name label and can be obtained using DisplayName() method.
 func (c *rootRootTsmV1Chainer) AddProject(ctx context.Context,
 	objToCreate *baseprojecttsmtanzuvmwarecomv1.Project) (result *ProjectProject, err error) {
+	if objToCreate.GetName() == "" {
+		objToCreate.SetName(helper.DEFAULT_KEY)
+	}
+	if objToCreate.GetName() != helper.DEFAULT_KEY {
+		return nil, NewSingletonNameError(objToCreate.GetName())
+	}
 	if objToCreate.Labels == nil {
 		objToCreate.Labels = map[string]string{}
 	}

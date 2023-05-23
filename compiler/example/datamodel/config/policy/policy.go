@@ -13,15 +13,15 @@ type AccessControlPolicy struct {
 // ACPConfig is a configuration of AccessControl Policy
 type ACPConfig struct {
 	nexus.Node
-	DisplayName          string
-	Gns                  string
-	Description          string
-	Tags                 []string
-	ProjectId            string
-	DestGroups           ResourceGroupIDs     `nexus:"@jsonencoded(file:'./root/config/policy/policy-config/policy-config.ts', gofile:'policy-config.go', name: 'ResourceGroupIDs')"`
-	SourceGroups         ResourceGroupIDs     `nexus:"@jsonencoded(file:'./root/config/policy/policy-config/policy-config.ts', gofile:'policy-config.go', name: 'ResourceGroupIDs')"`
-	AdditionalPolicyData AdditionalPolicyData `nexus:"child"`
-	RandomPolicyData     RandomPolicyData     `nexus:"child"`
+	DisplayName  string
+	Gns          string
+	Description  string
+	Tags         []string
+	ProjectId    string
+	DestGroups   ResourceGroupIDs `nexus:"@jsonencoded(file:'./root/config/policy/policy-config/policy-config.ts', gofile:'policy-config.go', name: 'ResourceGroupIDs')"`
+	SourceGroups ResourceGroupIDs `nexus:"@jsonencoded(file:'./root/config/policy/policy-config/policy-config.ts', gofile:'policy-config.go', name: 'ResourceGroupIDs')"`
+	//AdditionalPolicyData AdditionalPolicyData `nexus:"child"`
+	//RandomPolicyData     RandomPolicyData     `nexus:"child"`
 
 	DestSvcGroups   servicegroup.SvcGroup `nexus:"links"` // support named children/links as map or `links` annotations
 	SourceSvcGroups servicegroup.SvcGroup `nexus:"links"` // support named children/links as map or `links` annotations

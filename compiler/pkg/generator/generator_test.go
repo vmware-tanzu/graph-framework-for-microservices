@@ -102,7 +102,7 @@ var _ = Describe("Template renderers tests", func() {
 	It("should parse base crd template", func() {
 		files, err := generator.RenderCRDBaseTemplate(baseGroupName, pkg, parentsMap, methods, codes)
 		Expect(err).NotTo(HaveOccurred())
-		Expect(files).To(HaveLen(7))
+		Expect(files).To(HaveLen(5))
 
 		expectedSdk, err := os.ReadFile(gnsCrdBasePath)
 		Expect(err).NotTo(HaveOccurred())

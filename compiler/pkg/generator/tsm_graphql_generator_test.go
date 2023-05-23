@@ -23,11 +23,11 @@ var _ = Describe("Template renderers tests", func() {
 		parentsMap = parser.CreateParentsMap(graph)
 	})
 
-	FIt("should resolve graphql vars", func() {
+	It("should resolve graphql vars", func() {
 		vars, err := generator.GenerateTsmGraphqlSchemaVars(baseGroupName, crdModulePath, pkgs, parentsMap, nil)
 		Expect(err).NotTo(HaveOccurred())
 
-		Expect(len(vars)).To(Equal(46))
+		Expect(len(vars)).To(Equal(41))
 		Expect(vars[0].NodeName).To(Equal("Root"))
 		Expect(vars[3].PkgName).To(Equal("Config"))
 		Expect(vars[3].NodeName).To(Equal("Config"))

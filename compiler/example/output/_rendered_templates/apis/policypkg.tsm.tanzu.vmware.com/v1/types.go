@@ -42,47 +42,6 @@ type NexusStatus struct {
 // +genclient:nonNamespaced
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 // +k8s:openapi-gen=true
-type AdditionalPolicyData struct {
-	metav1.TypeMeta   `json:",inline" yaml:",inline"`
-	metav1.ObjectMeta `json:"metadata" yaml:"metadata"`
-	Spec              AdditionalPolicyDataSpec        `json:"spec,omitempty" yaml:"spec,omitempty"`
-	Status            AdditionalPolicyDataNexusStatus `json:"status,omitempty" yaml:"status,omitempty"`
-}
-
-// +k8s:openapi-gen=true
-type AdditionalPolicyDataNexusStatus struct {
-	Status AdditionalStatus `json:"status,omitempty" yaml:"status,omitempty"`
-	Nexus  NexusStatus      `json:"nexus,omitempty" yaml:"nexus,omitempty"`
-}
-
-func (c *AdditionalPolicyData) CRDName() string {
-	return "additionalpolicydatas.policypkg.tsm.tanzu.vmware.com"
-}
-
-func (c *AdditionalPolicyData) DisplayName() string {
-	if c.GetLabels() != nil {
-		return c.GetLabels()[common.DISPLAY_NAME_LABEL]
-	}
-	return ""
-}
-
-// +k8s:openapi-gen=true
-type AdditionalPolicyDataSpec struct {
-	Description AdditionalDescription `json:"description" yaml:"description"`
-}
-
-// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
-type AdditionalPolicyDataList struct {
-	metav1.TypeMeta `json:",inline" yaml:",inline"`
-	metav1.ListMeta `json:"metadata" yaml:"metadata"`
-	Items           []AdditionalPolicyData `json:"items" yaml:"items"`
-}
-
-// +genclient
-// +genclient:noStatus
-// +genclient:nonNamespaced
-// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
-// +k8s:openapi-gen=true
 type AccessControlPolicy struct {
 	metav1.TypeMeta   `json:",inline" yaml:",inline"`
 	metav1.ObjectMeta `json:"metadata" yaml:"metadata"`
@@ -149,16 +108,14 @@ func (c *ACPConfig) DisplayName() string {
 
 // +k8s:openapi-gen=true
 type ACPConfigSpec struct {
-	DisplayName             string          `json:"displayName" yaml:"displayName"`
-	Gns                     string          `json:"gns" yaml:"gns"`
-	Description             string          `json:"description" yaml:"description"`
-	Tags                    []string        `json:"tags" yaml:"tags"`
-	ProjectId               string          `json:"projectId" yaml:"projectId"`
-	Conditions              []string        `json:"conditions" yaml:"conditions"`
-	AdditionalPolicyDataGvk *Child          `json:"additionalPolicyDataGvk,omitempty" yaml:"additionalPolicyDataGvk,omitempty" nexus:"child"`
-	RandomPolicyDataGvk     *Child          `json:"randomPolicyDataGvk,omitempty" yaml:"randomPolicyDataGvk,omitempty" nexus:"child"`
-	DestSvcGroupsGvk        map[string]Link `json:"destSvcGroupsGvk,omitempty" yaml:"destSvcGroupsGvk,omitempty" nexus:"links"`
-	SourceSvcGroupsGvk      map[string]Link `json:"sourceSvcGroupsGvk,omitempty" yaml:"sourceSvcGroupsGvk,omitempty" nexus:"links"`
+	DisplayName        string          `json:"displayName" yaml:"displayName"`
+	Gns                string          `json:"gns" yaml:"gns"`
+	Description        string          `json:"description" yaml:"description"`
+	Tags               []string        `json:"tags" yaml:"tags"`
+	ProjectId          string          `json:"projectId" yaml:"projectId"`
+	Conditions         []string        `json:"conditions" yaml:"conditions"`
+	DestSvcGroupsGvk   map[string]Link `json:"destSvcGroupsGvk,omitempty" yaml:"destSvcGroupsGvk,omitempty" nexus:"links"`
+	SourceSvcGroupsGvk map[string]Link `json:"sourceSvcGroupsGvk,omitempty" yaml:"sourceSvcGroupsGvk,omitempty" nexus:"links"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
@@ -201,47 +158,6 @@ type VMpolicyList struct {
 	metav1.TypeMeta `json:",inline" yaml:",inline"`
 	metav1.ListMeta `json:"metadata" yaml:"metadata"`
 	Items           []VMpolicy `json:"items" yaml:"items"`
-}
-
-// +genclient
-// +genclient:noStatus
-// +genclient:nonNamespaced
-// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
-// +k8s:openapi-gen=true
-type RandomPolicyData struct {
-	metav1.TypeMeta   `json:",inline" yaml:",inline"`
-	metav1.ObjectMeta `json:"metadata" yaml:"metadata"`
-	Spec              RandomPolicyDataSpec        `json:"spec,omitempty" yaml:"spec,omitempty"`
-	Status            RandomPolicyDataNexusStatus `json:"status,omitempty" yaml:"status,omitempty"`
-}
-
-// +k8s:openapi-gen=true
-type RandomPolicyDataNexusStatus struct {
-	Status RandomStatus `json:"status,omitempty" yaml:"status,omitempty"`
-	Nexus  NexusStatus  `json:"nexus,omitempty" yaml:"nexus,omitempty"`
-}
-
-func (c *RandomPolicyData) CRDName() string {
-	return "randompolicydatas.policypkg.tsm.tanzu.vmware.com"
-}
-
-func (c *RandomPolicyData) DisplayName() string {
-	if c.GetLabels() != nil {
-		return c.GetLabels()[common.DISPLAY_NAME_LABEL]
-	}
-	return ""
-}
-
-// +k8s:openapi-gen=true
-type RandomPolicyDataSpec struct {
-	Description RandomDescription `json:"description" yaml:"description"`
-}
-
-// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
-type RandomPolicyDataList struct {
-	metav1.TypeMeta `json:",inline" yaml:",inline"`
-	metav1.ListMeta `json:"metadata" yaml:"metadata"`
-	Items           []RandomPolicyData `json:"items" yaml:"items"`
 }
 
 // +k8s:openapi-gen=true
