@@ -33,6 +33,6 @@ func main() {
 	StartHttpServer()
 	srv := &http.Server{Addr: fmt.Sprintf(":%s", port)}
 	if err := srv.ListenAndServe(); err != nil {
-		fmt.Printf("Error in starting graphql server")
+				fmt.Printf("Error in starting graphql server")
 	}
 }
