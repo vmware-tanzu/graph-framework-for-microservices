@@ -448,7 +448,7 @@ func (group *{{$node.GroupTypeName}}) Create{{$node.BaseNodeName}}ByName(ctx con
 		{{$node.Parent.GroupTypeName}}().
 		{{$node.Parent.GroupResourceNameTitle}}().Patch(newCtx, parentName, types.JSONPatchType, marshaled, metav1.PatchOptions{})
 		if err != nil {
-			log.Errorf("[Create{{$node.BaseNodeName}}ByName] Failed to patch {{$node.BaseNodeName}} gvk in parent node[{{$node.Parent.GroupResourceNameTitle}}] (iter=%d), %+v",{{$node.BaseNodeName}},err)
+			log.Errorf("[Create{{$node.BaseNodeName}}ByName] Failed to patch {{$node.BaseNodeName}} gvk in parent node[{{$node.Parent.GroupResourceNameTitle}}]: %+v",err)
 			if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded){
 				log.Errorf("[Retry Count: %d ] %+v",retryCount, err)
 				if retryCount == maxRetryCount {
