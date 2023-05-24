@@ -90,9 +90,7 @@ func NewForConfig(config *rest.Config) (*Clientset, error) {
 	customFormatter.TimestampFormat = "2006-01-02 15:04:05"
 	log.SetFormatter(customFormatter)
 	customFormatter.FullTimestamp = true
-	client := &Clientset{}
-	client.baseClient = baseClient
-	client.globalCosmosV1 = newGlobalCosmosV1(client)
+
 
 	client := &Clientset{}
 	client.baseClient = baseClient
