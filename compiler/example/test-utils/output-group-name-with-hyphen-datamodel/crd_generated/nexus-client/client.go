@@ -45,9 +45,9 @@ var log = logrus.New()
 
 type Clientset struct {
 	baseClient   baseClientset.Interface
+	rootTsmV1    *RootTsmV1
 	configTsmV1  *ConfigTsmV1
 	projectTsmV1 *ProjectTsmV1
-	rootTsmV1    *RootTsmV1
 }
 
 type subscription struct {
@@ -71,6 +71,12 @@ func subscribe(key string, informer cache.SharedIndexInformer) {
 func (c *Clientset) SubscribeAll() {
 	var key string
 
+	key = "roots.root.tsm-tanzu.vmware.com"
+	if _, ok := subscriptionMap.Load(key); !ok {
+		informer := informerroottsmtanzuvmwarecomv1.NewRootInformer(c.baseClient, 0, cache.Indexers{})
+		subscribe(key, informer)
+	}
+
 	key = "configs.config.tsm-tanzu.vmware.com"
 	if _, ok := subscriptionMap.Load(key); !ok {
 		informer := informerconfigtsmtanzuvmwarecomv1.NewConfigInformer(c.baseClient, 0, cache.Indexers{})
@@ -80,12 +86,6 @@ func (c *Clientset) SubscribeAll() {
 	key = "projects.project.tsm-tanzu.vmware.com"
 	if _, ok := subscriptionMap.Load(key); !ok {
 		informer := informerprojecttsmtanzuvmwarecomv1.NewProjectInformer(c.baseClient, 0, cache.Indexers{})
-		subscribe(key, informer)
-	}
-
-	key = "roots.root.tsm-tanzu.vmware.com"
-	if _, ok := subscriptionMap.Load(key); !ok {
-		informer := informerroottsmtanzuvmwarecomv1.NewRootInformer(c.baseClient, 0, cache.Indexers{})
 		subscribe(key, informer)
 	}
 
@@ -107,9 +107,9 @@ func NewForConfig(config *rest.Config) (*Clientset, error) {
 	}
 	client := &Clientset{}
 	client.baseClient = baseClient
+	client.rootTsmV1 = newRootTsmV1(client)
 	client.configTsmV1 = newConfigTsmV1(client)
 	client.projectTsmV1 = newProjectTsmV1(client)
-	client.rootTsmV1 = newRootTsmV1(client)
 
 	return client, nil
 }
@@ -118,9 +118,9 @@ func NewForConfig(config *rest.Config) (*Clientset, error) {
 func NewFakeClient() *Clientset {
 	client := &Clientset{}
 	client.baseClient = fakeBaseClienset.NewSimpleClientset()
+	client.rootTsmV1 = newRootTsmV1(client)
 	client.configTsmV1 = newConfigTsmV1(client)
 	client.projectTsmV1 = newProjectTsmV1(client)
-	client.rootTsmV1 = newRootTsmV1(client)
 
 	return client
 }
@@ -137,14 +137,24 @@ func (p Patch) Marshal() ([]byte, error) {
 	return json.Marshal(p)
 }
 
+func (c *Clientset) Root() *RootTsmV1 {
+	return c.rootTsmV1
+}
 func (c *Clientset) Config() *ConfigTsmV1 {
 	return c.configTsmV1
 }
 func (c *Clientset) Project() *ProjectTsmV1 {
 	return c.projectTsmV1
 }
-func (c *Clientset) Root() *RootTsmV1 {
-	return c.rootTsmV1
+
+type RootTsmV1 struct {
+	client *Clientset
+}
+
+func newRootTsmV1(client *Clientset) *RootTsmV1 {
+	return &RootTsmV1{
+		client: client,
+	}
 }
 
 type ConfigTsmV1 struct {
@@ -165,1154 +175,6 @@ func newProjectTsmV1(client *Clientset) *ProjectTsmV1 {
 	return &ProjectTsmV1{
 		client: client,
 	}
-}
-
-type RootTsmV1 struct {
-	client *Clientset
-}
-
-func newRootTsmV1(client *Clientset) *RootTsmV1 {
-	return &RootTsmV1{
-		client: client,
-	}
-}
-
-// GetConfigByName returns object stored in the database under the hashedName which is a hash of display
-// name and parents names. Use it when you know hashed name of object.
-func (group *ConfigTsmV1) GetConfigByName(ctx context.Context, hashedName string) (*ConfigConfig, error) {
-	key := "configs.config.tsm-tanzu.vmware.com"
-	if s, ok := subscriptionMap.Load(key); ok {
-		item, exists, err := s.(subscription).informer.GetStore().GetByKey(hashedName)
-		if !exists {
-			return nil, err
-		}
-
-		result, _ := item.(*baseconfigtsmtanzuvmwarecomv1.Config)
-		return &ConfigConfig{
-			client: group.client,
-			Config: result,
-		}, nil
-	} else {
-		retryCount := 12
-		for {
-			result, err := group.client.baseClient.
-				ConfigTsmV1().
-				Configs().Get(ctx, hashedName, metav1.GetOptions{})
-			if err != nil {
-				log.Errorf("Failed to Get Configs: %+v", err)
-				if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded) {
-					log.Errorf("[Retry Count: %d ] %+v", retryCount, err)
-					if retryCount == 0 {
-						log.Error("Max Retry exceed on Get Configs")
-						return nil, err
-					}
-					retryCount -= 1
-					time.Sleep(5 * time.Second)
-				} else {
-					log.Errorf("Unexpected Error: %+v", err)
-					return nil, err
-				}
-			}
-			return &ConfigConfig{
-				client: group.client,
-				Config: result,
-			}, nil
-		}
-	}
-}
-
-// ForceReadConfigByName read object directly from the database under the hashedName which is a hash of display
-// name and parents names. Use it when you know hashed name of object.
-func (group *ConfigTsmV1) ForceReadConfigByName(ctx context.Context, hashedName string) (*ConfigConfig, error) {
-	result, err := group.client.baseClient.
-		ConfigTsmV1().
-		Configs().Get(ctx, hashedName, metav1.GetOptions{})
-	if err != nil {
-		return nil, err
-	}
-
-	return &ConfigConfig{
-		client: group.client,
-		Config: result,
-	}, nil
-}
-
-// DeleteConfigByName deletes object stored in the database under the hashedName which is a hash of
-// display name and parents names. Use it when you know hashed name of object.
-func (group *ConfigTsmV1) DeleteConfigByName(ctx context.Context, hashedName string) (err error) {
-
-	err = group.client.baseClient.
-		ConfigTsmV1().
-		Configs().Delete(ctx, hashedName, metav1.DeleteOptions{})
-	if err != nil {
-		return err
-	}
-
-	return
-}
-
-// CreateConfigByName creates object in the database without hashing the name.
-// Use it directly ONLY when objToCreate.Name is hashed name of the object.
-func (group *ConfigTsmV1) CreateConfigByName(ctx context.Context,
-	objToCreate *baseconfigtsmtanzuvmwarecomv1.Config) (*ConfigConfig, error) {
-	if objToCreate.GetLabels() == nil {
-		objToCreate.Labels = make(map[string]string)
-	}
-	if _, ok := objToCreate.Labels[common.DISPLAY_NAME_LABEL]; !ok {
-		objToCreate.Labels[common.DISPLAY_NAME_LABEL] = objToCreate.GetName()
-	}
-	if objToCreate.Labels[common.DISPLAY_NAME_LABEL] == "" {
-		objToCreate.Labels[common.DISPLAY_NAME_LABEL] = helper.DEFAULT_KEY
-	}
-	if objToCreate.Labels[common.DISPLAY_NAME_LABEL] != helper.DEFAULT_KEY {
-		return nil, NewSingletonNameError(objToCreate.Labels[common.DISPLAY_NAME_LABEL])
-	}
-
-	result, err := group.client.baseClient.
-		ConfigTsmV1().
-		Configs().Create(ctx, objToCreate, metav1.CreateOptions{})
-	if err != nil {
-		if customerrors.Is(err, context.DeadlineExceeded) {
-			log.Errorf("context deadline exceeded, on creating GNS: %+v", objToCreate)
-			return nil, context.DeadlineExceeded
-		} else if customerrors.Is(err, context.Canceled) {
-			log.Errorf("context cancelled, on creating GNS: %+v", objToCreate)
-			return nil, context.Canceled
-		} else {
-			log.Errorf("Unexpected Error: %+v", err)
-			return nil, err
-		}
-	}
-
-	return &ConfigConfig{
-		client: group.client,
-		Config: result,
-	}, nil
-}
-
-// UpdateConfigByName updates object stored in the database under the hashedName which is a hash of
-// display name and parents names.
-func (group *ConfigTsmV1) UpdateConfigByName(ctx context.Context,
-	objToUpdate *baseconfigtsmtanzuvmwarecomv1.Config) (*ConfigConfig, error) {
-	if objToUpdate.Labels[common.DISPLAY_NAME_LABEL] != helper.DEFAULT_KEY {
-		return nil, NewSingletonNameError(objToUpdate.Labels[common.DISPLAY_NAME_LABEL])
-	}
-	// ResourceVersion must be set for update
-	if objToUpdate.ResourceVersion == "" {
-		current, err := group.client.baseClient.
-			ConfigTsmV1().
-			Configs().Get(ctx, objToUpdate.GetName(), metav1.GetOptions{})
-		if err != nil {
-			if customerrors.Is(err, context.DeadlineExceeded) {
-				log.Errorf("context deadline exceeded, on creating GNS: %+v", objToUpdate)
-				return nil, context.DeadlineExceeded
-			} else if customerrors.Is(err, context.Canceled) {
-				log.Errorf("context cancelled, on creating GNS: %+v", objToUpdate)
-				return nil, context.Canceled
-			} else {
-				log.Errorf("Unexpected Error: %+v", err)
-				return nil, err
-			}
-		}
-		objToUpdate.ResourceVersion = current.ResourceVersion
-	}
-
-	var patch Patch
-	patch = append(patch, PatchOp{
-		Op:    "replace",
-		Path:  "/metadata",
-		Value: objToUpdate.ObjectMeta,
-	})
-
-	patchValueFieldX :=
-		objToUpdate.Spec.FieldX
-	patchOpFieldX := PatchOp{
-		Op:    "replace",
-		Path:  "/spec/fieldX",
-		Value: patchValueFieldX,
-	}
-	patch = append(patch, patchOpFieldX)
-
-	patchValueFieldY :=
-		objToUpdate.Spec.FieldY
-	patchOpFieldY := PatchOp{
-		Op:    "replace",
-		Path:  "/spec/fieldY",
-		Value: patchValueFieldY,
-	}
-	patch = append(patch, patchOpFieldY)
-
-	patchValueMyStructField :=
-		objToUpdate.Spec.MyStructField
-	patchOpMyStructField := PatchOp{
-		Op:    "replace",
-		Path:  "/spec/myStructField",
-		Value: patchValueMyStructField,
-	}
-	patch = append(patch, patchOpMyStructField)
-
-	marshaled, err := patch.Marshal()
-	if err != nil {
-		return nil, err
-	}
-	result, err := group.client.baseClient.
-		ConfigTsmV1().
-		Configs().Patch(ctx, objToUpdate.GetName(), types.JSONPatchType, marshaled, metav1.PatchOptions{}, "")
-	if err != nil {
-		return nil, err
-	}
-
-	return &ConfigConfig{
-		client: group.client,
-		Config: result,
-	}, nil
-}
-
-// ListConfigs returns slice of all existing objects of this type. Selectors can be provided in opts parameter.
-func (group *ConfigTsmV1) ListConfigs(ctx context.Context,
-	opts metav1.ListOptions) (result []*ConfigConfig, err error) {
-	key := "configs.config.tsm-tanzu.vmware.com"
-	if s, ok := subscriptionMap.Load(key); ok {
-		items := s.(subscription).informer.GetStore().List()
-		result = make([]*ConfigConfig, len(items))
-		for k, v := range items {
-			item, _ := v.(*baseconfigtsmtanzuvmwarecomv1.Config)
-			result[k] = &ConfigConfig{
-				client: group.client,
-				Config: item,
-			}
-		}
-	} else {
-		list, err := group.client.baseClient.ConfigTsmV1().
-			Configs().List(ctx, opts)
-		if err != nil {
-			return nil, err
-		}
-		result = make([]*ConfigConfig, len(list.Items))
-		for k, v := range list.Items {
-			item := v
-			result[k] = &ConfigConfig{
-				client: group.client,
-				Config: &item,
-			}
-		}
-	}
-	return
-}
-
-type ConfigConfig struct {
-	client *Clientset
-	*baseconfigtsmtanzuvmwarecomv1.Config
-}
-
-// Delete removes obj and all it's children from the database.
-func (obj *ConfigConfig) Delete(ctx context.Context) error {
-	err := obj.client.Config().DeleteConfigByName(ctx, obj.GetName())
-	if err != nil {
-		return err
-	}
-	obj.Config = nil
-	return nil
-}
-
-// Update updates spec of object in database. Children and Link can not be updated using this function.
-func (obj *ConfigConfig) Update(ctx context.Context) error {
-	result, err := obj.client.Config().UpdateConfigByName(ctx, obj.Config)
-	if err != nil {
-		return err
-	}
-	obj.Config = result.Config
-	return nil
-}
-
-// GetConfigConfig calculates the hashed name based on parents and
-// returns given object
-func (c *Clientset) GetConfigConfig(ctx context.Context) (result *ConfigConfig, err error) {
-	hashedName := helper.GetHashedName("configs.config.tsm-tanzu.vmware.com", nil, helper.DEFAULT_KEY)
-	return c.Config().GetConfigByName(ctx, hashedName)
-}
-
-func (c *Clientset) ConfigConfig() *configConfigTsmV1Chainer {
-	parentLabels := make(map[string]string)
-	parentLabels["configs.config.tsm-tanzu.vmware.com"] = helper.DEFAULT_KEY
-	return &configConfigTsmV1Chainer{
-		client:       c,
-		name:         helper.DEFAULT_KEY,
-		parentLabels: parentLabels,
-	}
-}
-
-// AddConfigConfig calculates hashed name of the object based on
-// parents names and creates it. objToCreate.Name is changed to the hashed name. Original name (helper.DEFAULT_KEY) is preserved in
-// nexus/display_name label and can be obtained using DisplayName() method.
-func (c *Clientset) AddConfigConfig(ctx context.Context,
-	objToCreate *baseconfigtsmtanzuvmwarecomv1.Config) (result *ConfigConfig, err error) {
-	if objToCreate.GetName() == "" {
-		objToCreate.SetName(helper.DEFAULT_KEY)
-	}
-	if objToCreate.GetName() != helper.DEFAULT_KEY {
-		return nil, NewSingletonNameError(objToCreate.GetName())
-	}
-	if objToCreate.Labels == nil {
-		objToCreate.Labels = map[string]string{}
-	}
-	if objToCreate.Labels[common.IS_NAME_HASHED_LABEL] != "true" {
-		objToCreate.Labels[common.DISPLAY_NAME_LABEL] = objToCreate.GetName()
-		objToCreate.Labels[common.IS_NAME_HASHED_LABEL] = "true"
-		hashedName := helper.GetHashedName(objToCreate.CRDName(), nil, objToCreate.GetName())
-		objToCreate.Name = hashedName
-	}
-	return c.Config().CreateConfigByName(ctx, objToCreate)
-}
-
-// DeleteConfigConfig calculates hashedName of object based on
-// parents and deletes given object
-func (c *Clientset) DeleteConfigConfig(ctx context.Context) (err error) {
-	hashedName := helper.GetHashedName("configs.config.tsm-tanzu.vmware.com", nil, helper.DEFAULT_KEY)
-	return c.Config().DeleteConfigByName(ctx, hashedName)
-}
-
-type configConfigTsmV1Chainer struct {
-	client       *Clientset
-	name         string
-	parentLabels map[string]string
-}
-
-func (c *configConfigTsmV1Chainer) Subscribe() {
-	key := "configs.config.tsm-tanzu.vmware.com"
-	if _, ok := subscriptionMap.Load(key); !ok {
-		informer := informerconfigtsmtanzuvmwarecomv1.NewConfigInformer(c.client.baseClient, 0, cache.Indexers{})
-		subscribe(key, informer)
-	}
-}
-
-func (c *configConfigTsmV1Chainer) Unsubscribe() {
-	key := "configs.config.tsm-tanzu.vmware.com"
-	if s, ok := subscriptionMap.Load(key); ok {
-		close(s.(subscription).stop)
-		subscriptionMap.Delete(key)
-	}
-}
-
-func (c *configConfigTsmV1Chainer) IsSubscribed() bool {
-	key := "configs.config.tsm-tanzu.vmware.com"
-	_, ok := subscriptionMap.Load(key)
-	return ok
-}
-
-func (c *configConfigTsmV1Chainer) RegisterEventHandler(addCB func(obj *ConfigConfig), updateCB func(oldObj, newObj *ConfigConfig), deleteCB func(obj *ConfigConfig)) (cache.ResourceEventHandlerRegistration, error) {
-	fmt.Println("RegisterEventHandler for ConfigConfig")
-	var (
-		registrationId cache.ResourceEventHandlerRegistration
-		err            error
-		informer       cache.SharedIndexInformer
-	)
-	key := "configs.config.tsm-tanzu.vmware.com"
-	stopper := make(chan struct{})
-	if s, ok := subscriptionMap.Load(key); ok {
-		fmt.Println("Informer exists for ConfigConfig")
-		sub := s.(subscription)
-		informer = sub.informer
-	} else {
-		fmt.Println("Informer doesn't exists for ConfigConfig, so creating a new one")
-		informer = informerconfigtsmtanzuvmwarecomv1.NewConfigInformer(c.client.baseClient, 0, cache.Indexers{})
-		go informer.Run(stopper)
-		subscribe(key, informer)
-	}
-	registrationId, err = informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
-		AddFunc: func(obj interface{}) {
-			nc := &ConfigConfig{
-				client: c.client,
-				Config: obj.(*baseconfigtsmtanzuvmwarecomv1.Config),
-			}
-
-			addCB(nc)
-		},
-
-		UpdateFunc: func(oldObj, newObj interface{}) {
-			oldData := &ConfigConfig{
-				client: c.client,
-				Config: oldObj.(*baseconfigtsmtanzuvmwarecomv1.Config),
-			}
-			newData := &ConfigConfig{
-				client: c.client,
-				Config: newObj.(*baseconfigtsmtanzuvmwarecomv1.Config),
-			}
-			updateCB(oldData, newData)
-		},
-
-		DeleteFunc: func(obj interface{}) {
-			nc := &ConfigConfig{
-				client: c.client,
-				Config: obj.(*baseconfigtsmtanzuvmwarecomv1.Config),
-			}
-
-			deleteCB(nc)
-		},
-	})
-	return registrationId, err
-}
-
-func (c *configConfigTsmV1Chainer) RegisterAddCallback(cbfn func(obj *ConfigConfig)) (cache.ResourceEventHandlerRegistration, error) {
-	fmt.Println("ConfigConfig -->  RegisterAddCallback!")
-	var (
-		registrationId cache.ResourceEventHandlerRegistration
-		err            error
-	)
-	key := "configs.config.tsm-tanzu.vmware.com"
-	stopper := make(chan struct{})
-	if s, ok := subscriptionMap.Load(key); ok {
-		fmt.Println("[ConfigConfig] ---SUBSCRIBE-INFORMER---->")
-		sub := s.(subscription)
-		registrationId, err = sub.informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
-			AddFunc: func(obj interface{}) {
-				nc := &ConfigConfig{
-					client: c.client,
-					Config: obj.(*baseconfigtsmtanzuvmwarecomv1.Config),
-				}
-
-				cbfn(nc)
-			},
-		})
-	} else {
-		fmt.Println("[ConfigConfig] ---NEW-INFORMER---->")
-		informer := informerconfigtsmtanzuvmwarecomv1.NewConfigInformer(c.client.baseClient, 0, cache.Indexers{})
-		registrationId, err = informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
-			AddFunc: func(obj interface{}) {
-				nc := &ConfigConfig{
-					client: c.client,
-					Config: obj.(*baseconfigtsmtanzuvmwarecomv1.Config),
-				}
-
-				cbfn(nc)
-			},
-		})
-		go informer.Run(stopper)
-	}
-	return registrationId, err
-}
-
-func (c *configConfigTsmV1Chainer) RegisterUpdateCallback(cbfn func(oldObj, newObj *ConfigConfig)) (cache.ResourceEventHandlerRegistration, error) {
-	fmt.Println("ConfigConfig -->  RegisterUpdateCallback!")
-	var (
-		registrationId cache.ResourceEventHandlerRegistration
-		err            error
-	)
-	key := "configs.config.tsm-tanzu.vmware.com"
-	stopper := make(chan struct{})
-	if s, ok := subscriptionMap.Load(key); ok {
-		fmt.Println("[ConfigConfig] ---SUBSCRIBE-INFORMER---->")
-		sub := s.(subscription)
-		registrationId, err = sub.informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
-			UpdateFunc: func(oldObj, newObj interface{}) {
-				oldData := &ConfigConfig{
-					client: c.client,
-					Config: oldObj.(*baseconfigtsmtanzuvmwarecomv1.Config),
-				}
-				newData := &ConfigConfig{
-					client: c.client,
-					Config: newObj.(*baseconfigtsmtanzuvmwarecomv1.Config),
-				}
-				cbfn(oldData, newData)
-			},
-		})
-	} else {
-		fmt.Println("[ConfigConfig] ---NEW-INFORMER---->")
-		informer := informerconfigtsmtanzuvmwarecomv1.NewConfigInformer(c.client.baseClient, 0, cache.Indexers{})
-		registrationId, err = informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
-			UpdateFunc: func(oldObj, newObj interface{}) {
-				oldData := &ConfigConfig{
-					client: c.client,
-					Config: oldObj.(*baseconfigtsmtanzuvmwarecomv1.Config),
-				}
-				newData := &ConfigConfig{
-					client: c.client,
-					Config: newObj.(*baseconfigtsmtanzuvmwarecomv1.Config),
-				}
-				cbfn(oldData, newData)
-			},
-		})
-		go informer.Run(stopper)
-	}
-	return registrationId, err
-}
-
-func (c *configConfigTsmV1Chainer) RegisterDeleteCallback(cbfn func(obj *ConfigConfig)) (cache.ResourceEventHandlerRegistration, error) {
-	fmt.Println("ConfigConfig -->  RegisterDeleteCallback!")
-	var (
-		registrationId cache.ResourceEventHandlerRegistration
-		err            error
-	)
-	key := "configs.config.tsm-tanzu.vmware.com"
-	stopper := make(chan struct{})
-	if s, ok := subscriptionMap.Load(key); ok {
-		fmt.Println("[ConfigConfig] ---SUBSCRIBE-INFORMER---->")
-		sub := s.(subscription)
-		registrationId, err = sub.informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
-			DeleteFunc: func(obj interface{}) {
-				nc := &ConfigConfig{
-					client: c.client,
-					Config: obj.(*baseconfigtsmtanzuvmwarecomv1.Config),
-				}
-
-				cbfn(nc)
-			},
-		})
-	} else {
-		fmt.Println("[ConfigConfig] ---NEW-INFORMER---->")
-		informer := informerconfigtsmtanzuvmwarecomv1.NewConfigInformer(c.client.baseClient, 0, cache.Indexers{})
-		registrationId, err = informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
-			DeleteFunc: func(obj interface{}) {
-				nc := &ConfigConfig{
-					client: c.client,
-					Config: obj.(*baseconfigtsmtanzuvmwarecomv1.Config),
-				}
-
-				cbfn(nc)
-			},
-		})
-		go informer.Run(stopper)
-	}
-	return registrationId, err
-}
-
-// GetProjectByName returns object stored in the database under the hashedName which is a hash of display
-// name and parents names. Use it when you know hashed name of object.
-func (group *ProjectTsmV1) GetProjectByName(ctx context.Context, hashedName string) (*ProjectProject, error) {
-	key := "projects.project.tsm-tanzu.vmware.com"
-	if s, ok := subscriptionMap.Load(key); ok {
-		item, exists, err := s.(subscription).informer.GetStore().GetByKey(hashedName)
-		if !exists {
-			return nil, err
-		}
-
-		result, _ := item.(*baseprojecttsmtanzuvmwarecomv1.Project)
-		return &ProjectProject{
-			client:  group.client,
-			Project: result,
-		}, nil
-	} else {
-		retryCount := 12
-		for {
-			result, err := group.client.baseClient.
-				ProjectTsmV1().
-				Projects().Get(ctx, hashedName, metav1.GetOptions{})
-			if err != nil {
-				log.Errorf("Failed to Get Projects: %+v", err)
-				if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded) {
-					log.Errorf("[Retry Count: %d ] %+v", retryCount, err)
-					if retryCount == 0 {
-						log.Error("Max Retry exceed on Get Projects")
-						return nil, err
-					}
-					retryCount -= 1
-					time.Sleep(5 * time.Second)
-				} else {
-					log.Errorf("Unexpected Error: %+v", err)
-					return nil, err
-				}
-			}
-			return &ProjectProject{
-				client:  group.client,
-				Project: result,
-			}, nil
-		}
-	}
-}
-
-// ForceReadProjectByName read object directly from the database under the hashedName which is a hash of display
-// name and parents names. Use it when you know hashed name of object.
-func (group *ProjectTsmV1) ForceReadProjectByName(ctx context.Context, hashedName string) (*ProjectProject, error) {
-	result, err := group.client.baseClient.
-		ProjectTsmV1().
-		Projects().Get(ctx, hashedName, metav1.GetOptions{})
-	if err != nil {
-		return nil, err
-	}
-
-	return &ProjectProject{
-		client:  group.client,
-		Project: result,
-	}, nil
-}
-
-// DeleteProjectByName deletes object stored in the database under the hashedName which is a hash of
-// display name and parents names. Use it when you know hashed name of object.
-func (group *ProjectTsmV1) DeleteProjectByName(ctx context.Context, hashedName string) (err error) {
-
-	result, err := group.client.baseClient.
-		ProjectTsmV1().
-		Projects().Get(ctx, hashedName, metav1.GetOptions{})
-	if err != nil {
-		if customerrors.Is(err, context.DeadlineExceeded) {
-			log.Errorf("context deadline exceeded, on creating GNS: %+v", hashedName)
-			return context.DeadlineExceeded
-		} else if customerrors.Is(err, context.Canceled) {
-			log.Errorf("context cancelled, on creating GNS: %+v", hashedName)
-			return context.Canceled
-		} else {
-			log.Errorf("Unexpected Error: %+v", err)
-			return err
-		}
-	}
-
-	if result.Spec.ConfigGvk != nil {
-		err := group.client.
-			Config().
-			DeleteConfigByName(ctx, result.Spec.ConfigGvk.Name)
-		if err != nil && !errors.IsNotFound(err) {
-			return err
-		}
-	}
-
-	err = group.client.baseClient.
-		ProjectTsmV1().
-		Projects().Delete(ctx, hashedName, metav1.DeleteOptions{})
-	if err != nil {
-		return err
-	}
-
-	return
-}
-
-// CreateProjectByName creates object in the database without hashing the name.
-// Use it directly ONLY when objToCreate.Name is hashed name of the object.
-func (group *ProjectTsmV1) CreateProjectByName(ctx context.Context,
-	objToCreate *baseprojecttsmtanzuvmwarecomv1.Project) (*ProjectProject, error) {
-	if objToCreate.GetLabels() == nil {
-		objToCreate.Labels = make(map[string]string)
-	}
-	if _, ok := objToCreate.Labels[common.DISPLAY_NAME_LABEL]; !ok {
-		objToCreate.Labels[common.DISPLAY_NAME_LABEL] = objToCreate.GetName()
-	}
-	if objToCreate.Labels[common.DISPLAY_NAME_LABEL] == "" {
-		objToCreate.Labels[common.DISPLAY_NAME_LABEL] = helper.DEFAULT_KEY
-	}
-	if objToCreate.Labels[common.DISPLAY_NAME_LABEL] != helper.DEFAULT_KEY {
-		return nil, NewSingletonNameError(objToCreate.Labels[common.DISPLAY_NAME_LABEL])
-	}
-
-	objToCreate.Spec.ConfigGvk = nil
-
-	result, err := group.client.baseClient.
-		ProjectTsmV1().
-		Projects().Create(ctx, objToCreate, metav1.CreateOptions{})
-	if err != nil {
-		if customerrors.Is(err, context.DeadlineExceeded) {
-			log.Errorf("context deadline exceeded, on creating GNS: %+v", objToCreate)
-			return nil, context.DeadlineExceeded
-		} else if customerrors.Is(err, context.Canceled) {
-			log.Errorf("context cancelled, on creating GNS: %+v", objToCreate)
-			return nil, context.Canceled
-		} else {
-			log.Errorf("Unexpected Error: %+v", err)
-			return nil, err
-		}
-	}
-
-	return &ProjectProject{
-		client:  group.client,
-		Project: result,
-	}, nil
-}
-
-// UpdateProjectByName updates object stored in the database under the hashedName which is a hash of
-// display name and parents names.
-func (group *ProjectTsmV1) UpdateProjectByName(ctx context.Context,
-	objToUpdate *baseprojecttsmtanzuvmwarecomv1.Project) (*ProjectProject, error) {
-	if objToUpdate.Labels[common.DISPLAY_NAME_LABEL] != helper.DEFAULT_KEY {
-		return nil, NewSingletonNameError(objToUpdate.Labels[common.DISPLAY_NAME_LABEL])
-	}
-	// ResourceVersion must be set for update
-	if objToUpdate.ResourceVersion == "" {
-		current, err := group.client.baseClient.
-			ProjectTsmV1().
-			Projects().Get(ctx, objToUpdate.GetName(), metav1.GetOptions{})
-		if err != nil {
-			if customerrors.Is(err, context.DeadlineExceeded) {
-				log.Errorf("context deadline exceeded, on creating GNS: %+v", objToUpdate)
-				return nil, context.DeadlineExceeded
-			} else if customerrors.Is(err, context.Canceled) {
-				log.Errorf("context cancelled, on creating GNS: %+v", objToUpdate)
-				return nil, context.Canceled
-			} else {
-				log.Errorf("Unexpected Error: %+v", err)
-				return nil, err
-			}
-		}
-		objToUpdate.ResourceVersion = current.ResourceVersion
-	}
-
-	var patch Patch
-	patch = append(patch, PatchOp{
-		Op:    "replace",
-		Path:  "/metadata",
-		Value: objToUpdate.ObjectMeta,
-	})
-
-	patchValueKey :=
-		objToUpdate.Spec.Key
-	patchOpKey := PatchOp{
-		Op:    "replace",
-		Path:  "/spec/key",
-		Value: patchValueKey,
-	}
-	patch = append(patch, patchOpKey)
-
-	patchValueField1 :=
-		objToUpdate.Spec.Field1
-	patchOpField1 := PatchOp{
-		Op:    "replace",
-		Path:  "/spec/field1",
-		Value: patchValueField1,
-	}
-	patch = append(patch, patchOpField1)
-
-	patchValueField2 :=
-		objToUpdate.Spec.Field2
-	patchOpField2 := PatchOp{
-		Op:    "replace",
-		Path:  "/spec/field2",
-		Value: patchValueField2,
-	}
-	patch = append(patch, patchOpField2)
-
-	marshaled, err := patch.Marshal()
-	if err != nil {
-		return nil, err
-	}
-	result, err := group.client.baseClient.
-		ProjectTsmV1().
-		Projects().Patch(ctx, objToUpdate.GetName(), types.JSONPatchType, marshaled, metav1.PatchOptions{}, "")
-	if err != nil {
-		return nil, err
-	}
-
-	return &ProjectProject{
-		client:  group.client,
-		Project: result,
-	}, nil
-}
-
-// ListProjects returns slice of all existing objects of this type. Selectors can be provided in opts parameter.
-func (group *ProjectTsmV1) ListProjects(ctx context.Context,
-	opts metav1.ListOptions) (result []*ProjectProject, err error) {
-	key := "projects.project.tsm-tanzu.vmware.com"
-	if s, ok := subscriptionMap.Load(key); ok {
-		items := s.(subscription).informer.GetStore().List()
-		result = make([]*ProjectProject, len(items))
-		for k, v := range items {
-			item, _ := v.(*baseprojecttsmtanzuvmwarecomv1.Project)
-			result[k] = &ProjectProject{
-				client:  group.client,
-				Project: item,
-			}
-		}
-	} else {
-		list, err := group.client.baseClient.ProjectTsmV1().
-			Projects().List(ctx, opts)
-		if err != nil {
-			return nil, err
-		}
-		result = make([]*ProjectProject, len(list.Items))
-		for k, v := range list.Items {
-			item := v
-			result[k] = &ProjectProject{
-				client:  group.client,
-				Project: &item,
-			}
-		}
-	}
-	return
-}
-
-type ProjectProject struct {
-	client *Clientset
-	*baseprojecttsmtanzuvmwarecomv1.Project
-}
-
-// Delete removes obj and all it's children from the database.
-func (obj *ProjectProject) Delete(ctx context.Context) error {
-	err := obj.client.Project().DeleteProjectByName(ctx, obj.GetName())
-	if err != nil {
-		return err
-	}
-	obj.Project = nil
-	return nil
-}
-
-// Update updates spec of object in database. Children and Link can not be updated using this function.
-func (obj *ProjectProject) Update(ctx context.Context) error {
-	result, err := obj.client.Project().UpdateProjectByName(ctx, obj.Project)
-	if err != nil {
-		return err
-	}
-	obj.Project = result.Project
-	return nil
-}
-
-// GetProjectProject calculates the hashed name based on parents and
-// returns given object
-func (c *Clientset) GetProjectProject(ctx context.Context) (result *ProjectProject, err error) {
-	hashedName := helper.GetHashedName("projects.project.tsm-tanzu.vmware.com", nil, helper.DEFAULT_KEY)
-	return c.Project().GetProjectByName(ctx, hashedName)
-}
-
-func (c *Clientset) ProjectProject() *projectProjectTsmV1Chainer {
-	parentLabels := make(map[string]string)
-	parentLabels["projects.project.tsm-tanzu.vmware.com"] = helper.DEFAULT_KEY
-	return &projectProjectTsmV1Chainer{
-		client:       c,
-		name:         helper.DEFAULT_KEY,
-		parentLabels: parentLabels,
-	}
-}
-
-// AddProjectProject calculates hashed name of the object based on
-// parents names and creates it. objToCreate.Name is changed to the hashed name. Original name (helper.DEFAULT_KEY) is preserved in
-// nexus/display_name label and can be obtained using DisplayName() method.
-func (c *Clientset) AddProjectProject(ctx context.Context,
-	objToCreate *baseprojecttsmtanzuvmwarecomv1.Project) (result *ProjectProject, err error) {
-	if objToCreate.GetName() == "" {
-		objToCreate.SetName(helper.DEFAULT_KEY)
-	}
-	if objToCreate.GetName() != helper.DEFAULT_KEY {
-		return nil, NewSingletonNameError(objToCreate.GetName())
-	}
-	if objToCreate.Labels == nil {
-		objToCreate.Labels = map[string]string{}
-	}
-	if objToCreate.Labels[common.IS_NAME_HASHED_LABEL] != "true" {
-		objToCreate.Labels[common.DISPLAY_NAME_LABEL] = objToCreate.GetName()
-		objToCreate.Labels[common.IS_NAME_HASHED_LABEL] = "true"
-		hashedName := helper.GetHashedName(objToCreate.CRDName(), nil, objToCreate.GetName())
-		objToCreate.Name = hashedName
-	}
-	return c.Project().CreateProjectByName(ctx, objToCreate)
-}
-
-// DeleteProjectProject calculates hashedName of object based on
-// parents and deletes given object
-func (c *Clientset) DeleteProjectProject(ctx context.Context) (err error) {
-	hashedName := helper.GetHashedName("projects.project.tsm-tanzu.vmware.com", nil, helper.DEFAULT_KEY)
-	return c.Project().DeleteProjectByName(ctx, hashedName)
-}
-
-// GetConfig returns child of given type
-func (obj *ProjectProject) GetConfig(ctx context.Context) (
-	result *ConfigConfig, err error) {
-	if obj.Spec.ConfigGvk == nil {
-		return nil, NewChildNotFound(obj.DisplayName(), "Project.Project", "Config")
-	}
-	return obj.client.Config().GetConfigByName(ctx, obj.Spec.ConfigGvk.Name)
-}
-
-// AddConfig calculates hashed name of the child to create based on objToCreate.Name
-// and parents names and creates it. objToCreate.Name is changed to the hashed name. Original name is preserved in
-// nexus/display_name label and can be obtained using DisplayName() method.
-func (obj *ProjectProject) AddConfig(ctx context.Context,
-	objToCreate *baseconfigtsmtanzuvmwarecomv1.Config) (result *ConfigConfig, err error) {
-	if objToCreate.Labels == nil {
-		objToCreate.Labels = map[string]string{}
-	}
-	for _, v := range helper.GetCRDParentsMap()["projects.project.tsm-tanzu.vmware.com"] {
-		objToCreate.Labels[v] = obj.Labels[v]
-	}
-	objToCreate.Labels["projects.project.tsm-tanzu.vmware.com"] = obj.DisplayName()
-	if objToCreate.Labels[common.IS_NAME_HASHED_LABEL] != "true" {
-		if objToCreate.GetName() == "" {
-			objToCreate.SetName(helper.DEFAULT_KEY)
-		}
-		if objToCreate.GetName() != helper.DEFAULT_KEY {
-			return nil, NewSingletonNameError(objToCreate.GetName())
-		}
-		objToCreate.Labels[common.DISPLAY_NAME_LABEL] = objToCreate.GetName()
-		objToCreate.Labels[common.IS_NAME_HASHED_LABEL] = "true"
-		hashedName := helper.GetHashedName(objToCreate.CRDName(), objToCreate.Labels, objToCreate.GetName())
-		objToCreate.Name = hashedName
-	}
-	result, err = obj.client.Config().CreateConfigByName(ctx, objToCreate)
-	updatedObj, getErr := obj.client.Project().GetProjectByName(ctx, obj.GetName())
-	if getErr == nil {
-		obj.Project = updatedObj.Project
-	}
-	return
-}
-
-// DeleteConfig calculates hashed name of the child to delete based on displayName
-// and parents names and deletes it.
-
-func (obj *ProjectProject) DeleteConfig(ctx context.Context) (err error) {
-	if obj.Spec.ConfigGvk != nil {
-		err = obj.client.
-			Config().DeleteConfigByName(ctx, obj.Spec.ConfigGvk.Name)
-		if err != nil {
-			return err
-		}
-	}
-	updatedObj, err := obj.client.
-		Project().GetProjectByName(ctx, obj.GetName())
-	if err == nil {
-		obj.Project = updatedObj.Project
-	}
-	return
-}
-
-type projectProjectTsmV1Chainer struct {
-	client       *Clientset
-	name         string
-	parentLabels map[string]string
-}
-
-func (c *projectProjectTsmV1Chainer) Subscribe() {
-	key := "projects.project.tsm-tanzu.vmware.com"
-	if _, ok := subscriptionMap.Load(key); !ok {
-		informer := informerprojecttsmtanzuvmwarecomv1.NewProjectInformer(c.client.baseClient, 0, cache.Indexers{})
-		subscribe(key, informer)
-	}
-}
-
-func (c *projectProjectTsmV1Chainer) Unsubscribe() {
-	key := "projects.project.tsm-tanzu.vmware.com"
-	if s, ok := subscriptionMap.Load(key); ok {
-		close(s.(subscription).stop)
-		subscriptionMap.Delete(key)
-	}
-}
-
-func (c *projectProjectTsmV1Chainer) IsSubscribed() bool {
-	key := "projects.project.tsm-tanzu.vmware.com"
-	_, ok := subscriptionMap.Load(key)
-	return ok
-}
-
-func (c *projectProjectTsmV1Chainer) RegisterEventHandler(addCB func(obj *ProjectProject), updateCB func(oldObj, newObj *ProjectProject), deleteCB func(obj *ProjectProject)) (cache.ResourceEventHandlerRegistration, error) {
-	fmt.Println("RegisterEventHandler for ProjectProject")
-	var (
-		registrationId cache.ResourceEventHandlerRegistration
-		err            error
-		informer       cache.SharedIndexInformer
-	)
-	key := "projects.project.tsm-tanzu.vmware.com"
-	stopper := make(chan struct{})
-	if s, ok := subscriptionMap.Load(key); ok {
-		fmt.Println("Informer exists for ProjectProject")
-		sub := s.(subscription)
-		informer = sub.informer
-	} else {
-		fmt.Println("Informer doesn't exists for ProjectProject, so creating a new one")
-		informer = informerprojecttsmtanzuvmwarecomv1.NewProjectInformer(c.client.baseClient, 0, cache.Indexers{})
-		go informer.Run(stopper)
-		subscribe(key, informer)
-	}
-	registrationId, err = informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
-		AddFunc: func(obj interface{}) {
-			nc := &ProjectProject{
-				client:  c.client,
-				Project: obj.(*baseprojecttsmtanzuvmwarecomv1.Project),
-			}
-
-			addCB(nc)
-		},
-
-		UpdateFunc: func(oldObj, newObj interface{}) {
-			oldData := &ProjectProject{
-				client:  c.client,
-				Project: oldObj.(*baseprojecttsmtanzuvmwarecomv1.Project),
-			}
-			newData := &ProjectProject{
-				client:  c.client,
-				Project: newObj.(*baseprojecttsmtanzuvmwarecomv1.Project),
-			}
-			updateCB(oldData, newData)
-		},
-
-		DeleteFunc: func(obj interface{}) {
-			nc := &ProjectProject{
-				client:  c.client,
-				Project: obj.(*baseprojecttsmtanzuvmwarecomv1.Project),
-			}
-
-			deleteCB(nc)
-		},
-	})
-	return registrationId, err
-}
-
-func (c *projectProjectTsmV1Chainer) RegisterAddCallback(cbfn func(obj *ProjectProject)) (cache.ResourceEventHandlerRegistration, error) {
-	fmt.Println("ProjectProject -->  RegisterAddCallback!")
-	var (
-		registrationId cache.ResourceEventHandlerRegistration
-		err            error
-	)
-	key := "projects.project.tsm-tanzu.vmware.com"
-	stopper := make(chan struct{})
-	if s, ok := subscriptionMap.Load(key); ok {
-		fmt.Println("[ProjectProject] ---SUBSCRIBE-INFORMER---->")
-		sub := s.(subscription)
-		registrationId, err = sub.informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
-			AddFunc: func(obj interface{}) {
-				nc := &ProjectProject{
-					client:  c.client,
-					Project: obj.(*baseprojecttsmtanzuvmwarecomv1.Project),
-				}
-
-				cbfn(nc)
-			},
-		})
-	} else {
-		fmt.Println("[ProjectProject] ---NEW-INFORMER---->")
-		informer := informerprojecttsmtanzuvmwarecomv1.NewProjectInformer(c.client.baseClient, 0, cache.Indexers{})
-		registrationId, err = informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
-			AddFunc: func(obj interface{}) {
-				nc := &ProjectProject{
-					client:  c.client,
-					Project: obj.(*baseprojecttsmtanzuvmwarecomv1.Project),
-				}
-
-				cbfn(nc)
-			},
-		})
-		go informer.Run(stopper)
-	}
-	return registrationId, err
-}
-
-func (c *projectProjectTsmV1Chainer) RegisterUpdateCallback(cbfn func(oldObj, newObj *ProjectProject)) (cache.ResourceEventHandlerRegistration, error) {
-	fmt.Println("ProjectProject -->  RegisterUpdateCallback!")
-	var (
-		registrationId cache.ResourceEventHandlerRegistration
-		err            error
-	)
-	key := "projects.project.tsm-tanzu.vmware.com"
-	stopper := make(chan struct{})
-	if s, ok := subscriptionMap.Load(key); ok {
-		fmt.Println("[ProjectProject] ---SUBSCRIBE-INFORMER---->")
-		sub := s.(subscription)
-		registrationId, err = sub.informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
-			UpdateFunc: func(oldObj, newObj interface{}) {
-				oldData := &ProjectProject{
-					client:  c.client,
-					Project: oldObj.(*baseprojecttsmtanzuvmwarecomv1.Project),
-				}
-				newData := &ProjectProject{
-					client:  c.client,
-					Project: newObj.(*baseprojecttsmtanzuvmwarecomv1.Project),
-				}
-				cbfn(oldData, newData)
-			},
-		})
-	} else {
-		fmt.Println("[ProjectProject] ---NEW-INFORMER---->")
-		informer := informerprojecttsmtanzuvmwarecomv1.NewProjectInformer(c.client.baseClient, 0, cache.Indexers{})
-		registrationId, err = informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
-			UpdateFunc: func(oldObj, newObj interface{}) {
-				oldData := &ProjectProject{
-					client:  c.client,
-					Project: oldObj.(*baseprojecttsmtanzuvmwarecomv1.Project),
-				}
-				newData := &ProjectProject{
-					client:  c.client,
-					Project: newObj.(*baseprojecttsmtanzuvmwarecomv1.Project),
-				}
-				cbfn(oldData, newData)
-			},
-		})
-		go informer.Run(stopper)
-	}
-	return registrationId, err
-}
-
-func (c *projectProjectTsmV1Chainer) RegisterDeleteCallback(cbfn func(obj *ProjectProject)) (cache.ResourceEventHandlerRegistration, error) {
-	fmt.Println("ProjectProject -->  RegisterDeleteCallback!")
-	var (
-		registrationId cache.ResourceEventHandlerRegistration
-		err            error
-	)
-	key := "projects.project.tsm-tanzu.vmware.com"
-	stopper := make(chan struct{})
-	if s, ok := subscriptionMap.Load(key); ok {
-		fmt.Println("[ProjectProject] ---SUBSCRIBE-INFORMER---->")
-		sub := s.(subscription)
-		registrationId, err = sub.informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
-			DeleteFunc: func(obj interface{}) {
-				nc := &ProjectProject{
-					client:  c.client,
-					Project: obj.(*baseprojecttsmtanzuvmwarecomv1.Project),
-				}
-
-				cbfn(nc)
-			},
-		})
-	} else {
-		fmt.Println("[ProjectProject] ---NEW-INFORMER---->")
-		informer := informerprojecttsmtanzuvmwarecomv1.NewProjectInformer(c.client.baseClient, 0, cache.Indexers{})
-		registrationId, err = informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
-			DeleteFunc: func(obj interface{}) {
-				nc := &ProjectProject{
-					client:  c.client,
-					Project: obj.(*baseprojecttsmtanzuvmwarecomv1.Project),
-				}
-
-				cbfn(nc)
-			},
-		})
-		go informer.Run(stopper)
-	}
-	return registrationId, err
-}
-
-func (c *projectProjectTsmV1Chainer) Config() *configConfigTsmV1Chainer {
-	parentLabels := c.parentLabels
-	parentLabels["configs.config.tsm-tanzu.vmware.com"] = helper.DEFAULT_KEY
-	return &configConfigTsmV1Chainer{
-		client:       c.client,
-		name:         helper.DEFAULT_KEY,
-		parentLabels: parentLabels,
-	}
-}
-
-// GetConfig calculates hashed name of the object based on it's parents and returns the object
-func (c *projectProjectTsmV1Chainer) GetConfig(ctx context.Context) (result *ConfigConfig, err error) {
-	hashedName := helper.GetHashedName("configs.config.tsm-tanzu.vmware.com", c.parentLabels, helper.DEFAULT_KEY)
-	return c.client.Config().GetConfigByName(ctx, hashedName)
-}
-
-// AddConfig calculates hashed name of the child to create based on parents names and creates it.
-// objToCreate.Name is changed to the hashed name. Original name ('default') is preserved in
-// nexus/display_name label and can be obtained using DisplayName() method.
-func (c *projectProjectTsmV1Chainer) AddConfig(ctx context.Context,
-	objToCreate *baseconfigtsmtanzuvmwarecomv1.Config) (result *ConfigConfig, err error) {
-	if objToCreate.GetName() == "" {
-		objToCreate.SetName(helper.DEFAULT_KEY)
-	}
-	if objToCreate.GetName() != helper.DEFAULT_KEY {
-		return nil, NewSingletonNameError(objToCreate.GetName())
-	}
-	if objToCreate.Labels == nil {
-		objToCreate.Labels = map[string]string{}
-	}
-	for k, v := range c.parentLabels {
-		objToCreate.Labels[k] = v
-	}
-	if objToCreate.Labels[common.IS_NAME_HASHED_LABEL] != "true" {
-		objToCreate.Labels[common.DISPLAY_NAME_LABEL] = objToCreate.GetName()
-		objToCreate.Labels[common.IS_NAME_HASHED_LABEL] = "true"
-		hashedName := helper.GetHashedName("configs.config.tsm-tanzu.vmware.com", c.parentLabels, objToCreate.GetName())
-		objToCreate.Name = hashedName
-	}
-	return c.client.Config().CreateConfigByName(ctx, objToCreate)
-}
-
-// DeleteConfig calculates hashed name of the child to delete based on displayName
-// and parents names and deletes it.
-func (c *projectProjectTsmV1Chainer) DeleteConfig(ctx context.Context, name string) (err error) {
-	if c.parentLabels == nil {
-		c.parentLabels = map[string]string{}
-	}
-	c.parentLabels[common.IS_NAME_HASHED_LABEL] = "true"
-	hashedName := helper.GetHashedName("configs.config.tsm-tanzu.vmware.com", c.parentLabels, name)
-	return c.client.Config().DeleteConfigByName(ctx, hashedName)
 }
 
 // GetRootByName returns object stored in the database under the hashedName which is a hash of display
@@ -1920,4 +782,1854 @@ func (c *rootRootTsmV1Chainer) DeleteProject(ctx context.Context, name string) (
 	c.parentLabels[common.IS_NAME_HASHED_LABEL] = "true"
 	hashedName := helper.GetHashedName("projects.project.tsm-tanzu.vmware.com", c.parentLabels, name)
 	return c.client.Project().DeleteProjectByName(ctx, hashedName)
+}
+
+// GetConfigByName returns object stored in the database under the hashedName which is a hash of display
+// name and parents names. Use it when you know hashed name of object.
+func (group *ConfigTsmV1) GetConfigByName(ctx context.Context, hashedName string) (*ConfigConfig, error) {
+	key := "configs.config.tsm-tanzu.vmware.com"
+	if s, ok := subscriptionMap.Load(key); ok {
+		item, exists, err := s.(subscription).informer.GetStore().GetByKey(hashedName)
+		if !exists {
+			return nil, err
+		}
+
+		result, _ := item.(*baseconfigtsmtanzuvmwarecomv1.Config)
+		return &ConfigConfig{
+			client: group.client,
+			Config: result,
+		}, nil
+	} else {
+		retryCount := 12
+		for {
+			result, err := group.client.baseClient.
+				ConfigTsmV1().
+				Configs().Get(ctx, hashedName, metav1.GetOptions{})
+			if err != nil {
+				log.Errorf("Failed to Get Configs: %+v", err)
+				if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded) {
+					log.Errorf("[Retry Count: %d ] %+v", retryCount, err)
+					if retryCount == 0 {
+						log.Error("Max Retry exceed on Get Configs")
+						return nil, err
+					}
+					retryCount -= 1
+					time.Sleep(5 * time.Second)
+				} else {
+					log.Errorf("Unexpected Error: %+v", err)
+					return nil, err
+				}
+			}
+			return &ConfigConfig{
+				client: group.client,
+				Config: result,
+			}, nil
+		}
+	}
+}
+
+// ForceReadConfigByName read object directly from the database under the hashedName which is a hash of display
+// name and parents names. Use it when you know hashed name of object.
+func (group *ConfigTsmV1) ForceReadConfigByName(ctx context.Context, hashedName string) (*ConfigConfig, error) {
+	result, err := group.client.baseClient.
+		ConfigTsmV1().
+		Configs().Get(ctx, hashedName, metav1.GetOptions{})
+	if err != nil {
+		return nil, err
+	}
+
+	return &ConfigConfig{
+		client: group.client,
+		Config: result,
+	}, nil
+}
+
+// DeleteConfigByName deletes object stored in the database under the hashedName which is a hash of
+// display name and parents names. Use it when you know hashed name of object.
+func (group *ConfigTsmV1) DeleteConfigByName(ctx context.Context, hashedName string) (err error) {
+
+	result, err := group.client.baseClient.
+		ConfigTsmV1().
+		Configs().Get(ctx, hashedName, metav1.GetOptions{})
+	if err != nil {
+		if customerrors.Is(err, context.DeadlineExceeded) {
+			log.Errorf("context deadline exceeded, on creating GNS: %+v", hashedName)
+			return context.DeadlineExceeded
+		} else if customerrors.Is(err, context.Canceled) {
+			log.Errorf("context cancelled, on creating GNS: %+v", hashedName)
+			return context.Canceled
+		} else {
+			log.Errorf("Unexpected Error: %+v", err)
+			return err
+		}
+	}
+
+	err = group.client.baseClient.
+		ConfigTsmV1().
+		Configs().Delete(ctx, hashedName, metav1.DeleteOptions{})
+	if err != nil {
+		return err
+	}
+
+	var patch Patch
+
+	patchOp := PatchOp{
+		Op:   "remove",
+		Path: "/spec/configGvk",
+	}
+
+	patch = append(patch, patchOp)
+	marshaled, err := patch.Marshal()
+	if err != nil {
+		return err
+	}
+	parents := result.GetLabels()
+	if parents == nil {
+		parents = make(map[string]string)
+	}
+	parentName, ok := parents["projects.project.tsm-tanzu.vmware.com"]
+	if !ok {
+		parentName = helper.DEFAULT_KEY
+	}
+	if parents[common.IS_NAME_HASHED_LABEL] == "true" {
+		parentName = helper.GetHashedName("projects.project.tsm-tanzu.vmware.com", parents, parentName)
+	}
+
+	retryCount := 12
+	newCtx := context.TODO()
+	for {
+		_, err = group.client.baseClient.
+			ProjectTsmV1().
+			Projects().Patch(newCtx, parentName, types.JSONPatchType, marshaled, metav1.PatchOptions{})
+		if err != nil {
+			log.Errorf("Failed to patch Config gvk in parent node[Projects]: %+v", err)
+			if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded) {
+				log.Errorf("[Retry Count: %d ] %+v", retryCount, err)
+				if retryCount == 0 {
+					log.Error("Max Retry exceed on patching gvk")
+					log.Errorf("Trigger Config Delete: %s", hashedName)
+					err = group.DeleteConfigByName(newCtx, hashedName)
+					if err != nil {
+						log.Errorf("Error occur while deleting Config: %s", hashedName)
+						return err
+					}
+					log.Errorf("Config Deleted: %s", hashedName)
+					return err
+				}
+				retryCount -= 1
+				time.Sleep(5 * time.Second)
+			} else {
+				log.Errorf("Unexpected Error: %+v", err)
+				log.Errorf("Trigger Config Delete: %s", hashedName)
+				err = group.DeleteConfigByName(newCtx, hashedName)
+				if err != nil {
+					log.Errorf("Error occur while deleting Config: %+v", hashedName)
+					return err
+				}
+				log.Errorf("Config Deleted: %s", hashedName)
+				return err
+			}
+		} else {
+			break
+		}
+	}
+
+	return
+}
+
+// CreateConfigByName creates object in the database without hashing the name.
+// Use it directly ONLY when objToCreate.Name is hashed name of the object.
+func (group *ConfigTsmV1) CreateConfigByName(ctx context.Context,
+	objToCreate *baseconfigtsmtanzuvmwarecomv1.Config) (*ConfigConfig, error) {
+	if objToCreate.GetLabels() == nil {
+		objToCreate.Labels = make(map[string]string)
+	}
+	if _, ok := objToCreate.Labels[common.DISPLAY_NAME_LABEL]; !ok {
+		objToCreate.Labels[common.DISPLAY_NAME_LABEL] = objToCreate.GetName()
+	}
+	if objToCreate.Labels[common.DISPLAY_NAME_LABEL] == "" {
+		objToCreate.Labels[common.DISPLAY_NAME_LABEL] = helper.DEFAULT_KEY
+	}
+	if objToCreate.Labels[common.DISPLAY_NAME_LABEL] != helper.DEFAULT_KEY {
+		return nil, NewSingletonNameError(objToCreate.Labels[common.DISPLAY_NAME_LABEL])
+	}
+
+	result, err := group.client.baseClient.
+		ConfigTsmV1().
+		Configs().Create(ctx, objToCreate, metav1.CreateOptions{})
+	if err != nil {
+		if customerrors.Is(err, context.DeadlineExceeded) {
+			log.Errorf("context deadline exceeded, on creating GNS: %+v", objToCreate)
+			return nil, context.DeadlineExceeded
+		} else if customerrors.Is(err, context.Canceled) {
+			log.Errorf("context cancelled, on creating GNS: %+v", objToCreate)
+			return nil, context.Canceled
+		} else {
+			log.Errorf("Unexpected Error: %+v", err)
+			return nil, err
+		}
+	}
+
+	parentName, ok := objToCreate.GetLabels()["projects.project.tsm-tanzu.vmware.com"]
+	if !ok {
+		parentName = helper.DEFAULT_KEY
+	}
+	if objToCreate.Labels[common.IS_NAME_HASHED_LABEL] == "true" {
+		parentName = helper.GetHashedName("projects.project.tsm-tanzu.vmware.com", objToCreate.GetLabels(), parentName)
+	}
+
+	var patch Patch
+	patchOp := PatchOp{
+		Op:   "replace",
+		Path: "/spec/configGvk",
+		Value: baseconfigtsmtanzuvmwarecomv1.Child{
+			Group: "config.tsm-tanzu.vmware.com",
+			Kind:  "Config",
+			Name:  objToCreate.Name,
+		},
+	}
+	patch = append(patch, patchOp)
+	marshaled, err := patch.Marshal()
+	if err != nil {
+		return nil, err
+	}
+	retryCount := 12
+	newCtx := context.TODO()
+	for {
+		_, err = group.client.baseClient.
+			ProjectTsmV1().
+			Projects().Patch(newCtx, parentName, types.JSONPatchType, marshaled, metav1.PatchOptions{})
+		if err != nil {
+			log.Errorf("Failed to patch Config gvk in parent node[Projects]: %+v", err)
+			if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded) {
+				log.Errorf("[Retry Count: %d ] %+v", retryCount, err)
+				if retryCount == 0 {
+					log.Error("Max Retry exceed on patching gvk")
+					log.Errorf("Trigger Config Delete: %s", objToCreate.GetName())
+					err = group.DeleteConfigByName(newCtx, objToCreate.GetName())
+					if err != nil {
+						log.Errorf("Error occur while deleting Config: %s", objToCreate.GetName())
+						return nil, err
+					}
+					log.Errorf("Config Deleted: %s", objToCreate.GetName())
+					return nil, err
+				}
+				retryCount -= 1
+				time.Sleep(5 * time.Second)
+			} else {
+				log.Errorf("Unexpected Error: %+v", err)
+				log.Errorf("Trigger Config Delete: %s", objToCreate.GetName())
+				err = group.DeleteConfigByName(newCtx, objToCreate.GetName())
+				if err != nil {
+					log.Errorf("Error occur while deleting Config: %+v", objToCreate.GetName())
+					return nil, err
+				}
+				log.Errorf("Config Deleted: %s", objToCreate.GetName())
+				return nil, err
+			}
+		} else {
+			break
+		}
+	}
+
+	return &ConfigConfig{
+		client: group.client,
+		Config: result,
+	}, nil
+}
+
+// UpdateConfigByName updates object stored in the database under the hashedName which is a hash of
+// display name and parents names.
+func (group *ConfigTsmV1) UpdateConfigByName(ctx context.Context,
+	objToUpdate *baseconfigtsmtanzuvmwarecomv1.Config) (*ConfigConfig, error) {
+	if objToUpdate.Labels[common.DISPLAY_NAME_LABEL] != helper.DEFAULT_KEY {
+		return nil, NewSingletonNameError(objToUpdate.Labels[common.DISPLAY_NAME_LABEL])
+	}
+	// ResourceVersion must be set for update
+	if objToUpdate.ResourceVersion == "" {
+		current, err := group.client.baseClient.
+			ConfigTsmV1().
+			Configs().Get(ctx, objToUpdate.GetName(), metav1.GetOptions{})
+		if err != nil {
+			if customerrors.Is(err, context.DeadlineExceeded) {
+				log.Errorf("context deadline exceeded, on creating GNS: %+v", objToUpdate)
+				return nil, context.DeadlineExceeded
+			} else if customerrors.Is(err, context.Canceled) {
+				log.Errorf("context cancelled, on creating GNS: %+v", objToUpdate)
+				return nil, context.Canceled
+			} else {
+				log.Errorf("Unexpected Error: %+v", err)
+				return nil, err
+			}
+		}
+		objToUpdate.ResourceVersion = current.ResourceVersion
+	}
+
+	var patch Patch
+	patch = append(patch, PatchOp{
+		Op:    "replace",
+		Path:  "/metadata",
+		Value: objToUpdate.ObjectMeta,
+	})
+
+	patchValueFieldX :=
+		objToUpdate.Spec.FieldX
+	patchOpFieldX := PatchOp{
+		Op:    "replace",
+		Path:  "/spec/fieldX",
+		Value: patchValueFieldX,
+	}
+	patch = append(patch, patchOpFieldX)
+
+	patchValueFieldY :=
+		objToUpdate.Spec.FieldY
+	patchOpFieldY := PatchOp{
+		Op:    "replace",
+		Path:  "/spec/fieldY",
+		Value: patchValueFieldY,
+	}
+	patch = append(patch, patchOpFieldY)
+
+	patchValueMyStructField :=
+		objToUpdate.Spec.MyStructField
+	patchOpMyStructField := PatchOp{
+		Op:    "replace",
+		Path:  "/spec/myStructField",
+		Value: patchValueMyStructField,
+	}
+	patch = append(patch, patchOpMyStructField)
+
+	marshaled, err := patch.Marshal()
+	if err != nil {
+		return nil, err
+	}
+	result, err := group.client.baseClient.
+		ConfigTsmV1().
+		Configs().Patch(ctx, objToUpdate.GetName(), types.JSONPatchType, marshaled, metav1.PatchOptions{}, "")
+	if err != nil {
+		return nil, err
+	}
+
+	return &ConfigConfig{
+		client: group.client,
+		Config: result,
+	}, nil
+}
+
+// ListConfigs returns slice of all existing objects of this type. Selectors can be provided in opts parameter.
+func (group *ConfigTsmV1) ListConfigs(ctx context.Context,
+	opts metav1.ListOptions) (result []*ConfigConfig, err error) {
+	key := "configs.config.tsm-tanzu.vmware.com"
+	if s, ok := subscriptionMap.Load(key); ok {
+		items := s.(subscription).informer.GetStore().List()
+		result = make([]*ConfigConfig, len(items))
+		for k, v := range items {
+			item, _ := v.(*baseconfigtsmtanzuvmwarecomv1.Config)
+			result[k] = &ConfigConfig{
+				client: group.client,
+				Config: item,
+			}
+		}
+	} else {
+		list, err := group.client.baseClient.ConfigTsmV1().
+			Configs().List(ctx, opts)
+		if err != nil {
+			return nil, err
+		}
+		result = make([]*ConfigConfig, len(list.Items))
+		for k, v := range list.Items {
+			item := v
+			result[k] = &ConfigConfig{
+				client: group.client,
+				Config: &item,
+			}
+		}
+	}
+	return
+}
+
+type ConfigConfig struct {
+	client *Clientset
+	*baseconfigtsmtanzuvmwarecomv1.Config
+}
+
+// Delete removes obj and all it's children from the database.
+func (obj *ConfigConfig) Delete(ctx context.Context) error {
+	err := obj.client.Config().DeleteConfigByName(ctx, obj.GetName())
+	if err != nil {
+		return err
+	}
+	obj.Config = nil
+	return nil
+}
+
+// Update updates spec of object in database. Children and Link can not be updated using this function.
+func (obj *ConfigConfig) Update(ctx context.Context) error {
+	result, err := obj.client.Config().UpdateConfigByName(ctx, obj.Config)
+	if err != nil {
+		return err
+	}
+	obj.Config = result.Config
+	return nil
+}
+
+func (obj *ConfigConfig) GetParent(ctx context.Context) (result *ProjectProject, err error) {
+	hashedName := helper.GetHashedName("projects.project.tsm-tanzu.vmware.com", obj.Labels, obj.Labels["projects.project.tsm-tanzu.vmware.com"])
+	return obj.client.Project().GetProjectByName(ctx, hashedName)
+}
+
+type configConfigTsmV1Chainer struct {
+	client       *Clientset
+	name         string
+	parentLabels map[string]string
+}
+
+func (c *configConfigTsmV1Chainer) Subscribe() {
+	key := "configs.config.tsm-tanzu.vmware.com"
+	if _, ok := subscriptionMap.Load(key); !ok {
+		informer := informerconfigtsmtanzuvmwarecomv1.NewConfigInformer(c.client.baseClient, 0, cache.Indexers{})
+		subscribe(key, informer)
+	}
+}
+
+func (c *configConfigTsmV1Chainer) Unsubscribe() {
+	key := "configs.config.tsm-tanzu.vmware.com"
+	if s, ok := subscriptionMap.Load(key); ok {
+		close(s.(subscription).stop)
+		subscriptionMap.Delete(key)
+	}
+}
+
+func (c *configConfigTsmV1Chainer) IsSubscribed() bool {
+	key := "configs.config.tsm-tanzu.vmware.com"
+	_, ok := subscriptionMap.Load(key)
+	return ok
+}
+
+func (c *configConfigTsmV1Chainer) RegisterEventHandler(addCB func(obj *ConfigConfig), updateCB func(oldObj, newObj *ConfigConfig), deleteCB func(obj *ConfigConfig)) (cache.ResourceEventHandlerRegistration, error) {
+	fmt.Println("RegisterEventHandler for ConfigConfig")
+	var (
+		registrationId cache.ResourceEventHandlerRegistration
+		err            error
+		informer       cache.SharedIndexInformer
+	)
+	key := "configs.config.tsm-tanzu.vmware.com"
+	stopper := make(chan struct{})
+	if s, ok := subscriptionMap.Load(key); ok {
+		fmt.Println("Informer exists for ConfigConfig")
+		sub := s.(subscription)
+		informer = sub.informer
+	} else {
+		fmt.Println("Informer doesn't exists for ConfigConfig, so creating a new one")
+		informer = informerconfigtsmtanzuvmwarecomv1.NewConfigInformer(c.client.baseClient, 0, cache.Indexers{})
+		go informer.Run(stopper)
+		subscribe(key, informer)
+	}
+	registrationId, err = informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
+		AddFunc: func(obj interface{}) {
+			nc := &ConfigConfig{
+				client: c.client,
+				Config: obj.(*baseconfigtsmtanzuvmwarecomv1.Config),
+			}
+
+			var parent *ProjectProject
+			gvkExist := false
+			for i := 0; i < 600; i++ {
+				// Check if parent exists
+				p, err := nc.GetParent(context.TODO())
+				if err != nil || p == nil {
+					time.Sleep(500 * time.Millisecond)
+					continue
+				}
+				parent = p
+				// Check GVK
+
+				if parent.Spec.ConfigGvk == nil {
+					time.Sleep(500 * time.Millisecond)
+					continue
+				}
+
+				gvkExist = true
+				break
+			}
+			if parent == nil {
+				hashedName := helper.GetHashedName("projects.project.tsm-tanzu.vmware.com", nc.Labels, nc.Labels["projects.project.tsm-tanzu.vmware.com"])
+				parent, err = c.client.Project().ForceReadProjectByName(context.TODO(), hashedName)
+				if err != nil {
+					if errors.IsNotFound(err) {
+						return
+					}
+					panic("error occurred while fetching parent " + err.Error())
+				}
+				panic(fmt.Sprintf("parent found (event loop is stalled) " + nc.DisplayName()))
+			}
+			if !gvkExist {
+				// Check GVK
+
+				if parent.Spec.ConfigGvk == nil {
+					return
+				}
+
+				panic(fmt.Sprintf("gvk found (event loop is stalled) " + nc.DisplayName()))
+			}
+
+			addCB(nc)
+		},
+
+		UpdateFunc: func(oldObj, newObj interface{}) {
+			oldData := &ConfigConfig{
+				client: c.client,
+				Config: oldObj.(*baseconfigtsmtanzuvmwarecomv1.Config),
+			}
+			newData := &ConfigConfig{
+				client: c.client,
+				Config: newObj.(*baseconfigtsmtanzuvmwarecomv1.Config),
+			}
+			updateCB(oldData, newData)
+		},
+
+		DeleteFunc: func(obj interface{}) {
+			nc := &ConfigConfig{
+				client: c.client,
+				Config: obj.(*baseconfigtsmtanzuvmwarecomv1.Config),
+			}
+
+			var parent *ProjectProject
+			gvkExist := true
+			for i := 0; i < 600; i++ {
+				// Check if parent exists
+				p, err := nc.GetParent(context.TODO())
+				if err != nil || p == nil {
+					time.Sleep(500 * time.Millisecond)
+					continue
+				}
+				parent = p
+				// Check GVK
+
+				if parent.Spec.ConfigGvk != nil {
+					time.Sleep(500 * time.Millisecond)
+					continue
+				}
+
+				gvkExist = false
+				break
+			}
+			if parent == nil {
+				hashedName := helper.GetHashedName("projects.project.tsm-tanzu.vmware.com", nc.Labels, nc.Labels["projects.project.tsm-tanzu.vmware.com"])
+				parent, err = c.client.Project().ForceReadProjectByName(context.TODO(), hashedName)
+				if err != nil {
+					if errors.IsNotFound(err) {
+						return
+					}
+					panic("error occurred while fetching parent " + err.Error())
+				}
+				panic(fmt.Sprintf("parent found (event loop is stalled) " + nc.DisplayName()))
+			}
+			if gvkExist {
+				// Check GVK
+
+				if parent.Spec.ConfigGvk != nil {
+					return
+				}
+
+				panic(fmt.Sprintf("gvk not found (event loop is stalled) " + nc.DisplayName()))
+			}
+
+			deleteCB(nc)
+		},
+	})
+	return registrationId, err
+}
+
+func (c *configConfigTsmV1Chainer) RegisterAddCallback(cbfn func(obj *ConfigConfig)) (cache.ResourceEventHandlerRegistration, error) {
+	fmt.Println("ConfigConfig -->  RegisterAddCallback!")
+	var (
+		registrationId cache.ResourceEventHandlerRegistration
+		err            error
+	)
+	key := "configs.config.tsm-tanzu.vmware.com"
+	stopper := make(chan struct{})
+	if s, ok := subscriptionMap.Load(key); ok {
+		fmt.Println("[ConfigConfig] ---SUBSCRIBE-INFORMER---->")
+		sub := s.(subscription)
+		registrationId, err = sub.informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
+			AddFunc: func(obj interface{}) {
+				nc := &ConfigConfig{
+					client: c.client,
+					Config: obj.(*baseconfigtsmtanzuvmwarecomv1.Config),
+				}
+
+				var parent *ProjectProject
+				gvkExist := false
+				for i := 0; i < 600; i++ {
+					// Check if parent exists
+					p, err := nc.GetParent(context.TODO())
+					if err != nil || p == nil {
+						time.Sleep(500 * time.Millisecond)
+						continue
+					}
+					parent = p
+
+					// Check GVK
+
+					if parent.Spec.ConfigGvk == nil {
+						time.Sleep(500 * time.Millisecond)
+						continue
+					}
+
+					gvkExist = true
+
+					break
+				}
+
+				if parent == nil {
+					hashedName := helper.GetHashedName("projects.project.tsm-tanzu.vmware.com", nc.Labels, nc.Labels["projects.project.tsm-tanzu.vmware.com"])
+					parent, err = c.client.Project().ForceReadProjectByName(context.TODO(), hashedName)
+					if err != nil {
+						if errors.IsNotFound(err) {
+							return
+						}
+
+						panic("error occurred while fetching parent " + err.Error())
+					}
+					panic(fmt.Sprintf("parent found (event loop is stalled) " + nc.DisplayName()))
+				}
+
+				if !gvkExist {
+					// Check GVK
+
+					if parent.Spec.ConfigGvk == nil {
+						return
+					}
+
+					panic(fmt.Sprintf("gvk found (event loop is stalled) " + nc.DisplayName()))
+				}
+
+				cbfn(nc)
+			},
+		})
+	} else {
+		fmt.Println("[ConfigConfig] ---NEW-INFORMER---->")
+		informer := informerconfigtsmtanzuvmwarecomv1.NewConfigInformer(c.client.baseClient, 0, cache.Indexers{})
+		registrationId, err = informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
+			AddFunc: func(obj interface{}) {
+				nc := &ConfigConfig{
+					client: c.client,
+					Config: obj.(*baseconfigtsmtanzuvmwarecomv1.Config),
+				}
+
+				var parent *ProjectProject
+				gvkExist := false
+				for i := 0; i < 600; i++ {
+					// Check if parent exists
+					p, err := nc.GetParent(context.TODO())
+					if err != nil || p == nil {
+						time.Sleep(500 * time.Millisecond)
+						continue
+					}
+					parent = p
+
+					// Check GVK
+
+					if parent.Spec.ConfigGvk == nil {
+						time.Sleep(500 * time.Millisecond)
+						continue
+					}
+
+					gvkExist = true
+
+					break
+				}
+
+				if parent == nil {
+					hashedName := helper.GetHashedName("projects.project.tsm-tanzu.vmware.com", nc.Labels, nc.Labels["projects.project.tsm-tanzu.vmware.com"])
+					parent, err = c.client.Project().ForceReadProjectByName(context.TODO(), hashedName)
+					if err != nil {
+						if errors.IsNotFound(err) {
+							return
+						}
+
+						panic("error occurred while fetching parent " + err.Error())
+					}
+					panic(fmt.Sprintf("parent found (event loop is stalled) " + nc.DisplayName()))
+				}
+
+				if !gvkExist {
+					// Check GVK
+
+					if parent.Spec.ConfigGvk == nil {
+						return
+					}
+
+					panic(fmt.Sprintf("gvk found (event loop is stalled) " + nc.DisplayName()))
+				}
+
+				cbfn(nc)
+			},
+		})
+		go informer.Run(stopper)
+	}
+	return registrationId, err
+}
+
+func (c *configConfigTsmV1Chainer) RegisterUpdateCallback(cbfn func(oldObj, newObj *ConfigConfig)) (cache.ResourceEventHandlerRegistration, error) {
+	fmt.Println("ConfigConfig -->  RegisterUpdateCallback!")
+	var (
+		registrationId cache.ResourceEventHandlerRegistration
+		err            error
+	)
+	key := "configs.config.tsm-tanzu.vmware.com"
+	stopper := make(chan struct{})
+	if s, ok := subscriptionMap.Load(key); ok {
+		fmt.Println("[ConfigConfig] ---SUBSCRIBE-INFORMER---->")
+		sub := s.(subscription)
+		registrationId, err = sub.informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
+			UpdateFunc: func(oldObj, newObj interface{}) {
+				oldData := &ConfigConfig{
+					client: c.client,
+					Config: oldObj.(*baseconfigtsmtanzuvmwarecomv1.Config),
+				}
+				newData := &ConfigConfig{
+					client: c.client,
+					Config: newObj.(*baseconfigtsmtanzuvmwarecomv1.Config),
+				}
+				cbfn(oldData, newData)
+			},
+		})
+	} else {
+		fmt.Println("[ConfigConfig] ---NEW-INFORMER---->")
+		informer := informerconfigtsmtanzuvmwarecomv1.NewConfigInformer(c.client.baseClient, 0, cache.Indexers{})
+		registrationId, err = informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
+			UpdateFunc: func(oldObj, newObj interface{}) {
+				oldData := &ConfigConfig{
+					client: c.client,
+					Config: oldObj.(*baseconfigtsmtanzuvmwarecomv1.Config),
+				}
+				newData := &ConfigConfig{
+					client: c.client,
+					Config: newObj.(*baseconfigtsmtanzuvmwarecomv1.Config),
+				}
+				cbfn(oldData, newData)
+			},
+		})
+		go informer.Run(stopper)
+	}
+	return registrationId, err
+}
+
+func (c *configConfigTsmV1Chainer) RegisterDeleteCallback(cbfn func(obj *ConfigConfig)) (cache.ResourceEventHandlerRegistration, error) {
+	fmt.Println("ConfigConfig -->  RegisterDeleteCallback!")
+	var (
+		registrationId cache.ResourceEventHandlerRegistration
+		err            error
+	)
+	key := "configs.config.tsm-tanzu.vmware.com"
+	stopper := make(chan struct{})
+	if s, ok := subscriptionMap.Load(key); ok {
+		fmt.Println("[ConfigConfig] ---SUBSCRIBE-INFORMER---->")
+		sub := s.(subscription)
+		registrationId, err = sub.informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
+			DeleteFunc: func(obj interface{}) {
+				nc := &ConfigConfig{
+					client: c.client,
+					Config: obj.(*baseconfigtsmtanzuvmwarecomv1.Config),
+				}
+
+				var parent *ProjectProject
+				gvkExist := true
+				for i := 0; i < 600; i++ {
+					// Check if parent exists
+					p, err := nc.GetParent(context.TODO())
+					if err != nil || p == nil {
+						time.Sleep(500 * time.Millisecond)
+						continue
+					}
+					parent = p
+
+					// Check GVK
+
+					if parent.Spec.ConfigGvk != nil {
+						time.Sleep(500 * time.Millisecond)
+						continue
+					}
+
+					gvkExist = false
+					break
+				}
+
+				if parent == nil {
+					hashedName := helper.GetHashedName("projects.project.tsm-tanzu.vmware.com", nc.Labels, nc.Labels["projects.project.tsm-tanzu.vmware.com"])
+					parent, err = c.client.Project().ForceReadProjectByName(context.TODO(), hashedName)
+					if err != nil {
+						if errors.IsNotFound(err) {
+							return
+						}
+
+						panic("error occurred while fetching parent " + err.Error())
+					}
+					panic(fmt.Sprintf("parent found (event loop is stalled) " + nc.DisplayName()))
+				}
+
+				if gvkExist {
+					// Check GVK
+
+					if parent.Spec.ConfigGvk != nil {
+						return
+					}
+
+					panic(fmt.Sprintf("gvk not found (event loop is stalled) " + nc.DisplayName()))
+				}
+
+				cbfn(nc)
+			},
+		})
+	} else {
+		fmt.Println("[ConfigConfig] ---NEW-INFORMER---->")
+		informer := informerconfigtsmtanzuvmwarecomv1.NewConfigInformer(c.client.baseClient, 0, cache.Indexers{})
+		registrationId, err = informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
+			DeleteFunc: func(obj interface{}) {
+				nc := &ConfigConfig{
+					client: c.client,
+					Config: obj.(*baseconfigtsmtanzuvmwarecomv1.Config),
+				}
+
+				var parent *ProjectProject
+				gvkExist := true
+				for i := 0; i < 600; i++ {
+					// Check if parent exists
+					p, err := nc.GetParent(context.TODO())
+					if err != nil || p == nil {
+						time.Sleep(500 * time.Millisecond)
+						continue
+					}
+					parent = p
+
+					// Check GVK
+
+					if parent.Spec.ConfigGvk != nil {
+						time.Sleep(500 * time.Millisecond)
+						continue
+					}
+
+					gvkExist = false
+
+					break
+				}
+
+				if parent == nil {
+					hashedName := helper.GetHashedName("projects.project.tsm-tanzu.vmware.com", nc.Labels, nc.Labels["projects.project.tsm-tanzu.vmware.com"])
+					parent, err = c.client.Project().ForceReadProjectByName(context.TODO(), hashedName)
+					if err != nil {
+						if errors.IsNotFound(err) {
+							return
+						}
+
+						panic("error occurred while fetching parent " + err.Error())
+					}
+					panic(fmt.Sprintf("parent found (event loop is stalled) " + nc.DisplayName()))
+				}
+
+				if gvkExist {
+					// Check GVK
+
+					if parent.Spec.ConfigGvk != nil {
+						return
+					}
+
+					panic(fmt.Sprintf("gvk not found (event loop is stalled) " + nc.DisplayName()))
+				}
+
+				cbfn(nc)
+			},
+		})
+		go informer.Run(stopper)
+	}
+	return registrationId, err
+}
+
+// GetProjectByName returns object stored in the database under the hashedName which is a hash of display
+// name and parents names. Use it when you know hashed name of object.
+func (group *ProjectTsmV1) GetProjectByName(ctx context.Context, hashedName string) (*ProjectProject, error) {
+	key := "projects.project.tsm-tanzu.vmware.com"
+	if s, ok := subscriptionMap.Load(key); ok {
+		item, exists, err := s.(subscription).informer.GetStore().GetByKey(hashedName)
+		if !exists {
+			return nil, err
+		}
+
+		result, _ := item.(*baseprojecttsmtanzuvmwarecomv1.Project)
+		return &ProjectProject{
+			client:  group.client,
+			Project: result,
+		}, nil
+	} else {
+		retryCount := 12
+		for {
+			result, err := group.client.baseClient.
+				ProjectTsmV1().
+				Projects().Get(ctx, hashedName, metav1.GetOptions{})
+			if err != nil {
+				log.Errorf("Failed to Get Projects: %+v", err)
+				if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded) {
+					log.Errorf("[Retry Count: %d ] %+v", retryCount, err)
+					if retryCount == 0 {
+						log.Error("Max Retry exceed on Get Projects")
+						return nil, err
+					}
+					retryCount -= 1
+					time.Sleep(5 * time.Second)
+				} else {
+					log.Errorf("Unexpected Error: %+v", err)
+					return nil, err
+				}
+			}
+			return &ProjectProject{
+				client:  group.client,
+				Project: result,
+			}, nil
+		}
+	}
+}
+
+// ForceReadProjectByName read object directly from the database under the hashedName which is a hash of display
+// name and parents names. Use it when you know hashed name of object.
+func (group *ProjectTsmV1) ForceReadProjectByName(ctx context.Context, hashedName string) (*ProjectProject, error) {
+	result, err := group.client.baseClient.
+		ProjectTsmV1().
+		Projects().Get(ctx, hashedName, metav1.GetOptions{})
+	if err != nil {
+		return nil, err
+	}
+
+	return &ProjectProject{
+		client:  group.client,
+		Project: result,
+	}, nil
+}
+
+// DeleteProjectByName deletes object stored in the database under the hashedName which is a hash of
+// display name and parents names. Use it when you know hashed name of object.
+func (group *ProjectTsmV1) DeleteProjectByName(ctx context.Context, hashedName string) (err error) {
+
+	result, err := group.client.baseClient.
+		ProjectTsmV1().
+		Projects().Get(ctx, hashedName, metav1.GetOptions{})
+	if err != nil {
+		if customerrors.Is(err, context.DeadlineExceeded) {
+			log.Errorf("context deadline exceeded, on creating GNS: %+v", hashedName)
+			return context.DeadlineExceeded
+		} else if customerrors.Is(err, context.Canceled) {
+			log.Errorf("context cancelled, on creating GNS: %+v", hashedName)
+			return context.Canceled
+		} else {
+			log.Errorf("Unexpected Error: %+v", err)
+			return err
+		}
+	}
+
+	if result.Spec.ConfigGvk != nil {
+		err := group.client.
+			Config().
+			DeleteConfigByName(ctx, result.Spec.ConfigGvk.Name)
+		if err != nil && !errors.IsNotFound(err) {
+			return err
+		}
+	}
+
+	err = group.client.baseClient.
+		ProjectTsmV1().
+		Projects().Delete(ctx, hashedName, metav1.DeleteOptions{})
+	if err != nil {
+		return err
+	}
+
+	var patch Patch
+
+	patchOp := PatchOp{
+		Op:   "remove",
+		Path: "/spec/projectGvk",
+	}
+
+	patch = append(patch, patchOp)
+	marshaled, err := patch.Marshal()
+	if err != nil {
+		return err
+	}
+	parents := result.GetLabels()
+	if parents == nil {
+		parents = make(map[string]string)
+	}
+	parentName, ok := parents["roots.root.tsm-tanzu.vmware.com"]
+	if !ok {
+		parentName = helper.DEFAULT_KEY
+	}
+	if parents[common.IS_NAME_HASHED_LABEL] == "true" {
+		parentName = helper.GetHashedName("roots.root.tsm-tanzu.vmware.com", parents, parentName)
+	}
+
+	retryCount := 12
+	newCtx := context.TODO()
+	for {
+		_, err = group.client.baseClient.
+			RootTsmV1().
+			Roots().Patch(newCtx, parentName, types.JSONPatchType, marshaled, metav1.PatchOptions{})
+		if err != nil {
+			log.Errorf("Failed to patch Project gvk in parent node[Roots]: %+v", err)
+			if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded) {
+				log.Errorf("[Retry Count: %d ] %+v", retryCount, err)
+				if retryCount == 0 {
+					log.Error("Max Retry exceed on patching gvk")
+					log.Errorf("Trigger Project Delete: %s", hashedName)
+					err = group.DeleteProjectByName(newCtx, hashedName)
+					if err != nil {
+						log.Errorf("Error occur while deleting Project: %s", hashedName)
+						return err
+					}
+					log.Errorf("Project Deleted: %s", hashedName)
+					return err
+				}
+				retryCount -= 1
+				time.Sleep(5 * time.Second)
+			} else {
+				log.Errorf("Unexpected Error: %+v", err)
+				log.Errorf("Trigger Project Delete: %s", hashedName)
+				err = group.DeleteProjectByName(newCtx, hashedName)
+				if err != nil {
+					log.Errorf("Error occur while deleting Project: %+v", hashedName)
+					return err
+				}
+				log.Errorf("Project Deleted: %s", hashedName)
+				return err
+			}
+		} else {
+			break
+		}
+	}
+
+	return
+}
+
+// CreateProjectByName creates object in the database without hashing the name.
+// Use it directly ONLY when objToCreate.Name is hashed name of the object.
+func (group *ProjectTsmV1) CreateProjectByName(ctx context.Context,
+	objToCreate *baseprojecttsmtanzuvmwarecomv1.Project) (*ProjectProject, error) {
+	if objToCreate.GetLabels() == nil {
+		objToCreate.Labels = make(map[string]string)
+	}
+	if _, ok := objToCreate.Labels[common.DISPLAY_NAME_LABEL]; !ok {
+		objToCreate.Labels[common.DISPLAY_NAME_LABEL] = objToCreate.GetName()
+	}
+	if objToCreate.Labels[common.DISPLAY_NAME_LABEL] == "" {
+		objToCreate.Labels[common.DISPLAY_NAME_LABEL] = helper.DEFAULT_KEY
+	}
+	if objToCreate.Labels[common.DISPLAY_NAME_LABEL] != helper.DEFAULT_KEY {
+		return nil, NewSingletonNameError(objToCreate.Labels[common.DISPLAY_NAME_LABEL])
+	}
+
+	objToCreate.Spec.ConfigGvk = nil
+
+	result, err := group.client.baseClient.
+		ProjectTsmV1().
+		Projects().Create(ctx, objToCreate, metav1.CreateOptions{})
+	if err != nil {
+		if customerrors.Is(err, context.DeadlineExceeded) {
+			log.Errorf("context deadline exceeded, on creating GNS: %+v", objToCreate)
+			return nil, context.DeadlineExceeded
+		} else if customerrors.Is(err, context.Canceled) {
+			log.Errorf("context cancelled, on creating GNS: %+v", objToCreate)
+			return nil, context.Canceled
+		} else {
+			log.Errorf("Unexpected Error: %+v", err)
+			return nil, err
+		}
+	}
+
+	parentName, ok := objToCreate.GetLabels()["roots.root.tsm-tanzu.vmware.com"]
+	if !ok {
+		parentName = helper.DEFAULT_KEY
+	}
+	if objToCreate.Labels[common.IS_NAME_HASHED_LABEL] == "true" {
+		parentName = helper.GetHashedName("roots.root.tsm-tanzu.vmware.com", objToCreate.GetLabels(), parentName)
+	}
+
+	var patch Patch
+	patchOp := PatchOp{
+		Op:   "replace",
+		Path: "/spec/projectGvk",
+		Value: baseprojecttsmtanzuvmwarecomv1.Child{
+			Group: "project.tsm-tanzu.vmware.com",
+			Kind:  "Project",
+			Name:  objToCreate.Name,
+		},
+	}
+	patch = append(patch, patchOp)
+	marshaled, err := patch.Marshal()
+	if err != nil {
+		return nil, err
+	}
+	retryCount := 12
+	newCtx := context.TODO()
+	for {
+		_, err = group.client.baseClient.
+			RootTsmV1().
+			Roots().Patch(newCtx, parentName, types.JSONPatchType, marshaled, metav1.PatchOptions{})
+		if err != nil {
+			log.Errorf("Failed to patch Project gvk in parent node[Roots]: %+v", err)
+			if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded) {
+				log.Errorf("[Retry Count: %d ] %+v", retryCount, err)
+				if retryCount == 0 {
+					log.Error("Max Retry exceed on patching gvk")
+					log.Errorf("Trigger Project Delete: %s", objToCreate.GetName())
+					err = group.DeleteProjectByName(newCtx, objToCreate.GetName())
+					if err != nil {
+						log.Errorf("Error occur while deleting Project: %s", objToCreate.GetName())
+						return nil, err
+					}
+					log.Errorf("Project Deleted: %s", objToCreate.GetName())
+					return nil, err
+				}
+				retryCount -= 1
+				time.Sleep(5 * time.Second)
+			} else {
+				log.Errorf("Unexpected Error: %+v", err)
+				log.Errorf("Trigger Project Delete: %s", objToCreate.GetName())
+				err = group.DeleteProjectByName(newCtx, objToCreate.GetName())
+				if err != nil {
+					log.Errorf("Error occur while deleting Project: %+v", objToCreate.GetName())
+					return nil, err
+				}
+				log.Errorf("Project Deleted: %s", objToCreate.GetName())
+				return nil, err
+			}
+		} else {
+			break
+		}
+	}
+
+	return &ProjectProject{
+		client:  group.client,
+		Project: result,
+	}, nil
+}
+
+// UpdateProjectByName updates object stored in the database under the hashedName which is a hash of
+// display name and parents names.
+func (group *ProjectTsmV1) UpdateProjectByName(ctx context.Context,
+	objToUpdate *baseprojecttsmtanzuvmwarecomv1.Project) (*ProjectProject, error) {
+	if objToUpdate.Labels[common.DISPLAY_NAME_LABEL] != helper.DEFAULT_KEY {
+		return nil, NewSingletonNameError(objToUpdate.Labels[common.DISPLAY_NAME_LABEL])
+	}
+	// ResourceVersion must be set for update
+	if objToUpdate.ResourceVersion == "" {
+		current, err := group.client.baseClient.
+			ProjectTsmV1().
+			Projects().Get(ctx, objToUpdate.GetName(), metav1.GetOptions{})
+		if err != nil {
+			if customerrors.Is(err, context.DeadlineExceeded) {
+				log.Errorf("context deadline exceeded, on creating GNS: %+v", objToUpdate)
+				return nil, context.DeadlineExceeded
+			} else if customerrors.Is(err, context.Canceled) {
+				log.Errorf("context cancelled, on creating GNS: %+v", objToUpdate)
+				return nil, context.Canceled
+			} else {
+				log.Errorf("Unexpected Error: %+v", err)
+				return nil, err
+			}
+		}
+		objToUpdate.ResourceVersion = current.ResourceVersion
+	}
+
+	var patch Patch
+	patch = append(patch, PatchOp{
+		Op:    "replace",
+		Path:  "/metadata",
+		Value: objToUpdate.ObjectMeta,
+	})
+
+	patchValueKey :=
+		objToUpdate.Spec.Key
+	patchOpKey := PatchOp{
+		Op:    "replace",
+		Path:  "/spec/key",
+		Value: patchValueKey,
+	}
+	patch = append(patch, patchOpKey)
+
+	patchValueField1 :=
+		objToUpdate.Spec.Field1
+	patchOpField1 := PatchOp{
+		Op:    "replace",
+		Path:  "/spec/field1",
+		Value: patchValueField1,
+	}
+	patch = append(patch, patchOpField1)
+
+	patchValueField2 :=
+		objToUpdate.Spec.Field2
+	patchOpField2 := PatchOp{
+		Op:    "replace",
+		Path:  "/spec/field2",
+		Value: patchValueField2,
+	}
+	patch = append(patch, patchOpField2)
+
+	marshaled, err := patch.Marshal()
+	if err != nil {
+		return nil, err
+	}
+	result, err := group.client.baseClient.
+		ProjectTsmV1().
+		Projects().Patch(ctx, objToUpdate.GetName(), types.JSONPatchType, marshaled, metav1.PatchOptions{}, "")
+	if err != nil {
+		return nil, err
+	}
+
+	return &ProjectProject{
+		client:  group.client,
+		Project: result,
+	}, nil
+}
+
+// ListProjects returns slice of all existing objects of this type. Selectors can be provided in opts parameter.
+func (group *ProjectTsmV1) ListProjects(ctx context.Context,
+	opts metav1.ListOptions) (result []*ProjectProject, err error) {
+	key := "projects.project.tsm-tanzu.vmware.com"
+	if s, ok := subscriptionMap.Load(key); ok {
+		items := s.(subscription).informer.GetStore().List()
+		result = make([]*ProjectProject, len(items))
+		for k, v := range items {
+			item, _ := v.(*baseprojecttsmtanzuvmwarecomv1.Project)
+			result[k] = &ProjectProject{
+				client:  group.client,
+				Project: item,
+			}
+		}
+	} else {
+		list, err := group.client.baseClient.ProjectTsmV1().
+			Projects().List(ctx, opts)
+		if err != nil {
+			return nil, err
+		}
+		result = make([]*ProjectProject, len(list.Items))
+		for k, v := range list.Items {
+			item := v
+			result[k] = &ProjectProject{
+				client:  group.client,
+				Project: &item,
+			}
+		}
+	}
+	return
+}
+
+type ProjectProject struct {
+	client *Clientset
+	*baseprojecttsmtanzuvmwarecomv1.Project
+}
+
+// Delete removes obj and all it's children from the database.
+func (obj *ProjectProject) Delete(ctx context.Context) error {
+	err := obj.client.Project().DeleteProjectByName(ctx, obj.GetName())
+	if err != nil {
+		return err
+	}
+	obj.Project = nil
+	return nil
+}
+
+// Update updates spec of object in database. Children and Link can not be updated using this function.
+func (obj *ProjectProject) Update(ctx context.Context) error {
+	result, err := obj.client.Project().UpdateProjectByName(ctx, obj.Project)
+	if err != nil {
+		return err
+	}
+	obj.Project = result.Project
+	return nil
+}
+
+func (obj *ProjectProject) GetParent(ctx context.Context) (result *RootRoot, err error) {
+	hashedName := helper.GetHashedName("roots.root.tsm-tanzu.vmware.com", obj.Labels, obj.Labels["roots.root.tsm-tanzu.vmware.com"])
+	return obj.client.Root().GetRootByName(ctx, hashedName)
+}
+
+// GetConfig returns child of given type
+func (obj *ProjectProject) GetConfig(ctx context.Context) (
+	result *ConfigConfig, err error) {
+	if obj.Spec.ConfigGvk == nil {
+		return nil, NewChildNotFound(obj.DisplayName(), "Project.Project", "Config")
+	}
+	return obj.client.Config().GetConfigByName(ctx, obj.Spec.ConfigGvk.Name)
+}
+
+// AddConfig calculates hashed name of the child to create based on objToCreate.Name
+// and parents names and creates it. objToCreate.Name is changed to the hashed name. Original name is preserved in
+// nexus/display_name label and can be obtained using DisplayName() method.
+func (obj *ProjectProject) AddConfig(ctx context.Context,
+	objToCreate *baseconfigtsmtanzuvmwarecomv1.Config) (result *ConfigConfig, err error) {
+	if objToCreate.Labels == nil {
+		objToCreate.Labels = map[string]string{}
+	}
+	for _, v := range helper.GetCRDParentsMap()["projects.project.tsm-tanzu.vmware.com"] {
+		objToCreate.Labels[v] = obj.Labels[v]
+	}
+	objToCreate.Labels["projects.project.tsm-tanzu.vmware.com"] = obj.DisplayName()
+	if objToCreate.Labels[common.IS_NAME_HASHED_LABEL] != "true" {
+		if objToCreate.GetName() == "" {
+			objToCreate.SetName(helper.DEFAULT_KEY)
+		}
+		if objToCreate.GetName() != helper.DEFAULT_KEY {
+			return nil, NewSingletonNameError(objToCreate.GetName())
+		}
+		objToCreate.Labels[common.DISPLAY_NAME_LABEL] = objToCreate.GetName()
+		objToCreate.Labels[common.IS_NAME_HASHED_LABEL] = "true"
+		hashedName := helper.GetHashedName(objToCreate.CRDName(), objToCreate.Labels, objToCreate.GetName())
+		objToCreate.Name = hashedName
+	}
+	result, err = obj.client.Config().CreateConfigByName(ctx, objToCreate)
+	updatedObj, getErr := obj.client.Project().GetProjectByName(ctx, obj.GetName())
+	if getErr == nil {
+		obj.Project = updatedObj.Project
+	}
+	return
+}
+
+// DeleteConfig calculates hashed name of the child to delete based on displayName
+// and parents names and deletes it.
+
+func (obj *ProjectProject) DeleteConfig(ctx context.Context) (err error) {
+	if obj.Spec.ConfigGvk != nil {
+		err = obj.client.
+			Config().DeleteConfigByName(ctx, obj.Spec.ConfigGvk.Name)
+		if err != nil {
+			return err
+		}
+	}
+	updatedObj, err := obj.client.
+		Project().GetProjectByName(ctx, obj.GetName())
+	if err == nil {
+		obj.Project = updatedObj.Project
+	}
+	return
+}
+
+type projectProjectTsmV1Chainer struct {
+	client       *Clientset
+	name         string
+	parentLabels map[string]string
+}
+
+func (c *projectProjectTsmV1Chainer) Subscribe() {
+	key := "projects.project.tsm-tanzu.vmware.com"
+	if _, ok := subscriptionMap.Load(key); !ok {
+		informer := informerprojecttsmtanzuvmwarecomv1.NewProjectInformer(c.client.baseClient, 0, cache.Indexers{})
+		subscribe(key, informer)
+	}
+}
+
+func (c *projectProjectTsmV1Chainer) Unsubscribe() {
+	key := "projects.project.tsm-tanzu.vmware.com"
+	if s, ok := subscriptionMap.Load(key); ok {
+		close(s.(subscription).stop)
+		subscriptionMap.Delete(key)
+	}
+}
+
+func (c *projectProjectTsmV1Chainer) IsSubscribed() bool {
+	key := "projects.project.tsm-tanzu.vmware.com"
+	_, ok := subscriptionMap.Load(key)
+	return ok
+}
+
+func (c *projectProjectTsmV1Chainer) RegisterEventHandler(addCB func(obj *ProjectProject), updateCB func(oldObj, newObj *ProjectProject), deleteCB func(obj *ProjectProject)) (cache.ResourceEventHandlerRegistration, error) {
+	fmt.Println("RegisterEventHandler for ProjectProject")
+	var (
+		registrationId cache.ResourceEventHandlerRegistration
+		err            error
+		informer       cache.SharedIndexInformer
+	)
+	key := "projects.project.tsm-tanzu.vmware.com"
+	stopper := make(chan struct{})
+	if s, ok := subscriptionMap.Load(key); ok {
+		fmt.Println("Informer exists for ProjectProject")
+		sub := s.(subscription)
+		informer = sub.informer
+	} else {
+		fmt.Println("Informer doesn't exists for ProjectProject, so creating a new one")
+		informer = informerprojecttsmtanzuvmwarecomv1.NewProjectInformer(c.client.baseClient, 0, cache.Indexers{})
+		go informer.Run(stopper)
+		subscribe(key, informer)
+	}
+	registrationId, err = informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
+		AddFunc: func(obj interface{}) {
+			nc := &ProjectProject{
+				client:  c.client,
+				Project: obj.(*baseprojecttsmtanzuvmwarecomv1.Project),
+			}
+
+			var parent *RootRoot
+			gvkExist := false
+			for i := 0; i < 600; i++ {
+				// Check if parent exists
+				p, err := nc.GetParent(context.TODO())
+				if err != nil || p == nil {
+					time.Sleep(500 * time.Millisecond)
+					continue
+				}
+				parent = p
+				// Check GVK
+
+				if parent.Spec.ProjectGvk == nil {
+					time.Sleep(500 * time.Millisecond)
+					continue
+				}
+
+				gvkExist = true
+				break
+			}
+			if parent == nil {
+				hashedName := helper.GetHashedName("roots.root.tsm-tanzu.vmware.com", nc.Labels, nc.Labels["roots.root.tsm-tanzu.vmware.com"])
+				parent, err = c.client.Root().ForceReadRootByName(context.TODO(), hashedName)
+				if err != nil {
+					if errors.IsNotFound(err) {
+						return
+					}
+					panic("error occurred while fetching parent " + err.Error())
+				}
+				panic(fmt.Sprintf("parent found (event loop is stalled) " + nc.DisplayName()))
+			}
+			if !gvkExist {
+				// Check GVK
+
+				if parent.Spec.ProjectGvk == nil {
+					return
+				}
+
+				panic(fmt.Sprintf("gvk found (event loop is stalled) " + nc.DisplayName()))
+			}
+
+			addCB(nc)
+		},
+
+		UpdateFunc: func(oldObj, newObj interface{}) {
+			oldData := &ProjectProject{
+				client:  c.client,
+				Project: oldObj.(*baseprojecttsmtanzuvmwarecomv1.Project),
+			}
+			newData := &ProjectProject{
+				client:  c.client,
+				Project: newObj.(*baseprojecttsmtanzuvmwarecomv1.Project),
+			}
+			updateCB(oldData, newData)
+		},
+
+		DeleteFunc: func(obj interface{}) {
+			nc := &ProjectProject{
+				client:  c.client,
+				Project: obj.(*baseprojecttsmtanzuvmwarecomv1.Project),
+			}
+
+			var parent *RootRoot
+			gvkExist := true
+			for i := 0; i < 600; i++ {
+				// Check if parent exists
+				p, err := nc.GetParent(context.TODO())
+				if err != nil || p == nil {
+					time.Sleep(500 * time.Millisecond)
+					continue
+				}
+				parent = p
+				// Check GVK
+
+				if parent.Spec.ProjectGvk != nil {
+					time.Sleep(500 * time.Millisecond)
+					continue
+				}
+
+				gvkExist = false
+				break
+			}
+			if parent == nil {
+				hashedName := helper.GetHashedName("roots.root.tsm-tanzu.vmware.com", nc.Labels, nc.Labels["roots.root.tsm-tanzu.vmware.com"])
+				parent, err = c.client.Root().ForceReadRootByName(context.TODO(), hashedName)
+				if err != nil {
+					if errors.IsNotFound(err) {
+						return
+					}
+					panic("error occurred while fetching parent " + err.Error())
+				}
+				panic(fmt.Sprintf("parent found (event loop is stalled) " + nc.DisplayName()))
+			}
+			if gvkExist {
+				// Check GVK
+
+				if parent.Spec.ProjectGvk != nil {
+					return
+				}
+
+				panic(fmt.Sprintf("gvk not found (event loop is stalled) " + nc.DisplayName()))
+			}
+
+			deleteCB(nc)
+		},
+	})
+	return registrationId, err
+}
+
+func (c *projectProjectTsmV1Chainer) RegisterAddCallback(cbfn func(obj *ProjectProject)) (cache.ResourceEventHandlerRegistration, error) {
+	fmt.Println("ProjectProject -->  RegisterAddCallback!")
+	var (
+		registrationId cache.ResourceEventHandlerRegistration
+		err            error
+	)
+	key := "projects.project.tsm-tanzu.vmware.com"
+	stopper := make(chan struct{})
+	if s, ok := subscriptionMap.Load(key); ok {
+		fmt.Println("[ProjectProject] ---SUBSCRIBE-INFORMER---->")
+		sub := s.(subscription)
+		registrationId, err = sub.informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
+			AddFunc: func(obj interface{}) {
+				nc := &ProjectProject{
+					client:  c.client,
+					Project: obj.(*baseprojecttsmtanzuvmwarecomv1.Project),
+				}
+
+				var parent *RootRoot
+				gvkExist := false
+				for i := 0; i < 600; i++ {
+					// Check if parent exists
+					p, err := nc.GetParent(context.TODO())
+					if err != nil || p == nil {
+						time.Sleep(500 * time.Millisecond)
+						continue
+					}
+					parent = p
+
+					// Check GVK
+
+					if parent.Spec.ProjectGvk == nil {
+						time.Sleep(500 * time.Millisecond)
+						continue
+					}
+
+					gvkExist = true
+
+					break
+				}
+
+				if parent == nil {
+					hashedName := helper.GetHashedName("roots.root.tsm-tanzu.vmware.com", nc.Labels, nc.Labels["roots.root.tsm-tanzu.vmware.com"])
+					parent, err = c.client.Root().ForceReadRootByName(context.TODO(), hashedName)
+					if err != nil {
+						if errors.IsNotFound(err) {
+							return
+						}
+
+						panic("error occurred while fetching parent " + err.Error())
+					}
+					panic(fmt.Sprintf("parent found (event loop is stalled) " + nc.DisplayName()))
+				}
+
+				if !gvkExist {
+					// Check GVK
+
+					if parent.Spec.ProjectGvk == nil {
+						return
+					}
+
+					panic(fmt.Sprintf("gvk found (event loop is stalled) " + nc.DisplayName()))
+				}
+
+				cbfn(nc)
+			},
+		})
+	} else {
+		fmt.Println("[ProjectProject] ---NEW-INFORMER---->")
+		informer := informerprojecttsmtanzuvmwarecomv1.NewProjectInformer(c.client.baseClient, 0, cache.Indexers{})
+		registrationId, err = informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
+			AddFunc: func(obj interface{}) {
+				nc := &ProjectProject{
+					client:  c.client,
+					Project: obj.(*baseprojecttsmtanzuvmwarecomv1.Project),
+				}
+
+				var parent *RootRoot
+				gvkExist := false
+				for i := 0; i < 600; i++ {
+					// Check if parent exists
+					p, err := nc.GetParent(context.TODO())
+					if err != nil || p == nil {
+						time.Sleep(500 * time.Millisecond)
+						continue
+					}
+					parent = p
+
+					// Check GVK
+
+					if parent.Spec.ProjectGvk == nil {
+						time.Sleep(500 * time.Millisecond)
+						continue
+					}
+
+					gvkExist = true
+
+					break
+				}
+
+				if parent == nil {
+					hashedName := helper.GetHashedName("roots.root.tsm-tanzu.vmware.com", nc.Labels, nc.Labels["roots.root.tsm-tanzu.vmware.com"])
+					parent, err = c.client.Root().ForceReadRootByName(context.TODO(), hashedName)
+					if err != nil {
+						if errors.IsNotFound(err) {
+							return
+						}
+
+						panic("error occurred while fetching parent " + err.Error())
+					}
+					panic(fmt.Sprintf("parent found (event loop is stalled) " + nc.DisplayName()))
+				}
+
+				if !gvkExist {
+					// Check GVK
+
+					if parent.Spec.ProjectGvk == nil {
+						return
+					}
+
+					panic(fmt.Sprintf("gvk found (event loop is stalled) " + nc.DisplayName()))
+				}
+
+				cbfn(nc)
+			},
+		})
+		go informer.Run(stopper)
+	}
+	return registrationId, err
+}
+
+func (c *projectProjectTsmV1Chainer) RegisterUpdateCallback(cbfn func(oldObj, newObj *ProjectProject)) (cache.ResourceEventHandlerRegistration, error) {
+	fmt.Println("ProjectProject -->  RegisterUpdateCallback!")
+	var (
+		registrationId cache.ResourceEventHandlerRegistration
+		err            error
+	)
+	key := "projects.project.tsm-tanzu.vmware.com"
+	stopper := make(chan struct{})
+	if s, ok := subscriptionMap.Load(key); ok {
+		fmt.Println("[ProjectProject] ---SUBSCRIBE-INFORMER---->")
+		sub := s.(subscription)
+		registrationId, err = sub.informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
+			UpdateFunc: func(oldObj, newObj interface{}) {
+				oldData := &ProjectProject{
+					client:  c.client,
+					Project: oldObj.(*baseprojecttsmtanzuvmwarecomv1.Project),
+				}
+				newData := &ProjectProject{
+					client:  c.client,
+					Project: newObj.(*baseprojecttsmtanzuvmwarecomv1.Project),
+				}
+				cbfn(oldData, newData)
+			},
+		})
+	} else {
+		fmt.Println("[ProjectProject] ---NEW-INFORMER---->")
+		informer := informerprojecttsmtanzuvmwarecomv1.NewProjectInformer(c.client.baseClient, 0, cache.Indexers{})
+		registrationId, err = informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
+			UpdateFunc: func(oldObj, newObj interface{}) {
+				oldData := &ProjectProject{
+					client:  c.client,
+					Project: oldObj.(*baseprojecttsmtanzuvmwarecomv1.Project),
+				}
+				newData := &ProjectProject{
+					client:  c.client,
+					Project: newObj.(*baseprojecttsmtanzuvmwarecomv1.Project),
+				}
+				cbfn(oldData, newData)
+			},
+		})
+		go informer.Run(stopper)
+	}
+	return registrationId, err
+}
+
+func (c *projectProjectTsmV1Chainer) RegisterDeleteCallback(cbfn func(obj *ProjectProject)) (cache.ResourceEventHandlerRegistration, error) {
+	fmt.Println("ProjectProject -->  RegisterDeleteCallback!")
+	var (
+		registrationId cache.ResourceEventHandlerRegistration
+		err            error
+	)
+	key := "projects.project.tsm-tanzu.vmware.com"
+	stopper := make(chan struct{})
+	if s, ok := subscriptionMap.Load(key); ok {
+		fmt.Println("[ProjectProject] ---SUBSCRIBE-INFORMER---->")
+		sub := s.(subscription)
+		registrationId, err = sub.informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
+			DeleteFunc: func(obj interface{}) {
+				nc := &ProjectProject{
+					client:  c.client,
+					Project: obj.(*baseprojecttsmtanzuvmwarecomv1.Project),
+				}
+
+				var parent *RootRoot
+				gvkExist := true
+				for i := 0; i < 600; i++ {
+					// Check if parent exists
+					p, err := nc.GetParent(context.TODO())
+					if err != nil || p == nil {
+						time.Sleep(500 * time.Millisecond)
+						continue
+					}
+					parent = p
+
+					// Check GVK
+
+					if parent.Spec.ProjectGvk != nil {
+						time.Sleep(500 * time.Millisecond)
+						continue
+					}
+
+					gvkExist = false
+					break
+				}
+
+				if parent == nil {
+					hashedName := helper.GetHashedName("roots.root.tsm-tanzu.vmware.com", nc.Labels, nc.Labels["roots.root.tsm-tanzu.vmware.com"])
+					parent, err = c.client.Root().ForceReadRootByName(context.TODO(), hashedName)
+					if err != nil {
+						if errors.IsNotFound(err) {
+							return
+						}
+
+						panic("error occurred while fetching parent " + err.Error())
+					}
+					panic(fmt.Sprintf("parent found (event loop is stalled) " + nc.DisplayName()))
+				}
+
+				if gvkExist {
+					// Check GVK
+
+					if parent.Spec.ProjectGvk != nil {
+						return
+					}
+
+					panic(fmt.Sprintf("gvk not found (event loop is stalled) " + nc.DisplayName()))
+				}
+
+				cbfn(nc)
+			},
+		})
+	} else {
+		fmt.Println("[ProjectProject] ---NEW-INFORMER---->")
+		informer := informerprojecttsmtanzuvmwarecomv1.NewProjectInformer(c.client.baseClient, 0, cache.Indexers{})
+		registrationId, err = informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
+			DeleteFunc: func(obj interface{}) {
+				nc := &ProjectProject{
+					client:  c.client,
+					Project: obj.(*baseprojecttsmtanzuvmwarecomv1.Project),
+				}
+
+				var parent *RootRoot
+				gvkExist := true
+				for i := 0; i < 600; i++ {
+					// Check if parent exists
+					p, err := nc.GetParent(context.TODO())
+					if err != nil || p == nil {
+						time.Sleep(500 * time.Millisecond)
+						continue
+					}
+					parent = p
+
+					// Check GVK
+
+					if parent.Spec.ProjectGvk != nil {
+						time.Sleep(500 * time.Millisecond)
+						continue
+					}
+
+					gvkExist = false
+
+					break
+				}
+
+				if parent == nil {
+					hashedName := helper.GetHashedName("roots.root.tsm-tanzu.vmware.com", nc.Labels, nc.Labels["roots.root.tsm-tanzu.vmware.com"])
+					parent, err = c.client.Root().ForceReadRootByName(context.TODO(), hashedName)
+					if err != nil {
+						if errors.IsNotFound(err) {
+							return
+						}
+
+						panic("error occurred while fetching parent " + err.Error())
+					}
+					panic(fmt.Sprintf("parent found (event loop is stalled) " + nc.DisplayName()))
+				}
+
+				if gvkExist {
+					// Check GVK
+
+					if parent.Spec.ProjectGvk != nil {
+						return
+					}
+
+					panic(fmt.Sprintf("gvk not found (event loop is stalled) " + nc.DisplayName()))
+				}
+
+				cbfn(nc)
+			},
+		})
+		go informer.Run(stopper)
+	}
+	return registrationId, err
+}
+
+func (c *projectProjectTsmV1Chainer) Config() *configConfigTsmV1Chainer {
+	parentLabels := c.parentLabels
+	parentLabels["configs.config.tsm-tanzu.vmware.com"] = helper.DEFAULT_KEY
+	return &configConfigTsmV1Chainer{
+		client:       c.client,
+		name:         helper.DEFAULT_KEY,
+		parentLabels: parentLabels,
+	}
+}
+
+// GetConfig calculates hashed name of the object based on it's parents and returns the object
+func (c *projectProjectTsmV1Chainer) GetConfig(ctx context.Context) (result *ConfigConfig, err error) {
+	hashedName := helper.GetHashedName("configs.config.tsm-tanzu.vmware.com", c.parentLabels, helper.DEFAULT_KEY)
+	return c.client.Config().GetConfigByName(ctx, hashedName)
+}
+
+// AddConfig calculates hashed name of the child to create based on parents names and creates it.
+// objToCreate.Name is changed to the hashed name. Original name ('default') is preserved in
+// nexus/display_name label and can be obtained using DisplayName() method.
+func (c *projectProjectTsmV1Chainer) AddConfig(ctx context.Context,
+	objToCreate *baseconfigtsmtanzuvmwarecomv1.Config) (result *ConfigConfig, err error) {
+	if objToCreate.GetName() == "" {
+		objToCreate.SetName(helper.DEFAULT_KEY)
+	}
+	if objToCreate.GetName() != helper.DEFAULT_KEY {
+		return nil, NewSingletonNameError(objToCreate.GetName())
+	}
+	if objToCreate.Labels == nil {
+		objToCreate.Labels = map[string]string{}
+	}
+	for k, v := range c.parentLabels {
+		objToCreate.Labels[k] = v
+	}
+	if objToCreate.Labels[common.IS_NAME_HASHED_LABEL] != "true" {
+		objToCreate.Labels[common.DISPLAY_NAME_LABEL] = objToCreate.GetName()
+		objToCreate.Labels[common.IS_NAME_HASHED_LABEL] = "true"
+		hashedName := helper.GetHashedName("configs.config.tsm-tanzu.vmware.com", c.parentLabels, objToCreate.GetName())
+		objToCreate.Name = hashedName
+	}
+	return c.client.Config().CreateConfigByName(ctx, objToCreate)
+}
+
+// DeleteConfig calculates hashed name of the child to delete based on displayName
+// and parents names and deletes it.
+func (c *projectProjectTsmV1Chainer) DeleteConfig(ctx context.Context, name string) (err error) {
+	if c.parentLabels == nil {
+		c.parentLabels = map[string]string{}
+	}
+	c.parentLabels[common.IS_NAME_HASHED_LABEL] = "true"
+	hashedName := helper.GetHashedName("configs.config.tsm-tanzu.vmware.com", c.parentLabels, name)
+	return c.client.Config().DeleteConfigByName(ctx, hashedName)
 }

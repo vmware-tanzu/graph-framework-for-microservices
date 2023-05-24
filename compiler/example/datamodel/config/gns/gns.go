@@ -192,8 +192,6 @@ type Gns struct {
 	WorkloadSpec  cartv1.WorkloadSpec  //external-field
 	DifferentSpec *cartv1.WorkloadSpec // external-field - pointer
 
-	//AdditionalGnsData AdditionalGnsData `nexus:"child"`
-
 	ServiceSegmentRef        ServiceSegmentRef            `json:"serviceSegmentRef,omitempty"`
 	ServiceSegmentRefPointer *ServiceSegmentRef           `json:"serviceSegmentRefPointer,omitempty"`
 	ServiceSegmentRefs       []ServiceSegmentRef          `json:"serviceSegmentRefs,omitempty"`
@@ -217,7 +215,6 @@ type Description struct {
 
 type BarChild struct {
 	nexus.SingletonNode
-	//RandomGnsData RandomGnsData `nexus:"child"`
 	Name string
 }
 
