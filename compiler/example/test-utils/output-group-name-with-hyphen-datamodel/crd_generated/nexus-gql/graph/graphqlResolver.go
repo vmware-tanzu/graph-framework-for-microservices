@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"os"
 
 	log "github.com/sirupsen/logrus"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -12,6 +11,7 @@ import (
 
 	nexus_client "../../example/test-utils/output-group-name-with-hyphen-datamodel/crd_generated/nexus-client"
 	"../../example/test-utils/output-group-name-with-hyphen-datamodel/crd_generated/nexus-gql/graph/model"
+	qm "github.com/vmware-tanzu/graph-framework-for-microservices/nexus/generated/query-manager"
 )
 
 var c = GrpcClients{
