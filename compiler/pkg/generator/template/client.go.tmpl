@@ -338,7 +338,6 @@ func (group *{{$node.GroupTypeName}}) Delete{{$node.BaseNodeName}}ByName(ctx con
 // Use it directly ONLY when objToCreate.Name is hashed name of the object.
 func (group *{{$node.GroupTypeName}}) Create{{$node.BaseNodeName}}ByName(ctx context.Context,
 	objToCreate *{{$node.GroupBaseImport}}) (*{{$node.SimpleGroupTypeName}}{{$node.BaseNodeName}}, error) {
-	{{$node.BaseNodeName}} +=1
 	log.Debugf("[Create{{$node.BaseNodeName}}ByName] received a objToCreate: %s",objToCreate.GetName())
 	if objToCreate.GetLabels() == nil {
 		objToCreate.Labels = make(map[string]string)
