@@ -169,6 +169,15 @@ func (p *Package) GetNonStructTypes() []*ast.TypeSpec {
 	return nonStructs
 }
 
+func (p *Package) FindNonStructType(name string) *ast.TypeSpec {
+	for _, typ := range p.GetNonStructTypes() {
+		if typ.Name.String() == name {
+			return typ
+		}
+	}
+	return nil
+}
+
 func (p *Package) GetTypes() []ast.GenDecl {
 	var genDecls []ast.GenDecl
 	for _, genDecl := range p.GenDecls {
@@ -536,8 +545,58 @@ func IsArrayField(f *ast.Field) bool {
 	return false
 }
 
-func IsAggregateKind(f *ast.Field) bool {
-	return IsArrayField(f) || IsMapField(f)
+func IsAggregateKind(pkg Package, pkgs Packages, f ast.Expr) bool {
+	if !isBasicType(f) {
+		switch t := f.(type) {
+		case *ast.StarExpr:
+			switch st := t.X.(type) {
+			case *ast.Ident:
+				if v := pkg.FindNonStructType(st.Name); v != nil {
+					if _, ok := v.Type.(*ast.ArrayType); ok {
+						return true
+					}
+					if _, ok := v.Type.(*ast.MapType); ok {
+						return true
+					}
+				}
+			case *ast.SelectorExpr:
+				for _, v := range pkgs {
+					if types.ExprString(t.X) == v.Name {
+						nonStructType := v.FindNonStructType(st.Sel.String())
+						if nonStructType != nil {
+							return IsAggregateKind(v, pkgs, nonStructType.Type)
+						}
+					}
+				}
+			case *ast.ArrayType:
+			case *ast.MapType:
+				return true
+			}
+		case *ast.Ident:
+			if v := pkg.FindNonStructType(t.Name); v != nil {
+				if _, ok := v.Type.(*ast.ArrayType); ok {
+					return true
+				}
+				if _, ok := v.Type.(*ast.MapType); ok {
+					return true
+				}
+			}
+		case *ast.SelectorExpr:
+			for _, v := range pkgs {
+				if types.ExprString(t.X) == v.Name {
+					nonStructType := v.FindNonStructType(t.Sel.String())
+					if nonStructType != nil {
+						return IsAggregateKind(v, pkgs, nonStructType.Type)
+					}
+				}
+			}
+		case *ast.ArrayType:
+		case *ast.MapType:
+			return true
+		}
+	}
+
+	return false
 }
 
 func IsPointerToArrayField(f *ast.Field) bool {

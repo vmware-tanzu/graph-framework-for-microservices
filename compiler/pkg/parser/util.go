@@ -89,3 +89,55 @@ func GetNexusSpecs(p Package, nexusType string) (specs []NexusSpec) {
 	}
 	return
 }
+
+var basicTypes = []string{
+	"bool",
+	"byte",
+	"complex64",
+	"complex128",
+	"error",
+	"float32",
+	"float64",
+	"int",
+	"int8",
+	"int16",
+	"int32",
+	"int64",
+	"rune",
+	"string",
+	"uint",
+	"uint8",
+	"uint16",
+	"uint32",
+	"uint64",
+	"uintptr",
+}
+
+func isBasicType(fieldType ast.Expr) bool {
+	switch typ := fieldType.(type) {
+	case *ast.Ident:
+		return isBasicIdent(typ.Name)
+	case *ast.ArrayType:
+		eltType, ok := typ.Elt.(*ast.Ident)
+		if !ok {
+			return false
+		}
+		return isBasicIdent(eltType.Name)
+	case *ast.MapType:
+		return false // Assuming maps are not considered basic types
+	case *ast.StructType:
+		return false // Assuming structs are not considered basic types
+	}
+
+	return false
+}
+
+func isBasicIdent(name string) bool {
+	for _, t := range basicTypes {
+		if t == name {
+			return true
+		}
+	}
+
+	return false
+}
