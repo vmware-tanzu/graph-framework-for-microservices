@@ -161,7 +161,7 @@ func resolveNode(baseImportName, informerImportName string, pkg parser.Package, 
 			vars.FieldNameTag = util.GetTag(fieldInfo.fieldName)
 		}
 
-		vars.IsAggregateKind = parser.IsAggregateKind(f)
+		vars.IsAggregateKind = parser.IsAggregateKind(pkg, allPkgs, f.Type)
 
 		clientGroupVars.Fields = append(clientGroupVars.Fields, vars)
 	}
