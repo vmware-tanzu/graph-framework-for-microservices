@@ -1,12 +1,17 @@
 # dummy size option
-{{- define "api-gw-default" }}
+{{- define "api-gw-dev" }}
               cpu: 250m
               memory: 128Mi
 {{- end }}
 
-{{- define "api-gw-default-request" }}
+{{- define "api-gw-dev-request" }}
               cpu: 100m
               memory: 128Mi
+{{- end }}
+
+{{- define "api-gw-stage" }}
+              cpu: 490m
+              memory: 512Mi
 {{- end }}
 
 {{- define "api-gw-prod" }}
@@ -22,26 +27,30 @@
               {{- if .Values.global.resources.api_gateway }}
               cpu: {{ .Values.global.resources.api_gateway.cpu }}
               memory: {{ .Values.global.resources.api_gateway.memory }}
-              {{- else if eq .Values.global.resources.nexussizing "prod" }}
-                {{- template "api-gw-prod" . }}
+              {{- else if eq .Values.global.resources.clustertype "dev" }}
+                {{- template "api-gw-dev" . }}
+              {{- else if eq .Values.global.resources.clustertype "stage" }}
+                {{- template "api-gw-stage" . }}
               {{- else }}
-                {{- template "api-gw-default" . }}
+                {{- template "api-gw-prod" . }}
               {{- end }}
             {{- else }}
-              {{- template "api-gw-default" . }}
+              {{- template "api-gw-prod" . }}
             {{- end }}
             requests:
             {{- if .Values.global.resources }}
               {{- if .Values.global.resources.api_gateway }}
               cpu: {{ .Values.global.resources.api_gateway.cpu }}
               memory: {{  .Values.global.resources.api_gateway.memory }}
-              {{- else if eq .Values.global.resources.nexussizing "prod" }}
-                {{- template "api-gw-prod" . }}
+              {{- else if eq .Values.global.resources.clustertype "dev" }}
+                {{- template "api-gw-dev-request" . }}
+              {{- else if eq .Values.global.resources.clustertype "stage" }}
+                {{- template "api-gw-stage" . }}
               {{- else }}
-                {{- template "api-gw-default-request" . }}
+                {{- template "api-gw-prod" . }}
               {{- end }}
             {{- else }}
-              {{- template "api-gw-default-request" . }}
+              {{- template "api-gw-prod" . }}
             {{- end }}
 {{- end }}
 
