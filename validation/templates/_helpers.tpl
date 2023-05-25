@@ -1,12 +1,17 @@
 # dummy size option
-{{- define "validation-default" }}
+{{- define "validation-dev" }}
               cpu: 250m
               memory: 128Mi
 {{- end }}
 
-{{- define "validation-default-request" }}
+{{- define "validation-dev-request" }}
               cpu: 100m
               memory: 128Mi
+{{- end }}
+
+{{- define "validation-stage" }}
+              cpu: 490m
+              memory: 480Mi
 {{- end }}
 
 {{- define "validation-prod" }}
@@ -22,31 +27,35 @@
 {{- define "validation_resources" }}
           resources:
             limits:
-            # this is to check if the override value is present if not we will set it to default
+            # this is to check if the override value is present if not we will set it to prod
             {{- if .Values.global.resources }}
               {{- if .Values.global.resources.validation }}
               cpu: {{ .Values.global.resources.validation.cpu }}
               memory: {{ .Values.global.resources.validation.memory }}
-              {{- else if eq .Values.global.resources.nexussizing "prod" }}
-                {{- template "validation-prod" . }}
+              {{- else if eq .Values.global.resources.clustertype "dev" }}
+                {{- template "validation-dev" . }}
+              {{- else if eq .Values.global.resources.clustertype "stage" }}
+                {{- template "validation-stage" . }}
               {{- else }}
-                {{- template "validation-default" . }}
+                {{- template "validation-prod" . }}
               {{- end }}
             {{- else }}
-              {{- template "validation-default" . }}
+              {{- template "validation-prod" . }}
             {{- end }}
             requests:
             {{- if .Values.global.resources }}
               {{- if .Values.global.resources.validation }}
               cpu: {{ .Values.global.resources.validation.cpu }}
               memory: {{  .Values.global.resources.validation.memory }}
-              {{- else if eq .Values.global.resources.nexussizing "prod" }}
-                {{- template "validation-prod" . }}
+              {{- else if eq .Values.global.resources.clustertype "dev" }}
+                {{- template "validation-dev-request" . }}
+              {{- else if eq .Values.global.resources.clustertype "stage" }}
+                {{- template "validation-stage" . }}
               {{- else }}
-                {{- template "validation-default-request" . }}
+                {{- template "validation-prod" . }}
               {{- end }}
             {{- else }}
-              {{- template "validation-default-request" . }}
+              {{- template "validation-prod" . }}
             {{- end }}
 {{- end }}
 
