@@ -161,8 +161,6 @@ func resolveNode(baseImportName, informerImportName string, pkg parser.Package, 
 			vars.FieldNameTag = util.GetTag(fieldInfo.fieldName)
 		}
 
-		vars.IsAggregateKind = parser.IsAggregateKind(pkg, allPkgs, f.Type)
-
 		clientGroupVars.Fields = append(clientGroupVars.Fields, vars)
 	}
 
@@ -334,7 +332,6 @@ type apiGroupsClientVarsLink struct {
 	BaseNodeName           string
 	IsNamed                bool
 	IsSingleton            bool
-	IsAggregateKind        bool
 	GroupTypeName          string
 	SimpleGroupTypeName    string
 	GroupResourceNameTitle string
