@@ -146,47 +146,69 @@ func new{{$group.GroupTypeName}}(client *Clientset) *{{$group.GroupTypeName}} {
 // Get{{$node.BaseNodeName}}ByName returns object stored in the database under the hashedName which is a hash of display
 // name and parents names. Use it when you know hashed name of object.
 func (group *{{$node.GroupTypeName}}) Get{{$node.BaseNodeName}}ByName(ctx context.Context, hashedName string) (*{{$node.SimpleGroupTypeName}}{{$node.BaseNodeName}}, error) {
+	var return_error error
+	var cache_obj *{{$node.SimpleGroupTypeName}}{{$node.BaseNodeName}}
+	var api_obj *{{$node.SimpleGroupTypeName}}{{$node.BaseNodeName}}
 	key := "{{$node.CrdName}}"
 	if s, ok := subscriptionMap.Load(key); ok {
 		log.Debugf("[Get{{$node.BaseNodeName}}ByName] GetObject: %s from cache", hashedName)
 		item, exists,err := s.(subscription).informer.GetStore().GetByKey(hashedName)
 		if !exists {
-			return nil, err
-		}
-
-		log.Debugf("[Get{{$node.BaseNodeName}}ByName] Object: %s exists in cache", hashedName)
-		result, _ := item.(*{{$node.GroupBaseImport}})
-		return &{{$node.SimpleGroupTypeName}}{{$node.BaseNodeName}}{
-			client: group.client,
-			{{$node.BaseNodeName}}: result,
-		}, nil
-	}else{
-		retryCount := 0
-		for {
-			result, err := group.client.baseClient.
-			{{$node.GroupTypeName}}().
-			{{$node.GroupResourceNameTitle}}().Get(ctx, hashedName, metav1.GetOptions{})
-			if err != nil {
-				log.Errorf("Failed to Get {{$node.GroupResourceNameTitle}}: %+v",err)
-				if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded) {
-					log.Errorf("[Retry Count: %d ] %+v",retryCount,err)
-					if retryCount == maxRetryCount {
-						log.Error("Max Retry exceed on Get {{$node.GroupResourceNameTitle}}")
-						return nil, err
-					}
-					retryCount +=1
-					time.Sleep(sleepTime * time.Second)
-				}else {
-					log.Errorf("[Get{{$node.BaseNodeName}}ByName]: %+v",err)
-					return nil, err
-				}
-			}
-			return &{{$node.SimpleGroupTypeName}}{{$node.BaseNodeName}}{
+			log.Errorf("Not found ApiDevSpaces in cache(informer), error: %s", err.Error())
+			return_error=err
+			// return nil, err
+		}else{
+			log.Debugf("[Get{{$node.BaseNodeName}}ByName] Object: %s exists in cache", hashedName)
+			log.Infof("{{$node.BaseNodeName}}: %s from cache(informer), GenerationId: %+v",  result.DisplayName(), result.Generation)
+			log.Infof("{{$node.BaseNodeName}}: %s from cache(informer), Spec: %+v", result.DisplayName(), result.Spec)
+			result, _ := item.(*{{$node.GroupBaseImport}})
+			cache_obj = &{{$node.SimpleGroupTypeName}}{{$node.BaseNodeName}}{
 				client: group.client,
 				{{$node.BaseNodeName}}: result,
-			}, nil
+			}
 		}
 	}
+	retryCount := 0
+	for {
+		result, err := group.client.baseClient.
+		{{$node.GroupTypeName}}().
+		{{$node.GroupResourceNameTitle}}().Get(ctx, hashedName, metav1.GetOptions{})
+		if err != nil {
+			log.Errorf("Failed to Get {{$node.GroupResourceNameTitle}}: %+v",err)
+			if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded) {
+				log.Errorf("[Retry Count: %d ] %+v",retryCount,err)
+				if retryCount == maxRetryCount {
+					log.Error("Max Retry exceed on Get {{$node.GroupResourceNameTitle}}")
+					// return nil, err
+					return_error=err
+					break
+				}
+				retryCount +=1
+				time.Sleep(sleepTime * time.Second)
+				continue
+			}else {
+				log.Errorf("[Get{{$node.BaseNodeName}}ByName]: %+v",err)
+				// return nil, err
+				return_error=err
+				break
+			}
+		}
+		log.Infof("{{$node.BaseNodeName}}: %s from apiserver, GenerationId: %+v",  result.DisplayName(), result.Generation)
+		log.Infof("{{$node.BaseNodeName}}: %s from apiserver, Spec: %+v", result.DisplayName(), result.Spec)
+		api_obj = &{{$node.SimpleGroupTypeName}}{{$node.BaseNodeName}}{
+			client: group.client,
+			{{$node.BaseNodeName}}: result,
+		}
+		break
+	}
+
+	if cache_obj !=nil {
+		return cache_obj,nil
+	}
+	if api_obj!=nil{
+		return api_obj,nil
+	}
+	return nil,return_error
 }
 
 // ForceRead{{$node.BaseNodeName}}ByName read object directly from the database under the hashedName which is a hash of display
