@@ -26,6 +26,7 @@ import (
 	"k8s.io/client-go/rest"
 	cache "k8s.io/client-go/tools/cache"
 	"github.com/sirupsen/logrus"
+	"reflect"
 
 {{.HelperImport}}
 {{.CommonImport}}
@@ -562,28 +563,29 @@ func (group *{{$node.GroupTypeName}}) Update{{$node.BaseNodeName}}ByName(ctx con
 		Path:  "/metadata",
 		Value: objToUpdate.ObjectMeta,
 	})
+
+	var rt reflect.Type
 	{{ range $key, $field := .Fields }}
-	{{ if $field.IsAggregateKind }}
-	if objToUpdate.Spec.{{$field.FieldName}} != nil {
-		patchValue{{$field.FieldName}} :=
-		objToUpdate.Spec.{{$field.FieldName}}
+	rt = reflect.TypeOf(objToUpdate.Spec.{{$field.FieldName}})
+	if rt.Kind() == reflect.Slice || rt.Kind() == reflect.Array || rt.Kind() == reflect.Map {
+		if !reflect.ValueOf(objToUpdate.Spec.{{$field.FieldName}}).IsNil(){
+			patchValue{{$field.FieldName}} := objToUpdate.Spec.{{$field.FieldName}}
 			patchOp{{$field.FieldName}} := PatchOp{
+				Op:    "replace",
+				Path:  "/spec/{{$field.FieldNameTag}}",
+				Value: patchValue{{$field.FieldName}},
+			}
+			patch = append(patch, patchOp{{$field.FieldName}})
+		}
+	} else {
+		patchValue{{$field.FieldName}} := objToUpdate.Spec.{{$field.FieldName}}
+		patchOp{{$field.FieldName}} := PatchOp{
 			Op:    "replace",
 			Path:  "/spec/{{$field.FieldNameTag}}",
 			Value: patchValue{{$field.FieldName}},
 		}
 		patch = append(patch, patchOp{{$field.FieldName}})
 	}
-	{{else}}
-	patchValue{{$field.FieldName}} :=
-	objToUpdate.Spec.{{$field.FieldName}}
-		patchOp{{$field.FieldName}} := PatchOp{
-		Op:    "replace",
-		Path:  "/spec/{{$field.FieldNameTag}}",
-		Value: patchValue{{$field.FieldName}},
-	}
-	patch = append(patch, patchOp{{$field.FieldName}})
-	{{ end }}
 	{{ end }}
 	marshaled, err := patch.Marshal()
 	if err != nil {
