@@ -564,7 +564,10 @@ func (group *{{$node.GroupTypeName}}) Update{{$node.BaseNodeName}}ByName(ctx con
 		Value: objToUpdate.ObjectMeta,
 	})
 
+
+	{{ if gt (len .Fields) 0}}
 	var rt reflect.Type
+	{{ end }}
 	{{ range $key, $field := .Fields }}
 	rt = reflect.TypeOf(objToUpdate.Spec.{{$field.FieldName}})
 	if rt.Kind() == reflect.Slice || rt.Kind() == reflect.Array || rt.Kind() == reflect.Map {
