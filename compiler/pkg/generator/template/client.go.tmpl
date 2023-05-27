@@ -157,7 +157,10 @@ func (group *{{$node.GroupTypeName}}) Get{{$node.BaseNodeName}}ByName(ctx contex
 		log.Debugf("[Get{{$node.BaseNodeName}}ByName] Object: %s exists in cache", hashedName)
 		result, _ := item.(*{{$node.GroupBaseImport}})
 		var out *{{$node.GroupBaseImport}}
-		result.DeepCopyInto(out)
+		if result != nil {
+			out = result.DeepCopy()
+		}
+
 		return &{{$node.SimpleGroupTypeName}}{{$node.BaseNodeName}}{
 			client: group.client,
 			{{$node.BaseNodeName}}: out,
