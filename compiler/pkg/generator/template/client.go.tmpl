@@ -183,11 +183,12 @@ func (group *{{$node.GroupTypeName}}) Get{{$node.BaseNodeName}}ByName(ctx contex
 					log.Errorf("[Get{{$node.BaseNodeName}}ByName]: %+v",err)
 					return nil, err
 				}
+			} else{
+				return &{{$node.SimpleGroupTypeName}}{{$node.BaseNodeName}}{
+					client: group.client,
+					{{$node.BaseNodeName}}: result,
+				}, nil
 			}
-			return &{{$node.SimpleGroupTypeName}}{{$node.BaseNodeName}}{
-				client: group.client,
-				{{$node.BaseNodeName}}: result,
-			}, nil
 		}
 	}
 }
