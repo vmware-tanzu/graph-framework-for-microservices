@@ -100,7 +100,7 @@ func (c *FakeVMpolicies) Update(ctx context.Context, vMpolicy *policypkgtsmtanzu
 // Delete takes name of the vMpolicy and deletes it. Returns an error if one occurs.
 func (c *FakeVMpolicies) Delete(ctx context.Context, name string, opts v1.DeleteOptions) error {
 	_, err := c.Fake.
-		Invokes(testing.NewRootDeleteAction(vmpoliciesResource, name), &policypkgtsmtanzuvmwarecomv1.VMpolicy{})
+		Invokes(testing.NewRootDeleteActionWithOptions(vmpoliciesResource, name, opts), &policypkgtsmtanzuvmwarecomv1.VMpolicy{})
 	return err
 }
 

@@ -18,10 +18,6 @@ limitations under the License.
 
 package v1
 
-// AdditionalGnsDataListerExpansion allows custom methods to be added to
-// AdditionalGnsDataLister.
-type AdditionalGnsDataListerExpansion interface{}
-
 // BarChildListerExpansion allows custom methods to be added to
 // BarChildLister.
 type BarChildListerExpansion interface{}
@@ -41,7 +37,3 @@ type GnsListerExpansion interface{}
 // IgnoreChildListerExpansion allows custom methods to be added to
 // IgnoreChildLister.
 type IgnoreChildListerExpansion interface{}
-
-// RandomGnsDataListerExpansion allows custom methods to be added to
-// RandomGnsDataLister.
-type RandomGnsDataListerExpansion interface{}

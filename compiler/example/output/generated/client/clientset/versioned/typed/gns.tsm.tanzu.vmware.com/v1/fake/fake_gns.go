@@ -100,7 +100,7 @@ func (c *FakeGnses) Update(ctx context.Context, gns *gnstsmtanzuvmwarecomv1.Gns,
 // Delete takes name of the gns and deletes it. Returns an error if one occurs.
 func (c *FakeGnses) Delete(ctx context.Context, name string, opts v1.DeleteOptions) error {
 	_, err := c.Fake.
-		Invokes(testing.NewRootDeleteAction(gnsesResource, name), &gnstsmtanzuvmwarecomv1.Gns{})
+		Invokes(testing.NewRootDeleteActionWithOptions(gnsesResource, name, opts), &gnstsmtanzuvmwarecomv1.Gns{})
 	return err
 }
 

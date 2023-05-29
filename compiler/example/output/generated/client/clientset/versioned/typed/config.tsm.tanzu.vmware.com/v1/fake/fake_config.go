@@ -100,7 +100,7 @@ func (c *FakeConfigs) Update(ctx context.Context, config *configtsmtanzuvmwareco
 // Delete takes name of the config and deletes it. Returns an error if one occurs.
 func (c *FakeConfigs) Delete(ctx context.Context, name string, opts v1.DeleteOptions) error {
 	_, err := c.Fake.
-		Invokes(testing.NewRootDeleteAction(configsResource, name), &configtsmtanzuvmwarecomv1.Config{})
+		Invokes(testing.NewRootDeleteActionWithOptions(configsResource, name, opts), &configtsmtanzuvmwarecomv1.Config{})
 	return err
 }
 

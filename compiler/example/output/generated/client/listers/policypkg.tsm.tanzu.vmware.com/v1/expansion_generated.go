@@ -26,14 +26,6 @@ type ACPConfigListerExpansion interface{}
 // AccessControlPolicyLister.
 type AccessControlPolicyListerExpansion interface{}
 
-// AdditionalPolicyDataListerExpansion allows custom methods to be added to
-// AdditionalPolicyDataLister.
-type AdditionalPolicyDataListerExpansion interface{}
-
-// RandomPolicyDataListerExpansion allows custom methods to be added to
-// RandomPolicyDataLister.
-type RandomPolicyDataListerExpansion interface{}
-
 // VMpolicyListerExpansion allows custom methods to be added to
 // VMpolicyLister.
 type VMpolicyListerExpansion interface{}

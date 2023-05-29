@@ -100,7 +100,7 @@ func (c *FakeRoots) Update(ctx context.Context, root *roottsmtanzuvmwarecomv1.Ro
 // Delete takes name of the root and deletes it. Returns an error if one occurs.
 func (c *FakeRoots) Delete(ctx context.Context, name string, opts v1.DeleteOptions) error {
 	_, err := c.Fake.
-		Invokes(testing.NewRootDeleteAction(rootsResource, name), &roottsmtanzuvmwarecomv1.Root{})
+		Invokes(testing.NewRootDeleteActionWithOptions(rootsResource, name, opts), &roottsmtanzuvmwarecomv1.Root{})
 	return err
 }
 

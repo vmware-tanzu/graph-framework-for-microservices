@@ -100,7 +100,7 @@ func (c *FakeSvcGroupLinkInfos) Update(ctx context.Context, svcGroupLinkInfo *se
 // Delete takes name of the svcGroupLinkInfo and deletes it. Returns an error if one occurs.
 func (c *FakeSvcGroupLinkInfos) Delete(ctx context.Context, name string, opts v1.DeleteOptions) error {
 	_, err := c.Fake.
-		Invokes(testing.NewRootDeleteAction(svcgrouplinkinfosResource, name), &servicegrouptsmtanzuvmwarecomv1.SvcGroupLinkInfo{})
+		Invokes(testing.NewRootDeleteActionWithOptions(svcgrouplinkinfosResource, name, opts), &servicegrouptsmtanzuvmwarecomv1.SvcGroupLinkInfo{})
 	return err
 }
 

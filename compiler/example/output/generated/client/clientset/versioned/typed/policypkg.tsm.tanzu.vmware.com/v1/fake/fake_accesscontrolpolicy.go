@@ -100,7 +100,7 @@ func (c *FakeAccessControlPolicies) Update(ctx context.Context, accessControlPol
 // Delete takes name of the accessControlPolicy and deletes it. Returns an error if one occurs.
 func (c *FakeAccessControlPolicies) Delete(ctx context.Context, name string, opts v1.DeleteOptions) error {
 	_, err := c.Fake.
-		Invokes(testing.NewRootDeleteAction(accesscontrolpoliciesResource, name), &policypkgtsmtanzuvmwarecomv1.AccessControlPolicy{})
+		Invokes(testing.NewRootDeleteActionWithOptions(accesscontrolpoliciesResource, name, opts), &policypkgtsmtanzuvmwarecomv1.AccessControlPolicy{})
 	return err
 }
 
