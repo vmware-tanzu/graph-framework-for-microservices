@@ -536,10 +536,6 @@ func IsArrayField(f *ast.Field) bool {
 	return false
 }
 
-func IsAggregateKind(f *ast.Field) bool {
-	return IsArrayField(f) || IsMapField(f)
-}
-
 func IsPointerToArrayField(f *ast.Field) bool {
 	if f == nil {
 		return false

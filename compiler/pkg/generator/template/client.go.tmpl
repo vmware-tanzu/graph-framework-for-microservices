@@ -18,6 +18,7 @@ import (
 	"sync"
 	"fmt"
 	"time"
+	"os"
 	customerrors "errors"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -25,6 +26,7 @@ import (
 	"k8s.io/client-go/rest"
 	cache "k8s.io/client-go/tools/cache"
 	"github.com/sirupsen/logrus"
+	"reflect"
 
 {{.HelperImport}}
 {{.CommonImport}}
@@ -36,6 +38,8 @@ fakeBaseClienset {{.FakeBaseCliensetImport}}
 )
 
 var log = logrus.New()
+const maxRetryCount = 12
+const sleepTime = 5
 
 type Clientset struct {
 	baseClient baseClientset.Interface
@@ -85,6 +89,16 @@ func NewForConfig(config *rest.Config) (*Clientset, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	customFormatter := new(logrus.TextFormatter)
+	customFormatter.TimestampFormat = "2006-01-02 15:04:05"
+	log.SetFormatter(customFormatter)
+	customFormatter.FullTimestamp = true
+	if os.Getenv("NEXUS_LOG_LEVEL") == "debug" {
+		log.SetLevel(logrus.DebugLevel)
+		log.Debug("Nexus debug log enabled")
+	}
+
 	client := &Clientset{}
 	client.baseClient = baseClient
 	{{ range $key, $group := .ApiGroups }}{{$group.InitApiGroups}}{{ end }}
@@ -134,19 +148,20 @@ func new{{$group.GroupTypeName}}(client *Clientset) *{{$group.GroupTypeName}} {
 func (group *{{$node.GroupTypeName}}) Get{{$node.BaseNodeName}}ByName(ctx context.Context, hashedName string) (*{{$node.SimpleGroupTypeName}}{{$node.BaseNodeName}}, error) {
 	key := "{{$node.CrdName}}"
 	if s, ok := subscriptionMap.Load(key); ok {
+		log.Debugf("[Get{{$node.BaseNodeName}}ByName] GetObject: %s from cache", hashedName)
 		item, exists,err := s.(subscription).informer.GetStore().GetByKey(hashedName)
 		if !exists {
 			return nil, err
 		}
 
-        
+		log.Debugf("[Get{{$node.BaseNodeName}}ByName] Object: %s exists in cache", hashedName)
 		result, _ := item.(*{{$node.GroupBaseImport}})
 		return &{{$node.SimpleGroupTypeName}}{{$node.BaseNodeName}}{
 			client: group.client,
 			{{$node.BaseNodeName}}: result,
 		}, nil
 	}else{
-		retryCount := 12
+		retryCount := 0
 		for {
 			result, err := group.client.baseClient.
 			{{$node.GroupTypeName}}().
@@ -155,14 +170,14 @@ func (group *{{$node.GroupTypeName}}) Get{{$node.BaseNodeName}}ByName(ctx contex
 				log.Errorf("Failed to Get {{$node.GroupResourceNameTitle}}: %+v",err)
 				if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded) {
 					log.Errorf("[Retry Count: %d ] %+v",retryCount,err)
-					if retryCount == 0 {
+					if retryCount == maxRetryCount {
 						log.Error("Max Retry exceed on Get {{$node.GroupResourceNameTitle}}")
 						return nil, err
 					}
-					retryCount-=1
-					time.Sleep(5 * time.Second)
+					retryCount +=1
+					time.Sleep(sleepTime * time.Second)
 				}else {
-					log.Errorf("Unexpected Error: %+v",err)
+					log.Errorf("[Get{{$node.BaseNodeName}}ByName]: %+v",err)
 					return nil, err
 				}
 			}
@@ -199,13 +214,16 @@ func (group *{{$node.GroupTypeName}}) Delete{{$node.BaseNodeName}}ByName(ctx con
 	{{$node.GroupResourceNameTitle}}().Get(ctx, hashedName, metav1.GetOptions{})
 	if err != nil {
 		if customerrors.Is(err, context.DeadlineExceeded){
-			log.Errorf("context deadline exceeded, on creating GNS: %+v",hashedName)
+			log.Errorf("context deadline exceeded, on creating {{$node.BaseNodeName}}: %+v",hashedName)
 			return context.DeadlineExceeded
 		} else if customerrors.Is(err, context.Canceled){
-			log.Errorf("context cancelled, on creating GNS: %+v",hashedName)
+			log.Errorf("context cancelled, on creating {{$node.BaseNodeName}}: %+v",hashedName)
 			return context.Canceled
+		} else if errors.IsAlreadyExists(err){
+			log.Errorf("Already Exists: %+v",err)
+			return err
 		} else {
-			log.Errorf("Unexpected Error: %+v",err)
+			log.Errorf("Unexpected Error-2[DELETE {{$node.BaseNodeName}}]: %+v",err)
 			return err
 		}
 	}
@@ -273,7 +291,7 @@ func (group *{{$node.GroupTypeName}}) Delete{{$node.BaseNodeName}}ByName(ctx con
 		parentName = helper.GetHashedName("{{$node.Parent.CrdName}}", parents, parentName)
 	}
 
-	retryCount := 12
+	retryCount := 0
 	newCtx := context.TODO()
 	for {
 		_, err = group.client.baseClient.
@@ -283,7 +301,7 @@ func (group *{{$node.GroupTypeName}}) Delete{{$node.BaseNodeName}}ByName(ctx con
 			log.Errorf("Failed to patch {{$node.BaseNodeName}} gvk in parent node[{{$node.Parent.GroupResourceNameTitle}}]: %+v", err)
 			if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded){
 				log.Errorf("[Retry Count: %d ] %+v",retryCount, err)
-				if retryCount == 0 {
+				if retryCount == maxRetryCount {
 					log.Error("Max Retry exceed on patching gvk")
 					log.Errorf("Trigger {{$node.BaseNodeName}} Delete: %s",hashedName)
 					err = group.Delete{{$node.BaseNodeName}}ByName(newCtx, hashedName)
@@ -294,10 +312,10 @@ func (group *{{$node.GroupTypeName}}) Delete{{$node.BaseNodeName}}ByName(ctx con
 					log.Errorf("{{$node.BaseNodeName}} Deleted: %s",hashedName)
 					return err
 				}
-				retryCount -= 1
-				time.Sleep(5 * time.Second)
+				retryCount +=1
+				time.Sleep(sleepTime * time.Second)
 			} else {
-				log.Errorf("Unexpected Error: %+v",err)
+				log.Errorf("Unexpected Error-3[PATCH {{$node.BaseNodeName}}]: %+v",err)
 				log.Errorf("Trigger {{$node.BaseNodeName}} Delete: %s",hashedName)
 				err = group.Delete{{$node.BaseNodeName}}ByName(newCtx, hashedName)
 				if err != nil {
@@ -321,6 +339,7 @@ func (group *{{$node.GroupTypeName}}) Delete{{$node.BaseNodeName}}ByName(ctx con
 // Use it directly ONLY when objToCreate.Name is hashed name of the object.
 func (group *{{$node.GroupTypeName}}) Create{{$node.BaseNodeName}}ByName(ctx context.Context,
 	objToCreate *{{$node.GroupBaseImport}}) (*{{$node.SimpleGroupTypeName}}{{$node.BaseNodeName}}, error) {
+	log.Debugf("[Create{{$node.BaseNodeName}}ByName] received a objToCreate: %s",objToCreate.GetName())
 	if objToCreate.GetLabels() == nil {
 		objToCreate.Labels = make(map[string]string)
 	}
@@ -340,18 +359,22 @@ func (group *{{$node.GroupTypeName}}) Create{{$node.BaseNodeName}}ByName(ctx con
 	{{$node.GroupTypeName}}().
 	{{$node.GroupResourceNameTitle}}().Create(ctx, objToCreate, metav1.CreateOptions{})
 	if err != nil {
+		log.Errorf("[Create{{$node.BaseNodeName}}ByName] error occur while create: %s",objToCreate.GetName())
 		if customerrors.Is(err, context.DeadlineExceeded){
-			log.Errorf("context deadline exceeded, on creating GNS: %+v",objToCreate)
+			log.Errorf("context deadline exceeded, on creating {{$node.BaseNodeName}}: %s",objToCreate.GetName())
 			return nil, context.DeadlineExceeded
 		} else if customerrors.Is(err, context.Canceled){
-			log.Errorf("context cancelled, on creating GNS: %+v",objToCreate)
+			log.Errorf("context cancelled, on creating {{$node.BaseNodeName}}: %s",objToCreate.GetName())
 			return nil, context.Canceled
+		} else if errors.IsAlreadyExists(err){
+			log.Errorf("Already Exists %+v",err)
+			return nil, err
 		} else {
-			log.Errorf("Unexpected Error: %+v",err)
+			log.Errorf("[Create{{$node.BaseNodeName}}ByName] Unexpected error :%+v",err)
 			return nil, err
 		}
 	}
-
+	log.Debugf("[Create{{$node.BaseNodeName}}ByName] {{$node.GroupResourceNameTitle}} created successfully: %s",objToCreate.GetName())
 	{{if .Parent.HasParent}}
 	parentName, ok := objToCreate.GetLabels()["{{$node.Parent.CrdName}}"]
 	if !ok {
@@ -363,17 +386,17 @@ func (group *{{$node.GroupTypeName}}) Create{{$node.BaseNodeName}}ByName(ctx con
 	{{if .Parent.IsNamed}}
 	payload := "{\"spec\": {\"{{$node.Parent.GvkFieldName}}\": {\"" + objToCreate.DisplayName() + "\": {\"name\": \"" + objToCreate.Name + "\",\"kind\": \"{{$node.Kind}}\", \"group\": \"{{$node.Group}}\"}}}}"
 
-	retryCount := 12
+	retryCount := 0
 	newCtx := context.TODO()
 	for {
 		_, err = group.client.baseClient.
 		{{$node.Parent.GroupTypeName}}().
 		{{$node.Parent.GroupResourceNameTitle}}().Patch(newCtx, parentName, types.MergePatchType, []byte(payload), metav1.PatchOptions{})
 		if err != nil {
-			log.Errorf("Failed to patch {{$node.BaseNodeName}} gvk in parent node[{{$node.Parent.GroupResourceNameTitle}}]: %+v", err)
+			log.Errorf("[Create{{$node.BaseNodeName}}ByName] Failed to patch {{$node.BaseNodeName}} gvk in parent node[{{$node.Parent.GroupResourceNameTitle}}] %+v",err)
 			if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded){
 				log.Errorf("[Retry Count: %d ] %+v",retryCount, err)
-				if retryCount == 0 {
+				if retryCount == maxRetryCount {
 					log.Error("Max Retry exceed on patching gvk")
 					log.Errorf("Trigger {{$node.BaseNodeName}} Delete: %s",objToCreate.GetName())
 					err = group.Delete{{$node.BaseNodeName}}ByName(newCtx, objToCreate.GetName())
@@ -384,10 +407,10 @@ func (group *{{$node.GroupTypeName}}) Create{{$node.BaseNodeName}}ByName(ctx con
 					log.Errorf("{{$node.BaseNodeName}} Deleted: %s",objToCreate.GetName())
 					return nil, err
 				}
-				retryCount -= 1
-				time.Sleep(5 * time.Second)
+				retryCount +=1
+				time.Sleep(sleepTime * time.Second)
 			} else {
-				log.Errorf("Unexpected Error: %+v",err)
+				log.Errorf("[Create{{$node.BaseNodeName}}ByName] Unexpected Error {{$node.BaseNodeName}}] %+v",err)
 				log.Errorf("Trigger {{$node.BaseNodeName}} Delete: %s",objToCreate.GetName())
 				err = group.Delete{{$node.BaseNodeName}}ByName(newCtx, objToCreate.GetName())
 				if err != nil {
@@ -398,6 +421,7 @@ func (group *{{$node.GroupTypeName}}) Create{{$node.BaseNodeName}}ByName(ctx con
 				return nil, err
 			}
 		} else {
+			log.Debugf("[Create{{$node.BaseNodeName}}ByName] Patch {{$node.BaseNodeName}} Success :%s",objToCreate.GetName())
 			break
 		}
 	}
@@ -417,17 +441,17 @@ func (group *{{$node.GroupTypeName}}) Create{{$node.BaseNodeName}}ByName(ctx con
 	if err != nil {
 		return nil, err
 	}
-	retryCount := 12
+	retryCount := 0
 	newCtx := context.TODO()
 	for {
 		_, err = group.client.baseClient.
 		{{$node.Parent.GroupTypeName}}().
 		{{$node.Parent.GroupResourceNameTitle}}().Patch(newCtx, parentName, types.JSONPatchType, marshaled, metav1.PatchOptions{})
 		if err != nil {
-			log.Errorf("Failed to patch {{$node.BaseNodeName}} gvk in parent node[{{$node.Parent.GroupResourceNameTitle}}]: %+v", err)
+			log.Errorf("[Create{{$node.BaseNodeName}}ByName] Failed to patch {{$node.BaseNodeName}} gvk in parent node[{{$node.Parent.GroupResourceNameTitle}}]: %+v",err)
 			if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded){
 				log.Errorf("[Retry Count: %d ] %+v",retryCount, err)
-				if retryCount == 0 {
+				if retryCount == maxRetryCount {
 					log.Error("Max Retry exceed on patching gvk")
 					log.Errorf("Trigger {{$node.BaseNodeName}} Delete: %s",objToCreate.GetName())
 					err = group.Delete{{$node.BaseNodeName}}ByName(newCtx, objToCreate.GetName())
@@ -438,10 +462,10 @@ func (group *{{$node.GroupTypeName}}) Create{{$node.BaseNodeName}}ByName(ctx con
 					log.Errorf("{{$node.BaseNodeName}} Deleted: %s",objToCreate.GetName())
 					return nil, err
 				}
-				retryCount -= 1
-				time.Sleep(5 * time.Second)
+				retryCount +=1
+				time.Sleep(sleepTime * time.Second)
 			} else {
-				log.Errorf("Unexpected Error: %+v",err)
+				log.Errorf("[Create{{$node.BaseNodeName}}ByName] Unexpected Error {{$node.BaseNodeName}}] :%+v",err)
 				log.Errorf("Trigger {{$node.BaseNodeName}} Delete: %s",objToCreate.GetName())
 				err = group.Delete{{$node.BaseNodeName}}ByName(newCtx, objToCreate.GetName())
 				if err != nil {
@@ -452,11 +476,13 @@ func (group *{{$node.GroupTypeName}}) Create{{$node.BaseNodeName}}ByName(ctx con
 				return nil, err
 			}
 		} else {
+			log.Debugf("[Create{{$node.BaseNodeName}}ByName] Patch {{$node.BaseNodeName}} Success :%s",objToCreate.GetName())
 			break
 		}
 	}
 	{{ end }}
 	{{ end }}
+	log.Debugf("[Create{{$node.BaseNodeName}}ByName] {{$node.BaseNodeName}} executed successfully: %s",objToCreate.GetName())
 	return &{{$node.SimpleGroupTypeName}}{{$node.BaseNodeName}}{
 		client: group.client,
 		{{$node.BaseNodeName}}: result,
@@ -515,13 +541,16 @@ func (group *{{$node.GroupTypeName}}) Update{{$node.BaseNodeName}}ByName(ctx con
 		{{$node.GroupResourceNameTitle}}().Get(ctx, objToUpdate.GetName(), metav1.GetOptions{})
 		if err != nil {
 			if customerrors.Is(err, context.DeadlineExceeded){
-				log.Errorf("context deadline exceeded, on creating GNS: %+v",objToUpdate)
+				log.Errorf("context deadline exceeded, on creating {{$node.BaseNodeName}}: %+v",objToUpdate)
 				return nil, context.DeadlineExceeded
 			} else if customerrors.Is(err, context.Canceled){
-				log.Errorf("context cancelled, on creating GNS: %+v",objToUpdate)
+				log.Errorf("context cancelled, on creating {{$node.BaseNodeName}}: %+v",objToUpdate)
 				return nil, context.Canceled
+			} else if errors.IsAlreadyExists(err){
+				log.Errorf("Already Exists: %+v",err)
+				return nil, err
 			} else {
-				log.Errorf("Unexpected Error: %+v",err)
+				log.Errorf("Unexpected Error-7[UPDATE {{$node.BaseNodeName}}]: %+v",err)
 				return nil, err
 			}
 		}
@@ -534,28 +563,32 @@ func (group *{{$node.GroupTypeName}}) Update{{$node.BaseNodeName}}ByName(ctx con
 		Path:  "/metadata",
 		Value: objToUpdate.ObjectMeta,
 	})
+
+
+	{{ if gt (len .Fields) 0}}
+	var rt reflect.Type
+	{{ end }}
 	{{ range $key, $field := .Fields }}
-	{{ if $field.IsAggregateKind }}
-	if objToUpdate.Spec.{{$field.FieldName}} != nil {
-		patchValue{{$field.FieldName}} :=
-		objToUpdate.Spec.{{$field.FieldName}}
+	rt = reflect.TypeOf(objToUpdate.Spec.{{$field.FieldName}})
+	if rt.Kind() == reflect.Slice || rt.Kind() == reflect.Array || rt.Kind() == reflect.Map {
+		if !reflect.ValueOf(objToUpdate.Spec.{{$field.FieldName}}).IsNil(){
+			patchValue{{$field.FieldName}} := objToUpdate.Spec.{{$field.FieldName}}
 			patchOp{{$field.FieldName}} := PatchOp{
+				Op:    "replace",
+				Path:  "/spec/{{$field.FieldNameTag}}",
+				Value: patchValue{{$field.FieldName}},
+			}
+			patch = append(patch, patchOp{{$field.FieldName}})
+		}
+	} else {
+		patchValue{{$field.FieldName}} := objToUpdate.Spec.{{$field.FieldName}}
+		patchOp{{$field.FieldName}} := PatchOp{
 			Op:    "replace",
 			Path:  "/spec/{{$field.FieldNameTag}}",
 			Value: patchValue{{$field.FieldName}},
 		}
 		patch = append(patch, patchOp{{$field.FieldName}})
 	}
-	{{else}}
-	patchValue{{$field.FieldName}} :=
-	objToUpdate.Spec.{{$field.FieldName}}
-		patchOp{{$field.FieldName}} := PatchOp{
-		Op:    "replace",
-		Path:  "/spec/{{$field.FieldNameTag}}",
-		Value: patchValue{{$field.FieldName}},
-	}
-	patch = append(patch, patchOp{{$field.FieldName}})
-	{{ end }}
 	{{ end }}
 	marshaled, err := patch.Marshal()
 	if err != nil {
@@ -802,6 +835,7 @@ func (obj *{{$node.SimpleGroupTypeName}}{{$node.BaseNodeName}}) Get{{$link.Field
 // nexus/display_name label and can be obtained using DisplayName() method.
 func (obj *{{$node.SimpleGroupTypeName}}{{$node.BaseNodeName}}) Add{{$link.FieldName}}(ctx context.Context,
 	objToCreate *{{$link.GroupBaseImport}}) (result *{{$link.SimpleGroupTypeName}}{{$link.BaseNodeName}}, err error) {
+	log.Debugf("[Add{{$link.FieldName}}] received a objToCreate: %s", objToCreate.GetName())
 	if objToCreate.Labels == nil {
 		objToCreate.Labels = map[string]string{}
 	}
@@ -822,10 +856,12 @@ func (obj *{{$node.SimpleGroupTypeName}}{{$node.BaseNodeName}}) Add{{$link.Field
 		objToCreate.Name = hashedName
 	}
 	result, err = obj.client.{{$link.SimpleGroupTypeName}}().Create{{$link.BaseNodeName}}ByName(ctx, objToCreate)
+	log.Debugf("[Add{{$link.FieldName}}] ApiSpecification created successfully: %s", objToCreate.GetName())
 	updatedObj, getErr :=  obj.client.{{$node.SimpleGroupTypeName}}().Get{{$node.BaseNodeName}}ByName(ctx, obj.GetName())
 	if getErr == nil {
 		obj.{{$node.BaseNodeName}} = updatedObj.{{$node.BaseNodeName}}
 	}
+	log.Debugf("[Add{{$link.FieldName}}] executed successfully: %s", objToCreate.GetName())
 	return
 }
 

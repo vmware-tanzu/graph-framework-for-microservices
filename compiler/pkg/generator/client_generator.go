@@ -12,20 +12,6 @@ import (
 	"github.com/vmware-tanzu/graph-framework-for-microservices/compiler/pkg/util"
 )
 
-var partOfAggregateKind = []string{
-	"MtlsExceptions", "common.StringList",
-}
-
-func IsConstainAggregateKind(s []string, str string) bool {
-	for _, v := range s {
-		if v == str {
-			return true
-		}
-	}
-
-	return false
-}
-
 func generateNexusClientVars(baseGroupName, crdModulePath string, pkgs parser.Packages, parentsMap map[string]parser.NodeHelper) (clientVars, error) {
 	var vars clientVars
 
@@ -173,12 +159,6 @@ func resolveNode(baseImportName, informerImportName string, pkg parser.Package, 
 		vars.FieldNameTag = parser.GetFieldNameJsonTag(f)
 		if vars.FieldNameTag == "" {
 			vars.FieldNameTag = util.GetTag(fieldInfo.fieldName)
-		}
-
-		vars.IsAggregateKind = parser.IsAggregateKind(f)
-		// Tempway to fix aliasType of Array and map fields
-		if IsConstainAggregateKind(partOfAggregateKind, fieldInfo.fieldType) {
-			vars.IsAggregateKind = true
 		}
 
 		clientGroupVars.Fields = append(clientGroupVars.Fields, vars)
@@ -352,7 +332,6 @@ type apiGroupsClientVarsLink struct {
 	BaseNodeName           string
 	IsNamed                bool
 	IsSingleton            bool
-	IsAggregateKind        bool
 	GroupTypeName          string
 	SimpleGroupTypeName    string
 	GroupResourceNameTitle string
