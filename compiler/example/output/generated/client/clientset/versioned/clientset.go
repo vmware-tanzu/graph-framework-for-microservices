@@ -21,7 +21,6 @@ package versioned
 import (
 	"fmt"
 	"net/http"
-
 	configtsmv1 "github.com/vmware-tanzu/graph-framework-for-microservices/compiler/example/output/generated/client/clientset/versioned/typed/config.tsm.tanzu.vmware.com/v1"
 	gnstsmv1 "github.com/vmware-tanzu/graph-framework-for-microservices/compiler/example/output/generated/client/clientset/versioned/typed/gns.tsm.tanzu.vmware.com/v1"
 	policypkgtsmv1 "github.com/vmware-tanzu/graph-framework-for-microservices/compiler/example/output/generated/client/clientset/versioned/typed/policypkg.tsm.tanzu.vmware.com/v1"

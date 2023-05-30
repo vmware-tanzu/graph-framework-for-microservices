@@ -19,10 +19,6 @@ limitations under the License.
 package externalversions
 
 import (
-	reflect "reflect"
-	sync "sync"
-	time "time"
-
 	versioned "github.com/vmware-tanzu/graph-framework-for-microservices/compiler/example/output/generated/client/clientset/versioned"
 	configtsmtanzuvmwarecom "github.com/vmware-tanzu/graph-framework-for-microservices/compiler/example/output/generated/client/informers/externalversions/config.tsm.tanzu.vmware.com"
 	gnstsmtanzuvmwarecom "github.com/vmware-tanzu/graph-framework-for-microservices/compiler/example/output/generated/client/informers/externalversions/gns.tsm.tanzu.vmware.com"
@@ -30,6 +26,9 @@ import (
 	policypkgtsmtanzuvmwarecom "github.com/vmware-tanzu/graph-framework-for-microservices/compiler/example/output/generated/client/informers/externalversions/policypkg.tsm.tanzu.vmware.com"
 	roottsmtanzuvmwarecom "github.com/vmware-tanzu/graph-framework-for-microservices/compiler/example/output/generated/client/informers/externalversions/root.tsm.tanzu.vmware.com"
 	servicegrouptsmtanzuvmwarecom "github.com/vmware-tanzu/graph-framework-for-microservices/compiler/example/output/generated/client/informers/externalversions/servicegroup.tsm.tanzu.vmware.com"
+	reflect "reflect"
+	sync "sync"
+	time "time"
 
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	runtime "k8s.io/apimachinery/pkg/runtime"
