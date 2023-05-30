@@ -5,8 +5,8 @@ package graph
 
 import (
 	"context"
-	"nexustempmodule/nexus-gql/graph/generated"
-	"nexustempmodule/nexus-gql/graph/model"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/compiler/example/output/generated/nexus-gql/graph/generated"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/compiler/example/output/generated/nexus-gql/graph/model"
 )
 
 // Root is the resolver for the root field.

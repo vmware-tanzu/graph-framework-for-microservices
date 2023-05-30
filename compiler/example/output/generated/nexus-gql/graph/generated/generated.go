@@ -7,7 +7,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"nexustempmodule/nexus-gql/graph/model"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/compiler/example/output/generated/nexus-gql/graph/model"
 	"strconv"
 	"sync"
 	"sync/atomic"

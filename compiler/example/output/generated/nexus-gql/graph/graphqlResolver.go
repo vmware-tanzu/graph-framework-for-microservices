@@ -12,8 +12,8 @@ import (
 	"k8s.io/client-go/tools/clientcmd"
 	"k8s.io/client-go/util/flowcontrol"
 
-	nexus_client "nexustempmodule/nexus-client"
-	"nexustempmodule/nexus-gql/graph/model"
+	nexus_client "github.com/vmware-tanzu/graph-framework-for-microservices/compiler/example/output/generated/nexus-client"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/compiler/example/output/generated/nexus-gql/graph/model"
 
 	"github.com/vmware-tanzu/graph-framework-for-microservices/nexus/generated/graphql"
 	qm "github.com/vmware-tanzu/graph-framework-for-microservices/nexus/generated/query-manager"

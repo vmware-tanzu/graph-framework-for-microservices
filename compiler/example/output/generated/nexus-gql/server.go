@@ -5,8 +5,8 @@ import (
 	"net/http"
 	"os"
 
-	"nexustempmodule/nexus-gql/graph"
-	"nexustempmodule/nexus-gql/graph/generated"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/compiler/example/output/generated/nexus-gql/graph"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/compiler/example/output/generated/nexus-gql/graph/generated"
 
 	"github.com/rs/cors"
 	"github.com/vmware-tanzu/graph-framework-for-microservices/gqlgen/graphql/handler"
