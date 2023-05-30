@@ -64,10 +64,10 @@ var cosmosServices []CosmosService = []CosmosService{
 			{
 				Prefix: "/apis",
 			},
-			// {
-			// 	Prefix:        "/tsm/explorer/",
-			// 	PrefixRewrite: "/explorer/",
-			// },
+			{
+				Prefix:        "/tsm/explorer/",
+				PrefixRewrite: "/explorer/",
+			},
 		},
 	},
 	{
