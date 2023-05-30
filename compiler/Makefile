@@ -219,7 +219,7 @@ generate_code:
 	${COMPILER_SRC_DIRECTORY}/scripts/pin_graphql_build_version.sh ${COMPILER_SRC_DIRECTORY} && \
 	go mod edit -go=1.18 && \
 	go mod tidy && \
-	CGO_ENABLED=1 GOARCH=amd64 GOOS=linux go build -ldflags="-w -s" server.go
+	GOARCH=amd64 GOOS=linux go build -ldflags="-w -s" server.go
 	cp -r ${GOPATH}/src/nexustempmodule/nexus-gql/* _generated/nexus-gql/
 	@echo "Updating module name"
 	./scripts/replace_mod_path.sh
