@@ -205,7 +205,7 @@ generate_code:
 	rm -rf ${GENERATED_OUTPUT_DIRECTORY}/{client,apis,crds,common,nexus-client,helper,nexus-gql,tsm-nexus-gql,model}
 	cp -r _generated/{client,apis,crds,common,nexus-client,helper,nexus-gql,tsm-nexus-gql,model} ${GENERATED_OUTPUT_DIRECTORY}
 	@echo "Sorting imports"
-	if [ -f $(wildcard _generated/model/model.go) ]; then \
+	if [ -a _generated/model/model.go ]; then \
 		cd _generated && mv model/model.go model/model.tmp && goimports -w . && mv model/model.tmp model/model.go; \
 	fi
 	@echo "Nexus Compiler: Generating GRAPHQL PKG"
