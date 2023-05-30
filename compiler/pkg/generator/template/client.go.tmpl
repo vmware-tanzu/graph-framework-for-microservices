@@ -255,6 +255,8 @@ func (group *{{$node.GroupTypeName}}) Delete{{$node.BaseNodeName}}ByName(ctx con
 			} else if customerrors.Is(err, context.Canceled){
 				log.Errorf("[Delete{{$node.BaseNodeName}}ByName]: %+v",err)
 				return context.Canceled
+			} else if errors.IsNotFound(err){
+				log.Errorf("[Delete{{$node.BaseNodeName}}ByName] Object Notfound: %+v",err)
 			} else {
 				log.Errorf("[Delete{{$node.BaseNodeName}}ByName]: %+v",err)
 				return err
