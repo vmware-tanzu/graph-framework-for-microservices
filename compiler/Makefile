@@ -207,6 +207,8 @@ generate_code:
 	@echo "Sorting imports"
 	if [ -a _generated/model/model.go ]; then \
 		cd _generated && mv model/model.go model/model.tmp && goimports -w . && mv model/model.tmp model/model.go; \
+	else \
+		cd _generated && goimports -w .; \
 	fi
 	@echo "Nexus Compiler: Generating GRAPHQL PKG"
 	cd _generated/nexus-gql && gqlgen generate
