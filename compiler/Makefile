@@ -219,7 +219,9 @@ generate_code:
 	./scripts/replace_mod_path.sh
 	find . -name "*.bak" -type f -delete
 	@echo "Sorting imports"
-	cd _generated && mv model/model.go model/model.tmp && goimports -w . && mv model/model.tmp model/model.go
+	if [ -f $(wildcard _generated/model/model.go) ]; then \
+		cd _generated && mv model/model.go model/model.tmp && goimports -w . && mv model/model.tmp model/model.go; \
+	fi
 	@echo "Nexus Compiler: Moving files to output directory"
 	mkdir -p ${GENERATED_OUTPUT_DIRECTORY}/install-validator
 	cp -r ${GOPATH}/src/github.com/vmware-tanzu/graph-framework-for-microservices/install-validator/install.so ${GENERATED_OUTPUT_DIRECTORY}/install-validator/install.so || echo "Could not find install.so file, skipping"
