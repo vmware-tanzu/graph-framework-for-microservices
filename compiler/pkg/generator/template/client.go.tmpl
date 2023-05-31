@@ -633,45 +633,35 @@ func (group *{{$node.GroupTypeName}}) Update{{$node.BaseNodeName}}ByName(ctx con
 	{{if $node.IsSingleton }}if objToUpdate.Labels[common.DISPLAY_NAME_LABEL] != helper.DEFAULT_KEY {
 		return nil, NewSingletonNameError(objToUpdate.Labels[common.DISPLAY_NAME_LABEL])
 	}{{end}}
-	// ResourceVersion must be set for update
-	retryCount := 0
-	if objToUpdate.ResourceVersion == "" {
-		for {
-			current, err := group.client.baseClient.
-			{{$node.GroupTypeName}}().
-			{{$node.GroupResourceNameTitle}}().Get(ctx, objToUpdate.GetName(), metav1.GetOptions{})
-			if err != nil {
-				log.Errorf("[Update{{$node.BaseNodeName}}ByName] Failed to Get {{$node.GroupResourceNameTitle}}: %+v",err)
-				if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded){
-					log.Errorf("[Retry Count: %d ] %+v",retryCount,err)
-					if retryCount == maxRetryCount {
-						log.Error("Max Retry exceed on Get {{$node.GroupResourceNameTitle}}")
-						return nil,err
-					}
-					retryCount +=1
-					time.Sleep(sleepTime * time.Second)
-				} else if customerrors.Is(err, context.Canceled){
-					log.Errorf("[Update{{$node.BaseNodeName}}ByName]: %+v",err)
-					return nil,context.Canceled
-				}else {
-					log.Errorf("[Update{{$node.BaseNodeName}}ByName]: %+v",err)
-					return nil,err
-				}
-			} else {
-				log.Debugf("[Update{{$node.BaseNodeName}}ByName] Successfully Get: %s",objToUpdate.GetName())
-				objToUpdate.ResourceVersion = current.ResourceVersion
-				break
-			}
-		}
-	}
 
-	var patch Patch
-	patch = append(patch, PatchOp{
-		Op:    "replace",
-		Path:  "/metadata",
-		Value: objToUpdate.ObjectMeta,
-	})
+	current , err := group.client.{{$node.SimpleGroupTypeName}}().Get{{$node.BaseNodeName}}ByName(ctx, objToUpdate.Name)
+    if err != nil {
+        return nil, err
+    }
 
+    var patch Patch
+
+    if objToUpdate.Annotations !=nil {
+        for k,v := range current.Annotations{
+            objToUpdate.Annotations[k] = v
+        }
+        patch = append(patch, PatchOp{
+            Op:    "replace",
+            Path:  "/metadata/annotations",
+            Value: objToUpdate.Annotations,
+        })
+    }
+
+    if  objToUpdate.Labels !=nil {
+        for k,v := range current.Labels{
+            objToUpdate.Labels[k] = v
+        }
+        patch = append(patch, PatchOp{
+            Op:    "replace",
+            Path:  "/metadata/labels",
+            Value: objToUpdate.Labels,
+        })
+    }
 
 	{{ if gt (len .Fields) 0}}
 	var rt reflect.Type
@@ -707,6 +697,7 @@ func (group *{{$node.GroupTypeName}}) Update{{$node.BaseNodeName}}ByName(ctx con
 		result *{{$node.GroupBaseImport}}
 	)
 	newCtx := context.TODO()
+	retryCount := 0
 	for {
 		result, err = group.client.baseClient.
 		{{$node.GroupTypeName}}().
