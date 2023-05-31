@@ -5,6 +5,7 @@ import (
 	"api-gw/pkg/openapi/declarative"
 	"api-gw/pkg/server/echo_server"
 	"net/http"
+	"os"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -14,7 +15,17 @@ import (
 
 var _ = Describe("OpenAPI tests", func() {
 	It("should setup and load openapi file", func() {
-		err := declarative.Load(spec)
+		openApiSpecFile := "testFile"
+		f, err := os.Create(openApiSpecFile)
+		defer os.RemoveAll(openApiSpecFile)
+		Expect(err).To(BeNil())
+		f.Sync()
+		defer f.Close()
+		bytesWritten, err := f.Write(spec)
+		Expect(err).To(BeNil())
+		Expect(bytesWritten).ToNot(Equal(0))
+		f.Sync()
+		err = declarative.Setup(openApiSpecFile)
 		Expect(err).To(BeNil())
 
 		Expect(declarative.Paths).To(HaveKey(Uri))

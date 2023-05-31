@@ -18,7 +18,9 @@ package main
 
 import (
 	"api-gw/internal/tenant/registration"
+	"api-gw/pkg/client"
 	"api-gw/pkg/common"
+	"api-gw/pkg/config"
 	"api-gw/pkg/envoy"
 	"api-gw/pkg/model"
 	"api-gw/pkg/openapi/api"
@@ -26,20 +28,13 @@ import (
 	"api-gw/pkg/utils"
 	"flag"
 	"fmt"
-	"os"
-	"strconv"
-
-	"sigs.k8s.io/controller-runtime/pkg/healthz"
-
 	log "github.com/sirupsen/logrus"
 	reg_svc "gitlab.eng.vmware.com/nsx-allspark_users/go-protos/pkg/registration-service/global"
-
-	runtimeclient "sigs.k8s.io/controller-runtime/pkg/client"
-
-	"api-gw/pkg/client"
-	"api-gw/pkg/config"
-
 	nexus_client "golang-appnet.eng.vmware.com/nexus-sdk/api/build/nexus-client"
+	"os"
+	runtimeclient "sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/healthz"
+	"strconv"
 
 	// Import all Kubernetes client auth plugins (e.g. Azure, GCP, OIDC, etc.)
 	// to ensure that exec-entrypoint and run can make use of them.
@@ -164,14 +159,6 @@ func main() {
 
 	stopCh := make(chan struct{})
 
-	if conf.BackendService != "" {
-		// Parse and process declarative openapi specification
-		if err := declarative.Setup(); err != nil {
-			setupLog.Error(err, "unable to parse declarative openapi specification")
-			os.Exit(1)
-		}
-	}
-
 	if common.IsModeAdmin() {
 		utils.VersionCalls = []*model.ConnectorObject{
 			{
@@ -196,6 +183,10 @@ func main() {
 	log.Infoln("Init Echo Server")
 	// Start server
 	echo_server.InitEcho(stopCh, conf, k8sClientSet, nexusClientSet)
+
+	if conf.BackendService != "" {
+		echo_server.WatchForOpenApiSpecChanges(stopCh, declarative.OpenApiSpecDir, declarative.OpenApiSpecFile)
+	}
 
 	if conf.EnableNexusRuntime {
 		InitManager(metricsAddr, probeAddr, enableLeaderElection, stopCh, lvl)
