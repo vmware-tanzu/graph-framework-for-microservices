@@ -10,6 +10,8 @@ import (
 	"net"
 	"net/http"
 	"net/http/httptest"
+	"os"
+	"time"
 
 	log "github.com/sirupsen/logrus"
 
@@ -29,6 +31,120 @@ import (
 
 var _ = Describe("Echo server tests", func() {
 	var e *echo_server.EchoServer
+
+	It("should watch for OpenApi spec file creation", func() {
+		openApiSpecDir := "testDir"
+		openApiSpecFile := "testDir/testFile"
+		echo_server.HttpServerRestartFromOpenApiSpecUpdateCounter = 0
+
+		stopCh := make(chan struct{})
+		receivedSignalFromStopCh := false
+		go func() {
+			for {
+				select {
+				case <-stopCh :
+					receivedSignalFromStopCh = true
+					return
+				}
+			}
+		}()
+		err := os.Mkdir(openApiSpecDir, 0755)
+		defer os.RemoveAll(openApiSpecDir)
+		Expect(err).To(BeNil())
+		echo_server.WatchForOpenApiSpecChanges(stopCh, openApiSpecDir, openApiSpecFile)
+		time.Sleep(5*time.Second)
+		f, err := os.Create(openApiSpecFile)
+		Expect(err).To(BeNil())
+		f.Sync()
+		defer f.Close()
+
+		for i := 0; i < 10; i++{
+			time.Sleep(time.Second)
+			if receivedSignalFromStopCh && echo_server.HttpServerRestartFromOpenApiSpecUpdateCounter == 1 {
+				break
+			}
+		}
+		Expect(echo_server.HttpServerRestartFromOpenApiSpecUpdateCounter).To(Equal(1))
+		Expect(receivedSignalFromStopCh).To(Equal(true))
+	})
+	It("should watch for OpenApi spec file update", func() {
+		openApiSpecDir := "testDir"
+		openApiSpecFile := "testDir/testFile"
+		echo_server.HttpServerRestartFromOpenApiSpecUpdateCounter = 0
+
+		stopCh := make(chan struct{})
+		receivedSignalFromStopCh := false
+		go func() {
+			for {
+				select {
+				case <-stopCh :
+					receivedSignalFromStopCh = true
+					return
+				}
+			}
+		}()
+
+		err := os.Mkdir(openApiSpecDir, 0755)
+		defer os.RemoveAll(openApiSpecDir)
+		Expect(err).To(BeNil())
+		f, err := os.Create(openApiSpecFile)
+		Expect(err).To(BeNil())
+		f.Sync()
+		defer f.Close()
+
+		echo_server.WatchForOpenApiSpecChanges(stopCh, openApiSpecDir, openApiSpecFile)
+		time.Sleep(5*time.Second)
+		bytesWritten, err := f.WriteString("writes\n")
+		Expect(err).To(BeNil())
+		Expect(bytesWritten).ToNot(Equal(0))
+		f.Sync()
+		for i := 0; i < 10; i++{
+			time.Sleep(time.Second)
+			if receivedSignalFromStopCh && echo_server.HttpServerRestartFromOpenApiSpecUpdateCounter == 1 {
+				break
+			}
+		}
+		Expect(echo_server.HttpServerRestartFromOpenApiSpecUpdateCounter).To(Equal(1))
+		Expect(receivedSignalFromStopCh).To(Equal(true))
+	})
+	It("should watch for OpenApi spec file deletion", func() {
+		openApiSpecDir := "testDir"
+		openApiSpecFile := "testDir/testFile"
+		echo_server.HttpServerRestartFromOpenApiSpecUpdateCounter = 0
+
+		stopCh := make(chan struct{})
+		receivedSignalFromStopCh := false
+		go func() {
+			for {
+				select {
+				case <-stopCh :
+					receivedSignalFromStopCh = true
+					return
+				}
+			}
+		}()
+
+		err := os.Mkdir(openApiSpecDir, 0755)
+		defer os.RemoveAll(openApiSpecDir)
+		Expect(err).To(BeNil())
+		f, err := os.Create(openApiSpecFile)
+		Expect(err).To(BeNil())
+		f.Sync()
+		f.Close()
+
+		echo_server.WatchForOpenApiSpecChanges(stopCh, openApiSpecDir, openApiSpecFile)
+		time.Sleep(5*time.Second)
+		os.Remove(openApiSpecFile)
+
+		for i := 0; i < 10; i++{
+			time.Sleep(time.Second)
+			if receivedSignalFromStopCh && echo_server.HttpServerRestartFromOpenApiSpecUpdateCounter == 1 {
+				break
+			}
+		}
+		Expect(echo_server.HttpServerRestartFromOpenApiSpecUpdateCounter).To(Equal(1))
+		Expect(receivedSignalFromStopCh).To(Equal(true))
+	})
 
 	It("should init echo server", func() {
 

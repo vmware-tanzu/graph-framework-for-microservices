@@ -1,6 +1,8 @@
 package echo_server
 
 import (
+	"api-gw/pkg/config"
+	"api-gw/pkg/openapi/declarative"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -675,4 +677,18 @@ func createStatusPatch(body map[string]interface{}) []PatchOp {
 		patch = append(patch, p)
 	}
 	return patch
+}
+
+func DebugAllHandler(c echo.Context) error {
+	return c.JSON(http.StatusOK, map[string]interface{}{
+		"isNexusRuntimeEnabled":         config.Cfg.EnableNexusRuntime,
+		"backendService":                config.Cfg.BackendService,
+		"crdTypeToRestUris":             model.CrdTypeToRestUris,
+		"uriToUriInfo":                  model.UriToUriInfo,
+		"crdTypeToNodeInfo":             model.CrdTypeToNodeInfo,
+		"datamodelToDatamodelInfo":      model.DatamodelToDatamodelInfo,
+		"declarativePaths":              declarative.ApisList,
+		"totalHttpServerRestarts":       TotalHttpServerRestartCounter,
+		"httpServerRestartsFromOpenApiSpecUpdate": 	HttpServerRestartFromOpenApiSpecUpdateCounter,
+	})
 }

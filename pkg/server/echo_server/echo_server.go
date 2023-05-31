@@ -12,6 +12,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"github.com/fsnotify/fsnotify"
 	"net"
 	"net/http"
 	"net/http/httputil"
@@ -50,6 +51,8 @@ type UserLogin struct {
 }
 
 var corsmutex = &sync.Mutex{}
+var TotalHttpServerRestartCounter = 0
+var HttpServerRestartFromOpenApiSpecUpdateCounter = 0
 
 type EchoServer struct {
 	Echo        *echo.Echo
@@ -68,10 +71,11 @@ func InitEcho(stopCh chan struct{}, conf *config.Config, client *kubernetes.Clie
 	}
 
 	if conf.BackendService != "" {
+		declarative.Setup(declarative.OpenApiSpecFile)
 		e.RegisterDeclarativeRoutes()
 		e.RegisterDeclarativeRouter()
 	}
-
+	e.RegisterDebug()
 	e.Start(stopCh)
 
 	return e
@@ -96,6 +100,7 @@ func (s *EchoServer) Start(stopCh chan struct{}) {
 			if err := s.NodeUpdateNotifications(stopCh); err != nil {
 				s.StopServer()
 				InitEcho(stopCh, s.Config, s.Client, s.NexusClient)
+				TotalHttpServerRestartCounter++
 			}
 		}()
 	}
@@ -125,6 +130,10 @@ type NexusContext struct {
 	CrdType   string
 	GroupName string
 	Resource  string
+}
+
+func (s *EchoServer) RegisterDebug() {
+	s.Echo.GET("/debug/all", DebugAllHandler)
 }
 
 func (s *EchoServer) RegisterCosmosAdminRoutes() {
@@ -827,4 +836,85 @@ func (s *EchoServer) CSPTokenHander(c echo.Context) error {
 	}
 	return nil
 
+}
+
+func WatchForOpenApiSpecChanges(stopCh chan struct{}, openApiSpecDir string, openApiSpecFile string) {
+	watcher, err := fsnotify.NewWatcher()
+	if err != nil {
+		log.Errorln("NewWatcher failed: ", err)
+		return
+	}
+
+	go func() {
+		for {
+			_, err := os.Stat(openApiSpecFile)
+
+			if err != nil { //openApiSpec file does not exist
+				er := watcher.Add(openApiSpecDir)
+				if er != nil {
+					log.Panicln("Unable to add watcher for ", openApiSpecDir, ": ", er.Error())
+				}
+				log.Debugln("Watching: ", openApiSpecDir)
+				fileDoesNotExist := true
+				for fileDoesNotExist {
+					select {
+					case event := <-watcher.Events:
+						if event.Op == fsnotify.Create && event.Name == openApiSpecFile {
+							log.Debugln("Restarting echo server because openApi spec file is created")
+							stopCh <- struct{}{}
+							HttpServerRestartFromOpenApiSpecUpdateCounter++
+							fileDoesNotExist = false
+							watcher.Remove(openApiSpecDir)
+							break
+						} else {
+							log.Traceln("Received Event on dir watch: " + event.Op.String() + " on file " + event.Name)
+						}
+					case e := <-watcher.Errors:
+						if e != nil {
+							log.Errorln("Error:", e)
+							fileDoesNotExist = false
+							watcher.Remove(openApiSpecDir)
+							break
+						}
+					}
+				}
+			} else { //openApiSpec file exists
+				er := watcher.Add(openApiSpecFile)
+				if er != nil {
+					log.Panicln("Unable to add watcher for ", openApiSpecFile, ": ", er.Error())
+				}
+				log.Debugln("Watching:", openApiSpecFile)
+				fileExist := true
+				for fileExist {
+					select {
+					case event := <-watcher.Events:
+						if event.Op == fsnotify.Write && event.Name == openApiSpecFile {
+							log.Debugln("Restarting echo server because openApi spec file is updated")
+							stopCh <- struct{}{}
+							HttpServerRestartFromOpenApiSpecUpdateCounter++
+						}
+						if event.Op == fsnotify.Remove && event.Name == openApiSpecFile {
+							log.Debugln("Restarting echo server because openApi spec file is removed")
+							stopCh <- struct{}{}
+							HttpServerRestartFromOpenApiSpecUpdateCounter++
+							fileExist = false
+							watcher.Remove(openApiSpecFile)
+							break
+						} else {
+							log.Traceln("Received Event on file watch: " + event.Op.String() + " on file " + event.Name)
+						}
+
+					case e := <-watcher.Errors:
+						if e != nil {
+							log.Errorln("Error:", e)
+							fileExist = false
+							watcher.Remove(openApiSpecFile)
+							break
+						}
+					}
+				}
+			}
+
+		}
+	}()
 }

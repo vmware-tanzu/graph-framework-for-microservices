@@ -21,6 +21,8 @@ const NexusKindName = "x-nexus-kind-name"
 const NexusGroupName = "x-nexus-group-name"
 const NexusListEndpoint = "x-nexus-list-endpoint"
 const NexusShortName = "x-nexus-short-name"
+const OpenApiSpecFile = "/openapi/openapi.yaml"
+const OpenApiSpecDir = "/openapi"
 
 var (
 	Paths              = make(map[string]*openapi3.PathItem)
@@ -34,16 +36,17 @@ var (
 	crdToSchemaMutex   = sync.Mutex{}
 )
 
-func Setup() error {
-	_, err := os.Stat("/openapi/openapi.yaml")
+func Setup(openApiSpecFile string) error {
+	_, err := os.Stat(openApiSpecFile)
 	if err == nil {
-		f, err := ioutil.ReadFile("/openapi/openapi.yaml")
+		f, err := ioutil.ReadFile(openApiSpecFile)
 		if err != nil {
 			return err
 		}
 
 		return Load(f)
 	}
+	log.Errorln("File", openApiSpecFile, " is not present at setup")
 	return nil
 }
 

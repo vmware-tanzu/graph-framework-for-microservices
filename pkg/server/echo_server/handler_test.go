@@ -95,6 +95,23 @@ var _ = Describe("Echo server tests", func() {
 		e = NewEchoServer(config.Cfg, &kubernetes.Clientset{}, client.NexusClient)
 	})
 
+	It("should test Debug handler", func() {
+		server := httptest.NewServer(http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+			res.WriteHeader(200)
+		}))
+		defer server.Close()
+		config.Cfg = &config.Config{BackendService: server.URL}
+		// setup echo test
+		e := echo.New()
+		req := httptest.NewRequest(http.MethodGet, "/debug/all", nil)
+		rec := httptest.NewRecorder()
+		c := e.NewContext(req, rec)
+		err := DebugAllHandler(c)
+		Expect(err).To(BeNil())
+		Expect(rec.Code).To(Equal(200))
+		Expect(rec.Body.String()).ToNot(Equal(""))
+	})
+
 	It("should handle Login for user", func() {
 		userJson := `{
 			"username": "test",
