@@ -40,6 +40,7 @@ fakeBaseClienset {{.FakeBaseCliensetImport}}
 var log = logrus.New()
 const maxRetryCount = 12
 const sleepTime = 5
+const ownershipAnnotation = "Ownership"
 
 type Clientset struct {
 	baseClient baseClientset.Interface
@@ -641,27 +642,30 @@ func (group *{{$node.GroupTypeName}}) Update{{$node.BaseNodeName}}ByName(ctx con
 
     var patch Patch
 
-    if objToUpdate.Annotations !=nil {
-        for k,v := range current.Annotations{
-            objToUpdate.Annotations[k] = v
-        }
-        patch = append(patch, PatchOp{
-            Op:    "replace",
-            Path:  "/metadata/annotations",
-            Value: objToUpdate.Annotations,
-        })
-    }
+	if objToUpdate.Annotations !=nil {
+		if current.Annotations[ownershipAnnotation] != ""{
+			objToUpdate.Annotations[ownershipAnnotation] = current.Annotations[ownershipAnnotation]
+		}
+		patch = append(patch, PatchOp{
+			Op:    "replace",
+			Path:  "/metadata/annotations",
+			Value: objToUpdate.Annotations,
+		})
+	}
 
-    if  objToUpdate.Labels !=nil {
-        for k,v := range current.Labels{
-            objToUpdate.Labels[k] = v
-        }
-        patch = append(patch, PatchOp{
-            Op:    "replace",
-            Path:  "/metadata/labels",
-            Value: objToUpdate.Labels,
-        })
-    }
+	if  objToUpdate.Labels !=nil {
+		parentsList := helper.GetCRDParentsMap()["gnss.global.cosmos.tanzu.vmware.org"]
+		for _,k := range parentsList{
+			objToUpdate.Labels[k] = current.Labels[k]
+		}
+		objToUpdate.Labels[common.IS_NAME_HASHED_LABEL] = current.Labels[common.IS_NAME_HASHED_LABEL]
+		objToUpdate.Labels[common.DISPLAY_NAME_LABEL] = current.Labels[common.DISPLAY_NAME_LABEL]
+		patch = append(patch, PatchOp{
+			Op:    "replace",
+			Path:  "/metadata/labels",
+			Value: objToUpdate.Labels,
+		})
+	}
 
 	{{ if gt (len .Fields) 0}}
 	var rt reflect.Type
