@@ -322,11 +322,9 @@ func (group *{{$node.GroupTypeName}}) Delete{{$node.BaseNodeName}}ByName(ctx con
 		}
 	}
 	// Get Parent Node and check if gvk present before patch
-	var displayName string
+	{{if .Parent.HasParent}}
 	var gvkPresent bool
 	log.Debugf("[Delete{{$node.BaseNodeName}}ByName] Get Parent details")
-
-	{{if .Parent.HasParent}}
 	var patch Patch
 	parents := result.GetLabels()
 	if parents == nil {
@@ -354,6 +352,8 @@ func (group *{{$node.GroupTypeName}}) Delete{{$node.BaseNodeName}}ByName(ctx con
 			return err
 		}
 	}
+	{{if .Parent.IsNamed}}
+	var displayName string
 	// Iterate Parent Gvk
 	for k,v := range parentData.Spec.{{.Parent.GoGvkFieldName}}{
 		if hashedName == v.Name{
@@ -362,6 +362,12 @@ func (group *{{$node.GroupTypeName}}) Delete{{$node.BaseNodeName}}ByName(ctx con
 			gvkPresent = true
 		}
 	}
+	{{ else }}
+	if parentData.Spec.{{.Parent.GoGvkFieldName}} != nil {
+		log.Debugf("[Delete{{$node.BaseNodeName}}ByName] GVK present in parent for node: %s",hashedName)
+		gvkPresent = true
+	}
+	{{ end }}
 	if gvkPresent {
 		{{if .Parent.IsNamed}}
 		patchOp := PatchOp{
