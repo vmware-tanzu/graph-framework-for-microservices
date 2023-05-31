@@ -147,3 +147,7 @@ type Policypkg_VMpolicy @nexus(group:"policypkg.tsm.tanzu.vmware.com",version:"v
         SomeUserArg3: Boolean
     ): TimeSeriesData @timeseriesAPI(file: "../../tsquery/timeSeriesQuery", handler: "queryGnsQM")
 }
+    type Book {
+    title: String
+    foo: Boolean
+}

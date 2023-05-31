@@ -4,6 +4,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/vmware-tanzu/graph-framework-for-microservices/compiler/pkg/parser"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/nexus/nexus"
 )
 
 var _ = Describe("Graphql parsing tests", func() {
@@ -64,6 +65,26 @@ var _ = Describe("Graphql parsing tests", func() {
 		Expect(config.GraphqlQuerySpec.Queries[0].ServiceEndpoint.Port).To(Equal(6000))
 		args := config.GraphqlQuerySpec.Queries[0].Args.([]parser.GraphQlArg)
 		Expect(len(args)).To(Equal(5))
+	})
+
+	It("should parse graphql files", func() {
+		files := parser.ParseGraphQLFiles(exampleDSLPath)
+		Expect(files["../../example/datamodel/example.graphql"]).ToNot(BeNil())
+	})
+
+	It("should parse graphql specs", func() {
+		pkgs = parser.ParseDSLPkg(exampleDSLPath)
+		specs := parser.ParseGraphqlSpecs(pkgs)
+
+		Expect(specs).To(Equal(map[string]nexus.GraphQLSpec{
+			"root.GraphQLIdNameSpec": {
+				IdName:     "name",
+				IdNullable: true,
+			},
+			"root.GraphQLIdNullable": {
+				IdNullable: false,
+			},
+		}))
 	})
 
 })

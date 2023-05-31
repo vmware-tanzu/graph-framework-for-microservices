@@ -1,0 +1,4 @@
+type Book {
+    title: String
+    foo: Boolean
+}

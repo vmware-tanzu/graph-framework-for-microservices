@@ -203,4 +203,15 @@ var _ = Describe("Pkg tests", func() {
 		jsonStrFields := parser.IsJsonStringField(f)
 		Expect(jsonStrFields).To(BeFalse())
 	})
+
+	It("should get non struct types", func() {
+		nonStructTypes := gnsPkg.GetNonStructTypes()
+		Expect(len(nonStructTypes)).To(Equal(13))
+	})
+
+	It("convert TypeSpec to String", func() {
+		nonStructTypes := gnsPkg.GetNonStructTypes()
+		_, err := gnsPkg.TypeSpecToString(nonStructTypes[0])
+		Expect(err).ToNot(HaveOccurred())
+	})
 })
