@@ -355,7 +355,7 @@ func (group *{{$node.GroupTypeName}}) Delete{{$node.BaseNodeName}}ByName(ctx con
 		}
 	}
 	// Iterate Parent Gvk
-	for k,v := range parentData.spec.{{.Parent.GoGvkFieldName}}{
+	for k,v := range parentData.Spec.{{.Parent.GoGvkFieldName}}{
 		if hashedName == v.Name{
 			displayName = k
 			log.Debugf("[Delete{{$node.BaseNodeName}}ByName] GVK %s is present in parent for node: %s",k,hashedName)
