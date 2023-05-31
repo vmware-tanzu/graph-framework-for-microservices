@@ -628,7 +628,7 @@ func (group *{{$node.GroupTypeName}}) Update{{$node.BaseNodeName}}ByName(ctx con
 	}
 
 	if  objToUpdate.Labels !=nil {
-		parentsList := helper.GetCRDParentsMap()["gnss.global.cosmos.tanzu.vmware.org"]
+		parentsList := helper.GetCRDParentsMap()["{{$node.CrdName}}"]
 		for _,k := range parentsList{
 			objToUpdate.Labels[k] = current.Labels[k]
 		}
