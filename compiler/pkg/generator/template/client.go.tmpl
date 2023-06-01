@@ -40,6 +40,7 @@ fakeBaseClienset {{.FakeBaseCliensetImport}}
 var log = logrus.New()
 const maxRetryCount = 12
 const sleepTime = 5
+const ownershipAnnotation string = "Ownership"
 
 type Clientset struct {
 	baseClient baseClientset.Interface
@@ -235,9 +236,10 @@ func (group *{{$node.GroupTypeName}}) Delete{{$node.BaseNodeName}}ByName(ctx con
 	log.Debugf("[Delete{{$node.BaseNodeName}}ByName] Received objectToDelete: %s", hashedName)
 	{{if or .HasChildren .Parent.HasParent }}
 	var (
+		retryCount int
 		result *{{$node.GroupBaseImport}}
 	)
-	retryCount := 0
+	retryCount = 0
 	for {
 		result, err = group.client.baseClient.
 		{{$node.GroupTypeName}}().
@@ -255,6 +257,9 @@ func (group *{{$node.GroupTypeName}}) Delete{{$node.BaseNodeName}}ByName(ctx con
 			} else if customerrors.Is(err, context.Canceled){
 				log.Errorf("[Delete{{$node.BaseNodeName}}ByName]: %+v",err)
 				return context.Canceled
+			} else if errors.IsNotFound(err){
+				log.Errorf("[Delete{{$node.BaseNodeName}}ByName] Object Notfound: %+v",err)
+				break
 			} else {
 				log.Errorf("[Delete{{$node.BaseNodeName}}ByName]: %+v",err)
 				return err
@@ -290,46 +295,38 @@ func (group *{{$node.GroupTypeName}}) Delete{{$node.BaseNodeName}}ByName(ctx con
 	{{ end }}
 	{{ end }}
 
-	err = group.client.baseClient.
-	{{$node.GroupTypeName}}().
-	{{$node.GroupResourceNameTitle}}().Delete(ctx, hashedName, metav1.DeleteOptions{})
-	if err != nil {
-		log.Errorf("[Delete{{$node.BaseNodeName}}ByName] Failed to Delete {{$node.GroupResourceNameTitle}}: %+v",err)
-		if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded) {
-			log.Errorf("[Retry Count: %d ] %+v",retryCount,err)
-			if retryCount == maxRetryCount {
-				log.Error("Max Retry exceed on Get {{$node.GroupResourceNameTitle}}")
+	retryCount = 0
+	for {
+		err = group.client.baseClient.
+		{{$node.GroupTypeName}}().
+		{{$node.GroupResourceNameTitle}}().Delete(ctx, hashedName, metav1.DeleteOptions{})
+		if err != nil {
+			log.Errorf("[Delete{{$node.BaseNodeName}}ByName] failed to delete {{$node.GroupResourceNameTitle}}: %+v",err)
+			if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded) {
+				log.Errorf("[Retry Count: %d ] %+v",retryCount,err)
+				if retryCount == maxRetryCount {
+					log.Error("Max retry exceed on delete {{$node.GroupResourceNameTitle}}")
+					return err
+				}
+				retryCount +=1
+				time.Sleep(sleepTime * time.Second)
+			} else if customerrors.Is(err, context.Canceled){
+				log.Errorf("[Delete{{$node.BaseNodeName}}ByName]: %+v",err)
+				return context.Canceled
+			} else if errors.IsNotFound(err){
+				log.Errorf("[Delete{{$node.BaseNodeName}}ByName] Object not found: %+v",err)
+				break
+			} else {
+				log.Errorf("[Delete{{$node.BaseNodeName}}ByName]: %+v",err)
 				return err
 			}
-			retryCount +=1
-			time.Sleep(sleepTime * time.Second)
-		} else if customerrors.Is(err, context.Canceled){
-			log.Errorf("[Delete{{$node.BaseNodeName}}ByName]: %+v",err)
-			return context.Canceled
-		} else {
-			log.Errorf("[Delete{{$node.BaseNodeName}}ByName]: %+v",err)
-			return err
 		}
 	}
-
+	// Get Parent Node and check if gvk present before patch
 	{{if .Parent.HasParent}}
+	var gvkPresent bool
+	log.Debugf("[Delete{{$node.BaseNodeName}}ByName] Get Parent details")
 	var patch Patch
-	{{if .Parent.IsNamed}}
-	patchOp := PatchOp{
-		Op:   "remove",
-		Path: "/spec/{{$node.Parent.GvkFieldName}}/" + result.DisplayName(),
-	}
-	{{ else }}
-	patchOp := PatchOp{
-		Op:   "remove",
-		Path: "/spec/{{$node.Parent.GvkFieldName}}",
-	}
-	{{ end }}
-	patch = append(patch, patchOp)
-	marshaled, err := patch.Marshal()
-	if err != nil {
-		return err
-	}
 	parents := result.GetLabels()
 	if parents == nil {
 		parents = make(map[string]string)
@@ -338,54 +335,89 @@ func (group *{{$node.GroupTypeName}}) Delete{{$node.BaseNodeName}}ByName(ctx con
 	if !ok {
 		parentName = helper.DEFAULT_KEY
 	}
-	if parents[common.IS_NAME_HASHED_LABEL] == "true" {
+	if result.GetLabels() != nil {
+		if parents[common.IS_NAME_HASHED_LABEL] == "true" {
+			parentName = helper.GetHashedName("{{$node.Parent.CrdName}}", parents, parentName)
+		}
+	} else {
 		parentName = helper.GetHashedName("{{$node.Parent.CrdName}}", parents, parentName)
 	}
-
-	newCtx := context.TODO()
-	for {
-		_, err = group.client.baseClient.
-		{{$node.Parent.GroupTypeName}}().
-		{{$node.Parent.GroupResourceNameTitle}}().Patch(newCtx, parentName, types.JSONPatchType, marshaled, metav1.PatchOptions{})
-		if err != nil {
-			log.Errorf("Failed to patch {{$node.BaseNodeName}} gvk in parent node[{{$node.Parent.GroupResourceNameTitle}}]: %+v", err)
-			if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded){
-				log.Errorf("[Retry Count: %d ] %+v",retryCount, err)
-				if retryCount == maxRetryCount {
-					log.Error("Max Retry exceed on patching gvk")
-					log.Errorf("Trigger {{$node.BaseNodeName}} Delete: %s",hashedName)
-					err = group.Delete{{$node.BaseNodeName}}ByName(newCtx, hashedName)
-					if err != nil {
-						log.Errorf("Error occur while deleting {{$node.BaseNodeName}}: %s",hashedName)
-						return err
-					}
-					log.Errorf("{{$node.BaseNodeName}} Deleted: %s",hashedName)
-					return err
-				}
-				retryCount +=1
-				time.Sleep(sleepTime * time.Second)
-			} else if customerrors.Is(err, context.Canceled){
-				log.Errorf("[Delete{{$node.BaseNodeName}}ByName]: %+v",err)
-				return context.Canceled
-			} else {
-				log.Errorf("Unexpected Error occur {{$node.BaseNodeName}}]: %+v",err)
-				log.Errorf("Trigger {{$node.BaseNodeName}} Delete: %s",hashedName)
-				err = group.Delete{{$node.BaseNodeName}}ByName(newCtx, hashedName)
-				if err != nil {
-					log.Errorf("Error occur while deleting {{$node.BaseNodeName}}: %+v",hashedName)
-					return err
-				}
-				log.Errorf("{{$node.BaseNodeName}} Deleted Successfully: %s",hashedName)
-				return err
-			}
-		} else {
-			log.Debugf("[Delete{{$node.BaseNodeName}}ByName] Patch {{$node.BaseNodeName}} Success: %s",hashedName)
-			break
+	parentData, err := group.client.baseClient.
+				{{$node.Parent.GroupTypeName}}().
+				{{$node.Parent.GroupResourceNameTitle}}().Get(ctx, parentName, metav1.GetOptions{})
+	if err != nil{
+		log.Errorf("[Delete{{$node.BaseNodeName}}ByName] Failed to get Parent node: %+v",err)
+		if errors.IsNotFound(err){
+			return nil
+		} else{
+			return err
 		}
 	}
-
+	{{if .Parent.IsNamed}}
+	var displayName string
+	// Iterate Parent Gvk
+	for k,v := range parentData.Spec.{{.Parent.GoGvkFieldName}}{
+		if hashedName == v.Name{
+			displayName = k
+			log.Debugf("[Delete{{$node.BaseNodeName}}ByName] GVK %s is present in parent for node: %s",k,hashedName)
+			gvkPresent = true
+		}
+	}
+	{{ else }}
+	if parentData.Spec.{{.Parent.GoGvkFieldName}} != nil {
+		log.Debugf("[Delete{{$node.BaseNodeName}}ByName] GVK present in parent for node: %s",hashedName)
+		gvkPresent = true
+	}
 	{{ end }}
-	log.Debugf("[Delete{{$node.BaseNodeName}}ByName] Executed Successfully: %s",hashedName)
+	if gvkPresent {
+		{{if .Parent.IsNamed}}
+		patchOp := PatchOp{
+			Op:   "remove",
+			Path: "/spec/{{$node.Parent.GvkFieldName}}/" + displayName,
+		}
+		{{ else }}
+		patchOp := PatchOp{
+			Op:   "remove",
+			Path: "/spec/{{$node.Parent.GvkFieldName}}",
+		}
+		{{ end }}
+		patch = append(patch, patchOp)
+		marshaled, err := patch.Marshal()
+		if err != nil {
+			return err
+		}
+
+		retryCount = 0
+		newCtx := context.TODO()
+		for {
+			_, err = group.client.baseClient.
+			{{$node.Parent.GroupTypeName}}().
+			{{$node.Parent.GroupResourceNameTitle}}().Patch(newCtx, parentName, types.JSONPatchType, marshaled, metav1.PatchOptions{})
+			if err != nil {
+				log.Errorf("Failed to patch {{$node.BaseNodeName}} gvk in parent node[{{$node.Parent.GroupResourceNameTitle}}]: %+v", err)
+				if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded){
+					log.Errorf("[Retry Count: %d ] %+v",retryCount, err)
+					if retryCount == maxRetryCount {
+						log.Error("Max Retry exceed on patching gvk")
+						return err
+					}
+					retryCount +=1
+					time.Sleep(sleepTime * time.Second)
+				} else if customerrors.Is(err, context.Canceled){
+					log.Errorf("[Delete{{$node.BaseNodeName}}ByName]: %+v",err)
+					return context.Canceled
+				} else {
+					log.Errorf("Unexpected Error occur {{$node.BaseNodeName}}]: %+v",err)
+					return err
+				}
+			} else {
+				log.Debugf("[Delete{{$node.BaseNodeName}}ByName] Patch {{$node.BaseNodeName}} Success: %s",hashedName)
+				break
+			}
+		}
+		log.Debugf("[Delete{{$node.BaseNodeName}}ByName] Executed Successfully: %s",hashedName)
+	}
+	{{ end }}
 	return
 }
 
@@ -410,10 +442,11 @@ func (group *{{$node.GroupTypeName}}) Create{{$node.BaseNodeName}}ByName(ctx con
 	{{ range $key, $link := .LinksAndChildren }}objToCreate.Spec.{{$link.FieldName}}Gvk = nil
 	{{ end }}
 	var (
+		retryCount int
 		result *{{$node.GroupBaseImport}}
 		err            error
 	)
-	retryCount := 0
+	retryCount = 0
 	for {
 		result, err = group.client.baseClient.
 		{{$node.GroupTypeName}}().
@@ -451,6 +484,7 @@ func (group *{{$node.GroupTypeName}}) Create{{$node.BaseNodeName}}ByName(ctx con
 	{{if .Parent.IsNamed}}
 	payload := "{\"spec\": {\"{{$node.Parent.GvkFieldName}}\": {\"" + objToCreate.DisplayName() + "\": {\"name\": \"" + objToCreate.Name + "\",\"kind\": \"{{$node.Kind}}\", \"group\": \"{{$node.Group}}\"}}}}"
 
+	retryCount = 0
 	newCtx := context.TODO()
 	for {
 		_, err = group.client.baseClient.
@@ -508,6 +542,7 @@ func (group *{{$node.GroupTypeName}}) Create{{$node.BaseNodeName}}ByName(ctx con
 	if err != nil {
 		return nil, err
 	}
+	retryCount = 0
 	newCtx := context.TODO()
 	for {
 		_, err = group.client.baseClient.
@@ -605,45 +640,40 @@ func (group *{{$node.GroupTypeName}}) Update{{$node.BaseNodeName}}ByName(ctx con
 	{{if $node.IsSingleton }}if objToUpdate.Labels[common.DISPLAY_NAME_LABEL] != helper.DEFAULT_KEY {
 		return nil, NewSingletonNameError(objToUpdate.Labels[common.DISPLAY_NAME_LABEL])
 	}{{end}}
-	// ResourceVersion must be set for update
-	retryCount := 0
-	if objToUpdate.ResourceVersion == "" {
-		for {
-			current, err := group.client.baseClient.
-			{{$node.GroupTypeName}}().
-			{{$node.GroupResourceNameTitle}}().Get(ctx, objToUpdate.GetName(), metav1.GetOptions{})
-			if err != nil {
-				log.Errorf("[Update{{$node.BaseNodeName}}ByName] Failed to Get {{$node.GroupResourceNameTitle}}: %+v",err)
-				if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded){
-					log.Errorf("[Retry Count: %d ] %+v",retryCount,err)
-					if retryCount == maxRetryCount {
-						log.Error("Max Retry exceed on Get {{$node.GroupResourceNameTitle}}")
-						return nil,err
-					}
-					retryCount +=1
-					time.Sleep(sleepTime * time.Second)
-				} else if customerrors.Is(err, context.Canceled){
-					log.Errorf("[Update{{$node.BaseNodeName}}ByName]: %+v",err)
-					return nil,context.Canceled
-				}else {
-					log.Errorf("[Update{{$node.BaseNodeName}}ByName]: %+v",err)
-					return nil,err
-				}
-			} else {
-				log.Debugf("[Update{{$node.BaseNodeName}}ByName] Successfully Get: %s",objToUpdate.GetName())
-				objToUpdate.ResourceVersion = current.ResourceVersion
-				break
-			}
-		}
-	}
 
 	var patch Patch
-	patch = append(patch, PatchOp{
-		Op:    "replace",
-		Path:  "/metadata",
-		Value: objToUpdate.ObjectMeta,
-	})
 
+	if objToUpdate.Annotations != nil || objToUpdate.Labels != nil {
+		current , err := group.client.{{$node.SimpleGroupTypeName}}().Get{{$node.BaseNodeName}}ByName(ctx, objToUpdate.Name)
+		if err != nil {
+			return nil, err
+		}
+
+		if objToUpdate.Annotations !=nil {
+			if current.Annotations[ownershipAnnotation] != ""{
+				objToUpdate.Annotations[ownershipAnnotation] = current.Annotations[ownershipAnnotation]
+			}
+			patch = append(patch, PatchOp{
+				Op:    "replace",
+				Path:  "/metadata/annotations",
+				Value: objToUpdate.Annotations,
+			})
+		}
+
+		if  objToUpdate.Labels !=nil {
+			parentsList := helper.GetCRDParentsMap()["{{$node.CrdName}}"]
+			for _,k := range parentsList{
+				objToUpdate.Labels[k] = current.Labels[k]
+			}
+			objToUpdate.Labels[common.IS_NAME_HASHED_LABEL] = current.Labels[common.IS_NAME_HASHED_LABEL]
+			objToUpdate.Labels[common.DISPLAY_NAME_LABEL] = current.Labels[common.DISPLAY_NAME_LABEL]
+			patch = append(patch, PatchOp{
+				Op:    "replace",
+				Path:  "/metadata/labels",
+				Value: objToUpdate.Labels,
+			})
+		}
+	}
 
 	{{ if gt (len .Fields) 0}}
 	var rt reflect.Type
@@ -679,6 +709,7 @@ func (group *{{$node.GroupTypeName}}) Update{{$node.BaseNodeName}}ByName(ctx con
 		result *{{$node.GroupBaseImport}}
 	)
 	newCtx := context.TODO()
+	retryCount := 0
 	for {
 		result, err = group.client.baseClient.
 		{{$node.GroupTypeName}}().
