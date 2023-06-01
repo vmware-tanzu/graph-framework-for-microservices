@@ -345,9 +345,11 @@ func InitManager(metricsAddr string, probeAddr string, enableLeaderElection bool
 
 		if err := registration.InitTenantConfig(reg_client); err != nil {
 			setupLog.Error(err, "unable to reconcile TenantConfig")
+			os.Exit(1)
 		}
 		if err := registration.InitTenantRuntimeCache(reg_client); err != nil {
 			setupLog.Error(err, "unable to start Tenant Cache")
+			os.Exit(1)
 		}
 		if err := common.InitAdminDatamodelCache(); err != nil {
 			setupLog.Error(err, "unable to start User Cache")

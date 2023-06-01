@@ -31,6 +31,10 @@ import (
 )
 
 var _ = Describe("Common Function tests", func() {
+	AfterSuite(func() {
+		envoy.XDSListener.Close()
+	})
+
 	It("Should test convertSKUtoLicense", func() {
 		config.SKUConfig = &config.SKUMap{
 			SKU: map[string][]string{

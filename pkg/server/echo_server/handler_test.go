@@ -1001,8 +1001,10 @@ var _ = Describe("Echo server tests", func() {
 			Expect(err).NotTo(HaveOccurred())
 			Expect(rec.Code).To(Equal(200))
 
-			Expect(rec.Body.String()).Should(Equal("[{\"group\":\"management.vmware.org/v1\"," +
-				"\"kind\":\"Mgr\",\"name\":\"default\"},{\"group\":\"management.vmware.org/v1\",\"kind\":\"Mgr\",\"name\":\"foo\"}]\n"))
+			Eventually(func() bool {
+				return rec.Body.String() == "[{\"group\":\"management.vmware.org/v1\","+
+					"\"kind\":\"Mgr\",\"name\":\"default\"},{\"group\":\"management.vmware.org/v1\",\"kind\":\"Mgr\",\"name\":\"foo\"}]\n"
+			}, 5).Should(BeTrue())
 
 			By("deleting the EngManagers object, should fail to find the object on GET")
 			err = deleteHandler(engCtx)

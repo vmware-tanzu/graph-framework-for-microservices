@@ -27,6 +27,10 @@ import (
 
 var _ = Describe("Registration Function tests", func() {
 
+	AfterSuite(func() {
+		envoy.XDSListener.Close()
+	})
+
 	It("should check registration happens correctly", func() {
 		client.NexusClient = nexus_client.NewFakeClient()
 		_, err := client.NexusClient.Api().CreateNexusByName(context.TODO(), &apinexusv1.Nexus{

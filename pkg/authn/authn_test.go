@@ -91,6 +91,9 @@ var _ = Describe("Authn tests", func() {
 			Type: model.Delete,
 		}, e.Echo)
 		Expect(err).NotTo(HaveOccurred())
+
+		envoy.XDSListener.Close()
+
 	})
 
 	It("should handle tenantconfig Events", func() {

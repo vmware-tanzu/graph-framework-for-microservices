@@ -3,11 +3,13 @@ package envoy
 import (
 	"context"
 	"fmt"
+	"net"
 	"sync"
 
 	cachev3 "github.com/envoyproxy/go-control-plane/pkg/cache/v3"
 	"github.com/envoyproxy/go-control-plane/pkg/server/v3"
 	log "github.com/sirupsen/logrus"
+	"google.golang.org/grpc"
 )
 
 var (
@@ -28,6 +30,8 @@ var jwtMutex sync.Mutex
 var upstreamsMutex sync.Mutex
 var headerUpstreamMutex sync.Mutex
 var refreshEnvoyMutex sync.Mutex
+var XDSServer *grpc.Server
+var XDSListener net.Listener
 
 func Init(j *JwtAuthnConfig, u map[string]*UpstreamConfig, hu map[string]*HeaderMatchedUpstream, level log.Level) error {
 	log.Infof("initializing xDS server...")
@@ -67,11 +71,19 @@ func Init(j *JwtAuthnConfig, u map[string]*UpstreamConfig, hu map[string]*Header
 		return err
 	}
 
+	//stopCh := make(chan struct{})
+	globalCtx := context.Background()
+	XDSListener = CreateXDSListener(globalCtx, xDSListenPort)
+
+	srv := server.NewServer(globalCtx, cache, nil)
+	XDSServer = RegisterServer(globalCtx, srv, xDSListenPort)
+
 	go func() {
 		// Run the xDS server
-		srv := server.NewServer(context.Background(), cache, nil)
-		RunServer(context.Background(), srv, xDSListenPort)
+		RunServer(globalCtx, XDSServer, xDSListenPort)
+
 	}()
+
 	return nil
 }
 
