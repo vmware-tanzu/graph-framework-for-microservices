@@ -59,6 +59,7 @@ kubectl apply -f deployment/grafana.yaml
 ```
 - Install the nexus calibration tool
 ```
+kubectl apply -f deployment/config-map.yaml
 kubectl apply -f deployment/deployment.yaml
 ```
   Installs the tool and exposes the service at http://nexus-calibrate:8000
