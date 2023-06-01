@@ -1,0 +1,239 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  # insecure-skip-tls-verify: true is added as the apiserver is internally exposed between microservices
+  name: nexus-dmb-kubeconfig-api-gw
+  namespace: {{ default  .Release.Namespace .Values.global.namespace }}
+data:
+  config: |
+    current-context: api-gw
+    apiVersion: v1
+    kind: Config
+    clusters:
+    - cluster:
+        api-version: v1
+        server: http://nexus-api-gw:80
+        insecure-skip-tls-verify: true
+      name: api-gw
+    contexts:
+    - context:
+        cluster: api-gw
+      name: api-gw
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: nexus-api-dm-obj-installer
+  namespace: {{ default  .Release.Namespace .Values.global.namespace }}
+  annotations:
+    {{- template "argoJobHook" .}}
+spec:
+  template:
+    metadata:
+      annotations:
+        "sidecar.istio.io/inject": "false"
+    spec:
+      {{- if eq .Values.global.tainted true }}
+      {{- template "tolerations" .}}
+      {{- end }}
+      activeDeadlineSeconds: 300
+      containers:
+        - name: nexus-api-dm-obj-creator
+          image: "{{.Values.global.registry}}/debugtools:latest"
+          imagePullPolicy: IfNotPresent
+          command:
+            - "/bin/bash"
+            - "-c"
+            - |
+              set -e
+              function create_object() {
+                FILE=$1
+                RETRY=4
+                ATTEMPT=0
+                while [ $ATTEMPT -ne $RETRY ]; do
+                if ! cat $FILE | kubectl apply -f -; then
+                   ATTEMPT=$((ATTEMPT + 1))
+                   if [ $ATTEMPT -ne $RETRY ]; then
+                      sleep 2
+                   else
+                      exit 1
+                   fi
+                else
+                   break
+                fi
+                done
+              }
+              echo 'waiting for nexus-apiserver to be ready'
+              until $(curl --output /dev/null --silent --head --fail http://nexus-apiserver:8080/readyz); do
+                echo '.'
+                sleep 5
+              done
+
+              if ! kubectl get crds datamodels.nexus.vmware.com > /dev/null 2>&1 ; then
+              echo 'creating Datamodel CRD type'
+                cat > /tmp/object <<EOF
+                  apiVersion: apiextensions.k8s.io/v1
+                  kind: CustomResourceDefinition
+                  metadata:
+                    creationTimestamp: null
+                    name: datamodels.nexus.vmware.com
+                  spec:
+                    conversion:
+                      strategy: None
+                    group: nexus.vmware.com
+                    names:
+                      kind: Datamodel
+                      listKind: DatamodelList
+                      plural: datamodels
+                      shortNames:
+                      - datamodel
+                      singular: datamodel
+                    scope: Cluster
+                    versions:
+                    - name: v1
+                      schema:
+                        openAPIV3Schema:
+                          type: object
+                          properties:
+                            apiVersion:
+                              type: string
+                            kind:
+                              type: string
+                            metadata:
+                              type: object
+                            spec:
+                              properties:
+                                name:
+                                  type: string
+                                url:
+                                  type: string
+                                title:
+                                  type: string
+                                  default: "Nexus API GW APIs"
+                                enableGraphql:
+                                  type: boolean
+                                  default: false
+                                graphqlPath:
+                                  type: string
+                                  default: ""
+                              type: object
+                      served: true
+                      storage: true
+              EOF
+                kubectl -s nexus-apiserver:8080 apply -f /tmp/object
+              fi
+              echo 'waiting for api-gw to be ready'
+              until $(curl -k --output /dev/null --silent --head --fail $SERVER); do
+                echo '.'
+                sleep 5
+              done
+              echo 'api-gw is now ready'
+
+              echo 'waiting for Nexus CRD to be installed...'
+              until $(kubectl get crd/nexuses.api.nexus.vmware.com > /dev/null 2>&1); do
+                echo '.'
+                sleep 5
+              done
+              echo 'Nexus CRD is installed'
+
+               echo 'waiting for Config CRD to be installed...'
+              until $(kubectl get crd/configs.config.nexus.vmware.com > /dev/null 2>&1); do
+                echo '.'
+                sleep 5
+              done
+              echo 'Config CRD is installed'
+
+              echo 'waiting for Connect CRD to be installed...'
+              until $(kubectl get crd/connects.connect.nexus.vmware.com > /dev/null 2>&1); do
+                echo '.'
+                sleep 5
+              done
+              echo 'Connect CRD is installed'
+
+              echo 'waiting for ApiGateway CRD to be installed...'
+              until $(kubectl get crd/apigateways.apigateway.nexus.vmware.com > /dev/null 2>&1); do
+                echo '.'
+                sleep 5
+              done
+              echo 'ApiGateway CRD is installed'
+
+              if ! kubectl get nexuses.api.nexus.vmware.com -l nexus/display_name=default -o=jsonpath='{.items[0]}' > /dev/null 2>&1 ; then
+                echo 'creating Nexus node'
+                cat > /tmp/object <<EOF
+                apiVersion: api.nexus.vmware.com/v1
+                kind: Nexus
+                metadata:
+                  name: default
+              EOF
+                create_object /tmp/object
+              fi
+
+
+
+              if ! kubectl get configs.config.nexus.vmware.com -l nexus/display_name=default -o=jsonpath='{.items[0]}' > /dev/null 2>&1 ; then
+                echo 'creating Config node'
+                cat > /tmp/object <<EOF
+                apiVersion: config.nexus.vmware.com/v1
+                kind: Config
+                metadata:
+                  name: default
+                  labels:
+                    nexuses.api.nexus.vmware.com: default
+              EOF
+              create_object /tmp/object
+              fi
+
+              if ! kubectl get runtimes.runtime.nexus.vmware.com -l nexus/display_name=default -o=jsonpath='{.items[0]}' > /dev/null 2>&1 ; then
+                echo 'creating Runtime node'
+                cat > /tmp/object <<EOF
+                apiVersion: runtime.nexus.vmware.com/v1
+                kind: Runtime
+                metadata:
+                  name: default
+                  labels:
+                    nexuses.api.nexus.vmware.com: default
+              EOF
+              create_object /tmp/object
+              fi
+
+              if ! kubectl get connects.connect.nexus.vmware.com -l nexus/display_name=default -o=jsonpath='{.items[0]}' > /dev/null 2>&1 ; then
+                echo 'creating Connect node'
+                cat > /tmp/object <<EOF
+                apiVersion: connect.nexus.vmware.com/v1
+                kind: Connect
+                metadata:
+                  name: default
+                  labels:
+                    nexuses.api.nexus.vmware.com: default
+                    configs.config.nexus.vmware.com: default
+              EOF
+              create_object /tmp/object
+              fi
+
+              if ! kubectl get apigateways.apigateway.nexus.vmware.com -l nexus/display_name=default -o=jsonpath='{.items[0]}' > /dev/null 2>&1 ; then
+                echo 'creating ApiGateway node'
+                cat > /tmp/object <<EOF
+                apiVersion: apigateway.nexus.vmware.com/v1
+                kind: ApiGateway
+                metadata:
+                  name: default
+                  labels:
+                    nexuses.api.nexus.vmware.com: default
+                    configs.config.nexus.vmware.com: default
+              EOF
+              create_object /tmp/object
+              fi
+          env:
+            - name: KUBECONFIG
+              value: /kube/config
+            - name: SERVER
+              value: "http://nexus-api-gw/readyz"
+          volumeMounts:
+            - mountPath: /kube
+              name: kubeconfig
+      volumes:
+        - name: kubeconfig
+          configMap:
+            name: nexus-dmb-kubeconfig-api-gw
+      restartPolicy: OnFailure
+  backoffLimit: 10

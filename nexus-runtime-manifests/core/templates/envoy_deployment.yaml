@@ -1,0 +1,304 @@
+# Removing the nexus proxy for tenant 
+{{- if eq .Values.global.nexusAdmin true }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: envoy-config-map
+  namespace: {{ default  .Release.Namespace .Values.global.namespace }}
+data:
+  envoy.yaml: |
+    # Base config for a split xDS management server on 18000, admin port on 19000
+    admin:
+      access_log_path: /dev/null
+      address:
+        socket_address:
+          address: 127.0.0.1
+          port_value: 19000
+    dynamic_resources:
+      cds_config:
+        resource_api_version: V3
+        api_config_source:
+          api_type: GRPC
+          transport_api_version: V3
+          grpc_services:
+          - envoy_grpc:
+              cluster_name: xds_cluster
+          set_node_on_first_message_only: true
+      lds_config:
+        resource_api_version: V3
+        api_config_source:
+          api_type: GRPC
+          transport_api_version: V3
+          grpc_services:
+          - envoy_grpc:
+              cluster_name: xds_cluster
+          set_node_on_first_message_only: true
+    node:
+      cluster: cluster_0
+      id: envoy-nexus-admin
+    static_resources:
+      clusters:
+      - connect_timeout: 1s
+        type: LOGICAL_DNS
+        load_assignment:
+          cluster_name: xds_cluster
+          endpoints:
+          - lb_endpoints:
+            - endpoint:
+                address:
+                  socket_address:
+                    # api-gw runs an xDS server that this envoy instance will connect to
+                    address: nexus-api-gw
+                    port_value: 18000
+        http2_protocol_options: {}
+        name: xds_cluster
+    layered_runtime:
+      layers:
+        - name: runtime-0
+          rtds_layer:
+            rtds_config:
+              resource_api_version: V3
+              api_config_source:
+                transport_api_version: V3
+                api_type: GRPC
+                grpc_services:
+                  envoy_grpc:
+                    cluster_name: xds_cluster
+            name: runtime-0
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nexus-proxy
+  namespace: {{ default  .Release.Namespace .Values.global.namespace }}
+spec:
+  selector:
+    matchLabels:
+      app: nexus-proxy
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: nexus-proxy
+      annotations:
+        "sidecar.istio.io/inject": "false"
+    spec:
+      {{- if eq .Values.global.tainted true }}
+      {{- template "tolerations" .}}
+      {{- end }}
+      containers:
+        - name: envoy
+          image: "{{.Values.global.registry}}/envoyproxy/envoy:v1.22.2"
+          ports:
+            - containerPort: 10000
+            - containerPort: 10001
+            - containerPort: 19000
+          volumeMounts:
+            - mountPath: /etc/envoy
+              name: envoy-config
+            {{- if eq .Values.global.useHttps true}}
+            - mountPath: /ssl/cert
+              name: certs
+            {{- end }}
+      volumes:
+        - name: envoy-config
+          configMap:
+            name: envoy-config-map
+        {{- if eq .Values.global.useHttps true}}
+        - name: certs
+          secret:
+            secretName: nexus-proxy-tls
+        {{- end }}
+---
+{{- if eq .Values.global.useHttps true}}
+{{- if and (ne .Values.global.api_gateway.pub_key "") (ne .Values.global.api_gateway.cert "")}}
+apiVersion: v1
+kind: Secret
+metadata:
+  name: nexus-proxy-tls
+  namespace: {{ default  .Release.Namespace .Values.global.namespace }}
+type: Opaque
+data:
+  key.pem: {{ .Values.global.api_gateway.pub_key }}
+  cert.pem: {{ .Values.global.api_gateway.cert  }}
+{{- end }}
+{{- end }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nexus-proxy
+  namespace: {{ default  .Release.Namespace .Values.global.namespace }}
+  labels:
+    app: nexus-proxy
+spec:
+  ports:
+    {{- if eq .Values.global.useHttps true}}
+    - name: exposehttps
+      port: 443
+      protocol: TCP
+      targetPort: 10001
+    {{- else }}
+    - name: exposelb
+      port: 80
+      protocol: TCP
+      targetPort: 10000
+    - name: exposehttp
+      port: 10000
+      protocol: TCP
+      targetPort: 10000
+    {{- end }}
+  selector:
+    app: nexus-proxy
+  {{- if eq .Values.global.proxy.loadbalancer true }}
+  type: LoadBalancer
+  {{- else }}
+  type: ClusterIP
+  {{- end }}
+---
+{{- if eq .Values.global.useHttps true }}
+{{- if and (eq .Values.global.api_gateway.pub_key "") (eq .Values.global.api_gateway.cert "")}}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: nexus-create-signed-cert-envoy
+  namespace: {{ default  .Release.Namespace .Values.global.namespace }}
+  annotations:
+    "nexus-upgrade": "false"
+    {{- template "argoJobHook" .}}
+spec:
+  backoffLimit: 6
+  template:
+    metadata:
+      annotations:
+        "sidecar.istio.io/inject": "false"
+    spec:
+      {{- if eq .Values.global.tainted true }}
+      {{- template "tolerations" .}}
+      {{- end }}
+      containers:
+        - command:
+            - /opt/create_webhook_signed_cert/create_certificate_as_secret.sh
+            - --service
+            - nexus-proxy
+            - --secret
+            - nexus-proxy-tls
+            - --domain
+            - {{default "example.com" .Values.global.api_gateway.domainName }}
+          env:
+            - name: POD_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  apiVersion: v1
+                  fieldPath: metadata.namespace
+          image: "{{ .Values.global.registry }}/nexus-kubectl:1.16"
+          imagePullPolicy: IfNotPresent
+          name: nexus-create-signed-cert-envoy
+          volumeMounts:
+            - mountPath: /opt/create_webhook_signed_cert/
+              name: nexus-create-signed-cert-envoy
+              readOnly: false
+      restartPolicy: Never
+      serviceAccountName: nexus-k8scerts-service-account
+      volumes:
+        - configMap:
+            name: nexus-create-signed-cert-envoy
+            defaultMode: 0555
+          name: nexus-create-signed-cert-envoy
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nexus-create-signed-cert-envoy
+  namespace: {{ default  .Release.Namespace .Values.global.namespace }}
+data:
+  create_certificate_as_secret.sh: |
+        #!/usr/bin/env bash
+        set -ex
+        namespace=$POD_NAMESPACE
+        usage() {
+            cat <<EOF
+        Generate certificate suitable for use with an webhook service.
+
+        This script uses k8s' CertificateSigningRequest API to a generate a
+        certificate signed by k8s CA suitable for use with sidecar-injector webhook
+        services. This requires permissions to create and approve CSR. See
+        https://kubernetes.io/docs/tasks/tls/managing-tls-in-a-cluster for
+        detailed explantion and additional instructions.
+
+        The server key/cert k8s CA cert are stored in a k8s secret.
+
+        usage: ${0} [OPTIONS]
+
+        The following flags are required.
+
+                --service          Service name of webhook.
+                --namespace        Namespace where webhook service and secret reside.
+                --secret           Secret name for CA certificate and server certificate/key pair.
+                --domain           Domain to create Cert to.
+        EOF
+            exit 1
+        }
+
+        while [[ $# -gt 0 ]]; do
+            case ${1} in
+                --domain)
+                    domain="$2"
+                    shift
+                    ;;
+                --service)
+                    service="$2"
+                    shift
+                    ;;
+                --secret)
+                    secret="$2"
+                    shift
+                    ;;
+                *)
+                    usage
+                    ;;
+            esac
+            shift
+        done
+
+        if [ ! -x "$(command -v openssl)" ]; then
+            echo "openssl not found"
+            exit 1
+        fi
+
+        csrName=${service}
+        tmpdir=$(mktemp -d)
+        echo "creating certs in tmpdir ${tmpdir} "
+
+        cat <<EOF >> ${tmpdir}/csr.conf
+        [req]
+        req_extensions = v3_req
+        distinguished_name = req_distinguished_name
+        [req_distinguished_name]
+        [ v3_req ]
+        basicConstraints = CA:FALSE
+        keyUsage = digitalSignature, keyEncipherment
+        extendedKeyUsage = serverAuth
+        subjectAltName = @alt_names
+        [alt_names]
+        DNS.1 = ${service}
+        DNS.2 = ${service}.${namespace}
+        DNS.3 = ${domain}
+
+        EOF
+
+        openssl genrsa -out ${tmpdir}/server-key.pem 2048
+        openssl req -new -key ${tmpdir}/server-key.pem -subj "/CN=${domain}" -out ${tmpdir}/server.csr -config ${tmpdir}/csr.conf
+        openssl x509 -req -days 365 -in ${tmpdir}/server.csr -signkey ${tmpdir}/server-key.pem -sha256 -out ${tmpdir}/server.crt
+        openssl x509 -in ${tmpdir}/server.crt -out ${tmpdir}/server-cert.pem -outform PEM
+
+        # create the secret with CA cert and server cert/key
+        kubectl create secret generic ${secret} \
+                --from-file=key.pem=${tmpdir}/server-key.pem \
+                --from-file=cert.pem=${tmpdir}/server-cert.pem \
+                --dry-run -o yaml |
+            kubectl -n ${namespace} apply -f -
+---
+{{- end }}
+{{- end }}
+{{- end }}
