@@ -352,6 +352,8 @@ func (group *RootTsmV1) DeleteRootByName(ctx context.Context, hashedName string)
 				log.Errorf("[DeleteRootByName]: %+v", err)
 				return err
 			}
+		} else {
+			break
 		}
 	}
 	// Get Parent Node and check if gvk present before patch
@@ -1101,6 +1103,8 @@ func (group *ConfigTsmV1) DeleteConfigByName(ctx context.Context, hashedName str
 				log.Errorf("[DeleteConfigByName]: %+v", err)
 				return err
 			}
+		} else {
+			break
 		}
 	}
 	// Get Parent Node and check if gvk present before patch
@@ -2166,6 +2170,8 @@ func (group *ProjectTsmV1) DeleteProjectByName(ctx context.Context, hashedName s
 				log.Errorf("[DeleteProjectByName]: %+v", err)
 				return err
 			}
+		} else {
+			break
 		}
 	}
 	// Get Parent Node and check if gvk present before patch
