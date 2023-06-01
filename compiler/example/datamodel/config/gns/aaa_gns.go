@@ -1,14 +1,10 @@
 package gns
 
-import (
-	"github.com/vmware-tanzu/graph-framework-for-microservices/nexus/nexus"
-)
-
-type RandomGnsData struct {
-	nexus.Node
-	Description RandomDescription
-	Status      RandomStatus `nexus:"status"`
-}
+//type RandomGnsData struct {
+//	nexus.Node
+//	Description RandomDescription
+//	Status      RandomStatus `nexus:"status"`
+//}
 
 type RandomDescription struct {
 	DiscriptionA string

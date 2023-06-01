@@ -20,7 +20,6 @@ package fake
 
 import (
 	"context"
-
 	servicegrouptsmtanzuvmwarecomv1 "github.com/vmware-tanzu/graph-framework-for-microservices/compiler/example/output/generated/apis/servicegroup.tsm.tanzu.vmware.com/v1"
 
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -100,7 +99,7 @@ func (c *FakeSvcGroupLinkInfos) Update(ctx context.Context, svcGroupLinkInfo *se
 // Delete takes name of the svcGroupLinkInfo and deletes it. Returns an error if one occurs.
 func (c *FakeSvcGroupLinkInfos) Delete(ctx context.Context, name string, opts v1.DeleteOptions) error {
 	_, err := c.Fake.
-		Invokes(testing.NewRootDeleteAction(svcgrouplinkinfosResource, name), &servicegrouptsmtanzuvmwarecomv1.SvcGroupLinkInfo{})
+		Invokes(testing.NewRootDeleteActionWithOptions(svcgrouplinkinfosResource, name, opts), &servicegrouptsmtanzuvmwarecomv1.SvcGroupLinkInfo{})
 	return err
 }
 

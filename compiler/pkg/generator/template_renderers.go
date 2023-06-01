@@ -728,9 +728,11 @@ func RenderNonNexusTypes(outputDir string, nonNexusTypes *parser.NonNexusTypes, 
 		return err
 	}
 
-	err = createFile(outputModelFolder, "model.go", out, false)
-	if err != nil {
-		return err
+	if out.Len() > 0 {
+		err = createFile(outputModelFolder, "model.go", out, false)
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil

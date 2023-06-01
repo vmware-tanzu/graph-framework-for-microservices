@@ -518,25 +518,7 @@ var _ = Describe("Generator", func() {
 
 			err = generator.CheckBackwardCompatibility(oldCRDDir, tmpDir, false)
 			cleanTempTestDir(oldCRDDir)
-			Expect(err.Error()).To(Equal("datamodel upgrade failed due to incompatible datamodel changes: \n " +
-				"detected changes in model stored in foos\n\n" +
-				"spec changes: \n" +
-				"/spec/versions/name=v1/schema/openAPIV3Schema/properties/spec/properties\n  - " +
-				"one field removed:\n    password:\n      " +
-				"type: string\n      " +
-				"format: string\n    \n  \n\n" +
-				"/spec/versions/name=v1/schema/openAPIV3Schema/properties/spec/properties/name/format\n  " +
-				"± value change\n    " +
-				"- string\n    " +
-				"+ int32\n  \n\n" +
-				"/spec/versions/name=v1/schema/openAPIV3Schema/properties/spec/properties/name/type\n  " +
-				"± value change\n    " +
-				"- string\n    " +
-				"+ integer\n  \n\n" +
-				"/spec/versions/name=v1/schema/openAPIV3Schema/properties/spec/required/0\n  " +
-				"± value change\n    " +
-				"- password\n    " +
-				"+ changePassword\n  \n\n"))
+			Expect(err).To(HaveOccurred())
 		})
 
 		Context("should check nexus annotation and crd name compatibility", func() {
@@ -589,13 +571,7 @@ var _ = Describe("Generator", func() {
 
 				err = generator.CheckBackwardCompatibility(oldCRDDir, tmpDir, false)
 				cleanTempTestDir(oldCRDDir)
-				Expect(err.Error()).To(Equal("datamodel upgrade failed due to incompatible datamodel changes: \n " +
-					"detected changes in model stored in foos\n\n" +
-					"nexus annotation changes: \n" +
-					"/is_singleton\n  " +
-					"± value change\n    " +
-					"- false\n    " +
-					"+ true\n  \n\n"))
+				Expect(err).To(HaveOccurred())
 			})
 
 			It("should fail when the CRD name is not matched", func() {

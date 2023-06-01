@@ -320,6 +320,8 @@ func (group *{{$node.GroupTypeName}}) Delete{{$node.BaseNodeName}}ByName(ctx con
 				log.Errorf("[Delete{{$node.BaseNodeName}}ByName]: %+v",err)
 				return err
 			}
+		} else {
+			break
 		}
 	}
 	// Get Parent Node and check if gvk present before patch

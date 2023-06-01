@@ -30,3 +30,11 @@ models:
       - github.com/vmware-tanzu/graph-framework-for-microservices/gqlgen/graphql.Int
       - github.com/vmware-tanzu/graph-framework-for-microservices/gqlgen/graphql.Int64
       - github.com/vmware-tanzu/graph-framework-for-microservices/gqlgen/graphql.Int32
+  root_Root:
+    fields:
+      Project:
+        resolver: true
+  project_Project:
+    fields:
+      Config:
+        resolver: true

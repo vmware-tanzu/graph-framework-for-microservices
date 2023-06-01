@@ -7,11 +7,10 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/compiler/example/output/generated/nexus-gql/graph/model"
 	"strconv"
 	"sync"
 	"sync/atomic"
-
-	"github.com/vmware-tanzu/graph-framework-for-microservices/compiler/example/output/generated/nexus-gql/graph/model"
 
 	gqlparser "github.com/vektah/gqlparser/v2"
 	"github.com/vektah/gqlparser/v2/ast"
@@ -46,6 +45,10 @@ type ResolverRoot interface {
 }
 
 type DirectiveRoot struct {
+	Jsonencoded   func(ctx context.Context, obj interface{}, next graphql.Resolver, file *string, gofile *string, name *string) (res interface{}, err error)
+	Protobuf      func(ctx context.Context, obj interface{}, next graphql.Resolver, file string, name string) (res interface{}, err error)
+	Relation      func(ctx context.Context, obj interface{}, next graphql.Resolver, name *string, parameters *string, softlink *string, uuidkey *string) (res interface{}, err error)
+	TimeseriesAPI func(ctx context.Context, obj interface{}, next graphql.Resolver, file string, handler string) (res interface{}, err error)
 }
 
 type ComplexityRoot struct {
@@ -126,6 +129,7 @@ type ComplexityRoot struct {
 	}
 
 	Gns_Gns struct {
+		Annotations              func(childComplexity int) int
 		Description              func(childComplexity int) int
 		DifferentSpec            func(childComplexity int) int
 		Domain                   func(childComplexity int) int
@@ -145,6 +149,7 @@ type ComplexityRoot struct {
 		ServiceSegmentRefPointer func(childComplexity int) int
 		ServiceSegmentRefs       func(childComplexity int) int
 		SlicePointer             func(childComplexity int) int
+		TargetPort               func(childComplexity int) int
 		UseSharedGateway         func(childComplexity int) int
 		WorkloadSpec             func(childComplexity int) int
 	}
@@ -644,6 +649,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Gns_Dns.ParentLabels(childComplexity), true
 
+	case "gns_Gns.Annotations":
+		if e.complexity.Gns_Gns.Annotations == nil {
+			break
+		}
+
+		return e.complexity.Gns_Gns.Annotations(childComplexity), true
+
 	case "gns_Gns.Description":
 		if e.complexity.Gns_Gns.Description == nil {
 			break
@@ -791,6 +803,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Gns_Gns.SlicePointer(childComplexity), true
+
+	case "gns_Gns.TargetPort":
+		if e.complexity.Gns_Gns.TargetPort == nil {
+			break
+		}
+
+		return e.complexity.Gns_Gns.TargetPort(childComplexity), true
 
 	case "gns_Gns.UseSharedGateway":
 		if e.complexity.Gns_Gns.UseSharedGateway == nil {
@@ -1096,7 +1115,6 @@ type config_Config {
         IsServiceDeployment: Boolean
         StartVal: Int
     ): NexusGraphqlResponse
-
     ACPPolicies(Id: ID): [policypkg_AccessControlPolicy!]
     FooExample(Id: ID): [config_FooTypeABC!]
     MyStr0: String
@@ -1149,9 +1167,7 @@ type gns_Gns {
         Interval: String
         IsServiceDeployment: Boolean
         StartVal: Int
-    ): NexusGraphqlResponse
-    queryGnsQM1: TimeSeriesData
-    queryGnsQM(
+    ): NexusGraphqlResponse    queryGnsQM1: TimeSeriesData    queryGnsQM(
         StartTime: String
         EndTime: String
         TimeInterval: String
@@ -1159,9 +1175,10 @@ type gns_Gns {
         SomeUserArg2: Int
         SomeUserArg3: Boolean
     ): TimeSeriesData
-
     Domain: String
     UseSharedGateway: Boolean
+    Annotations: String
+    TargetPort: String
     Description: String
     Meta: String
     Port: Int
@@ -1236,9 +1253,7 @@ type policypkg_VMpolicy {
         Interval: String
         IsServiceDeployment: Boolean
         StartVal: Int
-    ): NexusGraphqlResponse
-    queryGnsQM1: TimeSeriesData
-    queryGnsQM(
+    ): NexusGraphqlResponse    queryGnsQM1: TimeSeriesData    queryGnsQM(
         StartTime: String
         EndTime: String
         TimeInterval: String
@@ -1246,7 +1261,6 @@ type policypkg_VMpolicy {
         SomeUserArg2: Int
         SomeUserArg3: Boolean
     ): TimeSeriesData
-
 }
 
 type NexusGraphqlResponse {
@@ -1264,6 +1278,11 @@ type TimeSeriesData {
   Last: String
   TotalRecords: Int
 }
+
+directive @jsonencoded(file: String, gofile: String, name: String) on FIELD_DEFINITION
+directive @relation(name: String, parameters: String, softlink: String, uuidkey: String) on FIELD_DEFINITION
+directive @timeseriesAPI(file: String!, handler: String!) on FIELD_DEFINITION
+directive @protobuf(file: String!, name: String!) on FIELD_DEFINITION
 `, BuiltIn: false},
 }
 var parsedSchema = gqlparser.MustLoadSchema(sources...)
@@ -1271,6 +1290,129 @@ var parsedSchema = gqlparser.MustLoadSchema(sources...)
 // endregion ************************** generated!.gotpl **************************
 
 // region    ***************************** args.gotpl *****************************
+
+func (ec *executionContext) dir_jsonencoded_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *string
+	if tmp, ok := rawArgs["file"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("file"))
+		arg0, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["file"] = arg0
+	var arg1 *string
+	if tmp, ok := rawArgs["gofile"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("gofile"))
+		arg1, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["gofile"] = arg1
+	var arg2 *string
+	if tmp, ok := rawArgs["name"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
+		arg2, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["name"] = arg2
+	return args, nil
+}
+
+func (ec *executionContext) dir_protobuf_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["file"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("file"))
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["file"] = arg0
+	var arg1 string
+	if tmp, ok := rawArgs["name"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
+		arg1, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["name"] = arg1
+	return args, nil
+}
+
+func (ec *executionContext) dir_relation_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *string
+	if tmp, ok := rawArgs["name"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
+		arg0, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["name"] = arg0
+	var arg1 *string
+	if tmp, ok := rawArgs["parameters"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("parameters"))
+		arg1, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["parameters"] = arg1
+	var arg2 *string
+	if tmp, ok := rawArgs["softlink"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("softlink"))
+		arg2, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["softlink"] = arg2
+	var arg3 *string
+	if tmp, ok := rawArgs["uuidkey"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("uuidkey"))
+		arg3, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["uuidkey"] = arg3
+	return args, nil
+}
+
+func (ec *executionContext) dir_timeseriesAPI_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["file"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("file"))
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["file"] = arg0
+	var arg1 string
+	if tmp, ok := rawArgs["handler"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("handler"))
+		arg1, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["handler"] = arg1
+	return args, nil
+}
 
 func (ec *executionContext) field_Query___type_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
@@ -4784,6 +4926,10 @@ func (ec *executionContext) fieldContext_config_Config_GNS(ctx context.Context, 
 				return ec.fieldContext_gns_Gns_Domain(ctx, field)
 			case "UseSharedGateway":
 				return ec.fieldContext_gns_Gns_UseSharedGateway(ctx, field)
+			case "Annotations":
+				return ec.fieldContext_gns_Gns_Annotations(ctx, field)
+			case "TargetPort":
+				return ec.fieldContext_gns_Gns_TargetPort(ctx, field)
 			case "Description":
 				return ec.fieldContext_gns_Gns_Description(ctx, field)
 			case "Meta":
@@ -6337,6 +6483,88 @@ func (ec *executionContext) fieldContext_gns_Gns_UseSharedGateway(ctx context.Co
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _gns_Gns_Annotations(ctx context.Context, field graphql.CollectedField, obj *model.GnsGns) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_gns_Gns_Annotations(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Annotations, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_gns_Gns_Annotations(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "gns_Gns",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _gns_Gns_TargetPort(ctx context.Context, field graphql.CollectedField, obj *model.GnsGns) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_gns_Gns_TargetPort(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.TargetPort, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_gns_Gns_TargetPort(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "gns_Gns",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
 		},
 	}
 	return fc, nil
@@ -9172,6 +9400,14 @@ func (ec *executionContext) _gns_Gns(ctx context.Context, sel ast.SelectionSet, 
 		case "UseSharedGateway":
 
 			out.Values[i] = ec._gns_Gns_UseSharedGateway(ctx, field, obj)
+
+		case "Annotations":
+
+			out.Values[i] = ec._gns_Gns_Annotations(ctx, field, obj)
+
+		case "TargetPort":
+
+			out.Values[i] = ec._gns_Gns_TargetPort(ctx, field, obj)
 
 		case "Description":
 

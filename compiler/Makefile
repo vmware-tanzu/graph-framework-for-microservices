@@ -204,8 +204,13 @@ generate_code:
 	git checkout -- pkg/openapi_generator/openapi/openapi_generated.go
 	rm -rf ${GENERATED_OUTPUT_DIRECTORY}/{client,apis,crds,common,nexus-client,helper,nexus-gql,tsm-nexus-gql,model}
 	cp -r _generated/{client,apis,crds,common,nexus-client,helper,nexus-gql,tsm-nexus-gql,model} ${GENERATED_OUTPUT_DIRECTORY}
+	@echo "Sorting imports"
+	if [ -a _generated/model/model.go ]; then \
+		cd _generated && mv model/model.go model/model.tmp && goimports -w . && mv model/model.tmp model/model.go; \
+	else \
+		cd _generated && goimports -w .; \
+	fi
 	@echo "Nexus Compiler: Generating GRAPHQL PKG"
-	cd _generated && mv model/model.go model/model.tmp && goimports -w . && mv model/model.tmp model/model.go
 	cd _generated/nexus-gql && gqlgen generate
 	@echo "Nexus Compiler: GRAPHQL Generating completed"
 	cp -rf _generated/* ${GOPATH}/src/nexustempmodule/
@@ -214,17 +219,15 @@ generate_code:
 	${COMPILER_SRC_DIRECTORY}/scripts/pin_graphql_build_version.sh ${COMPILER_SRC_DIRECTORY} && \
 	go mod edit -go=1.18 && \
 	go mod tidy && \
-	CGO_ENABLED=1 GOARCH=amd64 GOOS=linux go build -ldflags="-w -s" server.go
+	GOARCH=amd64 GOOS=linux go build -ldflags="-w -s" server.go
+	cp -r ${GOPATH}/src/nexustempmodule/nexus-gql/* _generated/nexus-gql/
 	@echo "Updating module name"
 	./scripts/replace_mod_path.sh
 	find . -name "*.bak" -type f -delete
-	@echo "Sorting imports"
-	cd _generated && mv model/model.go model/model.tmp && goimports -w . && mv model/model.tmp model/model.go
 	@echo "Nexus Compiler: Moving files to output directory"
 	mkdir -p ${GENERATED_OUTPUT_DIRECTORY}/install-validator
 	cp -r ${GOPATH}/src/github.com/vmware-tanzu/graph-framework-for-microservices/install-validator/install.so ${GENERATED_OUTPUT_DIRECTORY}/install-validator/install.so || echo "Could not find install.so file, skipping"
 	cp -r _generated/{client,apis,crds,common,nexus-client,helper,nexus-gql,tsm-nexus-gql,model} ${GENERATED_OUTPUT_DIRECTORY}
-	cp -r ${GOPATH}/src/nexustempmodule/nexus-gql/* ${GENERATED_OUTPUT_DIRECTORY}/nexus-gql/
 	@echo "Nexus Compiler: Compiler code generation completed"
 
 .PHONY: test_generate_code_in_container

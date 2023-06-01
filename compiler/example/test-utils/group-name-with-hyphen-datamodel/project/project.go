@@ -2,7 +2,7 @@ package project
 
 import (
 	"github.com/vmware-tanzu/graph-framework-for-microservices/common-library/pkg/nexus"
-	"github.com/vmware-tanzu/graph-framework-for-microservices/compiler/example/test-utils/duplicated-uris-datamodel/config"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/compiler/example/test-utils/group-name-with-hyphen-datamodel/config"
 )
 
 var ProjectRestAPISpec = nexus.RestAPISpec{

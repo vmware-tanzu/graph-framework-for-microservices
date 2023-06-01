@@ -4,7 +4,9 @@ package v1
 
 import (
 	cartv1 "github.com/vmware-tanzu/cartographer/pkg/apis/v1alpha1"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/nexus/nexus"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/util/intstr"
 
 	"github.com/vmware-tanzu/graph-framework-for-microservices/compiler/example/output/generated/common"
 )
@@ -24,53 +26,19 @@ type Link struct {
 }
 
 // +k8s:openapi-gen=true
+type SyncerStatus struct {
+	EtcdVersion    int64 `json:"etcdVersion, omitempty" yaml:"etcdVersion, omitempty"`
+	CRGenerationId int64 `json:"cRGenerationId, omitempty" yaml:"cRGenerationId, omitempty"`
+}
+
+// +k8s:openapi-gen=true
 type NexusStatus struct {
-	SourceGeneration int64 `json:"sourceGeneration" yaml:"sourceGeneration"`
-	RemoteGeneration int64 `json:"remoteGeneration" yaml:"remoteGeneration"`
+	SourceGeneration int64        `json:"sourceGeneration, omitempty" yaml:"sourceGeneration, omitempty"`
+	RemoteGeneration int64        `json:"remoteGeneration, omitempty" yaml:"remoteGeneration, omitempty"`
+	SyncerStatus     SyncerStatus `json:"syncerStatus, omitempty" yaml:"syncerStatus, omitempty"`
 }
 
 /* ------------------- CRDs definitions ------------------- */
-
-// +genclient
-// +genclient:noStatus
-// +genclient:nonNamespaced
-// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
-// +k8s:openapi-gen=true
-type RandomGnsData struct {
-	metav1.TypeMeta   `json:",inline" yaml:",inline"`
-	metav1.ObjectMeta `json:"metadata" yaml:"metadata"`
-	Spec              RandomGnsDataSpec        `json:"spec,omitempty" yaml:"spec,omitempty"`
-	Status            RandomGnsDataNexusStatus `json:"status,omitempty" yaml:"status,omitempty"`
-}
-
-// +k8s:openapi-gen=true
-type RandomGnsDataNexusStatus struct {
-	Status RandomStatus `json:"status,omitempty" yaml:"status,omitempty"`
-	Nexus  NexusStatus  `json:"nexus,omitempty" yaml:"nexus,omitempty"`
-}
-
-func (c *RandomGnsData) CRDName() string {
-	return "randomgnsdatas.gns.tsm.tanzu.vmware.com"
-}
-
-func (c *RandomGnsData) DisplayName() string {
-	if c.GetLabels() != nil {
-		return c.GetLabels()[common.DISPLAY_NAME_LABEL]
-	}
-	return ""
-}
-
-// +k8s:openapi-gen=true
-type RandomGnsDataSpec struct {
-	Description RandomDescription `json:"description" yaml:"description"`
-}
-
-// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
-type RandomGnsDataList struct {
-	metav1.TypeMeta `json:",inline" yaml:",inline"`
-	metav1.ListMeta `json:"metadata" yaml:"metadata"`
-	Items           []RandomGnsData `json:"items" yaml:"items"`
-}
 
 // +genclient
 // +genclient:noStatus
@@ -147,6 +115,8 @@ type GnsSpec struct {
 	//nexus-validation: Pattern=abc
 	Domain                    string                       `json:"domain" yaml:"domain"`
 	UseSharedGateway          bool                         `json:"useSharedGateway" yaml:"useSharedGateway"`
+	Annotations               nexus.NexusGenericObject     `nexus-graphql-jsonencoded:""`
+	TargetPort                intstr.IntOrString           `json:"targetPort,omitempty" mapstructure:"targetPort,omitempty"`
 	Description               Description                  `json:"description" yaml:"description"`
 	Meta                      string                       `json:"meta" yaml:"meta"`
 	Port                      *int                         `json:"port" yaml:"port"`
@@ -287,47 +257,6 @@ type DnsList struct {
 	metav1.TypeMeta `json:",inline" yaml:",inline"`
 	metav1.ListMeta `json:"metadata" yaml:"metadata"`
 	Items           []Dns `json:"items" yaml:"items"`
-}
-
-// +genclient
-// +genclient:noStatus
-// +genclient:nonNamespaced
-// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
-// +k8s:openapi-gen=true
-type AdditionalGnsData struct {
-	metav1.TypeMeta   `json:",inline" yaml:",inline"`
-	metav1.ObjectMeta `json:"metadata" yaml:"metadata"`
-	Spec              AdditionalGnsDataSpec        `json:"spec,omitempty" yaml:"spec,omitempty"`
-	Status            AdditionalGnsDataNexusStatus `json:"status,omitempty" yaml:"status,omitempty"`
-}
-
-// +k8s:openapi-gen=true
-type AdditionalGnsDataNexusStatus struct {
-	Status AdditionalStatus `json:"status,omitempty" yaml:"status,omitempty"`
-	Nexus  NexusStatus      `json:"nexus,omitempty" yaml:"nexus,omitempty"`
-}
-
-func (c *AdditionalGnsData) CRDName() string {
-	return "additionalgnsdatas.gns.tsm.tanzu.vmware.com"
-}
-
-func (c *AdditionalGnsData) DisplayName() string {
-	if c.GetLabels() != nil {
-		return c.GetLabels()[common.DISPLAY_NAME_LABEL]
-	}
-	return ""
-}
-
-// +k8s:openapi-gen=true
-type AdditionalGnsDataSpec struct {
-	Description AdditionalDescription `json:"description" yaml:"description"`
-}
-
-// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
-type AdditionalGnsDataList struct {
-	metav1.TypeMeta `json:",inline" yaml:",inline"`
-	metav1.ListMeta `json:"metadata" yaml:"metadata"`
-	Items           []AdditionalGnsData `json:"items" yaml:"items"`
 }
 
 // +k8s:openapi-gen=true

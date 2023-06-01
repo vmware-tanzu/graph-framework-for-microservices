@@ -3,6 +3,7 @@ package generator_test
 import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/compiler/pkg/config"
 	"github.com/vmware-tanzu/graph-framework-for-microservices/nexus/nexus"
 
 	"github.com/vmware-tanzu/graph-framework-for-microservices/compiler/pkg/generator"
@@ -17,17 +18,18 @@ var _ = Describe("Template renderers tests", func() {
 	)
 
 	BeforeEach(func() {
+		config.ConfigInstance.IgnoredDirs = []string{"ignored"}
 		pkgs = parser.ParseDSLPkg(exampleDSLPath)
 		graphqlQueries = parser.ParseGraphqlQuerySpecs(pkgs)
 		graph, _, _ := parser.ParseDSLNodes(exampleDSLPath, baseGroupName, pkgs, graphqlQueries)
 		parentsMap = parser.CreateParentsMap(graph)
 	})
 
-	FIt("should resolve graphql vars", func() {
+	It("should resolve graphql vars", func() {
 		vars, err := generator.GenerateTsmGraphqlSchemaVars(baseGroupName, crdModulePath, pkgs, parentsMap, nil)
 		Expect(err).NotTo(HaveOccurred())
 
-		Expect(len(vars)).To(Equal(46))
+		Expect(len(vars)).To(Equal(41))
 		Expect(vars[0].NodeName).To(Equal("Root"))
 		Expect(vars[3].PkgName).To(Equal("Config"))
 		Expect(vars[3].NodeName).To(Equal("Config"))

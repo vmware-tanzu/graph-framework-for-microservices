@@ -20,7 +20,6 @@ package fake
 
 import (
 	"context"
-
 	gnstsmtanzuvmwarecomv1 "github.com/vmware-tanzu/graph-framework-for-microservices/compiler/example/output/generated/apis/gns.tsm.tanzu.vmware.com/v1"
 
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -100,7 +99,7 @@ func (c *FakeIgnoreChilds) Update(ctx context.Context, ignoreChild *gnstsmtanzuv
 // Delete takes name of the ignoreChild and deletes it. Returns an error if one occurs.
 func (c *FakeIgnoreChilds) Delete(ctx context.Context, name string, opts v1.DeleteOptions) error {
 	_, err := c.Fake.
-		Invokes(testing.NewRootDeleteAction(ignorechildsResource, name), &gnstsmtanzuvmwarecomv1.IgnoreChild{})
+		Invokes(testing.NewRootDeleteActionWithOptions(ignorechildsResource, name, opts), &gnstsmtanzuvmwarecomv1.IgnoreChild{})
 	return err
 }
 

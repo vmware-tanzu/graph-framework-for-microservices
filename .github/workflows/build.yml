@@ -4,8 +4,9 @@ on:
     branches:
     - 'npt-632'
     - 'main'
+    - 'npt-632-ut'
   pull_request:
-    branches: [ main ]
+    branches: [ main, npt-632-ut ]
 jobs:
   build:
     name: Build
@@ -43,7 +44,6 @@ jobs:
               make publish TAG=$IMAGE_TAG
             popd
   test:
-    if: contains(fromJson('["pull_request"]'), github.event_name)
     name: Run Unit tests
     runs-on: ubuntu-latest
     steps:

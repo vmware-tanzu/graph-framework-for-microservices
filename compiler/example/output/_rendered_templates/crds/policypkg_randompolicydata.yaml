@@ -7,7 +7,7 @@ metadata:
   name: randompolicydatas.policypkg.tsm.tanzu.vmware.com
   annotations:
     nexus: |
-      {"is_singleton":false,"nexus-rest-api-gen":{"uris":null}}
+      {"name":"policypkg.RandomPolicyData","hierarchy":["roots.root.tsm.tanzu.vmware.com","configs.config.tsm.tanzu.vmware.com","gnses.gns.tsm.tanzu.vmware.com","accesscontrolpolicies.policypkg.tsm.tanzu.vmware.com","acpconfigs.policypkg.tsm.tanzu.vmware.com"],"is_singleton":false,"nexus-rest-api-gen":{"uris":null}}
 spec:
   conversion:
     strategy: None

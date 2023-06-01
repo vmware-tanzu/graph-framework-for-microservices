@@ -1,6 +1,14 @@
 scalar Map
 type Query {
-    root: config_Config
+    root(Id: ID): [root_Root!]
+}
+
+type root_Root {
+    Id: ID
+	ParentLabels: Map
+
+    SomeRootData: String
+    Project: project_Project!
 }
 
 type config_Config {
@@ -10,6 +18,16 @@ type config_Config {
     FieldX: String
     FieldY: Int
     MyStructField: String
+}
+
+type project_Project {
+    Id: ID
+	ParentLabels: Map
+
+    Key: String
+    Field1: String
+    Field2: Int
+    Config: config_Config!
 }
 
 type NexusGraphqlResponse {
@@ -27,3 +45,8 @@ type TimeSeriesData {
   Last: String
   TotalRecords: Int
 }
+
+directive @jsonencoded(file: String, gofile: String, name: String) on FIELD_DEFINITION
+directive @relation(name: String, parameters: String, softlink: String, uuidkey: String) on FIELD_DEFINITION
+directive @timeseriesAPI(file: String!, handler: String!) on FIELD_DEFINITION
+directive @protobuf(file: String!, name: String!) on FIELD_DEFINITION

@@ -20,7 +20,6 @@ package fake
 
 import (
 	"context"
-
 	configtsmtanzuvmwarecomv1 "github.com/vmware-tanzu/graph-framework-for-microservices/compiler/example/output/generated/apis/config.tsm.tanzu.vmware.com/v1"
 
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -100,7 +99,7 @@ func (c *FakeFooTypeABCs) Update(ctx context.Context, fooTypeABC *configtsmtanzu
 // Delete takes name of the fooTypeABC and deletes it. Returns an error if one occurs.
 func (c *FakeFooTypeABCs) Delete(ctx context.Context, name string, opts v1.DeleteOptions) error {
 	_, err := c.Fake.
-		Invokes(testing.NewRootDeleteAction(footypeabcsResource, name), &configtsmtanzuvmwarecomv1.FooTypeABC{})
+		Invokes(testing.NewRootDeleteActionWithOptions(footypeabcsResource, name, opts), &configtsmtanzuvmwarecomv1.FooTypeABC{})
 	return err
 }
 

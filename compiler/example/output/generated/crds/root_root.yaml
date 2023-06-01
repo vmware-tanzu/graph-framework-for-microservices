@@ -4,7 +4,7 @@ kind: CustomResourceDefinition
 metadata:
   annotations:
     nexus: |
-      {"name":"root.Root","children":{"configs.config.tsm.tanzu.vmware.com":{"fieldName":"Config","fieldNameGvk":"configGvk","isNamed":false}},"is_singleton":true,"nexus-rest-api-gen":{"uris":null}}
+      {"name":"root.Root","children":{"configs.config.tsm.tanzu.vmware.com":{"fieldName":"Config","fieldNameGvk":"configGvk","goFieldNameGvk":"ConfigGvk","isNamed":false}},"is_singleton":true,"nexus-rest-api-gen":{"uris":null}}
   creationTimestamp: null
   name: roots.root.tsm.tanzu.vmware.com
 spec:
@@ -62,9 +62,15 @@ spec:
                   sourceGeneration:
                     format: int64
                     type: integer
-                required:
-                - sourceGeneration
-                - remoteGeneration
+                  syncerStatus:
+                    properties:
+                      cRGenerationId:
+                        format: int64
+                        type: integer
+                      etcdVersion:
+                        format: int64
+                        type: integer
+                    type: object
                 type: object
             type: object
         type: object

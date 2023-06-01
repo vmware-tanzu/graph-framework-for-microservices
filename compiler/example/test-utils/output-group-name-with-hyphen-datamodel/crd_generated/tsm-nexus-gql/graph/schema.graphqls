@@ -1,37 +1,22 @@
-schema {
-    query: Root
-}
 
-type config_Config {
-    id: ID
-    fieldX: String
-    fieldY: Int
-    myStructField: String
-}
 
-type project_Project {
+type Root_Root @nexus(group:"root.tsm-tanzu.vmware.com",version:"v1",kind:"Root",resource:"roots",name:"Root",crdName:"roots.root.tsm-tanzu.vmware.com",singleton:"false"){
     id: ID
-    config: _Config
-    key: String
-    field1: String
-    field2: Int
-}
-
-type root_Root {
-    id: ID
-    project: _Project
+    project: Project_Project
     someRootData: String
 }
 
-directive @jsonencoded(file: String, gofile: String, name: String) on FIELD_DEFINITION
-directive @relation(name: String, parameters: String, softlink: String, uuidkey: String) on FIELD_DEFINITION
-directive @timeseriesAPI(file: String!, handler: String!) on FIELD_DEFINITION
-directive @protobuf(file: String!, name: String!) on FIELD_DEFINITION
+type Config_Config @nexus(group:"config.tsm-tanzu.vmware.com",version:"v1",kind:"Config",resource:"configs",name:"Config",crdName:"configs.config.tsm-tanzu.vmware.com",singleton:"true"){
+    id: ID
+    fieldX: String
+    fieldY: Int
+    myStructField: String @jsonencoded(gofile:"model.go", name:"MyStruct", goname:"nexus_config.MyStruct")
+}
 
-type TimeSeriesData {
-  Code: Int
-  Message: String
-  Data: String
-  Last: String
-  TotalRecords: Int
+type Project_Project @nexus(group:"project.tsm-tanzu.vmware.com",version:"v1",kind:"Project",resource:"projects",name:"Project",crdName:"projects.project.tsm-tanzu.vmware.com",singleton:"true"){
+    id: ID
+    config: Config_Config
+    key: String
+    field1: String
+    field2: Int
 }

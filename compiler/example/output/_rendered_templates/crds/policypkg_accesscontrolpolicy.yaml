@@ -7,7 +7,7 @@ metadata:
   name: accesscontrolpolicies.policypkg.tsm.tanzu.vmware.com
   annotations:
     nexus: |
-      {"name":"policypkg.AccessControlPolicy","hierarchy":["roots.root.tsm.tanzu.vmware.com","configs.config.tsm.tanzu.vmware.com","gnses.gns.tsm.tanzu.vmware.com"],"children":{"acpconfigs.policypkg.tsm.tanzu.vmware.com":{"fieldName":"PolicyConfigs","fieldNameGvk":"policyConfigsGvk","isNamed":true}},"is_singleton":false,"nexus-rest-api-gen":{"uris":null}}
+      {"name":"policypkg.AccessControlPolicy","hierarchy":["roots.root.tsm.tanzu.vmware.com","configs.config.tsm.tanzu.vmware.com","gnses.gns.tsm.tanzu.vmware.com"],"children":{"acpconfigs.policypkg.tsm.tanzu.vmware.com":{"fieldName":"PolicyConfigs","fieldNameGvk":"policyConfigsGvk","goFieldNameGvk":"PolicyConfigsGvk","isNamed":true}},"is_singleton":false,"nexus-rest-api-gen":{"uris":null}}
 spec:
   conversion:
     strategy: None

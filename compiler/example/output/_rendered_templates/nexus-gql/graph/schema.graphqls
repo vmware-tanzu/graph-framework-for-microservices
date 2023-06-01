@@ -82,6 +82,8 @@ type gns_Gns {
     ): TimeSeriesData
     Domain: String
     UseSharedGateway: Boolean
+    Annotations: String
+    TargetPort: String
     Description: String
     Meta: String
     Port: Int
@@ -139,8 +141,6 @@ type policypkg_ACPConfig {
     Id: ID
 	ParentLabels: Map
 
-    DestSvcGroups(Id: ID): [servicegroup_SvcGroup!]
-    SourceSvcGroups(Id: ID): [servicegroup_SvcGroup!]
     DisplayName: String
     Gns: String
     Description: String
