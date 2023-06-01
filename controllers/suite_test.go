@@ -17,6 +17,7 @@ limitations under the License.
 package controllers
 
 import (
+	"api-gw/pkg/envoy"
 	"api-gw/pkg/model"
 	"context"
 	"os"
@@ -207,6 +208,9 @@ var _ = AfterSuite(func() {
 	err = testEnv.Stop()
 	Expect(err).NotTo(HaveOccurred())
 
+	if envoy.XDSListener != nil {
+		envoy.XDSListener.Close()
+	}
 	Expect(os.Unsetenv("TEST_ASSET_KUBE_APISERVER")).To(Succeed())
 	Expect(os.Unsetenv("TEST_ASSET_ETCD")).To(Succeed())
 	Expect(os.Unsetenv("TEST_ASSET_KUBECTL")).To(Succeed())

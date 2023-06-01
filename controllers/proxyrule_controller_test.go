@@ -13,10 +13,17 @@ import (
 )
 
 var _ = Describe("ProxyRule controller", func() {
-	It("should init envoy", func() {
+
+	It("should init envoy mulitple times without issues", func() {
 		logLevel, _ := log.ParseLevel("debug")
 		err := envoy.Init(nil, nil, nil, logLevel)
 		Expect(err).NotTo(HaveOccurred())
+
+		// calling the envoy Init multiple times , as the XDS listener should stop and restart each time
+		logLevel, _ = log.ParseLevel("debug")
+		err = envoy.Init(nil, nil, nil, logLevel)
+		Expect(err).NotTo(HaveOccurred())
+
 	})
 
 	It("should create header based proxyrule", func() {

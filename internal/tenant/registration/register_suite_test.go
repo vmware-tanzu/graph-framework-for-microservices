@@ -7,8 +7,9 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-func TestEcho(t *testing.T) {
+func TestRegister(t *testing.T) {
 
 	RegisterFailHandler(Fail)
 	RunSpecs(t, "TenantRegistration Suite")
+
 }

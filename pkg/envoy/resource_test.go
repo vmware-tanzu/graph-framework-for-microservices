@@ -225,6 +225,10 @@ end
 `
 
 var _ = Describe("nexus proxy tests", func() {
+	AfterSuite(func() {
+		envoy.XDSListener.Close()
+	})
+
 	It("initialize nexus-proxy state with nils", func() {
 		config.GlobalStaticRouteConfig = &config.GlobalStaticRoutes{
 			Suffix: []string{"js", "css", "png"},

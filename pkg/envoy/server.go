@@ -15,6 +15,7 @@ package envoy
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"net"
@@ -45,8 +46,8 @@ func registerServer(grpcServer *grpc.Server, server server.Server) {
 	runtimeservice.RegisterRuntimeDiscoveryServiceServer(grpcServer, server)
 }
 
-// RunServer starts an xDS server at the given port.
-func RunServer(ctx context.Context, srv server.Server, port uint) {
+func RegisterServer(ctx context.Context, srv server.Server, port uint) (grpcServer *grpc.Server) {
+
 	// gRPC golang library sets a very small upper bound for the number gRPC/h2
 	// streams over a single TCP connection. If a proxy multiplexes requests over
 	// a single connection to the management server, then it might lead to
@@ -63,17 +64,32 @@ func RunServer(ctx context.Context, srv server.Server, port uint) {
 			PermitWithoutStream: true,
 		}),
 	)
-	grpcServer := grpc.NewServer(grpcOptions...)
+	grpcServer = grpc.NewServer(grpcOptions...)
+	registerServer(grpcServer, srv)
+	return grpcServer
+}
 
-	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", port))
+func CreateXDSListener(ctx context.Context, port uint) (xDSListener net.Listener) {
+	if XDSListener != nil {
+		XDSListener.Close()
+	}
+	xDSListener, err := net.Listen("tcp", fmt.Sprintf(":%d", port))
 	if err != nil {
 		log.Fatal(err)
 	}
+	return xDSListener
 
-	registerServer(grpcServer, srv)
+}
 
+// RunServer starts an xDS server at the given port.
+// Adding this to stop throwing errors if we catch existing GRPCServer stopped due to stop method called..
+func RunServer(ctx context.Context, grpcServer *grpc.Server, port uint) {
 	log.Printf("xDS server listening on %d\n", port)
-	if err = grpcServer.Serve(lis); err != nil {
+	err := grpcServer.Serve(XDSListener)
+	if err != nil {
+		if errors.Is(err, net.ErrClosed) {
+			return
+		}
 		panic(err)
 	}
 }
