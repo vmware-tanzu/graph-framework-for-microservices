@@ -68,12 +68,6 @@ models:
     fields:
       PolicyConfigs:
         resolver: true
-  policypkg_ACPConfig:
-    fields:
-      DestSvcGroups:
-        resolver: true
-      SourceSvcGroups:
-        resolver: true
   policypkg_VMpolicy:
     fields:
       queryGns1:

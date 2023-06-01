@@ -141,8 +141,6 @@ type policypkg_ACPConfig {
     Id: ID
 	ParentLabels: Map
 
-    DestSvcGroups(Id: ID): [servicegroup_SvcGroup!]
-    SourceSvcGroups(Id: ID): [servicegroup_SvcGroup!]
     DisplayName: String
     Gns: String
     Description: String
