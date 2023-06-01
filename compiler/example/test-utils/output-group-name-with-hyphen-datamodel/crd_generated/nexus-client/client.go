@@ -47,6 +47,7 @@ var log = logrus.New()
 
 const maxRetryCount = 12
 const sleepTime = 5
+const ownershipAnnotation string = "Ownership"
 
 type Clientset struct {
 	baseClient   baseClientset.Interface
@@ -284,9 +285,10 @@ func (group *RootTsmV1) DeleteRootByName(ctx context.Context, hashedName string)
 	log.Debugf("[DeleteRootByName] Received objectToDelete: %s", hashedName)
 
 	var (
-		result *baseroottsmtanzuvmwarecomv1.Root
+		retryCount int
+		result     *baseroottsmtanzuvmwarecomv1.Root
 	)
-	retryCount := 0
+	retryCount = 0
 	for {
 		result, err = group.client.baseClient.
 			RootTsmV1().
@@ -304,6 +306,9 @@ func (group *RootTsmV1) DeleteRootByName(ctx context.Context, hashedName string)
 			} else if customerrors.Is(err, context.Canceled) {
 				log.Errorf("[DeleteRootByName]: %+v", err)
 				return context.Canceled
+			} else if errors.IsNotFound(err) {
+				log.Errorf("[DeleteRootByName] Object Notfound: %+v", err)
+				break
 			} else {
 				log.Errorf("[DeleteRootByName]: %+v", err)
 				return err
@@ -322,29 +327,35 @@ func (group *RootTsmV1) DeleteRootByName(ctx context.Context, hashedName string)
 		}
 	}
 
-	err = group.client.baseClient.
-		RootTsmV1().
-		Roots().Delete(ctx, hashedName, metav1.DeleteOptions{})
-	if err != nil {
-		log.Errorf("[DeleteRootByName] Failed to Delete Roots: %+v", err)
-		if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded) {
-			log.Errorf("[Retry Count: %d ] %+v", retryCount, err)
-			if retryCount == maxRetryCount {
-				log.Error("Max Retry exceed on Get Roots")
+	retryCount = 0
+	for {
+		err = group.client.baseClient.
+			RootTsmV1().
+			Roots().Delete(ctx, hashedName, metav1.DeleteOptions{})
+		if err != nil {
+			log.Errorf("[DeleteRootByName] failed to delete Roots: %+v", err)
+			if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded) {
+				log.Errorf("[Retry Count: %d ] %+v", retryCount, err)
+				if retryCount == maxRetryCount {
+					log.Error("Max retry exceed on delete Roots")
+					return err
+				}
+				retryCount += 1
+				time.Sleep(sleepTime * time.Second)
+			} else if customerrors.Is(err, context.Canceled) {
+				log.Errorf("[DeleteRootByName]: %+v", err)
+				return context.Canceled
+			} else if errors.IsNotFound(err) {
+				log.Errorf("[DeleteRootByName] Object not found: %+v", err)
+				break
+			} else {
+				log.Errorf("[DeleteRootByName]: %+v", err)
 				return err
 			}
-			retryCount += 1
-			time.Sleep(sleepTime * time.Second)
-		} else if customerrors.Is(err, context.Canceled) {
-			log.Errorf("[DeleteRootByName]: %+v", err)
-			return context.Canceled
-		} else {
-			log.Errorf("[DeleteRootByName]: %+v", err)
-			return err
 		}
 	}
+	// Get Parent Node and check if gvk present before patch
 
-	log.Debugf("[DeleteRootByName] Executed Successfully: %s", hashedName)
 	return
 }
 
@@ -363,10 +374,11 @@ func (group *RootTsmV1) CreateRootByName(ctx context.Context,
 	objToCreate.Spec.ProjectGvk = nil
 
 	var (
-		result *baseroottsmtanzuvmwarecomv1.Root
-		err    error
+		retryCount int
+		result     *baseroottsmtanzuvmwarecomv1.Root
+		err        error
 	)
-	retryCount := 0
+	retryCount = 0
 	for {
 		result, err = group.client.baseClient.
 			RootTsmV1().
@@ -407,44 +419,39 @@ func (group *RootTsmV1) UpdateRootByName(ctx context.Context,
 	objToUpdate *baseroottsmtanzuvmwarecomv1.Root) (*RootRoot, error) {
 	log.Debugf("[UpdateRootByName] Received objToUpdate: %s", objToUpdate.GetName())
 
-	// ResourceVersion must be set for update
-	retryCount := 0
-	if objToUpdate.ResourceVersion == "" {
-		for {
-			current, err := group.client.baseClient.
-				RootTsmV1().
-				Roots().Get(ctx, objToUpdate.GetName(), metav1.GetOptions{})
-			if err != nil {
-				log.Errorf("[UpdateRootByName] Failed to Get Roots: %+v", err)
-				if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded) {
-					log.Errorf("[Retry Count: %d ] %+v", retryCount, err)
-					if retryCount == maxRetryCount {
-						log.Error("Max Retry exceed on Get Roots")
-						return nil, err
-					}
-					retryCount += 1
-					time.Sleep(sleepTime * time.Second)
-				} else if customerrors.Is(err, context.Canceled) {
-					log.Errorf("[UpdateRootByName]: %+v", err)
-					return nil, context.Canceled
-				} else {
-					log.Errorf("[UpdateRootByName]: %+v", err)
-					return nil, err
-				}
-			} else {
-				log.Debugf("[UpdateRootByName] Successfully Get: %s", objToUpdate.GetName())
-				objToUpdate.ResourceVersion = current.ResourceVersion
-				break
+	var patch Patch
+
+	if objToUpdate.Annotations != nil || objToUpdate.Labels != nil {
+		current, err := group.client.Root().GetRootByName(ctx, objToUpdate.Name)
+		if err != nil {
+			return nil, err
+		}
+
+		if objToUpdate.Annotations != nil {
+			if current.Annotations[ownershipAnnotation] != "" {
+				objToUpdate.Annotations[ownershipAnnotation] = current.Annotations[ownershipAnnotation]
 			}
+			patch = append(patch, PatchOp{
+				Op:    "replace",
+				Path:  "/metadata/annotations",
+				Value: objToUpdate.Annotations,
+			})
+		}
+
+		if objToUpdate.Labels != nil {
+			parentsList := helper.GetCRDParentsMap()["roots.root.tsm-tanzu.vmware.com"]
+			for _, k := range parentsList {
+				objToUpdate.Labels[k] = current.Labels[k]
+			}
+			objToUpdate.Labels[common.IS_NAME_HASHED_LABEL] = current.Labels[common.IS_NAME_HASHED_LABEL]
+			objToUpdate.Labels[common.DISPLAY_NAME_LABEL] = current.Labels[common.DISPLAY_NAME_LABEL]
+			patch = append(patch, PatchOp{
+				Op:    "replace",
+				Path:  "/metadata/labels",
+				Value: objToUpdate.Labels,
+			})
 		}
 	}
-
-	var patch Patch
-	patch = append(patch, PatchOp{
-		Op:    "replace",
-		Path:  "/metadata",
-		Value: objToUpdate.ObjectMeta,
-	})
 
 	var rt reflect.Type
 
@@ -478,6 +485,7 @@ func (group *RootTsmV1) UpdateRootByName(ctx context.Context,
 		result *baseroottsmtanzuvmwarecomv1.Root
 	)
 	newCtx := context.TODO()
+	retryCount := 0
 	for {
 		result, err = group.client.baseClient.
 			RootTsmV1().
@@ -489,10 +497,10 @@ func (group *RootTsmV1) UpdateRootByName(ctx context.Context,
 				if retryCount == maxRetryCount {
 					log.Error("Max Retry exceed on patching gvk")
 					log.Errorf("Trigger Root Delete: %s", objToUpdate.GetName())
-					err = group.DeleteRootByName(newCtx, objToUpdate.GetName())
-					if err != nil {
+					delErr := group.DeleteRootByName(newCtx, objToUpdate.GetName())
+					if delErr != nil {
 						log.Errorf("Error occur while deleting Root: %s", objToUpdate.GetName())
-						return nil, err
+						return nil, delErr
 					}
 					log.Errorf("Root Deleted: %s", objToUpdate.GetName())
 					return nil, err
@@ -505,10 +513,10 @@ func (group *RootTsmV1) UpdateRootByName(ctx context.Context,
 			} else {
 				log.Errorf("[CreateRootByName] Unexpected Error Root] :%+v", err)
 				log.Errorf("Trigger Root Delete: %s", objToUpdate.GetName())
-				err = group.DeleteRootByName(newCtx, objToUpdate.GetName())
-				if err != nil {
+				delErr := group.DeleteRootByName(newCtx, objToUpdate.GetName())
+				if delErr != nil {
 					log.Errorf("Error occur while deleting Root: %+v", objToUpdate.GetName())
-					return nil, err
+					return nil, delErr
 				}
 				log.Errorf("Root Deleted: %s", objToUpdate.GetName())
 				return nil, err
@@ -1035,9 +1043,10 @@ func (group *ConfigTsmV1) DeleteConfigByName(ctx context.Context, hashedName str
 	log.Debugf("[DeleteConfigByName] Received objectToDelete: %s", hashedName)
 
 	var (
-		result *baseconfigtsmtanzuvmwarecomv1.Config
+		retryCount int
+		result     *baseconfigtsmtanzuvmwarecomv1.Config
 	)
-	retryCount := 0
+	retryCount = 0
 	for {
 		result, err = group.client.baseClient.
 			ConfigTsmV1().
@@ -1055,6 +1064,9 @@ func (group *ConfigTsmV1) DeleteConfigByName(ctx context.Context, hashedName str
 			} else if customerrors.Is(err, context.Canceled) {
 				log.Errorf("[DeleteConfigByName]: %+v", err)
 				return context.Canceled
+			} else if errors.IsNotFound(err) {
+				log.Errorf("[DeleteConfigByName] Object Notfound: %+v", err)
+				break
 			} else {
 				log.Errorf("[DeleteConfigByName]: %+v", err)
 				return err
@@ -1064,40 +1076,38 @@ func (group *ConfigTsmV1) DeleteConfigByName(ctx context.Context, hashedName str
 		}
 	}
 
-	err = group.client.baseClient.
-		ConfigTsmV1().
-		Configs().Delete(ctx, hashedName, metav1.DeleteOptions{})
-	if err != nil {
-		log.Errorf("[DeleteConfigByName] Failed to Delete Configs: %+v", err)
-		if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded) {
-			log.Errorf("[Retry Count: %d ] %+v", retryCount, err)
-			if retryCount == maxRetryCount {
-				log.Error("Max Retry exceed on Get Configs")
+	retryCount = 0
+	for {
+		err = group.client.baseClient.
+			ConfigTsmV1().
+			Configs().Delete(ctx, hashedName, metav1.DeleteOptions{})
+		if err != nil {
+			log.Errorf("[DeleteConfigByName] failed to delete Configs: %+v", err)
+			if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded) {
+				log.Errorf("[Retry Count: %d ] %+v", retryCount, err)
+				if retryCount == maxRetryCount {
+					log.Error("Max retry exceed on delete Configs")
+					return err
+				}
+				retryCount += 1
+				time.Sleep(sleepTime * time.Second)
+			} else if customerrors.Is(err, context.Canceled) {
+				log.Errorf("[DeleteConfigByName]: %+v", err)
+				return context.Canceled
+			} else if errors.IsNotFound(err) {
+				log.Errorf("[DeleteConfigByName] Object not found: %+v", err)
+				break
+			} else {
+				log.Errorf("[DeleteConfigByName]: %+v", err)
 				return err
 			}
-			retryCount += 1
-			time.Sleep(sleepTime * time.Second)
-		} else if customerrors.Is(err, context.Canceled) {
-			log.Errorf("[DeleteConfigByName]: %+v", err)
-			return context.Canceled
-		} else {
-			log.Errorf("[DeleteConfigByName]: %+v", err)
-			return err
 		}
 	}
+	// Get Parent Node and check if gvk present before patch
 
+	var gvkPresent bool
+	log.Debugf("[DeleteConfigByName] Get Parent details")
 	var patch Patch
-
-	patchOp := PatchOp{
-		Op:   "remove",
-		Path: "/spec/configGvk",
-	}
-
-	patch = append(patch, patchOp)
-	marshaled, err := patch.Marshal()
-	if err != nil {
-		return err
-	}
 	parents := result.GetLabels()
 	if parents == nil {
 		parents = make(map[string]string)
@@ -1106,53 +1116,74 @@ func (group *ConfigTsmV1) DeleteConfigByName(ctx context.Context, hashedName str
 	if !ok {
 		parentName = helper.DEFAULT_KEY
 	}
-	if parents[common.IS_NAME_HASHED_LABEL] == "true" {
+	if result.GetLabels() != nil {
+		if parents[common.IS_NAME_HASHED_LABEL] == "true" {
+			parentName = helper.GetHashedName("projects.project.tsm-tanzu.vmware.com", parents, parentName)
+		}
+	} else {
 		parentName = helper.GetHashedName("projects.project.tsm-tanzu.vmware.com", parents, parentName)
 	}
-
-	newCtx := context.TODO()
-	for {
-		_, err = group.client.baseClient.
-			ProjectTsmV1().
-			Projects().Patch(newCtx, parentName, types.JSONPatchType, marshaled, metav1.PatchOptions{})
-		if err != nil {
-			log.Errorf("Failed to patch Config gvk in parent node[Projects]: %+v", err)
-			if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded) {
-				log.Errorf("[Retry Count: %d ] %+v", retryCount, err)
-				if retryCount == maxRetryCount {
-					log.Error("Max Retry exceed on patching gvk")
-					log.Errorf("Trigger Config Delete: %s", hashedName)
-					err = group.DeleteConfigByName(newCtx, hashedName)
-					if err != nil {
-						log.Errorf("Error occur while deleting Config: %s", hashedName)
-						return err
-					}
-					log.Errorf("Config Deleted: %s", hashedName)
-					return err
-				}
-				retryCount += 1
-				time.Sleep(sleepTime * time.Second)
-			} else if customerrors.Is(err, context.Canceled) {
-				log.Errorf("[DeleteConfigByName]: %+v", err)
-				return context.Canceled
-			} else {
-				log.Errorf("Unexpected Error occur Config]: %+v", err)
-				log.Errorf("Trigger Config Delete: %s", hashedName)
-				err = group.DeleteConfigByName(newCtx, hashedName)
-				if err != nil {
-					log.Errorf("Error occur while deleting Config: %+v", hashedName)
-					return err
-				}
-				log.Errorf("Config Deleted Successfully: %s", hashedName)
-				return err
-			}
+	parentData, err := group.client.baseClient.
+		ProjectTsmV1().
+		Projects().Get(ctx, parentName, metav1.GetOptions{})
+	if err != nil {
+		log.Errorf("[DeleteConfigByName] Failed to get Parent node: %+v", err)
+		if errors.IsNotFound(err) {
+			return nil
 		} else {
-			log.Debugf("[DeleteConfigByName] Patch Config Success: %s", hashedName)
-			break
+			return err
 		}
 	}
 
-	log.Debugf("[DeleteConfigByName] Executed Successfully: %s", hashedName)
+	if parentData.Spec.ConfigGvk != nil {
+		log.Debugf("[DeleteConfigByName] GVK present in parent for node: %s", hashedName)
+		gvkPresent = true
+	}
+
+	if gvkPresent {
+
+		patchOp := PatchOp{
+			Op:   "remove",
+			Path: "/spec/configGvk",
+		}
+
+		patch = append(patch, patchOp)
+		marshaled, err := patch.Marshal()
+		if err != nil {
+			return err
+		}
+
+		retryCount = 0
+		newCtx := context.TODO()
+		for {
+			_, err = group.client.baseClient.
+				ProjectTsmV1().
+				Projects().Patch(newCtx, parentName, types.JSONPatchType, marshaled, metav1.PatchOptions{})
+			if err != nil {
+				log.Errorf("Failed to patch Config gvk in parent node[Projects]: %+v", err)
+				if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded) {
+					log.Errorf("[Retry Count: %d ] %+v", retryCount, err)
+					if retryCount == maxRetryCount {
+						log.Error("Max Retry exceed on patching gvk")
+						return err
+					}
+					retryCount += 1
+					time.Sleep(sleepTime * time.Second)
+				} else if customerrors.Is(err, context.Canceled) {
+					log.Errorf("[DeleteConfigByName]: %+v", err)
+					return context.Canceled
+				} else {
+					log.Errorf("Unexpected Error occur Config]: %+v", err)
+					return err
+				}
+			} else {
+				log.Debugf("[DeleteConfigByName] Patch Config Success: %s", hashedName)
+				break
+			}
+		}
+		log.Debugf("[DeleteConfigByName] Executed Successfully: %s", hashedName)
+	}
+
 	return
 }
 
@@ -1175,10 +1206,11 @@ func (group *ConfigTsmV1) CreateConfigByName(ctx context.Context,
 	}
 
 	var (
-		result *baseconfigtsmtanzuvmwarecomv1.Config
-		err    error
+		retryCount int
+		result     *baseconfigtsmtanzuvmwarecomv1.Config
+		err        error
 	)
-	retryCount := 0
+	retryCount = 0
 	for {
 		result, err = group.client.baseClient.
 			ConfigTsmV1().
@@ -1229,6 +1261,7 @@ func (group *ConfigTsmV1) CreateConfigByName(ctx context.Context,
 	if err != nil {
 		return nil, err
 	}
+	retryCount = 0
 	newCtx := context.TODO()
 	for {
 		_, err = group.client.baseClient.
@@ -1241,10 +1274,10 @@ func (group *ConfigTsmV1) CreateConfigByName(ctx context.Context,
 				if retryCount == maxRetryCount {
 					log.Error("Max Retry exceed on patching gvk")
 					log.Errorf("Trigger Config Delete: %s", objToCreate.GetName())
-					err = group.DeleteConfigByName(newCtx, objToCreate.GetName())
-					if err != nil {
+					delErr := group.DeleteConfigByName(newCtx, objToCreate.GetName())
+					if delErr != nil {
 						log.Errorf("Error occur while deleting Config: %s", objToCreate.GetName())
-						return nil, err
+						return nil, delErr
 					}
 					log.Errorf("Config Deleted: %s", objToCreate.GetName())
 					return nil, err
@@ -1257,10 +1290,10 @@ func (group *ConfigTsmV1) CreateConfigByName(ctx context.Context,
 			} else {
 				log.Errorf("[CreateConfigByName] Unexpected Error Config] :%+v", err)
 				log.Errorf("Trigger Config Delete: %s", objToCreate.GetName())
-				err = group.DeleteConfigByName(newCtx, objToCreate.GetName())
-				if err != nil {
+				delErr := group.DeleteConfigByName(newCtx, objToCreate.GetName())
+				if delErr != nil {
 					log.Errorf("Error occur while deleting Config: %+v", objToCreate.GetName())
-					return nil, err
+					return nil, delErr
 				}
 				log.Errorf("Config Deleted: %s", objToCreate.GetName())
 				return nil, err
@@ -1286,44 +1319,40 @@ func (group *ConfigTsmV1) UpdateConfigByName(ctx context.Context,
 	if objToUpdate.Labels[common.DISPLAY_NAME_LABEL] != helper.DEFAULT_KEY {
 		return nil, NewSingletonNameError(objToUpdate.Labels[common.DISPLAY_NAME_LABEL])
 	}
-	// ResourceVersion must be set for update
-	retryCount := 0
-	if objToUpdate.ResourceVersion == "" {
-		for {
-			current, err := group.client.baseClient.
-				ConfigTsmV1().
-				Configs().Get(ctx, objToUpdate.GetName(), metav1.GetOptions{})
-			if err != nil {
-				log.Errorf("[UpdateConfigByName] Failed to Get Configs: %+v", err)
-				if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded) {
-					log.Errorf("[Retry Count: %d ] %+v", retryCount, err)
-					if retryCount == maxRetryCount {
-						log.Error("Max Retry exceed on Get Configs")
-						return nil, err
-					}
-					retryCount += 1
-					time.Sleep(sleepTime * time.Second)
-				} else if customerrors.Is(err, context.Canceled) {
-					log.Errorf("[UpdateConfigByName]: %+v", err)
-					return nil, context.Canceled
-				} else {
-					log.Errorf("[UpdateConfigByName]: %+v", err)
-					return nil, err
-				}
-			} else {
-				log.Debugf("[UpdateConfigByName] Successfully Get: %s", objToUpdate.GetName())
-				objToUpdate.ResourceVersion = current.ResourceVersion
-				break
-			}
-		}
-	}
 
 	var patch Patch
-	patch = append(patch, PatchOp{
-		Op:    "replace",
-		Path:  "/metadata",
-		Value: objToUpdate.ObjectMeta,
-	})
+
+	if objToUpdate.Annotations != nil || objToUpdate.Labels != nil {
+		current, err := group.client.Config().GetConfigByName(ctx, objToUpdate.Name)
+		if err != nil {
+			return nil, err
+		}
+
+		if objToUpdate.Annotations != nil {
+			if current.Annotations[ownershipAnnotation] != "" {
+				objToUpdate.Annotations[ownershipAnnotation] = current.Annotations[ownershipAnnotation]
+			}
+			patch = append(patch, PatchOp{
+				Op:    "replace",
+				Path:  "/metadata/annotations",
+				Value: objToUpdate.Annotations,
+			})
+		}
+
+		if objToUpdate.Labels != nil {
+			parentsList := helper.GetCRDParentsMap()["configs.config.tsm-tanzu.vmware.com"]
+			for _, k := range parentsList {
+				objToUpdate.Labels[k] = current.Labels[k]
+			}
+			objToUpdate.Labels[common.IS_NAME_HASHED_LABEL] = current.Labels[common.IS_NAME_HASHED_LABEL]
+			objToUpdate.Labels[common.DISPLAY_NAME_LABEL] = current.Labels[common.DISPLAY_NAME_LABEL]
+			patch = append(patch, PatchOp{
+				Op:    "replace",
+				Path:  "/metadata/labels",
+				Value: objToUpdate.Labels,
+			})
+		}
+	}
 
 	var rt reflect.Type
 
@@ -1399,6 +1428,7 @@ func (group *ConfigTsmV1) UpdateConfigByName(ctx context.Context,
 		result *baseconfigtsmtanzuvmwarecomv1.Config
 	)
 	newCtx := context.TODO()
+	retryCount := 0
 	for {
 		result, err = group.client.baseClient.
 			ConfigTsmV1().
@@ -1410,10 +1440,10 @@ func (group *ConfigTsmV1) UpdateConfigByName(ctx context.Context,
 				if retryCount == maxRetryCount {
 					log.Error("Max Retry exceed on patching gvk")
 					log.Errorf("Trigger Config Delete: %s", objToUpdate.GetName())
-					err = group.DeleteConfigByName(newCtx, objToUpdate.GetName())
-					if err != nil {
+					delErr := group.DeleteConfigByName(newCtx, objToUpdate.GetName())
+					if delErr != nil {
 						log.Errorf("Error occur while deleting Config: %s", objToUpdate.GetName())
-						return nil, err
+						return nil, delErr
 					}
 					log.Errorf("Config Deleted: %s", objToUpdate.GetName())
 					return nil, err
@@ -1426,10 +1456,10 @@ func (group *ConfigTsmV1) UpdateConfigByName(ctx context.Context,
 			} else {
 				log.Errorf("[CreateConfigByName] Unexpected Error Config] :%+v", err)
 				log.Errorf("Trigger Config Delete: %s", objToUpdate.GetName())
-				err = group.DeleteConfigByName(newCtx, objToUpdate.GetName())
-				if err != nil {
+				delErr := group.DeleteConfigByName(newCtx, objToUpdate.GetName())
+				if delErr != nil {
 					log.Errorf("Error occur while deleting Config: %+v", objToUpdate.GetName())
-					return nil, err
+					return nil, delErr
 				}
 				log.Errorf("Config Deleted: %s", objToUpdate.GetName())
 				return nil, err
@@ -2069,9 +2099,10 @@ func (group *ProjectTsmV1) DeleteProjectByName(ctx context.Context, hashedName s
 	log.Debugf("[DeleteProjectByName] Received objectToDelete: %s", hashedName)
 
 	var (
-		result *baseprojecttsmtanzuvmwarecomv1.Project
+		retryCount int
+		result     *baseprojecttsmtanzuvmwarecomv1.Project
 	)
-	retryCount := 0
+	retryCount = 0
 	for {
 		result, err = group.client.baseClient.
 			ProjectTsmV1().
@@ -2089,6 +2120,9 @@ func (group *ProjectTsmV1) DeleteProjectByName(ctx context.Context, hashedName s
 			} else if customerrors.Is(err, context.Canceled) {
 				log.Errorf("[DeleteProjectByName]: %+v", err)
 				return context.Canceled
+			} else if errors.IsNotFound(err) {
+				log.Errorf("[DeleteProjectByName] Object Notfound: %+v", err)
+				break
 			} else {
 				log.Errorf("[DeleteProjectByName]: %+v", err)
 				return err
@@ -2107,40 +2141,38 @@ func (group *ProjectTsmV1) DeleteProjectByName(ctx context.Context, hashedName s
 		}
 	}
 
-	err = group.client.baseClient.
-		ProjectTsmV1().
-		Projects().Delete(ctx, hashedName, metav1.DeleteOptions{})
-	if err != nil {
-		log.Errorf("[DeleteProjectByName] Failed to Delete Projects: %+v", err)
-		if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded) {
-			log.Errorf("[Retry Count: %d ] %+v", retryCount, err)
-			if retryCount == maxRetryCount {
-				log.Error("Max Retry exceed on Get Projects")
+	retryCount = 0
+	for {
+		err = group.client.baseClient.
+			ProjectTsmV1().
+			Projects().Delete(ctx, hashedName, metav1.DeleteOptions{})
+		if err != nil {
+			log.Errorf("[DeleteProjectByName] failed to delete Projects: %+v", err)
+			if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded) {
+				log.Errorf("[Retry Count: %d ] %+v", retryCount, err)
+				if retryCount == maxRetryCount {
+					log.Error("Max retry exceed on delete Projects")
+					return err
+				}
+				retryCount += 1
+				time.Sleep(sleepTime * time.Second)
+			} else if customerrors.Is(err, context.Canceled) {
+				log.Errorf("[DeleteProjectByName]: %+v", err)
+				return context.Canceled
+			} else if errors.IsNotFound(err) {
+				log.Errorf("[DeleteProjectByName] Object not found: %+v", err)
+				break
+			} else {
+				log.Errorf("[DeleteProjectByName]: %+v", err)
 				return err
 			}
-			retryCount += 1
-			time.Sleep(sleepTime * time.Second)
-		} else if customerrors.Is(err, context.Canceled) {
-			log.Errorf("[DeleteProjectByName]: %+v", err)
-			return context.Canceled
-		} else {
-			log.Errorf("[DeleteProjectByName]: %+v", err)
-			return err
 		}
 	}
+	// Get Parent Node and check if gvk present before patch
 
+	var gvkPresent bool
+	log.Debugf("[DeleteProjectByName] Get Parent details")
 	var patch Patch
-
-	patchOp := PatchOp{
-		Op:   "remove",
-		Path: "/spec/projectGvk",
-	}
-
-	patch = append(patch, patchOp)
-	marshaled, err := patch.Marshal()
-	if err != nil {
-		return err
-	}
 	parents := result.GetLabels()
 	if parents == nil {
 		parents = make(map[string]string)
@@ -2149,53 +2181,74 @@ func (group *ProjectTsmV1) DeleteProjectByName(ctx context.Context, hashedName s
 	if !ok {
 		parentName = helper.DEFAULT_KEY
 	}
-	if parents[common.IS_NAME_HASHED_LABEL] == "true" {
+	if result.GetLabels() != nil {
+		if parents[common.IS_NAME_HASHED_LABEL] == "true" {
+			parentName = helper.GetHashedName("roots.root.tsm-tanzu.vmware.com", parents, parentName)
+		}
+	} else {
 		parentName = helper.GetHashedName("roots.root.tsm-tanzu.vmware.com", parents, parentName)
 	}
-
-	newCtx := context.TODO()
-	for {
-		_, err = group.client.baseClient.
-			RootTsmV1().
-			Roots().Patch(newCtx, parentName, types.JSONPatchType, marshaled, metav1.PatchOptions{})
-		if err != nil {
-			log.Errorf("Failed to patch Project gvk in parent node[Roots]: %+v", err)
-			if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded) {
-				log.Errorf("[Retry Count: %d ] %+v", retryCount, err)
-				if retryCount == maxRetryCount {
-					log.Error("Max Retry exceed on patching gvk")
-					log.Errorf("Trigger Project Delete: %s", hashedName)
-					err = group.DeleteProjectByName(newCtx, hashedName)
-					if err != nil {
-						log.Errorf("Error occur while deleting Project: %s", hashedName)
-						return err
-					}
-					log.Errorf("Project Deleted: %s", hashedName)
-					return err
-				}
-				retryCount += 1
-				time.Sleep(sleepTime * time.Second)
-			} else if customerrors.Is(err, context.Canceled) {
-				log.Errorf("[DeleteProjectByName]: %+v", err)
-				return context.Canceled
-			} else {
-				log.Errorf("Unexpected Error occur Project]: %+v", err)
-				log.Errorf("Trigger Project Delete: %s", hashedName)
-				err = group.DeleteProjectByName(newCtx, hashedName)
-				if err != nil {
-					log.Errorf("Error occur while deleting Project: %+v", hashedName)
-					return err
-				}
-				log.Errorf("Project Deleted Successfully: %s", hashedName)
-				return err
-			}
+	parentData, err := group.client.baseClient.
+		RootTsmV1().
+		Roots().Get(ctx, parentName, metav1.GetOptions{})
+	if err != nil {
+		log.Errorf("[DeleteProjectByName] Failed to get Parent node: %+v", err)
+		if errors.IsNotFound(err) {
+			return nil
 		} else {
-			log.Debugf("[DeleteProjectByName] Patch Project Success: %s", hashedName)
-			break
+			return err
 		}
 	}
 
-	log.Debugf("[DeleteProjectByName] Executed Successfully: %s", hashedName)
+	if parentData.Spec.ProjectGvk != nil {
+		log.Debugf("[DeleteProjectByName] GVK present in parent for node: %s", hashedName)
+		gvkPresent = true
+	}
+
+	if gvkPresent {
+
+		patchOp := PatchOp{
+			Op:   "remove",
+			Path: "/spec/projectGvk",
+		}
+
+		patch = append(patch, patchOp)
+		marshaled, err := patch.Marshal()
+		if err != nil {
+			return err
+		}
+
+		retryCount = 0
+		newCtx := context.TODO()
+		for {
+			_, err = group.client.baseClient.
+				RootTsmV1().
+				Roots().Patch(newCtx, parentName, types.JSONPatchType, marshaled, metav1.PatchOptions{})
+			if err != nil {
+				log.Errorf("Failed to patch Project gvk in parent node[Roots]: %+v", err)
+				if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded) {
+					log.Errorf("[Retry Count: %d ] %+v", retryCount, err)
+					if retryCount == maxRetryCount {
+						log.Error("Max Retry exceed on patching gvk")
+						return err
+					}
+					retryCount += 1
+					time.Sleep(sleepTime * time.Second)
+				} else if customerrors.Is(err, context.Canceled) {
+					log.Errorf("[DeleteProjectByName]: %+v", err)
+					return context.Canceled
+				} else {
+					log.Errorf("Unexpected Error occur Project]: %+v", err)
+					return err
+				}
+			} else {
+				log.Debugf("[DeleteProjectByName] Patch Project Success: %s", hashedName)
+				break
+			}
+		}
+		log.Debugf("[DeleteProjectByName] Executed Successfully: %s", hashedName)
+	}
+
 	return
 }
 
@@ -2220,10 +2273,11 @@ func (group *ProjectTsmV1) CreateProjectByName(ctx context.Context,
 	objToCreate.Spec.ConfigGvk = nil
 
 	var (
-		result *baseprojecttsmtanzuvmwarecomv1.Project
-		err    error
+		retryCount int
+		result     *baseprojecttsmtanzuvmwarecomv1.Project
+		err        error
 	)
-	retryCount := 0
+	retryCount = 0
 	for {
 		result, err = group.client.baseClient.
 			ProjectTsmV1().
@@ -2274,6 +2328,7 @@ func (group *ProjectTsmV1) CreateProjectByName(ctx context.Context,
 	if err != nil {
 		return nil, err
 	}
+	retryCount = 0
 	newCtx := context.TODO()
 	for {
 		_, err = group.client.baseClient.
@@ -2286,10 +2341,10 @@ func (group *ProjectTsmV1) CreateProjectByName(ctx context.Context,
 				if retryCount == maxRetryCount {
 					log.Error("Max Retry exceed on patching gvk")
 					log.Errorf("Trigger Project Delete: %s", objToCreate.GetName())
-					err = group.DeleteProjectByName(newCtx, objToCreate.GetName())
-					if err != nil {
+					delErr := group.DeleteProjectByName(newCtx, objToCreate.GetName())
+					if delErr != nil {
 						log.Errorf("Error occur while deleting Project: %s", objToCreate.GetName())
-						return nil, err
+						return nil, delErr
 					}
 					log.Errorf("Project Deleted: %s", objToCreate.GetName())
 					return nil, err
@@ -2302,10 +2357,10 @@ func (group *ProjectTsmV1) CreateProjectByName(ctx context.Context,
 			} else {
 				log.Errorf("[CreateProjectByName] Unexpected Error Project] :%+v", err)
 				log.Errorf("Trigger Project Delete: %s", objToCreate.GetName())
-				err = group.DeleteProjectByName(newCtx, objToCreate.GetName())
-				if err != nil {
+				delErr := group.DeleteProjectByName(newCtx, objToCreate.GetName())
+				if delErr != nil {
 					log.Errorf("Error occur while deleting Project: %+v", objToCreate.GetName())
-					return nil, err
+					return nil, delErr
 				}
 				log.Errorf("Project Deleted: %s", objToCreate.GetName())
 				return nil, err
@@ -2331,44 +2386,40 @@ func (group *ProjectTsmV1) UpdateProjectByName(ctx context.Context,
 	if objToUpdate.Labels[common.DISPLAY_NAME_LABEL] != helper.DEFAULT_KEY {
 		return nil, NewSingletonNameError(objToUpdate.Labels[common.DISPLAY_NAME_LABEL])
 	}
-	// ResourceVersion must be set for update
-	retryCount := 0
-	if objToUpdate.ResourceVersion == "" {
-		for {
-			current, err := group.client.baseClient.
-				ProjectTsmV1().
-				Projects().Get(ctx, objToUpdate.GetName(), metav1.GetOptions{})
-			if err != nil {
-				log.Errorf("[UpdateProjectByName] Failed to Get Projects: %+v", err)
-				if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded) {
-					log.Errorf("[Retry Count: %d ] %+v", retryCount, err)
-					if retryCount == maxRetryCount {
-						log.Error("Max Retry exceed on Get Projects")
-						return nil, err
-					}
-					retryCount += 1
-					time.Sleep(sleepTime * time.Second)
-				} else if customerrors.Is(err, context.Canceled) {
-					log.Errorf("[UpdateProjectByName]: %+v", err)
-					return nil, context.Canceled
-				} else {
-					log.Errorf("[UpdateProjectByName]: %+v", err)
-					return nil, err
-				}
-			} else {
-				log.Debugf("[UpdateProjectByName] Successfully Get: %s", objToUpdate.GetName())
-				objToUpdate.ResourceVersion = current.ResourceVersion
-				break
-			}
-		}
-	}
 
 	var patch Patch
-	patch = append(patch, PatchOp{
-		Op:    "replace",
-		Path:  "/metadata",
-		Value: objToUpdate.ObjectMeta,
-	})
+
+	if objToUpdate.Annotations != nil || objToUpdate.Labels != nil {
+		current, err := group.client.Project().GetProjectByName(ctx, objToUpdate.Name)
+		if err != nil {
+			return nil, err
+		}
+
+		if objToUpdate.Annotations != nil {
+			if current.Annotations[ownershipAnnotation] != "" {
+				objToUpdate.Annotations[ownershipAnnotation] = current.Annotations[ownershipAnnotation]
+			}
+			patch = append(patch, PatchOp{
+				Op:    "replace",
+				Path:  "/metadata/annotations",
+				Value: objToUpdate.Annotations,
+			})
+		}
+
+		if objToUpdate.Labels != nil {
+			parentsList := helper.GetCRDParentsMap()["projects.project.tsm-tanzu.vmware.com"]
+			for _, k := range parentsList {
+				objToUpdate.Labels[k] = current.Labels[k]
+			}
+			objToUpdate.Labels[common.IS_NAME_HASHED_LABEL] = current.Labels[common.IS_NAME_HASHED_LABEL]
+			objToUpdate.Labels[common.DISPLAY_NAME_LABEL] = current.Labels[common.DISPLAY_NAME_LABEL]
+			patch = append(patch, PatchOp{
+				Op:    "replace",
+				Path:  "/metadata/labels",
+				Value: objToUpdate.Labels,
+			})
+		}
+	}
 
 	var rt reflect.Type
 
@@ -2444,6 +2495,7 @@ func (group *ProjectTsmV1) UpdateProjectByName(ctx context.Context,
 		result *baseprojecttsmtanzuvmwarecomv1.Project
 	)
 	newCtx := context.TODO()
+	retryCount := 0
 	for {
 		result, err = group.client.baseClient.
 			ProjectTsmV1().
@@ -2455,10 +2507,10 @@ func (group *ProjectTsmV1) UpdateProjectByName(ctx context.Context,
 				if retryCount == maxRetryCount {
 					log.Error("Max Retry exceed on patching gvk")
 					log.Errorf("Trigger Project Delete: %s", objToUpdate.GetName())
-					err = group.DeleteProjectByName(newCtx, objToUpdate.GetName())
-					if err != nil {
+					delErr := group.DeleteProjectByName(newCtx, objToUpdate.GetName())
+					if delErr != nil {
 						log.Errorf("Error occur while deleting Project: %s", objToUpdate.GetName())
-						return nil, err
+						return nil, delErr
 					}
 					log.Errorf("Project Deleted: %s", objToUpdate.GetName())
 					return nil, err
@@ -2471,10 +2523,10 @@ func (group *ProjectTsmV1) UpdateProjectByName(ctx context.Context,
 			} else {
 				log.Errorf("[CreateProjectByName] Unexpected Error Project] :%+v", err)
 				log.Errorf("Trigger Project Delete: %s", objToUpdate.GetName())
-				err = group.DeleteProjectByName(newCtx, objToUpdate.GetName())
-				if err != nil {
+				delErr := group.DeleteProjectByName(newCtx, objToUpdate.GetName())
+				if delErr != nil {
 					log.Errorf("Error occur while deleting Project: %+v", objToUpdate.GetName())
-					return nil, err
+					return nil, delErr
 				}
 				log.Errorf("Project Deleted: %s", objToUpdate.GetName())
 				return nil, err

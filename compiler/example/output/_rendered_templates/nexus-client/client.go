@@ -454,6 +454,8 @@ func (group *RootTsmV1) DeleteRootByName(ctx context.Context, hashedName string)
 				log.Errorf("[DeleteRootByName]: %+v", err)
 				return err
 			}
+		} else {
+			break
 		}
 	}
 	// Get Parent Node and check if gvk present before patch
@@ -1240,6 +1242,8 @@ func (group *ConfigTsmV1) DeleteConfigByName(ctx context.Context, hashedName str
 				log.Errorf("[DeleteConfigByName]: %+v", err)
 				return err
 			}
+		} else {
+			break
 		}
 	}
 	// Get Parent Node and check if gvk present before patch
@@ -3139,6 +3143,8 @@ func (group *ConfigTsmV1) DeleteFooTypeABCByName(ctx context.Context, hashedName
 				log.Errorf("[DeleteFooTypeABCByName]: %+v", err)
 				return err
 			}
+		} else {
+			break
 		}
 	}
 	// Get Parent Node and check if gvk present before patch
@@ -4241,6 +4247,8 @@ func (group *ConfigTsmV1) DeleteDomainByName(ctx context.Context, hashedName str
 				log.Errorf("[DeleteDomainByName]: %+v", err)
 				return err
 			}
+		} else {
+			break
 		}
 	}
 	// Get Parent Node and check if gvk present before patch
@@ -5414,6 +5422,8 @@ func (group *GnsTsmV1) DeleteFooByName(ctx context.Context, hashedName string) (
 				log.Errorf("[DeleteFooByName]: %+v", err)
 				return err
 			}
+		} else {
+			break
 		}
 	}
 	// Get Parent Node and check if gvk present before patch
@@ -6467,6 +6477,8 @@ func (group *GnsTsmV1) DeleteGnsByName(ctx context.Context, hashedName string) (
 				log.Errorf("[DeleteGnsByName]: %+v", err)
 				return err
 			}
+		} else {
+			break
 		}
 	}
 	// Get Parent Node and check if gvk present before patch
@@ -8503,6 +8515,8 @@ func (group *GnsTsmV1) DeleteBarChildByName(ctx context.Context, hashedName stri
 				log.Errorf("[DeleteBarChildByName]: %+v", err)
 				return err
 			}
+		} else {
+			break
 		}
 	}
 	// Get Parent Node and check if gvk present before patch
@@ -9517,6 +9531,8 @@ func (group *GnsTsmV1) DeleteIgnoreChildByName(ctx context.Context, hashedName s
 				log.Errorf("[DeleteIgnoreChildByName]: %+v", err)
 				return err
 			}
+		} else {
+			break
 		}
 	}
 	// Get Parent Node and check if gvk present before patch
@@ -10522,6 +10538,8 @@ func (group *GnsTsmV1) DeleteDnsByName(ctx context.Context, hashedName string) (
 				log.Errorf("[DeleteDnsByName]: %+v", err)
 				return err
 			}
+		} else {
+			break
 		}
 	}
 	// Get Parent Node and check if gvk present before patch
@@ -11513,6 +11531,8 @@ func (group *ServicegroupTsmV1) DeleteSvcGroupByName(ctx context.Context, hashed
 				log.Errorf("[DeleteSvcGroupByName]: %+v", err)
 				return err
 			}
+		} else {
+			break
 		}
 	}
 	// Get Parent Node and check if gvk present before patch
@@ -12552,6 +12572,8 @@ func (group *ServicegroupTsmV1) DeleteSvcGroupLinkInfoByName(ctx context.Context
 				log.Errorf("[DeleteSvcGroupLinkInfoByName]: %+v", err)
 				return err
 			}
+		} else {
+			break
 		}
 	}
 	// Get Parent Node and check if gvk present before patch
@@ -13632,6 +13654,8 @@ func (group *PolicypkgTsmV1) DeleteAccessControlPolicyByName(ctx context.Context
 				log.Errorf("[DeleteAccessControlPolicyByName]: %+v", err)
 				return err
 			}
+		} else {
+			break
 		}
 	}
 	// Get Parent Node and check if gvk present before patch
@@ -14738,6 +14762,8 @@ func (group *PolicypkgTsmV1) DeleteACPConfigByName(ctx context.Context, hashedNa
 				log.Errorf("[DeleteACPConfigByName]: %+v", err)
 				return err
 			}
+		} else {
+			break
 		}
 	}
 	// Get Parent Node and check if gvk present before patch
@@ -16069,6 +16095,8 @@ func (group *PolicypkgTsmV1) DeleteVMpolicyByName(ctx context.Context, hashedNam
 				log.Errorf("[DeleteVMpolicyByName]: %+v", err)
 				return err
 			}
+		} else {
+			break
 		}
 	}
 	// Get Parent Node and check if gvk present before patch
