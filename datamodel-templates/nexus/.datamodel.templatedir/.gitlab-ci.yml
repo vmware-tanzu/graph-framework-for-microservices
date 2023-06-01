@@ -1,0 +1,29 @@
+image:
+  name: runner.servicemesh.biz:5000/allspark/runner:latest
+
+
+stages:
+  - lint
+
+before_script:
+  - export LC_ALL='C.UTF-8'
+  - export GOPRIVATE=gitlab.eng.vmware.com
+  - source /usr/local/bin/source/flash_tool.sh
+  - git config --global credential.helper store
+  - echo -e  "https://gitlab-ci-token:${CICD_TOKEN}@gitlab.eng.vmware.com"  >> ~/.git-credentials
+  - SCOMMIT_SHA=$(echo ${CI_COMMIT_SHA} | cksum | cut -d' ' -f1)
+  - flash repo login golang
+
+after_script:
+  - date
+  - flash docker cleanup images
+  - flash docker cleanup containers
+  - flash docker cleanup volumes
+
+lint:
+  stage: lint
+  script:
+    - export CONTAINER_ID=$(docker ps -q -f "label=com.gitlab.gitlab-runner.job.id=$CI_JOB_ID" -f "label=com.gitlab.gitlab-runner.type=build")
+    - CONTAINER_ID=${CONTAINER_ID} make datamodel_build
+    - |
+      [[ -n $(git diff --name-only) ]] && { echo "There were files not commited with build" && exit 1}

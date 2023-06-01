@@ -1,0 +1,18 @@
+package root
+
+import (
+	"golang-appnet.eng.vmware.com/nexus-sdk/nexus/nexus"
+)
+
+// Datamodel graph root
+type Root struct {
+
+	// Tags "Root" as a node in datamodel graph
+	nexus.Node
+
+	// Spec Fields
+	
+	// Child Nodes specified with annotatation: `nexus:"child"`
+
+	// Soft links specified with annotatation: `nexus:"link"`
+}
