@@ -499,10 +499,10 @@ func (group *{{$node.GroupTypeName}}) Create{{$node.BaseNodeName}}ByName(ctx con
 				if retryCount == maxRetryCount {
 					log.Error("Max Retry exceed on patching gvk")
 					log.Errorf("Trigger {{$node.BaseNodeName}} Delete: %s",objToCreate.GetName())
-					err = group.Delete{{$node.BaseNodeName}}ByName(newCtx, objToCreate.GetName())
-					if err != nil {
+					delErr := group.Delete{{$node.BaseNodeName}}ByName(newCtx, objToCreate.GetName())
+					if delErr != nil {
 						log.Errorf("Error occur while deleting {{$node.BaseNodeName}}: %s",objToCreate.GetName())
-						return nil, err
+						return nil, delErr
 					}
 					log.Errorf("{{$node.BaseNodeName}} Deleted: %s",objToCreate.GetName())
 					return nil, err
@@ -515,10 +515,10 @@ func (group *{{$node.GroupTypeName}}) Create{{$node.BaseNodeName}}ByName(ctx con
 			} else {
 				log.Errorf("[Create{{$node.BaseNodeName}}ByName] Unexpected Error {{$node.BaseNodeName}}] %+v",err)
 				log.Errorf("Trigger {{$node.BaseNodeName}} Delete: %s",objToCreate.GetName())
-				err = group.Delete{{$node.BaseNodeName}}ByName(newCtx, objToCreate.GetName())
-				if err != nil {
+				delErr := group.Delete{{$node.BaseNodeName}}ByName(newCtx, objToCreate.GetName())
+				if delErr != nil {
 					log.Errorf("Error occur while deleting {{$node.BaseNodeName}}: %+v",objToCreate.GetName())
-					return nil, err
+					return nil, delErr
 				}
 				log.Errorf("{{$node.BaseNodeName}} Deleted: %s",objToCreate.GetName())
 				return nil, err
