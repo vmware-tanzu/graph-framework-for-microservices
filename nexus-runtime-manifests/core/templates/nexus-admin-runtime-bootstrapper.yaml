@@ -1,0 +1,130 @@
+{{- if and (eq .Values.global.nexusAdmin true) (eq .Values.global.skipAdminBootstrap false) }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: nexus-admin-runtime-bootstrapper
+  annotations:
+    {{- template "argoJobHook" .}}
+spec:
+  template:
+    metadata:
+      annotations:
+        "sidecar.istio.io/inject": "false"
+    spec:
+      activeDeadlineSeconds: 300
+      containers:
+        - name: nexus-admin-runtime-bootstrapper
+          image: "{{.Values.global.registry}}/debugtools:latest"
+          imagePullPolicy: IfNotPresent
+          command:
+            - "/bin/bash"
+            - "-c"
+            - |
+              set -e
+
+              echo 'waiting for api-gw to be ready...'
+              until $(curl --output /dev/null --silent --head --fail http://nexus-api-gw/readyz); do
+                echo '.'
+                sleep 5
+              done
+              echo 'api-gw is now ready'
+              
+              echo 'waiting for Nexus "default" object to be created...'
+              until $(kubectl get nexuses.api.nexus.vmware.com -l nexus/display_name=default -o=jsonpath='{.items[0]}' > /dev/null 2>&1); do
+                echo '.'
+                sleep 5
+              done
+              echo 'Nexus "default" object found'
+
+              echo 'waiting for Config "default" object to be created...'
+              until $(kubectl get configs.config.nexus.vmware.com -l nexus/display_name=default -o=jsonpath='{.items[0]}' > /dev/null 2>&1); do
+                echo '.'
+                sleep 5
+              done
+              echo 'Config "default" object found'
+
+              echo 'waiting for ApiGateway "default" object to be created...'
+              until $(kubectl get apigateways.apigateway.nexus.vmware.com -l nexus/display_name=default > /dev/null 2>&1); do
+                echo '.'
+                sleep 5
+              done
+              echo 'ApiGateway "default" object found'
+              
+              echo 'waiting for OIDC CRD to be installed...'
+              until $(kubectl get crd/oidcs.authentication.nexus.vmware.com > /dev/null 2>&1); do
+                echo '.'
+                sleep 5
+              done
+              echo 'OIDC CRD installed'
+
+              echo 'waiting for ProxyRule CRD to be installed...'
+              until $(kubectl get crd/proxyrules.admin.nexus.vmware.com > /dev/null 2>&1); do
+                echo '.'
+                sleep 5
+              done
+              echo 'ProxyRule CRD installed'
+              
+              if ! kubectl get oidcs.authentication.nexus.vmware.com -l nexus/display_name=admin -o=jsonpath='{.items[0]}' > /dev/null 2>&1 ; then
+                  echo 'creating OIDC object...'
+                  kubectl apply -f -<<EOF
+                  apiVersion: authentication.nexus.vmware.com/v1
+                  kind: OIDC
+                  metadata:
+                    labels:
+                      nexuses.api.nexus.vmware.com: default
+                      configs.config.nexus.vmware.com: default
+                      apigateways.apigateway.nexus.vmware.com: default
+                    name: admin
+                  spec:
+                    config:
+                      clientId: {{.Values.global.clientId}}
+                      clientSecret: {{.Values.global.clientSecret}}
+                      oAuthIssuerUrl: {{.Values.global.oAuthIssuerUrl}}
+                      oAuthRedirectUrl: {{.Values.global.oAuthRedirectUrl}}
+                      scopes:
+                        - openid
+                        - profile
+                        - offline_access
+                    validationProps:
+                      insecureIssuerURLContext: true
+                      skipClientAudValidation: true
+                      skipClientIdValidation: true
+                      skipIssuerValidation: true
+              EOF
+              fi
+
+              if ! kubectl get proxyrules.admin.nexus.vmware.com -l nexus/display_name=admin -o=jsonpath='{.items[0]}' > /dev/null 2>&1 ; then
+                echo 'creating admin ProxyRule object...'
+                kubectl apply -f -<<EOF
+                apiVersion: admin.nexus.vmware.com/v1
+                kind: ProxyRule
+                metadata:
+                  name: admin
+                  labels:
+                    nexuses.api.nexus.vmware.com: default
+                    configs.config.nexus.vmware.com: default
+                    apigateways.apigateway.nexus.vmware.com: default
+                spec:
+                  matchCondition:
+                    type: jwt
+                    key: {{.Values.global.jwtClaim}}
+                    value: {{.Values.global.jwtClaimValue}}
+                  upstream:
+                    scheme: http
+                    host: nexus-api-gw.{{ default  .Release.Namespace .Values.global.namespace }}
+                    port: 80
+              EOF
+              fi
+          env:
+            - name: KUBECONFIG
+              value: /kube/config
+          volumeMounts:
+            - mountPath: /kube
+              name: kubeconfig
+      volumes:
+        - name: kubeconfig
+          configMap:
+            name: nexus-dmb-kubeconfig-api-gw
+      restartPolicy: OnFailure
+  backoffLimit: 10
+{{ end }}

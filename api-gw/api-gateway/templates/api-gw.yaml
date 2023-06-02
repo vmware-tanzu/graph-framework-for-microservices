@@ -1,0 +1,308 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nexus-api-gw-kubeconfig-local
+  namespace: {{ default .Release.Namespace .Values.global.Namespace }}
+# fill the configmap for Sku with PM input
+data:
+  skuconfigmap: |
+    sku:
+        advance:
+          - TSMCADV_TS
+          - NSM_STD_CORE_CP
+        enterprise:
+          - TSMCENT_TS
+          - CMCMSC_TS
+          - NSM_ENT_CORE_CP
+  kubeconfig: |
+    current-context: localapiserver
+    apiVersion: v1
+    kind: Config
+    clusters:
+    - cluster:
+        api-version: v1
+        server: http://nexus-apiserver:8080
+        insecure-skip-tls-verify: true
+      name: localapiserver
+    contexts:
+    - context:
+        cluster: localapiserver
+      name: localapiserver
+  staticRoutes.yaml: |
+    Prefix:
+      - "/home"
+      - "/api-explorer"
+      - "/allspark-static"
+      - "/cluster-registration"
+      - "/release-manifests"
+      - "/configuration"
+      - "/no-service-access"
+      - "/resiliency"
+      - "/inventory"
+      - "/admin/management"
+      - "/login"
+      - "/security"
+      - "/api-management"
+      - "/user-detail"
+      - "/cluster-detail"
+      - "/node-detail"
+      - "/data-detail"
+      - "/service-detail"
+      - "/service-instance-detail"
+      - "/global-namespaces-detail"
+      - "/service-group-detail"
+      - "/public-service-detail"
+      - "/slo-detail"
+      - "/api-detail"
+      - "/external-service-detail"
+      - "/not-found"
+      - "/no-content"
+      - "/dev-space-wizard"
+      - "/collaborationspace"
+      - "/security"
+    Suffix:
+      - "js"
+      - "css"
+      - "png"
+      - "svg"
+      - "jpg"
+      - "ttf"
+  api-gw-config: |
+    server:
+      address: ":443"
+      certPath: "/etc/cert/cert.pem"
+      keyPath: "/etc/cert/key.pem"
+    enable_nexus_runtime: {{.Values.global.runtimeEnabled}}
+    backend_service: "http://tenant-api-gw:3000"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nexus-api-gw
+  namespace: {{ default .Release.Namespace .Values.global.Namespace }}
+  labels:
+    control-plane: api-gw
+spec:
+  selector:
+    matchLabels:
+      control-plane: api-gw
+  replicas: 1
+  template:
+    metadata:
+      annotations:
+        kubectl.kubernetes.io/default-container: manager
+      labels:
+        control-plane: api-gw
+    spec:
+      serviceAccountName: nexus-api-gw-sa
+      {{- if eq .Values.global.tainted true }}
+      {{- template "tolerations" .}}
+      {{- end }}
+      initContainers:
+        - name: check-nexus-proxy-container
+          image: "{{.Values.global.registry}}/debugtools:latest"
+          imagePullPolicy: IfNotPresent
+          command:
+            - /bin/bash
+            - -c
+            - |
+              #!/bin/bash
+              set -x
+              URL="http://nexus-apiserver:8080/api/v1/namespaces"
+              max_retries=20
+              counter=0
+              while [[ $counter -lt $max_retries ]]; do
+                    status=$(curl -s -o /dev/null -I -w "%{http_code}" -XGET $URL)
+                    if [ $status == "200" ]; then
+                        echo "$URL is reachable"
+                        exit 0
+                    else
+                        counter=$((counter +1))
+                        sleep 5
+                    fi
+              done
+        - name: create-ingressclass
+          image: "{{.Values.global.registry}}/debugtools:latest"
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: NAMESPACE
+              valueFrom:
+                fieldRef:
+                  apiVersion: v1
+                  fieldPath: metadata.namespace
+          command:
+            - /bin/bash
+            - -c
+            - |
+              #!/bin/bash
+              set -ex
+              minversion=22
+              version=$(kubectl version --short | grep 'Server' | awk -F':'  '{print $2}' | tr -d 'v' | awk -F'.' '{print $2}')
+              if [ $version -lt $minversion ]; then
+                  ingressclass="v1beta1"
+              else
+                  ingressclass="v1"
+              fi
+              echo '
+              apiVersion: networking.k8s.io/'"$ingressclass"'
+              kind: IngressClass
+              metadata:
+                labels:
+                  app.kubernetes.io/component: controller
+                  app.kubernetes.io/instance: ingress-nginx
+                name: nginx-'"$NAMESPACE"'
+              spec:
+                controller: k8s.io/ingress-nginx' | kubectl apply -f - -n $NAMESPACE
+      containers:
+        -
+          image: {{.Values.global.registry}}/nexus-api-gateway:{{ required "Please provide global.api_gateway.tag value using --set-string option!" .Values.global.api_gateway.tag }}
+          name: api-gw
+          env:
+            - name: KUBECONFIG
+              value: /config/kubeconfig
+            - name: INGRESS_CONTROLLER_NAME
+              value: nexus-ingress-nginx-controller
+            - name: DEFAULT_BACKEND_SERVICE_NAME
+              value: nexus-nginx
+            - name: DEFAULT_BACKEND_SERVICE_PORT
+              value: "80"
+            - name: LOG_LEVEL
+              value: DEBUG
+            - name: GATEWAY_MODE
+              {{- if eq .Values.global.nexusAdmin true }}
+              value: "admin"
+              {{- else }}
+              value: "tenant"
+              {{- end }}
+            {{- if eq .Values.global.nexusAdmin true }}
+            - name: SSL_ENABLED
+              value: {{ .Values.global.useHttps | quote }}
+            - name: DEFAULT_SKU
+              value: {{.Values.global.DefaultSKU}}
+            - name: CSP_PERMISSION_NAME
+              value: {{ .Values.global.csp.PermissionName }}
+            - name: CSP_SERVICE_OWNER_ORG
+              value: {{ .Values.global.csp.ServiceOwnerOrg}}
+            - name: CSP_SERVICE_OWNER_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  key: token
+                  name: csp-service-owner
+                  optional: true
+            {{- end }}
+            - name: NAMESPACE
+              valueFrom:
+                fieldRef:
+                  apiVersion: v1
+                  fieldPath: metadata.namespace
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            allowPrivilegeEscalation: false
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 8081
+            initialDelaySeconds: 15
+            periodSeconds: 20
+          readinessProbe:
+            httpGet:
+              path: /readyz
+              port: 8081
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          # TODO(user): Configure the resources accordingly based on the project requirements.
+          # More info: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/
+          {{- template "api_gw_resources" .}}
+          volumeMounts:
+            - mountPath: /config
+              name: config
+            - mountPath: /etc/cert
+              name: cert-volume
+              readOnly: false
+            - mountPath: /openapi
+              name: nexus-openapi
+      volumes:
+        - name: config
+          configMap:
+            name: nexus-api-gw-kubeconfig-local
+        - name: cert-volume
+          secret:
+            secretName: nexus-api-gw-tls
+            optional: true
+        - name: nexus-openapi
+          configMap:
+            defaultMode: 420
+            name: nexus-openapi
+            optional: true
+      {{- if ne .Values.global.imagepullsecret "" }}
+      imagePullSecrets:
+      - name: {{.Values.global.imagepullsecret}}
+      {{end}}
+      terminationGracePeriodSeconds: 10
+      securityContext:
+        runAsUser: 0
+        runAsGroup: 0
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nexus-api-gw
+  namespace: {{ default .Release.Namespace .Values.global.Namespace }}
+spec:
+  type: {{ .Values.global.apiGWsvcType | default "ClusterIP" }}
+  ports:
+  - protocol: TCP
+    name: http
+    port: 80
+    targetPort: 80
+  - protocol: TCP
+    name: https
+    port: 443
+    targetPort: 443
+  - protocol: TCP
+    name: xds
+    port: 18000
+    targetPort: 18000
+  selector:
+    control-plane: api-gw
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: nexus-agw-cr-{{ default .Release.Namespace .Values.global.Namespace }}
+  namespace: {{ default .Release.Namespace .Values.global.Namespace }}
+rules:
+- apiGroups:
+  - "networking.k8s.io"
+  resources:
+  - "ingressclasses"
+  - "ingresses"
+  verbs:
+  - get
+  - watch
+  - list
+  - create
+  - delete
+  - patch
+  - update
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: nexus-api-gw-sa
+  namespace: {{ default .Release.Namespace .Values.global.Namespace }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: nexus-agw-crb-{{ default .Release.Namespace .Values.global.Namespace }}
+  namespace: {{ default .Release.Namespace .Values.global.Namespace }}
+subjects:
+- kind: ServiceAccount
+  name: nexus-api-gw-sa
+  namespace: {{ default .Release.Namespace .Values.global.Namespace }}
+roleRef:
+  kind: ClusterRole
+  name: nexus-agw-cr-{{ default .Release.Namespace .Values.global.Namespace }}
+  apiGroup: rbac.authorization.k8s.io
+---

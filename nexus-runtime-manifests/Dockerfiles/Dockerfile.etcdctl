@@ -1,0 +1,9 @@
+FROM gcr.io/nsx-sm/photon:4.0
+
+RUN curl -LO https://github.com/etcd-io/etcd/releases/download/v3.4.9/etcd-v3.4.9-linux-amd64.tar.gz && \
+   tar -xvf etcd-v3.4.9-linux-amd64.tar.gz && \
+   mv etcd-v3.4.9-linux-amd64/etcdctl /usr/local/bin && \
+   rm -rf etcd-v3.4.9-linux-amd64.tar.gz && curl -LO https://dl.k8s.io/release/v1.19.0/bin/linux/amd64/kubectl && \
+   install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
+
+

@@ -1,0 +1,249 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nexus-api-gw-kubeconfig-local
+  namespace: '{{.Namespace}}'
+data:
+  kubeconfig: |
+    current-context: localapiserver
+    apiVersion: v1
+    kind: Config
+    clusters:
+    - cluster:
+        api-version: v1
+        server: http://nexus-apiserver:8080
+        insecure-skip-tls-verify: true
+      name: localapiserver
+    contexts:
+    - context:
+        cluster: localapiserver
+      name: localapiserver
+  api-gw-config: |
+    server:
+      address: ":443"
+      certPath: "/etc/cert/cert.pem"
+      keyPath: "/etc/cert/key.pem"
+    enable_nexus_runtime: false
+    backend_service: "http://tenant-api-gw:3000"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nexus-api-gw
+  namespace: '{{.Namespace}}'
+  labels:
+    control-plane: nexus-api-gw
+spec:
+  selector:
+    matchLabels:
+      control-plane: nexus-api-gw
+      app: "{{.ServiceName}}"
+      version: "{{.AS.ServiceVersion}}"
+  replicas: 1
+  template:
+    metadata:
+      annotations:
+        kubectl.kubernetes.io/default-container: manager
+      labels:
+        control-plane: nexus-api-gw
+        app: "{{.ServiceName}}"
+        version: "{{.AS.ServiceVersion}}"
+    spec:
+      serviceAccountName: nexus-api-gw-sa
+      containers:
+        -
+          image: "{{.AS.services.local.nexus-api-gw.imageUrl}}"
+          name: api-gw
+          env:
+            - name: KUBECONFIG
+              value: /config/kubeconfig
+            - name: NAMESPACE
+              valueFrom:
+                fieldRef:
+                  apiVersion: v1
+                  fieldPath: metadata.namespace
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            allowPrivilegeEscalation: false
+          resources:
+            limits:
+              cpu: 500m
+              memory: 128Mi
+            requests:
+              cpu: 10m
+              memory: 64Mi
+          volumeMounts:
+            - mountPath: /config
+              name: config
+            - mountPath: /etc/cert
+              name: cert-volume
+              readOnly: false
+            - mountPath: /openapi
+              name: nexus-openapi
+      volumes:
+        - name: config
+          configMap:
+            name: nexus-api-gw-kubeconfig-local
+        - name: cert-volume
+          secret:
+            secretName: nexus-api-gw-server-cert
+            optional: true
+        - name: nexus-openapi
+          configMap:
+            defaultMode: 420
+            name: nexus-openapi
+      imagePullSecrets:
+      - name: ecr-read-only--docker-credentials
+      terminationGracePeriodSeconds: 10
+      securityContext:
+        runAsUser: 0
+        runAsGroup: 0
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nexus-api-gw-create-signed-cert
+  namespace: '{{.Namespace}}'
+data:
+  create_certificate_as_secret.sh: |
+        #!/usr/bin/env bash
+        set -ex
+        namespace=$POD_NAMESPACE
+        usage() {
+            cat <<EOF
+        Generate certificate suitable for use with an webhook service.
+
+        This script uses k8s' CertificateSigningRequest API to a generate a
+        certificate signed by k8s CA suitable for use with sidecar-injector webhook
+        services. This requires permissions to create and approve CSR. See
+        https://kubernetes.io/docs/tasks/tls/managing-tls-in-a-cluster for
+        detailed explantion and additional instructions.
+
+        The server key/cert k8s CA cert are stored in a k8s secret.
+
+        usage: ${0} [OPTIONS]
+
+        The following flags are required.
+
+                --service          Service name of webhook.
+                --namespace        Namespace where webhook service and secret reside.
+                --secret           Secret name for CA certificate and server certificate/key pair.
+        EOF
+            exit 1
+        }
+
+        while [[ $# -gt 0 ]]; do
+            case ${1} in
+                --service)
+                    service="$2"
+                    shift
+                    ;;
+                --secret)
+                    secret="$2"
+                    shift
+                    ;;
+                *)
+                    usage
+                    ;;
+            esac
+            shift
+        done
+
+        if [ ! -x "$(command -v openssl)" ]; then
+            echo "openssl not found"
+            exit 1
+        fi
+
+        csrName=${service}
+        tmpdir=$(mktemp -d)
+        echo "creating certs in tmpdir ${tmpdir} "
+
+        cat <<EOF >> ${tmpdir}/csr.conf
+        [req]
+        req_extensions = v3_req
+        distinguished_name = req_distinguished_name
+        [req_distinguished_name]
+        [ v3_req ]
+        basicConstraints = CA:FALSE
+        keyUsage = digitalSignature, keyEncipherment
+        extendedKeyUsage = serverAuth
+        subjectAltName = @alt_names
+        [alt_names]
+        DNS.1 = ${service}
+        DNS.2 = ${service}.${namespace}
+        DNS.3 = ${service}.${namespace}.svc
+        EOF
+
+        openssl genrsa -out ${tmpdir}/server-key.pem 2048
+        openssl req -new -key ${tmpdir}/server-key.pem -subj "/CN=${service}" -out ${tmpdir}/server.csr -config ${tmpdir}/csr.conf
+        openssl x509 -req -days 365 -in ${tmpdir}/server.csr -signkey ${tmpdir}/server-key.pem -sha256 -out ${tmpdir}/server.crt
+        openssl x509 -in ${tmpdir}/server.crt -out ${tmpdir}/server-cert.pem -outform PEM
+
+        # create the secret with CA cert and server cert/key
+        kubectl create secret generic ${secret} \
+                --from-file=key.pem=${tmpdir}/server-key.pem \
+                --from-file=cert.pem=${tmpdir}/server-cert.pem \
+                --dry-run -o yaml |
+            kubectl -n ${namespace} apply -f -
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nexus-api-gw
+  namespace: '{{.Namespace}}'
+spec:
+  ports:
+  - protocol: TCP
+    name: http
+    port: 80
+    targetPort: 80
+  - protocol: TCP
+    name: https
+    port: 443
+    targetPort: 443
+  - protocol: TCP
+    name: xds
+    port: 18000
+    targetPort: 18000
+  selector:
+    control-plane: nexus-api-gw
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: nexus-agw-cr-'{{.Namespace}}'
+  namespace: '{{.Namespace}}'
+rules:
+- apiGroups:
+  - "networking.k8s.io"
+  resources:
+  - "ingressclasses"
+  - "ingresses"
+  verbs:
+  - get
+  - watch
+  - list
+  - create
+  - delete
+  - patch
+  - update
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: nexus-api-gw-sa
+  namespace: '{{.Namespace}}'
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: nexus-agw-crb-'{{.Namespace}}'
+  namespace: '{{.Namespace}}'
+subjects:
+- kind: ServiceAccount
+  name: nexus-api-gw-sa
+  namespace: '{{.Namespace}}'
+roleRef:
+  kind: ClusterRole
+  name: nexus-agw-cr-'{{.Namespace}}'
+  apiGroup: rbac.authorization.k8s.io

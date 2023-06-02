@@ -1,0 +1,15 @@
+global:
+  useHttps: false
+  api_gateway:
+    pub_key: ""
+    cert: ""
+  registry: gcr.io/nsx-sm/nexus
+  cronApiVersion: "batch/v1"
+  resources: {}
+  proxy:
+    loadbalancer: false
+  createEtcd: true
+  etcd:
+    selectors: |
+        app: nexus-etcd
+        nexus: nexus-etcd

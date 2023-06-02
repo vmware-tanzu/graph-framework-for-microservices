@@ -1,0 +1,181 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  # insecure-skip-tls-verify: true is added as the apiserver is internally exposed between microservices
+  name: nexus-graphql-kubeconfig
+  namespace: {{ default  .Release.Namespace .Values.global.namespace }}
+data:
+  kubeconfig: |
+    current-context: localapiserver
+    apiVersion: v1
+    kind: Config
+    clusters:
+    - cluster:
+        api-version: v1
+        server: http://nexus-apiserver:8080
+        insecure-skip-tls-verify: true
+      name: localapiserver
+    contexts:
+    - context:
+        cluster: localapiserver
+      name: localapiserver
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nexus-graphql-server-deployment
+  namespace: {{ default  .Release.Namespace .Values.global.namespace }}
+data:
+  graphqlServer.yaml: |
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: nexus-graphql-server
+        namespace: {{ default  .Release.Namespace .Values.global.namespace }}
+        labels:
+          control-plane: graphql
+      spec:
+        selector:
+          matchLabels:
+            control-plane: graphql
+        replicas: 1
+        template:
+          metadata:
+            annotations:
+              kubectl.kubernetes.io/default-container: graphql
+            labels:
+              control-plane: graphql
+          spec:
+            initContainers:
+              - name: check-nexus-proxy-container
+                image: "{{ .Values.global.registry }}/debugtools:latest"
+                imagePullPolicy: IfNotPresent
+                command:
+                  - /bin/bash
+                  - -c
+                  - |
+                    #!/bin/bash
+                    set -x
+                    URL="http://nexus-apiserver:8080/api/v1/namespaces"
+                    max_retries=20
+                    counter=0
+                    while [[ $counter -lt $max_retries ]]; do
+                          status=$(curl -s -o /dev/null -I -w "%{http_code}" -XGET $URL)
+                          if [ $status == "200" ]; then
+                              echo "$URL is reachable"
+                              exit 0
+                          else
+                              counter=$((counter +1))
+                              sleep 5
+                          fi
+                    done
+              - name: create-backend-route-object
+                image: "{{ .Values.global.registry }}/debugtools:latest"
+                imagePullPolicy: IfNotPresent
+                command:
+                  - /bin/bash
+                  - -c
+                  - |
+                      #!/bin/bash
+                      set -x
+                      function create_object() {
+                      FILE=$1
+                      RETRY=4
+                      ATTEMPT=0
+                      while [ $ATTEMPT -ne $RETRY ]; do
+                        if ! cat $FILE | kubectl -s nexus-api-gw:80 apply -f -; then
+                          ATTEMPT=$((ATTEMPT + 1))
+                          if [ $ATTEMPT -ne $RETRY ]; then
+                              sleep 2
+                          else
+                              exit 1
+                          fi
+                        else
+                          break
+                        fi
+                        done
+                      }
+                      echo 'waiting for Nexus CRD to be installed...'
+                      until $(kubectl -s nexus-api-gw:80 get crd/nexuses.api.nexus.vmware.com > /dev/null 2>&1); do
+                        echo '.'
+                        sleep 5
+                      done
+                      echo 'NexusAPI CRD is installed'
+
+                      echo 'waiting for Config CRD to be installed...'
+                      until $(kubectl -s nexus-api-gw:80 get crd/configs.config.nexus.vmware.com > /dev/null 2>&1); do
+                        echo '.'
+                        sleep 5
+                      done
+                      echo 'Config CRD is installed'
+
+                      echo 'waiting for Route CRD to be installed...'
+                      until $(kubectl -s nexus-api-gw:80 get crd/routes.route.nexus.vmware.com > /dev/null 2>&1); do
+                        echo '.'
+                        sleep 5
+                      done
+                      echo 'Route CRD is installed'
+
+                      echo "Creating custom route object"
+                      cat > /tmp/object <<EOF
+                      apiVersion: route.nexus.vmware.com/v1
+                      kind: Route
+                      metadata:
+                        name: graphqlv2
+                      spec:
+                        service:
+                          name: nexus-graphql
+                          port: 8080
+                          scheme: Http
+                        resource:
+                          name: graphql
+                        uri: /
+                      EOF
+                      create_object /tmp/object
+            containers:
+              -
+                image: __DATAMODEL_IMAGE__
+                command: 
+                - /bin/bash
+                - -c
+                - /build/server
+                name: graphql
+                env:
+                  - name: KUBECONFIG
+                    value: /kubeconfig/kubeconfig
+                  - name: NAMESPACE
+                    valueFrom:
+                      fieldRef:
+                        apiVersion: v1
+                        fieldPath: metadata.namespace
+                imagePullPolicy: IfNotPresent
+                securityContext:
+                  allowPrivilegeEscalation: false
+                # TODO(user): Configure the resources accordingly based on the project requirements.
+                # More info: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/
+                {{- template "graphql_resources" .}}
+                volumeMounts:
+                  - mountPath: /kubeconfig
+                    name: nexus-kubeconfig
+            volumes:
+              - name: nexus-kubeconfig
+                configMap:
+                  name: nexus-graphql-kubeconfig
+            terminationGracePeriodSeconds: 10
+            securityContext:
+              runAsUser: 0
+              runAsGroup: 0
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nexus-graphql
+  namespace: {{ default  .Release.Namespace .Values.global.namespace }}
+spec:
+  ports:
+  - protocol: TCP
+    name: http
+    port: 8080
+    targetPort: 8080
+  selector:
+    control-plane: graphql

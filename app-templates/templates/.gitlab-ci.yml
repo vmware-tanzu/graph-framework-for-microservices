@@ -1,0 +1,91 @@
+image:
+  name: runner.servicemesh.biz:5000/allspark/runner:latest
+
+before_script:
+  - git config --global credential.helper store
+  - echo -e  "https://gitlab-ci-token:${CICD_TOKEN}@gitlab.eng.vmware.com"  >> ~/.git-credentials
+  - flash repo login .
+  - source /usr/local/bin/source/flash_tool.sh
+  - export CONTAINER_ID=$(docker ps -q -f "label=com.gitlab.gitlab-runner.job.id=$CI_JOB_ID" -f "label=com.gitlab.gitlab-runner.type=build")
+
+after_script:
+  - date
+  - flash docker cleanup images
+  - flash docker cleanup containers
+  - flash docker cleanup volumes
+
+stages:
+  - check-mr
+  - static-analysis
+  - test
+  - build
+  - release
+  - integration-test
+  - teardown
+
+check-mr:
+  stage: check-mr
+  only:
+    - merge_requests
+  script:
+    - echo "Checking MR title for a reference to Jira ticket."
+    - check_mr
+
+build:
+  stage: build
+  only:
+    - merge_requests
+  script:
+    - make publish CI_COMMIT=dev-${CI_COMMIT_SHA}
+    - make image_scan
+
+release:
+  stage: release
+  only:
+    - tags
+  script:
+    - make publish CI_COMMIT=${CI_COMMIT_TAG}
+    - make image_scan
+
+lint:
+  stage: static-analysis
+  only:
+    - merge_requests
+  script:
+    - make lint
+
+cover:
+  stage: test
+  only:
+    - merge_requests
+    - main
+    - develop
+  script:
+    - make coverage
+
+test:
+  stage: test
+  only:
+    - merge_requests
+  script:
+    - make test
+
+integration-tests:  
+  stage: integration-test
+  only:
+    - merge_requests
+  script:
+    - make integration_test
+  after_script:
+    - make integration_test_cleanup
+
+teardown-environment:
+  stage: teardown
+  only:
+    - merge_requests
+  when: always
+  allow_failure: true
+  script:
+    - make teardown_environment
+  dependencies:
+    - integration-tests
