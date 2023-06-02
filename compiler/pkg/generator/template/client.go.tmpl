@@ -245,23 +245,23 @@ func (group *{{$node.GroupTypeName}}) Delete{{$node.BaseNodeName}}ByName(ctx con
 		{{$node.GroupTypeName}}().
 		{{$node.GroupResourceNameTitle}}().Get(ctx, hashedName, metav1.GetOptions{})
 		if err != nil {
-			log.Errorf("[Delete{{$node.BaseNodeName}}ByName] Failed to Get {{$node.GroupResourceNameTitle}}: %+v",err)
+			log.Errorf("[Delete{{$node.BaseNodeName}}ByName] Failed to get {{$node.GroupResourceNameTitle}}: %+v",err)
 			if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded){
-				log.Errorf("[Retry Count: %d ] %+v",retryCount,err)
+				log.Debugf("[Retry count: (%d) obj: %s ] %+v",retryCount,hashedName, err)
 				if retryCount == maxRetryCount {
-					log.Error("Max Retry exceed on Get {{$node.GroupResourceNameTitle}}")
+					log.Errorf("Max retry exceed on get {{$node.GroupResourceNameTitle}}: %s",hashedName)
 					return err
 				}
 				retryCount +=1
 				time.Sleep(sleepTime * time.Second)
 			} else if customerrors.Is(err, context.Canceled){
-				log.Errorf("[Delete{{$node.BaseNodeName}}ByName]: %+v",err)
+				log.Errorf("[Delete{{$node.BaseNodeName}}ByName] context canceled: %s",hashedName)
 				return context.Canceled
 			} else if errors.IsNotFound(err){
-				log.Errorf("[Delete{{$node.BaseNodeName}}ByName] Object Notfound: %+v",err)
+				log.Errorf("[Delete{{$node.BaseNodeName}}ByName] Object: %s not found",hashedName)
 				break
 			} else {
-				log.Errorf("[Delete{{$node.BaseNodeName}}ByName]: %+v",err)
+				log.Errorf("[Delete{{$node.BaseNodeName}}ByName] Object: %s unexpected error: %+v",hashedName,err)
 				return err
 			}
 		} else {
@@ -270,6 +270,9 @@ func (group *{{$node.GroupTypeName}}) Delete{{$node.BaseNodeName}}ByName(ctx con
 	}
 	{{ end }}
 
+	if result == nil {
+		return err
+	}
 	{{ range $key, $link := .Children }}
 	{{ if $link.IsNamed }}
 	for _, v := range result.Spec.{{$link.FieldName}}Gvk {
@@ -303,21 +306,21 @@ func (group *{{$node.GroupTypeName}}) Delete{{$node.BaseNodeName}}ByName(ctx con
 		if err != nil {
 			log.Errorf("[Delete{{$node.BaseNodeName}}ByName] failed to delete {{$node.GroupResourceNameTitle}}: %+v",err)
 			if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded) {
-				log.Errorf("[Retry Count: %d ] %+v",retryCount,err)
+				log.Debugf("[Retry count: (%d) obj: %s ] %+v",retryCount,hashedName, err)
 				if retryCount == maxRetryCount {
-					log.Error("Max retry exceed on delete {{$node.GroupResourceNameTitle}}")
+					log.Errorf("Max retry exceed on delete {{$node.GroupResourceNameTitle}}: %s",hashedName)
 					return err
 				}
 				retryCount +=1
 				time.Sleep(sleepTime * time.Second)
 			} else if customerrors.Is(err, context.Canceled){
-				log.Errorf("[Delete{{$node.BaseNodeName}}ByName]: %+v",err)
+				log.Errorf("[Delete{{$node.BaseNodeName}}ByName]: context canceled: %s",hashedName)
 				return context.Canceled
 			} else if errors.IsNotFound(err){
-				log.Errorf("[Delete{{$node.BaseNodeName}}ByName] Object not found: %+v",err)
+				log.Errorf("[Delete{{$node.BaseNodeName}}ByName] Object: %s not found",hashedName)
 				break
 			} else {
-				log.Errorf("[Delete{{$node.BaseNodeName}}ByName]: %+v",err)
+				log.Errorf("[Delete{{$node.BaseNodeName}}ByName] Object: %s unexpected error: %+v",hashedName,err)
 				return err
 			}
 		} else {
@@ -327,7 +330,7 @@ func (group *{{$node.GroupTypeName}}) Delete{{$node.BaseNodeName}}ByName(ctx con
 	// Get Parent Node and check if gvk present before patch
 	{{if .Parent.HasParent}}
 	var gvkPresent bool
-	log.Debugf("[Delete{{$node.BaseNodeName}}ByName] Get Parent details")
+	log.Debugf("[Delete{{$node.BaseNodeName}}ByName] Get parent details for object: %s",hashedName)
 	var patch Patch
 	parents := result.GetLabels()
 	if parents == nil {
@@ -348,7 +351,7 @@ func (group *{{$node.GroupTypeName}}) Delete{{$node.BaseNodeName}}ByName(ctx con
 				{{$node.Parent.GroupTypeName}}().
 				{{$node.Parent.GroupResourceNameTitle}}().Get(ctx, parentName, metav1.GetOptions{})
 	if err != nil{
-		log.Errorf("[Delete{{$node.BaseNodeName}}ByName] Failed to get Parent node: %+v",err)
+		log.Errorf("[Delete{{$node.BaseNodeName}}ByName] Failed to get parent node for obj:(%s) %+v",hashedName,err)
 		if errors.IsNotFound(err){
 			return nil
 		} else{
@@ -396,9 +399,9 @@ func (group *{{$node.GroupTypeName}}) Delete{{$node.BaseNodeName}}ByName(ctx con
 			{{$node.Parent.GroupTypeName}}().
 			{{$node.Parent.GroupResourceNameTitle}}().Patch(newCtx, parentName, types.JSONPatchType, marshaled, metav1.PatchOptions{})
 			if err != nil {
-				log.Errorf("Failed to patch {{$node.BaseNodeName}} gvk in parent node[{{$node.Parent.GroupResourceNameTitle}}]: %+v", err)
+				log.Errorf("[Delete{{$node.BaseNodeName}}ByName] Failed to patch {{$node.BaseNodeName}} gvk in parent node[{{$node.Parent.GroupResourceNameTitle}}]: %+v", err)
 				if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded){
-					log.Errorf("[Retry Count: %d ] %+v",retryCount, err)
+					log.Debugf("[Retry count: (%d) obj: %s ] %+v",retryCount,hashedName, err)
 					if retryCount == maxRetryCount {
 						log.Error("Max Retry exceed on patching gvk")
 						return err
@@ -406,10 +409,10 @@ func (group *{{$node.GroupTypeName}}) Delete{{$node.BaseNodeName}}ByName(ctx con
 					retryCount +=1
 					time.Sleep(sleepTime * time.Second)
 				} else if customerrors.Is(err, context.Canceled){
-					log.Errorf("[Delete{{$node.BaseNodeName}}ByName]: %+v",err)
+					log.Errorf("[Delete{{$node.BaseNodeName}}ByName]: context canceled: %s",hashedName)
 					return context.Canceled
 				} else {
-					log.Errorf("Unexpected Error occur {{$node.BaseNodeName}}]: %+v",err)
+					log.Errorf("[Delete{{$node.BaseNodeName}}ByName] Object: %s unexpected error: %+v",hashedName,err)
 					return err
 				}
 			} else {
@@ -454,20 +457,20 @@ func (group *{{$node.GroupTypeName}}) Create{{$node.BaseNodeName}}ByName(ctx con
 		{{$node.GroupTypeName}}().
 		{{$node.GroupResourceNameTitle}}().Create(ctx, objToCreate, metav1.CreateOptions{})
 		if err != nil {
-			log.Errorf("[Create{{$node.BaseNodeName}}ByName] Failed to Create {{$node.GroupResourceNameTitle}}: %+v",err)
+			log.Errorf("[Create{{$node.BaseNodeName}}ByName] Failed to create {{$node.GroupResourceNameTitle}}:(%s) %+v",objToCreate.GetName(),err)
 			if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded){
-				log.Errorf("[Retry Count: %d ] %+v",retryCount,err)
+				log.Debugf("[Retry count: (%d) obj: %s ] %+v",retryCount,objToCreate.GetName(),err)
 				if retryCount == maxRetryCount {
-					log.Error("Max Retry exceed on Get {{$node.GroupResourceNameTitle}}")
+					log.Error("Max retry exceed on create {{$node.GroupResourceNameTitle}}: %s",objToCreate.GetName())
 					return nil,err
 				}
 				retryCount +=1
 				time.Sleep(sleepTime * time.Second)
 			} else if customerrors.Is(err, context.Canceled){
-				log.Errorf("[Create{{$node.BaseNodeName}}ByName]: %+v",err)
+				log.Errorf("[Create{{$node.BaseNodeName}}ByName]: context canceled: %s",objToCreate.GetName())
 				return nil,context.Canceled
 			} else {
-				log.Errorf("[Create{{$node.BaseNodeName}}ByName]: %+v",err)
+				log.Errorf("[Create{{$node.BaseNodeName}}ByName] Object: %s unexpected error: %+v",objToCreate.GetName(),err)
 				return nil,err
 			}
 		} else {
@@ -495,10 +498,10 @@ func (group *{{$node.GroupTypeName}}) Create{{$node.BaseNodeName}}ByName(ctx con
 		if err != nil {
 			log.Errorf("[Create{{$node.BaseNodeName}}ByName] Failed to patch {{$node.BaseNodeName}} gvk in parent node[{{$node.Parent.GroupResourceNameTitle}}] %+v",err)
 			if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded){
-				log.Errorf("[Retry Count: %d ] %+v",retryCount, err)
+				log.Debugf("[Retry count: (%d) obj: %s ] %+v",retryCount,objToCreate.GetName(),err)
 				if retryCount == maxRetryCount {
-					log.Error("Max Retry exceed on patching gvk")
-					log.Errorf("Trigger {{$node.BaseNodeName}} Delete: %s",objToCreate.GetName())
+					log.Errorf("Max retry exceed on patching gvk: %s",objToCreate.GetName())
+					log.Errorf("[Create{{$node.BaseNodeName}}ByName] Trigger {{$node.BaseNodeName}} delete: %s",objToCreate.GetName())
 					delErr := group.Delete{{$node.BaseNodeName}}ByName(newCtx, objToCreate.GetName())
 					if delErr != nil {
 						log.Errorf("Error occur while deleting {{$node.BaseNodeName}}: %s",objToCreate.GetName())
@@ -510,17 +513,17 @@ func (group *{{$node.GroupTypeName}}) Create{{$node.BaseNodeName}}ByName(ctx con
 				retryCount +=1
 				time.Sleep(sleepTime * time.Second)
 			} else if customerrors.Is(err, context.Canceled){
-				log.Errorf("[Create{{$node.BaseNodeName}}ByName]: %+v",err)
+				log.Errorf("[Create{{$node.BaseNodeName}}ByName]: context canceled: %s",objToCreate.GetName())
 				return nil,context.Canceled
 			} else {
-				log.Errorf("[Create{{$node.BaseNodeName}}ByName] Unexpected Error {{$node.BaseNodeName}}] %+v",err)
-				log.Errorf("Trigger {{$node.BaseNodeName}} Delete: %s",objToCreate.GetName())
+				log.Errorf("[Create{{$node.BaseNodeName}}ByName] Object: %s unexpected error: %+v",objToCreate.GetName(),err)
+				log.Debugf("Trigger {{$node.BaseNodeName}} delete: %s",objToCreate.GetName())
 				delErr := group.Delete{{$node.BaseNodeName}}ByName(newCtx, objToCreate.GetName())
 				if delErr != nil {
-					log.Errorf("Error occur while deleting {{$node.BaseNodeName}}: %+v",objToCreate.GetName())
+					log.Debugf("Error occur while deleting {{$node.BaseNodeName}}: %s",objToCreate.GetName())
 					return nil, delErr
 				}
-				log.Errorf("{{$node.BaseNodeName}} Deleted: %s",objToCreate.GetName())
+				log.Debugf("{{$node.BaseNodeName}} Deleted: %s",objToCreate.GetName())
 				return nil, err
 			}
 		} else {
@@ -553,32 +556,32 @@ func (group *{{$node.GroupTypeName}}) Create{{$node.BaseNodeName}}ByName(ctx con
 		if err != nil {
 			log.Errorf("[Create{{$node.BaseNodeName}}ByName] Failed to patch {{$node.BaseNodeName}} gvk in parent node[{{$node.Parent.GroupResourceNameTitle}}]: %+v",err)
 			if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded){
-				log.Errorf("[Retry Count: %d ] %+v",retryCount, err)
+				log.Debugf("[Retry count: (%d) obj: %s ] %+v",retryCount,objToCreate.GetName(),err)
 				if retryCount == maxRetryCount {
-					log.Error("Max Retry exceed on patching gvk")
-					log.Errorf("Trigger {{$node.BaseNodeName}} Delete: %s",objToCreate.GetName())
+					log.Errorf("Max retry exceed on patching gvk: %s",objToCreate.GetName())
+					log.Debugf("Trigger {{$node.BaseNodeName}} delete: %s",objToCreate.GetName())
 					delErr := group.Delete{{$node.BaseNodeName}}ByName(newCtx, objToCreate.GetName())
 					if delErr != nil {
-						log.Errorf("Error occur while deleting {{$node.BaseNodeName}}: %s",objToCreate.GetName())
+						log.Debugf("Error occur while deleting {{$node.BaseNodeName}}: %s",objToCreate.GetName())
 						return nil, delErr
 					}
-					log.Errorf("{{$node.BaseNodeName}} Deleted: %s",objToCreate.GetName())
+					log.Debugf("{{$node.BaseNodeName}} Deleted: %s",objToCreate.GetName())
 					return nil, err
 				}
 				retryCount +=1
 				time.Sleep(sleepTime * time.Second)
 			} else if customerrors.Is(err, context.Canceled){
-				log.Errorf("[Create{{$node.BaseNodeName}}ByName]: %+v",err)
+				log.Errorf("[Create{{$node.BaseNodeName}}ByName]: context canceled: %s",objToCreate.GetName())
 				return nil,context.Canceled
 			} else {
-				log.Errorf("[Create{{$node.BaseNodeName}}ByName] Unexpected Error {{$node.BaseNodeName}}] :%+v",err)
-				log.Errorf("Trigger {{$node.BaseNodeName}} Delete: %s",objToCreate.GetName())
+				log.Errorf("[Create{{$node.BaseNodeName}}ByName] Object: %s unexpected error: %+v",objToCreate.GetName(),err)
+				log.Debugf("Trigger {{$node.BaseNodeName}} Delete: %s",objToCreate.GetName())
 				delErr := group.Delete{{$node.BaseNodeName}}ByName(newCtx, objToCreate.GetName())
 				if delErr != nil {
-					log.Errorf("Error occur while deleting {{$node.BaseNodeName}}: %+v",objToCreate.GetName())
+					log.Debugf("Error occur while deleting {{$node.BaseNodeName}}: %+v",objToCreate.GetName())
 					return nil, delErr
 				}
-				log.Errorf("{{$node.BaseNodeName}} Deleted: %s",objToCreate.GetName())
+				log.Debugf("{{$node.BaseNodeName}} Deleted: %s",objToCreate.GetName())
 				return nil, err
 			}
 		} else {
@@ -719,36 +722,36 @@ func (group *{{$node.GroupTypeName}}) Update{{$node.BaseNodeName}}ByName(ctx con
 		if err != nil {
 			log.Errorf("[Update{{$node.BaseNodeName}}ByName] Failed to patch {{$node.BaseNodeName}} gvk in parent node[{{$node.Parent.GroupResourceNameTitle}}]: %+v",err)
 			if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded){
-				log.Errorf("[Retry Count: %d ] %+v",retryCount, err)
+				log.Debugf("[Retry count: (%d) obj: %s ] %+v",retryCount,objToUpdate.GetName(),err)
 				if retryCount == maxRetryCount {
-					log.Error("Max Retry exceed on patching gvk")
-					log.Errorf("Trigger {{$node.BaseNodeName}} Delete: %s",objToUpdate.GetName())
+					log.Errorf("Max retry exceed on patching gvk: %s",objToUpdate.GetName())
+					log.Debugf("Trigger {{$node.BaseNodeName}} Delete: %s",objToUpdate.GetName())
 					delErr := group.Delete{{$node.BaseNodeName}}ByName(newCtx, objToUpdate.GetName())
 					if delErr != nil {
-						log.Errorf("Error occur while deleting {{$node.BaseNodeName}}: %s",objToUpdate.GetName())
+						log.Debugf("Error occur while deleting {{$node.BaseNodeName}}: %s",objToUpdate.GetName())
 						return nil, delErr
 					}
-					log.Errorf("{{$node.BaseNodeName}} Deleted: %s",objToUpdate.GetName())
+					log.Debugf("{{$node.BaseNodeName}} deleted: %s",objToUpdate.GetName())
 					return nil, err
 				}
 				retryCount +=1
 				time.Sleep(sleepTime * time.Second)
 			} else if customerrors.Is(err, context.Canceled){
-				log.Errorf("[Create{{$node.BaseNodeName}}ByName]: %+v",err)
+				log.Errorf("[Update{{$node.BaseNodeName}}ByName]: context canceled: %s",objToUpdate.GetName())
 				return nil, context.Canceled
 			} else {
-				log.Errorf("[Create{{$node.BaseNodeName}}ByName] Unexpected Error {{$node.BaseNodeName}}] :%+v",err)
-				log.Errorf("Trigger {{$node.BaseNodeName}} Delete: %s",objToUpdate.GetName())
+				log.Errorf("[Update{{$node.BaseNodeName}}ByName] Object: %s unexpected error: %+v",objToUpdate.GetName(),err)
+				log.Debugf("Trigger {{$node.BaseNodeName}} Delete: %s",objToUpdate.GetName())
 				delErr := group.Delete{{$node.BaseNodeName}}ByName(newCtx, objToUpdate.GetName())
 				if delErr != nil {
-					log.Errorf("Error occur while deleting {{$node.BaseNodeName}}: %+v",objToUpdate.GetName())
+					log.Debugf("Error occur while deleting {{$node.BaseNodeName}}: %+v",objToUpdate.GetName())
 					return nil, delErr
 				}
-				log.Errorf("{{$node.BaseNodeName}} Deleted: %s",objToUpdate.GetName())
+				log.Debugf("{{$node.BaseNodeName}} Deleted: %s",objToUpdate.GetName())
 				return nil, err
 			}
 		} else {
-			log.Debugf("[Create{{$node.BaseNodeName}}ByName] Patch {{$node.BaseNodeName}} Success :%s",objToUpdate.GetName())
+			log.Debugf("[Update{{$node.BaseNodeName}}ByName] Patch {{$node.BaseNodeName}} Success :%s",objToUpdate.GetName())
 			break
 		}
 	}
@@ -987,7 +990,7 @@ func (obj *{{$node.SimpleGroupTypeName}}{{$node.BaseNodeName}}) Get{{$link.Field
 // nexus/display_name label and can be obtained using DisplayName() method.
 func (obj *{{$node.SimpleGroupTypeName}}{{$node.BaseNodeName}}) Add{{$link.FieldName}}(ctx context.Context,
 	objToCreate *{{$link.GroupBaseImport}}) (result *{{$link.SimpleGroupTypeName}}{{$link.BaseNodeName}}, err error) {
-	log.Debugf("[Add{{$link.FieldName}}] Received objToCreate: %s", objToCreate.GetName())
+	log.Debugf("[Add{{$link.FieldName}}] Received objToAdd: %s", objToCreate.GetName())
 	if objToCreate.Labels == nil {
 		objToCreate.Labels = map[string]string{}
 	}
@@ -1008,7 +1011,7 @@ func (obj *{{$node.SimpleGroupTypeName}}{{$node.BaseNodeName}}) Add{{$link.Field
 		objToCreate.Name = hashedName
 	}
 	result, err = obj.client.{{$link.SimpleGroupTypeName}}().Create{{$link.BaseNodeName}}ByName(ctx, objToCreate)
-	log.Debugf("[Add{{$link.FieldName}}] ApiSpecification created successfully: %s", objToCreate.GetName())
+	log.Debugf("[Add{{$link.FieldName}}] {{$link.BaseNodeName}} created successfully: %s", objToCreate.GetName())
 	updatedObj, getErr :=  obj.client.{{$node.SimpleGroupTypeName}}().Get{{$node.BaseNodeName}}ByName(ctx, obj.GetName())
 	if getErr == nil {
 		obj.{{$node.BaseNodeName}} = updatedObj.{{$node.BaseNodeName}}

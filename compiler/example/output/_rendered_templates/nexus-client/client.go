@@ -396,28 +396,32 @@ func (group *RootTsmV1) DeleteRootByName(ctx context.Context, hashedName string)
 			RootTsmV1().
 			Roots().Get(ctx, hashedName, metav1.GetOptions{})
 		if err != nil {
-			log.Errorf("[DeleteRootByName] Failed to Get Roots: %+v", err)
+			log.Errorf("[DeleteRootByName] Failed to get Roots: %+v", err)
 			if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded) {
-				log.Errorf("[Retry Count: %d ] %+v", retryCount, err)
+				log.Debugf("[Retry count: (%d) obj: %s ] %+v", retryCount, hashedName, err)
 				if retryCount == maxRetryCount {
-					log.Error("Max Retry exceed on Get Roots")
+					log.Errorf("Max retry exceed on get Roots: %s", hashedName)
 					return err
 				}
 				retryCount += 1
 				time.Sleep(sleepTime * time.Second)
 			} else if customerrors.Is(err, context.Canceled) {
-				log.Errorf("[DeleteRootByName]: %+v", err)
+				log.Errorf("[DeleteRootByName] context canceled: %s", hashedName)
 				return context.Canceled
 			} else if errors.IsNotFound(err) {
-				log.Errorf("[DeleteRootByName] Object Notfound: %+v", err)
+				log.Errorf("[DeleteRootByName] Object: %s not found", hashedName)
 				break
 			} else {
-				log.Errorf("[DeleteRootByName]: %+v", err)
+				log.Errorf("[DeleteRootByName] Object: %s unexpected error: %+v", hashedName, err)
 				return err
 			}
 		} else {
 			break
 		}
+	}
+
+	if result == nil {
+		return err
 	}
 
 	if result.Spec.ConfigGvk != nil {
@@ -437,21 +441,21 @@ func (group *RootTsmV1) DeleteRootByName(ctx context.Context, hashedName string)
 		if err != nil {
 			log.Errorf("[DeleteRootByName] failed to delete Roots: %+v", err)
 			if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded) {
-				log.Errorf("[Retry Count: %d ] %+v", retryCount, err)
+				log.Debugf("[Retry count: (%d) obj: %s ] %+v", retryCount, hashedName, err)
 				if retryCount == maxRetryCount {
-					log.Error("Max retry exceed on delete Roots")
+					log.Errorf("Max retry exceed on delete Roots: %s", hashedName)
 					return err
 				}
 				retryCount += 1
 				time.Sleep(sleepTime * time.Second)
 			} else if customerrors.Is(err, context.Canceled) {
-				log.Errorf("[DeleteRootByName]: %+v", err)
+				log.Errorf("[DeleteRootByName]: context canceled: %s", hashedName)
 				return context.Canceled
 			} else if errors.IsNotFound(err) {
-				log.Errorf("[DeleteRootByName] Object not found: %+v", err)
+				log.Errorf("[DeleteRootByName] Object: %s not found", hashedName)
 				break
 			} else {
-				log.Errorf("[DeleteRootByName]: %+v", err)
+				log.Errorf("[DeleteRootByName] Object: %s unexpected error: %+v", hashedName, err)
 				return err
 			}
 		} else {
@@ -494,20 +498,20 @@ func (group *RootTsmV1) CreateRootByName(ctx context.Context,
 			RootTsmV1().
 			Roots().Create(ctx, objToCreate, metav1.CreateOptions{})
 		if err != nil {
-			log.Errorf("[CreateRootByName] Failed to Create Roots: %+v", err)
+			log.Errorf("[CreateRootByName] Failed to create Roots:(%s) %+v", objToCreate.GetName(), err)
 			if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded) {
-				log.Errorf("[Retry Count: %d ] %+v", retryCount, err)
+				log.Debugf("[Retry count: (%d) obj: %s ] %+v", retryCount, objToCreate.GetName(), err)
 				if retryCount == maxRetryCount {
-					log.Error("Max Retry exceed on Get Roots")
+					log.Error("Max retry exceed on create Roots: %s", objToCreate.GetName())
 					return nil, err
 				}
 				retryCount += 1
 				time.Sleep(sleepTime * time.Second)
 			} else if customerrors.Is(err, context.Canceled) {
-				log.Errorf("[CreateRootByName]: %+v", err)
+				log.Errorf("[CreateRootByName]: context canceled: %s", objToCreate.GetName())
 				return nil, context.Canceled
 			} else {
-				log.Errorf("[CreateRootByName]: %+v", err)
+				log.Errorf("[CreateRootByName] Object: %s unexpected error: %+v", objToCreate.GetName(), err)
 				return nil, err
 			}
 		} else {
@@ -583,36 +587,36 @@ func (group *RootTsmV1) UpdateRootByName(ctx context.Context,
 		if err != nil {
 			log.Errorf("[UpdateRootByName] Failed to patch Root gvk in parent node[]: %+v", err)
 			if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded) {
-				log.Errorf("[Retry Count: %d ] %+v", retryCount, err)
+				log.Debugf("[Retry count: (%d) obj: %s ] %+v", retryCount, objToUpdate.GetName(), err)
 				if retryCount == maxRetryCount {
-					log.Error("Max Retry exceed on patching gvk")
-					log.Errorf("Trigger Root Delete: %s", objToUpdate.GetName())
+					log.Errorf("Max retry exceed on patching gvk: %s", objToUpdate.GetName())
+					log.Debugf("Trigger Root Delete: %s", objToUpdate.GetName())
 					delErr := group.DeleteRootByName(newCtx, objToUpdate.GetName())
 					if delErr != nil {
-						log.Errorf("Error occur while deleting Root: %s", objToUpdate.GetName())
+						log.Debugf("Error occur while deleting Root: %s", objToUpdate.GetName())
 						return nil, delErr
 					}
-					log.Errorf("Root Deleted: %s", objToUpdate.GetName())
+					log.Debugf("Root deleted: %s", objToUpdate.GetName())
 					return nil, err
 				}
 				retryCount += 1
 				time.Sleep(sleepTime * time.Second)
 			} else if customerrors.Is(err, context.Canceled) {
-				log.Errorf("[CreateRootByName]: %+v", err)
+				log.Errorf("[UpdateRootByName]: context canceled: %s", objToUpdate.GetName())
 				return nil, context.Canceled
 			} else {
-				log.Errorf("[CreateRootByName] Unexpected Error Root] :%+v", err)
-				log.Errorf("Trigger Root Delete: %s", objToUpdate.GetName())
+				log.Errorf("[UpdateRootByName] Object: %s unexpected error: %+v", objToUpdate.GetName(), err)
+				log.Debugf("Trigger Root Delete: %s", objToUpdate.GetName())
 				delErr := group.DeleteRootByName(newCtx, objToUpdate.GetName())
 				if delErr != nil {
-					log.Errorf("Error occur while deleting Root: %+v", objToUpdate.GetName())
+					log.Debugf("Error occur while deleting Root: %+v", objToUpdate.GetName())
 					return nil, delErr
 				}
-				log.Errorf("Root Deleted: %s", objToUpdate.GetName())
+				log.Debugf("Root Deleted: %s", objToUpdate.GetName())
 				return nil, err
 			}
 		} else {
-			log.Debugf("[CreateRootByName] Patch Root Success :%s", objToUpdate.GetName())
+			log.Debugf("[UpdateRootByName] Patch Root Success :%s", objToUpdate.GetName())
 			break
 		}
 	}
@@ -741,7 +745,7 @@ func (obj *RootRoot) GetConfig(ctx context.Context) (
 // nexus/display_name label and can be obtained using DisplayName() method.
 func (obj *RootRoot) AddConfig(ctx context.Context,
 	objToCreate *baseconfigtsmtanzuvmwarecomv1.Config) (result *ConfigConfig, err error) {
-	log.Debugf("[AddConfig] Received objToCreate: %s", objToCreate.GetName())
+	log.Debugf("[AddConfig] Received objToAdd: %s", objToCreate.GetName())
 	if objToCreate.Labels == nil {
 		objToCreate.Labels = map[string]string{}
 	}
@@ -756,7 +760,7 @@ func (obj *RootRoot) AddConfig(ctx context.Context,
 		objToCreate.Name = hashedName
 	}
 	result, err = obj.client.Config().CreateConfigByName(ctx, objToCreate)
-	log.Debugf("[AddConfig] ApiSpecification created successfully: %s", objToCreate.GetName())
+	log.Debugf("[AddConfig] Config created successfully: %s", objToCreate.GetName())
 	updatedObj, getErr := obj.client.Root().GetRootByName(ctx, obj.GetName())
 	if getErr == nil {
 		obj.Root = updatedObj.Root
@@ -1136,28 +1140,32 @@ func (group *ConfigTsmV1) DeleteConfigByName(ctx context.Context, hashedName str
 			ConfigTsmV1().
 			Configs().Get(ctx, hashedName, metav1.GetOptions{})
 		if err != nil {
-			log.Errorf("[DeleteConfigByName] Failed to Get Configs: %+v", err)
+			log.Errorf("[DeleteConfigByName] Failed to get Configs: %+v", err)
 			if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded) {
-				log.Errorf("[Retry Count: %d ] %+v", retryCount, err)
+				log.Debugf("[Retry count: (%d) obj: %s ] %+v", retryCount, hashedName, err)
 				if retryCount == maxRetryCount {
-					log.Error("Max Retry exceed on Get Configs")
+					log.Errorf("Max retry exceed on get Configs: %s", hashedName)
 					return err
 				}
 				retryCount += 1
 				time.Sleep(sleepTime * time.Second)
 			} else if customerrors.Is(err, context.Canceled) {
-				log.Errorf("[DeleteConfigByName]: %+v", err)
+				log.Errorf("[DeleteConfigByName] context canceled: %s", hashedName)
 				return context.Canceled
 			} else if errors.IsNotFound(err) {
-				log.Errorf("[DeleteConfigByName] Object Notfound: %+v", err)
+				log.Errorf("[DeleteConfigByName] Object: %s not found", hashedName)
 				break
 			} else {
-				log.Errorf("[DeleteConfigByName]: %+v", err)
+				log.Errorf("[DeleteConfigByName] Object: %s unexpected error: %+v", hashedName, err)
 				return err
 			}
 		} else {
 			break
 		}
+	}
+
+	if result == nil {
+		return err
 	}
 
 	if result.Spec.GNSGvk != nil {
@@ -1225,21 +1233,21 @@ func (group *ConfigTsmV1) DeleteConfigByName(ctx context.Context, hashedName str
 		if err != nil {
 			log.Errorf("[DeleteConfigByName] failed to delete Configs: %+v", err)
 			if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded) {
-				log.Errorf("[Retry Count: %d ] %+v", retryCount, err)
+				log.Debugf("[Retry count: (%d) obj: %s ] %+v", retryCount, hashedName, err)
 				if retryCount == maxRetryCount {
-					log.Error("Max retry exceed on delete Configs")
+					log.Errorf("Max retry exceed on delete Configs: %s", hashedName)
 					return err
 				}
 				retryCount += 1
 				time.Sleep(sleepTime * time.Second)
 			} else if customerrors.Is(err, context.Canceled) {
-				log.Errorf("[DeleteConfigByName]: %+v", err)
+				log.Errorf("[DeleteConfigByName]: context canceled: %s", hashedName)
 				return context.Canceled
 			} else if errors.IsNotFound(err) {
-				log.Errorf("[DeleteConfigByName] Object not found: %+v", err)
+				log.Errorf("[DeleteConfigByName] Object: %s not found", hashedName)
 				break
 			} else {
-				log.Errorf("[DeleteConfigByName]: %+v", err)
+				log.Errorf("[DeleteConfigByName] Object: %s unexpected error: %+v", hashedName, err)
 				return err
 			}
 		} else {
@@ -1249,7 +1257,7 @@ func (group *ConfigTsmV1) DeleteConfigByName(ctx context.Context, hashedName str
 	// Get Parent Node and check if gvk present before patch
 
 	var gvkPresent bool
-	log.Debugf("[DeleteConfigByName] Get Parent details")
+	log.Debugf("[DeleteConfigByName] Get parent details for object: %s", hashedName)
 	var patch Patch
 	parents := result.GetLabels()
 	if parents == nil {
@@ -1270,7 +1278,7 @@ func (group *ConfigTsmV1) DeleteConfigByName(ctx context.Context, hashedName str
 		RootTsmV1().
 		Roots().Get(ctx, parentName, metav1.GetOptions{})
 	if err != nil {
-		log.Errorf("[DeleteConfigByName] Failed to get Parent node: %+v", err)
+		log.Errorf("[DeleteConfigByName] Failed to get parent node for obj:(%s) %+v", hashedName, err)
 		if errors.IsNotFound(err) {
 			return nil
 		} else {
@@ -1303,9 +1311,9 @@ func (group *ConfigTsmV1) DeleteConfigByName(ctx context.Context, hashedName str
 				RootTsmV1().
 				Roots().Patch(newCtx, parentName, types.JSONPatchType, marshaled, metav1.PatchOptions{})
 			if err != nil {
-				log.Errorf("Failed to patch Config gvk in parent node[Roots]: %+v", err)
+				log.Errorf("[DeleteConfigByName] Failed to patch Config gvk in parent node[Roots]: %+v", err)
 				if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded) {
-					log.Errorf("[Retry Count: %d ] %+v", retryCount, err)
+					log.Debugf("[Retry count: (%d) obj: %s ] %+v", retryCount, hashedName, err)
 					if retryCount == maxRetryCount {
 						log.Error("Max Retry exceed on patching gvk")
 						return err
@@ -1313,10 +1321,10 @@ func (group *ConfigTsmV1) DeleteConfigByName(ctx context.Context, hashedName str
 					retryCount += 1
 					time.Sleep(sleepTime * time.Second)
 				} else if customerrors.Is(err, context.Canceled) {
-					log.Errorf("[DeleteConfigByName]: %+v", err)
+					log.Errorf("[DeleteConfigByName]: context canceled: %s", hashedName)
 					return context.Canceled
 				} else {
-					log.Errorf("Unexpected Error occur Config]: %+v", err)
+					log.Errorf("[DeleteConfigByName] Object: %s unexpected error: %+v", hashedName, err)
 					return err
 				}
 			} else {
@@ -1361,20 +1369,20 @@ func (group *ConfigTsmV1) CreateConfigByName(ctx context.Context,
 			ConfigTsmV1().
 			Configs().Create(ctx, objToCreate, metav1.CreateOptions{})
 		if err != nil {
-			log.Errorf("[CreateConfigByName] Failed to Create Configs: %+v", err)
+			log.Errorf("[CreateConfigByName] Failed to create Configs:(%s) %+v", objToCreate.GetName(), err)
 			if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded) {
-				log.Errorf("[Retry Count: %d ] %+v", retryCount, err)
+				log.Debugf("[Retry count: (%d) obj: %s ] %+v", retryCount, objToCreate.GetName(), err)
 				if retryCount == maxRetryCount {
-					log.Error("Max Retry exceed on Get Configs")
+					log.Error("Max retry exceed on create Configs: %s", objToCreate.GetName())
 					return nil, err
 				}
 				retryCount += 1
 				time.Sleep(sleepTime * time.Second)
 			} else if customerrors.Is(err, context.Canceled) {
-				log.Errorf("[CreateConfigByName]: %+v", err)
+				log.Errorf("[CreateConfigByName]: context canceled: %s", objToCreate.GetName())
 				return nil, context.Canceled
 			} else {
-				log.Errorf("[CreateConfigByName]: %+v", err)
+				log.Errorf("[CreateConfigByName] Object: %s unexpected error: %+v", objToCreate.GetName(), err)
 				return nil, err
 			}
 		} else {
@@ -1415,32 +1423,32 @@ func (group *ConfigTsmV1) CreateConfigByName(ctx context.Context,
 		if err != nil {
 			log.Errorf("[CreateConfigByName] Failed to patch Config gvk in parent node[Roots]: %+v", err)
 			if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded) {
-				log.Errorf("[Retry Count: %d ] %+v", retryCount, err)
+				log.Debugf("[Retry count: (%d) obj: %s ] %+v", retryCount, objToCreate.GetName(), err)
 				if retryCount == maxRetryCount {
-					log.Error("Max Retry exceed on patching gvk")
-					log.Errorf("Trigger Config Delete: %s", objToCreate.GetName())
+					log.Errorf("Max retry exceed on patching gvk: %s", objToCreate.GetName())
+					log.Debugf("Trigger Config delete: %s", objToCreate.GetName())
 					delErr := group.DeleteConfigByName(newCtx, objToCreate.GetName())
 					if delErr != nil {
-						log.Errorf("Error occur while deleting Config: %s", objToCreate.GetName())
+						log.Debugf("Error occur while deleting Config: %s", objToCreate.GetName())
 						return nil, delErr
 					}
-					log.Errorf("Config Deleted: %s", objToCreate.GetName())
+					log.Debugf("Config Deleted: %s", objToCreate.GetName())
 					return nil, err
 				}
 				retryCount += 1
 				time.Sleep(sleepTime * time.Second)
 			} else if customerrors.Is(err, context.Canceled) {
-				log.Errorf("[CreateConfigByName]: %+v", err)
+				log.Errorf("[CreateConfigByName]: context canceled: %s", objToCreate.GetName())
 				return nil, context.Canceled
 			} else {
-				log.Errorf("[CreateConfigByName] Unexpected Error Config] :%+v", err)
-				log.Errorf("Trigger Config Delete: %s", objToCreate.GetName())
+				log.Errorf("[CreateConfigByName] Object: %s unexpected error: %+v", objToCreate.GetName(), err)
+				log.Debugf("Trigger Config Delete: %s", objToCreate.GetName())
 				delErr := group.DeleteConfigByName(newCtx, objToCreate.GetName())
 				if delErr != nil {
-					log.Errorf("Error occur while deleting Config: %+v", objToCreate.GetName())
+					log.Debugf("Error occur while deleting Config: %+v", objToCreate.GetName())
 					return nil, delErr
 				}
-				log.Errorf("Config Deleted: %s", objToCreate.GetName())
+				log.Debugf("Config Deleted: %s", objToCreate.GetName())
 				return nil, err
 			}
 		} else {
@@ -1704,36 +1712,36 @@ func (group *ConfigTsmV1) UpdateConfigByName(ctx context.Context,
 		if err != nil {
 			log.Errorf("[UpdateConfigByName] Failed to patch Config gvk in parent node[Roots]: %+v", err)
 			if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded) {
-				log.Errorf("[Retry Count: %d ] %+v", retryCount, err)
+				log.Debugf("[Retry count: (%d) obj: %s ] %+v", retryCount, objToUpdate.GetName(), err)
 				if retryCount == maxRetryCount {
-					log.Error("Max Retry exceed on patching gvk")
-					log.Errorf("Trigger Config Delete: %s", objToUpdate.GetName())
+					log.Errorf("Max retry exceed on patching gvk: %s", objToUpdate.GetName())
+					log.Debugf("Trigger Config Delete: %s", objToUpdate.GetName())
 					delErr := group.DeleteConfigByName(newCtx, objToUpdate.GetName())
 					if delErr != nil {
-						log.Errorf("Error occur while deleting Config: %s", objToUpdate.GetName())
+						log.Debugf("Error occur while deleting Config: %s", objToUpdate.GetName())
 						return nil, delErr
 					}
-					log.Errorf("Config Deleted: %s", objToUpdate.GetName())
+					log.Debugf("Config deleted: %s", objToUpdate.GetName())
 					return nil, err
 				}
 				retryCount += 1
 				time.Sleep(sleepTime * time.Second)
 			} else if customerrors.Is(err, context.Canceled) {
-				log.Errorf("[CreateConfigByName]: %+v", err)
+				log.Errorf("[UpdateConfigByName]: context canceled: %s", objToUpdate.GetName())
 				return nil, context.Canceled
 			} else {
-				log.Errorf("[CreateConfigByName] Unexpected Error Config] :%+v", err)
-				log.Errorf("Trigger Config Delete: %s", objToUpdate.GetName())
+				log.Errorf("[UpdateConfigByName] Object: %s unexpected error: %+v", objToUpdate.GetName(), err)
+				log.Debugf("Trigger Config Delete: %s", objToUpdate.GetName())
 				delErr := group.DeleteConfigByName(newCtx, objToUpdate.GetName())
 				if delErr != nil {
-					log.Errorf("Error occur while deleting Config: %+v", objToUpdate.GetName())
+					log.Debugf("Error occur while deleting Config: %+v", objToUpdate.GetName())
 					return nil, delErr
 				}
-				log.Errorf("Config Deleted: %s", objToUpdate.GetName())
+				log.Debugf("Config Deleted: %s", objToUpdate.GetName())
 				return nil, err
 			}
 		} else {
-			log.Debugf("[CreateConfigByName] Patch Config Success :%s", objToUpdate.GetName())
+			log.Debugf("[UpdateConfigByName] Patch Config Success :%s", objToUpdate.GetName())
 			break
 		}
 	}
@@ -1820,7 +1828,7 @@ func (obj *ConfigConfig) GetGNS(ctx context.Context) (
 // nexus/display_name label and can be obtained using DisplayName() method.
 func (obj *ConfigConfig) AddGNS(ctx context.Context,
 	objToCreate *basegnstsmtanzuvmwarecomv1.Gns) (result *GnsGns, err error) {
-	log.Debugf("[AddGNS] Received objToCreate: %s", objToCreate.GetName())
+	log.Debugf("[AddGNS] Received objToAdd: %s", objToCreate.GetName())
 	if objToCreate.Labels == nil {
 		objToCreate.Labels = map[string]string{}
 	}
@@ -1835,7 +1843,7 @@ func (obj *ConfigConfig) AddGNS(ctx context.Context,
 		objToCreate.Name = hashedName
 	}
 	result, err = obj.client.Gns().CreateGnsByName(ctx, objToCreate)
-	log.Debugf("[AddGNS] ApiSpecification created successfully: %s", objToCreate.GetName())
+	log.Debugf("[AddGNS] Gns created successfully: %s", objToCreate.GetName())
 	updatedObj, getErr := obj.client.Config().GetConfigByName(ctx, obj.GetName())
 	if getErr == nil {
 		obj.Config = updatedObj.Config
@@ -1877,7 +1885,7 @@ func (obj *ConfigConfig) GetDNS(ctx context.Context) (
 // nexus/display_name label and can be obtained using DisplayName() method.
 func (obj *ConfigConfig) AddDNS(ctx context.Context,
 	objToCreate *basegnstsmtanzuvmwarecomv1.Dns) (result *GnsDns, err error) {
-	log.Debugf("[AddDNS] Received objToCreate: %s", objToCreate.GetName())
+	log.Debugf("[AddDNS] Received objToAdd: %s", objToCreate.GetName())
 	if objToCreate.Labels == nil {
 		objToCreate.Labels = map[string]string{}
 	}
@@ -1898,7 +1906,7 @@ func (obj *ConfigConfig) AddDNS(ctx context.Context,
 		objToCreate.Name = hashedName
 	}
 	result, err = obj.client.Gns().CreateDnsByName(ctx, objToCreate)
-	log.Debugf("[AddDNS] ApiSpecification created successfully: %s", objToCreate.GetName())
+	log.Debugf("[AddDNS] Dns created successfully: %s", objToCreate.GetName())
 	updatedObj, getErr := obj.client.Config().GetConfigByName(ctx, obj.GetName())
 	if getErr == nil {
 		obj.Config = updatedObj.Config
@@ -1940,7 +1948,7 @@ func (obj *ConfigConfig) GetVMPPolicies(ctx context.Context) (
 // nexus/display_name label and can be obtained using DisplayName() method.
 func (obj *ConfigConfig) AddVMPPolicies(ctx context.Context,
 	objToCreate *basepolicypkgtsmtanzuvmwarecomv1.VMpolicy) (result *PolicypkgVMpolicy, err error) {
-	log.Debugf("[AddVMPPolicies] Received objToCreate: %s", objToCreate.GetName())
+	log.Debugf("[AddVMPPolicies] Received objToAdd: %s", objToCreate.GetName())
 	if objToCreate.Labels == nil {
 		objToCreate.Labels = map[string]string{}
 	}
@@ -1955,7 +1963,7 @@ func (obj *ConfigConfig) AddVMPPolicies(ctx context.Context,
 		objToCreate.Name = hashedName
 	}
 	result, err = obj.client.Policypkg().CreateVMpolicyByName(ctx, objToCreate)
-	log.Debugf("[AddVMPPolicies] ApiSpecification created successfully: %s", objToCreate.GetName())
+	log.Debugf("[AddVMPPolicies] VMpolicy created successfully: %s", objToCreate.GetName())
 	updatedObj, getErr := obj.client.Config().GetConfigByName(ctx, obj.GetName())
 	if getErr == nil {
 		obj.Config = updatedObj.Config
@@ -1997,7 +2005,7 @@ func (obj *ConfigConfig) GetDomain(ctx context.Context) (
 // nexus/display_name label and can be obtained using DisplayName() method.
 func (obj *ConfigConfig) AddDomain(ctx context.Context,
 	objToCreate *baseconfigtsmtanzuvmwarecomv1.Domain) (result *ConfigDomain, err error) {
-	log.Debugf("[AddDomain] Received objToCreate: %s", objToCreate.GetName())
+	log.Debugf("[AddDomain] Received objToAdd: %s", objToCreate.GetName())
 	if objToCreate.Labels == nil {
 		objToCreate.Labels = map[string]string{}
 	}
@@ -2012,7 +2020,7 @@ func (obj *ConfigConfig) AddDomain(ctx context.Context,
 		objToCreate.Name = hashedName
 	}
 	result, err = obj.client.Config().CreateDomainByName(ctx, objToCreate)
-	log.Debugf("[AddDomain] ApiSpecification created successfully: %s", objToCreate.GetName())
+	log.Debugf("[AddDomain] Domain created successfully: %s", objToCreate.GetName())
 	updatedObj, getErr := obj.client.Config().GetConfigByName(ctx, obj.GetName())
 	if getErr == nil {
 		obj.Config = updatedObj.Config
@@ -2070,7 +2078,7 @@ func (obj *ConfigConfig) GetFooExample(ctx context.Context,
 // nexus/display_name label and can be obtained using DisplayName() method.
 func (obj *ConfigConfig) AddFooExample(ctx context.Context,
 	objToCreate *baseconfigtsmtanzuvmwarecomv1.FooTypeABC) (result *ConfigFooTypeABC, err error) {
-	log.Debugf("[AddFooExample] Received objToCreate: %s", objToCreate.GetName())
+	log.Debugf("[AddFooExample] Received objToAdd: %s", objToCreate.GetName())
 	if objToCreate.Labels == nil {
 		objToCreate.Labels = map[string]string{}
 	}
@@ -2085,7 +2093,7 @@ func (obj *ConfigConfig) AddFooExample(ctx context.Context,
 		objToCreate.Name = hashedName
 	}
 	result, err = obj.client.Config().CreateFooTypeABCByName(ctx, objToCreate)
-	log.Debugf("[AddFooExample] ApiSpecification created successfully: %s", objToCreate.GetName())
+	log.Debugf("[AddFooExample] FooTypeABC created successfully: %s", objToCreate.GetName())
 	updatedObj, getErr := obj.client.Config().GetConfigByName(ctx, obj.GetName())
 	if getErr == nil {
 		obj.Config = updatedObj.Config
@@ -2129,7 +2137,7 @@ func (obj *ConfigConfig) GetSvcGrpInfo(ctx context.Context) (
 // nexus/display_name label and can be obtained using DisplayName() method.
 func (obj *ConfigConfig) AddSvcGrpInfo(ctx context.Context,
 	objToCreate *baseservicegrouptsmtanzuvmwarecomv1.SvcGroupLinkInfo) (result *ServicegroupSvcGroupLinkInfo, err error) {
-	log.Debugf("[AddSvcGrpInfo] Received objToCreate: %s", objToCreate.GetName())
+	log.Debugf("[AddSvcGrpInfo] Received objToAdd: %s", objToCreate.GetName())
 	if objToCreate.Labels == nil {
 		objToCreate.Labels = map[string]string{}
 	}
@@ -2144,7 +2152,7 @@ func (obj *ConfigConfig) AddSvcGrpInfo(ctx context.Context,
 		objToCreate.Name = hashedName
 	}
 	result, err = obj.client.Servicegroup().CreateSvcGroupLinkInfoByName(ctx, objToCreate)
-	log.Debugf("[AddSvcGrpInfo] ApiSpecification created successfully: %s", objToCreate.GetName())
+	log.Debugf("[AddSvcGrpInfo] SvcGroupLinkInfo created successfully: %s", objToCreate.GetName())
 	updatedObj, getErr := obj.client.Config().GetConfigByName(ctx, obj.GetName())
 	if getErr == nil {
 		obj.Config = updatedObj.Config
@@ -3094,28 +3102,32 @@ func (group *ConfigTsmV1) DeleteFooTypeABCByName(ctx context.Context, hashedName
 			ConfigTsmV1().
 			FooTypeABCs().Get(ctx, hashedName, metav1.GetOptions{})
 		if err != nil {
-			log.Errorf("[DeleteFooTypeABCByName] Failed to Get FooTypeABCs: %+v", err)
+			log.Errorf("[DeleteFooTypeABCByName] Failed to get FooTypeABCs: %+v", err)
 			if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded) {
-				log.Errorf("[Retry Count: %d ] %+v", retryCount, err)
+				log.Debugf("[Retry count: (%d) obj: %s ] %+v", retryCount, hashedName, err)
 				if retryCount == maxRetryCount {
-					log.Error("Max Retry exceed on Get FooTypeABCs")
+					log.Errorf("Max retry exceed on get FooTypeABCs: %s", hashedName)
 					return err
 				}
 				retryCount += 1
 				time.Sleep(sleepTime * time.Second)
 			} else if customerrors.Is(err, context.Canceled) {
-				log.Errorf("[DeleteFooTypeABCByName]: %+v", err)
+				log.Errorf("[DeleteFooTypeABCByName] context canceled: %s", hashedName)
 				return context.Canceled
 			} else if errors.IsNotFound(err) {
-				log.Errorf("[DeleteFooTypeABCByName] Object Notfound: %+v", err)
+				log.Errorf("[DeleteFooTypeABCByName] Object: %s not found", hashedName)
 				break
 			} else {
-				log.Errorf("[DeleteFooTypeABCByName]: %+v", err)
+				log.Errorf("[DeleteFooTypeABCByName] Object: %s unexpected error: %+v", hashedName, err)
 				return err
 			}
 		} else {
 			break
 		}
+	}
+
+	if result == nil {
+		return err
 	}
 
 	retryCount = 0
@@ -3126,21 +3138,21 @@ func (group *ConfigTsmV1) DeleteFooTypeABCByName(ctx context.Context, hashedName
 		if err != nil {
 			log.Errorf("[DeleteFooTypeABCByName] failed to delete FooTypeABCs: %+v", err)
 			if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded) {
-				log.Errorf("[Retry Count: %d ] %+v", retryCount, err)
+				log.Debugf("[Retry count: (%d) obj: %s ] %+v", retryCount, hashedName, err)
 				if retryCount == maxRetryCount {
-					log.Error("Max retry exceed on delete FooTypeABCs")
+					log.Errorf("Max retry exceed on delete FooTypeABCs: %s", hashedName)
 					return err
 				}
 				retryCount += 1
 				time.Sleep(sleepTime * time.Second)
 			} else if customerrors.Is(err, context.Canceled) {
-				log.Errorf("[DeleteFooTypeABCByName]: %+v", err)
+				log.Errorf("[DeleteFooTypeABCByName]: context canceled: %s", hashedName)
 				return context.Canceled
 			} else if errors.IsNotFound(err) {
-				log.Errorf("[DeleteFooTypeABCByName] Object not found: %+v", err)
+				log.Errorf("[DeleteFooTypeABCByName] Object: %s not found", hashedName)
 				break
 			} else {
-				log.Errorf("[DeleteFooTypeABCByName]: %+v", err)
+				log.Errorf("[DeleteFooTypeABCByName] Object: %s unexpected error: %+v", hashedName, err)
 				return err
 			}
 		} else {
@@ -3150,7 +3162,7 @@ func (group *ConfigTsmV1) DeleteFooTypeABCByName(ctx context.Context, hashedName
 	// Get Parent Node and check if gvk present before patch
 
 	var gvkPresent bool
-	log.Debugf("[DeleteFooTypeABCByName] Get Parent details")
+	log.Debugf("[DeleteFooTypeABCByName] Get parent details for object: %s", hashedName)
 	var patch Patch
 	parents := result.GetLabels()
 	if parents == nil {
@@ -3171,7 +3183,7 @@ func (group *ConfigTsmV1) DeleteFooTypeABCByName(ctx context.Context, hashedName
 		ConfigTsmV1().
 		Configs().Get(ctx, parentName, metav1.GetOptions{})
 	if err != nil {
-		log.Errorf("[DeleteFooTypeABCByName] Failed to get Parent node: %+v", err)
+		log.Errorf("[DeleteFooTypeABCByName] Failed to get parent node for obj:(%s) %+v", hashedName, err)
 		if errors.IsNotFound(err) {
 			return nil
 		} else {
@@ -3209,9 +3221,9 @@ func (group *ConfigTsmV1) DeleteFooTypeABCByName(ctx context.Context, hashedName
 				ConfigTsmV1().
 				Configs().Patch(newCtx, parentName, types.JSONPatchType, marshaled, metav1.PatchOptions{})
 			if err != nil {
-				log.Errorf("Failed to patch FooTypeABC gvk in parent node[Configs]: %+v", err)
+				log.Errorf("[DeleteFooTypeABCByName] Failed to patch FooTypeABC gvk in parent node[Configs]: %+v", err)
 				if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded) {
-					log.Errorf("[Retry Count: %d ] %+v", retryCount, err)
+					log.Debugf("[Retry count: (%d) obj: %s ] %+v", retryCount, hashedName, err)
 					if retryCount == maxRetryCount {
 						log.Error("Max Retry exceed on patching gvk")
 						return err
@@ -3219,10 +3231,10 @@ func (group *ConfigTsmV1) DeleteFooTypeABCByName(ctx context.Context, hashedName
 					retryCount += 1
 					time.Sleep(sleepTime * time.Second)
 				} else if customerrors.Is(err, context.Canceled) {
-					log.Errorf("[DeleteFooTypeABCByName]: %+v", err)
+					log.Errorf("[DeleteFooTypeABCByName]: context canceled: %s", hashedName)
 					return context.Canceled
 				} else {
-					log.Errorf("Unexpected Error occur FooTypeABC]: %+v", err)
+					log.Errorf("[DeleteFooTypeABCByName] Object: %s unexpected error: %+v", hashedName, err)
 					return err
 				}
 			} else {
@@ -3259,20 +3271,20 @@ func (group *ConfigTsmV1) CreateFooTypeABCByName(ctx context.Context,
 			ConfigTsmV1().
 			FooTypeABCs().Create(ctx, objToCreate, metav1.CreateOptions{})
 		if err != nil {
-			log.Errorf("[CreateFooTypeABCByName] Failed to Create FooTypeABCs: %+v", err)
+			log.Errorf("[CreateFooTypeABCByName] Failed to create FooTypeABCs:(%s) %+v", objToCreate.GetName(), err)
 			if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded) {
-				log.Errorf("[Retry Count: %d ] %+v", retryCount, err)
+				log.Debugf("[Retry count: (%d) obj: %s ] %+v", retryCount, objToCreate.GetName(), err)
 				if retryCount == maxRetryCount {
-					log.Error("Max Retry exceed on Get FooTypeABCs")
+					log.Error("Max retry exceed on create FooTypeABCs: %s", objToCreate.GetName())
 					return nil, err
 				}
 				retryCount += 1
 				time.Sleep(sleepTime * time.Second)
 			} else if customerrors.Is(err, context.Canceled) {
-				log.Errorf("[CreateFooTypeABCByName]: %+v", err)
+				log.Errorf("[CreateFooTypeABCByName]: context canceled: %s", objToCreate.GetName())
 				return nil, context.Canceled
 			} else {
-				log.Errorf("[CreateFooTypeABCByName]: %+v", err)
+				log.Errorf("[CreateFooTypeABCByName] Object: %s unexpected error: %+v", objToCreate.GetName(), err)
 				return nil, err
 			}
 		} else {
@@ -3300,10 +3312,10 @@ func (group *ConfigTsmV1) CreateFooTypeABCByName(ctx context.Context,
 		if err != nil {
 			log.Errorf("[CreateFooTypeABCByName] Failed to patch FooTypeABC gvk in parent node[Configs] %+v", err)
 			if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded) {
-				log.Errorf("[Retry Count: %d ] %+v", retryCount, err)
+				log.Debugf("[Retry count: (%d) obj: %s ] %+v", retryCount, objToCreate.GetName(), err)
 				if retryCount == maxRetryCount {
-					log.Error("Max Retry exceed on patching gvk")
-					log.Errorf("Trigger FooTypeABC Delete: %s", objToCreate.GetName())
+					log.Errorf("Max retry exceed on patching gvk: %s", objToCreate.GetName())
+					log.Errorf("[CreateFooTypeABCByName] Trigger FooTypeABC delete: %s", objToCreate.GetName())
 					delErr := group.DeleteFooTypeABCByName(newCtx, objToCreate.GetName())
 					if delErr != nil {
 						log.Errorf("Error occur while deleting FooTypeABC: %s", objToCreate.GetName())
@@ -3315,17 +3327,17 @@ func (group *ConfigTsmV1) CreateFooTypeABCByName(ctx context.Context,
 				retryCount += 1
 				time.Sleep(sleepTime * time.Second)
 			} else if customerrors.Is(err, context.Canceled) {
-				log.Errorf("[CreateFooTypeABCByName]: %+v", err)
+				log.Errorf("[CreateFooTypeABCByName]: context canceled: %s", objToCreate.GetName())
 				return nil, context.Canceled
 			} else {
-				log.Errorf("[CreateFooTypeABCByName] Unexpected Error FooTypeABC] %+v", err)
-				log.Errorf("Trigger FooTypeABC Delete: %s", objToCreate.GetName())
+				log.Errorf("[CreateFooTypeABCByName] Object: %s unexpected error: %+v", objToCreate.GetName(), err)
+				log.Debugf("Trigger FooTypeABC delete: %s", objToCreate.GetName())
 				delErr := group.DeleteFooTypeABCByName(newCtx, objToCreate.GetName())
 				if delErr != nil {
-					log.Errorf("Error occur while deleting FooTypeABC: %+v", objToCreate.GetName())
+					log.Debugf("Error occur while deleting FooTypeABC: %s", objToCreate.GetName())
 					return nil, delErr
 				}
-				log.Errorf("FooTypeABC Deleted: %s", objToCreate.GetName())
+				log.Debugf("FooTypeABC Deleted: %s", objToCreate.GetName())
 				return nil, err
 			}
 		} else {
@@ -3526,36 +3538,36 @@ func (group *ConfigTsmV1) UpdateFooTypeABCByName(ctx context.Context,
 		if err != nil {
 			log.Errorf("[UpdateFooTypeABCByName] Failed to patch FooTypeABC gvk in parent node[Configs]: %+v", err)
 			if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded) {
-				log.Errorf("[Retry Count: %d ] %+v", retryCount, err)
+				log.Debugf("[Retry count: (%d) obj: %s ] %+v", retryCount, objToUpdate.GetName(), err)
 				if retryCount == maxRetryCount {
-					log.Error("Max Retry exceed on patching gvk")
-					log.Errorf("Trigger FooTypeABC Delete: %s", objToUpdate.GetName())
+					log.Errorf("Max retry exceed on patching gvk: %s", objToUpdate.GetName())
+					log.Debugf("Trigger FooTypeABC Delete: %s", objToUpdate.GetName())
 					delErr := group.DeleteFooTypeABCByName(newCtx, objToUpdate.GetName())
 					if delErr != nil {
-						log.Errorf("Error occur while deleting FooTypeABC: %s", objToUpdate.GetName())
+						log.Debugf("Error occur while deleting FooTypeABC: %s", objToUpdate.GetName())
 						return nil, delErr
 					}
-					log.Errorf("FooTypeABC Deleted: %s", objToUpdate.GetName())
+					log.Debugf("FooTypeABC deleted: %s", objToUpdate.GetName())
 					return nil, err
 				}
 				retryCount += 1
 				time.Sleep(sleepTime * time.Second)
 			} else if customerrors.Is(err, context.Canceled) {
-				log.Errorf("[CreateFooTypeABCByName]: %+v", err)
+				log.Errorf("[UpdateFooTypeABCByName]: context canceled: %s", objToUpdate.GetName())
 				return nil, context.Canceled
 			} else {
-				log.Errorf("[CreateFooTypeABCByName] Unexpected Error FooTypeABC] :%+v", err)
-				log.Errorf("Trigger FooTypeABC Delete: %s", objToUpdate.GetName())
+				log.Errorf("[UpdateFooTypeABCByName] Object: %s unexpected error: %+v", objToUpdate.GetName(), err)
+				log.Debugf("Trigger FooTypeABC Delete: %s", objToUpdate.GetName())
 				delErr := group.DeleteFooTypeABCByName(newCtx, objToUpdate.GetName())
 				if delErr != nil {
-					log.Errorf("Error occur while deleting FooTypeABC: %+v", objToUpdate.GetName())
+					log.Debugf("Error occur while deleting FooTypeABC: %+v", objToUpdate.GetName())
 					return nil, delErr
 				}
-				log.Errorf("FooTypeABC Deleted: %s", objToUpdate.GetName())
+				log.Debugf("FooTypeABC Deleted: %s", objToUpdate.GetName())
 				return nil, err
 			}
 		} else {
-			log.Debugf("[CreateFooTypeABCByName] Patch FooTypeABC Success :%s", objToUpdate.GetName())
+			log.Debugf("[UpdateFooTypeABCByName] Patch FooTypeABC Success :%s", objToUpdate.GetName())
 			break
 		}
 	}
@@ -4198,28 +4210,32 @@ func (group *ConfigTsmV1) DeleteDomainByName(ctx context.Context, hashedName str
 			ConfigTsmV1().
 			Domains().Get(ctx, hashedName, metav1.GetOptions{})
 		if err != nil {
-			log.Errorf("[DeleteDomainByName] Failed to Get Domains: %+v", err)
+			log.Errorf("[DeleteDomainByName] Failed to get Domains: %+v", err)
 			if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded) {
-				log.Errorf("[Retry Count: %d ] %+v", retryCount, err)
+				log.Debugf("[Retry count: (%d) obj: %s ] %+v", retryCount, hashedName, err)
 				if retryCount == maxRetryCount {
-					log.Error("Max Retry exceed on Get Domains")
+					log.Errorf("Max retry exceed on get Domains: %s", hashedName)
 					return err
 				}
 				retryCount += 1
 				time.Sleep(sleepTime * time.Second)
 			} else if customerrors.Is(err, context.Canceled) {
-				log.Errorf("[DeleteDomainByName]: %+v", err)
+				log.Errorf("[DeleteDomainByName] context canceled: %s", hashedName)
 				return context.Canceled
 			} else if errors.IsNotFound(err) {
-				log.Errorf("[DeleteDomainByName] Object Notfound: %+v", err)
+				log.Errorf("[DeleteDomainByName] Object: %s not found", hashedName)
 				break
 			} else {
-				log.Errorf("[DeleteDomainByName]: %+v", err)
+				log.Errorf("[DeleteDomainByName] Object: %s unexpected error: %+v", hashedName, err)
 				return err
 			}
 		} else {
 			break
 		}
+	}
+
+	if result == nil {
+		return err
 	}
 
 	retryCount = 0
@@ -4230,21 +4246,21 @@ func (group *ConfigTsmV1) DeleteDomainByName(ctx context.Context, hashedName str
 		if err != nil {
 			log.Errorf("[DeleteDomainByName] failed to delete Domains: %+v", err)
 			if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded) {
-				log.Errorf("[Retry Count: %d ] %+v", retryCount, err)
+				log.Debugf("[Retry count: (%d) obj: %s ] %+v", retryCount, hashedName, err)
 				if retryCount == maxRetryCount {
-					log.Error("Max retry exceed on delete Domains")
+					log.Errorf("Max retry exceed on delete Domains: %s", hashedName)
 					return err
 				}
 				retryCount += 1
 				time.Sleep(sleepTime * time.Second)
 			} else if customerrors.Is(err, context.Canceled) {
-				log.Errorf("[DeleteDomainByName]: %+v", err)
+				log.Errorf("[DeleteDomainByName]: context canceled: %s", hashedName)
 				return context.Canceled
 			} else if errors.IsNotFound(err) {
-				log.Errorf("[DeleteDomainByName] Object not found: %+v", err)
+				log.Errorf("[DeleteDomainByName] Object: %s not found", hashedName)
 				break
 			} else {
-				log.Errorf("[DeleteDomainByName]: %+v", err)
+				log.Errorf("[DeleteDomainByName] Object: %s unexpected error: %+v", hashedName, err)
 				return err
 			}
 		} else {
@@ -4254,7 +4270,7 @@ func (group *ConfigTsmV1) DeleteDomainByName(ctx context.Context, hashedName str
 	// Get Parent Node and check if gvk present before patch
 
 	var gvkPresent bool
-	log.Debugf("[DeleteDomainByName] Get Parent details")
+	log.Debugf("[DeleteDomainByName] Get parent details for object: %s", hashedName)
 	var patch Patch
 	parents := result.GetLabels()
 	if parents == nil {
@@ -4275,7 +4291,7 @@ func (group *ConfigTsmV1) DeleteDomainByName(ctx context.Context, hashedName str
 		ConfigTsmV1().
 		Configs().Get(ctx, parentName, metav1.GetOptions{})
 	if err != nil {
-		log.Errorf("[DeleteDomainByName] Failed to get Parent node: %+v", err)
+		log.Errorf("[DeleteDomainByName] Failed to get parent node for obj:(%s) %+v", hashedName, err)
 		if errors.IsNotFound(err) {
 			return nil
 		} else {
@@ -4308,9 +4324,9 @@ func (group *ConfigTsmV1) DeleteDomainByName(ctx context.Context, hashedName str
 				ConfigTsmV1().
 				Configs().Patch(newCtx, parentName, types.JSONPatchType, marshaled, metav1.PatchOptions{})
 			if err != nil {
-				log.Errorf("Failed to patch Domain gvk in parent node[Configs]: %+v", err)
+				log.Errorf("[DeleteDomainByName] Failed to patch Domain gvk in parent node[Configs]: %+v", err)
 				if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded) {
-					log.Errorf("[Retry Count: %d ] %+v", retryCount, err)
+					log.Debugf("[Retry count: (%d) obj: %s ] %+v", retryCount, hashedName, err)
 					if retryCount == maxRetryCount {
 						log.Error("Max Retry exceed on patching gvk")
 						return err
@@ -4318,10 +4334,10 @@ func (group *ConfigTsmV1) DeleteDomainByName(ctx context.Context, hashedName str
 					retryCount += 1
 					time.Sleep(sleepTime * time.Second)
 				} else if customerrors.Is(err, context.Canceled) {
-					log.Errorf("[DeleteDomainByName]: %+v", err)
+					log.Errorf("[DeleteDomainByName]: context canceled: %s", hashedName)
 					return context.Canceled
 				} else {
-					log.Errorf("Unexpected Error occur Domain]: %+v", err)
+					log.Errorf("[DeleteDomainByName] Object: %s unexpected error: %+v", hashedName, err)
 					return err
 				}
 			} else {
@@ -4358,20 +4374,20 @@ func (group *ConfigTsmV1) CreateDomainByName(ctx context.Context,
 			ConfigTsmV1().
 			Domains().Create(ctx, objToCreate, metav1.CreateOptions{})
 		if err != nil {
-			log.Errorf("[CreateDomainByName] Failed to Create Domains: %+v", err)
+			log.Errorf("[CreateDomainByName] Failed to create Domains:(%s) %+v", objToCreate.GetName(), err)
 			if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded) {
-				log.Errorf("[Retry Count: %d ] %+v", retryCount, err)
+				log.Debugf("[Retry count: (%d) obj: %s ] %+v", retryCount, objToCreate.GetName(), err)
 				if retryCount == maxRetryCount {
-					log.Error("Max Retry exceed on Get Domains")
+					log.Error("Max retry exceed on create Domains: %s", objToCreate.GetName())
 					return nil, err
 				}
 				retryCount += 1
 				time.Sleep(sleepTime * time.Second)
 			} else if customerrors.Is(err, context.Canceled) {
-				log.Errorf("[CreateDomainByName]: %+v", err)
+				log.Errorf("[CreateDomainByName]: context canceled: %s", objToCreate.GetName())
 				return nil, context.Canceled
 			} else {
-				log.Errorf("[CreateDomainByName]: %+v", err)
+				log.Errorf("[CreateDomainByName] Object: %s unexpected error: %+v", objToCreate.GetName(), err)
 				return nil, err
 			}
 		} else {
@@ -4412,32 +4428,32 @@ func (group *ConfigTsmV1) CreateDomainByName(ctx context.Context,
 		if err != nil {
 			log.Errorf("[CreateDomainByName] Failed to patch Domain gvk in parent node[Configs]: %+v", err)
 			if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded) {
-				log.Errorf("[Retry Count: %d ] %+v", retryCount, err)
+				log.Debugf("[Retry count: (%d) obj: %s ] %+v", retryCount, objToCreate.GetName(), err)
 				if retryCount == maxRetryCount {
-					log.Error("Max Retry exceed on patching gvk")
-					log.Errorf("Trigger Domain Delete: %s", objToCreate.GetName())
+					log.Errorf("Max retry exceed on patching gvk: %s", objToCreate.GetName())
+					log.Debugf("Trigger Domain delete: %s", objToCreate.GetName())
 					delErr := group.DeleteDomainByName(newCtx, objToCreate.GetName())
 					if delErr != nil {
-						log.Errorf("Error occur while deleting Domain: %s", objToCreate.GetName())
+						log.Debugf("Error occur while deleting Domain: %s", objToCreate.GetName())
 						return nil, delErr
 					}
-					log.Errorf("Domain Deleted: %s", objToCreate.GetName())
+					log.Debugf("Domain Deleted: %s", objToCreate.GetName())
 					return nil, err
 				}
 				retryCount += 1
 				time.Sleep(sleepTime * time.Second)
 			} else if customerrors.Is(err, context.Canceled) {
-				log.Errorf("[CreateDomainByName]: %+v", err)
+				log.Errorf("[CreateDomainByName]: context canceled: %s", objToCreate.GetName())
 				return nil, context.Canceled
 			} else {
-				log.Errorf("[CreateDomainByName] Unexpected Error Domain] :%+v", err)
-				log.Errorf("Trigger Domain Delete: %s", objToCreate.GetName())
+				log.Errorf("[CreateDomainByName] Object: %s unexpected error: %+v", objToCreate.GetName(), err)
+				log.Debugf("Trigger Domain Delete: %s", objToCreate.GetName())
 				delErr := group.DeleteDomainByName(newCtx, objToCreate.GetName())
 				if delErr != nil {
-					log.Errorf("Error occur while deleting Domain: %+v", objToCreate.GetName())
+					log.Debugf("Error occur while deleting Domain: %+v", objToCreate.GetName())
 					return nil, delErr
 				}
-				log.Errorf("Domain Deleted: %s", objToCreate.GetName())
+				log.Debugf("Domain Deleted: %s", objToCreate.GetName())
 				return nil, err
 			}
 		} else {
@@ -4701,36 +4717,36 @@ func (group *ConfigTsmV1) UpdateDomainByName(ctx context.Context,
 		if err != nil {
 			log.Errorf("[UpdateDomainByName] Failed to patch Domain gvk in parent node[Configs]: %+v", err)
 			if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded) {
-				log.Errorf("[Retry Count: %d ] %+v", retryCount, err)
+				log.Debugf("[Retry count: (%d) obj: %s ] %+v", retryCount, objToUpdate.GetName(), err)
 				if retryCount == maxRetryCount {
-					log.Error("Max Retry exceed on patching gvk")
-					log.Errorf("Trigger Domain Delete: %s", objToUpdate.GetName())
+					log.Errorf("Max retry exceed on patching gvk: %s", objToUpdate.GetName())
+					log.Debugf("Trigger Domain Delete: %s", objToUpdate.GetName())
 					delErr := group.DeleteDomainByName(newCtx, objToUpdate.GetName())
 					if delErr != nil {
-						log.Errorf("Error occur while deleting Domain: %s", objToUpdate.GetName())
+						log.Debugf("Error occur while deleting Domain: %s", objToUpdate.GetName())
 						return nil, delErr
 					}
-					log.Errorf("Domain Deleted: %s", objToUpdate.GetName())
+					log.Debugf("Domain deleted: %s", objToUpdate.GetName())
 					return nil, err
 				}
 				retryCount += 1
 				time.Sleep(sleepTime * time.Second)
 			} else if customerrors.Is(err, context.Canceled) {
-				log.Errorf("[CreateDomainByName]: %+v", err)
+				log.Errorf("[UpdateDomainByName]: context canceled: %s", objToUpdate.GetName())
 				return nil, context.Canceled
 			} else {
-				log.Errorf("[CreateDomainByName] Unexpected Error Domain] :%+v", err)
-				log.Errorf("Trigger Domain Delete: %s", objToUpdate.GetName())
+				log.Errorf("[UpdateDomainByName] Object: %s unexpected error: %+v", objToUpdate.GetName(), err)
+				log.Debugf("Trigger Domain Delete: %s", objToUpdate.GetName())
 				delErr := group.DeleteDomainByName(newCtx, objToUpdate.GetName())
 				if delErr != nil {
-					log.Errorf("Error occur while deleting Domain: %+v", objToUpdate.GetName())
+					log.Debugf("Error occur while deleting Domain: %+v", objToUpdate.GetName())
 					return nil, delErr
 				}
-				log.Errorf("Domain Deleted: %s", objToUpdate.GetName())
+				log.Debugf("Domain Deleted: %s", objToUpdate.GetName())
 				return nil, err
 			}
 		} else {
-			log.Debugf("[CreateDomainByName] Patch Domain Success :%s", objToUpdate.GetName())
+			log.Debugf("[UpdateDomainByName] Patch Domain Success :%s", objToUpdate.GetName())
 			break
 		}
 	}
@@ -5373,28 +5389,32 @@ func (group *GnsTsmV1) DeleteFooByName(ctx context.Context, hashedName string) (
 			GnsTsmV1().
 			Foos().Get(ctx, hashedName, metav1.GetOptions{})
 		if err != nil {
-			log.Errorf("[DeleteFooByName] Failed to Get Foos: %+v", err)
+			log.Errorf("[DeleteFooByName] Failed to get Foos: %+v", err)
 			if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded) {
-				log.Errorf("[Retry Count: %d ] %+v", retryCount, err)
+				log.Debugf("[Retry count: (%d) obj: %s ] %+v", retryCount, hashedName, err)
 				if retryCount == maxRetryCount {
-					log.Error("Max Retry exceed on Get Foos")
+					log.Errorf("Max retry exceed on get Foos: %s", hashedName)
 					return err
 				}
 				retryCount += 1
 				time.Sleep(sleepTime * time.Second)
 			} else if customerrors.Is(err, context.Canceled) {
-				log.Errorf("[DeleteFooByName]: %+v", err)
+				log.Errorf("[DeleteFooByName] context canceled: %s", hashedName)
 				return context.Canceled
 			} else if errors.IsNotFound(err) {
-				log.Errorf("[DeleteFooByName] Object Notfound: %+v", err)
+				log.Errorf("[DeleteFooByName] Object: %s not found", hashedName)
 				break
 			} else {
-				log.Errorf("[DeleteFooByName]: %+v", err)
+				log.Errorf("[DeleteFooByName] Object: %s unexpected error: %+v", hashedName, err)
 				return err
 			}
 		} else {
 			break
 		}
+	}
+
+	if result == nil {
+		return err
 	}
 
 	retryCount = 0
@@ -5405,21 +5425,21 @@ func (group *GnsTsmV1) DeleteFooByName(ctx context.Context, hashedName string) (
 		if err != nil {
 			log.Errorf("[DeleteFooByName] failed to delete Foos: %+v", err)
 			if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded) {
-				log.Errorf("[Retry Count: %d ] %+v", retryCount, err)
+				log.Debugf("[Retry count: (%d) obj: %s ] %+v", retryCount, hashedName, err)
 				if retryCount == maxRetryCount {
-					log.Error("Max retry exceed on delete Foos")
+					log.Errorf("Max retry exceed on delete Foos: %s", hashedName)
 					return err
 				}
 				retryCount += 1
 				time.Sleep(sleepTime * time.Second)
 			} else if customerrors.Is(err, context.Canceled) {
-				log.Errorf("[DeleteFooByName]: %+v", err)
+				log.Errorf("[DeleteFooByName]: context canceled: %s", hashedName)
 				return context.Canceled
 			} else if errors.IsNotFound(err) {
-				log.Errorf("[DeleteFooByName] Object not found: %+v", err)
+				log.Errorf("[DeleteFooByName] Object: %s not found", hashedName)
 				break
 			} else {
-				log.Errorf("[DeleteFooByName]: %+v", err)
+				log.Errorf("[DeleteFooByName] Object: %s unexpected error: %+v", hashedName, err)
 				return err
 			}
 		} else {
@@ -5429,7 +5449,7 @@ func (group *GnsTsmV1) DeleteFooByName(ctx context.Context, hashedName string) (
 	// Get Parent Node and check if gvk present before patch
 
 	var gvkPresent bool
-	log.Debugf("[DeleteFooByName] Get Parent details")
+	log.Debugf("[DeleteFooByName] Get parent details for object: %s", hashedName)
 	var patch Patch
 	parents := result.GetLabels()
 	if parents == nil {
@@ -5450,7 +5470,7 @@ func (group *GnsTsmV1) DeleteFooByName(ctx context.Context, hashedName string) (
 		GnsTsmV1().
 		Gnses().Get(ctx, parentName, metav1.GetOptions{})
 	if err != nil {
-		log.Errorf("[DeleteFooByName] Failed to get Parent node: %+v", err)
+		log.Errorf("[DeleteFooByName] Failed to get parent node for obj:(%s) %+v", hashedName, err)
 		if errors.IsNotFound(err) {
 			return nil
 		} else {
@@ -5483,9 +5503,9 @@ func (group *GnsTsmV1) DeleteFooByName(ctx context.Context, hashedName string) (
 				GnsTsmV1().
 				Gnses().Patch(newCtx, parentName, types.JSONPatchType, marshaled, metav1.PatchOptions{})
 			if err != nil {
-				log.Errorf("Failed to patch Foo gvk in parent node[Gnses]: %+v", err)
+				log.Errorf("[DeleteFooByName] Failed to patch Foo gvk in parent node[Gnses]: %+v", err)
 				if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded) {
-					log.Errorf("[Retry Count: %d ] %+v", retryCount, err)
+					log.Debugf("[Retry count: (%d) obj: %s ] %+v", retryCount, hashedName, err)
 					if retryCount == maxRetryCount {
 						log.Error("Max Retry exceed on patching gvk")
 						return err
@@ -5493,10 +5513,10 @@ func (group *GnsTsmV1) DeleteFooByName(ctx context.Context, hashedName string) (
 					retryCount += 1
 					time.Sleep(sleepTime * time.Second)
 				} else if customerrors.Is(err, context.Canceled) {
-					log.Errorf("[DeleteFooByName]: %+v", err)
+					log.Errorf("[DeleteFooByName]: context canceled: %s", hashedName)
 					return context.Canceled
 				} else {
-					log.Errorf("Unexpected Error occur Foo]: %+v", err)
+					log.Errorf("[DeleteFooByName] Object: %s unexpected error: %+v", hashedName, err)
 					return err
 				}
 			} else {
@@ -5533,20 +5553,20 @@ func (group *GnsTsmV1) CreateFooByName(ctx context.Context,
 			GnsTsmV1().
 			Foos().Create(ctx, objToCreate, metav1.CreateOptions{})
 		if err != nil {
-			log.Errorf("[CreateFooByName] Failed to Create Foos: %+v", err)
+			log.Errorf("[CreateFooByName] Failed to create Foos:(%s) %+v", objToCreate.GetName(), err)
 			if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded) {
-				log.Errorf("[Retry Count: %d ] %+v", retryCount, err)
+				log.Debugf("[Retry count: (%d) obj: %s ] %+v", retryCount, objToCreate.GetName(), err)
 				if retryCount == maxRetryCount {
-					log.Error("Max Retry exceed on Get Foos")
+					log.Error("Max retry exceed on create Foos: %s", objToCreate.GetName())
 					return nil, err
 				}
 				retryCount += 1
 				time.Sleep(sleepTime * time.Second)
 			} else if customerrors.Is(err, context.Canceled) {
-				log.Errorf("[CreateFooByName]: %+v", err)
+				log.Errorf("[CreateFooByName]: context canceled: %s", objToCreate.GetName())
 				return nil, context.Canceled
 			} else {
-				log.Errorf("[CreateFooByName]: %+v", err)
+				log.Errorf("[CreateFooByName] Object: %s unexpected error: %+v", objToCreate.GetName(), err)
 				return nil, err
 			}
 		} else {
@@ -5587,32 +5607,32 @@ func (group *GnsTsmV1) CreateFooByName(ctx context.Context,
 		if err != nil {
 			log.Errorf("[CreateFooByName] Failed to patch Foo gvk in parent node[Gnses]: %+v", err)
 			if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded) {
-				log.Errorf("[Retry Count: %d ] %+v", retryCount, err)
+				log.Debugf("[Retry count: (%d) obj: %s ] %+v", retryCount, objToCreate.GetName(), err)
 				if retryCount == maxRetryCount {
-					log.Error("Max Retry exceed on patching gvk")
-					log.Errorf("Trigger Foo Delete: %s", objToCreate.GetName())
+					log.Errorf("Max retry exceed on patching gvk: %s", objToCreate.GetName())
+					log.Debugf("Trigger Foo delete: %s", objToCreate.GetName())
 					delErr := group.DeleteFooByName(newCtx, objToCreate.GetName())
 					if delErr != nil {
-						log.Errorf("Error occur while deleting Foo: %s", objToCreate.GetName())
+						log.Debugf("Error occur while deleting Foo: %s", objToCreate.GetName())
 						return nil, delErr
 					}
-					log.Errorf("Foo Deleted: %s", objToCreate.GetName())
+					log.Debugf("Foo Deleted: %s", objToCreate.GetName())
 					return nil, err
 				}
 				retryCount += 1
 				time.Sleep(sleepTime * time.Second)
 			} else if customerrors.Is(err, context.Canceled) {
-				log.Errorf("[CreateFooByName]: %+v", err)
+				log.Errorf("[CreateFooByName]: context canceled: %s", objToCreate.GetName())
 				return nil, context.Canceled
 			} else {
-				log.Errorf("[CreateFooByName] Unexpected Error Foo] :%+v", err)
-				log.Errorf("Trigger Foo Delete: %s", objToCreate.GetName())
+				log.Errorf("[CreateFooByName] Object: %s unexpected error: %+v", objToCreate.GetName(), err)
+				log.Debugf("Trigger Foo Delete: %s", objToCreate.GetName())
 				delErr := group.DeleteFooByName(newCtx, objToCreate.GetName())
 				if delErr != nil {
-					log.Errorf("Error occur while deleting Foo: %+v", objToCreate.GetName())
+					log.Debugf("Error occur while deleting Foo: %+v", objToCreate.GetName())
 					return nil, delErr
 				}
-				log.Errorf("Foo Deleted: %s", objToCreate.GetName())
+				log.Debugf("Foo Deleted: %s", objToCreate.GetName())
 				return nil, err
 			}
 		} else {
@@ -5708,36 +5728,36 @@ func (group *GnsTsmV1) UpdateFooByName(ctx context.Context,
 		if err != nil {
 			log.Errorf("[UpdateFooByName] Failed to patch Foo gvk in parent node[Gnses]: %+v", err)
 			if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded) {
-				log.Errorf("[Retry Count: %d ] %+v", retryCount, err)
+				log.Debugf("[Retry count: (%d) obj: %s ] %+v", retryCount, objToUpdate.GetName(), err)
 				if retryCount == maxRetryCount {
-					log.Error("Max Retry exceed on patching gvk")
-					log.Errorf("Trigger Foo Delete: %s", objToUpdate.GetName())
+					log.Errorf("Max retry exceed on patching gvk: %s", objToUpdate.GetName())
+					log.Debugf("Trigger Foo Delete: %s", objToUpdate.GetName())
 					delErr := group.DeleteFooByName(newCtx, objToUpdate.GetName())
 					if delErr != nil {
-						log.Errorf("Error occur while deleting Foo: %s", objToUpdate.GetName())
+						log.Debugf("Error occur while deleting Foo: %s", objToUpdate.GetName())
 						return nil, delErr
 					}
-					log.Errorf("Foo Deleted: %s", objToUpdate.GetName())
+					log.Debugf("Foo deleted: %s", objToUpdate.GetName())
 					return nil, err
 				}
 				retryCount += 1
 				time.Sleep(sleepTime * time.Second)
 			} else if customerrors.Is(err, context.Canceled) {
-				log.Errorf("[CreateFooByName]: %+v", err)
+				log.Errorf("[UpdateFooByName]: context canceled: %s", objToUpdate.GetName())
 				return nil, context.Canceled
 			} else {
-				log.Errorf("[CreateFooByName] Unexpected Error Foo] :%+v", err)
-				log.Errorf("Trigger Foo Delete: %s", objToUpdate.GetName())
+				log.Errorf("[UpdateFooByName] Object: %s unexpected error: %+v", objToUpdate.GetName(), err)
+				log.Debugf("Trigger Foo Delete: %s", objToUpdate.GetName())
 				delErr := group.DeleteFooByName(newCtx, objToUpdate.GetName())
 				if delErr != nil {
-					log.Errorf("Error occur while deleting Foo: %+v", objToUpdate.GetName())
+					log.Debugf("Error occur while deleting Foo: %+v", objToUpdate.GetName())
 					return nil, delErr
 				}
-				log.Errorf("Foo Deleted: %s", objToUpdate.GetName())
+				log.Debugf("Foo Deleted: %s", objToUpdate.GetName())
 				return nil, err
 			}
 		} else {
-			log.Debugf("[CreateFooByName] Patch Foo Success :%s", objToUpdate.GetName())
+			log.Debugf("[UpdateFooByName] Patch Foo Success :%s", objToUpdate.GetName())
 			break
 		}
 	}
@@ -6380,28 +6400,32 @@ func (group *GnsTsmV1) DeleteGnsByName(ctx context.Context, hashedName string) (
 			GnsTsmV1().
 			Gnses().Get(ctx, hashedName, metav1.GetOptions{})
 		if err != nil {
-			log.Errorf("[DeleteGnsByName] Failed to Get Gnses: %+v", err)
+			log.Errorf("[DeleteGnsByName] Failed to get Gnses: %+v", err)
 			if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded) {
-				log.Errorf("[Retry Count: %d ] %+v", retryCount, err)
+				log.Debugf("[Retry count: (%d) obj: %s ] %+v", retryCount, hashedName, err)
 				if retryCount == maxRetryCount {
-					log.Error("Max Retry exceed on Get Gnses")
+					log.Errorf("Max retry exceed on get Gnses: %s", hashedName)
 					return err
 				}
 				retryCount += 1
 				time.Sleep(sleepTime * time.Second)
 			} else if customerrors.Is(err, context.Canceled) {
-				log.Errorf("[DeleteGnsByName]: %+v", err)
+				log.Errorf("[DeleteGnsByName] context canceled: %s", hashedName)
 				return context.Canceled
 			} else if errors.IsNotFound(err) {
-				log.Errorf("[DeleteGnsByName] Object Notfound: %+v", err)
+				log.Errorf("[DeleteGnsByName] Object: %s not found", hashedName)
 				break
 			} else {
-				log.Errorf("[DeleteGnsByName]: %+v", err)
+				log.Errorf("[DeleteGnsByName] Object: %s unexpected error: %+v", hashedName, err)
 				return err
 			}
 		} else {
 			break
 		}
+	}
+
+	if result == nil {
+		return err
 	}
 
 	for _, v := range result.Spec.GnsServiceGroupsGvk {
@@ -6460,21 +6484,21 @@ func (group *GnsTsmV1) DeleteGnsByName(ctx context.Context, hashedName string) (
 		if err != nil {
 			log.Errorf("[DeleteGnsByName] failed to delete Gnses: %+v", err)
 			if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded) {
-				log.Errorf("[Retry Count: %d ] %+v", retryCount, err)
+				log.Debugf("[Retry count: (%d) obj: %s ] %+v", retryCount, hashedName, err)
 				if retryCount == maxRetryCount {
-					log.Error("Max retry exceed on delete Gnses")
+					log.Errorf("Max retry exceed on delete Gnses: %s", hashedName)
 					return err
 				}
 				retryCount += 1
 				time.Sleep(sleepTime * time.Second)
 			} else if customerrors.Is(err, context.Canceled) {
-				log.Errorf("[DeleteGnsByName]: %+v", err)
+				log.Errorf("[DeleteGnsByName]: context canceled: %s", hashedName)
 				return context.Canceled
 			} else if errors.IsNotFound(err) {
-				log.Errorf("[DeleteGnsByName] Object not found: %+v", err)
+				log.Errorf("[DeleteGnsByName] Object: %s not found", hashedName)
 				break
 			} else {
-				log.Errorf("[DeleteGnsByName]: %+v", err)
+				log.Errorf("[DeleteGnsByName] Object: %s unexpected error: %+v", hashedName, err)
 				return err
 			}
 		} else {
@@ -6484,7 +6508,7 @@ func (group *GnsTsmV1) DeleteGnsByName(ctx context.Context, hashedName string) (
 	// Get Parent Node and check if gvk present before patch
 
 	var gvkPresent bool
-	log.Debugf("[DeleteGnsByName] Get Parent details")
+	log.Debugf("[DeleteGnsByName] Get parent details for object: %s", hashedName)
 	var patch Patch
 	parents := result.GetLabels()
 	if parents == nil {
@@ -6505,7 +6529,7 @@ func (group *GnsTsmV1) DeleteGnsByName(ctx context.Context, hashedName string) (
 		ConfigTsmV1().
 		Configs().Get(ctx, parentName, metav1.GetOptions{})
 	if err != nil {
-		log.Errorf("[DeleteGnsByName] Failed to get Parent node: %+v", err)
+		log.Errorf("[DeleteGnsByName] Failed to get parent node for obj:(%s) %+v", hashedName, err)
 		if errors.IsNotFound(err) {
 			return nil
 		} else {
@@ -6538,9 +6562,9 @@ func (group *GnsTsmV1) DeleteGnsByName(ctx context.Context, hashedName string) (
 				ConfigTsmV1().
 				Configs().Patch(newCtx, parentName, types.JSONPatchType, marshaled, metav1.PatchOptions{})
 			if err != nil {
-				log.Errorf("Failed to patch Gns gvk in parent node[Configs]: %+v", err)
+				log.Errorf("[DeleteGnsByName] Failed to patch Gns gvk in parent node[Configs]: %+v", err)
 				if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded) {
-					log.Errorf("[Retry Count: %d ] %+v", retryCount, err)
+					log.Debugf("[Retry count: (%d) obj: %s ] %+v", retryCount, hashedName, err)
 					if retryCount == maxRetryCount {
 						log.Error("Max Retry exceed on patching gvk")
 						return err
@@ -6548,10 +6572,10 @@ func (group *GnsTsmV1) DeleteGnsByName(ctx context.Context, hashedName string) (
 					retryCount += 1
 					time.Sleep(sleepTime * time.Second)
 				} else if customerrors.Is(err, context.Canceled) {
-					log.Errorf("[DeleteGnsByName]: %+v", err)
+					log.Errorf("[DeleteGnsByName]: context canceled: %s", hashedName)
 					return context.Canceled
 				} else {
-					log.Errorf("Unexpected Error occur Gns]: %+v", err)
+					log.Errorf("[DeleteGnsByName] Object: %s unexpected error: %+v", hashedName, err)
 					return err
 				}
 			} else {
@@ -6595,20 +6619,20 @@ func (group *GnsTsmV1) CreateGnsByName(ctx context.Context,
 			GnsTsmV1().
 			Gnses().Create(ctx, objToCreate, metav1.CreateOptions{})
 		if err != nil {
-			log.Errorf("[CreateGnsByName] Failed to Create Gnses: %+v", err)
+			log.Errorf("[CreateGnsByName] Failed to create Gnses:(%s) %+v", objToCreate.GetName(), err)
 			if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded) {
-				log.Errorf("[Retry Count: %d ] %+v", retryCount, err)
+				log.Debugf("[Retry count: (%d) obj: %s ] %+v", retryCount, objToCreate.GetName(), err)
 				if retryCount == maxRetryCount {
-					log.Error("Max Retry exceed on Get Gnses")
+					log.Error("Max retry exceed on create Gnses: %s", objToCreate.GetName())
 					return nil, err
 				}
 				retryCount += 1
 				time.Sleep(sleepTime * time.Second)
 			} else if customerrors.Is(err, context.Canceled) {
-				log.Errorf("[CreateGnsByName]: %+v", err)
+				log.Errorf("[CreateGnsByName]: context canceled: %s", objToCreate.GetName())
 				return nil, context.Canceled
 			} else {
-				log.Errorf("[CreateGnsByName]: %+v", err)
+				log.Errorf("[CreateGnsByName] Object: %s unexpected error: %+v", objToCreate.GetName(), err)
 				return nil, err
 			}
 		} else {
@@ -6649,32 +6673,32 @@ func (group *GnsTsmV1) CreateGnsByName(ctx context.Context,
 		if err != nil {
 			log.Errorf("[CreateGnsByName] Failed to patch Gns gvk in parent node[Configs]: %+v", err)
 			if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded) {
-				log.Errorf("[Retry Count: %d ] %+v", retryCount, err)
+				log.Debugf("[Retry count: (%d) obj: %s ] %+v", retryCount, objToCreate.GetName(), err)
 				if retryCount == maxRetryCount {
-					log.Error("Max Retry exceed on patching gvk")
-					log.Errorf("Trigger Gns Delete: %s", objToCreate.GetName())
+					log.Errorf("Max retry exceed on patching gvk: %s", objToCreate.GetName())
+					log.Debugf("Trigger Gns delete: %s", objToCreate.GetName())
 					delErr := group.DeleteGnsByName(newCtx, objToCreate.GetName())
 					if delErr != nil {
-						log.Errorf("Error occur while deleting Gns: %s", objToCreate.GetName())
+						log.Debugf("Error occur while deleting Gns: %s", objToCreate.GetName())
 						return nil, delErr
 					}
-					log.Errorf("Gns Deleted: %s", objToCreate.GetName())
+					log.Debugf("Gns Deleted: %s", objToCreate.GetName())
 					return nil, err
 				}
 				retryCount += 1
 				time.Sleep(sleepTime * time.Second)
 			} else if customerrors.Is(err, context.Canceled) {
-				log.Errorf("[CreateGnsByName]: %+v", err)
+				log.Errorf("[CreateGnsByName]: context canceled: %s", objToCreate.GetName())
 				return nil, context.Canceled
 			} else {
-				log.Errorf("[CreateGnsByName] Unexpected Error Gns] :%+v", err)
-				log.Errorf("Trigger Gns Delete: %s", objToCreate.GetName())
+				log.Errorf("[CreateGnsByName] Object: %s unexpected error: %+v", objToCreate.GetName(), err)
+				log.Debugf("Trigger Gns Delete: %s", objToCreate.GetName())
 				delErr := group.DeleteGnsByName(newCtx, objToCreate.GetName())
 				if delErr != nil {
-					log.Errorf("Error occur while deleting Gns: %+v", objToCreate.GetName())
+					log.Debugf("Error occur while deleting Gns: %+v", objToCreate.GetName())
 					return nil, delErr
 				}
-				log.Errorf("Gns Deleted: %s", objToCreate.GetName())
+				log.Debugf("Gns Deleted: %s", objToCreate.GetName())
 				return nil, err
 			}
 		} else {
@@ -7122,36 +7146,36 @@ func (group *GnsTsmV1) UpdateGnsByName(ctx context.Context,
 		if err != nil {
 			log.Errorf("[UpdateGnsByName] Failed to patch Gns gvk in parent node[Configs]: %+v", err)
 			if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded) {
-				log.Errorf("[Retry Count: %d ] %+v", retryCount, err)
+				log.Debugf("[Retry count: (%d) obj: %s ] %+v", retryCount, objToUpdate.GetName(), err)
 				if retryCount == maxRetryCount {
-					log.Error("Max Retry exceed on patching gvk")
-					log.Errorf("Trigger Gns Delete: %s", objToUpdate.GetName())
+					log.Errorf("Max retry exceed on patching gvk: %s", objToUpdate.GetName())
+					log.Debugf("Trigger Gns Delete: %s", objToUpdate.GetName())
 					delErr := group.DeleteGnsByName(newCtx, objToUpdate.GetName())
 					if delErr != nil {
-						log.Errorf("Error occur while deleting Gns: %s", objToUpdate.GetName())
+						log.Debugf("Error occur while deleting Gns: %s", objToUpdate.GetName())
 						return nil, delErr
 					}
-					log.Errorf("Gns Deleted: %s", objToUpdate.GetName())
+					log.Debugf("Gns deleted: %s", objToUpdate.GetName())
 					return nil, err
 				}
 				retryCount += 1
 				time.Sleep(sleepTime * time.Second)
 			} else if customerrors.Is(err, context.Canceled) {
-				log.Errorf("[CreateGnsByName]: %+v", err)
+				log.Errorf("[UpdateGnsByName]: context canceled: %s", objToUpdate.GetName())
 				return nil, context.Canceled
 			} else {
-				log.Errorf("[CreateGnsByName] Unexpected Error Gns] :%+v", err)
-				log.Errorf("Trigger Gns Delete: %s", objToUpdate.GetName())
+				log.Errorf("[UpdateGnsByName] Object: %s unexpected error: %+v", objToUpdate.GetName(), err)
+				log.Debugf("Trigger Gns Delete: %s", objToUpdate.GetName())
 				delErr := group.DeleteGnsByName(newCtx, objToUpdate.GetName())
 				if delErr != nil {
-					log.Errorf("Error occur while deleting Gns: %+v", objToUpdate.GetName())
+					log.Debugf("Error occur while deleting Gns: %+v", objToUpdate.GetName())
 					return nil, delErr
 				}
-				log.Errorf("Gns Deleted: %s", objToUpdate.GetName())
+				log.Debugf("Gns Deleted: %s", objToUpdate.GetName())
 				return nil, err
 			}
 		} else {
-			log.Debugf("[CreateGnsByName] Patch Gns Success :%s", objToUpdate.GetName())
+			log.Debugf("[UpdateGnsByName] Patch Gns Success :%s", objToUpdate.GetName())
 			break
 		}
 	}
@@ -7283,7 +7307,7 @@ func (obj *GnsGns) GetGnsServiceGroups(ctx context.Context,
 // nexus/display_name label and can be obtained using DisplayName() method.
 func (obj *GnsGns) AddGnsServiceGroups(ctx context.Context,
 	objToCreate *baseservicegrouptsmtanzuvmwarecomv1.SvcGroup) (result *ServicegroupSvcGroup, err error) {
-	log.Debugf("[AddGnsServiceGroups] Received objToCreate: %s", objToCreate.GetName())
+	log.Debugf("[AddGnsServiceGroups] Received objToAdd: %s", objToCreate.GetName())
 	if objToCreate.Labels == nil {
 		objToCreate.Labels = map[string]string{}
 	}
@@ -7298,7 +7322,7 @@ func (obj *GnsGns) AddGnsServiceGroups(ctx context.Context,
 		objToCreate.Name = hashedName
 	}
 	result, err = obj.client.Servicegroup().CreateSvcGroupByName(ctx, objToCreate)
-	log.Debugf("[AddGnsServiceGroups] ApiSpecification created successfully: %s", objToCreate.GetName())
+	log.Debugf("[AddGnsServiceGroups] SvcGroup created successfully: %s", objToCreate.GetName())
 	updatedObj, getErr := obj.client.Gns().GetGnsByName(ctx, obj.GetName())
 	if getErr == nil {
 		obj.Gns = updatedObj.Gns
@@ -7342,7 +7366,7 @@ func (obj *GnsGns) GetGnsAccessControlPolicy(ctx context.Context) (
 // nexus/display_name label and can be obtained using DisplayName() method.
 func (obj *GnsGns) AddGnsAccessControlPolicy(ctx context.Context,
 	objToCreate *basepolicypkgtsmtanzuvmwarecomv1.AccessControlPolicy) (result *PolicypkgAccessControlPolicy, err error) {
-	log.Debugf("[AddGnsAccessControlPolicy] Received objToCreate: %s", objToCreate.GetName())
+	log.Debugf("[AddGnsAccessControlPolicy] Received objToAdd: %s", objToCreate.GetName())
 	if objToCreate.Labels == nil {
 		objToCreate.Labels = map[string]string{}
 	}
@@ -7357,7 +7381,7 @@ func (obj *GnsGns) AddGnsAccessControlPolicy(ctx context.Context,
 		objToCreate.Name = hashedName
 	}
 	result, err = obj.client.Policypkg().CreateAccessControlPolicyByName(ctx, objToCreate)
-	log.Debugf("[AddGnsAccessControlPolicy] ApiSpecification created successfully: %s", objToCreate.GetName())
+	log.Debugf("[AddGnsAccessControlPolicy] AccessControlPolicy created successfully: %s", objToCreate.GetName())
 	updatedObj, getErr := obj.client.Gns().GetGnsByName(ctx, obj.GetName())
 	if getErr == nil {
 		obj.Gns = updatedObj.Gns
@@ -7399,7 +7423,7 @@ func (obj *GnsGns) GetFooChild(ctx context.Context) (
 // nexus/display_name label and can be obtained using DisplayName() method.
 func (obj *GnsGns) AddFooChild(ctx context.Context,
 	objToCreate *basegnstsmtanzuvmwarecomv1.BarChild) (result *GnsBarChild, err error) {
-	log.Debugf("[AddFooChild] Received objToCreate: %s", objToCreate.GetName())
+	log.Debugf("[AddFooChild] Received objToAdd: %s", objToCreate.GetName())
 	if objToCreate.Labels == nil {
 		objToCreate.Labels = map[string]string{}
 	}
@@ -7420,7 +7444,7 @@ func (obj *GnsGns) AddFooChild(ctx context.Context,
 		objToCreate.Name = hashedName
 	}
 	result, err = obj.client.Gns().CreateBarChildByName(ctx, objToCreate)
-	log.Debugf("[AddFooChild] ApiSpecification created successfully: %s", objToCreate.GetName())
+	log.Debugf("[AddFooChild] BarChild created successfully: %s", objToCreate.GetName())
 	updatedObj, getErr := obj.client.Gns().GetGnsByName(ctx, obj.GetName())
 	if getErr == nil {
 		obj.Gns = updatedObj.Gns
@@ -7462,7 +7486,7 @@ func (obj *GnsGns) GetIgnoreChild(ctx context.Context) (
 // nexus/display_name label and can be obtained using DisplayName() method.
 func (obj *GnsGns) AddIgnoreChild(ctx context.Context,
 	objToCreate *basegnstsmtanzuvmwarecomv1.IgnoreChild) (result *GnsIgnoreChild, err error) {
-	log.Debugf("[AddIgnoreChild] Received objToCreate: %s", objToCreate.GetName())
+	log.Debugf("[AddIgnoreChild] Received objToAdd: %s", objToCreate.GetName())
 	if objToCreate.Labels == nil {
 		objToCreate.Labels = map[string]string{}
 	}
@@ -7477,7 +7501,7 @@ func (obj *GnsGns) AddIgnoreChild(ctx context.Context,
 		objToCreate.Name = hashedName
 	}
 	result, err = obj.client.Gns().CreateIgnoreChildByName(ctx, objToCreate)
-	log.Debugf("[AddIgnoreChild] ApiSpecification created successfully: %s", objToCreate.GetName())
+	log.Debugf("[AddIgnoreChild] IgnoreChild created successfully: %s", objToCreate.GetName())
 	updatedObj, getErr := obj.client.Gns().GetGnsByName(ctx, obj.GetName())
 	if getErr == nil {
 		obj.Gns = updatedObj.Gns
@@ -7519,7 +7543,7 @@ func (obj *GnsGns) GetFoo(ctx context.Context) (
 // nexus/display_name label and can be obtained using DisplayName() method.
 func (obj *GnsGns) AddFoo(ctx context.Context,
 	objToCreate *basegnstsmtanzuvmwarecomv1.Foo) (result *GnsFoo, err error) {
-	log.Debugf("[AddFoo] Received objToCreate: %s", objToCreate.GetName())
+	log.Debugf("[AddFoo] Received objToAdd: %s", objToCreate.GetName())
 	if objToCreate.Labels == nil {
 		objToCreate.Labels = map[string]string{}
 	}
@@ -7534,7 +7558,7 @@ func (obj *GnsGns) AddFoo(ctx context.Context,
 		objToCreate.Name = hashedName
 	}
 	result, err = obj.client.Gns().CreateFooByName(ctx, objToCreate)
-	log.Debugf("[AddFoo] ApiSpecification created successfully: %s", objToCreate.GetName())
+	log.Debugf("[AddFoo] Foo created successfully: %s", objToCreate.GetName())
 	updatedObj, getErr := obj.client.Gns().GetGnsByName(ctx, obj.GetName())
 	if getErr == nil {
 		obj.Gns = updatedObj.Gns
@@ -8466,28 +8490,32 @@ func (group *GnsTsmV1) DeleteBarChildByName(ctx context.Context, hashedName stri
 			GnsTsmV1().
 			BarChilds().Get(ctx, hashedName, metav1.GetOptions{})
 		if err != nil {
-			log.Errorf("[DeleteBarChildByName] Failed to Get BarChilds: %+v", err)
+			log.Errorf("[DeleteBarChildByName] Failed to get BarChilds: %+v", err)
 			if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded) {
-				log.Errorf("[Retry Count: %d ] %+v", retryCount, err)
+				log.Debugf("[Retry count: (%d) obj: %s ] %+v", retryCount, hashedName, err)
 				if retryCount == maxRetryCount {
-					log.Error("Max Retry exceed on Get BarChilds")
+					log.Errorf("Max retry exceed on get BarChilds: %s", hashedName)
 					return err
 				}
 				retryCount += 1
 				time.Sleep(sleepTime * time.Second)
 			} else if customerrors.Is(err, context.Canceled) {
-				log.Errorf("[DeleteBarChildByName]: %+v", err)
+				log.Errorf("[DeleteBarChildByName] context canceled: %s", hashedName)
 				return context.Canceled
 			} else if errors.IsNotFound(err) {
-				log.Errorf("[DeleteBarChildByName] Object Notfound: %+v", err)
+				log.Errorf("[DeleteBarChildByName] Object: %s not found", hashedName)
 				break
 			} else {
-				log.Errorf("[DeleteBarChildByName]: %+v", err)
+				log.Errorf("[DeleteBarChildByName] Object: %s unexpected error: %+v", hashedName, err)
 				return err
 			}
 		} else {
 			break
 		}
+	}
+
+	if result == nil {
+		return err
 	}
 
 	retryCount = 0
@@ -8498,21 +8526,21 @@ func (group *GnsTsmV1) DeleteBarChildByName(ctx context.Context, hashedName stri
 		if err != nil {
 			log.Errorf("[DeleteBarChildByName] failed to delete BarChilds: %+v", err)
 			if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded) {
-				log.Errorf("[Retry Count: %d ] %+v", retryCount, err)
+				log.Debugf("[Retry count: (%d) obj: %s ] %+v", retryCount, hashedName, err)
 				if retryCount == maxRetryCount {
-					log.Error("Max retry exceed on delete BarChilds")
+					log.Errorf("Max retry exceed on delete BarChilds: %s", hashedName)
 					return err
 				}
 				retryCount += 1
 				time.Sleep(sleepTime * time.Second)
 			} else if customerrors.Is(err, context.Canceled) {
-				log.Errorf("[DeleteBarChildByName]: %+v", err)
+				log.Errorf("[DeleteBarChildByName]: context canceled: %s", hashedName)
 				return context.Canceled
 			} else if errors.IsNotFound(err) {
-				log.Errorf("[DeleteBarChildByName] Object not found: %+v", err)
+				log.Errorf("[DeleteBarChildByName] Object: %s not found", hashedName)
 				break
 			} else {
-				log.Errorf("[DeleteBarChildByName]: %+v", err)
+				log.Errorf("[DeleteBarChildByName] Object: %s unexpected error: %+v", hashedName, err)
 				return err
 			}
 		} else {
@@ -8522,7 +8550,7 @@ func (group *GnsTsmV1) DeleteBarChildByName(ctx context.Context, hashedName stri
 	// Get Parent Node and check if gvk present before patch
 
 	var gvkPresent bool
-	log.Debugf("[DeleteBarChildByName] Get Parent details")
+	log.Debugf("[DeleteBarChildByName] Get parent details for object: %s", hashedName)
 	var patch Patch
 	parents := result.GetLabels()
 	if parents == nil {
@@ -8543,7 +8571,7 @@ func (group *GnsTsmV1) DeleteBarChildByName(ctx context.Context, hashedName stri
 		GnsTsmV1().
 		Gnses().Get(ctx, parentName, metav1.GetOptions{})
 	if err != nil {
-		log.Errorf("[DeleteBarChildByName] Failed to get Parent node: %+v", err)
+		log.Errorf("[DeleteBarChildByName] Failed to get parent node for obj:(%s) %+v", hashedName, err)
 		if errors.IsNotFound(err) {
 			return nil
 		} else {
@@ -8576,9 +8604,9 @@ func (group *GnsTsmV1) DeleteBarChildByName(ctx context.Context, hashedName stri
 				GnsTsmV1().
 				Gnses().Patch(newCtx, parentName, types.JSONPatchType, marshaled, metav1.PatchOptions{})
 			if err != nil {
-				log.Errorf("Failed to patch BarChild gvk in parent node[Gnses]: %+v", err)
+				log.Errorf("[DeleteBarChildByName] Failed to patch BarChild gvk in parent node[Gnses]: %+v", err)
 				if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded) {
-					log.Errorf("[Retry Count: %d ] %+v", retryCount, err)
+					log.Debugf("[Retry count: (%d) obj: %s ] %+v", retryCount, hashedName, err)
 					if retryCount == maxRetryCount {
 						log.Error("Max Retry exceed on patching gvk")
 						return err
@@ -8586,10 +8614,10 @@ func (group *GnsTsmV1) DeleteBarChildByName(ctx context.Context, hashedName stri
 					retryCount += 1
 					time.Sleep(sleepTime * time.Second)
 				} else if customerrors.Is(err, context.Canceled) {
-					log.Errorf("[DeleteBarChildByName]: %+v", err)
+					log.Errorf("[DeleteBarChildByName]: context canceled: %s", hashedName)
 					return context.Canceled
 				} else {
-					log.Errorf("Unexpected Error occur BarChild]: %+v", err)
+					log.Errorf("[DeleteBarChildByName] Object: %s unexpected error: %+v", hashedName, err)
 					return err
 				}
 			} else {
@@ -8632,20 +8660,20 @@ func (group *GnsTsmV1) CreateBarChildByName(ctx context.Context,
 			GnsTsmV1().
 			BarChilds().Create(ctx, objToCreate, metav1.CreateOptions{})
 		if err != nil {
-			log.Errorf("[CreateBarChildByName] Failed to Create BarChilds: %+v", err)
+			log.Errorf("[CreateBarChildByName] Failed to create BarChilds:(%s) %+v", objToCreate.GetName(), err)
 			if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded) {
-				log.Errorf("[Retry Count: %d ] %+v", retryCount, err)
+				log.Debugf("[Retry count: (%d) obj: %s ] %+v", retryCount, objToCreate.GetName(), err)
 				if retryCount == maxRetryCount {
-					log.Error("Max Retry exceed on Get BarChilds")
+					log.Error("Max retry exceed on create BarChilds: %s", objToCreate.GetName())
 					return nil, err
 				}
 				retryCount += 1
 				time.Sleep(sleepTime * time.Second)
 			} else if customerrors.Is(err, context.Canceled) {
-				log.Errorf("[CreateBarChildByName]: %+v", err)
+				log.Errorf("[CreateBarChildByName]: context canceled: %s", objToCreate.GetName())
 				return nil, context.Canceled
 			} else {
-				log.Errorf("[CreateBarChildByName]: %+v", err)
+				log.Errorf("[CreateBarChildByName] Object: %s unexpected error: %+v", objToCreate.GetName(), err)
 				return nil, err
 			}
 		} else {
@@ -8686,32 +8714,32 @@ func (group *GnsTsmV1) CreateBarChildByName(ctx context.Context,
 		if err != nil {
 			log.Errorf("[CreateBarChildByName] Failed to patch BarChild gvk in parent node[Gnses]: %+v", err)
 			if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded) {
-				log.Errorf("[Retry Count: %d ] %+v", retryCount, err)
+				log.Debugf("[Retry count: (%d) obj: %s ] %+v", retryCount, objToCreate.GetName(), err)
 				if retryCount == maxRetryCount {
-					log.Error("Max Retry exceed on patching gvk")
-					log.Errorf("Trigger BarChild Delete: %s", objToCreate.GetName())
+					log.Errorf("Max retry exceed on patching gvk: %s", objToCreate.GetName())
+					log.Debugf("Trigger BarChild delete: %s", objToCreate.GetName())
 					delErr := group.DeleteBarChildByName(newCtx, objToCreate.GetName())
 					if delErr != nil {
-						log.Errorf("Error occur while deleting BarChild: %s", objToCreate.GetName())
+						log.Debugf("Error occur while deleting BarChild: %s", objToCreate.GetName())
 						return nil, delErr
 					}
-					log.Errorf("BarChild Deleted: %s", objToCreate.GetName())
+					log.Debugf("BarChild Deleted: %s", objToCreate.GetName())
 					return nil, err
 				}
 				retryCount += 1
 				time.Sleep(sleepTime * time.Second)
 			} else if customerrors.Is(err, context.Canceled) {
-				log.Errorf("[CreateBarChildByName]: %+v", err)
+				log.Errorf("[CreateBarChildByName]: context canceled: %s", objToCreate.GetName())
 				return nil, context.Canceled
 			} else {
-				log.Errorf("[CreateBarChildByName] Unexpected Error BarChild] :%+v", err)
-				log.Errorf("Trigger BarChild Delete: %s", objToCreate.GetName())
+				log.Errorf("[CreateBarChildByName] Object: %s unexpected error: %+v", objToCreate.GetName(), err)
+				log.Debugf("Trigger BarChild Delete: %s", objToCreate.GetName())
 				delErr := group.DeleteBarChildByName(newCtx, objToCreate.GetName())
 				if delErr != nil {
-					log.Errorf("Error occur while deleting BarChild: %+v", objToCreate.GetName())
+					log.Debugf("Error occur while deleting BarChild: %+v", objToCreate.GetName())
 					return nil, delErr
 				}
-				log.Errorf("BarChild Deleted: %s", objToCreate.GetName())
+				log.Debugf("BarChild Deleted: %s", objToCreate.GetName())
 				return nil, err
 			}
 		} else {
@@ -8810,36 +8838,36 @@ func (group *GnsTsmV1) UpdateBarChildByName(ctx context.Context,
 		if err != nil {
 			log.Errorf("[UpdateBarChildByName] Failed to patch BarChild gvk in parent node[Gnses]: %+v", err)
 			if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded) {
-				log.Errorf("[Retry Count: %d ] %+v", retryCount, err)
+				log.Debugf("[Retry count: (%d) obj: %s ] %+v", retryCount, objToUpdate.GetName(), err)
 				if retryCount == maxRetryCount {
-					log.Error("Max Retry exceed on patching gvk")
-					log.Errorf("Trigger BarChild Delete: %s", objToUpdate.GetName())
+					log.Errorf("Max retry exceed on patching gvk: %s", objToUpdate.GetName())
+					log.Debugf("Trigger BarChild Delete: %s", objToUpdate.GetName())
 					delErr := group.DeleteBarChildByName(newCtx, objToUpdate.GetName())
 					if delErr != nil {
-						log.Errorf("Error occur while deleting BarChild: %s", objToUpdate.GetName())
+						log.Debugf("Error occur while deleting BarChild: %s", objToUpdate.GetName())
 						return nil, delErr
 					}
-					log.Errorf("BarChild Deleted: %s", objToUpdate.GetName())
+					log.Debugf("BarChild deleted: %s", objToUpdate.GetName())
 					return nil, err
 				}
 				retryCount += 1
 				time.Sleep(sleepTime * time.Second)
 			} else if customerrors.Is(err, context.Canceled) {
-				log.Errorf("[CreateBarChildByName]: %+v", err)
+				log.Errorf("[UpdateBarChildByName]: context canceled: %s", objToUpdate.GetName())
 				return nil, context.Canceled
 			} else {
-				log.Errorf("[CreateBarChildByName] Unexpected Error BarChild] :%+v", err)
-				log.Errorf("Trigger BarChild Delete: %s", objToUpdate.GetName())
+				log.Errorf("[UpdateBarChildByName] Object: %s unexpected error: %+v", objToUpdate.GetName(), err)
+				log.Debugf("Trigger BarChild Delete: %s", objToUpdate.GetName())
 				delErr := group.DeleteBarChildByName(newCtx, objToUpdate.GetName())
 				if delErr != nil {
-					log.Errorf("Error occur while deleting BarChild: %+v", objToUpdate.GetName())
+					log.Debugf("Error occur while deleting BarChild: %+v", objToUpdate.GetName())
 					return nil, delErr
 				}
-				log.Errorf("BarChild Deleted: %s", objToUpdate.GetName())
+				log.Debugf("BarChild Deleted: %s", objToUpdate.GetName())
 				return nil, err
 			}
 		} else {
-			log.Debugf("[CreateBarChildByName] Patch BarChild Success :%s", objToUpdate.GetName())
+			log.Debugf("[UpdateBarChildByName] Patch BarChild Success :%s", objToUpdate.GetName())
 			break
 		}
 	}
@@ -9482,28 +9510,32 @@ func (group *GnsTsmV1) DeleteIgnoreChildByName(ctx context.Context, hashedName s
 			GnsTsmV1().
 			IgnoreChilds().Get(ctx, hashedName, metav1.GetOptions{})
 		if err != nil {
-			log.Errorf("[DeleteIgnoreChildByName] Failed to Get IgnoreChilds: %+v", err)
+			log.Errorf("[DeleteIgnoreChildByName] Failed to get IgnoreChilds: %+v", err)
 			if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded) {
-				log.Errorf("[Retry Count: %d ] %+v", retryCount, err)
+				log.Debugf("[Retry count: (%d) obj: %s ] %+v", retryCount, hashedName, err)
 				if retryCount == maxRetryCount {
-					log.Error("Max Retry exceed on Get IgnoreChilds")
+					log.Errorf("Max retry exceed on get IgnoreChilds: %s", hashedName)
 					return err
 				}
 				retryCount += 1
 				time.Sleep(sleepTime * time.Second)
 			} else if customerrors.Is(err, context.Canceled) {
-				log.Errorf("[DeleteIgnoreChildByName]: %+v", err)
+				log.Errorf("[DeleteIgnoreChildByName] context canceled: %s", hashedName)
 				return context.Canceled
 			} else if errors.IsNotFound(err) {
-				log.Errorf("[DeleteIgnoreChildByName] Object Notfound: %+v", err)
+				log.Errorf("[DeleteIgnoreChildByName] Object: %s not found", hashedName)
 				break
 			} else {
-				log.Errorf("[DeleteIgnoreChildByName]: %+v", err)
+				log.Errorf("[DeleteIgnoreChildByName] Object: %s unexpected error: %+v", hashedName, err)
 				return err
 			}
 		} else {
 			break
 		}
+	}
+
+	if result == nil {
+		return err
 	}
 
 	retryCount = 0
@@ -9514,21 +9546,21 @@ func (group *GnsTsmV1) DeleteIgnoreChildByName(ctx context.Context, hashedName s
 		if err != nil {
 			log.Errorf("[DeleteIgnoreChildByName] failed to delete IgnoreChilds: %+v", err)
 			if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded) {
-				log.Errorf("[Retry Count: %d ] %+v", retryCount, err)
+				log.Debugf("[Retry count: (%d) obj: %s ] %+v", retryCount, hashedName, err)
 				if retryCount == maxRetryCount {
-					log.Error("Max retry exceed on delete IgnoreChilds")
+					log.Errorf("Max retry exceed on delete IgnoreChilds: %s", hashedName)
 					return err
 				}
 				retryCount += 1
 				time.Sleep(sleepTime * time.Second)
 			} else if customerrors.Is(err, context.Canceled) {
-				log.Errorf("[DeleteIgnoreChildByName]: %+v", err)
+				log.Errorf("[DeleteIgnoreChildByName]: context canceled: %s", hashedName)
 				return context.Canceled
 			} else if errors.IsNotFound(err) {
-				log.Errorf("[DeleteIgnoreChildByName] Object not found: %+v", err)
+				log.Errorf("[DeleteIgnoreChildByName] Object: %s not found", hashedName)
 				break
 			} else {
-				log.Errorf("[DeleteIgnoreChildByName]: %+v", err)
+				log.Errorf("[DeleteIgnoreChildByName] Object: %s unexpected error: %+v", hashedName, err)
 				return err
 			}
 		} else {
@@ -9538,7 +9570,7 @@ func (group *GnsTsmV1) DeleteIgnoreChildByName(ctx context.Context, hashedName s
 	// Get Parent Node and check if gvk present before patch
 
 	var gvkPresent bool
-	log.Debugf("[DeleteIgnoreChildByName] Get Parent details")
+	log.Debugf("[DeleteIgnoreChildByName] Get parent details for object: %s", hashedName)
 	var patch Patch
 	parents := result.GetLabels()
 	if parents == nil {
@@ -9559,7 +9591,7 @@ func (group *GnsTsmV1) DeleteIgnoreChildByName(ctx context.Context, hashedName s
 		GnsTsmV1().
 		Gnses().Get(ctx, parentName, metav1.GetOptions{})
 	if err != nil {
-		log.Errorf("[DeleteIgnoreChildByName] Failed to get Parent node: %+v", err)
+		log.Errorf("[DeleteIgnoreChildByName] Failed to get parent node for obj:(%s) %+v", hashedName, err)
 		if errors.IsNotFound(err) {
 			return nil
 		} else {
@@ -9592,9 +9624,9 @@ func (group *GnsTsmV1) DeleteIgnoreChildByName(ctx context.Context, hashedName s
 				GnsTsmV1().
 				Gnses().Patch(newCtx, parentName, types.JSONPatchType, marshaled, metav1.PatchOptions{})
 			if err != nil {
-				log.Errorf("Failed to patch IgnoreChild gvk in parent node[Gnses]: %+v", err)
+				log.Errorf("[DeleteIgnoreChildByName] Failed to patch IgnoreChild gvk in parent node[Gnses]: %+v", err)
 				if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded) {
-					log.Errorf("[Retry Count: %d ] %+v", retryCount, err)
+					log.Debugf("[Retry count: (%d) obj: %s ] %+v", retryCount, hashedName, err)
 					if retryCount == maxRetryCount {
 						log.Error("Max Retry exceed on patching gvk")
 						return err
@@ -9602,10 +9634,10 @@ func (group *GnsTsmV1) DeleteIgnoreChildByName(ctx context.Context, hashedName s
 					retryCount += 1
 					time.Sleep(sleepTime * time.Second)
 				} else if customerrors.Is(err, context.Canceled) {
-					log.Errorf("[DeleteIgnoreChildByName]: %+v", err)
+					log.Errorf("[DeleteIgnoreChildByName]: context canceled: %s", hashedName)
 					return context.Canceled
 				} else {
-					log.Errorf("Unexpected Error occur IgnoreChild]: %+v", err)
+					log.Errorf("[DeleteIgnoreChildByName] Object: %s unexpected error: %+v", hashedName, err)
 					return err
 				}
 			} else {
@@ -9642,20 +9674,20 @@ func (group *GnsTsmV1) CreateIgnoreChildByName(ctx context.Context,
 			GnsTsmV1().
 			IgnoreChilds().Create(ctx, objToCreate, metav1.CreateOptions{})
 		if err != nil {
-			log.Errorf("[CreateIgnoreChildByName] Failed to Create IgnoreChilds: %+v", err)
+			log.Errorf("[CreateIgnoreChildByName] Failed to create IgnoreChilds:(%s) %+v", objToCreate.GetName(), err)
 			if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded) {
-				log.Errorf("[Retry Count: %d ] %+v", retryCount, err)
+				log.Debugf("[Retry count: (%d) obj: %s ] %+v", retryCount, objToCreate.GetName(), err)
 				if retryCount == maxRetryCount {
-					log.Error("Max Retry exceed on Get IgnoreChilds")
+					log.Error("Max retry exceed on create IgnoreChilds: %s", objToCreate.GetName())
 					return nil, err
 				}
 				retryCount += 1
 				time.Sleep(sleepTime * time.Second)
 			} else if customerrors.Is(err, context.Canceled) {
-				log.Errorf("[CreateIgnoreChildByName]: %+v", err)
+				log.Errorf("[CreateIgnoreChildByName]: context canceled: %s", objToCreate.GetName())
 				return nil, context.Canceled
 			} else {
-				log.Errorf("[CreateIgnoreChildByName]: %+v", err)
+				log.Errorf("[CreateIgnoreChildByName] Object: %s unexpected error: %+v", objToCreate.GetName(), err)
 				return nil, err
 			}
 		} else {
@@ -9696,32 +9728,32 @@ func (group *GnsTsmV1) CreateIgnoreChildByName(ctx context.Context,
 		if err != nil {
 			log.Errorf("[CreateIgnoreChildByName] Failed to patch IgnoreChild gvk in parent node[Gnses]: %+v", err)
 			if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded) {
-				log.Errorf("[Retry Count: %d ] %+v", retryCount, err)
+				log.Debugf("[Retry count: (%d) obj: %s ] %+v", retryCount, objToCreate.GetName(), err)
 				if retryCount == maxRetryCount {
-					log.Error("Max Retry exceed on patching gvk")
-					log.Errorf("Trigger IgnoreChild Delete: %s", objToCreate.GetName())
+					log.Errorf("Max retry exceed on patching gvk: %s", objToCreate.GetName())
+					log.Debugf("Trigger IgnoreChild delete: %s", objToCreate.GetName())
 					delErr := group.DeleteIgnoreChildByName(newCtx, objToCreate.GetName())
 					if delErr != nil {
-						log.Errorf("Error occur while deleting IgnoreChild: %s", objToCreate.GetName())
+						log.Debugf("Error occur while deleting IgnoreChild: %s", objToCreate.GetName())
 						return nil, delErr
 					}
-					log.Errorf("IgnoreChild Deleted: %s", objToCreate.GetName())
+					log.Debugf("IgnoreChild Deleted: %s", objToCreate.GetName())
 					return nil, err
 				}
 				retryCount += 1
 				time.Sleep(sleepTime * time.Second)
 			} else if customerrors.Is(err, context.Canceled) {
-				log.Errorf("[CreateIgnoreChildByName]: %+v", err)
+				log.Errorf("[CreateIgnoreChildByName]: context canceled: %s", objToCreate.GetName())
 				return nil, context.Canceled
 			} else {
-				log.Errorf("[CreateIgnoreChildByName] Unexpected Error IgnoreChild] :%+v", err)
-				log.Errorf("Trigger IgnoreChild Delete: %s", objToCreate.GetName())
+				log.Errorf("[CreateIgnoreChildByName] Object: %s unexpected error: %+v", objToCreate.GetName(), err)
+				log.Debugf("Trigger IgnoreChild Delete: %s", objToCreate.GetName())
 				delErr := group.DeleteIgnoreChildByName(newCtx, objToCreate.GetName())
 				if delErr != nil {
-					log.Errorf("Error occur while deleting IgnoreChild: %+v", objToCreate.GetName())
+					log.Debugf("Error occur while deleting IgnoreChild: %+v", objToCreate.GetName())
 					return nil, delErr
 				}
-				log.Errorf("IgnoreChild Deleted: %s", objToCreate.GetName())
+				log.Debugf("IgnoreChild Deleted: %s", objToCreate.GetName())
 				return nil, err
 			}
 		} else {
@@ -9817,36 +9849,36 @@ func (group *GnsTsmV1) UpdateIgnoreChildByName(ctx context.Context,
 		if err != nil {
 			log.Errorf("[UpdateIgnoreChildByName] Failed to patch IgnoreChild gvk in parent node[Gnses]: %+v", err)
 			if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded) {
-				log.Errorf("[Retry Count: %d ] %+v", retryCount, err)
+				log.Debugf("[Retry count: (%d) obj: %s ] %+v", retryCount, objToUpdate.GetName(), err)
 				if retryCount == maxRetryCount {
-					log.Error("Max Retry exceed on patching gvk")
-					log.Errorf("Trigger IgnoreChild Delete: %s", objToUpdate.GetName())
+					log.Errorf("Max retry exceed on patching gvk: %s", objToUpdate.GetName())
+					log.Debugf("Trigger IgnoreChild Delete: %s", objToUpdate.GetName())
 					delErr := group.DeleteIgnoreChildByName(newCtx, objToUpdate.GetName())
 					if delErr != nil {
-						log.Errorf("Error occur while deleting IgnoreChild: %s", objToUpdate.GetName())
+						log.Debugf("Error occur while deleting IgnoreChild: %s", objToUpdate.GetName())
 						return nil, delErr
 					}
-					log.Errorf("IgnoreChild Deleted: %s", objToUpdate.GetName())
+					log.Debugf("IgnoreChild deleted: %s", objToUpdate.GetName())
 					return nil, err
 				}
 				retryCount += 1
 				time.Sleep(sleepTime * time.Second)
 			} else if customerrors.Is(err, context.Canceled) {
-				log.Errorf("[CreateIgnoreChildByName]: %+v", err)
+				log.Errorf("[UpdateIgnoreChildByName]: context canceled: %s", objToUpdate.GetName())
 				return nil, context.Canceled
 			} else {
-				log.Errorf("[CreateIgnoreChildByName] Unexpected Error IgnoreChild] :%+v", err)
-				log.Errorf("Trigger IgnoreChild Delete: %s", objToUpdate.GetName())
+				log.Errorf("[UpdateIgnoreChildByName] Object: %s unexpected error: %+v", objToUpdate.GetName(), err)
+				log.Debugf("Trigger IgnoreChild Delete: %s", objToUpdate.GetName())
 				delErr := group.DeleteIgnoreChildByName(newCtx, objToUpdate.GetName())
 				if delErr != nil {
-					log.Errorf("Error occur while deleting IgnoreChild: %+v", objToUpdate.GetName())
+					log.Debugf("Error occur while deleting IgnoreChild: %+v", objToUpdate.GetName())
 					return nil, delErr
 				}
-				log.Errorf("IgnoreChild Deleted: %s", objToUpdate.GetName())
+				log.Debugf("IgnoreChild Deleted: %s", objToUpdate.GetName())
 				return nil, err
 			}
 		} else {
-			log.Debugf("[CreateIgnoreChildByName] Patch IgnoreChild Success :%s", objToUpdate.GetName())
+			log.Debugf("[UpdateIgnoreChildByName] Patch IgnoreChild Success :%s", objToUpdate.GetName())
 			break
 		}
 	}
@@ -10489,28 +10521,32 @@ func (group *GnsTsmV1) DeleteDnsByName(ctx context.Context, hashedName string) (
 			GnsTsmV1().
 			Dnses().Get(ctx, hashedName, metav1.GetOptions{})
 		if err != nil {
-			log.Errorf("[DeleteDnsByName] Failed to Get Dnses: %+v", err)
+			log.Errorf("[DeleteDnsByName] Failed to get Dnses: %+v", err)
 			if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded) {
-				log.Errorf("[Retry Count: %d ] %+v", retryCount, err)
+				log.Debugf("[Retry count: (%d) obj: %s ] %+v", retryCount, hashedName, err)
 				if retryCount == maxRetryCount {
-					log.Error("Max Retry exceed on Get Dnses")
+					log.Errorf("Max retry exceed on get Dnses: %s", hashedName)
 					return err
 				}
 				retryCount += 1
 				time.Sleep(sleepTime * time.Second)
 			} else if customerrors.Is(err, context.Canceled) {
-				log.Errorf("[DeleteDnsByName]: %+v", err)
+				log.Errorf("[DeleteDnsByName] context canceled: %s", hashedName)
 				return context.Canceled
 			} else if errors.IsNotFound(err) {
-				log.Errorf("[DeleteDnsByName] Object Notfound: %+v", err)
+				log.Errorf("[DeleteDnsByName] Object: %s not found", hashedName)
 				break
 			} else {
-				log.Errorf("[DeleteDnsByName]: %+v", err)
+				log.Errorf("[DeleteDnsByName] Object: %s unexpected error: %+v", hashedName, err)
 				return err
 			}
 		} else {
 			break
 		}
+	}
+
+	if result == nil {
+		return err
 	}
 
 	retryCount = 0
@@ -10521,21 +10557,21 @@ func (group *GnsTsmV1) DeleteDnsByName(ctx context.Context, hashedName string) (
 		if err != nil {
 			log.Errorf("[DeleteDnsByName] failed to delete Dnses: %+v", err)
 			if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded) {
-				log.Errorf("[Retry Count: %d ] %+v", retryCount, err)
+				log.Debugf("[Retry count: (%d) obj: %s ] %+v", retryCount, hashedName, err)
 				if retryCount == maxRetryCount {
-					log.Error("Max retry exceed on delete Dnses")
+					log.Errorf("Max retry exceed on delete Dnses: %s", hashedName)
 					return err
 				}
 				retryCount += 1
 				time.Sleep(sleepTime * time.Second)
 			} else if customerrors.Is(err, context.Canceled) {
-				log.Errorf("[DeleteDnsByName]: %+v", err)
+				log.Errorf("[DeleteDnsByName]: context canceled: %s", hashedName)
 				return context.Canceled
 			} else if errors.IsNotFound(err) {
-				log.Errorf("[DeleteDnsByName] Object not found: %+v", err)
+				log.Errorf("[DeleteDnsByName] Object: %s not found", hashedName)
 				break
 			} else {
-				log.Errorf("[DeleteDnsByName]: %+v", err)
+				log.Errorf("[DeleteDnsByName] Object: %s unexpected error: %+v", hashedName, err)
 				return err
 			}
 		} else {
@@ -10545,7 +10581,7 @@ func (group *GnsTsmV1) DeleteDnsByName(ctx context.Context, hashedName string) (
 	// Get Parent Node and check if gvk present before patch
 
 	var gvkPresent bool
-	log.Debugf("[DeleteDnsByName] Get Parent details")
+	log.Debugf("[DeleteDnsByName] Get parent details for object: %s", hashedName)
 	var patch Patch
 	parents := result.GetLabels()
 	if parents == nil {
@@ -10566,7 +10602,7 @@ func (group *GnsTsmV1) DeleteDnsByName(ctx context.Context, hashedName string) (
 		ConfigTsmV1().
 		Configs().Get(ctx, parentName, metav1.GetOptions{})
 	if err != nil {
-		log.Errorf("[DeleteDnsByName] Failed to get Parent node: %+v", err)
+		log.Errorf("[DeleteDnsByName] Failed to get parent node for obj:(%s) %+v", hashedName, err)
 		if errors.IsNotFound(err) {
 			return nil
 		} else {
@@ -10599,9 +10635,9 @@ func (group *GnsTsmV1) DeleteDnsByName(ctx context.Context, hashedName string) (
 				ConfigTsmV1().
 				Configs().Patch(newCtx, parentName, types.JSONPatchType, marshaled, metav1.PatchOptions{})
 			if err != nil {
-				log.Errorf("Failed to patch Dns gvk in parent node[Configs]: %+v", err)
+				log.Errorf("[DeleteDnsByName] Failed to patch Dns gvk in parent node[Configs]: %+v", err)
 				if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded) {
-					log.Errorf("[Retry Count: %d ] %+v", retryCount, err)
+					log.Debugf("[Retry count: (%d) obj: %s ] %+v", retryCount, hashedName, err)
 					if retryCount == maxRetryCount {
 						log.Error("Max Retry exceed on patching gvk")
 						return err
@@ -10609,10 +10645,10 @@ func (group *GnsTsmV1) DeleteDnsByName(ctx context.Context, hashedName string) (
 					retryCount += 1
 					time.Sleep(sleepTime * time.Second)
 				} else if customerrors.Is(err, context.Canceled) {
-					log.Errorf("[DeleteDnsByName]: %+v", err)
+					log.Errorf("[DeleteDnsByName]: context canceled: %s", hashedName)
 					return context.Canceled
 				} else {
-					log.Errorf("Unexpected Error occur Dns]: %+v", err)
+					log.Errorf("[DeleteDnsByName] Object: %s unexpected error: %+v", hashedName, err)
 					return err
 				}
 			} else {
@@ -10655,20 +10691,20 @@ func (group *GnsTsmV1) CreateDnsByName(ctx context.Context,
 			GnsTsmV1().
 			Dnses().Create(ctx, objToCreate, metav1.CreateOptions{})
 		if err != nil {
-			log.Errorf("[CreateDnsByName] Failed to Create Dnses: %+v", err)
+			log.Errorf("[CreateDnsByName] Failed to create Dnses:(%s) %+v", objToCreate.GetName(), err)
 			if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded) {
-				log.Errorf("[Retry Count: %d ] %+v", retryCount, err)
+				log.Debugf("[Retry count: (%d) obj: %s ] %+v", retryCount, objToCreate.GetName(), err)
 				if retryCount == maxRetryCount {
-					log.Error("Max Retry exceed on Get Dnses")
+					log.Error("Max retry exceed on create Dnses: %s", objToCreate.GetName())
 					return nil, err
 				}
 				retryCount += 1
 				time.Sleep(sleepTime * time.Second)
 			} else if customerrors.Is(err, context.Canceled) {
-				log.Errorf("[CreateDnsByName]: %+v", err)
+				log.Errorf("[CreateDnsByName]: context canceled: %s", objToCreate.GetName())
 				return nil, context.Canceled
 			} else {
-				log.Errorf("[CreateDnsByName]: %+v", err)
+				log.Errorf("[CreateDnsByName] Object: %s unexpected error: %+v", objToCreate.GetName(), err)
 				return nil, err
 			}
 		} else {
@@ -10709,32 +10745,32 @@ func (group *GnsTsmV1) CreateDnsByName(ctx context.Context,
 		if err != nil {
 			log.Errorf("[CreateDnsByName] Failed to patch Dns gvk in parent node[Configs]: %+v", err)
 			if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded) {
-				log.Errorf("[Retry Count: %d ] %+v", retryCount, err)
+				log.Debugf("[Retry count: (%d) obj: %s ] %+v", retryCount, objToCreate.GetName(), err)
 				if retryCount == maxRetryCount {
-					log.Error("Max Retry exceed on patching gvk")
-					log.Errorf("Trigger Dns Delete: %s", objToCreate.GetName())
+					log.Errorf("Max retry exceed on patching gvk: %s", objToCreate.GetName())
+					log.Debugf("Trigger Dns delete: %s", objToCreate.GetName())
 					delErr := group.DeleteDnsByName(newCtx, objToCreate.GetName())
 					if delErr != nil {
-						log.Errorf("Error occur while deleting Dns: %s", objToCreate.GetName())
+						log.Debugf("Error occur while deleting Dns: %s", objToCreate.GetName())
 						return nil, delErr
 					}
-					log.Errorf("Dns Deleted: %s", objToCreate.GetName())
+					log.Debugf("Dns Deleted: %s", objToCreate.GetName())
 					return nil, err
 				}
 				retryCount += 1
 				time.Sleep(sleepTime * time.Second)
 			} else if customerrors.Is(err, context.Canceled) {
-				log.Errorf("[CreateDnsByName]: %+v", err)
+				log.Errorf("[CreateDnsByName]: context canceled: %s", objToCreate.GetName())
 				return nil, context.Canceled
 			} else {
-				log.Errorf("[CreateDnsByName] Unexpected Error Dns] :%+v", err)
-				log.Errorf("Trigger Dns Delete: %s", objToCreate.GetName())
+				log.Errorf("[CreateDnsByName] Object: %s unexpected error: %+v", objToCreate.GetName(), err)
+				log.Debugf("Trigger Dns Delete: %s", objToCreate.GetName())
 				delErr := group.DeleteDnsByName(newCtx, objToCreate.GetName())
 				if delErr != nil {
-					log.Errorf("Error occur while deleting Dns: %+v", objToCreate.GetName())
+					log.Debugf("Error occur while deleting Dns: %+v", objToCreate.GetName())
 					return nil, delErr
 				}
-				log.Errorf("Dns Deleted: %s", objToCreate.GetName())
+				log.Debugf("Dns Deleted: %s", objToCreate.GetName())
 				return nil, err
 			}
 		} else {
@@ -10810,36 +10846,36 @@ func (group *GnsTsmV1) UpdateDnsByName(ctx context.Context,
 		if err != nil {
 			log.Errorf("[UpdateDnsByName] Failed to patch Dns gvk in parent node[Configs]: %+v", err)
 			if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded) {
-				log.Errorf("[Retry Count: %d ] %+v", retryCount, err)
+				log.Debugf("[Retry count: (%d) obj: %s ] %+v", retryCount, objToUpdate.GetName(), err)
 				if retryCount == maxRetryCount {
-					log.Error("Max Retry exceed on patching gvk")
-					log.Errorf("Trigger Dns Delete: %s", objToUpdate.GetName())
+					log.Errorf("Max retry exceed on patching gvk: %s", objToUpdate.GetName())
+					log.Debugf("Trigger Dns Delete: %s", objToUpdate.GetName())
 					delErr := group.DeleteDnsByName(newCtx, objToUpdate.GetName())
 					if delErr != nil {
-						log.Errorf("Error occur while deleting Dns: %s", objToUpdate.GetName())
+						log.Debugf("Error occur while deleting Dns: %s", objToUpdate.GetName())
 						return nil, delErr
 					}
-					log.Errorf("Dns Deleted: %s", objToUpdate.GetName())
+					log.Debugf("Dns deleted: %s", objToUpdate.GetName())
 					return nil, err
 				}
 				retryCount += 1
 				time.Sleep(sleepTime * time.Second)
 			} else if customerrors.Is(err, context.Canceled) {
-				log.Errorf("[CreateDnsByName]: %+v", err)
+				log.Errorf("[UpdateDnsByName]: context canceled: %s", objToUpdate.GetName())
 				return nil, context.Canceled
 			} else {
-				log.Errorf("[CreateDnsByName] Unexpected Error Dns] :%+v", err)
-				log.Errorf("Trigger Dns Delete: %s", objToUpdate.GetName())
+				log.Errorf("[UpdateDnsByName] Object: %s unexpected error: %+v", objToUpdate.GetName(), err)
+				log.Debugf("Trigger Dns Delete: %s", objToUpdate.GetName())
 				delErr := group.DeleteDnsByName(newCtx, objToUpdate.GetName())
 				if delErr != nil {
-					log.Errorf("Error occur while deleting Dns: %+v", objToUpdate.GetName())
+					log.Debugf("Error occur while deleting Dns: %+v", objToUpdate.GetName())
 					return nil, delErr
 				}
-				log.Errorf("Dns Deleted: %s", objToUpdate.GetName())
+				log.Debugf("Dns Deleted: %s", objToUpdate.GetName())
 				return nil, err
 			}
 		} else {
-			log.Debugf("[CreateDnsByName] Patch Dns Success :%s", objToUpdate.GetName())
+			log.Debugf("[UpdateDnsByName] Patch Dns Success :%s", objToUpdate.GetName())
 			break
 		}
 	}
@@ -11482,28 +11518,32 @@ func (group *ServicegroupTsmV1) DeleteSvcGroupByName(ctx context.Context, hashed
 			ServicegroupTsmV1().
 			SvcGroups().Get(ctx, hashedName, metav1.GetOptions{})
 		if err != nil {
-			log.Errorf("[DeleteSvcGroupByName] Failed to Get SvcGroups: %+v", err)
+			log.Errorf("[DeleteSvcGroupByName] Failed to get SvcGroups: %+v", err)
 			if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded) {
-				log.Errorf("[Retry Count: %d ] %+v", retryCount, err)
+				log.Debugf("[Retry count: (%d) obj: %s ] %+v", retryCount, hashedName, err)
 				if retryCount == maxRetryCount {
-					log.Error("Max Retry exceed on Get SvcGroups")
+					log.Errorf("Max retry exceed on get SvcGroups: %s", hashedName)
 					return err
 				}
 				retryCount += 1
 				time.Sleep(sleepTime * time.Second)
 			} else if customerrors.Is(err, context.Canceled) {
-				log.Errorf("[DeleteSvcGroupByName]: %+v", err)
+				log.Errorf("[DeleteSvcGroupByName] context canceled: %s", hashedName)
 				return context.Canceled
 			} else if errors.IsNotFound(err) {
-				log.Errorf("[DeleteSvcGroupByName] Object Notfound: %+v", err)
+				log.Errorf("[DeleteSvcGroupByName] Object: %s not found", hashedName)
 				break
 			} else {
-				log.Errorf("[DeleteSvcGroupByName]: %+v", err)
+				log.Errorf("[DeleteSvcGroupByName] Object: %s unexpected error: %+v", hashedName, err)
 				return err
 			}
 		} else {
 			break
 		}
+	}
+
+	if result == nil {
+		return err
 	}
 
 	retryCount = 0
@@ -11514,21 +11554,21 @@ func (group *ServicegroupTsmV1) DeleteSvcGroupByName(ctx context.Context, hashed
 		if err != nil {
 			log.Errorf("[DeleteSvcGroupByName] failed to delete SvcGroups: %+v", err)
 			if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded) {
-				log.Errorf("[Retry Count: %d ] %+v", retryCount, err)
+				log.Debugf("[Retry count: (%d) obj: %s ] %+v", retryCount, hashedName, err)
 				if retryCount == maxRetryCount {
-					log.Error("Max retry exceed on delete SvcGroups")
+					log.Errorf("Max retry exceed on delete SvcGroups: %s", hashedName)
 					return err
 				}
 				retryCount += 1
 				time.Sleep(sleepTime * time.Second)
 			} else if customerrors.Is(err, context.Canceled) {
-				log.Errorf("[DeleteSvcGroupByName]: %+v", err)
+				log.Errorf("[DeleteSvcGroupByName]: context canceled: %s", hashedName)
 				return context.Canceled
 			} else if errors.IsNotFound(err) {
-				log.Errorf("[DeleteSvcGroupByName] Object not found: %+v", err)
+				log.Errorf("[DeleteSvcGroupByName] Object: %s not found", hashedName)
 				break
 			} else {
-				log.Errorf("[DeleteSvcGroupByName]: %+v", err)
+				log.Errorf("[DeleteSvcGroupByName] Object: %s unexpected error: %+v", hashedName, err)
 				return err
 			}
 		} else {
@@ -11538,7 +11578,7 @@ func (group *ServicegroupTsmV1) DeleteSvcGroupByName(ctx context.Context, hashed
 	// Get Parent Node and check if gvk present before patch
 
 	var gvkPresent bool
-	log.Debugf("[DeleteSvcGroupByName] Get Parent details")
+	log.Debugf("[DeleteSvcGroupByName] Get parent details for object: %s", hashedName)
 	var patch Patch
 	parents := result.GetLabels()
 	if parents == nil {
@@ -11559,7 +11599,7 @@ func (group *ServicegroupTsmV1) DeleteSvcGroupByName(ctx context.Context, hashed
 		GnsTsmV1().
 		Gnses().Get(ctx, parentName, metav1.GetOptions{})
 	if err != nil {
-		log.Errorf("[DeleteSvcGroupByName] Failed to get Parent node: %+v", err)
+		log.Errorf("[DeleteSvcGroupByName] Failed to get parent node for obj:(%s) %+v", hashedName, err)
 		if errors.IsNotFound(err) {
 			return nil
 		} else {
@@ -11597,9 +11637,9 @@ func (group *ServicegroupTsmV1) DeleteSvcGroupByName(ctx context.Context, hashed
 				GnsTsmV1().
 				Gnses().Patch(newCtx, parentName, types.JSONPatchType, marshaled, metav1.PatchOptions{})
 			if err != nil {
-				log.Errorf("Failed to patch SvcGroup gvk in parent node[Gnses]: %+v", err)
+				log.Errorf("[DeleteSvcGroupByName] Failed to patch SvcGroup gvk in parent node[Gnses]: %+v", err)
 				if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded) {
-					log.Errorf("[Retry Count: %d ] %+v", retryCount, err)
+					log.Debugf("[Retry count: (%d) obj: %s ] %+v", retryCount, hashedName, err)
 					if retryCount == maxRetryCount {
 						log.Error("Max Retry exceed on patching gvk")
 						return err
@@ -11607,10 +11647,10 @@ func (group *ServicegroupTsmV1) DeleteSvcGroupByName(ctx context.Context, hashed
 					retryCount += 1
 					time.Sleep(sleepTime * time.Second)
 				} else if customerrors.Is(err, context.Canceled) {
-					log.Errorf("[DeleteSvcGroupByName]: %+v", err)
+					log.Errorf("[DeleteSvcGroupByName]: context canceled: %s", hashedName)
 					return context.Canceled
 				} else {
-					log.Errorf("Unexpected Error occur SvcGroup]: %+v", err)
+					log.Errorf("[DeleteSvcGroupByName] Object: %s unexpected error: %+v", hashedName, err)
 					return err
 				}
 			} else {
@@ -11647,20 +11687,20 @@ func (group *ServicegroupTsmV1) CreateSvcGroupByName(ctx context.Context,
 			ServicegroupTsmV1().
 			SvcGroups().Create(ctx, objToCreate, metav1.CreateOptions{})
 		if err != nil {
-			log.Errorf("[CreateSvcGroupByName] Failed to Create SvcGroups: %+v", err)
+			log.Errorf("[CreateSvcGroupByName] Failed to create SvcGroups:(%s) %+v", objToCreate.GetName(), err)
 			if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded) {
-				log.Errorf("[Retry Count: %d ] %+v", retryCount, err)
+				log.Debugf("[Retry count: (%d) obj: %s ] %+v", retryCount, objToCreate.GetName(), err)
 				if retryCount == maxRetryCount {
-					log.Error("Max Retry exceed on Get SvcGroups")
+					log.Error("Max retry exceed on create SvcGroups: %s", objToCreate.GetName())
 					return nil, err
 				}
 				retryCount += 1
 				time.Sleep(sleepTime * time.Second)
 			} else if customerrors.Is(err, context.Canceled) {
-				log.Errorf("[CreateSvcGroupByName]: %+v", err)
+				log.Errorf("[CreateSvcGroupByName]: context canceled: %s", objToCreate.GetName())
 				return nil, context.Canceled
 			} else {
-				log.Errorf("[CreateSvcGroupByName]: %+v", err)
+				log.Errorf("[CreateSvcGroupByName] Object: %s unexpected error: %+v", objToCreate.GetName(), err)
 				return nil, err
 			}
 		} else {
@@ -11688,10 +11728,10 @@ func (group *ServicegroupTsmV1) CreateSvcGroupByName(ctx context.Context,
 		if err != nil {
 			log.Errorf("[CreateSvcGroupByName] Failed to patch SvcGroup gvk in parent node[Gnses] %+v", err)
 			if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded) {
-				log.Errorf("[Retry Count: %d ] %+v", retryCount, err)
+				log.Debugf("[Retry count: (%d) obj: %s ] %+v", retryCount, objToCreate.GetName(), err)
 				if retryCount == maxRetryCount {
-					log.Error("Max Retry exceed on patching gvk")
-					log.Errorf("Trigger SvcGroup Delete: %s", objToCreate.GetName())
+					log.Errorf("Max retry exceed on patching gvk: %s", objToCreate.GetName())
+					log.Errorf("[CreateSvcGroupByName] Trigger SvcGroup delete: %s", objToCreate.GetName())
 					delErr := group.DeleteSvcGroupByName(newCtx, objToCreate.GetName())
 					if delErr != nil {
 						log.Errorf("Error occur while deleting SvcGroup: %s", objToCreate.GetName())
@@ -11703,17 +11743,17 @@ func (group *ServicegroupTsmV1) CreateSvcGroupByName(ctx context.Context,
 				retryCount += 1
 				time.Sleep(sleepTime * time.Second)
 			} else if customerrors.Is(err, context.Canceled) {
-				log.Errorf("[CreateSvcGroupByName]: %+v", err)
+				log.Errorf("[CreateSvcGroupByName]: context canceled: %s", objToCreate.GetName())
 				return nil, context.Canceled
 			} else {
-				log.Errorf("[CreateSvcGroupByName] Unexpected Error SvcGroup] %+v", err)
-				log.Errorf("Trigger SvcGroup Delete: %s", objToCreate.GetName())
+				log.Errorf("[CreateSvcGroupByName] Object: %s unexpected error: %+v", objToCreate.GetName(), err)
+				log.Debugf("Trigger SvcGroup delete: %s", objToCreate.GetName())
 				delErr := group.DeleteSvcGroupByName(newCtx, objToCreate.GetName())
 				if delErr != nil {
-					log.Errorf("Error occur while deleting SvcGroup: %+v", objToCreate.GetName())
+					log.Debugf("Error occur while deleting SvcGroup: %s", objToCreate.GetName())
 					return nil, delErr
 				}
-				log.Errorf("SvcGroup Deleted: %s", objToCreate.GetName())
+				log.Debugf("SvcGroup Deleted: %s", objToCreate.GetName())
 				return nil, err
 			}
 		} else {
@@ -11851,36 +11891,36 @@ func (group *ServicegroupTsmV1) UpdateSvcGroupByName(ctx context.Context,
 		if err != nil {
 			log.Errorf("[UpdateSvcGroupByName] Failed to patch SvcGroup gvk in parent node[Gnses]: %+v", err)
 			if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded) {
-				log.Errorf("[Retry Count: %d ] %+v", retryCount, err)
+				log.Debugf("[Retry count: (%d) obj: %s ] %+v", retryCount, objToUpdate.GetName(), err)
 				if retryCount == maxRetryCount {
-					log.Error("Max Retry exceed on patching gvk")
-					log.Errorf("Trigger SvcGroup Delete: %s", objToUpdate.GetName())
+					log.Errorf("Max retry exceed on patching gvk: %s", objToUpdate.GetName())
+					log.Debugf("Trigger SvcGroup Delete: %s", objToUpdate.GetName())
 					delErr := group.DeleteSvcGroupByName(newCtx, objToUpdate.GetName())
 					if delErr != nil {
-						log.Errorf("Error occur while deleting SvcGroup: %s", objToUpdate.GetName())
+						log.Debugf("Error occur while deleting SvcGroup: %s", objToUpdate.GetName())
 						return nil, delErr
 					}
-					log.Errorf("SvcGroup Deleted: %s", objToUpdate.GetName())
+					log.Debugf("SvcGroup deleted: %s", objToUpdate.GetName())
 					return nil, err
 				}
 				retryCount += 1
 				time.Sleep(sleepTime * time.Second)
 			} else if customerrors.Is(err, context.Canceled) {
-				log.Errorf("[CreateSvcGroupByName]: %+v", err)
+				log.Errorf("[UpdateSvcGroupByName]: context canceled: %s", objToUpdate.GetName())
 				return nil, context.Canceled
 			} else {
-				log.Errorf("[CreateSvcGroupByName] Unexpected Error SvcGroup] :%+v", err)
-				log.Errorf("Trigger SvcGroup Delete: %s", objToUpdate.GetName())
+				log.Errorf("[UpdateSvcGroupByName] Object: %s unexpected error: %+v", objToUpdate.GetName(), err)
+				log.Debugf("Trigger SvcGroup Delete: %s", objToUpdate.GetName())
 				delErr := group.DeleteSvcGroupByName(newCtx, objToUpdate.GetName())
 				if delErr != nil {
-					log.Errorf("Error occur while deleting SvcGroup: %+v", objToUpdate.GetName())
+					log.Debugf("Error occur while deleting SvcGroup: %+v", objToUpdate.GetName())
 					return nil, delErr
 				}
-				log.Errorf("SvcGroup Deleted: %s", objToUpdate.GetName())
+				log.Debugf("SvcGroup Deleted: %s", objToUpdate.GetName())
 				return nil, err
 			}
 		} else {
-			log.Debugf("[CreateSvcGroupByName] Patch SvcGroup Success :%s", objToUpdate.GetName())
+			log.Debugf("[UpdateSvcGroupByName] Patch SvcGroup Success :%s", objToUpdate.GetName())
 			break
 		}
 	}
@@ -12523,28 +12563,32 @@ func (group *ServicegroupTsmV1) DeleteSvcGroupLinkInfoByName(ctx context.Context
 			ServicegroupTsmV1().
 			SvcGroupLinkInfos().Get(ctx, hashedName, metav1.GetOptions{})
 		if err != nil {
-			log.Errorf("[DeleteSvcGroupLinkInfoByName] Failed to Get SvcGroupLinkInfos: %+v", err)
+			log.Errorf("[DeleteSvcGroupLinkInfoByName] Failed to get SvcGroupLinkInfos: %+v", err)
 			if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded) {
-				log.Errorf("[Retry Count: %d ] %+v", retryCount, err)
+				log.Debugf("[Retry count: (%d) obj: %s ] %+v", retryCount, hashedName, err)
 				if retryCount == maxRetryCount {
-					log.Error("Max Retry exceed on Get SvcGroupLinkInfos")
+					log.Errorf("Max retry exceed on get SvcGroupLinkInfos: %s", hashedName)
 					return err
 				}
 				retryCount += 1
 				time.Sleep(sleepTime * time.Second)
 			} else if customerrors.Is(err, context.Canceled) {
-				log.Errorf("[DeleteSvcGroupLinkInfoByName]: %+v", err)
+				log.Errorf("[DeleteSvcGroupLinkInfoByName] context canceled: %s", hashedName)
 				return context.Canceled
 			} else if errors.IsNotFound(err) {
-				log.Errorf("[DeleteSvcGroupLinkInfoByName] Object Notfound: %+v", err)
+				log.Errorf("[DeleteSvcGroupLinkInfoByName] Object: %s not found", hashedName)
 				break
 			} else {
-				log.Errorf("[DeleteSvcGroupLinkInfoByName]: %+v", err)
+				log.Errorf("[DeleteSvcGroupLinkInfoByName] Object: %s unexpected error: %+v", hashedName, err)
 				return err
 			}
 		} else {
 			break
 		}
+	}
+
+	if result == nil {
+		return err
 	}
 
 	retryCount = 0
@@ -12555,21 +12599,21 @@ func (group *ServicegroupTsmV1) DeleteSvcGroupLinkInfoByName(ctx context.Context
 		if err != nil {
 			log.Errorf("[DeleteSvcGroupLinkInfoByName] failed to delete SvcGroupLinkInfos: %+v", err)
 			if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded) {
-				log.Errorf("[Retry Count: %d ] %+v", retryCount, err)
+				log.Debugf("[Retry count: (%d) obj: %s ] %+v", retryCount, hashedName, err)
 				if retryCount == maxRetryCount {
-					log.Error("Max retry exceed on delete SvcGroupLinkInfos")
+					log.Errorf("Max retry exceed on delete SvcGroupLinkInfos: %s", hashedName)
 					return err
 				}
 				retryCount += 1
 				time.Sleep(sleepTime * time.Second)
 			} else if customerrors.Is(err, context.Canceled) {
-				log.Errorf("[DeleteSvcGroupLinkInfoByName]: %+v", err)
+				log.Errorf("[DeleteSvcGroupLinkInfoByName]: context canceled: %s", hashedName)
 				return context.Canceled
 			} else if errors.IsNotFound(err) {
-				log.Errorf("[DeleteSvcGroupLinkInfoByName] Object not found: %+v", err)
+				log.Errorf("[DeleteSvcGroupLinkInfoByName] Object: %s not found", hashedName)
 				break
 			} else {
-				log.Errorf("[DeleteSvcGroupLinkInfoByName]: %+v", err)
+				log.Errorf("[DeleteSvcGroupLinkInfoByName] Object: %s unexpected error: %+v", hashedName, err)
 				return err
 			}
 		} else {
@@ -12579,7 +12623,7 @@ func (group *ServicegroupTsmV1) DeleteSvcGroupLinkInfoByName(ctx context.Context
 	// Get Parent Node and check if gvk present before patch
 
 	var gvkPresent bool
-	log.Debugf("[DeleteSvcGroupLinkInfoByName] Get Parent details")
+	log.Debugf("[DeleteSvcGroupLinkInfoByName] Get parent details for object: %s", hashedName)
 	var patch Patch
 	parents := result.GetLabels()
 	if parents == nil {
@@ -12600,7 +12644,7 @@ func (group *ServicegroupTsmV1) DeleteSvcGroupLinkInfoByName(ctx context.Context
 		ConfigTsmV1().
 		Configs().Get(ctx, parentName, metav1.GetOptions{})
 	if err != nil {
-		log.Errorf("[DeleteSvcGroupLinkInfoByName] Failed to get Parent node: %+v", err)
+		log.Errorf("[DeleteSvcGroupLinkInfoByName] Failed to get parent node for obj:(%s) %+v", hashedName, err)
 		if errors.IsNotFound(err) {
 			return nil
 		} else {
@@ -12633,9 +12677,9 @@ func (group *ServicegroupTsmV1) DeleteSvcGroupLinkInfoByName(ctx context.Context
 				ConfigTsmV1().
 				Configs().Patch(newCtx, parentName, types.JSONPatchType, marshaled, metav1.PatchOptions{})
 			if err != nil {
-				log.Errorf("Failed to patch SvcGroupLinkInfo gvk in parent node[Configs]: %+v", err)
+				log.Errorf("[DeleteSvcGroupLinkInfoByName] Failed to patch SvcGroupLinkInfo gvk in parent node[Configs]: %+v", err)
 				if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded) {
-					log.Errorf("[Retry Count: %d ] %+v", retryCount, err)
+					log.Debugf("[Retry count: (%d) obj: %s ] %+v", retryCount, hashedName, err)
 					if retryCount == maxRetryCount {
 						log.Error("Max Retry exceed on patching gvk")
 						return err
@@ -12643,10 +12687,10 @@ func (group *ServicegroupTsmV1) DeleteSvcGroupLinkInfoByName(ctx context.Context
 					retryCount += 1
 					time.Sleep(sleepTime * time.Second)
 				} else if customerrors.Is(err, context.Canceled) {
-					log.Errorf("[DeleteSvcGroupLinkInfoByName]: %+v", err)
+					log.Errorf("[DeleteSvcGroupLinkInfoByName]: context canceled: %s", hashedName)
 					return context.Canceled
 				} else {
-					log.Errorf("Unexpected Error occur SvcGroupLinkInfo]: %+v", err)
+					log.Errorf("[DeleteSvcGroupLinkInfoByName] Object: %s unexpected error: %+v", hashedName, err)
 					return err
 				}
 			} else {
@@ -12683,20 +12727,20 @@ func (group *ServicegroupTsmV1) CreateSvcGroupLinkInfoByName(ctx context.Context
 			ServicegroupTsmV1().
 			SvcGroupLinkInfos().Create(ctx, objToCreate, metav1.CreateOptions{})
 		if err != nil {
-			log.Errorf("[CreateSvcGroupLinkInfoByName] Failed to Create SvcGroupLinkInfos: %+v", err)
+			log.Errorf("[CreateSvcGroupLinkInfoByName] Failed to create SvcGroupLinkInfos:(%s) %+v", objToCreate.GetName(), err)
 			if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded) {
-				log.Errorf("[Retry Count: %d ] %+v", retryCount, err)
+				log.Debugf("[Retry count: (%d) obj: %s ] %+v", retryCount, objToCreate.GetName(), err)
 				if retryCount == maxRetryCount {
-					log.Error("Max Retry exceed on Get SvcGroupLinkInfos")
+					log.Error("Max retry exceed on create SvcGroupLinkInfos: %s", objToCreate.GetName())
 					return nil, err
 				}
 				retryCount += 1
 				time.Sleep(sleepTime * time.Second)
 			} else if customerrors.Is(err, context.Canceled) {
-				log.Errorf("[CreateSvcGroupLinkInfoByName]: %+v", err)
+				log.Errorf("[CreateSvcGroupLinkInfoByName]: context canceled: %s", objToCreate.GetName())
 				return nil, context.Canceled
 			} else {
-				log.Errorf("[CreateSvcGroupLinkInfoByName]: %+v", err)
+				log.Errorf("[CreateSvcGroupLinkInfoByName] Object: %s unexpected error: %+v", objToCreate.GetName(), err)
 				return nil, err
 			}
 		} else {
@@ -12737,32 +12781,32 @@ func (group *ServicegroupTsmV1) CreateSvcGroupLinkInfoByName(ctx context.Context
 		if err != nil {
 			log.Errorf("[CreateSvcGroupLinkInfoByName] Failed to patch SvcGroupLinkInfo gvk in parent node[Configs]: %+v", err)
 			if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded) {
-				log.Errorf("[Retry Count: %d ] %+v", retryCount, err)
+				log.Debugf("[Retry count: (%d) obj: %s ] %+v", retryCount, objToCreate.GetName(), err)
 				if retryCount == maxRetryCount {
-					log.Error("Max Retry exceed on patching gvk")
-					log.Errorf("Trigger SvcGroupLinkInfo Delete: %s", objToCreate.GetName())
+					log.Errorf("Max retry exceed on patching gvk: %s", objToCreate.GetName())
+					log.Debugf("Trigger SvcGroupLinkInfo delete: %s", objToCreate.GetName())
 					delErr := group.DeleteSvcGroupLinkInfoByName(newCtx, objToCreate.GetName())
 					if delErr != nil {
-						log.Errorf("Error occur while deleting SvcGroupLinkInfo: %s", objToCreate.GetName())
+						log.Debugf("Error occur while deleting SvcGroupLinkInfo: %s", objToCreate.GetName())
 						return nil, delErr
 					}
-					log.Errorf("SvcGroupLinkInfo Deleted: %s", objToCreate.GetName())
+					log.Debugf("SvcGroupLinkInfo Deleted: %s", objToCreate.GetName())
 					return nil, err
 				}
 				retryCount += 1
 				time.Sleep(sleepTime * time.Second)
 			} else if customerrors.Is(err, context.Canceled) {
-				log.Errorf("[CreateSvcGroupLinkInfoByName]: %+v", err)
+				log.Errorf("[CreateSvcGroupLinkInfoByName]: context canceled: %s", objToCreate.GetName())
 				return nil, context.Canceled
 			} else {
-				log.Errorf("[CreateSvcGroupLinkInfoByName] Unexpected Error SvcGroupLinkInfo] :%+v", err)
-				log.Errorf("Trigger SvcGroupLinkInfo Delete: %s", objToCreate.GetName())
+				log.Errorf("[CreateSvcGroupLinkInfoByName] Object: %s unexpected error: %+v", objToCreate.GetName(), err)
+				log.Debugf("Trigger SvcGroupLinkInfo Delete: %s", objToCreate.GetName())
 				delErr := group.DeleteSvcGroupLinkInfoByName(newCtx, objToCreate.GetName())
 				if delErr != nil {
-					log.Errorf("Error occur while deleting SvcGroupLinkInfo: %+v", objToCreate.GetName())
+					log.Debugf("Error occur while deleting SvcGroupLinkInfo: %+v", objToCreate.GetName())
 					return nil, delErr
 				}
-				log.Errorf("SvcGroupLinkInfo Deleted: %s", objToCreate.GetName())
+				log.Debugf("SvcGroupLinkInfo Deleted: %s", objToCreate.GetName())
 				return nil, err
 			}
 		} else {
@@ -12921,36 +12965,36 @@ func (group *ServicegroupTsmV1) UpdateSvcGroupLinkInfoByName(ctx context.Context
 		if err != nil {
 			log.Errorf("[UpdateSvcGroupLinkInfoByName] Failed to patch SvcGroupLinkInfo gvk in parent node[Configs]: %+v", err)
 			if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded) {
-				log.Errorf("[Retry Count: %d ] %+v", retryCount, err)
+				log.Debugf("[Retry count: (%d) obj: %s ] %+v", retryCount, objToUpdate.GetName(), err)
 				if retryCount == maxRetryCount {
-					log.Error("Max Retry exceed on patching gvk")
-					log.Errorf("Trigger SvcGroupLinkInfo Delete: %s", objToUpdate.GetName())
+					log.Errorf("Max retry exceed on patching gvk: %s", objToUpdate.GetName())
+					log.Debugf("Trigger SvcGroupLinkInfo Delete: %s", objToUpdate.GetName())
 					delErr := group.DeleteSvcGroupLinkInfoByName(newCtx, objToUpdate.GetName())
 					if delErr != nil {
-						log.Errorf("Error occur while deleting SvcGroupLinkInfo: %s", objToUpdate.GetName())
+						log.Debugf("Error occur while deleting SvcGroupLinkInfo: %s", objToUpdate.GetName())
 						return nil, delErr
 					}
-					log.Errorf("SvcGroupLinkInfo Deleted: %s", objToUpdate.GetName())
+					log.Debugf("SvcGroupLinkInfo deleted: %s", objToUpdate.GetName())
 					return nil, err
 				}
 				retryCount += 1
 				time.Sleep(sleepTime * time.Second)
 			} else if customerrors.Is(err, context.Canceled) {
-				log.Errorf("[CreateSvcGroupLinkInfoByName]: %+v", err)
+				log.Errorf("[UpdateSvcGroupLinkInfoByName]: context canceled: %s", objToUpdate.GetName())
 				return nil, context.Canceled
 			} else {
-				log.Errorf("[CreateSvcGroupLinkInfoByName] Unexpected Error SvcGroupLinkInfo] :%+v", err)
-				log.Errorf("Trigger SvcGroupLinkInfo Delete: %s", objToUpdate.GetName())
+				log.Errorf("[UpdateSvcGroupLinkInfoByName] Object: %s unexpected error: %+v", objToUpdate.GetName(), err)
+				log.Debugf("Trigger SvcGroupLinkInfo Delete: %s", objToUpdate.GetName())
 				delErr := group.DeleteSvcGroupLinkInfoByName(newCtx, objToUpdate.GetName())
 				if delErr != nil {
-					log.Errorf("Error occur while deleting SvcGroupLinkInfo: %+v", objToUpdate.GetName())
+					log.Debugf("Error occur while deleting SvcGroupLinkInfo: %+v", objToUpdate.GetName())
 					return nil, delErr
 				}
-				log.Errorf("SvcGroupLinkInfo Deleted: %s", objToUpdate.GetName())
+				log.Debugf("SvcGroupLinkInfo Deleted: %s", objToUpdate.GetName())
 				return nil, err
 			}
 		} else {
-			log.Debugf("[CreateSvcGroupLinkInfoByName] Patch SvcGroupLinkInfo Success :%s", objToUpdate.GetName())
+			log.Debugf("[UpdateSvcGroupLinkInfoByName] Patch SvcGroupLinkInfo Success :%s", objToUpdate.GetName())
 			break
 		}
 	}
@@ -13593,28 +13637,32 @@ func (group *PolicypkgTsmV1) DeleteAccessControlPolicyByName(ctx context.Context
 			PolicypkgTsmV1().
 			AccessControlPolicies().Get(ctx, hashedName, metav1.GetOptions{})
 		if err != nil {
-			log.Errorf("[DeleteAccessControlPolicyByName] Failed to Get AccessControlPolicies: %+v", err)
+			log.Errorf("[DeleteAccessControlPolicyByName] Failed to get AccessControlPolicies: %+v", err)
 			if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded) {
-				log.Errorf("[Retry Count: %d ] %+v", retryCount, err)
+				log.Debugf("[Retry count: (%d) obj: %s ] %+v", retryCount, hashedName, err)
 				if retryCount == maxRetryCount {
-					log.Error("Max Retry exceed on Get AccessControlPolicies")
+					log.Errorf("Max retry exceed on get AccessControlPolicies: %s", hashedName)
 					return err
 				}
 				retryCount += 1
 				time.Sleep(sleepTime * time.Second)
 			} else if customerrors.Is(err, context.Canceled) {
-				log.Errorf("[DeleteAccessControlPolicyByName]: %+v", err)
+				log.Errorf("[DeleteAccessControlPolicyByName] context canceled: %s", hashedName)
 				return context.Canceled
 			} else if errors.IsNotFound(err) {
-				log.Errorf("[DeleteAccessControlPolicyByName] Object Notfound: %+v", err)
+				log.Errorf("[DeleteAccessControlPolicyByName] Object: %s not found", hashedName)
 				break
 			} else {
-				log.Errorf("[DeleteAccessControlPolicyByName]: %+v", err)
+				log.Errorf("[DeleteAccessControlPolicyByName] Object: %s unexpected error: %+v", hashedName, err)
 				return err
 			}
 		} else {
 			break
 		}
+	}
+
+	if result == nil {
+		return err
 	}
 
 	for _, v := range result.Spec.PolicyConfigsGvk {
@@ -13637,21 +13685,21 @@ func (group *PolicypkgTsmV1) DeleteAccessControlPolicyByName(ctx context.Context
 		if err != nil {
 			log.Errorf("[DeleteAccessControlPolicyByName] failed to delete AccessControlPolicies: %+v", err)
 			if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded) {
-				log.Errorf("[Retry Count: %d ] %+v", retryCount, err)
+				log.Debugf("[Retry count: (%d) obj: %s ] %+v", retryCount, hashedName, err)
 				if retryCount == maxRetryCount {
-					log.Error("Max retry exceed on delete AccessControlPolicies")
+					log.Errorf("Max retry exceed on delete AccessControlPolicies: %s", hashedName)
 					return err
 				}
 				retryCount += 1
 				time.Sleep(sleepTime * time.Second)
 			} else if customerrors.Is(err, context.Canceled) {
-				log.Errorf("[DeleteAccessControlPolicyByName]: %+v", err)
+				log.Errorf("[DeleteAccessControlPolicyByName]: context canceled: %s", hashedName)
 				return context.Canceled
 			} else if errors.IsNotFound(err) {
-				log.Errorf("[DeleteAccessControlPolicyByName] Object not found: %+v", err)
+				log.Errorf("[DeleteAccessControlPolicyByName] Object: %s not found", hashedName)
 				break
 			} else {
-				log.Errorf("[DeleteAccessControlPolicyByName]: %+v", err)
+				log.Errorf("[DeleteAccessControlPolicyByName] Object: %s unexpected error: %+v", hashedName, err)
 				return err
 			}
 		} else {
@@ -13661,7 +13709,7 @@ func (group *PolicypkgTsmV1) DeleteAccessControlPolicyByName(ctx context.Context
 	// Get Parent Node and check if gvk present before patch
 
 	var gvkPresent bool
-	log.Debugf("[DeleteAccessControlPolicyByName] Get Parent details")
+	log.Debugf("[DeleteAccessControlPolicyByName] Get parent details for object: %s", hashedName)
 	var patch Patch
 	parents := result.GetLabels()
 	if parents == nil {
@@ -13682,7 +13730,7 @@ func (group *PolicypkgTsmV1) DeleteAccessControlPolicyByName(ctx context.Context
 		GnsTsmV1().
 		Gnses().Get(ctx, parentName, metav1.GetOptions{})
 	if err != nil {
-		log.Errorf("[DeleteAccessControlPolicyByName] Failed to get Parent node: %+v", err)
+		log.Errorf("[DeleteAccessControlPolicyByName] Failed to get parent node for obj:(%s) %+v", hashedName, err)
 		if errors.IsNotFound(err) {
 			return nil
 		} else {
@@ -13715,9 +13763,9 @@ func (group *PolicypkgTsmV1) DeleteAccessControlPolicyByName(ctx context.Context
 				GnsTsmV1().
 				Gnses().Patch(newCtx, parentName, types.JSONPatchType, marshaled, metav1.PatchOptions{})
 			if err != nil {
-				log.Errorf("Failed to patch AccessControlPolicy gvk in parent node[Gnses]: %+v", err)
+				log.Errorf("[DeleteAccessControlPolicyByName] Failed to patch AccessControlPolicy gvk in parent node[Gnses]: %+v", err)
 				if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded) {
-					log.Errorf("[Retry Count: %d ] %+v", retryCount, err)
+					log.Debugf("[Retry count: (%d) obj: %s ] %+v", retryCount, hashedName, err)
 					if retryCount == maxRetryCount {
 						log.Error("Max Retry exceed on patching gvk")
 						return err
@@ -13725,10 +13773,10 @@ func (group *PolicypkgTsmV1) DeleteAccessControlPolicyByName(ctx context.Context
 					retryCount += 1
 					time.Sleep(sleepTime * time.Second)
 				} else if customerrors.Is(err, context.Canceled) {
-					log.Errorf("[DeleteAccessControlPolicyByName]: %+v", err)
+					log.Errorf("[DeleteAccessControlPolicyByName]: context canceled: %s", hashedName)
 					return context.Canceled
 				} else {
-					log.Errorf("Unexpected Error occur AccessControlPolicy]: %+v", err)
+					log.Errorf("[DeleteAccessControlPolicyByName] Object: %s unexpected error: %+v", hashedName, err)
 					return err
 				}
 			} else {
@@ -13767,20 +13815,20 @@ func (group *PolicypkgTsmV1) CreateAccessControlPolicyByName(ctx context.Context
 			PolicypkgTsmV1().
 			AccessControlPolicies().Create(ctx, objToCreate, metav1.CreateOptions{})
 		if err != nil {
-			log.Errorf("[CreateAccessControlPolicyByName] Failed to Create AccessControlPolicies: %+v", err)
+			log.Errorf("[CreateAccessControlPolicyByName] Failed to create AccessControlPolicies:(%s) %+v", objToCreate.GetName(), err)
 			if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded) {
-				log.Errorf("[Retry Count: %d ] %+v", retryCount, err)
+				log.Debugf("[Retry count: (%d) obj: %s ] %+v", retryCount, objToCreate.GetName(), err)
 				if retryCount == maxRetryCount {
-					log.Error("Max Retry exceed on Get AccessControlPolicies")
+					log.Error("Max retry exceed on create AccessControlPolicies: %s", objToCreate.GetName())
 					return nil, err
 				}
 				retryCount += 1
 				time.Sleep(sleepTime * time.Second)
 			} else if customerrors.Is(err, context.Canceled) {
-				log.Errorf("[CreateAccessControlPolicyByName]: %+v", err)
+				log.Errorf("[CreateAccessControlPolicyByName]: context canceled: %s", objToCreate.GetName())
 				return nil, context.Canceled
 			} else {
-				log.Errorf("[CreateAccessControlPolicyByName]: %+v", err)
+				log.Errorf("[CreateAccessControlPolicyByName] Object: %s unexpected error: %+v", objToCreate.GetName(), err)
 				return nil, err
 			}
 		} else {
@@ -13821,32 +13869,32 @@ func (group *PolicypkgTsmV1) CreateAccessControlPolicyByName(ctx context.Context
 		if err != nil {
 			log.Errorf("[CreateAccessControlPolicyByName] Failed to patch AccessControlPolicy gvk in parent node[Gnses]: %+v", err)
 			if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded) {
-				log.Errorf("[Retry Count: %d ] %+v", retryCount, err)
+				log.Debugf("[Retry count: (%d) obj: %s ] %+v", retryCount, objToCreate.GetName(), err)
 				if retryCount == maxRetryCount {
-					log.Error("Max Retry exceed on patching gvk")
-					log.Errorf("Trigger AccessControlPolicy Delete: %s", objToCreate.GetName())
+					log.Errorf("Max retry exceed on patching gvk: %s", objToCreate.GetName())
+					log.Debugf("Trigger AccessControlPolicy delete: %s", objToCreate.GetName())
 					delErr := group.DeleteAccessControlPolicyByName(newCtx, objToCreate.GetName())
 					if delErr != nil {
-						log.Errorf("Error occur while deleting AccessControlPolicy: %s", objToCreate.GetName())
+						log.Debugf("Error occur while deleting AccessControlPolicy: %s", objToCreate.GetName())
 						return nil, delErr
 					}
-					log.Errorf("AccessControlPolicy Deleted: %s", objToCreate.GetName())
+					log.Debugf("AccessControlPolicy Deleted: %s", objToCreate.GetName())
 					return nil, err
 				}
 				retryCount += 1
 				time.Sleep(sleepTime * time.Second)
 			} else if customerrors.Is(err, context.Canceled) {
-				log.Errorf("[CreateAccessControlPolicyByName]: %+v", err)
+				log.Errorf("[CreateAccessControlPolicyByName]: context canceled: %s", objToCreate.GetName())
 				return nil, context.Canceled
 			} else {
-				log.Errorf("[CreateAccessControlPolicyByName] Unexpected Error AccessControlPolicy] :%+v", err)
-				log.Errorf("Trigger AccessControlPolicy Delete: %s", objToCreate.GetName())
+				log.Errorf("[CreateAccessControlPolicyByName] Object: %s unexpected error: %+v", objToCreate.GetName(), err)
+				log.Debugf("Trigger AccessControlPolicy Delete: %s", objToCreate.GetName())
 				delErr := group.DeleteAccessControlPolicyByName(newCtx, objToCreate.GetName())
 				if delErr != nil {
-					log.Errorf("Error occur while deleting AccessControlPolicy: %+v", objToCreate.GetName())
+					log.Debugf("Error occur while deleting AccessControlPolicy: %+v", objToCreate.GetName())
 					return nil, delErr
 				}
-				log.Errorf("AccessControlPolicy Deleted: %s", objToCreate.GetName())
+				log.Debugf("AccessControlPolicy Deleted: %s", objToCreate.GetName())
 				return nil, err
 			}
 		} else {
@@ -13919,36 +13967,36 @@ func (group *PolicypkgTsmV1) UpdateAccessControlPolicyByName(ctx context.Context
 		if err != nil {
 			log.Errorf("[UpdateAccessControlPolicyByName] Failed to patch AccessControlPolicy gvk in parent node[Gnses]: %+v", err)
 			if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded) {
-				log.Errorf("[Retry Count: %d ] %+v", retryCount, err)
+				log.Debugf("[Retry count: (%d) obj: %s ] %+v", retryCount, objToUpdate.GetName(), err)
 				if retryCount == maxRetryCount {
-					log.Error("Max Retry exceed on patching gvk")
-					log.Errorf("Trigger AccessControlPolicy Delete: %s", objToUpdate.GetName())
+					log.Errorf("Max retry exceed on patching gvk: %s", objToUpdate.GetName())
+					log.Debugf("Trigger AccessControlPolicy Delete: %s", objToUpdate.GetName())
 					delErr := group.DeleteAccessControlPolicyByName(newCtx, objToUpdate.GetName())
 					if delErr != nil {
-						log.Errorf("Error occur while deleting AccessControlPolicy: %s", objToUpdate.GetName())
+						log.Debugf("Error occur while deleting AccessControlPolicy: %s", objToUpdate.GetName())
 						return nil, delErr
 					}
-					log.Errorf("AccessControlPolicy Deleted: %s", objToUpdate.GetName())
+					log.Debugf("AccessControlPolicy deleted: %s", objToUpdate.GetName())
 					return nil, err
 				}
 				retryCount += 1
 				time.Sleep(sleepTime * time.Second)
 			} else if customerrors.Is(err, context.Canceled) {
-				log.Errorf("[CreateAccessControlPolicyByName]: %+v", err)
+				log.Errorf("[UpdateAccessControlPolicyByName]: context canceled: %s", objToUpdate.GetName())
 				return nil, context.Canceled
 			} else {
-				log.Errorf("[CreateAccessControlPolicyByName] Unexpected Error AccessControlPolicy] :%+v", err)
-				log.Errorf("Trigger AccessControlPolicy Delete: %s", objToUpdate.GetName())
+				log.Errorf("[UpdateAccessControlPolicyByName] Object: %s unexpected error: %+v", objToUpdate.GetName(), err)
+				log.Debugf("Trigger AccessControlPolicy Delete: %s", objToUpdate.GetName())
 				delErr := group.DeleteAccessControlPolicyByName(newCtx, objToUpdate.GetName())
 				if delErr != nil {
-					log.Errorf("Error occur while deleting AccessControlPolicy: %+v", objToUpdate.GetName())
+					log.Debugf("Error occur while deleting AccessControlPolicy: %+v", objToUpdate.GetName())
 					return nil, delErr
 				}
-				log.Errorf("AccessControlPolicy Deleted: %s", objToUpdate.GetName())
+				log.Debugf("AccessControlPolicy Deleted: %s", objToUpdate.GetName())
 				return nil, err
 			}
 		} else {
-			log.Debugf("[CreateAccessControlPolicyByName] Patch AccessControlPolicy Success :%s", objToUpdate.GetName())
+			log.Debugf("[UpdateAccessControlPolicyByName] Patch AccessControlPolicy Success :%s", objToUpdate.GetName())
 			break
 		}
 	}
@@ -14051,7 +14099,7 @@ func (obj *PolicypkgAccessControlPolicy) GetPolicyConfigs(ctx context.Context,
 // nexus/display_name label and can be obtained using DisplayName() method.
 func (obj *PolicypkgAccessControlPolicy) AddPolicyConfigs(ctx context.Context,
 	objToCreate *basepolicypkgtsmtanzuvmwarecomv1.ACPConfig) (result *PolicypkgACPConfig, err error) {
-	log.Debugf("[AddPolicyConfigs] Received objToCreate: %s", objToCreate.GetName())
+	log.Debugf("[AddPolicyConfigs] Received objToAdd: %s", objToCreate.GetName())
 	if objToCreate.Labels == nil {
 		objToCreate.Labels = map[string]string{}
 	}
@@ -14066,7 +14114,7 @@ func (obj *PolicypkgAccessControlPolicy) AddPolicyConfigs(ctx context.Context,
 		objToCreate.Name = hashedName
 	}
 	result, err = obj.client.Policypkg().CreateACPConfigByName(ctx, objToCreate)
-	log.Debugf("[AddPolicyConfigs] ApiSpecification created successfully: %s", objToCreate.GetName())
+	log.Debugf("[AddPolicyConfigs] ACPConfig created successfully: %s", objToCreate.GetName())
 	updatedObj, getErr := obj.client.Policypkg().GetAccessControlPolicyByName(ctx, obj.GetName())
 	if getErr == nil {
 		obj.AccessControlPolicy = updatedObj.AccessControlPolicy
@@ -14713,28 +14761,32 @@ func (group *PolicypkgTsmV1) DeleteACPConfigByName(ctx context.Context, hashedNa
 			PolicypkgTsmV1().
 			ACPConfigs().Get(ctx, hashedName, metav1.GetOptions{})
 		if err != nil {
-			log.Errorf("[DeleteACPConfigByName] Failed to Get ACPConfigs: %+v", err)
+			log.Errorf("[DeleteACPConfigByName] Failed to get ACPConfigs: %+v", err)
 			if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded) {
-				log.Errorf("[Retry Count: %d ] %+v", retryCount, err)
+				log.Debugf("[Retry count: (%d) obj: %s ] %+v", retryCount, hashedName, err)
 				if retryCount == maxRetryCount {
-					log.Error("Max Retry exceed on Get ACPConfigs")
+					log.Errorf("Max retry exceed on get ACPConfigs: %s", hashedName)
 					return err
 				}
 				retryCount += 1
 				time.Sleep(sleepTime * time.Second)
 			} else if customerrors.Is(err, context.Canceled) {
-				log.Errorf("[DeleteACPConfigByName]: %+v", err)
+				log.Errorf("[DeleteACPConfigByName] context canceled: %s", hashedName)
 				return context.Canceled
 			} else if errors.IsNotFound(err) {
-				log.Errorf("[DeleteACPConfigByName] Object Notfound: %+v", err)
+				log.Errorf("[DeleteACPConfigByName] Object: %s not found", hashedName)
 				break
 			} else {
-				log.Errorf("[DeleteACPConfigByName]: %+v", err)
+				log.Errorf("[DeleteACPConfigByName] Object: %s unexpected error: %+v", hashedName, err)
 				return err
 			}
 		} else {
 			break
 		}
+	}
+
+	if result == nil {
+		return err
 	}
 
 	retryCount = 0
@@ -14745,21 +14797,21 @@ func (group *PolicypkgTsmV1) DeleteACPConfigByName(ctx context.Context, hashedNa
 		if err != nil {
 			log.Errorf("[DeleteACPConfigByName] failed to delete ACPConfigs: %+v", err)
 			if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded) {
-				log.Errorf("[Retry Count: %d ] %+v", retryCount, err)
+				log.Debugf("[Retry count: (%d) obj: %s ] %+v", retryCount, hashedName, err)
 				if retryCount == maxRetryCount {
-					log.Error("Max retry exceed on delete ACPConfigs")
+					log.Errorf("Max retry exceed on delete ACPConfigs: %s", hashedName)
 					return err
 				}
 				retryCount += 1
 				time.Sleep(sleepTime * time.Second)
 			} else if customerrors.Is(err, context.Canceled) {
-				log.Errorf("[DeleteACPConfigByName]: %+v", err)
+				log.Errorf("[DeleteACPConfigByName]: context canceled: %s", hashedName)
 				return context.Canceled
 			} else if errors.IsNotFound(err) {
-				log.Errorf("[DeleteACPConfigByName] Object not found: %+v", err)
+				log.Errorf("[DeleteACPConfigByName] Object: %s not found", hashedName)
 				break
 			} else {
-				log.Errorf("[DeleteACPConfigByName]: %+v", err)
+				log.Errorf("[DeleteACPConfigByName] Object: %s unexpected error: %+v", hashedName, err)
 				return err
 			}
 		} else {
@@ -14769,7 +14821,7 @@ func (group *PolicypkgTsmV1) DeleteACPConfigByName(ctx context.Context, hashedNa
 	// Get Parent Node and check if gvk present before patch
 
 	var gvkPresent bool
-	log.Debugf("[DeleteACPConfigByName] Get Parent details")
+	log.Debugf("[DeleteACPConfigByName] Get parent details for object: %s", hashedName)
 	var patch Patch
 	parents := result.GetLabels()
 	if parents == nil {
@@ -14790,7 +14842,7 @@ func (group *PolicypkgTsmV1) DeleteACPConfigByName(ctx context.Context, hashedNa
 		PolicypkgTsmV1().
 		AccessControlPolicies().Get(ctx, parentName, metav1.GetOptions{})
 	if err != nil {
-		log.Errorf("[DeleteACPConfigByName] Failed to get Parent node: %+v", err)
+		log.Errorf("[DeleteACPConfigByName] Failed to get parent node for obj:(%s) %+v", hashedName, err)
 		if errors.IsNotFound(err) {
 			return nil
 		} else {
@@ -14828,9 +14880,9 @@ func (group *PolicypkgTsmV1) DeleteACPConfigByName(ctx context.Context, hashedNa
 				PolicypkgTsmV1().
 				AccessControlPolicies().Patch(newCtx, parentName, types.JSONPatchType, marshaled, metav1.PatchOptions{})
 			if err != nil {
-				log.Errorf("Failed to patch ACPConfig gvk in parent node[AccessControlPolicies]: %+v", err)
+				log.Errorf("[DeleteACPConfigByName] Failed to patch ACPConfig gvk in parent node[AccessControlPolicies]: %+v", err)
 				if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded) {
-					log.Errorf("[Retry Count: %d ] %+v", retryCount, err)
+					log.Debugf("[Retry count: (%d) obj: %s ] %+v", retryCount, hashedName, err)
 					if retryCount == maxRetryCount {
 						log.Error("Max Retry exceed on patching gvk")
 						return err
@@ -14838,10 +14890,10 @@ func (group *PolicypkgTsmV1) DeleteACPConfigByName(ctx context.Context, hashedNa
 					retryCount += 1
 					time.Sleep(sleepTime * time.Second)
 				} else if customerrors.Is(err, context.Canceled) {
-					log.Errorf("[DeleteACPConfigByName]: %+v", err)
+					log.Errorf("[DeleteACPConfigByName]: context canceled: %s", hashedName)
 					return context.Canceled
 				} else {
-					log.Errorf("Unexpected Error occur ACPConfig]: %+v", err)
+					log.Errorf("[DeleteACPConfigByName] Object: %s unexpected error: %+v", hashedName, err)
 					return err
 				}
 			} else {
@@ -14881,20 +14933,20 @@ func (group *PolicypkgTsmV1) CreateACPConfigByName(ctx context.Context,
 			PolicypkgTsmV1().
 			ACPConfigs().Create(ctx, objToCreate, metav1.CreateOptions{})
 		if err != nil {
-			log.Errorf("[CreateACPConfigByName] Failed to Create ACPConfigs: %+v", err)
+			log.Errorf("[CreateACPConfigByName] Failed to create ACPConfigs:(%s) %+v", objToCreate.GetName(), err)
 			if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded) {
-				log.Errorf("[Retry Count: %d ] %+v", retryCount, err)
+				log.Debugf("[Retry count: (%d) obj: %s ] %+v", retryCount, objToCreate.GetName(), err)
 				if retryCount == maxRetryCount {
-					log.Error("Max Retry exceed on Get ACPConfigs")
+					log.Error("Max retry exceed on create ACPConfigs: %s", objToCreate.GetName())
 					return nil, err
 				}
 				retryCount += 1
 				time.Sleep(sleepTime * time.Second)
 			} else if customerrors.Is(err, context.Canceled) {
-				log.Errorf("[CreateACPConfigByName]: %+v", err)
+				log.Errorf("[CreateACPConfigByName]: context canceled: %s", objToCreate.GetName())
 				return nil, context.Canceled
 			} else {
-				log.Errorf("[CreateACPConfigByName]: %+v", err)
+				log.Errorf("[CreateACPConfigByName] Object: %s unexpected error: %+v", objToCreate.GetName(), err)
 				return nil, err
 			}
 		} else {
@@ -14922,10 +14974,10 @@ func (group *PolicypkgTsmV1) CreateACPConfigByName(ctx context.Context,
 		if err != nil {
 			log.Errorf("[CreateACPConfigByName] Failed to patch ACPConfig gvk in parent node[AccessControlPolicies] %+v", err)
 			if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded) {
-				log.Errorf("[Retry Count: %d ] %+v", retryCount, err)
+				log.Debugf("[Retry count: (%d) obj: %s ] %+v", retryCount, objToCreate.GetName(), err)
 				if retryCount == maxRetryCount {
-					log.Error("Max Retry exceed on patching gvk")
-					log.Errorf("Trigger ACPConfig Delete: %s", objToCreate.GetName())
+					log.Errorf("Max retry exceed on patching gvk: %s", objToCreate.GetName())
+					log.Errorf("[CreateACPConfigByName] Trigger ACPConfig delete: %s", objToCreate.GetName())
 					delErr := group.DeleteACPConfigByName(newCtx, objToCreate.GetName())
 					if delErr != nil {
 						log.Errorf("Error occur while deleting ACPConfig: %s", objToCreate.GetName())
@@ -14937,17 +14989,17 @@ func (group *PolicypkgTsmV1) CreateACPConfigByName(ctx context.Context,
 				retryCount += 1
 				time.Sleep(sleepTime * time.Second)
 			} else if customerrors.Is(err, context.Canceled) {
-				log.Errorf("[CreateACPConfigByName]: %+v", err)
+				log.Errorf("[CreateACPConfigByName]: context canceled: %s", objToCreate.GetName())
 				return nil, context.Canceled
 			} else {
-				log.Errorf("[CreateACPConfigByName] Unexpected Error ACPConfig] %+v", err)
-				log.Errorf("Trigger ACPConfig Delete: %s", objToCreate.GetName())
+				log.Errorf("[CreateACPConfigByName] Object: %s unexpected error: %+v", objToCreate.GetName(), err)
+				log.Debugf("Trigger ACPConfig delete: %s", objToCreate.GetName())
 				delErr := group.DeleteACPConfigByName(newCtx, objToCreate.GetName())
 				if delErr != nil {
-					log.Errorf("Error occur while deleting ACPConfig: %+v", objToCreate.GetName())
+					log.Debugf("Error occur while deleting ACPConfig: %s", objToCreate.GetName())
 					return nil, delErr
 				}
-				log.Errorf("ACPConfig Deleted: %s", objToCreate.GetName())
+				log.Debugf("ACPConfig Deleted: %s", objToCreate.GetName())
 				return nil, err
 			}
 		} else {
@@ -15185,36 +15237,36 @@ func (group *PolicypkgTsmV1) UpdateACPConfigByName(ctx context.Context,
 		if err != nil {
 			log.Errorf("[UpdateACPConfigByName] Failed to patch ACPConfig gvk in parent node[AccessControlPolicies]: %+v", err)
 			if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded) {
-				log.Errorf("[Retry Count: %d ] %+v", retryCount, err)
+				log.Debugf("[Retry count: (%d) obj: %s ] %+v", retryCount, objToUpdate.GetName(), err)
 				if retryCount == maxRetryCount {
-					log.Error("Max Retry exceed on patching gvk")
-					log.Errorf("Trigger ACPConfig Delete: %s", objToUpdate.GetName())
+					log.Errorf("Max retry exceed on patching gvk: %s", objToUpdate.GetName())
+					log.Debugf("Trigger ACPConfig Delete: %s", objToUpdate.GetName())
 					delErr := group.DeleteACPConfigByName(newCtx, objToUpdate.GetName())
 					if delErr != nil {
-						log.Errorf("Error occur while deleting ACPConfig: %s", objToUpdate.GetName())
+						log.Debugf("Error occur while deleting ACPConfig: %s", objToUpdate.GetName())
 						return nil, delErr
 					}
-					log.Errorf("ACPConfig Deleted: %s", objToUpdate.GetName())
+					log.Debugf("ACPConfig deleted: %s", objToUpdate.GetName())
 					return nil, err
 				}
 				retryCount += 1
 				time.Sleep(sleepTime * time.Second)
 			} else if customerrors.Is(err, context.Canceled) {
-				log.Errorf("[CreateACPConfigByName]: %+v", err)
+				log.Errorf("[UpdateACPConfigByName]: context canceled: %s", objToUpdate.GetName())
 				return nil, context.Canceled
 			} else {
-				log.Errorf("[CreateACPConfigByName] Unexpected Error ACPConfig] :%+v", err)
-				log.Errorf("Trigger ACPConfig Delete: %s", objToUpdate.GetName())
+				log.Errorf("[UpdateACPConfigByName] Object: %s unexpected error: %+v", objToUpdate.GetName(), err)
+				log.Debugf("Trigger ACPConfig Delete: %s", objToUpdate.GetName())
 				delErr := group.DeleteACPConfigByName(newCtx, objToUpdate.GetName())
 				if delErr != nil {
-					log.Errorf("Error occur while deleting ACPConfig: %+v", objToUpdate.GetName())
+					log.Debugf("Error occur while deleting ACPConfig: %+v", objToUpdate.GetName())
 					return nil, delErr
 				}
-				log.Errorf("ACPConfig Deleted: %s", objToUpdate.GetName())
+				log.Debugf("ACPConfig Deleted: %s", objToUpdate.GetName())
 				return nil, err
 			}
 		} else {
-			log.Debugf("[CreateACPConfigByName] Patch ACPConfig Success :%s", objToUpdate.GetName())
+			log.Debugf("[UpdateACPConfigByName] Patch ACPConfig Success :%s", objToUpdate.GetName())
 			break
 		}
 	}
@@ -16046,28 +16098,32 @@ func (group *PolicypkgTsmV1) DeleteVMpolicyByName(ctx context.Context, hashedNam
 			PolicypkgTsmV1().
 			VMpolicies().Get(ctx, hashedName, metav1.GetOptions{})
 		if err != nil {
-			log.Errorf("[DeleteVMpolicyByName] Failed to Get VMpolicies: %+v", err)
+			log.Errorf("[DeleteVMpolicyByName] Failed to get VMpolicies: %+v", err)
 			if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded) {
-				log.Errorf("[Retry Count: %d ] %+v", retryCount, err)
+				log.Debugf("[Retry count: (%d) obj: %s ] %+v", retryCount, hashedName, err)
 				if retryCount == maxRetryCount {
-					log.Error("Max Retry exceed on Get VMpolicies")
+					log.Errorf("Max retry exceed on get VMpolicies: %s", hashedName)
 					return err
 				}
 				retryCount += 1
 				time.Sleep(sleepTime * time.Second)
 			} else if customerrors.Is(err, context.Canceled) {
-				log.Errorf("[DeleteVMpolicyByName]: %+v", err)
+				log.Errorf("[DeleteVMpolicyByName] context canceled: %s", hashedName)
 				return context.Canceled
 			} else if errors.IsNotFound(err) {
-				log.Errorf("[DeleteVMpolicyByName] Object Notfound: %+v", err)
+				log.Errorf("[DeleteVMpolicyByName] Object: %s not found", hashedName)
 				break
 			} else {
-				log.Errorf("[DeleteVMpolicyByName]: %+v", err)
+				log.Errorf("[DeleteVMpolicyByName] Object: %s unexpected error: %+v", hashedName, err)
 				return err
 			}
 		} else {
 			break
 		}
+	}
+
+	if result == nil {
+		return err
 	}
 
 	retryCount = 0
@@ -16078,21 +16134,21 @@ func (group *PolicypkgTsmV1) DeleteVMpolicyByName(ctx context.Context, hashedNam
 		if err != nil {
 			log.Errorf("[DeleteVMpolicyByName] failed to delete VMpolicies: %+v", err)
 			if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded) {
-				log.Errorf("[Retry Count: %d ] %+v", retryCount, err)
+				log.Debugf("[Retry count: (%d) obj: %s ] %+v", retryCount, hashedName, err)
 				if retryCount == maxRetryCount {
-					log.Error("Max retry exceed on delete VMpolicies")
+					log.Errorf("Max retry exceed on delete VMpolicies: %s", hashedName)
 					return err
 				}
 				retryCount += 1
 				time.Sleep(sleepTime * time.Second)
 			} else if customerrors.Is(err, context.Canceled) {
-				log.Errorf("[DeleteVMpolicyByName]: %+v", err)
+				log.Errorf("[DeleteVMpolicyByName]: context canceled: %s", hashedName)
 				return context.Canceled
 			} else if errors.IsNotFound(err) {
-				log.Errorf("[DeleteVMpolicyByName] Object not found: %+v", err)
+				log.Errorf("[DeleteVMpolicyByName] Object: %s not found", hashedName)
 				break
 			} else {
-				log.Errorf("[DeleteVMpolicyByName]: %+v", err)
+				log.Errorf("[DeleteVMpolicyByName] Object: %s unexpected error: %+v", hashedName, err)
 				return err
 			}
 		} else {
@@ -16102,7 +16158,7 @@ func (group *PolicypkgTsmV1) DeleteVMpolicyByName(ctx context.Context, hashedNam
 	// Get Parent Node and check if gvk present before patch
 
 	var gvkPresent bool
-	log.Debugf("[DeleteVMpolicyByName] Get Parent details")
+	log.Debugf("[DeleteVMpolicyByName] Get parent details for object: %s", hashedName)
 	var patch Patch
 	parents := result.GetLabels()
 	if parents == nil {
@@ -16123,7 +16179,7 @@ func (group *PolicypkgTsmV1) DeleteVMpolicyByName(ctx context.Context, hashedNam
 		ConfigTsmV1().
 		Configs().Get(ctx, parentName, metav1.GetOptions{})
 	if err != nil {
-		log.Errorf("[DeleteVMpolicyByName] Failed to get Parent node: %+v", err)
+		log.Errorf("[DeleteVMpolicyByName] Failed to get parent node for obj:(%s) %+v", hashedName, err)
 		if errors.IsNotFound(err) {
 			return nil
 		} else {
@@ -16156,9 +16212,9 @@ func (group *PolicypkgTsmV1) DeleteVMpolicyByName(ctx context.Context, hashedNam
 				ConfigTsmV1().
 				Configs().Patch(newCtx, parentName, types.JSONPatchType, marshaled, metav1.PatchOptions{})
 			if err != nil {
-				log.Errorf("Failed to patch VMpolicy gvk in parent node[Configs]: %+v", err)
+				log.Errorf("[DeleteVMpolicyByName] Failed to patch VMpolicy gvk in parent node[Configs]: %+v", err)
 				if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded) {
-					log.Errorf("[Retry Count: %d ] %+v", retryCount, err)
+					log.Debugf("[Retry count: (%d) obj: %s ] %+v", retryCount, hashedName, err)
 					if retryCount == maxRetryCount {
 						log.Error("Max Retry exceed on patching gvk")
 						return err
@@ -16166,10 +16222,10 @@ func (group *PolicypkgTsmV1) DeleteVMpolicyByName(ctx context.Context, hashedNam
 					retryCount += 1
 					time.Sleep(sleepTime * time.Second)
 				} else if customerrors.Is(err, context.Canceled) {
-					log.Errorf("[DeleteVMpolicyByName]: %+v", err)
+					log.Errorf("[DeleteVMpolicyByName]: context canceled: %s", hashedName)
 					return context.Canceled
 				} else {
-					log.Errorf("Unexpected Error occur VMpolicy]: %+v", err)
+					log.Errorf("[DeleteVMpolicyByName] Object: %s unexpected error: %+v", hashedName, err)
 					return err
 				}
 			} else {
@@ -16206,20 +16262,20 @@ func (group *PolicypkgTsmV1) CreateVMpolicyByName(ctx context.Context,
 			PolicypkgTsmV1().
 			VMpolicies().Create(ctx, objToCreate, metav1.CreateOptions{})
 		if err != nil {
-			log.Errorf("[CreateVMpolicyByName] Failed to Create VMpolicies: %+v", err)
+			log.Errorf("[CreateVMpolicyByName] Failed to create VMpolicies:(%s) %+v", objToCreate.GetName(), err)
 			if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded) {
-				log.Errorf("[Retry Count: %d ] %+v", retryCount, err)
+				log.Debugf("[Retry count: (%d) obj: %s ] %+v", retryCount, objToCreate.GetName(), err)
 				if retryCount == maxRetryCount {
-					log.Error("Max Retry exceed on Get VMpolicies")
+					log.Error("Max retry exceed on create VMpolicies: %s", objToCreate.GetName())
 					return nil, err
 				}
 				retryCount += 1
 				time.Sleep(sleepTime * time.Second)
 			} else if customerrors.Is(err, context.Canceled) {
-				log.Errorf("[CreateVMpolicyByName]: %+v", err)
+				log.Errorf("[CreateVMpolicyByName]: context canceled: %s", objToCreate.GetName())
 				return nil, context.Canceled
 			} else {
-				log.Errorf("[CreateVMpolicyByName]: %+v", err)
+				log.Errorf("[CreateVMpolicyByName] Object: %s unexpected error: %+v", objToCreate.GetName(), err)
 				return nil, err
 			}
 		} else {
@@ -16260,32 +16316,32 @@ func (group *PolicypkgTsmV1) CreateVMpolicyByName(ctx context.Context,
 		if err != nil {
 			log.Errorf("[CreateVMpolicyByName] Failed to patch VMpolicy gvk in parent node[Configs]: %+v", err)
 			if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded) {
-				log.Errorf("[Retry Count: %d ] %+v", retryCount, err)
+				log.Debugf("[Retry count: (%d) obj: %s ] %+v", retryCount, objToCreate.GetName(), err)
 				if retryCount == maxRetryCount {
-					log.Error("Max Retry exceed on patching gvk")
-					log.Errorf("Trigger VMpolicy Delete: %s", objToCreate.GetName())
+					log.Errorf("Max retry exceed on patching gvk: %s", objToCreate.GetName())
+					log.Debugf("Trigger VMpolicy delete: %s", objToCreate.GetName())
 					delErr := group.DeleteVMpolicyByName(newCtx, objToCreate.GetName())
 					if delErr != nil {
-						log.Errorf("Error occur while deleting VMpolicy: %s", objToCreate.GetName())
+						log.Debugf("Error occur while deleting VMpolicy: %s", objToCreate.GetName())
 						return nil, delErr
 					}
-					log.Errorf("VMpolicy Deleted: %s", objToCreate.GetName())
+					log.Debugf("VMpolicy Deleted: %s", objToCreate.GetName())
 					return nil, err
 				}
 				retryCount += 1
 				time.Sleep(sleepTime * time.Second)
 			} else if customerrors.Is(err, context.Canceled) {
-				log.Errorf("[CreateVMpolicyByName]: %+v", err)
+				log.Errorf("[CreateVMpolicyByName]: context canceled: %s", objToCreate.GetName())
 				return nil, context.Canceled
 			} else {
-				log.Errorf("[CreateVMpolicyByName] Unexpected Error VMpolicy] :%+v", err)
-				log.Errorf("Trigger VMpolicy Delete: %s", objToCreate.GetName())
+				log.Errorf("[CreateVMpolicyByName] Object: %s unexpected error: %+v", objToCreate.GetName(), err)
+				log.Debugf("Trigger VMpolicy Delete: %s", objToCreate.GetName())
 				delErr := group.DeleteVMpolicyByName(newCtx, objToCreate.GetName())
 				if delErr != nil {
-					log.Errorf("Error occur while deleting VMpolicy: %+v", objToCreate.GetName())
+					log.Debugf("Error occur while deleting VMpolicy: %+v", objToCreate.GetName())
 					return nil, delErr
 				}
-				log.Errorf("VMpolicy Deleted: %s", objToCreate.GetName())
+				log.Debugf("VMpolicy Deleted: %s", objToCreate.GetName())
 				return nil, err
 			}
 		} else {
@@ -16358,36 +16414,36 @@ func (group *PolicypkgTsmV1) UpdateVMpolicyByName(ctx context.Context,
 		if err != nil {
 			log.Errorf("[UpdateVMpolicyByName] Failed to patch VMpolicy gvk in parent node[Configs]: %+v", err)
 			if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded) {
-				log.Errorf("[Retry Count: %d ] %+v", retryCount, err)
+				log.Debugf("[Retry count: (%d) obj: %s ] %+v", retryCount, objToUpdate.GetName(), err)
 				if retryCount == maxRetryCount {
-					log.Error("Max Retry exceed on patching gvk")
-					log.Errorf("Trigger VMpolicy Delete: %s", objToUpdate.GetName())
+					log.Errorf("Max retry exceed on patching gvk: %s", objToUpdate.GetName())
+					log.Debugf("Trigger VMpolicy Delete: %s", objToUpdate.GetName())
 					delErr := group.DeleteVMpolicyByName(newCtx, objToUpdate.GetName())
 					if delErr != nil {
-						log.Errorf("Error occur while deleting VMpolicy: %s", objToUpdate.GetName())
+						log.Debugf("Error occur while deleting VMpolicy: %s", objToUpdate.GetName())
 						return nil, delErr
 					}
-					log.Errorf("VMpolicy Deleted: %s", objToUpdate.GetName())
+					log.Debugf("VMpolicy deleted: %s", objToUpdate.GetName())
 					return nil, err
 				}
 				retryCount += 1
 				time.Sleep(sleepTime * time.Second)
 			} else if customerrors.Is(err, context.Canceled) {
-				log.Errorf("[CreateVMpolicyByName]: %+v", err)
+				log.Errorf("[UpdateVMpolicyByName]: context canceled: %s", objToUpdate.GetName())
 				return nil, context.Canceled
 			} else {
-				log.Errorf("[CreateVMpolicyByName] Unexpected Error VMpolicy] :%+v", err)
-				log.Errorf("Trigger VMpolicy Delete: %s", objToUpdate.GetName())
+				log.Errorf("[UpdateVMpolicyByName] Object: %s unexpected error: %+v", objToUpdate.GetName(), err)
+				log.Debugf("Trigger VMpolicy Delete: %s", objToUpdate.GetName())
 				delErr := group.DeleteVMpolicyByName(newCtx, objToUpdate.GetName())
 				if delErr != nil {
-					log.Errorf("Error occur while deleting VMpolicy: %+v", objToUpdate.GetName())
+					log.Debugf("Error occur while deleting VMpolicy: %+v", objToUpdate.GetName())
 					return nil, delErr
 				}
-				log.Errorf("VMpolicy Deleted: %s", objToUpdate.GetName())
+				log.Debugf("VMpolicy Deleted: %s", objToUpdate.GetName())
 				return nil, err
 			}
 		} else {
-			log.Debugf("[CreateVMpolicyByName] Patch VMpolicy Success :%s", objToUpdate.GetName())
+			log.Debugf("[UpdateVMpolicyByName] Patch VMpolicy Success :%s", objToUpdate.GetName())
 			break
 		}
 	}
