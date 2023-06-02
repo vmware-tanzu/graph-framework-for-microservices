@@ -1,0 +1,6 @@
+dependencies:
+- name: allspark-common
+  repository: s3://allspark-helm-chart-repo/stable
+  version: v0.2.4
+digest: sha256:db96837a3f926e1fc5cc30698b6113431e0d033a3c9fcb3b719b22889df9ab9a
+generated: "2023-05-19T11:38:20.453682+05:30"

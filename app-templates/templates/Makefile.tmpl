@@ -1,0 +1,276 @@
+#
+# App Info
+#
+APP_NAME ?= {{.AppName}}
+PKG_NAME ?= $(realpath .)
+NAMESPACE ?= default
+DATAMODEL_DIR ?= "./nexus"
+BUILDER_NAME ?= ${APP_NAME}-builder
+BUILDER_TAG := $(shell md5sum builder/Dockerfile | awk '{ print $1 }' | head -c 8)
+KUSTOMIZE ?= ""
+NEXUS_KUBEBUILDER ?= ""
+CLUSTER ?= ""
+DATAMODEL ?= ""
+DATAMODEL_GROUP ?= ""
+NEXUS_BIN ?= $(shell which nexus)
+CICD_TOKEN ?= ""
+CRD_GROUP ?= ""
+CRD_KIND ?= ""
+CRD_VERSION ?= ""
+CRD_DATAMODEL_BUILD_DIRECTORY ?= ""
+CRD_DATAMODEL_NAME ?= ""
+
+#
+# Image Info
+#
+### adding this to test app init..
+CI_COMMIT ?= $(shell git rev-parse --verify --short=8 HEAD 2> /dev/null || echo "00000000")
+IMAGE_TAG ?= ${APP_NAME}-${CI_COMMIT}
+GIT_HEAD  ?= $(shell git rev-parse --verify HEAD 2> /dev/null || echo "0000000000000000")
+IMAGE_REGISTRY ?= {{.ImageRegistry}}
+
+#
+# Platform
+#
+NEXUS_CLI_TAG ?= latest
+
+# Get the currently used golang install path (in GOPATH/bin, unless GOBIN is set)
+ifeq (,$(shell go env GOBIN))
+GOBIN=$(shell go env GOPATH)/bin
+else
+GOBIN=$(shell go env GOBIN)
+endif
+
+ifeq ($(NEXUS_KUBEBUILDER),"")
+	NEXUS_KUBEBUILDER = $(PROJECT_DIR)/bin/nexus-kubebuilder
+endif
+
+ifeq ($(KUSTOMIZE),"")
+	KUSTOMIZE = $(PROJECT_DIR)/bin/kustomize
+endif
+
+install-nexus-kubebuilder:
+	if [ "$(origin NEXUS_KUBEBUILDER)" = "file" ]; then \
+		test -s ${PROJECT_DIR}/bin/nexus-kubebuilder || { mkdir -p ${PROJECT_DIR}/bin; cd ${PROJECT_DIR}/bin; GOBIN=${PROJECT_DIR}/bin go install gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/kubebuilder.git/cmd/nexus-kubebuilder@master ; };\
+	fi
+
+ifeq ($(CONTAINER_ID),)
+define run_in_container
+docker run \
+--volume $(realpath .):${PKG_NAME} \
+--volume ~/.ssh:/root/.ssh \
+--network=host \
+--workdir ${PKG_NAME} \
+--env GIT_HEAD=${GIT_HEAD} \
+--env GIT_TAG=${GIT_TAG} \
+--env APP_NAME=${APP_NAME} \
+--env GOINSECURE=*.eng.vmware.com \
+--env GOPRIVATE=*.eng.vmware.com \
+"${BUILDER_NAME}:${BUILDER_TAG}" /bin/bash -c "make cred_setup && ${1}"
+endef
+else
+define run_in_container
+docker run \
+--volumes-from ${CONTAINER_ID} \
+--workdir ${PKG_NAME} \
+--env CICD_TOKEN=${CICD_TOKEN} \
+--env GIT_HEAD=${GIT_HEAD} \
+--env GIT_TAG=${GIT_TAG} \
+--env APP_NAME=${APP_NAME} \
+--env GOINSECURE=*.eng.vmware.com \
+--env GOPRIVATE=*.eng.vmware.com \
+"${BUILDER_NAME}:${BUILDER_TAG}" /bin/bash -c "make cred_setup && ${1}"
+endef
+endif
+
+.PHONY: all
+all: build
+
+##@ General
+
+# The help target prints out all targets with their descriptions organized
+# beneath their categories. The categories are represented by '##@' and the
+# target descriptions by '##'. The awk commands is responsible for reading the
+# entire set of makefiles included in this invocation, looking for lines of the
+# file as xyz: ## something, and then pretty-format the target and help. Then,
+# if there's a line with ##@ something, that gets pretty-printed as a category.
+# More info on the usage of ANSI control characters for terminal formatting:
+# https://en.wikipedia.org/wiki/ANSI_escape_code#SGR_parameters
+# More info on the awk command:
+# http://linuxcommand.org/lc3_adv_awk.php
+
+
+.PHONY: help
+help: ## Display this help.
+	@awk 'BEGIN {FS = ":.*##"; printf "\nUsage:\n  make \033[36m<target>\033[0m\n"} /^[a-zA-Z_0-9-]+:.*?##/ { printf "  \033[36m%-15s\033[0m %s\n", $$1, $$2 } /^##@/ { printf "\n\033[1m%s\033[0m\n", substr($$0, 5) } ' $(MAKEFILE_LIST)
+
+##@ Platform
+.PHONY: nexus-cli
+nexus-cli: ## Install Nexus CLI
+	curl https://storage.googleapis.com/nexus-cli-downloads/nexus-$(uname | tr '[:upper:]' '[:lower:]')_amd64 --output nexus
+	chmod 755 nexus
+	mv nexus /usr/local/bin/nexus
+
+replace:
+	if [ -n ${DATAMODEL} ]; then\
+			test -s ${DATAMODEL_DIR}/${DATAMODEL} || { echo "Please create datamodel ${DATAMODEL} for go mod replace"; exit 1; } ;\
+			go mod edit -replace $(DATAMODEL)=${DATAMODEL_DIR}/${DATAMODEL} ;\
+	fi
+
+
+.PHONY: datamodel_init
+datamodel_init: ## Initialize datamodel
+	if [ -z $(NEXUS_BIN) ]; then \
+		echo "Please install nexus binary"; \
+		exit 1; \
+	fi
+	if [ -n ${DATAMODEL} ]; then \
+		if [ -n ${DATAMODEL_GROUP} ]; then \
+			$(NEXUS_BIN) datamodel init --name ${DATAMODEL} --group ${DATAMODEL_GROUP};\
+		else \
+			$(NEXUS_BIN) datamodel init --name ${DATAMODEL} ;\
+		fi \
+	else \
+		$(NEXUS_BIN) datamodel init ;\
+	fi
+	$(MAKE) replace
+
+##@ Dev
+
+.PHONY: fmt
+fmt: ## Run go fmt against code.
+	go fmt ./...
+
+.PHONY: vet
+vet: ## Run go vet against code.
+	go vet ./...
+
+.PHONY: lint
+lint: ## lint checks using the make targets
+	$(MAKE) fmt
+	$(MAKE) vet
+
+go_get:
+	go get . ;
+
+docker.builder:
+	if [ -z `docker images $(BUILDER_NAME):$(BUILDER_TAG) -q` ]; then \
+		docker build -t ${BUILDER_NAME}:${BUILDER_TAG} . -f builder/Dockerfile ;\
+	fi
+
+cred_setup:
+	if [ -z ${CICD_TOKEN} ]	;then \
+        git config --global --add url."git@gitlab.eng.vmware.com:".insteadOf "https://gitlab.eng.vmware.com/" &&\
+        go mod tidy && go mod download ;\
+	else \
+        echo "https://gitlab-ci-token:${CICD_TOKEN}@gitlab.eng.vmware.com" >> ~/.git-credentials && \
+        git config --global credential.helper store && \
+        go mod tidy && go mod download ;\
+    fi
+
+
+build_app: go_get lint ## Build manager binary.
+	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -a -ldflags "-s -w -X gitlab.eng.vmware.com/nsx-allspark_users/lib-go/allspark/health.Sha=$(GIT_HEAD) -X gitlab.eng.vmware.com/nsx-allspark_users/lib-go/allspark/health.Tag=$(GIT_TAG)" -o bin/$(APP_NAME) main.go
+
+docker:
+	docker build -t ${IMAGE_REGISTRY}:${IMAGE_TAG} . -f Dockerfile
+
+.SILENT:
+.PHONY: build
+build: docker.builder
+	$(call run_in_container,make build_app)
+	$(MAKE) docker
+##@ Test
+
+.PHONY: test
+test:
+	go test ./...
+
+.PHONY: integration_test
+integration_test:
+	echo "Add your integration_tests for your app here!!!!..." ;
+	echo "Sample Workflow can be.";
+	echo "1. Create Environment";
+	echo "2. Start built application in the Environment";
+	echo "3. Start integration_tests with go test / gingko framework";
+
+.PHONY: integration_test_cleanup
+integration_test_cleanup:
+	echo "Add your cleanup steps here!!!!....";
+	echo "Possible steps you can do.";
+	echo "1. Get logs of integration test as artifacts"
+	echo "2. Get logs of components in clusters as artifacts for debugging"
+
+.PHONY: teardown_environment
+teardown_environment:
+	echo "Add cluster cleanup step after integration_tests pass/fail here..";
+	echo "Clear clusters created";
+
+##@ Coverage
+.PHONY: coverage
+coverage:
+	go test -json -coverprofile=coverage.out ./... | tee report.json ;\
+	sonar-scanner ;
+
+##@ Publish
+
+.PHONY: publish
+publish: build ## Push docker image with the manager.
+	docker push ${IMAGE_REGISTRY}:${IMAGE_TAG}
+
+##@ Security Scan
+
+.PHONY: image_scan
+image_scan:
+	flash docker scan image ${IMAGE_REGISTRY}:${IMAGE_TAG}
+
+##@ Deploy
+
+.PHONY: deploy
+deploy: kustomize undeploy
+	if [ -n $(CLUSTER) ]; then \
+		echo "loding docker image to kind $(CLUSTER) cluster if exists" ;\
+		kind load docker-image ${IMAGE_REGISTRY}:${IMAGE_TAG} --name=$(CLUSTER);\
+	fi
+	cd config/deployment/ && $(KUSTOMIZE) edit set image ${APP_NAME}=${IMAGE_REGISTRY}:${IMAGE_TAG} && $(KUSTOMIZE) build . | kubectl apply -f - -n ${NAMESPACE};
+
+
+.PHONY: undeploy
+undeploy: kustomize
+	cd config/deployment/ && $(KUSTOMIZE) build . | kubectl delete -f - -n ${NAMESPACE} --ignore-not-found=true;
+
+
+add_operator: install-nexus-kubebuilder
+	if [ -n $(CRD_DATAMODEL_NAME) ]; then \
+		if [ -n $(CRD_GROUP) ]; then \
+			if [ -n $(CRD_VERSION) ]; then \
+				if [ -n $(CRD_KIND) ]; then \
+					if [ -n $(CRD_DATAMODEL_BUILD_DIRECTORY) ]; then \
+						$(NEXUS_KUBEBUILDER) create api --group $(CRD_GROUP) --kind $(CRD_KIND) --version $(CRD_VERSION) --controller --resource=false --import $(CRD_DATAMODEL_NAME) --buildpath $(CRD_DATAMODEL_BUILD_DIRECTORY);\
+					else \
+						$(NEXUS_KUBEBUILDER) create api --group $(CRD_GROUP) --kind $(CRD_KIND) --version $(CRD_VERSION) --controller --resource=false --import $(CRD_DATAMODEL_NAME); \
+					fi \
+				else \
+					echo "Please provide CRD_KIND"; exit 1;\
+				fi \
+			else \
+				echo "Please provide CRD_VERSION"; exit 1; \
+			fi \
+		else \
+			echo "Please provide CRD_GROUP"; exit 1; \
+		fi \
+	else \
+		echo "Please provide CRD_DATAMODEL_NAME"; exit 1; \
+	fi
+
+#check how to use kustomize for now using sed to replace deployment..
+PROJECT_DIR := $(shell dirname $(abspath $(lastword $(MAKEFILE_LIST))))
+.PHONY: kustomize
+kustomize: ## Download kustomize locally if necessary.
+	$(MAKE) install-kustomize
+
+# go-get-tool will 'go get' any package $2 and install it to $1.
+install-kustomize:
+	if [ "$(origin KUSTOMIZE)" = "file" ]; then \
+		test -s $(PROJECT_DIR)/bin/kustomize || { mkdir -p $(PROJECT_DIR)/bin; cd $(PROJECT_DIR)/bin; curl -s "https://raw.githubusercontent.com/kubernetes-sigs/kustomize/master/hack/install_kustomize.sh" | bash ; }; \
+	fi

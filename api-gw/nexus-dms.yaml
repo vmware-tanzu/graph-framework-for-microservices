@@ -1,0 +1,3 @@
+gateway:
+  location: golang-appnet.eng.vmware.com/nexus-sdk/api
+  isDefault: true

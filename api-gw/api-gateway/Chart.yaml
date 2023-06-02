@@ -1,0 +1,12 @@
+apiVersion: v2
+name: api-gateway
+description: A Helm chart for Nexus-sdk k8s api-server
+type: application
+version: 0.1.1
+
+
+dependencies:
+  - name: allspark-common
+    version: 0.2.4
+    repository: "s3://allspark-helm-chart-repo/stable"
+    alias: common

@@ -1,0 +1,11 @@
+FROM gcr.io/nsx-sm/photon:4.0
+
+RUN tdnf install --refresh -y openssl jq  &&\
+    curl -LO https://dl.k8s.io/release/v1.23.2/bin/linux/amd64/kubectl && \
+    chmod +x kubectl && \
+    mv kubectl /usr/bin && \
+    curl -LO https://get.helm.sh/helm-v3.8.2-linux-amd64.tar.gz && \
+    tar -xvf helm-v3.8.2-linux-amd64.tar.gz && \
+    mv linux-amd64/helm /usr/bin && \
+    curl -LO https://github.com/mikefarah/yq/releases/download/v4.2.0/yq_linux_amd64 && \
+    chmod +x yq_linux_amd64 && mv  yq_linux_amd64 /usr/bin/yq
