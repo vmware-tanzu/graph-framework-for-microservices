@@ -3304,10 +3304,10 @@ func (group *ConfigTsmV1) CreateFooTypeABCByName(ctx context.Context,
 				if retryCount == maxRetryCount {
 					log.Error("Max Retry exceed on patching gvk")
 					log.Errorf("Trigger FooTypeABC Delete: %s", objToCreate.GetName())
-					err = group.DeleteFooTypeABCByName(newCtx, objToCreate.GetName())
-					if err != nil {
+					delErr := group.DeleteFooTypeABCByName(newCtx, objToCreate.GetName())
+					if delErr != nil {
 						log.Errorf("Error occur while deleting FooTypeABC: %s", objToCreate.GetName())
-						return nil, err
+						return nil, delErr
 					}
 					log.Errorf("FooTypeABC Deleted: %s", objToCreate.GetName())
 					return nil, err
@@ -3320,10 +3320,10 @@ func (group *ConfigTsmV1) CreateFooTypeABCByName(ctx context.Context,
 			} else {
 				log.Errorf("[CreateFooTypeABCByName] Unexpected Error FooTypeABC] %+v", err)
 				log.Errorf("Trigger FooTypeABC Delete: %s", objToCreate.GetName())
-				err = group.DeleteFooTypeABCByName(newCtx, objToCreate.GetName())
-				if err != nil {
+				delErr := group.DeleteFooTypeABCByName(newCtx, objToCreate.GetName())
+				if delErr != nil {
 					log.Errorf("Error occur while deleting FooTypeABC: %+v", objToCreate.GetName())
-					return nil, err
+					return nil, delErr
 				}
 				log.Errorf("FooTypeABC Deleted: %s", objToCreate.GetName())
 				return nil, err
@@ -11692,10 +11692,10 @@ func (group *ServicegroupTsmV1) CreateSvcGroupByName(ctx context.Context,
 				if retryCount == maxRetryCount {
 					log.Error("Max Retry exceed on patching gvk")
 					log.Errorf("Trigger SvcGroup Delete: %s", objToCreate.GetName())
-					err = group.DeleteSvcGroupByName(newCtx, objToCreate.GetName())
-					if err != nil {
+					delErr := group.DeleteSvcGroupByName(newCtx, objToCreate.GetName())
+					if delErr != nil {
 						log.Errorf("Error occur while deleting SvcGroup: %s", objToCreate.GetName())
-						return nil, err
+						return nil, delErr
 					}
 					log.Errorf("SvcGroup Deleted: %s", objToCreate.GetName())
 					return nil, err
@@ -11708,10 +11708,10 @@ func (group *ServicegroupTsmV1) CreateSvcGroupByName(ctx context.Context,
 			} else {
 				log.Errorf("[CreateSvcGroupByName] Unexpected Error SvcGroup] %+v", err)
 				log.Errorf("Trigger SvcGroup Delete: %s", objToCreate.GetName())
-				err = group.DeleteSvcGroupByName(newCtx, objToCreate.GetName())
-				if err != nil {
+				delErr := group.DeleteSvcGroupByName(newCtx, objToCreate.GetName())
+				if delErr != nil {
 					log.Errorf("Error occur while deleting SvcGroup: %+v", objToCreate.GetName())
-					return nil, err
+					return nil, delErr
 				}
 				log.Errorf("SvcGroup Deleted: %s", objToCreate.GetName())
 				return nil, err
@@ -14926,10 +14926,10 @@ func (group *PolicypkgTsmV1) CreateACPConfigByName(ctx context.Context,
 				if retryCount == maxRetryCount {
 					log.Error("Max Retry exceed on patching gvk")
 					log.Errorf("Trigger ACPConfig Delete: %s", objToCreate.GetName())
-					err = group.DeleteACPConfigByName(newCtx, objToCreate.GetName())
-					if err != nil {
+					delErr := group.DeleteACPConfigByName(newCtx, objToCreate.GetName())
+					if delErr != nil {
 						log.Errorf("Error occur while deleting ACPConfig: %s", objToCreate.GetName())
-						return nil, err
+						return nil, delErr
 					}
 					log.Errorf("ACPConfig Deleted: %s", objToCreate.GetName())
 					return nil, err
@@ -14942,10 +14942,10 @@ func (group *PolicypkgTsmV1) CreateACPConfigByName(ctx context.Context,
 			} else {
 				log.Errorf("[CreateACPConfigByName] Unexpected Error ACPConfig] %+v", err)
 				log.Errorf("Trigger ACPConfig Delete: %s", objToCreate.GetName())
-				err = group.DeleteACPConfigByName(newCtx, objToCreate.GetName())
-				if err != nil {
+				delErr := group.DeleteACPConfigByName(newCtx, objToCreate.GetName())
+				if delErr != nil {
 					log.Errorf("Error occur while deleting ACPConfig: %+v", objToCreate.GetName())
-					return nil, err
+					return nil, delErr
 				}
 				log.Errorf("ACPConfig Deleted: %s", objToCreate.GetName())
 				return nil, err
