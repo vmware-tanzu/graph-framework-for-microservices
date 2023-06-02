@@ -219,9 +219,9 @@ func (group *RootTsmV1) GetRootByName(ctx context.Context, hashedName string) (*
 			if err != nil {
 				log.Errorf("[GetRootByName] Failed to Get Roots: %+v", err)
 				if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded) {
-					log.Errorf("[Retry Count: %d ] %+v", retryCount, err)
+					log.Debugf("[Retry count: (%d) obj: %s ] %+v", retryCount, hashedName, err)
 					if retryCount == maxRetryCount {
-						log.Error("Max Retry exceed on Get Roots")
+						log.Errorf("Max retry exceed on Get Roots: %s", hashedName)
 						return nil, err
 					}
 					retryCount += 1
@@ -257,7 +257,7 @@ func (group *RootTsmV1) ForceReadRootByName(ctx context.Context, hashedName stri
 			if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded) {
 				log.Errorf("[Retry Count: %d ] %+v", retryCount, err)
 				if retryCount == maxRetryCount {
-					log.Error("Max Retry exceed on Get Roots")
+					log.Errorf("Max Retry exceed on Get Roots: %s", hashedName)
 					return nil, err
 				}
 				retryCount += 1
@@ -394,7 +394,7 @@ func (group *RootTsmV1) CreateRootByName(ctx context.Context,
 			if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded) {
 				log.Debugf("[Retry count: (%d) obj: %s ] %+v", retryCount, objToCreate.GetName(), err)
 				if retryCount == maxRetryCount {
-					log.Error("Max retry exceed on create Roots: %s", objToCreate.GetName())
+					log.Errorf("Max retry exceed on create Roots: %s", objToCreate.GetName())
 					return nil, err
 				}
 				retryCount += 1
@@ -983,9 +983,9 @@ func (group *ConfigTsmV1) GetConfigByName(ctx context.Context, hashedName string
 			if err != nil {
 				log.Errorf("[GetConfigByName] Failed to Get Configs: %+v", err)
 				if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded) {
-					log.Errorf("[Retry Count: %d ] %+v", retryCount, err)
+					log.Debugf("[Retry count: (%d) obj: %s ] %+v", retryCount, hashedName, err)
 					if retryCount == maxRetryCount {
-						log.Error("Max Retry exceed on Get Configs")
+						log.Errorf("Max retry exceed on Get Configs: %s", hashedName)
 						return nil, err
 					}
 					retryCount += 1
@@ -1021,7 +1021,7 @@ func (group *ConfigTsmV1) ForceReadConfigByName(ctx context.Context, hashedName 
 			if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded) {
 				log.Errorf("[Retry Count: %d ] %+v", retryCount, err)
 				if retryCount == maxRetryCount {
-					log.Error("Max Retry exceed on Get Configs")
+					log.Errorf("Max Retry exceed on Get Configs: %s", hashedName)
 					return nil, err
 				}
 				retryCount += 1
@@ -1176,7 +1176,7 @@ func (group *ConfigTsmV1) DeleteConfigByName(ctx context.Context, hashedName str
 				if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded) {
 					log.Debugf("[Retry count: (%d) obj: %s ] %+v", retryCount, hashedName, err)
 					if retryCount == maxRetryCount {
-						log.Error("Max Retry exceed on patching gvk")
+						log.Errorf("Max retry exceed on patching gvk: %s", hashedName)
 						return err
 					}
 					retryCount += 1
@@ -1232,7 +1232,7 @@ func (group *ConfigTsmV1) CreateConfigByName(ctx context.Context,
 			if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded) {
 				log.Debugf("[Retry count: (%d) obj: %s ] %+v", retryCount, objToCreate.GetName(), err)
 				if retryCount == maxRetryCount {
-					log.Error("Max retry exceed on create Configs: %s", objToCreate.GetName())
+					log.Errorf("Max retry exceed on create Configs: %s", objToCreate.GetName())
 					return nil, err
 				}
 				retryCount += 1
@@ -2045,9 +2045,9 @@ func (group *ProjectTsmV1) GetProjectByName(ctx context.Context, hashedName stri
 			if err != nil {
 				log.Errorf("[GetProjectByName] Failed to Get Projects: %+v", err)
 				if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded) {
-					log.Errorf("[Retry Count: %d ] %+v", retryCount, err)
+					log.Debugf("[Retry count: (%d) obj: %s ] %+v", retryCount, hashedName, err)
 					if retryCount == maxRetryCount {
-						log.Error("Max Retry exceed on Get Projects")
+						log.Errorf("Max retry exceed on Get Projects: %s", hashedName)
 						return nil, err
 					}
 					retryCount += 1
@@ -2083,7 +2083,7 @@ func (group *ProjectTsmV1) ForceReadProjectByName(ctx context.Context, hashedNam
 			if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded) {
 				log.Errorf("[Retry Count: %d ] %+v", retryCount, err)
 				if retryCount == maxRetryCount {
-					log.Error("Max Retry exceed on Get Projects")
+					log.Errorf("Max Retry exceed on Get Projects: %s", hashedName)
 					return nil, err
 				}
 				retryCount += 1
@@ -2247,7 +2247,7 @@ func (group *ProjectTsmV1) DeleteProjectByName(ctx context.Context, hashedName s
 				if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded) {
 					log.Debugf("[Retry count: (%d) obj: %s ] %+v", retryCount, hashedName, err)
 					if retryCount == maxRetryCount {
-						log.Error("Max Retry exceed on patching gvk")
+						log.Errorf("Max retry exceed on patching gvk: %s", hashedName)
 						return err
 					}
 					retryCount += 1
@@ -2305,7 +2305,7 @@ func (group *ProjectTsmV1) CreateProjectByName(ctx context.Context,
 			if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded) {
 				log.Debugf("[Retry count: (%d) obj: %s ] %+v", retryCount, objToCreate.GetName(), err)
 				if retryCount == maxRetryCount {
-					log.Error("Max retry exceed on create Projects: %s", objToCreate.GetName())
+					log.Errorf("Max retry exceed on create Projects: %s", objToCreate.GetName())
 					return nil, err
 				}
 				retryCount += 1
