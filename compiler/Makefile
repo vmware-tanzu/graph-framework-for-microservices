@@ -171,13 +171,6 @@ preparser:
 		$(MAKE) generate_code; \
 	fi
 
-test_if:
-	for dir in _tsm_temp/*; do \
-	  if [[ -d "$$dir" && "$$dir" != "_tsm_temp/global" && "$$dir" != "_tsm_temp/build" ]]; then \
-		cp -r "$$dir" _tsm_temp/global/; \
-	  fi; \
-	done
-
 .PHONY: generate_code
 generate_code:
 	@echo "Nexus Compiler: Running compiler code generation"

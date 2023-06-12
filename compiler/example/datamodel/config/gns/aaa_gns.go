@@ -1,11 +1,5 @@
 package gns
 
-//type RandomGnsData struct {
-//	nexus.Node
-//	Description RandomDescription
-//	Status      RandomStatus `nexus:"status"`
-//}
-
 type RandomDescription struct {
 	DiscriptionA string
 	DiscriptionB string

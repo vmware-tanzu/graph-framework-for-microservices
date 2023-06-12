@@ -1,11 +1,5 @@
 package policypkg
 
-//type AdditionalPolicyData struct {
-//	nexus.Node
-//	Description AdditionalDescription
-//	Status      AdditionalStatus `nexus:"status"`
-//}
-
 type AdditionalDescription struct {
 	DiscriptionA string
 	DiscriptionB string

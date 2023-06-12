@@ -755,35 +755,6 @@ func IsNexusGraphqlNullField(f *ast.Field) bool {
 	return true
 }
 
-// Parser for TSM Integration
-// func GetGraphqlArgumentKey(f *ast.Field) string {
-// 	if f == nil {
-// 		return ""
-// 	}
-
-// 	if f.Tag != nil {
-// 		tags := ParseFieldTags(f.Tag.Value)
-// 		if val, err := tags.Get("nexus-graphql-arg-key"); err == nil {
-// 			return val.Value()
-// 		}
-// 	}
-// 	return ""
-// }
-
-// func GetGraphqlArgumentValue(f *ast.Field) string {
-// 	if f == nil {
-// 		return ""
-// 	}
-
-// 	if f.Tag != nil {
-// 		tags := ParseFieldTags(f.Tag.Value)
-// 		if val, err := tags.Get("nexus-graphql-arg-value"); err == nil {
-// 			return val.Value()
-// 		}
-// 	}
-// 	return ""
-// }
-
 func GetFieldAnnotationString(f *ast.Field, annotation FieldAnnotation) string {
 	if f == nil {
 		return ""
