@@ -386,7 +386,6 @@ func RenderCRDBaseTemplate(baseGroupName string, pkg parser.Package, parentsMap 
 		groupName := pkg.Name + "." + baseGroupName
 		singular := strings.ToLower(typeName)
 		kind := cases.Title(language.Und, cases.NoLower).String(typeName)
-		// plural := util.ToPlural(singular)
 		plural := strings.ToLower(util.ToPlural(typeName))
 		crdName := fmt.Sprintf("%s.%s", plural, groupName)
 

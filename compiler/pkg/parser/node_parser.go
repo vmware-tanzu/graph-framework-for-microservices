@@ -45,7 +45,7 @@ func ParseDSLNodes(startPath string, baseGroupName string, packages Packages,
 			}
 			for _, f := range config.ConfigInstance.IgnoredDirs {
 				if info.Name() == f {
-					log.Infof(fmt.Sprintf("Ignoring %v directory from config", f))
+					log.Infof("Ignoring %v directory from config", f)
 					return filepath.SkipDir
 				}
 			}
