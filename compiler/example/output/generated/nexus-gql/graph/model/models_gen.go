@@ -82,6 +82,8 @@ type GnsGns struct {
 	queryGnsQM               *TimeSeriesData               `json:"queryGnsQM"`
 	Domain                   *string                       `json:"Domain"`
 	UseSharedGateway         *bool                         `json:"UseSharedGateway"`
+	Annotations              *string                       `json:"Annotations"`
+	TargetPort               *string                       `json:"TargetPort"`
 	Description              *string                       `json:"Description"`
 	Meta                     *string                       `json:"Meta"`
 	Port                     *int                          `json:"Port"`

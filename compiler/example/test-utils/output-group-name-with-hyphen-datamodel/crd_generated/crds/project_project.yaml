@@ -7,7 +7,7 @@ metadata:
   name: projects.project.tsm-tanzu.vmware.com
   annotations:
     nexus: |
-      {"is_singleton":true,"nexus-rest-api-gen":{"uris":[{"uri":"/root/{root.Root}/project/{project.Project}","methods":{"DELETE":{"200":{"description":"OK"},"404":{"description":"Not Found"},"501":{"description":"Not Implemented"}},"GET":{"200":{"description":"OK"},"404":{"description":"Not Found"},"501":{"description":"Not Implemented"}},"PUT":{"200":{"description":"OK"},"201":{"description":"Created"},"501":{"description":"Not Implemented"}}}}]}}
+      {"name":"project.Project","hierarchy":["roots.root.tsm-tanzu.vmware.com"],"children":{"configs.config.tsm-tanzu.vmware.com":{"fieldName":"Config","fieldNameGvk":"configGvk","goFieldNameGvk":"ConfigGvk","isNamed":false}},"is_singleton":true,"nexus-rest-api-gen":{"uris":[{"uri":"/root/{root.Root}/project/{project.Project}","methods":{"DELETE":{"200":{"description":"OK"},"404":{"description":"Not Found"},"501":{"description":"Not Implemented"}},"GET":{"200":{"description":"OK"},"404":{"description":"Not Found"},"501":{"description":"Not Implemented"}},"PUT":{"200":{"description":"OK"},"201":{"description":"Created"},"501":{"description":"Not Implemented"}}}}]}}
 spec:
   conversion:
     strategy: None

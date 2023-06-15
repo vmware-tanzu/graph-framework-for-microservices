@@ -38,16 +38,12 @@ var (
 func addKnownTypes(scheme *runtime.Scheme) error {
 	scheme.AddKnownTypes(
 		SchemeGroupVersion,
-		&AdditionalPolicyData{},
-		&AdditionalPolicyDataList{},
 		&AccessControlPolicy{},
 		&AccessControlPolicyList{},
 		&ACPConfig{},
 		&ACPConfigList{},
 		&VMpolicy{},
 		&VMpolicyList{},
-		&RandomPolicyData{},
-		&RandomPolicyDataList{},
 	)
 
 	// register the type in the scheme

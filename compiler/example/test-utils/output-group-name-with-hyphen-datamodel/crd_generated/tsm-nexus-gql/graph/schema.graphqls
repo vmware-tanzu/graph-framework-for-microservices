@@ -1,0 +1,22 @@
+
+
+type Root_Root @nexus(group:"root.tsm-tanzu.vmware.com",version:"v1",kind:"Root",resource:"roots",name:"Root",crdName:"roots.root.tsm-tanzu.vmware.com",singleton:"false"){
+    id: ID
+    project: Project_Project
+    someRootData: String
+}
+
+type Config_Config @nexus(group:"config.tsm-tanzu.vmware.com",version:"v1",kind:"Config",resource:"configs",name:"Config",crdName:"configs.config.tsm-tanzu.vmware.com",singleton:"true"){
+    id: ID
+    fieldX: String
+    fieldY: Int
+    myStructField: String @jsonencoded(gofile:"model.go", name:"MyStruct", goname:"nexus_config.MyStruct")
+}
+
+type Project_Project @nexus(group:"project.tsm-tanzu.vmware.com",version:"v1",kind:"Project",resource:"projects",name:"Project",crdName:"projects.project.tsm-tanzu.vmware.com",singleton:"true"){
+    id: ID
+    config: Config_Config
+    key: String
+    field1: String
+    field2: Int
+}

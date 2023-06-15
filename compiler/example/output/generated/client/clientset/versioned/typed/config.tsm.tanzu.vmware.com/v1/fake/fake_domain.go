@@ -20,7 +20,6 @@ package fake
 
 import (
 	"context"
-
 	configtsmtanzuvmwarecomv1 "github.com/vmware-tanzu/graph-framework-for-microservices/compiler/example/output/generated/apis/config.tsm.tanzu.vmware.com/v1"
 
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -100,7 +99,7 @@ func (c *FakeDomains) Update(ctx context.Context, domain *configtsmtanzuvmwareco
 // Delete takes name of the domain and deletes it. Returns an error if one occurs.
 func (c *FakeDomains) Delete(ctx context.Context, name string, opts v1.DeleteOptions) error {
 	_, err := c.Fake.
-		Invokes(testing.NewRootDeleteAction(domainsResource, name), &configtsmtanzuvmwarecomv1.Domain{})
+		Invokes(testing.NewRootDeleteActionWithOptions(domainsResource, name, opts), &configtsmtanzuvmwarecomv1.Domain{})
 	return err
 }
 

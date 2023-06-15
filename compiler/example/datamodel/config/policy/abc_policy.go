@@ -1,15 +1,5 @@
 package policypkg
 
-import (
-	"github.com/vmware-tanzu/graph-framework-for-microservices/nexus/nexus"
-)
-
-type AdditionalPolicyData struct {
-	nexus.Node
-	Description AdditionalDescription
-	Status      AdditionalStatus `nexus:"status"`
-}
-
 type AdditionalDescription struct {
 	DiscriptionA string
 	DiscriptionB string

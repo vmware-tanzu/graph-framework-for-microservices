@@ -64,7 +64,7 @@ var _ = Describe("Pkg tests", func() {
 
 	It("should get all structs for gns", func() {
 		structs := gnsPkg.GetStructs()
-		Expect(structs).To(HaveLen(19))
+		Expect(structs).To(HaveLen(17))
 	})
 
 	It("should get all types for gns", func() {
@@ -74,7 +74,7 @@ var _ = Describe("Pkg tests", func() {
 
 	It("should get imports for gns", func() {
 		imports := gnsPkg.GetImportStrings()
-		Expect(imports).To(HaveLen(7))
+		Expect(imports).To(HaveLen(6))
 	})
 
 	It("should get all nodes for gns", func() {
@@ -95,14 +95,14 @@ var _ = Describe("Pkg tests", func() {
 
 	It("should get link fields for gns", func() {
 		nodes := gnsPkg.GetNexusNodes()
-		linkFields := parser.GetChildFields(nodes[2])
+		linkFields := parser.GetChildFields(nodes[1])
 		Expect(linkFields).To(HaveLen(5))
 	})
 
 	It("should get spec fields for gns", func() {
 		nodes := gnsPkg.GetNexusNodes()
-		specFields := parser.GetSpecFields(nodes[2])
-		Expect(specFields).To(HaveLen(14))
+		specFields := parser.GetSpecFields(nodes[1])
+		Expect(specFields).To(HaveLen(16))
 	})
 
 	It("should get field name", func() {
@@ -166,14 +166,14 @@ var _ = Describe("Pkg tests", func() {
 
 	It("should check if field is named child", func() {
 		nodes := gnsPkg.GetNexusNodes()
-		childFields := parser.GetChildFields(nodes[2])
+		childFields := parser.GetChildFields(nodes[1])
 		isNamed := parser.IsNamedChildOrLink(childFields[0])
 		Expect(isNamed).To(BeTrue())
 	})
 
 	It("should get field type for MapType", func() {
 		nodes := gnsPkg.GetNexusNodes()
-		childFields := parser.GetChildFields(nodes[2])
+		childFields := parser.GetChildFields(nodes[1])
 		fieldType := parser.GetFieldType(childFields[0])
 		Expect(fieldType).To(Equal("service_group.SvcGroup"))
 	})
@@ -202,5 +202,16 @@ var _ = Describe("Pkg tests", func() {
 		Expect(links).To(BeFalse())
 		jsonStrFields := parser.IsJsonStringField(f)
 		Expect(jsonStrFields).To(BeFalse())
+	})
+
+	It("should get non struct types", func() {
+		nonStructTypes := gnsPkg.GetNonStructTypes()
+		Expect(len(nonStructTypes)).To(Equal(13))
+	})
+
+	It("convert TypeSpec to String", func() {
+		nonStructTypes := gnsPkg.GetNonStructTypes()
+		_, err := gnsPkg.TypeSpecToString(nonStructTypes[0])
+		Expect(err).ToNot(HaveOccurred())
 	})
 })

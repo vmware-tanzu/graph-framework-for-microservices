@@ -7,7 +7,7 @@ metadata:
   name: roots.root.tsm-tanzu.vmware.com
   annotations:
     nexus: |
-      {"is_singleton":false,"nexus-rest-api-gen":{"uris":null}}
+      {"name":"root.Root","children":{"projects.project.tsm-tanzu.vmware.com":{"fieldName":"Project","fieldNameGvk":"projectGvk","goFieldNameGvk":"ProjectGvk","isNamed":false}},"is_singleton":false,"nexus-rest-api-gen":{"uris":null}}
 spec:
   conversion:
     strategy: None

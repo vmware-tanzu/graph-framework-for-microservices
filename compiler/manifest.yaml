@@ -6,4 +6,4 @@ k8s_clients:
     k8s_code_generator_git_tag: v0.16.15
   - name: k8s-1.22
     k8s_version: 1.22 # compatible with client-go >= 1.18
-    k8s_code_generator_git_tag: v0.22.5
+    k8s_code_generator_git_tag: v0.26.3

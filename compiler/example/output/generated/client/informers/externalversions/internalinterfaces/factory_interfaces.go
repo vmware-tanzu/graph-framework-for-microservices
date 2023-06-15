@@ -19,9 +19,8 @@ limitations under the License.
 package internalinterfaces
 
 import (
-	time "time"
-
 	versioned "github.com/vmware-tanzu/graph-framework-for-microservices/compiler/example/output/generated/client/clientset/versioned"
+	time "time"
 
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	runtime "k8s.io/apimachinery/pkg/runtime"

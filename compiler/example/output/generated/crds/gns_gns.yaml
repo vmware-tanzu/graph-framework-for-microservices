@@ -4,7 +4,7 @@ kind: CustomResourceDefinition
 metadata:
   annotations:
     nexus: |
-      {"name":"gns.Gns","hierarchy":["roots.root.tsm.tanzu.vmware.com","configs.config.tsm.tanzu.vmware.com"],"children":{"accesscontrolpolicies.policypkg.tsm.tanzu.vmware.com":{"fieldName":"GnsAccessControlPolicy","fieldNameGvk":"gnsAccessControlPolicyGvk","isNamed":false},"barchilds.gns.tsm.tanzu.vmware.com":{"fieldName":"FooChild","fieldNameGvk":"fooChildGvk","isNamed":false},"foos.gns.tsm.tanzu.vmware.com":{"fieldName":"Foo","fieldNameGvk":"fooGvk","isNamed":false},"ignorechilds.gns.tsm.tanzu.vmware.com":{"fieldName":"IgnoreChild","fieldNameGvk":"ignoreChildGvk","isNamed":false},"svcgroups.servicegroup.tsm.tanzu.vmware.com":{"fieldName":"GnsServiceGroups","fieldNameGvk":"gnsServiceGroupsGvk","isNamed":true}},"links":{"Dns":{"fieldName":"Dns","fieldNameGvk":"dnsGvk","isNamed":false}},"is_singleton":false,"nexus-rest-api-gen":{"uris":[{"uri":"/v1alpha2/global-namespace/{gns.Gns}","query_params":["config.Config"],"methods":{"DELETE":{"200":{"description":"OK"},"404":{"description":"Not Found"},"501":{"description":"Not Implemented"}},"GET":{"200":{"description":"OK"},"404":{"description":"Not Found"},"501":{"description":"Not Implemented"}},"PUT":{"200":{"description":"OK"},"201":{"description":"Created"},"501":{"description":"Not Implemented"}}}},{"uri":"/v1alpha2/global-namespaces","query_params":["config.Config"],"methods":{"LIST":{"200":{"description":"OK"},"404":{"description":"Not Found"},"501":{"description":"Not Implemented"}}}},{"uri":"/test-foo","query_params":["config.Config"],"methods":{"DELETE":{"200":{"description":"ok"},"404":{"description":"Not Found"},"501":{"description":"Not Implemented"}}}},{"uri":"/test-bar","query_params":["config.Config"],"methods":{"PATCH":{"400":{"description":"Bad Request"}}}}]},"description":"this is my awesome node"}
+      {"name":"gns.Gns","hierarchy":["roots.root.tsm.tanzu.vmware.com","configs.config.tsm.tanzu.vmware.com"],"children":{"accesscontrolpolicies.policypkg.tsm.tanzu.vmware.com":{"fieldName":"GnsAccessControlPolicy","fieldNameGvk":"gnsAccessControlPolicyGvk","goFieldNameGvk":"GnsAccessControlPolicyGvk","isNamed":false},"barchilds.gns.tsm.tanzu.vmware.com":{"fieldName":"FooChild","fieldNameGvk":"fooChildGvk","goFieldNameGvk":"FooChildGvk","isNamed":false},"foos.gns.tsm.tanzu.vmware.com":{"fieldName":"Foo","fieldNameGvk":"fooGvk","goFieldNameGvk":"FooGvk","isNamed":false},"ignorechilds.gns.tsm.tanzu.vmware.com":{"fieldName":"IgnoreChild","fieldNameGvk":"ignoreChildGvk","goFieldNameGvk":"IgnoreChildGvk","isNamed":false},"svcgroups.servicegroup.tsm.tanzu.vmware.com":{"fieldName":"GnsServiceGroups","fieldNameGvk":"gnsServiceGroupsGvk","goFieldNameGvk":"GnsServiceGroupsGvk","isNamed":true}},"links":{"Dns":{"fieldName":"Dns","fieldNameGvk":"dnsGvk","goFieldNameGvk":"DnsGvk","isNamed":false}},"is_singleton":false,"nexus-rest-api-gen":{"uris":[{"uri":"/v1alpha2/global-namespace/{gns.Gns}","query_params":["config.Config"],"methods":{"DELETE":{"200":{"description":"OK"},"404":{"description":"Not Found"},"501":{"description":"Not Implemented"}},"GET":{"200":{"description":"OK"},"404":{"description":"Not Found"},"501":{"description":"Not Implemented"}},"PUT":{"200":{"description":"OK"},"201":{"description":"Created"},"501":{"description":"Not Implemented"}}}},{"uri":"/v1alpha2/global-namespaces","query_params":["config.Config"],"methods":{"LIST":{"200":{"description":"OK"},"404":{"description":"Not Found"},"501":{"description":"Not Implemented"}}}},{"uri":"/test-foo","query_params":["config.Config"],"methods":{"DELETE":{"200":{"description":"ok"},"404":{"description":"Not Found"},"501":{"description":"Not Implemented"}}}},{"uri":"/test-bar","query_params":["config.Config"],"methods":{"PATCH":{"400":{"description":"Bad Request"}}}}]},"description":"this is my awesome node"}
   creationTimestamp: null
   name: gnses.gns.tsm.tanzu.vmware.com
 spec:
@@ -38,6 +38,8 @@ spec:
             type: object
           spec:
             properties:
+              Annotations:
+                x-kubernetes-preserve-unknown-fields: true
               description:
                 properties:
                   color:
@@ -261,6 +263,11 @@ spec:
                 items:
                   type: string
                 type: array
+              targetPort:
+                anyOf:
+                - type: integer
+                - type: string
+                x-kubernetes-int-or-string: true
               useSharedGateway:
                 type: boolean
               workloadSpec:
@@ -269,6 +276,7 @@ spec:
             required:
             - domain
             - useSharedGateway
+            - Annotations
             - description
             - meta
             - port
@@ -288,9 +296,15 @@ spec:
                   sourceGeneration:
                     format: int64
                     type: integer
-                required:
-                - sourceGeneration
-                - remoteGeneration
+                  syncerStatus:
+                    properties:
+                      cRGenerationId:
+                        format: int64
+                        type: integer
+                      etcdVersion:
+                        format: int64
+                        type: integer
+                    type: object
                 type: object
               state:
                 properties:

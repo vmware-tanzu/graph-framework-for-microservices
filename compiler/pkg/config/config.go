@@ -2,7 +2,7 @@ package config
 
 import (
 	"fmt"
-	"io/ioutil"
+	"io"
 	"os"
 
 	"github.com/ghodss/yaml"
@@ -22,7 +22,7 @@ func LoadConfig(configFile string) (*Config, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to open config file: %s", err)
 	}
-	configStr, err := ioutil.ReadAll(file)
+	configStr, err := io.ReadAll(file)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read config file: %s", err)
 	}

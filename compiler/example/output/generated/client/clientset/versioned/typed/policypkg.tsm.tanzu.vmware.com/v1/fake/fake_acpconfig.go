@@ -20,7 +20,6 @@ package fake
 
 import (
 	"context"
-
 	policypkgtsmtanzuvmwarecomv1 "github.com/vmware-tanzu/graph-framework-for-microservices/compiler/example/output/generated/apis/policypkg.tsm.tanzu.vmware.com/v1"
 
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -100,7 +99,7 @@ func (c *FakeACPConfigs) Update(ctx context.Context, aCPConfig *policypkgtsmtanz
 // Delete takes name of the aCPConfig and deletes it. Returns an error if one occurs.
 func (c *FakeACPConfigs) Delete(ctx context.Context, name string, opts v1.DeleteOptions) error {
 	_, err := c.Fake.
-		Invokes(testing.NewRootDeleteAction(acpconfigsResource, name), &policypkgtsmtanzuvmwarecomv1.ACPConfig{})
+		Invokes(testing.NewRootDeleteActionWithOptions(acpconfigsResource, name, opts), &policypkgtsmtanzuvmwarecomv1.ACPConfig{})
 	return err
 }
 

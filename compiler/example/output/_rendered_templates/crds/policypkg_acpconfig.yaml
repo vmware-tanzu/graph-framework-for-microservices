@@ -7,7 +7,7 @@ metadata:
   name: acpconfigs.policypkg.tsm.tanzu.vmware.com
   annotations:
     nexus: |
-      {"name":"policypkg.ACPConfig","hierarchy":["roots.root.tsm.tanzu.vmware.com","configs.config.tsm.tanzu.vmware.com","gnses.gns.tsm.tanzu.vmware.com","accesscontrolpolicies.policypkg.tsm.tanzu.vmware.com"],"links":{"DestSvcGroups":{"fieldName":"DestSvcGroups","fieldNameGvk":"destSvcGroupsGvk","isNamed":true},"SourceSvcGroups":{"fieldName":"SourceSvcGroups","fieldNameGvk":"sourceSvcGroupsGvk","isNamed":true}},"is_singleton":false,"nexus-rest-api-gen":{"uris":null}}
+      {"name":"policypkg.ACPConfig","hierarchy":["roots.root.tsm.tanzu.vmware.com","configs.config.tsm.tanzu.vmware.com","gnses.gns.tsm.tanzu.vmware.com","accesscontrolpolicies.policypkg.tsm.tanzu.vmware.com"],"links":{"DestSvcGroups":{"fieldName":"DestSvcGroups","fieldNameGvk":"destSvcGroupsGvk","goFieldNameGvk":"DestSvcGroupsGvk","isNamed":true},"SourceSvcGroups":{"fieldName":"SourceSvcGroups","fieldNameGvk":"sourceSvcGroupsGvk","goFieldNameGvk":"SourceSvcGroupsGvk","isNamed":true}},"is_singleton":false,"nexus-rest-api-gen":{"uris":null}}
 spec:
   conversion:
     strategy: None

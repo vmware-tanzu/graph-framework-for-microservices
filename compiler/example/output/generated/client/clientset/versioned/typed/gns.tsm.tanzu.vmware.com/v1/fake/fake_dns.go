@@ -20,7 +20,6 @@ package fake
 
 import (
 	"context"
-
 	gnstsmtanzuvmwarecomv1 "github.com/vmware-tanzu/graph-framework-for-microservices/compiler/example/output/generated/apis/gns.tsm.tanzu.vmware.com/v1"
 
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -100,7 +99,7 @@ func (c *FakeDnses) Update(ctx context.Context, dns *gnstsmtanzuvmwarecomv1.Dns,
 // Delete takes name of the dns and deletes it. Returns an error if one occurs.
 func (c *FakeDnses) Delete(ctx context.Context, name string, opts v1.DeleteOptions) error {
 	_, err := c.Fake.
-		Invokes(testing.NewRootDeleteAction(dnsesResource, name), &gnstsmtanzuvmwarecomv1.Dns{})
+		Invokes(testing.NewRootDeleteActionWithOptions(dnsesResource, name, opts), &gnstsmtanzuvmwarecomv1.Dns{})
 	return err
 }
 

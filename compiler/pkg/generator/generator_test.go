@@ -2,7 +2,7 @@ package generator_test
 
 import (
 	"go/format"
-	"io/ioutil"
+	"os"
 
 	"github.com/vmware-tanzu/graph-framework-for-microservices/compiler/pkg/util"
 
@@ -52,7 +52,7 @@ var _ = Describe("Template renderers tests", func() {
 		pkg, ok = pkgs["github.com/vmware-tanzu/graph-framework-for-microservices/compiler/example/datamodel/config/gns"]
 		Expect(ok).To(BeTrue())
 		graphqlQueries := parser.ParseGraphqlQuerySpecs(pkgs)
-		graph := parser.ParseDSLNodes(exampleDSLPath, baseGroupName, pkgs, graphqlQueries)
+		graph, _, _ := parser.ParseDSLNodes(exampleDSLPath, baseGroupName, pkgs, graphqlQueries)
 		parentsMap = parser.CreateParentsMap(graph)
 		Expect(parentsMap).To(HaveLen(14))
 
@@ -69,7 +69,7 @@ var _ = Describe("Template renderers tests", func() {
 		formatted, err := format.Source(docBytes.Bytes())
 		Expect(err).NotTo(HaveOccurred())
 
-		expectedDoc, err := ioutil.ReadFile(gnsDocPath)
+		expectedDoc, err := os.ReadFile(gnsDocPath)
 		Expect(err).NotTo(HaveOccurred())
 
 		Expect(string(formatted)).To(Equal(string(expectedDoc)))
@@ -81,7 +81,7 @@ var _ = Describe("Template renderers tests", func() {
 		formatted, err := format.Source(regBytes.Bytes())
 		Expect(err).NotTo(HaveOccurred())
 
-		expectedRegisterGroup, err := ioutil.ReadFile(gnsRegisterGroupPath)
+		expectedRegisterGroup, err := os.ReadFile(gnsRegisterGroupPath)
 		Expect(err).NotTo(HaveOccurred())
 
 		Expect(string(formatted)).To(Equal(string(expectedRegisterGroup)))
@@ -93,7 +93,7 @@ var _ = Describe("Template renderers tests", func() {
 		formatted, err := format.Source(regBytes.Bytes())
 		Expect(err).NotTo(HaveOccurred())
 
-		expectedRegisterCRD, err := ioutil.ReadFile(gnsRegisterCRDPath)
+		expectedRegisterCRD, err := os.ReadFile(gnsRegisterCRDPath)
 		Expect(err).NotTo(HaveOccurred())
 
 		Expect(string(formatted)).To(Equal(string(expectedRegisterCRD)))
@@ -102,9 +102,9 @@ var _ = Describe("Template renderers tests", func() {
 	It("should parse base crd template", func() {
 		files, err := generator.RenderCRDBaseTemplate(baseGroupName, pkg, parentsMap, methods, codes)
 		Expect(err).NotTo(HaveOccurred())
-		Expect(files).To(HaveLen(7))
+		Expect(files).To(HaveLen(5))
 
-		expectedSdk, err := ioutil.ReadFile(gnsCrdBasePath)
+		expectedSdk, err := os.ReadFile(gnsCrdBasePath)
 		Expect(err).NotTo(HaveOccurred())
 
 		Expect("gns_gns.yaml").To(Or(Equal(files[1].Name), Equal(files[2].Name)))
@@ -118,7 +118,7 @@ var _ = Describe("Template renderers tests", func() {
 		formatted, err := format.Source(typesBytes.Bytes())
 		Expect(err).NotTo(HaveOccurred())
 
-		expectedTypes, err := ioutil.ReadFile(gnsTypesPath)
+		expectedTypes, err := os.ReadFile(gnsTypesPath)
 		Expect(err).NotTo(HaveOccurred())
 
 		Expect(string(formatted)).To(Equal(string(expectedTypes)))
@@ -131,7 +131,7 @@ var _ = Describe("Template renderers tests", func() {
 		formatted, err := format.Source(clientsBytes.Bytes())
 		Expect(err).NotTo(HaveOccurred())
 
-		expectedTypes, err := ioutil.ReadFile(exampleCRDClientOutputPath)
+		expectedTypes, err := os.ReadFile(exampleCRDClientOutputPath)
 		Expect(err).NotTo(HaveOccurred())
 
 		Expect(string(formatted)).To(Equal(string(expectedTypes)))
@@ -144,7 +144,7 @@ var _ = Describe("Template renderers tests", func() {
 		formatted, err := format.Source(helperBytes.Bytes())
 		Expect(err).NotTo(HaveOccurred())
 
-		expectedTypes, err := ioutil.ReadFile(exampleCRDHelperOutputPath)
+		expectedTypes, err := os.ReadFile(exampleCRDHelperOutputPath)
 		Expect(err).NotTo(HaveOccurred())
 
 		Expect(string(formatted)).To(Equal(string(expectedTypes)))
@@ -203,10 +203,9 @@ var _ = Describe("Template renderers tests", func() {
 
 		pkgs := parser.ParseDSLPkg(datamodelPath)
 		graphlqQueries := parser.ParseGraphqlQuerySpecs(pkgs)
-		graph := parser.ParseDSLNodes(datamodelPath, groupName, pkgs, graphlqQueries)
+		graph, nonNexusTypes, fileset := parser.ParseDSLNodes(datamodelPath, groupName, pkgs, graphlqQueries)
 		methods, codes := rest.ParseResponses(pkgs)
-		err := generator.RenderCRDTemplate(groupName, crdModulePath, pkgs, graph,
-			outputDir, methods, codes)
+		err := generator.RenderCRDTemplate(groupName, crdModulePath, pkgs, graph, outputDir, methods, codes, nonNexusTypes, fileset, nil)
 		Expect(err).NotTo(HaveOccurred())
 	})
 

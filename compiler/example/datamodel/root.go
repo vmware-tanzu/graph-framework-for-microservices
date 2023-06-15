@@ -34,3 +34,11 @@ var GeneralGraphQLQuerySpec = nexus.GraphQLQuerySpec{
 		},
 	},
 }
+
+var GraphQLIdNameSpec = nexus.GraphQLSpec{
+	IdName: "name",
+}
+
+var GraphQLIdNullable = nexus.GraphQLSpec{
+	IdNullable: false,
+}

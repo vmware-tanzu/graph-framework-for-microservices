@@ -3,7 +3,6 @@ package openapi_generator
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
@@ -183,18 +182,6 @@ func (g *Generator) resolveRefsForPackage(pkg string) error {
 	}
 
 	fmt.Printf("Resolving refs for %v\n", pkg)
-	// We are forcing camelCase in all field names for consistency
-	for property, propSchema := range pkgSchema.schema.Properties {
-		if strings.Contains(property, "_") {
-			pkgSchema.schema.Properties[convertToCamelCase(property)] = propSchema
-			delete(pkgSchema.schema.Properties, property)
-		}
-		toReplace := make([]string, len(pkgSchema.schema.Required))
-		for i, required := range pkgSchema.schema.Required {
-			toReplace[i] = convertToCamelCase(required)
-		}
-		pkgSchema.schema.Required = toReplace
-	}
 
 	g.resolveRefsInProperty(pkgSchema.schema)
 	g.resolveRefsInProperties(pkgSchema.schema)
@@ -227,6 +214,14 @@ func (g *Generator) addKubernetesExtensionsFlags(schema *extensionsv1.JSONSchema
 		t := true
 		schema.XPreserveUnknownFields = &t
 	}
+	// any is an alias for struct{}
+	// - x-kubernetes-preserve-unknown-fields: true
+	if schema.Title == "any" {
+		t := true
+		schema.XPreserveUnknownFields = &t
+		schema.Title = "" // reset Title
+	}
+
 	if len(schema.AnyOf) > 0 {
 		schema.XIntOrString = true
 	}
@@ -345,7 +340,7 @@ func (g *Generator) UpdateYAMLs(yamlsPath string) error {
 			return nil
 		}
 
-		content, err := ioutil.ReadFile(path)
+		content, err := os.ReadFile(path)
 		if err != nil {
 			return fmt.Errorf("reading file %q: %v", path, err)
 		}
@@ -436,15 +431,15 @@ func (g *Generator) createName(group, apiVersion, name string) string {
 	return strings.ToLower(fmt.Sprintf("%s/%s/%s.%s", g.namePrefix, group, apiVersion, name))
 }
 
-func convertToCamelCase(input string) string {
-	if !strings.Contains(input, "_") {
-		return input
-	}
-	parts := strings.Split(input, "_")
-	camelCaseName := parts[0]
-	for _, p := range parts[1:] {
-		camelCaseName += strings.ToUpper(string(p[0]))
-		camelCaseName += p[1:]
-	}
-	return camelCaseName
-}
+//func convertToCamelCase(input string) string {
+//	if !strings.Contains(input, "_") {
+//		return input
+//	}
+//	parts := strings.Split(input, "_")
+//	camelCaseName := parts[0]
+//	for _, p := range parts[1:] {
+//		camelCaseName += strings.ToUpper(string(p[0]))
+//		camelCaseName += p[1:]
+//	}
+//	return camelCaseName
+//}

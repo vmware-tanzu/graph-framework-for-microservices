@@ -23,7 +23,7 @@ var _ = Describe("Node parser tests", func() {
 	)
 
 	BeforeEach(func() {
-		graph = parser.ParseDSLNodes(exampleDSLPath, baseGroupName, nil, nil)
+		graph, _, _ = parser.ParseDSLNodes(exampleDSLPath, baseGroupName, nil, nil)
 		root, ok = graph["roots.root.tsm.tanzu.vmware.com"]
 		Expect(ok).To(BeTrue())
 	})
@@ -126,7 +126,7 @@ var _ = Describe("Node parser tests", func() {
 		pkg, ok := pkgs["github.com/vmware-tanzu/graph-framework-for-microservices/compiler/example/test-utils/nexus-rest-api-gen-wrong-name"]
 		Expect(ok).To(BeTrue())
 		graphqlQueries := parser.ParseGraphqlQuerySpecs(pkgs)
-		graph := parser.ParseDSLNodes("../../example/test-utils/nexus-rest-api-gen-wrong-name", baseGroupName, pkgs, graphqlQueries)
+		graph, _, _ := parser.ParseDSLNodes("../../example/test-utils/nexus-rest-api-gen-wrong-name", baseGroupName, pkgs, graphqlQueries)
 		parentsMap := parser.CreateParentsMap(graph)
 		methods, codes := rest.ParseResponses(pkgs)
 		_, err := generator.RenderCRDBaseTemplate(baseGroupName, pkg, parentsMap, methods, codes)
@@ -147,7 +147,7 @@ var _ = Describe("Node parser tests", func() {
 	})
 
 	It("should be able to get graphql info from a field", func() {
-		graph = parser.ParseDSLNodes(exampleDSLPath, baseGroupName, nil, nil)
+		graph, _, _ = parser.ParseDSLNodes(exampleDSLPath, baseGroupName, nil, nil)
 		config, ok := graph["roots.root.tsm.tanzu.vmware.com"].SingleChildren["Config"]
 		Expect(ok).To(BeTrue())
 

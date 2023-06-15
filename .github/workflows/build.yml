@@ -1,5 +1,8 @@
 name: Build Compiler image
 on:
+  push:
+    branches:
+    - 'main'
   pull_request:
     branches: [ main ]
 jobs:

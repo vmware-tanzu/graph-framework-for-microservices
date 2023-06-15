@@ -3,7 +3,7 @@ package parser
 import (
 	"go/ast"
 	"go/types"
-	"io/ioutil"
+	"os"
 	"path"
 	"regexp"
 
@@ -12,7 +12,7 @@ import (
 )
 
 func GetModulePath(startPath string) string {
-	file, err := ioutil.ReadFile(path.Join(startPath, "go.mod"))
+	file, err := os.ReadFile(path.Join(startPath, "go.mod"))
 	if err != nil {
 		log.Fatalf("failed to get module path %v", err)
 	}

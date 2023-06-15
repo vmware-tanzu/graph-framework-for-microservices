@@ -20,7 +20,6 @@ package externalversions
 
 import (
 	"fmt"
-
 	v1 "github.com/vmware-tanzu/graph-framework-for-microservices/compiler/example/output/generated/apis/config.tsm.tanzu.vmware.com/v1"
 	gnstsmtanzuvmwarecomv1 "github.com/vmware-tanzu/graph-framework-for-microservices/compiler/example/output/generated/apis/gns.tsm.tanzu.vmware.com/v1"
 	policypkgtsmtanzuvmwarecomv1 "github.com/vmware-tanzu/graph-framework-for-microservices/compiler/example/output/generated/apis/policypkg.tsm.tanzu.vmware.com/v1"
@@ -66,8 +65,6 @@ func (f *sharedInformerFactory) ForResource(resource schema.GroupVersionResource
 		return &genericInformer{resource: resource.GroupResource(), informer: f.ConfigTsm().V1().FooTypeABCs().Informer()}, nil
 
 		// Group=gns.tsm.tanzu.vmware.com, Version=v1
-	case gnstsmtanzuvmwarecomv1.SchemeGroupVersion.WithResource("additionalgnsdatas"):
-		return &genericInformer{resource: resource.GroupResource(), informer: f.GnsTsm().V1().AdditionalGnsDatas().Informer()}, nil
 	case gnstsmtanzuvmwarecomv1.SchemeGroupVersion.WithResource("barchilds"):
 		return &genericInformer{resource: resource.GroupResource(), informer: f.GnsTsm().V1().BarChilds().Informer()}, nil
 	case gnstsmtanzuvmwarecomv1.SchemeGroupVersion.WithResource("dnses"):
@@ -78,18 +75,12 @@ func (f *sharedInformerFactory) ForResource(resource schema.GroupVersionResource
 		return &genericInformer{resource: resource.GroupResource(), informer: f.GnsTsm().V1().Gnses().Informer()}, nil
 	case gnstsmtanzuvmwarecomv1.SchemeGroupVersion.WithResource("ignorechilds"):
 		return &genericInformer{resource: resource.GroupResource(), informer: f.GnsTsm().V1().IgnoreChilds().Informer()}, nil
-	case gnstsmtanzuvmwarecomv1.SchemeGroupVersion.WithResource("randomgnsdatas"):
-		return &genericInformer{resource: resource.GroupResource(), informer: f.GnsTsm().V1().RandomGnsDatas().Informer()}, nil
 
 		// Group=policypkg.tsm.tanzu.vmware.com, Version=v1
 	case policypkgtsmtanzuvmwarecomv1.SchemeGroupVersion.WithResource("acpconfigs"):
 		return &genericInformer{resource: resource.GroupResource(), informer: f.PolicypkgTsm().V1().ACPConfigs().Informer()}, nil
 	case policypkgtsmtanzuvmwarecomv1.SchemeGroupVersion.WithResource("accesscontrolpolicies"):
 		return &genericInformer{resource: resource.GroupResource(), informer: f.PolicypkgTsm().V1().AccessControlPolicies().Informer()}, nil
-	case policypkgtsmtanzuvmwarecomv1.SchemeGroupVersion.WithResource("additionalpolicydatas"):
-		return &genericInformer{resource: resource.GroupResource(), informer: f.PolicypkgTsm().V1().AdditionalPolicyDatas().Informer()}, nil
-	case policypkgtsmtanzuvmwarecomv1.SchemeGroupVersion.WithResource("randompolicydatas"):
-		return &genericInformer{resource: resource.GroupResource(), informer: f.PolicypkgTsm().V1().RandomPolicyDatas().Informer()}, nil
 	case policypkgtsmtanzuvmwarecomv1.SchemeGroupVersion.WithResource("vmpolicies"):
 		return &genericInformer{resource: resource.GroupResource(), informer: f.PolicypkgTsm().V1().VMpolicies().Informer()}, nil
 

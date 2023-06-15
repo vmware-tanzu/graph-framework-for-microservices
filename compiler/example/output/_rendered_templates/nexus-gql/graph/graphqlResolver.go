@@ -27,6 +27,16 @@ func getParentName(parentLabels map[string]interface{}, key string) string {
 	return ""
 }
 
+type NodeMetricTypeEnum string
+type ServiceMetricTypeEnum string
+type ServiceGroupByEnum string
+type HTTPMethodEnum string
+type EventSeverityEnum string
+type AnalyticsMetricEnum string
+type AnalyticsSubMetricEnum string
+type TrafficDirectionEnum string
+type SloDetailsEnum string
+
 //////////////////////////////////////
 // Nexus K8sAPIEndpointConfig
 //////////////////////////////////////
@@ -82,7 +92,7 @@ parentLabels := map[string]interface{}{"roots.root.tsm.tanzu.vmware.com":dn}
 	return ret, nil
 }
 // Custom query
-func getConfigConfigQueryExampleResolver(obj *model.ConfigConfig,  StartTime *string,  EndTime *string,  Interval *string,  IsServiceDeployment *bool,  StartVal *int, ) (*model.NexusGraphqlResponse, error) {
+func getConfigConfigQueryExampleResolver(obj *model.ConfigConfig,  StartTime *string, EndTime *string, Interval *string, IsServiceDeployment *bool, StartVal *int,) (*model.NexusGraphqlResponse, error) {
 	parentLabels := make(map[string]string)
 	if obj != nil {
 		for k, v := range obj.ParentLabels {
@@ -111,7 +121,7 @@ func getConfigConfigQueryExampleResolver(obj *model.ConfigConfig,  StartTime *st
 	return resp.(*model.NexusGraphqlResponse), nil
 }
 // Custom query
-func getGnsGnsqueryGns1Resolver(obj *model.GnsGns,  StartTime *string,  EndTime *string,  Interval *string,  IsServiceDeployment *bool,  StartVal *int, ) (*model.NexusGraphqlResponse, error) {
+func getGnsGnsqueryGns1Resolver(obj *model.GnsGns,  StartTime *string, EndTime *string, Interval *string, IsServiceDeployment *bool, StartVal *int,) (*model.NexusGraphqlResponse, error) {
 	parentLabels := make(map[string]string)
 	if obj != nil {
 		for k, v := range obj.ParentLabels {
@@ -163,7 +173,7 @@ func getGnsGnsqueryGnsQM1Resolver(obj *model.GnsGns, ) (*model.TimeSeriesData, e
 	return resp.(*model.TimeSeriesData), nil
 }
 // Custom query
-func getGnsGnsqueryGnsQMResolver(obj *model.GnsGns,  StartTime *string,  EndTime *string,  TimeInterval *string,  SomeUserArg1 *string,  SomeUserArg2 *int,  SomeUserArg3 *bool, ) (*model.TimeSeriesData, error) {
+func getGnsGnsqueryGnsQMResolver(obj *model.GnsGns,  StartTime *string, EndTime *string, TimeInterval *string, SomeUserArg1 *string, SomeUserArg2 *int, SomeUserArg3 *bool,) (*model.TimeSeriesData, error) {
 	parentLabels := make(map[string]string)
 	if obj != nil {
 		for k, v := range obj.ParentLabels {
@@ -192,7 +202,7 @@ func getGnsGnsqueryGnsQMResolver(obj *model.GnsGns,  StartTime *string,  EndTime
 	return resp.(*model.TimeSeriesData), nil
 }
 // Custom query
-func getPolicypkgVMpolicyqueryGns1Resolver(obj *model.PolicypkgVMpolicy,  StartTime *string,  EndTime *string,  Interval *string,  IsServiceDeployment *bool,  StartVal *int, ) (*model.NexusGraphqlResponse, error) {
+func getPolicypkgVMpolicyqueryGns1Resolver(obj *model.PolicypkgVMpolicy,  StartTime *string, EndTime *string, Interval *string, IsServiceDeployment *bool, StartVal *int,) (*model.NexusGraphqlResponse, error) {
 	parentLabels := make(map[string]string)
 	if obj != nil {
 		for k, v := range obj.ParentLabels {
@@ -244,7 +254,7 @@ func getPolicypkgVMpolicyqueryGnsQM1Resolver(obj *model.PolicypkgVMpolicy, ) (*m
 	return resp.(*model.TimeSeriesData), nil
 }
 // Custom query
-func getPolicypkgVMpolicyqueryGnsQMResolver(obj *model.PolicypkgVMpolicy,  StartTime *string,  EndTime *string,  TimeInterval *string,  SomeUserArg1 *string,  SomeUserArg2 *int,  SomeUserArg3 *bool, ) (*model.TimeSeriesData, error) {
+func getPolicypkgVMpolicyqueryGnsQMResolver(obj *model.PolicypkgVMpolicy,  StartTime *string, EndTime *string, TimeInterval *string, SomeUserArg1 *string, SomeUserArg2 *int, SomeUserArg3 *bool,) (*model.TimeSeriesData, error) {
 	parentLabels := make(map[string]string)
 	if obj != nil {
 		for k, v := range obj.ParentLabels {
@@ -393,6 +403,10 @@ func getConfigConfigGNSResolver(obj *model.ConfigConfig, id *string) (*model.Gns
 parentLabels := map[string]interface{}{"gnses.gns.tsm.tanzu.vmware.com":dn}
 vDomain := string(vGns.Spec.Domain)
 vUseSharedGateway := bool(vGns.Spec.UseSharedGateway)
+Annotations, _ := json.Marshal(vGns.Spec.Annotations)
+AnnotationsData := string(Annotations)
+TargetPort, _ := json.Marshal(vGns.Spec.TargetPort)
+TargetPortData := string(TargetPort)
 Description, _ := json.Marshal(vGns.Spec.Description)
 DescriptionData := string(Description)
 vMeta := string(vGns.Spec.Meta)
@@ -423,6 +437,8 @@ ServiceSegmentRefMapData := string(ServiceSegmentRefMap)
 	ParentLabels: parentLabels,
 	Domain: &vDomain,
 	UseSharedGateway: &vUseSharedGateway,
+	Annotations: &AnnotationsData,
+	TargetPort: &TargetPortData,
 	Description: &DescriptionData,
 	Meta: &vMeta,
 	OtherDescription: &OtherDescriptionData,
@@ -454,6 +470,10 @@ ServiceSegmentRefMapData := string(ServiceSegmentRefMap)
 parentLabels := map[string]interface{}{"gnses.gns.tsm.tanzu.vmware.com":dn}
 vDomain := string(vGns.Spec.Domain)
 vUseSharedGateway := bool(vGns.Spec.UseSharedGateway)
+Annotations, _ := json.Marshal(vGns.Spec.Annotations)
+AnnotationsData := string(Annotations)
+TargetPort, _ := json.Marshal(vGns.Spec.TargetPort)
+TargetPortData := string(TargetPort)
 Description, _ := json.Marshal(vGns.Spec.Description)
 DescriptionData := string(Description)
 vMeta := string(vGns.Spec.Meta)
@@ -484,6 +504,8 @@ ServiceSegmentRefMapData := string(ServiceSegmentRefMap)
 	ParentLabels: parentLabels,
 	Domain: &vDomain,
 	UseSharedGateway: &vUseSharedGateway,
+	Annotations: &AnnotationsData,
+	TargetPort: &TargetPortData,
 	Description: &DescriptionData,
 	Meta: &vMeta,
 	OtherDescription: &OtherDescriptionData,

@@ -37,14 +37,6 @@ func (c *FakePolicypkgTsmV1) AccessControlPolicies() v1.AccessControlPolicyInter
 	return &FakeAccessControlPolicies{c}
 }
 
-func (c *FakePolicypkgTsmV1) AdditionalPolicyDatas() v1.AdditionalPolicyDataInterface {
-	return &FakeAdditionalPolicyDatas{c}
-}
-
-func (c *FakePolicypkgTsmV1) RandomPolicyDatas() v1.RandomPolicyDataInterface {
-	return &FakeRandomPolicyDatas{c}
-}
-
 func (c *FakePolicypkgTsmV1) VMpolicies() v1.VMpolicyInterface {
 	return &FakeVMpolicies{c}
 }

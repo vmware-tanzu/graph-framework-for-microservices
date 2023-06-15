@@ -161,8 +161,6 @@ func resolveNode(baseImportName, informerImportName string, pkg parser.Package, 
 			vars.FieldNameTag = util.GetTag(fieldInfo.fieldName)
 		}
 
-		vars.IsAggregateKind = parser.IsAggregateKind(f)
-
 		clientGroupVars.Fields = append(clientGroupVars.Fields, vars)
 	}
 
@@ -181,6 +179,7 @@ func resolveNode(baseImportName, informerImportName string, pkg parser.Package, 
 		clientGroupVars.Parent.SimpleGroupTypeName = util.GetSimpleGroupTypeName(util.GetPackageNameFromCrdName(parentCrdName))
 		clientGroupVars.Parent.GroupResourceNameTitle = util.GetGroupResourceNameTitle(parentHelper.Name)
 		clientGroupVars.Parent.GvkFieldName = parentHelper.Children[clientGroupVars.CrdName].FieldNameGvk
+		clientGroupVars.Parent.GoGvkFieldName = parentHelper.Children[clientGroupVars.CrdName].GoFieldNameGvk
 		clientGroupVars.Parent.BaseNodeName = parentHelper.Name
 	}
 
@@ -310,6 +309,7 @@ type apiGroupsClientVars struct {
 		HasParent              bool
 		CrdName                string
 		GvkFieldName           string
+		GoGvkFieldName         string
 		GroupTypeName          string
 		SimpleGroupTypeName    string
 		GroupResourceNameTitle string
@@ -332,7 +332,6 @@ type apiGroupsClientVarsLink struct {
 	BaseNodeName           string
 	IsNamed                bool
 	IsSingleton            bool
-	IsAggregateKind        bool
 	GroupTypeName          string
 	SimpleGroupTypeName    string
 	GroupResourceNameTitle string

@@ -28,10 +28,6 @@ type Interface interface {
 	ACPConfigs() ACPConfigInformer
 	// AccessControlPolicies returns a AccessControlPolicyInformer.
 	AccessControlPolicies() AccessControlPolicyInformer
-	// AdditionalPolicyDatas returns a AdditionalPolicyDataInformer.
-	AdditionalPolicyDatas() AdditionalPolicyDataInformer
-	// RandomPolicyDatas returns a RandomPolicyDataInformer.
-	RandomPolicyDatas() RandomPolicyDataInformer
 	// VMpolicies returns a VMpolicyInformer.
 	VMpolicies() VMpolicyInformer
 }
@@ -55,16 +51,6 @@ func (v *version) ACPConfigs() ACPConfigInformer {
 // AccessControlPolicies returns a AccessControlPolicyInformer.
 func (v *version) AccessControlPolicies() AccessControlPolicyInformer {
 	return &accessControlPolicyInformer{factory: v.factory, tweakListOptions: v.tweakListOptions}
-}
-
-// AdditionalPolicyDatas returns a AdditionalPolicyDataInformer.
-func (v *version) AdditionalPolicyDatas() AdditionalPolicyDataInformer {
-	return &additionalPolicyDataInformer{factory: v.factory, tweakListOptions: v.tweakListOptions}
-}
-
-// RandomPolicyDatas returns a RandomPolicyDataInformer.
-func (v *version) RandomPolicyDatas() RandomPolicyDataInformer {
-	return &randomPolicyDataInformer{factory: v.factory, tweakListOptions: v.tweakListOptions}
 }
 
 // VMpolicies returns a VMpolicyInformer.

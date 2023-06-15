@@ -21,6 +21,8 @@ COMPILER_SRC_DIRECTORY=$1
 go mod edit -require github.com/elliotchance/orderedmap@v1.4.0
 go mod edit -require k8s.io/apimachinery@$DEFAULT_CLIENT_VERSION_TAG
 go mod edit -require k8s.io/client-go@$DEFAULT_CLIENT_VERSION_TAG
+go mod edit -require k8s.io/api@$DEFAULT_CLIENT_VERSION_TAG
+go mod edit -require k8s.io/apiextensions-apiserver@$DEFAULT_CLIENT_VERSION_TAG
 
 
 go mod edit -replace k8s.io/api=k8s.io/api@$DEFAULT_CLIENT_VERSION_TAG
@@ -34,8 +36,6 @@ go mod edit -replace github.com/vmware-tanzu/graph-framework-for-microservices/n
 go mod edit -require github.com/cespare/xxhash/v2@v2.1.2
 go mod edit -require github.com/google/gofuzz@v1.1.0
 go mod edit -require github.com/imdario/mergo@v0.3.12
-go mod edit -require k8s.io/apimachinery@v0.25.3
-go mod edit -require k8s.io/client-go@v0.25.3
 go mod edit -require golang.org/x/sys@v0.2.0
 go mod edit -require golang.org/x/time@v0.0.0-20220210224613-90d013bbcef8
 go mod edit -require golang.org/x/term@v0.2.0
@@ -45,4 +45,5 @@ go mod edit -require k8s.io/klog/v2@v2.70.1
 go mod edit -require golang.org/x/net@v0.2.0
 go mod edit -require google.golang.org/grpc@v1.51.0
 go mod edit -require k8s.io/utils@v0.0.0-20221128185143-99ec85e7a448
-
+go mod edit -require sigs.k8s.io/controller-runtime@v0.14.1
+go mod edit -require github.com/cert-manager/cert-manager@v1.11.0
