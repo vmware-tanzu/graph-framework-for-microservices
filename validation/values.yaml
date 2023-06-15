@@ -1,0 +1,2 @@
+global:
+  registry: gcr.io/nsx-sm/nexus

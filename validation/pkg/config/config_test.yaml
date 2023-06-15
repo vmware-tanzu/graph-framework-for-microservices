@@ -1,0 +1,14 @@
+current-context: localapiserver
+apiVersion: v1
+kind: Config
+clusters:
+- cluster:
+    api-version: v1
+    server: http://nexus-proxy-container:80
+    insecure-skip-tls-verify: true
+  name: localapiserver
+contexts:
+- context:
+  cluster: localapiserver
+  name: localapiserver
+    

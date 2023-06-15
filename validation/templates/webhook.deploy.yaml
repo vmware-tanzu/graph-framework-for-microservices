@@ -1,0 +1,87 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: nexus-validation
+  name: nexus-validation
+  namespace: {{ default  .Release.Namespace .Values.global.namespace }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nexus-validation
+  template:
+    metadata:
+      labels:
+        app: nexus-validation
+    spec:
+      {{- if eq .Values.global.tainted true }}
+      {{- template "tolerations" .}}
+      {{- end }}
+      initContainers:
+        - name: check-nexus-proxy-container
+          image: "{{ .Values.global.registry }}/debugtools:latest"
+          imagePullPolicy: IfNotPresent
+          command:
+            - /bin/bash
+            - -c
+            - |
+              #!/bin/bash
+              set -x
+              URL="http://nexus-proxy-container/api/v1/namespaces"
+              max_retries=60
+              counter=0
+              while [[ $counter -lt $max_retries ]]; do
+                    status=$(curl -s -o /dev/null -I -w "%{http_code}" -XGET $URL)
+                    if [ $status == "200" ]; then
+                        echo "$URL is reachable"
+                        exit 0
+                    else
+                        counter=$((counter +1))
+                        sleep 5
+                        if [[ $counter -eq $max_retries ]]; then
+                            exit 1
+                        fi
+                    fi
+              done
+      containers:
+        - image: {{.Values.global.registry}}/nexus-validation:{{.Values.global.validation.tag}}
+          imagePullPolicy: IfNotPresent
+          name: nexus-validation
+          livenessProbe:
+            failureThreshold: 8
+            httpGet:
+              path: /healthz
+              port: 443
+              scheme: HTTPS
+            initialDelaySeconds: 15
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 15
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: 443
+              scheme: HTTPS
+            periodSeconds: 10
+            successThreshold: 3
+            timeoutSeconds: 10
+          {{- template "validation_resources" .}}
+          volumeMounts:
+            - name: tls
+              mountPath: "/etc/nexus-validation/tls"
+              readOnly: true
+            - name: config
+              mountPath: "/etc/kubeconfig"
+              readOnly: true
+      volumes:
+        - name: tls
+          secret:
+            secretName: nexus-validation-tls
+        - name: config
+          configMap:
+            name: validation-webhook-kubeconfig-local
+      {{- if ne .Values.global.imagepullsecret "" }}
+      imagePullSecrets:
+      - name: {{.Values.global.imagepullsecret}}
+      {{end}}
