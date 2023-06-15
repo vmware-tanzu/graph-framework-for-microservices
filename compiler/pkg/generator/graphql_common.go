@@ -425,6 +425,8 @@ func addFieldAnnotations(pkg parser.Package, f *ast.Field, schemaName string, sT
 									nonNexusTypes.ExternalTypes = append(nonNexusTypes.ExternalTypes, aliasType)
 								}
 								schemaName = addJsonencodedAnnotation(f, parser.GRAPHQL_TS_TYPE_ANNOTATION, x, typeName, schemaName, true, imp)
+							} else {
+								schemaName = addJsonencodedAnnotation(f, parser.GRAPHQL_TS_TYPE_ANNOTATION, x, val.Sel.Name, schemaName, true, imp)
 							}
 						}
 					}
