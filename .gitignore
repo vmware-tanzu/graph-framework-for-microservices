@@ -1,9 +1,0 @@
-*.tar
-.vscode
-*/.vscode
-.idea
-nexus-manifests-api-gateway
-nexus-manifests-api-operator
-nexus-manifests-runtime
-nexus-manifests-validation
-graphql.so
