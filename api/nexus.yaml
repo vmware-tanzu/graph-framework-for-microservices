@@ -1,0 +1,2 @@
+groupName: "nexus.vmware.com"
+dockerRepo: gcr.io/nsx-sm/nexus/nexus-api

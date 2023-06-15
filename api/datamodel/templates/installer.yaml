@@ -1,0 +1,75 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: nexus-api-dmi
+  namespace: {{ default .Release.Namespace .Values.global.namespace }}
+  annotations:
+    {{- template "argoJobHook" .}}
+spec:
+  backoffLimit: 10
+  template:
+    metadata:
+      annotations:
+        "sidecar.istio.io/inject": "false"
+    spec:
+      {{- if eq .Values.global.tainted true }}
+      {{- template "tolerations" .}}
+      {{- end }}
+      initContainers:
+        - name: check-nexus-proxy-container
+          image: "{{ .Values.global.registry }}/debugtools:latest"
+          command:
+            - /bin/bash
+            - -c
+            - |
+              #!/bin/bash
+              set -x
+              URL="http://nexus-proxy-container/api/v1/namespaces"
+              max_retries=60
+              counter=0
+              while [[ $counter -lt $max_retries ]]; do
+                    status=$(curl -s -o /dev/null -I -w "%{http_code}" -XGET $URL)
+                    if [ $status == "200" ]; then
+                        echo "$URL is reachable"
+                        exit 0
+                    else
+                        counter=$((counter +1))
+                        sleep 3
+                        if [[ $counter -eq $max_retries ]]; then
+                           exit 1
+                        fi
+                    fi
+              done
+      ##Script is mounted from https://gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/nexus-runtime-manifests/-/blob/master/core/templates/datamodel_installer.yaml configmap present here
+      containers:
+        - command:
+            - /bin/bash
+            - -c
+            - opt/datamodel-installer-job-cm/create_datamodel_cm.sh
+          env:
+            - name: KUBECONFIG
+              value: /etc/config/kubeconfig
+          image: {{.Values.global.registry}}/nexus-api:{{.Values.global.api.tag}}
+          imagePullPolicy: IfNotPresent
+          name: datamodel-installer-job
+          volumeMounts:
+            - mountPath: /opt/datamodel-installer-job-cm/
+              name: dmi-script
+              readOnly: false
+            - mountPath: /etc/config
+              name: dmi-kubeconfig
+              readOnly: false
+      restartPolicy: OnFailure
+      volumes:
+        - configMap:
+            name: dmi-script
+            defaultMode: 0555
+          name: dmi-script
+        - configMap:
+            name: dmi-kubeconfig
+            defaultMode: 0555
+          name: dmi-kubeconfig
+      {{- if ne .Values.global.imagepullsecret "" }}
+      imagePullSecrets:
+      - name: {{.Values.global.imagepullsecret}}
+      {{end}}
