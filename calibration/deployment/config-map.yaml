@@ -1,0 +1,21 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nexus-calib-config
+data:
+  conf.yaml: |
+    server:
+      url: http://nexus-api-gw.nexus
+      #url: http://localhost:45192
+      zipkin: http://zipkin:9411
+      #zipkin: http://localhost:9412
+      tsdb: postgres://postgres:dXmrYXVfwgD2JZvl@tsdb.timescale:5432/testdb
+    tests:
+    - name: write_n_objects 
+      concurrency: 1
+      ops_count: 100
+      sample_rate: 0.5
+      rest:
+      - put_employee
+      graphql:
+      - get_managers

@@ -1,0 +1,25 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: rest-calls
+data:
+  rest_data.yaml: |
+    spec:
+    - name: put_manager
+      method: PUT
+      path: /root/default/leader/default/mgr/m1
+      data: >
+        { "employeeID": 0,"name": "string"}
+    - name: put_employee
+      method: PUT
+      path: /root/default/employee/{{random}}
+      data: >
+        {}
+    - name: put_manager2
+      method: PUT
+      path: /root/default/leader/default/mgr/{{random}}
+      data: >
+        { "employeeID": 0,"name": "string"}
+    - name: get_managers_rest
+      method: GET
+      path: /mgrs
