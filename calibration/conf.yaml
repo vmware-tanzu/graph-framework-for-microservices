@@ -1,0 +1,12 @@
+---
+server:
+  #url: http://nexus-api-gw.nexus
+  url: http://localhost:45192
+  #zipkin: http://zipkin:9411
+  zipkin: http://localhost:9412
+tests:
+- name: write_n_objects 
+  concurrency: 1
+  ops_count: 100
+  rest:
+  - put_manager2

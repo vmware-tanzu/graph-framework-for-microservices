@@ -1,0 +1,23 @@
+spec:
+- name: put_manager
+  method: PUT
+  path: /root/default/leader/default/mgr/m1
+  data: >
+    { "employeeID": 0,"name": "string"}
+- name: put_manager2
+  method: PUT
+  path: /root/default/leader/default/mgr/{{random}}
+  data: >
+    { "employeeID": 0,"name": "string"}
+- name: get_managers
+  method: PUT
+  path: /mgrs
+- name: put_employee
+  method: PUT
+  #path: /root/default/employee/{{random}}
+  path: /root/default/employee/test
+  data: >
+    {}
+- name: get_managers
+  method: GET
+  path: /mgrs
