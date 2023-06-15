@@ -86,6 +86,7 @@ type gns_Gns {
     TargetPort: String
     Description: String
     Meta: String
+    IntOrString: String
     Port: Int
     OtherDescription: String
     MapPointer: String

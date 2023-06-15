@@ -86,6 +86,7 @@ type GnsGns struct {
 	TargetPort               *string                       `json:"TargetPort"`
 	Description              *string                       `json:"Description"`
 	Meta                     *string                       `json:"Meta"`
+	IntOrString              *string                       `json:"IntOrString"`
 	Port                     *int                          `json:"Port"`
 	OtherDescription         *string                       `json:"OtherDescription"`
 	MapPointer               *string                       `json:"MapPointer"`

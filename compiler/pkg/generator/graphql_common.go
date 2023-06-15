@@ -401,12 +401,33 @@ func addFieldAnnotations(pkg parser.Package, f *ast.Field, schemaName string, sT
 							typeName := parser.GetFieldAnnotationVal(f, parser.GRAPHQL_TYPE_NAME)
 							externalType := fmt.Sprintf("%s.%s", x, val.Sel.Name)
 							aliasType := fmt.Sprintf("type %s %s", typeName, externalType)
-							if !slices.Contains(nonNexusTypes.ExternalTypes, aliasType) {
+							if nonNexusTypes != nil && !slices.Contains(nonNexusTypes.ExternalTypes, aliasType) {
 								nonNexusTypes.ExternalTypes = append(nonNexusTypes.ExternalTypes, aliasType)
 							}
 							schemaName = addJsonencodedAnnotation(f, parser.GRAPHQL_TS_TYPE_ANNOTATION, x, typeName, schemaName, true, imp)
 						} else {
 							schemaName = addJsonencodedAnnotation(f, parser.GRAPHQL_TS_TYPE_ANNOTATION, x, val.Sel.Name, schemaName, true, imp)
+						}
+					}
+				}
+			} else if arrayExpr, ok := f.Type.(*ast.ArrayType); ok {
+				if val, ok := arrayExpr.Elt.(*ast.SelectorExpr); ok {
+					x := types.ExprString(val.X)
+					if imp, ok := importMap[x]; ok {
+						if strings.HasPrefix(imp, fmt.Sprintf(`"%s`, pkg.ModPath)) {
+							schemaName = addJsonencodedAnnotation(f, parser.GRAPHQL_TS_TYPE_ANNOTATION, x, val.Sel.Name, schemaName, false, imp)
+						} else {
+							if parser.IsFieldAnnotationPresent(f, parser.GRAPHQL_TYPE_NAME) {
+								typeName := parser.GetFieldAnnotationVal(f, parser.GRAPHQL_TYPE_NAME)
+								externalType := fmt.Sprintf("%s.%s", x, val.Sel.Name)
+								aliasType := fmt.Sprintf("type %s []%s", typeName, externalType)
+								if nonNexusTypes != nil && !slices.Contains(nonNexusTypes.ExternalTypes, aliasType) {
+									nonNexusTypes.ExternalTypes = append(nonNexusTypes.ExternalTypes, aliasType)
+								}
+								schemaName = addJsonencodedAnnotation(f, parser.GRAPHQL_TS_TYPE_ANNOTATION, x, typeName, schemaName, true, imp)
+							} else {
+								schemaName = addJsonencodedAnnotation(f, parser.GRAPHQL_TS_TYPE_ANNOTATION, x, val.Sel.Name, schemaName, true, imp)
+							}
 						}
 					}
 				}

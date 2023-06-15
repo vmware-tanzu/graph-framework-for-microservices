@@ -136,6 +136,7 @@ type ComplexityRoot struct {
 		FooChild                 func(childComplexity int) int
 		GnsAccessControlPolicy   func(childComplexity int, id *string) int
 		Id                       func(childComplexity int) int
+		IntOrString              func(childComplexity int) int
 		MapPointer               func(childComplexity int) int
 		Meta                     func(childComplexity int) int
 		OtherDescription         func(childComplexity int) int
@@ -703,6 +704,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Gns_Gns.Id(childComplexity), true
 
+	case "gns_Gns.IntOrString":
+		if e.complexity.Gns_Gns.IntOrString == nil {
+			break
+		}
+
+		return e.complexity.Gns_Gns.IntOrString(childComplexity), true
+
 	case "gns_Gns.MapPointer":
 		if e.complexity.Gns_Gns.MapPointer == nil {
 			break
@@ -1181,6 +1189,7 @@ type gns_Gns {
     TargetPort: String
     Description: String
     Meta: String
+    IntOrString: String
     Port: Int
     OtherDescription: String
     MapPointer: String
@@ -4934,6 +4943,8 @@ func (ec *executionContext) fieldContext_config_Config_GNS(ctx context.Context, 
 				return ec.fieldContext_gns_Gns_Description(ctx, field)
 			case "Meta":
 				return ec.fieldContext_gns_Gns_Meta(ctx, field)
+			case "IntOrString":
+				return ec.fieldContext_gns_Gns_IntOrString(ctx, field)
 			case "Port":
 				return ec.fieldContext_gns_Gns_Port(ctx, field)
 			case "OtherDescription":
@@ -6640,6 +6651,47 @@ func (ec *executionContext) _gns_Gns_Meta(ctx context.Context, field graphql.Col
 }
 
 func (ec *executionContext) fieldContext_gns_Gns_Meta(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "gns_Gns",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _gns_Gns_IntOrString(ctx context.Context, field graphql.CollectedField, obj *model.GnsGns) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_gns_Gns_IntOrString(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.IntOrString, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_gns_Gns_IntOrString(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "gns_Gns",
 		Field:      field,
@@ -9416,6 +9468,10 @@ func (ec *executionContext) _gns_Gns(ctx context.Context, sel ast.SelectionSet, 
 		case "Meta":
 
 			out.Values[i] = ec._gns_Gns_Meta(ctx, field, obj)
+
+		case "IntOrString":
+
+			out.Values[i] = ec._gns_Gns_IntOrString(ctx, field, obj)
 
 		case "Port":
 

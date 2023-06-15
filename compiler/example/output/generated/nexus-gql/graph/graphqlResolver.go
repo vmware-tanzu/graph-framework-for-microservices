@@ -423,6 +423,8 @@ func getConfigConfigGNSResolver(obj *model.ConfigConfig, id *string) (*model.Gns
 		Description, _ := json.Marshal(vGns.Spec.Description)
 		DescriptionData := string(Description)
 		vMeta := string(vGns.Spec.Meta)
+		IntOrString, _ := json.Marshal(vGns.Spec.IntOrString)
+		IntOrStringData := string(IntOrString)
 		OtherDescription, _ := json.Marshal(vGns.Spec.OtherDescription)
 		OtherDescriptionData := string(OtherDescription)
 		MapPointer, _ := json.Marshal(vGns.Spec.MapPointer)
@@ -454,6 +456,7 @@ func getConfigConfigGNSResolver(obj *model.ConfigConfig, id *string) (*model.Gns
 			TargetPort:               &TargetPortData,
 			Description:              &DescriptionData,
 			Meta:                     &vMeta,
+			IntOrString:              &IntOrStringData,
 			OtherDescription:         &OtherDescriptionData,
 			MapPointer:               &MapPointerData,
 			SlicePointer:             &SlicePointerData,
@@ -490,6 +493,8 @@ func getConfigConfigGNSResolver(obj *model.ConfigConfig, id *string) (*model.Gns
 	Description, _ := json.Marshal(vGns.Spec.Description)
 	DescriptionData := string(Description)
 	vMeta := string(vGns.Spec.Meta)
+	IntOrString, _ := json.Marshal(vGns.Spec.IntOrString)
+	IntOrStringData := string(IntOrString)
 	OtherDescription, _ := json.Marshal(vGns.Spec.OtherDescription)
 	OtherDescriptionData := string(OtherDescription)
 	MapPointer, _ := json.Marshal(vGns.Spec.MapPointer)
@@ -521,6 +526,7 @@ func getConfigConfigGNSResolver(obj *model.ConfigConfig, id *string) (*model.Gns
 		TargetPort:               &TargetPortData,
 		Description:              &DescriptionData,
 		Meta:                     &vMeta,
+		IntOrString:              &IntOrStringData,
 		OtherDescription:         &OtherDescriptionData,
 		MapPointer:               &MapPointerData,
 		SlicePointer:             &SlicePointerData,

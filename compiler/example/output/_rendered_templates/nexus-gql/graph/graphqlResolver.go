@@ -410,6 +410,8 @@ TargetPortData := string(TargetPort)
 Description, _ := json.Marshal(vGns.Spec.Description)
 DescriptionData := string(Description)
 vMeta := string(vGns.Spec.Meta)
+IntOrString, _ := json.Marshal(vGns.Spec.IntOrString)
+IntOrStringData := string(IntOrString)
 OtherDescription, _ := json.Marshal(vGns.Spec.OtherDescription)
 OtherDescriptionData := string(OtherDescription)
 MapPointer, _ := json.Marshal(vGns.Spec.MapPointer)
@@ -441,6 +443,7 @@ ServiceSegmentRefMapData := string(ServiceSegmentRefMap)
 	TargetPort: &TargetPortData,
 	Description: &DescriptionData,
 	Meta: &vMeta,
+	IntOrString: &IntOrStringData,
 	OtherDescription: &OtherDescriptionData,
 	MapPointer: &MapPointerData,
 	SlicePointer: &SlicePointerData,
@@ -477,6 +480,8 @@ TargetPortData := string(TargetPort)
 Description, _ := json.Marshal(vGns.Spec.Description)
 DescriptionData := string(Description)
 vMeta := string(vGns.Spec.Meta)
+IntOrString, _ := json.Marshal(vGns.Spec.IntOrString)
+IntOrStringData := string(IntOrString)
 OtherDescription, _ := json.Marshal(vGns.Spec.OtherDescription)
 OtherDescriptionData := string(OtherDescription)
 MapPointer, _ := json.Marshal(vGns.Spec.MapPointer)
@@ -508,6 +513,7 @@ ServiceSegmentRefMapData := string(ServiceSegmentRefMap)
 	TargetPort: &TargetPortData,
 	Description: &DescriptionData,
 	Meta: &vMeta,
+	IntOrString: &IntOrStringData,
 	OtherDescription: &OtherDescriptionData,
 	MapPointer: &MapPointerData,
 	SlicePointer: &SlicePointerData,

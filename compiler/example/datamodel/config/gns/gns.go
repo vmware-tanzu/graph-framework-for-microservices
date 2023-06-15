@@ -183,6 +183,7 @@ type Gns struct {
 	IgnoreChild            IgnoreChild                   `nexus:"child" nexus-graphql:"ignore:true"`
 	Foo                    Foo                           `nexus:"child"`
 	Meta                   string
+	IntOrString            []intstr.IntOrString `nexus-graphql-type-name:"IntOrString" json:"intOrString,omitempty" mapstructure:"intOrString,omitempty"`
 
 	Port             *int         // pointer test
 	OtherDescription *Description // pointer test - struct

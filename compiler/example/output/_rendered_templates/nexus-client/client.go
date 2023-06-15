@@ -6919,6 +6919,27 @@ func (group *GnsTsmV1) UpdateGnsByName(ctx context.Context,
 		patch = append(patch, patchOpMeta)
 	}
 
+	rt = reflect.TypeOf(objToUpdate.Spec.IntOrString)
+	if rt.Kind() == reflect.Slice || rt.Kind() == reflect.Array || rt.Kind() == reflect.Map {
+		if !reflect.ValueOf(objToUpdate.Spec.IntOrString).IsNil() {
+			patchValueIntOrString := objToUpdate.Spec.IntOrString
+			patchOpIntOrString := PatchOp{
+				Op:    "replace",
+				Path:  "/spec/intOrString",
+				Value: patchValueIntOrString,
+			}
+			patch = append(patch, patchOpIntOrString)
+		}
+	} else {
+		patchValueIntOrString := objToUpdate.Spec.IntOrString
+		patchOpIntOrString := PatchOp{
+			Op:    "replace",
+			Path:  "/spec/intOrString",
+			Value: patchValueIntOrString,
+		}
+		patch = append(patch, patchOpIntOrString)
+	}
+
 	rt = reflect.TypeOf(objToUpdate.Spec.Port)
 	if rt.Kind() == reflect.Slice || rt.Kind() == reflect.Array || rt.Kind() == reflect.Map {
 		if !reflect.ValueOf(objToUpdate.Spec.Port).IsNil() {
