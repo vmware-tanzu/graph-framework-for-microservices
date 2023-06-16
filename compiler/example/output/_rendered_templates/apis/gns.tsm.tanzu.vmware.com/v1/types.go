@@ -119,6 +119,7 @@ type GnsSpec struct {
 	TargetPort                intstr.IntOrString           `json:"targetPort,omitempty" mapstructure:"targetPort,omitempty"`
 	Description               Description                  `json:"description" yaml:"description"`
 	Meta                      string                       `json:"meta" yaml:"meta"`
+	IntOrString               []intstr.IntOrString         `nexus-graphql-type-name:"IntOrString" json:"intOrString,omitempty" mapstructure:"intOrString,omitempty"`
 	Port                      *int                         `json:"port" yaml:"port"`
 	OtherDescription          *Description                 `json:"otherDescription" yaml:"otherDescription"`
 	MapPointer                *map[string]string           `json:"mapPointer" yaml:"mapPointer"`
