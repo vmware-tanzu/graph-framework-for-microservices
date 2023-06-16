@@ -232,7 +232,8 @@ test_generate_code_in_container: ${BUILDER_NAME}\:${BUILDER_TAG}.image.exists in
 	CRD_MODULE_PATH="github.com/vmware-tanzu/graph-framework-for-microservices/compiler/example/output/generated/" \
 	LOG_LEVEL=trace \
 	GENERATED_OUTPUT_DIRECTORY=example/output/generated && \
-	cd example/output/generated && go vet -structtag=FALSE ./... && golangci-lint run ./...)
+	cd example/output/generated && [ ! -f model/model.go ] || mv model/model.go model/model.tmp && \
+	go vet -structtag=FALSE ./... && golangci-lint run ./... && [ ! -f model/model.tmp ] || mv model/model.tmp model/model.go)
 	@if [ -n "$$(git ls-files --modified --exclude-standard)" ]; then\
 		echo "The following changes should be committed:";\
 		git status;\

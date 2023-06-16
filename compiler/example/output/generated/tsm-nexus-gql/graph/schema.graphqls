@@ -22,10 +22,10 @@ type Config_Config @nexus(group:"config.tsm.tanzu.vmware.com",version:"v1",kind:
     fooExample(id: ID): [Config_FooTypeABC!]
     svcGrpInfo: Servicegroup_SvcGroupLinkInfo
     myStr0: String
-    myStr1: String
+    myStr1: String @jsonencoded(gofile:"model.go", name:"MyStr", goname:"nexus_gns.MyStr")
     myStr2: String
     xYZPort: String @jsonencoded(gofile:"model.go", name:"Port", goname:"nexus_gns.Port")
-    aBCHost: String
+    aBCHost: String @jsonencoded(gofile:"model.go", name:"Host", goname:"nexus_gns.Host")
     clusterNamespaces: String
     testValMarkers: String @jsonencoded(gofile:"model.go", name:"TestValMarkers", goname:"nexus_config.TestValMarkers")
     instance: Float
@@ -79,6 +79,7 @@ type Gns_Gns @nexus(group:"gns.tsm.tanzu.vmware.com",version:"v1",kind:"Gns",res
     targetPort: String @jsonencoded(gofile:"model.go", name:"IntOrString")
     description: String @jsonencoded(gofile:"model.go", name:"Description", goname:"nexus_gns.Description")
     meta: String
+    intOrString: String @jsonencoded(gofile:"model.go", name:"IntOrString")
     port: Int
     otherDescription: String
     mapPointer: String
