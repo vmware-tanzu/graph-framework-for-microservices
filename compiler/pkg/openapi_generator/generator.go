@@ -183,6 +183,22 @@ func (g *Generator) resolveRefsForPackage(pkg string) error {
 
 	fmt.Printf("Resolving refs for %v\n", pkg)
 
+	for property, propSchema := range pkgSchema.schema.Properties {
+		if propSchema.Ref != nil &&
+			*propSchema.Ref == "github.com/vmware-tanzu/graph-framework-for-microservices/nexus/nexus.nexusgenericobject" {
+			newName := convertToCamelCase(strings.ToLower(property[:1]) + property[1:])
+			pkgSchema.schema.Properties[newName] = propSchema
+			delete(pkgSchema.schema.Properties, property)
+
+			for i, v := range pkgSchema.schema.Required {
+				if v == property {
+					pkgSchema.schema.Required = append(pkgSchema.schema.Required, newName)
+					pkgSchema.schema.Required = append(pkgSchema.schema.Required[:i], pkgSchema.schema.Required[i+1:]...)
+				}
+			}
+		}
+	}
+
 	g.resolveRefsInProperty(pkgSchema.schema)
 	g.resolveRefsInProperties(pkgSchema.schema)
 	g.resolveRefsInAdditionalProperties(pkgSchema.schema)
@@ -431,15 +447,15 @@ func (g *Generator) createName(group, apiVersion, name string) string {
 	return strings.ToLower(fmt.Sprintf("%s/%s/%s.%s", g.namePrefix, group, apiVersion, name))
 }
 
-//func convertToCamelCase(input string) string {
-//	if !strings.Contains(input, "_") {
-//		return input
-//	}
-//	parts := strings.Split(input, "_")
-//	camelCaseName := parts[0]
-//	for _, p := range parts[1:] {
-//		camelCaseName += strings.ToUpper(string(p[0]))
-//		camelCaseName += p[1:]
-//	}
-//	return camelCaseName
-//}
+func convertToCamelCase(input string) string {
+	if !strings.Contains(input, "_") {
+		return input
+	}
+	parts := strings.Split(input, "_")
+	camelCaseName := parts[0]
+	for _, p := range parts[1:] {
+		camelCaseName += strings.ToUpper(string(p[0]))
+		camelCaseName += p[1:]
+	}
+	return camelCaseName
+}

@@ -38,7 +38,7 @@ spec:
             type: object
           spec:
             properties:
-              Annotations:
+              annotations:
                 x-kubernetes-preserve-unknown-fields: true
               description:
                 properties:
@@ -283,7 +283,6 @@ spec:
             required:
             - domain
             - useSharedGateway
-            - Annotations
             - description
             - meta
             - port
@@ -292,6 +291,7 @@ spec:
             - slicePointer
             - workloadSpec
             - differentSpec
+            - annotations
             type: object
           status:
             properties:
