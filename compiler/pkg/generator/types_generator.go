@@ -117,11 +117,15 @@ func (c *{{.Name}}) DisplayName() string {
 
 func getTag(f *ast.Field, name string, omitempty bool) string {
 	n := util.GetTag(name)
-	tag := "json:\"" + n + "\" yaml:\"" + n + "\""
+	omit := ""
 	if omitempty {
-		tag = "json:\"" + n + ",omitempty\" yaml:\"" + n + ",omitempty\""
+		omit = ",omitempty"
 	}
 
+	tagJson := "json:\"" + n + omit + "\""
+	tagYaml := "yaml:\"" + n + omit + "\""
+
+	tag := fmt.Sprintf("%s %s", tagJson, tagYaml)
 	currentTags := parser.GetFieldTags(f)
 	if currentTags != nil && currentTags.Len() > 0 {
 		nexusTag, err := currentTags.Get("nexus")
@@ -129,6 +133,20 @@ func getTag(f *ast.Field, name string, omitempty bool) string {
 			tag += " " + nexusTag.String()
 		} else {
 			tag = currentTags.String()
+			json, jsonPresent := currentTags.Get("json")
+			yaml, yamlPresent := currentTags.Get("yaml")
+			if jsonPresent == nil && yamlPresent != nil {
+				tag += " yaml:\"" + json.Value() + omit + "\""
+			}
+
+			if jsonPresent != nil && yamlPresent == nil {
+				tag += " json:\"" + yaml.Value() + omit + "\""
+			}
+
+			if jsonPresent != nil && yamlPresent != nil {
+				tag += " " + tagJson
+				tag += " " + tagYaml
+			}
 		}
 	}
 
@@ -169,15 +187,18 @@ type {{.Name}}Spec struct {
 				specDef.Fields += comment + "\n"
 			}
 		}
+
 		specDef.Fields += "\t" + name + " "
 		typeString := ConstructType(aliasNameMap, field)
+		tag := getTag(field, name, false)
 		// Type is set to "any" for field with annotation "nexus-graphql-jsonencoded"
 		if parser.IsFieldAnnotationPresent(field, parser.GRAPHQL_JSONENCODED_ANNOTATION) {
 			specDef.Fields += "nexus.NexusGenericObject"
+			tag = getTag(field, name, true)
 		} else {
 			specDef.Fields += typeString
 		}
-		specDef.Fields += " " + getTag(field, name, false) + "\n"
+		specDef.Fields += " " + tag + "\n"
 
 	}
 

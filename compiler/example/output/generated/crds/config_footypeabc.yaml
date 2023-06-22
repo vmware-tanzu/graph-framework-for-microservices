@@ -38,12 +38,6 @@ spec:
             type: object
           spec:
             properties:
-              FooC:
-                format: byte
-                type: integer
-              FooD:
-                format: float
-                type: number
               foo_e:
                 format: byte
                 type: integer
@@ -58,11 +52,17 @@ spec:
                 items:
                   type: string
                 type: array
+              fooC:
+                format: byte
+                type: integer
+              fooD:
+                format: float
+                type: number
             required:
             - fooA
             - fooB
-            - FooC
-            - FooD
+            - fooC
+            - fooD
             - foo_e
             - foo_f
             type: object

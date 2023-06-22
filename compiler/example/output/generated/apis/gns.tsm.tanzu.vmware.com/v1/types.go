@@ -115,21 +115,21 @@ type GnsSpec struct {
 	//nexus-validation: Pattern=abc
 	Domain                    string                       `json:"domain" yaml:"domain"`
 	UseSharedGateway          bool                         `json:"useSharedGateway" yaml:"useSharedGateway"`
-	Annotations               nexus.NexusGenericObject     `nexus-graphql-jsonencoded:""`
-	TargetPort                intstr.IntOrString           `json:"targetPort,omitempty" mapstructure:"targetPort,omitempty"`
+	Annotations               nexus.NexusGenericObject     `nexus-graphql-jsonencoded:"" json:"annotations,omitempty" yaml:"annotations,omitempty"`
+	TargetPort                intstr.IntOrString           `json:"targetPort,omitempty" mapstructure:"targetPort,omitempty" yaml:"targetPort,omitempty"`
 	Description               Description                  `json:"description" yaml:"description"`
 	Meta                      string                       `json:"meta" yaml:"meta"`
-	IntOrString               []intstr.IntOrString         `nexus-graphql-type-name:"IntOrString" json:"intOrString,omitempty" mapstructure:"intOrString,omitempty"`
+	IntOrString               []intstr.IntOrString         `nexus-graphql-type-name:"IntOrString" json:"intOrString,omitempty" mapstructure:"intOrString,omitempty" yaml:"intOrString,omitempty"`
 	Port                      *int                         `json:"port" yaml:"port"`
 	OtherDescription          *Description                 `json:"otherDescription" yaml:"otherDescription"`
 	MapPointer                *map[string]string           `json:"mapPointer" yaml:"mapPointer"`
 	SlicePointer              *[]string                    `json:"slicePointer" yaml:"slicePointer"`
 	WorkloadSpec              cartv1.WorkloadSpec          `json:"workloadSpec" yaml:"workloadSpec"`
 	DifferentSpec             *cartv1.WorkloadSpec         `json:"differentSpec" yaml:"differentSpec"`
-	ServiceSegmentRef         ServiceSegmentRef            `json:"serviceSegmentRef,omitempty"`
-	ServiceSegmentRefPointer  *ServiceSegmentRef           `json:"serviceSegmentRefPointer,omitempty"`
-	ServiceSegmentRefs        []ServiceSegmentRef          `json:"serviceSegmentRefs,omitempty"`
-	ServiceSegmentRefMap      map[string]ServiceSegmentRef `json:"serviceSegmentRefMap,omitempty"`
+	ServiceSegmentRef         ServiceSegmentRef            `json:"serviceSegmentRef,omitempty" yaml:"serviceSegmentRef,omitempty"`
+	ServiceSegmentRefPointer  *ServiceSegmentRef           `json:"serviceSegmentRefPointer,omitempty" yaml:"serviceSegmentRefPointer,omitempty"`
+	ServiceSegmentRefs        []ServiceSegmentRef          `json:"serviceSegmentRefs,omitempty" yaml:"serviceSegmentRefs,omitempty"`
+	ServiceSegmentRefMap      map[string]ServiceSegmentRef `json:"serviceSegmentRefMap,omitempty" yaml:"serviceSegmentRefMap,omitempty"`
 	GnsServiceGroupsGvk       map[string]Child             `json:"gnsServiceGroupsGvk,omitempty" yaml:"gnsServiceGroupsGvk,omitempty" nexus:"children"`
 	GnsAccessControlPolicyGvk *Child                       `json:"gnsAccessControlPolicyGvk,omitempty" yaml:"gnsAccessControlPolicyGvk,omitempty" nexus:"child"`
 	FooChildGvk               *Child                       `json:"fooChildGvk,omitempty" yaml:"fooChildGvk,omitempty" nexus:"child"`
