@@ -301,46 +301,43 @@ func (group *RootTsmV1) GetRootByName(ctx context.Context, hashedName string) (*
 	key := "roots.root.tsm.tanzu.vmware.com"
 	if s, ok := subscriptionMap.Load(key); ok {
 		log.Debugf("[GetRootByName] GetObject: %s from cache", hashedName)
-		item, exists, err := s.(subscription).informer.GetStore().GetByKey(hashedName)
-		if !exists {
-			return nil, err
+		item, exists, _ := s.(subscription).informer.GetStore().GetByKey(hashedName)
+		if exists {
+			log.Debugf("[GetRootByName] Object: %s exists in cache", hashedName)
+			result, _ := item.(*baseroottsmtanzuvmwarecomv1.Root)
+			return &RootRoot{
+				client: group.client,
+				Root:   result,
+			}, nil
 		}
-
-		log.Debugf("[GetRootByName] Object: %s exists in cache", hashedName)
-		result, _ := item.(*baseroottsmtanzuvmwarecomv1.Root)
-		return &RootRoot{
-			client: group.client,
-			Root:   result,
-		}, nil
-	} else {
-		retryCount := 0
-		for {
-			result, err := group.client.baseClient.
-				RootTsmV1().
-				Roots().Get(ctx, hashedName, metav1.GetOptions{})
-			if err != nil {
-				log.Errorf("[GetRootByName] Failed to Get Roots: %+v", err)
-				if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded) {
-					log.Debugf("[Retry count: (%d) obj: %s ] %+v", retryCount, hashedName, err)
-					if retryCount == maxRetryCount {
-						log.Errorf("Max retry exceed on Get Roots: %s", hashedName)
-						return nil, err
-					}
-					retryCount += 1
-					time.Sleep(sleepTime * time.Second)
-				} else if customerrors.Is(err, context.Canceled) {
-					log.Errorf("[GetRootByName]: %+v", err)
-					return nil, context.Canceled
-				} else {
-					log.Errorf("[GetRootByName]: %+v", err)
+	}
+	retryCount := 0
+	for {
+		result, err := group.client.baseClient.
+			RootTsmV1().
+			Roots().Get(ctx, hashedName, metav1.GetOptions{})
+		if err != nil {
+			log.Errorf("[GetRootByName] Failed to Get Roots: %+v", err)
+			if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded) {
+				log.Debugf("[Retry count: (%d) obj: %s ] %+v", retryCount, hashedName, err)
+				if retryCount == maxRetryCount {
+					log.Errorf("Max retry exceed on Get Roots: %s", hashedName)
 					return nil, err
 				}
+				retryCount += 1
+				time.Sleep(sleepTime * time.Second)
+			} else if customerrors.Is(err, context.Canceled) {
+				log.Errorf("[GetRootByName]: %+v", err)
+				return nil, context.Canceled
 			} else {
-				return &RootRoot{
-					client: group.client,
-					Root:   result,
-				}, nil
+				log.Errorf("[GetRootByName]: %+v", err)
+				return nil, err
 			}
+		} else {
+			return &RootRoot{
+				client: group.client,
+				Root:   result,
+			}, nil
 		}
 	}
 }
@@ -1045,46 +1042,43 @@ func (group *ConfigTsmV1) GetConfigByName(ctx context.Context, hashedName string
 	key := "configs.config.tsm.tanzu.vmware.com"
 	if s, ok := subscriptionMap.Load(key); ok {
 		log.Debugf("[GetConfigByName] GetObject: %s from cache", hashedName)
-		item, exists, err := s.(subscription).informer.GetStore().GetByKey(hashedName)
-		if !exists {
-			return nil, err
+		item, exists, _ := s.(subscription).informer.GetStore().GetByKey(hashedName)
+		if exists {
+			log.Debugf("[GetConfigByName] Object: %s exists in cache", hashedName)
+			result, _ := item.(*baseconfigtsmtanzuvmwarecomv1.Config)
+			return &ConfigConfig{
+				client: group.client,
+				Config: result,
+			}, nil
 		}
-
-		log.Debugf("[GetConfigByName] Object: %s exists in cache", hashedName)
-		result, _ := item.(*baseconfigtsmtanzuvmwarecomv1.Config)
-		return &ConfigConfig{
-			client: group.client,
-			Config: result,
-		}, nil
-	} else {
-		retryCount := 0
-		for {
-			result, err := group.client.baseClient.
-				ConfigTsmV1().
-				Configs().Get(ctx, hashedName, metav1.GetOptions{})
-			if err != nil {
-				log.Errorf("[GetConfigByName] Failed to Get Configs: %+v", err)
-				if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded) {
-					log.Debugf("[Retry count: (%d) obj: %s ] %+v", retryCount, hashedName, err)
-					if retryCount == maxRetryCount {
-						log.Errorf("Max retry exceed on Get Configs: %s", hashedName)
-						return nil, err
-					}
-					retryCount += 1
-					time.Sleep(sleepTime * time.Second)
-				} else if customerrors.Is(err, context.Canceled) {
-					log.Errorf("[GetConfigByName]: %+v", err)
-					return nil, context.Canceled
-				} else {
-					log.Errorf("[GetConfigByName]: %+v", err)
+	}
+	retryCount := 0
+	for {
+		result, err := group.client.baseClient.
+			ConfigTsmV1().
+			Configs().Get(ctx, hashedName, metav1.GetOptions{})
+		if err != nil {
+			log.Errorf("[GetConfigByName] Failed to Get Configs: %+v", err)
+			if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded) {
+				log.Debugf("[Retry count: (%d) obj: %s ] %+v", retryCount, hashedName, err)
+				if retryCount == maxRetryCount {
+					log.Errorf("Max retry exceed on Get Configs: %s", hashedName)
 					return nil, err
 				}
+				retryCount += 1
+				time.Sleep(sleepTime * time.Second)
+			} else if customerrors.Is(err, context.Canceled) {
+				log.Errorf("[GetConfigByName]: %+v", err)
+				return nil, context.Canceled
 			} else {
-				return &ConfigConfig{
-					client: group.client,
-					Config: result,
-				}, nil
+				log.Errorf("[GetConfigByName]: %+v", err)
+				return nil, err
 			}
+		} else {
+			return &ConfigConfig{
+				client: group.client,
+				Config: result,
+			}, nil
 		}
 	}
 }
@@ -3007,46 +3001,43 @@ func (group *ConfigTsmV1) GetFooTypeABCByName(ctx context.Context, hashedName st
 	key := "footypeabcs.config.tsm.tanzu.vmware.com"
 	if s, ok := subscriptionMap.Load(key); ok {
 		log.Debugf("[GetFooTypeABCByName] GetObject: %s from cache", hashedName)
-		item, exists, err := s.(subscription).informer.GetStore().GetByKey(hashedName)
-		if !exists {
-			return nil, err
+		item, exists, _ := s.(subscription).informer.GetStore().GetByKey(hashedName)
+		if exists {
+			log.Debugf("[GetFooTypeABCByName] Object: %s exists in cache", hashedName)
+			result, _ := item.(*baseconfigtsmtanzuvmwarecomv1.FooTypeABC)
+			return &ConfigFooTypeABC{
+				client:     group.client,
+				FooTypeABC: result,
+			}, nil
 		}
-
-		log.Debugf("[GetFooTypeABCByName] Object: %s exists in cache", hashedName)
-		result, _ := item.(*baseconfigtsmtanzuvmwarecomv1.FooTypeABC)
-		return &ConfigFooTypeABC{
-			client:     group.client,
-			FooTypeABC: result,
-		}, nil
-	} else {
-		retryCount := 0
-		for {
-			result, err := group.client.baseClient.
-				ConfigTsmV1().
-				FooTypeABCs().Get(ctx, hashedName, metav1.GetOptions{})
-			if err != nil {
-				log.Errorf("[GetFooTypeABCByName] Failed to Get FooTypeABCs: %+v", err)
-				if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded) {
-					log.Debugf("[Retry count: (%d) obj: %s ] %+v", retryCount, hashedName, err)
-					if retryCount == maxRetryCount {
-						log.Errorf("Max retry exceed on Get FooTypeABCs: %s", hashedName)
-						return nil, err
-					}
-					retryCount += 1
-					time.Sleep(sleepTime * time.Second)
-				} else if customerrors.Is(err, context.Canceled) {
-					log.Errorf("[GetFooTypeABCByName]: %+v", err)
-					return nil, context.Canceled
-				} else {
-					log.Errorf("[GetFooTypeABCByName]: %+v", err)
+	}
+	retryCount := 0
+	for {
+		result, err := group.client.baseClient.
+			ConfigTsmV1().
+			FooTypeABCs().Get(ctx, hashedName, metav1.GetOptions{})
+		if err != nil {
+			log.Errorf("[GetFooTypeABCByName] Failed to Get FooTypeABCs: %+v", err)
+			if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded) {
+				log.Debugf("[Retry count: (%d) obj: %s ] %+v", retryCount, hashedName, err)
+				if retryCount == maxRetryCount {
+					log.Errorf("Max retry exceed on Get FooTypeABCs: %s", hashedName)
 					return nil, err
 				}
+				retryCount += 1
+				time.Sleep(sleepTime * time.Second)
+			} else if customerrors.Is(err, context.Canceled) {
+				log.Errorf("[GetFooTypeABCByName]: %+v", err)
+				return nil, context.Canceled
 			} else {
-				return &ConfigFooTypeABC{
-					client:     group.client,
-					FooTypeABC: result,
-				}, nil
+				log.Errorf("[GetFooTypeABCByName]: %+v", err)
+				return nil, err
 			}
+		} else {
+			return &ConfigFooTypeABC{
+				client:     group.client,
+				FooTypeABC: result,
+			}, nil
 		}
 	}
 }
@@ -4115,46 +4106,43 @@ func (group *ConfigTsmV1) GetDomainByName(ctx context.Context, hashedName string
 	key := "domains.config.tsm.tanzu.vmware.com"
 	if s, ok := subscriptionMap.Load(key); ok {
 		log.Debugf("[GetDomainByName] GetObject: %s from cache", hashedName)
-		item, exists, err := s.(subscription).informer.GetStore().GetByKey(hashedName)
-		if !exists {
-			return nil, err
+		item, exists, _ := s.(subscription).informer.GetStore().GetByKey(hashedName)
+		if exists {
+			log.Debugf("[GetDomainByName] Object: %s exists in cache", hashedName)
+			result, _ := item.(*baseconfigtsmtanzuvmwarecomv1.Domain)
+			return &ConfigDomain{
+				client: group.client,
+				Domain: result,
+			}, nil
 		}
-
-		log.Debugf("[GetDomainByName] Object: %s exists in cache", hashedName)
-		result, _ := item.(*baseconfigtsmtanzuvmwarecomv1.Domain)
-		return &ConfigDomain{
-			client: group.client,
-			Domain: result,
-		}, nil
-	} else {
-		retryCount := 0
-		for {
-			result, err := group.client.baseClient.
-				ConfigTsmV1().
-				Domains().Get(ctx, hashedName, metav1.GetOptions{})
-			if err != nil {
-				log.Errorf("[GetDomainByName] Failed to Get Domains: %+v", err)
-				if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded) {
-					log.Debugf("[Retry count: (%d) obj: %s ] %+v", retryCount, hashedName, err)
-					if retryCount == maxRetryCount {
-						log.Errorf("Max retry exceed on Get Domains: %s", hashedName)
-						return nil, err
-					}
-					retryCount += 1
-					time.Sleep(sleepTime * time.Second)
-				} else if customerrors.Is(err, context.Canceled) {
-					log.Errorf("[GetDomainByName]: %+v", err)
-					return nil, context.Canceled
-				} else {
-					log.Errorf("[GetDomainByName]: %+v", err)
+	}
+	retryCount := 0
+	for {
+		result, err := group.client.baseClient.
+			ConfigTsmV1().
+			Domains().Get(ctx, hashedName, metav1.GetOptions{})
+		if err != nil {
+			log.Errorf("[GetDomainByName] Failed to Get Domains: %+v", err)
+			if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded) {
+				log.Debugf("[Retry count: (%d) obj: %s ] %+v", retryCount, hashedName, err)
+				if retryCount == maxRetryCount {
+					log.Errorf("Max retry exceed on Get Domains: %s", hashedName)
 					return nil, err
 				}
+				retryCount += 1
+				time.Sleep(sleepTime * time.Second)
+			} else if customerrors.Is(err, context.Canceled) {
+				log.Errorf("[GetDomainByName]: %+v", err)
+				return nil, context.Canceled
 			} else {
-				return &ConfigDomain{
-					client: group.client,
-					Domain: result,
-				}, nil
+				log.Errorf("[GetDomainByName]: %+v", err)
+				return nil, err
 			}
+		} else {
+			return &ConfigDomain{
+				client: group.client,
+				Domain: result,
+			}, nil
 		}
 	}
 }
@@ -5294,46 +5282,43 @@ func (group *GnsTsmV1) GetFooByName(ctx context.Context, hashedName string) (*Gn
 	key := "foos.gns.tsm.tanzu.vmware.com"
 	if s, ok := subscriptionMap.Load(key); ok {
 		log.Debugf("[GetFooByName] GetObject: %s from cache", hashedName)
-		item, exists, err := s.(subscription).informer.GetStore().GetByKey(hashedName)
-		if !exists {
-			return nil, err
+		item, exists, _ := s.(subscription).informer.GetStore().GetByKey(hashedName)
+		if exists {
+			log.Debugf("[GetFooByName] Object: %s exists in cache", hashedName)
+			result, _ := item.(*basegnstsmtanzuvmwarecomv1.Foo)
+			return &GnsFoo{
+				client: group.client,
+				Foo:    result,
+			}, nil
 		}
-
-		log.Debugf("[GetFooByName] Object: %s exists in cache", hashedName)
-		result, _ := item.(*basegnstsmtanzuvmwarecomv1.Foo)
-		return &GnsFoo{
-			client: group.client,
-			Foo:    result,
-		}, nil
-	} else {
-		retryCount := 0
-		for {
-			result, err := group.client.baseClient.
-				GnsTsmV1().
-				Foos().Get(ctx, hashedName, metav1.GetOptions{})
-			if err != nil {
-				log.Errorf("[GetFooByName] Failed to Get Foos: %+v", err)
-				if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded) {
-					log.Debugf("[Retry count: (%d) obj: %s ] %+v", retryCount, hashedName, err)
-					if retryCount == maxRetryCount {
-						log.Errorf("Max retry exceed on Get Foos: %s", hashedName)
-						return nil, err
-					}
-					retryCount += 1
-					time.Sleep(sleepTime * time.Second)
-				} else if customerrors.Is(err, context.Canceled) {
-					log.Errorf("[GetFooByName]: %+v", err)
-					return nil, context.Canceled
-				} else {
-					log.Errorf("[GetFooByName]: %+v", err)
+	}
+	retryCount := 0
+	for {
+		result, err := group.client.baseClient.
+			GnsTsmV1().
+			Foos().Get(ctx, hashedName, metav1.GetOptions{})
+		if err != nil {
+			log.Errorf("[GetFooByName] Failed to Get Foos: %+v", err)
+			if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded) {
+				log.Debugf("[Retry count: (%d) obj: %s ] %+v", retryCount, hashedName, err)
+				if retryCount == maxRetryCount {
+					log.Errorf("Max retry exceed on Get Foos: %s", hashedName)
 					return nil, err
 				}
+				retryCount += 1
+				time.Sleep(sleepTime * time.Second)
+			} else if customerrors.Is(err, context.Canceled) {
+				log.Errorf("[GetFooByName]: %+v", err)
+				return nil, context.Canceled
 			} else {
-				return &GnsFoo{
-					client: group.client,
-					Foo:    result,
-				}, nil
+				log.Errorf("[GetFooByName]: %+v", err)
+				return nil, err
 			}
+		} else {
+			return &GnsFoo{
+				client: group.client,
+				Foo:    result,
+			}, nil
 		}
 	}
 }
@@ -6305,46 +6290,43 @@ func (group *GnsTsmV1) GetGnsByName(ctx context.Context, hashedName string) (*Gn
 	key := "gnses.gns.tsm.tanzu.vmware.com"
 	if s, ok := subscriptionMap.Load(key); ok {
 		log.Debugf("[GetGnsByName] GetObject: %s from cache", hashedName)
-		item, exists, err := s.(subscription).informer.GetStore().GetByKey(hashedName)
-		if !exists {
-			return nil, err
+		item, exists, _ := s.(subscription).informer.GetStore().GetByKey(hashedName)
+		if exists {
+			log.Debugf("[GetGnsByName] Object: %s exists in cache", hashedName)
+			result, _ := item.(*basegnstsmtanzuvmwarecomv1.Gns)
+			return &GnsGns{
+				client: group.client,
+				Gns:    result,
+			}, nil
 		}
-
-		log.Debugf("[GetGnsByName] Object: %s exists in cache", hashedName)
-		result, _ := item.(*basegnstsmtanzuvmwarecomv1.Gns)
-		return &GnsGns{
-			client: group.client,
-			Gns:    result,
-		}, nil
-	} else {
-		retryCount := 0
-		for {
-			result, err := group.client.baseClient.
-				GnsTsmV1().
-				Gnses().Get(ctx, hashedName, metav1.GetOptions{})
-			if err != nil {
-				log.Errorf("[GetGnsByName] Failed to Get Gnses: %+v", err)
-				if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded) {
-					log.Debugf("[Retry count: (%d) obj: %s ] %+v", retryCount, hashedName, err)
-					if retryCount == maxRetryCount {
-						log.Errorf("Max retry exceed on Get Gnses: %s", hashedName)
-						return nil, err
-					}
-					retryCount += 1
-					time.Sleep(sleepTime * time.Second)
-				} else if customerrors.Is(err, context.Canceled) {
-					log.Errorf("[GetGnsByName]: %+v", err)
-					return nil, context.Canceled
-				} else {
-					log.Errorf("[GetGnsByName]: %+v", err)
+	}
+	retryCount := 0
+	for {
+		result, err := group.client.baseClient.
+			GnsTsmV1().
+			Gnses().Get(ctx, hashedName, metav1.GetOptions{})
+		if err != nil {
+			log.Errorf("[GetGnsByName] Failed to Get Gnses: %+v", err)
+			if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded) {
+				log.Debugf("[Retry count: (%d) obj: %s ] %+v", retryCount, hashedName, err)
+				if retryCount == maxRetryCount {
+					log.Errorf("Max retry exceed on Get Gnses: %s", hashedName)
 					return nil, err
 				}
+				retryCount += 1
+				time.Sleep(sleepTime * time.Second)
+			} else if customerrors.Is(err, context.Canceled) {
+				log.Errorf("[GetGnsByName]: %+v", err)
+				return nil, context.Canceled
 			} else {
-				return &GnsGns{
-					client: group.client,
-					Gns:    result,
-				}, nil
+				log.Errorf("[GetGnsByName]: %+v", err)
+				return nil, err
 			}
+		} else {
+			return &GnsGns{
+				client: group.client,
+				Gns:    result,
+			}, nil
 		}
 	}
 }
@@ -8416,46 +8398,43 @@ func (group *GnsTsmV1) GetBarChildByName(ctx context.Context, hashedName string)
 	key := "barchilds.gns.tsm.tanzu.vmware.com"
 	if s, ok := subscriptionMap.Load(key); ok {
 		log.Debugf("[GetBarChildByName] GetObject: %s from cache", hashedName)
-		item, exists, err := s.(subscription).informer.GetStore().GetByKey(hashedName)
-		if !exists {
-			return nil, err
+		item, exists, _ := s.(subscription).informer.GetStore().GetByKey(hashedName)
+		if exists {
+			log.Debugf("[GetBarChildByName] Object: %s exists in cache", hashedName)
+			result, _ := item.(*basegnstsmtanzuvmwarecomv1.BarChild)
+			return &GnsBarChild{
+				client:   group.client,
+				BarChild: result,
+			}, nil
 		}
-
-		log.Debugf("[GetBarChildByName] Object: %s exists in cache", hashedName)
-		result, _ := item.(*basegnstsmtanzuvmwarecomv1.BarChild)
-		return &GnsBarChild{
-			client:   group.client,
-			BarChild: result,
-		}, nil
-	} else {
-		retryCount := 0
-		for {
-			result, err := group.client.baseClient.
-				GnsTsmV1().
-				BarChilds().Get(ctx, hashedName, metav1.GetOptions{})
-			if err != nil {
-				log.Errorf("[GetBarChildByName] Failed to Get BarChilds: %+v", err)
-				if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded) {
-					log.Debugf("[Retry count: (%d) obj: %s ] %+v", retryCount, hashedName, err)
-					if retryCount == maxRetryCount {
-						log.Errorf("Max retry exceed on Get BarChilds: %s", hashedName)
-						return nil, err
-					}
-					retryCount += 1
-					time.Sleep(sleepTime * time.Second)
-				} else if customerrors.Is(err, context.Canceled) {
-					log.Errorf("[GetBarChildByName]: %+v", err)
-					return nil, context.Canceled
-				} else {
-					log.Errorf("[GetBarChildByName]: %+v", err)
+	}
+	retryCount := 0
+	for {
+		result, err := group.client.baseClient.
+			GnsTsmV1().
+			BarChilds().Get(ctx, hashedName, metav1.GetOptions{})
+		if err != nil {
+			log.Errorf("[GetBarChildByName] Failed to Get BarChilds: %+v", err)
+			if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded) {
+				log.Debugf("[Retry count: (%d) obj: %s ] %+v", retryCount, hashedName, err)
+				if retryCount == maxRetryCount {
+					log.Errorf("Max retry exceed on Get BarChilds: %s", hashedName)
 					return nil, err
 				}
+				retryCount += 1
+				time.Sleep(sleepTime * time.Second)
+			} else if customerrors.Is(err, context.Canceled) {
+				log.Errorf("[GetBarChildByName]: %+v", err)
+				return nil, context.Canceled
 			} else {
-				return &GnsBarChild{
-					client:   group.client,
-					BarChild: result,
-				}, nil
+				log.Errorf("[GetBarChildByName]: %+v", err)
+				return nil, err
 			}
+		} else {
+			return &GnsBarChild{
+				client:   group.client,
+				BarChild: result,
+			}, nil
 		}
 	}
 }
@@ -9436,46 +9415,43 @@ func (group *GnsTsmV1) GetIgnoreChildByName(ctx context.Context, hashedName stri
 	key := "ignorechilds.gns.tsm.tanzu.vmware.com"
 	if s, ok := subscriptionMap.Load(key); ok {
 		log.Debugf("[GetIgnoreChildByName] GetObject: %s from cache", hashedName)
-		item, exists, err := s.(subscription).informer.GetStore().GetByKey(hashedName)
-		if !exists {
-			return nil, err
+		item, exists, _ := s.(subscription).informer.GetStore().GetByKey(hashedName)
+		if exists {
+			log.Debugf("[GetIgnoreChildByName] Object: %s exists in cache", hashedName)
+			result, _ := item.(*basegnstsmtanzuvmwarecomv1.IgnoreChild)
+			return &GnsIgnoreChild{
+				client:      group.client,
+				IgnoreChild: result,
+			}, nil
 		}
-
-		log.Debugf("[GetIgnoreChildByName] Object: %s exists in cache", hashedName)
-		result, _ := item.(*basegnstsmtanzuvmwarecomv1.IgnoreChild)
-		return &GnsIgnoreChild{
-			client:      group.client,
-			IgnoreChild: result,
-		}, nil
-	} else {
-		retryCount := 0
-		for {
-			result, err := group.client.baseClient.
-				GnsTsmV1().
-				IgnoreChilds().Get(ctx, hashedName, metav1.GetOptions{})
-			if err != nil {
-				log.Errorf("[GetIgnoreChildByName] Failed to Get IgnoreChilds: %+v", err)
-				if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded) {
-					log.Debugf("[Retry count: (%d) obj: %s ] %+v", retryCount, hashedName, err)
-					if retryCount == maxRetryCount {
-						log.Errorf("Max retry exceed on Get IgnoreChilds: %s", hashedName)
-						return nil, err
-					}
-					retryCount += 1
-					time.Sleep(sleepTime * time.Second)
-				} else if customerrors.Is(err, context.Canceled) {
-					log.Errorf("[GetIgnoreChildByName]: %+v", err)
-					return nil, context.Canceled
-				} else {
-					log.Errorf("[GetIgnoreChildByName]: %+v", err)
+	}
+	retryCount := 0
+	for {
+		result, err := group.client.baseClient.
+			GnsTsmV1().
+			IgnoreChilds().Get(ctx, hashedName, metav1.GetOptions{})
+		if err != nil {
+			log.Errorf("[GetIgnoreChildByName] Failed to Get IgnoreChilds: %+v", err)
+			if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded) {
+				log.Debugf("[Retry count: (%d) obj: %s ] %+v", retryCount, hashedName, err)
+				if retryCount == maxRetryCount {
+					log.Errorf("Max retry exceed on Get IgnoreChilds: %s", hashedName)
 					return nil, err
 				}
+				retryCount += 1
+				time.Sleep(sleepTime * time.Second)
+			} else if customerrors.Is(err, context.Canceled) {
+				log.Errorf("[GetIgnoreChildByName]: %+v", err)
+				return nil, context.Canceled
 			} else {
-				return &GnsIgnoreChild{
-					client:      group.client,
-					IgnoreChild: result,
-				}, nil
+				log.Errorf("[GetIgnoreChildByName]: %+v", err)
+				return nil, err
 			}
+		} else {
+			return &GnsIgnoreChild{
+				client:      group.client,
+				IgnoreChild: result,
+			}, nil
 		}
 	}
 }
@@ -10447,46 +10423,43 @@ func (group *GnsTsmV1) GetDnsByName(ctx context.Context, hashedName string) (*Gn
 	key := "dnses.gns.tsm.tanzu.vmware.com"
 	if s, ok := subscriptionMap.Load(key); ok {
 		log.Debugf("[GetDnsByName] GetObject: %s from cache", hashedName)
-		item, exists, err := s.(subscription).informer.GetStore().GetByKey(hashedName)
-		if !exists {
-			return nil, err
+		item, exists, _ := s.(subscription).informer.GetStore().GetByKey(hashedName)
+		if exists {
+			log.Debugf("[GetDnsByName] Object: %s exists in cache", hashedName)
+			result, _ := item.(*basegnstsmtanzuvmwarecomv1.Dns)
+			return &GnsDns{
+				client: group.client,
+				Dns:    result,
+			}, nil
 		}
-
-		log.Debugf("[GetDnsByName] Object: %s exists in cache", hashedName)
-		result, _ := item.(*basegnstsmtanzuvmwarecomv1.Dns)
-		return &GnsDns{
-			client: group.client,
-			Dns:    result,
-		}, nil
-	} else {
-		retryCount := 0
-		for {
-			result, err := group.client.baseClient.
-				GnsTsmV1().
-				Dnses().Get(ctx, hashedName, metav1.GetOptions{})
-			if err != nil {
-				log.Errorf("[GetDnsByName] Failed to Get Dnses: %+v", err)
-				if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded) {
-					log.Debugf("[Retry count: (%d) obj: %s ] %+v", retryCount, hashedName, err)
-					if retryCount == maxRetryCount {
-						log.Errorf("Max retry exceed on Get Dnses: %s", hashedName)
-						return nil, err
-					}
-					retryCount += 1
-					time.Sleep(sleepTime * time.Second)
-				} else if customerrors.Is(err, context.Canceled) {
-					log.Errorf("[GetDnsByName]: %+v", err)
-					return nil, context.Canceled
-				} else {
-					log.Errorf("[GetDnsByName]: %+v", err)
+	}
+	retryCount := 0
+	for {
+		result, err := group.client.baseClient.
+			GnsTsmV1().
+			Dnses().Get(ctx, hashedName, metav1.GetOptions{})
+		if err != nil {
+			log.Errorf("[GetDnsByName] Failed to Get Dnses: %+v", err)
+			if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded) {
+				log.Debugf("[Retry count: (%d) obj: %s ] %+v", retryCount, hashedName, err)
+				if retryCount == maxRetryCount {
+					log.Errorf("Max retry exceed on Get Dnses: %s", hashedName)
 					return nil, err
 				}
+				retryCount += 1
+				time.Sleep(sleepTime * time.Second)
+			} else if customerrors.Is(err, context.Canceled) {
+				log.Errorf("[GetDnsByName]: %+v", err)
+				return nil, context.Canceled
 			} else {
-				return &GnsDns{
-					client: group.client,
-					Dns:    result,
-				}, nil
+				log.Errorf("[GetDnsByName]: %+v", err)
+				return nil, err
 			}
+		} else {
+			return &GnsDns{
+				client: group.client,
+				Dns:    result,
+			}, nil
 		}
 	}
 }
@@ -11444,46 +11417,43 @@ func (group *ServicegroupTsmV1) GetSvcGroupByName(ctx context.Context, hashedNam
 	key := "svcgroups.servicegroup.tsm.tanzu.vmware.com"
 	if s, ok := subscriptionMap.Load(key); ok {
 		log.Debugf("[GetSvcGroupByName] GetObject: %s from cache", hashedName)
-		item, exists, err := s.(subscription).informer.GetStore().GetByKey(hashedName)
-		if !exists {
-			return nil, err
+		item, exists, _ := s.(subscription).informer.GetStore().GetByKey(hashedName)
+		if exists {
+			log.Debugf("[GetSvcGroupByName] Object: %s exists in cache", hashedName)
+			result, _ := item.(*baseservicegrouptsmtanzuvmwarecomv1.SvcGroup)
+			return &ServicegroupSvcGroup{
+				client:   group.client,
+				SvcGroup: result,
+			}, nil
 		}
-
-		log.Debugf("[GetSvcGroupByName] Object: %s exists in cache", hashedName)
-		result, _ := item.(*baseservicegrouptsmtanzuvmwarecomv1.SvcGroup)
-		return &ServicegroupSvcGroup{
-			client:   group.client,
-			SvcGroup: result,
-		}, nil
-	} else {
-		retryCount := 0
-		for {
-			result, err := group.client.baseClient.
-				ServicegroupTsmV1().
-				SvcGroups().Get(ctx, hashedName, metav1.GetOptions{})
-			if err != nil {
-				log.Errorf("[GetSvcGroupByName] Failed to Get SvcGroups: %+v", err)
-				if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded) {
-					log.Debugf("[Retry count: (%d) obj: %s ] %+v", retryCount, hashedName, err)
-					if retryCount == maxRetryCount {
-						log.Errorf("Max retry exceed on Get SvcGroups: %s", hashedName)
-						return nil, err
-					}
-					retryCount += 1
-					time.Sleep(sleepTime * time.Second)
-				} else if customerrors.Is(err, context.Canceled) {
-					log.Errorf("[GetSvcGroupByName]: %+v", err)
-					return nil, context.Canceled
-				} else {
-					log.Errorf("[GetSvcGroupByName]: %+v", err)
+	}
+	retryCount := 0
+	for {
+		result, err := group.client.baseClient.
+			ServicegroupTsmV1().
+			SvcGroups().Get(ctx, hashedName, metav1.GetOptions{})
+		if err != nil {
+			log.Errorf("[GetSvcGroupByName] Failed to Get SvcGroups: %+v", err)
+			if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded) {
+				log.Debugf("[Retry count: (%d) obj: %s ] %+v", retryCount, hashedName, err)
+				if retryCount == maxRetryCount {
+					log.Errorf("Max retry exceed on Get SvcGroups: %s", hashedName)
 					return nil, err
 				}
+				retryCount += 1
+				time.Sleep(sleepTime * time.Second)
+			} else if customerrors.Is(err, context.Canceled) {
+				log.Errorf("[GetSvcGroupByName]: %+v", err)
+				return nil, context.Canceled
 			} else {
-				return &ServicegroupSvcGroup{
-					client:   group.client,
-					SvcGroup: result,
-				}, nil
+				log.Errorf("[GetSvcGroupByName]: %+v", err)
+				return nil, err
 			}
+		} else {
+			return &ServicegroupSvcGroup{
+				client:   group.client,
+				SvcGroup: result,
+			}, nil
 		}
 	}
 }
@@ -12489,46 +12459,43 @@ func (group *ServicegroupTsmV1) GetSvcGroupLinkInfoByName(ctx context.Context, h
 	key := "svcgrouplinkinfos.servicegroup.tsm.tanzu.vmware.com"
 	if s, ok := subscriptionMap.Load(key); ok {
 		log.Debugf("[GetSvcGroupLinkInfoByName] GetObject: %s from cache", hashedName)
-		item, exists, err := s.(subscription).informer.GetStore().GetByKey(hashedName)
-		if !exists {
-			return nil, err
+		item, exists, _ := s.(subscription).informer.GetStore().GetByKey(hashedName)
+		if exists {
+			log.Debugf("[GetSvcGroupLinkInfoByName] Object: %s exists in cache", hashedName)
+			result, _ := item.(*baseservicegrouptsmtanzuvmwarecomv1.SvcGroupLinkInfo)
+			return &ServicegroupSvcGroupLinkInfo{
+				client:           group.client,
+				SvcGroupLinkInfo: result,
+			}, nil
 		}
-
-		log.Debugf("[GetSvcGroupLinkInfoByName] Object: %s exists in cache", hashedName)
-		result, _ := item.(*baseservicegrouptsmtanzuvmwarecomv1.SvcGroupLinkInfo)
-		return &ServicegroupSvcGroupLinkInfo{
-			client:           group.client,
-			SvcGroupLinkInfo: result,
-		}, nil
-	} else {
-		retryCount := 0
-		for {
-			result, err := group.client.baseClient.
-				ServicegroupTsmV1().
-				SvcGroupLinkInfos().Get(ctx, hashedName, metav1.GetOptions{})
-			if err != nil {
-				log.Errorf("[GetSvcGroupLinkInfoByName] Failed to Get SvcGroupLinkInfos: %+v", err)
-				if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded) {
-					log.Debugf("[Retry count: (%d) obj: %s ] %+v", retryCount, hashedName, err)
-					if retryCount == maxRetryCount {
-						log.Errorf("Max retry exceed on Get SvcGroupLinkInfos: %s", hashedName)
-						return nil, err
-					}
-					retryCount += 1
-					time.Sleep(sleepTime * time.Second)
-				} else if customerrors.Is(err, context.Canceled) {
-					log.Errorf("[GetSvcGroupLinkInfoByName]: %+v", err)
-					return nil, context.Canceled
-				} else {
-					log.Errorf("[GetSvcGroupLinkInfoByName]: %+v", err)
+	}
+	retryCount := 0
+	for {
+		result, err := group.client.baseClient.
+			ServicegroupTsmV1().
+			SvcGroupLinkInfos().Get(ctx, hashedName, metav1.GetOptions{})
+		if err != nil {
+			log.Errorf("[GetSvcGroupLinkInfoByName] Failed to Get SvcGroupLinkInfos: %+v", err)
+			if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded) {
+				log.Debugf("[Retry count: (%d) obj: %s ] %+v", retryCount, hashedName, err)
+				if retryCount == maxRetryCount {
+					log.Errorf("Max retry exceed on Get SvcGroupLinkInfos: %s", hashedName)
 					return nil, err
 				}
+				retryCount += 1
+				time.Sleep(sleepTime * time.Second)
+			} else if customerrors.Is(err, context.Canceled) {
+				log.Errorf("[GetSvcGroupLinkInfoByName]: %+v", err)
+				return nil, context.Canceled
 			} else {
-				return &ServicegroupSvcGroupLinkInfo{
-					client:           group.client,
-					SvcGroupLinkInfo: result,
-				}, nil
+				log.Errorf("[GetSvcGroupLinkInfoByName]: %+v", err)
+				return nil, err
 			}
+		} else {
+			return &ServicegroupSvcGroupLinkInfo{
+				client:           group.client,
+				SvcGroupLinkInfo: result,
+			}, nil
 		}
 	}
 }
@@ -13563,46 +13530,43 @@ func (group *PolicypkgTsmV1) GetAccessControlPolicyByName(ctx context.Context, h
 	key := "accesscontrolpolicies.policypkg.tsm.tanzu.vmware.com"
 	if s, ok := subscriptionMap.Load(key); ok {
 		log.Debugf("[GetAccessControlPolicyByName] GetObject: %s from cache", hashedName)
-		item, exists, err := s.(subscription).informer.GetStore().GetByKey(hashedName)
-		if !exists {
-			return nil, err
+		item, exists, _ := s.(subscription).informer.GetStore().GetByKey(hashedName)
+		if exists {
+			log.Debugf("[GetAccessControlPolicyByName] Object: %s exists in cache", hashedName)
+			result, _ := item.(*basepolicypkgtsmtanzuvmwarecomv1.AccessControlPolicy)
+			return &PolicypkgAccessControlPolicy{
+				client:              group.client,
+				AccessControlPolicy: result,
+			}, nil
 		}
-
-		log.Debugf("[GetAccessControlPolicyByName] Object: %s exists in cache", hashedName)
-		result, _ := item.(*basepolicypkgtsmtanzuvmwarecomv1.AccessControlPolicy)
-		return &PolicypkgAccessControlPolicy{
-			client:              group.client,
-			AccessControlPolicy: result,
-		}, nil
-	} else {
-		retryCount := 0
-		for {
-			result, err := group.client.baseClient.
-				PolicypkgTsmV1().
-				AccessControlPolicies().Get(ctx, hashedName, metav1.GetOptions{})
-			if err != nil {
-				log.Errorf("[GetAccessControlPolicyByName] Failed to Get AccessControlPolicies: %+v", err)
-				if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded) {
-					log.Debugf("[Retry count: (%d) obj: %s ] %+v", retryCount, hashedName, err)
-					if retryCount == maxRetryCount {
-						log.Errorf("Max retry exceed on Get AccessControlPolicies: %s", hashedName)
-						return nil, err
-					}
-					retryCount += 1
-					time.Sleep(sleepTime * time.Second)
-				} else if customerrors.Is(err, context.Canceled) {
-					log.Errorf("[GetAccessControlPolicyByName]: %+v", err)
-					return nil, context.Canceled
-				} else {
-					log.Errorf("[GetAccessControlPolicyByName]: %+v", err)
+	}
+	retryCount := 0
+	for {
+		result, err := group.client.baseClient.
+			PolicypkgTsmV1().
+			AccessControlPolicies().Get(ctx, hashedName, metav1.GetOptions{})
+		if err != nil {
+			log.Errorf("[GetAccessControlPolicyByName] Failed to Get AccessControlPolicies: %+v", err)
+			if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded) {
+				log.Debugf("[Retry count: (%d) obj: %s ] %+v", retryCount, hashedName, err)
+				if retryCount == maxRetryCount {
+					log.Errorf("Max retry exceed on Get AccessControlPolicies: %s", hashedName)
 					return nil, err
 				}
+				retryCount += 1
+				time.Sleep(sleepTime * time.Second)
+			} else if customerrors.Is(err, context.Canceled) {
+				log.Errorf("[GetAccessControlPolicyByName]: %+v", err)
+				return nil, context.Canceled
 			} else {
-				return &PolicypkgAccessControlPolicy{
-					client:              group.client,
-					AccessControlPolicy: result,
-				}, nil
+				log.Errorf("[GetAccessControlPolicyByName]: %+v", err)
+				return nil, err
 			}
+		} else {
+			return &PolicypkgAccessControlPolicy{
+				client:              group.client,
+				AccessControlPolicy: result,
+			}, nil
 		}
 	}
 }
@@ -14687,46 +14651,43 @@ func (group *PolicypkgTsmV1) GetACPConfigByName(ctx context.Context, hashedName 
 	key := "acpconfigs.policypkg.tsm.tanzu.vmware.com"
 	if s, ok := subscriptionMap.Load(key); ok {
 		log.Debugf("[GetACPConfigByName] GetObject: %s from cache", hashedName)
-		item, exists, err := s.(subscription).informer.GetStore().GetByKey(hashedName)
-		if !exists {
-			return nil, err
+		item, exists, _ := s.(subscription).informer.GetStore().GetByKey(hashedName)
+		if exists {
+			log.Debugf("[GetACPConfigByName] Object: %s exists in cache", hashedName)
+			result, _ := item.(*basepolicypkgtsmtanzuvmwarecomv1.ACPConfig)
+			return &PolicypkgACPConfig{
+				client:    group.client,
+				ACPConfig: result,
+			}, nil
 		}
-
-		log.Debugf("[GetACPConfigByName] Object: %s exists in cache", hashedName)
-		result, _ := item.(*basepolicypkgtsmtanzuvmwarecomv1.ACPConfig)
-		return &PolicypkgACPConfig{
-			client:    group.client,
-			ACPConfig: result,
-		}, nil
-	} else {
-		retryCount := 0
-		for {
-			result, err := group.client.baseClient.
-				PolicypkgTsmV1().
-				ACPConfigs().Get(ctx, hashedName, metav1.GetOptions{})
-			if err != nil {
-				log.Errorf("[GetACPConfigByName] Failed to Get ACPConfigs: %+v", err)
-				if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded) {
-					log.Debugf("[Retry count: (%d) obj: %s ] %+v", retryCount, hashedName, err)
-					if retryCount == maxRetryCount {
-						log.Errorf("Max retry exceed on Get ACPConfigs: %s", hashedName)
-						return nil, err
-					}
-					retryCount += 1
-					time.Sleep(sleepTime * time.Second)
-				} else if customerrors.Is(err, context.Canceled) {
-					log.Errorf("[GetACPConfigByName]: %+v", err)
-					return nil, context.Canceled
-				} else {
-					log.Errorf("[GetACPConfigByName]: %+v", err)
+	}
+	retryCount := 0
+	for {
+		result, err := group.client.baseClient.
+			PolicypkgTsmV1().
+			ACPConfigs().Get(ctx, hashedName, metav1.GetOptions{})
+		if err != nil {
+			log.Errorf("[GetACPConfigByName] Failed to Get ACPConfigs: %+v", err)
+			if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded) {
+				log.Debugf("[Retry count: (%d) obj: %s ] %+v", retryCount, hashedName, err)
+				if retryCount == maxRetryCount {
+					log.Errorf("Max retry exceed on Get ACPConfigs: %s", hashedName)
 					return nil, err
 				}
+				retryCount += 1
+				time.Sleep(sleepTime * time.Second)
+			} else if customerrors.Is(err, context.Canceled) {
+				log.Errorf("[GetACPConfigByName]: %+v", err)
+				return nil, context.Canceled
 			} else {
-				return &PolicypkgACPConfig{
-					client:    group.client,
-					ACPConfig: result,
-				}, nil
+				log.Errorf("[GetACPConfigByName]: %+v", err)
+				return nil, err
 			}
+		} else {
+			return &PolicypkgACPConfig{
+				client:    group.client,
+				ACPConfig: result,
+			}, nil
 		}
 	}
 }
@@ -16024,46 +15985,43 @@ func (group *PolicypkgTsmV1) GetVMpolicyByName(ctx context.Context, hashedName s
 	key := "vmpolicies.policypkg.tsm.tanzu.vmware.com"
 	if s, ok := subscriptionMap.Load(key); ok {
 		log.Debugf("[GetVMpolicyByName] GetObject: %s from cache", hashedName)
-		item, exists, err := s.(subscription).informer.GetStore().GetByKey(hashedName)
-		if !exists {
-			return nil, err
+		item, exists, _ := s.(subscription).informer.GetStore().GetByKey(hashedName)
+		if exists {
+			log.Debugf("[GetVMpolicyByName] Object: %s exists in cache", hashedName)
+			result, _ := item.(*basepolicypkgtsmtanzuvmwarecomv1.VMpolicy)
+			return &PolicypkgVMpolicy{
+				client:   group.client,
+				VMpolicy: result,
+			}, nil
 		}
-
-		log.Debugf("[GetVMpolicyByName] Object: %s exists in cache", hashedName)
-		result, _ := item.(*basepolicypkgtsmtanzuvmwarecomv1.VMpolicy)
-		return &PolicypkgVMpolicy{
-			client:   group.client,
-			VMpolicy: result,
-		}, nil
-	} else {
-		retryCount := 0
-		for {
-			result, err := group.client.baseClient.
-				PolicypkgTsmV1().
-				VMpolicies().Get(ctx, hashedName, metav1.GetOptions{})
-			if err != nil {
-				log.Errorf("[GetVMpolicyByName] Failed to Get VMpolicies: %+v", err)
-				if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded) {
-					log.Debugf("[Retry count: (%d) obj: %s ] %+v", retryCount, hashedName, err)
-					if retryCount == maxRetryCount {
-						log.Errorf("Max retry exceed on Get VMpolicies: %s", hashedName)
-						return nil, err
-					}
-					retryCount += 1
-					time.Sleep(sleepTime * time.Second)
-				} else if customerrors.Is(err, context.Canceled) {
-					log.Errorf("[GetVMpolicyByName]: %+v", err)
-					return nil, context.Canceled
-				} else {
-					log.Errorf("[GetVMpolicyByName]: %+v", err)
+	}
+	retryCount := 0
+	for {
+		result, err := group.client.baseClient.
+			PolicypkgTsmV1().
+			VMpolicies().Get(ctx, hashedName, metav1.GetOptions{})
+		if err != nil {
+			log.Errorf("[GetVMpolicyByName] Failed to Get VMpolicies: %+v", err)
+			if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded) {
+				log.Debugf("[Retry count: (%d) obj: %s ] %+v", retryCount, hashedName, err)
+				if retryCount == maxRetryCount {
+					log.Errorf("Max retry exceed on Get VMpolicies: %s", hashedName)
 					return nil, err
 				}
+				retryCount += 1
+				time.Sleep(sleepTime * time.Second)
+			} else if customerrors.Is(err, context.Canceled) {
+				log.Errorf("[GetVMpolicyByName]: %+v", err)
+				return nil, context.Canceled
 			} else {
-				return &PolicypkgVMpolicy{
-					client:   group.client,
-					VMpolicy: result,
-				}, nil
+				log.Errorf("[GetVMpolicyByName]: %+v", err)
+				return nil, err
 			}
+		} else {
+			return &PolicypkgVMpolicy{
+				client:   group.client,
+				VMpolicy: result,
+			}, nil
 		}
 	}
 }

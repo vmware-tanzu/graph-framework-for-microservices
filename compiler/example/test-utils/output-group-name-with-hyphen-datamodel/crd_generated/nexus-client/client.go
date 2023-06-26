@@ -199,46 +199,43 @@ func (group *RootTsmV1) GetRootByName(ctx context.Context, hashedName string) (*
 	key := "roots.root.tsm-tanzu.vmware.com"
 	if s, ok := subscriptionMap.Load(key); ok {
 		log.Debugf("[GetRootByName] GetObject: %s from cache", hashedName)
-		item, exists, err := s.(subscription).informer.GetStore().GetByKey(hashedName)
-		if !exists {
-			return nil, err
+		item, exists, _ := s.(subscription).informer.GetStore().GetByKey(hashedName)
+		if exists {
+			log.Debugf("[GetRootByName] Object: %s exists in cache", hashedName)
+			result, _ := item.(*baseroottsmtanzuvmwarecomv1.Root)
+			return &RootRoot{
+				client: group.client,
+				Root:   result,
+			}, nil
 		}
-
-		log.Debugf("[GetRootByName] Object: %s exists in cache", hashedName)
-		result, _ := item.(*baseroottsmtanzuvmwarecomv1.Root)
-		return &RootRoot{
-			client: group.client,
-			Root:   result,
-		}, nil
-	} else {
-		retryCount := 0
-		for {
-			result, err := group.client.baseClient.
-				RootTsmV1().
-				Roots().Get(ctx, hashedName, metav1.GetOptions{})
-			if err != nil {
-				log.Errorf("[GetRootByName] Failed to Get Roots: %+v", err)
-				if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded) {
-					log.Debugf("[Retry count: (%d) obj: %s ] %+v", retryCount, hashedName, err)
-					if retryCount == maxRetryCount {
-						log.Errorf("Max retry exceed on Get Roots: %s", hashedName)
-						return nil, err
-					}
-					retryCount += 1
-					time.Sleep(sleepTime * time.Second)
-				} else if customerrors.Is(err, context.Canceled) {
-					log.Errorf("[GetRootByName]: %+v", err)
-					return nil, context.Canceled
-				} else {
-					log.Errorf("[GetRootByName]: %+v", err)
+	}
+	retryCount := 0
+	for {
+		result, err := group.client.baseClient.
+			RootTsmV1().
+			Roots().Get(ctx, hashedName, metav1.GetOptions{})
+		if err != nil {
+			log.Errorf("[GetRootByName] Failed to Get Roots: %+v", err)
+			if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded) {
+				log.Debugf("[Retry count: (%d) obj: %s ] %+v", retryCount, hashedName, err)
+				if retryCount == maxRetryCount {
+					log.Errorf("Max retry exceed on Get Roots: %s", hashedName)
 					return nil, err
 				}
+				retryCount += 1
+				time.Sleep(sleepTime * time.Second)
+			} else if customerrors.Is(err, context.Canceled) {
+				log.Errorf("[GetRootByName]: %+v", err)
+				return nil, context.Canceled
 			} else {
-				return &RootRoot{
-					client: group.client,
-					Root:   result,
-				}, nil
+				log.Errorf("[GetRootByName]: %+v", err)
+				return nil, err
 			}
+		} else {
+			return &RootRoot{
+				client: group.client,
+				Root:   result,
+			}, nil
 		}
 	}
 }
@@ -963,46 +960,43 @@ func (group *ConfigTsmV1) GetConfigByName(ctx context.Context, hashedName string
 	key := "configs.config.tsm-tanzu.vmware.com"
 	if s, ok := subscriptionMap.Load(key); ok {
 		log.Debugf("[GetConfigByName] GetObject: %s from cache", hashedName)
-		item, exists, err := s.(subscription).informer.GetStore().GetByKey(hashedName)
-		if !exists {
-			return nil, err
+		item, exists, _ := s.(subscription).informer.GetStore().GetByKey(hashedName)
+		if exists {
+			log.Debugf("[GetConfigByName] Object: %s exists in cache", hashedName)
+			result, _ := item.(*baseconfigtsmtanzuvmwarecomv1.Config)
+			return &ConfigConfig{
+				client: group.client,
+				Config: result,
+			}, nil
 		}
-
-		log.Debugf("[GetConfigByName] Object: %s exists in cache", hashedName)
-		result, _ := item.(*baseconfigtsmtanzuvmwarecomv1.Config)
-		return &ConfigConfig{
-			client: group.client,
-			Config: result,
-		}, nil
-	} else {
-		retryCount := 0
-		for {
-			result, err := group.client.baseClient.
-				ConfigTsmV1().
-				Configs().Get(ctx, hashedName, metav1.GetOptions{})
-			if err != nil {
-				log.Errorf("[GetConfigByName] Failed to Get Configs: %+v", err)
-				if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded) {
-					log.Debugf("[Retry count: (%d) obj: %s ] %+v", retryCount, hashedName, err)
-					if retryCount == maxRetryCount {
-						log.Errorf("Max retry exceed on Get Configs: %s", hashedName)
-						return nil, err
-					}
-					retryCount += 1
-					time.Sleep(sleepTime * time.Second)
-				} else if customerrors.Is(err, context.Canceled) {
-					log.Errorf("[GetConfigByName]: %+v", err)
-					return nil, context.Canceled
-				} else {
-					log.Errorf("[GetConfigByName]: %+v", err)
+	}
+	retryCount := 0
+	for {
+		result, err := group.client.baseClient.
+			ConfigTsmV1().
+			Configs().Get(ctx, hashedName, metav1.GetOptions{})
+		if err != nil {
+			log.Errorf("[GetConfigByName] Failed to Get Configs: %+v", err)
+			if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded) {
+				log.Debugf("[Retry count: (%d) obj: %s ] %+v", retryCount, hashedName, err)
+				if retryCount == maxRetryCount {
+					log.Errorf("Max retry exceed on Get Configs: %s", hashedName)
 					return nil, err
 				}
+				retryCount += 1
+				time.Sleep(sleepTime * time.Second)
+			} else if customerrors.Is(err, context.Canceled) {
+				log.Errorf("[GetConfigByName]: %+v", err)
+				return nil, context.Canceled
 			} else {
-				return &ConfigConfig{
-					client: group.client,
-					Config: result,
-				}, nil
+				log.Errorf("[GetConfigByName]: %+v", err)
+				return nil, err
 			}
+		} else {
+			return &ConfigConfig{
+				client: group.client,
+				Config: result,
+			}, nil
 		}
 	}
 }
@@ -2025,46 +2019,43 @@ func (group *ProjectTsmV1) GetProjectByName(ctx context.Context, hashedName stri
 	key := "projects.project.tsm-tanzu.vmware.com"
 	if s, ok := subscriptionMap.Load(key); ok {
 		log.Debugf("[GetProjectByName] GetObject: %s from cache", hashedName)
-		item, exists, err := s.(subscription).informer.GetStore().GetByKey(hashedName)
-		if !exists {
-			return nil, err
+		item, exists, _ := s.(subscription).informer.GetStore().GetByKey(hashedName)
+		if exists {
+			log.Debugf("[GetProjectByName] Object: %s exists in cache", hashedName)
+			result, _ := item.(*baseprojecttsmtanzuvmwarecomv1.Project)
+			return &ProjectProject{
+				client:  group.client,
+				Project: result,
+			}, nil
 		}
-
-		log.Debugf("[GetProjectByName] Object: %s exists in cache", hashedName)
-		result, _ := item.(*baseprojecttsmtanzuvmwarecomv1.Project)
-		return &ProjectProject{
-			client:  group.client,
-			Project: result,
-		}, nil
-	} else {
-		retryCount := 0
-		for {
-			result, err := group.client.baseClient.
-				ProjectTsmV1().
-				Projects().Get(ctx, hashedName, metav1.GetOptions{})
-			if err != nil {
-				log.Errorf("[GetProjectByName] Failed to Get Projects: %+v", err)
-				if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded) {
-					log.Debugf("[Retry count: (%d) obj: %s ] %+v", retryCount, hashedName, err)
-					if retryCount == maxRetryCount {
-						log.Errorf("Max retry exceed on Get Projects: %s", hashedName)
-						return nil, err
-					}
-					retryCount += 1
-					time.Sleep(sleepTime * time.Second)
-				} else if customerrors.Is(err, context.Canceled) {
-					log.Errorf("[GetProjectByName]: %+v", err)
-					return nil, context.Canceled
-				} else {
-					log.Errorf("[GetProjectByName]: %+v", err)
+	}
+	retryCount := 0
+	for {
+		result, err := group.client.baseClient.
+			ProjectTsmV1().
+			Projects().Get(ctx, hashedName, metav1.GetOptions{})
+		if err != nil {
+			log.Errorf("[GetProjectByName] Failed to Get Projects: %+v", err)
+			if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded) {
+				log.Debugf("[Retry count: (%d) obj: %s ] %+v", retryCount, hashedName, err)
+				if retryCount == maxRetryCount {
+					log.Errorf("Max retry exceed on Get Projects: %s", hashedName)
 					return nil, err
 				}
+				retryCount += 1
+				time.Sleep(sleepTime * time.Second)
+			} else if customerrors.Is(err, context.Canceled) {
+				log.Errorf("[GetProjectByName]: %+v", err)
+				return nil, context.Canceled
 			} else {
-				return &ProjectProject{
-					client:  group.client,
-					Project: result,
-				}, nil
+				log.Errorf("[GetProjectByName]: %+v", err)
+				return nil, err
 			}
+		} else {
+			return &ProjectProject{
+				client:  group.client,
+				Project: result,
+			}, nil
 		}
 	}
 }
