@@ -77,7 +77,7 @@ type ConfigSpec struct {
 	ClusterNamespaces []ClusterNamespace                      `json:"clusterNamespaces" yaml:"clusterNamespaces"`
 	TestValMarkers    TestValMarkers                          `json:"testValMarkers" yaml:"testValMarkers"`
 	Instance          float32                                 `json:"instance" yaml:"instance"`
-	CuOption          string                                  `json:"option_cu"`
+	CuOption          string                                  `json:"option_cu" yaml:"option_cu"`
 	GNSGvk            *Child                                  `json:"gNSGvk,omitempty" yaml:"gNSGvk,omitempty" nexus:"child"`
 	DNSGvk            *Child                                  `json:"dNSGvk,omitempty" yaml:"dNSGvk,omitempty" nexus:"child"`
 	VMPPoliciesGvk    *Child                                  `json:"vMPPoliciesGvk,omitempty" yaml:"vMPPoliciesGvk,omitempty" nexus:"child"`
@@ -126,9 +126,9 @@ func (c *FooTypeABC) DisplayName() string {
 type FooTypeABCSpec struct {
 	FooA AMap   `json:"fooA" yaml:"fooA"`
 	FooB BArray `json:"fooB" yaml:"fooB"`
-	FooC CInt   `nexus-graphql:"ignore:true"`
-	FooD DFloat `nexus-graphql:"type:string"`
-	FooE CInt   `json:"foo_e" nexus-graphql:"ignore:true"`
+	FooC CInt   `nexus-graphql:"ignore:true" json:"fooC" yaml:"fooC"`
+	FooD DFloat `nexus-graphql:"type:string" json:"fooD" yaml:"fooD"`
+	FooE CInt   `json:"foo_e" nexus-graphql:"ignore:true" yaml:"foo_e"`
 	FooF DFloat `json:"foo_f" yaml:"c_int" nexus-graphql:"type:string"`
 }
 
