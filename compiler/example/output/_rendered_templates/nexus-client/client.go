@@ -301,7 +301,7 @@ func (group *RootTsmV1) GetRootByName(ctx context.Context, hashedName string) (*
 	key := "roots.root.tsm.tanzu.vmware.com"
 	if s, ok := subscriptionMap.Load(key); ok {
 		log.Debugf("[GetRootByName] GetObject: %s from cache", hashedName)
-		item, exists, err := s.(subscription).informer.GetStore().GetByKey(hashedName)
+		item, exists, _ := s.(subscription).informer.GetStore().GetByKey(hashedName)
 		if exists {
 			log.Debugf("[GetRootByName] Object: %s exists in cache", hashedName)
 			result, _ := item.(*baseroottsmtanzuvmwarecomv1.Root)
@@ -1042,7 +1042,7 @@ func (group *ConfigTsmV1) GetConfigByName(ctx context.Context, hashedName string
 	key := "configs.config.tsm.tanzu.vmware.com"
 	if s, ok := subscriptionMap.Load(key); ok {
 		log.Debugf("[GetConfigByName] GetObject: %s from cache", hashedName)
-		item, exists, err := s.(subscription).informer.GetStore().GetByKey(hashedName)
+		item, exists, _ := s.(subscription).informer.GetStore().GetByKey(hashedName)
 		if exists {
 			log.Debugf("[GetConfigByName] Object: %s exists in cache", hashedName)
 			result, _ := item.(*baseconfigtsmtanzuvmwarecomv1.Config)
@@ -3001,7 +3001,7 @@ func (group *ConfigTsmV1) GetFooTypeABCByName(ctx context.Context, hashedName st
 	key := "footypeabcs.config.tsm.tanzu.vmware.com"
 	if s, ok := subscriptionMap.Load(key); ok {
 		log.Debugf("[GetFooTypeABCByName] GetObject: %s from cache", hashedName)
-		item, exists, err := s.(subscription).informer.GetStore().GetByKey(hashedName)
+		item, exists, _ := s.(subscription).informer.GetStore().GetByKey(hashedName)
 		if exists {
 			log.Debugf("[GetFooTypeABCByName] Object: %s exists in cache", hashedName)
 			result, _ := item.(*baseconfigtsmtanzuvmwarecomv1.FooTypeABC)
@@ -4106,7 +4106,7 @@ func (group *ConfigTsmV1) GetDomainByName(ctx context.Context, hashedName string
 	key := "domains.config.tsm.tanzu.vmware.com"
 	if s, ok := subscriptionMap.Load(key); ok {
 		log.Debugf("[GetDomainByName] GetObject: %s from cache", hashedName)
-		item, exists, err := s.(subscription).informer.GetStore().GetByKey(hashedName)
+		item, exists, _ := s.(subscription).informer.GetStore().GetByKey(hashedName)
 		if exists {
 			log.Debugf("[GetDomainByName] Object: %s exists in cache", hashedName)
 			result, _ := item.(*baseconfigtsmtanzuvmwarecomv1.Domain)
@@ -5282,7 +5282,7 @@ func (group *GnsTsmV1) GetFooByName(ctx context.Context, hashedName string) (*Gn
 	key := "foos.gns.tsm.tanzu.vmware.com"
 	if s, ok := subscriptionMap.Load(key); ok {
 		log.Debugf("[GetFooByName] GetObject: %s from cache", hashedName)
-		item, exists, err := s.(subscription).informer.GetStore().GetByKey(hashedName)
+		item, exists, _ := s.(subscription).informer.GetStore().GetByKey(hashedName)
 		if exists {
 			log.Debugf("[GetFooByName] Object: %s exists in cache", hashedName)
 			result, _ := item.(*basegnstsmtanzuvmwarecomv1.Foo)
@@ -6290,7 +6290,7 @@ func (group *GnsTsmV1) GetGnsByName(ctx context.Context, hashedName string) (*Gn
 	key := "gnses.gns.tsm.tanzu.vmware.com"
 	if s, ok := subscriptionMap.Load(key); ok {
 		log.Debugf("[GetGnsByName] GetObject: %s from cache", hashedName)
-		item, exists, err := s.(subscription).informer.GetStore().GetByKey(hashedName)
+		item, exists, _ := s.(subscription).informer.GetStore().GetByKey(hashedName)
 		if exists {
 			log.Debugf("[GetGnsByName] Object: %s exists in cache", hashedName)
 			result, _ := item.(*basegnstsmtanzuvmwarecomv1.Gns)
@@ -8398,7 +8398,7 @@ func (group *GnsTsmV1) GetBarChildByName(ctx context.Context, hashedName string)
 	key := "barchilds.gns.tsm.tanzu.vmware.com"
 	if s, ok := subscriptionMap.Load(key); ok {
 		log.Debugf("[GetBarChildByName] GetObject: %s from cache", hashedName)
-		item, exists, err := s.(subscription).informer.GetStore().GetByKey(hashedName)
+		item, exists, _ := s.(subscription).informer.GetStore().GetByKey(hashedName)
 		if exists {
 			log.Debugf("[GetBarChildByName] Object: %s exists in cache", hashedName)
 			result, _ := item.(*basegnstsmtanzuvmwarecomv1.BarChild)
@@ -9415,7 +9415,7 @@ func (group *GnsTsmV1) GetIgnoreChildByName(ctx context.Context, hashedName stri
 	key := "ignorechilds.gns.tsm.tanzu.vmware.com"
 	if s, ok := subscriptionMap.Load(key); ok {
 		log.Debugf("[GetIgnoreChildByName] GetObject: %s from cache", hashedName)
-		item, exists, err := s.(subscription).informer.GetStore().GetByKey(hashedName)
+		item, exists, _ := s.(subscription).informer.GetStore().GetByKey(hashedName)
 		if exists {
 			log.Debugf("[GetIgnoreChildByName] Object: %s exists in cache", hashedName)
 			result, _ := item.(*basegnstsmtanzuvmwarecomv1.IgnoreChild)
@@ -10423,7 +10423,7 @@ func (group *GnsTsmV1) GetDnsByName(ctx context.Context, hashedName string) (*Gn
 	key := "dnses.gns.tsm.tanzu.vmware.com"
 	if s, ok := subscriptionMap.Load(key); ok {
 		log.Debugf("[GetDnsByName] GetObject: %s from cache", hashedName)
-		item, exists, err := s.(subscription).informer.GetStore().GetByKey(hashedName)
+		item, exists, _ := s.(subscription).informer.GetStore().GetByKey(hashedName)
 		if exists {
 			log.Debugf("[GetDnsByName] Object: %s exists in cache", hashedName)
 			result, _ := item.(*basegnstsmtanzuvmwarecomv1.Dns)
@@ -11417,7 +11417,7 @@ func (group *ServicegroupTsmV1) GetSvcGroupByName(ctx context.Context, hashedNam
 	key := "svcgroups.servicegroup.tsm.tanzu.vmware.com"
 	if s, ok := subscriptionMap.Load(key); ok {
 		log.Debugf("[GetSvcGroupByName] GetObject: %s from cache", hashedName)
-		item, exists, err := s.(subscription).informer.GetStore().GetByKey(hashedName)
+		item, exists, _ := s.(subscription).informer.GetStore().GetByKey(hashedName)
 		if exists {
 			log.Debugf("[GetSvcGroupByName] Object: %s exists in cache", hashedName)
 			result, _ := item.(*baseservicegrouptsmtanzuvmwarecomv1.SvcGroup)
@@ -12459,7 +12459,7 @@ func (group *ServicegroupTsmV1) GetSvcGroupLinkInfoByName(ctx context.Context, h
 	key := "svcgrouplinkinfos.servicegroup.tsm.tanzu.vmware.com"
 	if s, ok := subscriptionMap.Load(key); ok {
 		log.Debugf("[GetSvcGroupLinkInfoByName] GetObject: %s from cache", hashedName)
-		item, exists, err := s.(subscription).informer.GetStore().GetByKey(hashedName)
+		item, exists, _ := s.(subscription).informer.GetStore().GetByKey(hashedName)
 		if exists {
 			log.Debugf("[GetSvcGroupLinkInfoByName] Object: %s exists in cache", hashedName)
 			result, _ := item.(*baseservicegrouptsmtanzuvmwarecomv1.SvcGroupLinkInfo)
@@ -13530,7 +13530,7 @@ func (group *PolicypkgTsmV1) GetAccessControlPolicyByName(ctx context.Context, h
 	key := "accesscontrolpolicies.policypkg.tsm.tanzu.vmware.com"
 	if s, ok := subscriptionMap.Load(key); ok {
 		log.Debugf("[GetAccessControlPolicyByName] GetObject: %s from cache", hashedName)
-		item, exists, err := s.(subscription).informer.GetStore().GetByKey(hashedName)
+		item, exists, _ := s.(subscription).informer.GetStore().GetByKey(hashedName)
 		if exists {
 			log.Debugf("[GetAccessControlPolicyByName] Object: %s exists in cache", hashedName)
 			result, _ := item.(*basepolicypkgtsmtanzuvmwarecomv1.AccessControlPolicy)
@@ -14651,7 +14651,7 @@ func (group *PolicypkgTsmV1) GetACPConfigByName(ctx context.Context, hashedName 
 	key := "acpconfigs.policypkg.tsm.tanzu.vmware.com"
 	if s, ok := subscriptionMap.Load(key); ok {
 		log.Debugf("[GetACPConfigByName] GetObject: %s from cache", hashedName)
-		item, exists, err := s.(subscription).informer.GetStore().GetByKey(hashedName)
+		item, exists, _ := s.(subscription).informer.GetStore().GetByKey(hashedName)
 		if exists {
 			log.Debugf("[GetACPConfigByName] Object: %s exists in cache", hashedName)
 			result, _ := item.(*basepolicypkgtsmtanzuvmwarecomv1.ACPConfig)
@@ -15985,7 +15985,7 @@ func (group *PolicypkgTsmV1) GetVMpolicyByName(ctx context.Context, hashedName s
 	key := "vmpolicies.policypkg.tsm.tanzu.vmware.com"
 	if s, ok := subscriptionMap.Load(key); ok {
 		log.Debugf("[GetVMpolicyByName] GetObject: %s from cache", hashedName)
-		item, exists, err := s.(subscription).informer.GetStore().GetByKey(hashedName)
+		item, exists, _ := s.(subscription).informer.GetStore().GetByKey(hashedName)
 		if exists {
 			log.Debugf("[GetVMpolicyByName] Object: %s exists in cache", hashedName)
 			result, _ := item.(*basepolicypkgtsmtanzuvmwarecomv1.VMpolicy)

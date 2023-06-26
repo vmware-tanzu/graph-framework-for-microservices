@@ -150,7 +150,7 @@ func (group *{{$node.GroupTypeName}}) Get{{$node.BaseNodeName}}ByName(ctx contex
 	key := "{{$node.CrdName}}"
 	if s, ok := subscriptionMap.Load(key); ok {
 		log.Debugf("[Get{{$node.BaseNodeName}}ByName] GetObject: %s from cache", hashedName)
-		item, exists,err := s.(subscription).informer.GetStore().GetByKey(hashedName)
+		item, exists, _ := s.(subscription).informer.GetStore().GetByKey(hashedName)
 		if exists {
 			log.Debugf("[Get{{$node.BaseNodeName}}ByName] Object: %s exists in cache", hashedName)
 			result, _ := item.(*{{$node.GroupBaseImport}})
