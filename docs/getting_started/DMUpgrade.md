@@ -35,7 +35,7 @@ The above command builds the new datamodel against the master branch of the arti
 If prev_spec_branch is not provided then force will be set to true.
 
 ## What is backward compatibility check?
-It is a check performed to determine the changes performed on dsl during the datamodel upgrade have backward compatibility with existing crds.<br>
+It is a check performed to determine the changes performed on dsl during the datamodel upgrade have backward compatibility with existing crds(source of truth).<br>
 At build time :<br>
 * if "prev-spec-branch" is not provided, force will be set to true and build/crds dir will be the source of truth if present.
 * if "prev-spec-branch" is provided and artifact_repo is provided, force will be set to false and  source of truth will be the crds dir present in prev_spec_branch of artifact_repo provided
@@ -43,6 +43,27 @@ At build time :<br>
 
 At runtime crds existing in the cluster will be the source of truth 
 
+## When does backward compatibility check fail?
+When the change made to the dsl is determined as backward-incompatible (as defined below) then the backward compatibility check in CI will fail.<br>
+To enable this we should provide prev-spec-branch and artifact_repo info to set force to false as mentioned above.
+
+## How to perform force upgrade at runtime?
+1. Ensure there are no CR objects for the dsl node crd that is being upgraded
+Port forward port 5001 of nexusapp-mgr pod in cosmos-cd namespace
+```
+kubectl port-forward -n cosmos-cd nexus-app-mgr-7865f8df58-h7hbj 5018:5001
+```
+2. Invoke the tenant/upgrade POST end point by providing the TenantID and Force info in payload<br>
+Example:<br>
+HTTP METHOD: POST<br>
+URL: http://localhost:5018/tenant/upgrade <br>
+Payload:
+```
+{
+    "TenantID": "v4",
+    "DatamodelForceInstall": true
+}
+```
 ## What is considered a non-breaking change?
 
 #####  1. Add an optional field in the nexus node (field with "omitempty" tag )
@@ -101,7 +122,7 @@ At runtime crds existing in the cluster will be the source of truth
 
 2. Rebuild your datamodel
    ```
-   nexus datamodel build --name orgchart
+   nexus datamodel build --name orgchart 
    ```
 
    Now, the build would succeed
