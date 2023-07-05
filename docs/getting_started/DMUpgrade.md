@@ -35,16 +35,19 @@ The above command builds the new datamodel against the master branch of the arti
 If prev_spec_branch is not provided then force will be set to true.
 
 ## What is backward compatibility check?
-It is a check performed to determine the changes performed on dsl during the datamodel upgrade have backward compatibility with existing crds(source of truth).<br>
-At build time :<br>
-* if "prev-spec-branch" is not provided, force will be set to true and build/crds dir will be the source of truth if present.
-* if "prev-spec-branch" is provided and artifact_repo is provided, force will be set to false and  source of truth will be the crds dir present in prev_spec_branch of artifact_repo provided
-* if "prev-spec-branch" is provided and artifact_repo is not provided, we will check nexus.yaml for artifact_repo and if it is not present we will error and exit <br><br>
+The Backward Compatibility Check is a validation process performed during a datamodel upgrade to ensure that the changes made to the DSL are backward compatible with the existing CRDs (Custom Resource Definitions), which serve as the source of truth.
+<br> The check is performed at build time and runtime
 
-At runtime crds existing in the cluster will be the source of truth 
+<br>At build time :<br>
+* If "prev-spec-branch" is not provided, force will be set to true and build/crds dir will be the source of truth if present.
+* If "prev-spec-branch" is provided and artifact_repo is provided, force will be set to false and source of truth will be the 'crds' dir present in prev_spec_branch of artifact_repo provided
+* If the prev-spec-branch is provided but the artifact_repo is not provided, the nexus.yaml file is checked for the artifact_repo information. If it is not found, an error is thrown, and the process exits. <br><br>
+
+<br>At runtime:<br>
+* CRDs existing in the cluster will be the source of truth 
 
 ## When does backward compatibility check fail?
-When the change made to the dsl is determined as backward-incompatible (as defined below) then the backward compatibility check in CI will fail.<br>
+When the change made to the DSL is determined as backward-incompatible (as defined below) then the backward compatibility check in CI will fail.<br>
 To enable this we should provide prev-spec-branch and artifact_repo info to set force to false as mentioned above.
 
 ## How to perform force upgrade at runtime?
