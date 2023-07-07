@@ -19,6 +19,7 @@ import (
 	"fmt"
 	"time"
 	"os"
+	"strconv"
 	customerrors "errors"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -41,6 +42,9 @@ var log = logrus.New()
 const maxRetryCount = 12
 const sleepTime = 5
 const ownershipAnnotation string = "Ownership"
+
+// informerResyncPeriod is in second, default value is 10 Hrs(36000 Sec). INFORMER_RESYNC_PERIOD is os env to set Resync Period for informers
+var informerResyncPeriod time.Duration = 36000
 
 type Clientset struct {
 	baseClient baseClientset.Interface
@@ -70,7 +74,7 @@ func (c *Clientset) SubscribeAll() {
 	{{ range $key, $node := .Nodes }}
 	key = "{{$node.CrdName}}"
 	if _,ok := subscriptionMap.Load(key); !ok {
-		informer := {{$node.GroupInformerImport}}.New{{$node.BaseNodeName}}Informer(c.baseClient, 0, cache.Indexers{})
+		informer := {{$node.GroupInformerImport}}.New{{$node.BaseNodeName}}Informer(c.baseClient, informerResyncPeriod * time.Second, cache.Indexers{})
 		subscribe(key, informer)
 	}
 	{{end}}
@@ -98,6 +102,18 @@ func NewForConfig(config *rest.Config) (*Clientset, error) {
 	if os.Getenv("NEXUS_LOG_LEVEL") == "debug" {
 		log.SetLevel(logrus.DebugLevel)
 		log.Debug("Nexus debug log enabled")
+	}
+
+	// INFORMER_RESYNC_PERIOD is os env to set Resync Period for informers
+	stringResyncPeriod := os.Getenv("INFORMER_RESYNC_PERIOD")
+	if 	stringResyncPeriod != "" {
+		intResyncPeriod, err := strconv.Atoi(stringResyncPeriod)
+		if err != nil {
+			log.Errorf("env INFORMER_RESYNC_PERIOD is not set with correct value")
+		} else {
+			informerResyncPeriod = time.Duration(intResyncPeriod)
+			log.Debugf("Resync Period for informers is set to %+v second", informerResyncPeriod)
+		}
 	}
 
 	client := &Clientset{}
@@ -1167,7 +1183,7 @@ type {{$node.GroupResourceType}}Chainer struct {
 func (c *{{$node.GroupResourceType}}Chainer) Subscribe(){
     key := "{{$node.CrdName}}"
 	if _, ok := subscriptionMap.Load(key); !ok {
-		informer := {{$node.GroupInformerImport}}.New{{$node.BaseNodeName}}Informer(c.client.baseClient, 0, cache.Indexers{})
+		informer := {{$node.GroupInformerImport}}.New{{$node.BaseNodeName}}Informer(c.client.baseClient, informerResyncPeriod * time.Second, cache.Indexers{})
 		subscribe(key, informer)
 	}
 }
@@ -1194,15 +1210,13 @@ func (c *{{$node.GroupResourceType}}Chainer) RegisterEventHandler(addCB func(obj
 	    informer cache.SharedIndexInformer
 	)
 	key := "{{$node.CrdName}}"
-	stopper := make(chan struct{})
 	if s, ok := subscriptionMap.Load(key); ok {
 		fmt.Println("Informer exists for {{$node.SimpleGroupTypeName}}{{$node.BaseNodeName}}")
 		sub := s.(subscription)
 		informer = sub.informer
 	} else {
 		fmt.Println("Informer doesn't exists for {{$node.SimpleGroupTypeName}}{{$node.BaseNodeName}}, so creating a new one")
-		informer = {{$node.GroupInformerImport}}.New{{$node.BaseNodeName}}Informer(c.client.baseClient, 0, cache.Indexers{})
-		go informer.Run(stopper)
+		informer = {{$node.GroupInformerImport}}.New{{$node.BaseNodeName}}Informer(c.client.baseClient, informerResyncPeriod * time.Second, cache.Indexers{})
 		subscribe(key, informer)
 	}
 	registrationId, err = informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
@@ -1420,7 +1434,7 @@ func (c *{{$node.GroupResourceType}}Chainer) RegisterAddCallback(cbfn func(obj *
         })
     } else {
 		log.Debugf("[RegisterAddCallback] {{$node.SimpleGroupTypeName}}{{$node.BaseNodeName}} Create New Informer")
-		informer := {{$node.GroupInformerImport}}.New{{$node.BaseNodeName}}Informer(c.client.baseClient, 0, cache.Indexers{})
+		informer := {{$node.GroupInformerImport}}.New{{$node.BaseNodeName}}Informer(c.client.baseClient, informerResyncPeriod * time.Second, cache.Indexers{})
 		registrationId,err = informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
             AddFunc: func(obj interface{}){
 				nc := &{{$node.SimpleGroupTypeName}}{{$node.BaseNodeName}}{
@@ -1521,7 +1535,7 @@ func (c *{{$node.GroupResourceType}}Chainer) RegisterUpdateCallback(cbfn func(ol
         })
     } else {
 		log.Debugf("[RegisterUpdateCallback] {{$node.SimpleGroupTypeName}}{{$node.BaseNodeName}} Create New Informer")
-		informer := {{$node.GroupInformerImport}}.New{{$node.BaseNodeName}}Informer(c.client.baseClient, 0, cache.Indexers{})
+		informer := {{$node.GroupInformerImport}}.New{{$node.BaseNodeName}}Informer(c.client.baseClient, informerResyncPeriod * time.Second, cache.Indexers{})
 		registrationId,err = informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
             UpdateFunc: func(oldObj,newObj interface{}){
 				oldData := &{{$node.SimpleGroupTypeName}}{{$node.BaseNodeName}}{
@@ -1619,7 +1633,7 @@ func (c *{{$node.GroupResourceType}}Chainer) RegisterDeleteCallback(cbfn func(ob
         })
     } else {
 		log.Debugf("[RegisterDeleteCallback] {{$node.SimpleGroupTypeName}}{{$node.BaseNodeName}} Create New Informer")
-		informer := {{$node.GroupInformerImport}}.New{{$node.BaseNodeName}}Informer(c.client.baseClient, 0, cache.Indexers{})
+		informer := {{$node.GroupInformerImport}}.New{{$node.BaseNodeName}}Informer(c.client.baseClient, informerResyncPeriod * time.Second, cache.Indexers{})
 		registrationId,err = informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
             DeleteFunc: func(obj interface{}){
 				nc := &{{$node.SimpleGroupTypeName}}{{$node.BaseNodeName}}{
