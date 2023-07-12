@@ -19,6 +19,7 @@ import (
 	"fmt"
 	"os"
 	"reflect"
+	"strconv"
 	"sync"
 	"time"
 
@@ -48,6 +49,9 @@ var log = logrus.New()
 const maxRetryCount = 12
 const sleepTime = 5
 const ownershipAnnotation string = "Ownership"
+
+// informerResyncPeriod is in second, default value is 10 Hrs(36000 Sec). INFORMER_RESYNC_PERIOD is os env to set Resync Period for informers
+var informerResyncPeriod time.Duration = 36000
 
 type Clientset struct {
 	baseClient   baseClientset.Interface
@@ -79,19 +83,19 @@ func (c *Clientset) SubscribeAll() {
 
 	key = "roots.root.tsm-tanzu.vmware.com"
 	if _, ok := subscriptionMap.Load(key); !ok {
-		informer := informerroottsmtanzuvmwarecomv1.NewRootInformer(c.baseClient, 0, cache.Indexers{})
+		informer := informerroottsmtanzuvmwarecomv1.NewRootInformer(c.baseClient, informerResyncPeriod*time.Second, cache.Indexers{})
 		subscribe(key, informer)
 	}
 
 	key = "configs.config.tsm-tanzu.vmware.com"
 	if _, ok := subscriptionMap.Load(key); !ok {
-		informer := informerconfigtsmtanzuvmwarecomv1.NewConfigInformer(c.baseClient, 0, cache.Indexers{})
+		informer := informerconfigtsmtanzuvmwarecomv1.NewConfigInformer(c.baseClient, informerResyncPeriod*time.Second, cache.Indexers{})
 		subscribe(key, informer)
 	}
 
 	key = "projects.project.tsm-tanzu.vmware.com"
 	if _, ok := subscriptionMap.Load(key); !ok {
-		informer := informerprojecttsmtanzuvmwarecomv1.NewProjectInformer(c.baseClient, 0, cache.Indexers{})
+		informer := informerprojecttsmtanzuvmwarecomv1.NewProjectInformer(c.baseClient, informerResyncPeriod*time.Second, cache.Indexers{})
 		subscribe(key, informer)
 	}
 
@@ -119,6 +123,18 @@ func NewForConfig(config *rest.Config) (*Clientset, error) {
 	if os.Getenv("NEXUS_LOG_LEVEL") == "debug" {
 		log.SetLevel(logrus.DebugLevel)
 		log.Debug("Nexus debug log enabled")
+	}
+
+	// INFORMER_RESYNC_PERIOD is os env to set Resync Period for informers
+	stringResyncPeriod := os.Getenv("INFORMER_RESYNC_PERIOD")
+	if stringResyncPeriod != "" {
+		intResyncPeriod, err := strconv.Atoi(stringResyncPeriod)
+		if err != nil {
+			log.Errorf("env INFORMER_RESYNC_PERIOD is not set with correct value")
+		} else {
+			informerResyncPeriod = time.Duration(intResyncPeriod)
+			log.Debugf("Resync Period for informers is set to %+v second", informerResyncPeriod)
+		}
 	}
 
 	client := &Clientset{}
@@ -706,7 +722,7 @@ type rootRootTsmV1Chainer struct {
 func (c *rootRootTsmV1Chainer) Subscribe() {
 	key := "roots.root.tsm-tanzu.vmware.com"
 	if _, ok := subscriptionMap.Load(key); !ok {
-		informer := informerroottsmtanzuvmwarecomv1.NewRootInformer(c.client.baseClient, 0, cache.Indexers{})
+		informer := informerroottsmtanzuvmwarecomv1.NewRootInformer(c.client.baseClient, informerResyncPeriod*time.Second, cache.Indexers{})
 		subscribe(key, informer)
 	}
 }
@@ -733,15 +749,13 @@ func (c *rootRootTsmV1Chainer) RegisterEventHandler(addCB func(obj *RootRoot), u
 		informer       cache.SharedIndexInformer
 	)
 	key := "roots.root.tsm-tanzu.vmware.com"
-	stopper := make(chan struct{})
 	if s, ok := subscriptionMap.Load(key); ok {
 		fmt.Println("Informer exists for RootRoot")
 		sub := s.(subscription)
 		informer = sub.informer
 	} else {
 		fmt.Println("Informer doesn't exists for RootRoot, so creating a new one")
-		informer = informerroottsmtanzuvmwarecomv1.NewRootInformer(c.client.baseClient, 0, cache.Indexers{})
-		go informer.Run(stopper)
+		informer = informerroottsmtanzuvmwarecomv1.NewRootInformer(c.client.baseClient, informerResyncPeriod*time.Second, cache.Indexers{})
 		subscribe(key, informer)
 	}
 	registrationId, err = informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
@@ -801,7 +815,7 @@ func (c *rootRootTsmV1Chainer) RegisterAddCallback(cbfn func(obj *RootRoot)) (ca
 		})
 	} else {
 		log.Debugf("[RegisterAddCallback] RootRoot Create New Informer")
-		informer := informerroottsmtanzuvmwarecomv1.NewRootInformer(c.client.baseClient, 0, cache.Indexers{})
+		informer := informerroottsmtanzuvmwarecomv1.NewRootInformer(c.client.baseClient, informerResyncPeriod*time.Second, cache.Indexers{})
 		registrationId, err = informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
 			AddFunc: func(obj interface{}) {
 				nc := &RootRoot{
@@ -843,7 +857,7 @@ func (c *rootRootTsmV1Chainer) RegisterUpdateCallback(cbfn func(oldObj, newObj *
 		})
 	} else {
 		log.Debugf("[RegisterUpdateCallback] RootRoot Create New Informer")
-		informer := informerroottsmtanzuvmwarecomv1.NewRootInformer(c.client.baseClient, 0, cache.Indexers{})
+		informer := informerroottsmtanzuvmwarecomv1.NewRootInformer(c.client.baseClient, informerResyncPeriod*time.Second, cache.Indexers{})
 		registrationId, err = informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
 			UpdateFunc: func(oldObj, newObj interface{}) {
 				oldData := &RootRoot{
@@ -885,7 +899,7 @@ func (c *rootRootTsmV1Chainer) RegisterDeleteCallback(cbfn func(obj *RootRoot)) 
 		})
 	} else {
 		log.Debugf("[RegisterDeleteCallback] RootRoot Create New Informer")
-		informer := informerroottsmtanzuvmwarecomv1.NewRootInformer(c.client.baseClient, 0, cache.Indexers{})
+		informer := informerroottsmtanzuvmwarecomv1.NewRootInformer(c.client.baseClient, informerResyncPeriod*time.Second, cache.Indexers{})
 		registrationId, err = informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
 			DeleteFunc: func(obj interface{}) {
 				nc := &RootRoot{
@@ -1553,7 +1567,7 @@ type configConfigTsmV1Chainer struct {
 func (c *configConfigTsmV1Chainer) Subscribe() {
 	key := "configs.config.tsm-tanzu.vmware.com"
 	if _, ok := subscriptionMap.Load(key); !ok {
-		informer := informerconfigtsmtanzuvmwarecomv1.NewConfigInformer(c.client.baseClient, 0, cache.Indexers{})
+		informer := informerconfigtsmtanzuvmwarecomv1.NewConfigInformer(c.client.baseClient, informerResyncPeriod*time.Second, cache.Indexers{})
 		subscribe(key, informer)
 	}
 }
@@ -1580,15 +1594,13 @@ func (c *configConfigTsmV1Chainer) RegisterEventHandler(addCB func(obj *ConfigCo
 		informer       cache.SharedIndexInformer
 	)
 	key := "configs.config.tsm-tanzu.vmware.com"
-	stopper := make(chan struct{})
 	if s, ok := subscriptionMap.Load(key); ok {
 		fmt.Println("Informer exists for ConfigConfig")
 		sub := s.(subscription)
 		informer = sub.informer
 	} else {
 		fmt.Println("Informer doesn't exists for ConfigConfig, so creating a new one")
-		informer = informerconfigtsmtanzuvmwarecomv1.NewConfigInformer(c.client.baseClient, 0, cache.Indexers{})
-		go informer.Run(stopper)
+		informer = informerconfigtsmtanzuvmwarecomv1.NewConfigInformer(c.client.baseClient, informerResyncPeriod*time.Second, cache.Indexers{})
 		subscribe(key, informer)
 	}
 	registrationId, err = informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
@@ -1776,7 +1788,7 @@ func (c *configConfigTsmV1Chainer) RegisterAddCallback(cbfn func(obj *ConfigConf
 		})
 	} else {
 		log.Debugf("[RegisterAddCallback] ConfigConfig Create New Informer")
-		informer := informerconfigtsmtanzuvmwarecomv1.NewConfigInformer(c.client.baseClient, 0, cache.Indexers{})
+		informer := informerconfigtsmtanzuvmwarecomv1.NewConfigInformer(c.client.baseClient, informerResyncPeriod*time.Second, cache.Indexers{})
 		registrationId, err = informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
 			AddFunc: func(obj interface{}) {
 				nc := &ConfigConfig{
@@ -1864,7 +1876,7 @@ func (c *configConfigTsmV1Chainer) RegisterUpdateCallback(cbfn func(oldObj, newO
 		})
 	} else {
 		log.Debugf("[RegisterUpdateCallback] ConfigConfig Create New Informer")
-		informer := informerconfigtsmtanzuvmwarecomv1.NewConfigInformer(c.client.baseClient, 0, cache.Indexers{})
+		informer := informerconfigtsmtanzuvmwarecomv1.NewConfigInformer(c.client.baseClient, informerResyncPeriod*time.Second, cache.Indexers{})
 		registrationId, err = informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
 			UpdateFunc: func(oldObj, newObj interface{}) {
 				oldData := &ConfigConfig{
@@ -1951,7 +1963,7 @@ func (c *configConfigTsmV1Chainer) RegisterDeleteCallback(cbfn func(obj *ConfigC
 		})
 	} else {
 		log.Debugf("[RegisterDeleteCallback] ConfigConfig Create New Informer")
-		informer := informerconfigtsmtanzuvmwarecomv1.NewConfigInformer(c.client.baseClient, 0, cache.Indexers{})
+		informer := informerconfigtsmtanzuvmwarecomv1.NewConfigInformer(c.client.baseClient, informerResyncPeriod*time.Second, cache.Indexers{})
 		registrationId, err = informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
 			DeleteFunc: func(obj interface{}) {
 				nc := &ConfigConfig{
@@ -2686,7 +2698,7 @@ type projectProjectTsmV1Chainer struct {
 func (c *projectProjectTsmV1Chainer) Subscribe() {
 	key := "projects.project.tsm-tanzu.vmware.com"
 	if _, ok := subscriptionMap.Load(key); !ok {
-		informer := informerprojecttsmtanzuvmwarecomv1.NewProjectInformer(c.client.baseClient, 0, cache.Indexers{})
+		informer := informerprojecttsmtanzuvmwarecomv1.NewProjectInformer(c.client.baseClient, informerResyncPeriod*time.Second, cache.Indexers{})
 		subscribe(key, informer)
 	}
 }
@@ -2713,15 +2725,13 @@ func (c *projectProjectTsmV1Chainer) RegisterEventHandler(addCB func(obj *Projec
 		informer       cache.SharedIndexInformer
 	)
 	key := "projects.project.tsm-tanzu.vmware.com"
-	stopper := make(chan struct{})
 	if s, ok := subscriptionMap.Load(key); ok {
 		fmt.Println("Informer exists for ProjectProject")
 		sub := s.(subscription)
 		informer = sub.informer
 	} else {
 		fmt.Println("Informer doesn't exists for ProjectProject, so creating a new one")
-		informer = informerprojecttsmtanzuvmwarecomv1.NewProjectInformer(c.client.baseClient, 0, cache.Indexers{})
-		go informer.Run(stopper)
+		informer = informerprojecttsmtanzuvmwarecomv1.NewProjectInformer(c.client.baseClient, informerResyncPeriod*time.Second, cache.Indexers{})
 		subscribe(key, informer)
 	}
 	registrationId, err = informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
@@ -2909,7 +2919,7 @@ func (c *projectProjectTsmV1Chainer) RegisterAddCallback(cbfn func(obj *ProjectP
 		})
 	} else {
 		log.Debugf("[RegisterAddCallback] ProjectProject Create New Informer")
-		informer := informerprojecttsmtanzuvmwarecomv1.NewProjectInformer(c.client.baseClient, 0, cache.Indexers{})
+		informer := informerprojecttsmtanzuvmwarecomv1.NewProjectInformer(c.client.baseClient, informerResyncPeriod*time.Second, cache.Indexers{})
 		registrationId, err = informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
 			AddFunc: func(obj interface{}) {
 				nc := &ProjectProject{
@@ -2997,7 +3007,7 @@ func (c *projectProjectTsmV1Chainer) RegisterUpdateCallback(cbfn func(oldObj, ne
 		})
 	} else {
 		log.Debugf("[RegisterUpdateCallback] ProjectProject Create New Informer")
-		informer := informerprojecttsmtanzuvmwarecomv1.NewProjectInformer(c.client.baseClient, 0, cache.Indexers{})
+		informer := informerprojecttsmtanzuvmwarecomv1.NewProjectInformer(c.client.baseClient, informerResyncPeriod*time.Second, cache.Indexers{})
 		registrationId, err = informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
 			UpdateFunc: func(oldObj, newObj interface{}) {
 				oldData := &ProjectProject{
@@ -3084,7 +3094,7 @@ func (c *projectProjectTsmV1Chainer) RegisterDeleteCallback(cbfn func(obj *Proje
 		})
 	} else {
 		log.Debugf("[RegisterDeleteCallback] ProjectProject Create New Informer")
-		informer := informerprojecttsmtanzuvmwarecomv1.NewProjectInformer(c.client.baseClient, 0, cache.Indexers{})
+		informer := informerprojecttsmtanzuvmwarecomv1.NewProjectInformer(c.client.baseClient, informerResyncPeriod*time.Second, cache.Indexers{})
 		registrationId, err = informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
 			DeleteFunc: func(obj interface{}) {
 				nc := &ProjectProject{
