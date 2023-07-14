@@ -2,73 +2,33 @@
 
 ## Purpose
 
-The purpose of Datamodel Upgrade is to make it possible to reinstall Datamodel without having to first uninstall and then reinstall it.
+The purpose of Datamodel Upgrade is to make it possible to upgrade Datamodel without having to first uninstall and then reinstall it.
 
-## Parameters
+## What is backward compatibility check?
+The Backward Compatibility Check is a validation process performed during a datamodel upgrade to ensure that the changes made to the datamodel is backward compatible with the previously released/installed datamodel.
+<br> The check is performed at build time and install time
 
 
-### Build parameters
+### Build
+#### Parameters
 
 | Name               | Description                                   |  Type  | Value     |
 |--------------------|-----------------------------------------------|:------:|:----------|
 | `artifact_repo`    | The git repo url where all current CRDs exist | string | `git_url` |
 | `prev-spec-branch` | Branch of current CRDs to compare to new CRDs | string | `master`  |
 
-
-
-
-### Runtime/Install parameters
-
-
-| Name                                         | Description                                         | Type | Value   |
-|----------------------------------------------|-----------------------------------------------------|:----:|:--------|
-| `force`                                      | Force upgrade of a datamodel                        | bool | `false` |
-| `datamodel_backward_compatibility_validator` | Flag to enable/disable backward compatibility check | bool | `false` |
-
-Specify each parameter using the `--key=value` argument to `nexus datamodel build`. For example,
-
+* If "prev-spec-branch" is provided and artifact_repo is provided, datamodel changes are compared against the datamodel artifacts present in prev_spec_branch of artifact_repo provided
+*  If the prev-spec-branch is provided but the artifact_repo is not provided, the nexus.yaml file is checked for the artifact_repo information, the built datamodel will be compared with datamodel artifacts present in prev_spec_branch of artifact_repo provided.
+*  If the prev-spec-branch is provided but the artifact_repo is not available, an error is thrown and the backward compatibility check is flagged as failed.
+<br></br>  
+#### When does backward compatibility check fail?
+When the change made to the DSL is determined as backward-incompatible (as defined below) then the backward compatibility check in CI will fail.<br>
+<br> To enable backward compatibility check at build time we should provide prev-spec-branch and artifact_repo info to build command as shown below<br>
 ```
 $ nexus datamodel build --name orgchart  --artifact_repo=<git_repo> --prev_spec_branch=<master>
 ```
-
-The above command builds the new datamodel against the master branch of the artifactory repo and force will be false.<br>
-If prev_spec_branch is not provided then force will be set to true.
-
-## What is backward compatibility check?
-The Backward Compatibility Check is a validation process performed during a datamodel upgrade to ensure that the changes made to the DSL are backward compatible with the existing CRDs (Custom Resource Definitions), which serve as the source of truth.
-<br> The check is performed at build time and runtime
-
-<br>At build time :<br>
-* If "prev-spec-branch" is not provided, force will be set to true and build/crds dir will be the source of truth if present.
-* If "prev-spec-branch" is provided and artifact_repo is provided, force will be set to false and source of truth will be the 'crds' dir present in prev_spec_branch of artifact_repo provided
-* If the prev-spec-branch is provided but the artifact_repo is not provided, the nexus.yaml file is checked for the artifact_repo information. If it is not found, an error is thrown, and the process exits. <br><br>
-
-<br>At runtime:<br>
-* CRDs existing in the cluster will be the source of truth 
-
-## When does backward compatibility check fail?
-When the change made to the DSL is determined as backward-incompatible (as defined below) then the backward compatibility check in CI will fail.<br>
-To enable this we should provide prev-spec-branch and artifact_repo info to set force to false as mentioned above.
-
-## How to perform force upgrade at runtime?
-1. Ensure there are no CR objects for the dsl node crd that is being upgraded
-Port forward port 5001 of nexusapp-mgr pod in cosmos-cd namespace
-```
-kubectl port-forward -n cosmos-cd nexus-app-mgr-7865f8df58-h7hbj 5018:5001
-```
-2. Invoke the tenant/upgrade POST end point by providing the TenantID and Force info in payload<br>
-Example:<br>
-HTTP METHOD: POST<br>
-URL: http://localhost:5018/tenant/upgrade <br>
-Payload:
-```
-{
-    "TenantID": "v4",
-    "DatamodelForceInstall": true
-}
-```
-## What is considered a non-breaking change?
-
+#### What is considered a non-breaking change?
+Examples of non-breaking change
 #####  1. Add an optional field in the nexus node (field with "omitempty" tag )
 
 <details>
@@ -88,7 +48,7 @@ Payload:
 
 2. Rebuild your datamodel
    ```
-   nexus datamodel build --name orgchart
+   nexus datamodel build --name orgchart --prev_spec_branch=master
    ```
 
    Now, the build would succeed
@@ -125,7 +85,7 @@ Payload:
 
 2. Rebuild your datamodel
    ```
-   nexus datamodel build --name orgchart 
+   nexus datamodel build --name orgchart --prev_spec_branch master
    ```
 
    Now, the build would succeed
@@ -137,7 +97,7 @@ Payload:
 <details>
 <summary>Show example</summary>
 
-1. Modify the `nexus-rest-api-gen` annotation spec from `LeaderRestAPISpec` to `NewLeaderRestAPISpec`
+1. Rename the `nexus-rest-api-gen` annotation spec from `LeaderRestAPISpec` to `NewLeaderRestAPISpec`
 
    ```shell
    var NewLeaderRestAPISpec = nexus.RestAPISpec{
@@ -159,14 +119,15 @@ Payload:
 
 2. Rebuild your datamodel
    ```
-   nexus datamodel build --name orgchart 
+   nexus datamodel build --name orgchart --prev_spec_branch master
    ```
 
    Now, the build would succeed
 
 </details>
+<br>
 
-## What is considered a backward incompatible change?
+##### What is considered a backward incompatible change?
 
 #####  1. Add a required field in the nexus node
 
@@ -311,3 +272,31 @@ Payload:
    ```
 
 </details>
+
+<br>
+
+#### How to perform force upgrade ?
+If "prev-spec-branch" is not provided, backward compatibility check will be skipped.
+
+### Install
+
+#### Parameters
+
+| Name                                         | Description                                         | Type | Value   |
+|----------------------------------------------|-----------------------------------------------------|:----:|:--------|
+| `force`                                      | Force upgrade of a datamodel                        | bool | `false` |
+| `datamodel_backward_compatibility_validator` | Flag to enable/disable backward compatibility check | bool | `false` |
+
+
+<br>At runtime:<br>
+* Datamodel objects existing in the cluster will be the source of truth 
+
+
+
+## How to perform force upgrade at runtime?
+1. Ensure there are no datamodel objects for the datamodel node crd that is being upgraded
+
+
+
+
+
