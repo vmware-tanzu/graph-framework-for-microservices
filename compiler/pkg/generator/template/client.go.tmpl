@@ -462,7 +462,8 @@ func (group *{{$node.GroupTypeName}}) Create{{$node.BaseNodeName}}ByName(ctx con
 	var (
 		retryCount int
 		result *{{$node.GroupBaseImport}}
-		err            error
+		err error
+		exists bool
 	)
 	retryCount = 0
 	for {
@@ -482,6 +483,9 @@ func (group *{{$node.GroupTypeName}}) Create{{$node.BaseNodeName}}ByName(ctx con
 			} else if customerrors.Is(err, context.Canceled){
 				log.Errorf("[Create{{$node.BaseNodeName}}ByName]: context canceled: %s",objToCreate.GetName())
 				return nil,context.Canceled
+			} else if errors.IsAlreadyExists(err) {
+				exists = true
+				break
 			} else {
 				log.Errorf("[Create{{$node.BaseNodeName}}ByName] Object: %s unexpected error: %+v",objToCreate.GetName(),err)
 				return nil,err
@@ -500,6 +504,21 @@ func (group *{{$node.GroupTypeName}}) Create{{$node.BaseNodeName}}ByName(ctx con
 		parentName = helper.GetHashedName("{{$node.Parent.CrdName}}", objToCreate.GetLabels(), parentName)
 	}
 	{{if .Parent.IsNamed}}
+	if exists {
+		var parent *{{$node.Parent.SimpleGroupTypeName}}{{$node.Parent.BaseNodeName}}
+		parent, err = group.client.{{$node.Parent.SimpleGroupTypeName}}().Get{{$node.Parent.BaseNodeName}}ByName(context.Background(),parentName)
+		if err != nil {
+			log.Errorf("[Create{{$node.BaseNodeName}}ByName] Failed to get parent of {{$node.GroupResourceNameTitle}}:(%s) %+v",objToCreate.GetName(),err)
+			return nil, err
+		}
+		_, ok := parent.Spec.{{$node.Parent.GoGvkFieldName}}[objToCreate.DisplayName()]
+		if ok {
+			return &{{$node.SimpleGroupTypeName}}{{$node.BaseNodeName}}{
+				client: group.client,
+				{{$node.BaseNodeName}}: result,
+			}, nil
+		}
+	}
 	payload := "{\"spec\": {\"{{$node.Parent.GvkFieldName}}\": {\"" + objToCreate.DisplayName() + "\": {\"name\": \"" + objToCreate.Name + "\",\"kind\": \"{{$node.Kind}}\", \"group\": \"{{$node.Group}}\"}}}}"
 
 	retryCount = 0
@@ -545,6 +564,20 @@ func (group *{{$node.GroupTypeName}}) Create{{$node.BaseNodeName}}ByName(ctx con
 		}
 	}
 	{{ else }}
+	if exists {
+		var parent *{{$node.Parent.SimpleGroupTypeName}}{{$node.Parent.BaseNodeName}}
+		parent, err = group.client.{{$node.Parent.SimpleGroupTypeName}}().Get{{$node.Parent.BaseNodeName}}ByName(context.Background(),parentName)
+		if err != nil {
+			log.Errorf("[Create{{$node.BaseNodeName}}ByName] Failed to get parent of {{$node.GroupResourceNameTitle}}:(%s) %+v",objToCreate.GetName(),err)
+			return nil, err
+		}
+		if parent.Spec.{{$node.Parent.GoGvkFieldName}} != nil {
+			return &{{$node.SimpleGroupTypeName}}{{$node.BaseNodeName}}{
+				client: group.client,
+				{{$node.BaseNodeName}}: result,
+			}, nil
+		}
+	}
 	var patch Patch
 	patchOp := PatchOp{
 		Op:   "replace",
