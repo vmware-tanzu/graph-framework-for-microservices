@@ -407,7 +407,7 @@ func (group *RootTsmV1) CreateRootByName(ctx context.Context,
 			if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded) {
 				log.Debugf("[Retry count: (%d) obj: %s ] %+v", retryCount, objToCreate.GetName(), err)
 				if retryCount == maxRetryCount {
-					log.Errorf("Max retry exceed on create Root %s", objToCreate.GetName())
+					log.Errorf("Max retry exceed on create Root: %s", objToCreate.GetName())
 					return nil, err
 				}
 				retryCount += 1
@@ -1242,7 +1242,7 @@ func (group *ConfigTsmV1) CreateConfigByName(ctx context.Context,
 			if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded) {
 				log.Debugf("[Retry count: (%d) obj: %s ] %+v", retryCount, objToCreate.GetName(), err)
 				if retryCount == maxRetryCount {
-					log.Errorf("Max retry exceed on create Config %s", objToCreate.GetName())
+					log.Errorf("Max retry exceed on create Config: %s", objToCreate.GetName())
 					return nil, err
 				}
 				retryCount += 1
@@ -1274,9 +1274,7 @@ func (group *ConfigTsmV1) CreateConfigByName(ctx context.Context,
 	}
 
 	if exists {
-		var parent *ProjectProject
-		var err2 error
-		parent, err2 = group.client.Project().GetProjectByName(context.Background(), parentName)
+		parent, err2 := group.client.Project().GetProjectByName(context.Background(), parentName)
 		if err2 != nil {
 			log.Errorf("[CreateConfigByName] Failed to get parent of Config: %s, error: %+v", objToCreate.GetName(), err)
 			return nil, err2
@@ -2332,7 +2330,7 @@ func (group *ProjectTsmV1) CreateProjectByName(ctx context.Context,
 			if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded) {
 				log.Debugf("[Retry count: (%d) obj: %s ] %+v", retryCount, objToCreate.GetName(), err)
 				if retryCount == maxRetryCount {
-					log.Errorf("Max retry exceed on create Project %s", objToCreate.GetName())
+					log.Errorf("Max retry exceed on create Project: %s", objToCreate.GetName())
 					return nil, err
 				}
 				retryCount += 1
@@ -2364,9 +2362,7 @@ func (group *ProjectTsmV1) CreateProjectByName(ctx context.Context,
 	}
 
 	if exists {
-		var parent *RootRoot
-		var err2 error
-		parent, err2 = group.client.Root().GetRootByName(context.Background(), parentName)
+		parent, err2 := group.client.Root().GetRootByName(context.Background(), parentName)
 		if err2 != nil {
 			log.Errorf("[CreateProjectByName] Failed to get parent of Project: %s, error: %+v", objToCreate.GetName(), err)
 			return nil, err2

@@ -476,7 +476,7 @@ func (group *{{$node.GroupTypeName}}) Create{{$node.BaseNodeName}}ByName(ctx con
 			if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded){
 				log.Debugf("[Retry count: (%d) obj: %s ] %+v",retryCount,objToCreate.GetName(),err)
 				if retryCount == maxRetryCount {
-					log.Errorf("Max retry exceed on create {{$node.BaseNodeName}} %s",objToCreate.GetName())
+					log.Errorf("Max retry exceed on create {{$node.BaseNodeName}}: %s",objToCreate.GetName())
 					return nil,err
 				}
 				retryCount +=1
@@ -508,9 +508,7 @@ func (group *{{$node.GroupTypeName}}) Create{{$node.BaseNodeName}}ByName(ctx con
 	}
 	{{if .Parent.IsNamed}}
 	if exists {
-		var parent *{{$node.Parent.SimpleGroupTypeName}}{{$node.Parent.BaseNodeName}}
-		var err2 error
-		parent, err2 = group.client.{{$node.Parent.SimpleGroupTypeName}}().Get{{$node.Parent.BaseNodeName}}ByName(context.Background(),parentName)
+		parent, err2 := group.client.{{$node.Parent.SimpleGroupTypeName}}().Get{{$node.Parent.BaseNodeName}}ByName(context.Background(),parentName)
 		if err2 != nil {
 			log.Errorf("[Create{{$node.BaseNodeName}}ByName] Failed to get parent of {{$node.BaseNodeName}}: %s, error: %+v",objToCreate.GetName(),err)
 			return nil, err2
@@ -569,9 +567,7 @@ func (group *{{$node.GroupTypeName}}) Create{{$node.BaseNodeName}}ByName(ctx con
 	}
 	{{ else }}
 	if exists {
-		var parent *{{$node.Parent.SimpleGroupTypeName}}{{$node.Parent.BaseNodeName}}
-		var err2 error
-		parent, err2 = group.client.{{$node.Parent.SimpleGroupTypeName}}().Get{{$node.Parent.BaseNodeName}}ByName(context.Background(),parentName)
+		parent, err2 := group.client.{{$node.Parent.SimpleGroupTypeName}}().Get{{$node.Parent.BaseNodeName}}ByName(context.Background(),parentName)
 		if err2 != nil {
 			log.Errorf("[Create{{$node.BaseNodeName}}ByName] Failed to get parent of {{$node.BaseNodeName}}: %s, error: %+v",objToCreate.GetName(),err)
 			return nil, err2

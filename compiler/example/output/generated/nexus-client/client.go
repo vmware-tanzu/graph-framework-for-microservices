@@ -515,7 +515,7 @@ func (group *RootTsmV1) CreateRootByName(ctx context.Context,
 			if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded) {
 				log.Debugf("[Retry count: (%d) obj: %s ] %+v", retryCount, objToCreate.GetName(), err)
 				if retryCount == maxRetryCount {
-					log.Errorf("Max retry exceed on create Root %s", objToCreate.GetName())
+					log.Errorf("Max retry exceed on create Root: %s", objToCreate.GetName())
 					return nil, err
 				}
 				retryCount += 1
@@ -1383,7 +1383,7 @@ func (group *ConfigTsmV1) CreateConfigByName(ctx context.Context,
 			if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded) {
 				log.Debugf("[Retry count: (%d) obj: %s ] %+v", retryCount, objToCreate.GetName(), err)
 				if retryCount == maxRetryCount {
-					log.Errorf("Max retry exceed on create Config %s", objToCreate.GetName())
+					log.Errorf("Max retry exceed on create Config: %s", objToCreate.GetName())
 					return nil, err
 				}
 				retryCount += 1
@@ -1415,9 +1415,7 @@ func (group *ConfigTsmV1) CreateConfigByName(ctx context.Context,
 	}
 
 	if exists {
-		var parent *RootRoot
-		var err2 error
-		parent, err2 = group.client.Root().GetRootByName(context.Background(), parentName)
+		parent, err2 := group.client.Root().GetRootByName(context.Background(), parentName)
 		if err2 != nil {
 			log.Errorf("[CreateConfigByName] Failed to get parent of Config: %s, error: %+v", objToCreate.GetName(), err)
 			return nil, err2
@@ -3302,7 +3300,7 @@ func (group *ConfigTsmV1) CreateFooTypeABCByName(ctx context.Context,
 			if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded) {
 				log.Debugf("[Retry count: (%d) obj: %s ] %+v", retryCount, objToCreate.GetName(), err)
 				if retryCount == maxRetryCount {
-					log.Errorf("Max retry exceed on create FooTypeABC %s", objToCreate.GetName())
+					log.Errorf("Max retry exceed on create FooTypeABC: %s", objToCreate.GetName())
 					return nil, err
 				}
 				retryCount += 1
@@ -3334,9 +3332,7 @@ func (group *ConfigTsmV1) CreateFooTypeABCByName(ctx context.Context,
 	}
 
 	if exists {
-		var parent *ConfigConfig
-		var err2 error
-		parent, err2 = group.client.Config().GetConfigByName(context.Background(), parentName)
+		parent, err2 := group.client.Config().GetConfigByName(context.Background(), parentName)
 		if err2 != nil {
 			log.Errorf("[CreateFooTypeABCByName] Failed to get parent of FooTypeABC: %s, error: %+v", objToCreate.GetName(), err)
 			return nil, err2
@@ -4423,7 +4419,7 @@ func (group *ConfigTsmV1) CreateDomainByName(ctx context.Context,
 			if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded) {
 				log.Debugf("[Retry count: (%d) obj: %s ] %+v", retryCount, objToCreate.GetName(), err)
 				if retryCount == maxRetryCount {
-					log.Errorf("Max retry exceed on create Domain %s", objToCreate.GetName())
+					log.Errorf("Max retry exceed on create Domain: %s", objToCreate.GetName())
 					return nil, err
 				}
 				retryCount += 1
@@ -4455,9 +4451,7 @@ func (group *ConfigTsmV1) CreateDomainByName(ctx context.Context,
 	}
 
 	if exists {
-		var parent *ConfigConfig
-		var err2 error
-		parent, err2 = group.client.Config().GetConfigByName(context.Background(), parentName)
+		parent, err2 := group.client.Config().GetConfigByName(context.Background(), parentName)
 		if err2 != nil {
 			log.Errorf("[CreateDomainByName] Failed to get parent of Domain: %s, error: %+v", objToCreate.GetName(), err)
 			return nil, err2
@@ -5619,7 +5613,7 @@ func (group *GnsTsmV1) CreateFooByName(ctx context.Context,
 			if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded) {
 				log.Debugf("[Retry count: (%d) obj: %s ] %+v", retryCount, objToCreate.GetName(), err)
 				if retryCount == maxRetryCount {
-					log.Errorf("Max retry exceed on create Foo %s", objToCreate.GetName())
+					log.Errorf("Max retry exceed on create Foo: %s", objToCreate.GetName())
 					return nil, err
 				}
 				retryCount += 1
@@ -5651,9 +5645,7 @@ func (group *GnsTsmV1) CreateFooByName(ctx context.Context,
 	}
 
 	if exists {
-		var parent *GnsGns
-		var err2 error
-		parent, err2 = group.client.Gns().GetGnsByName(context.Background(), parentName)
+		parent, err2 := group.client.Gns().GetGnsByName(context.Background(), parentName)
 		if err2 != nil {
 			log.Errorf("[CreateFooByName] Failed to get parent of Foo: %s, error: %+v", objToCreate.GetName(), err)
 			return nil, err2
@@ -6702,7 +6694,7 @@ func (group *GnsTsmV1) CreateGnsByName(ctx context.Context,
 			if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded) {
 				log.Debugf("[Retry count: (%d) obj: %s ] %+v", retryCount, objToCreate.GetName(), err)
 				if retryCount == maxRetryCount {
-					log.Errorf("Max retry exceed on create Gns %s", objToCreate.GetName())
+					log.Errorf("Max retry exceed on create Gns: %s", objToCreate.GetName())
 					return nil, err
 				}
 				retryCount += 1
@@ -6734,9 +6726,7 @@ func (group *GnsTsmV1) CreateGnsByName(ctx context.Context,
 	}
 
 	if exists {
-		var parent *ConfigConfig
-		var err2 error
-		parent, err2 = group.client.Config().GetConfigByName(context.Background(), parentName)
+		parent, err2 := group.client.Config().GetConfigByName(context.Background(), parentName)
 		if err2 != nil {
 			log.Errorf("[CreateGnsByName] Failed to get parent of Gns: %s, error: %+v", objToCreate.GetName(), err)
 			return nil, err2
@@ -8781,7 +8771,7 @@ func (group *GnsTsmV1) CreateBarChildByName(ctx context.Context,
 			if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded) {
 				log.Debugf("[Retry count: (%d) obj: %s ] %+v", retryCount, objToCreate.GetName(), err)
 				if retryCount == maxRetryCount {
-					log.Errorf("Max retry exceed on create BarChild %s", objToCreate.GetName())
+					log.Errorf("Max retry exceed on create BarChild: %s", objToCreate.GetName())
 					return nil, err
 				}
 				retryCount += 1
@@ -8813,9 +8803,7 @@ func (group *GnsTsmV1) CreateBarChildByName(ctx context.Context,
 	}
 
 	if exists {
-		var parent *GnsGns
-		var err2 error
-		parent, err2 = group.client.Gns().GetGnsByName(context.Background(), parentName)
+		parent, err2 := group.client.Gns().GetGnsByName(context.Background(), parentName)
 		if err2 != nil {
 			log.Errorf("[CreateBarChildByName] Failed to get parent of BarChild: %s, error: %+v", objToCreate.GetName(), err)
 			return nil, err2
@@ -9812,7 +9800,7 @@ func (group *GnsTsmV1) CreateIgnoreChildByName(ctx context.Context,
 			if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded) {
 				log.Debugf("[Retry count: (%d) obj: %s ] %+v", retryCount, objToCreate.GetName(), err)
 				if retryCount == maxRetryCount {
-					log.Errorf("Max retry exceed on create IgnoreChild %s", objToCreate.GetName())
+					log.Errorf("Max retry exceed on create IgnoreChild: %s", objToCreate.GetName())
 					return nil, err
 				}
 				retryCount += 1
@@ -9844,9 +9832,7 @@ func (group *GnsTsmV1) CreateIgnoreChildByName(ctx context.Context,
 	}
 
 	if exists {
-		var parent *GnsGns
-		var err2 error
-		parent, err2 = group.client.Gns().GetGnsByName(context.Background(), parentName)
+		parent, err2 := group.client.Gns().GetGnsByName(context.Background(), parentName)
 		if err2 != nil {
 			log.Errorf("[CreateIgnoreChildByName] Failed to get parent of IgnoreChild: %s, error: %+v", objToCreate.GetName(), err)
 			return nil, err2
@@ -10846,7 +10832,7 @@ func (group *GnsTsmV1) CreateDnsByName(ctx context.Context,
 			if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded) {
 				log.Debugf("[Retry count: (%d) obj: %s ] %+v", retryCount, objToCreate.GetName(), err)
 				if retryCount == maxRetryCount {
-					log.Errorf("Max retry exceed on create Dns %s", objToCreate.GetName())
+					log.Errorf("Max retry exceed on create Dns: %s", objToCreate.GetName())
 					return nil, err
 				}
 				retryCount += 1
@@ -10878,9 +10864,7 @@ func (group *GnsTsmV1) CreateDnsByName(ctx context.Context,
 	}
 
 	if exists {
-		var parent *ConfigConfig
-		var err2 error
-		parent, err2 = group.client.Config().GetConfigByName(context.Background(), parentName)
+		parent, err2 := group.client.Config().GetConfigByName(context.Background(), parentName)
 		if err2 != nil {
 			log.Errorf("[CreateDnsByName] Failed to get parent of Dns: %s, error: %+v", objToCreate.GetName(), err)
 			return nil, err2
@@ -11859,7 +11843,7 @@ func (group *ServicegroupTsmV1) CreateSvcGroupByName(ctx context.Context,
 			if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded) {
 				log.Debugf("[Retry count: (%d) obj: %s ] %+v", retryCount, objToCreate.GetName(), err)
 				if retryCount == maxRetryCount {
-					log.Errorf("Max retry exceed on create SvcGroup %s", objToCreate.GetName())
+					log.Errorf("Max retry exceed on create SvcGroup: %s", objToCreate.GetName())
 					return nil, err
 				}
 				retryCount += 1
@@ -11891,9 +11875,7 @@ func (group *ServicegroupTsmV1) CreateSvcGroupByName(ctx context.Context,
 	}
 
 	if exists {
-		var parent *GnsGns
-		var err2 error
-		parent, err2 = group.client.Gns().GetGnsByName(context.Background(), parentName)
+		parent, err2 := group.client.Gns().GetGnsByName(context.Background(), parentName)
 		if err2 != nil {
 			log.Errorf("[CreateSvcGroupByName] Failed to get parent of SvcGroup: %s, error: %+v", objToCreate.GetName(), err)
 			return nil, err2
@@ -12917,7 +12899,7 @@ func (group *ServicegroupTsmV1) CreateSvcGroupLinkInfoByName(ctx context.Context
 			if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded) {
 				log.Debugf("[Retry count: (%d) obj: %s ] %+v", retryCount, objToCreate.GetName(), err)
 				if retryCount == maxRetryCount {
-					log.Errorf("Max retry exceed on create SvcGroupLinkInfo %s", objToCreate.GetName())
+					log.Errorf("Max retry exceed on create SvcGroupLinkInfo: %s", objToCreate.GetName())
 					return nil, err
 				}
 				retryCount += 1
@@ -12949,9 +12931,7 @@ func (group *ServicegroupTsmV1) CreateSvcGroupLinkInfoByName(ctx context.Context
 	}
 
 	if exists {
-		var parent *ConfigConfig
-		var err2 error
-		parent, err2 = group.client.Config().GetConfigByName(context.Background(), parentName)
+		parent, err2 := group.client.Config().GetConfigByName(context.Background(), parentName)
 		if err2 != nil {
 			log.Errorf("[CreateSvcGroupLinkInfoByName] Failed to get parent of SvcGroupLinkInfo: %s, error: %+v", objToCreate.GetName(), err)
 			return nil, err2
@@ -14022,7 +14002,7 @@ func (group *PolicypkgTsmV1) CreateAccessControlPolicyByName(ctx context.Context
 			if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded) {
 				log.Debugf("[Retry count: (%d) obj: %s ] %+v", retryCount, objToCreate.GetName(), err)
 				if retryCount == maxRetryCount {
-					log.Errorf("Max retry exceed on create AccessControlPolicy %s", objToCreate.GetName())
+					log.Errorf("Max retry exceed on create AccessControlPolicy: %s", objToCreate.GetName())
 					return nil, err
 				}
 				retryCount += 1
@@ -14054,9 +14034,7 @@ func (group *PolicypkgTsmV1) CreateAccessControlPolicyByName(ctx context.Context
 	}
 
 	if exists {
-		var parent *GnsGns
-		var err2 error
-		parent, err2 = group.client.Gns().GetGnsByName(context.Background(), parentName)
+		parent, err2 := group.client.Gns().GetGnsByName(context.Background(), parentName)
 		if err2 != nil {
 			log.Errorf("[CreateAccessControlPolicyByName] Failed to get parent of AccessControlPolicy: %s, error: %+v", objToCreate.GetName(), err)
 			return nil, err2
@@ -15157,7 +15135,7 @@ func (group *PolicypkgTsmV1) CreateACPConfigByName(ctx context.Context,
 			if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded) {
 				log.Debugf("[Retry count: (%d) obj: %s ] %+v", retryCount, objToCreate.GetName(), err)
 				if retryCount == maxRetryCount {
-					log.Errorf("Max retry exceed on create ACPConfig %s", objToCreate.GetName())
+					log.Errorf("Max retry exceed on create ACPConfig: %s", objToCreate.GetName())
 					return nil, err
 				}
 				retryCount += 1
@@ -15189,9 +15167,7 @@ func (group *PolicypkgTsmV1) CreateACPConfigByName(ctx context.Context,
 	}
 
 	if exists {
-		var parent *PolicypkgAccessControlPolicy
-		var err2 error
-		parent, err2 = group.client.Policypkg().GetAccessControlPolicyByName(context.Background(), parentName)
+		parent, err2 := group.client.Policypkg().GetAccessControlPolicyByName(context.Background(), parentName)
 		if err2 != nil {
 			log.Errorf("[CreateACPConfigByName] Failed to get parent of ACPConfig: %s, error: %+v", objToCreate.GetName(), err)
 			return nil, err2
@@ -16504,7 +16480,7 @@ func (group *PolicypkgTsmV1) CreateVMpolicyByName(ctx context.Context,
 			if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded) {
 				log.Debugf("[Retry count: (%d) obj: %s ] %+v", retryCount, objToCreate.GetName(), err)
 				if retryCount == maxRetryCount {
-					log.Errorf("Max retry exceed on create VMpolicy %s", objToCreate.GetName())
+					log.Errorf("Max retry exceed on create VMpolicy: %s", objToCreate.GetName())
 					return nil, err
 				}
 				retryCount += 1
@@ -16536,9 +16512,7 @@ func (group *PolicypkgTsmV1) CreateVMpolicyByName(ctx context.Context,
 	}
 
 	if exists {
-		var parent *ConfigConfig
-		var err2 error
-		parent, err2 = group.client.Config().GetConfigByName(context.Background(), parentName)
+		parent, err2 := group.client.Config().GetConfigByName(context.Background(), parentName)
 		if err2 != nil {
 			log.Errorf("[CreateVMpolicyByName] Failed to get parent of VMpolicy: %s, error: %+v", objToCreate.GetName(), err)
 			return nil, err2
