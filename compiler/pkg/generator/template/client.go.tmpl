@@ -463,7 +463,8 @@ func (group *{{$node.GroupTypeName}}) Create{{$node.BaseNodeName}}ByName(ctx con
 		retryCount int
 		result *{{$node.GroupBaseImport}}
 		err error
-		exists bool
+		{{if .Parent.HasParent}}exists bool 
+		existsErr error {{ end }}
 	)
 	retryCount = 0
 	for {
@@ -471,30 +472,32 @@ func (group *{{$node.GroupTypeName}}) Create{{$node.BaseNodeName}}ByName(ctx con
 		{{$node.GroupTypeName}}().
 		{{$node.GroupResourceNameTitle}}().Create(ctx, objToCreate, metav1.CreateOptions{})
 		if err != nil {
-			log.Errorf("[Create{{$node.BaseNodeName}}ByName] Failed to create {{$node.GroupResourceNameTitle}}:(%s) %+v",objToCreate.GetName(),err)
+			log.Errorf("[Create{{$node.BaseNodeName}}ByName] Failed to create {{$node.BaseNodeName}}: %s, error: %+v",objToCreate.GetName(),err)
 			if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded){
 				log.Debugf("[Retry count: (%d) obj: %s ] %+v",retryCount,objToCreate.GetName(),err)
 				if retryCount == maxRetryCount {
-					log.Errorf("Max retry exceed on create {{$node.GroupResourceNameTitle}}: %s",objToCreate.GetName())
+					log.Errorf("Max retry exceed on create {{$node.BaseNodeName}} %s",objToCreate.GetName())
 					return nil,err
 				}
 				retryCount +=1
 				time.Sleep(sleepTime * time.Second)
 			} else if customerrors.Is(err, context.Canceled){
-				log.Errorf("[Create{{$node.BaseNodeName}}ByName]: context canceled: %s",objToCreate.GetName())
+				log.Errorf("[Create{{$node.BaseNodeName}}ByName] context canceled while creating {{$node.BaseNodeName}}: %s",objToCreate.GetName())
 				return nil,context.Canceled
-			} else if errors.IsAlreadyExists(err) {
+			}{{if .Parent.HasParent}} else if errors.IsAlreadyExists(err) {
+				log.Debugf("[Create{{$node.BaseNodeName}}ByName] {{$node.BaseNodeName}}: %s already exists, error: %+v",objToCreate.GetName(), err)
 				exists = true
+				existsErr = err
 				break
-			} else {
-				log.Errorf("[Create{{$node.BaseNodeName}}ByName] Object: %s unexpected error: %+v",objToCreate.GetName(),err)
+			}{{ end }} else {
+				log.Errorf("[Create{{$node.BaseNodeName}}ByName] found unexpected error while creating {{$node.BaseNodeName}}: %s, error: %+v",objToCreate.GetName(),err)
 				return nil,err
 			}
 		} else {
+			log.Debugf("[Create{{$node.BaseNodeName}}ByName] {{$node.BaseNodeName}}: %s created successfully",objToCreate.GetName())
 			break
 		}
 	}
-	log.Debugf("[Create{{$node.BaseNodeName}}ByName] {{$node.GroupResourceNameTitle}} created successfully: %s",objToCreate.GetName())
 	{{if .Parent.HasParent}}
 	parentName, ok := objToCreate.GetLabels()["{{$node.Parent.CrdName}}"]
 	if !ok {
@@ -506,17 +509,18 @@ func (group *{{$node.GroupTypeName}}) Create{{$node.BaseNodeName}}ByName(ctx con
 	{{if .Parent.IsNamed}}
 	if exists {
 		var parent *{{$node.Parent.SimpleGroupTypeName}}{{$node.Parent.BaseNodeName}}
-		parent, err = group.client.{{$node.Parent.SimpleGroupTypeName}}().Get{{$node.Parent.BaseNodeName}}ByName(context.Background(),parentName)
-		if err != nil {
-			log.Errorf("[Create{{$node.BaseNodeName}}ByName] Failed to get parent of {{$node.GroupResourceNameTitle}}:(%s) %+v",objToCreate.GetName(),err)
-			return nil, err
+		var err2 error
+		parent, err2 = group.client.{{$node.Parent.SimpleGroupTypeName}}().Get{{$node.Parent.BaseNodeName}}ByName(context.Background(),parentName)
+		if err2 != nil {
+			log.Errorf("[Create{{$node.BaseNodeName}}ByName] Failed to get parent of {{$node.BaseNodeName}}: %s, error: %+v",objToCreate.GetName(),err)
+			return nil, err2
 		}
 		_, ok := parent.Spec.{{$node.Parent.GoGvkFieldName}}[objToCreate.DisplayName()]
 		if ok {
 			return &{{$node.SimpleGroupTypeName}}{{$node.BaseNodeName}}{
 				client: group.client,
 				{{$node.BaseNodeName}}: result,
-			}, nil
+			}, existsErr
 		}
 	}
 	payload := "{\"spec\": {\"{{$node.Parent.GvkFieldName}}\": {\"" + objToCreate.DisplayName() + "\": {\"name\": \"" + objToCreate.Name + "\",\"kind\": \"{{$node.Kind}}\", \"group\": \"{{$node.Group}}\"}}}}"
@@ -566,16 +570,17 @@ func (group *{{$node.GroupTypeName}}) Create{{$node.BaseNodeName}}ByName(ctx con
 	{{ else }}
 	if exists {
 		var parent *{{$node.Parent.SimpleGroupTypeName}}{{$node.Parent.BaseNodeName}}
-		parent, err = group.client.{{$node.Parent.SimpleGroupTypeName}}().Get{{$node.Parent.BaseNodeName}}ByName(context.Background(),parentName)
-		if err != nil {
-			log.Errorf("[Create{{$node.BaseNodeName}}ByName] Failed to get parent of {{$node.GroupResourceNameTitle}}:(%s) %+v",objToCreate.GetName(),err)
-			return nil, err
+		var err2 error
+		parent, err2 = group.client.{{$node.Parent.SimpleGroupTypeName}}().Get{{$node.Parent.BaseNodeName}}ByName(context.Background(),parentName)
+		if err2 != nil {
+			log.Errorf("[Create{{$node.BaseNodeName}}ByName] Failed to get parent of {{$node.BaseNodeName}}: %s, error: %+v",objToCreate.GetName(),err)
+			return nil, err2
 		}
 		if parent.Spec.{{$node.Parent.GoGvkFieldName}} != nil {
 			return &{{$node.SimpleGroupTypeName}}{{$node.BaseNodeName}}{
 				client: group.client,
 				{{$node.BaseNodeName}}: result,
-			}, nil
+			}, existsErr
 		}
 	}
 	var patch Patch
