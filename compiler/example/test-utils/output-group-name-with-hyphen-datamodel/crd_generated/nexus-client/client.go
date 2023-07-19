@@ -403,27 +403,27 @@ func (group *RootTsmV1) CreateRootByName(ctx context.Context,
 			RootTsmV1().
 			Roots().Create(ctx, objToCreate, metav1.CreateOptions{})
 		if err != nil {
-			log.Errorf("[CreateRootByName] Failed to create Roots:(%s) %+v", objToCreate.GetName(), err)
+			log.Errorf("[CreateRootByName] Failed to create Root: %s, error: %+v", objToCreate.GetName(), err)
 			if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded) {
 				log.Debugf("[Retry count: (%d) obj: %s ] %+v", retryCount, objToCreate.GetName(), err)
 				if retryCount == maxRetryCount {
-					log.Errorf("Max retry exceed on create Roots: %s", objToCreate.GetName())
+					log.Errorf("Max retry exceed on create Root %s", objToCreate.GetName())
 					return nil, err
 				}
 				retryCount += 1
 				time.Sleep(sleepTime * time.Second)
 			} else if customerrors.Is(err, context.Canceled) {
-				log.Errorf("[CreateRootByName]: context canceled: %s", objToCreate.GetName())
+				log.Errorf("[CreateRootByName] context canceled while creating Root: %s", objToCreate.GetName())
 				return nil, context.Canceled
 			} else {
-				log.Errorf("[CreateRootByName] Object: %s unexpected error: %+v", objToCreate.GetName(), err)
+				log.Errorf("[CreateRootByName] found unexpected error while creating Root: %s, error: %+v", objToCreate.GetName(), err)
 				return nil, err
 			}
 		} else {
+			log.Debugf("[CreateRootByName] Root: %s created successfully", objToCreate.GetName())
 			break
 		}
 	}
-	log.Debugf("[CreateRootByName] Roots created successfully: %s", objToCreate.GetName())
 
 	log.Debugf("[CreateRootByName] Executed Successfully: %s", objToCreate.GetName())
 	return &RootRoot{
@@ -1229,6 +1229,8 @@ func (group *ConfigTsmV1) CreateConfigByName(ctx context.Context,
 		retryCount int
 		result     *baseconfigtsmtanzuvmwarecomv1.Config
 		err        error
+		exists     bool
+		existsErr  error
 	)
 	retryCount = 0
 	for {
@@ -1236,27 +1238,32 @@ func (group *ConfigTsmV1) CreateConfigByName(ctx context.Context,
 			ConfigTsmV1().
 			Configs().Create(ctx, objToCreate, metav1.CreateOptions{})
 		if err != nil {
-			log.Errorf("[CreateConfigByName] Failed to create Configs:(%s) %+v", objToCreate.GetName(), err)
+			log.Errorf("[CreateConfigByName] Failed to create Config: %s, error: %+v", objToCreate.GetName(), err)
 			if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded) {
 				log.Debugf("[Retry count: (%d) obj: %s ] %+v", retryCount, objToCreate.GetName(), err)
 				if retryCount == maxRetryCount {
-					log.Errorf("Max retry exceed on create Configs: %s", objToCreate.GetName())
+					log.Errorf("Max retry exceed on create Config %s", objToCreate.GetName())
 					return nil, err
 				}
 				retryCount += 1
 				time.Sleep(sleepTime * time.Second)
 			} else if customerrors.Is(err, context.Canceled) {
-				log.Errorf("[CreateConfigByName]: context canceled: %s", objToCreate.GetName())
+				log.Errorf("[CreateConfigByName] context canceled while creating Config: %s", objToCreate.GetName())
 				return nil, context.Canceled
+			} else if errors.IsAlreadyExists(err) {
+				log.Debugf("[CreateConfigByName] Config: %s already exists, error: %+v", objToCreate.GetName(), err)
+				exists = true
+				existsErr = err
+				break
 			} else {
-				log.Errorf("[CreateConfigByName] Object: %s unexpected error: %+v", objToCreate.GetName(), err)
+				log.Errorf("[CreateConfigByName] found unexpected error while creating Config: %s, error: %+v", objToCreate.GetName(), err)
 				return nil, err
 			}
 		} else {
+			log.Debugf("[CreateConfigByName] Config: %s created successfully", objToCreate.GetName())
 			break
 		}
 	}
-	log.Debugf("[CreateConfigByName] Configs created successfully: %s", objToCreate.GetName())
 
 	parentName, ok := objToCreate.GetLabels()["projects.project.tsm-tanzu.vmware.com"]
 	if !ok {
@@ -1266,6 +1273,21 @@ func (group *ConfigTsmV1) CreateConfigByName(ctx context.Context,
 		parentName = helper.GetHashedName("projects.project.tsm-tanzu.vmware.com", objToCreate.GetLabels(), parentName)
 	}
 
+	if exists {
+		var parent *ProjectProject
+		var err2 error
+		parent, err2 = group.client.Project().GetProjectByName(context.Background(), parentName)
+		if err2 != nil {
+			log.Errorf("[CreateConfigByName] Failed to get parent of Config: %s, error: %+v", objToCreate.GetName(), err)
+			return nil, err2
+		}
+		if parent.Spec.ConfigGvk != nil {
+			return &ConfigConfig{
+				client: group.client,
+				Config: result,
+			}, existsErr
+		}
+	}
 	var patch Patch
 	patchOp := PatchOp{
 		Op:   "replace",
@@ -2297,6 +2319,8 @@ func (group *ProjectTsmV1) CreateProjectByName(ctx context.Context,
 		retryCount int
 		result     *baseprojecttsmtanzuvmwarecomv1.Project
 		err        error
+		exists     bool
+		existsErr  error
 	)
 	retryCount = 0
 	for {
@@ -2304,27 +2328,32 @@ func (group *ProjectTsmV1) CreateProjectByName(ctx context.Context,
 			ProjectTsmV1().
 			Projects().Create(ctx, objToCreate, metav1.CreateOptions{})
 		if err != nil {
-			log.Errorf("[CreateProjectByName] Failed to create Projects:(%s) %+v", objToCreate.GetName(), err)
+			log.Errorf("[CreateProjectByName] Failed to create Project: %s, error: %+v", objToCreate.GetName(), err)
 			if errors.IsTimeout(err) || customerrors.Is(err, context.DeadlineExceeded) {
 				log.Debugf("[Retry count: (%d) obj: %s ] %+v", retryCount, objToCreate.GetName(), err)
 				if retryCount == maxRetryCount {
-					log.Errorf("Max retry exceed on create Projects: %s", objToCreate.GetName())
+					log.Errorf("Max retry exceed on create Project %s", objToCreate.GetName())
 					return nil, err
 				}
 				retryCount += 1
 				time.Sleep(sleepTime * time.Second)
 			} else if customerrors.Is(err, context.Canceled) {
-				log.Errorf("[CreateProjectByName]: context canceled: %s", objToCreate.GetName())
+				log.Errorf("[CreateProjectByName] context canceled while creating Project: %s", objToCreate.GetName())
 				return nil, context.Canceled
+			} else if errors.IsAlreadyExists(err) {
+				log.Debugf("[CreateProjectByName] Project: %s already exists, error: %+v", objToCreate.GetName(), err)
+				exists = true
+				existsErr = err
+				break
 			} else {
-				log.Errorf("[CreateProjectByName] Object: %s unexpected error: %+v", objToCreate.GetName(), err)
+				log.Errorf("[CreateProjectByName] found unexpected error while creating Project: %s, error: %+v", objToCreate.GetName(), err)
 				return nil, err
 			}
 		} else {
+			log.Debugf("[CreateProjectByName] Project: %s created successfully", objToCreate.GetName())
 			break
 		}
 	}
-	log.Debugf("[CreateProjectByName] Projects created successfully: %s", objToCreate.GetName())
 
 	parentName, ok := objToCreate.GetLabels()["roots.root.tsm-tanzu.vmware.com"]
 	if !ok {
@@ -2334,6 +2363,21 @@ func (group *ProjectTsmV1) CreateProjectByName(ctx context.Context,
 		parentName = helper.GetHashedName("roots.root.tsm-tanzu.vmware.com", objToCreate.GetLabels(), parentName)
 	}
 
+	if exists {
+		var parent *RootRoot
+		var err2 error
+		parent, err2 = group.client.Root().GetRootByName(context.Background(), parentName)
+		if err2 != nil {
+			log.Errorf("[CreateProjectByName] Failed to get parent of Project: %s, error: %+v", objToCreate.GetName(), err)
+			return nil, err2
+		}
+		if parent.Spec.ProjectGvk != nil {
+			return &ProjectProject{
+				client:  group.client,
+				Project: result,
+			}, existsErr
+		}
+	}
 	var patch Patch
 	patchOp := PatchOp{
 		Op:   "replace",
