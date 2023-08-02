@@ -55,77 +55,133 @@ Examples of non-breaking change
 
 </details>
 
-#####  2. Modify the REST APIs URIs
+[//]: # (#####  2. Modify the REST APIs URIs)
 
-<details>
-<summary>Show example</summary>
+[//]: # ()
+[//]: # (<details>)
 
-1. Remove the GET URI from the spec
-    ```shell
-   var LeaderRestAPISpec = nexus.RestAPISpec{
-    Uris: []nexus.RestURIs{
-    -   {
-    -       Uri:     "/leader/{root.Leader}",
-    -       Methods: nexus.DefaultHTTPMethodsResponses,
-    -   },
-        {
-            Uri:     "/leaders",
-            Methods: nexus.HTTPListResponse,
-        },
-    },
-   }
+[//]: # (<summary>Show example</summary>)
 
-   // nexus-rest-api-gen:LeaderRestAPISpec
-   type Leader struct {
-      nexus.Node    Name          string
-      Designation   string
-      DirectReports Manager `nexus:"children"`
-      Location      string  `json:"location,omitempty"`
-   }
+[//]: # ()
+[//]: # (1. Remove the GET URI from the spec)
 
-2. Rebuild your datamodel
-   ```
-   nexus datamodel build --name orgchart --prev_spec_branch master
-   ```
+[//]: # (    ```shell)
 
-   Now, the build would succeed
+[//]: # (   var LeaderRestAPISpec = nexus.RestAPISpec{)
 
-</details>
+[//]: # (    Uris: []nexus.RestURIs{)
 
-#####  3. Modify the REST APIs annotation
+[//]: # (    -   {)
 
-<details>
-<summary>Show example</summary>
+[//]: # (    -       Uri:     "/leader/{root.Leader}",)
 
-1. Rename the `nexus-rest-api-gen` annotation spec from `LeaderRestAPISpec` to `NewLeaderRestAPISpec`
+[//]: # (    -       Methods: nexus.DefaultHTTPMethodsResponses,)
 
-   ```shell
-   var NewLeaderRestAPISpec = nexus.RestAPISpec{
-    Uris: []nexus.RestURIs{
-        {
-            Uri:     "/leaders",
-            Methods: nexus.HTTPListResponse,
-        },
-    },
-   }
+[//]: # (    -   },)
 
-   // nexus-rest-api-gen:NewLeaderRestAPISpec <==
-   type Leader struct {    
-      nexus.Node    Name          string
-      Designation   string
-      DirectReports Manager `nexus:"children"`
-      Location      string  `json:"location,omitempty"`
-   }
+[//]: # (        {)
 
-2. Rebuild your datamodel
-   ```
-   nexus datamodel build --name orgchart --prev_spec_branch master
-   ```
+[//]: # (            Uri:     "/leaders",)
 
-   Now, the build would succeed
+[//]: # (            Methods: nexus.HTTPListResponse,)
 
-</details>
-<br>
+[//]: # (        },)
+
+[//]: # (    },)
+
+[//]: # (   })
+
+[//]: # ()
+[//]: # (   // nexus-rest-api-gen:LeaderRestAPISpec)
+
+[//]: # (   type Leader struct {)
+
+[//]: # (      nexus.Node    Name          string)
+
+[//]: # (      Designation   string)
+
+[//]: # (      DirectReports Manager `nexus:"children"`)
+
+[//]: # (      Location      string  `json:"location,omitempty"`)
+
+[//]: # (   })
+
+[//]: # ()
+[//]: # (2. Rebuild your datamodel)
+
+[//]: # (   ```)
+
+[//]: # (   nexus datamodel build --name orgchart --prev_spec_branch master)
+
+[//]: # (   ```)
+
+[//]: # ()
+[//]: # (   Now, the build would succeed)
+
+[//]: # ()
+[//]: # (</details>)
+
+[//]: # ()
+[//]: # (#####  3. Modify the REST APIs annotation)
+
+[//]: # ()
+[//]: # (<details>)
+
+[//]: # (<summary>Show example</summary>)
+
+[//]: # ()
+[//]: # (1. Rename the `nexus-rest-api-gen` annotation spec from `LeaderRestAPISpec` to `NewLeaderRestAPISpec`)
+
+[//]: # ()
+[//]: # (   ```shell)
+
+[//]: # (   var NewLeaderRestAPISpec = nexus.RestAPISpec{)
+
+[//]: # (    Uris: []nexus.RestURIs{)
+
+[//]: # (        {)
+
+[//]: # (            Uri:     "/leaders",)
+
+[//]: # (            Methods: nexus.HTTPListResponse,)
+
+[//]: # (        },)
+
+[//]: # (    },)
+
+[//]: # (   })
+
+[//]: # ()
+[//]: # (   // nexus-rest-api-gen:NewLeaderRestAPISpec <==)
+
+[//]: # (   type Leader struct {    )
+
+[//]: # (      nexus.Node    Name          string)
+
+[//]: # (      Designation   string)
+
+[//]: # (      DirectReports Manager `nexus:"children"`)
+
+[//]: # (      Location      string  `json:"location,omitempty"`)
+
+[//]: # (   })
+
+[//]: # ()
+[//]: # (2. Rebuild your datamodel)
+
+[//]: # (   ```)
+
+[//]: # (   nexus datamodel build --name orgchart --prev_spec_branch master)
+
+[//]: # (   ```)
+
+[//]: # ()
+[//]: # (   Now, the build would succeed)
+
+[//]: # ()
+[//]: # (</details>)
+
+[//]: # (<br>)
 
 ##### What is considered a backward incompatible change?
 
