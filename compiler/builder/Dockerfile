@@ -20,7 +20,7 @@ RUN tdnf -y --refresh install \
   && go install github.com/onsi/ginkgo/ginkgo@v1.16.0 \
   && go install github.com/onsi/gomega/...@v1.18.0 \
   && go install golang.org/x/tools/cmd/goimports@latest \
-  && go install github.com/mikefarah/yq/v4@latest \
+  && go install github.com/mikefarah/yq/v4@v4.34.2 \
   && go install -buildvcs=false k8s.io/kube-openapi/cmd/openapi-gen@1a6458611d189dc17e98a0824dc92536365efedf \
   && curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b "$(go env GOPATH)"/bin v1.49.0
 
