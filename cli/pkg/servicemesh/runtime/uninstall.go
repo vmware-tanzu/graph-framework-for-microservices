@@ -12,7 +12,6 @@ import (
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/log"
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/servicemesh/prereq"
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/utils"
-	"gitlab.eng.vmware.com/nsx-allspark_users/nexus/golang/pkg/logging"
 )
 
 func Uninstall(cmd *cobra.Command, args []string) error {
@@ -111,6 +110,6 @@ func init() {
 		"r", common.ImageRegistry, "Registry where helm-chart is located")
 	err := cobra.MarkFlagRequired(UninstallCmd.Flags(), "namespace")
 	if err != nil {
-		logging.Debugf("Runtime uninstall err: %v", err)
+		log.Debugf("Runtime uninstall err: %v", err)
 	}
 }
