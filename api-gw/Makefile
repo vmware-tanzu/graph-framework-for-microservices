@@ -109,7 +109,7 @@ build: lint ## Build manager binary.
 					--build-arg GIT_HEAD=${GIT_HEAD} \
 					--build-arg GIT_TAG=${CI_COMMIT} \
 					--build-arg CICD_TOKEN=${CICD_TOKEN} \
-					-t ${IMAGE_REGISTRY}:${IMAGE_TAG} . ;\
+					-t ${IMAGE_REGISTRY}:${IMAGE_TAG} --progress=plain --no-cache -f Dockerfile.build;\
 	else \
 		test -s ~/.ssh || { echo "Please provide CICD_TOKEN if ssh not available."; exit 1; }; \
 		cp -rf ~/.ssh/* .ssh ;\
@@ -117,7 +117,7 @@ build: lint ## Build manager binary.
 					--build-arg GIT_HEAD=${GIT_HEAD} \
 					--build-arg GIT_TAG=${CI_COMMIT} \
 					--build-arg USE_SSH="true" \
-					-t ${IMAGE_REGISTRY}:${IMAGE_TAG} . ;\
+					-t ${IMAGE_REGISTRY}:${IMAGE_TAG} --progress=plain --no-cache -f Dockerfile.build;\
 	fi
 
 ##@ Test

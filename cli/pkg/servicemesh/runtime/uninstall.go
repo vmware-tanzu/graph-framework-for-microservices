@@ -3,6 +3,7 @@ package runtime
 import (
 	"bytes"
 	"fmt"
+	"os"
 	"os/exec"
 	"strings"
 	"text/template"
@@ -14,7 +15,42 @@ import (
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/utils"
 )
 
+var minimalRuntimeUninstall bool
+
+func minimalUninstall(cmd *cobra.Command, args []string) error {
+
+	res, err := exec.Command("git", "rev-parse", "--show-toplevel").Output()
+	if err != nil {
+		return fmt.Errorf("unable to determine if the CWD is a git repo. Error: %v", err)
+	}
+
+	cwd, cwdErr := os.Getwd()
+	if cwdErr != nil {
+		return fmt.Errorf("unable to get CWD to dertermine if CWD is a git repo. Error: %v", err)
+	}
+
+	if string(res[:len(res)-1]) != cwd {
+		return fmt.Errorf("Current directory %s is not the root directory of nexus repo. Retry the command after cd to the nexus repo root dir.\n", cwd)
+	}
+
+	runtimeUninstallCmd := exec.Command("make", "uninstall.runtime.k0s")
+	runtimeUninstallCmd.Stdout = os.Stdout
+	runtimeUninstallCmd.Stderr = os.Stderr
+	err = runtimeUninstallCmd.Run()
+	if err != nil {
+		return fmt.Errorf("minimal runtime uninstall failed with error: %v", err)
+	}
+
+	return nil
+}
+
 func Uninstall(cmd *cobra.Command, args []string) error {
+	if minimalRuntimeUninstall {
+		return minimalUninstall(cmd, args)
+	}
+	return UninstallHelm(cmd, args)
+}
+func UninstallHelm(cmd *cobra.Command, args []string) error {
 	cmdlineArgs := fmt.Sprintf("--set=global.namespace=%s", Namespace)
 	for resource, valueVariable := range common.Resources {
 		apiVersion := utils.GetAPIGVK(resource)
@@ -112,4 +148,6 @@ func init() {
 	if err != nil {
 		log.Debugf("Runtime uninstall err: %v", err)
 	}
+	UninstallCmd.Flags().BoolVarP(&minimalRuntimeUninstall, "minimal",
+		"", false, "Uninstall a minimalistic runtime. Needs a git clone of source code repo")
 }

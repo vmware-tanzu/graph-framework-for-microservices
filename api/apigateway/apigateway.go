@@ -1,9 +1,9 @@
 package apigateway
 
 import (
-	"golang-appnet.eng.vmware.com/nexus-sdk/api/admin"
-	authentication "golang-appnet.eng.vmware.com/nexus-sdk/api/authn"
-	domain "golang-appnet.eng.vmware.com/nexus-sdk/api/domain"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/api/admin"
+	authentication "github.com/vmware-tanzu/graph-framework-for-microservices/api/authn"
+	domain "github.com/vmware-tanzu/graph-framework-for-microservices/api/domain"
 
 	"github.com/vmware-tanzu/graph-framework-for-microservices/nexus/nexus"
 )

@@ -20,10 +20,10 @@ import (
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	apinexusv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/api.nexus.vmware.com/v1"
-	confignexusv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/config.nexus.vmware.com/v1"
-	domain_nexus_org "golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/domain.nexus.vmware.com/v1"
-	nexus_client "golang-appnet.eng.vmware.com/nexus-sdk/api/build/nexus-client"
+	apinexusv1 "github.com/vmware-tanzu/graph-framework-for-microservices/api/build/apis/api.nexus.vmware.com/v1"
+	confignexusv1 "github.com/vmware-tanzu/graph-framework-for-microservices/api/build/apis/config.nexus.vmware.com/v1"
+	domain_nexus_org "github.com/vmware-tanzu/graph-framework-for-microservices/api/build/apis/domain.nexus.vmware.com/v1"
+	nexus_client "github.com/vmware-tanzu/graph-framework-for-microservices/api/build/nexus-client"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
@@ -42,7 +42,7 @@ var _ = Describe("Echo server tests", func() {
 		go func() {
 			for {
 				select {
-				case <-stopCh :
+				case <-stopCh:
 					receivedSignalFromStopCh = true
 					return
 				}
@@ -52,13 +52,13 @@ var _ = Describe("Echo server tests", func() {
 		defer os.RemoveAll(openApiSpecDir)
 		Expect(err).To(BeNil())
 		echo_server.WatchForOpenApiSpecChanges(stopCh, openApiSpecDir, openApiSpecFile)
-		time.Sleep(5*time.Second)
+		time.Sleep(5 * time.Second)
 		f, err := os.Create(openApiSpecFile)
 		Expect(err).To(BeNil())
 		f.Sync()
 		defer f.Close()
 
-		for i := 0; i < 10; i++{
+		for i := 0; i < 10; i++ {
 			time.Sleep(time.Second)
 			if receivedSignalFromStopCh && echo_server.HttpServerRestartFromOpenApiSpecUpdateCounter == 1 {
 				break
@@ -77,7 +77,7 @@ var _ = Describe("Echo server tests", func() {
 		go func() {
 			for {
 				select {
-				case <-stopCh :
+				case <-stopCh:
 					receivedSignalFromStopCh = true
 					return
 				}
@@ -93,12 +93,12 @@ var _ = Describe("Echo server tests", func() {
 		defer f.Close()
 
 		echo_server.WatchForOpenApiSpecChanges(stopCh, openApiSpecDir, openApiSpecFile)
-		time.Sleep(5*time.Second)
+		time.Sleep(5 * time.Second)
 		bytesWritten, err := f.WriteString("writes\n")
 		Expect(err).To(BeNil())
 		Expect(bytesWritten).ToNot(Equal(0))
 		f.Sync()
-		for i := 0; i < 10; i++{
+		for i := 0; i < 10; i++ {
 			time.Sleep(time.Second)
 			if receivedSignalFromStopCh && echo_server.HttpServerRestartFromOpenApiSpecUpdateCounter == 1 {
 				break
@@ -117,7 +117,7 @@ var _ = Describe("Echo server tests", func() {
 		go func() {
 			for {
 				select {
-				case <-stopCh :
+				case <-stopCh:
 					receivedSignalFromStopCh = true
 					return
 				}
@@ -133,10 +133,10 @@ var _ = Describe("Echo server tests", func() {
 		f.Close()
 
 		echo_server.WatchForOpenApiSpecChanges(stopCh, openApiSpecDir, openApiSpecFile)
-		time.Sleep(5*time.Second)
+		time.Sleep(5 * time.Second)
 		os.Remove(openApiSpecFile)
 
-		for i := 0; i < 10; i++{
+		for i := 0; i < 10; i++ {
 			time.Sleep(time.Second)
 			if receivedSignalFromStopCh && echo_server.HttpServerRestartFromOpenApiSpecUpdateCounter == 1 {
 				break

@@ -1,0 +1,16 @@
+    Prefix:
+      - "/home"
+      - "/api-explorer"
+      - "/allspark-static"
+      - "/cluster-registration"
+      - "/release-manifests"
+      - "/configuration"
+      - "/no-service-access"
+      - "/resiliency"
+      - "/inventory"
+      - "/admin/management"
+    Suffix:
+      - "js"
+      - "css"
+      - "png"
+      - "svg"

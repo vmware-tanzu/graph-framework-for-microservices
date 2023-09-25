@@ -1,3 +1,23 @@
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: nexus-api-dmi
+  namespace: {{ default .Release.Namespace .Values.global.namespace }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: nexus-api-dmi
+subjects:
+- kind: ServiceAccount
+  name: nexus-api-dmi
+  namespace: {{ default .Release.Namespace .Values.global.namespace }}
+roleRef:
+  kind: ClusterRole
+  name: cluster-admin
+  apiGroup: rbac.authorization.k8s.io
+---
 apiVersion: batch/v1
 kind: Job
 metadata:
@@ -15,40 +35,16 @@ spec:
       {{- if eq .Values.global.tainted true }}
       {{- template "tolerations" .}}
       {{- end }}
-      initContainers:
-        - name: check-nexus-proxy-container
-          image: "{{ .Values.global.registry }}/debugtools:latest"
-          command:
-            - /bin/bash
-            - -c
-            - |
-              #!/bin/bash
-              set -x
-              URL="http://nexus-proxy-container/api/v1/namespaces"
-              max_retries=60
-              counter=0
-              while [[ $counter -lt $max_retries ]]; do
-                    status=$(curl -s -o /dev/null -I -w "%{http_code}" -XGET $URL)
-                    if [ $status == "200" ]; then
-                        echo "$URL is reachable"
-                        exit 0
-                    else
-                        counter=$((counter +1))
-                        sleep 3
-                        if [[ $counter -eq $max_retries ]]; then
-                           exit 1
-                        fi
-                    fi
-              done
-      ##Script is mounted from https://gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/nexus-runtime-manifests/-/blob/master/core/templates/datamodel_installer.yaml configmap present here
       containers:
         - command:
             - /bin/bash
             - -c
             - opt/datamodel-installer-job-cm/create_datamodel_cm.sh
+          {{- if eq .Values.global.useserviceaccount false }}
           env:
             - name: KUBECONFIG
               value: /etc/config/kubeconfig
+          {{- end }}
           image: {{.Values.global.registry}}/nexus-api:{{.Values.global.api.tag}}
           imagePullPolicy: IfNotPresent
           name: datamodel-installer-job
@@ -56,20 +52,27 @@ spec:
             - mountPath: /opt/datamodel-installer-job-cm/
               name: dmi-script
               readOnly: false
+            {{- if ne .Values.global.stockkubeconfig "" }}
             - mountPath: /etc/config
               name: dmi-kubeconfig
               readOnly: false
+            {{end}}
       restartPolicy: OnFailure
       volumes:
         - configMap:
             name: dmi-script
             defaultMode: 0555
           name: dmi-script
+        {{- if ne .Values.global.useserviceaccount false }}
         - configMap:
             name: dmi-kubeconfig
             defaultMode: 0555
           name: dmi-kubeconfig
+        {{end}}
       {{- if ne .Values.global.imagepullsecret "" }}
       imagePullSecrets:
       - name: {{.Values.global.imagepullsecret}}
       {{end}}
+      {{- if eq .Values.global.useserviceaccount true }}
+      serviceAccountName: nexus-api-dmi
+      {{- end}}

@@ -1,3 +1,5 @@
+//go:build grs
+
 package registration_test
 
 import (

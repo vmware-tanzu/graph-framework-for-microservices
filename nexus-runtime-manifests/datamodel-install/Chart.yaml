@@ -1,0 +1,5 @@
+apiVersion: v2
+name: datamodel-install 
+description: Datamodel installer charts 
+type: application
+version: 0.0.1

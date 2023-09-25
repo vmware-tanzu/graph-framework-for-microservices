@@ -6,7 +6,7 @@ import (
 	"api-gw/pkg/utils"
 	"os"
 
-	nexus_client "golang-appnet.eng.vmware.com/nexus-sdk/api/build/nexus-client"
+	nexus_client "github.com/vmware-tanzu/graph-framework-for-microservices/api/build/nexus-client"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"

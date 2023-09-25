@@ -1,3 +1,3 @@
 gateway:
-  location: golang-appnet.eng.vmware.com/nexus-sdk/api
+  location: github.com/vmware-tanzu/graph-framework-for-microservices/api
   isDefault: true

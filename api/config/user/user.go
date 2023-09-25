@@ -2,7 +2,7 @@ package user
 
 import (
 	"github.com/vmware-tanzu/graph-framework-for-microservices/nexus/nexus"
-	tenantconfig "golang-appnet.eng.vmware.com/nexus-sdk/api/config/tenant"
+	tenantconfig "github.com/vmware-tanzu/graph-framework-for-microservices/api/config/tenant"
 )
 
 type User struct {

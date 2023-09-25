@@ -46,7 +46,7 @@ func Build(cmd *cobra.Command, args []string) error {
 	log.Debugf("Using compiler Version: %s\n", compilerVersion)
 
 	envList := common.GetEnvList()
-	envList = append(envList, fmt.Sprintf("TAG=%s", compilerVersion))
+	envList = append(envList, fmt.Sprintf("COMPILER_TAG=%s", compilerVersion))
 	containerID := os.Getenv("CONTAINER_ID")
 	if containerID != "" {
 		envList = append(envList, fmt.Sprintf("CONTAINER_ID=%s", containerID))

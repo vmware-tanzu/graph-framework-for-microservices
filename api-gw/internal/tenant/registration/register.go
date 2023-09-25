@@ -8,14 +8,15 @@ import (
 	"fmt"
 	"time"
 
+	"api-gw/pkg/plugins/tenantreg"
+
 	"github.com/labstack/gommon/log"
 
-	reg_svc "gitlab.eng.vmware.com/nsx-allspark_users/go-protos/pkg/registration-service/global"
-	tenant_config_v1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/tenantconfig.nexus.vmware.com/v1"
+	tenant_config_v1 "github.com/vmware-tanzu/graph-framework-for-microservices/api/build/apis/tenantconfig.nexus.vmware.com/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-func AddTenantToSystem(tenantconfig tenant_config_v1.Tenant, regclient reg_svc.GlobalRegistrationClient) error {
+func AddTenantToSystem(tenantconfig tenant_config_v1.Tenant) error {
 	tenantName := tenantconfig.Labels[common.DISPLAY_NAME]
 	envoy.AddTenantConfig(&envoy.TenantConfig{
 		Name: tenantName,
@@ -41,8 +42,8 @@ func AddTenantToSystem(tenantconfig tenant_config_v1.Tenant, regclient reg_svc.G
 		var registration_retry int = 0
 		for registration_retry < common.REGISTRATION_RETRIES {
 			registration_retry = registration_retry + 1
-			err := common.RegisterTenant(regclient, tenantName, reg_svc.TenantRequest_License(common.AvailableSkus[tenantconfig.Spec.Skus[0]]))
-			if err != nil {
+			// err := common.RegisterTenant(tenantName, reg_svc.TenantRequest_License(common.AvailableSkus[tenantconfig.Spec.Skus[0]]))
+			if tenantreg.RegisterTenant(tenantconfig) == false {
 				log.Errorf("RegisterTenant Failed: exceeded maximum retries %d", common.REGISTRATION_RETRIES)
 				if registration_retry == common.REGISTRATION_RETRIES {
 					common.AddTenantState(tenantName, common.TenantState{
@@ -75,19 +76,19 @@ func AddTenantToSystem(tenantconfig tenant_config_v1.Tenant, regclient reg_svc.G
 	return nil
 }
 
-func InitTenantConfig(reg_client reg_svc.GlobalRegistrationClient) error {
+func InitTenantConfig() error {
 	tenantconfigs, err := client.NexusClient.Tenantconfig().ListTenants(context.TODO(), metav1.ListOptions{})
 	if err != nil {
 		return fmt.Errorf("Could not get tenant config due to %s", err)
 	}
 	for _, tenantconfig := range tenantconfigs {
 		// Not returning error till the GRS issue is fixed for provisioning multiple tenants at once
-		AddTenantToSystem(*tenantconfig.Tenant, reg_client)
+		AddTenantToSystem(*tenantconfig.Tenant)
 	}
 	return nil
 }
 
-func InitTenantRuntimeCache(reg_client reg_svc.GlobalRegistrationClient) error {
+func InitTenantRuntimeCache() error {
 	tenantruntimes, err := client.NexusClient.Tenantruntime().ListTenants(context.TODO(), metav1.ListOptions{})
 	if err != nil {
 		return fmt.Errorf("Could not get tenant runtime due to %s", err)
@@ -101,10 +102,10 @@ func InitTenantRuntimeCache(reg_client reg_svc.GlobalRegistrationClient) error {
 		}
 		if !found {
 			log.Infof("Calling Unregister tenant as the tenant config CR is not present: %s", tenantName)
-			sku := reg_svc.TenantRequest_License(common.SKUstoIntMap[tenantruntime.Spec.Attributes.Skus[0]])
+			// sku := reg_svc.TenantRequest_License(common.SKUstoIntMap[tenantruntime.Spec.Attributes.Skus[0]])
 			common.DeleteTenantState(tenantName)
 			// Ignoring error in unregister cause it could be due to other blocking calls till mutiple tenant provisioning is supported
-			common.UnregisterTenant(reg_client, tenantName, sku)
+			tenantreg.UnregisterTenant(tenantName)
 
 		} else {
 			status, message := common.GetTenantStatus(tenantruntime.Status.AppStatus)

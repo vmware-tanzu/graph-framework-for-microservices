@@ -15,14 +15,15 @@ import (
 	"sync"
 	"time"
 
+	"api-gw/pkg/plugins/tenantreg"
+
 	"github.com/MicahParks/keyfunc"
 	"github.com/coreos/go-oidc/v3/oidc"
 	"github.com/golang-jwt/jwt/v4"
 	"github.com/labstack/echo/v4"
 	log "github.com/sirupsen/logrus"
-	reg_svc "gitlab.eng.vmware.com/nsx-allspark_users/go-protos/pkg/registration-service/global"
-	authnexusv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/authentication.nexus.vmware.com/v1"
-	nexus_client "golang-appnet.eng.vmware.com/nexus-sdk/api/build/nexus-client"
+	authnexusv1 "github.com/vmware-tanzu/graph-framework-for-microservices/api/build/apis/authentication.nexus.vmware.com/v1"
+	nexus_client "github.com/vmware-tanzu/graph-framework-for-microservices/api/build/nexus-client"
 	"golang.org/x/oauth2"
 )
 
@@ -67,29 +68,28 @@ func HandlerTenantNodeUpdate(event *model.TenantNodeEvent, e *echo.Echo) error {
 
 	if event.Type == model.Upsert {
 		log.Infoln(fmt.Sprintf("Registering tenant %s in registration service", event.Tenant.DisplayName()))
-		if err := registration.AddTenantToSystem(event.Tenant, event.RegClient); err != nil {
+		if err := registration.AddTenantToSystem(event.Tenant); err != nil {
 			log.Error(fmt.Sprintf("Registering tenant %s in registration service failed due to %v", event.Tenant.DisplayName(), err))
 			return err
 		}
 	}
 	if event.Type == model.Delete {
-		tenanName, ok := common.GetTenantDisplayName(event.Tenant.Name)
+		tenantName, ok := common.GetTenantDisplayName(event.Tenant.Name)
 		if !ok {
 			return fmt.Errorf("Tenant displayname not registered")
 		}
-		envoy.DeleteTenantConfig(tenanName)
+		envoy.DeleteTenantConfig(tenantName)
 		log.Infoln("unregistering tenant in registration service")
 		var registration_retry int = 0
 		for registration_retry < common.REGISTRATION_RETRIES {
 			registration_retry = registration_retry + 1
-			status, ok := common.GetTenantState(tenanName)
+			_, ok := common.GetTenantState(tenantName)
 			if !ok {
 				return fmt.Errorf("Could not get Tenantstate object")
 			}
-			err := common.UnregisterTenant(event.RegClient, tenanName, reg_svc.TenantRequest_License(common.AvailableSkus[status.SKU]))
-			if err != nil {
+			if tenantreg.UnregisterTenant(tenantName) == false {
 				if registration_retry == common.REGISTRATION_RETRIES {
-					return err
+					return fmt.Errorf("tenant unregistration failed for tenant %s", tenantName)
 				} else {
 					log.Debugf("UnRegisterTenant Failed : continue to retry for %d time", registration_retry)
 					time.Sleep(common.REGISTRATION_WAIT_TIME)
@@ -98,9 +98,9 @@ func HandlerTenantNodeUpdate(event *model.TenantNodeEvent, e *echo.Echo) error {
 			}
 			break
 		}
-		common.DeleteTenantState(tenanName)
+		common.DeleteTenantState(tenantName)
 		common.DeleteTenantDisplayName(event.Tenant.Name)
-		err := common.DeleteUsersForTenant(tenanName)
+		err := common.DeleteUsersForTenant(tenantName)
 		if err != nil {
 			return err
 		}
