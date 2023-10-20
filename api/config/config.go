@@ -2,11 +2,11 @@ package config
 
 import (
 	"github.com/vmware-tanzu/graph-framework-for-microservices/nexus/nexus"
-	"golang-appnet.eng.vmware.com/nexus-sdk/api/apigateway"
-	tenantconfig "golang-appnet.eng.vmware.com/nexus-sdk/api/config/tenant"
-	"golang-appnet.eng.vmware.com/nexus-sdk/api/config/user"
-	"golang-appnet.eng.vmware.com/nexus-sdk/api/connect"
-	"golang-appnet.eng.vmware.com/nexus-sdk/api/route"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/api/apigateway"
+	tenantconfig "github.com/vmware-tanzu/graph-framework-for-microservices/api/config/tenant"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/api/config/user"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/api/connect"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/api/route"
 )
 
 // Config holds the Nexus configuration.

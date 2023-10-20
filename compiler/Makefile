@@ -11,7 +11,7 @@ IMAGE_NAME ?= nexus/compiler
 TAG ?= $(shell git rev-parse --verify --short=8 HEAD)
 
 BUILDER_NAME ?= ${IMAGE_NAME}-builder
-BUILDER_TAG := $(shell md5sum builder/Dockerfile | awk '{ print $1 }' | head -c 8)
+BUILDER_TAG ?= $(shell md5sum builder/Dockerfile | awk '{ print $1 }' | head -c 8)
 
 PKG_NAME?=/go/src/github.com/vmware-tanzu/graph-framework-for-microservices/${GO_PROJECT_NAME}
 

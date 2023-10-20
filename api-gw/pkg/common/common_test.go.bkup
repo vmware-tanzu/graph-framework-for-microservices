@@ -1,3 +1,5 @@
+//go:build grs
+
 package common_test
 
 import (
@@ -17,16 +19,16 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/sirupsen/logrus"
+	apinexusv1 "github.com/vmware-tanzu/graph-framework-for-microservices/api/build/apis/api.nexus.vmware.com/v1"
+	common_nexus_vmware_com "github.com/vmware-tanzu/graph-framework-for-microservices/api/build/apis/common.nexus.vmware.com/v1"
+	confignexusv1 "github.com/vmware-tanzu/graph-framework-for-microservices/api/build/apis/config.nexus.vmware.com/v1"
+	runtimenexusv1 "github.com/vmware-tanzu/graph-framework-for-microservices/api/build/apis/runtime.nexus.vmware.com/v1"
+	tenant_config_v1 "github.com/vmware-tanzu/graph-framework-for-microservices/api/build/apis/tenantconfig.nexus.vmware.com/v1"
+	v1 "github.com/vmware-tanzu/graph-framework-for-microservices/api/build/apis/tenantruntime.nexus.vmware.com/v1"
+	userv1 "github.com/vmware-tanzu/graph-framework-for-microservices/api/build/apis/user.nexus.vmware.com/v1"
+	nexus_client "github.com/vmware-tanzu/graph-framework-for-microservices/api/build/nexus-client"
 	reg_svc_mock "gitlab.eng.vmware.com/nsx-allspark_users/go-protos/mocks/pkg/registration-service/global"
 	reg_svc "gitlab.eng.vmware.com/nsx-allspark_users/go-protos/pkg/registration-service/global"
-	apinexusv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/api.nexus.vmware.com/v1"
-	common_nexus_vmware_com "golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/common.nexus.vmware.com/v1"
-	confignexusv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/config.nexus.vmware.com/v1"
-	runtimenexusv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/runtime.nexus.vmware.com/v1"
-	tenant_config_v1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/tenantconfig.nexus.vmware.com/v1"
-	v1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/tenantruntime.nexus.vmware.com/v1"
-	userv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/user.nexus.vmware.com/v1"
-	nexus_client "golang-appnet.eng.vmware.com/nexus-sdk/api/build/nexus-client"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 

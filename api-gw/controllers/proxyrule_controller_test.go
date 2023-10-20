@@ -9,7 +9,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	log "github.com/sirupsen/logrus"
-	adminv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/admin.nexus.vmware.com/v1"
+	adminv1 "github.com/vmware-tanzu/graph-framework-for-microservices/api/build/apis/admin.nexus.vmware.com/v1"
 )
 
 var _ = Describe("ProxyRule controller", func() {

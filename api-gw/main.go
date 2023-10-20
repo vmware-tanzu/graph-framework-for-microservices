@@ -28,20 +28,17 @@ import (
 	"api-gw/pkg/utils"
 	"flag"
 	"fmt"
-	log "github.com/sirupsen/logrus"
-	reg_svc "gitlab.eng.vmware.com/nsx-allspark_users/go-protos/pkg/registration-service/global"
-	nexus_client "golang-appnet.eng.vmware.com/nexus-sdk/api/build/nexus-client"
 	"os"
-	runtimeclient "sigs.k8s.io/controller-runtime/pkg/client"
+
+	log "github.com/sirupsen/logrus"
+	nexus_client "github.com/vmware-tanzu/graph-framework-for-microservices/api/build/nexus-client"
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
-	"strconv"
 
 	// Import all Kubernetes client auth plugins (e.g. Azure, GCP, OIDC, etc.)
 	// to ensure that exec-entrypoint and run can make use of them.
 
 	"k8s.io/client-go/kubernetes"
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
-	"k8s.io/client-go/rest"
 
 	"k8s.io/apimachinery/pkg/runtime"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
@@ -51,21 +48,22 @@ import (
 
 	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 
-	authnexusv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/authentication.nexus.vmware.com/v1"
+	authnexusv1 "github.com/vmware-tanzu/graph-framework-for-microservices/api/build/apis/authentication.nexus.vmware.com/v1"
 	corev1 "k8s.io/api/core/v1"
 	apiregistrationv1 "k8s.io/kube-aggregator/pkg/apis/apiregistration/v1"
 
 	"api-gw/controllers"
 
-	adminnexusorgv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/admin.nexus.vmware.com/v1"
-	apigatewaynexusorgv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/apigateway.nexus.vmware.com/v1"
+	adminnexusorgv1 "github.com/vmware-tanzu/graph-framework-for-microservices/api/build/apis/admin.nexus.vmware.com/v1"
+	apigatewaynexusorgv1 "github.com/vmware-tanzu/graph-framework-for-microservices/api/build/apis/apigateway.nexus.vmware.com/v1"
 
-	middleware_nexus_org_v1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/domain.nexus.vmware.com/v1"
-	routenexusorgv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/route.nexus.vmware.com/v1"
-	tenantv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/tenantconfig.nexus.vmware.com/v1"
-	tenantruntimev1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/tenantruntime.nexus.vmware.com/v1"
+	middleware_nexus_org_v1 "github.com/vmware-tanzu/graph-framework-for-microservices/api/build/apis/domain.nexus.vmware.com/v1"
+	routenexusorgv1 "github.com/vmware-tanzu/graph-framework-for-microservices/api/build/apis/route.nexus.vmware.com/v1"
+	tenantv1 "github.com/vmware-tanzu/graph-framework-for-microservices/api/build/apis/tenantconfig.nexus.vmware.com/v1"
+	tenantruntimev1 "github.com/vmware-tanzu/graph-framework-for-microservices/api/build/apis/tenantruntime.nexus.vmware.com/v1"
 
 	//+kubebuilder:scaffold:imports
+	metricsserver "sigs.k8s.io/controller-runtime/pkg/metrics/server"
 
 	"api-gw/pkg/server/echo_server"
 )
@@ -142,7 +140,7 @@ func main() {
 	customFormatter.FullTimestamp = true
 	log.SetFormatter(customFormatter)
 
-	conf, err := config.LoadConfig("/config/api-gw-config")
+	conf, err := config.LoadConfig("")
 	if err != nil {
 		log.Warnf("Error loading config: %v\n", err)
 	}
@@ -198,8 +196,7 @@ func main() {
 func InitManager(metricsAddr string, probeAddr string, enableLeaderElection bool, stopCh chan struct{}, lvl log.Level) {
 	mgr, err := ctrl.NewManager(ctrl.GetConfigOrDie(), ctrl.Options{
 		Scheme:                 scheme,
-		MetricsBindAddress:     metricsAddr,
-		Port:                   9443,
+		Metrics:                metricsserver.Options{BindAddress: metricsAddr},
 		HealthProbeBindAddress: probeAddr,
 		LeaderElection:         enableLeaderElection,
 		LeaderElectionID:       "7b10c258.api-gw.com",
@@ -242,36 +239,39 @@ func InitManager(metricsAddr string, probeAddr string, enableLeaderElection bool
 		setupLog.Error(err, "unable to create controller", "controller", "CORSreconciler")
 		os.Exit(1)
 	}
-	baseConfig, err := rest.InClusterConfig()
-	if err != nil {
-		setupLog.Error(err, "unable to create manager for base k8s")
-		os.Exit(1)
-	}
+	/*
 
-	baseClient, err := runtimeclient.New(baseConfig, runtimeclient.Options{})
+		baseConfig, err := rest.InClusterConfig()
+		if err != nil {
+			setupLog.Error(err, "unable to create manager for base k8s")
+			os.Exit(1)
+		}
 
-	baseNamespace := os.Getenv("NAMESPACE")
-	ingressControllerName := "ingress-nginx-controller"
-	if os.Getenv("INGRESS_CONTROLLER_NAME") != "" {
-		ingressControllerName = os.Getenv("INGRESS_CONTROLLER_NAME")
-	}
 
-	// Adding nginx base server , needed because of the / requirement.
-	defaultBackendservice := os.Getenv("DEFAULT_BACKEND_SERVICE_NAME")
-	defaultBackendPort, _ := strconv.Atoi(os.Getenv("DEFAULT_BACKEND_SERVICE_PORT"))
-	if err = (&controllers.RouteReconciler{
-		Client:                mgr.GetClient(),
-		BaseClient:            baseClient,
-		Scheme:                mgr.GetScheme(),
-		BaseNamespace:         baseNamespace,
-		IngressControllerName: ingressControllerName,
-		DefaultBackend:        defaultBackendservice,
-		DefaultBackendPort:    int32(defaultBackendPort),
-	}).SetupWithManager(mgr); err != nil {
-		setupLog.Error(err, "unable to create controller", "controller", "Route")
-		os.Exit(1)
-	}
+			baseClient, err := runtimeclient.New(baseConfig, runtimeclient.Options{})
 
+			baseNamespace := os.Getenv("NAMESPACE")
+			ingressControllerName := "ingress-nginx-controller"
+			if os.Getenv("INGRESS_CONTROLLER_NAME") != "" {
+				ingressControllerName = os.Getenv("INGRESS_CONTROLLER_NAME")
+			}
+
+			// Adding nginx base server , needed because of the / requirement.
+			defaultBackendservice := os.Getenv("DEFAULT_BACKEND_SERVICE_NAME")
+			defaultBackendPort, _ := strconv.Atoi(os.Getenv("DEFAULT_BACKEND_SERVICE_PORT"))
+			if err = (&controllers.RouteReconciler{
+				Client:                mgr.GetClient(),
+				BaseClient:            baseClient,
+				Scheme:                mgr.GetScheme(),
+				BaseNamespace:         baseNamespace,
+				IngressControllerName: ingressControllerName,
+				DefaultBackend:        defaultBackendservice,
+				DefaultBackendPort:    int32(defaultBackendPort),
+			}).SetupWithManager(mgr); err != nil {
+				setupLog.Error(err, "unable to create controller", "controller", "Route")
+				os.Exit(1)
+			}
+	*/
 	if err = (&controllers.ProxyRuleReconciler{
 		Client: mgr.GetClient(),
 		Scheme: mgr.GetScheme(),
@@ -341,13 +341,13 @@ func InitManager(metricsAddr string, probeAddr string, enableLeaderElection bool
 			os.Exit(1)
 		}
 
-		reg_client := reg_svc.NewGlobalRegistrationClient(grpcConnector.Connection)
+		// reg_client := reg_svc.NewGlobalRegistrationClient(grpcConnector.Connection)
 
-		if err := registration.InitTenantConfig(reg_client); err != nil {
+		if err := registration.InitTenantConfig(); err != nil {
 			setupLog.Error(err, "unable to reconcile TenantConfig")
 			os.Exit(1)
 		}
-		if err := registration.InitTenantRuntimeCache(reg_client); err != nil {
+		if err := registration.InitTenantRuntimeCache(); err != nil {
 			setupLog.Error(err, "unable to start Tenant Cache")
 			os.Exit(1)
 		}

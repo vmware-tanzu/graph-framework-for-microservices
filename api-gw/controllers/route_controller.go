@@ -32,7 +32,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 
-	routenexusorgv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/route.nexus.vmware.com/v1"
+	routenexusorgv1 "github.com/vmware-tanzu/graph-framework-for-microservices/api/build/apis/route.nexus.vmware.com/v1"
 )
 
 // RouteReconciler reconciles a Route object

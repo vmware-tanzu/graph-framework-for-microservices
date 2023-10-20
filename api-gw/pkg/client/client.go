@@ -5,10 +5,11 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"os"
 	"strings"
 
+	nexus_client "github.com/vmware-tanzu/graph-framework-for-microservices/api/build/nexus-client"
 	"github.com/vmware-tanzu/graph-framework-for-microservices/common-library/pkg/nexus"
-	nexus_client "golang-appnet.eng.vmware.com/nexus-sdk/api/build/nexus-client"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime/schema"
@@ -24,7 +25,13 @@ var Host string
 var NexusClient *nexus_client.Clientset
 
 func New(config *rest.Config) (err error) {
-	Host = config.Host
+
+	if kubeApiHostPort, isSpecified := os.LookupEnv("KUBEAPI_ENDPOINT"); isSpecified {
+		Host = "http://" + kubeApiHostPort
+	} else {
+		Host = config.Host
+	}
+
 	Client, err = dynamic.NewForConfig(config)
 	if err != nil {
 		return err

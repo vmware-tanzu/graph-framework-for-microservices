@@ -2,6 +2,7 @@ package config
 
 import (
 	"fmt"
+
 	"github.com/spf13/cobra"
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/utils"
 )
@@ -69,5 +70,4 @@ func init() {
 		"", false, "Print debug output even without specifying the --debug flag")
 	SetCmd.Flags().BoolVarP(&skipUpgradeCheck, flagSkipUpgradeCheck,
 		"", false, "Skip checking for the latest available CLI version")
-	SetCmd.Flags().MarkHidden(flagSkipUpgradeCheck)
 }

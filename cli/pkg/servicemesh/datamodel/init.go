@@ -5,6 +5,8 @@ import (
 	"os"
 	"strings"
 
+	"github.com/otiai10/copy"
+
 	"gitlab.eng.vmware.com/nsx-allspark_users/nexus-sdk/cli.git/pkg/log"
 
 	"github.com/spf13/cobra"
@@ -26,17 +28,18 @@ var GroupName string
 var localDatamodel bool
 var dockerRepo string
 var BuildDockerImg bool
+var localDir string
 
 func createDatamodel(dmName string, DatamodelTarballUrl string, Render bool, standalone bool) error {
 	var Directory string
-
+	var err error
 	if !standalone {
-		err := utils.GoToNexusDirectory()
+		err = utils.GoToNexusDirectory()
 		if err != nil {
 			fmt.Printf("Could not locate nexusDirectory\n")
 			return err
 		}
-		if _, err := os.Stat(dmName); err == nil {
+		if _, err = os.Stat(dmName); err == nil {
 			fmt.Printf("Datamodel %s already exists\n", dmName)
 			return nil
 		}
@@ -52,27 +55,36 @@ func createDatamodel(dmName string, DatamodelTarballUrl string, Render bool, sta
 		}
 	}
 
-	err := utils.DownloadFile(DatamodelTarballUrl, "datamodel.tar")
-	if err != nil {
-		return fmt.Errorf("could not download template files due to %s", err)
-	}
+	if localDir != "" {
+		// completely arbitrary paths
+		sourceDir := localDir + "/datamodel-templates/nexus/.datamodel.templatedir"
+		fmt.Println("sourceDir:", sourceDir)
+		destDir, _ := os.Getwd()
+		fmt.Println("Working directory:", destDir)
+		fmt.Println("copy using library:", copy.Copy(sourceDir, destDir))
+	} else {
+		err = utils.DownloadFile(DatamodelTarballUrl, "datamodel.tar")
+		if err != nil {
+			return fmt.Errorf("could not download template files due to %s", err)
+		}
 
-	file, err := os.Open("datamodel.tar")
-	if err != nil {
-		fmt.Println(err)
-		os.Exit(1)
-	}
+		file, err := os.Open("datamodel.tar")
+		if err != nil {
+			fmt.Println(err)
+			os.Exit(1)
+		}
 
-	defer file.Close()
-	err = utils.Untar(".", file)
-	if err != nil {
-		return fmt.Errorf("could not unarchive template files due to %s", err)
+		defer file.Close()
+		err = utils.Untar(".", file)
+		if err != nil {
+			return fmt.Errorf("could not unarchive template files due to %s", err)
+		}
+		os.Remove("datamodel.tar")
 	}
-	os.Remove("datamodel.tar")
 
 	if !standalone {
 		if dmName != "helloworld" {
-			err := utils.GoModInit(dmName, false)
+			err = utils.GoModInit(dmName, false)
 			if err != nil {
 				return err
 			}
@@ -84,7 +96,7 @@ func createDatamodel(dmName string, DatamodelTarballUrl string, Render bool, sta
 		}
 		Directory = dmName
 	} else {
-		err := utils.GoModInit(dmName, true)
+		err = utils.GoModInit(dmName, true)
 		if err != nil {
 			return err
 		}
@@ -200,6 +212,7 @@ func init() {
 	InitCmd.Flags().StringVarP(&GroupName, group, "g", "", "subdomain for the datamodel resources")
 	InitCmd.Flags().BoolVarP(&localDatamodel, localDatamodelFlag, "", false, "initializes a app local datamodel")
 	InitCmd.Flags().StringVarP(&dockerRepo, "docker-repo", "d", "", "docker repo to publish image")
+	InitCmd.Flags().StringVarP(&localDir, "local-dir", "l", "", "directory of the nexus repo")
 
 	err := InitCmd.MarkFlagRequired(name)
 	if err != nil {

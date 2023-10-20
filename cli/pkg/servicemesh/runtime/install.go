@@ -3,6 +3,7 @@ package runtime
 import (
 	"bytes"
 	"fmt"
+
 	"io"
 	"os"
 	"os/exec"
@@ -31,6 +32,7 @@ var skipAdminBootstrap bool
 var cpuResources *[]string
 var memoryResources *[]string
 var additionalOptions *[]string
+var minimalRuntime bool
 
 type RuntimeInstallerData struct {
 	RuntimeInstaller  common.RuntimeInstaller
@@ -57,13 +59,15 @@ var InstallCmd = &cobra.Command{
 			return nil
 		}
 
-		if err := prereq.PreReqVerifyOnDemand(installPrerequisites); err != nil {
-			return err
+		if minimalRuntime == false {
+			if err := prereq.PreReqVerifyOnDemand(installPrerequisites); err != nil {
+				return err
+			}
 		}
 
 		return nil
 	},
-	RunE: HelmInstall,
+	RunE: Install,
 }
 
 func CreateNs(Namespace string) error {
@@ -224,6 +228,33 @@ func HelmInstall(cmd *cobra.Command, args []string) error {
 	return nil
 }
 
+func minimalInstall(cmd *cobra.Command, args []string) error {
+
+	res, err := exec.Command("git", "rev-parse", "--show-toplevel").Output()
+	if err != nil {
+		return fmt.Errorf("unable to determine if the CWD is a git repo. Error: %v", err)
+	}
+
+	cwd, cwdErr := os.Getwd()
+	if cwdErr != nil {
+		return fmt.Errorf("unable to get CWD to dertermine if CWD is a git repo. Error: %v", err)
+	}
+
+	if string(res[:len(res)-1]) != cwd {
+		return fmt.Errorf("Current directory %s is not the root directory of nexus repo. Retry the command after cd to the nexus repo root dir.\n", cwd)
+	}
+
+	runtimeInstallCmd := exec.Command("make", "install.runtime.k0s")
+	runtimeInstallCmd.Stdout = os.Stdout
+	runtimeInstallCmd.Stderr = os.Stderr
+	err = runtimeInstallCmd.Run()
+	if err != nil {
+		return fmt.Errorf("minimal runtime install failed with error: %v", err)
+	}
+
+	return nil
+}
+
 func RunJob(Namespace, jobName string, applyString bytes.Buffer) error {
 	var data []byte = applyString.Bytes()
 
@@ -284,6 +315,13 @@ func DeleteJob(data []byte, jobName, Namespace string) error {
 	return nil
 }
 
+func Install(cmd *cobra.Command, args []string) error {
+	if minimalRuntime {
+		return minimalInstall(cmd, args)
+	}
+	return HelmInstall(cmd, args)
+}
+
 func init() {
 	InstallCmd.Flags().StringVarP(&Namespace, "namespace",
 		"n", "", "name of the namespace to be created")
@@ -313,6 +351,8 @@ func init() {
 		[]string{}, "for configuring memory resources")
 	additionalOptions = InstallCmd.Flags().StringArrayP("options", "",
 		[]string{}, "for configuring additional helm values")
+	InstallCmd.Flags().BoolVarP(&minimalRuntime, "minimal",
+		"", false, "Install a minimalistic runtime. Needs a git clone of source code repo")
 
 	err := cobra.MarkFlagRequired(InstallCmd.Flags(), "namespace")
 	if err != nil {

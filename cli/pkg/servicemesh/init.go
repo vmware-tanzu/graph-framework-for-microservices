@@ -154,6 +154,7 @@ func initCommands() {
 	GetCmd.AddCommand(GetSpecCmd)
 
 	RuntimeCmd.AddCommand(runtime.InstallCmd)
+	RuntimeCmd.AddCommand(runtime.RunApiCmd)
 	RuntimeCmd.AddCommand(runtime.UninstallCmd)
 
 	DataModelCmd.AddCommand(servicemesh_datamodel.InitCmd)

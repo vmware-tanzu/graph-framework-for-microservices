@@ -1,0 +1,6 @@
+server:
+  address: ":443"
+  httpPort: "8082"
+  certPath: "/etc/cert/cert.pem"
+  keyPath: "/etc/cert/key.pem"
+enable_nexus_runtime: true

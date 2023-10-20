@@ -8,16 +8,13 @@ import (
 	"strings"
 	"time"
 
-	"gitlab.eng.vmware.com/nsx-allspark_users/go-protos/pkg/health"
-	authnexusv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/authentication.nexus.vmware.com/v1"
+	authnexusv1 "github.com/vmware-tanzu/graph-framework-for-microservices/api/build/apis/authentication.nexus.vmware.com/v1"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 
-	"github.com/labstack/gommon/log"
+	middlewarenexusv1 "github.com/vmware-tanzu/graph-framework-for-microservices/api/build/apis/domain.nexus.vmware.com/v1"
+	tenantv1 "github.com/vmware-tanzu/graph-framework-for-microservices/api/build/apis/tenantconfig.nexus.vmware.com/v1"
 	"github.com/vmware-tanzu/graph-framework-for-microservices/nexus/nexus"
-	reg_svc "gitlab.eng.vmware.com/nsx-allspark_users/go-protos/pkg/registration-service/global"
-	middlewarenexusv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/domain.nexus.vmware.com/v1"
-	tenantv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/tenantconfig.nexus.vmware.com/v1"
 )
 
 // adding this global variables for CORS to support multiple domain and header configuration
@@ -81,9 +78,8 @@ type OidcNodeEvent struct {
 }
 
 type TenantNodeEvent struct {
-	Tenant    tenantv1.Tenant
-	Type      EventType
-	RegClient reg_svc.GlobalRegistrationClient
+	Tenant tenantv1.Tenant
+	Type   EventType
 }
 
 type DatamodelInfo struct {
@@ -112,7 +108,6 @@ type ConnectorObject struct {
 
 func (v *ConnectorObject) GetVersion() (interface{}, error) {
 	var result interface{}
-	var err error
 	if v.Protocol == "http" {
 		resp, err := http.Get(v.Service)
 		if err != nil {
@@ -125,22 +120,8 @@ func (v *ConnectorObject) GetVersion() (interface{}, error) {
 		if err := json.Unmarshal(body, &result); err != nil {
 			return nil, err
 		}
-		return result, nil
-	} else if v.Protocol == "grpc" {
-		if v.Connection == nil {
-			err = v.InitConnection()
-			if err != nil {
-				return nil, err
-			}
-		}
-		client := health.NewPingClient(v.Connection)
-		result, err = client.Echo(context.Background(), &health.PingInput{Sequence: 1, Msg: ""})
-		if err != nil {
-			log.Errorf("Error in grpc call to version , errMsg: %s", err)
-			return nil, err
-		}
-		return result, nil
 	}
+
 	return result, nil
 }
 

@@ -2,7 +2,7 @@ package runtime
 
 import (
 	"github.com/vmware-tanzu/graph-framework-for-microservices/nexus/nexus"
-	tenantruntime "golang-appnet.eng.vmware.com/nexus-sdk/api/runtime/tenant"
+	tenantruntime "github.com/vmware-tanzu/graph-framework-for-microservices/api/runtime/tenant"
 )
 
 // Runtime tree.

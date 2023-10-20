@@ -18,7 +18,7 @@ func getDefaultNexusConfig() NexusConfig {
 	return NexusConfig{
 		UpgradePromptDisable: false,
 		DebugAlways:          false,
-		SkipUpgradeCheck:     false,
+		SkipUpgradeCheck:     true,
 	}
 }
 

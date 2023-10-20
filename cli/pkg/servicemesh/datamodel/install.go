@@ -86,6 +86,7 @@ var InstallCmd = &cobra.Command{
 func init() {
 	InstallCmd.AddCommand(ImageCmd)
 	InstallCmd.AddCommand(NameCmd)
+	InstallCmd.AddCommand(DirCmd)
 	InstallCmd.PersistentFlags().StringVarP(&Title, "title",
 		"", "", "title of the swaggerDocs for rest endpoints")
 	InstallCmd.PersistentFlags().StringVarP(&GraphqlPath, "graphql-url",

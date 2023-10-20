@@ -23,7 +23,7 @@ import (
 	"fmt"
 
 	log "github.com/sirupsen/logrus"
-	adminnexusorgv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/admin.nexus.vmware.com/v1"
+	adminnexusorgv1 "github.com/vmware-tanzu/graph-framework-for-microservices/api/build/apis/admin.nexus.vmware.com/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"

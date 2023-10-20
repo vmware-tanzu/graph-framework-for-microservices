@@ -21,7 +21,7 @@ import (
 	"context"
 
 	log "github.com/sirupsen/logrus"
-	domain_nexus_org "golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/domain.nexus.vmware.com/v1"
+	domain_nexus_org "github.com/vmware-tanzu/graph-framework-for-microservices/api/build/apis/domain.nexus.vmware.com/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 
 	ctrl "sigs.k8s.io/controller-runtime"

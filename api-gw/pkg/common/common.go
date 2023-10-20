@@ -13,19 +13,18 @@ import (
 
 	jwt "github.com/golang-jwt/jwt/v4"
 	"github.com/labstack/gommon/log"
-	userv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/user.nexus.vmware.com/v1"
-	"golang-appnet.eng.vmware.com/nexus-sdk/api/build/common"
+	userv1 "github.com/vmware-tanzu/graph-framework-for-microservices/api/build/apis/user.nexus.vmware.com/v1"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/api/build/common"
 
-	reg_svc "gitlab.eng.vmware.com/nsx-allspark_users/go-protos/pkg/registration-service/global"
-	tenant_config_v1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/tenantconfig.nexus.vmware.com/v1"
-	tenant_runtime_v1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/tenantruntime.nexus.vmware.com/v1"
-	nexus_client "golang-appnet.eng.vmware.com/nexus-sdk/api/build/nexus-client"
+	tenant_config_v1 "github.com/vmware-tanzu/graph-framework-for-microservices/api/build/apis/tenantconfig.nexus.vmware.com/v1"
+	tenant_runtime_v1 "github.com/vmware-tanzu/graph-framework-for-microservices/api/build/apis/tenantruntime.nexus.vmware.com/v1"
+	nexus_client "github.com/vmware-tanzu/graph-framework-for-microservices/api/build/nexus-client"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/utils/strings/slices"
 )
 
 // Add logic for registration retries
-//Increasing this for CSP cluster as they uses terraform for provisioning nodes, which would consume lot of time
+// Increasing this for CSP cluster as they uses terraform for provisioning nodes, which would consume lot of time
 var REGISTRATION_RETRIES int = 30
 var REGISTRATION_WAIT_TIME time.Duration = 10
 
@@ -59,20 +58,6 @@ const (
 var CSP_PERMISSION_NAME string
 var CSP_SERVICE_ID string
 var CSP_SERVICE_NAME string
-
-var SKUstoIntMap = map[string]int32{
-	"LICENSE_ADVANCE":          int32(reg_svc.TenantRequest_LICENSE_ADVANCE),
-	"LICENSE_ENTERPRISE":       int32(reg_svc.TenantRequest_LICENSE_ENTERPRISE),
-	"LICENSE_ADVANCE_SCALE":    int32(reg_svc.TenantRequest_LICENSE_ADVANCE_SCALE),
-	"LICENSE_ENTERPRISE_SCALE": int32(reg_svc.TenantRequest_LICENSE_ENTERPRISE_SCALE),
-}
-
-var AvailableSkus = map[string]int32{
-	"advance":          int32(reg_svc.TenantRequest_LICENSE_ADVANCE),
-	"enterprise":       int32(reg_svc.TenantRequest_LICENSE_ENTERPRISE),
-	"advance_scale":    int32(reg_svc.TenantRequest_LICENSE_ADVANCE_SCALE),
-	"enterprise_scale": int32(reg_svc.TenantRequest_LICENSE_ENTERPRISE_SCALE),
-}
 
 func GetServiceUnavailableJson(err string, state string, status string, creationDate string) map[string]interface{} {
 	return map[string]interface{}{
@@ -209,9 +194,9 @@ func CreateTenantIfNotExists(NexusClient *nexus_client.Clientset, tenantName str
 	if err != nil {
 		return err
 	}
-	if _, ok := AvailableSkus[SKU]; !ok {
-		return fmt.Errorf("SKU not supported")
-	}
+	// if _, ok := AvailableSkus[SKU]; !ok {
+	// 	return fmt.Errorf("SKU not supported")
+	//}
 	found, err := CheckTenantIfExists(NexusClient, tenantName)
 	if err != nil {
 		return fmt.Errorf("could not get tenant details : %v", err)
@@ -232,34 +217,6 @@ func CreateTenantIfNotExists(NexusClient *nexus_client.Clientset, tenantName str
 		if err != nil {
 			return err
 		}
-	}
-	return nil
-}
-
-func UnregisterTenant(reg_client reg_svc.GlobalRegistrationClient, tenantName string, sku reg_svc.TenantRequest_License) error {
-	regs, err := reg_client.UnregisterTenant(context.Background(), &reg_svc.TenantRequest{
-		Name:    tenantName,
-		License: sku,
-	})
-	if err != nil {
-		return fmt.Errorf("Could not delete tenant due to %s", err)
-	}
-	if regs.Code != 0 {
-		return fmt.Errorf("Could not delete tenant due to %s", err)
-	}
-	return nil
-}
-
-func RegisterTenant(reg_client reg_svc.GlobalRegistrationClient, tenantName string, sku reg_svc.TenantRequest_License) error {
-	regs, err := reg_client.RegisterTenant(context.Background(), &reg_svc.TenantRequest{
-		Name:    tenantName,
-		License: sku,
-	})
-	if err != nil {
-		return fmt.Errorf("Could not delete tenant due to %s", err)
-	}
-	if regs.Code != 0 {
-		return fmt.Errorf("Could not delete tenant due to %s", err)
 	}
 	return nil
 }

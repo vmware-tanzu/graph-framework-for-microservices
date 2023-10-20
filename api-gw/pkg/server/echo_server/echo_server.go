@@ -12,7 +12,6 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
-	"github.com/fsnotify/fsnotify"
 	"net"
 	"net/http"
 	"net/http/httputil"
@@ -21,6 +20,8 @@ import (
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/fsnotify/fsnotify"
 
 	jwt "github.com/golang-jwt/jwt/v4"
 	"github.com/labstack/echo/v4"
@@ -34,8 +35,8 @@ import (
 	"api-gw/pkg/model"
 	"api-gw/pkg/utils"
 
-	userv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/user.nexus.vmware.com/v1"
-	nexus_client "golang-appnet.eng.vmware.com/nexus-sdk/api/build/nexus-client"
+	userv1 "github.com/vmware-tanzu/graph-framework-for-microservices/api/build/apis/user.nexus.vmware.com/v1"
+	nexus_client "github.com/vmware-tanzu/graph-framework-for-microservices/api/build/nexus-client"
 
 	"github.com/vmware-tanzu/graph-framework-for-microservices/nexus/nexus"
 )

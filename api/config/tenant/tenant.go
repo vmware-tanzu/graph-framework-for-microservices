@@ -3,7 +3,7 @@ package tenantconfig
 import (
 	"github.com/vmware-tanzu/graph-framework-for-microservices/nexus/nexus"
 
-	"golang-appnet.eng.vmware.com/nexus-sdk/api/common"
+	"github.com/vmware-tanzu/graph-framework-for-microservices/api/common"
 )
 
 type Label struct {

@@ -24,6 +24,8 @@ func GoModInit(path string, current bool) error {
 	if path != "" {
 		fmt.Printf("Intializing gomodule\nGo mod init name: %s\n", path)
 		cmd := exec.Command("go", "mod", "init", path)
+		cmd.Env = os.Environ()
+		cmd.Env = append(cmd.Env, "GOTOOLCHAIN=go1.18")
 		out, err := cmd.Output()
 		fmt.Printf("output: %s", out)
 		if err != nil {
@@ -38,6 +40,8 @@ func GoModInit(path string, current bool) error {
 	} else {
 		fmt.Printf("Intializing gomodule\n")
 		cmd := exec.Command("go", "mod", "init")
+		cmd.Env = os.Environ()
+		cmd.Env = append(cmd.Env, "GOTOOLCHAIN=go1.18")
 		_, err := cmd.Output()
 		if err != nil {
 			return err

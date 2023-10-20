@@ -1,0 +1,37 @@
+version: "3.9"
+services:
+  k0s:
+    container_name: k0s
+    image: docker.io/k0sproject/k0s:latest
+    command: k0s controller --config=/etc/k0s/config.yaml
+    hostname: k0s
+    privileged: true
+    volumes:
+      - "/var/lib/k0s"
+      - kubeconfig:/var/lib/k0s/pki
+    tmpfs:
+      - /run
+      - /var/run
+    ports:
+      - "6443:6443"
+    network_mode: "bridge"
+    environment:
+      K0S_CONFIG: |-
+        apiVersion: k0s.k0sproject.io/v1beta1
+        kind: Cluster
+        metadata:
+          name: k0s
+        # Any additional configuration goes here ...
+  k8s-proxy:
+    depends_on:
+      - k0s
+    container_name: k8s-proxy
+    image: bitnami/kubectl
+    command: proxy --disable-filter=true --v=1 --kubeconfig /var/lib/k0s/pki/admin.conf
+    hostname: k8s-proxy
+    privileged: true
+    network_mode: "host"
+    volumes:
+      - kubeconfig:/var/lib/k0s/pki
+volumes:
+  kubeconfig: {}

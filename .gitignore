@@ -49,5 +49,20 @@ compiler/report.json
 compiler/cmd/debug
 compiler/coverage.json
 compiler/report.json
+compiler/cmd/validate
 artifacts/
 node_modules
+TAG
+
+# api datamodel build artifacts
+api/build/*
+
+# api-gw artifacts
+api-gw/api-gw
+api-gw/bin/*
+
+# k0s artifacts
+nexus-runtime-manifests/k0s/.kubeconfig
+
+# playgound app directory
+sock-shop-saas-app/*

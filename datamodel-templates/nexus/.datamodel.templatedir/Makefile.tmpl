@@ -1,14 +1,16 @@
 BUILD_DIR ?= build
 CRD_MODULE_PATH ?= $(shell go list -m)/${BUILD_DIR}/
-TAG ?= "latest"
 CONTAINER_ID ?= ""
 DATAMODEL_LOCAL_PATH ?= $(realpath .)
 BUCKET ?= nexus-template-downloads
-DOCKER_REPO ?= $(shell cat nexus.yaml | grep dockerRepo | awk '{print $$2}' | tr -d '"')
+COMPILER_TAG ?= "latest"
+COMPILER_DOCKER_REPO ?=
 VERSION ?= $(shell git rev-parse --verify HEAD 2>/dev/null)
-NAME ?= $(shell cat nexus.yaml | grep groupName | awk '{print $$2}' | tr -d '"')
+DATAMODEL_DOCKER_REPO ?= $(shell cat nexus.yaml | grep dockerRepo | awk '{print $$2}' | tr -d '"')
+DATAMODEL_REPO_NAME ?= $(shell cat nexus.yaml | grep groupName | awk '{print $$2}' | tr -d '"')
 NAMESPACE ?= ""
-FORCE ?= false
+HOST_KUBECONFIG ?= ${HOME}/.kube/config
+MOUNTED_KUBECONFIG ?= /etc/config/kubeconfig
 
 # values for nexus datamodel upgrade
 FORCE ?= true
@@ -37,8 +39,8 @@ endif
 
 endif
 
-ifeq ($(DOCKER_REPO),)
-DOCKER_REPO=$(NAME)
+ifeq ($(DATAMODEL_DOCKER_REPO),)
+DATAMODEL_DOCKER_REPO=$(DATAMODEL_REPO_NAME)
 endif
 
 ifeq ($(VERSION),)
@@ -71,7 +73,7 @@ datamodel_build:
 			-e GOPRIVATE=*.eng.vmware.com \
 			-e GOINSECURE=*.eng.vmware.com \
 			-e FORCE=$(FORCE) \
-			gcr.io/nsx-sm/nexus/compiler:$(TAG) /bin/bash -c 'make generate_code && chown -R $(shell id -u):$(shell id -g) .;'; \
+			${COMPILER_DOCKER_REPO}nexus/compiler:$(COMPILER_TAG) /bin/bash -c 'make generate_code && chown -R $(shell id -u):$(shell id -g) .;'; \
 	else \
 		docker run --pull=missing\
 			--volumes-from=$(CONTAINER_ID) \
@@ -85,17 +87,31 @@ datamodel_build:
 			-e FORCE=${FORCE} \
 			--user root:root \
 			-e FORCE=$(FORCE) \
-			gcr.io/nsx-sm/nexus/compiler:$(TAG); \
+			${COMPILER_DOCKER_REPO}nexus/compiler:$(COMPILER_TAG); \
 	fi
 
 docker_build:
-	@if [ -n "$(NAME)" ]; then \
-				echo "Building image: $(DOCKER_REPO):$(VERSION)" ;\
-				docker build --build-arg IMAGE_NAME=$(DOCKER_REPO):$(VERSION) --build-arg NAME=$(NAME) -t $(DOCKER_REPO):$(VERSION) . -f Dockerfile ; \
+	@if [ -n "$(DATAMODEL_REPO_NAME)" ]; then \
+				echo "Building image: $(DATAMODEL_DOCKER_REPO):$(VERSION)" ;\
+				docker build --build-arg IMAGE_NAME=$(DATAMODEL_DOCKER_REPO):$(VERSION) --build-arg NAME=$(DATAMODEL_REPO_NAME) -t $(DATAMODEL_DOCKER_REPO):$(VERSION) . -f Dockerfile ; \
 	else \
-			echo "Please provide NAME (GroupName) when running docker_build" ;\
+			echo "Please provide DATAMODEL_REPO_NAME (GroupName) when running docker_build" ;\
 			exit 1;\
 	fi
 
 docker_publish: docker_build
-	docker push $(DOCKER_REPO):$(VERSION) ;
+	docker push $(DATAMODEL_DOCKER_REPO):$(VERSION) ;
+
+.PHONY: dm.install
+dm.install:
+	docker run \
+		--net host \
+		--pull=missing \
+		--volume $(realpath .)/build/crds:/crds \
+		--mount type=bind,source=${HOST_KUBECONFIG},target=${MOUNTED_KUBECONFIG},readonly \
+		--mount type=bind,source=$(realpath .)/datamodel_installer.sh,target=/datamodel_installer.sh,readonly \
+		--entrypoint /datamodel_installer.sh \
+		-e KUBECONFIG=${MOUNTED_KUBECONFIG} \
+		-e NAME=${DATAMODEL_NAME} \
+		-e IMAGE=${DATAMODEL_DOCKER_REPO} \
+		bitnami/kubectl

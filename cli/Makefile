@@ -32,29 +32,37 @@ version:
 	@echo Built: $(BUILD_DATE)
 
 .PHONY: build
-build:
-	GOOS=darwin GOARCH=amd64 go build --ldflags "$(GO_LDFLAGS)" ./cmd/plugin/nexus
-	mv nexus $(ARTIFACTS_PATH)/nexus-darwin_amd64
-	GOOS=linux GOARCH=amd64 go build --ldflags "$(GO_LDFLAGS)" ./cmd/plugin/nexus
-	mv nexus $(ARTIFACTS_PATH)/nexus-linux_amd64
-	GOOS=darwin GOARCH=amd64 go build --ldflags "$(GO_LDFLAGS)" ./cmd/plugin/tsm
-	mv tsm $(ARTIFACTS_PATH)/tsm-darwin_amd64
-	GOOS=linux GOARCH=amd64 go build --ldflags "$(GO_LDFLAGS)" ./cmd/plugin/tsm
-	mv tsm $(ARTIFACTS_PATH)/tsm-linux_amd64
+build: build.darwin build.linux
+
+.PHONY: build.darwin
+build.darwin:
+	@if [ "$(UNAME)" = "Darwin" ]; then\
+		GOOS=darwin GOARCH=amd64 go build -buildvcs=false --ldflags "$(GO_LDFLAGS)" ./cmd/plugin/nexus;\
+		mv nexus $(ARTIFACTS_PATH)/nexus-darwin_amd64;\
+		echo "Build successful. Binary: $(ARTIFACTS_PATH)/nexus-darwin_amd64";\
+		echo "Run: make install to update install/existing binary in /usr/local/bin";\
+	fi
+
+.PHONY: build.linux
+build.linux:
+	@if [ "$(UNAME)" = "Linux" ]; then \
+		GOOS=linux GOARCH=amd64 go build -buildvcs=false --ldflags "$(GO_LDFLAGS)" ./cmd/plugin/nexus;\
+		mv nexus $(ARTIFACTS_PATH)/nexus-linux_amd64;\
+	fi
 
 .PHONY: install
-install:
+install: install.darwin install.linux
+
+.PHONY: install.darwin
+install.darwin:
 	@if [ "$(UNAME)" = "Darwin" ]; then\
-	    cp $(ARTIFACTS_PATH)/nexus-darwin_amd64 /usr/local/bin/nexus;\
-		echo "nexus cli installed successfully, please use nexus -h to know more";\
-		cp $(ARTIFACTS_PATH)/tsm-darwin_amd64 /usr/local/bin/tsm;\
-		echo "tsm cli installed successfully, please use tsm -h to know more";\
+		cp $(ARTIFACTS_PATH)/nexus-darwin_amd64 /usr/local/bin/nexus;\
 	fi
+
+.PHONY: install.linux
+install.linux:
 	@if [ "$(UNAME)" = "Linux" ]; then \
-	    cp $(ARTIFACTS_PATH)/nexus-linux_amd64 /usr/local/bin/nexus;\
-		echo "nexus installed successfully, please use nexus -h to know more";\
-		cp $(ARTIFACTS_PATH)/tsm-linux_amd64 /usr/local/bin/tsm;\
-		echo "tsm cli installed successfully, please use tsm -h to know more";\
+		cp $(ARTIFACTS_PATH)/nexus-linux_amd64 /usr/local/bin/nexus;\
 	fi
 
 .PHONY: lint

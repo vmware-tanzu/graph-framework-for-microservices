@@ -33,7 +33,7 @@ datamodel_build:
 			-e CONFIG_FILE=datamodel/nexus.yaml \
 			-e GOPRIVATE=*.eng.vmware.com \
 			-e GOINSECURE=*.eng.vmware.com \
-			gcr.io/nsx-sm/nexus/compiler:$(TAG); \
+			nexus/compiler:$(TAG); \
 	else \
 		docker run --pull=missing\
 			--volumes-from=$(CONTAINER_ID) \
@@ -44,8 +44,7 @@ datamodel_build:
 			-e GOPRIVATE=*.eng.vmware.com \
 			-e GOINSECURE=*.eng.vmware.com \
 			-e CICD_TOKEN=${CICD_TOKEN} \
-			--user root:root \
-			gcr.io/nsx-sm/nexus/compiler:$(TAG); \
+			nexus/compiler:$(TAG); \
 	fi
 
 docker_build:
@@ -59,3 +58,6 @@ docker_build:
 
 docker_publish: docker_build
 	docker push $(DOCKER_REPO):$(VERSION) ;
+
+.PHONY: build
+build: datamodel_build docker_build

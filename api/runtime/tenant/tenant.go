@@ -1,8 +1,6 @@
 package tenantruntime
 
 import (
-	"golang-appnet.eng.vmware.com/nexus-sdk/api/common"
-
 	"github.com/vmware-tanzu/graph-framework-for-microservices/nexus/nexus"
 )
 
@@ -60,8 +58,28 @@ type Health struct {
 type TenantStatus struct {
 
 	// Applications currently installed in the Tenant.
-	InstalledApplications common.ApplicationStatus `json:"installedApplications,omitempty"`
+	InstalledApplications ApplicationStatus `json:"installedApplications,omitempty"`
 	ReleaseVersion        string                   `json:"releaseVersion,omitempty"`
 	ReleaseStatus         string                   `json:"releaseStatus,omitempty"`
 	PreviousRelease       string                   `json:"previousRelease,omitempty"`
+}
+
+type ApplicationStatus struct {
+        NexusApps map[string]NexusApp `json:"nexusApps, omitempty"`
+}
+
+type NexusApp struct {
+        OamApp      OamApp `json:"oamApp, omitempty"`
+        State       string `json:"state, omitempty"`
+        StateReason string `json:"stateReason, omitempty"`
+}
+
+type OamApp struct {
+        Components map[string]ComponentDefinition `json:"components, omitempty"`
+}
+
+type ComponentDefinition struct {
+        Name   string `json:"name, omitempty"`
+        Sync   string `json:"sync, omitempty"`
+        Health string `json:"health, omitempty"`
 }

@@ -2,8 +2,8 @@ package echo_server
 
 import (
 	"api-gw/pkg/client"
-	"api-gw/pkg/config"
 	"api-gw/pkg/common"
+	"api-gw/pkg/config"
 	"api-gw/pkg/model"
 	"context"
 	"errors"

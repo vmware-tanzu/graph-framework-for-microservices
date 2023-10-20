@@ -681,14 +681,14 @@ func createStatusPatch(body map[string]interface{}) []PatchOp {
 
 func DebugAllHandler(c echo.Context) error {
 	return c.JSON(http.StatusOK, map[string]interface{}{
-		"isNexusRuntimeEnabled":         config.Cfg.EnableNexusRuntime,
-		"backendService":                config.Cfg.BackendService,
-		"crdTypeToRestUris":             model.CrdTypeToRestUris,
-		"uriToUriInfo":                  model.UriToUriInfo,
-		"crdTypeToNodeInfo":             model.CrdTypeToNodeInfo,
-		"datamodelToDatamodelInfo":      model.DatamodelToDatamodelInfo,
-		"declarativePaths":              declarative.ApisList,
-		"totalHttpServerRestarts":       TotalHttpServerRestartCounter,
-		"httpServerRestartsFromOpenApiSpecUpdate": 	HttpServerRestartFromOpenApiSpecUpdateCounter,
+		"isNexusRuntimeEnabled":                   config.Cfg.EnableNexusRuntime,
+		"backendService":                          config.Cfg.BackendService,
+		"crdTypeToRestUris":                       model.CrdTypeToRestUris,
+		"uriToUriInfo":                            model.UriToUriInfo,
+		"crdTypeToNodeInfo":                       model.CrdTypeToNodeInfo,
+		"datamodelToDatamodelInfo":                model.DatamodelToDatamodelInfo,
+		"declarativePaths":                        declarative.ApisList,
+		"totalHttpServerRestarts":                 TotalHttpServerRestartCounter,
+		"httpServerRestartsFromOpenApiSpecUpdate": HttpServerRestartFromOpenApiSpecUpdateCounter,
 	})
 }

@@ -22,12 +22,10 @@ import (
 
 	log "github.com/sirupsen/logrus"
 
-	tenantv1 "golang-appnet.eng.vmware.com/nexus-sdk/api/build/apis/tenantconfig.nexus.vmware.com/v1"
+	tenantv1 "github.com/vmware-tanzu/graph-framework-for-microservices/api/build/apis/tenantconfig.nexus.vmware.com/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/kubernetes"
-
-	reg_svc "gitlab.eng.vmware.com/nsx-allspark_users/go-protos/pkg/registration-service/global"
 
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -69,9 +67,8 @@ func (r *TenantReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 		}
 	}
 
-	regClient := reg_svc.NewGlobalRegistrationClient(r.GrpcConnector.Connection)
 	if eventType == model.Upsert {
-		model.TenantEvent <- model.TenantNodeEvent{Tenant: TenantConfig, Type: eventType, RegClient: regClient}
+		model.TenantEvent <- model.TenantNodeEvent{Tenant: TenantConfig, Type: eventType}
 		return ctrl.Result{}, nil
 	} else {
 		model.TenantEvent <- model.TenantNodeEvent{Tenant: tenantv1.Tenant{
@@ -79,8 +76,7 @@ func (r *TenantReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 				Name: req.Name,
 			},
 		},
-			Type:      eventType,
-			RegClient: regClient,
+			Type: eventType,
 		}
 	}
 

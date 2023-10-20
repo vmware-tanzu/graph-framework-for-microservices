@@ -1,0 +1,184 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: dmi-kubeconfig
+  namespace: {{ default  .Release.Namespace .Values.global.namespace }}
+data:
+  kubeconfig: |
+    current-context: nexus-api-server
+    apiVersion: v1
+    kind: Config
+    clusters:
+    - cluster:
+        api-version: v1
+        server: http://nexus-apiserver:8080
+        insecure-skip-tls-verify: true
+      name: nexus-api-server
+    contexts:
+    - context:
+        cluster: nexus-api-server
+      name: nexus-api-server
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: dmi-script
+  namespace: {{ default  .Release.Namespace .Values.global.namespace }}
+data:
+  patch_graphql_server.sh: |
+      set -ex
+      DATAMODEL_IMAGE=${IMAGE}
+      if  test -f /build/server; then
+              echo "Datamodel IMAGE: $DATAMODEL_IMAGE"
+              kubectl get cm nexus-graphql-server-deployment -n {{ default  .Release.Namespace .Values.global.namespace }} -o yaml | sed "s|__DATAMODEL_IMAGE__|$DATAMODEL_IMAGE|g" | yq e '.data.["graphqlServer.yaml"]' - | kubectl apply -f -
+      fi
+  create_datamodel_cm.sh: |
+      set -ex
+      NAME=${NAME:-}
+      DATAMODEL_IMAGE=${IMAGE}
+      IMAGE="file://${NAME}"
+      TITLE=${TITLE:-}
+      SKIP_CRD_INSTALLATION=${SKIP_CRD_INSTALLATION:-false}
+      GRAPHQL_ENABLED=${GRAPHQL_ENABLED:-false}
+      ### User can pass the custom HTTP URL where the graphql plugin can be downloaded via internet
+      GRAPHQL_PATH=${GRAPHQL_PATH:-NA}
+      ### This is to support older way of installing datamodel from local folder
+      if [[ $SKIP_CRD_INSTALLATION == "false" ]]; then
+          kubectl apply -f /crds --recursive
+          NAME=$(cat /NAME)
+          IMAGE=$(cat /IMAGE)
+          [[ $GRAPHQL_PATH != NA ]] && GRAPHQL_ENABLED=true
+          if  test -f /build/server; then
+              GRAPHQL_ENABLED=true
+          fi
+      fi
+      ### We will create datamodel object
+      if [[ -n $NAME ]] && [[ -n $IMAGE ]]; then
+        if [[ -n $TITLE ]]; then
+          echo '
+            apiVersion: nexus.vmware.com/v1
+            kind: Datamodel
+            metadata:
+              name: '"$NAME"'
+            spec:
+              name: '"$NAME"'
+              url: '"$IMAGE"'
+              title: '"$TITLE"'
+              enableGraphql: '"$GRAPHQL_ENABLED"'' | kubectl apply -f -
+        else
+          echo '
+          apiVersion: nexus.vmware.com/v1
+          kind: Datamodel
+          metadata:
+            name: '"$NAME"'
+          spec:
+            name: '"$NAME"'
+            url: '"$IMAGE"'
+            enableGraphql: '"$GRAPHQL_ENABLED"'' | kubectl apply -f -
+        fi
+      fi
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: datamodel-job-spec
+  namespace: {{ default  .Release.Namespace .Values.global.namespace }}
+data:
+    jobSpec.yaml: |
+      ---
+        apiVersion: batch/v1
+        kind: Job
+        metadata:
+          name: {{`{{.DatamodelInstaller.Name}}`}}-dmi
+        spec:
+          ttlSecondsAfterFinished: 600
+          backoffLimit: 6
+          template:
+            metadata:
+              annotations:
+                "sidecar.istio.io/inject": "false"
+            spec:
+              initContainers:
+                - name: check-nexus-proxy-container
+                  image: "{{.Values.global.registry}}/debugtools:latest"
+                  imagePullPolicy: IfNotPresent
+                  command:
+                    - /bin/bash
+                    - -c
+                    - |
+                      #!/bin/bash
+                      set -x
+                      URL="http://nexus-apiserver:8080/api/v1/namespaces"
+                      max_retries=60
+                      counter=0
+                      while [[ $counter -lt $max_retries ]]; do
+                            status=$(curl -s -o /dev/null -I -w "%{http_code}" -XGET $URL)
+                            if [ $status == "200" ]; then
+                                echo "$URL is reachable"
+                                exit 0
+                            else
+                                counter=$((counter +1))
+                                sleep 3
+                                if [[ $counter -eq $max_retries ]]; then
+                                  exit 1
+                                fi
+                            fi
+                      done
+              containers:
+                - command:
+                    - /bin/bash
+                    - -c
+                    - opt/datamodel-installer-job-cm/create_datamodel_cm.sh
+                  env:
+                    - name: KUBECONFIG
+                      value: /etc/config/kubeconfig
+                    - name: NAME
+                      value: {{`{{.DatamodelInstaller.Name}}`}}
+                    - name: IMAGE
+                      value: {{`{{.DatamodelInstaller.Image}}`}}
+                    - name: SKIP_CRD_INSTALLATION
+                      value: {{`"{{.SkipCRDInstallation}}"`}}
+                    {{`{{if .DatamodelTitle}}`}}
+                    - name: TITLE
+                      value: {{`"{{.DatamodelTitle}}"`}}
+                    {{`{{end}}`}}
+                    - name: GRAPHQL_PATH
+                      value: {{`"{{.GraphqlPath}}"`}}
+                  image: {{`{{.DatamodelInstaller.Image}}`}}
+                  imagePullPolicy: IfNotPresent
+                  name: datamodel-installer-job
+                  volumeMounts:
+                    - mountPath: /opt/datamodel-installer-job-cm/
+                      name: dmi-script
+                      readOnly: false
+                    - mountPath: /etc/config
+                      name: dmi-kubeconfig
+                      readOnly: false
+                - command:
+                    - /bin/bash
+                    - -c
+                    - opt/datamodel-installer-job-cm/patch_graphql_server.sh
+                  env:
+                    - name: IMAGE
+                      value: {{`{{.DatamodelInstaller.Image}}`}}
+                  image: {{`{{.DatamodelInstaller.Image}}`}}
+                  imagePullPolicy: IfNotPresent
+                  name: datamodel-installer-job-graphql-patch
+                  volumeMounts:
+                    - mountPath: /opt/datamodel-installer-job-cm/
+                      name: dmi-script
+                      readOnly: false
+              restartPolicy: Never
+              volumes:
+                - configMap:
+                    name: dmi-script
+                    defaultMode: 0555
+                  name: dmi-script
+                - configMap:
+                    name: dmi-kubeconfig
+                    defaultMode: 0555
+                  name: dmi-kubeconfig
+              {{`{{- if .IsImagePullSecret }}`}}
+              imagePullSecrets:
+                - name: {{`{{.ImagePullSecret}}`}}
+              {{`{{- end }}`}}

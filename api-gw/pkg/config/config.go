@@ -9,6 +9,8 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
+const ApiGwConfigFileDefaullt = "/config/api-gw-config"
+
 type Config struct {
 	Server             ServerConfig `json:"server" yaml:"server"`
 	EnableNexusRuntime bool         `json:"enable_nexus_runtime" yaml:"enable_nexus_runtime,omitempty"`
@@ -35,6 +37,15 @@ var GlobalStaticRouteConfig *GlobalStaticRoutes
 
 func LoadConfig(configFile string) (*Config, error) {
 	var config *Config
+
+	if configFile == "" {
+		isPresent := false
+		configFile, isPresent = os.LookupEnv("APIGWCONFIG")
+		if !isPresent {
+			configFile = ApiGwConfigFileDefaullt
+		}
+	}
+
 	file, err := os.Open(configFile)
 	if err != nil {
 		return nil, fmt.Errorf("failed to open config file: %s", err)
