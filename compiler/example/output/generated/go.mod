@@ -12,7 +12,6 @@ require (
 	github.com/elliotchance/orderedmap v1.4.0
 	github.com/sirupsen/logrus v1.8.1
 	github.com/vmware-tanzu/cartographer v0.3.0
-	github.com/vmware-tanzu/graph-framework-for-microservices/nexus v0.0.0-00010101000000-000000000000
 	k8s.io/apimachinery v0.26.3
 	k8s.io/client-go v0.26.3
 )
