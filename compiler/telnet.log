@@ -1,0 +1,82 @@
+Trying ::1...
+Connected to localhost.
+Escape character is '^]'.
+> {
+  DMCache: [32m'DMsi'[39m,
+  DMCacheID: [32m'0dc5f15f-4e3e-4c7f-aa74-201dece9b8eb'[39m,
+  DMSubscriptionInfo: {
+    SubscriptionSummary: [],
+    WatcherCount: [],
+    TotalKeyWatcherCount: [33m0[39m,
+    TotalPrefixWatcherCount: [33m0[39m
+  },
+  nInfo: {
+    [32m'Cluster.gke-ah3-k24-cl4'[39m: {
+      NodeProp: [36m[Object][39m,
+      nodeRefInfo: [36m[Array][39m,
+      CachedNodes: [36m[Array][39m,
+      Weight: [33m0[39m,
+      Depth: [33m0[39m,
+      SubCbfnNodeLength: [33m0[39m,
+      SubCbfnLinkLength: [33m0[39m,
+      LinksSummary: [36m[Object][39m,
+      Children: [36m[Object][39m
+    }
+  },
+  error: [32m''[39m,
+  statusMessage: [32m'DM: DMsi, DMID: 0dc5f15f-4e3e-4c7f-aa74-201dece9b8eb: Printing the current cache sub tree for node /Root/root/Inventory/default/Cluster/gke-ah3-k24-cl4 upto a depth of 29 nodes\n'[39m +
+    [32m'DM: DMsi, DMID: 0dc5f15f-4e3e-4c7f-aa74-201dece9b8eb: Cache lookup success:  Found entry for NodeId:/Root/root/Inventory/default/Cluster/gke-ah3-k24-cl4 in cache. Traversing sub trees...\n'[39m
+}
+> {
+  [32m'Cluster.gke-ah3-k24-cl4'[39m: {
+    NodeProp: {
+      _NodeKeyName: [32m'name'[39m,
+      _isRoot: [32m'false'[39m,
+      caStatusHistory: [32m'null'[39m,
+      castatus: [32m'%7B%7D'[39m,
+      changeId: [32m'vY2ob8thfBPkEMkNNUdsLh'[39m,
+      componentStatuses: [32m'%7B%7D'[39m,
+      componentStatusesHistory: [32m'null'[39m,
+      connected: [33mfalse[39m,
+      id: [32m''[39m,
+      istioState: [32m''[39m,
+      name: [32m'gke-ah3-k24-cl4'[39m,
+      projectId: [32m''[39m,
+      status: [32m'%7B%22metadata%22%3A%7B%7D%2C%22state%22%3A%22Disconnected%22%2C%22updateTimestamp%22%3A%222023-07-18T03%3A35%3A04Z%22%7D'[39m,
+      statusHistory: [32m'%5B%7B%22state%22%3A%22Ready%22%2C%22metadata%22%3A%7B%7D%2C%22updateTimestamp%22%3A%222023-07-17T22%3A41%3A59Z%22%7D%2C%7B%22state%22%3A%22Disconnected%22%2C%22metadata%22%3A%7B%7D%2C%22updateTimestamp%22%3A%222023-07-17T22%3A41%3A28Z%22%7D%2C%7B%22state%22%3A%22Ready%22%2C%22metadata%22%3A%7B%7D%2C%22updateTimestamp%22%3A%222023-07-17T21%3A50%3A00Z%22%7D%2C%7B%22state%22%3A%22Disconnected%22%2C%22metadata%22%3A%7B%7D%2C%22updateTimestamp%22%3A%222023-07-17T21%3A49%3A26Z%22%7D%2C%7B%22state%22%3A%22Ready%22%2C%22metadata%22%3A%7B%7D%2C%22updateTimestamp%22%3A%222023-07-17T18%3A45%3A31Z%22%7D%2C%7B%22state%22%3A%22Disconnected%22%2C%22metadata%22%3A%7B%7D%2C%22updateTimestamp%22%3A%222023-07-17T18%3A44%3A06Z%22%7D%2C%7B%22state%22%3A%22Ready%22%2C%22metadata%22%3A%7B%7D%2C%22updateTimestamp%22%3A%222023-07-10T14%3A24%3A37Z%22%7D%2C%7B%22state%22%3A%22Disconnected%22%2C%22metadata%22%3A%7B%7D%2C%22updateTimestamp%22%3A%222023-07-10T14%3A24%3A08Z%22%7D%2C%7B%22state%22%3A%22Ready%22%2C%22metadata%22%3A%7B%7D%2C%22updateTimestamp%22%3A%222023-07-07T03%3A10%3A46Z%22%7D%2C%7B%22state%22%3A%22Disconnected%22%2C%22metadata%22%3A%7B%7D%2C%22updateTimestamp%22%3A%222023-07-07T03%3A10%3A18Z%22%7D%5D'[39m,
+      type: [32m''[39m,
+      updateTime: [32m'2023-07-18T03:35:04.106Z'[39m,
+      updatedBy: [32m'9f75c680-a46f-4a05-aba5-4491c7945f50'[39m,
+      uuid: [32m'554f2eef-94ff-45c5-a81e-8e7e37ec2617'[39m,
+      createdBy: [32m'71318801-8206-41d9-a7bc-98597d6c56cb'[39m,
+      creationTime: [32m'2023-07-05T05:32:50.992Z'[39m
+    },
+    nodeRefInfo: [ [36m[Object][39m ],
+    CachedNodes: [ [32m'/Root/root/Inventory/default/Cluster/gke-ah3-k24-cl4'[39m ],
+    Weight: [33m0[39m,
+    Depth: [33m0[39m,
+    SubCbfnNodeLength: [33m0[39m,
+    SubCbfnLinkLength: [33m0[39m,
+    LinksSummary: {
+      [32m'Hard.Links'[39m: [36m[Object][39m,
+      [32m'Soft.Links'[39m: [36m[Object][39m,
+      [32m'Reverse.Soft.Links'[39m: [36m[Object][39m
+    },
+    Children: {
+      [32m'Node.gke-gke-humana-adv-clnt-hdr-3-pool-1-4c5a3292-179j'[39m: [36m[Object][39m,
+      [32m'Node.gke-gke-humana-adv-clnt-hdr-node-pool-acaeed86-hrb5'[39m: [36m[Object][39m,
+      [32m'Node.gke-gke-humana-adv-clnt-hdr-node-pool-8847e818-fphr'[39m: [36m[Object][39m,
+      [32m'Node.gke-gke-humana-adv-clnt-hdr-node-pool-2cabb66e-xx5c'[39m: [36m[Object][39m,
+      [32m'Domain.default'[39m: [36m[Object][39m,
+      [32m'Domain.kube-node-lease'[39m: [36m[Object][39m,
+      [32m'Domain.kube-public'[39m: [36m[Object][39m,
+      [32m'Domain.vmware-system-tsm'[39m: [36m[Object][39m,
+      [32m'Domain.kube-system'[39m: [36m[Object][39m,
+      [32m'Domain.istio-system'[39m: [36m[Object][39m,
+      [32m'Domain.ciig7thnhf80f5ov2id0'[39m: [36m[Object][39m,
+      [32m'ApplicationInfo.tsm'[39m: [36m[Object][39m,
+      [32m'ConnectionStatus.default'[39m: [36m[Object][39m
+    }
+  }
+}
+> 
